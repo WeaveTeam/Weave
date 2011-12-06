@@ -32,7 +32,6 @@ package weave.data.DataSources
 	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableDynamicObject;
-	import weave.core.LinkableXML;
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
@@ -107,7 +106,7 @@ package weave.data.DataSources
 			{
 				if(!(source is MultiDataSource))
 				{
-					var xml:XML = (source.attributeHierarchy as AttributeHierarchy).value;
+					var xml:XML = getSessionState(source.attributeHierarchy) as XML;
 					if (xml != null)
 					{
 						var category:XML = xml.copy();
@@ -163,7 +162,7 @@ package weave.data.DataSources
 			
 			delete path.@dataSourceName;
 			
-			var xml:XML = (source.attributeHierarchy as AttributeHierarchy).value;
+			var xml:XML = getSessionState(source.attributeHierarchy) as XML;
 			var currentSubTreeNode:XML = HierarchyUtils.getNodeFromPath(xml, path);
 			
 			source.initializeHierarchySubtree(currentSubTreeNode);

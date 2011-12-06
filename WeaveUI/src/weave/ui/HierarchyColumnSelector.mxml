@@ -141,7 +141,7 @@
 				var depth:int = HierarchyUtils.getPathDepth(selectedPath.value);
 				for (var i:int = 1; i <= depth; i++)
 				{
-					var hierarchy:XML = (multiDataSource.attributeHierarchy as AttributeHierarchy).value;
+					var hierarchy:XML = getSessionState(multiDataSource.attributeHierarchy) as XML;
 					var node:XML = HierarchyUtils.getNodeFromPath(hierarchy, selectedPath.value, i);
 					if (node != null && node.localName().toString() != 'attribute')
 						multiDataSource.initializeHierarchySubtree(node);

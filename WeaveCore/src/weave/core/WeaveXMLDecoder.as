@@ -171,20 +171,22 @@ package weave.core
 		 */	    
 		override public function decodeXML(dataNode:XMLNode):Object
 		{
+			// handle special cases indicated by the 'encoding' attribute
+			var encoding:String = String(dataNode.attributes.encoding).toLowerCase();
+			
+			/* TEMPORARY -- for partial backwards compatibility -- remove in next version */
+			if (ObjectUtil.stringCompare(encoding, "TypedSessionState", true) == 0)
+				encoding = WeaveXMLEncoder.DYNAMIC_ENCODING;
+			
 			try
 			{
-				// handle special cases indicated by the 'encoding' attribute
-				var encoding:String = String(dataNode.attributes.encoding).toLowerCase();
 				if (ObjectUtil.stringCompare(encoding, WeaveXMLEncoder.XML_ENCODING, true) == 0)
 				{
 					var children:XMLList = XML(dataNode).children();
 					if (children.length() == 0)
 						return null;
-					// return String instead of XML
-					return (children[0] as XML).toXMLString();
-					
 					// make a copy to get rid of the parent node
-					//return children[0].copy();
+					return children[0].copy();
 				}
 				/* else if (ObjectUtil.stringCompare(encoding, WeaveXMLEncoder.CSV_ENCODING, true) == 0)
 				{

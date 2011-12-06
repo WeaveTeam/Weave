@@ -1288,7 +1288,10 @@ package weave.core
 			
 			if (type == 'xml')
 			{
-				throw new Error("XML is not supported as a primitive session state type.");
+				if ((oldState as XML).toXMLString() != (newState as XML).toXMLString())
+					return newState;
+				
+				return undefined; // no diff
 			}
 			else if (type == 'number')
 			{

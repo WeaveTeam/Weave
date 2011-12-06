@@ -56,7 +56,6 @@
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.data.KeySets.KeySet;
-			import weave.primitives.AttributeHierarchy;
 			import weave.primitives.Bounds2D;
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeavePDBServlet;
@@ -409,7 +408,7 @@
 			
 			private function assignXYColumnsFromSource(source:CSVDataSource,sourceName:String):void
 			{
-				var xml:XML = (source.attributeHierarchy as AttributeHierarchy).value;
+				var xml:XML = getSessionState(source.attributeHierarchy) as XML;
 				//checks whether source availabe to run this function
 				if(xml == null)
 					callLater(assignXYColumnsFromSource,[source,sourceName]);

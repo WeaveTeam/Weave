@@ -39,22 +39,21 @@ package weave.primitives
 			super();
 			addImmediateCallback(this, firstCallback);
 			if (rampXML == null)
-				rampXML = <colorRamp name="5-Color" source="OIC" category="basic">
+				rampXML = 	<colorRamp name="5-Color" source="OIC" category="basic">
 						<node color="0xEFF3FF" position="0"/>
 						<node color="0xBDD7E7" position="0.25"/>
 						<node color="0x6BAED6" position="0.5"/>
 						<node color="0x3182BD" position="0.75"/>
 						<node color="0x08519C" position="1"/>
 					</colorRamp>;
-			value = rampXML;
+			setSessionState(rampXML);
 		}
 		
 		private function firstCallback():void
 		{
-			var xml:XML = value;
-			if (xml)
+			if (_sessionState is XML)
 			{
-				var xmlNodes:XMLList = xml.children();
+				var xmlNodes:XMLList = _sessionState.children();
 				
 				_colorNodes.length = xmlNodes.length();
 				var positions:Array = [];
@@ -75,7 +74,7 @@ package weave.primitives
 				
 				_colorNodes.sortOn("position");
 				
-				_reversed = String(xml.@reverse) == 'true';
+				_reversed = String((_sessionState as XML).@reverse) == 'true';
 			}
 			else
 			{
@@ -89,26 +88,26 @@ package weave.primitives
 		{
 			return _reversed;
 		}
-		public function set reversed(reverse:Boolean):void
+		public function set reversed(value:Boolean):void
 		{
-			if (value)
-			{
-				value.@reverse = reverse;
-				detectChanges();
-			}
+			if (_sessionState == null)
+				return;
+			(_sessionState as XML).@reverse = value;
+			detectChanges();
 		}
 
 		public function get name():String
 		{
-			return value ? value.@name : null;
+			if (_sessionState is XML)
+				return (_sessionState as XML).@name;
+			return null;
 		}
-		public function set name(newName:String):void
+		public function set name(value:String):void
 		{
-			if (value)
-			{
-				value.@name = newName;
-				detectChanges();
-			}
+			if (_sessionState == null)
+				return;
+			(_sessionState as XML).@name = value;
+			detectChanges();
 		}
 		
 		/**
