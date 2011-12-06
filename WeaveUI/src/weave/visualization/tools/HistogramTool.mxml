@@ -67,10 +67,8 @@
 				super.constructor();
 				
 				// lock dynamic objects into place
-				plotter = initDefaultPlotter(HistogramPlotter) as HistogramPlotter;
+				plotter = initializePlotters(HistogramPlotter, true);
 				visualization.enableProbeLine(false, true);
-
-				showAxes = true;
 				
 				xAxisLayer.axisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;

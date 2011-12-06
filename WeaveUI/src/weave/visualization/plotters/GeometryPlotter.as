@@ -290,7 +290,7 @@ package weave.visualization.plotters
 				}
 				// only request more detail if requestedDataBounds is defined
 				if (!requestedDataBounds.isUndefined())
-					streamedColumn.requestGeometryDetail(requestedDataBounds, requestedMinImportance);
+					streamedColumn.requestGeometryDetail(requestedDataBounds, requestedMinImportance * Weave.properties.geometryMinimumScreenArea.value);
 			}
 			
 			var graphics:Graphics = tempShape.graphics;
@@ -320,7 +320,8 @@ package weave.visualization.plotters
 					var geom:GeneralizedGeometry = geoms[i] as GeneralizedGeometry;
 					if (geom)
 					{
-						if (geom.geomType == GeneralizedGeometry.GEOM_TYPE_POLYGON && geom.bounds.getArea() < minImportance)
+						// skip shapes that are considered unimportant at this zoom level
+						if (geom.geomType == GeneralizedGeometry.GEOM_TYPE_POLYGON && geom.bounds.getArea() < minImportance * Weave.properties.geometryMinimumScreenArea.value)
 							continue;
 						drawMultiPartShape(recordKey, geom.getSimplifiedGeometry(minImportance, dataBounds), geom.geomType, dataBounds, screenBounds, graphics, destination);
 					}

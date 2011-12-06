@@ -32,7 +32,7 @@
 		 >
 	<mx:MenuBar id="menubar"
 				change="handleMenuItemChosen(event)"
-				height="22"
+				height="24"
 				width="100%"
 				dataProvider="{_menuList}"
 				labelField="weaveLabel"

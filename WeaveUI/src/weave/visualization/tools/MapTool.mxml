@@ -23,7 +23,7 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
 	     layout="absolute" xmlns:userControls="weave.ui.userControls.*" creationPolicy="all"
-	     xmlns:mapTool="weave.visualization.tools.*"
+	     xmlns:mapTool="weave.visualization.tools.*" xmlns:managers="weave.editors.managers.*"
 	     >
 	<mx:Script>
 		<![CDATA[
@@ -36,37 +36,27 @@
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.DataTypes;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IQualifiedKey;
-			import weave.api.data.ISimpleGeometry;
-			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
-			import weave.api.ui.IPlotLayer;
-			import weave.api.ui.IPlotterWithGeometries;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
-			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.ReprojectedGeometryColumn;
-			import weave.data.KeySets.KeySet;
 			import weave.primitives.Bounds2D;
 			import weave.services.wms.WMSProviders;
 			import weave.ui.ColorBinEditor;
 			import weave.ui.DynamicColumnComponent;
-			import weave.ui.PenTool;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
-			import weave.utils.SpatialIndex;
 			import weave.visualization.layers.InteractionController;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
-			import weave.visualization.plotters.DynamicPlotter;
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			import weave.visualization.plotters.GeometryPlotter;
 			import weave.visualization.plotters.SingleImagePlotter;
@@ -428,14 +418,6 @@
 				//linkableYCenterCoord.value = yCenter; // and so does this.
 			}
 			
-			override public function dispose():void
-			{
-				super.dispose();
-				disposeObjects(layerEditor);
-				//EventUtils.removeBindCallback(layerList, "selectedItem", handleSelectedLayerChange);
-				//EventUtils.removeBindCallback(userControlPanel, "visible", handleControlPanelToggle);
-			}
-			
 			public var overviewPanel:MapOverviewWindow;
 			private const OVERVIEW_PANEL_NAME:String = "overview";
 			
@@ -481,6 +463,20 @@
 			public const showMouseModeControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
 			private const _tempArray:Array = [];
+			
+			private function handleProjectionComboChange():void
+			{
+				if (projectionVerifier(projComboBox.text))
+				{
+					projValidLabel.text = 'Valid';
+					projComboBox.errorString = '';
+				}
+				else
+				{
+					projValidLabel.text = 'Invalid';
+					projComboBox.errorString = 'Unknown projection';
+				}
+			}
 			
 		]]>
 	</mx:Script>
@@ -638,7 +634,7 @@
 			</mx:columns>
 			</mx:DataGrid>-->
 			
-			<ui:PlotLayerEditor id="layerEditor" creationComplete="layerEditor.visualization = visualization"/>
+			<managers:PlotLayerEditor id="layerEditor" creationComplete="layerEditor.visualization = visualization"/>
 			<mx:HBox width="100%" verticalAlign="middle">
 				<ui:DynamicColumnComponent label="color" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 				<mx:Button label="Edit Bins..." click="ColorBinEditor.openDefaultEditor();"/>
@@ -667,7 +663,7 @@
 				<ui:CustomComboBox id="projComboBox"
 								   dataProvider="{_projComboBoxData}"
 								   creationComplete="linkBindableProperty(projectionSRS, event.target, 'text');"
-								   change="projValidLabel.text = projectionVerifier(projComboBox.text) ? 'Valid' : 'Invalid';"
+								   change="handleProjectionComboChange();"
 								   focusOut="projComboBox.selectedItem = projectionSRS.value; projValidLabel.text = '';"
 								   editable="true"
 								   width="120"

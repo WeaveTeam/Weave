@@ -26,9 +26,7 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
-	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -39,6 +37,7 @@ package weave.visualization.plotters
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.utils.BitmapText;
+	import weave.utils.LinkableTextFormat;
 
 	/**
 	 * AnchorPlotter
@@ -63,16 +62,7 @@ package weave.visualization.plotters
 		
 		public function AnchorPlotter()	
 		{
-			for each (var child:ILinkableObject in [
-				Weave.properties.axisFontBold,
-				Weave.properties.axisFontColor,
-				Weave.properties.axisFontFamily,
-				Weave.properties.axisFontItalic,
-				Weave.properties.axisFontSize,
-				Weave.properties.axisFontUnderline])
-			{
-				registerLinkableChild(this, child);
-			}
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
 		
 		public function handleAnchorsChange():void
@@ -156,9 +146,7 @@ package weave.visualization.plotters
 					_bitmapText.angle = (_bitmapText.angle - 180) * labelAngleRatio.value;
 				}
 				
-				_bitmapText.textFormat.color = Weave.properties.axisFontColor.value;				
-				_bitmapText.textFormat.size = Weave.properties.axisFontSize.value;
-				_bitmapText.textFormat.underline = Weave.properties.axisFontUnderline.value;
+				LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);				
 				_bitmapText.x = tempPoint.x;
 				_bitmapText.y = tempPoint.y;
 				

@@ -22,9 +22,7 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import flash.text.TextFormat;
 	
-	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
@@ -33,14 +31,12 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.graphs.DynamicGraphAlgorithm;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
+	import weave.utils.LinkableTextFormat;
 	import weave.utils.ObjectPool;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -58,6 +54,7 @@ package weave.visualization.plotters
 			super();
 			setKeySource(nodesColumn);
 			//nodesColumn.addImmediateCallback(this, setKeySource, [nodesColumn], true);
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
 
 		public function runCallbacks():void
@@ -91,14 +88,7 @@ package weave.visualization.plotters
 				bitmapText.y = Math.round(tempDataPoint.y);
 				bitmapText.text = labelColumn.getValueFromKey(recordKey, String) as String;
 
-				// init text format			
-				var f:TextFormat = bitmapText.textFormat;
-				f.size = Weave.properties.axisFontSize.value;
-				f.color = Weave.properties.axisFontColor.value;
-				f.font = Weave.properties.axisFontFamily.value;
-				f.bold = Weave.properties.axisFontBold.value;
-				f.italic = Weave.properties.axisFontItalic.value;
-				f.underline = Weave.properties.axisFontUnderline.value;
+				LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
 				bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
 				
 				// grab a bounds object to store the screen size of the bitmap text

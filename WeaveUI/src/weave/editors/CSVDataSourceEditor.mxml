@@ -36,7 +36,7 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.data.DataSources.CSVDataSource;
-			import weave.ui.editors.EditDataGridPanel;
+			import weave.editors.managers.EditDataGridPanel;
 			
 			private var _csvDataSource:CSVDataSource= null;
 			public function setTarget(object:ILinkableObject):void

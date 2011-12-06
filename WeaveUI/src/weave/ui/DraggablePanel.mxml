@@ -136,7 +136,6 @@
 			
 			
 			
-			protected const helpButton:Button = new Button();
 			protected const userControlButton:Button = new Button();
 			protected const minimizeButton:Button = new Button();
 			protected const maximizeButton:Button = new Button();
@@ -185,12 +184,7 @@
 				panelWidth.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelWidth]);
 				panelHeight.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelHeight]);
 				
-				Weave.properties.panelTitleFontFamily.addGroupedCallback(this, handleTitleFamilyChange);
-				Weave.properties.panelTitleFontColor.addGroupedCallback(this, handleTitleColorChange);
-				Weave.properties.panelTitleFontSize.addGroupedCallback(this, handleTitleSizeChange);
-				Weave.properties.panelTitleFontBold.addGroupedCallback(this,handleTitleWeightChange);
-				Weave.properties.panelTitleFontItalic.addGroupedCallback(this, handleTitleStyleChange);
-				Weave.properties.panelTitleFontUnderline.addGroupedCallback(this, handleTitleDecorationChange);
+				getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, panelNeedsUpdate, true);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, evaluatePanelTitle);
@@ -219,14 +213,12 @@
 				minimizeButton.setStyle("downIcon", _minimizeDownIcon);
 				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
 				setupControlButton(userControlButton, _userControlIcon, toggleControlPanel, "Click here to change settings for this component.");
-				setupControlButton(helpButton, null, toggleHelpPanel, "Click here to show help on how to use this component.");
 				setupControlButton(pinToBackButton, _pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
 				setupControlButton(pinButton, _pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Click here to maximize or restore this component.");
 				setupControlButton(closePanelButton, null, handleCloseButtonClick, "Click here to close this component.");
 				
-				helpButton.label = "?";
 				closePanelButton.label = "X";
 				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
 				closePanelButton.setStyle("textSelectedColor", 0xFFFFFF);
@@ -251,16 +243,6 @@
 						break;
 					}
 				}
-				for (i = 0; i < numChildren; i++)
-				{
-					if (getChildAt(i) is HelpPanel)
-					{
-						_helpPanel = registerDisposableChild(this, getChildAt(i) as HelpPanel);
-						removeChild(_helpPanel);
-						_helpPanel.title = "Help for " + getQualifiedClassName(this).split("::")[1];
-						break;
-					}
-				}
 				
 				titleBar.doubleClickEnabled = true;
 				titleBar.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
@@ -271,7 +253,7 @@
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter, true);
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter);
 				
-				titleBar.setStyle("color", Weave.properties.panelTitleFontColor.value);
+				titleBar.setStyle("color", Weave.properties.panelTitleTextFormat.color.value);
 				
 				panelNeedsUpdate();
 			}
@@ -309,35 +291,10 @@
 				}
 			}
 
-			private function handleTitleColorChange():void
-			{			
-				if (titleBar)
-					titleBar.setStyle("color", Weave.properties.panelTitleFontColor.value);
-			}
-			private function handleTitleWeightChange():void
+			private function handleTitleTextFormatChange():void
 			{
 				if (titleBar)
-					titleBar.setStyle("fontWeight", (Weave.properties.panelTitleFontBold.value) ? "bold" : "normal" ) ;	
-			}
-			private function handleTitleDecorationChange():void
-			{
-				if (titleBar)
-					titleBar.setStyle("textDecoration", (Weave.properties.panelTitleFontUnderline.value)? "underline" : "none");	
-			}
-			private function handleTitleStyleChange():void
-			{
-				if (titleBar)
-					titleBar.setStyle("fontStyle", (Weave.properties.panelTitleFontItalic.value) ? "italic" : "normal");
-			}			
-			private function handleTitleFamilyChange():void
-			{
-				if (titleBar)
-					titleBar.setStyle("fontFamily", Weave.properties.panelTitleFontFamily.value);
-			}			
-			private function handleTitleSizeChange():void
-			{
-				if (titleBar)
-					titleBar.setStyle("fontSize", Weave.properties.panelTitleFontSize.value);
+					Weave.properties.panelTitleTextFormat.copyToStyle(titleBar);
 			}
 			
 			[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;
@@ -812,7 +769,7 @@
 			
 			public function removePanel():void
 			{
-				var panels:Array = [this, _controlPanel, _helpPanel];
+				var panels:Array = [this, _controlPanel];
 				for each (var panel:DraggablePanel in panels)
 				{
 					if (!panel)
@@ -1406,21 +1363,10 @@
 					}		
 				}
 			}
-			private var _helpPanel:HelpPanel = null;
 			private var _controlPanel:ControlPanel = null;
 			
 			public function get controlPanel():ControlPanel { return _controlPanel; }
-			public function get helpPanel():HelpPanel { return _helpPanel; }
 			
-			public function toggleHelpPanel():void
-			{
-				if(_helpPanel)
-				{
-					if (!_helpPanel.parent)
-						PopUpManager.addPopUp(_helpPanel, Application.application as Application);
-					_helpPanel.sendWindowToForeground();
-				}
-			}
 			public function toggleControlPanel():void
 			{
 				if (_controlPanel)
@@ -1488,8 +1434,6 @@
 								
 				if (Weave.properties.enableToolControls.value && _controlPanel)
 					leftIconWidths += buttonSize + spaceBetweenButtons;
-				if (/* enableHelpPanel.value && */ _helpPanel)
-					leftIconWidths += buttonSize + spaceBetweenButtons;
 					
 				return leftIconWidths;
 			}
@@ -1534,39 +1478,19 @@
 				// we only need to utdate title, buttons if the height is > 0, otherwise do not show the buttons
 				if (getStyle("headerHeight") <= 0)
 				{
-					helpButton.visible        = false; 
 					userControlButton.visible = false;
 					minimizeButton.visible    = false; 
 					maximizeButton.visible    = false;
 				}
 				else
 				{
-					if ( /* enableHelpPanel.value && */ _helpPanel )
-					{
-						if (titleBar != helpButton.parent)
-							titleBar.addChild(helpButton);
-
-						helpButton.setStyle("cornerRadius",  buttonRadius.value);
-						helpButton.width  = buttonSize;
-						helpButton.height = buttonSize;
-						
-						helpButton.x = leftButtonX;
-						helpButton.y = offsetFromTop;
-						
-						helpButton.visible = true;
-					}
-					else
-					{
-						helpButton.visible = false;
-					}
-					
 					if ( Weave.properties.enableToolControls.value && _controlPanel )
 					{
 						if (titleBar != userControlButton.parent)
 							titleBar.addChild(userControlButton);						
 
 						userControlButton.setStyle("cornerRadius",  buttonRadius.value);
-						userControlButton.x = leftButtonX + (/* enableHelpPanel.value && */ _helpPanel ? buttonSize + spaceBetweenButtons : 0);
+						userControlButton.x = leftButtonX;
 						userControlButton.y = offsetFromTop;
 						userControlButton.width  = buttonSize;
 						userControlButton.height = buttonSize;
@@ -1785,8 +1709,6 @@
 			{
 				if (_controlPanel)
 					_controlPanel.removePanel();
-				if (_helpPanel)
-					_helpPanel.removePanel();
 				
 				if(!minimizable.value)
 					return;
@@ -1828,9 +1750,6 @@
 
 				if (_controlPanel)
 					_controlPanel.restorePanel();
-
-				if (_helpPanel)
-					_helpPanel.restorePanel();
 
 				if (_minimized)
 				{
@@ -1910,8 +1829,6 @@
 					titleBar.removeEventListener(MouseEvent.DOUBLE_CLICK, handleTitleBarDoubleClick);
 				}
 				
-				if (_helpPanel && _helpPanel.parent)
-					_helpPanel.parent.removeChild(_helpPanel);
 				if (_controlPanel && _controlPanel.parent)
 					_controlPanel.parent.removeChild(_controlPanel);
 			}

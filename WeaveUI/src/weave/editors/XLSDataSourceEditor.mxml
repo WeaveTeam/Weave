@@ -41,7 +41,7 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.data.DataSources.XLSDataSource;
-			import weave.ui.editors.EditDataGridPanel;
+			import weave.editors.managers.EditDataGridPanel;
 			
 			private var _xlsDataSource:XLSDataSource= null;
 			public function setTarget(object:ILinkableObject):void

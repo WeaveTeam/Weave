@@ -44,12 +44,8 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(StickFigureGlyphPlotter) as StickFigureGlyphPlotter;
+				_plotter = initializePlotters(StickFigureGlyphPlotter, true);
 
-				getCallbackCollection(visualization.zoomBounds).addImmediateCallback(this, invalidateAxes);
-				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
-				invalidateAxes();
-				
 				initColumnDefaults(
 						_plotter.dataX,
 						_plotter.dataY,
@@ -93,11 +89,6 @@
 				}
 				else visualization.additionalProbeColumns = null;
 				//else ProbeTextUtils.probedColumns.copyObject('probedColumns',oldProbeColumns);
-			}
-			
-			private function invalidateAxes():void
-			{
-				handlePanelTitleChange();
 			}
 			
 			override protected function handlePanelTitleChange():void

@@ -20,22 +20,16 @@
 */
 -->
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
-		xmlns="*"
-		xmlns:settings="weave.ui.settings.*"
-		xmlns:ui="weave.ui.*"
+		xmlns="weave.ui.*"
 		creationPolicy="all"
-		horizontalGap="4">
+		horizontalGap="4" verticalAlign="middle">
 	
 	<mx:ColorPicker id="colorPicker" width="22" height="22"/>
-
-	<settings:FontStyleList id="fontFamilyCombo" width="150" />
-
-	<ui:CustomComboBox id="fontSizeCombo" editable="false" dataProvider="{fontSizeArray}"
-					   fontSize="10"
+	<FontFamilyCombo id="fontFamilyCombo" width="150"/>
+	<CustomComboBox id="fontSizeCombo" editable="false" dataProvider="{fontSizeArray}"
 					   textDecoration="none"
 					   fontStyle="normal"
 					   fontWeight="normal"/>
-
 	<mx:Button id="boldButton" toggle="true" label="B" width="30" fontFamily="_serif" fontWeight="bold" toolTip="Bold"/>
 	<mx:Button id="italicButton" toggle="true" label="I" width="30" fontFamily="_serif" fontStyle="italic" toolTip="Italic"/>
 	<mx:Button id="underlineButton" toggle="true" label="U" width="30" fontFamily="_serif" textDecoration="underline" toolTip="Underline"/>

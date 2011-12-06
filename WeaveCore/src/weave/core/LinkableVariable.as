@@ -77,6 +77,16 @@ package weave.core
 		 * Function signature should be  function(value:*):Boolean
 		 */		
 		protected var _verifier:Function = null;
+		
+		/**
+		 * This function will verify if a given value is a valid session state for this linkable variable.
+		 * @param value The value to verify.
+		 * @return A value of true if the value is accepted by this linkable variable.
+		 */
+		internal function verifyValue(value:Object):Boolean
+		{
+			return _verifier == null || _verifier(value);
+		}
 
 		protected var _sessionStateType:Class = null;
 		public function getSessionStateType():Class

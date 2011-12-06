@@ -25,16 +25,11 @@
 	     layout="absolute" xmlns:userControls="weave.ui.userControls.*">
 	<mx:Script>
 		<![CDATA[
-			import mx.events.FlexEvent;
-			import mx.managers.CursorManager;
-			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.unlinkSessionState;
-			import weave.core.ErrorManager;
-			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -42,7 +37,7 @@
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.ColumnUtils;
-			import weave.utils.CustomCursorManager;
+			import weave.utils.LinkableTextFormat;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
 
 			private var _plotter:ColorBinLegendPlotter = null;
@@ -50,7 +45,7 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(ColorBinLegendPlotter) as ColorBinLegendPlotter;
+				_plotter = initializePlotters(ColorBinLegendPlotter, false);
 
 				plotLayer.useTextBitmapFilters.value = true;
 				
@@ -59,10 +54,7 @@
 				
 				visualization.topMarginClickCallbacks.addGroupedCallback(this, handleMarginLabelClick);
 				
-				Weave.properties.axisFontFamily.addGroupedCallback(this,updateMarginLabel);
-				Weave.properties.axisFontColor.addGroupedCallback(this,updateMarginLabel);
-				Weave.properties.axisFontSize.addGroupedCallback(this,updateMarginLabel);
-				Weave.properties.axisFontUnderline.addGroupedCallback(this, updateMarginLabel);
+				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateMarginLabel, true);
 				_plotter.dynamicColorColumn.addGroupedCallback(this, updateMarginLabel, true);
 
 				panelWidth.value = "20%";
@@ -167,13 +159,8 @@
 				{
 					marginLabel.text = colTitle;
 				}
-				marginLabel.setStyle("fontFamily", Weave.properties.axisFontFamily.value);
-				marginLabel.setStyle("color", Weave.properties.axisFontColor.value);
-				marginLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
-				if (Weave.properties.axisFontUnderline.value)
-					marginLabel.setStyle("textDecoration", "underline");
-				else
-					marginLabel.setStyle("textDecoration", "none");
+				
+				LinkableTextFormat.defaultTextFormat.copyToStyle(marginLabel);
 			}
 			
 			override protected function handlePanelTitleChange():void
@@ -204,7 +191,6 @@
 	
 	<mx:TextArea id="marginLabel"
 				 mouseChildren="false" mouseEnabled="false"
-				 fontWeight="bold" 
 				 x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5" width="100%"
 				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				 wordWrap="true" selectable="false" editable="false"

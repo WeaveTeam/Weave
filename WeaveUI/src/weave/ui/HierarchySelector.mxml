@@ -280,7 +280,7 @@ Displays catoegories in a tree view and the attributes in a list.
 				
 				// set selected path and load attribute list
 				attributesView.dataProvider = categoryNode.attribute;
-				(attributesView.dataProvider as XMLListCollection).filterFunction = filterAttr;
+				(attributesView.dataProvider as XMLListCollection).filterFunction = attributeFilterFunction;
 				(attributesView.dataProvider as ICollectionView).refresh();
 
 				if (setSelectedPath)
@@ -329,7 +329,7 @@ Displays catoegories in a tree view and the attributes in a list.
 				return null;
 			}
 			
-			private function filterAttr(item:Object):Boolean
+			public function attributeFilterFunction(item:Object):Boolean
 			{
 				var lowerCaseFilter:String = attributeFilter.value.toLowerCase();
 				var label:String = getLabelForNode(item);

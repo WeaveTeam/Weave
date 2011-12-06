@@ -47,6 +47,7 @@
 		import mx.printing.FlexPrintJobScaleType;
 		import mx.utils.ObjectUtil;
 		
+		import weave.Weave;
 		import weave.data.AttributeColumns.AbstractAttributeColumn;
 		import weave.utils.BitmapUtils;
 		
@@ -73,11 +74,17 @@
 		public function set componentToScreenshot(component:UIComponent):void
 		{
 			_componentToScreenshot = component;
-			
-			_imageSource = BitmapUtils.getPNGFromComponent(component);
-			
-			// the following will crash when component is the application. 
-			//_imageSource = ImageSnapshot.captureImage(component).data;
+			try
+			{
+				// the following will crash when component is the application.
+				_imageSource = ImageSnapshot.captureImage(component).data;
+			}
+			catch (e:Error)
+			{
+				trace(e.getStackTrace());
+				trace("ImageSnapshot.captureImage() failed, falling back to BitmapUtils.getPNGFromComponent()");
+				_imageSource = BitmapUtils.getPNGFromComponent(component);
+			}
 		}
 		
 		//handle when close button of TitleWindow is clicked
@@ -127,7 +134,11 @@
 			printVbox.validateProperties();
 			
             // Start the print job.
-            if (printJob.start() != true) return;
+            if (printJob.start() != true) 
+			{
+				scalePrintVbox();
+				return;
+			}
 
             // Add the object to print. Do not scale it.
             //printJob.addObject(this, FlexPrintJobScaleType.NONE);
@@ -188,9 +199,15 @@
 			}
 		}
 		
+		private function scalePrintVbox():void
+		{
+			var multiplier:Number = Weave.properties.workspaceMultiplier.value;
+			printVbox.scaleY = printVbox.scaleX = 1 / (multiplier+1);
+		}
+		
    		]]>
 	</mx:Script>
-	<mx:VBox id="printVbox" width="100%" height="100%" backgroundColor="0xFFFFFF" horizontalAlign="center" scaleX="0.5" scaleY="0.5" clipContent="true" mouseEnabled="false">
+	<mx:VBox id="printVbox" width="100%" height="100%" backgroundColor="0xFFFFFF" horizontalAlign="center" initialize="scalePrintVbox()" clipContent="true" mouseEnabled="false">
 		<mx:Label text="{applicationTitle}" textAlign="center" fontSize="18" fontWeight="bold" horizontalCenter="0" width="100%"/>
 		<mx:Image id="exportImage" source="{_imageSource}"/>
 		<ui:OICLogoPane width="100%"/>

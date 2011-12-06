@@ -46,6 +46,7 @@
 			import weave.ui.ColumnListComponent;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
+			import weave.utils.LinkableTextFormat;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.AxisLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
@@ -64,11 +65,10 @@
 				visualization.marginRight.value  = "80";
 				
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(ParallelCoordinatesPlotter) as ParallelCoordinatesPlotter;
+				_plotter = initializePlotters(ParallelCoordinatesPlotter, true);
 				// add this callback first because it needs to be called for each column that is removed
 				_plotter.columns.childListCallbacks.addImmediateCallback(this, handleColumnAddRemoveReorder);
 				
-				showAxes = true;
 				visualization.includeNonSelectableLayersInAutoZoom.lock();
 				visualization.enableZoomAndPan.value = false;
 
@@ -356,17 +356,13 @@
 				labelPlotter.xScreenOffset.value=5;
 				labelPlotter.hAlign.defaultValue.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
 				labelPlotter.hideOverlappingText.value = true;
-				linkSessionState(labelPlotter.dataY,labelPlotter.sortColumn);
+				linkSessionState(labelPlotter.dataY, labelPlotter.sortColumn);
 				labelPlotter.setBaseKeySource(_plotter.keySet);
-				labelPlotter.color.defaultValue.value = Weave.properties.axisFontColor.value;
-				labelPlotter.size.defaultValue.value = Weave.properties.axisFontSize.value;
-				Weave.properties.axisFontColor.addGroupedCallback(this, updateLabel);
-				Weave.properties.axisFontSize.addGroupedCallback(this, updateLabel);
+				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateLabel, true);
 			}
 			private function updateLabel():void
 			{
-				labelPlotter.color.defaultValue.value = Weave.properties.axisFontColor.value;
-				labelPlotter.size.defaultValue.value = Weave.properties.axisFontSize.value;
+				labelPlotter.setDefaultTextFormat(LinkableTextFormat.defaultTextFormat);
 			}
 			
 			private function updateColumns():void

@@ -25,27 +25,16 @@
 			   layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			import mx.events.FlexEvent;
-			import mx.managers.CursorManager;
-			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
-			import weave.api.ui.IPlotLayer;
 			import weave.core.LinkableDynamicObject;
-			import weave.core.SessionManager;
-			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
-			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
-			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
-			import weave.utils.CustomCursorManager;
+			import weave.utils.LinkableTextFormat;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.BarChartLegendPlotter;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
@@ -62,7 +51,7 @@
 				// lock dynamic objects into place
 				
 				// create bar segment legend
-				_barLegendPlotter = initDefaultPlotter(BarChartLegendPlotter);
+				_barLegendPlotter = initializePlotters(BarChartLegendPlotter, false);
 				_barLegendLayerName = visualization.layers.getName(plotLayer);
 				
 				// create global color ramp legend
@@ -85,10 +74,7 @@
 				visualization.marginLeft.value   = "5";
 				visualization.marginRight.value  = "5";
 				
-				Weave.properties.axisFontFamily.addGroupedCallback(this,updateMarginLabel);
-				Weave.properties.axisFontColor.addGroupedCallback(this,updateMarginLabel);
-				Weave.properties.axisFontSize.addGroupedCallback(this,updateMarginLabel);
-				Weave.properties.axisFontUnderline.addGroupedCallback(this, updateMarginLabel);
+				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateMarginLabel, true);
 			}
 			override protected function childrenCreated():void
 			{
@@ -182,11 +168,7 @@
 					}
 					visualization.additionalProbeColumns = null;
 				}
-				marginLabel.setStyle("fontFamily", Weave.properties.axisFontFamily.value);
-				marginLabel.setStyle("color", Weave.properties.axisFontColor.value);
-				marginLabel.setStyle("fontSize", Weave.properties.axisFontSize.value);
-				if(Weave.properties.axisFontUnderline.value) marginLabel.setStyle("textDecoration", "underline");
-				else marginLabel.setStyle("textDecoration", "none");
+				LinkableTextFormat.defaultTextFormat.copyToStyle(marginLabel);
 			}
 			
 			override protected function handlePanelTitleChange():void

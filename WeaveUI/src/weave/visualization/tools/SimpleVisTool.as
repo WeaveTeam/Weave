@@ -34,6 +34,7 @@ package weave.visualization.tools
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotLayer;
@@ -45,12 +46,13 @@ package weave.visualization.tools
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.KeySet;
 	import weave.editors.SimpleAxisEditor;
+	import weave.editors.WindowSettingsEditor;
+	import weave.editors.managers.LayerListComponent;
 	import weave.ui.AutoResizingTextArea;
 	import weave.ui.DraggablePanel;
-	import weave.ui.LayerListComponent;
 	import weave.ui.PenTool;
-	import weave.editors.WindowSettingsEditor;
 	import weave.utils.ColumnUtils;
+	import weave.utils.LinkableTextFormat;
 	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.AxisLayer;
 	import weave.visualization.layers.SelectablePlotLayer;
@@ -82,8 +84,7 @@ package weave.visualization.tools
 			{
 				invalidateDisplayList();
 			}
-			Weave.properties.axisFontSize.addGroupedCallback(this, updateTitleLabel);
-			Weave.properties.axisFontColor.addGroupedCallback(this, updateTitleLabel, true);
+			getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateTitleLabel, true);
 		}
 
 		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);
@@ -170,8 +171,7 @@ package weave.visualization.tools
 			if (!parent)
 				return callLater(updateTitleLabel);
 			
-			visTitle.setStyle("fontSize", Weave.properties.axisFontSize.value);
-			visTitle.setStyle("color", Weave.properties.axisFontColor.value);
+			LinkableTextFormat.defaultTextFormat.copyToStyle(visTitle);
 		}
 		
 		
@@ -382,25 +382,14 @@ package weave.visualization.tools
 			}
 		}
 		
-		public function get showAxes():Boolean
+		/**
+		 * @param mainPlotterClass The main plotter class definition.
+		 * @param showAxes Set to true if axes should be added.
+		 * @return The main plotter.
+		 */		
+		protected function initializePlotters(mainPlotterClass:Class, showAxes:Boolean):*
 		{
-			return visualization.showAxes;
-		}
-		public function set showAxes(value:Boolean):void
-		{
-			visualization.showAxes = value;
-		}
-		
-		[Inspectable]
-		public function set plotterClass(classDef:Class):void
-		{
-			visualization.plotterClass = classDef;
-		}
-		
-		protected function initDefaultPlotter(classDef:Class):*
-		{
-			visualization.plotterClass = classDef;
-			return visualization.getDefaultPlotter();
+			return visualization.initializePlotters(mainPlotterClass, showAxes);
 		}
 
 		protected function get plotLayer():SelectablePlotLayer

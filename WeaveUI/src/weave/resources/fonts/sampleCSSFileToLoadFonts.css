@@ -5,13 +5,13 @@ and select Compile CSS to SWF
 */
 @font-face {
 	src:url("MyriadPro-Bold.otf");
-	fontFamily: MyriadPro-Bold;
+	fontFamily: MyriadPro;
 	fontWeight:bold;
 	advancedAntiAliasing: true;
 }
 @font-face {
 	src:url("MyriadPro-BoldCond.otf");
-	fontFamily: MyriadPro-BoldCond;
+	fontFamily: MyriadPro-Cond;
 	fontWeight:bold;
 	advancedAntiAliasing: true;
 }
@@ -22,7 +22,7 @@ and select Compile CSS to SWF
 }
 @font-face {
 	src:url("MyriadPro-Regular.otf");
-	fontFamily: MyriadPro-Regular;
+	fontFamily: MyriadPro;
 	advancedAntiAliasing: true;
 }
 @font-face {

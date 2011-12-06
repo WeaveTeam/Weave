@@ -121,7 +121,8 @@ public class CSVParser
 			&& str.indexOf(quote) < 0
 			&& str.indexOf(delimiter) < 0
 			&& str.indexOf(LF) < 0
-			&& str.indexOf(CR) < 0 )
+			&& str.indexOf(CR) < 0
+			&& str.equals(str.trim()) )
 		{
 			return str;
 		}

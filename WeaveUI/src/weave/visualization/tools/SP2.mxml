@@ -60,8 +60,7 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(ImageGlyphPlotter) as ImageGlyphPlotter;
-				showAxes = true;
+				_plotter = initializePlotters(ImageGlyphPlotter, true);
 
 				//BEGIN TEMPORARY SOLUTION
 				visualization.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);

@@ -19,20 +19,16 @@
 
 package weave.visualization.layers
 {
-	import flash.display.Stage;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
 	
 	import mx.controls.ToolTip;
-	import mx.core.Application;
 	import mx.core.IToolTip;
 	import mx.managers.ToolTipManager;
 	
 	import weave.Weave;
-	import weave.WeaveProperties;
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
-	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;
 	import weave.api.getCallbackCollection;
@@ -53,7 +49,6 @@ package weave.visualization.layers
 	import weave.core.StageUtils;
 	import weave.core.weave_internal;
 	import weave.primitives.Bounds2D;
-	import weave.ui.DraggablePanel;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
 	import weave.utils.CustomCursorManager;
@@ -73,12 +68,6 @@ package weave.visualization.layers
 		public function SimpleInteractiveVisualization()
 		{
 			super();
-			linkSessionState(Weave.properties.axisFontSize, axisFontSize);
-			linkSessionState(Weave.properties.axisFontFamily, axisFontFamily);
-			linkSessionState(Weave.properties.axisFontUnderline, axisFontUnderline);
-			linkSessionState(Weave.properties.axisFontItalic, axisFontItalic);
-			linkSessionState(Weave.properties.axisFontBold, axisFontBold);
-			linkSessionState(Weave.properties.axisFontColor, axisFontColor);
 		}
 
 		public static const PROBE_LINE_LAYER_NAME:String = "probeLine";
@@ -100,13 +89,6 @@ package weave.visualization.layers
 		public const enableAutoZoomXToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
 		public const enableAutoZoomYToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
 		
-		public const axisFontFamily:LinkableString = registerLinkableChild(this, new LinkableString(WeaveProperties.DEFAULT_FONT_FAMILY));
-		public const axisFontBold:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		public const axisFontItalic:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		public const axisFontUnderline:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		public const axisFontSize:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const axisFontColor:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		
 		public const gridLineThickness:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const gridLineColor:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const gridLineAlpha:LinkableNumber = newLinkableChild(this, LinkableNumber);
@@ -115,14 +97,40 @@ package weave.visualization.layers
 		public const axesColor:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const axesAlpha:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		
-		[Inspectable] public function set plotterClass(classDef:Class):void
+		/**
+		 * @param mainPlotterClass The main plotter class definition.
+		 * @param showAxes Set to true if axes should be added.
+		 * @return The main plotter.
+		 */		
+		public function initializePlotters(mainPlotterClass:Class, showAxes:Boolean):*
 		{
-			if (classDef && !_plotLayer)
+			if (mainPlotterClass && !_plotLayer)
 			{
 				_plotLayer = layers.requestObject(PLOT_LAYER_NAME, SelectablePlotLayer, true);
-				_plotLayer.getDynamicPlotter().requestLocalObject(classDef, true);
-				layers.addImmediateCallback(this, putAxesOnBottom, null, true);
+				_plotLayer.getDynamicPlotter().requestLocalObject(mainPlotterClass, true);
 			}
+			if (showAxes)
+			{
+				// x
+				_xAxisLayer = layers.requestObject(X_AXIS_LAYER_NAME, AxisLayer, true);
+				_xAxisLayer.axisPlotter.axisLabelRelativeAngle.value = -45;
+				_xAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
+				linkSessionState(marginBottomNumber, _xAxisLayer.axisPlotter.labelWordWrapSize);
+				
+				linkToAxisProperties(_xAxisLayer);
+				
+				// y
+				_yAxisLayer = layers.requestObject(Y_AXIS_LAYER_NAME, AxisLayer, true);
+				_yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 45;
+				_yAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_BOTTOM;
+				linkSessionState(marginLeftNumber, _yAxisLayer.axisPlotter.labelWordWrapSize);
+				
+				linkToAxisProperties(_yAxisLayer);
+				
+				updateZoom();
+			}
+			putAxesOnBottom();
+			return getDefaultPlotter();
 		}
 		
 		public function linkToAxisProperties(axisLayer:AxisLayer):void
@@ -131,12 +139,6 @@ package weave.visualization.layers
 				throw new Error("linkToAxisProperties(): given axisLayer is not one of this visualization's layers");
 			var p:SimpleAxisPlotter = axisLayer.axisPlotter;
 			var list:Array = [
-				[axisFontFamily,     p.axisFontFamily],
-				[axisFontBold,       p.axisFontBold],
-				[axisFontItalic,     p.axisFontItalic],
-				[axisFontUnderline,  p.axisFontUnderline],
-				[axisFontSize,       p.axisFontSize],
-				[axisFontColor,      p.axisFontColor],
 				[gridLineThickness,  p.axisGridLineThickness],
 				[gridLineColor,      p.axisGridLineColor],
 				[gridLineAlpha,      p.axisGridLineAlpha],
@@ -157,39 +159,6 @@ package weave.visualization.layers
 			//(WeaveAPI.SessionManager as SessionManager).removeLinkableChildrenFromSessionState(p, p.axisLineDataBounds);
 		}
 
-		
-		public function get showAxes():Boolean
-		{
-			return _xAxisLayer != null;
-		}
-		public function set showAxes(value:Boolean):void
-		{
-			if (value && !_xAxisLayer)
-			{
-				// x
-				_xAxisLayer = layers.requestObject(X_AXIS_LAYER_NAME, AxisLayer, true);
-				_xAxisLayer.axisPlotter.axisLabelRelativeAngle.value = -45;
-				_xAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
-				linkSessionState(marginBottomNumber, _xAxisLayer.axisPlotter.labelWordWrapSize);
-				
-				linkToAxisProperties(_xAxisLayer);
-				
-				layers.addImmediateCallback(this, putAxesOnBottom, null, true);
-				updateZoom();
-				
-				// y
-				_yAxisLayer = layers.requestObject(Y_AXIS_LAYER_NAME, AxisLayer, true);
-				_yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 45;
-				_yAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_BOTTOM;
-				linkSessionState(marginLeftNumber, _yAxisLayer.axisPlotter.labelWordWrapSize);
-				
-				linkToAxisProperties(_yAxisLayer);
-				
-				layers.addImmediateCallback(this, putAxesOnBottom, null, true);
-				updateZoom();
-			}
-		}
-		
 		private var tempPoint:Point = new Point(); // reusable temp object
 		
 		/**

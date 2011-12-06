@@ -28,29 +28,32 @@ package weave.utils
 	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.primitives.Bounds2D;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
 	
 	/**
-	 * ProbeTextManager
 	 * A static class containing functions to manage a list of probed attribute columns
 	 * 
 	 * @author adufilie
 	 */
 	public class ProbeTextUtils
 	{
-		public static function get probedColumns():LinkableHashMap
+		public static const enableProbeToolTip:LinkableBoolean = new LinkableBoolean(true);
+		
+		public static function get probedColumns():ILinkableHashMap
 		{
 			// this initializes the probed columns object map if not created yet, otherwise just returns the existing one
 			return Weave.root.requestObject("Probed Columns", LinkableHashMap, true);
 		}
 		
-		public static function get probeHeaderColumns():LinkableHashMap
+		public static function get probeHeaderColumns():ILinkableHashMap
 		{
 			return Weave.root.requestObject("Probe Header Columns", LinkableHashMap, true);
 		}
@@ -148,19 +151,27 @@ package weave.utils
 			if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
 				(probeToolTip as ToolTip).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
 		}
-		
+
 		public static function showProbeToolTip(probeText:String, stageX:Number, stageY:Number, bounds:IBounds2D = null, margin:int = 5):void
 		{
+			if (!probeToolTip)
+				probeToolTip = ToolTipManager.createToolTip('', 0, 0);
+			
+			hideProbeToolTip();
+			
+			if (!enableProbeToolTip.value)
+				return;
+			
 			if (bounds == null)
 			{
 				var stage:Stage = Application.application.stage;
 				tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
 				bounds = tempBounds;
 			}
-			destroyProbeToolTip();
 			
 			// create new tooltip
-			probeToolTip = ToolTipManager.createToolTip(probeText, 0, 0);
+			probeToolTip.text = probeText;
+			probeToolTip.visible = true;
 			
 			// make tooltip completely opaque because text + graphics on same sprite is slow
 			setProbeToolTipAppearance() ;
@@ -185,7 +196,7 @@ package weave.utils
 			{
 				y = stageY + margin * 2;
 				if(yAxisToolTip != null)
-					y = yAxisToolTip.y+yAxisToolTip.height+margin;
+					y = yAxisToolTip.y + yAxisToolTip.height+margin;
 			}
 			
 			// flip y position if out of bounds
@@ -242,13 +253,12 @@ package weave.utils
 		private static var probeToolTip:IToolTip = null;
 		private static const tempBounds:IBounds2D = new Bounds2D();
 		
-		public static function destroyProbeToolTip():void
+		
+		
+		public static function hideProbeToolTip():void
 		{
-			if (probeToolTip != null)
-			{
-				ToolTipManager.destroyToolTip(probeToolTip);
-				probeToolTip = null;
-			}
+			if (probeToolTip)
+				probeToolTip.visible = false;
 		}
 	}
 }
