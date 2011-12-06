@@ -29,6 +29,7 @@
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IAttributeColumn;
@@ -101,7 +102,8 @@
 					initColumnDefaults.apply(null, columnsToInit);
 				
 				_plotter.columns.addGroupedCallback(this, updateProbeColumns, true);
-				_plotter.xValues.addGroupedCallback(this, updateFilterText);
+				_plotter.xData.addGroupedCallback(this, updateFilterText);
+				_plotter.xValues.addGroupedCallback(this, updateFilterText, true);
 				
 				linkSessionState(visualization.marginRightNumber, labelPlotter.maxWidth);
 			}
@@ -164,7 +166,7 @@
 			
 			private function updateFilterText():void
 			{
-				xValuesInput.text = _plotter.xValues.value;
+				xValuesInput.text = WeaveAPI.CSVParser.createCSVFromArrays([_plotter.getXValues()]);
 			}
 			
 			override protected function childrenCreated():void
@@ -509,7 +511,7 @@
 					<mx:Label text="Customize X values:"/>
 					<mx:TextInput id="xValuesInput" toolTip="These values will appear on the x axis" width="100%"/>
 					<mx:Button label="Apply" click="_plotter.xValues.value = xValuesInput.text;"/>
-					<mx:Button label="Reset" click="_plotter.resetXValues();"/>
+					<mx:Button label="Reset" click="_plotter.xValues.value = ''; updateFilterText();"/>
 				</mx:HBox>
 			</mx:VBox>
 		</mx:VBox>
