@@ -205,7 +205,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getClosestOverlappingKeys()">getClosestOverlappingKeys</a>(bounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, xPrecision:Number, yPrecision:Number):Array</div>
+<a class="signatureLink" href="#getClosestOverlappingKeys()">getClosestOverlappingKeys</a>(queryBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, xPrecision:Number, yPrecision:Number, dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>):Array</div>
 <div class="summaryTableDescription">
    This function will get the keys closest the center of the bounds object.</div>
 </td><td class="summaryTableOwnerCol">SpatialIndex</td>
@@ -221,7 +221,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getKeysGeometryOverlap()">getKeysGeometryOverlap</a>(bounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minImportance:Number = 0, filterBoundingBoxesByImportance:Boolean = false):Array</div>
+<a class="signatureLink" href="#getKeysGeometryOverlap()">getKeysGeometryOverlap</a>(queryBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minImportance:Number = 0, filterBoundingBoxesByImportance:Boolean = false, dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a> = null):Array</div>
 <div class="summaryTableDescription">
    This function will get the keys whose geometries intersect with the given bounds.</div>
 </td><td class="summaryTableOwnerCol">SpatialIndex</td>
@@ -425,7 +425,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getClosestOverlappingKeys(bounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, xPrecision:Number, yPrecision:Number):Array</code><p>
+<code>public function getClosestOverlappingKeys(queryBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, xPrecision:Number, yPrecision:Number, dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>):Array</code><p>
    This function will get the keys closest the center of the bounds object. Generally this function will
    return an array of at most one key. Sometimes, it may return more than one key if there are multiple keys
    with equivalent distance to the center of the bounds object.
@@ -433,7 +433,7 @@ showHideInherited();
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">bounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code> &mdash; A bounds used to query the spatial index.
+<td width="20px"></td><td><code><span class="label">queryBounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code> &mdash; A bounds used to query the spatial index.
    </td>
 </tr>
 <tr>
@@ -449,6 +449,12 @@ showHideInherited();
 <tr>
 <td width="20px"></td><td><code><span class="label">yPrecision</span>:Number</code> &mdash; If specified, Y distance values will be divided by this and truncated before comparing.
    </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">dataBounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code></td>
 </tr>
 </table>
 <p></p>
@@ -500,13 +506,13 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getKeysGeometryOverlap(bounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minImportance:Number = 0, filterBoundingBoxesByImportance:Boolean = false):Array</code><p>
+<code>public function getKeysGeometryOverlap(queryBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minImportance:Number = 0, filterBoundingBoxesByImportance:Boolean = false, dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a> = null):Array</code><p>
    This function will get the keys whose geometries intersect with the given bounds.
    
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">bounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code> &mdash; A bounds used to query the spatial index.
+<td width="20px"></td><td><code><span class="label">queryBounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code> &mdash; A bounds used to query the spatial index.
    </td>
 </tr>
 <tr>
@@ -522,6 +528,12 @@ showHideInherited();
 <tr>
 <td width="20px"></td><td><code><span class="label">filterBoundingBoxesByImportance</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If true, bounding boxes will be pre-filtered by importance before checking geometry overlap.
    </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">dataBounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code> (default = <code>null</code>)<code></code></td>
 </tr>
 </table>
 <p></p>
