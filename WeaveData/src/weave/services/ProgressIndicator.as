@@ -21,10 +21,7 @@ package weave.services
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IProgressIndicator;
-	import weave.api.getCallbackCollection;
 	import weave.core.CallbackCollection;
 
 	/**
@@ -61,13 +58,13 @@ package weave.services
 		public function updateTask(taskToken:Object, percent:Number):void
 		{
 			// if this token isn't in the Dictionary yet, increase count
-			if (_taskToProgressMap[taskToken] == undefined)
+			if (_taskToProgressMap[taskToken] === undefined)
 			{
 				_taskCount++;
 				_maxTaskCount++;
 			}
 			_taskToProgressMap[taskToken] = percent;
-			getCallbackCollection(this).triggerCallbacks();
+			triggerCallbacks();
 		}
 		
 		/**
@@ -78,7 +75,7 @@ package weave.services
 		public function removeTask(taskToken:Object):void
 		{
 			// if the token isn't in the dictionary, do nothing
-			if (_taskToProgressMap[taskToken] == undefined)
+			if (_taskToProgressMap[taskToken] === undefined)
 				return;
 			
 			delete _taskToProgressMap[taskToken];
@@ -87,7 +84,7 @@ package weave.services
 			if (_taskCount == 0)
 				_maxTaskCount = 0;
 			
-			getCallbackCollection(this).triggerCallbacks();
+			triggerCallbacks();
 		}
 		
 		/**
@@ -98,7 +95,7 @@ package weave.services
 		{
 			// add up the percentages
 			var sum:Number = 0;
-			for each (var percentage:Number in _pendingRequestToPercentMap)
+			for each (var percentage:Number in _taskToProgressMap)
 				sum += percentage;
 			// make any pending requests that no longer exist count as 100% done
 			sum += _maxTaskCount - _taskCount;
@@ -108,7 +105,6 @@ package weave.services
 
 		private var _taskCount:int = 0;
 		private var _maxTaskCount:int = 0;
-		private const _pendingRequestToPercentMap:Dictionary = new Dictionary();
 		private const _taskToProgressMap:Dictionary = new Dictionary();
 	}
 }
