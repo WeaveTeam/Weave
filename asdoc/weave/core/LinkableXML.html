@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="LinkableXML,weave.core.LinkableXML,value,detectChanges" name="keywords">
+<meta content="LinkableXML,weave.core.LinkableXML,value,detectChanges,sessionStateEquals,setSessionState" name="keywords">
 <title>weave.core.LinkableXML</title>
 </head>
 <body>
@@ -166,7 +166,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#LinkableXML()">LinkableXML</a>(allowNull:Boolean = true)</div>
+<a class="signatureLink" href="#LinkableXML()">LinkableXML</a>(defaultValue:XML = null, verifier:Function = null)</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">LinkableXML</td>
 </tr>
@@ -255,13 +255,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
    This will decrease the delay count if it is greater than zero.</div>
 </td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
 </tr>
-<tr class="hideInheritedMethod">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="LinkableVariable.html#setSessionState()">setSessionState</a>(value:Object):void</div>
+<a class="signatureLink" href="#setSessionState()">setSessionState</a>(value:Object):void</div>
 <div class="summaryTableDescription">
-   Unless callbacks have been delayed with delayCallbacks(), this function will update _value and run callbacks.</div>
-</td><td class="summaryTableOwnerCol"><a href="LinkableVariable.html">LinkableVariable</a></td>
+   If this function receives a String, it will try to cast as an XML before saving it.</div>
+</td><td class="summaryTableOwnerCol">LinkableXML</td>
 </tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
@@ -292,7 +292,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a onclick="javascript:setInheritedVisible(true,'ProtectedMethod');" href="#protectedMethodSummary" class="showHideLink"><img src="../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Protected Methods</a>
 </div>
 </div>
-<table id="summaryTableProtectedMethod" class="summaryTable hideInheritedProtectedMethod" cellpadding="3" cellspacing="0">
+<table id="summaryTableProtectedMethod" class="summaryTable " cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
@@ -304,13 +304,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
    This function runs callbacks immediately, ignoring any delays.</div>
 </td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
 </tr>
-<tr class="hideInheritedProtectedMethod">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="LinkableVariable.html#sessionStateEquals()">sessionStateEquals</a>(otherSessionState:*):Boolean</div>
+<a class="signatureLink" href="#sessionStateEquals()">sessionStateEquals</a>(otherSessionState:*):Boolean</div>
 <div class="summaryTableDescription">
-   This function is used in setSessionState() to determine if the value has changed or not.</div>
-</td><td class="summaryTableOwnerCol"><a href="LinkableVariable.html">LinkableVariable</a></td>
+   </div>
+</td><td class="summaryTableOwnerCol">LinkableXML</td>
 </tr>
 </table>
 </div>
@@ -346,10 +346,16 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function LinkableXML(allowNull:Boolean = true)</code><span class="label">Parameters</span>
+<code>public function LinkableXML(defaultValue:XML = null, verifier:Function = null)</code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">allowNull</span>:Boolean</code> (default = <code>true</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">defaultValue</span>:XML</code> (default = <code>null</code>)<code></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">verifier</span>:Function</code> (default = <code>null</code>)<code></code></td>
 </tr>
 </table>
 </div>
@@ -366,6 +372,48 @@ showHideInherited();
    This function will run the callbacks attached to this LinkableXML if the session state has changed.
    This function should be called if the XML is modified without calling set value() or setSessionState().
    </p></div>
+<a name="sessionStateEquals()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">sessionStateEquals</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>protected override function sessionStateEquals(otherSessionState:*):Boolean</code><p>
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">otherSessionState</span>:*</code> &mdash; Another session state to compare with the session state of this object.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Boolean</code> &mdash; true if the other session state is equal to the session state previously set.
+   </td>
+</tr>
+</table>
+</div>
+<a name="setSessionState()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">setSessionState</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public override function setSessionState(value:Object):void</code><p>
+   If this function receives a String, it will try to cast as an XML before saving it.
+   If this function receives an XML, it will save a copy instead of the original.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">value</span>:Object</code> &mdash; The new sessioned XML value to copy.
+   </td>
+</tr>
+</table>
+</div>
 <br>
 <br>
 <hr>
