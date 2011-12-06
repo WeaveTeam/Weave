@@ -428,53 +428,23 @@ package weave.primitives
 		{
 			// Note: This function is optimized for speed
 			
-			// this.xMin may not be <= this.xMax
-			var realXMin:Number;
-			var realXMax:Number;
-			var realYMin:Number;
-			var realYMax:Number;
-			if (xMin < xMax)
-			{
-				realXMin = xMin;
-				realXMax = xMax;
-			}
-			else
-			{
-				realXMin = xMax;
-				realXMax = xMin;
-			}
-			if (yMin < yMax)
-			{
-				realYMin = yMin;
-				realYMax = yMax;
-			}
-			else
-			{
-				realYMin = yMax;
-				realYMax = yMin;
-			}	
+			var xPositive:Boolean = xMin < xMax;
+			var yPositive:Boolean = yMin < yMax;
 			
-			var xGridID:Number = 1;
-			if (x < xMin)
+			var xGridID:Number = 0;
+			if (x < (xPositive ? xMin : xMax))
 				xGridID = -1;
-			else if (x <= xMax)
-				xGridID = 0;
+			else if (x > (xPositive ? xMax : xMin))
+				xGridID = 1;
 			
-			if (y < yMin)
-			{
-				return 2 + xGridID;
-			}
-			else if (y <= yMax)
-			{
-				if (xGridID == 0)
-					return 0;
-				return 6 - 2 * xGridID;
-			}
-			else 
-			{
-				// yGridID == 1
-				return 6 - xGridID;
-			}
+			if (y < (yPositive ? yMin : yMax))
+				return 2 + xGridID; // 1 or 3
+			else if (y > (yPositive ? yMax : yMin)) 
+				return 6 - xGridID; // 5 or 7
+			else if (xGridID == 0)
+				return 0;
+			else
+				return 6 - 2 * xGridID; // 4 or 8
 			
 //			staticRange_A.setRange(xMin, xMax);
 //			staticRange_B.setRange(yMin, yMax);
@@ -526,14 +496,14 @@ package weave.primitives
 			
 			var x:Number = toXMin + (point.x - xMin) / (xMax - xMin) * (toXMax - toXMin);
 
-			if (x <= Infinity) // alternative to !isNaN()
+			if (x < Infinity) // alternative to !isNaN()
 				point.x = x;
 			else
 				point.x = (toXMin + toXMax) / 2;
 
 			var y:Number = toYMin + (point.y - yMin) / (yMax - yMin) * (toYMax - toYMin);
 			
-			if (y <= Infinity) // alternative to !isNaN()
+			if (y < Infinity) // alternative to !isNaN()
 				point.y = y;
 			else
 				point.y = (toYMin + toYMax) / 2;
