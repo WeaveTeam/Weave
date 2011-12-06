@@ -624,7 +624,7 @@ package weave
 						function():Boolean { return Weave.properties.enableRefreshHierarchies.value }
 					)
 				);
-
+				
 				if(Weave.properties.enableAddDataSource.value)
 					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Add New Datasource", AddDataSourcePanel.showAsPopup));
 				

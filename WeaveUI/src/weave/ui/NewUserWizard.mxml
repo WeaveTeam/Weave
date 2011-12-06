@@ -152,6 +152,7 @@
 			import weave.data.CSVParser;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.CSVDataSource;
+			import weave.primitives.AttributeHierarchy;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.HierarchyUtils;
 			import weave.utils.ProbeTextUtils;
@@ -262,7 +263,7 @@
 			
 			private function assignProbeColumnsFromSource(source:CSVDataSource,sourceName:String):void
 			{
-				var xml:XML = getSessionState(source.attributeHierarchy) as XML;
+				var xml:XML = (source.attributeHierarchy as AttributeHierarchy).value;
 				
 				if(xml == null)
 					callLater(assignProbeColumnsFromSource,[source,sourceName]);

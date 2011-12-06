@@ -141,7 +141,7 @@
 					return;
 				}
 				
-				var root:XML = hierarchyColumnSelector.hierarchySelector.attributeHierarchy.value as XML;
+				var root:XML = hierarchyColumnSelector.hierarchySelector.attributeHierarchy.value;
 				var attrs:Array = (hierarchyColumnSelector.hierarchySelector.attributesView.dataProvider as ListCollectionView).toArray();
 				for (var i:int = 0; i < attrs.length; i++)
 				{
