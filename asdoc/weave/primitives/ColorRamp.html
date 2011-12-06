@@ -283,10 +283,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="../core/LinkableXML.html#setSessionState()">setSessionState</a>(value:Object):void</div>
+<a class="signatureLink" href="../core/LinkableVariable.html#setSessionState()">setSessionState</a>(value:Object):void</div>
 <div class="summaryTableDescription">
-   If this function receives a String, it will try to cast as an XML before saving it.</div>
-</td><td class="summaryTableOwnerCol"><a href="../core/LinkableXML.html">LinkableXML</a></td>
+   Unless callbacks have been delayed with delayCallbacks(), this function will update _value and run callbacks.</div>
+</td><td class="summaryTableOwnerCol"><a href="../core/LinkableVariable.html">LinkableVariable</a></td>
 </tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
@@ -295,6 +295,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription">
    This will trigger every callback function to be called with their saved arguments.</div>
 </td><td class="summaryTableOwnerCol"><a href="../core/CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="../core/LinkableVariable.html#verifyValue()">verifyValue</a>(value:Object):Boolean</div>
+<div class="summaryTableDescription">
+   This function will verify if a given value is a valid session state for this linkable variable.</div>
+</td><td class="summaryTableOwnerCol"><a href="../core/LinkableVariable.html">LinkableVariable</a></td>
 </tr>
 </table>
 </div>
@@ -324,10 +332,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="hideInheritedProtectedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="../core/LinkableXML.html#sessionStateEquals()">sessionStateEquals</a>(otherSessionState:*):Boolean</div>
+<a class="signatureLink" href="../core/LinkableVariable.html#sessionStateEquals()">sessionStateEquals</a>(otherSessionState:*):Boolean</div>
 <div class="summaryTableDescription">
-   </div>
-</td><td class="summaryTableOwnerCol"><a href="../core/LinkableXML.html">LinkableXML</a></td>
+   This function is used in setSessionState() to determine if the value has changed or not.</div>
+</td><td class="summaryTableOwnerCol"><a href="../core/LinkableVariable.html">LinkableVariable</a></td>
 </tr>
 </table>
 </div>
