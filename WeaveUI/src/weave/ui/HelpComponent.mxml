@@ -82,7 +82,8 @@
 					MouseEvent.ROLL_OVER,
 					function(event:Event):void
 					{
-						ToolTipManager.showDelay = 0;
+						if (!_helpWindow)
+							ToolTipManager.showDelay = 0;
 					}
 				);
 				addEventListener(
