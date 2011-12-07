@@ -132,15 +132,24 @@
 
     <mx:Script>
     	<![CDATA[
+			import flash.utils.setTimeout;
+			
 			import mx.collections.ArrayCollection;
 			import mx.collections.XMLListCollection;
+			import mx.containers.Box;
+			import mx.containers.Canvas;
 			import mx.controls.Button;
 			import mx.controls.Menu;
 			import mx.controls.menuClasses.MenuBarItem;
 			import mx.controls.menuClasses.MenuItemRenderer;
+			import mx.controls.scrollClasses.ScrollBar;
+			import mx.core.ScrollPolicy;
+			import mx.core.mx_internal;
 			import mx.events.DropdownEvent;
+			import mx.events.FlexEvent;
 			import mx.events.MenuEvent;
 			import mx.events.PropertyChangeEvent;
+			import mx.events.ScrollEvent;
 			import mx.utils.ObjectUtil;
 			import mx.utils.UIDUtil;
 			
@@ -148,8 +157,12 @@
 			import weave.api.WeaveAPI;
 			import weave.api.reportError;
 			import weave.core.ErrorManager;
+			import weave.core.StageUtils;
 			import weave.ui.DraggablePanel;
 			import weave.ui.OICLogoPane;
+			import weave.utils.EventUtils;
+			
+			use namespace mx_internal;
     		
 			[Bindable]
 			private var _dp:ArrayCollection = new ArrayCollection([]);
@@ -168,15 +181,53 @@
 				}
 			}*/
 
-			// tip taken from : http://blog.flexexamples.com/2010/02/19/setting-a-variable-row-height-on-an-mx-menubar-control-in-flex/
 			private function handleMenuShow(event:MenuEvent):void
 			{
+				// tip taken from : http://blog.flexexamples.com/2010/02/19/setting-a-variable-row-height-on-an-mx-menubar-control-in-flex/
 				// this will reduce the vertical space between separators and other items in the menu
 				event.menu.variableRowHeight = true;
 				event.menu.invalidateSize();
-				
 				validateNow();
+				
+				// prevent the menu from appearing off-screen.
+				event.menu.callLater(repositionMenu, [event.menu]);
 			}
+			
+			private function repositionMenu(menu:Menu):void
+			{
+				if (!menu.parent)
+					return;
+				
+				// always make the menu appear below the menu bar
+				var global:Point = menubar.localToGlobal(new Point(0, menubar.height));
+				menu.y = menu.parent.globalToLocal(global).y;
+				
+				var scrollbar:ScrollBar = menuScrollbars[menu] as ScrollBar;
+				if (!scrollbar)
+				{
+					menuScrollbars[menu] = scrollbar = new ScrollBar();
+					scrollbar.addEventListener(ScrollEvent.SCROLL, function(e:ScrollEvent):void{
+						menu.scrollRect = new Rectangle(0, scrollbar.scrollPosition, menu.width, scrollbar.height);
+						scrollbar.y = scrollbar.scrollPosition;
+					});
+				}
+				if (menu.height > stage.stageHeight - global.y)
+				{
+					scrollbar.y = 0;
+					scrollbar.x = menu.width - 8;
+					scrollbar.height = stage.stageHeight - global.y;
+					scrollbar.minScrollPosition = 0;
+					scrollbar.maxScrollPosition = menu.height - scrollbar.height;
+					scrollbar.scrollPosition = 0;
+					menu.addChild(scrollbar);
+				}
+				else if (scrollbar.parent)
+				{
+					scrollbar.parent.removeChild(scrollbar);
+				}
+				menu.scrollRect = null;
+			}
+			private var menuScrollbars:Dictionary = new Dictionary(true);
     		
     		
     		public function refreshMenuBar():void
