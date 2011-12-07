@@ -464,6 +464,20 @@
 			
 			private const _tempArray:Array = [];
 			
+			private function handleProjectionComboChange():void
+			{
+				if (projectionVerifier(projComboBox.text))
+				{
+					projValidLabel.text = 'Valid';
+					projComboBox.errorString = '';
+				}
+				else
+				{
+					projValidLabel.text = 'Invalid';
+					projComboBox.errorString = 'Unknown projection';
+				}
+			}
+			
 		]]>
 	</mx:Script>
 
@@ -649,7 +663,7 @@
 				<ui:CustomComboBox id="projComboBox"
 								   dataProvider="{_projComboBoxData}"
 								   creationComplete="linkBindableProperty(projectionSRS, event.target, 'text');"
-								   change="projValidLabel.text = projectionVerifier(projComboBox.text) ? 'Valid' : 'Invalid';"
+								   change="handleProjectionComboChange();"
 								   focusOut="projComboBox.selectedItem = projectionSRS.value; projValidLabel.text = '';"
 								   editable="true"
 								   width="120"

@@ -35,6 +35,7 @@ package weave.data.AttributeColumns
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.ErrorManager;
+	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.services.beans.GeometryStreamMetadata;
 	import weave.utils.ColumnUtils;
@@ -292,6 +293,15 @@ package weave.data.AttributeColumns
 		private static function verifyMetadataRequestMode(value:String):Boolean
 		{
 			return metadataRequestModeEnum.indexOf(value) >= 0;
+		}
+		
+		/**
+		 * This is the minimum bounding box screen area required for a geometry to be considered relevant.
+		 */		
+		public static const geometryMinimumScreenArea:LinkableNumber = new LinkableNumber(1, verifyMinimumScreenArea);
+		private static function verifyMinimumScreenArea(value:Number):Boolean
+		{
+			return value >= 1;
 		}
 	}
 }

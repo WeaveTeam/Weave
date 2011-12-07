@@ -158,6 +158,7 @@ package weave.data
 			
 			_tempProjPoint.x = inputAndOutput.x;
 			_tempProjPoint.y = inputAndOutput.y;
+			_tempProjPoint.z = NaN; // this is important in case the projection reads the z value.
 			
 			if (Proj4as.transform(sourceProj, destinationProj, _tempProjPoint))
 			{
@@ -451,6 +452,7 @@ internal class WorkerThread
 						
 						_tempProjPoint.x = currentNode.x;
 						_tempProjPoint.y = currentNode.y;
+						_tempProjPoint.z = NaN; // this is important in case the projection reads the z value.
 						if (Proj4as.transform(sourceProj, destinationProj, _tempProjPoint) == null)
 							continue;
 						

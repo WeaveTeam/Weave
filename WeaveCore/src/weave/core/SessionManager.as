@@ -1104,6 +1104,7 @@ package weave.core
 			var watcher:ChangeWatcher = null;
 			var useLinkableValue:Boolean = true;
 			var callLaterTime:int = 0;
+			var uiComponent:UIComponent = bindableParent as UIComponent;
 			// a function that takes zero parameters and sets the bindable value.
 			var synchronize:Function = function(firstParam:* = undefined, callingLater:Boolean = false):void
 			{
@@ -1139,12 +1140,27 @@ package weave.core
 				// if the bindable value is not a boolean and the bindable parent has focus, delay synchronization
 				if (!(bindableParent[bindablePropertyName] is Boolean))
 				{
-					var uiComponent:UIComponent = bindableParent as UIComponent;
 					if (uiComponent && watcher)
 					{
 						var obj:DisplayObject = uiComponent.getFocus();
 						if (obj && uiComponent.contains(obj))
 						{
+							if (linkableVariable is LinkableVariable)
+							{
+								if ((linkableVariable as LinkableVariable).verifyValue(bindableParent[bindablePropertyName]))
+								{
+									// clear any existing error string
+									if (uiComponent.errorString)
+										uiComponent.errorString = '';
+								}
+								else
+								{
+									// show error string if not already shown
+									if (!uiComponent.errorString)
+										uiComponent.errorString = 'Value not accepted.';
+								}
+							}
+							
 							var currentTime:int = getTimer();
 							
 							// if we're not calling later, set the target time
@@ -1167,16 +1183,19 @@ package weave.core
 				}
 				
 				// synchronize
+				var bindableValue:Object = bindableParent[bindablePropertyName];
 				if (useLinkableValue)
 				{
 					var linkableValue:Object = linkableVariable.getSessionState();
-					if ((bindableParent[bindablePropertyName] is Number) != (linkableValue is Number))
+					if ((bindableValue is Number) != (linkableValue is Number))
 					{
 						try {
 							if (linkableValue is Number)
 							{
 								if (isNaN(linkableValue as Number))
 									linkableValue = '';
+								else
+									linkableValue = '' + linkableValue;
 							}
 							else
 							{
@@ -1185,11 +1204,15 @@ package weave.core
 							}
 						} catch (e:Error) { }
 					}
-					bindableParent[bindablePropertyName] = linkableValue;
+					if (bindableValue != linkableValue)
+						bindableParent[bindablePropertyName] = linkableValue;
+					
+					// clear any existing error string
+					if (uiComponent && linkableVariable is LinkableVariable && uiComponent.errorString)
+						uiComponent.errorString = '';
 				}
 				else
 				{
-					var bindableValue:Object = bindableParent[bindablePropertyName];
 					callbackCollection.delayCallbacks();
 					linkableVariable.setSessionState(bindableValue);
 					// Always synchronize after setting the linkableVariable because there may
@@ -1265,10 +1288,7 @@ package weave.core
 			
 			if (type == 'xml')
 			{
-				if ((oldState as XML).toXMLString() != (newState as XML).toXMLString())
-					return newState;
-				
-				return undefined; // no diff
+				throw new Error("XML is not supported as a primitive session state type.");
 			}
 			else if (type == 'number')
 			{

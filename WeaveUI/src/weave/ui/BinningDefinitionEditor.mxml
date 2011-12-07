@@ -197,21 +197,23 @@
 			private function handleItemEdited(event:DataGridEvent):void
 			{
 				var input:TextInput = binNameEditor.itemEditorInstance as TextInput;
-				var source:Array = gridSource.source;
-				var names:Array = [];
+				
+				input.errorString = '';
 				
 				if (input.text == event.itemRenderer.data as String)
 					return;
 				
 				if (binnedColumn.getDerivedBins().getObject(input.text))
 				{
-					PopUpUtils.showTemporaryTooltip(input, "Name already exists.");
+					input.errorString = "Name already exists.";
 					
 					// don't save the new value
 					event.preventDefault();
 					return;
 				}
 				
+				var source:Array = gridSource.source;
+				var names:Array = [];
 				for (var i:int = 0; i < source.length; i++)
 				{
 					if (event.rowIndex == i)

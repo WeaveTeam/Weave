@@ -272,9 +272,9 @@ package weave.utils
 		 * @param filterBoundingBoxesByImportance If true, bounding boxes will be pre-filtered by importance before checking geometry overlap.
 		 * @return An array of keys.
 		 */
-		public function getKeysGeometryOverlap(bounds:IBounds2D, minImportance:Number = 0, filterBoundingBoxesByImportance:Boolean = false):Array
+		public function getKeysGeometryOverlap(queryBounds:IBounds2D, minImportance:Number = 0, filterBoundingBoxesByImportance:Boolean = false, dataBounds:IBounds2D = null):Array
 		{
-			var keys:Array = getKeysBoundingBoxOverlap(bounds, filterBoundingBoxesByImportance ? minImportance : 0);
+			var keys:Array = getKeysBoundingBoxOverlap(queryBounds, filterBoundingBoxesByImportance ? minImportance : 0);
 			
 			// if this index isn't for an IPlotterWithGeometries OR the user wants legacy probing
 			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value)
@@ -285,7 +285,7 @@ package weave.utils
 				return keys;
 			
 			// define the bounds as a polygon
-			setTempBounds(bounds);
+			setTempBounds(queryBounds);
 			
 			var result:Array = [];
 			
@@ -312,7 +312,7 @@ package weave.utils
 						var genGeomIsPoly:Boolean = genGeom.isPolygon();
 						var genGeomIsLine:Boolean = genGeom.isLine();
 						var genGeomIsPoint:Boolean = genGeom.isPoint();
-						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance, bounds);
+						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance, dataBounds);
 						
 						if (simplifiedGeom.length == 0)
 						{
@@ -421,10 +421,10 @@ package weave.utils
 		 * @param yPrecision If specified, Y distance values will be divided by this and truncated before comparing.
 		 * @return An array of IQualifiedKey objects. 
 		 */		
-		public function getClosestOverlappingKeys(bounds:IBounds2D, xPrecision:Number, yPrecision:Number):Array
+		public function getClosestOverlappingKeys(queryBounds:IBounds2D, xPrecision:Number, yPrecision:Number, dataBounds:IBounds2D):Array
 		{
 			var importance:Number = xPrecision * yPrecision;
-			var keys:Array = getKeysGeometryOverlap(bounds, importance, false);
+			var keys:Array = getKeysGeometryOverlap(queryBounds, importance, false, dataBounds);
 			
 			// init local vars
 			var closestDistanceSq:Number = Infinity;
@@ -434,8 +434,8 @@ package weave.utils
 			var xRecordCenter:Number;
 			var yRecordCenter:Number;
 			var recordBounds:IBounds2D;
-			var xQueryCenter:Number = bounds.getXCenter();
-			var yQueryCenter:Number = bounds.getYCenter();
+			var xQueryCenter:Number = queryBounds.getXCenter();
+			var yQueryCenter:Number = queryBounds.getYCenter();
 			var foundQueryCenterOverlap:Boolean = false; // true when we found a key that overlaps the center of the given bounds
 			var tempDistance:Number;
 			// begin with a result of zero shapes
@@ -508,7 +508,7 @@ package weave.utils
 							var genGeomIsLine:Boolean = genGeom.isLine();
 							var genGeomIsPoint:Boolean = genGeom.isPoint();
 							var genGeomBounds:IBounds2D = genGeom.bounds;
-							var simplifiedGeom:Vector.<Vector.<BLGNode>> = (geom as GeneralizedGeometry).getSimplifiedGeometry(importance, bounds);
+							var simplifiedGeom:Vector.<Vector.<BLGNode>> = (geom as GeneralizedGeometry).getSimplifiedGeometry(importance, dataBounds);
 							
 							for (var i:int = 0; i < simplifiedGeom.length; ++i)
 							{

@@ -43,6 +43,8 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
+	import weave.api.linkBindableProperty;
+	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -85,6 +87,8 @@ package weave.visualization.plotters
 			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
 
 			line.weight.addImmediateCallback(this, disposeCachedBitmaps);
+			
+			linkSessionState(StreamedGeometryColumn.geometryMinimumScreenArea, pixellation);
 
 			setKeySource(geometryColumn);
 		}
@@ -320,6 +324,7 @@ package weave.visualization.plotters
 					var geom:GeneralizedGeometry = geoms[i] as GeneralizedGeometry;
 					if (geom)
 					{
+						// skip shapes that are considered unimportant at this zoom level
 						if (geom.geomType == GeneralizedGeometry.GEOM_TYPE_POLYGON && geom.bounds.getArea() < minImportance)
 							continue;
 						drawMultiPartShape(recordKey, geom.getSimplifiedGeometry(minImportance, dataBounds), geom.geomType, dataBounds, screenBounds, graphics, destination);

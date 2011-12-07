@@ -121,6 +121,17 @@ package weave.core
 				var childNode:XMLNode = super.encodeValue(obj.toString(), qname, parentNode);
 				return setAttributeAndReplaceNode(childNode, "encoding", CSV_ENCODING);
 			} */
+			try
+			{
+				var str:String = obj as String;
+				// if the string looks like it may be XML, attempt to parse it as XML
+				if (str && str.charAt(0) == '<' && str.charAt(str.length - 1) == '>')
+					obj = XML(str);
+			}
+			catch (e:Error)
+			{
+				// do nothing if xml parsing fails
+			}
 			if (obj is XML)
 	        {
 				// super.encodeValue() does not use the variable name when encoding
