@@ -290,7 +290,7 @@ package weave.visualization.plotters
 				}
 				// only request more detail if requestedDataBounds is defined
 				if (!requestedDataBounds.isUndefined())
-					streamedColumn.requestGeometryDetail(requestedDataBounds, requestedMinImportance * Weave.properties.geometryMinimumScreenArea.value);
+					streamedColumn.requestGeometryDetail(requestedDataBounds, requestedMinImportance);
 			}
 			
 			var graphics:Graphics = tempShape.graphics;
