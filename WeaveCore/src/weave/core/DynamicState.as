@@ -29,10 +29,6 @@ package weave.core
 	 */
 	public class DynamicState
 	{
-		{ /** begin static code block **/
-			registerClassAlias(getQualifiedClassName(DynamicState), DynamicState);
-		} /** end static code block **/
-		
 		public function DynamicState(objectName:String = null, className:String = null, sessionState:Object = null)
 		{
 			this.objectName = objectName;
@@ -55,41 +51,45 @@ package weave.core
 		 */
 		public var sessionState:Object = null;
 		
+		
+		///////////////////////////////////////////////////////////
+		
+		
+		public static const OBJECT_NAME:String = 'objectName';
+		public static const CLASS_NAME:String = 'className';
+		public static const SESSION_STATE:String = 'sessionState';
+		
+		{ /** begin static code block **/
+			registerClassAlias(getQualifiedClassName(DynamicState), DynamicState);
+		} /** end static code block **/
+		
 		/**
 		 * This function can be used to detect DynamicState objects within nested, untyped session state objects.
-		 * If an object has only three properties (objectName, className, sessionState), this function will
-		 * return a DynamicState object having those values.  Otherwise, null is returned because the object is
-		 * assumed to be incompatible.
-		 * @param object An object that has all the properties that DynamicState has.
-		 * @param createNewObject If this is set to true, this function will return a new DynamicState object even if the given object is already a DynamicState.
-		 * @return Either a DynamicState object or null if the cast failed.
+		 * This function will check if the given object has the same properties as an actual DynamicState object instance. 
+		 * @param object An object to check.
+		 * @return A value of true if the object has all three properties that a DynamicState object has. 
 		 */
-		public static function cast(object:Object, createNewObject:Boolean = false):DynamicState
+		public static function objectHasProperties(object:Object):Boolean
 		{
+			if (object is DynamicState)
+				return true;
+			
 			try
 			{
-				if (object is DynamicState)
-				{
-					var original:DynamicState = object as DynamicState;
-					if (createNewObject)
-						return new DynamicState(original.objectName, original.className, original.sessionState);
-					return original;
-				}
-				
 				var matchCount:int = 0;
 				for (var name:String in object)
 				{
-					if (name == "objectName" || name == "className" || name == "sessionState")
+					if (name == OBJECT_NAME || name == CLASS_NAME || name == SESSION_STATE)
 						matchCount++;
 					else
-						return null;
+						return false;
 				}
-				if (matchCount == 3) // must match all three properties with no extras
-					return new DynamicState(object.objectName, object.className, object.sessionState);
+				return (matchCount == 3); // must match all three properties with no extras
 			}
-			catch (e:Error) { }
-
-			return null;
+			catch (e:Error)
+			{
+			}
+			return false;
 		}
 	}
 }

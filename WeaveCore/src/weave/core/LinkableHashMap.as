@@ -401,7 +401,7 @@ package weave.core
 			var i:int;
 			var objectName:String;
 			var className:String;
-			var typedState:DynamicState;
+			var typedState:Object;
 			var remainingObjects:Object = removeMissingDynamicObjects ? {} : null; // maps an objectName to a value of true
 			var newObjects:Object = {}; // maps an objectName to a value of true if the object is newly created as a result of setting the session state
 			var newNameOrder:Array = []; // the order the object names appear in the vector
@@ -410,11 +410,11 @@ package weave.core
 				// initialize all the objects before setting their session states because they may refer to each other.
 				for (i = 0; i < newStateArray.length; i++)
 				{
-					typedState = DynamicState.cast(newStateArray[i]);
-					if (typedState == null)
+					typedState = newStateArray[i];
+					if (!DynamicState.objectHasProperties(typedState))
 						continue;
-					objectName = typedState.objectName;
-					className = typedState.className;
+					objectName = typedState[DynamicState.OBJECT_NAME];
+					className = typedState[DynamicState.CLASS_NAME];
 					// ignore objects that do not have a name because they may not load the same way on different application instances.
 					if (objectName == null)
 						continue;
@@ -429,27 +429,26 @@ package weave.core
 				// Also remember the ordered list of names that appear in the session state.
 				for (i = 0; i < newStateArray.length; i++)
 				{
-					var newState:Object = newStateArray[i];
-					if (newState is String)
+					typedState = newStateArray[i];
+					if (typedState is String)
 					{
-						objectName = newState as String;
+						objectName = typedState as String;
 						if (removeMissingDynamicObjects)
 							remainingObjects[objectName] = true;
 						newNameOrder.push(objectName);
 						continue;
 					}
 					
-					typedState = DynamicState.cast(newState);
-					if (typedState == null)
+					if (!DynamicState.objectHasProperties(typedState))
 						continue;
-					objectName = typedState.objectName;
+					objectName = typedState[DynamicState.OBJECT_NAME];
 					if (objectName == null)
 						continue;
 					var object:ILinkableObject = _nameToObjectMap[objectName] as ILinkableObject;
 					if (object == null)
 						continue;
 					// if object is newly created, we want to apply an absolute session state
-					WeaveAPI.SessionManager.setSessionState(object, typedState.sessionState, newObjects[objectName] || removeMissingDynamicObjects);
+					WeaveAPI.SessionManager.setSessionState(object, typedState[DynamicState.SESSION_STATE], newObjects[objectName] || removeMissingDynamicObjects);
 					if (removeMissingDynamicObjects)
 						remainingObjects[objectName] = true;
 					newNameOrder.push(objectName);
