@@ -1271,10 +1271,6 @@ package weave.core
 		 */
 		private const _watcherToSynchronizeFunctionMap:Dictionary = new Dictionary(); // use weak links to be GC-friendly
 		
-		public static const OBJECT_NAME:String = 'objectName';
-		public static const CLASS_NAME:String = 'className';
-		public static const SESSION_STATE:String = 'sessionState';
-
 		/**
 		 * This function computes the diff of two session states.
 		 * @param oldState The source session state.
@@ -1327,7 +1323,7 @@ package weave.core
 				{
 					//note: there is no error checking here for typedState
 					typedState = oldState[i];
-					objectName = typedState[OBJECT_NAME];
+					objectName = typedState[DynamicState.OBJECT_NAME];
 					oldLookup[objectName] = typedState;
 				}
 				if (oldState.length != newState.length)
@@ -1338,9 +1334,9 @@ package weave.core
 				for (i = 0; i < newState.length; i++)
 				{
 					typedState = newState[i];
-					objectName = typedState[OBJECT_NAME];
-					className = typedState[CLASS_NAME];
-					sessionState = typedState[SESSION_STATE];
+					objectName = typedState[DynamicState.OBJECT_NAME];
+					className = typedState[DynamicState.CLASS_NAME];
+					sessionState = typedState[DynamicState.SESSION_STATE];
 					var oldTypedState:Object = oldLookup[objectName];
 					delete oldLookup[objectName]; // remove it from the lookup because it's already been handled
 					
@@ -1348,17 +1344,17 @@ package weave.core
 					// If the class is the same as before, then we can save a diff instead of the entire session state.
 					// If the class changed, we can't save only a diff -- we need to keep the entire session state.
 					// Replace the sessionState in the new DynamicState object with the diff.
-					if (oldTypedState != null && oldTypedState[CLASS_NAME] == className)
+					if (oldTypedState != null && oldTypedState[DynamicState.CLASS_NAME] == className)
 					{
 						className = null; // no change
-						diffValue = computeDiff(oldTypedState[SESSION_STATE], sessionState);
+						diffValue = computeDiff(oldTypedState[DynamicState.SESSION_STATE], sessionState);
 						if (diffValue === undefined)
 						{
 							// Since the class name is the same and the session state is the same,
 							// we only need to specify that this name is still present.
 							result.push(objectName);
 							
-							if (!changeDetected && oldState[i][OBJECT_NAME] != objectName)
+							if (!changeDetected && oldState[i][DynamicState.OBJECT_NAME] != objectName)
 								changeDetected = true;
 							
 							continue;
