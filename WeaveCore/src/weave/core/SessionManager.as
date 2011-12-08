@@ -1219,7 +1219,7 @@ package weave.core
 					// be constraints on the session state that will prevent the callbacks
 					// from triggering if the bindable value does not match those constraints.
 					// This makes UIComponents update to the real value after they lose focus.
-					callbackCollection.triggerCallbacks();
+//					callbackCollection.triggerCallbacks();
 					callbackCollection.resumeCallbacks();
 				}
 			};

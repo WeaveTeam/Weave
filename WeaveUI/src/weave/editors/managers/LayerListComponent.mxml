@@ -39,7 +39,110 @@ LayerListComponent
 			<mx:Button label="Open editor..." click="openSelector()"/>
 		</mx:HBox>
 	</mx:HBox>
-	<ui:LinkableObjectList id="internalList" width="100%" height="100%" hashMap="{_hashMap}"/>
+	<ui:LinkableObjectList id="internalList" width="100%" height="100%" hashMap="{_hashMap}">
+		<mx:Script>
+			<![CDATA[
+				
+				
+			]]>
+		</mx:Script>
+		<ui:itemRenderer><!--Properties of List should use the same local namespace. So itemrenderer should use ui instead of mx-->
+			<mx:Component>
+				<mx:HBox width="100%">
+					<mx:Script>
+						<![CDATA[
+							import flash.utils.getQualifiedClassName;
+							
+							import mx.managers.PopUpManager;
+							
+							import weave.api.linkBindableProperty;
+							import weave.api.ui.ILinkableObjectEditor;
+							import weave.api.ui.IPlotLayer;
+							import weave.api.ui.IPlotter;
+							import weave.api.unlinkBindableProperty;
+							import weave.core.ClassUtils;
+							import weave.ui.ControlPanel;
+							import weave.utils.EditorManager;
+							import weave.visualization.layers.PlotLayer;
+							import weave.visualization.layers.SelectablePlotLayer;
+							import weave.visualization.plotters.CirclePlotter;
+							import weave.visualization.plotters.DynamicPlotter;
+							import weave.visualization.plotters.SingleImagePlotter;
+							
+							private function openSettingsPanel(layer:IPlotLayer):void
+							{
+								var controls:ControlPanel = new ControlPanel();
+								PopUpManager.addPopUp(controls, this);
+								PopUpManager.centerPopUp(controls);
+								controls.targets = [outerDocument.visTool];
+
+								var plotter:IPlotter = null;
+								if (layer)
+									plotter = (layer.plotter as DynamicPlotter).internalObject as IPlotter;
+								
+								// add editor component to layercontrols
+								var editor:ILinkableObjectEditor = EditorManager.getNewEditor(plotter);
+								if (editor)
+								{
+									controls.tabNavigator.addChild(editor as DisplayObject);
+								}
+								
+							}
+							
+							[Bindable]public var layerIsVisible:Boolean = true;
+							[Bindable]public var layerIsSelectable:Boolean = true;
+							override public function set data(value:Object):void
+							{
+								if (value == data)
+									return;
+								
+								// unlink checkbox from old layer
+								if (data is PlotLayer)
+								{
+									unlinkBindableProperty((data as PlotLayer).layerIsVisible, this, "layerIsVisible");
+								}
+								if (data is SelectablePlotLayer)
+								{
+									unlinkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
+									unlinkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
+								}
+								
+								
+								// save pointer to new layer
+								super.data = value;
+								
+								// link checkbox to new layer
+								if (data is PlotLayer)
+								{
+									linkBindableProperty((data as PlotLayer).layerIsVisible, this, "layerIsVisible");
+									layerIsSelectable = false;
+								}
+								if (data is SelectablePlotLayer)
+								{
+									linkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
+									linkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
+									if((data as SelectablePlotLayer).getDynamicPlotter().internalObject is SingleImagePlotter || (data as SelectablePlotLayer).getDynamicPlotter().internalObject is CirclePlotter)
+										
+										selectedCheckbox.visible = false;
+									else
+										selectedCheckbox.visible = true;
+								}
+								else
+								{
+									selectedCheckbox.visible = false;
+								}
+								
+							}
+						]]>
+					</mx:Script>
+					<mx:CheckBox id="visibleCheckbox" label="visible" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
+					<mx:CheckBox id="selectedCheckbox" label="selectable" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
+					<mx:Label textAlign="center" width="50%" text="{outerDocument.internalList.setLabel(data)}" fontWeight="bold"/>
+					<mx:Button label="settings" click="openSettingsPanel(data as IPlotLayer)"/>
+				</mx:HBox>
+			</mx:Component>			
+		</ui:itemRenderer>
+	</ui:LinkableObjectList>
 	<mx:HBox width="100%">
 		<mx:Spacer width="100%"/>
 		<mx:Button
@@ -87,6 +190,11 @@ LayerListComponent
 			{
 				_visTool = value;
 			}
+			public function get visTool():SimpleVisTool
+			{
+				return _visTool;
+			}
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
