@@ -1747,7 +1747,7 @@ public class AdminService extends GenericServlet
 		String fileList = Arrays.asList(fileNameWithoutExtension).toString();
 		if (fileList.length() > 103)
 			fileList = fileList.substring(0, 50) + "..." + fileList.substring(fileList.length() - 50);
-		String importNotes = String.format("file: %s, keyColumns: %s", fileList, keyColumns);
+		String importNotes = String.format("file: %s, keyColumns: %s", fileList, Arrays.asList(keyColumns));
 
 		// get key column SQL code
 		String keyColumnsString;
