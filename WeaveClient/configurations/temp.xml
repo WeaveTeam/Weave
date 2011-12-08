@@ -1,17 +1,19 @@
 <Weave encoding="dynamic">
   <WeaveProperties name="WeaveProperties">
-    <axisFontBold>true</axisFontBold>
-    <axisFontColor>0</axisFontColor>
-    <axisFontFamily>Sophia Nubian</axisFontFamily>
-    <axisFontItalic>false</axisFontItalic>
-    <axisFontSize>11</axisFontSize>
-    <axisFontUnderline>false</axisFontUnderline>
     <backgroundColor>13421772</backgroundColor>
     <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
     <dashboardMode>false</dashboardMode>
     <dashedSelectionBox>5,5</dashedSelectionBox>
     <dataInfoURL/>
     <debugScreenBounds>false</debugScreenBounds>
+    <defaultTextFormat>
+      <bold>false</bold>
+      <color>0</color>
+      <font>Sophia Nubian</font>
+      <italic>false</italic>
+      <size>11</size>
+      <underline>false</underline>
+    </defaultTextFormat>
     <enableAboutMenu>true</enableAboutMenu>
     <enableAdd2DHistogram>true</enableAdd2DHistogram>
     <enableAddAttributeMenuTool>true</enableAddAttributeMenuTool>
@@ -66,6 +68,7 @@
     <enablePanelCoordsPercentageMode>true</enablePanelCoordsPercentageMode>
     <enableProbeAnimation>true</enableProbeAnimation>
     <enableProbeLines>true</enableProbeLines>
+    <enableProbeToolTip>true</enableProbeToolTip>
     <enableRefreshHierarchies>true</enableRefreshHierarchies>
     <enableRemoveSubsets>true</enableRemoveSubsets>
     <enableRestoreAllMinimizedWindows>true</enableRestoreAllMinimizedWindows>
@@ -75,8 +78,6 @@
     <enableSearchForRecord>true</enableSearchForRecord>
     <enableSelectionSelectorBox>true</enableSelectionSelectorBox>
     <enableSelectionsMenu>true</enableSelectionsMenu>
-    <enableSessionBookmarks>true</enableSessionBookmarks>
-    <enableSessionEdit>true</enableSessionEdit>
     <enableSessionMenu>true</enableSessionMenu>
     <enableShowAllRecords>true</enableShowAllRecords>
     <enableSubsetControls>true</enableSubsetControls>
@@ -89,20 +90,23 @@
     <enableToolProbe>true</enableToolProbe>
     <enableToolSelection>true</enableToolSelection>
     <enableUserPreferences>true</enableUserPreferences>
-    <enableWeaveFonts>true</enableWeaveFonts>
     <enableWindowMenu>true</enableWindowMenu>
     <eventListeners encoding="dynamic"/>
+    <geometryMetadataRequestMode>xyz</geometryMetadataRequestMode>
+    <geometryMinimumScreenArea>6</geometryMinimumScreenArea>
     <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
     <macroLibraries>weave.api::WeaveAPI</macroLibraries>
     <macros encoding="dynamic"/>
     <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
     <pageTitle>Open Indicators Weave</pageTitle>
-    <panelTitleFontBold>false</panelTitleFontBold>
-    <panelTitleFontColor>16777215</panelTitleFontColor>
-    <panelTitleFontFamily>Verdana</panelTitleFontFamily>
-    <panelTitleFontItalic>false</panelTitleFontItalic>
-    <panelTitleFontSize>10</panelTitleFontSize>
-    <panelTitleFontUnderline>false</panelTitleFontUnderline>
+    <panelTitleTextFormat>
+      <bold>false</bold>
+      <color>16777215</color>
+      <font>Verdana</font>
+      <italic>false</italic>
+      <size>10</size>
+      <underline>false</underline>
+    </panelTitleTextFormat>
     <pdbServiceURL>/WeavePDBService/PDBService</pdbServiceURL>
     <probeInnerGlowAlpha>1</probeInnerGlowAlpha>
     <probeInnerGlowBlur>5</probeInnerGlowBlur>
@@ -137,7 +141,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showVisToolCloseDialog>false</showVisToolCloseDialog>
     <startupJavaScript/>
     <toolInteractions>
-      <defaultDragMode/>
+      <defaultDragMode>pan</defaultDragMode>
       <pan>alt,drag</pan>
       <probe>move</probe>
       <select>drag</select>
@@ -149,9 +153,10 @@ wheel</zoom>
       <zoomOut>shift,dclick</zoomOut>
       <zoomToExtent>ctrl,alt,shift,dclick</zoomToExtent>
     </toolInteractions>
-    <version>1.0 Beta (DEV)</version>
+    <version>1.0 Beta (Wed Dec  7 09:55:40 EST 2011)</version>
     <windowSnapGridSize>1%</windowSnapGridSize>
     <workspaceHeight>NaN</workspaceHeight>
+    <workspaceMultiplier>1</workspaceMultiplier>
     <workspaceWidth>NaN</workspaceWidth>
   </WeaveProperties>
   <ColorColumn name="defaultColorColumn">
@@ -198,7 +203,7 @@ wheel</zoom>
   <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
   <WeaveDataSource name="WeaveDataSource">
     <attributeHierarchy encoding="xml">
-      <hierarchy name="Open Indicators Server">
+      <hierarchy name="IVPR Indicator Server">
         <category name="Data Tables" title="Data Tables">
           <category name="% children under 5 with fever receiving antimalarial drugs" title="% children under 5 with fever receiving antimalarial drugs"/>
           <category name="01dheckerhightech" title="01dheckerhightech"/>
@@ -2382,12 +2387,6 @@ wheel</zoom>
         <axesAlpha>NaN</axesAlpha>
         <axesColor>0</axesColor>
         <axesThickness>NaN</axesThickness>
-        <axisFontBold>true</axisFontBold>
-        <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
-        <axisFontItalic>false</axisFontItalic>
-        <axisFontSize>11</axisFontSize>
-        <axisFontUnderline>false</axisFontUnderline>
         <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
         <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
         <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
@@ -2421,7 +2420,11 @@ wheel</zoom>
                     <defaultValue>true</defaultValue>
                     <internalDynamicColumn encoding="dynamic"/>
                   </enabled>
-                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
+                  <enableMissingDataGradient>false</enableMissingDataGradient>
+                  <imageURL>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </imageURL>
                 </fill>
                 <geometryColumn>
                   <internalDynamicColumn encoding="dynamic">
@@ -2432,7 +2435,7 @@ wheel</zoom>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
                               <category name="Geometry Collections" title="Geometry Collections">
-                                <attribute keyType="Boston Parcel ID" name="Boston 2005 Parcels" dataType="geometry" title="Boston 2005 Parcels"/>
+                                <attribute title="Boston Parcels" name="Boston Parcels" dataType="geometry" keyType="Boston Parcels"/>
                               </category>
                             </hierarchy>
                           </hierarchyPath>
@@ -2485,7 +2488,7 @@ wheel</zoom>
                     <internalDynamicColumn encoding="dynamic"/>
                   </weight>
                 </line>
-                <pixellation>1</pixellation>
+                <pixellation>6</pixellation>
                 <pointDataImageColumn encoding="dynamic"/>
                 <pointShapeSize>5</pointShapeSize>
               </GeometryPlotter>
@@ -2514,9 +2517,9 @@ wheel</zoom>
         <overrideYMax>NaN</overrideYMax>
         <overrideYMin>NaN</overrideYMin>
         <zoomBounds>
-          <area>1720555.5998372</area>
-          <xCenter>234533.774749</xCenter>
-          <yCenter>898239.31114208</yCenter>
+          <area>2064474.0366808</area>
+          <xCenter>235701.19300749</xCenter>
+          <yCenter>893914.72580017</yCenter>
         </zoomBounds>
       </SimpleInteractiveVisualization>
     </children>
@@ -2537,7 +2540,7 @@ wheel</zoom>
     <panelStyleList/>
     <panelTitle/>
     <panelWidth>50%</panelWidth>
-    <panelX>26%</panelX>
+    <panelX>23%</panelX>
     <panelY>20%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>

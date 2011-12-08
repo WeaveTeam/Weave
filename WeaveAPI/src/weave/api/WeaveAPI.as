@@ -198,8 +198,9 @@ package weave.api
 		 */		
 		public static function getSingletonInstance(singletonInterface:Class):*
 		{
+			var result:* = _singletonDictionary[singletonInterface];
 			// If no instance has been created yet, create one now.
-			if (!_singletonDictionary[singletonInterface])
+			if (!result)
 			{
 				var interfaceName:String = getQualifiedClassName(singletonInterface);
 				try
@@ -214,7 +215,7 @@ package weave.api
 					// If there is a registered class, use the local dictionary.
 					if (classDef)
 					{
-						_singletonDictionary[singletonInterface] = new classDef();
+						result = new classDef();
 					}
 					else
 					{
@@ -222,9 +223,10 @@ package weave.api
 						throw e;
 					}
 				}
+				_singletonDictionary[singletonInterface] = result;
 			}
 			// Return saved instance.
-			return _singletonDictionary[singletonInterface];
+			return result;
 		}
 		
 		/**

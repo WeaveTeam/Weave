@@ -82,7 +82,7 @@ package weave.visualization.plotters
 		
 		public const enableGroupBy:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), updateFilterEquationColumns);
 		public const groupBy:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
-		public const xData:DynamicColumn = newSpatialProperty(DynamicColumn, resetXValues);
+		public const xData:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
 		public const yData:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
 		public const xValues:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
 		
@@ -132,16 +132,23 @@ package weave.visualization.plotters
 			_combinedKeySet.resumeCallbacks();
 		}
 		
-		public function resetXValues():void
+		public function getXValues():Array
 		{
-			var values:Array = [];
-			for each (var key:IQualifiedKey in xData.keys)
-				values.push(xData.getValueFromKey(key, String));
-			values.sort();
-			values = VectorUtils.removeDuplicatesFromSortedArray(values);
-			xValues.value = WeaveAPI.CSVParser.createCSVFromArrays([values]);
-			
-			updateFilterEquationColumns();
+			// if session state is defined, use that. otherwise, get the values from xData
+			if (xValues.value)
+			{
+				return VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(xValues.value));
+			}
+			else
+			{
+				// calculate from column
+				var values:Array = [];
+				for each (var key:IQualifiedKey in xData.keys)
+					values.push(xData.getValueFromKey(key, String));
+				values.sort();
+				values = VectorUtils.removeDuplicatesFromSortedArray(values);
+				return values;
+			}
 		}
 		
 		private function updateFilterEquationColumns():void
@@ -160,17 +167,12 @@ package weave.visualization.plotters
 				return;
 			}
 			
-			if (!xValues.value) 
-				return;
-			
 			// check that column keytypes are the same
 			var keyType:String = ColumnUtils.getKeyType(groupBy);
 			if (keyType != ColumnUtils.getKeyType(xData) || keyType != ColumnUtils.getKeyType(yData))
 			{
 				return;
 			}
-			
-			var values:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(xValues.value));
 			
 			columns.removeAllObjects();
 			columns.delayCallbacks();
@@ -179,6 +181,7 @@ package weave.visualization.plotters
 			var filterCol:DynamicColumn;
 			var dataCol:DynamicColumn;
 			
+			var values:Array = getXValues();
 			for (var i:int = 0; i < values.length; i++)
 			{
 				var value:String = values[i];

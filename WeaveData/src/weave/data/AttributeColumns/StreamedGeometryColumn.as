@@ -151,7 +151,7 @@ package weave.data.AttributeColumns
 					break;
 				case METADATA_REQUEST_MODE_XYZ:
 					metaRequestBounds = dataBounds;
-					metaRequestImportance = lowestImportance * geometryMinimumScreenArea.value;
+					metaRequestImportance = lowestImportance;
 					break;
 			}
 			// request metadata tiles

@@ -81,7 +81,7 @@ Displays catoegories in a tree view and the attributes in a list.
 			public const categoryFilter:LinkableString = registerLinkableChild(this, new LinkableString('', isNonNull), handleHierarchyChange);
 			
 			// the currently selected path to an attribute or category
-			public const selectedPath:LinkableXML = registerLinkableChild(this, new LinkableXML(null, StandardLib.isDefined), handleSelectedPathChange);
+			public const selectedPath:LinkableXML = registerLinkableChild(this, new LinkableXML(false), handleSelectedPathChange);
 
 			/*************************/
 			private function isNonNull(value:String):Boolean { return value != null; }

@@ -1270,7 +1270,7 @@ package weave.core
 		 * This maps a ChangeWatcher object to a function that was added as a callback to the corresponding ILinkableVariable.
 		 */
 		private const _watcherToSynchronizeFunctionMap:Dictionary = new Dictionary(); // use weak links to be GC-friendly
-
+		
 		/**
 		 * This function computes the diff of two session states.
 		 * @param oldState The source session state.
@@ -1288,10 +1288,7 @@ package weave.core
 			
 			if (type == 'xml')
 			{
-				if ((oldState as XML).toXMLString() != (newState as XML).toXMLString())
-					return newState;
-				
-				return undefined; // no diff
+				throw new Error("XML is not supported as a primitive session state type.");
 			}
 			else if (type == 'number')
 			{
@@ -1314,18 +1311,20 @@ package weave.core
 			{
 				// create an array of new DynamicState objects for all new names followed by missing old names
 				var i:int;
-				var typedState:DynamicState;
+				var typedState:Object;
 				var changeDetected:Boolean = false;
 				
 				// create oldLookup
-				var oldNameOrder:Array = new Array(oldState.length);
 				var oldLookup:Object = {};
+				var objectName:String;
+				var className:String;
+				var sessionState:Object;
 				for (i = 0; i < oldState.length; i++)
 				{
-					typedState = DynamicState.cast(oldState[i]);
-					//TODO: error checking in case typedState is null
-					oldLookup[typedState.objectName] = typedState;
-					oldNameOrder[i] = typedState.objectName;
+					//note: there is no error checking here for typedState
+					typedState = oldState[i];
+					objectName = typedState[DynamicState.OBJECT_NAME];
+					oldLookup[objectName] = typedState;
 				}
 				if (oldState.length != newState.length)
 					changeDetected = true;
@@ -1334,43 +1333,45 @@ package weave.core
 				var result:Array = [];
 				for (i = 0; i < newState.length; i++)
 				{
-					// create a new DynamicState object so we won't be modifying the one from newState
-					typedState = DynamicState.cast(newState[i], true);
-					var oldTypedState:DynamicState = oldLookup[typedState.objectName] as DynamicState;
-					delete oldLookup[typedState.objectName]; // remove it from the lookup because it's already been handled
+					typedState = newState[i];
+					objectName = typedState[DynamicState.OBJECT_NAME];
+					className = typedState[DynamicState.CLASS_NAME];
+					sessionState = typedState[DynamicState.SESSION_STATE];
+					var oldTypedState:Object = oldLookup[objectName];
+					delete oldLookup[objectName]; // remove it from the lookup because it's already been handled
 					
 					// If the object specified in newState does not exist in oldState, we don't need to do anything further.
 					// If the class is the same as before, then we can save a diff instead of the entire session state.
 					// If the class changed, we can't save only a diff -- we need to keep the entire session state.
 					// Replace the sessionState in the new DynamicState object with the diff.
-					if (oldTypedState != null && oldTypedState.className == typedState.className)
+					if (oldTypedState != null && oldTypedState[DynamicState.CLASS_NAME] == className)
 					{
-						typedState.className = null; // no change
-						diffValue = computeDiff(oldTypedState.sessionState, typedState.sessionState);
+						className = null; // no change
+						diffValue = computeDiff(oldTypedState[DynamicState.SESSION_STATE], sessionState);
 						if (diffValue === undefined)
 						{
 							// Since the class name is the same and the session state is the same,
 							// we only need to specify that this name is still present.
-							result.push(typedState.objectName);
+							result.push(objectName);
 							
-							if (!changeDetected && oldNameOrder[i] != typedState.objectName)
+							if (!changeDetected && oldState[i][DynamicState.OBJECT_NAME] != objectName)
 								changeDetected = true;
 							
 							continue;
 						}
-						typedState.sessionState = diffValue;
+						sessionState = diffValue;
 					}
 					
 					// save in new array and remove from lookup
-					result.push(typedState);
+					result.push(new DynamicState(objectName, className, sessionState));
 					changeDetected = true;
 				}
 				
 				// Anything remaining in the lookup does not appear in newState.
 				// Add DynamicState entries with an invalid className ("delete") to convey that each of these objects should be removed.
-				for (var removedName:String in oldLookup)
+				for (objectName in oldLookup)
 				{
-					result.push(new DynamicState(removedName, 'delete'));
+					result.push(new DynamicState(objectName, 'delete'));
 					changeDetected = true;
 				}
 				

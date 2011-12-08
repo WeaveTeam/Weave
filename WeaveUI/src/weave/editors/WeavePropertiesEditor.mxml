@@ -42,9 +42,10 @@
 			<ui:CustomComboBox id="geometryMetadataRequestMode"/>
 			<ui:HelpComponent content='This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and probing on the map will not catch the shapes that are too small to be seen.'/>
 		</ui:Indent>
-		<ui:Indent label="Streaming geometry bounding box minimum size (in pixels):">
-			<mx:TextInput creationComplete="linkBindableProperty(Weave.properties.geometryMinimumScreenArea, event.target, 'text');"/>
-			<ui:HelpComponent content='This controls the filtering of metadata tile requests and geometry rendering.  Enter the minimum area requirement (in pixels) of the bounding box of a geometry for it to be rendered.'/>
+		<ui:Indent label="Do not render geometry detail with area less than">
+			<mx:NumericStepper width="64" minimum="1" maximum="100" stepSize="1" creationComplete="linkBindableProperty(Weave.properties.geometryMinimumScreenArea, event.target, 'value');"/>
+			<mx:Label text="pixels"/>
+			<ui:HelpComponent content='This controls the filtering of vector tile requests and rendering.  Enter the minimum area requirement (in pixels) for geometry detail to be rendered.'/>
 		</ui:Indent>
 	</mx:VBox>
 	

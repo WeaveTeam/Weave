@@ -196,6 +196,7 @@ package weave
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
 		public function get geometryMetadataRequestMode():LinkableString { return StreamedGeometryColumn.metadataRequestMode; }
 		public function get geometryMinimumScreenArea():LinkableNumber { return StreamedGeometryColumn.geometryMinimumScreenArea; }
+		
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 
 		public const enableUserPreferences:LinkableBoolean = new LinkableBoolean(true); // open the User Preferences Panel
@@ -209,6 +210,7 @@ package weave
 		public const enableTaskbar:LinkableBoolean = new LinkableBoolean(true); // taskbar for minimize/restore
 		public const enableSubsetControls:LinkableBoolean = new LinkableBoolean(true); // creating subsets
 		public const enableExportToolImage:LinkableBoolean = new LinkableBoolean(true); // print/export tool images
+		public const enableExportCSV:LinkableBoolean = new LinkableBoolean(true);
 		public const enableExportApplicationScreenshot:LinkableBoolean = new LinkableBoolean(true); // print/export application screenshot
 		public const enableExportDataTable:LinkableBoolean = new LinkableBoolean(true); // print/export data table
 		

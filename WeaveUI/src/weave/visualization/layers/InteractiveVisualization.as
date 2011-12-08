@@ -680,7 +680,7 @@ package weave.visualization.layers
 					continue;
 				tempDataBounds.constrainBounds(queryBounds, false);
 				
-				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false);
+				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
 				setSelectionKeys(layer, keys, true);
 				
 				break; // select only one layer at a time
@@ -746,7 +746,7 @@ package weave.visualization.layers
 					if (!tempDataBounds.overlaps(queryBounds))
 						continue;
 					tempDataBounds.constrainBounds(queryBounds, false);
-					var keys:Array = (layer.spatialIndex as SpatialIndex).getClosestOverlappingKeys( queryBounds, xPrecision, yPrecision );
+					var keys:Array = (layer.spatialIndex as SpatialIndex).getClosestOverlappingKeys(queryBounds, xPrecision, yPrecision, tempDataBounds);
 					//trace(layers.getName(layer),keys);
 					
 					// stop when we find keys

@@ -66,7 +66,7 @@ package weave.compiler
 				return '';
 			try
 			{
-				return String(value);
+				return value;
 			}
 			catch (e:Error) { }
 			return '';

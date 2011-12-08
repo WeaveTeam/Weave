@@ -29,20 +29,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<CustomComboBox id="choiceCombo" prompt="Select an attribute..."
 							width="100%" height="100%"
 							labelFunction="choiceComboLabelFunction"
-							valueCommit="handleAttrSelected(choiceCombo, choiceCombo.selectedIndex);"
+							valueCommit="if (hasFocus(choiceCombo)) handleAttrSelected(choiceCombo, choiceCombo.selectedIndex);"
 							/>
 		</mx:Canvas>
 		<mx:Canvas label="List">
 			<mx:List id="choiceList" width="100%" height="100%"
 					 labelFunction="choiceComboLabelFunction"
-					 change="handleAttrSelected(choiceList, choiceList.selectedIndex);"
+					 change="if (hasFocus(choiceCombo)) handleAttrSelected(choiceList, choiceList.selectedIndex);"
 					 />
 		</mx:Canvas>
 		<mx:Canvas label="Slider">
 			<mx:VSlider id="choiceSlider" liveDragging="true" tickInterval="1"
 						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
 						change="handleAttrSelected(choiceSlider, choiceSlider.maximum - choiceSlider.value);"
-						/>
+						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 		</mx:Canvas>
 	</mx:ViewStack>
 	

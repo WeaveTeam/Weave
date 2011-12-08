@@ -102,9 +102,10 @@ package weave.utils
 		 */
 		public function getGeometriesFromKey(geometryKey:IQualifiedKey):Array
 		{
-			if (keyToGeometryMapping[geometryKey] == undefined)
-				keyToGeometryMapping[geometryKey] = [];
-			return keyToGeometryMapping[geometryKey];
+			var result:Array = keyToGeometryMapping[geometryKey] as Array
+			if (!result)
+				keyToGeometryMapping[geometryKey] = result = [];
+			return result;
 		}
 
 		/**
