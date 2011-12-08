@@ -30,11 +30,9 @@ package weave.utils
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
-	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.reportError;
 	import weave.core.StageUtils;
-	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.KDNode;
@@ -97,7 +95,7 @@ package weave.utils
 
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return !(keyToGeometryMapping[key] == undefined);
+			return keyToGeometryMapping[key] !== undefined;
 		}
 		
 		/**
@@ -387,7 +385,7 @@ package weave.utils
 
 							if (debug)
 							{
-								trace("got metadata tileID=" + tileID + "/"+metadataTileIDToKDNodeMapping.length+"; "+stream.length);
+								trace("got metadata tileID=" + tileID + "/"+metadataTileIDToKDNodeMapping.length+"; "+stream.position+'/'+stream.length);
 								flag = metadataTilesChecklist.indexOf(tileID);
 								if (flag >= 0)
 								{
@@ -522,8 +520,6 @@ package weave.utils
             } 
             catch(e:EOFError) { }
 
-			keySet.concat(keySet); // update keys
-            
 			// remove this stream from the processing list
 			if (endTask(stream))
 				return; // do not run callbacks if there are still streams being processed.
@@ -531,7 +527,6 @@ package weave.utils
 			//trace("metadata stream processing done");
 			//if (geometriesUpdated)
 				getCallbackCollection(this).triggerCallbacks();
-
 		}
 
 		/**
