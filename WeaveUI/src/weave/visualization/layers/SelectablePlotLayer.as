@@ -138,21 +138,6 @@ package weave.visualization.layers
 			
 			addEventListener(Event.ENTER_FRAME, handleFrameEnter);
 			getCallbackCollection(probeFilter).addGroupedCallback(this, resetAnimator);
-			
-			// for debugging
-			StageUtils.callLater(this, function(self:SelectablePlotLayer):void
-			{
-				var hashMap:ILinkableHashMap = getLinkableOwner(self) as ILinkableHashMap;
-				if (hashMap)
-				{
-					var className:String = getQualifiedClassName(getDynamicPlotter().internalObject).split(':').pop() as String;
-					self.name = 'SelectablePlotLayer ' + className;
-					self._plotLayer.name      = 'plotLayer      ' + className;
-					self._selectionLayer.name = 'selectionLayer ' + className;
-					self._probeLayer.name     = 'probeLayer     ' + className;
-				}
-				//StageUtils.addEventCallback(Event.RENDER, this, trace, [self.name,'RENDER']);
-			}, [this]);
 		}
 		
 		private static var _frameTimeCurrent:int = 0;

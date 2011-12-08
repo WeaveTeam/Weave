@@ -75,8 +75,6 @@ package weave.visualization.layers
 				usingExternalSpatialIndex = false;
 				_dynamicPlotter.spatialCallbacks.addImmediateCallback(this, _spatialIndex.clear);
 			}
-			// generate a name for debugging
-			name = NameUtil.createUniqueName(this);
 			// default size = 100%,100%
 			percentWidth = 100;
 			percentHeight = 100;
