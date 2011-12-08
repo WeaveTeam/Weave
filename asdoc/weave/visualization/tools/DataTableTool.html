@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="DataTableTool,weave.visualization.tools.DataTableTool,columnWidths,columns,exportKeys,filterByKeyType,filterComponents,lockedColumns,showControls,showFilters,sortFieldIndex,sortInDescendingOrder,addItem,childrenCreated,constructor,createContextMenuItems,handlePanelTitleChange,toggleContextMenuItems,updateDisplayList" name="keywords">
+<meta content="DataTableTool,weave.visualization.tools.DataTableTool,columnWidths,columns,exportKeys,filterByKeyType,filterComponents,lockedColumns,showControls,showFilters,sortFieldIndex,sortInDescendingOrder,addItem,childrenCreated,constructor,getExportDataProvider,handlePanelTitleChange,updateDisplayList" name="keywords">
 <title>weave.visualization.tools.DataTableTool</title>
 </head>
 <body>
@@ -158,13 +158,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">DataTableTool</td>
 </tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#createContextMenuItems()">createContextMenuItems</a>(destination:Object):void</div>
-<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">DataTableTool</td>
-</tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
@@ -173,6 +166,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
     dispose
     This will be called when this object is no longer needed.</div>
 </td><td class="summaryTableOwnerCol"><a href="../../ui/DraggablePanel.html">DraggablePanel</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getExportDataProvider()">getExportDataProvider</a>():*</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">DataTableTool</td>
 </tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
@@ -377,13 +377,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="../../ui/DraggablePanel.html#restoreFromTaskbar()">restoreFromTaskbar</a>():void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="../../ui/DraggablePanel.html">DraggablePanel</a></td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#toggleContextMenuItems()">toggleContextMenuItems</a>(event:Event):void</div>
-<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">DataTableTool</td>
 </tr>
 <tr class="hideInheritedProtectedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
@@ -692,17 +685,19 @@ showHideInherited();
 <div class="detailBody">
 <code>protected override function constructor():void</code>
 </div>
-<a name="createContextMenuItems()"></a>
+<a name="getExportDataProvider()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">createContextMenuItems</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">getExportDataProvider</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function createContextMenuItems(destination:Object):void</code><span class="label">Parameters</span>
+<code>public function getExportDataProvider():*</code>
+<p></p>
+<span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">destination</span>:Object</code></td>
+<td width="20"></td><td><code>*</code></td>
 </tr>
 </table>
 </div>
@@ -714,20 +709,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>protected override function handlePanelTitleChange():void</code>
-</div>
-<a name="toggleContextMenuItems()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">toggleContextMenuItems</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected static function toggleContextMenuItems(event:Event):void</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">event</span>:Event</code></td>
-</tr>
-</table>
 </div>
 <a name="updateDisplayList()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
