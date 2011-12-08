@@ -87,7 +87,7 @@ package weave.utils
 		 * keySet
 		 * This is the set of geometry keys that have been decoded so far.
 		 */
-		public const keySet:KeySet = newDisposableChild(this, KeySet);
+		public const keySet:Array = [];
 
 		/**
 		 * keyToGeometryMapping
@@ -95,6 +95,11 @@ package weave.utils
 		 */
 		private const keyToGeometryMapping:Dictionary = new Dictionary();
 
+		public function containsKey(key:IQualifiedKey):Boolean
+		{
+			return !(keyToGeometryMapping[key] == undefined);
+		}
+		
 		/**
 		 * getGeometriesFromKey
 		 * @param geometryKey A String identifier.
@@ -428,7 +433,7 @@ package weave.utils
 						// save key-to-geometry mapping
 			            getGeometriesFromKey(key).push(geometry);
 						// remember that this key was seen
-			            keysLastSeen.push(key);
+			            keySet.push(key);
 						// read bounds xMin, yMin, xMax, yMax
 						geometry.bounds.setBounds(
 								stream.readDouble(),
@@ -517,8 +522,7 @@ package weave.utils
             } 
             catch(e:EOFError) { }
 
-			keySet.addKeys(keysLastSeen); // update keys
-			keysLastSeen.length = 0; // reset for next time
+			keySet.concat(keySet); // update keys
             
 			// remove this stream from the processing list
 			if (endTask(stream))
@@ -651,7 +655,6 @@ package weave.utils
 		private static const stringBuffer:ByteArray = new ByteArray(); // for reading null-terminated strings
 		private static const geometryIDArray:Vector.<int> = new Vector.<int>(); // temporary list of geometryIDs
 		private static const vertexIDArray:Vector.<int> = new Vector.<int>(); // temporary list of vertexIDs
-		private static const keysLastSeen:Array = []; // temporary list of keys recently decoded
 		
 		private static function hex(bytes:ByteArray):String
 		{
