@@ -30,11 +30,9 @@ package weave.utils
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
-	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.reportError;
 	import weave.core.StageUtils;
-	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.KDNode;
@@ -87,7 +85,7 @@ package weave.utils
 		 * keySet
 		 * This is the set of geometry keys that have been decoded so far.
 		 */
-		public const keySet:KeySet = newDisposableChild(this, KeySet);
+		public const keySet:Array = [];
 
 		/**
 		 * keyToGeometryMapping
@@ -95,6 +93,11 @@ package weave.utils
 		 */
 		private const keyToGeometryMapping:Dictionary = new Dictionary();
 
+		public function containsKey(key:IQualifiedKey):Boolean
+		{
+			return keyToGeometryMapping[key] !== undefined;
+		}
+		
 		/**
 		 * getGeometriesFromKey
 		 * @param geometryKey A String identifier.
@@ -382,7 +385,7 @@ package weave.utils
 
 							if (debug)
 							{
-								trace("got metadata tileID=" + tileID + "/"+metadataTileIDToKDNodeMapping.length+"; "+stream.length);
+								trace("got metadata tileID=" + tileID + "/"+metadataTileIDToKDNodeMapping.length+"; "+stream.position+'/'+stream.length);
 								flag = metadataTilesChecklist.indexOf(tileID);
 								if (flag >= 0)
 								{
@@ -428,7 +431,7 @@ package weave.utils
 						// save key-to-geometry mapping
 			            getGeometriesFromKey(key).push(geometry);
 						// remember that this key was seen
-			            keysLastSeen.push(key);
+			            keySet.push(key);
 						// read bounds xMin, yMin, xMax, yMax
 						geometry.bounds.setBounds(
 								stream.readDouble(),
@@ -517,9 +520,6 @@ package weave.utils
             } 
             catch(e:EOFError) { }
 
-			keySet.addKeys(keysLastSeen); // update keys
-			keysLastSeen.length = 0; // reset for next time
-            
 			// remove this stream from the processing list
 			if (endTask(stream))
 				return; // do not run callbacks if there are still streams being processed.
@@ -527,7 +527,6 @@ package weave.utils
 			//trace("metadata stream processing done");
 			//if (geometriesUpdated)
 				getCallbackCollection(this).triggerCallbacks();
-
 		}
 
 		/**
@@ -651,7 +650,6 @@ package weave.utils
 		private static const stringBuffer:ByteArray = new ByteArray(); // for reading null-terminated strings
 		private static const geometryIDArray:Vector.<int> = new Vector.<int>(); // temporary list of geometryIDs
 		private static const vertexIDArray:Vector.<int> = new Vector.<int>(); // temporary list of vertexIDs
-		private static const keysLastSeen:Array = []; // temporary list of keys recently decoded
 		
 		private static function hex(bytes:ByteArray):String
 		{

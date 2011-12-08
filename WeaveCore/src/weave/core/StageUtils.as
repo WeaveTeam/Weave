@@ -233,7 +233,8 @@ package weave.core
 			else
 				_callLaterSingleFrameDelayArray.push(arguments);
 			
-			_stackTraceMap[arguments] = new Error("Stack trace").getStackTrace();
+			if (CallbackCollection.debug)
+				_stackTraceMap[arguments] = new Error("Stack trace").getStackTrace();
 		}
 		
 		private static const _stackTraceMap:Dictionary = new Dictionary(true);

@@ -194,6 +194,9 @@
 				event.menu.callLater(repositionMenu, [event.menu]);
 			}
 			
+			private const menuMouseListeners:Dictionary = new Dictionary(true);
+			private const itemHeight:int = 20;
+			private const scrollShadow:GradientGlowFilter = new GradientGlowFilter(0, 90, [0, 0], [0, 1], [0, 255], 0, itemHeight / 2, 2, BitmapFilterQuality.HIGH, BitmapFilterType.OUTER);
 			private function repositionMenu(menu:Menu):void
 			{
 				if (!menu.parent)
@@ -206,10 +209,12 @@
 				var listener:Function = menuMouseListeners[menu] as Function;
 				if (listener == null)
 				{
+					// add a sprite for a shadow to indicate when there are more menu items below or above
 					var sprite:Sprite = new Sprite();
 					sprite.filters = [scrollShadow];
 					menu.addChild(sprite);
 					
+					// add an event listener that will automatically scroll the menu
 					listener = function(..._):void
 					{
 						var visibleHeight:Number = Math.min(menu.height, stage.stageHeight - global.y);
@@ -236,16 +241,12 @@
 							sprite.graphics.moveTo(0, scrollPos + visibleHeight);
 							sprite.graphics.lineTo(menu.width, scrollPos + visibleHeight);
 						}
-						menu.invalidateDisplayList();
 					};
 					menu.addEventListener(MouseEvent.MOUSE_MOVE, listener);
 					menuMouseListeners[menu] = listener;
 				}
 				listener(); // scroll now
 			}
-			private const itemHeight:int = 20;
-			private const menuMouseListeners:Dictionary = new Dictionary(true);
-			private const scrollShadow:GradientGlowFilter = new GradientGlowFilter(0, 90, [0, 0], [0, 1], [0, 255], 0, itemHeight / 2, 2, BitmapFilterQuality.HIGH, BitmapFilterType.OUTER);
     		
     		public function refreshMenuBar():void
     		{

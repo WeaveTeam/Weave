@@ -93,7 +93,7 @@
     <enableWindowMenu>true</enableWindowMenu>
     <eventListeners encoding="dynamic"/>
     <geometryMetadataRequestMode>xyz</geometryMetadataRequestMode>
-    <geometryMinimumScreenArea>6</geometryMinimumScreenArea>
+    <geometryMinimumScreenArea>1</geometryMinimumScreenArea>
     <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
     <macroLibraries>weave.api::WeaveAPI</macroLibraries>
     <macros encoding="dynamic"/>
@@ -141,7 +141,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showVisToolCloseDialog>false</showVisToolCloseDialog>
     <startupJavaScript/>
     <toolInteractions>
-      <defaultDragMode>pan</defaultDragMode>
+      <defaultDragMode>zoom</defaultDragMode>
       <pan>alt,drag</pan>
       <probe>move</probe>
       <select>drag</select>
@@ -2488,7 +2488,7 @@ wheel</zoom>
                     <internalDynamicColumn encoding="dynamic"/>
                   </weight>
                 </line>
-                <pixellation>6</pixellation>
+                <pixellation>1</pixellation>
                 <pointDataImageColumn encoding="dynamic"/>
                 <pointShapeSize>5</pointShapeSize>
               </GeometryPlotter>
@@ -2517,9 +2517,9 @@ wheel</zoom>
         <overrideYMax>NaN</overrideYMax>
         <overrideYMin>NaN</overrideYMin>
         <zoomBounds>
-          <area>2064474.0366808</area>
-          <xCenter>235701.19300749</xCenter>
-          <yCenter>893914.72580017</yCenter>
+          <area>6773297.5158613</area>
+          <xCenter>233603.35741457</xCenter>
+          <yCenter>896741.73733788</yCenter>
         </zoomBounds>
       </SimpleInteractiveVisualization>
     </children>
@@ -2540,7 +2540,7 @@ wheel</zoom>
     <panelStyleList/>
     <panelTitle/>
     <panelWidth>50%</panelWidth>
-    <panelX>23%</panelX>
+    <panelX>29%</panelX>
     <panelY>20%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
