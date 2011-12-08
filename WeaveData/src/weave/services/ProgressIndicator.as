@@ -63,6 +63,8 @@ package weave.services
 				_taskCount++;
 				_maxTaskCount++;
 			}
+			if (percent == Infinity)
+				percent = 0.5; // undetermined
 			_taskToProgressMap[taskToken] = percent;
 			triggerCallbacks();
 		}
