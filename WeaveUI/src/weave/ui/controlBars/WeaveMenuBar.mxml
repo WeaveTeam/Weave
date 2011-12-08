@@ -156,6 +156,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.reportError;
+			import weave.compiler.StandardLib;
 			import weave.core.ErrorManager;
 			import weave.core.StageUtils;
 			import weave.ui.DraggablePanel;
@@ -202,32 +203,23 @@
 				var global:Point = menubar.localToGlobal(new Point(0, menubar.height));
 				menu.y = menu.parent.globalToLocal(global).y;
 				
-				var scrollbar:ScrollBar = menuScrollbars[menu] as ScrollBar;
-				if (!scrollbar)
+				var listener:Function = menuMouseListeners[menu] as Function;
+				if (listener == null)
 				{
-					menuScrollbars[menu] = scrollbar = new ScrollBar();
-					scrollbar.addEventListener(ScrollEvent.SCROLL, function(e:ScrollEvent):void{
-						menu.scrollRect = new Rectangle(0, scrollbar.scrollPosition, menu.width, scrollbar.height);
-						scrollbar.y = scrollbar.scrollPosition;
-					});
+					listener = function(..._):void
+					{
+						var visibleHeight:Number = Math.min(menu.height, stage.stageHeight - global.y);
+						var menuMouseY:Number = stage.mouseY - global.y;
+						var maxScroll:Number = menu.height - visibleHeight;
+						var scrollPos:Number = StandardLib.constrain(menuMouseY / visibleHeight * maxScroll, 0, maxScroll);
+						menu.scrollRect = new Rectangle(0, scrollPos, menu.width, visibleHeight);
+					};
+					menu.addEventListener(MouseEvent.MOUSE_MOVE, listener);
+					menuMouseListeners[menu] = listener;
 				}
-				if (menu.height > stage.stageHeight - global.y)
-				{
-					scrollbar.y = 0;
-					scrollbar.x = menu.width - 8;
-					scrollbar.height = stage.stageHeight - global.y;
-					scrollbar.minScrollPosition = 0;
-					scrollbar.maxScrollPosition = menu.height - scrollbar.height;
-					scrollbar.scrollPosition = 0;
-					menu.addChild(scrollbar);
-				}
-				else if (scrollbar.parent)
-				{
-					scrollbar.parent.removeChild(scrollbar);
-				}
-				menu.scrollRect = null;
+				listener(); // scroll now
 			}
-			private var menuScrollbars:Dictionary = new Dictionary(true);
+			private var menuMouseListeners:Dictionary = new Dictionary(true);
     		
     		
     		public function refreshMenuBar():void
