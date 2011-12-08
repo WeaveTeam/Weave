@@ -88,7 +88,7 @@ package weave.core
 			{
 				var className:String = obj[DynamicState.CLASS_NAME];
 				var objectName:String = obj[DynamicState.OBJECT_NAME];
-				var sessionState:String = obj[DynamicState.SESSION_STATE];
+				var sessionState:Object = obj[DynamicState.SESSION_STATE];
 				
 				if (className == null)
 				{
