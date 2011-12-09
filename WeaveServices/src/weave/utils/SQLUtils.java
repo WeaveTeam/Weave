@@ -69,7 +69,6 @@ public class SQLUtils
 	public static String POSTGRESQL = "PostgreSQL";
 	public static String SQLSERVER = "Microsoft SQL Server";
 	public static String ORACLE = "Oracle";
-        public static String SQLITE = "SQLite";
 	
 	public static String ORACLE_SERIAL_TYPE = "ORACLE_SERIAL_TYPE"; // used internally in createTable(), not an actual valid type
 	
@@ -87,8 +86,6 @@ public class SQLUtils
 			return "net.sourceforge.jtds.jdbc.Driver";
 		if (dbms.equalsIgnoreCase(ORACLE))
 			return "oracle.jdbc.OracleDriver";
-                if (dbms.equalsIgnoreCase(SQLITE))
-                        return "org.sqlite.JDBC";
 		return "";
 	}
 
@@ -120,10 +117,6 @@ public class SQLUtils
 			format = "jdbc:%s:thin:%s/%s@%s:%s";
 			//"jdbc:oracle:thin:<user>/<password>@<host>:<port>:<instance>"
 		}
-                else if (SQLITE.equalsIgnoreCase(dbms))
-                {
-                        format = "jdbc:%s:%s";
-                }
 		else // MySQL or PostGreSQL
 		{
 			format = "jdbc:%s://%s/%s?user=%s&password=%s";
@@ -150,8 +143,6 @@ public class SQLUtils
 		String result = "";
 		if (dbms.equalsIgnoreCase(ORACLE))
 			result = String.format(format, dbms.toLowerCase(), user, pass, host, database);
-                else if (dbms.equalsIgnoreCase(SQLITE))
-                        result = String.format(format, dbms.toLowerCase(), database);
 		else
 			result = String.format(format, dbms.toLowerCase(), host, database, user, pass);
 
