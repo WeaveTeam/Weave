@@ -32,7 +32,6 @@ package weave.core
 	import mx.core.Application;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.IAsyncTask;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.reportError;
 	
@@ -253,37 +252,58 @@ package weave.core
 		private static var _callLaterArray:Array = [];
 		
 		/**
-		 * This will start an asynchronous task, calling task.iterate() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
+		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
 		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed of, the task will no longer be iterated.
-		 * @param task The asynchronous task.
+		 * @param iterativeTask A function that performs a single iteration of the asynchronous task.
+		 *   This function must take no parameters and return a number from 0.0 to 1.0 indicating the overall progress of the task.
+		 *   A number below 1.0 indicates that the function should be called again to continue the task.
+		 *   When the task is completed, iterativeTask() should return 1.0.
+		 *   Example:
+		 *       var array:Array = ['a','b','c','d'];
+		 *       var i:int = 0;
+		 *       function iterativeTask():Number
+		 *       {
+		 *           if (i < array.length)
+		 *           {
+		 *               trace(array[i]);
+		 *               i++;
+		 *               return i / array.length;
+		 *           }
+		 *           return 1.0;
+		 *       }
 		 */
-		public static function startTask(relevantContext:Object, task:IAsyncTask):void
+		public static function startTask(relevantContext:Object, iterativeTask:Function):void
 		{
-			WeaveAPI.ProgressIndicator.addTask(task);
-			callLater(relevantContext, iterateTask, arguments);
+			if (iterativeTask.length > 0)
+				throw new Error("iterativeTask parameter must be a function that takes zero parameters and returns a Number.");
+			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
+			_iterateTask(relevantContext, iterativeTask);
 		}
 		
 		/**
 		 * @private
 		 */
-		private static function iterateTask(relevantContext:Object, task:IAsyncTask):void
+		private static function _iterateTask(context:Object, task:Function):void
 		{
-			var progress:Number = NaN;
+			var progress:* = undefined;
 			// iterate on the task until max computation time is reached
 			while (getTimer() - _currentFrameStartTime < maxComputationTimePerFrame)
 			{
-				progress = task.iterate();
-				if (progress == 1)
+				// perform the next iteration of the task
+				progress = task() as Number;
+				if (progress === null || progress == 1)
 				{
+					if (progress === null)
+						reportError("Iterative task function did not return a Number.  Task cancelled.");
 					// task is done, so remove the task
 					WeaveAPI.ProgressIndicator.removeTask(task);
 					return;
 				}
 			}
 			// max computation time reached without finishing the task, so update the progress indicator and continue the task later
-			if (!isNaN(progress))
+			if (progress !== undefined)
 				WeaveAPI.ProgressIndicator.updateTask(task, progress);
-			callLater(relevantContext, iterateTask, arguments);
+			callLater(context, _iterateTask, arguments);
 		}
 		
 		/**

@@ -23,7 +23,6 @@ package weave.utils
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.api.core.IAsyncTask;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
@@ -47,7 +46,7 @@ package weave.utils
 	 * @author adufilie
 	 * @author kmonico
 	 */
-	public class SpatialIndex extends CallbackCollection implements ISpatialIndex, IAsyncTask
+	public class SpatialIndex extends CallbackCollection implements ISpatialIndex
 	{
 		// TODO: Refactor to use image/color hits instead. The image hits should use some sort of trapezoidal or triangular grid.
 		
@@ -111,16 +110,7 @@ package weave.utils
 		{
 			_plotter = plotter;
 			_queryMissingBounds = queryMissingBounds;
-			//StageUtils.startTask(this, this);
-			iterate();
-		}
-		
-		/**
-		 * This function will perform an iteration of the createIndex task.
-		 * @inheritDoc
-		 */		
-		public function iterate():Number
-		{
+			
 			delayCallbacks();
 			
 			var key:IQualifiedKey;
@@ -157,13 +147,7 @@ package weave.utils
 					{
 						var geoms:Array = ((_plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
 						_keyToGeometriesMap[key] = geoms;
-//						var geomsCollectiveBounds:IBounds2D = new Bounds2D();
-//						for each (var geom:SimpleGeometry in geoms)
-//						{
-//							geomsCollectiveBounds.includeBounds(geom.bounds);
-//						}
 					}
-					
 				}
 				
 				// if auto-balance is disabled, randomize insertion order
@@ -197,7 +181,6 @@ package weave.utils
 				triggerCallbacks();
 			
 			resumeCallbacks();
-			return 1;
 		}
 		
 		/**
