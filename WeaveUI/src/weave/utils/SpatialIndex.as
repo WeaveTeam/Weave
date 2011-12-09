@@ -23,6 +23,7 @@ package weave.utils
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
+	import weave.api.core.IAsyncTask;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
@@ -30,6 +31,7 @@ package weave.utils
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.CallbackCollection;
+	import weave.core.StageUtils;
 	import weave.primitives.BLGNode;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
@@ -45,7 +47,7 @@ package weave.utils
 	 * @author adufilie
 	 * @author kmonico
 	 */
-	public class SpatialIndex extends CallbackCollection implements ISpatialIndex
+	public class SpatialIndex extends CallbackCollection implements ISpatialIndex, IAsyncTask
 	{
 		// TODO: Refactor to use image/color hits instead. The image hits should use some sort of trapezoidal or triangular grid.
 		
@@ -96,6 +98,9 @@ package weave.utils
 		}
 		
 		private var _keyToGeometriesMap:Dictionary = new Dictionary();
+		private var _plotter:IPlotter;
+		private var _queryMissingBounds:Boolean;
+		private var _spatialCallbacksTriggerCounter:uint = 0;
 		
 		/**
 		 * This function fills the spatial index with the data bounds of each record in a plotter.
@@ -104,15 +109,27 @@ package weave.utils
 		 */
 		public function createIndex(plotter:IPlotter, queryMissingBounds:Boolean = false):void
 		{
+			_plotter = plotter;
+			_queryMissingBounds = queryMissingBounds;
+			//StageUtils.startTask(this, this);
+			iterate();
+		}
+		
+		/**
+		 * This function will perform an iteration of the createIndex task.
+		 * @inheritDoc
+		 */		
+		public function iterate():Number
+		{
 			delayCallbacks();
 			
 			var key:IQualifiedKey;
 			var bounds:IBounds2D;
 			var i:int;
 			
-			if (plotter is DynamicPlotter)
+			if (_plotter is DynamicPlotter)
 			{
-				if ((plotter as DynamicPlotter).internalObject is IPlotterWithGeometries)
+				if ((_plotter as DynamicPlotter).internalObject is IPlotterWithGeometries)
 					_keyToGeometriesMap = new Dictionary();
 				else 
 					_keyToGeometriesMap = null;
@@ -122,23 +139,23 @@ package weave.utils
 			
 			clear();
 			
-			if (plotter != null)
+			if (_plotter != null)
 			{
-				collectiveBounds.copyFrom(plotter.getBackgroundDataBounds());
+				collectiveBounds.copyFrom(_plotter.getBackgroundDataBounds());
 				
 				// make a copy of the keys vector
-				VectorUtils.copy(plotter.keySet.keys, _keysArray);
+				VectorUtils.copy(_plotter.keySet.keys, _keysArray);
 				
 				// save dataBounds for each key
 				i = _keysArray.length;
 				while (--i > -1)
 				{
 					key = _keysArray[i] as IQualifiedKey;
-					_keyToBoundsMap[key] = plotter.getDataBoundsFromRecordKey(key);
+					_keyToBoundsMap[key] = _plotter.getDataBoundsFromRecordKey(key);
 					
 					if (_keyToGeometriesMap != null)
 					{
-						var geoms:Array = ((plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
+						var geoms:Array = ((_plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
 						_keyToGeometriesMap[key] = geoms;
 //						var geomsCollectiveBounds:IBounds2D = new Bounds2D();
 //						for each (var geom:SimpleGeometry in geoms)
@@ -166,7 +183,7 @@ package weave.utils
 						// do not index shapes with undefined bounds
 						//TODO: index shapes with missing bounds values into a different index
 						// TEMPORARY SOLUTION: store missing bounds if queryMissingBounds == true
-						if (!bounds.isUndefined() || (bounds.isUndefined() && queryMissingBounds))
+						if (!bounds.isUndefined() || _queryMissingBounds)
 						{
 							_kdTree.insert([bounds.getXNumericMin(), bounds.getYNumericMin(), bounds.getXNumericMax(), bounds.getYNumericMax(), bounds.getArea()], key);
 							collectiveBounds.includeBounds(bounds);
@@ -180,6 +197,7 @@ package weave.utils
 				triggerCallbacks();
 			
 			resumeCallbacks();
+			return 1;
 		}
 		
 		/**

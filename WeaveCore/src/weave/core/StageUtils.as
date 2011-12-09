@@ -32,6 +32,7 @@ package weave.core
 	import mx.core.Application;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.IAsyncTask;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.reportError;
 	
@@ -250,6 +251,40 @@ package weave.core
 		 * This array gets populated by callLater().
 		 */
 		private static var _callLaterArray:Array = [];
+		
+		/**
+		 * This will start an asynchronous task, calling task.iterate() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
+		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed of, the task will no longer be iterated.
+		 * @param task The asynchronous task.
+		 */
+		public static function startTask(relevantContext:Object, task:IAsyncTask):void
+		{
+			WeaveAPI.ProgressIndicator.addTask(task);
+			callLater(relevantContext, iterateTask, arguments);
+		}
+		
+		/**
+		 * @private
+		 */
+		private static function iterateTask(relevantContext:Object, task:IAsyncTask):void
+		{
+			var progress:Number = NaN;
+			// iterate on the task until max computation time is reached
+			while (getTimer() - _currentFrameStartTime < maxComputationTimePerFrame)
+			{
+				progress = task.iterate();
+				if (progress == 1)
+				{
+					// task is done, so remove the task
+					WeaveAPI.ProgressIndicator.removeTask(task);
+					return;
+				}
+			}
+			// max computation time reached without finishing the task, so update the progress indicator and continue the task later
+			if (!isNaN(progress))
+				WeaveAPI.ProgressIndicator.updateTask(task, progress);
+			callLater(relevantContext, iterateTask, arguments);
+		}
 		
 		/**
 		 * This function gets called when a mouse click event occurs.
