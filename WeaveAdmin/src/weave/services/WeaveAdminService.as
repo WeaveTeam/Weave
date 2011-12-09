@@ -173,7 +173,7 @@ package weave.services
 		{
 		    return invokeAdminService("getGeometryCollectionNames", arguments);
 		}
-		public function getWeaveFileNames(connectionName:String, password:String):DelayedAsyncInvocation
+		public function getWeaveFileNames(connectionName:String, password:String, sharedFiles:Boolean):DelayedAsyncInvocation
 		{
 			return invokeAdminService("getWeaveFileNames", arguments);
 		}

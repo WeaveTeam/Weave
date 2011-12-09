@@ -232,16 +232,12 @@ public class AdminService extends GenericServlet
 	 * @return A list of (xml) client config files existing in the docroot
 	 *         folder.
 	 */
-	synchronized public String[] getWeaveFileNames(String configConnectionName, String password) throws RemoteException
+	synchronized public String[] getWeaveFileNames(String configConnectionName, String password, Boolean showAllFiles) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
 		ConnectionInfo info = config.getConnectionInfo(configConnectionName);
-
-		String path = docrootPath;
-		if(info.folderName.length() > 0)
-			path = path + info.folderName + "/";
-		
-		File docrootFolder = new File(path);
+		File[] files = null;
+		List<String> listOfFiles = new ArrayList<String>();
 		FilenameFilter xmlFilter = new FilenameFilter()
 		{
 			public boolean accept(File dir, String fileName)
@@ -249,9 +245,37 @@ public class AdminService extends GenericServlet
 				return (fileName.endsWith(".xml"));
 			}
 		};
-		File[] files = null;
-		List<String> listOfFiles = new ArrayList<String>();
+		
+		if(showAllFiles == true)
+		{
+			try
+			{
+				String root = docrootPath;			
+				File rootFolder = new File(root);	
+				files = rootFolder.listFiles();
 
+				for (File f : files) 
+				{
+					if(!f.isDirectory())
+						continue;
+					File[] configs = f.listFiles(xmlFilter);
+					for (File configfile : configs) 
+					{
+						listOfFiles.add(f.getName() + "/" + configfile.getName());
+					}
+				}
+			} catch (SecurityException e) 
+			{
+				throw new RemoteException("Permission error reading directory.",e);
+			}
+		}
+		
+		String path = docrootPath;
+		if(!showAllFiles && info.folderName.length() > 0)
+			path = path + info.folderName + "/";
+		
+		File docrootFolder = new File(path);
+		
 		try
 		{
 			docrootFolder.mkdirs();
@@ -261,7 +285,7 @@ public class AdminService extends GenericServlet
 				if (file.isFile())
 				{
 					// System.out.println(file.getName());
-					listOfFiles.add(((info.folderName.length() > 0) ? info.folderName + "/" : "") + file.getName().toString());
+					listOfFiles.add(((!showAllFiles && info.folderName.length() > 0) ? info.folderName + "/" : "") + file.getName().toString());
 				}
 			}
 		}

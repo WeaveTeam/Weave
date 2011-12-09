@@ -25,20 +25,34 @@
 				width="100%" height="100%" 
 				label="Client configurations"
 				creationComplete="handleCreationComplete()">
-	<mx:VBox height="100%">
-		<mx:HBox>
-			<mx:Button label="Open selected file" click="openSelectedFile()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
-			<mx:Button label="Delete selected file" click="removeClientConfigFile()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
-			<mx:Button label="Create new file" click="createFile()"/>
-		</mx:HBox>
-		<ui:TreeWithSearch id="treeWithSearch" prompt="Search configuration files"
-						   doubleClickEnabled="true" doubleClick="openSelectedFile()"
-						   toolTip="Double-click a file name to open it with Weave."/>
-		<mx:HBox width="100%">
-			<mx:Spacer width="100%"/>
-			<mx:Button label="Refresh" click="AdminInterface.instance.getWeaveFileNames()"/>
-		</mx:HBox>
-	</mx:VBox>
+	<mx:HBox height="100%" width="100%">
+		<mx:VBox height="100%" width="50%">	
+			<mx:HBox>
+				<mx:Button label="Open selected file" click="openSelectedFile(userFolderTreeWithSearch)" enabled="{userFolderTreeWithSearch.tree.selectedItem != null}"/>
+				<mx:Button label="Delete selected file" click="removeClientConfigFile()" enabled="{userFolderTreeWithSearch.tree.selectedItem != null}"/>
+				<mx:Button label="Create new file" click="createFile()"/>
+			</mx:HBox>
+			<ui:TreeWithSearch id="userFolderTreeWithSearch" prompt="Search my configuration files"
+							   doubleClickEnabled="true" doubleClick="openSelectedFile(userFolderTreeWithSearch)"
+							   toolTip="Double-click a file name to open it with Weave."/>
+			<mx:HBox width="100%">
+				<mx:Spacer width="100%"/>
+				<mx:Button label="Refresh" click="AdminInterface.instance.getPrivateWeaveFileNames()"/>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox height="100%" width="50%">		
+			<mx:HBox>
+				<mx:Button label="Open selected file" click="openSelectedFile(sharedTreeWithSearch)" enabled="{sharedTreeWithSearch.tree.selectedItem != null}"/>				
+			</mx:HBox>
+			<ui:TreeWithSearch id="sharedTreeWithSearch" prompt="Search all configuration files"
+							   doubleClickEnabled="true" doubleClick="openSelectedFile(sharedTreeWithSearch)"
+							   toolTip="Double-click a file name to open it with Weave."/>
+			<mx:HBox width="100%">
+				<mx:Spacer width="100%"/>
+				<mx:Button label="Refresh" click="AdminInterface.instance.getWeaveFileNames()"/>
+			</mx:HBox>
+		</mx:VBox>
+			</mx:HBox>
 	
 <!--	<mx:TabNavigator paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
 		<mx:Canvas label="Settings" width="100%" height="100%">
@@ -66,16 +80,22 @@
 			private function handleCreationComplete():void
 			{
 				EventUtils.addBindCallback(AdminInterface.instance, "weaveFileNames", handleClientConfigFileNamesChange);
+				EventUtils.addBindCallback(AdminInterface.instance, "privateWeaveFileNames", handlePrivateClientConfigFileNamesChange);
 			}
 			
 			public function handleClientConfigFileNamesChange():void
 			{
-				treeWithSearch.generateFlatTreeFromLabels(AdminInterface.instance.weaveFileNames);
+				sharedTreeWithSearch.generateFlatTreeFromLabels(AdminInterface.instance.weaveFileNames);
 			}
 			
-			private function openSelectedFile():void
+			public function handlePrivateClientConfigFileNamesChange():void
 			{
-				var item:Object = treeWithSearch.tree.selectedItem;
+				userFolderTreeWithSearch.generateFlatTreeFromLabels(AdminInterface.instance.privateWeaveFileNames);
+			}
+			
+			private function openSelectedFile(component:TreeWithSearch):void
+			{
+				var item:Object = component.tree.selectedItem;
 				if (item)
 					AdminInterface.instance.openWeavePopup(item.label);
 			}
@@ -87,13 +107,13 @@
 			
 			private function removeClientConfigFile():void
 			{
-				if (treeWithSearch.tree.selectedItem == null)
+				if (userFolderTreeWithSearch.tree.selectedItem == null)
 				{
 					Alert.show("No file is selected.", "Error");
 					return;
 				}
 				
-				var fileName:String = treeWithSearch.tree.selectedItem.label;
+				var fileName:String = userFolderTreeWithSearch.tree.selectedItem.label;
 				
 				if (fileName != "" && fileName != null)
 				{
