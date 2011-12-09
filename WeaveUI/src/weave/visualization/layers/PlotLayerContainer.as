@@ -241,11 +241,11 @@ package weave.visualization.layers
 				layer.setDataBounds(tempDataBounds);
 				
 				plotLayer = layer as PlotLayer;
-				if (plotLayer && !plotLayer.lockScreenBounds)
+				if (plotLayer)
 					plotLayer.setScreenBounds(tempScreenBounds);
 				
 				selectablePlotLayer = layer as SelectablePlotLayer;
-				if (selectablePlotLayer && !selectablePlotLayer.lockScreenBounds)
+				if (selectablePlotLayer)
 					selectablePlotLayer.setScreenBounds(tempScreenBounds);
 				
 				if(selectablePlotLayer){
@@ -279,9 +279,8 @@ package weave.visualization.layers
 		{
 			zoomBounds.getDataBounds(tempDataBounds);
 			zoomBounds.getScreenBounds(tempScreenBounds);
-			var useXCoordinates:Boolean = (fullDataBounds.getXCoverage() > fullDataBounds.getYCoverage()); // fit full extent inside min screen size
 			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
-			var zoomLevel:Number = ZoomUtils.getZoomLevel(tempDataBounds, tempScreenBounds, fullDataBounds, minSize, useXCoordinates);
+			var zoomLevel:Number = ZoomUtils.getZoomLevel(tempDataBounds, tempScreenBounds, fullDataBounds, minSize);
 			return zoomLevel;
 		}
 		

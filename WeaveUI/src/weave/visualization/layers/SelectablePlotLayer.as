@@ -326,8 +326,6 @@ package weave.visualization.layers
 		private var _selectionLayer:PlotLayer;
 		private var _probeLayer:PlotLayer;
 		
-		public var lockScreenBounds:Boolean = false;
-		
 		
 		public function get plotLayer():PlotLayer { return _plotLayer; }
 		public function get selectionLayer():PlotLayer { return _selectionLayer; }
@@ -375,8 +373,16 @@ package weave.visualization.layers
 		}
 		public function setScreenBounds(source:IBounds2D):void
 		{
-			for each (var layer:IPlotLayer in [_plotLayer, _selectionLayer, _probeLayer])
-				layer.setScreenBounds(source);
+			if (!_lockScreenBounds) // hack
+				for each (var layer:IPlotLayer in [_plotLayer, _selectionLayer, _probeLayer])
+					layer.setScreenBounds(source);
+		}
+		private var _lockScreenBounds:Boolean = false; // hack
+		public function hack_lockScreenBounds(source:IBounds2D):void // hack
+		{
+			_lockScreenBounds = false;
+			setScreenBounds(source);
+			_lockScreenBounds = true;
 		}
 
 		public function showMissingRecords(show:Boolean = false):void

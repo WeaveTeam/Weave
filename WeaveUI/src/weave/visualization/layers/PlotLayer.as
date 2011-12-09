@@ -50,6 +50,7 @@ package weave.visualization.layers
 	import weave.utils.DebugUtils;
 	import weave.utils.PlotterUtils;
 	import weave.utils.SpatialIndex;
+	import weave.utils.ZoomUtils;
 	import weave.visualization.plotters.DynamicPlotter;
 	
 	/**
@@ -115,7 +116,6 @@ package weave.visualization.layers
 		private var _dynamicPlotter:DynamicPlotter = null;
 		private var _spatialIndex:SpatialIndex = null;
 		private var _spatialIndexDirty:Boolean = true;
-		public var lockScreenBounds:Boolean = false;
 		
 		
 		/**
@@ -177,10 +177,17 @@ package weave.visualization.layers
 			}
 		}
 		
+//		public function getZoomLevel():Number
+//		{
+//			return ZoomUtils.getZoomLevel(_dataBounds, _screenBounds, _fullDataBounds, _minScreenSize);
+//		}
+		
 		// end IPlotter interface
 
 		private const _dataBounds:IBounds2D = new Bounds2D(); // this is set by the public setDataBounds() interface
 		private const _screenBounds:IBounds2D = new Bounds2D(); // this is set by the public setScreenBounds() interface
+//		internal const _fullDataBounds:IBounds2D = new Bounds2D(); // this is set by other classes
+//		internal var _minScreenSize:int = 128; // this is set by other classes
 
 		/**
 		 * When this is true, the plot won't be drawn if there is no selection and the background will never be drawn.
