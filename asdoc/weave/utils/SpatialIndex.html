@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="SpatialIndex,weave.utils.SpatialIndex,collectiveBounds,keys,recordCount,clear,createIndex,getBoundsFromKey,getClosestOverlappingKeys,getKeysBoundingBoxOverlap,getKeysGeometryOverlap,getKeysGeometryOverlapGeometry" name="keywords">
+<meta content="SpatialIndex,weave.utils.SpatialIndex,collectiveBounds,keys,recordCount,clear,createIndex,getBoundsFromKey,getClosestOverlappingKeys,getKeysBoundingBoxOverlap,getKeysGeometryOverlap,getKeysGeometryOverlapGeometry,iterate" name="keywords">
 <title>weave.utils.SpatialIndex</title>
 </head>
 <body>
@@ -41,7 +41,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">SpatialIndex <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../images/inherit-arrow.gif"> <a href="../core/CallbackCollection.html">CallbackCollection</a></td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Implements</td><td><a href="../api/ui/ISpatialIndex.html">ISpatialIndex</a></td>
+<td class="classHeaderTableLabel">Implements</td><td><a href="../api/core/IAsyncTask.html">IAsyncTask</a>, <a href="../api/ui/ISpatialIndex.html">ISpatialIndex</a></td>
 </tr>
 </table>
 <p></p>
@@ -232,6 +232,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#getKeysGeometryOverlapGeometry()">getKeysGeometryOverlapGeometry</a>(geometry:<a href="../api/data/ISimpleGeometry.html">ISimpleGeometry</a>, minImportance:Number = 0, filterBoundingBoxesByImportance:Boolean = false):Array</div>
 <div class="summaryTableDescription">
    This function will get the keys whose geometries intersect with the given geometry.</div>
+</td><td class="summaryTableOwnerCol">SpatialIndex</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#iterate()">iterate</a>():Number</div>
+<div class="summaryTableDescription">
+   This function will perform an iteration of the createIndex task.</div>
 </td><td class="summaryTableOwnerCol">SpatialIndex</td>
 </tr>
 <tr class="hideInheritedMethod">
@@ -581,6 +589,28 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code>Array</code> &mdash; An array of keys.
+   </td>
+</tr>
+</table>
+</div>
+<a name="iterate()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">iterate</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function iterate():Number</code><p>
+   This function will perform an iteration of the createIndex task.
+   
+   This will perform a single iteration of the asynchronous task.
+   </p><p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Number</code> &mdash; A number from 0.0 to 1.0 indicating the overall progress of the task.
+           A number below 1.0 indicates that iterate() should be called again to continue the task.
+           When the task is completed, iterate() should return 1.0.
    </td>
 </tr>
 </table>
