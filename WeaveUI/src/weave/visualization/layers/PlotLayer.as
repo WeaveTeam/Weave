@@ -42,6 +42,7 @@ package weave.visualization.layers
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableNumber;
 	import weave.core.SessionManager;
 	import weave.core.StageUtils;
 	import weave.data.KeySets.FilteredKeySet;
@@ -115,6 +116,24 @@ package weave.visualization.layers
 		private var _spatialIndex:SpatialIndex = null;
 		private var _spatialIndexDirty:Boolean = true;
 		public var lockScreenBounds:Boolean = false;
+		
+		
+		/**
+		 * Sets the minimum visible zoom level for the layer
+		 */
+		public const minVisibleZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-5));
+		
+		/**
+		 * Sets the maximum visible zoom level for the layer
+		 */
+		public const maxVisibleZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(20));
+		
+		/**
+		 * A flag which is true when the zoom level of the PlotLayerContainer containing
+		 * this SelectablePlotLayer is between minVisibleZoomLevel and maxVisibleZoomLevel.
+		 * Set by PlotLayerContainer.updateZoom().
+		 */
+		public var withinVisibleZoomLevels:Boolean = true;
 		
 		/**
 		 * The IPlotter object used to draw shapes on this PlotLayer.
@@ -303,7 +322,7 @@ package weave.visualization.layers
 				handleSizeChange();
 
 			//trace(name,'begin updateDisplayList', _dataBounds);
-			var shouldDraw:Boolean = (unscaledWidth * unscaledHeight > 0);
+			var shouldDraw:Boolean = (unscaledWidth * unscaledHeight > 0) && withinVisibleZoomLevels;
 			//validate spatial index if necessary
 			if (shouldDraw)
 				validateSpatialIndex();

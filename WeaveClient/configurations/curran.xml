@@ -1,17 +1,19 @@
 <Weave encoding="dynamic">
   <WeaveProperties name="WeaveProperties">
-    <axisFontBold>true</axisFontBold>
-    <axisFontColor>0</axisFontColor>
-    <axisFontFamily>Sophia Nubian</axisFontFamily>
-    <axisFontItalic>false</axisFontItalic>
-    <axisFontSize>11</axisFontSize>
-    <axisFontUnderline>false</axisFontUnderline>
     <backgroundColor>13421772</backgroundColor>
     <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
     <dashboardMode>false</dashboardMode>
     <dashedSelectionBox>5,5</dashedSelectionBox>
     <dataInfoURL/>
     <debugScreenBounds>false</debugScreenBounds>
+    <defaultTextFormat>
+      <bold>false</bold>
+      <color>0</color>
+      <font>Sophia Nubian</font>
+      <italic>false</italic>
+      <size>11</size>
+      <underline>false</underline>
+    </defaultTextFormat>
     <enableAboutMenu>true</enableAboutMenu>
     <enableAdd2DHistogram>true</enableAdd2DHistogram>
     <enableAddAttributeMenuTool>true</enableAddAttributeMenuTool>
@@ -50,6 +52,7 @@
     <enableDynamicTools>true</enableDynamicTools>
     <enableEditDataSource>true</enableEditDataSource>
     <enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
+    <enableExportCSV>true</enableExportCSV>
     <enableExportDataTable>true</enableExportDataTable>
     <enableExportToolImage>true</enableExportToolImage>
     <enableFullscreen>true</enableFullscreen>
@@ -66,6 +69,7 @@
     <enablePanelCoordsPercentageMode>true</enablePanelCoordsPercentageMode>
     <enableProbeAnimation>true</enableProbeAnimation>
     <enableProbeLines>true</enableProbeLines>
+    <enableProbeToolTip>true</enableProbeToolTip>
     <enableRefreshHierarchies>true</enableRefreshHierarchies>
     <enableRemoveSubsets>true</enableRemoveSubsets>
     <enableRestoreAllMinimizedWindows>true</enableRestoreAllMinimizedWindows>
@@ -75,8 +79,6 @@
     <enableSearchForRecord>true</enableSearchForRecord>
     <enableSelectionSelectorBox>true</enableSelectionSelectorBox>
     <enableSelectionsMenu>true</enableSelectionsMenu>
-    <enableSessionBookmarks>true</enableSessionBookmarks>
-    <enableSessionEdit>true</enableSessionEdit>
     <enableSessionMenu>true</enableSessionMenu>
     <enableShowAllRecords>true</enableShowAllRecords>
     <enableSubsetControls>true</enableSubsetControls>
@@ -89,20 +91,23 @@
     <enableToolProbe>true</enableToolProbe>
     <enableToolSelection>true</enableToolSelection>
     <enableUserPreferences>true</enableUserPreferences>
-    <enableWeaveFonts>true</enableWeaveFonts>
     <enableWindowMenu>true</enableWindowMenu>
     <eventListeners encoding="dynamic"/>
+    <geometryMetadataRequestMode>xyz</geometryMetadataRequestMode>
+    <geometryMinimumScreenArea>1</geometryMinimumScreenArea>
     <jriServiceURL>/WeaveServices/JRIService</jriServiceURL>
     <macroLibraries>weave.api::WeaveAPI</macroLibraries>
     <macros encoding="dynamic"/>
     <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
     <pageTitle>Open Indicators Weave</pageTitle>
-    <panelTitleFontBold>false</panelTitleFontBold>
-    <panelTitleFontColor>16777215</panelTitleFontColor>
-    <panelTitleFontFamily>Verdana</panelTitleFontFamily>
-    <panelTitleFontItalic>false</panelTitleFontItalic>
-    <panelTitleFontSize>10</panelTitleFontSize>
-    <panelTitleFontUnderline>false</panelTitleFontUnderline>
+    <panelTitleTextFormat>
+      <bold>false</bold>
+      <color>16777215</color>
+      <font>Verdana</font>
+      <italic>false</italic>
+      <size>10</size>
+      <underline>false</underline>
+    </panelTitleTextFormat>
     <pdbServiceURL>/WeavePDBService/PDBService</pdbServiceURL>
     <probeInnerGlowAlpha>1</probeInnerGlowAlpha>
     <probeInnerGlowBlur>5</probeInnerGlowBlur>
@@ -152,6 +157,7 @@ wheel</zoom>
     <version>1.0 Beta (DEV)</version>
     <windowSnapGridSize>1%</windowSnapGridSize>
     <workspaceHeight>NaN</workspaceHeight>
+    <workspaceMultiplier>1</workspaceMultiplier>
     <workspaceWidth>NaN</workspaceWidth>
   </WeaveProperties>
   <ColorColumn name="defaultColorColumn">
@@ -159,7 +165,7 @@ wheel</zoom>
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp category="basic" name="5-Color" source="OIC">
+      <colorRamp name="5-Color" source="OIC" category="basic">
         <node color="0xEFF3FF" position="0"/>
         <node color="0xBDD7E7" position="0.25"/>
         <node color="0x6BAED6" position="0.5"/>
@@ -196,41 +202,6 @@ wheel</zoom>
   <KeySet name="alwaysHighlightKeySet"/>
   <LinkableHashMap name="savedSelections" encoding="dynamic"/>
   <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
-  <WeaveDataSource name="WeaveDataSource">
-    <attributeHierarchy encoding="xml">
-      <hierarchy name="Open Indicators Server">
-        <category name="Data Tables" title="Data Tables">
-          <category name="can_ab_l_geo83_e" title="can_ab_l_geo83_e"/>
-          <category name="can_ab_p_geo83_e" title="can_ab_p_geo83_e"/>
-          <category name="canada" title="canada"/>
-          <category name="Obesity" title="Obesity"/>
-          <category name="obesity-cube" title="obesity-cube"/>
-          <category name="prov_ab_p_geo83_e" title="prov_ab_p_geo83_e"/>
-          <category name="st99_d00" title="st99_d00"/>
-          <category name="states" title="states"/>
-          <category name="States" title="States"/>
-          <category name="tl_2009_us_county" title="tl_2009_us_county"/>
-          <category name="tl_2009_us_state" title="tl_2009_us_state"/>
-          <category name="us_states" title="us_states"/>
-          <category name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002"/>
-        </category>
-        <category name="Geometry Collections" title="Geometry Collections">
-          <attribute name="can_ab_l_geo83_e" title="can_ab_l_geo83_e" keyType="can_ab_l_geo83_e" dataType="geometry"/>
-          <attribute name="can_ab_p_geo83_e" title="can_ab_p_geo83_e" keyType="can_ab_p_geo83_e" dataType="geometry"/>
-          <attribute name="canada" title="canada" keyType="canada" dataType="geometry"/>
-          <attribute name="prov_ab_p_geo83_e" title="prov_ab_p_geo83_e" keyType="prov_ab_p_geo83_e" dataType="geometry"/>
-          <attribute name="states" title="states" keyType="US State FIPS Code" dataType="geometry"/>
-          <attribute name="tl_2009_us_county" title="tl_2009_us_county" keyType="US County FIPS Code" dataType="geometry"/>
-          <attribute name="tl_2009_us_state" title="tl_2009_us_state" keyType="US State FIPS Code" dataType="geometry"/>
-          <attribute name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002" keyType="world_countries_boundary_file_world_2002" dataType="geometry"/>
-        </category>
-      </hierarchy>
-    </attributeHierarchy>
-    <hierarchyURL/>
-    <url>/WeaveServices/DataService</url>
-  </WeaveDataSource>
-  <LinkableHashMap name="Probe Header Columns" encoding="dynamic"/>
-  <LinkableHashMap name="Probed Columns" encoding="dynamic"/>
   <MapTool name="MapTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
@@ -238,12 +209,6 @@ wheel</zoom>
         <axesAlpha>NaN</axesAlpha>
         <axesColor>0</axesColor>
         <axesThickness>NaN</axesThickness>
-        <axisFontBold>true</axisFontBold>
-        <axisFontColor>0</axisFontColor>
-        <axisFontFamily>Sophia Nubian</axisFontFamily>
-        <axisFontItalic>false</axisFontItalic>
-        <axisFontSize>11</axisFontSize>
-        <axisFontUnderline>false</axisFontUnderline>
         <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
         <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
         <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
@@ -256,212 +221,12 @@ wheel</zoom>
         <gridLineThickness>NaN</gridLineThickness>
         <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
         <layers encoding="dynamic">
-          <SelectablePlotLayer name="plot3">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <GeometryPlotter>
-                <fill>
-                  <alpha>
-                    <defaultValue>0.2</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <color>
-                    <defaultValue>NaN</defaultValue>
-                    <internalDynamicColumn encoding="dynamic">
-                      <GlobalObjectReference name="defaultColorColumn"/>
-                    </internalDynamicColumn>
-                  </color>
-                  <enabled>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
-                </fill>
-                <geometryColumn>
-                  <internalDynamicColumn encoding="dynamic">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WeaveDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <category name="Geometry Collections" title="Geometry Collections">
-                                <attribute name="tl_2009_us_county" title="tl_2009_us_county" keyType="US County FIPS Code" dataType="geometry"/>
-                              </category>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </internalDynamicColumn>
-                  <projectionSRS/>
-                </geometryColumn>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <line>
-                  <alpha>
-                    <defaultValue>0.2</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>none</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </line>
-                <pixellation>1</pixellation>
-                <pointDataImageColumn encoding="dynamic"/>
-                <pointShapeSize>5</pointShapeSize>
-              </GeometryPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="plot4">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <GeometryPlotter>
-                <fill>
-                  <alpha>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <color>
-                    <defaultValue>NaN</defaultValue>
-                    <internalDynamicColumn encoding="dynamic">
-                      <GlobalObjectReference name="defaultColorColumn"/>
-                    </internalDynamicColumn>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
-                </fill>
-                <geometryColumn>
-                  <internalDynamicColumn encoding="dynamic">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WeaveDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <category name="Geometry Collections" title="Geometry Collections">
-                                <attribute name="tl_2009_us_state" title="tl_2009_us_state" keyType="US State FIPS Code" dataType="geometry"/>
-                              </category>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </internalDynamicColumn>
-                  <projectionSRS/>
-                </geometryColumn>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <line>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>none</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </line>
-                <pixellation>1</pixellation>
-                <pointDataImageColumn encoding="dynamic"/>
-                <pointShapeSize>5</pointShapeSize>
-              </GeometryPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
           <SelectablePlotLayer name="plot2">
             <backgroundIsVisible>true</backgroundIsVisible>
             <layerIsSelectable>true</layerIsSelectable>
             <layerIsVisible>true</layerIsVisible>
+            <maxVisibleZoomLevel>16</maxVisibleZoomLevel>
+            <minVisibleZoomLevel>0</minVisibleZoomLevel>
             <plotter encoding="dynamic">
               <GeometryPlotter>
                 <fill>
@@ -479,310 +244,11 @@ wheel</zoom>
                     <defaultValue>true</defaultValue>
                     <internalDynamicColumn encoding="dynamic"/>
                   </enabled>
-                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
-                </fill>
-                <geometryColumn>
-                  <internalDynamicColumn encoding="dynamic">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WeaveDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <category name="Geometry Collections" title="Geometry Collections">
-                                <attribute name="canada" title="canada" keyType="canada" dataType="geometry"/>
-                              </category>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </internalDynamicColumn>
-                  <projectionSRS/>
-                </geometryColumn>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <line>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
+                  <enableMissingDataGradient>false</enableMissingDataGradient>
+                  <imageURL>
                     <defaultValue/>
                     <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>none</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </line>
-                <pixellation>1</pixellation>
-                <pointDataImageColumn encoding="dynamic"/>
-                <pointShapeSize>5</pointShapeSize>
-              </GeometryPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="plot5">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>false</layerIsVisible>
-            <plotter encoding="dynamic">
-              <GeometryPlotter>
-                <fill>
-                  <alpha>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <color>
-                    <defaultValue>NaN</defaultValue>
-                    <internalDynamicColumn encoding="dynamic">
-                      <GlobalObjectReference name="defaultColorColumn"/>
-                    </internalDynamicColumn>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
-                </fill>
-                <geometryColumn>
-                  <internalDynamicColumn encoding="dynamic">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WeaveDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <category name="Geometry Collections" title="Geometry Collections">
-                                <attribute name="can_ab_l_geo83_e" title="can_ab_l_geo83_e" keyType="can_ab_l_geo83_e" dataType="geometry"/>
-                              </category>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </internalDynamicColumn>
-                  <projectionSRS/>
-                </geometryColumn>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <line>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>none</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </line>
-                <pixellation>1</pixellation>
-                <pointDataImageColumn encoding="dynamic"/>
-                <pointShapeSize>5</pointShapeSize>
-              </GeometryPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="plot6">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>false</layerIsVisible>
-            <plotter encoding="dynamic">
-              <GeometryPlotter>
-                <fill>
-                  <alpha>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <color>
-                    <defaultValue>NaN</defaultValue>
-                    <internalDynamicColumn encoding="dynamic">
-                      <GlobalObjectReference name="defaultColorColumn"/>
-                    </internalDynamicColumn>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
-                </fill>
-                <geometryColumn>
-                  <internalDynamicColumn encoding="dynamic">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WeaveDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <category name="Geometry Collections" title="Geometry Collections">
-                                <attribute name="prov_ab_p_geo83_e" title="prov_ab_p_geo83_e" keyType="prov_ab_p_geo83_e" dataType="geometry"/>
-                              </category>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </internalDynamicColumn>
-                  <projectionSRS/>
-                </geometryColumn>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <line>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>none</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </line>
-                <pixellation>1</pixellation>
-                <pointDataImageColumn encoding="dynamic"/>
-                <pointShapeSize>5</pointShapeSize>
-              </GeometryPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-          <SelectablePlotLayer name="plot7">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <plotter encoding="dynamic">
-              <GeometryPlotter>
-                <fill>
-                  <alpha>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <color>
-                    <defaultValue>NaN</defaultValue>
-                    <internalDynamicColumn encoding="dynamic">
-                      <GlobalObjectReference name="defaultColorColumn"/>
-                    </internalDynamicColumn>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <enableMissingDataFillPattern>false</enableMissingDataFillPattern>
+                  </imageURL>
                 </fill>
                 <geometryColumn>
                   <internalDynamicColumn encoding="dynamic">
@@ -794,6 +260,113 @@ wheel</zoom>
                             <hierarchy>
                               <category name="Geometry Collections" title="Geometry Collections">
                                 <attribute name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002" keyType="world_countries_boundary_file_world_2002" dataType="geometry"/>
+                              </category>
+                            </hierarchy>
+                          </hierarchyPath>
+                        </HierarchyColumnReference>
+                      </dynamicColumnReference>
+                    </ReferencedColumn>
+                  </internalDynamicColumn>
+                  <projectionSRS/>
+                </geometryColumn>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <line>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>none</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </weight>
+                </line>
+                <pixellation>1</pixellation>
+                <pointDataImageColumn encoding="dynamic"/>
+                <pointShapeSize>5</pointShapeSize>
+              </GeometryPlotter>
+            </plotter>
+            <probeFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultProbeKeySet"/>
+            </probeFilter>
+            <selectionFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSelectionKeySet"/>
+            </selectionFilter>
+            <subsetFilter encoding="dynamic">
+              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+            </subsetFilter>
+            <useTextBitmapFilters>false</useTextBitmapFilters>
+          </SelectablePlotLayer>
+          <SelectablePlotLayer name="plot">
+            <backgroundIsVisible>true</backgroundIsVisible>
+            <layerIsSelectable>true</layerIsSelectable>
+            <layerIsVisible>true</layerIsVisible>
+            <maxVisibleZoomLevel>16</maxVisibleZoomLevel>
+            <minVisibleZoomLevel>4</minVisibleZoomLevel>
+            <plotter encoding="dynamic">
+              <GeometryPlotter>
+                <fill>
+                  <alpha>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <color>
+                    <defaultValue>NaN</defaultValue>
+                    <internalDynamicColumn encoding="dynamic">
+                      <GlobalObjectReference name="defaultColorColumn"/>
+                    </internalDynamicColumn>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <enableMissingDataGradient>false</enableMissingDataGradient>
+                  <imageURL>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </imageURL>
+                </fill>
+                <geometryColumn>
+                  <internalDynamicColumn encoding="dynamic">
+                    <ReferencedColumn>
+                      <dynamicColumnReference encoding="dynamic">
+                        <HierarchyColumnReference>
+                          <dataSourceName>WeaveDataSource</dataSourceName>
+                          <hierarchyPath encoding="xml">
+                            <hierarchy>
+                              <category name="Geometry Collections" title="Geometry Collections">
+                                <attribute name="tl_2009_us_state" title="tl_2009_us_state" keyType="US State FIPS Code" dataType="geometry"/>
                               </category>
                             </hierarchy>
                           </hierarchyPath>
@@ -875,9 +448,9 @@ wheel</zoom>
         <overrideYMax>NaN</overrideYMax>
         <overrideYMin>NaN</overrideYMin>
         <zoomBounds>
-          <area>84490.943864929</area>
-          <xCenter>9.5924132352142</xCenter>
-          <yCenter>4.6476584499633</yCenter>
+          <area>4554.304379374</area>
+          <xCenter>-96.691547645799</xCenter>
+          <yCenter>32.741453537729</yCenter>
         </zoomBounds>
       </SimpleInteractiveVisualization>
     </children>
@@ -889,16 +462,16 @@ wheel</zoom>
     <enableTitle>false</enableTitle>
     <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
     <maximizable>true</maximizable>
-    <maximized>true</maximized>
+    <maximized>false</maximized>
     <minimizable>true</minimizable>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>67%</panelHeight>
+    <panelHeight>100%</panelHeight>
     <panelStyleList/>
     <panelTitle/>
-    <panelWidth>95%</panelWidth>
-    <panelX>1%</panelX>
+    <panelWidth>38%</panelWidth>
+    <panelX>0%</panelX>
     <panelY>0%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
@@ -910,4 +483,39 @@ wheel</zoom>
     <showMouseModeControls>true</showMouseModeControls>
     <showZoomControls>true</showZoomControls>
   </MapTool>
+  <WeaveDataSource name="WeaveDataSource">
+    <attributeHierarchy encoding="xml">
+      <hierarchy name="Open Indicators Server">
+        <category name="Data Tables" title="Data Tables">
+          <category name="can_ab_l_geo83_e" title="can_ab_l_geo83_e"/>
+          <category name="can_ab_p_geo83_e" title="can_ab_p_geo83_e"/>
+          <category name="canada" title="canada"/>
+          <category name="Obesity" title="Obesity"/>
+          <category name="obesity-cube" title="obesity-cube"/>
+          <category name="prov_ab_p_geo83_e" title="prov_ab_p_geo83_e"/>
+          <category name="st99_d00" title="st99_d00"/>
+          <category name="states" title="states"/>
+          <category name="States" title="States"/>
+          <category name="tl_2009_us_county" title="tl_2009_us_county"/>
+          <category name="tl_2009_us_state" title="tl_2009_us_state"/>
+          <category name="us_states" title="us_states"/>
+          <category name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002"/>
+        </category>
+        <category name="Geometry Collections" title="Geometry Collections">
+          <attribute name="can_ab_l_geo83_e" title="can_ab_l_geo83_e" keyType="can_ab_l_geo83_e" dataType="geometry"/>
+          <attribute name="can_ab_p_geo83_e" title="can_ab_p_geo83_e" keyType="can_ab_p_geo83_e" dataType="geometry"/>
+          <attribute name="canada" title="canada" keyType="canada" dataType="geometry"/>
+          <attribute name="prov_ab_p_geo83_e" title="prov_ab_p_geo83_e" keyType="prov_ab_p_geo83_e" dataType="geometry"/>
+          <attribute name="states" title="states" keyType="US State FIPS Code" dataType="geometry"/>
+          <attribute name="tl_2009_us_county" title="tl_2009_us_county" keyType="US County FIPS Code" dataType="geometry"/>
+          <attribute name="tl_2009_us_state" title="tl_2009_us_state" keyType="US State FIPS Code" dataType="geometry"/>
+          <attribute name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002" keyType="world_countries_boundary_file_world_2002" dataType="geometry"/>
+        </category>
+      </hierarchy>
+    </attributeHierarchy>
+    <hierarchyURL/>
+    <url>/WeaveServices/DataService</url>
+  </WeaveDataSource>
+  <LinkableHashMap name="Probe Header Columns" encoding="dynamic"/>
+  <LinkableHashMap name="Probed Columns" encoding="dynamic"/>
 </Weave>

@@ -247,8 +247,25 @@ package weave.visualization.layers
 				selectablePlotLayer = layer as SelectablePlotLayer;
 				if (selectablePlotLayer && !selectablePlotLayer.lockScreenBounds)
 					selectablePlotLayer.setScreenBounds(tempScreenBounds);
+				
+				if(selectablePlotLayer){
+					// Update layer.withinVisibleZoomLevels by checking if
+					// zoom level is between min and max visible zoom levels of the layer.
+					var min:Number = selectablePlotLayer.minVisibleZoomLevel.value;
+					var max:Number = selectablePlotLayer.maxVisibleZoomLevel.value;
+					var level:Number = getZoomLevel();
+					var within:Boolean = min <= level && level <= max;
+					selectablePlotLayer.withinVisibleZoomLevels = within;
+//					trace("getZoomLevel() = "+getZoomLevel());
+//					trace("min = "+min);
+//					trace("max = "+max);
+//					trace("within = "+within);
+				}
+					
 			}
 			//trace('end updateZoom',ObjectUtil.toString(getSessionState(zoomBounds)));
+		
+			
 			
 			getCallbackCollection(this).resumeCallbacks();
 		}
@@ -298,7 +315,6 @@ package weave.visualization.layers
 			_prevUnscaledHeight = unscaledHeight;
 			if (sizeChanged)
 				updateZoom();
-			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}
 		
