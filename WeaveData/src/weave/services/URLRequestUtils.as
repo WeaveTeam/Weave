@@ -30,7 +30,6 @@ package weave.services
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
-	import flash.utils.Dictionary;
 	
 	import mx.core.mx_internal;
 	import mx.rpc.AsyncResponder;
@@ -43,7 +42,6 @@ package weave.services
 	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IURLRequestUtils;
 	import weave.core.StageUtils;
-	import weave.primitives.WeakReference;
 
 	/**
 	 * An all-static class containing functions for downloading URLs.
@@ -196,7 +194,6 @@ package weave.services
 
 import flash.events.ErrorEvent;
 import flash.events.Event;
-import flash.events.EventDispatcher;
 import flash.events.IOErrorEvent;
 import flash.events.ProgressEvent;
 import flash.events.SecurityErrorEvent;
@@ -213,11 +210,8 @@ import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 
 import weave.api.WeaveAPI;
-import weave.api.data.IProgressIndicator;
 import weave.api.services.IURLRequestToken;
 import weave.core.StageUtils;
-import weave.services.ProgressIndicator;
-import weave.services.jquery.JQueryCaller;
 
 internal class CustomURLLoader extends URLLoader
 {

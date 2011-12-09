@@ -36,7 +36,6 @@
 
 package weave.api.data
 {
-	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 
 	/**
