@@ -66,7 +66,7 @@ package weave.data
 			var ba:ByteArray = (new ProjDatabase()) as ByteArray;
 			ba.uncompress();
 			var defs:Object = ba.readObject();
-			for(var key:String in defs)
+			for (var key:String in defs)
 				ProjProjection.defs[key] = defs[key];
 			
 			projectionsInitialized = true;
@@ -75,9 +75,9 @@ package weave.data
 
 		/**
 		 * This is a multi-dimensional lookup:   unprojectedColumn -> Object, destinationSRS -> ProxyColumn
-		 * Example: cache[column][destinationSRS] is a ProxyColumn containing geometries reprojected to the given SRS.
+		 * Example: _reprojectedColumnCache[column][destinationSRS] is a ProxyColumn containing geometries reprojected to the given SRS.
 		 */		
-		private const cache:Dictionary = new Dictionary(true); // weak links to be gc-friendly
+		private const _reprojectedColumnCache:Dictionary = new Dictionary(true); // weak links to be gc-friendly
 		
 		/**
 		 * This function will return the projected column if a reprojection should be performed or the original column if there is no projection.
@@ -96,11 +96,11 @@ package weave.data
 				return unprojectedColumn;
 			
 			// check the cache
-			var srsCache:Object = cache[unprojectedColumn] as Object;
+			var srsCache:Object = _reprojectedColumnCache[unprojectedColumn] as Object;
 			if (srsCache == null)
 			{
 				srsCache = new Object(); // destinationSRS -> ProxyColumn
-				cache[unprojectedColumn] = srsCache;
+				_reprojectedColumnCache[unprojectedColumn] = srsCache;
 			}
 			var proxyColumn:ProxyColumn = srsCache[destinationProjectionSRS] as ProxyColumn;
 
@@ -139,9 +139,16 @@ package weave.data
 		 */
 		public function getProjector(sourceSRS:String, destinationSRS:String):IProjector
 		{
-			var source:ProjProjection = getProjection(sourceSRS);
-			var dest:ProjProjection = getProjection(destinationSRS);
-			return new Projector(source, dest);
+			var lookup:String = sourceSRS + ';' + destinationSRS;
+			var projector:IProjector = _projectorCache[lookup] as IProjector;
+			if (!projector)
+			{
+				var source:ProjProjection = getProjection(sourceSRS);
+				var dest:ProjProjection = getProjection(destinationSRS);
+				projector = new Projector(source, dest);
+				_projectorCache[lookup] = projector;
+			}
+			return projector;
 		}
 
 		/**
@@ -253,29 +260,31 @@ package weave.data
 			
 			srsCode = srsCode.toUpperCase();
 			
-			if (srsToProjMap.hasOwnProperty(srsCode))
-				return srsToProjMap[srsCode];
+			if (_srsToProjMap.hasOwnProperty(srsCode))
+				return _srsToProjMap[srsCode];
 			
 			if (projectionExists(srsCode))
-				return srsToProjMap[srsCode] = new ProjProjection(srsCode);
+				return _srsToProjMap[srsCode] = new ProjProjection(srsCode);
 			
 			return null;
 		}
-
-		/**
-		 * srsToProjMap
-		 * This maps an SRS Code to a cached ProjProjection object for that code.
-		 */
-		private const srsToProjMap:Object = new Object();
 		
 		/**
-		 * _tempProjPoint
+		 * This maps a pair of SRS codes separated by a semicolon to a Projector object.
+		 */
+		private const _projectorCache:Object = {};
+
+		/**
+		 * This maps an SRS Code to a cached ProjProjection object for that code.
+		 */
+		private const _srsToProjMap:Object = {};
+		
+		/**
 		 * This is a temporary object used for single point transformations.
 		 */
 		private const _tempProjPoint:ProjPoint = new ProjPoint();
 		
 		/**
-		 * _tempInputPoint
 		 * This is a temporary object used only in transformBounds.
 		 */
 		private const _tempPoint:Point = new Point();
@@ -423,7 +432,7 @@ internal class WorkerThread
 			// continue later if necessary
 			if (StageUtils.shouldCallLater)
 			{
-				WeaveAPI.ProgressIndicator.updateTask(this, keyIndex / (keys.length - 1));
+				WeaveAPI.ProgressIndicator.updateTask(this, keyIndex / keys.length);
 				StageUtils.callLater(unprojectedColumn, processGeometries, arguments);
 				return;
 			}
@@ -487,7 +496,7 @@ internal class WorkerThread
 			// continue later if necessary
 			if (StageUtils.shouldCallLater)
 			{
-				WeaveAPI.ProgressIndicator.updateTask(coordsVector, coordsVectorIndex / (coordsVector.length - 1));
+				WeaveAPI.ProgressIndicator.updateTask(coordsVector, coordsVectorIndex / coordsVector.length);
 				StageUtils.callLater(unprojectedColumn, processGeometries, arguments);
 				return;
 			}
@@ -522,6 +531,7 @@ internal class Projector implements IProjector
 		
 		tempProjPoint.x = inputAndOutput.x;
 		tempProjPoint.y = inputAndOutput.y;
+		tempProjPoint.z = NaN; // this is important in case the projection reads the z value.
 		if (Proj4as.transform(source, dest, tempProjPoint))
 		{
 			inputAndOutput.x = tempProjPoint.x;
