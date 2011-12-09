@@ -10,7 +10,10 @@
     </target>
     <target name="build">
         <mkdir dir="build/classes"/>
-        <javac srcdir="src" destdir="build/classes" classpathref="classpath"/>
+        <javac srcdir="src" destdir="build/classes" classpathref="classpath"> 
+        <!-- Uncomment this for lint-checking -->
+        <!--    <compilerarg value="-Xlint"/> -->
+        </javac>  
         <copy file="src/weave/config/sqlconfig.dtd" tofile="build/classes/weave/config/sqlconfig.dtd"/>
     </target>
     <target name="dist" depends="build">
