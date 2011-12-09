@@ -17,12 +17,11 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.services
+package weave.core
 {
 	import flash.utils.Dictionary;
 	
 	import weave.api.data.IProgressIndicator;
-	import weave.core.CallbackCollection;
 
 	/**
 	 * This class is used as a central location for reporting the progress of pending asynchronous requests.

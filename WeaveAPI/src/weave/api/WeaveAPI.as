@@ -84,6 +84,13 @@ package weave.api
 			return getSingletonInstance(IExternalSessionStateInterface);
 		}
 		/**
+		 * This is the singleton instance of the registered IProgressIndicator implementation.
+		 */
+		public static function get ProgressIndicator():IProgressIndicator
+		{
+			return getSingletonInstance(IProgressIndicator);
+		}
+		/**
 		 * This is the singleton instance of the registered IAttributeColumnCache implementation.
 		 */
 		public static function get AttributeColumnCache():IAttributeColumnCache
@@ -103,13 +110,6 @@ package weave.api
 		public static function get ProjectionManager():IProjectionManager
 		{
 			return getSingletonInstance(IProjectionManager);
-		}
-		/**
-		 * This is the singleton instance of the registered IProgressIndicator implementation.
-		 */
-		public static function get ProgressIndicator():IProgressIndicator
-		{
-			return getSingletonInstance(IProgressIndicator);
 		}
 		/**
 		 * This is the singleton instance of the registered IQualifiedKeyManager implementation.

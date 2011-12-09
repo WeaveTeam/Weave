@@ -55,7 +55,6 @@ package weave.data.AttributeColumns
 			super(metadata);
 			
 			_tileService = tileService;
-			//registerLinkableChild(this, _geometryStreamDecoder.keySet);
 			
 			// request a list of tiles for this geometry collection
 			var query:AsyncToken = _tileService.getTileDescriptors();
@@ -80,7 +79,7 @@ package weave.data.AttributeColumns
 		 */
 		override public function get keys():Array
 		{
-			return _geometryStreamDecoder.keySet.concat();
+			return _geometryStreamDecoder.keySet;
 		}
 		
 		override public function containsKey(key:IQualifiedKey):Boolean
@@ -169,7 +168,6 @@ package weave.data.AttributeColumns
 					trace("requesting geometry tiles: " + geometryTileIDs);
 			}
 			
-			trace('num tiles', geometryTileIDs.length);
 			var query:AsyncToken;
 			// make requests for groups of tiles
 			while (metadataTileIDs.length > 0)
@@ -179,16 +177,13 @@ package weave.data.AttributeColumns
 				
 				_streamDownloadCounter++;
 			}
-			var numRequests:int = 0;
 			// make requests for groups of tiles
 			while (geometryTileIDs.length > 0)
 			{
 				query = _tileService.getGeometryTiles(geometryTileIDs.splice(0, geometryTilesPerQuery));
 				query.addAsyncResponder(handleGeometryStreamDownload, handleDownloadFault, query);
-				numRequests++;
 				_streamDownloadCounter++;
 			} 
-			trace("numRequests", numRequests, "\n", "_streamDownloadCounter", _streamDownloadCounter);
 		}
 		
 		private function handleDownloadFault(event:FaultEvent, token:Object = null):void

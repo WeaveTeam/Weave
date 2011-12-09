@@ -34,50 +34,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api.data
+package weave.api.core
 {
-	import weave.api.core.ILinkableObject;
-
 	/**
-	 * This is an interface for a central location to report progress of asynchronous requests.
-	 * Since this interface extends ILinkableObject, getCallbackCollection() can be used on an IProgressIndicator.
+	 * This is an interface for an asynchronous task that can be broken up into multiple iterations of a loop.
 	 * 
 	 * @author adufilie
 	 */
-	public interface IProgressIndicator extends ILinkableObject
+	public interface IAsyncTask
 	{
 		/**
-		 * This is the number of pending requests.
-		 */
-		function getTaskCount():int;
-
-		/**
-		 * This function will register a pending request token and increase the pendingRequestCount if necessary.
-		 * 
-		 * @param taskToken The object whose progress to track.
-		 */
-		function addTask(taskToken:Object):void;
-		
-		/**
-		 * This function will report the current progress of a request.
-		 * 
-		 * @param taskToken The object whose progress to track.
-		 * @param percent The current progress of the token's request.
-		 */
-		function updateTask(taskToken:Object, percent:Number):void;
-
-		/**
-		 * This function will remove a previously registered pending request token and decrease the pendingRequestCount if necessary.
-		 * 
-		 * @param taskToken The object to remove from the progress indicator.
-		 */
-		function removeTask(taskToken:Object):void;
-		
-		/**
-		 * This function checks the overall progress of all pending requests.
-		 *
-		 * @return A Number between 0 and 1.
-		 */
-		function getNormalizedProgress():Number;
+		 * This will perform a single iteration of the asynchronous task.
+		 * @return A number from 0.0 to 1.0 indicating the overall progress of the task.
+		 *         A number below 1.0 indicates that iterate() should be called again to continue the task.
+		 *         When the task is completed, iterate() should return 1.0.
+		 */		
+		function iterate():Number;
 	}
 }

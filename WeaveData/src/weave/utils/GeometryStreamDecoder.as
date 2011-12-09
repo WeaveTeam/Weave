@@ -150,8 +150,8 @@ package weave.utils
 		 */
 		private const metadataTileIDToKDNodeMapping:Vector.<KDNode> = new Vector.<KDNode>();
 		private const geometryTileIDToKDNodeMapping:Vector.<KDNode> = new Vector.<KDNode>();
-		private const metadataTilesChecklist:Vector.<int> = new Vector.<int>();
-		private const geometryTilesChecklist:Vector.<int> = new Vector.<int>();
+		private const metadataTilesChecklist:Array = [];
+		private const geometryTilesChecklist:Array = [];
 		/**
 		 * These constants define indices in a KDKey corresponding to the different KDTree dimensions.
 		 */
@@ -590,7 +590,9 @@ package weave.utils
 					else // flag is geometryID
 					{
 						geometryID = flag;
-						geometryIDArray.length = vertexIDArray.length = 0; // reset list of IDs
+						// reset lists of IDs
+						geometryIDArray.length = 0;
+						vertexIDArray.length = 0;
 						geometryIDArray.push(geometryID); // save first geometryID
 						while (true)
 						{
@@ -616,7 +618,7 @@ package weave.utils
 						for (i = geometryIDArray.length - 1; i >= 0; i--)
 						{
 							//trace("geom "+geometryIDArray[i]+" insert "+vertexIDArray[i]+" "+importance+" "+x+" "+y);
-							geometryID = geometryIDArray[i]
+							geometryID = geometryIDArray[i];
 							if (geometryID < geometries.length && geometries[geometryID] is GeneralizedGeometry)
 								(geometries[geometryID] as GeneralizedGeometry).addPoint(vertexIDArray[i], importance, x, y);
 							else
@@ -648,9 +650,10 @@ package weave.utils
 		
 		// reusable temporary objects to reduce GC activity
 		private static const stringBuffer:ByteArray = new ByteArray(); // for reading null-terminated strings
-		private static const geometryIDArray:Vector.<int> = new Vector.<int>(); // temporary list of geometryIDs
-		private static const vertexIDArray:Vector.<int> = new Vector.<int>(); // temporary list of vertexIDs
+		private static const geometryIDArray:Array = []; // temporary list of geometryIDs
+		private static const vertexIDArray:Array = []; // temporary list of vertexIDs
 		
+		/*
 		private static function hex(bytes:ByteArray):String
 		{
 			var p:int = bytes.position;
@@ -665,6 +668,7 @@ package weave.utils
 			bytes.position = p;
 			return result;
 		}
+		*/
 	}
 }
 

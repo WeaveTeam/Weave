@@ -65,6 +65,7 @@ package weave
 	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
 	import weave.core.weave_internal;
+	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
@@ -103,6 +104,8 @@ package weave
 	import weave.ui.controlBars.WeaveMenuItem;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DebugUtils;
+	import weave.visualization.layers.SelectablePlotLayer;
+	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.CollaborationTool;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.CompoundBarChartTool;
@@ -875,6 +878,14 @@ package weave
 				(object as DraggablePanel).restorePanel();
 			// put panel in front
 			Weave.root.setNameOrder([name]);
+			
+			if (object is MapTool)
+			{
+				//(object as MapTool).toggleControlPanel();
+				var layer:SelectablePlotLayer = (object as MapTool).visualization.layers.getObjects()[0] as SelectablePlotLayer;
+				var geom:DynamicColumn = (layer.getDynamicPlotter().internalObject as GeometryPlotter).geometryColumn.internalDynamicColumn;
+				AttributeSelectorPanel.openDefaultSelector(geom, "Geometry");
+			}
 
 			return object;
 		}
