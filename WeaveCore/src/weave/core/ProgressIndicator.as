@@ -21,39 +21,30 @@ package weave.core
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.data.IProgressIndicator;
+	import weave.api.core.IProgressIndicator;
 
 	/**
-	 * This class is used as a central location for reporting the progress of pending asynchronous requests.
-	 * 
+	 * This is an implementation of IProgressIndicator
+	 * @inheritDoc
 	 * @author adufilie
 	 */
 	public class ProgressIndicator extends CallbackCollection implements IProgressIndicator
 	{
-		/**
-		 * This is the number of pending requests.
-		 */
 		public function getTaskCount():int
 		{
 			return _taskCount;
 		}
 
-		/**
-		 * This function will register a pending request token and increase the pendingRequestCount if necessary.
-		 * 
-		 * @param taskToken The object whose progress to track.
-		 */
 		public function addTask(taskToken:Object):void
 		{
 			updateTask(taskToken, 0);
 		}
 		
-		/**
-		 * This function will report the current progress of a request.
-		 * 
-		 * @param taskToken The object whose progress to track.
-		 * @param percent The current progress of the token's request.
-		 */
+		public function hasTask(taskToken:Object):Boolean
+		{
+			return _taskToProgressMap[taskToken] !== undefined;
+		}
+		
 		public function updateTask(taskToken:Object, percent:Number):void
 		{
 			// if this token isn't in the Dictionary yet, increase count
@@ -68,11 +59,6 @@ package weave.core
 			triggerCallbacks();
 		}
 		
-		/**
-		 * This function will remove a previously registered pending request token and decrease the pendingRequestCount if necessary.
-		 * 
-		 * @param taskToken The object to remove from the progress indicator.
-		 */
 		public function removeTask(taskToken:Object):void
 		{
 			// if the token isn't in the dictionary, do nothing
@@ -88,10 +74,6 @@ package weave.core
 			triggerCallbacks();
 		}
 		
-		/**
-		 * This function checks the overall progress of all pending requests.
-		 * @return A Number between 0 and 1.
-		 */
 		public function getNormalizedProgress():Number
 		{
 			// add up the percentages

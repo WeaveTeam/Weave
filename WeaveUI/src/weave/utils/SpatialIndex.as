@@ -158,22 +158,8 @@ package weave.utils
 					VectorUtils.randomSort(_keysArray);
 				}
 				// insert bounds-to-key mappings in the kdtree
-				i = _keysArray.length;
-				while (--i > -1)
-				{
-					key = _keysArray[i] as IQualifiedKey;
-					for each (bounds in getBoundsFromKey(key))
-					{
-						// do not index shapes with undefined bounds
-						//TODO: index shapes with missing bounds values into a different index
-						// TEMPORARY SOLUTION: store missing bounds if queryMissingBounds == true
-						if (!bounds.isUndefined() || _queryMissingBounds)
-						{
-							_kdTree.insert([bounds.getXNumericMin(), bounds.getYNumericMin(), bounds.getXNumericMax(), bounds.getYNumericMax(), bounds.getArea()], key);
-							collectiveBounds.includeBounds(bounds);
-						}
-					}
-				}
+				_keysArrayIndex = 0;
+				StageUtils.startTask(this, _insertNext);
 			}
 			
 			// if there are keys
@@ -182,6 +168,32 @@ package weave.utils
 			
 			resumeCallbacks();
 		}
+		private function _insertNext():Number
+		{
+			var remain:int = _keysArray.length - _keysArrayIndex;
+			if (remain > 0)
+			{
+				var key:IQualifiedKey = _keysArray[_keysArrayIndex++] as IQualifiedKey;
+				for each (var bounds:IBounds2D in getBoundsFromKey(key))
+				{
+					// do not index shapes with undefined bounds
+					//TODO: index shapes with missing bounds values into a different index
+					// TEMPORARY SOLUTION: store missing bounds if queryMissingBounds == true
+					if (!bounds.isUndefined() || _queryMissingBounds)
+					{
+						_kdTree.insert([bounds.getXNumericMin(), bounds.getYNumericMin(), bounds.getXNumericMax(), bounds.getYNumericMax(), bounds.getArea()], key);
+						collectiveBounds.includeBounds(bounds);
+					}
+				}
+			}
+			if (remain > 1)
+				return _keysArrayIndex / _keysArray.length;
+			triggerCallbacks();
+			return 1;
+		}
+		
+		private var _keysArrayIndex:int;
+		
 		
 		/**
 		 * This function empties the spatial index.

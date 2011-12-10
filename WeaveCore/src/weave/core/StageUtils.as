@@ -19,6 +19,7 @@
 
 package weave.core
 {
+	import flash.debugger.enterDebugger;
 	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
@@ -276,6 +277,11 @@ package weave.core
 		{
 			if (iterativeTask.length > 0)
 				throw new Error("iterativeTask parameter must be a function that takes zero parameters and returns a Number.");
+			
+			// do nothing if task already active
+			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
+				return;
+			
 			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
 			_iterateTask(relevantContext, iterativeTask);
 		}
@@ -285,16 +291,26 @@ package weave.core
 		 */
 		private static function _iterateTask(context:Object, task:Function):void
 		{
+			// remove the task if the context was disposed of
+			if (WeaveAPI.SessionManager.objectWasDisposed(context))
+			{
+				WeaveAPI.ProgressIndicator.removeTask(task);
+				return;
+			}
+			
 			var progress:* = undefined;
 			// iterate on the task until max computation time is reached
 			while (getTimer() - _currentFrameStartTime < maxComputationTimePerFrame)
 			{
 				// perform the next iteration of the task
 				progress = task() as Number;
-				if (progress === null || progress == 1)
+				if (progress === null)
 				{
-					if (progress === null)
-						reportError("Iterative task function did not return a Number.  Task cancelled.");
+					reportError("Iterative task function did not return a Number.  Task cancelled.");
+					progress = 1;
+				}
+				if (progress == 1)
+				{
 					// task is done, so remove the task
 					WeaveAPI.ProgressIndicator.removeTask(task);
 					return;
@@ -303,8 +319,12 @@ package weave.core
 			// max computation time reached without finishing the task, so update the progress indicator and continue the task later
 			if (progress !== undefined)
 				WeaveAPI.ProgressIndicator.updateTask(task, progress);
-			callLater(context, _iterateTask, arguments);
+			
+			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
+			// This makes sure that the task is removed when the actual context is disposed of.
+			callLater(null, _iterateTask, arguments);
 		}
+		
 		
 		/**
 		 * This function gets called when a mouse click event occurs.

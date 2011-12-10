@@ -34,35 +34,39 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api.data
+package weave.api.core
 {
-	import weave.api.core.ILinkableObject;
-
 	/**
 	 * This is an interface for a central location to report progress of asynchronous requests.
 	 * Since this interface extends ILinkableObject, getCallbackCollection() can be used on an IProgressIndicator.
+	 * Callbacks should be triggered after any action that would change the result of getNormalizedProgress().
 	 * 
 	 * @author adufilie
 	 */
 	public interface IProgressIndicator extends ILinkableObject
 	{
 		/**
-		 * This is the number of pending requests.
+		 * This is the number of active background tasks.
 		 */
 		function getTaskCount():int;
 
 		/**
-		 * This function will register a pending request token and increase the pendingRequestCount if necessary.
-		 * 
-		 * @param taskToken The object whose progress to track.
+		 * This function will register a background task.
+		 * @param taskToken A token representing a background task.
 		 */
 		function addTask(taskToken:Object):void;
 		
 		/**
-		 * This function will report the current progress of a request.
-		 * 
-		 * @param taskToken The object whose progress to track.
-		 * @param percent The current progress of the token's request.
+		 * This function will check if a background task is registered as an active task.
+		 * @param taskToken A token representing a background task.
+		 * @return A value of true if the task was previously added and not yet removed.
+		 */
+		function hasTask(taskToken:Object):Boolean;
+		
+		/**
+		 * This function will report the progress of a background task.
+		 * @param taskToken An object representing a task.
+		 * @param percent The current progress of the task.
 		 */
 		function updateTask(taskToken:Object, percent:Number):void;
 

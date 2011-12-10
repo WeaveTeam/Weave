@@ -45,11 +45,10 @@ package weave.api
 	
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
-	import weave.api.core.ILinkableObject;
+	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
-	import weave.api.data.IProgressIndicator;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;

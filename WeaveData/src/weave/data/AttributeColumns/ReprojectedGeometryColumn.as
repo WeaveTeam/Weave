@@ -20,13 +20,16 @@
 package weave.data.AttributeColumns
 {
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackInterface;
+	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.core.CallbackCollection;
 	import weave.core.LinkableString;
 	import weave.core.weave_internal;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.utils.ColumnUtils;
 
 	use namespace weave_internal;
 	
@@ -42,6 +45,17 @@ package weave.data.AttributeColumns
 			// force the internal column to always be a ReferencedColumn
 			internalDynamicColumn.requestLocalObject(ReferencedColumn, true);
 			addImmediateCallback(this, updateReprojectedColumn);
+			
+			_boundingBoxCallbacks.addImmediateCallback(this, function():*{});
+		}
+		
+		private var _boundingBoxCallbacks:CallbackCollection = newLinkableChild(this, CallbackCollection);
+		/**
+		 * These callbacks are triggered when the list of keys or bounding boxes change.
+		 */		
+		public function get boundingBoxCallbacks():ICallbackInterface
+		{
+			return _boundingBoxCallbacks;
 		}
 		
 		override public function getMetadata(propertyName:String):String
@@ -79,14 +93,29 @@ package weave.data.AttributeColumns
 				return;
 			
 			if (_reprojectedColumn)
-				_reprojectedColumn.removeCallback(triggerCallbacks);
+				_reprojectedColumn.removeCallback(handleReprojectedColumnChange);
 			
 			_reprojectedColumn = newColumn;
+			_unprojectedColumn = null;
 			
 			if (_reprojectedColumn)
-				_reprojectedColumn.addImmediateCallback(this, triggerCallbacks, null, false, true); // parent-child relationship
+				_reprojectedColumn.addImmediateCallback(this, handleReprojectedColumnChange, null, true, true); // parent-child relationship
 		}
 		
+		private function handleReprojectedColumnChange():void
+		{
+			if (!_unprojectedColumn)
+			{
+				// if _unprojectedColumn is not null, it means there is no reprojection to do.
+				_unprojectedColumn = ColumnUtils.hack_findNonWrapperColumn(_reprojectedColumn) as StreamedGeometryColumn;
+				if (_unprojectedColumn)
+					_unprojectedColumn.boundingBoxCallbacks.addImmediateCallback(this, _boundingBoxCallbacks.triggerCallbacks);
+			}
+			if (!_unprojectedColumn)
+				_boundingBoxCallbacks.triggerCallbacks();
+		}
+		
+		private var _unprojectedColumn:StreamedGeometryColumn = null;
 		private var _reprojectedColumn:IAttributeColumn = null;
 		
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*

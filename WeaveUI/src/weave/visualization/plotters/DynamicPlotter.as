@@ -80,7 +80,7 @@ package weave.visualization.plotters
 			if (_internalPlotter != null) // create links to new plotter
 			{
 				// if newPlotter is not null, it means a new one has been created (old one was already disposed of)
-				_internalPlotter.spatialCallbacks.addImmediateCallback(this, _spatialCallbacks.triggerCallbacks); // this is not a parent-child relationship, so alwaysTriggerLast=false
+				_internalPlotter.spatialCallbacks.addImmediateCallback(this, _spatialCallbacks.triggerCallbacks); // this is not a parent-child relationship, so alwaysCallLast=false
 				// the base set of keys is going to be the internal plotter's keys
 				_filteredKeySet.setBaseKeySet(_internalPlotter.keySet);
 				// link the filters so the internal plotter filters its keys before generating graphics

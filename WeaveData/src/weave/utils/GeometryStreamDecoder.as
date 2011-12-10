@@ -27,11 +27,14 @@ package weave.utils
 	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.reportError;
+	import weave.core.CallbackCollection;
 	import weave.core.StageUtils;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
@@ -60,13 +63,11 @@ package weave.utils
 		}
 		
 		/**
-		 * geometries
 		 * This is an Array of GeneralizedGeometry objects that have been decoded from a stream.
 		 */
 		public const geometries:Array = [];
 		
 		/**
-		 * collectiveBounds
 		 * This is the bounding box containing all tile boundaries.
 		 */
 		public const collectiveBounds:IBounds2D = new Bounds2D();
@@ -82,13 +83,16 @@ package weave.utils
 		private var _keyType:String = null;
 
 		/**
-		 * keySet
 		 * This is the set of geometry keys that have been decoded so far.
 		 */
 		public const keySet:Array = [];
+		
+		/**
+		 * These callbacks get called when the keys or bounds change.
+		 */
+		public const metadataCallbacks:ICallbackCollection = newLinkableChild(this, CallbackCollection);
 
 		/**
-		 * keyToGeometryMapping
 		 * This object maps a key to an array of geometries.
 		 */
 		private const keyToGeometryMapping:Dictionary = new Dictionary();
@@ -99,7 +103,6 @@ package weave.utils
 		}
 		
 		/**
-		 * getGeometriesFromKey
 		 * @param geometryKey A String identifier.
 		 * @return An Array of GeneralizedGeometry objects with keys matching the specified key. 
 		 */
@@ -112,14 +115,12 @@ package weave.utils
 		}
 
 		/**
-		 * idToDelayedAddPointParamsMap
 		 * This maps a geometryID (integer) to an Array of arrays of parameters for GeneralizedGeometry.addPoint().
 		 * For example, idToDelayedAddPointParamsMap[3] may be [[vertexID1,importance1,x1,y1],[vertexID2,importance2,x2,y2]].
 		 */
 		private const idToDelayedAddPointParamsMap:Array = [];
 		
 		/**
-		 * delayAddPointParams
 		 * This function will store a list of parameters for GeneralizedGeometry.addPoint() to be used later.
 		 * @param geometryID The ID of the GeneralizedGeometry the addPoint() parameters are for.
 		 * @param vertexID Parameter for GeneralizedGeometry.addPoint().
@@ -150,6 +151,7 @@ package weave.utils
 		 */
 		private const metadataTileIDToKDNodeMapping:Vector.<KDNode> = new Vector.<KDNode>();
 		private const geometryTileIDToKDNodeMapping:Vector.<KDNode> = new Vector.<KDNode>();
+		
 		private const metadataTilesChecklist:Array = [];
 		private const geometryTilesChecklist:Array = [];
 		/**
@@ -317,14 +319,14 @@ package weave.utils
 					metadataTilesChecklist.push(metadataTilesChecklist.length);
 			}
 			
-			getCallbackCollection(this).triggerCallbacks();
+			// collective bounds changed
+			metadataCallbacks.triggerCallbacks();
 		}
 
 		private var _projectionWKT:String = ""; // stores the well-known-text defining the projection
 		
 		
 		/**
-		 * currentGeometryType
 		 * This value specifies the type of the geometries currently being streamed
 		 */
 		
@@ -353,16 +355,14 @@ package weave.utils
 		private const _queuedStreamDictionary:Dictionary = new Dictionary();
 
 		/**
-		 * extracts metadata from a ByteArray.
-		 * If the geometries change, the specified callback will run when processing is finished.
-		 * When decoding completes, decodeCompleteCallbacks will run.
+		 * This extracts metadata from a ByteArray.
+		 * Callbacks are triggered when all active decoding tasks are completed.
 		 */
 		public function decodeMetadataStream(stream:ByteArray):void
 		{
 			beginTask(stream);
 
 			//trace("decodeMetadataStream",_queuedStreamDictionary[stream],hex(stream));
-			var geometriesUpdated:Boolean = false;
 		    try {
 		    	// declare temp variables
 				var flag:int;
@@ -513,8 +513,6 @@ package weave.utils
 								geometry.addPoint.apply(null, addPointParams);
 							delete idToDelayedAddPointParamsMap[geometryID];
 						}
-						// geometries changed
-						geometriesUpdated = true;
 					}
 				}
             } 
@@ -524,22 +522,19 @@ package weave.utils
 			if (endTask(stream))
 				return; // do not run callbacks if there are still streams being processed.
 			
-			//trace("metadata stream processing done");
-			//if (geometriesUpdated)
-				getCallbackCollection(this).triggerCallbacks();
+			// keys and bounding boxes changed
+			metadataCallbacks.triggerCallbacks();
 		}
 
 		/**
-		 * extracts points from a ByteArray.
-		 * If the geometries change, the specified callback will run when processing is finished.
-		 * When decoding completes, decodeCompleteCallbacks will run.
+		 * This extracts points from a ByteArray.
+		 * Callbacks are triggered when all active decoding tasks are completed.
 		 */
 		public function decodeGeometryStream(stream:ByteArray):void
 		{
 			beginTask(stream);
 
 			//trace("decodeGeometryStream",_queuedStreamDictionary[stream],hex(stream));
-			var geometriesUpdated:Boolean = false;
 		    try {
 		    	// declare temp variables
 				var i:int;
@@ -627,24 +622,17 @@ package weave.utils
 								delayAddPointParams(geometryID, vertexIDArray[i], importance, x, y);
 							}
 						}
-						// geometries changed
-						geometriesUpdated = true;
 					}
 				}
             }
             catch(e:EOFError) { }
-//            catch(e:Error)
-//            {
-//            	trace("Unexpected error: "+e.getStackTrace());
-//            }
             
 			// remove this stream from the processing list
 			if (endTask(stream))
 				return; // do not run callbacks if there are still streams being processed.
 			
-			//trace("geometry stream processing done");
-			//if (geometriesUpdated)
-				getCallbackCollection(this).triggerCallbacks();
+			// geometries changed
+			getCallbackCollection(this).triggerCallbacks();
 		}
 
 		

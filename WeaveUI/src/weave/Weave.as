@@ -25,10 +25,10 @@ package weave
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
-	import weave.api.data.IProgressIndicator;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
@@ -164,9 +164,9 @@ package weave
 		{
 			var newState:Array = WeaveXMLDecoder.decodeDynamicState(newStateXML);
 			
-			var t:DebugTimer = new DebugTimer();
+			DebugTimer.begin();
 			root.setSessionState(newState, removeMissingObjects);
-			t.debug('set global session state');
+			DebugTimer.end('set global session state');
 		}
 		
 		public static const DEFAULT_WEAVE_PROPERTIES:String = "WeaveProperties";

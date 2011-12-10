@@ -57,9 +57,9 @@ package weave.api.data
 		//TODO: need a function for listing available metadata property names
 		
 		/**
-		 * getValueFromKey
-		 * @param key A key of the type specified by keyType.
-		 * @return The value associated with the given key.
+		 * This function gets a value associated with a record key.
+		 * @param key A record key.
+		 * @return The value associated with the given record key.
 		 */
 		function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*;
 	}

@@ -133,12 +133,18 @@ package weave.utils
 		 */
 		public static function deriveStringFromNumber(column:IAttributeColumn, number:Number):String
 		{
-			// try to find an internal IPrimitiveColumn
-			while (!(column is IPrimitiveColumn) && column is IColumnWrapper)
-				column = (column as IColumnWrapper).internalColumn;
-			if (column is IPrimitiveColumn)
-				return (column as IPrimitiveColumn).deriveStringFromNumber(number);
+			var pc:IPrimitiveColumn = hack_findNonWrapperColumn(column) as IPrimitiveColumn;
+			if (pc)
+				return pc.deriveStringFromNumber(number);
 			return null; // no specific string representation
+		}
+		
+		public static function hack_findNonWrapperColumn(column:IAttributeColumn):IAttributeColumn
+		{
+			// try to find an internal IPrimitiveColumn
+			while (column is IColumnWrapper)
+				column = (column as IColumnWrapper).internalColumn;
+			return column;
 		}
 
 		/**
