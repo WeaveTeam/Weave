@@ -75,10 +75,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol"><a href="PlotLayer.html">PlotLayer</a></td>
 </tr>
 <tr class="hideInheritedProperty">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="PlotLayer.html#lockScreenBounds">lockScreenBounds</a> : Boolean = false<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol"><a href="PlotLayer.html">PlotLayer</a></td>
-</tr>
-<tr class="hideInheritedProperty">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="PlotLayer.html#plotFilters">plotFilters</a> : Array<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="PlotLayer.html">PlotLayer</a></td>
 </tr>
@@ -109,6 +105,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="PlotLayer.html#subsetFilter">subsetFilter</a> : <a href="../../api/data/IDynamicKeyFilter.html">IDynamicKeyFilter</a>
 <div class="summaryTableDescription">
    This key set allows you to filter the records before they are used to calculate the graphics.</div>
+</td><td class="summaryTableOwnerCol"><a href="PlotLayer.html">PlotLayer</a></td>
+</tr>
+<tr class="hideInheritedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="PlotLayer.html#withinVisibleZoomLevels">withinVisibleZoomLevels</a> : Boolean = true<div class="summaryTableDescription">
+   A flag which is true when the zoom level of the PlotLayerContainer containing
+   this SelectablePlotLayer is between minVisibleZoomLevel and maxVisibleZoomLevel.</div>
 </td><td class="summaryTableOwnerCol"><a href="PlotLayer.html">PlotLayer</a></td>
 </tr>
 </table>
@@ -260,6 +262,20 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="PlotLayer.html#layerIsVisible">layerIsVisible</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
 <div class="summaryTableDescription">
    Sets the visibility of the layer
+   </div>
+</td><td class="summaryTableOwnerCol"><a href="PlotLayer.html">PlotLayer</a></td>
+</tr>
+<tr class="hideInheritedConstant">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="PlotLayer.html#maxVisibleZoomLevel">maxVisibleZoomLevel</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription">
+   Sets the maximum visible zoom level for the layer
+   </div>
+</td><td class="summaryTableOwnerCol"><a href="PlotLayer.html">PlotLayer</a></td>
+</tr>
+<tr class="hideInheritedConstant">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="PlotLayer.html#minVisibleZoomLevel">minVisibleZoomLevel</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription">
+   Sets the minimum visible zoom level for the layer
    </div>
 </td><td class="summaryTableOwnerCol"><a href="PlotLayer.html">PlotLayer</a></td>
 </tr>

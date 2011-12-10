@@ -72,7 +72,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getZoomLevel()">getZoomLevel</a>(dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, fullDataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minScreenSize:Number, useXCoordinates:Boolean):Number</div>
+<a class="signatureLink" href="#getZoomLevel()">getZoomLevel</a>(dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, fullDataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minScreenSize:Number):Number</div>
 <div class="summaryTableDescription">[static]
    This function calculates the zoom level.</div>
 </td><td class="summaryTableOwnerCol">ZoomUtils</td>
@@ -163,7 +163,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function getZoomLevel(dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, fullDataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minScreenSize:Number, useXCoordinates:Boolean):Number</code><p>
+<code>public static function getZoomLevel(dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, fullDataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minScreenSize:Number):Number</code><p>
    This function calculates the zoom level.  If dataBounds is scaled to fit into screenBounds,
    the screen size of fullDataBounds would be 2^zoomLevel minSize.  Zoom level is defined this way
    to be compatible with the zoom level used by Google Maps and other tiled WMS services.
@@ -191,14 +191,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">minScreenSize</span>:Number</code> &mdash; The minimum size of the screen.
-   </td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">useXCoordinates</span>:Boolean</code> &mdash; If this is true, X coordinates will be used to calculate zoom level.  If this is false, Y coordinates will be used.
+<td width="20px"></td><td><code><span class="label">minScreenSize</span>:Number</code> &mdash; The minimum size that the fullDataBounds can appear as on the screen (the screen size of zoom level zero).
    </td>
 </tr>
 </table>

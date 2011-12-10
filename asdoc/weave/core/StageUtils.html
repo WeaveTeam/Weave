@@ -153,9 +153,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#startTask()">startTask</a>(relevantContext:Object, task:<a href="../api/core/IAsyncTask.html">IAsyncTask</a>):void</div>
+<a class="signatureLink" href="#startTask()">startTask</a>(relevantContext:Object, iterativeTask:Function):void</div>
 <div class="summaryTableDescription">[static]
-   This will start an asynchronous task, calling task.iterate() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.</div>
+   This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.</div>
 </td><td class="summaryTableOwnerCol">StageUtils</td>
 </tr>
 </table>
@@ -473,8 +473,8 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function startTask(relevantContext:Object, task:<a href="../api/core/IAsyncTask.html">IAsyncTask</a>):void</code><p>
-   This will start an asynchronous task, calling task.iterate() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
+<code>public static function startTask(relevantContext:Object, iterativeTask:Function):void</code><p>
+   This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -485,7 +485,23 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">task</span>:<a href="../api/core/IAsyncTask.html">IAsyncTask</a></code> &mdash; The asynchronous task.
+<td width="20px"></td><td><code><span class="label">iterativeTask</span>:Function</code> &mdash; A function that performs a single iteration of the asynchronous task.
+     This function must take no parameters and return a number from 0.0 to 1.0 indicating the overall progress of the task.
+     A number below 1.0 indicates that the function should be called again to continue the task.
+     When the task is completed, iterativeTask() should return 1.0.
+     Example:
+         var array:Array = ['a','b','c','d'];
+         var i:int = 0;
+         function iterativeTask():Number
+         {
+             if (i < array.length)
+             {
+                 trace(array[i]);
+                 i++;
+                 return i / array.length;
+             }
+             return 1.0;
+         }
    </td>
 </tr>
 </table>

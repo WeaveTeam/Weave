@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="PlotLayer,weave.visualization.layers.PlotLayer,backgroundBitmap,isOverlay,layerIsVisible,lockScreenBounds,plotBitmap,showMissingRecords,backgroundFilters,plotFilters,plotter,selectionFilter,spatialIndex,subsetFilter,dispose,getBackgroundBitmap,getDataBounds,getDynamicPlotter,getPlotBitmap,getScreenBounds,getSelectedKeys,setDataBounds,setScreenBounds,updateDisplayList,validateSpatialIndex" name="keywords">
+<meta content="PlotLayer,weave.visualization.layers.PlotLayer,backgroundBitmap,isOverlay,layerIsVisible,maxVisibleZoomLevel,minVisibleZoomLevel,plotBitmap,showMissingRecords,withinVisibleZoomLevels,backgroundFilters,plotFilters,plotter,selectionFilter,spatialIndex,subsetFilter,dispose,getBackgroundBitmap,getDataBounds,getDynamicPlotter,getPlotBitmap,getScreenBounds,getSelectedKeys,setDataBounds,setScreenBounds,updateDisplayList,validateSpatialIndex" name="keywords">
 <title>weave.visualization.layers.PlotLayer</title>
 </head>
 <body>
@@ -67,10 +67,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#lockScreenBounds">lockScreenBounds</a> : Boolean = false<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">PlotLayer</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#plotFilters">plotFilters</a> : Array<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
 </tr>
@@ -101,6 +97,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#subsetFilter">subsetFilter</a> : <a href="../../api/data/IDynamicKeyFilter.html">IDynamicKeyFilter</a>
 <div class="summaryTableDescription">[read-only]
    This key set allows you to filter the records before they are used to calculate the graphics.</div>
+</td><td class="summaryTableOwnerCol">PlotLayer</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#withinVisibleZoomLevels">withinVisibleZoomLevels</a> : Boolean = true<div class="summaryTableDescription">
+   A flag which is true when the zoom level of the PlotLayerContainer containing
+   this SelectablePlotLayer is between minVisibleZoomLevel and maxVisibleZoomLevel.</div>
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
 </tr>
 </table>
@@ -231,6 +233,20 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
    </div>
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
 </tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#maxVisibleZoomLevel">maxVisibleZoomLevel</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription">
+   Sets the maximum visible zoom level for the layer
+   </div>
+</td><td class="summaryTableOwnerCol">PlotLayer</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#minVisibleZoomLevel">minVisibleZoomLevel</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription">
+   Sets the minimum visible zoom level for the layer
+   </div>
+</td><td class="summaryTableOwnerCol">PlotLayer</td>
+</tr>
 </table>
 </div>
 <a name="protectedConstantSummary"></a>
@@ -270,15 +286,6 @@ showHideInherited();
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function set backgroundFilters(value:Array):void</code>
 <br>
-</div>
-<a name="lockScreenBounds"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">lockScreenBounds</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public var lockScreenBounds:Boolean = false</code>
 </div>
 <a name="plotFilters"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -359,6 +366,18 @@ showHideInherited();
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get subsetFilter():<a href="../../api/data/IDynamicKeyFilter.html">IDynamicKeyFilter</a></code>
 <br>
 </div>
+<a name="withinVisibleZoomLevels"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">withinVisibleZoomLevels</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var withinVisibleZoomLevels:Boolean = true</code><p>
+   A flag which is true when the zoom level of the PlotLayerContainer containing
+   this SelectablePlotLayer is between minVisibleZoomLevel and maxVisibleZoomLevel.
+   Set by PlotLayerContainer.updateZoom().
+   </p></div>
 <a name="constructorDetail"></a>
 <div class="detailSectionHeader">Constructor detail</div>
 <a name="PlotLayer()"></a>
@@ -575,6 +594,26 @@ showHideInherited();
 <div class="detailBody">
 <code>public const layerIsVisible:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code><p>
    Sets the visibility of the layer
+   </p></div>
+<a name="maxVisibleZoomLevel"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">maxVisibleZoomLevel</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const maxVisibleZoomLevel:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code><p>
+   Sets the maximum visible zoom level for the layer
+   </p></div>
+<a name="minVisibleZoomLevel"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">minVisibleZoomLevel</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const minVisibleZoomLevel:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code><p>
+   Sets the minimum visible zoom level for the layer
    </p></div>
 <a name="plotBitmap"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
