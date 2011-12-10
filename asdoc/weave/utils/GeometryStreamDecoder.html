@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="GeometryStreamDecoder,weave.utils.GeometryStreamDecoder,collectiveBounds,debug,geometries,keySet,keyType,containsKey,decodeGeometryStream,decodeGeometryTileList,decodeMetadataStream,decodeMetadataTileList,getGeometriesFromKey,getRequiredGeometryTileIDs,getRequiredMetadataTileIDs" name="keywords">
+<meta content="GeometryStreamDecoder,weave.utils.GeometryStreamDecoder,collectiveBounds,debug,geometries,keySet,metadataCallbacks,keyType,containsKey,decodeGeometryStream,decodeGeometryTileList,decodeMetadataStream,decodeMetadataTileList,getGeometriesFromKey,getRequiredGeometryTileIDs,getRequiredMetadataTileIDs" name="keywords">
 <title>weave.utils.GeometryStreamDecoder</title>
 </head>
 <body>
@@ -101,7 +101,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#decodeGeometryStream()">decodeGeometryStream</a>(stream:ByteArray):void</div>
 <div class="summaryTableDescription">
-   extracts points from a ByteArray.</div>
+   This extracts points from a ByteArray.</div>
 </td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
 </tr>
 <tr class="">
@@ -116,7 +116,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#decodeMetadataStream()">decodeMetadataStream</a>(stream:ByteArray):void</div>
 <div class="summaryTableDescription">
-   extracts metadata from a ByteArray.</div>
+   This extracts metadata from a ByteArray.</div>
 </td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
 </tr>
 <tr class="">
@@ -134,7 +134,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#getGeometriesFromKey()">getGeometriesFromKey</a>(geometryKey:<a href="../api/data/IQualifiedKey.html">IQualifiedKey</a>):Array</div>
 <div class="summaryTableDescription">
-   getGeometriesFromKey
    </div>
 </td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
 </tr>
@@ -167,20 +166,23 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#collectiveBounds">collectiveBounds</a> : <a href="../api/primitives/IBounds2D.html">IBounds2D</a>
 <div class="summaryTableDescription">
-   collectiveBounds
    This is the bounding box containing all tile boundaries.</div>
 </td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#geometries">geometries</a> : Array<div class="summaryTableDescription">
-   geometries
    This is an Array of GeneralizedGeometry objects that have been decoded from a stream.</div>
 </td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#keySet">keySet</a> : Array<div class="summaryTableDescription">
-   keySet
    This is the set of geometry keys that have been decoded so far.</div>
+</td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#metadataCallbacks">metadataCallbacks</a> : <a href="../api/core/ICallbackCollection.html">ICallbackCollection</a>
+<div class="summaryTableDescription">
+   These callbacks get called when the keys or bounds change.</div>
 </td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
 </tr>
 </table>
@@ -258,9 +260,8 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function decodeGeometryStream(stream:ByteArray):void</code><p>
-   extracts points from a ByteArray.
-   If the geometries change, the specified callback will run when processing is finished.
-   When decoding completes, decodeCompleteCallbacks will run.
+   This extracts points from a ByteArray.
+   Callbacks are triggered when all active decoding tasks are completed.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -290,9 +291,8 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function decodeMetadataStream(stream:ByteArray):void</code><p>
-   extracts metadata from a ByteArray.
-   If the geometries change, the specified callback will run when processing is finished.
-   When decoding completes, decodeCompleteCallbacks will run.
+   This extracts metadata from a ByteArray.
+   Callbacks are triggered when all active decoding tasks are completed.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -327,7 +327,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function getGeometriesFromKey(geometryKey:<a href="../api/data/IQualifiedKey.html">IQualifiedKey</a>):Array</code><p>
-   getGeometriesFromKey
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -426,7 +425,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const collectiveBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code><p>
-   collectiveBounds
    This is the bounding box containing all tile boundaries.
    </p></div>
 <a name="geometries"></a>
@@ -437,7 +435,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const geometries:Array</code><p>
-   geometries
    This is an Array of GeneralizedGeometry objects that have been decoded from a stream.
    </p></div>
 <a name="keySet"></a>
@@ -448,8 +445,17 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const keySet:Array</code><p>
-   keySet
    This is the set of geometry keys that have been decoded so far.
+   </p></div>
+<a name="metadataCallbacks"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">metadataCallbacks</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const metadataCallbacks:<a href="../api/core/ICallbackCollection.html">ICallbackCollection</a></code><p>
+   These callbacks get called when the keys or bounds change.
    </p></div>
 <br>
 <br>

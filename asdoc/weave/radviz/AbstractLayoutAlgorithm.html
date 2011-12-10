@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="AbstractLayoutAlgorithm,weave.radviz.AbstractLayoutAlgorithm,keyNumberMap,orderedLayout,timer,unorderedLayout,performLayout,run" name="keywords">
+<meta content="AbstractLayoutAlgorithm,weave.radviz.AbstractLayoutAlgorithm,keyNumberMap,orderedLayout,unorderedLayout,performLayout,run" name="keywords">
 <title>weave.radviz.AbstractLayoutAlgorithm</title>
 </head>
 <body>
@@ -116,7 +116,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a onclick="javascript:setInheritedVisible(true,'ProtectedProperty');" href="#protectedPropertySummary" class="showHideLink"><img src="../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Protected Properties</a>
 </div>
 </div>
-<table id="summaryTableProtectedProperty" class="summaryTable " cellpadding="3" cellspacing="0">
+<table id="summaryTableProtectedProperty" class="summaryTable hideInheritedProtectedProperty" cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
@@ -124,11 +124,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="../core/CallbackCollection.html#allowDelayCallbacks">allowDelayCallbacks</a> : Boolean = true<div class="summaryTableDescription">
    If this is set to true, delayCallbacks() behaves as described.</div>
 </td><td class="summaryTableOwnerCol"><a href="../core/CallbackCollection.html">CallbackCollection</a></td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#timer">timer</a> : <a href="../utils/DebugTimer.html">DebugTimer</a>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">AbstractLayoutAlgorithm</td>
 </tr>
 </table>
 </div>
@@ -165,7 +160,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="../core/CallbackCollection.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysTriggerLast:Boolean = false):void</div>
+<a class="signatureLink" href="../core/CallbackCollection.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void</div>
 <div class="summaryTableDescription">
    This function will add a callback using the given function and parameters.</div>
 </td><td class="summaryTableOwnerCol"><a href="../core/CallbackCollection.html">CallbackCollection</a></td>
@@ -279,15 +274,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public var orderedLayout:Array</code>
-</div>
-<a name="timer"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">timer</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected var timer:<a href="../utils/DebugTimer.html">DebugTimer</a></code>
 </div>
 <a name="unorderedLayout"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">

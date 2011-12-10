@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="ReprojectedGeometryColumn,weave.data.AttributeColumns.ReprojectedGeometryColumn,projectionSRS,internalColumn,getMetadata,getValueFromKey" name="keywords">
+<meta content="ReprojectedGeometryColumn,weave.data.AttributeColumns.ReprojectedGeometryColumn,projectionSRS,boundingBoxCallbacks,internalColumn,getMetadata,getValueFromKey" name="keywords">
 <title>weave.data.AttributeColumns.ReprojectedGeometryColumn</title>
 </head>
 <body>
@@ -62,6 +62,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <table id="summaryTableProperty" class="summaryTable " cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#boundingBoxCallbacks">boundingBoxCallbacks</a> : <a href="../../api/core/ICallbackInterface.html">ICallbackInterface</a>
+<div class="summaryTableDescription">[read-only]
+   These callbacks are triggered when the list of keys or bounding boxes change.</div>
+</td><td class="summaryTableOwnerCol">ReprojectedGeometryColumn</td>
 </tr>
 <tr class="hideInheritedProperty">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="../../core/CallbackCollection.html#callbacksAreDelayed">callbacksAreDelayed</a> : Boolean<div class="summaryTableDescription">
@@ -157,7 +163,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="../../core/CallbackCollection.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysTriggerLast:Boolean = false):void</div>
+<a class="signatureLink" href="../../core/CallbackCollection.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void</div>
 <div class="summaryTableDescription">
    This function will add a callback using the given function and parameters.</div>
 </td><td class="summaryTableOwnerCol"><a href="../../core/CallbackCollection.html">CallbackCollection</a></td>
@@ -280,10 +286,24 @@ showHideInherited();
 <div class="MainContent">
 <a name="propertyDetail"></a>
 <div class="detailSectionHeader">Property detail</div>
+<a name="boundingBoxCallbacks"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">boundingBoxCallbacks</td><td class="detailHeaderType">property</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>boundingBoxCallbacks:<a href="../../api/core/ICallbackInterface.html">ICallbackInterface</a></code>&nbsp;&nbsp;[read-only]<p>
+   These callbacks are triggered when the list of keys or bounding boxes change.
+   </p><span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get boundingBoxCallbacks():<a href="../../api/core/ICallbackInterface.html">ICallbackInterface</a></code>
+<br>
+</div>
 <a name="internalColumn"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">internalColumn</td><td class="detailHeaderType">property</td>
+<td class="detailHeaderName">internalColumn</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">

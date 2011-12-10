@@ -111,7 +111,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="../core/ICallbackInterface.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysTriggerLast:Boolean = false):void</div>
+<a class="signatureLink" href="../core/ICallbackInterface.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void</div>
 <div class="summaryTableDescription">
    This function will add a callback using the given function and parameters.</div>
 </td><td class="summaryTableOwnerCol"><a href="../core/ICallbackInterface.html">ICallbackInterface</a></td>
@@ -145,8 +145,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <div class="summarySignature">
 <a class="signatureLink" href="#getValueFromKey()">getValueFromKey</a>(key:<a href="IQualifiedKey.html">IQualifiedKey</a>, dataType:Class = null):*</div>
 <div class="summaryTableDescription">
-   getValueFromKey
-   </div>
+   This function gets a value associated with a record key.</div>
 </td><td class="summaryTableOwnerCol">IAttributeColumn</td>
 </tr>
 <tr class="hideInheritedMethod">
@@ -215,11 +214,11 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function getValueFromKey(key:<a href="IQualifiedKey.html">IQualifiedKey</a>, dataType:Class = null):*</code><p>
-   getValueFromKey
+   This function gets a value associated with a record key.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">key</span>:<a href="IQualifiedKey.html">IQualifiedKey</a></code> &mdash; A key of the type specified by keyType.
+<td width="20px"></td><td><code><span class="label">key</span>:<a href="IQualifiedKey.html">IQualifiedKey</a></code> &mdash; A record key.
    </td>
 </tr>
 <tr>
@@ -233,7 +232,7 @@ showHideInherited();
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>*</code> &mdash; The value associated with the given key.
+<td width="20"></td><td><code>*</code> &mdash; The value associated with the given record key.
    </td>
 </tr>
 </table>

@@ -121,7 +121,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysTriggerLast:Boolean = false):void</div>
+<a class="signatureLink" href="#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void</div>
 <div class="summaryTableDescription">
    This function will add a callback using the given function and parameters.</div>
 </td><td class="summaryTableOwnerCol">CallbackCollection</td>
@@ -342,7 +342,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public final function addImmediateCallback(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysTriggerLast:Boolean = false):void</code><p>
+<code>public final function addImmediateCallback(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void</code><p>
    This function will add a callback using the given function and parameters.
    Any callback previously added for the same function will be overwritten.
    The callback function will not be called recursively as a result of it triggering callbacks recursively.
@@ -377,7 +377,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">alwaysTriggerLast</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is set to true, the callback will be always be triggered after any callbacks that were added with alwaysTriggerLast=false.  Use this to establish the desired child-to-parent triggering order.
+<td width="20px"></td><td><code><span class="label">alwaysCallLast</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is set to true, the callback will be always be called after any callbacks that were added with alwaysCallLast=false.  Use this to establish the desired child-to-parent triggering order.
    </td>
 </tr>
 </table>
