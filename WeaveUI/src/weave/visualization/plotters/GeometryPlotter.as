@@ -91,8 +91,9 @@ package weave.visualization.plotters
 
 			setKeySource(geometryColumn);
 			
-			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks);
-			_filteredKeySet.removeCallback(spatialCallbacks.triggerCallbacks);
+			_filteredKeySet.removeCallback(spatialCallbacks.triggerCallbacks); // not every change to the geometries changes the bounding boxes
+			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks); // bounding box should trigger spatial
+			registerSpatialProperty(_filteredKeySet.keyFilter); // subset should trigger spatial callbacks
 		}
 
 		/**
