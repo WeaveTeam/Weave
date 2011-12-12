@@ -75,7 +75,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#generateDelayedCallback()">generateDelayedCallback</a>(callback:Function, callbackParams:Array = null, delay:int = 500):Function</div>
+<a class="signatureLink" href="#generateDelayedCallback()">generateDelayedCallback</a>(relevantContext:Object, callback:Function, callbackParams:Array = null, delay:int = 500):Function</div>
 <div class="summaryTableDescription">[static]
    This function generates a delayed version of a callback.</div>
 </td><td class="summaryTableOwnerCol">EventUtils</td>
@@ -199,10 +199,17 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function generateDelayedCallback(callback:Function, callbackParams:Array = null, delay:int = 500):Function</code><p>
+<code>public static function generateDelayedCallback(relevantContext:Object, callback:Function, callbackParams:Array = null, delay:int = 500):Function</code><p>
    This function generates a delayed version of a callback.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">relevantContext</span>:Object</code> &mdash; If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">callback</span>:Function</code> &mdash; The callback function
    </td>

@@ -101,7 +101,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#decodeGeometryTileList()">decodeGeometryTileList</a>(stream:ByteArray):void</div>
-<div class="summaryTableDescription"></div>
+<div class="summaryTableDescription">
+   This function will decode a tile list stream.</div>
 </td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
 </tr>
 <tr class="">
@@ -117,9 +118,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#decodeMetadataTileList()">decodeMetadataTileList</a>(stream:ByteArray):void</div>
 <div class="summaryTableDescription">
-   decodeMetadataTileList, decodeGeometryTileList, and decodeTileList
-   Converts a base64 string to a ByteArray and extracts tile descriptors,
-   starting with tile #0, then tile #1, etc.</div>
+   This function will decode a tile list stream.</div>
 </td><td class="summaryTableOwnerCol">GeometryStreamDecoder</td>
 </tr>
 <tr class="">
@@ -248,10 +247,13 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function decodeGeometryTileList(stream:ByteArray):void</code><span class="label">Parameters</span>
+<code>public function decodeGeometryTileList(stream:ByteArray):void</code><p>
+   This function will decode a tile list stream.
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">stream</span>:ByteArray</code></td>
+<td width="20px"></td><td><code><span class="label">stream</span>:ByteArray</code> &mdash; A list of geometry tiles encoded in a ByteArray stream.
+   </td>
 </tr>
 </table>
 </div>
@@ -280,14 +282,12 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function decodeMetadataTileList(stream:ByteArray):void</code><p>
-   decodeMetadataTileList, decodeGeometryTileList, and decodeTileList
-   Converts a base64 string to a ByteArray and extracts tile descriptors,
-   starting with tile #0, then tile #1, etc.
-   When decoding completes, decodeCompleteCallbacks will run.
+   This function will decode a tile list stream.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">stream</span>:ByteArray</code></td>
+<td width="20px"></td><td><code><span class="label">stream</span>:ByteArray</code> &mdash; A list of metadata tiles encoded in a ByteArray stream.
+   </td>
 </tr>
 </table>
 </div>
