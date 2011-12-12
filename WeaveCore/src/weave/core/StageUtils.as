@@ -261,16 +261,16 @@ package weave.core
 		 *   When the task is completed, iterativeTask() should return 1.0.
 		 *   Example:
 		 *       var array:Array = ['a','b','c','d'];
-		 *       var i:int = 0;
+		 *       var index:int = 0;
 		 *       function iterativeTask():Number
 		 *       {
-		 *           if (i < array.length)
-		 *           {
-		 *               trace(array[i]);
-		 *               i++;
-		 *               return i / array.length;
-		 *           }
-		 *           return 1.0;
+		 *           if (index >= array.length) // in case the length is zero
+		 *               return 1;
+		 * 
+		 *           trace(array[index]);
+		 * 
+		 *           index++;
+		 *           return index / array.length;  // this will return 1.0 on the last iteration.
 		 *       }
 		 */
 		public static function startTask(relevantContext:Object, iterativeTask:Function):void
@@ -304,9 +304,9 @@ package weave.core
 			{
 				// perform the next iteration of the task
 				progress = task() as Number;
-				if (progress === null)
+				if (progress === null || isNaN(progress) || progress < 0 || progress > 1)
 				{
-					reportError("Iterative task function did not return a Number.  Task cancelled.");
+					reportError("Received unexpected result from iterative task (" + progress + ").  Expecting a number between 0 and 1.  Task cancelled.");
 					progress = 1;
 				}
 				if (progress == 1)

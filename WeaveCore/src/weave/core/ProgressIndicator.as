@@ -24,32 +24,47 @@ package weave.core
 	import weave.api.core.IProgressIndicator;
 
 	/**
-	 * This is an implementation of IProgressIndicator
-	 * @inheritDoc
+	 * This is an implementation of IProgressIndicator.
 	 * @author adufilie
 	 */
 	public class ProgressIndicator extends CallbackCollection implements IProgressIndicator
 	{
+		public static var debug:Boolean = false;
+		
+		/**
+		 * @inheritDoc
+		 */
 		public function getTaskCount():int
 		{
 			return _taskCount;
 		}
 
+		/**
+		 * @inheritDoc
+		 */
 		public function addTask(taskToken:Object):void
 		{
 			updateTask(taskToken, 0);
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function hasTask(taskToken:Object):Boolean
 		{
 			return _taskToProgressMap[taskToken] !== undefined;
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function updateTask(taskToken:Object, percent:Number):void
 		{
 			// if this token isn't in the Dictionary yet, increase count
 			if (_taskToProgressMap[taskToken] === undefined)
 			{
+				if (debug)
+					_taskToStackTraceMap[taskToken] = new Error("Stack trace").getStackTrace();
 				_taskCount++;
 				_maxTaskCount++;
 			}
@@ -59,13 +74,19 @@ package weave.core
 			triggerCallbacks();
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function removeTask(taskToken:Object):void
 		{
 			// if the token isn't in the dictionary, do nothing
 			if (_taskToProgressMap[taskToken] === undefined)
 				return;
 			
+			var stackTrace:String = _taskToStackTraceMap[taskToken]; // check this when debugging
+			
 			delete _taskToProgressMap[taskToken];
+			delete _taskToStackTraceMap[taskToken];
 			_taskCount--;
 			// reset max count when count goes to zero
 			if (_taskCount == 0)
@@ -74,6 +95,9 @@ package weave.core
 			triggerCallbacks();
 		}
 		
+		/**
+		 * @inheritDoc
+		 */
 		public function getNormalizedProgress():Number
 		{
 			// add up the percentages
@@ -89,5 +113,6 @@ package weave.core
 		private var _taskCount:int = 0;
 		private var _maxTaskCount:int = 0;
 		private const _taskToProgressMap:Dictionary = new Dictionary();
+		private const _taskToStackTraceMap:Dictionary = new Dictionary();
 	}
 }
