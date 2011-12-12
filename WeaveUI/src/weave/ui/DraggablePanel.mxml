@@ -393,10 +393,7 @@
 			private function copyCoordinatesFromSessionedProperties(singleProperty:LinkableString = null):void
 			{
 				if (!parent)
-				{
-					callLater(copyCoordinatesFromSessionedProperties, arguments);
 					return;
-				}
 				if (!singleProperty || singleProperty == panelX)
 					copyCoordinateFromLinkableString(panelX, parent.width, "x");
 				if (!singleProperty || singleProperty == panelY)
