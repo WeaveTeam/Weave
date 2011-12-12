@@ -87,9 +87,9 @@ package weave.core
 			delete _taskToProgressMap[taskToken];
 			delete _taskToStackTraceMap[taskToken];
 			_taskCount--;
-			// reset max count when count goes to zero
-			if (_taskCount == 0)
-				_maxTaskCount = 0;
+			// reset max count when count drops to 1
+			if (_taskCount == 1)
+				_maxTaskCount = _taskCount;
 			
 			getCallbackCollection(this).triggerCallbacks();
 		}
