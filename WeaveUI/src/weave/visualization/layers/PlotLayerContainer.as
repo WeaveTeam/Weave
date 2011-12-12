@@ -23,7 +23,6 @@ package weave.visualization.layers
 	import flash.utils.Dictionary;
 	
 	import mx.containers.Canvas;
-	import mx.core.UIComponent;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
@@ -35,7 +34,6 @@ package weave.visualization.layers
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotLayer;
-	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -48,7 +46,6 @@ package weave.visualization.layers
 	import weave.utils.NumberUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
-	import weave.visualization.plotters.DynamicPlotter;
 
 	/**
 	 * This is a container for a list of PlotLayers
