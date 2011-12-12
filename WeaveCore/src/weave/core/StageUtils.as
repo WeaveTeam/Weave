@@ -19,7 +19,6 @@
 
 package weave.core
 {
-	import flash.debugger.enterDebugger;
 	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
@@ -139,20 +138,9 @@ package weave.core
 		}
 		
 		/**
-		 * This function can be used to ensure the flash interface is reasonably responsive during long asynchronous computations.
-		 * If this function returns true, it is recommended to use StageUtils.callLater() to delay asynchronous processing until the next frame.
-		 * @return A value of true if the currentFrameElapsedTime has reached the maxComputationTimePerFrame threshold.
+		 * When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.
 		 */
-		public static function get shouldCallLater():Boolean
-		{
-			return getTimer() - _currentFrameStartTime > maxComputationTimePerFrame;
-		}
-		
-		/**
-		 * This is the recommended upper bound of computation time per frame.
-		 * The "get shouldCallLater()" function uses this value along with currentFrameElapsedTime to determine its recommendation.
-		 */
-		public static const maxComputationTimePerFrame:int = 100;
+		private static const maxComputationTimePerFrame:int = 100;
 
 		/**
 		 * This function gets called on ENTER_FRAME events.
@@ -275,9 +263,6 @@ package weave.core
 		 */
 		public static function startTask(relevantContext:Object, iterativeTask:Function):void
 		{
-			if (iterativeTask.length > 0)
-				throw new Error("iterativeTask parameter must be a function that takes zero parameters and returns a Number.");
-			
 			// do nothing if task already active
 			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
 				return;

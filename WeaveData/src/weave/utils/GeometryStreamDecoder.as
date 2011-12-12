@@ -160,41 +160,6 @@ package weave.utils
 		private const maxKDKey:Array = [Infinity, Infinity, Infinity, Infinity, Infinity, Infinity];
 		
 		/**
-		 * This function should be called when stream decoding begins or resumes.
-		 * @param stream The stream to be decoded. 
-		 * @return A value of true if this is the first time the decoding process has been reported for the specified stream.
-		 */
-		private function beginTask(stream:ByteArray):Boolean
-		{
-			if (_queuedStreamDictionary[stream])
-				return false;
-			_queuedStreamDictionary[stream] = NameUtil.createUniqueName(stream);
-			WeaveAPI.ProgressIndicator.addTask(stream);
-			return true;
-		}
-		/**
-		 * This function should be called to indicate decoding progress.
-		 * @param stream The stream being decoded.
-		 */
-		private function updateTask(stream:ByteArray):void
-		{
-			WeaveAPI.ProgressIndicator.updateTask(stream, stream.position / (stream.length - 1));
-		}
-		/**
-		 * This function should be called when we have finished decoding a stream.
-		 * @param stream The stream.
-		 * @return A value of true if there are more tasks in queue.
-		 */
-		private function endTask(stream:ByteArray):Boolean
-		{
-			delete _queuedStreamDictionary[stream];
-			WeaveAPI.ProgressIndicator.removeTask(stream);
-			for (var _stream:Object in _queuedStreamDictionary)
-				return true; // more tasks remain
-			return false; // no more tasks
-		}
-		
-		/**
 		 * getRequiredMetadataTileIDs, getRequiredGeometryTileIDs, and getRequiredTileIDs
 		 * These functions return an array of tile IDs that need to be downloaded in
 		 * order for shapes to be displayed at the given importance (quality) level.
@@ -234,28 +199,26 @@ package weave.utils
 		}
 
 		/**
-		 * decodeMetadataTileList, decodeGeometryTileList, and decodeTileList
-		 * Converts a base64 string to a ByteArray and extracts tile descriptors,
-		 * starting with tile #0, then tile #1, etc.
-		 * When decoding completes, decodeCompleteCallbacks will run.
+		 * This function will decode a tile list stream.
+		 * @param stream A list of metadata tiles encoded in a ByteArray stream.
 		 */
 		public function decodeMetadataTileList(stream:ByteArray):void
 		{
 			decodeTileList(metadataTiles, metadataTileIDToKDNodeMapping, stream);
 		}
+		/**
+		 * This function will decode a tile list stream.
+		 * @param stream A list of geometry tiles encoded in a ByteArray stream.
+		 */
 		public function decodeGeometryTileList(stream:ByteArray):void
 		{
 			decodeTileList(geometryTiles, geometryTileIDToKDNodeMapping, stream);
 		}
+		/**
+		 * @private
+		 */
 		private function decodeTileList(tileTree:KDTree, tileIDToKDNodeMapping:Vector.<KDNode>, stream:ByteArray):void
 		{
-			// if this is the first time calling this function with this stream, call later
-			if (beginTask(stream))
-			{
-				StageUtils.callLater(this, decodeTileList, arguments);
-				return;
-			}
-			
 			var tileDescriptors:Array = []; // array of descriptor objects containing kdKey and tileID
 		    try {
 				// read tile descriptors from stream
@@ -294,10 +257,6 @@ package weave.utils
 				tileIDToKDNodeMapping[tileDescriptor.tileID] = node;
 			}
 
-			// remove this stream from the processing list
-			if (endTask(stream))
-				return; // do not run callbacks if there are still streams being processed.
-			
 			if (debug)
 			{
 				trace("decodeTileList(): tile counts: ",metadataTiles.nodeCount,geometryTiles.nodeCount);
@@ -313,7 +272,7 @@ package weave.utils
 			}
 			
 			// collective bounds changed
-			metadataCallbacks.triggerCallbacks();
+			StageUtils.callLater(this, _triggerCallbacksIfQueueEmpty, [_metadataStreamQueue]);
 		}
 
 		private var _projectionWKT:String = ""; // stores the well-known-text defining the projection
@@ -345,182 +304,198 @@ package weave.utils
 		/**
 		 * The keys in this dictionary are ByteArray objects that are currently being processed.
 		 */
-		private const _queuedStreamDictionary:Dictionary = new Dictionary();
-
+		private const _metadataStreamQueue:Dictionary = new Dictionary();
+		private const _geometryStreamQueue:Dictionary = new Dictionary();
+		
+		private function _triggerCallbacksIfQueueEmpty(queue:Dictionary):void
+		{
+			for (var o:* in queue)
+				return;
+			if (queue === _metadataStreamQueue)
+				metadataCallbacks.triggerCallbacks();
+			else
+				getCallbackCollection(this).triggerCallbacks();
+		}
+		
 		/**
 		 * This extracts metadata from a ByteArray.
 		 * Callbacks are triggered when all active decoding tasks are completed.
 		 */
 		public function decodeMetadataStream(stream:ByteArray):void
 		{
-			beginTask(stream);
-
-			//trace("decodeMetadataStream",_queuedStreamDictionary[stream],hex(stream));
-		    try {
-		    	// declare temp variables
-				var flag:int;
-				var byte:int;
-				var vertexID:int;
-				var geometry:GeneralizedGeometry;
-				var geometryID:int;
-				var key:IQualifiedKey;
-				// read objects from stream
-				while (true)
-				{
-					flag = stream.readInt();
-					if (flag < 0) // flag is negativeTileID
+			var task:Function = function():Number
+			{
+				//trace("decodeMetadataStream",_queuedStreamDictionary[stream],hex(stream));
+			    try {
+			    	// declare temp variables
+					var flag:int;
+					var byte:int;
+					var vertexID:int;
+					var geometry:GeneralizedGeometry;
+					var geometryID:int;
+					var key:IQualifiedKey;
+					// read objects from stream
+					while (true)
 					{
-						var tileID:int = (-1 - flag); // decode negativeTileID
-						if (tileID < metadataTileIDToKDNodeMapping.length)
+						flag = stream.readInt();
+						if (flag < 0) // flag is negativeTileID
 						{
-							// remove tile from tree
-							metadataTiles.remove(metadataTileIDToKDNodeMapping[tileID]);
-
-							if (debug)
+							var tileID:int = (-1 - flag); // decode negativeTileID
+							if (tileID < metadataTileIDToKDNodeMapping.length)
 							{
-								trace("got metadata tileID=" + tileID + "/"+metadataTileIDToKDNodeMapping.length+"; "+stream.position+'/'+stream.length);
-								flag = metadataTilesChecklist.indexOf(tileID);
-								if (flag >= 0)
+								// remove tile from tree
+								metadataTiles.remove(metadataTileIDToKDNodeMapping[tileID]);
+	
+								if (debug)
 								{
-									metadataTilesChecklist.splice(flag, 1);
-									trace("remaining metadata tiles: "+metadataTilesChecklist);
+									trace("got metadata tileID=" + tileID + "/"+metadataTileIDToKDNodeMapping.length+"; "+stream.position+'/'+stream.length);
+									flag = metadataTilesChecklist.indexOf(tileID);
+									if (flag >= 0)
+									{
+										metadataTilesChecklist.splice(flag, 1);
+										trace("remaining metadata tiles: "+metadataTilesChecklist);
+									}
 								}
 							}
-						}
-						else
-						{
-							// something went wrong
-							// either the tileDescriptors were not requested yet,
-							// or the service is returning incorrect data.
-							trace("ERROR! decodeMetadataStream(): tileID is out of range ("+tileID+" >= "+metadataTileIDToKDNodeMapping.length+")");
-							break;
-						}
-						if (StageUtils.shouldCallLater)
-						{
-							//trace("callLater");
-							updateTask(stream);
-							StageUtils.callLater(this, decodeMetadataStream, arguments);
-							return;
-						}
-					}
-					else // flag is geometryID
-					{
-						geometryID = flag;
-						// read geometry key (null-terminated string)
-						stringBuffer.clear();
-						while (true)
-						{
-							byte = stream.readByte();
-							if (byte == 0) // if \0 char is found (end of string)
-								break;
-							stringBuffer.writeByte(byte); // copy the byte to the string buffer
-						}
-						key = WeaveAPI.QKeyManager.getQKey(_keyType, stringBuffer.toString()); // get key string from buffer
-						// initialize geometry at geometryID
-						geometry = new GeneralizedGeometry();
-						if (geometries.length <= geometryID)
-							geometries.length = geometryID + 1;
-						geometries[geometryID] = geometry;
-						// save mapping from key to geom
-						var geomsForKey:Array = _keyToGeometryMapping[key] as Array;
-						if (!geomsForKey)
-						{
-							keys.push(key); // keep track of unique keys
-							_keyToGeometryMapping[key] = geomsForKey = [];
-						}
-						geomsForKey.push(geometry);
-						// read bounds xMin, yMin, xMax, yMax
-						geometry.bounds.setBounds(
-								stream.readDouble(),
-								stream.readDouble(),
-								stream.readDouble(),
-								stream.readDouble()
-							);
-						//trace("got metadata: geometryID=" + flag + " key=" + key + " bounds=" + geometry.bounds);
-						// read vertexIDs (part markers)
-						while (true)
-						{
-							vertexID = stream.readInt(); // read next vertexID
-							//trace("vID=",vertexID);
-							if (vertexID < 0)
-								break; // there are no more vertexIDs
-							geometry.addPartMarker(vertexID);
-						}
-						// if flag is < -1, it means the shapeType follows
-						if (vertexID < -1)
-						{
-							/*
-								0 	Null Shape 	Empty ST_Geometry
-
-								1 	Point 	ST_Point
-								21 	PointM 	ST_Point with measures
-
-								8 	MultiPoint 	ST_MultiPoint
-								28 	MultiPointM 	ST_MultiPoint with measures
-								
-								3 	PolyLine 	ST_MultiLineString
-								23 	PolyLineM 	ST_MultiLineString with measures
-								
-								5 	Polygon 	ST_MultiPolygon
-								25 	PolygonM 	ST_MultiPolygon with measures
-							*/
-							flag = stream.readInt();
-							//trace("shapeType",flag);
-							switch (flag) // read shapeType
+							else
 							{
-								//Point
-								case 1:
-								case 21:
-								//MultiPoint
-								case 8:
-								case 28:
-									currentGeometryType = GeneralizedGeometry.GEOM_TYPE_POINT;
+								// something went wrong
+								// either the tileDescriptors were not requested yet,
+								// or the service is returning incorrect data.
+								reportError("ERROR! decodeMetadataStream(): tileID is out of range ("+tileID+" >= "+metadataTileIDToKDNodeMapping.length+")");
 								break;
-								//PolyLine
-								case 3:
-								case 23:
-									currentGeometryType = GeneralizedGeometry.GEOM_TYPE_LINE;
-								break;
-								//Polygon
-								case 5:
-								case 25:
-									currentGeometryType = GeneralizedGeometry.GEOM_TYPE_POLYGON;
-								break;
-								default:
 							}
-							if (vertexID < -2)
+							
+							// Resume later after finding a tileID.
+							return stream.position / stream.length;
+						}
+						else // flag is geometryID
+						{
+							geometryID = flag;
+							// read geometry key (null-terminated string)
+							stringBuffer.clear();
+							while (true)
 							{
-								stringBuffer.clear();
-								while (true)
+								byte = stream.readByte();
+								if (byte == 0) // if \0 char is found (end of string)
+									break;
+								stringBuffer.writeByte(byte); // copy the byte to the string buffer
+							}
+							key = WeaveAPI.QKeyManager.getQKey(_keyType, stringBuffer.toString()); // get key string from buffer
+							// initialize geometry at geometryID
+							geometry = new GeneralizedGeometry();
+							if (geometries.length <= geometryID)
+								geometries.length = geometryID + 1;
+							geometries[geometryID] = geometry;
+							// save mapping from key to geom
+							var geomsForKey:Array = _keyToGeometryMapping[key] as Array;
+							if (!geomsForKey)
+							{
+								keys.push(key); // keep track of unique keys
+								_keyToGeometryMapping[key] = geomsForKey = [];
+							}
+							geomsForKey.push(geometry);
+							// read bounds xMin, yMin, xMax, yMax
+							geometry.bounds.setBounds(
+									stream.readDouble(),
+									stream.readDouble(),
+									stream.readDouble(),
+									stream.readDouble()
+								);
+							//trace("got metadata: geometryID=" + flag + " key=" + key + " bounds=" + geometry.bounds);
+							// read vertexIDs (part markers)
+							while (true)
+							{
+								vertexID = stream.readInt(); // read next vertexID
+								//trace("vID=",vertexID);
+								if (vertexID < 0)
+									break; // there are no more vertexIDs
+								geometry.addPartMarker(vertexID);
+							}
+							// if flag is < -1, it means the shapeType follows
+							if (vertexID < -1)
+							{
+								/*
+									0 	Null Shape 	Empty ST_Geometry
+	
+									1 	Point 	ST_Point
+									21 	PointM 	ST_Point with measures
+	
+									8 	MultiPoint 	ST_MultiPoint
+									28 	MultiPointM 	ST_MultiPoint with measures
+									
+									3 	PolyLine 	ST_MultiLineString
+									23 	PolyLineM 	ST_MultiLineString with measures
+									
+									5 	Polygon 	ST_MultiPolygon
+									25 	PolygonM 	ST_MultiPolygon with measures
+								*/
+								flag = stream.readInt();
+								//trace("shapeType",flag);
+								switch (flag) // read shapeType
 								{
-									byte = stream.readByte();
-									if (byte == 0) // if \0 char is found (end of string)
-										break;
-									stringBuffer.writeByte(byte); // copy the byte to the string buffer
+									//Point
+									case 1:
+									case 21:
+									//MultiPoint
+									case 8:
+									case 28:
+										currentGeometryType = GeneralizedGeometry.GEOM_TYPE_POINT;
+									break;
+									//PolyLine
+									case 3:
+									case 23:
+										currentGeometryType = GeneralizedGeometry.GEOM_TYPE_LINE;
+									break;
+									//Polygon
+									case 5:
+									case 25:
+										currentGeometryType = GeneralizedGeometry.GEOM_TYPE_POLYGON;
+									break;
+									default:
 								}
-								_projectionWKT = stringBuffer.toString(); // get key from buffer
+								if (vertexID < -2)
+								{
+									stringBuffer.clear();
+									while (true)
+									{
+										byte = stream.readByte();
+										if (byte == 0) // if \0 char is found (end of string)
+											break;
+										stringBuffer.writeByte(byte); // copy the byte to the string buffer
+									}
+									_projectionWKT = stringBuffer.toString(); // get key from buffer
+								}
+							}
+							// set geometry type
+							geometry.geomType = currentGeometryType;
+							// add delayed points
+							if (geometryID < _idToDelayedAddPointParamsMap.length && _idToDelayedAddPointParamsMap[geometryID] is Array)
+							{
+								for each (var addPointParams:Array in _idToDelayedAddPointParamsMap[geometryID])
+									geometry.addPoint.apply(null, addPointParams);
+								delete _idToDelayedAddPointParamsMap[geometryID];
 							}
 						}
-						// set geometry type
-						geometry.geomType = currentGeometryType;
-						// add delayed points
-						if (geometryID < _idToDelayedAddPointParamsMap.length && _idToDelayedAddPointParamsMap[geometryID] is Array)
-						{
-							for each (var addPointParams:Array in _idToDelayedAddPointParamsMap[geometryID])
-								geometry.addPoint.apply(null, addPointParams);
-							delete _idToDelayedAddPointParamsMap[geometryID];
-						}
 					}
-				}
-            } 
-            catch(e:EOFError) { }
-
-			// remove this stream from the processing list
-			if (endTask(stream))
-				return; // do not run callbacks if there are still streams being processed.
+	            } 
+	            catch(e:EOFError) { }
+	
+				// remove this stream from the processing list
+				delete _metadataStreamQueue[stream];
+				
+				for (var o:* in _metadataStreamQueue)
+					return 1; // done, skip callbacks
+				
+				// keys and bounding boxes changed
+				StageUtils.callLater(this, _triggerCallbacksIfQueueEmpty, [_metadataStreamQueue]);
+				
+				return 1; // done
+			};
 			
-			// keys and bounding boxes changed
-			metadataCallbacks.triggerCallbacks();
+			_metadataStreamQueue[stream] = NameUtil.createUniqueName(stream);
+			
+			StageUtils.startTask(this, task);
 		}
 
 		/**
@@ -529,107 +504,112 @@ package weave.utils
 		 */
 		public function decodeGeometryStream(stream:ByteArray):void
 		{
-			beginTask(stream);
-
-			//trace("decodeGeometryStream",_queuedStreamDictionary[stream],hex(stream));
-		    try {
-		    	// declare temp variables
-				var i:int;
-				var flag:int;
-				var geometryID:int;
-				var vertexID:int;
-				var x:Number, y:Number, importance:Number = 0;
-				// read objects from stream
-				while (true)
-				{
-					flag = stream.readInt();
-					//trace("flag",flag);
-					if (flag < 0) // flag is negativeTileID
+			var task:Function = function():Number
+			{
+				//trace("decodeGeometryStream",_queuedStreamDictionary[stream],hex(stream));
+			    try {
+			    	// declare temp variables
+					var i:int;
+					var flag:int;
+					var geometryID:int;
+					var vertexID:int;
+					var x:Number, y:Number, importance:Number = 0;
+					// read objects from stream
+					while (true)
 					{
-						var tileID:int = (-1 - flag); // decode negativeTileID
-						if (tileID < geometryTileIDToKDNodeMapping.length)
+						flag = stream.readInt();
+						//trace("flag",flag);
+						if (flag < 0) // flag is negativeTileID
 						{
-							// remove tile from tree
-							geometryTiles.remove(geometryTileIDToKDNodeMapping[tileID]);
-
-							if (debug)
+							var tileID:int = (-1 - flag); // decode negativeTileID
+							if (tileID < geometryTileIDToKDNodeMapping.length)
 							{
-								trace("got geometry tileID=" + tileID + "/" + geometryTileIDToKDNodeMapping.length + "; "+stream.length);
-								flag = geometryTilesChecklist.indexOf(tileID);
-								if (flag >= 0)
+								// remove tile from tree
+								geometryTiles.remove(geometryTileIDToKDNodeMapping[tileID]);
+	
+								if (debug)
 								{
-									geometryTilesChecklist.splice(flag, 1);
-									trace("remaining geometry tiles: "+geometryTilesChecklist);
+									trace("got geometry tileID=" + tileID + "/" + geometryTileIDToKDNodeMapping.length + "; "+stream.length);
+									flag = geometryTilesChecklist.indexOf(tileID);
+									if (flag >= 0)
+									{
+										geometryTilesChecklist.splice(flag, 1);
+										trace("remaining geometry tiles: "+geometryTilesChecklist);
+									}
+								}
+							}
+							else
+							{
+								// something went wrong
+								// either the tileDescriptors were not requested yet,
+								// or the service is returning incorrect data.
+								reportError("ERROR! decodeGeometryStream(): tileID is out of range ("+tileID+" >= "+geometryTileIDToKDNodeMapping.length+")");
+								break;
+							}
+							
+							// resume later after finding a tileID.
+							return stream.position / stream.length;
+						}
+						else // flag is geometryID
+						{
+							geometryID = flag;
+							// reset lists of IDs
+							geometryIDArray.length = 0;
+							vertexIDArray.length = 0;
+							geometryIDArray.push(geometryID); // save first geometryID
+							while (true)
+							{
+								vertexID = stream.readInt(); // read vertexID for current geometryID
+								if (vertexID < 0)
+								{
+									vertexID = (-1 - vertexID); // decode negativeVertexID
+									vertexIDArray.push(vertexID); // save vertexID for previous geometryID 
+									break; // this was the last vertexID
+								}
+	 							vertexIDArray.push(vertexID); // save vertexID for previous geometryID
+	 							geometryID = stream.readInt(); // read next geometryID
+								geometryIDArray.push(geometryID); // save next geometryID
+							}
+							//trace("geomIDs",geometryIDArray);
+							//trace("vIDs",vertexIDArray);
+							// read coordinates and importance value
+							x = stream.readDouble();
+							y = stream.readDouble();
+							importance = stream.readFloat();
+							//trace("X,Y,I",[x,y,importance]);
+							// save vertex in all corresponding geometries
+							for (i = geometryIDArray.length - 1; i >= 0; i--)
+							{
+								//trace("geom "+geometryIDArray[i]+" insert "+vertexIDArray[i]+" "+importance+" "+x+" "+y);
+								geometryID = geometryIDArray[i];
+								if (geometryID < geometries.length && geometries[geometryID] is GeneralizedGeometry)
+									(geometries[geometryID] as GeneralizedGeometry).addPoint(vertexIDArray[i], importance, x, y);
+								else
+								{
+									//trace("delay",geometryID,vertexIDArray[i]);
+									delayAddPointParams(geometryID, vertexIDArray[i], importance, x, y);
 								}
 							}
 						}
-						else
-						{
-							// something went wrong
-							// either the tileDescriptors were not requested yet,
-							// or the service is returning incorrect data.
-							reportError("ERROR! decodeGeometryStream(): tileID is out of range ("+tileID+" >= "+geometryTileIDToKDNodeMapping.length+")");
-							break;
-						}
-						if (StageUtils.shouldCallLater)
-						{
-							//trace("callLater");
-							updateTask(stream);
-							StageUtils.callLater(this, decodeGeometryStream, arguments);
-							return;
-						}
 					}
-					else // flag is geometryID
-					{
-						geometryID = flag;
-						// reset lists of IDs
-						geometryIDArray.length = 0;
-						vertexIDArray.length = 0;
-						geometryIDArray.push(geometryID); // save first geometryID
-						while (true)
-						{
-							vertexID = stream.readInt(); // read vertexID for current geometryID
-							if (vertexID < 0)
-							{
-								vertexID = (-1 - vertexID); // decode negativeVertexID
-								vertexIDArray.push(vertexID); // save vertexID for previous geometryID 
-								break; // this was the last vertexID
-							}
- 							vertexIDArray.push(vertexID); // save vertexID for previous geometryID
- 							geometryID = stream.readInt(); // read next geometryID
-							geometryIDArray.push(geometryID); // save next geometryID
-						}
-						//trace("geomIDs",geometryIDArray);
-						//trace("vIDs",vertexIDArray);
-						// read coordinates and importance value
-						x = stream.readDouble();
-						y = stream.readDouble();
-						importance = stream.readFloat();
-						//trace("X,Y,I",[x,y,importance]);
-						// save vertex in all corresponding geometries
-						for (i = geometryIDArray.length - 1; i >= 0; i--)
-						{
-							//trace("geom "+geometryIDArray[i]+" insert "+vertexIDArray[i]+" "+importance+" "+x+" "+y);
-							geometryID = geometryIDArray[i];
-							if (geometryID < geometries.length && geometries[geometryID] is GeneralizedGeometry)
-								(geometries[geometryID] as GeneralizedGeometry).addPoint(vertexIDArray[i], importance, x, y);
-							else
-							{
-								//trace("delay",geometryID,vertexIDArray[i]);
-								delayAddPointParams(geometryID, vertexIDArray[i], importance, x, y);
-							}
-						}
-					}
-				}
-            }
-            catch(e:EOFError) { }
-            
-			// remove this stream from the processing list
-			if (endTask(stream))
-				return; // do not run callbacks if there are still streams being processed.
+	            }
+	            catch(e:EOFError) { }
+	            
+				// remove this stream from the processing list
+				delete _geometryStreamQueue[stream];
+				
+				for (var o:* in _geometryStreamQueue)
+					return 1; // done, skip callbacks
+				
+				// geometries changed
+				StageUtils.callLater(this, _triggerCallbacksIfQueueEmpty, [_geometryStreamQueue]);
+
+				return 1; // done
+			}
 			
-			// geometries changed
-			getCallbackCollection(this).triggerCallbacks();
+			_geometryStreamQueue[stream] = NameUtil.createUniqueName(stream);
+			
+			StageUtils.startTask(this, task);
 		}
 
 		
