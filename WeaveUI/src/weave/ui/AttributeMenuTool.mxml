@@ -35,7 +35,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:Canvas label="List">
 			<mx:List id="choiceList" width="100%" height="100%"
 					 labelFunction="choiceComboLabelFunction"
-					 change="if (hasFocus(choiceCombo)) handleAttrSelected(choiceList, choiceList.selectedIndex);"
+					 change="if (hasFocus(choiceList)) handleAttrSelected(choiceList, choiceList.selectedIndex);"
 					 />
 		</mx:Canvas>
 		<mx:Canvas label="Slider">
@@ -50,23 +50,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:VBox width="100%" label="Settings">
 			<mx:HBox>
 				<mx:VBox>
-					<Indent label="Visualization tool:" indent="120">
+					<Indent label="Target visualization tool:" indent="160">
 						<CustomComboBox prompt="Select a tool..." id="targetToolCombo" enabled="{targetToolCombo.dataProvider.length > 0}"
 										valueCommit="handleComboChange(targetToolCombo, targetTool);" />
 					</Indent>
-					<Indent label="Attribute to modify:" indent="120" toolTip="The selected attribute will be modified by the combo box in this menu tool.">
+					<Indent label="Target attribute:" indent="160" toolTip="The selected attribute will be modified by the combo box in this menu tool.">
 						<CustomComboBox prompt="Select an attribute..." id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
 										valueCommit="handleComboChange(targetAttributeCombo, targetAttribute);" />
 					</Indent>
+					<Indent label="Menu layout:" indent="160">
+						<CustomComboBox id="targetLayoutCombo" prompt="Select a layout..." labelFunction="{targetLayoutLabelFunction}"
+										dataProvider="{layouts}" valueCommit="handleComboChange(targetLayoutCombo, layoutMode);" />
+					</Indent>
 				</mx:VBox>
-				<mx:HBox>
-					<mx:Spacer width="100%" />
-					<mx:Label text="Layout:" />
-					<CustomComboBox id="targetLayoutCombo" prompt="Select a layout..." labelFunction="{targetLayoutLabelFunction}"
-								dataProvider="{layouts}" valueCommit="handleComboChange(targetLayoutCombo, layoutMode);" />
-				</mx:HBox>
 			</mx:HBox>
-			<ColumnListComponent id="choicesComponent" label="Attributes to appear in the drop-down" />
+			<ColumnListComponent id="choicesComponent" label="Attributes to appear in the menu" />
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ControlPanel>
