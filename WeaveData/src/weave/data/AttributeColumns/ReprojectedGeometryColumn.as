@@ -96,7 +96,6 @@ package weave.data.AttributeColumns
 				_reprojectedColumn.removeCallback(handleReprojectedColumnChange);
 			
 			_reprojectedColumn = newColumn;
-			_unprojectedColumn = null;
 			
 			if (_reprojectedColumn)
 				_reprojectedColumn.addImmediateCallback(this, handleReprojectedColumnChange, null, true, true); // parent-child relationship
@@ -104,18 +103,14 @@ package weave.data.AttributeColumns
 		
 		private function handleReprojectedColumnChange():void
 		{
-			if (!_unprojectedColumn)
-			{
-				// if _unprojectedColumn is not null, it means there is no reprojection to do.
-				_unprojectedColumn = ColumnUtils.hack_findNonWrapperColumn(_reprojectedColumn) as StreamedGeometryColumn;
-				if (_unprojectedColumn)
-					_unprojectedColumn.boundingBoxCallbacks.addImmediateCallback(this, _boundingBoxCallbacks.triggerCallbacks);
-			}
-			if (!_unprojectedColumn)
+			// if _unprojectedColumn is not null, it means there is no reprojection to do.
+			var _unprojectedColumn:StreamedGeometryColumn = ColumnUtils.hack_findNonWrapperColumn(_reprojectedColumn) as StreamedGeometryColumn;
+			if (_unprojectedColumn)
+				_unprojectedColumn.boundingBoxCallbacks.addImmediateCallback(this, _boundingBoxCallbacks.triggerCallbacks);
+			else
 				_boundingBoxCallbacks.triggerCallbacks();
 		}
 		
-		private var _unprojectedColumn:StreamedGeometryColumn = null;
 		private var _reprojectedColumn:IAttributeColumn = null;
 		
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
