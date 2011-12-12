@@ -87,12 +87,12 @@ package weave.data.AttributeColumns
 		 */
 		override public function get keys():Array
 		{
-			return _geometryStreamDecoder.keySet;
+			return _geometryStreamDecoder.keys;
 		}
 		
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return _geometryStreamDecoder.containsKey(key);
+			return _geometryStreamDecoder.getGeometriesFromKey(key) != null;
 		}
 		
 		/**

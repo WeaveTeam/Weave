@@ -85,7 +85,7 @@ package weave.utils
 		/**
 		 * This is the set of geometry keys that have been decoded so far.
 		 */
-		public const keySet:Array = [];
+		public const keys:Array = [];
 		
 		/**
 		 * These callbacks get called when the keys or bounds change.
@@ -95,12 +95,8 @@ package weave.utils
 		/**
 		 * This object maps a key to an array of geometries.
 		 */
-		private const keyToGeometryMapping:Dictionary = new Dictionary();
+		private const _keyToGeometryMapping:Dictionary = new Dictionary();
 
-		public function containsKey(key:IQualifiedKey):Boolean
-		{
-			return keyToGeometryMapping[key] !== undefined;
-		}
 		
 		/**
 		 * @param geometryKey A String identifier.
@@ -108,17 +104,14 @@ package weave.utils
 		 */
 		public function getGeometriesFromKey(geometryKey:IQualifiedKey):Array
 		{
-			var result:Array = keyToGeometryMapping[geometryKey] as Array
-			if (!result)
-				keyToGeometryMapping[geometryKey] = result = [];
-			return result;
+			return _keyToGeometryMapping[geometryKey] as Array;
 		}
 
 		/**
 		 * This maps a geometryID (integer) to an Array of arrays of parameters for GeneralizedGeometry.addPoint().
 		 * For example, idToDelayedAddPointParamsMap[3] may be [[vertexID1,importance1,x1,y1],[vertexID2,importance2,x2,y2]].
 		 */
-		private const idToDelayedAddPointParamsMap:Array = [];
+		private const _idToDelayedAddPointParamsMap:Array = [];
 		
 		/**
 		 * This function will store a list of parameters for GeneralizedGeometry.addPoint() to be used later.
@@ -130,11 +123,11 @@ package weave.utils
 		 */
 		private function delayAddPointParams(geometryID:int, vertexID:int, importance:Number, x:Number, y:Number):void
 		{
-			if (idToDelayedAddPointParamsMap.length <= geometryID)
-				idToDelayedAddPointParamsMap.length = geometryID + 1;
-			if (idToDelayedAddPointParamsMap[geometryID] == undefined)
-				idToDelayedAddPointParamsMap[geometryID] = [];
-			(idToDelayedAddPointParamsMap[geometryID] as Array).push([vertexID, importance, x, y]);
+			if (_idToDelayedAddPointParamsMap.length <= geometryID)
+				_idToDelayedAddPointParamsMap.length = geometryID + 1;
+			if (_idToDelayedAddPointParamsMap[geometryID] == undefined)
+				_idToDelayedAddPointParamsMap[geometryID] = [];
+			(_idToDelayedAddPointParamsMap[geometryID] as Array).push([vertexID, importance, x, y]);
 		}
 		
 		/**
@@ -428,10 +421,14 @@ package weave.utils
 						if (geometries.length <= geometryID)
 							geometries.length = geometryID + 1;
 						geometries[geometryID] = geometry;
-						// save key-to-geometry mapping
-			            getGeometriesFromKey(key).push(geometry);
-						// remember that this key was seen
-			            keySet.push(key);
+						// save mapping from key to geom
+						var geomsForKey:Array = _keyToGeometryMapping[key] as Array;
+						if (!geomsForKey)
+						{
+							keys.push(key); // keep track of unique keys
+							_keyToGeometryMapping[key] = geomsForKey = [];
+						}
+						geomsForKey.push(geometry);
 						// read bounds xMin, yMin, xMax, yMax
 						geometry.bounds.setBounds(
 								stream.readDouble(),
@@ -507,11 +504,11 @@ package weave.utils
 						// set geometry type
 						geometry.geomType = currentGeometryType;
 						// add delayed points
-						if (geometryID < idToDelayedAddPointParamsMap.length && idToDelayedAddPointParamsMap[geometryID] is Array)
+						if (geometryID < _idToDelayedAddPointParamsMap.length && _idToDelayedAddPointParamsMap[geometryID] is Array)
 						{
-							for each (var addPointParams:Array in idToDelayedAddPointParamsMap[geometryID])
+							for each (var addPointParams:Array in _idToDelayedAddPointParamsMap[geometryID])
 								geometry.addPoint.apply(null, addPointParams);
-							delete idToDelayedAddPointParamsMap[geometryID];
+							delete _idToDelayedAddPointParamsMap[geometryID];
 						}
 					}
 				}
