@@ -35,8 +35,6 @@
 					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
 		<mx:CheckBox label="Show copyright"
 					 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
-		<mx:CheckBox label="Show task bar"
-					 creationComplete="linkBindableProperty(Weave.properties.enableTaskbar, event.target, 'selected');"/>
 	</mx:VBox>
 	<mx:ControlBar>
 		<mx:Button label="Export" 
@@ -53,34 +51,28 @@
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
 			
-			private var booleans:Array = [
-				Weave.properties.dashboardMode,
-				Weave.properties.enableMenuBar,
-				Weave.properties.showCopyright,
-				Weave.properties.enableTaskbar
-			];
 			private var oldValues:Dictionary = new Dictionary(true);
 			
 			override protected function constructor():void
 			{
 				super.constructor();
-				for each (var lb:LinkableBoolean in booleans)
+				
+				for each (var lb:LinkableBoolean in [
+					Weave.properties.dashboardMode,
+					Weave.properties.enableMenuBar,
+					Weave.properties.showCopyright
+				])
 					oldValues[lb] = lb.value;
 			}
 			
-			private var _sessionFileSaver:FileReference = null;
 			private function export():void
 			{
-				if (_sessionFileSaver == null)
-				{
-					_sessionFileSaver = new FileReference();
-				}
-				
 				// Create a date that we can append to the end of each file to make them unique
 				var date:Date = new Date();
 				var dateString:String = date.fullYear +"."+ date.month +"."+ date.day +" "+ date.time;
 				
-				_sessionFileSaver.save(Weave.getSessionStateXML(), "weave session state " + dateString + ".xml");
+				var fr:FileReference = new FileReference();
+				fr.save(Weave.getSessionStateXML(), "weave session state " + dateString + ".xml");
 				
 				removePanel();
 			}
@@ -90,8 +82,8 @@
 				super.removePanel();
 				
 				// restore settings
-				for each (var lb:LinkableBoolean in booleans)
-					lb.value = oldValues[lb];
+				for (var lb:* in oldValues)
+					(lb as LinkableBoolean).value = oldValues[lb];
 			}
 		]]>
 	</mx:Script>

@@ -51,8 +51,6 @@
 					 />
 		<mx:CheckBox label="Show copyright"
 					 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
-		<mx:CheckBox label="Enable the minimize tray"
-					 creationComplete="linkBindableProperty(Weave.properties.enableTaskbar, event.target, 'selected');"/>
 
 		<ui:Indent label="Fixed workspace size:">
 			<ui:TextInputWithPrompt prompt="width" width="64" creationComplete="linkBindableProperty(Weave.properties.workspaceWidth, event.target, 'text', 500);"/>

@@ -19,6 +19,8 @@
 package weave.ui
 {
 	import flash.display.BitmapData;
+	import flash.events.MouseEvent;
+	import flash.ui.Mouse;
 	
 	import mx.containers.Canvas;
 	import mx.core.UIComponent;
@@ -29,13 +31,13 @@ package weave.ui
 	
 	public class MinimizedComponent extends Canvas
 	{
-		public var restoreFunction:Function = null;
+		public var clickListener:Function = null;
 		public var componentGroup:Array = null;
 		private var _mainComponent:UIComponent = null;
 		
-		public function MinimizedComponent(componentGroup:Array, desiredWidth:int, desiredHeight:int, restoreFunction:Function)
+		public function MinimizedComponent(componentGroup:Array, desiredWidth:int, desiredHeight:int, clickListener:Function)
 		{
-			this.restoreFunction = restoreFunction;
+			addEventListener(MouseEvent.CLICK, clickListener);
 			this.componentGroup = componentGroup.concat();
 			
 			var minimizedComponents:int = 0;
