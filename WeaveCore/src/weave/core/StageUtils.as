@@ -30,10 +30,15 @@ package weave.core
 	import flash.utils.getTimer;
 	
 	import mx.core.Application;
+	import mx.core.UIComponent;
+	import mx.core.UIComponentGlobals;
+	import mx.core.mx_internal;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.reportError;
+	
+	use namespace mx_internal;
 	
 	/**
 	 * This is an all-static class that allows you to add callbacks that will be called when an event occurs on the stage.
@@ -160,10 +165,10 @@ package weave.core
 			var i:int;
 
 			// first run the functions that cannot be delayed more than one frame.
-			if (_callLaterSingleFrameDelayArray.length > 0)
+			if (_callNextFrameArray.length > 0)
 			{
-				calls = _callLaterSingleFrameDelayArray;
-				_callLaterSingleFrameDelayArray = [];
+				calls = _callNextFrameArray;
+				_callNextFrameArray = [];
 				for (i = 0; i < calls.length; i++)
 				{
 					// args: (relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true)
@@ -175,7 +180,7 @@ package weave.core
 				}
 			}
 			
-			if (_callLaterArray.length > 0)
+			if (_callLaterArray.length > 0 && UIComponentGlobals.callLaterSuspendCount <= 0)
 			{
 				//trace("handle ENTER_FRAME, " + _callLaterArray.length + " callLater functions, " + currentFrameElapsedTime + " ms elapsed this frame");
 				// Make a copy of the function calls and clear the static array before executing any functions.
@@ -220,7 +225,7 @@ package weave.core
 			if (allowMultipleFrameDelay)
 				_callLaterArray.push(arguments);
 			else
-				_callLaterSingleFrameDelayArray.push(arguments);
+				_callNextFrameArray.push(arguments);
 			
 			if (CallbackCollection.debug)
 				_stackTraceMap[arguments] = new Error("Stack trace").getStackTrace();
@@ -232,7 +237,7 @@ package weave.core
 		 * This is an array of functions with parameters that will be executed the next time handleEnterFrame() is called.
 		 * This array gets populated by callLater().
 		 */
-		private static var _callLaterSingleFrameDelayArray:Array = [];
+		private static var _callNextFrameArray:Array = [];
 		
 		/**
 		 * This is an array of functions with parameters that will be executed the next time handleEnterFrame() is called.
@@ -334,6 +339,10 @@ package weave.core
 			}
 		}
 		
+		/**
+		 * This is a list of eventType Strings that can be passed to addEventCallback().
+		 * @return An Array of Strings.
+		 */
 		public static function getSupportedEventTypes():Array
 		{
 			return _eventTypes.concat();
