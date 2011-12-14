@@ -140,12 +140,7 @@ package weave.utils
 			
 			_tempBounds.copyFrom(collectiveBounds);
 			
-			var shouldTrigger:Boolean = false;
-			if (_keysArray.length > 0)
-			{
-				shouldTrigger = true;
-				_keysArray.length = 0; // hack to prevent callbacks
-			}
+			_keysArray.length = 0; // hack to prevent callbacks
 			clear();
 			
 			if (plotter != null)
