@@ -26,6 +26,8 @@ package weave.data.AttributeColumns
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ICallbackInterface;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -34,6 +36,7 @@ package weave.data.AttributeColumns
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
+	import weave.core.CallbackCollection;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -55,11 +58,15 @@ package weave.data.AttributeColumns
 			super(metadata);
 			
 			_tileService = tileService;
-			registerLinkableChild(this, _geometryStreamDecoder.keySet);
 			
 			// request a list of tiles for this geometry collection
 			var query:AsyncToken = _tileService.getTileDescriptors();
 			query.addAsyncResponder(handleGetTileDescriptors, handleGetTileDescriptorsFault, metadata);
+		}
+		
+		public function get boundingBoxCallbacks():ICallbackInterface
+		{
+			return _geometryStreamDecoder.metadataCallbacks;
 		}
 		
 		override public function getMetadata(propertyName:String):String
@@ -80,12 +87,12 @@ package weave.data.AttributeColumns
 		 */
 		override public function get keys():Array
 		{
-			return _geometryStreamDecoder.keySet.keys;
+			return _geometryStreamDecoder.keys;
 		}
 		
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return _geometryStreamDecoder.keySet.containsKey(key);
+			return _geometryStreamDecoder.getGeometriesFromKey(key) != null;
 		}
 		
 		/**
@@ -183,7 +190,6 @@ package weave.data.AttributeColumns
 			{
 				query = _tileService.getGeometryTiles(geometryTileIDs.splice(0, geometryTilesPerQuery));
 				query.addAsyncResponder(handleGeometryStreamDownload, handleDownloadFault, query);
-				
 				_streamDownloadCounter++;
 			} 
 		}

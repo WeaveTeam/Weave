@@ -25,7 +25,7 @@ package weave.ui.infomap.layout
 			return 'Radial';
 		}
 		
-		public const radius:LinkableNumber = registerLinkableChild(this,new LinkableNumber(100),plotThumbnails,true);
+		public const radius:LinkableNumber = registerLinkableChild(this,new LinkableNumber(100));
 		
 		private var _parentNodeHandler:NodeHandler;
 		public function set parentNodeHandler(value:NodeHandler):void

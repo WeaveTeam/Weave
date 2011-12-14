@@ -81,6 +81,7 @@ package weave.services
 		[Bindable] public var dataTableNames:Array = [];
 		[Bindable] public var geometryCollectionNames:Array = [];
 		[Bindable] public var weaveFileNames:Array = [];
+		[Bindable] public var privateWeaveFileNames:Array = [];
 		[Bindable] public var keyTypes:Array = [];
 		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
 		
@@ -134,6 +135,7 @@ package weave.services
 			dataTableNames = [];
 			geometryCollectionNames = [];
 			weaveFileNames = [];
+			privateWeaveFileNames = [];
 			keyTypes = [];
 			databaseConfigInfo = new DatabaseConfigInfo(null);
 		}
@@ -166,6 +168,7 @@ package weave.services
 					}
 					
 					getWeaveFileNames();
+					getPrivateWeaveFileNames();
 					getDataTableNames();
 					getGeometryCollectionNames();
 					getKeyTypes();
@@ -187,12 +190,23 @@ package weave.services
 		public function getWeaveFileNames():void
 		{
 			weaveFileNames = [];
-			service.getWeaveFileNames(activeConnectionName, activePassword).addAsyncResponder(handleGetWeaveFileNames);
+			service.getWeaveFileNames(activeConnectionName, activePassword, true).addAsyncResponder(handleGetWeaveFileNames);
 			function handleGetWeaveFileNames(event:ResultEvent, token:Object = null):void
 			{
 				weaveFileNames = event.result as Array || [];
 			}
 		}
+		
+		public function getPrivateWeaveFileNames():void
+		{
+			privateWeaveFileNames = [];
+			service.getWeaveFileNames(activeConnectionName, activePassword, false).addAsyncResponder(handleGetWeaveFileNames);
+			function handleGetWeaveFileNames(event:ResultEvent, token:Object = null):void
+			{
+				privateWeaveFileNames = event.result as Array || [];
+			}
+		}
+		
 		public function removeWeaveFile(fileName:String):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.removeWeaveFile(
@@ -204,6 +218,7 @@ package weave.services
 			function handler(event:ResultEvent, token:Object=null):void
 			{
 				getWeaveFileNames();
+				getPrivateWeaveFileNames(); //temporary solution instead of adding another function remove private weave files
 			}
 			return query;
 		}
@@ -628,6 +643,7 @@ package weave.services
 			{
 				WeaveAdminService.messageDisplay(null, event.result as String, false);
 				getWeaveFileNames();
+				getPrivateWeaveFileNames(); //temporary solution
 			}
 			return query;
 		}

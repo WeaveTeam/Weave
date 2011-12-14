@@ -81,7 +81,6 @@ package weave.visualization.plotters
 	{
 		public function GeometryPlotter()
 		{
-			registerSpatialProperty(geometryColumn.internalDynamicColumn);
 			// initialize default line & fill styles
 			line.scaleMode.defaultValue.setSessionState(LineScaleMode.NONE);
 			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
@@ -91,12 +90,16 @@ package weave.visualization.plotters
 			linkSessionState(StreamedGeometryColumn.geometryMinimumScreenArea, pixellation);
 
 			setKeySource(geometryColumn);
+			
+			_filteredKeySet.removeCallback(spatialCallbacks.triggerCallbacks); // not every change to the geometries changes the bounding boxes
+			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks); // bounding box should trigger spatial
+			registerSpatialProperty(_filteredKeySet.keyFilter); // subset should trigger spatial callbacks
 		}
 
 		/**
 		 * This is the reprojected geometry column to draw.
 		 */
-		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
+		public const geometryColumn:ReprojectedGeometryColumn = newLinkableChild(this, ReprojectedGeometryColumn);
 		
 		/**
 		 *  This is the default URL path for images, when using images in place of points.

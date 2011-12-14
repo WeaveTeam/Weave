@@ -159,7 +159,7 @@
 				linkBindableProperty(yPos,this,"y");
 				
 				
-				UIUtils.linkDisplayObjects(this,thumbnails,true);
+//				UIUtils.linkDisplayObjects(this,thumbnails,true);
 				
 				//sets a pointer to the node's parent which is an InfoMapPanel
 				var hashmap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableOwner(this) as LinkableHashMap;
@@ -418,6 +418,7 @@
 //						thumbnails.removeObject(link);
 //				}
 				
+				
 				var includedKeys:Array = _subset.included.keys;
 				var excludedKeys:Array = _subset.excluded.keys;
 				
@@ -428,6 +429,8 @@
 				{
 					thumbNailsToPlot[t] = false;
 					t.visible = false;
+					if(contains(t))
+						removeChild(t);
 				}
 				
 				//add only included keys from subset
@@ -473,7 +476,10 @@
 				for (dictKey in thumbNailsToPlot)
 				{
 					if(thumbNailsToPlot[dictKey])
+					{
 						thumbnailsToPlotArray.push(dictKey);
+						addChild(dictKey);
+					}
 				}
 				
 				

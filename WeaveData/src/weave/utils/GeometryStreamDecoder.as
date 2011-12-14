@@ -27,14 +27,15 @@ package weave.utils
 	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
-	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.reportError;
+	import weave.core.CallbackCollection;
 	import weave.core.StageUtils;
-	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.KDNode;
@@ -62,13 +63,11 @@ package weave.utils
 		}
 		
 		/**
-		 * geometries
 		 * This is an Array of GeneralizedGeometry objects that have been decoded from a stream.
 		 */
 		public const geometries:Array = [];
 		
 		/**
-		 * collectiveBounds
 		 * This is the bounding box containing all tile boundaries.
 		 */
 		public const collectiveBounds:IBounds2D = new Bounds2D();
@@ -84,38 +83,37 @@ package weave.utils
 		private var _keyType:String = null;
 
 		/**
-		 * keySet
 		 * This is the set of geometry keys that have been decoded so far.
 		 */
-		public const keySet:KeySet = newDisposableChild(this, KeySet);
+		public const keys:Array = [];
+		
+		/**
+		 * These callbacks get called when the keys or bounds change.
+		 */
+		public const metadataCallbacks:ICallbackCollection = newLinkableChild(this, CallbackCollection);
 
 		/**
-		 * keyToGeometryMapping
 		 * This object maps a key to an array of geometries.
 		 */
-		private const keyToGeometryMapping:Dictionary = new Dictionary();
+		private const _keyToGeometryMapping:Dictionary = new Dictionary();
 
+		
 		/**
-		 * getGeometriesFromKey
 		 * @param geometryKey A String identifier.
 		 * @return An Array of GeneralizedGeometry objects with keys matching the specified key. 
 		 */
 		public function getGeometriesFromKey(geometryKey:IQualifiedKey):Array
 		{
-			if (keyToGeometryMapping[geometryKey] == undefined)
-				keyToGeometryMapping[geometryKey] = [];
-			return keyToGeometryMapping[geometryKey];
+			return _keyToGeometryMapping[geometryKey] as Array;
 		}
 
 		/**
-		 * idToDelayedAddPointParamsMap
 		 * This maps a geometryID (integer) to an Array of arrays of parameters for GeneralizedGeometry.addPoint().
 		 * For example, idToDelayedAddPointParamsMap[3] may be [[vertexID1,importance1,x1,y1],[vertexID2,importance2,x2,y2]].
 		 */
-		private const idToDelayedAddPointParamsMap:Array = [];
+		private const _idToDelayedAddPointParamsMap:Array = [];
 		
 		/**
-		 * delayAddPointParams
 		 * This function will store a list of parameters for GeneralizedGeometry.addPoint() to be used later.
 		 * @param geometryID The ID of the GeneralizedGeometry the addPoint() parameters are for.
 		 * @param vertexID Parameter for GeneralizedGeometry.addPoint().
@@ -125,11 +123,11 @@ package weave.utils
 		 */
 		private function delayAddPointParams(geometryID:int, vertexID:int, importance:Number, x:Number, y:Number):void
 		{
-			if (idToDelayedAddPointParamsMap.length <= geometryID)
-				idToDelayedAddPointParamsMap.length = geometryID + 1;
-			if (idToDelayedAddPointParamsMap[geometryID] == undefined)
-				idToDelayedAddPointParamsMap[geometryID] = [];
-			(idToDelayedAddPointParamsMap[geometryID] as Array).push([vertexID, importance, x, y]);
+			if (_idToDelayedAddPointParamsMap.length <= geometryID)
+				_idToDelayedAddPointParamsMap.length = geometryID + 1;
+			if (_idToDelayedAddPointParamsMap[geometryID] == undefined)
+				_idToDelayedAddPointParamsMap[geometryID] = [];
+			(_idToDelayedAddPointParamsMap[geometryID] as Array).push([vertexID, importance, x, y]);
 		}
 		
 		/**
@@ -146,8 +144,9 @@ package weave.utils
 		 */
 		private const metadataTileIDToKDNodeMapping:Vector.<KDNode> = new Vector.<KDNode>();
 		private const geometryTileIDToKDNodeMapping:Vector.<KDNode> = new Vector.<KDNode>();
-		private const metadataTilesChecklist:Vector.<int> = new Vector.<int>();
-		private const geometryTilesChecklist:Vector.<int> = new Vector.<int>();
+		
+		private const metadataTilesChecklist:Array = [];
+		private const geometryTilesChecklist:Array = [];
 		/**
 		 * These constants define indices in a KDKey corresponding to the different KDTree dimensions.
 		 */
@@ -313,14 +312,14 @@ package weave.utils
 					metadataTilesChecklist.push(metadataTilesChecklist.length);
 			}
 			
-			getCallbackCollection(this).triggerCallbacks();
+			// collective bounds changed
+			metadataCallbacks.triggerCallbacks();
 		}
 
 		private var _projectionWKT:String = ""; // stores the well-known-text defining the projection
 		
 		
 		/**
-		 * currentGeometryType
 		 * This value specifies the type of the geometries currently being streamed
 		 */
 		
@@ -349,16 +348,14 @@ package weave.utils
 		private const _queuedStreamDictionary:Dictionary = new Dictionary();
 
 		/**
-		 * extracts metadata from a ByteArray.
-		 * If the geometries change, the specified callback will run when processing is finished.
-		 * When decoding completes, decodeCompleteCallbacks will run.
+		 * This extracts metadata from a ByteArray.
+		 * Callbacks are triggered when all active decoding tasks are completed.
 		 */
 		public function decodeMetadataStream(stream:ByteArray):void
 		{
 			beginTask(stream);
 
 			//trace("decodeMetadataStream",_queuedStreamDictionary[stream],hex(stream));
-			var geometriesUpdated:Boolean = false;
 		    try {
 		    	// declare temp variables
 				var flag:int;
@@ -381,7 +378,7 @@ package weave.utils
 
 							if (debug)
 							{
-								trace("got metadata tileID=" + tileID + "/"+metadataTileIDToKDNodeMapping.length+"; "+stream.length);
+								trace("got metadata tileID=" + tileID + "/"+metadataTileIDToKDNodeMapping.length+"; "+stream.position+'/'+stream.length);
 								flag = metadataTilesChecklist.indexOf(tileID);
 								if (flag >= 0)
 								{
@@ -424,10 +421,14 @@ package weave.utils
 						if (geometries.length <= geometryID)
 							geometries.length = geometryID + 1;
 						geometries[geometryID] = geometry;
-						// save key-to-geometry mapping
-			            getGeometriesFromKey(key).push(geometry);
-						// remember that this key was seen
-			            keysLastSeen.push(key);
+						// save mapping from key to geom
+						var geomsForKey:Array = _keyToGeometryMapping[key] as Array;
+						if (!geomsForKey)
+						{
+							keys.push(key); // keep track of unique keys
+							_keyToGeometryMapping[key] = geomsForKey = [];
+						}
+						geomsForKey.push(geometry);
 						// read bounds xMin, yMin, xMax, yMax
 						geometry.bounds.setBounds(
 								stream.readDouble(),
@@ -503,43 +504,34 @@ package weave.utils
 						// set geometry type
 						geometry.geomType = currentGeometryType;
 						// add delayed points
-						if (geometryID < idToDelayedAddPointParamsMap.length && idToDelayedAddPointParamsMap[geometryID] is Array)
+						if (geometryID < _idToDelayedAddPointParamsMap.length && _idToDelayedAddPointParamsMap[geometryID] is Array)
 						{
-							for each (var addPointParams:Array in idToDelayedAddPointParamsMap[geometryID])
+							for each (var addPointParams:Array in _idToDelayedAddPointParamsMap[geometryID])
 								geometry.addPoint.apply(null, addPointParams);
-							delete idToDelayedAddPointParamsMap[geometryID];
+							delete _idToDelayedAddPointParamsMap[geometryID];
 						}
-						// geometries changed
-						geometriesUpdated = true;
 					}
 				}
             } 
             catch(e:EOFError) { }
 
-			keySet.addKeys(keysLastSeen); // update keys
-			keysLastSeen.length = 0; // reset for next time
-            
 			// remove this stream from the processing list
 			if (endTask(stream))
 				return; // do not run callbacks if there are still streams being processed.
 			
-			//trace("metadata stream processing done");
-			//if (geometriesUpdated)
-				getCallbackCollection(this).triggerCallbacks();
-
+			// keys and bounding boxes changed
+			metadataCallbacks.triggerCallbacks();
 		}
 
 		/**
-		 * extracts points from a ByteArray.
-		 * If the geometries change, the specified callback will run when processing is finished.
-		 * When decoding completes, decodeCompleteCallbacks will run.
+		 * This extracts points from a ByteArray.
+		 * Callbacks are triggered when all active decoding tasks are completed.
 		 */
 		public function decodeGeometryStream(stream:ByteArray):void
 		{
 			beginTask(stream);
 
 			//trace("decodeGeometryStream",_queuedStreamDictionary[stream],hex(stream));
-			var geometriesUpdated:Boolean = false;
 		    try {
 		    	// declare temp variables
 				var i:int;
@@ -590,7 +582,9 @@ package weave.utils
 					else // flag is geometryID
 					{
 						geometryID = flag;
-						geometryIDArray.length = vertexIDArray.length = 0; // reset list of IDs
+						// reset lists of IDs
+						geometryIDArray.length = 0;
+						vertexIDArray.length = 0;
 						geometryIDArray.push(geometryID); // save first geometryID
 						while (true)
 						{
@@ -616,7 +610,7 @@ package weave.utils
 						for (i = geometryIDArray.length - 1; i >= 0; i--)
 						{
 							//trace("geom "+geometryIDArray[i]+" insert "+vertexIDArray[i]+" "+importance+" "+x+" "+y);
-							geometryID = geometryIDArray[i]
+							geometryID = geometryIDArray[i];
 							if (geometryID < geometries.length && geometries[geometryID] is GeneralizedGeometry)
 								(geometries[geometryID] as GeneralizedGeometry).addPoint(vertexIDArray[i], importance, x, y);
 							else
@@ -625,33 +619,26 @@ package weave.utils
 								delayAddPointParams(geometryID, vertexIDArray[i], importance, x, y);
 							}
 						}
-						// geometries changed
-						geometriesUpdated = true;
 					}
 				}
             }
             catch(e:EOFError) { }
-//            catch(e:Error)
-//            {
-//            	trace("Unexpected error: "+e.getStackTrace());
-//            }
             
 			// remove this stream from the processing list
 			if (endTask(stream))
 				return; // do not run callbacks if there are still streams being processed.
 			
-			//trace("geometry stream processing done");
-			//if (geometriesUpdated)
-				getCallbackCollection(this).triggerCallbacks();
+			// geometries changed
+			getCallbackCollection(this).triggerCallbacks();
 		}
 
 		
 		// reusable temporary objects to reduce GC activity
 		private static const stringBuffer:ByteArray = new ByteArray(); // for reading null-terminated strings
-		private static const geometryIDArray:Vector.<int> = new Vector.<int>(); // temporary list of geometryIDs
-		private static const vertexIDArray:Vector.<int> = new Vector.<int>(); // temporary list of vertexIDs
-		private static const keysLastSeen:Array = []; // temporary list of keys recently decoded
+		private static const geometryIDArray:Array = []; // temporary list of geometryIDs
+		private static const vertexIDArray:Array = []; // temporary list of vertexIDs
 		
+		/*
 		private static function hex(bytes:ByteArray):String
 		{
 			var p:int = bytes.position;
@@ -666,6 +653,7 @@ package weave.utils
 			bytes.position = p;
 			return result;
 		}
+		*/
 	}
 }
 

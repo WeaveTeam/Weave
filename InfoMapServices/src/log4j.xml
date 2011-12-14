@@ -12,11 +12,11 @@
 
 
  <logger name="org.quartz">
-   <level value="debug" />
+   <level value="ERROR" />
  </logger>
 
   <root>
-    <level value="debug" />
+    <level value="ERROR" />
     <appender-ref ref="default" />
   </root>
 

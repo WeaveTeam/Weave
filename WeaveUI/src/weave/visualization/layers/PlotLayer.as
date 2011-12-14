@@ -42,6 +42,7 @@ package weave.visualization.layers
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableNumber;
 	import weave.core.SessionManager;
 	import weave.core.StageUtils;
 	import weave.data.KeySets.FilteredKeySet;
@@ -49,6 +50,7 @@ package weave.visualization.layers
 	import weave.utils.DebugUtils;
 	import weave.utils.PlotterUtils;
 	import weave.utils.SpatialIndex;
+	import weave.utils.ZoomUtils;
 	import weave.visualization.plotters.DynamicPlotter;
 	
 	/**
@@ -75,8 +77,6 @@ package weave.visualization.layers
 				usingExternalSpatialIndex = false;
 				_dynamicPlotter.spatialCallbacks.addImmediateCallback(this, _spatialIndex.clear);
 			}
-			// generate a name for debugging
-			name = NameUtil.createUniqueName(this);
 			// default size = 100%,100%
 			percentWidth = 100;
 			percentHeight = 100;
@@ -116,7 +116,24 @@ package weave.visualization.layers
 		private var _dynamicPlotter:DynamicPlotter = null;
 		private var _spatialIndex:SpatialIndex = null;
 		private var _spatialIndexDirty:Boolean = true;
-		public var lockScreenBounds:Boolean = false;
+		
+		
+		/**
+		 * Sets the minimum visible zoom level for the layer
+		 */
+		public const minVisibleZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-5));
+		
+		/**
+		 * Sets the maximum visible zoom level for the layer
+		 */
+		public const maxVisibleZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(20));
+		
+		/**
+		 * A flag which is true when the zoom level of the PlotLayerContainer containing
+		 * this SelectablePlotLayer is between minVisibleZoomLevel and maxVisibleZoomLevel.
+		 * Set by PlotLayerContainer.updateZoom().
+		 */
+		public var withinVisibleZoomLevels:Boolean = true;
 		
 		/**
 		 * The IPlotter object used to draw shapes on this PlotLayer.
@@ -160,10 +177,17 @@ package weave.visualization.layers
 			}
 		}
 		
+//		public function getZoomLevel():Number
+//		{
+//			return ZoomUtils.getZoomLevel(_dataBounds, _screenBounds, _fullDataBounds, _minScreenSize);
+//		}
+		
 		// end IPlotter interface
 
 		private const _dataBounds:IBounds2D = new Bounds2D(); // this is set by the public setDataBounds() interface
 		private const _screenBounds:IBounds2D = new Bounds2D(); // this is set by the public setScreenBounds() interface
+//		internal const _fullDataBounds:IBounds2D = new Bounds2D(); // this is set by other classes
+//		internal var _minScreenSize:int = 128; // this is set by other classes
 
 		/**
 		 * When this is true, the plot won't be drawn if there is no selection and the background will never be drawn.
@@ -305,7 +329,7 @@ package weave.visualization.layers
 				handleSizeChange();
 
 			//trace(name,'begin updateDisplayList', _dataBounds);
-			var shouldDraw:Boolean = (unscaledWidth * unscaledHeight > 0);
+			var shouldDraw:Boolean = (unscaledWidth * unscaledHeight > 0) && withinVisibleZoomLevels;
 			//validate spatial index if necessary
 			if (shouldDraw)
 				validateSpatialIndex();

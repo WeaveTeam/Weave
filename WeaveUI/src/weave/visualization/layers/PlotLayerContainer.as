@@ -241,14 +241,31 @@ package weave.visualization.layers
 				layer.setDataBounds(tempDataBounds);
 				
 				plotLayer = layer as PlotLayer;
-				if (plotLayer && !plotLayer.lockScreenBounds)
+				if (plotLayer)
 					plotLayer.setScreenBounds(tempScreenBounds);
 				
 				selectablePlotLayer = layer as SelectablePlotLayer;
-				if (selectablePlotLayer && !selectablePlotLayer.lockScreenBounds)
+				if (selectablePlotLayer)
 					selectablePlotLayer.setScreenBounds(tempScreenBounds);
+				
+				if(selectablePlotLayer){
+					// Update layer.withinVisibleZoomLevels by checking if
+					// zoom level is between min and max visible zoom levels of the layer.
+					var min:Number = selectablePlotLayer.minVisibleZoomLevel.value;
+					var max:Number = selectablePlotLayer.maxVisibleZoomLevel.value;
+					var level:Number = getZoomLevel();
+					var within:Boolean = min <= level && level <= max;
+					selectablePlotLayer.withinVisibleZoomLevels = within;
+//					trace("getZoomLevel() = "+getZoomLevel());
+//					trace("min = "+min);
+//					trace("max = "+max);
+//					trace("within = "+within);
+				}
+					
 			}
 			//trace('end updateZoom',ObjectUtil.toString(getSessionState(zoomBounds)));
+		
+			
 			
 			getCallbackCollection(this).resumeCallbacks();
 		}
@@ -262,9 +279,8 @@ package weave.visualization.layers
 		{
 			zoomBounds.getDataBounds(tempDataBounds);
 			zoomBounds.getScreenBounds(tempScreenBounds);
-			var useXCoordinates:Boolean = (fullDataBounds.getXCoverage() > fullDataBounds.getYCoverage()); // fit full extent inside min screen size
 			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
-			var zoomLevel:Number = ZoomUtils.getZoomLevel(tempDataBounds, tempScreenBounds, fullDataBounds, minSize, useXCoordinates);
+			var zoomLevel:Number = ZoomUtils.getZoomLevel(tempDataBounds, tempScreenBounds, fullDataBounds, minSize);
 			return zoomLevel;
 		}
 		
@@ -298,7 +314,6 @@ package weave.visualization.layers
 			_prevUnscaledHeight = unscaledHeight;
 			if (sizeChanged)
 				updateZoom();
-			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}
 		

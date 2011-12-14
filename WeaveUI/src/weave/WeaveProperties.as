@@ -28,6 +28,7 @@ package weave
 	import flash.utils.ByteArray;
 	
 	import mx.collections.ArrayCollection;
+	import mx.controls.ToolTip;
 	import mx.utils.StringUtil;
 	
 	import ru.etcs.utils.FontLoader;
@@ -45,6 +46,7 @@ package weave
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
+	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
 	import weave.resources.fonts.EmbeddedFonts;
@@ -210,6 +212,7 @@ package weave
 		public const enableTaskbar:LinkableBoolean = new LinkableBoolean(true); // taskbar for minimize/restore
 		public const enableSubsetControls:LinkableBoolean = new LinkableBoolean(true); // creating subsets
 		public const enableExportToolImage:LinkableBoolean = new LinkableBoolean(true); // print/export tool images
+		public const enableExportCSV:LinkableBoolean = new LinkableBoolean(true);
 		public const enableExportApplicationScreenshot:LinkableBoolean = new LinkableBoolean(true); // print/export application screenshot
 		public const enableExportDataTable:LinkableBoolean = new LinkableBoolean(true); // print/export data table
 		
@@ -324,7 +327,11 @@ package weave
 		public const probeToolTipBackgroundAlpha:LinkableNumber = new LinkableNumber(1.0, verifyAlpha);
 		public const probeToolTipBackgroundColor:LinkableNumber = new LinkableNumber(NaN);
 		public const probeToolTipFontColor:LinkableNumber = new LinkableNumber(0x000000, isFinite);
-		public const probeToolTipMaxWidth:LinkableNumber = new LinkableNumber(400);
+		public const probeToolTipMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(400), handleToolTipMaxWidth);
+		private function handleToolTipMaxWidth():void
+		{
+			ToolTip.maxWidth = Weave.properties.probeToolTipMaxWidth.value;
+		}
 		
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
 		public function get enableProbeToolTip():LinkableBoolean { return ProbeTextUtils.enableProbeToolTip; }

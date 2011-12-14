@@ -99,9 +99,9 @@ package weave.core
 		 * @param callback The function to call when callbacks are triggered.
 		 * @param parameters An array of parameters that will be used as parameters to the callback function.
 		 * @param runCallbackNow If this is set to true, the callback will be run immediately after it is added.
-		 * @param alwaysTriggerLast If this is set to true, the callback will be always be triggered after any callbacks that were added with alwaysTriggerLast=false.  Use this to establish the desired child-to-parent triggering order.
+		 * @param alwaysCallLast If this is set to true, the callback will be always be called after any callbacks that were added with alwaysCallLast=false.  Use this to establish the desired child-to-parent triggering order.
 		 */
-		public final function addImmediateCallback(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysTriggerLast:Boolean = false):void
+		public final function addImmediateCallback(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void
 		{
 			if (callback == null)
 				return;
@@ -115,7 +115,7 @@ package weave.core
 			entry.callback = callback;
 			entry.parameters = parameters;
 			entry.recursionLimit = 0;
-			if (alwaysTriggerLast)
+			if (alwaysCallLast)
 				entry.schedule = 1;
 			
 			if (debug)
@@ -209,7 +209,9 @@ package weave.core
 						entry.recursionCount++; // increase count to signal that we are currently running this callback.
 						if (_preCallback != null)
 							_preCallback.apply(null, preCallbackParams);
+						
 						entry.callback.apply(null, entry.parameters);
+						
 						entry.recursionCount--; // decrease count because the callback finished.
 					}
 				}
@@ -432,7 +434,9 @@ package weave.core
 						{
 							// increase recursion count while the function is running.
 							triggerEntry.recursionCount++;
+							
 							groupedCallback.apply();
+							
 							triggerEntry.recursionCount--;
 						}
 					}
@@ -496,7 +500,7 @@ internal class CallbackEntry
 	 */
 	public var recursionCount:uint = 0;
 	/**
-	 * This is 0 if the callback was added with alwaysTriggerLast=false, or 1 for alwaysTriggerLast=true
+	 * This is 0 if the callback was added with alwaysCallLast=false, or 1 for alwaysCallLast=true
 	 */	
 	public var schedule:int = 0;
 	/**

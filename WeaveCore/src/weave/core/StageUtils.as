@@ -19,6 +19,7 @@
 
 package weave.core
 {
+	import flash.debugger.enterDebugger;
 	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
@@ -233,7 +234,8 @@ package weave.core
 			else
 				_callLaterSingleFrameDelayArray.push(arguments);
 			
-			_stackTraceMap[arguments] = new Error("Stack trace").getStackTrace();
+			if (CallbackCollection.debug)
+				_stackTraceMap[arguments] = new Error("Stack trace").getStackTrace();
 		}
 		
 		private static const _stackTraceMap:Dictionary = new Dictionary(true);
@@ -249,6 +251,80 @@ package weave.core
 		 * This array gets populated by callLater().
 		 */
 		private static var _callLaterArray:Array = [];
+		
+		/**
+		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
+		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed of, the task will no longer be iterated.
+		 * @param iterativeTask A function that performs a single iteration of the asynchronous task.
+		 *   This function must take no parameters and return a number from 0.0 to 1.0 indicating the overall progress of the task.
+		 *   A number below 1.0 indicates that the function should be called again to continue the task.
+		 *   When the task is completed, iterativeTask() should return 1.0.
+		 *   Example:
+		 *       var array:Array = ['a','b','c','d'];
+		 *       var index:int = 0;
+		 *       function iterativeTask():Number
+		 *       {
+		 *           if (index >= array.length) // in case the length is zero
+		 *               return 1;
+		 * 
+		 *           trace(array[index]);
+		 * 
+		 *           index++;
+		 *           return index / array.length;  // this will return 1.0 on the last iteration.
+		 *       }
+		 */
+		public static function startTask(relevantContext:Object, iterativeTask:Function):void
+		{
+			if (iterativeTask.length > 0)
+				throw new Error("iterativeTask parameter must be a function that takes zero parameters and returns a Number.");
+			
+			// do nothing if task already active
+			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
+				return;
+			
+			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
+			_iterateTask(relevantContext, iterativeTask);
+		}
+		
+		/**
+		 * @private
+		 */
+		private static function _iterateTask(context:Object, task:Function):void
+		{
+			// remove the task if the context was disposed of
+			if (WeaveAPI.SessionManager.objectWasDisposed(context))
+			{
+				WeaveAPI.ProgressIndicator.removeTask(task);
+				return;
+			}
+			
+			var progress:* = undefined;
+			// iterate on the task until max computation time is reached
+			while (getTimer() - _currentFrameStartTime < maxComputationTimePerFrame)
+			{
+				// perform the next iteration of the task
+				progress = task() as Number;
+				if (progress === null || isNaN(progress) || progress < 0 || progress > 1)
+				{
+					reportError("Received unexpected result from iterative task (" + progress + ").  Expecting a number between 0 and 1.  Task cancelled.");
+					progress = 1;
+				}
+				if (progress == 1)
+				{
+					// task is done, so remove the task
+					WeaveAPI.ProgressIndicator.removeTask(task);
+					return;
+				}
+			}
+			// max computation time reached without finishing the task, so update the progress indicator and continue the task later
+			if (progress !== undefined)
+				WeaveAPI.ProgressIndicator.updateTask(task, progress);
+			
+			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
+			// This makes sure that the task is removed when the actual context is disposed of.
+			callLater(null, _iterateTask, arguments);
+		}
+		
 		
 		/**
 		 * This function gets called when a mouse click event occurs.

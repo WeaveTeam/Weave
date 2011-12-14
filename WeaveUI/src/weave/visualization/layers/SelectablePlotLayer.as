@@ -37,6 +37,7 @@ package weave.visualization.layers
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableOwner;
+	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerDisposableChild;
@@ -45,6 +46,7 @@ package weave.visualization.layers
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
@@ -108,6 +110,12 @@ package weave.visualization.layers
 			registerDisposableChild(this, _selectionLayer);
 			registerDisposableChild(this, _probeLayer);
 			
+			// Link the min and max zoom levels for the three child PlotLayers
+			linkSessionState(_plotLayer.minVisibleZoomLevel,_selectionLayer.minVisibleZoomLevel);
+			linkSessionState(_plotLayer.minVisibleZoomLevel,_probeLayer.minVisibleZoomLevel);
+			linkSessionState(_plotLayer.maxVisibleZoomLevel,_selectionLayer.maxVisibleZoomLevel);
+			linkSessionState(_plotLayer.maxVisibleZoomLevel,_probeLayer.maxVisibleZoomLevel);
+			
 			// plotLayer should not have a filter because plotLayer is meant to show everything (filter is applied after plot graphics are generated).
 			// apply a key filter to selection and probe layers so they only show the selected & probed shapes.
 
@@ -135,24 +143,12 @@ package weave.visualization.layers
 			registerLinkableChild(this, subsetFilter);
 			registerLinkableChild(this, selectionFilter);
 			registerLinkableChild(this, probeFilter);
+			registerLinkableChild(this, minVisibleZoomLevel);
+			registerLinkableChild(this, maxVisibleZoomLevel);
+			
 			
 			addEventListener(Event.ENTER_FRAME, handleFrameEnter);
 			getCallbackCollection(probeFilter).addGroupedCallback(this, resetAnimator);
-			
-			// for debugging
-			StageUtils.callLater(this, function(self:SelectablePlotLayer):void
-			{
-				var hashMap:ILinkableHashMap = getLinkableOwner(self) as ILinkableHashMap;
-				if (hashMap)
-				{
-					var className:String = getQualifiedClassName(getDynamicPlotter().internalObject).split(':').pop() as String;
-					self.name = 'SelectablePlotLayer ' + className;
-					self._plotLayer.name      = 'plotLayer      ' + className;
-					self._selectionLayer.name = 'selectionLayer ' + className;
-					self._probeLayer.name     = 'probeLayer     ' + className;
-				}
-				//StageUtils.addEventCallback(Event.RENDER, this, trace, [self.name,'RENDER']);
-			}, [this]);
 		}
 		
 		private static var _frameTimeCurrent:int = 0;
@@ -245,6 +241,7 @@ package weave.visualization.layers
 			_plotLayer.getScreenBounds(tempBounds);
 			emptySelectionText.x = tempBounds.getXCenter() - emptySelectionText.width / 2;
 			emptySelectionText.y = tempBounds.getYCenter() - emptySelectionText.height / 2;
+			
 		}
 		
 		private const tempBounds:IBounds2D = new Bounds2D();
@@ -329,7 +326,6 @@ package weave.visualization.layers
 		private var _selectionLayer:PlotLayer;
 		private var _probeLayer:PlotLayer;
 		
-		public var lockScreenBounds:Boolean = false;
 		
 		public function get plotLayer():PlotLayer { return _plotLayer; }
 		public function get selectionLayer():PlotLayer { return _selectionLayer; }
@@ -340,7 +336,6 @@ package weave.visualization.layers
 		/**
 		 * IPlotLayer interface
 		 */
-		
 		public function get plotter():IPlotter { return _plotLayer.plotter; }
 		public function get spatialIndex():ISpatialIndex { return _plotLayer.spatialIndex; }
 		
@@ -348,6 +343,21 @@ package weave.visualization.layers
 		public function get selectionFilter():IDynamicKeyFilter { return _selectionLayer.selectionFilter; }
 		public function get probeFilter():IDynamicKeyFilter { return _probeLayer.selectionFilter; }
 
+		public function get minVisibleZoomLevel():LinkableNumber
+		{
+			return _plotLayer.minVisibleZoomLevel;
+		}
+		public function get maxVisibleZoomLevel():LinkableNumber
+		{
+			return _plotLayer.maxVisibleZoomLevel;
+		}
+		public function set withinVisibleZoomLevels(value:Boolean):void
+		{
+			_plotLayer.withinVisibleZoomLevels = value;
+			_selectionLayer.withinVisibleZoomLevels = value;
+			_probeLayer.withinVisibleZoomLevels = value;
+		}
+		
 		public function getDataBounds(destination:IBounds2D):void
 		{
 			_plotLayer.getDataBounds(destination);
@@ -363,8 +373,16 @@ package weave.visualization.layers
 		}
 		public function setScreenBounds(source:IBounds2D):void
 		{
-			for each (var layer:IPlotLayer in [_plotLayer, _selectionLayer, _probeLayer])
-				layer.setScreenBounds(source);
+			if (!_lockScreenBounds) // hack
+				for each (var layer:IPlotLayer in [_plotLayer, _selectionLayer, _probeLayer])
+					layer.setScreenBounds(source);
+		}
+		private var _lockScreenBounds:Boolean = false; // hack
+		public function hack_lockScreenBounds(source:IBounds2D):void // hack
+		{
+			_lockScreenBounds = false;
+			setScreenBounds(source);
+			_lockScreenBounds = true;
 		}
 
 		public function showMissingRecords(show:Boolean = false):void

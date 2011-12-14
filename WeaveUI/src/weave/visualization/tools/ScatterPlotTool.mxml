@@ -41,6 +41,7 @@
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
+			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
@@ -167,7 +168,7 @@
 				_undefinedXPlotter = _undefinedXLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
 				_undefinedYPlotter = _undefinedYLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
 				_undefinedXYPlotter = _undefinedXYLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
-					
+				
 				for each(var _plotter:ScatterPlotPlotter in [_undefinedXPlotter, _undefinedYPlotter, _undefinedXYPlotter])
 				{
 					linkSessionState(plotter.colorColumn, _plotter.colorColumn);
@@ -187,18 +188,19 @@
 					column.addGroupedCallback(this, setUndefinedPlotterKeySource, true);
 				}
 				
-				visualization.marginTopNumber.addGroupedCallback(this, setUndefinedLayerScreenBounds,true);
-				visualization.marginBottomNumber.addGroupedCallback(this, setUndefinedLayerScreenBounds, true);
-				visualization.marginRightNumber.addGroupedCallback(this, setUndefinedLayerScreenBounds, true);
-				visualization.marginLeftNumber.addGroupedCallback(this, setUndefinedLayerScreenBounds, true);
+				getCallbackCollection(visualization.zoomBounds).addImmediateCallback(this, invalidateDisplayList);
 				
-				visualization.gridLineAlpha.addGroupedCallback(this, setUndefinedLayerScreenBounds);
-				visualization.gridLineColor.addGroupedCallback(this, setUndefinedLayerScreenBounds);
-				visualization.gridLineThickness.addGroupedCallback(this, setUndefinedLayerScreenBounds);
+				visualization.marginTopNumber.addImmediateCallback(this, invalidateDisplayList);
+				visualization.marginBottomNumber.addImmediateCallback(this, invalidateDisplayList);
+				visualization.marginRightNumber.addImmediateCallback(this, invalidateDisplayList);
+				visualization.marginLeftNumber.addImmediateCallback(this, invalidateDisplayList);
 				
-				for each(var layer:SelectablePlotLayer in [_undefinedXLayer, _undefinedYLayer, _undefinedXYLayer])
+				visualization.gridLineAlpha.addImmediateCallback(this, invalidateDisplayList);
+				visualization.gridLineColor.addImmediateCallback(this, invalidateDisplayList);
+				visualization.gridLineThickness.addImmediateCallback(this, invalidateDisplayList);
+				
+				for each (var layer:SelectablePlotLayer in [_undefinedXLayer, _undefinedYLayer, _undefinedXYLayer])
 				{					
-					layer.lockScreenBounds = true;
 					layer.showMissingRecords(true);
 					
 					linkSessionState(plotLayer.backgroundIsVisible, layer.backgroundIsVisible);
@@ -212,7 +214,6 @@
 					} catch (e:Error) {} 				
 				} 																		
 				
-				addEventListener(FlexEvent.UPDATE_COMPLETE, handleUpdateComplete);
 				addEventListener(MouseEvent.MOUSE_MOVE, displayToolTip);
 				addEventListener(MouseEvent.MOUSE_OUT, destroyToolTip);
 			}						
@@ -249,41 +250,49 @@
 			}
 			
 			
-			private function setUndefinedLayerScreenBounds():void
-			{				
-				var left:Number = visualization.marginLeftNumber.value;
-				var top:Number = visualization.marginTopNumber.value;
-				var right:Number = visualization.width - visualization.marginRightNumber.value;
-				var bottom:Number = visualization.height - visualization.marginBottomNumber.value;
-				var width:Number = visualization.width;
-				var height:Number = visualization.height;
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				updateUndefinedPlotterBounds();
+			}
+			
+			
+			private function updateUndefinedPlotterBounds():void
+			{
+				var b:IBounds2D = _tempBounds;
+				plotLayer.getScreenBounds(b);
+				if (b.isEmpty())
+				{
+					callLater(updateUndefinedPlotterBounds);
+					return;
+				}
 				
-				var topOffset:Number = top/2;
-				var rightOffset:Number = visualization.marginRightNumber.value/2;
 				var graphics:Graphics = visualization.graphics;
 				graphics.clear();
 				graphics.lineStyle(visualization.gridLineThickness.value, visualization.gridLineColor.value, visualization.gridLineAlpha.value);
 				
-				graphics.moveTo(right+rightOffset, bottom);
-				graphics.lineTo(right+rightOffset, top);							
-				_tempBounds.setBounds(right, bottom, width, top);
-				_undefinedXLayer.setScreenBounds(_tempBounds);					
+				var marginRight:Number = visualization.marginRightNumber.value;
 				
-				graphics.moveTo(left, top-topOffset);
-				graphics.lineTo(right, top-topOffset);
-				_tempBounds.setBounds(left, top, right, 0);
-				_undefinedYLayer.setScreenBounds(_tempBounds);								
+				// right margin; undefined x
+				plotLayer.getScreenBounds(b);
+				graphics.moveTo(b.getXMax() + marginRight / 2, b.getYMin());
+				graphics.lineTo(b.getXMax() + marginRight / 2, b.getYMax());
+				b.setXMin(b.getXMax() + marginRight);
+				_undefinedXLayer.hack_lockScreenBounds(b);
 				
-				_tempBounds.setBounds(right, top, width, 0);				
-				_undefinedXYLayer.setScreenBounds(_tempBounds);							
+				// top margin; undefined y
+				plotLayer.getScreenBounds(b);
+				graphics.moveTo(b.getXMin(), b.getYMax() / 2);
+				graphics.lineTo(b.getXMax(), b.getYMax() / 2);
+				b.setYMin(0);
+				_undefinedYLayer.hack_lockScreenBounds(b);
+				
+				// top-right corner; undefined x and y
+				plotLayer.getScreenBounds(b);
+				b.setMinCoords(b.getXMax() + marginRight, 0);
+				_undefinedXYLayer.hack_lockScreenBounds(b);
 			}
 			
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
-			{
-				super.updateDisplayList(unscaledWidth, unscaledHeight);
-				
-				setUndefinedLayerScreenBounds();
-			}
 			
 			private var _toolTip:IToolTip = null;
 			private function displayToolTip(event:MouseEvent):void
@@ -333,20 +342,6 @@
 					_toolTip = null;
 				}
 			}
-						
-			private function handleUpdateComplete(event:FlexEvent):void
-			{
-				plotLayer.getScreenBounds(_tempBounds);
-				
-				// TEMPORARY SOLUTION: undefined layer screenbounds need to be set after tool appears on stage
-				// during creationComplete the plot's screenBounds are still empty, so this event needs to keep firing until they are not empty
-				if(!_tempBounds.isEmpty())
-				{
-					setUndefinedLayerScreenBounds();
-					// screenBounds have been set- remove event listener to avoid unnecessary updates
-					removeEventListener(FlexEvent.UPDATE_COMPLETE, handleUpdateComplete);
-				}
-			}
 			/*END UNDEFINED LAYER CODE*/
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -393,8 +388,6 @@
 				getCallbackCollection(_regressionPlotter).addGroupedCallback(this, updateEquation, true);
 				
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateEquationStyle, true);
-				
-				setUndefinedLayerScreenBounds();
 			}
 			
 			private function updateEquationStyle():void
@@ -462,7 +455,6 @@
 			private function updateSizeSlider():void
 			{
 				sizeBySlider.values = [plotter.minScreenRadius.value, plotter.maxScreenRadius.value];
-				//this.closeable.value = false ;
 			}
 			
 			private function alphaSliderFormatFunction(item:Number):String {
@@ -479,7 +471,6 @@
 				}
 				else
 				{
-					//_plotter.defaultScreenRadius.value = event.value;
 					plotter.maxScreenRadius.value = event.value;
 				}
 			}

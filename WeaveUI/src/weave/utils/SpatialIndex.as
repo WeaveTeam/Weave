@@ -30,6 +30,7 @@ package weave.utils
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.CallbackCollection;
+	import weave.core.StageUtils;
 	import weave.primitives.BLGNode;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
@@ -96,6 +97,9 @@ package weave.utils
 		}
 		
 		private var _keyToGeometriesMap:Dictionary = new Dictionary();
+		private var _plotter:IPlotter;
+		private var _queryMissingBounds:Boolean;
+		private var _spatialCallbacksTriggerCounter:uint = 0;
 		
 		/**
 		 * This function fills the spatial index with the data bounds of each record in a plotter.
@@ -104,15 +108,18 @@ package weave.utils
 		 */
 		public function createIndex(plotter:IPlotter, queryMissingBounds:Boolean = false):void
 		{
+			_plotter = plotter;
+			_queryMissingBounds = queryMissingBounds;
+			
 			delayCallbacks();
 			
 			var key:IQualifiedKey;
 			var bounds:IBounds2D;
 			var i:int;
 			
-			if (plotter is DynamicPlotter)
+			if (_plotter is DynamicPlotter)
 			{
-				if ((plotter as DynamicPlotter).internalObject is IPlotterWithGeometries)
+				if ((_plotter as DynamicPlotter).internalObject is IPlotterWithGeometries)
 					_keyToGeometriesMap = new Dictionary();
 				else 
 					_keyToGeometriesMap = null;
@@ -122,65 +129,89 @@ package weave.utils
 			
 			clear();
 			
-			if (plotter != null)
+			if (_plotter != null)
 			{
-				collectiveBounds.copyFrom(plotter.getBackgroundDataBounds());
+				collectiveBounds.copyFrom(_plotter.getBackgroundDataBounds());
 				
 				// make a copy of the keys vector
-				VectorUtils.copy(plotter.keySet.keys, _keysArray);
+				VectorUtils.copy(_plotter.keySet.keys, _keysArray);
 				
 				// save dataBounds for each key
 				i = _keysArray.length;
 				while (--i > -1)
 				{
 					key = _keysArray[i] as IQualifiedKey;
-					_keyToBoundsMap[key] = plotter.getDataBoundsFromRecordKey(key);
+					_keyToBoundsMap[key] = _plotter.getDataBoundsFromRecordKey(key);
 					
 					if (_keyToGeometriesMap != null)
 					{
-						var geoms:Array = ((plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
+						var geoms:Array = ((_plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
 						_keyToGeometriesMap[key] = geoms;
-//						var geomsCollectiveBounds:IBounds2D = new Bounds2D();
-//						for each (var geom:SimpleGeometry in geoms)
-//						{
-//							geomsCollectiveBounds.includeBounds(geom.bounds);
-//						}
-					}
-					
-				}
-				
-				// if auto-balance is disabled, randomize insertion order
-				if (!_kdTree.autoBalance)
-				{
-					// randomize the order of the shapes to avoid a possibly poorly-performing
-					// KDTree structure due to the given ordering of the records
-					VectorUtils.randomSort(_keysArray);
-				}
-				// insert bounds-to-key mappings in the kdtree
-				i = _keysArray.length;
-				while (--i > -1)
-				{
-					key = _keysArray[i] as IQualifiedKey;
-					for each (bounds in getBoundsFromKey(key))
-					{
-						// do not index shapes with undefined bounds
-						//TODO: index shapes with missing bounds values into a different index
-						// TEMPORARY SOLUTION: store missing bounds if queryMissingBounds == true
-						if (!bounds.isUndefined() || (bounds.isUndefined() && queryMissingBounds))
-						{
-							_kdTree.insert([bounds.getXNumericMin(), bounds.getYNumericMin(), bounds.getXNumericMax(), bounds.getYNumericMax(), bounds.getArea()], key);
-							collectiveBounds.includeBounds(bounds);
-						}
 					}
 				}
 			}
 			
-			// if there are keys
-			if (_keysArray.length > 0 || !_tempBounds.equals(collectiveBounds))
+			// if auto-balance is disabled, randomize insertion order
+			if (!_kdTree.autoBalance)
+			{
+				// randomize the order of the shapes to avoid a possibly poorly-performing
+				// KDTree structure due to the given ordering of the records
+				VectorUtils.randomSort(_keysArray);
+			}
+			
+			// insert bounds-to-key mappings in the kdtree
+			StageUtils.startTask(this, _insertNext);
+			
+			if (!_tempBounds.equals(collectiveBounds))
 				triggerCallbacks();
 			
 			resumeCallbacks();
 		}
+		private function _insertNext():Number
+		{
+			if (_keysArrayIndex >= _keysArray.length) // in case length is zero
+				return 1; // done
+			
+			var key:IQualifiedKey = _keysArray[_keysArrayIndex] as IQualifiedKey;
+			if (!_boundsArray) // is there an existing nested array?
+			{
+				//trace(key.keyType,key.localName,'(',_keysArrayIndex,'/',_keysArray.length,')');
+				_boundsArray = getBoundsFromKey(key);
+				_boundsArrayIndex = 0;
+			}
+			if (_boundsArrayIndex < _boundsArray.length) // iterate on nested array
+			{
+				//trace('bounds(',_boundsArrayIndex,'/',_boundsArray.length,')');
+				var bounds:IBounds2D = _boundsArray[_boundsArrayIndex] as IBounds2D;
+				// do not index shapes with undefined bounds
+				//TODO: index shapes with missing bounds values into a different index
+				// TEMPORARY SOLUTION: store missing bounds if queryMissingBounds == true
+				if (!bounds.isUndefined() || _queryMissingBounds)
+				{
+					_kdTree.insert([bounds.getXNumericMin(), bounds.getYNumericMin(), bounds.getXNumericMax(), bounds.getYNumericMax(), bounds.getArea()], key);
+					collectiveBounds.includeBounds(bounds);
+				}
+				// increment inner index
+				_boundsArrayIndex++;
+			}
+			if (_boundsArrayIndex == _boundsArray.length)
+			{
+				// all done with nested array
+				_boundsArray = null;
+				// increment outer index
+				_keysArrayIndex++;
+			}
+			
+			var progress:Number = _keysArrayIndex / _keysArray.length;
+			if (progress == 1) // done?
+				triggerCallbacks();
+			return progress;
+		}
+		
+		private var _keysArrayIndex:int;
+		private var _boundsArrayIndex:int;
+		private var _boundsArray:Array;
+		
 		
 		/**
 		 * This function empties the spatial index.
@@ -192,6 +223,8 @@ package weave.utils
 			if (_keysArray.length > 0)
 				triggerCallbacks();
 			
+			_boundsArray = null;
+			_keysArrayIndex = 0;
 			_keysArray.length = 0;
 			_kdTree.clear();
 			collectiveBounds.reset();

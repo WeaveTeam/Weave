@@ -223,6 +223,10 @@ so that it can be moved, selected, handle filters.
 			private function handleImage():void
 			{
 				//temporary fix. Fault event is not called when thumnail is not found.
+				if(!parent)
+				{
+					return callLater(handleImage);
+				}
 				img.source = _noImage;
 				token = WeaveAPI.URLRequestUtils.getContent(new URLRequest(_doc.imageURL.value),handleImageRequest,handleImageFaultRequest);
 //				this.width = imageWidth.value;
@@ -296,7 +300,8 @@ so that it can be moved, selected, handle filters.
 				_mouseOver = true;
 				if(!event.buttonDown)
 				{
-					this.invalidateDisplayList();
+					setStyle("borderStyle","none");
+//					this.invalidateDisplayList();
 					showDocSummary(event);
 				}
 			}
@@ -347,7 +352,7 @@ so that it can be moved, selected, handle filters.
 				this.stopDrag();
 				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 				
-				this.invalidateDisplayList();
+//				this.invalidateDisplayList();
 				//if it is drag move then we do nothing, else the mouseUp is a selection
 				if(dragged)
 				{
@@ -367,6 +372,8 @@ so that it can be moved, selected, handle filters.
 					_doc.selected.value = true;
 				}
 				
+				setStyle("borderStyle","solid");
+				
 				removeDocSummary();
 				
 			}
@@ -378,7 +385,8 @@ so that it can be moved, selected, handle filters.
 				//fix for buggy drag-drop
 				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 				
-				this.invalidateDisplayList();
+				setStyle("borderStyle","solid");
+//				this.invalidateDisplayList();
 				
 				removeDocSummary();
 			}
