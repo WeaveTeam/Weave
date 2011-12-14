@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="VisTaskbar,weave.ui.controlBars.VisTaskbar,taskbarLargeIconSize,taskbarShrinkGrow,taskbarSmallIconSize,instance,addMinimizedComponent,addMinimizedComponentGroup,childrenCreated,cleanMinimizedComponentImage,getMinimizedComponentXYRelativeToStage,growComponents,removeMinimizedComponent,restoreAllComponents,shrinkComponents" name="keywords">
+<meta content="VisTaskbar,weave.ui.controlBars.VisTaskbar,taskbarLargeIconSize,taskbarShrinkGrow,taskbarSmallIconSize,instance,addMinimizedComponent,addMinimizedComponentGroup,childrenCreated,cleanMinimizedComponentImage,growComponents,removeMinimizedComponent,restoreAllComponents,shrinkComponents" name="keywords">
 <title>weave.ui.controlBars.VisTaskbar</title>
 </head>
 <body>
@@ -38,7 +38,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="classHeaderTableLabel">Class</td><td class="classSignature">public class VisTaskbar</td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">VisTaskbar <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../../images/inherit-arrow.gif"> mx.containers.Box</td>
+<td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">VisTaskbar <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../../images/inherit-arrow.gif"> mx.containers.Canvas</td>
 </tr>
 <tr>
 <td class="classHeaderTableLabel">Implements</td><td><a href="../../api/core/ILinkableObject.html">ILinkableObject</a>, mx.binding.IBindingClient</td>
@@ -73,7 +73,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#addMinimizedComponent()">addMinimizedComponent</a>(component:UIComponent, restoreFunction:Function = null):<a href="../../ui/MinimizedComponent.html">MinimizedComponent</a>
+<a class="signatureLink" href="#addMinimizedComponent()">addMinimizedComponent</a>(component:UIComponent, restoreFunction:Function):<a href="../../ui/MinimizedComponent.html">MinimizedComponent</a>
 </div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">VisTaskbar</td>
@@ -90,13 +90,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#cleanMinimizedComponentImage()">cleanMinimizedComponentImage</a>(minimizedComponent:<a href="../MinimizedComponent.html">MinimizedComponent</a>):void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">VisTaskbar</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#getMinimizedComponentXYRelativeToStage()">getMinimizedComponentXYRelativeToStage</a>(minimizedComponent:<a href="../MinimizedComponent.html">MinimizedComponent</a>):Point</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">VisTaskbar</td>
 </tr>
@@ -198,7 +191,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function addMinimizedComponent(component:UIComponent, restoreFunction:Function = null):<a href="../../ui/MinimizedComponent.html">MinimizedComponent</a></code><span class="label">Parameters</span>
+<code>public function addMinimizedComponent(component:UIComponent, restoreFunction:Function):<a href="../../ui/MinimizedComponent.html">MinimizedComponent</a></code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">component</span>:UIComponent</code></td>
@@ -207,7 +200,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">restoreFunction</span>:Function</code> (default = <code>null</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">restoreFunction</span>:Function</code></td>
 </tr>
 </table>
 <p></p>
@@ -265,27 +258,6 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">minimizedComponent</span>:<a href="../MinimizedComponent.html">MinimizedComponent</a></code></td>
-</tr>
-</table>
-</div>
-<a name="getMinimizedComponentXYRelativeToStage()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">getMinimizedComponentXYRelativeToStage</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function getMinimizedComponentXYRelativeToStage(minimizedComponent:<a href="../MinimizedComponent.html">MinimizedComponent</a>):Point</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">minimizedComponent</span>:<a href="../MinimizedComponent.html">MinimizedComponent</a></code></td>
-</tr>
-</table>
-<p></p>
-<span class="label">Returns</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20"></td><td><code>Point</code></td>
 </tr>
 </table>
 </div>

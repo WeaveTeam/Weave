@@ -134,7 +134,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#getSupportedEventTypes()">getSupportedEventTypes</a>():Array</div>
-<div class="summaryTableDescription">[static]</div>
+<div class="summaryTableDescription">[static]
+   This is a list of eventType Strings that can be passed to addEventCallback().</div>
 </td><td class="summaryTableOwnerCol">StageUtils</td>
 </tr>
 <tr class="">
@@ -409,12 +410,14 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function getSupportedEventTypes():Array</code>
-<p></p>
+<code>public static function getSupportedEventTypes():Array</code><p>
+   This is a list of eventType Strings that can be passed to addEventCallback().
+   </p><p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>Array</code></td>
+<td width="20"></td><td><code>Array</code> &mdash; An Array of Strings.
+   </td>
 </tr>
 </table>
 </div>
