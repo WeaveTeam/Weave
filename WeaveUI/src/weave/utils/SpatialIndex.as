@@ -127,6 +127,12 @@ package weave.utils
 			
 			_tempBounds.copyFrom(collectiveBounds);
 			
+			var shouldTrigger:Boolean = false;
+			if (_keysArray.length > 0)
+			{
+				shouldTrigger = true;
+				_keysArray.length = 0; // hack to prevent callbacks
+			}
 			clear();
 			
 			if (_plotter != null)
@@ -151,18 +157,19 @@ package weave.utils
 				}
 			}
 			
-			// if auto-balance is disabled, randomize insertion order
-			if (!_kdTree.autoBalance)
+			if (_keysArray.length > 0)
 			{
-				// randomize the order of the shapes to avoid a possibly poorly-performing
-				// KDTree structure due to the given ordering of the records
-				VectorUtils.randomSort(_keysArray);
+				// if auto-balance is disabled, randomize insertion order
+				if (!_kdTree.autoBalance)
+				{
+					// randomize the order of the shapes to avoid a possibly poorly-performing
+					// KDTree structure due to the given ordering of the records
+					VectorUtils.randomSort(_keysArray);
+				}
+				// insert bounds-to-key mappings in the kdtree
+				StageUtils.startTask(this, _insertNext);
 			}
-			
-			// insert bounds-to-key mappings in the kdtree
-			StageUtils.startTask(this, _insertNext);
-			
-			if (!_tempBounds.equals(collectiveBounds))
+			else if (!_tempBounds.equals(collectiveBounds) || shouldTrigger)
 				triggerCallbacks();
 			
 			resumeCallbacks();

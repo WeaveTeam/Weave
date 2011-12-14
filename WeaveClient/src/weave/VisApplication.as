@@ -210,7 +210,6 @@ package weave
 			// default has menubar and taskbar unless specified otherwise in config file
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
-			Weave.properties.enableTaskbar.addGroupedCallback(this, toggleTaskBar, true);
 			
 			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
 			
@@ -446,10 +445,8 @@ package weave
 			_progressBar.minWidth = 135; // constant
 
 			Weave.properties.backgroundColor.value = getStyle("backgroundColor");
-		}
-		
-		private function updateWorkspaceResolution():void
-		{
+			
+			this.addChild(VisTaskbar.instance);
 		}
 		
 		private function updateWorkspaceSize(..._):void
@@ -744,31 +741,6 @@ package weave
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(title, callback, params));
 		}
 		
-		private function toggleTaskBar():void
-		{
-			if (Weave.properties.enableTaskbar.value)
-			{
-				VisTaskbar.instance.percentWidth = 100;
-					
-				// The task bar should be at the bottom of the page
-				if (!VisTaskbar.instance.parent)
-				{
-					addChild(VisTaskbar.instance);
-//					PopUpManager.addPopUp(_visTaskbar, this);
-				}
-			}
-			else
-			{
-				VisTaskbar.instance.restoreAllComponents();
-
-				if (VisTaskbar.instance.parent)
-				{
-					removeChild(VisTaskbar.instance);
-//					PopUpManager.removePopUp(_visTaskbar);
-				}
-			}
-		}
-		
 		private var _alreadyLoaded:Boolean = false;
 		private var _stateLoaded:Boolean = false;
 		private function loadSessionState(state:XML):void
@@ -1050,18 +1022,11 @@ package weave
 				
 				return menuLabel;
 			}
-			var click:Function = function():void
-			{
-		   		if (panel.minimizedComponentVersion != null)
-		   			panel.minimizedComponentVersion.restoreFunction();
-		   		else
-					panel.restorePanel();
-			}
-			var newToolMenuItem:WeaveMenuItem = new WeaveMenuItem(label, click);
+			var newToolMenuItem:WeaveMenuItem = new WeaveMenuItem(label, panel.restorePanel);
 			 
 			newToolMenuItem.type = WeaveMenuItem.TYPE_RADIO;
 			newToolMenuItem.groupName = "activeWindows";
-			newToolMenuItem.toggledFunction = function ():Boolean {
+			newToolMenuItem.toggledFunction = function():Boolean {
 				return newToolMenuItem.relevantItemPointer == topPanel;
 			};
 			newToolMenuItem.relevantItemPointer = panel;
@@ -1350,7 +1315,7 @@ package weave
 		protected var panelSettingsContextMenuItem:ContextMenuItem = null;
 		private function createExportToolImageContextMenuItem():Boolean
 		{				
-			if(Weave.properties.enableExportToolImage.value)
+			if (Weave.properties.enableExportToolImage.value)
 			{
 				// Add a listener to this destination context menu for when it is opened
 				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
@@ -1374,7 +1339,7 @@ package weave
 		private  var _exportCSVContextMenuItem:ContextMenuItem = null;
 		private function createExportCSVContextMenuItem():Boolean
 		{	
-			if(Weave.properties.enableExportCSV.value)
+			if (Weave.properties.enableExportCSV.value)
 			{
 				// Add a listener to this destination context menu for when it is opened
 				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
@@ -1398,15 +1363,18 @@ package weave
 			if (!component)
 				return;
 			
-			var visMenuVisible:Boolean    = (_weaveMenu ? _weaveMenu.visible : false);
+			var visMenuVisible:Boolean = (_weaveMenu ? _weaveMenu.visible : false);
 			var visTaskbarVisible:Boolean = (VisTaskbar.instance ? VisTaskbar.instance.visible : false);
 			
-			if (_weaveMenu)    _weaveMenu.visible    = false;
-			if (VisTaskbar.instance) VisTaskbar.instance.visible = false;			
+			if (_weaveMenu)
+				_weaveMenu.visible    = false;
+			if (VisTaskbar.instance)
+				VisTaskbar.instance.visible = false;			
 			
-			
-			try{
-				if(component is DataTableTool){
+			try
+			{
+				if(component is DataTableTool)
+				{
 					var keys:* = (component as DataTableTool).getExportDataProvider();
 					// each record has a property named after the column title equal to the value in that column for the current key
 					var dataType:Class = (keys === (component as DataTableTool).dataGrid.dataProvider) ? null : String; // dimension slider hack
@@ -1417,7 +1385,8 @@ package weave
 					}
 					fr.save(ColumnUtils.generateTableCSV(dataTableColumns,keys,dataType), "Weave DataTable Tool Data.csv");	
 				}								
-				else{
+				else
+				{
 					var toolColumns:Array = (component as SimpleVisTool).getSelectableAttributes();
 					if(toolColumns.length ==0){
 						reportError("Columns are not assigned in " + (component as SimpleVisTool).title + " to export as CSV" );
@@ -1426,11 +1395,14 @@ package weave
 					fr.save(ColumnUtils.generateTableCSV(toolColumns), "Weave " + (component as SimpleVisTool).title + " Data.csv");
 				}				
 			}
-			catch (e:Error){
+			catch (e:Error)
+			{
 				reportError(e);
 			}			
-			if (_weaveMenu)  _weaveMenu.visible    = visMenuVisible;
-			if (VisTaskbar.instance) VisTaskbar.instance.visible = visTaskbarVisible;	
+			if (_weaveMenu)
+				_weaveMenu.visible    = visMenuVisible;
+			if (VisTaskbar.instance)
+				VisTaskbar.instance.visible = visTaskbarVisible;	
 		}
 		
 		// Handler for when the context menu is opened.  In here we will keep track of what tool we were over when we right clicked so 

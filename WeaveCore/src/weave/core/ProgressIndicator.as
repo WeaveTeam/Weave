@@ -22,15 +22,14 @@ package weave.core
 	import flash.utils.Dictionary;
 	
 	import weave.api.core.IProgressIndicator;
+	import weave.api.getCallbackCollection;
 
 	/**
 	 * This is an implementation of IProgressIndicator.
 	 * @author adufilie
 	 */
-	public class ProgressIndicator extends CallbackCollection implements IProgressIndicator
+	public class ProgressIndicator implements IProgressIndicator
 	{
-		public static var debug:Boolean = false;
-		
 		/**
 		 * @inheritDoc
 		 */
@@ -63,7 +62,7 @@ package weave.core
 			// if this token isn't in the Dictionary yet, increase count
 			if (_taskToProgressMap[taskToken] === undefined)
 			{
-				if (debug)
+				if (CallbackCollection.debug)
 					_taskToStackTraceMap[taskToken] = new Error("Stack trace").getStackTrace();
 				_taskCount++;
 				_maxTaskCount++;
@@ -71,7 +70,7 @@ package weave.core
 			if (!isFinite(percent))
 				percent = 0.5; // undetermined
 			_taskToProgressMap[taskToken] = percent;
-			triggerCallbacks();
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
@@ -88,11 +87,11 @@ package weave.core
 			delete _taskToProgressMap[taskToken];
 			delete _taskToStackTraceMap[taskToken];
 			_taskCount--;
-			// reset max count when count goes to zero
-			if (_taskCount == 0)
-				_maxTaskCount = 0;
+			// reset max count when count drops to 1
+			if (_taskCount == 1)
+				_maxTaskCount = _taskCount;
 			
-			triggerCallbacks();
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**

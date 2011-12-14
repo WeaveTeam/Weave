@@ -30,6 +30,7 @@ package weave.data.AttributeColumns
 	import weave.api.core.ICallbackInterface;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerDisposableChild;
@@ -40,6 +41,7 @@ package weave.data.AttributeColumns
 	import weave.core.ErrorManager;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.StageUtils;
 	import weave.services.beans.GeometryStreamMetadata;
 	import weave.utils.ColumnUtils;
 	import weave.utils.GeometryStreamDecoder;
@@ -124,12 +126,15 @@ package weave.data.AttributeColumns
 		 */
 		public function isStillDownloading():Boolean
 		{
-			return (_streamDownloadCounter > 0);			
+			return _metadataStreamDownloadCounter > 0
+				|| _geometryStreamDownloadCounter > 0;
 		}
 		
 		private var _tileService:IWeaveGeometryTileService;
 		private const _geometryStreamDecoder:GeometryStreamDecoder = newLinkableChild(this, GeometryStreamDecoder);
-		private var _streamDownloadCounter:int = 0;
+		
+		private var _geometryStreamDownloadCounter:int = 0;
+		private var _metadataStreamDownloadCounter:int = 0;
 		
 		public var metadataTilesPerQuery:int = 10; //10;
 		public var geometryTilesPerQuery:int = 10; //30;
@@ -181,24 +186,30 @@ package weave.data.AttributeColumns
 			while (metadataTileIDs.length > 0)
 			{
 				query = _tileService.getMetadataTiles(metadataTileIDs.splice(0, metadataTilesPerQuery));
-				query.addAsyncResponder(handleMetadataStreamDownload, handleDownloadFault, query);
+				query.addAsyncResponder(handleMetadataStreamDownload, handleMetadataDownloadFault, query);
 				
-				_streamDownloadCounter++;
+				_metadataStreamDownloadCounter++;
 			}
 			// make requests for groups of tiles
 			while (geometryTileIDs.length > 0)
 			{
 				query = _tileService.getGeometryTiles(geometryTileIDs.splice(0, geometryTilesPerQuery));
-				query.addAsyncResponder(handleGeometryStreamDownload, handleDownloadFault, query);
-				_streamDownloadCounter++;
+				query.addAsyncResponder(handleGeometryStreamDownload, handleGeometryDownloadFault, query);
+				_geometryStreamDownloadCounter++;
 			} 
 		}
 		
-		private function handleDownloadFault(event:FaultEvent, token:Object = null):void
+		private function handleMetadataDownloadFault(event:FaultEvent, token:Object = null):void
 		{
 			reportError(event);
 			//trace("handleDownloadFault",token,ObjectUtil.toString(event));
-			_streamDownloadCounter--;
+			_metadataStreamDownloadCounter--;
+		}
+		private function handleGeometryDownloadFault(event:FaultEvent, token:Object = null):void
+		{
+			reportError(event);
+			//trace("handleDownloadFault",token,ObjectUtil.toString(event));
+			_geometryStreamDownloadCounter--;
 		}
 
 		private function handleGetTileDescriptorsFault(event:FaultEvent, token:Object = null):void
@@ -224,10 +235,10 @@ package weave.data.AttributeColumns
 				projectionSrsCode = result.projection;
 				
 				// handle metadata tiles
-				_geometryStreamDecoder.decodeMetadataTileList(result.metadataTileDescriptors);
+				StageUtils.callLater(this, _geometryStreamDecoder.decodeMetadataTileList, [result.metadataTileDescriptors]);
 				
 				// handle geometry tiles
-				_geometryStreamDecoder.decodeGeometryTileList(result.geometryTileDescriptors);
+				StageUtils.callLater(this, _geometryStreamDecoder.decodeGeometryTileList, [result.geometryTileDescriptors]);
 				
 			}
 			catch (error:Error)
@@ -246,7 +257,7 @@ package weave.data.AttributeColumns
 
 		private function handleMetadataStreamDownload(event:ResultEvent, token:Object = null):void
 		{
-			_streamDownloadCounter--;
+			_metadataStreamDownloadCounter--;
 			
 			if (event.result == null)
 			{
@@ -264,7 +275,7 @@ package weave.data.AttributeColumns
 		
 		private function handleGeometryStreamDownload(event:ResultEvent, token:Object = null):void
 		{
-			_streamDownloadCounter--;
+			_geometryStreamDownloadCounter--;
 
 			if (event.result == null)
 			{

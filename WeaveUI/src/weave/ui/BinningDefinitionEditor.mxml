@@ -40,7 +40,7 @@
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="simpleRadio" label="Equally spaced" groupName="typeGroup" selected="true" width="100%" data="{_simple}"/>
 				<ui:Indent enabled="{simpleRadio.selected}" label="Number of bins:" indent="{indent}">
-					<mx:NumericStepper minimum="1" maximum="25" stepSize="1" id="numOfBins" width="{inputWidth}"/>
+					<mx:NumericStepper minimum="1" maximum="100" stepSize="1" id="numOfBins" width="{inputWidth}"/>
 				</ui:Indent>
 				<ui:HelpComponent label="{simpleRadio.label}" content="Example: If your data is between 0 and 100 and you specify 4 bins, the following bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
 			</mx:HBox>

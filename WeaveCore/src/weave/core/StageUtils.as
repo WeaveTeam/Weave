@@ -19,7 +19,6 @@
 
 package weave.core
 {
-	import flash.debugger.enterDebugger;
 	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
@@ -31,10 +30,15 @@ package weave.core
 	import flash.utils.getTimer;
 	
 	import mx.core.Application;
+	import mx.core.UIComponent;
+	import mx.core.UIComponentGlobals;
+	import mx.core.mx_internal;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.reportError;
+	
+	use namespace mx_internal;
 	
 	/**
 	 * This is an all-static class that allows you to add callbacks that will be called when an event occurs on the stage.
@@ -139,20 +143,9 @@ package weave.core
 		}
 		
 		/**
-		 * This function can be used to ensure the flash interface is reasonably responsive during long asynchronous computations.
-		 * If this function returns true, it is recommended to use StageUtils.callLater() to delay asynchronous processing until the next frame.
-		 * @return A value of true if the currentFrameElapsedTime has reached the maxComputationTimePerFrame threshold.
+		 * When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.
 		 */
-		public static function get shouldCallLater():Boolean
-		{
-			return getTimer() - _currentFrameStartTime > maxComputationTimePerFrame;
-		}
-		
-		/**
-		 * This is the recommended upper bound of computation time per frame.
-		 * The "get shouldCallLater()" function uses this value along with currentFrameElapsedTime to determine its recommendation.
-		 */
-		public static const maxComputationTimePerFrame:int = 100;
+		private static const maxComputationTimePerFrame:int = 100;
 
 		/**
 		 * This function gets called on ENTER_FRAME events.
@@ -172,10 +165,10 @@ package weave.core
 			var i:int;
 
 			// first run the functions that cannot be delayed more than one frame.
-			if (_callLaterSingleFrameDelayArray.length > 0)
+			if (_callNextFrameArray.length > 0)
 			{
-				calls = _callLaterSingleFrameDelayArray;
-				_callLaterSingleFrameDelayArray = [];
+				calls = _callNextFrameArray;
+				_callNextFrameArray = [];
 				for (i = 0; i < calls.length; i++)
 				{
 					// args: (relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true)
@@ -187,7 +180,7 @@ package weave.core
 				}
 			}
 			
-			if (_callLaterArray.length > 0)
+			if (_callLaterArray.length > 0 && UIComponentGlobals.callLaterSuspendCount <= 0)
 			{
 				//trace("handle ENTER_FRAME, " + _callLaterArray.length + " callLater functions, " + currentFrameElapsedTime + " ms elapsed this frame");
 				// Make a copy of the function calls and clear the static array before executing any functions.
@@ -232,7 +225,7 @@ package weave.core
 			if (allowMultipleFrameDelay)
 				_callLaterArray.push(arguments);
 			else
-				_callLaterSingleFrameDelayArray.push(arguments);
+				_callNextFrameArray.push(arguments);
 			
 			if (CallbackCollection.debug)
 				_stackTraceMap[arguments] = new Error("Stack trace").getStackTrace();
@@ -244,7 +237,7 @@ package weave.core
 		 * This is an array of functions with parameters that will be executed the next time handleEnterFrame() is called.
 		 * This array gets populated by callLater().
 		 */
-		private static var _callLaterSingleFrameDelayArray:Array = [];
+		private static var _callNextFrameArray:Array = [];
 		
 		/**
 		 * This is an array of functions with parameters that will be executed the next time handleEnterFrame() is called.
@@ -275,9 +268,6 @@ package weave.core
 		 */
 		public static function startTask(relevantContext:Object, iterativeTask:Function):void
 		{
-			if (iterativeTask.length > 0)
-				throw new Error("iterativeTask parameter must be a function that takes zero parameters and returns a Number.");
-			
 			// do nothing if task already active
 			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
 				return;
@@ -349,6 +339,10 @@ package weave.core
 			}
 		}
 		
+		/**
+		 * This is a list of eventType Strings that can be passed to addEventCallback().
+		 * @return An Array of Strings.
+		 */
 		public static function getSupportedEventTypes():Array
 		{
 			return _eventTypes.concat();

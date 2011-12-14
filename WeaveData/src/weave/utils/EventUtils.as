@@ -27,6 +27,8 @@ package weave.utils
 	import mx.binding.utils.BindingUtils;
 	import mx.binding.utils.ChangeWatcher;
 	
+	import weave.api.objectWasDisposed;
+	
 	/**
 	 * Static functions related to event callbacks.
 	 * @author adufilie
@@ -71,17 +73,18 @@ package weave.utils
 		
 		public static function addDelayedCallback(eventDispatcher:Object, event:String, callback:Function, delay:int = 500):void
 		{
-			eventDispatcher.addEventListener(event, generateDelayedCallback(callback, [], delay));
+			eventDispatcher.addEventListener(event, generateDelayedCallback(eventDispatcher, callback, [], delay));
 		}
 		
 		/**
 		 * This function generates a delayed version of a callback.
+		 * @param relevantContext If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
 		 * @param callback The callback function
 		 * @param callbackParams If this is specified, parameters passed to the generated wrapper function will be ignored and these parameters will be used instead when calling the callback.
 		 * @param delay The number of milliseconds to delay before running the callback.
 		 * @return A wrapper around the callback that remembers the parameters and delays calling the original callback.
 		 */
-		public static function generateDelayedCallback(callback:Function, callbackParams:Array = null, delay:int = 500):Function
+		public static function generateDelayedCallback(relevantContext:Object, callback:Function, callbackParams:Array = null, delay:int = 500):Function
 		{
 			var _timer:Timer = new Timer(delay, 1);
 			var _delayedThisArg:Object;
@@ -99,7 +102,8 @@ package weave.utils
 			var callback_apply:Function = function(..._):void
 			{
 				// call the original callback with the params passed to delayedCallback
-				callback.apply(_delayedThisArg, callbackParams || _delayedParams);
+				if (!objectWasDisposed(relevantContext))
+					callback.apply(_delayedThisArg, callbackParams || _delayedParams);
 			};
 			_timer.addEventListener(TimerEvent.TIMER_COMPLETE, callback_apply);
 			
