@@ -1213,14 +1213,14 @@ package weave.core
 				}
 				else
 				{
-					callbackCollection.delayCallbacks();
+					var prevCount:uint = callbackCollection.triggerCounter;
 					linkableVariable.setSessionState(bindableValue);
 					// Always synchronize after setting the linkableVariable because there may
 					// be constraints on the session state that will prevent the callbacks
 					// from triggering if the bindable value does not match those constraints.
 					// This makes UIComponents update to the real value after they lose focus.
-//					callbackCollection.triggerCallbacks();
-					callbackCollection.resumeCallbacks();
+					if (callbackCollection.triggerCounter == prevCount)
+						synchronize();
 				}
 			};
 			// Copy session state over to bindable property now, before calling BindingUtils.bindSetter(),
