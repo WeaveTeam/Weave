@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 width="100%" height="25"
+		 backgroundAlpha="0"
+		 backgroundColor="0x8a8a8a"
+		 cornerRadius="7"
+		 bottom="0" horizontalGap="0"
+		 verticalAlign="middle"
+		 creationComplete="creationComplete(event)"
+		 removed="onToolbarDestroy()"
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	
+	<mx:Spacer width="100%" />
+	<mx:Button id="button_connect" label="Connect" cornerRadius="0" icon="{iCon}" height="100%" />
+	<!--<mx:Button label="Disconnect" cornerRadius="0" icon="{iDis}" height="100%" />-->
+	<mx:Button id="button_settings" click="toggleSettings()" label="Settings" cornerRadius="0" icon="{iSet}" height="100%" />
+	<mx:Button id="button_chat" label="Chat" cornerRadius="0" icon="{iChat}" width="{this.width/2}" height="100%" />
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.core.Application;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			import mx.managers.PopUpManager;
+			
+			import weave.Weave;
+			import weave.api.registerDisposableChild;
+			import weave.services.collaboration.CollaborationEvent;
+			import weave.services.collaboration.CollaborationService;
+			
+			public const collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
+			
+			private var windowSettings:CollaborationChatWindow = null;
+			
+			[Embed(source="../../resources/images/connect.png")] private var iCon:Class;
+			[Embed(source="../../resources/images/denied.png")]  private var iDis:Class;
+			[Embed(source="../../resources/images/settings.png")]private var iSet:Class;
+			[Embed(source="../../resources/images/chat.png")]	 private var iChat:Class;
+			
+			private var _isChatOpen:Boolean;
+			
+			protected function creationComplete(event:FlexEvent):void
+			{
+				trace("CollaborationMenuBar is opened");
+				button_connect.enabled 	= false;
+				button_chat.enabled 	= false;
+				button_settings.enabled = true;
+								
+				collabService.addEventListener(CollaborationEvent.LOG, handleLogEvent);
+				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
+				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
+//				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
+//				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
+//				collabService.addEventListener(CollaborationEvent.USER_JOINED_CREATE_MOUSE, handleCreateUserMouse);
+				
+			}
+			private function onToolbarDestroy():void
+			{
+				trace("CollaborationMenuBar destroyed");
+			}
+			private function toggleSettings():void
+			{
+				if( windowSettings ) {
+					PopUpManager.removePopUp(windowSettings);
+				} else {
+					windowSettings = PopUpManager.createPopUp(Application.application as Application, CollaborationChatWindow) as CollaborationChatWindow;
+					PopUpManager.centerPopUp(windowSettings);
+				}
+			}
+			
+			private function handleLogEvent(e:CollaborationEvent):void
+			{
+//				log.text += e.getText() + '\n';
+//				callLater(
+//					function():void {
+//						log.verticalScrollPosition = log.maxVerticalScrollPosition;
+//					}
+//				);
+			}
+			
+			//If the collabService is disconnected for some reason, this ensures the collabUI
+			//resets which buttons are disabled and enabled.
+			private function handleDisconnect( e:CollaborationEvent):void
+			{
+//				updateEnabledSettings();
+			}
+			private function handleConnect( e:CollaborationEvent):void
+			{
+//				updateEnabledSettings();
+			}
+		]]>
+	</mx:Script>
+</mx:HBox>

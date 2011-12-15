@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 width="400" height="300"
+		 borderColor="#FF0000" borderThickness="10" borderStyle="solid"
+		 backgroundAlpha="1" backgroundColor="#FFFFFF">
+	<mx:Button label="Close" />
+	<mx:Script>
+		<![CDATA[
+			import mx.events.CloseEvent;
+			
+			
+			
+		]]>
+	</mx:Script>
+</mx:Canvas>
