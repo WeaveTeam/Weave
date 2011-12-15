@@ -26,14 +26,14 @@
 		 bottom="0" horizontalGap="0"
 		 verticalAlign="middle"
 		 creationComplete="creationComplete(event)"
-		 removed="onToolbarDestroy()"
+		 removed="onToolbarDestroy()" resize="resizeHandler(event)"
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off">
 	
 	<mx:Spacer width="100%" />
 	<mx:Button id="button_connect" label="Connect" cornerRadius="0" icon="{iCon}" height="100%" />
 	<!--<mx:Button label="Disconnect" cornerRadius="0" icon="{iDis}" height="100%" />-->
 	<mx:Button id="button_settings" click="toggleSettings()" label="Settings" cornerRadius="0" icon="{iSet}" height="100%" />
-	<mx:Button id="button_chat" label="Chat" cornerRadius="0" icon="{iChat}" width="{this.width/2}" height="100%" />
+	<mx:Button id="button_chat" click="toggleChat()" label="Chat" cornerRadius="0" icon="{iChat}" width="{this.width/2}" height="100%" />
 	
 	<mx:Script>
 		<![CDATA[
@@ -41,6 +41,7 @@
 			import mx.core.IFlexDisplayObject;
 			import mx.events.FlexEvent;
 			import mx.events.MenuEvent;
+			import mx.events.ResizeEvent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
@@ -50,7 +51,8 @@
 			
 			public const collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
 			
-			private var windowSettings:CollaborationChatWindow = null;
+			private var windowChat:CollaborationChatWindow = null;
+			private var windowSettings:CollaborationSettingsWindow = null;
 			
 			[Embed(source="../../resources/images/connect.png")] private var iCon:Class;
 			[Embed(source="../../resources/images/denied.png")]  private var iDis:Class;
@@ -63,9 +65,9 @@
 			{
 				trace("CollaborationMenuBar is opened");
 				button_connect.enabled 	= false;
-				button_chat.enabled 	= false;
+				button_chat.enabled 	= true;
 				button_settings.enabled = true;
-								
+				
 				collabService.addEventListener(CollaborationEvent.LOG, handleLogEvent);
 				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
 				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
@@ -73,41 +75,110 @@
 //				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
 //				collabService.addEventListener(CollaborationEvent.USER_JOINED_CREATE_MOUSE, handleCreateUserMouse);
 				
+				createWindowChat();
+				createWindowSettings();
 			}
 			private function onToolbarDestroy():void
 			{
 				trace("CollaborationMenuBar destroyed");
+				collabService.removeEventListener(CollaborationEvent.LOG, handleLogEvent);
+				collabService.removeEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
+				collabService.removeEventListener(CollaborationEvent.CONNECT, handleConnect);
+				
+				destroyWindowChat();
+				destroyWindowSettings();
 			}
-			private function toggleSettings():void
+			private function createWindowSettings():void
+			{
+				windowSettings = PopUpManager.createPopUp(Application.application as Application, CollaborationSettingsWindow) as CollaborationSettingsWindow;
+				windowSettings.visible = true;
+				var p:Point = new Point(button_settings.x + button_settings.width/2, button_settings.y);
+				windowSettings.x = localToGlobal(p).x - windowSettings.width/2;
+				windowSettings.y = localToGlobal(p).y + button_settings.height;
+			}
+			private function createWindowChat():void
+			{
+				windowChat = PopUpManager.createPopUp(Application.application as Application, CollaborationChatWindow) as CollaborationChatWindow;
+				windowChat.visible = true;
+				var p:Point = new Point(button_chat.x, button_chat.y);
+				windowChat.xFrom = localToGlobal(p).x;
+				windowChat.xTo   = localToGlobal(p).x;
+				windowChat.yFrom = localToGlobal(p).y + button_chat.height;
+				windowChat.yTo   = localToGlobal(p).y - windowChat.height;
+				windowChat.x     = localToGlobal(p).x;
+				windowChat.y	 = localToGlobal(p).y + button_chat.height;
+				windowChat.width = button_chat.width;
+			}
+			private function destroyWindowSettings():void
 			{
 				if( windowSettings ) {
 					PopUpManager.removePopUp(windowSettings);
-				} else {
-					windowSettings = PopUpManager.createPopUp(Application.application as Application, CollaborationChatWindow) as CollaborationChatWindow;
-					PopUpManager.centerPopUp(windowSettings);
+					windowSettings = null;
 				}
 			}
+			private function destroyWindowChat():void
+			{
+				if( windowChat ) {
+					PopUpManager.removePopUp(windowChat);
+					windowChat = null;
+				}
+			}
+			private function toggleSettings():void
+			{
+				if( windowSettings ) 
+					windowSettings.visible = ( windowSettings.visible ) ? false : true;
+			}
+			private function toggleChat():void
+			{
+				if( windowChat )
+					windowChat.visible = ( windowChat.visible ) ? false : true;
+			}
+			protected function resizeHandler(event:ResizeEvent):void
+			{
+				if( windowSettings )
+					setWindowSettingsPos();
+				if( windowChat )
+					setWindowChatPos();
+			}
 			
+			private function setWindowSettingsPos():void 
+			{
+				var p:Point = new Point(button_settings.x + button_settings.width/2, button_settings.y);
+				windowSettings.x = localToGlobal(p).x - (windowSettings.width/2);
+				windowSettings.y = localToGlobal(p).y - windowSettings.height - 15;
+			}
+			private function setWindowChatPos():void
+			{
+				var p:Point = new Point(button_chat.x, button_chat.y);
+				windowChat.xFrom = localToGlobal(p).x;
+				windowChat.xTo   = localToGlobal(p).x;
+				windowChat.yFrom = localToGlobal(p).y + button_chat.height;
+				windowChat.yTo   = localToGlobal(p).y - windowChat.height;
+				windowChat.x = localToGlobal(p).x;
+				windowChat.y = localToGlobal(p).y - windowChat.height;
+				windowChat.width = button_chat.width;
+			}
 			private function handleLogEvent(e:CollaborationEvent):void
 			{
-//				log.text += e.getText() + '\n';
-//				callLater(
-//					function():void {
-//						log.verticalScrollPosition = log.maxVerticalScrollPosition;
-//					}
-//				);
+				//				log.text += e.getText() + '\n';
+				//				callLater(
+				//					function():void {
+				//						log.verticalScrollPosition = log.maxVerticalScrollPosition;
+				//					}
+				//				);
 			}
 			
 			//If the collabService is disconnected for some reason, this ensures the collabUI
 			//resets which buttons are disabled and enabled.
 			private function handleDisconnect( e:CollaborationEvent):void
 			{
-//				updateEnabledSettings();
+				//				updateEnabledSettings();
 			}
 			private function handleConnect( e:CollaborationEvent):void
 			{
-//				updateEnabledSettings();
+				//				updateEnabledSettings();
 			}
+			
 		]]>
 	</mx:Script>
 </mx:HBox>

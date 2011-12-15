@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
-		 width="400" height="300"
+		 width="300" height="300"
 		 borderColor="#FF0000" borderThickness="10" borderStyle="solid"
-		 backgroundAlpha="1" backgroundColor="#FFFFFF">
+		 backgroundAlpha="1" backgroundColor="#FFFFFF"
+		 showEffect="{moveIn}" hideEffect="{moveOut}">
+	
 	<mx:Button label="Close" />
+	
+	<mx:Move id="moveIn" duration="1000"
+			 xFrom="{xFrom}" xTo="{xTo}"
+			 yFrom="{yFrom}" yTo="{yTo}"/>
+	<mx:Move id="moveOut" duration="1000"
+			 xFrom="{xTo}" xTo="{xFrom}"
+			 yFrom="{yTo}" yTo="{yFrom}"/>
+			 
 	<mx:Script>
 		<![CDATA[
-			import mx.events.CloseEvent;
-			
-			
-			
+			[Bindable] public var xFrom:Number = 0;
+			[Bindable] public var xTo:Number = 0;
+			[Bindable] public var yFrom:Number = 0;
+			[Bindable] public var yTo:Number = 0;
 		]]>
 	</mx:Script>
 </mx:Canvas>
