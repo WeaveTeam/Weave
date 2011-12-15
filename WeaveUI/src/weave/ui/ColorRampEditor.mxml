@@ -35,24 +35,19 @@ ColorRampEditor
 		<mx:DataGrid id="colorRampGrid"
 					 useRollOver="false"
 					 minWidth="200" width="100%" height="100%"
-					 color="black"
-					 rollOverColor="0xCCFEFF"
 					 fontWeight="normal"
 					 paddingBottom="2" paddingTop="2" paddingLeft="5" paddingRight="5" 
 					 horizontalScrollPolicy="off" verticalScrollPolicy="on"
-					 allowMultipleSelection="false"  
+					 allowMultipleSelection="false"
 					 dataProvider="{ColorRamp.allColorRamps.colorRamp}"
-					 change="handleColorRampSelected()"
-					 headerHeight="22">
+					 change="handleColorRampSelected()">
 			<mx:columns>												
 				<mx:DataGridColumn dataField="@name"  headerText="Color scale"  itemRenderer="weave.ui.colormap.ColorRampPresetItemRenderer"/>
 			</mx:columns>
 		</mx:DataGrid>
-		<mx:CheckBox id="reverseCheckBox"
-					 label="Reverse color scale"
+		<mx:Button label="Reverse color scale"
 					 toolTip="Click to reverse the colors in the color scale."
-					 change="saveReverseSetting()"
-					 color="0x000000"/>
+					 click="reverseColorRamp()"/>
 	</mx:VBox>
 	<mx:VBox verticalGap="1">
 		<mx:Label text="Filter by:" fontWeight="bold"/>
@@ -141,9 +136,15 @@ ColorRampEditor
 				if (!parent)
 					return callLater(colorRampCallback);
 				// update gui
-				var rampXML:XML = _colorRamp.value;
-				if (!rampXML)
+				var rampXML:XML;
+				try
+				{
+					rampXML = XML(_colorRamp.value);
+				}
+				catch (e:Error)
+				{
 					return;
+				}
 				
 				// update selected ramp by name
 				var xmlList:XMLList = ColorRamp.allColorRamps.colorRamp.(@name == rampXML.@name);
@@ -151,9 +152,6 @@ ColorRampEditor
 					colorRampGrid.selectedItem = xmlList[0];
 				else
 					colorRampGrid.selectedItem = null;
-				
-				// update reverse setting
-				reverseCheckBox.selected = String(rampXML.@reverse) == "true";
 			}
 			
 			private function handleColorRampSelected():void
@@ -162,12 +160,9 @@ ColorRampEditor
 					_colorRamp.value = ColorRamp.getColorRampXMLByName(colorRampGrid.selectedItem.@name);
 			}
 			
-			private function saveReverseSetting():void
+			private function reverseColorRamp():void
 			{
-				if (_colorRamp.value == null)
-					return;
-				_colorRamp.value.@reverse = reverseCheckBox.selected;
-				_colorRamp.detectChanges();
+				_colorRamp.reverse();
 			}
 			public function set colorRamp(cRamp:ColorRamp):void
 			{

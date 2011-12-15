@@ -21,93 +21,126 @@ package weave.primitives
 {
 	import flash.utils.ByteArray;
 	
+	import weave.api.WeaveAPI;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableString;
 	import weave.core.LinkableXML;
 	import weave.utils.VectorUtils;
 	
 	/**
-	 * ColorRamp
 	 * Makes a colorRamp xml definition useful through a getColorFromNorm() function.
 	 * 
 	 * @author adufilie
 	 * @author abaumann
 	 */
-	public class ColorRamp extends LinkableXML
-	{		
-		public function ColorRamp(rampXML:XML = null)
+	public class ColorRamp extends LinkableString
+	{
+		public function ColorRamp(sessionState:Object = null)
 		{
 			super();
 			addImmediateCallback(this, firstCallback);
-			if (rampXML == null)
-				rampXML = <colorRamp name="5-Color" source="OIC" category="basic">
+			if (!sessionState)
+				sessionState = <colorRamp name="5-Color" source="OIC" category="basic">
 						<node color="0xEFF3FF" position="0"/>
 						<node color="0xBDD7E7" position="0.25"/>
 						<node color="0x6BAED6" position="0.5"/>
 						<node color="0x3182BD" position="0.75"/>
 						<node color="0x08519C" position="1"/>
 					</colorRamp>;
-			value = rampXML;
+			value = (sessionState is XML) ? (sessionState as XML).toXMLString() : sessionState as String;
 		}
+		
+		private var _isXML:Boolean = false;
 		
 		private function firstCallback():void
 		{
-			var xml:XML = value;
-			if (xml)
+			var i:int;
+			var pos:Number;
+			var color:Number;
+			var positions:Array = [];
+			var reversed:Boolean = false;
+			
+			var xml:XML = null;
+			if (value.charAt(0) == '<' && value.substr(-1) == '>')
 			{
-				var xmlNodes:XMLList = xml.children();
-				
-				_colorNodes.length = xmlNodes.length();
-				var positions:Array = [];
-				for (var i:int = 0; i < xmlNodes.length(); i++)
+				try // try parsing as xml
 				{
-					var pos:Number = Number(xmlNodes[i].@position);
-					var color:Number = Number(xmlNodes[i].@color);
-					//_colorNodes[i] = new ColorNode(pos, color);
-					_colorNodes[i] = {position: pos, color: color};
-					positions.push(pos);
+					xml = XML(value);
+					reversed = String(xml.@reverse) == 'true';
+					
+					var xmlNodes:XMLList = xml.children();
+					_colorNodes.length = xmlNodes.length();
+					for (i = 0; i < xmlNodes.length(); i++)
+					{
+						var position:String = xmlNodes[i].@position;
+						pos = position == '' ? i / (_colorNodes.length - 1) : Number(position);
+						color = Number(xmlNodes[i].@color);
+						_colorNodes[i] = new ColorNode(pos, color);
+						positions[i] = pos;
+					}
+					
 				}
-				// if min,max positions are not 0,1, normalize all positions between 0 and 1
-				var minPos:Number = Math.min.apply(null, positions);
-				var maxPos:Number = Math.max.apply(null, positions);
-				if (minPos < 0 || maxPos > 1)
-					for each (var node:Object in _colorNodes)
-						node.position = StandardLib.normalize(node.position, minPos, maxPos);
-				
-				_colorNodes.sortOn("position");
-				
-				_reversed = String(xml.@reverse) == 'true';
+				catch (e:Error) { } // not an xml
+			}
+			_isXML = (xml != null);
+			
+			if (!_isXML)
+			{
+				var colors:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(value));
+				_colorNodes.length = colors.length;
+				for (i = 0; i < colors.length; i++)
+				{
+					pos = i / (colors.length - 1);
+					color = StandardLib.asNumber(colors[i]);
+					_colorNodes[i] = new ColorNode(pos, color);
+					positions[i] = pos;
+				}
+			}
+			
+			// if min,max positions are not 0,1, normalize all positions between 0 and 1
+			var minPos:Number = Math.min.apply(null, positions);
+			var maxPos:Number = Math.max.apply(null, positions);
+			for each (var node:ColorNode in _colorNodes)
+			{
+				node.position = StandardLib.normalize(node.position, minPos, maxPos);
+				if (reversed)
+					node.position = 1 - node.position;
+			}
+			
+			_colorNodes.sortOn("position");
+		}
+		
+		public function reverse():void
+		{
+			if (_isXML)
+			{
+				var xml:XML = XML(value);
+				var str:String = xml.@reverse;
+				xml.@reverse = (str == 'true' ? 'false' : 'true');
+				value = xml.toXMLString();
 			}
 			else
 			{
-				_colorNodes.length = 0;
-				_reversed = false;
-			}
-		}
-		
-		private var _reversed:Boolean = false;
-		public function get reversed():Boolean
-		{
-			return _reversed;
-		}
-		public function set reversed(reverse:Boolean):void
-		{
-			if (value)
-			{
-				value.@reverse = reverse;
-				detectChanges();
+				var colors:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(value));
+				colors.reverse();
+				value = WeaveAPI.CSVParser.createCSVFromArrays([colors]);
 			}
 		}
 
 		public function get name():String
 		{
-			return value ? value.@name : null;
+			if (_isXML)
+				return XML(value).@name;
+			else
+				return null;
 		}
 		public function set name(newName:String):void
 		{
-			if (value)
+			if (_isXML)
 			{
-				value.@name = newName;
-				detectChanges();
+				var xml:XML = XML(value);
+				xml.@name = newName;
+				value = xml.toXMLString();
 			}
 		}
 		
@@ -127,20 +160,13 @@ package weave.primitives
 			if (normValue < 0 || normValue > 1 || _colorNodes.length == 0)
 				return NaN;
 			
-			if (_reversed)
-				normValue = 1 - normValue;
-			
 			// find index to the right of normValue
 			var rightIndex:int = 0;
-//			while (rightIndex < _colorNodes.length && normValue >= (_colorNodes[rightIndex] as ColorNode).position)
-//				rightIndex++;
-			while (rightIndex < _colorNodes.length && normValue >= _colorNodes[rightIndex].position)
+			while (rightIndex < _colorNodes.length && normValue >= (_colorNodes[rightIndex] as ColorNode).position)
 				rightIndex++;
 			var leftIndex:int = Math.max(0, rightIndex - 1);
-//			var leftNode:ColorNode = _colorNodes[leftIndex] as ColorNode;
-//			var rightNode:ColorNode = _colorNodes[rightIndex] as ColorNode;
-			var leftNode:Object = _colorNodes[leftIndex];
-			var rightNode:Object = _colorNodes[rightIndex];
+			var leftNode:ColorNode = _colorNodes[leftIndex] as ColorNode;
+			var rightNode:ColorNode = _colorNodes[rightIndex] as ColorNode;
 
 			// handle boundary conditions
 			if (rightIndex == 0)
@@ -182,8 +208,6 @@ package weave.primitives
 		{
 			return (allColorRamps.colorRamp.(@name == name)[0] as XML).copy();
 		}
-		
-		private var ColorNode:Class = Object;
 	}
 	
 }

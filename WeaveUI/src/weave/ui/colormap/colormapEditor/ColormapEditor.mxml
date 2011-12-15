@@ -37,14 +37,9 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.sliderClasses.Slider;
-			import mx.events.SliderEvent;
-			
-			import weave.Weave;
-			import weave.data.AttributeColumns.ColorColumn;
 			import weave.primitives.ColorRamp;
-			private var _selectedPreset:String = "";
 			
+			private var _selectedPreset:String = "";
 			
 			override protected function childrenCreated():void
 			{

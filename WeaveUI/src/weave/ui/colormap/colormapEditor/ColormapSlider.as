@@ -76,11 +76,11 @@ package weave.ui.colormap.colormapEditor
 		
 		private function handleColorRampChange():void
 		{
-			thumbCount = colorRamp.value.children().length();
-			validateDisplayList();
-			
-			for (var i:int = 0; i < thumbCount; i++)
-				setThumbProperties( i, getColorNodeAt(i) );
+//			thumbCount = colorRamp.value.children().length();
+//			validateDisplayList();
+//			
+//			for (var i:int = 0; i < thumbCount; i++)
+//				setThumbProperties( i, getColorNodeAt(i) );
 		}
 		
 		[Inspectable]
@@ -104,15 +104,15 @@ package weave.ui.colormap.colormapEditor
 
 		public const colorRamp:ColorRamp = new ColorRamp();
 		
-		private function getColorNodeAt(index:int):XML
-		{
-			return colorRamp.value.children()[index];
-		}
+//		private function getColorNodeAt(index:int):XML
+//		{
+//			return colorRamp.value.children()[index];
+//		}
 		
 		private function handleColorChange(event:ColorPickerEvent):void
 		{
-			getColorNodeAt( colorPickerCanvas.getChildIndex(event.currentTarget as ColorPicker) ).@color = event.color;
-			colorRamp.detectChanges();
+//			getColorNodeAt( colorPickerCanvas.getChildIndex(event.currentTarget as ColorPicker) ).@color = event.color;
+//			colorRamp.detectChanges();
 		}
 		
 		private var thumbProperties:Array = [];
@@ -143,8 +143,8 @@ package weave.ui.colormap.colormapEditor
 			updateColorPickerPosition(event.thumbIndex);
 			
 			try {
-				colorRamp.value.children()[event.thumbIndex].@position = getThumbPercent(event.thumbIndex);
-				colorRamp.detectChanges();
+//				colorRamp.value.children()[event.thumbIndex].@position = getThumbPercent(event.thumbIndex);
+//				colorRamp.detectChanges();
 			} catch (error:Error) {
 			 	//Errors from SDK should not be ignored.
 				reportError(error);
