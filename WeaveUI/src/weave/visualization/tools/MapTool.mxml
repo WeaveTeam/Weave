@@ -489,7 +489,7 @@
 				right="2" bottom="2"
 				backgroundColor="white" backgroundAlpha="0.01">
 		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
-				height="{zoomControlsToggle.selected ? NaN : 0}"
+				includeInLayout="{zoomControlsToggle.selected}"
 				visible="{zoomControlsToggle.selected}"
 				verticalGap="2">
 			
@@ -535,15 +535,15 @@
 		
 		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
 				verticalGap="2"
-				height="{zoomControlsToggle.selected ? NaN : 0}"
+				includeInLayout="{zoomControlsToggle.selected}"
 				visible="{zoomControlsToggle.selected}"
 				backgroundColor="white" backgroundAlpha="0.5" borderStyle="outset">
 			<mx:Button id="zoomIn"
 					icon="@Embed(source='/weave/resources/images/zoomPlus.png')"
 					fillAlphas="[1.0, 1.0, 1.0, 1.0]"
 					width="15" height="15"
-					 click="handleZoomInClick()"
-					 cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
+					click="handleZoomInClick()"
+					cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
 			
 			<mx:VSlider id="zoomSlider" showDataTip="false" allowTrackClick="true" liveDragging="true" minimum="0" maximum="16" tickInterval="1" height="88" change="handleZoomSliderChange();"/>
 			
@@ -555,11 +555,11 @@
 					 cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
 		</mx:VBox>
 		
-		<mx:Spacer height="{zoomControlsToggle.selected ? 5 : 0}"/>
+		<mx:Spacer height="5" includeInLayout="{zoomControlsToggle.selected}"/>
 	
 		<!--rollOver="mouseModeBox.alpha = 1" rollOut="mouseModeBox.alpha = 0"-->
 		<mx:HBox id="mouseModeBox" horizontalGap="1" right="2" bottom="2"  
-				 height="{mouseModeControlsToggle.selected ? NaN : 0}"
+				 includeInLayout="{mouseModeControlsToggle.selected}"
 				 visible="{mouseModeControlsToggle.selected}"
 				 backgroundColor="white" backgroundAlpha="0.01"
 				 alpha="1"> 

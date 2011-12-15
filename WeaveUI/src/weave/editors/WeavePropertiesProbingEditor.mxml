@@ -45,7 +45,7 @@
 					 />
 		<ui:HelpComponent content="Check this box to enable extra bitmap filters used when probing or selecting"/>
 	</mx:HBox>
-	<mx:VBox enabled="{enableBitmapFilters.selected}" height="{enableBitmapFilters.selected ? NaN : 0}">
+	<mx:VBox visible="{enableBitmapFilters.selected}" includeInLayout="{enableBitmapFilters.selected}">
 		<ui:Indent indent="200" label="Probe Inner Glow Color" toolTip="Set the inner glow color of probed points">
 			<mx:ColorPicker id="probeInnerGlowColor"
 							creationComplete="linkBindableProperty(Weave.properties.probeInnerGlowColor, event.target, 'selectedColor' );"
@@ -87,7 +87,7 @@
 	
 	<mx:CheckBox label="Enable probe ToolTips" id="enableProbeToolTipCheck"
 				 creationComplete="linkBindableProperty(Weave.properties.enableProbeToolTip, event.target, 'selected')"/>
-	<mx:VBox enabled="{enableProbeToolTipCheck.selected}" height="{enableProbeToolTipCheck.selected ? NaN : 0}">
+	<mx:VBox visible="{enableProbeToolTipCheck.selected}" includeInLayout="{enableProbeToolTipCheck.selected}">
 		<ui:Indent indent="200" label="Maximum records shown" toolTip="Set the maximum number of records displayed in probe toolTips">
 			<mx:NumericStepper id="maxRecordsShown"
 							   maximum="20"

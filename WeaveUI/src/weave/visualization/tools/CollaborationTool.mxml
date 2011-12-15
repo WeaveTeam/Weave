@@ -304,7 +304,7 @@
 			<mx:HBox width="100%">
 				<mx:Label text="ServerName:" width="{labelWidth}" />
 				<mx:TextInput id="serverName" width="{textAreaWidth}" text="ivpr-vm" change="trimInput(event);"/>
-				<mx:Label id="serverNameError" text="Server cannot be reached, please try another." visible="false" width="{serverNameError.visible ? NaN : 0}" />
+				<mx:Label id="serverNameError" text="Server cannot be reached, please try another." visible="false" includeInLayout="{serverNameError.visible}" />
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Port:" width="{labelWidth}" />
@@ -313,7 +313,7 @@
 			<mx:HBox width="100%">
 				<mx:Label text="Username:" width="{labelWidth}" />
 				<mx:TextInput id="username" width="{textAreaWidth}" change="trimInput(event);"/>	
-				<mx:Label id="usernameError" text="Username already exists, please try another." visible="false" width="{usernameError.visible ? NaN : 0}"/>
+				<mx:Label id="usernameError" text="Username already exists, please try another." visible="false" includeInLayout="{usernameError.visible}"/>
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="Room Name:" width="{labelWidth}" />
