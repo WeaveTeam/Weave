@@ -32,14 +32,17 @@ package weave.utils
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IKeySet;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableDescendants;
 	import weave.api.getLinkableOwner;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
+	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
 	
@@ -130,12 +133,18 @@ package weave.utils
 		 */
 		public static function deriveStringFromNumber(column:IAttributeColumn, number:Number):String
 		{
-			// try to find an internal IPrimitiveColumn
-			while (!(column is IPrimitiveColumn) && column is IColumnWrapper)
-				column = (column as IColumnWrapper).internalColumn;
-			if (column is IPrimitiveColumn)
-				return (column as IPrimitiveColumn).deriveStringFromNumber(number);
+			var pc:IPrimitiveColumn = hack_findNonWrapperColumn(column) as IPrimitiveColumn;
+			if (pc)
+				return pc.deriveStringFromNumber(number);
 			return null; // no specific string representation
+		}
+		
+		public static function hack_findNonWrapperColumn(column:IAttributeColumn):IAttributeColumn
+		{
+			// try to find an internal IPrimitiveColumn
+			while (column is IColumnWrapper)
+				column = (column as IColumnWrapper).internalColumn;
+			return column;
 		}
 
 		/**
@@ -357,6 +366,85 @@ package weave.utils
 			}
 			return result;
 		}
+		
+		public static function generateTableCSV(attrCols:Array,keys:* = null,dataType:Class = null):String{
+			
+			
+			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
+			
+			var records:Array = [];				
+			// get the list of column titles
+			//var attrCols:Array = getSelectableAttributes();
+			var definedAttrCols:Array = [];				
+			var columnTitles:Array = [];
+			var i:int;
+			for ( i = 0; i < attrCols.length; i++){
+				// to make sure only available attributes are added for export
+				if ((attrCols[i] is  IColumnWrapper) && (attrCols[i] as  IColumnWrapper).internalColumn){
+					columnTitles.push(ColumnUtils.getTitle(attrCols[i]));
+					definedAttrCols.push(attrCols[i]);
+				}					
+				if (attrCols[i] is  LinkableHashMap)  {
+					var hashMapColumns:Array = (attrCols[i] as  LinkableHashMap).getObjects();
+					for (var j:int = 0; j < hashMapColumns.length; j++){
+						if ((hashMapColumns[j] as  IColumnWrapper).internalColumn){
+							columnTitles.push(ColumnUtils.getTitle(hashMapColumns[j]));
+							definedAttrCols.push(hashMapColumns[j]);
+						}								
+					}
+				}
+			}
+			if(!keys){
+				keys = getAllKeys(definedAttrCols);
+			}
+			
+			var keyTypeMap:Object = {};				
+			// create the data for each column in each selected row
+			//	var keys:* = _plotter.keySet.keys;
+			for each (var item:Object in keys)
+			{
+				var key:IQualifiedKey = item as IQualifiedKey;
+				var record:Object = {};
+				// each record has a property named after the keyType equal to the key value				
+				record[key.keyType] = key.localName;
+				keyTypeMap[key.keyType] = true;
+				
+				for (i = 0; i < definedAttrCols.length; i++)
+					record[columnTitles[i]] = (definedAttrCols[i] as IAttributeColumn).getValueFromKey(key, dataType);
+				records.push(record);
+			}
+			
+			// update the list of headers before generating the table
+			for (var keyType:String in keyTypeMap)
+				columnTitles.unshift(keyType);
+			
+			SecondaryKeyNumColumn.allKeysHack = false; // dimension slider hack
+			
+			var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(records, columnTitles);
+			return WeaveAPI.CSVParser.createCSVFromArrays(rows);
+		}
+		
+		
+		public static function getAllKeys(inputKeySets:Array):Array
+		{
+			var lookup:Dictionary = new Dictionary(true);
+			var result:Array = [];
+			for (var i:int = 0; i < inputKeySets.length; i++)
+			{
+				var keys:Array = (inputKeySets[i] as IKeySet).keys;
+				for (var j:int = 0; j < keys.length; j++)
+				{
+					var key:IQualifiedKey = keys[j] as IQualifiedKey;
+					if (lookup[key] === undefined)
+					{
+						lookup[key] = true;
+						result.push(key);
+					}
+				}
+			}
+			return result;
+		}
+		
 		
 		/**
 		 * This funciton generates an Array sort function that will sort IQualifiedKeys.

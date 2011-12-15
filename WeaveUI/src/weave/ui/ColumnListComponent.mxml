@@ -35,6 +35,7 @@ ColumnListComponent
 		<mx:Label text="{label}" fontWeight="bold"/>
 		<mx:HBox width="100%" id="selectorControls">
 			<mx:Spacer width="100%"/>
+			<mx:Button label="Reverse" click="_hashMap.setNameOrder(_hashMap.getNames().reverse());" toolTip="Reverse the order of the attributes"/>
 			<mx:Button label="Open selector..." click="openSelector()"/>
 		</mx:HBox>
 	</mx:HBox>

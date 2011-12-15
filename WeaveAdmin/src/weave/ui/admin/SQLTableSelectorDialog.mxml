@@ -32,7 +32,7 @@
 		<ui:CustomComboBox id="_tableCombo" enabled="{_tableCombo.dataProvider.length > 0}" prompt="Select a table..." text="{activeTable}" dataProvider="{tables}" change="activeTable = _tableCombo.text;" toolTip="{Strings.tip_sql_table_dropdown}"/>
 		<mx:Button id="tablesRefreshButton" label="Refresh" enabled="{schemaInput.selectedIndex >= 0 &amp;&amp; !refreshingTables}" click="getTables()" toolTip="{Strings.tip_refresh_tables}"/>
 		<ui:TextInputWithPrompt id="_tableInput" editable="true" text="{activeTable}" prompt="Enter a table name" change="activeTable = _tableInput.text;"/>
-		<mx:CheckBox label="Overwrite" id="tableOverwriteCheck" selected="false" visible="{tableOverwriteCheckVisible}" width="{tableOverwriteCheckVisible ? NaN : 0}" toolTip="{Strings.tip_overwrite_sql_table}"/>
+		<mx:CheckBox label="Overwrite" id="tableOverwriteCheck" selected="false" visible="{tableOverwriteCheckVisible}" includeInLayout="{tableOverwriteCheckVisible}" toolTip="{Strings.tip_overwrite_sql_table}"/>
 	</ui:Indent>
 	<mx:Metadata>
 		[Exclude(name="_tableCombo", kind="property")]

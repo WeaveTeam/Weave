@@ -159,7 +159,7 @@
 			return times;
 
 		var node:XML = (dataSource.attributeHierarchy as AttributeHierarchy).getNodeFromPath(path);
-		var hierarchy:XML = getSessionState(dataSource.attributeHierarchy) as XML;
+		var hierarchy:XML = (dataSource.attributeHierarchy as AttributeHierarchy).value;
 		if (!hierarchy)
 			return times;
 		

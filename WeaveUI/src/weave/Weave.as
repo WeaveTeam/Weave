@@ -20,16 +20,15 @@
 package weave
 {
 	import flash.external.ExternalInterface;
-	import flash.text.TextFormat;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
-	import weave.api.data.IProgressIndicator;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
@@ -39,6 +38,7 @@ package weave
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableHashMap;
+	import weave.core.ProgressIndicator;
 	import weave.core.SessionManager;
 	import weave.core.WeaveXMLDecoder;
 	import weave.core.WeaveXMLEncoder;
@@ -53,10 +53,8 @@ package weave
 	import weave.data.QKeyManager;
 	import weave.data.StatisticsCache;
 	import weave.editors._registerAllLinkableObjectEditors;
-	import weave.services.ProgressIndicator;
 	import weave.services.URLRequestUtils;
 	import weave.utils.DebugTimer;
-	import weave.utils.LinkableTextFormat;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -83,11 +81,11 @@ package weave
 			WeaveAPI.registerSingleton(ISessionManager, SessionManager);
 			WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
 			WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
+			WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
 			WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
 			WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
 			WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
 			WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
-			WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
 			WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
 			WeaveAPI.registerSingleton(ICSVParser, CSVParser);
 			
@@ -166,9 +164,9 @@ package weave
 		{
 			var newState:Array = WeaveXMLDecoder.decodeDynamicState(newStateXML);
 			
-			var t:DebugTimer = new DebugTimer();
+			DebugTimer.begin();
 			root.setSessionState(newState, removeMissingObjects);
-			t.debug('set global session state');
+			DebugTimer.end('set global session state');
 		}
 		
 		public static const DEFAULT_WEAVE_PROPERTIES:String = "WeaveProperties";

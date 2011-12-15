@@ -65,7 +65,7 @@
 					<admin:GeometryCollectionDialog id="geometrySelector" keyType="{dataTableNameInput.asTextInput().text}"/>
 				</ui:Indent>
 				<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
-				<ui:Indent height="{secondaryKeyColumnCheckBox.selected ? NaN : 0}">
+				<ui:Indent visible="{secondaryKeyColumnCheckBox.selected}" includeInLayout="{secondaryKeyColumnCheckBox.selected}">
 					<mx:HBox>
 						<mx:Label text="Secondary key column"/>
 						<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />

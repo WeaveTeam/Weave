@@ -30,7 +30,6 @@ package weave.services
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
-	import flash.utils.Dictionary;
 	
 	import mx.core.mx_internal;
 	import mx.rpc.AsyncResponder;
@@ -43,7 +42,6 @@ package weave.services
 	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IURLRequestUtils;
 	import weave.core.StageUtils;
-	import weave.primitives.WeakReference;
 
 	/**
 	 * An all-static class containing functions for downloading URLs.
@@ -67,8 +65,25 @@ package weave.services
 		 */
 		public function getURL(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary"):URLLoader
 		{
-			var urlLoader:CustomURLLoader = new CustomURLLoader(request, dataFormat);
-			urlLoader.addResponder(new AsyncResponder(asyncResultHandler || noOp, asyncFaultHandler || noOp, token));
+			var urlLoader:CustomURLLoader; 
+			try
+			{
+				urlLoader = new CustomURLLoader(request, dataFormat);
+				urlLoader.addResponder(new AsyncResponder(asyncResultHandler || noOp, asyncFaultHandler || noOp, token));
+			}
+			catch (e:Error)
+			{
+				// When an error occurs, we need to run the asyncFaultHandler later
+				// and return a new URLLoader. CustomURLLoader doesn't load if the 
+				// last parameter to the constructor is false.
+				urlLoader = new CustomURLLoader(request, dataFormat, false); 
+				StageUtils.callLater(
+					this, 
+					asyncFaultHandler || noOp, 
+					[new FaultEvent(FaultEvent.FAULT, false, true, new Fault(String(e.errorID), e.name, e.message)), token]
+				);
+			}
+			
 			return urlLoader;
 		}
 		
@@ -179,7 +194,6 @@ package weave.services
 
 import flash.events.ErrorEvent;
 import flash.events.Event;
-import flash.events.EventDispatcher;
 import flash.events.IOErrorEvent;
 import flash.events.ProgressEvent;
 import flash.events.SecurityErrorEvent;
@@ -196,29 +210,30 @@ import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 
 import weave.api.WeaveAPI;
-import weave.api.data.IProgressIndicator;
 import weave.api.services.IURLRequestToken;
 import weave.core.StageUtils;
-import weave.services.ProgressIndicator;
-import weave.services.jquery.JQueryCaller;
 
 internal class CustomURLLoader extends URLLoader
 {
-	public function CustomURLLoader(request:URLRequest, dataFormat:String)
+	public function CustomURLLoader(request:URLRequest, dataFormat:String, loadNow:Boolean = true)
 	{
-		// keep track of pending requests
-		WeaveAPI.ProgressIndicator.addTask(this);
-		addResponder(new AsyncResponder(removePendingRequest, removePendingRequest));
-		
-		// set up event listeners
-		addEventListener(Event.COMPLETE, handleGetResult);
-		addEventListener(IOErrorEvent.IO_ERROR, handleGetError);
-		addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSecurityError);
-		addEventListener(ProgressEvent.PROGRESS, handleProgressUpdate);
-		
 		_urlRequest = request;
 		this.dataFormat = dataFormat;
-		super.load(request);
+		
+		if (loadNow)
+		{
+			// keep track of pending requests
+			WeaveAPI.ProgressIndicator.addTask(this);
+			addResponder(new AsyncResponder(removePendingRequest, removePendingRequest));
+			
+			// set up event listeners
+			addEventListener(Event.COMPLETE, handleGetResult);
+			addEventListener(IOErrorEvent.IO_ERROR, handleGetError);
+			addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSecurityError);
+			addEventListener(ProgressEvent.PROGRESS, handleProgressUpdate);
+			
+			super.load(request);
+		}
 	}
 	
 	private var _asyncToken:AsyncToken = new AsyncToken();

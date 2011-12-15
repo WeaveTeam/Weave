@@ -783,23 +783,15 @@ package weave.visualization.plotters
 		
 		// backwards compatibility
 		[Deprecated(replacement='groupingMode')] public function set groupMode(value:Boolean):void { groupingMode.value = value ? GROUP : STACK; }
-		[Deprecated(replacement="positiveErrorColumns")] public function set positiveError(value:Object):void
+		[Deprecated(replacement="positiveErrorColumns")] public function set positiveError(dynamicState:Object):void
 		{
-			var dynamicState:DynamicState = DynamicState.cast(value);
-			if (dynamicState)
-			{
-				dynamicState.objectName = positiveErrorColumns.generateUniqueName(dynamicState.className);
-				positiveErrorColumns.setSessionState([dynamicState], false);
-			}
+			dynamicState.objectName = positiveErrorColumns.generateUniqueName(dynamicState.className);
+			positiveErrorColumns.setSessionState([dynamicState], false);
 		}
-		[Deprecated(replacement="negativeErrorColumns")] public function set negativeError(value:Object):void
+		[Deprecated(replacement="negativeErrorColumns")] public function set negativeError(dynamicState:Object):void
 		{
-			var dynamicState:DynamicState = DynamicState.cast(value);
-			if (dynamicState)
-			{
-				dynamicState.objectName = negativeErrorColumns.generateUniqueName(dynamicState.className);
-				negativeErrorColumns.setSessionState([dynamicState], false);
-			}
+			dynamicState.objectName = negativeErrorColumns.generateUniqueName(dynamicState.className);
+			negativeErrorColumns.setSessionState([dynamicState], false);
 		}
 	}
 }

@@ -65,6 +65,7 @@ package weave
 	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
 	import weave.core.weave_internal;
+	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
@@ -102,7 +103,10 @@ package weave
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
+	import weave.utils.ColumnUtils;
 	import weave.utils.DebugUtils;
+	import weave.visualization.layers.SelectablePlotLayer;
+	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.CollaborationTool;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.CompoundBarChartTool;
@@ -120,6 +124,7 @@ package weave
 	import weave.visualization.tools.RadVizTool;
 	import weave.visualization.tools.RamachandranPlotTool;
 	import weave.visualization.tools.ScatterPlotTool;
+	import weave.visualization.tools.SimpleVisTool;
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
@@ -209,7 +214,6 @@ package weave
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
-			Weave.properties.enableTaskbar.addGroupedCallback(this, toggleTaskBar, true);
 			
 			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
 			
@@ -445,10 +449,8 @@ package weave
 			_progressBar.minWidth = 135; // constant
 
 			Weave.properties.backgroundColor.value = getStyle("backgroundColor");
-		}
-		
-		private function updateWorkspaceResolution():void
-		{
+			
+			this.addChild(VisTaskbar.instance);
 		}
 		
 		private function updateWorkspaceSize(..._):void
@@ -655,7 +657,7 @@ package weave
 						function():Boolean { return Weave.properties.enableRefreshHierarchies.value }
 					)
 				);
-
+				
 				if(Weave.properties.enableAddDataSource.value)
 					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Add New Datasource", AddDataSourcePanel.showAsPopup));
 				
@@ -763,31 +765,6 @@ package weave
 		{
 			if (toggle.value)
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(title, callback, params));
-		}
-		
-		private function toggleTaskBar():void
-		{
-			if (Weave.properties.enableTaskbar.value)
-			{
-				VisTaskbar.instance.percentWidth = 100;
-					
-				// The task bar should be at the bottom of the page
-				if (!VisTaskbar.instance.parent)
-				{
-					addChild(VisTaskbar.instance);
-//					PopUpManager.addPopUp(_visTaskbar, this);
-				}
-			}
-			else
-			{
-				VisTaskbar.instance.restoreAllComponents();
-
-				if (VisTaskbar.instance.parent)
-				{
-					removeChild(VisTaskbar.instance);
-//					PopUpManager.removePopUp(_visTaskbar);
-				}
-			}
 		}
 		
 		private var _alreadyLoaded:Boolean = false;
@@ -904,6 +881,14 @@ package weave
 				(object as DraggablePanel).restorePanel();
 			// put panel in front
 			Weave.root.setNameOrder([name]);
+			
+			if (object is MapTool)
+			{
+				//(object as MapTool).toggleControlPanel();
+				var layer:SelectablePlotLayer = (object as MapTool).visualization.layers.getObjects()[0] as SelectablePlotLayer;
+				var geom:DynamicColumn = (layer.getDynamicPlotter().internalObject as GeometryPlotter).geometryColumn.internalDynamicColumn;
+				AttributeSelectorPanel.openDefaultSelector(geom, "Geometry");
+			}
 
 			return object;
 		}
@@ -1063,18 +1048,11 @@ package weave
 				
 				return menuLabel;
 			}
-			var click:Function = function():void
-			{
-		   		if (panel.minimizedComponentVersion != null)
-		   			panel.minimizedComponentVersion.restoreFunction();
-		   		else
-					panel.restorePanel();
-			}
-			var newToolMenuItem:WeaveMenuItem = new WeaveMenuItem(label, click);
+			var newToolMenuItem:WeaveMenuItem = new WeaveMenuItem(label, panel.restorePanel);
 			 
 			newToolMenuItem.type = WeaveMenuItem.TYPE_RADIO;
 			newToolMenuItem.groupName = "activeWindows";
-			newToolMenuItem.toggledFunction = function ():Boolean {
+			newToolMenuItem.toggledFunction = function():Boolean {
 				return newToolMenuItem.relevantItemPointer == topPanel;
 			};
 			newToolMenuItem.relevantItemPointer = panel;
@@ -1311,9 +1289,6 @@ package weave
 			
 			if (Weave.properties.enableRightClick.value)
 			{
-				// Add item for the DataTableTool
-				DataTableTool.createContextMenuItems(this);
-				
 				// Add item for the DatasetLoader
 				//DatasetLoader.createContextMenuItems(this);
 				
@@ -1345,6 +1320,7 @@ package weave
 				createExportToolImageContextMenuItem();
 				_printToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Print Application Image", this, handleContextMenuItemSelect, "4 exportMenuItems");
 				
+				createExportCSVContextMenuItem();
 				
 				// Add context menu items for handling search queries
 				SearchEngineUtils.createContextMenuItems(this);
@@ -1365,7 +1341,7 @@ package weave
 		protected var panelSettingsContextMenuItem:ContextMenuItem = null;
 		private function createExportToolImageContextMenuItem():Boolean
 		{				
-			if(Weave.properties.enableExportToolImage.value)
+			if (Weave.properties.enableExportToolImage.value)
 			{
 				// Add a listener to this destination context menu for when it is opened
 				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
@@ -1385,6 +1361,76 @@ package weave
 			
 			return false;
 		}
+		
+		private  var _exportCSVContextMenuItem:ContextMenuItem = null;
+		private function createExportCSVContextMenuItem():Boolean
+		{	
+			if (Weave.properties.enableExportCSV.value)
+			{
+				// Add a listener to this destination context menu for when it is opened
+				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
+				
+				// Create a context menu item for printing of a single tool with title and logo
+				_exportCSVContextMenuItem	= CustomContextMenuManager.createAndAddMenuItemToDestination(
+					"Export CSV", 
+					this,
+					function(event:ContextMenuEvent):void { exportCSV(_panelToExport ); },
+					"4 exportMenuItems"
+				);
+				// By default this menu item is disabled so that it does not show up unless we right click on a tool
+				_exportCSVContextMenuItem.enabled = false;				
+				return true;
+			}
+			return false;
+		}
+		private var fr:FileReference = new FileReference();	// CSV download file references
+		public function exportCSV(component:UIComponent):void
+		{
+			if (!component)
+				return;
+			
+			var visMenuVisible:Boolean = (_weaveMenu ? _weaveMenu.visible : false);
+			var visTaskbarVisible:Boolean = (VisTaskbar.instance ? VisTaskbar.instance.visible : false);
+			
+			if (_weaveMenu)
+				_weaveMenu.visible    = false;
+			if (VisTaskbar.instance)
+				VisTaskbar.instance.visible = false;			
+			
+			try
+			{
+				if(component is DataTableTool)
+				{
+					var keys:* = (component as DataTableTool).getExportDataProvider();
+					// each record has a property named after the column title equal to the value in that column for the current key
+					var dataType:Class = (keys === (component as DataTableTool).dataGrid.dataProvider) ? null : String; // dimension slider hack
+					var dataTableColumns:Array = (component as DataTableTool).columns.getObjects();
+					if(dataTableColumns.length ==0){
+						reportError("Columns are not assigned in " + (component as DataTableTool).title + " tool to export as CSV" );
+						return;
+					}
+					fr.save(ColumnUtils.generateTableCSV(dataTableColumns,keys,dataType), "Weave DataTable Tool Data.csv");	
+				}								
+				else
+				{
+					var toolColumns:Array = (component as SimpleVisTool).getSelectableAttributes();
+					if(toolColumns.length ==0){
+						reportError("Columns are not assigned in " + (component as SimpleVisTool).title + " to export as CSV" );
+						return;
+					}
+					fr.save(ColumnUtils.generateTableCSV(toolColumns), "Weave " + (component as SimpleVisTool).title + " Data.csv");
+				}				
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}			
+			if (_weaveMenu)
+				_weaveMenu.visible    = visMenuVisible;
+			if (VisTaskbar.instance)
+				VisTaskbar.instance.visible = visTaskbarVisible;	
+		}
+		
 		// Handler for when the context menu is opened.  In here we will keep track of what tool we were over when we right clicked so 
 		// that we can export an image of just this tool.  We also change the text in the context menu item for exporting an image of 
 		// this tool so it  says the name of the tool to export.
@@ -1399,11 +1445,13 @@ package weave
 			{
 				_panelPrintContextMenuItem.caption = "Print/Export " + _panelToExport.title + " Image...";
 				_panelPrintContextMenuItem.enabled = true;
+				_exportCSVContextMenuItem.enabled = true;
 			}
 			else
 			{
 				_panelPrintContextMenuItem.caption = "Print/Export Panel Image...";
 				_panelPrintContextMenuItem.enabled = false;	
+				_exportCSVContextMenuItem.enabled = false;
 			}
 		}
 		

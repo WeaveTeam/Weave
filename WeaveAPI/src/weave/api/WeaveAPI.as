@@ -45,11 +45,10 @@ package weave.api
 	
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
-	import weave.api.core.ILinkableObject;
+	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
-	import weave.api.data.IProgressIndicator;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
@@ -84,6 +83,13 @@ package weave.api
 			return getSingletonInstance(IExternalSessionStateInterface);
 		}
 		/**
+		 * This is the singleton instance of the registered IProgressIndicator implementation.
+		 */
+		public static function get ProgressIndicator():IProgressIndicator
+		{
+			return getSingletonInstance(IProgressIndicator);
+		}
+		/**
 		 * This is the singleton instance of the registered IAttributeColumnCache implementation.
 		 */
 		public static function get AttributeColumnCache():IAttributeColumnCache
@@ -103,13 +109,6 @@ package weave.api
 		public static function get ProjectionManager():IProjectionManager
 		{
 			return getSingletonInstance(IProjectionManager);
-		}
-		/**
-		 * This is the singleton instance of the registered IProgressIndicator implementation.
-		 */
-		public static function get ProgressIndicator():IProgressIndicator
-		{
-			return getSingletonInstance(IProgressIndicator);
 		}
 		/**
 		 * This is the singleton instance of the registered IQualifiedKeyManager implementation.
@@ -198,8 +197,9 @@ package weave.api
 		 */		
 		public static function getSingletonInstance(singletonInterface:Class):*
 		{
+			var result:* = _singletonDictionary[singletonInterface];
 			// If no instance has been created yet, create one now.
-			if (!_singletonDictionary[singletonInterface])
+			if (!result)
 			{
 				var interfaceName:String = getQualifiedClassName(singletonInterface);
 				try
@@ -214,7 +214,7 @@ package weave.api
 					// If there is a registered class, use the local dictionary.
 					if (classDef)
 					{
-						_singletonDictionary[singletonInterface] = new classDef();
+						result = new classDef();
 					}
 					else
 					{
@@ -222,9 +222,10 @@ package weave.api
 						throw e;
 					}
 				}
+				_singletonDictionary[singletonInterface] = result;
 			}
 			// Return saved instance.
-			return _singletonDictionary[singletonInterface];
+			return result;
 		}
 		
 		/**

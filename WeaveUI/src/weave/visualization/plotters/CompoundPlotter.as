@@ -71,7 +71,7 @@ package weave.visualization.plotters
 				//TODO: allow multiple key sets to be linked (using a union of key sets)
 				
 				linkSessionState(keySet.keyFilter, newPlotter.keySet.keyFilter);
-				newPlotter.spatialCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks); // this is not a parent-child relationship, so alwaysTriggerLast=false
+				newPlotter.spatialCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks); // this is not a parent-child relationship, so alwaysCallLast=false
 			}
 			// temporary solution -- just use the first plotter as the key source
 			var _plotters:Array = plotters.getObjects(IPlotter);

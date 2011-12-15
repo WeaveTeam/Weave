@@ -28,21 +28,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:Canvas label="Combo Box">
 			<CustomComboBox id="choiceCombo" prompt="Select an attribute..."
 							width="100%" height="100%"
-							labelFunction="choiceComboLabelFunction"
-							valueCommit="handleAttrSelected(choiceCombo, choiceCombo.selectedIndex);"
+							labelFunction="choiceLabelFunction"
+							valueCommit="if (hasFocus(choiceCombo)) handleAttrSelected(choiceCombo, choiceCombo.selectedIndex);"
 							/>
 		</mx:Canvas>
 		<mx:Canvas label="List">
 			<mx:List id="choiceList" width="100%" height="100%"
-					 labelFunction="choiceComboLabelFunction"
+					 labelFunction="choiceLabelFunction"
 					 change="handleAttrSelected(choiceList, choiceList.selectedIndex);"
 					 />
 		</mx:Canvas>
-		<mx:Canvas label="Slider">
-			<mx:VSlider id="choiceSlider" liveDragging="true" tickInterval="1"
+		<mx:Canvas label="Vertical Slider">
+			<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
 						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
-						change="handleAttrSelected(choiceSlider, choiceSlider.maximum - choiceSlider.value);"
-						/>
+						change="handleAttrSelected(choiceVSlider, choiceVSlider.maximum - choiceVSlider.value);"
+						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
+		</mx:Canvas>
+		<mx:Canvas label="Horizontal Slider">
+			<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"
+						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
+						change="handleAttrSelected(choiceHSlider, choiceHSlider.value);"
+						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 		</mx:Canvas>
 	</mx:ViewStack>
 	
@@ -50,23 +56,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:VBox width="100%" label="Settings">
 			<mx:HBox>
 				<mx:VBox>
-					<Indent label="Visualization tool:" indent="120">
+					<Indent label="Visualization tool:" indent="140">
 						<CustomComboBox prompt="Select a tool..." id="targetToolCombo" enabled="{targetToolCombo.dataProvider.length > 0}"
 										valueCommit="handleComboChange(targetToolCombo, targetTool);" />
+						<HelpComponent>Select the visualization tool that you want the attribute menu to be linked to.</HelpComponent>
 					</Indent>
-					<Indent label="Attribute to modify:" indent="120" toolTip="The selected attribute will be modified by the combo box in this menu tool.">
+					<Indent label="Visualization attribute:" indent="140" toolTip="The selected attribute will be modified by the combo box in this menu tool.">
 						<CustomComboBox prompt="Select an attribute..." id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
 										valueCommit="handleComboChange(targetAttributeCombo, targetAttribute);" />
+						<HelpComponent>Select the visualization attribute that you want the menu to be linked to.</HelpComponent>
+					</Indent>
+					<Indent label="Menu layout:" indent="140">
+						<CustomComboBox id="targetLayoutCombo" prompt="Select a layout..." labelFunction="{targetLayoutLabelFunction}"
+										dataProvider="{layouts}" valueCommit="handleComboChange(targetLayoutCombo, layoutMode);" />
+						<HelpComponent>Select the layout for the attribute menu.</HelpComponent>
 					</Indent>
 				</mx:VBox>
-				<mx:HBox>
-					<mx:Spacer width="100%" />
-					<mx:Label text="Layout:" />
-					<CustomComboBox id="targetLayoutCombo" prompt="Select a layout..." labelFunction="{targetLayoutLabelFunction}"
-								dataProvider="{layouts}" valueCommit="handleComboChange(targetLayoutCombo, layoutMode);" />
-				</mx:HBox>
 			</mx:HBox>
-			<ColumnListComponent id="choicesComponent" label="Attributes to appear in the drop-down" />
+			<ColumnListComponent id="choicesComponent" label="Attributes to appear in the menu" />
+			<Indent label="Label function">
+				<mx:TextInput width="100%" creationComplete="linkBindableProperty(labelFunction, event.target, 'text');"/>
+				<mx:Button label="Reset" click="labelFunction.value = DEFAULT_LABEL_FUNCTION;"/>
+			</Indent>
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ControlPanel>
@@ -88,6 +99,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.core.StageUtils;
@@ -97,13 +109,34 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.SimpleVisTool;
 			
+			private static const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
+			
 			public const targetTool:LinkableString 		= newLinkableChild(this, LinkableString);
 			public const targetAttribute:LinkableString = newLinkableChild(this, LinkableString);
 			public const choices:LinkableHashMap 		= registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const layoutMode:LinkableString 		= registerLinkableChild(this, new LinkableString(layouts[0]));
+			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['column']), handleChoicesChange);
 			
-			private static const layouts:Array = [ "ComboBox", "List", "VSlider" ];
-			private static const layoutLabels:Array = [ "Combo Box", "List", "Slider" ];
+			// used to label the choices
+			private function choiceLabelFunction(column:IAttributeColumn):String
+			{
+				var result:String = ColumnUtils.getTitle(column);
+				if (labelFunction.value)
+				{
+					try
+					{
+						result = labelFunction.apply(this, [column]) || '';
+					}
+					catch (e:Error)
+					{
+						result = '';
+					}
+				}
+				return result;
+			}
+			
+			private static const layouts:Array = ["ComboBox", "List", "VSlider", "HSlider"];
+			private static const layoutLabels:Array = ["Combo Box", "List", "Vertical Slider", "Horizontal Slider"];
 
 			private function targetLayoutLabelFunction(inputString:String):String
 			{
@@ -226,18 +259,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				choiceCombo.dataProvider = choices.getObjects();
 				choiceList.dataProvider = choices.getObjects();
 				
-				var names:Array = choices.getObjects();
-				for( var i:uint = 0; i < names.length; i++ )
-					names[i] = ColumnUtils.getTitle(names[i]);
-				// special case for slider -- reverse order
-				choiceSlider.labels = names.reverse();
-				choiceSlider.maximum = names.length-1;
-			}
-			
-			// used to label the combo box items
-			private function choiceComboLabelFunction(attrCol:IAttributeColumn):String
-			{
-				return ColumnUtils.getTitle(attrCol);
+				// get a list of labels
+				var columns:Array = choices.getObjects();
+				var names:Array = [];
+				for (var i:uint = 0; i < columns.length; i++)
+					names[i] = choiceLabelFunction(columns[i]);
+				
+				// special case for VSlider -- reverse order
+				choiceVSlider.labels = names.concat().reverse();
+				choiceHSlider.labels = names;
+				choiceVSlider.maximum = names.length - 1;
+				choiceHSlider.maximum = names.length - 1;
 			}
 			
 			// called when combo box selection changes, makes sure it has focus before setting target LinkableString

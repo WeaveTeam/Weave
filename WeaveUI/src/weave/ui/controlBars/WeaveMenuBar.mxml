@@ -132,24 +132,38 @@
 
     <mx:Script>
     	<![CDATA[
+			import flash.utils.setTimeout;
+			
 			import mx.collections.ArrayCollection;
 			import mx.collections.XMLListCollection;
+			import mx.containers.Box;
+			import mx.containers.Canvas;
 			import mx.controls.Button;
 			import mx.controls.Menu;
 			import mx.controls.menuClasses.MenuBarItem;
 			import mx.controls.menuClasses.MenuItemRenderer;
+			import mx.controls.scrollClasses.ScrollBar;
+			import mx.core.ScrollPolicy;
+			import mx.core.mx_internal;
 			import mx.events.DropdownEvent;
+			import mx.events.FlexEvent;
 			import mx.events.MenuEvent;
 			import mx.events.PropertyChangeEvent;
+			import mx.events.ScrollEvent;
 			import mx.utils.ObjectUtil;
 			import mx.utils.UIDUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.reportError;
+			import weave.compiler.StandardLib;
 			import weave.core.ErrorManager;
+			import weave.core.StageUtils;
 			import weave.ui.DraggablePanel;
 			import weave.ui.OICLogoPane;
+			import weave.utils.EventUtils;
+			
+			use namespace mx_internal;
     		
 			[Bindable]
 			private var _dp:ArrayCollection = new ArrayCollection([]);
@@ -168,16 +182,71 @@
 				}
 			}*/
 
-			// tip taken from : http://blog.flexexamples.com/2010/02/19/setting-a-variable-row-height-on-an-mx-menubar-control-in-flex/
 			private function handleMenuShow(event:MenuEvent):void
 			{
+				// tip taken from : http://blog.flexexamples.com/2010/02/19/setting-a-variable-row-height-on-an-mx-menubar-control-in-flex/
 				// this will reduce the vertical space between separators and other items in the menu
 				event.menu.variableRowHeight = true;
 				event.menu.invalidateSize();
-				
 				validateNow();
+				
+				// prevent the menu from appearing off-screen.
+				event.menu.callLater(repositionMenu, [event.menu]);
 			}
-    		
+			
+			private const menuMouseListeners:Dictionary = new Dictionary(true);
+			private const itemHeight:int = 20;
+			private const scrollShadow:GradientGlowFilter = new GradientGlowFilter(0, 90, [0, 0], [0, 1], [0, 255], 0, itemHeight / 2, 2, BitmapFilterQuality.HIGH, BitmapFilterType.OUTER);
+			private function repositionMenu(menu:Menu):void
+			{
+				if (!menu.parent)
+					return;
+				
+				// always make the menu appear below the menu bar
+				var global:Point = menubar.localToGlobal(new Point(0, menubar.height));
+				menu.y = menu.parent.globalToLocal(global).y;
+				
+				var listener:Function = menuMouseListeners[menu] as Function;
+				if (listener == null)
+				{
+					// add a sprite for a shadow to indicate when there are more menu items below or above
+					var sprite:Sprite = new Sprite();
+					sprite.filters = [scrollShadow];
+					menu.addChild(sprite);
+					
+					// add an event listener that will automatically scroll the menu
+					listener = function(..._):void
+					{
+						var visibleHeight:Number = Math.min(menu.height, stage.stageHeight - global.y);
+						var menuMouseY:Number = stage.mouseY - global.y;
+						var maxScroll:Number = menu.height - visibleHeight;
+						
+						// The itemHeight offsets are used to align the minimum and maximum scroll positions with the middle of the first and last menu items.
+						var scrollPos:Number = Math.round((menuMouseY - itemHeight / 2) / (visibleHeight - itemHeight) * maxScroll);
+						scrollPos = StandardLib.constrain(scrollPos, 0, maxScroll);
+						menu.scrollRect = new Rectangle(0, scrollPos, menu.width, visibleHeight);
+						
+						// update shadow graphics
+						sprite.graphics.clear();
+						sprite.graphics.lineStyle(1, 0, 1, true);
+						if (scrollPos > 0)
+						{
+							// hint that there are more items above
+							sprite.graphics.moveTo(0, scrollPos - 1);
+							sprite.graphics.lineTo(menu.width, scrollPos - 1);
+						}
+						if (scrollPos < maxScroll)
+						{
+							// hint that there are more items below
+							sprite.graphics.moveTo(0, scrollPos + visibleHeight);
+							sprite.graphics.lineTo(menu.width, scrollPos + visibleHeight);
+						}
+					};
+					menu.addEventListener(MouseEvent.MOUSE_MOVE, listener);
+					menuMouseListeners[menu] = listener;
+				}
+				listener(); // scroll now
+			}
     		
     		public function refreshMenuBar():void
     		{

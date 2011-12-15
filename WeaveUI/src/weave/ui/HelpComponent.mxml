@@ -82,7 +82,8 @@
 					MouseEvent.ROLL_OVER,
 					function(event:Event):void
 					{
-						ToolTipManager.showDelay = 0;
+						if (!_helpWindow)
+							ToolTipManager.showDelay = 0;
 					}
 				);
 				addEventListener(
@@ -238,8 +239,12 @@
 				{
 					var component:UIComponent = helpChildren[i] as UIComponent;
 					if (component)
+					{
 						window.addChild(component);
+						component.validateNow();
+					}
 				}
+				window.validateNow();
 				
 				var padding:int = 5;
 				

@@ -30,10 +30,15 @@ package weave.core
 	import flash.utils.getTimer;
 	
 	import mx.core.Application;
+	import mx.core.UIComponent;
+	import mx.core.UIComponentGlobals;
+	import mx.core.mx_internal;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.reportError;
+	
+	use namespace mx_internal;
 	
 	/**
 	 * This is an all-static class that allows you to add callbacks that will be called when an event occurs on the stage.
@@ -138,20 +143,9 @@ package weave.core
 		}
 		
 		/**
-		 * This function can be used to ensure the flash interface is reasonably responsive during long asynchronous computations.
-		 * If this function returns true, it is recommended to use StageUtils.callLater() to delay asynchronous processing until the next frame.
-		 * @return A value of true if the currentFrameElapsedTime has reached the maxComputationTimePerFrame threshold.
+		 * When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.
 		 */
-		public static function get shouldCallLater():Boolean
-		{
-			return getTimer() - _currentFrameStartTime > maxComputationTimePerFrame;
-		}
-		
-		/**
-		 * This is the recommended upper bound of computation time per frame.
-		 * The "get shouldCallLater()" function uses this value along with currentFrameElapsedTime to determine its recommendation.
-		 */
-		public static const maxComputationTimePerFrame:int = 100;
+		private static const maxComputationTimePerFrame:int = 100;
 
 		/**
 		 * This function gets called on ENTER_FRAME events.
@@ -171,10 +165,10 @@ package weave.core
 			var i:int;
 
 			// first run the functions that cannot be delayed more than one frame.
-			if (_callLaterSingleFrameDelayArray.length > 0)
+			if (_callNextFrameArray.length > 0)
 			{
-				calls = _callLaterSingleFrameDelayArray;
-				_callLaterSingleFrameDelayArray = [];
+				calls = _callNextFrameArray;
+				_callNextFrameArray = [];
 				for (i = 0; i < calls.length; i++)
 				{
 					// args: (relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true)
@@ -186,7 +180,7 @@ package weave.core
 				}
 			}
 			
-			if (_callLaterArray.length > 0)
+			if (_callLaterArray.length > 0 && UIComponentGlobals.callLaterSuspendCount <= 0)
 			{
 				//trace("handle ENTER_FRAME, " + _callLaterArray.length + " callLater functions, " + currentFrameElapsedTime + " ms elapsed this frame");
 				// Make a copy of the function calls and clear the static array before executing any functions.
@@ -231,9 +225,10 @@ package weave.core
 			if (allowMultipleFrameDelay)
 				_callLaterArray.push(arguments);
 			else
-				_callLaterSingleFrameDelayArray.push(arguments);
+				_callNextFrameArray.push(arguments);
 			
-			_stackTraceMap[arguments] = new Error("Stack trace").getStackTrace();
+			if (CallbackCollection.debug)
+				_stackTraceMap[arguments] = new Error("Stack trace").getStackTrace();
 		}
 		
 		private static const _stackTraceMap:Dictionary = new Dictionary(true);
@@ -242,13 +237,84 @@ package weave.core
 		 * This is an array of functions with parameters that will be executed the next time handleEnterFrame() is called.
 		 * This array gets populated by callLater().
 		 */
-		private static var _callLaterSingleFrameDelayArray:Array = [];
+		private static var _callNextFrameArray:Array = [];
 		
 		/**
 		 * This is an array of functions with parameters that will be executed the next time handleEnterFrame() is called.
 		 * This array gets populated by callLater().
 		 */
 		private static var _callLaterArray:Array = [];
+		
+		/**
+		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
+		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed of, the task will no longer be iterated.
+		 * @param iterativeTask A function that performs a single iteration of the asynchronous task.
+		 *   This function must take no parameters and return a number from 0.0 to 1.0 indicating the overall progress of the task.
+		 *   A number below 1.0 indicates that the function should be called again to continue the task.
+		 *   When the task is completed, iterativeTask() should return 1.0.
+		 *   Example:
+		 *       var array:Array = ['a','b','c','d'];
+		 *       var index:int = 0;
+		 *       function iterativeTask():Number
+		 *       {
+		 *           if (index >= array.length) // in case the length is zero
+		 *               return 1;
+		 * 
+		 *           trace(array[index]);
+		 * 
+		 *           index++;
+		 *           return index / array.length;  // this will return 1.0 on the last iteration.
+		 *       }
+		 */
+		public static function startTask(relevantContext:Object, iterativeTask:Function):void
+		{
+			// do nothing if task already active
+			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
+				return;
+			
+			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
+			_iterateTask(relevantContext, iterativeTask);
+		}
+		
+		/**
+		 * @private
+		 */
+		private static function _iterateTask(context:Object, task:Function):void
+		{
+			// remove the task if the context was disposed of
+			if (WeaveAPI.SessionManager.objectWasDisposed(context))
+			{
+				WeaveAPI.ProgressIndicator.removeTask(task);
+				return;
+			}
+			
+			var progress:* = undefined;
+			// iterate on the task until max computation time is reached
+			while (getTimer() - _currentFrameStartTime < maxComputationTimePerFrame)
+			{
+				// perform the next iteration of the task
+				progress = task() as Number;
+				if (progress === null || isNaN(progress) || progress < 0 || progress > 1)
+				{
+					reportError("Received unexpected result from iterative task (" + progress + ").  Expecting a number between 0 and 1.  Task cancelled.");
+					progress = 1;
+				}
+				if (progress == 1)
+				{
+					// task is done, so remove the task
+					WeaveAPI.ProgressIndicator.removeTask(task);
+					return;
+				}
+			}
+			// max computation time reached without finishing the task, so update the progress indicator and continue the task later
+			if (progress !== undefined)
+				WeaveAPI.ProgressIndicator.updateTask(task, progress);
+			
+			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
+			// This makes sure that the task is removed when the actual context is disposed of.
+			callLater(null, _iterateTask, arguments);
+		}
+		
 		
 		/**
 		 * This function gets called when a mouse click event occurs.
@@ -273,6 +339,10 @@ package weave.core
 			}
 		}
 		
+		/**
+		 * This is a list of eventType Strings that can be passed to addEventCallback().
+		 * @return An Array of Strings.
+		 */
 		public static function getSupportedEventTypes():Array
 		{
 			return _eventTypes.concat();

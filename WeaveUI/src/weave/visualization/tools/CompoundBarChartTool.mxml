@@ -302,8 +302,8 @@
 				var _heightColumns:Array = _plotter.heightColumns.getObjects();
 				if (_plotter.getActualGroupingMode() == CompoundBarChartPlotter.PERCENT_STACK && _heightColumns.length > 1)
 					return value + '%';
-				else if (_heightColumns.length == 1)
-					return ColumnUtils.deriveStringFromNumber(_heightColumns[0], value);
+				else if (_heightColumns.length > 0)
+					return ColumnUtils.deriveStringFromNumber(_heightColumns[0], value); // always use the first column to format the axis labels
 				return null;
 			}
 			
@@ -419,12 +419,18 @@
 							<ui:Indent label="Color by record">
 								<mx:CheckBox id="colorRecordLabelsChk"
 											 creationComplete="linkBindableProperty(_plotter.recordLabelColoring, event.target, 'selected')"/>
+								<ui:HelpComponent><!--
+									-->This specifies if each label should have the same color as its corresponding record.<!--
+								--></ui:HelpComponent>
 							</ui:Indent>
 							<mx:HBox id="colorRecordLabelsBox" 
 									 visible="{!colorRecordLabelsChk.selected}"
 									 enabled="{!colorRecordLabelsChk.selected}">
 								<mx:Label text="Color"/>
 								<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
+								<ui:HelpComponent><!--
+									-->This specifies the color to use for every label.<!--
+								--></ui:HelpComponent>
 							</mx:HBox>
 						</mx:VBox>
 						<ui:TextBox inputWidth="64" label="Position" creationComplete="linkBindableProperty(_plotter.labelDataCoordinate, event.target, 'text')"/>
@@ -448,12 +454,18 @@
 							<ui:Indent label="Color by record">
 								<mx:CheckBox id="colorValueLabelsChk"
 											 creationComplete="linkBindableProperty(_plotter.recordValueLabelColoring, event.target, 'selected')"/>
+								<ui:HelpComponent><!--
+									-->This specifies if each label should have the same color as its corresponding record.<!--
+								--></ui:HelpComponent>
 							</ui:Indent>
 							<mx:HBox id="colorValueLabelColorBox"
 									 visible="{!colorValueLabelsChk.selected}"
 									 enabled="{!colorValueLabelsChk.selected}">
 								<mx:Label text="Color"/>
 								<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
+								<ui:HelpComponent><!--
+									-->This specifies the color to use for every label.<!--
+								--></ui:HelpComponent>
 							</mx:HBox>
 						</mx:VBox>
 						<ui:TextBox inputWidth="64" label="Position" 

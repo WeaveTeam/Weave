@@ -24,86 +24,48 @@ package weave.utils
 	import weave.compiler.StandardLib;
 	
 	/**
-	 * DebugTimer
-	 * This class acts like a stop watch.
+	 * This class acts like a stop watch that supports nested begin/end times.
+	 * Pairs of calls to begin() and end() may be nested.
 	 * 
 	 * @author adufilie
 	 */
 	public class DebugTimer
 	{
-		public function DebugTimer(autoStart:Boolean = true)
-		{
-			if (autoStart)
-				start();
-			else
-				reset();
-		}
-
-		public var running:Boolean = false;
-
-		// reset the time to 0, return time before start
-		private var startTime:int;
-		public function start():int
-		{
-			var prevTime:int = time;
-			running = true;
-			startTime = getTimer();
-			return prevTime;
-		}
-
-		// save the current time and stop the timer, return current time
-		public function stop():int
-		{
-			var prevTime:int = time; // get current time
-			running = false;
-			return prevTime;
-		}
-
-		// stop the timer and clear the time, return time before reset
-		public function reset():int
-		{
-			var prevTime:int = stop();
-			_time = -1;
-			return prevTime;
-		}
-
-		// get the current time
-		private var _time:int;
-		public function get time():int
-		{
-			if (running)
-				_time = getTimer() - startTime;
-			return _time;
-		}
-		
-		// get elapsed time, print it out with a debug string, and restart the timer
-		public function debug(str:String):int
-		{
-			var elapsed:int = start();
-			trace('[' + elapsed + ' ms elapsed] ' + str);
-			return elapsed;
-		}
-
-		// get the current time
-		public function toString():String
-		{
-			return time + " ms";
-		}
-		
-		/**  static functions  **/
-		
+		/**
+		 * This is a list of nested start times.
+		 */
 		private static const debugTimes:Array = [];
+		
+		/**
+		 * This will record the current time as a new start time for comparison when lap() or end() is called.
+		 * Pairs of calls to begin() and end() may be nested.
+		 */
 		public static function begin():void
 		{
 			debugTimes.push(getTimer());
 		}
-		public static function restart(...debugStrings):void
+		
+		/**
+		 * This will report the time since the last call to begin() or lap().
+		 * @param debugString A string to print using trace().
+		 * @param debugStrings Additional strings to print using trace(), which will be separated by spaces.
+		 */
+		public static function lap(debugString:String, ...debugStrings):void
 		{
+			debugStrings.unshift(debugString);
 			end.apply(null, debugStrings);
 			begin();
 		}
-		public static function end(...debugStrings):void
+		
+		/**
+		 * This will reset the timer so that higher-level functions can resume their use of DebugTimer.
+		 * Pairs of calls to begin() and end() may be nested.
+		 * @param debugString A string to print using trace().
+		 * @param debugStrings Additional strings to print using trace(), which will be separated by spaces.
+		 */
+		public static function end(debugString:String, ...debugStrings):void
 		{
+			debugStrings.unshift(debugString);
 			var elapsedTime:int = (getTimer() - debugTimes.pop());
 			var elapsed:String = '['+elapsedTime+' ms elapsed] ';
 			var elapsedIndent:String = StandardLib.lpad('| ', elapsed.length);

@@ -257,6 +257,8 @@ package weave.primitives
 			if (minImportance == previousTraversalMinImportance && previousTraversalVisibleBounds.equals(visibleBounds))
 				return traversalVector; // avoid redundant computation
 
+			var gridContainmentFlag:int = -1;
+			
 			var resultCount:int = 0; // the number of nodes that have been stored in the traversalVector
 			if (rootNode != null)
 			{
@@ -315,6 +317,11 @@ package weave.primitives
 						if (visibleBounds != null)
 						{
 							gridID = visibleBounds.getGridContainment(node.x, node.y);
+							if (gridContainmentFlag == -1)
+								gridContainmentFlag = gridID;
+							else if (gridContainmentFlag != gridID && gridContainmentFlag != 0)
+								gridContainmentFlag = 0;
+								
 							if (gridID == prevGridID)
 							{
 								if (gridID != 0 && consecutivePointsInGrid == 2)
@@ -355,6 +362,9 @@ package weave.primitives
 				prev = traversalVector[i].index;
 			}
 			*/
+			
+			if (gridContainmentFlag > 0)
+				traversalVector.length = 0;
 			
 			return traversalVector;
 		}
