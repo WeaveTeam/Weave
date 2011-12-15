@@ -68,7 +68,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					</Indent>
 					<Indent label="Menu layout:" indent="140">
 						<CustomComboBox id="targetLayoutCombo" prompt="Select a layout..." labelFunction="{targetLayoutLabelFunction}"
-										dataProvider="{layouts}" valueCommit="handleComboChange(targetLayoutCombo, layoutMode);" />
+										dataProvider="{layouts}" />
 						<HelpComponent>Select the layout for the attribute menu.</HelpComponent>
 					</Indent>
 				</mx:VBox>
