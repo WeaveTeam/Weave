@@ -20,34 +20,21 @@
 */
 -->
 
-<!--
-ColorRampEditor
-
-@sanbalagan
+<!---
+@author sanbalagan
 -->
 <mx:HBox xmlns:ui ="weave.ui.*"
 	xmlns:mx="http://www.adobe.com/2006/mxml" 
 	xmlns="weave.ui.*"
 	implements="weave.api.core.ILinkableObject"
 	width="{NaN}" height="{NaN}"
+	enabled="{colorRamp != null}"
 	>
 	<mx:VBox verticalGap="3">
-		<mx:DataGrid id="colorRampGrid"
-					 useRollOver="false"
-					 minWidth="200" width="100%" height="100%"
-					 fontWeight="normal"
-					 paddingBottom="2" paddingTop="2" paddingLeft="5" paddingRight="5" 
-					 horizontalScrollPolicy="off" verticalScrollPolicy="on"
-					 allowMultipleSelection="false"
-					 dataProvider="{ColorRamp.allColorRamps.colorRamp}"
-					 change="handleColorRampSelected()">
-			<mx:columns>												
-				<mx:DataGridColumn dataField="@name"  headerText="Color scale"  itemRenderer="weave.ui.colormap.ColorRampPresetItemRenderer"/>
-			</mx:columns>
-		</mx:DataGrid>
+		<ui:ColorRampList id="colorRampGrid" colorRamp="{colorRamp}"/>
 		<mx:Button label="Reverse color scale"
 					 toolTip="Click to reverse the colors in the color scale."
-					 click="reverseColorRamp()"/>
+					 click="colorRamp.reverse();"/>
 	</mx:VBox>
 	<mx:VBox verticalGap="1">
 		<mx:Label text="Filter by:" fontWeight="bold"/>
@@ -93,7 +80,8 @@ ColorRampEditor
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.ColorRamp;
 			
-			private var _colorRamp:ColorRamp = null;
+			[Bindable]
+			public var colorRamp:ColorRamp = null;
 			
 			override protected function childrenCreated():void
 			{
@@ -128,59 +116,6 @@ ColorRampEditor
 				typeCombo.dataProvider = dataFormats;
 				categoriesCombo.dataProvider = categories;
 				
-			}
-			
-			
-			private function colorRampCallback():void
-			{
-				if (!parent)
-					return callLater(colorRampCallback);
-				// update gui
-				var rampXML:XML;
-				try
-				{
-					rampXML = XML(_colorRamp.value);
-				}
-				catch (e:Error)
-				{
-					return;
-				}
-				
-				// update selected ramp by name
-				var xmlList:XMLList = ColorRamp.allColorRamps.colorRamp.(@name == rampXML.@name);
-				if (xmlList.length() > 0)
-					colorRampGrid.selectedItem = xmlList[0];
-				else
-					colorRampGrid.selectedItem = null;
-			}
-			
-			private function handleColorRampSelected():void
-			{
-				if (colorRampGrid.selectedItem is XML)
-					_colorRamp.value = ColorRamp.getColorRampXMLByName(colorRampGrid.selectedItem.@name);
-			}
-			
-			private function reverseColorRamp():void
-			{
-				_colorRamp.reverse();
-			}
-			public function set colorRamp(cRamp:ColorRamp):void
-			{
-				if (_colorRamp == cRamp)
-					return;
-				
-				if (_colorRamp != null)
-					_colorRamp.removeCallback(colorRampCallback);
-				
-				_colorRamp = cRamp;
-				
-				if (_colorRamp != null)
-					_colorRamp.addGroupedCallback(this, colorRampCallback, true);
-			}
-			
-			public function get colorRamp():ColorRamp
-			{
-				return _colorRamp;
 			}
 			
 			private var previousSelectedItem:Object = null;
