@@ -26,12 +26,12 @@
 				  title="Color Controller"
 				  backgroundColor="#EFF4BC"
 				  initialize="init()">
-	<mx:VBox id="VizControlsPanel" label="Visualization Controls">
+	<mx:VBox id="VizControlsPanel" label="Binning">
 
 		<ui:DynamicColumnComponent id="dataColumnComponent" label="Color data"/>
 		<ui:BinningDefinitionEditor id="binEditor"/>
 	</mx:VBox>
-	<mx:VBox id="advControlsPanel" label="Advanced">
+	<mx:VBox id="advControlsPanel" label="Colors">
 		<ui:ColorRampEditor id="cRampEditor"/>
 	</mx:VBox>
 	<mx:Script>

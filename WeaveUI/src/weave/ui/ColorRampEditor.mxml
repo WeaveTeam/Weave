@@ -21,49 +21,53 @@
 -->
 
 <!---
+@author abaumann
 @author sanbalagan
+@author adufilie
 -->
-<mx:HBox xmlns:ui ="weave.ui.*"
+<mx:VBox xmlns:ui ="weave.ui.*"
 	xmlns:mx="http://www.adobe.com/2006/mxml" 
 	xmlns="weave.ui.*"
 	implements="weave.api.core.ILinkableObject"
 	width="{NaN}" height="{NaN}"
 	enabled="{colorRamp != null}"
 	>
-	<mx:VBox verticalGap="3">
-		<ui:ColorRampList id="colorRampGrid" colorRamp="{colorRamp}"/>
-		<mx:Button label="Reverse color scale"
-					 toolTip="Click to reverse the colors in the color scale."
-					 click="colorRamp.reverse();"/>
-	</mx:VBox>
-	<mx:VBox verticalGap="1">
-		<mx:Label text="Filter by:" fontWeight="bold"/>
-		<mx:CheckBox id="colorblindSafeCheckbox"
-					 label="Colorblind-safe"
-					 toolTip="Click to only show choices that are colorblind safe."
-					 click="handleFilterOptionSet(event)"/>
-		<mx:CheckBox id="singleHueCheckbox"
-					 label="Single hue"
-					 toolTip="Click to only show choices that usea single hue (base color)."
-					 click="handleFilterOptionSet(event)"/>
-		<mx:CheckBox id="printFriendlyCheckbox"
-					 label="Printer friendly"
-					 toolTip="Click to only show choices that are printer friendly."
-					 click="handleFilterOptionSet(event)"/>
-		<mx:CheckBox id="photocopyableCheckbox"
-					 label="Photocopy-able"
-					 toolTip="Click to only show choices that can be photocopied."
-					 click="handleFilterOptionSet(event)"/>
-		<mx:HBox>
-			<mx:Label text="Color scale style:" width="130"/>
-			<ui:CustomComboBox id="typeCombo"   change="handleFilterOptionSet(event)" width="100%" color="black" rollOverColor="0xCCFEFF"/>
-		</mx:HBox>
-		
-		<mx:HBox>
-			<mx:Label text="Color scale category:" width="130"/>
-			<ui:CustomComboBox id="categoriesCombo"   change="handleFilterOptionSet(event)" width="100%" color="black" rollOverColor="0xCCFEFF"/>
-		</mx:HBox>
-	</mx:VBox>
+	<mx:HBox width="100%">
+		<mx:VBox verticalGap="3">
+			<ui:ColorRampList id="colorRampGrid" colorRamp="{colorRamp}"/>
+			<mx:Button label="Reverse color scale"
+						 toolTip="Click to reverse the colors in the color scale."
+						 click="colorRamp.reverse();"/>
+		</mx:VBox>
+		<mx:VBox verticalGap="1">
+			<mx:Label text="Filter by:" fontWeight="bold"/>
+			<mx:CheckBox id="colorblindSafeCheckbox"
+						 label="Colorblind-safe"
+						 toolTip="Click to only show choices that are colorblind safe."
+						 click="handleFilterOptionSet(event)"/>
+			<mx:CheckBox id="singleHueCheckbox"
+						 label="Single hue"
+						 toolTip="Click to only show choices that usea single hue (base color)."
+						 click="handleFilterOptionSet(event)"/>
+			<mx:CheckBox id="printFriendlyCheckbox"
+						 label="Printer friendly"
+						 toolTip="Click to only show choices that are printer friendly."
+						 click="handleFilterOptionSet(event)"/>
+			<mx:CheckBox id="photocopyableCheckbox"
+						 label="Photocopy-able"
+						 toolTip="Click to only show choices that can be photocopied."
+						 click="handleFilterOptionSet(event)"/>
+			<mx:HBox>
+				<mx:Label text="Color scale style:" width="130"/>
+				<ui:CustomComboBox id="typeCombo"   change="handleFilterOptionSet(event)" width="100%" color="black" rollOverColor="0xCCFEFF"/>
+			</mx:HBox>
+			
+			<mx:HBox>
+				<mx:Label text="Color scale category:" width="130"/>
+				<ui:CustomComboBox id="categoriesCombo"   change="handleFilterOptionSet(event)" width="100%" color="black" rollOverColor="0xCCFEFF"/>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
@@ -165,6 +169,4 @@
 			
 		]]>
 	</mx:Script>
-	
-</mx:HBox>
-
+</mx:VBox>
