@@ -87,14 +87,14 @@
 		</mx:HBox>
 		<mx:HBox verticalAlign="middle">
 			<mx:VBox>
-				<ui:TextBox label="Y axis title:" id="yAxisTitle" indent="{yAxisLabelFunction.labelComponent.width}"/>
-				<ui:TextBox label="Y axis label function:" id="yAxisLabelFunction"/>
+				<ui:TextBox indent="128" label="Y axis title:" id="yAxisTitle"/>
+				<ui:TextBox indent="128" label="Y axis label function:" id="yAxisLabelFunction"/>
 			</mx:VBox>
 			<mx:VBox>
-				<ui:Indent id="yDistLbl" label="Distance:">
+				<ui:Indent indent="64" label="Distance:">
 					<mx:NumericStepper id="yLabelDistance" minimum="-50" maximum="50" stepSize="5" width="64"/>
 				</ui:Indent>
-				<ui:Indent indent="{yDistLbl.labelComponent.width}" label="Angle:">
+				<ui:Indent indent="64" label="Angle:">
 					<mx:NumericStepper id="yLabelAngle" minimum="-180" maximum="180" stepSize="15" width="64"/>
 				</ui:Indent>
 			</mx:VBox>
@@ -102,14 +102,14 @@
 		</mx:HBox>
 		<mx:HBox verticalAlign="middle">
 			<mx:VBox>
-				<ui:TextBox label="X axis title:" id="xAxisTitle" indent="{xAxisLabelFunction.labelComponent.width}"/>
-				<ui:TextBox label="X axis label function:" id="xAxisLabelFunction"/>
+				<ui:TextBox indent="128" label="X axis title:" id="xAxisTitle"/>
+				<ui:TextBox indent="128" label="X axis label function:" id="xAxisLabelFunction"/>
 			</mx:VBox>
 			<mx:VBox>
-				<ui:Indent id="xDistLbl" label="Distance:">
+				<ui:Indent indent="64" label="Distance:">
 					<mx:NumericStepper id="xLabelDistance" minimum="-50" maximum="50" stepSize="5" width="64"/>
 				</ui:Indent>
-				<ui:Indent indent="{xDistLbl.labelComponent.width}" label="Angle:">
+				<ui:Indent indent="64" label="Angle:">
 					<mx:NumericStepper id="xLabelAngle" minimum="-180" maximum="180" stepSize="15" width="64"/>
 				</ui:Indent>
 			</mx:VBox>
