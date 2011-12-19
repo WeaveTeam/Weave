@@ -34,6 +34,7 @@
 	<mx:VBox id="advControlsPanel" label="Colors">
 		<ui:ColorRampEditor id="cRampEditor"/>
 	</mx:VBox>
+	<ui:ColorOverrideEditor id="colorOverrideEditor" label="Advanced"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
@@ -67,10 +68,12 @@
 			private function init():void
 			{
 				var colorCol:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
-				var col:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				dataColumnComponent.dynamicObject = col.internalDynamicColumn;
+				var binCol:BinnedColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_BIN_COLUMN) as BinnedColumn;
+				var dataCol:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
+				dataColumnComponent.dynamicObject = dataCol.internalDynamicColumn;
 				cRampEditor.colorRamp = colorCol.ramp;
-				linkSessionState((Weave.root.getObject(Weave.DEFAULT_COLOR_BIN_COLUMN) as BinnedColumn),binEditor.binnedColumn);
+				linkSessionState(binCol, binEditor.binnedColumn);
+				linkSessionState(colorCol.recordColors, colorOverrideEditor.recordColors);
 				
 				this.targets = [colorCol]; 
 			}
