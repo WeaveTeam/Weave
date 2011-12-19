@@ -206,6 +206,7 @@
 				
 				if (createdChildren)
 					return;
+				createdChildren = true;
 
 				var children:Array = getChildren();
 				removeAllChildren();
@@ -218,7 +219,6 @@
 				{
 					controlPanelControls.tabNavigator.addChild(children[i]);
 				}
-				createdChildren = true;
 			}
 			
 			private function handleControlsCreated(e:FlexEvent):void
