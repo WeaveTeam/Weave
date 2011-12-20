@@ -132,15 +132,12 @@
 						 label="Photocopy-able"
 						 toolTip="Click to only show choices that can be photocopied."
 						 click="handleFilterOptionSet(event)"/>
-			<mx:HBox>
-				<mx:Label text="Color scale style:" width="130"/>
-				<ui:CustomComboBox id="typeCombo"   change="handleFilterOptionSet(event)" width="100%" color="black" rollOverColor="0xCCFEFF"/>
-			</mx:HBox>
-			
-			<mx:HBox>
-				<mx:Label text="Color scale category:" width="130"/>
-				<ui:CustomComboBox id="categoriesCombo"   change="handleFilterOptionSet(event)" width="100%" color="black" rollOverColor="0xCCFEFF"/>
-			</mx:HBox>
+			<ui:Indent indent="130" label="Color scale style:" labelTextAlign="left">
+				<ui:CustomComboBox id="typeCombo" change="handleFilterOptionSet(event)" width="100%"/>
+			</ui:Indent>
+			<ui:Indent indent="130" label="Color scale category:" labelTextAlign="left">
+				<ui:CustomComboBox id="categoriesCombo" change="handleFilterOptionSet(event)" width="100%"/>
+			</ui:Indent>
 		</mx:VBox>
 	</mx:HBox>
 	<mx:Script>
@@ -148,16 +145,8 @@
 			import weave.compiler.StandardLib;
 			import mx.collections.ArrayCollection;
 			import mx.collections.XMLListCollection;
-			import mx.core.Application;
-			import mx.managers.PopUpManager;
 			
-			import weave.Weave;
-			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableObject;
-			import weave.api.linkSessionState;
-			import weave.data.AttributeColumns.BinnedColumn;
-			import weave.data.AttributeColumns.ColorColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.ColorRamp;
 			
 			private var _colorRamp:ColorRamp;
