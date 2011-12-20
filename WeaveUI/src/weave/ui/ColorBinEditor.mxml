@@ -27,7 +27,6 @@
 				  backgroundColor="#EFF4BC"
 				  initialize="init()">
 	<mx:VBox id="VizControlsPanel" label="Binning">
-
 		<ui:DynamicColumnComponent id="dataColumnComponent" label="Color data"/>
 		<ui:BinningDefinitionEditor id="binEditor"/>
 	</mx:VBox>

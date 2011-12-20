@@ -29,25 +29,26 @@
 		xmlns="weave.ui.*"
 		implements="weave.api.core.ILinkableObject"
 		useRollOver="false"
-		minWidth="200"
+		minWidth="200" width="100%" height="100%"
 		fontWeight="normal"
 		paddingBottom="2" paddingTop="2" paddingLeft="5" paddingRight="5" 
-		horizontalScrollPolicy="off" verticalScrollPolicy="on"
+		horizontalScrollPolicy="auto" verticalScrollPolicy="on"
 		allowMultipleSelection="false"
 		dataProvider="{ColorRamp.allColorRamps.colorRamp}"
 		change="handleColorRampSelected()">
 	<mx:columns>
-		<mx:DataGridColumn dataField="@name"  headerText="Color scale">
+		<mx:DataGridColumn dataField="@name"  headerText="Color scale presets">
 			<mx:itemRenderer>
 				<mx:Component>
-					<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
+					<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 							   horizontalScrollPolicy="off" 
-							   verticalScrollPolicy="off" 
+							   verticalScrollPolicy="off"
+							   paddingLeft="2" toolTip="{label}"
 							   width="100%">
-						<mx:Label id="colorRampName" maxWidth="{width - colorRampCanvas.width}" left="0"/>
-						<mx:Canvas id="colorRampCanvas" 
+						<mx:Canvas id="colorRampCanvas"
 								   borderStyle="solid" borderColor="0x000000" 
-								   width="75" height="15" right="2"/>
+								   width="75" height="15"/>
+						<mx:Label text="{label}"/>
 						
 						<mx:Script>
 							<![CDATA[
@@ -59,12 +60,13 @@
 								{
 									var xml:XML = value as XML;
 									super.data = xml;
-									try {
-										colorRampName.text = xml.@name;
+									try
+									{
+										label = xml.@name;
 										colorRamp.value = xml;
 										
 										var numColorDivisions:int = colorRampCanvas.width/2;
-										for(var i:int = 0; i < numColorDivisions; i++)
+										for (var i:int = 0; i < numColorDivisions; i++)
 										{
 											var normVal:Number = i / numColorDivisions;
 											
@@ -72,15 +74,17 @@
 											colorRampCanvas.graphics.drawRect(i*colorRampCanvas.width/numColorDivisions,0, 
 												colorRampCanvas.width/numColorDivisions, colorRampCanvas.height);
 										}
+										errorString = '';
 									}
-									catch(error:Error)
+									catch (error:Error)
 									{
-										colorRampName.text = "Error";
+										label = "Error";
+										errorString = error.message;
 									}
 								}
 							]]>
 						</mx:Script>
-					</mx:Canvas>
+					</mx:HBox>
 				</mx:Component>
 			</mx:itemRenderer>
 		</mx:DataGridColumn>
