@@ -69,16 +69,8 @@
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.collections.XMLListCollection;
-			import mx.core.Application;
-			import mx.managers.PopUpManager;
 			
-			import weave.Weave;
-			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableObject;
-			import weave.api.linkSessionState;
-			import weave.data.AttributeColumns.BinnedColumn;
-			import weave.data.AttributeColumns.ColorColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.ColorRamp;
 			
 			[Bindable]

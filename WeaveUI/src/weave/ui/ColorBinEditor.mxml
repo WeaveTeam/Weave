@@ -31,28 +31,20 @@
 		<ui:DynamicColumnComponent id="dataColumnComponent" label="Color data"/>
 		<ui:BinningDefinitionEditor id="binEditor"/>
 	</mx:VBox>
-	<mx:VBox id="advControlsPanel" label="Colors">
+	<mx:VBox id="advControlsPanel" label="Color scale">
 		<ui:ColorRampEditor id="cRampEditor"/>
 	</mx:VBox>
-	<ui:ColorOverrideEditor id="colorOverrideEditor" label="Advanced"/>
+	<ui:ColorOverrideEditor id="colorOverrideEditor" label="Color specific records"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.collections.XMLListCollection;
 			import mx.core.Application;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.api.core.ILinkableDynamicObject;
-			import weave.api.core.ILinkableObject;
 			import weave.api.linkSessionState;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
-			import weave.primitives.ColorRamp;
-			
-			
-			
 			
 			private static var instance:ControlPanel;
 			public static function openDefaultEditor():void

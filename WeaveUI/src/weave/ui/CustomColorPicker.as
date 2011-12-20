@@ -25,10 +25,15 @@ package weave.ui
 	import mx.collections.CursorBookmark;
 	import mx.controls.ColorPicker;
 	import mx.controls.ComboBox;
+	import mx.core.mx_internal;
+	import mx.events.ColorPickerEvent;
+	import mx.events.DropdownEvent;
 	import mx.events.FlexEvent;
+	
+	use namespace mx_internal;
 
 	/**
-	 * Added functionality: The same selectedColor can be selected again with the popup.
+	 * Added functionality: The same selectedColor can be selected again with the popup and still trigger a change event.
 	 * 
 	 * @author adufilie
 	 */
@@ -38,20 +43,14 @@ package weave.ui
 		{
 			super.childrenCreated();
 			
-			// This makes it so the same color can be selected again while still triggering a change event.
-			super.selectedColor = super.selectedColor | 0x1000000;
+			addEventListener(DropdownEvent.OPEN, handleOpen);
 		}
 		
-		override public function get selectedColor():uint
+		private function handleOpen(event:DropdownEvent):void
 		{
-			return super.selectedColor & 0xFFFFFF;
-		}
-		override public function set selectedColor(value:uint):void
-		{
-			super.selectedColor = value;
-			
 			// This makes it so the same color can be selected again while still triggering a change event.
 			super.selectedColor = super.selectedColor | 0x1000000;
+			dropdown.selectedColor = super.selectedColor & 0xFFFFFF;
 		}
 	}
 }
