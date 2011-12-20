@@ -50,29 +50,10 @@ Editor for custom layers using AxisLabelPlotters
 		<mx:ColorPicker toolTip="Select a font color" id="labelColorPicker" 
 						creationComplete="linkBindableProperty(_plotter.color, event.target, 'selectedColor')"/>
 	</ui:Indent>
-	<ui:Indent indent="{indent}" label="Vertical Align">
-		
-		<mx:ComboBox toolTip="Select the vertical align mode" 
-					 creationComplete="linkBindableProperty(_plotter.vAlign, event.target, 'selectedItem')">
-			<mx:ArrayCollection>
-				<mx:String>top</mx:String>
-				<mx:String>middle</mx:String>
-				<mx:String>bottom</mx:String>
-			</mx:ArrayCollection>
-		</mx:ComboBox>					 			
-	</ui:Indent>
 	
+	<ui:AlignmentControl id="alignment"/>
 	
-	<ui:Indent indent="{indent}" label="Horizontal Align">			
-		<mx:ComboBox toolTip="Select the horizontal align mode" 
-					 creationComplete="linkBindableProperty(_plotter.hAlign, event.target, 'selectedItem')">
-			<mx:ArrayCollection>
-				<mx:String>left</mx:String>
-				<mx:String>center</mx:String>
-				<mx:String>right</mx:String>
-			</mx:ArrayCollection>			
-		</mx:ComboBox>
-	</ui:Indent>
+	<ui:TextBox label="Label function" indent="{indent}" creationComplete="linkBindableProperty(_plotter.labelFunction, event.target, 'text');"/>
 
 	<mx:Script>
 		<![CDATA[
@@ -81,7 +62,7 @@ Editor for custom layers using AxisLabelPlotters
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.visualization.plotters.AxisLabelPlotter;
 			
-			[Bindable] private var indent:int = 80;
+			[Bindable] private var indent:int = 100;
 			[Bindable] private var inputWidth:int = 64;
 			
 			public function setTarget(object:ILinkableObject):void
@@ -99,6 +80,9 @@ Editor for custom layers using AxisLabelPlotters
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				
+				linkBindableProperty(_plotter.hAlign, alignment, 'horizontalAlign');
+				linkBindableProperty(_plotter.vAlign, alignment, 'verticalAlign');
 			}
 			
 			private function alphaSliderFormatFunction(value:Number):String {
