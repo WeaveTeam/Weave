@@ -149,7 +149,19 @@ package weave.primitives
 		 * This Array should be kept private.
 		 */
 		private const _colorNodes:Array = [];
-
+		
+		public function getColors():Array
+		{
+			var colors:Array = [];
+			
+			for(var i:int =0;i< _colorNodes.length;i++)
+			{
+				colors.push((_colorNodes[i] as ColorNode).color);
+			}
+			
+			return colors;
+		}
+		
 		/**
 		 * getColorFromNorm
 		 * @param normValue A value between 0 and 1.

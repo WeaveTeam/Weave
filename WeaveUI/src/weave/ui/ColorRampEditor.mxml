@@ -34,10 +34,85 @@
 	>
 	<mx:HBox width="100%">
 		<mx:VBox verticalGap="3">
-			<ui:ColorRampList id="colorRampGrid" colorRamp="{colorRamp}"/>
-			<mx:Button label="Reverse color scale"
+			<mx:HBox>
+				<ui:ColorRampList id="colorRampGrid" colorRamp="{colorRamp}"/>
+				<mx:VBox verticalScrollPolicy="auto" paddingLeft="4" width="200" id="newColorScaleComponent" visible="false" includeInLayout="false" borderThickness="1" borderStyle="solid" cornerRadius="5">
+					<mx:HBox>
+						<mx:Label text="New Color Scale" fontWeight="bold"/>
+					</mx:HBox>
+					<mx:HBox>
+						<mx:Canvas id="newColorRampCanvas" 
+								   borderStyle="solid" borderColor="0x000000" 
+								   width="75" height="15"/>
+						<mx:Button label="Add Color" click="(colorsList.dataProvider as ArrayCollection).addItem({color:'0x000000'});updateNewColorScale();"/>
+					</mx:HBox>
+					<mx:List height="{colorsList.dataProvider.length * 30}" id="colorsList" borderStyle="none">
+						
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox paddingBottom="2" paddingLeft="2" paddingRight="2" paddingTop="2">
+									<mx:Script>
+										<![CDATA[
+											import mx.collections.ArrayCollection;
+											import mx.controls.listClasses.ListBase;
+											import mx.events.ListEvent;
+											
+											import weave.compiler.StandardLib;
+											import weave.utils.EventUtils;
+											
+											override protected function childrenCreated():void
+											{
+												super.childrenCreated();
+												
+												EventUtils.addDelayedCallback(cText,Event.CHANGE,handleColorTextChange);
+												cText.text = '0x'+ StandardLib.numberToBase(cPicker.selectedColor,16,6);
+												
+											}
+											override public function set data(value:Object):void
+											{
+												super.data = value;
+												
+												cPicker.selectedColor = uint(data.color);
+												cText.text = data.color;
+											}
+											private function handleColorPickerChange():void
+											{
+												cText.text = '0x'+ StandardLib.numberToBase(cPicker.selectedColor,16,6);
+												var item:Object = (outerDocument.colorsList.dataProvider as ArrayCollection)
+																			.getItemAt(outerDocument.colorsList.selectedIndex);
+												item.color = cText.text; 
+												
+												outerDocument.updateNewColorScale();
+											}
+											
+											private function handleColorTextChange():void
+											{
+												cPicker.selectedColor = uint(cText.text);
+												var item:Object = (outerDocument.colorsList.dataProvider as ArrayCollection)
+													.getItemAt(outerDocument.colorsList.selectedIndex);
+												item.color = cText.text;
+												
+												outerDocument.updateNewColorScale();
+											}
+										]]>
+									</mx:Script>
+									<mx:ColorPicker id="cPicker" change="handleColorPickerChange()" showTextField="true" selectedColor="{uint(data.color)}"/>
+									<mx:TextInput toolTip="Please note to add 0x before the hex value" id="cText" width="75"/>
+									<mx:Image  source="@Embed(source='/weave/resources/images/cancel_small.png')" buttonMode="true" 
+											   click="outerDocument.removeColorItem();"/>
+								</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:List>
+				</mx:VBox>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Button label="Reverse color scale"
 						 toolTip="Click to reverse the colors in the color scale."
 						 click="colorRamp.reverse();"/>
+				<mx:Button id="newColorScaleButton" click="handleNewColorScaleButtonClick()"
+						   label="Add New Color Scale" />
+			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox verticalGap="1">
 			<mx:Label text="Filter by:" fontWeight="bold"/>
@@ -70,6 +145,7 @@
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.compiler.StandardLib;
 			import mx.collections.ArrayCollection;
 			import mx.collections.XMLListCollection;
 			import mx.core.Application;
@@ -84,8 +160,21 @@
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.ColorRamp;
 			
+			private var _colorRamp:ColorRamp;
 			[Bindable]
-			public var colorRamp:ColorRamp = null;
+			public function get colorRamp():ColorRamp
+			{
+				return _colorRamp;
+			}
+			public function set colorRamp(value:ColorRamp):void
+			{
+				
+				if(_colorRamp)
+					_colorRamp.removeCallback(handleColorRampChange);
+				_colorRamp = value;
+				_colorRamp.addGroupedCallback(this,handleColorRampChange,true);
+			}
+			
 			
 			override protected function childrenCreated():void
 			{
@@ -99,26 +188,27 @@
 				
 				for (var i:int = 0; i < colorRampList.length(); i++)
 				{
-					var colorRamp:XML = colorRampList[i] as XML;
+					var colorRampXML:XML = colorRampList[i] as XML;
 					
 					/*if(colorRamp.@name == multiLayerColormap.getColormap().colorRamp.name)
 					colormapGrid.selectedIndex = i;*/
 					
-					var sourceName:String = colorRamp.@source;
-					if(colorRamp.hasOwnProperty("@source") && !sources.contains(sourceName) )
+					var sourceName:String = colorRampXML.@source;
+					if(colorRampXML.hasOwnProperty("@source") && !sources.contains(sourceName) )
 						sources.addItem(sourceName);
 					
-					var category:String = colorRamp.@category;
-					if(colorRamp.hasOwnProperty("@category") && !categories.contains(category) )
+					var category:String = colorRampXML.@category;
+					if(colorRampXML.hasOwnProperty("@category") && !categories.contains(category) )
 						categories.addItem(category);
 					
-					var dataFormat:String = colorRamp.@dataFormat;
-					if(colorRamp.hasOwnProperty("@dataFormat") && !dataFormats.contains(dataFormat) )
+					var dataFormat:String = colorRampXML.@dataFormat;
+					if(colorRampXML.hasOwnProperty("@dataFormat") && !dataFormats.contains(dataFormat) )
 						dataFormats.addItem(dataFormat);
 				}
 				
 				typeCombo.dataProvider = dataFormats;
 				categoriesCombo.dataProvider = categories;
+				
 				
 			}
 			
@@ -165,6 +255,80 @@
 				
 				return meetsCriteria;
 				
+			}
+			
+			public function removeColorItem():void
+			{
+				(colorsList.dataProvider as ArrayCollection).removeItemAt(colorsList.selectedIndex);
+				updateNewColorScale();
+			}
+			
+			private function handleNewColorScaleButtonClick():void
+			{
+				if(newColorScaleComponent.visible)
+				{
+					newColorScaleComponent.visible = false
+					newColorScaleComponent.includeInLayout = false;
+					newColorScaleButton.label='Add New Color Scale';
+				}
+				else
+				{
+					newColorScaleComponent.visible = true;
+					newColorScaleComponent.includeInLayout = true;
+					newColorScaleButton.label='Hide New Color Scale';
+					newColorScaleComponent.height = colorRampGrid.height;
+				}
+			}
+			
+			private function handleColorRampChange():void
+			{
+				
+				if(colorsList.dataProvider == null)
+					colorsList.dataProvider = [];
+				var dp:ArrayCollection = (colorsList.dataProvider as ArrayCollection);
+				var colors:Array = colorRamp.getColors();
+				
+				dp.removeAll();
+				
+				for(var i:int=0; i<colors.length; i++)
+				{
+					var item:Object = new Object();
+					item.color = '0x' + StandardLib.numberToBase(colors[i],16,6);
+					dp.addItem(item);
+				}
+				
+				updateNewColorRampCanvas();
+			}
+			
+			public function updateNewColorScale():void
+			{
+				var rampStringValue:String = '';
+				
+				for(var i:int = 0; i < colorsList.dataProvider.length; i++)
+				{
+					var item:Object = (colorsList.dataProvider as ArrayCollection).getItemAt(i);
+					
+					rampStringValue += item.color + ',';
+				}
+				
+				rampStringValue = rampStringValue.substr(0,rampStringValue.length-1);
+				
+				_colorRamp.value = rampStringValue;
+				
+				updateNewColorRampCanvas();
+			}
+			
+			private function updateNewColorRampCanvas():void
+			{
+				var numColorDivisions:int = newColorRampCanvas.width/2;
+				for(var i:int = 0; i < numColorDivisions; i++)
+				{
+					var normVal:Number = i / numColorDivisions;
+					
+					newColorRampCanvas.graphics.beginFill( _colorRamp.getColorFromNorm( normVal ) );
+					newColorRampCanvas.graphics.drawRect(i*newColorRampCanvas.width/numColorDivisions,0, 
+						newColorRampCanvas.width/numColorDivisions, newColorRampCanvas.height);
+				}
 			}
 			
 		]]>
