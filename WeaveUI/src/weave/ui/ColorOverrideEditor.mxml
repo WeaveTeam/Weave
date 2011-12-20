@@ -109,12 +109,7 @@
 			{
 				super.childrenCreated();
 				
-				getCallbackCollection(Weave.root).addGroupedCallback(this, refreshDataProvider);
 				getCallbackCollection(getGlobalSelection()).addGroupedCallback(this, handleGlobalSelection);
-			}
-			
-			private function refreshDataProvider():void
-			{
 			}
 			
 			// called when global selection changes
