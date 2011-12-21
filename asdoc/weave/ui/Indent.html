@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="Indent,weave.ui.Indent,labelComponent,indent,label,labelTextAlign,createChildren" name="keywords">
+<meta content="Indent,weave.ui.Indent,labelComponent,indent,label,group,grouped,labelTextAlign,createChildren,validateSize" name="keywords">
 <title>weave.ui.Indent</title>
 </head>
 <body>
@@ -40,6 +40,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr>
 <td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">Indent <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../images/inherit-arrow.gif"> mx.containers.HBox</td>
 </tr>
+<tr>
+<td class="classHeaderTableLabel">Subclasses</td><td><a href="../ui/TextBox.html">TextBox</a></td>
+</tr>
 </table>
 <p></p>
 <p></p>
@@ -54,20 +57,51 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#indent">indent</a> : int<div class="summaryTableDescription">[read-only]</div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#group">group</a> : <a href="../ui/IndentGroup.html">IndentGroup</a>
+<div class="summaryTableDescription">[write-only]
+    Set this to an IndentGroup to coordinate the indentation of several Indent components.</div>
 </td><td class="summaryTableOwnerCol">Indent</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#label">label</a> : String<div class="summaryTableDescription"></div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#grouped">grouped</a> : Boolean<div class="summaryTableDescription">[write-only]
+    Set this to false if this Indent component should not be grouped with others having the same parent.</div>
 </td><td class="summaryTableOwnerCol">Indent</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#labelTextAlign">labelTextAlign</a> : String<div class="summaryTableDescription">[write-only]</div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#indent">indent</a> : int<div class="summaryTableDescription">[read-only]
+    Set this to ungroup the Indent component and specify an explicit indentation.</div>
+</td><td class="summaryTableOwnerCol">Indent</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#label">label</a> : String<div class="summaryTableDescription">
+    This is the label that will appear to the left of the other children of the Indent component.</div>
+</td><td class="summaryTableOwnerCol">Indent</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#labelTextAlign">labelTextAlign</a> : String<div class="summaryTableDescription">[write-only]
+    This controls the textAlign style of the label component.</div>
 </td><td class="summaryTableOwnerCol">Indent</td>
 </tr>
 </table>
 </div>
-<a name="methodSummary"></a><a name="protectedMethodSummary"></a>
+<a name="methodSummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Public Methods</div>
+<table id="summaryTableMethod" class="summaryTable " cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#validateSize()">validateSize</a>(recursive:Boolean = false):void</div>
+<div class="summaryTableDescription">
+    </div>
+</td><td class="summaryTableOwnerCol">Indent</td>
+</tr>
+</table>
+</div>
+<a name="protectedMethodSummary"></a>
 <div class="summarySection">
 <div class="summaryTableTitle">Protected Methods</div>
 <table id="summaryTableProtectedMethod" class="summaryTable " cellpadding="3" cellspacing="0">
@@ -78,7 +112,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#createChildren()">createChildren</a>():void</div>
-<div class="summaryTableDescription"></div>
+<div class="summaryTableDescription">
+    </div>
 </td><td class="summaryTableOwnerCol">Indent</td>
 </tr>
 </table>
@@ -91,7 +126,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#labelComponent">labelComponent</a> : Label<div class="summaryTableDescription"></div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#labelComponent">labelComponent</a> : Label<div class="summaryTableDescription">
+    This is the label component that will appear to the left of the other children of the Indent component.</div>
 </td><td class="summaryTableOwnerCol">Indent</td>
 </tr>
 </table>
@@ -103,14 +139,45 @@ showHideInherited();
 <div class="MainContent">
 <a name="propertyDetail"></a>
 <div class="detailSectionHeader">Property detail</div>
-<a name="indent"></a>
+<a name="group"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">indent</td><td class="detailHeaderType">property</td>
+<td class="detailHeaderName">group</td><td class="detailHeaderType">property</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>indent:int</code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
+<code>group:<a href="../ui/IndentGroup.html">IndentGroup</a></code>&nbsp;&nbsp;[write-only]<p>
+    Set this to an IndentGroup to coordinate the indentation of several Indent components.
+    </p><span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public function set group(value:<a href="../ui/IndentGroup.html">IndentGroup</a>):void</code>
+<br>
+</div>
+<a name="grouped"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">grouped</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>grouped:Boolean</code>&nbsp;&nbsp;[write-only]<p>
+    Set this to false if this Indent component should not be grouped with others having the same parent.
+    </p><p>The default value is <code>true</code>.</p>
+<span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public function set grouped(value:Boolean):void</code>
+<br>
+</div>
+<a name="indent"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">indent</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>indent:int</code>&nbsp;&nbsp;[read-only]<p>
+    Set this to ungroup the Indent component and specify an explicit indentation.
+    </p><span class="label">Implementation</span>
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get indent():int</code>
 <br>
@@ -122,7 +189,9 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>label:String</code>&nbsp;&nbsp;[read-write]<span class="label">Implementation</span>
+<code>label:String</code>&nbsp;&nbsp;[read-write]<p>
+    This is the label that will appear to the left of the other children of the Indent component.
+    </p><span class="label">Implementation</span>
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get label():String</code>
 <br>
@@ -136,7 +205,9 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>labelTextAlign:String</code>&nbsp;&nbsp;[write-only]<span class="label">Implementation</span>
+<code>labelTextAlign:String</code>&nbsp;&nbsp;[write-only]<p>
+    This controls the textAlign style of the label component.
+    </p><span class="label">Implementation</span>
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function set labelTextAlign(value:String):void</code>
 <br>
@@ -150,7 +221,22 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>protected override function createChildren():void</code>
+<code>protected override function createChildren():void</code><p>
+    </p></div>
+<a name="validateSize()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">validateSize</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public override function validateSize(recursive:Boolean = false):void</code><p>
+    </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">recursive</span>:Boolean</code> (default = <code>false</code>)<code></code></td>
+</tr>
+</table>
 </div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
@@ -161,8 +247,9 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public const labelComponent:Label</code>
-</div>
+<code>public const labelComponent:Label</code><p>
+    This is the label component that will appear to the left of the other children of the Indent component.
+    </p></div>
 <br>
 <br>
 <hr>
