@@ -152,7 +152,7 @@
 					
 					
 					<mx:Spacer width="10"/>
-					<mx:Image toolTip="Remove this layer" source="@Embed(source='/weave/resources/images/cancel.png')" click="removeLayer(event)"/>
+					<mx:Image toolTip="Remove this layer" source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true" click="removeLayer(event)"/>
 				</mx:HBox>
 				
 				<!-- these are the controls that are shown when hitting the "Settings" button -->
