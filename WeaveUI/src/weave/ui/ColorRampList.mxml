@@ -43,7 +43,7 @@
 					<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 							   horizontalScrollPolicy="off" 
 							   verticalScrollPolicy="off"
-							   paddingLeft="2" toolTip="{label}"
+							   paddingLeft="2"
 							   width="100%">
 						<mx:Canvas id="colorRampCanvas"
 								   borderStyle="solid" borderColor="0x000000" 
@@ -64,6 +64,7 @@
 									{
 										label = xml.@name;
 										colorRamp.value = xml;
+										toolTip = xml.@name + '\nTags: ' + xml.@tags;
 										
 										var numColorDivisions:int = colorRampCanvas.width/2;
 										for (var i:int = 0; i < numColorDivisions; i++)
@@ -79,6 +80,7 @@
 									catch (error:Error)
 									{
 										label = "Error";
+										toolTip = '';
 										errorString = error.message;
 									}
 								}
