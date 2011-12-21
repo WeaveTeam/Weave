@@ -26,5 +26,9 @@ package weave.ui
 	 */
 	public class IndentGroup
 	{
+		/**
+		 * This is the maximum measuredWidth of all the Indent labels under this group.
+		 */		
+		[Bindable] public var measuredIndent:Number = 0;
 	}
 }

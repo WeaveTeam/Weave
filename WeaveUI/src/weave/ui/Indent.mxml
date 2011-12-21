@@ -20,8 +20,8 @@
 */
 -->
 <mx:HBox
-    xmlns="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns="weave.ui.*"
 	verticalAlign="middle"
     horizontalScrollPolicy="off"
 	verticalScrollPolicy="off"
@@ -35,11 +35,17 @@
 
 			private static const _groups:Dictionary = new Dictionary(true);
 			
+			/**
+			 * This is the label component that will appear to the left of the other children of the Indent component.
+			 */
 			public const labelComponent:Label = new Label();
 			
 			private var _group:* = undefined;
 			private var _grouped:Boolean = true;
     	
+			/**
+			 * @inheritDoc
+			 */
     		override protected function createChildren():void
     		{
     			super.createChildren();
@@ -48,23 +54,38 @@
     			addChildAt(labelComponent, 0);
     		}
 			
+			/**
+			 * @private
+			 */
 			private function handleAddedToStage():void
 			{
+				// If there is no group set and grouped was not set to false,
+				// group this Indent componet with others having the same parent.
 				if (_grouped && parent && _group === undefined)
 					setGroup(parent);
 			}
 			
+			/**
+			 * Set this to false if this Indent component should not be grouped with others having the same parent.
+			 * @default true
+			 */
 			public function set grouped(value:Boolean):void
 			{
 				_grouped = value;
 				handleAddedToStage();
 			}
 			
+			/**
+			 * Set this to an IndentGroup to coordinate the indentation of several Indent components.
+			 */
 			public function set group(indentGroup:IndentGroup):void
 			{
 				setGroup(indentGroup);
 			}
 			
+			/**
+			 * @private
+			 */
 			private function setGroup(newGroup:Object):void
 			{
 				var array:Array;
@@ -89,10 +110,14 @@
 				invalidateSize();
 			}
 			
+			/**
+			 * @inheritDoc
+			 */
 			override public function validateSize(recursive:Boolean=false):void
 			{
 				if (_group)
 				{
+					// find the maximum measuredWidth of all grouped Indent components
 					var array:Array = _groups[_group] as Array;
 					var max:Number = 0;
 					var item:Indent;
@@ -100,17 +125,25 @@
 						max = Math.max(max, item.labelComponent.measuredWidth);
 					for each (item in array)
 						item.labelComponent.width = max;
+					
+					if (_group is IndentGroup)
+						(_group as IndentGroup).measuredIndent = max;
 				}
 				super.validateSize(recursive);
 			}
-			
+
+			/**
+			 * This controls the textAlign style of the label component.
+			 */
 			public function set labelTextAlign(value:String):void
 			{
 				labelComponent.setStyle("textAlign", value);
 			}
 			
-    		[Bindable]
-    		public function get indent():int
+			/**
+			 * Set this to ungroup the Indent component and specify an explicit indentation.
+			 */
+    		[Bindable] public function get indent():int
 			{
 				return labelComponent.width;
 			}
@@ -120,6 +153,9 @@
 				labelComponent.width = value;
 			}
     		
+			/**
+			 * This is the label that will appear to the left of the other children of the Indent component.
+			 */
     		override public function get label():String { return labelComponent.text; }
     		override public function set label(value:String):void { labelComponent.text = value; }
     	]]>
