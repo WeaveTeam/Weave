@@ -24,11 +24,12 @@
 		 width="100%"
 		 creationComplete="getSchemas()"
 		 xmlns:ui="weave.ui.*">
-	<ui:Indent indent="{indent}" label="{Strings.sql_schema}">
+	<ui:IndentGroup id="indentGroup"/>
+	<ui:Indent group="{indentGroup}" label="{Strings.sql_schema}">
 		<ui:CustomComboBox id="schemaInput" enabled="{schemaInput.dataProvider.length > 0}" prompt="Select a schema..." toolTip="{Strings.tip_sql_schema_dropdown}" text="{activeSchema}" dataProvider="{schemas}" change="activeSchema = schemaInput.text;"/>
 		<mx:Button id="schemasRefreshButton" label="Refresh" click="getSchemas()" toolTip="{Strings.tip_refresh_schemas}"/>
 	</ui:Indent>
-	<ui:Indent id="tableControls" indent="{indent}" label="{Strings.sql_table}">
+	<ui:Indent id="tableControls" group="{indentGroup}" label="{Strings.sql_table}">
 		<ui:CustomComboBox id="_tableCombo" enabled="{_tableCombo.dataProvider.length > 0}" prompt="Select a table..." text="{activeTable}" dataProvider="{tables}" change="activeTable = _tableCombo.text;" toolTip="{Strings.tip_sql_table_dropdown}"/>
 		<mx:Button id="tablesRefreshButton" label="Refresh" enabled="{schemaInput.selectedIndex >= 0 &amp;&amp; !refreshingTables}" click="getTables()" toolTip="{Strings.tip_refresh_tables}"/>
 		<ui:TextInputWithPrompt id="_tableInput" editable="true" text="{activeTable}" prompt="Enter a table name" change="activeTable = _tableInput.text;"/>
@@ -55,7 +56,6 @@
 			[Bindable] public var tables:Array = [];
 			[Bindable] public var columns:Array = [];
 			
-			[Bindable] public var indent:int = 128;
 			[Bindable] public var tableOverwriteCheckVisible:Boolean = true;
 			[Bindable] public var showTableCombo:Boolean = true;
 

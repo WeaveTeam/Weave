@@ -27,36 +27,37 @@
 			label="Import shape data"
 			creationComplete="handleCreationComplete()"
 			>
+	<ui:IndentGroup id="indentGroup"/>
 	<mx:VBox width="100%" height="100%">
-		<ui:Indent width="100%" label="Load Shape files" indent="{indent}">
+		<ui:Indent width="100%" label="Load Shape files" group="{indentGroup}">
 			<mx:TextInput id="shpFileNameInput" enabled="true"/>
 			<mx:Button label="Upload ..." click="browseAndUploadShapeFiles();"/>
 			<mx:Button label="Choose File on Server" click="openServerBrowser();" />
 			<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files uploaded' : ''}"/>
 		</ui:Indent>
-		<ui:Indent id="dbfColumnNames" enabled="false" label="DBF Key column names" indent="{indent}">
+		<ui:Indent id="dbfColumnNames" enabled="false" label="DBF Key column names" group="{indentGroup}">
 			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{AdminInterface.instance.dbfKeyColumns}" editable="true"/>
 			<ui:HelpComponent content="Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file."/>
 		</ui:Indent>
-		<admin:SQLTableSelectorDialog indent="{indent}" id="tableSelector" enabled="false" showTableCombo="false" creationComplete="tableSelector.tableControls.label = 'SQL Table Prefix';" activeTable="{shpFileNameInput.text}" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
+		<admin:SQLTableSelectorDialog indentGroup="{indentGroup}" id="tableSelector" enabled="false" showTableCombo="false" creationComplete="tableSelector.tableControls.label = 'SQL Table Prefix';" activeTable="{shpFileNameInput.text}" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
 	</mx:VBox>
 	<mx:VBox width="100%" height="100%">
-		<ui:TextBox indent="{indent}" label="Null flag values" enabled="false" id="nullFlagInput"
+		<ui:TextBox label="Null flag values" enabled="false" id="nullFlagInput" group="{indentGroup}"
 				toolTip="Specify flag values to treat as missing data, separated by commas"/>
 		<mx:HBox id="geoCol" enabled="false">
-			<mx:TextArea width="{indent}" borderThickness="0" editable="false" selectable="false" wordWrap="true" text="GeometryCollection &amp; DataTable name" textAlign="right"/>
+			<mx:TextArea width="{indentGroup.measuredIndent}" borderThickness="0" editable="false" selectable="false" wordWrap="true" text="GeometryCollection &amp; DataTable name" textAlign="right"/>
 			<mx:HBox verticalAlign="middle">
 				<mx:TextInput id="geometryCollectionNameInput" text="{tableSelector.activeTable}"/>
 				<mx:CheckBox label="Overwrite" id="configOverwriteCheck" selected="false"/>
 				<ui:HelpComponent content="Both a GeometryCollection and DataTable entry will be created in sqlconfig.xml having the name specified here."/>
 			</mx:HBox>
 		</mx:HBox>
-		<ui:Indent id="keyType" enabled="false" label="Key type" indent="{indent}">
+		<ui:Indent id="keyType" enabled="false" label="Key type" group="{indentGroup}">
 			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.tip_shp_key_type_dropdown}"/>
 			<mx:Button label="Refresh" click="AdminInterface.instance.getKeyTypes()"/>
 			<ui:HelpComponent content="{helpForKeyType}"/>
 		</ui:Indent>
-		<ui:Indent id="projectionCode" enabled="false" label="Projection SRS" indent="{indent}">
+		<ui:Indent id="projectionCode" enabled="false" label="Projection SRS" group="{indentGroup}">
 			<mx:TextInput id="srsProjectionTxtInput" text="EPSG:4326"/>  <!-- is it a good idea to use the standard lat/long as the default? -->
 			<mx:Button id="srsProjectionValidateBtn" label="Validate" click="validateProjectionSRS()"/>
 		</ui:Indent>
@@ -76,7 +77,7 @@
 			import weave.ui.admin.ServerCSVFileViewer;
 			import weave.ui.admin.ServerSHPFileViewer;
 			
-			[Bindable] private var indent:int = 140;
+			private static const paddingIndent:int = 20;
 			
 			private function handleCreationComplete():void
 			{

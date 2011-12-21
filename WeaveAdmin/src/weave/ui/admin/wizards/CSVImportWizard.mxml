@@ -29,54 +29,50 @@
 			>
 	<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
 	<mx:VBox id="csvUploadPage" label="Import a CSV file to SQL">
-		<mx:HBox>
-			<mx:Label text="CSV file" width="{indent}" textAlign="right" />
+		<ui:Indent group="{tableSelector.indentGroup}" label="CSV file" >
 			<!-- csvFileNameInput editable because user may want to type the name of a file already on the server -->
 			<ui:TextInputWithPrompt id="csvFileNameInput" prompt="Select a CSV file." change="enableAllWidgets(csvFileNameInput.text.length > 0)" editable="true"/>
 			<mx:Button label="Upload File" click="browseAndUpload();"/>
 			<mx:Button label="Choose File on Server" click="openServerBrowser();" />
 			<mx:Text text="{fileStatus.text}" id="fileStatus"/>
-		</mx:HBox>
+		</ui:Indent>
 		<mx:VBox visible="{csvFileNameInput.asTextInput().text.length > 0}">
-			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}" indent="{indent}"/>
+			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
 		</mx:VBox>
 	</mx:VBox>
 	<mx:VBox id="optionalSettingsPage" label="Configure data for Weave">
-		<mx:HBox>
-			<mx:Label text="{Strings.table_display_name}"/>
+		<ui:Indent label="{Strings.table_display_name}">
 			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="Enter a table name" text="{tableSelector.activeTable}" toolTip="{Strings.tip_csv_table_display_name}"/>
 			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false"/>
-		</mx:HBox>
-		<mx:HBox toolTip="Specify flag values to treat as missing data, separated by commas">
-			<mx:Label text="Null flag values"/>
+		</ui:Indent>
+		<ui:Indent label="Null flag values" toolTip="Specify flag values to treat as missing data, separated by commas">
 			<mx:TextInput id="nullFlagInput" editable="true"/>
-		</mx:HBox>
+		</ui:Indent>
 		<mx:CheckBox id="generateKeyColumn" selected="true"
 					 label="Generate a new primary key column"
 					 toolTip="Checking this box will generate a new unique key for each row."/>
-		<ui:Indent>
-			<mx:VBox visible="{!generateKeyColumn.selected}">
-				<mx:HBox>
-					<mx:Label text="Key column"/>
-					<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{Strings.tip_key_column_dropdown}"/><!-- editable because user may have typed in a file name manually -->
-				</mx:HBox>
-				<mx:Label text="What do these keys correspond to?"/>
-				<ui:Indent>
-					<admin:GeometryCollectionDialog id="geometrySelector" keyType="{dataTableNameInput.asTextInput().text}"/>
-				</ui:Indent>
-				<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
-				<ui:Indent visible="{secondaryKeyColumnCheckBox.selected}" includeInLayout="{secondaryKeyColumnCheckBox.selected}">
-					<mx:HBox>
-						<mx:Label text="Secondary key column"/>
-						<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />
-					</mx:HBox>
-				</ui:Indent>
-				<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
-				<ui:Indent>
-					<ui:TextBox visible="{generateFilterColumns.selected}" label="Columns to use as filters" id="filterColumnsInput"/>
-				</ui:Indent>
-			</mx:VBox>
-		</ui:Indent>
+		<mx:VBox paddingLeft="{paddingIndent}" visible="{!generateKeyColumn.selected}">
+			<ui:Indent label="Key column" grouped="false">
+				<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{Strings.tip_key_column_dropdown}"/><!-- editable because user may have typed in a file name manually -->
+			</ui:Indent>
+			
+			<mx:Label text="What do these keys correspond to?"/>
+			<admin:GeometryCollectionDialog id="geometrySelector"
+											paddingLeft="{paddingIndent}"
+											keyType="{dataTableNameInput.asTextInput().text}"/>
+			
+			<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
+			<ui:Indent label="Secondary key column"
+					   paddingLeft="{paddingIndent}"
+					   grouped="false"
+					   visible="{secondaryKeyColumnCheckBox.selected}"
+					   includeInLayout="{secondaryKeyColumnCheckBox.selected}">
+				<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />
+			</ui:Indent>
+			
+			<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
+			<ui:TextBox paddingLeft="{paddingIndent}" visible="{generateFilterColumns.selected}" label="Columns to use as filters" id="filterColumnsInput"/>
+		</mx:VBox>
 	</mx:VBox>
 	<mx:VBox id="dublinCorePage" width="100%" label="Specify Dublin Core metadata">
 		<mx:TextArea width="100%" borderThickness="0" editable="false" wordWrap="true" text="Please fill in this form to add basic Dublin Core metadata elements to the newly imported data set. You can add more elements later in the metadata tab of the data table view."/>
@@ -106,7 +102,7 @@
 			import weave.services.WeaveAdminService;
 			import weave.ui.admin.ServerCSVFileViewer;
 			
-			private static const indent:int = 128;
+			private static const paddingIndent:int = 20;
 			
 			private var _csvFileReference:FileReference = new FileReference();
 			private var _serverFileBrowser:ServerCSVFileViewer = null;

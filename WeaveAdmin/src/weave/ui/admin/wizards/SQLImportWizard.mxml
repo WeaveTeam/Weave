@@ -31,30 +31,33 @@
 		<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
 		<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="true" tableOverwriteCheckVisible="false"/>
 		<mx:VBox visible="{Boolean(tableSelector.activeTable)}">
-			<mx:HBox>
-				<mx:Label textAlign="right" width="{tableSelector.indent}" text="{Strings.table_display_name}"/>
+			<ui:Indent group="{tableSelector.indentGroup}" label="{Strings.table_display_name}">
 				<mx:TextInput id="tableNameInput" text="{tableSelector.activeTable}" toolTip="{Strings.tip_table_display_name}"/>
 				<mx:CheckBox label="Overwrite" id="tableNameOverwriteCheck" selected="false"/>
-			</mx:HBox>
-			<ui:Indent indent="{tableSelector.indent}" label="{Strings.key_column_name}">
+			</ui:Indent>
+			<ui:Indent group="{tableSelector.indentGroup}" label="{Strings.key_column_name}">
 				<ui:CustomComboBox id="keyColumnComboBox" prompt="Select a column..." dataProvider="{tableSelector.columns}" toolTip="{Strings.tip_key_column_dropdown}"/>
 			</ui:Indent>
 			<mx:VBox visible="{keyColumnComboBox.selectedItem}">
 				<mx:Label text="What do these keys correspond to?"/>
-				<ui:Indent>
-					<admin:GeometryCollectionDialog id="geometrySelector" keyType="{tableSelector.activeTable}"/>
-				</ui:Indent>
+				<admin:GeometryCollectionDialog paddingLeft="{paddingIndent}" id="geometrySelector" keyType="{tableSelector.activeTable}"/>
+				
 				<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
-				<ui:Indent visible="{secondaryKeyColumnCheckBox.selected}" includeInLayout="{secondaryKeyColumnCheckBox.selected}">
-					<mx:HBox>
-						<mx:Label text="Secondary key column"/>
-						<ui:CustomComboBox id="sqlSecondaryKeyColumnCombo" dataProvider="{tableSelector.columns}" toolTip="Select a secondary key column for use with the Dimension Slider"/>
-					</mx:HBox>
+				<ui:Indent paddingLeft="{paddingIndent}"
+						   grouped="false"
+						   visible="{secondaryKeyColumnCheckBox.selected}"
+						   includeInLayout="{secondaryKeyColumnCheckBox.selected}"
+						   label="Secondary key column">
+					<ui:CustomComboBox id="sqlSecondaryKeyColumnCombo" dataProvider="{tableSelector.columns}" toolTip="Select a secondary key column for use with the Dimension Slider"/>
 				</ui:Indent>
+				
 				<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
-				<ui:Indent visible="{generateFilterColumns.selected}">
-					<ui:TextBox label="Columns to use as filters" id="filterColumnsInput" text="{WeaveAPI.CSVParser.createCSVFromArrays([tableSelector.columns])}"/>
-				</ui:Indent>
+				<ui:TextBox visible="{generateFilterColumns.selected}"
+							paddingLeft="{paddingIndent}"
+							grouped="false"
+							label="Columns to use as filters"
+							id="filterColumnsInput"
+							text="{WeaveAPI.CSVParser.createCSVFromArrays([tableSelector.columns])}"/>
 			</mx:VBox>
 		</mx:VBox>
 	</mx:VBox>
@@ -72,6 +75,8 @@
 			import weave.data.CSVParser;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
+			
+			private static const paddingIndent:int = 20;
 			
 			override protected function childrenCreated():void
 			{
