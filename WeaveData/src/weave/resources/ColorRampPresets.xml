@@ -34,7 +34,7 @@
 	<colorRamp name="Twilight" tags="OIC,aesthetic">0x2F2521,0xC8ACFE,0xFFFFFF,0xE4FF00</colorRamp>
 	<colorRamp name="Rosebud" tags="OIC,aesthetic">0x69594E,0xADAF48,0xFEF0FE,0xF3008B,0xCD001E</colorRamp>
 	<colorRamp name="Morning Glory" tags="OIC,aesthetic">0x590653,0xFFC1FF,0xFFFF00,0x5D00FF,0x3C00D9</colorRamp>
-	<colorRamp name="Cloudy Night" tags="OIC,aesthetic">0x070411,0x6733AE,0x5C00AF,0xFFFFFF,0xFF6E00</colorRamp>
+	<colorRamp name="Cloudy Night" tags="OIC,aesthetic">0x070411,0x6733AE,0xFFFFFF,0xFF6E00</colorRamp>
 	<colorRamp name="Vintage Map" tags="OIC,aesthetic">0xFAF9E6,0xFBF672,0xFFD99F,0xB4C352,0x92E5CA,0xFD9DAB</colorRamp>
 	<colorRamp name="Doppler Radar" tags="OIC,aesthetic,qualitative">0x04E9E7,0x009DF4,0x0201F4,0x01FC01,0x00C400,0x008C00,0x0FDF801,0xF99200,0xFD0000,0xBC0000,0xBC0000,0xF800FD,0x9854C6</colorRamp>
 
