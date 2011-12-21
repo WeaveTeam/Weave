@@ -19,9 +19,14 @@
 
 package weave.primitives
 {
+	import flash.display.Graphics;
+	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
 	
+	import mx.containers.Canvas;
+	
 	import weave.api.WeaveAPI;
+	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.core.LinkableXML;
@@ -188,6 +193,36 @@ package weave.primitives
 
 			var interpolationValue:Number = (normValue - leftNode.position) / (rightNode.position - leftNode.position);
 			return StandardLib.interpolateColor(interpolationValue, leftNode.color, rightNode.color);
+		}
+		
+		/**
+		 * This will draw the color ramp onto a canvas using the full width and height.
+		 * @param canvas
+		 * @param vertical
+		 */
+		public function draw(canvas:Canvas, vertical:Boolean):void
+		{
+			var g:Graphics = canvas.graphics;
+			g.clear();
+			var n:int = vertical ? canvas.height : canvas.width;
+			var max:int = n - 1;
+			for (var i:int = 0; i < n; i++)
+			{
+				var color:Number = getColorFromNorm(i / max);
+				if (isNaN(color))
+					continue;
+				g.lineStyle(1, color, 1, true);
+				if (vertical)
+				{
+					g.moveTo(0, i);
+					g.lineTo(canvas.width - 1, i);
+				}
+				else
+				{
+					g.moveTo(i, 0);
+					g.lineTo(i, canvas.height - 1);
+				}
+			}
 		}
 
 		/************************

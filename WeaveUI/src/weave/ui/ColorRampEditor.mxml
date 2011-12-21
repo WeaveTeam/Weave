@@ -33,20 +33,20 @@
 	enabled="{colorRamp != null}"
 	>
 	<mx:HBox height="100%" width="100%">
-		<mx:VBox width="100%" height="100%">
+		<mx:VBox width="100%" height="100%" id="listVBox">
 			<ui:ColorRampList id="colorRampList" colorRamp="{colorRamp}"/>
 			<ui:Indent label="Filter:">
 				<ui:CustomComboBox id="filterCombo" change="(colorRampList.dataProvider as ICollectionView).refresh();"/>
 			</ui:Indent>
 		</mx:VBox>
-		<mx:VBox width="200" height="100%">
+		<mx:VBox height="100%">
 			<mx:Label text="Customize" fontWeight="bold"/>
-			<mx:HBox>
-				<mx:Canvas id="colorRampCanvas" resize="drawColorRamp()"
+			<mx:HBox height="100%" horizontalGap="0">
+				<mx:Canvas id="colorRampCanvas" resize="if (colorRamp) colorRamp.draw(colorRampCanvas, true)"
 						   borderStyle="solid" borderColor="0x000000"
 						   width="20" height="100%"/>
 				<mx:List id="colorsList"
-						 height="{colorsList.dataProvider.length * 30}"
+						 height="100%"
 						 borderStyle="none"
 						 dragEnabled="true"
 						 dropEnabled="true"
@@ -55,9 +55,9 @@
 						 >
 					<mx:itemRenderer>
 						<mx:Component>
-							<mx:HBox paddingBottom="2" paddingLeft="2" paddingRight="2" paddingTop="2" verticalAlign="middle">
+							<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off" paddingTop="0" paddingBottom="0" paddingLeft="8" paddingRight="24">
 								<mx:ColorPicker id="cPicker" showTextField="true"/>
-								<ui:TextInputWithPrompt toolTip="Please note to add 0x before the hex value" prompt="0x######" id="cText" width="75"/>
+								<ui:TextInputWithPrompt borderStyle="none" editable="false" id="cText" backgroundAlpha="0" width="64"/>
 								<mx:Image source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true"
 										   click="outerDocument.removeColorItem();"/>
 								<mx:Script>
@@ -201,23 +201,7 @@
 					dp.addItem(item);
 				}
 				
-				drawColorRamp();
-			}
-			
-			private function drawColorRamp():void
-			{
-				if (!_colorRamp)
-					return;
-				
-				var g:Graphics = colorRampCanvas.graphics;
-				g.clear();
-				for (var i:int = 0; i < colorRampCanvas.height; i++)
-				{
-					var color:Number = _colorRamp.getColorFromNorm(i / colorRampCanvas.height);
-					g.lineStyle(1, color, 1, true);
-					g.moveTo(0, i);
-					g.lineTo(colorRampCanvas.width - 1, i);
-				}
+				colorRamp.draw(colorRampCanvas, true);
 			}
 			
 			public function updateNewColorScale():void

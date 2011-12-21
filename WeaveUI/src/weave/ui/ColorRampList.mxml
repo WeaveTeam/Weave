@@ -47,8 +47,8 @@
 							   width="100%">
 						<mx:Canvas id="colorRampCanvas"
 								   borderStyle="solid" borderColor="0x000000" 
-								   width="75" height="15"/>
-						<mx:Label text="{label}"/>
+								   height="18" width="50%"/>
+						<mx:Label text="{label}" width="50%"/>
 						
 						<mx:Script>
 							<![CDATA[
@@ -59,30 +59,20 @@
 								override public function set data(value:Object):void
 								{
 									var xml:XML = value as XML;
+									
 									super.data = xml;
-									try
-									{
-										label = xml.@name;
-										colorRamp.value = xml;
-										toolTip = xml.@name + '\nTags: ' + xml.@tags;
-										
-										var numColorDivisions:int = colorRampCanvas.width/2;
-										for (var i:int = 0; i < numColorDivisions; i++)
-										{
-											var normVal:Number = i / numColorDivisions;
-											
-											colorRampCanvas.graphics.beginFill( colorRamp.getColorFromNorm( normVal ) );
-											colorRampCanvas.graphics.drawRect(i*colorRampCanvas.width/numColorDivisions,0, 
-												colorRampCanvas.width/numColorDivisions, colorRampCanvas.height);
-										}
-										errorString = '';
-									}
-									catch (error:Error)
-									{
-										label = "Error";
-										toolTip = '';
-										errorString = error.message;
-									}
+									
+									if (!xml)
+										return;
+									
+									label = xml.@name;
+									colorRamp.value = xml;
+									toolTip = xml.@name + '\nTags: ' + xml.@tags;
+								}
+								override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+								{
+									super.updateDisplayList(unscaledWidth, unscaledHeight);
+									colorRamp.draw(colorRampCanvas, false);
 								}
 							]]>
 						</mx:Script>
