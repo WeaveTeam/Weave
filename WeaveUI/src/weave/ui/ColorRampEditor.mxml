@@ -45,13 +45,26 @@
 				<mx:Canvas id="colorRampCanvas" resize="drawColorRamp()"
 						   borderStyle="solid" borderColor="0x000000"
 						   width="20" height="100%"/>
-				<mx:List id="colorsList" height="{colorsList.dataProvider.length * 30}" borderStyle="none">
+				<mx:List id="colorsList"
+						 height="{colorsList.dataProvider.length * 30}"
+						 borderStyle="none"
+						 dragEnabled="true"
+						 dropEnabled="true"
+						 dragMoveEnabled="true"
+						 dragComplete="updateNewColorScale()"
+						 >
 					<mx:itemRenderer>
 						<mx:Component>
-							<mx:HBox paddingBottom="2" paddingLeft="2" paddingRight="2" paddingTop="2">
+							<mx:HBox paddingBottom="2" paddingLeft="2" paddingRight="2" paddingTop="2" verticalAlign="middle">
+								<mx:ColorPicker id="cPicker" showTextField="true"/>
+								<ui:TextInputWithPrompt toolTip="Please note to add 0x before the hex value" prompt="0x######" id="cText" width="75"/>
+								<mx:Image source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true"
+										   click="outerDocument.removeColorItem();"/>
 								<mx:Script>
 									<![CDATA[
+										import mx.binding.utils.BindingUtils;
 										import mx.collections.ArrayCollection;
+										import mx.events.DragEvent;
 										
 										import weave.compiler.StandardLib;
 										
@@ -59,41 +72,42 @@
 										{
 											super.childrenCreated();
 											
-											cText.addEventListener(Event.CHANGE, handleColorTextChange);
-											cText.text = '0x'+ StandardLib.numberToBase(cPicker.selectedColor, 16, 6).toUpperCase();
+											cPicker.addEventListener(Event.CHANGE, handleColorPicked);
+											cText.addEventListener(Event.CHANGE, handleColorPicked);
+											outerDocument.colorsList.addEventListener(DragEvent.DRAG_START, handleDragStart);
 										}
+										
 										override public function set data(value:Object):void
 										{
 											super.data = value;
 											
-											cPicker.selectedColor = uint(data.color);
-											cText.text = data.color;
+											if (data)
+											{
+												var number:Number = StandardLib.asNumber(data.color);
+												var string:String = outerDocument.colorToString(number);
+												
+												cPicker.selectedColor = number;
+												cText.text = string;
+											}
 										}
-										private function handleColorPickerChange():void
+										
+										private function handleColorPicked(event:Event):void
 										{
-											cText.text = '0x'+ StandardLib.numberToBase(cPicker.selectedColor, 16, 6).toUpperCase();
-											var item:Object = (outerDocument.colorsList.dataProvider as ArrayCollection)
-																		.getItemAt(outerDocument.colorsList.selectedIndex);
-											item.color = cText.text; 
-											
+											if (event.currentTarget == cPicker)
+												data.color = outerDocument.colorToString(cPicker.selectedColor);
+											else
+												data.color = outerDocument.colorToString(cText.text);
 											outerDocument.updateNewColorScale();
 										}
 										
-										private function handleColorTextChange():void
+										private function handleDragStart(e:Event):void
 										{
-											cPicker.selectedColor = uint(cText.text);
-											var item:Object = (outerDocument.colorsList.dataProvider as ArrayCollection)
-												.getItemAt(outerDocument.colorsList.selectedIndex);
-											item.color = cText.text;
-											
-											outerDocument.updateNewColorScale();
+											cPicker.close();
+											cText.setSelection(0, 0);
+											setFocus(); // stops selecting text
 										}
 									]]>
 								</mx:Script>
-								<mx:ColorPicker id="cPicker" change="handleColorPickerChange()" showTextField="true"/>
-								<ui:TextInputWithPrompt toolTip="Please note to add 0x before the hex value" prompt="0x######" id="cText" width="75"/>
-								<mx:Image  source="@Embed(source='/weave/resources/images/cancel_small.png')" buttonMode="true" 
-										   click="outerDocument.removeColorItem();"/>
 							</mx:HBox>
 						</mx:Component>
 					</mx:itemRenderer>
@@ -109,6 +123,7 @@
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.events.DragEvent;
 			import mx.collections.ICollectionView;
 			import mx.collections.IList;
 			import mx.collections.ListCollectionView;
@@ -165,19 +180,24 @@
 				updateNewColorScale();
 			}
 			
+			internal function colorToString(color:*):String
+			{
+				color = StandardLib.asNumber(color);
+				return '0x' + StandardLib.numberToBase(color, 16, 6).toUpperCase();
+			}
+			
 			private function handleColorRampChange():void
 			{
 				if (colorsList.dataProvider == null)
 					colorsList.dataProvider = [];
+				
 				var dp:ArrayCollection = (colorsList.dataProvider as ArrayCollection);
-				var colors:Array = colorRamp.getColors();
-				
 				dp.removeAll();
-				
+				var colors:Array = colorRamp.getColors();
 				for (var i:int = 0; i < colors.length; i++)
 				{
 					var item:Object = new Object();
-					item.color = '0x' + StandardLib.numberToBase(colors[i], 16, 6).toUpperCase();
+					item.color = colorToString(colors[i]);
 					dp.addItem(item);
 				}
 				

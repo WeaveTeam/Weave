@@ -141,8 +141,6 @@
 				var xmlList:XMLList = ColorRamp.allColorRamps.colorRamp.(@name == rampXML.@name);
 				if (xmlList.length() > 0)
 					selectedItem = xmlList[0];
-				else
-					selectedItem = null;
 			}
 			
 			private function handleColorRampSelected():void
