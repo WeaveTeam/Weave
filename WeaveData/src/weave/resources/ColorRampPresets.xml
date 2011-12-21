@@ -28,7 +28,7 @@
 	<colorRamp name="High Desert" tags="OIC,aesthetic">0xB47046,0x72616A,0xD1C7C8,0xFFFFFF,0x0028AE</colorRamp>
 	<colorRamp name="Vermilion Cliffs" tags="OIC,aesthetic">0x641300,0xD32500,0xFF7500,0xFFCA7D,0x0000D2,0x0000D2</colorRamp>
 	<colorRamp name="Papaya" tags="OIC,aesthetic">0x101C01,0x3F8751,0x386C00,0xFD9E00,0xEF0000</colorRamp>
-	<colorRamp name="Van Gogh" tags="OIC,aesthetic">0x31415A,0x609DCD,0xE9B400,0xFFFF00,0xBE2E00,0xBE2E00</colorRamp>
+	<colorRamp name="Van Gogh" tags="OIC,aesthetic">0x31415A,0x609DCD,0xFFFF00,0xE9B400,0xBE2E00</colorRamp>
 	<colorRamp name="Outer Banks" tags="OIC,aesthetic">0x674F38,0xD62A00,0xF7AD00,0xFAEABB,0x0096C4</colorRamp>
 	<colorRamp name="Desert Sands" tags="OIC,aesthetic">0xF8E368,0xCEBA00,0x816B00,0xB55800,0x542000,0x242000</colorRamp>
 	<colorRamp name="Moonlight" tags="OIC,aesthetic">0x040505,0x363635,0x0A0528,0xD1F0E4,0xDCC400,0xDCC400</colorRamp>
