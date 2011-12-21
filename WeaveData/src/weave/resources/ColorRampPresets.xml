@@ -36,7 +36,7 @@
 	<colorRamp name="Morning Glory" tags="OIC,aesthetic">0x590653,0xFFC1FF,0xFFFF00,0x5D00FF,0x3C00D9</colorRamp>
 	<colorRamp name="Cloudy Night" tags="OIC,aesthetic">0x070411,0x6733AE,0xFFFFFF,0xFF6E00</colorRamp>
 	<colorRamp name="Vintage Map" tags="OIC,aesthetic">0xFAF9E6,0xFBF672,0xFFD99F,0xB4C352,0x92E5CA,0xFD9DAB</colorRamp>
-	<colorRamp name="Doppler Radar" tags="OIC,aesthetic,qualitative">0x04E9E7,0x009DF4,0x0201F4,0x01FC01,0x00C400,0x008C00,0x0FDF801,0xF99200,0xFD0000,0xBC0000,0xBC0000,0xF800FD,0x9854C6</colorRamp>
+	<colorRamp name="Doppler Radar" tags="OIC,aesthetic,qualitative">0x04E9E7,0x009DF4,0x0201F4,0x01FC01,0x00C400,0x008C00,0x0FDF801,0xF99200,0xFD0000,0xBC0000,0xF800FD,0x9854C6</colorRamp>
 
 	<colorRamp name="Bu Gn" tags="ColorBrewer,basic,sequential,colorblind-safe">0xEDF8FB,0xB2E2E2,0x66C2A4,0x2CA25F,0x006D2C</colorRamp>
 	<colorRamp name="Bu Pu" tags="ColorBrewer,basic,sequential,colorblind-safe">0xEDF8FB,0xB3CDE3,0x8C96C6,0x8856A7,0x810F7C</colorRamp>
