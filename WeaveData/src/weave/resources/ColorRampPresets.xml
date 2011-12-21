@@ -6,7 +6,6 @@
 	<colorRamp name="Blue Green Red" tags="OIC,visualization">0x0000ff,0x00ff00,0xff0000</colorRamp>
 	<colorRamp name="Red Scale" tags="OIC,visualization,single-hue">0x000000,0xff0000,0xffcccc</colorRamp>
 	<colorRamp name="Blue To Cyan" tags="OIC,visualization">0x000000,0x00b7f6,0x0bc4ff,0x68ffff,0xffffff</colorRamp>
-	<colorRamp name="Grey Blue DarkGrey" tags="DHE,visualization">0x808080,0x005B99,0x1a1a1a</colorRamp>
 	<colorRamp name="Blue To Yellow" tags="OIC,visualization">0x0000ff,0xffff00</colorRamp>
 	<colorRamp name="Heated" tags="OIC,visualization,single-hue">0x130000,0x611501,0xb26b01,0xf0902e,0xfbbc06,0xfefefe</colorRamp>
 	<colorRamp name="MCH - Brown" tags="OIC,visualization,single-hue">0x611501,0xb26b01,0xf0902e,0xfbbc06</colorRamp>
