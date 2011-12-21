@@ -27,26 +27,98 @@
 	verticalScrollPolicy="off"
 	creationPolicy="all"
 	width="100%"
+	addedToStage="handleAddedToStage()"
     >
     <mx:Script>
     	<![CDATA[
-			import mx.binding.utils.BindingUtils;
 			import mx.controls.Label;
 
+			private static const _groups:Dictionary = new Dictionary(true);
+			
 			public const labelComponent:Label = new Label();
+			
+			private var _group:* = undefined;
+			private var _grouped:Boolean = true;
     	
     		override protected function createChildren():void
     		{
     			super.createChildren();
 				
+				labelTextAlign = "right";
     			addChildAt(labelComponent, 0);
     		}
 			
-			public function set labelTextAlign(value:String):void { labelComponent.setStyle("textAlign", value); }
+			private function handleAddedToStage():void
+			{
+				if (_grouped && parent && _group === undefined)
+					setGroup(parent);
+			}
+			
+			public function set grouped(value:Boolean):void
+			{
+				_grouped = value;
+				handleAddedToStage();
+			}
+			
+			public function set group(indentGroup:IndentGroup):void
+			{
+				setGroup(indentGroup);
+			}
+			
+			private function setGroup(newGroup:Object):void
+			{
+				var array:Array;
+				// remove from existing group
+				if (_group)
+				{
+					array = _groups[_group] as Array;
+					array.splice(array.indexOf(this), 1);
+				}
+				
+				_group = newGroup;
+				
+				// add to new group
+				if (_group)
+				{
+					array = _groups[_group] as Array;
+					if (!array)
+						_groups[_group] = array = [];
+					array.push(this);
+				}
+				
+				invalidateSize();
+			}
+			
+			override public function validateSize(recursive:Boolean=false):void
+			{
+				if (_group)
+				{
+					var array:Array = _groups[_group] as Array;
+					var max:Number = 0;
+					var item:Indent;
+					for each (item in array)
+						max = Math.max(max, item.labelComponent.measuredWidth);
+					for each (item in array)
+						item.labelComponent.width = max;
+				}
+				super.validateSize(recursive);
+			}
+			
+			public function set labelTextAlign(value:String):void
+			{
+				labelComponent.setStyle("textAlign", value);
+			}
 			
     		[Bindable]
-    		public function get indent():int { return labelComponent.width; }
-    		public function set indent(value:int):void { labelComponent.width = value; }
+    		public function get indent():int
+			{
+				return labelComponent.width;
+			}
+    		public function set indent(value:int):void
+			{
+				group = null; // remove from group
+				labelComponent.width = value;
+			}
     		
     		override public function get label():String { return labelComponent.text; }
     		override public function set label(value:String):void { labelComponent.text = value; }
