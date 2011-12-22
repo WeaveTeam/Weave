@@ -120,16 +120,6 @@ package weave.visualization.layers
 		
 		
 		/**
-		 * Sets the minimum visible zoom level for the layer
-		 */
-		public const minDataAreaPerPixel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-Infinity));
-		
-		/**
-		 * Sets the maximum visible zoom level for the layer
-		 */
-		public const maxDataAreaPerPixel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(Infinity));
-		
-		/**
 		 * The IPlotter object used to draw shapes on this PlotLayer.
 		 */
 		public function getDynamicPlotter():DynamicPlotter { return _dynamicPlotter; }
@@ -198,13 +188,29 @@ package weave.visualization.layers
 		public const layerIsVisible:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		/**
+		 * Sets the minimum scale at which the layer should be rendered. Scale is defined by pixels per data unit.
+		 */
+		public const minVisibleScale:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+		
+		/**
+		 * Sets the maximum scale at which the layer should be rendered. Scale is defined by pixels per data unit.
+		 */
+		public const maxVisibleScale:LinkableNumber = registerLinkableChild(this, new LinkableNumber(Infinity));
+		
+		/**
 		 * This returns true if the layer should be rendered and selectable/probeable
 		 * @return true if the layer should be rendered and selectable/probeable
 		 */		
 		public function shouldBeRendered():Boolean
 		{
-			var value:Number = _dataBounds.getArea() / _screenBounds.getArea();
-			return layerIsVisible.value && StandardLib.numberInRange(value, minDataAreaPerPixel.value, maxDataAreaPerPixel.value);
+			if (!layerIsVisible.value)
+				return false;
+			var min:Number = minVisibleScale.value;
+			var max:Number = maxVisibleScale.value;
+			var xScale:Number = _screenBounds.getXCoverage() / _dataBounds.getXCoverage();
+			var yScale:Number = _screenBounds.getYCoverage() / _dataBounds.getYCoverage();
+			return min <= xScale && xScale < max
+				&& min <= yScale && yScale < max;
 		}
 
 		/**

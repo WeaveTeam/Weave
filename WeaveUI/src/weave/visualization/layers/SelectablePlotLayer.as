@@ -113,10 +113,10 @@ package weave.visualization.layers
 			// Link the min and max zoom levels for the three child PlotLayers
 			linkSessionState(_plotLayer.layerIsVisible,_selectionLayer.layerIsVisible);
 			linkSessionState(_plotLayer.layerIsVisible,_probeLayer.layerIsVisible);
-			linkSessionState(_plotLayer.minDataAreaPerPixel,_selectionLayer.minDataAreaPerPixel);
-			linkSessionState(_plotLayer.minDataAreaPerPixel,_probeLayer.minDataAreaPerPixel);
-			linkSessionState(_plotLayer.maxDataAreaPerPixel,_selectionLayer.maxDataAreaPerPixel);
-			linkSessionState(_plotLayer.maxDataAreaPerPixel,_probeLayer.maxDataAreaPerPixel);
+			linkSessionState(_plotLayer.minVisibleScale,_selectionLayer.minVisibleScale);
+			linkSessionState(_plotLayer.minVisibleScale,_probeLayer.minVisibleScale);
+			linkSessionState(_plotLayer.maxVisibleScale,_selectionLayer.maxVisibleScale);
+			linkSessionState(_plotLayer.maxVisibleScale,_probeLayer.maxVisibleScale);
 			
 			// plotLayer should not have a filter because plotLayer is meant to show everything (filter is applied after plot graphics are generated).
 			// apply a key filter to selection and probe layers so they only show the selected & probed shapes.
@@ -146,8 +146,8 @@ package weave.visualization.layers
 			registerLinkableChild(this, selectionFilter);
 			registerLinkableChild(this, probeFilter);
 			registerLinkableChild(this, layerIsVisible, toggleVisibility);
-			registerLinkableChild(this, minDataAreaPerPixel, toggleVisibility);
-			registerLinkableChild(this, maxDataAreaPerPixel, toggleVisibility);
+			registerLinkableChild(this, minVisibleScale, toggleVisibility);
+			registerLinkableChild(this, maxVisibleScale, toggleVisibility);
 			
 			
 			addEventListener(Event.ENTER_FRAME, handleFrameEnter);
@@ -350,13 +350,13 @@ package weave.visualization.layers
 		{
 			return _plotLayer.layerIsVisible;
 		}
-		public function get minDataAreaPerPixel():LinkableNumber
+		public function get minVisibleScale():LinkableNumber
 		{
-			return _plotLayer.minDataAreaPerPixel;
+			return _plotLayer.minVisibleScale;
 		}
-		public function get maxDataAreaPerPixel():LinkableNumber
+		public function get maxVisibleScale():LinkableNumber
 		{
-			return _plotLayer.maxDataAreaPerPixel;
+			return _plotLayer.maxVisibleScale;
 		}
 		
 		public function getDataBounds(destination:IBounds2D):void
