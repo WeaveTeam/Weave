@@ -119,11 +119,6 @@ package weave.core
 				parentNode.appendChild(arrayNode);
 				return arrayNode;
 			}
-			/* if (obj is CSV || obj is CSVRow)
-			{
-				var childNode:XMLNode = super.encodeValue(obj.toString(), qname, parentNode);
-				return setAttributeAndReplaceNode(childNode, "encoding", CSV_ENCODING);
-			} */
 			try
 			{
 				var str:String = obj as String;
@@ -151,6 +146,9 @@ package weave.core
 				parentNode.appendChild(nullNode);
 				return nullNode;
 			}
+			// avoid SimpleXMLEncoder's "INF" representation of Infinity
+			if (obj === Number.POSITIVE_INFINITY || obj === Number.NEGATIVE_INFINITY)
+				obj = obj.toString();
 			
 			return super.encodeValue(obj, qname, parentNode);
 		}
