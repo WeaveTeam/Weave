@@ -210,6 +210,24 @@ package weave.core
 		}
 		
 		/**
+		 * This function will rename an object by making a copy and removing the original.
+		 * @param oldName The name of an object to replace.
+		 * @param newName The new name to use for the copied object.
+		 * @return The copied object associated with the new name, or the original object if newName is the same as oldName.
+		 */
+		public function renameObject(oldName:String, newName:String):ILinkableObject
+		{
+			if (oldName != newName)
+			{
+				delayCallbacks();
+				requestObjectCopy(newName, getObject(oldName));
+				removeObject(oldName);
+				resumeCallbacks();
+			}
+			return getObject(newName);
+		}
+		
+		/**
 		 * If there is an existing object associated with the specified name, it will be kept if it
 		 * is the specified type, or replaced with a new instance of the specified type if it is not.
 		 * @param name The identifying name of a new or existing object.  If this is null, a new one will be generated.
