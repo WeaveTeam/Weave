@@ -229,7 +229,7 @@ package weave.compiler
 		 */
 		public static function numberInRange(value:Number, min:Number, max:Number):Boolean
 		{
-			if (value < min || value > max)
+			if (value < min || value > max) // a condition will be false if a value is NaN
 				return false;
 			return true;
 		}

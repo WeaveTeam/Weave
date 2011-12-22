@@ -41,6 +41,7 @@ package weave.visualization.layers
 	import weave.api.ui.IPlotLayer;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISpatialIndex;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.SessionManager;
@@ -121,19 +122,12 @@ package weave.visualization.layers
 		/**
 		 * Sets the minimum visible zoom level for the layer
 		 */
-		public const minVisibleZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-5));
+		public const minDataAreaPerPixel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-Infinity));
 		
 		/**
 		 * Sets the maximum visible zoom level for the layer
 		 */
-		public const maxVisibleZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(20));
-		
-		/**
-		 * A flag which is true when the zoom level of the PlotLayerContainer containing
-		 * this SelectablePlotLayer is between minVisibleZoomLevel and maxVisibleZoomLevel.
-		 * Set by PlotLayerContainer.updateZoom().
-		 */
-		public var withinVisibleZoomLevels:Boolean = true;
+		public const maxDataAreaPerPixel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(Infinity));
 		
 		/**
 		 * The IPlotter object used to draw shapes on this PlotLayer.
@@ -202,6 +196,16 @@ package weave.visualization.layers
 		 * Sets the visibility of the layer
 		 */
 		public const layerIsVisible:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		
+		/**
+		 * This returns true if the layer should be rendered and selectable/probeable
+		 * @return true if the layer should be rendered and selectable/probeable
+		 */		
+		public function shouldBeRendered():Boolean
+		{
+			var value:Number = _dataBounds.getArea() / _screenBounds.getArea();
+			return layerIsVisible.value && StandardLib.numberInRange(value, minDataAreaPerPixel.value, maxDataAreaPerPixel.value);
+		}
 
 		/**
 		 * This will be used to filter the graphics that are drawn, but not the records that were used to calculate the graphics.
@@ -317,10 +321,6 @@ package weave.visualization.layers
 			//trace("updateDisplayList",arguments);
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 			
-			// do nothing if not visible
-			if (!layerIsVisible.value)
-				return;
-
 			// detect size change
 			var sizeChanged:Boolean = _prevUnscaledWidth != unscaledWidth || _prevUnscaledHeight != unscaledHeight;
 			_prevUnscaledWidth = unscaledWidth;
@@ -329,7 +329,7 @@ package weave.visualization.layers
 				handleSizeChange();
 
 			//trace(name,'begin updateDisplayList', _dataBounds);
-			var shouldDraw:Boolean = (unscaledWidth * unscaledHeight > 0) && withinVisibleZoomLevels;
+			var shouldDraw:Boolean = (unscaledWidth * unscaledHeight > 0) && shouldBeRendered();
 			//validate spatial index if necessary
 			if (shouldDraw)
 				validateSpatialIndex();

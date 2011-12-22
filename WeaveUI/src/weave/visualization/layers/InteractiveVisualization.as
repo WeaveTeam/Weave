@@ -659,7 +659,7 @@ package weave.visualization.layers
 			{
 				var layer:SelectablePlotLayer = _layers[index] as SelectablePlotLayer;
 				// skip this layer if it is disabled
-				if (!layer.layerIsVisible.value || !layer.layerIsSelectable.value)
+				if (!layer.shouldBeRendered() || !layer.layerIsSelectable.value)
 					continue;
 				// skip this layer if it does not contain lastProbedQKey
 				if (_lastProbedQKey && !layer.plotter.keySet.containsKey(_lastProbedQKey))
@@ -714,7 +714,7 @@ package weave.visualization.layers
 				for (var i:int = 0; i < _layers.length; i++)
 				{
 					var layer:SelectablePlotLayer = _layers[i];
-					if (!layer.layerIsVisible.value || !layer.layerIsSelectable.value)
+					if (!layer.shouldBeRendered() || !layer.layerIsSelectable.value)
 						continue;
 					
 					lastActiveLayer = layer;

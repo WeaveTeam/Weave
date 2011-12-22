@@ -131,10 +131,10 @@ package weave.visualization.layers
 			for each (layer in _layers)
 			{
 				selectablePlotLayer = layer as SelectablePlotLayer;
-				if (selectablePlotLayer && !selectablePlotLayer.layerIsVisible.value)
+				if (selectablePlotLayer && !selectablePlotLayer.shouldBeRendered())
 					continue;
 				plotLayer = layer as PlotLayer;
-				if (plotLayer && !plotLayer.layerIsVisible.value)
+				if (plotLayer && !plotLayer.shouldBeRendered())
 					continue;
 				
 				//trace(layers.getName(layer), (layer.spatialIndex as SpatialIndex).collectiveBounds, selectablePlotLayer && selectablePlotLayer.plotLayer._spatialIndexDirty);
@@ -244,24 +244,8 @@ package weave.visualization.layers
 				selectablePlotLayer = layer as SelectablePlotLayer;
 				if (selectablePlotLayer)
 					selectablePlotLayer.setScreenBounds(tempScreenBounds);
-				
-				if(selectablePlotLayer){
-					// Update layer.withinVisibleZoomLevels by checking if
-					// zoom level is between min and max visible zoom levels of the layer.
-					var min:Number = selectablePlotLayer.minVisibleZoomLevel.value;
-					var max:Number = selectablePlotLayer.maxVisibleZoomLevel.value;
-					var level:Number = getZoomLevel();
-					var within:Boolean = min <= level && level <= max;
-					selectablePlotLayer.withinVisibleZoomLevels = within;
-//					trace("getZoomLevel() = "+getZoomLevel());
-//					trace("min = "+min);
-//					trace("max = "+max);
-//					trace("within = "+within);
-				}
-					
 			}
 			//trace('end updateZoom',ObjectUtil.toString(getSessionState(zoomBounds)));
-		
 			
 			
 			getCallbackCollection(this).resumeCallbacks();

@@ -111,10 +111,12 @@ package weave.visualization.layers
 			registerDisposableChild(this, _probeLayer);
 			
 			// Link the min and max zoom levels for the three child PlotLayers
-			linkSessionState(_plotLayer.minVisibleZoomLevel,_selectionLayer.minVisibleZoomLevel);
-			linkSessionState(_plotLayer.minVisibleZoomLevel,_probeLayer.minVisibleZoomLevel);
-			linkSessionState(_plotLayer.maxVisibleZoomLevel,_selectionLayer.maxVisibleZoomLevel);
-			linkSessionState(_plotLayer.maxVisibleZoomLevel,_probeLayer.maxVisibleZoomLevel);
+			linkSessionState(_plotLayer.layerIsVisible,_selectionLayer.layerIsVisible);
+			linkSessionState(_plotLayer.layerIsVisible,_probeLayer.layerIsVisible);
+			linkSessionState(_plotLayer.minDataAreaPerPixel,_selectionLayer.minDataAreaPerPixel);
+			linkSessionState(_plotLayer.minDataAreaPerPixel,_probeLayer.minDataAreaPerPixel);
+			linkSessionState(_plotLayer.maxDataAreaPerPixel,_selectionLayer.maxDataAreaPerPixel);
+			linkSessionState(_plotLayer.maxDataAreaPerPixel,_probeLayer.maxDataAreaPerPixel);
 			
 			// plotLayer should not have a filter because plotLayer is meant to show everything (filter is applied after plot graphics are generated).
 			// apply a key filter to selection and probe layers so they only show the selected & probed shapes.
@@ -143,8 +145,9 @@ package weave.visualization.layers
 			registerLinkableChild(this, subsetFilter);
 			registerLinkableChild(this, selectionFilter);
 			registerLinkableChild(this, probeFilter);
-			registerLinkableChild(this, minVisibleZoomLevel);
-			registerLinkableChild(this, maxVisibleZoomLevel);
+			registerLinkableChild(this, layerIsVisible, toggleVisibility);
+			registerLinkableChild(this, minDataAreaPerPixel, toggleVisibility);
+			registerLinkableChild(this, maxDataAreaPerPixel, toggleVisibility);
 			
 			
 			addEventListener(Event.ENTER_FRAME, handleFrameEnter);
@@ -343,19 +346,17 @@ package weave.visualization.layers
 		public function get selectionFilter():IDynamicKeyFilter { return _selectionLayer.selectionFilter; }
 		public function get probeFilter():IDynamicKeyFilter { return _probeLayer.selectionFilter; }
 
-		public function get minVisibleZoomLevel():LinkableNumber
+		public function get layerIsVisible():LinkableBoolean
 		{
-			return _plotLayer.minVisibleZoomLevel;
+			return _plotLayer.layerIsVisible;
 		}
-		public function get maxVisibleZoomLevel():LinkableNumber
+		public function get minDataAreaPerPixel():LinkableNumber
 		{
-			return _plotLayer.maxVisibleZoomLevel;
+			return _plotLayer.minDataAreaPerPixel;
 		}
-		public function set withinVisibleZoomLevels(value:Boolean):void
+		public function get maxDataAreaPerPixel():LinkableNumber
 		{
-			_plotLayer.withinVisibleZoomLevels = value;
-			_selectionLayer.withinVisibleZoomLevels = value;
-			_probeLayer.withinVisibleZoomLevels = value;
+			return _plotLayer.maxDataAreaPerPixel;
 		}
 		
 		public function getDataBounds(destination:IBounds2D):void
@@ -370,12 +371,14 @@ package weave.visualization.layers
 		{
 			for each (var layer:IPlotLayer in [_plotLayer, _selectionLayer, _probeLayer])
 				layer.setDataBounds(source);
+			toggleVisibility();
 		}
 		public function setScreenBounds(source:IBounds2D):void
 		{
 			if (!_lockScreenBounds) // hack
 				for each (var layer:IPlotLayer in [_plotLayer, _selectionLayer, _probeLayer])
 					layer.setScreenBounds(source);
+			toggleVisibility();
 		}
 		private var _lockScreenBounds:Boolean = false; // hack
 		public function hack_lockScreenBounds(source:IBounds2D):void // hack
@@ -454,29 +457,37 @@ package weave.visualization.layers
 			showOrHideEmptySelectionText();
 		}
 		
-		public const layerIsVisible:LinkableBoolean =  newLinkableChild(this, LinkableBoolean, handleLayerIsVisibleChange);
 		public const layerIsSelectable:LinkableBoolean =  newLinkableChild(this, LinkableBoolean);
+		
+		/**
+		 * This returns true if the layer should be rendered and selectable/probeable
+		 * @return true if the layer should be rendered and selectable/probeable
+		 */		
+		public function shouldBeRendered():Boolean
+		{
+			return _plotLayer.shouldBeRendered();
+		}
 		
 		/**
 		 * Sets the visibility of the layer 
 		 */
-		private function handleLayerIsVisibleChange():void
+		private function toggleVisibility():void
 		{
-			this.visible = layerIsVisible.value;
-			for each (var layer:PlotLayer in [_plotLayer, _selectionLayer, _probeLayer])
+			this.visible = shouldBeRendered();
+			var array:Array = [_plotLayer, _selectionLayer, _probeLayer];
+			for (var i:int = 0; i < array.length; i++)
 			{
-				try
+				var layer:PlotLayer = array[i] as PlotLayer;
+				if (shouldBeRendered())
 				{
-					if (layerIsVisible.value)
+					if (layer.parent != this)
 						addChild(layer);
-					else
+				}
+				else
+				{
+					if (layer.parent == this)
 						removeChild(layer);
 				}
-				catch (e:Error)
-				{
-					// this error may occur if the children are already added or removed.
-				}
-				layer.layerIsVisible.value = layerIsVisible.value;
 			}
 		}
 	}
