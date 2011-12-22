@@ -251,9 +251,9 @@ package weave.primitives
 			return _allColorRampNames;
 		}
 		
-		public static function getColorRampXMLByName(name:String):XML
+		public static function getColorRampXMLByName(rampName:String):XML
 		{
-			return (allColorRamps.colorRamp.(@name == name)[0] as XML).copy();
+			return (allColorRamps.colorRamp.(@name == rampName)[0] as XML).copy();
 		}
 	}
 	
