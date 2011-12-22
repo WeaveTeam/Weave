@@ -220,8 +220,17 @@ package weave.core
 			if (oldName != newName)
 			{
 				delayCallbacks();
+				
+				// prepare a name order that will put the new name in the same place the old name was
+				var newNameOrder:Array = _orderedNames.concat();
+				var index:int = newNameOrder.indexOf(oldName);
+				if (index >= 0)
+					newNameOrder.splice(index, 1, newName);
+				
 				requestObjectCopy(newName, getObject(oldName));
 				removeObject(oldName);
+				setNameOrder(newNameOrder);
+				
 				resumeCallbacks();
 			}
 			return getObject(newName);
