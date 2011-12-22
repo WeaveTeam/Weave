@@ -55,9 +55,9 @@
 			private var SETTINGS:CollaborationSettingsWindow = null;
 			private var connTimer:Timer = null;
 			
-			[Embed(source="../../resources/images/connect2.png")] private var iCon:Class;
-			[Embed(source="../../resources/images/settings.png")] private var iSet:Class;
-			[Embed(source="../../resources/images/chat.png")]	  private var iChat:Class;
+			[Embed(source="../../resources/images/collab/connect2.png")] private var iCon:Class;
+			[Embed(source="../../resources/images/collab/settings.png")] private var iSet:Class;
+			[Embed(source="../../resources/images/collab/chat.png")]	  private var iChat:Class;
 			
 			protected function creationComplete(event:FlexEvent):void
 			{
