@@ -39,6 +39,7 @@ package weave.api
 	import flash.external.ExternalInterface;
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
+	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.Singleton;
@@ -61,6 +62,20 @@ package weave.api
 	 */
 	public class WeaveAPI
 	{
+		/**
+		 * This returns the top level application as defined by FlexGlobals.topLevelApplication
+		 * or Application.application if FlexGlobals isn't defined.
+		 */
+		public static function get topLevelApplication():Object
+		{
+			//TODO: Application.application is deprecated
+			/*try {
+				return FlexGlobals.topLevelApplication;
+			} catch (e:Error) { }*/
+			
+			return getDefinitionByName('mx.core.Application').application;
+		}
+		
 		/**
 		 * This is the singleton instance of the registered ISessionManager implementation.
 		 */
