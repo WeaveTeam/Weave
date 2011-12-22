@@ -1,13 +1,248 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
-		   width="300" height="300"
-		   borderColor="#FF0000" borderThickness="10" borderStyle="solid"
-		   backgroundAlpha="1" backgroundColor="#FFFFFF"
-		   showEffect="{fadeIn}" hideEffect="{fadeOut}">
+		   width="270" height="315" creationPolicy="all"
+		   backgroundAlpha="0" backgroundColor="#CCCCCC"
+		   showEffect="{fadeIn}" hideEffect="{fadeOut}" xmlns:ui="weave.ui.*">
 	
-	<mx:Button label="Close" />
-	<mx:Fade id="fadeIn" duration="500" 
-			 alphaFrom="0" alphaTo="1" />
-	<mx:Fade id="fadeOut" duration="500"
-			 alphaFrom="1" alphaTo="0" />
+	<mx:Fade id="fadeIn" duration="500" alphaFrom="0" alphaTo="1" />
+	<mx:Fade id="fadeOut" duration="500" alphaFrom="1" alphaTo="0" />
+	
+	<mx:VBox width="100%" height="100%" verticalGap="0" horizontalGap="0">
+		<mx:Canvas id="SettingsWindow" width="270" height="300"
+				   borderColor="#54585E" borderThickness="3" borderStyle="solid"
+				   backgroundAlpha="1" backgroundColor="#CCCCCC">
+			<mx:TabNavigator id="nav" width="100%" height="100%" change="onTabChange(event)"
+							 backgroundAlpha="0" backgroundColor="#DDDDDD">
+				<mx:VBox width="100%" height="100%" label="Connection"
+						 paddingBottom="{padding}" paddingLeft="{padding}"
+						 paddingRight="{padding}" paddingTop="{padding}">
+					<mx:HBox width="100%">
+						<mx:Label text="IP:" width="{labelWidth}" />
+						<mx:TextInput id="serverIP" width="{textAreaWidth}" text="129.63.17.205" change="trimInput(event);"/>
+					</mx:HBox>
+					<mx:HBox width="100%">
+						<mx:Label text="ServerName:" width="{labelWidth}" />
+						<mx:TextInput id="serverName" width="{textAreaWidth}" text="vast-server" change="trimInput(event);"/>
+					</mx:HBox>
+					<mx:HBox width="100%">
+						<mx:Label text="Port:" width="{labelWidth}" />
+						<mx:TextInput id="port" width="{textAreaWidth}" text="5222" change="trimInput(event);"/>
+					</mx:HBox>
+					<mx:HBox width="100%">
+						<mx:Label text="Username:" width="{labelWidth}" />
+						<mx:TextInput id="username" width="{textAreaWidth}" change="trimInput(event);"/>	
+					</mx:HBox>
+					<mx:HBox width="100%">
+						<mx:Label text="Room Name:" width="{labelWidth}" />
+						<mx:TextInput id="roomToJoin" width="{textAreaWidth}" text="Test" change="trimInput(event);"/>
+					</mx:HBox>
+					<mx:HBox width="100%">
+						<mx:Label text="User Color:" width="{labelWidth}" />
+						<mx:ColorPicker id="picker" color="{Math.random() * 0xFFFFFF}" />
+					</mx:HBox>
+					<mx:Spacer height="10" />
+					<ui:Center>
+						<mx:Label text="{warningMsg}" visible="{warningVisible}" color="#FF0000" fontWeight="bold" />
+					</ui:Center>
+					<mx:Spacer height="100%" />
+					<ui:Center>
+						<mx:Button id="saveConnectionButton" label="Save" click="saveSettings(event)" />
+					</ui:Center>
+				</mx:VBox>
+				<mx:VBox width="100%" height="100%" label="Add-ons" enabled="true"
+						 paddingBottom="{padding}" paddingLeft="{padding}"
+						 paddingRight="{padding}" paddingTop="{padding}">
+					<mx:HBox width="100%">
+						<mx:Label text="Microphone:" width="{labelWidth}" />
+						<mx:ComboBox id="micList" width="{textAreaWidth}" change="startMicActivityMonitor()" dataProvider="{Microphone.names}" />
+					</mx:HBox>
+					<mx:HBox width="100%">
+						<mx:Spacer width="{labelWidth}" />
+						<mx:Canvas width="{textAreaWidth}" height="16"
+								   borderColor="#54585E" borderThickness="2" borderStyle="solid">
+							<mx:Canvas id="micActivity" height="16" backgroundColor="#0000FF" />
+						</mx:Canvas>
+					</mx:HBox>
+					<mx:HBox width="100%">
+						<mx:Label text="Camera:" width="{labelWidth}" />
+						<mx:ComboBox id="camList" width="{textAreaWidth}" change="startCamActivityMonitor()" dataProvider="{Camera.names}" />
+					</mx:HBox>
+					<mx:HBox width="100%">
+						<mx:Spacer width="{labelWidth}" />
+						<mx:Canvas width="{textAreaWidth}" height="{textAreaWidth*3/4}"
+								   borderColor="#54585E" borderThickness="3" borderStyle="solid">
+							<mx:UIComponent id="camActivity" width="100%" height="100%" />
+						</mx:Canvas>
+					</mx:HBox>
+					<mx:Spacer height="100%" />
+					<ui:Center>
+						<mx:Button id="saveAddonsButton" label="Save" click="saveAddons(event)" />
+					</ui:Center>
+				</mx:VBox>
+			</mx:TabNavigator>
+		</mx:Canvas>
+		<ui:Center>
+			<mx:Canvas id="anchor" width="{2*anchorSize}" height="{anchorSize}" creationComplete="generateAnchor()" />
+		</ui:Center>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.IndexChangedEvent;
+			import mx.utils.ObjectUtil;
+			import mx.utils.StringUtil;
+			
+			import weave.services.collaboration.CollaborationEvent;
+			
+			private const labelWidth:Number = 80;
+			private const textAreaWidth:Number = 150;
+			private const padding:Number = 10;
+			private const anchorSize:Number = 15;
+
+			private var testMic:Microphone;
+			private var micTimer:Timer;
+			private var testVid:Video;
+			private var testCam:Camera;
+			
+			public var collab_USERNAME:String;
+			public var collab_SERVERIP:String;
+			public var collab_SERVERNAME:String;
+			public var collab_ROOMTOJOIN:String;
+			public var collab_PORT:String;
+			
+			public var collab_MIC:Microphone;
+			public var collab_CAMERA:Camera;
+			
+			[Bindable] public var warningMsg:String = "";
+			[Bindable] public var warningVisible:Boolean = false;
+			
+			private function saveSettings(event:MouseEvent):void
+			{
+				if( username.text == "" || serverIP.text == "" || serverName.text == "" || roomToJoin.text == "" || port.text ==  "" )
+				{
+					Alert.show("Can't leave any field blank","Error");
+					return;
+				}
+				collab_USERNAME = username.text;
+				collab_SERVERIP = serverIP.text;
+				collab_SERVERNAME = serverName.text;
+				collab_ROOMTOJOIN = roomToJoin.text;
+				collab_PORT = port.text;
+				
+				dispatchEvent(new Event(CollaborationEvent.CONN_SETTINGS_SAVED));
+				
+				// Slow down the fadeout to read
+				saveConnectionButton.label = "Settings Saved";
+				fadeOut.duration = 1500;
+				hide();
+			}
+			private function saveAddons(event:MouseEvent):void
+			{
+				collab_MIC = Microphone.getMicrophone(micList.selectedIndex);
+				collab_CAMERA = Camera.getCamera(camList.selectedLabel);
+				
+				dispatchEvent(new Event(CollaborationEvent.ADDON_SETTINGS_SAVED));
+				
+				saveAddonsButton.label = "Settings Saved";
+				fadeOut.duration = 1500;
+				hide();
+			}
+			public function show():void
+			{
+				this.visible = true;
+				saveConnectionButton.label = "Save";
+				saveAddonsButton.label = "Save";
+				fadeOut.duration = 500;
+				
+				if( nav.selectedIndex == 1 ) {
+					startMicActivityMonitor();
+					startCamActivityMonitor();
+				}
+			}
+			public function hide():void
+			{
+				this.visible = false;
+				if( micTimer ) stopMicActivityMonitor();
+				if( testVid )  stopCamActivityMonitor();
+				resetWarning();
+			}
+			private function trimInput(event:Event):void
+			{
+				event.target.text = StringUtil.trim(event.target.text); // hack
+			}
+			private function startMicActivityMonitor():void
+			{
+				if( micTimer ) stopMicActivityMonitor();
+				
+				testMic = Microphone.getMicrophone(micList.selectedIndex);
+				if( !testMic ) return;
+				
+				testMic.setLoopBack(true);
+				testMic.setUseEchoSuppression(true);
+				
+				micTimer = new Timer(200);
+				micTimer.addEventListener(TimerEvent.TIMER, updateWidth);
+				micTimer.start();
+			}
+			private function stopMicActivityMonitor():void
+			{
+				testMic.setLoopBack(false);
+				micTimer.stop();
+				micTimer.removeEventListener(TimerEvent.TIMER, updateWidth);
+			}
+			private function updateWidth(e:TimerEvent):void
+			{
+				var width:Number = ( textAreaWidth / 100 ) * testMic.activityLevel;
+				if( width >= 0 ) micActivity.width = width;
+			}
+			private function startCamActivityMonitor():void
+			{
+				if( testVid && camActivity.contains(testVid) ) stopCamActivityMonitor();
+				
+				testCam = Camera.getCamera(camList.selectedIndex + "");
+				if( !testCam ) return;
+				
+				testVid = new Video(camActivity.width, camActivity.height);
+				testVid.attachCamera(testCam);
+				camActivity.addChild(testVid);
+			}
+			private function stopCamActivityMonitor():void
+			{
+				testVid.attachCamera(null);
+				camActivity.removeChild(testVid);
+				testVid = null;
+			}
+			public function showConnectionWarning(msg:String):void
+			{
+				nav.tabIndex = 0;
+				warningMsg = msg;
+				warningVisible = true;
+			}
+			private function resetWarning():void
+			{
+				warningMsg = "";
+				warningVisible = false;
+			}
+			private function generateAnchor():void
+			{
+				anchor.graphics.beginFill(uint("0x54585E"), 1);
+				anchor.graphics.moveTo(0, 0);
+				anchor.graphics.lineTo(anchor.width/2, anchor.height);
+				anchor.graphics.lineTo(anchor.width, 0);
+				anchor.graphics.lineTo(0, 0);
+			}
+			private function onTabChange(event:IndexChangedEvent):void
+			{
+				if( event.newIndex == 1 ) {		// If the tab is set to Add-ons
+					startMicActivityMonitor();
+					startCamActivityMonitor();
+					resetWarning();
+				} else {
+					stopMicActivityMonitor();
+					stopCamActivityMonitor();
+				}
+			}
+			
+		]]>
+	</mx:Script>
 </mx:Canvas>

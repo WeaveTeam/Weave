@@ -19,6 +19,7 @@
 
 package weave.services.collaboration
 {	
+	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.net.registerClassAlias;
 	import flash.utils.ByteArray;
@@ -229,6 +230,7 @@ package weave.services.collaboration
 			if (room != null)
 				for( var i:int = 0; i < room.length; i++ )
 					userList.addItem( { name: room[i].displayName, role: room[i].role } );
+			dispatchEvent(new Event(CollaborationEvent.USER_LIST_UPDATED));
 		}
 		
 		//After you connect to a server, onLogin will direct you here

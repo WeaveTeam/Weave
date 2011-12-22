@@ -27,15 +27,25 @@ package weave.services.collaboration
 	//that contains it.
 	public class CollaborationEvent extends Event
 	{
-		public static const NICK_ERROR:String = 'collab_nick_error';
-		public static const LOCKED_ERROR:String = 'collab_locked_error';
-
-		public static const LOG:String 		= "collab_log";
-		public static const CONNECT:String 	= "collab_connect";
-		public static const DISCONNECT:String 	= "collab_disconnect";
-		
+		/* EVENTS */
+		public static const LOG:String 						= "collab_log";
+		public static const CONNECT:String 					= "collab_connect";
+		public static const DISCONNECT:String 				= "collab_disconnect";
 		public static const USER_JOINED_CREATE_MOUSE:String = "user_joined_create_mouse";
-		public static const USER_LEFT_REMOVE_MOUSE:String = "user_left_remove_mouse";
+		public static const USER_LEFT_REMOVE_MOUSE:String 	= "user_left_remove_mouse";
+		public static const USER_LIST_UPDATED:String		= "user_list_updated";
+		
+		/* ERROR EVENTS */
+		public static const NICK_ERROR:String 				= 'collab_nick_error';
+		public static const LOCKED_ERROR:String 			= 'collab_locked_error';
+
+		/* UI EVENTS */
+		public static const CONN_SETTINGS_SAVED:String 		= "collab_conn_saved_settings";
+		public static const ADDON_SETTINGS_SAVED:String 	= "collab_addon_settings_saved";
+		
+		/* CHAT EVENTS */
+		public static const SEND_MESSAGE:String 			= "collab_send_message";
+		
 		
 		//generic data
 		public var data:Object;

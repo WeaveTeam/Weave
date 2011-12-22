@@ -1,25 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
-		 width="300" height="300"
-		 borderColor="#FF0000" borderThickness="10" borderStyle="solid"
-		 backgroundAlpha="1" backgroundColor="#FFFFFF"
+		 width="{NaN}" height="{stage.height/2}" 
+		 verticalScrollPolicy="off" horizontalScrollPolicy="off"
+		 borderColor="#54585E" borderThickness="3" borderStyle="solid"
+		 backgroundAlpha="1" backgroundColor="#CCCCCC"
 		 showEffect="{moveIn}" hideEffect="{moveOut}">
-	
-	<mx:Button label="Close" />
-	
+	<mx:Script>
+		<![CDATA[
+			import weave.services.collaboration.CollaborationEvent;
+		]]>
+	</mx:Script>
+		
 	<mx:Move id="moveIn" duration="1000"
 			 xFrom="{xFrom}" xTo="{xTo}"
 			 yFrom="{yFrom}" yTo="{yTo}"/>
 	<mx:Move id="moveOut" duration="1000"
 			 xFrom="{xTo}" xTo="{xFrom}"
 			 yFrom="{yTo}" yTo="{yFrom}"/>
+	
+	<mx:VBox width="100%" height="100%"
+			 paddingBottom="{padding}" paddingLeft="{padding}"
+			 paddingRight="{padding}" paddingTop="{padding}">
+		<mx:HDividedBox width="100%" height="100%">
+			<mx:VBox width="80%" height="100%">
+				<mx:TextArea id="log" width="100%" height="100%" editable="false" />
+				<mx:HBox width="100%">
+					<mx:TextInput id="input" width="100%" enter="dispatchMessageEvent()" />
+					<mx:Button id="button_send" label="Send" click="dispatchMessageEvent()" />
+				</mx:HBox>
+			</mx:VBox>
+			<mx:VDividedBox width="20%" height="100%" minWidth="140">
+				<mx:List width="100%" height="100%" dataProvider="{userList}" labelField="name" />
+				<mx:Canvas id="camChatContainer" width="100%" />
+			</mx:VDividedBox>
+		</mx:HDividedBox>
+	</mx:VBox>
 			 
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ArrayCollection;
+			
 			[Bindable] public var xFrom:Number = 0;
 			[Bindable] public var xTo:Number = 0;
 			[Bindable] public var yFrom:Number = 0;
 			[Bindable] public var yTo:Number = 0;
+			[Bindable] public var userList:ArrayCollection;
+			[Bindable] public var unreadMessages:Number = 0;
+			
+			private var padding:Number = 10;
+			
+			public function logText(txt:String):void
+			{
+				log.text += txt + '\n';
+				callLater(
+					function():void {
+						log.verticalScrollPosition = log.maxVerticalScrollPosition;
+					}
+				);
+				if( !visible ) unreadMessages++;
+			}
+			private function dispatchMessageEvent():void
+			{
+				dispatchEvent(new CollaborationEvent(CollaborationEvent.SEND_MESSAGE, input.text));
+				input.text = "";
+			}
+			
 		]]>
 	</mx:Script>
 </mx:Canvas>

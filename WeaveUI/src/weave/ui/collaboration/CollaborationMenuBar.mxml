@@ -30,13 +30,14 @@
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off">
 	
 	<mx:Spacer width="100%" />
-	<mx:Button id="button_connect" label="Connect" cornerRadius="0" icon="{iCon}" height="100%" />
-	<!--<mx:Button label="Disconnect" cornerRadius="0" icon="{iDis}" height="100%" />-->
-	<mx:Button id="button_settings" click="toggleSettings()" label="Settings" cornerRadius="0" icon="{iSet}" height="100%" />
-	<mx:Button id="button_chat" click="toggleChat()" label="Chat" cornerRadius="0" icon="{iChat}" width="{this.width/2}" height="100%" />
+	<mx:Button id="button_connect"  label="Connect"  cornerRadius="0" icon="{iCon}" height="100%" />
+	<mx:Button id="button_settings" label="Settings" cornerRadius="0" icon="{iSet}" height="100%" />
+	<mx:Button id="button_chat"     label="Chat" 	 cornerRadius="0" icon="{iChat}" width="{this.width/2}" height="100%" />
 	
 	<mx:Script>
 		<![CDATA[
+			import flash.net.sendToURL;
+			
 			import mx.core.Application;
 			import mx.core.IFlexDisplayObject;
 			import mx.events.FlexEvent;
@@ -51,134 +52,239 @@
 			
 			public const collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
 			
-			private var windowChat:CollaborationChatWindow = null;
-			private var windowSettings:CollaborationSettingsWindow = null;
+			private var CHAT:CollaborationChatWindow = null;
+			private var SETTINGS:CollaborationSettingsWindow = null;
+			private var connTimer:Timer = null;
 			
-			[Embed(source="../../resources/images/connect.png")] private var iCon:Class;
+			[Embed(source="../../resources/images/connect2.png")] private var iCon:Class;
 			[Embed(source="../../resources/images/denied.png")]  private var iDis:Class;
 			[Embed(source="../../resources/images/settings.png")]private var iSet:Class;
 			[Embed(source="../../resources/images/chat.png")]	 private var iChat:Class;
-			
-			private var _isChatOpen:Boolean;
 			
 			protected function creationComplete(event:FlexEvent):void
 			{
 				trace("CollaborationMenuBar is opened");
 				button_connect.enabled 	= false;
-				button_chat.enabled 	= true;
+				button_chat.enabled 	= false;
 				button_settings.enabled = true;
-				
+
 				collabService.addEventListener(CollaborationEvent.LOG, handleLogEvent);
 				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
 				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
-//				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
-//				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
+				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
+				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
 //				collabService.addEventListener(CollaborationEvent.USER_JOINED_CREATE_MOUSE, handleCreateUserMouse);
+				collabService.addEventListener(CollaborationEvent.USER_LIST_UPDATED, userListUpdated);
+				
+				button_connect.addEventListener(MouseEvent.CLICK, connect);
+				button_chat.addEventListener(MouseEvent.CLICK, toggleChat);
+				button_settings.addEventListener(MouseEvent.CLICK, toggleSettings);
+				stage.addEventListener(Event.RESIZE, resizeHandler);
 				
 				createWindowChat();
 				createWindowSettings();
+				
+				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, settingsSaved);
+				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
 			}
 			private function onToolbarDestroy():void
 			{
 				trace("CollaborationMenuBar destroyed");
+				
+				if( collabService.isConnected ) disconnect();
+				
 				collabService.removeEventListener(CollaborationEvent.LOG, handleLogEvent);
 				collabService.removeEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
 				collabService.removeEventListener(CollaborationEvent.CONNECT, handleConnect);
 				
+				button_connect.removeEventListener(MouseEvent.CLICK, connect);
+				button_chat.removeEventListener(MouseEvent.CLICK, toggleChat);
+				button_settings.removeEventListener(MouseEvent.CLICK, toggleSettings);
+				stage.removeEventListener(Event.RESIZE, resizeHandler);
+				
 				destroyWindowChat();
 				destroyWindowSettings();
+				
+				if( SETTINGS ) SETTINGS.removeEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, settingsSaved);
+				if( CHAT )     CHAT.removeEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
+			}
+			private function connect(e:MouseEvent):void
+			{
+				button_connect.label = "Connecting...";
+				collabService.connect(SETTINGS.collab_SERVERIP, SETTINGS.collab_SERVERNAME, 
+					int(SETTINGS.collab_PORT), SETTINGS.collab_ROOMTOJOIN, SETTINGS.collab_USERNAME);
+				
+				// Set timeout to 10 seconds
+				connTimer = new Timer(10000);
+				connTimer.addEventListener(TimerEvent.TIMER, serverUnresponsive);
+				connTimer.start();
+			}
+			private function disconnect(e:MouseEvent = null):void
+			{
+				collabService.disconnect();
+			}
+			private function serverUnresponsive(e:TimerEvent):void
+			{
+				connTimer.stop();
+				connTimer.removeEventListener(TimerEvent.TIMER, serverUnresponsive);
+				connTimer = null;
+				
+				updateEnabledSettings();
+				if( !SETTINGS.visible ) toggleSettings();
+				SETTINGS.showConnectionWarning("Server not responding");
 			}
 			private function createWindowSettings():void
 			{
-				windowSettings = PopUpManager.createPopUp(Application.application as Application, CollaborationSettingsWindow) as CollaborationSettingsWindow;
-				windowSettings.visible = true;
+				SETTINGS = PopUpManager.createPopUp(Application.application as Application, CollaborationSettingsWindow) as CollaborationSettingsWindow;
+				SETTINGS.hide();
 				var p:Point = new Point(button_settings.x + button_settings.width/2, button_settings.y);
-				windowSettings.x = localToGlobal(p).x - windowSettings.width/2;
-				windowSettings.y = localToGlobal(p).y + button_settings.height;
+				SETTINGS.x = localToGlobal(p).x - SETTINGS.width/2;
+				SETTINGS.y = localToGlobal(p).y + button_settings.height;
 			}
 			private function createWindowChat():void
 			{
-				windowChat = PopUpManager.createPopUp(Application.application as Application, CollaborationChatWindow) as CollaborationChatWindow;
-				windowChat.visible = true;
+				CHAT = PopUpManager.createPopUp(Application.application as Application, CollaborationChatWindow) as CollaborationChatWindow;
+				CHAT.visible = false;
 				var p:Point = new Point(button_chat.x, button_chat.y);
-				windowChat.xFrom = localToGlobal(p).x;
-				windowChat.xTo   = localToGlobal(p).x;
-				windowChat.yFrom = localToGlobal(p).y + button_chat.height;
-				windowChat.yTo   = localToGlobal(p).y - windowChat.height;
-				windowChat.x     = localToGlobal(p).x;
-				windowChat.y	 = localToGlobal(p).y + button_chat.height;
-				windowChat.width = button_chat.width;
+				CHAT.xFrom = localToGlobal(p).x;
+				CHAT.xTo   = localToGlobal(p).x;
+				CHAT.yFrom = localToGlobal(p).y + button_chat.height;
+				CHAT.yTo   = localToGlobal(p).y - CHAT.height;
+				CHAT.x     = localToGlobal(p).x;
+				CHAT.y	 = localToGlobal(p).y + button_chat.height;
+				CHAT.width = button_chat.width;
 			}
 			private function destroyWindowSettings():void
 			{
-				if( windowSettings ) {
-					PopUpManager.removePopUp(windowSettings);
-					windowSettings = null;
+				if( SETTINGS ) {
+					PopUpManager.removePopUp(SETTINGS);
+					SETTINGS = null;
 				}
 			}
 			private function destroyWindowChat():void
 			{
-				if( windowChat ) {
-					PopUpManager.removePopUp(windowChat);
-					windowChat = null;
+				if( CHAT ) {
+					PopUpManager.removePopUp(CHAT);
+					CHAT = null;
 				}
 			}
-			private function toggleSettings():void
+			private function toggleSettings(e:MouseEvent = null):void
 			{
-				if( windowSettings ) 
-					windowSettings.visible = ( windowSettings.visible ) ? false : true;
+				if( SETTINGS ) 
+					if( SETTINGS.visible )
+						SETTINGS.hide();
+					else
+						SETTINGS.show();
+				
+				setWindowSettingsPos();
 			}
-			private function toggleChat():void
+			private function toggleChat(e:MouseEvent = null):void
 			{
-				if( windowChat )
-					windowChat.visible = ( windowChat.visible ) ? false : true;
+				if( CHAT )
+				{
+					CHAT.visible = ( CHAT.visible ) ? false : true;
+					if( CHAT.visible ) {
+						button_chat.label = "Chat";
+						CHAT.unreadMessages = 0;
+					}
+				}
 			}
-			protected function resizeHandler(event:ResizeEvent):void
+			protected function resizeHandler(event:Event):void
 			{
-				if( windowSettings )
-					setWindowSettingsPos();
-				if( windowChat )
-					setWindowChatPos();
+				if( SETTINGS ) setWindowSettingsPos();
+				if( CHAT )     setWindowChatPos();
 			}
 			
 			private function setWindowSettingsPos():void 
 			{
 				var p:Point = new Point(button_settings.x + button_settings.width/2, button_settings.y);
-				windowSettings.x = localToGlobal(p).x - (windowSettings.width/2);
-				windowSettings.y = localToGlobal(p).y - windowSettings.height - 15;
+				SETTINGS.x = localToGlobal(p).x - (SETTINGS.width/2);
+				if( SETTINGS.visible )
+					SETTINGS.y = localToGlobal(p).y - SETTINGS.height;
+				else
+					SETTINGS.y = localToGlobal(p).y + button_settings.height;
 			}
 			private function setWindowChatPos():void
 			{
 				var p:Point = new Point(button_chat.x, button_chat.y);
-				windowChat.xFrom = localToGlobal(p).x;
-				windowChat.xTo   = localToGlobal(p).x;
-				windowChat.yFrom = localToGlobal(p).y + button_chat.height;
-				windowChat.yTo   = localToGlobal(p).y - windowChat.height;
-				windowChat.x = localToGlobal(p).x;
-				windowChat.y = localToGlobal(p).y - windowChat.height;
-				windowChat.width = button_chat.width;
+				CHAT.x 	 = localToGlobal(p).x;
+				CHAT.xFrom = localToGlobal(p).x;
+				CHAT.xTo   = localToGlobal(p).x;
+				CHAT.width = button_chat.width;
+				CHAT.yFrom = localToGlobal(p).y + button_chat.height;
+				CHAT.yTo   = localToGlobal(p).y - CHAT.height;
+				if( CHAT.visible )
+					CHAT.y = localToGlobal(p).y - CHAT.height;
+				else
+					CHAT.y = localToGlobal(p).y + button_chat.height;
+			}
+			private function settingsSaved(e:Event):void
+			{
+				button_connect.enabled = true;
+			}
+			private function sendMessageEventHandler(e:CollaborationEvent):void
+			{
+				collabService.sendTextMessage( e.getText() );
 			}
 			private function handleLogEvent(e:CollaborationEvent):void
 			{
-				//				log.text += e.getText() + '\n';
-				//				callLater(
-				//					function():void {
-				//						log.verticalScrollPosition = log.maxVerticalScrollPosition;
-				//					}
-				//				);
+				CHAT.logText(e.getText());
+				if( !CHAT.visible ) {
+					button_chat.label = "Chat [" + CHAT.unreadMessages + "]";
+				} else {
+					button_chat.label = "Chat";
+					CHAT.unreadMessages = 0;
+				}
 			}
 			
 			//If the collabService is disconnected for some reason, this ensures the collabUI
 			//resets which buttons are disabled and enabled.
 			private function handleDisconnect( e:CollaborationEvent):void
 			{
-				//				updateEnabledSettings();
+				updateEnabledSettings();
 			}
 			private function handleConnect( e:CollaborationEvent):void
 			{
-				//				updateEnabledSettings();
+				if( connTimer ) {
+					connTimer.stop();
+					connTimer.removeEventListener(TimerEvent.TIMER, serverUnresponsive);
+					connTimer = null;
+				}	
+				updateEnabledSettings();
+				toggleChat();
 			}
-			
+			private function lockedError(e:Event):void
+			{
+				if( !SETTINGS.visible ) toggleSettings();
+				SETTINGS.showConnectionWarning("Server is locked");
+			}
+			private function nickConflictError(e:Event):void
+			{
+				collabService.disconnect();
+				if( !SETTINGS.visible ) toggleSettings();
+				SETTINGS.showConnectionWarning("Username already exists");
+			}
+			private function userListUpdated(e:Event):void
+			{
+				CHAT.userList = collabService.userList;
+			}
+			private function updateEnabledSettings():void
+			{
+				if( collabService.isConnected ) {
+					button_connect.label = "Disconnect";
+					button_connect.removeEventListener(MouseEvent.CLICK, connect);
+					button_connect.addEventListener(MouseEvent.CLICK, disconnect);
+//					button_connect.setStyle("icon", iDis);
+					button_chat.enabled = true;
+				} else {
+					button_connect.label = "Connect";
+					button_connect.removeEventListener(MouseEvent.CLICK, disconnect);
+					button_connect.addEventListener(MouseEvent.CLICK, connect);
+//					button_connect.setStyle("icon", iCon);
+					button_chat.enabled = false;
+					if( CHAT.visible ) toggleChat();
+				}
+			}
 		]]>
 	</mx:Script>
 </mx:HBox>
