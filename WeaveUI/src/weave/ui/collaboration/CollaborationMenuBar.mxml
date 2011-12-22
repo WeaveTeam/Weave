@@ -36,8 +36,7 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import flash.net.sendToURL;
-			
+			import mx.controls.Alert;
 			import mx.core.Application;
 			import mx.core.IFlexDisplayObject;
 			import mx.events.FlexEvent;
@@ -57,9 +56,8 @@
 			private var connTimer:Timer = null;
 			
 			[Embed(source="../../resources/images/connect2.png")] private var iCon:Class;
-			[Embed(source="../../resources/images/denied.png")]  private var iDis:Class;
-			[Embed(source="../../resources/images/settings.png")]private var iSet:Class;
-			[Embed(source="../../resources/images/chat.png")]	 private var iChat:Class;
+			[Embed(source="../../resources/images/settings.png")] private var iSet:Class;
+			[Embed(source="../../resources/images/chat.png")]	  private var iChat:Class;
 			
 			protected function creationComplete(event:FlexEvent):void
 			{
@@ -73,6 +71,7 @@
 				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
 				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
 				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
+				collabService.addEventListener(CollaborationEvent.RECONNECT_ERROR, reconnectError);
 //				collabService.addEventListener(CollaborationEvent.USER_JOINED_CREATE_MOUSE, handleCreateUserMouse);
 				collabService.addEventListener(CollaborationEvent.USER_LIST_UPDATED, userListUpdated);
 				
@@ -84,8 +83,11 @@
 				createWindowChat();
 				createWindowSettings();
 				
-				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, settingsSaved);
+				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, settingsConnSaved);
+				SETTINGS.addEventListener(CollaborationEvent.ADDON_SETTINGS_SAVED, settingsAddonSaved);
 				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
+				
+				resizeHandler();
 			}
 			private function onToolbarDestroy():void
 			{
@@ -105,10 +107,15 @@
 				destroyWindowChat();
 				destroyWindowSettings();
 				
-				if( SETTINGS ) SETTINGS.removeEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, settingsSaved);
-				if( CHAT )     CHAT.removeEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
+				if( SETTINGS ) {
+					SETTINGS.removeEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, settingsConnSaved);
+					SETTINGS.removeEventListener(CollaborationEvent.ADDON_SETTINGS_SAVED, settingsAddonSaved);
+				}
+				if( CHAT ) {
+					CHAT.removeEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
+				}
 			}
-			private function connect(e:MouseEvent):void
+			private function connect(e:MouseEvent = null):void
 			{
 				button_connect.label = "Connecting...";
 				collabService.connect(SETTINGS.collab_SERVERIP, SETTINGS.collab_SERVERNAME, 
@@ -189,7 +196,7 @@
 					}
 				}
 			}
-			protected function resizeHandler(event:Event):void
+			private function resizeHandler(event:Event = null):void
 			{
 				if( SETTINGS ) setWindowSettingsPos();
 				if( CHAT )     setWindowChatPos();
@@ -211,6 +218,7 @@
 				CHAT.xFrom = localToGlobal(p).x;
 				CHAT.xTo   = localToGlobal(p).x;
 				CHAT.width = button_chat.width;
+				CHAT.height= stage.stageHeight/2;
 				CHAT.yFrom = localToGlobal(p).y + button_chat.height;
 				CHAT.yTo   = localToGlobal(p).y - CHAT.height;
 				if( CHAT.visible )
@@ -218,9 +226,13 @@
 				else
 					CHAT.y = localToGlobal(p).y + button_chat.height;
 			}
-			private function settingsSaved(e:Event):void
+			private function settingsConnSaved(e:Event):void
 			{
 				button_connect.enabled = true;
+			}
+			private function settingsAddonSaved(e:Event):void
+			{
+				
 			}
 			private function sendMessageEventHandler(e:CollaborationEvent):void
 			{
@@ -228,8 +240,10 @@
 			}
 			private function handleLogEvent(e:CollaborationEvent):void
 			{
+				trace("Text:",e.getText());
+				trace("From:",e.getFrom());
 				CHAT.logText(e.getText());
-				if( !CHAT.visible ) {
+				if( !CHAT.visible && collabService.isConnected ) {
 					button_chat.label = "Chat [" + CHAT.unreadMessages + "]";
 				} else {
 					button_chat.label = "Chat";
@@ -252,6 +266,7 @@
 				}	
 				updateEnabledSettings();
 				toggleChat();
+				CHAT.setUsername(collabService.username);
 			}
 			private function lockedError(e:Event):void
 			{
@@ -263,6 +278,10 @@
 				collabService.disconnect();
 				if( !SETTINGS.visible ) toggleSettings();
 				SETTINGS.showConnectionWarning("Username already exists");
+			}
+			private function reconnectError(e:Event):void
+			{
+				connect();
 			}
 			private function userListUpdated(e:Event):void
 			{

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
-		 width="{NaN}" height="{stage.height/2}" 
 		 verticalScrollPolicy="off" horizontalScrollPolicy="off"
 		 borderColor="#54585E" borderThickness="3" borderStyle="solid"
 		 backgroundAlpha="1" backgroundColor="#CCCCCC"
@@ -21,23 +20,24 @@
 	<mx:VBox width="100%" height="100%"
 			 paddingBottom="{padding}" paddingLeft="{padding}"
 			 paddingRight="{padding}" paddingTop="{padding}">
-		<mx:HDividedBox width="100%" height="100%">
-			<mx:VBox width="80%" height="100%">
-				<mx:TextArea id="log" width="100%" height="100%" editable="false" />
-				<mx:HBox width="100%">
-					<mx:TextInput id="input" width="100%" enter="dispatchMessageEvent()" />
-					<mx:Button id="button_send" label="Send" click="dispatchMessageEvent()" />
-				</mx:HBox>
-			</mx:VBox>
-			<mx:VDividedBox width="20%" height="100%" minWidth="140">
-				<mx:List width="100%" height="100%" dataProvider="{userList}" labelField="name" />
-				<mx:Canvas id="camChatContainer" width="100%" />
-			</mx:VDividedBox>
-		</mx:HDividedBox>
+		<mx:VDividedBox width="100%" height="100%">
+			<mx:Canvas id="camChatContainer" width="100%" backgroundColor="#000000" />
+			<mx:HDividedBox width="100%" height="100%">
+				<mx:VBox width="80%" height="100%">
+					<mx:TextArea id="log" width="100%" height="100%" editable="false" />
+					<mx:HBox width="100%">
+						<mx:TextInput id="input" width="100%" enter="dispatchMessageEvent()" />
+						<mx:Button id="button_send" label="Send" click="dispatchMessageEvent()" />
+					</mx:HBox>
+				</mx:VBox>
+				<mx:List height="100%" dataProvider="{userList}" labelField="name" minWidth="140" />
+			</mx:HDividedBox>
+		</mx:VDividedBox>
 	</mx:VBox>
 			 
 	<mx:Script>
 		<![CDATA[
+			import mx.utils.StringUtil;
 			import mx.collections.ArrayCollection;
 			
 			[Bindable] public var xFrom:Number = 0;
@@ -48,10 +48,17 @@
 			[Bindable] public var unreadMessages:Number = 0;
 			
 			private var padding:Number = 10;
+			private var username:String = null;
 			
 			public function logText(txt:String):void
 			{
-				log.text += txt + '\n';
+				var from:String = txt.substr(0, txt.indexOf(":"));
+				trace( from,"==",username );
+				if( from && from == username )
+					log.htmlText += "<font color='#FF0000'>"+txt+"<br>";
+				else
+					log.htmlText += "<font color='#0000FF'>"+txt +"<br>";
+				
 				callLater(
 					function():void {
 						log.verticalScrollPosition = log.maxVerticalScrollPosition;
@@ -63,6 +70,10 @@
 			{
 				dispatchEvent(new CollaborationEvent(CollaborationEvent.SEND_MESSAGE, input.text));
 				input.text = "";
+			}
+			public function setUsername(usrname:String):void
+			{
+				username = usrname;
 			}
 			
 		]]>

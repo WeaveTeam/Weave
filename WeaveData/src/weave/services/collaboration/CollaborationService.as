@@ -218,9 +218,9 @@ package weave.services.collaboration
 		}
 		
 		//When a message is recieved pass it on to the user
-		private function dispatchLogEvent( message:String ) :void
+		private function dispatchLogEvent( message:String, from:String = null ) :void
 		{
-			dispatchEvent(new CollaborationEvent(CollaborationEvent.LOG, message));
+			dispatchEvent(new CollaborationEvent(CollaborationEvent.LOG, message, from));
 		}
 		
 		//Goes through the room user list, sorts it, and reports it back to the Tool
@@ -402,7 +402,7 @@ package weave.services.collaboration
 				else if (o is TextMessage)
 				{
 					var tm:TextMessage = o as TextMessage;
-					dispatchLogEvent( tm.id + ": " + tm.message );
+					dispatchLogEvent( tm.id + ": " + tm.message);
 				}
 				
 				//an unknown message with data, but wasn't one of the pre-defined types
@@ -429,7 +429,7 @@ package weave.services.collaboration
 			room = null;
 			selfJID = null;
 			
-			dispatchEvent(new CollaborationEvent(CollaborationEvent.DISCONNECT, null));
+			dispatchEvent(new CollaborationEvent(CollaborationEvent.DISCONNECT));
 		}
 		
 		private function onError(e:XIFFErrorEvent):void
@@ -465,9 +465,7 @@ package weave.services.collaboration
 		private function disconnectHandler( e:CloseEvent ):void
 		{
 			if (e.detail == Alert.YES)
-				connect(this.serverIP, this.serverName, this.port, this.roomToJoin, this.username);
-			else
-				disconnect();		
+				dispatchEvent(new Event(CollaborationEvent.RECONNECT_ERROR));
 		}
 		//handled whenever any user joins the same room as this
 		private function onUserJoin(e:RoomEvent):void
@@ -475,10 +473,7 @@ package weave.services.collaboration
 			dispatchLogEvent(e.nickname + " has joined the room.");
 			updateUsersList();
 			
-			dispatchEvent(new CollaborationEvent(
-				CollaborationEvent.USER_JOINED_CREATE_MOUSE, 
-				Math.random() * 0xFFFFFF
-			));
+			dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_JOINED_CREATE_MOUSE));
 			
 			//This whole sequence of steps is just to determine alphabetially
 			//who's on the top of the list. It needs to be sorted, because order

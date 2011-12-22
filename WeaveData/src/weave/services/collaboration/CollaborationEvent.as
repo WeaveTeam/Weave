@@ -38,6 +38,7 @@ package weave.services.collaboration
 		/* ERROR EVENTS */
 		public static const NICK_ERROR:String 				= 'collab_nick_error';
 		public static const LOCKED_ERROR:String 			= 'collab_locked_error';
+		public static const RECONNECT_ERROR:String			= 'collab_reconnect_error';
 
 		/* UI EVENTS */
 		public static const CONN_SETTINGS_SAVED:String 		= "collab_conn_saved_settings";
@@ -48,17 +49,27 @@ package weave.services.collaboration
 		
 		
 		//generic data
-		public var data:Object;
+		private var text:String;
+		private var from:String;
+		private var color:uint;
 		
-		public function CollaborationEvent(type:String, data:Object = null)
+		public function CollaborationEvent(type:String, text:String = null, from:String = null, color:uint = 0)
 		{
-			this.data = data;
 			super(type);
+			this.text = text;
 		}
 		
 		public function getText():String
 		{
-			return data as String;
+			return text;
+		}
+		public function getFrom():String
+		{
+			return from;
+		}
+		public function getColor():uint
+		{
+			return color;
 		}
 		
 	}
