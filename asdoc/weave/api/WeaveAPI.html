@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="WeaveAPI,weave.api.WeaveAPI,AttributeColumnCache,CSVParser,ErrorManager,ExternalSessionStateInterface,ProgressIndicator,ProjectionManager,QKeyManager,SessionManager,StatisticsCache,URLRequestUtils,getSingletonInstance,initializeExternalInterface,registerSingleton" name="keywords">
+<meta content="WeaveAPI,weave.api.WeaveAPI,AttributeColumnCache,CSVParser,ErrorManager,ExternalSessionStateInterface,ProgressIndicator,ProjectionManager,QKeyManager,SessionManager,StatisticsCache,URLRequestUtils,topLevelApplication,getSingletonInstance,initializeExternalInterface,registerSingleton" name="keywords">
 <title>weave.api.WeaveAPI</title>
 </head>
 <body>
@@ -104,6 +104,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#StatisticsCache">StatisticsCache</a> : <a href="data/IStatisticsCache.html">IStatisticsCache</a>
 <div class="summaryTableDescription">[static][read-only]
    This is the singleton instance of the registered IStatisticsCache implementation.</div>
+</td><td class="summaryTableOwnerCol">WeaveAPI</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#topLevelApplication">topLevelApplication</a> : Object<div class="summaryTableDescription">[static][read-only]
+   This returns the top level application as defined by FlexGlobals.topLevelApplication
+   or Application.application if FlexGlobals isn't defined.</div>
 </td><td class="summaryTableOwnerCol">WeaveAPI</td>
 </tr>
 <tr class="">
@@ -276,6 +282,21 @@ showHideInherited();
    </p><span class="label">Implementation</span>
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public static function get StatisticsCache():<a href="data/IStatisticsCache.html">IStatisticsCache</a></code>
+<br>
+</div>
+<a name="topLevelApplication"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">topLevelApplication</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>topLevelApplication:Object</code>&nbsp;&nbsp;[read-only]<p>
+   This returns the top level application as defined by FlexGlobals.topLevelApplication
+   or Application.application if FlexGlobals isn't defined.
+   </p><span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public static function get topLevelApplication():Object</code>
 <br>
 </div>
 <a name="URLRequestUtils"></a>

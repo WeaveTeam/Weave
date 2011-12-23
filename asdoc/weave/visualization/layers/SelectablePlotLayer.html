@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="SelectablePlotLayer,weave.visualization.layers.SelectablePlotLayer,backgroundIsVisible,layerIsSelectable,layerIsVisible,useTextBitmapFilters,maxVisibleZoomLevel,minVisibleZoomLevel,plotLayer,plotter,probeFilter,probeLayer,selectionFilter,selectionLayer,spatialIndex,subsetFilter,withinVisibleZoomLevels,getDataBounds,getDynamicPlotter,getScreenBounds,hack_lockScreenBounds,setDataBounds,setScreenBounds,showMissingRecords,updateDisplayList" name="keywords">
+<meta content="SelectablePlotLayer,weave.visualization.layers.SelectablePlotLayer,backgroundIsVisible,layerIsSelectable,useTextBitmapFilters,layerIsVisible,maxVisibleScale,minVisibleScale,plotLayer,plotter,probeFilter,probeLayer,selectionFilter,selectionLayer,spatialIndex,subsetFilter,getDataBounds,getDynamicPlotter,getScreenBounds,hack_lockScreenBounds,setDataBounds,setScreenBounds,shouldBeRendered,showMissingRecords,updateDisplayList" name="keywords">
 <title>weave.visualization.layers.SelectablePlotLayer</title>
 </head>
 <body>
@@ -58,12 +58,17 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#maxVisibleZoomLevel">maxVisibleZoomLevel</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#layerIsVisible">layerIsVisible</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
 <div class="summaryTableDescription">[read-only]</div>
 </td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#minVisibleZoomLevel">minVisibleZoomLevel</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#maxVisibleScale">maxVisibleScale</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription">[read-only]</div>
+</td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#minVisibleScale">minVisibleScale</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
 <div class="summaryTableDescription">[read-only]</div>
 </td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
 </tr>
@@ -107,10 +112,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#subsetFilter">subsetFilter</a> : <a href="../../api/data/IDynamicKeyFilter.html">IDynamicKeyFilter</a>
 <div class="summaryTableDescription">[read-only]</div>
-</td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#withinVisibleZoomLevels">withinVisibleZoomLevels</a> : Boolean<div class="summaryTableDescription">[write-only]</div>
 </td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
 </tr>
 </table>
@@ -175,6 +176,15 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
+<a class="signatureLink" href="#shouldBeRendered()">shouldBeRendered</a>():Boolean</div>
+<div class="summaryTableDescription">
+   This returns true if the layer should be rendered and selectable/probeable
+   </div>
+</td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
 <a class="signatureLink" href="#showMissingRecords()">showMissingRecords</a>(show:Boolean = false):void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
@@ -215,11 +225,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#layerIsVisible">layerIsVisible</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#useTextBitmapFilters">useTextBitmapFilters</a> : <a href="../../core/LinkableBoolean.html">LinkableBoolean</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
@@ -233,28 +238,40 @@ showHideInherited();
 <div class="MainContent">
 <a name="propertyDetail"></a>
 <div class="detailSectionHeader">Property detail</div>
-<a name="maxVisibleZoomLevel"></a>
+<a name="layerIsVisible"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">maxVisibleZoomLevel</td><td class="detailHeaderType">property</td>
+<td class="detailHeaderName">layerIsVisible</td><td class="detailHeaderType">property</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>maxVisibleZoomLevel:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
+<code>layerIsVisible:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
 <br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get maxVisibleZoomLevel():<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get layerIsVisible():<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>
 <br>
 </div>
-<a name="minVisibleZoomLevel"></a>
+<a name="maxVisibleScale"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">minVisibleZoomLevel</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">maxVisibleScale</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>minVisibleZoomLevel:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
+<code>maxVisibleScale:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
 <br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get minVisibleZoomLevel():<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get maxVisibleScale():<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+<br>
+</div>
+<a name="minVisibleScale"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">minVisibleScale</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>minVisibleScale:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get minVisibleScale():<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
 <br>
 </div>
 <a name="plotLayer"></a>
@@ -353,18 +370,6 @@ showHideInherited();
 <code>subsetFilter:<a href="../../api/data/IDynamicKeyFilter.html">IDynamicKeyFilter</a></code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get subsetFilter():<a href="../../api/data/IDynamicKeyFilter.html">IDynamicKeyFilter</a></code>
-<br>
-</div>
-<a name="withinVisibleZoomLevels"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">withinVisibleZoomLevels</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>withinVisibleZoomLevels:Boolean</code>&nbsp;&nbsp;[write-only]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function set withinVisibleZoomLevels(value:Boolean):void</code>
 <br>
 </div>
 <a name="constructorDetail"></a>
@@ -466,6 +471,24 @@ showHideInherited();
 </tr>
 </table>
 </div>
+<a name="shouldBeRendered()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">shouldBeRendered</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function shouldBeRendered():Boolean</code><p>
+   This returns true if the layer should be rendered and selectable/probeable
+   </p><p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Boolean</code> &mdash; true if the layer should be rendered and selectable/probeable
+   </td>
+</tr>
+</table>
+</div>
 <a name="showMissingRecords()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -519,15 +542,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const layerIsSelectable:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>
-</div>
-<a name="layerIsVisible"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">layerIsVisible</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public const layerIsVisible:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code>
 </div>
 <a name="useTextBitmapFilters"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
