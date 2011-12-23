@@ -303,11 +303,11 @@ package weave.core
 		{
 			var version:int = input.readInt();
 			if (version != _serializationVersion)
-				throw new Error("Unsupported Weave file version");
+				throw new Error("Weave history format version " + version + " is unsupported.");
 			
 			_prevState = input.readObject();
-			_undoHistory = input.readObject();
-			_redoHistory = input.readObject();
+			_undoHistory = LogEntry.convertGenericObjectsToLogEntries(input.readObject());
+			_redoHistory = LogEntry.convertGenericObjectsToLogEntries(input.readObject());
 			_serial = input.readInt();
 			
 			_undoActive = false;
@@ -319,15 +319,9 @@ package weave.core
 		}
 	}
 }
-import flash.net.registerClassAlias;
-import flash.utils.getQualifiedClassName;
 
 internal class LogEntry
 {
-	{ /** begin static code block **/
-		registerClassAlias(getQualifiedClassName(LogEntry), LogEntry);
-	} /** end static code block **/
-	
 	public function LogEntry(id:int, forward:Object, backward:Object)
 	{
 		this.id = id;
@@ -338,4 +332,19 @@ internal class LogEntry
 	public var id:int;
 	public var forward:Object;
 	public var backward:Object;
+	
+	/**
+	 * This will convert an Array of generic objects to an Array of LogEntry objects.
+	 * Generic objects are easier to create backwards compatibility for.
+	 */
+	public static function convertGenericObjectsToLogEntries(array:Array):Array
+	{
+		for (var i:int = 0; i < array.length; i++)
+		{
+			var o:Object = array[i];
+			if (!(o is LogEntry))
+				array[i] = new LogEntry(o.id, o.forward, o.backward);
+		}
+		return array;
+	}
 }
