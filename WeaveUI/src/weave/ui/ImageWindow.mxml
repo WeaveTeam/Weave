@@ -3,8 +3,6 @@
 	<mx:Image id="windowImage"/>
 	<mx:Script>
 		<![CDATA[
-			import com.as3xls.biff.Record;
-			
 			import mx.events.ResizeEvent;
 			import mx.graphics.codec.JPEGEncoder;
 			import mx.rpc.events.FaultEvent;
@@ -18,10 +16,14 @@
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
-			import weave.utils.ByteArrayUtils;
+			import weave.core.LinkableString;
 			
-			private var _fileLoader:FileReference = null;
-			public const resize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			//http://www.helpexamples.com/flash/images/image2.jpg
+			
+			
+			//private var _fileLoader:FileReference = null;
+			public const urlString:LinkableString = newLinkableChild(this,LinkableString);
+			public const aspRatio:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false),changeRatio);
 			
 			[Embed(source="/weave/resources/images/missing.png")]
 			private static var _missingImageClass:Class;
@@ -29,11 +31,62 @@
 			
 			override protected function childrenCreated():void
 			{
-				linkBindableProperty(resize, resizeImageCheckBox, "selected");
 				windowImage.height = this.height;
 				windowImage.width = this.width;
 			}		
 			
+			private function changeRatio():void
+			{
+				if( aspRatio.value == true)
+					windowImage.maintainAspectRatio = true;
+				else
+					windowImage.maintainAspectRatio = false;
+			}
+			
+			protected function draggablepanel1_resizeHandler(event:ResizeEvent):void
+			{
+				if( this.windowImage.data != null )
+				{	
+					if( (this.height == event.oldHeight) && (this.width == event.oldWidth) )
+					return;
+					try					
+					{
+						windowImage.height = this.height;
+						windowImage.width = this.width;
+					}
+					catch(e:Error)
+					{
+					}
+				}
+			}
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				WeaveAPI.URLRequestUtils.getContent(new URLRequest(urlString.value), handleImageDownload, handleFault, urlString.value);
+				
+			}
+			
+			private var encoder:JPEGEncoder = new JPEGEncoder(100);
+			
+			private function handleImageDownload(event:ResultEvent, token:Object = null):void
+			{
+				var bitmap:Bitmap = event.result as Bitmap;
+				windowImage.data = encoder.encode(bitmap.bitmapData);
+				getCallbackCollection(this).triggerCallbacks();
+			}
+			/**
+			 * This function is called when there is an error downloading an image.
+			 */
+			private function handleFault(event:FaultEvent, token:Object=null):void
+			{
+				trace("Error downloading image:", ObjectUtil.toString(event.message), token);
+				windowImage.height = _missingImage.height;
+				windowImage.width = _missingImage.width;
+				windowImage.data = encoder.encode(_missingImage);
+				getCallbackCollection(this).triggerCallbacks();
+			}
+			
+			/* Code for uploading image from local machine
 			private function browseImage():void
 			{
 				if(_fileLoader == null)
@@ -58,7 +111,7 @@
 				var loader:Loader = new Loader();
 				loader.contentLoaderInfo.addEventListener(Event.COMPLETE, imageDataLoad);
 				loader.loadBytes(_fileLoader.data);
-					
+				
 			}
 			
 			private function imageDataLoad(e:Event):void
@@ -68,15 +121,7 @@
 					resizeImageCheckBox.validateNow();
 					if( resizeImageCheckBox.selected == true )
 					{
-					
 						this.windowImage.data = e.target.content;
-						var matrix:Matrix = windowImage.transform.matrix;
-						matrix.a = this.width/windowImage.contentWidth;
-						matrix.d = this.height/windowImage.contentHeight;
-						
-						windowImage.transform.matrix = matrix; 
-						windowImage.height = this.height;
-						windowImage.width = this.width;
 						
 					}
 					else
@@ -87,61 +132,8 @@
 				{
 					uploadStatus.text = "Status: Error uploading" + event.message.toString();
 				}
-			}
+			} */
 			
-			protected function draggablepanel1_resizeHandler(event:ResizeEvent):void
-			{
-				if( resizeImageCheckBox.selected == true )
-				{
-					if( this.windowImage.data != null )
-					{	
-						if( (this.height == event.oldHeight) && (this.width == event.oldWidth) )
-						return;
-						try
-						{
-	 						var matrix:Matrix = windowImage.transform.matrix;
-							matrix.a = this.width/windowImage.contentWidth;
-							matrix.d = this.height/windowImage.contentHeight;
-				
-							windowImage.transform.matrix = matrix; 
-							windowImage.height = this.height;
-							windowImage.width = this.width;
-						}
-						catch(e:Error)
-						{
-						trace("didn't work");
-						}
-					}
-				}
-			}
-			
-			protected function button1_clickHandler(event:MouseEvent):void
-			{
-				WeaveAPI.URLRequestUtils.getContent(new URLRequest(imageURL.text), handleImageDownload, handleFault, imageURL.text);
-				
-			}
-			
-			private var encoder:JPEGEncoder = new JPEGEncoder(100);
-			
-			private function handleImageDownload(event:ResultEvent, token:Object = null):void
-			{
-				var bitmap:Bitmap = event.result as Bitmap;
-				windowImage.data = encoder.encode(bitmap.bitmapData);
-				resizeImageCheckBox.validateNow();
-				getCallbackCollection(this).triggerCallbacks();
-			}
-			/**
-			 * This function is called when there is an error downloading an image.
-			 */
-			private function handleFault(event:FaultEvent, token:Object=null):void
-			{
-				trace("Error downloading image:", ObjectUtil.toString(event.message), token);
-				resize.value = false;
-				windowImage.height = _missingImage.height;
-				windowImage.width = _missingImage.width;
-				windowImage.data = encoder.encode(_missingImage);
-				getCallbackCollection(this).triggerCallbacks();
-			}
 			
 			/*************************************************
 			 *                static section                 *
@@ -153,11 +145,9 @@
 			 * This function is called whenever the context menu is opened.
 			 * The function will change the caption displayed depending upon where the context menu was opened.
 			 */
-			private static var _imageEditContextMenuItem:ContextMenuItem 	= null;
 			private static var _imageAddRemoveContextMenuItem:ContextMenuItem = null;
 			private static const ADD_CAPTION:String           = "Add Image"
 			private static const REMOVE_CAPTION:String        = "Remove Image"
-			private static const EDIT_TEXT_CAPTION:String     = "Edit Image"
 			
 			private static function handleContextMenuOpened(e:ContextMenuEvent):void
 			{	
@@ -175,12 +165,10 @@
 				if ( imageArea == null)
 				{ 
 					_imageAddRemoveContextMenuItem.caption = ADD_CAPTION;
-					_imageEditContextMenuItem.enabled = false;
 				}
 				else
 				{
 					_imageAddRemoveContextMenuItem.caption = REMOVE_CAPTION;
-					_imageEditContextMenuItem.enabled = true;
 				}
 			}
 			
@@ -196,7 +184,6 @@
 				
 				// Create a context menu item for printing of a single tool with title and logo
 				_imageAddRemoveContextMenuItem   = CustomContextMenuManager.createAndAddMenuItemToDestination(ADD_CAPTION,destination,handleAddRemove,"2.1 textBoxMenuItem");
-				_imageEditContextMenuItem        = CustomContextMenuManager.createAndAddMenuItemToDestination(EDIT_TEXT_CAPTION,destination,handleEdit,"2.1 textBoxMenuItem");
 				
 				return true;
 			}
@@ -213,7 +200,7 @@
 				
 				if ( linkableContainer )
 				{
-					var name:String = linkableContainer.getLinkableChildren().generateUniqueName("Label");
+					var name:String = linkableContainer.getLinkableChildren().generateUniqueName("Image");
 					var newImage:ImageWindow = linkableContainer.getLinkableChildren().requestObject(name, ImageWindow,false);
 					newImage.toggleControlPanel();
 				}
@@ -221,7 +208,7 @@
 			
 			/**
 			 * This function is called when Remove is selected in the Context Menu.
-			 * It checks for a TextArea, and if found will attempt to remove the TextArea and associated TextBox. 
+			 * It checks for a Image, and if found will attempt to remove the ImageWindow. 
 			 */
 			private static function removeWindows(e:ContextMenuEvent):void
 			{
@@ -237,8 +224,8 @@
 				}
 			}
 			/**
-			 * This function is passed a target and checks to see if the target was a TextBox.
-			 * Either a TextBox or null will be returned.
+			 * This function is passed a target and checks to see if the target was an ImageWindow.
+			 * Either an ImageWindow or null will be returned.
 			 */
 			private static function getImageFromTarget(target:*):ImageWindow
 			{
@@ -294,31 +281,21 @@
 				}
 			}
 			
-			private static function handleEdit(e:ContextMenuEvent):void
-			{
-				var image:ImageWindow = getImageFromTarget(e.mouseTarget);
-				if (image)
-				{
-					image.sendWindowToForeground();
-					image.toggleControlPanel();
-				}
-			}
-			
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox label="Image Tool Options">
-			<mx:HBox>
+			<!-- <mx:HBox>
 				<mx:Button label="Upload Image" click="browseImage()"/>
 				<mx:Label id="uploadStatus" text="Status: No image uploaded."/>
-			</mx:HBox>
+			</mx:HBox> -->
 			<mx:HBox>
-				<mx:Label text="Resize image to fit image window:" />
-				<mx:CheckBox id="resizeImageCheckBox" selected="true"/>
+				<mx:Label text="Maintain aspect ratio:" />
+				<mx:CheckBox id="resizeImageCheckBox" selected="false" creationComplete="linkBindableProperty(aspRatio,event.target,'selected');"/>
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Picture link:" />
-				<mx:TextInput id="imageURL" width="300" />
+				<mx:TextInput id="imageURL" width="300" creationComplete="linkBindableProperty(urlString,event.target,'text');"/>
 				<mx:Button label="Load Image" click="button1_clickHandler(event)" />
 			</mx:HBox>
 		</mx:VBox>
