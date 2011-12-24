@@ -45,7 +45,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
   This is an interface for an object that should be cleaned up when it is no longer needed.
   It is recommended not to extend IDisposableObject in an interface.  Instead, make the
   implementation of that interface implement IDisposableObject.  To dispose of an object in
-  Weave, SessionManager.dispose() should be called instead of directly calling the actual
+  Weave, disposeObjects() should be called instead of directly calling the actual
   object's dispose function so parent-child relationships get cleaned up automatically.
   
   <p></p>
@@ -64,7 +64,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <div class="summarySignature">
 <a class="signatureLink" href="#dispose()">dispose</a>():void</div>
 <div class="summaryTableDescription">
-   This function is called when the object is no longer needed.</div>
+   This function should not be called directly.</div>
 </td><td class="summaryTableOwnerCol">IDisposableObject</td>
 </tr>
 </table>
@@ -84,9 +84,7 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function dispose():void</code><p>
-   This function is called when the object is no longer needed.
-   All callbacks and event listeners created by this object should be removed.
-   This function should also be called on any child objects implementing IDisposableObject.
+   This function should not be called directly.  It will be called when the object is no longer needed.
    </p></div>
 <br>
 <br>
