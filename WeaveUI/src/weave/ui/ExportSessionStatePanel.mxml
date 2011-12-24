@@ -35,6 +35,11 @@
 					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
 		<mx:CheckBox label="Show copyright"
 					 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
+		<mx:CheckBox id="saveHistoryCheckBox"
+					 label="Save history"
+					 selected="false"
+					 visible="false"
+					 creationComplete="saveHistoryCheckBox.visible = Weave.history.enableLogging"/>
 	</mx:VBox>
 	<mx:ControlBar>
 		<mx:Button label="Export" 
@@ -72,7 +77,16 @@
 				var dateString:String = date.fullYear +"."+ date.month +"."+ date.day +" "+ date.time;
 				
 				var fr:FileReference = new FileReference();
-				fr.save(Weave.getSessionStateXML(), "weave session state " + dateString + ".xml");
+				if (saveHistoryCheckBox.selected)
+				{
+					var byteArray:ByteArray = new ByteArray();
+					Weave.history.serialize(byteArray);
+					fr.save(byteArray, "weave session history " + dateString + ".weave");
+				}
+				else
+				{
+					fr.save(Weave.getSessionStateXML(), "weave session state " + dateString + ".xml");
+				}
 				
 				removePanel();
 			}

@@ -34,6 +34,7 @@ package weave
 	import flash.system.System;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
+	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.containers.Canvas;
@@ -103,6 +104,7 @@ package weave
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
 	import weave.utils.ColumnUtils;
+	import weave.utils.DebugTimer;
 	import weave.utils.DebugUtils;
 	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.plotters.GeometryPlotter;
@@ -155,11 +157,6 @@ package weave
 		 * view to add new tools, manage windows, do advanced tasks, etc.
 		 */
 		private var _weaveMenu:WeaveMenuBar = null;
-		
-		/**
-		 * The XML file that defines the default layout of the page if no parameter is passed that specifies another file to use
-		 */
-		private var _configFileXML:XML = null;
 		
 		/**
 		 * This will be used to incorporate branding into any weave view.  Linkable to the Open Indicators Consortium website.
@@ -281,7 +278,7 @@ package weave
 			// load the session state file
 			var fileName:String = getFlashVarConfigFileName() || DEFAULT_CONFIG_FILE_NAME;
 			var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
-			WeaveAPI.URLRequestUtils.getURL(new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault);
+			WeaveAPI.URLRequestUtils.getURL(new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
 		}
 		
 		private function handleBackgroundColorChange():void
@@ -472,22 +469,6 @@ package weave
 
 		private var adminService:LocalAsyncService = null;
 		
-		
-		private var sessionStates:Array = new Array();	//Where the session states are stored.
-		private var sessionCount:int = 0;
-		private var sessionTotal:int = 0;				//For naming purposes.
-		
-		private function saveAction():void{
-			
-			var dynObject:DynamicState = new DynamicState();
-			
-			sessionTotal++;
-			sessionCount = sessionStates.length;
-			dynObject.sessionState = getSessionState(Weave.root);
-			dynObject.objectName = "Weave Session State " + ( sessionTotal + 1 );
-			sessionStates[sessionCount] = dynObject;
-			
-		}
 		
 		private function copySessionStateToClipboard():void
 		{
@@ -738,65 +719,94 @@ package weave
 		
 		private var _alreadyLoaded:Boolean = false;
 		private var _stateLoaded:Boolean = false;
-		private function loadSessionState(state:XML):void
+		private function loadSessionState(fileContent:Object, fileName:String):void
 		{
-			_configFileXML = state;
-			var i:int = 0;
-			
-			StageUtils.callLater(this,toggleMenuBar,null,false);
-			
-			if (!getFlashVarAdminConnectionName())
-				enabled = true;
-			
-			// backwards compatibility:
-			var stateStr:String = state.toXMLString();
-			while (stateStr.indexOf("org.openindicators") >= 0)
+			DebugTimer.begin();
+			if (fileName.substr(-4).toLowerCase() == '.xml')
 			{
-				stateStr = stateStr.replace("org.openindicators", "weave");
-				state = XML(stateStr);
-			}
-			var tag:XML;
-			for each (tag in state.descendants("OpenIndicatorsServletDataSource"))
-				tag.setLocalName("WeaveDataSource");
-			for each (tag in state.descendants("OpenIndicatorsDataSource"))
-				tag.setLocalName("WeaveDataSource");
-			for each (tag in state.descendants("WMSPlotter2"))
-				tag.setLocalName("WMSPlotter");
-			for each (tag in state.descendants("SessionedTextArea"))
-			{
-				tag.setLocalName("SessionedTextBox");
-				tag.appendChild(<enableBorders>true</enableBorders>);
-				tag.appendChild(<htmlText>{tag.textAreaString.text()}</htmlText>);
-				tag.appendChild(<panelX>{tag.textAreaWindowX.text()}</panelX>);
-				tag.appendChild(<panelY>{tag.textAreaWindowY.text()}</panelY>);
-			}
-			
-			// add missing attribute titles
-			for each (var hierarchy:XML in _configFileXML.descendants('hierarchy'))
-				for each (tag in hierarchy.descendants("attribute"))
+				// load .xml file
+				var xml:XML = null;
+				try
+				{
+					xml = XML(fileContent);
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
+				if (xml)
+				{
+					// backwards compatibility:
+					var stateStr:String = xml.toXMLString();
+					while (stateStr.indexOf("org.openindicators") >= 0)
+					{
+						stateStr = stateStr.replace("org.openindicators", "weave");
+						xml = XML(stateStr);
+					}
+					var tag:XML;
+					for each (tag in xml.descendants("OpenIndicatorsServletDataSource"))
+					tag.setLocalName("WeaveDataSource");
+					for each (tag in xml.descendants("OpenIndicatorsDataSource"))
+					tag.setLocalName("WeaveDataSource");
+					for each (tag in xml.descendants("WMSPlotter2"))
+					tag.setLocalName("WMSPlotter");
+					for each (tag in xml.descendants("SessionedTextArea"))
+					{
+						tag.setLocalName("SessionedTextBox");
+						tag.appendChild(<enableBorders>true</enableBorders>);
+						tag.appendChild(<htmlText>{tag.textAreaString.text()}</htmlText>);
+						tag.appendChild(<panelX>{tag.textAreaWindowX.text()}</panelX>);
+						tag.appendChild(<panelY>{tag.textAreaWindowY.text()}</panelY>);
+					}
+					
+					// add missing attribute titles
+					for each (var hierarchy:XML in xml.descendants('hierarchy'))
+					for each (tag in hierarchy.descendants("attribute"))
 					if (!String(tag.@title) && tag.@name)
 					{
 						tag.@title = tag.@name;
 						if (String(tag.@year))
 							tag.@title += ' (' + tag.@year + ')';
 					}
-
-			Weave.setSessionStateXML(_configFileXML, true);
-			fixCommonSessionStateProblems();
-
-			if (_weaveMenu && _toolsMenu)
-			{
-				var reportsMenuItems:Array = getReportsMenuItems();
-				if (reportsMenuItems.length > 0)
-				{
-					_weaveMenu.addSeparatorToMenu(_toolsMenu);
 					
-					for each(var reportMenuItem:WeaveMenuItem in reportsMenuItems)
-					{
-						_weaveMenu.addMenuItemToMenu(_toolsMenu, reportMenuItem);
-					}
-				}	
+					Weave.setSessionStateXML(xml, true);
+					
+					// An empty subset is not of much use.  If the subset is empty, reset it to include all records.
+					var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
+					if (subset.includeMissingKeys.value == false && subset.included.keys.length == 0 && subset.excluded.keys.length == 0)
+						subset.includeMissingKeys.value = true;
+				}
+				Weave.history.clearHistory(); // begin with empty history after loading the session state from the xml
 			}
+			else
+			{
+				// load .weave file
+				var bytes:ByteArray = ByteArray(fileContent);
+				Weave.history.deserialize(bytes);
+				//TODO
+			}
+			DebugTimer.end('loadSessionState', fileName);
+
+			StageUtils.callLater(this,toggleMenuBar,null,false);
+			
+			if (!getFlashVarAdminConnectionName())
+				enabled = true;
+			
+
+			/*if (_weaveMenu && _toolsMenu)
+			{
+				var first:Boolean = true;
+				//add reports to tools menu
+				for each (var report:WeaveReport in Weave.root.getObjects(WeaveReport))
+				{
+					if (first)
+						_weaveMenu.addSeparatorToMenu(_toolsMenu);
+					first = false;
+					
+					var reportMenuItem:WeaveMenuItem = new WeaveMenuItem(Weave.root.getName(report), WeaveReport.requestReport, [report]);
+					_weaveMenu.addMenuItemToMenu(_toolsMenu, reportMenuItem);
+				}
+			}*/
 			
 			// generate the context menu items
 			setupContextMenu();
@@ -806,24 +816,6 @@ package weave
 			this.styleName = "application";	
 			
 			_stateLoaded = true;
-			
-			//Sets the initial session state for an undo.
-			var dynamicSess:DynamicState = new DynamicState();
-			dynamicSess.sessionState = getSessionState(Weave.root);	
-			dynamicSess.objectName = "Weave Session State 1";
-			
-			sessionStates[0] = dynamicSess;
-		}
-		
-		/**
-		 * This function will fix common problems that appear in saved session states.
-		 */
-		private function fixCommonSessionStateProblems():void
-		{
-			// An empty subset is not of much use.  If the subset is empty, reset it to include all records.
-			var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
-			if (subset.includeMissingKeys.value == false && subset.included.keys.length == 0 && subset.excluded.keys.length == 0)
-				subset.includeMissingKeys.value = true;
 		}
 		
 		private function handleWeaveListChange():void
@@ -1133,21 +1125,14 @@ package weave
 		 */
 		private function handleConfigFileDownloaded(event:ResultEvent, token:Object = null):void
 		{
-			var xml:XML = null;
-			try
-			{
-				xml = XML(event.result);
-			}
-			catch (e:Error)
-			{
-				reportError(e);
-			}
-			if (xml)
-				loadSessionState(xml);
+			var fileName:String = token as String;
+			loadSessionState(event.result, fileName);
+			
 			if (getFlashVarEditable())
 			{
 				Weave.properties.enableMenuBar.value = true;
 				Weave.properties.enableSessionMenu.value = true;
+				Weave.properties.enableWindowMenu.value = true;
 				Weave.properties.enableUserPreferences.value = true;
 			}
 			else if (getFlashVarEditable() === false) // triple equals because it may also be undefined
@@ -1156,13 +1141,15 @@ package weave
 				Weave.properties.dashboardMode.value = true;
 			}
 			
+			if (getFlashVarEditable())
+				addHistorySlider();
+			else
+				Weave.history.enableLogging = false;
+			
 			// enable JavaScript API after initial session state has loaded.
 			ExternalInterface.addCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
 			WeaveAPI.initializeExternalInterface(); // this calls weaveReady() in JavaScript
 			Weave.properties.runStartupJavaScript(); // run startup script after weaveReady()
-			
-			if (getFlashVarEditable())
-				addHistorySlider();
 		}
 		
 		/**
@@ -1189,24 +1176,28 @@ package weave
 				Alert.show("The server hosting the configuration file does not have a permissive crossdomain policy.", "Security sandbox violation");
 		}
 		
-		private var log:SessionStateLog;
 		private function addHistorySlider():void
 		{
 			// beta undo/redo feature
-			log = new SessionStateLog(Weave.root);
-			
 			var hb:HBox = new HBox();
 			hb.percentWidth = 100;
-			addChildAt(hb, 0);
+			addChild(hb);
+			
+			var recButton:Button = new Button();
+			recButton.label="REC";
+			recButton.toggle = true;
+			recButton.selected = Weave.history.enableLogging;
+			recButton.addEventListener(MouseEvent.CLICK,function(..._):void{ Weave.history.enableLogging = recButton.selected; });
+			hb.addChild(recButton);
 			
 			var undoButton:Button = new Button();
 			undoButton.label="<";
-			undoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ log.undo(); });
+			undoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ Weave.history.undo(); });
 			hb.addChild(undoButton);
 			
 			var redoButton:Button = new Button();
 			redoButton.label=">";
-			redoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ log.redo(); });
+			redoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ Weave.history.redo(); });
 			hb.addChild(redoButton);
 			
 			var hs:HSlider = new HSlider();
@@ -1214,24 +1205,30 @@ package weave
 			hs.percentWidth = 100;
 			hs.setStyle("bottom", 0);
 			hs.minimum = 0;
+			hs.showDataTip = false;
 			hs.liveDragging = true;
 			hs.tickInterval = 1;
 			hs.snapInterval = 1;
 			hs.addEventListener(Event.CHANGE, handleHistorySlider);
 			function handleHistorySlider():void
 			{
-				var delta:int = hs.value - log.undoHistory.length;
+				var delta:int = hs.value - Weave.history.undoHistory.length;
 				if (delta < 0)
-					log.undo(-delta);
+					Weave.history.undo(-delta);
 				else
-					log.redo(delta);
+					Weave.history.redo(delta);
 			}
 			
-			getCallbackCollection(log).addImmediateCallback(this, updateHistorySlider, null, true);
+			var clearButton:Button = new Button();
+			clearButton.label="Clear";
+			clearButton.addEventListener(MouseEvent.CLICK,function(..._):void{ Weave.history.clearHistory(); });
+			hb.addChild(clearButton);
+			
+			getCallbackCollection(Weave.history).addImmediateCallback(this, updateHistorySlider, null, true);
 			function updateHistorySlider():void
 			{
-				hs.maximum = log.undoHistory.length + log.redoHistory.length;
-				hs.value = log.undoHistory.length;
+				hs.maximum = Weave.history.undoHistory.length + Weave.history.redoHistory.length;
+				hs.value = Weave.history.undoHistory.length;
 			}
 		}
 
@@ -1293,15 +1290,6 @@ package weave
 				
 				// Add context menu items for handling search queries
 				SearchEngineUtils.createContextMenuItems(this);
-				// Additional record queries can be defined in the config file.  Here they are extracted and added as context menu items with their
-				// associated actions.
-				if (_configFileXML)
-				{
-					for(var i:int = 0; i < _configFileXML.recordQuery.length(); i++)
-					{
-						SearchEngineUtils.addSearchQueryContextMenuItem(_configFileXML.recordQuery[i], this);	
-					}
-				}
 			}
 		}
 
@@ -1424,23 +1412,6 @@ package weave
 			}
 		}
 		
-		/** 
-		 * Static methods to encapsulate the list of reports within the ObjectRepository
-		 * addReportsToMenu loops through the reports in the Object Repository and 
-		 * adds them to the tools menu
-		 */
-		public static function getReportsMenuItems():Array
-		{
-			var reportsMenuItems:Array = [];
-			//add reports to tools menu
-			for each (var report:WeaveReport in Weave.root.getObjects(WeaveReport))
-			{
-				reportsMenuItems.push(new WeaveMenuItem(Weave.root.getName(report), WeaveReport.requestReport, [report]));
-			}	
-			
-			return reportsMenuItems;
-		}
-		
 		private var _weaveFileRef:FileReference = null;
 		private function handleImportSessionState():void
 		{
@@ -1448,7 +1419,7 @@ package weave
 			{
 				_weaveFileRef = new FileReference();
 				_weaveFileRef.addEventListener(Event.SELECT,   function (e:Event):void { _weaveFileRef.load(); } );
-				_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void { loadSessionState( XML(e.target.data) ); } );
+				_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void { loadSessionState(e.target.data, _weaveFileRef.name); } );
 			}
 			_weaveFileRef.browse([new FileFilter("XML", "*.xml")]);
 		}

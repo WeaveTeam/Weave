@@ -20,7 +20,6 @@
 package weave
 {
 	import flash.external.ExternalInterface;
-	import flash.utils.ByteArray;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
@@ -41,6 +40,7 @@ package weave
 	import weave.core.LinkableHashMap;
 	import weave.core.ProgressIndicator;
 	import weave.core.SessionManager;
+	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;
 	import weave.core.WeaveXMLEncoder;
 	import weave.data.AttributeColumnCache;
@@ -55,7 +55,6 @@ package weave
 	import weave.data.StatisticsCache;
 	import weave.editors._registerAllLinkableObjectEditors;
 	import weave.services.URLRequestUtils;
-	import weave.utils.DebugTimer;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -128,6 +127,7 @@ package weave
 		
 		
 		private static var _root:ILinkableHashMap = null; // root object of Weave
+		private static var _history:SessionStateLog = null; // root session history
 
 		/**
 		 * This is the root object in Weave, which is an ILinkableHashMap.
@@ -138,8 +138,19 @@ package weave
 			{
 				_root = LinkableDynamicObject.globalHashMap;
 				createDefaultObjects(_root);
+				_history = new SessionStateLog(root);
 			}
 			return _root;
+		}
+		
+		/**
+		 * This is a log of all previous session states 
+		 */		
+		public static function get history():SessionStateLog
+		{
+			if (!root) // this check will initialize the _history variable
+				throw "unexpected";
+			return _history;
 		}
 
 		/**
@@ -173,10 +184,7 @@ package weave
 		public static function setSessionStateXML(newStateXML:XML, removeMissingObjects:Boolean):void
 		{
 			var newState:Array = WeaveXMLDecoder.decodeDynamicState(newStateXML);
-			
-			DebugTimer.begin();
 			root.setSessionState(newState, removeMissingObjects);
-			DebugTimer.end('set global session state');
 		}
 		
 		public static const DEFAULT_WEAVE_PROPERTIES:String = "WeaveProperties";

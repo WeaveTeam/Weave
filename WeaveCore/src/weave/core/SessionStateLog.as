@@ -52,6 +52,9 @@ package weave.core
 			cc.addGroupedCallback(this, groupedCallback);
 		}
 		
+		/**
+		 * @inheritDoc
+		 */		
 		public function dispose():void
 		{
 			if (_undoHistory == null)
@@ -62,19 +65,60 @@ package weave.core
 			_redoHistory = null;
 		}
 		
-		private var _subject:ILinkableObject;
-		private var _prevState:Object = null;
-		private var _undoHistory:Array = [];
-		private var _redoHistory:Array = [];
-		private var _serial:int = 0;
-		private var _undoActive:Boolean = false;
-		private var _redoActive:Boolean = false;
+		private var _subject:ILinkableObject; // the object we are monitoring
+		private var _prevState:Object = null; // the previously seen session state of the subject
+		private var _undoHistory:Array = []; // diffs that can be undone
+		private var _redoHistory:Array = []; // diffs that can be redone
+		private var _serial:int = 0; // gets incremented each time a new diff is created
+		private var _undoActive:Boolean = false; // true while an undo operation is active
+		private var _redoActive:Boolean = false; // true while a redo operation is active
 		
-		private var _saveLater:Boolean = false;
-		private var _savePending:Boolean = false;
+		private var _saveLater:Boolean = false; // true if the next diff should be computed and logged in a later frame
+		private var _savePending:Boolean = false; // true when a diff should be computed
+		private var _enableLogging:Boolean = true; // if true, diffs will be automatically logged
 		
+		/**
+		 * When this is set to true, changes in the session state of the subject will be automatically logged.
+		 */		
+		public function get enableLogging():Boolean
+		{
+			return _enableLogging;
+		}
+		public function set enableLogging(value:Boolean):void
+		{
+			if (_enableLogging == value)
+				return;
+			
+			_enableLogging = value;
+			
+			synchronizeNow();
+		}
+		
+		/**
+		 * This will clear all undo and redo history.
+		 */
+		public function clearHistory():void
+		{
+			var cc:ICallbackCollection = getCallbackCollection(this);
+			cc.delayCallbacks();
+			
+			synchronizeNow();
+			if (_undoHistory.length > 0 || _redoHistory.length > 0)
+				cc.triggerCallbacks();
+			_undoHistory.length = 0;
+			_redoHistory.length = 0;
+			
+			cc.resumeCallbacks();
+		}
+		
+		/**
+		 * This gets called as an immediate callback of the subject.
+		 */		
 		private function immediateCallback():void
 		{
+			if (!_enableLogging)
+				return;
+			
 			// we have to wait until grouped callbacks are called before we save the diff
 			_saveLater = true;
 			
@@ -93,8 +137,14 @@ package weave.core
 			}
 		}
 		
+		/**
+		 * This gets called as a grouped callback of the subject.
+		 */		
 		private function groupedCallback():void
 		{
+			if (!_enableLogging)
+				return;
+			
 			// Since grouped callbacks are currently running, it means something changed, so make sure the diff is saved.
 			immediateCallback();
 			// It is ok to save a diff the frame after grouped callbacks are called.
@@ -109,6 +159,10 @@ package weave.core
 			}
 		}
 		
+		/**
+		 * This will save a diff in the history, if there is any.
+		 * @param immediately Set to true if it should be saved immediately, or false if it can wait.
+		 */
 		private function saveDiff(immediately:Boolean = false):void
 		{
 			if (_saveLater && !immediately)
@@ -190,7 +244,7 @@ package weave.core
 		}
 		
 		/**
-		 * @private
+		 * This will apply a number of undo or redo steps.
 		 * @param delta The number of steps to undo (negative) or redo (positive).
 		 */
 		private function applyDiffs(delta:int):void
@@ -204,7 +258,7 @@ package weave.core
 				
 				// if something changed and we're not currently undoing/redoing, save the diff now
 				if (_savePending && !_undoActive && !_redoActive)
-					saveDiff(true);
+					synchronizeNow();
 				
 				getCallbackCollection(_subject).delayCallbacks();
 				while (stepsRemaining-- > 0)
@@ -244,11 +298,17 @@ package weave.core
 			}
 		}
 		
+		/**
+		 * @TODO create an interface for the objects in this Array
+		 */
 		public function get undoHistory():Array
 		{
 			return _undoHistory;
 		}
 		
+		/**
+		 * @TODO create an interface for the objects in this Array
+		 */
 		public function get redoHistory():Array
 		{
 			return _redoHistory;
@@ -285,6 +345,8 @@ package weave.core
 		 */
 		public function serialize(output:ByteArray):void
 		{
+			var cc:ICallbackCollection = getCallbackCollection(this);
+			cc.delayCallbacks();
 			synchronizeNow();
 			
 			output.writeInt(_serializationVersion);
@@ -293,6 +355,9 @@ package weave.core
 			output.writeObject(_undoHistory);
 			output.writeObject(_redoHistory);
 			output.writeInt(_serial);
+			output.writeBoolean(_enableLogging);
+			
+			cc.resumeCallbacks();
 		}
 		
 		/**
@@ -301,6 +366,9 @@ package weave.core
 		 */
 		public function deserialize(input:ByteArray):void
 		{
+			var cc:ICallbackCollection = getCallbackCollection(this);
+			cc.delayCallbacks();
+			
 			var version:int = input.readInt();
 			if (version != _serializationVersion)
 				throw new Error("Weave history format version " + version + " is unsupported.");
@@ -309,13 +377,17 @@ package weave.core
 			_undoHistory = LogEntry.convertGenericObjectsToLogEntries(input.readObject());
 			_redoHistory = LogEntry.convertGenericObjectsToLogEntries(input.readObject());
 			_serial = input.readInt();
+			_enableLogging = input.readBoolean();
 			
 			_undoActive = false;
 			_redoActive = false;
 			_saveLater = false;
 			_savePending = false;
 			
-			getCallbackCollection(this).triggerCallbacks();
+			setSessionState(_subject, _prevState);
+			
+			cc.triggerCallbacks();
+			cc.resumeCallbacks();
 		}
 	}
 }
