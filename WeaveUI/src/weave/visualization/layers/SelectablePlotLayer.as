@@ -106,9 +106,9 @@ package weave.visualization.layers
 			_plotLayer = new PlotLayer();
 			_selectionLayer = new PlotLayer(_plotLayer.getDynamicPlotter(), _plotLayer.spatialIndex as SpatialIndex);
 			_probeLayer = new PlotLayer(_plotLayer.getDynamicPlotter(), _plotLayer.spatialIndex as SpatialIndex);
-			registerDisposableChild(this, _plotLayer);
-			registerDisposableChild(this, _selectionLayer);
-			registerDisposableChild(this, _probeLayer);
+			registerLinkableChild(this, _plotLayer);
+			registerLinkableChild(this, _selectionLayer);
+			registerLinkableChild(this, _probeLayer);
 			
 			// Link the min and max zoom levels for the three child PlotLayers
 			linkSessionState(_plotLayer.layerIsVisible,_selectionLayer.layerIsVisible);
