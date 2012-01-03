@@ -121,7 +121,7 @@ package weave.data.AttributeColumns
 		/**
 		 * This is the equation that will be used in getValueFromKey().
 		 */
-		public const equation:LinkableString = newLinkableChild(this, LinkableString, handleEquationChange);
+		public const equation:LinkableString = newLinkableChild(this, LinkableString);
 		/**
 		 * This is a list of named variables made available to the compiled equation.
 		 */
@@ -232,45 +232,6 @@ package weave.data.AttributeColumns
 		}
 
 		/**
-		 * This function gets called when the equation changes.
-		 */
-		private function handleEquationChange():void
-		{
-			//trace(equation.value, "handleEquationChange");
-			// clear the cached data
-			_equationResultCache = null;
-
-			//todo: error checking?
-
-			try
-			{
-				// set default values in case an error is thrown
-				compiledEquation = null;
-				_equationIsConstant = true;
-				_constantResult = undefined;
-				
-				// check if the equation evaluates to a constant
-				var compiledObject:ICompiledObject = compiler.compileToObject(equation.value);
-				if (compiledObject is CompiledConstant)
-				{
-					// save the constant result of the function
-					_equationIsConstant = true;
-					_constantResult = (compiledObject as CompiledConstant).value;
-				}
-				else
-				{
-					// compile into a function
-					compiledEquation = compiler.compileObjectToFunction(compiledObject, _symbolTableProxy, true, false, ['key', 'dataType']);
-					_equationIsConstant = false;
-				}
-			}
-			catch (e:Error)
-			{
-				// It will not hurt anything if this fails.
-			}
-		}
-
-		/**
 		 * @return The keys associated with this EquationColumn.
 		 */
 		override public function get keys():Array
@@ -315,22 +276,44 @@ package weave.data.AttributeColumns
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			if (in_getValueFromKey && EquationColumnLib.currentRecordKey == key)
-				return undefined;
+				return undefined; // recursively defined values are undefined
 			
-			var value:*;
-			if (_equationIsConstant)
+			// reset cached values if necessary
+			if (_cacheTriggerCount != triggerCounter)
 			{
-				// if the equation evaluated to a constant, just use the constant value
-				value = _constantResult;
+				_cacheTriggerCount = triggerCounter;
+				try
+				{
+					// check if the equation evaluates to a constant
+					var compiledObject:ICompiledObject = compiler.compileToObject(equation.value);
+					if (compiledObject is CompiledConstant)
+					{
+						// save the constant result of the function
+						_equationIsConstant = true;
+						_equationResultCache = null; // we don't need a cache
+						_constantResult = (compiledObject as CompiledConstant).value;
+					}
+					else
+					{
+						// compile into a function
+						compiledEquation = compiler.compileObjectToFunction(compiledObject, _symbolTableProxy, true, false, ['key', 'dataType']);
+						_equationIsConstant = false;
+						_equationResultCache = new Dictionary(); // create a new cache
+						_constantResult = undefined;
+					}
+				}
+				catch (e:Error)
+				{
+					// if compiling fails
+					_equationIsConstant = true;
+					_constantResult = undefined;
+				}
 			}
-			else
+			
+			var value:* = _constantResult;
+			if (!_equationIsConstant)
 			{
 				// otherwise, use cached equation results
-				if (_cacheTriggerCount != variables.triggerCounter)
-				{
-					_equationResultCache = new Dictionary();
-					_cacheTriggerCount = variables.triggerCounter;
-				}
 				value = _equationResultCache[key];
 				// if the data value was not cached for this key yet, cache it now.
 				if (value == undefined)
