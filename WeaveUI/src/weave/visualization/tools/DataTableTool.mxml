@@ -74,6 +74,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import flash.desktop.ClipboardFormats;
 			
 			import mx.collections.ArrayCollection;
+			import mx.collections.ICollectionView;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Application;
 			import mx.core.mx_internal;
@@ -109,6 +110,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.KeySets.KeySet;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.CustomContextMenuManager;
+			import weave.ui.CustomDataGrid.DataGridCellRenderer;
 			import weave.ui.CustomDataGrid.SearchFilterComponent;
 			import weave.ui.CustomDataGrid.SliderFilterComponent;
 			import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
@@ -154,6 +156,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				linkBindableProperty(showControls, showControlsCheckBox, "selected");
 				linkBindableProperty(showFilters, showFiltersCheckBox, "selected");
+				linkBindableProperty(showColors,showColorsCheckBox,"selected");
 				
 				columns.addGroupedCallback(this, handleColumnsChange, true);
 				columns.childListCallbacks.addGroupedCallback(this, handleColumnListChange, true);
@@ -173,6 +176,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				dataRowKeys.addEventListener(CollectionEvent.COLLECTION_CHANGE, handleGlobalSelectionChange);
 				
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
+				
+				// temporary solution
+				var handleColorColumnChange:Function = function():void{
+					(dataGrid.dataProvider as ICollectionView).refresh();
+				};
+				getCallbackCollection(Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN)).addGroupedCallback(this, handleColorColumnChange);
 			}
 			
 			
@@ -288,6 +297,35 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString), handleSessionedWidthChange, false);
 			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap());
 			
+			
+			public const showColors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateColumnCellDisplay);
+			
+			
+			
+			private function updateColumnCellDisplay():void{
+				var colNames:Array = columns.getNames();
+				if(showColors.value){
+					for(var i:int = 0; i<colNames.length;i++){
+						var filterableColumn:WeaveCustomDataGridColumn = _currentDataGridColumns[i] as WeaveCustomDataGridColumn;
+						var cf:ClassFactory = new ClassFactory(DataGridCellRenderer);
+						cf.properties = {colorColumn: Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN),keySet: Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet};
+						filterableColumn.itemRenderer = cf;
+					}
+				}
+				else{
+					for(var i:int = 0; i<colNames.length;i++){
+						var filterableColumn:WeaveCustomDataGridColumn = _currentDataGridColumns[i] as WeaveCustomDataGridColumn;	
+						//while loading initially - WeaveCustomDataGridColumn wont get created
+						if(filterableColumn){
+							filterableColumn.itemRenderer = null;	
+						}
+										
+					}
+				}
+					
+				
+			}
+			
 			private function addImageColumn():void
 			{
 				var imageColumnName:String = dimensionsList.hashMap.generateUniqueName("ImageColumn");
@@ -391,20 +429,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				columns.setNameOrder(newColumnOrder);	
 			}
-			
+			private var isGlobalSelectionActive:Object = {val: false};
 			private function handleGlobalSelectionChange(e:Event = null):void
 			{
 				if (!parent)
 					return callLater(handleGlobalSelectionChange);
 				
-				//dataGrid.selectedItems = [];
 				var selectedItems:Array = [];
 				for each (var item:Object in dataGrid.dataProvider)
 				{
 					if (_selection.containsKey(item as IQualifiedKey))
 						selectedItems.push(item);
-				}
+				}	
 				dataGrid.selectedItems = selectedItems;
+				
 			}
 			
 			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
@@ -553,6 +591,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				handleDataSourceChange();
 				handleKeyTypeChange();
 				handleGlobalSelectionChange();
+				updateColumnCellDisplay();
 				
 				//we need to do this to set the arrow to the correct column
 				this.invalidateDisplayList();
@@ -791,6 +830,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:Button label="Add Image Column" click="addImageColumn()" />
 			<mx:CheckBox id="showControlsCheckBox" label="Show controls on panel"/>
 			<mx:CheckBox id="showFiltersCheckBox" label="Show Filters on panel"/>
+			<mx:CheckBox id="showColorsCheckBox" label="Display as Colors"/>
 			<mx:CheckBox change="handleKeyColumnCheckBox()" id="showKeyColumnCheckBox" label="Show Key Column"/>
 			<mx:CheckBox label="Export keys with data" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
 			<mx:Button label="Export Data..." click="exportCSV()" />
