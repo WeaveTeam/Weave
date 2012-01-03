@@ -209,8 +209,8 @@ package weave.visualization.layers
 			var max:Number = maxVisibleScale.value;
 			var xScale:Number = _screenBounds.getXCoverage() / _dataBounds.getXCoverage();
 			var yScale:Number = _screenBounds.getYCoverage() / _dataBounds.getYCoverage();
-			return min <= xScale && xScale < max
-				&& min <= yScale && yScale < max;
+			return min < xScale && xScale <= max
+				&& min < yScale && yScale <= max;
 		}
 
 		/**
