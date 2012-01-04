@@ -82,7 +82,6 @@ package weave.visualization.layers
 			percentWidth = 100;
 			percentHeight = 100;
 			
-			this.addChild(backgroundBitmap);
 			this.addChild(plotBitmap);
 			
 			// make selectionFilter appear in session state.
@@ -92,7 +91,6 @@ package weave.visualization.layers
 			_dynamicPlotter.keySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
 			
 			_filteredKeys.setBaseKeySet(_dynamicPlotter.keySet);
-			isOverlay.value = false;
 			
 			linkBindableProperty(layerIsVisible, this, 'visible');
 
@@ -177,7 +175,7 @@ package weave.visualization.layers
 		 * When this is true, the plot won't be drawn if there is no selection and the background will never be drawn.
 		 * This variable says whether or not this is an overlay on top of another layer with the same plotter.
 		 */
-		public const isOverlay:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+		public const isOverlay:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		// This is the key set of the plotter with a filter applied to it.
 		private const _filteredKeys:FilteredKeySet = newDisposableChild(this, FilteredKeySet);
@@ -205,6 +203,11 @@ package weave.visualization.layers
 		{
 			if (!layerIsVisible.value)
 				return false;
+			
+			// 
+			if (_dataBounds.isUndefined())
+				return true;
+			
 			var min:Number = minVisibleScale.value;
 			var max:Number = maxVisibleScale.value;
 			var xScale:Number = _screenBounds.getXCoverage() / _dataBounds.getXCoverage();
@@ -228,9 +231,6 @@ package weave.visualization.layers
  		protected const backgroundBitmap:Bitmap = new Bitmap(null, PixelSnapping.AUTO, true);
 		protected const plotBitmap:Bitmap = new Bitmap(null, PixelSnapping.AUTO, true);
 
-		public function getPlotBitmap():Bitmap { return plotBitmap; }
-		public function getBackgroundBitmap():Bitmap { return backgroundBitmap; }
-		
 		// access the filters of the background layer only
 		public function get backgroundFilters():Array 			 { return backgroundBitmap.filters;  }
 		public function set backgroundFilters(value:Array):void  { backgroundBitmap.filters = value; }
@@ -242,7 +242,10 @@ package weave.visualization.layers
 		// Array is of type BitmapFilter
 		public function set plotFilters(value:Array):void        { plotBitmap.filters = value;       }
 
-		public function validateSpatialIndex():void
+		/**
+		 * @private
+		 */		
+		internal function validateSpatialIndex():void
 		{
 			// spatial index becomes invalid when spatial callbacks are triggered
 			if (detectLinkableObjectChange(validateSpatialIndex, _dynamicPlotter.spatialCallbacks))
@@ -340,6 +343,21 @@ package weave.visualization.layers
 			if (shouldDraw)
 				validateSpatialIndex();
 			
+			// toggle backgroundBitmap if necessary
+			if (detectLinkableObjectChange(updateDisplayList, isOverlay))
+			{
+				if (isOverlay.value)
+				{
+					// if this is an overlay, don't draw the background
+					if (backgroundBitmap.parent)
+						removeChild(backgroundBitmap);
+				}
+				else
+				{
+					if (!backgroundBitmap.parent)
+						addChildAt(backgroundBitmap, 0);
+				}
+			}
 			// draw background if this is not an overlay
 			if (!isOverlay.value && !PlotterUtils.bitmapDataIsEmpty(backgroundBitmap))
 			{

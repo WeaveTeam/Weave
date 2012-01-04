@@ -131,16 +131,16 @@ package weave.visualization.layers
 			for each (layer in _layers)
 			{
 				selectablePlotLayer = layer as SelectablePlotLayer;
-				if (selectablePlotLayer && !selectablePlotLayer.shouldBeRendered())
+				if (selectablePlotLayer && !selectablePlotLayer.layerIsVisible.value)
 					continue;
 				plotLayer = layer as PlotLayer;
-				if (plotLayer && !plotLayer.shouldBeRendered())
+				if (plotLayer && !plotLayer.layerIsVisible.value)
 					continue;
 				
 				//trace(layers.getName(layer), (layer.spatialIndex as SpatialIndex).collectiveBounds, selectablePlotLayer && selectablePlotLayer.plotLayer._spatialIndexDirty);
 				// BEGIN HACK
 				if (selectablePlotLayer)
-					selectablePlotLayer.plotLayer.validateSpatialIndex();
+					selectablePlotLayer.validateSpatialIndex();
 				if (plotLayer)
 					plotLayer.validateSpatialIndex();
 				// END HACK
