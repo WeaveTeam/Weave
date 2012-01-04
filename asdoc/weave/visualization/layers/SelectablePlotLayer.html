@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="SelectablePlotLayer,weave.visualization.layers.SelectablePlotLayer,backgroundIsVisible,layerIsSelectable,useTextBitmapFilters,layerIsVisible,maxVisibleScale,minVisibleScale,plotLayer,plotter,probeFilter,probeLayer,selectionFilter,selectionLayer,spatialIndex,subsetFilter,getDataBounds,getDynamicPlotter,getScreenBounds,hack_lockScreenBounds,setDataBounds,setScreenBounds,shouldBeRendered,showMissingRecords,updateDisplayList" name="keywords">
+<meta content="SelectablePlotLayer,weave.visualization.layers.SelectablePlotLayer,backgroundIsVisible,layerIsSelectable,useTextBitmapFilters,layerIsVisible,maxVisibleScale,minVisibleScale,plotter,probeFilter,selectionFilter,spatialIndex,subsetFilter,getDataBounds,getDynamicPlotter,getScreenBounds,hack_lockScreenBounds,setDataBounds,setScreenBounds,shouldBeRendered,showMissingRecords,updateDisplayList" name="keywords">
 <title>weave.visualization.layers.SelectablePlotLayer</title>
 </head>
 <body>
@@ -73,11 +73,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#plotLayer">plotLayer</a> : <a href="../layers/PlotLayer.html">PlotLayer</a>
-<div class="summaryTableDescription">[read-only]</div>
-</td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#plotter">plotter</a> : <a href="../../api/ui/IPlotter.html">IPlotter</a>
 <div class="summaryTableDescription">[read-only]
    IPlotLayer interface
@@ -90,17 +85,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#probeLayer">probeLayer</a> : <a href="../layers/PlotLayer.html">PlotLayer</a>
-<div class="summaryTableDescription">[read-only]</div>
-</td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
-</tr>
-<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#selectionFilter">selectionFilter</a> : <a href="../../api/data/IDynamicKeyFilter.html">IDynamicKeyFilter</a>
-<div class="summaryTableDescription">[read-only]</div>
-</td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#selectionLayer">selectionLayer</a> : <a href="../layers/PlotLayer.html">PlotLayer</a>
 <div class="summaryTableDescription">[read-only]</div>
 </td><td class="summaryTableOwnerCol">SelectablePlotLayer</td>
 </tr>
@@ -274,18 +259,6 @@ showHideInherited();
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get minVisibleScale():<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
 <br>
 </div>
-<a name="plotLayer"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">plotLayer</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>plotLayer:<a href="../layers/PlotLayer.html">PlotLayer</a></code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get plotLayer():<a href="../layers/PlotLayer.html">PlotLayer</a></code>
-<br>
-</div>
 <a name="plotter"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -312,18 +285,6 @@ showHideInherited();
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get probeFilter():<a href="../../api/data/IDynamicKeyFilter.html">IDynamicKeyFilter</a></code>
 <br>
 </div>
-<a name="probeLayer"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">probeLayer</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>probeLayer:<a href="../layers/PlotLayer.html">PlotLayer</a></code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get probeLayer():<a href="../layers/PlotLayer.html">PlotLayer</a></code>
-<br>
-</div>
 <a name="selectionFilter"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -334,18 +295,6 @@ showHideInherited();
 <code>selectionFilter:<a href="../../api/data/IDynamicKeyFilter.html">IDynamicKeyFilter</a></code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get selectionFilter():<a href="../../api/data/IDynamicKeyFilter.html">IDynamicKeyFilter</a></code>
-<br>
-</div>
-<a name="selectionLayer"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">selectionLayer</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>selectionLayer:<a href="../layers/PlotLayer.html">PlotLayer</a></code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function get selectionLayer():<a href="../layers/PlotLayer.html">PlotLayer</a></code>
 <br>
 </div>
 <a name="spatialIndex"></a>

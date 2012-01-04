@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="PlotLayer,weave.visualization.layers.PlotLayer,backgroundBitmap,isOverlay,layerIsVisible,maxVisibleScale,minVisibleScale,plotBitmap,showMissingRecords,backgroundFilters,plotFilters,plotter,selectionFilter,spatialIndex,subsetFilter,dispose,getBackgroundBitmap,getDataBounds,getDynamicPlotter,getPlotBitmap,getScreenBounds,getSelectedKeys,setDataBounds,setScreenBounds,shouldBeRendered,updateDisplayList,validateSpatialIndex" name="keywords">
+<meta content="PlotLayer,weave.visualization.layers.PlotLayer,backgroundBitmap,isOverlay,layerIsVisible,maxVisibleScale,minVisibleScale,plotBitmap,showMissingRecords,backgroundFilters,plotFilters,plotter,selectionFilter,spatialIndex,subsetFilter,dispose,getDataBounds,getDynamicPlotter,getScreenBounds,getSelectedKeys,setDataBounds,setScreenBounds,shouldBeRendered,updateDisplayList" name="keywords">
 <title>weave.visualization.layers.PlotLayer</title>
 </head>
 <body>
@@ -126,13 +126,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getBackgroundBitmap()">getBackgroundBitmap</a>():Bitmap</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">PlotLayer</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
 <a class="signatureLink" href="#getDataBounds()">getDataBounds</a>(destination:<a href="../../api/primitives/IBounds2D.html">IBounds2D</a>):void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
@@ -144,13 +137,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </div>
 <div class="summaryTableDescription">
    The IPlotter object used to draw shapes on this PlotLayer.</div>
-</td><td class="summaryTableOwnerCol">PlotLayer</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#getPlotBitmap()">getPlotBitmap</a>():Bitmap</div>
-<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
 </tr>
 <tr class="">
@@ -188,13 +174,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription">
    This returns true if the layer should be rendered and selectable/probeable
    </div>
-</td><td class="summaryTableOwnerCol">PlotLayer</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#validateSpatialIndex()">validateSpatialIndex</a>():void</div>
-<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">PlotLayer</td>
 </tr>
 </table>
@@ -401,22 +380,6 @@ showHideInherited();
 <code>public function dispose():void</code><p>
    This is called by SessionManager.dispose().
    </p></div>
-<a name="getBackgroundBitmap()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">getBackgroundBitmap</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function getBackgroundBitmap():Bitmap</code>
-<p></p>
-<span class="label">Returns</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20"></td><td><code>Bitmap</code></td>
-</tr>
-</table>
-</div>
 <a name="getDataBounds()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -445,22 +408,6 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code><a href="../plotters/DynamicPlotter.html">DynamicPlotter</a></code></td>
-</tr>
-</table>
-</div>
-<a name="getPlotBitmap()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">getPlotBitmap</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function getPlotBitmap():Bitmap</code>
-<p></p>
-<span class="label">Returns</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20"></td><td><code>Bitmap</code></td>
 </tr>
 </table>
 </div>
@@ -560,15 +507,6 @@ showHideInherited();
 <td width="20px"></td><td><code><span class="label">unscaledHeight</span>:Number</code></td>
 </tr>
 </table>
-</div>
-<a name="validateSpatialIndex()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">validateSpatialIndex</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function validateSpatialIndex():void</code>
 </div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
