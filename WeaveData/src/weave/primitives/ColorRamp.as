@@ -42,8 +42,6 @@ package weave.primitives
 	{
 		public function ColorRamp(sessionState:Object = null)
 		{
-			super();
-			addImmediateCallback(this, firstCallback);
 			if (!sessionState)
 				sessionState = <colorRamp name="5-Color" source="OIC" category="basic">
 						<node color="0xEFF3FF" position="0"/>
@@ -52,13 +50,24 @@ package weave.primitives
 						<node color="0x3182BD" position="0.75"/>
 						<node color="0x08519C" position="1"/>
 					</colorRamp>;
-			value = (sessionState is XML) ? (sessionState as XML).toXMLString() : sessionState as String;
+			
+			if (sessionState is XML)
+				sessionState = (sessionState as XML).toXMLString();
+			
+			super(sessionState as String);
 		}
 		
 		private var _isXML:Boolean = false;
 		
-		private function firstCallback():void
+		private var _validateTriggerCount:uint = 0;
+		
+		private function validate():void
 		{
+			if (_validateTriggerCount == triggerCounter)
+				return;
+			
+			_validateTriggerCount = triggerCounter;
+			
 			var i:int;
 			var pos:Number;
 			var color:Number;
@@ -117,6 +126,8 @@ package weave.primitives
 		
 		public function reverse():void
 		{
+			validate();
+			
 			if (_isXML)
 			{
 				var xml:XML = XML(value);
@@ -134,6 +145,8 @@ package weave.primitives
 
 		public function get name():String
 		{
+			validate();
+			
 			if (_isXML)
 				return XML(value).@name;
 			else
@@ -141,6 +154,8 @@ package weave.primitives
 		}
 		public function set name(newName:String):void
 		{
+			validate();
+			
 			if (_isXML)
 			{
 				var xml:XML = XML(value);
@@ -157,6 +172,8 @@ package weave.primitives
 		
 		public function getColors():Array
 		{
+			validate();
+			
 			var colors:Array = [];
 			
 			for(var i:int =0;i< _colorNodes.length;i++)
@@ -174,6 +191,8 @@ package weave.primitives
 		 */
 		public function getColorFromNorm(normValue:Number):Number
 		{
+			validate();
+			
 			if (normValue < 0 || normValue > 1 || _colorNodes.length == 0)
 				return NaN;
 			
@@ -202,6 +221,8 @@ package weave.primitives
 		 */
 		public function draw(canvas:Canvas, vertical:Boolean):void
 		{
+			validate();
+			
 			var g:Graphics = canvas.graphics;
 			g.clear();
 			var n:int = vertical ? canvas.height : canvas.width;
