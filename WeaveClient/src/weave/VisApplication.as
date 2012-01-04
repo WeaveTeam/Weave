@@ -19,6 +19,7 @@
 
 package weave
 {
+	import flash.display.DisplayObject;
 	import flash.display.LoaderInfo;
 	import flash.display.StageDisplayState;
 	import flash.events.ContextMenuEvent;
@@ -46,6 +47,7 @@ package weave
 	import mx.controls.ProgressBarLabelPlacement;
 	import mx.controls.Text;
 	import mx.core.Application;
+	import mx.core.IUIComponent;
 	import mx.core.UIComponent;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
@@ -96,6 +98,7 @@ package weave
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.RTextEditor;
 	import weave.ui.SelectionManager;
+	import weave.ui.SessionHistorySlider;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SubsetManager;
 	import weave.ui.WizardPanel;
@@ -106,6 +109,7 @@ package weave
 	import weave.utils.ColumnUtils;
 	import weave.utils.DebugTimer;
 	import weave.utils.DebugUtils;
+	import weave.utils.EditorManager;
 	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.CollaborationTool;
@@ -1142,7 +1146,10 @@ package weave
 			}
 			
 			if (getFlashVarEditable())
-				addHistorySlider();
+			{
+				var historySlider:UIComponent = EditorManager.getNewEditor(Weave.history) as UIComponent;
+				addChild(historySlider);
+			}
 			else
 				Weave.history.enableLogging = false;
 			
@@ -1175,63 +1182,6 @@ package weave
 			if (event.fault.faultCode == SecurityErrorEvent.SECURITY_ERROR)
 				Alert.show("The server hosting the configuration file does not have a permissive crossdomain policy.", "Security sandbox violation");
 		}
-		
-		private function addHistorySlider():void
-		{
-			// beta undo/redo feature
-			var hb:HBox = new HBox();
-			hb.percentWidth = 100;
-			addChild(hb);
-			
-			var recButton:Button = new Button();
-			recButton.label="REC";
-			recButton.toggle = true;
-			recButton.selected = Weave.history.enableLogging;
-			recButton.addEventListener(MouseEvent.CLICK,function(..._):void{ Weave.history.enableLogging = recButton.selected; });
-			hb.addChild(recButton);
-			
-			var undoButton:Button = new Button();
-			undoButton.label="<";
-			undoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ Weave.history.undo(); });
-			hb.addChild(undoButton);
-			
-			var redoButton:Button = new Button();
-			redoButton.label=">";
-			redoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ Weave.history.redo(); });
-			hb.addChild(redoButton);
-			
-			var hs:HSlider = new HSlider();
-			hb.addChild(hs);
-			hs.percentWidth = 100;
-			hs.setStyle("bottom", 0);
-			hs.minimum = 0;
-			hs.showDataTip = false;
-			hs.liveDragging = true;
-			hs.tickInterval = 1;
-			hs.snapInterval = 1;
-			hs.addEventListener(Event.CHANGE, handleHistorySlider);
-			function handleHistorySlider():void
-			{
-				var delta:int = hs.value - Weave.history.undoHistory.length;
-				if (delta < 0)
-					Weave.history.undo(-delta);
-				else
-					Weave.history.redo(delta);
-			}
-			
-			var clearButton:Button = new Button();
-			clearButton.label="Clear";
-			clearButton.addEventListener(MouseEvent.CLICK,function(..._):void{ Weave.history.clearHistory(); });
-			hb.addChild(clearButton);
-			
-			getCallbackCollection(Weave.history).addImmediateCallback(this, updateHistorySlider, null, true);
-			function updateHistorySlider():void
-			{
-				hs.maximum = Weave.history.undoHistory.length + Weave.history.redoHistory.length;
-				hs.value = Weave.history.undoHistory.length;
-			}
-		}
-
 		
 		private var _printToolMenuItem:ContextMenuItem = null;
 		

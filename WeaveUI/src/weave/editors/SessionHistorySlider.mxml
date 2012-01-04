@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---
+	This is a GUI for SessionStateLog undo and redo.
+
+	@author adufilie
+-->
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns="weave.editors.*"
+		 width="100%"
+		 implements="weave.api.ui.ILinkableObjectEditor">
+	<mx:Button id="recordButton" label="REC" toggle="true" click="_stateLog.enableLogging = recordButton.selected;"/>
+	<mx:Button label="&lt;" click="_stateLog.undo();"/>
+	<mx:Button label="&gt;" click="_stateLog.redo();"/>
+	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();"/>
+	<mx:Button label="Clear" click="_stateLog.clearHistory();"/>
+	<mx:Script>
+		<![CDATA[
+			import weave.api.core.ILinkableObject;
+			import weave.api.getCallbackCollection;
+			import weave.core.SessionStateLog;
+			
+			private var _stateLog:SessionStateLog = null; // this is the object we are editing
+			
+			/**
+			 * @inheritDoc
+			 */
+			public function setTarget(object:ILinkableObject):void
+			{
+				if (_stateLog)
+					getCallbackCollection(_stateLog).removeCallback(handleStateLogChange);
+				
+				_stateLog = object as SessionStateLog;
+				
+				if (_stateLog)
+					getCallbackCollection(_stateLog).addImmediateCallback(this, handleStateLogChange, null, true);
+			}
+			
+			/**
+			 * @inheritDoc
+			 */
+			public function applyChanges():void
+			{
+				// do nothing because changes are applied immediately.
+			}
+			
+			// called when slider value changes
+			private function handleSlider():void
+			{
+				var delta:int = slider.value - _stateLog.undoHistory.length;
+				if (delta < 0)
+					_stateLog.undo(-delta);
+				else
+					_stateLog.redo(delta);
+			}
+			
+			// called when state log changes
+			private function handleStateLogChange():void
+			{
+				if (!parent)
+				{
+					callLater(handleStateLogChange);
+					return;
+				}
+				recordButton.selected = _stateLog.enableLogging;
+				slider.maximum = _stateLog.undoHistory.length + _stateLog.redoHistory.length;
+				slider.value = _stateLog.undoHistory.length;
+				slider.enabled = slider.maximum > slider.minimum;
+			}
+		]]>
+	</mx:Script>
+</mx:HBox> 
