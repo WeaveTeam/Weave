@@ -73,26 +73,36 @@ package weave.primitives
 			var color:Number;
 			var positions:Array = [];
 			var reversed:Boolean = false;
-			
+			var string:String = value;
 			var xml:XML = null;
-			if (value.charAt(0) == '<' && value.substr(-1) == '>')
+			if (string.charAt(0) == '<' && string.substr(-1) == '>')
 			{
 				try // try parsing as xml
 				{
-					xml = XML(value);
+					xml = XML(string);
 					reversed = String(xml.@reverse) == 'true';
 					
-					var xmlNodes:XMLList = xml.children();
-					_colorNodes.length = xmlNodes.length();
-					for (i = 0; i < xmlNodes.length(); i++)
+					var text:String = xml.text();
+					if (text)
 					{
-						var position:String = xmlNodes[i].@position;
-						pos = position == '' ? i / (_colorNodes.length - 1) : Number(position);
-						color = Number(xmlNodes[i].@color);
-						_colorNodes[i] = new ColorNode(pos, color);
-						positions[i] = pos;
+						// treat a single text node as a list of color values
+						string = text;
+						xml = null;
 					}
-					
+					else
+					{
+						// handle a list of colorNode tags containing position and color attributes
+						var xmlNodes:XMLList = xml.children();
+						_colorNodes.length = xmlNodes.length();
+						for (i = 0; i < xmlNodes.length(); i++)
+						{
+							var position:String = xmlNodes[i].@position;
+							pos = position == '' ? i / (_colorNodes.length - 1) : Number(position);
+							color = Number(xmlNodes[i].@color);
+							_colorNodes[i] = new ColorNode(pos, color);
+							positions[i] = pos;
+						}
+					}
 				}
 				catch (e:Error) { } // not an xml
 			}
@@ -100,7 +110,7 @@ package weave.primitives
 			
 			if (!_isXML)
 			{
-				var colors:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(value));
+				var colors:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(string));
 				_colorNodes.length = colors.length;
 				for (i = 0; i < colors.length; i++)
 				{
