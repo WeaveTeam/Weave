@@ -98,7 +98,7 @@ package weave
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.RTextEditor;
 	import weave.ui.SelectionManager;
-	import weave.ui.SessionHistorySlider;
+	import weave.editors.SessionHistorySlider;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SubsetManager;
 	import weave.ui.WizardPanel;
