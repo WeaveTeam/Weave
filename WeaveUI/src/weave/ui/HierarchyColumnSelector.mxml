@@ -210,8 +210,6 @@
 				equationColumn.setMetadata(AttributeColumnMetadata.TITLE, title);
 				equationColumn.setMetadata(AttributeColumnMetadata.KEY_TYPE, desiredKeyType);
 				equationColumn.setMetadata(AttributeColumnMetadata.DATA_TYPE, dataRef.getMetadata(AttributeColumnMetadata.DATA_TYPE));
-				var keyCol:ReferencedColumn = equationColumn.keyColumn.requestLocalObject(ReferencedColumn, false);
-				keyCol.dynamicColumnReference.requestLocalObjectCopy(equationColumn.variables.getObject(LOOKUP_VARIABLE));
 				
 				dynamicColumn.resumeCallbacks();
 			}

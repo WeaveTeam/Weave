@@ -106,6 +106,14 @@ package weave.api.core
 		function requestObjectCopy(name:String, objectToCopy:ILinkableObject):ILinkableObject;
 
 		/**
+		 * This function will rename an object by making a copy and removing the original.
+		 * @param oldName The name of an object to replace.
+		 * @param newName The new name to use for the copied object.
+		 * @return The copied object associated with the new name, or the original object if newName is the same as oldName.
+		 */
+		function renameObject(oldName:String, newName:String):ILinkableObject;
+		
+		/**
 		 * This function will call lockObject() on all objects in this LinkableHashMap.
 		 * The LinkableHashMap will also be locked so that no new objects can be initialized.
 		 */

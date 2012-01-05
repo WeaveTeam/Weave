@@ -19,12 +19,37 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:VBox
-	xmlns="weave.ui.admin.*"
-	xmlns:mx="http://www.adobe.com/2006/mxml"
-	horizontalScrollPolicy="off" verticalScrollPolicy="off" creationPolicy="all"
-	width="100%" height="100%"
-	creationComplete="handleCreationComplete()" xmlns:ui="weave.ui.*">
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns="weave.ui.admin.*"
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off" creationPolicy="all"
+		 width="100%" height="100%"
+		 creationComplete="handleCreationComplete()" xmlns:ui="weave.ui.*">
+	<ui:Indent label="Name">
+		<mx:TextInput change="{dataChanged=true}" id="nameInput"/>
+	</ui:Indent>
+	<ui:Indent label="Connection">
+		<ui:CustomComboBox change="{dataChanged=true}" id="connectionCombo" dataProvider="{AdminInterface.instance.connectionNames}"/>
+	</ui:Indent>
+	<ui:Indent label="Key Type">
+		<ui:CustomComboBox change="{dataChanged=true}" id="keyTypeCombo" editable="true" dataProvider="{AdminInterface.instance.keyTypes}"/>
+	</ui:Indent>
+	<ui:Indent label="Schema">
+		<mx:TextInput change="{dataChanged=true}" id="schemaInput"/>
+	</ui:Indent>
+	<ui:Indent label="Table Prefix">
+		<mx:TextInput change="{dataChanged=true}" id="tablePrefixInput"/>
+	</ui:Indent>
+	<ui:Indent label="Projection SRS code">
+		<mx:TextInput change="{dataChanged=true}" id="projectionInput" toolTip="Example: EPSG:4326"/>
+	</ui:Indent>
+	<ui:Indent label="Import Notes">
+		<mx:TextInput change="{dataChanged=true}" id="importNotesInput"/>
+	</ui:Indent>
+	
+	<mx:HBox>
+		<mx:Button click="apply()" label="Apply Changes"/>
+		<mx:Button click="deleteGeometryCollection()" label="Delete GeometryCollection Entry"/>
+	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
@@ -36,8 +61,6 @@
 			
 			import weave.services.AdminInterface;
 			import weave.utils.EventUtils;
-			
-			[Bindable] private var _labelWidth:int = 150;
 			
 			private function handleCreationComplete():void
 			{
@@ -103,37 +126,4 @@
 
 		]]>
 	</mx:Script>
-	<mx:HBox>
-		<mx:Label width="{_labelWidth}" text="Name"/>
-		<mx:TextInput change="{dataChanged=true}" id="nameInput"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label width="{_labelWidth}" text="Connection"/>
-		<ui:CustomComboBox change="{dataChanged=true}" id="connectionCombo" dataProvider="{AdminInterface.instance.connectionNames}"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label width="{_labelWidth}" text="Key Type"/>
-		<ui:CustomComboBox change="{dataChanged=true}" id="keyTypeCombo" editable="true" dataProvider="{AdminInterface.instance.keyTypes}"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label width="{_labelWidth}" text="Schema"/>
-		<mx:TextInput change="{dataChanged=true}" id="schemaInput"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label width="{_labelWidth}" text="Table Prefix"/>
-		<mx:TextInput change="{dataChanged=true}" id="tablePrefixInput"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label width="{_labelWidth}" text="Projection SRS code"/>
-		<mx:TextInput change="{dataChanged=true}" id="projectionInput" toolTip="Example: EPSG:4326"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label width="{_labelWidth}" text="Import Notes"/>
-		<mx:TextInput change="{dataChanged=true}" id="importNotesInput"/>
-	</mx:HBox>
-
-	<mx:HBox>
-	<mx:Button click="apply()" label="Apply Changes"/>
-	<mx:Button click="deleteGeometryCollection()" label="Delete GeometryCollection Entry"/>
-	</mx:HBox>
 </mx:VBox>

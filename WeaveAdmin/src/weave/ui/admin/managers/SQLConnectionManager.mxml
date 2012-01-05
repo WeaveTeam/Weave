@@ -38,25 +38,25 @@
 		<mx:Canvas id="simpleSetting" label="Add database connection{dataChanged ? '*' : ''}" width="100%" height="100%">
 			<mx:VBox width="100%" height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
 				<mx:Label fontWeight="bold" text="Add or modify a database connection:"/>
-				<ui:Indent indent="{_indent}" label="Connection name:">
+				<ui:Indent label="Connection name">
 					<mx:TextInput id="connectionNameInput" change="{dataChanged=true}" width="130"/>
 					<mx:CheckBox label="Overwrite" id="configOverwrite"/>
 				</ui:Indent>
-				<ui:Indent indent="{_indent}" label="SQL Server type">
+				<ui:Indent label="SQL Server type">
 					<ui:CustomComboBox change="{dataChanged=true}" id="connectionDBMSCombo" dataProvider="{ConnectionInfo.dbmsList}" width="130"/>
 				</ui:Indent>
-				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server IP" id="connectionIPInput" text="{hostIP}" inputWidth="130"/>
-				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Server Port" id="connectionPortInput" text="{ConnectionInfo.getDefaultPort(connectionDBMSCombo.text)}" inputWidth="130"/>
-				<ui:Indent indent="{_indent}" label="SQL Database name">
+				<ui:TextBox change="{dataChanged=true}" label="SQL Server IP" id="connectionIPInput" text="{hostIP}" inputWidth="130"/>
+				<ui:TextBox change="{dataChanged=true}" label="SQL Server Port" id="connectionPortInput" text="{ConnectionInfo.getDefaultPort(connectionDBMSCombo.text)}" inputWidth="130"/>
+				<ui:Indent label="SQL Database name">
 					<mx:TextInput change="{dataChanged=true}" id="connectionDatabaseInput" width="130"/>
 					<mx:Label text="(Optional)"/>
 					<ui:HelpComponent content="{'This field is optional.  You can specify the name of a default database to connect to.\nFor SQL Server, this is an instance name.\nSimilarly in PostGreSQL, databases are different from schemas.\nMySQL does not differentiate between the two.'}"/>
 					<!-- 'This field is required only for MS SQLServer connections. If you had a Server Name \'LocalMachine\\Express\', then this field should be entered as Express. If there is no instance name for your server, you may leave this blank.' -->
 				</ui:Indent>
-				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL User Name" id="connectionUserInput" inputWidth="130"/>
-				<ui:TextBox change="{dataChanged=true}" indent="{_indent}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" inputWidth="130"/>
-				<ui:TextBox indent="{_indent}" label="User Folder Name" text="" id="folderNameInput" inputWidth="130" toolTip="Specify the folder in docroot to store user-created configurations"/>
-				<ui:Indent indent="{_indent}">
+				<ui:TextBox change="{dataChanged=true}" label="SQL User Name" id="connectionUserInput" inputWidth="130"/>
+				<ui:TextBox change="{dataChanged=true}" label="SQL Password" id="connectionPasswordInput" displayAsPassword="true" inputWidth="130"/>
+				<ui:TextBox label="User Folder Name" text="" id="folderNameInput" inputWidth="130" toolTip="Specify the folder in docroot to store user-created configurations"/>
+				<ui:Indent>
 					<mx:CheckBox change="{dataChanged=true}" label="Grant Superuser Permissions" id="superuserCheckbox"/>					
 				</ui:Indent>
 				<mx:HBox>
@@ -69,13 +69,13 @@
 		<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%" enabled="{AdminInterface.instance.connectionNames.length > 0}">
 			<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
 				<mx:Label fontWeight="bold" text="Set the location of the SQL tables where Weave will store configuration data:"/>
-				<ui:Indent indent="{170}" label="Connection to use">
+				<ui:Indent label="Connection to use">
 					<ui:CustomComboBox id="migrateConnectionCombo" dataProvider="{AdminInterface.instance.connectionNames}" width="200"/>
 				</ui:Indent>
-				<ui:TextBox indent="{170}" label="Password" id="migratePasswordInput" displayAsPassword="true"/>
-				<ui:TextBox indent="{170}" label="Schema to use" id="migrateSchemaInput" text="{AdminInterface.instance.databaseConfigInfo.schema}"/>
-				<ui:TextBox indent="{170}" label="Geometry config table" id="migrateGeometryConfigInput" text="{AdminInterface.instance.databaseConfigInfo.geometryConfigTable}"/>
-				<ui:TextBox indent="{170}" label="AttributeColumn config table" id="migrateDataConfigInput" text="{AdminInterface.instance.databaseConfigInfo.dataConfigTable}"/>
+				<ui:TextBox label="Password" id="migratePasswordInput" displayAsPassword="true"/>
+				<ui:TextBox label="Schema to use" id="migrateSchemaInput" text="{AdminInterface.instance.databaseConfigInfo.schema}"/>
+				<ui:TextBox label="Geometry config table" id="migrateGeometryConfigInput" text="{AdminInterface.instance.databaseConfigInfo.geometryConfigTable}"/>
+				<ui:TextBox label="AttributeColumn config table" id="migrateDataConfigInput" text="{AdminInterface.instance.databaseConfigInfo.dataConfigTable}"/>
 				<mx:Button id="migrateButton" label="Use these SQL tables to store Weave's configuration" click="migrateToDatabase()" />
 			</mx:VBox>
 		</mx:Canvas>
@@ -104,8 +104,6 @@
 			
 			[Bindable]
 			private var serverConfigEntryWasModified:Boolean = false;
-			
-			[Bindable] private var _indent:int = 130;
 			
 			[Bindable]
 			private var dataChanged:Boolean = false;

@@ -248,15 +248,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-			private const colorRampName:LinkableString = newLinkableChild(this, LinkableString,handleColorRampName);
-			
-			private function handleColorRampName():void
-			{
-				if (stage == null)
-					return callLater(handleColorRampName);
-				_plotter.colorMap.value = ColorRamp.getColorRampXMLByName(colorRampName.value);				
-			}
-			
 			private function alphaSliderFormatFunction(item:Number):String 
 			{
 				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
@@ -357,23 +348,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							 toolTip="Enable different wedge colors for the pi-chart glyphs"
 							 creationComplete="linkBindableProperty(_plotter.enableWedgeColoring, event.target, 'selected')"/>
 				<mx:Label text="Color scale used in pie-chart glyphs:" enabled="{enableWedgeColoringCkbx.selected}"/>
-				<mx:DataGrid id="colormapGrid"
-							 enabled="{enableWedgeColoringCkbx.selected}"
-							 useRollOver="false"
-							 minWidth="200" width="100%" height="100%"
-							 color="black"
-							 rollOverColor="0xCCFEFF"
-							 fontWeight="normal"
-							 paddingBottom="2" paddingTop="2" paddingLeft="5" paddingRight="5" 
-							 horizontalScrollPolicy="off" verticalScrollPolicy="on"
-							 allowMultipleSelection="false"  
-							 dataProvider="{new XMLList(ColorRamp.allColorRamps.colorRamp)}"
-							 change="colorRampName.value = colormapGrid.selectedItem.@name;"
-							 headerHeight="22">
-					<mx:columns>												
-						<mx:DataGridColumn dataField="@name"  headerText="Color Scale"  itemRenderer="weave.ui.colormap.ColorRampPresetItemRenderer"/>
-					</mx:columns>
-				</mx:DataGrid>
+				<ui:ColorRampList id="colormapGrid" colorRamp="{_plotter.colorMap}"/>
 			</mx:VBox>
 			<mx:Spacer height="10"/>
 			<mx:VBox

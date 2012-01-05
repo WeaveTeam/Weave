@@ -56,45 +56,48 @@
 						  creationComplete="linkBindableProperty(_visualization.marginRight, event.target, 'text', 500);"/>
 		</mx:HBox>
 	</mx:HBox>
+	<ui:IndentGroup id="g1"/>
+	<ui:IndentGroup id="g2"/>
+	<ui:IndentGroup id="g3"/>
 	<mx:VBox id="axisSettings" verticalGap="{verticalGap}" verticalAlign="middle">
 		<mx:HBox verticalAlign="middle">
-			<ui:Indent label="Axis color:">
+			<ui:Indent label="Axis color:" group="{g1}">
 				<mx:ColorPicker id="axisColorPicker" toolTip="Select a color for the axis border of this visualization"
 								creationComplete="linkBindableProperty(_visualization.axesColor, event.target, 'selectedColor');"/>
 			</ui:Indent>
-			<ui:Indent label="Axis thickness:">
+			<ui:Indent label="Axis thickness:" group="{g2}">
 				<mx:NumericStepper id="axisThicknessStepper" minimum="0" maximum="50"
 								   creationComplete="linkBindableProperty(_visualization.axesThickness, event.target, 'value');"/>
 			</ui:Indent>
-			<ui:Indent label="Axis alpha:">
+			<ui:Indent label="Axis alpha:" group="{g3}">
 				<mx:NumericStepper id="axisAlphaStepper" minimum="0" maximum="1" stepSize="0.1" toolTip="0 = transparent; 1 = opaque"
 							creationComplete="linkBindableProperty(_visualization.axesAlpha, event.target, 'value');"/>
 			</ui:Indent>
 		</mx:HBox>
 		<mx:HBox verticalAlign="middle">
-			<ui:Indent label="Grid color:">
+			<ui:Indent label="Grid color:" group="{g1}">
 				<mx:ColorPicker id="gridColorPicker" toolTip="Select a color for the grid lines of this visualization"
 								creationComplete="linkBindableProperty(_visualization.gridLineColor, event.target, 'selectedColor');"/>
 			</ui:Indent>
-			<ui:Indent label="Grid thickness:">
+			<ui:Indent label="Grid thickness:" group="{g2}">
 				<mx:NumericStepper id="gridLineThicknessStepper" minimum="1" maximum="10"
 								   creationComplete="linkBindableProperty(_visualization.gridLineThickness, event.target, 'value');"/>
 			</ui:Indent>
-			<ui:Indent label="Grid alpha:">
+			<ui:Indent label="Grid alpha:" group="{g3}">
 				<mx:NumericStepper id="gridLineAlphaStepper" minimum="0" maximum="1" stepSize="0.1" toolTip="0 = transparent; 1 = opaque"
 							creationComplete="linkBindableProperty(_visualization.gridLineAlpha, event.target, 'value');"/>
 			</ui:Indent>
 		</mx:HBox>
 		<mx:HBox verticalAlign="middle">
 			<mx:VBox>
-				<ui:TextBox label="Y axis title:" id="yAxisTitle" indent="{yAxisLabelFunction.labelComponent.width}"/>
+				<ui:TextBox label="Y axis title:" id="yAxisTitle"/>
 				<ui:TextBox label="Y axis label function:" id="yAxisLabelFunction"/>
 			</mx:VBox>
 			<mx:VBox>
-				<ui:Indent id="yDistLbl" label="Distance:">
+				<ui:Indent label="Distance:">
 					<mx:NumericStepper id="yLabelDistance" minimum="-50" maximum="50" stepSize="5" width="64"/>
 				</ui:Indent>
-				<ui:Indent indent="{yDistLbl.labelComponent.width}" label="Angle:">
+				<ui:Indent label="Angle:">
 					<mx:NumericStepper id="yLabelAngle" minimum="-180" maximum="180" stepSize="15" width="64"/>
 				</ui:Indent>
 			</mx:VBox>
@@ -102,14 +105,14 @@
 		</mx:HBox>
 		<mx:HBox verticalAlign="middle">
 			<mx:VBox>
-				<ui:TextBox label="X axis title:" id="xAxisTitle" indent="{xAxisLabelFunction.labelComponent.width}"/>
+				<ui:TextBox label="X axis title:" id="xAxisTitle"/>
 				<ui:TextBox label="X axis label function:" id="xAxisLabelFunction"/>
 			</mx:VBox>
 			<mx:VBox>
-				<ui:Indent id="xDistLbl" label="Distance:">
+				<ui:Indent label="Distance:">
 					<mx:NumericStepper id="xLabelDistance" minimum="-50" maximum="50" stepSize="5" width="64"/>
 				</ui:Indent>
-				<ui:Indent indent="{xDistLbl.labelComponent.width}" label="Angle:">
+				<ui:Indent label="Angle:">
 					<mx:NumericStepper id="xLabelAngle" minimum="-180" maximum="180" stepSize="15" width="64"/>
 				</ui:Indent>
 			</mx:VBox>
@@ -127,7 +130,6 @@
 			import weave.visualization.layers.SimpleInteractiveVisualization;
 			
 			private const verticalGap:int = 16;
-			private const indent:int = 150;
 
 			[Bindable]
 			private var _panel:DraggablePanel = null;

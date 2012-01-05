@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<!---
+@author abaumann
+@author adufilie
+-->
+<mx:DataGrid
+		xmlns:mx="http://www.adobe.com/2006/mxml" 
+		xmlns="weave.ui.*"
+		implements="weave.api.core.ILinkableObject"
+		useRollOver="false"
+		minWidth="200" width="100%" height="100%"
+		fontWeight="normal"
+		paddingBottom="2" paddingTop="2" paddingLeft="5" paddingRight="5" 
+		horizontalScrollPolicy="auto" verticalScrollPolicy="on"
+		allowMultipleSelection="false"
+		dataProvider="{ColorRamp.allColorRamps.colorRamp}"
+		change="handleColorRampSelected()">
+	<mx:columns>
+		<mx:DataGridColumn dataField="@name"  headerText="Color scale presets">
+			<mx:itemRenderer>
+				<mx:Component>
+					<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+							   horizontalScrollPolicy="off" 
+							   verticalScrollPolicy="off"
+							   paddingLeft="2"
+							   width="100%">
+						<mx:Canvas id="colorRampCanvas"
+								   borderStyle="solid" borderColor="0x000000" 
+								   height="18" width="50%"/>
+						<mx:Label text="{label}" width="50%"/>
+						
+						<mx:Script>
+							<![CDATA[
+								import weave.primitives.ColorRamp;
+								
+								private const colorRamp:ColorRamp = new ColorRamp();
+								
+								override public function set data(value:Object):void
+								{
+									var xml:XML = value as XML;
+									
+									super.data = xml;
+									
+									if (!xml)
+										return;
+									
+									label = xml.@name;
+									colorRamp.value = xml;
+									toolTip = xml.@name + '\nTags: ' + xml.@tags;
+								}
+								override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+								{
+									super.updateDisplayList(unscaledWidth, unscaledHeight);
+									colorRamp.draw(colorRampCanvas, false);
+								}
+							]]>
+						</mx:Script>
+					</mx:HBox>
+				</mx:Component>
+			</mx:itemRenderer>
+		</mx:DataGridColumn>
+	</mx:columns>
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.XMLListCollection;
+			import mx.core.Application;
+			import mx.managers.PopUpManager;
+			
+			import weave.Weave;
+			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableObject;
+			import weave.api.linkSessionState;
+			import weave.data.AttributeColumns.BinnedColumn;
+			import weave.data.AttributeColumns.ColorColumn;
+			import weave.data.AttributeColumns.FilteredColumn;
+			import weave.primitives.ColorRamp;
+			
+			private var _colorRamp:ColorRamp = null;
+			
+			public function get colorRamp():ColorRamp
+			{
+				return _colorRamp;
+			}
+			public function set colorRamp(value:ColorRamp):void
+			{
+				if (_colorRamp == value)
+					return;
+				
+				if (_colorRamp)
+					_colorRamp.removeCallback(colorRampCallback);
+				
+				_colorRamp = value;
+				
+				if (_colorRamp)
+					_colorRamp.addImmediateCallback(this, colorRampCallback);
+			}
+			
+			private function colorRampCallback():void
+			{
+				var rampXML:XML;
+				try
+				{
+					rampXML = XML(colorRamp.value);
+				}
+				catch (e:Error)
+				{
+					return;
+				}
+				
+				// find item with matching name
+				var xmlList:XMLList = ColorRamp.allColorRamps.colorRamp.(@name == rampXML.@name);
+				if (xmlList.length() > 0)
+					selectedItem = xmlList[0];
+			}
+			
+			private function handleColorRampSelected():void
+			{
+				if (selectedItem is XML && colorRamp)
+					colorRamp.value = ColorRamp.getColorRampXMLByName(selectedItem.@name);
+			}
+						
+		]]>
+	</mx:Script>
+</mx:DataGrid>

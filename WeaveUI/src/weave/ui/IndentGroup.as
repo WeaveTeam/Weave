@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
 /*
     Weave (Web-based Analysis and Visualization Environment)
     Copyright (C) 2008-2011 University of Massachusetts Lowell
@@ -18,27 +16,19 @@
     You should have received a copy of the GNU General Public License
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
--->
-<Indent
-    xmlns:mx="http://www.adobe.com/2006/mxml"
-    xmlns="weave.ui.*"
-    >
-    <mx:TextInput id="input" text="{text}" change="handleInputChange()" width="{inputWidth}" displayAsPassword="{displayAsPassword}"/>
-	
-	<mx:Metadata>
-		[Event(name="change", type="flash.events.Event")]
-	</mx:Metadata>
-    <mx:Script>
-    	<![CDATA[
-    		[Bindable] public var text:String = "";
-    		[Bindable] public var inputWidth:Number = NaN;
-    		[Bindable] public var displayAsPassword:Boolean = false;
-			
-			private function handleInputChange():void
-			{
-				text = input.text;
-				dispatchEvent(new Event(Event.CHANGE));
-			}
-    	]]>
-    </mx:Script>
-</Indent>
+
+package weave.ui
+{
+	/**
+	 * An IndentGroup can be set as the group property of an Indent object.
+	 * @see weave.ui.Indent#group
+	 * @author adufilie
+	 */
+	public class IndentGroup
+	{
+		/**
+		 * This is the maximum measuredWidth of all the Indent labels under this group.
+		 */		
+		[Bindable] public var measuredIndent:Number = 0;
+	}
+}
