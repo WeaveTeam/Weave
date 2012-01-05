@@ -53,7 +53,6 @@
 			public function logText(txt:String):void
 			{
 				var from:String = txt.substr(0, txt.indexOf(":"));
-				trace( from,"==",username );
 				if( from && from == username )
 					log.htmlText += "<font color='#FF0000'>"+txt+"<br>";
 				else

@@ -32,6 +32,7 @@ package weave.services.collaboration
 		public static const CONNECT:String 					= "collab_connect";
 		public static const DISCONNECT:String 				= "collab_disconnect";
 		public static const USER_JOINED_CREATE_MOUSE:String = "user_joined_create_mouse";
+		public static const USER_UPDATE_MOUSE_POS:String 	= "user_update_mouse_pos";
 		public static const USER_LEFT_REMOVE_MOUSE:String 	= "user_left_remove_mouse";
 		public static const USER_LIST_UPDATED:String		= "user_list_updated";
 		
@@ -48,12 +49,13 @@ package weave.services.collaboration
 		public static const SEND_MESSAGE:String 			= "collab_send_message";
 		
 		
-		//generic data
 		private var text:String;
 		private var from:String;
 		private var color:uint;
+		private var x:Number;
+		private var y:Number;
 		
-		public function CollaborationEvent(type:String, text:String = null, from:String = null, color:uint = 0)
+		public function CollaborationEvent(type:String, text:String = null, color:uint = 0, x:Number = 0, y:Number = 0)
 		{
 			super(type);
 			this.text = text;
@@ -63,14 +65,17 @@ package weave.services.collaboration
 		{
 			return text;
 		}
-		public function getFrom():String
-		{
-			return from;
-		}
 		public function getColor():uint
 		{
 			return color;
 		}
-		
+		public function getX():Number
+		{
+			return x;
+		}
+		public function getY():Number
+		{
+			return y;
+		}
 	}
 }

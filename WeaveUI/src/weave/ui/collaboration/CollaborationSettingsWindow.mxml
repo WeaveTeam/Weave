@@ -18,7 +18,7 @@
 						 paddingRight="{padding}" paddingTop="{padding}">
 					<mx:HBox width="100%">
 						<mx:Label text="IP:" width="{labelWidth}" />
-						<mx:TextInput id="serverIP" width="{textAreaWidth}" text="5.94.172.208" change="trimInput(event);"/> <!--text="129.63.17.205"-->
+						<mx:TextInput id="serverIP" width="{textAreaWidth}" text="129.63.17.205" change="trimInput(event);"/> <!--text="129.63.17.205"-->
 					</mx:HBox>
 					<mx:HBox width="100%">
 						<mx:Label text="ServerName:" width="{labelWidth}" />

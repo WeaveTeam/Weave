@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
 		   width="18" height="24">	
+	
+	<mx:Move id="moveEvent" 
+			 xFrom="{xFrom}" xTo="{xTo}"
+			 yFrom="{yFrom}" yTo="{yTo}"
+			 />
+	
 	<mx:Script>
 		<![CDATA[
 			import mx.managers.PopUpManager;
@@ -21,12 +27,16 @@
 			private var filtersArray:Array;
 			private var cursor:CollabMouseCursor;
 			
+			[Bindable] public var xFrom:Number = 0;
+			[Bindable] public var xTo:Number = 0;
+			[Bindable] public var yFrom:Number = 0;
+			[Bindable] public var yTo:Number = 0;
+			
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				setCursorColor(0);
 			}
-			public function setCursorColor(color:Number):void
+			public function setCursorColor(color:uint):void
 			{
 				graphics.clear();
 				graphics.lineStyle(1, color, 1.0, true);
@@ -46,7 +56,7 @@
 				filtersArray = new Array( glow );
 				//this.filters = filtersArray;
 			}
-			public function addPopUp(parent:DisplayObject, color:Number):CollabMouseCursor
+			public function addPopUp(parent:DisplayObject, color:uint):CollabMouseCursor
 			{
 				cursor = PopUpManager.createPopUp(parent, CollabMouseCursor) as CollabMouseCursor;
 				PopUpManager.centerPopUp(cursor);
