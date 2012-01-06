@@ -28,8 +28,8 @@
 		 xmlns="weave.editors.*"
 		 width="100%" horizontalGap="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
 		 implements="weave.api.ui.ILinkableObjectEditor">
-	<mx:Button width="24" toolTip="Load session history from a file" icon="@Embed(source='/weave/resources/images/folder.png')" click="load()"/> 
-	<mx:Button width="24" toolTip="Save session history to a file" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
+	<mx:Button visible="{SessionStateLog.devMode}" includeInLayout="{SessionStateLog.devMode}" width="24" toolTip="Load session history from a file" icon="@Embed(source='/weave/resources/images/folder.png')" click="load()"/> 
+	<mx:Button visible="{SessionStateLog.devMode}" includeInLayout="{SessionStateLog.devMode}" width="24" toolTip="Save session history to a file" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
 	<mx:Button width="44" id="recordButton" toggle="true" icon="{recordButton.selected ? icon_historyRecordOn : icon_historyRecordOff}"
 			   click="_stateLog.enableLogging = recordButton.selected;"
 			   toolTip="Session history recording is {recordButton.selected ? 'enabled' : 'disabled'}."/>

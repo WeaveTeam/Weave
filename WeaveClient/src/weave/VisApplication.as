@@ -785,6 +785,7 @@ package weave
 			{
 				// load .weave file
 				var bytes:ByteArray = ByteArray(fileContent);
+				bytes.inflate();
 				Weave.history.deserialize(bytes);
 				//TODO
 			}

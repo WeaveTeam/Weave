@@ -38,8 +38,7 @@
 		<mx:CheckBox id="saveHistoryCheckBox"
 					 label="Save history"
 					 selected="false"
-					 visible="false"
-					 creationComplete="saveHistoryCheckBox.visible = Weave.history.enableLogging"/>
+					 visible="false"/>
 	</mx:VBox>
 	<mx:ControlBar>
 		<mx:Button label="Export" 
@@ -55,6 +54,7 @@
 			import weave.api.linkBindableProperty;
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
+			import weave.core.SessionStateLog;
 			
 			private var oldValues:Dictionary = new Dictionary(true);
 			
@@ -70,6 +70,13 @@
 					oldValues[lb] = lb.value;
 			}
 			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				saveHistoryCheckBox.visible = Weave.history.enableLogging && SessionStateLog.devMode;
+			}
+			
 			private function export():void
 			{
 				// Create a date that we can append to the end of each file to make them unique
@@ -81,6 +88,7 @@
 				{
 					var byteArray:ByteArray = new ByteArray();
 					Weave.history.serialize(byteArray);
+					byteArray.deflate();
 					fr.save(byteArray, "weave session history " + dateString + ".weave");
 				}
 				else
