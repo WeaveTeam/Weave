@@ -79,7 +79,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#convertSessionStateXMLToObject()">convertSessionStateXMLToObject</a>(sessionStateXML:Object):Object</div>
+<a class="signatureLink" href="#convertSessionStateXMLToObject()">convertSessionStateXMLToObject</a>(sessionStateXML:String):Object</div>
 <div class="summaryTableDescription">
    This function converts a session state from XML format to Object format.</div>
 </td><td class="summaryTableOwnerCol">IExternalSessionStateInterface</td>
@@ -253,12 +253,12 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function convertSessionStateXMLToObject(sessionStateXML:Object):Object</code><p>
+<code>public function convertSessionStateXMLToObject(sessionStateXML:String):Object</code><p>
    This function converts a session state from XML format to Object format.  Nested XML objects will be converted to Strings before returning.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">sessionStateXML</span>:Object</code> &mdash; A session state that has been encoded in XML.  This can be supplied as either an XML object or a String.
+<td width="20px"></td><td><code><span class="label">sessionStateXML</span>:String</code> &mdash; A session state that has been encoded in an XML String.
    </td>
 </tr>
 </table>
