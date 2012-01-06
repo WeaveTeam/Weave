@@ -52,5 +52,45 @@ package weave.core
 		private function handleFileComplete(event:Event):void
 		{
 		}
+		
+		/**
+		 * This string is used in the header of a Weave file.
+		 */		
+		private static const WEAVE_FILE_HEADER:String = "Weave Compressed AMF3";
+		
+		/**
+		 * This function will create a ByteArray that contains the specified content in the Weave file format.
+		 * @param content The content of the file.
+		 * @return A ByteArray that contains the specified content encoded in the Weave file format.
+		 */		
+		public static function createFile(content:Object):ByteArray
+		{
+			var body:ByteArray = new ByteArray();
+			body.writeObject(content);
+			body.deflate();
+			
+			var output:ByteArray = new ByteArray();
+			output.writeObject(WEAVE_FILE_HEADER);
+			output.writeObject(body);
+			return output;
+		}
+		
+		/**
+		 * This function will read the content from a Weave file.  An Error will be thrown if the given data is not in the Weave file format.
+		 * @param data The bytes of a Weave file.
+		 * @return The decoded content of the Weave file.
+		 */		
+		public static function readFile(data:ByteArray):Object
+		{
+			var header:Object = data.readObject();
+			if (header != WEAVE_FILE_HEADER)
+				throw new Error("Unknown file format");
+			
+			var body:ByteArray = ByteArray(data.readObject());
+			body.inflate();
+			
+			var content:Object = body.readObject();
+			return content;
+		}
 	}
 }

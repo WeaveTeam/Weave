@@ -67,6 +67,7 @@ package weave
 	import weave.core.LinkableBoolean;
 	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
+	import weave.core.WeaveFile;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.WeaveDataSource;
@@ -784,9 +785,8 @@ package weave
 			else
 			{
 				// load .weave file
-				var bytes:ByteArray = ByteArray(fileContent);
-				bytes.inflate();
-				Weave.history.deserialize(bytes);
+				
+				Weave.history.setSessionState(WeaveFile.readFile(ByteArray(fileContent)));
 				//TODO
 			}
 			DebugTimer.end('loadSessionState', fileName);
@@ -1151,7 +1151,9 @@ package weave
 				addChildAt(historySlider, getChildIndex(visDesktop));
 			}
 			else
-				Weave.history.enableLogging = false;
+			{
+				Weave.history.enableLogging.value = false;
+			}
 			
 			// enable JavaScript API after initial session state has loaded.
 			ExternalInterface.addCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);

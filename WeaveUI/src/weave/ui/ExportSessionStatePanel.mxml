@@ -55,6 +55,7 @@
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
 			import weave.core.SessionStateLog;
+			import weave.core.WeaveFile;
 			
 			private var oldValues:Dictionary = new Dictionary(true);
 			
@@ -86,9 +87,7 @@
 				var fr:FileReference = new FileReference();
 				if (saveHistoryCheckBox.selected)
 				{
-					var byteArray:ByteArray = new ByteArray();
-					Weave.history.serialize(byteArray);
-					byteArray.deflate();
+					var byteArray:ByteArray = WeaveFile.createFile(Weave.history.getSessionState());
 					fr.save(byteArray, "weave session history " + dateString + ".weave");
 				}
 				else

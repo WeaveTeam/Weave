@@ -19,25 +19,23 @@
 
 package weave.core
 {
-	import flash.utils.ByteArray;
-	
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
+	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
-	import weave.api.getSessionState;
+	import weave.api.newLinkableChild;
 	import weave.api.registerDisposableChild;
-	import weave.api.setSessionState;
 
 	/**
 	 * This class saves the session history of an ILinkableObject.
 	 * 
 	 * @author adufilie
 	 */
-	public class SessionStateLog implements ILinkableObject, IDisposableObject
+	public class SessionStateLog implements ILinkableVariable, IDisposableObject
 	{
 		public static var debug:Boolean = false;
 		public static const devMode:Boolean = false;
@@ -45,7 +43,7 @@ package weave.core
 		public function SessionStateLog(subject:ILinkableObject)
 		{
 			_subject = subject;
-			_prevState = getSessionState(_subject); // remember the initial state
+			_prevState = WeaveAPI.SessionManager.getSessionState(_subject); // remember the initial state
 			registerDisposableChild(_subject, this); // make sure this is disposed when _subject is disposed
 			
 			var cc:ICallbackCollection = getCallbackCollection(_subject);
@@ -70,30 +68,17 @@ package weave.core
 		private var _prevState:Object = null; // the previously seen session state of the subject
 		private var _undoHistory:Array = []; // diffs that can be undone
 		private var _redoHistory:Array = []; // diffs that can be redone
-		private var _serial:int = 0; // gets incremented each time a new diff is created
+		private var _nextId:int = 0; // gets incremented each time a new diff is created
 		private var _undoActive:Boolean = false; // true while an undo operation is active
 		private var _redoActive:Boolean = false; // true while a redo operation is active
 		
 		private var _saveLater:Boolean = false; // true if the next diff should be computed and logged in a later frame
 		private var _savePending:Boolean = false; // true when a diff should be computed
-		private var _enableLogging:Boolean = true; // if true, diffs will be automatically logged
 		
 		/**
 		 * When this is set to true, changes in the session state of the subject will be automatically logged.
-		 */		
-		public function get enableLogging():Boolean
-		{
-			return _enableLogging;
-		}
-		public function set enableLogging(value:Boolean):void
-		{
-			if (_enableLogging == value)
-				return;
-			
-			_enableLogging = value;
-			
-			synchronizeNow();
-		}
+		 */
+		public const enableLogging:LinkableBoolean = newLinkableChild(this, LinkableBoolean, synchronizeNow);
 		
 		/**
 		 * This will clear all undo and redo history.
@@ -117,7 +102,7 @@ package weave.core
 		 */		
 		private function immediateCallback():void
 		{
-			if (!_enableLogging)
+			if (!enableLogging.value)
 				return;
 			
 			// we have to wait until grouped callbacks are called before we save the diff
@@ -132,7 +117,7 @@ package weave.core
 			
 			if (debug && (_undoActive || _redoActive))
 			{
-				var state:Object = getSessionState(_subject);
+				var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
 				var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
 				trace('immediate diff:', ObjectUtil.toString(forwardDiff));
 			}
@@ -143,7 +128,7 @@ package weave.core
 		 */		
 		private function groupedCallback():void
 		{
-			if (!_enableLogging)
+			if (!enableLogging.value)
 				return;
 			
 			// Since grouped callbacks are currently running, it means something changed, so make sure the diff is saved.
@@ -154,7 +139,7 @@ package weave.core
 			
 			if (debug && (_undoActive || _redoActive))
 			{
-				var state:Object = getSessionState(_subject);
+				var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
 				var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
 				trace('grouped diff:', ObjectUtil.toString(forwardDiff));
 			}
@@ -176,7 +161,7 @@ package weave.core
 			var cc:ICallbackCollection = getCallbackCollection(this);
 			cc.delayCallbacks();
 			
-			var state:Object = getSessionState(_subject);
+			var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
 			var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
 			if (forwardDiff !== undefined)
 			{
@@ -184,13 +169,13 @@ package weave.core
 				var item:LogEntry;
 				if (_undoActive)
 				{
-					item = new LogEntry(_serial++, backwardDiff, forwardDiff);
+					item = new LogEntry(_nextId++, backwardDiff, forwardDiff);
 					// overwrite first redo entry because grouped callbacks may have behaved differently
 					_redoHistory[0] = item;
 				}
 				else
 				{
-					item = new LogEntry(_serial++, forwardDiff, backwardDiff);
+					item = new LogEntry(_nextId++, forwardDiff, backwardDiff);
 					if (_redoActive)
 					{
 						// overwrite last undo entry because grouped callbacks may have behaved differently
@@ -281,12 +266,12 @@ package weave.core
 					
 					// remember the session state right before applying the last step
 					if (stepsRemaining == 0)
-						_prevState = getSessionState(_subject);
-					setSessionState(_subject, diff, false);
+						_prevState = WeaveAPI.SessionManager.getSessionState(_subject);
+					WeaveAPI.SessionManager.setSessionState(_subject, diff, false);
 					
 					if (debug)
 					{
-						var newState:Object = getSessionState(_subject);
+						var newState:Object = WeaveAPI.SessionManager.getSessionState(_subject);
 						var resultDiff:Object = WeaveAPI.SessionManager.computeDiff(_prevState, newState);
 						trace('resulting diff:', ObjectUtil.toString(resultDiff));
 					}
@@ -335,60 +320,72 @@ package weave.core
 		}
 		
 		/**
-		 * This version number is used to detect old history formats generated by serialize().
-		 * This value should be incremented each time modifications to this class would result in a different serialization format.
+		 * This will generate an untyped session state object that contains the session history log.
+		 * @return An object containing the session history log.
 		 */		
-		private static const _serializationVersion:int = 0;
-		
-		/**
-		 * This will write the session state log to a ByteArray.
-		 * @param output The output ByteArray.
-		 */
-		public function serialize(output:ByteArray):void
+		public function getSessionState():Object
 		{
 			var cc:ICallbackCollection = getCallbackCollection(this);
 			cc.delayCallbacks();
 			synchronizeNow();
 			
-			output.writeInt(_serializationVersion);
-			
-			output.writeObject(_prevState);
-			output.writeObject(_undoHistory);
-			output.writeObject(_redoHistory);
-			output.writeInt(_serial);
-			output.writeBoolean(_enableLogging);
+			// The "version" property can be used to detect old session state formats and should be incremented whenever the format is changed.
+			var state:Object = {
+				"version": 0,
+				"currentState": _prevState,
+				"undoHistory": _undoHistory,
+				"redoHistory": _redoHistory,
+				"nextId": _nextId,
+				"enableLogging": enableLogging.value
+			};
 			
 			cc.resumeCallbacks();
+			return state;
 		}
 		
 		/**
-		 * This will load a session state log from a ByteArray.
+		 * This will load a session state log from an untyped session state object.
 		 * @param input The ByteArray containing the output from seralize().
 		 */
-		public function deserialize(input:ByteArray):void
+		public function setSessionState(state:Object):void
 		{
+			// make sure callbacks only run once while we set the session state
 			var cc:ICallbackCollection = getCallbackCollection(this);
 			cc.delayCallbacks();
+			enableLogging.delayCallbacks();
+			try
+			{
+				var version:Number = state.version;
+				switch (version)
+				{
+					case 0:
+					{
+						_prevState = state.currentState;
+						_undoHistory = LogEntry.convertGenericObjectsToLogEntries(state.undoHistory);
+						_redoHistory = LogEntry.convertGenericObjectsToLogEntries(state.redoHistory);
+						_nextId = state.nextId;
+						enableLogging.value = state.enableLogging;
+						
+						break;
+					}
+					default:
+						throw new Error("Weave history format version " + version + " is unsupported.");
+				}
+				
+				// reset these flags so nothing unexpected happens in later frames
+				_undoActive = false;
+				_redoActive = false;
+				_saveLater = false;
+				_savePending = false;
 			
-			var version:int = input.readInt();
-			if (version != _serializationVersion)
-				throw new Error("Weave history format version " + version + " is unsupported.");
-			
-			_prevState = input.readObject();
-			_undoHistory = LogEntry.convertGenericObjectsToLogEntries(input.readObject());
-			_redoHistory = LogEntry.convertGenericObjectsToLogEntries(input.readObject());
-			_serial = input.readInt();
-			_enableLogging = input.readBoolean();
-			
-			_undoActive = false;
-			_redoActive = false;
-			_saveLater = false;
-			_savePending = false;
-			
-			setSessionState(_subject, _prevState);
-			
-			cc.triggerCallbacks();
-			cc.resumeCallbacks();
+				WeaveAPI.SessionManager.setSessionState(_subject, _prevState);
+			}
+			finally
+			{
+				enableLogging.resumeCallbacks();
+				cc.triggerCallbacks();
+				cc.resumeCallbacks();
+			}
 		}
 	}
 }
