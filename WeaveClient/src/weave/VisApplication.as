@@ -98,7 +98,6 @@ package weave
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.RTextEditor;
 	import weave.ui.SelectionManager;
-	import weave.editors.SessionHistorySlider;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SubsetManager;
 	import weave.ui.WizardPanel;
@@ -723,7 +722,7 @@ package weave
 		
 		private var _alreadyLoaded:Boolean = false;
 		private var _stateLoaded:Boolean = false;
-		private function loadSessionState(fileContent:Object, fileName:String):void
+		public function loadSessionState(fileContent:Object, fileName:String):void
 		{
 			DebugTimer.begin();
 			if (fileName.substr(-4).toLowerCase() == '.xml')
@@ -786,6 +785,7 @@ package weave
 			{
 				// load .weave file
 				var bytes:ByteArray = ByteArray(fileContent);
+				bytes.inflate();
 				Weave.history.deserialize(bytes);
 				//TODO
 			}
@@ -1148,7 +1148,7 @@ package weave
 			if (getFlashVarEditable())
 			{
 				var historySlider:UIComponent = EditorManager.getNewEditor(Weave.history) as UIComponent;
-				addChild(historySlider);
+				addChildAt(historySlider, getChildIndex(visDesktop));
 			}
 			else
 				Weave.history.enableLogging = false;

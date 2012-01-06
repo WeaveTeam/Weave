@@ -73,7 +73,7 @@ package weave.primitives
 			var color:Number;
 			var positions:Array = [];
 			var reversed:Boolean = false;
-			var string:String = value;
+			var string:String = value || '';
 			var xml:XML = null;
 			if (string.charAt(0) == '<' && string.substr(-1) == '>')
 			{

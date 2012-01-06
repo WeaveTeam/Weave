@@ -40,6 +40,7 @@ package weave.core
 	public class SessionStateLog implements ILinkableObject, IDisposableObject
 	{
 		public static var debug:Boolean = false;
+		public static const devMode:Boolean = false;
 		
 		public function SessionStateLog(subject:ILinkableObject)
 		{
