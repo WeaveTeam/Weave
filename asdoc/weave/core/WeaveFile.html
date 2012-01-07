@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="WeaveFile,weave.core.WeaveFile,data,browse,save" name="keywords">
+<meta content="WeaveFile,weave.core.WeaveFile,data,browse,createFile,readFile,save" name="keywords">
 <title>weave.core.WeaveFile</title>
 </head>
 <body>
@@ -83,6 +83,22 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
+<a class="signatureLink" href="#createFile()">createFile</a>(content:Object):ByteArray</div>
+<div class="summaryTableDescription">[static]
+   This function will create a ByteArray that contains the specified content in the Weave file format.</div>
+</td><td class="summaryTableOwnerCol">WeaveFile</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#readFile()">readFile</a>(data:ByteArray):Object</div>
+<div class="summaryTableDescription">[static]
+   This function will read the content from a Weave file.</div>
+</td><td class="summaryTableOwnerCol">WeaveFile</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
 <a class="signatureLink" href="#save()">save</a>(defaultFileName:String = null):void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">WeaveFile</td>
@@ -126,6 +142,56 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function browse():void</code>
+</div>
+<a name="createFile()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">createFile</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function createFile(content:Object):ByteArray</code><p>
+   This function will create a ByteArray that contains the specified content in the Weave file format.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">content</span>:Object</code> &mdash; The content of the file.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>ByteArray</code> &mdash; A ByteArray that contains the specified content encoded in the Weave file format.
+   </td>
+</tr>
+</table>
+</div>
+<a name="readFile()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">readFile</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function readFile(data:ByteArray):Object</code><p>
+   This function will read the content from a Weave file.  An Error will be thrown if the given data is not in the Weave file format.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">data</span>:ByteArray</code> &mdash; The bytes of a Weave file.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Object</code> &mdash; The decoded content of the Weave file.
+   </td>
+</tr>
+</table>
 </div>
 <a name="save()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
