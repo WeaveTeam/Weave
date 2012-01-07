@@ -188,12 +188,20 @@ package weave.visualization.layers
 		/**
 		 * Sets the minimum scale at which the layer should be rendered. Scale is defined by pixels per data unit.
 		 */
-		public const minVisibleScale:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+		public const minVisibleScale:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyVisibleScaleValue));
 		
 		/**
 		 * Sets the maximum scale at which the layer should be rendered. Scale is defined by pixels per data unit.
 		 */
-		public const maxVisibleScale:LinkableNumber = registerLinkableChild(this, new LinkableNumber(Infinity));
+		public const maxVisibleScale:LinkableNumber = registerLinkableChild(this, new LinkableNumber(Infinity, verifyVisibleScaleValue));
+		
+		/**
+		 * @private
+		 */		
+		private function verifyVisibleScaleValue(value:Number):Boolean
+		{
+			return value >= 0;
+		}
 		
 		/**
 		 * This returns true if the layer should be rendered and selectable/probeable
