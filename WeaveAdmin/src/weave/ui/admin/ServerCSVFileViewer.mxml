@@ -43,7 +43,7 @@
 		
 		<TextInputWithPrompt id="searchTerm" width="100%" height="30" clear="search()"
 							 cornerRadius="5" fontFamily="helvetica" fontSize="11" fontWeight="bold"
-							 keyUp="search()" paddingLeft="7" paddingRight="7" paddingTop="7"
+							 change="search()" paddingLeft="7" paddingRight="7" paddingTop="7"
 							 prompt="{prompt}"/>
 		<mx:DataGrid id="datagrid" paddingBottom="0" paddingTop="0"
 					 dataProvider="{AdminInterface.instance.uploadedCSVFiles}"
