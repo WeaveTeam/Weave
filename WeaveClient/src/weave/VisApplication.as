@@ -709,8 +709,11 @@ package weave
 				
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Weave Version: " + Weave.properties.version.value));
 				
-				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Visit http://www.openindicators.org", function ():void {
-					navigateToURL(new URLRequest("http://www.openindicators.org"), "_blank");
+				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Visit http://www.oicweave.org", function ():void {
+					navigateToURL(new URLRequest("http://www.oicweave.org"), "_blank");
+				}));
+				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Report a problem", function ():void {
+					navigateToURL(new URLRequest("http://bugs.oicweave.org/projects/weave/issues/new"), "_blank");
 				}));
 			}
 		}
