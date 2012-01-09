@@ -38,7 +38,7 @@
 					</mx:HBox>
 					<mx:HBox width="100%">
 						<mx:Label text="User Color:" width="{labelWidth}" />
-						<mx:ColorPicker id="picker" color="{Math.random() * 0xFFFFFF}" />
+						<mx:ColorPicker id="picker" selectedColor="{generateRandomColor()}" />
 					</mx:HBox>
 					<mx:Spacer height="10" />
 					<ui:Center>
@@ -49,7 +49,7 @@
 						<mx:Button id="saveConnectionButton" label="Save" click="saveSettings(event)" />
 					</ui:Center>
 				</mx:VBox>
-				<mx:VBox width="100%" height="100%" label="Add-ons" enabled="true"
+				<mx:VBox width="100%" height="100%" label="Add-ons" enabled="false"
 						 paddingBottom="{padding}" paddingLeft="{padding}"
 						 paddingRight="{padding}" paddingTop="{padding}">
 					<mx:HBox width="100%">
@@ -109,6 +109,7 @@
 			public var collab_SERVERNAME:String;
 			public var collab_ROOMTOJOIN:String;
 			public var collab_PORT:String;
+			public var collab_COLOR:uint;
 			
 			public var collab_MIC:Microphone = null;
 			public var collab_CAMERA:Camera = null;
@@ -128,6 +129,7 @@
 				collab_SERVERNAME = serverName.text;
 				collab_ROOMTOJOIN = roomToJoin.text;
 				collab_PORT = port.text;
+				collab_COLOR = picker.selectedColor;
 				
 				dispatchEvent(new Event(CollaborationEvent.CONN_SETTINGS_SAVED));
 				
@@ -230,6 +232,12 @@
 				anchor.graphics.lineTo(anchor.width/2, anchor.height);
 				anchor.graphics.lineTo(anchor.width, 0);
 				anchor.graphics.lineTo(0, 0);
+			}
+			private function generateRandomColor():uint
+			{
+				var col:uint = Math.random() * uint.MAX_VALUE; 
+				trace( "Color:", col );
+				return col;
 			}
 			private function onTabChange(event:IndexChangedEvent):void
 			{

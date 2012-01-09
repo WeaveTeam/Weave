@@ -188,18 +188,31 @@ package weave.services.collaboration
 			if (!connectedToRoom)
 				throw new Error("Not connected");
 			
-			//trace( ObjectUtil.toString( message ) , ObjectUtil.toString( target )  );
+			trace( ObjectUtil.toString( message ) );
+			trace( ObjectUtil.toString( target )  );
 			if( target != null)
 				room.sendPrivateMessage( target, encodeObject(message) );
 			else
 				room.sendMessage( encodeObject(message) );
 			
 		}
-		
+		public function sendMouseMessage( id:String, color:uint, posX:Number, posY:Number ):void
+		{
+			var message:MouseMessage = new MouseMessage(id, color, posX, posY);
+			trace(username,"sending sendMouseMessage(",id,",",color,",",posX,",",posY,")");
+			sendEncodedObject(message, null);
+		}
+		public function requestMouseMessage( id:String ):void
+		{
+			var message:RequestMouseMessage = new RequestMouseMessage(username);
+			trace(username,"sending requestMouseMessage(",id,")");
+			sendEncodedObject(message, id);
+		}
 		//Handles sending text messages
 		public function sendTextMessage( text:String, target:String=null ):void
 		{
 			var message:TextMessage = new TextMessage( selfJID, text );
+			trace(username,"sending textMessage(",selfJID,",",text,")");
 			sendEncodedObject( message, target );
 		}
 		
@@ -220,16 +233,6 @@ package weave.services.collaboration
 			sendEncodedObject(message, null);
 		}
 		
-		public function sendMouseMessage( id:String, posX:Number, posY:Number )
-		{
-			var message:MouseMessage = new MouseMessage(id, posX, posY);
-			sendEncodedObject(message, null);
-		}
-		public function requestMouseMessage( id:String )
-		{
-			var message:RequestMouseMessage = new RequestMouseMessage(id);
-			sendEncodedObject(message, id);
-		}
 		//When a message is recieved pass it on to the user
 		private function dispatchLogEvent( message:String ) :void
 		{
@@ -341,8 +344,10 @@ package weave.services.collaboration
 				}
 				catch( e:Error )
 				{
-					reportError("Unable to decode message: " + event.data.body);
+//					reportError("Unable to decode message: " + event.data.body);
+					trace(username,"cant decode");
 				}
+				
 				//reportError( ObjectUtil.toString( o ) );
 				
 				//var room:String = event.data.from.node;
@@ -417,25 +422,24 @@ package weave.services.collaboration
 					var tm:TextMessage = o as TextMessage;
 					dispatchLogEvent( tm.id + ": " + tm.message);
 				}
-				
-				else if( o is MouseMessage )
-				{
-					var mm:MouseMessage = o as MouseMessage;
-					dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_MOUSE_POS, mm.id, 0, mm.percentX, mm.percentY));
-				}
+					
 				else if( o is RequestMouseMessage )
 				{
 					var rmm:RequestMouseMessage = o as RequestMouseMessage;
-					if( rmm.id != room.userJID.node ) 
-					{
-						var mm:MouseMessage = new MouseMessage(room.userJID.node, xMousePercent(), yMousePercent());
-						sendEncodedObject(mm, rmm.id);
-					}
+					if( rmm.id != username ) 
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_MOUSE_POS, rmm.id, 0, xMousePercent(), yMousePercent()));
+				}
+				else if( o is MouseMessage )
+				{
+					var mm:MouseMessage = o as MouseMessage;
+					if( mm.id != username )
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_MOUSE_POS, mm.id, mm.color, mm.percentX, mm.percentY));
 				}
 				//an unknown message with data, but wasn't one of the pre-defined types
 				else
 				{
-					reportError("Unable to determine message type: ", ObjectUtil.toString(o));
+//					reportError("Unable to determine message type: ", ObjectUtil.toString(o));
+					trace(username,"Unknown type");
 				}
 			}
 			
@@ -503,8 +507,6 @@ package weave.services.collaboration
 			dispatchLogEvent(e.nickname + " has joined the room.");
 			updateUsersList();
 			
-			dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_JOINED_CREATE_MOUSE));
-			
 			//This whole sequence of steps is just to determine alphabetially
 			//who's on the top of the list. It needs to be sorted, because order
 			//of names in array is not guarenteed
@@ -530,6 +532,8 @@ package weave.services.collaboration
 				var debugID:int = stateLog.undoHistory[ stateLog.undoHistory.length - 1];
 				sendFullSessionState(debugID, getSessionState(root), e.nickname );
 			} 
+			if( connectedToRoom )
+				dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_JOINED_CREATE_MOUSE, e.nickname));
 		}
 		//Handled when any user leaves the room this is in
 		private function onUserLeave(e:RoomEvent):void
@@ -557,12 +561,14 @@ package weave.services.collaboration
 			byteArray.writeObject(toEncode);
 			byteArray.position = 0;
 			baseEncoder.encodeBytes(byteArray);
+			trace("encoding:", baseEncoder.toString());
 			return baseEncoder.toString();
 		}
 		
 		//Used to decode data from binary back to it's original object
 		private function decodeObject(message:String):Object
 		{
+			trace("decoding:",message);
 			baseDecoder.reset();
 			baseDecoder.decode(message);
 			var byteArray:ByteArray = baseDecoder.toByteArray();
@@ -611,14 +617,16 @@ internal class TextMessage
 }
 internal class MouseMessage
 {
-	public function MouseMessage(id:String = null, posX:Number = -1, posY:Number = -1 )
+	public function MouseMessage(id:String, color:uint, posX:Number, posY:Number )
 	{
 		this.id = id;
+		this.color = color;
 		this.percentX = posX;
 		this.percentY = posY;
 	}
 	
 	public var id:String;
+	public var color:uint;
 	public var percentX:Number;
 	public var percentY:Number;
 }

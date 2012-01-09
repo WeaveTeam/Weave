@@ -2,7 +2,7 @@
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
 		   width="18" height="24">	
 	
-	<mx:Move id="moveEvent" 
+	<mx:Move id="moveEvent" duration="600" 
 			 xFrom="{xFrom}" xTo="{xTo}"
 			 yFrom="{yFrom}" yTo="{yTo}"
 			 />
@@ -35,6 +35,16 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
+			}
+			
+			public function setPos(x:Number, y:Number):void
+			{
+				moveEvent.stop();
+				yFrom = this.y;
+				xFrom = this.x;
+				yTo = y;
+				xTo = x;
+				moveEvent.play([this]);
 			}
 			public function setCursorColor(color:uint):void
 			{

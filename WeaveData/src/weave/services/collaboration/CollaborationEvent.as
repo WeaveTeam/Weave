@@ -33,6 +33,7 @@ package weave.services.collaboration
 		public static const DISCONNECT:String 				= "collab_disconnect";
 		public static const USER_JOINED_CREATE_MOUSE:String = "user_joined_create_mouse";
 		public static const USER_UPDATE_MOUSE_POS:String 	= "user_update_mouse_pos";
+		public static const USER_REQUEST_MOUSE_POS:String	= "user_request_mouse_pos";
 		public static const USER_LEFT_REMOVE_MOUSE:String 	= "user_left_remove_mouse";
 		public static const USER_LIST_UPDATED:String		= "user_list_updated";
 		
@@ -50,7 +51,6 @@ package weave.services.collaboration
 		
 		
 		private var text:String;
-		private var from:String;
 		private var color:uint;
 		private var x:Number;
 		private var y:Number;
@@ -59,6 +59,9 @@ package weave.services.collaboration
 		{
 			super(type);
 			this.text = text;
+			this.color = color;
+			this.x = x;
+			this.y = y;
 		}
 		
 		public function getText():String
