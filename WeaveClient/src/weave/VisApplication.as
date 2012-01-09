@@ -729,9 +729,14 @@ package weave
 		public function loadSessionState(fileContent:Object, fileName:String):void
 		{
 			DebugTimer.begin();
-			if (fileName.substr(-4).toLowerCase() == '.xml')
+			try
 			{
-				// load .xml file
+				var obj:Object = WeaveFile.readFile(ByteArray(fileContent));
+				Weave.history.setSessionState(obj);
+			}
+			catch (e:Error)
+			{
+				// attempt to load .xml file
 				var xml:XML = null;
 				try
 				{
@@ -784,13 +789,6 @@ package weave
 						subset.includeMissingKeys.value = true;
 				}
 				Weave.history.clearHistory(); // begin with empty history after loading the session state from the xml
-			}
-			else
-			{
-				// load .weave file
-				
-				Weave.history.setSessionState(WeaveFile.readFile(ByteArray(fileContent)));
-				//TODO
 			}
 			DebugTimer.end('loadSessionState', fileName);
 
