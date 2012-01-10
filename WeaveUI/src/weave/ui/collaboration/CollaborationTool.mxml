@@ -178,10 +178,7 @@
 			}
 			private function handleCreateUserMouse(e:CollaborationEvent):void
 			{
-				var c:CollabMouseCursor = new CollabMouseCursor();
-				c.addPopUp(Application.application as DisplayObject, Number(picker.selectedColor));
-				
-				cursorList.addItem(c);
+				cursorList.addItem(CollabMouseCursor.addPopUp(Application.application as DisplayObject));
 			}
 			
 			private var toolTipper:ToolTip = new ToolTip()
@@ -249,7 +246,7 @@
 										if( !role ) return;
 										
 										if( role == "moderator" )
-											if( roleID == outerDocument.collabService.username )
+											if( roleID == outerDocument.collabService.nickname )
 												Alert.show("You are about to remove your own moderator status. Continue?", "Warning", Alert.YES | Alert.NO, null, handleMod);
 											else
 												setRole(roleID, "participant");
@@ -278,7 +275,7 @@
 										{
 											if( list[i].name == id )
 											{
-												if( id == outerDocument.collabService.username )
+												if( id == outerDocument.collabService.nickname )
 													outerDocument.collabService.myRole = role;
 												switch( getRole(id) )
 												{

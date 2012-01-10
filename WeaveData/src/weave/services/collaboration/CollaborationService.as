@@ -22,12 +22,16 @@ package weave.services.collaboration
 	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.media.Sound;
 	import flash.net.registerClassAlias;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.collections.ArrayCollection;
+	import mx.collections.Sort;
+	import mx.containers.Canvas;
+	import mx.containers.HBox;
 	import mx.controls.Alert;
 	import mx.core.Application;
 	import mx.events.CloseEvent;
@@ -75,6 +79,8 @@ package weave.services.collaboration
 		private var serverName:String;
 		private var port:int;
 		private var roomToJoin:String;
+		private var username:String;
+		private var password:String;
 
 		private const baseEncoder:Base64Encoder 		= new Base64Encoder();
 		private const baseDecoder:Base64Decoder 		= new Base64Decoder();
@@ -83,18 +89,20 @@ package weave.services.collaboration
 		private var synchronizingIncomingDiff:Boolean 	= false;
 		
 		public const userList:ArrayCollection 			= new ArrayCollection();
-		public var username:String;
+		public var nickname:String;
 		public var myRole:String;
 		public var room:Room;
 
 		public function CollaborationService( root:ILinkableObject )
 		{
 			this.root = root;
-			
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
 			// all of these classes are internal
 			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage])
 				registerClassAlias(getQualifiedClassName(c), c);
+				
+			userList.sort = new Sort();
+			userList.sort.compareFunction = ObjectUtil.stringCompare;
 		}
 		
 		// this will be called by SessionManager to clean everything up
@@ -108,7 +116,7 @@ package weave.services.collaboration
 			return connectedToRoom;
 		}
 		
-		public function connect( serverIP:String, serverName:String, port:int, roomToJoin:String, username:String ):void
+		public function connect( serverIP:String, serverName:String, port:int, roomToJoin:String, nickname:String, username:String = null, password:String = null ):void
 		{
 			//if already connected disconnect and start over
 			if (connectedToRoom)
@@ -119,7 +127,9 @@ package weave.services.collaboration
 			this.serverName = serverName;
 			this.port =	port;
 			this.roomToJoin = roomToJoin;
+			this.nickname = nickname;
 			this.username = username;
+			this.password = password;
 			
 			dispatchLogEvent("Connecting to " + serverName + " at " + serverIP + ":" + port.toString() + " ...");
 			connection = new XMPPConnection();
@@ -128,11 +138,11 @@ package weave.services.collaboration
 			//otherwise you can use the registered login below
 			connection.useAnonymousLogin = true;
 
-			/* 
-			Registered Login:
-			connection.username = "registeredUser";
-			connection.password = "password"; 
-			*/
+			if( !connection.useAnonymousLogin ) 
+			{
+				connection.username = username;
+				connection.password = password;
+			}
 			
 			connection.server = serverIP;
 			connection.port = port;
@@ -188,8 +198,6 @@ package weave.services.collaboration
 			if (!connectedToRoom)
 				throw new Error("Not connected");
 			
-			trace( ObjectUtil.toString( message ) );
-			trace( ObjectUtil.toString( target )  );
 			if( target != null)
 				room.sendPrivateMessage( target, encodeObject(message) );
 			else
@@ -199,20 +207,17 @@ package weave.services.collaboration
 		public function sendMouseMessage( id:String, color:uint, posX:Number, posY:Number ):void
 		{
 			var message:MouseMessage = new MouseMessage(id, color, posX, posY);
-			trace(username,"sending sendMouseMessage(",id,",",color,",",posX,",",posY,")");
 			sendEncodedObject(message, null);
 		}
 		public function requestMouseMessage( id:String ):void
 		{
-			var message:RequestMouseMessage = new RequestMouseMessage(username);
-			trace(username,"sending requestMouseMessage(",id,")");
+			var message:RequestMouseMessage = new RequestMouseMessage(nickname);
 			sendEncodedObject(message, id);
 		}
 		//Handles sending text messages
 		public function sendTextMessage( text:String, target:String=null ):void
 		{
 			var message:TextMessage = new TextMessage( selfJID, text );
-			trace(username,"sending textMessage(",selfJID,",",text,")");
 			sendEncodedObject( message, target );
 		}
 		
@@ -245,7 +250,7 @@ package weave.services.collaboration
 			userList.removeAll();
 			if (room != null)
 				for( var i:int = 0; i < room.length; i++ )
-					userList.addItem( { name: room[i].displayName, role: room[i].role } );
+					userList.addItem( room[i].displayName );
 			dispatchEvent(new Event(CollaborationEvent.USER_LIST_UPDATED));
 		}
 		
@@ -258,7 +263,7 @@ package weave.services.collaboration
 			
 			//nickname will replace the random string generated for Anonnymous users
 			//and can be used for private messages and most user to user functions
-			room.nickname = username;
+			room.nickname = nickname;
 			dispatchLogEvent( "Set alias to: " + room.nickname );
 			room.roomJID = new UnescapedJID(roomName + "@conference" + '.' + serverName);
 			
@@ -338,14 +343,14 @@ package weave.services.collaboration
 				
 				// handle a message from a user
 				var o:Object = null;
+				
 				try
 				{
 					o = decodeObject(event.data.body);
 				}
 				catch( e:Error )
 				{
-//					reportError("Unable to decode message: " + event.data.body);
-					trace(username,"cant decode");
+					reportError("Unable to decode message: " + event.data.body);
 				}
 				
 				//reportError( ObjectUtil.toString( o ) );
@@ -367,7 +372,7 @@ package weave.services.collaboration
 					if (stateLog != null) //don't do anything until the collaborative session state is loaded
 					{
 						var ssm:SessionStateMessage = o as SessionStateMessage;
-						if (userAlias == this.username)
+						if (userAlias == this.nickname)
 						{
 							//dispatchLogEvent('\nECHO ' + ssm.id + '\n--------------------------\n');
 							
@@ -426,20 +431,20 @@ package weave.services.collaboration
 				else if( o is RequestMouseMessage )
 				{
 					var rmm:RequestMouseMessage = o as RequestMouseMessage;
-					if( rmm.id != username ) 
+					if( rmm.id != nickname ) 
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_MOUSE_POS, rmm.id, 0, xMousePercent(), yMousePercent()));
 				}
 				else if( o is MouseMessage )
 				{
 					var mm:MouseMessage = o as MouseMessage;
-					if( mm.id != username )
+					if( mm.id != nickname )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_MOUSE_POS, mm.id, mm.color, mm.percentX, mm.percentY));
 				}
 				//an unknown message with data, but wasn't one of the pre-defined types
 				else
 				{
 //					reportError("Unable to determine message type: ", ObjectUtil.toString(o));
-					trace(username,"Unknown type");
+					trace(nickname,"Unknown type");
 				}
 			}
 			
@@ -490,17 +495,17 @@ package weave.services.collaboration
 
 		//Most servers have this enabled, where if you don't do anything for too long
 		//it'll fire the timeout event
-//		private function onTimeout(e:RoomEvent):void
-//		{
-//			dispatchLogEvent("You've timed out from the server.");
-//			Alert.show("Would you like to reconnect to the room?", "Disconnection Alert", Alert.YES | Alert.NO, null, disconnectHandler);
-//		}
-//		
-//		private function disconnectHandler( e:CloseEvent ):void
-//		{
-//			if (e.detail == Alert.YES)
-//				dispatchEvent(new Event(CollaborationEvent.RECONNECT_ERROR));
-//		}
+		private function onTimeout(e:RoomEvent):void
+		{
+			dispatchLogEvent("You've timed out from the server.");
+			Alert.show("Would you like to reconnect to the room?", "Disconnection Alert", Alert.YES | Alert.NO, null, disconnectHandler);
+		}
+		
+		private function disconnectHandler( e:CloseEvent ):void
+		{
+			if (e.detail == Alert.YES)
+				connect(serverIP, serverName, port, roomToJoin, nickname);
+		}
 		//handled whenever any user joins the same room as this
 		private function onUserJoin(e:RoomEvent):void
 		{
@@ -526,7 +531,7 @@ package weave.services.collaboration
 			{
 				startLogging();
 			}
-			else if (username == userList[0].displayName) // if we are at the top of the list
+			else if (nickname == userList[0].displayName) // if we are at the top of the list
 			{
 				// send full session state to the user who just joined.
 				var debugID:int = stateLog.undoHistory[ stateLog.undoHistory.length - 1];
@@ -539,6 +544,7 @@ package weave.services.collaboration
 		private function onUserLeave(e:RoomEvent):void
 		{
 			dispatchLogEvent(e.nickname + " has left the room.");
+			dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_LEFT_REMOVE_MOUSE, e.nickname));
 			updateUsersList();
 		}
 		private function nickConflictError(e:RoomEvent):void
@@ -561,14 +567,12 @@ package weave.services.collaboration
 			byteArray.writeObject(toEncode);
 			byteArray.position = 0;
 			baseEncoder.encodeBytes(byteArray);
-			trace("encoding:", baseEncoder.toString());
 			return baseEncoder.toString();
 		}
 		
 		//Used to decode data from binary back to it's original object
 		private function decodeObject(message:String):Object
 		{
-			trace("decoding:",message);
 			baseDecoder.reset();
 			baseDecoder.decode(message);
 			var byteArray:ByteArray = baseDecoder.toByteArray();
@@ -617,7 +621,7 @@ internal class TextMessage
 }
 internal class MouseMessage
 {
-	public function MouseMessage(id:String, color:uint, posX:Number, posY:Number )
+	public function MouseMessage(id:String = null, color:uint = 0, posX:Number = 0, posY:Number = 0 )
 	{
 		this.id = id;
 		this.color = color;

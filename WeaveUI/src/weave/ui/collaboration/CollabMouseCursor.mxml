@@ -25,7 +25,7 @@
 					[ 0, 0 ]
 				];
 			private var filtersArray:Array;
-			private var cursor:CollabMouseCursor;
+			public var color:uint;
 			
 			[Bindable] public var xFrom:Number = 0;
 			[Bindable] public var xTo:Number = 0;
@@ -35,6 +35,14 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
+			}
+			public static function addPopUp(parent:DisplayObject):CollabMouseCursor
+			{
+				var cursor:CollabMouseCursor = PopUpManager.createPopUp(parent, CollabMouseCursor) as CollabMouseCursor;
+				PopUpManager.centerPopUp(cursor);
+				cursor.initializeCursor();
+				
+				return cursor;
 			}
 			
 			public function setPos(x:Number, y:Number):void
@@ -46,37 +54,30 @@
 				xTo = x;
 				moveEvent.play([this]);
 			}
-			public function setCursorColor(color:uint):void
+			public function initializeCursor():void
 			{
+				color = 0;
 				graphics.clear();
-				graphics.lineStyle(1, color, 1.0, true);
+				graphics.lineStyle(1, 0, 1.0, true);
 				graphics.moveTo(0, 0);
-				graphics.beginFill( color, 1 );
 				for each( var vertex:Array in vertices )
 					graphics.lineTo(vertex[0], vertex[1]);
-					
-				graphics.endFill();
-				
-				var glow:GlowFilter = new GlowFilter();
-				glow.color = 0xFF0000;
-				glow.alpha = 1;
-				glow.blurX = 10;
-				glow.blurY = 10;
-				
-				filtersArray = new Array( glow );
-				//this.filters = filtersArray;
 			}
-			public function addPopUp(parent:DisplayObject, color:uint):CollabMouseCursor
+			public function fillCursor(color:uint):void
 			{
-				cursor = PopUpManager.createPopUp(parent, CollabMouseCursor) as CollabMouseCursor;
-				PopUpManager.centerPopUp(cursor);
-				cursor.setCursorColor(color);
-				
-				return cursor;
+				this.color = color;
+				graphics.clear();
+				graphics.lineStyle(1, 0, 1.0, true);
+				graphics.moveTo(0, 0);
+				graphics.beginFill(color, 0.5);
+				for each( var vertex:Array in vertices )
+					graphics.lineTo(vertex[0], vertex[1]);
+				graphics.endFill();
+				this.filters = [ new DropShadowFilter() ];
 			}
 			public function removePopUp():void
 			{
-				PopUpManager.removePopUp(cursor);
+				PopUpManager.removePopUp(this);
 			}
 		]]>
 	</mx:Script>

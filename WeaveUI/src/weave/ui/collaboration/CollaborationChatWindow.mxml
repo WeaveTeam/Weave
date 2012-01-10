@@ -4,12 +4,7 @@
 		 borderColor="#54585E" borderThickness="3" borderStyle="solid"
 		 backgroundAlpha="1" backgroundColor="#CCCCCC"
 		 showEffect="{moveIn}" hideEffect="{moveOut}">
-	<mx:Script>
-		<![CDATA[
-			import weave.services.collaboration.CollaborationEvent;
-		]]>
-	</mx:Script>
-		
+
 	<mx:Move id="moveIn" duration="1000"
 			 xFrom="{xFrom}" xTo="{xTo}"
 			 yFrom="{yFrom}" yTo="{yTo}"/>
@@ -22,33 +17,66 @@
 			 paddingRight="{padding}" paddingTop="{padding}">
 		<mx:VDividedBox width="100%" height="100%">
 			<mx:Canvas id="camChatContainer" width="100%" backgroundColor="#000000" />
-			<mx:HDividedBox width="100%" height="100%">
-				<mx:VBox width="80%" height="100%">
+			<mx:VBox width="100%" height="100%">
+				<mx:HDividedBox width="100%" height="100%">
 					<mx:TextArea id="log" width="100%" height="100%" editable="false" />
-					<mx:HBox width="100%">
-						<mx:TextInput id="input" width="100%" enter="dispatchMessageEvent()" />
-						<mx:Button id="button_send" label="Send" click="dispatchMessageEvent()" />
+					<mx:List id="userList" height="100%" labelField="name" minWidth="140">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:HBox width="100%" height="100%">
+									<mx:Script>
+										<![CDATA[
+											
+											override public function set data(value:Object):void
+											{
+												color.setStyle("backgroundColor", outerDocument._colorList[value]);
+												labelName.text = value as String;
+												if( (value as String) == outerDocument.username )
+													labelName.setStyle("fontWeight", "bold");
+												else
+													labelName.setStyle("fontWeight", "normal");
+											}
+											
+										]]>
+									</mx:Script>
+									<mx:Canvas id="color" width="{color.height}" height="80%" />
+									<mx:Label id="labelName" fontSize="12" width="100%" />
+								</mx:HBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:List>
+				</mx:HDividedBox>
+				<mx:HBox width="100%">
+					<mx:TextInput id="input" width="100%" enter="dispatchMessageEvent()" />
+					<mx:Button id="button_send" label="Send" click="dispatchMessageEvent()" />
+					<mx:HBox width="140">
+						<mx:Button id="button_mic" label="Mic" width="50%" />
+						<mx:Button id="button_cam" label="Cam" width="50%" />
 					</mx:HBox>
-				</mx:VBox>
-				<mx:List height="100%" dataProvider="{userList}" labelField="name" minWidth="140" />
-			</mx:HDividedBox>
+				</mx:HBox>
+			</mx:VBox>
 		</mx:VDividedBox>
 	</mx:VBox>
-			 
+	
 	<mx:Script>
 		<![CDATA[
-			import mx.utils.StringUtil;
 			import mx.collections.ArrayCollection;
+			import mx.collections.ICollectionView;
+			import mx.collections.Sort;
+			import mx.utils.StringUtil;
+			
+			import weave.services.collaboration.CollaborationEvent;
 			
 			[Bindable] public var xFrom:Number = 0;
 			[Bindable] public var xTo:Number = 0;
 			[Bindable] public var yFrom:Number = 0;
 			[Bindable] public var yTo:Number = 0;
-			[Bindable] public var userList:ArrayCollection;
 			[Bindable] public var unreadMessages:Number = 0;
+			[Bindable] internal var _colorList:Dictionary  = new Dictionary();
+			[Bindable] private var _users:ArrayCollection = new ArrayCollection();
 			
-			private var padding:Number = 10;
-			private var username:String = null;
+			[Bindable] private var padding:Number = 10;
+			internal var username:String = null;
 			
 			public function logText(txt:String):void
 			{
@@ -70,11 +98,57 @@
 				dispatchEvent(new CollaborationEvent(CollaborationEvent.SEND_MESSAGE, input.text));
 				input.text = "";
 			}
-			public function setUsername(usrname:String):void
+			public function setNickname(usrname:String):void
 			{
 				username = usrname;
 			}
+			public function set userNameList(array:ArrayCollection):void
+			{
+				userList.dataProvider = array;
+				/*
+				if( array.length > _users.length ) // Someone was added to the list
+				{
+					for( var i:int = 0; i < array.length; i++ )
+					{
+						if( _colorList[array[i]] == null )
+						{
+							_colorList[array[i]] = 0;
+							break;
+						}
+					}
+				}
+				else // Someone was removed from the list
+				{
+					var found:Boolean = false;
+					for( var name:String in _colorList )
+					{
+						for( var i:int = 0; i < array.length; i++ )
+						{
+							if( name == array[i] )
+							{
+								found = true;
+								break;
+							}
+						}
+						if( found ) {
+							found = false;
+							continue;
+						}
+						delete _colorList[name];
+						break;
+					}
+				}
+				synchronizeList(); 
+				*/
+			}
 			
+			public function setUserColor(name:String, color:uint):void
+			{
+				_colorList[name] = color;
+				(userList.dataProvider as ICollectionView).refresh();
+
+//				synchronizeList();
+			}
 		]]>
 	</mx:Script>
 </mx:Canvas>

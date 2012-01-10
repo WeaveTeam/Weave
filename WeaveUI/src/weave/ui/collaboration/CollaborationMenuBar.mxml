@@ -61,10 +61,11 @@
 			private var connTimer:Timer 						= null;
 			private var mouseTimer:Timer						= null;
 			private var userMice:Dictionary						= null;
+			private var disConButtonPushed:Boolean				= false;
 			
-			[Embed(source="../../resources/images/collab/connect2.png")] private var iCon:Class;
-			[Embed(source="../../resources/images/collab/settings.png")] private var iSet:Class;
-			[Embed(source="../../resources/images/collab/chat.png")]	 private var iChat:Class;
+			[Embed(source="../../resources/images/collab/connect2.png")] private const iCon:Class;
+			[Embed(source="../../resources/images/collab/settings.png")] private const iSet:Class;
+			[Embed(source="../../resources/images/collab/chat.png")]	 private const iChat:Class;
 			
 			protected function creationComplete(event:FlexEvent):void
 			{
@@ -96,6 +97,7 @@
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, settingsConnSaved);
 				SETTINGS.addEventListener(CollaborationEvent.ADDON_SETTINGS_SAVED, settingsAddonSaved);
 				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
+				CHAT.userNameList = collabService.userList;
 				
 				resizeHandler();
 			}
@@ -111,7 +113,7 @@
 				collabService.removeEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
 				collabService.removeEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
 //				collabService.removeEventListener(CollaborationEvent.RECONNECT_ERROR, reconnectError);
-				collabService.removeEventListener(CollaborationEvent.USER_JOINED_CREATE_MOUSE, joinedRoomCreateMouseList);
+				collabService.removeEventListener(CollaborationEvent.USER_JOINED_CREATE_MOUSE, handleCreateUserMouse);
 				collabService.removeEventListener(CollaborationEvent.USER_LEFT_REMOVE_MOUSE, handleRemoveUserMouse);
 				collabService.removeEventListener(CollaborationEvent.USER_REQUEST_MOUSE_POS, handleUserRequestMousePos);
 				collabService.removeEventListener(CollaborationEvent.USER_UPDATE_MOUSE_POS, updateMousePos);
@@ -140,15 +142,17 @@
 			{
 				button_connect.label = "Connecting...";
 				collabService.connect(SETTINGS.collab_SERVERIP, SETTINGS.collab_SERVERNAME, 
-					int(SETTINGS.collab_PORT), SETTINGS.collab_ROOMTOJOIN, SETTINGS.collab_USERNAME);
+					int(SETTINGS.collab_PORT), SETTINGS.collab_ROOMTOJOIN, SETTINGS.collab_NICKNAME);
 				
 				// Set timeout to 10 seconds
 				connTimer = new Timer(10000);
 				connTimer.addEventListener(TimerEvent.TIMER, serverUnresponsive);
 				connTimer.start();
+				disConButtonPushed = false;
 			}
 			private function disconnect(e:MouseEvent = null):void
 			{
+				disConButtonPushed = true;
 				collabService.disconnect();
 			}
 			private function serverUnresponsive(e:TimerEvent):void
@@ -248,6 +252,7 @@
 			private function settingsConnSaved(e:Event):void
 			{
 				button_connect.enabled = true;
+				CHAT.setUserColor(SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR);
 			}
 			private function settingsAddonSaved(e:Event):void
 			{
@@ -274,27 +279,31 @@
 			//resets which buttons are disabled and enabled.
 			private function handleDisconnect( e:CollaborationEvent):void
 			{
+				if( collabService.room )
+					collabService.room.removeEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 				if( mouseTimer ) {
 					mouseTimer.stop();
 					mouseTimer.removeEventListener(TimerEvent.TIMER, mouseMove);
 					mouseTimer = null;
 				}
-				if( collabService.room )
-					collabService.room.removeEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 				updateEnabledSettings();
+				resetUserMice();
+				disConButtonPushed = false;
 			}
 			private function handleConnect( e:CollaborationEvent ):void
 			{
+				trace( "handleConnect()" );
 				stopConTimer();
 				updateEnabledSettings();
 				toggleChat();
-				CHAT.setUsername(collabService.username);
+				CHAT.setNickname(collabService.nickname);
 				joinedRoomCreateMouseList();
 				
 				mouseTimer = new Timer(600);
 				mouseTimer.addEventListener(TimerEvent.TIMER, mouseMove);
 				mouseTimer.start();
 				collabService.room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
+				collabService.sendMouseMessage(SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
 			}
 			private function lockedError(e:Event):void
 			{
@@ -315,7 +324,10 @@
 			}
 			private function onTimeout(e:RoomEvent):void
 			{
-				Alert.show("Would you like to reconnect to the room?", "Disconnection Alert", Alert.YES | Alert.NO, null, disconnectHandler);
+				if( !disConButtonPushed ) {
+					resetUserMice();
+					Alert.show("Would you like to reconnect to the room?", "Disconnection Alert", Alert.YES | Alert.NO, null, disconnectHandler);
+				}
 			}
 			private function disconnectHandler( e:CloseEvent ):void
 			{
@@ -334,7 +346,7 @@
 			}
 			private function userListUpdated(e:Event):void
 			{
-				CHAT.userList = collabService.userList;
+//				CHAT.userNameList = collabService.userList;
 			}
 			private function updateEnabledSettings():void
 			{
@@ -359,41 +371,52 @@
 			
 			private function joinedRoomCreateMouseList():void
 			{
+				trace("joinedRoomCreateMouseList();");
 				userMice = new Dictionary();
 				
 				for each( var person:RoomOccupant in collabService.room ) 
 				{
-					if( person.displayName == collabService.username ) continue;
+					if( person.displayName == collabService.nickname ) continue;
 					trace("asking " + person.displayName + " for mouse pos");
 					collabService.requestMouseMessage(person.displayName);
 				}
 			}
 			private function handleCreateUserMouse(e:CollaborationEvent):void
 			{
-				if( e.getText() == collabService.username ) return;
-				if( !userMice )	joinedRoomCreateMouseList();
-				
-				userMice[e.getText()] = new CollabMouseCursor().addPopUp(Application.application as Application, e.getColor());
+				trace("handleCreateUserMouse();");
+				if( e.getText() == collabService.nickname ) return;
+				if( !userMice )	// You have just joined the room and ask everyone for their mice
+				{
+					joinedRoomCreateMouseList();
+				}
+				else // You are already in the room and someone joins
+				{
+					userMice[e.getText()] = CollabMouseCursor.addPopUp(Application.application as Application) as CollabMouseCursor;
+				}
 			}
 			private function handleRemoveUserMouse(e:CollaborationEvent):void
 			{
+				trace( "Removing " + e.getText() + "\'s cursor" );
 				userMice[e.getText()].removePopUp();
-				userMice[e.getText()] = null;
+				delete userMice[e.getText()];
 			}
 			private function handleUserRequestMousePos(e:CollaborationEvent):void
 			{
-				collabService.sendMouseMessage(collabService.username, e.getColor(), e.getX(), e.getY());
+				trace("handleUserRequestMousePos();");
+				collabService.sendMouseMessage(collabService.nickname, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
 			}
 			private function updateMousePos(e:CollaborationEvent):void
 			{
 				if( userMice[e.getText()] == null )
-				{
-					trace( "Creating mouse for "+e.getText());
-					userMice[e.getText()] = new CollabMouseCursor().addPopUp(Application.application as Application, e.getColor());
-				}
+					userMice[e.getText()] = CollabMouseCursor.addPopUp(Application.application as Application) as CollabMouseCursor;
 				
-//				trace("updating " + e.getText() + " mouse to: ("+e.getX()+","+e.getY()+")");
 				userMice[e.getText()].setPos(percentToCoordX(e.getX()), percentToCoordY(e.getY()));
+				
+				if( userMice[e.getText()].color != e.getColor() )
+				{
+					userMice[e.getText()].fillCursor(e.getColor());
+					CHAT.setUserColor(e.getText(), e.getColor());
+				}
 			}
 			private function mouseMove(e:TimerEvent):void
 			{
@@ -401,9 +424,18 @@
 				if( lastX == mouseX && lastY == mouseY ) return;		// Your mouse never moved ( dont send )
 
 //				trace(collabService.username+" ("+xMousePercent()+"%,"+yMousePercent()+"%)");
-				collabService.sendMouseMessage(collabService.username, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
+				collabService.sendMouseMessage(collabService.nickname, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
 				lastX = mouseX;
 				lastY = mouseY;
+			}
+			private function resetUserMice():void
+			{
+				for( var m:String in userMice )
+				{
+					userMice[m].removePopUp();
+					delete userMice[m];
+				}
+				userMice = null;
 			}
 			private function coordToPercentX(x:Number):Number { return x / Application.application.stage.stageWidth;   }
 			private function percentToCoordX(x:Number):Number { return x * Application.application.stage.stageWidth;   }
