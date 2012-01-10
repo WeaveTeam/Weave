@@ -294,19 +294,19 @@ package weave.visualization.layers
 				
 				if (Weave.properties.enableBitmapFilters.value)
 				{
-					_plotLayer.plotFilters = [selectionBlur];
-					//selectionLayer.plotFilters = testFilter.generatedObject ? [testFilter.generatedObject] : null;
-					_selectionLayer.plotFilters = [shadow];
+					_plotLayer.filters = [selectionBlur];
+					//selectionLayer.filters = testFilter.generatedObject ? [testFilter.generatedObject] : null;
+					_selectionLayer.filters = [shadow];
 				}
 				else
 				{
-					_plotLayer.plotFilters = null;
+					_plotLayer.filters = null;
 				}
 			}
 			else
 			{
 				_plotLayer.alpha = 1.0;
-				_plotLayer.plotFilters = null;
+				_plotLayer.filters = null;
 			}	
 		}
 
@@ -315,13 +315,13 @@ package weave.visualization.layers
 			handleSelectionChange();
 			if (Weave.properties.enableBitmapFilters.value)
 			{
-				_selectionLayer.plotFilters = [shadow];
-				_probeLayer.plotFilters = [probeGlowInner, probeGlowOuter];
+				_selectionLayer.filters = [shadow];
+				_probeLayer.filters = [probeGlowInner, probeGlowOuter];
 			}
 			else
 			{
-				_selectionLayer.plotFilters = null;
-				_probeLayer.plotFilters = [shadow]; // still need one filter on probe layer to make it stand out
+				_selectionLayer.filters = null;
+				_probeLayer.filters = [shadow]; // still need one filter on probe layer to make it stand out
 			}
 		}
 		
