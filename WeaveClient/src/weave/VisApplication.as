@@ -19,12 +19,10 @@
 
 package weave
 {
-	import flash.display.DisplayObject;
 	import flash.display.LoaderInfo;
 	import flash.display.StageDisplayState;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
-	import flash.events.MouseEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.FileFilter;
@@ -39,15 +37,11 @@ package weave
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.containers.Canvas;
-	import mx.containers.HBox;
 	import mx.controls.Alert;
-	import mx.controls.Button;
-	import mx.controls.HSlider;
 	import mx.controls.ProgressBar;
 	import mx.controls.ProgressBarLabelPlacement;
 	import mx.controls.Text;
 	import mx.core.Application;
-	import mx.core.IUIComponent;
 	import mx.core.UIComponent;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
@@ -55,19 +49,15 @@ package weave
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.Reports.WeaveReport;
 	import weave.api.WeaveAPI;
+	import weave.api.WeaveFileFormat;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
-	import weave.api.getSessionState;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
-	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
-	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
-	import weave.core.WeaveFile;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.WeaveDataSource;
@@ -729,12 +719,16 @@ package weave
 		public function loadSessionState(fileContent:Object, fileName:String):void
 		{
 			DebugTimer.begin();
-			try
+			var content:Object = null;
+			try {
+				content = WeaveFileFormat.readFile(ByteArray(fileContent));
+			} catch (e:Error) { }
+			
+			if (content)
 			{
-				var obj:Object = WeaveFile.readFile(ByteArray(fileContent));
-				Weave.history.setSessionState(obj);
+				Weave.loadWeaveFileContent(content);
 			}
-			catch (e:Error)
+			else
 			{
 				// attempt to load .xml file
 				var xml:XML = null;
@@ -757,11 +751,11 @@ package weave
 					}
 					var tag:XML;
 					for each (tag in xml.descendants("OpenIndicatorsServletDataSource"))
-					tag.setLocalName("WeaveDataSource");
+						tag.setLocalName("WeaveDataSource");
 					for each (tag in xml.descendants("OpenIndicatorsDataSource"))
-					tag.setLocalName("WeaveDataSource");
+						tag.setLocalName("WeaveDataSource");
 					for each (tag in xml.descendants("WMSPlotter2"))
-					tag.setLocalName("WMSPlotter");
+						tag.setLocalName("WMSPlotter");
 					for each (tag in xml.descendants("SessionedTextArea"))
 					{
 						tag.setLocalName("SessionedTextBox");
@@ -773,12 +767,16 @@ package weave
 					
 					// add missing attribute titles
 					for each (var hierarchy:XML in xml.descendants('hierarchy'))
-					for each (tag in hierarchy.descendants("attribute"))
-					if (!String(tag.@title) && tag.@name)
 					{
-						tag.@title = tag.@name;
-						if (String(tag.@year))
-							tag.@title += ' (' + tag.@year + ')';
+						for each (tag in hierarchy.descendants("attribute"))
+						{
+							if (!String(tag.@title) && tag.@name)
+							{
+								tag.@title = tag.@name;
+								if (String(tag.@year))
+									tag.@title += ' (' + tag.@year + ')';
+							}
+						}
 					}
 					
 					Weave.setSessionStateXML(xml, true);

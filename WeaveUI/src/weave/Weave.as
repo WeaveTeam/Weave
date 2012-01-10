@@ -20,11 +20,24 @@
 package weave
 {
 	import flash.external.ExternalInterface;
+	import flash.net.URLRequest;
+	import flash.utils.ByteArray;
+	import flash.utils.getDefinitionByName;
+	import flash.utils.getQualifiedClassName;
+	
+	import mx.rpc.AsyncResponder;
+	import mx.rpc.AsyncToken;
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
+	
+	import nochump.util.zip.ZipEntry;
+	import nochump.util.zip.ZipFile;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.data.IAttributeColumnCache;
@@ -34,6 +47,7 @@ package weave
 	import weave.api.data.IStatisticsCache;
 	import weave.api.reportError;
 	import weave.api.services.IURLRequestUtils;
+	import weave.core.ClassUtils;
 	import weave.core.ErrorManager;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableDynamicObject;
@@ -55,6 +69,7 @@ package weave
 	import weave.data.StatisticsCache;
 	import weave.editors._registerAllLinkableObjectEditors;
 	import weave.services.URLRequestUtils;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -124,7 +139,6 @@ package weave
 			    "weave.visualization.plotters.styles"
 			);
 		}
-		
 		
 		private static var _root:ILinkableHashMap = null; // root object of Weave
 		private static var _history:SessionStateLog = null; // root session history
@@ -229,6 +243,101 @@ package weave
 		private static function addKeys(source:KeySet, destination:KeySet):void
 		{
 			destination.addKeys(source.keys);
+		}
+		
+		
+		/******************************************************************************************/
+		
+		
+		/**
+		 * This function will create an object that can be saved to a file and recalled later with loadWeaveFileContent().
+		 */
+		public static function createWeaveFileContent():Object
+		{
+			// The "version" property can be used to detect old formats and should be incremented whenever the format is changed.
+			var content:Object = {
+				version: 0,
+				history: history.getSessionState(),
+				plugins: ["WeaveExamplePlugin.swc"]
+			};
+			return content;
+		}
+		
+		/**
+		 * This function will load content that was previously created with createWeaveFileContent().
+		 * @param content
+		 */
+		public static function loadWeaveFileContent(content:Object):void
+		{
+			switch (content.version)
+			{
+				case 0:
+				{
+					var pluginURLs:Array = content.plugins;
+					var remaining:int = pluginURLs.length;
+					function handlePluginsFinished():void
+					{
+						history.setSessionState(content.history);
+					}
+					function handlePlugin():void
+					{
+						remaining--;
+						if (remaining == 0)
+							handlePluginsFinished();
+					}
+					if (remaining > 0)
+					{
+						for each (var plugin:String in pluginURLs)
+						{
+							loadSWC(new URLRequest(plugin), handlePlugin);
+						}
+					}
+					else
+					{
+						handlePluginsFinished();
+					}
+					break;
+				}
+				default:
+					reportError("Unsupported Weave content version: " + content.version);
+			}
+		}
+
+		private static function loadSWC(url:URLRequest, callback:Function):void
+		{
+			WeaveAPI.URLRequestUtils.getURL(url, handleSwcResult, handleSwcFault, callback);
+		}
+		
+		private static function handleSwcResult(event:ResultEvent, token:Object = null):void
+		{
+			var zipFile:ZipFile = new ZipFile(event.result as ByteArray);
+			var catalog:XML = XML(zipFile.getInput(zipFile.getEntry("catalog.xml")));
+			
+			var defList:XMLList = catalog.descendants(new QName('http://www.adobe.com/flash/swccatalog/9', 'def'));
+			var idList:XMLList = defList.@id;
+			var names:Array = [];
+			for each (var id:String in idList)
+				names.push(id.split(':').join('.'));
+			names.sort();
+			function testNames(...names):void
+			{
+				for (var i:int = 0; i < names.length; i++)
+				{
+					if (ClassUtils.classImplements(names[i], getQualifiedClassName(ILinkableObject)))
+						trace(names[i], ClassUtils.getClassDefinition(names[i]));
+				}
+				if (token is Function)
+					token();
+			}
+			
+			var library:ByteArray = zipFile.getInput(zipFile.getEntry("library.swf"));
+			ClassUtils.loadSWF(library, testNames, names);
+		}
+		private static function handleSwcFault(event:FaultEvent, token:Object = null):void
+		{
+			trace(arguments)
+			if (token is Function)
+				token();
 		}
 	}
 }

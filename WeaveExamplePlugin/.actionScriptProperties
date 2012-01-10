@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <actionScriptProperties analytics="false" mainApplicationPath="WeaveExamplePlugin.as" projectUUID="44bc0469-d878-46ac-90cf-cace4ebf17d8" version="10">
-  <compiler additionalCompilerArguments="-locale en_US" autoRSLOrdering="true" copyDependentFiles="false" flexSDK="Flex 3.6A" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
+  <compiler additionalCompilerArguments="-locale en_US" autoRSLOrdering="true" copyDependentFiles="false" flexSDK="Flex 3.6A" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderLocation="WEAVE_DOCROOT" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="10.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
     <compilerSourcePath/>
     <libraryPath defaultLinkType="0">
       <libraryPathEntry kind="4" path="">
@@ -9,6 +9,10 @@
           <libraryPathEntry kind="3" linkType="1" path="${PROJECT_FRAMEWORKS}/libs/core.swc" useDefaultLinkType="false"/>
         </excludedEntries>
       </libraryPathEntry>
+      <libraryPathEntry kind="3" linkType="2" path="/WeaveAPI/bin/WeaveAPI.swc" useDefaultLinkType="true"/>
+      <libraryPathEntry kind="3" linkType="2" path="/WeaveCore/bin/WeaveCore.swc" useDefaultLinkType="true"/>
+      <libraryPathEntry kind="3" linkType="2" path="/WeaveData/bin/WeaveData.swc" useDefaultLinkType="true"/>
+      <libraryPathEntry kind="3" linkType="2" path="/WeaveUI/bin/WeaveUI.swc" useDefaultLinkType="true"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>

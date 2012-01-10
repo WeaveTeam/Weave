@@ -29,6 +29,7 @@ package weave.core
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerDisposableChild;
+	import weave.api.registerLinkableChild;
 
 	/**
 	 * This class saves the session history of an ILinkableObject.
@@ -38,7 +39,6 @@ package weave.core
 	public class SessionStateLog implements ILinkableVariable, IDisposableObject
 	{
 		public static var debug:Boolean = false;
-		public static const devMode:Boolean = false;
 		
 		public function SessionStateLog(subject:ILinkableObject)
 		{
@@ -78,7 +78,7 @@ package weave.core
 		/**
 		 * When this is set to true, changes in the session state of the subject will be automatically logged.
 		 */
-		public const enableLogging:LinkableBoolean = newLinkableChild(this, LinkableBoolean, synchronizeNow);
+		public const enableLogging:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), synchronizeNow);
 		
 		/**
 		 * This will clear all undo and redo history.

@@ -17,4 +17,11 @@
 		<nature>com.adobe.flexbuilder.project.flexlibnature</nature>
 		<nature>com.adobe.flexbuilder.project.actionscriptnature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>bin-debug</name>
+			<type>2</type>
+			<locationURI>WEAVE_DOCROOT</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>

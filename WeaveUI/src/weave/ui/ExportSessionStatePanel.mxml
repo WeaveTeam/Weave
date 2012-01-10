@@ -51,11 +51,12 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.api.WeaveFileFormat;
 			import weave.api.linkBindableProperty;
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
 			import weave.core.SessionStateLog;
-			import weave.core.WeaveFile;
+			import weave.editors.SessionHistorySlider;
 			
 			private var oldValues:Dictionary = new Dictionary(true);
 			
@@ -75,7 +76,7 @@
 			{
 				super.childrenCreated();
 				
-				saveHistoryCheckBox.visible = Weave.history.enableLogging && SessionStateLog.devMode;
+				saveHistoryCheckBox.visible = Weave.history.enableLogging && SessionHistorySlider.devMode;
 			}
 			
 			private function export():void
@@ -87,7 +88,8 @@
 				var fr:FileReference = new FileReference();
 				if (saveHistoryCheckBox.selected)
 				{
-					var byteArray:ByteArray = WeaveFile.createFile(Weave.history.getSessionState());
+					var content:Object = Weave.createWeaveFileContent();
+					var byteArray:ByteArray = WeaveFileFormat.createFile(content);
 					fr.save(byteArray, "weave session history " + dateString + ".weave");
 				}
 				else
