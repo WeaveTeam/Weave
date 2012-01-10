@@ -24,7 +24,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				width="300" height="200"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
-	<mx:ViewStack id="layoutViewStack" width="100%" height="100%" selectedIndex="{layouts.indexOf(targetLayoutCombo.selectedItem)}">
+	<mx:ViewStack id="layoutViewStack" width="100%" height="100%" selectedIndex="{layouts.indexOf(layoutCombo.selectedItem)}">
 		<mx:Canvas label="Combo Box">
 			<CustomComboBox id="choiceCombo" prompt="Select an attribute..."
 							width="100%" height="100%"
@@ -67,8 +67,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						<HelpComponent>Select the visualization attribute that you want the menu to be linked to.</HelpComponent>
 					</Indent>
 					<Indent label="Menu layout:" indent="140">
-						<CustomComboBox id="targetLayoutCombo" prompt="Select a layout..." labelFunction="{targetLayoutLabelFunction}"
-										dataProvider="{layouts}" />
+						<CustomComboBox id="layoutCombo" prompt="Select a layout..." labelFunction="{layoutLabelFunction}"
+										dataProvider="{layouts}"/>
 						<HelpComponent>Select the layout for the attribute menu.</HelpComponent>
 					</Indent>
 				</mx:VBox>
@@ -92,7 +92,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IColumnWrapper;
+			import weave.api.data.IColumnWrapper;6
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
@@ -114,7 +114,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const targetTool:LinkableString 		= newLinkableChild(this, LinkableString);
 			public const targetAttribute:LinkableString = newLinkableChild(this, LinkableString);
 			public const choices:LinkableHashMap 		= registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
-			public const layoutMode:LinkableString 		= registerLinkableChild(this, new LinkableString(layouts[0]));
+			public const layoutMode:LinkableString 		= newLinkableChild(this, LinkableString);
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['column']), handleChoicesChange);
 			
 			// used to label the choices
@@ -138,7 +138,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private static const layouts:Array = ["ComboBox", "List", "VSlider", "HSlider"];
 			private static const layoutLabels:Array = ["Combo Box", "List", "Vertical Slider", "Horizontal Slider"];
 
-			private function targetLayoutLabelFunction(inputString:String):String
+			private function layoutLabelFunction(inputString:String):String
 			{
 				return layoutLabels[layouts.indexOf(inputString)];
 			}
@@ -170,7 +170,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				choicesComponent.hashMap = choices;
 				
-				linkBindableProperty(layoutMode, targetLayoutCombo, 'selectedItem');
+				linkBindableProperty(layoutMode, layoutCombo, 'selectedItem');
 				
 				callLater(showControlPanelIfNothingSelected);
 			}
