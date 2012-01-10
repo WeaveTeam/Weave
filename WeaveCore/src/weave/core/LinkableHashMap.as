@@ -140,7 +140,7 @@ package weave.core
 			// append each name in newOrder to the end of _orderedNames
 			for (i = 0; i < newOrder.length; i++)
 			{
-				name = newOrder[i];
+				name = newOrder[i] as String;
 				// ignore bogus names and append each name only once.
 				if (_nameToObjectMap[name] == undefined || haveSeen[name] != undefined)
 					continue;
