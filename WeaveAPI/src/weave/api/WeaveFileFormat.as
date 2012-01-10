@@ -53,7 +53,7 @@ package weave.api
 		
 		/**
 		 * This function will create a ByteArray that contains the specified content in the Weave file format.
-		 * @param content The content of the file.
+		 * @param content The content to be encoded.
 		 * @return A ByteArray that contains the specified content encoded in the Weave file format.
 		 */
 		public static function createFile(content:Object):ByteArray
@@ -75,22 +75,27 @@ package weave.api
 		 */
 		public static function readFile(data:ByteArray):Object
 		{
+			var err_msg:String = "Unknown file format";
 			try
 			{
 				var header:Object = data.readObject();
-				if (header != WEAVE_FILE_HEADER)
-					throw new Error("Unsupported file format");
-				
-				var body:ByteArray = new ByteArray();
-				data.readBytes(body);
-				body.uncompress();
-				
-				var content:Object = body.readObject();
-				return content;
+				if (header == WEAVE_FILE_HEADER)
+				{
+					var body:ByteArray = new ByteArray();
+					data.readBytes(body);
+					body.uncompress();
+					
+					var content:Object = body.readObject();
+					return content;
+				}
+				else
+				{
+					err_msg = "Unsupported file format";
+				}
 			}
 			catch (e:Error) { }
 			
-			throw new Error("Unknown file format");
+			throw new Error(err_msg);
 		}
 	}
 }
