@@ -206,12 +206,6 @@
 					linkSessionState(plotLayer.backgroundIsVisible, layer.backgroundIsVisible);
 					linkSessionState(plotLayer.layerIsVisible, layer.layerIsVisible);
 					linkSessionState(plotLayer.layerIsSelectable, layer.layerIsSelectable);					
-					try 
-					{
-						// Remove background bitmaps to reduce the number of overlapping bitmaps on the visualization
-						// This is a Flash Player limitation
-						layer.plotLayer.removeChild(layer.plotLayer.getBackgroundBitmap());									
-					} catch (e:Error) {} 				
 				} 																		
 				
 				addEventListener(MouseEvent.MOUSE_MOVE, displayToolTip);
@@ -308,7 +302,7 @@
 				
 				if(probeExists || selectionExists) return;
 				
-				_undefinedXLayer.plotLayer.getScreenBounds(_tempBounds);				
+				_undefinedXLayer.getScreenBounds(_tempBounds);				
 				if(_tempBounds.containsPoint(_tempPoint))
 				{
 					_tempPoint = this.contentToGlobal(_tempPoint);
@@ -316,7 +310,7 @@
 					visualization.constrainToolTipsToStage(_toolTip);
 					return;
 				}
-				_undefinedYLayer.plotLayer.getScreenBounds(_tempBounds);
+				_undefinedYLayer.getScreenBounds(_tempBounds);
 				if(_tempBounds.containsPoint(_tempPoint))
 				{
 					_tempPoint = this.contentToGlobal(_tempPoint);
@@ -324,7 +318,7 @@
 					visualization.constrainToolTipsToStage(_toolTip);
 					return;
 				}
-				_undefinedXYLayer.plotLayer.getScreenBounds(_tempBounds);
+				_undefinedXYLayer.getScreenBounds(_tempBounds);
 				if(_tempBounds.containsPoint(_tempPoint))
 				{
 					_tempPoint = this.contentToGlobal(_tempPoint);

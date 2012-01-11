@@ -20,7 +20,6 @@ package weave.services.jquery
 {
 	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
-	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	
 	import mx.core.mx_internal;
@@ -29,13 +28,9 @@ package weave.services.jquery
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.Base64Decoder;
-	import mx.utils.ObjectUtil;
 	import mx.utils.UIDUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.reportError;
-	import weave.core.ErrorManager;
-	import weave.utils.ByteArrayUtils;
 
 	public class JQueryCaller
 	{

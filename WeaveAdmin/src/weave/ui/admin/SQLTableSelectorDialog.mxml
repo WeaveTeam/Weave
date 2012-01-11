@@ -41,15 +41,10 @@
 	</mx:Metadata>
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.collections.ICollectionView;
-			import mx.events.CollectionEvent;
-			import mx.events.ListEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Strings;
-			import weave.services.*;
-			import weave.utils.ByteArrayUtils;
+			import weave.services.AdminInterface;
 			
 			// values returned by the server that depend on the active selected values
 			[Bindable] public var schemas:Array = [];

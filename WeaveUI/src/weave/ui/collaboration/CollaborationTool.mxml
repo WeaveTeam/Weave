@@ -148,7 +148,6 @@
 			}
 			private function nickConflictError(e:Event):void
 			{
-				collabService.disconnect();
 				toggleControlPanel();
 				usernameError.visible = true;
 			}

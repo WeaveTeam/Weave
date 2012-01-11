@@ -45,14 +45,9 @@
 	<!-- Choose between Assgning a Geometry Collection Name or a Key Type-->
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.controls.Alert;
-			import mx.events.CollectionEvent;
-			import mx.rpc.events.ResultEvent;
-			
 			import weave.Strings;
-			import weave.services.*;
-			import weave.utils.ByteArrayUtils;
+			import weave.services.AdminInterface;
+			import weave.services.DelayedAsyncInvocation;
 			
 			
 			[Bindable] private var _indent:Number = NaN;

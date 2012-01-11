@@ -74,6 +74,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import flash.desktop.ClipboardFormats;
 			
 			import mx.collections.ArrayCollection;
+			import mx.collections.ICollectionView;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Application;
 			import mx.core.mx_internal;
@@ -109,6 +110,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.KeySets.KeySet;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.CustomContextMenuManager;
+			import weave.ui.CustomDataGrid.DataGridCellRenderer;
 			import weave.ui.CustomDataGrid.SearchFilterComponent;
 			import weave.ui.CustomDataGrid.SliderFilterComponent;
 			import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
@@ -118,6 +120,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.NumberUtils;
 			import weave.utils.ProbeTextUtils;
 			use namespace mx_internal;
+			
+			
 			
 			override protected function constructor():void
 			{
@@ -145,15 +149,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					else
 						dynamicColumn.requestLocalObjectCopy(probedColumn);
 				}
+				
+				//getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
 			}
 			
-			public const filterByKeyType:LinkableString = newLinkableChild(this,LinkableString,updateKeyTypeComboBox,true);
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
 				linkBindableProperty(showControls, showControlsCheckBox, "selected");
 				linkBindableProperty(showFilters, showFiltersCheckBox, "selected");
+				linkBindableProperty(showColors,showColorsCheckBox,"selected");
 				
 				columns.addGroupedCallback(this, handleColumnsChange, true);
 				columns.childListCallbacks.addGroupedCallback(this, handleColumnListChange, true);
@@ -165,7 +172,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				sortFieldIndex.addGroupedCallback(this,sortCallback);
 				sortInDescendingOrder.addGroupedCallback(this,sortCallback);
-				columns.addGroupedCallback(this, function():void{ sortCallback(true); });
+				columns.addGroupedCallback(this, forceSortCallback);
 				
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleStretch);
 				addEventListener(ResizeEvent.RESIZE, handleResize);
@@ -173,8 +180,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				dataRowKeys.addEventListener(CollectionEvent.COLLECTION_CHANGE, handleGlobalSelectionChange);
 				
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
+				
+				// temporary solution
+				var handleColorColumnChange:Function = function():void{
+					(dataGrid.dataProvider as ICollectionView).refresh();
+				};
+				getCallbackCollection(Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN)).addGroupedCallback(this, handleColorColumnChange);
 			}
 			
+			public const columns:LinkableHashMap = new LinkableHashMap(IAttributeColumn);
+			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString), handleSessionedWidthChange, false);
+			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap());
+			//we need to do this to set the arrow to the correct column
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				//				sortCallback();
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
+			}
 			
 			private function handleResize(event:ResizeEvent):void
 			{
@@ -284,9 +306,35 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);
 			
-			public const columns:LinkableHashMap = new LinkableHashMap(IAttributeColumn);
-			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString), handleSessionedWidthChange, false);
-			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap());
+			
+			
+			
+			public const showColors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateColumnCellDisplay);
+			private function updateColumnCellDisplay():void{
+				var colNames:Array = columns.getNames();
+				var i:int;
+				var filterableColumn:WeaveCustomDataGridColumn;
+				if(showColors.value){
+					for(i = 0; i<colNames.length;i++){
+						filterableColumn = _currentDataGridColumns[i] as WeaveCustomDataGridColumn;
+						var cf:ClassFactory = new ClassFactory(DataGridCellRenderer);
+						cf.properties = {colorColumn: Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN),keySet: Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet};
+						filterableColumn.itemRenderer = cf;
+					}
+				}
+				else{
+					for(i = 0; i<colNames.length;i++){
+						filterableColumn = _currentDataGridColumns[i] as WeaveCustomDataGridColumn;	
+						//while loading initially - WeaveCustomDataGridColumn wont get created
+						if(filterableColumn){
+							filterableColumn.itemRenderer =  new ClassFactory(Label);	
+						}
+										
+					}
+				}
+					
+				
+			}
 			
 			private function addImageColumn():void
 			{
@@ -333,6 +381,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				sortFieldIndex.value = index;
 			}
 			
+			private function forceSortCallback():void{ 
+				sortCallback(true); 
+			}
 			
 			private function sortCallback(forced:Boolean = false):void
 			{
@@ -355,12 +406,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-			//we need to do this to set the arrow to the correct column
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
-			{
-				//				sortCallback();
-				super.updateDisplayList(unscaledWidth,unscaledHeight);
-			}
+			
 			
 			
 			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
@@ -391,20 +437,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				columns.setNameOrder(newColumnOrder);	
 			}
-			
+			private var isGlobalSelectionActive:Object = {val: false};
 			private function handleGlobalSelectionChange(e:Event = null):void
 			{
 				if (!parent)
 					return callLater(handleGlobalSelectionChange);
 				
-				//dataGrid.selectedItems = [];
 				var selectedItems:Array = [];
 				for each (var item:Object in dataGrid.dataProvider)
 				{
 					if (_selection.containsKey(item as IQualifiedKey))
 						selectedItems.push(item);
-				}
+				}	
 				dataGrid.selectedItems = selectedItems;
+				
 			}
 			
 			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
@@ -470,6 +516,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				handleKeyTypeChange();
 			}
 			
+			public const filterByKeyType:LinkableString = newLinkableChild(this,LinkableString,updateKeyTypeComboBox,true);
 			private function updateKeyTypeComboBox():void
 			{
 				if (keyTypeCombo == null)
@@ -553,10 +600,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				handleDataSourceChange();
 				handleKeyTypeChange();
 				handleGlobalSelectionChange();
-				
 				//we need to do this to set the arrow to the correct column
 				this.invalidateDisplayList();
 				updateBorders();
+				
+				updateColumnCellDisplay();
+				
+				
 			}
 			
 			private function handleDataSourceChange():void
@@ -791,6 +841,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:Button label="Add Image Column" click="addImageColumn()" />
 			<mx:CheckBox id="showControlsCheckBox" label="Show controls on panel"/>
 			<mx:CheckBox id="showFiltersCheckBox" label="Show Filters on panel"/>
+			<mx:CheckBox id="showColorsCheckBox" label="Display as Colors"/>
 			<mx:CheckBox change="handleKeyColumnCheckBox()" id="showKeyColumnCheckBox" label="Show Key Column"/>
 			<mx:CheckBox label="Export keys with data" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
 			<mx:Button label="Export Data..." click="exportCSV()" />

@@ -42,8 +42,6 @@ package weave.primitives
 	{
 		public function ColorRamp(sessionState:Object = null)
 		{
-			super();
-			addImmediateCallback(this, firstCallback);
 			if (!sessionState)
 				sessionState = <colorRamp name="5-Color" source="OIC" category="basic">
 						<node color="0xEFF3FF" position="0"/>
@@ -52,38 +50,59 @@ package weave.primitives
 						<node color="0x3182BD" position="0.75"/>
 						<node color="0x08519C" position="1"/>
 					</colorRamp>;
-			value = (sessionState is XML) ? (sessionState as XML).toXMLString() : sessionState as String;
+			
+			if (sessionState is XML)
+				sessionState = (sessionState as XML).toXMLString();
+			
+			super(sessionState as String);
 		}
 		
 		private var _isXML:Boolean = false;
 		
-		private function firstCallback():void
+		private var _validateTriggerCount:uint = 0;
+		
+		private function validate():void
 		{
+			if (_validateTriggerCount == triggerCounter)
+				return;
+			
+			_validateTriggerCount = triggerCounter;
+			
 			var i:int;
 			var pos:Number;
 			var color:Number;
 			var positions:Array = [];
 			var reversed:Boolean = false;
-			
+			var string:String = value || '';
 			var xml:XML = null;
-			if (value.charAt(0) == '<' && value.substr(-1) == '>')
+			if (string.charAt(0) == '<' && string.substr(-1) == '>')
 			{
 				try // try parsing as xml
 				{
-					xml = XML(value);
+					xml = XML(string);
 					reversed = String(xml.@reverse) == 'true';
 					
-					var xmlNodes:XMLList = xml.children();
-					_colorNodes.length = xmlNodes.length();
-					for (i = 0; i < xmlNodes.length(); i++)
+					var text:String = xml.text();
+					if (text)
 					{
-						var position:String = xmlNodes[i].@position;
-						pos = position == '' ? i / (_colorNodes.length - 1) : Number(position);
-						color = Number(xmlNodes[i].@color);
-						_colorNodes[i] = new ColorNode(pos, color);
-						positions[i] = pos;
+						// treat a single text node as a list of color values
+						string = text;
+						xml = null;
 					}
-					
+					else
+					{
+						// handle a list of colorNode tags containing position and color attributes
+						var xmlNodes:XMLList = xml.children();
+						_colorNodes.length = xmlNodes.length();
+						for (i = 0; i < xmlNodes.length(); i++)
+						{
+							var position:String = xmlNodes[i].@position;
+							pos = position == '' ? i / (_colorNodes.length - 1) : Number(position);
+							color = Number(xmlNodes[i].@color);
+							_colorNodes[i] = new ColorNode(pos, color);
+							positions[i] = pos;
+						}
+					}
 				}
 				catch (e:Error) { } // not an xml
 			}
@@ -91,7 +110,7 @@ package weave.primitives
 			
 			if (!_isXML)
 			{
-				var colors:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(value));
+				var colors:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(string));
 				_colorNodes.length = colors.length;
 				for (i = 0; i < colors.length; i++)
 				{
@@ -117,6 +136,8 @@ package weave.primitives
 		
 		public function reverse():void
 		{
+			validate();
+			
 			if (_isXML)
 			{
 				var xml:XML = XML(value);
@@ -134,6 +155,8 @@ package weave.primitives
 
 		public function get name():String
 		{
+			validate();
+			
 			if (_isXML)
 				return XML(value).@name;
 			else
@@ -141,6 +164,8 @@ package weave.primitives
 		}
 		public function set name(newName:String):void
 		{
+			validate();
+			
 			if (_isXML)
 			{
 				var xml:XML = XML(value);
@@ -157,6 +182,8 @@ package weave.primitives
 		
 		public function getColors():Array
 		{
+			validate();
+			
 			var colors:Array = [];
 			
 			for(var i:int =0;i< _colorNodes.length;i++)
@@ -174,6 +201,8 @@ package weave.primitives
 		 */
 		public function getColorFromNorm(normValue:Number):Number
 		{
+			validate();
+			
 			if (normValue < 0 || normValue > 1 || _colorNodes.length == 0)
 				return NaN;
 			
@@ -202,6 +231,8 @@ package weave.primitives
 		 */
 		public function draw(canvas:Canvas, vertical:Boolean):void
 		{
+			validate();
+			
 			var g:Graphics = canvas.graphics;
 			g.clear();
 			var n:int = vertical ? canvas.height : canvas.width;
@@ -251,9 +282,9 @@ package weave.primitives
 			return _allColorRampNames;
 		}
 		
-		public static function getColorRampXMLByName(name:String):XML
+		public static function getColorRampXMLByName(rampName:String):XML
 		{
-			return (allColorRamps.colorRamp.(@name == name)[0] as XML).copy();
+			return (allColorRamps.colorRamp.(@name == rampName)[0] as XML).copy();
 		}
 	}
 	

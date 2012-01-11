@@ -35,6 +35,10 @@
 					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
 		<mx:CheckBox label="Show copyright"
 					 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
+		<mx:CheckBox id="saveHistoryCheckBox"
+					 label="Save history"
+					 selected="false"
+					 visible="false"/>
 	</mx:VBox>
 	<mx:ControlBar>
 		<mx:Button label="Export" 
@@ -47,9 +51,12 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.api.WeaveFileFormat;
 			import weave.api.linkBindableProperty;
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
+			import weave.core.SessionStateLog;
+			import weave.editors.SessionHistorySlider;
 			
 			private var oldValues:Dictionary = new Dictionary(true);
 			
@@ -65,6 +72,13 @@
 					oldValues[lb] = lb.value;
 			}
 			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				saveHistoryCheckBox.visible = Weave.history.enableLogging && SessionHistorySlider.devMode;
+			}
+			
 			private function export():void
 			{
 				// Create a date that we can append to the end of each file to make them unique
@@ -72,7 +86,16 @@
 				var dateString:String = date.fullYear +"."+ date.month +"."+ date.day +" "+ date.time;
 				
 				var fr:FileReference = new FileReference();
-				fr.save(Weave.getSessionStateXML(), "weave session state " + dateString + ".xml");
+				if (saveHistoryCheckBox.selected)
+				{
+					var content:Object = Weave.createWeaveFileContent();
+					var byteArray:ByteArray = WeaveFileFormat.createFile(content);
+					fr.save(byteArray, "weave session history " + dateString + ".weave");
+				}
+				else
+				{
+					fr.save(Weave.getSessionStateXML(), "weave session state " + dateString + ".xml");
+				}
 				
 				removePanel();
 			}

@@ -29,8 +29,6 @@ package weave.core
 	import flash.utils.Timer;
 	import flash.utils.getTimer;
 	
-	import mx.core.Application;
-	import mx.core.UIComponent;
 	import mx.core.UIComponentGlobals;
 	import mx.core.mx_internal;
 	
@@ -402,10 +400,10 @@ package weave.core
 			}
 			
 			// initialize the mouse event listeners if possible and necessary
-			if (!_listenersInitialized && Application.application != null && Application.application.stage != null)
+			if (!_listenersInitialized && WeaveAPI.topLevelApplication != null && WeaveAPI.topLevelApplication.stage != null)
 			{
 				// save a pointer to the stage.
-				_stage = Application.application.stage;
+				_stage = WeaveAPI.topLevelApplication.stage;
 				// create listeners for each type of event
 				for each (type in _eventTypes)
 				{
