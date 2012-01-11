@@ -26,7 +26,7 @@
 		 bottom="0" horizontalGap="0"
 		 verticalAlign="middle"
 		 creationComplete="creationComplete(event)"
-		 removed="onToolbarDestroy()" resize="resizeHandler(event)"
+		 removedFromStage="onToolbarDestroy()" resize="resizeHandler(event)"
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off">
 	
 	<mx:Spacer width="100%" />
@@ -106,6 +106,8 @@
 			private function onToolbarDestroy():void
 			{
 				trace("CollaborationMenuBar destroyed");
+				if (parent)
+					parent.removeChild(this);
 				
 				if( collabService.isConnected ) disconnect();
 				
@@ -409,6 +411,8 @@
 			}
 			private function updateMousePos(e:CollaborationEvent):void
 			{
+				if( userMice == null )
+					joinedRoomCreateMouseList();
 				if( userMice[e.getText()] == null )
 					userMice[e.getText()] = CollabMouseCursor.addPopUp(Application.application as Application) as CollabMouseCursor;
 				

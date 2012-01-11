@@ -307,7 +307,7 @@ package weave.services.collaboration
 				{
 					log.pop(); // suppress the outgoing diff that results from an incoming diff
 				}
-				else
+				else if (log.length > 0)
 				{
 					var entry:Object = log[log.length - 1];
 					sendSessionStateDiff( entry.id, entry.forward );
