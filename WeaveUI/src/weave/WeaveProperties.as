@@ -154,6 +154,15 @@ package weave
 		public const enableMouseWheel:LinkableBoolean = new LinkableBoolean(true);
 		public const enableDynamicTools:LinkableBoolean = new LinkableBoolean(true); // move/resize/add/remove/close tools
 		
+		// Collaboration
+		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(true); // collaboration menu bar
+		public const showCollaborationEditor:LinkableBoolean = new LinkableBoolean(true);
+		public const collabServerIP:LinkableString = new LinkableString("129.63.17.205");
+		public const collabServerName:LinkableString = new LinkableString("vast-server");
+		public const collabServerPort:LinkableString = new LinkableString("5222");
+		public const collabServerRoomToJoin:LinkableString = new LinkableString("demo");
+		
+		
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
@@ -162,7 +171,7 @@ package weave
 		
 		public const enableAddAttributeMenuTool:LinkableBoolean = new LinkableBoolean(true); // Add Attribute Menu Tool option tools menu
 		public const enableAddBarChart:LinkableBoolean = new LinkableBoolean(true); // Add Bar Chart option tools menu
-		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
+//		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
 		public const enableAddColorLegend:LinkableBoolean = new LinkableBoolean(true); // Add Color legend Tool option tools menu		
 		public const enableAddColormapHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Colormap Histogram option tools menu
 		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
@@ -208,8 +217,7 @@ package weave
 		public const enableMarker:LinkableBoolean = new LinkableBoolean(true);
 		public const enableDrawCircle:LinkableBoolean = new LinkableBoolean(true);
 		
-		public const enableMenuBar:LinkableBoolean = new LinkableBoolean(true); // top menu for advanced features
-		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(true); // collaboration menu bar		
+		public const enableMenuBar:LinkableBoolean = new LinkableBoolean(true); // top menu for advanced features		
 		public const enableSubsetControls:LinkableBoolean = new LinkableBoolean(true); // creating subsets
 		public const enableExportToolImage:LinkableBoolean = new LinkableBoolean(true); // print/export tool images
 		public const enableExportCSV:LinkableBoolean = new LinkableBoolean(true);

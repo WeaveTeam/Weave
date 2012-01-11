@@ -30,9 +30,9 @@
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off">
 	
 	<mx:Spacer width="100%" />
-	<mx:Button id="button_connect"  label="Connect"  cornerRadius="0" icon="{iCon}" height="100%" />
-	<mx:Button id="button_settings" label="Settings" cornerRadius="0" icon="{iSet}" height="100%" />
-	<mx:Button id="button_chat"     label="Chat" 	 cornerRadius="0" icon="{iChat}" width="{this.width/2}" height="100%" />
+	<mx:Button id="button_connect"  label="Connect"  cornerRadius="0" height="100%" />
+	<mx:Button id="button_settings" label="Settings" cornerRadius="0" height="100%" />
+	<mx:Button id="button_chat"     label="Chat" 	 cornerRadius="0" width="{this.width/2}" height="100%" />
 	
 	<mx:Script>
 		<![CDATA[
@@ -63,9 +63,11 @@
 			private var userMice:Dictionary						= null;
 			private var disConButtonPushed:Boolean				= false;
 			
-			[Embed(source="../../resources/images/collab/connect2.png")] private const iCon:Class;
+			/* 
+			[Embed(source="../../resources/images/collab/connect2.png")] private const iCon:Class; 
 			[Embed(source="../../resources/images/collab/settings.png")] private const iSet:Class;
-			[Embed(source="../../resources/images/collab/chat.png")]	 private const iChat:Class;
+			[Embed(source="../../resources/images/collab/chat.png")]	 private const iChat:Class;  
+			*/
 			
 			protected function creationComplete(event:FlexEvent):void
 			{

@@ -51,6 +51,7 @@ package weave
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.object_proxy;
 	
 	import weave.Reports.WeaveReport;
 	import weave.api.WeaveAPI;
@@ -680,7 +681,8 @@ package weave
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Show Probe ToolTip Editor", ProbeToolTipEditor.openDefaultEditor );
 				createToolMenuItem(Weave.properties.showEquationEditor, "Show Equation Editor", createGlobalObject, [EquationEditor, "EquationEditor"]);
 				createToolMenuItem(Weave.properties.showAttributeSelector, "Show Attribute Selector", AttributeSelectorPanel.openDefaultSelector);
-				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Add Collaboration Tool", createGlobalObject, [CollaborationTool, "CollaborationTool"]);
+				createToolMenuItem(Weave.properties.showCollaborationEditor, "Show Collaboration Editor", CollaborationEditor.openDefaultEditor );
+//				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Add Collaboration Tool", createGlobalObject, [CollaborationTool, "CollaborationTool"]);
 				
 				createToolMenuItem(Weave.properties.enableNewUserWizard, "New User Wizard", function():void {
 					var userUI:NewUserWizard = new NewUserWizard();

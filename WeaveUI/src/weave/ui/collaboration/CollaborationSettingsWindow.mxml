@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
 		   width="270" height="315" creationPolicy="all"
 		   backgroundAlpha="0" backgroundColor="#CCCCCC"
@@ -17,24 +35,8 @@
 						 paddingBottom="{padding}" paddingLeft="{padding}"
 						 paddingRight="{padding}" paddingTop="{padding}">
 					<mx:HBox width="100%">
-						<mx:Label text="IP:" width="{labelWidth}" />
-						<mx:TextInput id="serverIP" width="{textAreaWidth}" text="129.63.17.205" change="trimInput(event);"/> <!--text="129.63.17.205"-->
-					</mx:HBox>
-					<mx:HBox width="100%">
-						<mx:Label text="ServerName:" width="{labelWidth}" />
-						<mx:TextInput id="serverName" width="{textAreaWidth}" text="vast-server" change="trimInput(event);"/>
-					</mx:HBox>
-					<mx:HBox width="100%">
-						<mx:Label text="Port:" width="{labelWidth}" />
-						<mx:TextInput id="port" width="{textAreaWidth}" text="5222" change="trimInput(event);"/>
-					</mx:HBox>
-					<mx:HBox width="100%">
 						<mx:Label text="Username:" width="{labelWidth}" />
 						<mx:TextInput id="nickname" width="{textAreaWidth}" change="trimInput(event);"/>	
-					</mx:HBox>
-					<mx:HBox width="100%">
-						<mx:Label text="Room Name:" width="{labelWidth}" />
-						<mx:TextInput id="roomToJoin" width="{textAreaWidth}" text="Test" change="trimInput(event);"/>
 					</mx:HBox>
 					<mx:HBox width="100%">
 						<mx:Label text="User Color:" width="{labelWidth}" />
@@ -92,6 +94,7 @@
 			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
 			
+			import weave.Weave;
 			import weave.services.collaboration.CollaborationEvent;
 			
 			private const labelWidth:Number = 80;
@@ -119,17 +122,24 @@
 			
 			private function saveSettings(event:MouseEvent):void
 			{
-				if( nickname.text == "" || serverIP.text == "" || serverName.text == "" || roomToJoin.text == "" || port.text ==  "" )
+				if( nickname.text == "" )
 				{
 					Alert.show("Can't leave any field blank","Error");
 					return;
 				}
-				collab_NICKNAME = nickname.text;
-				collab_SERVERIP = serverIP.text;
-				collab_SERVERNAME = serverName.text;
-				collab_ROOMTOJOIN = roomToJoin.text;
-				collab_PORT = port.text;
-				collab_COLOR = picker.selectedColor;
+				if( Weave.properties.collabServerIP.value == "" || 
+					Weave.properties.collabServerName.value == "" || 
+					Weave.properties.collabServerRoomToJoin.value == "" || 
+					Weave.properties.collabServerPort.value ==  "" )
+				{
+					Alert.show("There is an error with the server properties.", "Error");
+				}
+				collab_NICKNAME 	= nickname.text;
+				collab_COLOR 		= picker.selectedColor;
+				collab_SERVERIP 	= Weave.properties.collabServerIP.value;
+				collab_SERVERNAME 	= Weave.properties.collabServerName.value;
+				collab_ROOMTOJOIN 	= Weave.properties.collabServerRoomToJoin.value;
+				collab_PORT 		= Weave.properties.collabServerPort.value;
 				
 				dispatchEvent(new Event(CollaborationEvent.CONN_SETTINGS_SAVED));
 				
