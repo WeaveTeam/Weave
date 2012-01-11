@@ -82,7 +82,7 @@ package weave.visualization.layers
 			percentWidth = 100;
 			percentHeight = 100;
 			
-			this.addChild(plotBitmap);
+			this.addChild(_plotBitmap);
 			
 			// make selectionFilter appear in session state.
 			registerLinkableChild(this, selectionFilter);
@@ -104,7 +104,7 @@ package weave.visualization.layers
 		{
 			// clean up everything that does not get cleaned up automatically.
 			disposeObjects(
-				plotBitmap.bitmapData
+				_plotBitmap.bitmapData
 			);
 			if (!usingExternalSpatialIndex)
 				disposeObjects(spatialIndex);
@@ -228,7 +228,7 @@ package weave.visualization.layers
 		public var showMissingRecords:Boolean = false;
 		
 		// these bitmaps will be added as a children
-		protected const plotBitmap:Bitmap = new Bitmap(null, PixelSnapping.AUTO, true);
+		private const _plotBitmap:Bitmap = new Bitmap(null, PixelSnapping.ALWAYS, false);
 		
 		/**
 		 * @private
@@ -289,7 +289,7 @@ package weave.visualization.layers
 		{
 			//trace("sizeChanged",unscaledWidth,unscaledHeight);
 			
-			var bitmapChanged:Boolean = PlotterUtils.setBitmapDataSize(plotBitmap, unscaledWidth, unscaledHeight);
+			var bitmapChanged:Boolean = PlotterUtils.setBitmapDataSize(_plotBitmap, unscaledWidth, unscaledHeight);
 			if (bitmapChanged)
 				invalidateDisplayList();
 		}
@@ -320,18 +320,18 @@ package weave.visualization.layers
 				validateSpatialIndex();
 			
 			// draw plot
-			if (!PlotterUtils.bitmapDataIsEmpty(plotBitmap))
+			if (!PlotterUtils.bitmapDataIsEmpty(_plotBitmap))
 			{
-				PlotterUtils.clear(plotBitmap.bitmapData);
+				PlotterUtils.clear(_plotBitmap.bitmapData);
 				// get keys for plot, then draw the records
 				
 				if (shouldDraw)
 				{
 					if (!isOverlay.value)
-						plotter.drawBackground(_dataBounds, _screenBounds, plotBitmap.bitmapData);
+						plotter.drawBackground(_dataBounds, _screenBounds, _plotBitmap.bitmapData);
 					
 					var keys:Array = getSelectedKeys() || []; // use empty Array if keys are null
-					plotter.drawPlot(keys, _dataBounds, _screenBounds, plotBitmap.bitmapData);
+					plotter.drawPlot(keys, _dataBounds, _screenBounds, _plotBitmap.bitmapData);
 				}
 			}
 			//trace(name,'end updateDisplayList', _dataBounds);
