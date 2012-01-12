@@ -125,7 +125,7 @@ package weave
 			//DO Nothing
 		}
 		
-		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xCCCCCC;
+		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xFFFFFF;
 		
 		private static const WIKIPEDIA_URL:String = "Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=";
 		private static const GOOGLE_URL:String = "Google|http://www.google.com/search?q=";
