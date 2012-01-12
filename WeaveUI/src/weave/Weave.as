@@ -193,12 +193,11 @@ package weave
 		/**
 		 * This function sets the session state by decoding an XML representation of it.
 		 * @param newStateXML The new session state
-		 * @param removeMissingObjects If this is true, existing objects not appearing in the session state will be removed.
 		 */
-		public static function setSessionStateXML(newStateXML:XML, removeMissingObjects:Boolean):void
+		public static function setSessionStateXML(newStateXML:XML):void
 		{
 			var newState:Array = WeaveXMLDecoder.decodeDynamicState(newStateXML);
-			root.setSessionState(newState, removeMissingObjects);
+			root.setSessionState(newState, true);
 		}
 		
 		public static const DEFAULT_WEAVE_PROPERTIES:String = "WeaveProperties";

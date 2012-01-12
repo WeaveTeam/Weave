@@ -778,7 +778,7 @@ package weave
 						}
 					}
 					
-					Weave.setSessionStateXML(xml, true);
+					Weave.setSessionStateXML(xml);
 					
 					// An empty subset is not of much use.  If the subset is empty, reset it to include all records.
 					var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
