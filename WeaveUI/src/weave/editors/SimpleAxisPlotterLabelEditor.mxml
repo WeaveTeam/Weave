@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns="weave.editors.*"
+		 xmlns:ui="weave.ui.*" implements="weave.api.ui.ILinkableObjectEditor"
+		 label="Axis labeling"
+		 creationPolicy="all" >
+	
+	<ui:IndentGroup id="g1"/>
+	<ui:TextBox label="Title:" id="overrideAxisName" group="{g1}"/>
+	<mx:HBox>
+		<mx:VBox>
+			<ui:TextBox label="Label function:" id="labelFunction" group="{g1}"/>
+			<ui:TextBox label="Label wrap size:" id="labelWordWrapSize" inputWidth="50" group="{g1}"/>
+		</mx:VBox>
+		<mx:VBox>
+			<ui:Indent label="Distance:">
+				<mx:NumericStepper id="axisLabelDistance" minimum="-50" maximum="50" stepSize="5" width="64"/>
+			</ui:Indent>
+			<ui:Indent label="Angle:">
+				<mx:NumericStepper id="axisLabelRelativeAngle" minimum="-180" maximum="180" stepSize="15" width="64"/>
+			</ui:Indent>
+		</mx:VBox>
+		<ui:AlignmentControl id="labelAlign"/>
+	</mx:HBox>
+
+	<mx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
+			import weave.core.LinkableBoolean;
+			import weave.ui.DraggablePanel;
+			import weave.visualization.layers.SimpleInteractiveVisualization;
+			import weave.visualization.plotters.SimpleAxisPlotter;
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				var plotter:SimpleAxisPlotter = object as SimpleAxisPlotter;
+				if (plotter)
+				{
+					linkBindableProperty(plotter.overrideAxisName, overrideAxisName, 'text');
+					linkBindableProperty(plotter.labelFunction, labelFunction, 'text');
+					linkBindableProperty(plotter.labelWordWrapSize, labelWordWrapSize, 'text');
+					linkBindableProperty(plotter.axisLabelDistance, axisLabelDistance, 'value');
+					linkBindableProperty(plotter.axisLabelRelativeAngle, axisLabelRelativeAngle, 'value');
+					linkBindableProperty(plotter.labelHorizontalAlign, labelAlign, 'horizontalAlign');
+					linkBindableProperty(plotter.labelVerticalAlign, labelAlign, 'verticalAlign');
+				}
+			}
+			public function applyChanges():void
+			{
+				// changes are applied immediately
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

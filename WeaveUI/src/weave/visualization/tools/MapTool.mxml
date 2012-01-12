@@ -50,7 +50,8 @@
 			import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 			import weave.primitives.Bounds2D;
 			import weave.services.wms.WMSProviders;
-			import weave.ui.ColorBinEditor;
+			import weave.ui.ColorController;
+			import weave.ui.DraggablePanel;
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
@@ -637,7 +638,7 @@
 			<managers:PlotLayerEditor id="layerEditor" creationComplete="layerEditor.visualization = visualization"/>
 			<mx:HBox width="100%" verticalAlign="middle">
 				<ui:DynamicColumnComponent label="color" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-				<mx:Button label="Edit Bins..." click="ColorBinEditor.openDefaultEditor();"/>
+				<mx:Button label="Edit Bins..." click="DraggablePanel.openStaticInstance(ColorController);"/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="Advanced" verticalGap="10">

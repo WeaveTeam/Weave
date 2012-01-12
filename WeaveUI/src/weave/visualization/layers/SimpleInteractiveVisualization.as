@@ -115,7 +115,6 @@ package weave.visualization.layers
 				_xAxisLayer = layers.requestObject(X_AXIS_LAYER_NAME, AxisLayer, true);
 				_xAxisLayer.axisPlotter.axisLabelRelativeAngle.value = -45;
 				_xAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
-				linkSessionState(marginBottomNumber, _xAxisLayer.axisPlotter.labelWordWrapSize);
 				
 				linkToAxisProperties(_xAxisLayer);
 				
@@ -123,7 +122,6 @@ package weave.visualization.layers
 				_yAxisLayer = layers.requestObject(Y_AXIS_LAYER_NAME, AxisLayer, true);
 				_yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 45;
 				_yAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_BOTTOM;
-				linkSessionState(marginLeftNumber, _yAxisLayer.axisPlotter.labelWordWrapSize);
 				
 				linkToAxisProperties(_yAxisLayer);
 				

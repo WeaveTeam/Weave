@@ -54,7 +54,6 @@
 			import weave.core.SessionManager;
 			
 
-			private const padding:int = 5;
 			private var _targetObjects:Array = null;
 			private var _savedTargetSessionStates:Array;
 			private var _savedGlobalSessionStates:Array;

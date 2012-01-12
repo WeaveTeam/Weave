@@ -28,45 +28,26 @@
 		xmlns:mx="http://www.adobe.com/2006/mxml"
 		creationPolicy="all" clipContent="false"
 		horizontalScrollPolicy="off" verticalScrollPolicy="off" toolTip="Alignment">
-	<mx:Grid verticalGap="0" horizontalGap="0">
-		<mx:GridRow>
-			<mx:GridItem verticalAlign="top" horizontalAlign="left">
-				<mx:RadioButton group="{radioGroup}" value="top,left" width="14" height="14"/>
-			</mx:GridItem>
-			<mx:GridItem verticalAlign="top" horizontalAlign="center">
-				<mx:RadioButton group="{radioGroup}" value="top,center" width="14" height="14"/>
-			</mx:GridItem>
-			<mx:GridItem verticalAlign="top" horizontalAlign="right">
-				<mx:RadioButton group="{radioGroup}" value="top,right" width="14" height="14"/>
-			</mx:GridItem>
-		</mx:GridRow>
-		<mx:GridRow>
-			<mx:GridItem verticalAlign="middle" horizontalAlign="left">
-				<mx:RadioButton group="{radioGroup}" value="middle,left" width="14" height="14"/>
-			</mx:GridItem>
-			<mx:GridItem verticalAlign="middle" horizontalAlign="center">
-				<mx:RadioButton group="{radioGroup}" value="middle,center" width="14" height="14"/>
-			</mx:GridItem>
-			<mx:GridItem verticalAlign="middle" horizontalAlign="right">
-				<mx:RadioButton group="{radioGroup}" value="middle,right" width="14" height="14"/>
-			</mx:GridItem>
-		</mx:GridRow>
-		<mx:GridRow>
-			<mx:GridItem verticalAlign="bottom" horizontalAlign="left">
-				<mx:RadioButton group="{radioGroup}" value="bottom,left" width="14" height="14"/>
-			</mx:GridItem>
-			<mx:GridItem verticalAlign="bottom" horizontalAlign="center">
-				<mx:RadioButton group="{radioGroup}" value="bottom,center" width="14" height="14"/>
-			</mx:GridItem>
-			<mx:GridItem verticalAlign="bottom" horizontalAlign="right">
-				<mx:RadioButton group="{radioGroup}" value="bottom,right" width="14" height="14"/>
-			</mx:GridItem>
-		</mx:GridRow>
-	</mx:Grid>
-	<mx:RadioButtonGroup id="radioGroup" change="handleChange()" selectedValue="{verticalAlign + ',' + horizontalAlign}"/>
-	<mx:Label text="T" x="-10.5" y="-9" width="100%"
-			  fontFamily="_serif" fontSize="50" textAlign="center" alpha="0.33"
-			  mouseEnabled="false" mouseChildren="false" includeInLayout="false"/>
+	<mx:VBox verticalGap="0">
+		<mx:HBox horizontalGap="0">
+			<mx:Button id="bottom_right"/>
+			<mx:Button id="bottom_center"/>
+			<mx:Button id="bottom_left"/>
+		</mx:HBox>
+		<mx:HBox horizontalGap="0">
+			<mx:Button id="middle_right"/>
+			<mx:Button id="middle_center"/>
+			<mx:Button id="middle_left"/>
+		</mx:HBox>
+		<mx:HBox horizontalGap="0">
+			<mx:Button id="top_right"/>
+			<mx:Button id="top_center"/>
+			<mx:Button id="top_left"/>
+		</mx:HBox>
+	</mx:VBox>
+	<mx:Image source="@Embed(source='/weave/resources/images/alignment-control.png')"
+			  x="0" y="0" includeInLayout="false" mouseChildren="false" mouseEnabled="false"/>
+	
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
@@ -74,11 +55,63 @@
 			[Bindable] public var verticalAlign:String = 'middle';
 			[Bindable] public var horizontalAlign:String = 'center';
 			
-			private function handleChange():void
+			private var buttons:Array;
+			
+			override protected function createChildren():void
 			{
-				var values:Array = String(radioGroup.selectedValue).split(',');
-				verticalAlign = values[0];
-				horizontalAlign = values[1];
+				super.createChildren();
+				
+				buttons = [
+					top_left, top_center, top_right,
+					middle_left, middle_center, middle_right,
+					bottom_left, bottom_center, bottom_right
+				];
+				for each (var button:Button in buttons)
+				{
+					button.setStyle('cornerRadius', 0);
+					button.width = 20;
+					button.height = 20;
+					button.toggle = true;
+					button.addEventListener(MouseEvent.CLICK, handleButtonClick);
+				}
+				BindingUtils.bindSetter(_invalidateProperties, this, ['verticalAlign']);
+				BindingUtils.bindSetter(_invalidateProperties, this, ['horizontalAlign']);
+			}
+			
+			private function _invalidateProperties(..._):void
+			{
+				invalidateProperties();
+			}
+			
+			override public function validateProperties():void
+			{
+				super.validateProperties();
+				selectButton(verticalAlign + '_' + horizontalAlign);
+			}
+			
+			private function handleButtonClick(event:MouseEvent):void
+			{
+				selectButton((event.currentTarget as Button).id);
+			}
+			
+			private function selectButton(buttonId:String):void
+			{
+				for each (var button:Button in buttons)
+				{
+					if (button.id == buttonId)
+					{
+						var values:Array = button.id.split('_');
+						if (verticalAlign != values[0])
+							verticalAlign = values[0];
+						if (horizontalAlign != values[1])
+							horizontalAlign = values[1];
+						button.selected = true;
+					}
+					else
+					{
+						button.selected = false;
+					}
+				}
 			}
 		]]>
 	</mx:Script>
