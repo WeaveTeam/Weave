@@ -113,7 +113,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#setSessionStateXML()">setSessionStateXML</a>(newStateXML:XML, removeMissingObjects:Boolean):void</div>
+<a class="signatureLink" href="#setSessionStateXML()">setSessionStateXML</a>(newStateXML:XML):void</div>
 <div class="summaryTableDescription">[static]
    This function sets the session state by decoding an XML representation of it.</div>
 </td><td class="summaryTableOwnerCol">Weave</td>
@@ -286,19 +286,12 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function setSessionStateXML(newStateXML:XML, removeMissingObjects:Boolean):void</code><p>
+<code>public static function setSessionStateXML(newStateXML:XML):void</code><p>
    This function sets the session state by decoding an XML representation of it.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">newStateXML</span>:XML</code> &mdash; The new session state
-   </td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">removeMissingObjects</span>:Boolean</code> &mdash; If this is true, existing objects not appearing in the session state will be removed.
    </td>
 </tr>
 </table>
