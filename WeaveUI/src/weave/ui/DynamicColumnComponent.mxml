@@ -19,58 +19,51 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-
-<!--
-
-@abaumann
-@skolman
+<!---
+@author abaumann
+@author skolman
+@author adufilie
 -->
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.ui.*"
 		 width="100%" height="30"
 		 verticalAlign="middle" implements="weave.api.core.ILinkableObject"
-		 horizontalGap="2">
-	<!--<ConnectionComponent id="connComponent"/>-->
+		 horizontalGap="4">
 	<mx:Label text="{label}" fontWeight="bold" minWidth="64"/>
 	<LinkableObjectList id="internalList" 
 						variableRowHeight="false"
 			 
 		 				doubleClickEnabled="true" 
 		 				doubleClick="openAttributeSelector()"
-		 				width="100%" rowCount="1" height="25"/>
-	<mx:Image source="@Embed(source='/weave/resources/images/folder.png')" buttonMode="true"
+		 				width="100%" rowCount="1" height="24"/>
+	<CenteredImage source="@Embed(source='/weave/resources/images/folder.png')" buttonMode="true" height="24"
 		       toolTip="Click here to select the column used for this property."
 			   click="openAttributeSelector()"/>
-			   
-	<mx:Image source="@Embed(source='/weave/resources/images/trashCan.png')" buttonMode="true"
+	<CenteredImage source="@Embed(source='/weave/resources/images/trashCan.png')" buttonMode="true" height="24"
 			   click="clearAttribute()"
 			   toolTip="Click here to remove the column used for this property."/>
+	<CenteredImage id="linkImage" buttonMode="true" height="24"
+				 
+				 visible="false" includeInLayout="false"
+				 
+				 mouseDown="updateLinkDropDown(!linkDropDown.parent);"/>
 	
-	<mx:VBox verticalGap="0" horizontalAlign="right"
-			 
-			 
-			 						visible="false" includeInLayout="false"
-			 
-			
-			>
-		<mx:Image id="linkButton" buttonMode="true"
-				   click="updateLinkDropDown(!linkDropDown.visible);"/>
-		<mx:VBox id="linkDropDown" verticalGap="0" horizontalAlign="right" includeInLayout="false" borderStyle="outset" visible="false">
-			<mx:HBox horizontalGap="0">
-				<TextInputWithPrompt id="linkName" prompt="Enter a name" toolTip="Enter the name of a new or existing global object to link."
-									 enter="linkTo(StringUtil.trim(linkName.text));"/>
-				<mx:Button label="Link" click="linkTo(StringUtil.trim(linkName.text));"/>
-			</mx:HBox>
-			<mx:List id="linkList" borderStyle="outset" width="100%"
-					 change="if (linkDropDown.visible) linkTo(linkList.selectedItem as String);"/>
-			<mx:Button label="Unlink" click="linkTo(null);"/>
-		</mx:VBox>
+	<mx:VBox id="linkDropDown" verticalGap="0" horizontalAlign="right" borderStyle="outset" backgroundAlpha="1" backgroundColor="0xFFFFFF">
+		<mx:HBox horizontalGap="0">
+			<TextInputWithPrompt id="linkName" prompt="Enter a name" toolTip="Enter the name of a new or existing global object to link."
+								 enter="linkTo(StringUtil.trim(linkName.text));"/>
+			<mx:Button label="Link" enabled="{linkName.text ? true : false}" click="linkTo(StringUtil.trim(linkName.text));"/>
+			<mx:Button id="unlinkButton" label="Unlink" click="linkTo(null);"/>
+		</mx:HBox>
+		<mx:List id="linkList" borderStyle="outset" width="100%"
+				 change="if (linkDropDown.parent) linkTo(linkList.selectedItem as String);"/>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
 			import mx.core.UIComponent;
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
+			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
@@ -86,6 +79,12 @@
 			private static const icon_connected:Class;
 			[Embed(source='/weave/resources/images/plug-disconnected.png')]
 			private static const icon_disconnected:Class;
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				linkDropDown.parent.removeChild(linkDropDown);
+			}
 			
 			[Inspectable]
 			public function set dynamicObject(value:ILinkableDynamicObject):void
@@ -121,16 +120,33 @@
 					dc.removeObject();
 			}
 			
-			private function updateLinkDropDown(visible:Boolean = false):void
+			private function updateLinkDropDown(show:Boolean = false):void
 			{
 				if (internalList.dynamicObject.globalName)
-					linkButton.source = icon_connected;
+					linkImage.source = icon_connected;
 				else
-					linkButton.source = icon_disconnected;
-				linkDropDown.visible = visible;
-				linkList.dataProvider = Weave.root.getNames(IAttributeColumn);
-				linkList.selectedItem = internalList.dynamicObject.globalName;
-				linkName.text = internalList.dynamicObject.globalName;
+					linkImage.source = icon_disconnected;
+				
+				if (show)
+				{
+					if (!linkDropDown.parent)
+						PopUpManager.addPopUp(linkDropDown, this);
+					var globalBottomRight:Point = linkImage.parent.localToGlobal(new Point(linkImage.x + linkImage.width, linkImage.y + linkImage.height));
+					var localPoint:Point = linkDropDown.parent.globalToLocal(globalBottomRight);
+					linkDropDown.x = localPoint.x - linkDropDown.width;
+					linkDropDown.y = localPoint.y;
+					
+					var globalName:String = internalList.dynamicObject.globalName;
+					linkList.dataProvider = Weave.root.getNames(IAttributeColumn);
+					linkList.selectedItem = globalName;
+					linkName.text = internalList.dynamicObject.globalName;
+					unlinkButton.enabled = globalName ? true : false;
+				}
+				else
+				{
+					if (linkDropDown.parent)
+						PopUpManager.removePopUp(linkDropDown);
+				}
 			}
 			
 			private function linkTo(globalName:String):void
