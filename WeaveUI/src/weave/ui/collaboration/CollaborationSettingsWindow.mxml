@@ -124,7 +124,7 @@
 			{
 				if( nickname.text == "" )
 				{
-					Alert.show("Can't leave any field blank","Error");
+					Alert.show("Please enter a username.","Error");
 					return;
 				}
 				if( Weave.properties.collabServerIP.value == "" || 
@@ -155,9 +155,13 @@
 				
 				dispatchEvent(new Event(CollaborationEvent.ADDON_SETTINGS_SAVED));
 				
+				saveSettings(event);
+				
+				/*
 				saveAddonsButton.label = "Settings Saved";
 				fadeOut.duration = 1500;
 				hide();
+				*/
 			}
 			public function show():void
 			{
@@ -220,9 +224,12 @@
 			}
 			private function stopCamActivityMonitor():void
 			{
-				testVid.attachCamera(null);
-				camActivity.removeChild(testVid);
-				testVid = null;
+				if( testVid != null )
+				{
+					testVid.attachCamera(null);
+					camActivity.removeChild(testVid);
+					testVid = null;
+				}
 			}
 			public function showConnectionWarning(msg:String):void
 			{
