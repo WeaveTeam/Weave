@@ -43,21 +43,29 @@
 			   click="clearAttribute()"
 			   toolTip="Click here to remove the column used for this property."/>
 	<CenteredImage id="linkImage" buttonMode="true" height="24"
-				 
-				 visible="false" includeInLayout="false"
-				 
-				 mouseDown="updateLinkDropDown(!linkDropDown.parent);"/>
+				 mouseDown="toggleLinkDropDown(!linkDropDown.parent);"/>
 	
-	<mx:VBox id="linkDropDown" verticalGap="0" horizontalAlign="right" borderStyle="outset" backgroundAlpha="1" backgroundColor="0xFFFFFF">
-		<mx:HBox horizontalGap="0">
-			<TextInputWithPrompt id="linkName" prompt="Enter a name" toolTip="Enter the name of a new or existing global object to link."
+	<mx:TitleWindow id="linkDropDown"
+					title="Linking controls for {label}"
+					showCloseButton="true"
+					verticalGap="{linkControlsPadding}"
+					borderThicknessTop="{linkControlsPadding}" borderThicknessRight="{linkControlsPadding}"
+					borderThicknessLeft="{linkControlsPadding}" borderThicknessBottom="{linkControlsPadding}"
+					paddingTop="{0}" paddingRight="{0}"
+					paddingLeft="{0}" paddingBottom="{0}"
+					backgroundColor="0xCCCCCC" headerHeight="20"
+					horizontalAlign="right" borderStyle="outset" backgroundAlpha="1"
+					close="toggleLinkDropDown();">
+		<mx:HBox horizontalGap="{linkControlsPadding}">
+			<HelpComponent>You can link two or more attributes together so that changing one will change the rest.  Click on the name of an existing linked group or type the name of a new one.</HelpComponent>
+			<TextInputWithPrompt id="linkName" prompt="Enter a new group name"
 								 enter="linkTo(StringUtil.trim(linkName.text));"/>
 			<mx:Button label="Link" enabled="{linkName.text ? true : false}" click="linkTo(StringUtil.trim(linkName.text));"/>
 			<mx:Button id="unlinkButton" label="Unlink" click="linkTo(null);"/>
 		</mx:HBox>
-		<mx:List id="linkList" borderStyle="outset" width="100%"
+		<mx:List id="linkList" width="100%"
 				 change="if (linkDropDown.parent) linkTo(linkList.selectedItem as String);"/>
-	</mx:VBox>
+	</mx:TitleWindow>
 	<mx:Script>
 		<![CDATA[
 			import mx.core.UIComponent;
@@ -80,6 +88,8 @@
 			[Embed(source='/weave/resources/images/plug-disconnected.png')]
 			private static const icon_disconnected:Class;
 			
+			private const linkControlsPadding:int = 2;
+			
 			override protected function createChildren():void
 			{
 				super.createChildren();
@@ -90,12 +100,12 @@
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
 				if (internalList.dynamicObject)
-					getCallbackCollection(internalList.dynamicObject).removeCallback(updateLinkDropDown);
+					getCallbackCollection(internalList.dynamicObject).removeCallback(toggleLinkDropDown);
 				
 				internalList.dynamicObject = value;
 				
 				if (value)
-					getCallbackCollection(value).addImmediateCallback(this, updateLinkDropDown, null, true);
+					getCallbackCollection(value).addImmediateCallback(this, toggleLinkDropDown, null, true);
 			}
 			
 			private var _visTool:SimpleVisTool = null;
@@ -120,12 +130,21 @@
 					dc.removeObject();
 			}
 			
-			private function updateLinkDropDown(show:Boolean = false):void
+			private function toggleLinkDropDown(show:Boolean = false):void
 			{
-				if (internalList.dynamicObject.globalName)
+				var globalName:String = internalList.dynamicObject.globalName;
+				if (globalName)
+				{
 					linkImage.source = icon_connected;
+					unlinkButton.enabled = true;
+					linkImage.toolTip = "Linked to " + globalName;
+				}
 				else
+				{
 					linkImage.source = icon_disconnected;
+					unlinkButton.enabled = false;
+					linkImage.toolTip = "Open linking controls";
+				}
 				
 				if (show)
 				{
@@ -136,11 +155,10 @@
 					linkDropDown.x = localPoint.x - linkDropDown.width;
 					linkDropDown.y = localPoint.y;
 					
-					var globalName:String = internalList.dynamicObject.globalName;
 					linkList.dataProvider = Weave.root.getNames(IAttributeColumn);
 					linkList.selectedItem = globalName;
-					linkName.text = internalList.dynamicObject.globalName;
-					unlinkButton.enabled = globalName ? true : false;
+					linkName.text = globalName;
+					linkName.setFocus();
 				}
 				else
 				{
@@ -152,7 +170,7 @@
 			private function linkTo(globalName:String):void
 			{
 				internalList.dynamicObject.globalName = globalName;
-				updateLinkDropDown();
+				toggleLinkDropDown();
 			}
 		]]>
 	</mx:Script>
