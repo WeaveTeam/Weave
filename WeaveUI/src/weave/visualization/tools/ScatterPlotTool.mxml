@@ -70,18 +70,6 @@
 				plotter = initializePlotters(ScatterPlotPlotter, true);
 				visualization.enableProbeLine(true, true);
 				
-				initRegressionLayer() ;
-				
-				visualization.layers.childListCallbacks.addImmediateCallback(this, putRegressionLineOnTop);
-				function putRegressionLineOnTop():void
-				{
-					var names:Array = visualization.layers.getNames();
-					// move reg line after plot layer
-					names.splice(names.indexOf(SimpleInteractiveVisualization.PLOT_LAYER_NAME) + 1, 0, names.splice(names.indexOf(REGRESSION_LAYER_NAME), 1));
-					// set new name order
-					visualization.layers.setNameOrder(names);
-				}
-				
 				//BEGIN TEMPORARY SOLUTION
 				visualization.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
 				visualization.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
@@ -115,6 +103,7 @@
 				visualization.marginRight.value  = "30";
 				
 				initializeUndefinedLayers();				
+				initRegressionLayer();
 			}
 			
 			override public function getSelectableAttributeNames():Array
