@@ -197,8 +197,8 @@ wheel</zoom>
             <hierarchyPath encoding="xml">
               <hierarchy>
                 <category title="Data Tables" name="Data Tables">
-                  <category title="OICSchools09" name="OICSchools09">
-                    <attribute name="ARC_Zone" keyType="OICSchools09" id="6749" dataType="string" geometryCollection="OICSchools09" dataTable="OICSchools09" title="ARC_Zone"/>
+                  <category title="Obesity" name="Obesity">
+                    <attribute min="0" number=" " geometryCollection="States" id="174805" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 1995" title="Percent Obese 1995" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
                   </category>
                 </category>
               </hierarchy>
@@ -210,8 +210,8 @@ wheel</zoom>
   </FilteredColumn>
   <KeyFilter name="defaultSubsetKeyFilter">
     <excluded/>
-    <included/>
-    <includeMissingKeys>true</includeMissingKeys>
+    <included>US State FIPS Code,36</included>
+    <includeMissingKeys>false</includeMissingKeys>
     <includeMissingKeyTypes>true</includeMissingKeyTypes>
   </KeyFilter>
   <KeySet name="defaultSelectionKeySet"/>
@@ -246,7 +246,22 @@ wheel</zoom>
           <category title="nccs_shape_CT" name="nccs_shape_CT"/>
           <category title="ne_indicatorssdff" name="ne_indicatorssdff"/>
           <category title="New England Municipal Data" name="New England Municipal Data"/>
-          <category title="Obesity" name="Obesity"/>
+          <category title="Obesity" name="Obesity">
+            <attribute keyType="US State FIPS Code" name="State" geometryCollection="States" id="174804" title="State" dataTable="Obesity"/>
+            <attribute min="0" number=" " geometryCollection="States" id="174805" dataType="number" keyType="US State FIPS Code" name="Percent Obese 1995" title="Percent Obese 1995" string="formatNumber(number, 1) + '%'" max="40" dataTable="Obesity"/>
+            <attribute min="0" geometryCollection="States" id="174806" dataType="number" keyType="US State FIPS Code" name="Percent Obese 1996" title="Percent Obese 1996" string="formatNumber(number, 1) + '%'" max="40" dataTable="Obesity"/>
+            <attribute min="0" geometryCollection="States" id="174807" dataType="number" keyType="US State FIPS Code" name="Percent Obese 1997" title="Percent Obese 1997" string="formatNumber(number, 1) + '%'" max="40" dataTable="Obesity"/>
+            <attribute min="0" number=" " geometryCollection="States" id="174808" dataType="number" keyType="US State FIPS Code" name="Percent Obese 1998" title="Percent Obese 1998" string="formatNumber(number, 1) + '%'" max="40" dataTable="Obesity"/>
+            <attribute min="0" geometryCollection="States" id="174809" dataType="number" keyType="US State FIPS Code" name="Percent Obese 1999" title="Percent Obese 1999" string="formatNumber(number, 1) + '%'" max="40" dataTable="Obesity"/>
+            <attribute min="0" geometryCollection="States" id="174810" dataType="number" keyType="US State FIPS Code" name="Percent Obese 2000" title="Percent Obese 2000" string="formatNumber(number, 1) + '%'" max="40" dataTable="Obesity"/>
+            <attribute min="0" geometryCollection="States" id="174811" dataType="number" keyType="US State FIPS Code" name="Percent Obese 2001" title="Percent Obese 2001" string="formatNumber(number, 1) + '%'" max="40" dataTable="Obesity"/>
+            <attribute min="0" geometryCollection="States" id="174812" dataType="number" keyType="US State FIPS Code" name="Percent Obese 2002" title="Percent Obese 2002" string="formatNumber(number, 1) + '%'" max="40" dataTable="Obesity"/>
+            <attribute min="0" geometryCollection="States" id="174813" dataType="number" keyType="US State FIPS Code" name="Percent Obese 2003" title="Percent Obese 2003" string="formatNumber(number, 1) + '%'" max="40" dataTable="Obesity"/>
+            <attribute min="0" geometryCollection="States" id="174814" dataType="number" keyType="US State FIPS Code" name="Percent Obese 2004" title="Percent Obese 2004" string="formatNumber(number, 1) + '%'" max="40" dataTable="Obesity"/>
+            <attribute min="0" geometryCollection="States" id="174815" dataType="number" keyType="US State FIPS Code" name="Percent Obese 2005" title="Percent Obese 2005" string="formatNumber(number, 1) + '%'" max="40" dataTable="Obesity"/>
+            <attribute min="0" geometryCollection="States" id="174816" dataType="number" keyType="US State FIPS Code" name="Percent Obese 2006" title="Percent Obese 2006" string="formatNumber(number, 1) + '%'" max="40" dataTable="Obesity"/>
+            <attribute min="0" geometryCollection="States" id="174817" dataType="number" keyType="US State FIPS Code" name="Percent Obese 2007" title="Percent Obese 2007" string="formatNumber(number, 1) + '%'" max="40" dataTable="Obesity"/>
+          </category>
           <category title="Obesity Years" name="Obesity Years"/>
           <category title="obesity-2010" name="obesity-2010"/>
           <category title="obesity-cube" name="obesity-cube"/>
@@ -255,33 +270,33 @@ wheel</zoom>
           <category title="Ohio County Subdivisions" name="Ohio County Subdivisions"/>
           <category title="Ohio Places" name="Ohio Places"/>
           <category title="OICSchools09" name="OICSchools09">
-            <attribute name="OICSchools09" keyType="OICSchools09" projection="" dataType="geometry" title="OICSchools09"/>
-            <attribute name="the_geom_id" keyType="OICSchools09" id="6742" title="the_geom_id" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="number"/>
-            <attribute name="Status" keyType="OICSchools09" id="6743" title="Status" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="Score" keyType="OICSchools09" id="6744" title="Score" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="number"/>
-            <attribute name="Match_type" keyType="OICSchools09" id="6745" title="Match_type" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="Side" keyType="OICSchools09" id="6746" title="Side" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="Match_addr" keyType="OICSchools09" id="6747" title="Match_addr" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="ARC_Street" keyType="OICSchools09" id="6748" title="ARC_Street" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="ARC_Zone" keyType="OICSchools09" id="6749" title="ARC_Zone" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="ExcldOIC" keyType="OICSchools09" id="6750" title="ExcldOIC" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="SchCode" keyType="OICSchools09" id="6751" title="SchCode" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="Name" keyType="OICSchools09" id="6752" title="Name" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="Label" keyType="OICSchools09" id="6753" title="Label" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="DstCode" keyType="OICSchools09" id="6754" title="DstCode" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="DstName" keyType="OICSchools09" id="6755" title="DstName" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="ActiveGrad" keyType="OICSchools09" id="6756" title="ActiveGrad" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="Level" keyType="OICSchools09" id="6757" title="Level" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="Administra" keyType="OICSchools09" id="6758" title="Administra" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="Title" keyType="OICSchools09" id="6759" title="Title" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="Type" keyType="OICSchools09" id="6760" title="Type" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="List" keyType="OICSchools09" id="6761" title="List" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="Address" keyType="OICSchools09" id="6762" title="Address" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="City__Stat" keyType="OICSchools09" id="6763" title="City__Stat" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="City" keyType="OICSchools09" id="6764" title="City" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="Phone" keyType="OICSchools09" id="6765" title="Phone" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="Website" keyType="OICSchools09" id="6766" title="Website" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
-            <attribute name="Notes_for" keyType="OICSchools09" id="6767" title="Notes_for" geometryCollection="OICSchools09" dataTable="OICSchools09" dataType="string"/>
+            <attribute keyType="OICSchools09" projection="" name="OICSchools09" title="OICSchools09" dataType="geometry"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="the_geom_id" dataTable="OICSchools09" name="the_geom_id" id="6742" dataType="number"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Status" dataTable="OICSchools09" name="Status" id="6743" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Score" dataTable="OICSchools09" name="Score" id="6744" dataType="number"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Match_type" dataTable="OICSchools09" name="Match_type" id="6745" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Side" dataTable="OICSchools09" name="Side" id="6746" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Match_addr" dataTable="OICSchools09" name="Match_addr" id="6747" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="ARC_Street" dataTable="OICSchools09" name="ARC_Street" id="6748" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="ARC_Zone" dataTable="OICSchools09" name="ARC_Zone" id="6749" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="ExcldOIC" dataTable="OICSchools09" name="ExcldOIC" id="6750" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="SchCode" dataTable="OICSchools09" name="SchCode" id="6751" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Name" dataTable="OICSchools09" name="Name" id="6752" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Label" dataTable="OICSchools09" name="Label" id="6753" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="DstCode" dataTable="OICSchools09" name="DstCode" id="6754" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="DstName" dataTable="OICSchools09" name="DstName" id="6755" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="ActiveGrad" dataTable="OICSchools09" name="ActiveGrad" id="6756" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Level" dataTable="OICSchools09" name="Level" id="6757" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Administra" dataTable="OICSchools09" name="Administra" id="6758" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Title" dataTable="OICSchools09" name="Title" id="6759" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Type" dataTable="OICSchools09" name="Type" id="6760" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="List" dataTable="OICSchools09" name="List" id="6761" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Address" dataTable="OICSchools09" name="Address" id="6762" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="City__Stat" dataTable="OICSchools09" name="City__Stat" id="6763" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="City" dataTable="OICSchools09" name="City" id="6764" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Phone" dataTable="OICSchools09" name="Phone" id="6765" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Website" dataTable="OICSchools09" name="Website" id="6766" dataType="string"/>
+            <attribute keyType="OICSchools09" geometryCollection="OICSchools09" title="Notes_for" dataTable="OICSchools09" name="Notes_for" id="6767" dataType="string"/>
           </category>
           <category title="ri_schools08_projected" name="ri_schools08_projected"/>
           <category title="st99_d00" name="st99_d00"/>
@@ -301,34 +316,34 @@ wheel</zoom>
           <category title="ZillowNeighborhoods" name="ZillowNeighborhoods"/>
         </category>
         <category title="Geometry Collections" name="Geometry Collections">
-          <attribute name="asdf" keyType="Boston Parcel ID" dataType="geometry" title="asdf"/>
-          <attribute name="Atlanta Sujperdistricts" keyType="Atlanta Superdistrict ID" dataType="geometry" title="Atlanta Sujperdistricts"/>
-          <attribute name="Atlanta Superdistricts" keyType="Atlanta Superdistrict ID" dataType="geometry" title="Atlanta Superdistricts"/>
-          <attribute name="bikeped_facilities" keyType="bikeped_facilities" dataType="geometry" title="bikeped_facilities"/>
-          <attribute name="Boston 2005 Parcels" keyType="Boston Parcel ID" dataType="geometry" title="Boston 2005 Parcels"/>
-          <attribute name="Boston_2005_Parcels" keyType="Boston_2005_Parcels" dataType="geometry" title="Boston_2005_Parcels"/>
-          <attribute name="boston_foreclosure_deeds" keyType="" dataType="geometry" title="boston_foreclosure_deeds"/>
-          <attribute name="Counties" keyType="US County FIPS Code" dataType="geometry" title="Counties"/>
-          <attribute name="County Subdivisions" keyType="US County Subdivision FIPS Code" dataType="geometry" title="County Subdivisions"/>
-          <attribute name="fe_2007_44_elsd" keyType="Rhode Island School District" dataType="geometry" title="fe_2007_44_elsd"/>
-          <attribute name="fe_2007_44_unsd" keyType="Rhode Island School District" dataType="geometry" title="fe_2007_44_unsd"/>
-          <attribute name="MA Census Tract" keyType="US Census Tract ID" dataType="geometry" title="MA Census Tract"/>
-          <attribute name="Massachusetts Towns" keyType="Massachusetts Town ID" dataType="geometry" title="Massachusetts Towns"/>
-          <attribute name="nccs_ma_reprojected_test" keyType="nccs_ma_reprojected_test" dataType="geometry" title="nccs_ma_reprojected_test"/>
-          <attribute name="nccs_shape_CT" keyType="nccs_shape_CT" dataType="geometry" title="nccs_shape_CT"/>
-          <attribute name="Ohio County Subdivisions" keyType="Ohio FIPS codes" dataType="geometry" title="Ohio County Subdivisions"/>
-          <attribute name="Ohio Places" keyType="Ohio FIPS codes" dataType="geometry" title="Ohio Places"/>
-          <attribute name="OICSchools09" keyType="OICSchools09" dataType="geometry" title="OICSchools09"/>
-          <attribute name="ri_schools08_projected" keyType="" dataType="geometry" title="ri_schools08_projected"/>
-          <attribute name="st99_d00" keyType="US State FIPS Code" dataType="geometry" title="st99_d00"/>
-          <attribute name="States" keyType="US State FIPS Code" dataType="geometry" title="States"/>
-          <attribute name="test" keyType="US County FIPS Code" dataType="geometry" title="test"/>
-          <attribute name="test1234444444" keyType="test1234444444" dataType="geometry" title="test1234444444"/>
-          <attribute name="test1ff" keyType="ISO ALPHA-3 Country Codesdfsdfsdfsd" dataType="geometry" title="test1ff"/>
-          <attribute name="tl_2008_us_county" keyType="US County FIPS Code" dataType="geometry" title="tl_2008_us_county"/>
-          <attribute name="US_States_WGS" keyType="US State FIPS Code" dataType="geometry" title="US_States_WGS"/>
-          <attribute name="World Borders" keyType="ISO ALPHA-3 Country Code" dataType="geometry" title="World Borders"/>
-          <attribute name="ZillowNeighborhoods" keyType="ZillowNeighborhoods" dataType="geometry" title="ZillowNeighborhoods"/>
+          <attribute keyType="Boston Parcel ID" name="asdf" title="asdf" dataType="geometry"/>
+          <attribute keyType="Atlanta Superdistrict ID" name="Atlanta Sujperdistricts" title="Atlanta Sujperdistricts" dataType="geometry"/>
+          <attribute keyType="Atlanta Superdistrict ID" name="Atlanta Superdistricts" title="Atlanta Superdistricts" dataType="geometry"/>
+          <attribute keyType="bikeped_facilities" name="bikeped_facilities" title="bikeped_facilities" dataType="geometry"/>
+          <attribute keyType="Boston Parcel ID" name="Boston 2005 Parcels" title="Boston 2005 Parcels" dataType="geometry"/>
+          <attribute keyType="Boston_2005_Parcels" name="Boston_2005_Parcels" title="Boston_2005_Parcels" dataType="geometry"/>
+          <attribute keyType="" name="boston_foreclosure_deeds" title="boston_foreclosure_deeds" dataType="geometry"/>
+          <attribute keyType="US County FIPS Code" name="Counties" title="Counties" dataType="geometry"/>
+          <attribute keyType="US County Subdivision FIPS Code" name="County Subdivisions" title="County Subdivisions" dataType="geometry"/>
+          <attribute keyType="Rhode Island School District" name="fe_2007_44_elsd" title="fe_2007_44_elsd" dataType="geometry"/>
+          <attribute keyType="Rhode Island School District" name="fe_2007_44_unsd" title="fe_2007_44_unsd" dataType="geometry"/>
+          <attribute keyType="US Census Tract ID" name="MA Census Tract" title="MA Census Tract" dataType="geometry"/>
+          <attribute keyType="Massachusetts Town ID" name="Massachusetts Towns" title="Massachusetts Towns" dataType="geometry"/>
+          <attribute keyType="nccs_ma_reprojected_test" name="nccs_ma_reprojected_test" title="nccs_ma_reprojected_test" dataType="geometry"/>
+          <attribute keyType="nccs_shape_CT" name="nccs_shape_CT" title="nccs_shape_CT" dataType="geometry"/>
+          <attribute keyType="Ohio FIPS codes" name="Ohio County Subdivisions" title="Ohio County Subdivisions" dataType="geometry"/>
+          <attribute keyType="Ohio FIPS codes" name="Ohio Places" title="Ohio Places" dataType="geometry"/>
+          <attribute keyType="OICSchools09" name="OICSchools09" title="OICSchools09" dataType="geometry"/>
+          <attribute keyType="" name="ri_schools08_projected" title="ri_schools08_projected" dataType="geometry"/>
+          <attribute keyType="US State FIPS Code" name="st99_d00" title="st99_d00" dataType="geometry"/>
+          <attribute keyType="US State FIPS Code" name="States" title="States" dataType="geometry"/>
+          <attribute keyType="US County FIPS Code" name="test" title="test" dataType="geometry"/>
+          <attribute keyType="test1234444444" name="test1234444444" title="test1234444444" dataType="geometry"/>
+          <attribute keyType="ISO ALPHA-3 Country Codesdfsdfsdfsd" name="test1ff" title="test1ff" dataType="geometry"/>
+          <attribute keyType="US County FIPS Code" name="tl_2008_us_county" title="tl_2008_us_county" dataType="geometry"/>
+          <attribute keyType="US State FIPS Code" name="US_States_WGS" title="US_States_WGS" dataType="geometry"/>
+          <attribute keyType="ISO ALPHA-3 Country Code" name="World Borders" title="World Borders" dataType="geometry"/>
+          <attribute keyType="ZillowNeighborhoods" name="ZillowNeighborhoods" title="ZillowNeighborhoods" dataType="geometry"/>
         </category>
       </hierarchy>
     </attributeHierarchy>
@@ -337,7 +352,7 @@ wheel</zoom>
   </WeaveDataSource>
   <LinkableHashMap encoding="dynamic" name="Probe Header Columns"/>
   <LinkableHashMap encoding="dynamic" name="Probed Columns"/>
-  <HistogramTool name="ColorHistogramTool">
+  <CompoundBarChartTool name="CompoundBarChartTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
       <SimpleInteractiveVisualization name="visualization">
@@ -368,10 +383,10 @@ wheel</zoom>
                 <axisLineDataBounds>
                   <xMax>-0.5</xMax>
                   <xMin>-0.5</xMin>
-                  <yMax>51</yMax>
+                  <yMax>25.5</yMax>
                   <yMin>0</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>51</axisLineMaxValue>
+                <axisLineMaxValue>25.5</axisLineMaxValue>
                 <axisLineMinValue>0</axisLineMinValue>
                 <forceTickCount>false</forceTickCount>
                 <keySet>
@@ -398,7 +413,7 @@ wheel</zoom>
                 <overrideAxisName/>
                 <showAxisName>true</showAxisName>
                 <showLabels>true</showLabels>
-                <tickCountRequested>10</tickCountRequested>
+                <tickCountRequested>5</tickCountRequested>
                 <tickMaxValue>NaN</tickMaxValue>
                 <tickMinValue>NaN</tickMinValue>
               </SimpleAxisPlotter>
@@ -415,14 +430,14 @@ wheel</zoom>
                 <axisLabelDistance>-10</axisLabelDistance>
                 <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
                 <axisLineDataBounds>
-                  <xMax>8.5</xMax>
+                  <xMax>0.5</xMax>
                   <xMin>-0.5</xMin>
                   <yMax>0</yMax>
                   <yMin>0</yMin>
                 </axisLineDataBounds>
-                <axisLineMaxValue>8.5</axisLineMaxValue>
+                <axisLineMaxValue>0.5</axisLineMaxValue>
                 <axisLineMinValue>-0.5</axisLineMinValue>
-                <forceTickCount>true</forceTickCount>
+                <forceTickCount>false</forceTickCount>
                 <keySet>
                   <keyFilter encoding="dynamic">
                     <GlobalObjectReference name="defaultSubsetKeyFilter"/>
@@ -434,7 +449,7 @@ wheel</zoom>
                 <labelNumberFormatter>
                   <decimalSeparatorFrom>.</decimalSeparatorFrom>
                   <decimalSeparatorTo>.</decimalSeparatorTo>
-                  <precision>0</precision>
+                  <precision>NaN</precision>
                   <rounding>none</rounding>
                   <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
                   <thousandsSeparatorTo>,</thousandsSeparatorTo>
@@ -447,8 +462,8 @@ wheel</zoom>
                 <overrideAxisName/>
                 <showAxisName>true</showAxisName>
                 <showLabels>true</showLabels>
-                <tickCountRequested>9</tickCountRequested>
-                <tickMaxValue>8</tickMaxValue>
+                <tickCountRequested>1</tickCountRequested>
+                <tickMaxValue>0</tickMaxValue>
                 <tickMinValue>0</tickMinValue>
               </SimpleAxisPlotter>
             </plotter>
@@ -461,68 +476,331 @@ wheel</zoom>
             <maxVisibleScale>Infinity</maxVisibleScale>
             <minVisibleScale>0</minVisibleScale>
             <plotter encoding="dynamic">
-              <HistogramPlotter>
-                <drawPartialBins>true</drawPartialBins>
-                <dynamicColorColumn encoding="dynamic">
-                  <GlobalObjectReference name="defaultColorColumn"/>
-                </dynamicColorColumn>
-                <fillStyle>
-                  <alpha>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <color>
-                    <defaultValue>NaN</defaultValue>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                </fillStyle>
+              <CompoundBarChartPlotter>
+                <barSpacing>0</barSpacing>
+                <chartColors encoding="xml">
+                  <colorRamp tags="OIC,aesthetic,qualitative" name="Doppler Radar">0x04E9E7,0x009DF4,0x0201F4,0x01FC01,0x00C400,0x008C00,0x0FDF801,0xF99200,0xFD0000,0xBC0000,0xF800FD,0x9854C6</colorRamp>
+                </chartColors>
+                <colorColumn>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </colorColumn>
+                <groupBySortColumn>false</groupBySortColumn>
+                <groupingMode>group</groupingMode>
+                <heightColumns encoding="dynamic">
+                  <ReferencedColumn name="ReferencedColumn5">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" number=" " geometryCollection="States" id="174805" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 1995" title="Percent Obese 1995" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn6">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" geometryCollection="States" id="174806" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 1996" title="Percent Obese 1996" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn7">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" geometryCollection="States" id="174807" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 1997" title="Percent Obese 1997" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn8">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" number=" " geometryCollection="States" id="174808" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 1998" title="Percent Obese 1998" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn9">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" geometryCollection="States" id="174809" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 1999" title="Percent Obese 1999" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn10">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" geometryCollection="States" id="174810" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 2000" title="Percent Obese 2000" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn11">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" geometryCollection="States" id="174811" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 2001" title="Percent Obese 2001" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn12">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" geometryCollection="States" id="174812" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 2002" title="Percent Obese 2002" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn13">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" geometryCollection="States" id="174813" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 2003" title="Percent Obese 2003" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn14">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" geometryCollection="States" id="174814" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 2004" title="Percent Obese 2004" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn15">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" geometryCollection="States" id="174815" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 2005" title="Percent Obese 2005" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn16">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" geometryCollection="States" id="174816" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 2006" title="Percent Obese 2006" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                  <ReferencedColumn name="ReferencedColumn17">
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" geometryCollection="States" id="174817" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 2007" title="Percent Obese 2007" string="formatNumber(number, 1) + '%'" max="40" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </heightColumns>
+                <horizontalMode>false</horizontalMode>
                 <keySet>
                   <keyFilter encoding="dynamic">
                     <GlobalObjectReference name="defaultSubsetKeyFilter"/>
                   </keyFilter>
                 </keySet>
-                <lineStyle>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>normal</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
+                <labelColor>0</labelColor>
+                <labelColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute keyType="US State FIPS Code" name="State" geometryCollection="States" id="174804" title="State" dataTable="Obesity"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </labelColumn>
+                <labelDataCoordinate>NaN</labelDataCoordinate>
+                <labelHorizontalAlign>right</labelHorizontalAlign>
+                <labelMaxWidth>200</labelMaxWidth>
+                <labelRelativeAngle>NaN</labelRelativeAngle>
+                <labelVerticalAlign>middle</labelVerticalAlign>
+                <lineStyle encoding="dynamic">
+                  <SolidLineStyle>
+                    <alpha>
+                      <defaultValue>0.5</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </alpha>
+                    <caps>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </caps>
+                    <color>
+                      <defaultValue>0</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </color>
+                    <enabled>
+                      <defaultValue>true</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </enabled>
+                    <joints>
+                      <defaultValue/>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </joints>
+                    <miterLimit>
+                      <defaultValue>3</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </miterLimit>
+                    <pixelHinting>
+                      <defaultValue>false</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </pixelHinting>
+                    <scaleMode>
+                      <defaultValue>normal</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </scaleMode>
+                    <weight>
+                      <defaultValue>1</defaultValue>
+                      <internalDynamicColumn encoding="dynamic"/>
+                    </weight>
+                  </SolidLineStyle>
                 </lineStyle>
-              </HistogramPlotter>
+                <negativeErrorColumns encoding="dynamic"/>
+                <positiveErrorColumns encoding="dynamic"/>
+                <recordLabelColoring>false</recordLabelColoring>
+                <recordValueLabelColoring>false</recordValueLabelColoring>
+                <showLabels>false</showLabels>
+                <showValueLabels>false</showValueLabels>
+                <sortColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Data Tables" name="Data Tables">
+                              <category title="Obesity" name="Obesity">
+                                <attribute min="0" max="40" geometryCollection="States" id="174817" dataTable="Obesity" keyType="US State FIPS Code" name="Percent Obese 2007" string="formatNumber(number, 1) + '%'" title="Percent Obese 2007" dataType="number"/>
+                              </category>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </sortColumn>
+                <valueLabelColor>0</valueLabelColor>
+                <valueLabelDataCoordinate>NaN</valueLabelDataCoordinate>
+                <valueLabelHorizontalAlign>left</valueLabelHorizontalAlign>
+                <valueLabelMaxWidth>200</valueLabelMaxWidth>
+                <valueLabelRelativeAngle>NaN</valueLabelRelativeAngle>
+                <valueLabelVerticalAlign>middle</valueLabelVerticalAlign>
+                <zoomToSubset>true</zoomToSubset>
+              </CompoundBarChartPlotter>
             </plotter>
             <probeFilter encoding="dynamic">
               <GlobalObjectReference name="defaultProbeKeySet"/>
@@ -594,8 +872,8 @@ wheel</zoom>
         </layers>
         <marginBottom>80</marginBottom>
         <marginLeft>80</marginLeft>
-        <marginRight>10</marginRight>
-        <marginTop>10</marginTop>
+        <marginRight>30</marginRight>
+        <marginTop>30</marginTop>
         <maxZoomLevel>16</maxZoomLevel>
         <minScreenSize>128</minScreenSize>
         <minZoomLevel>0</minZoomLevel>
@@ -604,9 +882,9 @@ wheel</zoom>
         <overrideYMax>NaN</overrideYMax>
         <overrideYMin>NaN</overrideYMin>
         <zoomBounds>
-          <xMax>8.5</xMax>
+          <xMax>0.5</xMax>
           <xMin>-0.5</xMin>
-          <yMax>51</yMax>
+          <yMax>25.5</yMax>
           <yMin>0</yMin>
         </zoomBounds>
       </SimpleInteractiveVisualization>
@@ -616,6 +894,7 @@ wheel</zoom>
     <enableBorders>true</enableBorders>
     <enableTitle>false</enableTitle>
     <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <linkHeightAndSortColumns>false</linkHeightAndSortColumns>
     <maximizable>true</maximizable>
     <maximized>false</maximized>
     <minimizable>true</minimizable>
@@ -626,185 +905,14 @@ wheel</zoom>
     <panelStyleList/>
     <panelTitle/>
     <panelWidth>50%</panelWidth>
-    <panelX>0%</panelX>
-    <panelY>1%</panelY>
+    <panelX>23%</panelX>
+    <panelY>13%</panelY>
     <pinnable>true</pinnable>
     <pinnableToBack>false</pinnableToBack>
     <pinned>false</pinned>
     <pinnedToBack>false</pinnedToBack>
     <resizeable>true</resizeable>
-  </HistogramTool>
-  <MapTool name="MapTool">
-    <buttonRadius>3</buttonRadius>
-    <children encoding="dynamic">
-      <SimpleInteractiveVisualization name="visualization">
-        <axesAlpha>NaN</axesAlpha>
-        <axesColor>0</axesColor>
-        <axesThickness>NaN</axesThickness>
-        <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableFixedAspectRatio>true</enableFixedAspectRatio>
-        <enableProbe>true</enableProbe>
-        <enableSelection>true</enableSelection>
-        <enableZoomAndPan>true</enableZoomAndPan>
-        <gridLineAlpha>NaN</gridLineAlpha>
-        <gridLineColor>0</gridLineColor>
-        <gridLineThickness>NaN</gridLineThickness>
-        <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
-        <layers encoding="dynamic">
-          <SelectablePlotLayer name="plot">
-            <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>true</layerIsSelectable>
-            <layerIsVisible>true</layerIsVisible>
-            <maxVisibleScale>Infinity</maxVisibleScale>
-            <minVisibleScale>0</minVisibleScale>
-            <plotter encoding="dynamic">
-              <GeometryPlotter>
-                <fill>
-                  <alpha>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <color>
-                    <defaultValue>NaN</defaultValue>
-                    <internalDynamicColumn encoding="dynamic">
-                      <GlobalObjectReference name="defaultColorColumn"/>
-                    </internalDynamicColumn>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <enableMissingDataGradient>false</enableMissingDataGradient>
-                  <imageURL>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </imageURL>
-                </fill>
-                <geometryColumn>
-                  <internalDynamicColumn encoding="dynamic">
-                    <ReferencedColumn>
-                      <dynamicColumnReference encoding="dynamic">
-                        <HierarchyColumnReference>
-                          <dataSourceName>WeaveDataSource</dataSourceName>
-                          <hierarchyPath encoding="xml">
-                            <hierarchy>
-                              <category title="Geometry Collections" name="Geometry Collections">
-                                <attribute name="OICSchools09" keyType="OICSchools09" title="OICSchools09" dataType="geometry"/>
-                              </category>
-                            </hierarchy>
-                          </hierarchyPath>
-                        </HierarchyColumnReference>
-                      </dynamicColumnReference>
-                    </ReferencedColumn>
-                  </internalDynamicColumn>
-                  <projectionSRS/>
-                </geometryColumn>
-                <keySet>
-                  <keyFilter encoding="dynamic">
-                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                  </keyFilter>
-                </keySet>
-                <line>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>none</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </weight>
-                </line>
-                <pixellation>1</pixellation>
-                <pointDataImageColumn encoding="dynamic"/>
-                <pointShapeSize>5</pointShapeSize>
-              </GeometryPlotter>
-            </plotter>
-            <probeFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultProbeKeySet"/>
-            </probeFilter>
-            <selectionFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSelectionKeySet"/>
-            </selectionFilter>
-            <subsetFilter encoding="dynamic">
-              <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-            </subsetFilter>
-            <useTextBitmapFilters>false</useTextBitmapFilters>
-          </SelectablePlotLayer>
-        </layers>
-        <marginBottom>0</marginBottom>
-        <marginLeft>0</marginLeft>
-        <marginRight>0</marginRight>
-        <marginTop>0</marginTop>
-        <maxZoomLevel>16</maxZoomLevel>
-        <minScreenSize>128</minScreenSize>
-        <minZoomLevel>0</minZoomLevel>
-        <overrideXMax>NaN</overrideXMax>
-        <overrideXMin>NaN</overrideXMin>
-        <overrideYMax>NaN</overrideYMax>
-        <overrideYMin>NaN</overrideYMin>
-        <zoomBounds>
-          <area>141602278788.16</area>
-          <xCenter>331048.37349753</xCenter>
-          <yCenter>183885.1821753</yCenter>
-        </zoomBounds>
-      </SimpleInteractiveVisualization>
-    </children>
-    <closeable>true</closeable>
-    <draggable>true</draggable>
-    <enableBackground>false</enableBackground>
-    <enableBorders>true</enableBorders>
-    <enableOverview>false</enableOverview>
-    <enableTitle>false</enableTitle>
-    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
-    <maximizable>true</maximizable>
-    <maximized>false</maximized>
-    <minimizable>true</minimizable>
-    <minimized>false</minimized>
-    <panelBackgroundColor>NaN</panelBackgroundColor>
-    <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>50%</panelHeight>
-    <panelStyleList/>
-    <panelTitle/>
-    <panelWidth>50%</panelWidth>
-    <panelX>31%</panelX>
-    <panelY>39%</panelY>
-    <pinnable>true</pinnable>
-    <pinnableToBack>false</pinnableToBack>
-    <pinned>false</pinned>
-    <pinnedToBack>false</pinnedToBack>
-    <projectionSRS/>
-    <resizeable>true</resizeable>
-    <showMouseModeControls>true</showMouseModeControls>
-    <showZoomControls>true</showZoomControls>
-  </MapTool>
+    <showAllLabels>false</showAllLabels>
+    <sizeAxisTickCountRequested>5</sizeAxisTickCountRequested>
+  </CompoundBarChartTool>
 </Weave>

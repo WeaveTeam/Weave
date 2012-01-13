@@ -75,28 +75,6 @@ package weave.primitives
 			}
 			else
 			{
-				/*
-				 
-			
-				_range = MathLib.getNiceNumber(_dataMax - _dataMin, false);
-				
-				trace(_range, _dataMin, "->", MathLib.getNiceNumber(_dataMin, false), _dataMax, "->", MathLib.getNiceNumber(_dataMax, false) );
-				
-				_tickDelta = MathLib.getNiceNumber(_range / (_numTicksReq - 1), true);
-				_tickMin = Math.floor (_dataMin / _tickDelta) * _tickDelta;
-				_tickMax = Math.ceil (_dataMax / _tickDelta) * _tickDelta;
-				_axisMin = _tickMin - (.5 * _tickDelta);
-				_axisMax = _tickMax + (.5 * _tickDelta);
-				
-				_numTicks = Math.ceil( (_tickMax - _tickMin) / _tickDelta ) + 1;
-				
-				if (_numTicks > _numTicksReq)
-				{
-					_numTicks = _numTicksReq;
-				}*/
-				
-				
-				
 				var ticks:Array = StandardLib.getNiceNumbersInRange(dataMin, dataMax, numTicksReq);
 				
 				_numTicks = ticks.length;
@@ -106,7 +84,11 @@ package weave.primitives
 				
 				_range = _tickMax - _tickMin;
 				
-				_tickDelta = ticks[1] - ticks[0];
+				// special case
+				if (ticks.length < 2)
+					_tickDelta = 0;
+				else
+					_tickDelta = ticks[1] - ticks[0];
 				
 				_axisMin = _tickMin - (.5 * _tickDelta);
 				_axisMax = _tickMax + (.5 * _tickDelta);
