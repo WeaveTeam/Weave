@@ -27,29 +27,24 @@
 		 creationPolicy="all" >
 	<mx:VBox width="100%">
 		<ui:IndentTextInput label="Label function:" id="labelFunction" inputWidth="100%"/>
-		<ui:IndentTextInput label="Label wrap size:" id="labelWordWrapSize" inputWidth="50"/>
 		<ui:IndentTextInput label="Title:" id="overrideAxisName" inputWidth="100%"/>
 	</mx:VBox>
 	<mx:VBox>
-		<ui:Indent label="Angle:">
-			<mx:NumericStepper id="axisLabelRelativeAngle" minimum="-180" maximum="180" stepSize="15" width="64"/>
+		<ui:IndentTextInput label="Label wrap size:" id="labelWordWrapSize" inputWidth="50"/>
+		<ui:Indent label="Label angle:">
+			<mx:NumericStepper id="axisLabelRelativeAngle" minimum="-180" maximum="180" stepSize="15" width="50"/>
 		</ui:Indent>
-		<ui:Indent label="Distance:">
-			<mx:NumericStepper id="axisLabelDistance" minimum="-50" maximum="50" stepSize="5" width="64"/>
+		<ui:Indent label="Label distance:">
+			<mx:NumericStepper id="axisLabelDistance" minimum="-50" maximum="50" stepSize="5" width="50"/>
 		</ui:Indent>
-		<mx:CheckBox id="labelDistanceIsVertical" label="Distance is vertical"/>
+		<mx:CheckBox id="labelDistanceIsVertical" label="Label distance is vertical"/>
 	</mx:VBox>
-	<ui:AlignmentControl id="labelAlign"/>
+	<ui:AlignmentControl id="labelAlign" toolTip="Axis label alignment"/>
 
 	<mx:Script>
 		<![CDATA[
-			import mx.events.FlexEvent;
-			
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
-			import weave.core.LinkableBoolean;
-			import weave.ui.DraggablePanel;
-			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.SimpleAxisPlotter;
 			
 			public function setTarget(object:ILinkableObject):void
