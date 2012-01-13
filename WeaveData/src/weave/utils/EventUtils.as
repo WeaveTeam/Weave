@@ -20,6 +20,8 @@
 package weave.utils
 {
 	import flash.events.Event;
+	import flash.events.EventDispatcher;
+	import flash.events.IEventDispatcher;
 	import flash.events.TimerEvent;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
@@ -35,6 +37,26 @@ package weave.utils
 	 */
 	public class EventUtils
 	{
+		/**
+		 * This function sets up a two-way binding.  Upon calling this function, the value from the primary host's property will be copied to the secondary host's property.
+		 * @param primaryHost The first host.
+		 * @param primaryProperty The name of the property on the first host.
+		 * @param secondaryHost The second host.
+		 * @param secondaryProperty The name of a property on the second host.
+		 */		
+		public static function doubleBind(primaryHost:IEventDispatcher, primaryProperty:String, secondaryHost:IEventDispatcher, secondaryProperty:String):void
+		{
+			BindingUtils.bindSetter(function(primaryValue:Object):void {
+				if (secondaryHost[secondaryProperty] !== primaryValue)
+					secondaryHost[secondaryProperty] = primaryValue;
+			}, primaryHost, primaryProperty);
+			BindingUtils.bindSetter(function(secondaryValue:Object):void {
+				if (primaryHost[primaryProperty] !== secondaryValue)
+					primaryHost[primaryProperty] = secondaryValue;
+			}, secondaryHost, secondaryProperty);
+		}
+		
+		
 		/**
 		 * This maps a bindable parent to a Dictionary.
 		 * That Dictionary maps a callback function to a change watcher that calls it.
