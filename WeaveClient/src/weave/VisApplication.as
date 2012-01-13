@@ -248,6 +248,7 @@ package weave
 					{
 						_this.enabled = true;
 						adminService = pendingAdminService;
+						setupVisMenuItems(); // make sure 'save session state to server' is shown
 						applicationComplete();
 					};
 					var faultHandler:Function = function(..._):void
