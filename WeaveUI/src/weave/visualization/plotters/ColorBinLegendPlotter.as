@@ -102,7 +102,7 @@ package weave.visualization.plotters
 		/**
 		 * This is the compiled function to apply to the item labels.
 		 */		
-		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['string']), createHashMaps);
+		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['number', 'string']), createHashMaps);
 		
 		// TODO This should go somewhere else...
 		/**
@@ -159,7 +159,7 @@ package weave.visualization.plotters
 				var binString:String = binnedColumn.deriveStringFromNumber(iBin);
 				try
 				{
-					_binToString[iBin] = itemLabelFunction.apply(null, [binString]);
+					_binToString[iBin] = itemLabelFunction.apply(null, [iBin, binString]);
 				}
 				catch (e:Error)
 				{
