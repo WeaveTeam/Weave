@@ -36,13 +36,13 @@ Editor for custom layers using AxisLabelPlotters
 					 creationComplete="linkBindableProperty(_plotter.horizontal, event.target, 'selected')"/>
 	</mx:HBox>
 	
-	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="Start:"
+	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="Start:"
 				creationComplete="linkBindableProperty(_plotter.start, event.target, 'text')"/>
-	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="End:"
+	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="End:"
 				creationComplete="linkBindableProperty(_plotter.end, event.target, 'text')"/>
-	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="Interval:"
+	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="Interval:"
 				creationComplete="linkBindableProperty(_plotter.interval, event.target, 'text')"/>
-	<ui:TextBox indent="{indent}" inputWidth="{inputWidth}" label="Angle"
+	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="Angle"
 				creationComplete="linkBindableProperty(_plotter.angle, event.target, 'text')"/>
 	<mx:Spacer/>
 	
@@ -53,7 +53,7 @@ Editor for custom layers using AxisLabelPlotters
 	
 	<ui:AlignmentControl id="alignment"/>
 	
-	<ui:TextBox label="Label function" indent="{indent}" creationComplete="linkBindableProperty(_plotter.labelFunction, event.target, 'text');"/>
+	<ui:IndentTextInput label="Label function" indent="{indent}" creationComplete="linkBindableProperty(_plotter.labelFunction, event.target, 'text');"/>
 
 	<mx:Script>
 		<![CDATA[

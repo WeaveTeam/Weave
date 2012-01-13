@@ -71,7 +71,7 @@
 			</ui:Indent>
 			
 			<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
-			<ui:TextBox paddingLeft="{paddingIndent}" visible="{generateFilterColumns.selected}" label="Columns to use as filters" id="filterColumnsInput"/>
+			<ui:IndentTextInput paddingLeft="{paddingIndent}" visible="{generateFilterColumns.selected}" label="Columns to use as filters" id="filterColumnsInput"/>
 		</mx:VBox>
 	</mx:VBox>
 	<mx:VBox id="dublinCorePage" width="100%" label="Specify Dublin Core metadata">

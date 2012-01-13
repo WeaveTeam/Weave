@@ -105,7 +105,7 @@
 							   creationComplete="linkBindableProperty(Weave.properties.probeToolTipBackgroundAlpha, event.target, 'value' );"
 							   />
 		</ui:Indent>
-		<ui:TextBox id="tooltipMaximumWidthInput"
+		<ui:IndentTextInput id="tooltipMaximumWidthInput"
 				label="Probe Tooltip Maximum Width"
 				inputWidth="100" 
 				creationComplete="linkBindableProperty(Weave.properties.probeToolTipMaxWidth, event.target, 'text' );"

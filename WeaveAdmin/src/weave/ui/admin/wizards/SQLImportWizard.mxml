@@ -52,7 +52,7 @@
 				</ui:Indent>
 				
 				<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
-				<ui:TextBox visible="{generateFilterColumns.selected}"
+				<ui:IndentTextInput visible="{generateFilterColumns.selected}"
 							paddingLeft="{paddingIndent}"
 							grouped="false"
 							label="Columns to use as filters"

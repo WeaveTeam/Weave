@@ -43,10 +43,10 @@
 				 label="Show legend attribute name"/>
 	<mx:HBox enabled="{chkShowLegendAttrName.selected}" 
 			 visible="{chkShowLegendAttrName.selected}">
-		<TextBox id="txtLegendAttrNameFunc"
+		<IndentTextInput id="txtLegendAttrNameFunc"
 				 label="Title label function:"/>
 	</mx:HBox>
 	
-	<TextBox id="txtLegendValuesFunction"
+	<IndentTextInput id="txtLegendValuesFunction"
 			 label="Item label function:"/>
 </mx:VBox>

@@ -42,7 +42,7 @@
 		<admin:SQLTableSelectorDialog indentGroup="{indentGroup}" id="tableSelector" enabled="false" showTableCombo="false" creationComplete="tableSelector.tableControls.label = 'SQL Table Prefix';" activeTable="{shpFileNameInput.text}" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
 	</mx:VBox>
 	<mx:VBox width="100%" height="100%">
-		<ui:TextBox label="Null flag values" enabled="false" id="nullFlagInput" group="{indentGroup}"
+		<ui:IndentTextInput label="Null flag values" enabled="false" id="nullFlagInput" group="{indentGroup}"
 				toolTip="Specify flag values to treat as missing data, separated by commas"/>
 		<mx:HBox id="geoCol" enabled="false">
 			<mx:TextArea width="{indentGroup.measuredIndent}" borderThickness="0" editable="false" selectable="false" wordWrap="true" text="GeometryCollection &amp; DataTable name" textAlign="right"/>

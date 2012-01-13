@@ -67,7 +67,7 @@
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="equalIntervalRadio" label="Equal interval" groupName="typeGroup" width="100%" data="{_equalInterval}"/>
-				<ui:TextBox id="dataInterval" enabled="{equalIntervalRadio.selected}" label="Data interval:" indent="{indent}" inputWidth="{inputWidth}"/>
+				<ui:IndentTextInput id="dataInterval" enabled="{equalIntervalRadio.selected}" label="Data interval:" indent="{indent}" inputWidth="{inputWidth}"/>
 				<ui:HelpComponent label="{equalIntervalRadio.label}" content="Example: If your data is between 0 and 100 and you specify an interval of 25, four bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
 			</mx:HBox>
 			
