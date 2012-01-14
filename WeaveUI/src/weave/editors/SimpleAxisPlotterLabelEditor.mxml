@@ -34,10 +34,10 @@
 		<ui:Indent label="Label angle:">
 			<mx:NumericStepper id="axisLabelRelativeAngle" minimum="-180" maximum="180" stepSize="15" width="50"/>
 		</ui:Indent>
-		<ui:Indent label="Label distance:">
+		<ui:Indent label="Label offset:">
 			<mx:NumericStepper id="axisLabelDistance" minimum="-50" maximum="50" stepSize="5" width="50"/>
 		</ui:Indent>
-		<mx:CheckBox id="labelDistanceIsVertical" label="Label distance is vertical"/>
+		<mx:CheckBox id="labelDistanceIsVertical" label="Label offset is vertical"/>
 	</mx:VBox>
 	<ui:AlignmentControl id="labelAlign" toolTip="Axis label alignment"/>
 
