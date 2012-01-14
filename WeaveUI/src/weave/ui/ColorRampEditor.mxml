@@ -146,7 +146,8 @@
 				if(_colorRamp)
 					_colorRamp.removeCallback(handleColorRampChange);
 				_colorRamp = value;
-				_colorRamp.addGroupedCallback(this, handleColorRampChange, true);
+				if (_colorRamp)
+					_colorRamp.addGroupedCallback(this, handleColorRampChange, true);
 			}
 			
 			
