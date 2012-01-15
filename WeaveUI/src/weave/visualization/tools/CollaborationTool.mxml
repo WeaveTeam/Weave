@@ -271,7 +271,7 @@
 								]]>
 							</mx:Script>
 							
-							<mx:Label text="{data.name}" fontSize="14" horizontalCenter="0" left="5" width="100%" />
+							<mx:Label text="{data.name}" horizontalCenter="0" left="5" width="100%" />
 							<!--
 							<mx:Spacer width="100%" />
 							<mx:Image id="img" right="15" click="changeRole(event)" name="{data.name}"

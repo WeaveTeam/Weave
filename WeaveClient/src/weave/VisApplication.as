@@ -627,7 +627,7 @@ package weave
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Show Probe ToolTip Editor", DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
 				createToolMenuItem(Weave.properties.showEquationEditor, "Show Equation Editor", DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showAttributeSelector, "Show Attribute Selector", AttributeSelectorPanel.openDefaultSelector);
-				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Add Collaboration Tool", DraggablePanel.openStaticInstance, [CollaborationTool]);
+				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Connect to Collaboration Server", DraggablePanel.openStaticInstance, [CollaborationTool]);
 				
 				createToolMenuItem(Weave.properties.enableNewUserWizard, "New User Wizard", function():void {
 					var userUI:NewUserWizard = new NewUserWizard();

@@ -27,10 +27,10 @@
 	creationPolicy="all"
 	implements="weave.api.ui.ILinkableObjectEditor"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="Add CSV Data Source"/>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{_csvDataSource ? 'Edit' : 'Add'} CSV Data Source"/>
 	<mx:HBox>
 		<mx:Label text="Source Name *" width="140"/>
-		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" text="{uniqueName}" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
+		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
 	</mx:HBox>
 	<mx:HBox>
 		<mx:Label text="Source URL" width="140"/>
@@ -52,7 +52,7 @@
 	</mx:VBox>
 	<mx:HBox>
 		<mx:Label text="Key Type *" width="140"/>
-		<mx:TextInput id="keyType" text="{uniqueName}" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter key type like US State Fips Code,etc. "/>
+		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter key type like US State Fips Code,etc. "/>
 	</mx:HBox>
 	<mx:HBox>
 		<mx:Label text="Key Column" width="140"/>
@@ -71,16 +71,26 @@
 			import weave.data.DataSources.CSVDataSource;
 			import weave.editors.managers.EditDataGridPanel;
 			
-			private var _csvDataSource:CSVDataSource= null;
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				keyType.text = sourceName.text = Weave.root.generateUniqueName("CSVDataSource");
+			}
+			
+			[Bindable] private var _csvDataSource:CSVDataSource = null;
 			public function setTarget(object:ILinkableObject):void
 			{
-				_csvDataSource = object as CSVDataSource;
-				var checkObj:String  = Weave.root.getName(_csvDataSource);
-				if(checkObj != null)
+				if (!parent)
 				{
-					initialize();
-					editorTitle.text = "Edit";
-					uniqueName = Weave.root.getName(_csvDataSource);
+					callLater(setTarget, arguments);
+					return;
+				}
+				
+				_csvDataSource = object as CSVDataSource;
+				if (_csvDataSource)
+				{
+					sourceName.text = Weave.root.getName(_csvDataSource);
 					url.text = _csvDataSource.url.value;
 					keyColumnName.text = _csvDataSource.keyColName.value;
 					keyType.text = _csvDataSource.keyType.value;
@@ -94,14 +104,16 @@
 			
 			public function applyChanges():void
 			{
-				try{
+				try
+				{
 					_csvDataSource.url.value = url.text;
 					_csvDataSource.keyColName.value = keyColumnName.text;
 					_csvDataSource.keyType.value = keyType.text;
 					_csvDataSource.csvDataString.value = csvDataString;
 					Alert.show("Changes saved.")
 				}
-				catch(e:Error){
+				catch(e:Error)
+				{
 					Alert.show("Changes could not be saved. " + e.message,"Error");
 				}
 			}
@@ -153,9 +165,6 @@
 				}
 			}
 			
-			[Bindable]
-			private var uniqueName:String = Weave.root.generateUniqueName("CSVDataSource");
-			
 			private var csvDataArray:Array = [];
 			private var csvByteArray:ByteArray = null;
 			//this will hold the header columns as was loaded when the data is initially loaded.
@@ -167,21 +176,24 @@
 				// the file extension should be at the end of the file minus the four characters for the extension (i.e. ".csv" )
 				var extensionPosition:int = _fileLoader.name.length - 4;
 				
-				try{				
-				if(_fileLoader.name.search(".csv") == extensionPosition || _fileLoader.name.search(".CSV") == extensionPosition )
-				{
-					csvByteArray = _fileLoader.data;
-					
-					updateCSVDataString(csvByteArray.toString());		
-					
-					uploadMessage.visible = true;
-					
-					//clearing the Text Area if any data was pasted before.
-					csvTextArea.text="";
-					//clearing the Source URL text input
-					url.text = "";
+				try
+				{				
+					if(_fileLoader.name.search(".csv") == extensionPosition || _fileLoader.name.search(".CSV") == extensionPosition )
+					{
+						csvByteArray = _fileLoader.data;
+						
+						updateCSVDataString(csvByteArray.toString());		
+						
+						uploadMessage.visible = true;
+						
+						//clearing the Text Area if any data was pasted before.
+						csvTextArea.text="";
+						//clearing the Source URL text input
+						url.text = "";
+					}
 				}
-				}catch(e:Error){
+				catch(e:Error)
+				{
 					Alert.show("Error uploading file",e.message.toString());
 				}
 				
@@ -190,7 +202,7 @@
 			
 			private function showGrid():void
 			{
-				if(csvDataString == "")
+				if (csvDataString == "")
 				{
 					Alert.show("No data found");
 					return;
