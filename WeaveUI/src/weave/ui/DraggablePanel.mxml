@@ -979,7 +979,7 @@
 			}
 			private function handleTitleBarMouseDown(event:MouseEvent):void
 			{
-				if (!draggable.value)
+				if (!draggable.value || maximized.value)
 					return;
 				
 				if (!parent)
