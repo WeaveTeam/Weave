@@ -247,7 +247,7 @@ Displays catoegories in a tree view and the attributes in a list.
 				if (selectedPath.value != null)
 				{
 					var selectedAttribute:XML = HierarchyUtils.getNodeFromPath(attributeHierarchy.value, selectedPath.value);
-					attributesView.validateNow();
+					var vsp:Number = attributesView.verticalScrollPosition;
 					attributesView.selectedItem = selectedAttribute;
 					attributesView.validateNow();
 					var selectedIndex:int = attributesView.selectedIndex;
@@ -255,7 +255,6 @@ Displays catoegories in a tree view and the attributes in a list.
 					{
 						attributesView.selectedIndex = -1;
 						attributesView.selectedIndex = selectedIndex;
-						attributesView.scrollToIndex(selectedIndex);
 					}
 				}
 			}
@@ -279,9 +278,11 @@ Displays catoegories in a tree view and the attributes in a list.
 					return; // category not found
 				
 				// set selected path and load attribute list
+				var vsp:Number = attributesView.verticalScrollPosition;
 				attributesView.dataProvider = categoryNode.attribute;
 				(attributesView.dataProvider as XMLListCollection).filterFunction = attributeFilterFunction;
 				(attributesView.dataProvider as ICollectionView).refresh();
+				attributesView.verticalScrollPosition = vsp;
 
 				if (setSelectedPath)
 					selectedPath.value = categoryPath;
