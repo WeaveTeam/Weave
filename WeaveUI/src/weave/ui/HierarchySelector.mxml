@@ -255,6 +255,7 @@ Displays catoegories in a tree view and the attributes in a list.
 					{
 						attributesView.selectedIndex = -1;
 						attributesView.selectedIndex = selectedIndex;
+						attributesView.scrollToIndex(selectedIndex);
 					}
 				}
 			}
