@@ -132,7 +132,11 @@
 			
 			private function toggleLinkDropDown(show:Boolean = false):void
 			{
-				var globalName:String = internalList.dynamicObject.globalName;
+				var globalName:String = null;
+				if (internalList.dynamicObject)
+					globalName = internalList.dynamicObject.globalName;
+				else
+					show = false;
 				if (globalName)
 				{
 					linkImage.source = icon_connected;
