@@ -21,7 +21,7 @@
 		 verticalScrollPolicy="off" horizontalScrollPolicy="off"
 		 borderColor="#54585E" borderThickness="3" borderStyle="solid"
 		 backgroundAlpha="1" backgroundColor="#CCCCCC"
-		 showEffect="{moveIn}" hideEffect="{moveOut}">
+		 showEffect="{moveIn}" hideEffect="{moveOut}" xmlns:collab="weave.ui.collaboration.*">
 
 	<mx:Move id="moveIn" duration="1000"
 			 xFrom="{xFrom}" xTo="{xTo}"
@@ -34,20 +34,43 @@
 			 paddingBottom="{padding}" paddingLeft="{padding}"
 			 paddingRight="{padding}" paddingTop="{padding}">
 		<mx:VDividedBox width="100%" height="100%">
-			<mx:Canvas id="camChatContainer" width="100%" backgroundColor="#000000" />
+			<mx:VBox width="100%" horizontalScrollPolicy="off">
+				<mx:Canvas id="camChatContainer" width="100%" height="100%" backgroundColor="#000000" />
+				<mx:HBox id="addonControls" width="100%" horizontalAlign="left" horizontalScrollPolicy="off">
+					<collab:CollaborationPing id="collabPing" width="35" height="20" ping="{ping}" horizontalCenter="0" />
+					<mx:Spacer width="{addonControls.width/2 - holder.width/2 - collabPing.width - 14}" />
+					<mx:HBox id="holder">
+						<mx:Image source="{iconSpeaker}" width="25" height="25" />
+						<mx:HSlider width="100" snapInterval="1" minimum="0" maximum="10" liveDragging="true" tickInterval="1" />
+						<mx:Button id="button_mic" icon="{iconMic}" width="28" height="22" toggle="true" enabled="{addOnsSaved}"
+								   click="toggleMic(event)"/>
+						<mx:HSlider width="100" snapInterval="1" minimum="0" maximum="10" liveDragging="true" tickInterval="1" 
+									value="{iconMic.gain}" enabled="{addOnsSaved}" />
+						<mx:Button id="button_cam" icon="{iconCam}" width="28" height="22" toggle="true" enabled="{addOnsSaved}"
+								   click="toggleCam(event)"/>
+					</mx:HBox>
+				</mx:HBox>
+			</mx:VBox>
 			<mx:VBox width="100%" height="100%">
 				<mx:HDividedBox width="100%" height="100%" horizontalScrollPolicy="off">
 					<mx:TextArea id="log" width="100%" height="100%" editable="false" />
 					<mx:List id="userList" height="100%" labelField="name" minWidth="140">
 						<mx:itemRenderer>
 							<mx:Component>
-								<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off">
+								<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off" paddingLeft="5" paddingRight="5">
 									<mx:Script>
 										<![CDATA[
 											
 											override public function set data(value:Object):void
 											{
-												color.setStyle("backgroundColor", outerDocument._colorList[value]);
+												if( outerDocument._userListInfo[value] != null )
+												{
+													color.setStyle("backgroundColor", 	outerDocument._userListInfo[value].color );
+													micPic.visible 			= outerDocument._userListInfo[value].mic;
+													micPic.includeInLayout 	= outerDocument._userListInfo[value].mic;
+													camPic.visible			= outerDocument._userListInfo[value].cam;
+													camPic.includeInLayout	= outerDocument._userListInfo[value].cam;
+												}
 												labelName.text = value as String;
 												if( (value as String) == outerDocument.username )
 													labelName.setStyle("fontWeight", "bold");
@@ -60,7 +83,11 @@
 									<mx:Canvas id="color" width="16" height="16" borderStyle="solid" 
 											   cornerRadius="8" borderThickness="2"
 											   borderColor="0"/>
-									<mx:Label id="labelName" fontSize="12" width="100%" />
+									<mx:Canvas width="100%" clipContent="true" horizontalScrollPolicy="off">
+										<mx:Label id="labelName" fontSize="12" width="100%" />
+									</mx:Canvas>
+									<mx:Image id="micPic" source="{outerDocument.iconMic}" width="15" height="15" />
+									<mx:Image id="camPic" source="{outerDocument.iconCam}" width="15" height="15" />
 								</mx:HBox>
 							</mx:Component>
 						</mx:itemRenderer>
@@ -69,10 +96,6 @@
 				<mx:HBox width="100%">
 					<mx:TextInput id="input" width="100%" enter="dispatchMessageEvent()" />
 					<mx:Button id="button_send" label="Send" click="dispatchMessageEvent()" />
-					<mx:HBox width="140">
-						<mx:Button id="button_mic" label="Mic" width="50%" />
-						<mx:Button id="button_cam" label="Cam" width="50%" />
-					</mx:HBox>
 				</mx:HBox>
 			</mx:VBox>
 		</mx:VDividedBox>
@@ -92,11 +115,22 @@
 			[Bindable] public var yFrom:Number = 0;
 			[Bindable] public var yTo:Number = 0;
 			[Bindable] public var unreadMessages:Number = 0;
-			[Bindable] internal var _colorList:Dictionary  = new Dictionary();
+			[Bindable] internal var _userListInfo:Dictionary  = new Dictionary();
 			[Bindable] private var _users:ArrayCollection = new ArrayCollection();
 			
 			[Bindable] private var padding:Number = 10;
+			[Bindable] public var addOnsSaved:Boolean = false;
+			[Bindable] public var ping:Number = -1;
 			internal var username:String = null;
+			
+			public var cam:Camera;
+			private var enabledMic:Boolean = false;
+			public var mic:Microphone;
+			private var enabledCam:Boolean = false;
+			
+			[Embed(source="../../resources/images/collab/mic.png")] internal const iconMic:Class;
+			[Embed(source="../../resources/images/collab/cam.png")] internal const iconCam:Class;
+			[Embed(source="../../resources/images/collab/speaker.png")] internal const iconSpeaker:Class;
 			
 			public function logText(txt:String):void
 			{
@@ -125,49 +159,70 @@
 			public function set userNameList(array:ArrayCollection):void
 			{
 				userList.dataProvider = array;
-				/*
-				if( array.length > _users.length ) // Someone was added to the list
-				{
-					for( var i:int = 0; i < array.length; i++ )
-					{
-						if( _colorList[array[i]] == null )
-						{
-							_colorList[array[i]] = 0;
-							break;
-						}
-					}
-				}
-				else // Someone was removed from the list
-				{
-					var found:Boolean = false;
-					for( var name:String in _colorList )
-					{
-						for( var i:int = 0; i < array.length; i++ )
-						{
-							if( name == array[i] )
-							{
-								found = true;
-								break;
-							}
-						}
-						if( found ) {
-							found = false;
-							continue;
-						}
-						delete _colorList[name];
-						break;
-					}
-				}
-				synchronizeList(); 
-				*/
 			}
-			
+			private function toggleMic(e:MouseEvent):void
+			{
+				enabledMic = !enabledMic;
+				dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_MIC, enabledMic as String));
+				
+				if( enabledMic )
+				{
+					// Do NetConnection stuff
+				}
+				else
+				{
+					// Do close of connection stuff
+				}
+			}
+			private function toggleCam(e:MouseEvent):void
+			{
+				enabledCam = !enabledCam;
+				dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_CAM, enabledCam as String));
+				
+				if( enabledCam )
+				{
+					// Do NetConnection stuff
+				}
+				else
+				{
+					// Do close of connection stuff
+				}
+			}
 			public function setUserColor(name:String, color:uint):void
 			{
-				_colorList[name] = color;
+				if( _userListInfo[name] == null )
+				{
+					var o:Object = new Object();
+					o.color = color;
+					_userListInfo[name] = o;
+				} else
+					_userListInfo[name].color = color;
+				
 				(userList.dataProvider as ICollectionView).refresh();
-
-//				synchronizeList();
+			}
+			public function setUserMic(name:String, val:Boolean):void
+			{
+				if( _userListInfo[name] == null )
+				{
+					var o:Object = new Object();
+					o.mic = val;
+					_userListInfo[name] = o;
+				} else
+					_userListInfo[name].mic = val;
+				
+				(userList.dataProvider as ICollectionView).refresh();
+			}
+			public function setUserCam(name:String, val:Boolean):void
+			{
+				if( _userListInfo[name] == null )
+				{
+					var o:Object = new Object();
+					o.cam = val;
+					_userListInfo[name] = o;
+				} else
+					_userListInfo[name].cam = val;
+				
+				(userList.dataProvider as ICollectionView).refresh();
 			}
 		]]>
 	</mx:Script>

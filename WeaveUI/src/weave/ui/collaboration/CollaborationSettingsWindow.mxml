@@ -108,10 +108,6 @@
 			private var testCam:Camera;
 			
 			public var collab_NICKNAME:String;
-			public var collab_SERVERIP:String;
-			public var collab_SERVERNAME:String;
-			public var collab_ROOMTOJOIN:String;
-			public var collab_PORT:String;
 			public var collab_COLOR:uint;
 			
 			public var collab_MIC:Microphone = null;
@@ -136,10 +132,6 @@
 				}
 				collab_NICKNAME 	= nickname.text;
 				collab_COLOR 		= picker.selectedColor;
-				collab_SERVERIP 	= Weave.properties.collabServerIP.value;
-				collab_SERVERNAME 	= Weave.properties.collabServerName.value;
-				collab_ROOMTOJOIN 	= Weave.properties.collabServerRoomToJoin.value;
-				collab_PORT 		= Weave.properties.collabServerPort.value;
 				
 				dispatchEvent(new Event(CollaborationEvent.CONN_SETTINGS_SAVED));
 				
@@ -156,12 +148,6 @@
 				dispatchEvent(new Event(CollaborationEvent.ADDON_SETTINGS_SAVED));
 				
 				saveSettings(event);
-				
-				/*
-				saveAddonsButton.label = "Settings Saved";
-				fadeOut.duration = 1500;
-				hide();
-				*/
 			}
 			public function show():void
 			{
@@ -196,13 +182,15 @@
 				testMic.setLoopBack(true);
 				testMic.setUseEchoSuppression(true);
 				
-				micTimer = new Timer(200);
+				micTimer = new Timer(300);
 				micTimer.addEventListener(TimerEvent.TIMER, updateWidth);
 				micTimer.start();
 			}
 			private function stopMicActivityMonitor():void
 			{
 				testMic.setLoopBack(false);
+				testMic.setUseEchoSuppression(false);
+
 				micTimer.stop();
 				micTimer.removeEventListener(TimerEvent.TIMER, updateWidth);
 			}
@@ -210,12 +198,13 @@
 			{
 				var width:Number = ( textAreaWidth / 100 ) * testMic.activityLevel;
 				if( width >= 0 ) micActivity.width = width;
+				else micActivity.width = 0;
 			}
 			private function startCamActivityMonitor():void
 			{
 				if( testVid && camActivity.contains(testVid) ) stopCamActivityMonitor();
 				
-				testCam = Camera.getCamera(camList.selectedIndex + "");
+				testCam = Camera.getCamera(camList.selectedIndex as String);
 				if( !testCam ) return;
 				
 				testVid = new Video(camActivity.width, camActivity.height);

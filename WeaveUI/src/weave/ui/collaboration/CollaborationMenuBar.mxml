@@ -60,6 +60,7 @@
 			private var SETTINGS:CollaborationSettingsWindow 	= null;
 			private var connTimer:Timer 						= null;
 			private var mouseTimer:Timer						= null;
+			private var pingTimer:Timer							= null;
 			private var userMice:Dictionary						= null;
 			private var disConButtonPushed:Boolean				= false;
 			
@@ -86,7 +87,7 @@
 				collabService.addEventListener(CollaborationEvent.USER_LEFT_REMOVE_MOUSE, handleRemoveUserMouse);
 				collabService.addEventListener(CollaborationEvent.USER_REQUEST_MOUSE_POS, handleUserRequestMousePos);
 				collabService.addEventListener(CollaborationEvent.USER_UPDATE_MOUSE_POS, updateMousePos);
-				collabService.addEventListener(CollaborationEvent.USER_LIST_UPDATED, userListUpdated);
+				collabService.addEventListener(CollaborationEvent.UPDATE_PING, updatePing);
 				
 				button_connect.addEventListener(MouseEvent.CLICK, connect);
 				button_chat.addEventListener(MouseEvent.CLICK, toggleChat);
@@ -99,6 +100,8 @@
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, settingsConnSaved);
 				SETTINGS.addEventListener(CollaborationEvent.ADDON_SETTINGS_SAVED, settingsAddonSaved);
 				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
+				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
+				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
 				CHAT.userNameList = collabService.userList;
 				
 				resizeHandler();
@@ -121,7 +124,7 @@
 				collabService.removeEventListener(CollaborationEvent.USER_LEFT_REMOVE_MOUSE, handleRemoveUserMouse);
 				collabService.removeEventListener(CollaborationEvent.USER_REQUEST_MOUSE_POS, handleUserRequestMousePos);
 				collabService.removeEventListener(CollaborationEvent.USER_UPDATE_MOUSE_POS, updateMousePos);
-				collabService.removeEventListener(CollaborationEvent.USER_LIST_UPDATED, userListUpdated);
+				collabService.removeEventListener(CollaborationEvent.UPDATE_PING, updatePing);
 				if( collabService.room )
 					collabService.room.removeEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 				
@@ -140,13 +143,18 @@
 				}
 				if( CHAT ) {
 					CHAT.removeEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
+					CHAT.removeEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
+					CHAT.removeEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
 				}
 			}
 			private function connect(e:MouseEvent = null):void
 			{
 				button_connect.label = "Connecting...";
-				collabService.connect(SETTINGS.collab_SERVERIP, SETTINGS.collab_SERVERNAME, 
-					int(SETTINGS.collab_PORT), SETTINGS.collab_ROOMTOJOIN, SETTINGS.collab_NICKNAME);
+				collabService.connect(Weave.properties.collabServerIP.value, 
+									  Weave.properties.collabServerName.value, 
+									  int(Weave.properties.collabServerPort.value), 
+									  Weave.properties.collabServerRoomToJoin.value, 
+									  SETTINGS.collab_NICKNAME);
 				
 				// Set timeout to 10 seconds
 				connTimer = new Timer(10000);
@@ -257,12 +265,14 @@
 			{
 				button_connect.enabled = true;
 				CHAT.setUserColor(SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR);
+				CHAT.setUserMic(SETTINGS.collab_NICKNAME, false);
+				CHAT.setUserCam(SETTINGS.collab_NICKNAME, false);
 			}
 			private function settingsAddonSaved(e:Event):void
 			{
-				/*
-				 * Not supported yet!!
-				 */
+				CHAT.cam = SETTINGS.collab_CAMERA;
+				CHAT.mic = SETTINGS.collab_MIC;
+				CHAT.addOnsSaved = true;
 			}
 			private function sendMessageEventHandler(e:CollaborationEvent):void
 			{
@@ -290,6 +300,11 @@
 					mouseTimer.removeEventListener(TimerEvent.TIMER, mouseMove);
 					mouseTimer = null;
 				}
+				if( pingTimer ) {
+					pingTimer.stop();
+					pingTimer.removeEventListener(TimerEvent.TIMER, requestPing);
+					pingTimer = null;
+				}
 				updateEnabledSettings();
 				resetUserMice();
 				disConButtonPushed = false;
@@ -306,6 +321,11 @@
 				mouseTimer = new Timer(600);
 				mouseTimer.addEventListener(TimerEvent.TIMER, mouseMove);
 				mouseTimer.start();
+				
+				pingTimer = new Timer(10000);
+				pingTimer.addEventListener(TimerEvent.TIMER, requestPing);
+				pingTimer.start();
+				
 				collabService.room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 				collabService.sendMouseMessage(SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
 			}
@@ -348,10 +368,6 @@
 					connTimer = null;
 				}
 			}
-			private function userListUpdated(e:Event):void
-			{
-//				CHAT.userNameList = collabService.userList;
-			}
 			private function updateEnabledSettings():void
 			{
 				if( collabService.isConnected ) {
@@ -368,6 +384,22 @@
 					button_chat.enabled = false;
 					if( CHAT.visible ) toggleChat();
 				}
+			}
+			private function requestPing(e:TimerEvent):void
+			{
+				collabService.sendPing(SETTINGS.collab_NICKNAME);
+			}
+			private function updatePing(e:Event):void
+			{
+				CHAT.ping = collabService.ping;
+			}
+			private function updateUserMic(e:CollaborationEvent):void
+			{
+				
+			}
+			private function updateUserCam(e:CollaborationEvent):void
+			{
+				
 			}
 			
 			private var lastX:Number = 0;
@@ -422,6 +454,8 @@
 				{
 					userMice[e.getText()].fillCursor(e.getColor());
 					CHAT.setUserColor(e.getText(), e.getColor());
+					CHAT.setUserMic(e.getText(), false);
+					CHAT.setUserCam(e.getText(), false);
 				}
 			}
 			private function mouseMove(e:TimerEvent):void

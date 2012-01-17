@@ -48,7 +48,9 @@ package weave.services.collaboration
 		
 		/* CHAT EVENTS */
 		public static const SEND_MESSAGE:String 			= "collab_send_message";
-		
+		public static const UPDATE_PING:String				= "collab_update_ping";
+		public static const UPDATE_MIC:String				= "collab_update_mic";
+		public static const UPDATE_CAM:String				= "collab_update_cam";
 		
 		private var text:String;
 		private var color:uint;

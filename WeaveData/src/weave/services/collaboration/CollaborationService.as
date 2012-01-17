@@ -92,13 +92,14 @@ package weave.services.collaboration
 		public var nickname:String;
 		public var myRole:String;
 		public var room:Room;
+		[Bindable] public var ping:Number;
 
 		public function CollaborationService( root:ILinkableObject )
 		{
 			this.root = root;
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
 			// all of these classes are internal
-			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage])
+			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, Ping, AddonsMessage])
 				registerClassAlias(getQualifiedClassName(c), c);
 				
 			userList.sort = new Sort();
@@ -202,7 +203,6 @@ package weave.services.collaboration
 				room.sendPrivateMessage( target, encodeObject(message) );
 			else
 				room.sendMessage( encodeObject(message) );
-			
 		}
 		public function sendMouseMessage( id:String, color:uint, posX:Number, posY:Number ):void
 		{
@@ -220,7 +220,11 @@ package weave.services.collaboration
 			var message:TextMessage = new TextMessage( selfJID, text );
 			sendEncodedObject( message, target );
 		}
-		
+		public function sendPing(id:String):void
+		{
+			var message:Ping = new Ping(id);
+			sendEncodedObject(message, id);
+		}
 		//Handles Sending the entire session state. Should only be used if
 		//someone needs a hard reset, or joining the collaboration server
 		//for the first time.
@@ -440,6 +444,26 @@ package weave.services.collaboration
 					if( mm.id != nickname )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_MOUSE_POS, mm.id, mm.color, mm.percentX, mm.percentY));
 				}
+				else if( o is Ping )
+				{
+					var p:Ping = o as Ping;
+					ping = (new Date().getMilliseconds() - p.time);
+					if( ping < 0 )
+						ping = 500;
+					dispatchEvent(new Event(CollaborationEvent.UPDATE_PING));
+				}
+				else if( o is AddonsMessage )
+				{
+					var am:AddonsMessage = o as AddonsMessage;
+					if( am.type == "mic" )
+					{
+						
+					}
+					else if( am.type = "cam" )
+					{
+						
+					}
+				}
 				//an unknown message with data, but wasn't one of the pre-defined types
 				else
 				{
@@ -642,4 +666,27 @@ internal class RequestMouseMessage
 	}
 	
 	public var id:String;
+}
+internal class Ping
+{
+	public function Ping(id:String = null)
+	{
+		this.id = id;
+		this.time = new Date().getMilliseconds();
+	}
+	
+	public var id:String;
+	public var time:Number;
+}
+internal class AddonsMessage
+{
+	public function AddonsMessage(id:String = null, type:String = null, toggle:Boolean = false)
+	{
+		this.id = id;
+		this.type = type;
+		this.toggle = toggle;
+	}
+	public var id:String;
+	public var type:String;
+	public var toggle:Boolean;
 }
