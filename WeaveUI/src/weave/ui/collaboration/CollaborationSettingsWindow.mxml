@@ -56,7 +56,7 @@
 						 paddingRight="{padding}" paddingTop="{padding}">
 					<mx:HBox width="100%">
 						<mx:Label text="Microphone:" width="{labelWidth}" />
-						<mx:ComboBox id="micList" width="{textAreaWidth}" change="startMicActivityMonitor()" dataProvider="{Microphone.names}" />
+						<mx:ComboBox id="micList" width="{textAreaWidth}" change="startMicActivityMonitor()" />
 					</mx:HBox>
 					<mx:HBox width="100%">
 						<mx:Spacer width="{labelWidth}" />
@@ -67,7 +67,7 @@
 					</mx:HBox>
 					<mx:HBox width="100%">
 						<mx:Label text="Camera:" width="{labelWidth}" />
-						<mx:ComboBox id="camList" width="{textAreaWidth}" change="startCamActivityMonitor()" dataProvider="{Camera.names}" />
+						<mx:ComboBox id="camList" width="{textAreaWidth}" change="startCamActivityMonitor()" />
 					</mx:HBox>
 					<mx:HBox width="100%">
 						<mx:Spacer width="{labelWidth}" />
@@ -250,6 +250,8 @@
 					startMicActivityMonitor();
 					startCamActivityMonitor();
 					resetWarning();
+					micList.dataProvider = Microphone.names;
+					camList.dataProvider = Camera.names;
 				} else {
 					stopMicActivityMonitor();
 					stopCamActivityMonitor();

@@ -30,9 +30,9 @@
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off">
 	
 	<mx:Spacer width="100%" />
-	<mx:Button id="button_connect"  label="Connect"  cornerRadius="0" height="100%" />
-	<mx:Button id="button_settings" label="Settings" cornerRadius="0" height="100%" />
-	<mx:Button id="button_chat"     label="Chat" 	 cornerRadius="0" width="{this.width/2}" height="100%" />
+	<mx:Button id="button_connect"  label="Connect"  icon="{iCon}" cornerRadius="0" height="100%" />
+	<mx:Button id="button_settings" label="Settings" icon="{iSet}" cornerRadius="0" height="100%" />
+	<mx:Button id="button_chat"     label="Chat" 	 icon="{iChat}" cornerRadius="0" width="{this.width/2}" height="100%" />
 	
 	<mx:Script>
 		<![CDATA[
@@ -56,6 +56,9 @@
 			
 			public const collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
 			
+			private const TYPE_MIC:String = "MIC";
+			private const TYPE_CAM:String = "CAM";
+			
 			private var CHAT:CollaborationChatWindow 			= null;
 			private var SETTINGS:CollaborationSettingsWindow 	= null;
 			private var connTimer:Timer 						= null;
@@ -64,11 +67,9 @@
 			private var userMice:Dictionary						= null;
 			private var disConButtonPushed:Boolean				= false;
 			
-			/* 
-			[Embed(source="../../resources/images/collab/connect2.png")] private const iCon:Class; 
+			[Embed(source="../../resources/images/collab/connect.png")]  private const iCon:Class; 
 			[Embed(source="../../resources/images/collab/settings.png")] private const iSet:Class;
 			[Embed(source="../../resources/images/collab/chat.png")]	 private const iChat:Class;  
-			*/
 			
 			protected function creationComplete(event:FlexEvent):void
 			{
@@ -88,6 +89,8 @@
 				collabService.addEventListener(CollaborationEvent.USER_REQUEST_MOUSE_POS, handleUserRequestMousePos);
 				collabService.addEventListener(CollaborationEvent.USER_UPDATE_MOUSE_POS, updateMousePos);
 				collabService.addEventListener(CollaborationEvent.UPDATE_PING, updatePing);
+				collabService.addEventListener(CollaborationEvent.UPDATE_MIC, userMicUpdated);
+				collabService.addEventListener(CollaborationEvent.UPDATE_CAM, userCamUpdated);
 				
 				button_connect.addEventListener(MouseEvent.CLICK, connect);
 				button_chat.addEventListener(MouseEvent.CLICK, toggleChat);
@@ -395,11 +398,21 @@
 			}
 			private function updateUserMic(e:CollaborationEvent):void
 			{
-				
+				trace("Mic: "+e.getText());
+				collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, TYPE_MIC, ( e.getText() == "1" ));
 			}
 			private function updateUserCam(e:CollaborationEvent):void
 			{
-				
+				trace("Cam: "+e.getText());
+				collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, TYPE_CAM, ( e.getText() == "1" ));
+			}
+			private function userMicUpdated(e:CollaborationEvent):void
+			{
+				CHAT.setUserMic(e.getText(), ( e.getColor() == 1 ));
+			}
+			private function userCamUpdated(e:CollaborationEvent):void
+			{
+				CHAT.setUserCam(e.getText(), ( e.getColor() == 1 ));
 			}
 			
 			private var lastX:Number = 0;

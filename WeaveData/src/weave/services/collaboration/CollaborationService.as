@@ -225,6 +225,11 @@ package weave.services.collaboration
 			var message:Ping = new Ping(id);
 			sendEncodedObject(message, id);
 		}
+		public function sendAddonUpdate( id:String, type:String, toggle:Boolean ):void
+		{
+			var message:AddonsMessage = new AddonsMessage(id, type, toggle);
+			sendEncodedObject(message, null);
+		}
 		//Handles Sending the entire session state. Should only be used if
 		//someone needs a hard reset, or joining the collaboration server
 		//for the first time.
@@ -455,14 +460,10 @@ package weave.services.collaboration
 				else if( o is AddonsMessage )
 				{
 					var am:AddonsMessage = o as AddonsMessage;
-					if( am.type == "mic" )
-					{
-						
-					}
-					else if( am.type = "cam" )
-					{
-						
-					}
+					if( am.type == "MIC" )
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_MIC, am.id, ( am.toggle ) ? 1 : 0));
+					else if( am.type == "CAM" )
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_CAM, am.id, ( am.toggle ) ? 1 : 0));
 				}
 				//an unknown message with data, but wasn't one of the pre-defined types
 				else

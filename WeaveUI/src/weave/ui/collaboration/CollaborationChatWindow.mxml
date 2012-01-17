@@ -37,15 +37,11 @@
 			<mx:VBox width="100%" horizontalScrollPolicy="off">
 				<mx:Canvas id="camChatContainer" width="100%" height="100%" backgroundColor="#000000" />
 				<mx:HBox id="addonControls" width="100%" horizontalAlign="left" horizontalScrollPolicy="off">
-					<collab:CollaborationPing id="collabPing" width="35" height="20" ping="{ping}" horizontalCenter="0" />
+					<collab:CollaborationPing id="collabPing" width="35" height="20" ping="{ping}" />
 					<mx:Spacer width="{addonControls.width/2 - holder.width/2 - collabPing.width - 14}" />
 					<mx:HBox id="holder">
-						<mx:Image source="{iconSpeaker}" width="25" height="25" />
-						<mx:HSlider width="100" snapInterval="1" minimum="0" maximum="10" liveDragging="true" tickInterval="1" />
 						<mx:Button id="button_mic" icon="{iconMic}" width="28" height="22" toggle="true" enabled="{addOnsSaved}"
 								   click="toggleMic(event)"/>
-						<mx:HSlider width="100" snapInterval="1" minimum="0" maximum="10" liveDragging="true" tickInterval="1" 
-									value="{iconMic.gain}" enabled="{addOnsSaved}" />
 						<mx:Button id="button_cam" icon="{iconCam}" width="28" height="22" toggle="true" enabled="{addOnsSaved}"
 								   click="toggleCam(event)"/>
 					</mx:HBox>
@@ -163,7 +159,7 @@
 			private function toggleMic(e:MouseEvent):void
 			{
 				enabledMic = !enabledMic;
-				dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_MIC, enabledMic as String));
+				dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_MIC, ( enabledMic ) ? "1" : "0"));
 				
 				if( enabledMic )
 				{
@@ -177,7 +173,7 @@
 			private function toggleCam(e:MouseEvent):void
 			{
 				enabledCam = !enabledCam;
-				dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_CAM, enabledCam as String));
+				dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_CAM, ( enabledCam ) ? "1" : "0"));
 				
 				if( enabledCam )
 				{
