@@ -170,8 +170,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				handleGlobalSelectionChange();
 				dimensionsList.hashMap = columns;
 				
-				sortFieldIndex.addGroupedCallback(this,sortCallback);
-				sortInDescendingOrder.addGroupedCallback(this,sortCallback);
+				sortFieldIndex.addGroupedCallback(this, sortCallback);
+				sortInDescendingOrder.addGroupedCallback(this, sortCallback);
 				columns.addGroupedCallback(this, forceSortCallback);
 				
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleStretch);
@@ -190,7 +190,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const columns:LinkableHashMap = new LinkableHashMap(IAttributeColumn);
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString), handleSessionedWidthChange, false);
-			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap());
+			public const filterComponents:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap());
 			//we need to do this to set the arrow to the correct column
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
@@ -361,8 +361,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				handleItemSelection(event);
 			}
 			
-			public const sortFieldIndex:LinkableNumber = newLinkableChild(this,LinkableNumber);
-			public const sortInDescendingOrder:LinkableBoolean = newLinkableChild(this,LinkableBoolean);
+			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			private var headerClicked:Boolean = false;
 			private function handleHeaderRelease(event:DataGridEvent=null):void
 			{
