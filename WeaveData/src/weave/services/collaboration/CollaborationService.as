@@ -89,6 +89,9 @@ package weave.services.collaboration
 		private var synchronizingIncomingDiff:Boolean 	= false;
 		
 		public const userList:ArrayCollection 			= new ArrayCollection();
+		public const TYPE_MIC:String 					= "MIC";
+		public const TYPE_CAM:String 					= "CAM";
+		
 		public var nickname:String;
 		public var myRole:String;
 		public var room:Room;
