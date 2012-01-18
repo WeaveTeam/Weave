@@ -23,7 +23,6 @@ package weave.visualization.layers
 	import flash.utils.Dictionary;
 	
 	import mx.containers.Canvas;
-	import mx.core.UIComponent;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
@@ -35,7 +34,6 @@ package weave.visualization.layers
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotLayer;
-	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -48,7 +46,6 @@ package weave.visualization.layers
 	import weave.utils.NumberUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
-	import weave.visualization.plotters.DynamicPlotter;
 
 	/**
 	 * This is a container for a list of PlotLayers
@@ -143,7 +140,7 @@ package weave.visualization.layers
 				//trace(layers.getName(layer), (layer.spatialIndex as SpatialIndex).collectiveBounds, selectablePlotLayer && selectablePlotLayer.plotLayer._spatialIndexDirty);
 				// BEGIN HACK
 				if (selectablePlotLayer)
-					selectablePlotLayer.plotLayer.validateSpatialIndex();
+					selectablePlotLayer.validateSpatialIndex();
 				if (plotLayer)
 					plotLayer.validateSpatialIndex();
 				// END HACK
@@ -241,14 +238,15 @@ package weave.visualization.layers
 				layer.setDataBounds(tempDataBounds);
 				
 				plotLayer = layer as PlotLayer;
-				if (plotLayer && !plotLayer.lockScreenBounds)
+				if (plotLayer)
 					plotLayer.setScreenBounds(tempScreenBounds);
 				
 				selectablePlotLayer = layer as SelectablePlotLayer;
-				if (selectablePlotLayer && !selectablePlotLayer.lockScreenBounds)
+				if (selectablePlotLayer)
 					selectablePlotLayer.setScreenBounds(tempScreenBounds);
 			}
 			//trace('end updateZoom',ObjectUtil.toString(getSessionState(zoomBounds)));
+			
 			
 			getCallbackCollection(this).resumeCallbacks();
 		}
@@ -262,9 +260,8 @@ package weave.visualization.layers
 		{
 			zoomBounds.getDataBounds(tempDataBounds);
 			zoomBounds.getScreenBounds(tempScreenBounds);
-			var useXCoordinates:Boolean = (fullDataBounds.getXCoverage() > fullDataBounds.getYCoverage()); // fit full extent inside min screen size
 			var minSize:Number = Math.min(minScreenSize.value, tempScreenBounds.getXCoverage(), tempScreenBounds.getYCoverage());
-			var zoomLevel:Number = ZoomUtils.getZoomLevel(tempDataBounds, tempScreenBounds, fullDataBounds, minSize, useXCoordinates);
+			var zoomLevel:Number = ZoomUtils.getZoomLevel(tempDataBounds, tempScreenBounds, fullDataBounds, minSize);
 			return zoomLevel;
 		}
 		
@@ -298,7 +295,6 @@ package weave.visualization.layers
 			_prevUnscaledHeight = unscaledHeight;
 			if (sizeChanged)
 				updateZoom();
-			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 		}
 		

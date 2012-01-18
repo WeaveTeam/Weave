@@ -19,7 +19,9 @@
 
 package weave.data.AttributeColumns
 {
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDynamicKeyFilter;
+	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
@@ -60,7 +62,7 @@ package weave.data.AttributeColumns
 		
 		/**
 		 * The filter removes certain records from the column.  This function will return false if the key is not contained in the filter.
-		 */		
+		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
 			return _filteredKeySet.containsKey(key);
@@ -68,8 +70,10 @@ package weave.data.AttributeColumns
 
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			if (internalColumn && filter.containsKey(key))
-				return internalColumn.getValueFromKey(key, dataType);
+			var column:IAttributeColumn = internalColumn;
+			var keyFilter:IKeyFilter = filter.getInternalKeyFilter();
+			if (column && keyFilter && keyFilter.containsKey(key))
+				return column.getValueFromKey(key, dataType);
 			
 			if (dataType)
 				return EquationColumnLib.cast(undefined, dataType);

@@ -25,6 +25,7 @@ package weave.core
 	
 	import mx.rpc.xml.SimpleXMLEncoder;
 	import mx.utils.ObjectUtil;
+	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.reportError;
@@ -83,18 +84,20 @@ package weave.core
 		
 		override public function encodeValue(obj:Object, qname:QName, parentNode:XMLNode):XMLNode
 		{
-			var typedState:DynamicState = DynamicState.cast(obj);
-			if (typedState)
+			if (DynamicState.objectHasProperties(obj))
 			{
-				if (typedState.className == null)
+				var className:String = obj[DynamicState.CLASS_NAME];
+				var objectName:String = obj[DynamicState.OBJECT_NAME];
+				var sessionState:Object = obj[DynamicState.SESSION_STATE];
+				
+				if (className == null)
 				{
-					reportError("invalid TypedSessionState: class="+typedState.className+", name="+typedState.objectName);
+					reportError(StringUtil.substitute("invalid DynamicState: class={0}, name={1}", className, objectName));
 				}
-				//trace(ObjectUtil.toString(typedState));
-				var qualifiedClassName:Array = typedState.className.split("::");
-				var typedNode:XMLNode = encodeValue(typedState.sessionState, new QName("", qualifiedClassName[1]), parentNode);
-				if (typedState.objectName != null)
-					typedNode = setAttributeAndReplaceNode(typedNode, "name", typedState.objectName);
+				var qualifiedClassName:Array = className.split("::");
+				var typedNode:XMLNode = encodeValue(sessionState, new QName("", qualifiedClassName[1]), parentNode);
+				if (objectName != null)
+					typedNode = setAttributeAndReplaceNode(typedNode, "name", objectName);
 				if (WeaveXMLDecoder.defaultPackages.indexOf(qualifiedClassName[0]) < 0)
 					typedNode = setAttributeAndReplaceNode(typedNode, "package", qualifiedClassName[0]);
 				return typedNode;
@@ -116,11 +119,17 @@ package weave.core
 				parentNode.appendChild(arrayNode);
 				return arrayNode;
 			}
-			/* if (obj is CSV || obj is CSVRow)
+			try
 			{
-				var childNode:XMLNode = super.encodeValue(obj.toString(), qname, parentNode);
-				return setAttributeAndReplaceNode(childNode, "encoding", CSV_ENCODING);
-			} */
+				var str:String = obj as String;
+				// if the string looks like it may be XML, attempt to parse it as XML
+				if (str && str.charAt(0) == '<' && str.charAt(str.length - 1) == '>')
+					obj = XML(str);
+			}
+			catch (e:Error)
+			{
+				// do nothing if xml parsing fails
+			}
 			if (obj is XML)
 	        {
 				// super.encodeValue() does not use the variable name when encoding
@@ -137,6 +146,9 @@ package weave.core
 				parentNode.appendChild(nullNode);
 				return nullNode;
 			}
+			// avoid SimpleXMLEncoder's "INF" representation of Infinity
+			if (obj === Number.POSITIVE_INFINITY || obj === Number.NEGATIVE_INFINITY)
+				obj = obj.toString();
 			
 			return super.encodeValue(obj, qname, parentNode);
 		}

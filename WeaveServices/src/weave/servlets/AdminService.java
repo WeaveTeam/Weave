@@ -51,7 +51,6 @@ import weave.beans.AdminServiceResponse;
 import weave.beans.UploadFileFilter;
 import weave.beans.UploadedFile;
 import weave.config.DatabaseConfig;
-import weave.config.DublinCoreElement;
 import weave.config.DublinCoreUtils;
 import weave.config.ISQLConfig;
 import weave.config.ISQLConfig.AttributeColumnInfo;
@@ -181,16 +180,12 @@ public class AdminService extends GenericServlet
 	 * @return A list of (xml) client config files existing in the docroot
 	 *         folder.
 	 */
-	synchronized public String[] getWeaveFileNames(String configConnectionName, String password) throws RemoteException
+	synchronized public String[] getWeaveFileNames(String configConnectionName, String password, Boolean showAllFiles) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
 		ConnectionInfo info = config.getConnectionInfo(configConnectionName);
-
-		String path = docrootPath;
-		if(info.folderName.length() > 0)
-			path = path + info.folderName + "/";
-		
-		File docrootFolder = new File(path);
+		File[] files = null;
+		List<String> listOfFiles = new ArrayList<String>();
 		FilenameFilter xmlFilter = new FilenameFilter()
 		{
 			public boolean accept(File dir, String fileName)
@@ -198,9 +193,37 @@ public class AdminService extends GenericServlet
 				return (fileName.endsWith(".xml"));
 			}
 		};
-		File[] files = null;
-		List<String> listOfFiles = new ArrayList<String>();
+		
+		if(showAllFiles == true)
+		{
+			try
+			{
+				String root = docrootPath;			
+				File rootFolder = new File(root);	
+				files = rootFolder.listFiles();
 
+				for (File f : files) 
+				{
+					if(!f.isDirectory())
+						continue;
+					File[] configs = f.listFiles(xmlFilter);
+					for (File configfile : configs) 
+					{
+						listOfFiles.add(f.getName() + "/" + configfile.getName());
+					}
+				}
+			} catch (SecurityException e) 
+			{
+				throw new RemoteException("Permission error reading directory.",e);
+			}
+		}
+		
+		String path = docrootPath;
+		if(!showAllFiles && info.folderName.length() > 0)
+			path = path + info.folderName + "/";
+		
+		File docrootFolder = new File(path);
+		
 		try
 		{
 			docrootFolder.mkdirs();
@@ -209,10 +232,7 @@ public class AdminService extends GenericServlet
 			{
 				if (file.isFile())
 				{
-					String fileName = file.getName();
-					if (info.folderName.length() > 0)
-						fileName = info.folderName + "/" + fileName;
-					listOfFiles.add(fileName);
+					listOfFiles.add(((!showAllFiles && info.folderName.length() > 0) ? info.folderName + "/" : "") + file.getName().toString());
 				}
 			}
 		}
@@ -1674,7 +1694,7 @@ public class AdminService extends GenericServlet
 		String fileList = Arrays.asList(fileNameWithoutExtension).toString();
 		if (fileList.length() > 103)
 			fileList = fileList.substring(0, 50) + "..." + fileList.substring(fileList.length() - 50);
-		String importNotes = String.format("file: %s, keyColumns: %s", fileList, keyColumns);
+		String importNotes = String.format("file: %s, keyColumns: %s", fileList, Arrays.asList(keyColumns));
 
 		// get key column SQL code
 		String keyColumnsString;
@@ -1832,36 +1852,22 @@ public class AdminService extends GenericServlet
 	 * If an error occurs, a map is returned with a single key-value pair whose
 	 * key is "error".
 	 */
-	synchronized public DublinCoreElement[] listDCElements(String connectionName, String password, String dataTableName) throws RemoteException
+	synchronized public Map<String,String> listDCElements(String connectionName, String password, String dataTableName) throws RemoteException
 	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-
-		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-		String configConnectionName = configInfo.connection;
-		Connection conn = null;
 		try
 		{
-			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+			
+			DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
+			String configConnectionName = configInfo.connection;
+			String schema = configInfo.schema;
+			Connection conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			return DublinCoreUtils.listDCElements(conn, schema, dataTableName);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("listDCElements failed", e);
 		}
-
-		String schema = configInfo.schema;
-		List<DublinCoreElement> list = DublinCoreUtils.listDCElements(conn, schema, dataTableName);
-
-		int n = list.size();
-		return list.toArray(new DublinCoreElement[n]);
-
-		// DublinCoreElement[] result = new DublinCoreElement[n];
-		// for (int i = 0; i < n; i++)
-		// {
-		// result[i] = list.get(i);
-		// System.out.println("list.get(i).element = " + list.get(i).element +
-		// " list.get(i).value = " + list.get(i).value);
-		// }
-		// return result;
 	}
 
 	/**

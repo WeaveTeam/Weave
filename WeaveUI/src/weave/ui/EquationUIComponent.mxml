@@ -176,11 +176,8 @@ EquationUIComponent
 					compiledConstant.addEventListener(MouseEvent.MOUSE_DOWN,handleTextInputMouseDown);
 					compiledConstant.addEventListener(FocusEvent.FOCUS_OUT,handleTextInputFocusOut);
 					compiledConstant.addEventListener(KeyboardEvent.KEY_DOWN,handleReturnKeyPress);
-					if(compiledObject == null)
-					{
-						compiledConstant.setStyle("borderColor","red");
-						compiledConstant.toolTip = errorString;
-					}
+					if (compiledObject == null)
+						compiledConstant.errorString = errorString;
 					equationStringContainer.addChild(compiledConstant);
 				}
 			}

@@ -49,9 +49,8 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(BarChartPlotter) as BarChartPlotter;
+				_plotter = initializePlotters(BarChartPlotter, true);
 				
-				showAxes = true;
 				visualization.marginBottom.value = "50";
 				visualization.marginTop.value    = "10";
 				visualization.marginLeft.value   = "80";

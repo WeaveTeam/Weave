@@ -39,30 +39,29 @@ package weave.utils
 		 * @param dataBounds The visible data coordinates.
 		 * @param screenBounds The visible screen coordinates.
 		 * @param fullDataBounds The full extent in data coordinates.
-		 * @param minScreenSize The minimum size of the screen.
-		 * @param useXCoordinates If this is true, X coordinates will be used to calculate zoom level.  If this is false, Y coordinates will be used.
+		 * @param minScreenSize The minimum size that the fullDataBounds can appear as on the screen (the screen size of zoom level zero).
 		 * @return The zoom level, where the screen size of the full extent is 2^zoomLevel * minSize.
 		 */
-		public static function getZoomLevel(dataBounds:IBounds2D, screenBounds:IBounds2D, fullDataBounds:IBounds2D, minScreenSize:Number, useXCoordinates:Boolean):Number
+		public static function getZoomLevel(dataBounds:IBounds2D, screenBounds:IBounds2D, fullDataBounds:IBounds2D, minScreenSize:Number):Number
 		{
-			fullDataBounds.getMinPoint(tempMinPoint)
-			fullDataBounds.getMaxPoint(tempMaxPoint)
-			// project fullDataBounds to screen coordinates 
-			dataBounds.projectPointTo(tempMinPoint, screenBounds);
-			dataBounds.projectPointTo(tempMaxPoint, screenBounds);
+			tempBounds.copyFrom(fullDataBounds);
+			
+			// project fullDataBounds to screen coordinates
+			dataBounds.projectCoordsTo(tempBounds, screenBounds);
+			
 			// get screen size of fullDataBounds
 			var screenSize:Number;
+			//If this is true, X coordinates will be used to calculate zoom level.  If this is false, Y coordinates will be used.
+			var useXCoordinates:Boolean = (fullDataBounds.getXCoverage() > fullDataBounds.getYCoverage()); // fit full extent inside min screen size
 			if (useXCoordinates)
-				screenSize = tempMaxPoint.x - tempMinPoint.x;
+				screenSize = tempBounds.getWidth();
 			else
-				screenSize = tempMaxPoint.y - tempMinPoint.y;
+				screenSize = tempBounds.getHeight();
 			
 			// calculate zoom level
 			return Math.log(Math.abs(screenSize / minScreenSize)) / Math.LN2;
 		}
-		private static const tempMinPoint:Point = new Point(); // reusable temporary object
-		private static const tempMaxPoint:Point = new Point(); // reusable temporary object
-		
+
 		/**
 		 * This function generates a matrix for transforming points from one bounds to another.
 		 */
@@ -79,7 +78,6 @@ package weave.utils
 			outputMatrix.scale(toWidth / fromWidth, toHeight / fromHeight);
 			outputMatrix.translate(toBounds.getXMin(), toBounds.getYMin());
 		}
-		
 		
 		/**
 		 * conformDataBoundsToAspectRatio
@@ -117,8 +115,6 @@ package weave.utils
 			}
 		}
 		
-		private static var tempBounds:IBounds2D = new Bounds2D(); // reusable temporary object
-		
 		/**
 		 * pans specified dataBounds by the specified screen coordinates
 		 * @param dataBounds The visible data bounds
@@ -128,22 +124,17 @@ package weave.utils
 		 */
 		private static function panDataBoundsByScreenCoordinates(dataBounds:IBounds2D, screenBounds:IBounds2D, deltaScreenX:Number, deltaScreenY:Number):void
 		{
-			// project offset min screen point to data point
-			screenBounds.getMinPoint(tempMinPoint);
-			tempMinPoint.x -= deltaScreenX;
-			tempMinPoint.y -= deltaScreenY;
-			screenBounds.projectPointTo(tempMinPoint, dataBounds);
-			
-			// project offset max screen point to data point
-			screenBounds.getMaxPoint(tempMaxPoint);
-			tempMaxPoint.x -= deltaScreenX;
-			tempMaxPoint.y -= deltaScreenY;
-			screenBounds.projectPointTo(tempMaxPoint, dataBounds);
-			
-			// save min,max data points
-			dataBounds.setBounds(tempMinPoint.x, tempMinPoint.y, tempMaxPoint.x, tempMaxPoint.y);
+			// get offset screen bounds
+			tempPanBounds.copyFrom(screenBounds);
+			tempPanBounds.offset(-deltaScreenX, -deltaScreenY);
+			// project to data coordinates
+			screenBounds.projectCoordsTo(tempPanBounds, dataBounds);
+			// overwrite dataBounds
+			dataBounds.copyFrom(tempPanBounds);
 		}
 		
+		private static var tempPanBounds:IBounds2D = new Bounds2D(); // reusable temporary object used only by panDataBoundsByScreenCoordinates
+		private static var tempBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 		
 		/**
 		 * scale greater than 1 will zoom in, scale less than 1 will zoom out

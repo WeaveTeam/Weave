@@ -19,24 +19,6 @@
 
 package weave.visualization.layers
 {
-	import flash.display.Bitmap;
-	import flash.display.PixelSnapping;
-	import flash.events.MouseEvent;
-	
-	import mx.core.UIComponent;
-	import mx.utils.NameUtil;
-	
-	import weave.core.LinkableBoolean;
-	import weave.core.SessionManager;
-	import weave.api.core.ILinkableObject;
-	import weave.data.KeySets.FilteredKeySet;
-	import weave.api.data.IDynamicKeyFilter;
-	import weave.primitives.Bounds2D;
-	import weave.utils.DebugUtils;
-	import weave.utils.PlotterUtils;
-	import weave.visualization.plotters.AxisPlotter;
-	import weave.visualization.plotters.DynamicPlotter;
-	import weave.api.ui.IPlotter;
 	import weave.visualization.plotters.SimpleAxisPlotter;
 	
 	/**

@@ -19,27 +19,38 @@
 
 package weave
 {
+	import flash.events.Event;
 	import flash.external.ExternalInterface;
-	import flash.text.TextFormat;
+	import flash.net.URLRequest;
+	import flash.utils.ByteArray;
+	import flash.utils.getQualifiedClassName;
+	
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
+	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
-	import weave.api.data.IProgressIndicator;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
 	import weave.api.reportError;
 	import weave.api.services.IURLRequestUtils;
+	import weave.core.ClassUtils;
 	import weave.core.ErrorManager;
 	import weave.core.ExternalSessionStateInterface;
+	import weave.core.LibraryUtils;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableHashMap;
+	import weave.core.ProgressIndicator;
 	import weave.core.SessionManager;
+	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;
 	import weave.core.WeaveXMLEncoder;
 	import weave.data.AttributeColumnCache;
@@ -53,10 +64,7 @@ package weave
 	import weave.data.QKeyManager;
 	import weave.data.StatisticsCache;
 	import weave.editors._registerAllLinkableObjectEditors;
-	import weave.services.ProgressIndicator;
 	import weave.services.URLRequestUtils;
-	import weave.utils.DebugTimer;
-	import weave.utils.LinkableTextFormat;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -83,11 +91,11 @@ package weave
 			WeaveAPI.registerSingleton(ISessionManager, SessionManager);
 			WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
 			WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
+			WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
 			WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
 			WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
 			WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
 			WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
-			WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
 			WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
 			WeaveAPI.registerSingleton(ICSVParser, CSVParser);
 			
@@ -127,8 +135,8 @@ package weave
 			);
 		}
 		
-		
 		private static var _root:ILinkableHashMap = null; // root object of Weave
+		private static var _history:SessionStateLog = null; // root session history
 
 		/**
 		 * This is the root object in Weave, which is an ILinkableHashMap.
@@ -139,8 +147,19 @@ package weave
 			{
 				_root = LinkableDynamicObject.globalHashMap;
 				createDefaultObjects(_root);
+				_history = new SessionStateLog(root);
 			}
 			return _root;
+		}
+		
+		/**
+		 * This is a log of all previous session states 
+		 */		
+		public static function get history():SessionStateLog
+		{
+			if (!root) // this check will initialize the _history variable
+				throw "unexpected";
+			return _history;
 		}
 
 		/**
@@ -150,6 +169,15 @@ package weave
 		{
 			return root.getObject(DEFAULT_WEAVE_PROPERTIES) as WeaveProperties;
 		}
+		
+//		public static function getSessionStateFile():WeaveFile
+//		{
+//			var sessionState:Object = root.getSessionState();
+//			var output:ByteArray = new ByteArray();
+//			
+//		}
+		
+		
 		/**
 		 * This function gets the XML representation of the global session state.
 		 */
@@ -160,15 +188,11 @@ package weave
 		/**
 		 * This function sets the session state by decoding an XML representation of it.
 		 * @param newStateXML The new session state
-		 * @param removeMissingObjects If this is true, existing objects not appearing in the session state will be removed.
 		 */
-		public static function setSessionStateXML(newStateXML:XML, removeMissingObjects:Boolean):void
+		public static function setSessionStateXML(newStateXML:XML):void
 		{
 			var newState:Array = WeaveXMLDecoder.decodeDynamicState(newStateXML);
-			
-			var t:DebugTimer = new DebugTimer();
-			root.setSessionState(newState, removeMissingObjects);
-			t.debug('set global session state');
+			root.setSessionState(newState, true);
 		}
 		
 		public static const DEFAULT_WEAVE_PROPERTIES:String = "WeaveProperties";
@@ -214,5 +238,87 @@ package weave
 		{
 			destination.addKeys(source.keys);
 		}
+		
+		
+		/******************************************************************************************/
+		
+		
+		/**
+		 * This function will create an object that can be saved to a file and recalled later with loadWeaveFileContent().
+		 */
+		public static function createWeaveFileContent():Object
+		{
+			// The "version" property can be used to detect old formats and should be incremented whenever the format is changed.
+			var content:Object = {
+				version: 0,
+				history: history.getSessionState(),
+				plugins: ["WeaveExamplePlugin.swc"]
+			};
+			return content;
+		}
+		
+		/**
+		 * This function will load content that was previously created with createWeaveFileContent().
+		 * @param content
+		 */
+		public static function loadWeaveFileContent(content:Object):void
+		{
+			switch (content.version)
+			{
+				case 0:
+				{
+					var pluginURLs:Array = content.plugins;
+					var remaining:int = pluginURLs.length;
+					function handlePluginsFinished():void
+					{
+						history.setSessionState(content.history);
+					}
+					function handlePlugin(event:Event, token:Object = null):void
+					{
+						var resultEvent:ResultEvent = event as ResultEvent;
+						var faultEvent:FaultEvent = event as FaultEvent;
+						if (resultEvent)
+						{
+							trace("Loaded plugin:", token);
+							var classQNames:Array = resultEvent.result as Array;
+							for (var i:int = 0; i < classQNames.length; i++)
+							{
+								var classQName:String = classQNames[i];
+								// check if it implements ILinkableObject
+								if (ClassUtils.classImplements(classQName, ILinkableObject_classQName))
+								{
+									trace(classQName);
+								}
+							}
+						}
+						else
+						{
+							trace("Plugin failed to load:", token);
+							reportError(faultEvent.fault);
+						}
+
+						remaining--;
+						if (remaining == 0)
+							handlePluginsFinished();
+					}
+					if (remaining > 0)
+					{
+						for each (var plugin:String in pluginURLs)
+						{
+							LibraryUtils.loadSWC(plugin, handlePlugin, handlePlugin, plugin);
+						}
+					}
+					else
+					{
+						handlePluginsFinished();
+					}
+					break;
+				}
+				default:
+					reportError("Unsupported Weave content version: " + content.version);
+			}
+		}
+			
+		private static const ILinkableObject_classQName:String = getQualifiedClassName(ILinkableObject);
 	}
 }

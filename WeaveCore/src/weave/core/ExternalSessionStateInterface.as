@@ -262,14 +262,13 @@ package weave.core
 
 		/**
 		 * This function converts a session state from XML format to Object format.  Nested XML objects will be converted to Strings before returning.
-		 * @param sessionState A session state that has been encoded in XML.  This can be supplied as either an XML object or a String.
+		 * @param sessionState A session state that has been encoded in an XML String.
 		 * @return The deserialized session state object.
 		 */
-		public function convertSessionStateXMLToObject(sessionStateXML:Object):Object
+		public function convertSessionStateXMLToObject(sessionStateXML:String):Object
 		{
-			if (!(sessionStateXML is XML))
-				sessionStateXML = XML(sessionStateXML);
-			var state:Object = WeaveXMLDecoder.decode(sessionStateXML as XML);
+			var xml:XML = XML(sessionStateXML);
+			var state:Object = WeaveXMLDecoder.decode(xml);
 			convertSessionStateToPrimitives(state); // do not allow XML objects to be returned
 			return state;
 		}

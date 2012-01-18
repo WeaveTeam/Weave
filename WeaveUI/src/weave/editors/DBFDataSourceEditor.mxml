@@ -27,58 +27,10 @@
 	implements="weave.api.ui.ILinkableObjectEditor"
 	creationPolicy="all"
 	>
-	<mx:Script>
-		<![CDATA[
-			import mx.controls.Alert;
-			
-			import weave.Weave;
-			import weave.api.core.ILinkableObject;
-			import weave.data.DataSources.DBFDataSource;
-			import weave.utils.EditorManager;
-			
-			[Bindable]
-			private var uniqueName:String = Weave.root.generateUniqueName("DBFDataSource");
-			
-			private var _dbfDataSource:DBFDataSource = null;
-			public function setTarget(object:ILinkableObject):void
-			{
-				_dbfDataSource = object as DBFDataSource;
-				
-				var checkObj:String  = Weave.root.getName(_dbfDataSource);
-				if(checkObj !=null)
-				{
-					initialize();
-					editorTitle.text = "Edit";
-					uniqueName = Weave.root.getName(_dbfDataSource);
-					dbfURL.text = _dbfDataSource.dbfUrl.value;
-					shpURL.text = _dbfDataSource.shpUrl.value;
-					keyColumnName.text = _dbfDataSource.keyColName.value;
-					keyType.text = _dbfDataSource.keyType.value;
-					sourceName.editable = false;
-					sourceName.toolTip = "Source name is not editable once added to the session. If needed, delete the source and add it again with the new name."
-				}
-
-			}
-			public function applyChanges():void
-			{
-				try{
-					_dbfDataSource.dbfUrl.value = dbfURL.text;
-					_dbfDataSource.shpUrl.value = shpURL.text;
-					_dbfDataSource.keyColName.value = keyColumnName.text;
-					_dbfDataSource.keyType.value = keyType.text;
-					Alert.show("Changes saved.")
-				}
-				catch(e:Error){
-					Alert.show("Changes could not be saved. " + e.message,"Error");
-				}
-			}
-			
-		]]>
-	</mx:Script>
-	<mx:Label id="editorTitle" fontWeight="bold" text="Add DBF Data Source"/>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{_dbfDataSource ? 'Edit' : 'Add'} DBF Data Source"/>
 	<mx:HBox>
 		<mx:Label text="Source Name *" width="120"/>
-		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" text="{uniqueName}" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
+		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
 	</mx:HBox>
 	<mx:HBox>
 		<mx:Label text="DBF Source URL *" width="120"/>
@@ -94,8 +46,64 @@
 	</mx:HBox>
 	<mx:HBox>
 		<mx:Label text="Key Type *" width="120"/>
-		<mx:TextInput id="keyType" width="200" text="{uniqueName}" cornerRadius="5" borderStyle="solid" toolTip="enter key type like US State Fips Code,etc. "/>
+		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter key type like US State Fips Code,etc. "/>
 	</mx:HBox>
 	<mx:Spacer height="20"/>
-	<mx:Label text="*required"/>
+	<mx:Label text="* = required"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			
+			import weave.Weave;
+			import weave.api.core.ILinkableObject;
+			import weave.data.DataSources.DBFDataSource;
+			import weave.utils.EditorManager;
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				keyType.text = sourceName.text = Weave.root.generateUniqueName("DBFDataSource");
+			}
+			
+			[Bindable] private var _dbfDataSource:DBFDataSource = null;
+			public function setTarget(object:ILinkableObject):void
+			{
+				if (!parent)
+				{
+					callLater(setTarget, arguments);
+					return;
+				}
+				
+				_dbfDataSource = object as DBFDataSource;
+				if (_dbfDataSource)
+				{
+					sourceName.text = Weave.root.getName(_dbfDataSource);
+					dbfURL.text = _dbfDataSource.dbfUrl.value;
+					shpURL.text = _dbfDataSource.shpUrl.value;
+					keyColumnName.text = _dbfDataSource.keyColName.value;
+					keyType.text = _dbfDataSource.keyType.value;
+					sourceName.editable = false;
+					sourceName.toolTip = "Source name is not editable once added to the session. If needed, delete the source and add it again with the new name."
+				}
+
+			}
+			public function applyChanges():void
+			{
+				try
+				{
+					_dbfDataSource.dbfUrl.value = dbfURL.text;
+					_dbfDataSource.shpUrl.value = shpURL.text;
+					_dbfDataSource.keyColName.value = keyColumnName.text;
+					_dbfDataSource.keyType.value = keyType.text;
+					Alert.show("Changes saved.")
+				}
+				catch (e:Error)
+				{
+					Alert.show("Changes could not be saved. " + e.message,"Error");
+				}
+			}
+			
+		]]>
+	</mx:Script>
 </mx:VBox>

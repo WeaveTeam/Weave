@@ -303,21 +303,6 @@
 							 label="Session Menu"
 							 width="120" 
 							 creationComplete="linkBindableProperty(Weave.properties.enableSessionMenu,event.target,'selected')"/>
-				<mx:HBox>
-					<mx:Spacer width="10"/>
-					<mx:VBox verticalGap="{verticalGap}">
-						<mx:CheckBox toolTip="Checking this box will allow the user to save a bookmark in the session history"
-									 enabled="{sessionMenu.selected == true}"
-									 id="sessionBookmarks"
-									 label="Save/Load Session Bookmarks"
-									 creationComplete="linkBindableProperty(Weave.properties.enableSessionBookmarks,event.target,'selected')"/>  
-						<mx:CheckBox toolTip="Checking this box will allow the user to edit the current session state"
-									 enabled="{sessionMenu.selected == true}"
-									 id="editCurrentSessionState"
-									 label="Copy/edit/import/export current session state"
-									 creationComplete="linkBindableProperty(Weave.properties.enableSessionEdit,event.target,'selected')"/>  
-					</mx:VBox>
-				</mx:HBox>	
 			</mx:VBox>	
 			
 			<mx:VBox  width="100%" label="Window" paddingLeft="10" verticalGap="{verticalGap}">	 	

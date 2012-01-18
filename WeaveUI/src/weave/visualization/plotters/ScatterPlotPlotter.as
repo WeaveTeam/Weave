@@ -121,16 +121,6 @@ package weave.visualization.plotters
 			return result;
 		}
 		
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
-		{
-			var x:Number = xColumn.getValueFromKey(recordKey, Number);
-			var y:Number = yColumn.getValueFromKey(recordKey, Number);
-			
-			var bounds:IBounds2D = getReusableBounds();
-			bounds.setCenteredRectangle(isNaN(x) ? 0 : x, isNaN(y) ? 0 : y, isNaN(x) ? Infinity:0, isNaN(y) ? Infinity : 0);
-			return [bounds];
-		}
-				
 		private function updateKeys():void
 		{
 			_keySet.replaceKeys(getAllKeys(xColumn, yColumn, radiusColumn, colorColumn));

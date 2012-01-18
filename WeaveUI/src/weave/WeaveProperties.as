@@ -28,6 +28,7 @@ package weave
 	import flash.utils.ByteArray;
 	
 	import mx.collections.ArrayCollection;
+	import mx.controls.ToolTip;
 	import mx.utils.StringUtil;
 	
 	import ru.etcs.utils.FontLoader;
@@ -45,6 +46,7 @@ package weave
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
+	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
 	import weave.resources.fonts.EmbeddedFonts;
@@ -123,7 +125,7 @@ package weave
 			//DO Nothing
 		}
 		
-		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xCCCCCC;
+		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xFFFFFF;
 		
 		private static const WIKIPEDIA_URL:String = "Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=";
 		private static const GOOGLE_URL:String = "Google|http://www.google.com/search?q=";
@@ -195,9 +197,9 @@ package weave
 		public const enableBitmapFilters:LinkableBoolean = new LinkableBoolean(true); // enable/disable bitmap filters while probing or selecting
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
 		public function get geometryMetadataRequestMode():LinkableString { return StreamedGeometryColumn.metadataRequestMode; }
+		public function get geometryMinimumScreenArea():LinkableNumber { return StreamedGeometryColumn.geometryMinimumScreenArea; }
+		
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
-		public const enableSessionBookmarks:LinkableBoolean = new LinkableBoolean(true);
-		public const enableSessionEdit:LinkableBoolean = new LinkableBoolean(true);
 
 		public const enableUserPreferences:LinkableBoolean = new LinkableBoolean(true); // open the User Preferences Panel
 		
@@ -207,9 +209,9 @@ package weave
 		public const enableDrawCircle:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableMenuBar:LinkableBoolean = new LinkableBoolean(true); // top menu for advanced features
-		public const enableTaskbar:LinkableBoolean = new LinkableBoolean(true); // taskbar for minimize/restore
 		public const enableSubsetControls:LinkableBoolean = new LinkableBoolean(true); // creating subsets
 		public const enableExportToolImage:LinkableBoolean = new LinkableBoolean(true); // print/export tool images
+		public const enableExportCSV:LinkableBoolean = new LinkableBoolean(true);
 		public const enableExportApplicationScreenshot:LinkableBoolean = new LinkableBoolean(true); // print/export application screenshot
 		public const enableExportDataTable:LinkableBoolean = new LinkableBoolean(true); // print/export data table
 		
@@ -322,7 +324,11 @@ package weave
 		public const probeToolTipBackgroundAlpha:LinkableNumber = new LinkableNumber(1.0, verifyAlpha);
 		public const probeToolTipBackgroundColor:LinkableNumber = new LinkableNumber(NaN);
 		public const probeToolTipFontColor:LinkableNumber = new LinkableNumber(0x000000, isFinite);
-		public const probeToolTipMaxWidth:LinkableNumber = new LinkableNumber(400);
+		public const probeToolTipMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(400), handleToolTipMaxWidth);
+		private function handleToolTipMaxWidth():void
+		{
+			ToolTip.maxWidth = Weave.properties.probeToolTipMaxWidth.value;
+		}
 		
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
 		public function get enableProbeToolTip():LinkableBoolean { return ProbeTextUtils.enableProbeToolTip; }
@@ -396,7 +402,12 @@ package weave
 		
 		public const workspaceWidth:LinkableNumber = new LinkableNumber(NaN);
 		public const workspaceHeight:LinkableNumber = new LinkableNumber(NaN);
+		public const workspaceMultiplier:LinkableNumber = new LinkableNumber(1, verifyWorkspaceMultiplier);
 
+		private function verifyWorkspaceMultiplier(value:Number):Boolean
+		{
+			return value >= 1 && value <= 4;
+		}
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY
@@ -417,7 +428,6 @@ package weave
 		
 		[Deprecated(replacement="dashboardMode")] public function set enableToolBorders(value:Boolean):void { dashboardMode.value = !value; }
 		[Deprecated(replacement="dashboardMode")] public function set enableBorders(value:Boolean):void { dashboardMode.value = !value; }
-		[Deprecated(replacement="enableSessionBookmarks")] public function set enableSavePoint(value:Boolean):void { enableSessionBookmarks.value = value; }
 		[Deprecated(replacement="showProbeToolTipEditor")] public function set showProbeColumnEditor(value:Boolean):void { showProbeToolTipEditor.value = value; }
 		[Deprecated(replacement="enableAddWeaveDataSource")] public function set enableAddOpenIndicatorsDataSource(value:Boolean):void { enableAddWeaveDataSource.value = value; }
 		[Deprecated(replacement="enablePanelCoordsPercentageMode")] public function set enableToolAutoResizeAndPosition(value:Boolean):void { enablePanelCoordsPercentageMode.value = value; }

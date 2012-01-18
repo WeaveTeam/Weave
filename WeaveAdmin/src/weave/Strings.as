@@ -30,6 +30,7 @@ package weave
 		public static const select_shp_files:String = "Select .SHP files"
 		
 		public static const tip_import_sql_data:String = "This publishes an existing SQL table through the Weave server. This will not create any new tables in the database. It will just make it so that Weave can see them.";
+		public static const tip_import_csv_data:String = "This uploads and publishes data from a CSV file on your computer.";
 		public static const tip_import_shp_and_dbf:String = "This uploads and publishes shape data from files on your computer.";
 		
 		public static const tip_refresh_schemas:String = "This button updates the list of SQL schemas - use it if you think the list of schemas may have changed since you first opened the admin console.";

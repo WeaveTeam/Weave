@@ -151,10 +151,13 @@ package weave.utils
 			if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
 				(probeToolTip as ToolTip).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
 		}
-		
+
 		public static function showProbeToolTip(probeText:String, stageX:Number, stageY:Number, bounds:IBounds2D = null, margin:int = 5):void
 		{
-			destroyProbeToolTip();
+			if (!probeToolTip)
+				probeToolTip = ToolTipManager.createToolTip('', 0, 0);
+			
+			hideProbeToolTip();
 			
 			if (!enableProbeToolTip.value)
 				return;
@@ -167,7 +170,8 @@ package weave.utils
 			}
 			
 			// create new tooltip
-			probeToolTip = ToolTipManager.createToolTip(probeText, 0, 0);
+			probeToolTip.text = probeText;
+			probeToolTip.visible = true;
 			
 			// make tooltip completely opaque because text + graphics on same sprite is slow
 			setProbeToolTipAppearance() ;
@@ -192,7 +196,7 @@ package weave.utils
 			{
 				y = stageY + margin * 2;
 				if(yAxisToolTip != null)
-					y = yAxisToolTip.y+yAxisToolTip.height+margin;
+					y = yAxisToolTip.y + yAxisToolTip.height+margin;
 			}
 			
 			// flip y position if out of bounds
@@ -249,13 +253,12 @@ package weave.utils
 		private static var probeToolTip:IToolTip = null;
 		private static const tempBounds:IBounds2D = new Bounds2D();
 		
-		public static function destroyProbeToolTip():void
+		
+		
+		public static function hideProbeToolTip():void
 		{
-			if (probeToolTip != null)
-			{
-				ToolTipManager.destroyToolTip(probeToolTip);
-				probeToolTip = null;
-			}
+			if (probeToolTip)
+				probeToolTip.visible = false;
 		}
 	}
 }

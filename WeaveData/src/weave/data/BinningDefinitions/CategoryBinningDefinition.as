@@ -85,7 +85,7 @@ package weave.data.BinningDefinitions
 				if(!str)
 					str = strArray[i] as String;
 				var svc:SingleValueClassifier = output.requestObject(str, SingleValueClassifier, false);
-				svc.value = str;
+				svc.value = strArray[i];
 			}
 		}
 	}

@@ -91,17 +91,6 @@
 			}
 			
 			private const pad:Number = 3 ;
-			
-			private static var instance:ControlPanel;
-			public static function openDefaultEditor():void
-			{
-				if (!instance)
-					instance = new ProbeToolTipEditor();
-				
-				if (!instance.parent)
-					PopUpManager.addPopUp(instance, Application.application as Application);
-				instance.restorePanel();
-			}
 		]]>
 	</mx:Script>
 </ControlPanel>

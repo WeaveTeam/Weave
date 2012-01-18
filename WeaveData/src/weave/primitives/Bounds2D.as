@@ -426,20 +426,40 @@ package weave.primitives
 		 */
 		public function getGridContainment(x:Number, y:Number):Number
 		{
-			staticRange_A.setRange(xMin, xMax);
-			staticRange_B.setRange(yMin, yMax);
-			var xGridID:Number = staticRange_A.compare(x);
-			var yGridID:Number = staticRange_B.compare(y);
-			if (yGridID == -1)
-				return 2 + xGridID;
-			if (yGridID == 1)
-				return 6 - xGridID;
-			if (yGridID == 0)
-			{
-				if (xGridID == 0)
-					return 0;
-				return 6 - 2 * xGridID;
-			}
+			// Note: This function is optimized for speed
+			
+			var xPositive:Boolean = xMin < xMax;
+			var yPositive:Boolean = yMin < yMax;
+			
+			var xGridID:Number = 0;
+			if (x < (xPositive ? xMin : xMax))
+				xGridID = -1;
+			else if (x > (xPositive ? xMax : xMin))
+				xGridID = 1;
+			
+			if (y < (yPositive ? yMin : yMax))
+				return 2 + xGridID; // 1 or 3
+			else if (y > (yPositive ? yMax : yMin)) 
+				return 6 - xGridID; // 5 or 7
+			else if (xGridID == 0)
+				return 0;
+			else
+				return 6 - 2 * xGridID; // 4 or 8
+			
+//			staticRange_A.setRange(xMin, xMax);
+//			staticRange_B.setRange(yMin, yMax);
+//			var xGridID:Number = staticRange_A.compare(x);
+//			var yGridID:Number = staticRange_B.compare(y);
+//			if (yGridID == -1)
+//				return 2 + xGridID;
+//			if (yGridID == 1)
+//				return 6 - xGridID;
+//			if (yGridID == 0)
+//			{
+//				if (xGridID == 0)
+//					return 0;
+//				return 6 - 2 * xGridID;
+//			}
 			return NaN;
 		}
 		
@@ -476,14 +496,14 @@ package weave.primitives
 			
 			var x:Number = toXMin + (point.x - xMin) / (xMax - xMin) * (toXMax - toXMin);
 
-			if (x <= Infinity) // alternative to !isNaN()
+			if (x < Infinity) // alternative to !isNaN()
 				point.x = x;
 			else
 				point.x = (toXMin + toXMax) / 2;
 
 			var y:Number = toYMin + (point.y - yMin) / (yMax - yMin) * (toYMax - toYMin);
 			
-			if (y <= Infinity) // alternative to !isNaN()
+			if (y < Infinity) // alternative to !isNaN()
 				point.y = y;
 			else
 				point.y = (toYMin + toYMax) / 2;

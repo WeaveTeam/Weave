@@ -19,6 +19,7 @@
 
 package weave.core
 {
+	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
@@ -28,6 +29,7 @@ package weave.core
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableDescendants;
 	import weave.api.getLinkableOwner;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
@@ -126,10 +128,21 @@ package weave.core
 				// unlink from global object and copy session state into a local object
 				requestLocalObjectCopy(internalObject);
 			}
-			else if (getLinkableOwner(this) != globalHashMap) // don't allow globalName on global objects
+			else
 			{
+				var globalObject:ILinkableObject = globalHashMap.getObject(newGlobalName);
+				if (globalObject)
+				{
+					var descendants:Array = getLinkableDescendants(globalObject, Object(this).constructor);
+					if (descendants.indexOf(this) >= 0)
+						return; // don't allow recursive linking
+				}
+				var owner:ILinkableObject = getLinkableOwner(this);
+				if (owner === globalHashMap) // don't allow globalName on global objects
+					return;
+				
 				// if there is no global object of this name, create it now
-				if (globalHashMap.getObject(newGlobalName) == null)
+				if (globalObject == null)
 					globalHashMap.requestObjectCopy(newGlobalName, internalObject);
 				// link to new global name
 				initInternalObject(newGlobalName, null);
@@ -168,11 +181,11 @@ package weave.core
  		 */
 		public function setSessionState(newState:Array, removeMissingDynamicObjects:Boolean):void
 		{
-			var dynamicState:DynamicState = null;
+			var dynamicState:Object = null;
 			if (newState && newState.length > 0)
-				dynamicState = DynamicState.cast(newState[0]);
+				dynamicState = newState[0];
 
-			if (dynamicState == null)
+			if (!DynamicState.objectHasProperties(dynamicState))
 			{
 				if (removeMissingDynamicObjects)
 					removeObject();
@@ -184,12 +197,12 @@ package weave.core
 				// make sure callbacks only run once
 				delayCallbacks();
 
-				var objectName:String = dynamicState.objectName;
+				var objectName:String = dynamicState[DynamicState.OBJECT_NAME];
 				if (objectName == null)
 				{
-					initInternalObject(null, dynamicState.className); // init local object
+					initInternalObject(null, dynamicState[DynamicState.CLASS_NAME]); // init local object
 					if (_internalObject != null)
-						WeaveAPI.SessionManager.setSessionState(_internalObject, dynamicState.sessionState, removeMissingDynamicObjects);
+						WeaveAPI.SessionManager.setSessionState(_internalObject, dynamicState[DynamicState.SESSION_STATE], removeMissingDynamicObjects);
 				}
 				else if (getLinkableOwner(this) != globalHashMap) // don't allow globalName on global objects
 				{

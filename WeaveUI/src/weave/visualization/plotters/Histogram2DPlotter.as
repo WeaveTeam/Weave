@@ -65,7 +65,6 @@ package weave.visualization.plotters
 			
 			xColumn.addImmediateCallback(this,updateKeys);
 			yColumn.addImmediateCallback(this,updateKeys);
-			binColors.reversed = true;
 			
 			setKeySource(_keySet);
 		}
@@ -92,7 +91,7 @@ package weave.visualization.plotters
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
-		public const binColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Linear Gray"))); // bars get their color from here
+		public const binColors:ColorRamp = registerLinkableChild(this, new ColorRamp("0xFFFFFF,0x000000")); // bars get their color from here
 		
 		public const xBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn,handleColumnChange);
 		public const yBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn,handleColumnChange);

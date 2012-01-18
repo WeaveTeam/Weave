@@ -43,7 +43,8 @@ package weave.api.data
 	 * 
 	 * @author adufilie
 	 */
-	public interface IDynamicKeyFilter extends IKeyFilter, ILinkableDynamicObject
+	public interface IDynamicKeyFilter extends ILinkableDynamicObject
 	{
+		function getInternalKeyFilter():IKeyFilter;
 	}
 }

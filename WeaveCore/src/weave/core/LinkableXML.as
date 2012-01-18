@@ -21,6 +21,8 @@ package weave.core
 {
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.reportError;
+	
 	/**
 	 * LinkableBoolean, LinkableString and LinkableNumber contain simple, immutable data types.  LinkableXML
 	 * is an exception because it contains an XML object that can be manipulated.  Changes to the internal
@@ -33,19 +35,23 @@ package weave.core
 	 */
 	public class LinkableXML extends LinkableVariable
 	{
-		public function LinkableXML(defaultValue:XML = null, verifier:Function = null)
+		public function LinkableXML(allowNull:Boolean = true)
 		{
-			super(XML, verifier);
-			addImmediateCallback(this, saveXMLString);
+			super(String, allowNull ? null : notNull);
 
-			if (defaultValue != null)
-			{
-				delayCallbacks();
-				value = defaultValue;
-				// Resume callbacks one frame later when we know it is possible for
-				// other classes to have a pointer to this object and retrieve the value.
-				StageUtils.callLater(this, resumeCallbacks, null, false);
-			}
+//			if (defaultValue != null)
+//			{
+//				delayCallbacks();
+//				value = defaultValue;
+//				// Resume callbacks one frame later when we know it is possible for
+//				// other classes to have a pointer to this object and retrieve the value.
+//				StageUtils.callLater(this, resumeCallbacks, null, false);
+//			}
+		}
+		
+		private function notNull(value:Object):Boolean
+		{
+			return value != null;
 		}
 
 		/**
@@ -54,7 +60,7 @@ package weave.core
 		 */
 		public function detectChanges():void
 		{
-			setSessionState(_sessionState);
+			value = value;
 		}
 
 		/**
@@ -62,7 +68,22 @@ package weave.core
 		 */
 		public function get value():XML
 		{
-			return _sessionState;
+			// validate local XML version of the session state String if necessary
+			if (_prevTriggerCount != triggerCounter)
+			{
+				_prevTriggerCount = triggerCounter;
+				_sessionStateXML = null;
+				try
+				{
+					if (_sessionState) // false if empty string (prefer null over empty xml)
+						_sessionStateXML = XML(_sessionState);
+				}
+				catch (e:Error)
+				{
+					// xml parsing failed, so keep null
+				}
+			}
+			return _sessionStateXML;
 		}
 		/**
 		 * This will save a COPY of the value passed in to prevent multiple LinkableXML objects from having the same internal XML object.
@@ -70,51 +91,18 @@ package weave.core
 		 */		
 		public function set value(value:XML):void
 		{
-			setSessionState(value);
+			var str:String = value ? value.toXMLString() : null;
+			setSessionState(str);
 		}
 
 		/**
-		 * This is used to store the result of toXMLString() on the session state whenever it changes.
-		 * This value is used when comparing to other session states.
+		 * This is used to store an XML value, which is separate from the actual session state String.
 		 */
-		private var _prevStateString:String = null;
-
-		/**
-		 * This function gets called as the first callback and saves the current XML as a String for later comparisons.
-		 */		
-		private function saveXMLString():void
-		{
-			_prevStateString = (_sessionState is XML) ? (_sessionState as XML).toXMLString() : null;
-		}
+		private var _sessionStateXML:XML = null;
 		
 		/**
-		 * If this function receives a String, it will try to cast as an XML before saving it.
-		 * If this function receives an XML, it will save a copy instead of the original.
-		 * @param value The new sessioned XML value to copy.
-		 */
-		override public function setSessionState(value:Object):void
-		{
-			try
-			{
-				if (value is String)
-					value = XML(value);
-			}
-			catch (e:Error) { } // do nothing if cast fails
-			
-			super.setSessionState(value);
-		}
-
-		/**
-		 * @param otherSessionState Another session state to compare with the session state of this object.
-		 * @return true if the other session state is equal to the session state previously set.
-		 */
-		override protected function sessionStateEquals(otherSessionState:*):Boolean
-		{
-			if (_sessionState == null || otherSessionState == null)
-				return _sessionState == otherSessionState;
-			if ((_sessionState is XML) && (otherSessionState is XML))
-				return _prevStateString == (otherSessionState as XML).toXMLString();
-			return false;
-		}
+		 * This is the trigger count at the time when _sessionStateXML was last updated.
+		 */		
+		private var _prevTriggerCount:uint = triggerCounter;
 	}
 }

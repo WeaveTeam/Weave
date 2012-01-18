@@ -27,6 +27,39 @@
 	creationPolicy="all"
 	implements="weave.api.ui.ILinkableObjectEditor"
 	>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{_csvDataSource ? 'Edit' : 'Add'} CSV Data Source"/>
+	<mx:HBox>
+		<mx:Label text="Source Name *" width="140"/>
+		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="Source URL" width="140"/>
+		<mx:TextInput change="handleURLTextChange()" id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv"/>
+	</mx:HBox>
+	<mx:VBox width="100%" enabled="{url.text?false:true}">
+		<mx:Label width="100%" textAlign="center" text="OR" fontWeight="bold"/>
+		<mx:HBox>
+			<mx:Label text="Open local CSV file" width="140"/>
+			<mx:Button label="Browse" click="browseForFiles()"/>
+			<mx:Label id="uploadMessage" color="0xFF0000" text="loaded" visible="false"/>
+		</mx:HBox>
+		<mx:Label width="100%" textAlign="center" text="OR" fontWeight="bold"/>
+		<mx:HBox>
+			<mx:Label text="Paste/Edit CSV Data" width="140"/>
+			<mx:TextArea id="csvTextArea" change="updateCSVDataString(csvTextArea.text)" width="300" height="100" cornerRadius="5" borderStyle="solid"/>
+		</mx:HBox>
+		<mx:Button enabled="false" label="View data in Grid" id="showGridButton" click="showGrid()"/>
+	</mx:VBox>
+	<mx:HBox>
+		<mx:Label text="Key Type *" width="140"/>
+		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter key type like US State Fips Code,etc. "/>
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="Key Column" width="140"/>
+		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter the column name that uniquely identifies each row in the data set"/>
+	</mx:HBox>
+	<mx:Spacer/>
+	<mx:Label text="* = required"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -38,16 +71,26 @@
 			import weave.data.DataSources.CSVDataSource;
 			import weave.editors.managers.EditDataGridPanel;
 			
-			private var _csvDataSource:CSVDataSource= null;
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				keyType.text = sourceName.text = Weave.root.generateUniqueName("CSVDataSource");
+			}
+			
+			[Bindable] private var _csvDataSource:CSVDataSource = null;
 			public function setTarget(object:ILinkableObject):void
 			{
-				_csvDataSource = object as CSVDataSource;
-				var checkObj:String  = Weave.root.getName(_csvDataSource);
-				if(checkObj != null)
+				if (!parent)
 				{
-					initialize();
-					editorTitle.text = "Edit";
-					uniqueName = Weave.root.getName(_csvDataSource);
+					callLater(setTarget, arguments);
+					return;
+				}
+				
+				_csvDataSource = object as CSVDataSource;
+				if (_csvDataSource)
+				{
+					sourceName.text = Weave.root.getName(_csvDataSource);
 					url.text = _csvDataSource.url.value;
 					keyColumnName.text = _csvDataSource.keyColName.value;
 					keyType.text = _csvDataSource.keyType.value;
@@ -61,14 +104,16 @@
 			
 			public function applyChanges():void
 			{
-				try{
+				try
+				{
 					_csvDataSource.url.value = url.text;
 					_csvDataSource.keyColName.value = keyColumnName.text;
 					_csvDataSource.keyType.value = keyType.text;
 					_csvDataSource.csvDataString.value = csvDataString;
 					Alert.show("Changes saved.")
 				}
-				catch(e:Error){
+				catch(e:Error)
+				{
 					Alert.show("Changes could not be saved. " + e.message,"Error");
 				}
 			}
@@ -105,20 +150,20 @@
 			private function updateCSVDataString(dataString:String):void
 			{
 				csvDataString = dataString;
-				var tempArray:Array = WeaveAPI.CSVParser.parseCSV(csvDataString);
-				headerArray = tempArray[0];
-				//this is showGridButton is disabled only if a file has been loaded as the source
-				showGridButton.enabled = true;
-				
-				//this is set to false because this function might be called from Text Area change.
-				uploadMessg.visible = false;
-				
-				//clearing the Source URL text input
-				url.text = "";
+				if (dataString)
+				{
+					var tempArray:Array = WeaveAPI.CSVParser.parseCSV(csvDataString);
+					headerArray = tempArray[0];
+					//this is showGridButton is disabled only if a file has been loaded as the source
+					showGridButton.enabled = true;
+					
+					//this is set to false because this function might be called from Text Area change.
+					uploadMessage.visible = false;
+					
+					//clearing the Source URL text input
+					url.text = "";
+				}
 			}
-			
-			[Bindable]
-			private var uniqueName:String = Weave.root.generateUniqueName("CSVDataSource");
 			
 			private var csvDataArray:Array = [];
 			private var csvByteArray:ByteArray = null;
@@ -131,21 +176,24 @@
 				// the file extension should be at the end of the file minus the four characters for the extension (i.e. ".csv" )
 				var extensionPosition:int = _fileLoader.name.length - 4;
 				
-				try{				
-				if(_fileLoader.name.search(".csv") == extensionPosition || _fileLoader.name.search(".CSV") == extensionPosition )
-				{
-					csvByteArray = _fileLoader.data;
-					
-					updateCSVDataString(csvByteArray.toString());		
-					
-					uploadMessg.visible = true;
-					
-					//clearing the Text Area if any data was pasted before.
-					csvTextArea.text="";
-					//clearing the Source URL text input
-					url.text = "";
+				try
+				{				
+					if(_fileLoader.name.search(".csv") == extensionPosition || _fileLoader.name.search(".CSV") == extensionPosition )
+					{
+						csvByteArray = _fileLoader.data;
+						
+						updateCSVDataString(csvByteArray.toString());		
+						
+						uploadMessage.visible = true;
+						
+						//clearing the Text Area if any data was pasted before.
+						csvTextArea.text="";
+						//clearing the Source URL text input
+						url.text = "";
+					}
 				}
-				}catch(e:Error){
+				catch(e:Error)
+				{
 					Alert.show("Error uploading file",e.message.toString());
 				}
 				
@@ -154,15 +202,15 @@
 			
 			private function showGrid():void
 			{
-				if(csvDataString == "")
+				if (csvDataString == "")
 				{
 					Alert.show("No data found");
 					return;
 				}
-				var grid:EditDataGridPanel = PopUpManager.createPopUp(this,EditDataGridPanel) as EditDataGridPanel;
+				var grid:EditDataGridPanel = PopUpManager.createPopUp(this, EditDataGridPanel) as EditDataGridPanel;
 				
 				//Listen for save changes in Data Grid Editor
-				grid.saveButton.addEventListener(MouseEvent.CLICK,handleSaveButtonClick);
+				grid.saveButton.addEventListener(MouseEvent.CLICK, handleSaveButtonClick);
 				
 				//Every time we load data into the grid we get the data from the csvDataString and not from csvDataArray. 
 				//Because if data is modified in the gird it is saved to the csvDataArray irrespective of whether the user clicks the Save button or not.
@@ -171,7 +219,7 @@
 				var tempArray:Array = WeaveAPI.CSVParser.parseCSV(csvDataString);
 				csvDataArray = WeaveAPI.CSVParser.convertRowsToRecords(tempArray);
 				
-				grid.loadData(csvDataArray,headerArray);
+				grid.loadData(csvDataArray, headerArray);
 				
 				PopUpManager.bringToFront(grid);
 			}
@@ -180,13 +228,13 @@
 			{
 				// fix bug that occurs after datagrid validateNow(): it puts in mx_internal_uid values
 				for each (var item:Object in csvDataArray)
-				delete item['mx_internal_uid'];
+					delete item['mx_internal_uid'];
 				
 				var tempArray:Array = WeaveAPI.CSVParser.convertRecordsToRows(csvDataArray);
 				csvDataString = WeaveAPI.CSVParser.createCSVFromArrays(tempArray);
 				
 				//if the data entered through the text area, update the text area to reflect the changes made.
-				if(csvTextArea.text !="")
+				if (csvTextArea.text != "")
 				{
 					csvTextArea.text = csvDataString;
 				}
@@ -194,50 +242,12 @@
 			
 			private function handleURLTextChange():void
 			{
-				uploadMessg.visible = false;
-				showGridButton.enabled=false;
-				csvDataString='';
-				csvTextArea.text='';
+				uploadMessage.visible = false;
+				showGridButton.enabled = false;
+				csvDataString = '';
+				csvTextArea.text = '';
 			}
 			
 		]]>
 	</mx:Script>
-	<mx:Label id="editorTitle" fontWeight="bold" text="Add CSV Data Source"/>
-	<mx:HBox>
-		<mx:Label text="Source Name *" width="120"/>
-		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" text="{uniqueName}" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="Source URL *" width="120"/>
-		<mx:TextInput change="handleURLTextChange()" id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv"/>
-	</mx:HBox>
-	<mx:HBox horizontalAlign="center" width="100%">
-		<mx:Label fontWeight="bold" text="OR"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="Open local CSV file*" width="120"/>
-		<mx:Button label="Browse" click="browseForFiles()"/>
-		<mx:Label id="uploadMessg" color="0xFF0000" text="loaded" visible="false"/>
-	</mx:HBox>
-	<mx:HBox horizontalAlign="center" width="100%">
-		<mx:Label fontWeight="bold" text="OR"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="Paste/Edit CSV Data*" width="120"/>
-		<mx:TextArea id="csvTextArea" change="updateCSVDataString(csvTextArea.text)" width="300" height="100" cornerRadius="5" borderStyle="solid"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="Key Type *" width="120"/>
-		<mx:TextInput id="keyType" text="{uniqueName}" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter key type like US State Fips Code,etc. "/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="Key Column" width="120"/>
-		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter the column name that uniquely identifies each row in the data set"/>
-	</mx:HBox>
-	<mx:Label text="*required"/>
-	<mx:Button enabled="false" label="View data in Grid" id="showGridButton" click="showGrid()"/>
-<!--	<mx:HBox>
-		<mx:Label text="note:" fontWeight="bold"/>
-		<mx:TextArea backgroundDisabledColor="0xFFFFFF" verticalScrollPolicy="off" borderThickness="0" color="0x000000" enabled="false" text="if you want to upload a CSV file use the Import->New DataSet option from the top menu"/>
-	</mx:HBox>-->
 </mx:VBox>

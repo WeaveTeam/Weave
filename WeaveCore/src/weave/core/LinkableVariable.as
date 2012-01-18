@@ -22,6 +22,7 @@ package weave.core
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.core.ILinkableVariable;
+	import weave.api.reportError;
 	
 	/**
 	 * LinkableVariable allows callbacks to be added that will be called when the value changes.
@@ -42,7 +43,16 @@ package weave.core
 		 */
 		public function LinkableVariable(sessionStateType:Class = null, verifier:Function = null)
 		{
-			_sessionStateType = sessionStateType;
+			// not supporting XML directly
+			if (sessionStateType == XML)
+			{
+				reportError("XML is not supported directly as a session state primitive type. Using String instead.");
+				_sessionStateType = String;
+			}
+			else
+			{
+				_sessionStateType = sessionStateType;
+			}
 			_verifier = verifier;
 		}
 
@@ -77,6 +87,16 @@ package weave.core
 		 * Function signature should be  function(value:*):Boolean
 		 */		
 		protected var _verifier:Function = null;
+		
+		/**
+		 * This function will verify if a given value is a valid session state for this linkable variable.
+		 * @param value The value to verify.
+		 * @return A value of true if the value is accepted by this linkable variable.
+		 */
+		internal function verifyValue(value:Object):Boolean
+		{
+			return _verifier == null || _verifier(value);
+		}
 
 		protected var _sessionStateType:Class = null;
 		public function getSessionStateType():Class
@@ -117,8 +137,12 @@ package weave.core
 			// two LinkableVariables to share the same object as their session state.
 			if (value !== null)
 			{
+				// not supporting XML directly
 				if (value is XML)
-					value = (value as XML).copy();
+				{
+					reportError("XML is not supported directly as a session state primitive type. Using String instead.");
+					value = (value as XML).toXMLString();
+				}
 				else if (typeof(value) == 'object')
 					value = ObjectUtil.copy(value);
 			}
@@ -129,23 +153,11 @@ package weave.core
 			
 			_sessionStateWasSet = true;
 
-//			if (_sessionState is XML)
-//				(_sessionState as XML).setNotification(null); // stop the old XML from triggering callbacks
-//			if (value is XML)
-//				(value as XML).setNotification(handleChange); // this will trigger callbacks when the new xml is modified.
 			_sessionState = value;
 
 			triggerCallbacks();
 		}
 
-//		/**
-//		 * This function gets called if the session state is an XML object and it changes.
-//		 */		
-//		private function handleChange(..._):void
-//		{
-//			triggerCallbacks();
-//		}
-		
 		/**
 		 * Call this function when you do not want to allow any more changes to the value of this sessioned property.
 		 */

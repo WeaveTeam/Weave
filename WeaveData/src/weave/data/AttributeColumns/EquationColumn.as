@@ -42,6 +42,7 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableString;
 	import weave.core.UntypedLinkableVariable;
 	import weave.data.QKeyManager;
+	import weave.utils.ColumnUtils;
 	import weave.utils.EquationColumnLib;
 	
 	/**
@@ -68,35 +69,68 @@ package weave.data.AttributeColumns
 		public function EquationColumn()
 		{
 			setMetadata(AttributeColumnMetadata.TITLE, "Untitled Equation");
+			//setMetadata(AttributeColumnMetadata.DATA_TYPE, DataTypes.NUMBER);
 			equation.value = 'undefined';
-			variables.childListCallbacks.addImmediateCallback(this, handleVariablesListChange);
-			getCallbackCollection(this).addImmediateCallback(this, resetMetadataFunctions);
 		}
 		
 		/**
-		 * This is the column to get keys from.
+		 * This is all the keys in all the variables columns
 		 */
-		public const keyColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		private var _allKeys:Array = null;
+		private var _allKeysTriggerCount:uint = 0;
+		/**
+		 * This is a cache of metadata values derived from the metadata session state.
+		 */		
+		private var _cachedMetadata:Object = {};
+		private var _cachedMetadataTriggerCount:uint = 0;
+		/**
+		 * This is the Class corresponding to dataType.value.
+		 */		
+		private var _defaultDataType:Class = null;
+		/**
+		 * This is the function compiled from the equation.
+		 */
+		private var compiledEquation:Function = null;
+		/**
+		 * This flag is set to true when the equation evaluates to a constant.
+		 */
+		private var _equationIsConstant:Boolean = false;
+		/**
+		 * This value is set to the result of the function when it compiles into a constant.
+		 */
+		private var _constantResult:* = undefined;
+		/**
+		 * This is a proxy object providing access to the variables.
+		 */		
+		private const _symbolTableProxy:ProxyObject = new ProxyObject(hasVariable, variableGetter, null);
+		/**
+		 * This is the last error thrown from the compiledEquation.
+		 */		
+		private var _lastError:String;
+		/**
+		 * This is true while code inside getValueFromKey is executing.
+		 */		
+		private var in_getValueFromKey:Boolean = false;
+		/**
+		 * This is a mapping from keys to cached data values.
+		 */
+		private var _equationResultCache:Dictionary = new Dictionary();
+		private var _cacheTriggerCount:uint = 0;
+		
+		
 		/**
 		 * This is the equation that will be used in getValueFromKey().
 		 */
-		public const equation:LinkableString = newLinkableChild(this, LinkableString, handleEquationChange);
+		public const equation:LinkableString = newLinkableChild(this, LinkableString);
 		/**
 		 * This is a list of named variables made available to the compiled equation.
 		 */
-		public const variables:LinkableHashMap = newLinkableChild(this, LinkableHashMap, handleVariablesChange);
+		public const variables:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 		
 		/**
 		 * This holds the metadata for the column.
 		 */
 		public const metadata:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable);
-		
-		
-		private var _cachedMetadata:Object = {};
-		private function resetMetadataFunctions():void
-		{
-			_cachedMetadata = {};
-		}
 		
 		/**
 		 * This function intercepts requests for dataType and title metadata and uses the corresponding linkable variables.
@@ -105,6 +139,12 @@ package weave.data.AttributeColumns
 		 */
 		override public function getMetadata(propertyName:String):String
 		{
+			if (_cachedMetadataTriggerCount != triggerCounter)
+			{
+				_cachedMetadata = {};
+				_cachedMetadataTriggerCount = triggerCounter;
+			}
+			
 			if (_cachedMetadata.hasOwnProperty(propertyName))
 				return _cachedMetadata[propertyName] as String;
 			
@@ -115,7 +155,7 @@ package weave.data.AttributeColumns
 				{
 					try
 					{
-						var func:Function = compiler.compileToFunction(value, symbolTableProxy, true);
+						var func:Function = compiler.compileToFunction(value, _symbolTableProxy, true);
 						value = func.apply(this, arguments);
 					}
 					catch (e:Error)
@@ -149,11 +189,6 @@ package weave.data.AttributeColumns
 			metadata.value = _metadata; // this triggers callbacks
 		}
 		
-		/**
-		 * This is the Class corresponding to dataType.value.
-		 */		
-		private var _defaultDataType:Class = null;
-
 		/**
 		 * This function gets called when dataType changes and sets _defaultDataType.
 		 */
@@ -195,73 +230,19 @@ package weave.data.AttributeColumns
 		{
 			return variables.requestObject(name, classDef, lockObject);
 		}
-		
-		/**
-		 * This is the function compiled from the equation.
-		 */
-		private var compiledEquation:Function = null;
-		
-		/**
-		 * This flag is set to true when the equation evaluates to a constant.
-		 */
-		private var _equationIsConstant:Boolean = false;
-		/**
-		 * This value is set to the result of the function when it compiles into a constant.
-		 */
-		private var _constantResult:* = undefined;
 
-		/**
-		 * This function gets called when the equation changes.
-		 */
-		private function handleEquationChange():void
-		{
-			//trace(equation.value, "handleEquationChange");
-			// clear the cached data
-			_equationResultCache = null;
-
-			//todo: error checking?
-
-			try
-			{
-				// set default values in case an error is thrown
-				compiledEquation = null;
-				_equationIsConstant = true;
-				_constantResult = undefined;
-				
-				// check if the equation evaluates to a constant
-				var compiledObject:ICompiledObject = compiler.compileToObject(equation.value);
-				if (compiledObject is CompiledConstant)
-				{
-					// save the constant result of the function
-					_equationIsConstant = true;
-					_constantResult = (compiledObject as CompiledConstant).value;
-				}
-				else
-				{
-					// compile into a function
-					compiledEquation = compiler.compileObjectToFunction(compiledObject, symbolTableProxy, true, false, ['key', 'dataType']);
-					_equationIsConstant = false;
-				}
-			}
-			catch (e:Error)
-			{
-				// It will not hurt anything if this fails.
-			}
-		}
-
-		/**
-		 * This is the column to get keys and keyType from if keyColumn is undefined.
-		 */
-		private var _columnToGetKeysFrom:IAttributeColumn = null;
-		
 		/**
 		 * @return The keys associated with this EquationColumn.
 		 */
 		override public function get keys():Array
 		{
-			if (keyColumn.internalColumn)
-				return keyColumn.keys;
-			return _columnToGetKeysFrom ? _columnToGetKeysFrom.keys : [];
+			// return all the keys of all columns in the variables list
+			if (_allKeysTriggerCount != variables.triggerCounter)
+			{
+				_allKeys = ColumnUtils.getAllKeys(variables.getObjects(IAttributeColumn));
+				_allKeysTriggerCount = variables.triggerCounter;
+			}
+			return _allKeys;
 		}
 
 		/**
@@ -273,40 +254,6 @@ package weave.data.AttributeColumns
 			return !StandardLib.isUndefined(getValueFromKey(key));
 		}
 
-		/**
-		 * This function gets called when the variables change.
-		 */
-		private function handleVariablesChange():void
-		{
-			//trace(equation.value, "handleVariablesChange");
-			
-			// clear the cached data
-			_equationResultCache = null;
-
-			// get new keys
-			handleVariablesListChange();
-		}
-		
-		/**
-		 * This function gets called when a variable is added, removed, or reordered.
-		 * The first column in the list will be used to get keys.
-		 */		
-		private function handleVariablesListChange():void
-		{
-			if (variables.childListCallbacks.lastObjectRemoved == _columnToGetKeysFrom)
-				_columnToGetKeysFrom = null;
-			
-			if (_columnToGetKeysFrom == null)
-			{
-				// save a pointer to the first column in the variables list (to get keys from)
-				var columns:Array = variables.getObjects(IAttributeColumn);
-				if (columns.length > 0)
-					_columnToGetKeysFrom = (columns[0] as IAttributeColumn);
-			}
-		}
-		
-		private const symbolTableProxy:ProxyObject = new ProxyObject(hasVariable, variableGetter, null);
-		
 		private function variableGetter(name:String):*
 		{
 			if (name == 'get')
@@ -321,15 +268,6 @@ package weave.data.AttributeColumns
 			return variables.getObject(name) != null;
 		}
 		
-		/**
-		 * This is the last error thrown from the compiledEquation.
-		 */		
-		private var _lastError:String;
-		
-		/**
-		 * This is true while code inside getValueFromKey is executing.
-		 */		
-		private var in_getValueFromKey:Boolean = false;
 		
 		/**
 		 * @return The result of the compiled equation evaluated at the given record key.
@@ -338,19 +276,44 @@ package weave.data.AttributeColumns
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			if (in_getValueFromKey && EquationColumnLib.currentRecordKey == key)
-				return undefined;
+				return undefined; // recursively defined values are undefined
 			
-			var value:*;
-			if (_equationIsConstant)
+			// reset cached values if necessary
+			if (_cacheTriggerCount != triggerCounter)
 			{
-				// if the equation evaluated to a constant, just use the constant value
-				value = _constantResult;
+				_cacheTriggerCount = triggerCounter;
+				try
+				{
+					// check if the equation evaluates to a constant
+					var compiledObject:ICompiledObject = compiler.compileToObject(equation.value);
+					if (compiledObject is CompiledConstant)
+					{
+						// save the constant result of the function
+						_equationIsConstant = true;
+						_equationResultCache = null; // we don't need a cache
+						_constantResult = (compiledObject as CompiledConstant).value;
+					}
+					else
+					{
+						// compile into a function
+						compiledEquation = compiler.compileObjectToFunction(compiledObject, _symbolTableProxy, true, false, ['key', 'dataType']);
+						_equationIsConstant = false;
+						_equationResultCache = new Dictionary(); // create a new cache
+						_constantResult = undefined;
+					}
+				}
+				catch (e:Error)
+				{
+					// if compiling fails
+					_equationIsConstant = true;
+					_constantResult = undefined;
+				}
 			}
-			else
+			
+			var value:* = _constantResult;
+			if (!_equationIsConstant)
 			{
 				// otherwise, use cached equation results
-				if (_equationResultCache == null)
-					_equationResultCache = new Dictionary();
 				value = _equationResultCache[key];
 				// if the data value was not cached for this key yet, cache it now.
 				if (value == undefined)
@@ -400,11 +363,6 @@ package weave.data.AttributeColumns
 			
 			return value;
 		}
-
-		/**
-		 * This is a mapping from keys to cached data values.
-		 */
-		private var _equationResultCache:Dictionary = new Dictionary();
 
 		
 		//---------------------------------

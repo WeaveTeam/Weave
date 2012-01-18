@@ -56,7 +56,8 @@
 			<mx:Accordion id="functionLists" height="100%" minHeight="300" width="100%"/>
 		</mx:VBox>
 		<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
-			<ColumnListComponent label="Variables" hashMap="{equationColumn.variables}" dragMoveEnabled="false" width="100%" height="100%"/>
+			<ColumnListComponent label="Variables" hashMap="{equationColumn.variables}" dragMoveEnabled="false" width="100%"/>
+			<LinkableObjectGrid hashMap="{equationColumn.variables}" width="100%"/>
 		</mx:VBox>
 	</mx:HDividedBox>
 	<mx:Fade id="fadeIn" duration="800" alphaFrom="0.0" alphaTo="1.0"/>

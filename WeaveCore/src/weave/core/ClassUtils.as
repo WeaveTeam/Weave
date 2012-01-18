@@ -19,17 +19,10 @@
 
 package weave.core
 {
-	import flash.events.Event;
 	import flash.system.ApplicationDomain;
-	import flash.system.LoaderContext;
 	import flash.utils.describeType;
-	
-	import mx.controls.SWFLoader;
-	import mx.core.ClassFactory;
-	import mx.core.mx_internal;
 
 	/**
-	 * ClassUtils
 	 * This is an all-static class containing functions related to qualified class names.
 	 * 
 	 * @author adufilie
@@ -50,27 +43,6 @@ package weave.core
 		}
 
 		/**
-		 * This function loads a SWF library into the current ApplicationDomain so getClassDefinition() and getDefinitionByName() can get its class definitions.
-		 * @param source Either the URL to a SWF or a ByteArray containing the SWF to load.
-		 * @param callback The function to call when the SWF is finished loading.
-		 * @param callbackParams Optional parameters to pass to the callback function.
-		 */
-		public static function loadSWF(source:Object, callback:Function, callbackParams:Array = null):void
-		{
-			var loader:SWFLoader = new SWFLoader();
-			// loading the plugin in the same ApplicationDomain allows getDefinitionByName() to return results from the plugin.
-			loader.loaderContext = new LoaderContext(false, ApplicationDomain.currentDomain);
-			loader.load(source);
-			loader.addEventListener(
-				Event.COMPLETE,
-				function(e:Event):void
-				{
-					callback.apply(null, callbackParams);
-				}
-			);
-		}
-
-		/**
 		 * @param classQName A qualified class name.
 		 * @param implementsQName A qualified interface name.
 		 * @return true if the class implements the interface, or if the two QNames are equal.
@@ -86,6 +58,7 @@ package weave.core
 			} catch (e:Error) { trace(e.getStackTrace()); }
 			return false;
 		}
+		
 		/**
 		 * @param classQName A qualified class name of a class in question.
 		 * @param extendsQName A qualified class name that the class specified by classQName may extend.
@@ -102,6 +75,7 @@ package weave.core
 			} catch (e:Error) { trace(e.getStackTrace()); }
 			return false;
 		}
+		
 		/**
 		 * @param classQName A qualified class name.
 		 * @param isQName A qualified class or interface name.
