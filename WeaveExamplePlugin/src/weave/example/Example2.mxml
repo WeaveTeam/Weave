@@ -19,17 +19,9 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<ui:DraggablePanel xmlns="weave.example.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*">
+<mx:TitleWindow xmlns="weave.example.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*">
 	<mx:HBox>
-		<mx:Label text="This is an example panel"/>
+		<mx:Label text="This is an example TitleWindow"/>
 		<ui:HelpComponent>Example help text</ui:HelpComponent>
 	</mx:HBox>
-	<ui:ControlPanel>
-		<mx:VBox>
-			<mx:Label text="Example control panel"/>
-		</mx:VBox>
-		<mx:VBox>
-			<mx:Label text="Second tab of example control panel"/>
-		</mx:VBox>
-	</ui:ControlPanel>
-</ui:DraggablePanel>
+</mx:TitleWindow>

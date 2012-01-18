@@ -743,8 +743,10 @@ package weave.core
 		 */
 		public function disposeObjects(object:Object, ...moreObjects):void
 		{
-			if (object != null)
+			if (object != null && !_disposedObjectsMap[object])
 			{
+				_disposedObjectsMap[object] = true;
+				
 				try
 				{
 					// if the object implements IDisposableObject, call its dispose() function now
@@ -850,8 +852,6 @@ package weave.core
 						(displayObject as UIComponent).mx_internal::cancelAllCallLaters();
 				}
 			}
-			
-			_disposedObjectsMap[object] = true;
 			
 			// dispose of the remaining specified objects
 			for (var i:int = 0; i < moreObjects.length; i++)
