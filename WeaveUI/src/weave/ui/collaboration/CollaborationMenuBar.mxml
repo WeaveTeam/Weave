@@ -57,7 +57,7 @@
 			public const collabService:CollaborationService 	= registerDisposableChild(this, new CollaborationService(Weave.root));
 			public var rtmpService:NetConnection 				= null;
 			
-			private const rtmpPath:String = "rtmp://127.0.0.1/live";
+			private const rtmpPath:String = "rtmp://dynhost.hopto.org:1935/live";
 			
 			private var CHAT:CollaborationChatWindow 			= null;
 			private var SETTINGS:CollaborationSettingsWindow 	= null;
@@ -122,6 +122,7 @@
 									  int(Weave.properties.collabServerPort.value), 
 									  Weave.properties.collabServerRoomToJoin.value, 
 									  SETTINGS.collab_NICKNAME);
+				rtmpService.client = this;
 				rtmpService.connect(rtmpPath);
 				
 				// Set timeout to 10 seconds
@@ -143,6 +144,9 @@
 				
 				if( !SETTINGS.visible ) toggleSettings();
 				SETTINGS.showConnectionWarning("Server not responding");
+				
+				if( rtmpService.connected )
+					rtmpService.close();
 			}
 			private function createWindowSettings():void
 			{
@@ -322,36 +326,10 @@
 					Alert.show("Would you like to reconnect to the room?", "Disconnection Alert", Alert.YES | Alert.NO, null, disconnectHandler);
 				}
 			}
-			private function rtmpNetStatus(e:NetStatusEvent):void
-			{
-				switch( e.info.code )
-				{
-					case "NetConnection.Connect.Success":
-						trace("NetConnection success");
-						connectedToRTMPService = true;
-						break;
-					case "NetConnection.Connect.Failed":
-						trace("NetConnection failed");
-						connectedToRTMPService = false;
-						break;
-					
-                	case "NetStream.Play.StreamNotFound":
-						
-						break;
-					default:
-						trace( e.info.code );
-						break;
-           		}
-        	}
-			private function rtmpSecurityError(e:SecurityErrorEvent):void
-			{
-				
-			}
 			private function disconnectHandler( e:CloseEvent ):void
 			{
 				if (e.detail == Alert.YES)
 					connect();
-//					dispatchEvent(new Event(CollaborationEvent.RECONNECT_ERROR));
 			}
 			private function stopConTimer():void
 			{
@@ -368,21 +346,51 @@
 					button_connect.label = "Disconnect";
 					button_connect.removeEventListener(MouseEvent.CLICK, connect);
 					button_connect.addEventListener(MouseEvent.CLICK, disconnect);
-//					button_connect.setStyle("icon", iDis);
+					//					button_connect.setStyle("icon", iDis);
 					button_chat.enabled = true;
 				} else {
 					button_connect.label = "Connect";
 					button_connect.removeEventListener(MouseEvent.CLICK, disconnect);
 					button_connect.addEventListener(MouseEvent.CLICK, connect);
-//					button_connect.setStyle("icon", iCon);
+					//					button_connect.setStyle("icon", iCon);
 					button_chat.enabled = false;
 					if( CHAT.visible ) toggleChat();
 				}
 			}
 			
+			
+			private function rtmpNetStatus(e:NetStatusEvent):void
+			{
+				trace( e.info.code+": "+e.info.description );
+				
+				switch( e.info.code )
+				{
+					case "NetConnection.Connect.Success":
+						connectedToRTMPService = true;
+						CHAT.connectedToRTMPService = true;
+						break;
+					case "NetConnection.Connect.Failed":
+						connectedToRTMPService = false;
+						CHAT.connectedToRTMPService = false;
+						break;
+                	case "NetStream.Play.StreamNotFound":
+						break;
+					default:
+						trace( e.info.code );
+						break;
+           		}
+        	}
+			private function rtmpSecurityError(e:SecurityErrorEvent):void
+			{
+				
+			}
+			public function onBWDone():void
+			{
+				trace("onBWDone");
+			}
 			private function requestPing(e:TimerEvent):void 		   { collabService.sendPing(SETTINGS.collab_NICKNAME); }
-			private function updatePing(e:Event):void 				   { CHAT.ping = collabService.ping; }
-			private function updateUserMic(e:CollaborationEvent):void  {	collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, collabService.TYPE_MIC, ( e.getText() == "1" )); }
+			private function updatePing(e:CollaborationEvent):void 	   { CHAT.setUserPing(e.getText(), e.getX()); }
+			private function updateUserMic(e:CollaborationEvent):void  { collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, collabService.TYPE_MIC, ( e.getText() == "1" )); }
 			private function updateUserCam(e:CollaborationEvent):void  { collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, collabService.TYPE_CAM, ( e.getText() == "1" )); }
 			private function userMicUpdated(e:CollaborationEvent):void { CHAT.setUserMic(e.getText(), ( e.getColor() == 1 )); }
 			private function userCamUpdated(e:CollaborationEvent):void { CHAT.setUserCam(e.getText(), ( e.getColor() == 1 )); }

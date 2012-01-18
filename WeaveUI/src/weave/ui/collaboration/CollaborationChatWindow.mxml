@@ -34,16 +34,16 @@
 			 paddingBottom="{padding}" paddingLeft="{padding}"
 			 paddingRight="{padding}" paddingTop="{padding}">
 		<mx:VDividedBox width="100%" height="100%">
-			<mx:VBox width="100%" horizontalScrollPolicy="off">
+			<mx:VBox width="100%" horizontalScrollPolicy="off" 
+					 visible="{connectedToRTMPService}" includeInLayout="{connectedToRTMPService}">
 				<mx:Canvas id="camChatContainer" width="100%" height="100%" backgroundColor="#000000" />
 				<mx:HBox id="addonControls" width="100%" horizontalAlign="left" horizontalScrollPolicy="off">
-					<collab:CollaborationPing id="collabPing" width="35" height="20" ping="{ping}" />
-					<mx:Spacer width="{addonControls.width/2 - holder.width/2 - collabPing.width - 14}" />
+					<mx:Spacer width="{addonControls.width/2 - holder.width/2 - 14}" />
 					<mx:HBox id="holder">
-						<mx:Button id="button_mic" icon="{iconMic}" width="28" height="22" toggle="true" enabled="{addOnsSaved}"
-								   click="toggleMic(event)"/>
-						<mx:Button id="button_cam" icon="{iconCam}" width="28" height="22" toggle="true" enabled="{addOnsSaved}"
-								   click="toggleCam(event)"/>
+						<mx:Button id="button_mic" icon="{iconMic}" width="28" height="22" toggle="true" 
+								   enabled="{addOnsSaved}" click="toggleMic(event)"/>
+						<mx:Button id="button_cam" icon="{iconCam}" width="28" height="22" toggle="true" 
+								   enabled="{addOnsSaved}" click="toggleCam(event)"/>
 					</mx:HBox>
 				</mx:HBox>
 			</mx:VBox>
@@ -53,7 +53,7 @@
 					<mx:List id="userList" height="100%" labelField="name" minWidth="140">
 						<mx:itemRenderer>
 							<mx:Component>
-								<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off" paddingLeft="5" paddingRight="5">
+								<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off" paddingRight="4">
 									<mx:Script>
 										<![CDATA[
 											
@@ -66,6 +66,7 @@
 													micPic.includeInLayout 	= outerDocument._userListInfo[value].mic;
 													camPic.visible			= outerDocument._userListInfo[value].cam;
 													camPic.includeInLayout	= outerDocument._userListInfo[value].cam;
+													collabPing.ping			= outerDocument._userListInfo[value].ping;
 												}
 												labelName.text = value as String;
 												if( (value as String) == outerDocument.username )
@@ -84,6 +85,7 @@
 									</mx:Canvas>
 									<mx:Image id="micPic" source="{outerDocument.iconMic}" width="15" height="15" />
 									<mx:Image id="camPic" source="{outerDocument.iconCam}" width="15" height="15" />
+									<collab:CollaborationPing id="collabPing" width="16" height="14" />
 								</mx:HBox>
 							</mx:Component>
 						</mx:itemRenderer>
@@ -106,28 +108,29 @@
 			
 			import weave.services.collaboration.CollaborationEvent;
 			
-			[Bindable] public var xFrom:Number = 0;
-			[Bindable] public var xTo:Number = 0;
-			[Bindable] public var yFrom:Number = 0;
-			[Bindable] public var yTo:Number = 0;
-			[Bindable] public var unreadMessages:Number = 0;
-			[Bindable] internal var _userListInfo:Dictionary  = new Dictionary();
-			[Bindable] private var _users:ArrayCollection = new ArrayCollection();
+			[Bindable] public var xFrom:Number 					= 0;
+			[Bindable] public var xTo:Number 					= 0;
+			[Bindable] public var yFrom:Number 					= 0;
+			[Bindable] public var yTo:Number 					= 0;
+			[Bindable] public var unreadMessages:Number 		= 0;
+			[Bindable] internal var _userListInfo:Dictionary	= new Dictionary();
+			[Bindable] private var _users:ArrayCollection 		= new ArrayCollection();
 			
-			[Bindable] private var padding:Number = 10;
-			[Bindable] public var addOnsSaved:Boolean = false;
-			[Bindable] public var ping:Number = -1;
-			internal var username:String = null;
+			[Bindable] private var padding:Number 				= 10;
+			[Bindable] public var addOnsSaved:Boolean 			= false;
+			[Bindable] public var ping:Number 					= 0;
+			[Bindable] public var connectedToRTMPService:Boolean= false;
+			internal var username:String 						= null;
 			
 			public var cam:Camera;
-			private var enabledMic:Boolean = false;
 			public var mic:Microphone;
+			private var enabledMic:Boolean = false;
 			private var enabledCam:Boolean = false;
 			
 			[Embed(source="../../resources/images/collab/mic.png")] internal const iconMic:Class;
 			[Embed(source="../../resources/images/collab/cam.png")] internal const iconCam:Class;
 			[Embed(source="../../resources/images/collab/speaker.png")] internal const iconSpeaker:Class;
-			
+
 			public function logText(txt:String):void
 			{
 				var from:String = txt.substr(0, txt.indexOf(":"));
@@ -217,6 +220,18 @@
 					_userListInfo[name] = o;
 				} else
 					_userListInfo[name].cam = val;
+				
+				(userList.dataProvider as ICollectionView).refresh();
+			}
+			public function setUserPing(name:String, val:Number):void
+			{
+				if( _userListInfo[name] == null )
+				{
+					var o:Object = new Object();
+					o.ping = val;
+					_userListInfo[name] = o;
+				} else
+					_userListInfo[name].ping = val;
 				
 				(userList.dataProvider as ICollectionView).refresh();
 			}

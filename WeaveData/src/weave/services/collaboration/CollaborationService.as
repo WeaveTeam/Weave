@@ -223,10 +223,13 @@ package weave.services.collaboration
 			var message:TextMessage = new TextMessage( selfJID, text );
 			sendEncodedObject( message, target );
 		}
-		public function sendPing(id:String):void
+		public function sendPing(id:String, sendToRoom:Boolean = false, ping:Number = 0):void
 		{
-			var message:Ping = new Ping(id);
-			sendEncodedObject(message, id);
+			var message:Ping = new Ping(id, sendToRoom, ping);
+			if( sendToRoom )
+				sendEncodedObject(message, null);
+			else
+				sendEncodedObject(message, id);
 		}
 		public function sendAddonUpdate( id:String, type:String, toggle:Boolean ):void
 		{
@@ -455,17 +458,22 @@ package weave.services.collaboration
 				else if( o is Ping )
 				{
 					var p:Ping = o as Ping;
-					ping = (new Date().getMilliseconds() - p.time);
-					if( ping < 0 )
-						ping = 500;
-					dispatchEvent(new Event(CollaborationEvent.UPDATE_PING));
+					
+					if( !p.sendToRoom ) 
+					{
+						ping = (new Date().getMilliseconds() - p.time);
+						if( ping < 0 ) ping = 500;
+						sendPing(nickname, true, ping);
+					} 
+					else
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_PING, p.id, 0, p.time));
 				}
 				else if( o is AddonsMessage )
 				{
 					var am:AddonsMessage = o as AddonsMessage;
-					if( am.type == "MIC" )
+					if( am.type == TYPE_MIC )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_MIC, am.id, ( am.toggle ) ? 1 : 0));
-					else if( am.type == "CAM" )
+					else if( am.type == TYPE_CAM )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_CAM, am.id, ( am.toggle ) ? 1 : 0));
 				}
 				//an unknown message with data, but wasn't one of the pre-defined types
@@ -673,13 +681,18 @@ internal class RequestMouseMessage
 }
 internal class Ping
 {
-	public function Ping(id:String = null)
+	public function Ping(id:String = null, sendToRoom:Boolean = false, ping:Number = 0)
 	{
 		this.id = id;
-		this.time = new Date().getMilliseconds();
+		this.sendToRoom = sendToRoom;
+		if( !sendToRoom )
+			this.time = new Date().getMilliseconds();
+		else
+			this.time = ping;
 	}
 	
 	public var id:String;
+	public var sendToRoom:Boolean;
 	public var time:Number;
 }
 internal class AddonsMessage

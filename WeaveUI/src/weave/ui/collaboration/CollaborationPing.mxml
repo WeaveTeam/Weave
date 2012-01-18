@@ -19,7 +19,7 @@
 -->
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off"
 		   width="50" height="25" backgroundAlpha="1" toolTip="{'Connection Strength: '+ strength}">
-	<mx:HBox width="100%" height="100%" horizontalGap="2" horizontalScrollPolicy="off" verticalAlign="bottom">
+	<mx:HBox width="100%" height="100%" horizontalGap="1" horizontalScrollPolicy="off" verticalAlign="bottom">
 		<mx:Canvas id="bar1" width="{width/5}" height="{1*height/4}" borderColor="0x000000" borderThickness="1" borderStyle="solid" />
 		<mx:Canvas id="bar2" width="{width/5}" height="{2*height/4}" borderColor="0x000000" borderThickness="1" borderStyle="solid" />
 		<mx:Canvas id="bar3" width="{width/5}" height="{3*height/4}" borderColor="0x000000" borderThickness="1" borderStyle="solid" />
