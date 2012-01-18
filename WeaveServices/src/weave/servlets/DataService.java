@@ -37,7 +37,9 @@ import weave.beans.DataServiceMetadata;
 import weave.beans.DataTableMetadata;
 import weave.beans.GeometryStreamMetadata;
 import weave.beans.WeaveRecordList;
+import weave.config.DublinCoreUtils;
 import weave.config.ISQLConfig;
+import weave.config.ISQLConfig.DatabaseConfigInfo;
 import weave.config.ISQLConfig.AttributeColumnInfo;
 import weave.config.ISQLConfig.DataType;
 import weave.config.ISQLConfig.GeometryCollectionInfo;
@@ -106,7 +108,7 @@ public class DataService extends GenericServlet
 				String schema = configInfo.schema;
 				Connection conn = SQLConfigUtils.getConnection(config, configConnectionName);
 				tableMetadata[i] = DublinCoreUtils.listDCElements(conn, schema, tableNames[i]);
-				tableMetadata[i].put(ISQLConfig.AttributeColumnInfo.Metadata.NAME.toString(), tableNames[i]);
+				tableMetadata[i].put(PublicMetadata.NAME, tableNames[i]);
 			}
 			catch (SQLException e)
 			{
