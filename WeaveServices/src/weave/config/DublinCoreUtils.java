@@ -23,7 +23,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -136,11 +136,11 @@ public class DublinCoreUtils
 	 * @throws RemoteException
 	 *             when the operation fails.
 	 */
-	public static List<DublinCoreElement> listDCElements(Connection conn, String schema, String dataTableName) throws RemoteException
+	public static Map<String,String> listDCElements(Connection conn, String schema, String dataTableName) throws RemoteException
 	{
-
 		try
 		{
+			Map<String,String> elements = new HashMap<String,String>();
 			if (SQLUtils.tableExists(conn, schema, DATASET_ELEMENTS_TABLE_NAME))
 			{
 				Statement stmt = conn.createStatement();
@@ -151,16 +151,10 @@ public class DublinCoreUtils
 						+ DATASET_ELEMENTS_DATASET_COLUMN + " = '" + dataTableName + "'" + " ORDER BY "
 						+ DATASET_ELEMENTS_ELEMENT_COLUMN);
 
-				List<DublinCoreElement> elements = new LinkedList<DublinCoreElement>();
-
 				while (rs.next())
-					elements.add(new DublinCoreElement(rs.getString(DATASET_ELEMENTS_ELEMENT_COLUMN), rs
-							.getString(DATASET_ELEMENTS_VALUE_COLUMN)));
-
-				return elements;
+					elements.put(rs.getString(DATASET_ELEMENTS_ELEMENT_COLUMN), rs.getString(DATASET_ELEMENTS_VALUE_COLUMN));
 			}
-			else
-				return new LinkedList<DublinCoreElement>();
+			return elements;
 		}
 		catch (SQLException e)
 		{

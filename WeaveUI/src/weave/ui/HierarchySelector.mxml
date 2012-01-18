@@ -367,6 +367,9 @@ Displays catoegories in a tree view and the attributes in a list.
 				var numAttrs:int = node.child("attribute").length();
 				if (numAttrs > 0)
 					label += ' (' + numAttrs + ')';
+				var source:String = node.@source;
+				if (source)
+					label += ' (Source: ' + source + ')';
 				
 				return label;
 			}

@@ -37,20 +37,21 @@ import weave.beans.DataServiceMetadata;
 import weave.beans.DataTableMetadata;
 import weave.beans.GeometryStreamMetadata;
 import weave.beans.WeaveRecordList;
+import weave.config.DublinCoreUtils;
+import weave.config.ISQLConfig;
+import weave.config.ISQLConfig.AttributeColumnInfo;
+import weave.config.ISQLConfig.AttributeColumnInfo.DataType;
+import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
+import weave.config.ISQLConfig.DatabaseConfigInfo;
+import weave.config.ISQLConfig.GeometryCollectionInfo;
+import weave.config.SQLConfigManager;
+import weave.config.SQLConfigUtils;
+import weave.geometrystream.SQLGeometryStreamReader;
 import weave.reports.WeaveReport;
-import weave.servlets.GenericServlet;
 import weave.utils.CSVParser;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 import weave.utils.SQLResult;
-import weave.config.ISQLConfig;
-import weave.config.SQLConfigManager;
-import weave.config.SQLConfigUtils;
-import weave.config.ISQLConfig.AttributeColumnInfo;
-import weave.config.ISQLConfig.GeometryCollectionInfo;
-import weave.config.ISQLConfig.AttributeColumnInfo.DataType;
-import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
-import weave.geometrystream.SQLGeometryStreamReader;
 
 /**
  * This class connects to a database and gets data
@@ -86,14 +87,35 @@ public class DataService extends GenericServlet
 		throws RemoteException
 	{
 		configManager.detectConfigChanges();
-		// encoding method is set to null here because we don't know what format it will be converted to later
+		
 		ISQLConfig config = configManager.getConfig();
 		String[] tableNames = config.getDataTableNames(null).toArray(new String[0]);
 		String[] geomNames = config.getGeometryCollectionNames(null).toArray(new String[0]);
 		String[] geomKeyTypes = new String[geomNames.length];
 		for (int i = 0; i < geomNames.length; i++)
 			geomKeyTypes[i] = config.getGeometryCollectionInfo(geomNames[i]).keyType;
-		return new DataServiceMetadata(config.getServerName(), tableNames, geomNames, geomKeyTypes);
+		
+		@SuppressWarnings("unchecked")
+		Map<String,String>[] tableMetadata = new Map[tableNames.length];
+		for (int i = 0; i < tableNames.length; i++)
+		{
+			// get dublin core metadata
+			try
+			{
+				DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
+				String configConnectionName = configInfo.connection;
+				String schema = configInfo.schema;
+				Connection conn = SQLConfigUtils.getConnection(config, configConnectionName);
+				tableMetadata[i] = DublinCoreUtils.listDCElements(conn, schema, tableNames[i]);
+				tableMetadata[i].put(ISQLConfig.AttributeColumnInfo.Metadata.NAME.toString(), tableNames[i]);
+			}
+			catch (SQLException e)
+			{
+				throw new RemoteException("Unable to connect to database", e);
+			}
+		}
+		
+		return new DataServiceMetadata(config.getServerName(), tableMetadata, geomNames, geomKeyTypes);
 	}
 	
 	@SuppressWarnings("unchecked")

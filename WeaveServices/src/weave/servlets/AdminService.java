@@ -52,7 +52,6 @@ import weave.beans.AdminServiceResponse;
 import weave.beans.UploadFileFilter;
 import weave.beans.UploadedFile;
 import weave.config.DatabaseConfig;
-import weave.config.DublinCoreElement;
 import weave.config.DublinCoreUtils;
 import weave.config.ISQLConfig;
 import weave.config.ISQLConfig.AttributeColumnInfo;
@@ -1931,36 +1930,22 @@ public class AdminService extends GenericServlet
 	 * If an error occurs, a map is returned with a single key-value pair whose
 	 * key is "error".
 	 */
-	synchronized public DublinCoreElement[] listDCElements(String connectionName, String password, String dataTableName) throws RemoteException
+	synchronized public Map<String,String> listDCElements(String connectionName, String password, String dataTableName) throws RemoteException
 	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-
-		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-		String configConnectionName = configInfo.connection;
-		Connection conn = null;
 		try
 		{
-			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+			
+			DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
+			String configConnectionName = configInfo.connection;
+			String schema = configInfo.schema;
+			Connection conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			return DublinCoreUtils.listDCElements(conn, schema, dataTableName);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("listDCElements failed", e);
 		}
-
-		String schema = configInfo.schema;
-		List<DublinCoreElement> list = DublinCoreUtils.listDCElements(conn, schema, dataTableName);
-
-		int n = list.size();
-		return list.toArray(new DublinCoreElement[n]);
-
-		// DublinCoreElement[] result = new DublinCoreElement[n];
-		// for (int i = 0; i < n; i++)
-		// {
-		// result[i] = list.get(i);
-		// System.out.println("list.get(i).element = " + list.get(i).element +
-		// " list.get(i).value = " + list.get(i).value);
-		// }
-		// return result;
 	}
 
 	/**

@@ -606,7 +606,11 @@
 				var tableName:String = getSelectedTableName();
 				var query:DelayedAsyncInvocation = AdminInterface.instance.listDCElements(tableName);
 				query.addAsyncResponder(function(e:ResultEvent, t:Object=null):void{
-					dcElementsEditor.dataProvider = e.result;
+					var list:Array = [];
+					for (var element:String in e.result)
+						list.push({"element": element, "value": e.result[element]});
+					list.sortOn("element");
+					dcElementsEditor.dataProvider = list;
 				});
 				deleteSelectedElementsButton.enabled = false;
 			}
