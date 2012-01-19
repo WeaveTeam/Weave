@@ -31,9 +31,16 @@ package weave
 	{
 		public function VisDesktop()
 		{
+		}
+		
+		override protected function createChildren():void
+		{
+			super.createChildren();
+			
 			internalCanvas.percentWidth = 100;
 			internalCanvas.percentHeight = 100;
 			addChild(internalCanvas);
+			
 			UIUtils.linkDisplayObjects(internalCanvas, LinkableDynamicObject.globalHashMap);
 		}
 		
