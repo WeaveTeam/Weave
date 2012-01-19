@@ -382,7 +382,7 @@ package weave
 			_selectionIndicatorText.text = selectionKeySet.keys.length.toString() + " Records Selected";
 			try
 			{
-				if (selectionKeySet.keys.length == 0)
+				if (selectionKeySet.keys.length == 0 || !Weave.properties.showSelectedRecordsText.value)
 				{
 					if (visDesktop == _selectionIndicatorText.parent)
 						visDesktop.removeChild(_selectionIndicatorText);
@@ -412,6 +412,7 @@ package weave
 			
 			// Code for selection indicator
 			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
+			Weave.properties.showSelectedRecordsText.addGroupedCallback(this, handleSelectionChange, true);
 			_selectionIndicatorText.setStyle("color", 0xFFFFFF);
 			_selectionIndicatorText.opaqueBackground = 0x000000;
 			_selectionIndicatorText.setStyle("bottom", 0);
