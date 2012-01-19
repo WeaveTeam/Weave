@@ -42,6 +42,7 @@ import weave.config.ISQLConfig;
 import weave.config.ISQLConfig.AttributeColumnInfo;
 import weave.config.ISQLConfig.AttributeColumnInfo.DataType;
 import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
+import weave.config.ISQLConfig.ConnectionInfo;
 import weave.config.ISQLConfig.DatabaseConfigInfo;
 import weave.config.ISQLConfig.GeometryCollectionInfo;
 import weave.config.SQLConfigManager;
@@ -52,7 +53,6 @@ import weave.utils.CSVParser;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 import weave.utils.SQLResult;
-import weave.utils.SQLUtils;
 
 /**
  * This class connects to a database and gets data
@@ -99,26 +99,13 @@ public class DataService extends GenericServlet
 		@SuppressWarnings("unchecked")
 		Map<String,String>[] tableMetadata = new Map[tableNames.length];
 		// get dublin core metadata
-		Connection conn = null;
-		try
+		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
+		ConnectionInfo connInfo = config.getConnectionInfo(configInfo.connection);
+		Connection conn = connInfo.getStaticReadOnlyConnection();
+		for (int i = 0; i < tableNames.length; i++)
 		{
-			DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-			String configConnectionName = configInfo.connection;
-			String schema = configInfo.schema;
-			conn = SQLConfigUtils.getConnection(config, configConnectionName);
-			for (int i = 0; i < tableNames.length; i++)
-			{
-				tableMetadata[i] = DublinCoreUtils.listDCElements(conn, schema, tableNames[i]);
-				tableMetadata[i].put(ISQLConfig.AttributeColumnInfo.Metadata.NAME.toString(), tableNames[i]);
-			}
-		}
-		catch (SQLException e)
-		{
-			throw new RemoteException("Unable to connect to database", e);
-		}
-		finally
-		{
-			SQLUtils.cleanup(conn);
+			tableMetadata[i] = DublinCoreUtils.listDCElements(conn, configInfo.schema, tableNames[i]);
+			tableMetadata[i].put(ISQLConfig.AttributeColumnInfo.Metadata.NAME.toString(), tableNames[i]);
 		}
 		
 		return new DataServiceMetadata(config.getServerName(), tableMetadata, geomNames, geomKeyTypes);

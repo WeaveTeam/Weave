@@ -49,7 +49,7 @@ public class SQLConfigUtils
 	 * @param connectionName The name of a connection in the config file.
 	 * @return A new SQL connection using the specified connection.
 	 */
-	public static Connection getStaticReadOnlyConnection(ISQLConfig config, String connectionName) throws SQLException, RemoteException
+	public static Connection getStaticReadOnlyConnection(ISQLConfig config, String connectionName) throws RemoteException
 	{
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
 		if (info == null)
