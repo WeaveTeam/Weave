@@ -33,10 +33,11 @@
 	<mx:VBox width="100%" height="100%"
 			 paddingBottom="{padding}" paddingLeft="{padding}"
 			 paddingRight="{padding}" paddingTop="{padding}">
-		<mx:VDividedBox width="100%" height="100%">
-			<mx:VBox width="100%" horizontalScrollPolicy="off" 
+		<mx:VDividedBox id="containerGlobal" width="100%" height="100%">
+			<mx:VBox id="containerVideos" width="100%" horizontalScrollPolicy="off" 
 					 visible="{connectedToRTMPService}" includeInLayout="{connectedToRTMPService}">
-				<mx:Canvas id="camChatContainer" width="100%" height="100%" backgroundColor="#000000" />
+				<mx:UIComponent id="camChatContainer" width="100%" height="100%"
+						   horizontalCenter="{camChatContainer.width/2}" verticalCenter="{camChatContainer.height/2}" />
 				<mx:HBox id="addonControls" width="100%" horizontalAlign="left" horizontalScrollPolicy="off">
 					<mx:Spacer width="{addonControls.width/2 - holder.width/2 - 14}" />
 					<mx:HBox id="holder">
@@ -47,7 +48,7 @@
 					</mx:HBox>
 				</mx:HBox>
 			</mx:VBox>
-			<mx:VBox width="100%" height="100%">
+			<mx:VBox id="containerChat" width="100%" height="100%">
 				<mx:HDividedBox width="100%" height="100%" horizontalScrollPolicy="off">
 					<mx:TextArea id="log" width="100%" height="100%" editable="false" />
 					<mx:List id="userList" height="100%" labelField="name" minWidth="140">
@@ -69,7 +70,7 @@
 													collabPing.ping			= outerDocument._userListInfo[value].ping;
 												}
 												labelName.text = value as String;
-												if( (value as String) == outerDocument.username )
+												if( (value as String) == outerDocument.nickname )
 													labelName.setStyle("fontWeight", "bold");
 												else
 													labelName.setStyle("fontWeight", "normal");
@@ -120,12 +121,19 @@
 			[Bindable] public var addOnsSaved:Boolean 			= false;
 			[Bindable] public var ping:Number 					= 0;
 			[Bindable] public var connectedToRTMPService:Boolean= false;
-			internal var username:String 						= null;
+			[Bindable] public var rtmpService:NetConnection		= null;
+			
+			internal var nickname:String 						= null;
 			
 			public var cam:Camera;
 			public var mic:Microphone;
 			private var enabledMic:Boolean = false;
 			private var enabledCam:Boolean = false;
+			
+			private var nsPublishMic:NetStream 		= null;
+			private var nsPublishCam:NetStream 		= null;
+			private var nsPlayMicList:Dictionary  	= new Dictionary();
+			private var nsPlayCamList:Dictionary	= new Dictionary();
 			
 			[Embed(source="../../resources/images/collab/mic.png")] internal const iconMic:Class;
 			[Embed(source="../../resources/images/collab/cam.png")] internal const iconCam:Class;
@@ -134,7 +142,7 @@
 			public function logText(txt:String):void
 			{
 				var from:String = txt.substr(0, txt.indexOf(":"));
-				if( from && from == username )
+				if( from && from == nickname )
 					log.htmlText += "<font color='#FF0000'>"+txt+"<br>";
 				else
 					log.htmlText += "<font color='#0000FF'>"+txt +"<br>";
@@ -153,7 +161,7 @@
 			}
 			public function setNickname(usrname:String):void
 			{
-				username = usrname;
+				nickname = usrname;
 			}
 			public function set userNameList(array:ArrayCollection):void
 			{
@@ -166,11 +174,24 @@
 				
 				if( enabledMic )
 				{
-					// Do NetConnection stuff
+					if( rtmpService )
+					{
+						nsPublishMic = new NetStream(rtmpService);
+						nsPublishMic.bufferTime = 0;
+						mic.setUseEchoSuppression(true);
+						mic.setSilenceLevel(60);
+						nsPublishMic.attachAudio(mic);
+						nsPublishMic.publish("m-"+nickname, "live");
+					}
 				}
 				else
 				{
-					// Do close of connection stuff
+					if( rtmpService )
+					{
+						nsPublishMic.attachAudio(null);
+						nsPublishMic.close();
+						nsPublishMic = null;
+					}
 				}
 			}
 			private function toggleCam(e:MouseEvent):void
@@ -180,11 +201,22 @@
 				
 				if( enabledCam )
 				{
-					// Do NetConnection stuff
+					if( rtmpService )
+					{
+						nsPublishCam = new NetStream(rtmpService);
+						nsPublishCam.bufferTime = 0;
+						nsPublishCam.attachCamera(cam);
+						nsPublishCam.publish("v-"+nickname, "live");
+					}
 				}
 				else
 				{
-					// Do close of connection stuff
+					if( rtmpService )
+					{
+						nsPublishCam.attachCamera(null);
+						nsPublishCam.close();
+						nsPublishCam = null;
+					}
 				}
 			}
 			public function setUserColor(name:String, color:uint):void
@@ -209,6 +241,24 @@
 				} else
 					_userListInfo[name].mic = val;
 				
+				if( name == nickname ) return;
+				
+				if( val )
+				{
+					var ns:NetStream = new NetStream(rtmpService);
+					ns.bufferTime = 0;
+					ns.play("m-"+name);
+					nsPlayMicList[name] = ns;
+				}
+				else
+				{
+					if( nsPlayMicList[name] )
+					{
+						(nsPlayMicList[name] as NetStream).close();
+						delete nsPlayMicList[name];
+					}
+				}
+				
 				(userList.dataProvider as ICollectionView).refresh();
 			}
 			public function setUserCam(name:String, val:Boolean):void
@@ -220,6 +270,31 @@
 					_userListInfo[name] = o;
 				} else
 					_userListInfo[name].cam = val;
+				
+				if( name == nickname ) return;
+				
+				if( val )
+				{
+					var ns:NetStream = new NetStream(rtmpService);
+					var vid:Video = new Video(160,120);
+					ns.bufferTime = 0;
+					ns.play("v-"+name);
+					vid.attachNetStream(ns);
+					camChatContainer.addChild(vid);
+					containerVideos.height = 200;
+					nsPlayCamList[name] = { stream: ns, video: vid };
+				}
+				else
+				{
+					if( nsPlayCamList[name] )
+					{
+						camChatContainer.removeChild(nsPlayCamList[name].video);
+						nsPlayCamList[name].video.attachNetStream(null);
+						nsPlayCamList[name].video.clear();
+						nsPlayCamList[name].stream.close();
+						delete nsPlayCamList[name];
+					}
+				}
 				
 				(userList.dataProvider as ICollectionView).refresh();
 			}

@@ -57,7 +57,7 @@
 			public const collabService:CollaborationService 	= registerDisposableChild(this, new CollaborationService(Weave.root));
 			public var rtmpService:NetConnection 				= null;
 			
-			private const rtmpPath:String = "rtmp://dynhost.hopto.org:1935/live";
+			private const rtmpPath:String = "rtmpt://dynhost.hopto.org:8086/live";
 			
 			private var CHAT:CollaborationChatWindow 			= null;
 			private var SETTINGS:CollaborationSettingsWindow 	= null;
@@ -368,10 +368,12 @@
 					case "NetConnection.Connect.Success":
 						connectedToRTMPService = true;
 						CHAT.connectedToRTMPService = true;
+						CHAT.rtmpService = rtmpService;
 						break;
 					case "NetConnection.Connect.Failed":
 						connectedToRTMPService = false;
 						CHAT.connectedToRTMPService = false;
+						CHAT.rtmpService = null;
 						break;
                 	case "NetStream.Play.StreamNotFound":
 						break;
