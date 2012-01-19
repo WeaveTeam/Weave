@@ -1543,8 +1543,7 @@ public class AdminService extends GenericServlet
 				throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite DataTable \"%s\".", connectionName, configDataTableName));
 		}
 
-		// connect to database, generate and test each query before modifying
-		// config file
+		// connect to database, generate and test each query before modifying config file
 		List<String> titles = new LinkedList<String>();
 		List<String> queries = new Vector<String>();
 		List<String> dataTypes = new Vector<String>();
@@ -1637,6 +1636,10 @@ public class AdminService extends GenericServlet
 		catch (RemoteException e)
 		{
 			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(conn);
 		}
 		
 		if (sqlColumnNames.length == 0)
@@ -1904,20 +1907,17 @@ public class AdminService extends GenericServlet
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			String schema = configInfo.schema;
+			DublinCoreUtils.addDCElements(conn, schema, dataTableName, elements);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("addDCElements failed", e);
 		}
-
-		String schema = configInfo.schema;
-		DublinCoreUtils.addDCElements(conn, schema, dataTableName, elements);
-
-		// System.out.println("in addDCElements");
-		// int i = 0;
-		// for (Map.Entry<String, Object> e : elements.entrySet())
-		// System.out.println("  elements[" + (i++) + "] = {" + e.getKey()
-		// + " = " + e.getValue());
+		finally
+		{
+			SQLUtils.cleanup(conn);
+		}
 	}
 
 	/**
@@ -1932,6 +1932,7 @@ public class AdminService extends GenericServlet
 	 */
 	synchronized public Map<String,String> listDCElements(String connectionName, String password, String dataTableName) throws RemoteException
 	{
+		Connection conn = null;
 		try
 		{
 			ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
@@ -1939,12 +1940,16 @@ public class AdminService extends GenericServlet
 			DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
 			String configConnectionName = configInfo.connection;
 			String schema = configInfo.schema;
-			Connection conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			conn = SQLConfigUtils.getConnection(config, configConnectionName);
 			return DublinCoreUtils.listDCElements(conn, schema, dataTableName);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("listDCElements failed", e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(conn);
 		}
 	}
 
@@ -1963,14 +1968,17 @@ public class AdminService extends GenericServlet
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			String schema = configInfo.schema;
+			DublinCoreUtils.deleteDCElements(conn, schema, dataTableName, elements);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("deleteDCElements failed", e);
 		}
-
-		String schema = configInfo.schema;
-		DublinCoreUtils.deleteDCElements(conn, schema, dataTableName, elements);
+		finally
+		{
+			SQLUtils.cleanup(conn);
+		}
 	}
 
 	/**
@@ -1988,14 +1996,17 @@ public class AdminService extends GenericServlet
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			String schema = configInfo.schema;
+			DublinCoreUtils.updateEditedDCElement(conn, schema, dataTableName, object);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("updateEditedDCElement failed", e);
 		}
-
-		String schema = configInfo.schema;
-		DublinCoreUtils.updateEditedDCElement(conn, schema, dataTableName, object);
+		finally
+		{
+			SQLUtils.cleanup(conn);
+		}
 	}
 
 	synchronized public String saveReportDefinitionFile(String fileName, String fileContents) throws RemoteException

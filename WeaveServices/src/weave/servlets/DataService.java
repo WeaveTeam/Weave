@@ -52,6 +52,7 @@ import weave.utils.CSVParser;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 import weave.utils.SQLResult;
+import weave.utils.SQLUtils;
 
 /**
  * This class connects to a database and gets data
@@ -97,22 +98,27 @@ public class DataService extends GenericServlet
 		
 		@SuppressWarnings("unchecked")
 		Map<String,String>[] tableMetadata = new Map[tableNames.length];
-		for (int i = 0; i < tableNames.length; i++)
+		// get dublin core metadata
+		Connection conn = null;
+		try
 		{
-			// get dublin core metadata
-			try
+			DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
+			String configConnectionName = configInfo.connection;
+			String schema = configInfo.schema;
+			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			for (int i = 0; i < tableNames.length; i++)
 			{
-				DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-				String configConnectionName = configInfo.connection;
-				String schema = configInfo.schema;
-				Connection conn = SQLConfigUtils.getConnection(config, configConnectionName);
 				tableMetadata[i] = DublinCoreUtils.listDCElements(conn, schema, tableNames[i]);
 				tableMetadata[i].put(ISQLConfig.AttributeColumnInfo.Metadata.NAME.toString(), tableNames[i]);
 			}
-			catch (SQLException e)
-			{
-				throw new RemoteException("Unable to connect to database", e);
-			}
+		}
+		catch (SQLException e)
+		{
+			throw new RemoteException("Unable to connect to database", e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(conn);
 		}
 		
 		return new DataServiceMetadata(config.getServerName(), tableMetadata, geomNames, geomKeyTypes);
