@@ -156,7 +156,7 @@ public class SQLUtils
 	private static Map<String, Connection> _staticReadOnlyConnections = new HashMap<String, Connection>();
 	
 	/**
-	 * This function will test a connection by running a simple test query.  The connection will be closed if the query fails.
+	 * This function will test a connection by running a simple test query.
 	 * @param conn A SQL Connection.
 	 * @throws SQLException Thrown if the test query fails.
 	 */
@@ -187,7 +187,6 @@ public class SQLUtils
 		finally
 		{
 			cleanup(stmt);
-			cleanup(conn);
 		}
 	}
 
