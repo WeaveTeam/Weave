@@ -36,11 +36,14 @@
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.DataTypes;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IKeySet;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
+			import weave.api.ui.IPlotLayer;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
@@ -49,12 +52,14 @@
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 			import weave.primitives.Bounds2D;
+			import weave.primitives.ZoomBounds;
 			import weave.services.wms.WMSProviders;
 			import weave.ui.ColorController;
 			import weave.ui.DraggablePanel;
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
+			import weave.utils.SpatialIndex;
 			import weave.visualization.layers.InteractionController;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
@@ -479,6 +484,49 @@
 				}
 			}
 			
+			/**
+			 * This function will zoom the map to the shapes corresponding to a list of keys.
+			 * @param keys An Array of IQualifiedKey objects, or null to get them from the current selection.
+			 * @param zoomMarginPercent The percent of width and height to reserve for space around the zoomed area.
+			 */
+			public function zoomToSelection(keys:Array = null, zoomMarginPercent:Number = 0.2):void
+			{
+				if (!keys)
+				{
+					var selection:IKeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as IKeySet;
+					var probe:IKeySet = Weave.root.getObject(Weave.DEFAULT_PROBE_KEYSET) as IKeySet;
+					var alwaysHighlight:IKeySet = Weave.root.getObject(Weave.ALWAYS_HIGHLIGHT_KEYSET) as IKeySet;
+					keys = selection.keys;
+					if (keys.length == 0)
+						keys = probe.keys;
+					if (keys.length == 0)
+						keys = alwaysHighlight.keys;
+				}
+				
+				// get the bounds containing all the records on all the layers
+				_tempBounds.reset();
+				var layers:Array = visualization.layers.getObjects(IPlotLayer);
+				for each (var key:* in keys)
+				{
+					if (!(key is IQualifiedKey))
+						key = WeaveAPI.QKeyManager.getQKey(key.keyType, key.localName);
+					for each (var layer:IPlotLayer in layers)
+					{
+						var boundsArray:Array = (layer.spatialIndex as SpatialIndex).getBoundsFromKey(key);
+						for each (var bounds:IBounds2D in boundsArray)
+							_tempBounds.includeBounds(bounds);
+					}
+				}
+				// zoom to that bounds, expanding the area to keep the fixed aspect ratio
+				visualization.zoomBounds.setDataBounds(_tempBounds, true);
+				
+				// zoom out to include the specified margin
+				visualization.zoomBounds.getDataBounds(_tempBounds);
+				var scale:Number = 1 / (1 - zoomMarginPercent);
+				_tempBounds.setWidth(_tempBounds.getWidth() * scale);
+				_tempBounds.setHeight(_tempBounds.getHeight() * scale);
+				visualization.zoomBounds.setDataBounds(_tempBounds);
+			}
 		]]>
 	</mx:Script>
 
