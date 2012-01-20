@@ -32,7 +32,6 @@
 			
 			public function set ping(value:Number):void
 			{
-				trace("collabPing =", value);
 				if( value <= 60 ) {
 					setBars(4);
 					strength = "Excellent";

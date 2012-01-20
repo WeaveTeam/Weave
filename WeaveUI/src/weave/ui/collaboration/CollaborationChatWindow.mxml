@@ -34,10 +34,14 @@
 			 paddingBottom="{padding}" paddingLeft="{padding}"
 			 paddingRight="{padding}" paddingTop="{padding}">
 		<mx:VDividedBox id="containerGlobal" width="100%" height="100%">
-			<mx:VBox id="containerVideos" width="100%" horizontalScrollPolicy="off" 
+			<mx:VBox width="100%" horizontalScrollPolicy="off" 
 					 visible="{connectedToRTMPService}" includeInLayout="{connectedToRTMPService}">
-				<mx:UIComponent id="camChatContainer" width="100%" height="100%"
-						   horizontalCenter="{camChatContainer.width/2}" verticalCenter="{camChatContainer.height/2}" />
+				<mx:Canvas id="containerVideos" width="100%" height="100%" backgroundColor="#000000">
+					<mx:UIComponent id="containerCamChat" width="100%" height="100%" />
+					<mx:HBox verticalAlign="bottom" horizontalAlign="right" bottom="0" right="0">
+						<mx:UIComponent id="containerLocalCam" width="80" height="60" />
+					</mx:HBox>
+				</mx:Canvas>
 				<mx:HBox id="addonControls" width="100%" horizontalAlign="left" horizontalScrollPolicy="off">
 					<mx:Spacer width="{addonControls.width/2 - holder.width/2 - 14}" />
 					<mx:HBox id="holder">
@@ -124,12 +128,14 @@
 			[Bindable] public var rtmpService:NetConnection		= null;
 			
 			internal var nickname:String 						= null;
+			internal var roomName:String						= null;
 			
 			public var cam:Camera;
 			public var mic:Microphone;
-			private var enabledMic:Boolean = false;
-			private var enabledCam:Boolean = false;
 			
+			private var enabledMic:Boolean 			= false;
+			private var enabledCam:Boolean 			= false;
+			private var localVideo:Video   			= null;
 			private var nsPublishMic:NetStream 		= null;
 			private var nsPublishCam:NetStream 		= null;
 			private var nsPlayMicList:Dictionary  	= new Dictionary();
@@ -179,9 +185,9 @@
 						nsPublishMic = new NetStream(rtmpService);
 						nsPublishMic.bufferTime = 0;
 						mic.setUseEchoSuppression(true);
-						mic.setSilenceLevel(60);
+						mic.setSilenceLevel(20);
 						nsPublishMic.attachAudio(mic);
-						nsPublishMic.publish("m-"+nickname, "live");
+						nsPublishMic.publish("m-"+roomName+"-"+nickname, "live");
 					}
 				}
 				else
@@ -203,16 +209,28 @@
 				{
 					if( rtmpService )
 					{
+						localVideo = new Video(containerLocalCam.width, containerLocalCam.height);
+						cam.setQuality(0, 80);
+						localVideo.attachCamera(cam);
+						containerLocalCam.addChild(localVideo);
+						containerLocalCam.includeInLayout = true;
+						
 						nsPublishCam = new NetStream(rtmpService);
 						nsPublishCam.bufferTime = 0;
 						nsPublishCam.attachCamera(cam);
-						nsPublishCam.publish("v-"+nickname, "live");
+						nsPublishCam.publish("v-"+roomName+"-"+nickname, "live");
 					}
 				}
 				else
 				{
 					if( rtmpService )
 					{
+						localVideo.attachCamera(null);
+						localVideo.clear();
+						containerLocalCam.removeChild(localVideo);
+						containerLocalCam.includeInLayout = false;
+						localVideo = null;
+						
 						nsPublishCam.attachCamera(null);
 						nsPublishCam.close();
 						nsPublishCam = null;
@@ -241,13 +259,14 @@
 				} else
 					_userListInfo[name].mic = val;
 				
+				(userList.dataProvider as ICollectionView).refresh();
+				
 				if( name == nickname ) return;
 				
 				if( val )
 				{
 					var ns:NetStream = new NetStream(rtmpService);
-					ns.bufferTime = 0;
-					ns.play("m-"+name);
+					ns.play("m-"+roomName+"-"+name);
 					nsPlayMicList[name] = ns;
 				}
 				else
@@ -258,8 +277,6 @@
 						delete nsPlayMicList[name];
 					}
 				}
-				
-				(userList.dataProvider as ICollectionView).refresh();
 			}
 			public function setUserCam(name:String, val:Boolean):void
 			{
@@ -271,32 +288,30 @@
 				} else
 					_userListInfo[name].cam = val;
 				
+				(userList.dataProvider as ICollectionView).refresh();
+				
 				if( name == nickname ) return;
 				
 				if( val )
 				{
 					var ns:NetStream = new NetStream(rtmpService);
 					var vid:Video = new Video(160,120);
-					ns.bufferTime = 0;
-					ns.play("v-"+name);
+					ns.play("v-"+roomName+"-"+name);
 					vid.attachNetStream(ns);
-					camChatContainer.addChild(vid);
-					containerVideos.height = 200;
+					containerCamChat.addChild(vid);
 					nsPlayCamList[name] = { stream: ns, video: vid };
 				}
 				else
 				{
 					if( nsPlayCamList[name] )
 					{
-						camChatContainer.removeChild(nsPlayCamList[name].video);
+						containerCamChat.removeChild(nsPlayCamList[name].video);
 						nsPlayCamList[name].video.attachNetStream(null);
 						nsPlayCamList[name].video.clear();
 						nsPlayCamList[name].stream.close();
 						delete nsPlayCamList[name];
 					}
 				}
-				
-				(userList.dataProvider as ICollectionView).refresh();
 			}
 			public function setUserPing(name:String, val:Number):void
 			{

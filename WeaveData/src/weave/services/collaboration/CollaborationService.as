@@ -78,7 +78,6 @@ package weave.services.collaboration
 		private var serverIP:String;
 		private var serverName:String;
 		private var port:int;
-		private var roomToJoin:String;
 		private var username:String;
 		private var password:String;
 
@@ -93,6 +92,7 @@ package weave.services.collaboration
 		public const TYPE_CAM:String 					= "CAM";
 		
 		public var nickname:String;
+		public var roomToJoin:String;
 		public var myRole:String;
 		public var room:Room;
 		[Bindable] public var ping:Number;

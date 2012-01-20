@@ -67,6 +67,7 @@
 			private var userMice:Dictionary						= null;
 			private var disConButtonPushed:Boolean				= false;
 			private var connectedToRTMPService:Boolean			= false;
+			private var rtmpUserClosed:Boolean 					= false;
 			
 			[Embed(source="../../resources/images/collab/connect.png")]  private const iCon:Class; 
 			[Embed(source="../../resources/images/collab/settings.png")] private const iSet:Class;
@@ -85,7 +86,6 @@
 				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
 				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
 				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
-//				collabService.addEventListener(CollaborationEvent.RECONNECT_ERROR, reconnectError);
 				collabService.addEventListener(CollaborationEvent.USER_JOINED_CREATE_MOUSE, handleCreateUserMouse);
 				collabService.addEventListener(CollaborationEvent.USER_LEFT_REMOVE_MOUSE, handleRemoveUserMouse);
 				collabService.addEventListener(CollaborationEvent.USER_REQUEST_MOUSE_POS, handleUserRequestMousePos);
@@ -122,8 +122,7 @@
 									  int(Weave.properties.collabServerPort.value), 
 									  Weave.properties.collabServerRoomToJoin.value, 
 									  SETTINGS.collab_NICKNAME);
-				rtmpService.client = this;
-				rtmpService.connect(rtmpPath);
+				connectToRTMPServer();
 				
 				// Set timeout to 10 seconds
 				connTimer = new Timer(10000);
@@ -136,17 +135,6 @@
 			{
 				disConButtonPushed = true;
 				collabService.disconnect();
-			}
-			private function serverUnresponsive(e:TimerEvent):void
-			{
-				stopConTimer();
-				updateEnabledSettings();
-				
-				if( !SETTINGS.visible ) toggleSettings();
-				SETTINGS.showConnectionWarning("Server not responding");
-				
-				if( rtmpService.connected )
-					rtmpService.close();
 			}
 			private function createWindowSettings():void
 			{
@@ -288,7 +276,8 @@
 				stopConTimer();
 				updateEnabledSettings();
 				toggleChat();
-				CHAT.setNickname(collabService.nickname);
+				CHAT.nickname = collabService.nickname;
+				CHAT.roomName = collabService.roomToJoin;
 				joinedRoomCreateMouseList();
 				
 				mouseTimer = new Timer(600);
@@ -314,6 +303,18 @@
 				if( !SETTINGS.visible ) toggleSettings();
 				SETTINGS.showConnectionWarning("Username already exists");
 				updateEnabledSettings();
+				
+				disconnectionFromRTMPServer();
+			}
+			private function serverUnresponsive(e:TimerEvent):void
+			{
+				stopConTimer();
+				updateEnabledSettings();
+				
+				if( !SETTINGS.visible ) toggleSettings();
+				SETTINGS.showConnectionWarning("Server not responding");
+				
+				disconnectionFromRTMPServer();
 			}
 			private function reconnectError(e:Event):void
 			{
@@ -323,6 +324,7 @@
 			{
 				if( !disConButtonPushed ) {
 					resetUserMice();
+					disconnectionFromRTMPServer();
 					Alert.show("Would you like to reconnect to the room?", "Disconnection Alert", Alert.YES | Alert.NO, null, disconnectHandler);
 				}
 			}
@@ -346,19 +348,39 @@
 					button_connect.label = "Disconnect";
 					button_connect.removeEventListener(MouseEvent.CLICK, connect);
 					button_connect.addEventListener(MouseEvent.CLICK, disconnect);
-					//					button_connect.setStyle("icon", iDis);
 					button_chat.enabled = true;
 				} else {
 					button_connect.label = "Connect";
 					button_connect.removeEventListener(MouseEvent.CLICK, disconnect);
 					button_connect.addEventListener(MouseEvent.CLICK, connect);
-					//					button_connect.setStyle("icon", iCon);
 					button_chat.enabled = false;
 					if( CHAT.visible ) toggleChat();
 				}
 			}
 			
+			private var rtmpTimer:Timer = null;
 			
+			private function connectToRTMPServer():void
+			{
+				rtmpService.client = this;
+				rtmpService.connect(rtmpPath);
+				rtmpTimer = new Timer(4000);
+				rtmpTimer.addEventListener(TimerEvent.TIMER, handleRTMPReconnect);
+			}
+			private function disconnectionFromRTMPServer():void
+			{
+				if( rtmpService.connected )
+				{
+					rtmpUserClosed = true;
+					rtmpService.close();
+				}
+			}
+			private function handleRTMPReconnect(e:TimerEvent):void
+			{
+				rtmpTimer.stop();
+				rtmpTimer = null;
+				connectToRTMPServer();
+			}
 			private function rtmpNetStatus(e:NetStatusEvent):void
 			{
 				trace( e.info.code+": "+e.info.description );
@@ -370,6 +392,12 @@
 						CHAT.connectedToRTMPService = true;
 						CHAT.rtmpService = rtmpService;
 						break;
+					case "NetConnection.Connect.Closed":
+						if( !rtmpUserClosed )
+						{
+							rtmpTimer.start();
+							rtmpUserClosed = false;
+						}
 					case "NetConnection.Connect.Failed":
 						connectedToRTMPService = false;
 						CHAT.connectedToRTMPService = false;
@@ -384,7 +412,7 @@
         	}
 			private function rtmpSecurityError(e:SecurityErrorEvent):void
 			{
-				
+				trace(e.text);
 			}
 			public function onBWDone():void
 			{
@@ -449,8 +477,6 @@
 				{
 					userMice[e.getText()].fillCursor(e.getColor());
 					CHAT.setUserColor(e.getText(), e.getColor());
-					CHAT.setUserMic(e.getText(), false);
-					CHAT.setUserCam(e.getText(), false);
 				}
 			}
 			private function mouseMove(e:TimerEvent):void
