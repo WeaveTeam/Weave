@@ -23,7 +23,6 @@ package weave.primitives
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.utils.DebugTimer;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -91,7 +90,6 @@ package weave.primitives
 		 */
 		public function balance():void
 		{
-			var timer:DebugTimer = new DebugTimer();
 			//trace("balance "+nodeCount+" nodes");
 
 			// tree will be balanced after calling this function, so clear needsBalancing flag
@@ -159,8 +157,6 @@ package weave.primitives
 						};
 				}
 			}
-			
-			//trace("done balancing: " + timer);
 		}
 
 		/**
@@ -178,7 +174,7 @@ package weave.primitives
 			if (autoBalance)
 			{
 				// add the node to the list of all nodes
-				var newNode:KDNode = KDNode.getUnusedNode(key, obj);
+				var newNode:KDNode = getUnusedNode(key, obj);
 				allNodes.push(newNode);
 				// make sure the tree will balance itself before querying
 				needsBalancing = true;
@@ -191,7 +187,7 @@ package weave.primitives
 			// base case: if the tree is empty, store this key,object pair at the root node
 			if (rootNode == null)
 			{
-				rootNode = KDNode.getUnusedNode(key, obj);
+				rootNode = getUnusedNode(key, obj);
 				allNodes.push(rootNode);
 				return rootNode;
 			}
@@ -204,7 +200,7 @@ package weave.primitives
 					if (node.left == null)
 					{
 						// no node to the left, insert there
-						node.left = KDNode.getUnusedNode(key, obj, (node.splitDimension + 1) % dimensionality);
+						node.left = getUnusedNode(key, obj, (node.splitDimension + 1) % dimensionality);
 						allNodes.push(node.left);
 						return node.left;
 					}
@@ -217,7 +213,7 @@ package weave.primitives
 					if (node.right == null)
 					{
 						// no node to the right, insert there
-						node.right = KDNode.getUnusedNode(key, obj, (node.splitDimension + 1) % dimensionality);
+						node.right = getUnusedNode(key, obj, (node.splitDimension + 1) % dimensionality);
 						allNodes.push(node.right);
 						return node.right;
 					}
@@ -225,8 +221,7 @@ package weave.primitives
 					node = node.right;
 				}
 			}
-			// this return statement is unreachable
-			return null;
+			throw "unreachable";
 		}
 
 		/**
@@ -253,7 +248,7 @@ package weave.primitives
 		{
 			rootNode = null;
 			for (var i:int = allNodes.length - 1; i >= 0; i--)
-				KDNode.saveUnusedNode(allNodes[i] as KDNode);
+				saveUnusedNode(allNodes[i] as KDNode);
 			allNodes.length = 0; // clear references to nodes
 		}
 
@@ -396,5 +391,44 @@ package weave.primitives
 				);
 		}
 		private static var compareNodesSortDimension:int = 0;
+		
+		
+		/**
+		 * This array contains nodes no longer in use.
+		 */
+		private static const unusedNodes:Array = [];
+		/**
+		 * This function is used to save old nodes for later use.
+		 * @param node The node to save for later.
+		 */		
+		public static function saveUnusedNode(node:KDNode):void
+		{
+			// clear all pointers stored in node
+			node.object = null;
+			node.left = null;
+			node.right = null;
+			// save node
+			unusedNodes.push(node);
+		}
+		/**
+		 * This function uses object pooling to get an instance of KDNode.
+		 * @return Either a previously saved unused node, or a new node.
+		 */
+		public static function getUnusedNode(key:Array, object:Object, splitDimension:int = 0):KDNode
+		{
+			var node:KDNode;
+			// if no more unused nodes left, return new node
+			if (unusedNodes.length == 0)
+				node = new KDNode();
+			else // get last unused node and remove from unusedNodes array
+				node = unusedNodes.pop() as KDNode;
+			// initialize node
+			node.key.length = key.length;
+			for (var i:int = key.length - 1; i >= 0; i--)
+				node.key[i] = key[i];
+			node.object = object;
+			node.clearChildrenAndSetSplitDimension(splitDimension);
+			return node;
+		}
 	}
 }

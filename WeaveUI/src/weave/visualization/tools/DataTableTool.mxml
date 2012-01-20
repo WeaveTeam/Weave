@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-	
+
 <!---
 @author skolman
 @author kmonico
 @author sanbalag
 -->
 <ui:DraggablePanel xmlns="weave.visualization.tools.*"
-	     xmlns:mx="http://www.adobe.com/2006/mxml"
-	     xmlns:ui="weave.ui.*" 
-	     xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-	     layout="absolute"
-		 title="Data Table" xmlns:editors="weave.editors.*"
-		 >
+				   xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:ui="weave.ui.*" 
+				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
+				   layout="absolute"
+				   title="Data Table" xmlns:editors="weave.editors.*"
+				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0">
 		<mx:HBox id="topControls" horizontalAlign="left" width="100%">
 			<mx:Label text="Key type:"/>
@@ -40,26 +40,26 @@
 		</mx:HBox>
 		<mx:HBox minWidth="0" borderStyle="solid"  horizontalGap="0"  id="filterControls" width="100%" height="10%" verticalAlign="middle" horizontalScrollPolicy="off"/>
 		<CustomDataGrid:CustomDataGrid id="dataGrid"
-						scroll="handleDataGridScroll()"
-					 	horizontalScrollPolicy="auto"
-						verticalScrollPolicy="auto"
-						 dataProvider="{dataRowKeys}" 
-						 width="100%" height="100%"
-						 allowMultipleSelection="true"
-						 minWidth="0"
-						 copy="handleDataCopy(event)" 
-						 change="handleItemSelection(event)"
-						 doubleClick="handleDoubleClick(event)" doubleClickEnabled="true"
-						 headerShift="handleColumnReorder(event)"
-						 headerRelease="handleHeaderRelease(event)"
-						 paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"
-						 
-						 fontWeight="normal"
-						 alternatingItemColors="{[0xffffff, 0xEEF6FF]}"
-						 rollOverColor="0xDADAFF"
-						 selectionColor="0xFFAAAA"
-						 />
-						 
+									   scroll="handleDataGridScroll()"
+									   horizontalScrollPolicy="auto"
+									   verticalScrollPolicy="auto"
+									   dataProvider="{dataRowKeys}" 
+									   width="100%" height="100%"
+									   allowMultipleSelection="true"
+									   minWidth="0"
+									   copy="handleDataCopy(event)" 
+									   change="handleItemSelection(event)"
+									   doubleClick="handleDoubleClick(event)" doubleClickEnabled="true"
+									   headerShift="handleColumnReorder(event)"
+									   headerRelease="handleHeaderRelease(event)"
+									   paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"
+									   
+									   fontWeight="normal"
+									   alternatingItemColors="{[0xffffff, 0xEEF6FF]}"
+									   rollOverColor="0xDADAFF"
+									   selectionColor="0xFFAAAA"
+									   />
+		
 		<mx:HBox id="bottomControls" width="100%" paddingTop="3" paddingLeft="3" paddingBottom="3" paddingRight="3">
 			<mx:Button label="Export Data..." click="exportCSV()" />
 			<mx:Button click="moveSelectedToTop()" label="Move Selected Items to top"/>
@@ -74,6 +74,7 @@
 			import flash.desktop.ClipboardFormats;
 			
 			import mx.collections.ArrayCollection;
+			import mx.collections.ICollectionView;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Application;
 			import mx.core.mx_internal;
@@ -109,6 +110,7 @@
 			import weave.data.KeySets.KeySet;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.CustomContextMenuManager;
+			import weave.ui.CustomDataGrid.DataGridCellRenderer;
 			import weave.ui.CustomDataGrid.SearchFilterComponent;
 			import weave.ui.CustomDataGrid.SliderFilterComponent;
 			import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
@@ -119,10 +121,12 @@
 			import weave.utils.ProbeTextUtils;
 			use namespace mx_internal;
 			
+			
+			
 			override protected function constructor():void
 			{
 				super.constructor();
-
+				
 				_columnCheckList = new Dictionary();
 				getCallbackCollection(keySet).addGroupedCallback(this, handleKeySetChange);
 				//getCallbackCollection(dataGrid.filteredKeySet).addGroupedCallback(this, handleKeySetChange);
@@ -130,7 +134,7 @@
 				getCallbackCollection(_subset).addGroupedCallback(this, handleSubsetChange);
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, handleFontChange, true);
 				
-
+				
 				registerLinkableChild(this, columns);
 				
 				var probeHeaderColumns:Array = ProbeTextUtils.probeHeaderColumns.getObjects(IAttributeColumn);
@@ -145,15 +149,18 @@
 					else
 						dynamicColumn.requestLocalObjectCopy(probedColumn);
 				}
+				
+				//getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
 			}
 			
-			public const filterByKeyType:LinkableString = newLinkableChild(this,LinkableString,updateKeyTypeComboBox,true);
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
 				linkBindableProperty(showControls, showControlsCheckBox, "selected");
 				linkBindableProperty(showFilters, showFiltersCheckBox, "selected");
+				linkBindableProperty(showColors,showColorsCheckBox,"selected");
 				
 				columns.addGroupedCallback(this, handleColumnsChange, true);
 				columns.childListCallbacks.addGroupedCallback(this, handleColumnListChange, true);
@@ -163,33 +170,34 @@
 				handleGlobalSelectionChange();
 				dimensionsList.hashMap = columns;
 				
-				sortFieldIndex.addGroupedCallback(this,sortCallback);
-				sortInDescendingOrder.addGroupedCallback(this,sortCallback);
-				columns.addGroupedCallback(this, function():void{ sortCallback(true); });
-
+				sortFieldIndex.addGroupedCallback(this, sortCallback);
+				sortInDescendingOrder.addGroupedCallback(this, sortCallback);
+				columns.addGroupedCallback(this, forceSortCallback);
+				
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleStretch);
 				addEventListener(ResizeEvent.RESIZE, handleResize);
 				getCallbackCollection(filterComponents).addImmediateCallback(this, dataGrid.invalidateFilters);
 				dataRowKeys.addEventListener(CollectionEvent.COLLECTION_CHANGE, handleGlobalSelectionChange);
 				
-				enableContextMenuItems(false);
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
+				
+				// temporary solution
+				var handleColorColumnChange:Function = function():void{
+					(dataGrid.dataProvider as ICollectionView).refresh();
+				};
+				getCallbackCollection(Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN)).addGroupedCallback(this, handleColorColumnChange);
 			}
-			public static function createContextMenuItems(destination:Object):void
+			
+			public const columns:LinkableHashMap = new LinkableHashMap(IAttributeColumn);
+			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString), handleSessionedWidthChange, false);
+			public const filterComponents:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap());
+			//we need to do this to set the arrow to the correct column
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
-				// create the export CSV context menu item and disable it
-				var application:Application = destination as Application;
-				var applicationContextMenu:ContextMenu = application.contextMenu;
-				_exportCSVContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination('Export CSV', application, staticExportCSV, '5 DataTable');
-				applicationContextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, toggleContextMenuItems);
+				//				sortCallback();
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
 			}
-			private static var _exportCSVContextMenuItem:ContextMenuItem = null;
-			private static function staticExportCSV(... args):void
-			{
-				var tool:DataTableTool = DraggablePanel.activePanel as DataTableTool;
-				if (tool)
-					tool.exportCSV();
-			}
+			
 			private function handleResize(event:ResizeEvent):void
 			{
 				callLater(handleSessionedWidthChange);
@@ -298,11 +306,35 @@
 			
 			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);
 			
-			private var fr:FileReference = new FileReference();	// CSV download file reference
 			
-			public const columns:LinkableHashMap = new LinkableHashMap(IAttributeColumn);
-			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString), handleSessionedWidthChange, false);
-			public const filterComponents:LinkableHashMap = registerLinkableChild(this,new LinkableHashMap());
+			
+			
+			public const showColors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateColumnCellDisplay);
+			private function updateColumnCellDisplay():void{
+				var colNames:Array = columns.getNames();
+				var i:int;
+				var filterableColumn:WeaveCustomDataGridColumn;
+				if(showColors.value){
+					for(i = 0; i<colNames.length;i++){
+						filterableColumn = _currentDataGridColumns[i] as WeaveCustomDataGridColumn;
+						var cf:ClassFactory = new ClassFactory(DataGridCellRenderer);
+						cf.properties = {colorColumn: Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN),keySet: Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet};
+						filterableColumn.itemRenderer = cf;
+					}
+				}
+				else{
+					for(i = 0; i<colNames.length;i++){
+						filterableColumn = _currentDataGridColumns[i] as WeaveCustomDataGridColumn;	
+						//while loading initially - WeaveCustomDataGridColumn wont get created
+						if(filterableColumn){
+							filterableColumn.itemRenderer =  new ClassFactory(Label);	
+						}
+										
+					}
+				}
+					
+				
+			}
 			
 			private function addImageColumn():void
 			{
@@ -311,11 +343,12 @@
 				AttributeSelectorPanel.openDefaultSelector(imageCol);
 			}
 			
+			private var fr:FileReference = new FileReference();	// CSV download file reference
 			private function exportCSV():void
 			{
 				try
 				{
-					fr.save(generateTableCSV(), "Weave Data Export.csv");
+					fr.save(generateCSV(), "Weave Data Export.csv");
 				}
 				catch (e:Error)
 				{
@@ -328,8 +361,8 @@
 				handleItemSelection(event);
 			}
 			
-			public const sortFieldIndex:LinkableNumber = newLinkableChild(this,LinkableNumber);
-			public const sortInDescendingOrder:LinkableBoolean = newLinkableChild(this,LinkableBoolean);
+			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			private var headerClicked:Boolean = false;
 			private function handleHeaderRelease(event:DataGridEvent=null):void
 			{
@@ -348,16 +381,19 @@
 				sortFieldIndex.value = index;
 			}
 			
+			private function forceSortCallback():void{ 
+				sortCallback(true); 
+			}
 			
 			private function sortCallback(forced:Boolean = false):void
 			{
 				if(isNaN(sortFieldIndex.value))
 					return;
-
+				
 				var c:DataGridColumn = dataGrid.columns[sortFieldIndex.value];
 				if(c == null)
 					return;
-
+				
 				// sort by the column specified in the session state
 				if (forced || dataGrid.sortIndex != sortFieldIndex.value)
 				{
@@ -370,19 +406,14 @@
 				}
 			}
 			
-			//we need to do this to set the arrow to the correct column
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
-			{
-//				sortCallback();
-				super.updateDisplayList(unscaledWidth,unscaledHeight);
-			}
+			
 			
 			
 			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			private function handleItemSelection(event:Event=null):void
 			{
 				dataGrid.validateNow();
-
+				
 				var selectedKeys:Array = new Array();
 				
 				for (var i:int = 0; i < dataGrid.selectedIndices.length; i++)
@@ -406,20 +437,20 @@
 				
 				columns.setNameOrder(newColumnOrder);	
 			}
-			
+			private var isGlobalSelectionActive:Object = {val: false};
 			private function handleGlobalSelectionChange(e:Event = null):void
 			{
 				if (!parent)
 					return callLater(handleGlobalSelectionChange);
 				
-				//dataGrid.selectedItems = [];
 				var selectedItems:Array = [];
 				for each (var item:Object in dataGrid.dataProvider)
 				{
 					if (_selection.containsKey(item as IQualifiedKey))
 						selectedItems.push(item);
-				}
+				}	
 				dataGrid.selectedItems = selectedItems;
+				
 			}
 			
 			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
@@ -485,6 +516,7 @@
 				handleKeyTypeChange();
 			}
 			
+			public const filterByKeyType:LinkableString = newLinkableChild(this,LinkableString,updateKeyTypeComboBox,true);
 			private function updateKeyTypeComboBox():void
 			{
 				if (keyTypeCombo == null)
@@ -512,7 +544,7 @@
 				//keyTypeCombo.selectedIndex = selectedIndex;
 			}
 			
-			private function getExportDataProvider():*
+			public function getExportDataProvider():*
 			{
 				for each (var column:IAttributeColumn in columns.getObjects())
 				{
@@ -535,53 +567,18 @@
 				}
 				return dataGrid.dataProvider;
 			}
-			
-			private function generateTableCSV():String
-			{
-				SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
-				
-				var records:Array = [];
-				
-				// get the list of column titles
-				var attrCols:Array = columns.getObjects();
-				var columnTitles:Array = [];
-				var i:int;
-				for (i = 0; i < attrCols.length; i++)
-					columnTitles.push(ColumnUtils.getTitle(attrCols[i]));
-				var keyTypeMap:Object = {};
-				
-				// create the data for each column in each selected row
+			private function generateCSV():String{
 				var keys:* = getExportDataProvider();
-				for each (var item:Object in keys)
-				{
-					var key:IQualifiedKey = item as IQualifiedKey;
-					var record:Object = {};
-					// each record has a property named after the keyType equal to the key value
-					if (exportKeys.value)
-					{
-						record[key.keyType] = key.localName;
-						keyTypeMap[key.keyType] = true;
-					}
-					// each record has a property named after the column title equal to the value in that column for the current key
-					var dataType:Class = (keys === dataGrid.dataProvider) ? null : String; // dimension slider hack
-					for (i = 0; i < attrCols.length; i++)
-						record[columnTitles[i]] = (attrCols[i] as IAttributeColumn).getValueFromKey(key, dataType);
-					records.push(record);
-				}
-				
-				// update the list of headers before generating the table
-				for (var keyType:String in keyTypeMap)
-					columnTitles.unshift(keyType);
-
-				SecondaryKeyNumColumn.allKeysHack = false; // dimension slider hack
-				
-				var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(records, columnTitles);
-				return WeaveAPI.CSVParser.createCSVFromArrays(rows);
+				// each record has a property named after the column title equal to the value in that column for the current key
+				var dataType:Class = (keys === dataGrid.dataProvider) ? null : String; // dimension slider hack
+				var dataTableColumns:Array = columns.getObjects();
+				var generatedCSVstring:String = ColumnUtils.generateTableCSV(dataTableColumns,keys,dataType);
+				return generatedCSVstring;
 			}
 			
 			private function handleDataCopy(event:Event):void
-			{				
-				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, generateTableCSV());
+			{											
+				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT,generateCSV() );
 			}
 			
 			private var attColCodes:Array = [];
@@ -603,10 +600,13 @@
 				handleDataSourceChange();
 				handleKeyTypeChange();
 				handleGlobalSelectionChange();
-				
 				//we need to do this to set the arrow to the correct column
 				this.invalidateDisplayList();
 				updateBorders();
+				
+				updateColumnCellDisplay();
+				
+				
 			}
 			
 			private function handleDataSourceChange():void
@@ -704,7 +704,7 @@
 				// return if this function was called from the above function
 				if (_guiWidthChanged)
 					return;
-
+				
 				// if there isn't a parent or the grid isn't fully instantiated, return
 				if (!parent || dataGrid.width == 0)
 				{
@@ -730,7 +730,7 @@
 						temp = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, totalWidth);
 					else
 						temp = totalWidth / _currentDataGridColumns.length - 1;
-
+					
 					if (temp <= 5 || isNaN(temp)) 
 						temp = _minSuggestedColumnSize;
 					
@@ -753,7 +753,7 @@
 							dgc.filterComponent.width = newWidth;
 					}
 				}
-//				dataGrid.invalidateDisplayList();
+				//				dataGrid.invalidateDisplayList();
 				dataGrid.validateSize(true);
 			}
 			private function handleDataGridScroll():void
@@ -773,7 +773,7 @@
 				_currentDataGridColumns.push(dgc);
 				var columnName:String = columns.getName(attrColumn);
 				var sessionedWidth:LinkableString = columnWidths.requestObject(columnName, LinkableString, true);
-
+				
 				validateHScrollBar();
 				
 				dataGrid.columns = _currentDataGridColumns;
@@ -831,22 +831,8 @@
 					lockedColumns.value = 0;
 				dataGrid.lockedColumnCount = lockedColumns.value;
 			}
-
-			private static function enableContextMenuItems(newValue:Boolean):void
-			{
-				// when loading this from the session state, this is called before the context menu is setup
-				if (!_exportCSVContextMenuItem)
-					return;
-				
-				_exportCSVContextMenuItem.enabled = newValue;
-				_exportCSVContextMenuItem.visible = newValue;
-				_exportCSVContextMenuItem.separatorBefore = newValue;
-			}
 			
-			protected static function toggleContextMenuItems(event:Event):void
-			{
-				enableContextMenuItems(DraggablePanel.activePanel is DataTableTool);
-			}
+			
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
@@ -855,6 +841,7 @@
 			<mx:Button label="Add Image Column" click="addImageColumn()" />
 			<mx:CheckBox id="showControlsCheckBox" label="Show controls on panel"/>
 			<mx:CheckBox id="showFiltersCheckBox" label="Show Filters on panel"/>
+			<mx:CheckBox id="showColorsCheckBox" label="Display as Colors"/>
 			<mx:CheckBox change="handleKeyColumnCheckBox()" id="showKeyColumnCheckBox" label="Show Key Column"/>
 			<mx:CheckBox label="Export keys with data" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
 			<mx:Button label="Export Data..." click="exportCSV()" />

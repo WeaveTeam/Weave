@@ -226,6 +226,20 @@ package weave.data
 			return refList;
 		}
 		
+//		/**
+//		 * This function will use all registered key mappings to retrieve a list of foreign keys corresponding to a primary key.
+//		 * @param key A primary key
+//		 * @return An Array of corresponding foreign keys that the primary key maps to.
+//		 */		
+//		public function getRelatedKeys(key:IQualifiedKey):Array
+//		{
+//			// Note: This function may be useful for probing, but not much else.
+//			// Consider the example of a table with columns like (ID,parentID) which refer to keys of the same type.
+//			
+//			// in order to get a useful list of foreign keys, a specific key mapping column must be used 
+//		}
+		
+		
 		/**
 		 * This function returns an array of key types (Strings) for which there exist mappings to or from the given key type.
 		 * @param keyType A key type.

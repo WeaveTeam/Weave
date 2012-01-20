@@ -69,7 +69,7 @@
     <enableSessionEdit>false</enableSessionEdit>
     <enableSessionExport>true</enableSessionExport>
     <enableSessionImport>true</enableSessionImport>
-    <enableSessionMenu>false</enableSessionMenu>
+    <enableSessionMenu>true</enableSessionMenu>
     <enableShowAllRecords>true</enableShowAllRecords>
     <enableSubsetControls>true</enableSubsetControls>
     <enableSubsetsMenu>true</enableSubsetsMenu>

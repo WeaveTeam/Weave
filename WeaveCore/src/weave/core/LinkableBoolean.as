@@ -24,14 +24,13 @@ package weave.core
 	/**
 	 * LinkableBoolean
 	 * 
-	 * 
 	 * @author adufilie
 	 */
 	public class LinkableBoolean extends LinkableVariable
 	{
-		public function LinkableBoolean(defaultValue:* = null)
+		public function LinkableBoolean(defaultValue:* = null, verifier:Function = null)
 		{
-			super(Boolean);
+			super(Boolean, verifier);
 			if (defaultValue !== null)
 			{
 				delayCallbacks();

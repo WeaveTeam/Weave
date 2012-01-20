@@ -27,6 +27,37 @@
 	creationPolicy="all"
 	implements="weave.api.ui.ILinkableObjectEditor"
 	>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{_xlsDataSource ? 'Edit' : 'Add'} XLS Data Source"/>
+	<mx:HBox>
+		<mx:Label text="Source Name *" width="120"/>
+		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="Source URL *" width="120"/>
+		<mx:TextInput change="handleURLTextChange()" id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv"/>
+	</mx:HBox>
+	
+	<mx:VBox id="uploadSection">
+		<mx:HBox horizontalAlign="center" width="100%">
+			<mx:Label fontWeight="bold" text="OR"/>
+		</mx:HBox>
+		<mx:HBox>
+			<mx:Label text="Open local XLS file*" width="120"/>
+			<mx:Button label="Browse" click="browseForFiles()"/>
+			<mx:Label id="uploadMessg" color="0xFF0000" text="loaded" visible="false"/>
+		</mx:HBox>
+	</mx:VBox>
+	
+	<mx:HBox>
+		<mx:Label text="Key Type *" width="120"/>
+		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter key type like US State Fips Code,etc. "/>
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="Key Column" width="120"/>
+		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter the column name that uniquely identifies each row in the data set"/>
+	</mx:HBox>
+	<mx:Label text="* = required"/>
+	<mx:Button enabled="false" label="View data in Grid" id="showGridButton" click="showGrid()"/>
 	<mx:Script>
 		<![CDATA[
 			import com.as3xls.xls.Cell;
@@ -43,16 +74,26 @@
 			import weave.data.DataSources.XLSDataSource;
 			import weave.editors.managers.EditDataGridPanel;
 			
-			private var _xlsDataSource:XLSDataSource= null;
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				keyType.text = sourceName.text = Weave.root.generateUniqueName("XLSDataSource");
+			}
+			
+			[Bindable] private var _xlsDataSource:XLSDataSource = null;
 			public function setTarget(object:ILinkableObject):void
 			{
-				_xlsDataSource = object as XLSDataSource;
-				var checkObj:String  = Weave.root.getName(_xlsDataSource);
-				if(checkObj !=null)
+				if (!parent)
 				{
-					initialize();
-					editorTitle.text = "Edit";
-					uniqueName = Weave.root.getName(_xlsDataSource);
+					callLater(setTarget, arguments);
+					return;
+				}
+				
+				_xlsDataSource = object as XLSDataSource;
+				if (_xlsDataSource)
+				{
+					sourceName.text = Weave.root.getName(_xlsDataSource);
 					url.text = _xlsDataSource.url.value;
 					keyColumnName.text = _xlsDataSource.keyColName.value;
 					keyType.text = _xlsDataSource.keyType.value;
@@ -65,13 +106,15 @@
 			
 			public function applyChanges():void
 			{
-				try{
+				try
+				{
 					_xlsDataSource.url.value = url.text;
 					_xlsDataSource.keyColName.value = keyColumnName.text;
 					_xlsDataSource.keyType.value = keyType.text;
 					Alert.show("Changes saved.")
 				}
-				catch(e:Error){
+				catch(e:Error)
+				{
 					Alert.show("Changes could not be saved. " + e.message,"Error");
 				}
 			}
@@ -80,8 +123,6 @@
 			
 			
 			private var _fileLoader:FileReference = null;
-			[Bindable]
-			private var uniqueName:String = Weave.root.generateUniqueName("XLSDataSource");
 			
 			
 			/**
@@ -89,7 +130,7 @@
 			 **/
 			private function browseForFiles():void
 			{
-				if(_fileLoader == null)
+				if (_fileLoader == null)
 				{
 					_fileLoader = new FileReference();
 					_fileLoader.addEventListener(Event.SELECT, handleDatasetSelected);
@@ -122,8 +163,9 @@
 				var extensionPosition:int = _fileLoader.name.length - 4;
 				
 				xlsFile = new ExcelFile();
-				try{				
-					if(_fileLoader.name.search(".xls") == extensionPosition || _fileLoader.name.search(".XLS") == extensionPosition )
+				try
+				{				
+					if (_fileLoader.name.search(".xls") == extensionPosition || _fileLoader.name.search(".XLS") == extensionPosition )
 					{
 						xlsFile.loadFromByteArray(event.target.data);
 						
@@ -135,7 +177,9 @@
 						//clearing the Source URL text input
 						url.text = "";
 					}
-				}catch(e:Error){
+				}
+				catch (e:Error)
+				{
 					Alert.show("Error uploading file",e.message.toString());
 				}
 				
@@ -144,7 +188,7 @@
 			
 			private function showGrid():void
 			{
-				if(xlsFile.sheets.length == 0)
+				if (xlsFile.sheets.length == 0)
 				{
 					Alert.show("No data found");
 					return;
@@ -154,7 +198,7 @@
 				
 				var xlsData:Array = WeaveAPI.CSVParser.convertRowsToRecords(xlsDataArray);
 				
-				grid.loadXLSData(xlsData,xlsDataArray[0]);
+				grid.loadXLSData(xlsData, xlsDataArray[0]);
 				
 				PopUpManager.bringToFront(grid);
 			}
@@ -163,7 +207,7 @@
 			private function handleURLTextChange():void
 			{
 				uploadMessg.visible = false;
-				showGridButton.enabled=false;
+				showGridButton.enabled = false;
 				xlsFile = null;
 			}
 			
@@ -173,10 +217,10 @@
 				
 				var xlsArrayCollection:ArrayCollection = xlsSheet.values;
 				
-				for(var i:int = 0; i<xlsArrayCollection.length; i++)
+				for (var i:int = 0; i < xlsArrayCollection.length; i++)
 				{
 					paramArray[i] = [];
-					for(var j:int = 0; j<xlsArrayCollection[i].length; j++)
+					for (var j:int = 0; j < xlsArrayCollection[i].length; j++)
 					{
 						paramArray[i].push((xlsArrayCollection[i][j] as Cell).value);
 					}
@@ -187,39 +231,4 @@
 			
 		]]>
 	</mx:Script>
-	<mx:Label id="editorTitle" fontWeight="bold" text="Add XLS Data Source"/>
-	<mx:HBox>
-		<mx:Label text="Source Name *" width="120"/>
-		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" text="{uniqueName}" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="Source URL *" width="120"/>
-		<mx:TextInput change="handleURLTextChange()" id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv"/>
-	</mx:HBox>
-	
-	<mx:VBox id="uploadSection">
-	<mx:HBox horizontalAlign="center" width="100%">
-		<mx:Label fontWeight="bold" text="OR"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="Open local XLS file*" width="120"/>
-		<mx:Button label="Browse" click="browseForFiles()"/>
-		<mx:Label id="uploadMessg" color="0xFF0000" text="loaded" visible="false"/>
-	</mx:HBox>
-	</mx:VBox>
-
-	<mx:HBox>
-		<mx:Label text="Key Type *" width="120"/>
-		<mx:TextInput id="keyType" text="{uniqueName}" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter key type like US State Fips Code,etc. "/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="Key Column" width="120"/>
-		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter the column name that uniquely identifies each row in the data set"/>
-	</mx:HBox>
-	<mx:Label text="*required"/>
-	<mx:Button enabled="false" label="View data in Grid" id="showGridButton" click="showGrid()"/>
-	<!--	<mx:HBox>
-	<mx:Label text="note:" fontWeight="bold"/>
-	<mx:TextArea backgroundDisabledColor="0xFFFFFF" verticalScrollPolicy="off" borderThickness="0" color="0x000000" enabled="false" text="if you want to upload a CSV file use the Import->New DataSet option from the top menu"/>
-	</mx:HBox>-->
 </mx:VBox>

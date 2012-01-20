@@ -20,6 +20,8 @@
 package weave.visualization.plotters
 {
 	import weave.api.WeaveAPI;
+	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
@@ -29,6 +31,8 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.FilteredKeySet;
+	import weave.primitives.GeneralizedGeometry;
+	import weave.primitives.SimpleGeometry;
 	
 	/**
 	 * AbstractGlyphPlotter
@@ -71,6 +75,34 @@ package weave.visualization.plotters
 			return filteredDataY.internalDynamicColumn;
 		}
 		
+		protected function getXFromRecordKey(recordKey:IQualifiedKey):Number
+		{
+			if (dataX.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
+			{
+				var geoms:Array = dataX.getValueFromKey(recordKey) as Array;
+				var geom:GeneralizedGeometry;
+				if (geoms && geoms.length)
+					geom = geoms[0] as GeneralizedGeometry;
+				if (geom)
+					return geom.bounds.getXCenter();
+			}
+			return dataX.getValueFromKey(recordKey, Number);
+		}
+		
+		protected function getYFromRecordKey(recordKey:IQualifiedKey):Number
+		{
+			if (dataY.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
+			{
+				var geoms:Array = dataY.getValueFromKey(recordKey) as Array;
+				var geom:GeneralizedGeometry;
+				if (geoms && geoms.length)
+					geom = geoms[0] as GeneralizedGeometry;
+				if (geom)
+					return geom.bounds.getYCenter();
+			}
+			return dataY.getValueFromKey(recordKey, Number);
+		}
+		
 		/**
 		 * The data bounds for a glyph has width and height equal to zero.
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
@@ -79,11 +111,15 @@ package weave.visualization.plotters
 		 */
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			var x:Number = dataX.getValueFromKey(recordKey, Number);
-			var y:Number = dataY.getValueFromKey(recordKey, Number);
+			var x:Number = getXFromRecordKey(recordKey);
+			var y:Number = getYFromRecordKey(recordKey);
 			
 			var bounds:IBounds2D = getReusableBounds();
 			bounds.setCenteredRectangle(x, y, 0, 0);
+			if (isNaN(x))
+				bounds.setXRange(-Infinity, Infinity);
+			if (isNaN(y))
+				bounds.setYRange(-Infinity, Infinity);
 			return [bounds];
 		}
 

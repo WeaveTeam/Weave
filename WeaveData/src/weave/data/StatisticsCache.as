@@ -154,6 +154,8 @@ package weave.data
 		 * Example: cache[getMin][column] is a cached value for the getMin function called for the given column.
 		 */
 		private const cache:Dictionary = new Dictionary();
+		
+		private static const WRAPPER_TYPES:Array = [DynamicColumn,ReferencedColumn]; // special cases for validateCache()
 
 		/**
 		 * This function will validate the cached statistical values for the given column.
@@ -165,11 +167,10 @@ package weave.data
 		{
 			//---
 			// special case for column wrappers that do not alter the data in any way
-			var wrapperTypes:Array = [DynamicColumn,ReferencedColumn];
 			var foundWrapper:Boolean = false;
 			do {
 				foundWrapper = false;
-				for each (var wrapperType:Class in wrapperTypes)
+				for each (var wrapperType:Class in WRAPPER_TYPES)
 				{
 					if (column is wrapperType && getQualifiedClassName(column) == getQualifiedClassName(wrapperType))
 					{

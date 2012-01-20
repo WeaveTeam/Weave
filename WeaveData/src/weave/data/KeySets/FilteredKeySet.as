@@ -24,6 +24,7 @@ package weave.data.KeySets
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IFilteredKeySet;
+	import weave.api.data.IKeyFilter;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
@@ -108,22 +109,27 @@ package weave.data.KeySets
 				validateFilteredKeys();
 			return _filteredKeys;
 		}
+		
+		private var _prevTriggerCounter:uint; // used to remember if the _filteredKeys are valid
 
 		/**
 		 * @private
 		 */
 		private function validateFilteredKeys():void
 		{
+			_prevTriggerCounter = triggerCounter; // this prevents the function from being called again before callbacks are triggered again.
+			
 			// TODO: key type conversion here?
 			
 			var inverse:Boolean = inverseFilter.value;
 			var key:IQualifiedKey;
+			var keyFilter:IKeyFilter = _dynamicKeyFilter.getInternalKeyFilter();
 			if (_baseKeySet == null)
 			{
 				// no keys when base key set is undefined
 				_filteredKeys = [];
 			}
-			else if (_dynamicKeyFilter.internalObject != null)
+			else if (keyFilter != null)
 			{
 				// copy the keys that appear in both the base key set and the filter
 				_filteredKeys = [];
@@ -133,7 +139,7 @@ package weave.data.KeySets
 					for (var i:int = 0; i < baseKeys.length; i++)
 					{
 						key = baseKeys[i] as IQualifiedKey;
-						var contains:Boolean = _dynamicKeyFilter.containsKey(key);
+						var contains:Boolean = keyFilter.containsKey(key);
 						if (contains != inverse)
 							_filteredKeys.push(key);
 					}
@@ -148,9 +154,6 @@ package weave.data.KeySets
 			_filteredKeysMap = new Dictionary();
 			for each (key in _filteredKeys)
 				_filteredKeysMap[key] = true;
-			
-			_prevTriggerCounter = triggerCounter; // _filteredKeys are now valid.
 		}
-		private var _prevTriggerCounter:uint; // used to remember if the _filteredKeys are valid
 	}
 }

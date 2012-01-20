@@ -20,24 +20,18 @@
 package weave.visualization.layers
 {
 	import flash.events.Event;
-	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
-	import flash.utils.getDefinitionByName;
 	
-	import weave.Weave;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.data.IKeySet;
 	import weave.api.getLinkableRoot;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.CallbackCollection;
-	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableString;
 	import weave.core.StageUtils;
-	import weave.ui.DraggablePanel;
 
 	/**
 	 * A LinkableEventListener is a sessioned eventLinster which is added to the stage. The action is specified by

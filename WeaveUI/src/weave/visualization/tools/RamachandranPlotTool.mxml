@@ -56,6 +56,7 @@
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.data.KeySets.KeySet;
+			import weave.primitives.AttributeHierarchy;
 			import weave.primitives.Bounds2D;
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeavePDBServlet;
@@ -81,9 +82,7 @@
 				bg.getDynamicPlotter().requestLocalObject(RamachandranBackgroundPlotter, true);
 				
 				// lock dynamic objects into place
-				_plotter = initDefaultPlotter(ScatterPlotPlotter) as ScatterPlotPlotter;
-				showAxes = true;
-				
+				_plotter = initializePlotters(ScatterPlotPlotter, true);
 				
 				xAxisLayer.axisPlotter.forceTickCount.value = true;
 				yAxisLayer.axisPlotter.forceTickCount.value = true;
@@ -410,7 +409,7 @@
 			
 			private function assignXYColumnsFromSource(source:CSVDataSource,sourceName:String):void
 			{
-				var xml:XML = getSessionState(source.attributeHierarchy) as XML;
+				var xml:XML = (source.attributeHierarchy as AttributeHierarchy).value;
 				//checks whether source availabe to run this function
 				if(xml == null)
 					callLater(assignXYColumnsFromSource,[source,sourceName]);

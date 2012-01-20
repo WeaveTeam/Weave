@@ -26,7 +26,6 @@ package weave.visualization.layers
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
-	import flash.filters.DropShadowFilter;
 	import flash.geom.Point;
 	import flash.ui.ContextMenu;
 	import flash.ui.Keyboard;
@@ -36,14 +35,11 @@ package weave.visualization.layers
 	import mx.core.Application;
 	
 	import weave.Weave;
-	import weave.api.core.IDisposableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotLayer;
 	import weave.core.LinkableBoolean;
-	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
@@ -663,7 +659,7 @@ package weave.visualization.layers
 			{
 				var layer:SelectablePlotLayer = _layers[index] as SelectablePlotLayer;
 				// skip this layer if it is disabled
-				if (!layer.layerIsVisible.value || !layer.layerIsSelectable.value)
+				if (!layer.shouldBeRendered() || !layer.layerIsSelectable.value)
 					continue;
 				// skip this layer if it does not contain lastProbedQKey
 				if (_lastProbedQKey && !layer.plotter.keySet.containsKey(_lastProbedQKey))
@@ -684,7 +680,7 @@ package weave.visualization.layers
 					continue;
 				tempDataBounds.constrainBounds(queryBounds, false);
 				
-				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false);
+				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
 				setSelectionKeys(layer, keys, true);
 				
 				break; // select only one layer at a time
@@ -718,7 +714,7 @@ package weave.visualization.layers
 				for (var i:int = 0; i < _layers.length; i++)
 				{
 					var layer:SelectablePlotLayer = _layers[i];
-					if (!layer.layerIsVisible.value || !layer.layerIsSelectable.value)
+					if (!layer.shouldBeRendered() || !layer.layerIsSelectable.value)
 						continue;
 					
 					lastActiveLayer = layer;
@@ -750,7 +746,7 @@ package weave.visualization.layers
 					if (!tempDataBounds.overlaps(queryBounds))
 						continue;
 					tempDataBounds.constrainBounds(queryBounds, false);
-					var keys:Array = (layer.spatialIndex as SpatialIndex).getClosestOverlappingKeys( queryBounds, xPrecision, yPrecision );
+					var keys:Array = (layer.spatialIndex as SpatialIndex).getClosestOverlappingKeys(queryBounds, xPrecision, yPrecision, tempDataBounds);
 					//trace(layers.getName(layer),keys);
 					
 					// stop when we find keys
@@ -801,12 +797,11 @@ package weave.visualization.layers
 				
 				if (keys.length == 0)
 				{
-					ProbeTextUtils.destroyProbeToolTip();
+					ProbeTextUtils.hideProbeToolTip();
 				}
 				else
 				{
 					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
-					ToolTip.maxWidth = Weave.properties.probeToolTipMaxWidth.value;
 					ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
 				}
 			}

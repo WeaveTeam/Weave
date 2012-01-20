@@ -22,8 +22,6 @@ package weave.services
 	import flash.utils.ByteArray;
 	
 	import mx.rpc.AsyncToken;
-	
-	import weave.utils.ByteArrayUtils;
 
 	/**
 	 * This is an extension of Servlet that deserializes AMF3 result objects and handles special cases where an ErrorMessage is returned.
@@ -59,16 +57,41 @@ package weave.services
 			
 			// create a wrapper object for these parameters to serve as a flag to say that they are coming from a DelayedAsyncInvocation object.
 			methodParameters = new DelayedParameters(methodParameters);
-			var token:DelayedAsyncInvocation = new DelayedAsyncInvocation(
-					this, methodName, methodParameters, ByteArrayUtils.readCompressedObject, true
-				);
+			var token:DelayedAsyncInvocation = new DelayedAsyncInvocation(this, methodName, methodParameters, readCompressedObject, true);
 			token.invoke();
 			return token;
+		}
+		
+		/**
+		 * This function reads an object that has been AMF3-serialized into a ByteArray and compressed.
+		 * @param compressedSerializedObject The ByteArray that contains the compressed AMF3 serialization of an object.
+		 * @return The result of calling uncompress() and readObject() on the ByteArray, or null if an error occurs.
+		 */
+		public static function readCompressedObject(compressedSerializedObject:ByteArray):Object
+		{
+			try
+			{
+				//				var packed:int = compressedSerializedObject.bytesAvailable;
+				//				var time:int = getTimer();
+				
+				compressedSerializedObject.uncompress();
+				
+				//				var unpacked:int = compressedSerializedObject.bytesAvailable;
+				//				trace(packed,'/',unpacked,'=',Math.round(packed/unpacked*100) + '%',getTimer()-time,'ms');
+				
+				return compressedSerializedObject.readObject();
+			}
+			catch (e:Error)
+			{
+				// decompression/deserialization failed
+				//trace(e.getStackTrace());
+			}
+			return null;
 		}
 	}
 }
 
-import flash.utils.ByteArray;
+
 
 /**
  * This class is a wrapper for a parameters object and serves as a flag to say

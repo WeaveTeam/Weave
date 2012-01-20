@@ -24,14 +24,27 @@ package weave.services.beans
 	{
 		public function DataServiceMetadata(result:Object)
 		{
-			this.serverName = result.serverName;
-			this.dataTableNames = result.dataTableNames;
-			this.geometryCollectionNames = result.geometryCollectionNames;
-			this.geometryCollectionKeyTypes = result.geometryCollectionKeyTypes;
+			serverName = result.serverName;
+			dataTableMetadata = result.dataTableMetadata;
+			geometryCollectionNames = result.geometryCollectionNames;
+			geometryCollectionKeyTypes = result.geometryCollectionKeyTypes;
+			
+			// add metadata for geometry collections that have no data table
+			var nameMap:Object = {};
+			for each (var obj:Object in dataTableMetadata)
+			{
+				nameMap[obj.name] = obj;
+				if (!obj.title)
+					obj.title = obj.name;
+			}
+			for each (var geomName:String in geometryCollectionNames)
+				if (!nameMap[geomName])
+					dataTableMetadata.push({name: geomName, title: geomName});
+			dataTableMetadata.sortOn("title", Array.CASEINSENSITIVE);
 		}
 		
 		public var serverName:String;
-		public var dataTableNames:Array;
+		public var dataTableMetadata:Array;
 		public var geometryCollectionNames:Array;
 		public var geometryCollectionKeyTypes:Array;
 	}

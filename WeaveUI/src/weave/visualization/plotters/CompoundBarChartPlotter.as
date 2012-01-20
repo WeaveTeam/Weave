@@ -133,6 +133,7 @@ package weave.visualization.plotters
 		public const valueLabelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const valueLabelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		public const valueLabelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(200, verifyLabelMaxWidth));
+		public const recordValueLabelColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));	
 		public const labelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
@@ -141,7 +142,8 @@ package weave.visualization.plotters
 		public const labelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
 		public const labelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		public const labelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(200, verifyLabelMaxWidth));
-
+		public const recordLabelColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const positiveErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const negativeErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
@@ -230,7 +232,6 @@ package weave.visualization.plotters
 			var showErrorBars:Boolean = _groupingMode == GROUP || _heightColumns.length == 1;
 			
 			LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);
-			_bitmapText.textFormat.color = valueLabelColor.value;
 			
 			// BEGIN template code for defining a drawPlot() function.
 			//---------------------------------------------------------
@@ -412,14 +413,18 @@ package weave.visualization.plotters
 						
 						// if there is one column, act like a regular bar chart and color in with a chosen color
 						if (_heightColumns.length == 1)
-							fillStyle.beginFillStyle(recordKey, graphics);
-						// otherwise use a pre-defined set of colors for each bar segment
-						else
+						{
+							// this might introduce a little overhead...
+							color = fillStyle.color.getValueFromKey(recordKey, Number) as Number;
+							
+							fillStyle.beginFillStyle(recordKey, graphics); 
+						}
+						else // otherwise use a pre-defined set of colors for each bar segment
 							graphics.beginFill(color, 1);
 						
 						
 						lineStyle.beginLineStyle(recordKey, graphics);
-						if(tempBounds.getHeight() == 0)
+						if (tempBounds.getHeight() == 0)
 							graphics.lineStyle(0,0,0);
 						
 						graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
@@ -542,7 +547,10 @@ package weave.visualization.plotters
 						if (isFinite(valueLabelRelativeAngle.value))
 							_bitmapText.angle += valueLabelRelativeAngle.value;
 						
-						_bitmapText.textFormat.color = valueLabelColor.value;
+						if (recordValueLabelColoring.value)
+							_bitmapText.textFormat.color = color;
+						else
+							_bitmapText.textFormat.color = valueLabelColor.value;
 						_bitmapText.draw(destination);
 					}
 					//------------------------------------
@@ -585,8 +593,13 @@ package weave.visualization.plotters
 						if (isFinite(labelRelativeAngle.value))
 							_bitmapText.angle += labelRelativeAngle.value;
 						_bitmapText.verticalAlign = labelVerticalAlign.value;
-						_bitmapText.horizontalAlign = labelHorizontalAlign.value; 
-						_bitmapText.textFormat.color = labelColor.value;
+						_bitmapText.horizontalAlign = labelHorizontalAlign.value;
+						
+						if (recordLabelColoring.value)
+							_bitmapText.textFormat.color = color;
+						else
+							_bitmapText.textFormat.color = labelColor.value;
+						
 						_bitmapText.draw(destination);
 					}
 					//------------------------------------
@@ -770,23 +783,15 @@ package weave.visualization.plotters
 		
 		// backwards compatibility
 		[Deprecated(replacement='groupingMode')] public function set groupMode(value:Boolean):void { groupingMode.value = value ? GROUP : STACK; }
-		[Deprecated(replacement="positiveErrorColumns")] public function set positiveError(value:Object):void
+		[Deprecated(replacement="positiveErrorColumns")] public function set positiveError(dynamicState:Object):void
 		{
-			var dynamicState:DynamicState = DynamicState.cast(value);
-			if (dynamicState)
-			{
-				dynamicState.objectName = positiveErrorColumns.generateUniqueName(dynamicState.className);
-				positiveErrorColumns.setSessionState([dynamicState], false);
-			}
+			dynamicState.objectName = positiveErrorColumns.generateUniqueName(dynamicState.className);
+			positiveErrorColumns.setSessionState([dynamicState], false);
 		}
-		[Deprecated(replacement="negativeErrorColumns")] public function set negativeError(value:Object):void
+		[Deprecated(replacement="negativeErrorColumns")] public function set negativeError(dynamicState:Object):void
 		{
-			var dynamicState:DynamicState = DynamicState.cast(value);
-			if (dynamicState)
-			{
-				dynamicState.objectName = negativeErrorColumns.generateUniqueName(dynamicState.className);
-				negativeErrorColumns.setSessionState([dynamicState], false);
-			}
+			dynamicState.objectName = negativeErrorColumns.generateUniqueName(dynamicState.className);
+			negativeErrorColumns.setSessionState([dynamicState], false);
 		}
 	}
 }

@@ -68,10 +68,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.constructor();
 				
 				// lock dynamic objects into place
-				plotter = initDefaultPlotter(Histogram2DPlotter) as Histogram2DPlotter;
+				plotter = initializePlotters(Histogram2DPlotter, true);
 				visualization.enableProbeLine(false, true);
-				
-				showAxes = true;
 				
 				xAxisLayer.axisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;

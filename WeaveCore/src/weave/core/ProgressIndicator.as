@@ -17,25 +17,21 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.services
+package weave.core
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
-	import weave.api.data.IProgressIndicator;
+	import weave.api.core.IProgressIndicator;
 	import weave.api.getCallbackCollection;
-	import weave.core.CallbackCollection;
 
 	/**
-	 * This class is used as a central location for reporting the progress of pending asynchronous requests.
-	 * 
+	 * This is an implementation of IProgressIndicator.
 	 * @author adufilie
 	 */
-	public class ProgressIndicator extends CallbackCollection implements IProgressIndicator
+	public class ProgressIndicator implements IProgressIndicator
 	{
 		/**
-		 * This is the number of pending requests.
+		 * @inheritDoc
 		 */
 		public function getTaskCount():int
 		{
@@ -43,9 +39,7 @@ package weave.services
 		}
 
 		/**
-		 * This function will register a pending request token and increase the pendingRequestCount if necessary.
-		 * 
-		 * @param taskToken The object whose progress to track.
+		 * @inheritDoc
 		 */
 		public function addTask(taskToken:Object):void
 		{
@@ -53,52 +47,61 @@ package weave.services
 		}
 		
 		/**
-		 * This function will report the current progress of a request.
-		 * 
-		 * @param taskToken The object whose progress to track.
-		 * @param percent The current progress of the token's request.
+		 * @inheritDoc
+		 */
+		public function hasTask(taskToken:Object):Boolean
+		{
+			return _taskToProgressMap[taskToken] !== undefined;
+		}
+		
+		/**
+		 * @inheritDoc
 		 */
 		public function updateTask(taskToken:Object, percent:Number):void
 		{
 			// if this token isn't in the Dictionary yet, increase count
-			if (_taskToProgressMap[taskToken] == undefined)
+			if (_taskToProgressMap[taskToken] === undefined)
 			{
+				if (CallbackCollection.debug)
+					_taskToStackTraceMap[taskToken] = new Error("Stack trace").getStackTrace();
 				_taskCount++;
 				_maxTaskCount++;
 			}
+			if (!isFinite(percent))
+				percent = 0.5; // undetermined
 			_taskToProgressMap[taskToken] = percent;
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
-		 * This function will remove a previously registered pending request token and decrease the pendingRequestCount if necessary.
-		 * 
-		 * @param taskToken The object to remove from the progress indicator.
+		 * @inheritDoc
 		 */
 		public function removeTask(taskToken:Object):void
 		{
 			// if the token isn't in the dictionary, do nothing
-			if (_taskToProgressMap[taskToken] == undefined)
+			if (_taskToProgressMap[taskToken] === undefined)
 				return;
 			
+			var stackTrace:String = _taskToStackTraceMap[taskToken]; // check this when debugging
+			
 			delete _taskToProgressMap[taskToken];
+			delete _taskToStackTraceMap[taskToken];
 			_taskCount--;
-			// reset max count when count goes to zero
-			if (_taskCount == 0)
-				_maxTaskCount = 0;
+			// reset max count when count drops to 1
+			if (_taskCount == 1)
+				_maxTaskCount = _taskCount;
 			
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
-		 * This function checks the overall progress of all pending requests.
-		 * @return A Number between 0 and 1.
+		 * @inheritDoc
 		 */
 		public function getNormalizedProgress():Number
 		{
 			// add up the percentages
 			var sum:Number = 0;
-			for each (var percentage:Number in _pendingRequestToPercentMap)
+			for each (var percentage:Number in _taskToProgressMap)
 				sum += percentage;
 			// make any pending requests that no longer exist count as 100% done
 			sum += _maxTaskCount - _taskCount;
@@ -108,7 +111,7 @@ package weave.services
 
 		private var _taskCount:int = 0;
 		private var _maxTaskCount:int = 0;
-		private const _pendingRequestToPercentMap:Dictionary = new Dictionary();
 		private const _taskToProgressMap:Dictionary = new Dictionary();
+		private const _taskToStackTraceMap:Dictionary = new Dictionary();
 	}
 }

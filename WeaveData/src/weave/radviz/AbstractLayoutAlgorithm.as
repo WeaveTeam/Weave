@@ -38,8 +38,6 @@ package weave.radviz
 			
 		}
 		
-		protected var timer:DebugTimer = new DebugTimer(false);
-		
 		private var _unorderedLayout:Array = new Array();
 		
 		public var orderedLayout:Array = new Array();
@@ -79,15 +77,14 @@ package weave.radviz
 			if(!keyNumberHashMap)
 				return null;
 			
-			timer.start();
-			timer.debug('start algorithm');
+			DebugTimer.begin();
 			
 			this.keyNumberMap = keyNumberHashMap;
 			orderedLayout = [];			
 			performLayout(array);	
 			
-			timer.debug('end algorithm');
-			timer.stop();
+			DebugTimer.end('layout algorithm');
+			
 			return orderedLayout;
 		}
 		

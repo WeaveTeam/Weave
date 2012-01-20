@@ -106,6 +106,8 @@ package weave.visualization.tools
 			if (createdChildren)
 				return;
 			
+			createdChildren = true;
+			
 			toolVBox = new VBox()
 			toolVBox.percentHeight = 100;
 			toolVBox.percentWidth = 100;
@@ -150,9 +152,9 @@ package weave.visualization.tools
 			windowSettingsEditor.target = this;
 			
 			if (controlPanel)
+			{
 				controlPanel.children = [layerListComponent, simpleAxisEditor, windowSettingsEditor];
-			
-			createdChildren = true;
+			}
 		}
 		
 		override protected function childrenCreated():void
@@ -382,25 +384,14 @@ package weave.visualization.tools
 			}
 		}
 		
-		public function get showAxes():Boolean
+		/**
+		 * @param mainPlotterClass The main plotter class definition.
+		 * @param showAxes Set to true if axes should be added.
+		 * @return The main plotter.
+		 */		
+		protected function initializePlotters(mainPlotterClass:Class, showAxes:Boolean):*
 		{
-			return visualization.showAxes;
-		}
-		public function set showAxes(value:Boolean):void
-		{
-			visualization.showAxes = value;
-		}
-		
-		[Inspectable]
-		public function set plotterClass(classDef:Class):void
-		{
-			visualization.plotterClass = classDef;
-		}
-		
-		protected function initDefaultPlotter(classDef:Class):*
-		{
-			visualization.plotterClass = classDef;
-			return visualization.getDefaultPlotter();
+			return visualization.initializePlotters(mainPlotterClass, showAxes);
 		}
 
 		protected function get plotLayer():SelectablePlotLayer

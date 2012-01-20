@@ -19,21 +19,24 @@
 
 package weave.beans;
 
+import java.util.Map;
+
 public class DataServiceMetadata
 {
 	public DataServiceMetadata()
 	{
 	}
-	public DataServiceMetadata(String serverName, String[] dataTableNames, String[] geometryCollectionNames, String[] geometryCollectionKeyTypes)
+	public DataServiceMetadata(String serverName, Map<String,String>[] dataTableMetadata, String[] geometryCollectionNames, String[] geometryCollectionKeyTypes)
 	{
 		this.serverName = serverName;
-		this.dataTableNames = dataTableNames;
+		this.dataTableMetadata = dataTableMetadata;
 		this.geometryCollectionNames = geometryCollectionNames;
 		this.geometryCollectionKeyTypes = geometryCollectionKeyTypes;
 	}
 	
 	private String serverName;
-	private String[] dataTableNames;
+	private Map<String,String>[] dataTableMetadata;
+
 	private String[] geometryCollectionNames;
 	private String[] geometryCollectionKeyTypes;
 	
@@ -45,13 +48,13 @@ public class DataServiceMetadata
 	{
 		this.serverName = serverName;
 	}
-	public String[] getDataTableNames()
+	public Map<String,String>[] getDataTableMetadata()
 	{
-		return dataTableNames;
+		return dataTableMetadata;
 	}
-	public void setDataTableNames(String[] dataTableNames)
+	public void setDataTableMetadata(Map<String,String>[] dataTableMetadata)
 	{
-		this.dataTableNames = dataTableNames;
+		this.dataTableMetadata = dataTableMetadata;
 	}
 	public String[] getGeometryCollectionNames()
 	{

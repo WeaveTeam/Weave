@@ -22,7 +22,6 @@ package weave.core
 	import flash.display.DisplayObject;
 	import flash.events.Event;
 	import flash.utils.Dictionary;
-	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.UIComponent;
 	import mx.events.IndexChangedEvent;

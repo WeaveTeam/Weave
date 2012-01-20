@@ -23,7 +23,6 @@ package weave
 	import flash.display.StageDisplayState;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
-	import flash.events.MouseEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.FileFilter;
@@ -34,40 +33,40 @@ package weave
 	import flash.system.System;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
+	import flash.utils.ByteArray;
+	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.containers.HBox;
+	import mx.containers.Canvas;
 	import mx.controls.Alert;
-	import mx.controls.Button;
-	import mx.controls.HSlider;
 	import mx.controls.ProgressBar;
 	import mx.controls.ProgressBarLabelPlacement;
 	import mx.controls.Text;
 	import mx.core.Application;
 	import mx.core.UIComponent;
-	import mx.events.ChildExistenceChangedEvent;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.Reports.WeaveReport;
 	import weave.api.WeaveAPI;
+	import weave.api.WeaveFileFormat;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
-	import weave.api.getSessionState;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
-	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
-	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
 	import weave.core.weave_internal;
+	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
+	import weave.editors.WeavePropertiesEditor;
+	import weave.editors.managers.AddDataSourcePanel;
+	import weave.editors.managers.EditDataSourcePanel;
 	import weave.primitives.AttributeHierarchy;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.LocalAsyncService;
@@ -76,7 +75,7 @@ package weave
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.CirclePlotterSettings;
-	import weave.ui.ColorBinEditor;
+	import weave.ui.ColorController;
 	import weave.ui.CustomContextMenuManager;
 	import weave.ui.DraggablePanel;
 	import weave.ui.EquationEditor;
@@ -92,17 +91,18 @@ package weave
 	import weave.ui.RTextEditor;
 	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
-	import weave.ui.SessionStatesDisplay;
 	import weave.ui.SubsetManager;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
-	import weave.editors.managers.AddDataSourcePanel;
-	import weave.editors.managers.EditDataSourcePanel;
-	import weave.editors.WeavePropertiesEditor;
+	import weave.utils.ColumnUtils;
+	import weave.utils.DebugTimer;
 	import weave.utils.DebugUtils;
+	import weave.utils.EditorManager;
+	import weave.visualization.layers.SelectablePlotLayer;
+	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.CollaborationTool;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.CompoundBarChartTool;
@@ -120,6 +120,7 @@ package weave
 	import weave.visualization.tools.RadVizTool;
 	import weave.visualization.tools.RamachandranPlotTool;
 	import weave.visualization.tools.ScatterPlotTool;
+	import weave.visualization.tools.SimpleVisTool;
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
@@ -151,11 +152,6 @@ package weave
 		 * view to add new tools, manage windows, do advanced tasks, etc.
 		 */
 		private var _weaveMenu:WeaveMenuBar = null;
-		
-		/**
-		 * The XML file that defines the default layout of the page if no parameter is passed that specifies another file to use
-		 */
-		private var _configFileXML:XML = null;
 		
 		/**
 		 * This will be used to incorporate branding into any weave view.  Linkable to the Open Indicators Consortium website.
@@ -202,7 +198,6 @@ package weave
 			// default has menubar and taskbar unless specified otherwise in config file
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
-			Weave.properties.enableTaskbar.addGroupedCallback(this, toggleTaskBar, true);
 			
 			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
 			
@@ -253,6 +248,7 @@ package weave
 					{
 						_this.enabled = true;
 						adminService = pendingAdminService;
+						setupVisMenuItems(); // make sure 'save session state to server' is shown
 						applicationComplete();
 					};
 					var faultHandler:Function = function(..._):void
@@ -278,7 +274,7 @@ package weave
 			// load the session state file
 			var fileName:String = getFlashVarConfigFileName() || DEFAULT_CONFIG_FILE_NAME;
 			var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
-			WeaveAPI.URLRequestUtils.getURL(new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault);
+			WeaveAPI.URLRequestUtils.getURL(new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
 		}
 		
 		private function handleBackgroundColorChange():void
@@ -411,8 +407,9 @@ package weave
 			visDesktop.percentWidth = 100;
 			visDesktop.percentHeight = 100;
 			Weave.properties.workspaceWidth.addImmediateCallback(this, updateWorkspaceSize);
-			Weave.properties.workspaceHeight.addImmediateCallback(this, updateWorkspaceSize, null, true);
-
+			Weave.properties.workspaceHeight.addImmediateCallback(this, updateWorkspaceSize);
+			Weave.properties.workspaceMultiplier.addImmediateCallback(this, updateWorkspaceSize);
+			
 			// Code for selection indicator
 			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
 			_selectionIndicatorText.setStyle("color", 0xFFFFFF);
@@ -438,12 +435,14 @@ package weave
 
 			Weave.properties.backgroundColor.value = getStyle("backgroundColor");
 			
-			visDesktop.addEventListener(ChildExistenceChangedEvent.CHILD_REMOVE, function(e:Event):void { setupWindowMenu() } );
+			this.addChild(VisTaskbar.instance);
 		}
+		
 		private function updateWorkspaceSize(..._):void
 		{
 			if (!this.parent)
 				return;
+			
 			var w:Number = Weave.properties.workspaceWidth.value;
 			var h:Number = Weave.properties.workspaceHeight.value;
 			if (isFinite(w))
@@ -454,26 +453,18 @@ package weave
 				this.height = h;
 			else
 				this.height = this.parent.height;
+			
+			var workspace:Canvas = visDesktop.internalCanvas;
+			var multiplier:Number = Weave.properties.workspaceMultiplier.value;
+			var scale:Number = 1 / multiplier;
+			workspace.scaleX = scale;
+			workspace.scaleY = scale;
+			workspace.width = workspace.parent.width * multiplier;
+			workspace.height = workspace.parent.height * multiplier;
 		}
 
 		private var adminService:LocalAsyncService = null;
 		
-		
-		private var sessionStates:Array = new Array();	//Where the session states are stored.
-		private var sessionCount:int = 0;
-		private var sessionTotal:int = 0;				//For naming purposes.
-		
-		private function saveAction():void{
-			
-			var dynObject:DynamicState = new DynamicState();
-			
-			sessionTotal++;
-			sessionCount = sessionStates.length;
-			dynObject.sessionState = getSessionState(Weave.root);
-			dynObject.objectName = "Weave Session State " + ( sessionTotal + 1 );
-			sessionStates[sessionCount] = dynObject;
-			
-		}
 		
 		private function copySessionStateToClipboard():void
 		{
@@ -612,7 +603,7 @@ package weave
 						function():Boolean { return Weave.properties.enableRefreshHierarchies.value }
 					)
 				);
-
+				
 				if(Weave.properties.enableAddDataSource.value)
 					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Add New Datasource", AddDataSourcePanel.showAsPopup));
 				
@@ -625,49 +616,57 @@ package weave
 			{
 				_exportMenu = _weaveMenu.addMenuToMenuBar("Export", false);
 				if (Weave.properties.enableExportApplicationScreenshot.value)
-					_weaveMenu.addMenuItemToMenu(_exportMenu, new WeaveMenuItem("Save or Print Application Screenshot...", printOrExportImage, [this]));
+					_weaveMenu.addMenuItemToMenu(_exportMenu, new WeaveMenuItem("Save or Print Application Screenshot...", printOrExportImage, [visDesktop.internalCanvas]));
 			}
 			
 			if (Weave.properties.enableDynamicTools.value)
 			{
 				_toolsMenu = _weaveMenu.addMenuToMenuBar("Tools", false);
 
-				createToolMenuItem(Weave.properties.showColorController, "Show Color Controller", ColorBinEditor.openDefaultEditor);
-				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Show Probe ToolTip Editor", ProbeToolTipEditor.openDefaultEditor );
-				createToolMenuItem(Weave.properties.showEquationEditor, "Show Equation Editor", createGlobalObject, [EquationEditor, "EquationEditor"]);
+				createToolMenuItem(Weave.properties.showColorController, "Show Color Controller", DraggablePanel.openStaticInstance, [ColorController]);
+				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Show Probe ToolTip Editor", DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
+				createToolMenuItem(Weave.properties.showEquationEditor, "Show Equation Editor", DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showAttributeSelector, "Show Attribute Selector", AttributeSelectorPanel.openDefaultSelector);
-				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Add Collaboration Tool", createGlobalObject, [CollaborationTool, "CollaborationTool"]);
+				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Connect to Collaboration Server", DraggablePanel.openStaticInstance, [CollaborationTool]);
 				
 				createToolMenuItem(Weave.properties.enableNewUserWizard, "New User Wizard", function():void {
 					var userUI:NewUserWizard = new NewUserWizard();
 					WizardPanel.createWizard(instance,userUI);
 				});
 
-				_weaveMenu.addSeparatorToMenu(_toolsMenu);
+				if (!Weave.properties.dashboardMode.value)
+				{
+					_weaveMenu.addSeparatorToMenu(_toolsMenu);
+					createToolMenuItem(Weave.properties.enableAddAttributeMenuTool, "Add Attribute Menu Tool", createGlobalObject, [AttributeMenuTool]);
+					createToolMenuItem(Weave.properties.enableAddBarChart, "Add Bar Chart", createGlobalObject, [CompoundBarChartTool]);
+					createToolMenuItem(Weave.properties.enableAddColormapHistogram, "Add Color Histogram", createColorHistogram);
+					createToolMenuItem(Weave.properties.enableAddColorLegend, "Add Color Legend", createGlobalObject, [ColorBinLegendTool]);
+					createToolMenuItem(Weave.properties.enableAddCompoundRadViz, "Add CompoundRadViz", createGlobalObject, [CompoundRadVizTool]);
+					createToolMenuItem(Weave.properties.enableAddDataTable, "Add Data Table", createGlobalObject, [DataTableTool]);
+					createToolMenuItem(Weave.properties.enableAddDataTable, "Add Transposed Data Table", createGlobalObject, [TransposedTableTool]);
+					createToolMenuItem(Weave.properties.enableAddDimensionSliderTool, "Add Dimension Slider Tool", createGlobalObject, [DimensionSliderTool]);
+					createToolMenuItem(Weave.properties.enableAddGaugeTool, "Add Gauge Tool", createGlobalObject, [GaugeTool]);
+					createToolMenuItem(Weave.properties.enableAddHistogram, "Add Histogram", createGlobalObject, [HistogramTool]);
+					createToolMenuItem(Weave.properties.enableAdd2DHistogram, "Add 2D Histogram", createGlobalObject, [Histogram2DTool]);
+					createToolMenuItem(Weave.properties.enableAddRScriptEditor, "Add JRI Script Editor", createGlobalObject, [JRITextEditor]);
+					createToolMenuItem(Weave.properties.enableAddLineChart, "Add Line Chart", createGlobalObject, [LineChartTool]);
+					createToolMenuItem(Weave.properties.enableAddMap, "Add Map", createGlobalObject, [MapTool]);
+					createToolMenuItem(Weave.properties.enableAddPieChart, "Add Pie Chart", createGlobalObject, [PieChartTool]);
+					createToolMenuItem(Weave.properties.enableAddPieChartHistogram, "Add Pie Chart Histogram", createGlobalObject, [PieChartHistogramTool]);
+					createToolMenuItem(Weave.properties.enableAddRScriptEditor, "Add R Script Editor", createGlobalObject, [RTextEditor]);
+					createToolMenuItem(Weave.properties.enableAddRadViz, "Add RadViz", createGlobalObject, [RadVizTool]);
+					createToolMenuItem(Weave.properties.enableAddRamachandranPlot, "Add RamachandranPlot", createGlobalObject, [RamachandranPlotTool]);
+					createToolMenuItem(Weave.properties.enableAddScatterplot, "Add Scatterplot", createGlobalObject, [ScatterPlotTool]);
+					createToolMenuItem(Weave.properties.enableAddThermometerTool, "Add Thermometer Tool", createGlobalObject, [ThermometerTool]);
+					createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Time Slider Tool", createGlobalObject, [TimeSliderTool]);	
+					createToolMenuItem(Weave.properties.enableAddCustomTool, "Add Custom Tool", createGlobalObject, [EmptyTool]);
+				}
 				
-				createToolMenuItem(Weave.properties.enableAddAttributeMenuTool, "Add Attribute Menu Tool", createGlobalObject, [AttributeMenuTool]);
-				createToolMenuItem(Weave.properties.enableAddBarChart, "Add Bar Chart", createGlobalObject, [CompoundBarChartTool]);
-				createToolMenuItem(Weave.properties.enableAddColormapHistogram, "Add Color Histogram", createColorHistogram);
-				createToolMenuItem(Weave.properties.enableAddColorLegend, "Add Color Legend", createGlobalObject, [ColorBinLegendTool]);
-				createToolMenuItem(Weave.properties.enableAddCompoundRadViz, "Add CompoundRadViz", createGlobalObject, [CompoundRadVizTool]);
-				createToolMenuItem(Weave.properties.enableAddDataTable, "Add Data Table", createGlobalObject, [DataTableTool]);
-				createToolMenuItem(Weave.properties.enableAddDataTable, "Add Transposed Data Table", createGlobalObject, [TransposedTableTool]);
-				createToolMenuItem(Weave.properties.enableAddDimensionSliderTool, "Add Dimension Slider Tool", createGlobalObject, [DimensionSliderTool]);
-				createToolMenuItem(Weave.properties.enableAddGaugeTool, "Add Gauge Tool", createGlobalObject, [GaugeTool]);
-				createToolMenuItem(Weave.properties.enableAddHistogram, "Add Histogram", createGlobalObject, [HistogramTool]);
-				createToolMenuItem(Weave.properties.enableAdd2DHistogram, "Add 2D Histogram", createGlobalObject, [Histogram2DTool]);
-				createToolMenuItem(Weave.properties.enableAddRScriptEditor, "Add JRI Script Editor", createGlobalObject, [JRITextEditor]);
-				createToolMenuItem(Weave.properties.enableAddLineChart, "Add Line Chart", createGlobalObject, [LineChartTool]);
-				createToolMenuItem(Weave.properties.enableAddMap, "Add Map", createGlobalObject, [MapTool]);
-				createToolMenuItem(Weave.properties.enableAddPieChart, "Add Pie Chart", createGlobalObject, [PieChartTool]);
-				createToolMenuItem(Weave.properties.enableAddPieChartHistogram, "Add Pie Chart Histogram", createGlobalObject, [PieChartHistogramTool]);
-				createToolMenuItem(Weave.properties.enableAddRScriptEditor, "Add R Script Editor", createGlobalObject, [RTextEditor]);
-				createToolMenuItem(Weave.properties.enableAddRadViz, "Add RadViz", createGlobalObject, [RadVizTool]);
-				createToolMenuItem(Weave.properties.enableAddRamachandranPlot, "Add RamachandranPlot", createGlobalObject, [RamachandranPlotTool]);
-				createToolMenuItem(Weave.properties.enableAddScatterplot, "Add Scatterplot", createGlobalObject, [ScatterPlotTool]);
-				createToolMenuItem(Weave.properties.enableAddThermometerTool, "Add Thermometer Tool", createGlobalObject, [ThermometerTool]);
-				createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Time Slider Tool", createGlobalObject, [TimeSliderTool]);	
-				createToolMenuItem(Weave.properties.enableAddCustomTool, "Add Custom Tool", createGlobalObject, [EmptyTool]);
+				_weaveMenu.addSeparatorToMenu(_toolsMenu);
+				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(
+					function():String { return (Weave.properties.dashboardMode.value ? "Disable" : "Enable") + " dashboard mode"; },
+					function():void { Weave.properties.dashboardMode.value = !Weave.properties.dashboardMode.value; }
+				));
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)
@@ -686,32 +685,16 @@ package weave
 			if (Weave.properties.enableSessionMenu.value || adminService)
 			{
 				_sessionMenu = _weaveMenu.addMenuToMenuBar("Session", false);
-				
-				if (Weave.properties.enableSessionBookmarks.value)
-				{
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Create session state save point", saveAction));
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Show saved session states", SessionStatesDisplay.openDefaultEditor, [sessionStates]));
-				}
-				
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Edit session state", SessionStateEditor.openDefaultEditor));
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Copy session state to clipboard", copySessionStateToClipboard));
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				
-				if (Weave.properties.enableSessionEdit.value || adminService)
-				{
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Edit session state", SessionStateEditor.openDefaultEditor));
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Copy session state to clipboard", copySessionStateToClipboard));
-					
-					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state...", handleImportSessionState));
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Export session state...", handleExportSessionState));
-				}
-
-				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state...", handleImportSessionState));
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Export session state...", handleExportSessionState));
 				if (adminService)
+				{
+					_weaveMenu.addSeparatorToMenu(_sessionMenu);
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Save session state to server", saveSessionStateToServer));
-				
-				_weaveMenu.addSeparatorToMenu(_sessionMenu);
+				}
 			}
 			
 			if (Weave.properties.enableWindowMenu.value || adminService)
@@ -725,9 +708,11 @@ package weave
 				_aboutMenu = _weaveMenu.addMenuToMenuBar("About", false);
 				
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Weave Version: " + Weave.properties.version.value));
-				
-				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Visit http://www.openindicators.org", function ():void {
-					navigateToURL(new URLRequest("http://www.openindicators.org"), "_blank");
+				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Report a problem", function ():void {
+					navigateToURL(new URLRequest("http://bugs.oicweave.org/projects/weave/issues/new"), "_blank");
+				}));
+				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Visit OICWeave.org", function ():void {
+					navigateToURL(new URLRequest("http://www.oicweave.org"), "_blank");
 				}));
 			}
 		}
@@ -738,92 +723,102 @@ package weave
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(title, callback, params));
 		}
 		
-		private function toggleTaskBar():void
+		private var _alreadyLoaded:Boolean = false;
+		private var _stateLoaded:Boolean = false;
+		public function loadSessionState(fileContent:Object, fileName:String):void
 		{
-			if (Weave.properties.enableTaskbar.value)
+			DebugTimer.begin();
+			var content:Object = null;
+			try {
+				content = WeaveFileFormat.readFile(ByteArray(fileContent));
+			} catch (e:Error) { }
+			
+			if (content)
 			{
-				VisTaskbar.instance.percentWidth = 100;
-					
-				// The task bar should be at the bottom of the page
-				if (!VisTaskbar.instance.parent)
-				{
-					addChild(VisTaskbar.instance);
-//					PopUpManager.addPopUp(_visTaskbar, this);
-				}
+				Weave.loadWeaveFileContent(content);
 			}
 			else
 			{
-				VisTaskbar.instance.restoreAllComponents();
-
-				if (VisTaskbar.instance.parent)
+				// attempt to load .xml file
+				var xml:XML = null;
+				try
 				{
-					removeChild(VisTaskbar.instance);
-//					PopUpManager.removePopUp(_visTaskbar);
+					xml = XML(fileContent);
 				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
+				if (xml)
+				{
+					// backwards compatibility:
+					var stateStr:String = xml.toXMLString();
+					while (stateStr.indexOf("org.openindicators") >= 0)
+					{
+						stateStr = stateStr.replace("org.openindicators", "weave");
+						xml = XML(stateStr);
+					}
+					var tag:XML;
+					for each (tag in xml.descendants("OpenIndicatorsServletDataSource"))
+						tag.setLocalName("WeaveDataSource");
+					for each (tag in xml.descendants("OpenIndicatorsDataSource"))
+						tag.setLocalName("WeaveDataSource");
+					for each (tag in xml.descendants("WMSPlotter2"))
+						tag.setLocalName("WMSPlotter");
+					for each (tag in xml.descendants("SessionedTextArea"))
+					{
+						tag.setLocalName("SessionedTextBox");
+						tag.appendChild(<enableBorders>true</enableBorders>);
+						tag.appendChild(<htmlText>{tag.textAreaString.text()}</htmlText>);
+						tag.appendChild(<panelX>{tag.textAreaWindowX.text()}</panelX>);
+						tag.appendChild(<panelY>{tag.textAreaWindowY.text()}</panelY>);
+					}
+					
+					// add missing attribute titles
+					for each (var hierarchy:XML in xml.descendants('hierarchy'))
+					{
+						for each (tag in hierarchy.descendants("attribute"))
+						{
+							if (!String(tag.@title) && tag.@name)
+							{
+								tag.@title = tag.@name;
+								if (String(tag.@year))
+									tag.@title += ' (' + tag.@year + ')';
+							}
+						}
+					}
+					
+					Weave.setSessionStateXML(xml);
+					
+					// An empty subset is not of much use.  If the subset is empty, reset it to include all records.
+					var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
+					if (subset.includeMissingKeys.value == false && subset.included.keys.length == 0 && subset.excluded.keys.length == 0)
+						subset.includeMissingKeys.value = true;
+				}
+				Weave.history.clearHistory(); // begin with empty history after loading the session state from the xml
 			}
-		}
-		
-		private var _alreadyLoaded:Boolean = false;
-		private var _stateLoaded:Boolean = false;
-		private function loadSessionState(state:XML):void
-		{
-			_configFileXML = state;
-			var i:int = 0;
-			
+			DebugTimer.end('loadSessionState', fileName);
+
 			StageUtils.callLater(this,toggleMenuBar,null,false);
 			
 			if (!getFlashVarAdminConnectionName())
 				enabled = true;
 			
-			// backwards compatibility:
-			var stateStr:String = state.toXMLString();
-			while (stateStr.indexOf("org.openindicators") >= 0)
-			{
-				stateStr = stateStr.replace("org.openindicators", "weave");
-				state = XML(stateStr);
-			}
-			var tag:XML;
-			for each (tag in state.descendants("OpenIndicatorsServletDataSource"))
-				tag.setLocalName("WeaveDataSource");
-			for each (tag in state.descendants("OpenIndicatorsDataSource"))
-				tag.setLocalName("WeaveDataSource");
-			for each (tag in state.descendants("WMSPlotter2"))
-				tag.setLocalName("WMSPlotter");
-			for each (tag in state.descendants("SessionedTextArea"))
-			{
-				tag.setLocalName("SessionedTextBox");
-				tag.appendChild(<enableBorders>true</enableBorders>);
-				tag.appendChild(<htmlText>{tag.textAreaString.text()}</htmlText>);
-				tag.appendChild(<panelX>{tag.textAreaWindowX.text()}</panelX>);
-				tag.appendChild(<panelY>{tag.textAreaWindowY.text()}</panelY>);
-			}
-			
-			// add missing attribute titles
-			for each (var hierarchy:XML in _configFileXML.descendants('hierarchy'))
-				for each (tag in hierarchy.descendants("attribute"))
-					if (!String(tag.@title) && tag.@name)
-					{
-						tag.@title = tag.@name;
-						if (String(tag.@year))
-							tag.@title += ' (' + tag.@year + ')';
-					}
 
-			Weave.setSessionStateXML(_configFileXML, true);
-			fixCommonSessionStateProblems();
-
-			if (_weaveMenu && _toolsMenu)
+			/*if (_weaveMenu && _toolsMenu)
 			{
-				var reportsMenuItems:Array = getReportsMenuItems();
-				if (reportsMenuItems.length > 0)
+				var first:Boolean = true;
+				//add reports to tools menu
+				for each (var report:WeaveReport in Weave.root.getObjects(WeaveReport))
 				{
-					_weaveMenu.addSeparatorToMenu(_toolsMenu);
+					if (first)
+						_weaveMenu.addSeparatorToMenu(_toolsMenu);
+					first = false;
 					
-					for each(var reportMenuItem:WeaveMenuItem in reportsMenuItems)
-					{
-						_weaveMenu.addMenuItemToMenu(_toolsMenu, reportMenuItem);
-					}
-				}	
-			}
+					var reportMenuItem:WeaveMenuItem = new WeaveMenuItem(Weave.root.getName(report), WeaveReport.requestReport, [report]);
+					_weaveMenu.addMenuItemToMenu(_toolsMenu, reportMenuItem);
+				}
+			}*/
 			
 			// generate the context menu items
 			setupContextMenu();
@@ -833,24 +828,6 @@ package weave
 			this.styleName = "application";	
 			
 			_stateLoaded = true;
-			
-			//Sets the initial session state for an undo.
-			var dynamicSess:DynamicState = new DynamicState();
-			dynamicSess.sessionState = getSessionState(Weave.root);	
-			dynamicSess.objectName = "Weave Session State 1";
-			
-			sessionStates[0] = dynamicSess;
-		}
-		
-		/**
-		 * This function will fix common problems that appear in saved session states.
-		 */
-		private function fixCommonSessionStateProblems():void
-		{
-			// An empty subset is not of much use.  If the subset is empty, reset it to include all records.
-			var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
-			if (subset.includeMissingKeys.value == false && subset.included.keys.length == 0 && subset.excluded.keys.length == 0)
-				subset.includeMissingKeys.value = true;
 		}
 		
 		private function handleWeaveListChange():void
@@ -877,6 +854,14 @@ package weave
 				(object as DraggablePanel).restorePanel();
 			// put panel in front
 			Weave.root.setNameOrder([name]);
+			
+			if (object is MapTool)
+			{
+				//(object as MapTool).toggleControlPanel();
+				var layer:SelectablePlotLayer = (object as MapTool).visualization.layers.getObjects()[0] as SelectablePlotLayer;
+				var geom:DynamicColumn = (layer.getDynamicPlotter().internalObject as GeometryPlotter).geometryColumn.internalDynamicColumn;
+				AttributeSelectorPanel.openDefaultSelector(geom, "Geometry");
+			}
 
 			return object;
 		}
@@ -1036,18 +1021,11 @@ package weave
 				
 				return menuLabel;
 			}
-			var click:Function = function():void
-			{
-		   		if (panel.minimizedComponentVersion != null)
-		   			panel.minimizedComponentVersion.restoreFunction();
-		   		else
-					panel.restorePanel();
-			}
-			var newToolMenuItem:WeaveMenuItem = new WeaveMenuItem(label, click);
+			var newToolMenuItem:WeaveMenuItem = new WeaveMenuItem(label, panel.restorePanel);
 			 
 			newToolMenuItem.type = WeaveMenuItem.TYPE_RADIO;
 			newToolMenuItem.groupName = "activeWindows";
-			newToolMenuItem.toggledFunction = function ():Boolean {
+			newToolMenuItem.toggledFunction = function():Boolean {
 				return newToolMenuItem.relevantItemPointer == topPanel;
 			};
 			newToolMenuItem.relevantItemPointer = panel;
@@ -1159,22 +1137,14 @@ package weave
 		 */
 		private function handleConfigFileDownloaded(event:ResultEvent, token:Object = null):void
 		{
-			var xml:XML = null;
-			try
-			{
-				xml = XML(event.result);
-			}
-			catch (e:Error)
-			{
-				reportError(e);
-			}
-			if (xml)
-				loadSessionState(xml);
+			var fileName:String = token as String;
+			loadSessionState(event.result, fileName);
+			
 			if (getFlashVarEditable())
 			{
 				Weave.properties.enableMenuBar.value = true;
 				Weave.properties.enableSessionMenu.value = true;
-				Weave.properties.enableSessionEdit.value = true;
+				Weave.properties.enableWindowMenu.value = true;
 				Weave.properties.enableUserPreferences.value = true;
 			}
 			else if (getFlashVarEditable() === false) // triple equals because it may also be undefined
@@ -1183,13 +1153,20 @@ package weave
 				Weave.properties.dashboardMode.value = true;
 			}
 			
+			if (getFlashVarEditable())
+			{
+				var historySlider:UIComponent = EditorManager.getNewEditor(Weave.history) as UIComponent;
+				addChildAt(historySlider, getChildIndex(visDesktop));
+			}
+			else
+			{
+				Weave.history.enableLogging.value = false;
+			}
+			
 			// enable JavaScript API after initial session state has loaded.
 			ExternalInterface.addCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
 			WeaveAPI.initializeExternalInterface(); // this calls weaveReady() in JavaScript
 			Weave.properties.runStartupJavaScript(); // run startup script after weaveReady()
-			
-			if (getFlashVarEditable())
-				addHistorySlider();
 		}
 		
 		/**
@@ -1206,7 +1183,7 @@ package weave
 				// WeaveDataSource so the admin doesn't have to add it manually every time.
 				Weave.root.requestObject(null, WeaveDataSource, false);
 				// It's convenient if the admin sets probed columns first so new tools will have default attributes selected.
-				ProbeToolTipEditor.openDefaultEditor();
+				DraggablePanel.openStaticInstance(ProbeToolTipEditor);
 			}
 			else
 			{
@@ -1215,53 +1192,6 @@ package weave
 			if (event.fault.faultCode == SecurityErrorEvent.SECURITY_ERROR)
 				Alert.show("The server hosting the configuration file does not have a permissive crossdomain policy.", "Security sandbox violation");
 		}
-		
-		private var log:SessionStateLog;
-		private function addHistorySlider():void
-		{
-			// beta undo/redo feature
-			log = new SessionStateLog(Weave.root);
-			
-			var hb:HBox = new HBox();
-			hb.percentWidth = 100;
-			addChildAt(hb, 0);
-			
-			var undoButton:Button = new Button();
-			undoButton.label="<";
-			undoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ log.undo(); });
-			hb.addChild(undoButton);
-			
-			var redoButton:Button = new Button();
-			redoButton.label=">";
-			redoButton.addEventListener(MouseEvent.CLICK,function(..._):void{ log.redo(); });
-			hb.addChild(redoButton);
-			
-			var hs:HSlider = new HSlider();
-			hb.addChild(hs);
-			hs.percentWidth = 100;
-			hs.setStyle("bottom", 0);
-			hs.minimum = 0;
-			hs.liveDragging = true;
-			hs.tickInterval = 1;
-			hs.snapInterval = 1;
-			hs.addEventListener(Event.CHANGE, handleHistorySlider);
-			function handleHistorySlider():void
-			{
-				var delta:int = hs.value - log.undoHistory.length;
-				if (delta < 0)
-					log.undo(-delta);
-				else
-					log.redo(delta);
-			}
-			
-			getCallbackCollection(log).addImmediateCallback(this, updateHistorySlider, null, true);
-			function updateHistorySlider():void
-			{
-				hs.maximum = log.undoHistory.length + log.redoHistory.length;
-				hs.value = log.undoHistory.length;
-			}
-		}
-
 		
 		private var _printToolMenuItem:ContextMenuItem = null;
 		
@@ -1285,9 +1215,6 @@ package weave
 			
 			if (Weave.properties.enableRightClick.value)
 			{
-				// Add item for the DataTableTool
-				DataTableTool.createContextMenuItems(this);
-				
 				// Add item for the DatasetLoader
 				//DatasetLoader.createContextMenuItems(this);
 				
@@ -1319,18 +1246,10 @@ package weave
 				createExportToolImageContextMenuItem();
 				_printToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Print Application Image", this, handleContextMenuItemSelect, "4 exportMenuItems");
 				
+				createExportCSVContextMenuItem();
 				
 				// Add context menu items for handling search queries
 				SearchEngineUtils.createContextMenuItems(this);
-				// Additional record queries can be defined in the config file.  Here they are extracted and added as context menu items with their
-				// associated actions.
-				if (_configFileXML)
-				{
-					for(var i:int = 0; i < _configFileXML.recordQuery.length(); i++)
-					{
-						SearchEngineUtils.addSearchQueryContextMenuItem(_configFileXML.recordQuery[i], this);	
-					}
-				}
 			}
 		}
 
@@ -1339,7 +1258,7 @@ package weave
 		protected var panelSettingsContextMenuItem:ContextMenuItem = null;
 		private function createExportToolImageContextMenuItem():Boolean
 		{				
-			if(Weave.properties.enableExportToolImage.value)
+			if (Weave.properties.enableExportToolImage.value)
 			{
 				// Add a listener to this destination context menu for when it is opened
 				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
@@ -1359,6 +1278,76 @@ package weave
 			
 			return false;
 		}
+		
+		private  var _exportCSVContextMenuItem:ContextMenuItem = null;
+		private function createExportCSVContextMenuItem():Boolean
+		{	
+			if (Weave.properties.enableExportCSV.value)
+			{
+				// Add a listener to this destination context menu for when it is opened
+				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
+				
+				// Create a context menu item for printing of a single tool with title and logo
+				_exportCSVContextMenuItem	= CustomContextMenuManager.createAndAddMenuItemToDestination(
+					"Export CSV", 
+					this,
+					function(event:ContextMenuEvent):void { exportCSV(_panelToExport ); },
+					"4 exportMenuItems"
+				);
+				// By default this menu item is disabled so that it does not show up unless we right click on a tool
+				_exportCSVContextMenuItem.enabled = false;				
+				return true;
+			}
+			return false;
+		}
+		private var fr:FileReference = new FileReference();	// CSV download file references
+		public function exportCSV(component:UIComponent):void
+		{
+			if (!component)
+				return;
+			
+			var visMenuVisible:Boolean = (_weaveMenu ? _weaveMenu.visible : false);
+			var visTaskbarVisible:Boolean = (VisTaskbar.instance ? VisTaskbar.instance.visible : false);
+			
+			if (_weaveMenu)
+				_weaveMenu.visible    = false;
+			if (VisTaskbar.instance)
+				VisTaskbar.instance.visible = false;			
+			
+			try
+			{
+				if(component is DataTableTool)
+				{
+					var keys:* = (component as DataTableTool).getExportDataProvider();
+					// each record has a property named after the column title equal to the value in that column for the current key
+					var dataType:Class = (keys === (component as DataTableTool).dataGrid.dataProvider) ? null : String; // dimension slider hack
+					var dataTableColumns:Array = (component as DataTableTool).columns.getObjects();
+					if(dataTableColumns.length ==0){
+						reportError("Columns are not assigned in " + (component as DataTableTool).title + " tool to export as CSV" );
+						return;
+					}
+					fr.save(ColumnUtils.generateTableCSV(dataTableColumns,keys,dataType), "Weave DataTable Tool Data.csv");	
+				}								
+				else
+				{
+					var toolColumns:Array = (component as SimpleVisTool).getSelectableAttributes();
+					if(toolColumns.length ==0){
+						reportError("Columns are not assigned in " + (component as SimpleVisTool).title + " to export as CSV" );
+						return;
+					}
+					fr.save(ColumnUtils.generateTableCSV(toolColumns), "Weave " + (component as SimpleVisTool).title + " Data.csv");
+				}				
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}			
+			if (_weaveMenu)
+				_weaveMenu.visible    = visMenuVisible;
+			if (VisTaskbar.instance)
+				VisTaskbar.instance.visible = visTaskbarVisible;	
+		}
+		
 		// Handler for when the context menu is opened.  In here we will keep track of what tool we were over when we right clicked so 
 		// that we can export an image of just this tool.  We also change the text in the context menu item for exporting an image of 
 		// this tool so it  says the name of the tool to export.
@@ -1373,29 +1362,14 @@ package weave
 			{
 				_panelPrintContextMenuItem.caption = "Print/Export " + _panelToExport.title + " Image...";
 				_panelPrintContextMenuItem.enabled = true;
+				_exportCSVContextMenuItem.enabled = true;
 			}
 			else
 			{
 				_panelPrintContextMenuItem.caption = "Print/Export Panel Image...";
 				_panelPrintContextMenuItem.enabled = false;	
+				_exportCSVContextMenuItem.enabled = false;
 			}
-		}
-		
-		/** 
-		 * Static methods to encapsulate the list of reports within the ObjectRepository
-		 * addReportsToMenu loops through the reports in the Object Repository and 
-		 * adds them to the tools menu
-		 */
-		public static function getReportsMenuItems():Array
-		{
-			var reportsMenuItems:Array = [];
-			//add reports to tools menu
-			for each (var report:WeaveReport in Weave.root.getObjects(WeaveReport))
-			{
-				reportsMenuItems.push(new WeaveMenuItem(Weave.root.getName(report), WeaveReport.requestReport, [report]));
-			}	
-			
-			return reportsMenuItems;
 		}
 		
 		private var _weaveFileRef:FileReference = null;
@@ -1405,7 +1379,7 @@ package weave
 			{
 				_weaveFileRef = new FileReference();
 				_weaveFileRef.addEventListener(Event.SELECT,   function (e:Event):void { _weaveFileRef.load(); } );
-				_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void { loadSessionState( XML(e.target.data) ); } );
+				_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void { loadSessionState(e.target.data, _weaveFileRef.name); } );
 			}
 			_weaveFileRef.browse([new FileFilter("XML", "*.xml")]);
 		}
@@ -1422,12 +1396,6 @@ package weave
 			if (!component)
 				return;
 			
-			var visMenuVisible:Boolean    = (_weaveMenu ? _weaveMenu.visible : false);
-			var visTaskbarVisible:Boolean = (VisTaskbar.instance ? VisTaskbar.instance.visible : false);
-			
-			if (_weaveMenu)    _weaveMenu.visible    = false;
-			if (VisTaskbar.instance) VisTaskbar.instance.visible = false;
-
 			//initialize the print format
 			var printPopUp:PrintPanel = new PrintPanel();
    			printPopUp = PopUpManager.createPopUp(this,PrintPanel,true) as PrintPanel;
@@ -1435,9 +1403,6 @@ package weave
    			printPopUp.applicationTitle = Weave.properties.pageTitle.value;
    			//add current snapshot to Print Format
 			printPopUp.componentToScreenshot = component;
-			
-			if (_weaveMenu)  _weaveMenu.visible    = visMenuVisible;
-			if (VisTaskbar.instance) VisTaskbar.instance.visible = visTaskbarVisible;	
 		}
 
 		/**
@@ -1466,7 +1431,7 @@ package weave
 		{
 			if (event.currentTarget == _printToolMenuItem)
    			{
-   				printOrExportImage(this);
+   				printOrExportImage(visDesktop.internalCanvas);
    			}
    			
 		}

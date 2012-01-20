@@ -37,7 +37,6 @@
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.controls.Button;
-			import mx.controls.Image;
 			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
@@ -83,7 +82,8 @@
 					MouseEvent.ROLL_OVER,
 					function(event:Event):void
 					{
-						ToolTipManager.showDelay = 0;
+						if (!_helpWindow)
+							ToolTipManager.showDelay = 0;
 					}
 				);
 				addEventListener(
@@ -129,9 +129,22 @@
 			}
 			
 			/**
+			 * This specifies an XML string for the content of the help popup and the tooltip.
+			 */
+			public function set htmlText(value:String):void
+			{
+				setContent(value, true);
+			}
+			
+			/**
 			 * This specifies the content of the help popup and possibly the tooltip.
 			 */
 			public function set content(value:*):void
+			{
+				setContent(value, false);
+			}
+				
+			private function setContent(value:*, asXML:Boolean):void
 			{
 				if (value == null)
 					return;
@@ -140,13 +153,21 @@
 				
 				if (value is String)
 				{
-					toolTip = value as String; // show the actual text
-					
 					var textArea:AutoResizingTextArea = new AutoResizingTextArea();
+					if (asXML)
+					{
+						textArea.htmlText = value as String;
+					}
+					else
+					{
+						textArea.text = value as String;
+						toolTip = value as String;
+					}
 					textArea.editable = false;
 					textArea.height = NaN;
+					textArea.width = 400;
+					textArea.wordWrap = true;
 					textArea.setStyle("borderStyle", "none");
-					textArea.text = value as String;
 					
 					value = [textArea];
 				}
@@ -202,7 +223,7 @@
 				var window:TitleWindow = PopUpManager.createPopUp(helpComponent, TitleWindow) as TitleWindow;
 				_helpWindow = window;
 				window.title = helpComponent.label;
-				window.width = 400;
+				window.width = NaN;
 				window.height = NaN;
 				window.showCloseButton = true;
 				window.setStyle("borderAlpha", 1.0);
@@ -217,13 +238,13 @@
 				for (var i:int = 0; i < helpChildren.length; i++)
 				{
 					var component:UIComponent = helpChildren[i] as UIComponent;
-					if (!component)
-						continue;
-					component.percentWidth = 100;
-					component.percentHeight = 100;
-					
-					window.addChild(component);
+					if (component)
+					{
+						window.addChild(component);
+						component.validateNow();
+					}
 				}
+				window.validateNow();
 				
 				var padding:int = 5;
 				

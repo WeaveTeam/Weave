@@ -20,221 +20,206 @@
 */
 -->
 
-<!--
-ColorRampEditor
-
-@sanbalagan
+<!---
+@author abaumann
+@author sanbalagan
+@author adufilie
 -->
-<mx:HBox xmlns:ui ="weave.ui.*"
+<mx:VBox xmlns:ui ="weave.ui.*"
 	xmlns:mx="http://www.adobe.com/2006/mxml" 
 	xmlns="weave.ui.*"
 	implements="weave.api.core.ILinkableObject"
-	width="{NaN}" height="{NaN}"
+	width="100%" height="100%"
+	enabled="{colorRamp != null}"
 	>
-	<mx:VBox verticalGap="3">
-		<mx:DataGrid id="colorRampGrid"
-					 useRollOver="false"
-					 minWidth="200" width="100%" height="100%"
-					 color="black"
-					 rollOverColor="0xCCFEFF"
-					 fontWeight="normal"
-					 paddingBottom="2" paddingTop="2" paddingLeft="5" paddingRight="5" 
-					 horizontalScrollPolicy="off" verticalScrollPolicy="on"
-					 allowMultipleSelection="false"  
-					 dataProvider="{ColorRamp.allColorRamps.colorRamp}"
-					 change="handleColorRampSelected()"
-					 headerHeight="22">
-			<mx:columns>												
-				<mx:DataGridColumn dataField="@name"  headerText="Color scale"  itemRenderer="weave.ui.colormap.ColorRampPresetItemRenderer"/>
-			</mx:columns>
-		</mx:DataGrid>
-		<mx:CheckBox id="reverseCheckBox"
-					 label="Reverse color scale"
-					 toolTip="Click to reverse the colors in the color scale."
-					 change="saveReverseSetting()"
-					 color="0x000000"/>
-	</mx:VBox>
-	<mx:VBox verticalGap="1">
-		<mx:Label text="Filter by:" fontWeight="bold"/>
-		<mx:CheckBox id="colorblindSafeCheckbox"
-					 label="Colorblind-safe"
-					 toolTip="Click to only show choices that are colorblind safe."
-					 click="handleFilterOptionSet(event)"/>
-		<mx:CheckBox id="singleHueCheckbox"
-					 label="Single hue"
-					 toolTip="Click to only show choices that usea single hue (base color)."
-					 click="handleFilterOptionSet(event)"/>
-		<mx:CheckBox id="printFriendlyCheckbox"
-					 label="Printer friendly"
-					 toolTip="Click to only show choices that are printer friendly."
-					 click="handleFilterOptionSet(event)"/>
-		<mx:CheckBox id="photocopyableCheckbox"
-					 label="Photocopy-able"
-					 toolTip="Click to only show choices that can be photocopied."
-					 click="handleFilterOptionSet(event)"/>
-		<mx:HBox>
-			<mx:Label text="Color scale style:" width="130"/>
-			<ui:CustomComboBox id="typeCombo"   change="handleFilterOptionSet(event)" width="100%" color="black" rollOverColor="0xCCFEFF"/>
-		</mx:HBox>
-		
-		<mx:HBox>
-			<mx:Label text="Color scale category:" width="130"/>
-			<ui:CustomComboBox id="categoriesCombo"   change="handleFilterOptionSet(event)" width="100%" color="black" rollOverColor="0xCCFEFF"/>
-		</mx:HBox>
-	</mx:VBox>
+	<mx:HBox height="100%" width="100%">
+		<mx:VBox width="100%" height="100%" id="listVBox">
+			<ui:ColorRampList id="colorRampList" colorRamp="{colorRamp}"/>
+			<ui:Indent label="Filter:">
+				<ui:CustomComboBox id="filterCombo" change="(colorRampList.dataProvider as ICollectionView).refresh();"/>
+			</ui:Indent>
+		</mx:VBox>
+		<mx:VBox height="100%">
+			<mx:Label text="Customize" fontWeight="bold"/>
+			<mx:HBox height="100%" horizontalGap="0">
+				<mx:Canvas id="colorRampCanvas" resize="if (colorRamp) colorRamp.draw(colorRampCanvas, true)"
+						   borderStyle="solid" borderColor="0x000000"
+						   width="20" height="100%"/>
+				<mx:List id="colorsList"
+						 height="100%"
+						 borderStyle="none"
+						 dragEnabled="true"
+						 dropEnabled="true"
+						 dragMoveEnabled="true"
+						 dragComplete="updateNewColorScale()"
+						 >
+					<mx:itemRenderer>
+						<mx:Component>
+							<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off" paddingTop="0" paddingBottom="0" paddingLeft="8" paddingRight="24">
+								<mx:ColorPicker id="cPicker" showTextField="true"/>
+								<ui:TextInputWithPrompt borderStyle="none" editable="false" id="cText" backgroundAlpha="0" width="64"/>
+								<mx:Image source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true"
+										   click="outerDocument.removeColorItem();"/>
+								<mx:Script>
+									<![CDATA[
+										import mx.binding.utils.BindingUtils;
+										import mx.collections.ArrayCollection;
+										import mx.events.DragEvent;
+										
+										import weave.compiler.StandardLib;
+										
+										override protected function childrenCreated():void
+										{
+											super.childrenCreated();
+											
+											cPicker.addEventListener(Event.CHANGE, handleColorPicked);
+											cText.addEventListener(Event.CHANGE, handleColorPicked);
+											outerDocument.colorsList.addEventListener(DragEvent.DRAG_START, handleDragStart);
+										}
+										
+										override public function set data(value:Object):void
+										{
+											super.data = value;
+											
+											if (data)
+											{
+												var number:Number = StandardLib.asNumber(data.color);
+												var string:String = outerDocument.colorToString(number);
+												
+												cPicker.selectedColor = number;
+												cText.text = string;
+											}
+										}
+										
+										private function handleColorPicked(event:Event):void
+										{
+											if (event.currentTarget == cPicker)
+												data.color = outerDocument.colorToString(cPicker.selectedColor);
+											else
+												data.color = outerDocument.colorToString(cText.text);
+											outerDocument.updateNewColorScale();
+										}
+										
+										private function handleDragStart(e:Event):void
+										{
+											cPicker.close();
+											cText.setSelection(0, 0);
+											setFocus(); // stops selecting text
+										}
+									]]>
+								</mx:Script>
+							</mx:HBox>
+						</mx:Component>
+					</mx:itemRenderer>
+				</mx:List>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Button label="Reverse"
+						 toolTip="Click to reverse the colors in the color scale."
+						 click="colorRamp.reverse();"/>
+				<mx:Button label="Add color" click="(colorsList.dataProvider as ArrayCollection).addItem({color:'0xFFFFFF'}); updateNewColorScale();"/>
+			</mx:HBox>
+		</mx:VBox>
+	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.events.DragEvent;
+			import mx.collections.ICollectionView;
+			import mx.collections.IList;
+			import mx.collections.ListCollectionView;
+			import weave.compiler.StandardLib;
 			import mx.collections.ArrayCollection;
 			import mx.collections.XMLListCollection;
-			import mx.core.Application;
-			import mx.managers.PopUpManager;
 			
-			import weave.Weave;
-			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableObject;
-			import weave.api.linkSessionState;
-			import weave.data.AttributeColumns.BinnedColumn;
-			import weave.data.AttributeColumns.ColorColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.ColorRamp;
 			
-			private var _colorRamp:ColorRamp = null;
+			private var _colorRamp:ColorRamp;
+			[Bindable]
+			public function get colorRamp():ColorRamp
+			{
+				return _colorRamp;
+			}
+			public function set colorRamp(value:ColorRamp):void
+			{
+				
+				if(_colorRamp)
+					_colorRamp.removeCallback(handleColorRampChange);
+				_colorRamp = value;
+				if (_colorRamp)
+					_colorRamp.addGroupedCallback(this, handleColorRampChange, true);
+			}
+			
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				var colorRampList:XMLList = new XMLList(ColorRamp.allColorRamps.colorRamp);
-				var sources:ArrayCollection     = new ArrayCollection(["All"]);
-				var categories:ArrayCollection  = new ArrayCollection(["Any"]);
-				var dataFormats:ArrayCollection = new ArrayCollection(["All"]);
+				var tagsLookup:Object = {};
+				var tags:Array = [];
+				for each (var xml:XML in ColorRamp.allColorRamps.colorRamp)
+					for each (var tag:String in String(xml.@tags).split(','))
+						if (!tagsLookup[tag])
+							tags.push(tagsLookup[tag] = tag);
+				tags.sort(Array.CASEINSENSITIVE);
+				tags.unshift(ALL);
+				filterCombo.dataProvider = tags;
+				colorRampList.dataProvider.filterFunction = filterColormaps;
+			}
+			
+			private const ALL:String = 'All';
+			
+			private function filterColormaps(item:Object):Boolean
+			{
+				var filter:String = filterCombo.selectedItem as String;
+				return (filter == ALL || String(item.@tags).split(',').indexOf(filter) >= 0);
+			}
+			
+			public function removeColorItem():void
+			{
+				(colorsList.dataProvider as ArrayCollection).removeItemAt(colorsList.selectedIndex);
+				updateNewColorScale();
+			}
+			
+			internal function colorToString(color:*):String
+			{
+				color = StandardLib.asNumber(color);
+				return '0x' + StandardLib.numberToBase(color, 16, 6).toUpperCase();
+			}
+			
+			private function handleColorRampChange():void
+			{
+				if (colorsList.dataProvider == null)
+					colorsList.dataProvider = [];
 				
-				
-				for (var i:int = 0; i < colorRampList.length(); i++)
+				var dp:ArrayCollection = (colorsList.dataProvider as ArrayCollection);
+				dp.removeAll();
+				var colors:Array = colorRamp.getColors();
+				for (var i:int = 0; i < colors.length; i++)
 				{
-					var colorRamp:XML = colorRampList[i] as XML;
-					
-					/*if(colorRamp.@name == multiLayerColormap.getColormap().colorRamp.name)
-					colormapGrid.selectedIndex = i;*/
-					
-					var sourceName:String = colorRamp.@source;
-					if(colorRamp.hasOwnProperty("@source") && !sources.contains(sourceName) )
-						sources.addItem(sourceName);
-					
-					var category:String = colorRamp.@category;
-					if(colorRamp.hasOwnProperty("@category") && !categories.contains(category) )
-						categories.addItem(category);
-					
-					var dataFormat:String = colorRamp.@dataFormat;
-					if(colorRamp.hasOwnProperty("@dataFormat") && !dataFormats.contains(dataFormat) )
-						dataFormats.addItem(dataFormat);
+					var item:Object = new Object();
+					item.color = colorToString(colors[i]);
+					dp.addItem(item);
 				}
 				
-				typeCombo.dataProvider = dataFormats;
-				categoriesCombo.dataProvider = categories;
-				
+				colorRamp.draw(colorRampCanvas, true);
 			}
 			
-			
-			private function colorRampCallback():void
+			public function updateNewColorScale():void
 			{
-				if (!parent)
-					return callLater(colorRampCallback);
-				// update gui
-				var rampXML:XML = _colorRamp.value;
-				if (!rampXML)
-					return;
+				var rampStringValue:String = '';
 				
-				// update selected ramp by name
-				var xmlList:XMLList = ColorRamp.allColorRamps.colorRamp.(@name == rampXML.@name);
-				if (xmlList.length() > 0)
-					colorRampGrid.selectedItem = xmlList[0];
-				else
-					colorRampGrid.selectedItem = null;
+				for (var i:int = 0; i < colorsList.dataProvider.length; i++)
+				{
+					var item:Object = (colorsList.dataProvider as ArrayCollection).getItemAt(i);
+					
+					rampStringValue += item.color + ',';
+				}
 				
-				// update reverse setting
-				reverseCheckBox.selected = String(rampXML.@reverse) == "true";
+				rampStringValue = rampStringValue.substr(0,rampStringValue.length-1);
+				
+				_colorRamp.value = rampStringValue;
 			}
-			
-			private function handleColorRampSelected():void
-			{
-				if (colorRampGrid.selectedItem is XML)
-					_colorRamp.value = ColorRamp.getColorRampXMLByName(colorRampGrid.selectedItem.@name);
-			}
-			
-			private function saveReverseSetting():void
-			{
-				if (_colorRamp.value == null)
-					return;
-				_colorRamp.value.@reverse = reverseCheckBox.selected;
-				_colorRamp.detectChanges();
-			}
-			public function set colorRamp(cRamp:ColorRamp):void
-			{
-				if (_colorRamp == cRamp)
-					return;
-				
-				if (_colorRamp != null)
-					_colorRamp.removeCallback(colorRampCallback);
-				
-				_colorRamp = cRamp;
-				
-				if (_colorRamp != null)
-					_colorRamp.addGroupedCallback(this, colorRampCallback, true);
-			}
-			
-			public function get colorRamp():ColorRamp
-			{
-				return _colorRamp;
-			}
-			
-			private var previousSelectedItem:Object = null;
-			private function handleFilterOptionSet(event:Event):void
-			{	
-				if(colorRampGrid.selectedItem != null)
-					previousSelectedItem = colorRampGrid.selectedItem;
-				
-				
-				(colorRampGrid.dataProvider as XMLListCollection).filterFunction = filterColormaps;
-				(colorRampGrid.dataProvider as XMLListCollection).refresh();
-				
-				// disable the presetSelector if there are no colormaps that can be selected
-				colorRampGrid.enabled = true;
-				if( (colorRampGrid.dataProvider as XMLListCollection).length == 0)
-					colorRampGrid.enabled = false;
-				
-				// if the selected item is null, set it to the previous one (should never be null)
-				if(colorRampGrid.selectedItem == null)
-					colorRampGrid.selectedItem = previousSelectedItem;
-			}
-			
-			private function filterColormaps(item:Object):Boolean {
-				var meetsCriteria:Boolean = true;
-				
-				if(colorblindSafeCheckbox.selected)
-					meetsCriteria &&= (item.@colorblindSafe == true);
-				if(printFriendlyCheckbox.selected)
-					meetsCriteria &&= (item.@printFriendly == true);
-				if(photocopyableCheckbox.selected)
-					meetsCriteria &&= (item.@photocopyable == true);
-				if(singleHueCheckbox.selected)
-					meetsCriteria &&= (item.@singlehue == true);
-				
-				/*if(sourceCombo.selectedIndex != 0)	
-				meetsCriteria &&= (item.@source == sourceCombo.selectedItem);*/
-				
-				if(typeCombo.selectedIndex != 0)	
-					meetsCriteria &&= (item.@dataFormat == typeCombo.selectedItem);
-				
-				if(categoriesCombo.selectedIndex != 0)	
-					meetsCriteria &&= (item.@category == categoriesCombo.selectedItem);
-				
-				return meetsCriteria;
-				
-			}
-			
 		]]>
 	</mx:Script>
-	
-</mx:HBox>
-
+</mx:VBox>

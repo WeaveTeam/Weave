@@ -44,7 +44,7 @@
 			{
 				super.constructor();
 				// lock dynamic objects into place
-				plotter = initDefaultPlotter(WeaveWordlePlotter) as WeaveWordlePlotter;
+				plotter = initializePlotters(WeaveWordlePlotter, false);
 				
 				visualization.marginBottom.value = "80";
 				visualization.marginTop.value    = "80";

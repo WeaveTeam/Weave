@@ -27,6 +27,17 @@
 	implements="weave.api.ui.ILinkableObjectEditor"
 	creationPolicy="all"
 	>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{_wfsDataSource ? 'Edit' : 'Add'} WFS Data Source"/>
+	<mx:HBox>
+		<mx:Label text="Source Name *" width="120"/>
+		<mx:TextInput id="sourceName" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
+	</mx:HBox>
+	<mx:HBox>
+		<mx:Label text="Source URL *" width="120"/>
+		<mx:TextInput id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the base url of your WFS Source e.g. : http://openscales.org/geoserver/wfs"/>
+	</mx:HBox>
+	<mx:Spacer height="20"/>
+	<mx:Label text="* = required"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -36,19 +47,26 @@
 			import weave.data.DataSources.WFSDataSource;
 			import weave.utils.EditorManager;
 			
-			[Bindable]
-			private var uniqueName:String = Weave.root.generateUniqueName("WFSDataSource");
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				sourceName.text = Weave.root.generateUniqueName("WFSDataSource");
+			}
 			
-			private var _wfsDataSource:WFSDataSource = null;
+			[Bindable] private var _wfsDataSource:WFSDataSource = null;
 			public function setTarget(object:ILinkableObject):void
 			{
-				_wfsDataSource = object as WFSDataSource;
-				var checkObj:String  = Weave.root.getName(_wfsDataSource);
-				if(checkObj !=null)
+				if (!parent)
 				{
-					initialize();
-					editorTitle.text = "Edit";
-					uniqueName = Weave.root.getName(_wfsDataSource);
+					callLater(setTarget, arguments);
+					return;
+				}
+				
+				_wfsDataSource = object as WFSDataSource;
+				if (_wfsDataSource)
+				{
+					sourceName.text = Weave.root.getName(_wfsDataSource);
 					url.text = _wfsDataSource.url.value;
 					sourceName.editable = false;
 					sourceName.toolTip = "Source name is not editable once added to the session. If needed, delete the source and add it again with the new name."
@@ -57,26 +75,17 @@
 			
 			public function applyChanges():void
 			{
-				try{
+				try
+				{
 					_wfsDataSource.url.value = url.text;
 					Alert.show("Changes saved.")
 				}
-				catch(e:Error){
-					Alert.show("Changes could not be saved. " + e.message,"Error");
+				catch (e:Error)
+				{
+					Alert.show("Changes could not be saved. " + e.message, "Error");
 				}
 			}
 			
 		]]>
 	</mx:Script>
-	<mx:Label id="editorTitle" fontWeight="bold" text="Add WFS Data Source"/>
-	<mx:HBox>
-		<mx:Label text="Source Name *" width="120"/>
-		<mx:TextInput id="sourceName" text="{uniqueName}" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="Source URL *" width="120"/>
-		<mx:TextInput id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the base url of your WFS Source e.g. : http://openscales.org/geoserver/wfs"/>
-	</mx:HBox>
-	<mx:Spacer height="20"/>
-	<mx:Label text="*required"/>
 </mx:VBox>
