@@ -351,12 +351,6 @@
 				}
 			}
 			
-			private function handleZoomExtentClick():void
-			{
-				zoomToSelection();
-				//visualization.zoomBounds.setDataBounds(visualization.fullDataBounds, true);
-			}
-			
 			private function addGeomLayer():void
 			{
 				var layer:SelectablePlotLayer = visualization.layers.requestObject(visualization.layers.generateUniqueName("plot"), SelectablePlotLayer, false);
@@ -565,7 +559,7 @@
 							   fillAlphas="[1,1]" 
 							   width="16" height="16" 
 							   cornerRadius="0"
-							   click="handleZoomExtentClick()"/>
+							   click="zoomToSelection()"/>
 					<mx:Button id="east"
 						    label="E"
 							fillAlphas="[1.0, 1.0, 1.0, 1.0]"
@@ -694,7 +688,7 @@
 			<mx:CheckBox label="Enable Map Overview Window" id="overviewCheckBox"
 						 creationComplete="linkBindableProperty(enableOverview,event.target,'selected')"/>
 			<mx:HBox verticalAlign="bottom">
-				<mx:Button label="Zoom to full extent" click="handleZoomExtentClick()" />
+				<mx:Button label="Zoom to full extent" click="zoomToSelection()" />
 				<mx:VBox verticalGap="1">
 					<mx:Label text="Coordinates at map center:" fontWeight="bold"/>
 					<mx:HBox horizontalGap="0" borderStyle="outset" horizontalAlign="center">
