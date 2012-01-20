@@ -202,13 +202,6 @@ package weave
 				getCallbackCollection(Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
 				getCallbackCollection(Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS)).addGroupedCallback(this, setupSubsetsMenu);
 				getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
-				
-				Weave.properties.enableExportToolImage.addGroupedCallback(this, setupContextMenu);
-				Weave.properties.dataInfoURL.addGroupedCallback(this, setupContextMenu);
-				Weave.properties.enableSubsetControls.addGroupedCallback(this, setupContextMenu);
-				Weave.properties.enableRightClick.addGroupedCallback(this, setupContextMenu);
-				Weave.properties.enableAddDataSource.addGroupedCallback(this, setupContextMenu);
-				Weave.properties.enableEditDataSource.addGroupedCallback(this, setupContextMenu);
 				Weave.properties.backgroundColor.addImmediateCallback(this, handleBackgroundColorChange, null, true);
 				
 				getFlashVars();
@@ -557,6 +550,8 @@ package weave
 
 		private function setupVisMenuItems():void
 		{
+			setupContextMenu();
+			
 			if (!_weaveMenu)
 				return;
 			
@@ -586,13 +581,6 @@ package weave
 					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Edit Datasources", EditDataSourcePanel.showAsPopup));
 			}
 			
-			
-			if (Weave.properties.enableExportToolImage.value)
-			{
-				_exportMenu = _weaveMenu.addMenuToMenuBar("Export", false);
-				if (Weave.properties.enableExportApplicationScreenshot.value)
-					_weaveMenu.addMenuItemToMenu(_exportMenu, new WeaveMenuItem("Save or Print Application Screenshot...", printOrExportImage, [visDesktop.internalCanvas]));
-			}
 			
 			if (Weave.properties.enableDynamicTools.value)
 			{
@@ -946,26 +934,37 @@ package weave
 			// tile windows
 			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem("Tile All Windows", tileWindows, null, Weave.properties.enableTileAllWindows.value ));
 			
+			if (Weave.properties.enableFullScreen.value)
+			{
+				label = function():String {
+					if ( stage && stage.displayState == StageDisplayState.FULL_SCREEN) 
+						return 'Exit Full-screen mode'; 
+					
+					return 'Enter Full-screen mode';
+				};
+				click = function():void{
+					if (stage && stage.displayState == StageDisplayState.NORMAL )
+					{
+						try
+						{
+							// set full screen display
+							stage.displayState = StageDisplayState.FULL_SCREEN;
+						}
+						catch (e:Error)
+						{
+							Alert.show("This website has not enabled full-screen mode, so this option will now be disabled.", "Full-screen mode not allowed");
+							Weave.properties.enableFullScreen.value = false;
+						}
+					}
+					else if (stage)
+					{
+						// set normal display
+						stage.displayState = StageDisplayState.NORMAL;
+					}
+				};
+				_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(label, click, null, Weave.properties.enableFullScreen.value));
+			}
 			
-			label = function():String {
-				if ( stage && stage.displayState == StageDisplayState.FULL_SCREEN) 
-					return 'Exit Fullscreen'; 
-				
-				return 'Go Fullscreen';
-			};
-			click = function():void{
-				if (stage && stage.displayState == StageDisplayState.NORMAL )
-				{
-					// set full screen display
-					stage.displayState = StageDisplayState.FULL_SCREEN;
-				}
-				else if (stage)
-				{
-					// set normal display
-					stage.displayState = StageDisplayState.NORMAL;
-				}
-			};
-			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(label, click, null, Weave.properties.enableGoFullscreen.value));
 			_weaveMenu.addSeparatorToMenu(_windowMenu);
 
 			var panels:Array = Weave.root.getObjects(DraggablePanel);
@@ -1212,16 +1211,43 @@ package weave
 				SessionedTextBox.createContextMenuItems(this);
 				PenTool.createContextMenuItems(this);
 					
-				//HelpPanel.createContextMenuItems(this);
 				if (Weave.properties.dataInfoURL.value)
 					addLinkContextMenuItem("Show Information About This Dataset...", Weave.properties.dataInfoURL.value);
 				
-				// Add context menu item for VisTools (right now this is exporting of an image, will also have printing of an image, etc -- for
-				// one tool at a time)
-				createExportToolImageContextMenuItem();
-				_printToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Print Application Image", this, handleContextMenuItemSelect, "4 exportMenuItems");
-				
-				createExportCSVContextMenuItem();
+				if (Weave.properties.enableExportToolImage.value)
+				{
+					// Add a listener to this destination context menu for when it is opened
+					contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
+					
+					// Create a context menu item for printing of a single tool with title and logo
+					_panelPrintContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(
+						"Print/Export Panel Image...", 
+						this,
+						function(event:ContextMenuEvent):void { printOrExportImage(_panelToExport); },
+						"4 exportMenuItems"
+					);
+					// By default this menu item is disabled so that it does not show up unless we right click on a tool
+					_panelPrintContextMenuItem.enabled = false;
+				}
+				if (Weave.properties.enableExportApplicationScreenshot.value)
+				{
+					_printToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Print/Export Application Image", this, handleContextMenuItemSelect, "4 exportMenuItems");
+				}
+				if (Weave.properties.enableExportCSV.value)
+				{
+					// Add a listener to this destination context menu for when it is opened
+					contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
+					
+					// Create a context menu item for printing of a single tool with title and logo
+					_exportCSVContextMenuItem	= CustomContextMenuManager.createAndAddMenuItemToDestination(
+						"Export CSV", 
+						this,
+						function(event:ContextMenuEvent):void { exportCSV(_panelToExport ); },
+						"4 exportMenuItems"
+					);
+					// By default this menu item is disabled so that it does not show up unless we right click on a tool
+					_exportCSVContextMenuItem.enabled = false;				
+				}
 				
 				// Add context menu items for handling search queries
 				SearchEngineUtils.createContextMenuItems(this);
@@ -1230,51 +1256,7 @@ package weave
 
 		// Create the context menu items for exporting panel images.  
 		private var _panelPrintContextMenuItem:ContextMenuItem = null;
-		protected var panelSettingsContextMenuItem:ContextMenuItem = null;
-		private function createExportToolImageContextMenuItem():Boolean
-		{				
-			if (Weave.properties.enableExportToolImage.value)
-			{
-				// Add a listener to this destination context menu for when it is opened
-				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
-				
-				// Create a context menu item for printing of a single tool with title and logo
-				_panelPrintContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(
-						"Print/Export Panel Image...", 
-						this,
-						function(event:ContextMenuEvent):void { printOrExportImage(_panelToExport); },
-						"4 exportMenuItems"
-					);
-				// By default this menu item is disabled so that it does not show up unless we right click on a tool
-				_panelPrintContextMenuItem.enabled = false;
-				
-				return true;
-			}
-			
-			return false;
-		}
-		
 		private  var _exportCSVContextMenuItem:ContextMenuItem = null;
-		private function createExportCSVContextMenuItem():Boolean
-		{	
-			if (Weave.properties.enableExportCSV.value)
-			{
-				// Add a listener to this destination context menu for when it is opened
-				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
-				
-				// Create a context menu item for printing of a single tool with title and logo
-				_exportCSVContextMenuItem	= CustomContextMenuManager.createAndAddMenuItemToDestination(
-					"Export CSV", 
-					this,
-					function(event:ContextMenuEvent):void { exportCSV(_panelToExport ); },
-					"4 exportMenuItems"
-				);
-				// By default this menu item is disabled so that it does not show up unless we right click on a tool
-				_exportCSVContextMenuItem.enabled = false;				
-				return true;
-			}
-			return false;
-		}
 		private var fr:FileReference = new FileReference();	// CSV download file references
 		public function exportCSV(component:UIComponent):void
 		{
@@ -1285,7 +1267,7 @@ package weave
 			var visTaskbarVisible:Boolean = (VisTaskbar.instance ? VisTaskbar.instance.visible : false);
 			
 			if (_weaveMenu)
-				_weaveMenu.visible    = false;
+				_weaveMenu.visible = false;
 			if (VisTaskbar.instance)
 				VisTaskbar.instance.visible = false;			
 			
@@ -1306,11 +1288,13 @@ package weave
 				else
 				{
 					var toolColumns:Array = (component as SimpleVisTool).getSelectableAttributes();
-					if(toolColumns.length ==0){
+					if(toolColumns.length == 0)
+					{
 						reportError("Columns are not assigned in " + (component as SimpleVisTool).title + " to export as CSV" );
 						return;
 					}
-					fr.save(ColumnUtils.generateTableCSV(toolColumns), "Weave " + (component as SimpleVisTool).title + " Data.csv");
+					var name:String = getQualifiedClassName(component).split(':').pop();
+					fr.save(ColumnUtils.generateTableCSV(toolColumns), "Weave_" + name + ".csv");
 				}				
 			}
 			catch (e:Error)
@@ -1335,13 +1319,13 @@ package weave
 			// If this tool is valid (we are over a tool), then we want this menu item enabled, otherwise don't allow users to choose it
 			if(_panelToExport != null)
 			{
-				_panelPrintContextMenuItem.caption = "Print/Export " + _panelToExport.title + " Image...";
+				_panelPrintContextMenuItem.caption = "Print/Export Image of " + _panelToExport.title;
 				_panelPrintContextMenuItem.enabled = true;
 				_exportCSVContextMenuItem.enabled = true;
 			}
 			else
 			{
-				_panelPrintContextMenuItem.caption = "Print/Export Panel Image...";
+				_panelPrintContextMenuItem.caption = "Print/Export Image of ...";
 				_panelPrintContextMenuItem.enabled = false;	
 				_exportCSVContextMenuItem.enabled = false;
 			}

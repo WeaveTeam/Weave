@@ -214,7 +214,6 @@ package weave
 		public const enableExportToolImage:LinkableBoolean = new LinkableBoolean(true); // print/export tool images
 		public const enableExportCSV:LinkableBoolean = new LinkableBoolean(true);
 		public const enableExportApplicationScreenshot:LinkableBoolean = new LinkableBoolean(true); // print/export application screenshot
-		public const enableExportDataTable:LinkableBoolean = new LinkableBoolean(true); // print/export data table
 		
 		public const enableDataMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Data Menu
 		public const enableRefreshHierarchies:LinkableBoolean = new LinkableBoolean(true);
@@ -222,7 +221,7 @@ package weave
 		public const enableAddWeaveDataSource:LinkableBoolean = new LinkableBoolean(true); // enable/disable Add WeaveDataSource option
 		
 		public const enableWindowMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Window Menu
-		public const enableGoFullscreen:LinkableBoolean = new LinkableBoolean(true); // enable/disable Fullscreen
+		public const enableFullScreen:LinkableBoolean = new LinkableBoolean(false); // enable/disable FullScreen option
 		public const enableCloseAllWindows:LinkableBoolean = new LinkableBoolean(true); // enable/disable Close All Windows
 		public const enableRestoreAllMinimizedWindows:LinkableBoolean = new LinkableBoolean(true); // enable/disable Restore All Minimized Windows 
 		public const enableMinimizeAllWindows:LinkableBoolean = new LinkableBoolean(true); // enable/disable Minimize All Windows
