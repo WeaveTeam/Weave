@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="MapTool,weave.visualization.tools.MapTool,enableBackground,enableOverview,includeToolAttributesInProbe,overviewPanel,projectionSRS,showMouseModeControls,showZoomControls,colorColumn,plotLayer,addMarker,constructor,createChildren,getSelectableAttributeNames,getSelectableAttributes,handlePanelTitleChange,updateDisplayList,updateZoomSlider" name="keywords">
+<meta content="MapTool,weave.visualization.tools.MapTool,enableBackground,enableOverview,includeToolAttributesInProbe,overviewPanel,projectionSRS,showMouseModeControls,showZoomControls,colorColumn,plotLayer,addMarker,constructor,createChildren,getSelectableAttributeNames,getSelectableAttributes,handlePanelTitleChange,updateDisplayList,updateZoomSlider,zoomToSelection" name="keywords">
 <title>weave.visualization.tools.MapTool</title>
 </head>
 <body>
@@ -374,6 +374,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#updateZoomSlider()">updateZoomSlider</a>():void</div>
 <div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">MapTool</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#zoomToSelection()">zoomToSelection</a>(keys:Array = null, zoomMarginPercent:Number = 0.2):void</div>
+<div class="summaryTableDescription">
+    This function will zoom the map to the shapes corresponding to a list of keys.</div>
 </td><td class="summaryTableOwnerCol">MapTool</td>
 </tr>
 </table>
@@ -869,6 +877,30 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function updateZoomSlider():void</code>
+</div>
+<a name="zoomToSelection()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">zoomToSelection</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function zoomToSelection(keys:Array = null, zoomMarginPercent:Number = 0.2):void</code><p>
+    This function will zoom the map to the shapes corresponding to a list of keys.
+    </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">keys</span>:Array</code> (default = <code>null</code>)<code></code> &mdash; An Array of IQualifiedKey objects, or null to get them from the current selection.
+    </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">zoomMarginPercent</span>:Number</code> (default = <code>0.2</code>)<code></code> &mdash; The percent of width and height to reserve for space around the zoomed area.
+    </td>
+</tr>
+</table>
 </div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
