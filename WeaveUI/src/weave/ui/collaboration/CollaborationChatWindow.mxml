@@ -30,6 +30,9 @@
 			 xFrom="{xTo}" xTo="{xFrom}"
 			 yFrom="{yTo}" yTo="{yFrom}"/>
 	
+	<mx:Fade id="fadeIn" duration="500" alphaFrom="0" alphaTo="1" />
+	<mx:Fade id="fadeOut" duration="500" alphaFrom="1" alphaTo="0" />
+	
 	<mx:VBox width="100%" height="100%"
 			 paddingBottom="{padding}" paddingLeft="{padding}"
 			 paddingRight="{padding}" paddingTop="{padding}">
@@ -42,8 +45,7 @@
 						<mx:UIComponent id="containerLocalCam" width="80" height="60" />
 					</mx:HBox>
 				</mx:Canvas>
-				<mx:HBox id="addonControls" width="100%" horizontalAlign="left" horizontalScrollPolicy="off">
-					<mx:Spacer width="{addonControls.width/2 - holder.width/2 - 14}" />
+				<mx:HBox id="addonControls" width="100%" horizontalAlign="center" horizontalScrollPolicy="off">
 					<mx:HBox id="holder">
 						<mx:Button id="button_mic" icon="{iconMic}" width="28" height="22" toggle="true" 
 								   enabled="{addOnsSaved}" click="toggleMic(event)"/>
@@ -53,6 +55,9 @@
 				</mx:HBox>
 			</mx:VBox>
 			<mx:VBox id="containerChat" width="100%" height="100%">
+				<mx:TextArea id="rtmpErrorLabel" borderThickness="0" backgroundAlpha="0" 
+							 wordWrap="true" color="#FF0000" fontWeight="bold" width="100%" height="20"
+							 showEffect="{fadeIn}" hideEffect="{fadeOut}" visible="false" includeInLayout="false" />
 				<mx:HDividedBox width="100%" height="100%" horizontalScrollPolicy="off">
 					<mx:TextArea id="log" width="100%" height="100%" editable="false" />
 					<mx:List id="userList" height="100%" labelField="name" minWidth="140">
@@ -165,10 +170,6 @@
 				dispatchEvent(new CollaborationEvent(CollaborationEvent.SEND_MESSAGE, input.text));
 				input.text = "";
 			}
-			public function setNickname(usrname:String):void
-			{
-				nickname = usrname;
-			}
 			public function set userNameList(array:ArrayCollection):void
 			{
 				userList.dataProvider = array;
@@ -235,6 +236,33 @@
 						nsPublishCam.close();
 						nsPublishCam = null;
 					}
+				}
+			}
+			public function showRTMPWarning(msg:String = null, fadeout:Number = -1):void
+			{
+				if( msg )
+				{
+					rtmpErrorLabel.text = msg;
+					rtmpErrorLabel.visible = true;
+					rtmpErrorLabel.includeInLayout = true;
+				}
+				else
+				{
+					rtmpErrorLabel.text = "";
+					rtmpErrorLabel.visible = false;
+					rtmpErrorLabel.includeInLayout = false;
+				}
+				if( fadeout > 0 )
+				{
+					var t:Timer = new Timer(fadeout);
+					t.addEventListener(TimerEvent.TIMER,
+						function():void
+						{
+							t.stop();
+							showRTMPWarning();
+						}
+					);
+					t.start();
 				}
 			}
 			public function setUserColor(name:String, color:uint):void
