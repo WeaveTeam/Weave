@@ -129,7 +129,12 @@ public class SQLConfig
 		
 		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, ID, table_desc, ID);
 		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, ID, table_desc, ID);
-		
+	        
+                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_private, new String[]{ID, PROPERTY});
+                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_private, new String[]{PROPERTY, VALUE});
+                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_public, new String[]{ID, PROPERTY});
+                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_public, new String[]{PROPERTY, VALUE});
+	
 		// Category table
 		columnNames = Arrays.asList(ID, NAME, PARENT_ID);
 		columnTypes = Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TEXT", "BIGINT UNSIGNED");
