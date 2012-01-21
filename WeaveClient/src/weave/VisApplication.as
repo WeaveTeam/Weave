@@ -38,6 +38,7 @@ package weave
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.containers.Canvas;
+	import mx.containers.VBox;
 	import mx.controls.Alert;
 	import mx.controls.ProgressBar;
 	import mx.controls.ProgressBarLabelPlacement;
@@ -127,7 +128,7 @@ package weave
 
 	use namespace weave_internal;
 
-	public class VisApplication extends Application implements ILinkableObject
+	public class VisApplication extends VBox implements ILinkableObject
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 
@@ -152,7 +153,6 @@ package weave
 		public function VisApplication()
 		{
 			super();
-			this.pageTitle = "Open Indicators Weave";
 
 			setStyle("paddingLeft", 0);
 			setStyle("paddingRight", 0);
@@ -166,80 +166,91 @@ package weave
 			
 			setStyle("verticalGap", 0);
 			setStyle("horizingalGap", 0);
+			setStyle("horizontalAlign", "right"); // for copyright below desktop
+			setStyle('backgroundAlpha', 1);
 			
 			// make it so the menu bar does not get hidden if the workspace size is too small.
 			clipContent = false;
-			setStyle('horizontalAlign', 'left');
 
-			this.autoLayout = true;
+			autoLayout = true;
 			
 			// no scrolling
 			horizontalScrollPolicy = "off";
 			verticalScrollPolicy   = "off";
 			visDesktop.verticalScrollPolicy   = "off";
 			visDesktop.horizontalScrollPolicy = "off";
-			
-			this.addEventListener(FlexEvent.APPLICATION_COMPLETE, applicationComplete );
+
+			waitForApplicationComplete();
 		}
 
 		
 		/**
 		 * This needs to be a function because FlashVars can't be fetched while the application is loading.
 		 */
-		private function applicationComplete(event:FlexEvent = null):void
+		private function waitForApplicationComplete():void
 		{
-			if (event != null)
+			if (!root)
 			{
-				// resize to parent size each frame because percentWidth,percentHeight doesn't seem reliable when application is nested
-				addEventListener(Event.ENTER_FRAME, updateWorkspaceSize);
-				
-				getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
-				Weave.root.childListCallbacks.addImmediateCallback(this, handleWeaveListChange);
-				Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
-				Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
-				Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
-				
-				getCallbackCollection(Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
-				getCallbackCollection(Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS)).addGroupedCallback(this, setupSubsetsMenu);
-				getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
-				Weave.properties.backgroundColor.addImmediateCallback(this, handleBackgroundColorChange, null, true);
-				
-				getFlashVars();
-				// disable application until it's ready
-				enabled = false;
-				
-				if (getFlashVarAdminConnectionName() != null)
-				{
-					// disable interface until connected to admin console
-					var _this:VisApplication = this;
-					_this.enabled = false;
-					var resultHandler:Function = function(..._):void
-					{
-						_this.enabled = true;
-						adminService = pendingAdminService;
-						setupVisMenuItems(); // make sure 'save session state to server' is shown
-						applicationComplete();
-					};
-					var faultHandler:Function = function(..._):void
-					{
-						_this.enabled = true;
-						Alert.show("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server.", "Connection error");
-						applicationComplete();
-					};
-					var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
-					pendingAdminService.errorCallbacks.addGroupedCallback(this, faultHandler);
-					// when admin console responds, set adminService
-					DelayedAsyncResponder.addResponder(
-						pendingAdminService.invokeAsyncMethod("ping"),
-						resultHandler,
-						faultHandler
-					);
-					
-					// do nothing until admin console is connected.
-					return;
-				}
+				callLater(waitForApplicationComplete);
+				return;
 			}
 			
+			// resize to parent size each frame because percentWidth,percentHeight doesn't seem reliable when application is nested
+			addEventListener(Event.ENTER_FRAME, updateWorkspaceSize);
+			
+			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
+			Weave.root.childListCallbacks.addImmediateCallback(this, handleWeaveListChange);
+			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
+			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
+			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
+			
+			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
+			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS)).addGroupedCallback(this, setupSubsetsMenu);
+			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
+			Weave.properties.backgroundColor.addImmediateCallback(this, handleBackgroundColorChange, null, true);
+			
+			getFlashVars();
+			// disable application until it's ready
+			enabled = false;
+			
+			if (getFlashVarAdminConnectionName() != null)
+			{
+				// disable interface until connected to admin console
+				var _this:VisApplication = this;
+				_this.enabled = false;
+				var resultHandler:Function = function(..._):void
+				{
+					_this.enabled = true;
+					adminService = pendingAdminService;
+					setupVisMenuItems(); // make sure 'save session state to server' is shown
+					downloadConfigFile();
+				};
+				var faultHandler:Function = function(..._):void
+				{
+					_this.enabled = true;
+					Alert.show("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server.", "Connection error");
+					downloadConfigFile();
+				};
+				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
+				pendingAdminService.errorCallbacks.addGroupedCallback(this, faultHandler);
+				// when admin console responds, set adminService
+				DelayedAsyncResponder.addResponder(
+					pendingAdminService.invokeAsyncMethod("ping"),
+					resultHandler,
+					faultHandler
+				);
+				
+				// do nothing until admin console is connected.
+				return;
+			}
+			else
+			{
+				downloadConfigFile();
+			}
+		}
+		
+		private function downloadConfigFile():void
+		{
 			// load the session state file
 			var fileName:String = getFlashVarConfigFileName() || DEFAULT_CONFIG_FILE_NAME;
 			var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
@@ -248,7 +259,10 @@ package weave
 		
 		private function handleBackgroundColorChange():void
 		{
-			setStyle("backgroundGradientColors", [Weave.properties.backgroundColor.value, Weave.properties.backgroundColor.value]);
+			var color:Number = Weave.properties.backgroundColor.value;
+			this.setStyle('backgroundColor', color);
+			
+			//(Application.application as Application).setStyle("backgroundGradientColors", [color, color]);
 		}
 		
 		/**
@@ -309,8 +323,8 @@ package weave
 			}
 			catch(e:Error) { }
 		}
-		public static const CONFIG_FILE_FLASH_VAR_NAME:String = 'file';
-		public static const DEFAULT_CONFIG_FILE_NAME:String = 'defaults.xml';
+		private static const CONFIG_FILE_FLASH_VAR_NAME:String = 'file';
+		private static const DEFAULT_CONFIG_FILE_NAME:String = 'defaults.xml';
 
 		private var _maxProgressBarValue:int = 0;
 		private var _progressBar:ProgressBar = new ProgressBar;
@@ -481,11 +495,7 @@ package weave
 			}
 		}
 		
-		private function savePreviewSessionState(fileName:String):void
-		{
-		}
-		
-		// this function may be called by the Admin Console to close this window
+		// this function may be called by the Admin Console to close this window, needs to be public
 		public function closeWeavePopup():void
 		{
 			ExternalInterface.call("window.close()");
@@ -520,17 +530,16 @@ package weave
 				try
 				{
 		   			if (_weaveMenu && this == _weaveMenu.parent)
-						this.removeChild(_weaveMenu);
+						removeChild(_weaveMenu);
 
 		   			_weaveMenu = null;
 					
 					if (Weave.properties.showCopyright.value)
 					{
-						this.addChildAt(_oicLogoPane, this.numChildren);
-						this.setStyle("horizontalAlign", "right");
+						addChild(_oicLogoPane);
 					}
 					else if (this == _oicLogoPane.parent)
-						this.removeChild(_oicLogoPane);
+						removeChild(_oicLogoPane);
 				}
 				catch(error:Error)
 				{
@@ -1357,9 +1366,8 @@ package weave
 			
 			//initialize the print format
 			var printPopUp:PrintPanel = new PrintPanel();
-   			printPopUp = PopUpManager.createPopUp(this,PrintPanel,true) as PrintPanel;
+   			PopUpManager.addPopUp(printPopUp, Application.application as Application, true);
    			PopUpManager.centerPopUp(printPopUp);
-   			printPopUp.applicationTitle = Weave.properties.pageTitle.value;
    			//add current snapshot to Print Format
 			printPopUp.componentToScreenshot = component;
 		}
@@ -1367,7 +1375,7 @@ package weave
 		/**
 		 * Update the page title.
 		 */
-		public function updatePageTitle():void
+		private function updatePageTitle():void
 		{
 			ExternalInterface.call("setTitle", Weave.properties.pageTitle.value);
 		}
@@ -1394,10 +1402,5 @@ package weave
    			}
    			
 		}
-		
-		private function trace(...args):void
-		{
-			DebugUtils.debug_trace(VisApplication, args);
-		}	
 	}
 }
