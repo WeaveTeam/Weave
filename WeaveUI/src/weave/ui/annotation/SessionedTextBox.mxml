@@ -131,30 +131,20 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
-			import mx.controls.Alert;
-			import mx.core.Application;
-			import mx.core.IUITextField;
-			import mx.core.UITextFormat;
 			import mx.core.mx_internal;
-			import mx.events.FlexEvent;
-			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableContainer;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newDisposableChild;
-			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
-			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.ui.CustomContextMenuManager;
-			import weave.utils.EventUtils;
 			
 			public const htmlText:LinkableString        = registerLinkableChild(this, new LinkableString(''), handleLinkableHtmlText, true);
 			public const backgroundAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite), applyStyle, true);

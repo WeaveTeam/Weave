@@ -76,14 +76,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
 			import mx.controls.dataGridClasses.DataGridColumn;
-			import mx.core.Application;
 			import mx.core.mx_internal;
 			import mx.events.CollectionEvent;
 			import mx.events.DataGridEvent;
 			import mx.events.ResizeEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.DataTypes;
@@ -109,7 +107,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.ui.AttributeSelectorPanel;
-			import weave.ui.CustomContextMenuManager;
 			import weave.ui.CustomDataGrid.DataGridCellRenderer;
 			import weave.ui.CustomDataGrid.SearchFilterComponent;
 			import weave.ui.CustomDataGrid.SliderFilterComponent;

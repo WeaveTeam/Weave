@@ -36,9 +36,6 @@
 	<ui:ColorOverrideEditor id="colorOverrideEditor" label="Color specific records"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.core.Application;
-			import mx.managers.PopUpManager;
-			
 			import weave.Weave;
 			import weave.api.linkSessionState;
 			import weave.data.AttributeColumns.BinnedColumn;

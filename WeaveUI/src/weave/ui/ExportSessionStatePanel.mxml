@@ -27,7 +27,7 @@
 				   percentWidth="NaN" percentHeight="NaN"
 				   title="Export Session State"
 				   >
-	<mx:VBox>
+	<mx:VBox paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
 		<mx:Label text="Choose Options"/>
 		<mx:CheckBox label="Dashboard mode" toolTip="Check this box to show all windows in 'dashboard' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel."
 					 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
@@ -57,6 +57,8 @@
 			import weave.core.SessionManager;
 			import weave.core.SessionStateLog;
 			import weave.editors.SessionHistorySlider;
+			
+			private const padding:Number = 5;
 			
 			private var oldValues:Dictionary = new Dictionary(true);
 			
