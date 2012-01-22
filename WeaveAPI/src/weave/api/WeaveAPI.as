@@ -62,6 +62,8 @@ package weave.api
 	 */
 	public class WeaveAPI
 	{
+		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
+		
 		/**
 		 * This returns the top level application as defined by FlexGlobals.topLevelApplication
 		 * or Application.application if FlexGlobals isn't defined.
