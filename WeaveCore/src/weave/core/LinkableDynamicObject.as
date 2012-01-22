@@ -19,7 +19,6 @@
 
 package weave.core
 {
-	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
@@ -28,7 +27,6 @@ package weave.core
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
-	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableDescendants;
 	import weave.api.getLinkableOwner;
 	import weave.api.registerDisposableChild;

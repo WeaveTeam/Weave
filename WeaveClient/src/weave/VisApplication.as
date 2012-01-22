@@ -34,7 +34,6 @@ package weave
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	import flash.utils.ByteArray;
-	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.containers.Canvas;
@@ -100,7 +99,6 @@ package weave
 	import weave.ui.controlBars.WeaveMenuItem;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DebugTimer;
-	import weave.utils.DebugUtils;
 	import weave.utils.EditorManager;
 	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.plotters.GeometryPlotter;
@@ -296,7 +294,7 @@ package weave
 		{
 			var name:String = 'editable';
 			if (_flashVars.hasOwnProperty(name))
-				return StandardLib.asBoolean(_flashVars['editable'] as String);
+				return StandardLib.asBoolean(_flashVars[name] as String);
 			return undefined;
 		}
 		
