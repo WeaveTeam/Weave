@@ -43,6 +43,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						   selectionColor="0xFFAAAA"
 						   lockedColumnCount="1"
 						   columnStretch="handlerHeaderRelease(event)"
+						   showDataTips="true"
 						   />
 		
 	</mx:VBox>
