@@ -25,9 +25,6 @@
 				label="Geometry collections{geomEditor.dataChanged?'*':''}"
 				creationComplete="handleCreationComplete()" xmlns:ui="weave.ui.*" xmlns:admin="weave.ui.admin.*">
 	<mx:VBox height="100%">
-		<mx:HBox width="100%">
-			<mx:Button label="Import SHP and DBF data..." click="WizardPanel.createWizard(this, new SHPImportWizard())"/>
-		</mx:HBox>
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search geometry collections"/>
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>

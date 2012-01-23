@@ -125,7 +125,7 @@ package weave
 			//DO Nothing
 		}
 		
-		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xCCCCCC;
+		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xFFFFFF;
 		
 		private static const WIKIPEDIA_URL:String = "Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=";
 		private static const GOOGLE_URL:String = "Google|http://www.google.com/search?q=";
@@ -194,6 +194,7 @@ package weave
 		
 		public const enableProbeAnimation:LinkableBoolean = new LinkableBoolean(true);
 		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(1, verifyMaxTooltipRecordsShown); // maximum number of records shown in the probe toolTips
+		public const showSelectedRecordsText:LinkableBoolean = new LinkableBoolean(true); // show the tooltip in the lower-right corner of the application
 		public const enableBitmapFilters:LinkableBoolean = new LinkableBoolean(true); // enable/disable bitmap filters while probing or selecting
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
 		public function get geometryMetadataRequestMode():LinkableString { return StreamedGeometryColumn.metadataRequestMode; }
@@ -213,7 +214,6 @@ package weave
 		public const enableExportToolImage:LinkableBoolean = new LinkableBoolean(true); // print/export tool images
 		public const enableExportCSV:LinkableBoolean = new LinkableBoolean(true);
 		public const enableExportApplicationScreenshot:LinkableBoolean = new LinkableBoolean(true); // print/export application screenshot
-		public const enableExportDataTable:LinkableBoolean = new LinkableBoolean(true); // print/export data table
 		
 		public const enableDataMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Data Menu
 		public const enableRefreshHierarchies:LinkableBoolean = new LinkableBoolean(true);
@@ -221,7 +221,7 @@ package weave
 		public const enableAddWeaveDataSource:LinkableBoolean = new LinkableBoolean(true); // enable/disable Add WeaveDataSource option
 		
 		public const enableWindowMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Window Menu
-		public const enableGoFullscreen:LinkableBoolean = new LinkableBoolean(true); // enable/disable Fullscreen
+		public const enableFullScreen:LinkableBoolean = new LinkableBoolean(false); // enable/disable FullScreen option
 		public const enableCloseAllWindows:LinkableBoolean = new LinkableBoolean(true); // enable/disable Close All Windows
 		public const enableRestoreAllMinimizedWindows:LinkableBoolean = new LinkableBoolean(true); // enable/disable Restore All Minimized Windows 
 		public const enableMinimizeAllWindows:LinkableBoolean = new LinkableBoolean(true); // enable/disable Minimize All Windows

@@ -19,9 +19,7 @@
 
 package weave.compiler
 {
-	import flash.system.ApplicationDomain;
 	import flash.utils.Dictionary;
-	import flash.utils.Proxy;
 	import flash.utils.describeType;
 	import flash.utils.flash_proxy;
 	import flash.utils.getDefinitionByName;
@@ -29,9 +27,6 @@ package weave.compiler
 	
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
-	
-	import weave.core.ClassUtils;
-	import weave.core.StageUtils;
 	
 	/**
 	 * This class can compile simple ActionScript expressions into functions.

@@ -32,11 +32,11 @@
 				 >
 	
 	<mx:VBox id="circlePlotterControls" width="100%" paddingTop="3" horizontalAlign="left">
-		<ui:TextBox indent="100" label="X coordinate:" id="dataXText"/>
-		<ui:TextBox indent="100" label="Y coordinate:" id="dataYText"/>
-		<ui:TextBox indent="100" label="Radius:" id="radiusText"/>
+		<ui:IndentTextInput indent="100" label="X coordinate:" id="dataXText"/>
+		<ui:IndentTextInput indent="100" label="Y coordinate:" id="dataYText"/>
+		<ui:IndentTextInput indent="100" label="Radius:" id="radiusText"/>
 		<mx:Spacer/>
-		<ui:TextBox indent="100" label="Thickness:" id="thicknessText"/>
+		<ui:IndentTextInput indent="100" label="Thickness:" id="thicknessText"/>
 		<ui:Indent indent="100" label="Color:">
 			<mx:ColorPicker id="colorPicker"/>
 		</ui:Indent>

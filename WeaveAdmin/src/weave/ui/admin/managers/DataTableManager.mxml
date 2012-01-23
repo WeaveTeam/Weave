@@ -26,10 +26,6 @@
 				label="Data tables{metaDataChanged?'*':''}"
 				creationComplete="handleCreationComplete()">
 	<mx:VBox height="100%">
-		<mx:HBox width="100%">
-			<mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{Strings.tip_import_sql_data}"/>
-			<mx:Button label="Import CSV data..." click="WizardPanel.createWizard(this, new CSVImportWizard())"/>
-		</mx:HBox>
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search data tables" click="handleTableSelectionChange()"/>
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
@@ -610,7 +606,11 @@
 				var tableName:String = getSelectedTableName();
 				var query:DelayedAsyncInvocation = AdminInterface.instance.listDCElements(tableName);
 				query.addAsyncResponder(function(e:ResultEvent, t:Object=null):void{
-					dcElementsEditor.dataProvider = e.result;
+					var list:Array = [];
+					for (var element:String in e.result)
+						list.push({"element": element, "value": e.result[element]});
+					list.sortOn("element");
+					dcElementsEditor.dataProvider = list;
 				});
 				deleteSelectedElementsButton.enabled = false;
 			}

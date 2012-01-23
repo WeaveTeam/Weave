@@ -67,6 +67,11 @@
 				
 				// lock dynamic objects into place
 				_plotter = initializePlotters(ParallelCoordinatesPlotter, true);
+				
+				// default axis values
+				yAxisLayer.axisPlotter.tickCountRequested.value = 5;
+				xAxisLayer.axisPlotter.forceTickCount.value = true;
+
 				// add this callback first because it needs to be called for each column that is removed
 				_plotter.columns.childListCallbacks.addImmediateCallback(this, handleColumnAddRemoveReorder);
 				
@@ -177,11 +182,13 @@
 				for each (var name:String in visualization.layers.getNames(AxisLayer))
 					visualization.layers.removeObject(name);
 				
-				xAxisLayer.axisPlotter.setLabelFunction( getColumnTitle );
+				xAxisLayer.axisPlotter.setLabelFunction(getColumnTitle);
 				xAxisLayer.axisPlotter.axisLabelRelativeAngle.value = -45;
 				xAxisLayer.axisPlotter.labelHorizontalAlign.value = BitmapText.HORIZONTAL_ALIGN_RIGHT;
 				xAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
 				xAxisLayer.axisPlotter.labelDistanceIsVertical.value = false;
+				
+				yAxisLayer.axisPlotter.setLabelFunction(yAxisLabelFunction);
 				
 				visualization.includeNonSelectableLayersInAutoZoom.value = false;
 				
@@ -242,6 +249,14 @@
 			
 			private static const tempBounds:Bounds2D = new Bounds2D(); // reusable temporary object
 			
+			private function yAxisLabelFunction(value:Number):String
+			{
+				var _columns:Array = _plotter.columns.getObjects();
+				if (_columns.length > 0)
+					return ColumnUtils.deriveStringFromNumber(_columns[0], value); // always use the first column to format the axis labels
+				return null;
+			}
+			
 			private function updateAxes():void
 			{
 				handlePanelTitleChange();
@@ -249,10 +264,6 @@
 				var columns:Array = _plotter.columns.getObjects();
 				
 				xAxisLayer.axisPlotter.tickCountRequested.value = Math.max(2, columns.length);
-				xAxisLayer.axisPlotter.forceTickCount.value = true;
-				xAxisLayer.axisPlotter.axisLabelRelativeAngle.value = -45;
-				//xAxisLayer.axisPlotter.axisLabelDistance.value = visualization.marginBottom.value - 5;
-				xAxisLayer.axisPlotter.updateLabels();
 				
 				// get bounds for y axis
 				visualization.zoomBounds.getDataBounds(tempBounds);
@@ -262,8 +273,6 @@
 				yAxisLayer.axisPlotter.axisLineMaxValue.value = tempBounds.yMax;
 			
 				yAxisLayer.axisPlotter.axisLineDataBounds.copyFrom(tempBounds);
-				yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 45;
-				yAxisLayer.axisPlotter.tickCountRequested.value = 5;
 				
 				var xAxisName:String = '';
 				var yAxisName:String = '';
@@ -285,6 +294,7 @@
 					BitmapText.VERTICAL_ALIGN_TOP
 				);
 
+				xAxisLayer.axisPlotter.updateLabels();
 				yAxisLayer.axisPlotter.updateLabels();			
 			}
 			

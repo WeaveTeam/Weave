@@ -1,611 +1,76 @@
 <colorRampCollection>
-	<colorRamp name="Blue Green Red" source="OIC" category="visualization">
-		<node color="0x0000ff" position="0"/>
-		<node color="0x00ff00" position="0.5"/>
-		<node color="0xff0000" position="1"/>
-	</colorRamp>
-	<colorRamp name="Red Scale" source="OIC" category="visualization" singlehue="true">
-		<node color="0x000000" position="0"/>
-		<node color="0xff0000" position="0.5"/>
-		<node color="0xffcccc" position="1"/>
-	</colorRamp>
-	<colorRamp name="Blue To Cyan" source="OIC" category="visualization">
-		<node color="0x000000" position="0"/>
-		<node color="0x00b7f6" position="0.44140625"/>
-		<node color="0x0bc4ff" position="0.4765625"/>
-		<node color="0x68ffff" position="0.66796875"/>
-		<node color="0xffffff" position="1"/>
-	</colorRamp>
-	<colorRamp name="Grey Blue DarkGrey" source="DHE" category="visualization">
-		<node color="0x808080" position="0"/>
-		<node color="0x005B99" position="0.5"/>
-		<node color="0x1a1a1a" position="1"/>
-	</colorRamp>
-	<colorRamp name="Blue To Yellow" source="OIC" category="visualization">
-		<node color="0x0000ff" position="0"/>
-		<node color="0xffff00" position="1"/>
-	</colorRamp>
-	<colorRamp name="Heated" source="OIC" category="visualization" singlehue="true">
-		<node color="0x130000" position="0"/>
-		<node color="0x611501" position="0.058823529411764705"/>
-		<node color="0xb26b01" position="0.43891402714932126"/>
-		<node color="0xf0902e" position="0.6386554621848739"/>
-		<node color="0xfbbc06" position="0.8733031674208145"/>
-		<node color="0xfefefe" position="0.9457013574660633"/>
-	</colorRamp>
-		<colorRamp name="MCH - Brown" source="OIC" category="visualization" singlehue="true">
-		<node color="0x611501" position="0"/>
-		<node color="0xb26b01" position="0.2"/>
-		<node color="0xf0902e" position="0.3"/>
-		<node color="0xfbbc06" position="1"/>
-	</colorRamp>
-	<colorRamp name="Jet" source="OIC" category="visualization" dataFormat="qualitative">
-		<node color="0x000086" position="0"/>
-		<node color="0x0000ff" position="0.1518324607329843"/>
-		<node color="0x00ffff" position="0.3717277486910995"/>
-		<node color="0xffff00" position="0.6282722513089005"/>
-		<node color="0xff0000" position="0.8952879581151832"/>
-		<node color="0x860000" position="1"/>
-	</colorRamp>
-	<colorRamp name="Linear Gray" source="OIC" category="visualization" colorblindSafe="true" singlehue="true">
-		<node color="0x000000" position="0"/>
-		<node color="0xffffff" position="1"/>
-	</colorRamp>
-	<colorRamp name="Linearized Optimal" source="OIC" category="visualization">
-		<node color="0x000000" position="0"/>
-		<node color="0x870000" position="0.31372549019607843"/>
-		<node color="0x87fe00" position="0.725490196078431"/>
-		<node color="0x87ffff" position="0.9137254901960784"/>
-		<node color="0xffffff" position="1"/>
-	</colorRamp>
-	<colorRamp name="Rainbow" source="OIC" category="visualization">
-		<node color="0x000000" position="0"/>
-		<node color="0x470057" position="0.046875"/>
-		<node color="0x17458f" position="0.12890625"/>
-		<node color="0x5fc046" position="0.53515625"/>
-		<node color="0xa0c84c" position="0.61328125"/>
-		<node color="0xffb38e" position="0.765625"/>
-		<node color="0xffffff" position="1"/>
-	</colorRamp>
+	<colorRamp name="5-Color" tags="OIC,basic">0xEFF3FF,0xBDD7E7,0x6BAED6,0x3182BD,0x08519C</colorRamp>
+	<colorRamp name="Campfire" tags="OIC,aesthetic">0x660000,0xFF0000,0xFFFF00</colorRamp>
+	<colorRamp name="Pink Rose" tags="OIC,aesthetic">0x660066,0xfa0094,0xffc7fa</colorRamp>
+	<colorRamp name="Linear Gray" tags="OIC,visualization,colorblind-safe,single-hue">0x000000,0xffffff</colorRamp>
+	<colorRamp name="Blue Green Red" tags="OIC,visualization">0x0000ff,0x00ff00,0xff0000</colorRamp>
+	<colorRamp name="Red Scale" tags="OIC,visualization,single-hue">0x000000,0xff0000,0xffcccc</colorRamp>
+	<colorRamp name="Blue To Cyan" tags="OIC,visualization">0x000000,0x00b7f6,0x0bc4ff,0x68ffff,0xffffff</colorRamp>
+	<colorRamp name="Blue To Yellow" tags="OIC,visualization">0x0000ff,0xffff00</colorRamp>
+	<colorRamp name="Heated" tags="OIC,visualization,single-hue">0x130000,0x611501,0xb26b01,0xf0902e,0xfbbc06,0xfefefe</colorRamp>
+	<colorRamp name="MCH - Brown" tags="OIC,visualization,single-hue">0x611501,0xb26b01,0xf0902e,0xfbbc06</colorRamp>
+	<colorRamp name="Jet" tags="OIC,visualization,qualitative">0x000086,0x0000ff,0x00ffff,0xffff00,0xff0000,0x860000</colorRamp>
+	<colorRamp name="Linearized Optimal" tags="OIC,visualization">0x000000,0x870000,0x87fe00,0x87ffff,0xffffff</colorRamp>
+	<colorRamp name="Rainbow" tags="OIC,visualization">0x000000,0x470057,0x17458f,0x5fc046,0xa0c84c,0xffb38e,0xffffff</colorRamp>
+	<colorRamp name="Traffic Light" tags="OIC,basic">0x00FF00,0xFFFF00,0xFF0000</colorRamp>
+	<colorRamp name="Arizona Skyline" tags="OIC,aesthetic">0x5683B9,0xFFF0A1,0xE0991B,0xC23600,0x503000</colorRamp>
+	<colorRamp name="Watermelon" tags="OIC,aesthetic">0x3E5B13,0x61B10D,0xCCCD06,0xFF8F88,0x630000</colorRamp>
+	<colorRamp name="Thunderstorm" tags="OIC,aesthetic">0x585634,0x4781B5,0x6FBAFF,0xffff00</colorRamp>
+	<colorRamp name="Old Leather" tags="OIC,aesthetic">0x404320,0x71550E,0x896731,0xDDD200,0x5C97BA,0x5C97BA</colorRamp>
+	<colorRamp name="Autumn" tags="OIC,aesthetic">0x1A0000,0x712B00,0xFFBF88,0xFF6B00,0xFA0000</colorRamp>
+	<colorRamp name="Eggplant" tags="OIC,aesthetic">0x040009,0x4E0075,0x7E00A5,0xE2A510,0xFFFF99</colorRamp>
+	<colorRamp name="Antique Flag" tags="OIC,aesthetic">0x114B48,0x00AFF7,0xDBF9EF,0xABB869,0xFF0000</colorRamp>
+	<colorRamp name="Agate" tags="OIC,aesthetic">0x6E4D58,0x9199A6,0xFFDCB7,0xFE7A1D,0xCB0000</colorRamp>
+	<colorRamp name="Bee" tags="OIC,aesthetic,single-hue">0x000000,0xFFFF00</colorRamp>
+	<colorRamp name="Ornamental Cabbage" tags="OIC,aesthetic">0x3E2A64,0x61B812,0xC4C74B,0xCCC59B,0xB4377A,0xB4377A</colorRamp>
+	<colorRamp name="Neon" tags="OIC,aesthetic">0x334833,0xD75B8F,0xFF0080,0xFFFF00,0x00D100</colorRamp>
+	<colorRamp name="High Desert" tags="OIC,aesthetic">0xB47046,0x72616A,0xD1C7C8,0xFFFFFF,0x0028AE</colorRamp>
+	<colorRamp name="Vermilion Cliffs" tags="OIC,aesthetic">0x641300,0xD32500,0xFF7500,0xFFCA7D,0x0000D2,0x0000D2</colorRamp>
+	<colorRamp name="Papaya" tags="OIC,aesthetic">0x101C01,0x3F8751,0x386C00,0xFD9E00,0xEF0000</colorRamp>
+	<colorRamp name="Van Gogh" tags="OIC,aesthetic">0x31415A,0x609DCD,0xFFFF00,0xE9B400,0xBE2E00</colorRamp>
+	<colorRamp name="Outer Banks" tags="OIC,aesthetic">0x674F38,0xD62A00,0xF7AD00,0xFAEABB,0x0096C4</colorRamp>
+	<colorRamp name="Desert Sands" tags="OIC,aesthetic">0xF8E368,0xCEBA00,0x816B00,0xB55800,0x542000,0x242000</colorRamp>
+	<colorRamp name="Moonlight" tags="OIC,aesthetic">0x040505,0x363635,0x0A0528,0xD1F0E4,0xDCC400,0xDCC400</colorRamp>
+	<colorRamp name="Twilight" tags="OIC,aesthetic">0x2F2521,0xC8ACFE,0xFFFFFF,0xE4FF00</colorRamp>
+	<colorRamp name="Rosebud" tags="OIC,aesthetic">0x69594E,0xADAF48,0xFEF0FE,0xF3008B,0xCD001E</colorRamp>
+	<colorRamp name="Morning Glory" tags="OIC,aesthetic">0x590653,0xFFC1FF,0xFFFF00,0x5D00FF,0x3C00D9</colorRamp>
+	<colorRamp name="Cloudy Night" tags="OIC,aesthetic">0x070411,0x6733AE,0xFFFFFF,0xFF6E00</colorRamp>
+	<colorRamp name="Vintage Map" tags="OIC,aesthetic">0xFAF9E6,0xFBF672,0xFFD99F,0xB4C352,0x92E5CA,0xFD9DAB</colorRamp>
+	<colorRamp name="Doppler Radar" tags="OIC,aesthetic,qualitative">0x04E9E7,0x009DF4,0x0201F4,0x01FC01,0x00C400,0x008C00,0x0FDF801,0xF99200,0xFD0000,0xBC0000,0xF800FD,0x9854C6</colorRamp>
 
-	<colorRamp name="5-Color" source="OIC" category="basic">
-		<node color="0xEFF3FF" position="0"/>
-		<node color="0xBDD7E7" position="0.25"/>
-		<node color="0x6BAED6" position="0.5"/>
-		<node color="0x3182BD" position="0.75"/>
-		<node color="0x08519C" position="1"/>
-	</colorRamp>
-
-	<colorRamp name="Traffic Light" source="OIC" category="basic">
-		<node color="0x00FF00" position="0"/>
-		<node color="0xFFFF00" position="0.5"/>
-		<node color="0xFF0000" position="1"/>
-	</colorRamp>
-
-	<colorRamp name="Arizona Skyline" source="OIC" category="aesthetic">
-		<node color="0x5683B9" position="0"/>
-		<node color="0xFFF0A1" position="0.25"/>
-		<node color="0xE0991B" position="0.5"/>
-		<node color="0xC23600" position="0.75"/>
-		<node color="0x503000" position="1"/>
-	</colorRamp>
-	<colorRamp name="Watermelon" source="OIC" category="aesthetic">
-		<node color="0x3E5B13" position="0"/>
-		<node color="0x61B10D" position="0.1"/>
-		<node color="0xCCCD06" position="0.3"/>
-		<node color="0xFF8F88" position="0.4"/>
-		<node color="0x630000" position="1"/>
-	</colorRamp>
-
-	<colorRamp name="Thunderstorm" source="OIC" category="aesthetic">
-		<node color="0x585634" position="0"/>
-		<node color="0x4781B5" position="0.2"/>
-		<node color="0x6FBAFF" position="0.3"/>
-		<node color="0xffff00" position="1.0"/>
-	</colorRamp>
-	<colorRamp name="Old Leather" source="OIC" category="aesthetic">
-		<node color="0x404320" position="0"/>
-		<node color="0x71550E" position="0.1"/>
-		<node color="0x896731" position="0.2"/>
-		<node color="0xDDD200" position="0.3"/>
-		<node color="0x5C97BA" position="0.65"/>
-		<node color="0x5C97BA" position="1"/>
-	</colorRamp>
-
-	<colorRamp name="Autumn" source="OIC" category="aesthetic">
-		<node color="0x1A0000" position="0"/>
-		<node color="0x712B00" position="0.2"/>
-		<node color="0xFFBF88" position="0.3"/>
-		<node color="0xFF6B00" position="0.6"/>
-		<node color="0xFA0000" position="1"/>
-	</colorRamp>
-	<colorRamp name="Eggplant" source="OIC" category="aesthetic">
-		<node color="0x040009" position="0"/>
-		<node color="0x4E0075" position="0.1"/>
-		<node color="0x7E00A5" position="0.3"/>
-		<node color="0xE2A510" position="0.7"/>
-		<node color="0xFFFF99" position="1"/>
-	</colorRamp>
-
-	<colorRamp name="Antique Flag" source="OIC" category="aesthetic">
-		<node color="0x114B48" position="0"/>
-		<node color="0x00AFF7" position="0.2"/>
-		<node color="0xDBF9EF" position="0.3"/>
-		<node color="0xABB869" position="0.6"/>
-		<node color="0xFF0000" position="1"/>
-	</colorRamp>
-
-
-	<colorRamp name="Agate" source="OIC" category="aesthetic">
-		<node color="0x6E4D58" position="0"/>
-		<node color="0x9199A6" position="0.2"/>
-		<node color="0xFFDCB7" position="0.3"/>
-		<node color="0xFE7A1D" position="0.65"/>
-		<node color="0xCB0000" position="1"/>
-	</colorRamp>
-
-
-
-	<colorRamp name="Bee" source="OIC" category="aesthetic" singlehue="true">
-		<node color="0x000000" position="0"/>
-		<node color="0xFFFF00" position="1"/>
-	</colorRamp>
-
-
-	<colorRamp name="Camouflage" source="OIC" category="aesthetic">
-		<node color="0x607030" position="0"/>
-		<node color="0xF6FE86" position="0.1"/>
-		<node color="0xCBBA47" position="0.2"/>
-		<node color="0x78744B" position="0.4"/>
-		<node color="0x230903" position="1"/>
-	</colorRamp>
-	<colorRamp name="Ornamental Cabbage" source="OIC" category="aesthetic">
-		<node color="0x3E2A64" position="0"/>
-		<node color="0x61B812" position="0.1"/>
-		<node color="0xC4C74B" position="0.2"/>
-		<node color="0xCCC59B" position="0.4"/>
-		<node color="0xB4377A" position="0.6"/>
-		<node color="0xB4377A" position="1"/>
-	</colorRamp>
-
-	<colorRamp name="Neon" source="OIC" category="aesthetic">
-		<node color="0x334833" position="0"/>
-		<node color="0xD75B8F" position="0.15"/>
-		<node color="0xFF0080" position="0.3"/>
-		<node color="0xFFFF00" position="0.6"/>
-		<node color="0x00D100" position="1"/>
-	</colorRamp>
-	<colorRamp name="High Desert" source="OIC" category="aesthetic">
-		<node color="0xB47046" position="0"/>
-		<node color="0x72616A" position="0.15"/>
-		<node color="0xD1C7C8" position="0.3"/>
-		<node color="0xFFFFFF" position="0.5"/>
-		<node color="0x0028AE" position="1"/>
-	</colorRamp>
-
-	<colorRamp name="Vermilion Cliffs" source="OIC" category="aesthetic">
-		<node color="0x641300" position="0"/>
-		<node color="0xD32500" position="0.15"/>
-		<node color="0xFF7500" position="0.2"/>
-		<node color="0xFFCA7D" position="0.4"/>
-		<node color="0x0000D2" position="0.7"/>
-		<node color="0x0000D2" position="1"/>
-	</colorRamp>
-	<colorRamp name="Pink Rose" source="OIC" category="aesthetic">
-		<node color="0x1E0000" position="0"/>
-		<node color="0x750000" position="0.15"/>
-		<node color="0xC2002C" position="0.3"/>
-		<node color="0xFFC7FA" position="0.5"/>
-		<node color="0xFA0094" position="1"/>
-	</colorRamp>
-	<colorRamp name="Papaya" source="OIC" category="aesthetic">
-		<node color="0x101C01" position="0"/>
-		<node color="0x3F8751" position="0.15"/>
-		<node color="0x386C00" position="0.3"/>
-		<node color="0xFD9E00" position="0.5"/>
-		<node color="0xEF0000" position="1"/>
-	</colorRamp>
-	<colorRamp name="Van Gogh" source="OIC" category="aesthetic">
-		<node color="0x31415A" position="0"/>
-		<node color="0x609DCD" position="0.15"/>
-		<node color="0xE9B400" position="0.3"/>
-		<node color="0xFFFF00" position="0.4"/>
-		<node color="0xBE2E00" position="0.8"/>
-		<node color="0xBE2E00" position="1"/>
-	</colorRamp>
-	<colorRamp name="Outer Banks" source="OIC" category="aesthetic">
-		<node color="0x674F38" position="0"/>
-		<node color="0xD62A00" position="0.15"/>
-		<node color="0xF7AD00" position="0.3"/>
-		<node color="0xFAEABB" position="0.6"/>
-		<node color="0x0096C4" position="1"/>
-	</colorRamp>
-	<colorRamp name="Desert Sands" source="OIC" category="aesthetic">
-		<node color="0xF8E368" position="0"/>
-		<node color="0xCEBA00" position="0.15"/>
-		<node color="0x816B00" position="0.3"/>
-		<node color="0xB55800" position="0.45"/>
-		<node color="0x542000" position="0.65"/>
-		<node color="0x242000" position="1"/>
-	</colorRamp>
-	<colorRamp name="Campfire" source="OIC" category="aesthetic">
-		<node color="0x1C1402" position="0"/>
-		<node color="0x770000" position="0.15"/>
-		<node color="0xE10000" position="0.25"/>
-		<node color="0xFF5300" position="0.45"/>
-		<node color="0xFFED57" position="1"/>
-	</colorRamp>
-	<colorRamp name="Moonlight" source="OIC" category="aesthetic">
-		<node color="0x040505" position="0"/>
-		<node color="0x363635" position="0.1"/>
-		<node color="0x0A0528" position="0.2"/>
-		<node color="0xD1F0E4" position="0.4"/>
-		<node color="0xDCC400" position="0.7"/>
-		<node color="0xDCC400" position="1"/>
-	</colorRamp>
-	<colorRamp name="Twilight" source="OIC" category="aesthetic">
-		<node color="0x2F2521" position="0"/>
-		<node color="0xC8ACFE" position="0.15"/>
-		<node color="0xFFFFFF" position="0.6"/>
-		<node color="0xE4FF00" position="1"/>
-	</colorRamp>
-
-	<colorRamp name="Rosebud" source="OIC" category="aesthetic">
-		<node color="0x69594E" position="0"/>
-		<node color="0xADAF48" position="0.15"/>
-		<node color="0xFEF0FE" position="0.3"/>
-		<node color="0xF3008B" position="0.6"/>
-		<node color="0xCD001E" position="1"/>
-	</colorRamp>
-
-	<colorRamp name="Morning Glory" source="OIC" category="aesthetic">
-		<node color="0x590653" position="0"/>
-		<node color="0xFFC1FF" position="0.15"/>
-		<node color="0xFFFF00" position="0.3"/>
-		<node color="0x5D00FF" position="0.5"/>
-		<node color="0x3C00D9" position="1"/>
-	</colorRamp>
-	<colorRamp name="Cloudy Night" source="OIC" category="aesthetic">
-		<node color="0x070411" position="0"/>
-		<node color="0x6733AE" position="0.1"/>
-		<node color="0x5C00AF" position="0.2"/>
-		<node color="0xFFFFFF" position="0.3"/>
-		<node color="0xFF6E00" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Vintage Map" source="OIC" category="aesthetic">
-		<node color="0xFAF9E6" position="0"/>
-		<node color="0xFBF672" position="0.2"/>
-		<node color="0xFFD99F" position="0.4"/>
-		<node color="0xB4C352" position="0.6"/>
-		<node color="0x92E5CA" position="0.8"/>
-		<node color="0xFD9DAB" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Doppler Radar" source="OIC" category="aesthetic" dataFormat="qualitative">
-		<node color="0x04E9E7" position="0"/>
-		<node color="0x009DF4" position="0.08"/>
-		<node color="0x0201F4" position="0.16"/>
-		<node color="0x01FC01" position="0.24"/>
-		<node color="0x00C400" position="0.32"/>
-		<node color="0x008C00" position="0.4"/>
-		<node color="0x0FDF801" position="0.48"/>
-		<node color="0xF99200" position="0.56"/>
-		<node color="0xFD0000" position="0.64"/>
-		<node color="0xBC0000" position="0.72"/>
-		<node color="0xBC0000" position="0.8"/>
-		<node color="0xF800FD" position="0.88"/>
-		<node color="0x9854C6" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Four Seasons" source="OIC" category="aesthetic">
-		<node name="winter" color="0x8D8EB5" position="0"/>
-		<node name="fall" color="0x765520" position="0.25"/>
-		<node name="spring" color="0x14E316" position="0.5"/>
-		<node name="summer" color="0xFFEE00" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="BuGn" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="false" colorblindSafe="true">
-		<node color="0xEDF8FB" position="0"/>
-		<node color="0xB2E2E2" position="0.25"/>
-		<node color="0x66C2A4" position="0.5"/>
-		<node color="0x2CA25F" position="0.75"/>
-		<node color="0x006D2C" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="BuPu" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="false" colorblindSafe="true">
-		<node color="0xEDF8FB" position="0"/>
-		<node color="0xB3CDE3" position="0.25"/>
-		<node color="0x8C96C6" position="0.5"/>
-		<node color="0x8856A7" position="0.75"/>
-		<node color="0x810F7C" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="GnBu" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="false" printFriendly="true" colorblindSafe="true">
-		<node color="0xF0F9E8" position="0"/>
-		<node color="0xBAE4BC" position="0.25"/>
-		<node color="0x7BCCC4" position="0.5"/>
-		<node color="0x43A2CA" position="0.75"/>
-		<node color="0x0868AC" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="OrRd" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="false" colorblindSafe="true">
-		<node color="0xFEF0D9" position="0"/>
-		<node color="0xFDCC8A" position="0.25"/>
-		<node color="0xFC8D59" position="0.5"/>
-		<node color="0xE34A33" position="0.75"/>
-		<node color="0xB30000" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="PuBu" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="false" colorblindSafe="true">
-		<node color="0xF1EEF6" position="0"/>
-		<node color="0xBDC9E1" position="0.25"/>
-		<node color="0x74A9CF" position="0.5"/>
-		<node color="0x2B8CBE" position="0.75"/>
-		<node color="0x045A8D" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="PuBuGn" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="false" colorblindSafe="true">
-		<node color="0xF6EFF7" position="0"/>
-		<node color="0xBDC9E1" position="0.25"/>
-		<node color="0x67A9CF" position="0.5"/>
-		<node color="0x1C9099" position="0.75"/>
-		<node color="0x016C59" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="PuRd" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="false" printFriendly="true" colorblindSafe="true">
-		<node color="0xF1EEF6" position="0"/>
-		<node color="0xD7B5D8" position="0.25"/>
-		<node color="0xDF65B0" position="0.5"/>
-		<node color="0xDD1C77" position="0.75"/>
-		<node color="0x980043" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="RdPu" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="false" printFriendly="true" colorblindSafe="true">
-		<node color="0xFEEBE2" position="0"/>
-		<node color="0xFBB4B9" position="0.25"/>
-		<node color="0xF768A1" position="0.5"/>
-		<node color="0xC51B8A" position="0.75"/>
-		<node color="0x7A0177" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="YlGn" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="false" colorblindSafe="true">
-		<node color="0xFFFFCC" position="0"/>
-		<node color="0xC2E699" position="0.25"/>
-		<node color="0x78C679" position="0.5"/>
-		<node color="0x31A354" position="0.75"/>
-		<node color="0x006837" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="YlGnBu" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="false" printFriendly="true" colorblindSafe="true">
-		<node color="0xFFFFCC" position="0"/>
-		<node color="0xA1DAB4" position="0.25"/>
-		<node color="0x41B6C4" position="0.5"/>
-		<node color="0x2C7FB8" position="0.75"/>
-		<node color="0x253494" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="YlOrBr" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="false" colorblindSafe="true">
-		<node color="0xFFFFD4" position="0"/>
-		<node color="0xFED98E" position="0.25"/>
-		<node color="0xFE9929" position="0.5"/>
-		<node color="0xD95F0E" position="0.75"/>
-		<node color="0x993404" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="YlOrRd" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="false" colorblindSafe="true">
-		<node color="0xFFFFB2" position="0"/>
-		<node color="0xFECC5C" position="0.25"/>
-		<node color="0xFD8D3C" position="0.5"/>
-		<node color="0xF03B20" position="0.75"/>
-		<node color="0xBD0026" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Blues" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="true" colorblindSafe="true">
-		<node color="0xEFF3FF" position="0"/>
-		<node color="0xBDD7E7" position="0.25"/>
-		<node color="0x6BAED6" position="0.5"/>
-		<node color="0x3182BD" position="0.75"/>
-		<node color="0x08519C" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Greens" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="true" colorblindSafe="true">
-		<node color="0xEDF8E9" position="0"/>
-		<node color="0xBAE4B3" position="0.25"/>
-		<node color="0x74C476" position="0.5"/>
-		<node color="0x31A354" position="0.75"/>
-		<node color="0x006D2C" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Greys" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="true" colorblindSafe="true">
-		<node color="0xF7F7F7" position="0"/>
-		<node color="0xCCCCCC" position="0.25"/>
-		<node color="0x969696" position="0.5"/>
-		<node color="0x636363" position="0.75"/>
-		<node color="0x252525" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Oranges" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="true" colorblindSafe="true">
-		<node color="0xFEEDDE" position="0"/>
-		<node color="0xFDBE85" position="0.25"/>
-		<node color="0xFD8D3C" position="0.5"/>
-		<node color="0xE6550D" position="0.75"/>
-		<node color="0xA63603" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Purples" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="true" colorblindSafe="true">
-		<node color="0xF2F0F7" position="0"/>
-		<node color="0xCBC9E2" position="0.25"/>
-		<node color="0x9E9AC8" position="0.5"/>
-		<node color="0x756BB1" position="0.75"/>
-		<node color="0x54278F" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Reds" source="ColorBrewer" category="basic" dataFormat="sequential" singlehue="true" colorblindSafe="true">
-		<node color="0xFEE5D9" position="0"/>
-		<node color="0xFCAE91" position="0.25"/>
-		<node color="0xFB6A4A" position="0.5"/>
-		<node color="0xDE2D26" position="0.75"/>
-		<node color="0xA50F15" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="BrBG" source="ColorBrewer" category="basic" dataFormat="diverging" singlehue="false" colorblindSafe="true" printFriendly="true">
-		<node color="0xA6611A" position="0"/>
-		<node color="0xDFC27D" position="0.25"/>
-		<node color="0xF5F5F5" position="0.5"/>
-		<node color="0x80CDC1" position="0.75"/>
-		<node color="0x018571" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="PiYG" source="ColorBrewer" category="basic" dataFormat="diverging" singlehue="false" colorblindSafe="true">
-		<node color="0xD01C8B" position="0"/>
-		<node color="0xF1B6DA" position="0.25"/>
-		<node color="0xF7F7F7" position="0.5"/>
-		<node color="0xB8E186" position="0.75"/>
-		<node color="0x4DAC26" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="PRGn" source="ColorBrewer" category="basic" dataFormat="diverging" singlehue="false" colorblindSafe="true" printFriendly="true">
-		<node color="0x7B3294" position="0"/>
-		<node color="0xC2A5CF" position="0.25"/>
-		<node color="0xF7F7F7" position="0.5"/>
-		<node color="0xA6DBA0" position="0.75"/>
-		<node color="0x008837" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="PuOr" source="ColorBrewer" category="basic" dataFormat="diverging" singlehue="false" colorblindSafe="true">
-		<node color="0xE66101" position="0"/>
-		<node color="0xFDB863" position="0.25"/>
-		<node color="0xF7F7F7" position="0.5"/>
-		<node color="0xB2ABD2" position="0.75"/>
-		<node color="0x5E3C99" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="RdBu" source="ColorBrewer" category="basic" dataFormat="diverging" singlehue="false" colorblindSafe="true" printFriendly="true">
-		<node color="0xCA0020" position="0"/>
-		<node color="0xF4A582" position="0.25"/>
-		<node color="0xF7F7F7" position="0.5"/>
-		<node color="0x92C5DE" position="0.75"/>
-		<node color="0x0571B0" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="RdGy" source="ColorBrewer" category="basic" dataFormat="diverging" singlehue="false" printFriendly="true">
-		<node color="0xCA0020" position="0"/>
-		<node color="0xF4A582" position="0.25"/>
-		<node color="0xFFFFFF" position="0.5"/>
-		<node color="0xBABABA" position="0.75"/>
-		<node color="0x404040" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="RdYlBu" source="ColorBrewer" category="basic" dataFormat="diverging" singlehue="false" colorblindSafe="true" printFriendly="true">
-		<node color="0xD7191C" position="0"/>
-		<node color="0xFDAE61" position="0.25"/>
-		<node color="0xFFFFBF" position="0.5"/>
-		<node color="0xABD9E9" position="0.75"/>
-		<node color="0x2C7BB6" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="RdYlGn" source="ColorBrewer" category="basic" dataFormat="diverging" singlehue="false" printFriendly="true">
-		<node color="0xD7191C" position="0"/>
-		<node color="0xFDAE61" position="0.25"/>
-		<node color="0xFFFFBF" position="0.5"/>
-		<node color="0xA6D96A" position="0.75"/>
-		<node color="0x1A9641" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Spectral" source="ColorBrewer" category="basic" dataFormat="diverging" singlehue="false" printFriendly="true" photocopyable="true">
-		<node color="0xD7191C" position="0"/>
-		<node color="0xFDAE61" position="0.25"/>
-		<node color="0xFFFFBF" position="0.5"/>
-		<node color="0xABDDA4" position="0.75"/>
-		<node color="0x2B83BA" position="1.0"/>
-	</colorRamp>
-
-
-	<colorRamp name="Accent" source="ColorBrewer" category="basic" dataFormat="qualitative" singlehue="false">
-		<node color="0x7FC97F" position="0"/>
-		<node color="0xBEAED4" position="0.14"/>
-		<node color="0xFDC086" position="0.28"/>
-		<node color="0xFFFF99" position="0.42"/>
-		<node color="0x386CB0" position="0.56"/>
-		<node color="0xF0027F" position="0.7"/>
-		<node color="0xBF5B17" position="0.84"/>
-		<node color="0x666666" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Dark2" source="ColorBrewer" category="basic" dataFormat="qualitative" singlehue="false" printFriendly="true">
-		<node color="0x1B9E77" position="0"/>
-		<node color="0xD95F02" position="0.14"/>
-		<node color="0x7570B3" position="0.28"/>
-		<node color="0xE7298A" position="0.42"/>
-		<node color="0x66A61E" position="0.56"/>
-		<node color="0xE6AB02" position="0.7"/>
-		<node color="0xA6761D" position="0.84"/>
-		<node color="0x666666" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Paired" source="ColorBrewer" category="basic" dataFormat="qualitative" singlehue="false">
-		<node color="0xA6CEE3" position="0"/>
-		<node color="0x1F78B4" position="0.14"/>
-		<node color="0xB2DF8A" position="0.28"/>
-		<node color="0x33A02C" position="0.42"/>
-		<node color="0xFB9A99" position="0.56"/>
-		<node color="0xE31A1C" position="0.7"/>
-		<node color="0xFDBF6F" position="0.84"/>
-		<node color="0xFF7F00" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Pastel 1" source="ColorBrewer" category="basic" dataFormat="qualitative" singlehue="false">
-		<node color="0xFBB4AE" position="0"/>
-		<node color="0xB3CDE3" position="0.14"/>
-		<node color="0xCCEBC5" position="0.28"/>
-		<node color="0xDECBE4" position="0.42"/>
-		<node color="0xFED9A6" position="0.56"/>
-		<node color="0xFFFFCC" position="0.7"/>
-		<node color="0xE5D8BD" position="0.84"/>
-		<node color="0xFDDAEC" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Pastel 2" source="ColorBrewer" category="basic" dataFormat="qualitative" singlehue="false">
-		<node color="0xB3E2CD" position="0"/>
-		<node color="0xFDCDAC" position="0.14"/>
-		<node color="0xCBD5E8" position="0.28"/>
-		<node color="0xF4CAE4" position="0.42"/>
-		<node color="0xE6F5C9" position="0.56"/>
-		<node color="0xFFF2AE" position="0.7"/>
-		<node color="0xF1E2CC" position="0.84"/>
-		<node color="0xCCCCCC" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Set 1" source="ColorBrewer" category="basic" dataFormat="qualitative" singlehue="false" printFriendly="true">
-		<node color="0xE41A1C" position="0"/>
-		<node color="0x377EB8" position="0.14"/>
-		<node color="0x4DAF4A" position="0.28"/>
-		<node color="0x984EA3" position="0.42"/>
-		<node color="0xFF7F00" position="0.56"/>
-		<node color="0xFFFF33" position="0.7"/>
-		<node color="0xA65628" position="0.84"/>
-		<node color="0xF781BF" position="1.0"/>
-	</colorRamp>
-	<colorRamp name="Set 2" source="ColorBrewer" category="basic" dataFormat="qualitative" singlehue="false">
-		<node color="0x66C2A5" position="0"/>
-		<node color="0xFC8D62" position="0.14"/>
-		<node color="0x8DA0CB" position="0.28"/>
-		<node color="0xE78AC3" position="0.42"/>
-		<node color="0xA6D854" position="0.56"/>
-		<node color="0xFFD92F" position="0.7"/>
-		<node color="0xE5C494" position="0.84"/>
-		<node color="0xB3B3B3" position="1.0"/>
-	</colorRamp>
-
-	<colorRamp name="Set 3" source="ColorBrewer" category="basic" dataFormat="qualitative" singlehue="false" printFriendly="true">
-		<node color="0x8DD3C7" position="0"/>
-		<node color="0xFFFFB3" position="0.14"/>
-		<node color="0xBEBADA" position="0.28"/>
-		<node color="0xFB8072" position="0.42"/>
-		<node color="0x80B1D3" position="0.56"/>
-		<node color="0xFDB462" position="0.7"/>
-		<node color="0xB3DE69" position="0.84"/>
-		<node color="0xFCCDE5" position="1.0"/>
-	</colorRamp>
+	<colorRamp name="Bu Gn" tags="ColorBrewer,basic,sequential,colorblind-safe">0xEDF8FB,0xB2E2E2,0x66C2A4,0x2CA25F,0x006D2C</colorRamp>
+	<colorRamp name="Bu Pu" tags="ColorBrewer,basic,sequential,colorblind-safe">0xEDF8FB,0xB3CDE3,0x8C96C6,0x8856A7,0x810F7C</colorRamp>
+	<colorRamp name="Gn Bu" tags="ColorBrewer,basic,sequential,printer-friendly,colorblind-safe">0xF0F9E8,0xBAE4BC,0x7BCCC4,0x43A2CA,0x0868AC</colorRamp>
+	<colorRamp name="Or Rd" tags="ColorBrewer,basic,sequential,colorblind-safe">0xFEF0D9,0xFDCC8A,0xFC8D59,0xE34A33,0xB30000</colorRamp>
+	<colorRamp name="Pu Bu" tags="ColorBrewer,basic,sequential,colorblind-safe">0xF1EEF6,0xBDC9E1,0x74A9CF,0x2B8CBE,0x045A8D</colorRamp>
+	<colorRamp name="Pu Bu Gn" tags="ColorBrewer,basic,sequential,colorblind-safe">0xF6EFF7,0xBDC9E1,0x67A9CF,0x1C9099,0x016C59</colorRamp>
+	<colorRamp name="Pu Rd" tags="ColorBrewer,basic,sequential,printer-friendly,colorblind-safe">0xF1EEF6,0xD7B5D8,0xDF65B0,0xDD1C77,0x980043</colorRamp>
+	<colorRamp name="Rd Pu" tags="ColorBrewer,basic,sequential,printer-friendly,colorblind-safe">0xFEEBE2,0xFBB4B9,0xF768A1,0xC51B8A,0x7A0177</colorRamp>
+	<colorRamp name="Yl Gn" tags="ColorBrewer,basic,sequential,colorblind-safe">0xFFFFCC,0xC2E699,0x78C679,0x31A354,0x006837</colorRamp>
+	<colorRamp name="Yl Gn Bu" tags="ColorBrewer,basic,sequential,printer-friendly,colorblind-safe">0xFFFFCC,0xA1DAB4,0x41B6C4,0x2C7FB8,0x253494</colorRamp>
+	<colorRamp name="Yl Or Br" tags="ColorBrewer,basic,sequential,colorblind-safe">0xFFFFD4,0xFED98E,0xFE9929,0xD95F0E,0x993404</colorRamp>
+	<colorRamp name="Yl Or Rd" tags="ColorBrewer,basic,sequential,colorblind-safe">0xFFFFB2,0xFECC5C,0xFD8D3C,0xF03B20,0xBD0026</colorRamp>
+	<colorRamp name="Blues" tags="ColorBrewer,basic,sequential,single-hue,colorblind-safe">0xEFF3FF,0xBDD7E7,0x6BAED6,0x3182BD,0x08519C</colorRamp>
+	<colorRamp name="Greens" tags="ColorBrewer,basic,sequential,single-hue,colorblind-safe">0xEDF8E9,0xBAE4B3,0x74C476,0x31A354,0x006D2C</colorRamp>
+	<colorRamp name="Greys" tags="ColorBrewer,basic,sequential,single-hue,colorblind-safe">0xF7F7F7,0xCCCCCC,0x969696,0x636363,0x252525</colorRamp>
+	<colorRamp name="Oranges" tags="ColorBrewer,basic,sequential,single-hue,colorblind-safe">0xFEEDDE,0xFDBE85,0xFD8D3C,0xE6550D,0xA63603</colorRamp>
+	<colorRamp name="Purples" tags="ColorBrewer,basic,sequential,single-hue,colorblind-safe">0xF2F0F7,0xCBC9E2,0x9E9AC8,0x756BB1,0x54278F</colorRamp>
+	<colorRamp name="Reds" tags="ColorBrewer,basic,sequential,single-hue,colorblind-safe">0xFEE5D9,0xFCAE91,0xFB6A4A,0xDE2D26,0xA50F15</colorRamp>
+	<colorRamp name="Br BG" tags="ColorBrewer,basic,diverging,colorblind-safe,printer-friendly">0xA6611A,0xDFC27D,0xF5F5F5,0x80CDC1,0x018571</colorRamp>
+	<colorRamp name="Pi YG" tags="ColorBrewer,basic,diverging,colorblind-safe">0xD01C8B,0xF1B6DA,0xF7F7F7,0xB8E186,0x4DAC26</colorRamp>
+	<colorRamp name="PR Gn" tags="ColorBrewer,basic,diverging,colorblind-safe,printer-friendly">0x7B3294,0xC2A5CF,0xF7F7F7,0xA6DBA0,0x008837</colorRamp>
+	<colorRamp name="Pu Or" tags="ColorBrewer,basic,diverging,colorblind-safe">0xE66101,0xFDB863,0xF7F7F7,0xB2ABD2,0x5E3C99</colorRamp>
+	<colorRamp name="Rd Bu" tags="ColorBrewer,basic,diverging,colorblind-safe,printer-friendly">0xCA0020,0xF4A582,0xF7F7F7,0x92C5DE,0x0571B0</colorRamp>
+	<colorRamp name="Rd Gy" tags="ColorBrewer,basic,diverging,printer-friendly">0xCA0020,0xF4A582,0xFFFFFF,0xBABABA,0x404040</colorRamp>
+	<colorRamp name="Rd Yl Bu" tags="ColorBrewer,basic,diverging,colorblind-safe,printer-friendly">0xD7191C,0xFDAE61,0xFFFFBF,0xABD9E9,0x2C7BB6</colorRamp>
+	<colorRamp name="Rd Yl Gn" tags="ColorBrewer,basic,diverging,printer-friendly">0xD7191C,0xFDAE61,0xFFFFBF,0xA6D96A,0x1A9641</colorRamp>
+	<colorRamp name="Spectral" tags="ColorBrewer,basic,diverging,printer-friendly,photocopy-friendly">0xD7191C,0xFDAE61,0xFFFFBF,0xABDDA4,0x2B83BA</colorRamp>
+	<colorRamp name="Accent" tags="ColorBrewer,basic,qualitative">0x7FC97F,0xBEAED4,0xFDC086,0xFFFF99,0x386CB0,0xF0027F,0xBF5B17,0x666666</colorRamp>
+	<colorRamp name="Dark2" tags="ColorBrewer,basic,qualitative,printer-friendly">0x1B9E77,0xD95F02,0x7570B3,0xE7298A,0x66A61E,0xE6AB02,0xA6761D,0x666666</colorRamp>
+	<colorRamp name="Paired" tags="ColorBrewer,basic,qualitative">0xA6CEE3,0x1F78B4,0xB2DF8A,0x33A02C,0xFB9A99,0xE31A1C,0xFDBF6F,0xFF7F00</colorRamp>
+	<colorRamp name="Pastel 1" tags="ColorBrewer,basic,qualitative">0xFBB4AE,0xB3CDE3,0xCCEBC5,0xDECBE4,0xFED9A6,0xFFFFCC,0xE5D8BD,0xFDDAEC</colorRamp>
+	<colorRamp name="Pastel 2" tags="ColorBrewer,basic,qualitative">0xB3E2CD,0xFDCDAC,0xCBD5E8,0xF4CAE4,0xE6F5C9,0xFFF2AE,0xF1E2CC,0xCCCCCC</colorRamp>
+	<colorRamp name="Set 1" tags="ColorBrewer,basic,qualitative,printer-friendly">0xE41A1C,0x377EB8,0x4DAF4A,0x984EA3,0xFF7F00,0xFFFF33,0xA65628,0xF781BF</colorRamp>
+	<colorRamp name="Set 2" tags="ColorBrewer,basic,qualitative">0x66C2A5,0xFC8D62,0x8DA0CB,0xE78AC3,0xA6D854,0xFFD92F,0xE5C494,0xB3B3B3</colorRamp>
+	<colorRamp name="Set 3" tags="ColorBrewer,basic,qualitative,printer-friendly">0x8DD3C7,0xFFFFB3,0xBEBADA,0xFB8072,0x80B1D3,0xFDB462,0xB3DE69,0xFCCDE5</colorRamp>
 </colorRampCollection>

@@ -26,6 +26,7 @@ package weave.data.BinningDefinitions
 	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IPrimitiveColumn;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
@@ -68,7 +69,21 @@ package weave.data.BinningDefinitions
 			while (nonWrapperColumn is IColumnWrapper)
 				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).internalColumn;
 			
-			var integerValuesOnly:Boolean = nonWrapperColumn && ColumnUtils.getDataType(nonWrapperColumn) != DataTypes.NUMBER;
+			var dataType:String = nonWrapperColumn ? ColumnUtils.getDataType(nonWrapperColumn) : null;
+			if (dataType == null)
+			{
+				// hack -- if we find a number, assume dataType is number
+				for each (var key:IQualifiedKey in column.keys)
+				{
+					if (column.getValueFromKey(key) is Number)
+					{
+						dataType = DataTypes.NUMBER;
+						break;
+					}
+				}
+			}
+			
+			var integerValuesOnly:Boolean = nonWrapperColumn && dataType != DataTypes.NUMBER;
 			var dataMin:Number = WeaveAPI.StatisticsCache.getMin(column);
 			var dataMax:Number = WeaveAPI.StatisticsCache.getMax(column);
 			

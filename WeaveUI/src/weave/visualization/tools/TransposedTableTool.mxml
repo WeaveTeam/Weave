@@ -43,6 +43,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						   selectionColor="0xFFAAAA"
 						   lockedColumnCount="1"
 						   columnStretch="handlerHeaderRelease(event)"
+						   showDataTips="true"
 						   />
 		
 	</mx:VBox>
@@ -66,17 +67,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.KeySet;
 			import weave.utils.ColumnUtils;
+			import weave.utils.NumberUtils;
 			
 			public const columns:LinkableHashMap = newLinkableChild(this,LinkableHashMap,handleColumnsListChange,true);
-			
 			public const headerAttributeColumn:DynamicColumn = newLinkableChild(this,DynamicColumn,handleHeaderColumnChange,true);
-			
 			public const filterKeySet:KeySet = newLinkableChild(this,KeySet,handleHeaderColumnChange,true);
-			
-			public const fontSize:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),updateFontSize);
-			
+			public const fontSize:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10, isFinite),updateFontSize);
 			public const headerText:LinkableString = registerLinkableChild(this,new LinkableString(""),updateHeaderText);
+			public const headerColumnWidth:LinkableString = registerLinkableChild(this,new LinkableString("10%", NumberUtils.verifyNumberOrPercentage),handleColumnWidthChange,true);
+			public const dataColumnWidth:LinkableString = registerLinkableChild(this,new LinkableString("10%", NumberUtils.verifyNumberOrPercentage),handleColumnWidthChange,true);
 			
+			[Bindable]
+			private var sourceArrayCollection:ArrayCollection = new ArrayCollection();
+
 			override protected function childrenCreated():void
 			{
 				columnsList.hashMap = columns;
@@ -114,8 +117,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				else
 					createHeaderColumns(columns.getObjects()[0]);
 			}
-			[Bindable]
-			private var sourceArrayCollection:ArrayCollection = new ArrayCollection();
  			private function handleColumnsListChange():void
 			{
 				var columnObjects:Array = columns.getObjects();
@@ -230,44 +231,41 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					(col[0] as DataGridColumn).headerText = " ";
 			}
 			
-			/**
-			 * @public headerColumnWidth
-			 * 
-			 * */
-			public const headerColumnPercentWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleColumnWidthChange,true);
-			public const dataColumnPercentWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleColumnWidthChange,true);
-			
 			
 			private function handlerHeaderRelease(event:DataGridEvent):void
 			{
-				if(event.columnIndex == 0)
-					headerColumnPercentWidth.value = (table.columns[0] as DataGridColumn).width/unscaledWidth * 100;
+				var columnWidth:Number = (table.columns[event.columnIndex] as DataGridColumn).width;
+				var target:LinkableString = (event.columnIndex == 0) ? headerColumnWidth : dataColumnWidth;
+				if (sessionPanelCoordsAsPercentages)
+					target.value = String(columnWidth / unscaledWidth * 100) + '%';
 				else
-					dataColumnPercentWidth.value = (table.columns[event.columnIndex] as DataGridColumn).width/unscaledWidth * 100;
+					target.value = String(columnWidth);
 			}
 			
 			private function handleColumnWidthChange():void
 			{
-				if(table.columnCount == 0)
+				if (table.columnCount == 0)
 					return;
 				
-				(table.columns[0] as DataGridColumn).width = headerColumnPercentWidth.value/100 * unscaledWidth;
+				var headerWidth:Number = NumberUtils.getNumberFromNumberOrPercent(headerColumnWidth.value, unscaledWidth);
+				(table.columns[0] as DataGridColumn).width = headerWidth;
 				
-				for(var i:int =1; i<table.columnCount; i++)
+				var dataWidth:Number = NumberUtils.getNumberFromNumberOrPercent(dataColumnWidth.value, unscaledWidth);
+				for (var i:int = 1; i < table.columnCount; i++)
 				{
-					(table.columns[i] as DataGridColumn).width = dataColumnPercentWidth.value/100 * unscaledWidth; 
+					(table.columns[i] as DataGridColumn).width = dataWidth;
 				}
 				
 			}
 			
-			[Deprecated(replacement="headerColumnPercentWidth")] public function set headerColumnWidth(value:Number):void
+			[Deprecated(replacement="headerColumnWidth")] public function set headerColumnPercentWidth(value:Number):void
 			{
-				headerColumnPercentWidth.value = value;
+				headerColumnWidth.value = String(value) + '%';
 			}
 			
-			[Deprecated(replacement="dataColumnPercentWidth")] public function set dataColumnWidth(value:Number):void
+			[Deprecated(replacement="dataColumnWidth")] public function set dataColumnPercentWidth(value:Number):void
 			{
-				dataColumnPercentWidth.value = value;
+				dataColumnWidth.value = String(value) + '%';
 			}
 			
 			

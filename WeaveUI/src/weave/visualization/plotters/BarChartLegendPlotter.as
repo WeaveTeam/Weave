@@ -78,7 +78,7 @@ package weave.visualization.plotters
 		 * 
 		 * @default string
 		 */		
-		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['string']), createColumnHashes);
+		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['number','string']), createColumnHashes);
 
 		// TODO This should go somewhere else...
 		/**
@@ -109,7 +109,7 @@ package weave.visualization.plotters
 				_columnOrdering.push(column);
 				try
 				{
-					_columnToTitle[column] = itemLabelFunction.apply(null, [colTitle]);
+					_columnToTitle[column] = itemLabelFunction.apply(null, [i, colTitle]);
 				}
 				catch (e:Error)
 				{

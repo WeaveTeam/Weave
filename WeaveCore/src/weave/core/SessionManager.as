@@ -743,8 +743,10 @@ package weave.core
 		 */
 		public function disposeObjects(object:Object, ...moreObjects):void
 		{
-			if (object != null)
+			if (object != null && !_disposedObjectsMap[object])
 			{
+				_disposedObjectsMap[object] = true;
+				
 				try
 				{
 					// if the object implements IDisposableObject, call its dispose() function now
@@ -850,8 +852,6 @@ package weave.core
 						(displayObject as UIComponent).mx_internal::cancelAllCallLaters();
 				}
 			}
-			
-			_disposedObjectsMap[object] = true;
 			
 			// dispose of the remaining specified objects
 			for (var i:int = 0; i < moreObjects.length; i++)
@@ -1213,14 +1213,14 @@ package weave.core
 				}
 				else
 				{
-					callbackCollection.delayCallbacks();
+					var prevCount:uint = callbackCollection.triggerCounter;
 					linkableVariable.setSessionState(bindableValue);
 					// Always synchronize after setting the linkableVariable because there may
 					// be constraints on the session state that will prevent the callbacks
 					// from triggering if the bindable value does not match those constraints.
 					// This makes UIComponents update to the real value after they lose focus.
-//					callbackCollection.triggerCallbacks();
-					callbackCollection.resumeCallbacks();
+					if (callbackCollection.triggerCounter == prevCount)
+						synchronize();
 				}
 			};
 			// Copy session state over to bindable property now, before calling BindingUtils.bindSetter(),

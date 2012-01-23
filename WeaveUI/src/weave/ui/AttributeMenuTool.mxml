@@ -24,30 +24,30 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				width="300" height="200"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
-	<mx:ViewStack id="layoutViewStack" width="100%" height="100%" selectedIndex="{layouts.indexOf(targetLayoutCombo.selectedItem)}">
+	<mx:ViewStack id="layoutViewStack" width="100%" height="100%" selectedIndex="{layouts.indexOf(layoutCombo.selectedItem)}">
 		<mx:Canvas label="Combo Box">
 			<CustomComboBox id="choiceCombo" prompt="Select an attribute..."
 							width="100%" height="100%"
 							labelFunction="choiceLabelFunction"
-							valueCommit="if (hasFocus(choiceCombo)) handleAttrSelected(choiceCombo, choiceCombo.selectedIndex);"
+							valueCommit="if (hasFocus(choiceCombo)) handleAttrSelected(choiceCombo.selectedIndex);"
 							/>
 		</mx:Canvas>
 		<mx:Canvas label="List">
 			<mx:List id="choiceList" width="100%" height="100%"
 					 labelFunction="choiceLabelFunction"
-					 change="handleAttrSelected(choiceList, choiceList.selectedIndex);"
+					 change="handleAttrSelected(choiceList.selectedIndex);"
 					 />
 		</mx:Canvas>
 		<mx:Canvas label="Vertical Slider">
 			<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
 						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
-						change="handleAttrSelected(choiceVSlider, choiceVSlider.maximum - choiceVSlider.value);"
+						change="handleAttrSelected(choiceVSlider.maximum - choiceVSlider.value);"
 						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 		</mx:Canvas>
 		<mx:Canvas label="Horizontal Slider">
 			<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"
 						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
-						change="handleAttrSelected(choiceHSlider, choiceHSlider.value);"
+						change="handleAttrSelected(choiceHSlider.value);"
 						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 		</mx:Canvas>
 	</mx:ViewStack>
@@ -67,8 +67,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						<HelpComponent>Select the visualization attribute that you want the menu to be linked to.</HelpComponent>
 					</Indent>
 					<Indent label="Menu layout:" indent="140">
-						<CustomComboBox id="targetLayoutCombo" prompt="Select a layout..." labelFunction="{targetLayoutLabelFunction}"
-										dataProvider="{layouts}" valueCommit="handleComboChange(targetLayoutCombo, layoutMode);" />
+						<CustomComboBox id="layoutCombo" prompt="Select a layout..." labelFunction="{layoutLabelFunction}"
+										dataProvider="{layouts}"/>
 						<HelpComponent>Select the layout for the attribute menu.</HelpComponent>
 					</Indent>
 				</mx:VBox>
@@ -92,7 +92,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IColumnWrapper;
+			import weave.api.data.IColumnWrapper;6
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
@@ -111,11 +111,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private static const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			
-			public const targetTool:LinkableString 		= newLinkableChild(this, LinkableString);
+			public const targetTool:LinkableString = newLinkableChild(this, LinkableString);
 			public const targetAttribute:LinkableString = newLinkableChild(this, LinkableString);
-			public const choices:LinkableHashMap 		= registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
-			public const layoutMode:LinkableString 		= registerLinkableChild(this, new LinkableString(layouts[0]));
+			public const choices:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			public const layoutMode:LinkableString = newLinkableChild(this, LinkableString);
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['column']), handleChoicesChange);
+			public const selectedAttribute:LinkableString = newLinkableChild(this, LinkableString, handleSelectedAttributeChange);
 			
 			// used to label the choices
 			private function choiceLabelFunction(column:IAttributeColumn):String
@@ -138,7 +139,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private static const layouts:Array = ["ComboBox", "List", "VSlider", "HSlider"];
 			private static const layoutLabels:Array = ["Combo Box", "List", "Vertical Slider", "Horizontal Slider"];
 
-			private function targetLayoutLabelFunction(inputString:String):String
+			private function layoutLabelFunction(inputString:String):String
 			{
 				return layoutLabels[layouts.indexOf(inputString)];
 			}
@@ -170,7 +171,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				choicesComponent.hashMap = choices;
 				
-				linkBindableProperty(layoutMode, targetLayoutCombo, 'selectedItem');
+				linkBindableProperty(layoutMode, layoutCombo, 'selectedItem');
 				
 				callLater(showControlPanelIfNothingSelected);
 			}
@@ -287,7 +288,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			// called when the user clicks on the combo in the main AttributeMenuTool window
-			private function handleAttrSelected(component:UIComponent, selectedIndex:int):void
+			private function handleAttrSelected(selectedIndex:int):void
 			{
 				var tool:SimpleVisTool = getTargetTool();
 				// do nothing if there is no tool or the component doesn't have focus
@@ -324,7 +325,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var availableChoices:Array = choices.getObjects(IAttributeColumn);
 					var selectedAttr:IAttributeColumn = availableChoices[selectedIndex] as IAttributeColumn;
 					if (selectedAttr)
+					{
 						dynamicColumn.requestLocalObjectCopy(selectedAttr);
+						selectedAttribute.value = choices.getName(selectedAttr);
+					}
 				}
 				else
 				{
@@ -332,9 +336,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-			private function selectActiveAttribute():void
+			private function handleSelectedAttributeChange():void
 			{
-				
+				var selectedIndex:int = choices.getNames().indexOf(selectedAttribute.value);
+				choiceCombo.selectedIndex = selectedIndex;
+				choiceList.selectedIndex = selectedIndex;
+				if (selectedIndex >= 0)
+				{
+					choiceHSlider.value = selectedIndex;
+					choiceVSlider.value = selectedIndex;
+					handleAttrSelected(selectedIndex);
+				}
 			}
 			
 		]]>

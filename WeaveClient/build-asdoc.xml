@@ -21,7 +21,9 @@
 	<target name="compile" depends="clean">
 		<exec executable='${FLEX_HOME}/bin/asdoc' failonerror="true">
 			<arg line='-show-actionscript-warnings=false'/>
+			<arg line='-external-library-path="${proj1.dir}/libs"'/>
 			<arg line='-external-library-path="${proj2.dir}/libs"'/>
+			<arg line='-external-library-path="${proj3.dir}/libs"'/>
 			<arg line='-strict=false'/>
 			<arg line='-source-path="${proj0.dir}/src"'/>
 			<arg line='-source-path="${proj1.dir}/src"'/>

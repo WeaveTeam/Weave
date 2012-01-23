@@ -57,8 +57,8 @@ package weave.services
 		/**
 		 * This function performs an HTTP GET request and calls result or fault handlers when the request succeeds or fails.
 		 * @param request The URL to get.
-		 * @param resultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
-		 * @param errorHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
+		 * @param asyncResultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
+		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
 		 * @param token An object that gets passed to the handler functions.
 		 * @param dataFormat The value to set as the dataFormat property of a URLLoader object.
 		 * @return The URLLoader used to perform the HTTP GET request.
@@ -93,7 +93,7 @@ package weave.services
 		 * This function will download content from a URL and call the given handler functions when it completes or a fault occurrs.
 		 * @param request The URL from which to get content.
 		 * @param asyncResultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
-		 * @param asyncErrorHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
+		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
 		 * @param token An object that gets passed to the handler functions.
 		 * @param useCache A boolean indicating whether to use the cached images. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
 		 * @return An IURLRequestToken that can be used to cancel the request and cancel the async handlers.

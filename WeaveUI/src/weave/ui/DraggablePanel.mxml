@@ -600,7 +600,7 @@
 					}
 				}
 				
-	    		if(_overriddenStyles[styleProp] != undefined )
+	    		if (_overriddenStyles[styleProp] != undefined )
     				value = _overriddenStyles[styleProp];
     			else if (styleProp == 'backgroundColor' && isFinite(panelBackgroundColor.value))
     				value = panelBackgroundColor.value;
@@ -626,7 +626,7 @@
 
 	    		// make sure the headerHeight is at least the size of the cornerRadius, otherwise the stuff inside the panel sticks
 	    		// outside the panel
-	    		if(styleProp == "headerHeight")
+	    		if (styleProp == "headerHeight")
 	    			return Math.max( cornerRadius, value );
     				
     			return value;
@@ -979,7 +979,7 @@
 			}
 			private function handleTitleBarMouseDown(event:MouseEvent):void
 			{
-				if (!draggable.value)
+				if (!draggable.value || maximized.value)
 					return;
 				
 				if (!parent)
@@ -995,14 +995,14 @@
 				/*for each(var child:* in this.getChildren())
 					child.cacheAsBitmap = true;*/
 				
-				if( getResizeStatus(stage.mouseX, stage.mouseY).resizing )
+				if ( getResizeStatus(stage.mouseX, stage.mouseY).resizing )
 					_dragging = false;
 				else
 					_dragging = true;
 				
 				
 				// we don't want to allow resizing or dragging if we are on any of the buttons
-				if(event.target is Button || event.target is SpriteAsset)
+				if (event.target is Button || event.target is SpriteAsset)
 				{
 					_dragging = false;
 					_resizing = false;
@@ -1010,7 +1010,7 @@
 			}
 			private function handleStageMouseUp(event:MouseEvent):void
 			{
-				if(!draggable.value && !_resizeable)
+				if (!draggable.value && !_resizeable)
 					return;
 				
 				_dragging = false;
@@ -1495,6 +1495,23 @@
 			{
 				restorePanel();
 			}
+
+			
+			/**
+			 * This function will create and reuse a static instance of each type of DraggablePanel requested.
+			 * @param classDef A Class extending DraggablePanel.
+			 */
+			public static function openStaticInstance(draggablePanelClass:Class):void
+			{
+				var instance:DraggablePanel = _instances[draggablePanelClass];
+				if (!instance)
+					_instances[draggablePanelClass] = instance = new draggablePanelClass() as DraggablePanel;
+				if (!instance.parent)
+					PopUpManager.addPopUp(instance, Application.application as Application);
+				instance.restorePanel();
+			}
+			private static const _instances:Dictionary = new Dictionary();
+			
 			
 			// backwards compatibility
 			[Deprecated(replacement="panelTitle")] public function set toolTitle(value:String):void { panelTitle.value = value; }

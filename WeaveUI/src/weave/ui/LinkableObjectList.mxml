@@ -106,7 +106,7 @@ LinkableObjectList
 					return;
 				// remove callback from previous object map
 				if (_dynamicObject != null)
-					getCallbackCollection(_dynamicObject).addGroupedCallback(this, updateDataProvider);
+					getCallbackCollection(_dynamicObject).removeCallback(updateDataProvider);
 				
 				if (value != null)
 					hashMap = null;
