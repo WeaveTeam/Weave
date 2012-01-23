@@ -33,6 +33,49 @@ package weave.utils
 	public class ZoomUtils
 	{
 		/**
+		 * This function calculates a zoom level from an unambiguous scale value.
+		 * @param fullDataBounds The full extent in data coordinates.
+		 * @param minScreenSize The minimum size that the fullDataBounds can appear as on the screen (the screen size of zoom level zero).
+		 * @param scale An unambiguous scale value, defined as pixels per data unit.
+		 * @return The zoom level corresponding to the parameters.
+		 */		
+		public static function getZoomLevelFromScale(fullDataBounds:IBounds2D, minScreenSize:Number, scale:Number):Number
+		{
+			// get screen size of fullDataBounds
+			var screenSize:Number;
+			//If this is true, X coordinates will be used to calculate zoom level.  If this is false, Y coordinates will be used.
+			var useXCoordinates:Boolean = (fullDataBounds.getXCoverage() > fullDataBounds.getYCoverage()); // fit full extent inside min screen size
+			if (useXCoordinates)
+				screenSize = fullDataBounds.getWidth() * scale;
+			else
+				screenSize = fullDataBounds.getHeight() * scale;
+			
+			return Math.log(Math.abs(screenSize / minScreenSize)) / Math.LN2;
+		}
+		
+		/**
+		 * This function calculates the unambiguous scale value (defined as pixels per data unit) based on the parameters.
+		 * @param fullDataBounds The full extent in data coordinates.
+		 * @param minScreenSize The minimum size that the fullDataBounds can appear as on the screen (the screen size of zoom level zero).
+		 * @return The zoom level, where the screen size of the full extent is 2^zoomLevel * minSize.
+		 */
+		public static function getScaleFromZoomLevel(fullDataBounds:IBounds2D, minScreenSize:Number, zoomLevel:Number):Number
+		{
+			var relativeScale:Number = Math.pow(2, zoomLevel);
+			
+			// get screen size of fullDataBounds
+			var screenSize:Number;
+			//If this is true, X coordinates will be used to calculate zoom level.  If this is false, Y coordinates will be used.
+			var useXCoordinates:Boolean = (fullDataBounds.getXCoverage() > fullDataBounds.getYCoverage()); // fit full extent inside min screen size
+			if (useXCoordinates)
+				screenSize = tempBounds.getWidth() * relativeScale;
+			else
+				screenSize = tempBounds.getHeight() * relativeScale;
+			
+			return screenSize / minScreenSize;
+		}
+		
+		/**
 		 * This function calculates the zoom level.  If dataBounds is scaled to fit into screenBounds,
 		 * the screen size of fullDataBounds would be 2^zoomLevel * minSize.  Zoom level is defined this way
 		 * to be compatible with the zoom level used by Google Maps and other tiled WMS services.
