@@ -569,6 +569,23 @@ package weave
 			if (Weave.properties.enableDataMenu.value)
 			{
 				_dataMenu = _weaveMenu.addMenuToMenuBar("Data", false);
+				if (Weave.properties.enableNewUserWizard)
+				{
+					_weaveMenu.addMenuItemToMenu(
+						_dataMenu,
+						new WeaveMenuItem(
+							"Load my data",
+							function():void
+							{
+								WizardPanel.createWizard(_this, new NewUserWizard());
+							}
+						)
+					);
+				}
+				
+				if (Weave.properties.showAttributeSelector)
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Browse data", AttributeSelectorPanel.openDefaultSelector));
+				
 				_weaveMenu.addMenuItemToMenu(_dataMenu,
 					new WeaveMenuItem("Refresh all data source hierarchies",
 						function ():void {
@@ -596,13 +613,9 @@ package weave
 				createToolMenuItem(Weave.properties.showColorController, "Show Color Controller", DraggablePanel.openStaticInstance, [ColorController]);
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Show Probe ToolTip Editor", DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
 				createToolMenuItem(Weave.properties.showEquationEditor, "Show Equation Editor", DraggablePanel.openStaticInstance, [EquationEditor]);
-				createToolMenuItem(Weave.properties.showAttributeSelector, "Show Attribute Selector", AttributeSelectorPanel.openDefaultSelector);
 				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Connect to Collaboration Server", DraggablePanel.openStaticInstance, [CollaborationTool]);
 				
 				var _this:VisApplication = this;
-				createToolMenuItem(Weave.properties.enableNewUserWizard, "New User Wizard", function():void {
-					WizardPanel.createWizard(_this, new NewUserWizard());
-				});
 
 				if (!Weave.properties.dashboardMode.value)
 				{
