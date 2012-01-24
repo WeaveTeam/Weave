@@ -299,7 +299,6 @@
 			{
 				if (!currentlyUpdatingZoomSlider)
 					visualization.setZoomLevel(event.currentTarget.value);
-				//trace("ZoomLevel = "+event.currentTarget.value);
 			}
 			
 			private function handleZoomInClick():void
@@ -699,8 +698,12 @@
 				]]>
 			</mx:Script>
 			<ui:Indent label="Current Zoom" labelTextAlign="left" group="{indentGroup}">
-				<mx:HSlider id="scaleRangeTabZoomSlider" width="100%" change="handleZoomSliderChange(event);"
-							minimum="0" maximum="10" liveDragging="true" />
+				<mx:HSlider id="scaleRangeTabZoomSlider" 
+							width="100%" 
+							change="handleZoomSliderChange(event);"
+							minimum="{zoomSlider.minimum}" 
+							maximum="{zoomSlider.maximum}"
+							liveDragging="true" />
 			</ui:Indent>
 			<ui:LinkableObjectList 
 				id="visibleScaleRangesList" width="100%" height="100%" hashMap="{visualization.layers}"
@@ -724,7 +727,6 @@
 									private function handleLayerChange():void{
 										var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
 										var area:Number = fullDataBounds.getArea();
-										trace("fullDataBounds: "+area);
 										if (data is SelectablePlotLayer && !isNaN(area)){
 											layer = data as SelectablePlotLayer;
 											layerName = outerDocument.visualization.layers.getName(layer);
@@ -739,14 +741,6 @@
 											var maxZoomLevel = ZoomUtils.getZoomLevelFromScale(
 												fullDataBounds,minScreenSize,layer.maxVisibleScale.value
 											);
-											
-											
-											
-											
-											trace("handleLayerChange - minVisibleScale = "+layer.minVisibleScale.value);
-											trace("handleLayerChange - maxVisibleScale = "+layer.maxVisibleScale.value);
-											trace("handleLayerChange - minZoomLevel = "+minZoomLevel);
-											trace("handleLayerChange - maxZoomLevel = "+maxZoomLevel);
 											
 											currentlyUpdatingLayerZoomRangeSlider = true;
 											layerZoomRangeSlider.values = [minZoomLevel, maxZoomLevel];
@@ -772,16 +766,6 @@
 											var minVisibleZoomLevel:Number = layerZoomRangeSlider.values[0];
 											var maxVisibleZoomLevel:Number = layerZoomRangeSlider.values[1];
 											
-											/*
-											trace("minVisibleZoomLevel = "+minVisibleZoomLevel);
-											trace("maxVisibleZoomLevel = "+maxVisibleZoomLevel);
-											*/
-											
-											trace("handleScaleSliderChange - minVisibleScale = "+layer.minVisibleScale.value);
-											trace("handleScaleSliderChange - maxVisibleScale = "+layer.maxVisibleScale.value);
-											trace("handleScaleSliderChange - minZoomLevel = "+minVisibleZoomLevel);
-											trace("handleScaleSliderChange - maxZoomLevel = "+maxVisibleZoomLevel);
-											
 											layer.minVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
 												fullDataBounds, minScreenSize, minVisibleZoomLevel
 											);
@@ -798,8 +782,8 @@
 										liveDragging="true"
 										thumbCount="2" 
 										showTrackHighlight="true" 
-										minimum="0" 
-										maximum="10"
+										minimum="{outerDocument.zoomSlider.minimum}" 
+										maximum="{outerDocument.zoomSlider.maximum}"
 										change="handleScaleSliderChange(event)"
 										mouseDown="event.stopPropagation()"
 										width="100%"/>

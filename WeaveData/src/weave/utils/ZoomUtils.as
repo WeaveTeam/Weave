@@ -32,6 +32,11 @@ package weave.utils
 	 */
 	public class ZoomUtils
 	{
+		
+		private static function originalSize(bounds:IBounds2D):Number{
+			return bounds.getXCoverage() > bounds.getYCoverage()? bounds.getWidth(): bounds.getHeight();
+		}
+		
 		/**
 		 * This function calculates a zoom level from an unambiguous scale value.
 		 * @param fullDataBounds The full extent in data coordinates.
@@ -41,29 +46,7 @@ package weave.utils
 		 */		
 		public static function getZoomLevelFromScale(fullDataBounds:IBounds2D, minScreenSize:Number, scale:Number):Number
 		{
-			// get screen size of fullDataBounds
-			var originalSize:Number;
-			//If this is true, X coordinates will be used to calculate zoom level.  If this is false, Y coordinates will be used.
-			var useXCoordinates:Boolean = (fullDataBounds.getXCoverage() > fullDataBounds.getYCoverage()); // fit full extent inside min screen size
-			if (useXCoordinates)
-				originalSize = fullDataBounds.getWidth();
-			else
-				originalSize = fullDataBounds.getHeight();
-			
-			return Math.log((scale * originalSize) / minScreenSize)/Math.LN2;
-			
-			/*
-			// get screen size of fullDataBounds
-			var screenSize:Number;
-			//If this is true, X coordinates will be used to calculate zoom level.  If this is false, Y coordinates will be used.
-			var useXCoordinates:Boolean = (fullDataBounds.getXCoverage() > fullDataBounds.getYCoverage()); // fit full extent inside min screen size
-			if (useXCoordinates)
-				screenSize = fullDataBounds.getWidth() * scale;
-			else
-				screenSize = fullDataBounds.getHeight() * scale;
-			
-			return Math.log(Math.abs(screenSize / minScreenSize)) / Math.LN2;
-			*/
+			return Math.log((scale * originalSize(fullDataBounds)) / minScreenSize)/Math.LN2;
 		}
 		
 		/**
@@ -74,18 +57,7 @@ package weave.utils
 		 */
 		public static function getScaleFromZoomLevel(fullDataBounds:IBounds2D, minScreenSize:Number, zoomLevel:Number):Number
 		{
-			var zoomedScreenSize:Number = Math.pow(2, zoomLevel) * minScreenSize;
-			
-			// get screen size of fullDataBounds
-			var originalSize:Number;
-			//If this is true, X coordinates will be used to calculate zoom level.  If this is false, Y coordinates will be used.
-			var useXCoordinates:Boolean = (fullDataBounds.getXCoverage() > fullDataBounds.getYCoverage()); // fit full extent inside min screen size
-			if (useXCoordinates)
-				originalSize = fullDataBounds.getWidth();
-			else
-				originalSize = fullDataBounds.getHeight();
-			
-			return zoomedScreenSize / originalSize;
+			return Math.pow(2, zoomLevel) * minScreenSize / originalSize(fullDataBounds);
 		}
 		
 		/**

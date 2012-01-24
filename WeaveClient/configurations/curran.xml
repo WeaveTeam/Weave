@@ -261,7 +261,7 @@ wheel</zoom>
             <backgroundIsVisible>true</backgroundIsVisible>
             <layerIsSelectable>true</layerIsSelectable>
             <layerIsVisible>true</layerIsVisible>
-            <maxVisibleScale>5.076248191742978</maxVisibleScale>
+            <maxVisibleScale>6.221682104643729</maxVisibleScale>
             <minVisibleScale>3.031690936479563</minVisibleScale>
             <plotter encoding="dynamic">
               <GeometryPlotter>
@@ -369,7 +369,7 @@ wheel</zoom>
             <layerIsSelectable>true</layerIsSelectable>
             <layerIsVisible>true</layerIsVisible>
             <maxVisibleScale>65.9085051861074</maxVisibleScale>
-            <minVisibleScale>5.076248191742978</minVisibleScale>
+            <minVisibleScale>4.141692756198674</minVisibleScale>
             <plotter encoding="dynamic">
               <GeometryPlotter>
                 <fill>
@@ -484,7 +484,7 @@ wheel</zoom>
         <overrideYMax>NaN</overrideYMax>
         <overrideYMin>NaN</overrideYMin>
         <zoomBounds>
-          <area>9236.3065251244</area>
+          <area>10254.906643125</area>
           <xCenter>-96.691547645799</xCenter>
           <yCenter>32.741453537729</yCenter>
         </zoomBounds>
