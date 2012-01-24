@@ -299,6 +299,7 @@
 			{
 				if (!currentlyUpdatingZoomSlider)
 					visualization.setZoomLevel(event.currentTarget.value);
+				//trace("ZoomLevel = "+event.currentTarget.value);
 			}
 			
 			private function handleZoomInClick():void
@@ -694,14 +695,12 @@
 			<mx:Script>
 				<![CDATA[
 					import weave.ui.IndentGroup;
-				    internal var indentGroup:IndentGroup = new IndentGroup();
+					internal var indentGroup:IndentGroup = new IndentGroup();
 				]]>
 			</mx:Script>
 			<ui:Indent label="Current Zoom" labelTextAlign="left" group="{indentGroup}">
 				<mx:HSlider id="scaleRangeTabZoomSlider" width="100%" change="handleZoomSliderChange(event);"
-							minimum="0" maximum="10">
-					
-				</mx:HSlider>
+							minimum="0" maximum="10" liveDragging="true" />
 			</ui:Indent>
 			<ui:LinkableObjectList 
 				id="visibleScaleRangesList" width="100%" height="100%" hashMap="{visualization.layers}"
@@ -715,19 +714,43 @@
 									
 									import weave.api.core.ILinkableObject;
 									import weave.api.juggleGroupedCallback;
+									import weave.api.primitives.IBounds2D;
 									import weave.utils.ZoomUtils;
 									import weave.visualization.layers.SelectablePlotLayer;
 									[Bindable]private var layerName:String;
 									private var layer:SelectablePlotLayer;
+									private var currentlyUpdatingLayerZoomRangeSlider = false;
 									
 									private function handleLayerChange():void{
-										if (data is SelectablePlotLayer){
+										var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
+										var area:Number = fullDataBounds.getArea();
+										trace("fullDataBounds: "+area);
+										if (data is SelectablePlotLayer && !isNaN(area)){
 											layer = data as SelectablePlotLayer;
 											layerName = outerDocument.visualization.layers.getName(layer);
-											layerZoomRangeSlider.values = [
-												ZoomUtils.scaleToZoomLevel(layer.minVisibleScale.value),
-												layer.maxVisibleScale.value
-											];
+											
+											var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
+											var minScreenSize:Number = outerDocument.visualization.minScreenSize.value;
+											
+											var minZoomLevel = ZoomUtils.getZoomLevelFromScale(
+												fullDataBounds,minScreenSize,layer.minVisibleScale.value
+											);
+											
+											var maxZoomLevel = ZoomUtils.getZoomLevelFromScale(
+												fullDataBounds,minScreenSize,layer.maxVisibleScale.value
+											);
+											
+											
+											
+											
+											trace("handleLayerChange - minVisibleScale = "+layer.minVisibleScale.value);
+											trace("handleLayerChange - maxVisibleScale = "+layer.maxVisibleScale.value);
+											trace("handleLayerChange - minZoomLevel = "+minZoomLevel);
+											trace("handleLayerChange - maxZoomLevel = "+maxZoomLevel);
+											
+											currentlyUpdatingLayerZoomRangeSlider = true;
+											layerZoomRangeSlider.values = [minZoomLevel, maxZoomLevel];
+											currentlyUpdatingLayerZoomRangeSlider = false;
 										}
 									}
 									
@@ -743,8 +766,30 @@
 									}
 									private function handleScaleSliderChange(event:SliderEvent):void
 									{
-										layer.minVisibleScale.value = layerZoomRangeSlider.values[0];
-										layer.maxVisibleScale.value = layerZoomRangeSlider.values[1];
+										if(!currentlyUpdatingLayerZoomRangeSlider){
+											var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
+											var minScreenSize:Number = outerDocument.visualization.minScreenSize.value;
+											var minVisibleZoomLevel:Number = layerZoomRangeSlider.values[0];
+											var maxVisibleZoomLevel:Number = layerZoomRangeSlider.values[1];
+											
+											/*
+											trace("minVisibleZoomLevel = "+minVisibleZoomLevel);
+											trace("maxVisibleZoomLevel = "+maxVisibleZoomLevel);
+											*/
+											
+											trace("handleScaleSliderChange - minVisibleScale = "+layer.minVisibleScale.value);
+											trace("handleScaleSliderChange - maxVisibleScale = "+layer.maxVisibleScale.value);
+											trace("handleScaleSliderChange - minZoomLevel = "+minVisibleZoomLevel);
+											trace("handleScaleSliderChange - maxZoomLevel = "+maxVisibleZoomLevel);
+											
+											layer.minVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
+												fullDataBounds, minScreenSize, minVisibleZoomLevel
+											);
+											
+											layer.maxVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
+												fullDataBounds, minScreenSize, maxVisibleZoomLevel
+											);
+										}
 									}
 								]]>
 							</mx:Script>
@@ -754,7 +799,7 @@
 										thumbCount="2" 
 										showTrackHighlight="true" 
 										minimum="0" 
-										maximum="100"
+										maximum="10"
 										change="handleScaleSliderChange(event)"
 										mouseDown="event.stopPropagation()"
 										width="100%"/>
