@@ -55,18 +55,16 @@
 		<mx:HBox width="100%">
 			<mx:Text text="Check your data!"/>
 			<ui:HelpComponent id="checkDataHelp">
-				<mx:TextArea>
-					<mx:htmlText>
-						<![CDATA[
-							<b>Check your data!</b>
-							The Grid shows you how we interpret your data. Check the rows and columns to confirm that they are in the correct format. Check the Unique Identifier Column and the Delimiter Combo Box. Click next if your data is in the right format.
-							<b>Unique Identifier Column</b>
-							<p> This is the name of the column header that uniquely identifies each	row of your dataset. We have computed the columns that contain unique values and set the Unique Column Identifier to the first option. You can set it any other available option within the Combo Box. If you are not sure which column to select or <u>if you don't see this combo box</u> you can ignore for now.</p>
-							<b>Delimiter</b>
-							<p>We assume that your data is delimited so that we can correctly identify the columns within the dataset. When you load the data, we do a quick check to compute the delmiter and then parse the data. Use the grid to check if the data has been parsed correctly. If the wrong delimiter is user you can select from the combo box the commonly used delimiters (Space, Comma, Semi Colon, Tab). <u>You can also type a single character delimiter</u>. The grid displays the parsed data every time you change the delimiter</p>
-						]]>
-					</mx:htmlText>
-				</mx:TextArea>
+				<ui:htmlText>
+					<![CDATA[
+<b>Check your data!</b>
+<p>The Grid shows you how we interpret your data. Check the rows and columns to confirm that they are in the correct format. Check the Unique Identifier Column and the Delimiter Combo Box. Click next if your data is in the right format.</p>
+<b>Unique Identifier Column</b>
+<p>This is the name of the column header that uniquely identifies each	row of your dataset. We have computed the columns that contain unique values and set the Unique Column Identifier to the first option. You can set it any other available option within the Combo Box. If you are not sure which column to select or if you don't see this combo box you can ignore for now.</p>
+<b>Delimiter</b>
+<p>We assume that your data is delimited so that we can correctly identify the columns within the dataset. When you load the data, we do a quick check to compute the delmiter and then parse the data. Use the grid to check if the data has been parsed correctly. If the wrong delimiter is user you can select from the combo box the commonly used delimiters (Space, Comma, Semi Colon, Tab). You can also type a single character delimiter. The grid displays the parsed data every time you change the delimiter</p>
+					]]>
+				</ui:htmlText>
 			</ui:HelpComponent>
 		</mx:HBox>
 		<mx:HBox visible="{uniqueColumns.length != 0}">
