@@ -220,8 +220,8 @@
 				simpleAxisEditor.addChild(backgroundImageCheck);
 				simpleAxisEditor.marginProperties.parent.removeChild(simpleAxisEditor.marginProperties);
 				
-				linkBindableProperty(visualization.minZoomLevel, zoomSlider, "minimum");
-				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");
+				linkBindableProperty(visualization.minZoomLevel, this, "zoomSliderMinimum");
+				linkBindableProperty(visualization.maxZoomLevel, this, "zoomSliderMaximum");
 				
 				if (visualization.layers.getNames().length == 0)
 					addGeomLayer();
@@ -550,7 +550,15 @@
 					click="handleZoomInClick()"
 					cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
 			
-			<mx:VSlider id="zoomSlider" showDataTip="false" allowTrackClick="true" liveDragging="true" minimum="0" maximum="16" tickInterval="1" height="88" change="handleZoomSliderChange(event);"/>
+			<mx:VSlider id="zoomSlider"
+						showDataTip="false"
+						allowTrackClick="true"
+						liveDragging="true"
+						tickInterval="1"
+						minimum="{zoomSliderMinimum}"
+						maximum="{zoomSliderMaximum}"
+						height="88"
+						change="handleZoomSliderChange(event);"/>
 			
 			<mx:Button id="zoomOut"
 					icon="@Embed(source='/weave/resources/images/zoomMinus.png')"
@@ -622,7 +630,7 @@
 	
 
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="Attributes for Map">
+		<mx:VBox id="attributesPanel" label="Map Layers">
 			<mx:HBox width="100%">
 				<mx:Button label="Add Geometry Layer" click="addGeomLayer();"/>
 				<mx:Button label="Add Label Layer" click="addLabelLayer();"/>
@@ -690,27 +698,21 @@
 						 toolTip="This option enables the mouse mode buttons"
 						 creationComplete="linkBindableProperty(showMouseModeControls,event.target,'selected')"/>
 		</mx:VBox>
-		<mx:VBox label="Visible Scale Ranges" verticalGap="10" id="visibleScaleRangesUI">
-			<mx:Script>
-				<![CDATA[
-					import weave.ui.IndentGroup;
-					internal var indentGroup:IndentGroup = new IndentGroup();
-				]]>
-			</mx:Script>
-			<ui:Indent label="Current Zoom" labelTextAlign="left" group="{indentGroup}">
+		<mx:VBox label="Layer Visibility" verticalGap="10" id="visibleScaleRangesUI">
+			<ui:Indent label="Current Zoom" labelTextAlign="left" group="{scaleRangeIndentGroup}">
 				<mx:HSlider id="scaleRangeTabZoomSlider" 
 							width="100%" 
+							tickInterval="1"
 							change="handleZoomSliderChange(event);"
-							minimum="{zoomSlider.minimum}" 
-							maximum="{zoomSlider.maximum}"
+							minimum="{zoomSliderMinimum}"
+							maximum="{zoomSliderMaximum}"
 							liveDragging="true" />
 			</ui:Indent>
-			<ui:LinkableObjectList 
-				id="visibleScaleRangesList" width="100%" height="100%" hashMap="{visualization.layers}"
-				borderStyle="none" paddingLeft="0">
+			<ui:LinkableObjectList id="visibleScaleRangesList"
+								   width="100%" height="100%" hashMap="{visualization.layers}" borderStyle="none" paddingLeft="0">
 				<ui:itemRenderer>
 					<mx:Component>
-						<ui:Indent label="{layerName}" labelTextAlign="left" group="{outerDocument.indentGroup}">
+						<ui:Indent label="{layerName}" labelTextAlign="left" group="{outerDocument.scaleRangeIndentGroup}">
 							<mx:Script>
 								<![CDATA[
 									import mx.events.SliderEvent;
@@ -720,26 +722,27 @@
 									import weave.api.primitives.IBounds2D;
 									import weave.utils.ZoomUtils;
 									import weave.visualization.layers.SelectablePlotLayer;
-									[Bindable]private var layerName:String;
+									[Bindable] private var layerName:String;
 									private var layer:SelectablePlotLayer;
-									private var currentlyUpdatingLayerZoomRangeSlider = false;
+									private var currentlyUpdatingLayerZoomRangeSlider:Boolean = false;
 									
-									private function handleLayerChange():void{
+									private function handleLayerChange():void
+									{
 										var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
 										var area:Number = fullDataBounds.getArea();
-										if (data is SelectablePlotLayer && !isNaN(area)){
+										if (data is SelectablePlotLayer && !isNaN(area))
+										{
 											layer = data as SelectablePlotLayer;
 											layerName = outerDocument.visualization.layers.getName(layer);
 											
-											var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
 											var minScreenSize:Number = outerDocument.visualization.minScreenSize.value;
 											
-											var minZoomLevel = ZoomUtils.getZoomLevelFromScale(
-												fullDataBounds,minScreenSize,layer.minVisibleScale.value
+											var minZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
+												fullDataBounds, minScreenSize, layer.minVisibleScale.value
 											);
 											
-											var maxZoomLevel = ZoomUtils.getZoomLevelFromScale(
-												fullDataBounds,minScreenSize,layer.maxVisibleScale.value
+											var maxZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
+												fullDataBounds, minScreenSize, layer.maxVisibleScale.value
 											);
 											
 											currentlyUpdatingLayerZoomRangeSlider = true;
@@ -748,19 +751,15 @@
 										}
 									}
 									
-									override public function set data(value:Object):void{
-										juggleGroupedCallback(
-											data as ILinkableObject,
-											value as ILinkableObject,
-											this,
-											handleLayerChange,
-											true
-										);
+									override public function set data(value:Object):void
+									{
+										juggleGroupedCallback(data, value, this, handleLayerChange, true);
 										super.data = value;
 									}
 									private function handleScaleSliderChange(event:SliderEvent):void
 									{
-										if(!currentlyUpdatingLayerZoomRangeSlider){
+										if(!currentlyUpdatingLayerZoomRangeSlider)
+										{
 											var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
 											var minScreenSize:Number = outerDocument.visualization.minScreenSize.value;
 											var minVisibleZoomLevel:Number = layerZoomRangeSlider.values[0];
@@ -780,10 +779,12 @@
 							
 							<mx:HSlider id="layerZoomRangeSlider"
 										liveDragging="true"
-										thumbCount="2" 
+										thumbCount="2"
+										tickInterval="1"
+										snapInterval="{outerDocument.zoomSliderSnapping}"
 										showTrackHighlight="true" 
-										minimum="{outerDocument.zoomSlider.minimum}" 
-										maximum="{outerDocument.zoomSlider.maximum}"
+										minimum="{outerDocument.zoomSliderMinimum}" 
+										maximum="{outerDocument.zoomSliderMaximum}"
 										change="handleScaleSliderChange(event)"
 										mouseDown="event.stopPropagation()"
 										width="100%"/>
@@ -793,4 +794,8 @@
 			</ui:LinkableObjectList>
 		</mx:VBox>
 	</ui:ControlPanel>
+	<ui:IndentGroup id="scaleRangeIndentGroup"/>
+	<mx:Number id="zoomSliderMinimum"/>
+	<mx:Number id="zoomSliderMaximum"/>
+	<mx:Number id="zoomSliderSnapping">0.25</mx:Number>
 </SimpleVisTool>

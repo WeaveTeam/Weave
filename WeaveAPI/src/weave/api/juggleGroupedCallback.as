@@ -15,32 +15,36 @@
 
 package weave.api
 {
-	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ICallbackInterface;
 	import weave.api.core.ILinkableObject;
 	
 	/**
-	 * This function will remove a grouped callback from one ILinkableObject and add it to another.
-	 * @param oldTarget The old target, which may be null.
-	 * @param newTarget The new target, which may be null.
+	 * This function will remove a grouped callback from one ILinkableObject or ICallbackInterface and add it to another.
+	 * @param oldTarget The old target which may be an ILinkableObject, an ICallbackInterface, or null.
+	 * @param newTarget The new target which may be an ILinkableObject, an ICallbackInterface, or null.
 	 * @param relevantContext Corresponds to the relevantContext parameter of ICallbackInterface.addGroupedCallback().
 	 * @param groupedCallback Corresponds to the groupedCallback parameter of ICallbackInterface.addGroupedCallback().
 	 * @param triggerCallbackNow Corresponds to the triggerCallbackNow parameter of ICallbackInterface.addGroupedCallback().
 	 * @see weave.api.core.ICallbackInterface#addGroupedCallback
 	 */
-	public function juggleGroupedCallback(oldTarget:ILinkableObject, newTarget:ILinkableObject, relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void
+	public function juggleGroupedCallback(oldTarget:Object, newTarget:Object, relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void
 	{
 		// do nothing if the targets are the same.
 		if (oldTarget == newTarget)
 			return;
-		if (oldTarget)
-		{
-			var oldCC:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(oldTarget);
-			oldCC.removeCallback(groupedCallback);
-		}
-		if (newTarget)
-		{
-			var newCC:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(newTarget);
-			newCC.addGroupedCallback(relevantContext, groupedCallback, triggerCallbackNow);
-		}
+		
+		// remove callback from old target
+		var oldCI:ICallbackInterface = oldTarget as ICallbackInterface;
+		if (!oldCI)
+			oldCI = WeaveAPI.SessionManager.getCallbackCollection(oldTarget as ILinkableObject);
+		if (oldCI)
+			oldCI.removeCallback(groupedCallback);
+		
+		// add callback to new target
+		var newCI:ICallbackInterface = newTarget as ICallbackInterface;
+		if (!newCI)
+			newCI = WeaveAPI.SessionManager.getCallbackCollection(newTarget as ILinkableObject);
+		if (newCI)
+			newCI.addGroupedCallback(relevantContext, groupedCallback, triggerCallbackNow);
 	}
 }

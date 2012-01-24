@@ -37,7 +37,6 @@ LinkableObjectList
 		 backgroundAlpha="0.5" borderStyle="inset"
 		 >
 	
-	
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
@@ -53,41 +52,29 @@ LinkableObjectList
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.getCallbackCollection;
+			import weave.api.juggleGroupedCallback;
 			import weave.core.SessionManager;
 			import weave.utils.ColumnUtils;
 			
 			// This is a pointer to an existing object map.  Do not create a new private one. 
 			private var _hashMap:ILinkableHashMap = null; // <- do not create a new object map
 			
-			// When true, the view data provider is refreshed only on
-			// hashMap.childListCallbacks
-			public var mapToolHack:Boolean = false;
-			
 			[Inspectable] public function set hashMap(value:ILinkableHashMap):void
 			{
-				if (_hashMap == value)
-					return;
-				// remove callback from previous object map
-				if (_hashMap != null){
-					if(mapToolHack)
-						_hashMap.childListCallbacks.removeCallback(updateDataProvider);
-					else
-						getCallbackCollection(_hashMap).removeCallback(updateDataProvider);
-				}
-					
-				if (value != null)
-					dynamicObject = null;
+				juggleGroupedCallback(
+					_hashMap && _hashMap.childListCallbacks,
+					value && value.childListCallbacks,
+					this,
+					updateDataProvider,
+					true
+				);
+				
+				juggleGroupedCallback(_hashMap, value, this, refreshLabels, true);
 
-				// add callback to new object map	
 				_hashMap = value;
-				if (_hashMap != null){
-					if(mapToolHack)
-						_hashMap.childListCallbacks.addGroupedCallback(this, updateDataProvider);
-					else
-						getCallbackCollection(_hashMap).addGroupedCallback(this, updateDataProvider);
-				}
-				updateDataProvider();
+				
+				if (_hashMap)
+					dynamicObject = null;
 			}
 			public function get hashMap():ILinkableHashMap
 			{
@@ -111,24 +98,20 @@ LinkableObjectList
 			}
 			[Inspectable] public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
-				if (_dynamicObject == value)
-					return;
-				// remove callback from previous object map
-				if (_dynamicObject != null)
-					getCallbackCollection(_dynamicObject).removeCallback(updateDataProvider);
+				juggleGroupedCallback(_dynamicObject, value, this, updateDataProvider, true);
 				
-				if (value != null)
-					hashMap = null;
-				
-				// add callback to new object map	
 				_dynamicObject = value;
-				if (_dynamicObject != null)
-					getCallbackCollection(_dynamicObject).addGroupedCallback(this, updateDataProvider);
 				
-				updateDataProvider();
-				
-				this.rowCount = 1;
-				//this.maxHeight = 10;
+				if (_dynamicObject)
+				{
+					_hashMap = null;
+					rowCount = 1;
+				}
+			}
+			
+			private function refreshLabels():void
+			{
+				labelFunction = labelFunction; // this refreshes the labels
 			}
 			
 			private function updateDataProvider():void
