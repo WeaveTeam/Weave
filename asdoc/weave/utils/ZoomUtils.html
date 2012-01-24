@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="ZoomUtils,weave.utils.ZoomUtils,conformDataBoundsToAspectRatio,generateTransformMatrix,getZoomLevel,zoomDataBoundsByRelativeScreenScale" name="keywords">
+<meta content="ZoomUtils,weave.utils.ZoomUtils,conformDataBoundsToAspectRatio,generateTransformMatrix,getScaleFromZoomLevel,getZoomLevel,getZoomLevelFromScale,zoomDataBoundsByRelativeScreenScale" name="keywords">
 <title>weave.utils.ZoomUtils</title>
 </head>
 <body>
@@ -72,9 +72,25 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
+<a class="signatureLink" href="#getScaleFromZoomLevel()">getScaleFromZoomLevel</a>(fullDataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minScreenSize:Number, zoomLevel:Number):Number</div>
+<div class="summaryTableDescription">[static]
+   This function calculates the unambiguous scale value (defined as pixels per data unit) based on the parameters.</div>
+</td><td class="summaryTableOwnerCol">ZoomUtils</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
 <a class="signatureLink" href="#getZoomLevel()">getZoomLevel</a>(dataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, screenBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, fullDataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minScreenSize:Number):Number</div>
 <div class="summaryTableDescription">[static]
    This function calculates the zoom level.</div>
+</td><td class="summaryTableOwnerCol">ZoomUtils</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getZoomLevelFromScale()">getZoomLevelFromScale</a>(fullDataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minScreenSize:Number, scale:Number):Number</div>
+<div class="summaryTableDescription">[static]
+   This function calculates a zoom level from an unambiguous scale value.</div>
 </td><td class="summaryTableOwnerCol">ZoomUtils</td>
 </tr>
 <tr class="">
@@ -156,6 +172,44 @@ showHideInherited();
 </tr>
 </table>
 </div>
+<a name="getScaleFromZoomLevel()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getScaleFromZoomLevel</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function getScaleFromZoomLevel(fullDataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minScreenSize:Number, zoomLevel:Number):Number</code><p>
+   This function calculates the unambiguous scale value (defined as pixels per data unit) based on the parameters.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">fullDataBounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code> &mdash; The full extent in data coordinates.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">minScreenSize</span>:Number</code> &mdash; The minimum size that the fullDataBounds can appear as on the screen (the screen size of zoom level zero).
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">zoomLevel</span>:Number</code></td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Number</code> &mdash; The zoom level, where the screen size of the full extent is 2^zoomLevel minSize.
+   </td>
+</tr>
+</table>
+</div>
 <a name="getZoomLevel()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -200,6 +254,45 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code>Number</code> &mdash; The zoom level, where the screen size of the full extent is 2^zoomLevel minSize.
+   </td>
+</tr>
+</table>
+</div>
+<a name="getZoomLevelFromScale()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getZoomLevelFromScale</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function getZoomLevelFromScale(fullDataBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a>, minScreenSize:Number, scale:Number):Number</code><p>
+   This function calculates a zoom level from an unambiguous scale value.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">fullDataBounds</span>:<a href="../api/primitives/IBounds2D.html">IBounds2D</a></code> &mdash; The full extent in data coordinates.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">minScreenSize</span>:Number</code> &mdash; The minimum size that the fullDataBounds can appear as on the screen (the screen size of zoom level zero).
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">scale</span>:Number</code> &mdash; An unambiguous scale value, defined as pixels per data unit.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Number</code> &mdash; The zoom level corresponding to the parameters.
    </td>
 </tr>
 </table>
