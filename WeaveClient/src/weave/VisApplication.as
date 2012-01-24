@@ -51,7 +51,7 @@ package weave
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.WeaveFileFormat;
+	import weave.api.WeaveFile;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
@@ -164,7 +164,6 @@ package weave
 			
 			setStyle("verticalGap", 0);
 			setStyle("horizingalGap", 0);
-			setStyle("horizontalAlign", "right"); // for copyright below desktop
 			setStyle('backgroundAlpha', 1);
 			
 			// make it so the menu bar does not get hidden if the workspace size is too small.
@@ -711,27 +710,29 @@ package weave
 		public function loadSessionState(fileContent:Object, fileName:String):void
 		{
 			DebugTimer.begin();
-			var content:Object = null;
-			try {
-				content = WeaveFileFormat.readFile(ByteArray(fileContent));
-			} catch (e:Error) { }
-			
-			if (content)
+			try
 			{
-				Weave.loadWeaveFileContent(content);
+				Weave.loadWeaveFileContent(ByteArray(fileContent));
 			}
-			else
+			catch (error:Error)
 			{
 				// attempt to load .xml file
 				var xml:XML = null;
 				try
 				{
 					xml = XML(fileContent);
+					if (xml.children().length() == 0)
+					{
+						xml = null;
+						// report the original error
+						reportError(error);
+					}
 				}
-				catch (e:Error)
+				catch (xmlError:Error)
 				{
-					reportError(e);
+					reportError(xmlError);
 				}
+				
 				if (xml)
 				{
 					// backwards compatibility:
@@ -777,12 +778,14 @@ package weave
 					var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 					if (subset.includeMissingKeys.value == false && subset.included.keys.length == 0 && subset.excluded.keys.length == 0)
 						subset.includeMissingKeys.value = true;
+					
+					// begin with empty history after loading the session state from the xml
+					Weave.history.clearHistory();
 				}
-				Weave.history.clearHistory(); // begin with empty history after loading the session state from the xml
 			}
 			DebugTimer.end('loadSessionState', fileName);
 
-			StageUtils.callLater(this,toggleMenuBar,null,false);
+			StageUtils.callLater(this, toggleMenuBar, null, false);
 			
 			if (!getFlashVarAdminConnectionName())
 				enabled = true;

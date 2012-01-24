@@ -19,16 +19,20 @@
 
 package weave
 {
+	import flash.display.BitmapData;
 	import flash.events.Event;
 	import flash.external.ExternalInterface;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.core.Application;
+	import mx.core.UIComponent;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.WeaveFile;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;
@@ -65,6 +69,7 @@ package weave
 	import weave.data.StatisticsCache;
 	import weave.editors._registerAllLinkableObjectEditors;
 	import weave.services.URLRequestUtils;
+	import weave.utils.BitmapUtils;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -234,80 +239,87 @@ package weave
 		
 		/******************************************************************************************/
 		
+		private static const WeaveFile_CONTENT_TYPE:String = "Weave session history";
+		private static const WeaveFile_THUMBNAIL:String = "thumbnail";
+		private static const WeaveFile_LIBRARIES:String = "libraries";
+		private static const WeaveFile_HISTORY:String = "history";
+		private static const THUMBNAIL_SIZE:int = 128;
 		
 		/**
 		 * This function will create an object that can be saved to a file and recalled later with loadWeaveFileContent().
 		 */
-		public static function createWeaveFileContent():Object
+		public static function createWeaveFileContent():ByteArray
 		{
-			// The "version" property can be used to detect old formats and should be incremented whenever the format is changed.
-			var content:Object = {
-				version: 0,
-				history: history.getSessionState(),
-				plugins: ["WeaveExamplePlugin.swc"]
-			};
-			return content;
+			var _thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(Application.application as UIComponent, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+			var _libraries:Array = ["WeaveExamplePlugin.swc"];
+			var _history:Object = history.getSessionState();
+			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
+			var weaveFile:WeaveFile = new WeaveFile();
+			weaveFile.setContentType(WeaveFile_CONTENT_TYPE);
+			weaveFile.setObject(WeaveFile_THUMBNAIL, _thumbnail);
+			weaveFile.setObject(WeaveFile_LIBRARIES, _libraries);
+			weaveFile.setObject(WeaveFile_HISTORY, _history);
+			return weaveFile.serialize();
 		}
 		
 		/**
 		 * This function will load content that was previously created with createWeaveFileContent().
-		 * @param content
+		 * @param content The contents of a Weave file.
 		 */
-		public static function loadWeaveFileContent(content:Object):void
+		public static function loadWeaveFileContent(content:ByteArray):void
 		{
-			switch (content.version)
+			var weaveFile:WeaveFile = new WeaveFile(content);
+			if (weaveFile.getContentType() == WeaveFile_CONTENT_TYPE)
 			{
-				case 0:
+				var pluginURLs:Array = weaveFile.getObject(WeaveFile_LIBRARIES) as Array;
+				var remaining:int = pluginURLs.length;
+				function handlePluginsFinished():void
 				{
-					var pluginURLs:Array = content.plugins;
-					var remaining:int = pluginURLs.length;
-					function handlePluginsFinished():void
+					history.setSessionState(weaveFile.getObject(WeaveFile_HISTORY));
+				}
+				function handlePlugin(event:Event, token:Object = null):void
+				{
+					var resultEvent:ResultEvent = event as ResultEvent;
+					var faultEvent:FaultEvent = event as FaultEvent;
+					if (resultEvent)
 					{
-						history.setSessionState(content.history);
-					}
-					function handlePlugin(event:Event, token:Object = null):void
-					{
-						var resultEvent:ResultEvent = event as ResultEvent;
-						var faultEvent:FaultEvent = event as FaultEvent;
-						if (resultEvent)
+						trace("Loaded plugin:", token);
+						var classQNames:Array = resultEvent.result as Array;
+						for (var i:int = 0; i < classQNames.length; i++)
 						{
-							trace("Loaded plugin:", token);
-							var classQNames:Array = resultEvent.result as Array;
-							for (var i:int = 0; i < classQNames.length; i++)
+							var classQName:String = classQNames[i];
+							// check if it implements ILinkableObject
+							if (ClassUtils.classImplements(classQName, ILinkableObject_classQName))
 							{
-								var classQName:String = classQNames[i];
-								// check if it implements ILinkableObject
-								if (ClassUtils.classImplements(classQName, ILinkableObject_classQName))
-								{
-									trace(classQName);
-								}
+								trace(classQName);
 							}
-						}
-						else
-						{
-							trace("Plugin failed to load:", token);
-							reportError(faultEvent.fault);
-						}
-
-						remaining--;
-						if (remaining == 0)
-							handlePluginsFinished();
-					}
-					if (remaining > 0)
-					{
-						for each (var plugin:String in pluginURLs)
-						{
-							LibraryUtils.loadSWC(plugin, handlePlugin, handlePlugin, plugin);
 						}
 					}
 					else
 					{
-						handlePluginsFinished();
+						trace("Plugin failed to load:", token);
+						reportError(faultEvent.fault);
 					}
-					break;
+
+					remaining--;
+					if (remaining == 0)
+						handlePluginsFinished();
 				}
-				default:
-					reportError("Unsupported Weave content version: " + content.version);
+				if (remaining > 0)
+				{
+					for each (var plugin:String in pluginURLs)
+					{
+						LibraryUtils.loadSWC(plugin, handlePlugin, handlePlugin, plugin);
+					}
+				}
+				else
+				{
+					handlePluginsFinished();
+				}
+			}
+			else
+			{
+				reportError("Unrecognized contentType: " + weaveFile.getContentType());
 			}
 		}
 			
