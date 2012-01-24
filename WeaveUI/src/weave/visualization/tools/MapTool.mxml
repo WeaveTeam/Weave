@@ -479,49 +479,8 @@
 				}
 			}
 			
-			/**
-			 * This function will zoom the map to the shapes corresponding to a list of keys.
-			 * @param keys An Array of IQualifiedKey objects, or null to get them from the current selection.
-			 * @param zoomMarginPercent The percent of width and height to reserve for space around the zoomed area.
-			 */
-			public function zoomToSelection(keys:Array = null, zoomMarginPercent:Number = 0.2):void
-			{
-				if (!keys)
-				{
-					var selection:IKeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as IKeySet;
-					var probe:IKeySet = Weave.root.getObject(Weave.DEFAULT_PROBE_KEYSET) as IKeySet;
-					var alwaysHighlight:IKeySet = Weave.root.getObject(Weave.ALWAYS_HIGHLIGHT_KEYSET) as IKeySet;
-					keys = selection.keys;
-					if (keys.length == 0)
-						keys = probe.keys;
-					if (keys.length == 0)
-						keys = alwaysHighlight.keys;
-				}
-				
-				// get the bounds containing all the records on all the layers
-				_tempBounds.reset();
-				var layers:Array = visualization.layers.getObjects(IPlotLayer);
-				for each (var key:* in keys)
-				{
-					if (!(key is IQualifiedKey))
-						key = WeaveAPI.QKeyManager.getQKey(key.keyType, key.localName);
-					for each (var layer:IPlotLayer in layers)
-					{
-						var boundsArray:Array = (layer.spatialIndex as SpatialIndex).getBoundsFromKey(key);
-						for each (var bounds:IBounds2D in boundsArray)
-							_tempBounds.includeBounds(bounds);
-					}
-				}
-				// zoom to that bounds, expanding the area to keep the fixed aspect ratio
-				visualization.zoomBounds.setDataBounds(_tempBounds, true);
-				
-				// zoom out to include the specified margin
-				visualization.zoomBounds.getDataBounds(_tempBounds);
-				var scale:Number = 1 / (1 - zoomMarginPercent);
-				_tempBounds.setWidth(_tempBounds.getWidth() * scale);
-				_tempBounds.setHeight(_tempBounds.getHeight() * scale);
-				visualization.zoomBounds.setDataBounds(_tempBounds);
-			}
+			// BACKWARDS COMPATIBILITY
+			[Deprecated(replacement="visualization.zoomToSelection")] public function get zoomToSelection():Function { return visualization.zoomToSelection; }
 		]]>
 	</mx:Script>
 
@@ -559,7 +518,7 @@
 							   fillAlphas="[1,1]" 
 							   width="16" height="16" 
 							   cornerRadius="0"
-							   click="zoomToSelection()"/>
+							   click="visualization.zoomToSelection()"/>
 					<mx:Button id="east"
 						    label="E"
 							fillAlphas="[1.0, 1.0, 1.0, 1.0]"
@@ -688,7 +647,7 @@
 			<mx:CheckBox label="Enable Map Overview Window" id="overviewCheckBox"
 						 creationComplete="linkBindableProperty(enableOverview,event.target,'selected')"/>
 			<mx:HBox verticalAlign="bottom">
-				<mx:Button label="Zoom to full extent" click="zoomToSelection()" />
+				<mx:Button label="Zoom to full extent" click="visualization.zoomToSelection()" />
 				<mx:VBox verticalGap="1">
 					<mx:Label text="Coordinates at map center:" fontWeight="bold"/>
 					<mx:HBox horizontalGap="0" borderStyle="outset" horizontalAlign="center">
