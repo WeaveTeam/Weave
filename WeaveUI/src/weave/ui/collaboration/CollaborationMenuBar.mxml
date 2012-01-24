@@ -57,8 +57,7 @@
 			public const collabService:CollaborationService 	= registerDisposableChild(this, new CollaborationService(Weave.root));
 			public var rtmpService:NetConnection 				= null;
 			
-//			private const rtmpPath:String = "rtmpt://dynhost.hopto.org:8086/live";
-			private const rtmpPath:String = "rtmp://129.63.17.22/oflaDemo";
+			private const rtmpPath:String = "rtmpt://dynhost.hopto.org:8086/live";
 			
 			private var CHAT:CollaborationChatWindow 			= null;
 			private var SETTINGS:CollaborationSettingsWindow 	= null;
@@ -362,8 +361,8 @@
  * RTMP requesting to a remote media server.
  */
 			
-			private var rtmpTimer:Timer 			= null;
-			private var rtmpPollingTimer:Timer 		= null;
+			private var rtmpTimer:Timer 			= new Timer(10000);
+			private var rtmpPollingTimer:Timer 		= new Timer(30000);
 			private var rtmpUserClosed:Boolean 		= false;
 			private var rtmpPollingServer:Boolean	= false;
 			
@@ -374,10 +373,7 @@
 				
 				if( !rtmpPollingServer )
 				{
-					rtmpTimer = new Timer(10000);
 					rtmpTimer.addEventListener(TimerEvent.TIMER, handleRTMPReconnect);
-					
-					rtmpPollingTimer = new Timer(60000);
 					rtmpPollingTimer.addEventListener(TimerEvent.TIMER, pollRTMPServer);
 				}
 			}
@@ -395,7 +391,6 @@
 			private function handleRTMPReconnect(e:TimerEvent):void
 			{
 				rtmpTimer.stop();
-				rtmpTimer = null;
 				connectToRTMPServer();
 			}
 			private function pollRTMPServer(e:TimerEvent):void
@@ -410,35 +405,40 @@
 				switch( e.info.code )
 				{
 					case "NetConnection.Connect.Success":
-						connectedToRTMPService = true;
-						CHAT.connectedToRTMPService = true;
-						CHAT.rtmpService = rtmpService;
 						CHAT.showRTMPWarning();
+						CHAT.showAddonControls();
 						rtmpPollingTimer.stop();
+						connectedToRTMPService 		= true;
+						CHAT.connectedToRTMPService = true;
+						CHAT.rtmpService 			= rtmpService;
+						rtmpPollingServer 			= false;
 						break;
+					
 					case "NetConnection.Connect.Closed":
 						if( !rtmpUserClosed )
 						{
 							rtmpTimer.start();
-							rtmpUserClosed = false;
+							rtmpUserClosed 			= false;
 							CHAT.showRTMPWarning("Lost connection to media server. Retrying...");
 						}
-						connectedToRTMPService = false;
+						connectedToRTMPService 		= false;
 						CHAT.connectedToRTMPService = false;
-						CHAT.rtmpService = null;
+						CHAT.rtmpService 			= null;
+						CHAT.hideAddonControls();
 						break;
+					
 					case "NetConnection.Connect.Failed":
-						connectedToRTMPService = false;
+						connectedToRTMPService 		= false;
 						CHAT.connectedToRTMPService = false;
-						CHAT.rtmpService = null;
+						CHAT.rtmpService 			= null;
+						CHAT.hideAddonControls();
 						if( !rtmpPollingServer )
 						{
 							CHAT.showRTMPWarning("Cannot connect to media server.", 10000);
 							rtmpPollingTimer.start();
 						}
 						break;
-                	case "NetStream.Play.StreamNotFound":
-						break;
+					
 					default:
 						break;
            		}
