@@ -61,18 +61,18 @@ package weave.utils
 		 */
 		public static function getScaleFromZoomLevel(fullDataBounds:IBounds2D, minScreenSize:Number, zoomLevel:Number):Number
 		{
-			var relativeScale:Number = Math.pow(2, zoomLevel);
+			var zoomedScreenSize:Number = Math.pow(2, zoomLevel) * minScreenSize;
 			
 			// get screen size of fullDataBounds
-			var screenSize:Number;
+			var originalSize:Number;
 			//If this is true, X coordinates will be used to calculate zoom level.  If this is false, Y coordinates will be used.
 			var useXCoordinates:Boolean = (fullDataBounds.getXCoverage() > fullDataBounds.getYCoverage()); // fit full extent inside min screen size
 			if (useXCoordinates)
-				screenSize = tempBounds.getWidth() * relativeScale;
+				originalSize = fullDataBounds.getWidth();
 			else
-				screenSize = tempBounds.getHeight() * relativeScale;
+				originalSize = fullDataBounds.getHeight();
 			
-			return screenSize / minScreenSize;
+			return zoomedScreenSize / originalSize;
 		}
 		
 		/**
