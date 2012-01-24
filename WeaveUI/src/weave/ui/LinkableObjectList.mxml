@@ -60,24 +60,33 @@ LinkableObjectList
 			// This is a pointer to an existing object map.  Do not create a new private one. 
 			private var _hashMap:ILinkableHashMap = null; // <- do not create a new object map
 			
-			
+			// When true, the view data provider is refreshed only on
+			// hashMap.childListCallbacks
+			public var mapToolHack:Boolean = false;
 			
 			[Inspectable] public function set hashMap(value:ILinkableHashMap):void
 			{
 				if (_hashMap == value)
 					return;
 				// remove callback from previous object map
-				if (_hashMap != null)
-					getCallbackCollection(_hashMap).removeCallback(updateDataProvider);
+				if (_hashMap != null){
+					if(mapToolHack)
+						_hashMap.childListCallbacks.removeCallback(updateDataProvider);
+					else
+						getCallbackCollection(_hashMap).removeCallback(updateDataProvider);
+				}
 					
 				if (value != null)
 					dynamicObject = null;
 
 				// add callback to new object map	
 				_hashMap = value;
-				if (_hashMap != null)
-					getCallbackCollection(_hashMap).addGroupedCallback(this, updateDataProvider);
-				
+				if (_hashMap != null){
+					if(mapToolHack)
+						_hashMap.childListCallbacks.addGroupedCallback(this, updateDataProvider);
+					else
+						getCallbackCollection(_hashMap).addGroupedCallback(this, updateDataProvider);
+				}
 				updateDataProvider();
 			}
 			public function get hashMap():ILinkableHashMap
