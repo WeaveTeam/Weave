@@ -709,7 +709,10 @@
 							liveDragging="true" />
 			</ui:Indent>
 			<ui:LinkableObjectList id="visibleScaleRangesList"
-								   width="100%" height="100%" hashMap="{visualization.layers}" borderStyle="none" paddingLeft="0">
+								   width="100%" height="100%"
+								   initialize="visibleScaleRangesList.hashMap = visualization.layers"
+								   borderStyle="none"
+								   paddingLeft="0">
 				<ui:itemRenderer>
 					<mx:Component>
 						<ui:Indent label="{layerName}" labelTextAlign="left" group="{outerDocument.scaleRangeIndentGroup}">
