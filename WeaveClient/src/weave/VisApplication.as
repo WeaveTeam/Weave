@@ -51,7 +51,6 @@ package weave
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.WeaveArchive;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
@@ -712,25 +711,30 @@ package weave
 			DebugTimer.begin();
 			try
 			{
+				// attempt to parse as a Weave archive
 				Weave.loadWeaveFileContent(ByteArray(fileContent));
 			}
 			catch (error:Error)
 			{
-				// attempt to load .xml file
+				// attempt to parse as xml
 				var xml:XML = null;
-				try
+				// check the first character because a non-xml string may still parse as a single xml text node.
+				if (String(fileContent).charAt(0) == '<')
 				{
-					xml = XML(fileContent);
-					if (xml.children().length() == 0)
+					try
 					{
-						xml = null;
-						// report the original error
-						reportError(error);
+						xml = XML(fileContent);
+					}
+					catch (xmlError:Error)
+					{
+						// invalid xml
+						reportError(xmlError);
 					}
 				}
-				catch (xmlError:Error)
+				else
 				{
-					reportError(xmlError);
+					// not an xml, so report the original error
+					reportError(error);
 				}
 				
 				if (xml)
