@@ -28,11 +28,12 @@ package weave
 	
 	import mx.core.Application;
 	import mx.core.UIComponent;
+	import mx.graphics.codec.PNGEncoder;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.WeaveFile;
+	import weave.api.WeaveArchive;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;
@@ -224,14 +225,14 @@ package weave
 			target.requestObject(DEFAULT_SELECTION_KEYSET, KeySet, true);
 			var probe:KeySet = target.requestObject(DEFAULT_PROBE_KEYSET, KeySet, true);
 			var always:KeySet = target.requestObject(ALWAYS_HIGHLIGHT_KEYSET, KeySet, true);
-			probe.addImmediateCallback(always, addKeys, [always, probe]);
-			always.addImmediateCallback(probe, addKeys, [always, probe]);
+			probe.addImmediateCallback(always, _addKeysToKeySet, [always, probe]);
+			always.addImmediateCallback(probe, _addKeysToKeySet, [always, probe]);
 
 			target.requestObject(SAVED_SELECTION_KEYSETS, LinkableHashMap, true);
 			target.requestObject(SAVED_SUBSETS_KEYFILTERS, LinkableHashMap, true);
 		}
 		
-		private static function addKeys(source:KeySet, destination:KeySet):void
+		private static function _addKeysToKeySet(source:KeySet, destination:KeySet):void
 		{
 			destination.addKeys(source.keys);
 		}
@@ -239,11 +240,11 @@ package weave
 		
 		/******************************************************************************************/
 		
-		private static const WeaveFile_CONTENT_TYPE:String = "Weave session history";
-		private static const WeaveFile_THUMBNAIL:String = "thumbnail";
-		private static const WeaveFile_LIBRARIES:String = "libraries";
-		private static const WeaveFile_HISTORY:String = "history";
 		private static const THUMBNAIL_SIZE:int = 128;
+		private static const ARCHIVE_THUMBNAIL_PNG:String = "thumbnail.png";
+		private static const ARCHIVE_LIBRARIES_AMF:String = "libraries.amf";
+		private static const ARCHIVE_HISTORY_AMF:String = "history.amf";
+		private static const _pngEncoder:PNGEncoder = new PNGEncoder();
 		
 		/**
 		 * This function will create an object that can be saved to a file and recalled later with loadWeaveFileContent().
@@ -254,12 +255,11 @@ package weave
 			var _libraries:Array = ["WeaveExamplePlugin.swc"];
 			var _history:Object = history.getSessionState();
 			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
-			var weaveFile:WeaveFile = new WeaveFile();
-			weaveFile.setContentType(WeaveFile_CONTENT_TYPE);
-			weaveFile.setObject(WeaveFile_THUMBNAIL, _thumbnail);
-			weaveFile.setObject(WeaveFile_LIBRARIES, _libraries);
-			weaveFile.setObject(WeaveFile_HISTORY, _history);
-			return weaveFile.serialize();
+			var output:WeaveArchive = new WeaveArchive();
+			output.files[ARCHIVE_THUMBNAIL_PNG] = _pngEncoder.encode(_thumbnail);
+			output.objects[ARCHIVE_LIBRARIES_AMF] = _libraries;
+			output.objects[ARCHIVE_HISTORY_AMF] = _history;
+			return output.serialize();
 		}
 		
 		/**
@@ -268,58 +268,52 @@ package weave
 		 */
 		public static function loadWeaveFileContent(content:ByteArray):void
 		{
-			var weaveFile:WeaveFile = new WeaveFile(content);
-			if (weaveFile.getContentType() == WeaveFile_CONTENT_TYPE)
+			var input:WeaveArchive = new WeaveArchive(content);
+			var pluginURLs:Array = input.objects[ARCHIVE_LIBRARIES_AMF] as Array;
+			var remaining:int = pluginURLs.length;
+			function handlePluginsFinished():void
 			{
-				var pluginURLs:Array = weaveFile.getObject(WeaveFile_LIBRARIES) as Array;
-				var remaining:int = pluginURLs.length;
-				function handlePluginsFinished():void
+				var _history:Object = input.objects[ARCHIVE_HISTORY_AMF];
+				history.setSessionState(_history);
+			}
+			function handlePlugin(event:Event, token:Object = null):void
+			{
+				var resultEvent:ResultEvent = event as ResultEvent;
+				var faultEvent:FaultEvent = event as FaultEvent;
+				if (resultEvent)
 				{
-					history.setSessionState(weaveFile.getObject(WeaveFile_HISTORY));
-				}
-				function handlePlugin(event:Event, token:Object = null):void
-				{
-					var resultEvent:ResultEvent = event as ResultEvent;
-					var faultEvent:FaultEvent = event as FaultEvent;
-					if (resultEvent)
+					trace("Loaded plugin:", token);
+					var classQNames:Array = resultEvent.result as Array;
+					for (var i:int = 0; i < classQNames.length; i++)
 					{
-						trace("Loaded plugin:", token);
-						var classQNames:Array = resultEvent.result as Array;
-						for (var i:int = 0; i < classQNames.length; i++)
+						var classQName:String = classQNames[i];
+						// check if it implements ILinkableObject
+						if (ClassUtils.classImplements(classQName, ILinkableObject_classQName))
 						{
-							var classQName:String = classQNames[i];
-							// check if it implements ILinkableObject
-							if (ClassUtils.classImplements(classQName, ILinkableObject_classQName))
-							{
-								trace(classQName);
-							}
+							trace(classQName);
 						}
-					}
-					else
-					{
-						trace("Plugin failed to load:", token);
-						reportError(faultEvent.fault);
-					}
-
-					remaining--;
-					if (remaining == 0)
-						handlePluginsFinished();
-				}
-				if (remaining > 0)
-				{
-					for each (var plugin:String in pluginURLs)
-					{
-						LibraryUtils.loadSWC(plugin, handlePlugin, handlePlugin, plugin);
 					}
 				}
 				else
 				{
+					trace("Plugin failed to load:", token);
+					reportError(faultEvent.fault);
+				}
+
+				remaining--;
+				if (remaining == 0)
 					handlePluginsFinished();
+			}
+			if (remaining > 0)
+			{
+				for each (var plugin:String in pluginURLs)
+				{
+					LibraryUtils.loadSWC(plugin, handlePlugin, handlePlugin, plugin);
 				}
 			}
 			else
 			{
-				reportError("Unrecognized contentType: " + weaveFile.getContentType());
+				handlePluginsFinished();
 			}
 		}
 			
