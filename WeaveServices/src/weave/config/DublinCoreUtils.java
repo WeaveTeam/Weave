@@ -19,6 +19,7 @@
 package weave.config;
 
 import java.rmi.RemoteException;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,6 +27,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 
 import weave.utils.SQLUtils;
 
@@ -82,16 +84,21 @@ public class DublinCoreUtils
 		try
 		{
 			ensureMetadataTableExists(conn, schema);
-			Statement stmt = conn.createStatement();
+			//Statement stmt = conn.createStatement();
 
 			for (Map.Entry<String, Object> e : elements.entrySet())
 			{
 				String property = e.getKey();
 				String value = e.getValue().toString();
-				System.out.println("INSERT INTO " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME)
-						+ " values ('" + datasetName + "','" + property + "','" + value + "')");
-				stmt.execute("INSERT INTO " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME)
-						+ " values ('" + datasetName + "','" + property + "','" + value + "')");
+				//System.out.println("INSERT INTO " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME)
+				//		+ " values ('" + datasetName + "','" + property + "','" + value + "')");
+//				stmt.execute("INSERT INTO " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME)
+//						+ " values ('" + datasetName + "','" + property + "','" + value + "')");
+				CallableStatement cstmt = conn.prepareCall("INSERT INTO " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME)
+						+ " values (?,?,?)");
+				cstmt.setString(1, datasetName);
+				cstmt.setString(2, property);
+				cstmt.setString(3, value);
 			}
 		}
 		catch (SQLException e)
