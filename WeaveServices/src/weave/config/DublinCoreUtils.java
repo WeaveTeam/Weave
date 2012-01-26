@@ -99,6 +99,7 @@ public class DublinCoreUtils
 				cstmt.setString(1, datasetName);
 				cstmt.setString(2, property);
 				cstmt.setString(3, value);
+				cstmt.execute();
 			}
 		}
 		catch (SQLException e)
@@ -150,13 +151,21 @@ public class DublinCoreUtils
 			Map<String,String> elements = new HashMap<String,String>();
 			if (SQLUtils.tableExists(conn, schema, DATASET_ELEMENTS_TABLE_NAME))
 			{
-				Statement stmt = conn.createStatement();
-
-				ResultSet rs = stmt.executeQuery("SELECT " + DATASET_ELEMENTS_ELEMENT_COLUMN + ","
+				CallableStatement cstmt = conn.prepareCall("SELECT " + DATASET_ELEMENTS_ELEMENT_COLUMN + ","
 						+ DATASET_ELEMENTS_VALUE_COLUMN + " FROM "
 						+ SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " WHERE "
-						+ DATASET_ELEMENTS_DATASET_COLUMN + " = '" + dataTableName + "'" + " ORDER BY "
+						+ DATASET_ELEMENTS_DATASET_COLUMN + " = ?" + " ORDER BY "
 						+ DATASET_ELEMENTS_ELEMENT_COLUMN);
+				cstmt.setString(1, dataTableName);
+				ResultSet rs = cstmt.executeQuery();
+				
+//				Statement stmt = conn.createStatement();
+//
+//				ResultSet rs = stmt.executeQuery("SELECT " + DATASET_ELEMENTS_ELEMENT_COLUMN + ","
+//						+ DATASET_ELEMENTS_VALUE_COLUMN + " FROM "
+//						+ SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " WHERE "
+//						+ DATASET_ELEMENTS_DATASET_COLUMN + " = '" + dataTableName + "'" + " ORDER BY "
+//						+ DATASET_ELEMENTS_ELEMENT_COLUMN);
 
 				while (rs.next())
 					elements.put(rs.getString(DATASET_ELEMENTS_ELEMENT_COLUMN), rs.getString(DATASET_ELEMENTS_VALUE_COLUMN));
@@ -175,7 +184,7 @@ public class DublinCoreUtils
 		{
 			if (SQLUtils.tableExists(conn, schema, DATASET_ELEMENTS_TABLE_NAME))
 			{
-				Statement stmt = conn.createStatement();
+				//Statement stmt = conn.createStatement();
 				String element;
 				String value;
 				for (Map<String, String> e : elements)
@@ -183,13 +192,24 @@ public class DublinCoreUtils
 					element = e.get("element");
 					value = e.get("value");
 
-					System.out.println("element = " + element);
-					System.out.println("value = " + value);
+//					System.out.println("element = " + element);
+//					System.out.println("value = " + value);
+					
+//					stmt.execute("DELETE FROM " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME)
+//							+ " WHERE " + DATASET_ELEMENTS_ELEMENT_COLUMN + "='" + element + "' and "
+//							+ DATASET_ELEMENTS_VALUE_COLUMN + "='" + value + "' and " + DATASET_ELEMENTS_DATASET_COLUMN + "='"
+//							+ dataTableName + "'");
+					
+					CallableStatement cstmt = conn.prepareCall("DELETE FROM " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME)
+							+ " WHERE " + DATASET_ELEMENTS_ELEMENT_COLUMN + "= ? and "
+							+ DATASET_ELEMENTS_VALUE_COLUMN + "= ? and " + DATASET_ELEMENTS_DATASET_COLUMN + "= ?");
+					cstmt.setString(1, element);
+					cstmt.setString(2, value);
+					cstmt.setString(3, dataTableName);
+					
+					cstmt.execute();
 
-					stmt.execute("DELETE FROM " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME)
-							+ " WHERE " + DATASET_ELEMENTS_ELEMENT_COLUMN + "='" + element + "' and "
-							+ DATASET_ELEMENTS_VALUE_COLUMN + "='" + value + "' and " + DATASET_ELEMENTS_DATASET_COLUMN + "='"
-							+ dataTableName + "'");
+					
 				}
 			}
 			else
@@ -208,22 +228,34 @@ public class DublinCoreUtils
 			if (SQLUtils.tableExists(conn, schema, DATASET_ELEMENTS_TABLE_NAME))
 			{
 
-				Statement stmt = conn.createStatement();
+				//Statement stmt = conn.createStatement();
 				String element, newValue, oldValue;
 
 				element = object.get("element");
 				newValue = object.get("newValue");
 				oldValue = object.get("oldValue");
 
-				// Print out the query
-				String query = "UPDATE " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " SET "
-						+ DATASET_ELEMENTS_VALUE_COLUMN + "='" + newValue + "' WHERE " + DATASET_ELEMENTS_ELEMENT_COLUMN + "='"
-						+ element + "' and " + DATASET_ELEMENTS_VALUE_COLUMN + "='" + oldValue + "' and "
-						+ DATASET_ELEMENTS_DATASET_COLUMN + "='" + dataTableName + "'";
+//				// Print out the query
+//				String query = "UPDATE " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " SET "
+//						+ DATASET_ELEMENTS_VALUE_COLUMN + "='" + newValue + "' WHERE " + DATASET_ELEMENTS_ELEMENT_COLUMN + "='"
+//						+ element + "' and " + DATASET_ELEMENTS_VALUE_COLUMN + "='" + oldValue + "' and "
+//						+ DATASET_ELEMENTS_DATASET_COLUMN + "='" + dataTableName + "'";
+				
+				
+				CallableStatement cstmt = conn.prepareCall("UPDATE " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " SET "
+						+ DATASET_ELEMENTS_VALUE_COLUMN + "= ? WHERE " + DATASET_ELEMENTS_ELEMENT_COLUMN + "= ? and " + DATASET_ELEMENTS_VALUE_COLUMN + "= ? and "
+						+ DATASET_ELEMENTS_DATASET_COLUMN + "= ?");
+				cstmt.setString(1, newValue);
+				cstmt.setString(2, element);
+				cstmt.setString(3, oldValue);
+				cstmt.setString(4, dataTableName);
+				
+				
+				cstmt.execute();
 
-				System.out.println(query);
+				//System.out.println(query);
 
-				stmt.executeUpdate(query);
+				//stmt.executeUpdate(query);
 			}
 			else
 				throw new RemoteException("Error - metadata table does not exist!");
