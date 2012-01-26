@@ -216,6 +216,7 @@
 				if( testVid != null )
 				{
 					testVid.attachCamera(null);
+					testVid.clear();
 					camActivity.removeChild(testVid);
 					testVid = null;
 				}
@@ -247,14 +248,30 @@
 			private function onTabChange(event:IndexChangedEvent):void
 			{
 				if( event.newIndex == 1 ) {		// If the tab is set to Add-ons
-					startMicActivityMonitor();
-					startCamActivityMonitor();
+					if( Microphone.names.length == 0 ) {
+						micActivity.enabled = false;
+						micList.enabled = false;
+					} else {
+						micActivity.enabled = true;
+						micList.enabled = true;
+						startMicActivityMonitor();
+						micList.dataProvider = Microphone.names;
+					}
+					if( Camera.names.length == 0 ) {
+						camActivity.enabled = false;
+						camList.enabled = false;
+					} else {
+						camActivity.enabled = true;
+						camList.enabled = true;
+						startCamActivityMonitor();
+						camList.dataProvider = Camera.names;
+					}
 					resetWarning();
-					micList.dataProvider = Microphone.names;
-					camList.dataProvider = Camera.names;
 				} else {
-					stopMicActivityMonitor();
-					stopCamActivityMonitor();
+					if( Microphone.names.length > 0 )
+						stopMicActivityMonitor();
+					if( Camera.names.length > 0 )
+						stopCamActivityMonitor();
 				}
 			}
 			

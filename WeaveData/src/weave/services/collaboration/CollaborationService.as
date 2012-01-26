@@ -102,7 +102,7 @@ package weave.services.collaboration
 			this.root = root;
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
 			// all of these classes are internal
-			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, Ping, AddonsMessage])
+			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, Ping, AddonsMessage, AddonStatus])
 				registerClassAlias(getQualifiedClassName(c), c);
 				
 			userList.sort = new Sort();
@@ -199,8 +199,11 @@ package weave.services.collaboration
 		//Sends messages to the room on the server
 		private function sendEncodedObject( message:Object, target:String ):void
 		{
-			if (!connectedToRoom)
-				throw new Error("Not connected");
+			if (!connectedToRoom) {
+				trace("Not connected");
+				return;
+//				throw new Error("Not connected");
+			}
 			
 			if( target != null)
 				room.sendPrivateMessage( target, encodeObject(message) );
@@ -216,6 +219,23 @@ package weave.services.collaboration
 		{
 			var message:RequestMouseMessage = new RequestMouseMessage(nickname);
 			sendEncodedObject(message, id);
+		}
+		public function requestAddonStatus( id:String, info:Dictionary = null ):void
+		{
+			var message:AddonStatus = new AddonStatus(id, info);
+			if( info == null )
+			{
+				var sendTo:String = userList[0];
+				if( sendTo == nickname )
+					sendTo = userList[1];
+				trace("sending request to", sendTo);
+				sendEncodedObject(message, sendTo);
+			} 
+			else
+			{
+				trace("sending addons to", id);
+				sendEncodedObject(message, id);
+			}
 		}
 		//Handles sending text messages
 		public function sendTextMessage( text:String, target:String=null ):void
@@ -476,6 +496,14 @@ package weave.services.collaboration
 					else if( am.type == TYPE_CAM )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_CAM, am.id, ( am.toggle ) ? 1 : 0));
 				}
+				else if( o is AddonStatus )
+				{
+					var status:AddonStatus = o as AddonStatus;
+					if( status.info == null )
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_USERLIST, status.id));
+					else
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_USERLIST, null, 0, 0, 0, status.info));
+				}
 				//an unknown message with data, but wasn't one of the pre-defined types
 				else
 				{
@@ -574,13 +602,13 @@ package weave.services.collaboration
 				sendFullSessionState(debugID, getSessionState(root), e.nickname );
 			} 
 			if( connectedToRoom )
-				dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_JOINED_CREATE_MOUSE, e.nickname));
+				dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_JOINED_ROOM, e.nickname));
 		}
 		//Handled when any user leaves the room this is in
 		private function onUserLeave(e:RoomEvent):void
 		{
 			dispatchLogEvent(e.nickname + " has left the room.");
-			dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_LEFT_REMOVE_MOUSE, e.nickname));
+			dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_LEFT_ROOM, e.nickname));
 			updateUsersList();
 		}
 		private function nickConflictError(e:RoomEvent):void
@@ -617,9 +645,8 @@ package weave.services.collaboration
 		}
 	}
 }
+import flash.utils.Dictionary;
 
-//Internal classes are used to define the different message types
-//that will be sent over the server
 internal class FullSessionState
 {
 	public function FullSessionState(debugID:int = 0, state:Object = null)
@@ -706,4 +733,14 @@ internal class AddonsMessage
 	public var id:String;
 	public var type:String;
 	public var toggle:Boolean;
+}
+internal class AddonStatus
+{
+	public function AddonStatus(id:String = null, info:Dictionary = null)
+	{
+		this.id = id;
+		this.info = info;
+	}
+	public var id:String;
+	public var info:Dictionary;
 }

@@ -161,6 +161,7 @@ package weave
 		public const collabServerName:LinkableString = new LinkableString("vast-server");
 		public const collabServerPort:LinkableString = new LinkableString("5222");
 		public const collabServerRoomToJoin:LinkableString = new LinkableString("demo");
+		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);
 		
 		
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu

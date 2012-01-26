@@ -85,10 +85,12 @@
 				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
 				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
 				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
-				collabService.addEventListener(CollaborationEvent.USER_JOINED_CREATE_MOUSE, handleCreateUserMouse);
-				collabService.addEventListener(CollaborationEvent.USER_LEFT_REMOVE_MOUSE, handleRemoveUserMouse);
+				collabService.addEventListener(CollaborationEvent.USER_JOINED_ROOM, handleCreateUserMouse);
+				collabService.addEventListener(CollaborationEvent.USER_LEFT_ROOM, handleRemoveUserElements);
 				collabService.addEventListener(CollaborationEvent.USER_REQUEST_MOUSE_POS, handleUserRequestMousePos);
 				collabService.addEventListener(CollaborationEvent.USER_UPDATE_MOUSE_POS, updateMousePos);
+				collabService.addEventListener(CollaborationEvent.USER_REQUEST_USERLIST, handleUserRequestUserlist);
+				collabService.addEventListener(CollaborationEvent.USER_UPDATE_USERLIST, handleUserUpdateUserlist);
 				collabService.addEventListener(CollaborationEvent.UPDATE_PING, updatePing);
 				collabService.addEventListener(CollaborationEvent.UPDATE_MIC, userMicUpdated);
 				collabService.addEventListener(CollaborationEvent.UPDATE_CAM, userCamUpdated);
@@ -138,8 +140,9 @@
 				toggleChat();
 				CHAT.nickname = collabService.nickname;
 				CHAT.roomName = collabService.roomToJoin;
-				CHAT.setUserMic(SETTINGS.collab_NICKNAME, false);
-				CHAT.setUserCam(SETTINGS.collab_NICKNAME, false);
+				CHAT.setUserAttribute(CHAT.TYPE_MIC, SETTINGS.collab_NICKNAME, 0);
+				CHAT.setUserAttribute(CHAT.TYPE_CAM, SETTINGS.collab_NICKNAME, 0);
+				CHAT.setUserAttribute(CHAT.TYPE_SPEC, SETTINGS.collab_NICKNAME, (Weave.properties.collabSpectating.value) ? 1 : 0);
 				
 				joinedRoomCreateMouseList();
 				
@@ -267,7 +270,7 @@
 			private function settingsConnSaved(e:Event):void
 			{
 				button_connect.enabled = true;
-				CHAT.setUserColor(SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR);
+				CHAT.setUserAttribute(CHAT.TYPE_COLOR, SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR);
 			}
 			private function settingsAddonSaved(e:Event):void
 			{
@@ -412,6 +415,10 @@
 						CHAT.connectedToRTMPService = true;
 						CHAT.rtmpService 			= rtmpService;
 						rtmpPollingServer 			= false;
+						
+						trace("#: "+collabService.room.length);
+						if( collabService.room.length > 1 ) requestAddonStatus();
+						
 						break;
 					
 					case "NetConnection.Connect.Closed":
@@ -443,6 +450,33 @@
 						break;
            		}
         	}
+			private function handleUserRequestUserlist(e:CollaborationEvent):void
+			{
+				collabService.requestAddonStatus(e.getText(), CHAT._userListInfo);
+			}
+			private function handleUserUpdateUserlist(e:CollaborationEvent):void
+			{
+				var info:Dictionary = e.getInfo() as Dictionary;
+				for( var name:String in info )
+				{
+					trace( "Setting attributes for:", name );
+					CHAT.setUserAttribute(CHAT.TYPE_CAM,	name, info[name].cam);
+					trace( "Cam:", info[name].cam );
+					CHAT.setUserAttribute(CHAT.TYPE_COLOR, 	name, info[name].color);
+					trace( "color:", info[name].color );
+					CHAT.setUserAttribute(CHAT.TYPE_MIC,  	name, info[name].mic);
+					trace( "mic:", info[name].mic);
+					CHAT.setUserAttribute(CHAT.TYPE_PING, 	name, info[name].ping);
+					trace( "ping:", info[name].ping );
+					CHAT.setUserAttribute(CHAT.TYPE_SPEC, 	name, info[name].spec);
+					trace( "spec:", info[name].spec );
+				}
+			}
+			private function requestAddonStatus():void
+			{
+				trace("requesting addon status");
+				collabService.requestAddonStatus(SETTINGS.collab_NICKNAME);
+			}
 			private function rtmpSecurityError(e:SecurityErrorEvent):void
 			{
 				trace(e.text);
@@ -458,11 +492,11 @@
  */
 			
 			private function requestPing(e:TimerEvent):void 		   { collabService.sendPing(SETTINGS.collab_NICKNAME); }
-			private function updatePing(e:CollaborationEvent):void 	   { CHAT.setUserPing(e.getText(), e.getX()); }
+			private function updatePing(e:CollaborationEvent):void 	   { CHAT.setUserAttribute(CHAT.TYPE_PING, e.getText(), e.getX()); }
 			private function updateUserMic(e:CollaborationEvent):void  { collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, collabService.TYPE_MIC, ( e.getText() == "1" )); }
 			private function updateUserCam(e:CollaborationEvent):void  { collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, collabService.TYPE_CAM, ( e.getText() == "1" )); }
-			private function userMicUpdated(e:CollaborationEvent):void { CHAT.setUserMic(e.getText(), ( e.getColor() == 1 )); }
-			private function userCamUpdated(e:CollaborationEvent):void { CHAT.setUserCam(e.getText(), ( e.getColor() == 1 )); }
+			private function userMicUpdated(e:CollaborationEvent):void { CHAT.setUserAttribute(CHAT.TYPE_MIC, e.getText(), Number(e.getColor())); }
+			private function userCamUpdated(e:CollaborationEvent):void { CHAT.setUserAttribute(CHAT.TYPE_CAM, e.getText(), Number(e.getColor())); }
 			
 			private var lastX:Number = 0;
 			private var lastY:Number = 0;
@@ -492,11 +526,14 @@
 					userMice[e.getText()] = CollabMouseCursor.addPopUp(Application.application as Application) as CollabMouseCursor;
 				}
 			}
-			private function handleRemoveUserMouse(e:CollaborationEvent):void
+			private function handleRemoveUserElements(e:CollaborationEvent):void
 			{
 				trace( "Removing " + e.getText() + "\'s cursor" );
 				userMice[e.getText()].removePopUp();
 				delete userMice[e.getText()];
+				
+				CHAT.setUserAttribute(CHAT.TYPE_CAM, e.getText(), 0);
+				CHAT.setUserAttribute(CHAT.TYPE_MIC, e.getText(), 0);
 			}
 			private function handleUserRequestMousePos(e:CollaborationEvent):void
 			{
@@ -515,7 +552,7 @@
 				if( userMice[e.getText()].color != e.getColor() )
 				{
 					userMice[e.getText()].fillCursor(e.getColor());
-					CHAT.setUserColor(e.getText(), e.getColor());
+					CHAT.setUserAttribute(CHAT.TYPE_COLOR, e.getText(), e.getColor());
 				}
 			}
 			private function mouseMove(e:TimerEvent):void

@@ -31,10 +31,12 @@ package weave.services.collaboration
 		public static const LOG:String 						= "collab_log";
 		public static const CONNECT:String 					= "collab_connect";
 		public static const DISCONNECT:String 				= "collab_disconnect";
-		public static const USER_JOINED_CREATE_MOUSE:String = "user_joined_create_mouse";
+		public static const USER_JOINED_ROOM:String 		= "user_joined_room";
+		public static const USER_LEFT_ROOM:String 			= "user_left_room";
 		public static const USER_UPDATE_MOUSE_POS:String 	= "user_update_mouse_pos";
 		public static const USER_REQUEST_MOUSE_POS:String	= "user_request_mouse_pos";
-		public static const USER_LEFT_REMOVE_MOUSE:String 	= "user_left_remove_mouse";
+		public static const USER_UPDATE_USERLIST:String		= "user_update_userlist";
+		public static const USER_REQUEST_USERLIST:String	= "user_request_userlist";
 		public static const USER_LIST_UPDATED:String		= "user_list_updated";
 		
 		/* ERROR EVENTS */
@@ -56,14 +58,16 @@ package weave.services.collaboration
 		private var color:uint;
 		private var x:Number;
 		private var y:Number;
+		private var o:Object;
 		
-		public function CollaborationEvent(type:String, text:String = null, color:uint = 0, x:Number = 0, y:Number = 0)
+		public function CollaborationEvent(type:String, text:String = null, color:uint = 0, x:Number = 0, y:Number = 0, o:Object = null)
 		{
 			super(type);
 			this.text = text;
 			this.color = color;
 			this.x = x;
 			this.y = y;
+			this.o = o;
 		}
 		
 		public function getText():String
@@ -81,6 +85,10 @@ package weave.services.collaboration
 		public function getY():Number
 		{
 			return y;
+		}
+		public function getInfo():Object
+		{
+			return o;
 		}
 	}
 }

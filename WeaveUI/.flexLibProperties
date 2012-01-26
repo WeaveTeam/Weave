@@ -3,6 +3,7 @@
   <includeClasses>
     <classEntry path="weave.ui.CustomDataGrid.DataGridCellRenderer"/>
     <classEntry path="weave.ui.collaboration.CollaborationPing"/>
+    <classEntry path="weave.ui.collaboration.CollaborationVideo"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
