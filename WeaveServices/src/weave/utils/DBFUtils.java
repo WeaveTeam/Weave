@@ -21,6 +21,7 @@ package weave.utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -58,6 +59,41 @@ public class DBFUtils
 			names.add(dbfHeader.getFieldName(i));
 
 		return names;
+	}
+	
+	/**
+	 * @param dbfFile A DBF file
+	 * @return A list of attribute names in the DBF file
+	 */
+	public static Object[][] getDBFData(File dbfFile) throws IOException
+	{
+		FileInputStream fis = new FileInputStream(dbfFile);
+		DbaseFileReader dbfReader = new DbaseFileReader(fis.getChannel(), false, Charset.forName("ISO-8859-1"));
+		
+		//contains the header columns
+		DbaseFileHeader dbfHeader = dbfReader.getHeader();
+		
+		List<Object[]> rowsList = new Vector<Object[]>();
+		
+
+		while(dbfReader.hasNext())
+		{
+			rowsList.add(dbfReader.readEntry());
+		}
+		
+		
+		
+		int numOfCol = dbfHeader.getNumFields();
+		
+		Object[][] dataRows = new Object[rowsList.size()][numOfCol];
+		
+		for(int i=0; i < rowsList.size();i++)
+		{
+			dataRows[i] = rowsList.get(i);
+			
+		}
+		
+		return dataRows;
 	}
 	
 	/**

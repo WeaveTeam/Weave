@@ -36,7 +36,7 @@
 			<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files uploaded' : ''}"/>
 		</ui:Indent>
 		<ui:Indent id="dbfColumnNames" enabled="false" label="DBF Key column names" group="{indentGroup}">
-			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{AdminInterface.instance.dbfKeyColumns}" editable="true"/>
+			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{AdminInterface.instance.dbfKeyColumns}" change="handleKeyColumnsChange()" editable="true"/>
 			<ui:HelpComponent content="Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file."/>
 		</ui:Indent>
 		<admin:SQLTableSelectorDialog indentGroup="{indentGroup}" id="tableSelector" enabled="false" showTableCombo="false" creationComplete="tableSelector.tableControls.label = 'SQL Table Prefix';" activeTable="{shpFileNameInput.text}" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
@@ -64,6 +64,7 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.FaultEvent;
@@ -82,6 +83,8 @@
 			private function handleCreationComplete():void
 			{
 				shapeFileReferenceList.addEventListener(Event.SELECT, shapeFileSelectedHandler);
+				
+			
 				
 				backEnabled = false;
 				nextEnabled = false;
@@ -159,6 +162,8 @@
 					if (token == _dbfFileToRequestColumnNamesFrom)
 					{
 						AdminInterface.instance.listDBFFileColumns(_dbfFileToRequestColumnNamesFrom.name);
+						AdminInterface.instance.getDBFData(_dbfFileToRequestColumnNamesFrom.name);
+						
 						enableAllWidgets();
 					}
 				}
@@ -234,11 +239,65 @@
 				nullFlagInput.enabled = enable;
 				keyType.enabled = enable;
 				tableSelector.enabled = enable;
-				nextEnabled = enable;
+//				nextEnabled = enable;
 				backEnabled = enable;
-				finishEnabled = enable;
+//				finishEnabled = enable;
 				projectionCode.enabled = enable;
+				
+				handleKeyColumnsChange();
 			}
+			
+			private function handleKeyColumnsChange():void
+			{
+				if(dbfKeyColumnsCombo.dataProvider == null ||(dbfKeyColumnsCombo.dataProvider as ArrayCollection).length == 0)
+				{
+					return;
+				}
+				
+				var selectedKeyColumn:String = dbfKeyColumnsCombo.selectedItem as String;
+				
+				var keyIndex:int = AdminInterface.instance.dbfKeyColumns.indexOf(selectedKeyColumn);
+				
+				var keyColValues:Array = [];
+				
+				for (var i:int=0; i< AdminInterface.instance.dbfData.length; i++)
+				{
+					keyColValues.push(AdminInterface.instance.dbfData[i][keyIndex]);
+				}
+				
+				if(!isUnique(keyColValues))
+				{
+					dbfKeyColumnsCombo.errorString = 'Key values are not unique';
+					finishEnabled = false;
+					nextEnabled = false;
+				}else
+				{
+					dbfKeyColumnsCombo.errorString = '';
+					finishEnabled = true;
+					nextEnabled = true;
+				}
+				
+				dbfKeyColumnsCombo.invalidateDisplayList();
+			}
+			
+			private function isUnique(data:Array):Boolean
+			{
+				var unique:Boolean = true;
+				var testUniquenessObject:Object = new Object();
+				for(var i:int=0;i<data.length;i++)
+				{
+					if (testUniquenessObject[data[i]] == undefined)
+					{
+						testUniquenessObject[data[i]] = true;
+						continue;
+					}
+					unique = false;
+					break;
+				}
+				
+				return unique;
+			}
+			
 			
 			private function validateProjectionSRS():void
 			{

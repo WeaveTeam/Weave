@@ -87,6 +87,8 @@ package weave.services
 		
 		[Bindable] public var dbfKeyColumns:Array = [];
 		
+		[Bindable] public var dbfData:Array = [];
+		
 		// values the user has currently selected
 		[Bindable] public var activePassword:String = '';
 		
@@ -497,6 +499,16 @@ package weave.services
 			function handleListDBFFileColumns(event:ResultEvent, token:Object = null):void
 			{
 				dbfKeyColumns = event.result as Array || [];
+			}
+			return query;
+		}
+		public function getDBFData(dbfFileName:String):DelayedAsyncInvocation
+		{
+			var query:DelayedAsyncInvocation = service.getDBFData(dbfFileName);
+			query.addAsyncResponder(handleGetDBFData);
+			function handleGetDBFData(event:ResultEvent, token:Object = null):void
+			{
+				dbfData = event.result as Array || [];
 			}
 			return query;
 		}

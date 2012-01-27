@@ -342,6 +342,11 @@ package weave.services
 		    var query:DelayedAsyncInvocation = invokeAdminService("listDBFFileColumns", arguments);
 		    return query;
 		}
+		public function getDBFData(dbfFileName:String):DelayedAsyncInvocation
+		{
+			var query:DelayedAsyncInvocation = invokeAdminService("getDBFData", arguments);
+			return query;
+		}
 		
 		
 		// import data
