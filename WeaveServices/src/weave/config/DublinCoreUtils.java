@@ -40,33 +40,21 @@ import weave.utils.SQLUtils;
 public class DublinCoreUtils
 {
 	/**
-	 * The name of the table containing a list of the datasets.
-	 */
-	// public static final String DATASET_TABLE_NAME = "datasets";
-	/**
-	 * The name of the table containing a listing of all possible metadata
-	 * elements.
-	 */
-	// public static final String DCE_TABLE_NAME = "metadata_elements";
-	/**
 	 * The name of the table which applies elements to datasets with values.
 	 */
-	public static final String DATASET_ELEMENTS_TABLE_NAME = "weave_dataset_metadata";
+	private static final String TABLE_NAME = "weave_dataset_metadata";
 	/**
-	 * The name of the column of the DATASET_ELEMENTS_TABLE containing dataset
-	 * names
+	 * The name of the column of the TABLE containing dataset names
 	 */
-	public static final String DATASET_ELEMENTS_DATASET_COLUMN = "dataTable";
+	private static final String DATASET_COLUMN = "dataTable";
 	/**
-	 * The name of the column of the DATASET_ELEMENTS_TABLE containing property
-	 * keys
+	 * The name of the column of the TABLE containing property keys
 	 */
-	public static final String DATASET_ELEMENTS_ELEMENT_COLUMN = "element";
+	private static final String ELEMENT_COLUMN = "element";
 	/**
-	 * The name of the column of the DATASET_ELEMENTS_TABLE containing property
-	 * values
+	 * The name of the column of the TABLE containing property values
 	 */
-	public static final String DATASET_ELEMENTS_VALUE_COLUMN = "value";
+	private static final String VALUE_COLUMN = "value";
 
 	/**
 	 * Adds the given Dublin Core elements to the given data set.
@@ -81,21 +69,20 @@ public class DublinCoreUtils
 	 */
 	public static void addDCElements(Connection conn, String schema, String datasetName, Map<String, Object> elements) throws RemoteException
 	{
+		CallableStatement cstmt = null;
 		try
 		{
 			ensureMetadataTableExists(conn, schema);
-			//Statement stmt = conn.createStatement();
 
 			for (Map.Entry<String, Object> e : elements.entrySet())
 			{
 				String property = e.getKey();
 				String value = e.getValue().toString();
-				//System.out.println("INSERT INTO " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME)
-				//		+ " values ('" + datasetName + "','" + property + "','" + value + "')");
-//				stmt.execute("INSERT INTO " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME)
-//						+ " values ('" + datasetName + "','" + property + "','" + value + "')");
-				CallableStatement cstmt = conn.prepareCall("INSERT INTO " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME)
-						+ " values (?,?,?)");
+				String query = String.format(
+						"INSERT INTO %s values (?,?,?)",
+						SQLUtils.quoteSchemaTable(conn, schema, TABLE_NAME)
+					);
+				cstmt = conn.prepareCall(query);
 				cstmt.setString(1, datasetName);
 				cstmt.setString(2, property);
 				cstmt.setString(3, value);
@@ -105,6 +92,10 @@ public class DublinCoreUtils
 		catch (SQLException e)
 		{
 			throw new RemoteException(e.getMessage(), e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(cstmt);
 		}
 
 		// Statement stmt = conn.createStatement();
@@ -117,17 +108,27 @@ public class DublinCoreUtils
 
 	private static void ensureMetadataTableExists(Connection conn, String schema) throws SQLException
 	{
-		if (!SQLUtils.tableExists(conn, schema, DATASET_ELEMENTS_TABLE_NAME))
+		if (!SQLUtils.tableExists(conn, schema, TABLE_NAME))
 		{
-			Statement stmt = conn.createStatement();
-			if (SQLUtils.isOracleServer(conn))
-				stmt.execute("CREATE TABLE " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " ("
-						+ DATASET_ELEMENTS_DATASET_COLUMN + " varchar(255), " + DATASET_ELEMENTS_ELEMENT_COLUMN + " varchar(255), "
-						+ DATASET_ELEMENTS_VALUE_COLUMN + " varchar(1024))");
-			else
-				stmt.execute("CREATE TABLE " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " ("
-						+ DATASET_ELEMENTS_DATASET_COLUMN + " varchar(255), " + DATASET_ELEMENTS_ELEMENT_COLUMN + " varchar(255), "
-						+ DATASET_ELEMENTS_VALUE_COLUMN + " text)");
+			Statement stmt = null;
+			try
+			{
+				stmt = conn.createStatement();
+				String varChar = SQLUtils.getVarcharTypeString(conn, 255);
+				String longVarChar = SQLUtils.isOracleServer(conn) ? SQLUtils.getVarcharTypeString(conn, 1024) : "text";
+				String query = String.format(
+						"CREATE TABLE %s (%s %s, %s %s, %s %s)",
+						SQLUtils.quoteSchemaTable(conn, schema, TABLE_NAME),
+						DATASET_COLUMN, varChar,
+						ELEMENT_COLUMN, varChar,
+						VALUE_COLUMN, longVarChar
+					);
+				stmt.execute(query);
+			}
+			finally
+			{
+				SQLUtils.cleanup(stmt);
+			}
 		}
 	}
 
@@ -146,29 +147,26 @@ public class DublinCoreUtils
 	 */
 	public static Map<String,String> listDCElements(Connection conn, String schema, String dataTableName) throws RemoteException
 	{
+		CallableStatement cstmt = null;
 		try
 		{
 			Map<String,String> elements = new HashMap<String,String>();
-			if (SQLUtils.tableExists(conn, schema, DATASET_ELEMENTS_TABLE_NAME))
+			if (SQLUtils.tableExists(conn, schema, TABLE_NAME))
 			{
-				CallableStatement cstmt = conn.prepareCall("SELECT " + DATASET_ELEMENTS_ELEMENT_COLUMN + ","
-						+ DATASET_ELEMENTS_VALUE_COLUMN + " FROM "
-						+ SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " WHERE "
-						+ DATASET_ELEMENTS_DATASET_COLUMN + " = ?" + " ORDER BY "
-						+ DATASET_ELEMENTS_ELEMENT_COLUMN);
+				String query = String.format(
+						"SELECT %s,%s FROM %s WHERE %s = ? ORDER BY %s",
+						ELEMENT_COLUMN,
+						VALUE_COLUMN,
+						SQLUtils.quoteSchemaTable(conn, schema, TABLE_NAME),
+						DATASET_COLUMN,
+						ELEMENT_COLUMN
+					);
+				
+				cstmt = conn.prepareCall(query);
 				cstmt.setString(1, dataTableName);
 				ResultSet rs = cstmt.executeQuery();
-				
-//				Statement stmt = conn.createStatement();
-//
-//				ResultSet rs = stmt.executeQuery("SELECT " + DATASET_ELEMENTS_ELEMENT_COLUMN + ","
-//						+ DATASET_ELEMENTS_VALUE_COLUMN + " FROM "
-//						+ SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " WHERE "
-//						+ DATASET_ELEMENTS_DATASET_COLUMN + " = '" + dataTableName + "'" + " ORDER BY "
-//						+ DATASET_ELEMENTS_ELEMENT_COLUMN);
-
 				while (rs.next())
-					elements.put(rs.getString(DATASET_ELEMENTS_ELEMENT_COLUMN), rs.getString(DATASET_ELEMENTS_VALUE_COLUMN));
+					elements.put(rs.getString(ELEMENT_COLUMN), rs.getString(VALUE_COLUMN));
 			}
 			return elements;
 		}
@@ -176,15 +174,19 @@ public class DublinCoreUtils
 		{
 			throw new RemoteException(e.getMessage(), e);
 		}
+		finally
+		{
+			SQLUtils.cleanup(cstmt);
+		}
 	}
 
 	public static void deleteDCElements(Connection conn, String schema, String dataTableName, List<Map<String, String>> elements) throws RemoteException
 	{
+		CallableStatement cstmt = null;
 		try
 		{
-			if (SQLUtils.tableExists(conn, schema, DATASET_ELEMENTS_TABLE_NAME))
+			if (SQLUtils.tableExists(conn, schema, TABLE_NAME))
 			{
-				//Statement stmt = conn.createStatement();
 				String element;
 				String value;
 				for (Map<String, String> e : elements)
@@ -192,24 +194,18 @@ public class DublinCoreUtils
 					element = e.get("element");
 					value = e.get("value");
 
-//					System.out.println("element = " + element);
-//					System.out.println("value = " + value);
-					
-//					stmt.execute("DELETE FROM " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME)
-//							+ " WHERE " + DATASET_ELEMENTS_ELEMENT_COLUMN + "='" + element + "' and "
-//							+ DATASET_ELEMENTS_VALUE_COLUMN + "='" + value + "' and " + DATASET_ELEMENTS_DATASET_COLUMN + "='"
-//							+ dataTableName + "'");
-					
-					CallableStatement cstmt = conn.prepareCall("DELETE FROM " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME)
-							+ " WHERE " + DATASET_ELEMENTS_ELEMENT_COLUMN + "= ? and "
-							+ DATASET_ELEMENTS_VALUE_COLUMN + "= ? and " + DATASET_ELEMENTS_DATASET_COLUMN + "= ?");
+					String query = String.format(
+						"DELETE FROM %s WHERE %s = ? and %s = ? and %s = ?",
+						SQLUtils.quoteSchemaTable(conn, schema, TABLE_NAME),
+						ELEMENT_COLUMN,
+						VALUE_COLUMN,
+						DATASET_COLUMN
+					);
+					cstmt = conn.prepareCall(query);
 					cstmt.setString(1, element);
 					cstmt.setString(2, value);
 					cstmt.setString(3, dataTableName);
-					
 					cstmt.execute();
-
-					
 				}
 			}
 			else
@@ -219,43 +215,39 @@ public class DublinCoreUtils
 		{
 			throw new RemoteException(e.getMessage(), e);
 		}
+		finally
+		{
+			SQLUtils.cleanup(cstmt);
+		}
 	}
 
 	public static void updateEditedDCElement(Connection conn, String schema, String dataTableName, Map<String, String> object) throws RemoteException
 	{
+		CallableStatement cstmt = null;
 		try
 		{
-			if (SQLUtils.tableExists(conn, schema, DATASET_ELEMENTS_TABLE_NAME))
+			if (SQLUtils.tableExists(conn, schema, TABLE_NAME))
 			{
-
-				//Statement stmt = conn.createStatement();
 				String element, newValue, oldValue;
 
 				element = object.get("element");
 				newValue = object.get("newValue");
 				oldValue = object.get("oldValue");
 
-//				// Print out the query
-//				String query = "UPDATE " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " SET "
-//						+ DATASET_ELEMENTS_VALUE_COLUMN + "='" + newValue + "' WHERE " + DATASET_ELEMENTS_ELEMENT_COLUMN + "='"
-//						+ element + "' and " + DATASET_ELEMENTS_VALUE_COLUMN + "='" + oldValue + "' and "
-//						+ DATASET_ELEMENTS_DATASET_COLUMN + "='" + dataTableName + "'";
-				
-				
-				CallableStatement cstmt = conn.prepareCall("UPDATE " + SQLUtils.quoteSchemaTable(conn, schema, DATASET_ELEMENTS_TABLE_NAME) + " SET "
-						+ DATASET_ELEMENTS_VALUE_COLUMN + "= ? WHERE " + DATASET_ELEMENTS_ELEMENT_COLUMN + "= ? and " + DATASET_ELEMENTS_VALUE_COLUMN + "= ? and "
-						+ DATASET_ELEMENTS_DATASET_COLUMN + "= ?");
+				String query = String.format(
+						"update %s set %s = ? where %s = ? and %s = ? and %s = ?",
+						SQLUtils.quoteSchemaTable(conn, schema, TABLE_NAME),
+						VALUE_COLUMN,
+						ELEMENT_COLUMN,
+						VALUE_COLUMN,
+						DATASET_COLUMN
+					);
+				cstmt = conn.prepareCall(query);
 				cstmt.setString(1, newValue);
 				cstmt.setString(2, element);
 				cstmt.setString(3, oldValue);
 				cstmt.setString(4, dataTableName);
-				
-				
 				cstmt.execute();
-
-				//System.out.println(query);
-
-				//stmt.executeUpdate(query);
 			}
 			else
 				throw new RemoteException("Error - metadata table does not exist!");
@@ -263,6 +255,10 @@ public class DublinCoreUtils
 		catch (SQLException e)
 		{
 			throw new RemoteException(e.getMessage(), e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(cstmt);
 		}
 	}
 }
