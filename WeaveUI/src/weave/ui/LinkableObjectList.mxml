@@ -42,6 +42,7 @@ LinkableObjectList
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
 			import mx.controls.List;
+			import mx.controls.listClasses.IListItemRenderer;
 			import mx.core.IUIComponent;
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
@@ -53,6 +54,7 @@ LinkableObjectList
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.juggleGroupedCallback;
+			import weave.api.juggleImmediateCallback;
 			import weave.core.SessionManager;
 			import weave.utils.ColumnUtils;
 			
@@ -61,12 +63,11 @@ LinkableObjectList
 			
 			[Inspectable] public function set hashMap(value:ILinkableHashMap):void
 			{
-				juggleGroupedCallback(
+				juggleImmediateCallback(
 					_hashMap && _hashMap.childListCallbacks,
 					value && value.childListCallbacks,
 					this,
-					updateDataProvider,
-					true
+					updateDataProvider
 				);
 				
 				juggleGroupedCallback(_hashMap, value, this, refreshLabels, true);
@@ -75,6 +76,8 @@ LinkableObjectList
 				
 				if (_hashMap)
 					dynamicObject = null;
+				
+				updateDataProvider();
 			}
 			public function get hashMap():ILinkableHashMap
 			{
@@ -104,7 +107,7 @@ LinkableObjectList
 				
 				if (_dynamicObject)
 				{
-					_hashMap = null;
+					hashMap = null;
 					rowCount = 1;
 				}
 			}
@@ -122,6 +125,14 @@ LinkableObjectList
 				}
 				else if (hashMap)
 				{
+					var item:Object = hashMap.childListCallbacks.lastObjectRemoved;
+					if (item)
+					{
+						var renderer:IListItemRenderer = itemToItemRenderer(item);
+						if (renderer)
+							renderer.data = null;
+					}
+					
 					dataProvider = hashMap.getObjects();
 				}
 

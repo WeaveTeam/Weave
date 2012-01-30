@@ -499,6 +499,11 @@ package weave
 
 		private function toggleMenuBar():void
 		{
+			if (!enabled)
+			{
+				callLater(toggleMenuBar);
+				return;
+			}
 			DraggablePanel.showRollOverBorders = adminService || getFlashVarEditable();
 			if (Weave.properties.enableMenuBar.value || adminService || getFlashVarEditable())
 			{
@@ -704,8 +709,6 @@ package weave
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(title, callback, params));
 		}
 		
-		private var _alreadyLoaded:Boolean = false;
-		private var _stateLoaded:Boolean = false;
 		public function loadSessionState(fileContent:Object, fileName:String):void
 		{
 			DebugTimer.begin();
@@ -816,8 +819,6 @@ package weave
 			// Set the name of the CSS style we will be using for this application.  If weaveStyle.css is present, the style for
 			// this application can be defined outside the code in a CSS file.
 			this.styleName = "application";	
-			
-			_stateLoaded = true;
 		}
 		
 		private function handleWeaveListChange():void
