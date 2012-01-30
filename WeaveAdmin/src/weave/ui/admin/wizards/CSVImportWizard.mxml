@@ -284,9 +284,20 @@
 				{
 					keyColumnChange(event);
 					
+				}else{
+					//if we are generating new key columns then enable finish and next button
+					//because we are not checking to see if selected key column has unique values.
+					finishEnabled = true;
+					nextEnabled = true;
 				}
+				
 			}
 			
+			/**
+			 * This function is called to check if the selected key column has unique values.
+			 * If the column does not have unique values we set the errorString on the primary and secondary key
+			 * combo boxes and disable the next and finish buttons.
+			 * */
 			private function keyColumnChange(event:Event=null):void
 			{
 				var keyColName:String = csvKeyColumnCombo.selectedItem as String;
@@ -317,17 +328,25 @@
 					csvKeyColumnCombo.errorString = "Key values are not unique";
 					
 					csvSecondaryKeyColumnCombo.errorString = "Key values are not unique";
+					
+					finishEnabled = false;
+					nextEnabled = false;
 				}else{
 					
 					csvKeyColumnCombo.errorString = '';
 					csvSecondaryKeyColumnCombo.errorString = '';
 					
+					finishEnabled = true;
+					nextEnabled = true;
 				}
 				
 				csvKeyColumnCombo.invalidateDisplayList();
 				csvSecondaryKeyColumnCombo.invalidateDisplayList();
 			}
 			
+			/**
+			 * This function takes an array of values and performs a check to see if the values are unique
+			 *  */
 			private function isUnique(data:Array):Boolean
 			{
 				var unique:Boolean = true;
