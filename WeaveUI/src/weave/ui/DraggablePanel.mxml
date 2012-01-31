@@ -63,6 +63,7 @@
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
@@ -76,7 +77,6 @@
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
-			import weave.core.StageUtils;
 			import weave.primitives.ImageFactory;
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.NumberUtils;
@@ -428,7 +428,7 @@
 
 			protected function updateForceEnableBorders():void
 			{
-				if (_dragging || _resizing || StageUtils.mouseButtonDown)
+				if (_dragging || _resizing || WeaveAPI.StageUtils.mouseButtonDown)
 					return;
 				
 				// if this is a popup (parent == systemManager), ignore global borders setting
@@ -1080,7 +1080,7 @@
 					return;
 				
 				// delay this function while the mouse is still moving
-				if (StageUtils.mouseMoved)
+				if (WeaveAPI.StageUtils.mouseMoved)
 				{
 					callLater(delayedHandleStageMouseMove);
 					return;
@@ -1431,7 +1431,7 @@
 			protected function handleMinimizeButtonClick():void
 			{
 				var hashMap:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
-				if (StageUtils.shiftKey && hashMap)
+				if (WeaveAPI.StageUtils.shiftKey && hashMap)
 				{
 					for each (var panel:DraggablePanel in hashMap.getObjects(DraggablePanel))
 						panel.minimizePanel();

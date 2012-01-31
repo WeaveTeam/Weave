@@ -27,8 +27,6 @@ package weave.services.wms
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
 	import weave.core.CallbackCollection;
-	import weave.core.ErrorManager;
-	import weave.core.StageUtils;
 	import weave.primitives.Bounds2D;
 
 	/**
@@ -119,7 +117,7 @@ package weave.services.wms
 			if (index >= 0)
 				_pendingTiles.splice(index, 1);
 			
-			StageUtils.callLater(this, triggerCallbacks);
+			WeaveAPI.StageUtils.callLater(this, triggerCallbacks);
 		}
 		
 		/**

@@ -138,8 +138,6 @@ import nochump.util.zip.ZipFile;
 import weave.api.WeaveAPI;
 import weave.api.core.IDisposableObject;
 import weave.core.ClassUtils;
-import weave.core.LibraryUtils;
-import weave.core.StageUtils;
 
 /**
  * @private
@@ -195,7 +193,7 @@ internal class Library implements IDisposableObject
 		{
 			_asyncToken = new AsyncToken();
 			// notify the responder one frame later
-			StageUtils.callLater(this, _notifyResponders, null, false);
+			WeaveAPI.StageUtils.callLater(this, _notifyResponders, null, false);
 		}
 		
 		_asyncToken.addResponder(new AsyncResponder(asyncResultHandler, asyncFaultHandler, token));
@@ -334,7 +332,7 @@ internal class Library implements IDisposableObject
 			
 			return progress;
 		}
-		StageUtils.startTask(this, loadingTask);
+		WeaveAPI.StageUtils.startTask(this, loadingTask);
 	}
 	
 	/**

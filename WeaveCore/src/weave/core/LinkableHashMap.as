@@ -260,8 +260,8 @@ package weave.core
 				if ( ClassUtils.classImplements(className, SessionManager.ILinkableObjectQualifiedClassName)
 					&& (_typeRestriction == null || ClassUtils.classIs(className, _typeRestrictionClassName)) )
 				{
-					try
-					{
+//					try
+//					{
 						// If this name is not associated with an object of the specified type,
 						// associate the name with a new object of the specified type.
 						var classDef:Class = ClassUtils.getClassDefinition(className) as Class;
@@ -269,12 +269,12 @@ package weave.core
 							createAndSaveNewObject(name, classDef);
 						if (lockObject)
 							this.lockObject(name);
-					}
-					catch (e:Error)
-					{
-						reportError(e);
-						enterDebugger();
-					}
+//					}
+//					catch (e:Error)
+//					{
+//						reportError(e);
+//						enterDebugger();
+//					}
 				}
 				else
 				{

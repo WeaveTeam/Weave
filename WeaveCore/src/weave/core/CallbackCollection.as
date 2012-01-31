@@ -380,7 +380,7 @@ package weave.core
 		{
 			if (!_frameCallbackAdded)
 			{
-				StageUtils.addEventCallback(Event.ENTER_FRAME, null, _handleGroupedCallbacks);
+				WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, null, _handleGroupedCallbacks);
 				_frameCallbackAdded = true;
 			}
 			

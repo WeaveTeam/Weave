@@ -49,7 +49,6 @@ package weave
 	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
-	import weave.resources.fonts.EmbeddedFonts;
 	import weave.utils.CSSUtils;
 	import weave.utils.DebugUtils;
 	import weave.utils.LinkableTextFormat;
@@ -106,7 +105,7 @@ package weave
 		
 		private var fontLoader:FontLoader = new FontLoader();
 		
-		public static const embeddedFonts:ArrayCollection = new ArrayCollection([EmbeddedFonts.SophiaNubian]);
+		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
 		private function weaveFontsLoaded(event:Event):void
 		{
 			var fonts:Array = fontLoader.fonts;

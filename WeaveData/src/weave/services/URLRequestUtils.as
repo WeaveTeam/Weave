@@ -39,9 +39,9 @@ package weave.services
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IURLRequestUtils;
-	import weave.core.StageUtils;
 
 	/**
 	 * An all-static class containing functions for downloading URLs.
@@ -77,7 +77,7 @@ package weave.services
 				// and return a new URLLoader. CustomURLLoader doesn't load if the 
 				// last parameter to the constructor is false.
 				urlLoader = new CustomURLLoader(request, dataFormat, false); 
-				StageUtils.callLater(
+				WeaveAPI.StageUtils.callLater(
 					this, 
 					asyncFaultHandler || noOp, 
 					[new FaultEvent(FaultEvent.FAULT, false, true, new Fault(String(e.errorID), e.name, e.message)), token]
@@ -109,7 +109,7 @@ package weave.services
 					var contentRequestToken:ContentRequestToken = new ContentRequestToken(null, asyncResultHandler, asyncFaultHandler, token);
 					var resultEvent:ResultEvent = ResultEvent.createEvent(content);
 					// wait one frame and make sure to call contentResult() instead of result().
-					StageUtils.callLater(null, contentRequestToken.contentResult, [resultEvent], false);
+					WeaveAPI.StageUtils.callLater(null, contentRequestToken.contentResult, [resultEvent], false);
 					return contentRequestToken;
 				}
 			}
@@ -211,7 +211,6 @@ import mx.rpc.events.ResultEvent;
 
 import weave.api.WeaveAPI;
 import weave.api.services.IURLRequestToken;
-import weave.core.StageUtils;
 
 internal class CustomURLLoader extends URLLoader
 {

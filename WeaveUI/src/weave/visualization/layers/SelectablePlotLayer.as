@@ -23,31 +23,25 @@ package weave.visualization.layers
 	import flash.filters.BlurFilter;
 	import flash.filters.DropShadowFilter;
 	import flash.filters.GlowFilter;
-	import flash.utils.getQualifiedClassName;
 	
 	import mx.containers.Canvas;
 	import mx.controls.Label;
 	
 	import weave.Weave;
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableHashMap;
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IKeySet;
-	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
-	import weave.api.getLinkableOwner;
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotLayer;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
-	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.utils.SpatialIndex;
@@ -175,7 +169,7 @@ package weave.visualization.layers
 		}
 		
 		{ /** begin static code block **/
-			StageUtils.addEventCallback(Event.ENTER_FRAME, null, probeAnimator);
+			WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, null, probeAnimator);
 		} /** end static code block **/
 		private static function probeAnimator():void
 		{
@@ -220,8 +214,8 @@ package weave.visualization.layers
 			}
 			
 			// update the current and total time counters
-			_frameTimeCurrent += StageUtils.previousFrameElapsedTime;
-			_frameTimeTotal   += StageUtils.previousFrameElapsedTime;
+			_frameTimeCurrent += WeaveAPI.StageUtils.previousFrameElapsedTime;
+			_frameTimeTotal   += WeaveAPI.StageUtils.previousFrameElapsedTime;
 		}
 
 		private function handleFrameEnter(e:Event):void

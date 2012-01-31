@@ -57,7 +57,6 @@ package weave
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
-	import weave.core.StageUtils;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.WeaveDataSource;
@@ -513,7 +512,7 @@ package weave
 
 					//trace("MENU BAR ADDED");
 					_weaveMenu.percentWidth = 100;
-					StageUtils.callLater(this,setupVisMenuItems,null,false);
+					WeaveAPI.StageUtils.callLater(this,setupVisMenuItems,null,false);
 					
 					//PopUpManager.addPopUp(_weaveMenu, this);
 					this.addChildAt(_weaveMenu, 0);
@@ -792,7 +791,7 @@ package weave
 			}
 			DebugTimer.end('loadSessionState', fileName);
 
-			StageUtils.callLater(this, toggleMenuBar, null, false);
+			WeaveAPI.StageUtils.callLater(this, toggleMenuBar, null, false);
 			
 			if (!getFlashVarAdminConnectionName())
 				enabled = true;
@@ -824,7 +823,7 @@ package weave
 		private function handleWeaveListChange():void
 		{
 			if (Weave.root.childListCallbacks.lastObjectAdded is DraggablePanel)
-				StageUtils.callLater(this,setupWindowMenu,null,false); // add panel to menu items
+				WeaveAPI.StageUtils.callLater(this,setupWindowMenu,null,false); // add panel to menu items
 		}
 		
 		private function createColorHistogram():void

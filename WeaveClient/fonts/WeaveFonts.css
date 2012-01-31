@@ -4,6 +4,21 @@ To compile CSS file to a SWF File, right click on this file from Flash Builder
 and select Compile CSS to SWF
 */
 @font-face {
+	src: url("fonts/SophiaNubian/SNR.ttf");
+	fontWeight: normal;
+	fontName: "Sophia Nubian";
+	fontFamily: "Sophia Nubian";
+}
+@font-face {
+	src: url("fonts/SophiaNubian/SNB.ttf");
+	fontWeight: bold;
+	fontName: "Sophia Nubian";
+	fontFamily: "Sophia Nubian";
+}
+
+
+/*
+@font-face {
 	src:url("MyriadPro-Bold.otf");
 	fontFamily: MyriadPro;
 	fontWeight:bold;
@@ -31,3 +46,4 @@ and select Compile CSS to SWF
 	fontWeight:bold;
 	advancedAntiAliasing: true;
 }
+*/

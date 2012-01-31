@@ -34,6 +34,7 @@ package weave.core
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableCompositeObject;
@@ -1189,7 +1190,7 @@ package weave.core
 				// if the linkable variable's callbacks are delayed, delay synchronization
 				if (getCallbackCollection(linkableVariable).callbacksAreDelayed)
 				{
-					uiComponent.callLater(synchronize, [firstParam, true]);
+					WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], false);
 					return;
 				}
 				

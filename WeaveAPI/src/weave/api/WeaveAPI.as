@@ -27,6 +27,7 @@ package weave.api
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
+	import weave.api.core.IStageUtils;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
 	import weave.api.data.IProjectionManager;
@@ -82,6 +83,13 @@ package weave.api
 		public static function get SessionManager():ISessionManager
 		{
 			return getSingletonInstance(ISessionManager);
+		}
+		/**
+		 * This is the singleton instance of the registered IStageUtils implementation.
+		 */
+		public static function get StageUtils():IStageUtils
+		{
+			return getSingletonInstance(IStageUtils);
 		}
 		/**
 		 * This is the singleton instance of the registered IErrorManager implementation.

@@ -42,20 +42,15 @@ ConnectionComponent
 <mx:Script>
 	<![CDATA[
 		import mx.core.Application;
-		import flash.utils.getQualifiedClassName;
-		
 		import mx.core.DragSource;
 		import mx.core.IUIComponent;
 		import mx.events.DragEvent;
 		import mx.managers.DragManager;
 		
 		import weave.Weave;
-		import weave.core.ClassUtils;
-		import weave.core.DynamicState;
-		import weave.core.SessionManager;
+		import weave.api.WeaveAPI;
 		import weave.api.core.ILinkableDynamicObject;
 		import weave.api.getCallbackCollection;
-		import weave.core.StageUtils;
 		
 		[Embed(source= "/weave/resources/images/green-circle.png")]
 		private var _connected:Class;
@@ -87,7 +82,7 @@ ConnectionComponent
 		
 		private function initDrag(event:MouseEvent):void
 		{
-			StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove, null, true);
+			WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove, null, true);
 			
 			var itemsArray:Array = new Array();
 			itemsArray.push(this);
@@ -135,7 +130,7 @@ ConnectionComponent
 		
 		private function handleDragComplete(event:DragEvent):void
 		{
-			StageUtils.removeEventCallback(MouseEvent.MOUSE_MOVE,handleMouseMove);
+			WeaveAPI.StageUtils.removeEventCallback(MouseEvent.MOUSE_MOVE,handleMouseMove);
 		}
 		
 		private var _prevStaticName:String = null;
