@@ -25,7 +25,7 @@
 			xmlns:admin="weave.ui.admin.*"
 			xmlns="weave.ui.admin.wizards.*"
 			label="Import SQL tables to Weave"
-			finishEnabled="{tableSelector.activeTable &amp;&amp; keyColumnComboBox.selectedItem}"
+			finishEnabled="false"
 			>
 	<mx:VBox width="100%" height="100%">
 		<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
@@ -36,19 +36,19 @@
 				<mx:CheckBox label="Overwrite" id="tableNameOverwriteCheck" selected="false"/>
 			</ui:Indent>
 			<ui:Indent group="{tableSelector.indentGroup}" label="{Strings.key_column_name}">
-				<ui:CustomComboBox id="keyColumnComboBox" prompt="Select a column..." dataProvider="{tableSelector.columns}" toolTip="{Strings.tip_key_column_dropdown}"/>
+				<ui:CustomComboBox id="keyColumnComboBox" prompt="Select a column..." dataProvider="{tableSelector.columns}" toolTip="{Strings.tip_key_column_dropdown}" change="handleKeyColumnChange()"/>
 			</ui:Indent>
 			<mx:VBox visible="{keyColumnComboBox.selectedItem}">
 				<mx:Label text="What do these keys correspond to?"/>
 				<admin:GeometryCollectionDialog paddingLeft="{paddingIndent}" id="geometrySelector" keyType="{tableSelector.activeTable}"/>
 				
-				<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
+				<mx:CheckBox change="handleKeyColumnChange()" id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
 				<ui:Indent paddingLeft="{paddingIndent}"
 						   grouped="false"
 						   visible="{secondaryKeyColumnCheckBox.selected}"
 						   includeInLayout="{secondaryKeyColumnCheckBox.selected}"
 						   label="Secondary key column">
-					<ui:CustomComboBox id="sqlSecondaryKeyColumnCombo" dataProvider="{tableSelector.columns}" toolTip="Select a secondary key column for use with the Dimension Slider"/>
+					<ui:CustomComboBox change="handleKeyColumnChange()" id="sqlSecondaryKeyColumnCombo" dataProvider="{tableSelector.columns}" toolTip="Select a secondary key column for use with the Dimension Slider"/>
 				</ui:Indent>
 				
 				<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
@@ -64,6 +64,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
+			import mx.containers.ControlBar;
 			import mx.controls.ComboBox;
 			import mx.events.CollectionEvent;
 			import mx.events.FlexEvent;
@@ -81,6 +82,48 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				
+				tableSelector.schemaInput.addEventListener(Event.CHANGE,function():void{finishEnabled=false;});
+				tableSelector._tableCombo.addEventListener(Event.CHANGE,function():void{finishEnabled=false;});
+			}
+			
+			private function handleKeyColumnChange():void
+			{
+				keyColumnComboBox.errorString = '';
+				sqlSecondaryKeyColumnCombo.errorString = '';
+				
+				finishEnabled = false;
+				var query:DelayedAsyncInvocation = AdminInterface.instance.checkKeyColumnForSQLImport(
+					tableSelector.activeSchema,
+					tableSelector.activeTable,
+					keyColumnComboBox.selectedLabel,
+					secondaryKeyColumnCheckBox.selected? sqlSecondaryKeyColumnCombo.selectedLabel:null);
+				
+				query.addAsyncResponder(handleCheckResult,handleFaultCheck);
+				
+				function handleCheckResult(event:ResultEvent,token:Object=null):void
+				{
+					if(!event.result as Boolean)
+					{
+						keyColumnComboBox.errorString = "Key values are not unique";
+						sqlSecondaryKeyColumnCombo.errorString = "Key values are not unique";
+						
+						finishEnabled = false;
+					}else{
+						keyColumnComboBox.errorString = '';
+						sqlSecondaryKeyColumnCombo.errorString = '';
+						
+						finishEnabled = true;
+					}
+					
+					keyColumnComboBox.invalidateDisplayList();
+					sqlSecondaryKeyColumnCombo.invalidateDisplayList();
+				}
+				function handleFaultCheck(event:FaultEvent,token:Object=null):void
+				{
+					
+				}
+				
 			}
 			
 			override public function finish():void

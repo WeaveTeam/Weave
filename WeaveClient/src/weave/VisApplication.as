@@ -51,7 +51,6 @@ package weave
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.WeaveFileFormat;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
@@ -168,7 +167,6 @@ package weave
 			
 			setStyle("verticalGap", 0);
 			setStyle("horizingalGap", 0);
-			setStyle("horizontalAlign", "right"); // for copyright below desktop
 			setStyle('backgroundAlpha', 1);
 			
 			// make it so the menu bar does not get hidden if the workspace size is too small.
@@ -505,6 +503,11 @@ package weave
 
 		private function toggleMenuBar():void
 		{
+			if (!enabled)
+			{
+				callLater(toggleMenuBar);
+				return;
+			}
 			DraggablePanel.showRollOverBorders = adminService || getFlashVarEditable();
 			if (Weave.properties.enableMenuBar.value || adminService || getFlashVarEditable())
 			{
@@ -573,6 +576,23 @@ package weave
 			if (Weave.properties.enableDataMenu.value)
 			{
 				_dataMenu = _weaveMenu.addMenuToMenuBar("Data", false);
+				if (Weave.properties.enableNewUserWizard)
+				{
+					_weaveMenu.addMenuItemToMenu(
+						_dataMenu,
+						new WeaveMenuItem(
+							"Load my data",
+							function():void
+							{
+								WizardPanel.createWizard(_this, new NewUserWizard());
+							}
+						)
+					);
+				}
+				
+				if (Weave.properties.showAttributeSelector)
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Browse data", AttributeSelectorPanel.openDefaultSelector));
+				
 				_weaveMenu.addMenuItemToMenu(_dataMenu,
 					new WeaveMenuItem("Refresh all data source hierarchies",
 						function ():void {
@@ -600,13 +620,9 @@ package weave
 				createToolMenuItem(Weave.properties.showColorController, "Show Color Controller", DraggablePanel.openStaticInstance, [ColorController]);
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Show Probe ToolTip Editor", DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
 				createToolMenuItem(Weave.properties.showEquationEditor, "Show Equation Editor", DraggablePanel.openStaticInstance, [EquationEditor]);
-				createToolMenuItem(Weave.properties.showAttributeSelector, "Show Attribute Selector", AttributeSelectorPanel.openDefaultSelector);
 				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Connect to Collaboration Server", DraggablePanel.openStaticInstance, [CollaborationTool]);
 				
 				var _this:VisApplication = this;
-				createToolMenuItem(Weave.properties.enableNewUserWizard, "New User Wizard", function():void {
-					WizardPanel.createWizard(_this, new NewUserWizard());
-				});
 
 				if (!Weave.properties.dashboardMode.value)
 				{
@@ -699,32 +715,37 @@ package weave
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(title, callback, params));
 		}
 		
-		private var _alreadyLoaded:Boolean = false;
-		private var _stateLoaded:Boolean = false;
 		public function loadSessionState(fileContent:Object, fileName:String):void
 		{
 			DebugTimer.begin();
-			var content:Object = null;
-			try {
-				content = WeaveFileFormat.readFile(ByteArray(fileContent));
-			} catch (e:Error) { }
-			
-			if (content)
+			try
 			{
-				Weave.loadWeaveFileContent(content);
+				// attempt to parse as a Weave archive
+				Weave.loadWeaveFileContent(ByteArray(fileContent));
 			}
-			else
+			catch (error:Error)
 			{
-				// attempt to load .xml file
+				// attempt to parse as xml
 				var xml:XML = null;
-				try
+				// check the first character because a non-xml string may still parse as a single xml text node.
+				if (String(fileContent).charAt(0) == '<')
 				{
-					xml = XML(fileContent);
+					try
+					{
+						xml = XML(fileContent);
+					}
+					catch (xmlError:Error)
+					{
+						// invalid xml
+						reportError(xmlError);
+					}
 				}
-				catch (e:Error)
+				else
 				{
-					reportError(e);
+					// not an xml, so report the original error
+					reportError(error);
 				}
+				
 				if (xml)
 				{
 					// backwards compatibility:
@@ -770,12 +791,14 @@ package weave
 					var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 					if (subset.includeMissingKeys.value == false && subset.included.keys.length == 0 && subset.excluded.keys.length == 0)
 						subset.includeMissingKeys.value = true;
+					
+					// begin with empty history after loading the session state from the xml
+					Weave.history.clearHistory();
 				}
-				Weave.history.clearHistory(); // begin with empty history after loading the session state from the xml
 			}
 			DebugTimer.end('loadSessionState', fileName);
 
-			StageUtils.callLater(this,toggleMenuBar,null,false);
+			StageUtils.callLater(this, toggleMenuBar, null, false);
 			
 			if (!getFlashVarAdminConnectionName())
 				enabled = true;
@@ -802,8 +825,6 @@ package weave
 			// Set the name of the CSS style we will be using for this application.  If weaveStyle.css is present, the style for
 			// this application can be defined outside the code in a CSS file.
 			this.styleName = "application";	
-			
-			_stateLoaded = true;
 		}
 		
 		private function handleWeaveListChange():void

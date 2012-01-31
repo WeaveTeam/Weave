@@ -53,6 +53,8 @@
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/framework.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/rpc.swc" append="true"/>
 
+			<library-path dir="${PROJECT_DIR}/libs" includes="*.swc" append="true"/>
+
 		</compc>
 	</target>
 

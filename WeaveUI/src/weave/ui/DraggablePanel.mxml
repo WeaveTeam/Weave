@@ -81,6 +81,12 @@
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.NumberUtils;
 			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				panelNeedsUpdate();
+			}
+			
 			public static var showRollOverBorders:Boolean = false;
 			public static var activePanel:DraggablePanel = null;
 			public static function get activePanelName():String
@@ -232,7 +238,7 @@
 				titleBar.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
 				titleBar.addEventListener(MouseEvent.DOUBLE_CLICK, handleTitleBarDoubleClick);
 				
-				minWidth = 120;
+				minWidth = 24;
 				
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter, true);
 				addEventListener(DragEvent.DRAG_ENTER, handleDragEnter);
@@ -361,6 +367,7 @@
 				parent.addEventListener(ResizeEvent.RESIZE, handleParentResize);
 				
 				copyCoordinatesFromSessionedProperties();
+				panelNeedsUpdate();
 			}
 			private function handleRemovedFromStage(event:Event):void
 			{
@@ -433,7 +440,6 @@
 				forceEnableBorders.value = enableBordersFlag || enableRollOverBorders;
 			}
 			
-			// basically a dirty flag function that waits until creation complete, can be changed to a flag 
 			private function panelNeedsUpdate():void
 			{
 				if (!parent)

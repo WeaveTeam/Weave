@@ -48,6 +48,10 @@ import java.util.Vector;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
+import org.hamcrest.core.IsNull;
+
+import com.sun.org.apache.xml.internal.serializer.ToTextStream;
+
 import weave.beans.AdminServiceResponse;
 import weave.beans.UploadFileFilter;
 import weave.beans.UploadedFile;
@@ -1068,7 +1072,20 @@ public class AdminService extends GenericServlet
 			throw new RemoteException("IOException", e);
 		}
 	}
-
+	
+	synchronized public Object[][] getDBFData(String dbfFileName) throws RemoteException
+	{
+		try
+		{
+			Object[][] dataArray = DBFUtils.getDBFData(new File(uploadPath, correctFileNameCase(dbfFileName)));
+			return dataArray;
+		}
+		catch (IOException e)
+		{
+			throw new RemoteException("IOException", e);
+		}
+	}
+	
 	synchronized private String correctFileNameCase(String fileName)
 	{
 		try 
@@ -2011,5 +2028,100 @@ public class AdminService extends GenericServlet
 			throw new RemoteException("Error writing report definition file: " + fileName, e);
 		}
 		return "Successfully wrote the report definition file: " + reportDefFile.getAbsolutePath();
+	}
+	
+	synchronized public boolean checkKeyColumnForSQLImport(String connectionName, String password, String schemaName, String tableName, String keyColumnName, String secondaryKeyColumnName) throws RemoteException
+	{
+		Boolean isUnique = false;
+		
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+				
+		ConnectionInfo info = config.getConnectionInfo(connectionName);
+		if (info == null)
+			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
+		
+		String dbms = info.dbms;
+		
+		String[] columnNames = getColumnsList(connectionName, schemaName, tableName).toArray(new String[0]);
+		
+		// if key column is actually the name of a column, put quotes around it.
+		// otherwise, don't.
+		int iKey = ListUtils.findIgnoreCase(keyColumnName, columnNames); 
+		int iSecondaryKey = ListUtils.findIgnoreCase(secondaryKeyColumnName, columnNames);
+
+		if (iKey >= 0)
+		{
+			keyColumnName = SQLUtils.quoteSymbol(dbms, columnNames[iKey]);
+		}
+		else
+		{
+			keyColumnName = SQLUtils.unquoteSymbol(dbms, keyColumnName); // get the original columnname 
+		}
+		
+		if (iSecondaryKey >= 0)
+			secondaryKeyColumnName = SQLUtils.quoteSymbol(dbms, columnNames[iSecondaryKey]);
+		
+		
+		Connection conn = null;
+		try
+		{
+			conn = SQLConfigUtils.getConnection(config, connectionName);
+			if(secondaryKeyColumnName == null || secondaryKeyColumnName.isEmpty())
+			{
+				String totalRowsQuery = null;
+				String distinctRowsQuery = null;
+				totalRowsQuery = String.format(
+						"select count(%s) from %s",
+						keyColumnName,
+						SQLUtils.quoteSchemaTable(conn, schemaName, tableName));
+				SQLResult totalRowsResult = SQLUtils.getRowSetFromQuery(conn, totalRowsQuery);
+				
+				
+				distinctRowsQuery = String.format(
+						"select count(distinct %s) from %s",
+						keyColumnName,
+						SQLUtils.quoteSchemaTable(conn, schemaName, tableName));
+				
+				SQLResult distinctRowsResult = SQLUtils.getRowSetFromQuery(conn, distinctRowsQuery);
+				
+				
+				isUnique = distinctRowsResult.rows[0][0].toString().equalsIgnoreCase(totalRowsResult.rows[0][0].toString());
+			}else{
+				
+				String query = String.format(
+					"select %s,%s from %s",
+					keyColumnName,
+					secondaryKeyColumnName,
+					SQLUtils.quoteSchemaTable(conn, schemaName, tableName)
+					);
+				
+				SQLResult result = SQLUtils.getRowSetFromQuery(conn, query);
+				
+				HashMap<String, Boolean> map = new HashMap<String, Boolean>();
+				
+				isUnique = true;
+				for(int i = 0; i < result.rows.length; i++)
+				{
+					if(map.get(result.rows[i][0].toString()+','+result.rows[i][1].toString()) == null)
+					{
+						map.put(result.rows[i][0].toString()+','+result.rows[i][1].toString(), true);
+					}else{
+						isUnique = false;
+						break;
+					}
+					
+				}
+			}
+				
+		}catch(Exception e)
+		{
+			throw new RemoteException("Error querying key columns:   " + e.getMessage() + e.toString());
+		}finally
+		{
+			SQLUtils.cleanup(conn);
+		}
+		
+
+		return isUnique;
 	}
 }

@@ -28,6 +28,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.CheckBox;
+			import mx.controls.sliderClasses.Slider;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
@@ -219,8 +220,8 @@
 				simpleAxisEditor.addChild(backgroundImageCheck);
 				simpleAxisEditor.marginProperties.parent.removeChild(simpleAxisEditor.marginProperties);
 				
-				linkBindableProperty(visualization.minZoomLevel, zoomSlider, "minimum");
-				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");
+				linkBindableProperty(visualization.minZoomLevel, this, "zoomSliderMinimum");
+				linkBindableProperty(visualization.maxZoomLevel, this, "zoomSliderMaximum");
 				
 				if (visualization.layers.getNames().length == 0)
 					addGeomLayer();
@@ -288,16 +289,16 @@
 				if (zoomSlider)
 				{
 					currentlyUpdatingZoomSlider = true;
-					zoomSlider.value = visualization.getZoomLevel();
+					scaleRangeTabZoomSlider.value = zoomSlider.value = visualization.getZoomLevel();
 					currentlyUpdatingZoomSlider = false;
 				}
 			}
 			private var currentlyUpdatingZoomSlider:Boolean = false;
 			
-			private function handleZoomSliderChange():void
+			private function handleZoomSliderChange(event:Event):void
 			{
 				if (!currentlyUpdatingZoomSlider)
-					visualization.setZoomLevel(zoomSlider.value);
+					visualization.setZoomLevel(event.currentTarget.value);
 			}
 			
 			private function handleZoomInClick():void
@@ -479,49 +480,9 @@
 				}
 			}
 			
-			/**
-			 * This function will zoom the map to the shapes corresponding to a list of keys.
-			 * @param keys An Array of IQualifiedKey objects, or null to get them from the current selection.
-			 * @param zoomMarginPercent The percent of width and height to reserve for space around the zoomed area.
-			 */
-			public function zoomToSelection(keys:Array = null, zoomMarginPercent:Number = 0.2):void
-			{
-				if (!keys)
-				{
-					var selection:IKeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as IKeySet;
-					var probe:IKeySet = Weave.root.getObject(Weave.DEFAULT_PROBE_KEYSET) as IKeySet;
-					var alwaysHighlight:IKeySet = Weave.root.getObject(Weave.ALWAYS_HIGHLIGHT_KEYSET) as IKeySet;
-					keys = selection.keys;
-					if (keys.length == 0)
-						keys = probe.keys;
-					if (keys.length == 0)
-						keys = alwaysHighlight.keys;
-				}
-				
-				// get the bounds containing all the records on all the layers
-				_tempBounds.reset();
-				var layers:Array = visualization.layers.getObjects(IPlotLayer);
-				for each (var key:* in keys)
-				{
-					if (!(key is IQualifiedKey))
-						key = WeaveAPI.QKeyManager.getQKey(key.keyType, key.localName);
-					for each (var layer:IPlotLayer in layers)
-					{
-						var boundsArray:Array = (layer.spatialIndex as SpatialIndex).getBoundsFromKey(key);
-						for each (var bounds:IBounds2D in boundsArray)
-							_tempBounds.includeBounds(bounds);
-					}
-				}
-				// zoom to that bounds, expanding the area to keep the fixed aspect ratio
-				visualization.zoomBounds.setDataBounds(_tempBounds, true);
-				
-				// zoom out to include the specified margin
-				visualization.zoomBounds.getDataBounds(_tempBounds);
-				var scale:Number = 1 / (1 - zoomMarginPercent);
-				_tempBounds.setWidth(_tempBounds.getWidth() * scale);
-				_tempBounds.setHeight(_tempBounds.getHeight() * scale);
-				visualization.zoomBounds.setDataBounds(_tempBounds);
-			}
+			
+			// BACKWARDS COMPATIBILITY
+			[Deprecated(replacement="visualization.zoomToSelection")] public function get zoomToSelection():Function { return visualization.zoomToSelection; }
 		]]>
 	</mx:Script>
 
@@ -559,7 +520,7 @@
 							   fillAlphas="[1,1]" 
 							   width="16" height="16" 
 							   cornerRadius="0"
-							   click="zoomToSelection()"/>
+							   click="visualization.zoomToSelection()"/>
 					<mx:Button id="east"
 						    label="E"
 							fillAlphas="[1.0, 1.0, 1.0, 1.0]"
@@ -589,7 +550,15 @@
 					click="handleZoomInClick()"
 					cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
 			
-			<mx:VSlider id="zoomSlider" showDataTip="false" allowTrackClick="true" liveDragging="true" minimum="0" maximum="16" tickInterval="1" height="88" change="handleZoomSliderChange();"/>
+			<mx:VSlider id="zoomSlider"
+						showDataTip="false"
+						allowTrackClick="true"
+						liveDragging="true"
+						tickInterval="1"
+						minimum="{zoomSliderMinimum}"
+						maximum="{zoomSliderMaximum}"
+						height="88"
+						change="handleZoomSliderChange(event);"/>
 			
 			<mx:Button id="zoomOut"
 					icon="@Embed(source='/weave/resources/images/zoomMinus.png')"
@@ -661,7 +630,7 @@
 	
 
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="Attributes for Map">
+		<mx:VBox id="attributesPanel" label="Map Layers">
 			<mx:HBox width="100%">
 				<mx:Button label="Add Geometry Layer" click="addGeomLayer();"/>
 				<mx:Button label="Add Label Layer" click="addLabelLayer();"/>
@@ -688,7 +657,7 @@
 			<mx:CheckBox label="Enable Map Overview Window" id="overviewCheckBox"
 						 creationComplete="linkBindableProperty(enableOverview,event.target,'selected')"/>
 			<mx:HBox verticalAlign="bottom">
-				<mx:Button label="Zoom to full extent" click="zoomToSelection()" />
+				<mx:Button label="Zoom to full extent" click="visualization.zoomToSelection()" />
 				<mx:VBox verticalGap="1">
 					<mx:Label text="Coordinates at map center:" fontWeight="bold"/>
 					<mx:HBox horizontalGap="0" borderStyle="outset" horizontalAlign="center">
@@ -729,5 +698,108 @@
 						 toolTip="This option enables the mouse mode buttons"
 						 creationComplete="linkBindableProperty(showMouseModeControls,event.target,'selected')"/>
 		</mx:VBox>
+		<mx:VBox label="Layer Visibility" verticalGap="10" id="visibleScaleRangesUI">
+			<ui:Indent label="Current Zoom" labelTextAlign="left" group="{scaleRangeIndentGroup}">
+				<mx:HSlider id="scaleRangeTabZoomSlider" 
+							width="100%" 
+							tickInterval="1"
+							change="handleZoomSliderChange(event);"
+							minimum="{zoomSliderMinimum}"
+							maximum="{zoomSliderMaximum}"
+							liveDragging="true" />
+			</ui:Indent>
+			<ui:LinkableObjectList id="visibleScaleRangesList"
+								   width="100%" height="100%"
+								   initialize="visibleScaleRangesList.hashMap = visualization.layers"
+								   borderStyle="none"
+								   paddingLeft="0">
+				<ui:itemRenderer>
+					<mx:Component>
+						<ui:Indent label="{layerName}" labelTextAlign="left" group="{outerDocument.scaleRangeIndentGroup}">
+							<mx:Script>
+								<![CDATA[
+									import mx.events.SliderEvent;
+									
+									import weave.api.core.ILinkableObject;
+									import weave.api.juggleGroupedCallback;
+									import weave.api.primitives.IBounds2D;
+									import weave.editors.managers.LayerListComponent;
+									import weave.utils.ZoomUtils;
+									import weave.visualization.layers.PlotLayer;
+									import weave.visualization.layers.SelectablePlotLayer;
+									[Bindable] private var layerName:String;
+									private var currentlyUpdatingLayerZoomRangeSlider:Boolean = false;
+									
+									private function handleLayerChange():void
+									{
+										var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
+										var area:Number = fullDataBounds.getArea();
+										if (!isNaN(area))
+										{
+											layerName = outerDocument.visualization.layers.getName(data as ILinkableObject);
+											
+											var minScreenSize:Number = outerDocument.visualization.minScreenSize.value;
+											
+											var minZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
+												fullDataBounds, minScreenSize, data.minVisibleScale.value
+											);
+											
+											var maxZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
+												fullDataBounds, minScreenSize, data.maxVisibleScale.value
+											);
+											
+											currentlyUpdatingLayerZoomRangeSlider = true;
+											layerZoomRangeSlider.values = [minZoomLevel, maxZoomLevel];
+											currentlyUpdatingLayerZoomRangeSlider = false;
+										}
+									}
+									
+									override public function set data(value:Object):void
+									{
+										value = value as SelectablePlotLayer || value as PlotLayer;
+										juggleGroupedCallback(data, value, this, handleLayerChange, true);
+										super.data = value;
+									}
+									private function handleScaleSliderChange(event:SliderEvent):void
+									{
+										if(!currentlyUpdatingLayerZoomRangeSlider && data)
+										{
+											var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
+											var minScreenSize:Number = outerDocument.visualization.minScreenSize.value;
+											var minVisibleZoomLevel:Number = layerZoomRangeSlider.values[0];
+											var maxVisibleZoomLevel:Number = layerZoomRangeSlider.values[1];
+											
+											data.minVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
+												fullDataBounds, minScreenSize, minVisibleZoomLevel
+											);
+											
+											data.maxVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
+												fullDataBounds, minScreenSize, maxVisibleZoomLevel
+											);
+										}
+									}
+								]]>
+							</mx:Script>
+							
+							<mx:HSlider id="layerZoomRangeSlider"
+										liveDragging="true"
+										thumbCount="2"
+										tickInterval="1"
+										snapInterval="{outerDocument.zoomSliderSnapping}"
+										showTrackHighlight="true" 
+										minimum="{outerDocument.zoomSliderMinimum}" 
+										maximum="{outerDocument.zoomSliderMaximum}"
+										change="handleScaleSliderChange(event)"
+										mouseDown="event.stopPropagation()"
+										width="100%"/>
+						</ui:Indent>
+					</mx:Component>			
+				</ui:itemRenderer>
+			</ui:LinkableObjectList>
+		</mx:VBox>
 	</ui:ControlPanel>
+	<ui:IndentGroup id="scaleRangeIndentGroup"/>
+	<mx:Number id="zoomSliderMinimum"/>
+	<mx:Number id="zoomSliderMaximum"/>
+	<mx:Number id="zoomSliderSnapping">0.25</mx:Number>
 </SimpleVisTool>
