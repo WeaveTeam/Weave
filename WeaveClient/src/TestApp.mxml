@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" minWidth="955" minHeight="600"
+				 horizontalAlign="center"
+				 verticalAlign="middle"
+				 autoLayout="true"
+				 layout="horizontal">
+	
+	<mx:VBox>
+		<mx:HSlider id="hSlider" minimum="0" maximum="10" liveDragging="true"
+					creationComplete="linkBindableProperty(test.obj.num, event.currentTarget, 'value')"
+					/>
+		<mx:TextArea id="numInput"/>
+		<mx:TextArea id="strInput" change="strInput_changeHandler(event)"/>
+		<mx:TextArea id="str2Input"/>
+		<mx:CheckBox id="boolInput" label="Checkbox"/>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Text;
+			
+			import tests.Test;
+			
+			import weave.Weave;
+			import weave.api.linkBindableProperty;
+			import weave.core.LinkableString;
+			
+			{ // static code block
+				Weave.initialize();
+			}
+			
+			
+			
+			override protected function createChildren():void
+			{
+				// at this point in the code, numInput is null
+				super.createChildren();
+				// after calling super.createChildren(), numInput is no longer null
+				
+				linkBindableProperty(test.obj.num, numInput, 'text');
+				
+				// reuse the same callback for two sets of parameters
+				test.obj.str.addImmediateCallback(this, setStrInput, [strInput, test.obj.str]);
+				test.myStr.addImmediateCallback(this, setStrInput, [str2Input, test.myStr]);
+			}
+			
+			private function setStrInput(input:TextArea, str:LinkableString):void
+			{
+				//strInput.text = test.obj.str.value;
+				input.text = str.value;
+			}
+			
+			private var test:Test = new Test();
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				test.runTest();
+			}
+			
+			protected function strInput_changeHandler(event:Event):void
+			{
+				//test.obj.str.value = (event.currentTarget as TextArea).text;
+				test.obj.str.value = strInput.text;
+			}
+			
+		]]>
+	</mx:Script>
+</mx:Application>
