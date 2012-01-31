@@ -19,6 +19,10 @@
 
 package weave.core
 {
+	import flash.system.ApplicationDomain;
+	
+	import mx.rpc.events.ResultEvent;
+	
 	import weave.api.WeaveAPI;
 	
 	/**
@@ -28,6 +32,19 @@ package weave.core
 	 */
 	public class LibraryUtils
 	{
+//		/**
+//		 * This function gets a Class definition for a qualified class name.
+//		 * @param classQName The qualified name of a class.
+//		 * @return The class definition, or null if the class cannot be resolved.
+//		 */
+//		public static function getClassDefinition(classQName:String):Class
+//		{
+//			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
+//			if (domain.hasDefinition(classQName))
+//				return domain.getDefinition(classQName) as Class;
+//			return null;
+//		}
+		
 		/**
 		 * This function loads a SWC library into the current ApplicationDomain so getClassDefinition() and getDefinitionByName() can get its class definitions.
 		 * The result passed to the asyncResultHandler function will be an Array containing the qualified class names of all the classes defined in the library.
@@ -42,9 +59,37 @@ package weave.core
 			if (!library || WeaveAPI.SessionManager.objectWasDisposed(library))
 				_libraries[url] = library = new Library(url);
 			
+//			library.addAsyncResponder(handleSWCLoaded, null, url);
 			library.addAsyncResponder(asyncResultHandler, asyncFaultHandler, token);
 		}
 		
+//		/**
+//		 * @private
+//		 */		
+//		private static function handleSWCLoaded(event:ResultEvent, token:Object = null):void
+//		{
+//			var url:String = token as String;
+//			var defs:Array = event.result as Array;
+//			var isLoaded:Boolean = isSWCLoaded(url);
+//			for each (var def:String in defs)
+//				
+//				_classQNames[def] = isLoaded
+//					
+//			//todo: check all class defs before loading swf, remove the ones that already exist
+//			// once swf is loaded, only bother initializing the ones that didn't already exist.
+//			// keep a mapping between those classes and the swc url
+//		}
+//		
+//		/**
+//		 * This object maps a qualified class name to a value of true if the class should be made available through getClassDefinition(). 
+//		 */		
+//		private static const _classQNames:Object = {};
+//		
+//		public static function isSWCLoaded(url:String):Boolean
+//		{
+//			return false;
+//		}
+//		
 //		/**
 //		 * This function will unload a previously loaded SWC library.
 //		 * @param url The URL of the SWC library to unload.
@@ -79,7 +124,6 @@ import flash.net.URLRequest;
 import flash.system.ApplicationDomain;
 import flash.system.LoaderContext;
 import flash.utils.ByteArray;
-import flash.utils.getQualifiedClassName;
 
 import mx.controls.SWFLoader;
 import mx.core.mx_internal;
@@ -93,8 +137,8 @@ import nochump.util.zip.ZipFile;
 
 import weave.api.WeaveAPI;
 import weave.api.core.IDisposableObject;
-import weave.api.core.ILinkableObject;
 import weave.core.ClassUtils;
+import weave.core.LibraryUtils;
 import weave.core.StageUtils;
 
 /**
@@ -183,13 +227,13 @@ internal class Library implements IDisposableObject
 			_catalog_xml = XML(zipFile.getInput(zipFile.getEntry("catalog.xml")));
 			zipFile = null;
 			
-			// loading a SWF in the same ApplicationDomain allows getDefinitionByName() to get classes from that SWF.
 			_swfLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSWFFault);
 			_swfLoader.addEventListener(IOErrorEvent.IO_ERROR, handleSWFFault);
 			_swfLoader.addEventListener(ProgressEvent.PROGRESS, handleSWFProgress);
 			_swfLoader.addEventListener(Event.COMPLETE, handleSWFResult);
+			
+			// Dynamic creation of Flex classes doesn't work unless the library is loaded into the same application domain.
 			_swfLoader.loaderContext = new LoaderContext(false, ApplicationDomain.currentDomain);
-			//_swfLoader.loaderContext = new LoaderContext(false, new ApplicationDomain(ApplicationDomain.currentDomain));
 			_swfLoader.load(_library_swf);
 			
 			WeaveAPI.ProgressIndicator.addTask(_swfLoader);

@@ -27,7 +27,7 @@
 				   percentWidth="NaN" percentHeight="NaN"
 				   title="Export Session State"
 				   >
-	<mx:VBox>
+	<mx:VBox paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
 		<mx:Label text="Choose Options"/>
 		<mx:CheckBox label="Dashboard mode" toolTip="Check this box to show all windows in 'dashboard' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel."
 					 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
@@ -50,13 +50,18 @@
 	</mx:ControlBar>
 	<mx:Script>
 		<![CDATA[
+			import mx.utils.StringUtil;
+			
 			import weave.Weave;
-			import weave.api.WeaveFileFormat;
+			import weave.api.WeaveArchive;
 			import weave.api.linkBindableProperty;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
 			import weave.core.SessionStateLog;
 			import weave.editors.SessionHistorySlider;
+			
+			private const padding:Number = 5;
 			
 			private var oldValues:Dictionary = new Dictionary(true);
 			
@@ -79,22 +84,30 @@
 				saveHistoryCheckBox.visible = Weave.history.enableLogging && SessionHistorySlider.devMode;
 			}
 			
+			private function zeropad(n:Number):String
+			{
+				return StandardLib.lpad('' + n, 2, "0");
+			}
+			
 			private function export():void
 			{
 				// Create a date that we can append to the end of each file to make them unique
 				var date:Date = new Date();
-				var dateString:String = date.fullYear +"."+ date.month +"."+ date.day +" "+ date.time;
+				
+				var dateString:String = StringUtil.substitute(
+					"{0}-{1}-{2} {3}.{4}.{5}",
+					date.fullYear, zeropad(date.month), zeropad(date.day),
+					zeropad(date.hours), zeropad(date.minutes), zeropad(date.seconds)
+				);
 				
 				var fr:FileReference = new FileReference();
 				if (saveHistoryCheckBox.selected)
 				{
-					var content:Object = Weave.createWeaveFileContent();
-					var byteArray:ByteArray = WeaveFileFormat.createFile(content);
-					fr.save(byteArray, "weave session history " + dateString + ".weave");
+					fr.save(Weave.createWeaveFileContent(), dateString + ".weave");
 				}
 				else
 				{
-					fr.save(Weave.getSessionStateXML(), "weave session state " + dateString + ".xml");
+					fr.save(Weave.getSessionStateXML(), "Weave session state " + dateString + ".xml");
 				}
 				
 				removePanel();

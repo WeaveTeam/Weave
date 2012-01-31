@@ -24,8 +24,10 @@ package weave.visualization.layers
 	
 	import mx.containers.Canvas;
 	
+	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
+	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
@@ -97,6 +99,7 @@ package weave.visualization.layers
 		public const maxZoomLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(16), updateZoom, true);
 		public const enableFixedAspectRatio:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
 		public const enableAutoZoomToExtent:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateZoom, true);
+		public const enableAutoZoomToSelection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
 		public const includeNonSelectableLayersInAutoZoom:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom, true);
 
 		public const overrideXMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), updateZoom, true);
@@ -158,7 +161,9 @@ package weave.visualization.layers
 		 */
 		protected function updateZoom():void
 		{
+			// make sure callbacks only trigger once
 			getCallbackCollection(this).delayCallbacks();
+			getCallbackCollection(zoomBounds).delayCallbacks();
 			//trace('begin updateZoom',ObjectUtil.toString(getSessionState(zoomBounds)));
 			
 			// make sure numeric margin values are correct
@@ -230,8 +235,11 @@ package weave.visualization.layers
 				}
 			}
 			
-			// save new screenBounds
+			// save new bounds
 			zoomBounds.setBounds(tempDataBounds, tempScreenBounds, enableFixedAspectRatio.value);
+			if (enableAutoZoomToSelection.value)
+				zoomToSelection();
+			
 			// set new bounds for each layer
 			for each (layer in layers.getObjects(IPlotLayer))
 			{
@@ -247,10 +255,60 @@ package weave.visualization.layers
 			}
 			//trace('end updateZoom',ObjectUtil.toString(getSessionState(zoomBounds)));
 			
-			
+			getCallbackCollection(zoomBounds).resumeCallbacks();
 			getCallbackCollection(this).resumeCallbacks();
 		}
 		
+		/**
+		 * This function will zoom the visualization to the bounds corresponding to a list of keys.
+		 * @param keys An Array of IQualifiedKey objects, or null to get them from the current selection.
+		 * @param zoomMarginPercent The percent of width and height to reserve for space around the zoomed area.
+		 */
+		public function zoomToSelection(keys:Array = null, zoomMarginPercent:Number = 0.2):void
+		{
+			if (!keys)
+			{
+				var selection:IKeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as IKeySet;
+				var probe:IKeySet = Weave.root.getObject(Weave.DEFAULT_PROBE_KEYSET) as IKeySet;
+				var alwaysHighlight:IKeySet = Weave.root.getObject(Weave.ALWAYS_HIGHLIGHT_KEYSET) as IKeySet;
+				keys = selection.keys;
+				if (keys.length == 0)
+					keys = probe.keys;
+				if (keys.length == 0)
+					keys = alwaysHighlight.keys;
+			}
+			
+			// get the bounds containing all the records on all the layers
+			tempBounds.reset();
+			var layers:Array = layers.getObjects(IPlotLayer);
+			for each (var key:* in keys)
+			{
+				if (!(key is IQualifiedKey))
+					key = WeaveAPI.QKeyManager.getQKey(key.keyType, key.localName);
+				for each (var layer:IPlotLayer in layers)
+				{
+					var boundsArray:Array = (layer.spatialIndex as SpatialIndex).getBoundsFromKey(key);
+					for each (var bounds:IBounds2D in boundsArray)
+					tempBounds.includeBounds(bounds);
+				}
+			}
+			
+			// make sure callbacks only trigger once.
+			getCallbackCollection(zoomBounds).delayCallbacks();
+			
+			// zoom to that bounds, expanding the area to keep the fixed aspect ratio
+			zoomBounds.setDataBounds(tempBounds, true);
+			
+			// zoom out to include the specified margin
+			zoomBounds.getDataBounds(tempBounds);
+			var scale:Number = 1 / (1 - zoomMarginPercent);
+			tempBounds.setWidth(tempBounds.getWidth() * scale);
+			tempBounds.setHeight(tempBounds.getHeight() * scale);
+			zoomBounds.setDataBounds(tempBounds);
+			
+			getCallbackCollection(zoomBounds).resumeCallbacks();
+		}
+
 		/**
 		 * This function gets the current zoom level as defined in ZoomUtils.
 		 * @return The current zoom level.

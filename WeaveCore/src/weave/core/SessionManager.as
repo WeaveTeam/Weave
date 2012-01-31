@@ -1052,22 +1052,20 @@ package weave.core
 		 * linking sessioned objects with bindable properties
 		 ******************************************************/
 		
-		/*
-		private function debugLink(linkable:Object, bindable:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
+		/*private function debugLink(linkVal:Object, bindVal:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
 		{
-			linkable = ObjectUtil.toString(linkable);
-			bindable = ObjectUtil.toString(bindable);
-			var link:String = useLinkableBefore && useLinkableAfter ? 'LINK' : 'link';
-			var bind:String = !useLinkableBefore && !useLinkableAfter ? 'BIND' : 'bind';
-			var dir:String = '--';
+			var link:String = (useLinkableBefore && useLinkableAfter ? 'LINK' : 'link') + '(' + ObjectUtil.toString(linkVal) + ')';
+			var bind:String = (!useLinkableBefore && !useLinkableAfter ? 'BIND' : 'bind') + '(' + ObjectUtil.toString(bindVal) + ')';
+			var str:String = link + ', ' + bind;
 			if (useLinkableBefore && !useLinkableAfter)
-				dir = '->';
+				str = link + ' = ' + bind;
 			if (!useLinkableBefore && useLinkableAfter)
-				dir = '<-';
+				str = bind + ' = ' + link;
+			if (callingLater)
+				str += ' (callingLater)';
 			
-			trace(link, linkable, dir, bind, bindable, callingLater ? 'callingLater' : '');
-		}
-		*/
+			trace(str);
+		}*/
 		
 		/**
 		 * This function will link the session state of an ILinkableVariable to a bindable property of an object.
@@ -1115,10 +1113,16 @@ package weave.core
 					return;
 				}
 				
-				//debugLink(linkableVariable.getSessionState(),bindableParent[bindablePropertyName],useLinkableValue,firstParam===undefined,callingLater);
+				/*debugLink(
+					linkableVariable.getSessionState(),
+					firstParam===undefined ? bindableParent[bindablePropertyName] : firstParam,
+					useLinkableValue,
+					firstParam===undefined,
+					callingLater
+				);*/
 				
 				// If bindableParent has focus:
-				// When linkableVariable changes, update bindable value only when focus is lost.
+				// When linkableVariable changes, update bindable value only when focus is lost (callLaterTime = int.MAX_VALUE).
 				// When bindable value changes, update linkableVariable after a delay.
 				
 				if (!callingLater)
@@ -1163,11 +1167,11 @@ package weave.core
 							
 							var currentTime:int = getTimer();
 							
-							// if we're not calling later, set the target time
+							// if we're not calling later, set the target time (int.MAX_VALUE means delay until focus is lost)
 							if (!callingLater)
 								callLaterTime = useLinkableValue ? int.MAX_VALUE : currentTime + delay;
 							
-							// if we haven't reached the target time yet, call later
+							// if we haven't reached the target time yet or callbacks are delayed, call later
 							if (currentTime < callLaterTime)
 							{
 								uiComponent.callLater(synchronize, [firstParam, true]);
@@ -1180,6 +1184,13 @@ package weave.core
 						// clear saved time stamp when we are about to synchronize
 						callLaterTime = 0;
 					}
+				}
+				
+				// if the linkable variable's callbacks are delayed, delay synchronization
+				if (getCallbackCollection(linkableVariable).callbacksAreDelayed)
+				{
+					uiComponent.callLater(synchronize, [firstParam, true]);
+					return;
 				}
 				
 				// synchronize

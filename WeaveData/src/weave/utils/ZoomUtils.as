@@ -32,6 +32,34 @@ package weave.utils
 	 */
 	public class ZoomUtils
 	{
+		
+		private static function originalSize(bounds:IBounds2D):Number{
+			return bounds.getXCoverage() > bounds.getYCoverage()? bounds.getWidth(): bounds.getHeight();
+		}
+		
+		/**
+		 * This function calculates a zoom level from an unambiguous scale value.
+		 * @param fullDataBounds The full extent in data coordinates.
+		 * @param minScreenSize The minimum size that the fullDataBounds can appear as on the screen (the screen size of zoom level zero).
+		 * @param scale An unambiguous scale value, defined as pixels per data unit.
+		 * @return The zoom level corresponding to the parameters.
+		 */		
+		public static function getZoomLevelFromScale(fullDataBounds:IBounds2D, minScreenSize:Number, scale:Number):Number
+		{
+			return Math.log((scale * originalSize(fullDataBounds)) / minScreenSize)/Math.LN2;
+		}
+		
+		/**
+		 * This function calculates the unambiguous scale value (defined as pixels per data unit) based on the parameters.
+		 * @param fullDataBounds The full extent in data coordinates.
+		 * @param minScreenSize The minimum size that the fullDataBounds can appear as on the screen (the screen size of zoom level zero).
+		 * @return The zoom level, where the screen size of the full extent is 2^zoomLevel * minSize.
+		 */
+		public static function getScaleFromZoomLevel(fullDataBounds:IBounds2D, minScreenSize:Number, zoomLevel:Number):Number
+		{
+			return Math.pow(2, zoomLevel) * minScreenSize / originalSize(fullDataBounds);
+		}
+		
 		/**
 		 * This function calculates the zoom level.  If dataBounds is scaled to fit into screenBounds,
 		 * the screen size of fullDataBounds would be 2^zoomLevel * minSize.  Zoom level is defined this way

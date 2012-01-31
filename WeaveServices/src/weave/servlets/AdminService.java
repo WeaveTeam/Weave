@@ -977,7 +977,20 @@ public class AdminService extends GenericServlet
 			throw new RemoteException("IOException", e);
 		}
 	}
-
+	
+	synchronized public Object[][] getDBFData(String dbfFileName) throws RemoteException
+	{
+		try
+		{
+			Object[][] dataArray = DBFUtils.getDBFData(new File(uploadPath, correctFileNameCase(dbfFileName)));
+			return dataArray;
+		}
+		catch (IOException e)
+		{
+			throw new RemoteException("IOException", e);
+		}
+	}
+	
 	synchronized private String correctFileNameCase(String fileName)
 	{
 		try 

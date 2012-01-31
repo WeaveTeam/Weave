@@ -61,6 +61,41 @@ public class DBFUtils
 	}
 	
 	/**
+	 * @param dbfFile A DBF file
+	 * @return A list of attribute names in the DBF file
+	 */
+	public static Object[][] getDBFData(File dbfFile) throws IOException
+	{
+		FileInputStream fis = new FileInputStream(dbfFile);
+		DbaseFileReader dbfReader = new DbaseFileReader(fis.getChannel(), false, Charset.forName("ISO-8859-1"));
+		
+		//contains the header columns
+		DbaseFileHeader dbfHeader = dbfReader.getHeader();
+		
+		List<Object[]> rowsList = new Vector<Object[]>();
+		
+
+		while(dbfReader.hasNext())
+		{
+			rowsList.add(dbfReader.readEntry());
+		}
+		
+		
+		
+		int numOfCol = dbfHeader.getNumFields();
+		
+		Object[][] dataRows = new Object[rowsList.size()][numOfCol];
+		
+		for(int i=0; i < rowsList.size();i++)
+		{
+			dataRows[i] = rowsList.get(i);
+			
+		}
+		
+		return dataRows;
+	}
+	
+	/**
 	 * @param dbfFile a list of DBF files to merge
 	 * @param conn a database connection
 	 * @param sqlSchema schema to store table

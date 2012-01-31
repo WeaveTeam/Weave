@@ -26,14 +26,10 @@ package weave.utils
 	import flash.display.Shape;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
-	import flash.utils.flash_proxy;
 	
-	import mx.core.Application;
-	import mx.core.mx_internal;
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.primitives.IBounds2D;
-	import weave.core.StageUtils;
 	import weave.primitives.Bounds2D;
 
 	/**

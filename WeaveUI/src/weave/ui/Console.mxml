@@ -136,6 +136,7 @@
 					}
 				},
 				'application': Application.application,
+				'visApp': Application.application.visApp,
 				'print': ObjectUtil.toString as Function,
 				'getObject': getObject,
 				'clear': consoleClear,

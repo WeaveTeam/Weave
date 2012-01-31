@@ -122,7 +122,7 @@
 					_weaveFileRef.addEventListener(Event.SELECT,   function (e:Event):void { _weaveFileRef.load(); } );
 					_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void {
 						// TEMPORARY SOLUTION
-						Application.application.loadSessionState(e.target.data, _weaveFileRef.name);
+						Application.application.visApp.loadSessionState(e.target.data, _weaveFileRef.name);
 					} );
 				}
 				_weaveFileRef.browse([new FileFilter("Weave file", "*.weave"), new FileFilter("Weave XML session state", "*.xml")]);
