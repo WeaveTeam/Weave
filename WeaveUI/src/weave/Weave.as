@@ -170,14 +170,6 @@ package weave
 			return root.getObject(DEFAULT_WEAVE_PROPERTIES) as WeaveProperties;
 		}
 		
-//		public static function getSessionStateFile():WeaveFile
-//		{
-//			var sessionState:Object = root.getSessionState();
-//			var output:ByteArray = new ByteArray();
-//			
-//		}
-		
-		
 		/**
 		 * This function gets the XML representation of the global session state.
 		 */

@@ -136,18 +136,6 @@ package weave
 		} /** END STATIC CODE BLOCK **/ 
 		
 		/**
-		 * Global VisApplication instance
-		 */
-		private static var _thisInstance:VisApplication = null;
-		/**
-		 * Gets the global VisApplication instance.
-		 */
-		public static function get instance():VisApplication
-		{
-			return _thisInstance;
-		}
-
-		/**
 		 * Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
 		 * view to add new tools, manage windows, do advanced tasks, etc.
 		 */
@@ -164,20 +152,8 @@ package weave
 		public function VisApplication()
 		{
 			super();
-			this.setStyle('backgroundColor',Weave.properties.backgroundColor.value);
 			this.pageTitle = "Open Indicators Weave";
 
-			visDesktop = new VisDesktop();
-			
-			// resize to parent size each frame because percentWidth,percentHeight doesn't seem reliable when application is nested
-			addEventListener(Event.ENTER_FRAME, updateWorkspaceSize);
-			
-			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
-			
-			Weave.root.childListCallbacks.addImmediateCallback(this, handleWeaveListChange);
-			
-			_thisInstance = this;
-			
 			setStyle("paddingLeft", 0);
 			setStyle("paddingRight", 0);
 			setStyle("paddingTop", 0);
@@ -195,36 +171,15 @@ package weave
 			clipContent = false;
 			setStyle('horizontalAlign', 'left');
 
-			// default has menubar and taskbar unless specified otherwise in config file
-			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
-			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
-			
-			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
-			
 			this.autoLayout = true;
 			
-			// no scrolling -- need to make "workspaces" you can switch between
-			this.horizontalScrollPolicy = "off";
-			this.verticalScrollPolicy   = "off";
-			
+			// no scrolling
+			horizontalScrollPolicy = "off";
+			verticalScrollPolicy   = "off";
 			visDesktop.verticalScrollPolicy   = "off";
 			visDesktop.horizontalScrollPolicy = "off";
 			
-			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
-			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS)).addGroupedCallback(this, setupSubsetsMenu);
-
 			this.addEventListener(FlexEvent.APPLICATION_COMPLETE, applicationComplete );
-			
-			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
-			
-			Weave.properties.enableExportToolImage.addGroupedCallback(this, setupContextMenu);
-			Weave.properties.dataInfoURL.addGroupedCallback(this, setupContextMenu);
-			Weave.properties.enableSubsetControls.addGroupedCallback(this, setupContextMenu);
-			Weave.properties.enableRightClick.addGroupedCallback(this, setupContextMenu);
-			Weave.properties.enableAddDataSource.addGroupedCallback(this, setupContextMenu);
-			Weave.properties.enableEditDataSource.addGroupedCallback(this, setupContextMenu);
-			Weave.properties.backgroundColor.addGroupedCallback(this, handleBackgroundColorChange, true);
-			
 		}
 
 		
@@ -235,6 +190,27 @@ package weave
 		{
 			if (event != null)
 			{
+				// resize to parent size each frame because percentWidth,percentHeight doesn't seem reliable when application is nested
+				addEventListener(Event.ENTER_FRAME, updateWorkspaceSize);
+				
+				getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
+				Weave.root.childListCallbacks.addImmediateCallback(this, handleWeaveListChange);
+				Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
+				Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
+				Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
+				
+				getCallbackCollection(Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
+				getCallbackCollection(Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS)).addGroupedCallback(this, setupSubsetsMenu);
+				getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
+				
+				Weave.properties.enableExportToolImage.addGroupedCallback(this, setupContextMenu);
+				Weave.properties.dataInfoURL.addGroupedCallback(this, setupContextMenu);
+				Weave.properties.enableSubsetControls.addGroupedCallback(this, setupContextMenu);
+				Weave.properties.enableRightClick.addGroupedCallback(this, setupContextMenu);
+				Weave.properties.enableAddDataSource.addGroupedCallback(this, setupContextMenu);
+				Weave.properties.enableEditDataSource.addGroupedCallback(this, setupContextMenu);
+				Weave.properties.backgroundColor.addImmediateCallback(this, handleBackgroundColorChange, null, true);
+				
 				getFlashVars();
 				// disable application until it's ready
 				enabled = false;
@@ -279,13 +255,13 @@ package weave
 		
 		private function handleBackgroundColorChange():void
 		{
-			VisApplication.instance.setStyle("backgroundGradientColors", [Weave.properties.backgroundColor.value, Weave.properties.backgroundColor.value]);
+			setStyle("backgroundGradientColors", [Weave.properties.backgroundColor.value, Weave.properties.backgroundColor.value]);
 		}
 		
 		/**
 		 * The desktop is the entire viewable area minus the space for the optional menu bar and taskbar
 		 */
-		public var visDesktop:VisDesktop = null;
+		public const visDesktop:VisDesktop = new VisDesktop();
 
 		/**
 		 * The mapping for the flash vars.
@@ -382,7 +358,7 @@ package weave
 			_selectionIndicatorText.text = selectionKeySet.keys.length.toString() + " Records Selected";
 			try
 			{
-				if (selectionKeySet.keys.length == 0)
+				if (selectionKeySet.keys.length == 0 || !Weave.properties.showSelectedRecordsText.value)
 				{
 					if (visDesktop == _selectionIndicatorText.parent)
 						visDesktop.removeChild(_selectionIndicatorText);
@@ -412,6 +388,7 @@ package weave
 			
 			// Code for selection indicator
 			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
+			Weave.properties.showSelectedRecordsText.addGroupedCallback(this, handleSelectionChange, true);
 			_selectionIndicatorText.setStyle("color", 0xFFFFFF);
 			_selectionIndicatorText.opaqueBackground = 0x000000;
 			_selectionIndicatorText.setStyle("bottom", 0);
@@ -433,8 +410,6 @@ package weave
 			_progressBar.minHeight = 16;
 			_progressBar.minWidth = 135; // constant
 
-			Weave.properties.backgroundColor.value = getStyle("backgroundColor");
-			
 			this.addChild(VisTaskbar.instance);
 		}
 		
@@ -629,9 +604,9 @@ package weave
 				createToolMenuItem(Weave.properties.showAttributeSelector, "Show Attribute Selector", AttributeSelectorPanel.openDefaultSelector);
 				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Connect to Collaboration Server", DraggablePanel.openStaticInstance, [CollaborationTool]);
 				
+				var _this:VisApplication = this;
 				createToolMenuItem(Weave.properties.enableNewUserWizard, "New User Wizard", function():void {
-					var userUI:NewUserWizard = new NewUserWizard();
-					WizardPanel.createWizard(instance,userUI);
+					WizardPanel.createWizard(_this, new NewUserWizard());
 				});
 
 				if (!Weave.properties.dashboardMode.value)

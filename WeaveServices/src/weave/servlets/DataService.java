@@ -39,6 +39,8 @@ import weave.beans.GeometryStreamMetadata;
 import weave.beans.WeaveRecordList;
 import weave.config.DublinCoreUtils;
 import weave.config.ISQLConfig;
+
+import weave.config.ISQLConfig.ConnectionInfo;
 import weave.config.ISQLConfig.DatabaseConfigInfo;
 import weave.config.ISQLConfig.AttributeColumnInfo;
 import weave.config.ISQLConfig.DataType;
@@ -98,6 +100,7 @@ public class DataService extends GenericServlet
 		
 		@SuppressWarnings("unchecked")
 		Map<String,String>[] tableMetadata = new Map[tableNames.length];
+		// get dublin core metadata
 		for (int i = 0; i < tableNames.length; i++)
 		{
 			// get dublin core metadata

@@ -810,19 +810,15 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = configManager.getConfig();
 		List<String> schemas;
+		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 		try
 		{
-			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 			schemas = SQLUtils.getSchemas(conn);
 		}
 		catch (SQLException e)
 		{
 			// e.printStackTrace();
 			throw new RemoteException("Unable to get schema list from database.", e);
-		}
-		finally
-		{
-			// SQLUtils.cleanup(conn);
 		}
 		// don't want to list information_schema.
 		ListUtils.removeIgnoreCase("information_schema", schemas);
@@ -833,19 +829,15 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = configManager.getConfig();
 		List<String> tables;
+		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 		try
 		{
-			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 			tables = SQLUtils.getTables(conn, schemaName);
 		}
 		catch (SQLException e)
 		{
 			// e.printStackTrace();
 			throw new RemoteException("Unable to get schema list from database.", e);
-		}
-		finally
-		{
-			// SQLUtils.cleanup(conn);
 		}
 		return tables;
 	}
@@ -854,19 +846,15 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = configManager.getConfig();
 		List<String> columns;
+		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 		try
 		{
-			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 			columns = SQLUtils.getColumns(conn, schemaName, tableName);
 		}
 		catch (SQLException e)
 		{
 			// e.printStackTrace();
 			throw new RemoteException("Unable to get column list from database.", e);
-		}
-		finally
-		{
-			// SQLUtils.cleanup(conn);
 		}
 		return columns;
 	}
@@ -887,22 +875,23 @@ public class AdminService extends GenericServlet
 		List<UploadedFile> list = new ArrayList<UploadedFile>();
 		File[] listOfFiles = null;
 		
-		try {
-			if( directory.isDirectory() ) {
+		try
+		{
+			if (directory.isDirectory())
+			{
 				listOfFiles = directory.listFiles(new UploadFileFilter("csv"));
-				for( File file : listOfFiles ) {
-					if( file.isFile() ) {
-						UploadedFile uploadedFile = 
-							new UploadedFile(
-								file.getName(),
-								file.length(),
-								file.lastModified()
-							);
+				for (File file : listOfFiles)
+				{
+					if (file.isFile())
+					{
+						UploadedFile uploadedFile = new UploadedFile(file.getName(), file.length(), file.lastModified());
 						list.add(uploadedFile);
 					}
 				}
 			}
-		} catch(Exception e) {
+		}
+		catch (Exception e)
+		{
 			throw new RemoteException(e.getMessage());
 		}
 		
@@ -916,22 +905,23 @@ public class AdminService extends GenericServlet
 		List<UploadedFile> list = new ArrayList<UploadedFile>();
 		File[] listOfFiles = null;
 		
-		try {
-			if( directory.isDirectory() ) {
+		try
+		{
+			if ( directory.isDirectory() )
+			{
 				listOfFiles = directory.listFiles(new UploadFileFilter("shp"));
-				for( File file : listOfFiles ) {
-					if( file.isFile() ) {
-						UploadedFile uploadedFile = 
-							new UploadedFile(
-								file.getName(),
-								file.length(),
-								file.lastModified()
-							);
+				for ( File file : listOfFiles )
+				{
+					if ( file.isFile() )
+					{
+						UploadedFile uploadedFile = new UploadedFile(file.getName(), file.length(), file.lastModified());
 						list.add(uploadedFile);
 					}
 				}
 			}
-		} catch(Exception e) {
+		}
+		catch (Exception e)
+		{
 			throw new RemoteException(e.getMessage());
 		}
 		
@@ -988,21 +978,24 @@ public class AdminService extends GenericServlet
 		}
 	}
 
-	synchronized private String correctFileNameCase(String fileName) {
-		
+	synchronized private String correctFileNameCase(String fileName)
+	{
 		try 
 		{
 			File directory = new File(uploadPath);
 
-			if( directory.isDirectory() )
+			if ( directory.isDirectory() )
 			{
-				for( String file : directory.list() )
+				for ( String file : directory.list() )
 				{
-					if( file.equalsIgnoreCase(fileName) )
+					if ( file.equalsIgnoreCase(fileName) )
 						return file;
 				}
 			}
-		} catch( Exception e ) {}
+		}
+		catch( Exception e )
+		{
+		}
 		return fileName;
 	}
 
@@ -1452,8 +1445,7 @@ public class AdminService extends GenericServlet
 				throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite DataTable \"%s\".", connectionName, configDataTableName));
 		}
 
-		// connect to database, generate and test each query before modifying
-		// config file
+		// connect to database, generate and test each query before modifying config file
 		List<String> titles = new LinkedList<String>();
 		List<String> queries = new Vector<String>();
 		List<String> dataTypes = new Vector<String>();
@@ -1550,6 +1542,10 @@ public class AdminService extends GenericServlet
 		catch (RemoteException e)
 		{
 			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(conn);
 		}
 		
 		if (sqlColumnNames.length == 0)
@@ -1815,20 +1811,17 @@ public class AdminService extends GenericServlet
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			String schema = configInfo.schema;
+			DublinCoreUtils.addDCElements(conn, schema, dataTableName, elements);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("addDCElements failed", e);
 		}
-
-		String schema = configInfo.schema;
-		DublinCoreUtils.addDCElements(conn, schema, dataTableName, elements);
-
-		// System.out.println("in addDCElements");
-		// int i = 0;
-		// for (Map.Entry<String, Object> e : elements.entrySet())
-		// System.out.println("  elements[" + (i++) + "] = {" + e.getKey()
-		// + " = " + e.getValue());
+		finally
+		{
+			SQLUtils.cleanup(conn);
+		}
 	}
 
 	/**
@@ -1843,20 +1836,11 @@ public class AdminService extends GenericServlet
 	 */
 	synchronized public Map<String,String> listDCElements(String connectionName, String password, String dataTableName) throws RemoteException
 	{
-		try
-		{
-			ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-			
-			DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-			String configConnectionName = configInfo.connection;
-			String schema = configInfo.schema;
-			Connection conn = SQLConfigUtils.getConnection(config, configConnectionName);
-			return DublinCoreUtils.listDCElements(conn, schema, dataTableName);
-		}
-		catch (SQLException e)
-		{
-			throw new RemoteException("listDCElements failed", e);
-		}
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		
+		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
+		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, configInfo.connection);
+		return DublinCoreUtils.listDCElements(conn, configInfo.schema, dataTableName);
 	}
 
 	/**
@@ -1874,14 +1858,17 @@ public class AdminService extends GenericServlet
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			String schema = configInfo.schema;
+			DublinCoreUtils.deleteDCElements(conn, schema, dataTableName, elements);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("deleteDCElements failed", e);
 		}
-
-		String schema = configInfo.schema;
-		DublinCoreUtils.deleteDCElements(conn, schema, dataTableName, elements);
+		finally
+		{
+			SQLUtils.cleanup(conn);
+		}
 	}
 
 	/**
@@ -1899,14 +1886,17 @@ public class AdminService extends GenericServlet
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			String schema = configInfo.schema;
+			DublinCoreUtils.updateEditedDCElement(conn, schema, dataTableName, object);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("updateEditedDCElement failed", e);
 		}
-
-		String schema = configInfo.schema;
-		DublinCoreUtils.updateEditedDCElement(conn, schema, dataTableName, object);
+		finally
+		{
+			SQLUtils.cleanup(conn);
+		}
 	}
 
 	synchronized public String saveReportDefinitionFile(String fileName, String fileContents) throws RemoteException
