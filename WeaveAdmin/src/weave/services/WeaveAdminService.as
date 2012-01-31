@@ -169,6 +169,14 @@ package weave.services
 		{
 		    return invokeAdminService("getDataTableNames", arguments);
 		}
+                public function getCategories():DelayedAsyncInvocation
+                {
+                    return invokeAdminService("getCategories", arguments);
+                }
+                public function getMetadataFromIds(ids:Array, props:Array):DelayedAsyncInvocation
+                {
+                    return invokeAdminService("getMetadataFromIds", arguments);
+                }
 		public function getGeometryCollectionNames(connectionName:String, password:String):DelayedAsyncInvocation
 		{
 		    return invokeAdminService("getGeometryCollectionNames", arguments);
@@ -180,9 +188,7 @@ package weave.services
 		public function getKeyTypes(connectionName:String, password:String):DelayedAsyncInvocation
 		{
 			return invokeAdminService("getKeyTypes", arguments);
-		}
-
-		
+		}	
 		// get info
 		public function getDatabaseConfigInfo(connectionName:String, password:String):DelayedAsyncInvocation
 		{

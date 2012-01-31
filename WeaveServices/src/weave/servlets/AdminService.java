@@ -551,22 +551,11 @@ public class AdminService extends GenericServlet
 			xmlConfig.setDatabaseConfigInfo(info);
 			// migrate from in-memory xmlConfig to the db
 			//count = SQLConfigUtils.migrateSQLConfig(xmlConfig, new DatabaseConfig(xmlConfig));
-			ISQLConfig oldImpl = new DatabaseConfig(xmlConfig);
-			ISQLConfig newImpl = new SQLConfig(xmlConfig);
-			count = SQLConfigUtils.migrateSQLConfig(oldImpl, newImpl);
+                        ISQLConfig sqlcfg = new SQLConfig(xmlConfig);
+			count = SQLConfigUtils.migrateSQLConfig(xmlConfig, sqlcfg);
+                        
+                        //backupAndSaveConfig(xmlConfig); //ADD BACK LATER.
 			
-			// TODO clean up this test code
-			SQLConfigXML xmlConfig2 = new SQLConfigXML(configFileName);
-			DatabaseConfigInfo info2 = new DatabaseConfigInfo();
-			info2.schema = "weave2";
-			info2.connection = connectionName;
-			info2.dataConfigTable = dataConfigTable;
-			info2.geometryConfigTable = geometryConfigTable;
-			// save db config info to in-memory xmlConfig
-			xmlConfig2.setDatabaseConfigInfo(info2);
-			ISQLConfig oldImpl2 = new DatabaseConfig(xmlConfig2);
-			
-			count = SQLConfigUtils.migrateSQLConfig(newImpl, oldImpl2);
 		}
 		catch (Exception e)
 		{

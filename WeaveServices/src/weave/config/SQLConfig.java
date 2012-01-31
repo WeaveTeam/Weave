@@ -592,9 +592,34 @@ public class SQLConfig
             query.put(PARENT_ID, (new Integer(parent_id)).toString());
             return getIdsFromMetadata(table_categories, query);
         }
-        public Map<Integer,String> getCategories() throws RemoteException
+        public List<Map<String,String>> getCategories() throws RemoteException
         {
-            return getChildCategories(-1);
+            Connection conn;
+            List<Map<String,String>> categories = new LinkedList<Map<String,String>>();
+            Map<String,Object> whereParams = new HashMap<String,Object>();
+            List<String> columns = Arrays.asList(ID, NAME, PARENT_ID);
+            try
+            {
+                SQLResult sqlres;
+                conn = getConnection();
+                sqlres = SQLUtils.getRowSetFromQuery(conn, columns, dbInfo.schema, table_categories, whereParams);
+                for (Object[] row : sqlres.rows)
+                {
+                    Map<String,String> entry = new HashMap<String,String>();
+                    int id = SQLResult.objAsInt(row[0]);
+                    String name = SQLResult.objAsString(row[1]);
+                    int parent_id = SQLResult.objAsInt(row[2]);
+                    entry.put(ID, String.format("%d",id));
+                    entry.put(NAME, name);
+                    entry.put(PARENT_ID, String.format("%d", parent_id));
+                    categories.add(entry); 
+                }
+            }
+            catch (SQLException sql_e)
+            {
+                throw new RemoteException("Failed to retrieve all categories.", sql_e); 
+            }
+            return categories;
         }
         public Map<Integer,String> getChildCategories(int parent_id) throws RemoteException
         {

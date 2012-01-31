@@ -25,7 +25,7 @@
 
 	<!-- This property must be defined here. Note the use of forward slashes '/' and
 		the slash required at the end -->
-	<property name="WEAVE_DOCROOT" value="/home/pkovac/pub/weave"/>
+	<property name="WEAVE_DOCROOT" value="/var/lib/tomcat6/webapps/ROOT"/>
 	<property name="WEAVE_DESTROOT" value="${basedir}/ROOT"/>
 	<!-- This property's value is defined as an environment variable -->
 	<property name="FLEX_HOME" value="${env.FLEX_HOME}"/>
