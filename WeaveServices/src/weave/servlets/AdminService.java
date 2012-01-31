@@ -48,10 +48,6 @@ import java.util.Vector;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
-import org.hamcrest.core.IsNull;
-
-import com.sun.org.apache.xml.internal.serializer.ToTextStream;
-
 import weave.beans.AdminServiceResponse;
 import weave.beans.UploadFileFilter;
 import weave.beans.UploadedFile;
