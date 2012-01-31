@@ -54,8 +54,8 @@
     <enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
     <enableExportCSV>true</enableExportCSV>
     <enableExportToolImage>true</enableExportToolImage>
-    <enableFullscreen>true</enableFullscreen>
     <enableFullScreen>false</enableFullScreen>
+    <enableFullscreen>true</enableFullscreen>
     <enableGeometryProbing>true</enableGeometryProbing>
     <enableManageSavedSelections>true</enableManageSavedSelections>
     <enableManageSavedSubsets>true</enableManageSavedSubsets>
@@ -221,14 +221,14 @@ wheel</zoom>
           <category name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002"/>
         </category>
         <category name="Geometry Collections" title="Geometry Collections">
-          <attribute name="can_ab_l_geo83_e" title="can_ab_l_geo83_e" dataType="geometry" keyType="can_ab_l_geo83_e"/>
-          <attribute name="can_ab_p_geo83_e" title="can_ab_p_geo83_e" dataType="geometry" keyType="can_ab_p_geo83_e"/>
-          <attribute name="canada" title="canada" dataType="geometry" keyType="canada"/>
-          <attribute name="prov_ab_p_geo83_e" title="prov_ab_p_geo83_e" dataType="geometry" keyType="prov_ab_p_geo83_e"/>
-          <attribute name="states" title="states" dataType="geometry" keyType="US State FIPS Code"/>
-          <attribute name="tl_2009_us_county" title="tl_2009_us_county" dataType="geometry" keyType="US County FIPS Code"/>
-          <attribute name="tl_2009_us_state" title="tl_2009_us_state" dataType="geometry" keyType="US State FIPS Code"/>
-          <attribute name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002" dataType="geometry" keyType="world_countries_boundary_file_world_2002"/>
+          <attribute dataType="geometry" name="can_ab_l_geo83_e" title="can_ab_l_geo83_e" keyType="can_ab_l_geo83_e"/>
+          <attribute dataType="geometry" name="can_ab_p_geo83_e" title="can_ab_p_geo83_e" keyType="can_ab_p_geo83_e"/>
+          <attribute dataType="geometry" name="canada" title="canada" keyType="canada"/>
+          <attribute dataType="geometry" name="prov_ab_p_geo83_e" title="prov_ab_p_geo83_e" keyType="prov_ab_p_geo83_e"/>
+          <attribute dataType="geometry" name="states" title="states" keyType="US State FIPS Code"/>
+          <attribute dataType="geometry" name="tl_2009_us_county" title="tl_2009_us_county" keyType="US County FIPS Code"/>
+          <attribute dataType="geometry" name="tl_2009_us_state" title="tl_2009_us_state" keyType="US State FIPS Code"/>
+          <attribute dataType="geometry" name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002" keyType="world_countries_boundary_file_world_2002"/>
         </category>
       </hierarchy>
     </attributeHierarchy>
@@ -257,12 +257,34 @@ wheel</zoom>
         <gridLineThickness>NaN</gridLineThickness>
         <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
         <layers encoding="dynamic">
+          <PlotLayer name="wms">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <maxVisibleScale>16.09059945889845</maxVisibleScale>
+            <minVisibleScale>0.8456579627669414</minVisibleScale>
+            <plotter encoding="dynamic">
+              <WMSPlotter>
+                <displayMissingImage>false</displayMissingImage>
+                <gridSpacing>12</gridSpacing>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <preferLowerQuality>false</preferLowerQuality>
+                <serviceName>NASA OnEarth</serviceName>
+                <srs/>
+                <styles/>
+              </WMSPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </PlotLayer>
           <SelectablePlotLayer name="plot2">
             <backgroundIsVisible>true</backgroundIsVisible>
             <layerIsSelectable>true</layerIsSelectable>
             <layerIsVisible>true</layerIsVisible>
-            <maxVisibleScale>6.221682104643729</maxVisibleScale>
-            <minVisibleScale>3.031690936479563</minVisibleScale>
+            <maxVisibleScale>6.765263702135531</maxVisibleScale>
+            <minVisibleScale>2.844442997685921</minVisibleScale>
             <plotter encoding="dynamic">
               <GeometryPlotter>
                 <fill>
@@ -295,7 +317,7 @@ wheel</zoom>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
                               <category name="Geometry Collections" title="Geometry Collections">
-                                <attribute name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002" dataType="geometry" keyType="world_countries_boundary_file_world_2002"/>
+                                <attribute dataType="geometry" name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002" keyType="world_countries_boundary_file_world_2002"/>
                               </category>
                             </hierarchy>
                           </hierarchyPath>
@@ -368,8 +390,8 @@ wheel</zoom>
             <backgroundIsVisible>true</backgroundIsVisible>
             <layerIsSelectable>true</layerIsSelectable>
             <layerIsVisible>true</layerIsVisible>
-            <maxVisibleScale>65.9085051861074</maxVisibleScale>
-            <minVisibleScale>4.141692756198674</minVisibleScale>
+            <maxVisibleScale>64.3623978355938</maxVisibleScale>
+            <minVisibleScale>4.022649864724612</minVisibleScale>
             <plotter encoding="dynamic">
               <GeometryPlotter>
                 <fill>
@@ -402,7 +424,7 @@ wheel</zoom>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
                               <category name="Geometry Collections" title="Geometry Collections">
-                                <attribute name="tl_2009_us_state" title="tl_2009_us_state" dataType="geometry" keyType="US State FIPS Code"/>
+                                <attribute dataType="geometry" name="tl_2009_us_state" title="tl_2009_us_state" keyType="US State FIPS Code"/>
                               </category>
                             </hierarchy>
                           </hierarchyPath>

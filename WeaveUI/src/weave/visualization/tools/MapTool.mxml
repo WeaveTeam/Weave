@@ -723,29 +723,29 @@
 									import weave.api.core.ILinkableObject;
 									import weave.api.juggleGroupedCallback;
 									import weave.api.primitives.IBounds2D;
+									import weave.editors.managers.LayerListComponent;
 									import weave.utils.ZoomUtils;
+									import weave.visualization.layers.PlotLayer;
 									import weave.visualization.layers.SelectablePlotLayer;
 									[Bindable] private var layerName:String;
-									private var layer:SelectablePlotLayer;
 									private var currentlyUpdatingLayerZoomRangeSlider:Boolean = false;
 									
 									private function handleLayerChange():void
 									{
 										var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
 										var area:Number = fullDataBounds.getArea();
-										if (data is SelectablePlotLayer && !isNaN(area))
+										if (!isNaN(area))
 										{
-											layer = data as SelectablePlotLayer;
-											layerName = outerDocument.visualization.layers.getName(layer);
+											layerName = outerDocument.visualization.layers.getName(data as ILinkableObject);
 											
 											var minScreenSize:Number = outerDocument.visualization.minScreenSize.value;
 											
 											var minZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
-												fullDataBounds, minScreenSize, layer.minVisibleScale.value
+												fullDataBounds, minScreenSize, data.minVisibleScale.value
 											);
 											
 											var maxZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
-												fullDataBounds, minScreenSize, layer.maxVisibleScale.value
+												fullDataBounds, minScreenSize, data.maxVisibleScale.value
 											);
 											
 											currentlyUpdatingLayerZoomRangeSlider = true;
@@ -756,23 +756,24 @@
 									
 									override public function set data(value:Object):void
 									{
+										value = value as SelectablePlotLayer || value as PlotLayer;
 										juggleGroupedCallback(data, value, this, handleLayerChange, true);
 										super.data = value;
 									}
 									private function handleScaleSliderChange(event:SliderEvent):void
 									{
-										if(!currentlyUpdatingLayerZoomRangeSlider)
+										if(!currentlyUpdatingLayerZoomRangeSlider && data)
 										{
 											var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
 											var minScreenSize:Number = outerDocument.visualization.minScreenSize.value;
 											var minVisibleZoomLevel:Number = layerZoomRangeSlider.values[0];
 											var maxVisibleZoomLevel:Number = layerZoomRangeSlider.values[1];
 											
-											layer.minVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
+											data.minVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
 												fullDataBounds, minScreenSize, minVisibleZoomLevel
 											);
 											
-											layer.maxVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
+											data.maxVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
 												fullDataBounds, minScreenSize, maxVisibleZoomLevel
 											);
 										}
