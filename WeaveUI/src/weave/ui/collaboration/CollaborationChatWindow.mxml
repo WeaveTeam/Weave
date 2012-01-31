@@ -38,7 +38,8 @@
 			 paddingRight="{padding}" paddingTop="{padding}">
 		<mx:VBox id="containerGlobal" width="100%" height="100%">
 			<mx:VBox id="containerAddons" width="100%" height="0" horizontalScrollPolicy="off">
-				<mx:Canvas width="100%" height="100%">
+				<mx:Canvas width="100%" height="100%" clipContent="true"
+						   horizontalScrollPolicy="off" verticalScrollPolicy="off">
 					<mx:HBox id="containerRemoteCams" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" />
 					<mx:HBox verticalAlign="bottom" horizontalAlign="right" bottom="0" right="0">
 						<mx:UIComponent id="containerLocalCam" width="80" height="60" />
@@ -52,7 +53,7 @@
 				</mx:HBox>
 			</mx:VBox>
 			<mx:VBox id="containerChat" width="100%" height="100%">
-				<mx:TextArea id="rtmpErrorLabel" borderThickness="0" backgroundAlpha="0" 
+				<mx:TextArea id="rtmpErrorLabel" borderThickness="0" backgroundAlpha="0" editable="false"
 							 wordWrap="true" color="#FF0000" fontWeight="bold" width="100%" height="20"
 							 showEffect="{fadeIn}" hideEffect="{fadeOut}" visible="false" includeInLayout="false" />
 				<mx:HDividedBox width="100%" height="100%" horizontalScrollPolicy="off">
@@ -112,6 +113,7 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import mx.utils.ObjectUtil;
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
 			import mx.collections.Sort;
@@ -131,17 +133,16 @@
 			[Bindable] public var yTo:Number 					= 0;
 			[Bindable] public var unreadMessages:Number 		= 0;
 			[Bindable] internal var _userListInfo:Dictionary	= new Dictionary();
-			[Bindable] private var _users:ArrayCollection 		= new ArrayCollection();
 			
-			[Bindable] private var padding:Number 				= 10;
 			[Bindable] public var addOnsSaved:Boolean 			= false;
-			[Bindable] public var ping:Number 					= 0;
 			[Bindable] public var connectedToRTMPService:Boolean= false;
 			[Bindable] public var rtmpService:NetConnection		= null;
+			[Bindable] public var ping:Number 					= 0;
 			
 			internal var nickname:String 						= null;
 			internal var roomName:String						= null;
 			
+			private var padding:Number 							= 10;
 			private var enabledMic:Boolean 						= false;
 			private var enabledCam:Boolean 						= false;
 			private var localVideo:Video   						= null;
@@ -349,14 +350,15 @@
 						remoteVideo.stream.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
 						remoteVideo.video = new Video(140, 105);
 						remoteVideo.play("v-"+roomName+"-"+name);
-						remoteVideo.nickname = name;
+						remoteVideo.setPos(containerRemoteCams.width/2-remoteVideo.width/2, 0);
+						remoteVideo.setName(name);
 						containerRemoteCams.addChild(remoteVideo);
 						nsPlayCamList[name] = remoteVideo;
 						
 						if( dictionaryLength(nsPlayCamList) > 0 )
 							showRemoteDisplay();
 						
-//						organizeRemoteVideos();
+						organizeRemoteVideos();
 					}
 				}
 				else
@@ -383,42 +385,58 @@
 								showLocalDisplay();
 							else if( dictionaryLength(nsPlayCamList) == 0 && !enabledCam )
 								hideRemoteDisplay();
+							
+							organizeRemoteVideos();
 						}
 					}
 				}
 				(userList.dataProvider as ICollectionView).refresh();
 			}
-			private function organizeRemoteVideos():void
+			public function organizeRemoteVideos():void
 			{
 				var maxWidth:Number = 140;
+				var minWidth:Number = 108;
 				var count:Number = dictionaryLength(nsPlayCamList);
 				var usable:Number = containerRemoteCams.width;
 				var camWidth:Number = (usable / count > maxWidth) ? maxWidth : (usable/count);
 				var camHeight:Number = 3 * camWidth / 4;
-				var names:ArrayCollection = new ArrayCollection();
+				var names:Array = new Array();
 				
-				trace(count, usable, camWidth, camHeight);
+//				trace( "Usable width: "+usable);
+//				trace( usable,"/",count,">",maxWidth,"[",((usable / count > maxWidth)?"T":"F"),"] =",maxWidth,":",(usable/count));
 				
-				for( var n:String in nsPlayCamList )
-					names.addItem(n);
+				for( var n:String in nsPlayCamList ) names.push(n);
+				names.sort();
 				
 				switch( count )
 				{
 					case 1:
 						var vid:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
+						
 						vid.setSize(camWidth, camHeight);
-						vid.setPos(usable/2-vid.width/2, 0);
+						vid.setPos(usable/2-vid.width/2, 0, true);
 						break;
 					case 2:
 						var vid1:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
-						var vid2:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
 						vid1.setSize(camWidth, camHeight);
+						vid1.setPos(usable/4-vid1.width/2, 0, true);
+						
+						var vid2:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
 						vid2.setSize(camWidth, camHeight);
-						vid1.setPos(usable/4-vid1.width/2, 0);
-						vid2.setPos(3*usable/4-vid2.width/2, 0);
+						vid2.setPos(3*usable/4-vid2.width/2, 0, true);
 						break;
 					case 3:
+						var vid1:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
+						vid1.setSize(camWidth, camHeight);
+						vid1.setPos(usable/4-vid1.width/2, 0, true);
 						
+						var vid2:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
+						vid2.setSize(camWidth, camHeight);
+						vid2.setPos(3*usable/4-vid2.width/2, 0, true);
+						
+						var vid3:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
+						vid3.setSize(camWidth, camHeight);
+						vid3.setPos(2*usable/4-vid3.width/2, 0, true);
 						break;
 					default:
 						
@@ -431,6 +449,10 @@
 				for( var key:Object in dic )
 					n++;
 				return n;
+			}
+			public function streamingCount():Number
+			{
+				return dictionaryLength(nsPlayCamList);
 			}
 		]]>
 	</mx:Script>

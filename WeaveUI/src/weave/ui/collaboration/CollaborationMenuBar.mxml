@@ -123,7 +123,6 @@
 									  int(Weave.properties.collabServerPort.value), 
 									  Weave.properties.collabServerRoomToJoin.value, 
 									  SETTINGS.collab_NICKNAME);
-				connectToRTMPServer();
 				
 				// Set timeout to 10 seconds
 				connTimer = new Timer(10000);
@@ -145,6 +144,7 @@
 				CHAT.setUserAttribute(CHAT.TYPE_SPEC, SETTINGS.collab_NICKNAME, (Weave.properties.collabSpectating.value) ? 1 : 0);
 				
 				joinedRoomCreateMouseList();
+				connectToRTMPServer();
 				
 				mouseTimer = new Timer(600);
 				mouseTimer.addEventListener(TimerEvent.TIMER, mouseMove);
@@ -240,7 +240,11 @@
 			private function resizeHandler(event:Event = null):void
 			{
 				if( SETTINGS ) setWindowSettingsPos();
-				if( CHAT )     setWindowChatPos();
+				if( CHAT ) {
+					setWindowChatPos();
+					if( CHAT.streamingCount() > 0 && CHAT.rtmpService != null )
+						CHAT.organizeRemoteVideos();
+				}
 			}
 			
 			private function setWindowSettingsPos():void 
@@ -411,12 +415,12 @@
 						CHAT.showRTMPWarning();
 						CHAT.showAddonControls();
 						rtmpPollingTimer.stop();
+						rtmpTimer.stop();
 						connectedToRTMPService 		= true;
 						CHAT.connectedToRTMPService = true;
 						CHAT.rtmpService 			= rtmpService;
 						rtmpPollingServer 			= false;
 						
-						trace("#: "+collabService.room.length);
 						if( collabService.room.length > 1 ) requestAddonStatus();
 						
 						break;
@@ -432,6 +436,8 @@
 						CHAT.connectedToRTMPService = false;
 						CHAT.rtmpService 			= null;
 						CHAT.hideAddonControls();
+						collabService.sendAddonUpdate(collabService.nickname, collabService.TYPE_CAM, 0);
+						collabService.sendAddonUpdate(collabService.nickname, collabService.TYPE_MIC, 0);
 						break;
 					
 					case "NetConnection.Connect.Failed":

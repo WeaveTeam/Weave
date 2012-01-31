@@ -248,6 +248,10 @@
 			private function onTabChange(event:IndexChangedEvent):void
 			{
 				if( event.newIndex == 1 ) {		// If the tab is set to Add-ons
+					if( Microphone.names.length == 0 && Camera.names.length == 0 )
+						saveAddonsButton.enabled = false;
+					else
+						saveAddonsButton.enabled = true;
 					if( Microphone.names.length == 0 ) {
 						micActivity.enabled = false;
 						micList.enabled = false;

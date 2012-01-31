@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
-		   creationPolicy="all" creationComplete="creationCompleteHandler(event)">
-	<mx:VBox width="100%" height="100%" verticalGap="3">
+		   creationPolicy="all" creationComplete="creationCompleteHandler(event)"
+		   horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	<mx:VBox width="100%" height="100%" verticalGap="3" 
+			 horizontalScrollPolicy="off" verticalScrollPolicy="off">
 		<mx:Canvas id="borderCanvas" borderColor="0x54585E" borderThickness="{_borderThickness}" borderStyle="solid" >
 			<mx:UIComponent id="holder" width="100%" height="100%" />
 		</mx:Canvas>
 		<ui:Center>
-			<mx:Label id="nameLabel" text="{nickname}" />
+			<mx:Label id="nameLabel" />
 		</ui:Center>
 	</mx:VBox>
 	
@@ -17,17 +19,18 @@
 		<![CDATA[
 			import mx.events.FlexEvent;
 			
-			[Bindable] public var nickname:String;
 			
 			public var stream:NetStream;
 			public var video:Video;
 			private var _borderThickness:Number = 4;
+			private var nickname:String;
 			
 			private function creationCompleteHandler(event:FlexEvent):void
 			{
 				holder.addChild(video);
 				borderCanvas.width = video.width + 2*_borderThickness;
 				borderCanvas.height = video.height + 2*_borderThickness;
+				nameLabel.text = nickname;
 			}
 			public function play(str:String):void
 			{
@@ -41,23 +44,43 @@
 				stream.close();
 				holder.removeChild(video);
 			}
-			public function setPos(x:Number, y:Number):void
+			public function setPos(x:Number, y:Number, showEffect:Boolean = false):void
 			{
-				moveEffect.stop();
-				moveEffect.xFrom = this.x;
-				moveEffect.xTo	 = x;
-				moveEffect.yFrom = this.y;
-				moveEffect.yTo	 = y;
-				moveEffect.play([this]);
+				if( showEffect )
+				{
+					moveEffect.stop();
+					moveEffect.xFrom = this.x;
+					moveEffect.xTo	 = x;
+					moveEffect.yFrom = this.y;
+					moveEffect.yTo	 = y;
+					moveEffect.play([this]);
+				}
+				else
+				{
+					this.x = x;
+					this.y = y;
+				}
 			}
-			public function setSize(width:Number, height:Number):void
+			public function setSize(width:Number, height:Number, showEffect:Boolean = false):void
 			{
-				resizeEffect.stop();
-				resizeEffect.widthFrom 	= this.width;
-				resizeEffect.widthTo	= width + 2*_borderThickness;
-				resizeEffect.heightFrom = this.height;
-				resizeEffect.heightTo	= height + 2*_borderThickness + nameLabel.height + 3;
-				resizeEffect.play([this]);
+				if( showEffect )
+				{
+					resizeEffect.stop();
+					resizeEffect.widthFrom 	= this.width;
+					resizeEffect.widthTo	= width + 2*_borderThickness;
+					resizeEffect.heightFrom = this.height;
+					resizeEffect.heightTo	= height + 2*_borderThickness + nameLabel.height + 3;
+					resizeEffect.play([this]);
+				}
+				else
+				{
+					this.width  = width  + 2*_borderThickness;
+					this.height = height + 2*_borderThickness + nameLabel.height + 3;
+				}
+			}
+			public function setName(name:String):void
+			{
+				nickname = name;
 			}
 			
 		]]>
