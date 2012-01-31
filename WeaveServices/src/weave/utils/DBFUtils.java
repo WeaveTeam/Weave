@@ -21,7 +21,6 @@ package weave.utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.SQLException;
