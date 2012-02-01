@@ -32,7 +32,14 @@
 		<![CDATA[
 			import mx.core.UIComponent;
 			
+			import tests.LinkableLabel;
+			import tests.TestPanel;
+			
 			import weave.api.core.ILinkableContainer;
+			
+			// must reference these here or they won't get compiled
+//			LinkableLabel;
+//			TestPanel;
 			
 			// for backwards compatibility with old JavaScript evaluateExpression() code
 			[Deprecated] public function get visDesktop():ILinkableContainer { return visApp.visDesktop; }
