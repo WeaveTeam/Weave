@@ -35,7 +35,6 @@ package weave.ui
 	import mx.events.ResizeEvent;
 	import mx.managers.CursorManagerPriority;
 	
-	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableContainer;
@@ -44,19 +43,14 @@ package weave.ui
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.IPlotLayer;
-	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.StageUtils;
-	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.CustomCursorManager;
 	import weave.utils.SpatialIndex;
 	import weave.visualization.layers.PlotLayerContainer;
 	import weave.visualization.layers.SelectablePlotLayer;
-	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.tools.SimpleVisTool;
 
 	use namespace mx_internal;
@@ -89,8 +83,8 @@ package weave.ui
 			addEventListener(MouseEvent.DOUBLE_CLICK, handleDoubleClick);
 			
 			// add global event listener for mouse move and mouse up because user may move or release outside this display object
-			StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove);
-			StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, handleMouseUp);
+			WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove);
+			WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, handleMouseUp);
  
 			setupMask();
 		}

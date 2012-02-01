@@ -26,18 +26,11 @@
 		 layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.registerLinkableChild;
 			import weave.api.linkBindableProperty;
-			import weave.utils.ColumnUtils;
+			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
-			import weave.core.SessionManager;
-			import weave.core.UIUtils;
-			import weave.api.getCallbackCollection;
-			import weave.api.newLinkableChild;
-			import weave.visualization.layers.PlotLayer;
-			import weave.visualization.plotters.CircleGlyphPlotter;
+			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.StickFigureGlyphPlotter;
-			import weave.visualization.plotters.styles.SolidFillStyle;
 			
 			public var _plotter:StickFigureGlyphPlotter = null;
 			override protected function constructor():void

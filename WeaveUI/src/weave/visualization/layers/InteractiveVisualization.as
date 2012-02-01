@@ -31,10 +31,10 @@ package weave.visualization.layers
 	import flash.ui.Keyboard;
 	
 	import mx.containers.Canvas;
-	import mx.controls.ToolTip;
 	import mx.core.Application;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -79,11 +79,11 @@ package weave.visualization.layers
 			addEventListener(MouseEvent.ROLL_OUT, handleRollOut);
 			addEventListener(MouseEvent.ROLL_OVER, handleRollOver);
 			addEventListener(MouseEvent.MOUSE_WHEEL,handleMouseWheel);
-			StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove);
-			StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, handleMouseUp);
-			StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, this, handleKeyboardEvent);
-			StageUtils.addEventCallback(KeyboardEvent.KEY_UP, this, handleKeyboardEvent);
-			StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, this, _handlePointClick);
+			WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove);
+			WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, handleMouseUp);
+			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, this, handleKeyboardEvent);
+			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_UP, this, handleKeyboardEvent);
+			WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, this, _handlePointClick);
 			
 			//			addEventListener(KeyboardEvent.KEY_DOWN, handleKeyboardEvent);
 			//			addEventListener(KeyboardEvent.KEY_UP, handleKeyboardEvent);
@@ -160,7 +160,7 @@ package weave.visualization.layers
 			{
 				if (_mouseMode == InteractionController.PAN)
 				{
-					if (StageUtils.mouseButtonDown)
+					if (WeaveAPI.StageUtils.mouseButtonDown)
 						CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
 					else
 						CustomCursorManager.showCursor(CustomCursorManager.HAND_CURSOR);
@@ -187,7 +187,7 @@ package weave.visualization.layers
 		private function handleKeyboardEvent():void
 		{
 			// if the escape key was hit, stop whatever mouse drag operation is in progress
-			if (StageUtils.keyboardEvent && StageUtils.keyboardEvent.keyCode == Keyboard.ESCAPE)
+			if (WeaveAPI.StageUtils.keyboardEvent && WeaveAPI.StageUtils.keyboardEvent.keyCode == Keyboard.ESCAPE)
 			{
 				mouseDragActive = false;			
 			}
@@ -205,7 +205,7 @@ package weave.visualization.layers
 		{
 			// only handle the event if the mouse is rolled over
 			if (mouseIsRolledOver)
-				handleMouseClick(StageUtils.mouseEvent);
+				handleMouseClick(WeaveAPI.StageUtils.mouseEvent);
 		}
 		
 		// this function can be defined with override by extending classes and call super.handleMouseClick(event);
@@ -239,11 +239,11 @@ package weave.visualization.layers
 			updateMouseCursor();
 			
 			// when the mouse is released, handle mouse move so the selection rectangle will cause the selection to update.
-			handleMouseEvent(StageUtils.mouseEvent);
+			handleMouseEvent(WeaveAPI.StageUtils.mouseEvent);
 		}
 		protected function handleMouseMove():void
 		{
-			handleMouseEvent(StageUtils.mouseEvent);		
+			handleMouseEvent(WeaveAPI.StageUtils.mouseEvent);		
 		}
 		protected function handleRollOut(event:MouseEvent):void
 		{
@@ -635,7 +635,7 @@ package weave.visualization.layers
 			if (!parent)
 				return;
 			
-			if (StageUtils.mouseMoved)
+			if (WeaveAPI.StageUtils.mouseMoved)
 			{
 				if (allowCallLater)
 					callLater(delayedHandleSelection, [false]);
@@ -701,7 +701,7 @@ package weave.visualization.layers
 			// NOTE: this code is hacked to work with only one global probe KeySet
 			
 			// only probe if the mouse coords are the same two frames in a row
-			if (StageUtils.mouseMoved)
+			if (WeaveAPI.StageUtils.mouseMoved)
 			{
 				if (allowCallLater)
 					callLater(handleProbe, [false]);

@@ -35,7 +35,6 @@ package weave.utils
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.resources.fonts.EmbeddedFonts;
 	
 	/**
 	 * Contains a list of properties for use with a TextFormat object.
@@ -48,7 +47,7 @@ package weave.utils
 		
 		public static const DEFAULT_COLOR:uint = 0x000000;
 		public static const DEFAULT_SIZE:uint = 11;
-		public static const DEFAULT_FONT:String = EmbeddedFonts.SophiaNubian;
+		public static const DEFAULT_FONT:String = "Sophia Nubian";
 		
 		/**
 		 * @see flash.text.TextFormat#font

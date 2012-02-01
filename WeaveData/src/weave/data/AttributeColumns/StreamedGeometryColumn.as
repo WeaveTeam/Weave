@@ -21,28 +21,20 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.ByteArray;
 	
-	import mx.rpc.AsyncResponder;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ICallbackInterface;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerDisposableChild;
-	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
-	import weave.core.CallbackCollection;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.StageUtils;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.beans.GeometryStreamMetadata;
 	import weave.utils.ColumnUtils;
@@ -237,10 +229,10 @@ package weave.data.AttributeColumns
 				projectionSrsCode = result.projection;
 				
 				// handle metadata tiles
-				StageUtils.callLater(this, _geometryStreamDecoder.decodeMetadataTileList, [result.metadataTileDescriptors]);
+				WeaveAPI.StageUtils.callLater(this, _geometryStreamDecoder.decodeMetadataTileList, [result.metadataTileDescriptors]);
 				
 				// handle geometry tiles
-				StageUtils.callLater(this, _geometryStreamDecoder.decodeGeometryTileList, [result.geometryTileDescriptors]);
+				WeaveAPI.StageUtils.callLater(this, _geometryStreamDecoder.decodeGeometryTileList, [result.geometryTileDescriptors]);
 				
 			}
 			catch (error:Error)

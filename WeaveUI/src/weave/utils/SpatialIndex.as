@@ -23,6 +23,7 @@ package weave.utils
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
@@ -30,7 +31,6 @@ package weave.utils
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.CallbackCollection;
-	import weave.core.StageUtils;
 	import weave.primitives.BLGNode;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
@@ -174,7 +174,7 @@ package weave.utils
 			}
 			
 			// insert bounds-to-key mappings in the kdtree
-			StageUtils.startTask(this, _insertNext);
+			WeaveAPI.StageUtils.startTask(this, _insertNext);
 		}
 		
 		private function _insertNext():Number

@@ -27,7 +27,6 @@ package weave.core
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 
@@ -154,7 +153,7 @@ package weave.core
 			if (_saveLater && !immediately)
 			{
 				// we have to wait until the next frame to save the diff because grouped callbacks haven't finished.
-				StageUtils.callLater(this, saveDiff, null, false);
+				WeaveAPI.StageUtils.callLater(this, saveDiff, null, false);
 				return;
 			}
 			

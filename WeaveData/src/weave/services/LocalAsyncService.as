@@ -22,7 +22,6 @@ package weave.services
 	import flash.events.AsyncErrorEvent;
 	import flash.events.StatusEvent;
 	import flash.net.LocalConnection;
-	import flash.net.registerClassAlias;
 	import flash.utils.ByteArray;
 	
 	import mx.rpc.AsyncResponder;
@@ -39,7 +38,6 @@ package weave.services
 	import weave.api.newDisposableChild;
 	import weave.api.services.IAsyncService;
 	import weave.core.CallbackCollection;
-	import weave.core.StageUtils;
 	
 	/**
 	 * This class provides two-way communication between Flash applications in the form of an IAsyncService.
@@ -75,7 +73,7 @@ package weave.services
 			catch (e:ArgumentError)
 			{
 				trace("LocalAsyncService()", localName, e);
-				StageUtils.callLater(errorCallbacks, errorCallbacks.triggerCallbacks, null, false);
+				WeaveAPI.StageUtils.callLater(errorCallbacks, errorCallbacks.triggerCallbacks, null, false);
 			}
 		}
 
@@ -117,7 +115,7 @@ package weave.services
 			}
 			catch (e:ArgumentError)
 			{
-				StageUtils.callLater(errorCallbacks, receiveFault, [commandID, new Fault(String(e.errorID), e.name, e.message)]);
+				WeaveAPI.StageUtils.callLater(errorCallbacks, receiveFault, [commandID, new Fault(String(e.errorID), e.name, e.message)]);
 			}
 			return tokens[commandID];
 		}

@@ -636,8 +636,19 @@ package weave.services
 			return query;
 		}
 		
-
-
+		
+		public function checkKeyColumnForSQLImport(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String):DelayedAsyncInvocation
+		{
+			var query:DelayedAsyncInvocation = service.checkKeyColumnForSQLImport(
+				activeConnectionName,
+				activePassword,
+				sqlSchema,
+				sqlTable,
+				keyColumn,
+				secondaryKeyColumn
+			);
+			return query;
+		}
 
 
 

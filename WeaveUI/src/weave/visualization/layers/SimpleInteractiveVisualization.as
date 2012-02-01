@@ -46,7 +46,6 @@ package weave.visualization.layers
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
 	import weave.core.SessionManager;
-	import weave.core.StageUtils;
 	import weave.core.weave_internal;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
@@ -359,7 +358,7 @@ package weave.visualization.layers
 				_axisToolTip = null;
 
 				
-				if (!StageUtils.mouseEvent.buttonDown)
+				if (!WeaveAPI.StageUtils.mouseButtonDown)
 				{
 					var theMargin:LinkableString = getMarginAndSetQueryBounds(mouseX, mouseY, true);
 					var index:int = [marginTop, marginBottom, marginLeft, marginRight].indexOf(theMargin);

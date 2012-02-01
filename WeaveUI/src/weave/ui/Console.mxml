@@ -50,7 +50,6 @@
 			import weave.compiler.ICompiledObject;
 			import weave.core.ClassUtils;
 			import weave.core.ExternalSessionStateInterface;
-			import weave.core.StageUtils;
 			import weave.core.weave_internal;
 			use namespace weave_internal;
 			use namespace mx_internal;
@@ -118,7 +117,7 @@
 				if (now)
 					log.text = '';
 				else
-					StageUtils.callLater(this, consoleClear, [true], false);
+					WeaveAPI.StageUtils.callLater(this, consoleClear, [true], false);
 			}
 			
 			private const symbolTable:Object = {
