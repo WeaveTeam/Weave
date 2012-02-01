@@ -31,18 +31,13 @@
 					change="sliderChangeTwo(event);"/>
 		<mx:Script>
 			<![CDATA[
-				import weave.api.WeaveAPI;
 				import mx.controls.sliderClasses.Slider;
-				import mx.events.FlexEvent;
 				import mx.events.SliderEvent;
 				
-				import weave.Weave;
-				import weave.core.LinkableDynamicObject;
-				import weave.api.newLinkableChild;
+				import weave.api.WeaveAPI;
 				import weave.api.registerLinkableChild;
-				import weave.data.AttributeColumns.DynamicColumn;
+				import weave.core.LinkableDynamicObject;
 				import weave.data.KeySets.NumericDataFilter;
-				import weave.data.StatisticsCache;
 				
 				private function getNumericDataFilter():NumericDataFilter
 				{
