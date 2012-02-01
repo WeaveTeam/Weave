@@ -63,7 +63,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#addCallback()">addCallback</a>(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean</div>
+<a class="signatureLink" href="#addCallback()">addCallback</a>(objectPathOrExpressionName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean</div>
 <div class="summaryTableDescription">
    This function will add a callback that will be delayed except during a scheduled time each frame.</div>
 </td><td class="summaryTableOwnerCol">IExternalSessionStateInterface</td>
@@ -87,7 +87,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#evaluateExpression()">evaluateExpression</a>(objectPath:Array, methodName:String, variables:Object = null, libraries:Array = null):*</div>
+<a class="signatureLink" href="#evaluateExpression()">evaluateExpression</a>(scopeObjectPathOrExpressionName:Object, expression:String, variables:Object = null, libraries:Array = null, assignExpressionName:String = null):*</div>
 <div class="summaryTableDescription">
    This function will evaluate an expression using the compiler.</div>
 </td><td class="summaryTableOwnerCol">IExternalSessionStateInterface</td>
@@ -119,7 +119,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#removeCallback()">removeCallback</a>(objectPath:Array, callback:String):Boolean</div>
+<a class="signatureLink" href="#removeCallback()">removeCallback</a>(objectPathOrExpressionName:Object, callback:String):Boolean</div>
 <div class="summaryTableDescription">
    This function will remove a callback that was previously added.</div>
 </td><td class="summaryTableOwnerCol">IExternalSessionStateInterface</td>
@@ -173,7 +173,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function addCallback(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean</code><p>
+<code>public function addCallback(objectPathOrExpressionName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean</code><p>
    This function will add a callback that will be delayed except during a scheduled time each frame.  These grouped callbacks use a
    central trigger list, meaning that if multiple CallbackCollections trigger the same grouped callback before the scheduled time,
    it will behave as if it were only triggered once.  The callback function will not be called recursively as a result of it
@@ -181,7 +181,7 @@ showHideInherited();
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">objectPath</span>:Array</code> &mdash; A sequence of child names used to refer to an object appearing in the session state.
+<td width="20px"></td><td><code><span class="label">objectPathOrExpressionName</span>:Object</code> &mdash; A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression.
    </td>
 </tr>
 <tr>
@@ -278,7 +278,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function evaluateExpression(objectPath:Array, methodName:String, variables:Object = null, libraries:Array = null):*</code><p>
+<code>public function evaluateExpression(scopeObjectPathOrExpressionName:Object, expression:String, variables:Object = null, libraries:Array = null, assignExpressionName:String = null):*</code><p>
    This function will evaluate an expression using the compiler. An object path may be passed as the first parameter
    to act as the <code>this</code> pointer for the expression, or libraries may be included by passing an array of fully 
    qualified names.
@@ -299,14 +299,14 @@ showHideInherited();
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">objectPath</span>:Array</code> &mdash; A sequence of child names used to refer to an object appearing in the session state which will be used as the <code>this</code> pointer when evaluating the expression.
+<td width="20px"></td><td><code><span class="label">scopeObjectPathOrExpressionName</span>:Object</code> &mdash; A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression, which will be used as the <code>this</code> pointer when evaluating the expression.
    </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">methodName</span>:String</code> &mdash; The expression to evaluate.
+<td width="20px"></td><td><code><span class="label">expression</span>:String</code> &mdash; The expression to evaluate.
    </td>
 </tr>
 <tr>
@@ -323,12 +323,19 @@ showHideInherited();
 <td width="20px"></td><td><code><span class="label">libraries</span>:Array</code> (default = <code>null</code>)<code></code> &mdash; An array of fully qualified class names which contain static methods to include the expression.
    </td>
 </tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">assignExpressionName</span>:String</code> (default = <code>null</code>)<code></code> &mdash; An optional name to associate with this expression.  If specified, the expression will not be immediately evaluated.
+   </td>
+</tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>*</code> &mdash; The value of the evaluated expression.
+<td width="20"></td><td><code>*</code> &mdash; The value of the evaluated expression, or undefined if assignExpressionName was specified.
    </td>
 </tr>
 </table>
@@ -421,12 +428,12 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function removeCallback(objectPath:Array, callback:String):Boolean</code><p>
+<code>public function removeCallback(objectPathOrExpressionName:Object, callback:String):Boolean</code><p>
    This function will remove a callback that was previously added.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">objectPath</span>:Array</code> &mdash; A sequence of child names used to refer to an object appearing in the session state.
+<td width="20px"></td><td><code><span class="label">objectPathOrExpressionName</span>:Object</code> &mdash; A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression.
    </td>
 </tr>
 <tr>

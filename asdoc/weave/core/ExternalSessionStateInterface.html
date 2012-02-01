@@ -63,7 +63,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#addCallback()">addCallback</a>(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean</div>
+<a class="signatureLink" href="#addCallback()">addCallback</a>(objectPathOrExpressionName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean</div>
 <div class="summaryTableDescription">
    </div>
 </td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
@@ -87,7 +87,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#evaluateExpression()">evaluateExpression</a>(scopeObjectPath:Array, expression:String, variables:Object = null, staticLibraries:Array = null):*</div>
+<a class="signatureLink" href="#evaluateExpression()">evaluateExpression</a>(scopeObjectPathOrExpressionName:Object, expression:String, variables:Object = null, staticLibraries:Array = null, assignExpressionName:String = null):*</div>
 <div class="summaryTableDescription">
    </div>
 </td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
@@ -128,7 +128,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#removeCallback()">removeCallback</a>(objectPath:Array, callback:String):Boolean</div>
+<a class="signatureLink" href="#removeCallback()">removeCallback</a>(objectPathOrExpressionName:Object, callback:String):Boolean</div>
 <div class="summaryTableDescription">
    </div>
 </td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
@@ -190,11 +190,11 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function addCallback(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean</code><p>
+<code>public function addCallback(objectPathOrExpressionName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean</code><p>
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">objectPath</span>:Array</code></td>
+<td width="20px"></td><td><code><span class="label">objectPathOrExpressionName</span>:Object</code></td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
@@ -287,11 +287,11 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function evaluateExpression(scopeObjectPath:Array, expression:String, variables:Object = null, staticLibraries:Array = null):*</code><p>
+<code>public function evaluateExpression(scopeObjectPathOrExpressionName:Object, expression:String, variables:Object = null, staticLibraries:Array = null, assignExpressionName:String = null):*</code><p>
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">scopeObjectPath</span>:Array</code></td>
+<td width="20px"></td><td><code><span class="label">scopeObjectPathOrExpressionName</span>:Object</code></td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
@@ -310,6 +310,12 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">staticLibraries</span>:Array</code> (default = <code>null</code>)<code></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">assignExpressionName</span>:String</code> (default = <code>null</code>)<code></code></td>
 </tr>
 </table>
 <p></p>
@@ -437,11 +443,11 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function removeCallback(objectPath:Array, callback:String):Boolean</code><p>
+<code>public function removeCallback(objectPathOrExpressionName:Object, callback:String):Boolean</code><p>
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">objectPath</span>:Array</code></td>
+<td width="20px"></td><td><code><span class="label">objectPathOrExpressionName</span>:Object</code></td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
