@@ -15,15 +15,15 @@
 			{
 				super.childrenCreated();
 				
-				this.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyboardEvent);
-//				StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, this, handleKeyboardEvent);
+//				this.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyboardEvent);
+				StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, this, handleKeyboardEvent);
 				
 				UIUtils.linkDisplayObjects(this, linkableChildren);
 			}
 			
-			public const linkableChildren:ILinkableHashMap = newLinkableChild(this, LinkableHashMap);
+//			public const linkableChildren:ILinkableHashMap = newLinkableChild(this, LinkableHashMap);
 			
-//			public const linkableChildren:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableLabel));
+			public const linkableChildren:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableLabel));
 			
 			private function handleKeyboardEvent(event:KeyboardEvent = null):void
 			{

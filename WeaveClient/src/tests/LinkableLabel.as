@@ -25,22 +25,22 @@ package tests
 			
 			// set default values
 			textWrapper.value = '';
-			fontWeightWrapper.value = "bold";
+//			fontWeightWrapper.value = "bold";
 			
 			linkBindableProperty(textWrapper, this, 'text');
 			linkBindableProperty(xWrapper, this, 'x');
 			linkBindableProperty(yWrapper, this, 'y');
 			
-			colorWrapper.addImmediateCallback(this, handleColorChange);
+//			colorWrapper.addImmediateCallback(this, handleColorChange);
 			fontWeightWrapper.addImmediateCallback(this, handleFontWeightChange);
 			
-			colorWrapper.addImmediateCallback(this, redraw);
-//			getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
+//			colorWrapper.addImmediateCallback(this, redraw);
+			getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
 			
 //			this.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
-//			StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, this.stopDrag);
+			StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, this.stopDrag);
 			
-//			EventUtils.addEventCallback(this, MouseEvent.MOUSE_DOWN, this.startDrag);
+			EventUtils.addEventCallback(this, MouseEvent.MOUSE_DOWN, this.startDrag);
 		}
 		
 //		private function handleMouseDown(event:MouseEvent):void
@@ -52,15 +52,15 @@ package tests
 		public const xWrapper:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const yWrapper:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const colorWrapper:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const fontWeightWrapper:LinkableString = newLinkableChild(this, LinkableString);
+//		public const fontWeightWrapper:LinkableString = newLinkableChild(this, LinkableString);
 		
 //		public const fontWeightWrapper:LinkableString = registerLinkableChild(this, new LinkableString("bold"));
 		
-//		public const fontWeightWrapper:LinkableString = registerLinkableChild(this, new LinkableString("normal", verifyFontWeight));
-//		private function verifyFontWeight(value:String):Boolean
-//		{
-//			return value == "normal" || value == "bold";
-//		}
+		public const fontWeightWrapper:LinkableString = registerLinkableChild(this, new LinkableString("normal", verifyFontWeight));
+		private function verifyFontWeight(value:String):Boolean
+		{
+			return value == "normal" || value == "bold";
+		}
 		
 		private function handleFontWeightChange():void
 		{
@@ -73,7 +73,7 @@ package tests
 		
 		private function redraw():void
 		{
-			//graphics.clear();
+			graphics.clear();
 			graphics.beginFill(colorWrapper.value, 0.25);
 			graphics.lineStyle(1, colorWrapper.value, 1.0);
 			graphics.moveTo(0,0);
@@ -83,7 +83,7 @@ package tests
 			graphics.endFill();
 		}
 		
-		private var _colorTriggerCount:uint = 0;
+//		private var _colorTriggerCount:uint = 0;
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
@@ -95,10 +95,10 @@ package tests
 //				_colorTriggerCount = colorWrapper.triggerCounter;
 //			}
 			
-//			if (detectLinkableObjectChange(updateDisplayList, colorWrapper))
-//				handleColorChange();
+			if (detectLinkableObjectChange(updateDisplayList, colorWrapper))
+				handleColorChange();
 			
-//			redraw();
+			redraw();
 		}
 	}
 }
