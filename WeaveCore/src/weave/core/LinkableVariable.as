@@ -79,7 +79,7 @@ package weave.core
 			removeCallback(_defaultValueTrigger);
 			
 			// unless callbacks were triggered again since the default value was set, trigger callbacks now
-			if (triggerCounter == DEFAULT_TRIGGER_COUNT + 1)
+			if (!wasDisposed && triggerCounter == DEFAULT_TRIGGER_COUNT + 1)
 				triggerCallbacks();
 		}
 
