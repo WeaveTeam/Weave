@@ -66,12 +66,12 @@
 	protected static const MAX_LABEL_COUNT:int = 10;
 	//@TODO session this so that the admin can specify a different maximum delay
 	private static const MAX_TIMER_DELAY:Number = 2500;
-	public var timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
+	public const timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
 	//dimensionsList is the dataprovider for the combo box
-	[Bindable] protected var dimensionsList:ArrayCollection = new ArrayCollection();
-	public static var dimensionsRefs:ArrayCollection = new ArrayCollection();
-	public var labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange, true);
-	public var currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
+	protected const dimensionsList:ArrayCollection = new ArrayCollection();
+	public static const dimensionsRefs:ArrayCollection = new ArrayCollection();
+	public const labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange, true);
+	public const currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
 	private var _timer:Timer;
 	
 	////abstract functions that must be overridden by subclasses of this class
