@@ -31,15 +31,7 @@ package weave.core
 	{
 		public function LinkableString(defaultValue:String = null, verifier:Function = null)
 		{
-			super(String, verifier);
-			if (defaultValue != null)
-			{
-				delayCallbacks();
-				value = defaultValue;
-				// Resume callbacks one frame later when we know it is possible for
-				// other classes to have a pointer to this object and retrieve the value.
-				WeaveAPI.StageUtils.callLater(this, resumeCallbacks, null, false);
-			}
+			super(String, verifier, defaultValue);
 		}
 
 		public function get value():String

@@ -30,17 +30,9 @@ package weave.core
 	 */
 	public class LinkableBoolean extends LinkableVariable
 	{
-		public function LinkableBoolean(defaultValue:* = null, verifier:Function = null)
+		public function LinkableBoolean(defaultValue:* = undefined, verifier:Function = null)
 		{
-			super(Boolean, verifier);
-			if (defaultValue !== null)
-			{
-				delayCallbacks();
-				value = defaultValue ? true : false;
-				// Resume callbacks one frame later when we know it is possible for
-				// other classes to have a pointer to this object and retrieve the value.
-				WeaveAPI.StageUtils.callLater(this, resumeCallbacks, null, false);
-			}
+			super(Boolean, verifier, defaultValue);
 		}
 
 		public function get value():Boolean

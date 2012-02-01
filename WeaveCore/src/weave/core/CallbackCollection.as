@@ -79,12 +79,17 @@ package weave.core
 		private var _runCallbacksIsPending:Boolean = false;
 		
 		/**
+		 * This is the default value of triggerCounter.
+		 */		
+		protected const DEFAULT_TRIGGER_COUNT:uint = 1;
+		
+		/**
 		 * This value keeps track of how many times callbacks were triggered, and is returned by the public triggerCounter accessor function.
 		 * The value starts at 1 to simplify code that compares the counter to a previous value.
 		 * This allows the previous value to be set to zero so change will be detected the first time the counter is compared.
 		 * This fixes potential bugs where the base case of zero is not considered.
 		 */
-		private var _triggerCounter:uint = 1;
+		private var _triggerCounter:uint = DEFAULT_TRIGGER_COUNT;
 		
 		/**
 		 * If this is true, it means _runCallbacksImmediately() is currently executing.
@@ -440,7 +445,7 @@ package weave.core
 							triggerEntry.recursionCount--;
 						}
 					}
-					else if (_triggeredGroupedCallbackEntryMap[triggerEntry] == undefined) // if not already triggered
+					else if (_triggeredGroupedCallbackEntryMap[triggerEntry] === undefined) // if not already triggered
 					{
 						// set a flag to signal that this grouped callback was triggered.
 						_triggeredGroupedCallbackEntryMap[triggerEntry] = true;

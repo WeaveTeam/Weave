@@ -40,8 +40,9 @@ package weave.core
 		 * that handles new values.
 		 * @param sessionStateType The type of values accepted for this sessioned property.
 		 * @param verifier A function that returns true or false to verify that a value is accepted as a session state or not.  The function signature should be  function(value:*):Boolean.
+		 * @param defaultValue The default value for the session state.
 		 */
-		public function LinkableVariable(sessionStateType:Class = null, verifier:Function = null)
+		public function LinkableVariable(sessionStateType:Class = null, verifier:Function = null, defaultValue:* = undefined)
 		{
 			// not supporting XML directly
 			if (sessionStateType == XML)
@@ -54,6 +55,32 @@ package weave.core
 				_sessionStateType = sessionStateType;
 			}
 			_verifier = verifier;
+			
+			if (defaultValue !== undefined)
+			{
+				setSessionState(defaultValue);
+				
+				// If callbacks were triggered, make sure callbacks are triggered again one frame later when
+				// it is possible for other classes to have a pointer to this object and retrieve the value.
+				if (triggerCounter > DEFAULT_TRIGGER_COUNT)
+				{
+					addImmediateCallback(null, removeCallback, [_defaultValueTrigger]);
+					addGroupedCallback(null, _defaultValueTrigger, true);
+				}
+			}
+		}
+		
+		/**
+		 * @private
+		 */		
+		private function _defaultValueTrigger():void
+		{
+			// only do this once
+			removeCallback(_defaultValueTrigger);
+			
+			// unless callbacks were triggered again since the default value was set, trigger callbacks now
+			if (triggerCounter == DEFAULT_TRIGGER_COUNT + 1)
+				triggerCallbacks();
 		}
 
 		/**
