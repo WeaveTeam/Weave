@@ -226,6 +226,8 @@
 				if (visualization.layers.getNames().length == 0)
 					addGeomLayer();
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, handleBoundsChange, true);
+				
+				linkSessionState(showZoomControls,visualization.enableZoomAndPan);
 			}
 			
 			private function handleMouseModeChange(event:Event = null):void
@@ -299,6 +301,32 @@
 			{
 				if (!currentlyUpdatingZoomSlider)
 					visualization.setZoomLevel(event.currentTarget.value);
+			}
+			
+			[Embed(source='/weave/resources/images/lockClosed.png')]
+			private var LockClosed:Class;
+			
+			[Embed(source='/weave/resources/images/lockOpen.png')]
+			private var LockOpen:Class;
+			
+			
+			private function handleZoomControlsMinimizeCheck():void
+			{
+				zoomControlsToggle.selected = !zoomControlsMinimizeCheck.selected;
+								
+			}
+			
+			private function handleShowZoomControlsChange():void
+			{
+				
+				zoomControlsMinimizeCheck.selected = !showZoomControls.value;
+				
+				if(zoomControlsMinimizeCheck.selected)
+				{
+					zoomControlsMinimizeCheck.setStyle("icon",LockClosed);
+				}else{
+					zoomControlsMinimizeCheck.setStyle("icon",LockOpen);
+				}
 			}
 			
 			private function handleZoomInClick():void
@@ -461,7 +489,7 @@
 
 
 
-			public const showZoomControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const showZoomControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true),handleShowZoomControlsChange,true);
 			public const showMouseModeControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
 			private const _tempArray:Array = [];
@@ -621,10 +649,11 @@
 				toggle="true"
 				toolTip="Select this mode to enable zooming on the map using the mouse to create a box around the area you want to zoom into."
 				click="handleMouseModeChange(event)" cornerRadius="0"/>
-			<mx:Button id="zoomControlsMinimizeCheck" icon="@Embed(source='/weave/resources/images/minimize_icon.png')"
+			<mx:Button id="zoomControlsMinimizeCheck"
+					   toolTip="Enable/Disable Zoom and Pan"
 					   width="17" height="17" toggle="true"
 					   selected="{!zoomControlsToggle.selected}"
-					   change="zoomControlsToggle.selected = !zoomControlsMinimizeCheck.selected"/>
+					   change="handleZoomControlsMinimizeCheck()"/>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -691,7 +720,7 @@
 			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 						 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			<mx:CheckBox id="zoomControlsToggle" label="Show zoom and pan controls"
+			<mx:CheckBox id="zoomControlsToggle" label="Enable zoom and pan"
 						 toolTip="This option enables the zoom slider and pan buttons"
 						 creationComplete="linkBindableProperty(showZoomControls,event.target,'selected')"/>
 			<mx:CheckBox id="mouseModeControlsToggle" label="Show mouse mode controls"
