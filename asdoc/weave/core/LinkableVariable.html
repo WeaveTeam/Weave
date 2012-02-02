@@ -19,7 +19,7 @@
 <td align="left" class="titleTableTitle">Weave AS3 documentation</td><td align="right" class="titleTableTopNav"><a onclick="loadClassListFrame('../../all-classes.html')" href="../../package-summary.html">All&nbsp;Packages</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../all-classes.html')" href="../../class-summary.html">All&nbsp;Classes</a>&nbsp;|&nbsp;<a onclick="loadClassListFrame('../../index-list.html')" href="../../all-index-A.html">Index</a>&nbsp;|&nbsp;<a href="../../index.html?weave/core/LinkableVariable.html&amp;weave/core/class-list.html" id="framesLink1">Frames</a><a onclick="parent.location=document.location" href="" style="display:none" id="noFramesLink1">No&nbsp;Frames</a></td><td rowspan="3" align="right" class="titleTableLogo"><img alt="Adobe Logo" title="Adobe Logo" class="logoImage" src="../../images/logo.jpg"></td>
 </tr>
 <tr class="titleTableRow2">
-<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;LinkableVariable</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#propertySummary">Properties</a>&nbsp;| <a href="#methodSummary">Methods</a></td>
+<td align="left" id="subTitle" class="titleTableSubTitle">Class&nbsp;LinkableVariable</td><td align="right" id="subNav" class="titleTableSubNav"><a href="#propertySummary">Properties</a>&nbsp;| <a href="#methodSummary">Methods</a>&nbsp;| <a href="#constantSummary">Constants</a></td>
 </tr>
 <tr class="titleTableRow3">
 <td colspan="2">&nbsp;</td>
@@ -27,7 +27,7 @@
 </table>
 <script type="text/javascript" language="javascript">
 <!--
-if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class LinkableVariable"); titleBar_setSubNav(false,true,false,false,false,false,true,false,false,false,false,false,false,false);}
+if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Class LinkableVariable"); titleBar_setSubNav(true,true,false,false,false,false,true,false,false,false,false,false,false,false);}
 --></script>
 <div class="MainContent">
 <table cellspacing="0" cellpadding="0" class="classHeaderTable">
@@ -160,7 +160,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#LinkableVariable()">LinkableVariable</a>(sessionStateType:Class = null, verifier:Function = null)</div>
+<a class="signatureLink" href="#LinkableVariable()">LinkableVariable</a>(sessionStateType:Class = null, verifier:Function = null, defaultValue:*)</div>
 <div class="summaryTableDescription">
    This constructor does not allow an initial value to be specified, because no other class has a pointer to this object until the
    constructor completes, which means the value cannot be retrieved during any callbacks that would run in the constructor.</div>
@@ -302,6 +302,28 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 </table>
 </div>
+<a name="constantSummary"></a><a name="protectedConstantSummary"></a>
+<div class="summarySection">
+<div class="summaryTableTitle">Protected Constants</div>
+<div class="showHideLinks">
+<div class="hideInheritedProtectedConstant" id="hideInheritedProtectedConstant">
+<a onclick="javascript:setInheritedVisible(false,'ProtectedConstant');" href="#protectedConstantSummary" class="showHideLink"><img src="../../images/expanded.gif" class="showHideLinkImage"> Hide Inherited Protected Constants</a>
+</div>
+<div class="showInheritedProtectedConstant" id="showInheritedProtectedConstant">
+<a onclick="javascript:setInheritedVisible(true,'ProtectedConstant');" href="#protectedConstantSummary" class="showHideLink"><img src="../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Protected Constants</a>
+</div>
+</div>
+<table id="summaryTableProtectedConstant" class="summaryTable hideInheritedProtectedConstant" cellpadding="3" cellspacing="0">
+<tr>
+<th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
+</tr>
+<tr class="hideInheritedProtectedConstant">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="CallbackCollection.html#DEFAULT_TRIGGER_COUNT">DEFAULT_TRIGGER_COUNT</a> : uint = 1<div class="summaryTableDescription">
+   This is the default value of triggerCounter.</div>
+</td><td class="summaryTableOwnerCol"><a href="CallbackCollection.html">CallbackCollection</a></td>
+</tr>
+</table>
+</div>
 <script type="text/javascript" language="javascript">
 <!--
 showHideInherited();
@@ -381,7 +403,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function LinkableVariable(sessionStateType:Class = null, verifier:Function = null)</code><p>
+<code>public function LinkableVariable(sessionStateType:Class = null, verifier:Function = null, defaultValue:*)</code><p>
    This constructor does not allow an initial value to be specified, because no other class has a pointer to this object until the
    constructor completes, which means the value cannot be retrieved during any callbacks that would run in the constructor.  This
    forces the developer to set default values outside the constructor of the LinkableVariable, which means the callbacks will run
@@ -398,6 +420,13 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">verifier</span>:Function</code> (default = <code>null</code>)<code></code> &mdash; A function that returns true or false to verify that a value is accepted as a session state or not.  The function signature should be  function(value::Boolean.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">defaultValue</span>:*</code> &mdash; The default value for the session state.
    </td>
 </tr>
 </table>
