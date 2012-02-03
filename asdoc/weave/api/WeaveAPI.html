@@ -137,8 +137,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#externalReload()">externalReload</a>():void</div>
-<div class="summaryTableDescription">[static]
-   This function will restart the Flash application by reloading the SWF that is embedded in the browser window.</div>
+<div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">WeaveAPI</td>
 </tr>
 <tr class="">
@@ -153,7 +152,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#initializeExternalInterface()">initializeExternalInterface</a>():void</div>
-<div class="summaryTableDescription">[static]</div>
+<div class="summaryTableDescription">[static]
+   This function will initialize the external interfaces so calls can be made from JavaScript to Weave.</div>
 </td><td class="summaryTableOwnerCol">WeaveAPI</td>
 </tr>
 <tr class="">
@@ -350,9 +350,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function externalReload():void</code><p>
-   This function will restart the Flash application by reloading the SWF that is embedded in the browser window.
-   </p></div>
+<code>public static function externalReload():void</code><p></p></div>
 <a name="getSingletonInstance()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -385,7 +383,11 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function initializeExternalInterface():void</code><p></p></div>
+<code>public static function initializeExternalInterface():void</code><p>
+   This function will initialize the external interfaces so calls can be made from JavaScript to Weave.
+   After initializing, this will call an external function weaveReady(weave) if it exists, where the
+   'weave' parameter is a pointer to the instance of Weave that is ready.
+   </p></div>
 <a name="registerSingleton()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>

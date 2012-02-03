@@ -143,6 +143,7 @@ showHideInherited();
 <div class="detailBody">
 <code>public const files:Object</code><p>
    This is a dynamic object containing all the amf objects stored in the archive.
+   The property names used in this object must be valid filenames or serialize() will fail.
    </p></div>
 <a name="objects"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -153,6 +154,7 @@ showHideInherited();
 <div class="detailBody">
 <code>public const objects:Object</code><p>
    This is a dynamic object containing all the files (ByteArray objects) in the archive.
+   The property names used in this object must be valid filenames or serialize() will fail.
    </p></div>
 <br>
 <br>
