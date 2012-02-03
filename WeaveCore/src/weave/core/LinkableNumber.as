@@ -66,6 +66,10 @@ package weave.core
 
 		override protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
+			// We must check for null here because "_sessionState = NaN" in the constructor
+			// does not take affect until after the super() constructor finishes.
+			if (_sessionState == null)
+				_sessionState = NaN;
 			if (isNaN(_sessionState) && isNaN(otherSessionState))
 				return true;
 			return _sessionState == otherSessionState;

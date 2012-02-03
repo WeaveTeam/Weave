@@ -56,7 +56,7 @@ package weave.core
 			}
 			_verifier = verifier;
 			
-			if (defaultValue !== undefined)
+			if (!sessionStateEquals(defaultValue))
 			{
 				setSessionState(defaultValue);
 				
