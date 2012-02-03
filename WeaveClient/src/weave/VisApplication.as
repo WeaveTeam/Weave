@@ -213,18 +213,22 @@ package weave
 				// disable interface until connected to admin console
 				var _this:VisApplication = this;
 				_this.enabled = false;
-				var resultHandler:Function = function(..._):void
+				var resultHandler:Function = function(event:ResultEvent, token:Object = null):void
 				{
 					_this.enabled = true;
 					adminService = pendingAdminService;
 					setupVisMenuItems(); // make sure 'save session state to server' is shown
 					downloadConfigFile();
 				};
-				var faultHandler:Function = function(..._):void
+				var faultHandler:Function = function(event:FaultEvent = null, token:Object = null):void
 				{
-					_this.enabled = true;
 					Alert.show("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server.", "Connection error");
-					downloadConfigFile();
+					// do not re-download config file if this function was called as a grouped callback.
+					if (event) // event==null if called as grouped callback
+					{
+						_this.enabled = true;
+						downloadConfigFile();
+					}
 				};
 				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
 				pendingAdminService.errorCallbacks.addGroupedCallback(this, faultHandler);
@@ -481,7 +485,7 @@ package weave
 						},
 						function(event:FaultEvent, token:Object = null):void
 						{
-							Alert.show(event.fault.message, event.fault.name);
+							reportError(event.fault, "Unable to connect to Admin Console");
 						},
 						null
 					));
