@@ -254,9 +254,12 @@ package weave
 		 */
 		public static function createWeaveFileContent():ByteArray
 		{
+			// screenshot thumbnail
 			var _thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(Application.application as UIComponent, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
-			var _libraries:Array = ["WeaveExamplePlugin.swc"];
+			// session history
 			var _history:Object = history.getSessionState();
+			// list of libraries to load
+			var _libraries:Array = ["WeaveExamplePlugin.swc"];
 			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
 			var output:WeaveArchive = new WeaveArchive();
 			output.files[ARCHIVE_THUMBNAIL_PNG] = _pngEncoder.encode(_thumbnail);
@@ -274,6 +277,9 @@ package weave
 			var input:WeaveArchive = new WeaveArchive(content);
 			var pluginURLs:Array = input.objects[ARCHIVE_LIBRARIES_AMF] as Array;
 			var remaining:int = pluginURLs.length;
+			
+			var ILinkableObject_classQName:String = getQualifiedClassName(ILinkableObject);
+			
 			function handlePluginsFinished():void
 			{
 				var _history:Object = input.objects[ARCHIVE_HISTORY_AMF];
@@ -319,7 +325,5 @@ package weave
 				handlePluginsFinished();
 			}
 		}
-			
-		private static const ILinkableObject_classQName:String = getQualifiedClassName(ILinkableObject);
 	}
 }
