@@ -413,7 +413,7 @@
 		<mx:VBox id="attributesPanel" label="Data">
 			<ui:DynamicColumnComponent visTool="{this}" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Label" id="labelComponent"/>
-			<ui:ColumnListComponent visTool="{this}" label="Drag columns here" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
+			<ui:ColumnListComponent visTool="{this}" label="Attributes along X axis" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
 			<mx:HBox>
 				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 							 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
