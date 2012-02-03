@@ -26,6 +26,7 @@ package weave.visualization.plotters
 	
 	import mx.utils.ObjectUtil;
 	
+	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
@@ -34,7 +35,10 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
+	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.BinnedColumn;
+	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
@@ -52,6 +56,10 @@ package weave.visualization.plotters
 	{
 		public function Histogram2DPlotter()
 		{
+			// hack, only supports default color column
+			var cc:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
+			registerLinkableChild(this, cc);
+			
 			xColumn.addImmediateCallback(this, updateKeys);
 			yColumn.addImmediateCallback(this, updateKeys);
 			
@@ -66,6 +74,8 @@ package weave.visualization.plotters
 		
 		public const xBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn, handleColumnChange);
 		public const yBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn, handleColumnChange);
+		
+		public const showAverageColorData:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public function get xColumn():DynamicColumn { return xBinnedColumn.internalDynamicColumn; }
 		public function get yColumn():DynamicColumn { return yBinnedColumn.internalDynamicColumn; }
@@ -123,32 +133,64 @@ package weave.visualization.plotters
 			if (isNaN(xBinWidth) || isNaN(yBinWidth))
 				return;
 			
+			// hack, only supports default color column
+			var colorCol:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
+			var binCol:BinnedColumn = colorCol.internalColumn as BinnedColumn;
+			var dataCol:IAttributeColumn = binCol ? binCol.internalDynamicColumn : null;
+			var dataMin:Number = WeaveAPI.StatisticsCache.getMin(dataCol);
+			var dataMax:Number = WeaveAPI.StatisticsCache.getMax(dataCol);
+			var ramp:ColorRamp = showAverageColorData.value ? colorCol.ramp : this.binColors;
+			
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
 			
-			for each (var key:Object in recordKeys)
+			// get a list of unique cells so each cell is only drawn once.
+			var cells:Object = {};
+			var cell:String;
+			var keys:Array;
+			for each (var key:IQualifiedKey in recordKeys)
 			{
-				var shapeKey:String = keyToCellMap[key];
-				var keys:Array = (cellToKeysMap[shapeKey] as Array);
-				var binSize:int = keys.length;
-				var shapeKeyIds:Array = (shapeKey as String).split(",");
-				var xKeyID:int = int(shapeKeyIds[0]);
-				var yKeyID:int = int(shapeKeyIds[1]);
+				cell = keyToCellMap[key];
+				keys = cells[cell];
+				if (!keys)
+					cells[cell] = keys = [];
+				keys.push(key);
+			}
+			
+			// draw the cells
+			for (cell in cells)
+			{
+				var cellIds:Array = cell.split(",");
+				var xKeyID:int = int(cellIds[0]);
+				var yKeyID:int = int(cellIds[1]);
+				
+				keys = cells[cell] as Array;
 				
 				tempPoint.x = xKeyID - 0.5;
 				tempPoint.y = yKeyID - 0.5;
 				dataBounds.projectPointTo(tempPoint, screenBounds);
 				tempBounds.setMinPoint(tempPoint);
 				tempPoint.x = xKeyID + 0.5;
-				tempPoint.y = yKeyID+ 0.5;
+				tempPoint.y = yKeyID + 0.5;
 				dataBounds.projectPointTo(tempPoint, screenBounds);
 				tempBounds.setMaxPoint(tempPoint);
 				
 				// draw rectangle for bin
 				lineStyle.beginLineStyle(null, graphics);
 				
-				var norm:Number = binSize / maxBinSize;
-				var color:Number = binColors.getColorFromNorm(norm);
+				var norm:Number = keys.length / maxBinSize;
+				
+				if (showAverageColorData.value)
+				{
+					var sum:Number = 0;
+					for each (key in keys)
+						sum += dataCol.getValueFromKey(key, Number);
+					var dataValue:Number = sum / keys.length;
+					//norm = StandardLib.normalize(dataValue, dataMin, dataMax);
+					norm = binCol.getBinIndexFromDataValue(dataValue) / (binCol.numberOfBins - 1);
+				}
+				
+				var color:Number = ramp.getColorFromNorm(norm);
 				graphics.beginFill(color, 1);
 				
 				graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
