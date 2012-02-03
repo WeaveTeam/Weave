@@ -141,8 +141,7 @@
 				'clear': consoleClear,
 				'watch': consoleWatch,
 				'unwatch': consoleUnwatch,
-				'trace': consoleTrace,
-				'getNewInstance': ClassUtils.getNewInstance as Function
+				'trace': consoleTrace
 			};
 			private function runCommand():void
 			{
