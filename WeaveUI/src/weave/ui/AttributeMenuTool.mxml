@@ -337,13 +337,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleSelectedAttributeChange():void
 			{
-				var selectedIndex:int = choices.getNames().indexOf(selectedAttribute.value);
+				var names:Array = choices.getNames();
+				var selectedIndex:int = names.indexOf(selectedAttribute.value);
 				choiceCombo.selectedIndex = selectedIndex;
 				choiceList.selectedIndex = selectedIndex;
 				if (selectedIndex >= 0)
 				{
 					choiceHSlider.value = selectedIndex;
-					choiceVSlider.value = selectedIndex;
+					choiceVSlider.value = names.length - 1 - selectedIndex;
 					handleAttrSelected(selectedIndex);
 				}
 			}
