@@ -141,7 +141,7 @@ package weave.core
 				if (row.indexOf(libraryQName) >= 0)
 					return;
 			rows.push([libraryQName]);
-			macroLibraries.value = WeaveAPI.CSVParser.createCSVFromArrays(rows);
+			macroLibraries.value = WeaveAPI.CSVParser.createCSV(rows);
 		}
 		
 		{ /** begin static code block **/

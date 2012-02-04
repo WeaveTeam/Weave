@@ -387,7 +387,7 @@
 				var fieldNames:Array = setupDataGridColumns(metadataArray, tableEditor);
 				// generate CSV String
 				var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(metadataArray, fieldNames, true)
-				textEditor.text = WeaveAPI.CSVParser.createCSVFromArrays(rows);
+				textEditor.text = WeaveAPI.CSVParser.createCSV(rows);
 				
 				testAllQueriesButton.enabled = (metadataArray.length > 0);
 			}
@@ -438,7 +438,7 @@
 					order[i] = order[i].dataField;
 				
 				var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(metadataArray, order, true);
-				var csvDataString:String = WeaveAPI.CSVParser.createCSVFromArrays(rows);
+				var csvDataString:String = WeaveAPI.CSVParser.createCSV(rows);
 				
 				return csvDataString;
 			}

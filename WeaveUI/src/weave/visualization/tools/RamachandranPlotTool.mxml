@@ -42,12 +42,10 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
-			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.unlinkBindableProperty;
-			import weave.core.LinkableHashMap;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
@@ -289,7 +287,7 @@
 						VectorUtils.copy(keys, keyVec);
 						VectorUtils.copy(Robj[p].value, dataVec);
 						testColumn.setRecords(keyVec, dataVec);
-						//testColumn.csvData.value = WeaveAPI.CSVParser.createCSVFromArrays(table);						
+						//testColumn.csvData.value = WeaveAPI.CSVParser.createCSV(table);						
 					}					
 				}
 			}
@@ -396,7 +394,7 @@
 					seq = seq + res;
 				}
 				sequence = seq;
-				var csvDataString:String = WeaveAPI.CSVParser.createCSVFromArrays(residueData);
+				var csvDataString:String = WeaveAPI.CSVParser.createCSV(residueData);
 				var uniquePDBname:String = "PDBDataSource-" +PDBid.text;
 				var uniqueName:String = Weave.root.generateUniqueName(uniquePDBname);
 				var csvDataSource:CSVDataSource = Weave.root.requestObject(uniqueName,CSVDataSource, false);

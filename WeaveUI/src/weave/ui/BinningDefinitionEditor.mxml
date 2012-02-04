@@ -221,7 +221,7 @@
 						names.push(source[i] as String);
 				}
 				
-				getAbstractDef().overrideBinNames.value = WeaveAPI.CSVParser.createCSVFromArrays([names]);
+				getAbstractDef().overrideBinNames.value = WeaveAPI.CSVParser.createCSV([names]);
 			}
 		]]>
 	</mx:Script>

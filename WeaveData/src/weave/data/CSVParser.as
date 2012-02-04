@@ -24,7 +24,6 @@ package weave.data
 	import weave.api.data.ICSVParser;
 
 	/**
-	 * CSVUtils
 	 * This is an all-static class containing functions to parse and generate valid CSV files.
 	 * Ported from AutoIt Script to Flex. Original author: adufilie
 	 * 
@@ -47,74 +46,9 @@ package weave.data
 		private static const LF:String = '\n';
 		private static const CRLF:String = '\r\n';
 		
-		// if string begins with ", text up until the matching " will be parsed, replacing "" with "
-		public function parseCSVToken(token:String):String
-		{
-			var parsedToken:String = '';
-			
-			var tokenLength:int = token.length;
-			
-			if (token.charAt(0) == quote)
-			{
-				var escaped:Boolean = true;
-				for (var i:int = 1; i <= tokenLength; i++)
-				{
-					var currentChar:String = token.charAt(i);
-					var twoChar:String = currentChar + token.charAt(i+1);
-					
-					if (twoChar == quote+quote) //append escaped quote
-					{
-						i += 1;
-						parsedToken += quote;
-					}
-					else if (currentChar == quote && escaped)
-					{
-						escaped = false;
-					}
-					else
-					{
-						parsedToken += currentChar;
-					}
-				}
-			}
-			else
-			{
-				parsedToken = token;
-			}
-			return parsedToken;
-		}
-		
-		//if necessary, adds quotes around string and replaces " with ""
-		public function createCSVToken(str:String):String
-		{
-			if (str == null)
-				return null;
-			// determine if quotes are necessary
-			if ( str.length > 0
-				&& str.indexOf(quote) < 0
-				&& str.indexOf(delimiter) < 0
-				&& str.indexOf(LF) < 0
-				&& str.indexOf(CR) < 0
-				&& !StringUtil.isWhitespace(str.charAt(0))
-				&& !StringUtil.isWhitespace(str.charAt(str.length - 1)) )
-			{
-				return str;
-			}
-
-			var token:String = quote;
-			for (var i:int = 0; i <= str.length; i++)
-			{
-				var currentChar:String = str.charAt(i);
-				if (currentChar == quote)
-					token += quote + quote;
-				else
-					token += currentChar; 
-			}
-			return token + quote;
-		}
-		
 		/**
-		 * @param csvData The CSV string to parse.
+		 * This will parse a CSV String into a two-dimensional Array of String values.
+		 * @param csvData The CSV String to parse.
 		 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
 		 * @return The destination Array, or a new Array if none was specified.  The result of parsing the CSV string will be stored here.
 		 */
@@ -122,7 +56,7 @@ package weave.data
 		{
 			var csvDataArray:Array = destination ? destination : [];
 			csvDataArray.length = 0; // clear any existing data in the output Array
-
+			
 			// special case -- if csvData is null or empty string, return an empty array (a set of zero rows)
 			if (csvData == null || csvData == '')
 				return csvDataArray;
@@ -139,7 +73,7 @@ package weave.data
 			{
 				var currentChar:String = csvData.charAt(i);
 				var twoChar:String = currentChar + csvData.charAt(i+1);
-				if(escaped)
+				if (escaped)
 				{
 					if (twoChar == quote+quote) //escaped quote
 					{
@@ -217,20 +151,99 @@ package weave.data
 			return csvDataArray;
 		}
 		
-		//takes an array of arrays and convert it into a CSV string
-		public function createCSVFromArrays(table:Array):String
+		/**
+		 * This will generate a CSV String from an Array of rows in a table.
+		 * @param rows A two-dimensional Array, which will be accessed like rows[rowIndex][columnIndex].
+		 * @return A CSV String containing the values from the rows.
+		 */
+		public function createCSV(rows:Array):String
 		{
-			var rows:Array = [];
-			for (var i:int = 0; i < table.length; i++)
+			var lines:Array = [];
+			for (var i:int = 0; i < rows.length; i++)
 			{
 				var tokens:Array = [];
-				for (var j:int = 0; j < table[i].length; j++)
-					tokens[j] = createCSVToken(table[i][j]);
+				for (var j:int = 0; j < rows[i].length; j++)
+					tokens[j] = createCSVToken(rows[i][j]);
 				
-				rows[i] = tokens.join(delimiter);
+				lines[i] = tokens.join(delimiter);
 			}
-			var csvData:String = rows.join(LF);
+			var csvData:String = lines.join(LF);
 			return csvData;
+		}
+		
+		/**
+		 * This will parse a CSV-encoded String value.
+		 * If string begins with ", text up until the matching " will be parsed, replacing "" with ".
+		 * @param token A CSV-encoded String value.
+		 * @return The decoded String value.
+		 */
+		public function parseCSVToken(token:String):String
+		{
+			var parsedToken:String = '';
+			
+			var tokenLength:int = token.length;
+			
+			if (token.charAt(0) == quote)
+			{
+				var escaped:Boolean = true;
+				for (var i:int = 1; i <= tokenLength; i++)
+				{
+					var currentChar:String = token.charAt(i);
+					var twoChar:String = currentChar + token.charAt(i+1);
+					
+					if (twoChar == quote+quote) //append escaped quote
+					{
+						i += 1;
+						parsedToken += quote;
+					}
+					else if (currentChar == quote && escaped)
+					{
+						escaped = false;
+					}
+					else
+					{
+						parsedToken += currentChar;
+					}
+				}
+			}
+			else
+			{
+				parsedToken = token;
+			}
+			return parsedToken;
+		}
+		
+		/**
+		 * This will surround a string with quotes and use CSV-style escape sequences if necessary.
+		 * @param str A String value.
+		 * @return The String value using CSV encoding.
+		 */
+		public function createCSVToken(str:String):String
+		{
+			if (str == null)
+				return null;
+			// determine if quotes are necessary
+			if ( str.length > 0
+				&& str.indexOf(quote) < 0
+				&& str.indexOf(delimiter) < 0
+				&& str.indexOf(LF) < 0
+				&& str.indexOf(CR) < 0
+				&& !StringUtil.isWhitespace(str.charAt(0))
+				&& !StringUtil.isWhitespace(str.charAt(str.length - 1)) )
+			{
+				return str;
+			}
+
+			var token:String = quote;
+			for (var i:int = 0; i <= str.length; i++)
+			{
+				var currentChar:String = str.charAt(i);
+				if (currentChar == quote)
+					token += quote + quote;
+				else
+					token += currentChar; 
+			}
+			return token + quote;
 		}
 		
 		/**

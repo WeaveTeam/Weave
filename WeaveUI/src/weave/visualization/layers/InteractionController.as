@@ -64,7 +64,7 @@ package weave.visualization.layers
 			selectRemove.value = [CTRL, SHIFT, DRAG].join(DELIM);
 			
 			pan.value = [ALT, DRAG].join(DELIM);
-			zoom.value = WeaveAPI.CSVParser.createCSVFromArrays([[SHIFT, DRAG], [WHEEL]]);
+			zoom.value = WeaveAPI.CSVParser.createCSV([[SHIFT, DRAG], [WHEEL]]);
 			zoomIn.value = DCLICK;
 			zoomOut.value = [SHIFT, DCLICK].join(DELIM);
 			zoomToExtent.value = [CTRL, ALT, SHIFT, DCLICK].join(DELIM);

@@ -535,7 +535,7 @@
 					columns.push(new DataGridColumn(headerArray[i]));
 				
 				
-				csvDataString = WeaveAPI.CSVParser.createCSVFromArrays(csvDataArray);
+				csvDataString = WeaveAPI.CSVParser.createCSV(csvDataArray);
 				var csvData:Array = WeaveAPI.CSVParser.convertRowsToRecords(csvDataArray);
 				uniqueColumns = computeUniqueColumnNames(csvDataArray);
 				grid.dataProvider = csvData;
