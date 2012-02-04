@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="CSVParser,weave.data.CSVParser,convertRecordsToRows,convertRowsToRecords,createCSVFromArrays,createCSVToken,getRecordFieldNames,parseCSV,parseCSVToken" name="keywords">
+<meta content="CSVParser,weave.data.CSVParser,convertRecordsToRows,convertRowsToRecords,createCSV,createCSVToken,getRecordFieldNames,parseCSV,parseCSVToken" name="keywords">
 <title>weave.data.CSVParser</title>
 </head>
 <body>
@@ -42,7 +42,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 </table>
 <p></p>
-  CSVUtils
   This is an all-static class containing functions to parse and generate valid CSV files.
   Ported from AutoIt Script to Flex. Original author: adufilie
   
@@ -84,15 +83,17 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#createCSVFromArrays()">createCSVFromArrays</a>(table:Array):String</div>
-<div class="summaryTableDescription"></div>
+<a class="signatureLink" href="#createCSV()">createCSV</a>(rows:Array):String</div>
+<div class="summaryTableDescription">
+   This will generate a CSV String from an Array of rows in a table.</div>
 </td><td class="summaryTableOwnerCol">CSVParser</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#createCSVToken()">createCSVToken</a>(str:String):String</div>
-<div class="summaryTableDescription"></div>
+<div class="summaryTableDescription">
+   This will surround a string with quotes and use CSV-style escape sequences if necessary.</div>
 </td><td class="summaryTableOwnerCol">CSVParser</td>
 </tr>
 <tr class="">
@@ -108,14 +109,15 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#parseCSV()">parseCSV</a>(csvData:String, parseTokens:Boolean = true, destination:Array = null):Array</div>
 <div class="summaryTableDescription">
-   </div>
+   This will parse a CSV String into a two-dimensional Array of String values.</div>
 </td><td class="summaryTableOwnerCol">CSVParser</td>
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#parseCSVToken()">parseCSVToken</a>(token:String):String</div>
-<div class="summaryTableDescription"></div>
+<div class="summaryTableDescription">
+   This will parse a CSV-encoded String value.</div>
 </td><td class="summaryTableOwnerCol">CSVParser</td>
 </tr>
 </table>
@@ -214,24 +216,28 @@ showHideInherited();
 </tr>
 </table>
 </div>
-<a name="createCSVFromArrays()"></a>
+<a name="createCSV()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">createCSVFromArrays</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">createCSV</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public function createCSVFromArrays(table:Array):String</code><span class="label">Parameters</span>
+<code>public function createCSV(rows:Array):String</code><p>
+   This will generate a CSV String from an Array of rows in a table.
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">table</span>:Array</code></td>
+<td width="20px"></td><td><code><span class="label">rows</span>:Array</code> &mdash; A two-dimensional Array, which will be accessed like rows[rowIndex][columnIndex].
+   </td>
 </tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>String</code></td>
+<td width="20"></td><td><code>String</code> &mdash; A CSV String containing the values from the rows.
+   </td>
 </tr>
 </table>
 </div>
@@ -242,17 +248,21 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function createCSVToken(str:String):String</code><span class="label">Parameters</span>
+<code>public function createCSVToken(str:String):String</code><p>
+   This will surround a string with quotes and use CSV-style escape sequences if necessary.
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">str</span>:String</code></td>
+<td width="20px"></td><td><code><span class="label">str</span>:String</code> &mdash; A String value.
+   </td>
 </tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>String</code></td>
+<td width="20"></td><td><code>String</code> &mdash; The String value using CSV encoding.
+   </td>
 </tr>
 </table>
 </div>
@@ -296,10 +306,11 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function parseCSV(csvData:String, parseTokens:Boolean = true, destination:Array = null):Array</code><p>
+   This will parse a CSV String into a two-dimensional Array of String values.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">csvData</span>:String</code> &mdash; The CSV string to parse.
+<td width="20px"></td><td><code><span class="label">csvData</span>:String</code> &mdash; The CSV String to parse.
    </td>
 </tr>
 <tr>
@@ -332,17 +343,22 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function parseCSVToken(token:String):String</code><span class="label">Parameters</span>
+<code>public function parseCSVToken(token:String):String</code><p>
+   This will parse a CSV-encoded String value.
+   If string begins with ", text up until the matching " will be parsed, replacing "" with ".
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">token</span>:String</code></td>
+<td width="20px"></td><td><code><span class="label">token</span>:String</code> &mdash; A CSV-encoded String value.
+   </td>
 </tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>String</code></td>
+<td width="20"></td><td><code>String</code> &mdash; The decoded String value.
+   </td>
 </tr>
 </table>
 </div>
