@@ -25,7 +25,7 @@
 				  layout="absolute"
 				  title="Color Controller"
 				  backgroundColor="#EFF4BC"
-				  initialize="init()">
+				  >
 	<mx:VBox id="VizControlsPanel" label="Binning">
 		<ui:DynamicColumnComponent id="dataColumnComponent" label="Color data"/>
 		<ui:BinningDefinitionEditor id="binEditor"/>
@@ -42,8 +42,10 @@
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			
-			private function init():void
+			override protected function childrenCreated():void
 			{
+				super.childrenCreated();
+				
 				var colorCol:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
 				var binCol:BinnedColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_BIN_COLUMN) as BinnedColumn;
 				var dataCol:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
