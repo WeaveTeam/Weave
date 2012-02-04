@@ -38,6 +38,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.ui.AttributeSelectorPanel;
+			import weave.ui.ColorController;
+			import weave.ui.DraggablePanel;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.Histogram2DPlotter;
@@ -197,7 +199,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</mx:VBox>
 		<mx:VBox label="Binning Controls">
 				<mx:HBox>
-					<mx:Label text="Select Column : "/>
+					<mx:Label text="Select Column:"/>
 					<mx:RadioButtonGroup id="binColGroup" change="handleBinColRadioButtonChange()"/>
 					<mx:RadioButton groupName="binColGroup" label="X Column" value="xBinCol" id="xBinColRadioButton" selected="true"/>
 					<mx:RadioButton groupName="binColGroup" label="Y Column" value="yBinCol" id="yBinColRadioButton"/>
@@ -207,7 +209,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:VBox label="Advanced">
 			<mx:CheckBox id="showAverageColorData" label="Color by average data value instead of record count"
 						 creationComplete="linkBindableProperty(plotter.showAverageColorData, event.currentTarget, 'selected');"/>
-			<ui:DynamicColumnComponent id="colorColumnComponent" visTool="{this}" label="Color data" enabled="{showAverageColorData.selected}"/>
+			<mx:HBox width="100%" verticalAlign="middle" enabled="{showAverageColorData.selected}">
+				<ui:DynamicColumnComponent id="colorColumnComponent" visTool="{this}" label="Color data"/>
+				<mx:Button label="Edit colors..." click="DraggablePanel.openStaticInstance(ColorController);"/>
+			</mx:HBox>
 			<ui:ColorRampEditor id="cRampEditor" enabled="{!showAverageColorData.selected}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
