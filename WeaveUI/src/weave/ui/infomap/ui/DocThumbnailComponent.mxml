@@ -222,11 +222,13 @@ so that it can be moved, selected, handle filters.
 			
 			private function handleImage():void
 			{
-				//temporary fix. Fault event is not called when thumnail is not found.
+				//temporary fix. Fault event is not called when thumbnail is not found.
 				if(!parent)
 				{
 					return callLater(handleImage);
 				}
+				
+				
 				img.source = _noImage;
 				token = WeaveAPI.URLRequestUtils.getContent(new URLRequest(_doc.imageURL.value),handleImageRequest,handleImageFaultRequest);
 //				this.width = imageWidth.value;

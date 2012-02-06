@@ -91,6 +91,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * */
 			public const docs:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 			public var docsInCSV:CSVDataSource = new CSVDataSource();
+			public static const DOC_KEYTYPE:String = "infomapDocURL";
 			
 			/**
 			 * @public
@@ -124,7 +125,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				docsInCSV = Weave.root.requestObject("docs",CSVDataSource, false);
 				docsInCSV.csvDataString.value = "title,url,summary,image url,date";
 				docsInCSV.keyColName.value = "url";
-				docsInCSV.keyType.value = "infomapDocURL";
+				docsInCSV.keyType.value = DOC_KEYTYPE;
 				
 				
 				
@@ -325,7 +326,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleBackgroundImageChange():void
 			{
-				map.setStyle("backgroundImage","/infomap_images/"+ backgroundImageName.value+".png");
+				if(backgroundImageName.value)
+					map.setStyle("backgroundImage","/infomap_images/"+ backgroundImageName.value+".png");
 			}
 			
 			private var _mapImage:BitmapData
