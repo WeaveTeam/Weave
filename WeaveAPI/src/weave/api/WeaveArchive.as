@@ -58,6 +58,7 @@ package weave.api
 		 */		
 		private function _readArchive(fileData:ByteArray):void
 		{
+			fileData.position = 0;
 			var zip:ZipFile = new ZipFile(fileData);
 			for (var i:int = 0; i < zip.entries.length; i++)
 			{
