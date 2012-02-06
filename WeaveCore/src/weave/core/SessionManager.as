@@ -1104,6 +1104,7 @@ package weave.core
 			var useLinkableValue:Boolean = true;
 			var callLaterTime:int = 0;
 			var uiComponent:UIComponent = bindableParent as UIComponent;
+			var recursiveCall:Boolean = false;
 			// a function that takes zero parameters and sets the bindable value.
 			var synchronize:Function = function(firstParam:* = undefined, callingLater:Boolean = false):void
 			{
@@ -1143,7 +1144,8 @@ package weave.core
 				}
 				
 				// if the bindable value is not a boolean and the bindable parent has focus, delay synchronization
-				if (!(bindableParent[bindablePropertyName] is Boolean))
+				var bindableValue:Object = bindableParent[bindablePropertyName];
+				if (!(bindableValue is Boolean))
 				{
 					if (uiComponent && watcher)
 					{
@@ -1152,7 +1154,7 @@ package weave.core
 						{
 							if (linkableVariable is LinkableVariable)
 							{
-								if ((linkableVariable as LinkableVariable).verifyValue(bindableParent[bindablePropertyName]))
+								if ((linkableVariable as LinkableVariable).verifyValue(bindableValue))
 								{
 									// clear any existing error string
 									if (uiComponent.errorString)
@@ -1195,7 +1197,6 @@ package weave.core
 				}
 				
 				// synchronize
-				var bindableValue:Object = bindableParent[bindablePropertyName];
 				if (useLinkableValue)
 				{
 					var linkableValue:Object = linkableVariable.getSessionState();
@@ -1231,8 +1232,13 @@ package weave.core
 					// be constraints on the session state that will prevent the callbacks
 					// from triggering if the bindable value does not match those constraints.
 					// This makes UIComponents update to the real value after they lose focus.
-					if (callbackCollection.triggerCounter == prevCount)
+					if (callbackCollection.triggerCounter == prevCount && !recursiveCall)
+					{
+						// avoid infinite recursion in the case where the new value is not accepted by a verifier function
+						recursiveCall = true;
 						synchronize();
+						recursiveCall = false;
+					}
 				}
 			};
 			// Copy session state over to bindable property now, before calling BindingUtils.bindSetter(),
