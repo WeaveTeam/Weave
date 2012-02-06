@@ -124,8 +124,10 @@
 				
 				this.addChild(nodeBase);
 
-				linkBindableProperty(defaultBorderColor,unselectedBorder,"color");
-				linkBindableProperty(selectedBorderColor,selectedBorder,"color");
+				
+				//TODO: color property is not bindable to use callbakc function to set the colorproperty
+//				linkBindableProperty(defaultBorderColor,unselectedBorder,"color");
+//				linkBindableProperty(selectedBorderColor,selectedBorder,"color");
 				
 				node.keywords.addGroupedCallback(this,createAndSendQuery,true);
 				node.operator.addGroupedCallback(this,createAndSendQuery,true);
@@ -204,7 +206,7 @@
 				
 				if (this.parent == null)
 				{
-					StageUtils.callLater(this,createAndSendQuery);
+					WeaveAPI.StageUtils.callLater(this,createAndSendQuery);
 					return;
 				}
 				
@@ -348,7 +350,7 @@
 						response.addItem(link);
 				}
 				
-				var csvDataString:String = parser.createCSVFromArrays(docsArray);
+				var csvDataString:String = parser.createCSV(docsArray);
 				csvDataString = _parentPanel.docsInCSV.csvDataString.value + '\n' + csvDataString;
 				
 				_parentPanel.docsInCSV.csvDataString.value = csvDataString;
