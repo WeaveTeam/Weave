@@ -82,6 +82,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.ResizeEvent;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.DataTypes;
@@ -671,7 +672,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// delay this function to let the flex component update correctly.
 				if (allowCallLater)
 				{
-					StageUtils.callLater(this, handleNewWidth, [newWidth, false], false);
+					WeaveAPI.StageUtils.callLater(this, handleNewWidth, [newWidth, false], false);
 					return;
 				}
 				

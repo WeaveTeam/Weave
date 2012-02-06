@@ -57,7 +57,6 @@ package weave
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
-	import weave.core.StageUtils;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.WeaveDataSource;
@@ -134,8 +133,8 @@ package weave
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 
 		{ /** BEGIN STATIC CODE BLOCK **/ 
-			Weave.initialize(); // referencing this here causes all WeaveAPI implementations to be registered.
-		} /** END STATIC CODE BLOCK **/ 
+			Weave.initialize(); // this registers specific WeaveAPI implementation classes.
+		} /** END STATIC CODE BLOCK **/
 		
 		/**
 		 * Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
@@ -218,18 +217,22 @@ package weave
 				// disable interface until connected to admin console
 				var _this:VisApplication = this;
 				_this.enabled = false;
-				var resultHandler:Function = function(..._):void
+				var resultHandler:Function = function(event:ResultEvent, token:Object = null):void
 				{
 					_this.enabled = true;
 					adminService = pendingAdminService;
 					setupVisMenuItems(); // make sure 'save session state to server' is shown
 					downloadConfigFile();
 				};
-				var faultHandler:Function = function(..._):void
+				var faultHandler:Function = function(event:FaultEvent = null, token:Object = null):void
 				{
-					_this.enabled = true;
 					Alert.show("Unable to connect to the Admin Console.\nYou will not be able to save your session state to the server.", "Connection error");
-					downloadConfigFile();
+					// do not re-download config file if this function was called as a grouped callback.
+					if (event) // event==null if called as grouped callback
+					{
+						_this.enabled = true;
+						downloadConfigFile();
+					}
 				};
 				var pendingAdminService:LocalAsyncService = new LocalAsyncService(this, false, getFlashVarAdminConnectionName());
 				pendingAdminService.errorCallbacks.addGroupedCallback(this, faultHandler);
@@ -486,7 +489,7 @@ package weave
 						},
 						function(event:FaultEvent, token:Object = null):void
 						{
-							Alert.show(event.fault.message, event.fault.name);
+							reportError(event.fault, "Unable to connect to Admin Console");
 						},
 						null
 					));
@@ -517,7 +520,7 @@ package weave
 
 					//trace("MENU BAR ADDED");
 					_weaveMenu.percentWidth = 100;
-					StageUtils.callLater(this,setupVisMenuItems,null,false);
+					WeaveAPI.StageUtils.callLater(this,setupVisMenuItems,null,false);
 					
 					//PopUpManager.addPopUp(_weaveMenu, this);
 					this.addChildAt(_weaveMenu, 0);
@@ -798,7 +801,7 @@ package weave
 			}
 			DebugTimer.end('loadSessionState', fileName);
 
-			StageUtils.callLater(this, toggleMenuBar, null, false);
+			WeaveAPI.StageUtils.callLater(this, toggleMenuBar, null, false);
 			
 			if (!getFlashVarAdminConnectionName())
 				enabled = true;
@@ -830,7 +833,7 @@ package weave
 		private function handleWeaveListChange():void
 		{
 			if (Weave.root.childListCallbacks.lastObjectAdded is DraggablePanel)
-				StageUtils.callLater(this,setupWindowMenu,null,false); // add panel to menu items
+				WeaveAPI.StageUtils.callLater(this,setupWindowMenu,null,false); // add panel to menu items
 		}
 		
 		private function createColorHistogram():void

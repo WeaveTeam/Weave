@@ -171,7 +171,7 @@
 				
 				// remove duplicates from session state
 				if (duplicatesFound)
-					recordColors.value = WeaveAPI.CSVParser.createCSVFromArrays(_recordColorTable);
+					recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);
 			}
 			
 			internal function getColor(key:IQualifiedKey):Number
@@ -187,7 +187,7 @@
 					var key:IQualifiedKey = keys[i] as IQualifiedKey;
 					_recordColorTable.push([key.keyType, key.localName, '0x' + StandardLib.numberToBase(color, 16, 6).toUpperCase()]);
 				}
-				recordColors.value = WeaveAPI.CSVParser.createCSVFromArrays(_recordColorTable);
+				recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);
 			}
 			
 			private function removeSelectedColors():void
@@ -196,7 +196,7 @@
 				indices.sort(Array.NUMERIC);
 				for (var i:int = indices.length - 1; i >= 0; i--)
 					_recordColorTable.splice(indices[i], 1);
-				recordColors.value = WeaveAPI.CSVParser.createCSVFromArrays(_recordColorTable);
+				recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);
 			}
 		]]>
 	</mx:Script>

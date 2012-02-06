@@ -110,7 +110,7 @@ package weave.services
 					for (var name:String in methodParameters)
 					{
 						if (methodParameters[name] is Array)
-							request.data[name] = WeaveAPI.CSVParser.createCSVFromArrays([methodParameters[name]]);
+							request.data[name] = WeaveAPI.CSVParser.createCSV([methodParameters[name]]);
 						else
 							request.data[name] = methodParameters[name];
 					}

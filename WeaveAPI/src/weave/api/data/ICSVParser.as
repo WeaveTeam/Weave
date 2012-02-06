@@ -22,21 +22,35 @@ package weave.api.data
 	 */	
 	public interface ICSVParser
 	{
-		// if string begins with ", text up until the matching " will be parsed, replacing "" with "
-		function parseCSVToken(token:String):String;
-		
-		//if necessary, adds quotes around string and replaces " with ""
-		function createCSVToken(str:String):String;
-		
 		/**
-		 * @param csvData The CSV string to parse.
+		 * This will parse a CSV String into a two-dimensional Array of String values.
+		 * @param csvData The CSV String to parse.
 		 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
 		 * @return The destination Array, or a new Array if none was specified.  The result of parsing the CSV string will be stored here.
 		 */
 		function parseCSV(csvData:String, parseTokens:Boolean = true, destination:Array = null):Array;
 		
-		//takes an array of arrays and convert it into a CSV string
-		function createCSVFromArrays(table:Array):String;
+		/**
+		 * This will generate a CSV String from an Array of rows in a table.
+		 * @param rows A two-dimensional Array, which will be accessed like rows[rowIndex][columnIndex].
+		 * @return A CSV String containing the values from the rows.
+		 */
+		function createCSV(rows:Array):String;
+		
+		/**
+		 * This will parse a CSV-encoded String value.
+		 * If string begins with ", text up until the matching " will be parsed, replacing "" with ".
+		 * @param token A CSV-encoded String value.
+		 * @return The decoded String value.
+		 */
+		function parseCSVToken(token:String):String;
+		
+		/**
+		 * This will surround a string with quotes and use CSV-style escape sequences if necessary.
+		 * @param str A String value.
+		 * @return The String value using CSV encoding.
+		 */
+		function createCSVToken(str:String):String;
 		
 		/**
 		 * This function converts an Array of Arrays to an Array of Objects compatible with DataGrid.

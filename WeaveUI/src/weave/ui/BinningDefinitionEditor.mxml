@@ -30,7 +30,7 @@
 		 xmlns="weave.ui.*"
 		 width="100%"
 		 implements="weave.api.core.ILinkableObject"
-		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3">
+		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3" creationPolicy="all">
 		<mx:VBox borderStyle="solid" borderThickness="1" cornerRadius="10"
 				  paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5">
 			
@@ -114,7 +114,6 @@
 			import weave.data.BinningDefinitions.QuantileBinningDefinition;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
 			import weave.data.BinningDefinitions.StandardDeviationBinningDefinition;
-			import weave.utils.PopUpUtils;
 			
 			public const binnedColumn:BinnedColumn = newLinkableChild(this, BinnedColumn);
 			
@@ -222,7 +221,7 @@
 						names.push(source[i] as String);
 				}
 				
-				getAbstractDef().overrideBinNames.value = WeaveAPI.CSVParser.createCSVFromArrays([names]);
+				getAbstractDef().overrideBinNames.value = WeaveAPI.CSVParser.createCSV([names]);
 			}
 		]]>
 	</mx:Script>

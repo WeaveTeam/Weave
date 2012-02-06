@@ -40,11 +40,13 @@ package weave.api
 		
 		/**
 		 * This is a dynamic object containing all the files (ByteArray objects) in the archive.
+		 * The property names used in this object must be valid filenames or serialize() will fail.
 		 */
 		public const objects:Object = new OrderedHashMap();
 		
 		/**
 		 * This is a dynamic object containing all the amf objects stored in the archive.
+		 * The property names used in this object must be valid filenames or serialize() will fail.
 		 */
 		public const files:Object = new OrderedHashMap();
 		

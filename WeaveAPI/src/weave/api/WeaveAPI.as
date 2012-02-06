@@ -27,6 +27,7 @@ package weave.api
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
+	import weave.api.core.IStageUtils;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
 	import weave.api.data.IProjectionManager;
@@ -44,44 +45,18 @@ package weave.api
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 		
 		/**
-		 * This function will restart the Flash application by reloading the SWF that is embedded in the browser window.
-		 */
-		public static function externalReload():void
-		{
-			ExternalInterface.call(
-				"function(objectID) {" +
-				"  if (objectID) {" +
-				"    var p = document.getElementById(objectID).parentNode;" +
-				"    p.innerHTML = p.innerHTML;" +
-				"  }" +
-				"  else {" +
-				"    location.reload();" +
-				"  }" +
-				"}",
-				[ExternalInterface.objectID]
-			);
-		}
-		
-		/**
-		 * This returns the top level application as defined by FlexGlobals.topLevelApplication
-		 * or Application.application if FlexGlobals isn't defined.
-		 */
-		public static function get topLevelApplication():Object
-		{
-			//TODO: Application.application is deprecated
-			/*try {
-				return FlexGlobals.topLevelApplication;
-			} catch (e:Error) { }*/
-			
-			return getDefinitionByName('mx.core.Application').application;
-		}
-		
-		/**
 		 * This is the singleton instance of the registered ISessionManager implementation.
 		 */
 		public static function get SessionManager():ISessionManager
 		{
 			return getSingletonInstance(ISessionManager);
+		}
+		/**
+		 * This is the singleton instance of the registered IStageUtils implementation.
+		 */
+		public static function get StageUtils():IStageUtils
+		{
+			return getSingletonInstance(IStageUtils);
 		}
 		/**
 		 * This is the singleton instance of the registered IErrorManager implementation.
@@ -149,6 +124,39 @@ package weave.api
 		/**************************************/
 		
 		
+		/**
+		 * This function will restart the Flash application by reloading the SWF that is embedded in the browser window.
+		 */
+		public static function externalReload():void
+		{
+			ExternalInterface.call(
+				"function(objectID) {" +
+				"  if (objectID) {" +
+				"    var p = document.getElementById(objectID).parentNode;" +
+				"    p.innerHTML = p.innerHTML;" +
+				"  }" +
+				"  else {" +
+				"    location.reload();" +
+				"  }" +
+				"}",
+				[ExternalInterface.objectID]
+			);
+		}
+		
+		/**
+		 * This returns the top level application as defined by FlexGlobals.topLevelApplication
+		 * or Application.application if FlexGlobals isn't defined.
+		 */
+		public static function get topLevelApplication():Object
+		{
+			//TODO: Application.application is deprecated
+			/*try {
+			return FlexGlobals.topLevelApplication;
+			} catch (e:Error) { }*/
+			
+			return getDefinitionByName('mx.core.Application').application;
+		}
+		
 		
 		/**
 		 * This function will initialize the external interfaces so calls can be made from JavaScript to Weave.
@@ -169,13 +177,24 @@ package weave.api
 			}
 			var prev:Boolean = ExternalInterface.marshallExceptions;
 			ExternalInterface.marshallExceptions = false;
-			ExternalInterface.call('function(){ var weave = document.getElementById("'+ExternalInterface.objectID+'"); if (window && window.weaveReady) window.weaveReady(weave); else if (weaveReady) weaveReady(weave); }');
+			ExternalInterface.call(
+				'function(objectID) {' +
+				'  var weave = document.getElementById(objectID);' +
+				'  if (window && window.weaveReady) {' +
+				'    window.weaveReady(weave);' +
+				'  }' +
+				'  else if (weaveReady) {' +
+				'    weaveReady(weave);' +
+				'  }' +
+				'}',
+				[ExternalInterface.objectID]
+			);
 			ExternalInterface.marshallExceptions = prev;
 		}
 		
 		/**
 		 * @private 
-		 */		
+		 */
 		private static function generateExternalInterfaceCallback(methodName:String, theInterface:Class):Function
 		{
 			return function (...args):* {

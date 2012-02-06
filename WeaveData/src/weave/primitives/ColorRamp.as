@@ -149,7 +149,7 @@ package weave.primitives
 			{
 				var colors:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(value));
 				colors.reverse();
-				value = WeaveAPI.CSVParser.createCSVFromArrays([colors]);
+				value = WeaveAPI.CSVParser.createCSV([colors]);
 			}
 		}
 

@@ -305,8 +305,6 @@ import weave.api.data.IAttributeColumn;
 import weave.api.data.IColumnWrapper;
 import weave.api.data.IProjector;
 import weave.api.data.IQualifiedKey;
-import weave.compiler.StandardLib;
-import weave.core.StageUtils;
 import weave.data.AttributeColumns.GeometryColumn;
 import weave.data.AttributeColumns.ProxyColumn;
 import weave.data.AttributeColumns.StreamedGeometryColumn;
@@ -326,7 +324,7 @@ internal class WorkerThread
 		this.destinationProjSRS = destinationProjectionSRS;
 
 		// start reprojecting now and each time the unprojected column changes
-		unprojectedColumn.addImmediateCallback(this, StageUtils.startTask, [unprojectedColumn, iterate], true);
+		unprojectedColumn.addImmediateCallback(this, WeaveAPI.StageUtils.startTask, [unprojectedColumn, iterate], true);
 	}
 	
 	// values passed to the constructor -- these will not change.

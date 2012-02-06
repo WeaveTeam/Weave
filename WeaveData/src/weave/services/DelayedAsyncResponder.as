@@ -19,16 +19,10 @@
 
 package weave.services
 {
-	import flash.events.Event;
-	
 	import mx.rpc.AsyncResponder;
 	import mx.rpc.AsyncToken;
-	import mx.rpc.IResponder;
-	import mx.rpc.events.FaultEvent;
-	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
 	
-	import weave.core.StageUtils;
+	import weave.api.WeaveAPI;
 
 	/**
 	 * This is an AsyncResponder that uses StageUtils.callLater() on the result and fault functions.
@@ -51,11 +45,11 @@ package weave.services
 		
 		override public function result(data:Object):void
 		{
-			StageUtils.callLater(null, super.result, arguments);
+			WeaveAPI.StageUtils.callLater(null, super.result, arguments);
 		}
 		override public function fault(data:Object):void
 		{
-			StageUtils.callLater(null, super.fault, arguments);
+			WeaveAPI.StageUtils.callLater(null, super.fault, arguments);
 		}
 	}
 }

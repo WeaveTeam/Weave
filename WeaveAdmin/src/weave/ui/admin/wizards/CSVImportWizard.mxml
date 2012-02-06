@@ -149,7 +149,7 @@
 				csvKeyColumnCombo.dataProvider = firstRow;
 				csvSecondaryKeyColumnCombo.dataProvider = firstRow;
 				csvSecondaryKeyColumnCombo.selectedIndex = -1;
-				filterColumnsInput.text = WeaveAPI.CSVParser.createCSVFromArrays([firstRow]);
+				filterColumnsInput.text = WeaveAPI.CSVParser.createCSV([firstRow]);
 				
 				var tableName:String = _csvFileReference.name;
 				

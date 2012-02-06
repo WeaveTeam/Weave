@@ -19,21 +19,11 @@
 
 package weave.primitives
 {
-	import mx.utils.ObjectUtil;
-	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
-	import weave.api.setSessionState;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableBoolean;
-	import weave.core.LinkableNumber;
-	import weave.core.SessionManager;
 	
 	/**
 	 * This object defines the data bounds of a visualization, either directly with

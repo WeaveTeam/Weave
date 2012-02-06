@@ -52,7 +52,7 @@ package weave.utils
 			var testColumn:CSVColumn = Weave.root.requestObject(colName, CSVColumn, false);
 			testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
 			testColumn.numericMode.value = true;
-			testColumn.csvData.value = WeaveAPI.CSVParser.createCSVFromArrays(table);
+			testColumn.csvData.value = WeaveAPI.CSVParser.createCSV(table);
 			testColumn.title.value =colName;
 			var colorDataCol:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
 			colorDataCol.internalDynamicColumn.globalName = Weave.root.getName(testColumn);

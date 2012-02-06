@@ -20,12 +20,7 @@
 package weave.data.BinClassifiers
 {
 	import weave.api.data.IBinClassifier;
-	import weave.api.data.IPrimitiveColumn;
-	import weave.api.newLinkableChild;
-	import weave.core.LinkableBoolean;
-	import weave.core.LinkableNumber;
 	import weave.core.UntypedLinkableVariable;
-	import weave.data.AttributeColumns.StringColumn;
 	
 	/**
 	 * This classifies a single value.

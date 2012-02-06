@@ -24,7 +24,6 @@ package weave.utils
 	import flash.utils.Dictionary;
 	
 	import mx.utils.NameUtil;
-	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
@@ -35,7 +34,6 @@ package weave.utils
 	import weave.api.primitives.IBounds2D;
 	import weave.api.reportError;
 	import weave.core.CallbackCollection;
-	import weave.core.StageUtils;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.KDNode;
@@ -272,7 +270,7 @@ package weave.utils
 			}
 			
 			// collective bounds changed
-			StageUtils.callLater(this, _triggerCallbacksIfQueueEmpty, [_metadataStreamQueue]);
+			WeaveAPI.StageUtils.callLater(this, _triggerCallbacksIfQueueEmpty, [_metadataStreamQueue]);
 		}
 
 		private var _projectionWKT:String = ""; // stores the well-known-text defining the projection
@@ -488,14 +486,14 @@ package weave.utils
 					return 1; // done, skip callbacks
 				
 				// keys and bounding boxes changed
-				StageUtils.callLater(this, _triggerCallbacksIfQueueEmpty, [_metadataStreamQueue]);
+				WeaveAPI.StageUtils.callLater(this, _triggerCallbacksIfQueueEmpty, [_metadataStreamQueue]);
 				
 				return 1; // done
 			};
 			
 			_metadataStreamQueue[stream] = NameUtil.createUniqueName(stream);
 			
-			StageUtils.startTask(this, task);
+			WeaveAPI.StageUtils.startTask(this, task);
 		}
 
 		/**
@@ -602,14 +600,14 @@ package weave.utils
 					return 1; // done, skip callbacks
 				
 				// geometries changed
-				StageUtils.callLater(this, _triggerCallbacksIfQueueEmpty, [_geometryStreamQueue]);
+				WeaveAPI.StageUtils.callLater(this, _triggerCallbacksIfQueueEmpty, [_geometryStreamQueue]);
 
 				return 1; // done
 			}
 			
 			_geometryStreamQueue[stream] = NameUtil.createUniqueName(stream);
 			
-			StageUtils.startTask(this, task);
+			WeaveAPI.StageUtils.startTask(this, task);
 		}
 
 		

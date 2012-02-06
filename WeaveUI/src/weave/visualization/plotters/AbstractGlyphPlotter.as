@@ -25,14 +25,12 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.primitives.GeneralizedGeometry;
-	import weave.primitives.SimpleGeometry;
 	
 	/**
 	 * AbstractGlyphPlotter

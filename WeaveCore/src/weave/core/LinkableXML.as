@@ -38,15 +38,6 @@ package weave.core
 		public function LinkableXML(allowNull:Boolean = true)
 		{
 			super(String, allowNull ? null : notNull);
-
-//			if (defaultValue != null)
-//			{
-//				delayCallbacks();
-//				value = defaultValue;
-//				// Resume callbacks one frame later when we know it is possible for
-//				// other classes to have a pointer to this object and retrieve the value.
-//				StageUtils.callLater(this, resumeCallbacks, null, false);
-//			}
 		}
 		
 		private function notNull(value:Object):Boolean
