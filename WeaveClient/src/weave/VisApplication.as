@@ -190,8 +190,22 @@ package weave
 				return;
 			}
 			
+			try {
+				loaderInfo['uncaughtErrorEvents'].addEventListener(
+					'uncaughtError',
+					function(event:Object):void
+					{
+						reportError(event.error);
+					}
+				);
+			} catch (e:Error) { }
+			
 			// resize to parent size each frame because percentWidth,percentHeight doesn't seem reliable when application is nested
 			addEventListener(Event.ENTER_FRAME, updateWorkspaceSize);
+			
+			// special case - if an error occurred already
+			if (WeaveAPI.ErrorManager.errors.length > 0)
+				ErrorLogPanel.openErrorLog();
 			
 			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
 			Weave.root.childListCallbacks.addImmediateCallback(this, handleWeaveListChange);
