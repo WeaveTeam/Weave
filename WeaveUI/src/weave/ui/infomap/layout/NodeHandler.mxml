@@ -139,10 +139,10 @@
 				//if node is selected we highlight the nodeBase
 				node.selected.addGroupedCallback(this,highlightNode);
 				
-				//for now defaulting to Radial Layout
+				//for now defaulting to Grid Layout
 				
 				if(layout.internalObject == null)
-					layout.requestLocalObject(RadialLayout,false);
+					layout.requestLocalObject(GridLayout,false);
 				
 				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
 				
@@ -544,6 +544,9 @@
 			//highlight node based on node.selected.value
 			private function highlightNode():void
 			{
+				unselectedBorder.color = defaultBorderColor.value;
+				selectedBorder.color = selectedBorderColor.value;
+				
 				if(node.selected.value)
 					selectedBorder.play();
 				else

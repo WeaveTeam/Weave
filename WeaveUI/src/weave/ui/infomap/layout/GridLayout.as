@@ -29,7 +29,7 @@ package weave.ui.infomap.layout
 		private var baseLayoutDrawn:Boolean = false;
 		public function drawBaseLayout(graphics:Graphics):void
 		{
-			if(_parentNodeHandler.node.keywords.value == null || _parentNodeHandler.nodeBase.keywordTextArea ==null)
+			if(_parentNodeHandler == null ||_parentNodeHandler.nodeBase.keywordTextArea ==null)
 				return;
 			
 			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.node.keywords.value;
