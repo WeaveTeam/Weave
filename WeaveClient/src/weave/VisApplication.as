@@ -51,6 +51,7 @@ package weave
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
@@ -209,7 +210,7 @@ package weave
 				ErrorLogPanel.openErrorLog();
 			
 			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
-			Weave.root.childListCallbacks.addImmediateCallback(this, handleWeaveListChange);
+			Weave.root.childListCallbacks.addGroupedCallback(this, setupWindowMenu);
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
@@ -847,12 +848,6 @@ package weave
 			// Set the name of the CSS style we will be using for this application.  If weaveStyle.css is present, the style for
 			// this application can be defined outside the code in a CSS file.
 			this.styleName = "application";	
-		}
-		
-		private function handleWeaveListChange():void
-		{
-			if (Weave.root.childListCallbacks.lastObjectAdded is DraggablePanel)
-				WeaveAPI.StageUtils.callLater(this,setupWindowMenu,null,false); // add panel to menu items
 		}
 		
 		private function createColorHistogram():void
