@@ -102,6 +102,7 @@ package weave
 	import weave.utils.ColumnUtils;
 	import weave.utils.DebugTimer;
 	import weave.utils.EditorManager;
+	import weave.utils.VectorUtils;
 	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.CollaborationTool;
@@ -194,8 +195,22 @@ package weave
 				return;
 			}
 			
+			try {
+				loaderInfo['uncaughtErrorEvents'].addEventListener(
+					'uncaughtError',
+					function(event:Object):void
+					{
+						reportError(event.error);
+					}
+				);
+			} catch (e:Error) { }
+			
 			// resize to parent size each frame because percentWidth,percentHeight doesn't seem reliable when application is nested
 			addEventListener(Event.ENTER_FRAME, updateWorkspaceSize);
+			
+			// special case - if an error occurred already
+			if (WeaveAPI.ErrorManager.errors.length > 0)
+				ErrorLogPanel.openErrorLog();
 			
 			getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog);
 			Weave.root.childListCallbacks.addImmediateCallback(this, handleWeaveListChange);
@@ -254,10 +269,17 @@ package weave
 		
 		private function downloadConfigFile():void
 		{
-			// load the session state file
-			var fileName:String = getFlashVarConfigFileName() || DEFAULT_CONFIG_FILE_NAME;
-			var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
-			WeaveAPI.URLRequestUtils.getURL(new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
+			if (Weave.handleWeaveReload())
+			{
+				handleConfigFileDownloaded();
+			}
+			else
+			{
+				// load the session state file
+				var fileName:String = getFlashVarConfigFileName() || DEFAULT_CONFIG_FILE_NAME;
+				var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
+				WeaveAPI.URLRequestUtils.getURL(new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
+			}
 		}
 		
 		private function handleBackgroundColorChange():void
@@ -685,6 +707,11 @@ package weave
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state...", handleImportSessionState));
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Export session state...", handleExportSessionState));
+				if (Weave.ALLOW_PLUGINS)
+				{
+					_weaveMenu.addSeparatorToMenu(_sessionMenu);
+					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Manage plugins...", managePlugins));
+				}
 				if (adminService)
 				{
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
@@ -724,7 +751,8 @@ package weave
 			try
 			{
 				// attempt to parse as a Weave archive
-				Weave.loadWeaveFileContent(ByteArray(fileContent));
+				if (fileContent)
+					Weave.loadWeaveFileContent(ByteArray(fileContent));
 			}
 			catch (error:Error)
 			{
@@ -788,15 +816,12 @@ package weave
 						}
 					}
 					
-					Weave.setSessionStateXML(xml);
+					Weave.loadWeaveFileContent(xml);
 					
-					// An empty subset is not of much use.  If the subset is empty, reset it to include all records.
-					var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
-					if (subset.includeMissingKeys.value == false && subset.included.keys.length == 0 && subset.excluded.keys.length == 0)
-						subset.includeMissingKeys.value = true;
-					
-					// begin with empty history after loading the session state from the xml
-					Weave.history.clearHistory();
+//					// An empty subset is not of much use.  If the subset is empty, reset it to include all records.
+//					var subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
+//					if (subset.includeMissingKeys.value == false && subset.included.keys.length == 0 && subset.excluded.keys.length == 0)
+//						subset.includeMissingKeys.value = true;
 				}
 			}
 			DebugTimer.end('loadSessionState', fileName);
@@ -1146,10 +1171,13 @@ package weave
 		/**
 		 * This function handles parsing the config file once it has downloaded.
 		 */
-		private function handleConfigFileDownloaded(event:ResultEvent, token:Object = null):void
+		private function handleConfigFileDownloaded(event:ResultEvent = null, token:Object = null):void
 		{
 			var fileName:String = token as String;
-			loadSessionState(event.result, fileName);
+			if (!event)
+				loadSessionState(null, null);
+			else
+				loadSessionState(event.result, fileName);
 			
 			if (getFlashVarEditable())
 			{
@@ -1385,6 +1413,27 @@ package weave
 			var exportSessionStatePanel:ExportSessionStatePanel = new ExportSessionStatePanel();
 			exportSessionStatePanel = PopUpManager.createPopUp(this,ExportSessionStatePanel,false) as ExportSessionStatePanel;
 			PopUpManager.centerPopUp(exportSessionStatePanel);
+		}
+		
+		private function managePlugins():void
+		{
+			var popup:AlertTextBox;
+			popup = PopUpManager.createPopUp(this, AlertTextBox) as AlertTextBox;
+			popup.allowEmptyInput = true;
+			popup.textInput = WeaveAPI.CSVParser.createCSV([Weave.getPluginList()]);
+			popup.title = "Specify which plugins to load";
+			popup.message = "List plugin .SWC files, separated by commas. Weave will reload itself if plugins have to be unloaded.";
+			popup.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handlePluginsChange);
+			PopUpManager.centerPopUp(popup);
+		}
+		
+		private function handlePluginsChange(event:AlertTextBoxEvent):void
+		{
+			if (event.confirm)
+			{
+				var plugins:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(event.textInput), []);
+				Weave.setPluginList(plugins, null);
+			}
 		}
 		
 		public function printOrExportImage(component:UIComponent):void

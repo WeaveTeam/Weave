@@ -122,26 +122,7 @@ package weave.api
 			return getSingletonInstance(IURLRequestUtils);
 		}
 		/**************************************/
-		
-		
-		/**
-		 * This function will restart the Flash application by reloading the SWF that is embedded in the browser window.
-		 */
-		public static function externalReload():void
-		{
-			ExternalInterface.call(
-				"function(objectID) {" +
-				"  if (objectID) {" +
-				"    var p = document.getElementById(objectID).parentNode;" +
-				"    p.innerHTML = p.innerHTML;" +
-				"  }" +
-				"  else {" +
-				"    location.reload();" +
-				"  }" +
-				"}",
-				[ExternalInterface.objectID]
-			);
-		}
+
 		
 		/**
 		 * This returns the top level application as defined by FlexGlobals.topLevelApplication

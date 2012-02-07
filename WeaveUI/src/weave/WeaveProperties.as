@@ -19,16 +19,20 @@
 
 package weave
 {
+	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.URLRequest;
+	import flash.system.ApplicationDomain;
 	import flash.text.Font;
 	import flash.utils.ByteArray;
 	
 	import mx.collections.ArrayCollection;
 	import mx.controls.ToolTip;
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
 	
 	import ru.etcs.utils.FontLoader;
@@ -78,7 +82,7 @@ package weave
 			for each (var propertyName:String in (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(this))
 				registerLinkableChild(this, this[propertyName] as ILinkableObject);
 			
-			loadEmbeddedFonts();
+			loadWeaveFontsSWF();
 
 			// handle dynamic changes to the session state that change what CSS file to use
 			cssStyleSheetName.addGroupedCallback(
@@ -94,34 +98,44 @@ package weave
 			panelTitleTextFormat.color.value = 0xFFFFFF;
 		}
 		
-		private function loadEmbeddedFonts():void
-		{
-			fontLoader.autoRegister = true;
-			fontLoader.addEventListener(Event.COMPLETE,weaveFontsLoaded);
-			fontLoader.addEventListener(IOErrorEvent.IO_ERROR,handleLoaderErrorEvent);
-			fontLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleLoaderErrorEvent);
-			fontLoader.load(new URLRequest("WeaveFonts.swf"));
-		}
-		
-		private var fontLoader:FontLoader = new FontLoader();
-		
 		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
-		private function weaveFontsLoaded(event:Event):void
+		private static function loadWeaveFontsSWF():void
 		{
-			var fonts:Array = fontLoader.fonts;
-			
-			
-			for each (var font:Font in fonts)
-			{
-				if(!embeddedFonts.contains(font.fontName))
-					embeddedFonts.addItem(font.fontName);
-			}
-			
-		}
-		
-		private function handleLoaderErrorEvent(event:Event):void
-		{
-			//DO Nothing
+			WeaveAPI.URLRequestUtils.getURL(
+				new URLRequest('WeaveFonts.swf'),
+				function(event:ResultEvent, token:Object = null):void
+				{
+					var fontLoader:FontLoader = new FontLoader();
+					fontLoader.addEventListener(
+						Event.COMPLETE,
+						function(event:Event):void
+						{
+							try
+							{
+								var fonts:Array = fontLoader.fonts;
+								for each (var font:Font in fonts)
+								{
+									var fontClass:Class = Object(font).constructor;
+									Font.registerFont(fontClass);
+									if (!embeddedFonts.contains(font.fontName))
+										embeddedFonts.addItem(font.fontName);
+								}
+							}
+							catch (e:Error)
+							{
+								var app:Object = WeaveAPI.topLevelApplication;
+								if (app.parent && app.parent.parent is Stage) // don't report error if loaded as a nested app
+									reportError(e);
+							}
+						}
+					);
+					fontLoader.loadBytes(ByteArray(event.result), false);
+				},
+				function(event:FaultEvent, token:Object = null):void
+				{
+					reportError(event.fault);
+				}
+			);
 		}
 		
 		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xFFFFFF;
