@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
 /*
     Weave (Web-based Analysis and Visualization Environment)
     Copyright (C) 2008-2011 University of Massachusetts Lowell
@@ -16,18 +18,10 @@
     You should have received a copy of the GNU General Public License
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
-package weave.config;
-
-public class DublinCoreElement {
-	public String element;
-	public String value;
-
-	public DublinCoreElement(String element, String value) {
-		this.element = element;
-		this.value = value;
-	}
-
-	public String toString() {
-		return "element = " + element + ", value = " + value;
-	}
-}
+-->
+<mx:TitleWindow xmlns="weave.example.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*">
+	<mx:HBox>
+		<mx:Label text="This is an example TitleWindow"/>
+		<ui:HelpComponent>Example help text</ui:HelpComponent>
+	</mx:HBox>
+</mx:TitleWindow>

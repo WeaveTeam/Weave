@@ -421,7 +421,7 @@ package weave.utils
 			SecondaryKeyNumColumn.allKeysHack = false; // dimension slider hack
 			
 			var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(records, columnTitles);
-			return WeaveAPI.CSVParser.createCSVFromArrays(rows);
+			return WeaveAPI.CSVParser.createCSV(rows);
 		}
 		
 		

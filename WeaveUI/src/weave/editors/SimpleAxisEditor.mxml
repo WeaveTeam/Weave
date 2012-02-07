@@ -59,7 +59,7 @@
 	<ui:IndentGroup id="g1"/>
 	<ui:IndentGroup id="g2"/>
 	<ui:IndentGroup id="g3"/>
-	<mx:VBox id="axisSettings" verticalGap="{verticalGap}" verticalAlign="middle">
+	<mx:VBox id="axisSettings" verticalGap="{verticalGap}" verticalAlign="middle" width="100%" height="100%">
 		<mx:HBox verticalAlign="middle">
 			<ui:Indent label="Axis color:" group="{g1}">
 				<mx:ColorPicker id="axisColorPicker" toolTip="Select a color for the axis border of this visualization"
@@ -88,36 +88,11 @@
 							creationComplete="linkBindableProperty(_visualization.gridLineAlpha, event.target, 'value');"/>
 			</ui:Indent>
 		</mx:HBox>
-		<mx:HBox verticalAlign="middle">
-			<mx:VBox>
-				<ui:TextBox label="Y axis title:" id="yAxisTitle"/>
-				<ui:TextBox label="Y axis label function:" id="yAxisLabelFunction"/>
-			</mx:VBox>
-			<mx:VBox>
-				<ui:Indent label="Distance:">
-					<mx:NumericStepper id="yLabelDistance" minimum="-50" maximum="50" stepSize="5" width="64"/>
-				</ui:Indent>
-				<ui:Indent label="Angle:">
-					<mx:NumericStepper id="yLabelAngle" minimum="-180" maximum="180" stepSize="15" width="64"/>
-				</ui:Indent>
-			</mx:VBox>
-			<ui:AlignmentControl id="yLabelAlign"/>
-		</mx:HBox>
-		<mx:HBox verticalAlign="middle">
-			<mx:VBox>
-				<ui:TextBox label="X axis title:" id="xAxisTitle"/>
-				<ui:TextBox label="X axis label function:" id="xAxisLabelFunction"/>
-			</mx:VBox>
-			<mx:VBox>
-				<ui:Indent label="Distance:">
-					<mx:NumericStepper id="xLabelDistance" minimum="-50" maximum="50" stepSize="5" width="64"/>
-				</ui:Indent>
-				<ui:Indent label="Angle:">
-					<mx:NumericStepper id="xLabelAngle" minimum="-180" maximum="180" stepSize="15" width="64"/>
-				</ui:Indent>
-			</mx:VBox>
-			<ui:AlignmentControl id="xLabelAlign"/>
-		</mx:HBox>
+		<mx:TabNavigator width="100%" height="100%"
+						 paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
+			<SimpleAxisPlotterLabelEditor label="X axis labels" id="xAxisLabelEditor"/>
+			<SimpleAxisPlotterLabelEditor label="Y axis labels" id="yAxisLabelEditor"/>
+		</mx:TabNavigator>
 	</mx:VBox>
 
 	<mx:Script>
@@ -129,7 +104,8 @@
 			import weave.ui.DraggablePanel;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
 			
-			private const verticalGap:int = 16;
+			private const verticalGap:int = 8;
+			private const padding:int = 8;
 
 			[Bindable]
 			private var _panel:DraggablePanel = null;
@@ -158,19 +134,8 @@
 				
 				if (_visualization.getXAxisLayer())
 				{
-					linkBindableProperty(_visualization.getXAxisLayer().axisPlotter.overrideAxisName, xAxisTitle, 'text');
-					linkBindableProperty(_visualization.getXAxisLayer().axisPlotter.labelFunction, xAxisLabelFunction, 'text');
-					linkBindableProperty(_visualization.getXAxisLayer().axisPlotter.axisLabelRelativeAngle, xLabelAngle, 'value');
-					linkBindableProperty(_visualization.getXAxisLayer().axisPlotter.labelHorizontalAlign, xLabelAlign, 'horizontalAlign');
-					linkBindableProperty(_visualization.getXAxisLayer().axisPlotter.labelVerticalAlign, xLabelAlign, 'verticalAlign');
-					linkBindableProperty(_visualization.getXAxisLayer().axisPlotter.axisLabelDistance, xLabelDistance, 'value');
-					
-					linkBindableProperty(_visualization.getYAxisLayer().axisPlotter.overrideAxisName, yAxisTitle, 'text');
-					linkBindableProperty(_visualization.getYAxisLayer().axisPlotter.labelFunction, yAxisLabelFunction, 'text');
-					linkBindableProperty(_visualization.getYAxisLayer().axisPlotter.axisLabelRelativeAngle, yLabelAngle, 'value');
-					linkBindableProperty(_visualization.getYAxisLayer().axisPlotter.labelHorizontalAlign, yLabelAlign, 'horizontalAlign');
-					linkBindableProperty(_visualization.getYAxisLayer().axisPlotter.labelVerticalAlign, yLabelAlign, 'verticalAlign');
-					linkBindableProperty(_visualization.getYAxisLayer().axisPlotter.axisLabelDistance, yLabelDistance, 'value');
+					xAxisLabelEditor.setTarget(_visualization.getXAxisLayer().axisPlotter);
+					yAxisLabelEditor.setTarget(_visualization.getYAxisLayer().axisPlotter);
 					
 					if (!label)
 						label = "Axes";

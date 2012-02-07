@@ -26,6 +26,7 @@ package weave.visualization.plotters
 	import flash.display.IBitmapDrawable;
 	import flash.display.LineScaleMode;
 	import flash.display.Shape;
+	import flash.display.TriangleCulling;
 	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
@@ -219,8 +220,8 @@ package weave.visualization.plotters
 			var newShape:Shape = new Shape();
 			//newShape.graphics.lineStyle(1, 0xFFFFFF, 0.5, false, LineScaleMode.NONE);
 			//newShape.graphics.lineStyle(1, 0, 1, true, LineScaleMode.NONE);
-			newShape.graphics.beginBitmapFill(tile.bitmapData, null, false); // it's important to disable the repeat option
-			newShape.graphics.drawTriangles(vertices, indices, uvtData);
+			newShape.graphics.beginBitmapFill(tile.bitmapData, null, false, true); // it's important to disable the repeat option
+			newShape.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.POSITIVE);
 			newShape.graphics.endFill();
 			
 			// save the shape and bounds into the token object and put in cache

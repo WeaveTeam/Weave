@@ -29,6 +29,7 @@ package weave.data.DataSources
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
+	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
@@ -132,6 +133,19 @@ package weave.data.DataSources
 		{
 			super.handleHierarchyChange();
 			convertOldHierarchyFormat(_attributeHierarchy.value, "attribute", {name: "csvColumn"});
+			if (_attributeHierarchy.value)
+			{
+				for each (var tag:XML in _attributeHierarchy.value.descendants('attribute'))
+				{
+					if (!String(tag.@title))
+					{
+						var newTitle:String = String(tag.@name) || String(tag.@csvColumn);
+						if (String(tag.@year))
+							newTitle += ' (' + tag.@year + ')';
+						tag.@title = newTitle;
+					}
+				}
+			}
 			_attributeHierarchy.detectChanges();
 		}
 
@@ -197,6 +211,8 @@ package weave.data.DataSources
 			// backwards compatibility
 			if (colName == '')
 				colName = proxyColumn.getMetadata("name");
+			if (proxyColumn.getMetadata(AttributeColumnMetadata.TITLE))
+				
 			
 			var colIndex:int = (csvDataArray[0] as Array).indexOf(colName);
 			var keyColIndex:int = (csvDataArray[0] as Array).indexOf(keyColName.value); // it is ok if this is -1 because getColumnValues supports -1

@@ -19,10 +19,25 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
- 
- <!--	weave.mxml 
- 		@author abaumann 
- 		
- 		One example of a client using the weave framework.
-   -->
-<VisApplication xmlns="weave.*"/>
+<mx:Application
+		xmlns:mx="http://www.adobe.com/2006/mxml"
+		xmlns:weave="weave.*"
+		horizontalScrollPolicy="off"
+		verticalScrollPolicy="off"
+		paddingBottom="0" paddingTop="0" paddingLeft="0" paddingRight="0"
+		horizontalAlign="left"
+		>
+	<weave:VisApplication width="100%" height="100%" id="visApp"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			
+			import weave.api.core.ILinkableContainer;
+			
+			// for backwards compatibility with old JavaScript evaluateExpression() code
+			[Deprecated] public function get visDesktop():ILinkableContainer { return visApp.visDesktop; }
+			[Deprecated] public function get flashVars():Object { return visApp.flashVars; }
+			[Deprecated] public function printOrExportImage(component:UIComponent):void { visApp.printOrExportImage(component); }
+		]]>
+	</mx:Script>
+</mx:Application>

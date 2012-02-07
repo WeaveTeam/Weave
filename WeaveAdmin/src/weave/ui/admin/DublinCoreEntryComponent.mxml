@@ -96,6 +96,7 @@
 			{
 				var popup:DublinCoreEntryComponent = PopUpManager.createPopUp(parent, DublinCoreEntryComponent, true) as DublinCoreEntryComponent;
 				PopUpManager.centerPopUp(popup);
+				popup.textArea.setFocus();
 				return popup;
 			}
 		]]>

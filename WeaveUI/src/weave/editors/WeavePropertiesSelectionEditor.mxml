@@ -30,6 +30,9 @@
 			import weave.core.SessionManager;
 		]]>
 	</mx:Script>
+	<mx:CheckBox label='Show "Selected Records" tooltip in lower-right corner'
+				 creationComplete="linkBindableProperty(Weave.properties.showSelectedRecordsText, event.target, 'selected')"/>
+				 
 	<mx:CheckBox toolTip="Check this box to enable bitmap filters used when probing or selecting"
 				 id="enableBitmapFilters"
 				 label="Enable Bitmap Filters"

@@ -34,6 +34,7 @@
 		</ui:Indent>
 		<ui:Indent label="Visualization font:" group="{g1}">
 			<ui:FontControl id="toolFontControl"/>
+			<ui:HelpComponent>Only embedded fonts are supported at this time.</ui:HelpComponent>
 		</ui:Indent>
 		<ui:Indent label="Background color:" group="{g1}">
 			<mx:ColorPicker id="swatches" 

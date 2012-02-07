@@ -387,7 +387,7 @@
 				var fieldNames:Array = setupDataGridColumns(metadataArray, tableEditor);
 				// generate CSV String
 				var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(metadataArray, fieldNames, true)
-				textEditor.text = WeaveAPI.CSVParser.createCSVFromArrays(rows);
+				textEditor.text = WeaveAPI.CSVParser.createCSV(rows);
 				
 				testAllQueriesButton.enabled = (metadataArray.length > 0);
 			}
@@ -438,7 +438,7 @@
 					order[i] = order[i].dataField;
 				
 				var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(metadataArray, order, true);
-				var csvDataString:String = WeaveAPI.CSVParser.createCSVFromArrays(rows);
+				var csvDataString:String = WeaveAPI.CSVParser.createCSV(rows);
 				
 				return csvDataString;
 			}
@@ -606,7 +606,11 @@
 				var tableName:String = getSelectedTableName();
 				var query:DelayedAsyncInvocation = AdminInterface.instance.listDCElements(tableName);
 				query.addAsyncResponder(function(e:ResultEvent, t:Object=null):void{
-					dcElementsEditor.dataProvider = e.result;
+					var list:Array = [];
+					for (var element:String in e.result)
+						list.push({"element": element, "value": e.result[element]});
+					list.sortOn("element");
+					dcElementsEditor.dataProvider = list;
 				});
 				deleteSelectedElementsButton.enabled = false;
 			}

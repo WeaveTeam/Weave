@@ -350,8 +350,8 @@
 						remoteVideo.stream.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
 						remoteVideo.video = new Video(140, 105);
 						remoteVideo.play("v-"+roomName+"-"+name);
-						remoteVideo.setPos(containerRemoteCams.width/2-remoteVideo.width/2, 0);
-						remoteVideo.setName(name);
+//						remoteVideo.setPos(containerRemoteCams.width/2-remoteVideo.width/2, 0);
+						remoteVideo.nickname = name;
 						containerRemoteCams.addChild(remoteVideo);
 						nsPlayCamList[name] = remoteVideo;
 						
@@ -395,15 +395,17 @@
 			public function organizeRemoteVideos():void
 			{
 				var maxWidth:Number = 140;
-				var minWidth:Number = 108;
+				var minWidth:Number = 92;
 				var count:Number = dictionaryLength(nsPlayCamList);
 				var usable:Number = containerRemoteCams.width;
-				var camWidth:Number = (usable / count > maxWidth) ? maxWidth : (usable/count);
-				var camHeight:Number = 3 * camWidth / 4;
+				var camWidth:Number = ((usable/(count+1)) > maxWidth) ? maxWidth : (usable/(count+1));
 				var names:Array = new Array();
 				
-//				trace( "Usable width: "+usable);
-//				trace( usable,"/",count,">",maxWidth,"[",((usable / count > maxWidth)?"T":"F"),"] =",maxWidth,":",(usable/count));
+				if( camWidth < minWidth )
+					camWidth = minWidth;
+				
+				trace( "Usable width: "+usable);
+				trace( usable,"/",count+1,">",maxWidth,"[",((usable / (count+1) > maxWidth)?"T":"F"),"] =",maxWidth,":",camWidth);
 				
 				for( var n:String in nsPlayCamList ) names.push(n);
 				names.sort();
@@ -412,31 +414,30 @@
 				{
 					case 1:
 						var vid:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
-						
-						vid.setSize(camWidth, camHeight);
-						vid.setPos(usable/2-vid.width/2, 0, true);
+						vid.setSize(camWidth);
+//						vid.setPos(usable/2-vid.width/2, 0);
 						break;
 					case 2:
 						var vid1:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
-						vid1.setSize(camWidth, camHeight);
-						vid1.setPos(usable/4-vid1.width/2, 0, true);
+						vid1.setSize(camWidth);
+//						vid1.setPos(usable/3-vid1.width/2, 0);
 						
 						var vid2:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
-						vid2.setSize(camWidth, camHeight);
-						vid2.setPos(3*usable/4-vid2.width/2, 0, true);
+						vid2.setSize(camWidth);
+//						vid2.setPos(2*usable/3-vid2.width/2, 0);
 						break;
 					case 3:
 						var vid1:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
-						vid1.setSize(camWidth, camHeight);
-						vid1.setPos(usable/4-vid1.width/2, 0, true);
+						vid1.setSize(camWidth);
+//						vid1.setPos(usable/6-vid1.width/2, 0);
 						
 						var vid2:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
-						vid2.setSize(camWidth, camHeight);
-						vid2.setPos(3*usable/4-vid2.width/2, 0, true);
+						vid2.setSize(camWidth);
+//						vid2.setPos(2*usable/6-vid2.width/2, 0);
 						
-						var vid3:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
-						vid3.setSize(camWidth, camHeight);
-						vid3.setPos(2*usable/4-vid3.width/2, 0, true);
+						var vid3:CollaborationVideo = nsPlayCamList[names[2]] as CollaborationVideo;
+						vid3.setSize(camWidth);
+//						vid3.setPos(4*usable/6-vid3.width/2, 0);
 						break;
 					default:
 						

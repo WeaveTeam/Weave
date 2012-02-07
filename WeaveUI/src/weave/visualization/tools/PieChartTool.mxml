@@ -26,17 +26,11 @@
 		 layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import mx.events.FlexEvent;
-			
 			import weave.Weave;
-			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
-			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
-			import weave.core.SessionManager;
-			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.utils.ColumnUtils;

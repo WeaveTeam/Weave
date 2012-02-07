@@ -50,7 +50,8 @@
 		</ui:Indent>
 		<mx:CheckBox id="generateKeyColumn" selected="true"
 					 label="Generate a new primary key column"
-					 toolTip="Checking this box will generate a new unique key for each row."/>
+					 toolTip="Checking this box will generate a new unique key for each row."
+					 />
 		<mx:VBox paddingLeft="{paddingIndent}" visible="{!generateKeyColumn.selected}">
 			<ui:Indent label="Key column" grouped="false">
 				<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{Strings.tip_key_column_dropdown}"/><!-- editable because user may have typed in a file name manually -->
@@ -71,7 +72,7 @@
 			</ui:Indent>
 			
 			<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
-			<ui:TextBox paddingLeft="{paddingIndent}" visible="{generateFilterColumns.selected}" label="Columns to use as filters" id="filterColumnsInput"/>
+			<ui:IndentTextInput paddingLeft="{paddingIndent}" visible="{generateFilterColumns.selected}" label="Columns to use as filters" id="filterColumnsInput"/>
 		</mx:VBox>
 	</mx:VBox>
 	<mx:VBox id="dublinCorePage" width="100%" label="Specify Dublin Core metadata">
@@ -91,12 +92,15 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.core.UIComponent;
 			import mx.managers.PopUpManager;
+			import mx.managers.ToolTipManager;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Strings;
 			import weave.api.WeaveAPI;
+			import weave.data.AttributeColumns.CSVColumn;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
@@ -112,6 +116,12 @@
 				_csvFileReference.addEventListener(Event.SELECT, csvFileSelectedHandler);
 				_csvFileReference.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
 				_csvFileReference.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
+				
+				csvKeyColumnCombo.addEventListener(Event.CHANGE,keyColumnChange);
+				csvSecondaryKeyColumnCombo.addEventListener(Event.CHANGE,keyColumnChange);
+				
+				generateKeyColumn.addEventListener(Event.CHANGE, handleGenerateKeyColumnChange);
+				secondaryKeyColumnCheckBox.addEventListener(Event.CHANGE,keyColumnChange);
 					
 				backEnabled = false;
 				nextEnabled = false;
@@ -123,6 +133,7 @@
 				_csvFileReference.load();
 			}
 			
+			private var _csvData:String = '';
 			private function csvFileLoadCompleteHandler(event:Event):void
 			{
 				if (_csvFileReference.data == null)
@@ -133,12 +144,12 @@
 				csvFileNameInput.text = _csvFileReference.name;
 				
 				// when file is loaded locally, get csv column names
-				var csvData:String = _csvFileReference.data.toString();
-				var firstRow:Array = WeaveAPI.CSVParser.parseCSV(csvData)[0];
+				_csvData = _csvFileReference.data.toString();
+				var firstRow:Array = WeaveAPI.CSVParser.parseCSV(_csvData)[0];
 				csvKeyColumnCombo.dataProvider = firstRow;
 				csvSecondaryKeyColumnCombo.dataProvider = firstRow;
 				csvSecondaryKeyColumnCombo.selectedIndex = -1;
-				filterColumnsInput.text = WeaveAPI.CSVParser.createCSVFromArrays([firstRow]);
+				filterColumnsInput.text = WeaveAPI.CSVParser.createCSV([firstRow]);
 				
 				var tableName:String = _csvFileReference.name;
 				
@@ -260,6 +271,98 @@
 				backEnabled = enable;
 				nextEnabled = enable;
 				finishEnabled = enable;
+			}
+			
+			/**
+			 * This function will check to see if generate Key Column is checked.
+			 * If it is not checked, then it will perform a check to see if the key column 
+			 * currently selected in the combo box is unique.
+			 * */
+			private function handleGenerateKeyColumnChange(event:Event):void
+			{
+				if(!generateKeyColumn.selected)
+				{
+					keyColumnChange(event);
+					
+				}else{
+					//if we are generating new key columns then enable finish and next button
+					//because we are not checking to see if selected key column has unique values.
+					finishEnabled = true;
+					nextEnabled = true;
+				}
+				
+			}
+			
+			/**
+			 * This function is called to check if the selected key column has unique values.
+			 * If the column does not have unique values we set the errorString on the primary and secondary key
+			 * combo boxes and disable the next and finish buttons.
+			 * */
+			private function keyColumnChange(event:Event=null):void
+			{
+				var keyColName:String = csvKeyColumnCombo.selectedItem as String;
+				var secKeyColName:String = csvSecondaryKeyColumnCombo.selectedItem as String;
+				
+				var csvDataArray:Array = WeaveAPI.CSVParser.parseCSV(_csvData);
+				
+				var firstRow:Array = csvDataArray[0];
+				
+				var colIndex:int = firstRow.indexOf(keyColName);
+				var secColIndex:int = firstRow.indexOf(secKeyColName);
+				
+				var colValues:Array = [];
+				
+				var keyValue:String ='';
+				for (var i:int=1; i<csvDataArray.length; i++)
+				{
+					keyValue = csvDataArray[i][colIndex];
+					if(secondaryKeyColumnCheckBox.selected)
+					{
+						keyValue += ',' + csvDataArray[i][secColIndex];
+					}
+					colValues.push(keyValue);
+				}
+				
+				if(!isUnique(colValues))
+				{
+					csvKeyColumnCombo.errorString = "Key values are not unique";
+					
+					csvSecondaryKeyColumnCombo.errorString = "Key values are not unique";
+					
+					finishEnabled = false;
+					nextEnabled = false;
+				}else{
+					
+					csvKeyColumnCombo.errorString = '';
+					csvSecondaryKeyColumnCombo.errorString = '';
+					
+					finishEnabled = true;
+					nextEnabled = true;
+				}
+				
+				csvKeyColumnCombo.invalidateDisplayList();
+				csvSecondaryKeyColumnCombo.invalidateDisplayList();
+			}
+			
+			/**
+			 * This function takes an array of values and performs a check to see if the values are unique
+			 *  */
+			private function isUnique(data:Array):Boolean
+			{
+				var unique:Boolean = true;
+				var testUniquenessObject:Object = new Object();
+				for(var i:int=0;i<data.length;i++)
+				{
+					if (testUniquenessObject[data[i]] == undefined)
+					{
+						testUniquenessObject[data[i]] = true;
+						continue;
+					}
+					unique = false;
+					break;
+				}
+				
+				return unique;
 			}
 		]]>
 	</mx:Script>

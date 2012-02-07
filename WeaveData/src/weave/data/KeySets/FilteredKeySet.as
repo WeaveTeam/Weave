@@ -109,12 +109,16 @@ package weave.data.KeySets
 				validateFilteredKeys();
 			return _filteredKeys;
 		}
+		
+		private var _prevTriggerCounter:uint; // used to remember if the _filteredKeys are valid
 
 		/**
 		 * @private
 		 */
 		private function validateFilteredKeys():void
 		{
+			_prevTriggerCounter = triggerCounter; // this prevents the function from being called again before callbacks are triggered again.
+			
 			// TODO: key type conversion here?
 			
 			var inverse:Boolean = inverseFilter.value;
@@ -150,9 +154,6 @@ package weave.data.KeySets
 			_filteredKeysMap = new Dictionary();
 			for each (key in _filteredKeys)
 				_filteredKeysMap[key] = true;
-			
-			_prevTriggerCounter = triggerCounter; // _filteredKeys are now valid.
 		}
-		private var _prevTriggerCounter:uint; // used to remember if the _filteredKeys are valid
 	}
 }

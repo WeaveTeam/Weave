@@ -424,7 +424,6 @@
 								--></ui:HelpComponent>
 							</ui:Indent>
 							<mx:HBox id="colorRecordLabelsBox" 
-									 visible="{!colorRecordLabelsChk.selected}"
 									 enabled="{!colorRecordLabelsChk.selected}">
 								<mx:Label text="Color"/>
 								<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
@@ -433,7 +432,7 @@
 								--></ui:HelpComponent>
 							</mx:HBox>
 						</mx:VBox>
-						<ui:TextBox inputWidth="64" label="Position" creationComplete="linkBindableProperty(_plotter.labelDataCoordinate, event.target, 'text')"/>
+						<ui:IndentTextInput inputWidth="64" label="Position" creationComplete="linkBindableProperty(_plotter.labelDataCoordinate, event.target, 'text')"/>
 						<ui:Indent label="Angle">
 							<mx:NumericStepper minimum="-180" maximum="180" stepSize="15"
 									creationComplete="linkBindableProperty(_plotter.labelRelativeAngle, event.target, 'value')"/>
@@ -459,7 +458,6 @@
 								--></ui:HelpComponent>
 							</ui:Indent>
 							<mx:HBox id="colorValueLabelColorBox"
-									 visible="{!colorValueLabelsChk.selected}"
 									 enabled="{!colorValueLabelsChk.selected}">
 								<mx:Label text="Color"/>
 								<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
@@ -468,7 +466,7 @@
 								--></ui:HelpComponent>
 							</mx:HBox>
 						</mx:VBox>
-						<ui:TextBox inputWidth="64" label="Position" 
+						<ui:IndentTextInput inputWidth="64" label="Position" 
 									creationComplete="linkBindableProperty(_plotter.valueLabelDataCoordinate, event.target, 'text')"/>							  
 						<ui:Indent label="Angle">
 							<mx:NumericStepper minimum="-180" maximum="180" stepSize="15"

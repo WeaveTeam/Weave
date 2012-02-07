@@ -4,6 +4,7 @@
     <compilerSourcePath>
       <compilerSourcePathEntry kind="1" linkType="1" path="sample data"/>
       <compilerSourcePathEntry kind="1" linkType="1" path="configurations"/>
+      <compilerSourcePathEntry kind="1" linkType="1" path="swf"/>
     </compilerSourcePath>
     <libraryPath defaultLinkType="3">
       <libraryPathEntry kind="4" path="">
@@ -42,6 +43,8 @@
     <application path="weave.mxml"/>
   </applications>
   <modules/>
-  <buildCSSFiles/>
+  <buildCSSFiles>
+    <buildCSSFileEntry destPath="bin-debug" sourcePath="fonts/WeaveFonts.css"/>
+  </buildCSSFiles>
   <flashCatalyst validateFlashCatalystCompatibility="false"/>
 </actionScriptProperties>

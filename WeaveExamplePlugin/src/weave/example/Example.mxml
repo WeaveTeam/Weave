@@ -20,5 +20,16 @@
 */
 -->
 <ui:DraggablePanel xmlns="weave.example.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*">
-	<mx:Label text="This is an example panel"/>
+	<mx:HBox>
+		<mx:Label text="This is an example panel"/>
+		<ui:HelpComponent>Example help text</ui:HelpComponent>
+	</mx:HBox>
+	<ui:ControlPanel>
+		<mx:VBox>
+			<mx:Label text="Example control panel"/>
+		</mx:VBox>
+		<mx:VBox>
+			<mx:Label text="Second tab of example control panel"/>
+		</mx:VBox>
+	</ui:ControlPanel>
 </ui:DraggablePanel>

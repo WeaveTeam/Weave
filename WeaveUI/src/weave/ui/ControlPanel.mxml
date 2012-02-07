@@ -24,8 +24,8 @@
 				title="Control Panel"
 				backgroundColor="0xCCCCCC"
 				addedToStage="save();"
-				width="600"
-				height="400"
+				width="640"
+				height="480"
 				sessionPanelCoordsAsPercentages="false"
 				layout="vertical"
 				>
@@ -54,11 +54,22 @@
 			import weave.core.SessionManager;
 			
 
-			private const padding:int = 5;
 			private var _targetObjects:Array = null;
 			private var _savedTargetSessionStates:Array;
 			private var _savedGlobalSessionStates:Array;
 			private var createdChildren:Boolean = false;
+			
+			override public function set width(value:Number):void
+			{
+				super.width = value;
+				panelWidth.value = String(value);
+			}
+			
+			override public function set height(value:Number):void
+			{
+				super.height = value;
+				panelHeight.value = String(value);
+			}
 			
 			/**
 			 * container for the Save, Revert, Cancel and Save & Close buttons 

@@ -26,22 +26,16 @@ package weave.data.AttributeColumns
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ICallbackInterface;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerDisposableChild;
-	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
-	import weave.core.CallbackCollection;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.StageUtils;
+	import weave.services.DelayedAsyncResponder;
 	import weave.services.beans.GeometryStreamMetadata;
 	import weave.utils.ColumnUtils;
 	import weave.utils.GeometryStreamDecoder;
@@ -186,7 +180,7 @@ package weave.data.AttributeColumns
 			while (metadataTileIDs.length > 0)
 			{
 				query = _tileService.getMetadataTiles(metadataTileIDs.splice(0, metadataTilesPerQuery));
-				query.addAsyncResponder(handleMetadataStreamDownload, handleMetadataDownloadFault, query);
+				DelayedAsyncResponder.addResponder(query, handleMetadataStreamDownload, handleMetadataDownloadFault, query);
 				
 				_metadataStreamDownloadCounter++;
 			}
@@ -194,7 +188,7 @@ package weave.data.AttributeColumns
 			while (geometryTileIDs.length > 0)
 			{
 				query = _tileService.getGeometryTiles(geometryTileIDs.splice(0, geometryTilesPerQuery));
-				query.addAsyncResponder(handleGeometryStreamDownload, handleGeometryDownloadFault, query);
+				DelayedAsyncResponder.addResponder(query, handleGeometryStreamDownload, handleGeometryDownloadFault, query);
 				_geometryStreamDownloadCounter++;
 			} 
 		}
@@ -235,10 +229,10 @@ package weave.data.AttributeColumns
 				projectionSrsCode = result.projection;
 				
 				// handle metadata tiles
-				StageUtils.callLater(this, _geometryStreamDecoder.decodeMetadataTileList, [result.metadataTileDescriptors]);
+				WeaveAPI.StageUtils.callLater(this, _geometryStreamDecoder.decodeMetadataTileList, [result.metadataTileDescriptors]);
 				
 				// handle geometry tiles
-				StageUtils.callLater(this, _geometryStreamDecoder.decodeGeometryTileList, [result.geometryTileDescriptors]);
+				WeaveAPI.StageUtils.callLater(this, _geometryStreamDecoder.decodeGeometryTileList, [result.geometryTileDescriptors]);
 				
 			}
 			catch (error:Error)

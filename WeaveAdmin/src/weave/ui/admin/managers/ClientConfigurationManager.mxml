@@ -25,14 +25,14 @@
 				width="100%" height="100%" 
 				label="Client configurations"
 				creationComplete="handleCreationComplete()">
-	<mx:HBox height="100%" width="100%">
-		<mx:VBox height="100%" width="50%">	
+	<mx:TabNavigator height="100%" width="100%" paddingLeft="8" paddingRight="8" paddingBottom="8" paddingTop="8">
+		<mx:VBox label="My files">
 			<mx:HBox>
 				<mx:Button label="Open selected file" click="openSelectedFile(userFolderTreeWithSearch)" enabled="{userFolderTreeWithSearch.tree.selectedItem != null}"/>
 				<mx:Button label="Delete selected file" click="removeClientConfigFile()" enabled="{userFolderTreeWithSearch.tree.selectedItem != null}"/>
 				<mx:Button label="Create new file" click="createFile()"/>
 			</mx:HBox>
-			<ui:TreeWithSearch id="userFolderTreeWithSearch" prompt="Search my configuration files"
+			<ui:TreeWithSearch id="userFolderTreeWithSearch" prompt="Search"
 							   doubleClickEnabled="true" doubleClick="openSelectedFile(userFolderTreeWithSearch)"
 							   toolTip="Double-click a file name to open it with Weave."/>
 			<mx:HBox width="100%">
@@ -40,11 +40,11 @@
 				<mx:Button label="Refresh" click="AdminInterface.instance.getPrivateWeaveFileNames()"/>
 			</mx:HBox>
 		</mx:VBox>
-		<mx:VBox height="100%" width="50%">		
+		<mx:VBox label="All files">
 			<mx:HBox>
 				<mx:Button label="Open selected file" click="openSelectedFile(sharedTreeWithSearch)" enabled="{sharedTreeWithSearch.tree.selectedItem != null}"/>				
 			</mx:HBox>
-			<ui:TreeWithSearch id="sharedTreeWithSearch" prompt="Search all configuration files"
+			<ui:TreeWithSearch id="sharedTreeWithSearch" prompt="Search"
 							   doubleClickEnabled="true" doubleClick="openSelectedFile(sharedTreeWithSearch)"
 							   toolTip="Double-click a file name to open it with Weave."/>
 			<mx:HBox width="100%">
@@ -52,7 +52,7 @@
 				<mx:Button label="Refresh" click="AdminInterface.instance.getWeaveFileNames()"/>
 			</mx:HBox>
 		</mx:VBox>
-			</mx:HBox>
+	</mx:TabNavigator>
 	
 <!--	<mx:TabNavigator paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
 		<mx:Canvas label="Settings" width="100%" height="100%">

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
 		   creationPolicy="all" creationComplete="creationCompleteHandler(event)"
 		   horizontalScrollPolicy="off" verticalScrollPolicy="off">
 	<mx:VBox width="100%" height="100%" verticalGap="3" 
@@ -8,11 +8,10 @@
 			<mx:UIComponent id="holder" width="100%" height="100%" />
 		</mx:Canvas>
 		<ui:Center>
-			<mx:Label id="nameLabel" />
+			<mx:Label id="nameLabel" text="{nickname}" />
 		</ui:Center>
 	</mx:VBox>
 	
-	<mx:Resize id="resizeEffect" duration="600" />
 	<mx:Move id="moveEffect" duration="600" />
 	
 	<mx:Script>
@@ -23,14 +22,14 @@
 			public var stream:NetStream;
 			public var video:Video;
 			private var _borderThickness:Number = 4;
-			private var nickname:String;
+			[Bindable] public var nickname:String;
 			
 			private function creationCompleteHandler(event:FlexEvent):void
 			{
 				holder.addChild(video);
 				borderCanvas.width = video.width + 2*_borderThickness;
 				borderCanvas.height = video.height + 2*_borderThickness;
-				nameLabel.text = nickname;
+//				nameLabel.text = nickname;
 			}
 			public function play(str:String):void
 			{
@@ -61,28 +60,17 @@
 					this.y = y;
 				}
 			}
-			public function setSize(width:Number, height:Number, showEffect:Boolean = false):void
+			public function setSize(width:Number, showEffect:Boolean = false):void
 			{
-				if( showEffect )
-				{
-					resizeEffect.stop();
-					resizeEffect.widthFrom 	= this.width;
-					resizeEffect.widthTo	= width + 2*_borderThickness;
-					resizeEffect.heightFrom = this.height;
-					resizeEffect.heightTo	= height + 2*_borderThickness + nameLabel.height + 3;
-					resizeEffect.play([this]);
-				}
-				else
-				{
-					this.width  = width  + 2*_borderThickness;
-					this.height = height + 2*_borderThickness + nameLabel.height + 3;
-				}
+				var height:Number = 3 * width / 4;
+				
+				video.width = width;
+				video.height = height;
+				borderCanvas.width = video.width + 2*_borderThickness;
+				borderCanvas.height = video.height + 2*_borderThickness;
+//				this.width  = width  + 2*_borderThickness;
+//				this.height = height + 2*_borderThickness + nameLabel.height + 3;
 			}
-			public function setName(name:String):void
-			{
-				nickname = name;
-			}
-			
 		]]>
 	</mx:Script>
-</mx:Canvas>
+</mx:VBox>

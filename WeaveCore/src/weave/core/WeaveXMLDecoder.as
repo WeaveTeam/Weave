@@ -145,17 +145,6 @@ package weave.core
 				if (name == '')
 					name = null;
 				
-				// if no name is specified, generate a new name that has not appeared yet in this TypedSessionState vector
-				// it should be generated here so the state is loaded the same way on different swf applications.
-//				if (name == null || name == "")
-//				{
-//					// generate a new name until no object is registered under that name
-//					var count:int = 1;
-//					name = className;
-//					while (objectNames.hasOwnProperty(name))
-//						name = className + (++count);
-//				}
-//				objectNames[name] = true;
 				// clear the attributes so they won't be included in the object returned.
 				delete childNode.attributes["name"];
 				delete childNode.attributes["package"];

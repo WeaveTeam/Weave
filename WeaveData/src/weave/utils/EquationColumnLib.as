@@ -23,20 +23,15 @@ package weave.utils
 	import flash.utils.Dictionary;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableDynamicObject;
-	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
-	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.StatisticsCache;
 	import weave.primitives.ColorRamp;
-	import weave.utils.ColumnUtils;
 	
 	/**
 	 * EquationColumnLib
@@ -332,7 +327,7 @@ package weave.utils
 			var result:Number = NaN;
 			if (column != null)
 			{
-				var runningTotals:Dictionary = StatisticsCache.instance.getRunningTotals(column);
+				var runningTotals:Dictionary = (WeaveAPI.StatisticsCache as StatisticsCache).getRunningTotals(column);
 				result = runningTotals[key];
 			}
 

@@ -389,6 +389,10 @@ package weave.compiler
 		 */
 		public static function getNiceNumbersInRange(min:Number, max:Number, numberOfValuesInRange:int):Array
 		{
+			// special case
+			if (min == max)
+				return [min];
+			
 			var nfrac:int;
 			var d:Number;
 			var graphmin:Number;

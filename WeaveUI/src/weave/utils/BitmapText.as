@@ -34,7 +34,6 @@ package weave.utils
 	
 	import weave.WeaveProperties;
 	import weave.api.primitives.IBounds2D;
-	import weave.resources.fonts.EmbeddedFonts;
 	
 	/**
 	 * This is a class used to draw text onto BitmapData objects.
@@ -58,7 +57,7 @@ package weave.utils
 		
 		private const debug:Boolean = false; // set to true to draw debug graphics
 		
-		public static const DEFAULT_FONT_FAMILY:String = EmbeddedFonts.SophiaNubian;
+		public static const DEFAULT_FONT_FAMILY:String = LinkableTextFormat.DEFAULT_FONT;
 		
 		public static const HORIZONTAL_ALIGN_LEFT:String = "left";
 		public static const HORIZONTAL_ALIGN_CENTER:String = "center";

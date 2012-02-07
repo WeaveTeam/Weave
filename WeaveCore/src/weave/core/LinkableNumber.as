@@ -21,6 +21,8 @@ package weave.core
 {
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.WeaveAPI;
+	
 	/**
 	 * LinkableNumber
 	 * 
@@ -31,18 +33,9 @@ package weave.core
 	{
 		public function LinkableNumber(defaultValue:Number = NaN, verifier:Function = null)
 		{
-			super(Number, verifier);
 			_sessionState = NaN; // set to NaN instead of null because null==0
-			if (!isNaN(defaultValue))
-			{
-				delayCallbacks();
-				value = defaultValue;
-				// Resume callbacks one frame later when we know it is possible for
-				// other classes to have a pointer to this object and retrieve the value.
-				StageUtils.callLater(this, resumeCallbacks, null, false);
-			}
+			super(Number, verifier, defaultValue);
 		}
-
 
 		public function get value():Number
 		{
@@ -73,6 +66,10 @@ package weave.core
 
 		override protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
+			// We must check for null here because "_sessionState = NaN" in the constructor
+			// does not take affect until after the super() constructor finishes.
+			if (_sessionState == null)
+				_sessionState = NaN;
 			if (isNaN(_sessionState) && isNaN(otherSessionState))
 				return true;
 			return _sessionState == otherSessionState;

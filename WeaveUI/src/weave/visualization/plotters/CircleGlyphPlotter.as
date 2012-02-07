@@ -58,9 +58,9 @@ package weave.visualization.plotters
 			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
 		}
 
-		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3));
-		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(12));
-		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
+		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));
+		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(12, isFinite));
+		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, isFinite));
 		public const enabledSizeBy:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		/**
@@ -86,8 +86,8 @@ package weave.visualization.plotters
 			// project data coordinates to screen coordinates and draw graphics			
 			var radius:Number = ColumnUtils.getNorm(screenRadius, recordKey);
 			
-			tempPoint.x = dataX.getValueFromKey(recordKey, Number);			
-			tempPoint.y = dataY.getValueFromKey(recordKey, Number);
+			tempPoint.x = getXFromRecordKey(recordKey);			
+			tempPoint.y = getYFromRecordKey(recordKey);
 			
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			

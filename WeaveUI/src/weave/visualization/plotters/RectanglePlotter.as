@@ -25,7 +25,6 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
