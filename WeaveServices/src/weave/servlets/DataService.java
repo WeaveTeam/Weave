@@ -386,7 +386,6 @@ public class DataService extends GenericServlet
 					{
 						continue;
 					}
-
 					// filter the data based on the min,max values
 					if (minValue <= value && value <= maxValue)
 						numericData.add(value);

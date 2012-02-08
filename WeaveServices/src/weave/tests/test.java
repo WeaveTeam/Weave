@@ -57,8 +57,8 @@ public class test {
 		String script = "";		
 		String [] resultNames = {};	
 		
-		Object[] array1 = {0,10,20,30,40,50};
-		Object[] array2 = {10,20,30,52,34,87};
+		Object[] array1 = {0,10,20,30,Double.NaN,50};
+		Object[] array2 = {10,20,Double.NaN,52,34,87};
 		//String[] keys = {"a","b","c","d","e","f"};
 //		//Object[] array3 = {"aa","bb","cc","dd","ee","ff"};
 		
@@ -79,8 +79,8 @@ public class test {
 //		call(inputNames,inputValues,resultNames,script,plotscript,false,false);	
 		
 
-//		inputNames =  new String []{"x","y"};
-//		inputValues = new Object[][]{array1,array2};	
+		inputNames =  new String []{"x","y"};
+	inputValues = new Object[][]{array1,array2};	
 //		keys = new String []{"a","b","c","d","e","f"};
 //		//plotscript = "plot(x,y)";
 //		script = "fun<-function(arg1){\n" +
@@ -94,9 +94,11 @@ public class test {
 		inputValues = new Object[][]{array1,array2};
 		//plotscript = "plot(x,y)";
 		//keys = new  String[]{};
-		script = "d<-x[x>20]";		
-		resultNames =  new String []{"x","d"};			
-		call(inputNames,inputValues,resultNames,script,plotscript,false,false);
+		//script = "d<-x[x>20]";	
+		script = " d<- cbind(x,y) \n library(norm) \n rr<-prelim.norm(d)  ";
+		//script = "x <- 5\n y<- 6";
+		resultNames =  new String []{"d","rr$nmis"};			
+		call(inputNames,inputValues,resultNames,script,plotscript,true,false);
 		
 	}
 }
