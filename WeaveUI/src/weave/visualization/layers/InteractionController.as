@@ -19,18 +19,11 @@
 
 package weave.visualization.layers
 {
-	import flash.events.MouseEvent;
-	import flash.utils.Dictionary;
-	
-	import mx.utils.ObjectUtil;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableString;
-	import weave.core.StageUtils;
 
 	/**
 	 * This class handles mouse/keyboard interactions performed within InteractiveVisualizations
@@ -71,7 +64,7 @@ package weave.visualization.layers
 			selectRemove.value = [CTRL, SHIFT, DRAG].join(DELIM);
 			
 			pan.value = [ALT, DRAG].join(DELIM);
-			zoom.value = WeaveAPI.CSVParser.createCSVFromArrays([[SHIFT, DRAG], [WHEEL]]);
+			zoom.value = WeaveAPI.CSVParser.createCSV([[SHIFT, DRAG], [WHEEL]]);
 			zoomIn.value = DCLICK;
 			zoomOut.value = [SHIFT, DCLICK].join(DELIM);
 			zoomToExtent.value = [CTRL, ALT, SHIFT, DCLICK].join(DELIM);
@@ -165,11 +158,11 @@ package weave.visualization.layers
 		private function getModifierSequence():Array
 		{
 			var array:Array = [];
-			if (StageUtils.altKey)
+			if (WeaveAPI.StageUtils.altKey)
 				array.push(ALT);
-			if (StageUtils.ctrlKey)
+			if (WeaveAPI.StageUtils.ctrlKey)
 				array.push(CTRL);
-			if (StageUtils.shiftKey)
+			if (WeaveAPI.StageUtils.shiftKey)
 				array.push(SHIFT);
 			return array;
 		}

@@ -191,7 +191,7 @@ public class SQLUtils
 	}
 
 	/**
-	 * This function tests if a given Connection is valid.
+	 * This function tests if a given Connection is valid, and closes the connection if it is not.
 	 * @param conn A Connection object which may or may not be valid.
 	 * @return A value of true if the given Connection is still connected.
 	 */

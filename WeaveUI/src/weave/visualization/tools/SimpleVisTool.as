@@ -106,6 +106,8 @@ package weave.visualization.tools
 			if (createdChildren)
 				return;
 			
+			createdChildren = true;
+			
 			toolVBox = new VBox()
 			toolVBox.percentHeight = 100;
 			toolVBox.percentWidth = 100;
@@ -150,9 +152,9 @@ package weave.visualization.tools
 			windowSettingsEditor.target = this;
 			
 			if (controlPanel)
+			{
 				controlPanel.children = [layerListComponent, simpleAxisEditor, windowSettingsEditor];
-			
-			createdChildren = true;
+			}
 		}
 		
 		override protected function childrenCreated():void

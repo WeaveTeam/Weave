@@ -59,7 +59,8 @@ var requiredRevision = 0;
 	<button id="b4" onclick="showLegend()">Bring legend to foreground</button><br>
 	<button id="b6" onclick="getImage()">Get Image</button><br>
 	<input id="scriptInput" type="text" value="Hello, world."/></input>
-	<button id="b5" onclick="runStartupScript()">Run sessioned startup script again</button><br>
+	<button id="b5" onclick="runStartupScript()">Run sessioned startup script again</button>
+	<button onclick="document.getElementById('weave').evaluateExpression(null, 'WeaveAPI.externalReload()', null, ['weave.api.WeaveAPI']);">Reload Weave</button><br>
 </td><td width="100%" height="100%">
 	<img id="img_tag"/>
 	<textarea id="resultTextArea" cols="80" rows="10"></textarea>

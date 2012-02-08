@@ -52,7 +52,6 @@ import weave.beans.AdminServiceResponse;
 import weave.beans.UploadFileFilter;
 import weave.beans.UploadedFile;
 import weave.config.DatabaseConfig;
-import weave.config.DublinCoreElement;
 import weave.config.DublinCoreUtils;
 import weave.config.ISQLConfig;
 import weave.config.ISQLConfig.AttributeColumnInfo;
@@ -902,19 +901,15 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = configManager.getConfig();
 		List<String> schemas;
+		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 		try
 		{
-			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 			schemas = SQLUtils.getSchemas(conn);
 		}
 		catch (SQLException e)
 		{
 			// e.printStackTrace();
 			throw new RemoteException("Unable to get schema list from database.", e);
-		}
-		finally
-		{
-			// SQLUtils.cleanup(conn);
 		}
 		// don't want to list information_schema.
 		ListUtils.removeIgnoreCase("information_schema", schemas);
@@ -925,19 +920,15 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = configManager.getConfig();
 		List<String> tables;
+		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 		try
 		{
-			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 			tables = SQLUtils.getTables(conn, schemaName);
 		}
 		catch (SQLException e)
 		{
 			// e.printStackTrace();
 			throw new RemoteException("Unable to get schema list from database.", e);
-		}
-		finally
-		{
-			// SQLUtils.cleanup(conn);
 		}
 		return tables;
 	}
@@ -946,19 +937,15 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = configManager.getConfig();
 		List<String> columns;
+		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 		try
 		{
-			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 			columns = SQLUtils.getColumns(conn, schemaName, tableName);
 		}
 		catch (SQLException e)
 		{
 			// e.printStackTrace();
 			throw new RemoteException("Unable to get column list from database.", e);
-		}
-		finally
-		{
-			// SQLUtils.cleanup(conn);
 		}
 		return columns;
 	}
@@ -979,22 +966,23 @@ public class AdminService extends GenericServlet
 		List<UploadedFile> list = new ArrayList<UploadedFile>();
 		File[] listOfFiles = null;
 		
-		try {
-			if( directory.isDirectory() ) {
+		try
+		{
+			if (directory.isDirectory())
+			{
 				listOfFiles = directory.listFiles(new UploadFileFilter("csv"));
-				for( File file : listOfFiles ) {
-					if( file.isFile() ) {
-						UploadedFile uploadedFile = 
-							new UploadedFile(
-								file.getName(),
-								file.length(),
-								file.lastModified()
-							);
+				for (File file : listOfFiles)
+				{
+					if (file.isFile())
+					{
+						UploadedFile uploadedFile = new UploadedFile(file.getName(), file.length(), file.lastModified());
 						list.add(uploadedFile);
 					}
 				}
 			}
-		} catch(Exception e) {
+		}
+		catch (Exception e)
+		{
 			throw new RemoteException(e.getMessage());
 		}
 		
@@ -1008,22 +996,23 @@ public class AdminService extends GenericServlet
 		List<UploadedFile> list = new ArrayList<UploadedFile>();
 		File[] listOfFiles = null;
 		
-		try {
-			if( directory.isDirectory() ) {
+		try
+		{
+			if ( directory.isDirectory() )
+			{
 				listOfFiles = directory.listFiles(new UploadFileFilter("shp"));
-				for( File file : listOfFiles ) {
-					if( file.isFile() ) {
-						UploadedFile uploadedFile = 
-							new UploadedFile(
-								file.getName(),
-								file.length(),
-								file.lastModified()
-							);
+				for ( File file : listOfFiles )
+				{
+					if ( file.isFile() )
+					{
+						UploadedFile uploadedFile = new UploadedFile(file.getName(), file.length(), file.lastModified());
 						list.add(uploadedFile);
 					}
 				}
 			}
-		} catch(Exception e) {
+		}
+		catch (Exception e)
+		{
 			throw new RemoteException(e.getMessage());
 		}
 		
@@ -1079,22 +1068,38 @@ public class AdminService extends GenericServlet
 			throw new RemoteException("IOException", e);
 		}
 	}
-
-	synchronized private String correctFileNameCase(String fileName) {
-		
+	
+	synchronized public Object[][] getDBFData(String dbfFileName) throws RemoteException
+	{
+		try
+		{
+			Object[][] dataArray = DBFUtils.getDBFData(new File(uploadPath, correctFileNameCase(dbfFileName)));
+			return dataArray;
+		}
+		catch (IOException e)
+		{
+			throw new RemoteException("IOException", e);
+		}
+	}
+	
+	synchronized private String correctFileNameCase(String fileName)
+	{
 		try 
 		{
 			File directory = new File(uploadPath);
 
-			if( directory.isDirectory() )
+			if ( directory.isDirectory() )
 			{
-				for( String file : directory.list() )
+				for ( String file : directory.list() )
 				{
-					if( file.equalsIgnoreCase(fileName) )
+					if ( file.equalsIgnoreCase(fileName) )
 						return file;
 				}
 			}
-		} catch( Exception e ) {}
+		}
+		catch( Exception e )
+		{
+		}
 		return fileName;
 	}
 
@@ -1544,8 +1549,7 @@ public class AdminService extends GenericServlet
 				throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite DataTable \"%s\".", connectionName, configDataTableName));
 		}
 
-		// connect to database, generate and test each query before modifying
-		// config file
+		// connect to database, generate and test each query before modifying config file
 		List<String> titles = new LinkedList<String>();
 		List<String> queries = new Vector<String>();
 		List<String> dataTypes = new Vector<String>();
@@ -1638,6 +1642,10 @@ public class AdminService extends GenericServlet
 		catch (RemoteException e)
 		{
 			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(conn);
 		}
 		
 		if (sqlColumnNames.length == 0)
@@ -1905,20 +1913,17 @@ public class AdminService extends GenericServlet
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			String schema = configInfo.schema;
+			DublinCoreUtils.addDCElements(conn, schema, dataTableName, elements);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("addDCElements failed", e);
 		}
-
-		String schema = configInfo.schema;
-		DublinCoreUtils.addDCElements(conn, schema, dataTableName, elements);
-
-		// System.out.println("in addDCElements");
-		// int i = 0;
-		// for (Map.Entry<String, Object> e : elements.entrySet())
-		// System.out.println("  elements[" + (i++) + "] = {" + e.getKey()
-		// + " = " + e.getValue());
+		finally
+		{
+			SQLUtils.cleanup(conn);
+		}
 	}
 
 	/**
@@ -1931,36 +1936,13 @@ public class AdminService extends GenericServlet
 	 * If an error occurs, a map is returned with a single key-value pair whose
 	 * key is "error".
 	 */
-	synchronized public DublinCoreElement[] listDCElements(String connectionName, String password, String dataTableName) throws RemoteException
+	synchronized public Map<String,String> listDCElements(String connectionName, String password, String dataTableName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-
+		
 		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-		String configConnectionName = configInfo.connection;
-		Connection conn = null;
-		try
-		{
-			conn = SQLConfigUtils.getConnection(config, configConnectionName);
-		}
-		catch (SQLException e)
-		{
-			throw new RemoteException("listDCElements failed", e);
-		}
-
-		String schema = configInfo.schema;
-		List<DublinCoreElement> list = DublinCoreUtils.listDCElements(conn, schema, dataTableName);
-
-		int n = list.size();
-		return list.toArray(new DublinCoreElement[n]);
-
-		// DublinCoreElement[] result = new DublinCoreElement[n];
-		// for (int i = 0; i < n; i++)
-		// {
-		// result[i] = list.get(i);
-		// System.out.println("list.get(i).element = " + list.get(i).element +
-		// " list.get(i).value = " + list.get(i).value);
-		// }
-		// return result;
+		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, configInfo.connection);
+		return DublinCoreUtils.listDCElements(conn, configInfo.schema, dataTableName);
 	}
 
 	/**
@@ -1978,14 +1960,17 @@ public class AdminService extends GenericServlet
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			String schema = configInfo.schema;
+			DublinCoreUtils.deleteDCElements(conn, schema, dataTableName, elements);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("deleteDCElements failed", e);
 		}
-
-		String schema = configInfo.schema;
-		DublinCoreUtils.deleteDCElements(conn, schema, dataTableName, elements);
+		finally
+		{
+			SQLUtils.cleanup(conn);
+		}
 	}
 
 	/**
@@ -2003,14 +1988,17 @@ public class AdminService extends GenericServlet
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			String schema = configInfo.schema;
+			DublinCoreUtils.updateEditedDCElement(conn, schema, dataTableName, object);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("updateEditedDCElement failed", e);
 		}
-
-		String schema = configInfo.schema;
-		DublinCoreUtils.updateEditedDCElement(conn, schema, dataTableName, object);
+		finally
+		{
+			SQLUtils.cleanup(conn);
+		}
 	}
 
 	synchronized public String saveReportDefinitionFile(String fileName, String fileContents) throws RemoteException
@@ -2036,5 +2024,100 @@ public class AdminService extends GenericServlet
 			throw new RemoteException("Error writing report definition file: " + fileName, e);
 		}
 		return "Successfully wrote the report definition file: " + reportDefFile.getAbsolutePath();
+	}
+	
+	synchronized public boolean checkKeyColumnForSQLImport(String connectionName, String password, String schemaName, String tableName, String keyColumnName, String secondaryKeyColumnName) throws RemoteException
+	{
+		Boolean isUnique = false;
+		
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+				
+		ConnectionInfo info = config.getConnectionInfo(connectionName);
+		if (info == null)
+			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
+		
+		String dbms = info.dbms;
+		
+		String[] columnNames = getColumnsList(connectionName, schemaName, tableName).toArray(new String[0]);
+		
+		// if key column is actually the name of a column, put quotes around it.
+		// otherwise, don't.
+		int iKey = ListUtils.findIgnoreCase(keyColumnName, columnNames); 
+		int iSecondaryKey = ListUtils.findIgnoreCase(secondaryKeyColumnName, columnNames);
+
+		if (iKey >= 0)
+		{
+			keyColumnName = SQLUtils.quoteSymbol(dbms, columnNames[iKey]);
+		}
+		else
+		{
+			keyColumnName = SQLUtils.unquoteSymbol(dbms, keyColumnName); // get the original columnname 
+		}
+		
+		if (iSecondaryKey >= 0)
+			secondaryKeyColumnName = SQLUtils.quoteSymbol(dbms, columnNames[iSecondaryKey]);
+		
+		
+		Connection conn = null;
+		try
+		{
+			conn = SQLConfigUtils.getConnection(config, connectionName);
+			if(secondaryKeyColumnName == null || secondaryKeyColumnName.isEmpty())
+			{
+				String totalRowsQuery = null;
+				String distinctRowsQuery = null;
+				totalRowsQuery = String.format(
+						"select count(%s) from %s",
+						keyColumnName,
+						SQLUtils.quoteSchemaTable(conn, schemaName, tableName));
+				SQLResult totalRowsResult = SQLUtils.getRowSetFromQuery(conn, totalRowsQuery);
+				
+				
+				distinctRowsQuery = String.format(
+						"select count(distinct %s) from %s",
+						keyColumnName,
+						SQLUtils.quoteSchemaTable(conn, schemaName, tableName));
+				
+				SQLResult distinctRowsResult = SQLUtils.getRowSetFromQuery(conn, distinctRowsQuery);
+				
+				
+				isUnique = distinctRowsResult.rows[0][0].toString().equalsIgnoreCase(totalRowsResult.rows[0][0].toString());
+			}else{
+				
+				String query = String.format(
+					"select %s,%s from %s",
+					keyColumnName,
+					secondaryKeyColumnName,
+					SQLUtils.quoteSchemaTable(conn, schemaName, tableName)
+					);
+				
+				SQLResult result = SQLUtils.getRowSetFromQuery(conn, query);
+				
+				HashMap<String, Boolean> map = new HashMap<String, Boolean>();
+				
+				isUnique = true;
+				for(int i = 0; i < result.rows.length; i++)
+				{
+					if(map.get(result.rows[i][0].toString()+','+result.rows[i][1].toString()) == null)
+					{
+						map.put(result.rows[i][0].toString()+','+result.rows[i][1].toString(), true);
+					}else{
+						isUnique = false;
+						break;
+					}
+					
+				}
+			}
+				
+		}catch(Exception e)
+		{
+			throw new RemoteException("Error querying key columns:   " + e.getMessage() + e.toString());
+		}finally
+		{
+			SQLUtils.cleanup(conn);
+		}
+		
+
+		return isUnique;
 	}
 }

@@ -62,7 +62,7 @@ package weave.data.AttributeColumns
 		
 		/**
 		 * The filter removes certain records from the column.  This function will return false if the key is not contained in the filter.
-		 */		
+		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
 			return _filteredKeySet.containsKey(key);

@@ -19,9 +19,7 @@
 
 package weave.compiler
 {
-	import flash.system.ApplicationDomain;
 	import flash.utils.Dictionary;
-	import flash.utils.Proxy;
 	import flash.utils.describeType;
 	import flash.utils.flash_proxy;
 	import flash.utils.getDefinitionByName;
@@ -29,9 +27,6 @@ package weave.compiler
 	
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
-	
-	import weave.core.ClassUtils;
-	import weave.core.StageUtils;
 	
 	/**
 	 * This class can compile simple ActionScript expressions into functions.
@@ -221,6 +216,27 @@ package weave.compiler
 			assignmentOperators = new Object();
 			
 			// add built-in functions
+			constants['new'] = function(classOrQName:Object, params:Array = null):Object
+			{
+				var classDef:Class = classOrQName as Class || getDefinitionByName(String(classOrQName)) as Class;
+				if (!params)
+					return new classDef();
+				switch (params.length)
+				{
+					case 0: return new classDef();
+					case 1: return new classDef(params[0]);
+					case 2: return new classDef(params[0], params[1]);
+					case 3: return new classDef(params[0], params[1], params[2]);
+					case 4: return new classDef(params[0], params[1], params[2], params[3]);
+					case 5: return new classDef(params[0], params[1], params[2], params[3], params[4]);
+					case 6: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5]);
+					case 7: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6]);
+					case 8: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
+					case 9: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8]);
+					case 10: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9]);
+					default: throw new Error("Too many constructor parameters (maximum 10)");
+				}
+			};
 			constants['iif'] = function(c:*, t:*, f:*):* { return c ? t : f; };
 			constants['typeof'] = function(value:*):* { return typeof(value); };
 			// for trace debugging, debug must be set to true
@@ -230,16 +246,12 @@ package weave.compiler
 			// add constants
 			constants['isNaN'] = isNaN;
 			constants['isFinite'] = isFinite;
-			constants["undefined"] = undefined;
-			constants["null"] = null;
-			constants["NaN"] = NaN;
-			constants["true"] = true;
-			constants["false"] = false;
-			constants["Infinity"] = Infinity;
-			constants['Number'] = Number;
-			constants['String'] = String;
-			constants['Boolean'] = Boolean;
-			constants['Array'] = Array;
+			// global symbols
+			for each (var _const:* in [null, true, false, undefined, NaN, Infinity])
+				constants[String(_const)] = _const;
+			// global classes
+			for each (var _class:Class in [Array, Boolean, Class, Date, Error, Function, int, Namespace, Number, Object, QName, String, uint, XML])
+				constants[getQualifiedClassName(_class)] = _class;
 
 			/** operators **/
 			// first, make sure all special characters are defined as operators whether or not they have functions associated with them
@@ -301,7 +313,7 @@ package weave.compiler
 			// multiple commands
 			operators[','] = function(...args):* { return args[args.length - 1]; };
 			operators[';'] = operators[',']; // equivalent functionality but must be remembered as a different operator
-			//assignment operators -- first param becomes the parent, and the two remaining args are propertyName and value
+			// assignment operators -- first arg is host object, last arg is new value, remaining args are a chain of property names
 			assignmentOperators['=']    = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] =    a[i + 1]; };
 			assignmentOperators['+=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] +=   a[i + 1]; };
 			assignmentOperators['-=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] -=   a[i + 1]; };
@@ -311,9 +323,11 @@ package weave.compiler
 			assignmentOperators['<<=']  = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] <<=  a[i + 1]; };
 			assignmentOperators['>>=']  = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] >>=  a[i + 1]; };
 			assignmentOperators['>>>='] = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] >>>= a[i + 1]; };
+			assignmentOperators['&&=']  = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] &&=  a[i + 1]; };
+			assignmentOperators['||=']  = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] ||=  a[i + 1]; };
 			assignmentOperators['&=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] &=   a[i + 1]; };
-			assignmentOperators['^=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] ^=   a[i + 1]; };
 			assignmentOperators['|=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] |=   a[i + 1]; };
+			assignmentOperators['^=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] ^=   a[i + 1]; };
 			for (var aop:String in assignmentOperators)
 				operators[aop] = assignmentOperators[aop];
 			
@@ -1255,14 +1269,21 @@ package weave.compiler
 								// assignment operator expects parameters like (host, ...chain, value)
 								// if there is no matching local variable and 'this' has a matching one, assign the property of 'this'
 								if (useThisScope && this && this.hasOwnProperty(symbolName) && !localSymbolTable.hasOwnProperty(symbolName))
-									result = (call.evaluatedMethod as Function).call(this, this, symbolName, call.evaluatedParams[1]);
+									result = call.evaluatedMethod(this, symbolName, call.evaluatedParams[1]);
 								else // otherwise, assign local variable
-									result = (call.evaluatedMethod as Function).call(this, localSymbolTable, symbolName, call.evaluatedParams[1]);
+									result = call.evaluatedMethod(localSymbolTable, symbolName, call.evaluatedParams[1]);
+							}
+							else if (call.evaluatedMethod is Class)
+							{
+								// type casting
+								if (call.evaluatedParams.length != 1)
+									throw new Error("Incorrect number of arguments for type casting.  Expected 1.");
+								result = call.evaluatedMethod(call.evaluatedParams[0]);
 							}
 							else
 							{
 								// function call
-								result = call.evaluatedMethod.apply(this, call.evaluatedParams);
+								result = call.evaluatedMethod.apply(null, call.evaluatedParams);
 							}
 						}
 						else // no compiled params means it's a variable lookup

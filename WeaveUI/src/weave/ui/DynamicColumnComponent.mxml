@@ -19,55 +19,93 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-
-<!--
-
-@abaumann
-@skolman
+<!---
+@author abaumann
+@author skolman
+@author adufilie
 -->
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.ui.*"
 		 width="100%" height="30"
-		 verticalAlign="middle"
-		 horizontalGap="2">
-	<!--<ConnectionComponent id="connComponent"/>-->
+		 verticalAlign="middle" implements="weave.api.core.ILinkableObject"
+		 horizontalGap="4">
 	<mx:Label text="{label}" fontWeight="bold" minWidth="64"/>
 	<LinkableObjectList id="internalList" 
 						variableRowHeight="false"
 			 
 		 				doubleClickEnabled="true" 
-		 				doubleClick="openAttributeSelector()"  
-		 				width="100%" rowCount="1" height="25"/>
-	<mx:Button icon="@Embed(source='/weave/resources/images/folder.png')" 
+		 				doubleClick="openAttributeSelector()"
+		 				width="100%" rowCount="1" height="24"/>
+	<CenteredImage source="@Embed(source='/weave/resources/images/folder.png')" buttonMode="true" height="24"
 		       toolTip="Click here to select the column used for this property."
-			   width="25" height="25" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0" 
-			   cornerRadius="20"
 			   click="openAttributeSelector()"/>
-			   
-	<mx:Button icon="@Embed(source='/weave/resources/images/trashCan.png')" 
-			   width="25" height="25" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0" 
+	<CenteredImage source="@Embed(source='/weave/resources/images/trashCan.png')" buttonMode="true" height="24"
 			   click="clearAttribute()"
-			   cornerRadius="20"
 			   toolTip="Click here to remove the column used for this property."/>
+	<CenteredImage id="linkImage" buttonMode="true" height="24"
+				 mouseDown="toggleLinkDropDown(!linkDropDown.parent);"/>
+	
+	<mx:TitleWindow id="linkDropDown"
+					title="Linking controls for {label}"
+					showCloseButton="true"
+					verticalGap="{linkControlsPadding}"
+					borderThicknessTop="{linkControlsPadding}" borderThicknessRight="{linkControlsPadding}"
+					borderThicknessLeft="{linkControlsPadding}" borderThicknessBottom="{linkControlsPadding}"
+					paddingTop="{0}" paddingRight="{0}"
+					paddingLeft="{0}" paddingBottom="{0}"
+					backgroundColor="0xCCCCCC" headerHeight="20"
+					horizontalAlign="right" borderStyle="outset" backgroundAlpha="1"
+					close="toggleLinkDropDown();">
+		<mx:HBox horizontalGap="{linkControlsPadding}">
+			<HelpComponent>You can link two or more attributes together so that changing one will change the rest.  Click on the name of an existing linked group or type the name of a new one.</HelpComponent>
+			<TextInputWithPrompt id="linkName" prompt="Enter a new group name"
+								 enter="linkTo(StringUtil.trim(linkName.text));"/>
+			<mx:Button label="Link" enabled="{linkName.text ? true : false}" click="linkTo(StringUtil.trim(linkName.text));"/>
+			<mx:Button id="unlinkButton" label="Unlink" click="linkTo(null);"/>
+		</mx:HBox>
+		<mx:List id="linkList" width="100%"
+				 change="if (linkDropDown.parent) linkTo(linkList.selectedItem as String);"/>
+	</mx:TitleWindow>
 	<mx:Script>
 		<![CDATA[
 			import mx.core.UIComponent;
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
+			import mx.managers.PopUpManager;
+			import mx.utils.StringUtil;
 			
 			import weave.Weave;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.getCallbackCollection;
 			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.visualization.tools.SimpleVisTool;
 			
-			private var _initialized:Boolean = false;
+			[Embed(source='/weave/resources/images/plug-connected.png')]
+			private static const icon_connected:Class;
+			[Embed(source='/weave/resources/images/plug-disconnected.png')]
+			private static const icon_disconnected:Class;
+			
+			private const linkControlsPadding:int = 2;
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				linkDropDown.parent.removeChild(linkDropDown);
+			}
 			
 			[Inspectable]
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
+				if (internalList.dynamicObject)
+					getCallbackCollection(internalList.dynamicObject).removeCallback(toggleLinkDropDown);
+				
 				internalList.dynamicObject = value;
+				
+				if (value)
+					getCallbackCollection(value).addImmediateCallback(this, toggleLinkDropDown, null, true);
 			}
 			
 			private var _visTool:SimpleVisTool = null;
@@ -90,6 +128,53 @@
 				var dc:DynamicColumn = AttributeSelectorPanel.hack_findInternalDynamicColumn(internalList.dynamicObject as DynamicColumn);
 				if (dc)
 					dc.removeObject();
+			}
+			
+			private function toggleLinkDropDown(show:Boolean = false):void
+			{
+				var globalName:String = null;
+				if (internalList.dynamicObject)
+					globalName = internalList.dynamicObject.globalName;
+				else
+					show = false;
+				if (globalName)
+				{
+					linkImage.source = icon_connected;
+					unlinkButton.enabled = true;
+					linkImage.toolTip = "Linked to " + globalName;
+				}
+				else
+				{
+					linkImage.source = icon_disconnected;
+					unlinkButton.enabled = false;
+					linkImage.toolTip = "Open linking controls";
+				}
+				
+				if (show)
+				{
+					if (!linkDropDown.parent)
+						PopUpManager.addPopUp(linkDropDown, this);
+					var globalBottomRight:Point = linkImage.parent.localToGlobal(new Point(linkImage.x + linkImage.width, linkImage.y + linkImage.height));
+					var localPoint:Point = linkDropDown.parent.globalToLocal(globalBottomRight);
+					linkDropDown.x = localPoint.x - linkDropDown.width;
+					linkDropDown.y = localPoint.y;
+					
+					linkList.dataProvider = Weave.root.getNames(IAttributeColumn);
+					linkList.selectedItem = globalName;
+					linkName.text = globalName;
+					linkName.setFocus();
+				}
+				else
+				{
+					if (linkDropDown.parent)
+						PopUpManager.removePopUp(linkDropDown);
+				}
+			}
+			
+			private function linkTo(globalName:String):void
+			{
+				internalList.dynamicObject.globalName = globalName;
+				toggleLinkDropDown();
 			}
 		]]>
 	</mx:Script>

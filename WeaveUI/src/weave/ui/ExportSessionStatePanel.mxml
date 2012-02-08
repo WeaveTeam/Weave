@@ -27,7 +27,7 @@
 				   percentWidth="NaN" percentHeight="NaN"
 				   title="Export Session State"
 				   >
-	<mx:VBox>
+	<mx:VBox paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
 		<mx:Label text="Choose Options"/>
 		<mx:CheckBox label="Dashboard mode" toolTip="Check this box to show all windows in 'dashboard' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel."
 					 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
@@ -35,8 +35,10 @@
 					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
 		<mx:CheckBox label="Show copyright"
 					 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
-		<mx:CheckBox label="Show task bar"
-					 creationComplete="linkBindableProperty(Weave.properties.enableTaskbar, event.target, 'selected');"/>
+		<mx:CheckBox id="saveHistoryCheckBox"
+					 label="Save history"
+					 selected="false"
+					 visible="false"/>
 	</mx:VBox>
 	<mx:ControlBar>
 		<mx:Button label="Export" 
@@ -48,39 +50,65 @@
 	</mx:ControlBar>
 	<mx:Script>
 		<![CDATA[
+			import mx.utils.StringUtil;
+			
 			import weave.Weave;
+			import weave.api.WeaveArchive;
 			import weave.api.linkBindableProperty;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
+			import weave.core.SessionStateLog;
+			import weave.editors.SessionHistorySlider;
 			
-			private var booleans:Array = [
-				Weave.properties.dashboardMode,
-				Weave.properties.enableMenuBar,
-				Weave.properties.showCopyright,
-				Weave.properties.enableTaskbar
-			];
+			private const padding:Number = 5;
+			
 			private var oldValues:Dictionary = new Dictionary(true);
 			
 			override protected function constructor():void
 			{
 				super.constructor();
-				for each (var lb:LinkableBoolean in booleans)
+				
+				for each (var lb:LinkableBoolean in [
+					Weave.properties.dashboardMode,
+					Weave.properties.enableMenuBar,
+					Weave.properties.showCopyright
+				])
 					oldValues[lb] = lb.value;
 			}
 			
-			private var _sessionFileSaver:FileReference = null;
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				saveHistoryCheckBox.visible = Weave.history.enableLogging && SessionHistorySlider.devMode;
+			}
+			
+			private function zeropad(n:Number):String
+			{
+				return StandardLib.lpad('' + n, 2, "0");
+			}
+			
 			private function export():void
 			{
-				if (_sessionFileSaver == null)
-				{
-					_sessionFileSaver = new FileReference();
-				}
-				
 				// Create a date that we can append to the end of each file to make them unique
 				var date:Date = new Date();
-				var dateString:String = date.fullYear +"."+ date.month +"."+ date.day +" "+ date.time;
 				
-				_sessionFileSaver.save(Weave.getSessionStateXML(), "weave session state " + dateString + ".xml");
+				var dateString:String = StringUtil.substitute(
+					"{0}-{1}-{2} {3}.{4}.{5}",
+					date.fullYear, zeropad(date.month), zeropad(date.day),
+					zeropad(date.hours), zeropad(date.minutes), zeropad(date.seconds)
+				);
+				
+				var fr:FileReference = new FileReference();
+				if (saveHistoryCheckBox.selected)
+				{
+					fr.save(Weave.createWeaveFileContent(), dateString + ".weave");
+				}
+				else
+				{
+					fr.save(Weave.getSessionStateXML(), "Weave session state " + dateString + ".xml");
+				}
 				
 				removePanel();
 			}
@@ -90,8 +118,8 @@
 				super.removePanel();
 				
 				// restore settings
-				for each (var lb:LinkableBoolean in booleans)
-					lb.value = oldValues[lb];
+				for (var lb:* in oldValues)
+					(lb as LinkableBoolean).value = oldValues[lb];
 			}
 		]]>
 	</mx:Script>

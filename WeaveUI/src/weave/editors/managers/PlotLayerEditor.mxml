@@ -39,6 +39,7 @@
 			import mx.controls.Alert;
 			import mx.events.DragEvent;
 			
+			import weave.api.core.ILinkableObject;
 			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.WMSPlotter;
@@ -91,7 +92,8 @@
 				var temp:Array = (dataProvider as ArrayCollection).toArray().reverse();
 				for(var i:int = 0; i < temp.length; i++)
 				{
-					temp[i] = _visualization.layers.getName(temp[i]);
+					if (temp[i] is ILinkableObject)
+						temp[i] = _visualization.layers.getName(temp[i]);
 				}
 				_visualization.layers.setNameOrder(temp);
 			}
@@ -152,7 +154,7 @@
 					
 					
 					<mx:Spacer width="10"/>
-					<mx:Image toolTip="Remove this layer" source="@Embed(source='/weave/resources/images/cancel.png')" click="removeLayer(event)"/>
+					<mx:Image toolTip="Remove this layer" source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true" click="removeLayer(event)"/>
 				</mx:HBox>
 				
 				<!-- these are the controls that are shown when hitting the "Settings" button -->

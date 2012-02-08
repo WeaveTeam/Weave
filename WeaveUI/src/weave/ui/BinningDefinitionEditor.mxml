@@ -30,7 +30,7 @@
 		 xmlns="weave.ui.*"
 		 width="100%"
 		 implements="weave.api.core.ILinkableObject"
-		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3">
+		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3" creationPolicy="all">
 		<mx:VBox borderStyle="solid" borderThickness="1" cornerRadius="10"
 				  paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5">
 			
@@ -40,7 +40,7 @@
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="simpleRadio" label="Equally spaced" groupName="typeGroup" selected="true" width="100%" data="{_simple}"/>
 				<ui:Indent enabled="{simpleRadio.selected}" label="Number of bins:" indent="{indent}">
-					<mx:NumericStepper minimum="1" maximum="25" stepSize="1" id="numOfBins" width="{inputWidth}"/>
+					<mx:NumericStepper minimum="1" maximum="100" stepSize="1" id="numOfBins" width="{inputWidth}"/>
 				</ui:Indent>
 				<ui:HelpComponent label="{simpleRadio.label}" content="Example: If your data is between 0 and 100 and you specify 4 bins, the following bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
 			</mx:HBox>
@@ -67,7 +67,7 @@
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="equalIntervalRadio" label="Equal interval" groupName="typeGroup" width="100%" data="{_equalInterval}"/>
-				<ui:TextBox id="dataInterval" enabled="{equalIntervalRadio.selected}" label="Data interval:" indent="{indent}" inputWidth="{inputWidth}"/>
+				<ui:IndentTextInput id="dataInterval" enabled="{equalIntervalRadio.selected}" label="Data interval:" indent="{indent}" inputWidth="{inputWidth}"/>
 				<ui:HelpComponent label="{equalIntervalRadio.label}" content="Example: If your data is between 0 and 100 and you specify an interval of 25, four bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
 			</mx:HBox>
 			
@@ -114,7 +114,6 @@
 			import weave.data.BinningDefinitions.QuantileBinningDefinition;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
 			import weave.data.BinningDefinitions.StandardDeviationBinningDefinition;
-			import weave.utils.PopUpUtils;
 			
 			public const binnedColumn:BinnedColumn = newLinkableChild(this, BinnedColumn);
 			
@@ -222,7 +221,7 @@
 						names.push(source[i] as String);
 				}
 				
-				getAbstractDef().overrideBinNames.value = WeaveAPI.CSVParser.createCSVFromArrays([names]);
+				getAbstractDef().overrideBinNames.value = WeaveAPI.CSVParser.createCSV([names]);
 			}
 		]]>
 	</mx:Script>

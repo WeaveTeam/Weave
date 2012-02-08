@@ -89,6 +89,7 @@
 				linkBindableProperty(_colorLegendPlotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
 				linkBindableProperty(_barLegendPlotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
 				linkBindableProperty(_colorLegendPlotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
+				legendControls.chkShowLegendAttrName.addEventListener(Event.CHANGE, toggleShowAttributeName);
 				
 				_barLegendPlotter.legendTitleFunction.addGroupedCallback(this, updateMarginLabel, true);
 				//_colorLegendPlotter.legendTitleFunction.addGroupedCallback(this, updateMarginLabel, true);
@@ -192,7 +193,7 @@
 					legendControls.chkShowLegendAttrName.selected = false;
 				}
 			}
-			private function toggleShowAttributeName():void
+			private function toggleShowAttributeName(e:Event):void
 			{
 				visualization.marginTop.value = legendControls.chkShowLegendAttrName.selected ? _prevMarginTop : '0';
 			}
@@ -209,20 +210,5 @@
 	
 	<ui:ControlPanel>
 		<ui:LegendControls id="legendControls"/>
-		<!--
-		<mx:VBox id="attributesPanel" label="Attributes for Color Bin Legend">
-			<mx:CheckBox id="showAttributeNameCheck" 
-						 label="Show legend attribute name" 
-						 change="toggleShowAttributeName()"
-						 toolTip="Click to hide the title of the Legend."/>
-			<mx:HBox>
-				<mx:Label text="Number of columns"/>
-				<mx:NumericStepper id="maxCols" minimum="1"
-								   toolTip="This specifies the maximum number of columns to show in a row in the legend."/>
-			</mx:HBox>
-			<mx:CheckBox label="Reverse item order" id="chkReverseOrder"
-						 toolTip="Check this box to reverse the ordering of the items in this legend."/>
-		</mx:VBox>
-		-->
 	</ui:ControlPanel>
 </SimpleVisTool>

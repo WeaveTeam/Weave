@@ -207,6 +207,11 @@ package weave.data.AttributeColumns
 				validateBins();
 			return _binnedKeysMap[binName] as Array;
 		}
+		
+		public function getBinIndexFromDataValue(value:*):Number
+		{
+			return _derivedBins.getBinIndexFromDataValue(value);
+		}
 
 		/**
 		 * This function returns different results depending on the dataType.

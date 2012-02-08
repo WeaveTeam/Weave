@@ -21,9 +21,7 @@ package weave.services
 {
 	import mx.rpc.AsyncToken;
 	
-	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IWeaveStatisticsService;
-	import weave.utils.ByteArrayUtils;
 
 	/**
 	 * WSStatisticsServlet
@@ -67,12 +65,6 @@ package weave.services
 		
 		public function runScript(inputNames:Array, inputValues:Array, outputNames:Array, script:String,plotScript:String, showIntermediateResults:Boolean, showWarningMessages:Boolean ):AsyncToken
 		{
-			/*inputValues = inputValues.concat();
-			for (var i:int = 0; i < inputValues.length; i++)
-			{
-				inputValues[i] = ByteArrayUtils.encodeDoubleArray(inputValues[i]);
-			}*/
-			//trace('runScript',ObjectUtil.toString(arguments));
 			return servlet.invokeAsyncMethod("runScript", arguments);
 		}
 

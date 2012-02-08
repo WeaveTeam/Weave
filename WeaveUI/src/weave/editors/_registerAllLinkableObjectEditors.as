@@ -19,6 +19,7 @@
 package weave.editors
 {
 	import weave.WeaveProperties;
+	import weave.core.SessionStateLog;
 	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.DBFDataSource;
 	import weave.data.DataSources.WFSDataSource;
@@ -50,5 +51,7 @@ package weave.editors
 		EditorManager.registerEditor(WMSPlotter, WMSPlotterEditor);
 		EditorManager.registerEditor(GridLinePlotter, GridLinePlotterEditor);
 		EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
+		
+		EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
 	}
 }

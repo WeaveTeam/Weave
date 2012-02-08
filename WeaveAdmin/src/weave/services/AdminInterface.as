@@ -87,6 +87,8 @@ package weave.services
 		
 		[Bindable] public var dbfKeyColumns:Array = [];
 		
+		[Bindable] public var dbfData:Array = [];
+		
 		// values the user has currently selected
 		[Bindable] public var activePassword:String = '';
 		
@@ -500,6 +502,16 @@ package weave.services
 			}
 			return query;
 		}
+		public function getDBFData(dbfFileName:String):DelayedAsyncInvocation
+		{
+			var query:DelayedAsyncInvocation = service.getDBFData(dbfFileName);
+			query.addAsyncResponder(handleGetDBFData);
+			function handleGetDBFData(event:ResultEvent, token:Object = null):void
+			{
+				dbfData = event.result as Array || [];
+			}
+			return query;
+		}
 		
 		public function convertShapefileToSQLStream(fileName:String, keyColumns:Array, sqlSchema:String, sqlTable:String, 
 													tableOverwriteCheck:Boolean, geometryCollection:String, configOverwriteCheck:Boolean, 
@@ -596,8 +608,19 @@ package weave.services
 			return query;
 		}
 		
-
-
+		
+		public function checkKeyColumnForSQLImport(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String):DelayedAsyncInvocation
+		{
+			var query:DelayedAsyncInvocation = service.checkKeyColumnForSQLImport(
+				activeConnectionName,
+				activePassword,
+				sqlSchema,
+				sqlTable,
+				keyColumn,
+				secondaryKeyColumn
+			);
+			return query;
+		}
 
 
 

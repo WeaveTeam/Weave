@@ -21,25 +21,18 @@ package weave.core
 {
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.WeaveAPI;
+	
 	/**
 	 * LinkableBoolean
-	 * 
 	 * 
 	 * @author adufilie
 	 */
 	public class LinkableBoolean extends LinkableVariable
 	{
-		public function LinkableBoolean(defaultValue:* = null)
+		public function LinkableBoolean(defaultValue:* = undefined, verifier:Function = null)
 		{
-			super(Boolean);
-			if (defaultValue !== null)
-			{
-				delayCallbacks();
-				value = defaultValue ? true : false;
-				// Resume callbacks one frame later when we know it is possible for
-				// other classes to have a pointer to this object and retrieve the value.
-				StageUtils.callLater(this, resumeCallbacks, null, false);
-			}
+			super(Boolean, verifier, defaultValue);
 		}
 
 		public function get value():Boolean

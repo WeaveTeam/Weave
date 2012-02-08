@@ -19,16 +19,20 @@
 
 package weave
 {
+	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.URLRequest;
+	import flash.system.ApplicationDomain;
 	import flash.text.Font;
 	import flash.utils.ByteArray;
 	
 	import mx.collections.ArrayCollection;
 	import mx.controls.ToolTip;
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
 	
 	import ru.etcs.utils.FontLoader;
@@ -49,7 +53,6 @@ package weave
 	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
-	import weave.resources.fonts.EmbeddedFonts;
 	import weave.utils.CSSUtils;
 	import weave.utils.DebugUtils;
 	import weave.utils.LinkableTextFormat;
@@ -79,7 +82,7 @@ package weave
 			for each (var propertyName:String in (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(this))
 				registerLinkableChild(this, this[propertyName] as ILinkableObject);
 			
-			loadEmbeddedFonts();
+			loadWeaveFontsSWF();
 
 			// handle dynamic changes to the session state that change what CSS file to use
 			cssStyleSheetName.addGroupedCallback(
@@ -95,34 +98,44 @@ package weave
 			panelTitleTextFormat.color.value = 0xFFFFFF;
 		}
 		
-		private function loadEmbeddedFonts():void
+		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
+		private static function loadWeaveFontsSWF():void
 		{
-			fontLoader.autoRegister = true;
-			fontLoader.addEventListener(Event.COMPLETE,weaveFontsLoaded);
-			fontLoader.addEventListener(IOErrorEvent.IO_ERROR,handleLoaderErrorEvent);
-			fontLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleLoaderErrorEvent);
-			fontLoader.load(new URLRequest("WeaveFonts.swf"));
-		}
-		
-		private var fontLoader:FontLoader = new FontLoader();
-		
-		public static const embeddedFonts:ArrayCollection = new ArrayCollection([EmbeddedFonts.SophiaNubian]);
-		private function weaveFontsLoaded(event:Event):void
-		{
-			var fonts:Array = fontLoader.fonts;
-			
-			
-			for each (var font:Font in fonts)
-			{
-				if(!embeddedFonts.contains(font.fontName))
-					embeddedFonts.addItem(font.fontName);
-			}
-			
-		}
-		
-		private function handleLoaderErrorEvent(event:Event):void
-		{
-			//DO Nothing
+			WeaveAPI.URLRequestUtils.getURL(
+				new URLRequest('WeaveFonts.swf'),
+				function(event:ResultEvent, token:Object = null):void
+				{
+					var fontLoader:FontLoader = new FontLoader();
+					fontLoader.addEventListener(
+						Event.COMPLETE,
+						function(event:Event):void
+						{
+							try
+							{
+								var fonts:Array = fontLoader.fonts;
+								for each (var font:Font in fonts)
+								{
+									var fontClass:Class = Object(font).constructor;
+									Font.registerFont(fontClass);
+									if (!embeddedFonts.contains(font.fontName))
+										embeddedFonts.addItem(font.fontName);
+								}
+							}
+							catch (e:Error)
+							{
+								var app:Object = WeaveAPI.topLevelApplication;
+								if (app.parent && app.parent.parent is Stage) // don't report error if loaded as a nested app
+									reportError(e);
+							}
+						}
+					);
+					fontLoader.loadBytes(ByteArray(event.result), false);
+				},
+				function(event:FaultEvent, token:Object = null):void
+				{
+					reportError(event.fault);
+				}
+			);
 		}
 		
 		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xCCCCCC;
@@ -195,6 +208,7 @@ package weave
 		
 		public const enableProbeAnimation:LinkableBoolean = new LinkableBoolean(true);
 		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(1, verifyMaxTooltipRecordsShown); // maximum number of records shown in the probe toolTips
+		public const showSelectedRecordsText:LinkableBoolean = new LinkableBoolean(true); // show the tooltip in the lower-right corner of the application
 		public const enableBitmapFilters:LinkableBoolean = new LinkableBoolean(true); // enable/disable bitmap filters while probing or selecting
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
 		public function get geometryMetadataRequestMode():LinkableString { return StreamedGeometryColumn.metadataRequestMode; }
@@ -210,12 +224,10 @@ package weave
 		public const enableDrawCircle:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableMenuBar:LinkableBoolean = new LinkableBoolean(true); // top menu for advanced features
-		public const enableTaskbar:LinkableBoolean = new LinkableBoolean(true); // taskbar for minimize/restore
 		public const enableSubsetControls:LinkableBoolean = new LinkableBoolean(true); // creating subsets
 		public const enableExportToolImage:LinkableBoolean = new LinkableBoolean(true); // print/export tool images
 		public const enableExportCSV:LinkableBoolean = new LinkableBoolean(true);
 		public const enableExportApplicationScreenshot:LinkableBoolean = new LinkableBoolean(true); // print/export application screenshot
-		public const enableExportDataTable:LinkableBoolean = new LinkableBoolean(true); // print/export data table
 		
 		public const enableDataMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Data Menu
 		public const enableRefreshHierarchies:LinkableBoolean = new LinkableBoolean(true);
@@ -223,7 +235,7 @@ package weave
 		public const enableAddWeaveDataSource:LinkableBoolean = new LinkableBoolean(true); // enable/disable Add WeaveDataSource option
 		
 		public const enableWindowMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Window Menu
-		public const enableGoFullscreen:LinkableBoolean = new LinkableBoolean(true); // enable/disable Fullscreen
+		public const enableFullScreen:LinkableBoolean = new LinkableBoolean(false); // enable/disable FullScreen option
 		public const enableCloseAllWindows:LinkableBoolean = new LinkableBoolean(true); // enable/disable Close All Windows
 		public const enableRestoreAllMinimizedWindows:LinkableBoolean = new LinkableBoolean(true); // enable/disable Restore All Minimized Windows 
 		public const enableMinimizeAllWindows:LinkableBoolean = new LinkableBoolean(true); // enable/disable Minimize All Windows

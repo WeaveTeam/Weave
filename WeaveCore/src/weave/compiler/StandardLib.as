@@ -229,7 +229,7 @@ package weave.compiler
 		 */
 		public static function numberInRange(value:Number, min:Number, max:Number):Boolean
 		{
-			if (value < min || value > max)
+			if (value < min || value > max) // a condition will be false if a value is NaN
 				return false;
 			return true;
 		}
@@ -385,9 +385,14 @@ package weave.compiler
 		
 		/**
 		 * Code from Graphics Gems Volume 1
+		 * Note: This may return less than the requested number of values
 		 */
 		public static function getNiceNumbersInRange(min:Number, max:Number, numberOfValuesInRange:int):Array
 		{
+			// special case
+			if (min == max)
+				return [min];
+			
 			var nfrac:int;
 			var d:Number;
 			var graphmin:Number;

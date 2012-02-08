@@ -1,37 +1,16 @@
 /* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
+ * This file is part of the Weave API.
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is the Weave API.
- *
- * The Initial Developer of the Original Code is the Institute for Visualization
+ * The Initial Developer of the Weave API is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2011
+ * Portions created by the Initial Developer are Copyright (C) 2008-2012
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s):
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
  * ***** END LICENSE BLOCK ***** */
 
 package weave.api.data
@@ -43,21 +22,35 @@ package weave.api.data
 	 */	
 	public interface ICSVParser
 	{
-		// if string begins with ", text up until the matching " will be parsed, replacing "" with "
-		function parseCSVToken(token:String):String;
-		
-		//if necessary, adds quotes around string and replaces " with ""
-		function createCSVToken(str:String):String;
-		
 		/**
-		 * @param csvData The CSV string to parse.
+		 * This will parse a CSV String into a two-dimensional Array of String values.
+		 * @param csvData The CSV String to parse.
 		 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
 		 * @return The destination Array, or a new Array if none was specified.  The result of parsing the CSV string will be stored here.
 		 */
 		function parseCSV(csvData:String, parseTokens:Boolean = true, destination:Array = null):Array;
 		
-		//takes an array of arrays and convert it into a CSV string
-		function createCSVFromArrays(table:Array):String;
+		/**
+		 * This will generate a CSV String from an Array of rows in a table.
+		 * @param rows A two-dimensional Array, which will be accessed like rows[rowIndex][columnIndex].
+		 * @return A CSV String containing the values from the rows.
+		 */
+		function createCSV(rows:Array):String;
+		
+		/**
+		 * This will parse a CSV-encoded String value.
+		 * If string begins with ", text up until the matching " will be parsed, replacing "" with ".
+		 * @param token A CSV-encoded String value.
+		 * @return The decoded String value.
+		 */
+		function parseCSVToken(token:String):String;
+		
+		/**
+		 * This will surround a string with quotes and use CSV-style escape sequences if necessary.
+		 * @param str A String value.
+		 * @return The String value using CSV encoding.
+		 */
+		function createCSVToken(str:String):String;
 		
 		/**
 		 * This function converts an Array of Arrays to an Array of Objects compatible with DataGrid.

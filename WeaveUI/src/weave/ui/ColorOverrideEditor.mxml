@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<!---
+@author adufilie
+-->
+<mx:VBox xmlns:ui ="weave.ui.*"
+	xmlns:mx="http://www.adobe.com/2006/mxml" 
+	xmlns="weave.ui.*"
+	implements="weave.api.core.ILinkableObject"
+	width="{NaN}" height="{NaN}"
+	>
+		<mx:Label text="Override colors for specific records" fontWeight="bold"/>
+		<mx:List id="colorOverrideList" allowMultipleSelection="true" width="100%" height="100%" change="handleSelectedItems()" horizontalScrollPolicy="auto">
+			<mx:itemRenderer>
+				<mx:Component>
+					<mx:HBox verticalAlign="middle" horizontalScrollPolicy="off">
+						<ui:CustomColorPicker id="colorPicker" change="handleColor()"/>
+						<mx:Label id="lbl" width="100%"/>
+						<mx:Script>
+							<![CDATA[
+								import weave.api.data.IQualifiedKey;
+								import weave.utils.ProbeTextUtils;
+								
+								private function handleColor():void
+								{
+									if (data)
+										outerDocument.overrideColor([data], colorPicker.selectedColor);
+								}
+								
+								override public function set data(value:Object):void
+								{
+									super.data = value;
+									
+									var key:IQualifiedKey = value as IQualifiedKey;
+									if (key)
+									{
+										var probeText:String = ProbeTextUtils.getProbeText([key]);
+										if (!probeText)
+											probeText = key.keyType + '#' + key.localName;
+										else if (probeText.indexOf("Record Identifier:") == 0)
+											probeText = probeText.split('\n').join('');
+										
+										toolTip = probeText;
+										lbl.text = probeText.split('\n')[0]; // first line only
+											
+										colorPicker.selectedColor = outerDocument.getColor(key);
+									}
+									else
+									{
+										lbl.text = 'null';
+										colorPicker.selectedColor = 0;
+									}
+								}
+							]]>
+						</mx:Script>
+					</mx:HBox>
+				</mx:Component>
+			</mx:itemRenderer>
+		</mx:List>
+		<mx:HBox width="100%">
+			<ui:Indent label="Change color for selected records:">
+				<ui:CustomColorPicker id="colorPicker" change="overrideColor(getGlobalSelection().keys, colorPicker.selectedColor);"/>
+				<ui:HelpComponent>Make a selection on a visualization tool and then use this color picker to override the color for the selected records.</ui:HelpComponent>
+			</ui:Indent>
+			<mx:Spacer width="100%"/>
+			<mx:Button label="Reset selected" click="removeSelectedColors()"/>
+		</mx:HBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ICollectionView;
+			import weave.data.KeySets.KeySet;
+			import weave.api.getCallbackCollection;
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IKeySet;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.newLinkableChild;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableString;
+			
+			private function getGlobalSelection():KeySet
+			{
+				var keySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+				return keySet;
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				getCallbackCollection(getGlobalSelection()).addGroupedCallback(this, handleGlobalSelection);
+			}
+			
+			// called when global selection changes
+			private function handleGlobalSelection():void
+			{
+				var keys:Array = getGlobalSelection().keys
+				colorOverrideList.selectedItems = keys;
+				for each (var key:IQualifiedKey in keys)
+				{
+					var color:Number = Number(_keyToColorMap[key]);
+					if (isFinite(color))
+					{
+						colorPicker.selectedColor = color;
+						break;
+					}
+				}
+			}
+			
+			// called when list selection changes
+			private function handleSelectedItems():void
+			{
+				getGlobalSelection().replaceKeys(colorOverrideList.selectedItems);
+			}
+			
+			/**
+			 * This is a CSV containing specific colors associated with record keys.
+			 * The format for each row in the CSV is:  keyType,localName,color
+			 */
+			public const recordColors:LinkableString = newLinkableChild(this, LinkableString, handleRecordColors);
+
+			private var _recordColorTable:Array = []; // parsed CSV
+			private var _keyToColorMap:Dictionary = new Dictionary(); // IQualifiedKey -> CSV row index
+			
+			// called when recordColors change
+			private function handleRecordColors():void
+			{
+				_recordColorTable = WeaveAPI.CSVParser.parseCSV(recordColors.value);
+				_keyToColorMap = new Dictionary();
+				var keys:Array = new Array(_recordColorTable.length);
+				var duplicatesFound:Boolean = false;
+				for (var i:int = _recordColorTable.length - 1; i >= 0; i--)
+				{
+					var row:Array = _recordColorTable[i] as Array; // keyType,localName,color
+					var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(row[0], row[1]);
+					if (_keyToColorMap[key] === undefined)
+					{
+						keys[i] = key;
+						_keyToColorMap[key] = StandardLib.asNumber(row[2]);
+					}
+					else
+					{
+						duplicatesFound = true;
+						_recordColorTable.splice(i, 1);
+						keys.splice(i, 1);
+					}
+				}
+				colorOverrideList.dataProvider = keys;
+				handleGlobalSelection();
+				
+				// remove duplicates from session state
+				if (duplicatesFound)
+					recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);
+			}
+			
+			internal function getColor(key:IQualifiedKey):Number
+			{
+				var color:Number = Number(_keyToColorMap[key]); // undefined will be NaN
+				return color;
+			}
+			
+			internal function overrideColor(keys:Array, color:uint):void
+			{
+				for (var i:int = 0; i < keys.length; i++)
+				{
+					var key:IQualifiedKey = keys[i] as IQualifiedKey;
+					_recordColorTable.push([key.keyType, key.localName, '0x' + StandardLib.numberToBase(color, 16, 6).toUpperCase()]);
+				}
+				recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);
+			}
+			
+			private function removeSelectedColors():void
+			{
+				var indices:Array = colorOverrideList.selectedIndices;
+				indices.sort(Array.NUMERIC);
+				for (var i:int = indices.length - 1; i >= 0; i--)
+					_recordColorTable.splice(indices[i], 1);
+				recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

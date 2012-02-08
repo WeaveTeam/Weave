@@ -288,6 +288,8 @@ package weave.services.collaboration
 			if (connectedToRoom && stateLog != null)
 			{
 				var log:Array = stateLog.undoHistory;
+				if (log.length == 0)
+					return;
 				if (synchronizingIncomingDiff)
 				{
 					log.pop(); // suppress the outgoing diff that results from an incoming diff

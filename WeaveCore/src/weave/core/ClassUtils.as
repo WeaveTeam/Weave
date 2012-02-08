@@ -19,17 +19,10 @@
 
 package weave.core
 {
-	import flash.events.Event;
 	import flash.system.ApplicationDomain;
-	import flash.system.LoaderContext;
 	import flash.utils.describeType;
-	
-	import mx.controls.SWFLoader;
-	import mx.core.ClassFactory;
-	import mx.core.mx_internal;
 
 	/**
-	 * ClassUtils
 	 * This is an all-static class containing functions related to qualified class names.
 	 * 
 	 * @author adufilie
@@ -50,27 +43,6 @@ package weave.core
 		}
 
 		/**
-		 * This function loads a SWF library into the current ApplicationDomain so getClassDefinition() and getDefinitionByName() can get its class definitions.
-		 * @param source Either the URL to a SWF or a ByteArray containing the SWF to load.
-		 * @param callback The function to call when the SWF is finished loading.
-		 * @param callbackParams Optional parameters to pass to the callback function.
-		 */
-		public static function loadSWF(source:Object, callback:Function, callbackParams:Array = null):void
-		{
-			var loader:SWFLoader = new SWFLoader();
-			// loading the plugin in the same ApplicationDomain allows getDefinitionByName() to return results from the plugin.
-			loader.loaderContext = new LoaderContext(false, ApplicationDomain.currentDomain);
-			loader.load(source);
-			loader.addEventListener(
-				Event.COMPLETE,
-				function(e:Event):void
-				{
-					callback.apply(null, callbackParams);
-				}
-			);
-		}
-
-		/**
 		 * @param classQName A qualified class name.
 		 * @param implementsQName A qualified interface name.
 		 * @return true if the class implements the interface, or if the two QNames are equal.
@@ -86,6 +58,7 @@ package weave.core
 			} catch (e:Error) { trace(e.getStackTrace()); }
 			return false;
 		}
+		
 		/**
 		 * @param classQName A qualified class name of a class in question.
 		 * @param extendsQName A qualified class name that the class specified by classQName may extend.
@@ -102,6 +75,7 @@ package weave.core
 			} catch (e:Error) { trace(e.getStackTrace()); }
 			return false;
 		}
+		
 		/**
 		 * @param classQName A qualified class name.
 		 * @param isQName A qualified class or interface name.
@@ -180,34 +154,6 @@ package weave.core
 			return true; // successfully cached
 		}
 		
-		/**
-		 * Returns a new instance of a class.
-		 * 
-		 * @param classQName The qualified name of the class.
-		 * @param params Parameters to pass to the constructor of the class.
-		 * @return A new instance of the class.
-		 */		
-		public static function getNewInstance(classQName:String, params:Array = null):Object
-		{
-			var classDef:Class = getClassDefinition(classQName);
-			if (!params)
-				return new classDef();
-			switch (params.length)
-			{
-				case 0: return new classDef();
-				case 1: return new classDef(params[0]);
-				case 2: return new classDef(params[0], params[1]);
-				case 3: return new classDef(params[0], params[1], params[2]);
-				case 4: return new classDef(params[0], params[1], params[2], params[3]);
-				case 5: return new classDef(params[0], params[1], params[2], params[3], params[4]);
-				case 6: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5]);
-				case 7: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6]);
-				case 8: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
-				case 9: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8]);
-				case 10: return new classDef(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9]);
-				default: throw new Error("Too many constructor parameters (maximum 10)");
-			}
-		}
 		/*
 		private function typeEquals(o:*, cls:Class):Boolean
 		{

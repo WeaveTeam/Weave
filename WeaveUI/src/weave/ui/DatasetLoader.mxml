@@ -316,7 +316,7 @@
 					}
 				}
 				
-				dataSource.csvDataString.value = WeaveAPI.CSVParser.createCSVFromArrays(dataArray);
+				dataSource.csvDataString.value = WeaveAPI.CSVParser.createCSV(dataArray);
 				dataSource.keyType.value = keyTypeCombo.text;
 				//Weave.initObject(Weave.generateUniqueName(_fileLoader.name), dataSource);
 

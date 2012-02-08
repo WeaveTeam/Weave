@@ -217,8 +217,8 @@ LayerListComponent
 			private function handleAutoZoomToggle():void
 			{
 				var enabled:Boolean = _visTool.visualization.enableAutoZoomToExtent.value;
-				boundsProperties.height = enabled ? NaN : 0;
-				boundsProperties.enabled = enabled;
+				boundsProperties.visible = enabled;
+				boundsProperties.includeInLayout = enabled;
 			}
 			
 			private function openSelector():void

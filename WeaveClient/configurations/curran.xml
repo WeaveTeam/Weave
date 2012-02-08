@@ -53,11 +53,10 @@
     <enableEditDataSource>true</enableEditDataSource>
     <enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
     <enableExportCSV>true</enableExportCSV>
-    <enableExportDataTable>true</enableExportDataTable>
     <enableExportToolImage>true</enableExportToolImage>
+    <enableFullScreen>false</enableFullScreen>
     <enableFullscreen>true</enableFullscreen>
     <enableGeometryProbing>true</enableGeometryProbing>
-    <enableGoFullscreen>true</enableGoFullscreen>
     <enableManageSavedSelections>true</enableManageSavedSelections>
     <enableManageSavedSubsets>true</enableManageSavedSubsets>
     <enableMarker>true</enableMarker>
@@ -84,7 +83,6 @@
     <enableSubsetControls>true</enableSubsetControls>
     <enableSubsetSelectionBox>true</enableSubsetSelectionBox>
     <enableSubsetsMenu>true</enableSubsetsMenu>
-    <enableTaskbar>true</enableTaskbar>
     <enableTileAllWindows>true</enableTileAllWindows>
     <enableToolAttributeEditing>true</enableToolAttributeEditing>
     <enableToolControls>true</enableToolControls>
@@ -139,6 +137,7 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showEquationEditor>true</showEquationEditor>
     <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
     <showProbeToolTipEditor>true</showProbeToolTipEditor>
+    <showSelectedRecordsText>true</showSelectedRecordsText>
     <showVisToolCloseDialog>false</showVisToolCloseDialog>
     <startupJavaScript/>
     <toolInteractions>
@@ -165,7 +164,7 @@ wheel</zoom>
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
     <ramp encoding="xml">
-      <colorRamp name="5-Color" source="OIC" category="basic">
+      <colorRamp category="basic" name="5-Color" source="OIC">
         <node color="0xEFF3FF" position="0"/>
         <node color="0xBDD7E7" position="0.25"/>
         <node color="0x6BAED6" position="0.5"/>
@@ -173,6 +172,7 @@ wheel</zoom>
         <node color="0x08519C" position="1"/>
       </colorRamp>
     </ramp>
+    <recordColors/>
   </ColorColumn>
   <BinnedColumn name="defaultColorBinColumn">
     <binningDefinition encoding="dynamic">
@@ -202,6 +202,41 @@ wheel</zoom>
   <KeySet name="alwaysHighlightKeySet"/>
   <LinkableHashMap name="savedSelections" encoding="dynamic"/>
   <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
+  <WeaveDataSource name="WeaveDataSource">
+    <attributeHierarchy encoding="xml">
+      <hierarchy name="Open Indicators Server">
+        <category name="Data Tables" title="Data Tables">
+          <category name="can_ab_l_geo83_e" title="can_ab_l_geo83_e"/>
+          <category name="can_ab_p_geo83_e" title="can_ab_p_geo83_e"/>
+          <category name="canada" title="canada"/>
+          <category name="Obesity" title="Obesity"/>
+          <category name="obesity-cube" title="obesity-cube"/>
+          <category name="prov_ab_p_geo83_e" title="prov_ab_p_geo83_e"/>
+          <category name="st99_d00" title="st99_d00"/>
+          <category name="states" title="states"/>
+          <category name="States" title="States"/>
+          <category name="tl_2009_us_county" title="tl_2009_us_county"/>
+          <category name="tl_2009_us_state" title="tl_2009_us_state"/>
+          <category name="us_states" title="us_states"/>
+          <category name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002"/>
+        </category>
+        <category name="Geometry Collections" title="Geometry Collections">
+          <attribute dataType="geometry" name="can_ab_l_geo83_e" title="can_ab_l_geo83_e" keyType="can_ab_l_geo83_e"/>
+          <attribute dataType="geometry" name="can_ab_p_geo83_e" title="can_ab_p_geo83_e" keyType="can_ab_p_geo83_e"/>
+          <attribute dataType="geometry" name="canada" title="canada" keyType="canada"/>
+          <attribute dataType="geometry" name="prov_ab_p_geo83_e" title="prov_ab_p_geo83_e" keyType="prov_ab_p_geo83_e"/>
+          <attribute dataType="geometry" name="states" title="states" keyType="US State FIPS Code"/>
+          <attribute dataType="geometry" name="tl_2009_us_county" title="tl_2009_us_county" keyType="US County FIPS Code"/>
+          <attribute dataType="geometry" name="tl_2009_us_state" title="tl_2009_us_state" keyType="US State FIPS Code"/>
+          <attribute dataType="geometry" name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002" keyType="world_countries_boundary_file_world_2002"/>
+        </category>
+      </hierarchy>
+    </attributeHierarchy>
+    <hierarchyURL/>
+    <url>/WeaveServices/DataService</url>
+  </WeaveDataSource>
+  <LinkableHashMap name="Probe Header Columns" encoding="dynamic"/>
+  <LinkableHashMap name="Probed Columns" encoding="dynamic"/>
   <MapTool name="MapTool">
     <buttonRadius>3</buttonRadius>
     <children encoding="dynamic">
@@ -210,6 +245,7 @@ wheel</zoom>
         <axesColor>0</axesColor>
         <axesThickness>NaN</axesThickness>
         <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+        <enableAutoZoomToSelection>false</enableAutoZoomToSelection>
         <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
         <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
         <enableFixedAspectRatio>true</enableFixedAspectRatio>
@@ -221,12 +257,34 @@ wheel</zoom>
         <gridLineThickness>NaN</gridLineThickness>
         <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
         <layers encoding="dynamic">
+          <PlotLayer name="wms">
+            <isOverlay>false</isOverlay>
+            <layerIsVisible>true</layerIsVisible>
+            <maxVisibleScale>16.09059945889845</maxVisibleScale>
+            <minVisibleScale>0.8456579627669414</minVisibleScale>
+            <plotter encoding="dynamic">
+              <WMSPlotter>
+                <displayMissingImage>false</displayMissingImage>
+                <gridSpacing>12</gridSpacing>
+                <keySet>
+                  <keyFilter encoding="dynamic">
+                    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                  </keyFilter>
+                </keySet>
+                <preferLowerQuality>false</preferLowerQuality>
+                <serviceName>NASA OnEarth</serviceName>
+                <srs/>
+                <styles/>
+              </WMSPlotter>
+            </plotter>
+            <selectionFilter encoding="dynamic"/>
+          </PlotLayer>
           <SelectablePlotLayer name="plot2">
             <backgroundIsVisible>true</backgroundIsVisible>
             <layerIsSelectable>true</layerIsSelectable>
             <layerIsVisible>true</layerIsVisible>
-            <maxVisibleZoomLevel>16</maxVisibleZoomLevel>
-            <minVisibleZoomLevel>0</minVisibleZoomLevel>
+            <maxVisibleScale>6.765263702135531</maxVisibleScale>
+            <minVisibleScale>2.844442997685921</minVisibleScale>
             <plotter encoding="dynamic">
               <GeometryPlotter>
                 <fill>
@@ -259,7 +317,7 @@ wheel</zoom>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
                               <category name="Geometry Collections" title="Geometry Collections">
-                                <attribute name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002" keyType="world_countries_boundary_file_world_2002" dataType="geometry"/>
+                                <attribute dataType="geometry" name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002" keyType="world_countries_boundary_file_world_2002"/>
                               </category>
                             </hierarchy>
                           </hierarchyPath>
@@ -332,8 +390,8 @@ wheel</zoom>
             <backgroundIsVisible>true</backgroundIsVisible>
             <layerIsSelectable>true</layerIsSelectable>
             <layerIsVisible>true</layerIsVisible>
-            <maxVisibleZoomLevel>16</maxVisibleZoomLevel>
-            <minVisibleZoomLevel>4</minVisibleZoomLevel>
+            <maxVisibleScale>64.3623978355938</maxVisibleScale>
+            <minVisibleScale>4.022649864724612</minVisibleScale>
             <plotter encoding="dynamic">
               <GeometryPlotter>
                 <fill>
@@ -366,7 +424,7 @@ wheel</zoom>
                           <hierarchyPath encoding="xml">
                             <hierarchy>
                               <category name="Geometry Collections" title="Geometry Collections">
-                                <attribute name="tl_2009_us_state" title="tl_2009_us_state" keyType="US State FIPS Code" dataType="geometry"/>
+                                <attribute dataType="geometry" name="tl_2009_us_state" title="tl_2009_us_state" keyType="US State FIPS Code"/>
                               </category>
                             </hierarchy>
                           </hierarchyPath>
@@ -448,7 +506,7 @@ wheel</zoom>
         <overrideYMax>NaN</overrideYMax>
         <overrideYMin>NaN</overrideYMin>
         <zoomBounds>
-          <area>4554.304379374</area>
+          <area>10254.906643125</area>
           <xCenter>-96.691547645799</xCenter>
           <yCenter>32.741453537729</yCenter>
         </zoomBounds>
@@ -467,10 +525,10 @@ wheel</zoom>
     <minimized>false</minimized>
     <panelBackgroundColor>NaN</panelBackgroundColor>
     <panelBorderColor>NaN</panelBorderColor>
-    <panelHeight>100%</panelHeight>
+    <panelHeight>99%</panelHeight>
     <panelStyleList/>
     <panelTitle/>
-    <panelWidth>38%</panelWidth>
+    <panelWidth>46%</panelWidth>
     <panelX>0%</panelX>
     <panelY>0%</panelY>
     <pinnable>true</pinnable>
@@ -479,43 +537,7 @@ wheel</zoom>
     <pinnedToBack>false</pinnedToBack>
     <projectionSRS/>
     <resizeable>true</resizeable>
-    <showCloseDialog>false</showCloseDialog>
     <showMouseModeControls>true</showMouseModeControls>
     <showZoomControls>true</showZoomControls>
   </MapTool>
-  <WeaveDataSource name="WeaveDataSource">
-    <attributeHierarchy encoding="xml">
-      <hierarchy name="Open Indicators Server">
-        <category name="Data Tables" title="Data Tables">
-          <category name="can_ab_l_geo83_e" title="can_ab_l_geo83_e"/>
-          <category name="can_ab_p_geo83_e" title="can_ab_p_geo83_e"/>
-          <category name="canada" title="canada"/>
-          <category name="Obesity" title="Obesity"/>
-          <category name="obesity-cube" title="obesity-cube"/>
-          <category name="prov_ab_p_geo83_e" title="prov_ab_p_geo83_e"/>
-          <category name="st99_d00" title="st99_d00"/>
-          <category name="states" title="states"/>
-          <category name="States" title="States"/>
-          <category name="tl_2009_us_county" title="tl_2009_us_county"/>
-          <category name="tl_2009_us_state" title="tl_2009_us_state"/>
-          <category name="us_states" title="us_states"/>
-          <category name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002"/>
-        </category>
-        <category name="Geometry Collections" title="Geometry Collections">
-          <attribute name="can_ab_l_geo83_e" title="can_ab_l_geo83_e" keyType="can_ab_l_geo83_e" dataType="geometry"/>
-          <attribute name="can_ab_p_geo83_e" title="can_ab_p_geo83_e" keyType="can_ab_p_geo83_e" dataType="geometry"/>
-          <attribute name="canada" title="canada" keyType="canada" dataType="geometry"/>
-          <attribute name="prov_ab_p_geo83_e" title="prov_ab_p_geo83_e" keyType="prov_ab_p_geo83_e" dataType="geometry"/>
-          <attribute name="states" title="states" keyType="US State FIPS Code" dataType="geometry"/>
-          <attribute name="tl_2009_us_county" title="tl_2009_us_county" keyType="US County FIPS Code" dataType="geometry"/>
-          <attribute name="tl_2009_us_state" title="tl_2009_us_state" keyType="US State FIPS Code" dataType="geometry"/>
-          <attribute name="world_countries_boundary_file_world_2002" title="world_countries_boundary_file_world_2002" keyType="world_countries_boundary_file_world_2002" dataType="geometry"/>
-        </category>
-      </hierarchy>
-    </attributeHierarchy>
-    <hierarchyURL/>
-    <url>/WeaveServices/DataService</url>
-  </WeaveDataSource>
-  <LinkableHashMap name="Probe Header Columns" encoding="dynamic"/>
-  <LinkableHashMap name="Probed Columns" encoding="dynamic"/>
 </Weave>

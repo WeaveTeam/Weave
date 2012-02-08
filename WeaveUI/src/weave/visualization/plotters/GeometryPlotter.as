@@ -26,51 +26,28 @@ package weave.visualization.plotters
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
-	
-	import mx.controls.Image;
-	import mx.graphics.ImageSnapshot;
-	import mx.rpc.events.FaultEvent;
-	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.copySessionState;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.disposeObjects;
-	import weave.api.getCallbackCollection;
-	import weave.api.linkBindableProperty;
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotterWithGeometries;
-	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
-	import weave.core.LinkableString;
-	import weave.core.StageUtils;
-	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
-	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
-	import weave.data.AttributeColumns.StringColumn;
-	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.utils.PlotterUtils;
-	import weave.visualization.plotters.styles.DynamicFillStyle;
-	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.ExtendedFillStyle;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
-	import weave.visualization.plotters.styles.SolidFillStyle;
-	import weave.visualization.plotters.styles.SolidLineStyle;
-	import weave.visualization.tools.MapTool;
 	
 	/**
 	 * GeometryPlotter
@@ -260,7 +237,15 @@ package weave.visualization.plotters
 				// draw graphics on cached bitmap
 				var g:Graphics = tempShape.graphics;
 				g.clear();
-				fill.beginFillStyle(null, g);
+				if (isNaN(color))
+				{
+					if (fill.enableMissingDataGradient.value)
+						fill.beginFillStyle(null, g);
+				}
+				else if (fill.enabled.defaultValue.value)
+				{
+					g.beginFill(color, fill.alpha.getValueFromKey(null, Number));
+				}
 				line.beginLineStyle(null, g);
 				g.drawCircle(pointOffset, pointOffset, pointShapeSize.value);
 				g.endFill();

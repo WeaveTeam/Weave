@@ -19,33 +19,53 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:HBox
-    xmlns="weave.ui.*"
+<Indent
     xmlns:mx="http://www.adobe.com/2006/mxml"
-	textAlign="right"
-	verticalAlign="middle"
-    horizontalScrollPolicy="off"
-	verticalScrollPolicy="off"
-	creationPolicy="all"
+    xmlns="weave.ui.*"
     >
-    <mx:Label id="labelComponent" text="{label}" width="{indent}"/>
-    <mx:TextInput id="input" textAlign="left" text="{text}" change="handleInputChange()" width="{inputWidth}" displayAsPassword="{displayAsPassword}"/>
+    <mx:TextInput id="input" text="{text}" change="handleInputChange()" displayAsPassword="{displayAsPassword}"/>
 	
 	<mx:Metadata>
 		[Event(name="change", type="flash.events.Event")]
 	</mx:Metadata>
     <mx:Script>
     	<![CDATA[
-    		[Bindable] public var indent:Number = NaN;
     		[Bindable] public var text:String = "";
-    		[Bindable] public var inputWidth:Number = NaN;
     		[Bindable] public var displayAsPassword:Boolean = false;
 			
 			private function handleInputChange():void
 			{
 				text = input.text;
-				dispatchEvent(new Event('change'));
+				dispatchEvent(new Event(Event.CHANGE));
+			}
+
+			[PercentProxy("inputPercentWidth")]
+			public function set inputWidth(value:Number):void
+			{
+				setInputProperty('width', value);
+			}
+			public function set inputPercentWidth(value:Number):void
+			{
+				setInputProperty('percentWidth', value);
+			}
+
+			// this function will delay setting values until input is created.
+			private function setInputProperty(propertyName:String, value:Object):void
+			{
+				if (input)
+					input[propertyName] = value;
+				else
+					_pendingInputProperties[propertyName] = value;
+			}
+			private var _pendingInputProperties:Object = {};
+			
+			// this function will set values that were delayed by setInputProperty
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				for (var prop:String in _pendingInputProperties)
+					input[prop] = _pendingInputProperties[prop];
 			}
     	]]>
     </mx:Script>
-</mx:HBox>
+</Indent>

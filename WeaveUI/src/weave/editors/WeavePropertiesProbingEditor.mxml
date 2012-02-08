@@ -45,38 +45,38 @@
 					 />
 		<ui:HelpComponent content="Check this box to enable extra bitmap filters used when probing or selecting"/>
 	</mx:HBox>
-	<mx:VBox enabled="{enableBitmapFilters.selected}" height="{enableBitmapFilters.selected ? NaN : 0}">
-		<ui:Indent indent="200" label="Probe Inner Glow Color" toolTip="Set the inner glow color of probed points">
+	<mx:VBox visible="{enableBitmapFilters.selected}" includeInLayout="{enableBitmapFilters.selected}" paddingLeft="{indentPadding}">
+		<ui:Indent label="Probe Inner Glow Color" toolTip="Set the inner glow color of probed points">
 			<mx:ColorPicker id="probeInnerGlowColor"
 							creationComplete="linkBindableProperty(Weave.properties.probeInnerGlowColor, event.target, 'selectedColor' );"
 							/>
 		</ui:Indent>
-		<ui:Indent indent="200" label="Probe Inner Glow Strength" toolTip="Set the inner glow thickness of probed points">
+		<ui:Indent label="Probe Inner Glow Strength" toolTip="Set the inner glow thickness of probed points">
 			<mx:NumericStepper id="probeInnerGlowStrength"
 							   maximum="255"
 							   creationComplete="linkBindableProperty(Weave.properties.probeInnerGlowStrength, event.target, 'value' );"
 							/>
 		</ui:Indent>
-		<ui:Indent indent="200" label="Probe Inner Glow Alpha" toolTip="Set the inner glow opacity of probed points">
+		<ui:Indent label="Probe Inner Glow Alpha" toolTip="Set the inner glow opacity of probed points">
 			<mx:NumericStepper id="probeInnerGlowAlpha"
 							   maximum="1"
 							   stepSize="0.1"
 							   creationComplete="linkBindableProperty(Weave.properties.probeInnerGlowAlpha, event.target, 'value' );"
 							   />
 		</ui:Indent>
-		<ui:Indent indent="200" label="Probe Outer Glow Color" 
+		<ui:Indent label="Probe Outer Glow Color" 
 					  toolTip="Set the outer glow color of probed points">
 			<mx:ColorPicker id="probeOuterGlowColor"
 							creationComplete="linkBindableProperty(Weave.properties.probeOuterGlowColor, event.target, 'selectedColor' );"
 							/>
 		</ui:Indent>
-		<ui:Indent indent="200" label="Probe Outer Glow Strength" toolTip="Set the outer glow thickness of probed points">
+		<ui:Indent label="Probe Outer Glow Strength" toolTip="Set the outer glow thickness of probed points">
 			<mx:NumericStepper id="probeOuterGlowStrength"
 							   maximum="255"
 							   creationComplete="linkBindableProperty(Weave.properties.probeOuterGlowStrength, event.target, 'value' );"
 							   />
 		</ui:Indent>
-		<ui:Indent indent="200" label="Probe Outer Glow Alpha" toolTip="Set the outer glow opacity of probed points">
+		<ui:Indent label="Probe Outer Glow Alpha" toolTip="Set the outer glow opacity of probed points">
 			<mx:NumericStepper id="probeOuterGlowAlpha"
 							   maximum="1"
 							   stepSize="0.1"
@@ -87,27 +87,26 @@
 	
 	<mx:CheckBox label="Enable probe ToolTips" id="enableProbeToolTipCheck"
 				 creationComplete="linkBindableProperty(Weave.properties.enableProbeToolTip, event.target, 'selected')"/>
-	<mx:VBox enabled="{enableProbeToolTipCheck.selected}" height="{enableProbeToolTipCheck.selected ? NaN : 0}">
-		<ui:Indent indent="200" label="Maximum records shown" toolTip="Set the maximum number of records displayed in probe toolTips">
+	<mx:VBox visible="{enableProbeToolTipCheck.selected}" includeInLayout="{enableProbeToolTipCheck.selected}" paddingLeft="{indentPadding}">
+		<ui:Indent label="Maximum records shown" toolTip="Set the maximum number of records displayed in probe toolTips">
 			<mx:NumericStepper id="maxRecordsShown"
 							   maximum="20"
 							   creationComplete="linkBindableProperty(Weave.properties.maxTooltipRecordsShown, event.target, 'value' );"
 							   />
 		</ui:Indent>
-		<ui:Indent indent="200" label="Probe Tooltip Background Color" toolTip="Set the background color of the probe text box">
+		<ui:Indent label="Probe Tooltip Background Color" toolTip="Set the background color of the probe text box">
 			<mx:ColorPicker id="probeTooltipBackgroundColor" change="backgroundColorPicked()"/>
 			<mx:Button label="Reset" click="Weave.properties.probeToolTipBackgroundColor.value = NaN;"/>
 		</ui:Indent>
-		<ui:Indent indent="200" label="Probe Tooltip Background Alpha" toolTip="Set the background opacity of the probe text box">
+		<ui:Indent label="Probe Tooltip Background Alpha" toolTip="Set the background opacity of the probe text box">
 			<mx:NumericStepper id="probeTooltipBackgroundAlpha"
 							   maximum="1"
 							   stepSize="0.1"
 							   creationComplete="linkBindableProperty(Weave.properties.probeToolTipBackgroundAlpha, event.target, 'value' );"
 							   />
 		</ui:Indent>
-		<ui:TextBox id="tooltipMaximumWidthInput"
+		<ui:IndentTextInput id="tooltipMaximumWidthInput"
 				label="Probe Tooltip Maximum Width"
-				indent="200"
 				inputWidth="100" 
 				creationComplete="linkBindableProperty(Weave.properties.probeToolTipMaxWidth, event.target, 'text' );"
 			/>
@@ -125,6 +124,8 @@
 			
 			import weave.Weave;
 			import weave.api.linkBindableProperty;
+			
+			private const indentPadding:int = 20
 			
 			override protected function childrenCreated():void
 			{

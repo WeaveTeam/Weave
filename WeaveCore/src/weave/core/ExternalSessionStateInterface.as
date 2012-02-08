@@ -262,31 +262,38 @@ package weave.core
 
 		/**
 		 * This function converts a session state from XML format to Object format.  Nested XML objects will be converted to Strings before returning.
-		 * @param sessionState A session state that has been encoded in XML.  This can be supplied as either an XML object or a String.
+		 * @param sessionState A session state that has been encoded in an XML String.
 		 * @return The deserialized session state object.
 		 */
-		public function convertSessionStateXMLToObject(sessionStateXML:Object):Object
+		public function convertSessionStateXMLToObject(sessionStateXML:String):Object
 		{
-			if (!(sessionStateXML is XML))
-				sessionStateXML = XML(sessionStateXML);
-			var state:Object = WeaveXMLDecoder.decode(sessionStateXML as XML);
+			var xml:XML = XML(sessionStateXML);
+			var state:Object = WeaveXMLDecoder.decode(xml);
 			convertSessionStateToPrimitives(state); // do not allow XML objects to be returned
 			return state;
 		}
 
 		/**
 		 * @see weave.api.core.IExternalSessionStateInterface
-		 */   
-		public function evaluateExpression(scopeObjectPath:Array, expression:String, variables:Object = null, staticLibraries:Array = null):*
+		 */
+		public function evaluateExpression(scopeObjectPathOrExpressionName:Object, expression:String, variables:Object = null, staticLibraries:Array = null, assignExpressionName:String = null):*
 		{
 			var result:* = undefined;
 			try
 			{
 				var compiler:Compiler = new Compiler();
 				compiler.includeLibraries.apply(null, staticLibraries);
-				var thisObject:ILinkableObject = (scopeObjectPath) ? getObject(scopeObjectPath) : null;
-				var compiledMethod:Function = compiler.compileToFunction(expression, variables, false, thisObject != null);
-				result = compiledMethod.apply(thisObject, arguments);
+				function evalExpression(...args):*
+				{
+					var thisObject:Object = getObjectFromPathOrExpressionName(scopeObjectPathOrExpressionName);
+					var compiledMethod:Function = compiler.compileToFunction(expression, variables, false, thisObject != null);
+					return compiledMethod.apply(thisObject, args);
+				}
+				
+				if (assignExpressionName)
+					_namedExpressions[assignExpressionName] = evalExpression;
+				else
+					result = evalExpression.apply(null, arguments);
 			}
 			catch (e:Error)
 			{
@@ -294,6 +301,11 @@ package weave.core
 			}
 			return result;
 		}
+		
+		/**
+		 * This object maps an expression name to the saved expression function.
+		 */		
+		private const _namedExpressions:Object = {};
 		
 		/**
 		 * This object maps a JavaScript callback function, specified as a String, to a corresponding Function that will call it.
@@ -328,12 +340,36 @@ package weave.core
 			return _callbackFunctionCache[callback];
 		}
 		
+		private function getObjectFromPathOrExpressionName(objectPathOrExpressionName:Object):Object
+		{
+			if (objectPathOrExpressionName is Array)
+				return getObject(objectPathOrExpressionName as Array);
+			
+			var expressionName:String = objectPathOrExpressionName as String;
+			if (expressionName)
+			{
+				var func:Function = _namedExpressions[expressionName] as Function;
+				try
+				{
+					if (func == null)
+						reportError('Undefined expression "' + expressionName + '"');
+					else
+						return func();
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
+			}
+			return null;
+		}
+		
 		/**
 		 * @see weave.api.core.IExternalSessionStateInterface
 		 */
-		public function addCallback(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean
+		public function addCallback(objectPathOrExpressionName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean
 		{
-			var object:ILinkableObject = getObject(objectPath);
+			var object:ILinkableObject = getObjectFromPathOrExpressionName(objectPathOrExpressionName) as ILinkableObject;
 			if (object == null)
 				return false;
 			// always use a grouped callback to avoid messy situations with javascript alert boxes
@@ -344,9 +380,9 @@ package weave.core
 		/**
 		 * @see weave.api.core.IExternalSessionStateInterface
 		 */
-		public function removeCallback(objectPath:Array, callback:String):Boolean
+		public function removeCallback(objectPathOrExpressionName:Object, callback:String):Boolean
 		{
-			var object:ILinkableObject = getObject(objectPath);
+			var object:ILinkableObject = getObjectFromPathOrExpressionName(objectPathOrExpressionName) as ILinkableObject;
 			if (object == null)
 				return false;
 			getCallbackCollection(object).removeCallback(getCachedCallbackFunction(callback));

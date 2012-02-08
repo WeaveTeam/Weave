@@ -287,7 +287,7 @@
 						var testColumn:CSVColumn = Weave.root.requestObject(RresultArray[p].name, CSVColumn, false);
 						testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
 						testColumn.numericMode.value = true;
-						testColumn.csvData.value = WeaveAPI.CSVParser.createCSVFromArrays(table);
+						testColumn.csvData.value = WeaveAPI.CSVParser.createCSV(table);
 						testColumn.title.value = RresultArray[p].name;
 					}					
 				}

@@ -34,6 +34,7 @@ package weave.core
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableCompositeObject;
@@ -743,8 +744,10 @@ package weave.core
 		 */
 		public function disposeObjects(object:Object, ...moreObjects):void
 		{
-			if (object != null)
+			if (object != null && !_disposedObjectsMap[object])
 			{
+				_disposedObjectsMap[object] = true;
+				
 				try
 				{
 					// if the object implements IDisposableObject, call its dispose() function now
@@ -850,8 +853,6 @@ package weave.core
 						(displayObject as UIComponent).mx_internal::cancelAllCallLaters();
 				}
 			}
-			
-			_disposedObjectsMap[object] = true;
 			
 			// dispose of the remaining specified objects
 			for (var i:int = 0; i < moreObjects.length; i++)
@@ -1052,22 +1053,20 @@ package weave.core
 		 * linking sessioned objects with bindable properties
 		 ******************************************************/
 		
-		/*
-		private function debugLink(linkable:Object, bindable:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
+		/*private function debugLink(linkVal:Object, bindVal:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
 		{
-			linkable = ObjectUtil.toString(linkable);
-			bindable = ObjectUtil.toString(bindable);
-			var link:String = useLinkableBefore && useLinkableAfter ? 'LINK' : 'link';
-			var bind:String = !useLinkableBefore && !useLinkableAfter ? 'BIND' : 'bind';
-			var dir:String = '--';
+			var link:String = (useLinkableBefore && useLinkableAfter ? 'LINK' : 'link') + '(' + ObjectUtil.toString(linkVal) + ')';
+			var bind:String = (!useLinkableBefore && !useLinkableAfter ? 'BIND' : 'bind') + '(' + ObjectUtil.toString(bindVal) + ')';
+			var str:String = link + ', ' + bind;
 			if (useLinkableBefore && !useLinkableAfter)
-				dir = '->';
+				str = link + ' = ' + bind;
 			if (!useLinkableBefore && useLinkableAfter)
-				dir = '<-';
+				str = bind + ' = ' + link;
+			if (callingLater)
+				str += ' (callingLater)';
 			
-			trace(link, linkable, dir, bind, bindable, callingLater ? 'callingLater' : '');
-		}
-		*/
+			trace(str);
+		}*/
 		
 		/**
 		 * This function will link the session state of an ILinkableVariable to a bindable property of an object.
@@ -1105,6 +1104,7 @@ package weave.core
 			var useLinkableValue:Boolean = true;
 			var callLaterTime:int = 0;
 			var uiComponent:UIComponent = bindableParent as UIComponent;
+			var recursiveCall:Boolean = false;
 			// a function that takes zero parameters and sets the bindable value.
 			var synchronize:Function = function(firstParam:* = undefined, callingLater:Boolean = false):void
 			{
@@ -1115,10 +1115,16 @@ package weave.core
 					return;
 				}
 				
-				//debugLink(linkableVariable.getSessionState(),bindableParent[bindablePropertyName],useLinkableValue,firstParam===undefined,callingLater);
+				/*debugLink(
+					linkableVariable.getSessionState(),
+					firstParam===undefined ? bindableParent[bindablePropertyName] : firstParam,
+					useLinkableValue,
+					firstParam===undefined,
+					callingLater
+				);*/
 				
 				// If bindableParent has focus:
-				// When linkableVariable changes, update bindable value only when focus is lost.
+				// When linkableVariable changes, update bindable value only when focus is lost (callLaterTime = int.MAX_VALUE).
 				// When bindable value changes, update linkableVariable after a delay.
 				
 				if (!callingLater)
@@ -1138,7 +1144,8 @@ package weave.core
 				}
 				
 				// if the bindable value is not a boolean and the bindable parent has focus, delay synchronization
-				if (!(bindableParent[bindablePropertyName] is Boolean))
+				var bindableValue:Object = bindableParent[bindablePropertyName];
+				if (!(bindableValue is Boolean))
 				{
 					if (uiComponent && watcher)
 					{
@@ -1147,7 +1154,7 @@ package weave.core
 						{
 							if (linkableVariable is LinkableVariable)
 							{
-								if ((linkableVariable as LinkableVariable).verifyValue(bindableParent[bindablePropertyName]))
+								if ((linkableVariable as LinkableVariable).verifyValue(bindableValue))
 								{
 									// clear any existing error string
 									if (uiComponent.errorString)
@@ -1163,11 +1170,11 @@ package weave.core
 							
 							var currentTime:int = getTimer();
 							
-							// if we're not calling later, set the target time
+							// if we're not calling later, set the target time (int.MAX_VALUE means delay until focus is lost)
 							if (!callingLater)
 								callLaterTime = useLinkableValue ? int.MAX_VALUE : currentTime + delay;
 							
-							// if we haven't reached the target time yet, call later
+							// if we haven't reached the target time yet or callbacks are delayed, call later
 							if (currentTime < callLaterTime)
 							{
 								uiComponent.callLater(synchronize, [firstParam, true]);
@@ -1182,8 +1189,14 @@ package weave.core
 					}
 				}
 				
+				// if the linkable variable's callbacks are delayed, delay synchronization
+				if (getCallbackCollection(linkableVariable).callbacksAreDelayed)
+				{
+					WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], false);
+					return;
+				}
+				
 				// synchronize
-				var bindableValue:Object = bindableParent[bindablePropertyName];
 				if (useLinkableValue)
 				{
 					var linkableValue:Object = linkableVariable.getSessionState();
@@ -1213,14 +1226,19 @@ package weave.core
 				}
 				else
 				{
-					callbackCollection.delayCallbacks();
+					var prevCount:uint = callbackCollection.triggerCounter;
 					linkableVariable.setSessionState(bindableValue);
 					// Always synchronize after setting the linkableVariable because there may
 					// be constraints on the session state that will prevent the callbacks
 					// from triggering if the bindable value does not match those constraints.
 					// This makes UIComponents update to the real value after they lose focus.
-//					callbackCollection.triggerCallbacks();
-					callbackCollection.resumeCallbacks();
+					if (callbackCollection.triggerCounter == prevCount && !recursiveCall)
+					{
+						// avoid infinite recursion in the case where the new value is not accepted by a verifier function
+						recursiveCall = true;
+						synchronize();
+						recursiveCall = false;
+					}
 				}
 			};
 			// Copy session state over to bindable property now, before calling BindingUtils.bindSetter(),

@@ -28,9 +28,9 @@ package weave.utils
 	import org.vanrijkom.shp.ShpRecord;
 	import org.vanrijkom.shp.ShpTools;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
-	import weave.core.StageUtils;
 	import weave.primitives.GeneralizedGeometry;
 	
 	
@@ -55,7 +55,7 @@ package weave.utils
 		{
 			shp	= new ShpHeader(shpData);
 			records = ShpTools.readRecords(shpData);
-			StageUtils.startTask(this, iterate);
+			WeaveAPI.StageUtils.startTask(this, iterate);
 		}
 		
 		private function iterate():Number

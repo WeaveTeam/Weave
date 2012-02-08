@@ -19,14 +19,29 @@
 
 package weave
 {
+	import flash.display.BitmapData;
+	import flash.events.Event;
 	import flash.external.ExternalInterface;
+	import flash.net.SharedObject;
+	import flash.utils.ByteArray;
+	import flash.utils.getQualifiedClassName;
+	
+	import mx.core.Application;
+	import mx.core.UIComponent;
+	import mx.graphics.codec.PNGEncoder;
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
+	import mx.utils.UIDUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.WeaveArchive;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
+	import weave.api.core.IStageUtils;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
 	import weave.api.data.IProjectionManager;
@@ -34,12 +49,17 @@ package weave
 	import weave.api.data.IStatisticsCache;
 	import weave.api.reportError;
 	import weave.api.services.IURLRequestUtils;
+	import weave.compiler.StandardLib;
+	import weave.core.ClassUtils;
 	import weave.core.ErrorManager;
 	import weave.core.ExternalSessionStateInterface;
+	import weave.core.LibraryUtils;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableHashMap;
 	import weave.core.ProgressIndicator;
 	import weave.core.SessionManager;
+	import weave.core.SessionStateLog;
+	import weave.core.StageUtils;
 	import weave.core.WeaveXMLDecoder;
 	import weave.core.WeaveXMLEncoder;
 	import weave.data.AttributeColumnCache;
@@ -54,13 +74,17 @@ package weave
 	import weave.data.StatisticsCache;
 	import weave.editors._registerAllLinkableObjectEditors;
 	import weave.services.URLRequestUtils;
-	import weave.utils.DebugTimer;
+	import weave.utils.BitmapUtils;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
 	 */
 	public class Weave
 	{
+		public static var ALLOW_PLUGINS:Boolean = false; // TEMPORARY
+		
+		
 		{ /** begin static code block **/
 			initialize();
 		} /** end static code block **/
@@ -79,6 +103,7 @@ package weave
 			
 			// register singleton implementations for framework classes
 			WeaveAPI.registerSingleton(ISessionManager, SessionManager);
+			WeaveAPI.registerSingleton(IStageUtils, StageUtils);
 			WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
 			WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
 			WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
@@ -125,8 +150,8 @@ package weave
 			);
 		}
 		
-		
 		private static var _root:ILinkableHashMap = null; // root object of Weave
+		private static var _history:SessionStateLog = null; // root session history
 
 		/**
 		 * This is the root object in Weave, which is an ILinkableHashMap.
@@ -137,8 +162,19 @@ package weave
 			{
 				_root = LinkableDynamicObject.globalHashMap;
 				createDefaultObjects(_root);
+				_history = new SessionStateLog(root);
 			}
 			return _root;
+		}
+		
+		/**
+		 * This is a log of all previous session states 
+		 */		
+		public static function get history():SessionStateLog
+		{
+			if (!root) // this check will initialize the _history variable
+				throw "unexpected";
+			return _history;
 		}
 
 		/**
@@ -148,25 +184,16 @@ package weave
 		{
 			return root.getObject(DEFAULT_WEAVE_PROPERTIES) as WeaveProperties;
 		}
+		
 		/**
 		 * This function gets the XML representation of the global session state.
 		 */
 		public static function getSessionStateXML():XML
 		{
-			return WeaveXMLEncoder.encode(root.getSessionState(), "Weave");
-		}
-		/**
-		 * This function sets the session state by decoding an XML representation of it.
-		 * @param newStateXML The new session state
-		 * @param removeMissingObjects If this is true, existing objects not appearing in the session state will be removed.
-		 */
-		public static function setSessionStateXML(newStateXML:XML, removeMissingObjects:Boolean):void
-		{
-			var newState:Array = WeaveXMLDecoder.decodeDynamicState(newStateXML);
-			
-			DebugTimer.begin();
-			root.setSessionState(newState, removeMissingObjects);
-			DebugTimer.end('set global session state');
+			var xml:XML = WeaveXMLEncoder.encode(root.getSessionState(), "Weave");
+			if (ALLOW_PLUGINS)
+				xml.@plugins = WeaveAPI.CSVParser.createCSV([getPluginList()]);
+			return xml;
 		}
 		
 		public static const DEFAULT_WEAVE_PROPERTIES:String = "WeaveProperties";
@@ -201,16 +228,286 @@ package weave
 			target.requestObject(DEFAULT_SELECTION_KEYSET, KeySet, true);
 			var probe:KeySet = target.requestObject(DEFAULT_PROBE_KEYSET, KeySet, true);
 			var always:KeySet = target.requestObject(ALWAYS_HIGHLIGHT_KEYSET, KeySet, true);
-			probe.addImmediateCallback(always, addKeys, [always, probe]);
-			always.addImmediateCallback(probe, addKeys, [always, probe]);
+			probe.addImmediateCallback(always, _addKeysToKeySet, [always, probe]);
+			always.addImmediateCallback(probe, _addKeysToKeySet, [always, probe]);
 
 			target.requestObject(SAVED_SELECTION_KEYSETS, LinkableHashMap, true);
 			target.requestObject(SAVED_SUBSETS_KEYFILTERS, LinkableHashMap, true);
 		}
 		
-		private static function addKeys(source:KeySet, destination:KeySet):void
+		private static function _addKeysToKeySet(source:KeySet, destination:KeySet):void
 		{
 			destination.addKeys(source.keys);
+		}
+		
+		
+		/******************************************************************************************/
+		
+		private static const THUMBNAIL_SIZE:int = 128;
+		private static const ARCHIVE_THUMBNAIL_PNG:String = "thumbnail.png";
+		private static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
+		private static const ARCHIVE_HISTORY_AMF:String = "history.amf";
+		private static const _pngEncoder:PNGEncoder = new PNGEncoder();
+		
+		private static var _pluginList:Array = [];
+		
+		/**
+		 * @return A copy of the list of plugins currently loaded. 
+		 */		
+		public static function getPluginList():Array
+		{
+			return _pluginList.concat();
+		}
+		
+		/**
+		 * This function will alter the list of plugins.  If plugins need to be unloaded, externalReload() will be called.
+		 * @param newPluginList A new full list of plugins that should be loaded.
+		 * @param newWeaveContent The new Weave file content to load after plugins have been loaded.
+		 * @return true if the plugins are already loaded.
+		 */
+		public static function setPluginList(newPluginList:Array, newWeaveContent:Object):Boolean
+		{
+			// remove duplicates
+			var array:Array = [];
+			for (i = 0; i < newPluginList.length; i++)
+				if (array.indexOf(newPluginList[i]) < 0)
+					array.push(newPluginList[i]);
+			newPluginList = array;
+			// stop if no change
+			if (StandardLib.arrayCompare(_pluginList, newPluginList) == 0)
+				return true;
+			
+			var i:int;
+			var needReload:Boolean = false;
+			if (newPluginList.length < _pluginList.length)
+			{
+				// need to unload plugins
+				needReload = true;
+			}
+			else
+			{
+				// check if order changed
+				for (i = 0; i < _pluginList.length; i++)
+				{
+					if (_pluginList[i] != newPluginList[i])
+						needReload = true;
+				}
+			}
+			
+			// save new plugin list
+			_pluginList = newPluginList;
+			
+			if (!newWeaveContent)
+				newWeaveContent = createWeaveFileContent();
+			
+			if (needReload)
+			{
+				externalReload(newWeaveContent);
+			}
+			else
+			{
+				// load missing plugins
+				var remaining:int = _pluginList.length;
+				var ILinkableObject_classQName:String = getQualifiedClassName(ILinkableObject);
+				
+				function handlePlugin(event:Event, token:Object = null):void
+				{
+					var resultEvent:ResultEvent = event as ResultEvent;
+					var faultEvent:FaultEvent = event as FaultEvent;
+					if (resultEvent)
+					{
+						trace("Loaded plugin:", token);
+						var classQNames:Array = resultEvent.result as Array;
+						for (var i:int = 0; i < classQNames.length; i++)
+						{
+							var classQName:String = classQNames[i];
+							// check if it implements ILinkableObject
+							if (ClassUtils.classImplements(classQName, ILinkableObject_classQName))
+							{
+								trace(classQName);
+							}
+						}
+					}
+					else
+					{
+						trace("Plugin failed to load:", token);
+						reportError(faultEvent.fault);
+					}
+					
+					remaining--;
+					if (remaining == 0)
+						loadWeaveFileContent(newWeaveContent);
+				}
+				if (remaining > 0)
+				{
+					for each (var plugin:String in _pluginList)
+					{
+						LibraryUtils.loadSWC(plugin, handlePlugin, handlePlugin, plugin);
+					}
+				}
+				else
+				{
+					loadWeaveFileContent(newWeaveContent);
+				}
+			}
+			return false;
+		}
+		
+		/**
+		 * This function will create an object that can be saved to a file and recalled later with loadWeaveFileContent().
+		 */
+		public static function createWeaveFileContent():ByteArray
+		{
+			// screenshot thumbnail
+			var _thumbnail:BitmapData = BitmapUtils.getBitmapDataFromComponent(Application.application as UIComponent, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+			// session history
+			var _history:Object = history.getSessionState();
+			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
+			var output:WeaveArchive = new WeaveArchive();
+			output.files[ARCHIVE_THUMBNAIL_PNG] = _pngEncoder.encode(_thumbnail);
+			output.objects[ARCHIVE_PLUGINS_AMF] = _pluginList;
+			output.objects[ARCHIVE_HISTORY_AMF] = _history;
+			return output.serialize();
+		}
+		
+		/**
+		 * This function will load content that was previously created with createWeaveFileContent().
+		 * @param content The contents of a Weave file.
+		 */
+		public static function loadWeaveFileContent(content:Object):void
+		{
+			var plugins:Array;
+			if (content is String)
+				content = XML(content);
+			if (content is XML)
+			{
+				// we must wait until all plugins are loaded before trying to decode the session state xml
+				var xml:XML = content as XML;
+				plugins = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(xml.@plugins), []);
+				if (setPluginList(plugins, content))
+				{
+					var newState:Array = WeaveXMLDecoder.decodeDynamicState(xml);
+					root.setSessionState(newState, true);
+					// begin with empty history after loading the session state from the xml
+					history.clearHistory();
+				}
+			}
+			else
+			{
+				if (content is ByteArray)
+					content = new WeaveArchive(content as ByteArray);
+				
+				var archive:WeaveArchive = content as WeaveArchive;
+				var _history:Object = archive.objects[ARCHIVE_HISTORY_AMF];
+				plugins = archive.objects[ARCHIVE_PLUGINS_AMF] as Array;
+				if (setPluginList(plugins, content))
+				{
+					history.setSessionState(_history);
+				}
+			}
+		}
+		
+		private static const WEAVE_RELOAD_SHARED_OBJECT:String = "WeaveExternalReload";
+		
+		/**
+		 * This function will restart the Flash application by reloading the SWF that is embedded in the browser window.
+		 */
+		private static function externalReload(weaveContent:Object):void
+		{
+			var obj:SharedObject = SharedObject.getLocal(WEAVE_RELOAD_SHARED_OBJECT);
+			var uid:String = WEAVE_RELOAD_SHARED_OBJECT;
+			if (ExternalInterface.objectID)
+			{
+				// generate uid to be saved in parent node
+				uid = UIDUtil.createUID();
+			}
+			
+			// save session history to shared object
+			if (weaveContent is XML)
+				weaveContent = (weaveContent as XML).toXMLString();
+			if (weaveContent is WeaveArchive)
+				weaveContent = (weaveContent as WeaveArchive).serialize();
+			obj.data[uid] = { date: new Date(), content: weaveContent };
+			obj.flush();
+			obj.close();
+			
+			// reload the application
+			ExternalInterface.call(
+				"function(objectID, reloadID) {" +
+				"  if (objectID) {" +
+				"    var p = document.getElementById(objectID).parentNode;" +
+				"    p.weaveReloadID = reloadID;" +
+				"    p.innerHTML = p.innerHTML;" +
+				"  }" +
+				"  else {" +
+				"    location.reload(false);" +
+				"  }" +
+				"}",
+				ExternalInterface.objectID,
+				uid
+			);
+		}
+		
+		/**
+		 * This function should be called when the application starts to restore session history after reloading the application.
+		 * @return true if the application was reloaded from within.
+		 */		
+		public static function handleWeaveReload():Boolean
+		{
+			var obj:SharedObject = SharedObject.getLocal(WEAVE_RELOAD_SHARED_OBJECT);
+			var flush:Boolean = false;
+			var uid:String = WEAVE_RELOAD_SHARED_OBJECT;
+			if (ExternalInterface.objectID)
+			{
+				// get uid that was previously saved in parent node
+				uid = ExternalInterface.call(
+					"function(objectID) {" +
+					"  var p = document.getElementById(objectID).parentNode;" +
+					"  var reloadID = p.weaveReloadID;" +
+					"  p.weaveReloadID = undefined;" +
+					"  return reloadID;" +
+					"}",
+					ExternalInterface.objectID
+				);
+			}
+			
+			// get session history from shared object
+			var saved:Object = obj.data[uid];
+			if (saved)
+			{
+				// delete session history from shared object
+				delete obj.data[uid];
+				flush = true;
+				
+				// restore old session history
+				loadWeaveFileContent(saved.content);
+			}
+			
+			// delete all old saved data 
+			const EXPIRATION_TIME:int = 5 * 60 * 1000; // minutes
+			var date:Date = new Date();
+			for (uid in obj.data)
+			{
+				try
+				{
+					if (date.getTime() - obj.data[uid].date.getTime() < EXPIRATION_TIME)
+						continue;
+				}
+				catch (e:Error)
+				{
+					// ignore error, entry will be deleted
+				}
+				
+				delete obj.data[uid];
+				flush = true;
+			}
+			
+			// save changes to shared object
+			if (flush)
+				obj.flush();
+			obj.close();
+			
+			return saved != null;
 		}
 	}
 }

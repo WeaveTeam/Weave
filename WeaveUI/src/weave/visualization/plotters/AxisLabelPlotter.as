@@ -94,8 +94,6 @@ package weave.visualization.plotters
 			var _interval:Number = Math.abs(interval.value) * StandardLib.sign(_end - _start);
 			
 			var i:int;
-			var numLines:Number = Math.abs((_end - _start) / _interval);
-			var array:Array = StandardLib.getNiceNumbersInRange(_start, _end, numLines);
 			
 			LinkableTextFormat.defaultTextFormat.copyTo(bitmapText.textFormat);
 			bitmapText.textFormat.color = color.value;
@@ -107,16 +105,17 @@ package weave.visualization.plotters
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
 			// if there will be more grid lines than pixels, don't bother drawing anything
-			if (numLines > (horizontal.value ? screenBounds.getXCoverage() : screenBounds.getYCoverage()))
+			var steps:Number = Math.abs((_end - _start) / _interval);
+			if (steps > (horizontal.value ? screenBounds.getXCoverage() : screenBounds.getYCoverage()))
 				return;
-			
-			for (i = 0; i <= numLines; i++)
+			for (i = 0; i <= steps; i++)
 			{
-				bitmapText.text = array[i].toString();
+				var number:Number = _start + _interval * i;
+				bitmapText.text = StandardLib.formatNumber(number);
 				try
 				{
 					if (labelFunction.value)
-						bitmapText.text = labelFunction.apply(null, [array[i], bitmapText.text]);
+						bitmapText.text = labelFunction.apply(null, [number, bitmapText.text]);
 				}
 				catch (e:Error)
 				{
@@ -125,27 +124,19 @@ package weave.visualization.plotters
 				
 				if (horizontal.value)
 				{
-					tempPoint.x = _start + _interval * i;
+					tempPoint.x = number;
 					tempPoint.y = dataBounds.getYMin();
 				}
 				else
 				{
 					tempPoint.x = dataBounds.getXMin();
-					tempPoint.y = _start + _interval * i;
+					tempPoint.y = number;
 				}
 				dataBounds.projectPointTo(tempPoint, screenBounds);
 				bitmapText.x = tempPoint.x;
 				bitmapText.y = tempPoint.y;
 									
 				bitmapText.draw(destination);
-			}
-			
-			if (bitmapText.angle == 0)
-			{
-				// draw almost-invisible rectangle behind text
-				bitmapText.getUnrotatedBounds(tempBounds);
-				tempBounds.getRectangle(tempRectangle);
-				destination.fillRect(tempRectangle, 0x02808080);
 			}
 		}
 		
@@ -158,8 +149,5 @@ package weave.visualization.plotters
 				bounds.setXRange(start.value, end.value);
 			return bounds;
 		}
-		
-		private static const tempRectangle:Rectangle = new Rectangle(); // reusable temporary object
-		private static const tempBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 	}
 }

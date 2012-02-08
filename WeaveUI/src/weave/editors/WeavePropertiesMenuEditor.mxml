@@ -25,209 +25,128 @@
 		 height="100%"
 		 >
 	
-		<mx:CheckBox toolTip="This option toggles access to the main toolbar" 
-							id="enable"
-							label="Show menu bar"
-							creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');"
-							/>
+		<mx:CheckBox toolTip="This option toggles access to the main toolbar"
+					 id="enableMenuBar"
+					 label="Show menu bar"
+					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');"
+					/>
 	
 	
-		<mx:TabNavigator id="menusViewStack" resizeToContent="true" width="100%" height="100%">
+		<mx:TabNavigator resizeToContent="true" width="100%" height="100%">
 			<mx:VBox  label="Data" paddingLeft="10" verticalGap="{verticalGap}">
 				<mx:CheckBox toolTip="Checking this box will enable the Import drop down menu in the main tool bar"
 							 id="dataMenu"
 							 label="Data Menu"
 							 width="120" 
-							 creationComplete="linkBindableProperty(Weave.properties.enableDataMenu,event.target,'selected')"/>
-				<mx:HBox>
+							 creationComplete="linkBindableProperty(Weave.properties.enableDataMenu, event.target, 'selected')"/>
+				<mx:HBox enabled="{dataMenu.selected}">
 					<mx:Spacer width="10"/>
 					<mx:VBox verticalGap="{verticalGap}">
 						<mx:CheckBox toolTip="Checking this box will allow the user to refresh all data source hierarchies"
-									 enabled="{dataMenu.selected == true}"
-									 id="refreshHierarchies"
 									 label="Refresh data source hierarchies"
-									 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies,event.target,'selected')"/> 
+									 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies, event.target, 'selected')"/> 
 						<mx:CheckBox toolTip="Checking this box will allow the user to import a new data set"
-									 enabled="{dataMenu.selected == true}"
-									 id="newDataset"
 									 label="New Dataset"
-									 creationComplete="linkBindableProperty(Weave.properties.enableNewDataset,event.target,'selected')"/> 
+									 creationComplete="linkBindableProperty(Weave.properties.enableNewDataset, event.target, 'selected')"/> 
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a new Open Indicators data source"
-									 enabled="{dataMenu.selected == true}"
-									 id="newWeaveDataSource"
 									 label="Add WeaveDataSource"
 									 visible="false"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddWeaveDataSource,event.target,'selected')"/> 
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddWeaveDataSource, event.target, 'selected')"/> 
 					</mx:VBox>
 				</mx:HBox>			
 			</mx:VBox>
-			<mx:VBox label="Export" paddingLeft="10" verticalGap="{verticalGap}">
-				<mx:CheckBox toolTip="Checking this box will enable the Export drop down menu in the main tool bar"
-							 id="exportMenu"
-							 label="Export Menu"
-							 creationComplete="linkBindableProperty(Weave.properties.enableExportToolImage,event.target,'selected')"/> 
-				<mx:HBox>
-					<mx:Spacer width="10"/>
-					<mx:VBox verticalGap="{verticalGap}">
-						<mx:CheckBox toolTip="Checking this box will allow the user to export or print application screenshot"
-									 enabled="{exportMenu.selected == true}"
-									 id="exportOrPrintApplicationScreenshot"
-									 label="Save Or Print Application Screenshot"
-									 creationComplete="linkBindableProperty(Weave.properties.enableExportApplicationScreenshot,event.target,'selected')"/>
-			 		<!--	<mx:CheckBox toolTip="Checking this box will allow the user to export a data table"
-									 enabled="{exportMenu.selected == true}"
-									 id="exportDataTable"
-									 label="Export Data Table"
-									 width="120" 
-									 creationComplete="linkBindableProperty(Weave.properties.enableExportDataTable,event.target,'selected')"/>
-					-->
-						</mx:VBox>
-				</mx:HBox>	
-			</mx:VBox>	
 			<mx:VBox  label="Tools" paddingLeft="10" verticalGap="{verticalGap}">	 	
 				<mx:CheckBox toolTip="Checking this box will enable the Tools drop down menu in the main tool bar"
 							 id="toolsMenu"
 							 label="Tools Menu"
-							 creationComplete="linkBindableProperty(Weave.properties.enableDynamicTools,event.target,'selected')"/>
+							 creationComplete="linkBindableProperty(Weave.properties.enableDynamicTools, event.target, 'selected')"/>
 				
 				
-				<mx:HBox>
+				<mx:HBox enabled="{toolsMenu.selected}">
 					<mx:Spacer width="10"/>
 					<mx:VBox verticalGap="{verticalGap}">
 						<mx:CheckBox toolTip="Checking this box will allow the user to open the Color Controller"
-									 enabled="{toolsMenu.selected == true}"
-									 id="showColorController"
 									 label="Show Color Controller"
-									 creationComplete="linkBindableProperty(Weave.properties.showColorController,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.showColorController, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to open the Probe ToolTip Editor"
-									 enabled="{toolsMenu.selected == true}"
-									 id="showProbeToolTipEditor"
 									 label="Show Probe ToolTip Editor"
-									 creationComplete="linkBindableProperty(Weave.properties.showProbeToolTipEditor,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.showProbeToolTipEditor, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to open the Equation Editor"
-									 enabled="{toolsMenu.selected == true}"
-									 id="showEquationEditor"
 									 label="Show Equation Editor"
-									 creationComplete="linkBindableProperty(Weave.properties.showEquationEditor,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.showEquationEditor, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to open the Attribute Selector"
-									 enabled="{toolsMenu.selected == true}"
-									 id="showAttributeSelector"
 									 label="Show Attribute Selector"
-									 creationComplete="linkBindableProperty(Weave.properties.showAttributeSelector,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.showAttributeSelector, event.target, 'selected')"/>
 					</mx:VBox>
 					<mx:VBox verticalGap="{verticalGap}">
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a bar chart visualization"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addBarChart"
 									 label="Add Bar Chart"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddBarChart,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddBarChart, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Color Legend"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addColorLegend"
 									 label="Add Color Legend"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddColorLegend,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddColorLegend, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Colormap Histogram visualization"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addColormapHistogram"
 									 label="Add Colormap Histogram"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddColormapHistogram,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddColormapHistogram, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a CompoundRadViz Tool"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addCompoundRadViz"
 									 label="Add CompoundRadViz"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddCompoundRadViz,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddCompoundRadViz, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Data Table"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addDataTable"
 									 label="Add Data Table"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddDataTable,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddDataTable, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Dimension Slider Tool"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addDimensionSlider"
 									 label="Add Dimension Slider Tool"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddDimensionSliderTool,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddDimensionSliderTool, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Gauge Tool"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addGaugeTool"
 									 label="Add Gauge Tool"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddGaugeTool,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddGaugeTool, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a histogram visualization"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addHistogram"
 									 label="Add Histogram"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddHistogram,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddHistogram, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a line chart visualization"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addLineChart"
 									 label="Add Line Chart"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddLineChart,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddLineChart, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a map visualization"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addMap"
 									 label="Add Map"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddMap,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddMap, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a pie chart visualization"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addPieChart"
 									 label="Add Pie Chart"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddPieChart,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddPieChart, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a pie chart histogram visualization"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addPieChartHistogram"
 									 label="Add Pie Chart Histogram"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddPieChartHistogram,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddPieChartHistogram, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add the R Script Editor"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addRScriptEditor"
 									 label="Add R Script Editor"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddRScriptEditor,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddRScriptEditor, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a RadViz Tool"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addRadViz"
 									 label="Add RadViz"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddRadViz,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddRadViz, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Ramachandran Plot Tool"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addRamachandranPlot"
 									 label="Add Ramachandran Plot"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddRamachandranPlot,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddRamachandranPlot, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a scatterplot visualization"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addScatterplot"
 									 label="Add Scatterplot"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddScatterplot,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddScatterplot, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Thermometer Tool"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addThermometerTool"
 									 label="Add Thermometer Tool"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddThermometerTool,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddThermometerTool, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Time Slider Tool"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addTimeSlider"
 									 label="Add Time Slider Tool"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddTimeSliderTool,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddTimeSliderTool, event.target, 'selected')"/>
 					</mx:VBox>
 						<!--
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Stick Figure visualization"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addStickFigurePlot"
 									 label="Add Stick Figure Plot"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddStickFigurePlot,event.target,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddStickFigurePlot, event.target, 'selected')"/>  
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a SP2"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addSP2"
 									 label="Add SP2"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddSP2,event.target,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddSP2, event.target, 'selected')"/>  
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Ramachandran Plot"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addRamachandranPlot"
 									 label="Add Ramachandran Plot"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddRamachandranPlot,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddRamachandranPlot, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to add a Wordle"
-									 enabled="{toolsMenu.selected == true}"
-									 id="addWordle"
 									 label="Add Wordle"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddWordle,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddWordle, event.target, 'selected')"/>
 						-->
 				</mx:HBox>	
 			</mx:VBox>	
@@ -236,25 +155,19 @@
 				<mx:CheckBox toolTip="Checking this box will enable the Selections drop down menu in the main tool bar"
 							 id="selectionsMenu"
 							 label="Selections Menu"
-							 creationComplete="linkBindableProperty(Weave.properties.enableSelectionsMenu,event.target,'selected')"/> 
-				<mx:HBox>
+							 creationComplete="linkBindableProperty(Weave.properties.enableSelectionsMenu, event.target, 'selected')"/> 
+				<mx:HBox enabled="{selectionsMenu.selected}">
 					<mx:Spacer width="10"/>
 					<mx:VBox verticalGap="{verticalGap}">
 						<mx:CheckBox toolTip="Check this box to enable the Save current selection option"
-									 enabled="{selectionsMenu.selected == true}"
-									 id="saveCurrentSelection"
 									 label="Save current Selection"
-									 creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSelection,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSelection, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Check this box to enable the Clear current selection option"
-									 enabled="{selectionsMenu.selected == true}"
-									 id="clearCurrentSelection"
 									 label="Clear current Selection"
-									 creationComplete="linkBindableProperty(Weave.properties.enableClearCurrentSelection,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableClearCurrentSelection, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Check this box to enable the Manage saved selections option"
-									 enabled="{selectionsMenu.selected == true}"
-									 id="manageSavedSelections"
 									 label="Manage saved selections"
-									 creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSelections,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSelections, event.target, 'selected')"/>
 					</mx:VBox>
 				</mx:HBox>	
 			</mx:VBox>	
@@ -264,45 +177,34 @@
 							 id="subsetsMenu"
 							 label="Subsets Menu"
 							 width="120" 
-							 creationComplete="linkBindableProperty(Weave.properties.enableSubsetsMenu,event.target,'selected')"/> 
-				<mx:HBox>
+							 creationComplete="linkBindableProperty(Weave.properties.enableSubsetsMenu, event.target, 'selected')"/> 
+				<mx:HBox enabled="{subsetsMenu.selected}">
 					<mx:Spacer width="10"/>
 					<mx:VBox verticalGap="{verticalGap}">
 						<mx:CheckBox toolTip="Check this box to enable the Create subset from selected records option"
-									 enabled="{subsetsMenu.selected == true}"
-									 id="createSubset"
 									 label="Create subset from selected records"
-									 creationComplete="linkBindableProperty(Weave.properties.enableCreateSubsets,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableCreateSubsets, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Check this box to enable the Remove selected records from subset option"
-									 enabled="{subsetsMenu.selected == true}"
-									 id="removeSubset"
 									 label="Remove selected records from subset"
-									 creationComplete="linkBindableProperty(Weave.properties.enableRemoveSubsets,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableRemoveSubsets, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Check this box to enable the Show all records option"
-									 enabled="{subsetsMenu.selected == true}"
-									 id="showAllRecords"
 									 label="Show all records"
-									 creationComplete="linkBindableProperty(Weave.properties.enableShowAllRecords,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableShowAllRecords, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Check this box to enable the Save current subset option"
-									 enabled="{subsetsMenu.selected == true}"
-									 id="saveCurrentSubset"
 									 label="Save current subset"
-									 creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSubset,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableSaveCurrentSubset, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Check this box to enable the Manage saved subsets option"
-									 enabled="{subsetsMenu.selected == true}"
-									 id="manageSavedSubsets"
 									 label="Manage saved subsets"
-									 creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSubsets,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableManageSavedSubsets, event.target, 'selected')"/>
 					</mx:VBox>
 				</mx:HBox>	
 			</mx:VBox>	
 			
 			<mx:VBox   label="Session" paddingLeft="10" verticalGap="{verticalGap}">	 	
 				<mx:CheckBox toolTip="Checking this box will enable the Session drop down menu in the main tool bar"
-							 id="sessionMenu"
 							 label="Session Menu"
 							 width="120" 
-							 creationComplete="linkBindableProperty(Weave.properties.enableSessionMenu,event.target,'selected')"/>
+							 creationComplete="linkBindableProperty(Weave.properties.enableSessionMenu, event.target, 'selected')"/>
 			</mx:VBox>	
 			
 			<mx:VBox  width="100%" label="Window" paddingLeft="10" verticalGap="{verticalGap}">	 	
@@ -310,57 +212,53 @@
 							 id="windowMenu"
 							 label="Window Menu"
 							 width="120" 
-							 creationComplete="linkBindableProperty(Weave.properties.enableWindowMenu,event.target,'selected')"/> 
-				<mx:HBox>
+							 creationComplete="linkBindableProperty(Weave.properties.enableWindowMenu, event.target, 'selected')"/> 
+				<mx:HBox >
 					<mx:Spacer width="10"/>
 					<mx:VBox verticalGap="{verticalGap}">
 						<mx:CheckBox toolTip="Checking this box will allow the user to open the User Interface Preferences Panel"
-									 enabled="{windowMenu.selected == true}"
-									 id="userInterfacePreferences"
 									 label="Preferences"
-									 creationComplete="linkBindableProperty(Weave.properties.enableUserPreferences,event.target,'selected')"/>  
-						<mx:CheckBox toolTip="Checking this box will allow the user to go fullscreen"
-									 enabled="{windowMenu.selected == true}"
-									 id="goFullscreen"
-									 label="Go Fullscreen"
-									 creationComplete="linkBindableProperty(Weave.properties.enableGoFullscreen,event.target,'selected')"/>  
+									 creationComplete="linkBindableProperty(Weave.properties.enableUserPreferences, event.target, 'selected')"/>  
+						<mx:CheckBox toolTip="Checking this box will allow the user to go fullscreen.  This option must also be enabled in the embed tag of the surrounding webpage."
+									 label="Full-screen"
+									 creationComplete="linkBindableProperty(Weave.properties.enableFullScreen, event.target, 'selected')"/>  
 						<mx:CheckBox toolTip="Checking this box will allow the user to minimize all windows"
-									 enabled="{windowMenu.selected == true}"
-									 id="minimizeAll"
 									 label="Minimize All Windows"
-									 creationComplete="linkBindableProperty(Weave.properties.enableMinimizeAllWindows,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableMinimizeAllWindows, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to restore all minimized windows"
-									 enabled="{windowMenu.selected == true}"
-									 id="restoreAll"
 									 label="Restore All Minimized Windows"
-									 creationComplete="linkBindableProperty(Weave.properties.enableRestoreAllMinimizedWindows,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableRestoreAllMinimizedWindows, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to close all windows"
-									 enabled="{windowMenu.selected == true}"
-									 id="closeAll"
 									 label="Close All Windows"
-									 creationComplete="linkBindableProperty(Weave.properties.enableCloseAllWindows,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableCloseAllWindows, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to cascade all windows"
-									 enabled="{windowMenu.selected == true}"
-									 id="cascadeAll"
 									 label="Cascade All Windows"
-									 creationComplete="linkBindableProperty(Weave.properties.enableCascadeAllWindows,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableCascadeAllWindows, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Checking this box will allow the user to tile all windows"
-									 enabled="{windowMenu.selected == true}"
-									 id="tileAll"
 									 label="Tile All Windows"
-									 creationComplete="linkBindableProperty(Weave.properties.enableTileAllWindows,event.target,'selected')"/>
+									 creationComplete="linkBindableProperty(Weave.properties.enableTileAllWindows, event.target, 'selected')"/>
 					</mx:VBox>
 				</mx:HBox>	
 			</mx:VBox>	
 			
 			<mx:VBox label="About" paddingLeft="10" verticalGap="{verticalGap}">
 				<mx:CheckBox toolTip="Checking this box will enable the About drop down menu in the main tool bar"
-						 id="aboutMenu"
 						 label="About Menu"
 						 width="120" 
-						 creationComplete="linkBindableProperty(Weave.properties.enableAboutMenu,event.target,'selected')"/> 
+						 creationComplete="linkBindableProperty(Weave.properties.enableAboutMenu, event.target, 'selected')"/> 
 			</mx:VBox>
 			
+			<mx:VBox label="Right-click" paddingLeft="10" verticalGap="{verticalGap}">
+				<mx:CheckBox toolTip="Checking this box will allow the user to export tool screenshots"
+							 label="Export tool screenshot"
+							 creationComplete="linkBindableProperty(Weave.properties.enableExportToolImage, event.target, 'selected')"/>
+				<mx:CheckBox toolTip="Checking this box will allow the user to export application screenshots"
+							 label="Export application screenshot"
+							 creationComplete="linkBindableProperty(Weave.properties.enableExportApplicationScreenshot, event.target, 'selected')"/>
+				<mx:CheckBox toolTip="Checking this box will allow the user to export a data table"
+							 label="Export data table"
+							 creationComplete="linkBindableProperty(Weave.properties.enableExportCSV, event.target, 'selected')"/>
+			</mx:VBox>	
 		</mx:TabNavigator>
 	<mx:Script>
 		<![CDATA[
@@ -380,7 +278,7 @@
 			private function handleMenuToggled():void
 			{
 				var focus:InteractiveObject = getFocus();
-				if (focus && enable.contains(focus) && !Weave.properties.enableMenuBar.value)
+				if (focus && enableMenuBar.contains(focus) && !Weave.properties.enableMenuBar.value)
 				{
 					// put up an alert box so the user has to confirm removing the menu bar
 					Alert.show("Are you sure you want to remove the menu bar?  \nOnce removed, the functions that are accessed through the menu will no longer be accessible.",

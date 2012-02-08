@@ -102,7 +102,7 @@ package weave.data.KeySets
 			// avoid internal recursion while still allowing callbacks to cause recursion afterwards
 			delayCallbacks();
 			_currentlyUpdating = true;
-			setSessionState(WeaveAPI.CSVParser.createCSVFromArrays(keyTable));
+			setSessionState(WeaveAPI.CSVParser.createCSV(keyTable));
 			_currentlyUpdating = false;
 			resumeCallbacks();
 		}

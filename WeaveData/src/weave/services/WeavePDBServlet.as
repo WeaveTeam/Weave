@@ -2,8 +2,6 @@ package weave.services
 {
 	
 	import mx.rpc.AsyncToken;
-	
-	import weave.utils.ByteArrayUtils;
 	public class WeavePDBServlet
 	{
 		public function WeavePDBServlet(url:String)

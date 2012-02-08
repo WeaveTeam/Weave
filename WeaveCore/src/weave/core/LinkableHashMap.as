@@ -140,7 +140,7 @@ package weave.core
 			// append each name in newOrder to the end of _orderedNames
 			for (i = 0; i < newOrder.length; i++)
 			{
-				name = newOrder[i];
+				name = newOrder[i] as String;
 				// ignore bogus names and append each name only once.
 				if (_nameToObjectMap[name] == undefined || haveSeen[name] != undefined)
 					continue;
@@ -210,6 +210,33 @@ package weave.core
 		}
 		
 		/**
+		 * This function will rename an object by making a copy and removing the original.
+		 * @param oldName The name of an object to replace.
+		 * @param newName The new name to use for the copied object.
+		 * @return The copied object associated with the new name, or the original object if newName is the same as oldName.
+		 */
+		public function renameObject(oldName:String, newName:String):ILinkableObject
+		{
+			if (oldName != newName)
+			{
+				delayCallbacks();
+				
+				// prepare a name order that will put the new name in the same place the old name was
+				var newNameOrder:Array = _orderedNames.concat();
+				var index:int = newNameOrder.indexOf(oldName);
+				if (index >= 0)
+					newNameOrder.splice(index, 1, newName);
+				
+				requestObjectCopy(newName, getObject(oldName));
+				removeObject(oldName);
+				setNameOrder(newNameOrder);
+				
+				resumeCallbacks();
+			}
+			return getObject(newName);
+		}
+		
+		/**
 		 * If there is an existing object associated with the specified name, it will be kept if it
 		 * is the specified type, or replaced with a new instance of the specified type if it is not.
 		 * @param name The identifying name of a new or existing object.  If this is null, a new one will be generated.
@@ -233,8 +260,8 @@ package weave.core
 				if ( ClassUtils.classImplements(className, SessionManager.ILinkableObjectQualifiedClassName)
 					&& (_typeRestriction == null || ClassUtils.classIs(className, _typeRestrictionClassName)) )
 				{
-					try
-					{
+//					try
+//					{
 						// If this name is not associated with an object of the specified type,
 						// associate the name with a new object of the specified type.
 						var classDef:Class = ClassUtils.getClassDefinition(className) as Class;
@@ -242,12 +269,12 @@ package weave.core
 							createAndSaveNewObject(name, classDef);
 						if (lockObject)
 							this.lockObject(name);
-					}
-					catch (e:Error)
-					{
-						reportError(e);
-						enterDebugger();
-					}
+//					}
+//					catch (e:Error)
+//					{
+//						reportError(e);
+//						enterDebugger();
+//					}
 				}
 				else
 				{

@@ -19,6 +19,8 @@
 
 package weave.core
 {
+	import weave.api.WeaveAPI;
+
 	/**
 	 * UntypedLinkableVariable
 	 * This is a LinkableVariable that adds "get value" and "set value" functions for untyped values.
@@ -36,7 +38,7 @@ package weave.core
 				value = defaultValue;
 				// Resume callbacks one frame later when we know it is possible for
 				// other classes to have a pointer to this object and retrieve the value.
-				StageUtils.callLater(this, resumeCallbacks, null, false);
+				WeaveAPI.StageUtils.callLater(this, resumeCallbacks, null, false);
 			}
 		}
 

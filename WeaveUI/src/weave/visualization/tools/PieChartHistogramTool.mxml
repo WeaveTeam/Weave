@@ -26,18 +26,13 @@
 	     layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.registerLinkableChild;
-			import weave.api.linkBindableProperty;
-			import weave.utils.ColumnUtils;
-			import mx.events.FlexEvent;
-			
-			import weave.core.LinkableBoolean;
-			import weave.core.LinkableString;
-			import weave.core.SessionManager;
 			import weave.api.getCallbackCollection;
-			import weave.api.newLinkableChild;
+			import weave.api.linkBindableProperty;
+			import weave.api.linkSessionState;
+			import weave.api.registerLinkableChild;
+			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.FilteredColumn;
-			import weave.primitives.ColorRamp;
+			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.PieChartHistogramPlotter;
 
 			public var _plotter:PieChartHistogramPlotter = null;
@@ -69,6 +64,7 @@
 			{
 				super.childrenCreated();
 				cRampEditor.colorRamp = _plotter.chartColors;
+				linkSessionState(_plotter.binnedData, binEditor.binnedColumn);
 			}
 			
 			
@@ -84,15 +80,16 @@
 			
 			private function updateProbeColumns():void
 			{
-				if(includeToolAttributesInProbe.value)
+				if (includeToolAttributesInProbe.value)
 				{
 					visualization.additionalProbeColumns = [];
-					if(_plotter.binnedData.internalColumn)
+					if (_plotter.binnedData.internalColumn)
 						visualization.additionalProbeColumns.push(_plotter.binnedData.internalColumn);
-					if(visualization.additionalProbeColumns.length == 0) visualization.additionalProbeColumns = null;
+					if (visualization.additionalProbeColumns.length == 0)
+						visualization.additionalProbeColumns = null;
 				}
-				else visualization.additionalProbeColumns = null;
-				//else ProbeTextUtils.probedColumns.copyObject('probedColumns',oldProbeColumns);
+				else
+					visualization.additionalProbeColumns = null;
 			}
 			
 			
@@ -112,23 +109,20 @@
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="Attributes for Pie Chart Histogram">
-			<userControls:ControlsSubsetBox>
-				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-							 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
-							 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			</userControls:ControlsSubsetBox>
+		<mx:VBox label="Binning">
 			<ui:DynamicColumnComponent visTool="{this}" label="data" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = (_plotter.binnedData.internalColumn as FilteredColumn).internalDynamicColumn"/>
-			<userControls:ControlsSubsetBox>
-				<mx:Label text="Label angle" fontWeight="bold"/>
+			<ui:BinningDefinitionEditor id="binEditor"/>
+		</mx:VBox>
+		<mx:VBox id="attributesPanel" label="Labeling">
+			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+						 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
+						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
+			<ui:Indent label="Label angle">
 				<mx:HSlider id="labelAngleSlider"
 							snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 							dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
 							creationComplete="linkBindableProperty(_plotter.labelAngleRatio, event.target, 'value')"/>
-			</userControls:ControlsSubsetBox>
-		</mx:VBox>
-		
-		<mx:VBox id="advControlsPanel" label="Advanced">
+			</ui:Indent>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 	</ui:ControlPanel>

@@ -39,29 +39,14 @@
     
     <mx:Script>
 	<![CDATA[
-		import mx.core.Application;
 		import mx.core.UIComponent;
 		import mx.graphics.ImageSnapshot;
 		import mx.managers.PopUpManager;
 		import mx.printing.FlexPrintJob;
 		import mx.printing.FlexPrintJobScaleType;
-		import mx.utils.ObjectUtil;
 		
 		import weave.Weave;
-		import weave.data.AttributeColumns.AbstractAttributeColumn;
 		import weave.utils.BitmapUtils;
-		
-		//Title of the Application/Tool to be printed
-		private var _applicationTitle:String = null;
-		[Bindable]
-		public function get applicationTitle():String
-		{
-			return _applicationTitle;
-		}
-	    public function set applicationTitle(value:String):void
-		{
-			_applicationTitle = value;
-		}
 		
 		//Snapshot of the Application/Tool to be printed
 		[Bindable]
@@ -97,8 +82,8 @@
 		{
 			super.childrenCreated();
 			
-			this.applicationTitle = (Application.application as Application).pageTitle;
-		}		
+			exportTitle.text = Weave.properties.pageTitle.value;
+		}
 		
 		//handle when "Print" is clicked
 		private var _fileSaver:FileReference = null;
@@ -208,7 +193,7 @@
    		]]>
 	</mx:Script>
 	<mx:VBox id="printVbox" width="100%" height="100%" backgroundColor="0xFFFFFF" horizontalAlign="center" initialize="scalePrintVbox()" clipContent="true" mouseEnabled="false">
-		<mx:Label text="{applicationTitle}" textAlign="center" fontSize="18" fontWeight="bold" horizontalCenter="0" width="100%"/>
+		<mx:Label id="exportTitle" textAlign="center" fontSize="18" fontWeight="bold" horizontalCenter="0" width="100%"/>
 		<mx:Image id="exportImage" source="{_imageSource}"/>
 		<ui:OICLogoPane width="100%"/>
 	</mx:VBox>

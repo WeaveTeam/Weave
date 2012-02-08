@@ -19,16 +19,13 @@
 
 package weave.data.KeySets
 {
-	import weave.api.core.ICallbackCollection;
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableBoolean;
-	import weave.core.LinkableString;
-	import weave.core.StageUtils;
 	
 	/**
 	 * This class is used to include and exclude IQualifiedKeys from a set.
@@ -154,7 +151,7 @@ package weave.data.KeySets
 			if (_deprecatedState == null)
 			{
 				_deprecatedState = {};
-				StageUtils.callLater(this, _applyDeprecatedSessionState, null, false);
+				WeaveAPI.StageUtils.callLater(this, _applyDeprecatedSessionState, null, false);
 			}
 			_deprecatedState[propertyName] = value;
 		}

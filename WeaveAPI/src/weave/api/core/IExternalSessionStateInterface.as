@@ -1,37 +1,16 @@
 /* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
+ * This file is part of the Weave API.
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is the Weave API.
- *
- * The Initial Developer of the Original Code is the Institute for Visualization
+ * The Initial Developer of the Weave API is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2011
+ * Portions created by the Initial Developer are Copyright (C) 2008-2012
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s):
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
  * ***** END LICENSE BLOCK ***** */
 
 package weave.api.core
@@ -118,10 +97,10 @@ package weave.api.core
 
 		/**
 		 * This function converts a session state from XML format to Object format.  Nested XML objects will be converted to Strings before returning.
-		 * @param sessionState A session state that has been encoded in XML.  This can be supplied as either an XML object or a String.
+		 * @param sessionState A session state that has been encoded in an XML String.
 		 * @return The deserialized session state object.
 		 */
-		function convertSessionStateXMLToObject(sessionStateXML:Object):Object;
+		function convertSessionStateXMLToObject(sessionStateXML:String):Object;
 		
 		/**
 		 * This function will evaluate an expression using the compiler. An object path may be passed as the first parameter
@@ -141,34 +120,35 @@ package weave.api.core
 		 * Note that any code written for this function depends on the implementation of the ActionScript
 		 * code inside Weave, which is subject to change. 
 		 *  
-		 * @param scopeObjectPath A sequence of child names used to refer to an object appearing in the session state which will be used as the <code>this</code> pointer when evaluating the expression.
+		 * @param scopeObjectPathOrExpressionName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression, which will be used as the <code>this</code> pointer when evaluating the expression.
 		 * @param expression The expression to evaluate.
 		 * @param variables A hash map of variable names to values.
 		 * @param staticLibraries An array of fully qualified class names which contain static methods to include the expression.
-		 * @return The value of the evaluated expression.
+		 * @param assignExpressionName An optional name to associate with this expression.  If specified, the expression will not be immediately evaluated.
+		 * @return The value of the evaluated expression, or undefined if assignExpressionName was specified.
 		 * @see weave.compiler.Compiler
 		 */
-		function evaluateExpression(objectPath:Array, methodName:String, variables:Object = null, libraries:Array = null):*;
+		function evaluateExpression(scopeObjectPathOrExpressionName:Object, expression:String, variables:Object = null, libraries:Array = null, assignExpressionName:String = null):*;
 		
 		/**
 		 * This function will add a callback that will be delayed except during a scheduled time each frame.  These grouped callbacks use a
 		 * central trigger list, meaning that if multiple CallbackCollections trigger the same grouped callback before the scheduled time,
 		 * it will behave as if it were only triggered once.  The callback function will not be called recursively as a result of it
 		 * triggering callbacks recursively.
-		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
+		 * @param objectPathOrExpressionName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression.
 		 * @param callback The callback function that will only be allowed to run during a scheduled time each frame.  It must be specified as a String and must not require any parameters.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.
 		 * @return true if objectPath refers to an existing object in the session state.
 		 * @see weave.api.core.ICallbackInterface#addGroupedCallback
 		 */
-		function addCallback(objectPath:Array, callback:String, triggerCallbackNow:Boolean = false):Boolean;
+		function addCallback(objectPathOrExpressionName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean;
 		
 		/**
 		 * This function will remove a callback that was previously added.
-		 * @param objectPath A sequence of child names used to refer to an object appearing in the session state.
+		 * @param objectPathOrExpressionName A sequence of child names used to refer to an object appearing in the session state, or the name of a previously saved expression.
 		 * @param callback The function to remove from the list of callbacks, which must be specified as a String.
 		 * @return true if objectPath refers to an existing object in the session state.
 		 */
-		function removeCallback(objectPath:Array, callback:String):Boolean;
+		function removeCallback(objectPathOrExpressionName:Object, callback:String):Boolean;
 	}
 }

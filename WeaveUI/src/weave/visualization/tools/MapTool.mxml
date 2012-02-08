@@ -28,6 +28,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.CheckBox;
+			import mx.controls.sliderClasses.Slider;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
@@ -36,11 +37,14 @@
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.DataTypes;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IKeySet;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
+			import weave.api.ui.IPlotLayer;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
@@ -49,11 +53,14 @@
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 			import weave.primitives.Bounds2D;
+			import weave.primitives.ZoomBounds;
 			import weave.services.wms.WMSProviders;
-			import weave.ui.ColorBinEditor;
+			import weave.ui.ColorController;
+			import weave.ui.DraggablePanel;
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
+			import weave.utils.SpatialIndex;
 			import weave.visualization.layers.InteractionController;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
@@ -213,12 +220,14 @@
 				simpleAxisEditor.addChild(backgroundImageCheck);
 				simpleAxisEditor.marginProperties.parent.removeChild(simpleAxisEditor.marginProperties);
 				
-				linkBindableProperty(visualization.minZoomLevel, zoomSlider, "minimum");
-				linkBindableProperty(visualization.maxZoomLevel, zoomSlider, "maximum");
+				linkBindableProperty(visualization.minZoomLevel, this, "zoomSliderMinimum");
+				linkBindableProperty(visualization.maxZoomLevel, this, "zoomSliderMaximum");
 				
 				if (visualization.layers.getNames().length == 0)
 					addGeomLayer();
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, handleBoundsChange, true);
+				
+				linkSessionState(showZoomControls,visualization.enableZoomAndPan);
 			}
 			
 			private function handleMouseModeChange(event:Event = null):void
@@ -282,16 +291,42 @@
 				if (zoomSlider)
 				{
 					currentlyUpdatingZoomSlider = true;
-					zoomSlider.value = visualization.getZoomLevel();
+					scaleRangeTabZoomSlider.value = zoomSlider.value = visualization.getZoomLevel();
 					currentlyUpdatingZoomSlider = false;
 				}
 			}
 			private var currentlyUpdatingZoomSlider:Boolean = false;
 			
-			private function handleZoomSliderChange():void
+			private function handleZoomSliderChange(event:Event):void
 			{
 				if (!currentlyUpdatingZoomSlider)
-					visualization.setZoomLevel(zoomSlider.value);
+					visualization.setZoomLevel(event.currentTarget.value);
+			}
+			
+			[Embed(source='/weave/resources/images/lockClosed.png')]
+			private var LockClosed:Class;
+			
+			[Embed(source='/weave/resources/images/lockOpen.png')]
+			private var LockOpen:Class;
+			
+			
+			private function handleZoomControlsMinimizeCheck():void
+			{
+				zoomControlsToggle.selected = !zoomControlsMinimizeCheck.selected;
+								
+			}
+			
+			private function handleShowZoomControlsChange():void
+			{
+				
+				zoomControlsMinimizeCheck.selected = !showZoomControls.value;
+				
+				if(zoomControlsMinimizeCheck.selected)
+				{
+					zoomControlsMinimizeCheck.setStyle("icon",LockClosed);
+				}else{
+					zoomControlsMinimizeCheck.setStyle("icon",LockOpen);
+				}
 			}
 			
 			private function handleZoomInClick():void
@@ -343,11 +378,6 @@
 					visualization.graphics.beginBitmapFill(backgroundImageBitmapData);
 					visualization.graphics.drawRect(0, 0, visualization.width, visualization.height);
 				}
-			}
-			
-			private function handleZoomExtentClick():void
-			{
-				visualization.zoomBounds.setDataBounds(visualization.fullDataBounds, true);
 			}
 			
 			private function addGeomLayer():void
@@ -459,7 +489,7 @@
 
 
 
-			public const showZoomControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const showZoomControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true),handleShowZoomControlsChange,true);
 			public const showMouseModeControls:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
 			private const _tempArray:Array = [];
@@ -478,6 +508,9 @@
 				}
 			}
 			
+			
+			// BACKWARDS COMPATIBILITY
+			[Deprecated(replacement="visualization.zoomToSelection")] public function get zoomToSelection():Function { return visualization.zoomToSelection; }
 		]]>
 	</mx:Script>
 
@@ -489,7 +522,7 @@
 				right="2" bottom="2"
 				backgroundColor="white" backgroundAlpha="0.01">
 		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
-				height="{zoomControlsToggle.selected ? NaN : 0}"
+				includeInLayout="{zoomControlsToggle.selected}"
 				visible="{zoomControlsToggle.selected}"
 				verticalGap="2">
 			
@@ -515,7 +548,7 @@
 							   fillAlphas="[1,1]" 
 							   width="16" height="16" 
 							   cornerRadius="0"
-							   click="handleZoomExtentClick()"/>
+							   click="visualization.zoomToSelection()"/>
 					<mx:Button id="east"
 						    label="E"
 							fillAlphas="[1.0, 1.0, 1.0, 1.0]"
@@ -535,17 +568,25 @@
 		
 		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
 				verticalGap="2"
-				height="{zoomControlsToggle.selected ? NaN : 0}"
+				includeInLayout="{zoomControlsToggle.selected}"
 				visible="{zoomControlsToggle.selected}"
 				backgroundColor="white" backgroundAlpha="0.5" borderStyle="outset">
 			<mx:Button id="zoomIn"
 					icon="@Embed(source='/weave/resources/images/zoomPlus.png')"
 					fillAlphas="[1.0, 1.0, 1.0, 1.0]"
 					width="15" height="15"
-					 click="handleZoomInClick()"
-					 cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
+					click="handleZoomInClick()"
+					cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
 			
-			<mx:VSlider id="zoomSlider" showDataTip="false" allowTrackClick="true" liveDragging="true" minimum="0" maximum="16" tickInterval="1" height="88" change="handleZoomSliderChange();"/>
+			<mx:VSlider id="zoomSlider"
+						showDataTip="false"
+						allowTrackClick="true"
+						liveDragging="true"
+						tickInterval="1"
+						minimum="{zoomSliderMinimum}"
+						maximum="{zoomSliderMaximum}"
+						height="88"
+						change="handleZoomSliderChange(event);"/>
 			
 			<mx:Button id="zoomOut"
 					icon="@Embed(source='/weave/resources/images/zoomMinus.png')"
@@ -555,11 +596,11 @@
 					 cornerRadius="0" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" textAlign="center"/>
 		</mx:VBox>
 		
-		<mx:Spacer height="{zoomControlsToggle.selected ? 5 : 0}"/>
+		<mx:Spacer height="5" includeInLayout="{zoomControlsToggle.selected}"/>
 	
 		<!--rollOver="mouseModeBox.alpha = 1" rollOut="mouseModeBox.alpha = 0"-->
 		<mx:HBox id="mouseModeBox" horizontalGap="1" right="2" bottom="2"  
-				 height="{mouseModeControlsToggle.selected ? NaN : 0}"
+				 includeInLayout="{mouseModeControlsToggle.selected}"
 				 visible="{mouseModeControlsToggle.selected}"
 				 backgroundColor="white" backgroundAlpha="0.01"
 				 alpha="1"> 
@@ -608,16 +649,17 @@
 				toggle="true"
 				toolTip="Select this mode to enable zooming on the map using the mouse to create a box around the area you want to zoom into."
 				click="handleMouseModeChange(event)" cornerRadius="0"/>
-			<mx:Button id="zoomControlsMinimizeCheck" icon="@Embed(source='/weave/resources/images/minimize_icon.png')"
+			<mx:Button id="zoomControlsMinimizeCheck"
+					   toolTip="Enable/Disable Zoom and Pan"
 					   width="17" height="17" toggle="true"
 					   selected="{!zoomControlsToggle.selected}"
-					   change="zoomControlsToggle.selected = !zoomControlsMinimizeCheck.selected"/>
+					   change="handleZoomControlsMinimizeCheck()"/>
 		</mx:HBox>
 	</mx:VBox>
 	
 
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="Attributes for Map">
+		<mx:VBox id="attributesPanel" label="Map Layers">
 			<mx:HBox width="100%">
 				<mx:Button label="Add Geometry Layer" click="addGeomLayer();"/>
 				<mx:Button label="Add Label Layer" click="addLabelLayer();"/>
@@ -637,14 +679,14 @@
 			<managers:PlotLayerEditor id="layerEditor" creationComplete="layerEditor.visualization = visualization"/>
 			<mx:HBox width="100%" verticalAlign="middle">
 				<ui:DynamicColumnComponent label="color" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-				<mx:Button label="Edit Bins..." click="ColorBinEditor.openDefaultEditor();"/>
+				<mx:Button label="Edit Bins..." click="DraggablePanel.openStaticInstance(ColorController);"/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="Advanced" verticalGap="10">
 			<mx:CheckBox label="Enable Map Overview Window" id="overviewCheckBox"
 						 creationComplete="linkBindableProperty(enableOverview,event.target,'selected')"/>
 			<mx:HBox verticalAlign="bottom">
-				<mx:Button label="Zoom to full extent" click="handleZoomExtentClick()" />
+				<mx:Button label="Zoom to full extent" click="visualization.zoomToSelection()" />
 				<mx:VBox verticalGap="1">
 					<mx:Label text="Coordinates at map center:" fontWeight="bold"/>
 					<mx:HBox horizontalGap="0" borderStyle="outset" horizontalAlign="center">
@@ -678,12 +720,115 @@
 			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 						 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			<mx:CheckBox id="zoomControlsToggle" label="Show zoom and pan controls"
+			<mx:CheckBox id="zoomControlsToggle" label="Enable zoom and pan"
 						 toolTip="This option enables the zoom slider and pan buttons"
 						 creationComplete="linkBindableProperty(showZoomControls,event.target,'selected')"/>
 			<mx:CheckBox id="mouseModeControlsToggle" label="Show mouse mode controls"
 						 toolTip="This option enables the mouse mode buttons"
 						 creationComplete="linkBindableProperty(showMouseModeControls,event.target,'selected')"/>
 		</mx:VBox>
+		<mx:VBox label="Layer Visibility" verticalGap="10" id="visibleScaleRangesUI">
+			<ui:Indent label="Current Zoom" labelTextAlign="left" group="{scaleRangeIndentGroup}">
+				<mx:HSlider id="scaleRangeTabZoomSlider" 
+							width="100%" 
+							tickInterval="1"
+							change="handleZoomSliderChange(event);"
+							minimum="{zoomSliderMinimum}"
+							maximum="{zoomSliderMaximum}"
+							liveDragging="true" />
+			</ui:Indent>
+			<ui:LinkableObjectList id="visibleScaleRangesList"
+								   width="100%" height="100%"
+								   initialize="visibleScaleRangesList.hashMap = visualization.layers"
+								   borderStyle="none"
+								   paddingLeft="0">
+				<ui:itemRenderer>
+					<mx:Component>
+						<ui:Indent label="{layerName}" labelTextAlign="left" group="{outerDocument.scaleRangeIndentGroup}">
+							<mx:Script>
+								<![CDATA[
+									import mx.events.SliderEvent;
+									
+									import weave.api.core.ILinkableObject;
+									import weave.api.juggleGroupedCallback;
+									import weave.api.primitives.IBounds2D;
+									import weave.editors.managers.LayerListComponent;
+									import weave.utils.ZoomUtils;
+									import weave.visualization.layers.PlotLayer;
+									import weave.visualization.layers.SelectablePlotLayer;
+									[Bindable] private var layerName:String;
+									private var currentlyUpdatingLayerZoomRangeSlider:Boolean = false;
+									
+									private function handleLayerChange():void
+									{
+										var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
+										var area:Number = fullDataBounds.getArea();
+										if (!isNaN(area))
+										{
+											layerName = outerDocument.visualization.layers.getName(data as ILinkableObject);
+											
+											var minScreenSize:Number = outerDocument.visualization.minScreenSize.value;
+											
+											var minZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
+												fullDataBounds, minScreenSize, data.minVisibleScale.value
+											);
+											
+											var maxZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
+												fullDataBounds, minScreenSize, data.maxVisibleScale.value
+											);
+											
+											currentlyUpdatingLayerZoomRangeSlider = true;
+											layerZoomRangeSlider.values = [minZoomLevel, maxZoomLevel];
+											currentlyUpdatingLayerZoomRangeSlider = false;
+										}
+									}
+									
+									override public function set data(value:Object):void
+									{
+										value = value as SelectablePlotLayer || value as PlotLayer;
+										juggleGroupedCallback(data, value, this, handleLayerChange, true);
+										super.data = value;
+									}
+									private function handleScaleSliderChange(event:SliderEvent):void
+									{
+										if(!currentlyUpdatingLayerZoomRangeSlider && data)
+										{
+											var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
+											var minScreenSize:Number = outerDocument.visualization.minScreenSize.value;
+											var minVisibleZoomLevel:Number = layerZoomRangeSlider.values[0];
+											var maxVisibleZoomLevel:Number = layerZoomRangeSlider.values[1];
+											
+											data.minVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
+												fullDataBounds, minScreenSize, minVisibleZoomLevel
+											);
+											
+											data.maxVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
+												fullDataBounds, minScreenSize, maxVisibleZoomLevel
+											);
+										}
+									}
+								]]>
+							</mx:Script>
+							
+							<mx:HSlider id="layerZoomRangeSlider"
+										liveDragging="true"
+										thumbCount="2"
+										tickInterval="1"
+										snapInterval="{outerDocument.zoomSliderSnapping}"
+										showTrackHighlight="true" 
+										minimum="{outerDocument.zoomSliderMinimum}" 
+										maximum="{outerDocument.zoomSliderMaximum}"
+										change="handleScaleSliderChange(event)"
+										mouseDown="event.stopPropagation()"
+										width="100%"/>
+						</ui:Indent>
+					</mx:Component>			
+				</ui:itemRenderer>
+			</ui:LinkableObjectList>
+		</mx:VBox>
 	</ui:ControlPanel>
+	<ui:IndentGroup id="scaleRangeIndentGroup"/>
+	<mx:Number id="zoomSliderMinimum"/>
+	<mx:Number id="zoomSliderMaximum"/>
+	<mx:Number id="zoomSliderSnapping">0.25</mx:Number>
 </SimpleVisTool>

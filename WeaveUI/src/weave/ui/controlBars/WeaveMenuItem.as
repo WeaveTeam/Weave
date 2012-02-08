@@ -23,6 +23,34 @@ package weave.ui.controlBars
 		
 	public class WeaveMenuItem extends MenuBarItem
 	{	
+		public function WeaveMenuItem(labelStringOrFunction:Object, clickFunction:Function=null, clickFunctionParameters:Array = null, enabledBooleanOrFunction:*=true)
+		{	
+			if (labelStringOrFunction is Function)
+				this.weaveLabel = (labelStringOrFunction as Function)();
+			else
+				this.weaveLabel = labelStringOrFunction as String;
+			
+			this.clickFunction = clickFunction;
+			this.functionParameters = clickFunctionParameters;
+			this.labelFunction = labelStringOrFunction as Function;
+			
+			/*if(iconURL)
+			{
+			var iconImage:Image = new Image();
+			iconImage.source = iconURL;
+			
+			this.icon = iconImage;
+			}*/
+			
+			//this.iconURL = iconURL;
+			
+			this.enabled = enabledBooleanOrFunction is Function ? enabledBooleanOrFunction() : enabledBooleanOrFunction;
+			this.enabledFunction = enabledBooleanOrFunction as Function;
+			
+			if(clickFunction == null)
+				this.enabled = false;
+		}
+		
 		//(Required, and meaningful, for radio type only) The identifier that associates radio button items in a radio group. 
 		//If you use the default data descriptor, data providers must use a groupName XML attribute or object field to specify this characteristic.
 		public var groupName:String = null;	
@@ -103,34 +131,6 @@ package weave.ui.controlBars
 		public var toggledFunction:Function = null;
 		
 		//public var iconURL:String = null;
-		
-		public function WeaveMenuItem(labelStringOrFunction:Object, clickFunction:Function=null, clickFunctionParameters:Array = null, enabledBooleanOrFunction:*=true)
-		{	
-			if (labelStringOrFunction is Function)
-				this.weaveLabel = (labelStringOrFunction as Function)();
-			else
-				this.weaveLabel = labelStringOrFunction as String;
-			
-			this.clickFunction = clickFunction;
-			this.functionParameters = clickFunctionParameters;
-			this.labelFunction = labelStringOrFunction as Function;
-		
-			/*if(iconURL)
-			{
-				var iconImage:Image = new Image();
-				iconImage.source = iconURL;
-				
-				this.icon = iconImage;
-			}*/
-			
-			//this.iconURL = iconURL;
-			
-			this.enabled = enabledBooleanOrFunction is Function ? enabledBooleanOrFunction() : enabledBooleanOrFunction;
-			this.enabledFunction = enabledBooleanOrFunction as Function;
-			
-			if(clickFunction == null)
-				this.enabled = false;
-		}
 		
 		public static function makeNewSeparatorItem():WeaveMenuItem
 		{

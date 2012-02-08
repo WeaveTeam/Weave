@@ -1,37 +1,16 @@
 /* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
+ * This file is part of the Weave API.
  *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is the Weave API.
- *
- * The Initial Developer of the Original Code is the Institute for Visualization
+ * The Initial Developer of the Weave API is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2011
+ * Portions created by the Initial Developer are Copyright (C) 2008-2012
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s):
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
  * ***** END LICENSE BLOCK ***** */
 
 package weave.api
@@ -39,6 +18,7 @@ package weave.api
 	import flash.external.ExternalInterface;
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
+	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.Singleton;
@@ -47,6 +27,7 @@ package weave.api
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
+	import weave.api.core.IStageUtils;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
 	import weave.api.data.IProjectionManager;
@@ -61,12 +42,21 @@ package weave.api
 	 */
 	public class WeaveAPI
 	{
+		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
+		
 		/**
 		 * This is the singleton instance of the registered ISessionManager implementation.
 		 */
 		public static function get SessionManager():ISessionManager
 		{
 			return getSingletonInstance(ISessionManager);
+		}
+		/**
+		 * This is the singleton instance of the registered IStageUtils implementation.
+		 */
+		public static function get StageUtils():IStageUtils
+		{
+			return getSingletonInstance(IStageUtils);
 		}
 		/**
 		 * This is the singleton instance of the registered IErrorManager implementation.
@@ -132,7 +122,21 @@ package weave.api
 			return getSingletonInstance(IURLRequestUtils);
 		}
 		/**************************************/
+
 		
+		/**
+		 * This returns the top level application as defined by FlexGlobals.topLevelApplication
+		 * or Application.application if FlexGlobals isn't defined.
+		 */
+		public static function get topLevelApplication():Object
+		{
+			//TODO: Application.application is deprecated
+			/*try {
+			return FlexGlobals.topLevelApplication;
+			} catch (e:Error) { }*/
+			
+			return getDefinitionByName('mx.core.Application').application;
+		}
 		
 		
 		/**
@@ -154,13 +158,24 @@ package weave.api
 			}
 			var prev:Boolean = ExternalInterface.marshallExceptions;
 			ExternalInterface.marshallExceptions = false;
-			ExternalInterface.call('function(){ var weave = document.getElementById("'+ExternalInterface.objectID+'"); if (window && window.weaveReady) window.weaveReady(weave); else if (weaveReady) weaveReady(weave); }');
+			ExternalInterface.call(
+				'function(objectID) {' +
+				'  var weave = document.getElementById(objectID);' +
+				'  if (window && window.weaveReady) {' +
+				'    window.weaveReady(weave);' +
+				'  }' +
+				'  else if (weaveReady) {' +
+				'    weaveReady(weave);' +
+				'  }' +
+				'}',
+				[ExternalInterface.objectID]
+			);
 			ExternalInterface.marshallExceptions = prev;
 		}
 		
 		/**
 		 * @private 
-		 */		
+		 */
 		private static function generateExternalInterfaceCallback(methodName:String, theInterface:Class):Function
 		{
 			return function (...args):* {

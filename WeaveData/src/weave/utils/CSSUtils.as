@@ -27,7 +27,6 @@ package weave.utils
 	import mx.styles.StyleManager;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.services.IURLRequestUtils;
 
 	/**
 	 * CSSUtils
@@ -79,7 +78,10 @@ package weave.utils
 					} 
 					// apply all styles that appeared in the css file
 					for (styleName in styleMap)
-						StyleManager.setStyleDeclaration(styleName, styleMap[styleName], true);
+					{
+						//TODO: StyleManager.setStyleDeclaration is deprecated
+						StyleManager['setStyleDeclaration'](styleName, styleMap[styleName], true);
+					}
 				}
 			);
 		}

@@ -21,82 +21,47 @@
 -->
 
 
-<!-- 	VisTaskbar
+<!--
 		This class creates a taskbar that sits at the bottom of a page to provide objects to access different options.  For example, tools could be
 		minimized to go into this taskbar like in windows or a mac.  
 -->
-<mx:Box xmlns:mx="http://www.adobe.com/2006/mxml" 
-			  width="100%"
-			  horizontalAlign="center"
-			  verticalScrollPolicy="off"
-			  horizontalScrollBarStyleName="scroll-style"
-			  verticalScrollBarStyleName="scroll-style"
-			  bottom="0"
-			  implements="weave.api.core.ILinkableObject"
-			  >
-	<mx:HBox id="minimizeBox"
-			 horizontalAlign="center"
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   implements="weave.api.core.ILinkableObject"
+		   clipContent="false"
+		   width="100%" height="0">
+	<mx:HBox id="hbox"
+			 visible="false"
+			 verticalAlign="middle"
 			 cornerRadius="5"
-			
 			 backgroundColor="0x808080" backgroundAlpha="0.8"
-			 
-			
 			 borderColor="0x000000" borderStyle="solid" borderThickness="1" 
-			 paddingLeft="10" paddingRight="10" paddingTop="2" paddingBottom="1"
-			 
+			 paddingLeft="10" paddingRight="10" paddingTop="2" paddingBottom="2"
 			 filters="{[glow]}"
+			 x="{(width - hbox.width) / 2}"
+			 y="{-hbox.height}"
 			 />
 	
 	<mx:Script>
 		<![CDATA[
-			import flash.net.getClassByAlias;
-			import flash.net.registerClassAlias;
-			import flash.utils.describeType;
-			
-			import mx.containers.Canvas;
-			import mx.controls.Alert;
-			import mx.controls.Button;
-			import mx.core.BitmapAsset;
 			import mx.core.UIComponent;
-			import mx.effects.Glow;
-			import mx.effects.Move;
-			import mx.effects.Parallel;
-			import mx.effects.Resize;
-			import mx.events.MoveEvent;
-			import mx.utils.ObjectUtil;
-			import mx.utils.UIDUtil;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.newLinkableChild;
 			import weave.api.reportError;
-			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
-			import weave.core.SessionManager;
-			import weave.primitives.ImageFactory;
-			import weave.ui.DraggablePanel;
+			import weave.data.AttributeColumns.AbstractAttributeColumn;
 			import weave.ui.MinimizedComponent;
-			import weave.utils.BitmapUtils;
 
-			[Bindable]
-			private var glow:GlowFilter = new GlowFilter(0xFFFFFF, 0.5, 3, 3, 5);
-			
-			private static var _instance:VisTaskbar = null;
-			public static function get instance():VisTaskbar
-			{
-				if (_instance == null)
-				{
-					_instance = new VisTaskbar();
-					_instance.initialize();
-				}
-				return _instance;
-			}
-			
 			public const taskbarShrinkGrow:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 			public const taskbarLargeIconSize:LinkableNumber = newLinkableChild(this, LinkableNumber, updateIconSizes);
 			public const taskbarSmallIconSize:LinkableNumber = newLinkableChild(this, LinkableNumber, shrinkComponents);
+			
+			[Bindable]
+			private var glow:GlowFilter = new GlowFilter(0xFFFFFF, 0.5, 3, 3, 5);
 			
 			override protected function childrenCreated():void
 			{
@@ -115,21 +80,21 @@
 			// add a callback for when components that these minimized components represented are removed
 			private function handleLinkableChildListChanged():void
 			{
-				if (!minimizeBox)
+				var removed:ILinkableObject = Weave.root.childListCallbacks.lastObjectRemoved;
+				if (!removed)
 					return;
-					
 				// go through each minimizedComponent in the taskbar
-				for each(var minimizedComponent:MinimizedComponent in minimizeBox.getChildren() )
+				for each (var minimizedComponent:MinimizedComponent in hbox.getChildren())
 				{
 					// go through each component in the minimized component group (this will have to be modified later in case we start to group
 					// tools together
-					for each(var component:UIComponent in minimizedComponent.componentGroup)
+					for each (var component:UIComponent in minimizedComponent.componentGroup)
 					{
 						// if the last object removed that caused this callback is in this component group, 
 						// then remove the minimized component from the taskbar so you cant restore something that doesn't exist anymore
-						if(Weave.root.childListCallbacks.lastObjectRemoved == component)
+						if (component == removed)
 						{
-							minimizeBox.removeChild(minimizedComponent);
+							hbox.removeChild(minimizedComponent);
 							continue;
 						}
 					}
@@ -138,7 +103,7 @@
 			
 			private function updateIconSizes():void
 			{
-				for each(var component:MinimizedComponent in minimizeBox.getChildren() )
+				for each (var component:MinimizedComponent in hbox.getChildren())
 				{
 					component.scaleX = 1;
 					component.scaleY = 1;
@@ -159,7 +124,7 @@
 				// limit the smallest size to 2 pixels, otherwise grow/shrink doesn't work
 				var scale:Number = Math.max(2, taskbarSmallIconSize.value) / taskbarLargeIconSize.value;
 
-				for each(var component:MinimizedComponent in minimizeBox.getChildren() )
+				for each (var component:MinimizedComponent in hbox.getChildren())
 				{
 					component.scaleX = scale;
 					component.scaleY = scale;
@@ -169,38 +134,34 @@
 			}	
 			public function growComponents(event:MouseEvent = null):void
 			{
-				if(taskbarShrinkGrow.value == false)
+				if (taskbarShrinkGrow.value == false)
 					return;
 				
-				for each(var component:MinimizedComponent in minimizeBox.getChildren() )
+				for each (var component:MinimizedComponent in hbox.getChildren())
 				{
 					component.scaleX = 1;
 					component.scaleY = 1;
 				}
 			}
 			
-			public function addMinimizedComponent(component:UIComponent, restoreFunction:Function=null):MinimizedComponent
+			public function addMinimizedComponent(component:UIComponent, restoreFunction:Function):MinimizedComponent
 			{
+				var clickListener:Function = function(e:MouseEvent):void
+				{
+					removeMinimizedComponent(minimizedComponent);
+					restoreFunction();
+				};
 				var minimizedComponent:MinimizedComponent = new MinimizedComponent(
 					[component],
 					taskbarLargeIconSize.value,
 					taskbarLargeIconSize.value,
-					function():void
-					{
-						if (restoreFunction != null)
-							restoreFunction();
-						else
-							component.visible = true;
-					}
-				);
-				minimizedComponent.addEventListener(
-					MouseEvent.CLICK,
-					function (e:Event):void { minimizedComponent.restoreFunction() }
+					clickListener
 				);
 				
-				minimizeBox.addChild(minimizedComponent);
-				minimizeBox.validateNow();
+				hbox.addChild(minimizedComponent);
+				hbox.validateNow();
 				validateNow();
+				hbox.visible = hbox.numChildren > 0;
 				
 				if (taskbarShrinkGrow.value)
 					shrinkComponents();
@@ -212,8 +173,9 @@
 			{
 				try
 				{
-					if (minimizeBox == minimizedComponent.parent)
-						minimizeBox.removeChild(minimizedComponent);
+					if (minimizedComponent.parent)
+						minimizedComponent.parent.removeChild(minimizedComponent);
+					hbox.visible = hbox.numChildren > 0;
 				}
 				catch (error:Error)
 				{
@@ -232,52 +194,27 @@
 				}
 			}
 			
-			public function getMinimizedComponentXYRelativeToStage(minimizedComponent:MinimizedComponent):Point
-			{
-				if (minimizeBox != minimizedComponent.parent)
-					return null;
-
-				var childIndex:int = minimizeBox.getChildIndex(minimizedComponent);
-				
-				var parentRelativeToStage:Point = localToGlobal(new Point(minimizeBox.x, minimizeBox.y));
-				
-				// the x position is the parent's X + left padding + the width of each thumb before it + each horizontal gap between thumbs
-				var childX:int = parentRelativeToStage.x + 
-								 minimizeBox.getStyle("paddingLeft")  + 
-								 childIndex * (taskbarSmallIconSize.value + minimizeBox.getStyle("horizontalGap"));
-				var childY:int = parentRelativeToStage.y + 
-								 minimizeBox.getStyle("paddingTop");
-
-				return new Point(childX, childY);
-			}
-			
 			public function addMinimizedComponentGroup(components:Array, restoreFunctions:Array):MinimizedComponent
 			{	
-				var minimizedComponent:MinimizedComponent 
-							= new MinimizedComponent(components, 
-													 taskbarLargeIconSize.value, 
-													 taskbarLargeIconSize.value, 
-													 // the restore function for this minimized component iterates over all components in the 
-													 // group and restores them all
-													 function ():void {												 	
-												   		for(var i:int = 0; i < components.length; i++)
-														{
-															try {
-																restoreFunctions[i]();
-															} 
-															catch(error:Error) {
-																components[i].visible = true;
-															}
-														}
-												   	});
-												   	
-				minimizedComponent.addEventListener(MouseEvent.CLICK, function(e:Event):void { minimizedComponent.restoreFunction() } );
+				var minimizedComponent:MinimizedComponent = new MinimizedComponent(
+					components, 
+					taskbarLargeIconSize.value, 
+					taskbarLargeIconSize.value, 
+					function(e:MouseEvent):void
+					{
+						removeMinimizedComponent(minimizedComponent);
+						// restore all components
+						for (var i:int = 0; i < components.length; i++)
+							restoreFunctions[i]();
+					}
+				);
 						
-				minimizeBox.addChild(minimizedComponent);
-				minimizeBox.validateNow();
+				hbox.addChild(minimizedComponent);
+				hbox.validateNow();
 				validateNow();
+				hbox.visible = hbox.numChildren > 0;
 				
-				if(taskbarShrinkGrow.value)
+				if (taskbarShrinkGrow.value)
 					shrinkComponents();
 								
 				return minimizedComponent;
@@ -285,15 +222,20 @@
 			
 			public function restoreAllComponents():void
 			{
-				
-				
-				//try {
-					for each(var component:MinimizedComponent in minimizeBox.getChildren() )
-					{
-						component.dispatchEvent(new MouseEvent(MouseEvent.CLICK));//restoreFunction();
-					}
-				//} catch(error:Error) {}
+				for each (var component:MinimizedComponent in hbox.getChildren())
+					component.clickListener(null);
+			}
+			
+			private static var _instance:VisTaskbar = null;
+			public static function get instance():VisTaskbar
+			{
+				if (_instance == null)
+				{
+					_instance = new VisTaskbar();
+					_instance.initialize();
+				}
+				return _instance;
 			}
 		]]>
 	</mx:Script>
-</mx:Box>
+</mx:Canvas>

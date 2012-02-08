@@ -23,6 +23,7 @@ package weave.utils
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
@@ -30,7 +31,6 @@ package weave.utils
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.CallbackCollection;
-	import weave.core.StageUtils;
 	import weave.primitives.BLGNode;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
@@ -48,18 +48,40 @@ package weave.utils
 	 */
 	public class SpatialIndex extends CallbackCollection implements ISpatialIndex
 	{
-		// TODO: Refactor to use image/color hits instead. The image hits should use some sort of trapezoidal or triangular grid.
-		
 		public function SpatialIndex(callback:Function = null, callbackParameters:Array = null)
 		{
 			addImmediateCallback(this, callback, callbackParameters);
 		}
 		
 		private var _kdTree:KDTree = new KDTree(5);
-		private var _keyToBoundsMap:Dictionary = new Dictionary();
+		private const _keysArray:Array = []; // of IQualifiedKey
+		private var _keyToBoundsMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of IBounds2D
+		private var _keyToGeometriesMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of GeneralizedGeometry or ISimpleGeometry
+		
+		private var _queryMissingBounds:Boolean; // used by _insertNext
+		private var _keysArrayIndex:int; // used by _insertNext
+		private var _boundsArrayIndex:int; // used by _insertNext
+		private var _boundsArray:Array; // used by _insertNext
 		
 		/**
-		 * collectiveBounds
+		 * These constants define indices in a KDKey corresponding to xmin,ymin,xmax,ymax,importance values.
+		 */
+		private const XMIN_INDEX:int = 0, YMIN_INDEX:int = 1;
+		private const XMAX_INDEX:int = 2, YMAX_INDEX:int = 3;
+		private const IMPORTANCE_INDEX:int = 4;
+		
+		/**
+		 * These KDKey arrays are created once and reused to avoid unnecessary creation of objects.
+		 * The only values that change are the ones that are undefined here.
+		 */
+		private const minKDKey:Array = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, NaN, NaN, 0];
+		private const maxKDKey:Array = [NaN, NaN, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
+		
+		// reusable temporary objects
+		private const _tempBounds:IBounds2D = new Bounds2D();
+		private const _tempBoundsPolygon:Array = [new Point(), new Point(), new Point(), new Point(), new Point()]; // used by setTempBounds and getKeysGeometryOverlap
+
+		/**
 		 * This bounds represents the full extent of the shape index.
 		 */
 		public const collectiveBounds:IBounds2D = new Bounds2D();
@@ -86,7 +108,6 @@ package weave.utils
 		{
 			return _keysArray;
 		}
-		private const _keysArray:Array = new Array();
 		
 		/**
 		 * The number of records in the index
@@ -96,11 +117,6 @@ package weave.utils
 			return _kdTree.nodeCount;
 		}
 		
-		private var _keyToGeometriesMap:Dictionary = new Dictionary();
-		private var _plotter:IPlotter;
-		private var _queryMissingBounds:Boolean;
-		private var _spatialCallbacksTriggerCounter:uint = 0;
-		
 		/**
 		 * This function fills the spatial index with the data bounds of each record in a plotter.
 		 * 
@@ -108,18 +124,15 @@ package weave.utils
 		 */
 		public function createIndex(plotter:IPlotter, queryMissingBounds:Boolean = false):void
 		{
-			_plotter = plotter;
 			_queryMissingBounds = queryMissingBounds;
-			
-			delayCallbacks();
 			
 			var key:IQualifiedKey;
 			var bounds:IBounds2D;
 			var i:int;
 			
-			if (_plotter is DynamicPlotter)
+			if (plotter is DynamicPlotter)
 			{
-				if ((_plotter as DynamicPlotter).internalObject is IPlotterWithGeometries)
+				if ((plotter as DynamicPlotter).internalObject is IPlotterWithGeometries)
 					_keyToGeometriesMap = new Dictionary();
 				else 
 					_keyToGeometriesMap = null;
@@ -127,57 +140,50 @@ package weave.utils
 			
 			_tempBounds.copyFrom(collectiveBounds);
 			
-			var shouldTrigger:Boolean = false;
-			if (_keysArray.length > 0)
-			{
-				shouldTrigger = true;
-				_keysArray.length = 0; // hack to prevent callbacks
-			}
+			_keysArray.length = 0; // hack to prevent callbacks
 			clear();
 			
-			if (_plotter != null)
+			if (plotter != null)
 			{
-				collectiveBounds.copyFrom(_plotter.getBackgroundDataBounds());
+				collectiveBounds.copyFrom(plotter.getBackgroundDataBounds());
 				
 				// make a copy of the keys vector
-				VectorUtils.copy(_plotter.keySet.keys, _keysArray);
+				VectorUtils.copy(plotter.keySet.keys, _keysArray);
 				
 				// save dataBounds for each key
 				i = _keysArray.length;
 				while (--i > -1)
 				{
 					key = _keysArray[i] as IQualifiedKey;
-					_keyToBoundsMap[key] = _plotter.getDataBoundsFromRecordKey(key);
+					_keyToBoundsMap[key] = plotter.getDataBoundsFromRecordKey(key);
 					
 					if (_keyToGeometriesMap != null)
 					{
-						var geoms:Array = ((_plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
+						var geoms:Array = ((plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
 						_keyToGeometriesMap[key] = geoms;
 					}
 				}
 			}
 			
-			if (_keysArray.length > 0)
+			// if auto-balance is disabled, randomize insertion order
+			if (!_kdTree.autoBalance)
 			{
-				// if auto-balance is disabled, randomize insertion order
-				if (!_kdTree.autoBalance)
-				{
-					// randomize the order of the shapes to avoid a possibly poorly-performing
-					// KDTree structure due to the given ordering of the records
-					VectorUtils.randomSort(_keysArray);
-				}
-				// insert bounds-to-key mappings in the kdtree
-				StageUtils.startTask(this, _insertNext);
+				// randomize the order of the shapes to avoid a possibly poorly-performing
+				// KDTree structure due to the given ordering of the records
+				VectorUtils.randomSort(_keysArray);
 			}
-			else if (!_tempBounds.equals(collectiveBounds) || shouldTrigger)
-				triggerCallbacks();
 			
-			resumeCallbacks();
+			// insert bounds-to-key mappings in the kdtree
+			WeaveAPI.StageUtils.startTask(this, _insertNext);
 		}
+		
 		private function _insertNext():Number
 		{
 			if (_keysArrayIndex >= _keysArray.length) // in case length is zero
+			{
+				triggerCallbacks();
 				return 1; // done
+			}
 			
 			var key:IQualifiedKey = _keysArray[_keysArrayIndex] as IQualifiedKey;
 			if (!_boundsArray) // is there an existing nested array?
@@ -214,11 +220,6 @@ package weave.utils
 				triggerCallbacks();
 			return progress;
 		}
-		
-		private var _keysArrayIndex:int;
-		private var _boundsArrayIndex:int;
-		private var _boundsArray:Array;
-		
 		
 		/**
 		 * This function empties the spatial index.
@@ -302,6 +303,23 @@ package weave.utils
 			maxKDKey[YMIN_INDEX] = bounds.getYNumericMax(); // enforce result.YMIN <= query.yNumericMax
 			
 			return _kdTree.queryRange(minKDKey, maxKDKey);
+		}
+		
+		/**
+		 * used by getKeysGeometryOverlap.
+		 */
+		private function setTempBounds(bounds:IBounds2D):void
+		{
+			var b:Bounds2D = bounds as Bounds2D;
+			var xMin:Number = b.xMin;
+			var yMin:Number = b.yMin;
+			var xMax:Number = b.xMax;
+			var yMax:Number = b.yMax;
+			_tempBoundsPolygon[0].x = xMin; _tempBoundsPolygon[0].y = yMin;
+			_tempBoundsPolygon[1].x = xMin; _tempBoundsPolygon[1].y = yMax;
+			_tempBoundsPolygon[2].x = xMax; _tempBoundsPolygon[2].y = yMax;
+			_tempBoundsPolygon[3].x = xMax; _tempBoundsPolygon[3].y = yMin;
+			_tempBoundsPolygon[4].x = xMin; _tempBoundsPolygon[4].y = yMin;
 		}
 		
 		/**
@@ -435,21 +453,6 @@ package weave.utils
 			
 			return result; 
 		} // end function
-		
-		private var _keyToDistance:Dictionary = null;
-		private function setTempBounds(bounds:IBounds2D):void
-		{
-			var b:Bounds2D = bounds as Bounds2D;
-			var xMin:Number = b.xMin;
-			var yMin:Number = b.yMin;
-			var xMax:Number = b.xMax;
-			var yMax:Number = b.yMax;
-			_tempBoundsPolygon[0].x = xMin; _tempBoundsPolygon[0].y = yMin;
-			_tempBoundsPolygon[1].x = xMin; _tempBoundsPolygon[1].y = yMax;
-			_tempBoundsPolygon[2].x = xMax; _tempBoundsPolygon[2].y = yMax;
-			_tempBoundsPolygon[3].x = xMax; _tempBoundsPolygon[3].y = yMin;
-			_tempBoundsPolygon[4].x = xMin; _tempBoundsPolygon[4].y = yMin;
-		}
 		
 		/**
 		 * This function will get the keys closest the center of the bounds object. Generally this function will
@@ -691,7 +694,7 @@ package weave.utils
 		 * @param geometry An ISimpleGeometry object used to query the spatial index.
 		 * @param minImportance The minimum importance value to use when determining geometry overlap.
 		 * @param filterBoundingBoxesByImportance If true, bounding boxes will be pre-filtered by importance before checking geometry overlap.
-		 * @return An array of keys.
+		 * @return An array of IQualifiedKey objects.
 		 */		
 		public function getKeysGeometryOverlapGeometry(geometry:ISimpleGeometry, minImportance:Number = 0, filterBoundingBoxesByImportance:Boolean = false):Array
 		{
@@ -728,7 +731,7 @@ package weave.utils
 						var genGeomIsPoly:Boolean = genGeom.isPolygon();
 						var genGeomIsLine:Boolean = genGeom.isLine();
 						var genGeomIsPoint:Boolean = genGeom.isPoint();
-						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance, _tempSimpleGeomBounds);
+						var simplifiedGeom:Vector.<Vector.<BLGNode>> = genGeom.getSimplifiedGeometry(minImportance/*, dataBounds*/);
 						
 						if (simplifiedGeom.length == 0)
 						{
@@ -811,28 +814,5 @@ package weave.utils
 			
 			return result; 
 		}
-		
-		/**
-		 * These constants define indices in a KDKey corresponding to xmin,ymin,xmax,ymax,importance values.
-		 */
-		private const XMIN_INDEX:int = 0, YMIN_INDEX:int = 1;
-		private const XMAX_INDEX:int = 2, YMAX_INDEX:int = 3;
-		private const IMPORTANCE_INDEX:int = 4;
-		
-		/**
-		 * These KDKey arrays are created once and reused to avoid unnecessary creation of objects.
-		 * The only values that change are the ones that are undefined here.
-		 */
-		private var minKDKey:Array = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, NaN, NaN, 0];
-		private var maxKDKey:Array = [NaN, NaN, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
-
-		
-		// reusable temporary objects
-		private const _tempBounds:IBounds2D = new Bounds2D();
-		private const _tempSimpleGeomBounds:IBounds2D = new Bounds2D();			
-		private const _tempArray:Array = [];
-		private const _tempBoundsPolygon:Array = [new Point(), new Point(), new Point(), new Point(), new Point()];
-		private const _tempGeometryPolygon:Array = [];
-		private const _tempVertices:Array = [];
 	}
 }

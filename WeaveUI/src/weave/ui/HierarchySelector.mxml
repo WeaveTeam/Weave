@@ -20,11 +20,9 @@
 */
 -->
 
-<!--
-DimensionTreeSelector
-
+<!---
 Displays catoegories in a tree view and the attributes in a list.
-@skolman
+@author skolman
 -->
 <mx:HDividedBox
 	xmlns:ui ="weave.ui.*"
@@ -34,10 +32,10 @@ Displays catoegories in a tree view and the attributes in a list.
 	>
 
 	<mx:VBox width="100%" height="100%" id="categoryVBox" verticalScrollPolicy="off" horizontalScrollPolicy="off">
-		<mx:Tree width="100%" height="100%" id="categoriesView" showRoot="false" showDataTips="true" dataTipFunction="getCategoryLabel" mouseDown="handleCategoryClick(true)" change="handleCategoryClick(true)"/>
+		<ui:CustomTree width="100%" height="100%" id="categoriesView" showRoot="false" showDataTips="true" dataTipFunction="getCategoryLabel" change="handleCategoryClick(true)"/>
 	</mx:VBox>
 	<mx:VBox width="100%" height="100%" id="attributeVBox" verticalScrollPolicy="off" horizontalScrollPolicy="off">
-		<mx:List width="100%" height="100%" id="attributesView" showDataTips="true" dataTipFunction="getLabelForNode" labelFunction="getLabelForNode" mouseDown="handleAttributeClick(event)" change="handleAttributeClick(event)"/>
+		<ui:CustomList width="100%" height="100%" id="attributesView" showDataTips="true" dataTipFunction="getLabelForNode" labelFunction="getLabelForNode" change="handleAttributeClick(event)"/>
 	</mx:VBox>
 
 	<mx:Script>
@@ -124,7 +122,6 @@ Displays catoegories in a tree view and the attributes in a list.
 			
 			
 			/**
-			 * handleHierarchyChange
 			 * Triggered when the attributeHierarchy changes.
 			 * Assigns the new hierarchy to the Category View and updates the attribute list
 			 */
@@ -201,7 +198,6 @@ Displays catoegories in a tree view and the attributes in a list.
 			}
 			
 			/**
-			*selectCategory
 			* Sets the item to be selected in the Category view and scrolls to the selected item
 			**/
 			private function selectCategory():void
@@ -239,7 +235,6 @@ Displays catoegories in a tree view and the attributes in a list.
 			}
 			
 			/**
-			 *selectAttribute
 			 * Sets the item to be selected in the Attribute view and scrolls to the selected item
 			 **/
 			private function selectAttribute():void
@@ -247,7 +242,7 @@ Displays catoegories in a tree view and the attributes in a list.
 				if (selectedPath.value != null)
 				{
 					var selectedAttribute:XML = HierarchyUtils.getNodeFromPath(attributeHierarchy.value, selectedPath.value);
-					attributesView.validateNow();
+					var vsp:Number = attributesView.verticalScrollPosition;
 					attributesView.selectedItem = selectedAttribute;
 					attributesView.validateNow();
 					var selectedIndex:int = attributesView.selectedIndex;
@@ -261,7 +256,6 @@ Displays catoegories in a tree view and the attributes in a list.
 			}
 			
 			/**
-			 * handleCategoryClick
 			 * Triggered when a category is clicked.
 			 * Same as handleCategoryViewReload but the selectedPath variable is updated.
 			*/
@@ -279,16 +273,17 @@ Displays catoegories in a tree view and the attributes in a list.
 					return; // category not found
 				
 				// set selected path and load attribute list
+				var vsp:Number = attributesView.verticalScrollPosition;
 				attributesView.dataProvider = categoryNode.attribute;
 				(attributesView.dataProvider as XMLListCollection).filterFunction = attributeFilterFunction;
 				(attributesView.dataProvider as ICollectionView).refresh();
+				attributesView.verticalScrollPosition = vsp;
 
 				if (setSelectedPath)
 					selectedPath.value = categoryPath;
 				
 			}
 			/**
-			 * handleAttributeClick
 			 * Triggered when an attribute is selected.
 			 **/
 			private function handleAttributeClick(event:Event):void
@@ -365,6 +360,9 @@ Displays catoegories in a tree view and the attributes in a list.
 				var numAttrs:int = node.child("attribute").length();
 				if (numAttrs > 0)
 					label += ' (' + numAttrs + ')';
+				var source:String = node.@source;
+				if (source)
+					label += ' (Source: ' + source + ')';
 				
 				return label;
 			}

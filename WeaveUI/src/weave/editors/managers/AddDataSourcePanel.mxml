@@ -185,7 +185,7 @@
 						if (csvSource != null)
 							Alert.show("Data Source added successfully");
 						csvSource.url.value = xlsDataSourceEditor.url.text;
-						csvSource.csvDataString.value = WeaveAPI.CSVParser.createCSVFromArrays(xlsDataSourceEditor.xlsDataArray);
+						csvSource.csvDataString.value = WeaveAPI.CSVParser.createCSV(xlsDataSourceEditor.xlsDataArray);
 						csvSource.keyColName.value = xlsDataSourceEditor.keyColumnName.text;
 						csvSource.keyType.value = xlsDataSourceEditor.keyType.text;
 						return;
