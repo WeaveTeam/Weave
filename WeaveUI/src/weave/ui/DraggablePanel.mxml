@@ -367,7 +367,6 @@
 				parent.addEventListener(ResizeEvent.RESIZE, handleParentResize);
 				
 				copyCoordinatesFromSessionedProperties();
-				panelNeedsUpdate();
 			}
 			private function handleRemovedFromStage(event:Event):void
 			{

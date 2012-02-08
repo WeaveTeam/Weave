@@ -94,6 +94,8 @@
 	override public function handleSliderChange():void
 	{
 		var newTime:String = dimensionSlider.labels[dimensionSlider.value] || '';
+		if (!newTime)
+			return;
 		var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(Weave.root, HierarchyColumnReference);
 		var len:int = descendants.length;
 		for (var i:int = 0; i < len; i++)
