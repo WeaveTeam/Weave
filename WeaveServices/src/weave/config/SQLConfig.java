@@ -130,10 +130,10 @@ public class SQLConfig
 		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, ID, table_desc, ID);
 		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, ID, table_desc, ID);
 	        
-                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_private, new String[]{ID, PROPERTY});
-                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_private, new String[]{PROPERTY, VALUE});
-                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_public, new String[]{ID, PROPERTY});
-                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_public, new String[]{PROPERTY, VALUE});
+                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_private, table_meta_private+ID+PROPERTY, new String[]{ID, PROPERTY}, new Integer[]{0,255});
+                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_private, table_meta_private+PROPERTY+VALUE, new String[]{PROPERTY, VALUE}, new Integer[]{255,255});
+                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_public, table_meta_public+ID+PROPERTY, new String[]{ID, PROPERTY}, new Integer[]{0,255});
+                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_public, table_meta_public+PROPERTY+VALUE, new String[]{PROPERTY, VALUE}, new Integer[]{255,255});
 	
 		// Category table
 		columnNames = Arrays.asList(ID, NAME, PARENT_ID);

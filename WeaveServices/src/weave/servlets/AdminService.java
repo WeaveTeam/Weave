@@ -400,7 +400,7 @@ public class AdminService extends GenericServlet
 		{
 			try
 			{
-				XMLUtils.getStringFromXML(new SQLConfigXML().getDocument(), SQLConfigXML.DTD_FILENAME, fileName);
+				XMLUtils.writeXML(new SQLConfigXML().getDocument(), SQLConfigXML.DTD_FILENAME, fileName);
 			}
 			catch (Exception e)
 			{
@@ -467,6 +467,8 @@ public class AdminService extends GenericServlet
 			
 			config.removeConnection(newConnectionInfo.name);
 			config.addConnection(newConnectionInfo);
+                        XMLUtils.writeXML(config.getDocument(), SQLConfigXML.DTD_FILENAME, fileName);
+                        
 		}
 		catch (Exception e)
 		{
@@ -554,6 +556,7 @@ public class AdminService extends GenericServlet
                         ISQLConfig sqlcfg = new SQLConfig(xmlConfig);
 			count = SQLConfigUtils.migrateSQLConfig(xmlConfig, sqlcfg);
                         
+                        XMLUtils.writeXML( xmlConfig.getDocument(), SQLConfigXML.DTD_FILENAME, configFileName); 
                         //backupAndSaveConfig(xmlConfig); //ADD BACK LATER.
 			
 		}
@@ -660,7 +663,7 @@ public class AdminService extends GenericServlet
 				// add the column info to the temp blank config
 				config.addAttributeColumn(columnInfo);
 			}
-
+//                        XMLUtils.writeXML(config.getDocument(), DTD_FILENAME, fileName)
 			return String.format("The dataTable entry \"%s\" was saved.", dataTableName);
 		}
 		catch (Exception e)

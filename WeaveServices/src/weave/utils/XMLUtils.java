@@ -255,6 +255,10 @@ public class XMLUtils
 		getStringFromXML(node, dtdFilename, sw);
 		return sw.getBuffer().toString();
 	}
+        public static void writeXML(Node node, String dtdFilename, String outputFileName) throws TransformerException, IOException
+        {
+            getStringFromXML(node, dtdFilename, outputFileName);
+        }
 	public static void getStringFromXML(Node node, String dtdFilename, String outputFileName) throws TransformerException, IOException
 	{
 		File file = new File(outputFileName);

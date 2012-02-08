@@ -618,7 +618,7 @@ public class SQLUtils
 			
 			// build WHERE clause
 			String whereQuery;
-			whereQuery = buildWhereClause(conn, whereParams.keySet());
+			whereQuery = buildPreparedWhereClause(conn, whereParams.keySet());
 			
 			// build complete query
 			query = String.format(
@@ -690,7 +690,7 @@ public class SQLUtils
 				columnQuery = "*"; // select all columns
 			
 			// build WHERE clause
-			String whereQuery = buildWhereClause(conn, whereParams);
+			String whereQuery = buildGenericWhereClause(conn, whereParams);
 			
 			
 			
@@ -1046,18 +1046,22 @@ public class SQLUtils
 			SQLUtils.cleanup(stmt);
 		}
 	}
-        private static String buildWhereClause(Connection conn, Collection<String> columns) /* Only for prepared case */ throws IllegalArgumentException, SQLException
+        private static String buildPreparedWhereClause(Connection conn, Collection<String> columns) /* Only for prepared case */ throws IllegalArgumentException, SQLException
         {
                 Map<String,String> whereClauses = new HashMap<String,String>();
                 for (String key : columns)
                 {
                     whereClauses.put(key, "");
                 }
-                return buildWhereClause(conn, whereClauses);
+                return buildWhereClause(conn, whereClauses, false, true);
         }
-	private static <T> String buildWhereClause(Connection conn, Map<String,T> whereClauses /* boolean preQuoted = false */) throws IllegalArgumentException, SQLException
+        private static String buildWhereClause(Connection conn, Map<String,String> whereClauses) throws IllegalArgumentException, SQLException
+        {
+                return buildWhereClause(conn, whereClauses, false, false);
+        }
+	private static <T> String buildGenericWhereClause(Connection conn, Map<String,T> whereClauses /* boolean preQuoted = false */) throws IllegalArgumentException, SQLException
 	{
-		return buildWhereClause(conn, whereClauses.keySet());
+		return buildPreparedWhereClause(conn, whereClauses.keySet());
 	}
 	private static String buildWhereClause(Connection conn, Map<String,String> whereClauses, boolean preQuoted, boolean preparedStatement) throws IllegalArgumentException, SQLException
 	{ 
@@ -1153,7 +1157,7 @@ public class SQLUtils
                 {
                     argList.add(where.getValue());
                 }
-                whereBlock = buildWhereClause(conn, whereParams);
+                whereBlock = buildGenericWhereClause(conn, whereParams);
                 updateBlock = stringJoin(",", updateBlockList);
                 query = String.format("UPDATE %s SET %s WHERE %s", fromTable, updateBlock, whereBlock);
                 PreparedStatement stmt = conn.prepareStatement(query);
@@ -1395,8 +1399,26 @@ public class SQLUtils
 
 		return false;
 	}
-
-	/**
+        /**
+         * @param conn An existing SQL connection
+         * @param schemaName A schema name accessible through the given connection
+         * @param tableName The name of an existing table
+         * @param columnNames The names of the columns to use
+         * @throws SQLException If the query fails.
+         */
+        public static boolean hasIndex(Connection conn, String schemaName, String tableName, String indexName) throws SQLException
+        {
+            boolean res;
+            Map<String,String> whereParams = new HashMap<String,String>();
+            whereParams.put("Key_name", indexName);
+            String query = String.format("SHOW INDEX FROM %s %s",
+                            SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
+                            buildWhereClause(conn, whereParams, false, false));
+            Statement stmt = conn.createStatement();
+            res = stmt.execute(query);
+            return res;
+        }
+        /**
 	 * @param conn An existing SQL Connection
 	 * @param SchemaName A schema name accessible through the given connection
 	 * @param tableName The name of an existing table
@@ -1404,14 +1426,36 @@ public class SQLUtils
 	 * @throws SQLException If the query fails.
 	 */
 	public static void createIndex(Connection conn, String schemaName, String tableName, String[] columnNames) throws SQLException
+        {
+            createIndex(conn, schemaName, tableName, tableName + "_index", columnNames, null);
+        }
+	/**
+	 * @param conn An existing SQL Connection
+	 * @param SchemaName A schema name accessible through the given connection
+	 * @param tableName The name of an existing table
+         * @param indexName The name to use for the new index.
+	 * @param columnNames The names of the columns to use
+         * @param columnLengths The lengths to use as indices
+	 * @throws SQLException If the query fails.
+	 */
+	public static void createIndex(Connection conn, String schemaName, String tableName, String indexName, String[] columnNames, Integer[] columnLengths) throws SQLException
 	{
 		String columnNamesStr = "";
 		for (int i = 0; i < columnNames.length; i++)
-			columnNamesStr += (i > 0 ? ", " : "") + quoteSymbol(conn, columnNames[i]);
-		
+                {
+                        if ((columnLengths != null) && columnLengths[i] != 0)
+                        {
+			    columnNamesStr += (i > 0 ? ", " : "") + String.format("%s(%d)", quoteSymbol(conn, columnNames[i]), columnLengths[i]);
+                        }
+                        else
+                        {
+                            columnNamesStr += (i > 0 ? ", " : "") + quoteSymbol(conn, columnNames[i]);
+                        }
+                }
+                if (hasIndex(conn, schemaName, tableName, indexName)) return;
 		String query = String.format(
 				"CREATE INDEX %s ON %s (%s)",
-				SQLUtils.quoteSymbol(conn, tableName + "_index"),
+				SQLUtils.quoteSymbol(conn, indexName),
 				SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
 				columnNamesStr
 		);
