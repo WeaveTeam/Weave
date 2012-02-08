@@ -97,9 +97,6 @@ package weave
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
 	import weave.ui.infomap.InfoMapLoader;
-	import weave.editors.managers.AddDataSourcePanel;
-	import weave.editors.managers.EditDataSourcePanel;
-	import weave.editors.WeavePropertiesEditor;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DebugTimer;
 	import weave.utils.EditorManager;
@@ -1307,6 +1304,11 @@ package weave
 					);
 					// By default this menu item is disabled so that it does not show up unless we right click on a tool
 					_exportCSVContextMenuItem.enabled = false;				
+				}
+				
+				if(Weave.properties.enableInfoMap.value)
+				{
+					InfoMapLoader.createContextMenuItems(this);
 				}
 				
 				// Add context menu items for handling search queries
