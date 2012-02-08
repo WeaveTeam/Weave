@@ -31,7 +31,7 @@ package weave.ui.CustomDataGrid
 	
 	
 	
-	public class WeaveCustomDataGridColumn extends DataGridColumn 
+	public class WeaveCustomDataGridColumn extends DataGridColumn
 	{
 		public function WeaveCustomDataGridColumn(attrColumn:IAttributeColumn)
 		{
@@ -62,6 +62,8 @@ package weave.ui.CustomDataGrid
 		}
 		
 		
+		
+		
 				
 		protected var _filterComponent:IFilterComponent;	
 		public function get filterComponent():IFilterComponent
@@ -74,8 +76,7 @@ package weave.ui.CustomDataGrid
 			if(filterComp)
 			{
 				_filterComponent = filterComp;
-				_filterComponent.mapColumnToFilter(this);
-				filterComp.width = this.width;				
+				_filterComponent.mapColumnToFilter(this);		
 			}			
 		}
 		
