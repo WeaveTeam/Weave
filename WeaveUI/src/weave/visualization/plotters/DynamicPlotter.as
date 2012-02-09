@@ -24,7 +24,6 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ICallbackInterface;
 	import weave.api.data.IFilteredKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
@@ -36,7 +35,6 @@ package weave.visualization.plotters
 	import weave.api.unlinkSessionState;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableDynamicObject;
-	import weave.core.SessionManager;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.primitives.Bounds2D;
 

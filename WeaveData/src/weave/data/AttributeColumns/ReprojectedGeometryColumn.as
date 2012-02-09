@@ -20,7 +20,7 @@
 package weave.data.AttributeColumns
 {
 	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackInterface;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
@@ -53,7 +53,7 @@ package weave.data.AttributeColumns
 		/**
 		 * These callbacks are triggered when the list of keys or bounding boxes change.
 		 */		
-		public function get boundingBoxCallbacks():ICallbackInterface
+		public function get boundingBoxCallbacks():ICallbackCollection
 		{
 			return _boundingBoxCallbacks;
 		}

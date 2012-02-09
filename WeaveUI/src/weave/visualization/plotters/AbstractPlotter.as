@@ -25,7 +25,6 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	
 	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ICallbackInterface;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IFilteredKeySet;
