@@ -35,7 +35,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <td class="classHeaderTableLabel">Package</td><td><a onclick="javascript:loadClassListFrame('class-list.html')" href="package-detail.html">weave.api.core</a></td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Interface</td><td class="classSignature">public interface IChildListCallbackInterface extends <a href="ICallbackInterface.html">ICallbackInterface</a></td>
+<td class="classHeaderTableLabel">Interface</td><td class="classSignature">public interface IChildListCallbackInterface extends <a href="ICallbackCollection.html">ICallbackCollection</a>, <a href="ILinkableObject.html">ILinkableObject</a></td>
 </tr>
 </table>
 <p></p>
@@ -63,6 +63,12 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr>
 <th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
+<tr class="hideInheritedProperty">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="ICallbackCollection.html#callbacksAreDelayed">callbacksAreDelayed</a> : Boolean<div class="summaryTableDescription">
+   While this is true, it means the delay count is greater than zero and the effects of
+   triggerCallbacks() are delayed until resumeCallbacks() is called to reduce the delay count.</div>
+</td><td class="summaryTableOwnerCol"><a href="ICallbackCollection.html">ICallbackCollection</a></td>
+</tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#lastNameAdded">lastNameAdded</a> : String<div class="summaryTableDescription">[read-only]
    This is the name of the object that was added prior to running immediate callbacks.</div>
@@ -86,9 +92,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 </td><td class="summaryTableOwnerCol">IChildListCallbackInterface</td>
 </tr>
 <tr class="hideInheritedProperty">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="ICallbackInterface.html#triggerCounter">triggerCounter</a> : uint<div class="summaryTableDescription">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="ICallbackCollection.html#triggerCounter">triggerCounter</a> : uint<div class="summaryTableDescription">
    This counter gets incremented at the time that callbacks are triggered and before they are actually called.</div>
-</td><td class="summaryTableOwnerCol"><a href="ICallbackInterface.html">ICallbackInterface</a></td>
+</td><td class="summaryTableOwnerCol"><a href="ICallbackCollection.html">ICallbackCollection</a></td>
 </tr>
 </table>
 </div>
@@ -110,26 +116,50 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="ICallbackInterface.html#addGroupedCallback()">addGroupedCallback</a>(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void</div>
+<a class="signatureLink" href="ICallbackCollection.html#addGroupedCallback()">addGroupedCallback</a>(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void</div>
 <div class="summaryTableDescription">
    This function will add a callback that will be delayed except during a scheduled time each frame.</div>
-</td><td class="summaryTableOwnerCol"><a href="ICallbackInterface.html">ICallbackInterface</a></td>
+</td><td class="summaryTableOwnerCol"><a href="ICallbackCollection.html">ICallbackCollection</a></td>
 </tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="ICallbackInterface.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void</div>
+<a class="signatureLink" href="ICallbackCollection.html#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void</div>
 <div class="summaryTableDescription">
    This function will add a callback using the given function and parameters.</div>
-</td><td class="summaryTableOwnerCol"><a href="ICallbackInterface.html">ICallbackInterface</a></td>
+</td><td class="summaryTableOwnerCol"><a href="ICallbackCollection.html">ICallbackCollection</a></td>
 </tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="ICallbackInterface.html#removeCallback()">removeCallback</a>(callback:Function):void</div>
+<a class="signatureLink" href="ICallbackCollection.html#delayCallbacks()">delayCallbacks</a>():void</div>
+<div class="summaryTableDescription">
+   This will increase the delay count by 1.</div>
+</td><td class="summaryTableOwnerCol"><a href="ICallbackCollection.html">ICallbackCollection</a></td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="ICallbackCollection.html#removeCallback()">removeCallback</a>(callback:Function):void</div>
 <div class="summaryTableDescription">
    This function will remove a callback that was previously added.</div>
-</td><td class="summaryTableOwnerCol"><a href="ICallbackInterface.html">ICallbackInterface</a></td>
+</td><td class="summaryTableOwnerCol"><a href="ICallbackCollection.html">ICallbackCollection</a></td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="ICallbackCollection.html#resumeCallbacks()">resumeCallbacks</a>(undoAllDelays:Boolean = false):void</div>
+<div class="summaryTableDescription">
+   This will decrease the delay count if it is greater than zero.</div>
+</td><td class="summaryTableOwnerCol"><a href="ICallbackCollection.html">ICallbackCollection</a></td>
+</tr>
+<tr class="hideInheritedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="ICallbackCollection.html#triggerCallbacks()">triggerCallbacks</a>():void</div>
+<div class="summaryTableDescription">
+   This will trigger every callback function to be called with their saved arguments.</div>
+</td><td class="summaryTableOwnerCol"><a href="ICallbackCollection.html">ICallbackCollection</a></td>
 </tr>
 </table>
 </div>
