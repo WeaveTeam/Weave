@@ -213,7 +213,7 @@
 				
 				this.invalidateDisplayList();
 				
-				var solrURL:String = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows="+node.numberOfDocs.value.toString()+"&indent=on&q=";	
+				var solrURL:String = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows="+node.numberOfDocs.value.toString()+"&sort=date_published desc&indent=on&q=";	
 				var query:String = "";
 				query = (node.keywords.value as String);				
 				
