@@ -95,6 +95,7 @@
 			import mx.core.UIComponent;
 			import mx.managers.PopUpManager;
 			import mx.managers.ToolTipManager;
+			import mx.rpc.Fault;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
@@ -192,11 +193,18 @@
 			{
 				var tableName:String = _serverFileBrowser.datagrid.selectedItem.name;
 				
-				AdminInterface.instance.service.getCSVColumnNames(tableName).addAsyncResponder(handleGetCSVColumnNames);
+				_csvData='';
+				nextEnabled = false;
+				finishEnabled = false;
+				
+				AdminInterface.instance.service.getCSVColumnNames(tableName).addAsyncResponder(handleGetCSVColumnNames,handleCSVFault);
+				AdminInterface.instance.service.getCSVStringData(tableName).addAsyncResponder(handleGetCSVStringData,handleCSVFault);
+				
+				
 				
 				csvFileNameInput.text = tableName;
 				tableName = tableName.substring(0,tableName.lastIndexOf("."));
-				tableSelector.activeTable = tableName;
+				tableSelector.activeTable = tableName; 
 				
 				PopUpManager.removePopUp(_serverFileBrowser);
 				enableAllWidgets();
@@ -206,7 +214,29 @@
 				csvKeyColumnCombo.dataProvider = e.result;
 				csvSecondaryKeyColumnCombo.dataProvider = e.result;
 			}
+			private function handleGetCSVStringData(e:ResultEvent,token:Object=null):void
+			{
+				_csvData = e.result as String;
+				finishEnabled = true;
+				nextEnabled = true;
+			}
+			private function handleCSVFault(e:FaultEvent,token:Object=null):void
+			{
+				finishEnabled = true;
+			}
 			
+			//enables next and finish buttons(if they are not enabled already) if _csvdata is not empty.
+			//This means the user has already loaded a file and might want to upload a new file or hit the back button by mistake
+			override public function back():void
+			{
+				if(_csvData)
+				{
+					nextEnabled = true;
+					finishEnabled = true;
+				}
+				
+				super.back();
+			}
 			
 			/**
 			 * Adds the new CSV file to the server configuration, then adds the Dublin Core metadata (if any).

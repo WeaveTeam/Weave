@@ -15,37 +15,31 @@
 
 package weave.api
 {
-	import weave.api.core.ICallbackInterface;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	
 	/**
-	 * This function will remove a grouped callback from one ILinkableObject or ICallbackInterface and add it to another.
-	 * @param oldTarget The old target which may be an ILinkableObject, an ICallbackInterface, or null.
-	 * @param newTarget The new target which may be an ILinkableObject, an ICallbackInterface, or null.
-	 * @param relevantContext Corresponds to the relevantContext parameter of ICallbackInterface.addImmediateCallback().
-	 * @param callback Corresponds to the callback parameter of ICallbackInterface.addImmediateCallback().
-	 * @param parameters Corresponds to the parameters parameter of ICallbackInterface.addImmediateCallback().
-	 * @param runCallbackNow Corresponds to the runCallbackNow parameter of ICallbackInterface.addImmediateCallback().
-	 * @see weave.api.core.ICallbackInterface#addImmediateCallback
+	 * This function will remove a grouped callback from one ILinkableObject or ICallbackCollection and add it to another.
+	 * @param oldTarget The old target, which may be null.
+	 * @param newTarget The new target, which may be null.
+	 * @param relevantContext Corresponds to the relevantContext parameter of ICallbackCollection.addImmediateCallback().
+	 * @param callback Corresponds to the callback parameter of ICallbackCollection.addImmediateCallback().
+	 * @param parameters Corresponds to the parameters parameter of ICallbackCollection.addImmediateCallback().
+	 * @param runCallbackNow Corresponds to the runCallbackNow parameter of ICallbackCollection.addImmediateCallback().
+	 * @see weave.api.core.ICallbackCollection#addImmediateCallback
 	 */
-	public function juggleImmediateCallback(oldTarget:Object, newTarget:Object, relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false):void
+	public function juggleImmediateCallback(oldTarget:ILinkableObject, newTarget:ILinkableObject, relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false):void
 	{
 		// do nothing if the targets are the same.
 		if (oldTarget == newTarget)
 			return;
 		
 		// remove callback from old target
-		var oldCI:ICallbackInterface = oldTarget as ICallbackInterface;
-		if (!oldCI)
-			oldCI = WeaveAPI.SessionManager.getCallbackCollection(oldTarget as ILinkableObject);
-		if (oldCI)
-			oldCI.removeCallback(callback);
+		if (oldTarget)
+			WeaveAPI.SessionManager.getCallbackCollection(oldTarget).removeCallback(callback);
 		
 		// add callback to new target
-		var newCI:ICallbackInterface = newTarget as ICallbackInterface;
-		if (!newCI)
-			newCI = WeaveAPI.SessionManager.getCallbackCollection(newTarget as ILinkableObject);
-		if (newCI)
-			newCI.addImmediateCallback(relevantContext, callback, parameters, runCallbackNow);
+		if (newTarget)
+			WeaveAPI.SessionManager.getCallbackCollection(newTarget).addImmediateCallback(relevantContext, callback, parameters, runCallbackNow);
 	}
 }

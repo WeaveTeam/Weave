@@ -139,7 +139,7 @@ package weave.api.core
 		 * @param callback The callback function that will only be allowed to run during a scheduled time each frame.  It must be specified as a String and must not require any parameters.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.
 		 * @return true if objectPath refers to an existing object in the session state.
-		 * @see weave.api.core.ICallbackInterface#addGroupedCallback
+		 * @see weave.api.core.ICallbackCollection#addGroupedCallback
 		 */
 		function addCallback(objectPathOrExpressionName:Object, callback:String, triggerCallbackNow:Boolean = false):Boolean;
 		
