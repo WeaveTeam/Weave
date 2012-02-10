@@ -1,7 +1,6 @@
 package weave.ui.infomap.core
 {
 	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ICallbackInterface;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
