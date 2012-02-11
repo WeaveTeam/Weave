@@ -131,6 +131,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
+			import mx.core.IUITextField;
 			import mx.core.mx_internal;
 			
 			import weave.Weave;
@@ -203,6 +204,8 @@
 			
 			private function handleLinkableHtmlText():void
 			{
+				// use internal text field because the real _tempTextField loses formatting.
+				var _tempTextField:IUITextField = textArea.mx_internal::getTextField();
 				_tempTextField.htmlText = htmlText.value; // use the textField temporarily for getTextFormat,setTextFormat
 				// make sure the text between each pair of { and } brackets only has a single format.
 				var begin:int;
