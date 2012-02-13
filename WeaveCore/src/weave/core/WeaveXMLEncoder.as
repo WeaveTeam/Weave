@@ -27,7 +27,6 @@ package weave.core
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.reportError;
 	
 	/**
@@ -121,10 +120,8 @@ package weave.core
 			}
 			try
 			{
-				var str:String = obj as String;
-				// if the string looks like it may be XML, attempt to parse it as XML
-				if (str && str.charAt(0) == '<' && str.charAt(str.length - 1) == '>')
-					obj = XML(str);
+				if (obj.hasOwnProperty(LinkableXML.XML_STRING))
+					obj = XML(obj[LinkableXML.XML_STRING]);
 			}
 			catch (e:Error)
 			{

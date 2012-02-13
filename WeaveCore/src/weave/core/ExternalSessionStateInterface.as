@@ -20,7 +20,6 @@
 package weave.core
 {
 	import flash.external.ExternalInterface;
-	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
@@ -31,7 +30,6 @@ package weave.core
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
-	import weave.compiler.ICompiledObject;
 
 	use namespace weave_internal;
 	
@@ -130,7 +128,9 @@ package weave.core
 				for (var name:String in state)
 				{
 					var value:Object = state[name];
-					if (value is XML)
+					if (value.hasOwnProperty(LinkableXML.XML_STRING))
+						state[name] = value[LinkableXML.XML_STRING];
+					else if (value is XML)
 						state[name] = (value as XML).toXMLString();
 					else
 						convertSessionStateToPrimitives(value);
