@@ -58,6 +58,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.unlinkBindableProperty;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.core.UIUtils;
@@ -81,7 +82,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * @public
 			 * This is mapping of a link to a node where each node is a defined by a query of keywords,operator and filters
 			 * */
-			public const nodes:LinkableHashMap = newLinkableChild(this, LinkableHashMap,handleNodesChildListChange);
+			public const nodes:LinkableHashMap = newLinkableChild(this, LinkableHashMap,handleNodesChildListChange,true);
 			
 			/**
 			 * @public
@@ -111,6 +112,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.constructor();
 			}
 			
+			[Bindable]
+			public var defaultNodeBorderColor:uint;
+		
+			[Bindable]
+			public var selectedNodeBorderColor:uint;
+			
+			[Bindable]
+			public var defaultThumbnailBorderColor:uint;
+			
+			[Bindable]
+			public var selectedThumbnailBorderColor:uint;
+
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -132,6 +145,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				refreshTimer.start();
 				//call event for each tick of refreshTimer
 				refreshTimer.addEventListener(TimerEvent.TIMER, refreshNodes);
+				
+					
 			}
 			
 			private var refreshTimer:Timer = new Timer(300000);
@@ -181,7 +196,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleNodesChildListChange():void
 			{
-				//TODO:adjust the coordinates of single docs
+				var nodesArray:Array = nodes.getObjects();
+				
+				for each (var n:NodeHandler in nodesArray)
+				{
+					linkBindableProperty((n as NodeHandler).defaultBorderColor,this,"defaultNodeBorderColor");
+					linkBindableProperty((n as NodeHandler).selectedBorderColor,this,"selectedNodeBorderColor");
+					linkBindableProperty((n as NodeHandler).defaultThumbnailBorderColor,this,"defaultThumbnailBorderColor");
+					linkBindableProperty((n as NodeHandler).selectedThumbnailBorderColor,this,"selectedThumbnailBorderColor");
+				}
 			}
 			
 			public function addInfoMapNode(query:String,op:String=null):void
@@ -190,10 +213,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var nodeName:String = nodes.generateUniqueName(className);
 				var nodeHandler:NodeHandler= new NodeHandler();
 				nodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
-				linkBindableProperty(nodeHandler.defaultBorderColor,defaultNodeColor,"selectedColor");
-				linkBindableProperty(nodeHandler.selectedBorderColor,selectedNodeColor,"selectedColor");
-				linkBindableProperty(nodeHandler.defaultThumbnailBorderColor,defaultThumbnailBorder,"selectedColor");
-				linkBindableProperty(nodeHandler.selectedThumbnailBorderColor,selectedThumbnailBorder,"selectedColor");
+//				linkBindableProperty(nodeHandler.defaultBorderColor,defaultNodeColor,"selectedColor");
+//				linkBindableProperty(nodeHandler.selectedBorderColor,selectedNodeColor,"selectedColor");
+//				linkBindableProperty(nodeHandler.defaultThumbnailBorderColor,defaultThumbnailBorder,"selectedColor");
+//				linkBindableProperty(nodeHandler.selectedThumbnailBorderColor,selectedThumbnailBorder,"selectedColor");
 				
 				nodeHandler.node.keywords.value = query;
 				if(op ==null)
@@ -386,6 +409,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				map.graphics.clear();
 				backgroundImageName.value = "";				
 			}
+			
+			
 		]]>
 	</mx:Script>
 	<!--the resize code is required so that the content is clipped by the canvas-->
@@ -439,23 +464,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:HBox>
 				<mx:VBox>
 					<mx:HBox>
-						<mx:ColorPicker id="defaultNodeColor" />
+						<mx:ColorPicker id="defaultNodeColorPicker" selectedColor="{defaultNodeBorderColor}" change="defaultNodeBorderColor = event.target.selectedColor;"/>
 						<mx:Label width="150" text="Default Node Color"/>				
 					</mx:HBox>
 					
 					<mx:HBox>
-						<mx:ColorPicker id="selectedNodeColor"/>
+						<mx:ColorPicker id="selectedNodeColorPicker" selectedColor="{selectedNodeBorderColor}" change="selectedNodeBorderColor = event.target.selectedColor;"/>
 						<mx:Label width="150" text="Selected Node Color"/>				
 					</mx:HBox>
 				</mx:VBox>
 				<mx:VBox>
 					<mx:HBox>
-						<mx:ColorPicker id="defaultThumbnailBorder"/>
+						<mx:ColorPicker id="defaultThumbnailBorderPicker" selectedColor="{defaultThumbnailBorderColor}" change="defaultThumbnailBorderColor = event.target.selectedColor;"/>
 						<mx:Label width="200" text="Default Thumbnail Border Color"/>				
 					</mx:HBox>
 					
 					<mx:HBox>
-						<mx:ColorPicker id="selectedThumbnailBorder"/>
+						<mx:ColorPicker id="selectedThumbnailBorderPicker" selectedColor="{selectedThumbnailBorderColor}" change="selectedThumbnailBorderColor= event.target.selectedColor;"/>
 						<mx:Label width="200" text="Selected Thumbnail Border Color"/>				
 					</mx:HBox>
 				</mx:VBox>

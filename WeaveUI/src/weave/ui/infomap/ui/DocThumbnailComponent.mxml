@@ -15,7 +15,7 @@ so that it can be moved, selected, handle filters.
 				mouseOver="handleMouseOver(event)"
 				mouseOut="handleMouseOut()"
 				borderStyle="solid"
-				borderThickness="1"
+				borderThickness="0.5"
 				cornerRadius="5"
 				borderColor="black"
 				>
@@ -81,7 +81,7 @@ so that it can be moved, selected, handle filters.
 			 * @public
 			 * This variable sets the color of the border of this image when the document is selected.
 			 * */
-			public const highlightedBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
+			public const selectedBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
 			/**
 			 * @public
 			 * This variable sets the thickness of the border of this image.
@@ -134,26 +134,27 @@ so that it can be moved, selected, handle filters.
 				linkBindableProperty(xPos,this,"x");
 				linkBindableProperty(yPos,this,"y");
 				
-				highlightedBorderColor.addGroupedCallback(this,highlight);
+				selectedBorderColor.addGroupedCallback(this,highlight);
+				defaultBorderColor.addGroupedCallback(this,highlight);
 				
 				var filterableNode:FilterableInfoMapNode = (this.parent as NodeHandler).node as FilterableInfoMapNode;
 				//adding callback for a search query made in the node handler this belongs to
 				(this.parent as NodeHandler).searchFilter.addImmediateCallback(this,handleLocalSearchFilter,null,true);
-				(this.parent as NodeHandler).defaultThumbnailBorderColor.addImmediateCallback(this,handleDefaultBorderColorChange,null,true);
-				(this.parent as NodeHandler).selectedThumbnailBorderColor.addImmediateCallback(this,handleSelectedBorderColorChange,null,true);
+//				(this.parent as NodeHandler).defaultThumbnailBorderColor.addImmediateCallback(this,handleDefaultBorderColorChange,null,true);
+//				(this.parent as NodeHandler).selectedThumbnailBorderColor.addImmediateCallback(this,handleSelectedBorderColorChange,null,true);
 				getCallbackCollection(_selection).addGroupedCallback(this, highlight);
 			}
 			
 			
-			private function handleDefaultBorderColorChange():void
-			{
-					defaultBorderColor.value = (this.parent as NodeHandler).defaultThumbnailBorderColor.value;
-			}
-			
-			private function handleSelectedBorderColorChange():void
-			{
-				highlightedBorderColor.value = (this.parent as NodeHandler).selectedThumbnailBorderColor.value;
-			}
+//			private function handleDefaultBorderColorChange():void
+//			{
+//					defaultBorderColor.value = (this.parent as NodeHandler).defaultThumbnailBorderColor.value;
+//			}
+//			
+//			private function handleSelectedBorderColorChange():void
+//			{
+//				selectedBorderColor.value = (this.parent as NodeHandler).selectedThumbnailBorderColor.value;
+//			}
 			
 			//this function is called when a local search is made in the node handler this belongs to.
 			//if a match for the search query is not found in the doc object, it makes the image invisible
@@ -416,7 +417,7 @@ so that it can be moved, selected, handle filters.
 				} else if(_selection.containsKey(_key))
 				{
 					imageAlpha.value = 1.0;
-					setStyle("borderColor",highlightedBorderColor.value);
+					setStyle("borderColor",selectedBorderColor.value);
 				}
 				else
 				{

@@ -8,7 +8,10 @@ Use the static functions to show this as a popup.
 			 verticalScrollPolicy="off" 
 			 horizontalScrollPolicy="off" 
 			 paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5"
-			 >
+			 visible="true">
+		<mx:Fade target="{this}" id="fadeIn" alphaFrom="0.0" alphaTo="1.0" duration="700"/>
+	    <mx:Fade target="{this}" id="fadeOut" alphaFrom="1.0" alphaTo="0.0" duration="700"/>
+		
 		<mx:Script >
 			<![CDATA[
 				import flash.events.MouseEvent;
@@ -67,10 +70,12 @@ Use the static functions to show this as a popup.
 					WeaveAPI.URLRequestUtils.getContent(new URLRequest(doc.imageURL.value),handleImage,null,doc.imageURL);
 					instance.move(xPos,yPos);
 					PopUpManager.addPopUp(instance,parent);
+					instance.fadeIn.play();
 				}
 				
 				public static function hide():void
 				{
+					instance.fadeOut.play();
 					PopUpManager.removePopUp(instance);
 				}
 				

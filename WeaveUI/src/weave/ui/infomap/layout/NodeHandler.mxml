@@ -86,9 +86,9 @@
 			
 			public const selectedBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(39168),highlightNode,true);
 			
-			public const defaultThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(000000),highlightNode,true);
+			public const defaultThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(000000));
 			
-			public const selectedThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680),highlightNode,true);
+			public const selectedThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
 			
 			public const newThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(00255));
 			/**
@@ -177,6 +177,8 @@
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.CLICK,handleClick);
 				
 				getCallbackCollection(_subset).addGroupedCallback(this,handleSubsetChange);
+				
+				highlightNode();
 			}
 			
 			private var highlightNewDocuments:Boolean = false;
@@ -389,11 +391,18 @@
 						
 						//we replace the doc object because, the summary, description might have changed. 
 						thumbnail.doc = obj as SelectableInfoMapDocument;
+						
+						linkSessionState(defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
+						linkSessionState(selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
 						continue;
 					}
 					thumbnail = thumbnails.requestObject(link,DocThumbnailComponent,false);
 					
 					thumbnail.doc = obj as SelectableInfoMapDocument;
+					
+					linkSessionState(defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
+					linkSessionState(selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
+					
 					
 					if(highlightNewDocuments)
 					{
@@ -738,6 +747,7 @@
 				
 				return result;
 			}
+			
 			
 		]]>
 	</mx:Script>
