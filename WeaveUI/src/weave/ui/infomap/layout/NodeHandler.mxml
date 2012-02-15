@@ -42,6 +42,7 @@
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.detectLinkableObjectChange;
 			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
@@ -120,22 +121,30 @@
 			
 			private var _parentPanel:InfoMapPanel;
 			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
+			
+			override protected function createChildren():void
+			{
+
+				super.createChildren();
+				this.addChild(nodeBase);
+			}
+			
 			override protected function childrenCreated():void
 			{
 				
-				this.addChild(nodeBase);
-
-				
+								
+				super.childrenCreated();
+								
 				//TODO: color property is not bindable to use callbakc function to set the colorproperty
 //				linkBindableProperty(defaultBorderColor,unselectedBorder,"color");
 //				linkBindableProperty(selectedBorderColor,selectedBorder,"color");
 				
-				node.keywords.addGroupedCallback(this,createAndSendQuery,true);
-				node.operator.addGroupedCallback(this,createAndSendQuery,true);
-				node.numberOfDocs.addGroupedCallback(this,createAndSendQuery,true);
-				node.dateFilter.startDate.addGroupedCallback(this,createAndSendQuery,true);
-				node.dateFilter.endDate.addGroupedCallback(this,createAndSendQuery,true);
-				node.sources.addGroupedCallback(this,createAndSendQuery,true);
+				node.keywords.addGroupedCallback(this,createAndSendQuery);
+				node.operator.addGroupedCallback(this,createAndSendQuery);
+				node.numberOfDocs.addGroupedCallback(this,createAndSendQuery);
+				node.dateFilter.startDate.addGroupedCallback(this,createAndSendQuery);
+				node.dateFilter.endDate.addGroupedCallback(this,createAndSendQuery);
+				node.sources.addGroupedCallback(this,createAndSendQuery);
 				//if node is selected we highlight the nodeBase
 				node.selected.addGroupedCallback(this,highlightNode);
 				
@@ -162,7 +171,7 @@
 				linkBindableProperty(yPos,this,"y");
 				
 				
-//				UIUtils.linkDisplayObjects(this,thumbnails,true);
+				UIUtils.linkDisplayObjects(this,thumbnails,true);
 				
 				//sets a pointer to the node's parent which is an InfoMapPanel
 				var hashmap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableOwner(this) as LinkableHashMap;
@@ -179,6 +188,9 @@
 				getCallbackCollection(_subset).addGroupedCallback(this,handleSubsetChange);
 				
 				highlightNode();
+				
+				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
+				
 			}
 			
 			private var highlightNewDocuments:Boolean = false;
@@ -378,11 +390,13 @@
 			private function handleParsedResult(response:ArrayCollection):void
 			{
 				var obj:SelectableInfoMapDocument;
+				thumbnails.delayCallbacks();
 				for(var i:int; i<response.length ;i++)
 				{
 					var link:String = response[i] as String;					
 					obj = _parentPanel.docs.requestObject(link,SelectableInfoMapDocument,false);
 					var thumbnail:DocThumbnailComponent = new DocThumbnailComponent();
+					
 					
 					//if the thumbnail already exists use previous x,y values
 					if(thumbnails.getObject(link))
@@ -411,30 +425,23 @@
 					
 				}
 				
-				handleSubsetChange();
+				thumbnails.resumeCallbacks();			
 				
-				//we now have all the required thumbnails, so we use the layout to plot them
-				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
-				
+			}
+			
+			override public function validateDisplayList():void
+			{
+//				graphics.beginFill(Math.random()*0xFFFFFF,1);
+//				graphics.drawCircle(0,0,50);
+				if(detectLinkableObjectChange(updateDisplayList,thumbnails))
+					handleSubsetChange();
+				super.validateDisplayList();
 				
 			}
 			
 			private var thumbnailsToPlotArray:Array = [];
 			private function handleSubsetChange():void
 			{
-//				var currentThumbnails:Array = thumbnails.getNames();
-//				for each (var link:String in currentThumbnails)
-//				{
-//					if(!_subset.containsKey(WeaveAPI.QKeyManager.getQKey("infomapDocURL",link)))
-//						thumbnails.removeObject(link);
-//				}
-				
-				
-//				var includedKeys:Array = WeaveAPI.QKeyManager.getQKeys(InfoMapPanel.DOC_KEYTYPE,_subset.included.keys);
-//				var excludedKeys:Array = WeaveAPI.QKeyManager.getQKeys(InfoMapPanel.DOC_KEYTYPE,_subset.excluded.keys);
-				
-								
-//				var dictKey:*;
 				thumbnailsToPlotArray = [];
 				
 				//add all thumbanils to dictionary and set it all to false
@@ -444,66 +451,19 @@
 					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapPanel.DOC_KEYTYPE,docURL);
 					if(_subset.containsKey(qKey))
 					{
+						if(t.doc == null)
+						{
+							t.doc = _parentPanel.docs.getObject(docURL) as SelectableInfoMapDocument;	
+						}
 						thumbnailsToPlotArray.push(t);
 						t.visible = true;
-						addChild(t);
+//						addChild(t);
 					}else{
 						
 						t.visible = false;
 					}
 				}
 				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
-				
-//				//add all thumbnails to be plotted to an array
-//				for (dictKey in thumbNailsToPlot)
-//				{
-//					if(thumbNailsToPlot[dictKey])
-//					{
-//						thumbnailsToPlotArray.push(dictKey);
-//						addChild(dictKey);
-//					}
-//				}
-//				
-				
-				
-//				//add only included keys from subset
-//				if(includedKeys.length>0)
-//				{
-//					for each (var iKey:IQualifiedKey in includedKeys)
-//					{
-//						//var includedThumbnail:DocThumbnailComponent = thumbnails.getObject(iKey.localName) as DocThumbnailComponent;
-//						var includedThumbnail:DocThumbnailComponent = thumbnails.requestObject(iKey.localName,DocThumbnailComponent,true) as DocThumbnailComponent;
-//						if(includedThumbnail)
-//						{
-//							thumbNailsToPlot[includedThumbnail] = true;
-//							includedThumbnail.visible = true;						
-//						}
-//					}
-//				}else //else set all thumbnails to be added
-//				{
-//					for (dictKey in thumbNailsToPlot)
-//					{
-//						thumbNailsToPlot[dictKey] = true;
-//						(dictKey as DocThumbnailComponent).visible = true;
-//					}
-//				}
-//				
-//				//remove excluded keys if any
-//				if(excludedKeys.length >0)
-//				{
-//					for each(var xKey:IQualifiedKey in excludedKeys)
-//					{
-//						var excludedThumbnail:DocThumbnailComponent = thumbnails.getObject(xKey.localName) as DocThumbnailComponent;
-//						
-//						if(excludedThumbnail)
-//						{
-//							thumbNailsToPlot[excludedThumbnail] = false;
-//							excludedThumbnail.visible = false;
-//						}
-//						
-//					}
-//				}
-				
 				
 			}
 			
@@ -519,22 +479,6 @@
 				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
 			}
 			
-//			private function handleMouseOver():void
-//			{
-//				nodeControl.closeImg.visible = true;
-//				nodeControl.editImg.visible = true;
-//				nodeControl.searchImg.visible = true;
-//				nodeControl.filterImg.visible = true;
-//			}
-//			
-//			
-//			private function handleMouseOut():void
-//			{
-//				nodeControl.closeImg.visible = false;
-//				nodeControl.editImg.visible = false;
-//				nodeControl.searchImg.visible = false;
-//				nodeControl.filterImg.visible = false;
-//			}
 			
 			//toggle node selection on click
 			private function handleClick(event:Event):void

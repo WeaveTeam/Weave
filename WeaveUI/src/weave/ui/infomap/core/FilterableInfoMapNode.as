@@ -22,7 +22,7 @@ package weave.ui.infomap.core
 		 * @public
 		 * This will hold the source names to query on. It is a comma separate list of names
 		 **/
-		public const sources:LinkableString = registerLinkableChild(this,new LinkableString(''));
+		public const sources:LinkableString = registerLinkableChild(this,new LinkableString('',null,false));
 		
 	}
 }

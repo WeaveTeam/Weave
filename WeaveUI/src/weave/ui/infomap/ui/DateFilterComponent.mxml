@@ -38,6 +38,7 @@
 				
 				override protected function childrenCreated():void
 				{
+					super.childrenCreated();
 					rangeComboBox.dataProvider = ['--Choose--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
 				}
 				

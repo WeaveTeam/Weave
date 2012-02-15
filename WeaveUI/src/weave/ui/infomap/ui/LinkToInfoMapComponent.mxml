@@ -58,6 +58,7 @@
 			
 			override protected function childrenCreated():void
 			{
+				super.childrenCreated();
 				borderGlow.play();	
 				//sessioning the x and y positions of this node
 				linkBindableProperty(xPos,this,"x");

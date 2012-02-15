@@ -26,13 +26,13 @@ package weave.ui.infomap.core
 		 * AND will search for documents containing all the keywords
 		 * OR will search for documents containing any of the keywords
 		 * */ 
-		public const operator:LinkableString = registerLinkableChild(this,new LinkableString('AND'));
+		public const operator:LinkableString = registerLinkableChild(this,new LinkableString('AND',null,false));
 
 		/**
 		 * @public 
 		 * This holds the value of the maximum number of documents that will be handled by the node
 		 * */ 
-		public const numberOfDocs:LinkableNumber = registerLinkableChild(this,new LinkableNumber(100));
+		public const numberOfDocs:LinkableNumber = registerLinkableChild(this,new LinkableNumber(100,null,false));
 		
 		
 		/**

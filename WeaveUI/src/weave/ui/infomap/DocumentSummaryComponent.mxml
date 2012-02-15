@@ -31,6 +31,8 @@
 				
 				override protected function childrenCreated():void
 				{
+					super.childrenCreated();
+					
 					this.setStyle("backgroundColor",0xEDE6E6);
 					this.setStyle("borderStyle","solid");
 					this.setStyle("borderColor",0xC40202);

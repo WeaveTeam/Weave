@@ -23,6 +23,7 @@
 			public var selectedSources:Dictionary = new Dictionary();
 			override protected function childrenCreated():void
 			{
+				super.childrenCreated();
 				refreshSourcesList();
 			}
 			

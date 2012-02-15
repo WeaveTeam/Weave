@@ -16,8 +16,8 @@ package weave.ui.infomap.core
 		{
 		}
 		
-		public const startDate:LinkableString = registerLinkableChild(this,new LinkableString(''));
-		public const endDate:LinkableString = registerLinkableChild(this,new LinkableString(''));
+		public const startDate:LinkableString = registerLinkableChild(this,new LinkableString('',null,false));
+		public const endDate:LinkableString = registerLinkableChild(this,new LinkableString('',null,false));
 		
 	}
 }

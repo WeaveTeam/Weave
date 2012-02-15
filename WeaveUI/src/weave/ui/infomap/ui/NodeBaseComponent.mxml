@@ -30,6 +30,7 @@ It has 4 icons to:
 			
 		override protected function childrenCreated():void
 		{
+			super.childrenCreated();
 			keywordTextArea.editable = false;
 			keywordTextArea.selectable = false;
 			keywordTextArea.minWidth = 20;
