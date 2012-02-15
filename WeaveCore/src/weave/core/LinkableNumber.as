@@ -31,10 +31,10 @@ package weave.core
 	 */
 	public class LinkableNumber extends LinkableVariable
 	{
-		public function LinkableNumber(defaultValue:Number = NaN, verifier:Function = null)
+		public function LinkableNumber(defaultValue:Number = NaN, verifier:Function = null, defaultValueTriggersCallbacks:Boolean = true)
 		{
 			_sessionState = NaN; // set to NaN instead of null because null==0
-			super(Number, verifier, defaultValue);
+			super(Number, verifier, defaultValue, defaultValueTriggersCallbacks);
 		}
 
 		public function get value():Number
