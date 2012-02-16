@@ -158,7 +158,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#LinkableNumber()">LinkableNumber</a>(defaultValue:Number, verifier:Function = null)</div>
+<a class="signatureLink" href="#LinkableNumber()">LinkableNumber</a>(defaultValue:Number, verifier:Function = null, defaultValueTriggersCallbacks:Boolean = true)</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">LinkableNumber</td>
 </tr>
@@ -347,7 +347,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function LinkableNumber(defaultValue:Number, verifier:Function = null)</code><span class="label">Parameters</span>
+<code>public function LinkableNumber(defaultValue:Number, verifier:Function = null, defaultValueTriggersCallbacks:Boolean = true)</code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">defaultValue</span>:Number</code></td>
@@ -357,6 +357,12 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">verifier</span>:Function</code> (default = <code>null</code>)<code></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">defaultValueTriggersCallbacks</span>:Boolean</code> (default = <code>true</code>)<code></code></td>
 </tr>
 </table>
 </div>

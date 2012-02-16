@@ -160,7 +160,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#LinkableVariable()">LinkableVariable</a>(sessionStateType:Class = null, verifier:Function = null, defaultValue:*)</div>
+<a class="signatureLink" href="#LinkableVariable()">LinkableVariable</a>(sessionStateType:Class = null, verifier:Function = null, defaultValue:Boolean, defaultValueTriggersCallbacks:* = true)</div>
 <div class="summaryTableDescription">
    This constructor does not allow an initial value to be specified, because no other class has a pointer to this object until the
    constructor completes, which means the value cannot be retrieved during any callbacks that would run in the constructor.</div>
@@ -403,7 +403,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function LinkableVariable(sessionStateType:Class = null, verifier:Function = null, defaultValue:*)</code><p>
+<code>public function LinkableVariable(sessionStateType:Class = null, verifier:Function = null, defaultValue:Boolean, defaultValueTriggersCallbacks:* = true)</code><p>
    This constructor does not allow an initial value to be specified, because no other class has a pointer to this object until the
    constructor completes, which means the value cannot be retrieved during any callbacks that would run in the constructor.  This
    forces the developer to set default values outside the constructor of the LinkableVariable, which means the callbacks will run
@@ -426,7 +426,14 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">defaultValue</span>:*</code> &mdash; The default value for the session state.
+<td width="20px"></td><td><code><span class="label">defaultValue</span>:Boolean</code> &mdash; The default value for the session state.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">defaultValueTriggersCallbacks</span>:*</code> (default = <code>true</code>)<code></code> &mdash; Set this to false if you do not want the callbacks to be triggered one frame later after setting the default value.
    </td>
 </tr>
 </table>
