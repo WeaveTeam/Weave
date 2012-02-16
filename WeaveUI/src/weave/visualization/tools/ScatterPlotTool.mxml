@@ -87,8 +87,7 @@
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
 				
-				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, invalidateAxes);
-				getCallbackCollection(plotter).addGroupedCallback(this, invalidateAxes, true);
+				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange, true);
 				
 				initColumnDefaults(plotter.xColumn, plotter.yColumn, colorColumn);
 				
@@ -344,11 +343,6 @@
 						visualization.additionalProbeColumns = null ;
 				}
 				else visualization.additionalProbeColumns = null;
-			}
-			
-			private function invalidateAxes():void
-			{
-				handlePanelTitleChange();
 			}
 			
 			override protected function handlePanelTitleChange():void
