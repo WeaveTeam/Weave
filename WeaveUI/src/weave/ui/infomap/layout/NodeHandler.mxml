@@ -189,6 +189,7 @@
 				
 				highlightNode();
 				
+				//we want to trigger the callback for thumbnails at each frame and check the trigger counter
 				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
 				
 			}
