@@ -21,6 +21,7 @@ package weave.core
 {
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.reportError;
 	
@@ -64,10 +65,7 @@ package weave.core
 				// If callbacks were triggered, make sure callbacks are triggered again one frame later when
 				// it is possible for other classes to have a pointer to this object and retrieve the value.
 				if (defaultValueTriggersCallbacks && triggerCounter > DEFAULT_TRIGGER_COUNT)
-				{
-					addImmediateCallback(null, removeCallback, [_defaultValueTrigger]);
-					addGroupedCallback(null, _defaultValueTrigger, true);
-				}
+					WeaveAPI.StageUtils.callLater(this, _defaultValueTrigger, null, false);
 			}
 		}
 		
@@ -76,9 +74,6 @@ package weave.core
 		 */		
 		private function _defaultValueTrigger():void
 		{
-			// only do this once
-			removeCallback(_defaultValueTrigger);
-			
 			// unless callbacks were triggered again since the default value was set, trigger callbacks now
 			if (!wasDisposed && triggerCounter == DEFAULT_TRIGGER_COUNT + 1)
 				triggerCallbacks();
