@@ -38,29 +38,39 @@ import weave.utils.SQLResult;
 public class SQLConfig
 		implements ISQLConfig
 {
-//	private final String SQLTYPE_VARCHAR = "VARCHAR(256)";
-//	private final String SQLTYPE_LONG_VARCHAR = "VARCHAR(2048)";
-//	private final String SQLTYPE_INT = "INT";
-	
-	private final String SUFFIX_DESC = "attr_desc";
-	private final String SUFFIX_META_PRIVATE = "attr_meta_private";
-	private final String SUFFIX_META_PUBLIC = "attr_meta_public";
-	private final String SUFFIX_HIERARCHY = "hierarchy";
-        private final String SUFFIX_CATEGORIES = "categories";
+	/* Table name parts */
+	private final String SUFFIX_META_PRIVATE = "meta_private";
+	private final String SUFFIX_META_PUBLIC = "meta_public";
+        private final String SUFFIX_MANIFEST = "manifest";
+        private final String SUFFIX_TAGS = "entity_tags";
 	private final String WEAVE_TABLE_PREFIX = "weave_";
-	
-	private final String ID = "id";
-        private final String NAME = "name";
-	private final String DESCRIPTION = "description";
-	private final String PROPERTY = "property";
-	private final String VALUE = "value";
-        private final String PARENT_ID = "parent_id";
-	
-	private String table_desc = WEAVE_TABLE_PREFIX + SUFFIX_DESC;
+
+        /* Complete Table Names */	
 	private String table_meta_private = WEAVE_TABLE_PREFIX + SUFFIX_META_PRIVATE;
 	private String table_meta_public = WEAVE_TABLE_PREFIX + SUFFIX_META_PUBLIC;
-        private String table_categories = WEAVE_TABLE_PREFIX + SUFFIX_CATEGORIES;
-	
+        private String table_manifest = WEAVE_TABLE_PREFIX + SUFFIX_MANIFEST;
+        private String table_tags = WEAVE_TABLE_PREFIX + SUFFIX_TAGS;
+
+        /* Column Names */	
+	private final String META_ID = "id";
+	private final String META_PROPERTY = "property";
+	private final String META_VALUE = "value";
+
+        private final String MAN_ID = "unique_id";
+        private final String MAN_TYPE = "type_id";
+        
+        private final String TAG_CHILD = "child_id";
+        private final String TAG_PARENT = "parent_id";
+        
+        /* Constants for type_id */
+        private final Integer MAN_TYPE_DATATABLE = 0;
+        private final Integer MAN_TYPE_COLUMN = 1;
+        private final Integer MAN_TYPE_TAG = 2;
+
+        /* Constants for system-reserved properties */
+        private final String META_PROPERTY_NAME = "sys_name";
+        private final String META_PROPERTY_DESC = "sys_desc";
+
 	private DatabaseConfigInfo dbInfo = null;
 	private ISQLConfig connectionConfig = null;
 	private Connection _lastConnection = null; // do not use this variable directly -- use getConnection() instead.
@@ -116,29 +126,29 @@ public class SQLConfig
 	{
 		Connection conn = getConnection();
 		
-		// ID->Description table
-		List<String> columnNames = Arrays.asList(ID, DESCRIPTION);
-		List<String> columnTypes = Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TEXT");
-		SQLUtils.createTable(conn, dbInfo.schema, table_desc, columnNames, columnTypes);
+		// Manifest table
+		List<String> columnNames = Arrays.asList(MAN_ID, MAN_TYPE);
+		List<String> columnTypes = Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TINYINT UNSIGNED");
+		SQLUtils.createTable(conn, dbInfo.schema, table_manifest, columnNames, columnTypes);
 		
 		// Metadata tables
-		columnNames = Arrays.asList(ID, PROPERTY, VALUE);
+		columnNames = Arrays.asList(META_ID, META_PROPERTY, META_VALUE);
 		columnTypes = Arrays.asList("BIGINT UNSIGNED", "TEXT", "TEXT");
 		SQLUtils.createTable(conn, dbInfo.schema, table_meta_private, columnNames, columnTypes);
 		SQLUtils.createTable(conn, dbInfo.schema, table_meta_public, columnNames, columnTypes);
 		
-		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, ID, table_desc, ID);
-		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, ID, table_desc, ID);
+		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, META_ID, table_manifest, MAN_ID);
+		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, META_ID, table_manifest, MAN_ID);
 	        
-                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_private, table_meta_private+ID+PROPERTY, new String[]{ID, PROPERTY}, new Integer[]{0,255});
-                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_private, table_meta_private+PROPERTY+VALUE, new String[]{PROPERTY, VALUE}, new Integer[]{255,255});
-                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_public, table_meta_public+ID+PROPERTY, new String[]{ID, PROPERTY}, new Integer[]{0,255});
-                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_public, table_meta_public+PROPERTY+VALUE, new String[]{PROPERTY, VALUE}, new Integer[]{255,255});
+                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_private, table_meta_private+META_ID+META_PROPERTY, new String[]{META_ID, META_PROPERTY}, new Integer[]{0,255});
+                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_private, table_meta_private+META_PROPERTY+META_VALUE, new String[]{META_PROPERTY, META_VALUE}, new Integer[]{255,255});
+                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_public, table_meta_public+META_ID+META_PROPERTY, new String[]{META_ID, META_PROPERTY}, new Integer[]{0,255});
+                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_public, table_meta_public+META_PROPERTY+META_VALUE, new String[]{META_PROPERTY, META_VALUE}, new Integer[]{255,255});
 	
 		// Category table
-		columnNames = Arrays.asList(ID, NAME, PARENT_ID);
-		columnTypes = Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TEXT", "BIGINT UNSIGNED");
-		SQLUtils.createTable(conn, dbInfo.schema, table_categories, columnNames, columnTypes);
+		columnNames = Arrays.asList(TAG_CHILD, TAG_PARENT);
+		columnTypes = Arrays.asList("BIGINT UNSIGNED", "BIGINT UNSIGNED");
+		SQLUtils.createTable(conn, dbInfo.schema, table_tags, columnNames, columnTypes);
 	}
         public boolean isConnectedToDatabase()
         {
@@ -189,18 +199,18 @@ public class SQLConfig
                 for (Entry<String,String> keyValPair : constraints.entrySet())
                 {
                     Map<String,String> colvalpair = new HashMap<String,String>();
-                    colvalpair.put(PROPERTY, keyValPair.getKey());
-                    colvalpair.put(VALUE, keyValPair.getValue());
+                    colvalpair.put(META_PROPERTY, keyValPair.getKey());
+                    colvalpair.put(META_VALUE, keyValPair.getValue());
                     crossRowArgs.add(colvalpair);
                 } 
 
                 if (crossRowArgs.size() == 0)
                 {
-                	ids = SQLUtils.getIntColumn(conn, dbInfo.schema, table_desc, ID);
+                	ids = SQLUtils.getIntColumn(conn, dbInfo.schema, table_manifest, MAN_ID);
                 }
                 else
                 {
-                	ids = SQLUtils.crossRowSelect(conn, dbInfo.schema, sqlTable, ID, crossRowArgs);
+                	ids = SQLUtils.crossRowSelect(conn, dbInfo.schema, sqlTable, META_ID, crossRowArgs);
                 }
             }
             catch (SQLException e)
@@ -223,8 +233,8 @@ public class SQLConfig
                 try 
                 {
                     Connection conn = getConnection();
-                    results = SQLUtils.idInSelect(conn, dbInfo.schema, table_meta_private, ID, PROPERTY, VALUE, ids, properties);
-                    results2 = SQLUtils.idInSelect(conn, dbInfo.schema, table_meta_public, ID, PROPERTY, VALUE, ids, properties);
+                    results = SQLUtils.idInSelect(conn, dbInfo.schema, table_meta_private, META_ID, META_PROPERTY, META_VALUE, ids, properties);
+                    results2 = SQLUtils.idInSelect(conn, dbInfo.schema, table_meta_public, META_ID, META_PROPERTY, META_VALUE, ids, properties);
                     results.putAll(results2);
                 }
                 catch (Exception e)
@@ -239,7 +249,7 @@ public class SQLConfig
         	try 
         	{
         		Connection conn = getConnection();
-        		results = SQLUtils.idInSelect(conn, dbInfo.schema, sqlTable, ID, PROPERTY, VALUE, ids, properties);
+        		results = SQLUtils.idInSelect(conn, dbInfo.schema, sqlTable, META_ID, META_PROPERTY, META_VALUE, ids, properties);
         	}
         	catch (Exception e)
         	{
@@ -259,16 +269,16 @@ public class SQLConfig
 	            
 	            // to overwrite metadata, first delete then insert
 	            Map<String,Object> delete_args = new HashMap<String,Object>();
-	            delete_args.put(PROPERTY, property);
-	            delete_args.put(ID, id);
+	            delete_args.put(META_PROPERTY, property);
+	            delete_args.put(META_ID, id);
 	            SQLUtils.deleteRows(conn, dbInfo.schema, table, delete_args);
 	            
 	            if (value != null && value.length() > 0)
 	            {
 	            	Map<String,Object> insert_args = new HashMap<String,Object>();
-	            	insert_args.put(PROPERTY, property);
-	            	insert_args.put(VALUE, value);
-	            	insert_args.put(ID, id);
+	            	insert_args.put(META_PROPERTY, property);
+	            	insert_args.put(META_VALUE, value);
+	            	insert_args.put(META_ID, id);
 	            	SQLUtils.insertRow(conn, dbInfo.schema, table, insert_args);
 	            }
             }
@@ -280,27 +290,42 @@ public class SQLConfig
         private void delEntry(Integer id) throws RemoteException
         {
             try {
+
                 Connection conn = getConnection();
                 Map<String,Object> whereParams = new HashMap<String,Object>();
-                whereParams.put(ID, id);
+
+                /* Wipe id's metadata */
+                whereParams.put(META_ID, id);
                 SQLUtils.deleteRows(conn, dbInfo.schema, table_meta_public, whereParams);
                 SQLUtils.deleteRows(conn, dbInfo.schema, table_meta_private, whereParams);
-                SQLUtils.deleteRows(conn, dbInfo.schema, table_desc, whereParams);
+
+                /* Wipe id from the manifest table. */
+                whereParams.clear();
+                whereParams.put(MAN_ID, id);
+                SQLUtils.deleteRows(conn, dbInfo.schema, table_manifest, whereParams);
+                /* Wipe id from the tag table. */
+                whereParams.clear();
+                whereParams.put(TAG_CHILD, id); 
+                SQLUtils.deleteRows(conn, dbInfo.schema, table_tags, whereParams);
+                /* Wipe id's children from the tag table. They will become uncategorized. */
+                whereParams.clear();
+                whereParams.put(TAG_PARENT, id);
+                SQLUtils.deleteRows(conn, dbInfo.schema, table_tags, whereParams);
             }
             catch (Exception e)
             {
                 throw new RemoteException("Failed to delete entry.", e);
             }
         }
-        public Integer addEntry(String description, Map<String,String> properties) throws RemoteException
+        public Integer addEntry(Integer type_val, Map<String,String> properties) throws RemoteException
         {
             Integer uniq_id = null; 
             try {
                 Connection conn = getConnection();
                 Map<String,Object> dummyProp = new HashMap<String,Object>();
-                dummyProp.put(DESCRIPTION, description);
-                uniq_id = SQLUtils.insertRowReturnID(conn, dbInfo.schema, table_desc, dummyProp);
-                // If we made it this far, we have a new unique ID in the description table. Now let's build the info we need to do the necessary row inserts...
+                dummyProp.put(MAN_TYPE, type_val);
+                uniq_id = SQLUtils.insertRowReturnID(conn, dbInfo.schema, table_manifest, dummyProp);
+                // If we made it this far, we have a new unique ID in the manifest table. Now let's build the info we need to do the necessary row inserts...
                 for (Entry<String,String> keyvalpair : properties.entrySet())
                 {
                     String key = keyvalpair.getKey();
@@ -324,16 +349,16 @@ public class SQLConfig
                 Set<Integer> conn_ids = null;
 
                 HashMap<String,String> geom_constraints = new HashMap<String,String>();
-                geom_constraints.put(PROPERTY, PublicMetadata.DATATYPE);
-                geom_constraints.put(VALUE, DataType.GEOMETRY);
+                geom_constraints.put(META_PROPERTY, PublicMetadata.DATATYPE);
+                geom_constraints.put(META_VALUE, DataType.GEOMETRY);
                 geom_ids = new HashSet<Integer>(getIdsFromMetadata(table_meta_public, geom_constraints));
 
                 // we only want to filter by connection name if it's non-null
                 if (connectionName != null)
                 {
                 	HashMap<String,String> conn_constraints = new HashMap<String,String>();
-                	conn_constraints.put(PROPERTY, PrivateMetadata.CONNECTION);
-                	conn_constraints.put(VALUE, connectionName);
+                	conn_constraints.put(META_PROPERTY, PrivateMetadata.CONNECTION);
+                	conn_constraints.put(META_VALUE, connectionName);
                 	conn_ids = new HashSet<Integer>(getIdsFromMetadata(table_meta_private, conn_constraints));
                 	geom_ids.retainAll(conn_ids);
                 }
@@ -356,8 +381,8 @@ public class SQLConfig
                         String fromSchema = dbInfo.schema;
                         String fromTable = table_meta_public;
                         Map<String,Object> whereParams = new HashMap<String,Object>();
-                        whereParams.put(PROPERTY, "name");
-                        selectColumns.add(VALUE);
+                        whereParams.put(META_PROPERTY, "name");
+                        selectColumns.add(META_VALUE);
                         results = SQLUtils.getRecordsFromQuery(conn, selectColumns, fromSchema, fromTable, whereParams);
                         
 		}
@@ -369,7 +394,7 @@ public class SQLConfig
                 {
                     for (Map<String,String> row : results)
                     {
-                        names.add(row.get(VALUE));
+                        names.add(row.get(META_VALUE));
                     }
                 }
                 return names; 
@@ -430,7 +455,7 @@ public class SQLConfig
 			valueMap.put(PublicMetadata.DATATYPE, DataType.GEOMETRY);
 			
 			String description = info.importNotes;
-            addEntry(description, valueMap);
+                        addEntry(MAN_TYPE_COLUMN, valueMap);
 		}
 		catch (Exception e)
 		{
@@ -474,16 +499,16 @@ public class SQLConfig
 	{
 		Map<String, Object> params = new HashMap<String, Object>();
 		GeometryCollectionInfo info = new GeometryCollectionInfo();
-		params.put(ID, id);
+		params.put(META_ID, id);
 		try
 		{
 			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, table_meta_public, params);
 			Map<String,String> props = new HashMap<String,String>();
 			for (Map<String,String> row : records)
 			{
-                String property_name = row.get(PROPERTY);
-                String value = row.get(VALUE);
-                props.put(property_name, value);
+                            String property_name = row.get(META_PROPERTY);
+                            String value = row.get(META_VALUE);
+                            props.put(property_name, value);
 			}
 			// public meta
 			info.name = props.get(PublicMetadata.NAME);
@@ -516,7 +541,7 @@ public class SQLConfig
 		if (year != null && year.length() > 0)
 			description += String.format(", year = \"%s\"", year);
         // insert all the info into the sql table
-        addEntry(description, info.getAllMetadata());
+                addEntry(MAN_TYPE_COLUMN, info.getAllMetadata());
 	}
 
 	// shortcut for calling the Map<String,String> version of this function
@@ -541,112 +566,133 @@ public class SQLConfig
 		return results;
 	}
         /* Code regarding the new category table and logic */
-        public void setAttributeColumnParent(int col_id, int parent_id) throws RemoteException
-        {
-            setProperty(col_id, PARENT_ID, String.format("%d", parent_id));
-        }
-        public int addCategory(String category) throws RemoteException
-        {
-            return addCategory(category, null);
-        }
-        public int addCategory(String category, Integer parent) throws RemoteException
+        public int addTag(String tagTitle) throws RemoteException
         {
             Connection conn;
-            int id; 
+            int id;
             try
             {
-                Map<String,Object> row = new HashMap<String,Object>();
-                row.put(NAME, category);
-                row.put(PARENT_ID, parent);
-
+                /* Add to the manifest. */
+                Map<String,String> attrs = new HashMap<String,String>();
                 conn = getConnection();
-                id = SQLUtils.insertRowReturnID(conn, dbInfo.schema, table_categories, row);
+
+                attrs.put(META_PROPERTY_NAME, tagTitle);
+                id = addEntry(MAN_TYPE_TAG, attrs);
             }
             catch (SQLException sql_e)
             {
-                throw new RemoteException(String.format("Failed to add category %s.", category), sql_e);
+                throw new RemoteException(String.format("Failed to add category %s.", tagTitle), sql_e);
             }
             return id;
         }
-        public void setCategoryParent(int child_id, int parent_id) throws RemoteException
+        public void addChild(int parent, int child) throws RemoteException
         {
             Connection conn;
-            try 
+            Map<String,Object> columns = new HashMap<String,Object>();
+            columns.put(TAG_PARENT, parent);
+            columns.put(TAG_CHILD, child);
+            try
             {
                 conn = getConnection();
-                Map<String,Object> row = new HashMap<String,Object>();
-                Map<String,Object> whereParams = new HashMap<String,Object>();
-                whereParams.put(ID, child_id);
-                row.put(PARENT_ID, parent_id);
-                SQLUtils.updateRows(conn, dbInfo.schema, table_categories, whereParams, row);
+                SQLUtils.insertRow(conn, dbInfo.schema, table_tags, columns);
             }
             catch (SQLException sql_e)
             {
-                throw new RemoteException(String.format("Failed to set child %d's parent as %d.", child_id, parent_id), sql_e);
+                throw new RemoteException(String.format("Failed to add child %d to %d.", child, parent), sql_e);
             }
+            return;
         }
-        public Collection<Integer> getChildColumns(int parent_id) throws RemoteException
-        {
-            Map<String,String> query = new HashMap<String,String>();
-
-            query.put(PARENT_ID, (new Integer(parent_id)).toString());
-            return getIdsFromMetadata(table_categories, query);
-        }
-        public List<Map<String,String>> getCategories() throws RemoteException
+        public void removeChild(int parent, int child) throws RemoteException
         {
             Connection conn;
-            List<Map<String,String>> categories = new LinkedList<Map<String,String>>();
-            Map<String,Object> whereParams = new HashMap<String,Object>();
-            List<String> columns = Arrays.asList(ID, NAME, PARENT_ID);
+            Map<String,Object> columns = new HashMap<String,Object>();
+            columns.put(TAG_PARENT, parent);
+            columns.put(TAG_CHILD, child);
+            try
+            {
+                conn = getConnection();
+                SQLUtils.deleteRows(conn, dbInfo.schema, table_tags, columns);
+            }
+            catch (SQLException sql_e)
+            {
+                throw new RemoteException(String.format("Failed to remove child %d from %d.", child, parent), sql_e);
+            }
+            return;
+        }
+        public Map<Integer,Boolean> getEntityIsCategory(Collection<Integer> id_list) throws RemoteException
+        {
+            Connection conn;
+            Map<Integer,Boolean> entityIsCategory = new HashMap<Integer,Boolean>();
             try
             {
                 SQLResult sqlres;
                 conn = getConnection();
-                sqlres = SQLUtils.getRowSetFromQuery(conn, columns, dbInfo.schema, table_categories, whereParams);
-                for (Object[] row : sqlres.rows)
+            }
+            catch (SQLException sql_e)
+            {
+                throw new RemoteException("Failed to retrieve entity information.", sql_e);
+            }
+            return entityIsCategory;
+        }
+        public Map<Integer,String> getEntityName(Collection<Integer> id_list) throws RemoteException
+        {
+            List<String> meta = Arrays.asList(META_PROPERTY_NAME);
+            Map<Integer,String> entityNames = new HashMap<Integer,String>();
+            Map<Integer,Map<String,String>> nameMap = getAllMetadata(id_list, meta);
+
+            for (Entry<Integer,Map<String,String>> entry: nameMap.entrySet())
+            {
+                Integer id = entry.getKey();
+                String name = entry.getValue().get(META_PROPERTY_NAME);
+                entityNames.put(id, name);
+            }
+            return entityNames;
+        }
+        public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
+        {
+            Connection conn;
+            Map<String,Object> query = new HashMap<String,Object>();
+            List<String> columns = new LinkedList<String>();
+            List<Integer> children = new LinkedList<Integer>();
+            columns.add(TAG_CHILD);
+            query.put(TAG_PARENT, parent_id);
+
+            try
+            {
+                List<Map<String,String>> results;
+                conn = getConnection();
+                results = SQLUtils.getRecordsFromQuery(conn, columns, dbInfo.schema, table_tags, query);
+                for (Map<String,String> row : results)
                 {
-                    Map<String,String> entry = new HashMap<String,String>();
-                    int id = SQLResult.objAsInt(row[0]);
-                    String name = SQLResult.objAsString(row[1]);
-                    int parent_id = SQLResult.objAsInt(row[2]);
-                    entry.put(ID, String.format("%d",id));
-                    entry.put(NAME, name);
-                    entry.put(PARENT_ID, String.format("%d", parent_id));
-                    categories.add(entry); 
+                    children.add(Integer.parseInt(row.get(TAG_CHILD)));
                 }
+            }
+            catch (SQLException sql_e)
+            {
+                throw new RemoteException("Failed to retrieve all categories.", sql_e);
+            }
+            return children;
+        }
+        public Collection<Integer> getRoots() throws RemoteException
+        {
+            Collection<Integer> roots = new LinkedList<Integer>();
+            Set<Integer> manifest_ids;
+            Set<Integer> child_ids;
+            Connection conn;
+            try
+            {
+                conn = getConnection();
+
+                child_ids = new HashSet<Integer>(SQLUtils.getIntColumn(conn, dbInfo.schema, table_tags, TAG_CHILD));
+                manifest_ids = new HashSet<Integer>(SQLUtils.getIntColumn(conn, dbInfo.schema, table_manifest, MAN_ID));
+                
+                manifest_ids.removeAll(child_ids);
+
             }
             catch (SQLException sql_e)
             {
                 throw new RemoteException("Failed to retrieve all categories.", sql_e); 
             }
-            return categories;
-        }
-        public Map<Integer,String> getChildCategories(int parent_id) throws RemoteException
-        {
-            Connection conn;
-            Map<Integer,String> children = new HashMap<Integer,String>();
-            Map<String,Object> whereParams = new HashMap<String,Object>();
-            List<String> columns = Arrays.asList(ID, NAME, PARENT_ID);
-            try
-            {
-                SQLResult sqlres;
-                conn = getConnection();
-                if (parent_id > -1)
-                {
-                    whereParams.put("parent", parent_id);
-                }
-                sqlres = SQLUtils.getRowSetFromQuery(conn, columns, dbInfo.schema, table_categories, whereParams);
-                for (Object[] row : sqlres.rows)
-                {
-                    int id = SQLResult.objAsInt(row[0]);
-                    String name = SQLResult.objAsString(row[1]);
-                    children.put(id, name);
-                }
-            }
-            catch (SQLException sql_e)
-            {
-                throw new RemoteException(String.format("Failed to retrieve children of parent %d.", parent_id), sql_e); 
-            }
-            return children;
+            return manifest_ids;
         }
 }

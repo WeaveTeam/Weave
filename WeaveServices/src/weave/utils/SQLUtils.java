@@ -65,6 +65,95 @@ import org.postgresql.PGConnection;
  */
 public class SQLUtils
 {
+/* Wrapper class around SQLUtils. Eventually we should fold SQLUtils entirely into this class. */
+/*
+        public class ImmortalConnection
+        {
+            private Connection _lastConnection = null;
+            private ISQLConfig cfg = null;
+            private DatabaseConfigInfo dbInfo = null;
+            public ImmortalConnection(ISQLConfig newcfg)
+            {
+                cfg = newcfg;
+                dbInfo = cfg.getDatabaseConfigInfo();
+            }
+            public Connection getConnection()
+            {
+                if (connectionIsValid(_lastConnection))
+                    return _lastConnection;
+                return _lastConnection = null;
+            }
+        }
+        public class AbstractSQLTable 
+        {
+            private ImmortalConnection conn;
+            private String schema;
+            private String name;
+            private Map<String,String> columns;
+            public AbstractSQLTable(ImmortalConnection conn, 
+                    String schema_name,
+                    String table_name, 
+                    Map<String,String> newColumns,
+                    List<List<String>> indices,
+                    Map<String,Pair<String,String>> keyMappings) throws SQLException
+            {
+                this.conn = conn;
+                schema = schema_name;
+                name = table_name;
+                columns = newColumns;
+                init_table();
+                init_indices(indices);
+                init_foreignkeys(keyMappings);
+            }
+
+            private void initTable() throws SQLException
+            {
+                Connection conn = this.conn.getConnection();
+                if (tableExists(conn, schema, name))
+                    return;
+                List<String> columnNames = new LinkedList<String>();
+                List<String> columnTypes = new LinkedList<String>();
+                for (Entry<String,String> column : columns)
+                {
+                    columnNames.add(column.getKey());
+                    columnTypes.add(column.getValue());
+                }
+                createTable(conn, schema, name, columnNames, columnTypes);
+
+                return;
+            }
+
+            private void init_indices(List<List<String>> indices)
+            {
+                Connection conn = this.conn.getConnection();
+                for (List<String> index : indices)
+                {
+                    List<Integer> sizes = new LinkedList<Integer>();
+                    List<String> col_names = new LinkedList<String>();
+                    for (String column : index)
+                    {
+                        String type = columns.get(column);
+                        if (type.equals("TEXT"))
+                            sizes.add(255); 
+                        else
+                            sizes.add(0);
+                        col_names.add(column);
+                    }
+                    createIndex(conn, schema, stringJoin("", col_names), col_names, sizes);
+                }
+                return;
+            }
+            private void init_foreignkeys(Map<String,Entry<String,String>> keyMappings) throws SQLException
+            {
+                Connection conn = this.conn.getConnection();
+                for (Map<String,Entry<String,String>> col : keyMappings)
+                {
+                    addForeignKey(conn, schema, name, col.getKey(), col.getValue());
+                }
+                return;
+            }
+        }
+*/ 
 	public static String MYSQL = "MySQL";
 	public static String POSTGRESQL = "PostgreSQL";
 	public static String SQLSERVER = "Microsoft SQL Server";
