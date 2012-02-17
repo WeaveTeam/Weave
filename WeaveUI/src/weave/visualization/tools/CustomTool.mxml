@@ -19,10 +19,6 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<!---
-An empty SimpleVisTool designed for adding custom layers
-@author kmanohar
--->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
@@ -31,16 +27,11 @@ An empty SimpleVisTool designed for adding custom layers
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
-			
 			override protected function constructor():void
 			{
 				super.constructor();
-			}
-			override protected function handlePanelTitleChange():void
-			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Custom Tool";
+				
+				panelTitle.value = "Custom Tool";
 			}
 		]]>
 	</mx:Script>

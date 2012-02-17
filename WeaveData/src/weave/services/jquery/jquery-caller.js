@@ -1,3 +1,4 @@
+//$.support.cors = true;
 WeaveJQueryCaller = {};
 WeaveJQueryCaller.getFile = function (url, id) {
 	$.ajax({
@@ -8,7 +9,7 @@ WeaveJQueryCaller.getFile = function (url, id) {
 				weave.jqueryResult(id, data);
 			},
 			error: function (qXHR, textStatus, errorThrown) {
-				weave.jqueryFault(id, url,qXHR, textStatus, errorThrown);
+				weave.jqueryFault(id, errorThrown);
 			}
 		});
 }

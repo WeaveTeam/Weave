@@ -91,7 +91,7 @@
 			
 			public const selectedThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
 			
-			public const newThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(00255));
+			public const newThumbnailGlowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(3407820));
 			/**
 			 * @public 
 			 * A search filter to search within documents handled by this node. 
@@ -191,13 +191,15 @@
 				
 				//we want to trigger the callback for thumbnails at each frame and check the trigger counter
 				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
+				createAndSendQuery(false);
 				
 			}
 			
+			//this variable is false when the user loads the map for the first time. 			
 			private var highlightNewDocuments:Boolean = false;
 			public function checkForNewDocuments():void
 			{
-				highlightNewDocuments = true;
+//				highlightNewDocuments = true;
 				createAndSendQuery(false);
 			}
 		
@@ -213,6 +215,8 @@
 			 **/
 			private function createAndSendQuery(clearDocuments:Boolean=true):void
 			{
+				if(!node.keywords.value)
+					return;
 				
 				if(clearDocuments)
 					thumbnails.removeAllObjects();
@@ -222,11 +226,12 @@
 				
 				if (this.parent == null)
 				{
-					WeaveAPI.StageUtils.callLater(this,createAndSendQuery);
+					WeaveAPI.StageUtils.callLater(this,createAndSendQuery,[clearDocuments]);
 					return;
 				}
 				
 				this.invalidateDisplayList();
+				
 				
 				var solrURL:String = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows="+node.numberOfDocs.value.toString()+"&sort=date_published desc&indent=on&q=";	
 				var query:String = "";
@@ -390,6 +395,12 @@
 			 **/
 			private function handleParsedResult(response:ArrayCollection):void
 			{
+				if(thumbnails.getObjects().length == 0)
+				{
+					highlightNewDocuments = false;
+				}else{
+					highlightNewDocuments = true;
+				}
 				var obj:SelectableInfoMapDocument;
 				thumbnails.delayCallbacks();
 				for(var i:int; i<response.length ;i++)
@@ -409,6 +420,8 @@
 						
 						linkSessionState(defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
 						linkSessionState(selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
+						linkSessionState(newThumbnailGlowColor,thumbnail.glowColor);
+						
 						continue;
 					}
 					thumbnail = thumbnails.requestObject(link,DocThumbnailComponent,false);
@@ -417,11 +430,12 @@
 					
 					linkSessionState(defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
 					linkSessionState(selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
+					linkSessionState(newThumbnailGlowColor,thumbnail.glowColor);
 					
 					
 					if(highlightNewDocuments)
 					{
-						thumbnail.defaultBorderColor.value = newThumbnailBorderColor.value;
+						thumbnail.startGlow();
 					}
 					
 				}
@@ -434,9 +448,9 @@
 			{
 //				graphics.beginFill(Math.random()*0xFFFFFF,1);
 //				graphics.drawCircle(0,0,50);
+				super.validateDisplayList();
 				if(detectLinkableObjectChange(updateDisplayList,thumbnails))
 					handleSubsetChange();
-				super.validateDisplayList();
 				
 			}
 			

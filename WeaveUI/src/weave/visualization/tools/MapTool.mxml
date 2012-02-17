@@ -746,6 +746,7 @@
 									import weave.api.core.ILinkableObject;
 									import weave.api.juggleGroupedCallback;
 									import weave.api.primitives.IBounds2D;
+									import weave.core.UIUtils;
 									import weave.editors.managers.LayerListComponent;
 									import weave.utils.ZoomUtils;
 									import weave.visualization.layers.PlotLayer;
@@ -785,7 +786,7 @@
 									}
 									private function handleScaleSliderChange(event:SliderEvent):void
 									{
-										if(!currentlyUpdatingLayerZoomRangeSlider && data)
+										if (data && !currentlyUpdatingLayerZoomRangeSlider && UIUtils.hasFocus(layerZoomRangeSlider))
 										{
 											var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
 											var minScreenSize:Number = outerDocument.visualization.minScreenSize.value;
@@ -813,7 +814,7 @@
 										minimum="{outerDocument.zoomSliderMinimum}" 
 										maximum="{outerDocument.zoomSliderMaximum}"
 										change="handleScaleSliderChange(event)"
-										mouseDown="event.stopPropagation()"
+										mouseDown="event.target.setFocus(); event.stopPropagation()"
 										width="100%"/>
 						</ui:Indent>
 					</mx:Component>			

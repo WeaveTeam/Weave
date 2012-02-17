@@ -123,7 +123,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			[Bindable]
 			public var selectedThumbnailBorderColor:uint;
-
+			
+			[Bindable]
+			public var newThumbnailGlowColor:uint;
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -206,6 +209,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					linkBindableProperty((n as NodeHandler).selectedBorderColor,this,"selectedNodeBorderColor");
 					linkBindableProperty((n as NodeHandler).defaultThumbnailBorderColor,this,"defaultThumbnailBorderColor");
 					linkBindableProperty((n as NodeHandler).selectedThumbnailBorderColor,this,"selectedThumbnailBorderColor");
+					linkBindableProperty((n as NodeHandler).newThumbnailGlowColor,this,"newThumbnailGlowColor");					
 				}
 			}
 			
@@ -483,6 +487,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					<mx:HBox>
 						<mx:ColorPicker id="selectedThumbnailBorderPicker" selectedColor="{selectedThumbnailBorderColor}" change="selectedThumbnailBorderColor= event.target.selectedColor;"/>
+						<mx:Label width="200" text="Selected Thumbnail Border Color"/>				
+					</mx:HBox>
+					<mx:HBox>
+						<mx:ColorPicker id="thumbnailGlowColorPicker" selectedColor="{newThumbnailGlowColor}" change="newThumbnailGlowColor= event.target.selectedColor;"/>
 						<mx:Label width="200" text="Selected Thumbnail Border Color"/>				
 					</mx:HBox>
 				</mx:VBox>

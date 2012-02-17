@@ -45,6 +45,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableNumber;
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
@@ -87,8 +88,7 @@
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
 				
-				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, invalidateAxes);
-				getCallbackCollection(plotter).addGroupedCallback(this, invalidateAxes, true);
+				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange, true);
 				
 				initColumnDefaults(plotter.xColumn, plotter.yColumn, colorColumn);
 				
@@ -346,11 +346,6 @@
 				else visualization.additionalProbeColumns = null;
 			}
 			
-			private function invalidateAxes():void
-			{
-				handlePanelTitleChange();
-			}
-			
 			override protected function handlePanelTitleChange():void
 			{
 				super.handlePanelTitleChange();
@@ -369,6 +364,8 @@
 				visualization.marginLeftNumber.addGroupedCallback(this, updateEquation);
 				visualization.marginBottomNumber.addGroupedCallback(this, updateEquation);
 				getCallbackCollection(_regressionPlotter).addGroupedCallback(this, updateEquation, true);
+				showColorPicker.addGroupedCallback(this, updateColorPicker);
+				overrideColor.addGroupedCallback(this, updateColorPicker);
 				
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateEquationStyle, true);
 			}
@@ -496,7 +493,7 @@
 				var fill:SolidFillStyle = plotter.circlePlotter.fillStyle.requestLocalObject(SolidFillStyle, false);
 				if ( showColorPicker.value )
 				{
-					fill.color.defaultValue.value = scatterplotColorOverride.selectedColor;
+					fill.color.defaultValue.value = overrideColor.value;
 					fill.color.internalDynamicColumn.removeObject();
 				}
 				else
@@ -507,8 +504,9 @@
 				scatterplotColorOverride.enabled = showColorPicker.value;
 			}
 			
-			public const showColorPicker:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateColorPicker)
-			
+			public const showColorPicker:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const overrideColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
+				
 		]]>
 	</mx:Script>
 	<mx:TextArea id="equationText"
@@ -609,7 +607,7 @@
 			</userControls:ControlsSubsetBox>
 			<mx:HBox>
 				<mx:CheckBox id="colorOverrideCheckbox" label="Override Global Color" creationComplete="linkBindableProperty(showColorPicker,event.target,'selected')"/>
-				<mx:ColorPicker id="scatterplotColorOverride" change="updateColorPicker()"/>
+				<mx:ColorPicker id="scatterplotColorOverride" creationComplete="linkBindableProperty(overrideColor,event.target,'selectedColor')"/>
 			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>

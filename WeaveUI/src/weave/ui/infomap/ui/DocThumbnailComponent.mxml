@@ -22,6 +22,8 @@ so that it can be moved, selected, handle filters.
 	<mx:Image id="img" width="100%" height="100%"/>
 	<mx:Script>
 		<![CDATA[
+			import flash.text.engine.GroupElement;
+			
 			import mx.events.DragEvent;
 			import mx.events.MoveEvent;
 			import mx.managers.IFocusManagerComponent;
@@ -62,12 +64,12 @@ so that it can be moved, selected, handle filters.
 			 * @public
 			 * This variable sets the width of this image.
 			 * */
-			public const imageWidth:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const imageWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(),handleImage,true);
 			/**
 			 * @public
 			 * This variable sets the height of this image.
 			 * */
-			public const imageHeight:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const imageHeight:LinkableNumber = registerLinkableChild(this,new LinkableNumber(),handleImage,true);
 			/**
 			 * @public
 			 * This variable sets the alpha/transparency of this image.
@@ -83,6 +85,11 @@ so that it can be moved, selected, handle filters.
 			 * This variable sets the color of the border of this image when the document is selected.
 			 * */
 			public const selectedBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
+			/**
+			 * @public
+			 * This variable sets the color of the glow filter for highlighting new documents.
+			 * */
+			public const glowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber());
 			/**
 			 * @public
 			 * This variable sets the thickness of the border of this image.
@@ -287,6 +294,8 @@ so that it can be moved, selected, handle filters.
 			private var _mouseDown:Boolean = false;
 			private function handleMouseDown():void
 			{
+				filters = [];
+				timer.stop();
 				this.startDrag();
 				removeDocSummary();
 				_mouseDown = true;
@@ -392,9 +401,26 @@ so that it can be moved, selected, handle filters.
 				this.invalidateDisplayList();
 			}
 			
+			private var glowFilter:GlowFilter = new GlowFilter(glowColor.value);
+			private var timer:Timer = new Timer(125);
+			public function startGlow():void
+			{
+				filters = [glowFilter];
+				timer.addEventListener(TimerEvent.TIMER,changeGlow);
+				timer.start();
+			}
 			
+			
+			private function changeGlow(event:TimerEvent):void
+			{
+				glowFilter.alpha = 0.125 + (event.target.currentCount % 8) *0.125;
+				glowFilter.color = glowColor.value;
+				filters=[glowFilter];
+			}
 		]]>
 	</mx:Script>
 	
 	<!--<mx:Image id="img"/>-->
 </mx:HBox>
+
+				

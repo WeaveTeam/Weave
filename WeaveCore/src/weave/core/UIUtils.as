@@ -40,6 +40,17 @@ package weave.core
 	public class UIUtils
 	{
 		/**
+		 * This function determines if a particular component or one of its children has input focus.
+		 * @param component The component to test.
+		 * @return true if the component has focus.
+		 */
+		public static function hasFocus(component:UIComponent):Boolean
+		{
+			var focus:DisplayObject = component.getFocus();
+			return focus && component.contains(focus);
+		}
+		
+		/**
 		 * This function adds a callback to a LinkableHashMap to monitor any DisplayObjects contained in it.
 		 * @TODO check if already linked
 		 * @param uiParent A UIComponent to synchronize with the given hashMap.

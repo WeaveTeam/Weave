@@ -263,6 +263,10 @@
 					panelTitleFunction.value = '`' + panelTitle.value.split('`').join('\\`') + '`';
 					evaluatePanelTitle();
 				}
+				else
+				{
+					title = '';
+				}
 			}
 			private const panelTitleFunction:LinkableFunction = registerDisposableChild(this, new LinkableFunction(null, true, true)); // this is used in handlePanelTitleChange()
 
