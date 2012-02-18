@@ -21,6 +21,7 @@ package weave.ui.CustomDataGrid
 {
 	import mx.controls.DataGrid;
 	import mx.controls.dataGridClasses.DataGridColumn;
+	import mx.controls.scrollClasses.ScrollBar;
 	import mx.core.mx_internal;
 	
 	import weave.Weave;
@@ -45,7 +46,14 @@ package weave.ui.CustomDataGrid
 			super();			
 		}
 		
+	override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void{
+		super.updateDisplayList(unscaledWidth,unscaledHeight);
+	}
 	
+	override public function set horizontalScrollPolicy(value:String):void
+	{
+		super.horizontalScrollPolicy  = value;
+	}
 		
 		/**
 		 * There's a bug in Flex 3.6 SDK where the locked column content may not be updated
@@ -61,20 +69,11 @@ package weave.ui.CustomDataGrid
 			
 			super.addClipMask(layoutChanged);
 		}
-		
-		public static const VERTICAL_SCROLL:String = "Vertical";
-		public static const HORIZONTAL_SCROLL:String = "Horizontal";
-		public function getScrollWidth(scrollBar:String):int
+				
+		public function getColumnDisplayWidth():Number
 		{
-			if (scrollBar == VERTICAL_SCROLL && verticalScrollBar)
-			{
-				return verticalScrollBar.getExplicitOrMeasuredWidth();
-			}
-			else if (scrollBar == HORIZONTAL_SCROLL && horizontalScrollBar)
-			{
-				return horizontalScrollBar.getExplicitOrMeasuredWidth();
-			}			
-			return 0;
+			var columnDisplayWidth:Number = this.width - this.viewMetrics.right - this.viewMetrics.left;		
+			return columnDisplayWidth;
 		}
 		
 		private var _filtersEnabled:Boolean = false;

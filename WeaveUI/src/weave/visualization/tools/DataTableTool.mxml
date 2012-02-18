@@ -38,9 +38,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<ui:CustomComboBox id="keyTypeCombo" change="keyTypeChangeEventHandler()" toolTip="Only columns of the selected key type will be shown."/>
 			<mx:Button label="Edit columns..." click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
 		</mx:HBox>
-		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid"  id="filterControls" width="100%"  verticalAlign="middle" horizontalScrollPolicy="off"/>
-		<CustomDataGrid:CustomDataGrid id="dataGrid" 
-									   scroll="handleDataGridScroll()"
+		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid"  id="filterControls" width="100%"  verticalAlign="middle" horizontalScrollPolicy="off">
+		 <mx:Spacer width="{dataGrid.width}"/>
+		</mx:HBox>
+		<CustomDataGrid:CustomDataGrid id="dataGrid" updateComplete="dataGrid_updateCompleteHandler(event)"
 									   horizontalScrollPolicy="auto"
 									   verticalScrollPolicy="auto"
 									   dataProvider="{dataRowKeys}" 
@@ -75,8 +76,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
 			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.controls.scrollClasses.ScrollBar;
 			import mx.core.mx_internal;
 			import mx.events.DataGridEvent;
+			import mx.events.FlexEvent;
 			import mx.events.IndexChangedEvent;
 			import mx.events.ResizeEvent;
 			
@@ -127,6 +130,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private const dataGridColumns:Dictionary = new Dictionary();
 			private var _currentDataGridColumns:Array = [];
 			
+			public const dataGridHorizontalScrollPosition:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const dataGridVerticalScrollPosition:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			
 			private var dataTableKeySet:KeySet = new KeySet();
 			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
@@ -153,9 +158,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				
-				getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
-				_selection.addImmediateCallback(this,invalidateDisplayList);
-				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addImmediateCallback(this,invalidateDisplayList);				
+				getCallbackCollection(this).addImmediateCallback(this, invalidateProperties);
+				_selection.addImmediateCallback(this,invalidateProperties);
+				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addImmediateCallback(this,invalidateProperties);				
 			}
 			
 			
@@ -166,10 +171,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(showControls, showControlsCheckBox, "selected");
 				linkBindableProperty(showFilters, showFiltersCheckBox, "selected");
 				linkBindableProperty(showColors,showColorsCheckBox,"selected");
-				linkBindableProperty(removeHorizontalScrollBar,removeHScrollBarCheckBox,"selected");
 				
 				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange,null,true);
-				columnWidths.childListCallbacks.addImmediateCallback(this,updateColumnWidths,null,true);
 				
 				dataRowKeys.filterFunction = filterKeys;
 				dataRowKeys.refresh();
@@ -179,6 +182,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				EventUtils.addEventCallback(dataGrid,DataGridEvent.COLUMN_STRETCH,handleColumnStretch);
 				EventUtils.addEventCallback(dataGrid,ResizeEvent.RESIZE,updateColumnWidths);
 				
+				EventUtils.addBindCallback(dataGrid, 'horizontalScrollPosition', handleHorizontalScrollPosition);
+				EventUtils.addBindCallback(dataGrid, 'verticalScrollPosition', handleVerticalScrollPosition);
+				
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
 				// temporary solution
 				var handleColorColumnChange:Function = function():void{
@@ -187,36 +193,46 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN)).addGroupedCallback(this, handleColorColumnChange);
 			}
 			
-			//we need to do this to set the arrow to the correct column
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
-			{
-				super.updateDisplayList(unscaledWidth,unscaledHeight);
+			
+			
+			override public function validateProperties():void{
+			
 				
-				if (detectLinkableObjectChange(updateDisplayList, columns)){
+				if (detectLinkableObjectChange(validateDisplayList, columns)){
 					forceSortCallback();
 					handleColumnsChange();										
-				} 				
-				if (detectLinkableObjectChange(updateDisplayList, filterComponents)){					
+				} 
+				if(detectLinkableObjectChange(validateDisplayList,columnWidths)){
+					updateColumnWidths();
+				}
+				if (detectLinkableObjectChange(validateDisplayList, filterComponents)){					
 					dataGrid.invalidateFilters();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, dataTableKeySet)){
+				if (detectLinkableObjectChange(validateDisplayList, dataGridHorizontalScrollPosition)){					
+					handleDataGridHorizontalScroll();
+				}
+				if (detectLinkableObjectChange(validateDisplayList, dataGridVerticalScrollPosition)){					
+					handleDataGridVerticalScroll();
+				}
+				if (detectLinkableObjectChange(validateDisplayList, dataTableKeySet)){
 					updateDataRowKeys();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, _subset)){
+				if (detectLinkableObjectChange(validateDisplayList, _subset)){
 					handleSubsetChange();		
 				}
-				if (detectLinkableObjectChange(updateDisplayList, _selection)){
+				if (detectLinkableObjectChange(validateDisplayList, _selection)){
 					handleGlobalSelectionChange();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, LinkableTextFormat.defaultTextFormat)){
+				if (detectLinkableObjectChange(validateDisplayList, LinkableTextFormat.defaultTextFormat)){
 					handleFontChange();
 				} 
-				if(detectLinkableObjectChange(updateDisplayList , sortFieldIndex)){
+				if(detectLinkableObjectChange(validateDisplayList , sortFieldIndex)){
 					sortCallback();
 				}
-				if(detectLinkableObjectChange(updateDisplayList , sortInDescendingOrder)){
+				if(detectLinkableObjectChange(validateDisplayList , sortInDescendingOrder)){
 					sortCallback();
 				}
+				super.validateProperties();
 			}
 			
 			override protected function handlePanelTitleChange():void
@@ -266,8 +282,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 				}
 			}
-			private var toolDataGridWidthDiff:Number=0;
-			public const removeHorizontalScrollBar:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false),updateColumnWidths);
 			
 			public const showFilters:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false),updateFilters);
 			private function updateFilters():void
@@ -568,8 +582,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (!parent || dataGrid.width == 0)
 					return callLater(updateDataGridColumns);
 				try {
-					 var attrColumns:Array = columns.getObjects();
-					var totalWidth:Number = dataGrid.width - dataGrid.getScrollWidth(CustomDataGrid.VERTICAL_SCROLL);
+					var attrColumns:Array = columns.getObjects();
 					_currentDataGridColumns = [];
 					for each (var attrColumn:IAttributeColumn in attrColumns)
 					{
@@ -583,6 +596,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						}
 						else{
 							dgc = new WeaveCustomDataGridColumn(attrColumn);	
+							//EventUtils.addBindCallback(dgc,"width",function():void{trace()},null);
 							dataGridColumns[columnName] = dgc;
 						}
 											
@@ -602,7 +616,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						dgc.filterComponent = filterComponents.requestObject(columnName, classDef, false);
 										
 						//columnWidth section
-						var sessionedWidth:LinkableString = columnWidths.requestObject(columnName, LinkableString,false);
+						columnWidths.requestObject(columnName, LinkableString,false);
 												
 					}  
 					dataGrid.columns = _currentDataGridColumns;
@@ -646,67 +660,39 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleColumnStretch():void
 			{
-				// go through each column and set the sessioned widths
-				var i:int;
-				var totalWidth:Number = dataGrid.width - dataGrid.getScrollWidth(CustomDataGrid.VERTICAL_SCROLL);
-				for (i = 0; i < _currentDataGridColumns.length; ++i)
+				var dataGridColumnsWidth:Number = dataGrid.getColumnDisplayWidth();
+				for (var i:int = 0; i < _currentDataGridColumns.length; ++i)
 				{
 					var dgc:WeaveCustomDataGridColumn = _currentDataGridColumns[i];
+					var width:Number = dgc.width;					
+					
 					var column:IAttributeColumn = dgc.attrColumn;
 					var columnName:String = columns.getName(column);
 					var sessionedWidth:LinkableString = columnWidths.getObject(columnName) as LinkableString;
-					var width:Number = dgc.width;
+					
 					if (isNaN(width) || width <= 5) // this happens when a column is stretched all the way to the right
-						width = _minSuggestedColumnSize;					
-					sessionedWidth.value = (100 * width / totalWidth) + "%";
+						width = _minSuggestedColumnSize;	
+					
+					sessionedWidth.value = (100 * width / dataGridColumnsWidth) + "%";
 					if(dgc.filterComponent){
 						dgc.filterComponent.width = dgc.width;
-					}					
+					}	
 				}
 			}
 			
-		
-			
-			public  function updateColumnWidths():void
+			private  function updateColumnWidths():void
 			{				
 				// if there isn't a parent or the grid isn't fully instantiated, return
 				if (!parent || dataGrid.width == 0  )
 				{
 					callLater(updateColumnWidths);
 					return;
-				}				
-				var columnCount:Number = columns.getObjects().length;
-				//handleColumnWidthChildListChange get called only one time
-				if (_currentDataGridColumns.length   < columnCount  )	{
-					return;
-				}  
-				
-				var dataGridColumnsWidth:Number = dataGrid.width - dataGrid.getScrollWidth(CustomDataGrid.VERTICAL_SCROLL);
-				var remainingColumnsWidth:Number = dataGridColumnsWidth;
-				var incrementValue:Number = 0;//as addtion default value 0
-				var defaultValue:Number = 200;
-				var perecentSymbol:String = "";
-				if(removeHorizontalScrollBar.value){
-					defaultValue = dataGridColumnsWidth / columnCount;
-					perecentSymbol = "%";
 				}
+				var allotedDisplayWidth:Number = dataGrid.getColumnDisplayWidth();
 				
-				if(columnWidths.childListCallbacks.lastObjectRemoved){
-					
-					var removedSessionedWidth:LinkableString = columnWidths.childListCallbacks.lastObjectRemoved as LinkableString;
-					var removedSessionedWidthValue:Number = NumberUtils.getNumberFromNumberOrPercent(removedSessionedWidth.value, dataGridColumnsWidth);
-					if(removeHorizontalScrollBar.value){
-						incrementValue = removedSessionedWidthValue / columnCount;
-					}
-					else{
-						dataGridColumnsWidth = dataGridColumnsWidth - removedSessionedWidthValue;
-						remainingColumnsWidth = dataGridColumnsWidth;
-					}
-				}
-				
-				//run the loop reverse
-				// so that newly added column comes first
-				for (var j:int = _currentDataGridColumns.length-1; j > -1; j--)
+				var defaultValue:Number = allotedDisplayWidth/_currentDataGridColumns.length;
+				 var displayedColumnsTotalWidth:Number = 0;
+				for (var j:int = 0  ; j < _currentDataGridColumns.length; j++)
 				{
 					var dgc:WeaveCustomDataGridColumn = _currentDataGridColumns[j] as WeaveCustomDataGridColumn;
 					var columnName:String = columns.getName(dgc.attrColumn);
@@ -717,69 +703,63 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if (sessionedWidth == null)
 						continue; 
 					var tempWidth:Number;
-					if(sessionedWidth.value ){						
-						if (columnWidths.childListCallbacks.lastObjectRemoved){
-							tempWidth = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, dataGridColumnsWidth) + incrementValue;
-							if(removeHorizontalScrollBar.value){								
-								sessionedWidth.value = Math.round(100 * (tempWidth / dataGridColumnsWidth)) + perecentSymbol;
-							}
-							else{
-								sessionedWidth.value = tempWidth + perecentSymbol;
-							}
-						}
-						else{
-							var oldSessionedValue:Number = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, dataGridColumnsWidth);
-							if(remainingColumnsWidth != dataGridColumnsWidth){//when a column is removed
-								tempWidth = Math.round(NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, remainingColumnsWidth));
-								var updatedSessionedValue:Number;
-								if(removeHorizontalScrollBar.value){
-									var oldSessionedPerecentValue:Number = (100 * oldSessionedValue) / dataGridColumnsWidth;
-									updatedSessionedValue = (remainingColumnsWidth/dataGridColumnsWidth) * oldSessionedPerecentValue ;
-								}
-								else{
-									updatedSessionedValue = (remainingColumnsWidth/dataGridColumnsWidth) * oldSessionedValue ;
-								}
-								sessionedWidth.value = Math.round(updatedSessionedValue) + perecentSymbol;							
-							}
-							else{
-//								if(toolDataGridWidthDiff > 0){
-//									oldSessionedValue = oldSessionedValue - ((oldSessionedValue/dataGridColumnsWidth)*toolDataGridWidthDiff);
-//								}
-								tempWidth = Math.round(oldSessionedValue);
-							}	
-						}
+					if(sessionedWidth.value ){	
+						var sessionedValue:Number = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, allotedDisplayWidth);
+						tempWidth = sessionedValue;
 					}
 					else{
-						tempWidth = Math.round(defaultValue);
-						remainingColumnsWidth = dataGridColumnsWidth - tempWidth;
-						sessionedWidth.value = tempWidth + perecentSymbol;
-						if(removeHorizontalScrollBar.value){
-							sessionedWidth.value = Math.round(100 * (tempWidth / dataGridColumnsWidth)) + perecentSymbol;
-						}
-						else{
-							sessionedWidth.value = tempWidth + perecentSymbol;
-						}
-						
+						tempWidth = defaultValue;					
+						sessionedWidth.value = (100 * tempWidth/allotedDisplayWidth) + "%";
 					}
-					
+					//last column gets width to adjust in datgrid, so its necessay to get that width.					
+					if(j == _currentDataGridColumns.length -1) {
+						tempWidth = allotedDisplayWidth - displayedColumnsTotalWidth ;
+					}
 					if (tempWidth <= 5 || isNaN(tempWidth)) {
 						tempWidth = _minSuggestedColumnSize;	
-					}											
-					// always force the width to be the new value
-					var newWidth:Number = Math.floor(Math.min(tempWidth, dataGridColumnsWidth));
+					}	
+					//floor required as rendering works fast with whole number than with an integer
+					var newWidth:Number = Math.floor(Math.min(tempWidth, allotedDisplayWidth));
+					
 					dgc.setWidth(newWidth);
+					dgc.width = newWidth;
+					
 					if (dgc.filterComponent){
-						dgc.filterComponent.width = newWidth;
+						dgc.filterComponent.width = dgc.width;
+					}
+					//add those columns which are dispalyed on datagrid
+					if(j >= dataGridHorizontalScrollPosition.value){
+						displayedColumnsTotalWidth = displayedColumnsTotalWidth + dgc.width;
 					}					
 				}
+				displayedColumnsTotalWidth = 0;
 			}
 			
-			private function handleDataGridScroll():void
+			private function handleVerticalScrollPosition():void{
+				dataGridVerticalScrollPosition.value = dataGrid.verticalScrollPosition;
+			}
+			private function handleDataGridVerticalScroll():void
 			{
+				dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
+			}
+			
+			private function handleHorizontalScrollPosition():void{
+				dataGridHorizontalScrollPosition.value = dataGrid.horizontalScrollPosition;
+			}
+			
+			private function handleDataGridHorizontalScroll():void
+			{
+				var maximumValue:int = dataGrid.maxHorizontalScrollPosition;				
 				var hsp:int = 0;
-				for (var i:int = 0; i < dataGrid.horizontalScrollPosition && i < _currentDataGridColumns.length; i++)
+				for (var i:int = 0; i < dataGridHorizontalScrollPosition.value && i < _currentDataGridColumns.length; i++){
 					hsp += (_currentDataGridColumns[i] as WeaveCustomDataGridColumn).width;
+				}					
 				filterControls.horizontalScrollPosition = hsp;
+				dataGrid.horizontalScrollPosition = dataGridHorizontalScrollPosition.value;
+				
+				if(maximumValue > 0 && dataGridHorizontalScrollPosition.value == maximumValue){
+					updateColumnWidths();
+				}
 			}
 			
 			
@@ -821,6 +801,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				dataGrid.lockedColumnCount = lockedColumns.value;
 			}
 			
+			
+			protected function dataGrid_updateCompleteHandler(event:FlexEvent):void
+			{
+				filterControls.setStyle("paddingLeft", dataGrid.viewMetrics.left);
+				filterControls.setStyle("paddingRight", dataGrid.viewMetrics.right);
+				
+			}
 			
 		]]>
 	</mx:Script>
