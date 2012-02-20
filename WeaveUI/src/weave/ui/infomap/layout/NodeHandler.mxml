@@ -53,6 +53,7 @@
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.SessionStateLog;
 			import weave.core.StageUtils;
 			import weave.core.UIUtils;
 			import weave.data.CSVParser;
@@ -128,6 +129,8 @@
 				super.createChildren();
 				this.addChild(nodeBase);
 			}
+			
+//			private var log:SessionStateLog = new SessionStateLog(thumbnails);
 			
 			override protected function childrenCreated():void
 			{
@@ -449,7 +452,7 @@
 //				graphics.beginFill(Math.random()*0xFFFFFF,1);
 //				graphics.drawCircle(0,0,50);
 				super.validateDisplayList();
-				if(detectLinkableObjectChange(updateDisplayList,thumbnails))
+				if(detectLinkableObjectChange(validateDisplayList,thumbnails))
 					handleSubsetChange();
 				
 			}
