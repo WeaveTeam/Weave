@@ -36,6 +36,7 @@ package weave.core
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IStageUtils;
 	import weave.api.reportError;
+	import weave.utils.DebugTimer;
 	
 	use namespace mx_internal;
 	
@@ -153,6 +154,7 @@ package weave.core
 			var currentTime:int = getTimer();
 			_previousFrameElapsedTime = currentTime - _currentFrameStartTime;
 			_currentFrameStartTime = currentTime;
+			
 			// update mouse coordinates
 			_lastMousePoint.x = _stage.mouseX;
 			_lastMousePoint.y = _stage.mouseY;

@@ -21,10 +21,8 @@ package weave.radviz
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.data.IAttributeColumn;
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.core.CallbackCollection;
-	import weave.core.LinkableHashMap;
 	import weave.utils.DebugTimer;
 
 	/**
