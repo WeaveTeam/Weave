@@ -23,7 +23,7 @@ package weave.api.core
 	 * 
 	 * @author adufilie
 	 */
-	public interface IChildListCallbackInterface extends ICallbackInterface
+	public interface IChildListCallbackInterface extends ICallbackCollection
 	{
 		/**
 		 * This is the object that was added prior to running immediate callbacks.

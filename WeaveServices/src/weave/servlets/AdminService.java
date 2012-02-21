@@ -1055,6 +1055,34 @@ public class AdminService extends GenericServlet
 
 		return headerLine;
 	}
+	
+	/**
+	 * Read a csv file and return the csv data string .
+	 * 
+	 * @param A csv file name
+	 *            
+	 * @return the csv data string 
+	 * 
+	 */
+	synchronized public String getCSVStringData(String csvFile) throws RemoteException
+	{
+		String csvString = null;
+
+		try
+		{
+			csvString = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
+		}
+		catch (FileNotFoundException e)
+		{
+			throw new RemoteException(e.getMessage());
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException(e.getMessage());
+		}
+
+		return csvString;
+	}
 
 	synchronized public String[] listDBFFileColumns(String dbfFileName) throws RemoteException
 	{

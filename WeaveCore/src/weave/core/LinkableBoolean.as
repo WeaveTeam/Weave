@@ -30,9 +30,9 @@ package weave.core
 	 */
 	public class LinkableBoolean extends LinkableVariable
 	{
-		public function LinkableBoolean(defaultValue:* = undefined, verifier:Function = null)
+		public function LinkableBoolean(defaultValue:* = undefined, verifier:Function = null, defaultValueTriggersCallbacks:Boolean = true)
 		{
-			super(Boolean, verifier, defaultValue);
+			super(Boolean, verifier, defaultValue, defaultValueTriggersCallbacks);
 		}
 
 		public function get value():Boolean

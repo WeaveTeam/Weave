@@ -187,6 +187,16 @@ package weave.api
 		
 		/**************************************/
 		
+//		public static function registerImplementation(theInterface:Class, theImplementation:Class):void
+//		{
+//		}
+//		
+//		public static function getRegisteredImplementations(theInterface:Class):Array
+//		{
+//		}
+//		
+//		private static const _implementations:Dictionary = new Dictionary(); // Class -> Array<Class>
+		
 		/**
 		 * This registers an implementation for a singleton interface.
 		 * @param theInterface The interface to register.

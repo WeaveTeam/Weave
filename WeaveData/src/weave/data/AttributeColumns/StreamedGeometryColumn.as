@@ -26,7 +26,7 @@ package weave.data.AttributeColumns
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ICallbackInterface;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -60,7 +60,7 @@ package weave.data.AttributeColumns
 			query.addAsyncResponder(handleGetTileDescriptors, handleGetTileDescriptorsFault, metadata);
 		}
 		
-		public function get boundingBoxCallbacks():ICallbackInterface
+		public function get boundingBoxCallbacks():ICallbackCollection
 		{
 			return _geometryStreamDecoder.metadataCallbacks;
 		}
