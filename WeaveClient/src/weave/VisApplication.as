@@ -96,6 +96,7 @@ package weave
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
+	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DebugTimer;
 	import weave.utils.EditorManager;
@@ -666,6 +667,7 @@ package weave
 					createToolMenuItem(Weave.properties.enableAddPieChartHistogram, "Add Pie Chart Histogram", createGlobalObject, [PieChartHistogramTool]);
 					createToolMenuItem(Weave.properties.enableAddRScriptEditor, "Add R Script Editor", createGlobalObject, [RTextEditor]);
 					createToolMenuItem(Weave.properties.enableAddRadViz, "Add RadViz", createGlobalObject, [RadVizTool]);
+					createToolMenuItem(Weave.properties.enableScahfersMissingDataTool, "Add SchafersMissingDataTool", createGlobalObject, [SchafersMissingDataTool]);
 					createToolMenuItem(Weave.properties.enableAddRamachandranPlot, "Add RamachandranPlot", createGlobalObject, [RamachandranPlotTool]);
 					createToolMenuItem(Weave.properties.enableAddScatterplot, "Add Scatterplot", createGlobalObject, [ScatterPlotTool]);
 					createToolMenuItem(Weave.properties.enableAddThermometerTool, "Add Thermometer Tool", createGlobalObject, [ThermometerTool]);
