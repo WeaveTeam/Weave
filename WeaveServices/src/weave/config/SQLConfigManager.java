@@ -22,18 +22,14 @@ package weave.config;
 import java.io.File;
 import java.io.IOException;
 import java.rmi.RemoteException;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.Statement;
 import java.util.Date;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-import weave.config.ISQLConfig.ConnectionInfo;
-import weave.utils.FileUtils;
-import weave.utils.SQLUtils;
 import org.xml.sax.SAXParseException;
+
+import weave.utils.FileUtils;
 
 
 /**
@@ -151,7 +147,7 @@ public final class SQLConfigManager
 				config = new SQLConfigXML(configFileName);
 				try
 				{
-					config = new DatabaseConfig(config);
+					config = new DatabaseConfig((SQLConfigXML)config);
 					System.out.println("Successfully initialized Weave database connection");
 				}
 				catch (Exception e)
@@ -212,26 +208,27 @@ public final class SQLConfigManager
 	}
 
 	/**
-	 * truncate
 	 * @param str A string to truncate
 	 * @param maxLength the maximum desired length of the result
 	 * @return The string, truncated to maxLength characters
 	 */
+	/*
 	private String truncate(String str, int maxLength)
 	{
 		if (str.length() <= maxLength)
 			return str;
 		return str.substring(0, maxLength);
 	}
+	*/
 
 	/**
-	 * writeToAccessLog
 	 * This function logs information on a WebMethod call.
 	 * @param ip The IP of the current user that made the request
 	 * @param duration The length of time it took to process the request
 	 * @param method The method that was called
 	 * @param args The arguments to the method that was called
 	 */
+	/*
 	synchronized public void writeToAccessLog(String ip, long duration, String method, String ... args)
 	{
 		Connection conn = null;
@@ -301,4 +298,5 @@ public final class SQLConfigManager
 //			SQLUtils.cleanup(conn);
 		}
 	}
+	*/
 }

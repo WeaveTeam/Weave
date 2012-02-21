@@ -34,7 +34,7 @@ package weave.services.beans
 			this.publicMetadata = o.publicMetadata;
 			
 			// replace nulls with empty strings
-			for each (var metadata:Object in [publicMetadata, privateMetadata])
+			for each (var metadata:Object in [privateMetadata, publicMetadata])
 				for (var name:String in metadata)
 					if (metadata[name] == null)
 						metadata[name] = '';
@@ -43,7 +43,7 @@ package weave.services.beans
 		[Deprecated] public function getAllMetadata():Object
 		{
 			var result:Object = {};
-			for each (var metadata:Object in [publicMetadata, privateMetadata])
+			for each (var metadata:Object in [privateMetadata, publicMetadata])
 				for (var name:String in metadata)
 					result[name] = metadata[name];
 			return result;

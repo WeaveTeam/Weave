@@ -24,6 +24,7 @@ import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,14 +38,9 @@ import weave.beans.DataServiceMetadata;
 import weave.beans.DataTableMetadata;
 import weave.beans.GeometryStreamMetadata;
 import weave.beans.WeaveRecordList;
-import weave.config.DublinCoreUtils;
 import weave.config.ISQLConfig;
-
-import weave.config.ISQLConfig.ConnectionInfo;
-import weave.config.ISQLConfig.DatabaseConfigInfo;
 import weave.config.ISQLConfig.AttributeColumnInfo;
 import weave.config.ISQLConfig.DataType;
-import weave.config.ISQLConfig.GeometryCollectionInfo;
 import weave.config.ISQLConfig.PrivateMetadata;
 import weave.config.ISQLConfig.PublicMetadata;
 import weave.config.SQLConfigManager;
@@ -52,7 +48,6 @@ import weave.config.SQLConfigUtils;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.reports.WeaveReport;
 import weave.utils.CSVParser;
-import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 import weave.utils.SQLResult;
 
@@ -89,6 +84,9 @@ public class DataService extends GenericServlet
 	public DataServiceMetadata getDataServiceMetadata()
 		throws RemoteException
 	{
+		//TODO
+		return null;
+		/*
 		configManager.detectConfigChanges();
 		
 		ISQLConfig config = configManager.getConfig();
@@ -120,12 +118,15 @@ public class DataService extends GenericServlet
 		}
 		
 		return new DataServiceMetadata(config.getServerName(), tableMetadata, geomNames, geomKeyTypes);
+		*/
 	}
 	
-	@SuppressWarnings("unchecked")
 	public DataTableMetadata getDataTableMetadata(String dataTableName)
 		throws RemoteException
 	{
+		//TODO
+		return null;
+		/*
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
 		
@@ -155,6 +156,7 @@ public class DataService extends GenericServlet
 		result.setColumnMetadata(metadata);
 
 		return result;
+		*/
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -172,7 +174,7 @@ public class DataService extends GenericServlet
 		int rowIndex =0;
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		List<AttributeColumnInfo> infoList = config.getAttributeColumnInfo(params);
+		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, params);
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		if (infoList.size() > 100)
@@ -184,8 +186,9 @@ public class DataService extends GenericServlet
 		for (int colIndex = 0; colIndex < infoList.size(); colIndex++)
 		{
 			AttributeColumnInfo info = infoList.get(colIndex);
+			String connectionName = info.privateMetadata.get(PrivateMetadata.CONNECTION);
 			String dataWithKeysQuery = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
-			metadataList[colIndex] = info.getAllMetadata();
+			metadataList[colIndex] = info.publicMetadata;
 
 			//if (dataWithKeysQuery.length() == 0)
 			//	throw new RemoteException(String.format("No SQL query is associated with column \"%s\" in dataTable \"%s\"", attributeColumnName, dataTableName));
@@ -218,9 +221,7 @@ public class DataService extends GenericServlet
 			
 			try
 			{
-				//timer.start();
-				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, info.getConnectionName(), dataWithKeysQuery);
-				//timer.lap("get row set");
+				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, connectionName, dataWithKeysQuery);
 				// if dataType is defined in the config file, use that value.
 				// otherwise, derive it from the sql result.
 				if (dataType.length() == 0)
@@ -275,7 +276,6 @@ public class DataService extends GenericServlet
 							hasSecondaryKey = getSecKeys(result, secKeys, i);
 					}
 				}
-				//timer.lap("get rows");
 			}
 			catch (SQLException e)
 			{
@@ -302,10 +302,10 @@ public class DataService extends GenericServlet
 	/**
 	 * should return two columns -- keys and data
 	 */
+	@SuppressWarnings("unchecked")
 	public AttributeColumnDataWithKeys getAttributeColumn(Map<String, String> params)
 		throws RemoteException
 	{
-		DebugTimer timer = new DebugTimer();
 		String dataTableName = params.get(PublicMetadata.DATATABLE);
 		String attributeColumnName = params.get(PublicMetadata.NAME);
 
@@ -317,9 +317,7 @@ public class DataService extends GenericServlet
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
 		
-		timer.lap("getConfig");
-		List<AttributeColumnInfo> infoList = config.getAttributeColumnInfo(params);
-		timer.lap("get column info "+params);
+		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, params);
 		
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
@@ -343,16 +341,14 @@ public class DataService extends GenericServlet
 		boolean hasSecondaryKey = true;
 		
 		// use config min,max or param min,max to filter the data
-		String infoMinStr = info.publicMetadata.get(PublicMetadata.MIN);
-		String infoMaxStr = info.publicMetadata.get(PublicMetadata.MAX);
 		double minValue = Double.NEGATIVE_INFINITY;
 		double maxValue = Double.POSITIVE_INFINITY;
 		// first try parsing config min,max values
 		try {
-			minValue = Double.parseDouble(info.publicMetadata.get(PublicMetadata.MIN.toString()));
+			minValue = Double.parseDouble(info.publicMetadata.get(PublicMetadata.MIN));
 		} catch (Exception e) { }
 		try {
-			maxValue = Double.parseDouble(info.publicMetadata.get(PublicMetadata.MAX.toString()));
+			maxValue = Double.parseDouble(info.publicMetadata.get(PublicMetadata.MAX));
 		} catch (Exception e) { }
 		// override config min,max with param values if given
 		try {
@@ -368,18 +364,17 @@ public class DataService extends GenericServlet
 		
 		try
 		{
-			timer.start();
+			String connectionName = info.privateMetadata.get(PrivateMetadata.CONNECTION);
 			SQLResult result;
 			if (sqlParams != null && sqlParams.length() > 0)
 			{
 				String[] args = CSVParser.defaultParser.parseCSV(sqlParams)[0];
-				result = SQLConfigUtils.getRowSetFromQuery(config, info.getConnectionName(), dataWithKeysQuery, args);
+				result = SQLConfigUtils.getRowSetFromQuery(config, connectionName, dataWithKeysQuery, args);
 			}
 			else
 			{
-				result = SQLConfigUtils.getRowSetFromQuery(config, info.getConnectionName(), dataWithKeysQuery);
+				result = SQLConfigUtils.getRowSetFromQuery(config, connectionName, dataWithKeysQuery);
 			}
-			timer.lap("get row set");
 			// if dataType is defined in the config file, use that value.
 			// otherwise, derive it from the sql result.
 			if (dataType.length() == 0)
@@ -429,7 +424,6 @@ public class DataService extends GenericServlet
 				if (hasSecondaryKey)
 					hasSecondaryKey = getSecKeys(result, secKeys, i);
 			}
-			timer.lap("get rows");
 		}
 		catch (SQLException e)
 		{
@@ -448,12 +442,11 @@ public class DataService extends GenericServlet
 		}
 
 		AttributeColumnDataWithKeys result = new AttributeColumnDataWithKeys(
-				info.getAllMetadata(),
+				info.publicMetadata,
 				keys.toArray(new String[0]),
 				numericData != null ? numericData.toArray(new Double[0]) : stringData.toArray(new String[0]),
 				hasSecondaryKey ? secKeys.toArray(new String[0]) : null
 			);
-		timer.report("prepare result");
 		
 		return result;
 	}
@@ -473,15 +466,13 @@ public class DataService extends GenericServlet
 		return true;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public SQLResult getRowSetFromAttributeColumn(Map<String, String> params)
 		throws RemoteException
 	{
-		DebugTimer timer = new DebugTimer();
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		timer.lap("get config");
-		List<AttributeColumnInfo> infoList = config.getAttributeColumnInfo(params);
-		timer.lap("get column info "+params);
+		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, params);
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		if (infoList.size() > 1)
@@ -490,10 +481,9 @@ public class DataService extends GenericServlet
 		AttributeColumnInfo info = infoList.get(0);
 		try
 		{
-			String connectionName = info.getConnectionName();
+			String connectionName = info.privateMetadata.get(PrivateMetadata.CONNECTION);
 			String query = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
 			SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, connectionName, query);
-			timer.report("get row set");
 			return result;
 		}
 		catch (SQLException e)
@@ -503,126 +493,120 @@ public class DataService extends GenericServlet
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public GeometryStreamMetadata getGeometryStreamTileDescriptors(String geometryCollectionName)
 		throws RemoteException
 	{
-		DebugTimer timer = new DebugTimer();
-		timer.report("getGeometryStreamTileDescriptors");
 		configManager.detectConfigChanges();
-		timer.lap("detect changes");
 		ISQLConfig config = configManager.getConfig();
-		timer.lap("get config");
+		Map<String,String> publicMetadataFilter = new HashMap<String,String>();
+		publicMetadataFilter.put(PublicMetadata.NAME, geometryCollectionName);
+		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, publicMetadataFilter);
+		if (infoList.size() == 1)
+			return getGeometryStreamTileDescriptors(infoList.get(0).id);
+		throw new RemoteException(String.format("%s matches for geometry collection \"%s\"", infoList.size(), geometryCollectionName));
+	}
+	public GeometryStreamMetadata getGeometryStreamTileDescriptors(int id)
+		throws RemoteException
+	{
+		configManager.detectConfigChanges();
+		ISQLConfig config = configManager.getConfig();
 	
-		GeometryCollectionInfo info = config.getGeometryCollectionInfo(geometryCollectionName);
+		AttributeColumnInfo info = config.getAttributeColumnInfo(id);
 		if (info == null)
-			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryCollectionName));
-		timer.lap("get geom info");
+			throw new RemoteException(String.format("Geometry collection with id \"%s\" does not exist.", id));
 		
+		String schema = info.privateMetadata.get(PrivateMetadata.SCHEMA);
+		String tablePrefix = info.privateMetadata.get(PrivateMetadata.TABLEPREFIX);
 		GeometryStreamMetadata result = new GeometryStreamMetadata();
-		result.setProjection(info.projection);
+		result.setId(id);
+		result.setMetadata(info.publicMetadata);
 		try {
-			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, info.connection);
-			timer.lap("get connection");
+			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, info.privateMetadata.get(PrivateMetadata.CONNECTION));
 	
 			// get tile descriptors
-			result.setKeyType(info.keyType);
 			result.setMetadataTileDescriptors(
-					SQLGeometryStreamReader.getMetadataTileDescriptors(conn, info.schema, info.tablePrefix)
+					SQLGeometryStreamReader.getMetadataTileDescriptors(conn, schema, tablePrefix)
 				);
-			timer.lap("get meta tile desc");
 			result.setGeometryTileDescriptors(
-					SQLGeometryStreamReader.getGeometryTileDescriptors(conn, info.schema, info.tablePrefix)
+					SQLGeometryStreamReader.getGeometryTileDescriptors(conn, schema, tablePrefix)
 				);
-			timer.lap("get geom tile desc");
 		}
 		catch (SQLException e)
 		{
-			System.out.println(String.format("getGeometryStreamTileDescriptors(%s): schema=\"%s\" tablePrefix=\"%s\"", geometryCollectionName, info.schema, info.tablePrefix));
+			System.out.println(String.format("getGeometryStreamTileDescriptors(%s): schema=\"%s\" tablePrefix=\"%s\"", id, schema, tablePrefix));
 			e.printStackTrace();
-			throw new RemoteException("Failed to retrieve GeometryStreamMetadata for GeometryCollection \""+geometryCollectionName+"\"", e);
+			throw new RemoteException("Failed to retrieve GeometryStreamMetadata for GeometryCollection \""+id+"\"", e);
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
 			throw new RemoteException(e.getMessage());
 		}
-		timer.report();
 		
 		// return tile descriptors
 		return result;
 	}
 	
-	public byte[] getGeometryStreamMetadataTiles(String geometryCollectionName, List<Integer> tileIDs)
+	public byte[] getGeometryStreamMetadataTiles(int geometryColumnId, List<Integer> tileIDs)
 		throws RemoteException
 	{
-		DebugTimer timer = new DebugTimer();
-		timer.report("getGeometryStreamMetadataTiles");
 		ISQLConfig config = configManager.getConfig();
-		timer.lap("get config");
-		GeometryCollectionInfo info = config.getGeometryCollectionInfo(geometryCollectionName);
+		AttributeColumnInfo info = config.getAttributeColumnInfo(geometryColumnId);
 		if (info == null)
-			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryCollectionName));
-		timer.lap("get geom info");
+			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryColumnId));
 	
 		// get stream from sql table
 		byte[] result;
 		try
 		{
-			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, info.connection);
-			timer.lap("get conn");
-	
-			result = SQLGeometryStreamReader.getMetadataTiles(conn, info.schema, info.tablePrefix, tileIDs);
-			timer.lap("get meta tiles "+tileIDs);
+			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, info.privateMetadata.get(PrivateMetadata.CONNECTION));
+			String schema = info.privateMetadata.get(PrivateMetadata.SCHEMA);
+			String tablePrefix = info.privateMetadata.get(PrivateMetadata.TABLEPREFIX);
+			result = SQLGeometryStreamReader.getMetadataTiles(conn, schema, tablePrefix, tileIDs);
 		}
 		catch (SQLException e)
 		{
 			e.printStackTrace();
-			throw new RemoteException("Unable to retrieve metadata tiles for geometry collection \""+geometryCollectionName+"\"", e);
+			throw new RemoteException("Unable to retrieve metadata tiles for geometry collection \""+geometryColumnId+"\"", e);
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
 			throw new RemoteException(e.getMessage(), e);
 		}
-		timer.report();
 	
 		// return stream
 		return result;
 	}
 	
-	public byte[] getGeometryStreamGeometryTiles(String geometryCollectionName, List<Integer> tileIDs)
+	public byte[] getGeometryStreamGeometryTiles(int geometryColumnId, List<Integer> tileIDs)
 		throws RemoteException
 	{
-		DebugTimer timer = new DebugTimer();
-		timer.report("getGeometryStreamGeometryTiles");
 		ISQLConfig config = configManager.getConfig();
-		timer.lap("get config");
-		GeometryCollectionInfo info = config.getGeometryCollectionInfo(geometryCollectionName);
+		AttributeColumnInfo info = config.getAttributeColumnInfo(geometryColumnId);
 		if (info == null)
-			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryCollectionName));
-		timer.lap("get geom info");
+			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryColumnId));
 	
 		// get stream from sql table
 		byte[] result;
 		try
 		{
-			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, info.connection);
-			timer.lap("get conn");
-			
-			result = SQLGeometryStreamReader.getGeometryTiles(conn, info.schema, info.tablePrefix, tileIDs);
-			timer.lap("get geom tiles "+tileIDs);
+			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, info.privateMetadata.get(PrivateMetadata.CONNECTION));
+			String schema = info.privateMetadata.get(PrivateMetadata.SCHEMA);
+			String tablePrefix = info.privateMetadata.get(PrivateMetadata.TABLEPREFIX);
+			result = SQLGeometryStreamReader.getGeometryTiles(conn, schema, tablePrefix, tileIDs);
 		}
 		catch (SQLException e)
 		{
 			e.printStackTrace();
-			throw new RemoteException("Unable to retrieve geometry tiles for geometry collection \""+geometryCollectionName+"\"", e);
+			throw new RemoteException("Unable to retrieve geometry tiles for geometry collection \""+geometryColumnId+"\"", e);
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
 			throw new RemoteException(e.getMessage(), e);
 		}
-		timer.report();
 	
 		// return stream
 		return result;

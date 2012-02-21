@@ -36,7 +36,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1181,7 +1180,8 @@ public class SQLUtils
             int i = 0;
             for (String item : items)
             {
-                if (i > 0) result.append(separator);
+                if (i > 0)
+                	result.append(separator);
                 result.append(item);
                 i++;
             }
@@ -1202,9 +1202,7 @@ public class SQLUtils
         }
         private static String buildPredicate(Connection conn, String field, String value) throws SQLException
         {
-            String pred;
-            pred = "(" + field + caseSensitiveCompareOperator(conn) + value + ")";
-            return pred;
+            return "(" + field + caseSensitiveCompareOperator(conn) + value + ")";
         }
         private static String buildDisjunctiveNormalForm(Connection conn, List<List<Entry<String,String>>> arguments) throws SQLException
         {
@@ -1267,20 +1265,18 @@ public class SQLUtils
 	            Map<Integer,Map<String,String>> results = new HashMap<Integer,Map<String,String>>();
 	            if (ids.size() == 0)
 	            	return results;
-	            String idBlock = "("+stringMult(",", "?", ids.size())+")";
-	            String propBlock;
-	            String quotedSchema = quoteSchemaTable(conn, schemaName, table);
-	            if (props == null || props.isEmpty())
-	            {
-	            	query = String.format("SELECT %s,%s,%s FROM %s WHERE %s IN %s ORDER BY %s", quoteSymbol(conn, idColumn), quoteSymbol(conn, propColumn), quoteSymbol(conn, dataColumn),
-	            			quotedSchema, quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, idColumn));
-	            }
-	            else
-	            {
-	            	propBlock = "("+stringMult(",","?", props.size())+")";
-	            	query = String.format("SELECT %s,%s,%s FROM %s WHERE %s IN %s AND %s IN %s ORDER BY %s", quoteSymbol(conn, idColumn), quoteSymbol(conn, propColumn), quoteSymbol(conn, dataColumn),
-	            			quotedSchema, quoteSymbol(conn, idColumn), idBlock, quoteSymbol(conn, propColumn), propBlock, quoteSymbol(conn, idColumn));
-	            }
+	            String qIdColumn = quoteSymbol(conn, idColumn);
+	            String qPropColumn = quoteSymbol(conn, propColumn);
+	            String qDataColumn = quoteSymbol(conn, dataColumn);
+	            String qSchemaTable = quoteSchemaTable(conn, schemaName, table);
+	            String whereClause = String.format("WHERE %s IN (%s)", qIdColumn, stringMult(",", "?", ids.size()));
+	            if (props != null && props.size() > 0)
+	            	whereClause += String.format(" AND %s IN (%s)", qPropColumn, stringMult(",", "?", props.size()));
+	            query = String.format(
+            		"SELECT %s,%s,%s FROM %s %s ORDER BY %s",
+            		qIdColumn, qPropColumn, qDataColumn,
+            		qSchemaTable, whereClause, qIdColumn
+	            );
 	            PreparedStatement stmt = conn.prepareStatement(query);
 	            int i = 1;
 	            for (Integer val : ids)

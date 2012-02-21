@@ -27,7 +27,6 @@ import org.w3c.dom.Document;
 
 import weave.config.SQLConfigUtils.InvalidParameterException;
 import weave.utils.SQLUtils;
-import weave.utils.SQLResult;
 
 /**
  * DatabaseConfig This class reads from an SQL database and provides an interface to retrieve strings.
@@ -63,13 +62,9 @@ public class SQLConfig
         private final String TAG_PARENT = "parent_id";
         
         /* Constants for type_id */
-        private final Integer MAN_TYPE_DATATABLE = 0;
+        //private final Integer MAN_TYPE_DATATABLE = 0;
         private final Integer MAN_TYPE_COLUMN = 1;
         private final Integer MAN_TYPE_TAG = 2;
-
-        /* Constants for system-reserved properties */
-        private final String META_PROPERTY_NAME = "sys_name";
-        private final String META_PROPERTY_DESC = "sys_desc";
 
 	private DatabaseConfigInfo dbInfo = null;
 	private ISQLConfig connectionConfig = null;
@@ -116,8 +111,7 @@ public class SQLConfig
 		}
 		catch (Exception e)
 		{
-			// do nothing if schema creation fails -- temporary workaround for
-			// postgresql issue
+			// do nothing if schema creation fails -- temporary workaround for postgresql issue
 			// e.printStackTrace();
 		}
 		initSQLTables();
@@ -164,26 +158,6 @@ public class SQLConfig
 		return connectionConfig.getDocument();
 	}
 
-	public String getServerName() throws RemoteException
-	{
-		return connectionConfig.getServerName();
-	}
-
-	public String getAccessLogConnectionName() throws RemoteException
-	{
-		return connectionConfig.getAccessLogConnectionName();
-	}
-
-	public String getAccessLogSchema() throws RemoteException
-	{
-		return connectionConfig.getAccessLogSchema();
-	}
-
-	public String getAccessLogTable() throws RemoteException
-	{
-		return connectionConfig.getAccessLogTable();
-	}
-
 	public List<String> getConnectionNames() throws RemoteException
 	{
 		return connectionConfig.getConnectionNames();
@@ -219,30 +193,6 @@ public class SQLConfig
             }
             return ids;
         }
-        /**
-         * @param ids List of IDs to be queried
-         * @param properties A list of metadata property names to return
-         * @return A map of the requested IDs to maps of property names to values
-         * @throws RemoteException
-         */
-        @Deprecated
-        private Map<Integer,Map<String,String>> getAllMetadata(Collection<Integer> ids, Collection<String> properties) throws RemoteException
-        {
-                Map<Integer,Map<String,String>> results;
-                Map<Integer,Map<String,String>> results2;
-                try 
-                {
-                    Connection conn = getConnection();
-                    results = SQLUtils.idInSelect(conn, dbInfo.schema, table_meta_private, META_ID, META_PROPERTY, META_VALUE, ids, properties);
-                    results2 = SQLUtils.idInSelect(conn, dbInfo.schema, table_meta_public, META_ID, META_PROPERTY, META_VALUE, ids, properties);
-                    results.putAll(results2);
-                }
-                catch (Exception e)
-                {
-                    throw new RemoteException("Failed to get properties.", e);
-                }
-                return results; 
-        }
         private Map<Integer,Map<String,String>> getMetadataFromIds(String sqlTable, Collection<Integer> ids, Collection<String> properties) throws RemoteException
         {
         	Map<Integer,Map<String,String>> results;
@@ -257,36 +207,32 @@ public class SQLConfig
         	}
         	return results; 
         }
-        private void setProperty(Integer id, String property, String value) throws RemoteException 
+        private void setMetadataProperty(String sqlTable, Integer id, String property, String value) throws RemoteException 
         {
-            try {
-	            Connection conn = getConnection();
-	            String table = null;
-	            if (PrivateMetadata.isPrivate(property))
-	            	table = table_meta_private;
-	            else
-	            	table = table_meta_public;
-	            
-	            // to overwrite metadata, first delete then insert
-	            Map<String,Object> delete_args = new HashMap<String,Object>();
-	            delete_args.put(META_PROPERTY, property);
-	            delete_args.put(META_ID, id);
-	            SQLUtils.deleteRows(conn, dbInfo.schema, table, delete_args);
-	            
-	            if (value != null && value.length() > 0)
-	            {
-	            	Map<String,Object> insert_args = new HashMap<String,Object>();
-	            	insert_args.put(META_PROPERTY, property);
-	            	insert_args.put(META_VALUE, value);
-	            	insert_args.put(META_ID, id);
-	            	SQLUtils.insertRow(conn, dbInfo.schema, table, insert_args);
-	            }
-            }
-            catch (Exception e)
-            {
-                throw new RemoteException("Failed to set property.", e);
-            }
-        }
+        	try
+        	{
+        		Connection conn = getConnection();
+		        
+		        // to overwrite metadata, first delete then insert
+		        Map<String,Object> delete_args = new HashMap<String,Object>();
+		        delete_args.put(META_PROPERTY, property);
+		        delete_args.put(META_ID, id);
+		        SQLUtils.deleteRows(conn, dbInfo.schema, sqlTable, delete_args);
+		        
+		        if (value != null && value.length() > 0)
+		        {
+			        Map<String,Object> insert_args = new HashMap<String,Object>();
+			        insert_args.put(META_PROPERTY, property);
+			        insert_args.put(META_VALUE, value);
+			        insert_args.put(META_ID, id);
+			        SQLUtils.insertRow(conn, dbInfo.schema, sqlTable, insert_args);
+		        }
+	        }
+	        catch (Exception e)
+	        {
+		        throw new RemoteException("Failed to set property.", e);
+	        }
+        } 
         private void delEntry(Integer id) throws RemoteException
         {
             try {
@@ -317,109 +263,31 @@ public class SQLConfig
                 throw new RemoteException("Failed to delete entry.", e);
             }
         }
-        public Integer addEntry(Integer type_val, Map<String,String> properties) throws RemoteException
+        private Integer addEntry(Integer type_val, Map<String,String> privateMetadata, Map<String,String> publicMetadata) throws RemoteException
         {
             Integer uniq_id = null; 
-            try {
+            try
+            {
                 Connection conn = getConnection();
-                Map<String,Object> dummyProp = new HashMap<String,Object>();
-                dummyProp.put(MAN_TYPE, type_val);
-                uniq_id = SQLUtils.insertRowReturnID(conn, dbInfo.schema, table_manifest, dummyProp);
-                // If we made it this far, we have a new unique ID in the manifest table. Now let's build the info we need to do the necessary row inserts...
-                for (Entry<String,String> keyvalpair : properties.entrySet())
-                {
-                    String key = keyvalpair.getKey();
-                    String val = keyvalpair.getValue();
-                    setProperty(uniq_id, key, val);
-                } 
+                
+                Map<String,Object> record = new HashMap<String,Object>();
+                record.put(MAN_TYPE, type_val);
+                uniq_id = SQLUtils.insertRowReturnID(conn, dbInfo.schema, table_manifest, record);
+                // If we made it this far, we have a new unique ID in the manifest table. Now insert the metadata.
+                if (privateMetadata != null)
+                	for (Entry<String,String> entry : privateMetadata.entrySet())
+                		setMetadataProperty(table_meta_private, uniq_id, entry.getKey(), entry.getValue());
+                if (publicMetadata != null)
+                	for (Entry<String,String> entry : publicMetadata.entrySet())
+                		setMetadataProperty(table_meta_public, uniq_id, entry.getKey(), entry.getValue());
             }
             catch (Exception e)
             {
-                throw new RemoteException("Unable to insert description item.",e);
+                throw new RemoteException("Unable to create Weave config entry.",e);
             }
             return uniq_id;
         }
 /* ** END** Private methods which handle the barebones of the entity-attribute-value system. */
-	public List<String> getGeometryCollectionNames(String connectionName) throws RemoteException
-	{
-            List<String> names = new LinkedList<String>();
-            try
-            {
-                Set<Integer> geom_ids = null;
-                Set<Integer> conn_ids = null;
-
-                HashMap<String,String> geom_constraints = new HashMap<String,String>();
-                geom_constraints.put(META_PROPERTY, PublicMetadata.DATATYPE);
-                geom_constraints.put(META_VALUE, DataType.GEOMETRY);
-                geom_ids = new HashSet<Integer>(getIdsFromMetadata(table_meta_public, geom_constraints));
-
-                // we only want to filter by connection name if it's non-null
-                if (connectionName != null)
-                {
-                	HashMap<String,String> conn_constraints = new HashMap<String,String>();
-                	conn_constraints.put(META_PROPERTY, PrivateMetadata.CONNECTION);
-                	conn_constraints.put(META_VALUE, connectionName);
-                	conn_ids = new HashSet<Integer>(getIdsFromMetadata(table_meta_private, conn_constraints));
-                	geom_ids.retainAll(conn_ids);
-                }
-            }
-            catch (Exception e)
-            {
-                throw new RemoteException("Unable to get GeometryCollection names", e);
-            }
-            return names;
-	}
-
-	public List<String> getDataTableNames(String connectionName) throws RemoteException
-	{
-		List<String> names = new LinkedList<String>();
-        List<Map<String,String>> results = null;
-		try
-		{
-                        Connection conn = getConnection();
-                        List<String> selectColumns = new LinkedList<String>();
-                        String fromSchema = dbInfo.schema;
-                        String fromTable = table_meta_public;
-                        Map<String,Object> whereParams = new HashMap<String,Object>();
-                        whereParams.put(META_PROPERTY, "name");
-                        selectColumns.add(META_VALUE);
-                        results = SQLUtils.getRecordsFromQuery(conn, selectColumns, fromSchema, fromTable, whereParams);
-                        
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("Unable to get DataTable names", e);
-		}
-                if (results != null)
-                {
-                    for (Map<String,String> row : results)
-                    {
-                        names.add(row.get(META_VALUE));
-                    }
-                }
-                return names; 
-	}
-
-	public List<String> getKeyTypes() throws RemoteException
-	{
-		try
-		{
-			Connection conn = getConnection();
-			List<String> dtKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, PublicMetadata.KEYTYPE);
-			List<String> gcKeyTypes = SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.geometryConfigTable, PublicMetadata.KEYTYPE);
-
-			Set<String> uniqueValues = new HashSet<String>();
-			uniqueValues.addAll(dtKeyTypes);
-			uniqueValues.addAll(gcKeyTypes);
-			Vector<String> result = new Vector<String>(uniqueValues);
-			Collections.sort(result, String.CASE_INSENSITIVE_ORDER);
-			return result;
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException(String.format("Unable to get key types"), e);
-		}
-	}
 
 	public void addConnection(ConnectionInfo info) throws RemoteException
 	{
@@ -436,154 +304,117 @@ public class SQLConfig
 		connectionConfig.removeConnection(name);
 	}
 
-	public void addGeometryCollection(GeometryCollectionInfo info) throws RemoteException
-	{
-		try
-		{
-			// construct a hash map to pass to the insertRow() function
-			Map<String, String> valueMap = new HashMap<String, String>();
-			
-			// private metadata
-			valueMap.put(PrivateMetadata.CONNECTION, info.connection);
-			valueMap.put(PrivateMetadata.SCHEMA, info.schema);
-			valueMap.put(PrivateMetadata.TABLEPREFIX, info.tablePrefix);
-			
-			// public metadata
-			valueMap.put(PublicMetadata.NAME, info.name);
-			valueMap.put(PublicMetadata.KEYTYPE, info.keyType);
-			valueMap.put(PublicMetadata.PROJECTION, info.projection);
-			valueMap.put(PublicMetadata.DATATYPE, DataType.GEOMETRY);
-			
-			String description = info.importNotes;
-                        addEntry(MAN_TYPE_COLUMN, valueMap);
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException(String.format("Unable to add GeometryCollection \"%s\"", info.name), e);
-		}
-	}
-
-	public void removeGeometryCollection(String name) throws RemoteException
-	{
-        List<Integer> ids;
-		Map<String,String> whereParams = new HashMap<String,String>();
-		whereParams.put("name", name);
-        ids = getIdsFromMetadata(table_meta_public, whereParams);
-        for (Integer id : ids)
-        {
-            delEntry(id);
-        }
-	}
-
-	public void removeDataTable(String name) throws RemoteException
-	{
-                //TODO Seems right, but doesn't seem right. Double check with andy.
-		try
-		{
-                    removeGeometryCollection(name); // Same deal.
-		}
-		catch (RemoteException e)
-		{
-			throw new RemoteException(String.format("Unable to remove DataTable \"%s\"", name), e);
-		}
-	}
-        public GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName) throws RemoteException
-        {
-                Map<String,String> attribParams =  new HashMap<String,String>();
-                attribParams.put(PublicMetadata.NAME, geometryCollectionName);
-                attribParams.put(PublicMetadata.DATATYPE, DataType.GEOMETRY);
-                List<Integer> idlist = getIdsFromMetadata(table_meta_public, attribParams);
-                return getGeometryCollectionInfo(idlist.get(0));
-        }
-	public GeometryCollectionInfo getGeometryCollectionInfo(Integer id) throws RemoteException
-	{
-		Map<String, Object> params = new HashMap<String, Object>();
-		GeometryCollectionInfo info = new GeometryCollectionInfo();
-		params.put(META_ID, id);
-		try
-		{
-			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, table_meta_public, params);
-			Map<String,String> props = new HashMap<String,String>();
-			for (Map<String,String> row : records)
-			{
-                            String property_name = row.get(META_PROPERTY);
-                            String value = row.get(META_VALUE);
-                            props.put(property_name, value);
-			}
-			// public meta
-			info.name = props.get(PublicMetadata.NAME);
-			info.keyType = props.get(PublicMetadata.KEYTYPE);
-			info.projection = props.get(PublicMetadata.PROJECTION);
-			
-			// private meta
-			info.connection = props.get(PrivateMetadata.CONNECTION);
-			info.schema = props.get(PrivateMetadata.SCHEMA);
-			info.tablePrefix = props.get(PrivateMetadata.TABLEPREFIX);
-			info.importNotes = props.get(PrivateMetadata.IMPORTNOTES);
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException(String.format("Unable to get info for GeometryCollection \"%d\"", id), e);
-		}
-		return info;
-	}
-
 	/**
-	 * This is a legacy interface for adding an attribute column. The id and description fields of the info object are not used.
+	 * This creates an attribute column entry in the configuration.
+	 * @param privateMetadata Private metadata for the attribute column.
+	 * @param publicMetadata Public metadata for the attribute column.
+	 * @return A new ID for the attribute column.
 	 */
-	public void addAttributeColumn(AttributeColumnInfo info) throws RemoteException
+	public int addAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
 	{
-		// prepare the description of the column
-		String dataTable = info.publicMetadata.get(PublicMetadata.DATATABLE);
-		String name = info.publicMetadata.get(PublicMetadata.NAME);
-		String description = String.format("dataTable = \"%s\", name = \"%s\"", dataTable, name);
-		String year = info.publicMetadata.get(PublicMetadata.YEAR);
-		if (year != null && year.length() > 0)
-			description += String.format(", year = \"%s\"", year);
-        // insert all the info into the sql table
-                addEntry(MAN_TYPE_COLUMN, info.getAllMetadata());
-	}
-
+		return addEntry(MAN_TYPE_COLUMN, info.privateMetadata, info.publicMetadata);
+	} 
+	
 	// shortcut for calling the Map<String,String> version of this function
+	@SuppressWarnings("unchecked")
 	public List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName) throws RemoteException
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>(1);
 		metadataQueryParams.put(PublicMetadata.DATATABLE, dataTableName);
-		return getAttributeColumnInfo(metadataQueryParams);
+		return findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, metadataQueryParams);
+	}
+	
+	public void overwriteAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
+	{
+		throw new RemoteException("Not implemented");
+		
+		//TODO if id does not exist, throw exception
+		
+		//TODO remove all existing metadata for specified id
+		
+		/*
+        if (privateMetadata != null)
+        	for (Entry<String,String> entry : info.privateMetadata.entrySet())
+        		setMetadataProperty(table_meta_private, id, entry.getKey(), entry.getValue());
+        if (publicMetadata != null)
+        	for (Entry<String,String> entry : info.publicMetadata.entrySet())
+        		setMetadataProperty(table_meta_public, id, entry.getKey(), entry.getValue());
+		 */
 	}
 
 	/**
 	 * @return A list of AttributeColumnInfo objects having info that matches the given parameters.
 	 */
-	public List<AttributeColumnInfo> getAttributeColumnInfo(Map<String, String> metadataQueryParams) throws RemoteException
+	public List<AttributeColumnInfo> findAttributeColumnInfoFromPrivateAndPublicMetadata(Map<String, String> privateMetadataFilter, Map<String,String> publicMetadataFilter) throws RemoteException
 	{
+		List<Integer> idList = getIdsFromMetadata(table_meta_public, publicMetadataFilter);
+		if (privateMetadataFilter != null)
+		{
+			List<Integer> privateIdList = getIdsFromMetadata(table_meta_private, privateMetadataFilter);
+			idList.retainAll(privateIdList); 
+		}
+		
 		List<AttributeColumnInfo> results = new Vector<AttributeColumnInfo>();
-        Map<Integer,Map<String,String>> attr_cols;
-        List<Integer> col_ids = getIdsFromMetadata(table_meta_public, metadataQueryParams); 
-        attr_cols = getAllMetadata(col_ids, null);
-		for (Entry<Integer,Map<String,String>> entry : attr_cols.entrySet())
-			results.add(new AttributeColumnInfo(entry.getKey(), null, entry.getValue()));
+		Map<Integer, Map<String, String>> idToPrivateMeta = getMetadataFromIds(table_meta_private, idList, null);
+		Map<Integer, Map<String, String>> idToPublicMeta = getMetadataFromIds(table_meta_public, idList, null);
+		for (Integer id : idList)
+		{
+			AttributeColumnInfo info = new AttributeColumnInfo();
+			info.id = id;
+			
+			if (idToPrivateMeta.containsKey(id))
+				info.privateMetadata = idToPrivateMeta.get(id);
+			else
+				info.privateMetadata = new HashMap<String,String>();
+			
+			if (idToPublicMeta.containsKey(id))
+				info.publicMetadata = idToPublicMeta.get(id);
+			else
+				info.publicMetadata = new HashMap<String,String>();
+			
+			results.add(info); 
+		}
 		return results;
 	}
+	
+	/**
+	 * @return AttributeColumnInfo for a given attribute column id.
+	 */
+	public AttributeColumnInfo getAttributeColumnInfo(int id) throws RemoteException
+	{
+		List<Integer> idList = new Vector<Integer>();
+		idList.add(id);
+		
+		Map<Integer, Map<String, String>> idToPrivateMeta = getMetadataFromIds(table_meta_private, idList, null);
+		Map<Integer, Map<String, String>> idToPublicMeta = getMetadataFromIds(table_meta_public, idList, null);
+
+		AttributeColumnInfo info = new AttributeColumnInfo();
+		info.id = id;
+			
+		if (idToPrivateMeta.containsKey(id))
+			info.privateMetadata = idToPrivateMeta.get(id);
+		else
+			info.privateMetadata = new HashMap<String,String>();
+		
+		if (idToPublicMeta.containsKey(id))
+			info.publicMetadata = idToPublicMeta.get(id);
+		else
+			info.publicMetadata = new HashMap<String,String>();
+		
+		return info;
+	}
+	public void removeAttributeColumnInfo(int id) throws RemoteException
+	{
+		delEntry(id);
+	}
+	
         /* Code regarding the new category table and logic */
         public int addTag(String tagTitle) throws RemoteException
         {
-            Connection conn;
-            int id;
-            try
-            {
-                /* Add to the manifest. */
-                Map<String,String> attrs = new HashMap<String,String>();
-                conn = getConnection();
-
-                attrs.put(META_PROPERTY_NAME, tagTitle);
-                id = addEntry(MAN_TYPE_TAG, attrs);
-            }
-            catch (SQLException sql_e)
-            {
-                throw new RemoteException(String.format("Failed to add category %s.", tagTitle), sql_e);
-            }
-            return id;
+            /* Add to the manifest. */
+            Map<String,String> pubMeta = new HashMap<String,String>();
+            pubMeta.put(PublicMetadata.TITLE, tagTitle);
+            return addEntry(MAN_TYPE_TAG, null, pubMeta);
         }
         public void addChild(int parent, int child) throws RemoteException
         {
@@ -621,12 +452,12 @@ public class SQLConfig
         }
         public Map<Integer,Boolean> getEntityIsCategory(Collection<Integer> id_list) throws RemoteException
         {
-            Connection conn;
+            Connection conn = null;
             Map<Integer,Boolean> entityIsCategory = new HashMap<Integer,Boolean>();
             try
             {
-                SQLResult sqlres;
                 conn = getConnection();
+                //TODO
             }
             catch (SQLException sql_e)
             {
@@ -634,16 +465,16 @@ public class SQLConfig
             }
             return entityIsCategory;
         }
-        public Map<Integer,String> getEntityName(Collection<Integer> id_list) throws RemoteException
+        public Map<Integer,String> getEntityTitles(Collection<Integer> id_list) throws RemoteException
         {
-            List<String> meta = Arrays.asList(META_PROPERTY_NAME);
+            List<String> properties = Arrays.asList(PublicMetadata.TITLE);
             Map<Integer,String> entityNames = new HashMap<Integer,String>();
-            Map<Integer,Map<String,String>> nameMap = getAllMetadata(id_list, meta);
+            Map<Integer,Map<String,String>> nameMap = getMetadataFromIds(table_meta_public, id_list, properties);
 
             for (Entry<Integer,Map<String,String>> entry: nameMap.entrySet())
             {
                 Integer id = entry.getKey();
-                String name = entry.getValue().get(META_PROPERTY_NAME);
+                String name = entry.getValue().get(PublicMetadata.TITLE);
                 entityNames.put(id, name);
             }
             return entityNames;
@@ -675,7 +506,6 @@ public class SQLConfig
         }
         public Collection<Integer> getRoots() throws RemoteException
         {
-            Collection<Integer> roots = new LinkedList<Integer>();
             Set<Integer> manifest_ids;
             Set<Integer> child_ids;
             Connection conn;

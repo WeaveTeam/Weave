@@ -74,9 +74,7 @@
 				</ui:Indent>
 				<ui:IndentTextInput label="Password" id="migratePasswordInput" displayAsPassword="true"/>
 				<ui:IndentTextInput label="Schema to use" id="migrateSchemaInput" text="{AdminInterface.instance.databaseConfigInfo.schema}"/>
-				<ui:IndentTextInput label="Geometry config table" id="migrateGeometryConfigInput" text="{AdminInterface.instance.databaseConfigInfo.geometryConfigTable}"/>
-				<ui:IndentTextInput label="AttributeColumn config table" id="migrateDataConfigInput" text="{AdminInterface.instance.databaseConfigInfo.dataConfigTable}"/>
-				<mx:Button id="migrateButton" label="Use these SQL tables to store Weave's configuration" click="migrateToDatabase()" />
+				<mx:Button id="migrateButton" label="Use this SQL schema to store Weave's configuration" click="migrateToDatabase()" />
 			</mx:VBox>
 		</mx:Canvas>
 		<!--		<mx:Canvas label="etc" width="100%" height="100%">
@@ -241,9 +239,7 @@
 				var query:DelayedAsyncInvocation = AdminInterface.instance.migrateConfigToDatabase(
 					   migrateConnectionCombo.text,
 					   migratePasswordInput.text,
-					   migrateSchemaInput.text,
-					   migrateGeometryConfigInput.text,
-					   migrateDataConfigInput.text
+					   migrateSchemaInput.text
 					);
 				query.addAsyncResponder(enableMigrateButton, enableMigrateButton);
 				function enableMigrateButton(..._):void

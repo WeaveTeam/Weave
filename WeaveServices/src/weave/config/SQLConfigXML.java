@@ -24,13 +24,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Vector;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -40,15 +39,15 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import weave.utils.FileUtils;
-import weave.utils.ListUtils;
-import weave.utils.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import weave.utils.FileUtils;
+import weave.utils.XMLUtils;
 
 /**
  * SQLConfigXML This class reads an .XML configuration file and provides an
@@ -57,7 +56,7 @@ import org.xml.sax.SAXException;
  * @author Andy Dufilie
  */
 
-public class SQLConfigXML implements ISQLConfig
+public class SQLConfigXML implements IDeprecatedSQLConfig
 {
 	public static void copyEmbeddedDTD(String configPath)
 	{
@@ -76,9 +75,9 @@ public class SQLConfigXML implements ISQLConfig
 	public static final String DTD_FILENAME = "sqlconfig.dtd";
 	public static final URL DTD_EMBEDDED = SQLConfigXML.class.getResource("/weave/config/" + DTD_FILENAME);
 
-	public static final String ENTRYTYPE_CONNECTION = "connection";
-	public static final String ENTRYTYPE_DATATABLE = "dataTable";
-	public static final String ENTRYTYPE_GEOMETRYCOLLECTION = "geometryCollection";
+	private static final String ENTRYTYPE_CONNECTION = "connection";
+	private static final String ENTRYTYPE_DATATABLE = "dataTable";
+	private static final String ENTRYTYPE_GEOMETRYCOLLECTION = "geometryCollection";
 
 	private Document doc = null;
 	private XPath xpath = null;
@@ -239,21 +238,6 @@ public class SQLConfigXML implements ISQLConfig
 		return serverName;
 	}
 
-	synchronized public String getAccessLogConnectionName()
-	{
-		return accessLogConnectionName;
-	}
-
-	synchronized public String getAccessLogSchema()
-	{
-		return accessLogSchema;
-	}
-
-	synchronized public String getAccessLogTable()
-	{
-		return accessLogTable;
-	}
-
 	synchronized public void setDatabaseConfigInfo(DatabaseConfigInfo newInfo) throws IOException, ParserConfigurationException, SAXException
 	{
 		if (getDatabaseConfigInfo() != null)
@@ -272,10 +256,10 @@ public class SQLConfigXML implements ISQLConfig
 		}
 		
 		String tag = String.format(
-				"\n\t<databaseConfig connection=\"%s\" schema=\"%s\" geometryConfigTable=\"%s\" dataConfigTable=\"%s\"/>\n",
-				XMLUtils.escapeSpecialCharacters(newInfo.connection), XMLUtils.escapeSpecialCharacters(newInfo.schema),
-				XMLUtils.escapeSpecialCharacters(newInfo.geometryConfigTable),
-				XMLUtils.escapeSpecialCharacters(newInfo.dataConfigTable));
+			"\n\t<databaseConfig connection=\"%s\" schema=\"%s\"/>\n",
+			XMLUtils.escapeSpecialCharacters(newInfo.connection),
+			XMLUtils.escapeSpecialCharacters(newInfo.schema)
+		);
 		XMLUtils.prependXMLChildFromString(doc, tag);
 	}
 	
@@ -288,20 +272,28 @@ public class SQLConfigXML implements ISQLConfig
 	 * Returns null if the config information is not stored in a database (when
 	 * it is stored in an XML file).
 	 */
+	@SuppressWarnings("deprecation")
 	synchronized public DatabaseConfigInfo getDatabaseConfigInfo()
 	{
-		DatabaseConfigInfo info = new DatabaseConfigInfo();
-
 		String prefix = "/sqlConfig/databaseConfig/@";
-		info.connection = XMLUtils.getStringFromXPath(doc, xpath, prefix + "connection");
-		info.schema = XMLUtils.getStringFromXPath(doc, xpath, prefix + "schema");
-		info.geometryConfigTable = XMLUtils.getStringFromXPath(doc, xpath, prefix + "geometryConfigTable");
-		info.dataConfigTable = XMLUtils.getStringFromXPath(doc, xpath, prefix + "dataConfigTable");
-		info.dataCategoryTable = XMLUtils.getStringFromXPath(doc, xpath, prefix+ "dataCategoryTable");
-		if (info.schema.equals(""))
+
+		DeprecatedDatabaseConfigInfo deprecatedInfo = new DeprecatedDatabaseConfigInfo();
+		deprecatedInfo.connection = XMLUtils.getStringFromXPath(doc, xpath, prefix + "connection");
+		deprecatedInfo.schema = XMLUtils.getStringFromXPath(doc, xpath, prefix + "schema");
+		deprecatedInfo.geometryConfigTable = XMLUtils.getStringFromXPath(doc, xpath, prefix + "geometryConfigTable");
+		deprecatedInfo.dataConfigTable = XMLUtils.getStringFromXPath(doc, xpath, prefix + "dataConfigTable");
+		
+		if (deprecatedInfo.schema.equals(""))
 			return null;
-		else
-			return info;
+		
+		if (deprecatedInfo.geometryConfigTable.equals("") && deprecatedInfo.dataConfigTable.equals(""))
+		{
+			DatabaseConfigInfo newInfo = new DatabaseConfigInfo();
+			newInfo.connection = deprecatedInfo.connection;
+			newInfo.schema = deprecatedInfo.schema;
+			return newInfo;
+		}
+		return deprecatedInfo;
 	}
 
 	synchronized public void addConnection(ConnectionInfo info)
@@ -339,18 +331,6 @@ public class SQLConfigXML implements ISQLConfig
 		removeEntry(ENTRYTYPE_CONNECTION, name);
 	}
 
-	synchronized public void removeGeometryCollection(String name)
-	{
-		geometryCollectionCache = null;
-		removeEntry(ENTRYTYPE_GEOMETRYCOLLECTION, name);
-	}
-
-	synchronized public void removeDataTable(String name)
-	{
-		dataTableCache = null;
-		removeEntry(ENTRYTYPE_DATATABLE, name);
-	}
-
 	synchronized private void removeEntry(String entryType, String entryName)
 	{
 		try
@@ -381,18 +361,6 @@ public class SQLConfigXML implements ISQLConfig
 		// want to filter out any entries
 		validateCache();
 		List<String> names = Arrays.asList(geometryCollectionCache.keySet().toArray(new String[0]));
-		Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
-		return names;
-	}
-
-	// list all dataTables
-	synchronized public List<String> getDataTableNames(String connectionName)
-	{
-		// don't bother filtering the results because this class will only ever
-		// be used for migrating the xml to a database, and in that case we don't
-		// want to filter out any entries
-		validateCache();
-		List<String> names = Arrays.asList(dataTableCache.keySet().toArray(new String[0]));
 		Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
 		return names;
 	}
@@ -462,95 +430,23 @@ public class SQLConfigXML implements ISQLConfig
 		return value;
 	}
 
-	synchronized public void addGeometryCollection(GeometryCollectionInfo info)
+	/**
+	 * This will create a new attribute column entry.
+	 * @param info The definition of the attributeColumn entry.  The id property will be ignored.
+	 * @return The id of the new attributeColumn entry.
+	 */
+	public int addAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
 	{
-		Element tag = doc.createElement(ENTRYTYPE_GEOMETRYCOLLECTION);
-		
-		if (info.connection != null)
-			tag.setAttribute(PrivateMetadata.CONNECTION, info.connection);
-		if (info.schema != null)
-			tag.setAttribute(PrivateMetadata.SCHEMA, info.schema);
-		if (info.tablePrefix != null)
-			tag.setAttribute(PrivateMetadata.TABLEPREFIX, info.tablePrefix);
-		if (info.importNotes != null)
-			tag.setAttribute(PrivateMetadata.IMPORTNOTES, info.importNotes);
-		
-		if (info.name != null)
-			tag.setAttribute(PublicMetadata.NAME, info.name);
-		if (info.keyType != null)
-			tag.setAttribute(PublicMetadata.KEYTYPE, info.keyType);
-		if (info.projection != null)
-			tag.setAttribute(PublicMetadata.PROJECTION, info.projection);
-
-		// add to document with formatting
-		Node parent = doc.getDocumentElement();
-		XMLUtils.insertTextNodeBefore("\n\t", parent.insertBefore(tag, parent.getFirstChild()));
-
-		geometryCollectionCache = null;
-		removeDuplicateEntries();
+		throw new RemoteException("Not implemented");
 	}
 
-	synchronized public void addAttributeColumn(AttributeColumnInfo info)
+	/**
+	 * This will overwrite an existing attribute column entry with the same id.
+	 * @param info The id and definition of the attributeColumn entry.
+	 */
+	public void overwriteAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
 	{
-		try
-		{
-			// make a copy of the metadata
-			Map<String, String> metadata = info.getAllMetadata();
-			String dataTableName = metadata.remove(PublicMetadata.DATATABLE);
-			if (dataTableName == null)
-				return;
-			// create dataTable tag if it doesn't exist
-			if (ListUtils.findString(dataTableName, getDataTableNames(null)) < 0)
-			{
-				// create dataTable tag with formatting
-				Element tag = doc.createElement(ENTRYTYPE_DATATABLE);
-				tag.setAttribute("name", dataTableName);
-				XMLUtils.appendTextNode(tag, "\n\t");
-
-				// add to document with formatting
-				Node parent = doc.getDocumentElement();
-				XMLUtils.insertTextNodeBefore("\n\t", parent.insertBefore(tag, parent.getFirstChild()));
-
-				dataTableCache = null;
-				removeDuplicateEntries();
-			}
-
-			// get dataTable tag
-			String query = String.format("/sqlConfig/dataTable[@name=\"%s\"]", XMLUtils.escapeSpecialCharacters(dataTableName));
-			Node dataTableNode = (Node) xpath.evaluate(query, doc, XPathConstants.NODE);
-			if (dataTableNode == null)
-			{
-				throw new RuntimeException(String.format("Unable to find dataTable entry: \"%s\"", dataTableName));
-			}
-			// create new attributeColumn tag
-			Element tag = doc.createElement("attributeColumn");
-
-			// set sql properties
-			tag.setAttribute("connection", info.privateMetadata.get(PrivateMetadata.CONNECTION));
-			tag.setAttribute("dataWithKeysQuery", info.privateMetadata.get(PrivateMetadata.SQLQUERY));
-			// set metadata properties
-			for (String property : PublicMetadata.names)
-				if (metadata.containsKey(property))
-					tag.setAttribute(property, metadata.get(property));
-
-			// add to dataTable node with formatting
-			XMLUtils.appendTextNode(dataTableNode, "\t");
-			dataTableNode.appendChild(tag);
-			XMLUtils.appendTextNode(dataTableNode, "\n\t");
-
-			removeDuplicateEntries();
-		}
-		catch (XPathExpressionException e)
-		{
-			e.printStackTrace();
-		}
-	}
-
-	synchronized public List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName)
-	{
-		Map<String, String> metadataQueryParams = new HashMap<String, String>();
-		metadataQueryParams.put(PublicMetadata.DATATABLE, dataTableName);
-		return getAttributeColumnInfo(metadataQueryParams);
+		throw new RemoteException("Not implemented");
 	}
 
 	synchronized private NodeList getAttributeColumnNodes(Map<String, String> metadataQueryParams)
@@ -595,8 +491,24 @@ public class SQLConfigXML implements ISQLConfig
 		return null;
 	}
 
-	synchronized public List<AttributeColumnInfo> getAttributeColumnInfo(Map<String, String> metadataQueryParams)
+	synchronized public AttributeColumnInfo getAttributeColumnInfo(int _) throws RemoteException
 	{
+		throw new RemoteException("Not implemented");
+	}
+	synchronized public void setAttributeColumnInfo(int _, Map<String, String> privateMetadata, Map<String,String> publicMetadata) throws RemoteException
+	{
+		throw new RemoteException("Not implemented");
+	}
+	synchronized public void removeAttributeColumnInfo(int _) throws RemoteException
+	{
+		throw new RemoteException("Not implemented");
+	}
+	synchronized public List<AttributeColumnInfo> findAttributeColumnInfoFromPrivateAndPublicMetadata(Map<String, String> privateMetadataFilter, Map<String,String> publicMetadataFilter)
+	{
+		Map<String, String> metadataQueryParams = new HashMap<String, String>();
+		metadataQueryParams.putAll(privateMetadataFilter);
+		metadataQueryParams.putAll(publicMetadataFilter);
+		
 		validateCache();
 		NodeList columnNodes = getAttributeColumnNodes(metadataQueryParams);
 		List<AttributeColumnInfo> columnInfoList = new Vector<AttributeColumnInfo>(columnNodes.getLength());
@@ -617,14 +529,21 @@ public class SQLConfigXML implements ISQLConfig
 			// get dataTable properties
 			Map<String, String> tableProperties = dataTableCache.get(tableName);
 
-			// get connection (first from column node, then from dataTable node
-			// if missing)
+			// get connection (first from column node, then from dataTable node if missing)
 			String connection = getCascadedAttribute(columnNodeProperties, "connection", tableProperties, "connection");
 			String sqlQuery = columnNodeProperties.getNamedItem("dataWithKeysQuery").getTextContent();
+			
 			// get attributeColumn metadata properties
-			Map<String, String> columnMetadataResult = new HashMap<String, String>();
-			columnMetadataResult.put(PublicMetadata.DATATABLE, tableName);
-			for (String property : PublicMetadata.names)
+			AttributeColumnInfo info = new AttributeColumnInfo();
+			info.id = i;
+			
+			info.privateMetadata = new HashMap<String,String>();
+			info.privateMetadata.put(PrivateMetadata.CONNECTION, connection);
+			info.privateMetadata.put(PrivateMetadata.SQLQUERY, sqlQuery);
+			
+			info.publicMetadata = new HashMap<String, String>();
+			info.publicMetadata.put(PublicMetadata.DATATABLE, tableName);
+			for (String property : IDeprecatedSQLConfig.PUBLIC_METADATA_NAMES)
 			{
 				if (property == PublicMetadata.DATATABLE)
 					continue;
@@ -637,18 +556,16 @@ public class SQLConfigXML implements ISQLConfig
 					// if keyType still missing, grab keyType from the geometryCollection.
 					if (value.length() == 0)
 					{
-						String geomAttr = PublicMetadata.GEOMETRYCOLLECTION;
+						String geomAttr = IDeprecatedSQLConfig.GEOMETRYCOLLECTION;
 						String geomName = getCascadedAttribute(columnNodeProperties, geomAttr, tableProperties, geomAttr);
 						if (geometryCollectionCache.containsKey(geomName))
 							value = geometryCollectionCache.get(geomName).get(PublicMetadata.KEYTYPE);
 					}
 				}
 				// save metadata value in result
-				columnMetadataResult.put(property, value);
+				info.publicMetadata.put(property, value);
 			}
-			columnMetadataResult.put(PrivateMetadata.CONNECTION, connection);
-			columnMetadataResult.put(PrivateMetadata.SQLQUERY, sqlQuery);
-			columnInfoList.add(new AttributeColumnInfo(i, columnMetadataResult.toString(), columnMetadataResult));
+			columnInfoList.add(info);
 		}
 		return columnInfoList;
 	}
@@ -676,22 +593,6 @@ public class SQLConfigXML implements ISQLConfig
 			result = "";
 		}
 
-		return result;
-	}
-
-	// </dataTable>
-	synchronized public List<String> getKeyTypes()
-	{
-		validateCache();
-
-		Set<String> uniqueValues = new HashSet<String>();
-		for (String name : dataTableCache.keySet())
-			uniqueValues.add(dataTableCache.get(name).get("keyType"));
-		for (String name : geometryCollectionCache.keySet())
-			uniqueValues.add(geometryCollectionCache.get(name).get("keyType"));
-
-		Vector<String> result = new Vector<String>(uniqueValues);
-		Collections.sort(result, String.CASE_INSENSITIVE_ORDER);
 		return result;
 	}
 

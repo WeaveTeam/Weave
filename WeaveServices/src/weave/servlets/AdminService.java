@@ -57,7 +57,6 @@ import weave.config.ISQLConfig.AttributeColumnInfo;
 import weave.config.ISQLConfig.ConnectionInfo;
 import weave.config.ISQLConfig.DataType;
 import weave.config.ISQLConfig.DatabaseConfigInfo;
-import weave.config.ISQLConfig.GeometryCollectionInfo;
 import weave.config.ISQLConfig.PrivateMetadata;
 import weave.config.ISQLConfig.PublicMetadata;
 import weave.config.SQLConfig;
@@ -531,48 +530,57 @@ public class AdminService extends GenericServlet
 		return null;
 	}
 
-	synchronized public String migrateConfigToDatabase(String connectionName, String password, String schema, String geometryConfigTable, String dataConfigTable) throws RemoteException
+	synchronized public String setDatabaseConfigInfo(String connectionName, String password, String schema) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password); 
 
 		if (!config.getConnectionInfo(connectionName).is_superuser)
-			throw new RemoteException("Unable to migrate config to database without superuser privileges.");
+			throw new RemoteException("Unable to store configuration information without superuser privileges.");
 		
 		String configFileName = configManager.getConfigFileName();
-		int count = 0;
+		
 		try
 		{
 			// load xmlConfig in memory
 			SQLConfigXML xmlConfig = new SQLConfigXML(configFileName);
+			
+			// create info object
 			DatabaseConfigInfo info = new DatabaseConfigInfo();
 			info.schema = schema;
 			info.connection = connectionName;
-			info.dataConfigTable = dataConfigTable;
-			info.geometryConfigTable = geometryConfigTable;
-			// save db config info to in-memory xmlConfig
-			xmlConfig.setDatabaseConfigInfo(info);
-			// migrate from in-memory xmlConfig to the db
-			//count = SQLConfigUtils.migrateSQLConfig(xmlConfig, new DatabaseConfig(xmlConfig));
-                        ISQLConfig sqlcfg = new SQLConfig(xmlConfig);
-			count = SQLConfigUtils.migrateSQLConfig(xmlConfig, sqlcfg);
-                        
-                        XMLUtils.writeXML( xmlConfig.getDocument(), SQLConfigXML.DTD_FILENAME, configFileName); 
-                        //backupAndSaveConfig(xmlConfig); //ADD BACK LATER.
 			
+			// save info to in-memory xmlConfig
+			xmlConfig.setDatabaseConfigInfo(info);
+			
+			// save the DatabaseConfigInfo to sqlconfig.xml
+			XMLUtils.writeXML( xmlConfig.getDocument(), SQLConfigXML.DTD_FILENAME, configFileName);
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
-			if (count > 0)
-				throw new RemoteException("Migrated " + count + " items then failed", e);
-			throw new RemoteException("Migration failed", e);
+			throw new RemoteException("Unable to configure database storage location.", e);
 		}
 
-		String result = String.format("The admin console will now use the \"%s\" connection to store configuration information.", connectionName);
-		if (count > 0)
-			result = String.format("%s items were copied from %s into the database.  %s", count, new File(configFileName).getName(), result);
-		return result;
+		return String.format("The admin console will now use the \"%s\" connection to store configuration information.", connectionName);
 	}
+	
+/*
+// migrate from old implementation to new implementation
+//			ISQLConfig oldImpl = new DatabaseConfig(xmlConfig);
+//			SQLConfig newImpl = new SQLConfig(xmlConfig);
+//			count = SQLConfigUtils.migrateSQLConfig(oldImpl, newImpl);
+			
+//			// TODO clean up this test code
+//			SQLConfigXML xmlConfig2 = new SQLConfigXML(configFileName);
+//			DatabaseConfigInfo info2 = new DatabaseConfigInfo();
+//			info2.schema = "weave2";
+//			info2.connection = connectionName;
+//			info2.dataConfigTable = dataConfigTable;
+//			info2.geometryConfigTable = geometryConfigTable;
+//			// save db config info to in-memory xmlConfig
+//			xmlConfig2.setDatabaseConfigInfo(info2);
+//			SQLConfig newImpl2 = new SQLConfig(xmlConfig2);
+//			count = SQLConfigUtils.migrateSQLConfig(newImpl, newImpl2);
+*/
 
 	// /////////////////////////////////////////////////
 	// functions for managing DataTable entries
@@ -587,16 +595,19 @@ public class AdminService extends GenericServlet
 			dataConnection = null; // let it get all of the data tables
 		else
 			dataConnection = connectionName; // get only the ones on this connection
-		return ListUtils.toStringArray(config.getDataTableNames(dataConnection));		
+		return SQLConfigUtils.getDataTableNames(config, dataConnection);
 	}
 
 	/**
 	 * Returns metadata about columns of the given data table.
 	 */
+	@SuppressWarnings("unchecked")
 	synchronized public AttributeColumnInfo[] getDataTableInfo(String connectionName, String password, String dataTableName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		List<AttributeColumnInfo> info = config.getAttributeColumnInfo(dataTableName);
+		Map<String,String> publicMetadataFilter = new HashMap<String,String>();
+		publicMetadataFilter.put(PublicMetadata.DATATABLE, dataTableName);
+		List<AttributeColumnInfo> info = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, publicMetadataFilter);
 
 		return info.toArray(new AttributeColumnInfo[info.size()]);
 	}
@@ -609,10 +620,10 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put(PublicMetadata.DATATABLE, dataTableName);
-		List<AttributeColumnInfo> infolist = config.getAttributeColumnInfo(params);
-		for (int i = 0; i < infolist.size(); i ++)
+		AttributeColumnInfo[] infoArray = getDataTableInfo(connectionName, password, dataTableName);
+		for (int i = 0; i < infoArray.length; i++)
 		{
-			AttributeColumnInfo attributeColumnInfo = infolist.get(i);
+			AttributeColumnInfo attributeColumnInfo = infoArray[i];
 			try
 			{
 				String query = attributeColumnInfo.getSqlQuery();
@@ -627,74 +638,73 @@ public class AdminService extends GenericServlet
 			}
 		}
 		
-		return infolist.toArray(new AttributeColumnInfo[0]);
+		return infoArray;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private Map<String,String> createStringStringMap(Object hashMap)
+	{
+		Map<String, String> output= new HashMap<String, String>();
+		for (Entry<String, Object> entry : ((Map<String, Object>) hashMap).entrySet())
+			output.put(entry.getKey(), (String) entry.getValue());
+		return output;
 	}
 
 	@SuppressWarnings("unchecked")
-	synchronized public String saveDataTableInfo(String connectionName, String password, Object[] columnMetadata) throws RemoteException
+	synchronized public String saveDataTableInfo(String connectionName, String password, int[] ids, Object[] privateMetadataArray, Object[] publicMetadataArray) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		
 		// first validate the information
 		String dataTableName = null;
-		for (Object object : columnMetadata)
+		if (ids.length != privateMetadataArray.length || privateMetadataArray.length != publicMetadataArray.length)
+			throw new RemoteException("Array lengths do not match");
+		for (int i = 0; i < ids.length; i++)
 		{
-			Map<String, Object> metadata = (Map<String, Object>) object;
+			Map<String, Object> metadata = (Map<String, Object>) publicMetadataArray[i];
 			String _dataTableName = (String) metadata.get(PublicMetadata.DATATABLE);
 			if (dataTableName == null)
 				dataTableName = _dataTableName;
 			else if (dataTableName != _dataTableName)
 				throw new RemoteException("overwriteDataTableEntry(): dataTable property not consistent among column entries.");
+			
+			if (!SQLConfigUtils.userCanModifyAttributeColumn(config, connectionName, ids[i]))
+				throw new RemoteException(String.format("User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
 		}
-		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, dataTableName))
-			throw new RemoteException(String.format("User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
 		
-		try
+		// overwrite all specified entries
+		for (int i = 0; i < ids.length; i++)
 		{
-			// add all the columns to the new blank config
-			for (int i = 0; i < columnMetadata.length; i++)
-			{
-				// create a String-String map
-				Map<String, String> metadata = new HashMap<String, String>();
-				for (Entry<String, Object> entry : ((Map<String, Object>) columnMetadata[i]).entrySet())
-					metadata.put(entry.getKey(), (String) entry.getValue());
-				// Exclude connection & sqlQuery properties from metadata object because they are separate parameters to the constructor.
-				AttributeColumnInfo columnInfo = new AttributeColumnInfo(-1, null, metadata);
-				// add the column info to the temp blank config
-				config.addAttributeColumn(columnInfo);
-			}
-//                        XMLUtils.writeXML(config.getDocument(), DTD_FILENAME, fileName)
-			return String.format("The dataTable entry \"%s\" was saved.", dataTableName);
+			AttributeColumnInfo info = new AttributeColumnInfo();
+			info.id = ids[i];
+			info.privateMetadata = createStringStringMap(privateMetadataArray[i]);
+			info.publicMetadata = createStringStringMap(publicMetadataArray[i]);
+			config.overwriteAttributeColumnInfo(info);
 		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
-		}
+		return String.format("The dataTable entry \"%s\" was saved.", dataTableName);
 	}
 
-	synchronized public void removeAttributeColumnInfo(String connectionName, String password, Object[] columnMetadata) throws RemoteException
-	{
-		
-	}
-
+	@SuppressWarnings("unchecked")
 	synchronized public String removeDataTableInfo(String connectionName, String password, String dataTableName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, dataTableName))
-			throw new RemoteException(String.format("User \"%s\" does not have permission to remove DataTable \"%s\".", connectionName, dataTableName));
-		try
-		{
-			if (ListUtils.findString(dataTableName, config.getDataTableNames(null)) < 0)
-				throw new RemoteException("DataTable \"" + dataTableName + "\" does not exist.");
-			config.removeDataTable(dataTableName);
-			return "DataTable \"" + dataTableName + "\" was deleted.";
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
-		}
+		
+		Map<String,String> publicMetadataFilter = new HashMap<String,String>();
+		publicMetadataFilter.put(PublicMetadata.DATATABLE, dataTableName);
+		
+		List<AttributeColumnInfo> info = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, publicMetadataFilter);
+		
+		if (info.size() == 0)
+			throw new RemoteException("DataTable \"" + dataTableName + "\" does not exist.");
+		
+		for (int i = 0; i < info.size(); i++)
+			if (!SQLConfigUtils.userCanModifyAttributeColumn(config, connectionName, info.get(i).id))
+				throw new RemoteException(String.format("User \"%s\" does not have permission to remove DataTable \"%s\".", connectionName, dataTableName));
+		
+		for (int i = 0; i < info.size(); i++)
+			config.removeAttributeColumnInfo(info.get(i).id);
+		
+		return "DataTable \"" + dataTableName + "\" was deleted.";
 	}
 
 	// /////////////////////////////////////////////////////
@@ -710,74 +720,30 @@ public class AdminService extends GenericServlet
 			geometryConnection = null; // let it get all of the geometries
 		else
 			geometryConnection = connectionName; // get only the ones on this connection
-		return ListUtils.toStringArray(config.getGeometryCollectionNames(geometryConnection));
+		return SQLConfigUtils.getGeometryCollectionNames(config, geometryConnection);
 	}
 
-	/**
-	 * Returns metadata about the given geometry collection.
-	 */
-	synchronized public GeometryCollectionInfo getGeometryCollectionInfo(String connectionName, String password, String geometryCollectionName) throws RemoteException
+	synchronized public void saveAttributeColumnInfo(String connectionName, String password, int id, Map<String,Object> privateMetadata, Map<String,Object> publicMetadata) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		return config.getGeometryCollectionInfo(geometryCollectionName);
-	}
-
-	synchronized public String saveGeometryCollectionInfo(String connectionName, String password, String geomName, String geomConnection, String geomSchema, String geomTablePrefix, String geomKeyType, String geomImportNotes, String geomProjection) throws RemoteException
-	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		if (!SQLConfigUtils.userCanModifyGeometryCollection(config, connectionName, geomName))
-			throw new RemoteException(String.format("User \"%s\" does not have permission to modify GeometryCollection \"%s\".", connectionName, geomName));
+		if (!SQLConfigUtils.userCanModifyAttributeColumn(config, connectionName, id))
+			throw new RemoteException(String.format("User \"%s\" does not have permission to modify attribute column \"%s\".", connectionName, id));
 		
-		// if this user isn't a superuser, don't allow an overwrite of an existing geometrycollection
-		ConnectionInfo currentConnectionInfo = config.getConnectionInfo(connectionName);
-		if (!currentConnectionInfo.is_superuser)
-		{
-			GeometryCollectionInfo oldGeometry = config.getGeometryCollectionInfo(geomName);
-			
-			if (oldGeometry != null && !oldGeometry.connection.equals(connectionName))
-				throw new RemoteException("An existing geometry collection with the same name exists on another connection. Unable to overwrite without superuser privileges.");
-		}
-
-		try
-		{
-			// add all the columns to the new blank config
-			GeometryCollectionInfo info = new GeometryCollectionInfo();
-			info.name = geomName;
-			info.connection = geomConnection;
-			info.schema = geomSchema;
-			info.tablePrefix = geomTablePrefix;
-			info.keyType = geomKeyType;
-			info.importNotes = geomImportNotes;
-			info.projection = geomProjection;
-			// add the info to the temp blank config
-			config.addGeometryCollection(info);
-
-			return String.format("The geometryCollection entry \"%s\" was saved.", geomName);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
-		}
+		AttributeColumnInfo info = new AttributeColumnInfo();
+		info.id = id;
+		info.privateMetadata = createStringStringMap(privateMetadata);
+		info.publicMetadata = createStringStringMap(publicMetadata);
+		config.overwriteAttributeColumnInfo(info);
 	}
 
-	synchronized public String removeGeometryCollectionInfo(String connectionName, String password, String geometryCollectionName) throws RemoteException
+	synchronized public void removeAttributeColumnInfo(String connectionName, String password, int id) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		if (!SQLConfigUtils.userCanModifyGeometryCollection(config, connectionName, geometryCollectionName))
-			throw new RemoteException(String.format("User \"%s\" does not have permission to remove GeometryCollection \"%s\".", connectionName, geometryCollectionName));
-		try
-		{
-			if (ListUtils.findString(geometryCollectionName, config.getGeometryCollectionNames(null)) < 0)
-				throw new RemoteException("Geometry Collection \"" + geometryCollectionName + "\" does not exist.");
-			config.removeGeometryCollection(geometryCollectionName);
-			return "Geometry Collection \"" + geometryCollectionName + "\" was deleted.";
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
-		}
+
+		if (!SQLConfigUtils.userCanModifyAttributeColumn(config, connectionName, id))
+			throw new RemoteException(String.format("User \"%s\" does not have permission to remove attribute column \"%s\".", connectionName, id));
+
+		config.removeAttributeColumnInfo(id);
 	}
 
 	// ///////////////////////////////////////////
@@ -869,7 +835,8 @@ public class AdminService extends GenericServlet
 	synchronized public String[] getKeyTypes(String connectionName, String password) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		return ListUtils.toStringArray(getSortedUniqueValues(config.getKeyTypes(), true));
+		
+		return SQLConfigUtils.getKeyTypes(config);
 	}
 
 	synchronized public UploadedFile[] getUploadedCSVFiles() throws RemoteException
@@ -1137,6 +1104,7 @@ public class AdminService extends GenericServlet
 		ConnectionInfo connInfo = config.getConnectionInfo(connectionName);
 		if (sqlOverwrite && !connInfo.is_superuser)
 			throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite SQL tables.", connectionName));
+		
 		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, configDataTableName))
 			throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite DataTable \"%s\".", connectionName, configDataTableName));
 
@@ -1357,7 +1325,7 @@ public class AdminService extends GenericServlet
 
 			if (!configOverwrite)
 			{
-				if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames(null)) >= 0)
+				if (ListUtils.findIgnoreCase(configDataTableName, SQLConfigUtils.getDataTableNames(config, null)) >= 0)
 					throw new RemoteException(String.format(
 							"CSV not imported.\nDataTable \"%s\" already exists in the configuration.",
 							configDataTableName));
@@ -1423,10 +1391,10 @@ public class AdminService extends GenericServlet
 
 	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondarySqlKeyColumn, String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries, String[] filterColumnNames) throws RemoteException
 	{
-		ConnectionInfo info = config.getConnectionInfo(connectionName);
-		if (info == null)
+		ConnectionInfo connInfo = config.getConnectionInfo(connectionName);
+		if (connInfo == null)
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
-		String dbms = info.dbms;
+		String dbms = connInfo.dbms;
 		if (sqlColumnNames == null)
 			sqlColumnNames = new String[0];
 
@@ -1452,7 +1420,7 @@ public class AdminService extends GenericServlet
 
 		if (!configOverwrite)
 		{
-			if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames(null)) >= 0)
+			if (ListUtils.findIgnoreCase(configDataTableName, SQLConfigUtils.getDataTableNames(config, null)) >= 0)
 				throw new RemoteException(String.format("DataTable \"%s\" already exists in the configuration.", configDataTableName));
 		}
 		else
@@ -1526,29 +1494,33 @@ public class AdminService extends GenericServlet
 			}
 			// done generating queries
 
-			config.removeDataTable(configDataTableName);
+			SQLConfigUtils.removeDataTableInfo(config, configDataTableName);
 
-			if (keyType == null || keyType.length() == 0)
-			{
-				// get the key type of the geometry collection now instead of storing the relationship from the data table to the geom collection
-				GeometryCollectionInfo geomInfo = config.getGeometryCollectionInfo(geometryCollectionName);
-				if (geomInfo != null)
-					keyType = geomInfo.keyType;
-			}
-			
-			Map<String, String> metadata = new HashMap<String, String>();
-			metadata.put(PublicMetadata.DATATABLE, configDataTableName);
-			metadata.put(PublicMetadata.KEYTYPE, keyType);
+			//TODO
+//			if (keyType == null || keyType.length() == 0)
+//			{
+//				// get the key type of the geometry collection now instead of storing the relationship from the data table to the geom collection
+//				GeometryCollectionInfo geomInfo = config.getGeometryCollectionInfo(geometryCollectionName);
+//				if (geomInfo != null)
+//					keyType = geomInfo.keyType;
+//			}
 			
 			int numberSqlColumns = titles.size();
 			for (int i = 0; i < numberSqlColumns; i++)
 			{
-				metadata.put(PrivateMetadata.CONNECTION, connectionName);
-				metadata.put(PrivateMetadata.SQLQUERY, queries.get(i));
-				metadata.put(PublicMetadata.NAME, titles.get(i));
-				metadata.put(PublicMetadata.DATATYPE, dataTypes.get(i));
-				AttributeColumnInfo attrInfo = new AttributeColumnInfo(-1, null, metadata);
-				config.addAttributeColumn(attrInfo);
+				AttributeColumnInfo attrInfo = new AttributeColumnInfo();
+				
+				attrInfo.privateMetadata = new HashMap<String, String>();
+				attrInfo.privateMetadata.put(PrivateMetadata.CONNECTION, connectionName);
+				attrInfo.privateMetadata.put(PrivateMetadata.SQLQUERY, queries.get(i));
+				
+				attrInfo.publicMetadata = new HashMap<String, String>();
+				attrInfo.publicMetadata.put(PublicMetadata.DATATABLE, configDataTableName);
+				attrInfo.publicMetadata.put(PublicMetadata.KEYTYPE, keyType);
+				attrInfo.publicMetadata.put(PublicMetadata.NAME, titles.get(i));
+				attrInfo.publicMetadata.put(PublicMetadata.DATATYPE, dataTypes.get(i));
+				
+				config.addAttributeColumnInfo(attrInfo);
 			}
 		}
 		catch (SQLException e)
@@ -1652,18 +1624,21 @@ public class AdminService extends GenericServlet
 
 		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
 		ConnectionInfo connInfo = config.getConnectionInfo(configConnectionName);
+		
 		if (sqlOverwrite && !connInfo.is_superuser)
 			throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite SQL tables.", configConnectionName));
-		if (!SQLConfigUtils.userCanModifyGeometryCollection(config, configConnectionName, configGeometryCollectionName))
-			throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite GeometryCollection \"%s\".", configConnectionName, configGeometryCollectionName));
-
-		if (!configOverwrite)
-		{
-			if (ListUtils.findIgnoreCase(configGeometryCollectionName, config.getGeometryCollectionNames(null)) >= 0)
-				throw new RemoteException(String.format(
-						"Shapes not imported. SQLConfig geometryCollection \"%s\" already exists.",
-						configGeometryCollectionName));
-		}
+		
+		//TODO
+//		if (!SQLConfigUtils.userCanModifyGeometryCollection(config, configConnectionName, configGeometryCollectionName))
+//			throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite GeometryCollection \"%s\".", configConnectionName, configGeometryCollectionName));
+//
+//		if (!configOverwrite)
+//		{
+//			if (ListUtils.findIgnoreCase(configGeometryCollectionName, config.getGeometryCollectionNames(null)) >= 0)
+//				throw new RemoteException(String.format(
+//						"Shapes not imported. SQLConfig geometryCollection \"%s\" already exists.",
+//						configGeometryCollectionName));
+//		}
 
 		String dbfTableName = sqlTablePrefix + "_dbfdata";
 		Connection conn = null;
@@ -1720,11 +1695,23 @@ public class AdminService extends GenericServlet
 		String resultAddSQL = addConfigDataTable(config, configOverwrite, configGeometryCollectionName, configConnectionName,
 				configGeometryCollectionName, configKeyType, keyColumnsString, null, columnNames, columnNames, sqlSchema,
 				dbfTableName, false, null);
+		
+		AttributeColumnInfo geomInfo = new AttributeColumnInfo();
+		
+		geomInfo.privateMetadata = new HashMap<String, String>();
+		geomInfo.privateMetadata.put(PrivateMetadata.CONNECTION, configConnectionName);
+		geomInfo.privateMetadata.put(PrivateMetadata.SCHEMA, sqlSchema);
+		geomInfo.privateMetadata.put(PrivateMetadata.TABLEPREFIX, sqlTablePrefix);
+		geomInfo.privateMetadata.put(PrivateMetadata.IMPORTNOTES, importNotes);
+		
+		geomInfo.publicMetadata = new HashMap<String, String>();
+		geomInfo.publicMetadata.put(PublicMetadata.TITLE, configGeometryCollectionName);
+		geomInfo.publicMetadata.put(PublicMetadata.KEYTYPE, configKeyType);
+		geomInfo.publicMetadata.put(PublicMetadata.PROJECTION, projectionSRS);
+		
+		config.addAttributeColumnInfo(geomInfo);
 
-		return resultAddSQL
-				+ "\n\n"
-				+ addConfigGeometryCollection(configOverwrite, configConnectionName, password, configGeometryCollectionName,
-						configKeyType, sqlSchema, sqlTablePrefix, projectionSRS, importNotes);
+		return resultAddSQL;
 	}
 
 	synchronized public String storeDBFDataToDatabase(String configConnectionName, String password, String[] fileNameWithoutExtension, String sqlSchema, String sqlTableName, boolean sqlOverwrite, String[] nullValues) throws RemoteException
@@ -1760,38 +1747,6 @@ public class AdminService extends GenericServlet
 		// fileNameWithoutExtension, keyColumns);
 
 		return "DBF Data stored successfully";
-	}
-
-	synchronized public String addConfigGeometryCollection(boolean configOverwrite, String configConnectionName, String password, String configGeometryCollectionName, String configKeyType, String sqlSchema, String sqlTablePrefix, String projection, String importNotes) throws RemoteException
-	{
-		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
-
-		if (!configOverwrite)
-		{
-			if (ListUtils.findIgnoreCase(configGeometryCollectionName, config.getGeometryCollectionNames(null)) >= 0)
-				throw new RemoteException(String.format("GeometryCollection \"%s\" already exists in the configuration.",
-						configGeometryCollectionName));
-		}
-		else
-		{
-			if (!SQLConfigUtils.userCanModifyGeometryCollection(config, configConnectionName, configGeometryCollectionName))
-				throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite GeometryCollection \"%s\".", configConnectionName, configGeometryCollectionName));
-		}
-
-		// add geometry collection
-		GeometryCollectionInfo info = new GeometryCollectionInfo();
-		info.name = configGeometryCollectionName;
-		info.connection = configConnectionName;
-		info.schema = sqlSchema;
-		info.tablePrefix = sqlTablePrefix;
-		info.keyType = configKeyType;
-		info.importNotes = importNotes;
-		info.projection = projection;
-
-		config.removeGeometryCollection(info.name);
-		config.addGeometryCollection(info);
-
-		return String.format("GeometryCollection \"%s\" was added to the configuration", configGeometryCollectionName);
 	}
 
 	// //////////////////////////////////////////////

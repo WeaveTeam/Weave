@@ -52,7 +52,7 @@ public class test {
 //		Connection conn = SQLUtils.getConnection(SQLUtils.getDriver(SQLUtils.MYSQL), "jdbc:mysql://localhost/weave?user=root&password=boolpup");
 //		SQLConfig sqlcfg = new SQLConfig(new SQLConfigXML("C:\\Program Files (x86)\\Apache Software Foundation\\Tomcat 6.0\\webapps\\weave-config\\sqlconfig.xml"));
 		SQLConfig sqlcfg = new SQLConfig(new SQLConfigXML("sqlconfig.xml"));
-		System.out.println(sqlcfg.addEntry("Hello", null));
+//		System.out.println(sqlcfg.addEntry("Hello", null));
 		// TODO Auto-generated method stub
 //		System.out.println("hi");		
 //		ws = new RService();

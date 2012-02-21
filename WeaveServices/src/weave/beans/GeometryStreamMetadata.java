@@ -19,35 +19,33 @@
 
 package weave.beans;
 
+import java.util.Map;
+
 public class GeometryStreamMetadata
 {
 	public GeometryStreamMetadata()
 	{
 	}
 
-	private String keyType;
-	private String projection;
+	private int id;
+	private Map<String,String> metadata;
 	private byte[] metadataTileDescriptors;
 	private byte[] geometryTileDescriptors;
 
-	public String getProjection()
-	{
-		return projection;
+	public int getId() {
+		return id;
 	}
 
-	public void setProjection(String projection)
-	{
-		this.projection = projection;
+	public void setId(int id) {
+		this.id = id;
 	}
 
-	public String getKeyType()
-	{
-		return keyType;
+	public Map<String, String> getMetadata() {
+		return metadata;
 	}
 
-	public void setKeyType(String keyType)
-	{
-		this.keyType = keyType;
+	public void setMetadata(Map<String, String> metadata) {
+		this.metadata = metadata;
 	}
 
 	public byte[] getMetadataTileDescriptors()

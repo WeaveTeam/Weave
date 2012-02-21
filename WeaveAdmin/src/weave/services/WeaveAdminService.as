@@ -151,8 +151,8 @@ package weave.services
 			return invokeAdminService("authenticate", arguments);
 		}
 
-		//public String migrateConfigToDatabase(String connectionName, String password, String schema, String geometryConfigTable, String dataConfigTable)
-		public function migrateConfigToDatabase(connectionName:String, password:String, schema:String, geometryConfigTable:String, dataConfigTable:String):DelayedAsyncInvocation
+		//public String migrateConfigToDatabase(String connectionName, String password, String schema)
+		public function migrateConfigToDatabase(connectionName:String, password:String, schema:String):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = invokeAdminService("migrateConfigToDatabase", arguments);
 		    query.addAsyncResponder(alertResult);

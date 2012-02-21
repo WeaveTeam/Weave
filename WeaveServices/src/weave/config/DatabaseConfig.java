@@ -8,6 +8,9 @@
 
 package weave.config;
 
+import java.rmi.RemoteException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,15 +21,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
-import java.rmi.RemoteException;
-import java.sql.Connection;
-import java.sql.SQLException;
+import org.w3c.dom.Document;
 
 import weave.config.SQLConfigUtils.InvalidParameterException;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 import weave.utils.SQLUtils;
-import org.w3c.dom.*;
 
 /**
  * DatabaseConfig This class reads from an SQL database and provides an interface to retrieve strings.
@@ -36,9 +36,9 @@ import org.w3c.dom.*;
  */
 
 public class DatabaseConfig
-		implements ISQLConfig
+		implements IDeprecatedSQLConfig
 {
-	private DatabaseConfigInfo dbInfo = null;
+	private DeprecatedDatabaseConfigInfo dbInfo = null;
 
 	private Connection _lastConnection = null; // do not use this variable directly -- use getConnection() instead.
 
@@ -65,11 +65,11 @@ public class DatabaseConfig
 	 * @throws SQLException
 	 * @throws InvalidParameterException
 	 */
-	public DatabaseConfig(ISQLConfig connectionConfig)
+	public DatabaseConfig(IDeprecatedSQLConfig connectionConfig)
 			throws RemoteException, SQLException, InvalidParameterException
 	{
 		// save original db config info
-		dbInfo = connectionConfig.getDatabaseConfigInfo();
+		dbInfo = (DeprecatedDatabaseConfigInfo)connectionConfig.getDatabaseConfigInfo();
 		if (dbInfo == null || dbInfo.schema == null || dbInfo.schema.length() == 0)
 			throw new InvalidParameterException("DatabaseConfig: Schema not specified.");
 		if (dbInfo.geometryConfigTable == null || dbInfo.geometryConfigTable.length() == 0)
@@ -158,7 +158,7 @@ public class DatabaseConfig
 	{
 		// list column names
 		List<String> columnNames = new Vector<String>();
-		for (String value : PublicMetadata.names)
+		for (String value : IDeprecatedSQLConfig.PUBLIC_METADATA_NAMES)
 			columnNames.add(value);
 		columnNames.add(PrivateMetadata.CONNECTION);
 		// list corresponding column types
@@ -202,7 +202,7 @@ public class DatabaseConfig
 
 	// This private ISQLConfig is for managing connections because
 	// the connection info shouldn't be stored in the database.
-	private ISQLConfig connectionConfig = null;
+	private IDeprecatedSQLConfig connectionConfig = null;
 
 	// these functions are just passed to the private connectionConfig
 	public Document getDocument() throws RemoteException
@@ -213,21 +213,6 @@ public class DatabaseConfig
 	public String getServerName() throws RemoteException
 	{
 		return connectionConfig.getServerName();
-	}
-
-	public String getAccessLogConnectionName() throws RemoteException
-	{
-		return connectionConfig.getAccessLogConnectionName();
-	}
-
-	public String getAccessLogSchema() throws RemoteException
-	{
-		return connectionConfig.getAccessLogSchema();
-	}
-
-	public String getAccessLogTable() throws RemoteException
-	{
-		return connectionConfig.getAccessLogTable();
 	}
 
 	public List<String> getConnectionNames() throws RemoteException
@@ -334,7 +319,7 @@ public class DatabaseConfig
 
 	public void addConnection(ConnectionInfo info) throws RemoteException
 	{
-		connectionConfig.addConnection(info);
+		throw new RemoteException("Not implemented");
 	}
 
 	public ConnectionInfo getConnectionInfo(String connectionName) throws RemoteException
@@ -344,59 +329,22 @@ public class DatabaseConfig
 
 	public void removeConnection(String name) throws RemoteException
 	{
-		connectionConfig.removeConnection(name);
+		throw new RemoteException("Not implemented");
 	}
 
 	public void addGeometryCollection(GeometryCollectionInfo info) throws RemoteException
 	{
-		try
-		{
-			// construct a hash map to pass to the insertRow() function
-			Map<String, Object> valueMap = new HashMap<String, Object>();
-			valueMap.put(PublicMetadata.NAME, info.name);
-			valueMap.put(PrivateMetadata.CONNECTION, info.connection);
-			valueMap.put(PrivateMetadata.SCHEMA, info.schema);
-			valueMap.put(PrivateMetadata.TABLEPREFIX, info.tablePrefix);
-			valueMap.put(PublicMetadata.KEYTYPE, info.keyType);
-			valueMap.put(PublicMetadata.PROJECTION, info.projection);
-			valueMap.put(PrivateMetadata.IMPORTNOTES, info.importNotes);
-
-			SQLUtils.insertRow(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, valueMap);
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException(String.format("Unable to add GeometryCollection \"%s\"", info.name), e);
-		}
+		throw new RemoteException("Not implemented");
 	}
 
 	public void removeGeometryCollection(String name) throws RemoteException
 	{
-		try
-		{
-			Connection conn = getConnection();
-			Map<String,Object> whereParams = new HashMap<String,Object>();
-			whereParams.put("name", name);
-			SQLUtils.deleteRows(conn, dbInfo.schema, dbInfo.geometryConfigTable, whereParams);
-		}
-		catch (SQLException e)
-		{
-			throw new RemoteException(String.format("Unable to remove GeometryCollection \"%s\"", name), e);
-		}
+		throw new RemoteException("Not implemented");
 	}
 
 	public void removeDataTable(String name) throws RemoteException
 	{
-		try
-		{
-			Connection conn = getConnection();
-			Map<String,Object> whereParams = new HashMap<String,Object>();
-			whereParams.put("dataTable", name);
-			SQLUtils.deleteRows(conn, dbInfo.schema, dbInfo.dataConfigTable, whereParams);
-		}
-		catch (SQLException e)
-		{
-			throw new RemoteException(String.format("Unable to remove DataTable \"%s\"", name), e);
-		}
+		throw new RemoteException("Not implemented");
 	}
 
 	public GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName) throws RemoteException
@@ -427,52 +375,51 @@ public class DatabaseConfig
 		return null;
 	}
 
-	public void addAttributeColumn(AttributeColumnInfo info) throws RemoteException
+	public int addAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
 	{
-		try
-		{
-			// forwards compatibility: filter out geometry columns
-			if (DataType.GEOMETRY.equalsIgnoreCase(info.publicMetadata.get(PublicMetadata.DATATYPE)))
-				return;
-			// insert all the info into the sql table
-			SQLUtils.insertRow(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, new HashMap<String, Object>(info.getAllMetadata()));
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("Unable to add AttributeColumn configuration", e);
-		}
+		throw new RemoteException("Not implemented");
 	}
 
+	public void overwriteAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
+	{
+		throw new RemoteException("Not implemented");
+	}
+	
 	// shortcut for calling the Map<String,String> version of this function
+	@SuppressWarnings("unchecked")
 	public List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName) throws RemoteException
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>(1);
 		metadataQueryParams.put(PublicMetadata.DATATABLE, dataTableName);
-		return getAttributeColumnInfo(metadataQueryParams);
+		return findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, metadataQueryParams);
 	}
 
-	/**
-	 * @return A list of AttributeColumnInfo objects having info that matches the given parameters.
-	 */
-	public List<AttributeColumnInfo> getAttributeColumnInfo(Map<String, String> metadataQueryParams) throws RemoteException
+	synchronized public AttributeColumnInfo getAttributeColumnInfo(int _) throws RemoteException
 	{
+		throw new RemoteException("Not implemented");
+	}
+	synchronized public void removeAttributeColumnInfo(int _) throws RemoteException
+	{
+		throw new RemoteException("Not implemented");
+	}
+	synchronized public List<AttributeColumnInfo> findAttributeColumnInfoFromPrivateAndPublicMetadata(Map<String, String> privateMetadataFilter, Map<String, String> publicMetadataFilter) throws RemoteException
+	{
+		Map<String, String> metadataQueryParams = new HashMap<String, String>();
+		metadataQueryParams.putAll(privateMetadataFilter);
+		metadataQueryParams.putAll(publicMetadataFilter);
+		
 		List<AttributeColumnInfo> results = new Vector<AttributeColumnInfo>();
 		try
 		{
-			DebugTimer t = new DebugTimer();
-			t.report("getAttributeColumnInfo");
 			// get rows matching given parameters
 			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, metadataQueryParams);
-			t.lap(metadataQueryParams + "; got records " + records.size());
 			for (int i = 0; i < records.size(); i++)
 			{
 				Map<String, String> metadata = records.get(i);
-				String geomName = metadata.remove(PublicMetadata.GEOMETRYCOLLECTION); // remove deprecated property from metadata
+				String geomName = metadata.remove(IDeprecatedSQLConfig.GEOMETRYCOLLECTION); // remove deprecated property from metadata
 				// special case -- derive keyType from geometryCollection if keyType is missing
 				if (metadata.get(PublicMetadata.KEYTYPE).length() == 0)
 				{
-					t.start();
-
 					GeometryCollectionInfo geomInfo = null;
 					// we don't care if the following line fails because we
 					// still want to return as much information as possible
@@ -484,14 +431,20 @@ public class DatabaseConfig
 					{
 					}
 
-					t.lap("get geom info " + i + " " + geomName);
 					if (geomInfo != null)
 						metadata.put(PublicMetadata.KEYTYPE, geomInfo.keyType);
 				}
+				
+				Map<String, String> privateMetadata = new HashMap<String,String>();
+				privateMetadata.put(PrivateMetadata.CONNECTION, metadata.remove(PrivateMetadata.CONNECTION));
+				privateMetadata.put(PrivateMetadata.SQLQUERY, metadata.remove(PrivateMetadata.SQLQUERY));
 
-				results.add(new AttributeColumnInfo(-1, null, metadata));
+				AttributeColumnInfo info = new AttributeColumnInfo();
+				info.privateMetadata = privateMetadata;
+				info.publicMetadata = metadata;
+				
+				results.add(info);
 			}
-			t.report();
 		}
 		catch (SQLException e)
 		{
