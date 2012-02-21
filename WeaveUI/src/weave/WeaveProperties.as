@@ -28,6 +28,7 @@ package weave
 	import flash.system.ApplicationDomain;
 	import flash.text.Font;
 	import flash.utils.ByteArray;
+	import flash.utils.Endian;
 	
 	import mx.collections.ArrayCollection;
 	import mx.controls.ToolTip;
@@ -168,10 +169,10 @@ package weave
 		public const enableDynamicTools:LinkableBoolean = new LinkableBoolean(true); // move/resize/add/remove/close tools
 		
 		// Collaboration
-		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(true); // collaboration menu bar
+		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(false); // collaboration menu bar
 		public const showCollaborationEditor:LinkableBoolean = new LinkableBoolean(true);
-		public const collabServerIP:LinkableString = new LinkableString("129.63.17.205");
-		public const collabServerName:LinkableString = new LinkableString("vast-server");
+		public const collabServerIP:LinkableString = new LinkableString("demo.oicweave.org");
+		public const collabServerName:LinkableString = new LinkableString("ivpr-vm");
 		public const collabServerPort:LinkableString = new LinkableString("5222");
 		public const collabServerRoomToJoin:LinkableString = new LinkableString("demo");
 		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);

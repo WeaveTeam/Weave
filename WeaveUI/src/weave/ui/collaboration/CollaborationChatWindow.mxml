@@ -40,15 +40,15 @@
 			<mx:VBox id="containerAddons" width="100%" height="0" horizontalScrollPolicy="off">
 				<mx:Canvas width="100%" height="100%" clipContent="true"
 						   horizontalScrollPolicy="off" verticalScrollPolicy="off">
-					<mx:HBox id="containerRemoteCams" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" />
+					<mx:Canvas id="containerRemoteCams" width="100%" height="100%" autoLayout="false" />
 					<mx:HBox verticalAlign="bottom" horizontalAlign="right" bottom="0" right="0">
 						<mx:UIComponent id="containerLocalCam" width="80" height="60" />
 					</mx:HBox>
 				</mx:Canvas>
 				<mx:HBox id="addonControls" width="100%" horizontalAlign="center" horizontalScrollPolicy="off">
-					<mx:Button id="button_mic" icon="{iconMic}" width="28" height="22" toggle="true" 
+					<mx:Button id="button_mic" width="28" height="22" toggle="true" 
 							   enabled="{addOnsSaved}" click="toggleMic(event)"/>
-					<mx:Button id="button_cam" icon="{iconCam}" width="28" height="22" toggle="true" 
+					<mx:Button id="button_cam" width="28" height="22" toggle="true" 
 							   enabled="{addOnsSaved}" click="toggleCam(event)"/>
 				</mx:HBox>
 			</mx:VBox>
@@ -94,9 +94,9 @@
 									<mx:Canvas width="100%" clipContent="true" horizontalScrollPolicy="off">
 										<mx:Label id="labelName" fontSize="12" width="100%" toolTip="{labelName.text}" />
 									</mx:Canvas>
-									<mx:Image id="micPic" source="{outerDocument.iconMic}" width="15" height="15" />
-									<mx:Image id="camPic" source="{outerDocument.iconCam}" width="15" height="15" />
-									<mx:Image id="specPic" source="{outerDocument.iconEye}" width="22" height="12" />
+									<mx:Image id="micPic" source="@Embed(source='/weave/resources/images/collab/mic.png')" width="15" height="15" />
+									<mx:Image id="camPic" source="@Embed(source='/weave/resources/images/collab/cam.png')" width="15" height="15" />
+									<mx:Image id="specPic" source="@Embed(source='/weave/resources/images/collab/eye.png')" width="22" height="12" />
 									<collab:CollaborationPing id="collabPing" width="16" height="14" />
 								</mx:HBox>
 							</mx:Component>
@@ -142,7 +142,7 @@
 			internal var nickname:String 						= null;
 			internal var roomName:String						= null;
 			
-			private var padding:Number 							= 10;
+			private const padding:Number 						= 10;
 			private var enabledMic:Boolean 						= false;
 			private var enabledCam:Boolean 						= false;
 			private var localVideo:Video   						= null;
@@ -159,6 +159,12 @@
 			[Embed(source="../../resources/images/collab/speaker.png")] internal const iconSpeaker:Class;
 			[Embed(source="../../resources/images/collab/eye.png")] 	internal const iconEye:Class;
 
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+//				button_mic.setStyle("icon", iconMic);
+//				button_cam.setStyle("icon", iconCam);
+			}
 			public function logText(txt:String):void
 			{
 				var from:String = txt.substr(0, txt.indexOf(":"));
@@ -358,7 +364,7 @@
 						if( dictionaryLength(nsPlayCamList) > 0 )
 							showRemoteDisplay();
 						
-						organizeRemoteVideos();
+//						organizeRemoteVideos();
 					}
 				}
 				else
@@ -386,7 +392,7 @@
 							else if( dictionaryLength(nsPlayCamList) == 0 && !enabledCam )
 								hideRemoteDisplay();
 							
-							organizeRemoteVideos();
+//							organizeRemoteVideos();
 						}
 					}
 				}
@@ -396,7 +402,7 @@
 			{
 				var maxWidth:Number = 140;
 				var minWidth:Number = 92;
-				var count:Number = dictionaryLength(nsPlayCamList);
+				var count:Number = streamingCount();
 				var usable:Number = containerRemoteCams.width;
 				var camWidth:Number = ((usable/(count+1)) > maxWidth) ? maxWidth : (usable/(count+1));
 				var names:Array = new Array();
@@ -415,7 +421,8 @@
 					case 1:
 						var vid:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
 						vid.setSize(camWidth);
-//						vid.setPos(usable/2-vid.width/2, 0);
+						vid.setPos(usable/2-vid.width/2, 0);
+						trace("setPos(", usable/2-vid.width/2,", 0);");
 						break;
 					case 2:
 						var vid1:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
@@ -427,16 +434,16 @@
 //						vid2.setPos(2*usable/3-vid2.width/2, 0);
 						break;
 					case 3:
-						var vid1:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
-						vid1.setSize(camWidth);
+//						var vid1:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
+//						vid1.setSize(camWidth);
 //						vid1.setPos(usable/6-vid1.width/2, 0);
 						
-						var vid2:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
-						vid2.setSize(camWidth);
+//						var vid2:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
+//						vid2.setSize(camWidth);
 //						vid2.setPos(2*usable/6-vid2.width/2, 0);
 						
-						var vid3:CollaborationVideo = nsPlayCamList[names[2]] as CollaborationVideo;
-						vid3.setSize(camWidth);
+//						var vid3:CollaborationVideo = nsPlayCamList[names[2]] as CollaborationVideo;
+//						vid3.setSize(camWidth);
 //						vid3.setPos(4*usable/6-vid3.width/2, 0);
 						break;
 					default:

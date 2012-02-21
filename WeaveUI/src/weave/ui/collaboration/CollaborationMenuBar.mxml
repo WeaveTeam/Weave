@@ -57,7 +57,7 @@
 			public const collabService:CollaborationService 	= registerDisposableChild(this, new CollaborationService(Weave.root));
 			public var rtmpService:NetConnection 				= null;
 			
-			private const rtmpPath:String = "rtmpt://dynhost.hopto.org:8086/live";
+			private const rtmpPath:String = "rtmpt://demo.oicweave.org:8086/live";
 			
 			private var CHAT:CollaborationChatWindow 			= null;
 			private var SETTINGS:CollaborationSettingsWindow 	= null;
@@ -75,9 +75,6 @@
 			protected function creationComplete(event:FlexEvent):void
 			{
 				trace("CollaborationMenuBar is opened");
-				button_connect.enabled 	= false;
-				button_chat.enabled 	= false;
-				button_settings.enabled = true;
 				rtmpService				= new NetConnection();
 
 				collabService.addEventListener(CollaborationEvent.LOG, handleLogEvent);
@@ -103,6 +100,13 @@
 				button_settings.addEventListener(MouseEvent.CLICK, toggleSettings);
 				stage.addEventListener(Event.RESIZE, resizeHandler);
 				
+			}
+			public function addedToStage():void
+			{
+				button_connect.enabled 	= false;
+				button_chat.enabled 	= false;
+				button_settings.enabled = true;
+				
 				createWindowChat();
 				createWindowSettings();
 				
@@ -114,6 +118,14 @@
 				CHAT.userNameList = collabService.userList;
 				
 				resizeHandler();
+			}
+			public function dispose():void
+			{
+				disConButtonPushed = true;
+				disconnect();
+				resetUserMice();
+				destroyWindowChat();
+				destroyWindowSettings();
 			}
 			private function connect(e:MouseEvent = null):void
 			{
@@ -159,8 +171,10 @@
 			}
 			private function disconnect(e:MouseEvent = null):void
 			{
-				disConButtonPushed = true;
-				collabService.disconnect();
+				if( e )
+					disConButtonPushed = true;
+				if( collabService.isConnected )
+					collabService.disconnect();
 				disconnectionFromRTMPServer();
 			}
 			private function handleDisconnect( e:CollaborationEvent ):void
@@ -218,13 +232,14 @@
 			}
 			private function toggleSettings(e:MouseEvent = null):void
 			{
-				if( SETTINGS ) 
+				if( SETTINGS ) {
 					if( SETTINGS.visible )
 						SETTINGS.hide();
 					else
 						SETTINGS.show();
 				
-				setWindowSettingsPos();
+					setWindowSettingsPos();
+				}
 			}
 			private function toggleChat(e:MouseEvent = null):void
 			{
@@ -242,12 +257,12 @@
 				if( SETTINGS ) setWindowSettingsPos();
 				if( CHAT ) {
 					setWindowChatPos();
-					if( CHAT.streamingCount() > 0 && CHAT.rtmpService != null )
-						CHAT.organizeRemoteVideos();
+//					if( CHAT.streamingCount() > 0 && CHAT.rtmpService != null )
+//						CHAT.organizeRemoteVideos();
 				}
 			}
 			
-			private function setWindowSettingsPos():void 
+			private function setWindowSettingsPos():void
 			{
 				var p:Point = new Point(button_settings.x + button_settings.width/2, button_settings.y);
 				SETTINGS.x = localToGlobal(p).x - (SETTINGS.width/2);
@@ -386,14 +401,11 @@
 			}
 			private function disconnectionFromRTMPServer():void
 			{
-				if( rtmpService.connected )
-				{
-					rtmpUserClosed = true;
-					rtmpService.close();
-					rtmpPollingServer = false;
-					rtmpTimer.stop();
-					rtmpPollingTimer.stop();
-				}
+				rtmpUserClosed = true;
+				rtmpPollingServer = false;
+				rtmpTimer.stop();
+				rtmpPollingTimer.stop();
+				if( rtmpService.connected )	rtmpService.close();
 			}
 			private function handleRTMPReconnect(e:TimerEvent):void
 			{
@@ -412,6 +424,7 @@
 				switch( e.info.code )
 				{
 					case "NetConnection.Connect.Success":
+						if( !CHAT ) break;
 						CHAT.showRTMPWarning();
 						CHAT.showAddonControls();
 						rtmpPollingTimer.stop();
@@ -426,6 +439,7 @@
 						break;
 					
 					case "NetConnection.Connect.Closed":
+						if( !CHAT ) break;
 						if( !rtmpUserClosed )
 						{
 							rtmpTimer.start();
@@ -436,12 +450,13 @@
 						CHAT.connectedToRTMPService = false;
 						CHAT.rtmpService 			= null;
 						CHAT.hideAddonControls();
-						collabService.sendAddonUpdate(collabService.nickname, collabService.TYPE_CAM, 0);
-						collabService.sendAddonUpdate(collabService.nickname, collabService.TYPE_MIC, 0);
+						collabService.sendAddonUpdate(collabService.nickname, collabService.TYPE_CAM, false);
+						collabService.sendAddonUpdate(collabService.nickname, collabService.TYPE_MIC, false);
 						break;
 					
 					case "NetConnection.Connect.Failed":
 						connectedToRTMPService 		= false;
+						if( !CHAT ) break;
 						CHAT.connectedToRTMPService = false;
 						CHAT.rtmpService 			= null;
 						CHAT.hideAddonControls();

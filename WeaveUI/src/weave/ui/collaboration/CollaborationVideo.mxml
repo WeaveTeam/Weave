@@ -21,7 +21,7 @@
 			
 			public var stream:NetStream;
 			public var video:Video;
-			private var _borderThickness:Number = 4;
+			private const _borderThickness:Number = 4;
 			[Bindable] public var nickname:String;
 			
 			private function creationCompleteHandler(event:FlexEvent):void

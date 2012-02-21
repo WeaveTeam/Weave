@@ -145,7 +145,7 @@ package weave
 		 * Optional menu bar (bottom of screen) to control the collaboration service and interaction
 		 * between users.
 		 */
-		private var _collabMenu:CollaborationMenuBar = null;
+		private var _collabMenu:CollaborationMenuBar = new CollaborationMenuBar();
 		
 		/**
 		 * This will be used to incorporate branding into any weave view.  Linkable to the Open Indicators Consortium website.
@@ -534,20 +534,20 @@ package weave
 		{
 			if( Weave.properties.enableCollaborationBar.value )
 			{
-				if( !_collabMenu )
+				if( !_collabMenu.parent )
 				{
-					_collabMenu = new CollaborationMenuBar();
-					
 					_collabMenu.percentWidth = 100;
 					this.addChild(_collabMenu);
+					_collabMenu.addedToStage();
 				}
 			} else {
 				try
 				{
-					if( _collabMenu && this == _collabMenu.parent )
+					if( this == _collabMenu.parent ) {
+						_collabMenu.dispose();
 						this.removeChild(_collabMenu);
+					}
 					
-					_collabMenu = null;
 				} catch( error:Error ) {
 					reportError(error);
 				}
