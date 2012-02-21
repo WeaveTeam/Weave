@@ -377,11 +377,9 @@
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeSourceComponent" label="Edge Sources"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeTargetComponent" label="Edge Targets"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="edgeColorComponent" label="Edge Colors"/>
-			<userControls:ControlsSubsetBox>
-				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-							 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
-							 creationComplete="linkBindableProperty(includeToolAttributesInProbe, event.target, 'selected')"/>
-			</userControls:ControlsSubsetBox>
+			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+						 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
+						 creationComplete="linkBindableProperty(includeToolAttributesInProbe, event.target, 'selected')"/>
 			<mx:HBox>
 				<mx:Label text="Algorithm"/>
 				<mx:ComboBox id="algorithmChoice"  dataProvider="{_plotter.algorithms}"
