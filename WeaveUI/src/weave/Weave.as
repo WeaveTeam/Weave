@@ -163,7 +163,7 @@ package weave
 			{
 				_root = LinkableDynamicObject.globalHashMap;
 				createDefaultObjects(_root);
-				_history = new SessionStateLog(root);
+				_history = new SessionStateLog(root, 100);
 			}
 			return _root;
 		}
