@@ -1757,7 +1757,7 @@ public class AdminService extends GenericServlet
 	 * the config file.
 	 */
 
-	synchronized public String convertShapefileToSQLStream(String configConnectionName, String password, String[] fileNameWithoutExtension, String[] keyColumns, String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName, boolean configOverwrite, String configKeyType, String projectionSRS, String[] nullValues) throws RemoteException
+	synchronized public String convertShapefileToSQLStream(String configConnectionName, String password, String[] fileNameWithoutExtension, String[] keyColumns, String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName, boolean configOverwrite, String configKeyType, String projectionSRS, String[] nullValues, boolean importDBFData) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();
@@ -1776,14 +1776,19 @@ public class AdminService extends GenericServlet
 						"Shapes not imported. SQLConfig geometryCollection \"%s\" already exists.",
 						configGeometryCollectionName));
 		}
-
+		
+		
 		String dbfTableName = sqlTablePrefix + "_dbfdata";
 		Connection conn = null;
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, configConnectionName);
 			// store dbf data to database
-			storeDBFDataToDatabase(configConnectionName, password, fileNameWithoutExtension, sqlSchema, dbfTableName, sqlOverwrite, nullValues);
+			if(importDBFData)
+			{
+				storeDBFDataToDatabase(configConnectionName, password, fileNameWithoutExtension, sqlSchema, dbfTableName, sqlOverwrite, nullValues);
+			}
+			
 			GeometryStreamConverter converter = new GeometryStreamConverter(
 					new SQLGeometryStreamDestination(conn, sqlSchema, sqlTablePrefix, sqlOverwrite)
 			);
@@ -1809,29 +1814,36 @@ public class AdminService extends GenericServlet
 			fileList = fileList.substring(0, 50) + "..." + fileList.substring(fileList.length() - 50);
 		String importNotes = String.format("file: %s, keyColumns: %s", fileList, Arrays.asList(keyColumns));
 
-		// get key column SQL code
-		String keyColumnsString;
-		if (keyColumns.length == 1)
+		String resultAddSQL = "";
+		if(importDBFData)
 		{
-			keyColumnsString = keyColumns[0];
-		}
-		else
-		{
-			keyColumnsString = "CONCAT(";
-			for (int i = 0; i < keyColumns.length; i++)
+			
+			// get key column SQL code
+			String keyColumnsString;
+			if (keyColumns.length == 1)
 			{
-				if (i > 0)
-					keyColumnsString += ",";
-				keyColumnsString += "CAST(" + keyColumns[i] + " AS CHAR)";
+				keyColumnsString = keyColumns[0];
 			}
-			keyColumnsString += ")";
+			else
+			{
+				keyColumnsString = "CONCAT(";
+				for (int i = 0; i < keyColumns.length; i++)
+				{
+					if (i > 0)
+						keyColumnsString += ",";
+					keyColumnsString += "CAST(" + keyColumns[i] + " AS CHAR)";
+				}
+				keyColumnsString += ")";
+			}
+			
+			// add SQL statements to sqlconfig
+			String[] columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName).toArray(new String[0]);
+			resultAddSQL = addConfigDataTable(config, configOverwrite, configGeometryCollectionName, configConnectionName,
+					configGeometryCollectionName, configKeyType, keyColumnsString, null, columnNames, columnNames, sqlSchema,
+					dbfTableName, false, null);
+		}else{
+			resultAddSQL = "DBF Import disabled.";
 		}
-
-		// add SQL statements to sqlconfig
-		String[] columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName).toArray(new String[0]);
-		String resultAddSQL = addConfigDataTable(config, configOverwrite, configGeometryCollectionName, configConnectionName,
-				configGeometryCollectionName, configKeyType, keyColumnsString, null, columnNames, columnNames, sqlSchema,
-				dbfTableName, false, null);
 
 		return resultAddSQL
 				+ "\n\n"

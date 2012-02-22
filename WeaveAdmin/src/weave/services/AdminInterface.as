@@ -515,7 +515,7 @@ package weave.services
 		
 		public function convertShapefileToSQLStream(fileName:String, keyColumns:Array, sqlSchema:String, sqlTable:String, 
 													tableOverwriteCheck:Boolean, geometryCollection:String, configOverwriteCheck:Boolean, 
-													keyType:String, srsCode:String, nullValues:String):DelayedAsyncInvocation
+													keyType:String, srsCode:String, nullValues:String,importDBFAsDataTable:Boolean):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.convertShapefileToSQLStream(
 				activeConnectionName,
@@ -529,7 +529,8 @@ package weave.services
 				configOverwriteCheck,
 				keyType,
 				srsCode,
-				nullValues
+				nullValues,
+				importDBFAsDataTable
 			);
 			query.addAsyncResponder(handler);
 			function handler(..._):void
