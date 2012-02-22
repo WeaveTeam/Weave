@@ -41,7 +41,7 @@ JRITextEditor
 				x="15%" width="80%" y="15%" height="80%"
 				backgroundColor="#EFF4BC" 
 				layout="horizontal"
-				autoLayout="true"
+				autoLayout="true" implements="weave.api.ui.IVisTool"
 				>
 	
 	
@@ -178,6 +178,7 @@ JRITextEditor
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
 			import weave.core.DynamicState;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableHashMap;
@@ -208,6 +209,8 @@ JRITextEditor
 			import weave.utils.ResultUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.tools.SimpleVisTool;
+			
+			WeaveAPI.registerImplementation(IVisTool, JRITextEditor, "JRI Script Editor");
 			
 			private const padding:int = 5;
 			

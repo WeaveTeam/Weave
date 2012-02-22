@@ -30,11 +30,11 @@
 		<![CDATA[
 			import mx.controls.TextArea;
 			import mx.core.IToolTip;
-			import mx.events.FlexEvent;
 			import mx.events.SliderEvent;
 			import mx.managers.ToolTipManager;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
@@ -43,6 +43,7 @@
 			import weave.api.linkSessionState;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
@@ -56,11 +57,12 @@
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
-			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.RegressionLinePlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 			import weave.visualization.plotters.styles.SolidFillStyle;
-			
+
+			WeaveAPI.registerImplementation(IVisTool, ScatterPlotTool, "Scatterplot");
+
 			public var plotter:ScatterPlotPlotter = null;
 			
 			override protected function constructor():void

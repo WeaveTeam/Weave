@@ -30,6 +30,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
@@ -37,6 +38,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
@@ -50,6 +52,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.visualization.plotters.AnchorPlotter;
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.RadVizPlotter;
+			
+			WeaveAPI.registerImplementation(IVisTool, RadVizTool, "RadViz");
 			
 			[Bindable]
 			private var _plotter:RadVizPlotter ;
