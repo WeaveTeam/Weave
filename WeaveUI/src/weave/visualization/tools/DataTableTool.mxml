@@ -319,17 +319,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						filterableColumn = _currentDataGridColumns[i] as WeaveCustomDataGridColumn;
 						var cf:ClassFactory = new ClassFactory(DataGridCellRenderer);
 						cf.properties = {colorColumn: Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN),keySet: Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet};
-						filterableColumn.itemRenderer = cf;
+						//while loading initially - WeaveCustomDataGridColumn wont get created
+						if (filterableColumn)
+							filterableColumn.itemRenderer = cf;
 					}
 				}
 				else{
 					for(i = 0; i<colNames.length;i++){
 						filterableColumn = _currentDataGridColumns[i] as WeaveCustomDataGridColumn;	
 						//while loading initially - WeaveCustomDataGridColumn wont get created
-						if(filterableColumn){
+						if (filterableColumn)
 							filterableColumn.itemRenderer =  new ClassFactory(Label);	
-						}
-										
 					}
 				}
 					
