@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="WeaveAPI,weave.api.WeaveAPI,AttributeColumnCache,CSVParser,ErrorManager,ExternalSessionStateInterface,ProgressIndicator,ProjectionManager,QKeyManager,SessionManager,StageUtils,StatisticsCache,URLRequestUtils,topLevelApplication,getSingletonInstance,initializeExternalInterface,registerSingleton" name="keywords">
+<meta content="WeaveAPI,weave.api.WeaveAPI,AttributeColumnCache,CSVParser,ErrorManager,ExternalSessionStateInterface,ProgressIndicator,ProjectionManager,QKeyManager,SessionManager,StageUtils,StatisticsCache,URLRequestUtils,topLevelApplication,getRegisteredImplementationDisplayName,getRegisteredImplementations,getSingletonInstance,initializeExternalInterface,registerImplementation,registerSingleton" name="keywords">
 <title>weave.api.WeaveAPI</title>
 </head>
 <body>
@@ -134,6 +134,22 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
+<a class="signatureLink" href="#getRegisteredImplementationDisplayName()">getRegisteredImplementationDisplayName</a>(theImplementation:Class):String</div>
+<div class="summaryTableDescription">[static]
+   This will get the displayName that was specified when an implementation was registered with registerImplementation().</div>
+</td><td class="summaryTableOwnerCol">WeaveAPI</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getRegisteredImplementations()">getRegisteredImplementations</a>(theInterface:Class):Array</div>
+<div class="summaryTableDescription">[static]
+   This will get an Array of class definitions that were previously registered as implementations of the specified interface.</div>
+</td><td class="summaryTableOwnerCol">WeaveAPI</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
 <a class="signatureLink" href="#getSingletonInstance()">getSingletonInstance</a>(singletonInterface:Class):*</div>
 <div class="summaryTableDescription">[static]
    This function returns the singleton instance for a registered interface.</div>
@@ -150,8 +166,16 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#registerSingleton()">registerSingleton</a>(theInterface:Class, theImplementation:Class):Boolean</div>
+<a class="signatureLink" href="#registerImplementation()">registerImplementation</a>(theInterface:Class, theImplementation:Class, displayName:String = null):void</div>
 <div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol">WeaveAPI</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#registerSingleton()">registerSingleton</a>(theInterface:Class, theImplementation:Class):Boolean</div>
+<div class="summaryTableDescription">[static]
+   This registers an implementation for a singleton interface.</div>
 </td><td class="summaryTableOwnerCol">WeaveAPI</td>
 </tr>
 </table>
@@ -331,15 +355,68 @@ showHideInherited();
 </div>
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
+<a name="getRegisteredImplementationDisplayName()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getRegisteredImplementationDisplayName</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function getRegisteredImplementationDisplayName(theImplementation:Class):String</code><p>
+   This will get the displayName that was specified when an implementation was registered with registerImplementation().
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">theImplementation</span>:Class</code> &mdash; An implementation that was registered with registerImplementation().
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>String</code> &mdash; The display name for the implementation.
+   </td>
+</tr>
+</table>
+</div>
+<a name="getRegisteredImplementations()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getRegisteredImplementations</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function getRegisteredImplementations(theInterface:Class):Array</code><p>
+   This will get an Array of class definitions that were previously registered as implementations of the specified interface.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">theInterface</span>:Class</code> &mdash; The interface class.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code> &mdash; An Array of class definitions that were previously registered as implementations of the specified interface.
+   </td>
+</tr>
+</table>
+</div>
 <a name="getSingletonInstance()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">getSingletonInstance</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+<td class="detailHeaderName">getSingletonInstance</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
 <code>public static function getSingletonInstance(singletonInterface:Class):*</code><p>
    This function returns the singleton instance for a registered interface.
+      This method should not be called at static initialization time,
+   because the implementation may not have been registered yet.
+   
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -368,14 +445,14 @@ showHideInherited();
    After initializing, this will call an external function weaveReady(weave) if it exists, where the
    'weave' parameter is a pointer to the instance of Weave that is ready.
    </p></div>
-<a name="registerSingleton()"></a>
+<a name="registerImplementation()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">registerSingleton</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">registerImplementation</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function registerSingleton(theInterface:Class, theImplementation:Class):Boolean</code><p></p><span class="label">Parameters</span>
+<code>public static function registerImplementation(theInterface:Class, theImplementation:Class, displayName:String = null):void</code><p></p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">theInterface</span>:Class</code></td>
@@ -386,12 +463,43 @@ showHideInherited();
 <tr>
 <td width="20px"></td><td><code><span class="label">theImplementation</span>:Class</code></td>
 </tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">displayName</span>:String</code> (default = <code>null</code>)<code></code></td>
+</tr>
+</table>
+</div>
+<a name="registerSingleton()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">registerSingleton</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function registerSingleton(theInterface:Class, theImplementation:Class):Boolean</code><p>
+   This registers an implementation for a singleton interface.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">theInterface</span>:Class</code> &mdash; The interface to register.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">theImplementation</span>:Class</code> &mdash; The implementation to register.
+   </td>
+</tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>Boolean</code></td>
+<td width="20"></td><td><code>Boolean</code> &mdash; A value of true if the implementation was successfully registered.
+   </td>
 </tr>
 </table>
 </div>
