@@ -19,6 +19,8 @@
 
 package weave.core
 {
+	import flash.utils.getTimer;
+	
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
@@ -39,9 +41,10 @@ package weave.core
 	{
 		public static var debug:Boolean = false;
 		
-		public function SessionStateLog(subject:ILinkableObject)
+		public function SessionStateLog(subject:ILinkableObject, syncDelay:uint = 0)
 		{
 			_subject = subject;
+			_syncDelay = syncDelay;
 			_prevState = WeaveAPI.SessionManager.getSessionState(_subject); // remember the initial state
 			registerDisposableChild(_subject, this); // make sure this is disposed when _subject is disposed
 			
@@ -64,6 +67,7 @@ package weave.core
 		}
 		
 		private var _subject:ILinkableObject; // the object we are monitoring
+		private var _syncDelay:uint; // the number of milliseconds to wait before automatically synchronizing
 		private var _prevState:Object = null; // the previously seen session state of the subject
 		private var _undoHistory:Array = []; // diffs that can be undone
 		private var _redoHistory:Array = []; // diffs that can be redone
@@ -71,7 +75,7 @@ package weave.core
 		private var _undoActive:Boolean = false; // true while an undo operation is active
 		private var _redoActive:Boolean = false; // true while a redo operation is active
 		
-		private var _saveLater:Boolean = false; // true if the next diff should be computed and logged in a later frame
+		private var _saveTime:uint = 0; // this is set to getTimer() + _syncDelay to determine when the next diff should be computed and logged
 		private var _savePending:Boolean = false; // true when a diff should be computed
 		
 		/**
@@ -105,7 +109,7 @@ package weave.core
 				return;
 			
 			// we have to wait until grouped callbacks are called before we save the diff
-			_saveLater = true;
+			_saveTime = uint.MAX_VALUE;
 			
 			// make sure only one call to saveDiff() is pending
 			if (!_savePending)
@@ -132,9 +136,9 @@ package weave.core
 			
 			// Since grouped callbacks are currently running, it means something changed, so make sure the diff is saved.
 			immediateCallback();
-			// It is ok to save a diff the frame after grouped callbacks are called.
-			// If callbacks are triggered again before the next frame, the immediateCallback will set this flag back to true.
-			_saveLater = false;
+			// It is ok to save a diff some time after the last time grouped callbacks are called.
+			// If callbacks are triggered again before the next frame, the immediateCallback will reset this value.
+			_saveTime = getTimer() + _syncDelay;
 			
 			if (debug && (_undoActive || _redoActive))
 			{
@@ -150,7 +154,7 @@ package weave.core
 		 */
 		private function saveDiff(immediately:Boolean = false):void
 		{
-			if (_saveLater && !immediately)
+			if (!immediately && getTimer() < _saveTime)
 			{
 				// we have to wait until the next frame to save the diff because grouped callbacks haven't finished.
 				WeaveAPI.StageUtils.callLater(this, saveDiff, null, false);
@@ -374,8 +378,8 @@ package weave.core
 				// reset these flags so nothing unexpected happens in later frames
 				_undoActive = false;
 				_redoActive = false;
-				_saveLater = false;
 				_savePending = false;
+				_saveTime = 0;
 			
 				WeaveAPI.SessionManager.setSessionState(_subject, _prevState);
 			}

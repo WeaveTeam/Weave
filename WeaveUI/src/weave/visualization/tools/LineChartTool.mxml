@@ -37,6 +37,7 @@
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -53,6 +54,8 @@
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.plotters.TextGlyphPlotter;
+			
+			WeaveAPI.registerImplementation(IVisTool, LineChartTool, "Line Chart");
 			
 			[Bindable]
 			private var _plotter:ParallelCoordinatesPlotter = null;

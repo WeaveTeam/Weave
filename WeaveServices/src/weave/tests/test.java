@@ -57,8 +57,8 @@ public class test {
 		String script = "";		
 		String [] resultNames = {};	
 		
-		Object[] array1 = {0,10,20,30,Double.NaN,50};
-		Object[] array2 = {10,20,Double.NaN,52,34,87};
+		Object[] array1 = {0,10,20,30,Double.NaN,50,60,55,89,33,44,54,21};
+		Object[] array2 = {10,20,Double.NaN,52,34,87,45,65,76,87,23,12,34};
 		//String[] keys = {"a","b","c","d","e","f"};
 //		//Object[] array3 = {"aa","bb","cc","dd","ee","ff"};
 		
@@ -95,9 +95,10 @@ public class test {
 		//plotscript = "plot(x,y)";
 		//keys = new  String[]{};
 		//script = "d<-x[x>20]";	
-		script = " d<- cbind(x,y) \n library(norm) \n rr<-prelim.norm(d)  ";
+		script = " Bind<- cbind(x,y) \n library(norm) \n pre<-prelim.norm(Bind) \n Em <- em.norm(pre) \n rngseed(34215) \n " +
+					"Da <- da.norm(pre, Em, steps = 20) \n imp <- imp.norm(pre, Da, Bind) ";
 		//script = "x <- 5\n y<- 6";
-		resultNames =  new String []{"d","rr$nmis"};			
+		resultNames =  new String []{"pre$nmis","imp" };			
 		call(inputNames,inputValues,resultNames,script,plotscript,true,false);
 		
 	}

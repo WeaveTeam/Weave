@@ -33,14 +33,15 @@
 <mx:Script>
 		<![CDATA[
 			import weave.api.WeaveAPI;
+			import weave.api.ui.IVisTool;
 			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.ProxyColumn;
 			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
             use namespace weave_internal;
 
-	//constructor
-	
+			WeaveAPI.registerImplementation(IVisTool, DimensionSliderTool, "Dimension Slider Tool");
+			
 	override protected function constructor():void
 	{
 		super.constructor();

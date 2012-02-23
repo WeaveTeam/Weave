@@ -187,15 +187,76 @@ package weave.api
 		
 		/**************************************/
 		
-//		public static function registerImplementation(theInterface:Class, theImplementation:Class):void
-//		{
-//		}
-//		
-//		public static function getRegisteredImplementations(theInterface:Class):Array
-//		{
-//		}
-//		
-//		private static const _implementations:Dictionary = new Dictionary(); // Class -> Array<Class>
+		/**
+		 * This will register an implementation of an interface.
+		 * @param theInterface The interface class.
+		 * @param theImplementation An implementation of the interface.
+		 * @param displayName An optional display name for the implementation.
+		 */
+		public static function registerImplementation(theInterface:Class, theImplementation:Class, displayName:String = null):void
+		{
+			_verifyImplementation(theInterface, theImplementation);
+			
+			var array:Array = _implementations[theInterface] as Array;
+			if (!array)
+				_implementations[theInterface] = array = [];
+			
+			_implementationDisplayNames[theImplementation] = displayName || getQualifiedClassName(theImplementation).split(':').pop();
+			if (array.indexOf(theImplementation) < 0)
+			{
+				array.push(theImplementation);
+				array.sort(_sortImplementations);
+			}
+		}
+		
+		/**
+		 * This will get an Array of class definitions that were previously registered as implementations of the specified interface.
+		 * @param theInterface The interface class.
+		 * @return An Array of class definitions that were previously registered as implementations of the specified interface.
+		 */
+		public static function getRegisteredImplementations(theInterface:Class):Array
+		{
+			var array:Array = _implementations[theInterface] as Array;
+			return array ? array.concat() : [];
+		}
+		
+		/**
+		 * This will get the displayName that was specified when an implementation was registered with registerImplementation().
+		 * @param theImplementation An implementation that was registered with registerImplementation().
+		 * @return The display name for the implementation.
+		 */
+		public static function getRegisteredImplementationDisplayName(theImplementation:Class):String
+		{
+			return _implementationDisplayNames[theImplementation] as String;
+		}
+		
+		/**
+		 * @private
+		 */
+		private static function _sortImplementations(impl1:Class, impl2:Class):int
+		{
+			var name1:String = _implementationDisplayNames[impl1] as String;
+			var name2:String = _implementationDisplayNames[impl2] as String;
+			if (name1 < name2)
+				return -1;
+			if (name1 > name2)
+				return 1;
+			return 0;
+		}
+		
+		private static const _implementations:Dictionary = new Dictionary(); // Class -> Array<Class>
+		private static const _implementationDisplayNames:Dictionary = new Dictionary(); // Class -> String
+		
+		/**
+		 * @private
+		 */
+		private static function _verifyImplementation(theInterface:Class, theImplementation:Class):void
+		{
+			var interfaceName:String = getQualifiedClassName(theInterface);
+			var classInfo:XML = describeType(theImplementation);
+			if (classInfo.factory.implementsInterface.(@type == interfaceName).length() == 0)
+				throw new Error(getQualifiedClassName(theImplementation) + ' does not implement ' + theInterface);
+		}
 		
 		/**
 		 * This registers an implementation for a singleton interface.
@@ -205,18 +266,19 @@ package weave.api
 		 */
 		public static function registerSingleton(theInterface:Class, theImplementation:Class):Boolean
 		{
-			var interfaceName:String = getQualifiedClassName(theInterface);
-
-			var classInfo:XML = describeType(theImplementation);
-			if (classInfo.factory.implementsInterface.(@type == interfaceName).length() == 0)
-				throw new Error(getQualifiedClassName(theImplementation) + ' does not implement ' + theInterface);
+			_verifyImplementation(theInterface, theImplementation);
 			
+			var interfaceName:String = getQualifiedClassName(theInterface);
 			Singleton.registerClass(interfaceName, theImplementation);
 			return Singleton.getClass(interfaceName) == theImplementation;
 		}
 		
 		/**
 		 * This function returns the singleton instance for a registered interface.
+		 *
+		 * This method should not be called at static initialization time,
+		 * because the implementation may not have been registered yet.
+		 * 
 		 * @param singletonInterface An interface to a singleton class.
 		 * @return The singleton instance that implements the specified interface.
 		 */		

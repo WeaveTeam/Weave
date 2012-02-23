@@ -75,15 +75,8 @@
 			
 			public function applyChanges():void
 			{
-				try
-				{
-					_weaveDataSource.url.value = url.text;
-					Alert.show("Changes saved.")
-				}
-				catch(e:Error)
-				{
-					Alert.show("Changes could not be saved. " + e.message,"Error");
-				}
+				_weaveDataSource.url.value = url.text;
+				Alert.show("Changes saved.")
 			}
 			
 		]]>

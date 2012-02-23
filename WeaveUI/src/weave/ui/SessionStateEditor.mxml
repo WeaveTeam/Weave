@@ -292,7 +292,7 @@ A text editor to change the Session State on the fly.
 
 		    private function linkSelectedObject():void
 		    {
-				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedSessionedObject() as ILinkableDynamicObject;
+				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedLinkableObject() as ILinkableDynamicObject;
 		    	if (dynamicObject)
 		    	{
 		    		dynamicObject.globalName = linkNameInput.text.length > 0 ? linkNameInput.text : null;
@@ -305,7 +305,7 @@ A text editor to change the Session State on the fly.
 				if (sessionNav.selectedItem)
 					console.context = sessionNav.selectedItem.object;
 				
-				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedSessionedObject() as ILinkableDynamicObject;
+				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedLinkableObject() as ILinkableDynamicObject;
 				if (dynamicObject)
 				{
 					linkNameInput.text = dynamicObject.globalName;

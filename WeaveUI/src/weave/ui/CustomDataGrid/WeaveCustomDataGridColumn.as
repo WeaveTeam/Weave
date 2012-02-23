@@ -27,7 +27,6 @@ package weave.ui.CustomDataGrid
 	import weave.api.data.IQualifiedKey;
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.utils.ColumnUtils;
-	import weave.visualization.tools.DataItemRenderer;
 	
 	
 	

@@ -19,11 +19,19 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<ui:DraggablePanel xmlns="weave.example.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*">
+<ui:DraggablePanel xmlns="weave.example.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
+				   implements="weave.api.ui.IVisTool">
 	<mx:HBox>
 		<mx:Label text="This is an example panel"/>
 		<ui:HelpComponent>Example help text</ui:HelpComponent>
 	</mx:HBox>
+	<mx:Script>
+		<![CDATA[
+			import weave.api.WeaveAPI;
+			import weave.api.ui.IVisTool;
+			WeaveAPI.registerImplementation(IVisTool, Example);
+		]]>
+	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox>
 			<mx:Label text="Example control panel"/>

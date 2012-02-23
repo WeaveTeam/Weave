@@ -321,7 +321,7 @@ package weave.primitives
 							keyVal = key[i];
 							if (boundaryInclusive == true)
 							{
-								if (keyVal < minKey[i] || keyVal > maxKey[i])
+								if (keyVal < minKey[i] || keyVal > maxKey[i]) // false if keyVal is NaN
 								{
 									inRange = false; // no hit if key out of range
 									break;
@@ -329,7 +329,7 @@ package weave.primitives
 							}
 							else
 							{
-								if (keyVal <= minKey[i] || keyVal >= maxKey[i])
+								if (keyVal <= minKey[i] || keyVal >= maxKey[i]) // false if keyVal is NaN
 								{
 									inRange = false; // no hit if key out of range
 									break;
@@ -350,14 +350,14 @@ package weave.primitives
 					}
 					
 					// traverse left as long as there may be results on the left side of the splitting plane
-					if (node.left != null && minKey[dimension] <= location)
+					if (node.left != null && !(minKey[dimension] > location)) // if location is NaN, '>' comparison is false
 					{
 						// push left child node on the stack
 						nodeStack[++stackPos] = node.left;
 					}
 					
 					// traverse right as long as there may be results on the right side of the splitting plane
-					if (node.right != null && location <= maxKey[dimension])
+					if (node.right != null && !(maxKey[dimension] < location)) // if location is NaN, '<' comparison is false
 					{
 						// push right child node on the stack
 						nodeStack[++stackPos] = node.right;

@@ -41,6 +41,7 @@
 			import weave.api.linkSessionState;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
@@ -63,6 +64,8 @@
 			import weave.visualization.plotters.SingleImagePlotter;
 			import weave.visualization.plotters.WMSPlotter;
 
+			WeaveAPI.registerImplementation(IVisTool, MapTool, "Map");
+			
 			// disable default plot layer
 			override protected function get plotLayer():SelectablePlotLayer { return null; }
 			

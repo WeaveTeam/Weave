@@ -31,6 +31,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
 				   layout="absolute"
 				   title="Data Table" xmlns:editors="weave.editors.*"
+				   implements="weave.api.ui.IVisTool"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0">
 		<mx:HBox id="topControls" horizontalAlign="left" width="100%">
@@ -95,6 +96,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
@@ -116,9 +118,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.NumberUtils;
 			import weave.utils.ProbeTextUtils;
+			
 			use namespace mx_internal;
 			
-			
+			WeaveAPI.registerImplementation(IVisTool, DataTableTool, "Data Table");
 			
 			override protected function constructor():void
 			{

@@ -21,7 +21,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				title="Attribute menu"
-				width="300" height="200"
+				width="300" height="200" implements="weave.api.ui.IVisTool"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
 	<mx:ViewStack id="layoutViewStack" width="100%" height="100%" selectedIndex="{layouts.indexOf(layoutCombo.selectedItem)}">
@@ -97,6 +97,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
@@ -108,7 +109,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.SimpleVisTool;
-			
+
+			WeaveAPI.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
+
 			private static const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			
 			public const targetTool:LinkableString = newLinkableChild(this, LinkableString);

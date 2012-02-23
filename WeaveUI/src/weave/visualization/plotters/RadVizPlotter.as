@@ -300,6 +300,7 @@ package weave.visualization.plotters
 					randomValueArray.push( Math.random() % 10) ;
 					randomValueArray.push( -(Math.random() % 10)) ;
 				}
+			spatialCallbacks.triggerCallbacks();
 		}
 		
 		/**

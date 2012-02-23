@@ -27,6 +27,11 @@
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
+			import weave.api.WeaveAPI;
+			import weave.api.ui.IVisTool;
+			
+			WeaveAPI.registerImplementation(IVisTool, CustomTool, "Custom Tool");
+			
 			override protected function constructor():void
 			{
 				super.constructor();

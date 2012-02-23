@@ -49,6 +49,7 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.getSessionState;
 			import weave.api.setSessionState;
+			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.ClassUtils;
 			import weave.core.DynamicState;
 			import weave.core.SessionManager;
@@ -174,6 +175,11 @@
 			 */
 			public function save():void
 			{
+				if (tabNavigator)
+					for each (var child:Object in tabNavigator.getChildren())
+						if (child is ILinkableObjectEditor)
+							(child as ILinkableObjectEditor).applyChanges();
+				
 				_savedGlobalSessionStates = [];
 				_savedTargetSessionStates = [];
 				if (_targetObjects == null && parent is ILinkableObject)
