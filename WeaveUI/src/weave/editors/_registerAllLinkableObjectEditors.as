@@ -18,8 +18,8 @@
 */
 package weave.editors
 {
-	import weave.WeaveProperties;
 	import weave.core.SessionStateLog;
+	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.DBFDataSource;
 	import weave.data.DataSources.WFSDataSource;
@@ -39,6 +39,8 @@ package weave.editors
 	public function _registerAllLinkableObjectEditors():void
 	{
 		//EditorManager.registerEditor(WeaveProperties, WeavePropertiesEditor);
+		
+		EditorManager.registerEditor(DynamicColumn, DynamicColumnEditor);
 		
 		EditorManager.registerEditor(WeaveDataSource, WeaveDataSourceEditor);
 		EditorManager.registerEditor(WFSDataSource, WFSDataSourceEditor);

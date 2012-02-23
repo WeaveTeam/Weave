@@ -24,6 +24,9 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
+	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.DataTypes;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -34,6 +37,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.GeneralizedGeometry;
 	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
@@ -69,19 +73,19 @@ package weave.visualization.plotters
 		/**
 		 * This is the minimum X data value associated with the rectangle.
 		 */
-		public const xData:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
+		public const xData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn(), updateKeys);
 		/**
 		 * This is the minimum Y data value associated with the rectangle.
 		 */
-		public const yData:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
+		public const yData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn(), updateKeys);
 		/**
 		 * This is the maximum X data value associated with the rectangle.
 		 */
-		public const widthData:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
+		public const widthData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn(0), updateKeys);
 		/**
 		 * This is the maximum Y data value associated with the rectangle.
 		 */
-		public const heightData:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
+		public const heightData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn(0), updateKeys);
 
 		// visual properties
 		/**
@@ -113,6 +117,21 @@ package weave.visualization.plotters
 		 */
 		public const drawEllipse:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 
+		protected function getCoordFromRecordKey(recordKey:IQualifiedKey, trueXfalseY:Boolean):Number
+		{
+			var dataCol:IAttributeColumn = trueXfalseY ? xData : yData;
+			if (dataCol.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
+			{
+				var geoms:Array = dataCol.getValueFromKey(recordKey) as Array;
+				var geom:GeneralizedGeometry;
+				if (geoms && geoms.length)
+					geom = geoms[0] as GeneralizedGeometry;
+				if (geom)
+					return trueXfalseY ? geom.bounds.getXCenter() : geom.bounds.getYCenter();
+			}
+			return dataCol.getValueFromKey(recordKey, Number);
+		}
+		
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
 		 * @param key The key of a data record.
@@ -120,8 +139,8 @@ package weave.visualization.plotters
 		 */
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			var x:Number = xData.getValueFromKey(recordKey, Number);
-			var y:Number = yData.getValueFromKey(recordKey, Number);
+			var x:Number = getCoordFromRecordKey(recordKey, true);
+			var y:Number = getCoordFromRecordKey(recordKey, false);
 			var width:Number = widthData.getValueFromKey(recordKey, Number);
 			var height:Number = heightData.getValueFromKey(recordKey, Number);
 			return [getReusableBounds(x, y, x + width, y + height)];
@@ -136,8 +155,8 @@ package weave.visualization.plotters
 
 			// project data coordinates to screen coordinates and draw graphics onto tempShape
 
-			var x:Number = xData.getValueFromKey(recordKey, Number);
-			var y:Number = yData.getValueFromKey(recordKey, Number);
+			var x:Number = getCoordFromRecordKey(recordKey, true);
+			var y:Number = getCoordFromRecordKey(recordKey, false);
 			var width:Number = widthData.getValueFromKey(recordKey, Number);
 			var height:Number = heightData.getValueFromKey(recordKey, Number);
 			
