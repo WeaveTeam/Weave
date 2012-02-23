@@ -46,21 +46,19 @@ LayerListComponent
 				
 			]]>
 		</mx:Script>
-		<ui:itemRenderer><!--Properties of List should use the same local namespace. So itemrenderer should use ui instead of mx-->
+		<ui:itemRenderer>
 			<mx:Component>
 				<mx:HBox width="100%">
 					<mx:Script>
 						<![CDATA[
-							import flash.utils.getQualifiedClassName;
-							
 							import mx.managers.PopUpManager;
 							
 							import weave.api.linkBindableProperty;
+							import weave.api.newDisposableChild;
 							import weave.api.ui.ILinkableObjectEditor;
 							import weave.api.ui.IPlotLayer;
 							import weave.api.ui.IPlotter;
 							import weave.api.unlinkBindableProperty;
-							import weave.core.ClassUtils;
 							import weave.ui.ControlPanel;
 							import weave.ui.SessionStateEditor;
 							import weave.utils.EditorManager;
@@ -81,13 +79,14 @@ LayerListComponent
 								var editor:ILinkableObjectEditor = EditorManager.getNewEditor(plotter);
 								if (editor)
 								{
-									var controls:ControlPanel = new ControlPanel();
+									var controls:ControlPanel = newDisposableChild(plotter, ControlPanel);
 									PopUpManager.addPopUp(controls, this);
 									PopUpManager.centerPopUp(controls);
 									controls.targets = [outerDocument.visTool];
 
 									controls.tabNavigator.addChild(editor as DisplayObject);
-								}else
+								}
+								else
 								{
 									SessionStateEditor.openDefaultEditor(plotter);
 								}

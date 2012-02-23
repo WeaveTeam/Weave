@@ -25,12 +25,16 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
+	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
@@ -51,44 +55,51 @@ package weave.visualization.plotters
 			var fill:SolidFillStyle = fillStyle.requestLocalObject(SolidFillStyle, false);
 			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
 			
-			setKeySource(xData);
+			setKeySource(_combinedKeySet);
 		}
+		
+		private const _combinedKeySet:KeySet = newLinkableChild(this, KeySet);
 
+		private function updateKeys():void
+		{
+			_combinedKeySet.replaceKeys(ColumnUtils.getAllKeys([xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset]));
+		}
+		
 		// spatial properties
 		/**
 		 * This is the minimum X data value associated with the rectangle.
 		 */
-		public const xData:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const xData:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
 		/**
 		 * This is the minimum Y data value associated with the rectangle.
 		 */
-		public const yData:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const yData:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
 		/**
 		 * This is the maximum X data value associated with the rectangle.
 		 */
-		public const widthData:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const widthData:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
 		/**
 		 * This is the maximum Y data value associated with the rectangle.
 		 */
-		public const heightData:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const heightData:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
 
 		// visual properties
 		/**
 		 * This is an offset in screen coordinates when projecting the data rectangle onto the screen.
 		 */
-		public const xMinScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
+		public const xMinScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
 		/**
 		 * This is an offset in screen coordinates when projecting the data rectangle onto the screen.
 		 */
-		public const yMinScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
+		public const yMinScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
 		/**
 		 * This is an offset in screen coordinates when projecting the data rectangle onto the screen.
 		 */
-		public const xMaxScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
+		public const xMaxScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
 		/**
 		 * This is an offset in screen coordinates when projecting the data rectangle onto the screen.
 		 */
-		public const yMaxScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
+		public const yMaxScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
 		/**
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
@@ -97,6 +108,10 @@ package weave.visualization.plotters
 		 * This is the fill style used to fill the rectangle.
 		 */
 		public const fillStyle:DynamicFillStyle = registerLinkableChild(this, new DynamicFillStyle());
+		/**
+		 * If this is true, ellipses will be drawn instead of rectangles.
+		 */
+		public const drawEllipse:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
@@ -149,7 +164,10 @@ package weave.visualization.plotters
 			// draw graphics
 			lineStyle.beginLineStyle(recordKey, graphics);
 			fillStyle.beginFillStyle(recordKey, graphics);
-			graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
+			if (drawEllipse.value)
+				graphics.drawEllipse(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
+			else
+				graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
 			graphics.endFill();
 		}
 		

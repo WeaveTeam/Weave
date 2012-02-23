@@ -38,7 +38,7 @@ package weave.editors
 	 */	
 	public function _registerAllLinkableObjectEditors():void
 	{
-		EditorManager.registerEditor(WeaveProperties, WeavePropertiesEditor);
+		//EditorManager.registerEditor(WeaveProperties, WeavePropertiesEditor);
 		
 		EditorManager.registerEditor(WeaveDataSource, WeaveDataSourceEditor);
 		EditorManager.registerEditor(WFSDataSource, WFSDataSourceEditor);
