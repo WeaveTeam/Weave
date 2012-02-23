@@ -607,7 +607,9 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		Map<String,String> publicMetadataFilter = new HashMap<String,String>();
 		publicMetadataFilter.put(PublicMetadata.DATATABLE, dataTableName);
-		List<AttributeColumnInfo> info = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, publicMetadataFilter);
+                AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+                tmpinfo.publicMetadata = publicMetadataFilter;
+		List<AttributeColumnInfo> info = config.findAttributeColumnInfo(tmpinfo);
 
 		return info.toArray(new AttributeColumnInfo[info.size()]);
 	}
@@ -691,8 +693,9 @@ public class AdminService extends GenericServlet
 		
 		Map<String,String> publicMetadataFilter = new HashMap<String,String>();
 		publicMetadataFilter.put(PublicMetadata.DATATABLE, dataTableName);
-		
-		List<AttributeColumnInfo> info = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, publicMetadataFilter);
+		AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+                tmpinfo.publicMetadata = publicMetadataFilter;
+		List<AttributeColumnInfo> info = config.findAttributeColumnInfo(tmpinfo);
 		
 		if (info.size() == 0)
 			throw new RemoteException("DataTable \"" + dataTableName + "\" does not exist.");

@@ -72,8 +72,10 @@ public class AttributeColumnData
 		if ((year != null) && (year.length() > 0))
 			params.put(PublicMetadata.YEAR, year);
 //		Assert.assertTrue(config != null);
-		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, params);
-		AttributeColumnInfo info = infoList.get(0);
+                AttributeColumnInfo info = new AttributeColumnInfo();
+                info.publicMetadata = params;
+		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfo(info);
+		info = infoList.get(0);
 		String connection = info.getConnectionName();
 		String dataWithKeysQuery = info.getSqlQuery();
 		

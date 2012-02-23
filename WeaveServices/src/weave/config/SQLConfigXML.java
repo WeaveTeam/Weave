@@ -503,13 +503,12 @@ public class SQLConfigXML implements IDeprecatedSQLConfig
 	{
 		throw new RemoteException("Not implemented");
 	}
-	synchronized public List<AttributeColumnInfo> findAttributeColumnInfoFromPrivateAndPublicMetadata(Map<String, String> privateMetadataFilter, Map<String,String> publicMetadataFilter)
+	synchronized public List<AttributeColumnInfo> findAttributeColumnInfo(AttributeColumnInfo filterinfo)
 	{
-		Map<String, String> metadataQueryParams = new HashMap<String, String>();
-		metadataQueryParams.putAll(privateMetadataFilter);
-		metadataQueryParams.putAll(publicMetadataFilter);
+		Map<String, String> metadataQueryParams = filterinfo.getPrivateAndPublicMetadata();
 		
 		validateCache();
+
 		NodeList columnNodes = getAttributeColumnNodes(metadataQueryParams);
 		List<AttributeColumnInfo> columnInfoList = new Vector<AttributeColumnInfo>(columnNodes.getLength());
 		// copy tag info

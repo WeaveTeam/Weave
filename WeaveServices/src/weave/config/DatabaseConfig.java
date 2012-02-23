@@ -391,7 +391,9 @@ public class DatabaseConfig
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>(1);
 		metadataQueryParams.put(PublicMetadata.DATATABLE, dataTableName);
-		return findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, metadataQueryParams);
+                AttributeColumnInfo info = new AttributeColumnInfo();
+                info.publicMetadata = metadataQueryParams;
+		return findAttributeColumnInfo(info);
 	}
 
 	synchronized public AttributeColumnInfo getAttributeColumnInfo(int _) throws RemoteException
@@ -402,11 +404,11 @@ public class DatabaseConfig
 	{
 		throw new RemoteException("Not implemented");
 	}
-	synchronized public List<AttributeColumnInfo> findAttributeColumnInfoFromPrivateAndPublicMetadata(Map<String, String> privateMetadataFilter, Map<String, String> publicMetadataFilter) throws RemoteException
+	synchronized public List<AttributeColumnInfo> findAttributeColumnInfo(AttributeColumnInfo filterinfo) throws RemoteException
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>();
-		metadataQueryParams.putAll(privateMetadataFilter);
-		metadataQueryParams.putAll(publicMetadataFilter);
+		metadataQueryParams.putAll(filterinfo.privateMetadata);
+		metadataQueryParams.putAll(filterinfo.publicMetadata);
 		
 		List<AttributeColumnInfo> results = new Vector<AttributeColumnInfo>();
 		try

@@ -166,7 +166,8 @@ public class DataService extends GenericServlet
 		keys = ListUtils.copyArrayToList(keysArray, keys);
 		HashMap<String,String> params = new HashMap<String,String>();
 		params.put(PublicMetadata.KEYTYPE,keyType);
-		
+	        AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+                tmpinfo.publicMetadata = params;	
 		HashMap<String,Integer> keyMap = new HashMap<String,Integer>();
 		for (int keyIndex = 0; keyIndex < keysArray.length; keyIndex ++ )
 			keyMap.put( keysArray[keyIndex],keyIndex);
@@ -174,7 +175,7 @@ public class DataService extends GenericServlet
 		int rowIndex =0;
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, params);
+		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfo(tmpinfo);
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		if (infoList.size() > 100)
@@ -317,7 +318,9 @@ public class DataService extends GenericServlet
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
 		
-		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, params);
+                AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+                tmpinfo.publicMetadata = params;
+		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfo(tmpinfo);
 		
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
@@ -472,7 +475,9 @@ public class DataService extends GenericServlet
 	{
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, params);
+                AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+                tmpinfo.publicMetadata = params;
+		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfo(tmpinfo);
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		if (infoList.size() > 1)
@@ -501,7 +506,9 @@ public class DataService extends GenericServlet
 		ISQLConfig config = configManager.getConfig();
 		Map<String,String> publicMetadataFilter = new HashMap<String,String>();
 		publicMetadataFilter.put(PublicMetadata.NAME, geometryCollectionName);
-		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, publicMetadataFilter);
+                AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+                tmpinfo.publicMetadata = publicMetadataFilter;
+		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfo(tmpinfo);
 		if (infoList.size() == 1)
 			return getGeometryStreamTileDescriptors(infoList.get(0).id);
 		throw new RemoteException(String.format("%s matches for geometry collection \"%s\"", infoList.size(), geometryCollectionName));

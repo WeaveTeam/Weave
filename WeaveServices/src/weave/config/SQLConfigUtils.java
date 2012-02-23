@@ -199,11 +199,14 @@ public class SQLConfigUtils
 		Map<String,String> publicParams = new HashMap<String,String>();
 		Map<String,String> privateParams = new HashMap<String,String>();
 		
-		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(publicParams, privateParams);
+                AttributeColumnInfo info = new AttributeColumnInfo();
+                info.privateMetadata = privateParams;
+                info.publicMetadata = publicParams;
+                List<AttributeColumnInfo> infoList = config.findAttributeColumnInfo(info);
 		
 		Set<String> set = new HashSet<String>();
-		for (AttributeColumnInfo info : infoList)
-			set.add(info.publicMetadata.get(PublicMetadata.KEYTYPE));
+		for (AttributeColumnInfo tmpinfo : infoList)
+			set.add(tmpinfo.publicMetadata.get(PublicMetadata.KEYTYPE));
 		String[] array = set.toArray(new String[0]);
 		Arrays.sort(array, String.CASE_INSENSITIVE_ORDER);
 		return array;
@@ -215,14 +218,19 @@ public class SQLConfigUtils
 		publicParams.put(PublicMetadata.DATATYPE, DataType.GEOMETRY);
 		
 		Map<String,String> privateParams = new HashMap<String,String>();
+
+                AttributeColumnInfo info = new AttributeColumnInfo();
+                info.privateMetadata = privateParams;
+                info.publicMetadata = publicParams;
+
 		if (connectionName != null)
 			privateParams.put(PrivateMetadata.CONNECTION, connectionName);
 		
-		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(publicParams, privateParams);
+		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfo(info);
 		
 		Set<String> nameSet = new HashSet<String>();
-		for (AttributeColumnInfo info : infoList)
-			nameSet.add(info.publicMetadata.get(PublicMetadata.NAME));
+		for (AttributeColumnInfo tmpinfo : infoList)
+			nameSet.add(tmpinfo.publicMetadata.get(PublicMetadata.NAME));
 		String[] names = nameSet.toArray(new String[0]);
 		Arrays.sort(names, String.CASE_INSENSITIVE_ORDER);
 		return names;
@@ -230,17 +238,20 @@ public class SQLConfigUtils
 	
 	@Deprecated public static String[] getDataTableNames(ISQLConfig config, String connectionName) throws RemoteException
 	{
+                AttributeColumnInfo info = new AttributeColumnInfo();
 		Map<String,String> publicParams = new HashMap<String,String>();
 		
 		Map<String,String> privateParams = new HashMap<String,String>();
 		if (connectionName != null)
 			privateParams.put(PrivateMetadata.CONNECTION, connectionName);
 		
-		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(publicParams, privateParams);
+                info.publicMetadata = publicParams;
+                info.privateMetadata = privateParams; 
+		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfo(info);
 
 		Set<String> nameSet = new HashSet<String>();
-		for (AttributeColumnInfo info : infoList)
-			nameSet.add(info.publicMetadata.get(PublicMetadata.DATATABLE));
+		for (AttributeColumnInfo tmpinfo : infoList)
+			nameSet.add(tmpinfo.publicMetadata.get(PublicMetadata.DATATABLE));
 		String[] names = nameSet.toArray(new String[0]);
 		Arrays.sort(names, String.CASE_INSENSITIVE_ORDER);
 		return names;
@@ -251,8 +262,11 @@ public class SQLConfigUtils
 	@Deprecated public static List<AttributeColumnInfo> getDataTableInfo(ISQLConfig config, String dataTableName) throws RemoteException
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>(1);
+                AttributeColumnInfo info = new AttributeColumnInfo();
 		metadataQueryParams.put(PublicMetadata.DATATABLE, dataTableName);
-		return config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, metadataQueryParams);
+                info.publicMetadata = metadataQueryParams;
+                info.privateMetadata = Collections.EMPTY_MAP;
+		return config.findAttributeColumnInfo(info);
 	}
 
 	@Deprecated public static void removeDataTableInfo(ISQLConfig config, String dataTableName) throws RemoteException
@@ -307,7 +321,7 @@ public class SQLConfigUtils
 			}
 
 			// add columns
-			List<AttributeColumnInfo> infoList = source.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, Collections.EMPTY_MAP);
+			List<AttributeColumnInfo> infoList = source.findAttributeColumnInfo(new AttributeColumnInfo());
 			timer.report("begin "+infoList.size()+" columns");
 			int printInterval = Math.max(1, infoList.size() / 50);
 			for( int i = 0; i < infoList.size(); i++)
@@ -355,7 +369,10 @@ public class SQLConfigUtils
 	{
 		Map<String,String> publicMetadataFilter = new HashMap<String,String>();
 		publicMetadataFilter.put(PublicMetadata.DATATABLE, dataTableName);
-		List<AttributeColumnInfo> info = config.findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, publicMetadataFilter);
+                AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+                tmpinfo.publicMetadata = publicMetadataFilter;
+                tmpinfo.privateMetadata = Collections.EMPTY_MAP;
+		List<AttributeColumnInfo> info = config.findAttributeColumnInfo(tmpinfo);
 		
 		for (int i = 0; i < info.size(); i++)
 			if (!userCanModifyAttributeColumn(config, connectionName, info.get(i).id))
