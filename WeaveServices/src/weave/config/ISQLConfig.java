@@ -96,7 +96,7 @@ public interface ISQLConfig
 	/**
 	 * @return A list of AttributeColumnInfo objects that match the specified filter criteria.
 	 */
-	List<AttributeColumnInfo> findAttributeColumnInfoFromPrivateAndPublicMetadata(Map<String, String> privateMetadataFilter, Map<String,String> publicMetadataFilter) throws RemoteException;
+	List<AttributeColumnInfo> findAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException;
 	
 	/**
 	 * @param id The ID of an attribute column.

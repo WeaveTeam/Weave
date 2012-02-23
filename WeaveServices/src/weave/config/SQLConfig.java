@@ -232,7 +232,20 @@ public class SQLConfig
 	        {
 		        throw new RemoteException("Failed to set property.", e);
 	        }
-        } 
+        }
+        private void clearMetadata(String metaTable,Integer id) throws RemoteException
+        {
+            try {
+                Connection conn = getConnection();
+                Map<String,Object> whereParams = new HashMap<String,Object>();
+                
+                whereParams.put(META_ID, id);
+                SQLUtils.deleteRows(conn, dbInfo.schema, metaTable, whereParams);
+            }
+            catch (Exception e) {
+                throw new RemoteException(String.format("Failed to clear metadata for ID=%d.", id) , e);
+            }
+        }
         private void delEntry(Integer id) throws RemoteException
         {
             try {
@@ -241,9 +254,8 @@ public class SQLConfig
                 Map<String,Object> whereParams = new HashMap<String,Object>();
 
                 /* Wipe id's metadata */
-                whereParams.put(META_ID, id);
-                SQLUtils.deleteRows(conn, dbInfo.schema, table_meta_public, whereParams);
-                SQLUtils.deleteRows(conn, dbInfo.schema, table_meta_private, whereParams);
+                clearMetadata(table_meta_public, id);
+                clearMetadata(table_meta_private, id);
 
                 /* Wipe id from the manifest table. */
                 whereParams.clear();
@@ -287,6 +299,25 @@ public class SQLConfig
             }
             return uniq_id;
         }
+        private boolean hasEntry(Integer id) throws RemoteException
+        {
+            try
+            {
+                Connection conn = getConnection();
+                Map<String,Object> whereParams = new HashMap<String,Object>();
+                List<Map<String,String>> results;
+                List<String> colList = new LinkedList<String>();
+
+                colList.add(MAN_ID);
+                whereParams.put(MAN_ID, id);
+                results = SQLUtils.getRecordsFromQuery(conn, colList, dbInfo.schema, table_manifest, whereParams);
+                return results.size() > 0; 
+            }
+            catch (Exception e)
+            {
+                throw new RemoteException("Unable to determine whether an ID exists.",e);
+            }
+        }
 /* ** END** Private methods which handle the barebones of the entity-attribute-value system. */
 
 	public void addConnection(ConnectionInfo info) throws RemoteException
@@ -321,32 +352,33 @@ public class SQLConfig
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>(1);
 		metadataQueryParams.put(PublicMetadata.DATATABLE, dataTableName);
-		return findAttributeColumnInfoFromPrivateAndPublicMetadata(Collections.EMPTY_MAP, metadataQueryParams);
+                AttributeColumnInfo info = new AttributeColumnInfo();
+                info.publicMetadata = metadataQueryParams;
+                info.privateMetadata = null;
+		return findAttributeColumnInfo(info);
 	}
 	
 	public void overwriteAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
 	{
-		throw new RemoteException("Not implemented");
+                if (!hasEntry(info.id)) throw new RemoteException("No such entry exists.", null);
+	        clearMetadata(table_meta_private, info.id);
+	        clearMetadata(table_meta_public, info.id);
 		
-		//TODO if id does not exist, throw exception
-		
-		//TODO remove all existing metadata for specified id
-		
-		/*
-        if (privateMetadata != null)
+                if (info.privateMetadata != null)
         	for (Entry<String,String> entry : info.privateMetadata.entrySet())
-        		setMetadataProperty(table_meta_private, id, entry.getKey(), entry.getValue());
-        if (publicMetadata != null)
-        	for (Entry<String,String> entry : info.publicMetadata.entrySet())
-        		setMetadataProperty(table_meta_public, id, entry.getKey(), entry.getValue());
-		 */
+        		setMetadataProperty(table_meta_private, info.id, entry.getKey(), entry.getValue());
+                if (info.publicMetadata != null)
+            	for (Entry<String,String> entry : info.publicMetadata.entrySet())
+        		setMetadataProperty(table_meta_public, info.id, entry.getKey(), entry.getValue());
 	}
 
 	/**
 	 * @return A list of AttributeColumnInfo objects having info that matches the given parameters.
 	 */
-	public List<AttributeColumnInfo> findAttributeColumnInfoFromPrivateAndPublicMetadata(Map<String, String> privateMetadataFilter, Map<String,String> publicMetadataFilter) throws RemoteException
+	public List<AttributeColumnInfo> findAttributeColumnInfo(AttributeColumnInfo filterInfo) throws RemoteException
 	{
+                Map<String,String> publicMetadataFilter = filterInfo.publicMetadata;
+                Map<String,String> privateMetadataFilter = filterInfo.privateMetadata; 
 		List<Integer> idList = getIdsFromMetadata(table_meta_public, publicMetadataFilter);
 		if (privateMetadataFilter != null)
 		{
