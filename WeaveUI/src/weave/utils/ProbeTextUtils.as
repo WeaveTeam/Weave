@@ -150,6 +150,9 @@ package weave.utils
 			(probeToolTip as ToolTip).setStyle("backgroundAlpha", Weave.properties.probeToolTipBackgroundAlpha.value);
 			if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
 				(probeToolTip as ToolTip).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
+			
+			
+			
 		}
 
 		public static function showProbeToolTip(probeText:String, stageX:Number, stageY:Number, bounds:IBounds2D = null, margin:int = 5):void
@@ -175,6 +178,10 @@ package weave.utils
 			
 			// make tooltip completely opaque because text + graphics on same sprite is slow
 			setProbeToolTipAppearance() ;
+			
+			//this step is required to set the height and width of probeToolTip to the right size.
+			(probeToolTip as ToolTip).validateNow();
+			
 			var xMin:Number = bounds.getXNumericMin();
 			var yMin:Number = bounds.getYNumericMin();
 			var xMax:Number = bounds.getXNumericMax() - probeToolTip.width;
