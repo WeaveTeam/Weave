@@ -90,23 +90,23 @@
 	</target>
 
 	<!-- These targets will build each project -->
-	<target name="client" depends="ui, data, core, api, check_client" unless="client_no_changes">
-		<ant dir="${basedir}/${CLIENT}" target="build"/>
-	</target>
-	<target name="admin" depends="ui, data, core, api, check_admin" unless="admin_no_changes">
-		<ant dir="${basedir}/${ADMIN}" target="build"/>
-	</target>
-	<target name="api" depends="check_api" unless="api_no_changes">
+	<target name="api" depends="check_api" unless="uptodate">
 		<ant dir="${basedir}/${API}" target="build"/>
 	</target>
-	<target name="core" depends="api, check_core" unless="core_no_changes">
+	<target name="core" depends="check_core, api" unless="uptodate">
 		<ant dir="${basedir}/${CORE}" target="build"/>
 	</target>
-	<target name="data" depends="core, api, check_data" unless="data_no_changes">
+	<target name="data" depends="check_data, core" unless="uptodate">
 		<ant dir="${basedir}/${DATA}" target="build"/>
 	</target>
-	<target name="ui" depends="data, core, api, check_ui" unless="ui_no_changes">
+	<target name="ui" depends="check_ui, data" unless="uptodate">
 		<ant dir="${basedir}/${UI}" target="build"/>
+	</target>
+	<target name="client" depends="check_client, ui" unless="uptodate">
+		<ant dir="${basedir}/${CLIENT}" target="build"/>
+	</target>
+	<target name="admin" depends="check_admin, ui" unless="uptodate">
+		<ant dir="${basedir}/${ADMIN}" target="build"/>
 	</target>
 	<target name="services">
 	    <ant dir="${basedir}/WeaveServices" target="dist"/>
@@ -128,64 +128,25 @@
 		<ant dir="${basedir}/${SERVICES}" target="clean" />
 	</target>
 
-
 	<!-- These targets set the properties ${project name}_no_changes if the target for each
-		project is more up-to-date than its source files or dependencies -->
+		project is more up-to-date than its source files -->
 	<target name="check_api">
-		<echo message="Checking status of ${API}..."/>
-		<uptodate property="api_no_changes" targetfile="${basedir}/${API}/bin/${API}.swc">
-			<srcfiles dir="${basedir}/${API}" includes="**/*.as"/>
-			<srcfiles dir="${basedir}/${API}" includes="**/*.mxml"/>
-		</uptodate>
+		<check_uptodate property="uptodate" targetproject="${API}" targetfilename="${API}.swc"/>
 	</target>
 	<target name="check_core">
-		<echo message="Checking status of ${CORE}..."/>
-		<uptodate property="core_no_changes" targetfile="${basedir}/${CORE}/bin/${CORE}.swc">
-			<srcfiles dir="${basedir}/${CORE}" includes="**/*.as"/>
-			<srcfiles dir="${basedir}/${CORE}" includes="**/*.mxml"/>
-			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
-		</uptodate>
+		<check_uptodate property="uptodate" targetproject="${CORE}" targetfilename="${CORE}.swc"/>
 	</target>
 	<target name="check_data">
-		<echo message="Checking status of ${DATA}..."/>
-		<uptodate property="data_no_changes" targetfile="${basedir}/${DATA}/bin/${DATA}.swc">
-			<srcfiles dir="${basedir}/${DATA}" includes="**/*.as"/>
-			<srcfiles dir="${basedir}/${DATA}" includes="**/*.mxml"/>
-			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
-			<srcfiles dir="${basedir}/${CORE}/bin" includes="${CORE}.swc"/>
-		</uptodate>
+		<check_uptodate property="uptodate" targetproject="${DATA}" targetfilename="${DATA}.swc"/>
 	</target>
 	<target name="check_ui">
-		<echo message="Checking status of ${UI}..."/>
-		<uptodate property="ui_no_changes" targetfile="${basedir}/${UI}/bin/${UI}.swc">
-			<srcfiles dir="${basedir}/${UI}" includes="**/*.as"/>
-			<srcfiles dir="${basedir}/${UI}" includes="**/*.mxml"/>
-			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
-			<srcfiles dir="${basedir}/${CORE}/bin" includes="${CORE}.swc"/>
-			<srcfiles dir="${basedir}/${DATA}/bin" includes="${DATA}.swc"/>
-		</uptodate>
+		<check_uptodate property="uptodate" targetproject="${UI}" targetfilename="${UI}.swc"/>
 	</target>
 	<target name="check_client">
-		<echo message="Checking status of ${CLIENT}..."/>
-		<uptodate property="client_no_changes" targetfile="${basedir}/${CLIENT}/bin/${CLIENT}.swf">
-			<srcfiles dir="${basedir}/${CLIENT}" includes="**/*.as"/>
-			<srcfiles dir="${basedir}/${CLIENT}" includes="**/*.mxml"/>
-			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
-			<srcfiles dir="${basedir}/${CORE}/bin" includes="${CORE}.swc"/>
-			<srcfiles dir="${basedir}/${DATA}/bin" includes="${DATA}.swc"/>
-			<srcfiles dir="${basedir}/${UI}/bin" includes="${UI}.swc"/>
-		</uptodate>
+		<check_uptodate property="uptodate" targetproject="${CLIENT}" targetfilename="weave.swf"/>
 	</target>
 	<target name="check_admin">
-		<echo message="Checking status of ${ADMIN}..."/>
-		<uptodate property="admin_no_changes" targetfile="${basedir}/${ADMIN}/bin/${ADMIN}.swf">
-			<srcfiles dir="${basedir}/${ADMIN}" includes="**/*.as"/>
-			<srcfiles dir="${basedir}/${ADMIN}" includes="**/*.mxml"/>
-			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
-			<srcfiles dir="${basedir}/${CORE}/bin" includes="${CORE}.swc"/>
-			<srcfiles dir="${basedir}/${DATA}/bin" includes="${DATA}.swc"/>
-			<srcfiles dir="${basedir}/${UI}/bin" includes="${UI}.swc"/>
-		</uptodate>
+		<check_uptodate property="uptodate" targetproject="${ADMIN}" targetfilename="${ADMIN}.swf"/>
 	</target>
 
 
@@ -233,6 +194,16 @@
 			</unzip>
 			<move file="${WEAVE_DESTROOT}/temp/library.swf" tofile="${WEAVE_DESTROOT}/@{rsl}"/>
 			<delete dir="${WEAVE_DESTROOT}/temp"/>
+		</sequential>
+	</macrodef>
+	<macrodef name="check_uptodate">
+		<attribute name="targetproject"/>
+		<attribute name="targetfileext"/>
+		<sequential>
+			<echo message="Checking status of @{targetproject}..."/>
+			<uptodate targetfile="${basedir}/@{targetproject}/bin/@{targetfilename}">
+				<srcfiles dir="${basedir}/@{targetproject}" includes="**/*"/>
+			</uptodate>
 		</sequential>
 	</macrodef>
 </project>
