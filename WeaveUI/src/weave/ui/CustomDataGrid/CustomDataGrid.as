@@ -19,15 +19,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 package weave.ui.CustomDataGrid
 {
+	import flash.display.Sprite;
+	import flash.geom.Point;
+	
 	import mx.controls.DataGrid;
 	import mx.controls.dataGridClasses.DataGridColumn;
+	import mx.controls.listClasses.IListItemRenderer;
+	import mx.controls.listClasses.ListBaseContentHolder;
 	import mx.controls.scrollClasses.ScrollBar;
 	import mx.core.mx_internal;
+	import mx.managers.LayoutManager;
 	
 	import weave.Weave;
 	import weave.api.data.IQualifiedKey;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
+	
 	
 	use namespace mx_internal;	                          
 	
@@ -45,15 +52,26 @@ package weave.ui.CustomDataGrid
 		{
 			super();			
 		}
-		
-	override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void{
-		super.updateDisplayList(unscaledWidth,unscaledHeight);
-	}
+		override protected function setupColumnItemRenderer(c:DataGridColumn, contentHolder:ListBaseContentHolder, rowNum:int, colNum:int, data:Object, uid:String):IListItemRenderer{
+			return super.setupColumnItemRenderer(c,contentHolder,rowNum,colNum,data,uid);
+		}
 	
-	override public function set horizontalScrollPolicy(value:String):void
-	{
-		super.horizontalScrollPolicy  = value;
-	}
+		override protected function updateList():void{
+			super.updateList();
+		}
+		override protected function drawSelectionIndicator(indicator:Sprite, x:Number, y:Number, width:Number, height:Number, color:uint, itemRenderer:IListItemRenderer):void
+		{
+			super.drawSelectionIndicator(indicator,x,y,width,height,color,itemRenderer);
+		}
+		override  public function set lockedColumnCount(value:int):void
+		{ 
+			
+			super.lockedColumnCount = value;
+			/*if(value == 0){
+				invalidateProperties();
+			}*/
+		}
+		
 		
 		/**
 		 * There's a bug in Flex 3.6 SDK where the locked column content may not be updated
@@ -85,15 +103,17 @@ package weave.ui.CustomDataGrid
 		
 		
 		public function invalidateFilters():void
-		{	_filtersInValid = true;	
-			invalidateProperties();
+		{	
+			_filtersInValid = true;	
+			invalidateDisplayList();
 		}
 		private var _filtersInValid:Boolean = false;
 		
 		private var selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 		
-		override protected function commitProperties():void
+		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
+			super.updateDisplayList(unscaledWidth, unscaledHeight);
 			if (_filtersInValid)
 			{ 
 				_filtersInValid = false;	
@@ -110,7 +130,6 @@ package weave.ui.CustomDataGrid
 					selectedKeySet.replaceKeys([]);
 				}
 			}			
-			super.commitProperties();
 		}
 		
 		/*********************************************** Filters Section***************************************************/
