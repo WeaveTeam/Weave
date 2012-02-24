@@ -198,7 +198,7 @@
 	</macrodef>
 	<macrodef name="check_uptodate">
 		<attribute name="targetproject"/>
-		<attribute name="targetfileext"/>
+		<attribute name="targetfilename"/>
 		<sequential>
 			<echo message="Checking status of @{targetproject}..."/>
 			<uptodate targetfile="${basedir}/@{targetproject}/bin/@{targetfilename}">
