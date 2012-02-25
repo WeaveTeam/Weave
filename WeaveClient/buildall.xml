@@ -131,22 +131,22 @@
 	<!-- These targets set the properties ${project name}_no_changes if the target for each
 		project is more up-to-date than its source files -->
 	<target name="check_api">
-		<check_uptodate targetproject="${API}" targetfilename="${API}.swc"/>
+		<check_uptodate targetproject="${API}" targetfileext="swc"/>
 	</target>
 	<target name="check_core">
-		<check_uptodate targetproject="${CORE}" targetfilename="${CORE}.swc"/>
+		<check_uptodate targetproject="${CORE}" targetfileext="swc"/>
 	</target>
 	<target name="check_data">
-		<check_uptodate targetproject="${DATA}" targetfilename="${DATA}.swc"/>
+		<check_uptodate targetproject="${DATA}" targetfileext="swc"/>
 	</target>
 	<target name="check_ui">
-		<check_uptodate targetproject="${UI}" targetfilename="${UI}.swc"/>
+		<check_uptodate targetproject="${UI}" targetfileext="swc"/>
 	</target>
 	<target name="check_client">
-		<check_uptodate targetproject="${CLIENT}" targetfilename="weave.swf"/>
+		<check_uptodate targetproject="${CLIENT}" targetfileext="swf"/>
 	</target>
 	<target name="check_admin">
-		<check_uptodate targetproject="${ADMIN}" targetfilename="${ADMIN}.swf"/>
+		<check_uptodate targetproject="${ADMIN}" targetfileext="swf"/>
 	</target>
 
 
@@ -198,10 +198,10 @@
 	</macrodef>
 	<macrodef name="check_uptodate">
 		<attribute name="targetproject"/>
-		<attribute name="targetfilename"/>
+		<attribute name="targetfileext"/>
 		<sequential>
 			<echo message="Checking status of @{targetproject}..."/>
-			<uptodate property="uptodate" targetfile="${basedir}/@{targetproject}/bin/@{targetfilename}">
+			<uptodate property="uptodate" targetfile="${basedir}/@{targetproject}/bin/@{targetproject}.@{targetfileext}">
 				<srcfiles dir="${basedir}/@{targetproject}" includes="**/*"/>
 			</uptodate>
 		</sequential>
