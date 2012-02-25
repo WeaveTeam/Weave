@@ -183,10 +183,15 @@
 			<uptodate targetfile="${basedir}/@{targetproject}/bin/@{targetproject}.@{targetfileext}" property="@{targetproject}.uptodate">
 				<srcfiles dir="${basedir}/@{targetproject}" includes="**/*"/>
 			</uptodate>
-			<if name="@{targetproject}.uptodate" value="false">
-				<echo message="Building @{targetproject}..."/>
-				<ant dir="${basedir}/@{targetproject}" target="build"/>
-			</if>
+			<antcall target="conditional_build">
+				<param name="targetproject" value="@{targetproject}"/>
+			</antcall>
 		</sequential>
 	</macrodef>
+	<target name="conditional_build" unless="${targetproject}.uptodate">
+		<sequential>
+			<echo message="Building ${targetproject}..."/>
+			<ant dir="${basedir}/${targetproject}" target="build"/>
+		</sequential>
+	</target>
 </project>
