@@ -8,6 +8,7 @@
         <delete dir="build"/>
     </target>
     <target name="build">
+		<echo message="Compiling ${ant.project.name}..."/>
         <mkdir dir="build/classes"/>
         <javac srcdir="src" destdir="build/classes" classpathref="classpath"/>
         <copy file="src/weave/config/sqlconfig.dtd" tofile="build/classes/weave/config/sqlconfig.dtd"/>
