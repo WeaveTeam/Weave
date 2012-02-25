@@ -74,7 +74,6 @@
 		and extract them to the WEAVE_DESTROOT -->
 	<target name="build" depends="client, admin, ui, data, core, api, services">
 		<mkdir dir="${WEAVE_DESTROOT}"/>
-		<ant dir="${basedir}/${CLIENT}" target="build"/>
 		<extract_swc swc="${basedir}/${API}/bin/${API}.swc" rsl="${API}.swf"/>
 		<extract_swc swc="${basedir}/${CORE}/bin/${CORE}.swc" rsl="${CORE}.swf"/>
 		<extract_swc swc="${basedir}/${DATA}/bin/${DATA}.swc" rsl="${DATA}.swf"/>
