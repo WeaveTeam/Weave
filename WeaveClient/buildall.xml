@@ -180,16 +180,18 @@
 		<attribute name="targetfileext"/>
 		<sequential>
 			<echo message="Checking @{targetproject}..."/>
-			<outofdate>
-				<sourcefiles>
-					<fileset dir="${basedir}/@{targetproject}" includes="**/*"/>
-				</sourcefiles>
-				<targetfiles path="${basedir}/@{targetproject}/bin/@{targetproject}.@{targetfileext}"/>
-				<sequential>
-					<echo message="Building @{targetproject}..."/>
-					<ant dir="${basedir}/@{targetproject}" target="build"/>
-				</sequential>
-			</outofdate>
+			<uptodate targetfile="${basedir}/@{targetproject}/bin/@{targetproject}.@{targetfileext}" property="@{targetproject}.uptodate">
+				<srcfiles dir="${basedir}/@{targetproject}" includes="**/*"/>
+			</uptodate>
+			<antcall target="compile_the_project">
+				<param name="targetproject" value="@{targetproject}"/>
+			</antcall>
 		</sequential>
 	</macrodef>
+	<target name="compile_the_project" unless="${targetproject}.uptodate">
+		<sequential>
+			<echo message="Building ${targetproject}..."/>
+			<ant dir="${basedir}/${targetproject}" target="build"/>
+		</sequential>
+	</target>
 </project>
