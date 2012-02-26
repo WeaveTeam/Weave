@@ -87,7 +87,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#getAllKeys()">getAllKeys</a>(inputKeySets:Array):Array</div>
-<div class="summaryTableDescription">[static]</div>
+<div class="summaryTableDescription">[static]
+   This function will compute the union of a list of IKeySets.</div>
 </td><td class="summaryTableOwnerCol">ColumnUtils</td>
 </tr>
 <tr class="">
@@ -324,17 +325,21 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function getAllKeys(inputKeySets:Array):Array</code><span class="label">Parameters</span>
+<code>public static function getAllKeys(inputKeySets:Array):Array</code><p>
+   This function will compute the union of a list of IKeySets.
+   </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">inputKeySets</span>:Array</code></td>
+<td width="20px"></td><td><code><span class="label">inputKeySets</span>:Array</code> &mdash; An Array of IKeySets (can be IAttributeColumns).
+   </td>
 </tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>Array</code></td>
+<td width="20"></td><td><code>Array</code> &mdash; The list of unique keys contained in all the inputKeySets.
+   </td>
 </tr>
 </table>
 </div>
