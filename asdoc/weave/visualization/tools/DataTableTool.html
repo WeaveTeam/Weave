@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="DataTableTool,weave.visualization.tools.DataTableTool,columnWidths,columns,exportKeys,filterByKeyType,filterComponents,lockedColumns,showColors,showControls,showFilters,sortFieldIndex,sortInDescendingOrder,addItem,childrenCreated,constructor,getExportDataProvider,handlePanelTitleChange,updateDisplayList" name="keywords">
+<meta content="DataTableTool,weave.visualization.tools.DataTableTool,columnWidths,columns,dataGridHorizontalScrollPosition,dataGridVerticalScrollPosition,exportKeys,filterByKeyType,filterComponents,lockedColumns,showColors,showControls,showFilters,sortFieldIndex,sortInDescendingOrder,childrenCreated,constructor,dataGrid_updateCompleteHandler,getExportDataProvider,handlePanelTitleChange,updateDisplayList" name="keywords">
 <title>weave.visualization.tools.DataTableTool</title>
 </head>
 <body>
@@ -142,13 +142,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <table id="summaryTableMethod" class="summaryTable " cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Method</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#addItem()">addItem</a>(attrColumn:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>):void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">DataTableTool</td>
 </tr>
 <tr class="hideInheritedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
@@ -309,6 +302,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="../../ui/DraggablePanel.html">DraggablePanel</a></td>
 </tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#dataGrid_updateCompleteHandler()">dataGrid_updateCompleteHandler</a>(event:FlexEvent):void</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">DataTableTool</td>
+</tr>
 <tr class="hideInheritedProtectedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
@@ -397,6 +397,16 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#columnWidths">columnWidths</a> : <a href="../../core/LinkableHashMap.html">LinkableHashMap</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">DataTableTool</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#dataGridHorizontalScrollPosition">dataGridHorizontalScrollPosition</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">DataTableTool</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#dataGridVerticalScrollPosition">dataGridVerticalScrollPosition</a> : <a href="../../core/LinkableNumber.html">LinkableNumber</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">DataTableTool</td>
 </tr>
@@ -597,24 +607,10 @@ showHideInherited();
 <div class="MainContent">
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
-<a name="addItem()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">addItem</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public function addItem(attrColumn:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>):void</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">attrColumn</span>:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a></code></td>
-</tr>
-</table>
-</div>
 <a name="childrenCreated()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">childrenCreated</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">childrenCreated</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
 </tr>
 </table>
 <div class="detailBody">
@@ -628,6 +624,20 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>protected override function constructor():void</code>
+</div>
+<a name="dataGrid_updateCompleteHandler()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">dataGrid_updateCompleteHandler</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>protected function dataGrid_updateCompleteHandler(event:FlexEvent):void</code><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">event</span>:FlexEvent</code></td>
+</tr>
+</table>
 </div>
 <a name="getExportDataProvider()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -693,6 +703,24 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const columnWidths:<a href="../../core/LinkableHashMap.html">LinkableHashMap</a></code>
+</div>
+<a name="dataGridHorizontalScrollPosition"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">dataGridHorizontalScrollPosition</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const dataGridHorizontalScrollPosition:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
+</div>
+<a name="dataGridVerticalScrollPosition"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">dataGridVerticalScrollPosition</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const dataGridVerticalScrollPosition:<a href="../../core/LinkableNumber.html">LinkableNumber</a></code>
 </div>
 <a name="exportKeys"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
