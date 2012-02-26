@@ -120,7 +120,7 @@
 			private const indent:int = 120;
 			private const inputWidth:int = 64;
 			private const gridSource:ArrayCollection = new ArrayCollection();
-			private const _simple:SimpleBinningDefinition = newLinkableChild(this, SimpleBinningDefinition);
+			public const _simple:SimpleBinningDefinition = newLinkableChild(this, SimpleBinningDefinition);
 			private const _customSplit:CustomSplitBinningDefinition = newLinkableChild(this, CustomSplitBinningDefinition);
 			private const _quantile:QuantileBinningDefinition = newLinkableChild(this, QuantileBinningDefinition);
 			private const _equalInterval:EqualIntervalBinningDefinition = newLinkableChild(this, EqualIntervalBinningDefinition);
@@ -157,6 +157,12 @@
 			// called when the binned column changes
 			private function handleBinnedColumnChange():void
 			{
+				if (typeGroup.numRadioButtons == 0) // this may be zero even if children are created.
+				{
+					callLater(handleBinnedColumnChange);
+					return;
+				}
+				
 				// find the radio button with the same binning definition type
 				var def:IBinningDefinition = binnedColumn.binningDefinition.internalBinningDefinition;
 				for (var i:int = 0; i < typeGroup.numRadioButtons; i++)

@@ -29,7 +29,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*" 
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-				   layout="absolute"
+				   layout="absolute" implements="weave.api.ui.IVisTool"
 				   title="Data Table" xmlns:editors="weave.editors.*"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
@@ -100,6 +100,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
@@ -126,6 +127,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.NumberUtils;
 			import weave.utils.ProbeTextUtils;
 			use namespace mx_internal;
+			
+			WeaveAPI.registerImplementation(IVisTool, DataTableTool, "Data Table");
 			
 			public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public const columnWidths:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));

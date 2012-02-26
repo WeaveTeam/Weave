@@ -279,19 +279,6 @@
 				return label;
 			}
 			
-			private function openAttrSelector():void
-			{
-				var className:String = getQualifiedClassName(AttributeSelectorPanel).split("::")[1];
-				var attrSelectorObjects:Array = Weave.root.getObjects(AttributeSelectorPanel);
-				var attrSelector:AttributeSelectorPanel = new AttributeSelectorPanel();
-				if(attrSelectorObjects == null || attrSelectorObjects.length == 0)
-					attrSelector = Weave.root.requestObject(Weave.root.generateUniqueName(className), AttributeSelectorPanel, false);
-				else
-					attrSelector = attrSelectorObjects[0];
-				
-				attrSelector.restorePanel();
-			}
-			
 			private function handleTitleTextEntry():void
 			{
 				equationColumn.setMetadata(AttributeColumnMetadata.TITLE, titleInput.text);

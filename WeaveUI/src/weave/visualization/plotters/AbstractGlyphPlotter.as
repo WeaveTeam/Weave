@@ -22,6 +22,7 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
@@ -73,32 +74,19 @@ package weave.visualization.plotters
 			return filteredDataY.internalDynamicColumn;
 		}
 		
-		protected function getXFromRecordKey(recordKey:IQualifiedKey):Number
+		protected function getCoordFromRecordKey(recordKey:IQualifiedKey, trueXfalseY:Boolean):Number
 		{
-			if (dataX.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
+			var dataCol:IAttributeColumn = trueXfalseY ? dataX : dataY;
+			if (dataCol.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
 			{
-				var geoms:Array = dataX.getValueFromKey(recordKey) as Array;
+				var geoms:Array = dataCol.getValueFromKey(recordKey) as Array;
 				var geom:GeneralizedGeometry;
 				if (geoms && geoms.length)
 					geom = geoms[0] as GeneralizedGeometry;
 				if (geom)
-					return geom.bounds.getXCenter();
+					return trueXfalseY ? geom.bounds.getXCenter() : geom.bounds.getYCenter();
 			}
-			return dataX.getValueFromKey(recordKey, Number);
-		}
-		
-		protected function getYFromRecordKey(recordKey:IQualifiedKey):Number
-		{
-			if (dataY.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
-			{
-				var geoms:Array = dataY.getValueFromKey(recordKey) as Array;
-				var geom:GeneralizedGeometry;
-				if (geoms && geoms.length)
-					geom = geoms[0] as GeneralizedGeometry;
-				if (geom)
-					return geom.bounds.getYCenter();
-			}
-			return dataY.getValueFromKey(recordKey, Number);
+			return dataCol.getValueFromKey(recordKey, Number);
 		}
 		
 		/**
@@ -109,8 +97,8 @@ package weave.visualization.plotters
 		 */
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			var x:Number = getXFromRecordKey(recordKey);
-			var y:Number = getYFromRecordKey(recordKey);
+			var x:Number = getCoordFromRecordKey(recordKey, true);
+			var y:Number = getCoordFromRecordKey(recordKey, false);
 			
 			var bounds:IBounds2D = getReusableBounds();
 			bounds.setCenteredRectangle(x, y, 0, 0);

@@ -40,39 +40,28 @@ LayerListComponent
 		</mx:HBox>
 	</mx:HBox>
 	<ui:LinkableObjectList id="internalList" width="100%" height="100%" hashMap="{_hashMap}">
-		<mx:Script>
-			<![CDATA[
-				
-				
-			]]>
-		</mx:Script>
-		<ui:itemRenderer><!--Properties of List should use the same local namespace. So itemrenderer should use ui instead of mx-->
+		<ui:itemRenderer>
 			<mx:Component>
 				<mx:HBox width="100%">
 					<mx:Script>
 						<![CDATA[
-							import flash.utils.getQualifiedClassName;
-							
 							import mx.managers.PopUpManager;
 							
 							import weave.api.linkBindableProperty;
+							import weave.api.newDisposableChild;
 							import weave.api.ui.ILinkableObjectEditor;
 							import weave.api.ui.IPlotLayer;
 							import weave.api.ui.IPlotter;
 							import weave.api.unlinkBindableProperty;
-							import weave.core.ClassUtils;
 							import weave.ui.ControlPanel;
 							import weave.ui.SessionStateEditor;
 							import weave.utils.EditorManager;
 							import weave.visualization.layers.PlotLayer;
 							import weave.visualization.layers.SelectablePlotLayer;
-							import weave.visualization.plotters.CirclePlotter;
 							import weave.visualization.plotters.DynamicPlotter;
-							import weave.visualization.plotters.SingleImagePlotter;
 							
 							private function openSettingsPanel(layer:IPlotLayer):void
 							{
-								
 								var plotter:IPlotter = null;
 								if (layer)
 									plotter = (layer.plotter as DynamicPlotter).internalObject as IPlotter;
@@ -81,17 +70,17 @@ LayerListComponent
 								var editor:ILinkableObjectEditor = EditorManager.getNewEditor(plotter);
 								if (editor)
 								{
-									var controls:ControlPanel = new ControlPanel();
+									var controls:ControlPanel = newDisposableChild(plotter, ControlPanel);
 									PopUpManager.addPopUp(controls, this);
 									PopUpManager.centerPopUp(controls);
 									controls.targets = [outerDocument.visTool];
 
 									controls.tabNavigator.addChild(editor as DisplayObject);
-								}else
+								}
+								else
 								{
 									SessionStateEditor.openDefaultEditor(plotter);
 								}
-								
 							}
 							
 							[Bindable]public var layerIsVisible:Boolean = true;
@@ -112,7 +101,6 @@ LayerListComponent
 									unlinkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
 								}
 								
-								
 								// save pointer to new layer
 								super.data = value;
 								
@@ -126,11 +114,6 @@ LayerListComponent
 								{
 									linkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
 									linkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
-									if((data as SelectablePlotLayer).getDynamicPlotter().internalObject is SingleImagePlotter || (data as SelectablePlotLayer).getDynamicPlotter().internalObject is CirclePlotter)
-										
-										selectedCheckbox.visible = false;
-									else
-										selectedCheckbox.visible = true;
 								}
 								else
 								{
@@ -173,22 +156,15 @@ LayerListComponent
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.core.UIComponent;
-			import mx.events.DragEvent;
-			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
-			
-			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
-			import weave.api.core.ILinkableObject;
-			import weave.api.linkBindableProperty;
-			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.SessionStateEditor;
 			import weave.visualization.tools.SimpleVisTool;
-			
+			import weave.api.linkBindableProperty;
+
 			private static const boundsInputWidth:int = 64;
 			
-			[Bindable] private var _visTool:SimpleVisTool= null;
+			[Bindable] private var _visTool:SimpleVisTool = null;
 			
 			[Inspectable]
 			public function set visTool(value:SimpleVisTool):void

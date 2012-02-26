@@ -28,6 +28,7 @@ package weave
 	import flash.system.ApplicationDomain;
 	import flash.text.Font;
 	import flash.utils.ByteArray;
+	import flash.utils.Dictionary;
 	
 	import mx.collections.ArrayCollection;
 	import mx.controls.ToolTip;
@@ -53,6 +54,9 @@ package weave
 	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
+	import weave.ui.AttributeMenuTool;
+	import weave.ui.JRITextEditor;
+	import weave.ui.RTextEditor;
 	import weave.utils.CSSUtils;
 	import weave.utils.DebugUtils;
 	import weave.utils.LinkableTextFormat;
@@ -60,6 +64,26 @@ package weave
 	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.InteractionController;
 	import weave.visualization.layers.LinkableEventListener;
+	import weave.visualization.tools.ColorBinLegendTool;
+	import weave.visualization.tools.ColormapHistogramTool;
+	import weave.visualization.tools.CompoundBarChartTool;
+	import weave.visualization.tools.CompoundRadVizTool;
+	import weave.visualization.tools.CustomTool;
+	import weave.visualization.tools.DataTableTool;
+	import weave.visualization.tools.DimensionSliderTool;
+	import weave.visualization.tools.GaugeTool;
+	import weave.visualization.tools.Histogram2DTool;
+	import weave.visualization.tools.HistogramTool;
+	import weave.visualization.tools.LineChartTool;
+	import weave.visualization.tools.MapTool;
+	import weave.visualization.tools.PieChartHistogramTool;
+	import weave.visualization.tools.PieChartTool;
+	import weave.visualization.tools.RadVizTool;
+	import weave.visualization.tools.RamachandranPlotTool;
+	import weave.visualization.tools.ScatterPlotTool;
+	import weave.visualization.tools.ThermometerTool;
+	import weave.visualization.tools.TimeSliderTool;
+	import weave.visualization.tools.TransposedTableTool;
 
 	use namespace weave_internal;
 	
@@ -96,6 +120,8 @@ package weave
 			panelTitleTextFormat.font.value = "Verdana";
 			panelTitleTextFormat.size.value = 10;
 			panelTitleTextFormat.color.value = 0xFFFFFF;
+			
+			_initToggleMap();
 		}
 		
 		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
@@ -172,6 +198,40 @@ package weave
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
 		public const showAttributeSelector:LinkableBoolean = new LinkableBoolean(true); // Show Attribute Selector tools menu
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
+
+		// BEGIN TEMPORARY SOLUTION
+		public const _toggleMap:Dictionary = new Dictionary();
+		private function _initToggleMap():void
+		{
+			var toggles:Array = [
+				[enableAddAttributeMenuTool, AttributeMenuTool],
+				[enableAddBarChart, CompoundBarChartTool],
+				[enableAddColormapHistogram, ColormapHistogramTool],
+				[enableAddColorLegend, ColorBinLegendTool],
+				[enableAddCompoundRadViz, CompoundRadVizTool],
+				[enableAddDataTable, DataTableTool],
+				[enableAddDimensionSliderTool, DimensionSliderTool],
+				[enableAddGaugeTool, GaugeTool],
+				[enableAddHistogram, HistogramTool],
+				[enableAdd2DHistogram, Histogram2DTool],
+				[enableAddRScriptEditor, JRITextEditor],
+				[enableAddLineChart, LineChartTool],
+				[enableAddMap, MapTool],
+				[enableAddPieChart, PieChartTool],
+				[enableAddPieChartHistogram, PieChartHistogramTool],
+				[enableAddRScriptEditor, RTextEditor],
+				[enableAddRadViz, RadVizTool],
+				[enableAddRamachandranPlot, RamachandranPlotTool],
+				[enableAddScatterplot, ScatterPlotTool],
+				[enableAddThermometerTool, ThermometerTool],
+				[enableAddTimeSliderTool, TimeSliderTool],
+				[enableAddDataTable, TransposedTableTool],
+				[enableAddCustomTool, CustomTool]
+			];
+			for each (var pair:Array in toggles)
+				_toggleMap[pair[1]] = pair[0];
+		}
+		// END TEMPORARY SOLUTION
 		
 		public const enableAddAttributeMenuTool:LinkableBoolean = new LinkableBoolean(true); // Add Attribute Menu Tool option tools menu
 		public const enableAddBarChart:LinkableBoolean = new LinkableBoolean(true); // Add Bar Chart option tools menu
@@ -259,8 +319,6 @@ package weave
 		
 		public const dashboardMode:LinkableBoolean = new LinkableBoolean(false);	 // enable/disable borders/titleBar on windows
 		public const enableToolControls:LinkableBoolean = new LinkableBoolean(true); // enable tool controls (which enables attribute selector too)
-		
-		public const enableFullscreen:LinkableBoolean = new LinkableBoolean(true); // enable/disable going fullscreen from Window menu
 		
 		public const enableAboutMenu:LinkableBoolean = new LinkableBoolean(true); //enable/disable About Menu
 		

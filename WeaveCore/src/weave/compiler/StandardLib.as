@@ -456,5 +456,16 @@ package weave.compiler
 			}
 			return 0;
 		}
+		
+		/**
+		 * This will perform a log transformation on a normalized value to produce another normalized value.
+		 * @param normValue A number between 0 and 1.
+		 * @param factor The log factor to use.
+		 * @return A number between 0 and 1.
+		 */
+		public static function logTransform(normValue:Number, factor:Number = 1024):Number
+		{
+			return Math.log(1 + normValue * factor) / Math.log(1 + factor);
+		}
 	}
 }

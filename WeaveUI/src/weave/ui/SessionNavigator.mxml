@@ -45,6 +45,7 @@
 			import mx.controls.Tree;
 			import mx.events.ListEvent;
 			import mx.events.TreeEvent;
+			import mx.managers.PopUpManager;
 			import mx.messaging.management.ObjectName;
 			import mx.utils.ObjectUtil;
 			
@@ -54,6 +55,8 @@
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IColumnReference;
+			import weave.api.newDisposableChild;
+			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableHashMap;
 			import weave.core.SessionManager;
@@ -61,6 +64,7 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.utils.DebugUtils;
+			import weave.utils.EditorManager;
 			use namespace weave_internal;
 
 			private var _rootObject:ILinkableObject = null;
@@ -202,6 +206,18 @@
 			{
 				//expandItem(selectedItem, !isItemOpen(selectedItem))
 				refresh();
+				
+				var linkableObject:ILinkableObject = getSelectedLinkableObject();
+				var editor:ILinkableObjectEditor = EditorManager.getNewEditor(linkableObject);
+				if (editor)
+				{
+					var controls:ControlPanel = newDisposableChild(linkableObject, ControlPanel);
+					PopUpManager.addPopUp(controls, this);
+					PopUpManager.centerPopUp(controls);
+					controls.targets = [linkableObject];
+					
+					controls.tabNavigator.addChild(editor as DisplayObject);
+				}
 			}
 			private var _sessionObjectTypeFilter:Class = null;
 			public function set sessionObjectTypeFilter(className:Class):void
@@ -215,7 +231,7 @@
 				refresh();
 			}
 			
-			public function getSelectedSessionedObject():ILinkableObject
+			public function getSelectedLinkableObject():ILinkableObject
 			{
 				return selectedItem ? selectedItem.object : null;
 			}

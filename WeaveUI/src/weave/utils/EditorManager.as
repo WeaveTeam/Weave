@@ -40,6 +40,11 @@ package weave.utils
 		 */
 		public static function registerEditor(objType:Class, editorType:Class):void
 		{
+			var editorQName:String = getQualifiedClassName(editorType);
+			var interfaceQName:String = getQualifiedClassName(ILinkableObjectEditor);
+			if (!ClassUtils.classImplements(editorQName, interfaceQName))
+				throw new Error(editorQName + " does not implement " + interfaceQName);
+			
 			_editorLookup[objType] = editorType;
 		}
 		
@@ -49,7 +54,6 @@ package weave.utils
 		 */
 		public static function getEditorClass(linkableObjectOrClass:Object):Class
 		{
-			var interfaceQName:String = getQualifiedClassName(ILinkableObjectEditor);
 			var classQName:String = linkableObjectOrClass as String || getQualifiedClassName(linkableObjectOrClass);
 			var superClasses:Array = ClassUtils.getClassExtendsList(classQName);
 			superClasses.unshift(classQName);
@@ -58,19 +62,8 @@ package weave.utils
 				classQName = superClasses[i];
 				var classDef:Class = ClassUtils.getClassDefinition(classQName);
 				var editorClass:Class = _editorLookup[classDef] as Class
-				if (editorClass != null)
-				{
-					var editorQName:String = getQualifiedClassName(editorClass);
-					if (ClassUtils.classImplements(editorQName, interfaceQName))
-					{
-						return editorClass;
-					}
-					else
-					{
-						delete _editorLookup[classDef];
-						throw new Error(editorQName + " does not implement " + interfaceQName);
-					}
-				}
+				if (editorClass)
+					return editorClass;
 			}
 			return null;
 		}

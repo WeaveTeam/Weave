@@ -51,17 +51,16 @@ package weave
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
+	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.WeaveDataSource;
-	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.editors.WeavePropertiesEditor;
 	import weave.editors.managers.AddDataSourcePanel;
@@ -71,7 +70,6 @@ package weave
 	import weave.services.LocalAsyncService;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
-	import weave.ui.AttributeMenuTool;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.CirclePlotterSettings;
 	import weave.ui.ColorController;
@@ -80,14 +78,12 @@ package weave
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStatePanel;
-	import weave.ui.JRITextEditor;
 	import weave.ui.MarkerSettingsComponent;
 	import weave.ui.NewUserWizard;
 	import weave.ui.OICLogoPane;
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.ProbeToolTipEditor;
-	import weave.ui.RTextEditor;
 	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SubsetManager;
@@ -103,26 +99,9 @@ package weave
 	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.CollaborationTool;
-	import weave.visualization.tools.ColorBinLegendTool;
-	import weave.visualization.tools.CompoundBarChartTool;
-	import weave.visualization.tools.CompoundRadVizTool;
 	import weave.visualization.tools.DataTableTool;
-	import weave.visualization.tools.DimensionSliderTool;
-	import weave.visualization.tools.EmptyTool;
-	import weave.visualization.tools.GaugeTool;
-	import weave.visualization.tools.Histogram2DTool;
-	import weave.visualization.tools.HistogramTool;
-	import weave.visualization.tools.LineChartTool;
 	import weave.visualization.tools.MapTool;
-	import weave.visualization.tools.PieChartHistogramTool;
-	import weave.visualization.tools.PieChartTool;
-	import weave.visualization.tools.RadVizTool;
-	import weave.visualization.tools.RamachandranPlotTool;
-	import weave.visualization.tools.ScatterPlotTool;
 	import weave.visualization.tools.SimpleVisTool;
-	import weave.visualization.tools.ThermometerTool;
-	import weave.visualization.tools.TimeSliderTool;
-	import weave.visualization.tools.TransposedTableTool;
 
 	use namespace weave_internal;
 
@@ -649,29 +628,16 @@ package weave
 				if (!Weave.properties.dashboardMode.value)
 				{
 					_weaveMenu.addSeparatorToMenu(_toolsMenu);
-					createToolMenuItem(Weave.properties.enableAddAttributeMenuTool, "Add Attribute Menu Tool", createGlobalObject, [AttributeMenuTool]);
-					createToolMenuItem(Weave.properties.enableAddBarChart, "Add Bar Chart", createGlobalObject, [CompoundBarChartTool]);
-					createToolMenuItem(Weave.properties.enableAddColormapHistogram, "Add Color Histogram", createColorHistogram);
-					createToolMenuItem(Weave.properties.enableAddColorLegend, "Add Color Legend", createGlobalObject, [ColorBinLegendTool]);
-					createToolMenuItem(Weave.properties.enableAddCompoundRadViz, "Add CompoundRadViz", createGlobalObject, [CompoundRadVizTool]);
-					createToolMenuItem(Weave.properties.enableAddDataTable, "Add Data Table", createGlobalObject, [DataTableTool]);
-					createToolMenuItem(Weave.properties.enableAddDimensionSliderTool, "Add Dimension Slider Tool", createGlobalObject, [DimensionSliderTool]);
-					createToolMenuItem(Weave.properties.enableAddGaugeTool, "Add Gauge Tool", createGlobalObject, [GaugeTool]);
-					createToolMenuItem(Weave.properties.enableAddHistogram, "Add Histogram", createGlobalObject, [HistogramTool]);
-					createToolMenuItem(Weave.properties.enableAdd2DHistogram, "Add 2D Histogram", createGlobalObject, [Histogram2DTool]);
-					createToolMenuItem(Weave.properties.enableAddRScriptEditor, "Add JRI Script Editor", createGlobalObject, [JRITextEditor]);
-					createToolMenuItem(Weave.properties.enableAddLineChart, "Add Line Chart", createGlobalObject, [LineChartTool]);
-					createToolMenuItem(Weave.properties.enableAddMap, "Add Map", createGlobalObject, [MapTool]);
-					createToolMenuItem(Weave.properties.enableAddPieChart, "Add Pie Chart", createGlobalObject, [PieChartTool]);
-					createToolMenuItem(Weave.properties.enableAddPieChartHistogram, "Add Pie Chart Histogram", createGlobalObject, [PieChartHistogramTool]);
-					createToolMenuItem(Weave.properties.enableAddRScriptEditor, "Add R Script Editor", createGlobalObject, [RTextEditor]);
-					createToolMenuItem(Weave.properties.enableAddRadViz, "Add RadViz", createGlobalObject, [RadVizTool]);
-					createToolMenuItem(Weave.properties.enableAddRamachandranPlot, "Add RamachandranPlot", createGlobalObject, [RamachandranPlotTool]);
-					createToolMenuItem(Weave.properties.enableAddScatterplot, "Add Scatterplot", createGlobalObject, [ScatterPlotTool]);
-					createToolMenuItem(Weave.properties.enableAddThermometerTool, "Add Thermometer Tool", createGlobalObject, [ThermometerTool]);
-					createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Time Slider Tool", createGlobalObject, [TimeSliderTool]);	
-					createToolMenuItem(Weave.properties.enableAddDataTable, "Add Transposed Data Table", createGlobalObject, [TransposedTableTool]);
-					createToolMenuItem(Weave.properties.enableAddCustomTool, "Add Custom Tool", createGlobalObject, [EmptyTool]);
+					
+					for each (var impl:Class in WeaveAPI.getRegisteredImplementations(IVisTool))
+					{
+						// TEMPORARY SOLUTION
+						if (Weave.properties._toggleMap[impl] && !(Weave.properties._toggleMap[impl] as LinkableBoolean).value)
+							continue;
+						
+						var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(impl);
+						_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem("Add " + displayName, createGlobalObject, [impl]));
+					}
 				}
 				
 				_weaveMenu.addSeparatorToMenu(_toolsMenu);
@@ -848,13 +814,6 @@ package weave
 			// Set the name of the CSS style we will be using for this application.  If weaveStyle.css is present, the style for
 			// this application can be defined outside the code in a CSS file.
 			this.styleName = "application";	
-		}
-		
-		private function createColorHistogram():void
-		{
-			var name:String = Weave.root.generateUniqueName("ColorHistogramTool");
-			var colorHistogram:HistogramTool = createGlobalObject(HistogramTool, name);
-			colorHistogram.plotter.dynamicColorColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 		}
 		
 		private function createGlobalObject(classDef:Class, name:String = null):*

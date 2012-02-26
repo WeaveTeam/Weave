@@ -35,6 +35,7 @@
 	</target>
 
 	<target name="compile">
+		<echo message="Compiling ${ant.project.name}..."/>
 		<mkdir dir="${OUTPUT_DIR}"/>
 		<mxmlc 
 			file="${SOURCE_DIR}/AdminConsole.mxml"

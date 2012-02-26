@@ -46,6 +46,8 @@ import java.util.Map.Entry;
 
 import org.postgresql.PGConnection;
 
+import weave.tests.test;
+
 /**
  * SQLUtils
  * 
@@ -887,6 +889,8 @@ public class SQLUtils
 		try
 		{
 			DatabaseMetaData md = conn.getMetaData();
+
+			tableName = escapeSearchString(conn, tableName);
 			
 			// MySQL uses "catalogs" instead of "schemas"
 			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
@@ -1332,30 +1336,25 @@ public class SQLUtils
 	}
 
 	/**
-	 * @TODO Stop using this function. It isn't safe.  Use '?' placeholders in queries instead.
+	 * This will escape special characters in a SQL search string.
+	 * @param conn A SQL Connection.
+	 * @param searchString A SQL search string containing special characters to be escaped.
+	 * @return The searchString with special characters escaped.
+	 * @throws SQLException 
 	 */
-	public static String quoteString(Connection conn, String string)
+	public static String escapeSearchString(Connection conn, String searchString) throws SQLException
 	{
-		try 
+		String escape = conn.getMetaData().getSearchStringEscape();
+		StringBuilder sb = new StringBuilder();
+		int n = searchString.length();
+		for (int i = 0; i < n; i++)
 		{
-			return quoteString(conn.getMetaData().getDatabaseProductName(), string);
-		} 
-		catch (SQLException e) 
-		{
-			// this should never happen
-			throw new RuntimeException(e);
+			char c = searchString.charAt(i);
+			if (c == '.' || c == '%' || c == '_' || c == '"' || c == '\'' || c == '`')
+				sb.append(escape);
+			sb.append(c);
 		}
-	}
-	
-	/**
-	 * @TODO Stop using this function. It isn't safe.  Use '?' placeholders in queries instead.
-	 */
-	public static String quoteString(String dbms, String string)
-	{
-		String quote = "'";
-		
-		// make sure to escape matching quotes in the actual string
-		return quote + string.replace("\\","\\\\").replace(quote, "\\" + quote) + quote;
+		return sb.toString();
 	}
 	
 	/**
@@ -1484,7 +1483,7 @@ public class SQLUtils
 					{
 						if (j > 0)
 							query += ",";
-						query += SQLUtils.quoteString(conn, rows[i][j]);
+						query += test.UNSAFE_quoteString(rows[i][j]);
 					}
 					query += ")";
 					stmt.executeUpdate(query);

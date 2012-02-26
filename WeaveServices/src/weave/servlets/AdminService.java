@@ -66,6 +66,7 @@ import weave.config.SQLConfigXML;
 import weave.geometrystream.GeometryStreamConverter;
 import weave.geometrystream.SHPGeometryStreamUtils;
 import weave.geometrystream.SQLGeometryStreamDestination;
+import weave.tests.test;
 import weave.utils.CSVParser;
 import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
@@ -1533,18 +1534,47 @@ public class AdminService extends GenericServlet
 
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		String[] columnNames = getColumnsList(connectionName, schemaName, tableName).toArray(new String[0]);
-		return addConfigDataTable(config, configOverwrite, configDataTableName, connectionName, geometryCollectionName,
-				keyType, keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false, filterColumnNames);
+		return addConfigDataTable(
+				config,
+				configOverwrite,
+				configDataTableName,
+				connectionName,
+				geometryCollectionName,
+				keyType,
+				keyColumnName,
+				secondaryKeyColumnName,
+				columnNames,
+				columnNames,
+				schemaName,
+				tableName,
+				false,
+				filterColumnNames
+			);
 	}
 
-	synchronized private String addConfigDataTable(ISQLConfig config, boolean configOverwrite, String configDataTableName, String connectionName, String geometryCollectionName, String keyType, String keyColumnName, String secondarySqlKeyColumn, String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable, boolean ignoreKeyColumnQueries, String[] filterColumnNames) throws RemoteException
+	synchronized private String addConfigDataTable(
+			ISQLConfig config,
+			boolean configOverwrite,
+			String configDataTableName,
+			String connectionName,
+			String geometryCollectionName,
+			String keyType,
+			String keyColumnName,
+			String secondarySqlKeyColumn,
+			String[] configColumnNames,
+			String[] sqlColumnNames,
+			String sqlSchema,
+			String sqlTable,
+			boolean ignoreKeyColumnQueries,
+			String[] filterColumnNames
+		) throws RemoteException
 	{
+		if (sqlColumnNames == null || sqlColumnNames.length == 0)
+			throw new RemoteException("No columns were found.");
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
 		if (info == null)
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
 		String dbms = info.dbms;
-		if (sqlColumnNames == null)
-			sqlColumnNames = new String[0];
 
 		// if key column is actually the name of a column, put quotes around it.
 		// otherwise, don't.
@@ -1676,9 +1706,6 @@ public class AdminService extends GenericServlet
 			SQLUtils.cleanup(conn);
 		}
 		
-		if (sqlColumnNames.length == 0)
-			throw new RemoteException("No columns were found.");
-		
 		return String.format("DataTable \"%s\" was added to the configuration with %s generated attribute column queries.\n", configDataTableName, titles.size());
 	}
 	
@@ -1746,18 +1773,19 @@ public class AdminService extends GenericServlet
 			query += String.format(
 				"%s=%s",
 				SQLUtils.quoteSymbol(conn, filteredValues.columnNames[j]),
-				isNull ? "NULL" : SQLUtils.quoteString(conn, value)
+				isNull ? "NULL" : test.UNSAFE_quoteString(value)
 			);
 		}
 		return query;
 	}
+	
 
 	/**
 	 * The following functions involve getting shapes into the database and into
 	 * the config file.
 	 */
 
-	synchronized public String convertShapefileToSQLStream(String configConnectionName, String password, String[] fileNameWithoutExtension, String[] keyColumns, String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName, boolean configOverwrite, String configKeyType, String projectionSRS, String[] nullValues) throws RemoteException
+	synchronized public String convertShapefileToSQLStream(String configConnectionName, String password, String[] fileNameWithoutExtension, String[] keyColumns, String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName, boolean configOverwrite, String configKeyType, String projectionSRS, String[] nullValues, boolean importDBFData) throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();
@@ -1776,14 +1804,19 @@ public class AdminService extends GenericServlet
 						"Shapes not imported. SQLConfig geometryCollection \"%s\" already exists.",
 						configGeometryCollectionName));
 		}
-
+		
+		
 		String dbfTableName = sqlTablePrefix + "_dbfdata";
 		Connection conn = null;
 		try
 		{
 			conn = SQLConfigUtils.getConnection(config, configConnectionName);
 			// store dbf data to database
-			storeDBFDataToDatabase(configConnectionName, password, fileNameWithoutExtension, sqlSchema, dbfTableName, sqlOverwrite, nullValues);
+			if(importDBFData)
+			{
+				storeDBFDataToDatabase(configConnectionName, password, fileNameWithoutExtension, sqlSchema, dbfTableName, sqlOverwrite, nullValues);
+			}
+			
 			GeometryStreamConverter converter = new GeometryStreamConverter(
 					new SQLGeometryStreamDestination(conn, sqlSchema, sqlTablePrefix, sqlOverwrite)
 			);
@@ -1809,29 +1842,49 @@ public class AdminService extends GenericServlet
 			fileList = fileList.substring(0, 50) + "..." + fileList.substring(fileList.length() - 50);
 		String importNotes = String.format("file: %s, keyColumns: %s", fileList, Arrays.asList(keyColumns));
 
-		// get key column SQL code
-		String keyColumnsString;
-		if (keyColumns.length == 1)
+		String resultAddSQL = "";
+		if(importDBFData)
 		{
-			keyColumnsString = keyColumns[0];
-		}
-		else
-		{
-			keyColumnsString = "CONCAT(";
-			for (int i = 0; i < keyColumns.length; i++)
+			
+			// get key column SQL code
+			String keyColumnsString;
+			if (keyColumns.length == 1)
 			{
-				if (i > 0)
-					keyColumnsString += ",";
-				keyColumnsString += "CAST(" + keyColumns[i] + " AS CHAR)";
+				keyColumnsString = keyColumns[0];
 			}
-			keyColumnsString += ")";
+			else
+			{
+				keyColumnsString = "CONCAT(";
+				for (int i = 0; i < keyColumns.length; i++)
+				{
+					if (i > 0)
+						keyColumnsString += ",";
+					keyColumnsString += "CAST(" + keyColumns[i] + " AS CHAR)";
+				}
+				keyColumnsString += ")";
+			}
+			
+			// add SQL statements to sqlconfig
+			String[] columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName).toArray(new String[0]);
+			resultAddSQL = addConfigDataTable(
+					config,
+					configOverwrite,
+					configGeometryCollectionName,
+					configConnectionName,
+					configGeometryCollectionName,
+					configKeyType,
+					keyColumnsString,
+					null,
+					columnNames,
+					columnNames,
+					sqlSchema,
+					dbfTableName,
+					false,
+					null
+				);
+		}else{
+			resultAddSQL = "DBF Import disabled.";
 		}
-
-		// add SQL statements to sqlconfig
-		String[] columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName).toArray(new String[0]);
-		String resultAddSQL = addConfigDataTable(config, configOverwrite, configGeometryCollectionName, configConnectionName,
-				configGeometryCollectionName, configKeyType, keyColumnsString, null, columnNames, columnNames, sqlSchema,
-				dbfTableName, false, null);
 
 		return resultAddSQL
 				+ "\n\n"

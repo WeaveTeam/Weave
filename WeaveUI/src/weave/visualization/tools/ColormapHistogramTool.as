@@ -20,6 +20,8 @@
 package weave.visualization.tools
 {
 	import weave.Weave;
+	import weave.api.WeaveAPI;
+	import weave.api.ui.IVisTool;
 	
 	/**
 	 * kept for backwards compatibility
@@ -28,6 +30,8 @@ package weave.visualization.tools
 	 */
 	public class ColormapHistogramTool extends HistogramTool
 	{
+		WeaveAPI.registerImplementation(IVisTool, ColormapHistogramTool, "Color Histogram");
+
 		public function ColormapHistogramTool()
 		{
 			plotter.dynamicColorColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
