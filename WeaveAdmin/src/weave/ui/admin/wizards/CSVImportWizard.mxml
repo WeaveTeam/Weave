@@ -71,7 +71,7 @@
 				<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />
 			</ui:Indent>
 			
-			<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
+			<mx:CheckBox id="generateFilterColumns" change="handleGenerateFilterColumns()" label="Generate filtered column queries" selected="false"/>					
 			<ui:IndentTextInput paddingLeft="{paddingIndent}" visible="{generateFilterColumns.selected}" label="Columns to use as filters" id="filterColumnsInput"/>
 		</mx:VBox>
 	</mx:VBox>
@@ -323,6 +323,25 @@
 				
 			}
 			
+			private function handleGenerateFilterColumns():void
+			{
+				if(generateFilterColumns.selected)
+				{
+					clearErrors();
+				}else{
+					keyColumnChange();
+				}
+				
+			}
+			
+			private function clearErrors():void
+			{
+				csvKeyColumnCombo.errorString = '';
+				csvSecondaryKeyColumnCombo.errorString = '';
+				finishEnabled = true;
+				nextEnabled = true;
+			}
+			
 			/**
 			 * This function is called to check if the selected key column has unique values.
 			 * If the column does not have unique values we set the errorString on the primary and secondary key
@@ -330,6 +349,9 @@
 			 * */
 			private function keyColumnChange(event:Event=null):void
 			{
+				if(generateKeyColumn.selected || generateFilterColumns.selected)
+					return;
+				
 				var keyColName:String = csvKeyColumnCombo.selectedItem as String;
 				var secKeyColName:String = csvSecondaryKeyColumnCombo.selectedItem as String;
 				
@@ -363,11 +385,7 @@
 					nextEnabled = false;
 				}else{
 					
-					csvKeyColumnCombo.errorString = '';
-					csvSecondaryKeyColumnCombo.errorString = '';
-					
-					finishEnabled = true;
-					nextEnabled = true;
+					clearErrors();
 				}
 				
 				csvKeyColumnCombo.invalidateDisplayList();
