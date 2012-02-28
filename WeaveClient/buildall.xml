@@ -74,7 +74,6 @@
 		and extract them to the WEAVE_DESTROOT -->
 	<target name="build" depends="client, admin, ui, data, core, api, services">
 		<mkdir dir="${WEAVE_DESTROOT}"/>
-		<ant dir="${basedir}/${CLIENT}" target="build"/>
 		<extract_swc swc="${basedir}/${API}/bin/${API}.swc" rsl="${API}.swf"/>
 		<extract_swc swc="${basedir}/${CORE}/bin/${CORE}.swc" rsl="${CORE}.swf"/>
 		<extract_swc swc="${basedir}/${DATA}/bin/${DATA}.swc" rsl="${DATA}.swf"/>
@@ -90,23 +89,23 @@
 	</target>
 
 	<!-- These targets will build each project -->
-	<target name="api" depends="check_api" unless="uptodate">
-		<ant dir="${basedir}/${API}" target="build"/>
+	<target name="api">
+		<buildproject targetproject="${API}" targetfileext="swc"/>
 	</target>
-	<target name="core" depends="check_core, api" unless="uptodate">
-		<ant dir="${basedir}/${CORE}" target="build"/>
+	<target name="core" depends="api">
+		<buildproject targetproject="${CORE}" targetfileext="swc"/>
 	</target>
-	<target name="data" depends="check_data, core" unless="uptodate">
-		<ant dir="${basedir}/${DATA}" target="build"/>
+	<target name="data" depends="core">
+		<buildproject targetproject="${DATA}" targetfileext="swc"/>
 	</target>
-	<target name="ui" depends="check_ui, data" unless="uptodate">
-		<ant dir="${basedir}/${UI}" target="build"/>
+	<target name="ui" depends="data">
+		<buildproject targetproject="${UI}" targetfileext="swc"/>
 	</target>
-	<target name="client" depends="check_client, ui" unless="uptodate">
-		<ant dir="${basedir}/${CLIENT}" target="build"/>
+	<target name="client" depends="ui">
+		<buildproject targetproject="${CLIENT}" targetfileext="swf"/>
 	</target>
-	<target name="admin" depends="check_admin, ui" unless="uptodate">
-		<ant dir="${basedir}/${ADMIN}" target="build"/>
+	<target name="admin" depends="ui">
+		<buildproject targetproject="${ADMIN}" targetfileext="swf"/>
 	</target>
 	<target name="services">
 	    <ant dir="${basedir}/WeaveServices" target="dist"/>
@@ -127,28 +126,6 @@
 		<ant dir="${basedir}/${UI}" target="clean" />
 		<ant dir="${basedir}/${SERVICES}" target="clean" />
 	</target>
-
-	<!-- These targets set the properties ${project name}_no_changes if the target for each
-		project is more up-to-date than its source files -->
-	<target name="check_api">
-		<check_uptodate targetproject="${API}" targetfilename="${API}.swc"/>
-	</target>
-	<target name="check_core">
-		<check_uptodate targetproject="${CORE}" targetfilename="${CORE}.swc"/>
-	</target>
-	<target name="check_data">
-		<check_uptodate targetproject="${DATA}" targetfilename="${DATA}.swc"/>
-	</target>
-	<target name="check_ui">
-		<check_uptodate targetproject="${UI}" targetfilename="${UI}.swc"/>
-	</target>
-	<target name="check_client">
-		<check_uptodate targetproject="${CLIENT}" targetfilename="weave.swf"/>
-	</target>
-	<target name="check_admin">
-		<check_uptodate targetproject="${ADMIN}" targetfilename="${ADMIN}.swf"/>
-	</target>
-
 
 	<target name="admin_wrapper">
 		<html-wrapper 
@@ -183,6 +160,7 @@
 			bgcolor="#7B96B6"
 		/>
 	</target>
+
 	<macrodef name="extract_swc">
 		<attribute name="swc"/>
 		<attribute name="rsl"/>
@@ -196,14 +174,24 @@
 			<delete dir="${WEAVE_DESTROOT}/temp"/>
 		</sequential>
 	</macrodef>
-	<macrodef name="check_uptodate">
+	
+	<macrodef name="buildproject">
 		<attribute name="targetproject"/>
-		<attribute name="targetfilename"/>
+		<attribute name="targetfileext"/>
 		<sequential>
-			<echo message="Checking status of @{targetproject}..."/>
-			<uptodate property="uptodate" targetfile="${basedir}/@{targetproject}/bin/@{targetfilename}">
+			<echo message="Checking @{targetproject}..."/>
+			<uptodate targetfile="${basedir}/@{targetproject}/bin/@{targetproject}.@{targetfileext}" property="@{targetproject}.uptodate">
 				<srcfiles dir="${basedir}/@{targetproject}" includes="**/*"/>
 			</uptodate>
+			<antcall target="conditional_build">
+				<param name="targetproject" value="@{targetproject}"/>
+			</antcall>
 		</sequential>
 	</macrodef>
+	<target name="conditional_build" unless="${targetproject}.uptodate">
+		<sequential>
+			<echo message="Building ${targetproject}..."/>
+			<ant dir="${basedir}/${targetproject}" target="build"/>
+		</sequential>
+	</target>
 </project>

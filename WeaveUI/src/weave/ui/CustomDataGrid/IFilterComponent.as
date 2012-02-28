@@ -33,6 +33,8 @@ package weave.ui.CustomDataGrid
 		//if changed filterfunction is added for filtering
 		function get isActive():Boolean;
 		
+		//function get mappedColumn():void;
+		
 		function filterFunction(obj:Object):Boolean;
 	}
 }

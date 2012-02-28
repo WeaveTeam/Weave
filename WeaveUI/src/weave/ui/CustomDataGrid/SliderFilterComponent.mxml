@@ -20,7 +20,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <mx:Box  xmlns:mx="http://www.adobe.com/2006/mxml"  implements="weave.ui.CustomDataGrid.IFilterComponent"
-		 verticalScrollPolicy="off" horizontalScrollPolicy="off"  >
+		 verticalScrollPolicy="off" horizontalScrollPolicy="off"  creationPolicy="all" >
 	
 	<mx:Script>
 		<![CDATA[
@@ -34,27 +34,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableNumber;
 			import weave.utils.EventUtils;
 			
-			
-			
-			
 			public var column:WeaveCustomDataGridColumn;
-			// This method is called before the component is added using addchild mehtod
-			// so rangeSlider will be null
-			//while calling form sessionStateLog this method is called after initilaisation
+			
+			
 			public function mapColumnToFilter(column:WeaveCustomDataGridColumn):void{				
-				 this.column =column;
-				 attrCol = column.attrColumn;
-				 dataMinimum = WeaveAPI.StatisticsCache.getMin(attrCol);
-				 dataMaximum = WeaveAPI.StatisticsCache.getMax(attrCol);				 
-				 if(rangeSlider){
-					 rangeSlider.values = [dataMinimum, dataMaximum];
-				 }
-				 
+				 this.column =column;				
 			 }
 			
+			override protected function childrenCreated():void{
+				super.childrenCreated();
+				// this prevents null point error while updatingDisplayList(thumbs is Null)
+				rangeSlider.validateProperties();
+			}
 			
 			protected function rangeSlider_initializeHandler(event:FlexEvent):void
 			{
+				if(!column){
+					return callLater(rangeSlider_initializeHandler,[event]);
+				}
+				dataMinimum = WeaveAPI.StatisticsCache.getMin(column.attrColumn);
+				dataMaximum = WeaveAPI.StatisticsCache.getMax(column.attrColumn);
 				rangeSlider.values = [dataMinimum, dataMaximum];
 				EventUtils.addBindCallback(event.target, 'values', handleBindableValues);
 				getCallbackCollection(this).addGroupedCallback(this, handleLinkableValues);				
@@ -86,9 +85,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return (min != dataMinimum || max != dataMaximum);
 			}
 			
-			private var attrCol:IAttributeColumn = null;
+			
 			public function filterFunction(key:Object):Boolean	{
-				var value:Number = attrCol.getValueFromKey(key as IQualifiedKey, Number);
+				var value:Number = column.attrColumn.getValueFromKey(key as IQualifiedKey, Number);
 				var min:Number = minimum.value;
 				var max:Number = maximum.value;
 				if (!isNaN(value))
@@ -107,6 +106,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				minimum="{dataMinimum}" maximum="{dataMaximum}"
 				labels="{[dataMinimum, dataMaximum]}"
 				initialize="rangeSlider_initializeHandler(event)"
-				showTrackHighlight="true"/>
+				showTrackHighlight="true" />
 	
 </mx:Box >

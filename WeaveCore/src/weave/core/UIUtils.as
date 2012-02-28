@@ -159,7 +159,8 @@ package weave.core
 		 */
 		private static function addChild(uiParent:UIComponent, hashMap:ILinkableHashMap, childName:String, keepLinkableChildrenOnTop:Boolean):void
 		{
-			if (!uiParent.initialized)
+			// Children will not be displayed properly unless the parent is on the stage when the children are added.
+			if (!uiParent.initialized || !uiParent.stage)
 				return uiParent.callLater(addChild, arguments);
 			
 			var childObject:ILinkableObject = hashMap.getObject(childName);
