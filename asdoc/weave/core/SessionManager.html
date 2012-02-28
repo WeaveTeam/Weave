@@ -125,7 +125,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#linkBindableProperty()">linkBindableProperty</a>(linkableVariable:<a href="../api/core/ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String, delay:uint = 0):void</div>
+<a class="signatureLink" href="#linkBindableProperty()">linkBindableProperty</a>(linkableVariable:<a href="../api/core/ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void</div>
 <div class="summaryTableDescription">   linking sessioned objects with bindable properties
    </div>
 </td><td class="summaryTableOwnerCol">SessionManager</td>
@@ -565,7 +565,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function linkBindableProperty(linkableVariable:<a href="../api/core/ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String, delay:uint = 0):void</code><p>   linking sessioned objects with bindable properties
+<code>public function linkBindableProperty(linkableVariable:<a href="../api/core/ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void</code><p>   linking sessioned objects with bindable properties
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -588,6 +588,12 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">delay</span>:uint</code> (default = <code>0</code>)<code></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">onlyWhenFocused</span>:Boolean</code> (default = <code>false</code>)<code></code></td>
 </tr>
 </table>
 </div>
