@@ -205,7 +205,10 @@
 			private function handleLinkableHtmlText():void
 			{
 				if (!parent)
+				{
+					callLater(handleLinkableHtmlText);
 					return;
+				}
 				
 				// use internal text field because the real _tempTextField loses formatting.
 				var _tempTextField:IUITextField = textArea.mx_internal::getTextField();
