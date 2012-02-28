@@ -95,13 +95,14 @@
 			focusManager.setFocus(textBox);
 		}		
 		
-		public static function show(title:String, message:String):AlertTextBox 
+		public static function show(title:String, message:String, defaultInput:String = ""):AlertTextBox 
 		{
 			var newAlert:AlertTextBox = PopUpManager.createPopUp(Application.application as DisplayObject, AlertTextBox, true) as AlertTextBox;
 			newAlert.title = title;
 			// disable moving of the popup
 			newAlert.isPopUp = false;
 			newAlert.message = message;
+			newAlert.textInput = defaultInput;
 			
 			PopUpManager.centerPopUp(newAlert);
 			
