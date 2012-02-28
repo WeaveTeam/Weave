@@ -186,11 +186,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				EventUtils.addEventCallback(dataGrid,DataGridEvent.COLUMN_STRETCH,handleColumnStretch);
 				EventUtils.addEventCallback(dataGrid,ResizeEvent.RESIZE,handleToolResize);
 				
-				EventUtils.addBindCallback(dataGrid, 'horizontalScrollPosition', handleHorizontalScrollPosition);
-				EventUtils.addBindCallback(dataGrid, 'verticalScrollPosition', handleVerticalScrollPosition);
+				linkBindableProperty(dataGridHorizontalScrollPosition, dataGrid, 'horizontalScrollPosition', 0, true);
+				linkBindableProperty(dataGridVerticalScrollPosition, dataGrid, 'verticalScrollPosition', 0, true);
 				
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
-				
 			}
 			/**
 			 * This function(event Listener) gets called during dataGrid Resize event
@@ -237,10 +236,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (detectLinkableObjectChange(updateDisplayList, filterComponents)){					
 					dataGrid.invalidateFilters();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, dataGridHorizontalScrollPosition)){					
+				if (columnsChanged || detectLinkableObjectChange(updateDisplayList, dataGridHorizontalScrollPosition)){					
 					handleDataGridHorizontalScroll();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, dataGridVerticalScrollPosition)){					
+				if (columnsChanged || detectLinkableObjectChange(updateDisplayList, dataGridVerticalScrollPosition)){					
 					dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
 				}
 				if (detectLinkableObjectChange(updateDisplayList, _subset)){
@@ -652,14 +651,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}					
 				}
 				displayedColumnsTotalWidth = 0;
-			}
-			
-			private function handleVerticalScrollPosition():void{
-				dataGridVerticalScrollPosition.value = dataGrid.verticalScrollPosition;
-			}
-			
-			private function handleHorizontalScrollPosition():void{
-				dataGridHorizontalScrollPosition.value = dataGrid.horizontalScrollPosition;
 			}
 			
 			private function handleDataGridHorizontalScroll():void

@@ -20,8 +20,8 @@ package weave.api
 	/**
 	 * @see weave.api.core.ISessionManager
 	 */
-	public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0):void
+	public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void
 	{
-		WeaveAPI.SessionManager.linkBindableProperty(linkableVariable, bindableParent, bindablePropertyName, delay);
+		WeaveAPI.SessionManager.linkBindableProperty(linkableVariable, bindableParent, bindablePropertyName, delay, onlyWhenFocused);
 	}
 }
