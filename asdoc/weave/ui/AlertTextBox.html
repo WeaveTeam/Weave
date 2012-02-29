@@ -83,7 +83,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#show()">show</a>(title:String, message:String):<a href="../ui/AlertTextBox.html">AlertTextBox</a>
+<a class="signatureLink" href="#show()">show</a>(title:String, message:String, defaultInput:String = ""):<a href="../ui/AlertTextBox.html">AlertTextBox</a>
 </div>
 <div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">AlertTextBox</td>
@@ -170,7 +170,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function show(title:String, message:String):<a href="../ui/AlertTextBox.html">AlertTextBox</a></code><span class="label">Parameters</span>
+<code>public static function show(title:String, message:String, defaultInput:String = ""):<a href="../ui/AlertTextBox.html">AlertTextBox</a></code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">title</span>:String</code></td>
@@ -180,6 +180,12 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">message</span>:String</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">defaultInput</span>:String</code> (default = "<code></code>")<code></code></td>
 </tr>
 </table>
 <p></p>
