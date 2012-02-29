@@ -49,12 +49,14 @@ package weave.utils
 		 * This will report the time since the last call to begin() or lap().
 		 * @param debugString A string to print using trace().
 		 * @param debugStrings Additional strings to print using trace(), which will be separated by spaces.
+		 * @return The elapsed time.
 		 */
-		public static function lap(debugString:String, ...debugStrings):void
+		public static function lap(debugString:String, ...debugStrings):int
 		{
 			debugStrings.unshift(debugString);
-			end.apply(null, debugStrings);
+			var elapsedTime:int = end.apply(null, debugStrings);
 			begin();
+			return elapsedTime;
 		}
 		
 		/**
@@ -62,8 +64,9 @@ package weave.utils
 		 * Pairs of calls to begin() and end() may be nested.
 		 * @param debugString A string to print using trace().
 		 * @param debugStrings Additional strings to print using trace(), which will be separated by spaces.
+		 * @return The elapsed time.
 		 */
-		public static function end(debugString:String, ...debugStrings):void
+		public static function end(debugString:String, ...debugStrings):int
 		{
 			debugStrings.unshift(debugString);
 			var elapsedTime:int = (getTimer() - debugTimes.pop());
@@ -83,6 +86,11 @@ package weave.utils
 					lines[i] = (indent + '|-' + elapsed + lines[i]);
 			}
 			trace(lines.join('\n'));
+			
+			if (elapsedTime > 1000)
+				break; // put breakpoint here
+			
+			return elapsedTime;
 		}
 	}
 }
