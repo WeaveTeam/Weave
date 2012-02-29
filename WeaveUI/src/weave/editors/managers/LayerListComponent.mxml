@@ -45,7 +45,6 @@ LayerListComponent
 				<mx:HBox width="100%">
 					<mx:Script>
 						<![CDATA[
-							import mx.controls.Alert;
 							import mx.managers.PopUpManager;
 							
 							import weave.api.linkBindableProperty;
@@ -86,8 +85,8 @@ LayerListComponent
 								}
 							}
 							
-							[Bindable]public var layerIsVisible:Boolean = true;
-							[Bindable]public var layerIsSelectable:Boolean = true;
+							[Bindable] public var layerIsVisible:Boolean = true;
+							[Bindable] public var layerIsSelectable:Boolean = true;
 							override public function set data(value:Object):void
 							{
 								if (value == data)
@@ -127,8 +126,8 @@ LayerListComponent
 							
 							protected function onLayerRenameButtonClick(event:MouseEvent,data:Object):void
 							{
-								var defaultInputString:String = outerDocument.internalList.setLabel(data);
-								var alertBox:AlertTextBox = weave.ui.AlertTextBox.show("Rename Layer","Please enter a new layer name:",defaultInputString);
+								var defaultInputString:String = outerDocument.internalList.getItemLabel(data);
+								var alertBox:AlertTextBox = AlertTextBox.show("Rename Layer","Please enter a new layer name:",defaultInputString);
 								
 								alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
 									function (e:AlertTextBoxEvent):void 
@@ -138,7 +137,7 @@ LayerListComponent
 										
 										//Alert.show("Input was " + e.textInput);
 										
-										outerDocument._hashMap.renameObject(defaultInputString,e.textInput);
+										outerDocument.hashMap.renameObject(defaultInputString,e.textInput);
 									}
 								);
 							}
@@ -147,10 +146,10 @@ LayerListComponent
 					</mx:Script>
 					<mx:CheckBox id="visibleCheckbox" label="visible" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
 					<mx:CheckBox id="selectedCheckbox" label="selectable" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
-					<mx:Button textAlign="center" width="50%" label="{outerDocument.internalList.setLabel(data)}" toolTip="Click to rename the layer." click="onLayerRenameButtonClick(event,data)"/>
+					<mx:Button textAlign="center" width="100%" label="{outerDocument.internalList.getItemLabel(data)}" toolTip="Click to rename the layer." click="onLayerRenameButtonClick(event,data)"/>
 					<mx:Button label="settings" click="openSettingsPanel(data as IPlotLayer)"/>
 				</mx:HBox>
-			</mx:Component>			
+			</mx:Component>
 		</ui:itemRenderer>
 	</ui:LinkableObjectList>
 	<mx:HBox width="100%">
@@ -227,7 +226,7 @@ LayerListComponent
 					SessionStateEditor.openDefaultEditor(internalList.hashMap);
 			}
 			
-			[Bindable] internal var _hashMap:ILinkableHashMap = null;
+			[Bindable] private var _hashMap:ILinkableHashMap = null;
 			
 			[Inspectable]
 			public function set hashMap(value:ILinkableHashMap):void
