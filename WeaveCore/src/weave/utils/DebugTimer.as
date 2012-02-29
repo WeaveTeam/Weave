@@ -88,7 +88,7 @@ package weave.utils
 			trace(lines.join('\n'));
 			
 			if (elapsedTime > 1000)
-				break; // put breakpoint here
+				trace(); // put breakpoint here
 			
 			return elapsedTime;
 		}
