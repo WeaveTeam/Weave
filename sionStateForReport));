@@ -1,0 +1,983 @@
+commit 92b6f6df55e280ef2471c8a20d4fac6d53bfaf67
+Author: unknown <Adem@Adem-PC.(none)>
+Date:   Thu Mar 1 10:56:54 2012 -0500
+
+    adding report generation tool
+
+diff --git a/JTDS_SqlServerDriver/bin/net/sourceforge/jtds/test/CSUnitTest.class b/JTDS_SqlServerDriver/bin/net/sourceforge/jtds/test/CSUnitTest.class
+index 133f0f7..bfeeb18 100644
+Binary files a/JTDS_SqlServerDriver/bin/net/sourceforge/jtds/test/CSUnitTest.class and b/JTDS_SqlServerDriver/bin/net/sourceforge/jtds/test/CSUnitTest.class differ
+diff --git a/WeaveClient/configurations/report.xml b/WeaveClient/configurations/report.xml
+new file mode 100644
+index 0000000..fba7e72
+--- /dev/null
++++ b/WeaveClient/configurations/report.xml
+@@ -0,0 +1,197 @@
++<Weave encoding="dynamic">
++  <WeaveProperties name="WeaveProperties">
++    <axisFontBold>true</axisFontBold>
++    <axisFontColor>0</axisFontColor>
++    <axisFontFamily>Arial</axisFontFamily>
++    <axisFontItalic>false</axisFontItalic>
++    <axisFontSize>11</axisFontSize>
++    <axisFontUnderline>false</axisFontUnderline>
++    <backgroundColor>13421772</backgroundColor>
++    <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
++    <dataInfoURL/>
++    <debugScreenBounds>false</debugScreenBounds>
++    <enableAboutMenu>true</enableAboutMenu>
++    <enableAdd2DHistogram>true</enableAdd2DHistogram>
++    <enableAddBarChart>true</enableAddBarChart>
++    <enableAddColorLegend>true</enableAddColorLegend>
++    <enableAddColormapHistogram>true</enableAddColormapHistogram>
++    <enableAddDataSource>true</enableAddDataSource>
++    <enableAddDataTable>true</enableAddDataTable>
++    <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
++    <enableAddGaugeTool>true</enableAddGaugeTool>
++    <enableAddGrailsDataSource>true</enableAddGrailsDataSource>
++    <enableAddHistogram>true</enableAddHistogram>
++    <enableAddLineChart>true</enableAddLineChart>
++    <enableAddMap>true</enableAddMap>
++    <enableAddPieChart>true</enableAddPieChart>
++    <enableAddPieChartHistogram>true</enableAddPieChartHistogram>
++    <enableAddRadViz>true</enableAddRadViz>
++    <enableAddRadViz2>true</enableAddRadViz2>
++    <enableAddRamachandranPlot>true</enableAddRamachandranPlot>
++    <enableAddRScriptEditor>true</enableAddRScriptEditor>
++    <enableAddScatterplot>true</enableAddScatterplot>
++    <enableAddSP2>true</enableAddSP2>
++    <enableAddStickFigurePlot>true</enableAddStickFigurePlot>
++    <enableAddThermometerTool>true</enableAddThermometerTool>
++    <enableAddTimeSliderTool>true</enableAddTimeSliderTool>
++    <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
++    <enableAddWordle>true</enableAddWordle>
++    <enableClearCurrentSelection>true</enableClearCurrentSelection>
++    <enableCreateSubsets>true</enableCreateSubsets>
++    <enableDataMenu>true</enableDataMenu>
++    <enableDebugAlert>false</enableDebugAlert>
++    <enableDynamicTools>true</enableDynamicTools>
++    <enableEditDataSource>true</enableEditDataSource>
++    <enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
++    <enableExportDataTable>true</enableExportDataTable>
++    <enableExportToolImage>true</enableExportToolImage>
++    <enableFullscreen>true</enableFullscreen>
++    <enableGoFullscreen>true</enableGoFullscreen>
++    <enableManageSavedSelections>true</enableManageSavedSelections>
++    <enableManageSavedSubsets>true</enableManageSavedSubsets>
++    <enableMenuBar>true</enableMenuBar>
++    <enableMenuBarOnTop>true</enableMenuBarOnTop>
++    <enableNewDataset>true</enableNewDataset>
++    <enableNewUserWizard>true</enableNewUserWizard>
++    <enableProbeAnimation>true</enableProbeAnimation>
++    <enableProbeLines>true</enableProbeLines>
++    <enableRefreshHierarchies>true</enableRefreshHierarchies>
++    <enableRemoveSubsets>true</enableRemoveSubsets>
++    <enableRightClick>true</enableRightClick>
++    <enableSaveCurrentSelection>true</enableSaveCurrentSelection>
++    <enableSaveCurrentSubset>true</enableSaveCurrentSubset>
++    <enableSearchForRecord>true</enableSearchForRecord>
++    <enableSelectionsMenu>true</enableSelectionsMenu>
++    <enableSessionBookmarks>true</enableSessionBookmarks>
++    <enableSessionEdit>true</enableSessionEdit>
++    <enableSessionExport>true</enableSessionExport>
++    <enableSessionImport>true</enableSessionImport>
++    <enableSessionMenu>true</enableSessionMenu>
++    <enableShowAllRecords>true</enableShowAllRecords>
++    <enableSubsetControls>true</enableSubsetControls>
++    <enableSubsetsMenu>true</enableSubsetsMenu>
++    <enableTaskbar>true</enableTaskbar>
++    <enableToolAttributeEditing>true</enableToolAttributeEditing>
++    <enableToolAutoResizeAndPosition>true</enableToolAutoResizeAndPosition>
++    <enableToolBorders>true</enableToolBorders>
++    <enableToolClose>true</enableToolClose>
++    <enableToolDrag>true</enableToolDrag>
++    <enableToolMaximize>true</enableToolMaximize>
++    <enableToolMinimize>true</enableToolMinimize>
++    <enableToolProbe>true</enableToolProbe>
++    <enableToolResize>true</enableToolResize>
++    <enableToolSelection>true</enableToolSelection>
++    <enableUserPreferences>true</enableUserPreferences>
++    <enableWindowMenu>true</enableWindowMenu>
++    <pageTitle>Open Indicators Weave</pageTitle>
++    <panelTitleFontBold>false</panelTitleFontBold>
++    <panelTitleFontColor>16777215</panelTitleFontColor>
++    <panelTitleFontFamily/>
++    <panelTitleFontItalic>false</panelTitleFontItalic>
++    <panelTitleFontSize>10</panelTitleFontSize>
++    <panelTitleFontUnderline>false</panelTitleFontUnderline>
++    <probeInnerGlowAlpha>0.9</probeInnerGlowAlpha>
++    <probeInnerGlowBlur>5</probeInnerGlowBlur>
++    <probeInnerGlowColor>16777215</probeInnerGlowColor>
++    <probeInnerGlowStrength>10</probeInnerGlowStrength>
++    <probeOuterGlowAlpha>1</probeOuterGlowAlpha>
++    <probeOuterGlowBlur>3</probeOuterGlowBlur>
++    <probeOuterGlowColor>0</probeOuterGlowColor>
++    <probeOuterGlowStrength>3</probeOuterGlowStrength>
++    <probeToolTipBackgroundAlpha>0.9</probeToolTipBackgroundAlpha>
++    <probeToolTipBackgroundColor>15725756</probeToolTipBackgroundColor>
++    <probeToolTipFontColor>0</probeToolTipFontColor>
++    <rServicesURL>/WeaveServices</rServicesURL>
++    <selectionAlphaAmount>0.5</selectionAlphaAmount>
++    <selectionBlurringAmount>4</selectionBlurringAmount>
++    <shadowAlpha>0.5</shadowAlpha>
++    <shadowAngle>45</shadowAngle>
++    <shadowBlur>4</shadowBlur>
++    <shadowColor>0</shadowColor>
++    <shadowDistance>2</shadowDistance>
++    <showAttributeSelector>true</showAttributeSelector>
++    <showColorController>true</showColorController>
++    <showCopyright>true</showCopyright>
++    <showEquationEditor>true</showEquationEditor>
++    <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
++    <showProbeToolTipEditor>true</showProbeToolTipEditor>
++    <showViewBar>false</showViewBar>
++    <showVisToolCloseDialog>false</showVisToolCloseDialog>
++    <version>Beta 0.9.6 dev</version>
++    <windowSnapGridSize>1</windowSnapGridSize>
++  </WeaveProperties>
++  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
++  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
++  <KeyFilter name="defaultSubsetKeyFilter">
++    <excluded/>
++    <included/>
++    <includeMissingKeys>true</includeMissingKeys>
++  </KeyFilter>
++  <ColorColumn name="defaultColorColumn">
++    <internalDynamicColumn encoding="dynamic">
++      <GlobalObjectReference name="defaultColorBinColumn"/>
++    </internalDynamicColumn>
++    <ramp encoding="xml">
++      <colorRamp name="Van Gogh" reverse="false" category="aesthetic" source="OIC">
++        <node color="0x31415A" position="0"/>
++        <node color="0x609DCD" position="0.15"/>
++        <node color="0xE9B400" position="0.3"/>
++        <node color="0xFFFF00" position="0.4"/>
++        <node color="0xBE2E00" position="0.8"/>
++        <node color="0xBE2E00" position="1"/>
++      </colorRamp>
++    </ramp>
++  </ColorColumn>
++  <BinnedColumn name="defaultColorBinColumn">
++    <binningDefinition encoding="dynamic">
++      <SimpleBinningDefinition>
++        <numberOfBins>10</numberOfBins>
++      </SimpleBinningDefinition>
++    </binningDefinition>
++    <internalDynamicColumn encoding="dynamic">
++      <GlobalObjectReference name="defaultColorDataColumn"/>
++    </internalDynamicColumn>
++  </BinnedColumn>
++  <FilteredColumn name="defaultColorDataColumn">
++    <filter encoding="dynamic">
++      <GlobalObjectReference name="defaultSubsetKeyFilter"/>
++    </filter>
++    <internalDynamicColumn encoding="dynamic"/>
++  </FilteredColumn>
++  <KeySet name="defaultSelectionKeySet"/>
++  <KeySet name="defaultProbeKeySet"/>
++  <LinkableHashMap encoding="dynamic" name="Probed Columns"/>
++  <LinkableHashMap encoding="dynamic" name="Probe Header Columns"/>
++  <UITest name="a">
++    <buttonRadius>3</buttonRadius>
++    <children encoding="dynamic">
++      <LinkableDisplayObject name="a">
++        <children encoding="dynamic"/>
++        <eventListeners/>
++        <properties>
++          <loadForCompatibility>true</loadForCompatibility>
++          <percentHeight>100</percentHeight>
++          <percentWidth>100</percentWidth>
++          <source>weave.swf?file=local_obesity.xml</source>
++        </properties>
++        <qualifiedClassName>mx.controls.SWFLoader</qualifiedClassName>
++      </LinkableDisplayObject>
++    </children>
++    <closeable>true</closeable>
++    <draggable>true</draggable>
++    <helpAvailable>false</helpAvailable>
++    <lockPanel>false</lockPanel>
++    <maximizable>true</maximizable>
++    <maximized>false</maximized>
++    <minimizable>true</minimizable>
++    <minimized>false</minimized>
++    <panelHeight>87.634%</panelHeight>
++    <panelStyleList/>
++    <panelWidth>71.797%</panelWidth>
++    <panelX>1.1719%</panelX>
++    <panelY>1.0702%</panelY>
++    <resizeable>true</resizeable>
++    <showCloseDialog>false</showCloseDialog>
++    <userControlsAvailable>false</userControlsAvailable>
++  </UITest>
++</Weave>
+\ No newline at end of file
+diff --git a/WeaveClient/launch files/report.launch b/WeaveClient/launch files/report.launch
+new file mode 100644
+index 0000000..9af5f2c
+--- /dev/null
++++ b/WeaveClient/launch files/report.launch	
+@@ -0,0 +1,20 @@
++<?xml version="1.0" encoding="UTF-8" standalone="no"?>
++<launchConfiguration type="com.adobe.flexbuilder.debug.launchConfigurationType.flash">
++<stringAttribute key="com.adobe.flexbuilder.debug.ATTR_APPLICATION" value="src/weave.mxml"/>
++<stringAttribute key="com.adobe.flexbuilder.debug.ATTR_DEBUG_URL" value="http://localhost:8080/weave.html?file=local_obesity.xml"/>
++<stringAttribute key="com.adobe.flexbuilder.debug.ATTR_PROFILE_URL" value="http://localhost:8080/weave.html?file=local_obesity.xml"/>
++<stringAttribute key="com.adobe.flexbuilder.debug.ATTR_PROJECT" value="WeaveClient"/>
++<stringAttribute key="com.adobe.flexbuilder.debug.ATTR_RUN_URL" value="http://localhost:8080/weave.html?file=report.xml"/>
++<booleanAttribute key="com.adobe.flexbuilder.debug.ATTR_USE_DEFAULT_URLS" value="false"/>
++<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
++<listEntry value="/WeaveClient"/>
++<listEntry value="/WeaveClient/src/weave.mxml"/>
++</listAttribute>
++<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
++<listEntry value="4"/>
++<listEntry value="1"/>
++</listAttribute>
++<listAttribute key="org.eclipse.debug.ui.favoriteGroups">
++<listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
++</listAttribute>
++</launchConfiguration>
+diff --git a/WeaveClient/src/weave/VisApplication.as b/WeaveClient/src/weave/VisApplication.as
+index 044a64b..44b0ae3 100644
+--- a/WeaveClient/src/weave/VisApplication.as
++++ b/WeaveClient/src/weave/VisApplication.as
+@@ -19,97 +19,60 @@
+ 
+ package weave
+ {
+-	import flash.display.Loader;
+ 	import flash.display.LoaderInfo;
+ 	import flash.display.StageDisplayState;
+-	import flash.errors.IllegalOperationError;
+ 	import flash.events.ContextMenuEvent;
+-	import flash.events.ErrorEvent;
+ 	import flash.events.Event;
+-	import flash.events.KeyboardEvent;
+ 	import flash.events.MouseEvent;
+-	import flash.events.TimerEvent;
+ 	import flash.external.ExternalInterface;
+-	import flash.filters.BevelFilter;
+-	import flash.geom.Point;
+ 	import flash.net.FileFilter;
+ 	import flash.net.FileReference;
+ 	import flash.net.URLRequest;
+ 	import flash.net.URLVariables;
+ 	import flash.net.navigateToURL;
+-	import flash.system.LoaderContext;
+ 	import flash.system.System;
+-	import flash.text.TextField;
+ 	import flash.ui.ContextMenu;
+ 	import flash.ui.ContextMenuItem;
+-	import flash.ui.MouseCursor;
+-	import flash.utils.Timer;
+ 	import flash.utils.getQualifiedClassName;
+ 	
+-	import mx.binding.utils.BindingUtils;
+ 	import mx.containers.HBox;
+-	import mx.containers.VDividedBox;
+ 	import mx.controls.Alert;
+ 	import mx.controls.Button;
+ 	import mx.controls.HSlider;
+-	import mx.controls.Label;
+ 	import mx.controls.ProgressBar;
+ 	import mx.controls.ProgressBarLabelPlacement;
+-	import mx.controls.TabBar;
+ 	import mx.controls.Text;
+-	import mx.controls.TextArea;
+ 	import mx.core.Application;
+ 	import mx.core.UIComponent;
+ 	import mx.events.ChildExistenceChangedEvent;
+ 	import mx.events.FlexEvent;
+-	import mx.managers.CursorManagerPriority;
+ 	import mx.managers.PopUpManager;
+ 	import mx.rpc.AsyncToken;
+ 	import mx.rpc.events.FaultEvent;
+ 	import mx.rpc.events.ResultEvent;
+-	import mx.skins.halo.HaloBorder;
+-	import mx.utils.ObjectUtil;
+ 	
+-	import weave.KeySetContextMenuItems;
+ 	import weave.Reports.WeaveReport;
+-	import weave.SearchEngineUtils;
+ 	import weave.api.WeaveAPI;
+-	import weave.api.core.ILinkableDisplayObject;
+ 	import weave.api.core.ILinkableObject;
+-	import weave.api.data.IAttributeColumn;
+ 	import weave.api.data.IDataSource;
+-	import weave.api.data.IProgressIndicator;
+-	import weave.api.data.IQualifiedKey;
+ 	import weave.api.getCallbackCollection;
+ 	import weave.api.getSessionState;
+-	import weave.api.newLinkableChild;
+-	import weave.api.services.IURLRequestUtils;
+-	import weave.api.setSessionState;
+ 	import weave.compiler.StandardLib;
+ 	import weave.core.DynamicState;
+-	import weave.core.ErrorManager;
+ 	import weave.core.LinkableBoolean;
+-	import weave.core.SessionManager;
+ 	import weave.core.SessionStateLog;
+ 	import weave.core.StageUtils;
+-	import weave.core.ExternalSessionStateInterface;
+ 	import weave.core.weave_internal;
+-	import weave.data.AttributeColumns.ColorColumn;
+-	import weave.data.AttributeColumns.FilteredColumn;
+-	import weave.data.AttributeColumns.KeyColumn;
+ 	import weave.data.KeySets.KeyFilter;
+ 	import weave.data.KeySets.KeySet;
+ 	import weave.primitives.AttributeHierarchy;
+ 	import weave.services.DelayedAsyncResponder;
+ 	import weave.services.LocalAsyncService;
+-	import weave.services.ProgressIndicator;
+ 	import weave.ui.AlertTextBox;
+ 	import weave.ui.AlertTextBoxEvent;
+ 	import weave.ui.AttributeSelectorPanel;
+-	import weave.ui.AutoResizingTextArea;
+ 	import weave.ui.ColorBinEditor;
+ 	import weave.ui.CustomContextMenuManager;
+-	import weave.ui.DatasetLoader;
+ 	import weave.ui.DraggablePanel;
+ 	import weave.ui.EquationEditor;
+ 	import weave.ui.ErrorLogPanel;
+@@ -121,6 +84,7 @@ package weave
+ 	import weave.ui.PrintPanel;
+ 	import weave.ui.ProbeToolTipEditor;
+ 	import weave.ui.RTextEditor;
++	import weave.ui.ReportGenerator;
+ 	import weave.ui.SelectionManager;
+ 	import weave.ui.SessionStateEditor;
+ 	import weave.ui.SessionStatesDisplay;
+@@ -133,13 +97,8 @@ package weave
+ 	import weave.ui.editors.AddDataSourceComponent;
+ 	import weave.ui.editors.EditDataSourceComponent;
+ 	import weave.ui.settings.GlobalUISettings;
+-	import weave.ui.settings.InteractivitySubMenu;
+-	import weave.utils.BitmapUtils;
+ 	import weave.utils.CSSUtils;
+-	import weave.utils.CustomCursorManager;
+ 	import weave.utils.DebugUtils;
+-	import weave.utils.DrawUtils;
+-	import weave.utils.NumberUtils;
+ 	import weave.visualization.tools.ColorBinLegendTool;
+ 	import weave.visualization.tools.CompoundBarChartTool;
+ 	import weave.visualization.tools.CompoundRadVizTool;
+@@ -154,12 +113,10 @@ package weave
+ 	import weave.visualization.tools.PieChartTool;
+ 	import weave.visualization.tools.RadVizTool;
+ 	import weave.visualization.tools.RamachandranPlotTool;
+-	import weave.visualization.tools.SP2;
++	import weave.visualization.tools.ReportTool;
+ 	import weave.visualization.tools.ScatterPlotTool;
+-	import weave.visualization.tools.StickFigureGlyphTool;
+ 	import weave.visualization.tools.ThermometerTool;
+-	import weave.visualization.tools.TimeSliderTool;
+-	import weave.visualization.tools.WeaveWordleTool;
++	import weave.visualization.tools.TimeSliderTool;
+ 
+ 	use namespace weave_internal;
+ 
+@@ -406,7 +363,8 @@ package weave
+ 				_progressBar.visible = true;
+ 			}
+ 			
+-		}
++		}
++
+ 		
+ 		private var _selectionIndicatorText:Text = new Text;
+ 		private var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+@@ -546,11 +504,12 @@ package weave
+ 		{
+ 			ExternalInterface.call("window.close()");
+ 		}
+-
++
++		//Added code to check if this was loaded in swf loader, in which case don't put menu bar still - AAthesis
+ 		private function toggleMenuBar():void
+ 		{
+-			DraggablePanel.showRollOverBorders = adminService || getFlashVarEditable();
+-			if (Weave.properties.enableMenuBar.value || adminService || getFlashVarEditable())
++			DraggablePanel.showRollOverBorders = adminService || getFlashVarEditable();
++			if ((Weave.properties.enableMenuBar.value || adminService || getFlashVarEditable()) && !Weave.properties.isLoadedInSwfLoader)
+ 			{
+ 				if (!_weaveMenu)
+ 				{
+@@ -571,7 +530,7 @@ package weave
+ 			}
+ 			// otherwise there is no menu bar, (which normally includes the oiclogopane, so add one to replace it)
+ 			else
+-			{
++			{
+ 				try
+ 				{
+ 		   			if (_weaveMenu && _applicationVBox == _weaveMenu.parent)
+@@ -687,7 +646,15 @@ package weave
+ 				createToolMenuItem(Weave.properties.enableAddRamachandranPlot, "Add RamachandranPlot", createGlobalObject, [RamachandranPlotTool]);
+ 				createToolMenuItem(Weave.properties.enableAddScatterplot, "Add Scatterplot", createGlobalObject, [ScatterPlotTool]);
+ 				createToolMenuItem(Weave.properties.enableAddThermometerTool, "Add Thermometer Tool", createGlobalObject, [ThermometerTool]);
+-				createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Time Slider Tool", createGlobalObject, [TimeSliderTool]);	
++				createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Time Slider Tool", createGlobalObject, [TimeSliderTool]);	
++				
++				
++				//Annotation and report tool - AAThesis
++//				createToolMenuItem(Weave.properties.enableAddAnnotationTool, "Add Annotation", createGlobalObject, [ReportTool]);	
++				createToolMenuItem(Weave.properties.enableAddReportTool, "Add Report", createGlobalObject, [ReportGenerator]);	
++				//Add  an option to the "Tools" menubar for a Report
++				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem("Add Report ...", handleImportSessionStateForReport));
++
+ 			}
+ 			
+ 			if (Weave.properties.enableSelectionsMenu.value)
+@@ -818,7 +785,7 @@ package weave
+ 		}
+ 		
+ 		private var _stateLoaded:Boolean = false;
+-		private function loadSessionState(state:XML):void
++		public function loadSessionState(state:XML):void
+ 		{
+ 			_configFileXML = state;
+ 			var i:int = 0;
+@@ -1242,8 +1209,9 @@ package weave
+ 			
+ 			// enable JavaScript API after initial session state has loaded.
+ 			WeaveAPI.initializeExternalInterface();
+-			
+-			if (getFlashVarEditable())
++			
++			//If this was loaded with swf loader (for reports), don't add the history slider - AAThesis
++			if (getFlashVarEditable() && !Weave.properties.isLoadedInSwfLoader)
+ 				addHistorySlider();
+ 		}
+ 		
+@@ -1431,6 +1399,27 @@ package weave
+ 			
+ 			_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);
+ 		}
++		
++		//open a dialog to import a session state for a report - AAThesis
++		private function handleImportSessionStateForReport():void
++		{			
++			var report:ReportGenerator;
++			if (_sessionFileLoader == null)
++			{
++				_sessionFileLoader = new FileReference();
++				
++				_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { 
++					//create the reportGenerator object to be added to the UI
++					report = createGlobalObject(ReportGenerator);
++//					_sessionFileLoader.load(); 
++//					_configFileName = _sessionFileLoader.name;
++				
++				} );
++				_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {
++					report.loadSessionState( XML(e.target.data) );} );
++			}
++			_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);
++		}
+ 		
+ 		private function handleExportSessionState():void
+ 		{		
+@@ -1513,7 +1502,9 @@ package weave
+ //				trace(debug);
+ //			}
+ //		}
+-		
++		public function get weaveProperties():WeaveProperties{
++			return Weave.properties;
++		}
+ 		private function trace(...args):void
+ 		{
+ 			DebugUtils.debug_trace(VisApplication, args);
+diff --git a/WeaveUI/.flexLibProperties b/WeaveUI/.flexLibProperties
+index 9af1b83..6eb8682 100644
+--- a/WeaveUI/.flexLibProperties
++++ b/WeaveUI/.flexLibProperties
+@@ -1,6 +1,9 @@
+ <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+ <flexLibProperties includeAllClasses="true" version="3">
+-  <includeClasses/>
++  <includeClasses>
++    <classEntry path="weave.ui.ReportGenerator"/>
++    <classEntry path="weave.ui.LinkableSWFLoader"/>
++  </includeClasses>
+   <includeResources/>
+   <namespaceManifests/>
+ </flexLibProperties>
+diff --git a/WeaveUI/src/weave/Weave.as b/WeaveUI/src/weave/Weave.as
+index 77265eb..f524d0d 100644
+--- a/WeaveUI/src/weave/Weave.as
++++ b/WeaveUI/src/weave/Weave.as
+@@ -20,6 +20,7 @@
+ package weave
+ {
+ 	import flash.external.ExternalInterface;
++	import flash.utils.getQualifiedClassName;
+ 	
+ 	import weave.api.WeaveAPI;
+ 	import weave.api.core.IErrorManager;
+@@ -34,10 +35,10 @@ package weave
+ 	import weave.api.data.IStatisticsCache;
+ 	import weave.api.services.IURLRequestUtils;
+ 	import weave.core.ErrorManager;
++	import weave.core.ExternalSessionStateInterface;
+ 	import weave.core.LinkableDynamicObject;
+ 	import weave.core.LinkableHashMap;
+ 	import weave.core.SessionManager;
+-	import weave.core.ExternalSessionStateInterface;
+ 	import weave.core.WeaveXMLDecoder;
+ 	import weave.core.WeaveXMLEncoder;
+ 	import weave.data.AttributeColumnCache;
+@@ -138,7 +139,7 @@ package weave
+ 		 * This function gets the WeaveProperties object from the root of Weave.
+ 		 */
+ 		public static function get properties():WeaveProperties
+-		{
++		{
+ 			return root.getObject(DEFAULT_WEAVE_PROPERTIES) as WeaveProperties;
+ 		}
+ 		/**
+diff --git a/WeaveUI/src/weave/WeaveProperties.as b/WeaveUI/src/weave/WeaveProperties.as
+index 363d95f..7c0663d 100644
+--- a/WeaveUI/src/weave/WeaveProperties.as
++++ b/WeaveUI/src/weave/WeaveProperties.as
+@@ -19,6 +19,10 @@
+ 
+ package weave
+ {
++	import flash.utils.getQualifiedClassName;
++	
++	import mx.core.Application;
++	
+ 	import weave.api.WeaveAPI;
+ 	import weave.api.core.ILinkableObject;
+ 	import weave.api.disposeObjects;
+@@ -32,7 +36,7 @@ package weave
+ 	import weave.resources.fonts.EmbeddedFonts;
+ 	import weave.ui.SessionStateEditor;
+ 	import weave.utils.DebugUtils;
+-	import weave.visualization.layers.InteractionController;
++	import weave.visualization.layers.InteractionController;
+ 
+ 	use namespace weave_internal;
+ 	
+@@ -58,7 +62,8 @@ package weave
+ 			for each (var propertyName:String in (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(this))
+ 				registerLinkableChild(this, this[propertyName] as ILinkableObject);
+ 			
+-			rServiceURL.addImmediateCallback(null, handleRServiceURLChange);
++			rServiceURL.addImmediateCallback(null, handleRServiceURLChange);
++			
+ 		}
+ 		
+ 		private function handleRServiceURLChange():void
+@@ -121,6 +126,9 @@ package weave
+ 		public const enableAddRScriptEditor:LinkableBoolean = new LinkableBoolean(true); // Add R Script Editor option tools menu		
+ 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
+ 		public const enableAddDataFilter:LinkableBoolean = new LinkableBoolean(true);
++		
++		public const enableAddAnnotationTool:LinkableBoolean = new LinkableBoolean(true); // Add Annotation Tool option tools menu  - AAThesis
++		public const enableAddReportTool:LinkableBoolean = new LinkableBoolean(true); // Add Report Tool option tools menu  - AAThesis
+ 		
+ //		public const enableAddStickFigurePlot:LinkableBoolean = new LinkableBoolean(true); // Add Stick Figure Plot option tools menu
+ 		public const enableAddRadViz:LinkableBoolean = new LinkableBoolean(true); // Add RadViz option tools menu		
+@@ -149,7 +157,7 @@ package weave
+ 		
+ 		public const enableSearchForRecord:LinkableBoolean = new LinkableBoolean(true); // allow user to right click search for record
+ 		
+-		public const enableMenuBar:LinkableBoolean = new LinkableBoolean(true); // top menu for advanced features
++		public const enableMenuBar:LinkableBoolean = new LinkableBoolean(true); // top menu for advanced features
+ 		public const enableTaskbar:LinkableBoolean = new LinkableBoolean(true); // taskbar for minimize/restore
+ 		public const enableSubsetControls:LinkableBoolean = new LinkableBoolean(true); // creating subsets
+ 		public const enableExportToolImage:LinkableBoolean = new LinkableBoolean(true); // print/export tool images
+@@ -193,7 +201,9 @@ package weave
+ 		public const enableAboutMenu:LinkableBoolean = new LinkableBoolean(true); //enable/disable About Menu
+ 		
+ 		public function get enableDebugAlert():LinkableBoolean { return DebugUtils.enableDebugAlert; } // show debug_trace strings in alert boxes
+-		public const showKeyTypeInColumnTitle:LinkableBoolean = new LinkableBoolean(false);
++		public const showKeyTypeInColumnTitle:LinkableBoolean = new LinkableBoolean(false);
++		
++		public var isLoadedInSwfLoader:Boolean;  //need to tell the toggleMenuBar function that it is loaded from a swfloader so remove the menubar
+ 		
+ 		// cosmetic options
+ 		public const pageTitle:LinkableString = new LinkableString("Open Indicators Weave"); // title to show in browser window
+diff --git a/WeaveUI/src/weave/ui/LinkableSWFLoader.as b/WeaveUI/src/weave/ui/LinkableSWFLoader.as
+new file mode 100644
+index 0000000..782cfc4
+--- /dev/null
++++ b/WeaveUI/src/weave/ui/LinkableSWFLoader.as
+@@ -0,0 +1,47 @@
++package weave.ui
++{
++	import flash.system.ApplicationDomain;
++	import flash.system.LoaderContext;
++	
++	import mx.controls.SWFLoader;
++	
++	import weave.api.core.ILinkableContainer;
++	import weave.api.core.ILinkableHashMap;
++	import weave.api.linkBindableProperty;
++	import weave.api.newLinkableChild;
++	import weave.api.registerLinkableChild;
++	import weave.core.LinkableHashMap;
++	import weave.core.LinkableString;
++	import weave.core.UIUtils;
++	
++	public class LinkableSWFLoader extends SWFLoader implements ILinkableContainer
++	{
++		public const sourceValue:LinkableString = registerLinkableChild(this, new LinkableString(""));
++		
++		public function LinkableSWFLoader()
++		{
++			super();
++			linkBindableProperty(sourceValue,this,"source");
++			loadForCompatibility = true;
++			loaderContext = new LoaderContext(false, new ApplicationDomain());
++			this.percentHeight = 100;
++			this.percentWidth = 100;
++//			this.source = "local_obesity.xml";
++			sourceValue.value = "weave.swf?file=local_obesity.xml&amp;editable=true";
++			UIUtils.linkDisplayObjects(this,children);
++			
++		}
++		
++		override public function get loadForCompatibility():Boolean{
++			return super.loadForCompatibility;
++		}
++		override public function set loadForCompatibility(value:Boolean):void{
++			super.loadForCompatibility = value;
++		}
++		
++		// UI children
++		public const children:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
++		public function getLinkableChildren():ILinkableHashMap { return children; }
++		
++	}
++}
+\ No newline at end of file
+diff --git a/WeaveUI/src/weave/ui/ReportGenerator.mxml b/WeaveUI/src/weave/ui/ReportGenerator.mxml
+new file mode 100644
+index 0000000..c9eccab
+--- /dev/null
++++ b/WeaveUI/src/weave/ui/ReportGenerator.mxml
+@@ -0,0 +1,101 @@
++<?xml version="1.0" encoding="utf-8"?>
++<ui:UITest xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" 
++		   layout="absolute" width="400" height="300"
++		   creationComplete="stripState()">
++	<!--	
++	<mx:SWFLoader id="swfLoader" source="local_obesity.xml" 
++	height="100%" width="100%"/>
++	-->
++	<mx:Script>
++		<![CDATA[
++			import flash.utils.getQualifiedClassName;
++			
++			import mx.controls.SWFLoader;
++			import mx.core.Application;
++			import mx.events.FlexEvent;
++			import mx.managers.SystemManager;
++			import mx.utils.ObjectUtil;
++			
++			import weave.Weave;
++			import weave.WeaveProperties;
++			import weave.api.WeaveAPI;
++			import weave.api.getLinkableDescendants;
++			import weave.api.setSessionState;
++			import weave.core.SessionManager;
++			import weave.core.UIUtils;
++			import weave.ui.annotation.SessionedTextBox;
++			import weave.visualization.tools.MapTool;
++			import weave.visualization.tools.ReportTool;
++			import weave.visualization.tools.SimpleVisTool;
++			
++			private var xml:XML;
++			private	var xmlFile:URLRequest = new URLRequest("local_obesity.xml");  
++			private	var loader:URLLoader = new URLLoader(xmlFile);  
++			private var loadedWeave:Object = null;
++			private var swfloader:LinkableSWFLoader;
++			
++			//Load the session state, add it to this session's children and make the necessary modifications
++			private function stripState():void{
++				//create a linkable swfLoader and add it to the "children" tag of the session state
++				swfloader = children.requestObject(children.generateUniqueName("swfLoader"),LinkableSWFLoader, false);
++				
++				//need to add an event listener to the swfLoader we created in order to edit the session state
++				swfloader.addEventListener(Event.COMPLETE,function (e:Event){
++					
++					var manager:Object = (e.target.content);
++					//listen for the application to finish loading
++					manager.addEventListener(FlexEvent.APPLICATION_COMPLETE, function (e2:Event){
++						//get the instance of Weave's session state
++						
++						loadedWeave = (e2.target.application);
++						//						trace("ToString" + ObjectUtil.toString(loadedWeave.loaderInfo.content.application));
++						trace ("loaded weave" + ObjectUtil.toString(loadedWeave.loaderInfo.content.application["weaveProperties"]));
++						trace ( "Application.application " + getQualifiedClassName(Application.application) );
++						
++						
++						loadedWeave.loaderInfo.content.application["weaveProperties"]["enableMenuBar"]["value"] = false;
++						//						loadedWeave.["Weave"].properties.enableMenuBar.value = false;
++						//						swfloader["Weave"].properties.enableMenuBar.value = false;
++						
++						trace("enablemenubar? " + swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties);
++						
++						
++						//tell VisApplication that this is loaded from the swfloader, so remove the menubar instead of just dimming it
++						swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.isLoadedInSwfLoader = true;
++						
++						//when the application is actually loaded, the menubar is set to enabled, so wait for this to happen and then call the disableMenuBar function
++						swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.enableMenuBar.addImmediateCallback(this,editSessionVariables,null,false);
++					});
++				});
++				loader.load(xmlFile);  
++				loader.addEventListener("complete", xmlLoaded);  
++				//          myLoader.load(myXMLURL);  
++			}  
++			
++			//disable menu bar
++			private function editSessionVariables():void{
++				swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.dashboardMode.value = true;
++				swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.enableMenuBar.value = false;
++			}
++			override protected function constructor():void{
++				super.constructor();
++				UIUtils.linkDisplayObjects(this,children);
++				//				(WeaveAPI.SessionManager as SessionManager).registerLinkableChild(this, swfLoader);
++				trace ("called constructor" + children.getNames().toString());
++			}
++			
++			public function xmlLoaded(event:Event):void{  
++				xml = new XML(loader.data);  
++				trace (" attributes " + xml.attributes().toString());
++			}
++			
++			//get the instance of weave that is being loaded and load the sessionstate of that
++			public function loadSessionState(state:XML):void{
++				swfloader.loaderContext.applicationDomain.getDefinition("weave").loadSessionState(state);
++			}
++			
++		]]>
++	</mx:Script>
++	
++</ui:UITest>
++
+diff --git a/WeaveUI/src/weave/ui/annotation/AnnotationTextArea.as b/WeaveUI/src/weave/ui/annotation/AnnotationTextArea.as
+new file mode 100644
+index 0000000..e0c4a80
+--- /dev/null
++++ b/WeaveUI/src/weave/ui/annotation/AnnotationTextArea.as
+@@ -0,0 +1,173 @@
++package weave.ui.annotation
++{
++	import mx.controls.TextArea;
++	import mx.utils.ObjectUtil;
++	
++	import weave.Weave;
++	import weave.api.WeaveAPI;
++	import weave.api.core.ILinkableObject;
++	import weave.api.data.IAttributeColumn;
++	import weave.api.data.IDataSource;
++	import weave.api.data.IQualifiedKey;
++	import weave.api.getCallbackCollection;
++	import weave.core.SessionManager;
++	import weave.core.weave_internal;
++	import weave.data.ColumnReferences.HierarchyColumnReference;
++	import weave.primitives.AttributeHierarchy;
++	import weave.utils.ColumnUtils;
++	
++	use namespace weave_internal;
++	
++	public class AnnotationTextArea extends TextArea
++	{
++		private var annotationText:String;
++		
++		public function AnnotationTextArea()
++		{
++			super();
++			
++		}
++		
++		
++		//Toggle between editable and uneditable, updating the variables whenever editing are complete
++		override public function set editable(value:Boolean) : void
++		{
++			super.editable = value;
++			
++			//While being edited, update the htmlText
++			if(value==true){				
++				htmlText = annotationText;
++			}
++			//Once finished editing, update the value of annotationText and get the values of the variables
++			else{
++				annotationText = htmlText;
++				resolveVariables();
++				trace("turned off editing");
++			}
++				//Event listener for every time the session state is changed so the values will be updated
++				getCallbackCollection(Weave.root).addGroupedCallback(this,updateVariables);
++			
++		}
++		
++		//When the session state changes, resolve the values of all variables
++		private function updateVariables(): void
++		{
++			trace("updating when session state changes");
++			if(!editable){
++				htmlText = annotationText;
++				resolveVariables();
++			}
++			
++		}
++		
++		//		override public function set htmlText(value:String):void
++		//		{
++		//			super.htmlText = value;
++		//			annotationText = htmlText;
++		//		}
++		
++		//Convert the variable name contained within {} to it's actual value
++		private function resolveVariables():void
++		{
++			if(editable)
++				return;
++			trace("html text is " + this.htmlText);
++			//Find first occurence of { }
++			var startIndex:int = this.htmlText.search("{");
++			var endIndex:int = htmlText.search("}") + 1;
++			//Get the global session manager in order to get anything from the session state
++			var sessionManager:SessionManager = (WeaveAPI.SessionManager as SessionManager);
++			
++			//Iterate through each {variable} in the user entered text
++			//startIndex is -1 when it reaches the end of the string
++			while(startIndex!=-1){
++
++				//Get the start index of the next variable
++				startIndex = this.htmlText.search("{");
++				//If startIndex is -1 we don't want to continue
++				if(startIndex == -1) break;
++				endIndex = htmlText.search("}") + 1;
++				//Contains each variable the user entered with {}
++				var variableTag:String = this.htmlText.substring(startIndex, endIndex);
++				
++				var strippedVariableTag:String = variableTag.replace(/<[^>]*>/g, "");
++				
++				//Removes the {} from variableTag
++				var variable:String = strippedVariableTag.substring(1, strippedVariableTag.length-1);
++
++				//Obtains the path the user entered
++				var path:Array = variable.split("/");
++				//The session state associated with each variable in the path
++				var state:Object = null;
++				//If user is requesting a value from a column, get the specific value to replace the variable with
++				if(path[0].toString().search("getValueAt")>=0){
++					state = getValueFromTag(path[0].toString());
++				}
++					//Otherwise, resolve the variable to a path from the session state
++				else {
++					//Try to get the object associated with the first variable in the path from the root session state
++					var root:ILinkableObject = Weave.root.getObject(path[0]);
++				trace("root is " + root);
++					//If the requested object is contained in the root, get the session state for that object
++					if(root){
++						//Get the session state associated with the first item in the path
++						state =  sessionManager.getSessionState(root);
++						//Iterate through the rest of the items in the path
++						for(var i:int=1;i<path.length;i++){						
++							state = state[path[i]];
++							
++							if(state == null)
++								break;
++						}
++					}
++				}
++				//If the user entered an invalid path/variable, alert them
++				if(root==null)
++					state = "~" + variable + "~";
++				if(state==null)
++					state = "null";
++				
++				trace("variable tag and state " + this.htmlText + " " + variableTag + " " + state);
++
++
++				this.htmlText = this.htmlText.replace(variableTag,state);
++				//Replace the current variable tag with the resolved variable value
++//				this.htmlText = this.htmlText.("[[","{");				
++//				this.htmlText = this.htmlText.replace("]]","}");
++				
++			}
++		}
++		
++		
++		private const DATA_SOURCE:int = 0;
++		private const COLUMN_NAME:int = 1;
++		private const ROW_IDENTIFIER:int = 2;
++		private const NUM_PARAMS:int = 3;
++		
++		private function getValueFromTag(tag:String):String
++		{
++			var params:Array = tag.replace("getValueAt(", "").replace(")","").split(",");
++			//User needs to enter a value for data source, column name and either a key or row index
++			if(params.length!=NUM_PARAMS)
++				return null;
++			
++			return getValueAt(params[DATA_SOURCE], params[COLUMN_NAME], params[ROW_IDENTIFIER]);
++		}
++		
++		/*
++		{getValueAt(obesity.csv,State,39)}
++		*/
++		
++		private function getValueAt(dataSourceName:String, columnName:String, key:String):String {
++			var dataSource:IDataSource = Weave.root.getObject(dataSourceName) as IDataSource;
++			var columnList:XMLList = (dataSource.attributeHierarchy as AttributeHierarchy).value.descendants("attribute");
++			var columnReference:HierarchyColumnReference = new HierarchyColumnReference();
++			columnReference.dataSourceName.value = dataSourceName;
++			columnReference.hierarchyPath.value = columnList.(@csvColumn == columnName)[0];
++			var column:IAttributeColumn = WeaveAPI.AttributeColumnCache.getColumn(columnReference);
++			var type:String = ColumnUtils.getKeyType(column);
++			
++			return column.getValueFromKey(WeaveAPI.QKeyManager.getQKey(type,key));;
++		}
++	}
++}
+\ No newline at end of file
+diff --git a/WeaveUI/src/weave/ui/annotation/SessionedTextBox.mxml b/WeaveUI/src/weave/ui/annotation/SessionedTextBox.mxml
+index 96145cb..532fef6 100644
+--- a/WeaveUI/src/weave/ui/annotation/SessionedTextBox.mxml
++++ b/WeaveUI/src/weave/ui/annotation/SessionedTextBox.mxml
+@@ -28,7 +28,7 @@
+ 	backgroundAlpha="0"
+ 	layout="absolute"
+ 	>
+-	<mx:TextArea id="textArea"
++	<AnnotationTextArea id="textArea"
+ 				 width="100%"
+ 				 height="100%"
+ 				 minWidth="5"
+diff --git a/WeaveUI/src/weave/visualization/tools/ReportTool.mxml b/WeaveUI/src/weave/visualization/tools/ReportTool.mxml
+new file mode 100644
+index 0000000..61eb2b7
+--- /dev/null
++++ b/WeaveUI/src/weave/visualization/tools/ReportTool.mxml
+@@ -0,0 +1,20 @@
++<?xml version="1.0" encoding="utf-8"?>
++<SessionedTextBox xmlns="weave.ui.annotation.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
++				  creationComplete="handleCreationComplete(event)">
++	
++	<mx:Script>
++		<![CDATA[
++			
++			private function handleCreationComplete(event:Event):void
++			{
++				
++				toggleControlPanel();
++			}
++			
++			
++			
++		]]>
++	</mx:Script>
++	
++	
++</SessionedTextBox>
+\ No newline at end of file

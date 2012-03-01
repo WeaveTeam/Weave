@@ -84,6 +84,7 @@ package weave
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.ProbeToolTipEditor;
+	import weave.ui.ReportGenerator;
 	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SubsetManager;
@@ -358,6 +359,7 @@ package weave
 			}
 			
 		}
+
 		
 		private var _selectionIndicatorText:Text = new Text;
 		private var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
@@ -502,6 +504,7 @@ package weave
 			ExternalInterface.call("window.close()");
 		}
 
+		//Added code to check if this was loaded in swf loader, in which case don't put menu bar still - AAthesis
 		private function toggleMenuBar():void
 		{
 			if (!enabled)
@@ -510,7 +513,7 @@ package weave
 				return;
 			}
 			DraggablePanel.showRollOverBorders = adminService || getFlashVarEditable();
-			if (Weave.properties.enableMenuBar.value || adminService || getFlashVarEditable())
+			if ((Weave.properties.enableMenuBar.value || adminService || getFlashVarEditable()) && !Weave.properties.isLoadedInSwfLoader)
 			{
 				if (!_weaveMenu)
 				{
@@ -638,6 +641,12 @@ package weave
 						var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(impl);
 						_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem("Add " + displayName, createGlobalObject, [impl]));
 					}
+					
+					//Annotation and report tool - AAThesis
+					//				createToolMenuItem(Weave.properties.enableAddAnnotationTool, "Add Annotation", createGlobalObject, [ReportTool]);	
+					createToolMenuItem(Weave.properties.enableAddReportTool, "Add Report", createGlobalObject, [ReportGenerator]);	
+					//Add  an option to the "Tools" menubar for a Report
+					_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem("Add Report ...", handleImportSessionStateForReport));
 				}
 				
 				_weaveMenu.addSeparatorToMenu(_toolsMenu);
@@ -1140,7 +1149,8 @@ package weave
 				Weave.properties.dashboardMode.value = true;
 			}
 			
-			if (getFlashVarEditable())
+			//If this was loaded with swf loader (for reports), don't add the history slider - AAThesis
+			if (getFlashVarEditable() && !Weave.properties.isLoadedInSwfLoader)
 			{
 				var historySlider:UIComponent = EditorManager.getNewEditor(Weave.history) as UIComponent;
 				addChildAt(historySlider, getChildIndex(visDesktop));
@@ -1356,6 +1366,28 @@ package weave
 			_weaveFileRef.browse([new FileFilter("XML", "*.xml")]);
 		}
 		
+		//open a dialog to import a session state for a report - AAThesis
+		private var _sessionFileLoader:FileReference;
+		private function handleImportSessionStateForReport():void
+		{			
+			var report:ReportGenerator;
+			if (_sessionFileLoader == null)
+			{
+				_sessionFileLoader = new FileReference();
+				
+				_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { 
+					//create the reportGenerator object to be added to the UI
+					report = createGlobalObject(ReportGenerator);
+//					_sessionFileLoader.load(); 
+//					_configFileName = _sessionFileLoader.name;
+				
+				} );
+				_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {
+					report.loadSessionState( XML(e.target.data) );} );
+			}
+			_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);
+		}
+		
 		private function handleExportSessionState():void
 		{		
 			var exportSessionStatePanel:ExportSessionStatePanel = new ExportSessionStatePanel();
@@ -1426,6 +1458,9 @@ package weave
    				printOrExportImage(visDesktop.internalCanvas);
    			}
    			
+		}
+		public function get weaveProperties():WeaveProperties{
+			return Weave.properties;
 		}
 	}
 }

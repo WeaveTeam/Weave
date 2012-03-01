@@ -21,11 +21,8 @@ package weave
 {
 	import flash.display.Stage;
 	import flash.events.Event;
-	import flash.events.IOErrorEvent;
-	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.URLRequest;
-	import flash.system.ApplicationDomain;
 	import flash.text.Font;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
@@ -51,7 +48,6 @@ package weave
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
-	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
 	import weave.ui.AttributeMenuTool;
@@ -105,6 +101,8 @@ package weave
 			// register all properties as children of this object
 			for each (var propertyName:String in (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(this))
 				registerLinkableChild(this, this[propertyName] as ILinkableObject);
+			
+			rServiceURL.addImmediateCallback(null, handleRServiceURLChange);
 			
 			loadWeaveFontsSWF();
 
@@ -248,6 +246,10 @@ package weave
 		public const enableAddGraphTool:LinkableBoolean = new LinkableBoolean(true); // Add Graph Tool option tools menu
 		public const enableAddLineChart:LinkableBoolean = new LinkableBoolean(true); // Add Line Chart option tools menu
 		public const enableAddDimensionSliderTool:LinkableBoolean = new LinkableBoolean(true); // Add Dimension Slider Tool option tools menu		
+		
+		public const enableAddAnnotationTool:LinkableBoolean = new LinkableBoolean(true); // Add Annotation Tool option tools menu  - AAThesis
+		public const enableAddReportTool:LinkableBoolean = new LinkableBoolean(true); // Add Report Tool option tools menu  - AAThesis
+		
 		public const enableAddMap:LinkableBoolean = new LinkableBoolean(true); // Add Map option tools menu
 		public const enableAddPieChart:LinkableBoolean = new LinkableBoolean(true); // Add Pie Chart option tools menu
 		public const enableAddPieChartHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Pie Chart option tools menu
@@ -283,6 +285,7 @@ package weave
 		public const enableDrawCircle:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableMenuBar:LinkableBoolean = new LinkableBoolean(true); // top menu for advanced features
+		public const enableTaskbar:LinkableBoolean = new LinkableBoolean(true); // taskbar for minimize/restore
 		public const enableSubsetControls:LinkableBoolean = new LinkableBoolean(true); // creating subsets
 		public const enableExportToolImage:LinkableBoolean = new LinkableBoolean(true); // print/export tool images
 		public const enableExportCSV:LinkableBoolean = new LinkableBoolean(true);
@@ -324,6 +327,8 @@ package weave
 		
 		public function get enableDebugAlert():LinkableBoolean { return DebugUtils.enableDebugAlert; } // show debug_trace strings in alert boxes
 		public const showKeyTypeInColumnTitle:LinkableBoolean = new LinkableBoolean(false);
+		
+		public var isLoadedInSwfLoader:Boolean;  //need to tell the toggleMenuBar function that it is loaded from a swfloader so remove the menubar
 		
 		// cosmetic options
 		public const pageTitle:LinkableString = new LinkableString("Open Indicators Weave"); // title to show in browser window

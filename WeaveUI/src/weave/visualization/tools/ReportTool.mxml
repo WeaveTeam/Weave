@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SessionedTextBox xmlns="weave.ui.annotation.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				  creationComplete="handleCreationComplete(event)">
+	
+	<mx:Script>
+		<![CDATA[
+			
+			private function handleCreationComplete(event:Event):void
+			{
+				
+				toggleControlPanel();
+			}
+			
+			
+			
+		]]>
+	</mx:Script>
+	
+	
+</SessionedTextBox>
