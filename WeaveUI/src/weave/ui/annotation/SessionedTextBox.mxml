@@ -28,7 +28,7 @@
 	backgroundAlpha="0"
 	layout="absolute"
 	>
-	<mx:TextArea id="textArea"
+	<AnnotationTextArea id="textArea"
 				 width="100%"
 				 height="100%"
 				 minWidth="5"

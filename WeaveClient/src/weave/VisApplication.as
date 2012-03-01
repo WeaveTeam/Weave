@@ -19,97 +19,60 @@
 
 package weave
 {
-	import flash.display.Loader;
 	import flash.display.LoaderInfo;
 	import flash.display.StageDisplayState;
-	import flash.errors.IllegalOperationError;
 	import flash.events.ContextMenuEvent;
-	import flash.events.ErrorEvent;
 	import flash.events.Event;
-	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
-	import flash.events.TimerEvent;
 	import flash.external.ExternalInterface;
-	import flash.filters.BevelFilter;
-	import flash.geom.Point;
 	import flash.net.FileFilter;
 	import flash.net.FileReference;
 	import flash.net.URLRequest;
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
-	import flash.system.LoaderContext;
 	import flash.system.System;
-	import flash.text.TextField;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
-	import flash.ui.MouseCursor;
-	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.binding.utils.BindingUtils;
 	import mx.containers.HBox;
-	import mx.containers.VDividedBox;
 	import mx.controls.Alert;
 	import mx.controls.Button;
 	import mx.controls.HSlider;
-	import mx.controls.Label;
 	import mx.controls.ProgressBar;
 	import mx.controls.ProgressBarLabelPlacement;
-	import mx.controls.TabBar;
 	import mx.controls.Text;
-	import mx.controls.TextArea;
 	import mx.core.Application;
 	import mx.core.UIComponent;
 	import mx.events.ChildExistenceChangedEvent;
 	import mx.events.FlexEvent;
-	import mx.managers.CursorManagerPriority;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.skins.halo.HaloBorder;
-	import mx.utils.ObjectUtil;
 	
-	import weave.KeySetContextMenuItems;
 	import weave.Reports.WeaveReport;
-	import weave.SearchEngineUtils;
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableObject;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
-	import weave.api.data.IProgressIndicator;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
-	import weave.api.newLinkableChild;
-	import weave.api.services.IURLRequestUtils;
-	import weave.api.setSessionState;
 	import weave.compiler.StandardLib;
 	import weave.core.DynamicState;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
-	import weave.core.SessionManager;
 	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
-	import weave.core.ExternalSessionStateInterface;
 	import weave.core.weave_internal;
-	import weave.data.AttributeColumns.ColorColumn;
-	import weave.data.AttributeColumns.FilteredColumn;
-	import weave.data.AttributeColumns.KeyColumn;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.AttributeHierarchy;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.LocalAsyncService;
-	import weave.services.ProgressIndicator;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
 	import weave.ui.AttributeSelectorPanel;
-	import weave.ui.AutoResizingTextArea;
 	import weave.ui.ColorBinEditor;
 	import weave.ui.CustomContextMenuManager;
-	import weave.ui.DatasetLoader;
 	import weave.ui.DraggablePanel;
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
@@ -121,6 +84,7 @@ package weave
 	import weave.ui.PrintPanel;
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.RTextEditor;
+	import weave.ui.ReportGenerator;
 	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SessionStatesDisplay;
@@ -133,13 +97,8 @@ package weave
 	import weave.ui.editors.AddDataSourceComponent;
 	import weave.ui.editors.EditDataSourceComponent;
 	import weave.ui.settings.GlobalUISettings;
-	import weave.ui.settings.InteractivitySubMenu;
-	import weave.utils.BitmapUtils;
 	import weave.utils.CSSUtils;
-	import weave.utils.CustomCursorManager;
 	import weave.utils.DebugUtils;
-	import weave.utils.DrawUtils;
-	import weave.utils.NumberUtils;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.CompoundBarChartTool;
 	import weave.visualization.tools.CompoundRadVizTool;
@@ -154,12 +113,10 @@ package weave
 	import weave.visualization.tools.PieChartTool;
 	import weave.visualization.tools.RadVizTool;
 	import weave.visualization.tools.RamachandranPlotTool;
-	import weave.visualization.tools.SP2;
+	import weave.visualization.tools.ReportTool;
 	import weave.visualization.tools.ScatterPlotTool;
-	import weave.visualization.tools.StickFigureGlyphTool;
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
-	import weave.visualization.tools.WeaveWordleTool;
 
 	use namespace weave_internal;
 
@@ -407,6 +364,7 @@ package weave
 			}
 			
 		}
+
 		
 		private var _selectionIndicatorText:Text = new Text;
 		private var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
@@ -547,10 +505,11 @@ package weave
 			ExternalInterface.call("window.close()");
 		}
 
+		//Added code to check if this was loaded in swf loader, in which case don't put menu bar still - AAthesis
 		private function toggleMenuBar():void
 		{
 			DraggablePanel.showRollOverBorders = adminService || getFlashVarEditable();
-			if (Weave.properties.enableMenuBar.value || adminService || getFlashVarEditable())
+			if ((Weave.properties.enableMenuBar.value || adminService || getFlashVarEditable()) && !Weave.properties.isLoadedInSwfLoader)
 			{
 				if (!_weaveMenu)
 				{
@@ -688,6 +647,14 @@ package weave
 				createToolMenuItem(Weave.properties.enableAddScatterplot, "Add Scatterplot", createGlobalObject, [ScatterPlotTool]);
 				createToolMenuItem(Weave.properties.enableAddThermometerTool, "Add Thermometer Tool", createGlobalObject, [ThermometerTool]);
 				createToolMenuItem(Weave.properties.enableAddTimeSliderTool, "Add Time Slider Tool", createGlobalObject, [TimeSliderTool]);	
+				
+				
+				//Annotation and report tool - AAThesis
+//				createToolMenuItem(Weave.properties.enableAddAnnotationTool, "Add Annotation", createGlobalObject, [ReportTool]);	
+				createToolMenuItem(Weave.properties.enableAddReportTool, "Add Report", createGlobalObject, [ReportGenerator]);	
+				//Add  an option to the "Tools" menubar for a Report
+				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem("Add Report ...", handleImportSessionStateForReport));
+
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)
@@ -818,7 +785,7 @@ package weave
 		}
 		
 		private var _stateLoaded:Boolean = false;
-		private function loadSessionState(state:XML):void
+		public function loadSessionState(state:XML):void
 		{
 			_configFileXML = state;
 			var i:int = 0;
@@ -1243,7 +1210,8 @@ package weave
 			// enable JavaScript API after initial session state has loaded.
 			WeaveAPI.initializeExternalInterface();
 			
-			if (getFlashVarEditable())
+			//If this was loaded with swf loader (for reports), don't add the history slider - AAThesis
+			if (getFlashVarEditable() && !Weave.properties.isLoadedInSwfLoader)
 				addHistorySlider();
 		}
 		
@@ -1432,6 +1400,27 @@ package weave
 			_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);
 		}
 		
+		//open a dialog to import a session state for a report - AAThesis
+		private function handleImportSessionStateForReport():void
+		{			
+			var report:ReportGenerator;
+			if (_sessionFileLoader == null)
+			{
+				_sessionFileLoader = new FileReference();
+				
+				_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { 
+					//create the reportGenerator object to be added to the UI
+					report = createGlobalObject(ReportGenerator);
+//					_sessionFileLoader.load(); 
+//					_configFileName = _sessionFileLoader.name;
+				
+				} );
+				_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {
+					report.loadSessionState( XML(e.target.data) );} );
+			}
+			_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);
+		}
+		
 		private function handleExportSessionState():void
 		{		
 			
@@ -1513,7 +1502,9 @@ package weave
 //				trace(debug);
 //			}
 //		}
-		
+		public function get weaveProperties():WeaveProperties{
+			return Weave.properties;
+		}
 		private function trace(...args):void
 		{
 			DebugUtils.debug_trace(VisApplication, args);

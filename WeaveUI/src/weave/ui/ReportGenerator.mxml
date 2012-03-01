@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UITest xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" 
+		   layout="absolute" width="400" height="300"
+		   creationComplete="stripState()">
+	<!--	
+	<mx:SWFLoader id="swfLoader" source="local_obesity.xml" 
+	height="100%" width="100%"/>
+	-->
+	<mx:Script>
+		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
+			import mx.controls.SWFLoader;
+			import mx.core.Application;
+			import mx.events.FlexEvent;
+			import mx.managers.SystemManager;
+			import mx.utils.ObjectUtil;
+			
+			import weave.Weave;
+			import weave.WeaveProperties;
+			import weave.api.WeaveAPI;
+			import weave.api.getLinkableDescendants;
+			import weave.api.setSessionState;
+			import weave.core.SessionManager;
+			import weave.core.UIUtils;
+			import weave.ui.annotation.SessionedTextBox;
+			import weave.visualization.tools.MapTool;
+			import weave.visualization.tools.ReportTool;
+			import weave.visualization.tools.SimpleVisTool;
+			
+			private var xml:XML;
+			private	var xmlFile:URLRequest = new URLRequest("local_obesity.xml");  
+			private	var loader:URLLoader = new URLLoader(xmlFile);  
+			private var loadedWeave:Object = null;
+			private var swfloader:LinkableSWFLoader;
+			
+			//Load the session state, add it to this session's children and make the necessary modifications
+			private function stripState():void{
+				//create a linkable swfLoader and add it to the "children" tag of the session state
+				swfloader = children.requestObject(children.generateUniqueName("swfLoader"),LinkableSWFLoader, false);
+				
+				//need to add an event listener to the swfLoader we created in order to edit the session state
+				swfloader.addEventListener(Event.COMPLETE,function (e:Event){
+					
+					var manager:Object = (e.target.content);
+					//listen for the application to finish loading
+					manager.addEventListener(FlexEvent.APPLICATION_COMPLETE, function (e2:Event){
+						//get the instance of Weave's session state
+						
+						loadedWeave = (e2.target.application);
+						//						trace("ToString" + ObjectUtil.toString(loadedWeave.loaderInfo.content.application));
+						trace ("loaded weave" + ObjectUtil.toString(loadedWeave.loaderInfo.content.application["weaveProperties"]));
+						trace ( "Application.application " + getQualifiedClassName(Application.application) );
+						
+						
+						loadedWeave.loaderInfo.content.application["weaveProperties"]["enableMenuBar"]["value"] = false;
+						//						loadedWeave.["Weave"].properties.enableMenuBar.value = false;
+						//						swfloader["Weave"].properties.enableMenuBar.value = false;
+						
+						trace("enablemenubar? " + swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties);
+						
+						
+						//tell VisApplication that this is loaded from the swfloader, so remove the menubar instead of just dimming it
+						swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.isLoadedInSwfLoader = true;
+						
+						//when the application is actually loaded, the menubar is set to enabled, so wait for this to happen and then call the disableMenuBar function
+						swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.enableMenuBar.addImmediateCallback(this,editSessionVariables,null,false);
+					});
+				});
+				loader.load(xmlFile);  
+				loader.addEventListener("complete", xmlLoaded);  
+				//          myLoader.load(myXMLURL);  
+			}  
+			
+			//disable menu bar
+			private function editSessionVariables():void{
+				swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.dashboardMode.value = true;
+				swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.enableMenuBar.value = false;
+			}
+			override protected function constructor():void{
+				super.constructor();
+				UIUtils.linkDisplayObjects(this,children);
+				//				(WeaveAPI.SessionManager as SessionManager).registerLinkableChild(this, swfLoader);
+				trace ("called constructor" + children.getNames().toString());
+			}
+			
+			public function xmlLoaded(event:Event):void{  
+				xml = new XML(loader.data);  
+				trace (" attributes " + xml.attributes().toString());
+			}
+			
+			//get the instance of weave that is being loaded and load the sessionstate of that
+			public function loadSessionState(state:XML):void{
+				swfloader.loaderContext.applicationDomain.getDefinition("weave").loadSessionState(state);
+			}
+			
+		]]>
+	</mx:Script>
+	
+</ui:UITest>
+

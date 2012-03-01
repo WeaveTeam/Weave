@@ -20,6 +20,7 @@
 package weave
 {
 	import flash.external.ExternalInterface;
+	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
@@ -34,10 +35,10 @@ package weave
 	import weave.api.data.IStatisticsCache;
 	import weave.api.services.IURLRequestUtils;
 	import weave.core.ErrorManager;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableHashMap;
 	import weave.core.SessionManager;
-	import weave.core.ExternalSessionStateInterface;
 	import weave.core.WeaveXMLDecoder;
 	import weave.core.WeaveXMLEncoder;
 	import weave.data.AttributeColumnCache;

@@ -19,6 +19,10 @@
 
 package weave
 {
+	import flash.utils.getQualifiedClassName;
+	
+	import mx.core.Application;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
@@ -59,6 +63,7 @@ package weave
 				registerLinkableChild(this, this[propertyName] as ILinkableObject);
 			
 			rServiceURL.addImmediateCallback(null, handleRServiceURLChange);
+			
 		}
 		
 		private function handleRServiceURLChange():void
@@ -121,6 +126,9 @@ package weave
 		public const enableAddRScriptEditor:LinkableBoolean = new LinkableBoolean(true); // Add R Script Editor option tools menu		
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
 		public const enableAddDataFilter:LinkableBoolean = new LinkableBoolean(true);
+		
+		public const enableAddAnnotationTool:LinkableBoolean = new LinkableBoolean(true); // Add Annotation Tool option tools menu  - AAThesis
+		public const enableAddReportTool:LinkableBoolean = new LinkableBoolean(true); // Add Report Tool option tools menu  - AAThesis
 		
 //		public const enableAddStickFigurePlot:LinkableBoolean = new LinkableBoolean(true); // Add Stick Figure Plot option tools menu
 		public const enableAddRadViz:LinkableBoolean = new LinkableBoolean(true); // Add RadViz option tools menu		
@@ -194,6 +202,8 @@ package weave
 		
 		public function get enableDebugAlert():LinkableBoolean { return DebugUtils.enableDebugAlert; } // show debug_trace strings in alert boxes
 		public const showKeyTypeInColumnTitle:LinkableBoolean = new LinkableBoolean(false);
+		
+		public var isLoadedInSwfLoader:Boolean;  //need to tell the toggleMenuBar function that it is loaded from a swfloader so remove the menubar
 		
 		// cosmetic options
 		public const pageTitle:LinkableString = new LinkableString("Open Indicators Weave"); // title to show in browser window
