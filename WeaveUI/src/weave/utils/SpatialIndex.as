@@ -60,6 +60,8 @@ package weave.utils
 		
 		private var _queryMissingBounds:Boolean; // used by _insertNext
 		private var _keysArrayIndex:int; // used by _insertNext
+		private var _keysIndex:int; // used by _insertNext
+		private var _plotter:IPlotter;//used by _insertNext
 		private var _boundsArrayIndex:int; // used by _insertNext
 		private var _boundsArray:Array; // used by _insertNext
 		
@@ -142,27 +144,14 @@ package weave.utils
 			
 			_keysArray.length = 0; // hack to prevent callbacks
 			clear();
-			
+			_plotter = plotter;
+
 			if (plotter != null)
 			{
 				collectiveBounds.copyFrom(plotter.getBackgroundDataBounds());
 				
 				// make a copy of the keys vector
-				VectorUtils.copy(plotter.keySet.keys, _keysArray);
-				
-				// save dataBounds for each key
-				i = _keysArray.length;
-				while (--i > -1)
-				{
-					key = _keysArray[i] as IQualifiedKey;
-					_keyToBoundsMap[key] = plotter.getDataBoundsFromRecordKey(key);
-					
-					if (_keyToGeometriesMap != null)
-					{
-						var geoms:Array = ((plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
-						_keyToGeometriesMap[key] = geoms;
-					}
-				}
+				VectorUtils.copy(plotter.keySet.keys, _keysArray);			
 			}
 			
 			// if auto-balance is disabled, randomize insertion order
@@ -179,13 +168,29 @@ package weave.utils
 		
 		private function _insertNext():Number
 		{
-			if (_keysArrayIndex >= _keysArray.length) // in case length is zero
+			if (_keysArrayIndex  >= _keysArray.length && _keysIndex >= _keysArray.length) // in case length is zero
 			{
 				triggerCallbacks();
 				return 1; // done
 			}
 			
-			var key:IQualifiedKey = _keysArray[_keysArrayIndex] as IQualifiedKey;
+			var key:IQualifiedKey;
+		
+			if (_keysIndex < _keysArray.length)
+			{
+				key = _keysArray[_keysIndex] as IQualifiedKey;
+				_keyToBoundsMap[key] = _plotter.getDataBoundsFromRecordKey(key);
+				
+				if (_keyToGeometriesMap != null)
+				{
+					var geoms:Array = ((_plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
+					_keyToGeometriesMap[key] = geoms;
+				}
+				_keysIndex++;					
+				return 0;
+			}
+			
+			key = _keysArray[_keysArrayIndex] as IQualifiedKey;
 			if (!_boundsArray) // is there an existing nested array?
 			{
 				//trace(key.keyType,key.localName,'(',_keysArrayIndex,'/',_keysArray.length,')');
@@ -233,6 +238,7 @@ package weave.utils
 			
 			_boundsArray = null;
 			_keysArrayIndex = 0;
+			_keysIndex = 0;
 			_keysArray.length = 0;
 			_kdTree.clear();
 			collectiveBounds.reset();
