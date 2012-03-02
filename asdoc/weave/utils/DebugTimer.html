@@ -64,7 +64,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#end()">end</a>(debugString:String, ... debugStrings):void</div>
+<a class="signatureLink" href="#end()">end</a>(debugString:String, ... debugStrings):int</div>
 <div class="summaryTableDescription">[static]
    This will reset the timer so that higher-level functions can resume their use of DebugTimer.</div>
 </td><td class="summaryTableOwnerCol">DebugTimer</td>
@@ -72,7 +72,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#lap()">lap</a>(debugString:String, ... debugStrings):void</div>
+<a class="signatureLink" href="#lap()">lap</a>(debugString:String, ... debugStrings):int</div>
 <div class="summaryTableDescription">[static]
    This will report the time since the last call to begin() or lap().</div>
 </td><td class="summaryTableOwnerCol">DebugTimer</td>
@@ -104,7 +104,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function end(debugString:String, ... debugStrings):void</code><p>
+<code>public static function end(debugString:String, ... debugStrings):int</code><p>
    This will reset the timer so that higher-level functions can resume their use of DebugTimer.
    Pairs of calls to begin() and end() may be nested.
    </p><span class="label">Parameters</span>
@@ -121,6 +121,14 @@ showHideInherited();
    </td>
 </tr>
 </table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>int</code> &mdash; The elapsed time.
+   </td>
+</tr>
+</table>
 </div>
 <a name="lap()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
@@ -129,7 +137,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function lap(debugString:String, ... debugStrings):void</code><p>
+<code>public static function lap(debugString:String, ... debugStrings):int</code><p>
    This will report the time since the last call to begin() or lap().
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -142,6 +150,14 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code>... <span class="label">debugStrings</span></code> &mdash; Additional strings to print using trace(), which will be separated by spaces.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>int</code> &mdash; The elapsed time.
    </td>
 </tr>
 </table>
