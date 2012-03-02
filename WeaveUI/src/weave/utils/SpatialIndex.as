@@ -335,7 +335,7 @@ package weave.utils
 			var keys:Array = getKeysBoundingBoxOverlap(queryBounds, filterBoundingBoxesByImportance ? minImportance : 0);
 			
 			// if this index isn't for an IPlotterWithGeometries OR the user wants legacy probing
-			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value)
+			if (_keyToGeometriesMap == null || !Weave.properties.shouldEnableGeometryProbing())
 				return keys;
 			
 			// if there are 0 keys
@@ -490,7 +490,7 @@ package weave.utils
 				var overlapsQueryCenter:Boolean = false;
 				
 				// if the plotter wasn't an IPlotterWithGeometries or if the user wants the old probing
-				if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value)
+				if (_keyToGeometriesMap == null || !Weave.properties.shouldEnableGeometryProbing())
 				{
 					for each (recordBounds in _keyToBoundsMap[key])
 					{
@@ -703,7 +703,7 @@ package weave.utils
 			var queryGeomVertices:Array = geometry.getVertices();
 			var keys:Array = getKeysBoundingBoxOverlap((geometry as SimpleGeometry).bounds, filterBoundingBoxesByImportance ? minImportance : 0);
 			
-			if (!Weave.properties.enableGeometryProbing.value || _keyToGeometriesMap == null)
+			if (_keyToGeometriesMap == null || !Weave.properties.shouldEnableGeometryProbing())
 				return keys;
 			
 			var result:Array = [];

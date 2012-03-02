@@ -273,6 +273,13 @@ package weave
 		public function get geometryMetadataRequestMode():LinkableString { return StreamedGeometryColumn.metadataRequestMode; }
 		public function get geometryMinimumScreenArea():LinkableNumber { return StreamedGeometryColumn.geometryMinimumScreenArea; }
 		
+		public function shouldEnableGeometryProbing():Boolean
+		{
+			// disable detailed geometry probing while there are background tasks
+			return enableGeometryProbing.value
+				&& WeaveAPI.ProgressIndicator.getTaskCount() == 0;
+		}
+		
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 
 		public const enableUserPreferences:LinkableBoolean = new LinkableBoolean(true); // open the User Preferences Panel
