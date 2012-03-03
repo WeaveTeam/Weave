@@ -44,6 +44,7 @@ package weave.core
 	import weave.api.core.ILinkableVariable;
 	import weave.api.core.ISessionManager;
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 
 	use namespace weave_internal;
 
@@ -1344,8 +1345,17 @@ package weave.core
 				var sessionState:Object;
 				for (i = 0; i < oldState.length; i++)
 				{
-					//note: there is no error checking here for typedState
 					typedState = oldState[i];
+					
+					// if we see a string, assume both are String Arrays.
+					if (typedState is String || typedState is Array)
+					{
+						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
+							return undefined; // no diff
+						return newState;
+					}
+					
+					//note: there is no error checking here for typedState
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					oldLookup[objectName] = typedState;
 				}
@@ -1357,6 +1367,16 @@ package weave.core
 				for (i = 0; i < newState.length; i++)
 				{
 					typedState = newState[i];
+					
+					// if we see a string, assume both are String Arrays.
+					if (typedState is String || typedState is Array)
+					{
+						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
+							return undefined; // no diff
+						return newState;
+					}
+					
+					//note: there is no error checking here for typedState
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					className = typedState[DynamicState.CLASS_NAME];
 					sessionState = typedState[DynamicState.SESSION_STATE];
