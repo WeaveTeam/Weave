@@ -133,7 +133,6 @@
 				_csvFileReference.load();
 			}
 			
-			private var _csvData:String = '';
 			private function csvFileLoadCompleteHandler(event:Event):void
 			{
 				if (_csvFileReference.data == null)
@@ -143,21 +142,8 @@
 				
 				csvFileNameInput.text = _csvFileReference.name;
 				
-				// when file is loaded locally, get csv column names
-				_csvData = _csvFileReference.data.toString();
-				var firstRow:Array = WeaveAPI.CSVParser.parseCSV(_csvData)[0];
-				csvKeyColumnCombo.dataProvider = firstRow;
-				csvSecondaryKeyColumnCombo.dataProvider = firstRow;
-				csvSecondaryKeyColumnCombo.selectedIndex = -1;
-				filterColumnsInput.text = WeaveAPI.CSVParser.createCSV([firstRow]);
+				AdminInterface.instance.service.getCSVColumnNames(_csvFileReference.name).addAsyncResponder(handleGetCSVColumnNames,handleCSVFault,_csvFileReference.name);
 				
-				var tableName:String = _csvFileReference.name;
-				
-				//clip the ".csv"
-				tableName = tableName.substring(0, tableName.lastIndexOf("."));
-				
-				tableSelector.activeTable = tableName;
-				enableAllWidgets();
 				
 			}
 			
@@ -175,6 +161,8 @@
 			{
 				try
 				{
+					generateKeyColumn.selected = true;
+					secondaryKeyColumnCheckBox.selected = false;
 					var fileTypes:Array = [new FileFilter("CSV Files", "*.csv")];
 					_csvFileReference.browse(fileTypes);
 				}
@@ -192,12 +180,11 @@
 			{
 				var tableName:String = _serverFileBrowser.datagrid.selectedItem.name;
 				
-				_csvData='';
 				nextEnabled = false;
 				finishEnabled = false;
 				
-				AdminInterface.instance.service.getCSVColumnNames(tableName).addAsyncResponder(handleGetCSVColumnNames,handleCSVFault);
-				AdminInterface.instance.service.getCSVStringData(tableName).addAsyncResponder(handleGetCSVStringData,handleCSVFault);
+				AdminInterface.instance.service.getCSVColumnNames(tableName).addAsyncResponder(handleGetCSVColumnNames,handleCSVFault,tableName);
+//				AdminInterface.instance.service.getCSVStringData(tableName).addAsyncResponder(handleGetCSVStringData,handleCSVFault);
 				
 				
 				
@@ -208,14 +195,22 @@
 				PopUpManager.removePopUp(_serverFileBrowser);
 				enableAllWidgets();
 			}
+			
 			private function handleGetCSVColumnNames(e:ResultEvent, token:Object = null):void
 			{
 				csvKeyColumnCombo.dataProvider = e.result;
 				csvSecondaryKeyColumnCombo.dataProvider = e.result;
-			}
-			private function handleGetCSVStringData(e:ResultEvent,token:Object=null):void
-			{
-				_csvData = e.result as String;
+				
+				csvSecondaryKeyColumnCombo.selectedIndex = -1;
+				filterColumnsInput.text = WeaveAPI.CSVParser.createCSV([e.result]);
+				
+				var tableName:String = token as String;
+				
+				//clip the ".csv"
+				tableName = tableName.substring(0, tableName.lastIndexOf("."));
+				
+				tableSelector.activeTable = tableName;
+				enableAllWidgets();
 				finishEnabled = true;
 				nextEnabled = true;
 			}
@@ -228,12 +223,7 @@
 			//This means the user has already loaded a file and might want to upload a new file or hit the back button by mistake
 			override public function back():void
 			{
-				if(_csvData)
-				{
-					nextEnabled = true;
-					finishEnabled = true;
-				}
-				
+				nextEnabled = true;
 				super.back();
 			}
 			
@@ -351,30 +341,29 @@
 				if(generateKeyColumn.selected || generateFilterColumns.selected)
 					return;
 				
+				finishEnabled = false;
+				nextEnabled = false;
+				
 				var keyColName:String = csvKeyColumnCombo.selectedItem as String;
 				var secKeyColName:String = csvSecondaryKeyColumnCombo.selectedItem as String;
 				
-				var csvDataArray:Array = WeaveAPI.CSVParser.parseCSV(_csvData);
-				
-				var firstRow:Array = csvDataArray[0];
-				
-				var colIndex:int = firstRow.indexOf(keyColName);
-				var secColIndex:int = firstRow.indexOf(secKeyColName);
-				
-				var colValues:Array = [];
-				
-				var keyValue:String ='';
-				for (var i:int=1; i<csvDataArray.length; i++)
+				if(secondaryKeyColumnCheckBox.selected)
 				{
-					keyValue = csvDataArray[i][colIndex];
-					if(secondaryKeyColumnCheckBox.selected)
-					{
-						keyValue += ',' + csvDataArray[i][secColIndex];
-					}
-					colValues.push(keyValue);
+					AdminInterface.instance.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName,secKeyColName)
+						.addAsyncResponder(handleKeyColumnCheck,handleKeyColumnCheckFault);
+				}else
+				{
+					AdminInterface.instance.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName)
+						.addAsyncResponder(handleKeyColumnCheck,handleKeyColumnCheckFault);
 				}
 				
-				if(!isUnique(colValues))
+				
+			}
+			
+			private function handleKeyColumnCheck(e:ResultEvent,token:Object=null):void
+			{
+				
+				if(!e.result)
 				{
 					csvKeyColumnCombo.errorString = "Key values are not unique";
 					
@@ -382,13 +371,19 @@
 					
 					finishEnabled = false;
 					nextEnabled = false;
-				}else{
+				}else
+				{
 					
 					clearErrors();
 				}
 				
 				csvKeyColumnCombo.invalidateDisplayList();
 				csvSecondaryKeyColumnCombo.invalidateDisplayList();
+			}
+			
+			private function handleKeyColumnCheckFault(e:FaultEvent,token:Object=null):void
+			{
+				clearErrors();
 			}
 			
 			/**

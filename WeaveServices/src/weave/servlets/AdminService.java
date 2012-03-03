@@ -1058,6 +1058,95 @@ public class AdminService extends GenericServlet
 	}
 	
 	/**
+	 * Check if selected key column from CSV data has unique values
+	 * 
+	 * @param csvFile The CSV file to check
+	 * 
+	 * @param keyColumn The column name to check for unique values
+	 *            
+	 * @return A list of common header files or null if none exist encoded using
+	 * 
+	 */
+	synchronized public Boolean checkKeyColumnForCSVImport(String csvFile,String keyColumn,String secondaryKeyColumn) throws RemoteException
+	{
+
+		Boolean isUnique = true;
+		try
+		{
+			String [] headers = getCSVColumnNames(csvFile);
+			
+			int keyColIndex = 0;
+			int secKeyColIndex = 0;
+			
+			for (int i = 0; i < headers.length; i++)
+			{
+				if(headers[i].equals(keyColumn))
+				{
+					keyColIndex = i;
+					break;
+				}
+			}
+			
+			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
+			
+			String[][] rows = CSVParser.defaultParser.parseCSV(csvData);
+			
+			HashMap<String, Boolean> map = new HashMap<String, Boolean>();
+			
+			if(secondaryKeyColumn == null)
+			{
+				
+				for(int i = 1; i < rows.length; i++)
+				{
+					if(map.get(rows[i][keyColIndex].toString()) == null)
+					{
+						map.put(rows[i][keyColIndex].toString(), true);
+					}else{
+						isUnique = false;
+						break;
+					}
+					
+				}
+			}
+			else
+			{
+				for (int i = 0; i < headers.length; i++)
+				{
+					if(headers[i].equals(secondaryKeyColumn))
+					{
+						secKeyColIndex = i;
+						break;
+					}
+				}
+				
+				
+				for(int i = 0; i < rows.length; i++)
+				{
+					if(map.get(rows[i][keyColIndex].toString()+','+rows[i][secKeyColIndex].toString()) == null)
+					{
+						map.put(rows[i][keyColIndex].toString()+','+rows[i][secKeyColIndex].toString(), true);
+					}else{
+						isUnique = false;
+						break;
+					}
+					
+				}
+			}
+		}
+		catch (FileNotFoundException e)
+		{
+			throw new RemoteException(e.getMessage());
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException(e.getMessage());
+		}
+
+		return isUnique;
+	}
+	
+	
+	/**
 	 * Read a csv file and return the csv data string .
 	 * 
 	 * @param A csv file name
