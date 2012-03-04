@@ -48,10 +48,6 @@ package weave.visualization.plotters
 	{
 		public function GeometryLabelPlotter()
 		{
-			init();
-		}
-		private function init():void
-		{
 			registerSpatialProperty(geometryColumn);
 			
 			// hide dataX,dataY because they don't need to be shown in the session state.

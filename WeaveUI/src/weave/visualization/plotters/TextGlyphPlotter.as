@@ -179,7 +179,17 @@ package weave.visualization.plotters
 					// draw almost-invisible rectangle behind text
 					bitmapText.getUnrotatedBounds(tempBounds);
 					tempBounds.getRectangle(tempRectangle);
-					destination.fillRect(tempRectangle, 0x02808080);
+					
+					var pixels:Vector.<uint> = destination.getVector(tempRectangle);
+					for (var p:int = 0; p < pixels.length; p++)
+					{
+						var color:uint = pixels[p] as uint;
+						if (!color)
+							pixels[p] = color | 0x20808080;
+					}
+					destination.setVector(tempRectangle, pixels);
+					
+					//destination.fillRect(tempRectangle, 0x02808080);
 				}
 				
 				bitmapText.draw(destination);
@@ -187,7 +197,7 @@ package weave.visualization.plotters
 			for each (bounds in reusableBoundsObjects)
 				ObjectPool.returnObject(bounds);
 		}
-		
+
 		private static const tempRectangle:Rectangle = new Rectangle(); // reusable temporary object
 		private static const tempBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 	}
