@@ -1278,7 +1278,11 @@ package weave.compiler
 								// type casting
 								if (call.evaluatedParams.length != 1)
 									throw new Error("Incorrect number of arguments for type casting.  Expected 1.");
-								result = call.evaluatedMethod(call.evaluatedParams[0]);
+								// special case for Class('some.qualified.ClassName')
+								if (call.evaluatedMethod === Class && call.evaluatedParams[0] is String)
+									result = getDefinitionByName(call.evaluatedParams[0]);
+								else
+									result = call.evaluatedMethod(call.evaluatedParams[0]);
 							}
 							else
 							{
