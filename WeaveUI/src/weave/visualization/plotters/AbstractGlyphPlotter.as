@@ -34,7 +34,6 @@ package weave.visualization.plotters
 	import weave.primitives.GeneralizedGeometry;
 	
 	/**
-	 * AbstractGlyphPlotter
 	 * A glyph represents a point of data at an X and Y coordinate.
 	 * 
 	 * @author adufilie
@@ -42,10 +41,6 @@ package weave.visualization.plotters
 	public class AbstractGlyphPlotter extends AbstractPlotter
 	{
 		public function AbstractGlyphPlotter()
-		{
-			init();
-		}
-		private function init():void
 		{
 			clipDrawing = false;
 			setKeySource(dataX);

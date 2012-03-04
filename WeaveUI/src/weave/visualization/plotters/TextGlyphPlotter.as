@@ -185,7 +185,7 @@ package weave.visualization.plotters
 					{
 						var color:uint = pixels[p] as uint;
 						if (!color)
-							pixels[p] = color | 0x20808080;
+							pixels[p] = color | 0x20ffffff;
 					}
 					destination.setVector(tempRectangle, pixels);
 					
