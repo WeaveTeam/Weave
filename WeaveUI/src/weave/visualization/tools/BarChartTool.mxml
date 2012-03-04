@@ -128,7 +128,7 @@
 						verticalGap="0">
 					<mx:VBox width="100%" 
 							id="barChartControls">
-						<userControls:ControlsSubsetBox width="100%">
+						<mx:HBox borderStyle="inset" width="100%">
 							<mx:Label text="Bar Opacity:" 
 									color="0x000000" fontSize="12" 
 									toolTip="Use this control to see how transparent bars are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
@@ -139,11 +139,9 @@
 										dataTipFormatFunction="alphaSliderFormatFunction"
 										minimum="0.3" maximum="1.0" value="1.0"
 										liveDragging="true"/>
-						</userControls:ControlsSubsetBox>
-						<userControls:ControlsSubsetBox width="100%">
-								<mx:CheckBox id="linkSortingToHeightCheck" fontSize="12" label="Sort"
-											 toolTip="Link the column used for sorting the bar order to the column used to set the height of the bars.  Checking this will make it so that if you change the bar height attribute, the bars will be sorted to match this column.  Unchecking this unlink these columns so the sorting can be set separately, but will still be sorted by the previous height column until set otherwise."/>
-						</userControls:ControlsSubsetBox>
+						</mx:HBox>
+						<mx:CheckBox id="linkSortingToHeightCheck" fontSize="12" label="Sort"
+									 toolTip="Link the column used for sorting the bar order to the column used to set the height of the bars.  Checking this will make it so that if you change the bar height attribute, the bars will be sorted to match this column.  Unchecking this unlink these columns so the sorting can be set separately, but will still be sorted by the previous height column until set otherwise."/>
 						<ui:DynamicColumnComponent visTool="{this}" label="height" creationComplete="event.target.dynamicObject = _plotter.yBarEnd"/>
 						<ui:DynamicColumnComponent visTool="{this}" label="sort" creationComplete="event.target.dynamicObject = _plotter.sortColumn"/>
 						<ui:DynamicColumnComponent visTool="{this}" label="color" creationComplete="event.target.dynamicObject = colorColumn"/>

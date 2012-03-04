@@ -38,6 +38,7 @@ package weave.data.AttributeColumns
 	import weave.compiler.ICompiledObject;
 	import weave.compiler.ProxyObject;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 	import weave.core.UntypedLinkableVariable;
@@ -68,6 +69,9 @@ package weave.data.AttributeColumns
 
 		public function EquationColumn()
 		{
+			getCallbackCollection(LinkableFunction.macroLibraries).addImmediateCallback(this, equation.triggerCallbacks, null, false, true);
+			getCallbackCollection(LinkableFunction.macros).addImmediateCallback(this, equation.triggerCallbacks, null, false, true);
+			
 			setMetadata(AttributeColumnMetadata.TITLE, "Untitled Equation");
 			//setMetadata(AttributeColumnMetadata.DATA_TYPE, DataTypes.NUMBER);
 			equation.value = 'undefined';
@@ -258,14 +262,17 @@ package weave.data.AttributeColumns
 		{
 			if (name == 'get')
 				return variables.getObject as Function;
-			return variables.getObject(name) || undefined;
+			return variables.getObject(name)
+				|| LinkableFunction.evaluateMacro(name)
+				|| undefined;
 		}
 		
 		private function hasVariable(name:String):Boolean
 		{
 			if (name == 'get')
 				return true;
-			return variables.getObject(name) != null;
+			return variables.getObject(name) != null
+				|| LinkableFunction.macros.getObject(name) != null;
 		}
 		
 		

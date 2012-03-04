@@ -36,13 +36,14 @@
 			import weave.api.WeaveAPI;
 			import weave.api.data.IDataSource;
 			import weave.api.getSessionState;
+			import weave.api.ui.IVisTool;
 			import weave.core.SessionManager;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.primitives.AttributeHierarchy;
 			import weave.utils.HierarchyUtils;
 
-	//constructor
-	
+			WeaveAPI.registerImplementation(IVisTool, TimeSliderTool, "Time Slider Tool");
+			
 	override protected function constructor():void
 	{
 		super.constructor();

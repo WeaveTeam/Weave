@@ -26,6 +26,7 @@ package weave.utils
 	import weave.api.core.ILinkableVariable;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
+	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
@@ -314,6 +315,35 @@ package weave.utils
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
 			currentRecordKey = previousKey;
 			return result;
+		}
+		
+		/**
+		 * This will check a list of IKeySets for an IQualifiedKey.
+		 * @param keySets A list of IKeySets (can be IAttributeColumns).
+		 * @param key A key to search for.
+		 * @return The first IKeySet that contains the key.
+		 */
+		public static function findKeySet(keySets:Array, key:IQualifiedKey = null):IKeySet
+		{
+			// remember current key
+			var previousKey:IQualifiedKey = currentRecordKey;
+			
+			if (key == null)
+				key = currentRecordKey;
+			
+			var keySet:IKeySet = null;
+			for (var i:int = 0; i < keySets.length; i++)
+			{
+				keySet = keySets[i] as IKeySet;
+				if (keySet && keySet.containsKey(key))
+					break;
+				else
+					keySet = null;
+			}
+			
+			// revert to key that was set when entering the function (in case nested calls modified the static variables)
+			currentRecordKey = previousKey;
+			return keySet;
 		}
 		
 		public static function getRunningTotal(column:IAttributeColumn, key:IQualifiedKey = null):Number

@@ -1,34 +1,43 @@
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.ui.CustomDataGrid
 {
+	import flash.display.Sprite;
+	import flash.geom.Point;
+	
 	import mx.controls.DataGrid;
 	import mx.controls.dataGridClasses.DataGridColumn;
+	import mx.controls.listClasses.IListItemRenderer;
+	import mx.controls.listClasses.ListBaseContentHolder;
+	import mx.controls.scrollClasses.ScrollBar;
 	import mx.core.mx_internal;
+	import mx.managers.LayoutManager;
 	
 	import weave.Weave;
-	import weave.api.core.ILinkableObject;
+	import weave.api.data.IQualifiedKey;
+	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
-
+	
+	
 	use namespace mx_internal;	                          
-
+	
 	/**
 	 * This is a wrapper around a DataGrid to fix a bug with the mx_internal addMask() function
 	 * which was introduced in Flex 3.6 SDK. The issue is the lockedColumnContent is instantiated
@@ -36,14 +45,32 @@ package weave.ui.CustomDataGrid
 	 * 
 	 * @author kmonico
 	 */	
-	public class CustomDataGrid extends DataGrid implements ILinkableObject
+	public class CustomDataGrid extends DataGrid
 	{
 		
 		public function CustomDataGrid()
 		{
 			super();			
 		}
-		
+		override protected function setupColumnItemRenderer(c:DataGridColumn, contentHolder:ListBaseContentHolder, rowNum:int, colNum:int, data:Object, uid:String):IListItemRenderer{
+			return super.setupColumnItemRenderer(c,contentHolder,rowNum,colNum,data,uid);
+		}
+	
+		override protected function updateList():void{
+			super.updateList();
+		}
+		override protected function drawSelectionIndicator(indicator:Sprite, x:Number, y:Number, width:Number, height:Number, color:uint, itemRenderer:IListItemRenderer):void
+		{
+			super.drawSelectionIndicator(indicator,x,y,width,height,color,itemRenderer);
+		}
+		override  public function set lockedColumnCount(value:int):void
+		{ 
+			
+			super.lockedColumnCount = value;
+			/*if(value == 0){
+				invalidateProperties();
+			}*/
+		}
 		
 		
 		/**
@@ -60,52 +87,79 @@ package weave.ui.CustomDataGrid
 			
 			super.addClipMask(layoutChanged);
 		}
-		
-		public static const VERTICAL_SCROLL:String = "Vertical";
-		public static const HORIZONTAL_SCROLL:String = "Horizontal";
-		public function getScrollWidth(scrollBar:String):int
+				
+		public function getColumnDisplayWidth():Number
 		{
-			if (scrollBar == VERTICAL_SCROLL && verticalScrollBar)
-			{
-				return verticalScrollBar.getExplicitOrMeasuredWidth();
-			}
-			else if (scrollBar == HORIZONTAL_SCROLL && horizontalScrollBar)
-			{
-				return horizontalScrollBar.getExplicitOrMeasuredWidth();
-			}			
-			return 0;
+			var columnDisplayWidth:Number = this.width - this.viewMetrics.right - this.viewMetrics.left;		
+			return columnDisplayWidth;
 		}
 		
+		private var _filtersEnabled:Boolean = false;
 		
+		public function set enableFilters(val:Boolean):void{
+			_filtersEnabled = val;
+			invalidateFilters();
+		}
 		
 		
 		public function invalidateFilters():void
-		{
-			_filtersInvalid = true;
-			invalidateProperties();
+		{	
+			_filtersInValid = true;	
+			invalidateDisplayList();
 		}
-		private var _filtersInvalid:Boolean = false;
+		private var _filtersInValid:Boolean = false;
 		
-		override protected function commitProperties():void
+		private var selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+		
+		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
-			if (_filtersInvalid)
+			super.updateDisplayList(unscaledWidth, unscaledHeight);
+			if (_filtersInValid)
 			{ 
-				_filtersInvalid = false;
-				updateFilterFunctions();
-				resultKeys = [];
-				collection.filterFunction = callAllFilterFunctions;
-				//refresh call the respective function(**callAllFilterFunctions**) through internalrefresh in listCollectionView 
-				collection.refresh();
-				handleCollectionRefresh();
-			}
-			super.commitProperties();
+				_filtersInValid = false;	
+				if(_filtersEnabled){
+					filteredKeys = [];
+					collection.filterFunction = callAllFilterFunctions;
+					//refresh call the respective function(**callAllFilterFunctions**) through internalrefresh in listCollectionView 
+					collection.refresh();				
+					selectedKeySet.replaceKeys(filteredKeys);
+				}				
+				else{					
+					collection.filterFunction = filterKeys;
+					collection.refresh();
+					selectedKeySet.replaceKeys([]);
+				}
+			}			
 		}
 		
-		protected var columnFilterFunctions:Array;
+		/*********************************************** Filters Section***************************************************/
 		
-		//consequnce of change in --activateFilters-- through **commit properties** method
-		//fills --columnFilterFunctions--
-		protected function updateFilterFunctions():void
+	
+		
+		// contains keys filtered by filterfunctions in each WeaveCustomDataGridColumn
+		private var filteredKeys:Array = [];		
+		
+		/**
+		 * This function is a logical AND of each WeaveCustomDataGridColumn filter function
+		 * Called by following sequnce of Function
+		 * commitProperties -> listcollectionview.refresh -> internalrefresh -> callAllfilterFunction through reference
+		 */		
+		protected function callAllFilterFunctions(key:Object):Boolean
+		{
+			var columnFilterFunctions:Array = getAllFilterFunctions();
+			for each (var cff:Function in columnFilterFunctions)
+			{
+				if (!cff(key))
+					return false;
+			}			
+			filteredKeys.push(key);		
+			return true;
+		}
+				
+		
+		//Collects all filterfunctions associated with each WeaveCustomDataGridColumn
+		// returns those filter functions as Array
+		protected function getAllFilterFunctions():Array
 		{
 			var cff:Array = [];
 			for each (var column:DataGridColumn in columns)
@@ -121,33 +175,21 @@ package weave.ui.CustomDataGrid
 					}						
 				}
 			}
-			columnFilterFunctions = cff;
+			return  cff;
 		}
 		
+		/*********************************************** Subset Section***************************************************/
 		
-		private var resultKeys:Array = [];		
+		private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 		
-		/**
-		 * This function is a logical AND of all functions in --columnFilterFunctions--
-		 * on each record filterFunctions are applied through 
-		 * **commitProperties** -> listcollectionview.refresh -> internalrefresh -> callAllfilterFunction through reference
-		 */		
-		protected function callAllFilterFunctions(key:Object):Boolean
+		private function filterKeys(item:Object):Boolean
 		{
-			for each (var cff:Function in columnFilterFunctions)
-			{
-				if (!cff(key))
-					return false;
-			}			
-			resultKeys.push(key);		
-			return true;
+			if(_subset.containsKey(item as IQualifiedKey))
+				return true;
+			else 
+				return false;
 		}
-		//executes after iteration on callAllFilterFunctions by all the datagrid records
-		private function handleCollectionRefresh():void
-		{			
-			var filteredKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			filteredKeySet.replaceKeys(resultKeys);			
-		}
+		
 		
 	}
 }

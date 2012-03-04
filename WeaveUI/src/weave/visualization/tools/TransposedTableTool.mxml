@@ -26,6 +26,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
 				   layout="absolute"
 				   title="Transposed Data Table" xmlns:editors="weave.editors.*"
+				   implements="weave.api.ui.IVisTool"
 				   >
 	
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0">
@@ -56,11 +57,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.events.DataGridEvent;
 			
+			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
@@ -68,6 +71,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.KeySets.KeySet;
 			import weave.utils.ColumnUtils;
 			import weave.utils.NumberUtils;
+			
+			WeaveAPI.registerImplementation(IVisTool, TransposedTableTool, "Transposed Data Table");
 			
 			public const columns:LinkableHashMap = newLinkableChild(this,LinkableHashMap,handleColumnsListChange,true);
 			public const headerAttributeColumn:DynamicColumn = newLinkableChild(this,DynamicColumn,handleHeaderColumnChange,true);

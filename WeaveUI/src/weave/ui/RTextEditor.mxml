@@ -42,6 +42,7 @@ RTextEditor
 				backgroundColor="#EFF4BC" 
 				layout="horizontal"
 				autoLayout="true"
+				implements="weave.api.ui.IVisTool"
 				>
 	<mx:HBox width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
 		<mx:VBox width="20%" height="100%" verticalGap="0">
@@ -114,6 +115,7 @@ RTextEditor
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.ui.IVisTool;
 			import weave.core.DynamicState;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableHashMap;
@@ -139,6 +141,8 @@ RTextEditor
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.tools.SimpleVisTool;
+			
+			WeaveAPI.registerImplementation(IVisTool, RTextEditor, "R Script Editor");
 			
 			private const padding:int = 5;
 			

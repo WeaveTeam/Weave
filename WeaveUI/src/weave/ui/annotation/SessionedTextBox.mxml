@@ -204,8 +204,21 @@
 			
 			private function handleLinkableHtmlText():void
 			{
+				if (!parent)
+				{
+					callLater(handleLinkableHtmlText);
+					return;
+				}
+				
 				// use internal text field because the real _tempTextField loses formatting.
 				var _tempTextField:IUITextField = textArea.mx_internal::getTextField();
+				
+				if (!_tempTextField)
+				{
+					reportError("Unexpected: textArea.mx_internal::getTextField() is null");
+					return;
+				}
+				
 				_tempTextField.htmlText = htmlText.value; // use the textField temporarily for getTextFormat,setTextFormat
 				// make sure the text between each pair of { and } brackets only has a single format.
 				var begin:int;

@@ -303,7 +303,7 @@
 				  >
 			<mx:VBox width="100%" verticalGap="0">
 				<mx:VBox width="100%" id="controls">
-					<userControls:ControlsSubsetBox width="100%">
+					<mx:HBox borderStyle="inset" width="100%">
 						<mx:Label text="Shape:" color="0x000000" fontSize="{controlsFontSize}" 
 								  toolTip="This controls what shape is used to indicate the data points on the axes."/>
 						<ui:CustomComboBox id="shapeCombo" dataProvider="{ParallelCoordinatesPlotter.shapesAvailable}"/>
@@ -318,10 +318,9 @@
 									labels="['0', '1','','','','5','','','','','10','','','','','15','','','','','20']"
 									minimum="0" maximum="20" 
 									liveDragging="true"/>
-						
-					</userControls:ControlsSubsetBox>
+					</mx:HBox>
 					
-					<userControls:ControlsSubsetBox width="100%" horizontalGap="2">
+					<mx:HBox borderStyle="inset" width="100%">
 						<mx:HBox horizontalGap="0">
 							<mx:Label text="Border color:" color="0x000000" fontSize="{controlsFontSize}"/>
 							<mx:ColorPicker id="shapeBorderColorPicker"
@@ -344,9 +343,9 @@
 										minimum="0" maximum="5"
 										liveDragging="true"/>
 						</mx:HBox>
-					</userControls:ControlsSubsetBox>
+					</mx:HBox>
 					
-					<userControls:ControlsSubsetBox width="100%">
+					<mx:HBox borderStyle="inset" width="100%">
 						<mx:Label text="Line Opacity:" 
 								  color="0x000000" fontSize="{controlsFontSize}" 
 								  toolTip="Use this control to see how transparent lines are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
@@ -358,10 +357,10 @@
 									dataTipFormatFunction="alphaSliderFormatFunction"
 									minimum="0.1" maximum="1.0" 
 									liveDragging="true"/>
-					</userControls:ControlsSubsetBox>
+					</mx:HBox>
 					
 					
-					<userControls:ControlsSubsetBox width="100%">
+					<mx:HBox borderStyle="inset" width="100%">
 						<mx:Label text="Line Curvature:" 
 								  color="0x000000" fontSize="{controlsFontSize}" 
 								  toolTip=""/>
@@ -371,8 +370,8 @@
 						<!--<mx:RadioButton label="Away"          value="ParallelCoordinatesPlotter.LINE_CURVE_AWAY" 		groupName="curvatureButtons"/>
 						<mx:RadioButton label="Towards"       value="ParallelCoordinatesPlotter.LINE_CURVE_TOWARDS" 	groupName="curvatureButtons"/>-->
 						<mx:RadioButton label="Double"        value="ParallelCoordinatesPlotter.LINE_DOUBLE_CURVE"  	groupName="curvatureButtons"/>
-					</userControls:ControlsSubsetBox>
-					<userControls:ControlsSubsetBox width="100%">
+					</mx:HBox>
+					<mx:HBox borderStyle="inset" width="100%">
 						<mx:Label text="Line Thickness:" 
 								  color="0x000000" fontSize="{controlsFontSize}" 
 								  toolTip=""/>
@@ -382,11 +381,10 @@
 						<mx:RadioButton label="2" value="2"  groupName="thickessButtons"/>
 						<mx:RadioButton label="3" value="3"  groupName="thickessButtons"/>
 						<mx:RadioButton label="4" value="4"  groupName="thickessButtons"/>
-						
-					</userControls:ControlsSubsetBox>
-					<userControls:ControlsSubsetBox width="100%">
+					</mx:HBox>
+					<mx:HBox borderStyle="inset" width="100%">
 						<mx:CheckBox id="resizeCheckBox" label="Show an independent axis for each column." toolTip="Checked:&#13;&#x09;Each point along the line will between the minimum and maximum of a given column when it crosses it.  Each column is normalized to fit its data, so this is designed for independent columns (Parallel Coordinates).  &#13;&#13;Unchecked:&#13;&#x09;Only one axis is shown on the left and has the absolute minimum and maximum of all the columns used.  This is intended for columns that are equivalent or comparable, using the same data scales.  This is the typical functionality for a Line Chart. "/>
-					</userControls:ControlsSubsetBox>
+					</mx:HBox>
 				</mx:VBox>
 			</mx:VBox>
 		</mx:Panel>

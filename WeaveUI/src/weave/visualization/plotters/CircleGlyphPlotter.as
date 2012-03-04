@@ -86,8 +86,8 @@ package weave.visualization.plotters
 			// project data coordinates to screen coordinates and draw graphics			
 			var radius:Number = ColumnUtils.getNorm(screenRadius, recordKey);
 			
-			tempPoint.x = getXFromRecordKey(recordKey);			
-			tempPoint.y = getYFromRecordKey(recordKey);
+			tempPoint.x = getCoordFromRecordKey(recordKey, true);
+			tempPoint.y = getCoordFromRecordKey(recordKey, false);
 			
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
@@ -96,7 +96,7 @@ package weave.visualization.plotters
 			if (enabledSizeBy.value == true)			
 			{				
 				radius = minScreenRadius.value + (radius *(maxScreenRadius.value - minScreenRadius.value));
-			}				
+			}
 			else				
 			{				
 				radius = defaultScreenRadius.value;				

@@ -13,15 +13,19 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api
+package weave.api.ui
 {
-	import weave.api.core.ILinkableVariable;
+	import mx.core.IUIComponent;
 	
+	import weave.api.core.ILinkableContainer;
+	import weave.api.core.ILinkableObject;
+
 	/**
-	 * @see weave.api.core.ISessionManager
+	 * A vis tool is a panel that a user would want to create an instance of at runtime.
+	 * 
+	 * @author adufilie
 	 */
-	public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void
+	public interface IVisTool extends IUIComponent, ILinkableObject
 	{
-		WeaveAPI.SessionManager.linkBindableProperty(linkableVariable, bindableParent, bindablePropertyName, delay, onlyWhenFocused);
 	}
 }

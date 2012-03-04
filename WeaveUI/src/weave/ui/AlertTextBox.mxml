@@ -40,7 +40,7 @@
 	>
 	<ui:AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
 						  text="{_message}" selectable="false" wordWrap="true" minWidth="300" creationComplete="event.currentTarget.height = 0"/>
-	<mx:TextInput text="{_textInput}" id="textBox" change="_textInput = textBox.text;" enter="if (textBox.text) handleOKClick()" width="100%"/>
+	<mx:TextInput text="{_textInput}" id="textBox" change="_textInput = textBox.text;" enter="if (textBox.text || allowEmptyInput) handleOKClick()" width="100%"/>
 	<mx:HBox id="alertButtons" width="100%">
 		<mx:Spacer width="100%"/>
 		<mx:Button label="Ok" click="handleOKClick()" emphasized="true" enabled="{Boolean(textBox.text) || allowEmptyInput}"/>
@@ -95,13 +95,14 @@
 			focusManager.setFocus(textBox);
 		}		
 		
-		public static function show(title:String, message:String):AlertTextBox 
+		public static function show(title:String, message:String, defaultInput:String = ""):AlertTextBox 
 		{
 			var newAlert:AlertTextBox = PopUpManager.createPopUp(Application.application as DisplayObject, AlertTextBox, true) as AlertTextBox;
 			newAlert.title = title;
 			// disable moving of the popup
 			newAlert.isPopUp = false;
 			newAlert.message = message;
+			newAlert.textInput = defaultInput;
 			
 			PopUpManager.centerPopUp(newAlert);
 			

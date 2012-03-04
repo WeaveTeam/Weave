@@ -47,6 +47,7 @@ package weave
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
+	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.api.services.IURLRequestUtils;
 	import weave.compiler.StandardLib;
@@ -162,7 +163,7 @@ package weave
 			{
 				_root = LinkableDynamicObject.globalHashMap;
 				createDefaultObjects(_root);
-				_history = new SessionStateLog(root);
+				_history = new SessionStateLog(root, 100);
 			}
 			return _root;
 		}
@@ -405,6 +406,9 @@ package weave
 					history.setSessionState(_history);
 				}
 			}
+			
+			// TEMPORARY HACK to force menu to refresh
+			getCallbackCollection(Weave.properties).triggerCallbacks();
 		}
 		
 		private static const WEAVE_RELOAD_SHARED_OBJECT:String = "WeaveExternalReload";

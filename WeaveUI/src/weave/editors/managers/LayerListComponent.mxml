@@ -40,39 +40,30 @@ LayerListComponent
 		</mx:HBox>
 	</mx:HBox>
 	<ui:LinkableObjectList id="internalList" width="100%" height="100%" hashMap="{_hashMap}">
-		<mx:Script>
-			<![CDATA[
-				
-				
-			]]>
-		</mx:Script>
-		<ui:itemRenderer><!--Properties of List should use the same local namespace. So itemrenderer should use ui instead of mx-->
+		<ui:itemRenderer>
 			<mx:Component>
 				<mx:HBox width="100%">
 					<mx:Script>
 						<![CDATA[
-							import flash.utils.getQualifiedClassName;
-							
 							import mx.managers.PopUpManager;
 							
 							import weave.api.linkBindableProperty;
+							import weave.api.newDisposableChild;
 							import weave.api.ui.ILinkableObjectEditor;
 							import weave.api.ui.IPlotLayer;
 							import weave.api.ui.IPlotter;
 							import weave.api.unlinkBindableProperty;
-							import weave.core.ClassUtils;
+							import weave.ui.AlertTextBox;
+							import weave.ui.AlertTextBoxEvent;
 							import weave.ui.ControlPanel;
 							import weave.ui.SessionStateEditor;
 							import weave.utils.EditorManager;
 							import weave.visualization.layers.PlotLayer;
 							import weave.visualization.layers.SelectablePlotLayer;
-							import weave.visualization.plotters.CirclePlotter;
 							import weave.visualization.plotters.DynamicPlotter;
-							import weave.visualization.plotters.SingleImagePlotter;
 							
 							private function openSettingsPanel(layer:IPlotLayer):void
 							{
-								
 								var plotter:IPlotter = null;
 								if (layer)
 									plotter = (layer.plotter as DynamicPlotter).internalObject as IPlotter;
@@ -81,21 +72,21 @@ LayerListComponent
 								var editor:ILinkableObjectEditor = EditorManager.getNewEditor(plotter);
 								if (editor)
 								{
-									var controls:ControlPanel = new ControlPanel();
+									var controls:ControlPanel = newDisposableChild(plotter, ControlPanel);
 									PopUpManager.addPopUp(controls, this);
 									PopUpManager.centerPopUp(controls);
 									controls.targets = [outerDocument.visTool];
 
 									controls.tabNavigator.addChild(editor as DisplayObject);
-								}else
+								}
+								else
 								{
 									SessionStateEditor.openDefaultEditor(plotter);
 								}
-								
 							}
 							
-							[Bindable]public var layerIsVisible:Boolean = true;
-							[Bindable]public var layerIsSelectable:Boolean = true;
+							[Bindable] public var layerIsVisible:Boolean = true;
+							[Bindable] public var layerIsSelectable:Boolean = true;
 							override public function set data(value:Object):void
 							{
 								if (value == data)
@@ -112,7 +103,6 @@ LayerListComponent
 									unlinkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
 								}
 								
-								
 								// save pointer to new layer
 								super.data = value;
 								
@@ -126,11 +116,6 @@ LayerListComponent
 								{
 									linkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
 									linkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
-									if((data as SelectablePlotLayer).getDynamicPlotter().internalObject is SingleImagePlotter || (data as SelectablePlotLayer).getDynamicPlotter().internalObject is CirclePlotter)
-										
-										selectedCheckbox.visible = false;
-									else
-										selectedCheckbox.visible = true;
 								}
 								else
 								{
@@ -138,14 +123,33 @@ LayerListComponent
 								}
 								
 							}
+							
+							protected function onLayerRenameButtonClick(event:MouseEvent,data:Object):void
+							{
+								var defaultInputString:String = outerDocument.internalList.getItemLabel(data);
+								var alertBox:AlertTextBox = AlertTextBox.show("Rename Layer","Please enter a new layer name:",defaultInputString);
+								
+								alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
+									function (e:AlertTextBoxEvent):void 
+									{
+										// if the user clicked cancel, then we will just return from here and save nothing
+										if( !e.confirm ) return;
+										
+										//Alert.show("Input was " + e.textInput);
+										
+										outerDocument.hashMap.renameObject(defaultInputString,e.textInput);
+									}
+								);
+							}
+							
 						]]>
 					</mx:Script>
 					<mx:CheckBox id="visibleCheckbox" label="visible" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
 					<mx:CheckBox id="selectedCheckbox" label="selectable" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
-					<mx:Label textAlign="center" width="50%" text="{outerDocument.internalList.setLabel(data)}" fontWeight="bold"/>
+					<mx:Button textAlign="center" width="100%" label="{outerDocument.internalList.getItemLabel(data)}" toolTip="Click to rename the layer." click="onLayerRenameButtonClick(event,data)"/>
 					<mx:Button label="settings" click="openSettingsPanel(data as IPlotLayer)"/>
 				</mx:HBox>
-			</mx:Component>			
+			</mx:Component>
 		</ui:itemRenderer>
 	</ui:LinkableObjectList>
 	<mx:HBox width="100%">
@@ -173,22 +177,15 @@ LayerListComponent
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.core.UIComponent;
-			import mx.events.DragEvent;
-			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
-			
-			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
-			import weave.api.core.ILinkableObject;
-			import weave.api.linkBindableProperty;
-			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.SessionStateEditor;
 			import weave.visualization.tools.SimpleVisTool;
-			
+			import weave.api.linkBindableProperty;
+
 			private static const boundsInputWidth:int = 64;
 			
-			[Bindable] private var _visTool:SimpleVisTool= null;
+			[Bindable] private var _visTool:SimpleVisTool = null;
 			
 			[Inspectable]
 			public function set visTool(value:SimpleVisTool):void

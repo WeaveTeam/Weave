@@ -20,7 +20,7 @@
 */
 -->
 <!---
-	This component enlists custom layers available 
+	This component lists custom layers available 
 	@author kmanohar
 -->
 <ui:DraggablePanel xmlns="weave.editors.managers.*" 
@@ -44,6 +44,7 @@
 			<mx:Object label="WMS Plotter" plotterClass="{WMSPlotter}" layerClass="{SelectablePlotLayer}"/>
 			<mx:Object label="Grid lines" plotterClass="{GridLinePlotter}" layerClass="{PlotLayer}"/>
 			<mx:Object label="Labels" plotterClass="{AxisLabelPlotter}" layerClass="{PlotLayer}"/>
+			<mx:Object label="Rectangle Plotter" plotterClass="{RectanglePlotter}" layerClass="{SelectablePlotLayer}"/>
 		</mx:List>
 	
 		<mx:Button label="Add new layer" right="0" click="openControls()" enabled="{layerSelector.selectedItem != null}"/>
@@ -66,6 +67,7 @@
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			import weave.visualization.plotters.GeometryPlotter;
 			import weave.visualization.plotters.GridLinePlotter;
+			import weave.visualization.plotters.RectanglePlotter;
 			import weave.visualization.plotters.WMSPlotter;
 			import weave.visualization.tools.SimpleVisTool;
 			
@@ -95,7 +97,7 @@
 				PopUpManager.centerPopUp(controls);
 				controls.targets = [_tool];
 
-				var layer:IPlotLayer = _tool.visualization.layers.requestObject(label, Layer, false) as IPlotLayer;
+				var layer:IPlotLayer = _tool.visualization.layers.requestObject(_tool.visualization.layers.generateUniqueName(label), Layer, false) as IPlotLayer;
 				var plotter:IPlotter = null;
 				if (layer)
 					plotter = (layer.plotter as DynamicPlotter).requestLocalObject(Plotter, true) as IPlotter;

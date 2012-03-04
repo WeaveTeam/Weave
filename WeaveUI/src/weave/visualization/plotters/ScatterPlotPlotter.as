@@ -22,8 +22,6 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.utils.Dictionary;
 	
-	import mx.utils.ObjectUtil;
-	
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
@@ -31,13 +29,11 @@ package weave.visualization.plotters
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.KeySets.KeySet;
-	import weave.primitives.Bounds2D;
 	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	
