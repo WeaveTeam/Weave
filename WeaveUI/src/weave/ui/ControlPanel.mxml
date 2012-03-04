@@ -23,7 +23,7 @@
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				title="Control Panel"
 				backgroundColor="0xCCCCCC"
-				addedToStage="save();"
+				addedToStage="handleAddedToStage();"
 				width="640"
 				height="480"
 				sessionPanelCoordsAsPercentages="false"
@@ -244,6 +244,20 @@
 				controlPanelControls.cancelBtn.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void { revert(); removePanel(); });
 				controlPanelControls.saveBtn.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void { save(); });
 				controlPanelControls.saveCloseBtn.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void { save(); removePanel(); });
+			}
+			
+			private function handleAddedToStage():void
+			{
+				var xMargin:Number = stage.stageWidth - width;
+				var xRange:Number = Math.min(xMargin, 64);
+				if (x < 0 || x > xMargin)
+					panelX.value = String((xMargin - xRange)/2 + Math.random() * xRange);
+				var yMargin:Number = stage.stageHeight - height;
+				var yRange:Number = Math.min(yMargin, 64);
+				if (y < 0 || y > yMargin)
+					panelY.value = String((yMargin - yRange)/2 + Math.random() * yRange);
+				
+				save();
 			}
 		]]>
 	</mx:Script>
