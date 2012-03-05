@@ -288,6 +288,8 @@ package weave
 		
 		public const enableMarker:LinkableBoolean = new LinkableBoolean(true);
 		public const enableDrawCircle:LinkableBoolean = new LinkableBoolean(true);
+		public const enableAnnotation:LinkableBoolean = new LinkableBoolean(true);
+		public const enablePenTool:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableMenuBar:LinkableBoolean = new LinkableBoolean(true); // top menu for advanced features
 		public const enableSubsetControls:LinkableBoolean = new LinkableBoolean(true); // creating subsets

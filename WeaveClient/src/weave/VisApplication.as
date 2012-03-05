@@ -1211,24 +1211,21 @@ package weave
 				// Add item for the DatasetLoader
 				//DatasetLoader.createContextMenuItems(this);
 				
+				// Add context menu item for selection related items (subset creation, etc)	
 				if (Weave.properties.enableSubsetControls.value)
-				{
-					// Add context menu item for selection related items (subset creation, etc)	
 					KeySetContextMenuItems.createContextMenuItems(this);
-				}
 				
 				if (Weave.properties.enableMarker.value)
-				{
 					MarkerSettingsComponent.createContextMenuItems(this);
-				}
 				
 				if (Weave.properties.enableDrawCircle.value)
-				{
 					CirclePlotterSettings.createContextMenuItems(this);
-				}
 				
-				SessionedTextBox.createContextMenuItems(this);
-				PenTool.createContextMenuItems(this);
+				if (Weave.properties.enableAnnotation.value)
+					SessionedTextBox.createContextMenuItems(this);
+				
+				if (Weave.properties.enablePenTool.value)
+					PenTool.createContextMenuItems(this);
 					
 				if (Weave.properties.dataInfoURL.value)
 					addLinkContextMenuItem("Show Information About This Dataset...", Weave.properties.dataInfoURL.value);
@@ -1248,10 +1245,10 @@ package weave
 					// By default this menu item is disabled so that it does not show up unless we right click on a tool
 					_panelPrintContextMenuItem.enabled = false;
 				}
+				
 				if (Weave.properties.enableExportApplicationScreenshot.value)
-				{
 					_printToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Print/Export Application Image", this, handleContextMenuItemSelect, "4 exportMenuItems");
-				}
+				
 				if (Weave.properties.enableExportCSV.value)
 				{
 					// Add a listener to this destination context menu for when it is opened
@@ -1274,7 +1271,8 @@ package weave
 				}
 				
 				// Add context menu items for handling search queries
-				SearchEngineUtils.createContextMenuItems(this);
+				if (Weave.properties.enableSearchForRecord.value)
+					SearchEngineUtils.createContextMenuItems(this);
 			}
 		}
 
@@ -1326,7 +1324,7 @@ package weave
 				reportError(e);
 			}			
 			if (_weaveMenu)
-				_weaveMenu.visible    = visMenuVisible;
+				_weaveMenu.visible = visMenuVisible;
 			if (VisTaskbar.instance)
 				VisTaskbar.instance.visible = visTaskbarVisible;	
 		}
