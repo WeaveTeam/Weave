@@ -46,7 +46,8 @@
 			
 			private function onMouseDown():void
 			{
-				group.selectedValue();
+				var f:Function = group.selectedValue as Function;
+				f();
 			}
 			
 			private function redraw1():void
@@ -88,7 +89,7 @@
 				//shape.graphics.lineStyle(1, 0xFFFFFF, 1);
 				var m:Matrix = new Matrix();
 				bitmap.bitmapData.lock();
-				bitmap.bitmapData.fillRect(bitmap.bitmapData.rect, 0x00000000);
+				bitmap.bitmapData.fillRect(bitmap.bitmapData.rect, 0x00000000); // transparent fill
 				for (var i:int = 0; i < 10000; i++) {
 					
 					var x:Number = 500 * Math.random();
@@ -118,13 +119,13 @@
 				var shape:Shape = new Shape();
 				shape.graphics.lineStyle(1, 0xFFFFFF);
 				shape.graphics.drawCircle(5, 5, 5);
-				circleBitmapData.fillRect(circleBitmapData.rect, 0x00000000);
+				circleBitmapData.fillRect(circleBitmapData.rect, 0x00000000); // transparent fill
 				circleBitmapData.draw(shape);
 				
 				var ct:ColorTransform = new ColorTransform();
 				var m:Matrix = new Matrix();
 				bitmap.bitmapData.lock();
-				bitmap.bitmapData.fillRect(bitmap.bitmapData.rect, 0x00000000);
+				bitmap.bitmapData.fillRect(bitmap.bitmapData.rect, 0x00000000); // transparent fill
 				for (var i:int = 0; i < 10000; i++) {
 					
 					ct.redMultiplier = Math.random();
@@ -145,7 +146,8 @@
 			{
 				if (t != -1)
 				{
-					trace(title = String(getTimer() - t) + ' ms');
+					// this is not always accurate -- just keep clicking and look at the most common result.
+					trace(title = String(getTimer() - t) + ' ms - click repeatedly for more accurate result');
 				}
 				t = -1;
 			}
