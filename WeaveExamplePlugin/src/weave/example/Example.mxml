@@ -171,14 +171,10 @@
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
-		<mx:VBox>
-			<mx:RadioButtonGroup id="group"/>
-			<mx:RadioButton label="render1" value="{redraw1 as Object}" group="{group}"/>
-			<mx:RadioButton label="render2" value="{redraw2 as Object}" group="{group}"/>
-			<mx:RadioButton label="render3" value="{redraw3 as Object}" group="{group}"/>
-			<mx:RadioButton label="render4" value="{redraw4 as Object}" group="{group}"/>
+		<mx:VBox label="First tab">
+			<mx:Label text="Example control panel"/>
 		</mx:VBox>
-		<mx:VBox>
+		<mx:VBox label="Second tab">
 			<mx:Label text="Second tab of example control panel"/>
 		</mx:VBox>
 	</ui:ControlPanel>
