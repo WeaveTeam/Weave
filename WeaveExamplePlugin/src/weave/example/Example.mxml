@@ -154,10 +154,10 @@
 	<ui:ControlPanel>
 		<mx:VBox>
 			<mx:RadioButtonGroup id="group"/>
-			<mx:RadioButton label="render1" value="{render1}" group="{group}"/>
-			<mx:RadioButton label="render2" value="{render2}" group="{group}"/>
-			<mx:RadioButton label="render3" value="{render3}" group="{group}"/>
-			<mx:RadioButton label="render4" value="{render4}" group="{group}"/>
+			<mx:RadioButton label="render1" value="{redraw1}" group="{group}"/>
+			<mx:RadioButton label="render2" value="{redraw2}" group="{group}"/>
+			<mx:RadioButton label="render3" value="{redraw3}" group="{group}"/>
+			<mx:RadioButton label="render4" value="{redraw4}" group="{group}"/>
 		</mx:VBox>
 		<mx:VBox>
 			<mx:Label text="Second tab of example control panel"/>
