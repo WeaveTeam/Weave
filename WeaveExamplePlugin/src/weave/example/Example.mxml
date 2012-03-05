@@ -20,21 +20,144 @@
 */
 -->
 <ui:DraggablePanel xmlns="weave.example.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
-				   implements="weave.api.ui.IVisTool">
+				   implements="weave.api.ui.IVisTool"  mouseDown="onMouseDown()" click="report()">
 	<mx:HBox>
 		<mx:Label text="This is an example panel"/>
 		<ui:HelpComponent>Example help text</ui:HelpComponent>
 	</mx:HBox>
+	
+	<mx:Canvas width="100%" height="100%" id="canvas" mouseChildren="false"/>
 	<mx:Script>
 		<![CDATA[
 			import weave.api.WeaveAPI;
 			import weave.api.ui.IVisTool;
 			WeaveAPI.registerImplementation(IVisTool, Example);
+			
+			private var bitmap:Bitmap = new Bitmap(new BitmapData(500, 500, true, 0x00000000));
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				canvas.rawChildren.addChild(bitmap);
+			}
+			
+			private var t:int = -1;
+			
+			private function onMouseDown():void
+			{
+				group.selectedValue();
+			}
+			
+			private function redraw1():void
+			{
+				t = getTimer();
+				// 10,000 circles in same position
+				// 16.5 seconds
+				canvas.graphics.clear();
+				for (var i:int = 0; i < 10000; i++) {
+					canvas.graphics.lineStyle(1, Math.random() * 0xFFFFFF, 1);
+					var x:Number = 500;
+					var y:Number = 500;
+					canvas.graphics.drawCircle(x, y, 5);
+				}
+			}
+			
+			private function redraw2():void
+			{
+				t = getTimer();
+				// 10,000 circles in random positions
+				// 1/4 of a second
+				canvas.graphics.clear();
+				for (var i:int = 0; i < 10000; i++) {
+					canvas.graphics.lineStyle(1, Math.random() * 0xFFFFFF, 1);
+					var x:Number = 500 * Math.random();
+					var y:Number = 500 * Math.random();
+					canvas.graphics.drawCircle(x, y, 5);
+				}
+			}
+			
+			private function redraw3():void
+			{
+				t = getTimer();
+				
+				// 10,000 circles using Shape and BitmapData.draw() with Shape
+				// 1/2 a second, regardless of position
+				
+				var shape:Shape = new Shape();
+				//shape.graphics.lineStyle(1, 0xFFFFFF, 1);
+				var m:Matrix = new Matrix();
+				bitmap.bitmapData.lock();
+				bitmap.bitmapData.fillRect(bitmap.bitmapData.rect, 0x00000000);
+				for (var i:int = 0; i < 10000; i++) {
+					
+					var x:Number = 500 * Math.random();
+					var y:Number = 500 * Math.random();
+					m.identity();
+					m.translate(x, y);
+					// redraw shape each time
+					shape.graphics.clear();
+					shape.graphics.lineStyle(1, Math.random() * 0xFFFFFF, 1);
+					shape.graphics.drawCircle(0, 0, 5);
+					
+					bitmap.bitmapData.draw(shape, m);
+					//bitmap.bitmapData.draw(shape, m, ct);
+				}
+				bitmap.bitmapData.unlock();
+			}
+			
+			private var circleBitmapData:BitmapData = new BitmapData(11, 11, true, 0x00000000);
+			
+			private function redraw4():void
+			{
+				t = getTimer();
+				
+				// 10,000 circles using BitmapData.draw() with BitmapData sprite graphics and ColorTransform
+				// 1/4 of a second, regardless of position
+				
+				var shape:Shape = new Shape();
+				shape.graphics.lineStyle(1, 0xFFFFFF);
+				shape.graphics.drawCircle(5, 5, 5);
+				circleBitmapData.fillRect(circleBitmapData.rect, 0x00000000);
+				circleBitmapData.draw(shape);
+				
+				var ct:ColorTransform = new ColorTransform();
+				var m:Matrix = new Matrix();
+				bitmap.bitmapData.lock();
+				bitmap.bitmapData.fillRect(bitmap.bitmapData.rect, 0x00000000);
+				for (var i:int = 0; i < 10000; i++) {
+					
+					ct.redMultiplier = Math.random();
+					ct.greenMultiplier = Math.random();
+					ct.blueMultiplier = Math.random();
+					
+					var x:Number = 500 * Math.random();
+					var y:Number = 500 * Math.random();
+					m.identity();
+					m.translate(x, y);
+					
+					bitmap.bitmapData.draw(circleBitmapData, m, ct);
+				}
+				bitmap.bitmapData.unlock();
+			}
+			
+			private function report():void
+			{
+				if (t != -1)
+				{
+					trace(title = String(getTimer() - t) + ' ms');
+				}
+				t = -1;
+			}
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox>
-			<mx:Label text="Example control panel"/>
+			<mx:RadioButtonGroup id="group"/>
+			<mx:RadioButton label="render1" value="{render1}" group="{group}"/>
+			<mx:RadioButton label="render2" value="{render2}" group="{group}"/>
+			<mx:RadioButton label="render3" value="{render3}" group="{group}"/>
+			<mx:RadioButton label="render4" value="{render4}" group="{group}"/>
 		</mx:VBox>
 		<mx:VBox>
 			<mx:Label text="Second tab of example control panel"/>
