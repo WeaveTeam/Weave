@@ -57,12 +57,6 @@ package weave.visualization.layers
 	{
 		public function InteractiveVisualization()
 		{
-			super();
-			init();
-		}
-		
-		private function init():void
-		{
 			doubleClickEnabled = true;
 			
 			enableZoomAndPan.value = true;

@@ -29,8 +29,6 @@ package weave.core
 	import weave.compiler.Compiler;
 	import weave.compiler.ProxyObject;
 	
-	use namespace weave_internal;
-
 	/**
 	 * LinkableFunction allows a function to be defined by a String that can use macros defined in the static macros hash map.
 	 * Libraries listed in macroLibraries variable will be included when compiling the function.

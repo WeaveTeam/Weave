@@ -759,6 +759,9 @@
 									
 									private function handleLayerChange():void
 									{
+										if (!data)
+											return;
+										
 										var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
 										var area:Number = fullDataBounds.getArea();
 										if (!isNaN(area))

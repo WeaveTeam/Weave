@@ -27,7 +27,7 @@ LinkableObjectGrid
 -->
 
 <mx:DataGrid xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-		 width="100%" 
+		 width="100%" minWidth="0"
 		 backgroundAlpha="0.5" borderStyle="inset"
 		 editable="true"
 		 itemEditEnd="variableNameChangeHandler(event)"

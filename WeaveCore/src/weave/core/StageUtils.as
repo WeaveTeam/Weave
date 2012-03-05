@@ -155,6 +155,9 @@ package weave.core
 			_previousFrameElapsedTime = currentTime - _currentFrameStartTime;
 			_currentFrameStartTime = currentTime;
 			
+			if (_previousFrameElapsedTime > 3000)
+				trace(_previousFrameElapsedTime);
+			
 			// update mouse coordinates
 			_lastMousePoint.x = _stage.mouseX;
 			_lastMousePoint.y = _stage.mouseY;
@@ -205,7 +208,12 @@ package weave.core
 					stackTrace = _stackTraceMap[args]; // check this for debugging where the call came from
 					// don't call the function if the relevantContext was disposed of.
 					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
+					{
+						// TODO: PROFILING: check how long this function takes to execute.
+						// if it takes a long time (> 1000 ms), something's wrong...
+						
 						(args[1] as Function).apply(null, args[2]);
+					}
 				}
 			}
 		}

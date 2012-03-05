@@ -622,6 +622,16 @@ package weave.services
 			);
 			return query;
 		}
+		
+		public function checkKeyColumnForCSVImport(csvFileName:String, keyColumn:String, secondaryKeyColumn:String=null):DelayedAsyncInvocation
+		{
+			var query:DelayedAsyncInvocation = service.checkKeyColumnForCSVImport(
+				csvFileName,
+				keyColumn,
+				secondaryKeyColumn
+			);
+			return query;
+		}
 
 
 

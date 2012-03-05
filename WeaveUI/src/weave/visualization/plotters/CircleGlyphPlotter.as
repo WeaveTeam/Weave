@@ -96,7 +96,7 @@ package weave.visualization.plotters
 			if (enabledSizeBy.value == true)			
 			{				
 				radius = minScreenRadius.value + (radius *(maxScreenRadius.value - minScreenRadius.value));
-			}				
+			}
 			else				
 			{				
 				radius = defaultScreenRadius.value;				
