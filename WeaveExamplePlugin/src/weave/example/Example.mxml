@@ -20,13 +20,20 @@
 */
 -->
 <ui:DraggablePanel xmlns="weave.example.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
-				   implements="weave.api.ui.IVisTool"  mouseDown="onMouseDown()" click="report()">
-	<mx:HBox>
-		<mx:Label text="This is an example panel"/>
-		<ui:HelpComponent>Example help text</ui:HelpComponent>
-	</mx:HBox>
+				   implements="weave.api.ui.IVisTool" enterFrame="report()">
+	<mx:VBox>
+		<mx:HBox>
+			<mx:Label text="This is an example panel"/>
+			<ui:HelpComponent>Example help text</ui:HelpComponent>
+			<mx:Button label="test1" click="redraw1()"/>
+			<mx:Button label="test2" click="redraw2()"/>
+			<mx:Button label="test3" click="redraw3()"/>
+			<mx:Button label="test4" click="redraw4()"/>
+			<mx:NumericStepper id="numIterations" minimum="1000" maximum="10000" value="5000" stepSize="1000" toolTip="Number of circles to render"/>
+		</mx:HBox>
 	
-	<mx:Canvas width="100%" height="100%" id="canvas" mouseChildren="false"/>
+		<mx:Canvas width="100%" height="100%" id="canvas" mouseChildren="false"/>
+	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
 			import weave.api.WeaveAPI;
@@ -42,35 +49,34 @@
 				canvas.rawChildren.addChild(bitmap);
 			}
 			
-			private var t:int = -1;
-			
-			private function onMouseDown():void
-			{
-				var f:Function = group.selectedValue as Function;
-				f();
-			}
+			private var t:int = -1; // start time
+			private var wait:Boolean = false; // wait 1 frame?
 			
 			private function redraw1():void
 			{
+				wait = true;
 				t = getTimer();
 				// 10,000 circles in same position
 				// 16.5 seconds
 				canvas.graphics.clear();
-				for (var i:int = 0; i < 10000; i++) {
+				bitmap.visible = false;
+				for (var i:int = 0; i < numIterations.value; i++) {
 					canvas.graphics.lineStyle(1, Math.random() * 0xFFFFFF, 1);
-					var x:Number = 500;
-					var y:Number = 500;
+					var x:Number = 250;
+					var y:Number = 250;
 					canvas.graphics.drawCircle(x, y, 5);
 				}
 			}
 			
 			private function redraw2():void
 			{
+				wait = true;
 				t = getTimer();
 				// 10,000 circles in random positions
 				// 1/4 of a second
 				canvas.graphics.clear();
-				for (var i:int = 0; i < 10000; i++) {
+				bitmap.visible = false;
+				for (var i:int = 0; i < numIterations.value; i++) {
 					canvas.graphics.lineStyle(1, Math.random() * 0xFFFFFF, 1);
 					var x:Number = 500 * Math.random();
 					var y:Number = 500 * Math.random();
@@ -80,6 +86,7 @@
 			
 			private function redraw3():void
 			{
+				wait = true;
 				t = getTimer();
 				
 				// 10,000 circles using Shape and BitmapData.draw() with Shape
@@ -90,7 +97,9 @@
 				var m:Matrix = new Matrix();
 				bitmap.bitmapData.lock();
 				bitmap.bitmapData.fillRect(bitmap.bitmapData.rect, 0x00000000); // transparent fill
-				for (var i:int = 0; i < 10000; i++) {
+				canvas.graphics.clear();
+				bitmap.visible = true;
+				for (var i:int = 0; i < numIterations.value; i++) {
 					
 					var x:Number = 500 * Math.random();
 					var y:Number = 500 * Math.random();
@@ -111,6 +120,7 @@
 			
 			private function redraw4():void
 			{
+				wait = true;
 				t = getTimer();
 				
 				// 10,000 circles using BitmapData.draw() with BitmapData sprite graphics and ColorTransform
@@ -126,7 +136,9 @@
 				var m:Matrix = new Matrix();
 				bitmap.bitmapData.lock();
 				bitmap.bitmapData.fillRect(bitmap.bitmapData.rect, 0x00000000); // transparent fill
-				for (var i:int = 0; i < 10000; i++) {
+				canvas.graphics.clear();
+				bitmap.visible = true;
+				for (var i:int = 0; i < numIterations.value; i++) {
 					
 					ct.redMultiplier = Math.random();
 					ct.greenMultiplier = Math.random();
@@ -135,7 +147,7 @@
 					var x:Number = 500 * Math.random();
 					var y:Number = 500 * Math.random();
 					m.identity();
-					m.translate(x, y);
+					m.translate(x - 5, y - 5);
 					
 					bitmap.bitmapData.draw(circleBitmapData, m, ct);
 				}
@@ -144,10 +156,15 @@
 			
 			private function report():void
 			{
+				if (wait) // wait 1 frame?
+				{
+					wait = false;
+					return;
+				}
+				
 				if (t != -1)
 				{
-					// this is not always accurate -- just keep clicking and look at the most common result.
-					trace(title = String(getTimer() - t) + ' ms - click repeatedly for more accurate result');
+					trace(title = String(getTimer() - t) + ' ms');
 				}
 				t = -1;
 			}
