@@ -83,7 +83,7 @@ package weave
 	 */
 	public class Weave
 	{
-		public static var ALLOW_PLUGINS:Boolean = true; // TEMPORARY
+		public static var ALLOW_PLUGINS:Boolean = false; // TEMPORARY
 		
 		
 		{ /** begin static code block **/
