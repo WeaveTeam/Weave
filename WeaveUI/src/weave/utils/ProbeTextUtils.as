@@ -104,7 +104,10 @@ package weave.utils
 					if (value == '' || value == 'NaN')
 						continue;
 					var title:String = ColumnUtils.getTitle(column);
-					var line:String = StandardLib.lpad(value, 8);
+					var line:String = value; //StandardLib.lpad(value, 8);
+					if (line.length < 8)
+						line = StandardLib.lpad('', (8 - line.length) * 2) + line; // twice as many spaces for padding, so numbers line up better
+					
 					if (StringUtil.trim(title)) // hack to allow column with no title
 						line += ' (' + title + ')';
 					line += '\n';
