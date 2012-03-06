@@ -50,7 +50,12 @@
 				<ui:Indent label="SQL Database name">
 					<mx:TextInput change="{dataChanged=true}" id="connectionDatabaseInput" width="130"/>
 					<mx:Label text="(Optional)"/>
-					<ui:HelpComponent content="{'This field is optional.  You can specify the name of a default database to connect to.\nFor SQL Server, this is an instance name.\nSimilarly in PostGreSQL, databases are different from schemas.\nMySQL does not differentiate between the two.'}"/>
+					<ui:HelpComponent>
+						This field is optional.  You can specify the name of a default database to connect to.
+						For SQL Server, this is an instance name.
+						Similarly in PostGreSQL, databases are different from schemas.
+						MySQL does not differentiate between the two.
+					</ui:HelpComponent>
 					<!-- 'This field is required only for MS SQLServer connections. If you had a Server Name \'LocalMachine\\Express\', then this field should be entered as Express. If there is no instance name for your server, you may leave this blank.' -->
 				</ui:Indent>
 				<ui:IndentTextInput change="{dataChanged=true}" label="SQL User Name" id="connectionUserInput" inputWidth="130"/>

@@ -62,10 +62,12 @@
 						 creationComplete="linkBindableProperty(ProbeTextUtils.probeLineFormatter, event.target, 'text');"/>
 			<mx:Button label="Reset" click="ProbeTextUtils.probeLineFormatter.value = ProbeTextUtils.DEFAULT_LINE_FORMAT;"/>
 			<HelpComponent>
-				<htmlText><![CDATA[<!--
-					-->This expression will be used to format each line corresponding to a probed column. <!--
-					-->Available variables are <b>column</b>, <b>key</b>, <b>string</b>, and <b>title</b>.<!--
-				-->]]></htmlText>
+				<htmlText>
+					<![CDATA[
+						This expression will be used to format each line corresponding to a probed column. <!--
+						-->Available variables are <b>column</b>, <b>key</b>, <b>string</b>, and <b>title</b>.
+					]]>
+				</htmlText>
 			</HelpComponent>
 		</Indent>
 		<mx:CheckBox label="Enable probe ToolTips"
