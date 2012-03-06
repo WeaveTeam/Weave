@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="ProbeTextUtils,weave.utils.ProbeTextUtils,enableProbeToolTip,probeHeaderColumns,probedColumns,getProbeText,hideProbeToolTip,showProbeToolTip" name="keywords">
+<meta content="ProbeTextUtils,weave.utils.ProbeTextUtils,DEFAULT_LINE_FORMAT,enableProbeToolTip,probeLineFormatter,probeHeaderColumns,probedColumns,getProbeText,hideProbeToolTip,showProbeToolTip" name="keywords">
 <title>weave.utils.ProbeTextUtils</title>
 </head>
 <body>
@@ -104,8 +104,18 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#DEFAULT_LINE_FORMAT">DEFAULT_LINE_FORMAT</a> : String = "`{ replace(lpad(string, 8, '\t'), '\t', '  ') } ({ title })`"<div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol">ProbeTextUtils</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#enableProbeToolTip">enableProbeToolTip</a> : <a href="../core/LinkableBoolean.html">LinkableBoolean</a>
 <div class="summaryTableDescription">[static]</div>
+</td><td class="summaryTableOwnerCol">ProbeTextUtils</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#probeLineFormatter">probeLineFormatter</a> : <a href="../core/LinkableFunction.html">LinkableFunction</a>
+<div class="summaryTableDescription">[static]
+   This function is used to format each line corresponding to a column in probedColumns.</div>
 </td><td class="summaryTableOwnerCol">ProbeTextUtils</td>
 </tr>
 </table>
@@ -224,15 +234,34 @@ showHideInherited();
 </div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>
+<a name="DEFAULT_LINE_FORMAT"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">DEFAULT_LINE_FORMAT</td><td class="detailHeaderType">constant</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static const DEFAULT_LINE_FORMAT:String = "`{ replace(lpad(string, 8, '\t'), '\t', '  ') } ({ title })`"</code>
+</div>
 <a name="enableProbeToolTip"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">enableProbeToolTip</td><td class="detailHeaderType">constant</td>
+<td class="detailHeaderName">enableProbeToolTip</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
 <code>public static const enableProbeToolTip:<a href="../core/LinkableBoolean.html">LinkableBoolean</a></code>
 </div>
+<a name="probeLineFormatter"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">probeLineFormatter</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static const probeLineFormatter:<a href="../core/LinkableFunction.html">LinkableFunction</a></code><p>
+   This function is used to format each line corresponding to a column in probedColumns.
+   </p></div>
 <br>
 <br>
 <hr>
