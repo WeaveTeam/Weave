@@ -385,6 +385,8 @@ package weave
 		public const panelTitleTextFormat:LinkableTextFormat = new LinkableTextFormat();
 		public function get defaultTextFormat():LinkableTextFormat { return LinkableTextFormat.defaultTextFormat; }
 		
+		public function get probeLineFormatter():LinkableFunction { return ProbeTextUtils.probeLineFormatter; }
+		
 		public const probeInnerGlowColor:LinkableNumber = new LinkableNumber(0xffffff, isFinite);
 		public const probeInnerGlowAlpha:LinkableNumber = new LinkableNumber(1, verifyAlpha);
 		public const probeInnerGlowBlur:LinkableNumber = new LinkableNumber(5);
