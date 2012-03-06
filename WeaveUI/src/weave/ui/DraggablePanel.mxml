@@ -1510,7 +1510,7 @@
 			 * This function will create and reuse a static instance of each type of DraggablePanel requested.
 			 * @param classDef A Class extending DraggablePanel.
 			 */
-			public static function openStaticInstance(draggablePanelClass:Class):void
+			public static function openStaticInstance(draggablePanelClass:Class):DraggablePanel
 			{
 				var instance:DraggablePanel = _instances[draggablePanelClass];
 				if (!instance)
@@ -1518,6 +1518,8 @@
 				if (!instance.parent)
 					PopUpManager.addPopUp(instance, Application.application as Application);
 				instance.restorePanel();
+				
+				return instance;
 			}
 			private static const _instances:Dictionary = new Dictionary();
 			

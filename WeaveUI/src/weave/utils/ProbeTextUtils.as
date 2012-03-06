@@ -60,7 +60,7 @@ package weave.utils
 			return Weave.root.requestObject("Probe Header Columns", LinkableHashMap, true);
 		}
 		
-		public static const DEFAULT_LINE_FORMAT:String = "`{ replace(lpad(string, 8, '\\t'), '\\t', '  ') } ({ title })`";
+		public static const DEFAULT_LINE_FORMAT:String = 'str = replace(lpad(string, 8, "\\t"), "\\t", "  ");\nstr + " (" + title + ")"';
 		
 		/**
 		 * This function is used to format each line corresponding to a column in probedColumns.
@@ -129,8 +129,7 @@ package weave.utils
 					}
 					catch (e:Error)
 					{
-						reportError(e);
-						continue;
+						//reportError(e);
 					}
 				}
 				if (record != '')

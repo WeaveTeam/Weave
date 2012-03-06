@@ -27,8 +27,6 @@ package weave.visualization.plotters
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.WeaveProperties;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -42,7 +40,6 @@ package weave.visualization.plotters
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.ObjectPool;
-	import weave.utils.ProbeTextUtils;
 	
 	/**
 	 * TextGlyphPlotter
@@ -95,7 +92,7 @@ package weave.visualization.plotters
 		public const hideOverlappingText:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const xScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const yScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const maxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
+		public const maxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100));
 
 		/**
 		 * This function is used with Array.sort to sort a list of record keys by the sortColumn values.
