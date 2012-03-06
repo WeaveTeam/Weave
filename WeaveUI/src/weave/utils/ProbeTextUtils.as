@@ -26,15 +26,16 @@ package weave.utils
 	import mx.core.IToolTip;
 	import mx.managers.ToolTipManager;
 	import mx.utils.ObjectUtil;
-	import mx.utils.StringUtil;
 	
 	import weave.Weave;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.primitives.Bounds2D;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
@@ -58,6 +59,13 @@ package weave.utils
 		{
 			return Weave.root.requestObject("Probe Header Columns", LinkableHashMap, true);
 		}
+		
+		public static const DEFAULT_LINE_FORMAT:String = "`{ replace(lpad(string, 8, '\\t'), '\\t', '  ') } ({ title })`";
+		
+		/**
+		 * This function is used to format each line corresponding to a column in probedColumns.
+		 */
+		public static const probeLineFormatter:LinkableFunction = new LinkableFunction(DEFAULT_LINE_FORMAT, true, false, ['column', 'key', 'string', 'title']);
 		
 		/**
 		 * getProbeText
@@ -104,20 +112,25 @@ package weave.utils
 					if (value == '' || value == 'NaN')
 						continue;
 					var title:String = ColumnUtils.getTitle(column);
-					var line:String = StandardLib.lpad(value, 8);
-					if (StringUtil.trim(title)) // hack to allow column with no title
-						line += ' (' + title + ')';
-					line += '\n';
-					// prevent duplicate lines from being added
-					if (lookup[line] == undefined)
+					try
 					{
-						if (!(value.toLowerCase() == 'undefined' || title.toLowerCase() == 'undefined'))
+						var line:String = probeLineFormatter.apply(null, [column, key, value, title]) + '\n';
+						// prevent duplicate lines from being added
+						if (lookup[line] == undefined)
 						{
-							lookup[line] = true; // this prevents the line from being duplicated
-							// the headers are only included so that the information will not be duplicated
-							if (iColumn >= headers.length)
-								record += line;
+							if (!(value.toLowerCase() == 'undefined' || title.toLowerCase() == 'undefined'))
+							{
+								lookup[line] = true; // this prevents the line from being duplicated
+								// the headers are only included so that the information will not be duplicated
+								if (iColumn >= headers.length)
+									record += line;
+							}
 						}
+					}
+					catch (e:Error)
+					{
+						reportError(e);
+						continue;
 					}
 				}
 				if (record != '')
