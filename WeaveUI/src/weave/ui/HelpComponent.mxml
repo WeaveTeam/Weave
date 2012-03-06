@@ -42,6 +42,9 @@
 			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
 			import mx.managers.ToolTipManager;
+			import mx.utils.StringUtil;
+			
+			import weave.compiler.StandardLib;
 			
 			use namespace mx_internal;
 			
@@ -148,7 +151,9 @@
 				
 			private function setContent(value:*, asXML:Boolean):void
 			{
-				if (value == null)
+				value = StandardLib.replace(StringUtil.trim(value), '\t', '');
+				
+				if (!value)
 					return;
 				
 				toolTip = "Click for help";
