@@ -92,6 +92,7 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+                        import mx.controls.Alert;
 			import mx.core.UIComponent;
 			import mx.managers.PopUpManager;
 			import mx.managers.ToolTipManager;
@@ -104,6 +105,7 @@
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
+                        import weave.ui.WizardPanel;
 			import weave.ui.admin.ServerCSVFileViewer;
 			
 			private static const paddingIndent:int = 20;
@@ -237,9 +239,12 @@
 				query.addAsyncResponder(handleImportCSV, handleFault);
 				function handleImportCSV(event:ResultEvent, token:Object = null):void
 				{
-					selectedChild = dublinCorePage;
+                                        Alert.show("I should close after this.");
+                                        parentCancel();
+//                                        cancelButton.dispatchEvent(MouseEvent.CLICK);
+/*					selectedChild = dublinCorePage;
 					commitDublinCoreElements();
-					controlBarEnabled = true;
+					controlBarEnabled = true; */
 				}
 				function handleFault(event:FaultEvent, token:Object = null):void
 				{
@@ -247,6 +252,18 @@
 				}
 			}
 			
+                        import flash.utils.describeType;
+                        private function parentCancel():void
+                        {
+                            var uiElement:Object;
+                            var topLevel:WizardPanel;
+                            while (describeType(uiElement) == describeType(this))
+                            {
+                                uiElement = uiElement.parent;
+                            }
+                            topLevel = uiElement as WizardPanel;
+                            topLevel.cancelButton.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
+                        }
 			private function commitDublinCoreElements():void
 			{
 				var elements:Object = new Object();

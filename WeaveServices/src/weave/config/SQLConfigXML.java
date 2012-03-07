@@ -27,6 +27,7 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -653,5 +654,27 @@ public class SQLConfigXML implements IDeprecatedSQLConfig
 		public String type;
 		public String name;
 	}
+        public void addChild(int parent, int child) throws RemoteException
+        {
+        }
+        public void removeChild(int parent, int child) throws RemoteException
+        {
+        }
+        public int addTag(String tagtitle) throws RemoteException
+        {
+            return 0;
+        }
+        public void removeTag(int tag_id) throws RemoteException
+        {
+        }
+        public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
+        {
+            return null;
+        }
+        public Collection<Integer> getRoots() throws RemoteException
+        {
+            return null;
+        }
+
 	// </sqlConfig>
 }

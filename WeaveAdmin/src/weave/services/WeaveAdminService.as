@@ -151,13 +151,20 @@ package weave.services
 			return invokeAdminService("authenticate", arguments);
 		}
 
+                //public String setDatabaseConfigInfo(String connectionName, String password, String schema) 
+                public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String):DelayedAsyncInvocation
+                {
+                    var query:DelayedAsyncInvocation = invokeAdminService("setDatabaseConfigInfo", arguments);
+                    query.addAsyncResponder(alertResult);
+                    return query;
+                }
 		//public String migrateConfigToDatabase(String connectionName, String password, String schema)
-		public function migrateConfigToDatabase(connectionName:String, password:String, schema:String):DelayedAsyncInvocation
-		{
-		    var query:DelayedAsyncInvocation = invokeAdminService("migrateConfigToDatabase", arguments);
-		    query.addAsyncResponder(alertResult);
-		    return query;
-		}
+//		public function migrateConfigToDatabase(connectionName:String, password:String, schema:String):DelayedAsyncInvocation
+//		{
+//		    var query:DelayedAsyncInvocation = invokeAdminService("migrateConfigToDatabase", arguments);
+//		    query.addAsyncResponder(alertResult);
+//		    return query;
+//		}
 
 
 		// list entry names

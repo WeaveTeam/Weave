@@ -264,9 +264,9 @@ package weave.services
 			return query;
 		}
 		
-		public function migrateConfigToDatabase(connectionName:String, password:String, schema:String):DelayedAsyncInvocation
+		public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String):DelayedAsyncInvocation
 		{
-			var query:DelayedAsyncInvocation = service.migrateConfigToDatabase(
+			var query:DelayedAsyncInvocation = service.setDatabaseConfigInfo(
 				connectionName,
 				password,
 				schema

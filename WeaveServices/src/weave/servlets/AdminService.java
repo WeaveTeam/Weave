@@ -1509,6 +1509,9 @@ public class AdminService extends GenericServlet
 //			}
 			
 			int numberSqlColumns = titles.size();
+                        int col_id;
+                        int tag_id;
+			tag_id = config.addTag(configDataTableName); 
 			for (int i = 0; i < numberSqlColumns; i++)
 			{
 				AttributeColumnInfo attrInfo = new AttributeColumnInfo();
@@ -1522,8 +1525,10 @@ public class AdminService extends GenericServlet
 				attrInfo.publicMetadata.put(PublicMetadata.KEYTYPE, keyType);
 				attrInfo.publicMetadata.put(PublicMetadata.NAME, titles.get(i));
 				attrInfo.publicMetadata.put(PublicMetadata.DATATYPE, dataTypes.get(i));
-				
-				config.addAttributeColumnInfo(attrInfo);
+
+				col_id = config.addAttributeColumnInfo(attrInfo);
+                                config.addChild(tag_id, col_id);
+
 			}
 		}
 		catch (SQLException e)

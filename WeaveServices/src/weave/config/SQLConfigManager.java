@@ -147,7 +147,8 @@ public final class SQLConfigManager
 				config = new SQLConfigXML(configFileName);
 				try
 				{
-					config = new DatabaseConfig((SQLConfigXML)config);
+                                        // TODO: Migration logic
+					config = new SQLConfig((SQLConfigXML)config);
 					System.out.println("Successfully initialized Weave database connection");
 				}
 				catch (Exception e)

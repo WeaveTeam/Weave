@@ -343,7 +343,10 @@ public class SQLConfig
 	 */
 	public int addAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
 	{
-		return addEntry(MAN_TYPE_COLUMN, info.privateMetadata, info.publicMetadata);
+                int new_id = addEntry(MAN_TYPE_COLUMN, info.privateMetadata, info.publicMetadata);
+                String dataTableName = info.publicMetadata.get(PublicMetadata.DATATABLE);
+
+                return new_id;
 	} 
 	
 	// shortcut for calling the Map<String,String> version of this function
@@ -448,6 +451,11 @@ public class SQLConfig
             pubMeta.put(PublicMetadata.TITLE, tagTitle);
             return addEntry(MAN_TYPE_TAG, null, pubMeta);
         }
+        public void removeTag(int tag_id) throws RemoteException
+        {
+            // TODO
+            return;
+        }
         public void addChild(int parent, int child) throws RemoteException
         {
             Connection conn;
@@ -484,12 +492,30 @@ public class SQLConfig
         }
         public Map<Integer,Boolean> getEntityIsCategory(Collection<Integer> id_list) throws RemoteException
         {
-            Connection conn = null;
             Map<Integer,Boolean> entityIsCategory = new HashMap<Integer,Boolean>();
+            // TODO: Speed this up by adding a new query to SQLUtils.
+            for (Integer id : id_list)
+                entityIsCategory.put(id, getEntityIsCategory(id));
+            return entityIsCategory;
+        }
+        private Boolean getEntityIsCategory(Integer id) throws RemoteException
+        {
+            Boolean entityIsCategory;
+            List<Map<String,String>> sqlres;
+            Integer ent_type;
+            Map<String,Integer> whereParams = new HashMap<String,Integer>();
+            Connection conn = null;
             try
             {
                 conn = getConnection();
-                //TODO
+                whereParams.clear();
+                whereParams.put(MAN_ID, id);
+                sqlres = SQLUtils.getRecordsFromQuery(
+                        conn, Arrays.asList(MAN_ID, MAN_TYPE), 
+                        dbInfo.schema, table_manifest, whereParams);
+                ent_type = new Integer(sqlres.get(0).get(MAN_TYPE));
+                
+                entityIsCategory = ent_type == MAN_TYPE_TAG;
             }
             catch (SQLException sql_e)
             {

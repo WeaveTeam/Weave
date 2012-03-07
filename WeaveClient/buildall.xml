@@ -59,7 +59,7 @@
 	    </zip>
 	</target>
 	
-	<target name="install" depends="build">
+	<target name="install" depends="build" >
 		<!-- This target will install the files to WEAVE_DOCROOT. -->
 		<copy todir="${WEAVE_DOCROOT}">
 		    <fileset dir="${WEAVE_DESTROOT}">
@@ -69,6 +69,9 @@
 			<include name="*.css"/>
 		    </fileset>
 		</copy>
+                <copy todir="${WEAVE_DOCROOT}/..">
+                    <fileset file="${basedir}/WeaveServices.war"/>
+                </copy>
 	</target>
 	<!-- This target will extract the swf files from the swc archives
 		and extract them to the WEAVE_DESTROOT -->

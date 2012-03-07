@@ -252,7 +252,12 @@ public class SQLConfigUtils
 		Set<String> nameSet = new HashSet<String>();
 		for (AttributeColumnInfo tmpinfo : infoList)
 			nameSet.add(tmpinfo.publicMetadata.get(PublicMetadata.DATATABLE));
+                nameSet.remove(null);
 		String[] names = nameSet.toArray(new String[0]);
+                for (String name : names)
+                {
+                    System.out.println(name);
+                }
 		Arrays.sort(names, String.CASE_INSENSITIVE_ORDER);
 		return names;
 	}

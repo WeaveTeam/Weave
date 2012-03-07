@@ -24,6 +24,7 @@ import java.sql.Connection;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 import org.w3c.dom.Document;
@@ -122,6 +123,16 @@ public interface ISQLConfig
 	 */
 	DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException;
 
+        /**
+         * Methods for the category system
+         */
+        public void addChild(int parent, int child) throws RemoteException;
+        public void removeChild(int parent, int child) throws RemoteException;
+        public int addTag(String tagtitle) throws RemoteException;
+        public void removeTag(int tag_id) throws RemoteException;
+        public Collection<Integer> getChildren(Integer parent_id) throws RemoteException;
+        public Collection<Integer> getRoots() throws RemoteException;
+        
 	/**
 	 * This class contains all the information related to where the
 	 * configuration should be stored in a database.

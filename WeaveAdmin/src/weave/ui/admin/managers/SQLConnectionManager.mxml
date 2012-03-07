@@ -236,7 +236,7 @@
 			private function migrateToDatabase():void
 			{
 				migrateButton.enabled = false;
-				var query:DelayedAsyncInvocation = AdminInterface.instance.migrateConfigToDatabase(
+				var query:DelayedAsyncInvocation = AdminInterface.instance.setDatabaseConfigInfo(
 					   migrateConnectionCombo.text,
 					   migratePasswordInput.text,
 					   migrateSchemaInput.text
