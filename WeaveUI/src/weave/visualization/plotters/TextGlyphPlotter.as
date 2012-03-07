@@ -176,17 +176,26 @@ package weave.visualization.plotters
 					// draw almost-invisible rectangle behind text
 					bitmapText.getUnrotatedBounds(tempBounds);
 					tempBounds.getRectangle(tempRectangle);
-					
-					var pixels:Vector.<uint> = destination.getVector(tempRectangle);
-					for (var p:int = 0; p < pixels.length; p++)
+					// HACK -- check the pixel at (x,y) to decide how to draw the rectangular halo
+					var pixel:uint = destination.getPixel(bitmapText.x, bitmapText.y);
+					if (pixel)
 					{
-						var color:uint = pixels[p] as uint;
-						if (!color)
-							pixels[p] = color | 0x20ffffff;
+						// If the pixel is already set, check all the pixels and only set the ones that aren't set yet.
+						var pixels:Vector.<uint> = destination.getVector(tempRectangle);
+						for (var p:int = 0; p < pixels.length; p++)
+						{
+							pixel = pixels[p] as uint;
+							if (!pixel)
+								pixels[p] = 0x20ffffff; // alpha 0.125, still visible -- provides desired effect when applying default probe filters
+						}
+						destination.setVector(tempRectangle, pixels);
 					}
-					destination.setVector(tempRectangle, pixels);
-					
-					//destination.fillRect(tempRectangle, 0x02808080);
+					else
+					{
+						// If the pixel is not set, assume the rest of the pixels aren't set either -- just overwrite the rectangle.
+						// The purpose of this mode is to avoid having a visible halo while still giving the desired halo effect when using text bitmap filters. 
+						destination.fillRect(tempRectangle, 0x02808080); // alpha 0.008, invisible
+					}
 				}
 				
 				bitmapText.draw(destination);
