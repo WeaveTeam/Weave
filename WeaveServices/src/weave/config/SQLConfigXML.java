@@ -488,6 +488,7 @@ public class SQLConfigXML implements ISQLConfig
 		{
 			// make a copy of the metadata
 			Map<String, String> metadata = new HashMap<String, String>(info.metadata);
+			System.out.println("Size of Metdata is : " + info.metadata.keySet().size());
 			String dataTableName = metadata.remove(Metadata.DATATABLE.toString());
 			if (dataTableName == null)
 				return;
@@ -522,9 +523,13 @@ public class SQLConfigXML implements ISQLConfig
 			tag.setAttribute("dataWithKeysQuery", info.sqlQuery);
 			// set metadata properties
 			for (Metadata property : Metadata.values())
+			{
+				System.out.println(property.toString());
 				if (metadata.containsKey(property.toString()))
-					tag.setAttribute(property.toString(), metadata.get(property.toString()));
-
+					{
+						tag.setAttribute(property.toString(), metadata.get(property.toString()));
+					}
+			}
 			// add to dataTable node with formatting
 			XMLUtils.appendTextNode(dataTableNode, "\t");
 			dataTableNode.appendChild(tag);

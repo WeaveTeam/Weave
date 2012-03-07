@@ -36,7 +36,7 @@ package weave.core
 		/**
 		 * Set this to true to enable stack traces for debugging.
 		 */
-		public static var debug:Boolean = false;
+		public static var debug:Boolean = true;
 
 		/**
 		 * If specified, the preCallback function will be called immediately before running each callback.

@@ -337,11 +337,15 @@
 					var linkLen:int = link.length;
 					var linkExtension:String = link.substring(linkLen-3,linkLen);
 					var imgExtension:String = ".jpg"
-						
+					
+					if(!(linkExtension == "pdf"))
+						continue;
+					
 //					currently disabled pdf files for cleaner results and testing purposes 
 					if(linkExtension == "pdf"){
 						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
 						imgExtension = ".png";
+						
 					}
 					else if(link.substring(linkLen-3,linkLen-1) == "doc"){
 						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);

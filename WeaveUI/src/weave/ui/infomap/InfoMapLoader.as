@@ -8,9 +8,12 @@ package weave.ui.infomap
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.Weave;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IQualifiedKey;
 	import weave.data.KeySets.KeySet;
 	import weave.ui.CustomContextMenuManager;
 	import weave.ui.infomap.ui.InfoMapPanel;
+	import weave.utils.ColumnUtils;
 	import weave.utils.ProbeTextUtils;
 
 	public class InfoMapLoader
@@ -19,7 +22,7 @@ package weave.ui.infomap
 		{
 		}
 		
-		private static const INFOMAP_CAPTION:String = "Open InfoMap";
+		private static const INFOMAP_CAPTION:String = "Send Query to InfoMap";
 		private static var _infoMapMenuItem:ContextMenuItem = null;
 		private static var _selectedKeySet:KeySet = null;
 		
@@ -72,32 +75,8 @@ package weave.ui.infomap
 		{
 			var panel:InfoMapPanel = Weave.root.requestObject("InfoMapPanel",InfoMapPanel,false);
 			
-			var keys:Array = _selectedKeySet.keys;
-			var probeString:String = "";
-			var temp:Array = [];
-			probeString = ProbeTextUtils.getProbeText(keys);
 			
-			//TODO: May want to consider removing numbers
-			var regEx:RegExp = /[a-zA-Z]+/g;				
-			temp =  probeString.match(regEx);
-			
-			var dict:Dictionary = new Dictionary();
-			
-			for each(var word:String in temp)
-			{
-				if(dict[word] == undefined)
-					dict[word] = word;
-			}
-			
-			var uniqueTemp:Array = []
-			for each(var prop:String in dict)
-			{
-				uniqueTemp.push(prop);	
-			}
-			// joins all keywords using comma
-			_keywords = uniqueTemp.join(",");
-			
-			panel.addInfoMapNode(_keywords);
+			panel.addInfoMapNode();
 			
 			//show infomap panel
 			panel.restorePanel();

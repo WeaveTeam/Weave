@@ -151,7 +151,8 @@ so that it can be moved, selected, handle filters.
 				(this.parent as NodeHandler).searchFilter.addImmediateCallback(this,handleLocalSearchFilter,null,true);
 //				(this.parent as NodeHandler).defaultThumbnailBorderColor.addImmediateCallback(this,handleDefaultBorderColorChange,null,true);
 //				(this.parent as NodeHandler).selectedThumbnailBorderColor.addImmediateCallback(this,handleSelectedBorderColorChange,null,true);
-				getCallbackCollection(_selection).addGroupedCallback(this, highlight);
+//				getCallbackCollection(_selection).addImmediateCallback(this, highlight);
+				
 			}
 			
 			
@@ -336,6 +337,17 @@ so that it can be moved, selected, handle filters.
 					return;
 				}
 
+				toggleSelection();
+				
+				setStyle("borderStyle","solid");
+				
+				removeDocSummary();
+				
+			}
+			
+			private function toggleSelection():void
+			{
+				
 				//toggling selection
 				if(_doc.selected.value)
 				{
@@ -347,12 +359,8 @@ so that it can be moved, selected, handle filters.
 					_selection.addKeys([_key]);
 					_doc.selected.value = true;
 				}
-				
-				setStyle("borderStyle","solid");
-				
-				removeDocSummary();
-				
 			}
+			
 			
 			private function handleMouseOut():void
 			{
@@ -387,7 +395,7 @@ so that it can be moved, selected, handle filters.
 				{
 					imageAlpha.value = 1.0;
 					setStyle("borderColor",defaultBorderColor.value);
-				} else if(_selection.containsKey(_key))
+				} else if(_doc.selected.value)
 				{
 					imageAlpha.value = 1.0;
 					setStyle("borderColor",selectedBorderColor.value);

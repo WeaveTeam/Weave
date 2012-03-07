@@ -293,7 +293,9 @@ public interface ISQLConfig
 			MAX("max"),
 			TITLE("title"),
 			NUMBER("number"),
-			STRING("string");
+			STRING("string"),
+			ISENTITY("isEntity");
+			
 
 			Metadata(String name)
 			{

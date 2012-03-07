@@ -140,5 +140,11 @@ package weave.ui.infomap.admin
 					Alert.show(event.result.toString());
 				}
 			}
+			
+			public function searchInDocuments(entities:Array, docs:Array):DelayedAsyncInvocation
+			{
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("searchInDocuments",[entities,docs]);
+				return query;
+			}
 		}
 }
