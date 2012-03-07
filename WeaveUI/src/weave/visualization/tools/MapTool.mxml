@@ -557,7 +557,7 @@
 				verticalGap="2"
 				includeInLayout="{zoomControlsToggle.selected}"
 				visible="{zoomControlsToggle.selected}"
-				backgroundColor="white" backgroundAlpha="0.5" borderStyle="outset">
+				backgroundColor="white" backgroundAlpha="0.85" borderStyle="outset">
 			<mx:Button id="zoomIn"
 					icon="@Embed(source='/weave/resources/images/zoomPlus.png')"
 					fillAlphas="[1.0, 1.0, 1.0, 1.0]"
