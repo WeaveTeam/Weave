@@ -57,6 +57,19 @@
 		</mx:HBox>
 		<ColumnListComponent id="columnList" width="100%" height="100%" label="Probed columns"
 							 hashMap="{ProbeTextUtils.probedColumns}"/>
+		<Indent label="Format">
+			<mx:TextArea id="format" width="100%" height="48"
+						 creationComplete="linkBindableProperty(ProbeTextUtils.probeLineFormatter, event.target, 'text');"/>
+			<mx:Button label="Reset" click="ProbeTextUtils.probeLineFormatter.value = ProbeTextUtils.DEFAULT_LINE_FORMAT;"/>
+			<HelpComponent>
+				<htmlText>
+					<![CDATA[
+						This expression will be used to format each line corresponding to a probed column. <!--
+						-->Available variables are <b>column</b>, <b>key</b>, <b>string</b>, and <b>title</b>.
+					]]>
+				</htmlText>
+			</HelpComponent>
+		</Indent>
 		<mx:CheckBox label="Enable probe ToolTips"
 					 creationComplete="linkBindableProperty(ProbeTextUtils.enableProbeToolTip, event.target, 'selected')"/>
 	</mx:VBox>
@@ -72,7 +85,10 @@
 			import mx.controls.Image;
 			
 			import weave.api.linkBindableProperty;
+			import weave.utils.DebugUtils;
 			import weave.utils.ProbeTextUtils;
+			
+			private const pad:Number = 3 ;
 			
 			override protected function constructor():void
 			{
@@ -83,9 +99,22 @@
 			{
 				this.targets = [ProbeTextUtils.probedColumns, ProbeTextUtils.probeHeaderColumns];
 				controlPanelControls.tabNavigator.selectedIndex = 1;
+				
+				ProbeTextUtils.probeLineFormatter.addImmediateCallback(this, validateFormatter);
 			}
 			
-			private const pad:Number = 3 ;
+			public function validateFormatter():void
+			{
+				try
+				{
+					ProbeTextUtils.probeLineFormatter.validate();
+					format.errorString = '';
+				}
+				catch (e:Error)
+				{
+					format.errorString = e.message;
+				}
+			}
 		]]>
 	</mx:Script>
 </ControlPanel>

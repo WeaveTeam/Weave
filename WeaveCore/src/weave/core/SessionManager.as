@@ -1054,6 +1054,8 @@ package weave.core
 		 * linking sessioned objects with bindable properties
 		 ******************************************************/
 		
+		private const VALUE_NOT_ACCEPTED:String = 'Value not accepted.'; // errorString used by linkBindableProperty
+		
 		/*private function debugLink(linkVal:Object, bindVal:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
 		{
 			var link:String = (useLinkableBefore && useLinkableAfter ? 'LINK' : 'link') + '(' + ObjectUtil.toString(linkVal) + ')';
@@ -1158,15 +1160,15 @@ package weave.core
 							{
 								if ((linkableVariable as LinkableVariable).verifyValue(bindableValue))
 								{
-									// clear any existing error string
-									if (uiComponent.errorString)
+									// clear previous error string
+									if (uiComponent.errorString == VALUE_NOT_ACCEPTED)
 										uiComponent.errorString = '';
 								}
 								else
 								{
 									// show error string if not already shown
 									if (!uiComponent.errorString)
-										uiComponent.errorString = 'Value not accepted.';
+										uiComponent.errorString = VALUE_NOT_ACCEPTED;
 								}
 							}
 							
@@ -1226,8 +1228,8 @@ package weave.core
 					if (bindableValue != linkableValue)
 						bindableParent[bindablePropertyName] = linkableValue;
 					
-					// clear any existing error string
-					if (uiComponent && linkableVariable is LinkableVariable && uiComponent.errorString)
+					// clear previous error string
+					if (uiComponent && linkableVariable is LinkableVariable && uiComponent.errorString == VALUE_NOT_ACCEPTED)
 						uiComponent.errorString = '';
 				}
 				else

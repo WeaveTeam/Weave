@@ -27,8 +27,6 @@ package weave.visualization.plotters
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.WeaveProperties;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -42,7 +40,6 @@ package weave.visualization.plotters
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.ObjectPool;
-	import weave.utils.ProbeTextUtils;
 	
 	/**
 	 * TextGlyphPlotter
@@ -95,7 +92,7 @@ package weave.visualization.plotters
 		public const hideOverlappingText:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const xScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const yScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const maxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
+		public const maxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100));
 
 		/**
 		 * This function is used with Array.sort to sort a list of record keys by the sortColumn values.
@@ -179,17 +176,20 @@ package weave.visualization.plotters
 					// draw almost-invisible rectangle behind text
 					bitmapText.getUnrotatedBounds(tempBounds);
 					tempBounds.getRectangle(tempRectangle);
-					
+					// HACK -- check the pixel at (x,y) to decide how to draw the rectangular halo
+					var pixel:uint = destination.getPixel(bitmapText.x, bitmapText.y);
+					var haloColor:uint = pixel ? 0x20FFFFFF : 0x02808080; // alpha 0.125 vs 0.008
+					// Check all the pixels and only set the ones that aren't set yet.
 					var pixels:Vector.<uint> = destination.getVector(tempRectangle);
 					for (var p:int = 0; p < pixels.length; p++)
 					{
-						var color:uint = pixels[p] as uint;
-						if (!color)
-							pixels[p] = color | 0x20ffffff;
+						pixel = pixels[p] as uint;
+						if (!pixel)
+							pixels[p] = haloColor;
 					}
 					destination.setVector(tempRectangle, pixels);
 					
-					//destination.fillRect(tempRectangle, 0x02808080);
+					//destination.fillRect(tempRectangle, 0x02808080); // alpha 0.008, invisible
 				}
 				
 				bitmapText.draw(destination);
