@@ -104,7 +104,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Constant</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#DEFAULT_LINE_FORMAT">DEFAULT_LINE_FORMAT</a> : String = "`{ replace(lpad(string, 8, '\t'), '\t', '  ') } ({ title })`"<div class="summaryTableDescription">[static]</div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#DEFAULT_LINE_FORMAT">DEFAULT_LINE_FORMAT</a> : String = "str = replace(lpad(string, 8, "\t"), "\t", "  ");
+str + " (" + title + ")""<div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">ProbeTextUtils</td>
 </tr>
 <tr class="">
@@ -241,7 +242,8 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static const DEFAULT_LINE_FORMAT:String = "`{ replace(lpad(string, 8, '\t'), '\t', '  ') } ({ title })`"</code>
+<code>public static const DEFAULT_LINE_FORMAT:String = "str = replace(lpad(string, 8, "\t"), "\t", "  ");
+str + " (" + title + ")""</code>
 </div>
 <a name="enableProbeToolTip"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">

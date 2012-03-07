@@ -126,8 +126,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#linkBindableProperty()">linkBindableProperty</a>(linkableVariable:<a href="../api/core/ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void</div>
-<div class="summaryTableDescription">   linking sessioned objects with bindable properties
-   </div>
+<div class="summaryTableDescription">
+   This function will link the session state of an ILinkableVariable to a bindable property of an object.</div>
 </td><td class="summaryTableOwnerCol">SessionManager</td>
 </tr>
 <tr class="">
@@ -565,35 +565,42 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function linkBindableProperty(linkableVariable:<a href="../api/core/ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void</code><p>   linking sessioned objects with bindable properties
+<code>public function linkBindableProperty(linkableVariable:<a href="../api/core/ILinkableVariable.html">ILinkableVariable</a>, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void</code><p>
+   This function will link the session state of an ILinkableVariable to a bindable property of an object.
+   Prior to linking, the value of the ILinkableVariable will be copied over to the bindable property.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">linkableVariable</span>:<a href="../api/core/ILinkableVariable.html">ILinkableVariable</a></code></td>
+<td width="20px"></td><td><code><span class="label">linkableVariable</span>:<a href="../api/core/ILinkableVariable.html">ILinkableVariable</a></code> &mdash; An ILinkableVariable to link to a bindable property.
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">bindableParent</span>:Object</code></td>
+<td width="20px"></td><td><code><span class="label">bindableParent</span>:Object</code> &mdash; An object with a bindable property.
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">bindablePropertyName</span>:String</code></td>
+<td width="20px"></td><td><code><span class="label">bindablePropertyName</span>:String</code> &mdash; The variable name of the bindable property.
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">delay</span>:uint</code> (default = <code>0</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">delay</span>:uint</code> (default = <code>0</code>)<code></code> &mdash; The delay to use before setting the linkable variable to reflect a change in the bindable property while the bindableParent has focus.
+   </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">onlyWhenFocused</span>:Boolean</code> (default = <code>false</code>)<code></code></td>
+<td width="20px"></td><td><code><span class="label">onlyWhenFocused</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is set to true and the bindableParent is a UIComponent, the bindable value will only be copied to the linkableVariable when the component has focus.
+   </td>
 </tr>
 </table>
 </div>
