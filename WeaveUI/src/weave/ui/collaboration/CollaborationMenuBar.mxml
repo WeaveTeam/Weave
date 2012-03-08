@@ -1,0 +1,614 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 width="100%" height="25"
+		 backgroundAlpha="0"
+		 backgroundColor="0x8a8a8a"
+		 cornerRadius="7"
+		 bottom="0" horizontalGap="0"
+		 verticalAlign="middle"
+		 creationComplete="creationComplete(event)"
+		 resize="resizeHandler(event)"
+		 horizontalScrollPolicy="off" verticalScrollPolicy="off">
+	
+	<mx:Spacer width="100%" />
+	<mx:Button id="button_connect"  label="Connect"  icon="{iCon}" cornerRadius="0" height="100%" />
+	<mx:Button id="button_settings" label="Settings" icon="{iSet}" cornerRadius="0" height="100%" />
+	<mx:Button id="button_chat"     label="Chat" 	 icon="{iChat}" cornerRadius="0" width="{this.width/2}" height="100%" />
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.core.Application;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.PopUpManager;
+			
+			import org.igniterealtime.xiff.conference.RoomOccupant;
+			import org.igniterealtime.xiff.events.RoomEvent;
+			
+			import weave.Weave;
+			import weave.api.registerDisposableChild;
+			import weave.api.reportError;
+			import weave.services.collaboration.CollaborationEvent;
+			import weave.services.collaboration.CollaborationService;
+			
+			public const collabService:CollaborationService 	= registerDisposableChild(this, new CollaborationService(Weave.root));
+			public var rtmpService:NetConnection 				= null;
+			
+			private const rtmpPath:String = "rtmpt://demo.oicweave.org:8086/live";
+			
+			private var CHAT:CollaborationChatWindow 			= null;
+			private var SETTINGS:CollaborationSettingsWindow 	= null;
+			private var connTimer:Timer 						= null;
+			private var mouseTimer:Timer						= null;
+			private var pingTimer:Timer							= null;
+			private var userMice:Dictionary						= null;
+			private var disConButtonPushed:Boolean				= false;
+			private var connectedToRTMPService:Boolean			= false;
+			
+			[Embed(source="../../resources/images/collab/connect.png")]  private const iCon:Class; 
+			[Embed(source="../../resources/images/collab/settings.png")] private const iSet:Class;
+			[Embed(source="../../resources/images/collab/chat.png")]	 private const iChat:Class;  
+			
+			protected function creationComplete(event:FlexEvent):void
+			{
+				trace("CollaborationMenuBar is opened");
+				rtmpService				= new NetConnection();
+
+				collabService.addEventListener(CollaborationEvent.LOG, handleLogEvent);
+				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
+				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
+				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
+				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
+				collabService.addEventListener(CollaborationEvent.USER_JOINED_ROOM, handleCreateUserMouse);
+				collabService.addEventListener(CollaborationEvent.USER_LEFT_ROOM, handleRemoveUserElements);
+				collabService.addEventListener(CollaborationEvent.USER_REQUEST_MOUSE_POS, handleUserRequestMousePos);
+				collabService.addEventListener(CollaborationEvent.USER_UPDATE_MOUSE_POS, updateMousePos);
+				collabService.addEventListener(CollaborationEvent.USER_REQUEST_USERLIST, handleUserRequestUserlist);
+				collabService.addEventListener(CollaborationEvent.USER_UPDATE_USERLIST, handleUserUpdateUserlist);
+				collabService.addEventListener(CollaborationEvent.UPDATE_PING, updatePing);
+				collabService.addEventListener(CollaborationEvent.UPDATE_MIC, userMicUpdated);
+				collabService.addEventListener(CollaborationEvent.UPDATE_CAM, userCamUpdated);
+				
+				rtmpService.addEventListener(NetStatusEvent.NET_STATUS, rtmpNetStatus);
+				rtmpService.addEventListener(SecurityErrorEvent.SECURITY_ERROR, rtmpSecurityError);
+				
+				button_connect.addEventListener(MouseEvent.CLICK, connect);
+				button_chat.addEventListener(MouseEvent.CLICK, toggleChat);
+				button_settings.addEventListener(MouseEvent.CLICK, toggleSettings);
+				stage.addEventListener(Event.RESIZE, resizeHandler);
+				
+			}
+			public function addedToStage():void
+			{
+				button_connect.enabled 	= false;
+				button_chat.enabled 	= false;
+				button_settings.enabled = true;
+				
+				createWindowChat();
+				createWindowSettings();
+				
+				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, settingsConnSaved);
+				SETTINGS.addEventListener(CollaborationEvent.ADDON_SETTINGS_SAVED, settingsAddonSaved);
+				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
+				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
+				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
+				CHAT.userNameList = collabService.userList;
+				
+				resizeHandler();
+			}
+			public function dispose():void
+			{
+				disConButtonPushed = true;
+				disconnect();
+				resetUserMice();
+				destroyWindowChat();
+				destroyWindowSettings();
+			}
+			private function connect(e:MouseEvent = null):void
+			{
+				button_connect.label = "Connecting...";
+				collabService.connect(Weave.properties.collabServerIP.value, 
+									  Weave.properties.collabServerName.value, 
+									  int(Weave.properties.collabServerPort.value), 
+									  Weave.properties.collabServerRoomToJoin.value, 
+									  SETTINGS.collab_NICKNAME);
+				
+				// Set timeout to 10 seconds
+				connTimer = new Timer(10000);
+				connTimer.addEventListener(TimerEvent.TIMER, serverUnresponsive);
+				connTimer.start();
+				
+				disConButtonPushed = false;
+			}
+			private function handleConnect( e:CollaborationEvent ):void
+			{
+				trace( "handleConnect()" );
+				stopConTimer();
+				updateEnabledSettings();
+				toggleChat();
+				CHAT.nickname = collabService.nickname;
+				CHAT.roomName = collabService.roomToJoin;
+				CHAT.setUserAttribute(CHAT.TYPE_MIC, SETTINGS.collab_NICKNAME, 0);
+				CHAT.setUserAttribute(CHAT.TYPE_CAM, SETTINGS.collab_NICKNAME, 0);
+				CHAT.setUserAttribute(CHAT.TYPE_SPEC, SETTINGS.collab_NICKNAME, (Weave.properties.collabSpectating.value) ? 1 : 0);
+				
+				joinedRoomCreateMouseList();
+				connectToRTMPServer();
+				
+				mouseTimer = new Timer(600);
+				mouseTimer.addEventListener(TimerEvent.TIMER, mouseMove);
+				mouseTimer.start();
+				
+				pingTimer = new Timer(10000);
+				pingTimer.addEventListener(TimerEvent.TIMER, requestPing);
+				pingTimer.start();
+				
+				collabService.room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
+				collabService.sendMouseMessage(SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
+			}
+			private function disconnect(e:MouseEvent = null):void
+			{
+				if( e )
+					disConButtonPushed = true;
+				if( collabService.isConnected )
+					collabService.disconnect();
+				disconnectionFromRTMPServer();
+			}
+			private function handleDisconnect( e:CollaborationEvent ):void
+			{
+				if( collabService.room )
+					collabService.room.removeEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
+				if( mouseTimer ) {
+					mouseTimer.stop();
+					mouseTimer.removeEventListener(TimerEvent.TIMER, mouseMove);
+					mouseTimer = null;
+				}
+				if( pingTimer ) {
+					pingTimer.stop();
+					pingTimer.removeEventListener(TimerEvent.TIMER, requestPing);
+					pingTimer = null;
+				}
+				updateEnabledSettings();
+				resetUserMice();
+				disConButtonPushed = false;
+			}
+			private function createWindowSettings():void
+			{
+				SETTINGS = PopUpManager.createPopUp(Application.application as Application, CollaborationSettingsWindow) as CollaborationSettingsWindow;
+				SETTINGS.hide();
+				var p:Point = new Point(button_settings.x + button_settings.width/2, button_settings.y);
+				SETTINGS.x = localToGlobal(p).x - SETTINGS.width/2;
+				SETTINGS.y = localToGlobal(p).y + button_settings.height;
+			}
+			private function createWindowChat():void
+			{
+				CHAT = PopUpManager.createPopUp(Application.application as Application, CollaborationChatWindow) as CollaborationChatWindow;
+				CHAT.visible = false;
+				var p:Point = new Point(button_chat.x, button_chat.y);
+				CHAT.xFrom = localToGlobal(p).x;
+				CHAT.xTo   = localToGlobal(p).x;
+				CHAT.yFrom = localToGlobal(p).y + button_chat.height;
+				CHAT.yTo   = localToGlobal(p).y - CHAT.height;
+				CHAT.x     = localToGlobal(p).x;
+				CHAT.y	   = localToGlobal(p).y + button_chat.height;
+				CHAT.width = button_chat.width;
+			}
+			private function destroyWindowSettings():void
+			{
+				if( SETTINGS ) {
+					PopUpManager.removePopUp(SETTINGS);
+					SETTINGS = null;
+				}
+			}
+			private function destroyWindowChat():void
+			{
+				if( CHAT ) {
+					PopUpManager.removePopUp(CHAT);
+					CHAT = null;
+				}
+			}
+			private function toggleSettings(e:MouseEvent = null):void
+			{
+				if( SETTINGS ) {
+					if( SETTINGS.visible )
+						SETTINGS.hide();
+					else
+						SETTINGS.show();
+				
+					setWindowSettingsPos();
+				}
+			}
+			private function toggleChat(e:MouseEvent = null):void
+			{
+				if( CHAT )
+				{
+					CHAT.visible = ( CHAT.visible ) ? false : true;
+					if( CHAT.visible ) {
+						button_chat.label = "Chat";
+						CHAT.unreadMessages = 0;
+					}
+				}
+			}
+			private function resizeHandler(event:Event = null):void
+			{
+				if( SETTINGS ) setWindowSettingsPos();
+				if( CHAT ) {
+					setWindowChatPos();
+//					if( CHAT.streamingCount() > 0 && CHAT.rtmpService != null )
+//						CHAT.organizeRemoteVideos();
+				}
+			}
+			
+			private function setWindowSettingsPos():void
+			{
+				var p:Point = new Point(button_settings.x + button_settings.width/2, button_settings.y);
+				SETTINGS.x = localToGlobal(p).x - (SETTINGS.width/2);
+				if( SETTINGS.visible )
+					SETTINGS.y = localToGlobal(p).y - SETTINGS.height;
+				else
+					SETTINGS.y = localToGlobal(p).y + button_settings.height;
+			}
+			private function setWindowChatPos():void
+			{
+				var p:Point = new Point(button_chat.x, button_chat.y);
+				CHAT.x 	 = localToGlobal(p).x;
+				CHAT.xFrom = localToGlobal(p).x;
+				CHAT.xTo   = localToGlobal(p).x;
+				CHAT.width = button_chat.width;
+				CHAT.height= stage.stageHeight/2;
+				CHAT.yFrom = localToGlobal(p).y + button_chat.height;
+				CHAT.yTo   = localToGlobal(p).y - CHAT.height;
+				if( CHAT.visible )
+					CHAT.y = localToGlobal(p).y - CHAT.height;
+				else
+					CHAT.y = localToGlobal(p).y + button_chat.height;
+			}
+			private function settingsConnSaved(e:Event):void
+			{
+				button_connect.enabled = true;
+				CHAT.setUserAttribute(CHAT.TYPE_COLOR, SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR);
+			}
+			private function settingsAddonSaved(e:Event):void
+			{
+				CHAT.cam = SETTINGS.collab_CAMERA;
+				CHAT.mic = SETTINGS.collab_MIC;
+				CHAT.addOnsSaved = true;
+			}
+			private function sendMessageEventHandler(e:CollaborationEvent):void
+			{
+				collabService.sendTextMessage( e.getText() );
+			}
+			private function handleLogEvent(e:CollaborationEvent):void
+			{
+				CHAT.logText(e.getText());
+				if( !CHAT.visible && collabService.isConnected ) {
+					button_chat.label = "Chat [" + CHAT.unreadMessages + "]";
+				} else {
+					button_chat.label = "Chat";
+					CHAT.unreadMessages = 0;
+				}
+			}
+			private function lockedError(e:Event):void
+			{
+				stopConTimer();
+				if( !SETTINGS.visible ) toggleSettings();
+				SETTINGS.showConnectionWarning("Server is locked");
+			}
+			private function nickConflictError(e:Event):void
+			{
+				stopConTimer();
+				if( !SETTINGS.visible ) toggleSettings();
+				SETTINGS.showConnectionWarning("Username already exists");
+				updateEnabledSettings();
+				
+				disconnectionFromRTMPServer();
+			}
+			private function serverUnresponsive(e:TimerEvent):void
+			{
+				stopConTimer();
+				updateEnabledSettings();
+				
+				if( !SETTINGS.visible ) toggleSettings();
+				SETTINGS.showConnectionWarning("Server not responding");
+				
+				disconnectionFromRTMPServer();
+			}
+			private function reconnectError(e:Event):void
+			{
+				connect();
+			}
+			private function onTimeout(e:RoomEvent):void
+			{
+				if( !disConButtonPushed ) {
+					resetUserMice();
+					disconnectionFromRTMPServer();
+					Alert.show("Would you like to reconnect to the room?", "Disconnection Alert", Alert.YES | Alert.NO, null, disconnectHandler);
+				}
+			}
+			private function disconnectHandler( e:CloseEvent ):void
+			{
+				if (e.detail == Alert.YES)
+					connect();
+			}
+			private function stopConTimer():void
+			{
+				if( connTimer ) 
+				{
+					connTimer.stop();
+					connTimer.removeEventListener(TimerEvent.TIMER, serverUnresponsive);
+					connTimer = null;
+				}
+			}
+			private function updateEnabledSettings():void
+			{
+				if( collabService.isConnected ) {
+					button_connect.label = "Disconnect";
+					button_connect.removeEventListener(MouseEvent.CLICK, connect);
+					button_connect.addEventListener(MouseEvent.CLICK, disconnect);
+					button_chat.enabled = true;
+				} else {
+					button_connect.label = "Connect";
+					button_connect.removeEventListener(MouseEvent.CLICK, disconnect);
+					button_connect.addEventListener(MouseEvent.CLICK, connect);
+					button_chat.enabled = false;
+					if( CHAT.visible ) toggleChat();
+				}
+			}
+			
+			
+/*
+ * RTMP requesting to a remote media server.
+ */
+			
+			private var rtmpTimer:Timer 			= new Timer(10000);
+			private var rtmpPollingTimer:Timer 		= new Timer(30000);
+			private var rtmpUserClosed:Boolean 		= false;
+			private var rtmpPollingServer:Boolean	= false;
+			
+			private function connectToRTMPServer():void
+			{
+				rtmpService.client = this;
+				rtmpService.connect(rtmpPath);
+				
+				if( !rtmpPollingServer )
+				{
+					rtmpTimer.addEventListener(TimerEvent.TIMER, handleRTMPReconnect);
+					rtmpPollingTimer.addEventListener(TimerEvent.TIMER, pollRTMPServer);
+				}
+			}
+			private function disconnectionFromRTMPServer():void
+			{
+				rtmpUserClosed = true;
+				rtmpPollingServer = false;
+				rtmpTimer.stop();
+				rtmpPollingTimer.stop();
+				if( rtmpService.connected )	rtmpService.close();
+			}
+			private function handleRTMPReconnect(e:TimerEvent):void
+			{
+				rtmpTimer.stop();
+				connectToRTMPServer();
+			}
+			private function pollRTMPServer(e:TimerEvent):void
+			{
+				rtmpPollingServer = true;
+				connectToRTMPServer();
+			}
+			private function rtmpNetStatus(e:NetStatusEvent):void
+			{
+				trace( e.info.code+": "+e.info.description );
+				
+				switch( e.info.code )
+				{
+					case "NetConnection.Connect.Success":
+						if( !CHAT ) break;
+						CHAT.showRTMPWarning();
+						CHAT.showAddonControls();
+						rtmpPollingTimer.stop();
+						rtmpTimer.stop();
+						connectedToRTMPService 		= true;
+						CHAT.connectedToRTMPService = true;
+						CHAT.rtmpService 			= rtmpService;
+						rtmpPollingServer 			= false;
+						
+						if( collabService.room.length > 1 ) requestAddonStatus();
+						
+						break;
+					
+					case "NetConnection.Connect.Closed":
+						if( !CHAT ) break;
+						if( !rtmpUserClosed )
+						{
+							rtmpTimer.start();
+							rtmpUserClosed 			= false;
+							CHAT.showRTMPWarning("Lost connection to media server. Retrying...");
+						}
+						connectedToRTMPService 		= false;
+						CHAT.connectedToRTMPService = false;
+						CHAT.rtmpService 			= null;
+						CHAT.hideAddonControls();
+						collabService.sendAddonUpdate(collabService.nickname, collabService.TYPE_CAM, false);
+						collabService.sendAddonUpdate(collabService.nickname, collabService.TYPE_MIC, false);
+						break;
+					
+					case "NetConnection.Connect.Failed":
+						connectedToRTMPService 		= false;
+						if( !CHAT ) break;
+						CHAT.connectedToRTMPService = false;
+						CHAT.rtmpService 			= null;
+						CHAT.hideAddonControls();
+						if( !rtmpPollingServer )
+						{
+							CHAT.showRTMPWarning("Cannot connect to media server.", 10000);
+							rtmpPollingTimer.start();
+						}
+						break;
+					
+					default:
+						break;
+           		}
+        	}
+			private function handleUserRequestUserlist(e:CollaborationEvent):void
+			{
+				collabService.requestAddonStatus(e.getText(), CHAT._userListInfo);
+			}
+			private function handleUserUpdateUserlist(e:CollaborationEvent):void
+			{
+				var info:Dictionary = e.getInfo() as Dictionary;
+				for( var name:String in info )
+				{
+					trace( "Setting attributes for:", name );
+					CHAT.setUserAttribute(CHAT.TYPE_CAM,	name, info[name].cam);
+					trace( "Cam:", info[name].cam );
+					CHAT.setUserAttribute(CHAT.TYPE_COLOR, 	name, info[name].color);
+					trace( "color:", info[name].color );
+					CHAT.setUserAttribute(CHAT.TYPE_MIC,  	name, info[name].mic);
+					trace( "mic:", info[name].mic);
+					CHAT.setUserAttribute(CHAT.TYPE_PING, 	name, info[name].ping);
+					trace( "ping:", info[name].ping );
+					CHAT.setUserAttribute(CHAT.TYPE_SPEC, 	name, info[name].spec);
+					trace( "spec:", info[name].spec );
+				}
+			}
+			private function requestAddonStatus():void
+			{
+				trace("requesting addon status");
+				collabService.requestAddonStatus(SETTINGS.collab_NICKNAME);
+			}
+			private function rtmpSecurityError(e:SecurityErrorEvent):void
+			{
+				trace(e.text);
+			}
+			public function onBWDone():void
+			{
+				trace("onBWDone");
+			}
+			
+			
+/*
+ * Pinging and mouse functions for collaboration service.
+ */
+			
+			private function requestPing(e:TimerEvent):void 		   { collabService.sendPing(SETTINGS.collab_NICKNAME); }
+			private function updatePing(e:CollaborationEvent):void 	   { CHAT.setUserAttribute(CHAT.TYPE_PING, e.getText(), e.getX()); }
+			private function updateUserMic(e:CollaborationEvent):void  { collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, collabService.TYPE_MIC, ( e.getText() == "1" )); }
+			private function updateUserCam(e:CollaborationEvent):void  { collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, collabService.TYPE_CAM, ( e.getText() == "1" )); }
+			private function userMicUpdated(e:CollaborationEvent):void { CHAT.setUserAttribute(CHAT.TYPE_MIC, e.getText(), Number(e.getColor())); }
+			private function userCamUpdated(e:CollaborationEvent):void { CHAT.setUserAttribute(CHAT.TYPE_CAM, e.getText(), Number(e.getColor())); }
+			
+			private var lastX:Number = 0;
+			private var lastY:Number = 0;
+			
+			private function joinedRoomCreateMouseList():void
+			{
+				trace("joinedRoomCreateMouseList();");
+				userMice = new Dictionary();
+				
+				for each( var person:RoomOccupant in collabService.room ) 
+				{
+					if( person.displayName == collabService.nickname ) continue;
+					trace("asking " + person.displayName + " for mouse pos");
+					collabService.requestMouseMessage(person.displayName);
+				}
+			}
+			private function handleCreateUserMouse(e:CollaborationEvent):void
+			{
+				trace("handleCreateUserMouse();");
+				if( e.getText() == collabService.nickname ) return;
+				if( !userMice )	// You have just joined the room and ask everyone for their mice
+				{
+					joinedRoomCreateMouseList();
+				}
+				else // You are already in the room and someone joins
+				{
+					userMice[e.getText()] = CollabMouseCursor.addPopUp(Application.application as Application) as CollabMouseCursor;
+				}
+			}
+			private function handleRemoveUserElements(e:CollaborationEvent):void
+			{
+				trace( "Removing " + e.getText() + "\'s cursor" );
+				var cm:CollabMouseCursor = userMice[e.getText()];
+				if( cm == null ) 
+				{
+					reportError(e.getText() + "\'s mouse does not exist.");
+					return;
+				}
+				
+				cm.removePopUp();
+				delete userMice[e.getText()];
+				
+				CHAT.setUserAttribute(CHAT.TYPE_CAM, e.getText(), 0);
+				CHAT.setUserAttribute(CHAT.TYPE_MIC, e.getText(), 0);
+			}
+			private function handleUserRequestMousePos(e:CollaborationEvent):void
+			{
+				trace("handleUserRequestMousePos();");
+				collabService.sendMouseMessage(collabService.nickname, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
+			}
+			private function updateMousePos(e:CollaborationEvent):void
+			{
+				if( userMice == null )
+					joinedRoomCreateMouseList();
+				if( userMice[e.getText()] == null )
+					userMice[e.getText()] = CollabMouseCursor.addPopUp(Application.application as Application) as CollabMouseCursor;
+				
+				userMice[e.getText()].setPos(percentToCoordX(e.getX()), percentToCoordY(e.getY()));
+				
+				if( userMice[e.getText()].color != e.getColor() )
+				{
+					userMice[e.getText()].fillCursor(e.getColor());
+					CHAT.setUserAttribute(CHAT.TYPE_COLOR, e.getText(), e.getColor());
+				}
+			}
+			private function mouseMove(e:TimerEvent):void
+			{
+				if( collabService.room.length < 2 ) return;				// Your the only one in the room ( dont send )
+				if( lastX == mouseX && lastY == mouseY ) return;		// Your mouse never moved ( dont send )
+
+//				trace(collabService.username+" ("+xMousePercent()+"%,"+yMousePercent()+"%)");
+				collabService.sendMouseMessage(collabService.nickname, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
+				lastX = mouseX;
+				lastY = mouseY;
+			}
+			private function resetUserMice():void
+			{
+				for( var m:String in userMice )
+				{
+					userMice[m].removePopUp();
+					delete userMice[m];
+				}
+				userMice = null;
+			}
+			private function coordToPercentX(x:Number):Number { return x / Application.application.stage.stageWidth;   }
+			private function percentToCoordX(x:Number):Number { return x * Application.application.stage.stageWidth;   }
+			private function coordToPercentY(y:Number):Number { return y / Application.application.stage.stageHeight;  }
+			private function percentToCoordY(y:Number):Number { return y * Application.application.stage.stageHeight;  }
+			private function xMousePercent():Number { return Application.application.stage.mouseX / Application.application.stage.stageWidth;  }
+			private function yMousePercent():Number { return Application.application.stage.mouseY / Application.application.stage.stageHeight; }
+
+		]]>
+	</mx:Script>
+</mx:HBox>
