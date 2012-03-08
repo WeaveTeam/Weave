@@ -19,8 +19,6 @@
 
 package weave.compiler
 {
-	import flash.utils.describeType;
-	
 	import mx.formatters.NumberFormatter;
 	import mx.utils.ObjectUtil;
 
@@ -32,6 +30,8 @@ package weave.compiler
 	 */
 	public class StandardLib
 	{
+		public static const OVERSCORE:String = "\u203E";
+		
 		/**
 		 * This function will cast a value of any type to a Number,
 		 * interpreting the empty string ("") and null as NaN.
