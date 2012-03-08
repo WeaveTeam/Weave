@@ -94,6 +94,11 @@
 				return Weave.root.getName(activePanel);
 			}
 			
+			public static function getTopPanel():DraggablePanel
+			{
+				return Weave.root.getObjects(DraggablePanel).pop();
+			}
+			
 			/**
 			 * panelX, panelY, panelWidth, panelHeight
 			 * These are sessioned strings that can be either absolute coordinates or percentages.

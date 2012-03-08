@@ -330,6 +330,7 @@
 				var response:ArrayCollection = new ArrayCollection();
 				var docsArray:Array = [];
 				var docObject:SelectableInfoMapDocument;
+				_parentPanel.docs.delayCallbacks();
 				for each(var doc:XML in result.result.doc)
 				{
 					
@@ -343,7 +344,7 @@
 					
 //					currently disabled pdf files for cleaner results and testing purposes 
 					if(linkExtension == "pdf"){
-						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+//						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
 						imgExtension = ".png";
 						
 					}
@@ -383,6 +384,7 @@
 				
 				_parentPanel.docsInCSV.csvDataString.value = csvDataString;
 				
+				_parentPanel.docs.resumeCallbacks(true);//test this
 				handleParsedResult(response);
 			}
 			
@@ -413,7 +415,7 @@
 				for(var i:int; i<response.length ;i++)
 				{
 					var link:String = response[i] as String;					
-					obj = _parentPanel.docs.requestObject(link,SelectableInfoMapDocument,false);
+					obj = _parentPanel.docs.getObject(link) as SelectableInfoMapDocument;
 					var thumbnail:DocThumbnailComponent = new DocThumbnailComponent();
 					
 					

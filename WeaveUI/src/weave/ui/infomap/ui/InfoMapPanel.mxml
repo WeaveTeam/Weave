@@ -44,6 +44,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.CloseEvent;
 			import mx.events.CollectionEvent;
 			import mx.rpc.AsyncToken;
+			import mx.rpc.IResponder;
 			import mx.rpc.Responder;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
@@ -176,12 +177,37 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 			
-			override public function validateDisplayList():void
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
-					super.validateDisplayList();
-				if(detectLinkableObjectChange(validateDisplayList,docs))
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				
+				
+				//detect any changes in docs and make query for matched entity values
+				if(detectLinkableObjectChange(updateDisplayList,docs))
 				{
-					var query:DelayedAsyncInvocation = InfoMapAdminInterface.instance.searchInDocuments(['ohio','Richland'],['/var/lib/tomcat6/webapps/ROOT/infomap/alzheimer/ohio_health_report.pdf']);
+					//selection happened outside of the panel then return
+					if(!(DraggablePanel.getTopPanel() is InfoMapPanel))
+						return;
+					
+					var docsArray:Array = docs.getObjects();
+					var selectedDocs:Array = [];
+					for each(var doc:SelectableInfoMapDocument in docsArray)
+					{
+						if(doc.selected.value)
+						{
+							selectedDocs.push(doc.url.value);
+						}
+					}
+					
+					if(selectedDocs.length == 0)
+					{
+						_selectedKeySet.clearKeys(); //test this
+						return;
+					}
+					
+					var entities:Array = extractAllEntitiyValues();
+					
+					var query:DelayedAsyncInvocation = InfoMapAdminInterface.instance.searchInDocuments(entities,selectedDocs);
 					query.addAsyncResponder(handleMatchedEntities,handleMatchedEntitiesFault);
 				}
 				
@@ -189,7 +215,37 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleMatchedEntities(event:ResultEvent,token:Object=null):void
 			{
-				Alert.show((event.result as Array).toString());
+				var entities:Array = event.result as Array;
+				var keys:Array = [];
+				for each(var entity:String in entities)
+				{
+					//get all entity attribute columns of selected keytype
+					var attrCols:Array = getLinkableDescendants(Weave.root,IAttributeColumn);
+					
+					for each (var attrCol:IAttributeColumn in attrCols)
+					{
+						var entityValue:String = attrCol.getMetadata("isEntity");
+						if(entityValue == "true")
+						{
+							for each (var key:IQualifiedKey in attrCol.keys)
+							{
+								var value:String = ColumnUtils.getString(attrCol,key);
+								if(value.toLowerCase() == entity.toLowerCase())
+								{
+									keys.push(key);
+									break; //assuming that there will be only one such entity value in a column. This assumption could be wrong.
+								}
+							}
+						}
+					}
+				}
+				
+				if(!keys.length == 0)
+//					_selectedKeySet.clearKeys();
+//				else
+					_selectedKeySet.replaceKeys(keys);
+				
+//				Alert.show((event.result as Array).toString());
 			}
 			
 			private function handleMatchedEntitiesFault(event:FaultEvent,token:Object=null):void
@@ -202,30 +258,78 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				var docsArray:Array = docs.getObjects();
 				
-					for each(var doc:SelectableInfoMapDocument in docsArray)
+					if(_selectedKeySet.keys.length == 0)
 					{
-						if(_selectedKeySet.keys.length == 0)
+						for each(var doc:SelectableInfoMapDocument in docsArray)
 						{
-							if(doc.selected.value)
 							{
-								doc.selected.value = false;
-								continue;
+								if(doc.selected.value)
+								{
+									doc.selected.value = false;
+								}else{
+									
+									doc.selected.triggerCallbacks();
+								}
 							}
 						}
-						//TODO: better way than triggering callbacks for all thumbnails ?
-						doc.selected.triggerCallbacks();
 					}
-					
 			}
 			
 			
 			private var selectionKeywords:LinkableString = new LinkableString("",null,false);
 			private function handleMouseUp(event:MouseEvent):void
 			{
+				//we should set the selection keywords only if the mousup happened from outside of InfoMap panel
+				//This is still not the right way to do it. Need to find a more efficient solution
+				
+				if((DraggablePanel.getTopPanel() is InfoMapPanel))
+					return;
+				
 				
 				var keywords:Array = extractKeywordsFromSelection();
-				selectionKeywords.value = keywords.join(" OR ");
+				selectionKeywords.value = keywords.join(" AND ");
 				
+			}
+			
+			private function extractAllEntitiyValues():Array
+			{
+				//get all entity attribute columns of selected keytype
+				var attrCols:Array = getLinkableDescendants(Weave.root,IAttributeColumn);
+				var temp:Array = [];
+				
+				for each (var attrCol:IAttributeColumn in attrCols)
+				{
+					var entityValue:String = attrCol.getMetadata("isEntity");
+					if(entityValue == "true")
+					{
+						for each (var key:IQualifiedKey in attrCol.keys)
+						{
+							var value:String = ColumnUtils.getString(attrCol,key);
+							if(value)
+							{
+								temp.push(value);
+							}
+						}
+					}
+				}
+				
+				
+				//get unique keywords from extracted values 
+				var dict:Dictionary = new Dictionary();
+				
+				for each(var word:String in temp)
+				{
+					if(dict[word] == undefined)
+						dict[word] = word;
+				}
+				
+				var uniqueEntityValues:Array = []
+				for each(var prop:String in dict)
+				{
+					uniqueEntityValues.push(prop);	
+				}
+				
+				return uniqueEntityValues;
 			}
 			
 			/**
@@ -334,11 +438,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for each(var docXML:XML in result.result.doc)
 				{
 					var link:String = docXML.str.(@name=="link").text().toXMLString();
-					var linkLen:int = link.length;
-					var linkExtension:String = link.substring(linkLen-3,linkLen);
-					if(linkExtension == "pdf"){
-						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
-					}
+//					var linkLen:int = link.length;
+//					var linkExtension:String = link.substring(linkLen-3,linkLen);
+//					if(linkExtension == "pdf"){
+//						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+//					}
 					var doc:SelectableInfoMapDocument = docs.getObject(link) as SelectableInfoMapDocument;
 					
 					if(doc)
@@ -426,7 +530,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if(query==null)
 				{
-					nodeHandler.node.keywords.value = extractKeywordsFromSelection().join(" ");				
+					nodeHandler.node.keywords.value = extractKeywordsFromSelection().join(" ");
+					
+					//if query is null then user entered it from selection from another tool
+					//we clear this selection
+					_selectedKeySet.clearKeys();
 				}else{
 					nodeHandler.node.keywords.value = query;
 				}
