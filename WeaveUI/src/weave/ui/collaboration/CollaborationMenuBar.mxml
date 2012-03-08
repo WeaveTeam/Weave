@@ -68,14 +68,14 @@
 			private var disConButtonPushed:Boolean				= false;
 			private var connectedToRTMPService:Boolean			= false;
 			
-			[Embed(source="../../resources/images/collab/connect.png")]  private const iCon:Class; 
-			[Embed(source="../../resources/images/collab/settings.png")] private const iSet:Class;
-			[Embed(source="../../resources/images/collab/chat.png")]	 private const iChat:Class;  
+			[Embed(source="/weave/resources/images/collab/connect.png")]  private const iCon:Class; 
+			[Embed(source="/weave/resources/images/collab/settings.png")] private const iSet:Class;
+			[Embed(source="/weave/resources/images/collab/chat.png")]     private const iChat:Class;  
 			
 			protected function creationComplete(event:FlexEvent):void
 			{
 				trace("CollaborationMenuBar is opened");
-				rtmpService				= new NetConnection();
+				rtmpService = new NetConnection();
 
 				collabService.addEventListener(CollaborationEvent.LOG, handleLogEvent);
 				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);

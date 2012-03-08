@@ -154,10 +154,10 @@
 			public var cam:Camera;
 			public var mic:Microphone;
 			
-			[Embed(source="../../resources/images/collab/mic.png")] 	internal const iconMic:Class;
-			[Embed(source="../../resources/images/collab/cam.png")] 	internal const iconCam:Class;
-			[Embed(source="../../resources/images/collab/speaker.png")] internal const iconSpeaker:Class;
-			[Embed(source="../../resources/images/collab/eye.png")] 	internal const iconEye:Class;
+			[Embed(source="/weave/resources/images/collab/mic.png")]     internal const iconMic:Class;
+			[Embed(source="/weave/resources/images/collab/cam.png")]     internal const iconCam:Class;
+			[Embed(source="/weave/resources/images/collab/speaker.png")] internal const iconSpeaker:Class;
+			[Embed(source="/weave/resources/images/collab/eye.png")]     internal const iconEye:Class;
 
 			override protected function childrenCreated():void
 			{

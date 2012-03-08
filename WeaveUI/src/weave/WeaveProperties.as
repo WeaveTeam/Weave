@@ -194,8 +194,8 @@ package weave
 		public const enableDynamicTools:LinkableBoolean = new LinkableBoolean(true); // move/resize/add/remove/close tools
 		
 		// Collaboration
-		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(false); // collaboration menu bar
-		public const showCollaborationEditor:LinkableBoolean = new LinkableBoolean(true);
+		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(false); // collaboration menu bar (bottom of screen)
+		public const showCollaborationEditor:LinkableBoolean = new LinkableBoolean(false); // menu item
 		public const collabServerIP:LinkableString = new LinkableString("demo.oicweave.org");
 		public const collabServerName:LinkableString = new LinkableString("ivpr-vm");
 		public const collabServerPort:LinkableString = new LinkableString("5222");
