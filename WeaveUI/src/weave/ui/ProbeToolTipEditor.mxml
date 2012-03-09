@@ -42,37 +42,41 @@
 					 creationComplete="linkBindableProperty(ProbeTextUtils.enableProbeToolTip, event.target, 'selected')"/>
 	</mx:VBox>
 	
-	<mx:VBox label="Probed Columns">
-		<mx:HBox width="100%" verticalAlign="middle">
-			<HelpComponent label="Probed Columns">
-				<mx:Label text="Example tooltip:"/>
-				<mx:HBox styleName="exampleStyle">
-					<mx:Image source="@Embed(source='/weave/resources/images/tooltipProbed.png')"/>
-				</mx:HBox>
-				<mx:Label text="The attributes highlighted in green are the probed columns"/>
-			</HelpComponent>
-			<AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
-						 text="The values from these columns will be displayed under the header line along with the column names."
-						 wordWrap="true"/>
-		</mx:HBox>
-		<ColumnListComponent id="columnList" width="100%" height="100%" label="Probed columns"
-							 hashMap="{ProbeTextUtils.probedColumns}"/>
-		<Indent label="Format">
-			<mx:TextArea id="format" width="100%" height="48"
-						 creationComplete="linkBindableProperty(ProbeTextUtils.probeLineFormatter, event.target, 'text');"/>
-			<mx:Button label="Reset" click="ProbeTextUtils.probeLineFormatter.value = ProbeTextUtils.DEFAULT_LINE_FORMAT;"/>
-			<HelpComponent>
-				<htmlText>
-					<![CDATA[
-						This expression will be used to format each line corresponding to a probed column. <!--
-						-->Available variables are <b>column</b>, <b>key</b>, <b>string</b>, and <b>title</b>.
-					]]>
-				</htmlText>
-			</HelpComponent>
-		</Indent>
-		<mx:CheckBox label="Enable probe ToolTips"
-					 creationComplete="linkBindableProperty(ProbeTextUtils.enableProbeToolTip, event.target, 'selected')"/>
-	</mx:VBox>
+	<mx:VDividedBox label="Probed Columns">
+		<mx:VBox width="100%" height="100%">
+			<mx:HBox width="100%" verticalAlign="middle">
+				<HelpComponent label="Probed Columns">
+					<mx:Label text="Example tooltip:"/>
+					<mx:HBox styleName="exampleStyle">
+						<mx:Image source="@Embed(source='/weave/resources/images/tooltipProbed.png')"/>
+					</mx:HBox>
+					<mx:Label text="The attributes highlighted in green are the probed columns"/>
+				</HelpComponent>
+				<AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
+							 text="The values from these columns will be displayed under the header line along with the column names."
+							 wordWrap="true"/>
+			</mx:HBox>
+			<ColumnListComponent id="columnList" width="100%" height="100%" label="Probed columns"
+								 hashMap="{ProbeTextUtils.probedColumns}"/>
+		</mx:VBox>
+		<mx:VBox width="100%">
+			<Indent label="Format" height="100%">
+				<mx:TextArea id="format" width="100%" height="100%"
+							 creationComplete="linkBindableProperty(ProbeTextUtils.probeLineFormatter, event.target, 'text');"/>
+				<mx:Button label="Reset" click="ProbeTextUtils.probeLineFormatter.value = ProbeTextUtils.DEFAULT_LINE_FORMAT;"/>
+				<HelpComponent>
+					<htmlText>
+						<![CDATA[
+							This expression will be used to format each line corresponding to a probed column. <!--
+							-->Available variables are <b>column</b>, <b>key</b>, <b>string</b>, and <b>title</b>.
+						]]>
+					</htmlText>
+				</HelpComponent>
+			</Indent>
+			<mx:CheckBox label="Enable probe ToolTips"
+						 creationComplete="linkBindableProperty(ProbeTextUtils.enableProbeToolTip, event.target, 'selected')"/>
+		</mx:VBox>
+	</mx:VDividedBox>
 	<mx:Style>
 		.exampleStyle {
 			borderStyle:solid;
@@ -97,7 +101,12 @@
 			
 			override protected function childrenCreated():void
 			{
-				this.targets = [ProbeTextUtils.probedColumns, ProbeTextUtils.probeHeaderColumns];
+				this.targets = [
+					ProbeTextUtils.probedColumns,
+					ProbeTextUtils.probeHeaderColumns,
+					ProbeTextUtils.probeLineFormatter,
+					ProbeTextUtils.enableProbeToolTip
+				];
 				controlPanelControls.tabNavigator.selectedIndex = 1;
 				
 				ProbeTextUtils.probeLineFormatter.addImmediateCallback(this, validateFormatter);
