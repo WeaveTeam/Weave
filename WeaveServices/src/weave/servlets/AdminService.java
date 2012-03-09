@@ -23,6 +23,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -1367,7 +1368,8 @@ public class AdminService extends GenericServlet
 			String outputNullValue = SQLUtils.getCSVNullValue(conn);
 			boolean ignoreKeyColumnQueries = false;
 			
-			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
+			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile),"ISO-8859-1");
+			
 			String[][] rows = CSVParser.defaultParser.parseCSV(csvData);
 
 			if (rows.length == 0)
@@ -1543,11 +1545,11 @@ public class AdminService extends GenericServlet
 				}
 			}
 			// save modified CSV
-			BufferedWriter out = new BufferedWriter(new FileWriter(formatted_CSV_path));
+//			BufferedWriter out = new BufferedWriter(new FileWriter(formatted_CSV_path));
+			File out = new File(formatted_CSV_path);
 			boolean quoteEmptyStrings = outputNullValue.length() > 0;
 			String temp = CSVParser.defaultParser.createCSVFromArrays(rows, quoteEmptyStrings);
-			out.write(temp);
-			out.close();
+			org.apache.commons.io.FileUtils.writeStringToFile(out, temp, "ISO-8859-1");
 
 			// Import the CSV file into SQL.
 			// Drop the table if it exists.
