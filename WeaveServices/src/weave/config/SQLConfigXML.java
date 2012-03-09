@@ -57,7 +57,7 @@ import weave.utils.XMLUtils;
  * @author Andy Dufilie
  */
 
-public class SQLConfigXML implements IDeprecatedSQLConfig
+public class SQLConfigXML extends IDeprecatedSQLConfig
 {
 	public static void copyEmbeddedDTD(String configPath)
 	{

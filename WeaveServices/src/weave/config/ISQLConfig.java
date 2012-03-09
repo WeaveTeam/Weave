@@ -25,6 +25,7 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 import org.w3c.dom.Document;
@@ -41,7 +42,7 @@ import weave.utils.SQLUtils;
  * @author user
  *
  */
-public interface ISQLConfig
+public abstract class ISQLConfig
 {
 	/**
 	 * Gets the entire ISQLconfig content as a DOM structure. When
@@ -49,17 +50,17 @@ public interface ISQLConfig
 	 * When SQLConfigXML is used, this returns the connection information as
 	 * well as column configurations.
 	 */
-	Document getDocument() throws RemoteException;
+        public abstract Document getDocument() throws RemoteException;
 
 	/**
 	 * Gets the names of all connections in this configuration
 	 */
-	List<String> getConnectionNames() throws RemoteException;
+	public abstract List<String> getConnectionNames() throws RemoteException;
 
 	/**
 	 * Removes the connection with the given name from this configuration
 	 */
-	void removeConnection(String name) throws RemoteException;
+	public abstract void removeConnection(String name) throws RemoteException;
 
 	/**
 	 * This adds a connection to the configuration.
@@ -67,7 +68,7 @@ public interface ISQLConfig
 	 * @param connectionInfo
 	 *            The definition of the connection entry.
 	 */
-	void addConnection(ConnectionInfo connectionInfo) throws RemoteException;
+	public abstract void addConnection(ConnectionInfo connectionInfo) throws RemoteException;
 
 	/**
 	 * Looks up a connection in this configuration by name.
@@ -79,64 +80,108 @@ public interface ISQLConfig
 	 * @throws RemoteException
 	 *             if the info could not be retrieved.
 	 */
-	ConnectionInfo getConnectionInfo(String connectionName) throws RemoteException;
+	public abstract ConnectionInfo getConnectionInfo(String connectionName) throws RemoteException;
 
 	/**
 	 * This will create a new attribute column entry.
 	 * @param info The definition of the attributeColumn entry.  The id property will be ignored.
 	 * @return The id of the new attributeColumn entry.
 	 */
-	int addAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException;
+	public abstract int addAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException;
 
 	/**
 	 * This will overwrite an existing attribute column entry with the same id.
 	 * @param info The id and definition of the attributeColumn entry.
 	 */
-	void overwriteAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException;
+	public abstract void overwriteAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException;
 	
 	/**
 	 * @return A list of AttributeColumnInfo objects that match the specified filter criteria.
 	 */
-	List<AttributeColumnInfo> findAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException;
+	public abstract List<AttributeColumnInfo> findAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException;
 	
 	/**
 	 * @param id The ID of an attribute column.
 	 * @return The AttributeColumnInfo object identified by the id, or null if it doesn't exist.
 	 * @throws RemoteException
 	 */
-	AttributeColumnInfo getAttributeColumnInfo(int id) throws RemoteException;
+	public abstract AttributeColumnInfo getAttributeColumnInfo(int id) throws RemoteException;
 	
 	/**
 	 * @param id The ID of the attribute column entry to remove.
 	 * @throws RemoteException
 	 */
-	void removeAttributeColumnInfo(int id) throws RemoteException;
+	public abstract void removeAttributeColumnInfo(int id) throws RemoteException;
 
 	
 	/**
 	 * @return true if this ISQLConfig object is successfully connected to the database using DatabaseConfigInfo.
 	 */
-	boolean isConnectedToDatabase();
+        public abstract boolean isConnectedToDatabase();
 	
 	/**
 	 * @return A DatabaseConfigInfo object, or null if this ISQLConfig is not configured to store info in a database.
 	 */
-	DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException;
+	public abstract DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException;
 
         /**
          * Methods for the category system
          */
-        public void addChild(int parent, int child) throws RemoteException;
-        public void removeChild(int parent, int child) throws RemoteException;
-        public int addTag(String tagtitle) throws RemoteException;
-        public void removeTag(int tag_id) throws RemoteException;
-        public Collection<Integer> getChildren(Integer parent_id) throws RemoteException;
-        public Collection<Integer> getRoots() throws RemoteException;
-        
+        abstract public void addChild(int parent, int child) throws RemoteException;
+        abstract public void removeChild(int parent, int child) throws RemoteException;
+        abstract public int addTag(String tagtitle) throws RemoteException;
+        abstract public void removeTag(int tag_id) throws RemoteException;
+        abstract public Collection<Integer> getChildren(Integer parent_id) throws RemoteException;
+        abstract public Collection<Integer> getRoots() throws RemoteException;
+        /* Former residents of SQLConfigUtils */
+        public boolean userCanModifyAttributeColumn(String connectionName, int id) throws RemoteException
+        {
+            ConnectionInfo connInfo = getConnectionInfo(connectionName);
+            if (connInfo == null)
+                return false;
+            if (connInfo.is_superuser)
+                return true;
+            AttributeColumnInfo attrInfo = getAttributeColumnInfo(id);
+            return (attrInfo == null) || (attrInfo.privateMetadata.get(PrivateMetadata.CONNECTION) == connectionName);
+        }
+        @Deprecated public boolean userCanModifyDataTable(String connectionName, String dataTableName) throws RemoteException
+        {
+            Map<String,String> publicMetadataFilter = new HashMap<String,String>();
+            publicMetadataFilter.put(PublicMetadata.DATATABLE, dataTableName);
+            AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+            tmpinfo.publicMetadata = publicMetadataFilter;
+            tmpinfo.privateMetadata = Collections.EMPTY_MAP;
+            List<AttributeColumnInfo> info = findAttributeColumnInfo(tmpinfo);
+            
+            for (int i = 0; i < info.size(); i++)
+                if (!userCanModifyAttributeColumn(connectionName, info.get(i).id))
+                    throw new RemoteException(String.format("User \"%s\" does not have permission to remove DataTable \"%s\".", connectionName, dataTableName));
+            
+            return true;
+            
+        }
+        public Connection getNamedConnection(String connectionName) throws RemoteException
+        {
+            return getNamedConnection(connectionName, false);
+        }
+        public Connection getNamedConnection(String connectionName, boolean readOnly) throws RemoteException
+        {
+            Connection conn;
+            ConnectionInfo info = getConnectionInfo(connectionName);
+
+            if (info == null)
+                throw new RemoteException(String.format("Connection named \"%s\" doead not exist.", connectionName));
+            if (readOnly)
+                conn = info.getStaticReadOnlyConnection();
+            else
+                conn = info.getConnection();
+            return conn;
+        }
 	/**
 	 * This class contains all the information related to where the
 	 * configuration should be stored in a database.
 	 */
+
 	static public class DatabaseConfigInfo
 	{
 		public DatabaseConfigInfo()
@@ -284,4 +329,10 @@ public interface ISQLConfig
 			return result;
 		}
 	}
+        public static class InvalidParameterException extends Exception
+        {
+                private static final long serialVersionUID = 6290284095499981871L;
+                public InvalidParameterException(String msg) { super(msg); }
+        }
+
 }

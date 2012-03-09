@@ -61,7 +61,6 @@ import weave.config.ISQLConfig.PrivateMetadata;
 import weave.config.ISQLConfig.PublicMetadata;
 import weave.config.SQLConfig;
 import weave.config.SQLConfigManager;
-import weave.config.SQLConfigUtils;
 import weave.config.SQLConfigXML;
 import weave.geometrystream.GeometryStreamConverter;
 import weave.geometrystream.SHPGeometryStreamUtils;
@@ -630,7 +629,7 @@ public class AdminService extends GenericServlet
 			{
 				String query = attributeColumnInfo.getSqlQuery();
 				System.out.println(query);
-				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, attributeColumnInfo.getConnectionName(), query);
+				SQLResult result = SQLUtils.getRowSetFromQuery(config.getNamedConnection(attributeColumnInfo.getConnectionName(), true), query);
 				attributeColumnInfo.privateMetadata.put(PrivateMetadata.SQLRESULT, String.format("Returned %s rows", result.rows.length));
 			}
 			catch (Exception e)
@@ -670,7 +669,7 @@ public class AdminService extends GenericServlet
 			else if (dataTableName != _dataTableName)
 				throw new RemoteException("overwriteDataTableEntry(): dataTable property not consistent among column entries.");
 			
-			if (!SQLConfigUtils.userCanModifyAttributeColumn(config, connectionName, ids[i]))
+			if (!config.userCanModifyAttributeColumn(connectionName, ids[i]))
 				throw new RemoteException(String.format("User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
 		}
 		
@@ -701,7 +700,7 @@ public class AdminService extends GenericServlet
 			throw new RemoteException("DataTable \"" + dataTableName + "\" does not exist.");
 		
 		for (int i = 0; i < info.size(); i++)
-			if (!SQLConfigUtils.userCanModifyAttributeColumn(config, connectionName, info.get(i).id))
+			if (!config.userCanModifyAttributeColumn(connectionName, info.get(i).id))
 				throw new RemoteException(String.format("User \"%s\" does not have permission to remove DataTable \"%s\".", connectionName, dataTableName));
 		
 		for (int i = 0; i < info.size(); i++)
@@ -729,7 +728,7 @@ public class AdminService extends GenericServlet
 	synchronized public void saveAttributeColumnInfo(String connectionName, String password, int id, Map<String,Object> privateMetadata, Map<String,Object> publicMetadata) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		if (!SQLConfigUtils.userCanModifyAttributeColumn(config, connectionName, id))
+		if (!config.userCanModifyAttributeColumn(connectionName, id))
 			throw new RemoteException(String.format("User \"%s\" does not have permission to modify attribute column \"%s\".", connectionName, id));
 		
 		AttributeColumnInfo info = new AttributeColumnInfo();
@@ -743,7 +742,7 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 
-		if (!SQLConfigUtils.userCanModifyAttributeColumn(config, connectionName, id))
+		if (!config.userCanModifyAttributeColumn(connectionName, id))
 			throw new RemoteException(String.format("User \"%s\" does not have permission to remove attribute column \"%s\".", connectionName, id));
 
 		config.removeAttributeColumnInfo(id);
@@ -782,7 +781,7 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = configManager.getConfig();
 		List<String> schemas;
-		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
+		Connection conn = config.getNamedConnection(connectionName, true);
 		try
 		{
 			schemas = SQLUtils.getSchemas(conn);
@@ -801,7 +800,7 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = configManager.getConfig();
 		List<String> tables;
-		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
+		Connection conn = config.getNamedConnection(connectionName, true);
 		try
 		{
 			tables = SQLUtils.getTables(conn, schemaName);
@@ -818,7 +817,7 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = configManager.getConfig();
 		List<String> columns;
-		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
+		Connection conn = config.getNamedConnection(connectionName, true);
 		try
 		{
 			columns = SQLUtils.getColumns(conn, schemaName, tableName);
@@ -1108,14 +1107,14 @@ public class AdminService extends GenericServlet
 		if (sqlOverwrite && !connInfo.is_superuser)
 			throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite SQL tables.", connectionName));
 		
-		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, configDataTableName))
+		if (!config.userCanModifyDataTable(connectionName, configDataTableName))
 			throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite DataTable \"%s\".", connectionName, configDataTableName));
 
 		Connection conn = null;
 		Statement stmt = null;
 		try
 		{
-			conn = SQLConfigUtils.getConnection(config, connectionName);
+			conn = config.getNamedConnection(connectionName);
 
 			sqlTable = sqlTable.toLowerCase(); // fix for MySQL running under Linux
 	
@@ -1428,7 +1427,7 @@ public class AdminService extends GenericServlet
 		}
 		else
 		{
-			if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, configDataTableName))
+			if (!config.userCanModifyDataTable(connectionName, configDataTableName))
 				throw new RemoteException(String.format("User \"%s\" does not have permission to overwrite DataTable \"%s\".", connectionName, configDataTableName));
 		}
 
@@ -1440,7 +1439,7 @@ public class AdminService extends GenericServlet
 		Connection conn = null;
 		try
 		{
-			conn = SQLConfigUtils.getConnection(config, connectionName);
+			conn = config.getNamedConnection(connectionName);
 			SQLResult filteredValues = null;
 			if (filterColumnNames != null && filterColumnNames.length > 0)
 			{
@@ -1652,7 +1651,7 @@ public class AdminService extends GenericServlet
 		Connection conn = null;
 		try
 		{
-			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			conn = config.getNamedConnection(configConnectionName, false);
 			// store dbf data to database
 			storeDBFDataToDatabase(configConnectionName, password, fileNameWithoutExtension, sqlSchema, dbfTableName, sqlOverwrite, nullValues);
 			GeometryStreamConverter converter = new GeometryStreamConverter(
@@ -1735,7 +1734,7 @@ public class AdminService extends GenericServlet
 		Connection conn = null;
 		try
 		{
-			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			conn = config.getNamedConnection(configConnectionName, false);
 			File[] files = new File[fileNameWithoutExtension.length];
 			for (int i = 0; i < files.length; i++)
 				files[i] = new File(uploadPath + fileNameWithoutExtension[i] + ".dbf");
@@ -1781,7 +1780,7 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 
-		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, dataTableName))
+		if (!config.userCanModifyDataTable(connectionName, dataTableName))
 			throw new RemoteException(String.format("User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
 
 		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
@@ -1789,7 +1788,7 @@ public class AdminService extends GenericServlet
 		Connection conn = null;
 		try
 		{
-			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			conn = config.getNamedConnection(configConnectionName, false);
 			String schema = configInfo.schema;
 			DublinCoreUtils.addDCElements(conn, schema, dataTableName, elements);
 		}
@@ -1818,7 +1817,7 @@ public class AdminService extends GenericServlet
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		
 		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, configInfo.connection);
+		Connection conn = config.getNamedConnection(configInfo.connection, true);
 		return DublinCoreUtils.listDCElements(conn, configInfo.schema, dataTableName);
 	}
 
@@ -1828,7 +1827,7 @@ public class AdminService extends GenericServlet
 	synchronized public void deleteDCElements(String connectionName, String password, String dataTableName, List<Map<String, String>> elements) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, dataTableName))
+		if (!config.userCanModifyDataTable(connectionName, dataTableName))
 			throw new RemoteException(String.format("User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
 
 		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
@@ -1836,7 +1835,7 @@ public class AdminService extends GenericServlet
 		Connection conn = null;
 		try
 		{
-			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			conn = config.getNamedConnection(configConnectionName, false);
 			String schema = configInfo.schema;
 			DublinCoreUtils.deleteDCElements(conn, schema, dataTableName, elements);
 		}
@@ -1856,7 +1855,7 @@ public class AdminService extends GenericServlet
 	synchronized public void updateEditedDCElement(String connectionName, String password, String dataTableName, Map<String, String> object) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		if (!SQLConfigUtils.userCanModifyDataTable(config, connectionName, dataTableName))
+		if (!config.userCanModifyDataTable(connectionName, dataTableName))
 			throw new RemoteException(String.format("User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
 
 		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
@@ -1864,7 +1863,7 @@ public class AdminService extends GenericServlet
 		Connection conn = null;
 		try
 		{
-			conn = SQLConfigUtils.getConnection(config, configConnectionName);
+			conn = config.getNamedConnection(configConnectionName, false);
 			String schema = configInfo.schema;
 			DublinCoreUtils.updateEditedDCElement(conn, schema, dataTableName, object);
 		}
@@ -1938,7 +1937,7 @@ public class AdminService extends GenericServlet
 		Connection conn = null;
 		try
 		{
-			conn = SQLConfigUtils.getConnection(config, connectionName);
+			conn = config.getNamedConnection(connectionName, false);
 			if(secondaryKeyColumnName == null || secondaryKeyColumnName.isEmpty())
 			{
 				String totalRowsQuery = null;

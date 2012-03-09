@@ -84,7 +84,7 @@ public class SQLConfigUtils
 	 * @throws RemoteException
 	 * @throws SQLException
 	 */
-	public static SQLResult getRowSetFromQuery(ISQLConfig config, String connectionName, String query) throws SQLException, RemoteException
+        @Deprecated public static SQLResult getRowSetFromQuery(ISQLConfig config, String connectionName, String query) throws SQLException, RemoteException
 	{
 		Connection conn = getStaticReadOnlyConnection(config, connectionName);
 		return SQLUtils.getRowSetFromQuery(conn, query);
@@ -99,7 +99,7 @@ public class SQLConfigUtils
 	 * @throws RemoteException
 	 * @throws SQLException
 	 */
-	public static SQLResult getRowSetFromQuery(ISQLConfig config, String connectionName, String query, String[] params) throws SQLException, RemoteException
+	@Deprecated public static SQLResult getRowSetFromQuery(ISQLConfig config, String connectionName, String query, String[] params) throws SQLException, RemoteException
 	{
 		Connection conn = getStaticReadOnlyConnection(config, connectionName);
 		return SQLUtils.getRowSetFromQuery(conn, query, params);
@@ -114,7 +114,7 @@ public class SQLConfigUtils
 	 * @throws RemoteException
 	 * @throws SQLException
 	 */
-	public static String getJoinQueryForAttributeColumns(ISQLConfig config, int id1, int id2)
+	@Deprecated public static String getJoinQueryForAttributeColumns(ISQLConfig config, int id1, int id2)
 		throws RemoteException, SQLException
 	{
 		// get column info

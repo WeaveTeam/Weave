@@ -35,7 +35,7 @@ import weave.utils.SQLUtils;
  * @author Andy Dufilie
  */
 public class SQLConfig
-		implements ISQLConfig
+		extends ISQLConfig
 {
 	/* Table name parts */
 	private final String SUFFIX_META_PRIVATE = "meta_private";

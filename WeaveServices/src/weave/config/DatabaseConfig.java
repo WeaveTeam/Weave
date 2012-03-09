@@ -37,7 +37,7 @@ import weave.utils.SQLUtils;
  */
 
 public class DatabaseConfig
-		implements IDeprecatedSQLConfig
+		extends IDeprecatedSQLConfig
 {
 	private DeprecatedDatabaseConfigInfo dbInfo = null;
 
@@ -308,6 +308,7 @@ public class DatabaseConfig
 			Set<String> uniqueValues = new HashSet<String>();
 			uniqueValues.addAll(dtKeyTypes);
 			uniqueValues.addAll(gcKeyTypes);
+                        uniqueValues.remove(null);
 			Vector<String> result = new Vector<String>(uniqueValues);
 			Collections.sort(result, String.CASE_INSENSITIVE_ORDER);
 			return result;

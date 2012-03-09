@@ -31,19 +31,19 @@ import java.util.Map;
  * @author Andy Dufilie
  */
 @Deprecated
-public interface IDeprecatedSQLConfig extends ISQLConfig
+public abstract class IDeprecatedSQLConfig extends ISQLConfig
 {
 	/**
 	 * Gets the display name of for the server in which this configuration
 	 * lives.
 	 */
-	String getServerName() throws RemoteException;
+	abstract String getServerName() throws RemoteException;
 
 	/**
 	 * Gets the names of all geometry collections in this configuration
 	 * @param connectionName A connection used as a filter, or null for no filter.
 	 */
-	List<String> getGeometryCollectionNames(String connectionName) throws RemoteException;
+	abstract List<String> getGeometryCollectionNames(String connectionName) throws RemoteException;
 
 	/**
 	 * Looks up a geometry collection in this configuration by name
@@ -55,7 +55,7 @@ public interface IDeprecatedSQLConfig extends ISQLConfig
 	 * @throws RemoteException
 	 *             if the info could not be retrieved.
 	 */
-	GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName) throws RemoteException;
+	abstract GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName) throws RemoteException;
 
 	static public class GeometryCollectionInfo
 	{

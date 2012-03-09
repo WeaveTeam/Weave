@@ -44,12 +44,12 @@ import weave.config.ISQLConfig.DataType;
 import weave.config.ISQLConfig.PrivateMetadata;
 import weave.config.ISQLConfig.PublicMetadata;
 import weave.config.SQLConfigManager;
-import weave.config.SQLConfigUtils;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.reports.WeaveReport;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
 import weave.utils.SQLResult;
+import weave.utils.SQLUtils;
 
 /**
  * This class connects to a database and gets data
@@ -222,7 +222,7 @@ public class DataService extends GenericServlet
 			
 			try
 			{
-				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, connectionName, dataWithKeysQuery);
+				SQLResult result = SQLUtils.getRowSetFromQuery(config.getNamedConnection(connectionName, true), dataWithKeysQuery);
 				// if dataType is defined in the config file, use that value.
 				// otherwise, derive it from the sql result.
 				if (dataType.length() == 0)
@@ -372,11 +372,11 @@ public class DataService extends GenericServlet
 			if (sqlParams != null && sqlParams.length() > 0)
 			{
 				String[] args = CSVParser.defaultParser.parseCSV(sqlParams)[0];
-				result = SQLConfigUtils.getRowSetFromQuery(config, connectionName, dataWithKeysQuery, args);
+				result = SQLUtils.getRowSetFromQuery(config.getNamedConnection(connectionName, true), dataWithKeysQuery, args);
 			}
 			else
 			{
-				result = SQLConfigUtils.getRowSetFromQuery(config, connectionName, dataWithKeysQuery);
+				result = SQLUtils.getRowSetFromQuery(config.getNamedConnection(connectionName, true), dataWithKeysQuery);
 			}
 			// if dataType is defined in the config file, use that value.
 			// otherwise, derive it from the sql result.
@@ -529,7 +529,7 @@ public class DataService extends GenericServlet
 		result.setId(id);
 		result.setMetadata(info.publicMetadata);
 		try {
-			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, info.privateMetadata.get(PrivateMetadata.CONNECTION));
+			Connection conn = config.getNamedConnection(info.privateMetadata.get(PrivateMetadata.CONNECTION), true);
 	
 			// get tile descriptors
 			result.setMetadataTileDescriptors(
@@ -567,7 +567,7 @@ public class DataService extends GenericServlet
 		byte[] result;
 		try
 		{
-			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, info.privateMetadata.get(PrivateMetadata.CONNECTION));
+			Connection conn = config.getNamedConnection(info.privateMetadata.get(PrivateMetadata.CONNECTION), true);
 			String schema = info.privateMetadata.get(PrivateMetadata.SCHEMA);
 			String tablePrefix = info.privateMetadata.get(PrivateMetadata.TABLEPREFIX);
 			result = SQLGeometryStreamReader.getMetadataTiles(conn, schema, tablePrefix, tileIDs);
@@ -599,7 +599,7 @@ public class DataService extends GenericServlet
 		byte[] result;
 		try
 		{
-			Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, info.privateMetadata.get(PrivateMetadata.CONNECTION));
+			Connection conn = config.getNamedConnection(info.privateMetadata.get(PrivateMetadata.CONNECTION), true);
 			String schema = info.privateMetadata.get(PrivateMetadata.SCHEMA);
 			String tablePrefix = info.privateMetadata.get(PrivateMetadata.TABLEPREFIX);
 			result = SQLGeometryStreamReader.getGeometryTiles(conn, schema, tablePrefix, tileIDs);
