@@ -61,7 +61,7 @@
 		</mx:VBox>
 		<mx:VBox width="100%">
 			<Indent label="Format" height="100%">
-				<mx:TextArea id="format" width="100%" height="100%"
+				<mx:TextArea id="format" width="100%" height="100%" minHeight="48"
 							 creationComplete="linkBindableProperty(ProbeTextUtils.probeLineFormatter, event.target, 'text');"/>
 				<mx:Button label="Reset" click="ProbeTextUtils.probeLineFormatter.value = ProbeTextUtils.DEFAULT_LINE_FORMAT;"/>
 				<HelpComponent>
