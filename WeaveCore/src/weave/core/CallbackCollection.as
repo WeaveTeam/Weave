@@ -110,6 +110,8 @@ package weave.core
 		{
 			if (callback == null)
 				return;
+			if (parameters)
+				parameters = parameters.concat(); // save a copy
 			
 			// remove the callback if it was previously added
 			removeCallback(callback);
