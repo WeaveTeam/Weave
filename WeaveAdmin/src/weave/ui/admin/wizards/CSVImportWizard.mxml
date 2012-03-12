@@ -125,12 +125,12 @@
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
-			import weave.ui.admin.ServerCSVFileViewer;
+			import weave.ui.admin.ServerFileViewer;
 			
 			private static const paddingIndent:int = 20;
 			
 			private var _csvFileReference:FileReference = new FileReference();
-			private var _serverFileBrowser:ServerCSVFileViewer = null;
+			private var _serverFileBrowser:ServerFileViewer = null;
 			
 			private function handleCreationComplete():void
 			{
@@ -194,8 +194,8 @@
 			}
 			private function openServerBrowser():void
 			{
-				_serverFileBrowser = ServerCSVFileViewer.createServerFileViewer(this);
-				_serverFileBrowser.selectButton.addEventListener(MouseEvent.CLICK, serverFileBrowserSelectFile);				
+				_serverFileBrowser = ServerFileViewer.createServerFileViewer(this, ServerFileViewer.INPUT_CSV);
+				_serverFileBrowser.selectButton.addEventListener(MouseEvent.CLICK, serverFileBrowserSelectFile);
 			}
 			private function serverFileBrowserSelectFile(e:MouseEvent):void
 			{

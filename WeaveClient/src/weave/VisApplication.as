@@ -89,6 +89,7 @@ package weave
 	import weave.ui.SubsetManager;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
+	import weave.ui.collaboration.*;
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
@@ -99,7 +100,6 @@ package weave
 	import weave.utils.VectorUtils;
 	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.plotters.GeometryPlotter;
-	import weave.visualization.tools.CollaborationTool;
 	import weave.visualization.tools.DataTableTool;
 	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.SimpleVisTool;
@@ -119,6 +119,12 @@ package weave
 		 * view to add new tools, manage windows, do advanced tasks, etc.
 		 */
 		private var _weaveMenu:WeaveMenuBar = null;
+		
+		/**
+		 * Optional menu bar (bottom of screen) to control the collaboration service and interaction
+		 * between users.
+		 */
+		private var _collabMenu:CollaborationMenuBar = new CollaborationMenuBar();
 		
 		/**
 		 * This will be used to incorporate branding into any weave view.  Linkable to the Open Indicators Consortium website.
@@ -148,7 +154,6 @@ package weave
 			
 			// make it so the menu bar does not get hidden if the workspace size is too small.
 			clipContent = false;
-
 			autoLayout = true;
 			
 			// no scrolling
@@ -193,6 +198,7 @@ package weave
 			Weave.root.childListCallbacks.addGroupedCallback(this, setupWindowMenu);
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
+			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
 			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
 			
 			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
@@ -503,6 +509,29 @@ package weave
 			ExternalInterface.call("window.close()");
 		}
 
+		private function toggleCollaborationMenuBar():void
+		{
+			if( Weave.properties.enableCollaborationBar.value )
+			{
+				if( !_collabMenu.parent )
+				{
+					_collabMenu.percentWidth = 100;
+					this.addChild(_collabMenu);
+					_collabMenu.addedToStage();
+				}
+			} else {
+				try
+				{
+					if( this == _collabMenu.parent ) {
+						_collabMenu.dispose();
+						this.removeChild(_collabMenu);
+					}
+					
+				} catch( error:Error ) {
+					reportError(error);
+				}
+			}
+		}
 		private function toggleMenuBar():void
 		{
 			if (!enabled)
@@ -619,10 +648,11 @@ package weave
 			{
 				_toolsMenu = _weaveMenu.addMenuToMenuBar("Tools", false);
 
-				createToolMenuItem(Weave.properties.showColorController, "Show Color Controller", DraggablePanel.openStaticInstance, [ColorController]);
-				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Show Probe ToolTip Editor", DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
-				createToolMenuItem(Weave.properties.showEquationEditor, "Show Equation Editor", DraggablePanel.openStaticInstance, [EquationEditor]);
-				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Connect to Collaboration Server", DraggablePanel.openStaticInstance, [CollaborationTool]);
+				createToolMenuItem(Weave.properties.showColorController, "Color Controller", DraggablePanel.openStaticInstance, [ColorController]);
+				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Probe ToolTip Editor", DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
+				createToolMenuItem(Weave.properties.showEquationEditor, "Equation Editor", DraggablePanel.openStaticInstance, [EquationEditor]);
+				createToolMenuItem(Weave.properties.showCollaborationEditor, "Collaboration Settings", DraggablePanel.openStaticInstance, [CollaborationEditor]);
+//				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Connect to Collaboration Server", DraggablePanel.openStaticInstance, [CollaborationTool]);
 				
 				var _this:VisApplication = this;
 

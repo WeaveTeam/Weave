@@ -221,7 +221,7 @@ package weave.visualization.plotters
 			//newShape.graphics.lineStyle(1, 0xFFFFFF, 0.5, false, LineScaleMode.NONE);
 			//newShape.graphics.lineStyle(1, 0, 1, true, LineScaleMode.NONE);
 			newShape.graphics.beginBitmapFill(tile.bitmapData, null, false, true); // it's important to disable the repeat option
-			newShape.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.POSITIVE);
+			newShape.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.NEGATIVE);
 			newShape.graphics.endFill();
 			
 			// save the shape and bounds into the token object and put in cache

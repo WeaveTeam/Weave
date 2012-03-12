@@ -193,6 +193,16 @@ package weave
 		public const enableMouseWheel:LinkableBoolean = new LinkableBoolean(true);
 		public const enableDynamicTools:LinkableBoolean = new LinkableBoolean(true); // move/resize/add/remove/close tools
 		
+		// Collaboration
+		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(false); // collaboration menu bar (bottom of screen)
+		public const showCollaborationEditor:LinkableBoolean = new LinkableBoolean(false); // menu item
+		public const collabServerIP:LinkableString = new LinkableString("demo.oicweave.org");
+		public const collabServerName:LinkableString = new LinkableString("ivpr-vm");
+		public const collabServerPort:LinkableString = new LinkableString("5222");
+		public const collabServerRoomToJoin:LinkableString = new LinkableString("demo");
+		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);
+		
+		
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
@@ -235,7 +245,7 @@ package weave
 		
 		public const enableAddAttributeMenuTool:LinkableBoolean = new LinkableBoolean(true); // Add Attribute Menu Tool option tools menu
 		public const enableAddBarChart:LinkableBoolean = new LinkableBoolean(true); // Add Bar Chart option tools menu
-		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
+//		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
 		public const enableAddColorLegend:LinkableBoolean = new LinkableBoolean(true); // Add Color legend Tool option tools menu		
 		public const enableAddColormapHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Colormap Histogram option tools menu
 		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
@@ -291,7 +301,7 @@ package weave
 		public const enableAnnotation:LinkableBoolean = new LinkableBoolean(true);
 		public const enablePenTool:LinkableBoolean = new LinkableBoolean(true);
 		
-		public const enableMenuBar:LinkableBoolean = new LinkableBoolean(true); // top menu for advanced features
+		public const enableMenuBar:LinkableBoolean = new LinkableBoolean(true); // top menu for advanced features		
 		public const enableSubsetControls:LinkableBoolean = new LinkableBoolean(true); // creating subsets
 		public const enableExportToolImage:LinkableBoolean = new LinkableBoolean(true); // print/export tool images
 		public const enableExportCSV:LinkableBoolean = new LinkableBoolean(true);

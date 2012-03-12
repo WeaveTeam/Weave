@@ -184,6 +184,11 @@ public class CSVParser
 		for (int i = 0; i < fileSize; i++)
 		{
 			char chr = csvData.charAt(i);
+			System.out.println("current csv character is " + chr);
+			Character chr1 = new Character(chr);
+			System.out.println("current csv character is " + chr1);
+			
+			
 			if (escaped)
 			{
 				if (chr == quote)

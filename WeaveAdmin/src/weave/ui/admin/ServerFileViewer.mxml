@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	*/
+-->
+<mx:Panel 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns="weave.ui.*"
+	layout="absolute"
+	title="Server File Browser"
+	borderAlpha="1"
+	borderColor="#C5C3A8"
+	borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
+	verticalScrollPolicy="off"
+	horizontalScrollPolicy="off"
+	height="480" width="640"
+	roundedBottomCorners="true"
+	creationComplete="creationComplete(event)">
+	
+	<mx:VBox x="0" y="0" width="100%" height="100%" backgroundAlpha="1" backgroundColor="#C5C3A8">
+		<mx:ControlBar paddingTop="0" paddingBottom="0" width="100%">
+			<mx:Spacer width="100%" />
+			<mx:Label id="statusLabel" text="Loading..." />
+			<mx:Spacer width="20" />
+			<mx:Button id="refreshButton" label="Refresh" click="refresh(event);" />
+		</mx:ControlBar>
+		
+		<TextInputWithPrompt id="searchTerm" width="100%" clear="search()" change="search()" prompt="{prompt}"/>
+		<mx:DataGrid id="datagrid" paddingBottom="0" paddingTop="0"
+					 editable="false" itemClick="itemClickHandler(event)"
+					 width="100%" height="100%">
+			
+			<mx:columns>
+				<mx:DataGridColumn dataField="name" headerText="Name" sortable="true" />
+				<mx:DataGridColumn dataField="lastModified" labelFunction="lastModifiedLabel" headerText="Last Modified" sortable="true" />
+				<mx:DataGridColumn dataField="size" labelFunction="sizeLabel" headerText="Size" sortable="true" />
+			</mx:columns>
+		</mx:DataGrid>
+		
+		<mx:ControlBar paddingTop="5" paddingBottom="5" width="100%">
+			<mx:Spacer width="100%"/>
+			<mx:Button id="selectButton" label="Select" />
+			<mx:Button id="cancelButton" label="Close"  />
+		</mx:ControlBar>
+	</mx:VBox>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.formatters.DateFormatter;
+			import mx.formatters.NumberFormatter;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ArrayUtil;
+			
+			import weave.services.AdminInterface;
+			import weave.services.DelayedAsyncInvocation;
+			
+			public static const INPUT_CSV:String = "INPUT_CSV";
+			public static const INPUT_SHP:String = "INPUT_SHP";
+			
+			[Bindable] public var prompt:String = "Enter search text";
+			[Bindable] private var inputType:String = "";
+			[Bindable] private var fileCount:uint = 0;
+			
+			private function clear():void
+			{
+				searchTerm.text = "";
+				search();
+			}
+			
+			private function search():void
+			{
+				var source:Array = new Array();
+				
+				if( inputType == INPUT_CSV )
+					source = AdminInterface.instance.uploadedCSVFiles;
+				else if( inputType == INPUT_SHP )
+					source = AdminInterface.instance.uploadedShapeFiles;
+				
+				if(searchTerm.text.length > 0)
+				{
+					var result:Array = [];
+					for ( var i:int = 0 ; i < source.length ; i++ ) {
+						if ((source[i].name as String).toLowerCase().search(searchTerm.text.toLowerCase()) >= 0)
+							result.push( source[i] );
+					}
+					datagrid.dataProvider = result;
+					fileCount = result.length;
+				} else{
+					datagrid.dataProvider = source;
+					fileCount = source.length;
+				}
+				refreshButton.enabled = true;
+				statusLabel.text = fileCount + " file(s)";
+			}
+			
+			public static function createServerFileViewer(parent:DisplayObject, inputType:String):ServerFileViewer
+			{
+				var fileViewer:ServerFileViewer = PopUpManager.createPopUp(parent, ServerFileViewer, true) as ServerFileViewer;
+				PopUpManager.centerPopUp(fileViewer);
+				fileViewer.inputType = inputType;
+				fileViewer.cancelButton.addEventListener(MouseEvent.CLICK, function(..._):void { PopUpManager.removePopUp(fileViewer); });
+				fileViewer.refreshButton.addEventListener(MouseEvent.CLICK, fileViewer.refresh );
+				
+				return fileViewer;
+			}
+			
+			private function creationComplete(event:FlexEvent):void
+			{
+				if( inputType == INPUT_CSV )
+					AdminInterface.instance.getUploadedCSVFiles();
+				else if( inputType == INPUT_SHP )
+					AdminInterface.instance.getUploadedShapeFiles();
+				
+				if( inputType == "" )
+				{
+					callLater(creationComplete, [event]);
+					return;
+				}
+				
+				refreshButton.enabled = false;
+				statusLabel.text = "Loading...";
+				selectButton.enabled = false;
+				refresh();
+			}
+			
+			private function itemClickHandler(event:ListEvent):void
+			{
+				if( datagrid.selectedItems.length > 0 )
+					selectButton.enabled = true;
+				else
+					selectButton.enabled = false;
+			}
+			
+			private function refresh(e:MouseEvent = null):void
+			{
+				selectButton.enabled = false;
+				refreshButton.enabled = false;
+				statusLabel.text = "Loading...";
+				
+				var query:DelayedAsyncInvocation;
+				if( inputType == INPUT_CSV )
+					query = AdminInterface.instance.getUploadedCSVFiles();
+				else if( inputType == INPUT_SHP )
+					query = AdminInterface.instance.getUploadedShapeFiles();
+				
+				query.addAsyncResponder(handleUploadedFiles);
+				function handleUploadedFiles(event:ResultEvent, token:Object = null):void
+				{
+					search();
+				}
+			}
+			
+			private function sizeLabel(item:Object, column:DataGridColumn):String
+			{
+				var size:Number = item.size as Number;
+				var formater:NumberFormatter = new NumberFormatter();
+				
+				if( size < 1024 ) 
+					return size + (( size == 1 ) ? " Byte" : " Bytes");
+				
+				size = size / 1024;
+				if( size < 1024 ) {
+					formater.precision = 2;
+					return formater.format(size) + (( size == 1 ) ? " Kilobyte" : " Kilobytes");
+				}
+				
+				size = size / 1024;
+				if( size < 1024 ) {
+					formater.precision = 2;
+					return formater.format(size) + (( size == 1 ) ? " Megabyte" : " Megabytes");
+				}
+				
+				size = size / 1024;
+				formater.precision = 1;
+				return formater.format(size) + (( size == 1 ) ? " Gigabyte" : " Gigabytes");
+			}
+			private function lastModifiedLabel(item:Object, column:DataGridColumn):String
+			{
+				var d:Date = new Date();
+				d.time = item.lastModified;
+				
+				var format:DateFormatter = new DateFormatter();
+				format.formatString = "MM/DD/YYYY L:NN A";
+				return format.format(d);
+			}
+		]]>
+	</mx:Script>
+</mx:Panel>
