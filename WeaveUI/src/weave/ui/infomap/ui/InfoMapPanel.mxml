@@ -71,6 +71,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.StageUtils;
 			import weave.core.UIUtils;
 			import weave.data.DataSources.CSVDataSource;
+			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.data.QKeyManager;
 			import weave.services.DelayedAsyncInvocation;
@@ -93,7 +94,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * @public
 			 * This is mapping of a link to a node where each node is a defined by a query of keywords,operator and filters
 			 * */
-			public const nodes:LinkableHashMap = newLinkableChild(this, LinkableHashMap,handleNodesChildListChange,true);
+			public const nodes:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 			
 			/**
 			 * @public
@@ -122,22 +123,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.constructor();
 			}
 			
-			[Bindable]
-			public var defaultNodeBorderColor:uint;
-		
-			[Bindable]
-			public var selectedNodeBorderColor:uint;
-			
-			[Bindable]
-			public var defaultThumbnailBorderColor:uint;
-			
-			[Bindable]
-			public var selectedThumbnailBorderColor:uint;
-			
-			[Bindable]
-			public var newThumbnailGlowColor:uint;
-			
-			
+						
 			private static var _selectedKeySet:KeySet = null;
 			
 			override protected function childrenCreated():void
@@ -168,13 +154,52 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_selectedKeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 				_selectedKeySet.addImmediateCallback(this,handleSelectedKeySetChange);
 				
+				_subset = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
+				
+				
 				stage.addEventListener(MouseEvent.MOUSE_UP,handleMouseUp);
 				
 				selectionKeywords.addGroupedCallback(this,sendSelectionQuery,false);
 				
 				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
+				
+				
+				
+				addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
+				addSubMenuItem("Show All Documents",showAllDocuments);
 			}
 			
+			private var _subset:KeyFilter;
+			private function removeSelectedDocuments():void
+			{
+				var selectedDocs:Array = [];
+				var currentDocs:Array = docs.getObjects();
+				for each (var doc:SelectableInfoMapDocument in currentDocs)
+				{
+					if(doc.selected.value)
+					{
+						var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapPanel.DOC_KEYTYPE,doc.url.value);
+						selectedDocs.push(qKey);
+					}
+				}
+				
+				_subset.excludeKeys(selectedDocs);
+				
+				_selectedKeySet.clearKeys();
+			}
+			
+			private function showAllDocuments():void
+			{
+				var excludedKeys:Array =  _subset.excluded.keys;
+				var dockeys:Array = [];
+				
+				for each(var key:IQualifiedKey in excludedKeys)
+				{
+					if(key.keyType == InfoMapPanel.DOC_KEYTYPE)
+						dockeys.push(key);
+				}
+				_subset.excluded.removeKeys(dockeys);
+			}
 			
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -209,6 +234,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					var query:DelayedAsyncInvocation = InfoMapAdminInterface.instance.searchInDocuments(entities,selectedDocs);
 					query.addAsyncResponder(handleMatchedEntities,handleMatchedEntitiesFault);
+				}
+				
+				if(detectLinkableObjectChange(updateDisplayList,nodes))
+				{
+					var nodesArray:Array = nodes.getObjects();
+					
+					for each (var n:NodeHandler in nodesArray)
+					{
+						linkBindableProperty(n.defaultBorderColor,defaultNodeColorPicker,"selectedColor");
+						linkBindableProperty(n.selectedBorderColor,selectedNodeColorPicker,"selectedColor");
+						linkBindableProperty(n.defaultThumbnailBorderColor,defaultThumbnailBorderPicker,"selectedColor");
+						linkBindableProperty(n.selectedThumbnailBorderColor,selectedThumbnailBorderPicker,"selectedColor");
+						linkBindableProperty(n.newThumbnailGlowColor,thumbnailGlowColorPicker,"selectedColor");					
+					}
 				}
 				
 			}
@@ -271,6 +310,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									doc.selected.triggerCallbacks();
 								}
 							}
+						}
+					}else{
+						
+						for each(var d:SelectableInfoMapDocument in docsArray)
+						{
+							d.selected.triggerCallbacks();
 						}
 					}
 			}
@@ -507,19 +552,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
-			private function handleNodesChildListChange():void
-			{
-				var nodesArray:Array = nodes.getObjects();
-				
-				for each (var n:NodeHandler in nodesArray)
-				{
-					linkBindableProperty((n as NodeHandler).defaultBorderColor,this,"defaultNodeBorderColor");
-					linkBindableProperty((n as NodeHandler).selectedBorderColor,this,"selectedNodeBorderColor");
-					linkBindableProperty((n as NodeHandler).defaultThumbnailBorderColor,this,"defaultThumbnailBorderColor");
-					linkBindableProperty((n as NodeHandler).selectedThumbnailBorderColor,this,"selectedThumbnailBorderColor");
-					linkBindableProperty((n as NodeHandler).newThumbnailGlowColor,this,"newThumbnailGlowColor");					
-				}
-			}
+//			private function handleNodesChildListChange():void
+//			{
+//				var nodesArray:Array = nodes.getObjects();
+//				
+//				for each (var n:NodeHandler in nodesArray)
+//				{
+//					linkBindableProperty((n as NodeHandler).defaultBorderColor,this,"defaultNodeBorderColor");
+//					linkBindableProperty((n as NodeHandler).selectedBorderColor,this,"selectedNodeBorderColor");
+//					linkBindableProperty((n as NodeHandler).defaultThumbnailBorderColor,this,"defaultThumbnailBorderColor");
+//					linkBindableProperty((n as NodeHandler).selectedThumbnailBorderColor,this,"selectedThumbnailBorderColor");
+//					linkBindableProperty((n as NodeHandler).newThumbnailGlowColor,this,"newThumbnailGlowColor");					
+//				}
+//			}
 			
 			public function addInfoMapNode(query:String=null,op:String=null):void
 			{
@@ -783,27 +828,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:HBox>
 				<mx:VBox>
 					<mx:HBox>
-						<mx:ColorPicker id="defaultNodeColorPicker" selectedColor="{defaultNodeBorderColor}" change="defaultNodeBorderColor = event.target.selectedColor;"/>
+						<mx:ColorPicker id="defaultNodeColorPicker"/>
 						<mx:Label width="150" text="Default Node Color"/>				
 					</mx:HBox>
 					
 					<mx:HBox>
-						<mx:ColorPicker id="selectedNodeColorPicker" selectedColor="{selectedNodeBorderColor}" change="selectedNodeBorderColor = event.target.selectedColor;"/>
+						<mx:ColorPicker id="selectedNodeColorPicker"/>
 						<mx:Label width="150" text="Selected Node Color"/>				
 					</mx:HBox>
 				</mx:VBox>
 				<mx:VBox>
 					<mx:HBox>
-						<mx:ColorPicker id="defaultThumbnailBorderPicker" selectedColor="{defaultThumbnailBorderColor}" change="defaultThumbnailBorderColor = event.target.selectedColor;"/>
+						<mx:ColorPicker id="defaultThumbnailBorderPicker"/>
 						<mx:Label width="200" text="Default Thumbnail Border Color"/>				
 					</mx:HBox>
 					
 					<mx:HBox>
-						<mx:ColorPicker id="selectedThumbnailBorderPicker" selectedColor="{selectedThumbnailBorderColor}" change="selectedThumbnailBorderColor= event.target.selectedColor;"/>
+						<mx:ColorPicker id="selectedThumbnailBorderPicker"/>
 						<mx:Label width="200" text="Selected Thumbnail Border Color"/>				
 					</mx:HBox>
 					<mx:HBox>
-						<mx:ColorPicker id="thumbnailGlowColorPicker" selectedColor="{newThumbnailGlowColor}" change="newThumbnailGlowColor= event.target.selectedColor;"/>
+						<mx:ColorPicker id="thumbnailGlowColorPicker"/>
 						<mx:Label width="200" text="Selected Thumbnail Border Color"/>				
 					</mx:HBox>
 				</mx:VBox>

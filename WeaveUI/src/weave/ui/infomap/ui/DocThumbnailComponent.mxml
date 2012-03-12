@@ -15,7 +15,6 @@ so that it can be moved, selected, handle filters.
 				mouseOver="handleMouseOver(event)"
 				mouseOut="handleMouseOut()"
 				borderStyle="solid"
-				borderThickness="0.5"
 				cornerRadius="5"
 				borderColor="black"
 				>
@@ -403,15 +402,18 @@ so that it can be moved, selected, handle filters.
 				if(_selection.keys.length == 0)
 				{
 					imageAlpha.value = 1.0;
+					setStyle("borderThickness",0.5);
 					setStyle("borderColor",defaultBorderColor.value);
 				} else if(_doc.selected.value)
 				{
 					imageAlpha.value = 1.0;
+					setStyle("borderThickness", 1);
 					setStyle("borderColor",selectedBorderColor.value);
 				}
 				else
 				{
 					imageAlpha.value = 0.3;
+					setStyle("borderThickness", 0.5);
 					setStyle("borderColor",defaultBorderColor.value);
 				}
 				//this will force a call to the updateDisplayList which will draw a border around this image

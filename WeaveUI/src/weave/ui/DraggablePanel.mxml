@@ -52,11 +52,13 @@
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.controls.Button;
+			import mx.controls.Menu;
 			import mx.core.Application;
 			import mx.core.BitmapAsset;
 			import mx.core.SpriteAsset;
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
+			import mx.events.MenuEvent;
 			import mx.events.ResizeEvent;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
@@ -116,6 +118,7 @@
 			public const panelTitle:LinkableString = newLinkableChild(this, LinkableString, handlePanelTitleChange);
 
 			public const draggable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true));
+			public const enableSubMenu:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true));
 			public const resizeable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const minimizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const maximizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
@@ -132,6 +135,7 @@
 			private function verifyMaximized(value:Boolean):Boolean { return !maximizable || maximizable.value || !value; }
 			
 			protected const userControlButton:Button = new Button();
+			protected const subMenuButton:Button = new Button();
 			protected const minimizeButton:Button = new Button();
 			protected const maximizeButton:Button = new Button();
 			protected const closePanelButton:Button = new Button();
@@ -208,6 +212,7 @@
 				minimizeButton.setStyle("downIcon", _minimizeDownIcon);
 				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
 				setupControlButton(userControlButton, _userControlIcon, toggleControlPanel, "Click here to change settings for this component.");
+				setupControlButton(subMenuButton, _subMenuIcon, openSubMenu, "Click here to open menu items for this component.");
 				setupControlButton(pinToBackButton, _pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
 				setupControlButton(pinButton, _pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
@@ -648,6 +653,8 @@
 			
 			[Embed(source="/weave/resources/images/tinyWrench2.png")]
 			private var _userControlIcon:Class;
+			[Embed(source="/weave/resources/images/arrowDown.png")]
+			private var _subMenuIcon:Class;
 			[Embed(source="/weave/resources/images/pushpin.png")]
 			private var _pinIcon:Class;
 			[Embed(source="/weave/resources/images/pushpinback.png")]
@@ -1201,7 +1208,9 @@
 								
 				if (Weave.properties.enableToolControls.value && _controlPanel)
 					leftIconWidths += buttonSize + spaceBetweenButtons;
-					
+				if(subMenuButton.visible)
+					leftIconWidths += buttonSize + spaceBetweenButtons;
+				
 				return leftIconWidths;
 			}
 			
@@ -1248,6 +1257,7 @@
 					userControlButton.visible = false;
 					minimizeButton.visible    = false; 
 					maximizeButton.visible    = false;
+					subMenuButton.visible = false;
 				}
 				else
 				{
@@ -1375,6 +1385,27 @@
 					else
 					{
 						pinToBackButton.visible = false;
+					}
+				
+					if(enableSubMenu.value)
+					{
+						if (titleBar != subMenuButton.parent)
+							titleBar.addChild(subMenuButton);						
+						
+						subMenuButton.setStyle("cornerRadius",  buttonRadius.value);
+						if(userControlButton.visible)
+							subMenuButton.x = leftButtonX + spaceBetweenButtons + buttonSize;
+						else
+							subMenuButton.x = leftButtonX;
+						
+						subMenuButton.y = offsetFromTop;
+						subMenuButton.width  = buttonSize;
+						subMenuButton.height = buttonSize;
+						
+						subMenuButton.visible = true;
+					}else
+					{
+						subMenuButton.visible = false;
 					}
 				}
 			}
@@ -1527,6 +1558,55 @@
 				return instance;
 			}
 			private static const _instances:Dictionary = new Dictionary();
+			
+			private var subMenu:Menu;
+			
+			[Bindable]
+			private var subMenuDataProvider:Array = [];
+			public function addSubMenuItem(label:String,listener:Function):void
+			{
+				var menuItem:Object = new Object();
+				
+				menuItem["label"] = label;
+				menuItem["listener"] = listener;
+				
+				subMenuDataProvider.push(menuItem);
+				
+				subMenu = Menu.createMenu(this,subMenuDataProvider,false);
+				
+				
+				subMenu.addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
+				
+				
+			}
+			
+			private function handleSubMenuItemClick(event:MenuEvent):void
+			{
+				var item:Object = event.item;
+				
+				(item["listener"] as Function).call();
+			}
+			
+			private var toggleSubMenu:Boolean =  false;
+			private function openSubMenu():void
+			{
+				if(toggleSubMenu)
+				{
+					toggleSubMenu = false;
+					subMenu.hide();
+					return;
+				}
+				
+				toggleSubMenu = true;
+				
+				if(subMenuDataProvider.length == 0)
+					subMenu = Menu.createMenu(this,{label:"No Menu Items Added"},false);
+				
+				var menuLocation:Point = contentToGlobal(new Point(subMenuButton.x,subMenuButton.y));
+				
+				subMenu.setStyle("openDuration",0);
+				subMenu.show(menuLocation.x + buttonSize/2,menuLocation.y);
+			}
 			
 			
 			// backwards compatibility
