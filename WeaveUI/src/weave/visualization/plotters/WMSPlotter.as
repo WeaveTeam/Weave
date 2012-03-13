@@ -21,10 +21,6 @@ package weave.visualization.plotters
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
-	import flash.display.BlendMode;
-	import flash.display.Graphics;
-	import flash.display.IBitmapDrawable;
-	import flash.display.LineScaleMode;
 	import flash.display.Shape;
 	import flash.display.TriangleCulling;
 	import flash.geom.ColorTransform;
@@ -32,7 +28,6 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.text.TextField;
-	import flash.text.TextFieldType;
 	import flash.utils.Dictionary;
 	
 	import org.openscales.proj4as.ProjConstants;
@@ -40,9 +35,7 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObjects;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -50,13 +43,12 @@ package weave.visualization.plotters
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.data.ProjectionManager;
 	import weave.primitives.Bounds2D;
 	import weave.services.wms.ModestMapsWMS;
 	import weave.services.wms.OnEarthProvider;
 	import weave.services.wms.WMSProviders;
 	import weave.services.wms.WMSTile;
-	import weave.utils.BitmapText;
+	import weave.utils.Dictionary2D;
 
 	/**
 	 * WMSPlotter
@@ -108,25 +100,7 @@ package weave.visualization.plotters
 		private const _normalizedGridBounds:IBounds2D = new Bounds2D();
 		private const _tempReprojPoint:Point = new Point(); // reusable object for reprojections
 		private const projManager:IProjectionManager = WeaveAPI.ProjectionManager; // reprojecting tiles
-		private const _tileSRSToShapeCache:Dictionary = new Dictionary(true); // use WeakReferences to be GC friendly
-		
-		private function getCachedShape(tile:WMSTile, srs:String):ProjectedShape
-		{
-			var srsToShape:Object = _tileSRSToShapeCache[tile];
-			
-			if (srsToShape == null)
-				return null;
-			
-			return srsToShape[srs];
-		}
-		
-		private function setCachedShape(shape:ProjectedShape, tile:WMSTile, srs:String):void
-		{
-			if (_tileSRSToShapeCache[tile] == null)
-				_tileSRSToShapeCache[tile] = new Dictionary(true);
-				
-			_tileSRSToShapeCache[tile][srs] = shape;
-		}
+		private const _tileSRSToShapeCache:Dictionary2D = new Dictionary2D(true, true); // use WeakReferences to be GC friendly
 		
 		private function getDestinationSRS():String
 		{
@@ -142,7 +116,7 @@ package weave.visualization.plotters
 		private function getShape(tile:WMSTile):ProjectedShape
 		{
 			// check if this tile has a cached shape
-			var cachedValue:ProjectedShape = getCachedShape(tile, getDestinationSRS());
+			var cachedValue:ProjectedShape = _tileSRSToShapeCache.get(tile, getDestinationSRS());
 			if (cachedValue != null)
 				return cachedValue;
 			
@@ -230,7 +204,7 @@ package weave.visualization.plotters
 			reprojectedDataBounds.makeSizePositive();
 			projShape.bounds = reprojectedDataBounds;
 
-			setCachedShape(projShape, tile, getDestinationSRS());
+			_tileSRSToShapeCache.set(tile, getDestinationSRS(), projShape);
 
 			return projShape;
 		}
