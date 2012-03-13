@@ -76,8 +76,11 @@ Use the static functions to show this as a popup.
 				
 				public static function hide():void
 				{
-					instance.fadeOut.play();
-					PopUpManager.removePopUp(instance);
+					if(instance)
+					{
+						instance.fadeOut.play();
+						PopUpManager.removePopUp(instance);
+					}
 				}
 				
 				

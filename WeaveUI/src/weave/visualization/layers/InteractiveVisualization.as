@@ -519,7 +519,7 @@ package weave.visualization.layers
 			var width:Number = tempScreenBounds.getXCoverage();
 			var height:Number = tempScreenBounds.getYCoverage();
 			
-			_dashedLine.drawRect(xStart, yStart, width, height, startCorner); // this draws onto the _selectionRectangleCanvas.graphics
+			_dashedLine.drawRect(xStart, yStart, width, height, startCorner);
 		}
 		
 		private const _dashedLine:DashedLine = new DashedLine(0, 0, null);

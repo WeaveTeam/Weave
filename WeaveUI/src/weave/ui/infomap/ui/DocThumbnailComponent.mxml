@@ -10,7 +10,7 @@ so that it can be moved, selected, handle filters.
 				implements="weave.api.core.ILinkableObject"
 				doubleClickEnabled="true"
 				doubleClick="handleDoubleClick(event)"
-				mouseDown="handleMouseDown()"
+				mouseDown="handleMouseDown(event)"
 				mouseUp="handleMouseUp(event)"
 				mouseOver="handleMouseOver(event)"
 				mouseOut="handleMouseOut()"
@@ -147,7 +147,7 @@ so that it can be moved, selected, handle filters.
 				
 				var filterableNode:FilterableInfoMapNode = (this.parent as NodeHandler).node as FilterableInfoMapNode;
 				//adding callback for a search query made in the node handler this belongs to
-				(this.parent as NodeHandler).searchFilter.addImmediateCallback(this,handleLocalSearchFilter,null,true);
+				(this.parent as NodeHandler).searchFilter.addImmediateCallback(this,handleLocalSearchFilter,true);
 //				(this.parent as NodeHandler).defaultThumbnailBorderColor.addImmediateCallback(this,handleDefaultBorderColorChange,null,true);
 //				(this.parent as NodeHandler).selectedThumbnailBorderColor.addImmediateCallback(this,handleSelectedBorderColorChange,null,true);
 //				getCallbackCollection(_selection).addImmediateCallback(this, highlight);
@@ -165,7 +165,7 @@ so that it can be moved, selected, handle filters.
 				var searchKey:String = (this.parent as NodeHandler).searchFilter.value;
 				if(searchKey == "" || searchKey == null)
 				{
-					_selection.removeKeys([_key]);
+//					_selection.removeKeys([_key]);
 					doc.selected.value = false;
 					return;
 				}
@@ -173,12 +173,12 @@ so that it can be moved, selected, handle filters.
 				if(_doc.title.value.toLowerCase().search(searchKey.toLowerCase()) == -1)
 					if(_doc.summary.value.toLowerCase().search(searchKey.toLowerCase()) == -1)
 					{
-						_selection.removeKeys([_key]);
+//						_selection.removeKeys([_key]);
 						doc.selected.value = false;
 						return;
 					}
 				
-				_selection.addKeys([_key]);
+//				_selection.addKeys([_key]);
 				doc.selected.value = true;
 				
 			}
@@ -301,8 +301,9 @@ so that it can be moved, selected, handle filters.
 			
 			private var dragged:Boolean = false;
 			private var _mouseDown:Boolean = false;
-			private function handleMouseDown():void
+			private function handleMouseDown(event:MouseEvent):void
 			{
+				event.stopImmediatePropagation();
 				filters = [];
 				timer.stop();
 				this.startDrag();
@@ -359,12 +360,12 @@ so that it can be moved, selected, handle filters.
 				//toggling selection
 				if(_doc.selected.value)
 				{
-					_selection.removeKeys([_key]);
+//					_selection.removeKeys([_key]);
 					_doc.selected.value = false;
 				}
 				else
 				{
-					_selection.addKeys([_key]);
+//					_selection.addKeys([_key]);
 					_doc.selected.value = true;
 				}
 			}

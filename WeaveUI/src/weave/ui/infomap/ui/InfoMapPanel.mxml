@@ -33,6 +33,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	
 	<mx:Script>
 		<![CDATA[
+			import com.cartogrammar.drawing.DashedLine;
+			
 			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
 			import mx.collections.Sort;
@@ -156,6 +158,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_subset = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 				
+				Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, true);
 				
 				stage.addEventListener(MouseEvent.MOUSE_UP,handleMouseUp);
 				
@@ -163,7 +166,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
 				
-				
+				map.addEventListener(MouseEvent.MOUSE_DOWN,handleMouseDown);
 				
 				addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
 				addSubMenuItem("Show All Documents",showAllDocuments);
@@ -327,12 +330,99 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//we should set the selection keywords only if the mousup happened from outside of InfoMap panel
 				//This is still not the right way to do it. Need to find a more efficient solution
 				
+				removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseDrag);
+				
+				//clear any selection rectangle created on mouse drag
+				if(sprite)
+				{
+					sprite.graphics.clear();
+					if(map.rawChildren.contains(sprite))
+						map.rawChildren.removeChild(sprite);
+				}
+				
 				if((DraggablePanel.getTopPanel() is InfoMapPanel))
 					return;
 				
 				
 				var keywords:Array = extractKeywordsFromSelection();
 				selectionKeywords.value = keywords.join(" AND ");
+				
+			}
+			
+			private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
+			private function validateDashedLine():void
+			{
+				_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
+			}
+			
+//			private var _selectionRectangleGraphicsCleared:Boolean = true;
+			private var dragStartX:Number;
+			private var dragStartY:Number;
+			private function handleMouseDown(event:MouseEvent):void
+			{
+				var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
+				
+				dragStartX = localPoint.x;
+				dragStartY = localPoint.y;
+				
+				addEventListener(MouseEvent.MOUSE_MOVE,handleMouseDrag);
+			}
+			
+			private var sprite:Sprite =  new Sprite();
+			private function handleMouseDrag(event:MouseEvent):void
+			{
+				if(sprite)
+					sprite.graphics.clear();
+				
+				map.rawChildren.addChild(sprite);
+				
+				var g:Graphics = sprite.graphics;
+				
+				_dashedLine.graphics = g; 
+				
+				_dashedLine.lineStyle(2, 0x00ff00, .75);
+				
+				var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
+								
+				var w:Number = localPoint.x - dragStartX;
+				var h:Number = localPoint.y - dragStartY;
+				
+				var startCorner:int;
+				// if height < 0, then the box is dragged upward
+				// if width < 0, then the box is dragged leftward
+				if (h < 0)
+				{
+					if (w < 0)
+						startCorner = DashedLine.BOTTOM_RIGHT;
+					else
+						startCorner = DashedLine.BOTTOM_LEFT;
+				}
+				else 
+				{
+					if (w < 0)
+						startCorner = DashedLine.TOP_RIGHT;
+					else
+						startCorner = DashedLine.TOP_LEFT;
+				}
+				
+				_dashedLine.drawRect(dragStartX, dragStartY, Math.abs(w), Math.abs(h),startCorner);
+				
+				var selectionRect:Rectangle = sprite.getRect(map);
+				
+				var currentNodes:Array = nodes.getObjects();
+				
+				for each (var node:NodeHandler  in currentNodes)
+				{
+					var currentDocs:Array = node.thumbnails.getObjects();
+					
+					for each (var t:DocThumbnailComponent in currentDocs)
+					{
+						if(selectionRect.intersects(t.getRect(map)))
+							t.doc.selected.value = true;
+						else
+							t.doc.selected.value = false;
+					}
+				}
 				
 			}
 			

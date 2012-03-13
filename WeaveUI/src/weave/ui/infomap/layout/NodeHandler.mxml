@@ -534,7 +534,7 @@
 			private var wasDragged:Boolean = false;
 			protected function canvas1_mouseDownHandler(event:MouseEvent):void
 			{
-				
+				event.stopImmediatePropagation();
 				applyKeywords();
 				nodeBase.keywordTextArea.setStyle("fontWeight","bold");
 				CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
