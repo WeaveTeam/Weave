@@ -127,7 +127,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#addEventCallback()">addEventCallback</a>(eventType:String, relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false):void</div>
+<a class="signatureLink" href="#addEventCallback()">addEventCallback</a>(eventType:String, relevantContext:Object, callback:Function, runCallbackNow:Boolean = false):void</div>
 <div class="summaryTableDescription">
    WARNING: These callbacks will trigger on every mouse event that occurs on the stage.</div>
 </td><td class="summaryTableOwnerCol">StageUtils</td>
@@ -345,12 +345,11 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function addEventCallback(eventType:String, relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false):void</code><p>
+<code>public function addEventCallback(eventType:String, relevantContext:Object, callback:Function, runCallbackNow:Boolean = false):void</code><p>
    WARNING: These callbacks will trigger on every mouse event that occurs on the stage.
             Developers should not add any callbacks that run computationally expensive code.
    
-   This function will add a callback using the given function and parameters.
-   Any callback previously added for the same function will be overwritten.
+   This function will add the given function as a callback.  The function must not require any parameters.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -368,14 +367,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">callback</span>:Function</code> &mdash; An array of parameters that will be used as parameters to the callback function.
-   </td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">parameters</span>:Array</code> (default = <code>null</code>)<code></code> &mdash; If this is set to true, the callback will be run immediately after it is added.
+<td width="20px"></td><td><code><span class="label">callback</span>:Function</code> &mdash; If this is set to true, the callback will be run immediately after it is added.
    </td>
 </tr>
 <tr>

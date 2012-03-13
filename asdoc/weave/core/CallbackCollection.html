@@ -121,9 +121,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void</div>
+<a class="signatureLink" href="#addImmediateCallback()">addImmediateCallback</a>(relevantContext:Object, callback:Function, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void</div>
 <div class="summaryTableDescription">
-   This function will add a callback using the given function and parameters.</div>
+   This adds the given function as a callback.</div>
 </td><td class="summaryTableOwnerCol">CallbackCollection</td>
 </tr>
 <tr class="">
@@ -356,9 +356,8 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public final function addImmediateCallback(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void</code><p>
-   This function will add a callback using the given function and parameters.
-   Any callback previously added for the same function will be overwritten.
+<code>public final function addImmediateCallback(relevantContext:Object, callback:Function, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void</code><p>
+   This adds the given function as a callback.  The function must not require any parameters.
    The callback function will not be called recursively as a result of it triggering callbacks recursively.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -371,13 +370,6 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">callback</span>:Function</code> &mdash; The function to call when callbacks are triggered.
-   </td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">parameters</span>:Array</code> (default = <code>null</code>)<code></code> &mdash; An array of parameters that will be used as parameters to the callback function.
    </td>
 </tr>
 <tr>

@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="DraggablePanel,weave.ui.DraggablePanel,activePanel,buttonRadius,closePanelButton,closeable,controlBarWidthBeforeScale,draggable,enableBorders,forceEnableBorders,maximizable,maximizeButton,maximized,minimizable,minimizeButton,minimized,panelBackgroundColor,panelBorderColor,panelHeight,panelStyleList,panelTitle,panelWidth,panelX,panelY,pinButton,pinToBackButton,pinnable,pinnableToBack,pinned,pinnedToBack,resizeable,showRollOverBorders,userControlButton,activePanelName,controlPanel,percentHeight,percentWidth,percentX,percentY,x,y,childrenCreated,commitProperties,constructor,createChildren,dispose,getStyle,getTotalIconAreaWidth,handleMinimizeButtonClick,handlePanelTitleChange,layoutChrome,minimizePanel,move,openStaticInstance,preinitialize,removePanel,resourcesChanged,restorePanel,sendWindowToBackground,sendWindowToForeground,toggleControlPanel,toggleMaximized,togglePinned,togglePinnedToBack,updateBorders,updateDisplayList,updateForceEnableBorders" name="keywords">
+<meta content="DraggablePanel,weave.ui.DraggablePanel,activePanel,buttonRadius,closePanelButton,closeable,controlBarWidthBeforeScale,draggable,enableBorders,enableSubMenu,forceEnableBorders,maximizable,maximizeButton,maximized,minimizable,minimizeButton,minimized,panelBackgroundColor,panelBorderColor,panelHeight,panelStyleList,panelTitle,panelWidth,panelX,panelY,pinButton,pinToBackButton,pinnable,pinnableToBack,pinned,pinnedToBack,resizeable,showRollOverBorders,subMenuButton,userControlButton,activePanelName,controlPanel,percentHeight,percentWidth,percentX,percentY,x,y,addSubMenuItem,childrenCreated,commitProperties,constructor,createChildren,dispose,getStyle,getTopPanel,getTotalIconAreaWidth,handleMinimizeButtonClick,handlePanelTitleChange,layoutChrome,minimizePanel,move,openStaticInstance,preinitialize,removePanel,resourcesChanged,restorePanel,sendWindowToBackground,sendWindowToForeground,toggleControlPanel,toggleMaximized,togglePinned,togglePinnedToBack,updateBorders,updateDisplayList,updateForceEnableBorders" name="keywords">
 <title>weave.ui.DraggablePanel</title>
 </head>
 <body>
@@ -125,6 +125,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
+<a class="signatureLink" href="#addSubMenuItem()">addSubMenuItem</a>(label:String, listener:Function):void</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">DraggablePanel</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
 <a class="signatureLink" href="#dispose()">dispose</a>():void</div>
 <div class="summaryTableDescription">
     This will be called when this object is no longer needed.</div>
@@ -135,6 +142,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#getStyle()">getStyle</a>(styleProp:String):*</div>
 <div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">DraggablePanel</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#getTopPanel()">getTopPanel</a>():<a href="../ui/DraggablePanel.html">DraggablePanel</a>
+</div>
+<div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">DraggablePanel</td>
 </tr>
 <tr class="">
@@ -352,6 +367,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">DraggablePanel</td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#enableSubMenu">enableSubMenu</a> : <a href="../core/LinkableBoolean.html">LinkableBoolean</a>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">DraggablePanel</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#maximizable">maximizable</a> : <a href="../core/LinkableBoolean.html">LinkableBoolean</a>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">DraggablePanel</td>
@@ -470,6 +490,10 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#pinToBackButton">pinToBackButton</a> : Button<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">DraggablePanel</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#subMenuButton">subMenuButton</a> : Button<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">DraggablePanel</td>
 </tr>
 <tr class="">
@@ -610,10 +634,30 @@ showHideInherited();
 </div>
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
+<a name="addSubMenuItem()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">addSubMenuItem</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function addSubMenuItem(label:String, listener:Function):void</code><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">label</span>:String</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">listener</span>:Function</code></td>
+</tr>
+</table>
+</div>
 <a name="childrenCreated()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">childrenCreated</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+<td class="detailHeaderName">childrenCreated</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
@@ -680,6 +724,22 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code>*</code></td>
+</tr>
+</table>
+</div>
+<a name="getTopPanel()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">getTopPanel</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function getTopPanel():<a href="../ui/DraggablePanel.html">DraggablePanel</a></code>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code><a href="../ui/DraggablePanel.html">DraggablePanel</a></code></td>
 </tr>
 </table>
 </div>
@@ -971,6 +1031,15 @@ showHideInherited();
 <div class="detailBody">
 <code>public const enableBorders:<a href="../core/LinkableBoolean.html">LinkableBoolean</a></code>
 </div>
+<a name="enableSubMenu"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">enableSubMenu</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public const enableSubMenu:<a href="../core/LinkableBoolean.html">LinkableBoolean</a></code>
+</div>
 <a name="forceEnableBorders"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -1170,6 +1239,15 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public const resizeable:<a href="../core/LinkableBoolean.html">LinkableBoolean</a></code>
+</div>
+<a name="subMenuButton"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">subMenuButton</td><td class="detailHeaderType">constant</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>protected const subMenuButton:Button</code>
 </div>
 <a name="userControlButton"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
