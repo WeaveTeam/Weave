@@ -178,13 +178,9 @@ package weave.core
 		 */
 		public function requestObject(name:String, classDef:Class, lockObject:Boolean):*
 		{
-			if (classDef == null)
-			{
-				if (lockObject)
-					this.lockObject(name);
-				return getObject(name);
-			}
-			return initObjectByClassName(name, getQualifiedClassName(classDef), lockObject) as classDef;
+			var className:String = classDef ? getQualifiedClassName(classDef) : null;
+			var result:* = initObjectByClassName(name, className, lockObject);
+			return classDef ? result as classDef : null;
 		}
 		
 		/**

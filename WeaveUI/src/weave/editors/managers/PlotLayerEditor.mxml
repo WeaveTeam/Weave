@@ -298,6 +298,13 @@
 								<mx:TextInput id="imageURL" creationComplete="EventUtils.addDelayedCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
 							</mx:VBox>
 						</mx:HBox>
+						<mx:HBox>
+							<mx:CheckBox id="ignoreSubsetCheck" label="Ignore Subset" change="handleIgnoreSubsetCheck()"/>
+							<ui:HelpComponent>
+								Check this box to always display these geometries whether or not they are in the current subset.
+								Fill color will only be displayed on the geometries in the current subset.  Only the borders will be displayed for the rest.
+							</ui:HelpComponent>
+						</mx:HBox>
 					</mx:VBox>
 				</mx:ViewStack>
 				
@@ -471,6 +478,7 @@
 								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 								
 								geomPlotter.pointDataImageColumn.addImmediateCallback(null, handleGeomPlotterImageURLChange);
+								getCallbackCollection(geomPlotter.keySet).addImmediateCallback(null, handleSubsetChange, true);
 								linkBindableProperty(geomPlotter.pointShapeSize, pointSize, "value");
 								
 								linkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
@@ -521,6 +529,7 @@
 								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 								
 								geomPlotter.pointDataImageColumn.removeCallback(handleGeomPlotterImageURLChange);
+								getCallbackCollection(geomPlotter.keySet).removeCallback(handleSubsetChange);
 								unlinkBindableProperty(geomPlotter.pointShapeSize, pointSize, "value");
 									
 								unlinkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
@@ -732,6 +741,23 @@
 							var adc:AlwaysDefinedColumn = plotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
 							if (adc)
 								imageURL.text = adc.defaultValue.value as String;
+						}
+						private function handleIgnoreSubsetCheck():void
+						{
+							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
+							if (ignoreSubsetCheck.selected)
+							{
+								plotter.keySet.keyFilter.removeObject();
+							}
+							else
+							{
+								plotter.keySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+							}
+						}
+						private function handleSubsetChange():void
+						{
+							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
+							ignoreSubsetCheck.selected = plotter.keySet.keyFilter.globalName ? false : true;
 						}
 					]]>
 				</mx:Script>
