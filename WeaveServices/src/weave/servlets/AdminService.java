@@ -238,11 +238,11 @@ public class AdminService extends GenericServlet
 		ConnectionInfo info = config.getConnectionInfo(configConnectionName);
 		File[] files = null;
 		List<String> listOfFiles = new ArrayList<String>();
-		FilenameFilter xmlFilter = new FilenameFilter()
+		FilenameFilter fileFilter = new FilenameFilter()
 		{
 			public boolean accept(File dir, String fileName)
 			{
-				return (fileName.endsWith(".xml"));
+				return fileName.endsWith(".xml") || fileName.endsWith(".weave");
 			}
 		};
 		
@@ -258,7 +258,7 @@ public class AdminService extends GenericServlet
 				{
 					if(!f.isDirectory())
 						continue;
-					File[] configs = f.listFiles(xmlFilter);
+					File[] configs = f.listFiles(fileFilter);
 					for (File configfile : configs) 
 					{
 						listOfFiles.add(f.getName() + "/" + configfile.getName());
@@ -279,7 +279,7 @@ public class AdminService extends GenericServlet
 		try
 		{
 			docrootFolder.mkdirs();
-			files = docrootFolder.listFiles(xmlFilter);
+			files = docrootFolder.listFiles(fileFilter);
 			for (File file : files)
 			{
 				if (file.isFile())
