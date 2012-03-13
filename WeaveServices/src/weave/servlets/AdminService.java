@@ -594,7 +594,7 @@ public class AdminService extends GenericServlet
 			dataConnection = null; // let it get all of the data tables
 		else
 			dataConnection = connectionName; // get only the ones on this connection
-		return SQLConfigUtils.getDataTableNames(config, dataConnection);
+		return config.getDataTableNames(dataConnection);
 	}
 
 	/**
@@ -722,7 +722,7 @@ public class AdminService extends GenericServlet
 			geometryConnection = null; // let it get all of the geometries
 		else
 			geometryConnection = connectionName; // get only the ones on this connection
-		return SQLConfigUtils.getGeometryCollectionNames(config, geometryConnection);
+		return config.getGeometryCollectionNames(geometryConnection);
 	}
 
 	synchronized public void saveAttributeColumnInfo(String connectionName, String password, int id, Map<String,Object> privateMetadata, Map<String,Object> publicMetadata) throws RemoteException
@@ -838,7 +838,7 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		
-		return SQLConfigUtils.getKeyTypes(config);
+		return config.getKeyTypes();
 	}
 
 	synchronized public UploadedFile[] getUploadedCSVFiles() throws RemoteException
@@ -1327,7 +1327,7 @@ public class AdminService extends GenericServlet
 
 			if (!configOverwrite)
 			{
-				if (ListUtils.findIgnoreCase(configDataTableName, SQLConfigUtils.getDataTableNames(config, null)) >= 0)
+				if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames(null)) >= 0)
 					throw new RemoteException(String.format(
 							"CSV not imported.\nDataTable \"%s\" already exists in the configuration.",
 							configDataTableName));
@@ -1422,7 +1422,7 @@ public class AdminService extends GenericServlet
 
 		if (!configOverwrite)
 		{
-			if (ListUtils.findIgnoreCase(configDataTableName, SQLConfigUtils.getDataTableNames(config, null)) >= 0)
+			if (ListUtils.findIgnoreCase(configDataTableName, config.getDataTableNames(null)) >= 0)
 				throw new RemoteException(String.format("DataTable \"%s\" already exists in the configuration.", configDataTableName));
 		}
 		else
@@ -1496,7 +1496,7 @@ public class AdminService extends GenericServlet
 			}
 			// done generating queries
 
-			SQLConfigUtils.removeDataTableInfo(config, configDataTableName);
+			config.removeDataTableInfo(configDataTableName);
 
 			//TODO
 //			if (keyType == null || keyType.length() == 0)
@@ -1792,7 +1792,7 @@ public class AdminService extends GenericServlet
 			String schema = configInfo.schema;
 			DublinCoreUtils.addDCElements(conn, schema, dataTableName, elements);
 		}
-		catch (SQLException e)
+		catch (Exception e)
 		{
 			throw new RemoteException("addDCElements failed", e);
 		}
@@ -1839,7 +1839,7 @@ public class AdminService extends GenericServlet
 			String schema = configInfo.schema;
 			DublinCoreUtils.deleteDCElements(conn, schema, dataTableName, elements);
 		}
-		catch (SQLException e)
+		catch (Exception e)
 		{
 			throw new RemoteException("deleteDCElements failed", e);
 		}
@@ -1867,7 +1867,7 @@ public class AdminService extends GenericServlet
 			String schema = configInfo.schema;
 			DublinCoreUtils.updateEditedDCElement(conn, schema, dataTableName, object);
 		}
-		catch (SQLException e)
+		catch (RemoteException e)
 		{
 			throw new RemoteException("updateEditedDCElement failed", e);
 		}

@@ -488,7 +488,7 @@ public class DataService extends GenericServlet
 		{
 			String connectionName = info.privateMetadata.get(PrivateMetadata.CONNECTION);
 			String query = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
-			SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, connectionName, query);
+			SQLResult result = SQLUtils.getRowSetFromQuery(config.getNamedConnection(connectionName, true), query);
 			return result;
 		}
 		catch (SQLException e)
