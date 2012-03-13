@@ -229,17 +229,14 @@ package weave
 			target.requestObject(DEFAULT_SELECTION_KEYSET, KeySet, true);
 			var probe:KeySet = target.requestObject(DEFAULT_PROBE_KEYSET, KeySet, true);
 			var always:KeySet = target.requestObject(ALWAYS_HIGHLIGHT_KEYSET, KeySet, true);
-			probe.addImmediateCallback(always, _addKeysToKeySet, [always, probe]);
-			always.addImmediateCallback(probe, _addKeysToKeySet, [always, probe]);
+			var callback:Function = function():void { probe.addKeys(always.keys); };
+			probe.addImmediateCallback(always, callback);
+			always.addImmediateCallback(probe, callback);
 
 			target.requestObject(SAVED_SELECTION_KEYSETS, LinkableHashMap, true);
 			target.requestObject(SAVED_SUBSETS_KEYFILTERS, LinkableHashMap, true);
 		}
 		
-		private static function _addKeysToKeySet(source:KeySet, destination:KeySet):void
-		{
-			destination.addKeys(source.keys);
-		}
 		
 		
 		/******************************************************************************************/

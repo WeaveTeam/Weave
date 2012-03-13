@@ -53,7 +53,7 @@ package weave.visualization.plotters
 	{
 		public function RegressionLinePlotter()
 		{
-			Weave.properties.rServiceURL.addImmediateCallback(this, resetRService, null, true);
+			Weave.properties.rServiceURL.addImmediateCallback(this, resetRService, true);
 			spatialCallbacks.addImmediateCallback(this, resetRegressionLine );
 			spatialCallbacks.addGroupedCallback(this, calculateRRegression );
 			setKeySource(xColumn);

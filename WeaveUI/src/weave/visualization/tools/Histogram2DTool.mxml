@@ -77,8 +77,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector, [this, plotter.xColumn])
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector, [this, plotter.yColumn])
+				var self:* = this;
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.xColumn); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.yColumn); })
 						
 				visualization.enableAutoZoomXToNiceNumbers.value = false;
 				visualization.enableAutoZoomYToNiceNumbers.value = false;

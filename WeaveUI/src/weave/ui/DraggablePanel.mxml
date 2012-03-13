@@ -178,10 +178,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// drop-down menus will be hidden behind the window after we move the window to the front.
 				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, true);
 				
-				panelX.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelX]);
-				panelY.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelY]);
-				panelWidth.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelWidth]);
-				panelHeight.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelHeight]);
+				panelX.addImmediateCallback(this, function():void { copyCoordinatesFromSessionedProperties(panelX); });
+				panelY.addImmediateCallback(this, function():void { copyCoordinatesFromSessionedProperties(panelY); });
+				panelWidth.addImmediateCallback(this, function():void { copyCoordinatesFromSessionedProperties(panelWidth); });
+				panelHeight.addImmediateCallback(this, function():void { copyCoordinatesFromSessionedProperties(panelHeight); });
 				
 				getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);

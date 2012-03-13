@@ -133,7 +133,7 @@ package weave.visualization.layers
 			
 			getCallbackCollection(selectionFilter).addGroupedCallback(this, showOrHideEmptySelectionText);
 			getCallbackCollection(probeFilter).addGroupedCallback(this, showOrHideEmptySelectionText);
-			getCallbackCollection(selectionFilter).addImmediateCallback(this, handleSelectionChange, null, true);
+			getCallbackCollection(selectionFilter).addImmediateCallback(this, handleSelectionChange, true);
 
 			registerLinkableChild(this, plotter);
 			registerLinkableChild(this, subsetFilter);

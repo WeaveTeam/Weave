@@ -430,18 +430,21 @@ package weave.visualization.layers
 				_probeLineLayer = layers.requestObject(PROBE_LINE_LAYER_NAME, PlotLayer, true);
 				_probePlotter = _probeLineLayer.getDynamicPlotter().requestLocalObject(ProbeLinePlotter, true);
 			}
-			getCallbackCollection(_plotLayer.probeFilter).addImmediateCallback(this, updateProbeLines, [xToolTipEnabled, yToolTipEnabled], false);
+			this.xToolTipEnabled = xToolTipEnabled;
+			this.yToolTipEnabled = yToolTipEnabled;
+			getCallbackCollection(_plotLayer.probeFilter).addImmediateCallback(this, updateProbeLines, false);
 		}
+		
+		private var xToolTipEnabled:Boolean;
+		private var yToolTipEnabled:Boolean;
 		
 		/**
 		 * Draws the probe lines using _probePlotter and the corresponding axes tooltips
-		 * @param xToolTipEnabled set to true if xAxis needs a probe line and tooltip
-		 * @param yToolTipEnabled set to true if yAxis needs a probe line and tooltip
 		 * @param labelFunction optional function to convert number values to string 
 		 * @param labelFunctionX optional function to convert xAxis number values to string 
 		 * 
 		 */	
-		private function updateProbeLines(xToolTipEnabled:Boolean, yToolTipEnabled:Boolean):void
+		private function updateProbeLines():void
 		{
 			destroyProbeLineTooltips();
 			if (!Weave.properties.enableProbeLines.value)

@@ -57,7 +57,7 @@ package weave.ui.CustomDataGrid
 			//this.width = 20;
 			this.minWidth = 0;	
 			
-			_attrColumn.addImmediateCallback(this, handleColumnChange, null, true);						
+			_attrColumn.addImmediateCallback(this, handleColumnChange, true);						
 		}
 		
 		

@@ -75,7 +75,7 @@
 				_plotter.algorithmRunning.addGroupedCallback(this, handleAlgorithmRunning, false);
 				
 				linkSessionState(_plotter.radius, _labelPlotter.radius);
-				_plotter.layoutAlgorithm.addImmediateCallback(this, handleLayoutAlgorithmChange, null, true);
+				_plotter.layoutAlgorithm.addImmediateCallback(this, handleLayoutAlgorithmChange, true);
 				linkSessionState(_plotter.nodesColumn, _labelPlotter.nodesColumn);
 				linkSessionState(_plotter.edgeSourceColumn, _labelPlotter.edgeSourceColumn);
 				linkSessionState(_plotter.edgeTargetColumn, _labelPlotter.edgeTargetColumn);

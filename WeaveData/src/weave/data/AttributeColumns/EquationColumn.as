@@ -69,8 +69,8 @@ package weave.data.AttributeColumns
 
 		public function EquationColumn()
 		{
-			getCallbackCollection(LinkableFunction.macroLibraries).addImmediateCallback(this, equation.triggerCallbacks, null, false, true);
-			getCallbackCollection(LinkableFunction.macros).addImmediateCallback(this, equation.triggerCallbacks, null, false, true);
+			getCallbackCollection(LinkableFunction.macroLibraries).addImmediateCallback(this, equation.triggerCallbacks, false, true);
+			getCallbackCollection(LinkableFunction.macros).addImmediateCallback(this, equation.triggerCallbacks, false, true);
 			
 			setMetadata(AttributeColumnMetadata.TITLE, "Untitled Equation");
 			//setMetadata(AttributeColumnMetadata.DATA_TYPE, DataTypes.NUMBER);

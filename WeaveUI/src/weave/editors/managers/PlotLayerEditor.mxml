@@ -475,7 +475,7 @@
 								
 								linkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
 								linkBindableProperty(geomPlotter.fill.alpha.defaultValue, fillAlpha, "value");
-								geomPlotter.fill.color.defaultValue.addImmediateCallback(outerDocument, handleFillColorSessionStateChange, null, true);
+								geomPlotter.fill.color.defaultValue.addImmediateCallback(outerDocument, handleFillColorSessionStateChange, true);
 									
 								linkBindableProperty(geomPlotter.line.enabled.defaultValue, lineEnabled, "selected");
 								linkBindableProperty(geomPlotter.line.color.defaultValue, lineColor, "selectedColor");

@@ -33,14 +33,12 @@ package weave.api.core
 		 * WARNING: These callbacks will trigger on every mouse event that occurs on the stage.
 		 *          Developers should not add any callbacks that run computationally expensive code.
 		 * 
-		 * This function will add a callback using the given function and parameters.
-		 * Any callback previously added for the same function will be overwritten.
-		 * @param eventType The name of the event to add a callback for, one of the static values in the MouseEvent class.
+		 * This function will add the given function as a callback.  The function must not require any parameters.
+		 * @param eventType The name of the event to add a callback for.
 		 * @param callback The function to call when an event of the specified type is dispatched from the stage.
-		 * @param parameters An array of parameters that will be used as parameters to the callback function.
 		 * @param runCallbackNow If this is set to true, the callback will be run immediately after it is added.
 		 */
-		function addEventCallback(eventType:String, relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false):void;
+		function addEventCallback(eventType:String, relevantContext:Object, callback:Function, runCallbackNow:Boolean = false):void;
 		
 		/**
 		 * @param eventType The name of the event to remove a callback for, one of the static values in the MouseEvent class.
