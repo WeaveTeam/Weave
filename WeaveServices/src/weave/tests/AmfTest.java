@@ -24,8 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
-import weave.beans.QueryParam;
-
 import flex.messaging.io.SerializationContext;
 import flex.messaging.io.amf.Amf3Input;
 import flex.messaging.io.amf.Amf3Output;
@@ -56,7 +54,7 @@ public class AmfTest {
 			ByteArrayOutputStream bout = new ByteArrayOutputStream();
 			Amf3Output amf3Output = new Amf3Output(context);
 			amf3Output.setOutputStream(bout);
-			amf3Output.writeObject(new QueryParam("a","b"));
+			amf3Output.writeObject("hello world");
 			amf3Output.flush();
 			amf3Output.close();
 			 
