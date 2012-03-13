@@ -82,7 +82,7 @@ package weave.visualization.layers
 			//			addEventListener(KeyboardEvent.KEY_DOWN, handleKeyboardEvent);
 			//			addEventListener(KeyboardEvent.KEY_UP, handleKeyboardEvent);
 			
-			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, null, true);
+			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, true);
 		}
 		
 		private function addContextMenuEventListener():void

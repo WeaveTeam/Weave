@@ -320,7 +320,7 @@ package weave.data.KeySets
 		{
 			var k:KeySet = new KeySet();
 			var k2:KeySet = new KeySet();
-			k.addImmediateCallback(null, traceKeySet, [k]);
+			k.addImmediateCallback(null, function():void { traceKeySet(k); });
 			
 			testFunction(k, k.replaceKeys, 'create k', 't', ['a','b','c'], 't', ['a', 'b', 'c']);
 			testFunction(k, k.addKeys, 'add', 't', ['b','c','d','e'], 't', ['a','b','c','d','e']);

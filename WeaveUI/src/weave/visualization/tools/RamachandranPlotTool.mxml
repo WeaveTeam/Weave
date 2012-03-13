@@ -96,7 +96,7 @@
 				//BEGIN TEMPORARY SOLUTION
 				visualization.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
 				visualization.marginBottomNumber.addImmediateCallback(this, updateAxisLabels);
-				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, null, true);
+				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, true);
 				// END TEMPORARY SOLUTION
 				
 				visualization.includeNonSelectableLayersInAutoZoom.value = true;
@@ -105,8 +105,8 @@
 				visualization.enableAutoZoomToExtent.lock();
 				visualization.zoomBounds.setDataBounds(new Bounds2D(-180,-180,180,180));
 				
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openDefaultSelector,[_plotter.xColumn])
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openDefaultSelector,[_plotter.yColumn])
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(_plotter.xColumn); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(_plotter.yColumn); })
 				
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
@@ -133,7 +133,7 @@
 				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
 				_plotter.minScreenRadius.addImmediateCallback(this, updateSizeSlider);
-				_plotter.maxScreenRadius.addImmediateCallback(this, updateSizeSlider, null, true);
+				_plotter.maxScreenRadius.addImmediateCallback(this, updateSizeSlider, true);
 			}
 			
 			override public function getSelectableAttributeNames():Array

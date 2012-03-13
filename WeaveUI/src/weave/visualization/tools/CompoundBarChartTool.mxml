@@ -110,8 +110,8 @@
 				
 				visualization.enableZoomAndPan.value = false;
 
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, handleAxisClick, [true]);
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, handleAxisClick, [false]);
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { handleAxisClick(true); });
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { handleAxisClick(false); });
 				
 				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
 				var columnsToInit:Array = [_plotter.sortColumn];
@@ -197,7 +197,6 @@
 			
  			private function handleAxisClick(isXAxis:Boolean):void
 			{
-				
 				if (isXAxis != _plotter.horizontalMode.value)
 					AttributeSelectorPanel.openToolSelector(this,_plotter.sortColumn);
 				else

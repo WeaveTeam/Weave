@@ -65,7 +65,7 @@ package weave.data.DataSources
 	{
 		public function WeaveDataSource()
 		{
-			url.addImmediateCallback(this, handleURLChange, null, true);
+			url.addImmediateCallback(this, handleURLChange, true);
 		}
 		
 		public function getRows(keys:Array):AsyncToken

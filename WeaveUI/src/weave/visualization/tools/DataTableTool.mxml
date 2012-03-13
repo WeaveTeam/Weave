@@ -176,7 +176,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(showFilters, showFiltersCheckBox, "selected");
 				linkBindableProperty(showColors,showColorsCheckBox,"selected");
 				
-				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange,null,true);
+				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange,true);
 				
 				dataRowKeys.filterFunction = filterKeys;
 				dataRowKeys.refresh();

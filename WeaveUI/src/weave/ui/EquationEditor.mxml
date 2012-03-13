@@ -174,7 +174,7 @@
 				EventUtils.addDelayedCallback(textEditor, Event.CHANGE, handleEquationTextEntry);
 				equationColumn.equation.addImmediateCallback(this,handleEquationSessionStateChange);
 				
-				Weave.root.childListCallbacks.addImmediateCallback(this, updateActiveEquationCombo, null, true);
+				Weave.root.childListCallbacks.addImmediateCallback(this, updateActiveEquationCombo, true);
 				activeEquationCombo.selectedIndex = 0;
 				handleActiveEquationSelect();
 				

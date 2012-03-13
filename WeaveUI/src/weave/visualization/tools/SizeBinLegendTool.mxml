@@ -70,7 +70,7 @@
 				visualization.marginRight.value  = "5";
 
 				visualization.topMarginClickCallbacks.addImmediateCallback(this, handleMarginLabelClick);
-				colorColumn.addImmediateCallback(this, updateMarginLabel, null, true);
+				colorColumn.addImmediateCallback(this, updateMarginLabel, true);
 				
 				panelWidth.value = "20%";
 				panelHeight.value = "50%";

@@ -48,9 +48,8 @@ package weave.utils
 	 */
 	public class SpatialIndex extends CallbackCollection implements ISpatialIndex
 	{
-		public function SpatialIndex(callback:Function = null, callbackParameters:Array = null)
+		public function SpatialIndex()
 		{
-			addImmediateCallback(this, callback, callbackParameters);
 		}
 		
 		private var _kdTree:KDTree = new KDTree(5);
