@@ -40,10 +40,14 @@
 				   creationPolicy="all" layout="absolute">
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.controls.ToolTip;
+			import mx.core.Application;
+			import mx.core.IFlexDisplayObject;
 			import mx.events.CloseEvent;
 			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
 			import org.igniterealtime.xiff.events.OutgoingDataEvent;
@@ -68,6 +72,7 @@
 			
 			private const labelWidth:Number = 80;
 			private const textAreaWidth:Number = 200;
+			private var cursorList:ArrayCollection = new ArrayCollection();
 			
 			//Guaranteed to run at the creation of the tool. Is used to register all the event listeners.
 			override protected function childrenCreated():void
@@ -83,8 +88,9 @@
 				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
 				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
 				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
+				collabService.addEventListener(CollaborationEvent.USER_JOINED_ROOM, handleCreateUserMouse);
 			}
-
+			
 			//Sends a message from the text box(input) to the server as a TEXT message
 			private function handleInputKeyUp(e:KeyboardEvent):void
 			{
@@ -169,6 +175,10 @@
 			{
 				updateEnabledSettings();
 			}
+			private function handleCreateUserMouse(e:CollaborationEvent):void
+			{
+				cursorList.addItem(CollabMouseCursor.addPopUp(Application.application as DisplayObject));
+			}
 			
 			private var toolTipper:ToolTip = new ToolTip()
 			
@@ -188,6 +198,19 @@
 			private function trimInput(event:Event):void
 			{
 				event.target.text = StringUtil.trim(event.target.text); // hack
+			}
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				var cursor:IFlexDisplayObject = PopUpManager.createPopUp(Application.application as DisplayObject, CollabMouseCursor);
+				PopUpManager.centerPopUp(cursor);
+				stage.addEventListener(MouseEvent.MOUSE_MOVE, 
+					function(_:MouseEvent):void 
+					{
+						cursor.x = _.stageX+30;
+						cursor.y = _.stageY;
+					}
+				);
 			}
 			
 		]]>
@@ -222,7 +245,7 @@
 										if( !role ) return;
 										
 										if( role == "moderator" )
-											if( roleID == outerDocument.collabService.username )
+											if( roleID == outerDocument.collabService.nickname )
 												Alert.show("You are about to remove your own moderator status. Continue?", "Warning", Alert.YES | Alert.NO, null, handleMod);
 											else
 												setRole(roleID, "participant");
@@ -251,7 +274,7 @@
 										{
 											if( list[i].name == id )
 											{
-												if( id == outerDocument.collabService.username )
+												if( id == outerDocument.collabService.nickname )
 													outerDocument.collabService.myRole = role;
 												switch( getRole(id) )
 												{
@@ -322,6 +345,7 @@
 				<mx:Button id="connectButton" label="Connect" click="connect();" />
 				<mx:Button id="disconnectButton" label="Disconnect" enabled="false" click="collabService.disconnect();"/>
 			</mx:HBox>
+			<mx:ColorPicker id="picker" color="{Math.random() * 0xFFFFFF}" />
 		</mx:VBox>
 	</ui:ControlPanel>
 	

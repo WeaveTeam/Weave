@@ -31,6 +31,8 @@ package weave.core
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
+	import weave.api.reportError;
+	import weave.utils.Dictionary2D;
 
 	/**
 	 * This is an all-static class containing functions related to UI and ILinkableObjects.
@@ -50,15 +52,23 @@ package weave.core
 			return focus && component.contains(focus);
 		}
 		
+		private static const linkFunctionCache:Dictionary2D = new Dictionary2D(true, true);
+		
 		/**
 		 * This function adds a callback to a LinkableHashMap to monitor any DisplayObjects contained in it.
-		 * @TODO check if already linked
 		 * @param uiParent A UIComponent to synchronize with the given hashMap.
 		 * @param hashMap A LinkableHashMap containing DisplayObjects to synchronize with the given uiParent.
+		 * @param keepLinkableChildrenOnTop If set to true, children of the hashMap will be kept on top of all other UI children.
 		 */
 		public static function linkDisplayObjects(uiParent:UIComponent, hashMap:ILinkableHashMap, keepLinkableChildrenOnTop:Boolean = false):void
 		{
-			hashMap.childListCallbacks.addImmediateCallback(uiParent, handleHashMapChildListChange, [uiParent, hashMap, keepLinkableChildrenOnTop]);
+			if (linkFunctionCache.get(uiParent, hashMap) is Function) // already linked?
+				unlinkDisplayObjects(uiParent, hashMap);
+			
+			var callback:Function = function():void { handleHashMapChildListChange(uiParent, hashMap, keepLinkableChildrenOnTop); };
+			linkFunctionCache.set(uiParent, hashMap, callback);
+			
+			hashMap.childListCallbacks.addImmediateCallback(uiParent, callback);
 			
 			// add all existing sessioned DisplayObjects as children
 			var names:Array = hashMap.getNames();
@@ -114,11 +124,13 @@ package weave.core
 		 */
 		public static function unlinkDisplayObjects(uiParent:UIComponent, hashMap:ILinkableHashMap):void
 		{
-			if (parentToListenerMap[uiParent] != undefined)
+			if (parentToListenerMap[uiParent] !== undefined)
 			{
-				hashMap.childListCallbacks.removeCallback(handleHashMapChildListChange);
-				uiParent.removeEventListener(IndexChangedEvent.CHILD_INDEX_CHANGE, parentToListenerMap[uiParent]);
+				hashMap.childListCallbacks.removeCallback(linkFunctionCache.remove(uiParent, hashMap) as Function);
+				for each (var child:ILinkableDisplayObject in hashMap.getObjects(ILinkableDisplayObject))
+					getCallbackCollection(child).removeCallback(linkFunctionCache.remove(uiParent, child) as Function);
 				
+				uiParent.removeEventListener(IndexChangedEvent.CHILD_INDEX_CHANGE, parentToListenerMap[uiParent]);
 				var numChildren:int = uiParent.numChildren;
 				for (var i:int = 0; i < numChildren; i++)
 				{
@@ -130,8 +142,6 @@ package weave.core
 					uiChild.removeEventListener(Event.REMOVED, listener);
 					delete childToEventListenerMap[uiChild];
 				}
-				for each (var child:ILinkableDisplayObject in hashMap.getObjects(ILinkableDisplayObject))
-					getCallbackCollection(child).removeCallback(updateChildOrder);
 			}
 		}
 		
@@ -159,7 +169,8 @@ package weave.core
 		 */
 		private static function addChild(uiParent:UIComponent, hashMap:ILinkableHashMap, childName:String, keepLinkableChildrenOnTop:Boolean):void
 		{
-			if (!uiParent.initialized)
+			// Children will not be displayed properly unless the parent is on the stage when the children are added.
+			if (!uiParent.initialized || !uiParent.stage)
 				return uiParent.callLater(addChild, arguments);
 			
 			var childObject:ILinkableObject = hashMap.getObject(childName);
@@ -168,8 +179,11 @@ package weave.core
 			if (childObject is ILinkableDisplayObject)
 			{
 				(childObject as ILinkableDisplayObject).setParentContainer(uiParent);
-				var cc:ICallbackCollection = getCallbackCollection(childObject);
-				cc.addImmediateCallback(uiParent, updateChildOrder, [uiParent, hashMap, keepLinkableChildrenOnTop], true);
+				
+				var callback:Function = function():void { updateChildOrder(uiParent, hashMap, keepLinkableChildrenOnTop); };
+				linkFunctionCache.set(uiParent, childObject, callback);
+				
+				getCallbackCollection(childObject).addImmediateCallback(uiParent, callback, true);
 				return;
 			}
 			

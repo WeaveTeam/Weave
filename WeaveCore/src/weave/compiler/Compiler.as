@@ -732,15 +732,41 @@ package weave.compiler
 				}
 				else if (escapeIndex < bracketIndex) // handle '\'
 				{
+					// append everything before the escaped character
+					output += input.substring(searchIndex, escapeIndex);
+					
 					// look up escaped character
 					var c:String = input.charAt(escapeIndex + 1);
-					
-					//TODO: octal and hex escape sequences
-					
 					c = DECODE_LOOKUP[c] || c;
-					output += input.substring(searchIndex, escapeIndex) + c;
-					// skip over escape sequence
-					searchIndex = escapeIndex + 2;
+					
+					if ('0123'.indexOf(c) >= 0)
+					{
+						// \000 .. \377        a byte specified in octal
+						var oct:String = input.substr(escapeIndex + 1, 3);
+						c = String.fromCharCode(parseInt(oct, 8));
+						searchIndex = escapeIndex + 4; // skip over escape sequence
+					}
+					else if (c == 'x')
+					{
+						// \x00 .. \xFF        a byte specified in hexadecimal
+						var hex:String = input.substr(escapeIndex + 2, 2);
+						c = String.fromCharCode(parseInt(hex, 16));
+						searchIndex = escapeIndex + 4; // skip over escape sequence
+					}
+					else if (c == 'u')
+					{
+						// \u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
+						var unicode:String = input.substr(escapeIndex + 2, 4);
+						c = String.fromCharCode(parseInt(unicode, 16));
+						searchIndex = escapeIndex + 6; // skip over escape sequence
+					}
+					else
+					{
+						searchIndex = escapeIndex + 2; // skip over escape sequence
+					}
+					
+					// append the escaped character
+					output += c;
 				}
 				else if (bracketIndex < escapeIndex) // handle '{'
 				{
@@ -886,7 +912,7 @@ package weave.compiler
 				break;
 			}
 			for each (token in tokens)
-				if (token is String && '.[](){}'.indexOf(token as String) >= 0)
+				if (token is String && '..[](){}'.indexOf(token as String) >= 0)
 					throw new Error("Misplaced '" + token + "'");
 		}
 		
@@ -1183,11 +1209,11 @@ package weave.compiler
 
 			const builtInSymbolTable:Object = {};
 			const localSymbolTable:Object = {};
-			// set up Array of symbol tables in the correct scope order: local, params, function, this, global
+			// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
 			const allSymbolTables:Array = [
+				builtInSymbolTable,
 				localSymbolTable,
 				symbolTable,
-				builtInSymbolTable,
 				null/*this*/,
 				constants
 			];
@@ -1204,16 +1230,17 @@ package weave.compiler
 			// this function avoids unnecessary function calls by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function(...args):*
 			{
-				// reset local symbol table each time the function is called
-				for (symbolName in localSymbolTable)
-					localSymbolTable[symbolName] = undefined;
-				
 				builtInSymbolTable['this'] = this;
-				builtInSymbolTable['arguments'] = args;
+				
+				// reset local symbol table each time the function is called so it behaves the same way each time.
+				for (symbolName in localSymbolTable)
+					delete localSymbolTable[symbolName];
+				
 				// make function parameters available under the specified parameter names
+				localSymbolTable['arguments'] = args;
 				if (paramNames)
 					for (i = 0; i < paramNames.length; i++)
-						builtInSymbolTable[paramNames[i] as String] = args.length > i ? args[i] : paramDefaults[i];
+						localSymbolTable[paramNames[i] as String] = i < args.length ? args[i] : paramDefaults[i];
 				
 				if (useThisScope)
 					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = this;
@@ -1266,6 +1293,9 @@ package weave.compiler
 							if (ASSIGN_OP_LOOKUP[call.evaluatedMethod] && compiledParams.length == 2) // two params means local assignment
 							{
 								symbolName = call.evaluatedParams[0];
+								if (builtInSymbolTable.hasOwnProperty(symbolName))
+									throw new Error("Cannot assign built-in variable: " + symbolName);
+								
 								// assignment operator expects parameters like (host, ...chain, value)
 								// if there is no matching local variable and 'this' has a matching one, assign the property of 'this'
 								if (useThisScope && this && this.hasOwnProperty(symbolName) && !localSymbolTable.hasOwnProperty(symbolName))
@@ -1278,7 +1308,11 @@ package weave.compiler
 								// type casting
 								if (call.evaluatedParams.length != 1)
 									throw new Error("Incorrect number of arguments for type casting.  Expected 1.");
-								result = call.evaluatedMethod(call.evaluatedParams[0]);
+								// special case for Class('some.qualified.ClassName')
+								if (call.evaluatedMethod === Class && call.evaluatedParams[0] is String)
+									result = getDefinitionByName(call.evaluatedParams[0]);
+								else
+									result = call.evaluatedMethod(call.evaluatedParams[0]);
 							}
 							else
 							{
@@ -1330,9 +1364,9 @@ package weave.compiler
 					// advance the evalIndex so the next parameter will be evaluated.
 					call.evalIndex++;
 				}
-				return null; // unreachable
+				throw new Error("unreachable");
 			};
-			builtInSymbolTable['self'] = wrapperFunction;
+			builtInSymbolTable['__self__'] = wrapperFunction;
 			
 			return wrapperFunction;
 		}

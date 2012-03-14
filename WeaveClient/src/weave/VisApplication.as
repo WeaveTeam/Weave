@@ -89,6 +89,7 @@ package weave
 	import weave.ui.SubsetManager;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
+	import weave.ui.collaboration.*;
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
@@ -98,7 +99,6 @@ package weave
 	import weave.utils.VectorUtils;
 	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.plotters.GeometryPlotter;
-	import weave.visualization.tools.CollaborationTool;
 	import weave.visualization.tools.DataTableTool;
 	import weave.visualization.tools.MapTool;
 	import weave.visualization.tools.SimpleVisTool;
@@ -118,6 +118,12 @@ package weave
 		 * view to add new tools, manage windows, do advanced tasks, etc.
 		 */
 		private var _weaveMenu:WeaveMenuBar = null;
+		
+		/**
+		 * Optional menu bar (bottom of screen) to control the collaboration service and interaction
+		 * between users.
+		 */
+		private var _collabMenu:CollaborationMenuBar = new CollaborationMenuBar();
 		
 		/**
 		 * This will be used to incorporate branding into any weave view.  Linkable to the Open Indicators Consortium website.
@@ -147,7 +153,6 @@ package weave
 			
 			// make it so the menu bar does not get hidden if the workspace size is too small.
 			clipContent = false;
-
 			autoLayout = true;
 			
 			// no scrolling
@@ -192,12 +197,13 @@ package weave
 			Weave.root.childListCallbacks.addGroupedCallback(this, setupWindowMenu);
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
+			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
 			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
 			
 			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS)).addGroupedCallback(this, setupSelectionsMenu);
 			getCallbackCollection(Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS)).addGroupedCallback(this, setupSubsetsMenu);
 			getCallbackCollection(Weave.properties).addGroupedCallback(this, setupVisMenuItems);
-			Weave.properties.backgroundColor.addImmediateCallback(this, handleBackgroundColorChange, null, true);
+			Weave.properties.backgroundColor.addImmediateCallback(this, handleBackgroundColorChange, true);
 			
 			getFlashVars();
 			// disable application until it's ready
@@ -502,6 +508,29 @@ package weave
 			ExternalInterface.call("window.close()");
 		}
 
+		private function toggleCollaborationMenuBar():void
+		{
+			if( Weave.properties.enableCollaborationBar.value )
+			{
+				if( !_collabMenu.parent )
+				{
+					_collabMenu.percentWidth = 100;
+					this.addChild(_collabMenu);
+					_collabMenu.addedToStage();
+				}
+			} else {
+				try
+				{
+					if( this == _collabMenu.parent ) {
+						_collabMenu.dispose();
+						this.removeChild(_collabMenu);
+					}
+					
+				} catch( error:Error ) {
+					reportError(error);
+				}
+			}
+		}
 		private function toggleMenuBar():void
 		{
 			if (!enabled)
@@ -618,10 +647,11 @@ package weave
 			{
 				_toolsMenu = _weaveMenu.addMenuToMenuBar("Tools", false);
 
-				createToolMenuItem(Weave.properties.showColorController, "Show Color Controller", DraggablePanel.openStaticInstance, [ColorController]);
-				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Show Probe ToolTip Editor", DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
-				createToolMenuItem(Weave.properties.showEquationEditor, "Show Equation Editor", DraggablePanel.openStaticInstance, [EquationEditor]);
-				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Connect to Collaboration Server", DraggablePanel.openStaticInstance, [CollaborationTool]);
+				createToolMenuItem(Weave.properties.showColorController, "Color Controller", DraggablePanel.openStaticInstance, [ColorController]);
+				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Probe ToolTip Editor", DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
+				createToolMenuItem(Weave.properties.showEquationEditor, "Equation Editor", DraggablePanel.openStaticInstance, [EquationEditor]);
+				createToolMenuItem(Weave.properties.showCollaborationEditor, "Collaboration Settings", DraggablePanel.openStaticInstance, [CollaborationEditor]);
+//				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Connect to Collaboration Server", DraggablePanel.openStaticInstance, [CollaborationTool]);
 				
 				var _this:VisApplication = this;
 
@@ -1205,24 +1235,21 @@ package weave
 				// Add item for the DatasetLoader
 				//DatasetLoader.createContextMenuItems(this);
 				
+				// Add context menu item for selection related items (subset creation, etc)	
 				if (Weave.properties.enableSubsetControls.value)
-				{
-					// Add context menu item for selection related items (subset creation, etc)	
 					KeySetContextMenuItems.createContextMenuItems(this);
-				}
 				
 				if (Weave.properties.enableMarker.value)
-				{
 					MarkerSettingsComponent.createContextMenuItems(this);
-				}
 				
 				if (Weave.properties.enableDrawCircle.value)
-				{
 					CirclePlotterSettings.createContextMenuItems(this);
-				}
 				
-				SessionedTextBox.createContextMenuItems(this);
-				PenTool.createContextMenuItems(this);
+				if (Weave.properties.enableAnnotation.value)
+					SessionedTextBox.createContextMenuItems(this);
+				
+				if (Weave.properties.enablePenTool.value)
+					PenTool.createContextMenuItems(this);
 					
 				if (Weave.properties.dataInfoURL.value)
 					addLinkContextMenuItem("Show Information About This Dataset...", Weave.properties.dataInfoURL.value);
@@ -1242,10 +1269,10 @@ package weave
 					// By default this menu item is disabled so that it does not show up unless we right click on a tool
 					_panelPrintContextMenuItem.enabled = false;
 				}
+				
 				if (Weave.properties.enableExportApplicationScreenshot.value)
-				{
 					_printToolMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination("Print/Export Application Image", this, handleContextMenuItemSelect, "4 exportMenuItems");
-				}
+				
 				if (Weave.properties.enableExportCSV.value)
 				{
 					// Add a listener to this destination context menu for when it is opened
@@ -1263,7 +1290,8 @@ package weave
 				}
 				
 				// Add context menu items for handling search queries
-				SearchEngineUtils.createContextMenuItems(this);
+				if (Weave.properties.enableSearchForRecord.value)
+					SearchEngineUtils.createContextMenuItems(this);
 			}
 		}
 
@@ -1315,7 +1343,7 @@ package weave
 				reportError(e);
 			}			
 			if (_weaveMenu)
-				_weaveMenu.visible    = visMenuVisible;
+				_weaveMenu.visible = visMenuVisible;
 			if (VisTaskbar.instance)
 				VisTaskbar.instance.visible = visTaskbarVisible;	
 		}
@@ -1353,7 +1381,7 @@ package weave
 				_weaveFileRef.addEventListener(Event.SELECT,   function (e:Event):void { _weaveFileRef.load(); } );
 				_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void { loadSessionState(e.target.data, _weaveFileRef.name); } );
 			}
-			_weaveFileRef.browse([new FileFilter("XML", "*.xml")]);
+			_weaveFileRef.browse([new FileFilter("XML", "*.xml"),new FileFilter("All files", "*")]);
 		}
 		
 		private function handleExportSessionState():void

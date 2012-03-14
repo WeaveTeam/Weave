@@ -21,6 +21,7 @@ package weave.tests;
 
 //import weave.beans.WeaveRecordList;
 import java.rmi.RemoteException;
+
 import weave.beans.RResult;
 import weave.servlets.RService;
 public class test {
@@ -31,6 +32,17 @@ public class test {
 	 */
 
 
+	/**
+	 * @TODO Do not use this function. It isn't safe.  Use '?' place-holders in SQL queries instead.
+	 */
+	@Deprecated public static String UNSAFE_quoteString(String string)
+	{
+		String quote = "'";
+		// make sure to escape matching quotes in the actual string
+		return quote + string.replace("\\","\\\\").replace(quote, "\\" + quote) + quote;
+	}
+
+	
 	static RService ws = null;
 	public static void call(String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception{
 		

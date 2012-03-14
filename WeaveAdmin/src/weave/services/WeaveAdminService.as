@@ -265,6 +265,13 @@ package weave.services
 			return query;
 		}
 
+		// get weave archive thumbnail
+		
+		public function getWeaveArchiveThumbnail(archiveName:String):DelayedAsyncInvocation
+		{
+			return invokeAdminService("getWeaveArchiveThumbnail", arguments);
+		}
+		
 		
 		/**
 		 * Adds the given Dublin Core key-value pairs to the metadata store for
@@ -373,7 +380,12 @@ package weave.services
 			var query:DelayedAsyncInvocation = invokeAdminService("checkKeyColumnForSQLImport", arguments);
 			return query;
 		}
-		public function convertShapefileToSQLStream(configConnectionName:String, password:String, fileNameWithoutExtension:String, keyColumns:Array, sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configGeometryCollectionName:String, configOverwrite:Boolean, configKeyType:String, srsCode:String, nullValues:String):DelayedAsyncInvocation
+		public function checkKeyColumnForCSVImport(csvFileName:String, keyColumnName:String, secondaryKeyColumnName:String):DelayedAsyncInvocation
+		{
+			var query:DelayedAsyncInvocation = invokeAdminService("checkKeyColumnForCSVImport",arguments);
+			return query;
+		}
+		public function convertShapefileToSQLStream(configConnectionName:String, password:String, fileNameWithoutExtension:String, keyColumns:Array, sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configGeometryCollectionName:String, configOverwrite:Boolean, configKeyType:String, srsCode:String, nullValues:String, importDBFAsDataTable:Boolean):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = invokeAdminService("convertShapefileToSQLStream", arguments);
 		    query.addAsyncResponder(alertResult);

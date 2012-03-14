@@ -33,7 +33,7 @@ LinkableObjectList
 		 allowMultipleSelection="true"
 		 showDataTips="false"
 		 width="100%" 
-		 labelFunction="setLabel"
+		 labelFunction="getItemLabel"
 		 backgroundAlpha="0.5" borderStyle="inset"
 		 >
 	
@@ -262,7 +262,7 @@ LinkableObjectList
 			}
 			
 			// generates a label for an item in the list
-			public function setLabel(item:Object):String
+			public function getItemLabel(item:Object):String
 			{
 				var label:String = "";
 				
@@ -285,12 +285,6 @@ LinkableObjectList
 				{
 					return label;
 				}
-			}
-			
-			// generates a tooltip for an item in the list
-			private function setToolTip(item:Object):String
-			{
-				return setLabel(item);
 			}
 			
 			// this function updates the sessioned name order based on what is in the data provider

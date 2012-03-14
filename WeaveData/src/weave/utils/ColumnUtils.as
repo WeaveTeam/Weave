@@ -20,7 +20,6 @@
 package weave.utils
 {
 	import flash.geom.Point;
-	import flash.net.getClassByAlias;
 	import flash.utils.Dictionary;
 	
 	import mx.utils.ObjectUtil;
@@ -41,7 +40,6 @@ package weave.utils
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
@@ -163,7 +161,7 @@ package weave.utils
 			var keys:Array = column.keys;
 			for each (var qkey:IQualifiedKey in keys)
 			{
-				var number:Number = getNumber(column, qkey);
+				var number:Number = column.getValueFromKey(qkey, Number);
 				var isInRange:Boolean = false;
 				if (inclusiveRange)
 					isInRange = min <= number && number <= max;
@@ -410,7 +408,11 @@ package weave.utils
 				keyTypeMap[key.keyType] = true;
 				
 				for (i = 0; i < definedAttrCols.length; i++)
-					record[columnTitles[i]] = (definedAttrCols[i] as IAttributeColumn).getValueFromKey(key, dataType);
+				{
+					var value:Object = (definedAttrCols[i] as IAttributeColumn).getValueFromKey(key, dataType);
+					if (!isNaN(value as Number))
+						record[columnTitles[i]] = value;
+				}
 				records.push(record);
 			}
 			
@@ -423,8 +425,12 @@ package weave.utils
 			var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(records, columnTitles);
 			return WeaveAPI.CSVParser.createCSV(rows);
 		}
-		
-		
+
+		/**
+		 * This function will compute the union of a list of IKeySets.
+		 * @param inputKeySets An Array of IKeySets (can be IAttributeColumns).
+		 * @return The list of unique keys contained in all the inputKeySets.
+		 */
 		public static function getAllKeys(inputKeySets:Array):Array
 		{
 			var lookup:Dictionary = new Dictionary(true);
@@ -444,7 +450,6 @@ package weave.utils
 			}
 			return result;
 		}
-		
 		
 		/**
 		 * This funciton generates an Array sort function that will sort IQualifiedKeys.

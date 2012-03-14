@@ -21,17 +21,12 @@
 -->
 
 <mx:VBox width="100%" height="100%"
-	xmlns:ui ="weave.ui.*"
+	xmlns="weave.editors.*"
+	xmlns:ui="weave.ui.*"
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	verticalScrollPolicy="off" horizontalScrollPolicy="off"
-	implements="weave.api.core.ILinkableObject"
-	show="this.invalidateSize();"
+	implements="weave.api.core.ILinkableObject,weave.api.ui.ILinkableObjectEditor"
 	>
-	<mx:Script>
-		<![CDATA[
-			import weave.api.WeaveAPI;
-		]]>
-	</mx:Script>
 	<ui:HierarchySelector height="100%" visible="true" id="hierarchySelector"/>
 	<mx:HBox id="dummyHBox" minWidth="0" width="100%"
 			 borderColor="#000000" 
@@ -55,50 +50,34 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.core.weave_internal;
-			import weave.utils.VectorUtils;
-			import weave.data.AttributeColumnCache;
-			import weave.utils.ColumnUtils;
-			import weave.api.data.IColumnReference;
-			import weave.data.AttributeColumns.EquationColumn;
-			import weave.core.LinkableXML;
-			import weave.api.data.AttributeColumnMetadata;
-			import weave.api.data.IDataSource;
-			import weave.api.getSessionState;
-			import weave.api.core.ICallbackCollection;
-			import weave.api.getCallbackCollection;
-			import weave.api.linkSessionState;
-			import weave.api.registerLinkableChild;
-			import weave.utils.HierarchyUtils;
-			import weave.api.newLinkableChild;
-			import mx.collections.ArrayCollection;
-			import mx.collections.XMLListCollection;
-			import mx.controls.Alert;
 			import mx.controls.Label;
-			import mx.controls.LinkButton;
 			import mx.controls.List;
 			import mx.core.DragSource;
 			import mx.core.IUIComponent;
-			import mx.effects.easing.Circular;
 			import mx.events.DragEvent;
-			import mx.events.ItemClickEvent;
-			import mx.events.ListEvent;
-			import mx.graphics.Stroke;
-			import mx.managers.CursorManager;
 			import mx.managers.DragManager;
-			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.core.ICallbackCollection;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.AttributeColumnMetadata;
+			import weave.api.data.IDataSource;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkSessionState;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.unlinkSessionState;
+			import weave.core.LinkableXML;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.api.data.IAttributeColumn;
-			import weave.data.AttributeColumns.ProxyColumn;
+			import weave.data.AttributeColumns.EquationColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
-			import weave.api.data.IDataSource;
 			import weave.data.DataSources.MultiDataSource;
 			import weave.primitives.AttributeHierarchy;
-			import weave.core.SessionManager;
-			import weave.core.WeaveXMLEncoder;
+			import weave.utils.ColumnUtils;
+			import weave.utils.HierarchyUtils;
+			import weave.utils.VectorUtils;
 			
 			override protected function createChildren():void
 			{
@@ -305,7 +284,7 @@
 				ds.addData(itemsArray,"items");
 				
 				var targetList:List = (event.currentTarget as List);
-				if(targetList.dataProvider !=null)// && targetList.dropEnabled)
+				if (targetList.dataProvider != null)// && targetList.dropEnabled)
 				{
 					var selectedIndex:int = (event.currentTarget as List).selectedIndex;
 					var dragInitiator:IUIComponent = (event.currentTarget as List).indexToItemRenderer(selectedIndex);
@@ -314,7 +293,41 @@
 				}
 			}
 			
-			
+			private var _currentTarget:DynamicColumn = null;
+			public function setTarget(target:ILinkableObject):void
+			{
+				if (!parent)
+				{
+					callLater(setTarget, arguments);
+					return;
+				}
+				
+				if (_currentTarget != null)
+					unlinkSessionState(_currentTarget, dynamicColumn);
+				
+				_currentTarget = target as DynamicColumn;
+				
+				if (_currentTarget)
+				{
+					linkSessionState(_currentTarget, dynamicColumn);
+					
+					// if newly linked object doesn't have an internal column,
+					// keep the currently selected path except for the leaf node
+					if (_currentTarget.internalColumn == null)
+					{
+						var path:LinkableXML = hierarchySelector.selectedPath;
+						if (!path.value)
+							return;
+						var attr:XMLList = path.value.descendants("attribute");
+						if (attr.length() > 0)
+						{
+							delete attr[0];
+							path.detectChanges();
+						}
+					}
+				}
+			}
+			public function applyChanges():void { }
 		]]>
 	</mx:Script>
 </mx:VBox>

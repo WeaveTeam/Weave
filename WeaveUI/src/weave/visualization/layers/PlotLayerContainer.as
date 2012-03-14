@@ -283,13 +283,15 @@ package weave.visualization.layers
 			var layers:Array = layers.getObjects(IPlotLayer);
 			for each (var key:* in keys)
 			{
+				// support for generic objects coming from JavaScript
 				if (!(key is IQualifiedKey))
 					key = WeaveAPI.QKeyManager.getQKey(key.keyType, key.localName);
+				
 				for each (var layer:IPlotLayer in layers)
 				{
 					var boundsArray:Array = (layer.spatialIndex as SpatialIndex).getBoundsFromKey(key);
 					for each (var bounds:IBounds2D in boundsArray)
-					tempBounds.includeBounds(bounds);
+						tempBounds.includeBounds(bounds);
 				}
 			}
 			
@@ -297,6 +299,7 @@ package weave.visualization.layers
 			getCallbackCollection(zoomBounds).delayCallbacks();
 			
 			// zoom to that bounds, expanding the area to keep the fixed aspect ratio
+			// if tempBounds is undefined and enableAutoZoomToExtent is enabled, this will zoom to the full extent.
 			zoomBounds.setDataBounds(tempBounds, true);
 			
 			// zoom out to include the specified margin

@@ -32,7 +32,7 @@
 				>
 	
 	<mx:HDividedBox id="equationContainer" width="100%" height="100%"
-			paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5"
+			paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}"
 		>
 		<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
 			<mx:HBox width="100%" verticalAlign="middle">
@@ -43,20 +43,26 @@
 				<mx:Label text="Title"/>
 				<mx:TextInput id="titleInput" toolTip="Enter a title for this column." width="100%"/>
 			</mx:HBox>
-			<mx:VDividedBox width="100%" height="100%">
-				<mx:TextArea id="textEditor" width="100%" height="100%"/>
-				<mx:Canvas id="equationBox" width="100%" backgroundColor="#F2F2F2" borderThickness="1" height="100%" borderStyle="solid" dragEnter="handleDragEnter(event)" dragDrop="handleDragDrop(event)">
+			<mx:TabNavigator width="100%" height="100%"
+							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
+				<mx:Canvas label="Equation Text">
+					<mx:TextArea id="textEditor" width="100%" height="100%" errorString="{baseEquationUIComp.errorString}"/>
+				</mx:Canvas>
+				<mx:Canvas label="Equation Tree" id="equationBox" width="100%" backgroundColor="#F2F2F2" borderThickness="1" height="100%" borderStyle="solid" dragEnter="handleDragEnter(event)" dragDrop="handleDragDrop(event)">
 					<EquationUIComponent id="baseEquationUIComp"/>
 				</mx:Canvas>
-			</mx:VDividedBox>
+			</mx:TabNavigator>
+			<mx:TabNavigator width="100%" height="100%"
+							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
+				<ColumnListComponent label="Edit Variables" hashMap="{equationColumn.variables}" dragMoveEnabled="false" width="100%" height="100%"/>
+				<mx:Canvas label="Edit Variable Names" width="100%" height="100%">
+					<LinkableObjectGrid hashMap="{equationColumn.variables}" width="100%" height="100%"/>
+				</mx:Canvas>
+			</mx:TabNavigator>
 		</mx:VBox>
 		<mx:VBox height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
 			<mx:Label text="Available functions"/>
 			<mx:Accordion id="functionLists" height="100%" minHeight="300" width="100%"/>
-		</mx:VBox>
-		<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
-			<ColumnListComponent label="Variables" hashMap="{equationColumn.variables}" dragMoveEnabled="false" width="100%"/>
-			<LinkableObjectGrid hashMap="{equationColumn.variables}" width="100%"/>
 		</mx:VBox>
 	</mx:HDividedBox>
 	<mx:Fade id="fadeIn" duration="800" alphaFrom="0.0" alphaTo="1.0"/>
@@ -64,38 +70,24 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.describeType;
-			
-			import mx.collections.ICollectionView;
-			import mx.controls.Alert;
-			import mx.controls.Image;
 			import mx.controls.List;
-			import mx.controls.Text;
 			import mx.controls.TextInput;
-			import mx.core.DragSource;
 			import mx.core.IUIComponent;
 			import mx.events.DragEvent;
-			import mx.events.ListEvent;
 			import mx.managers.DragManager;
-			import mx.utils.StringUtil;
 			
 			import weave.Weave;
-			import weave.api.core.IChildListCallbackInterface;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.AttributeColumnMetadata;
-			import weave.api.data.IDataSource;
-			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.unlinkSessionState;
-			import weave.compiler.Compiler;
-			import weave.compiler.ICompiledObject;
-			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
-			import weave.utils.ColumnUtils;
 			import weave.utils.EventUtils;
+			
+			private const padding:int = 5;
 			
 			override protected function constructor():void
 			{
@@ -182,7 +174,7 @@
 				EventUtils.addDelayedCallback(textEditor, Event.CHANGE, handleEquationTextEntry);
 				equationColumn.equation.addImmediateCallback(this,handleEquationSessionStateChange);
 				
-				Weave.root.childListCallbacks.addImmediateCallback(this, updateActiveEquationCombo, null, true);
+				Weave.root.childListCallbacks.addImmediateCallback(this, updateActiveEquationCombo, true);
 				activeEquationCombo.selectedIndex = 0;
 				handleActiveEquationSelect();
 				
@@ -277,19 +269,6 @@
 				}
 				label += ")";
 				return label;
-			}
-			
-			private function openAttrSelector():void
-			{
-				var className:String = getQualifiedClassName(AttributeSelectorPanel).split("::")[1];
-				var attrSelectorObjects:Array = Weave.root.getObjects(AttributeSelectorPanel);
-				var attrSelector:AttributeSelectorPanel = new AttributeSelectorPanel();
-				if(attrSelectorObjects == null || attrSelectorObjects.length == 0)
-					attrSelector = Weave.root.requestObject(Weave.root.generateUniqueName(className), AttributeSelectorPanel, false);
-				else
-					attrSelector = attrSelectorObjects[0];
-				
-				attrSelector.restorePanel();
 			}
 			
 			private function handleTitleTextEntry():void

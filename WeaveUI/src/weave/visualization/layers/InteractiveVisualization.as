@@ -57,12 +57,6 @@ package weave.visualization.layers
 	{
 		public function InteractiveVisualization()
 		{
-			super();
-			init();
-		}
-		
-		private function init():void
-		{
 			doubleClickEnabled = true;
 			
 			enableZoomAndPan.value = true;
@@ -88,7 +82,7 @@ package weave.visualization.layers
 			//			addEventListener(KeyboardEvent.KEY_DOWN, handleKeyboardEvent);
 			//			addEventListener(KeyboardEvent.KEY_UP, handleKeyboardEvent);
 			
-			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, null, true);
+			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, true);
 		}
 		
 		private function addContextMenuEventListener():void

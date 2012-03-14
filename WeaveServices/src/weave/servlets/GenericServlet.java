@@ -62,19 +62,25 @@ import flex.messaging.messages.ErrorMessage;
  * Not all objects will be supported automatically.
  * GenericServlet supports basic AMF3-serialized objects such as String,Object,Array.
  * 
- * The following mappings work:
- * Flex Array -> Java Object[]
- * Flex Object -> Java Map<String,Object>
- * Flex String -> Java String
- * Flex Boolean -> Java boolean
- * Flex Number -> Java double
+ * The following mappings work (ActionScript -> Java):
+ * Array -> Object[], Object[][], String[], String[][], double[], double[][], List
+ * Object -> Map<String,Object>
+ * String -> String, int, Integer, boolean, Boolean
+ * Boolean -> boolean, Boolean
+ * Number -> double
+ * Raw byte stream -> Java InputStream
  * 
  * The following Java parameter types are supported:
- * Boolean,
- * String, String[], String[][],
- * Object, Object[],
- * double[], double[][],
- * Map<String,Object>, List
+ * boolean, Boolean
+ * int, Integer
+ * float, Float
+ * double, Double
+ * String, String[], String[][]
+ * Object, Object[], Object[][]
+ * double[], double[][]
+ * Map<String,Object>
+ * List
+ * InputStream
  * 
  * TODO: Add support for more common parameter types.
  * 
@@ -88,9 +94,11 @@ public class GenericServlet extends HttpServlet
 	
 	/**
 	 * This is the name of the URL parameter corresponding to the method name.
-	 * Subclasses can change this to something else if there is a conflict with another parameter.
 	 */
-	protected String METHOD_PARAM_NAME = "methodName";
+	protected final String METHOD_NAME = "methodName";
+	protected final String METHOD_PARAMETERS = "methodParameters";
+	protected final String STREAM_PARAMETER_INDEX = "streamParameterIndex";
+	
 	private Map<String, ExposedMethod> methodMap = new HashMap<String, ExposedMethod>(); //Key: methodName
     private Paranamer paranamer = new BytecodeReadingParanamer(); // this gets parameter names from Methods
     
@@ -131,19 +139,6 @@ public class GenericServlet extends HttpServlet
 	    	initAllMethods(serviceObject);
 	}
 	
-	/**
-	 * @param serviceObject The object to invoke methods on.
-	 * @param methodParamName The name of the URL parameter specifying the method name.
-	 */
-	protected GenericServlet(String methodParamName, Object ...serviceObjects)
-	{
-		super();
-		initLocalMethods();
-		this.METHOD_PARAM_NAME = methodParamName;
-		for (Object serviceObject : serviceObjects)
-			initAllMethods(serviceObject);
-	}
-
 	/**
 	 * This function will expose all the public methods of a class as servlet methods.
 	 * @param serviceObject The object containing public methods to be exposed by the servlet.
@@ -234,105 +229,122 @@ public class GenericServlet extends HttpServlet
     	}
     	System.out.print(output);
     }
-
-    @SuppressWarnings("rawtypes")
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-	{
+    
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
+    	handleServletRequest(request, response);
+    }
+    
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
+    	handleServletRequest(request, response);
+    }
+    
+    protected class ServletRequestInfo
+    {
+    	public ServletRequestInfo(HttpServletRequest request, HttpServletResponse response)
+    	{
+    		this.request = request;
+    		this.response = response;
+    	}
+    	
+    	HttpServletRequest request;
+    	HttpServletResponse response;
+    }
+    
+    /**
+     * This maps a thread to the corresponding RequestInfo for the doGet() or doPost() call that thread is handling.
+     */
+    private Map<Thread,ServletRequestInfo> servletRequestInfo = new HashMap<Thread,ServletRequestInfo>();
+    
+    /**
+     * This function retrieves the HttpServletResponse associated with the current thread's doGet() or doPost() call.
+     * In a public function with a void return type, you can use the ServletOutputStream for full control over the output.
+     */
+    protected ServletRequestInfo getServletRequestInfo()
+    {
+    	synchronized (servletRequestInfo)
+    	{
+    		return servletRequestInfo.get(Thread.currentThread());
+    	}
+    }
+    
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+    private void handleServletRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
+    {
     	try
     	{
-    		synchronized (servletResponseMap)
+    		synchronized (servletRequestInfo)
     		{
-    			servletResponseMap.put(Thread.currentThread(), response);
+    			servletRequestInfo.put(Thread.currentThread(), new ServletRequestInfo(request, response));
     		}
-
-    		try
+    		
+    		if (request.getMethod().equals("GET"))
     		{
-    	    	InflaterInputStream inflaterInputStream = new InflaterInputStream(request.getInputStream());
-    			Object obj = deseriaizeAmf3(inflaterInputStream);
+        		List<String> urlParamNames = Collections.list(request.getParameterNames());
+
+    			// Read Method Name from URL
+    			String methodName = request.getParameter(METHOD_NAME);
     			
-	    		String methodName = (String) ((ASObject)obj).get(METHOD_PARAM_NAME);
-	    		Object methodParameters = ((ASObject)obj).get("methodParameters");
-	    		Number streamParameterIndex = (Number) ((ASObject)obj).get("streamParameterIndex");
-	    		if (methodParameters instanceof Object[])
+    			HashMap<String, String> params = new HashMap();
+    			
+    			for (String paramName : urlParamNames)
+    				params.put(paramName, request.getParameter(paramName));
+    			
+    			invokeMethod(methodName, params);
+    		}
+    		else if (request.getMethod().equals("POST"))
+    		{
+	    		try
 	    		{
-	    			int index = streamParameterIndex.intValue();
-	    			if (index >= 0)
-	    				((Object[])methodParameters)[index] = inflaterInputStream;
-	    			invokeMethod(methodName, (Object[])methodParameters, request, response);
-	    		}
-	    		else
-	    		{
-	    			invokeMethod(methodName, (Map)methodParameters, request, response);
-	    		}
-	    	}
-	    	catch (Exception e)
-	    	{
-	    		e.printStackTrace();
-	    		sendError(response, e);
-	    	}
+	    			// this stream decompresses the post data
+	    	    	InflaterInputStream inflaterInputStream = new InflaterInputStream(request.getInputStream());
+	    	    	// read the compressed AMF3 object
+	    			Object obj = deseriaizeAmf3(inflaterInputStream);
+	    			
+		    		String methodName = (String) ((ASObject)obj).get(METHOD_NAME);
+		    		Object methodParameters = ((ASObject)obj).get(METHOD_PARAMETERS);
+		    		Number streamParameterIndex = (Number) ((ASObject)obj).get(STREAM_PARAMETER_INDEX);
+		    		
+		    		if (methodParameters instanceof Object[]) // Array of parameters
+		    		{
+		    			// if there is a stream index, 
+		    			int index = streamParameterIndex.intValue();
+		    			if (index >= 0)
+		    				((Object[])methodParameters)[index] = inflaterInputStream;
+		    			invokeMethod(methodName, (Object[])methodParameters);
+		    		}
+		    		else // Map of parameters
+		    		{
+		    			invokeMethod(methodName, (Map)methodParameters);
+		    		}
+		    	}
+		    	catch (Exception e)
+		    	{
+		    		e.printStackTrace();
+		    		sendError(response, e);
+		    	}
+    		}
+    		else
+    		{
+    			throw new ServletException("HTTP Request method not supported: " + request.getMethod());
+    		}
     	}
     	finally
     	{
-    		synchronized (servletResponseMap)
+    		synchronized (servletRequestInfo)
     		{
-    			servletResponseMap.remove(Thread.currentThread());
+    			servletRequestInfo.remove(Thread.currentThread());
     		}
     	}
 	}
-
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-	{
-    	try
-    	{
-    		synchronized (servletResponseMap)
-    		{
-    			servletResponseMap.put(Thread.currentThread(), response);
-    		}
-
-    		List<String> urlParamNames = Collections.list(request.getParameterNames());
-
-			// Read Method Name from URL
-			String methodName = request.getParameter(METHOD_PARAM_NAME);
-			
-			HashMap<String, String> params = new HashMap();
-			
-			for(String paramName: urlParamNames)
-				params.put(paramName, request.getParameter(paramName));
-			
-				invokeMethod(methodName, params, request, response);
-		}
-		finally
-		{
-			synchronized (servletResponseMap)
-			{
-				servletResponseMap.remove(Thread.currentThread());
-			}
-		}
-	}
-    
-    /**
-     * This maps a thread to the corresponding ServletOutputStream for the doGet() or doPost() call that thread is handling.
-     */
-    private Map<Thread,HttpServletResponse> servletResponseMap = new HashMap<Thread,HttpServletResponse>();
-    
-    /**
-     * This function retrieves the ServletOutputStream associated with the current thread's doGet() or doPost() call.
-     * In a public function with a void return type, you can use this ServletOutputStream for full control over the output.
-     */
-    protected HttpServletResponse getHttpServletResponse()
-    {
-    	synchronized (servletResponseMap)
-    	{
-    		return servletResponseMap.get(Thread.currentThread());
-    	}
-    }
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void invokeMethod(String methodName, Map params, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+	private void invokeMethod(String methodName, Map params) throws IOException
 	{	
 		if(!methodMap.containsKey(methodName) || methodMap.get(methodName) == null)
 		{
+			HttpServletResponse response = getServletRequestInfo().response;
 			sendError(response, new IllegalArgumentException(String.format("Method \"%s\" not supported.", methodName)));
 			return;
 		}
@@ -356,7 +368,7 @@ public class GenericServlet extends HttpServlet
 				{
 					argValues[index] = parameterValue;
 				}
-				else if (!parameterName.equals(METHOD_PARAM_NAME))
+				else if (!parameterName.equals(METHOD_NAME))
 				{
 					if (extraParameters == null)
 						extraParameters = new HashMap();
@@ -388,20 +400,18 @@ public class GenericServlet extends HttpServlet
 			System.out.println("Unused parameters: "+extraParameters.entrySet());
 		}
 		
-		invokeMethod(methodName, argValues, request, response);
+		invokeMethod(methodName, argValues);
 	}
 	
 	/**
 	 * @param methodName The name of the function to invoke.
 	 * @param methodParameters A list of input parameters for the method.  Values will be cast to the appropriate types if necessary.
-	 * @param request This parameter is the same from doPost() and doGet().
-	 * @param response This parameter is the same from doPost() and doGet().
-	 * @throws ServletException
-	 * @throws IOException
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void invokeMethod(String methodName, Object[] methodParameters, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+	private void invokeMethod(String methodName, Object[] methodParameters) throws IOException
 	{
+		HttpServletResponse response = getServletRequestInfo().response;
+		
 		// debug
 		//System.out.println(methodName + Arrays.asList(methodParameters));
 		
@@ -423,19 +433,24 @@ public class GenericServlet extends HttpServlet
 				if (value instanceof String)
 				{
 					if (expectedArgTypes[index] == int.class || expectedArgTypes[index] == Integer.class)
+					{
 						value = Integer.parseInt((String)value);
+					}
 					else if (expectedArgTypes[index] == boolean.class || expectedArgTypes[index] == Boolean.class)
+					{
 						value = ((String)(value)).equalsIgnoreCase("true");
-					else if (expectedArgTypes[index] == String[].class)
+					}
+					else if (expectedArgTypes[index] == String[].class || expectedArgTypes[index] == List.class)
 					{
 						String[][] table = CSVParser.defaultParser.parseCSV((String)value);
 						if (table.length == 0)
-							value = new String[0];
+							value = new String[0]; // empty
 						else
-							value = table[0];
+							value = table[0]; // first row
+						
+						if (expectedArgTypes[index] == List.class)
+							value = Arrays.asList((String[])value);
 					}
-					else if (expectedArgTypes[index] == List.class)
-						value = Arrays.asList(CSVParser.defaultParser.parseCSV((String)value)[0]);
 				}
 				else if (value != null)
 				{

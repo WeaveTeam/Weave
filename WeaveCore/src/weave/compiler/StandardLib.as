@@ -19,8 +19,6 @@
 
 package weave.compiler
 {
-	import flash.utils.describeType;
-	
 	import mx.formatters.NumberFormatter;
 	import mx.utils.ObjectUtil;
 
@@ -435,7 +433,7 @@ package weave.compiler
 		}
 		
 		/**
-		 * This function compares each of the elements in two arrays in order.
+		 * This function compares each of the elements in two arrays in order, supporting nested Arrays.
 		 * @param a The first Array for comparison
 		 * @param b The second Array for comparison
 		 * @return The first nonzero compare value, or zero if the arrays are equal.
@@ -450,11 +448,28 @@ package weave.compiler
 				return 1;
 			for (var i:int = 0; i < an; i++)
 			{
-				var result:int = ObjectUtil.compare(a[i], b[i]);
+				var ai:Object = a[i];
+				var bi:Object = b[i];
+				var result:int;
+				if (ai is Array && bi is Array)
+					result = arrayCompare(ai as Array, bi as Array);
+				else
+					result = ObjectUtil.compare(a[i], b[i]);
 				if (result != 0)
 					return result;
 			}
 			return 0;
+		}
+		
+		/**
+		 * This will perform a log transformation on a normalized value to produce another normalized value.
+		 * @param normValue A number between 0 and 1.
+		 * @param factor The log factor to use.
+		 * @return A number between 0 and 1.
+		 */
+		public static function logTransform(normValue:Number, factor:Number = 1024):Number
+		{
+			return Math.log(1 + normValue * factor) / Math.log(1 + factor);
 		}
 	}
 }

@@ -77,7 +77,7 @@
 				_stateLog = object as SessionStateLog;
 				
 				if (_stateLog)
-					getCallbackCollection(_stateLog).addImmediateCallback(this, handleStateLogChange, null, true);
+					getCallbackCollection(_stateLog).addImmediateCallback(this, handleStateLogChange, true);
 			}
 			
 			/**

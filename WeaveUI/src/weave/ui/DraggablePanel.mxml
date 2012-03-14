@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 
 <mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml"
-	       		xmlns:sessioning="weave.core.*"
+				xmlns:sessioning="weave.core.*"
 				xmlns="weave.ui.*"
-	            addedToStage="handleAddedToStage(event)"
-	            removedFromStage="handleRemovedFromStage(event)"
-	            preinitialize="preinitialize()"
+				addedToStage="handleAddedToStage(event)"
+				removedFromStage="handleRemovedFromStage(event)"
+				preinitialize="preinitialize()"
 				rollOver="handleMouseRollOver(event)"
 				rollOut="handleMouseRollOut(event)"
 				horizontalScrollPolicy="off"
@@ -34,29 +34,31 @@
 				resize="handleResize(event)"
 				creationComplete="handleCreationComplete()"
 				layout="absolute"
-	            
-	            close="handleCloseButtonClick()"
-	            
-	     		closeButtonUpSkin="@Embed(source='/weave/resources/images/cancel.png')"
-	     		closeButtonOverSkin="@Embed(source='/weave/resources/images/cancel.png')"
+				
+				close="handleCloseButtonClick()"
+				
+				closeButtonUpSkin="@Embed(source='/weave/resources/images/cancel.png')"
+				closeButtonOverSkin="@Embed(source='/weave/resources/images/cancel.png')"
 				closeButtonDownSkin="@Embed(source='/weave/resources/images/cancel.png')"
-
+				
 				titleStyleName="weave-panel-title-style"
-	          	styleName="weave-panel-style"
-	            
-	            implements="weave.api.core.IDisposableObject, weave.api.core.ILinkableObject"
-	       		>
+				styleName="weave-panel-style"
+				
+				implements="weave.api.core.IDisposableObject, weave.api.core.ILinkableObject"
+				>
 	<mx:Script>
 		<![CDATA[
 			import mx.containers.Canvas;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.controls.Button;
+			import mx.controls.Menu;
 			import mx.core.Application;
 			import mx.core.BitmapAsset;
 			import mx.core.SpriteAsset;
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
+			import mx.events.MenuEvent;
 			import mx.events.ResizeEvent;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
@@ -94,6 +96,11 @@
 				return Weave.root.getName(activePanel);
 			}
 			
+			public static function getTopPanel():DraggablePanel
+			{
+				return Weave.root.getObjects(DraggablePanel).pop();
+			}
+			
 			/**
 			 * panelX, panelY, panelWidth, panelHeight
 			 * These are sessioned strings that can be either absolute coordinates or percentages.
@@ -109,8 +116,9 @@
 			public const pinnedToBack:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handlePinnedToBackChange, true);
 			
 			public const panelTitle:LinkableString = newLinkableChild(this, LinkableString, handlePanelTitleChange);
-
+			
 			public const draggable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true));
+			public const enableSubMenu:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(false));
 			public const resizeable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const minimizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const maximizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
@@ -127,6 +135,7 @@
 			private function verifyMaximized(value:Boolean):Boolean { return !maximizable || maximizable.value || !value; }
 			
 			protected const userControlButton:Button = new Button();
+			protected const subMenuButton:Button = new Button();
 			protected const minimizeButton:Button = new Button();
 			protected const maximizeButton:Button = new Button();
 			protected const closePanelButton:Button = new Button();
@@ -164,15 +173,15 @@
 			protected function constructor():void
 			{
 				//trace(this,"constructor");
-
+				
 				// use capture phase on mouse down event because otherwise, if the panel is a popup,
 				// drop-down menus will be hidden behind the window after we move the window to the front.
 				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, true);
 				
-				panelX.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelX]);
-				panelY.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelY]);
-				panelWidth.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelWidth]);
-				panelHeight.addImmediateCallback(this, copyCoordinatesFromSessionedProperties, [panelHeight]);
+				panelX.addImmediateCallback(this, function():void { copyCoordinatesFromSessionedProperties(panelX); });
+				panelY.addImmediateCallback(this, function():void { copyCoordinatesFromSessionedProperties(panelY); });
+				panelWidth.addImmediateCallback(this, function():void { copyCoordinatesFromSessionedProperties(panelWidth); });
+				panelHeight.addImmediateCallback(this, function():void { copyCoordinatesFromSessionedProperties(panelHeight); });
 				
 				getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
@@ -203,6 +212,7 @@
 				minimizeButton.setStyle("downIcon", _minimizeDownIcon);
 				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
 				setupControlButton(userControlButton, _userControlIcon, toggleControlPanel, "Click here to change settings for this component.");
+				setupControlButton(subMenuButton, _subMenuIcon, openSubMenu, "Click here to open menu items for this component.");
 				setupControlButton(pinToBackButton, _pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
 				setupControlButton(pinButton, _pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
@@ -269,7 +279,7 @@
 				}
 			}
 			private const panelTitleFunction:LinkableFunction = registerDisposableChild(this, new LinkableFunction(null, true, true)); // this is used in handlePanelTitleChange()
-
+			
 			// this gets called as a grouped callback when Weave.root changes and whenever panelTitle can be compiled to a function
 			private function evaluatePanelTitle():void
 			{
@@ -284,7 +294,7 @@
 					title = panelTitle.value;
 				}
 			}
-
+			
 			private function handleTitleTextFormatChange():void
 			{
 				if (titleBar)
@@ -294,13 +304,13 @@
 			[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;
 			
 			// this allows you to specify a percentage value like x="25%" in MXML.
-		    [PercentProxy("percentX")]
+			[PercentProxy("percentX")]
 			override public function set x(value:Number):void
 			{
 				super.x = Math.round(value);
 			}
 			// this allows you to specify a percentage value like y="25%" in MXML.
-		    [PercentProxy("percentY")]
+			[PercentProxy("percentY")]
 			override public function set y(value:Number):void
 			{
 				super.y = Math.round(value);
@@ -316,7 +326,7 @@
 			{
 				panelY.value = "" + value + "%";
 			}
-	
+			
 			override public function set percentWidth(value:Number):void
 			{
 				panelWidth.value = "" + value + "%";
@@ -325,7 +335,7 @@
 			{
 				panelHeight.value = "" + value + "%";
 			}
-	
+			
 			private var _styleNeedsUpdate:Boolean = false;
 			private function handlePanelStyleListChange():void
 			{
@@ -346,7 +356,7 @@
 						try {
 							_overriddenStyles[propName] = Number(value);
 						} catch (e:Error) { } // ok if number parse fails
-
+						
 						if (isNaN(_overriddenStyles[propName]))
 							_overriddenStyles[propName] = String(value);
 					}
@@ -356,14 +366,14 @@
 				// notify style change, just a random style chosen here so we only call it once instead of in the loop above
 				// this causes the style changes above to take effect
 				//styleChanged("headerHeight");
-            	//notifyStyleChangeInChildren("headerHeight", true);
-            	_styleNeedsUpdate = true;
-            	
-            	
-            	styleChanged("headerHeight");
-            	notifyStyleChangeInChildren("headerHeight", true);
+				//notifyStyleChangeInChildren("headerHeight", true);
+				_styleNeedsUpdate = true;
+				
+				
+				styleChanged("headerHeight");
+				notifyStyleChangeInChildren("headerHeight", true);
 			}
-	
+			
 			private function handleAddedToStage(event:Event):void
 			{
 				stage.addEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
@@ -399,7 +409,7 @@
 			}
 			
 			private static const _maximizedCoordinates:Object = {x: "0%", y: "0%", width: "100%", height: "100%"};
-
+			
 			/**
 			 * This function will copy a sessioned string like "75%" as a Number using the calculation "part = whole * percent / 100".
 			 * If the sessioned string does not have a "%" sign in it, it will be treated as an absolute coordinate.
@@ -428,7 +438,7 @@
 					this[destinationPropertyName] = result;
 				}
 			}
-
+			
 			protected function updateForceEnableBorders():void
 			{
 				if (_dragging || _resizing || WeaveAPI.StageUtils.mouseButtonDown)
@@ -543,41 +553,41 @@
 			}
 			
 			[Inspectable] protected var controlBarWidthBeforeScale:int = -1;
-//    		[Inspectable] protected var minWidthBeforeScale:int = -1;
-//    		[Inspectable] protected var minHeightBeforeScale:int = -1;
-    		
-    		private function handleResize(event:ResizeEvent):void
-    		{
-    			if (!parent)
-    				return;
-
+			//    		[Inspectable] protected var minWidthBeforeScale:int = -1;
+			//    		[Inspectable] protected var minHeightBeforeScale:int = -1;
+			
+			private function handleResize(event:ResizeEvent):void
+			{
+				if (!parent)
+					return;
+				
 				if (_dragging || _resizing)
-	    			constrainAndSaveCoordinates();
-
+					constrainAndSaveCoordinates();
+				
 				if (controlBar && controlBarWidthBeforeScale > 0)
 				{
-	    			controlBar.scaleX = controlBar.scaleY = (width < controlBarWidthBeforeScale) ? (width / controlBarWidthBeforeScale) : 1;
-	   			}
-    			
-//    			scaleX = width < minWidthBeforeScale ? width / minWidthBeforeScale : 1.0;
-//    			scaleY = height < minHeightBeforeScale ? height / minHeightBeforeScale : 1.0;
-    		}
+					controlBar.scaleX = controlBar.scaleY = (width < controlBarWidthBeforeScale) ? (width / controlBarWidthBeforeScale) : 1;
+				}
+				
+				//    			scaleX = width < minWidthBeforeScale ? width / minWidthBeforeScale : 1.0;
+				//    			scaleY = height < minHeightBeforeScale ? height / minHeightBeforeScale : 1.0;
+			}
 			
 			public function updateBorders():void
 			{
-    			if (!parent)
-    				return callLater(updateBorders);
+				if (!parent)
+					return callLater(updateBorders);
 				
 				styleChanged("headerHeight");
 				notifyStyleChangeInChildren("headerHeight", true);
 				invalidateDisplayList();
 			}
 			
-    		private var _overriddenStyles:Object = new Object();
-    		override public function getStyle(styleProp:String):*
-    		{
-    			var value:* = null;	
-	    		
+			private var _overriddenStyles:Object = new Object();
+			override public function getStyle(styleProp:String):*
+			{
+				var value:* = null;	
+				
 				// if we override the borders before the window has been intialized, tools display nothing
 				if (initialized && getLinkableOwner(this))
 				{
@@ -609,40 +619,42 @@
 					}
 				}
 				
-	    		if (_overriddenStyles[styleProp] != undefined )
-    				value = _overriddenStyles[styleProp];
-    			else if (styleProp == 'backgroundColor' && isFinite(panelBackgroundColor.value))
-    				value = panelBackgroundColor.value;
-    			else if (styleProp == 'borderColor' && isFinite(panelBorderColor.value))
-    				value = panelBorderColor.value;
-    			else
-    				value = super.getStyle(styleProp);
-    			
-    			var cornerRadius:int = _overriddenStyles["cornerRadius"] != undefined ? 
-    										_overriddenStyles["cornerRadius"] :
-    										super.getStyle("cornerRadius");
-    			
-    			var roundedBottomCorners:Boolean = _overriddenStyles["roundedBottomCorners"] != undefined ? 
-    													_overriddenStyles["roundedBottomCorners"] : 
-    													super.getStyle("roundedBottomCorners");
-    			
-    			// if the bottom corners are rounded, we want to adjust the bottomThicknessBottom to be at least the size
-    			// of the cornerRadius, otherwise you get an odd looking panel
-    			
-    			// THIS DOES NOT WORK UNLESS HEADERHEIGHT CHANGEs -- WHY FLEX, WHY?
-    			/*if(roundedBottomCorners == true && styleProp == "borderThicknessBottom")
-    				return Math.max( cornerRadius, value );*/
-
-	    		// make sure the headerHeight is at least the size of the cornerRadius, otherwise the stuff inside the panel sticks
-	    		// outside the panel
-	    		if (styleProp == "headerHeight")
-	    			return Math.max( cornerRadius, value );
-    				
-    			return value;
-    		}
+				if (_overriddenStyles[styleProp] != undefined )
+					value = _overriddenStyles[styleProp];
+				else if (styleProp == 'backgroundColor' && isFinite(panelBackgroundColor.value))
+					value = panelBackgroundColor.value;
+				else if (styleProp == 'borderColor' && isFinite(panelBorderColor.value))
+					value = panelBorderColor.value;
+				else
+					value = super.getStyle(styleProp);
+				
+				var cornerRadius:int = _overriddenStyles["cornerRadius"] != undefined ? 
+					_overriddenStyles["cornerRadius"] :
+					super.getStyle("cornerRadius");
+				
+				var roundedBottomCorners:Boolean = _overriddenStyles["roundedBottomCorners"] != undefined ? 
+					_overriddenStyles["roundedBottomCorners"] : 
+					super.getStyle("roundedBottomCorners");
+				
+				// if the bottom corners are rounded, we want to adjust the bottomThicknessBottom to be at least the size
+				// of the cornerRadius, otherwise you get an odd looking panel
+				
+				// THIS DOES NOT WORK UNLESS HEADERHEIGHT CHANGEs -- WHY FLEX, WHY?
+				/*if(roundedBottomCorners == true && styleProp == "borderThicknessBottom")
+				return Math.max( cornerRadius, value );*/
+				
+				// make sure the headerHeight is at least the size of the cornerRadius, otherwise the stuff inside the panel sticks
+				// outside the panel
+				if (styleProp == "headerHeight")
+					return Math.max( cornerRadius, value );
+				
+				return value;
+			}
 			
 			[Embed(source="/weave/resources/images/tinyWrench2.png")]
 			private var _userControlIcon:Class;
+			[Embed(source="/weave/resources/images/arrowDown.png")]
+			private var _subMenuIcon:Class;
 			[Embed(source="/weave/resources/images/pushpin.png")]
 			private var _pinIcon:Class;
 			[Embed(source="/weave/resources/images/pushpinback.png")]
@@ -657,17 +669,17 @@
 			private var _minimizeDownIcon:Class;
 			
 			[Embed(source="/weave/resources/images/resize_TB.png")]
-       		private var _resizeTBCursor:Class;
-       		private var _resizeTBBitmap:BitmapAsset = new _resizeTBCursor() as BitmapAsset;
-       		[Embed(source="/weave/resources/images/resize_LR.png")]
-       		private var _resizeLRCursor:Class;
-       		private var _resizeLRBitmap:BitmapAsset = new _resizeLRCursor() as BitmapAsset;
-       		[Embed(source="/weave/resources/images/resize_TL-BR.png")]
-       		private var _resizeTLBRCursor:Class;
-       		private var _resizeTLBRBitmap:BitmapAsset = new _resizeTLBRCursor() as BitmapAsset;
-       		[Embed(source="/weave/resources/images/resize_TR-BL.png")]
-       		private var _resizeTRBLCursor:Class;
-       		private var _resizeTRBLBitmap:BitmapAsset = new _resizeTRBLCursor() as BitmapAsset;
+			private var _resizeTBCursor:Class;
+			private var _resizeTBBitmap:BitmapAsset = new _resizeTBCursor() as BitmapAsset;
+			[Embed(source="/weave/resources/images/resize_LR.png")]
+			private var _resizeLRCursor:Class;
+			private var _resizeLRBitmap:BitmapAsset = new _resizeLRCursor() as BitmapAsset;
+			[Embed(source="/weave/resources/images/resize_TL-BR.png")]
+			private var _resizeTLBRCursor:Class;
+			private var _resizeTLBRBitmap:BitmapAsset = new _resizeTLBRCursor() as BitmapAsset;
+			[Embed(source="/weave/resources/images/resize_TR-BL.png")]
+			private var _resizeTRBLCursor:Class;
+			private var _resizeTRBLBitmap:BitmapAsset = new _resizeTRBLCursor() as BitmapAsset;
 			
 			private var draggablePanelCursorID:int = -1;
 			
@@ -733,7 +745,7 @@
 			private function handleMaximizedChange():void
 			{
 				copyCoordinatesFromSessionedProperties();
-
+				
 				if (maximized.value)
 					maximizeButton.setStyle("icon", _unmaximizeIcon);
 				else
@@ -760,6 +772,7 @@
 			public function removePanel():void
 			{
 				var panels:Array = [this, _controlPanel];
+				DraggablePanel.activePanel = null;
 				for each (var panel:DraggablePanel in panels)
 				{
 					if (!panel)
@@ -777,7 +790,7 @@
 					}
 				}
 			}
-
+			
 			private var _initialTitleBarMouseDownPoint:Point = new Point(0,0);
 			
 			private var _rightSideResize:Boolean = false;
@@ -786,9 +799,9 @@
 			private var _bottomResize:Boolean = false;
 			private var _resizing:Boolean = false;
 			private var _dragging:Boolean = false;
-
+			
 			private var _resizeable:Boolean = false; // used internally to remember whether or not the panel is actually resizable
-
+			
 			private var _rightSideBeforeLeftResize:int = 0;
 			private var _bottomSideBeforeTopResize:int = 0;
 			
@@ -814,7 +827,7 @@
 				if (!minimized.value && !maximized.value)
 				{
 					var status:Object = getResizeStatus(stage.mouseX, stage.mouseY);
-		
+					
 					if (status.R)
 						_rightSideResize = true;
 					else if (status.L)
@@ -823,7 +836,7 @@
 						_leftSideResize = true;
 					}
 					
-						
+					
 					if (status.B)
 						_bottomResize = true;
 					else if (status.T)
@@ -831,7 +844,7 @@
 						_bottomSideBeforeTopResize = this.y + this.height;
 						_topSideResize = true;
 					}
-
+					
 					if (getResizeStatus(stage.mouseX, stage.mouseY).resizing)
 					{
 						_resizing = true;
@@ -841,9 +854,9 @@
 						_resizing = false;
 				}
 			}
-
+			
 			private static const resizeBorderThickness:int = 5;
-
+			
 			/**
 			 * getResizeStatus
 			 * Returns a set of Boolean values corresponding to which sides (top,left,bottom,right) should be resized.
@@ -877,26 +890,26 @@
 				o.L |= o.TL || o.BL;
 				o.B |= o.BL || o.BR;
 				o.R |= o.TR || o.BR;
-
+				
 				// not resizing when coordinates are outside the window
 				if (!_mouseRolledOver)
 					o.T = o.TL = o.L = o.BL = o.B = o.BR = o.R = o.TR = false;
 				
 				// we are resizing if we are in the resize area for the top, left, bottom or right
 				o.resizing = (o.T || o.L || o.B || o.R);
-
+				
 				return o;
 			}
-
+			
 			// Keep track of the active panel (one that the user has their mouse over) for use in exporting a panel image in the context menu.
 			// This is needed so that when the user right clicks on a panel, we know which panel they want to export an image of (cannot tell
 			// it from the context menu event).  
 			private var _mouseRolledOver:Boolean = false;
 			private function handleMouseRollOver(event:MouseEvent):void
 			{
-    			if (!parent)
-    				return;
-
+				if (!parent)
+					return;
+				
 				DraggablePanel.activePanel = this;
 				_mouseRolledOver = true;
 				
@@ -907,19 +920,20 @@
 			{
 				_mouseRolledOver = false;
 				
-    			if (!parent)
-    				return;
-
+				if (!parent)
+					return;
+				DraggablePanel.activePanel = null;
+				
 				if (_resizeable && !_resizing)
 					CursorManager.removeCursor(draggablePanelCursorID);
 				
 				if (_resizing)
 					event.stopImmediatePropagation();
-
+				
 				updateForceEnableBorders();
 				invalidateDisplayList();
 			}
-
+			
 			public function sendWindowToForeground():void
 			{
 				if (draggable.value)
@@ -983,7 +997,7 @@
 				// do not allow double click on any of the control buttons
 				if (event.target is Button)
 					return;
-					
+				
 				toggleMaximized();
 			}
 			private function handleTitleBarMouseDown(event:MouseEvent):void
@@ -1002,7 +1016,7 @@
 				_initialTitleBarMouseDownPoint = globalToLocal(new Point(stage.mouseX, stage.mouseY));
 				
 				/*for each(var child:* in this.getChildren())
-					child.cacheAsBitmap = true;*/
+				child.cacheAsBitmap = true;*/
 				
 				if ( getResizeStatus(stage.mouseX, stage.mouseY).resizing )
 					_dragging = false;
@@ -1044,13 +1058,13 @@
 					// check to see if the mouse is in the top left (TL) or bottom right (BR) corner
 					if (status.TL || status.BR)
 						bitmap = _resizeTLBRBitmap;
-					// check to see if the mouse is in the top right (TR) or bottom left (BL) corner
+						// check to see if the mouse is in the top right (TR) or bottom left (BL) corner
 					else if (status.TR || status.BL)
 						bitmap = _resizeTRBLBitmap;
-					// check to see if the mouse is on the left or right side (LR)
+						// check to see if the mouse is on the left or right side (LR)
 					else if (status.L || status.R)
 						bitmap = _resizeLRBitmap;
-					// check to see if the mouse is on the top or bottom side
+						// check to see if the mouse is on the top or bottom side
 					else if (status.T || status.B)
 						bitmap = _resizeTBBitmap;
 					
@@ -1069,10 +1083,10 @@
 						}
 					}
 				}
-
+				
 				if (_dragging || _resizing)
 					event.stopImmediatePropagation();
-
+				
 				delayedHandleStageMouseMove();
 			}
 			
@@ -1088,7 +1102,7 @@
 					callLater(delayedHandleStageMouseMove);
 					return;
 				}
-
+				
 				if (!draggable.value && !_resizeable)
 					return;
 				
@@ -1174,7 +1188,7 @@
 				button.height = buttonSize;
 				button.buttonMode = true;
 			}
-
+			
 			private var buttonSize:int = 17;
 			private var buttonOffsetFromSide:int = 5;
 			
@@ -1193,10 +1207,12 @@
 			private function getLeftIconAreaWidth():int
 			{
 				var leftIconWidths:int = getButtonOffsetFromSide();
-								
+				
 				if (Weave.properties.enableToolControls.value && _controlPanel)
 					leftIconWidths += buttonSize + spaceBetweenButtons;
-					
+				if(subMenuButton.visible)
+					leftIconWidths += buttonSize + spaceBetweenButtons;
+				
 				return leftIconWidths;
 			}
 			
@@ -1205,26 +1221,26 @@
 				// by default, width of icons is the border only
 				var rightIconWidths:int = buttonOffsetFromSide;
 				for each (var lb:LinkableBoolean in [closeable, minimizable, maximizable, pinnable, pinnableToBack])
-					if (lb.value)
-						rightIconWidths += buttonSize + spaceBetweenButtons;
+				if (lb.value)
+					rightIconWidths += buttonSize + spaceBetweenButtons;
 				
 				return rightIconWidths;
 			}
-
+			
 			private function updateButtons():void
 			{
 				// don't do anything if not added to a parent to avoid errors like the following:
 				/*
-					ArgumentError: Error #2004: One of the parameters is invalid.
-						at flash.display::Graphics/drawRoundRect()
-						at mx.skins::ProgrammaticSkin/drawRoundRect()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\skins\ProgrammaticSkin.as:763]
-						at mx.skins.halo::ButtonSkin/updateDisplayList()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\skins\halo\ButtonSkin.as:217]
-						at mx.skins::ProgrammaticSkin/validateDisplayList()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\skins\ProgrammaticSkin.as:421]
-						at mx.managers::LayoutManager/validateDisplayList()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\managers\LayoutManager.as:622]
-						at mx.managers::LayoutManager/doPhasedInstantiation()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\managers\LayoutManager.as:695]
-						at Function/http://adobe.com/AS3/2006/builtin::apply()
-						at mx.core::UIComponent/callLaterDispatcher2()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\core\UIComponent.as:8744]
-						at mx.core::UIComponent/callLaterDispatcher()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\core\UIComponent.as:8684]
+				ArgumentError: Error #2004: One of the parameters is invalid.
+				at flash.display::Graphics/drawRoundRect()
+				at mx.skins::ProgrammaticSkin/drawRoundRect()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\skins\ProgrammaticSkin.as:763]
+				at mx.skins.halo::ButtonSkin/updateDisplayList()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\skins\halo\ButtonSkin.as:217]
+				at mx.skins::ProgrammaticSkin/validateDisplayList()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\skins\ProgrammaticSkin.as:421]
+				at mx.managers::LayoutManager/validateDisplayList()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\managers\LayoutManager.as:622]
+				at mx.managers::LayoutManager/doPhasedInstantiation()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\managers\LayoutManager.as:695]
+				at Function/http://adobe.com/AS3/2006/builtin::apply()
+				at mx.core::UIComponent/callLaterDispatcher2()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\core\UIComponent.as:8744]
+				at mx.core::UIComponent/callLaterDispatcher()[C:\autobuild\3.5.0\frameworks\projects\framework\src\mx\core\UIComponent.as:8684]
 				*/
 				if (!parent)
 				{
@@ -1236,13 +1252,14 @@
 				var offsetFromTop:int = (getHeaderHeight() - buttonSize) / 2 + getStyle("borderThicknessTop")/2; 
 				var leftButtonX:int = getButtonOffsetFromSide();
 				var rightButtonX:int = unscaledWidth - buttonSize - getButtonOffsetFromSide();
-
+				
 				// we only need to utdate title, buttons if the height is > 0, otherwise do not show the buttons
 				if (getStyle("headerHeight") <= 0)
 				{
 					userControlButton.visible = false;
 					minimizeButton.visible    = false; 
 					maximizeButton.visible    = false;
+					subMenuButton.visible = false;
 				}
 				else
 				{
@@ -1250,7 +1267,7 @@
 					{
 						if (titleBar != userControlButton.parent)
 							titleBar.addChild(userControlButton);						
-
+						
 						userControlButton.setStyle("cornerRadius",  buttonRadius.value);
 						userControlButton.x = leftButtonX;
 						userControlButton.y = offsetFromTop;
@@ -1268,7 +1285,7 @@
 					{
 						if (titleBar != closePanelButton.parent)
 							titleBar.addChild(closePanelButton);
-							
+						
 						closePanelButton.setStyle("cornerRadius",  buttonRadius.value);
 						closePanelButton.x = rightButtonX;
 						closePanelButton.y = offsetFromTop;
@@ -1285,11 +1302,11 @@
 					{
 						if (titleBar != maximizeButton.parent)
 							titleBar.addChild(maximizeButton);
-
+						
 						maximizeButton.x = rightButtonX;
 						if (closeable.value)
 							maximizeButton.x = maximizeButton.x - buttonSize - spaceBetweenButtons;
-							
+						
 						maximizeButton.setStyle("cornerRadius",  buttonRadius.value);
 						maximizeButton.y = offsetFromTop;
 						maximizeButton.width  = buttonSize;
@@ -1301,7 +1318,7 @@
 					{
 						maximizeButton.visible = false;
 					}
-						
+					
 					if (minimizable.value)
 					{
 						if (titleBar != minimizeButton.parent)
@@ -1316,7 +1333,7 @@
 							minimizeButton.x = minimizeButton.x - buttonSize - spaceBetweenButtons;
 						if (maximizable.value)
 							minimizeButton.x = minimizeButton.x - buttonSize - spaceBetweenButtons;
-							
+						
 						minimizeButton.y = offsetFromTop;
 						minimizeButton.width  = buttonSize;
 						minimizeButton.height = buttonSize;
@@ -1371,6 +1388,27 @@
 					{
 						pinToBackButton.visible = false;
 					}
+					
+					if(enableSubMenu.value)
+					{
+						if (titleBar != subMenuButton.parent)
+							titleBar.addChild(subMenuButton);						
+						
+						subMenuButton.setStyle("cornerRadius",  buttonRadius.value);
+						if(userControlButton.visible)
+							subMenuButton.x = leftButtonX + spaceBetweenButtons + buttonSize;
+						else
+							subMenuButton.x = leftButtonX;
+						
+						subMenuButton.y = offsetFromTop;
+						subMenuButton.width  = buttonSize;
+						subMenuButton.height = buttonSize;
+						
+						subMenuButton.visible = true;
+					}else
+					{
+						subMenuButton.visible = false;
+					}
 				}
 			}
 			
@@ -1406,7 +1444,7 @@
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				
 				updateButtons();
-					
+				
 				if (controlBar)
 					controlBar.visible = !minimized.value;
 				
@@ -1424,11 +1462,11 @@
 				_dragCanvas.graphics.lineStyle(borderThickness, 0xFF0000, 0);
 				// x,y are at half border thickness because the line thickness will be centered at those coordinates
 				_dragCanvas.graphics.drawRect(borderThickness/2 - 1,
-											  borderThickness/2 - 1,
-											  unscaledWidth - (borderThickness - 2),
-											  unscaledHeight - (borderThickness - 2));
+					borderThickness/2 - 1,
+					unscaledWidth - (borderThickness - 2),
+					unscaledHeight - (borderThickness - 2));
 			}
-	
+			
 			private var minimizedComponentVersion:MinimizedComponent = null;
 			
 			protected function handleMinimizeButtonClick():void
@@ -1437,7 +1475,7 @@
 				if (WeaveAPI.StageUtils.shiftKey && hashMap)
 				{
 					for each (var panel:DraggablePanel in hashMap.getObjects(DraggablePanel))
-						panel.minimizePanel();
+					panel.minimizePanel();
 				}
 				else
 				{
@@ -1488,7 +1526,7 @@
 				if (minimizedComponentVersion)
 					VisTaskbar.instance.removeMinimizedComponent(minimizedComponentVersion);
 				minimizedComponentVersion = null;
-
+				
 				removeEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown, true);
 				removeEventListener(DragEvent.DRAG_ENTER, handleDragEnter, true);
 				removeEventListener(DragEvent.DRAG_ENTER, handleDragEnter);
@@ -1504,13 +1542,13 @@
 			{
 				restorePanel();
 			}
-
+			
 			
 			/**
 			 * This function will create and reuse a static instance of each type of DraggablePanel requested.
 			 * @param classDef A Class extending DraggablePanel.
 			 */
-			public static function openStaticInstance(draggablePanelClass:Class):void
+			public static function openStaticInstance(draggablePanelClass:Class):DraggablePanel
 			{
 				var instance:DraggablePanel = _instances[draggablePanelClass];
 				if (!instance)
@@ -1518,8 +1556,59 @@
 				if (!instance.parent)
 					PopUpManager.addPopUp(instance, Application.application as Application);
 				instance.restorePanel();
+				
+				return instance;
 			}
 			private static const _instances:Dictionary = new Dictionary();
+			
+			private var subMenu:Menu;
+			
+			[Bindable]
+			private var subMenuDataProvider:Array = [];
+			public function addSubMenuItem(label:String,listener:Function):void
+			{
+				var menuItem:Object = new Object();
+				
+				menuItem["label"] = label;
+				menuItem["listener"] = listener;
+				
+				subMenuDataProvider.push(menuItem);
+				
+				subMenu = Menu.createMenu(this,subMenuDataProvider,false);
+				
+				
+				subMenu.addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
+				
+				
+			}
+			
+			private function handleSubMenuItemClick(event:MenuEvent):void
+			{
+				var item:Object = event.item;
+				
+				(item["listener"] as Function).call();
+			}
+			
+			private var toggleSubMenu:Boolean =  false;
+			private function openSubMenu():void
+			{
+				if(toggleSubMenu)
+				{
+					toggleSubMenu = false;
+					subMenu.hide();
+					return;
+				}
+				
+				toggleSubMenu = true;
+				
+				if(subMenuDataProvider.length == 0)
+					subMenu = Menu.createMenu(this,{label:"No Menu Items Added"},false);
+				
+				var menuLocation:Point = contentToGlobal(new Point(subMenuButton.x,subMenuButton.y));
+				
+				subMenu.setStyle("openDuration",0);
+				subMenu.show(menuLocation.x + buttonSize/2,menuLocation.y);
+			}
 			
 			
 			// backwards compatibility

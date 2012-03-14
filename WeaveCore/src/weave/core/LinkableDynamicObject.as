@@ -143,7 +143,7 @@ package weave.core
 				if (globalObject == null)
 					globalHashMap.requestObjectCopy(newGlobalName, internalObject);
 				// link to new global name
-				initInternalObject(newGlobalName, null);
+				initInternalObject(newGlobalName, GlobalObjectReference);
 			}
 		}
 
@@ -196,15 +196,16 @@ package weave.core
 				delayCallbacks();
 
 				var objectName:String = dynamicState[DynamicState.OBJECT_NAME];
+				var className:String = dynamicState[DynamicState.CLASS_NAME];
 				if (objectName == null)
 				{
-					initInternalObject(null, dynamicState[DynamicState.CLASS_NAME]); // init local object
+					initInternalObject(null, className); // init local object
 					if (_internalObject != null)
 						WeaveAPI.SessionManager.setSessionState(_internalObject, dynamicState[DynamicState.SESSION_STATE], removeMissingDynamicObjects);
 				}
 				else if (getLinkableOwner(this) != globalHashMap) // don't allow globalName on global objects
 				{
-					initInternalObject(objectName, null); // link to global object
+					initInternalObject(objectName, className); // link to global object
 				}
 			}
 			finally
@@ -245,7 +246,7 @@ package weave.core
 				if (!result)
 					removeObject();
 			}
-			else // global object
+			else if (newClassDef) // global object
 			{
 				// initialize global object if class definition is specified
 				if (newClassDef != null && newClassDef != GlobalObjectReference)
@@ -275,6 +276,10 @@ package weave.core
 					// since the global name has changed, we need to make sure the callbacks run now
 					triggerCallbacks();
 				}
+			}
+			else // remove existing object
+			{
+				removeObject();
 			}
 
 			// allow callbacks to run once now

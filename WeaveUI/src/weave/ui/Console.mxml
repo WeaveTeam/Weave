@@ -83,15 +83,21 @@
 					target = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(target as Array);
 				return ILinkableObject(target);
 			}
+			private const watchLookup:Dictionary = new Dictionary(true);
 			private function consoleWatch(target:Object, debugString:String):void
 			{
 				var linkableTarget:ILinkableObject = getObject(target);
-				getCallbackCollection(linkableTarget).addImmediateCallback(null, consoleTraceEval, [linkableTarget, debugString]);
+				consoleUnwatch(linkableTarget);
+				var callback:Function = function():void { consoleTraceEval(linkableTarget, debugString); };
+				watchLookup[linkableTarget] = callback;
+				getCallbackCollection(linkableTarget).addImmediateCallback(null, callback);
 			}
 			private function consoleUnwatch(target:Object):void
 			{
 				var linkableTarget:ILinkableObject = getObject(target);
-				getCallbackCollection(linkableTarget).removeCallback(consoleTraceEval);
+				var callback:Function = watchLookup[linkableTarget];
+				delete watchLookup[linkableTarget];
+				getCallbackCollection(linkableTarget).removeCallback(callback);
 			}
 			private function consoleTraceEval(thisArg:Object, script:String):void
 			{

@@ -30,6 +30,7 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
@@ -38,7 +39,9 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
+	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.ImageColumn;
@@ -72,6 +75,8 @@ package weave.visualization.plotters
 			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks); // bounding box should trigger spatial
 			registerSpatialProperty(_filteredKeySet.keyFilter); // subset should trigger spatial callbacks
 		}
+		
+		public const symbolPlotters:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotter));
 
 		/**
 		 * This is the reprojected geometry column to draw.
@@ -322,6 +327,9 @@ package weave.visualization.plotters
 			}
 			
 			destination.draw(tempShape);
+			
+			for each (var plotter:IPlotter in symbolPlotters.getObjects())
+				plotter.drawPlot(recordKeys, dataBounds, screenBounds, destination);
 		}
 		
 		private static const tempPoint:Point = new Point(); // reusable object

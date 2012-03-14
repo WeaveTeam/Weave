@@ -35,9 +35,14 @@
 			<mx:Button label="Choose File on Server" click="openServerBrowser();" />
 			<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files uploaded' : ''}"/>
 		</ui:Indent>
+		<ui:Indent width="100%" group="{indentGroup}">
+			<mx:CheckBox id="dbfImportCheckBox" label="Import DBF file as Data Table" selected="true" change="handleKeyColumnsChange()" />
+		</ui:Indent>
 		<ui:Indent id="dbfColumnNames" enabled="false" label="DBF Key column names" group="{indentGroup}">
 			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{AdminInterface.instance.dbfKeyColumns}" change="handleKeyColumnsChange()" editable="true"/>
-			<ui:HelpComponent content="Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file."/>
+			<ui:HelpComponent>
+				Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file.
+			</ui:HelpComponent>
 		</ui:Indent>
 		<admin:SQLTableSelectorDialog indentGroup="{indentGroup}" id="tableSelector" enabled="false" showTableCombo="false" creationComplete="tableSelector.tableControls.label = 'SQL Table Prefix';" activeTable="{shpFileNameInput.text}" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
 	</mx:VBox>
@@ -49,13 +54,19 @@
 			<mx:HBox verticalAlign="middle">
 				<mx:TextInput id="geometryCollectionNameInput" text="{tableSelector.activeTable}"/>
 				<mx:CheckBox label="Overwrite" id="configOverwriteCheck" selected="false"/>
-				<ui:HelpComponent content="Both a GeometryCollection and DataTable entry will be created in sqlconfig.xml having the name specified here."/>
+				<ui:HelpComponent>
+					Both a GeometryCollection and DataTable entry will be created in sqlconfig.xml having the name specified here.
+				</ui:HelpComponent>
 			</mx:HBox>
 		</mx:HBox>
 		<ui:Indent id="keyType" enabled="false" label="Key type" group="{indentGroup}">
 			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.tip_shp_key_type_dropdown}"/>
 			<mx:Button label="Refresh" click="AdminInterface.instance.getKeyTypes()"/>
-			<ui:HelpComponent content="{helpForKeyType}"/>
+			<ui:HelpComponent>
+				If two tables have compatible keys, you should give them the same key type. <!--
+				-->If two tables have incompatible keys, they should not have the same key type. <!--
+				-->Weave only allows two columns to be compared if they have the same key type.
+			</ui:HelpComponent>
 		</ui:Indent>
 		<ui:Indent id="projectionCode" enabled="false" label="Projection SRS" group="{indentGroup}">
 			<mx:TextInput id="srsProjectionTxtInput" text="EPSG:4326"/>  <!-- is it a good idea to use the standard lat/long as the default? -->
@@ -75,8 +86,7 @@
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
-			import weave.ui.admin.ServerCSVFileViewer;
-			import weave.ui.admin.ServerSHPFileViewer;
+			import weave.ui.admin.ServerFileViewer;
 			
 			private static const paddingIndent:int = 20;
 			
@@ -175,15 +185,16 @@
 						{
 							
 						}
+						
 						enableAllWidgets();
 					}
 				}
 			}
 			
-			private var _serverFileBrowser:ServerSHPFileViewer = null;
+			private var _serverFileBrowser:ServerFileViewer = null;
 			private function openServerBrowser():void
 			{
-				_serverFileBrowser = ServerSHPFileViewer.createServerFileViewer(this);
+				_serverFileBrowser = ServerFileViewer.createServerFileViewer(this, ServerFileViewer.INPUT_SHP);
 				_serverFileBrowser.selectButton.addEventListener(MouseEvent.CLICK, serverFileBrowserSelectFile);				
 			}
 			private function serverFileBrowserSelectFile(e:MouseEvent):void
@@ -223,7 +234,8 @@
 							configOverwriteCheck.selected,
 							shpKeyTypeCombo.text,
 							srsProjectionTxtInput.text,
-							nullFlagInput.text
+							nullFlagInput.text,
+							dbfImportCheckBox.selected
 						);
 					
 					controlBarEnabled = false;
@@ -238,10 +250,6 @@
 					}
 				}
 			}
-			
-			private static const helpForKeyType:String = 'If two tables have compatible keys, you should give them the same key type.'
-					+ '  If two tables have incompatible keys, they should not have the same key type.'
-					+ '  Weave only allows two columns to be compared if they have the same key type.';
 			
 			private function enableAllWidgets(enable:Boolean = true):void
 			{
@@ -267,6 +275,15 @@
 			{
 				if(dbfKeyColumnsCombo.dataProvider == null ||(dbfKeyColumnsCombo.dataProvider as ArrayCollection).length == 0)
 				{
+					return;
+				}
+				
+				
+				if(!dbfImportCheckBox.selected )
+				{
+					dbfKeyColumnsCombo.errorString = '';
+					finishEnabled = true;
+					nextEnabled = true;
 					return;
 				}
 				

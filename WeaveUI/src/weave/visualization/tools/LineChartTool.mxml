@@ -100,7 +100,8 @@
 
 				getCallbackCollection(_plotter).addGroupedCallback(this, updateAxes, true);
 				// END TEMPORARY SOLUTION
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector, [this,_plotter.columns]);
+				var self:* = this;
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, _plotter.columns); });
 				
 				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
 				var columnsToInit:Array = [];
@@ -212,7 +213,7 @@
 					curveCheckBox.selected = _plotter.curveType.value == ParallelCoordinatesPlotter.CURVE_DOUBLE;
 				}
 				
-				visualization.getPlotLayer().backgroundIsVisible.addImmediateCallback(this, updateSelectionAndProbeOnlyCheckBox, null, true);
+				visualization.getPlotLayer().backgroundIsVisible.addImmediateCallback(this, updateSelectionAndProbeOnlyCheckBox, true);
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -366,7 +367,7 @@
 				linkSessionState(visualization.getPlotLayer().backgroundIsVisible, layer.backgroundIsVisible);
 				labelPlotter = layer.getDynamicPlotter().requestLocalObject(TextGlyphPlotter, true);
 				
-				_plotter.columns.addImmediateCallback(this, updateColumns, null, true);
+				_plotter.columns.addImmediateCallback(this, updateColumns, true);
 
 				labelPlotter.xScreenOffset.value=5;
 				labelPlotter.hAlign.defaultValue.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
