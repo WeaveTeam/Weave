@@ -821,7 +821,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="Columns"/>
 			<mx:Button label="Add Image Column" click="addImageColumn()" />
 			<mx:CheckBox id="showControlsCheckBox" label="Show controls on panel"/>
-			<mx:CheckBox id="showFiltersCheckBox" label="Show Filters on panel"/>
+			<mx:HBox>
+				<mx:CheckBox id="showFiltersCheckBox" label="Show Filters on panel"/>
+				<ui:HelpComponent>
+					User can filter , based on data value, filtered records are highlighted by selection
+					Currently Two ways of filtering supported
+					 1. Text filter (Search Box supports  '?' = any Character; '*' = any String )
+					 2. Number Filter (Sliders with Min and Max Values)
+				</ui:HelpComponent>
+			</mx:HBox>
+			
 			<mx:CheckBox id="showColorsCheckBox" label="Show Colors"/>
 			<mx:CheckBox change="handleKeyColumnCheckBox()" id="showKeyColumnCheckBox" label="Show Key Column"/>
 			<mx:CheckBox label="Export keys with data" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
