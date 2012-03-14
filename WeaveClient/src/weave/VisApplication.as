@@ -52,6 +52,7 @@ package weave
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
+	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
@@ -1298,7 +1299,7 @@ package weave
 		// Create the context menu items for exporting panel images.  
 		private var _panelPrintContextMenuItem:ContextMenuItem = null;
 		private  var _exportCSVContextMenuItem:ContextMenuItem = null;
-		private var fr:FileReference = new FileReference();	// CSV download file references
+		private var exportCSVfileRef:FileReference = new FileReference();	// CSV download file references
 		public function exportCSV(component:UIComponent):void
 		{
 			if (!component)
@@ -1314,29 +1315,16 @@ package weave
 			
 			try
 			{
-				if(component is DataTableTool)
-				{
-					var keys:* = (component as DataTableTool).getExportDataProvider();
-					// each record has a property named after the column title equal to the value in that column for the current key
-					var dataType:Class = (keys === (component as DataTableTool).dataGrid.dataProvider) ? null : String; // dimension slider hack
-					var dataTableColumns:Array = (component as DataTableTool).columns.getObjects();
-					if(dataTableColumns.length ==0){
-						reportError("Columns are not assigned in " + (component as DataTableTool).title + " tool to export as CSV" );
-						return;
-					}
-					fr.save(ColumnUtils.generateTableCSV(dataTableColumns,keys,dataType), "Weave DataTable Tool Data.csv");	
-				}								
+				if(component is ICSVExportable)
+				{					
+					var name:String = getQualifiedClassName(component).split(':').pop();
+					exportCSVfileRef.save((component as ICSVExportable).exportCSV(), "Weave_" + name + ".csv");
+				}				
 				else
 				{
-					var toolColumns:Array = (component as SimpleVisTool).getSelectableAttributes();
-					if(toolColumns.length == 0)
-					{
-						reportError("Columns are not assigned in " + (component as SimpleVisTool).title + " to export as CSV" );
-						return;
-					}
-					var name:String = getQualifiedClassName(component).split(':').pop();
-					fr.save(ColumnUtils.generateTableCSV(toolColumns), "Weave_" + name + ".csv");
-				}				
+					reportError("Component parameter must be either DataTable tool or SimpleVisTool" );
+				}
+							
 			}
 			catch (e:Error)
 			{
@@ -1357,12 +1345,18 @@ package weave
 			// When the context menu is opened, save a pointer to the active tool, this is the tool we want to export an image of
 			_panelToExport = DraggablePanel.activePanel;
 			
-			// If this tool is valid (we are over a tool), then we want this menu item enabled, otherwise don't allow users to choose it
-			if(_panelToExport != null)
+			// If this tool is valid (we are over a tool), then we want this menu item enabled, otherwise don't allow users to choose it			
+			if(_panelToExport != null  )
 			{
 				_panelPrintContextMenuItem.caption = "Print/Export Image of " + _panelToExport.title;
 				_panelPrintContextMenuItem.enabled = true;
-				_exportCSVContextMenuItem.enabled = true;
+				// Export CSV option only for Simple vistool and Data Table
+				if(_panelToExport is SimpleVisTool || _panelToExport is DataTableTool){
+					_exportCSVContextMenuItem.enabled = true;
+				}					
+				else{
+					_exportCSVContextMenuItem.enabled = false;
+				}
 			}
 			else
 			{

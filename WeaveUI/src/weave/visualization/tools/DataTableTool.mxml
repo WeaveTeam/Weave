@@ -29,7 +29,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*" 
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
-				   layout="absolute" implements="weave.api.ui.IVisTool"
+				   layout="absolute" implements="weave.api.ui.IVisTool,weave.api.data.ICSVExportable"
 				   title="Data Table" xmlns:editors="weave.editors.*"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
@@ -282,12 +282,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				AttributeSelectorPanel.openDefaultSelector(imageCol);
 			}
 			
-			private var fr:FileReference = new FileReference();	// CSV download file reference
-			private function exportCSV():void
+			
+			//ICSVExportable method implementation
+			// needed for Export CSV option in Application Right Click
+			public function exportCSV():String
 			{
+				var keys:* = getExportDataProvider();
+				// each record has a property named after the column title equal to the value in that column for the current key
+				var dataType:Class = (keys === dataGrid.dataProvider) ? null : String; 
+				var dataTableColumns:Array = columns.getObjects();
+				var generatedCSVstring:String = ColumnUtils.generateTableCSV(dataTableColumns,keys,dataType);
+				return generatedCSVstring;
+			}
+			//needed for export CSV Button click in the control panel
+			private var fr:FileReference = new FileReference();	// CSV download file reference
+			private function saveToFileAsCSV():void{
 				try
 				{
-					fr.save(generateCSV(), "Weave Data Export.csv");
+					fr.save(exportCSV(), "Weave Data Export.csv");
 				}
 				catch (e:Error)
 				{
@@ -476,18 +488,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				return dataGrid.dataProvider;
 			}
-			private function generateCSV():String{
-				var keys:* = getExportDataProvider();
-				// each record has a property named after the column title equal to the value in that column for the current key
-				var dataType:Class = (keys === dataGrid.dataProvider) ? null : String; // dimension slider hack
-				var dataTableColumns:Array = columns.getObjects();
-				var generatedCSVstring:String = ColumnUtils.generateTableCSV(dataTableColumns,keys,dataType);
-				return generatedCSVstring;
-			}
+			
 			
 			private function handleDataCopy(event:Event):void
 			{											
-				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT,generateCSV() );
+				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT,exportCSV() );
 			}
 			
 			
@@ -820,7 +825,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:CheckBox id="showColorsCheckBox" label="Show Colors"/>
 			<mx:CheckBox change="handleKeyColumnCheckBox()" id="showKeyColumnCheckBox" label="Show Key Column"/>
 			<mx:CheckBox label="Export keys with data" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
-			<mx:Button label="Export Data..." click="exportCSV()" />
+			<mx:Button label="Export Data..." click="saveToFileAsCSV()" />
 			<mx:HBox>
 				<mx:Label text="Number of Locked Columns"/>
 				<mx:NumericStepper id="numLockedColumns" minimum="0" maximum="{dataGrid.columns.length}" 
