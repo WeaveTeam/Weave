@@ -1472,27 +1472,41 @@ public class SQLUtils
 				if (prevAutoCommit)
 					conn.setAutoCommit(false);
 				
-				stmt = conn.createStatement();
-				
 				String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(formatted_CSV_path));
 				String[][] rows = CSVParser.defaultParser.parseCSV(csvData);
-				String query = "";
-				for (int i = 1; i < rows.length; i++) //Skip header line
+				String query = "", tempQuery = "INSERT INTO %s values (";
+				for (int column = 0; column < rows[0].length; column++) // Use header row to determine the number of columns
 				{
-					query = "insert into " + quotedTable + " values " + "(";
-					for (int j = 0; j < rows[i].length; j++)
-					{
-						if (j > 0)
-							query += ",";
-						query += SQLUtils.quoteString(conn, rows[i][j]);
-					}
-					query += ")";
-					stmt.executeUpdate(query);
+					if (column == rows[0].length - 1)
+						tempQuery = tempQuery + "?)";
+					else
+						tempQuery = tempQuery + "?,";
 				}
-				stmt.close();
 				
-				if (prevAutoCommit)
-					conn.setAutoCommit(true);
+				query = String.format(tempQuery, quotedTable);
+				
+				CallableStatement cstmt = null;
+				try
+				{
+					cstmt = conn.prepareCall(query);;
+
+					for (int row = 1; row < rows.length; row++) //Skip header line
+					{
+						for (int column = 0; column < rows[row].length; column++)
+						{
+							cstmt.setString(column+1, rows[row][column]);
+						}
+						cstmt.execute();
+					}
+				}
+				catch (SQLException e)
+				{
+					throw new RemoteException(e.getMessage(), e);
+				}
+				finally
+				{
+					SQLUtils.cleanup(cstmt);
+				}
 			}
 			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
 			{
