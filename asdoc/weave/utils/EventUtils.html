@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="EventUtils,weave.utils.EventUtils,addBindCallback,addDelayedCallback,addEventCallback,doubleBind,generateDelayedCallback,removeBindCallback" name="keywords">
+<meta content="EventUtils,weave.utils.EventUtils,addDelayedEventCallback,doubleBind,generateDelayedCallback" name="keywords">
 <title>weave.utils.EventUtils</title>
 </head>
 <body>
@@ -54,21 +54,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#addBindCallback()">addBindCallback</a>(bindableParent:Object, bindablePropertyName:String, callback:Function, callbackParameters:Array = null):void</div>
-<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">EventUtils</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#addDelayedCallback()">addDelayedCallback</a>(eventDispatcher:Object, event:String, callback:Function, delay:int = 500):void</div>
-<div class="summaryTableDescription">[static]</div>
-</td><td class="summaryTableOwnerCol">EventUtils</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#addEventCallback()">addEventCallback</a>(eventDispatcher:Object, event:String, callback:Function, params:Array = null):void</div>
+<a class="signatureLink" href="#addDelayedEventCallback()">addDelayedEventCallback</a>(eventDispatcher:Object, event:String, callback:Function, delay:int = 500):void</div>
 <div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">EventUtils</td>
 </tr>
@@ -83,16 +69,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#generateDelayedCallback()">generateDelayedCallback</a>(relevantContext:Object, callback:Function, callbackParams:Array = null, delay:int = 500):Function</div>
+<a class="signatureLink" href="#generateDelayedCallback()">generateDelayedCallback</a>(relevantContext:Object, callback:Function, delay:int = 500, passDelayedParameters:Boolean = false):Function</div>
 <div class="summaryTableDescription">[static]
    This function generates a delayed version of a callback.</div>
-</td><td class="summaryTableOwnerCol">EventUtils</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#removeBindCallback()">removeBindCallback</a>(bindableParent:Object, bindablePropertyName:String, callback:Function):void</div>
-<div class="summaryTableDescription">[static]</div>
 </td><td class="summaryTableOwnerCol">EventUtils</td>
 </tr>
 </table>
@@ -104,46 +83,14 @@ showHideInherited();
 <div class="MainContent">
 <a name="methodDetail"></a>
 <div class="detailSectionHeader">Method detail</div>
-<a name="addBindCallback()"></a>
+<a name="addDelayedEventCallback()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">addBindCallback</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
+<td class="detailHeaderName">addDelayedEventCallback</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function addBindCallback(bindableParent:Object, bindablePropertyName:String, callback:Function, callbackParameters:Array = null):void</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">bindableParent</span>:Object</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">bindablePropertyName</span>:String</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">callback</span>:Function</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">callbackParameters</span>:Array</code> (default = <code>null</code>)<code></code></td>
-</tr>
-</table>
-</div>
-<a name="addDelayedCallback()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">addDelayedCallback</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static function addDelayedCallback(eventDispatcher:Object, event:String, callback:Function, delay:int = 500):void</code><span class="label">Parameters</span>
+<code>public static function addDelayedEventCallback(eventDispatcher:Object, event:String, callback:Function, delay:int = 500):void</code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">eventDispatcher</span>:Object</code></td>
@@ -165,38 +112,6 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">delay</span>:int</code> (default = <code>500</code>)<code></code></td>
-</tr>
-</table>
-</div>
-<a name="addEventCallback()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">addEventCallback</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static function addEventCallback(eventDispatcher:Object, event:String, callback:Function, params:Array = null):void</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">eventDispatcher</span>:Object</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">event</span>:String</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">callback</span>:Function</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">params</span>:Array</code> (default = <code>null</code>)<code></code></td>
 </tr>
 </table>
 </div>
@@ -245,7 +160,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function generateDelayedCallback(relevantContext:Object, callback:Function, callbackParams:Array = null, delay:int = 500):Function</code><p>
+<code>public static function generateDelayedCallback(relevantContext:Object, callback:Function, delay:int = 500, passDelayedParameters:Boolean = false):Function</code><p>
    This function generates a delayed version of a callback.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -257,14 +172,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">callback</span>:Function</code> &mdash; The callback function
-   </td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">callbackParams</span>:Array</code> (default = <code>null</code>)<code></code> &mdash; If this is specified, parameters passed to the generated wrapper function will be ignored and these parameters will be used instead when calling the callback.
+<td width="20px"></td><td><code><span class="label">callback</span>:Function</code> &mdash; The callback function.
    </td>
 </tr>
 <tr>
@@ -274,6 +182,13 @@ showHideInherited();
 <td width="20px"></td><td><code><span class="label">delay</span>:int</code> (default = <code>500</code>)<code></code> &mdash; The number of milliseconds to delay before running the callback.
    </td>
 </tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">passDelayedParameters</span>:Boolean</code> (default = <code>false</code>)<code></code> &mdash; If this is set to true, the most recent parameters passed to the delayed callback will be passed to the original callback when it is called.  If this is set to false, no parameters will be passed to the original callback.
+   </td>
+</tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
@@ -281,32 +196,6 @@ showHideInherited();
 <tr>
 <td width="20"></td><td><code>Function</code> &mdash; A wrapper around the callback that remembers the parameters and delays calling the original callback.
    </td>
-</tr>
-</table>
-</div>
-<a name="removeBindCallback()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">removeBindCallback</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>public static function removeBindCallback(bindableParent:Object, bindablePropertyName:String, callback:Function):void</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">bindableParent</span>:Object</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">bindablePropertyName</span>:String</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">callback</span>:Function</code></td>
 </tr>
 </table>
 </div>

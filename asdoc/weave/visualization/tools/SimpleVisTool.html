@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="SimpleVisTool,weave.visualization.tools.SimpleVisTool,children,enableTitle,layerListComponent,simpleAxisEditor,visCanvas,windowSettingsEditor,plotLayer,visualization,xAxisLayer,yAxisLayer,height,width,childrenCreated,constructor,createChildren,dispose,getDefaultColumnsOfMostCommonKeyType,getLinkableChildren,getOverlappingQKeys,getSelectableAttributeNames,getSelectableAttributes,initColumnDefaults,initializePlotters,selectRecords" name="keywords">
+<meta content="SimpleVisTool,weave.visualization.tools.SimpleVisTool,children,enableTitle,layerListComponent,simpleAxisEditor,visCanvas,windowSettingsEditor,plotLayer,visualization,xAxisLayer,yAxisLayer,height,width,childrenCreated,constructor,createChildren,dispose,exportCSV,getDefaultColumnsOfMostCommonKeyType,getLinkableChildren,getOverlappingQKeys,getSelectableAttributeNames,getSelectableAttributes,initColumnDefaults,initializePlotters,selectRecords" name="keywords">
 <title>weave.visualization.tools.SimpleVisTool</title>
 </head>
 <body>
@@ -41,7 +41,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">SimpleVisTool <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../../images/inherit-arrow.gif"> <a href="../../ui/DraggablePanel.html">DraggablePanel</a> <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../../images/inherit-arrow.gif"> mx.containers.TitleWindow</td>
 </tr>
 <tr>
-<td class="classHeaderTableLabel">Implements</td><td><a href="../../api/core/ILinkableContainer.html">ILinkableContainer</a>, <a href="../../api/ui/IVisTool.html">IVisTool</a></td>
+<td class="classHeaderTableLabel">Implements</td><td><a href="../../api/data/ICSVExportable.html">ICSVExportable</a>, <a href="../../api/core/ILinkableContainer.html">ILinkableContainer</a>, <a href="../../api/ui/IVisTool.html">IVisTool</a></td>
 </tr>
 <tr>
 <td class="classHeaderTableLabel">Subclasses</td><td><a href="../tools/BarChartLegendTool.html">BarChartLegendTool</a>, <a href="../tools/BarChartTool.html">BarChartTool</a>, <a href="../tools/ColorBinLegendTool.html">ColorBinLegendTool</a>, <a href="../tools/CompoundBarChartTool.html">CompoundBarChartTool</a>, <a href="../tools/CompoundRadVizTool.html">CompoundRadVizTool</a>, <a href="../tools/CustomTool.html">CustomTool</a>, <a href="../tools/GaugeTool.html">GaugeTool</a>, <a href="../tools/GraphTool.html">GraphTool</a>, <a href="../tools/Histogram2DTool.html">Histogram2DTool</a>, <a href="../tools/HistogramTool.html">HistogramTool</a>, <a href="../tools/ImageGlyphTool.html">ImageGlyphTool</a>, <a href="../tools/LineChartTool.html">LineChartTool</a>, <a href="../tools/MapOverviewWindow.html">MapOverviewWindow</a>, <a href="../tools/MapTool.html">MapTool</a>, <a href="../tools/ParallelCoordinatesTool.html">ParallelCoordinatesTool</a>, <a href="../tools/PieChartHistogramTool.html">PieChartHistogramTool</a>, <a href="../tools/PieChartTool.html">PieChartTool</a>, <a href="../tools/RadVizTool.html">RadVizTool</a>, <a href="../tools/RamachandranPlotTool.html">RamachandranPlotTool</a>, <a href="../tools/ScatterPlotTool.html">ScatterPlotTool</a>, <a href="../tools/SizeBinLegendTool.html">SizeBinLegendTool</a>, <a href="../tools/SliderTool.html">SliderTool</a>, <a href="../tools/SP2.html">SP2</a>, <a href="../tools/StickFigureGlyphTool.html">StickFigureGlyphTool</a>, <a href="../tools/ThermometerTool.html">ThermometerTool</a>, <a href="../tools/WeaveWordleTool.html">WeaveWordleTool</a></td>
@@ -213,6 +213,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#dispose()">dispose</a>():void</div>
+<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">SimpleVisTool</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#exportCSV()">exportCSV</a>():String</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SimpleVisTool</td>
 </tr>
@@ -843,6 +850,22 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public override function dispose():void</code>
+</div>
+<a name="exportCSV()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">exportCSV</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function exportCSV():String</code>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>String</code></td>
+</tr>
+</table>
 </div>
 <a name="getDefaultColumnsOfMostCommonKeyType()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
