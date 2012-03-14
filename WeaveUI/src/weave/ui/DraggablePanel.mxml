@@ -772,6 +772,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function removePanel():void
 			{
 				var panels:Array = [this, _controlPanel];
+				DraggablePanel.activePanel = null;
 				for each (var panel:DraggablePanel in panels)
 				{
 					if (!panel)
@@ -921,6 +922,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if (!parent)
 					return;
+				DraggablePanel.activePanel = null;
 				
 				if (_resizeable && !_resizing)
 					CursorManager.removeCursor(draggablePanelCursorID);
