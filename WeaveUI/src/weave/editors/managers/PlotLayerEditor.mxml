@@ -295,7 +295,7 @@
 							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
 								<mx:CheckBox id="useImagesCheck" label="Enable Images" click="handleGeomPlotterImageToggle()"/>
-								<mx:TextInput id="imageURL" creationComplete="EventUtils.addDelayedCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
+								<mx:TextInput id="imageURL" creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
 							</mx:VBox>
 						</mx:HBox>
 						<mx:HBox>

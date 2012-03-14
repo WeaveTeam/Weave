@@ -115,7 +115,8 @@ public class CSVParser
 	public String createCSVToken(String str, boolean quoteEmptyStrings)
 	{
 		if (str == null)
-			return null;
+			str = "";
+		
 		// determine if quotes are necessary
 		if ( (str.length() > 0 || !quoteEmptyStrings)
 			&& str.indexOf(quote) < 0
@@ -184,11 +185,6 @@ public class CSVParser
 		for (int i = 0; i < fileSize; i++)
 		{
 			char chr = csvData.charAt(i);
-			System.out.println("current csv character is " + chr);
-			Character chr1 = new Character(chr);
-			System.out.println("current csv character is " + chr1);
-			
-			
 			if (escaped)
 			{
 				if (chr == quote)
@@ -284,26 +280,29 @@ public class CSVParser
 	}
 	
 	/**
-	 * This function converts a table of Strings and encodes them as a single CSV String.
-	 * @param rows An array of rows.
+	 * This function converts a table of Strings (or Objects) and encodes them as a single CSV String.
+	 * @param rows An array of rows.  If the row values are not Strings, toString() will be called on each value.
 	 * @return The rows encoded as a CSV String.
 	 */
-	public String createCSVFromArrays(String[][] rows, boolean quoteEmptyStrings)
+	public String createCSV(Object[][] rows, boolean quoteEmptyStrings)
 	{
+		String nullToken = quoteEmptyStrings ? "" : null;
 		StringBuilder result = new StringBuilder();
-		int lastRow = rows.length - 1;
-		for (int iRow = 0; iRow <= lastRow; iRow++)
+		for (int iRow = 0; iRow < rows.length; iRow++)
 		{
-			String[] row = rows[iRow];
+			if (iRow > 0)
+				result.append(LF);
+			
+			Object[] row = rows[iRow];
 			int lastCol = row.length - 1;
 			for (int iCol = 0; iCol <= lastCol; iCol++)
 			{
-				result.append(createCSVToken(row[iCol], quoteEmptyStrings));
+				Object value = row[iCol];
+				String token = value == null ? nullToken : createCSVToken(value.toString(), quoteEmptyStrings);
+				result.append(token);
 				if (iCol < lastCol)
 					result.append(delimiter);
 			}
-			if (iRow < lastRow)
-				result.append(LF);
 		}
 		return result.toString();
 	}
@@ -405,24 +404,5 @@ public class CSVParser
 			rows[i + 1] = row;
 		}
 		return rows;
-	}
-	
-	/**
-	 * This function will convert a table of objects to a table of Strings using Object.toString() on each object.
-	 * @param rows A two-dimensional array of objects.
-	 * @return A two-dimensional array of Strings corresponding to the objects.
-	 */
-	public String[][] convertObjectTableToStringTable(Object[][] rows)
-	{
-		String[][] result = new String[rows.length][];
-		for (int i = 0; i < rows.length; i++)
-		{
-			result[i] = new String[rows[i].length];
-			Object[] row = rows[i];
-			for (int j = 0; j < row.length; j++)
-				if (row[j] != null)
-					result[i][j] = row[j].toString();
-		}
-		return result;	
 	}
 }

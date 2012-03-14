@@ -90,11 +90,11 @@ package weave
 	import weave.ui.SubsetManager;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
-	import weave.ui.collaboration.*;
+	import weave.ui.collaboration.CollaborationEditor;
+	import weave.ui.collaboration.CollaborationMenuBar;
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
-	import weave.utils.ColumnUtils;
 	import weave.utils.DebugTimer;
 	import weave.utils.EditorManager;
 	import weave.utils.VectorUtils;
@@ -1315,23 +1315,19 @@ package weave
 			
 			try
 			{
-				if(component is ICSVExportable)
+				if (component is ICSVExportable)
 				{					
 					var name:String = getQualifiedClassName(component).split(':').pop();
 					var csvString:String = (component as ICSVExportable).exportCSV();
-					if(csvString != ""){
+					if (csvString)
 						exportCSVfileRef.save(csvString, "Weave_" + name + ".csv");
-					}
-					else{
-						reportError("There are no Datas in " + (component as DraggablePanel).title + " to export as CSV" );
-					}
-					
+					else
+						reportError("No data to export in " + (component as DraggablePanel).title);
 				}				
 				else
 				{
 					reportError("Component parameter must be either DataTable tool or SimpleVisTool" );
 				}
-							
 			}
 			catch (e:Error)
 			{

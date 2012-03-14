@@ -33,7 +33,6 @@
 				<mx:Button label="Create new file" click="createFile()"/>
 			</mx:HBox>
 			<ui:TreeWithSearch id="userFolderTreeWithSearch" prompt="Search"
-							   click="previewSelectedFile(userFolderTreeWithSearch)"
 							   doubleClickEnabled="true" doubleClick="openSelectedFile(userFolderTreeWithSearch)"
 							   toolTip="Double-click a file name to open it with Weave."/>
 			<mx:HBox width="100%">
@@ -46,7 +45,6 @@
 				<mx:Button label="Open selected file" click="openSelectedFile(sharedTreeWithSearch)" enabled="{sharedTreeWithSearch.tree.selectedItem != null}"/>				
 			</mx:HBox>
 			<ui:TreeWithSearch id="sharedTreeWithSearch" prompt="Search"
-							   click="previewSelectedFile(sharedTreeWithSearch)"
 							   doubleClickEnabled="true" doubleClick="openSelectedFile(sharedTreeWithSearch)"
 							   toolTip="Double-click a file name to open it with Weave."/>
 			<mx:HBox width="100%">
@@ -75,6 +73,7 @@
 			import mx.events.ListEvent;
 			import mx.rpc.events.ResultEvent;
 			
+			import weave.api.core.ICallbackCollection;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
@@ -84,18 +83,11 @@
 			
 			private function handleCreationComplete():void
 			{
-				EventUtils.addBindCallback(AdminInterface.instance, "weaveFileNames", handleClientConfigFileNamesChange);
-				EventUtils.addBindCallback(AdminInterface.instance, "privateWeaveFileNames", handlePrivateClientConfigFileNamesChange);
-			}
-			
-			public function handleClientConfigFileNamesChange():void
-			{
-				sharedTreeWithSearch.generateFlatTreeFromLabels(AdminInterface.instance.weaveFileNames);
-			}
-			
-			public function handlePrivateClientConfigFileNamesChange():void
-			{
-				userFolderTreeWithSearch.generateFlatTreeFromLabels(AdminInterface.instance.privateWeaveFileNames);
+				BindingUtils.bindSetter(sharedTreeWithSearch.generateFlatTreeFromLabels, AdminInterface.instance, "weaveFileNames");
+				BindingUtils.bindSetter(userFolderTreeWithSearch.generateFlatTreeFromLabels, AdminInterface.instance, "privateWeaveFileNames");
+				
+				EventUtils.addDelayedEventCallback(userFolderTreeWithSearch.tree, Event.CHANGE, function():void { previewSelectedFile(userFolderTreeWithSearch) });
+				EventUtils.addDelayedEventCallback(sharedTreeWithSearch.tree, Event.CHANGE, function():void { previewSelectedFile(sharedTreeWithSearch) });
 			}
 			
 			private function openSelectedFile(component:TreeWithSearch):void
@@ -108,7 +100,7 @@
 			private function previewSelectedFile(component:TreeWithSearch):void
 			{
 				var item:Object = component.tree.selectedItem;
-				if( item )
+				if (item)
 					weaveFileInfo.updatePreview(item.label);
 			}
 			

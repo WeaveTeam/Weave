@@ -88,8 +88,8 @@
 					Other columns in the new table can be used to generate SQL queries that will return different subsets of the rows.  The key column will be used to uniquely identify rows in the subsets.
 				</ui:HelpComponent>
 			</mx:HBox>
-			<ui:Indent label="Columns to use as filters" visible="{generateFilterColumns.selected}">
-				<mx:TextInput paddingLeft="{paddingIndent}" id="filterColumnsInput"/>
+			<ui:Indent label="Columns to use as filters" paddingLeft="{paddingIndent}" visible="{generateFilterColumns.selected}">
+				<mx:TextInput id="filterColumnsInput"/>
 				<ui:HelpComponent>
 					Enter the names of columns to be used to break the data into subsets. Separate multiple column names by commas.
 				</ui:HelpComponent>

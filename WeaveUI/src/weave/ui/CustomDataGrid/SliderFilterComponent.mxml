@@ -24,6 +24,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	
 	<mx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
 			import mx.events.FlexEvent;
 			
 			import weave.api.WeaveAPI;
@@ -55,13 +56,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				dataMinimum = WeaveAPI.StatisticsCache.getMin(column.attrColumn);
 				dataMaximum = WeaveAPI.StatisticsCache.getMax(column.attrColumn);
 				rangeSlider.values = [dataMinimum, dataMaximum];
-				EventUtils.addBindCallback(event.target, 'values', handleBindableValues);
+				BindingUtils.bindSetter(handleBindableValues, rangeSlider, 'values');
 				getCallbackCollection(this).addGroupedCallback(this, handleLinkableValues);				
 			}
-			private function handleBindableValues():void
+			private function handleBindableValues(values:Array):void
 			{
-				minimum.value = rangeSlider.values[0];
-				maximum.value = rangeSlider.values[1];
+				minimum.value = values[0];
+				maximum.value = values[1];
 			}
 			private function handleLinkableValues():void				
 			{

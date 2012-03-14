@@ -275,7 +275,7 @@ public interface ISQLConfig
 		// this information should not be made available to client programs
 		public static final String CONNECTION = "connection";
 		public static final String SQLQUERY = "sqlQuery";
-		public static final String SQLPARAMS = "sqlParams"; // only transmitted from client to server, never stored in the database
+		public static final String SQLPARAMS = "sqlParams";
 		public static final String SQLRESULT = "sqlResult"; // only transmitted from server to client, never stored in the database
 
 		// Metadata includes everything that end-users are allowed to see.
@@ -353,10 +353,11 @@ public interface ISQLConfig
 			}
 		}
 
-		public AttributeColumnInfo(String connection, String sqlQuery, Map<String, String> metadata)
+		public AttributeColumnInfo(String connection, String sqlQuery, String sqlParams, Map<String, String> metadata)
 		{
 			this.connection = connection;
 			this.sqlQuery = sqlQuery;
+			this.sqlParams = sqlParams;
 			this.metadata = metadata;
 		}
 
@@ -369,7 +370,7 @@ public interface ISQLConfig
 			return value;
 		}
 
-		public String connection, sqlQuery;
+		public String connection, sqlQuery, sqlParams;
 		public Map<String, String> metadata;
 	}
 }

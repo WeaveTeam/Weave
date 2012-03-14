@@ -183,24 +183,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				updateGlobalSelectionChange();
 				dimensionsList.hashMap = columns;
 				
-				EventUtils.addEventCallback(dataGrid,DataGridEvent.COLUMN_STRETCH,handleColumnStretch);
-				EventUtils.addEventCallback(dataGrid,ResizeEvent.RESIZE,handleToolResize);
+				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleColumnStretch);
+				dataGrid.addEventListener(ResizeEvent.RESIZE, handleToolResize);
 				
 				linkBindableProperty(dataGridHorizontalScrollPosition, dataGrid, 'horizontalScrollPosition', 0, true);
 				linkBindableProperty(dataGridVerticalScrollPosition, dataGrid, 'verticalScrollPosition', 0, true);
 				
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
 			}
+			
 			/**
 			 * This function(event Listener) gets called during dataGrid Resize event
 			 * handleDataGridHorizontalScroll calls updateColumnWidths, when the dataGridHorizontalScrollPosition.value is Maximum
 			 * handleDataGridHorizontalScroll is called to update FilterComponents Position
 			 */			
-			private function handleToolResize():void{
-				if(dataGridHorizontalScrollPosition.value != dataGrid.maxHorizontalScrollPosition){
+			private function handleToolResize(event:Event):void
+			{
+				if (dataGridHorizontalScrollPosition.value != dataGrid.maxHorizontalScrollPosition)
+				{
 					updateColumnWidths();
 				}
-				if(dataGridHorizontalScrollPosition.value > 0 && showFilters.value){
+				if (dataGridHorizontalScrollPosition.value > 0 && showFilters.value)
+				{
 					handleDataGridHorizontalScroll();
 				}
 			}
@@ -580,7 +584,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-			private function handleColumnStretch():void
+			private function handleColumnStretch(event:Event):void
 			{
 				var dataGridColumnsWidth:Number = dataGrid.getColumnDisplayWidth();
 				for (var i:int = 0; i < _currentDataGridColumns.length; ++i)

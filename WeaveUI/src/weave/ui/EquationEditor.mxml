@@ -166,12 +166,12 @@
 //				linkBindableProperty(equationColumn.columnTitle, titleInput, "text");
 				
 				titleInput.text = equationColumn.getMetadata(AttributeColumnMetadata.TITLE);
-				EventUtils.addDelayedCallback(titleInput, Event.CHANGE, handleTitleTextEntry);
+				EventUtils.addDelayedEventCallback(titleInput, Event.CHANGE, handleTitleTextEntry);
 				equationColumn.addImmediateCallback(this,handleTitleSessionStateChange);
 				
 				
 				textEditor.text = equationColumn.equation.value;
-				EventUtils.addDelayedCallback(textEditor, Event.CHANGE, handleEquationTextEntry);
+				EventUtils.addDelayedEventCallback(textEditor, Event.CHANGE, handleEquationTextEntry);
 				equationColumn.equation.addImmediateCallback(this,handleEquationSessionStateChange);
 				
 				Weave.root.childListCallbacks.addImmediateCallback(this, updateActiveEquationCombo, true);
