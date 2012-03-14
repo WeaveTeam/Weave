@@ -265,6 +265,13 @@ package weave.services
 			return query;
 		}
 
+		// get weave archive thumbnail
+		
+		public function getWeaveArchiveThumbnail(archiveName:String):DelayedAsyncInvocation
+		{
+			return invokeAdminService("getWeaveArchiveThumbnail", arguments);
+		}
+		
 		
 		/**
 		 * Adds the given Dublin Core key-value pairs to the metadata store for
