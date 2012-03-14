@@ -425,18 +425,16 @@ package weave.visualization.tools
 		{
 			super.dispose();
 		}
-		private var fr:FileReference = new FileReference();	// CSV download file references
+		
 		//ICSV exportbale interface Method
 		public function exportCSV():String{
 			var toolColumns:Array = getSelectableAttributes();
 			if(toolColumns.length == 0)
 			{
-				reportError("Columns are not assigned in " + this.title + " to export as CSV" );
+				
 				return "";
 			}
 			return ColumnUtils.generateTableCSV(toolColumns);
-			/*var name:String = getQualifiedClassName(this).split(':').pop();
-			fr.save(ColumnUtils.generateTableCSV(toolColumns), "Weave_" + name + ".csv");*/
 		}
 	}
 }

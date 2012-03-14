@@ -1318,7 +1318,14 @@ package weave
 				if(component is ICSVExportable)
 				{					
 					var name:String = getQualifiedClassName(component).split(':').pop();
-					exportCSVfileRef.save((component as ICSVExportable).exportCSV(), "Weave_" + name + ".csv");
+					var csvString:String = (component as ICSVExportable).exportCSV();
+					if(csvString != ""){
+						exportCSVfileRef.save(csvString, "Weave_" + name + ".csv");
+					}
+					else{
+						reportError("There are no Datas in " + (component as DraggablePanel).title + " to export as CSV" );
+					}
+					
 				}				
 				else
 				{
