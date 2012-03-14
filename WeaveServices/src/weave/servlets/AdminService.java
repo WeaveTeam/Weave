@@ -51,6 +51,7 @@ import javax.servlet.ServletException;
 import weave.beans.AdminServiceResponse;
 import weave.beans.UploadFileFilter;
 import weave.beans.UploadedFile;
+import weave.beans.WeaveFileInfo;
 import weave.config.DatabaseConfig;
 import weave.config.DublinCoreUtils;
 import weave.config.ISQLConfig;
@@ -386,6 +387,17 @@ public class AdminService extends GenericServlet
 		}
 	}
 
+	
+	// /////////////////////////////////////////////////
+	// functions for managing Weave Client archives
+	// /////////////////////////////////////////////////
+	
+	synchronized public WeaveFileInfo getWeaveArchiveThumbnail(String archiveName) throws RemoteException
+	{
+		return new WeaveFileInfo(docrootPath, archiveName);
+	}
+	
+	
 	// /////////////////////////////////////////////////
 	// functions for managing SQL connection entries
 	// /////////////////////////////////////////////////

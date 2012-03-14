@@ -346,7 +346,12 @@ package weave.services
 			return query;
 		}
 
-
+		// code for viewing a weave file archive thumbnail
+		
+		public function getWeaveArchiveThumbail(archiveName:String):DelayedAsyncInvocation
+		{
+			return service.getWeaveArchiveThumbnail(archiveName);
+		}
 		
 		
 		// code for viewing CSV and Shape file on the server
