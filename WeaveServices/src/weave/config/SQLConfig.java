@@ -25,7 +25,6 @@ import java.util.Vector;
 
 import org.w3c.dom.Document;
 
-import weave.config.SQLConfigUtils.InvalidParameterException;
 import weave.utils.SQLUtils;
 
 /**
@@ -80,7 +79,7 @@ public class SQLConfig
 	{
 		if (SQLUtils.connectionIsValid(_lastConnection))
 			return _lastConnection;
-		return _lastConnection = SQLConfigUtils.getConnection(connectionConfig, dbInfo.connection);
+		return _lastConnection = connectionConfig.getNamedConnection(dbInfo.connection);
 	}
 
 	/**

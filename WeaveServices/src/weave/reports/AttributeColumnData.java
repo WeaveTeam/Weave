@@ -20,6 +20,7 @@ package weave.reports;
 
 import java.rmi.RemoteException;
 import java.sql.SQLException;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,10 +30,10 @@ import java.util.Map;
 //import junit.framework.Assert;
 
 import weave.config.ISQLConfig;
-import weave.config.SQLConfigUtils;
 import weave.config.ISQLConfig.AttributeColumnInfo;
 import weave.config.ISQLConfig.PublicMetadata;
 import weave.utils.SQLResult;
+import weave.utils.SQLUtils;
 
 public class AttributeColumnData
 {
@@ -83,7 +84,8 @@ public class AttributeColumnData
 		SQLResult result;
 		try
 		{
-			result = SQLConfigUtils.getRowSetFromQuery(config, connection, dataWithKeysQuery);
+                        Connection conn = config.getNamedConnection(connection, true);
+                        result = SQLUtils.getRowSetFromQuery(conn, dataWithKeysQuery);
 		}
 		catch (SQLException e)
 		{

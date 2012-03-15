@@ -355,7 +355,7 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 	}
 
 	// list all geometryCollections
-	synchronized public List<String> getGeometryCollectionNames(String connectionName)
+	synchronized public String[] getGeometryCollectionNames(String connectionName)
 	{
 		// don't bother filtering the results because this class will only ever
 		// be used for migrating the xml to a database, and in that case we don't
@@ -363,7 +363,7 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 		validateCache();
 		List<String> names = Arrays.asList(geometryCollectionCache.keySet().toArray(new String[0]));
 		Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
-		return names;
+		return names.toArray(new String[0]);
 	}
 
 	synchronized public ConnectionInfo getConnectionInfo(String connectionName)

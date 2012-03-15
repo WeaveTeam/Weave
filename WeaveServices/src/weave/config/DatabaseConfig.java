@@ -24,7 +24,6 @@ import java.util.Vector;
 
 import org.w3c.dom.Document;
 
-import weave.config.SQLConfigUtils.InvalidParameterException;
 import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 import weave.utils.SQLUtils;
@@ -53,7 +52,7 @@ public class DatabaseConfig
 	{
 		if (SQLUtils.connectionIsValid(_lastConnection))
 			return _lastConnection;
-		return _lastConnection = SQLConfigUtils.getConnection(connectionConfig, dbInfo.connection);
+		return _lastConnection = connectionConfig.getNamedConnection(dbInfo.connection);
 	}
 
 	/**
@@ -221,7 +220,7 @@ public class DatabaseConfig
 		return connectionConfig.getConnectionNames();
 	}
 
-	public List<String> getGeometryCollectionNames(String connectionName) throws RemoteException
+	public String[] getGeometryCollectionNames(String connectionName) throws RemoteException
 	{
 		List<String> names;
 		try
@@ -249,7 +248,7 @@ public class DatabaseConfig
 				names = new Vector<String>(hashSet);
 			}
 			Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
-			return names;
+			return names.toArray(new String[0]);
 		}
 		catch (Exception e)
 		{
@@ -257,7 +256,7 @@ public class DatabaseConfig
 		}
 	}
 
-	public List<String> getDataTableNames(String connectionName) throws RemoteException
+	public String[] getDataTableNames(String connectionName) throws RemoteException
 	{
 		List<String> names;
 		try
@@ -289,7 +288,7 @@ public class DatabaseConfig
 				names = new Vector<String>(hashSet);
 			}
 			Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
-			return names;
+			return names.toArray(new String[0]);
 		}
 		catch (Exception e)
 		{
@@ -297,7 +296,7 @@ public class DatabaseConfig
 		}
 	}
 
-	public List<String> getKeyTypes() throws RemoteException
+	public String[] getKeyTypes() throws RemoteException
 	{
 		try
 		{
@@ -311,7 +310,7 @@ public class DatabaseConfig
                         uniqueValues.remove(null);
 			Vector<String> result = new Vector<String>(uniqueValues);
 			Collections.sort(result, String.CASE_INSENSITIVE_ORDER);
-			return result;
+			return result.toArray(new String[0]);
 		}
 		catch (Exception e)
 		{

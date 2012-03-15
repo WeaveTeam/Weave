@@ -43,7 +43,7 @@ public abstract class IDeprecatedSQLConfig extends ISQLConfig
 	 * Gets the names of all geometry collections in this configuration
 	 * @param connectionName A connection used as a filter, or null for no filter.
 	 */
-	abstract List<String> getGeometryCollectionNames(String connectionName) throws RemoteException;
+	public abstract String[] getGeometryCollectionNames(String connectionName) throws RemoteException;
 
 	/**
 	 * Looks up a geometry collection in this configuration by name
@@ -55,7 +55,7 @@ public abstract class IDeprecatedSQLConfig extends ISQLConfig
 	 * @throws RemoteException
 	 *             if the info could not be retrieved.
 	 */
-	abstract GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName) throws RemoteException;
+	public abstract GeometryCollectionInfo getGeometryCollectionInfo(String geometryCollectionName) throws RemoteException;
 
 	static public class GeometryCollectionInfo
 	{
