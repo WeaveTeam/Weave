@@ -76,6 +76,10 @@ import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.XMLUtils;
 
+/**
+ * @author user
+ *
+ */
 public class AdminService extends GenericServlet
 {
 	private static final long serialVersionUID = 1L;
@@ -113,8 +117,17 @@ public class AdminService extends GenericServlet
 //		uploadPath = configManager.getContextParams().getUploadPath();
 //		docrootPath = configManager.getContextParams().getDocrootPath();
 //	}
+	/**
+	 * @return The path where temp files are stored, ending in "/"
+	 */
 	private String tempPath;
+	/**
+	 * @return The path where uploaded files are stored, ending in "/"
+	 */
 	private String uploadPath;
+	/**
+	 * @return The docroot path, ending in "/"
+	 */
 	private String docrootPath;
 	
 	private static int StringType = 0;
@@ -224,7 +237,7 @@ public class AdminService extends GenericServlet
 	}
 
 	// /////////////////////////////////////////////////
-	// functions for managing Weave client XML files
+	// functions for managing Weave client config files
 	// /////////////////////////////////////////////////
 
 	/**
@@ -387,14 +400,10 @@ public class AdminService extends GenericServlet
 		}
 	}
 
-	
-	// /////////////////////////////////////////////////
-	// functions for managing Weave Client archives
-	// /////////////////////////////////////////////////
-	
-	synchronized public WeaveFileInfo getWeaveArchiveThumbnail(String archiveName) throws RemoteException
+	synchronized public WeaveFileInfo getWeaveFileInfo(String connectionName, String password, String fileName) throws RemoteException
 	{
-		return new WeaveFileInfo(docrootPath, archiveName);
+		checkPasswordAndGetConfig(connectionName, password);
+		return new WeaveFileInfo(docrootPath + fileName);
 	}
 	
 	

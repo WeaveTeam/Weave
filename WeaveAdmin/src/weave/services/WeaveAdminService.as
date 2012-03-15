@@ -265,11 +265,9 @@ package weave.services
 			return query;
 		}
 
-		// get weave archive thumbnail
-		
-		public function getWeaveArchiveThumbnail(archiveName:String):DelayedAsyncInvocation
+		public function getWeaveFileInfo(connectionName:String, password:String, fileName:String):DelayedAsyncInvocation
 		{
-			return invokeAdminService("getWeaveArchiveThumbnail", arguments);
+			return invokeAdminService("getWeaveFileInfo", arguments);
 		}
 		
 		

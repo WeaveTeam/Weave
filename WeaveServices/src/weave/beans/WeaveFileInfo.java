@@ -33,32 +33,29 @@ public class WeaveFileInfo
 	public byte[] thumb 	 = null;
 	public String fileName 	 = null;
 
-	public WeaveFileInfo(String docRoot, String fileName)
+	public WeaveFileInfo(String filePath)
 	{
-		File weaveFile = new File(docRoot+"/"+fileName);
+		File weaveFile = new File(filePath);
 		
 		this.fileName 		= weaveFile.getName();
 		this.lastModified 	= weaveFile.lastModified();
 		this.fileSize 		= weaveFile.length();
 		if( getExtension(fileName).equals("weave") )
 		{
-			try {
-				this.thumb = getArchiveThumbnail(docRoot, fileName);
-			} catch (IOException e) {
+			try
+			{
+				this.thumb = getArchiveThumbnail(filePath);
+			}
+			catch (IOException e)
+			{
 				e.printStackTrace();
 			}
-		} else {
-			this.thumb = null;
 		}
 	}
 	
-	private byte[] getArchiveThumbnail(String docRoot, String fileName) throws IOException
+	private byte[] getArchiveThumbnail(String filePath) throws IOException
 	{
-		File directory = new File(docRoot);
-		ZipFile archive = null;
-		
-		archive = new ZipFile(directory.getPath() + "/" + fileName);
-		
+		ZipFile archive = new ZipFile(filePath);
 		ZipEntry entry = archive.getEntry("weave-files/thumbnail.png");
 		InputStream is = archive.getInputStream(entry);
 		

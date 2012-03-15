@@ -47,7 +47,7 @@
 			
 			public function updatePreview(fileName:String):void
 			{
-				AdminInterface.instance.getWeaveArchiveThumbail(fileName).addAsyncResponder(
+				AdminInterface.instance.getWeaveFileInfo(fileName).addAsyncResponder(
 					function(event:ResultEvent, token:Object = null):void
 					{
 						var _LM:Number = event.result.lastModified as Number;

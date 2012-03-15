@@ -348,9 +348,9 @@ package weave.services
 
 		// code for viewing a weave file archive thumbnail
 		
-		public function getWeaveArchiveThumbail(archiveName:String):DelayedAsyncInvocation
+		public function getWeaveFileInfo(fileName:String):DelayedAsyncInvocation
 		{
-			return service.getWeaveArchiveThumbnail(archiveName);
+			return service.getWeaveFileInfo(activeConnectionName, activePassword, fileName);
 		}
 		
 		
