@@ -402,9 +402,9 @@
 				<mx:RadioButton id="percentStackedRadioButton" groupName="groupMode" label="100% Stacked bars" value="{CompoundBarChartPlotter.PERCENT_STACK}"/>
 			</mx:HBox>
 			<mx:TabNavigator width="100%" height="100%">
-				<ui:ColumnListComponent visTool="{this}" label="Height attributes" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
-				<ui:ColumnListComponent visTool="{this}" label="Positive error" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
-				<ui:ColumnListComponent visTool="{this}" label="Negative error" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
+				<ui:ColumnListComponent visTool="{this}" label="Height attributes" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
+				<ui:ColumnListComponent visTool="{this}" label="Positive error" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
+				<ui:ColumnListComponent visTool="{this}" label="Negative error" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
 			</mx:TabNavigator>
 		</mx:VBox>
 		

@@ -54,7 +54,7 @@
 			</mx:TabNavigator>
 			<mx:TabNavigator width="100%" height="100%"
 							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
-				<ColumnListComponent label="Edit Variables" hashMap="{equationColumn.variables}" dragMoveEnabled="false" width="100%" height="100%"/>
+				<ColumnListComponent label="Edit Variables" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
 				<mx:Canvas label="Edit Variable Names" width="100%" height="100%">
 					<LinkableObjectGrid hashMap="{equationColumn.variables}" width="100%" height="100%"/>
 				</mx:Canvas>
