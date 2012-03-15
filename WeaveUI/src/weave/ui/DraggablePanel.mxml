@@ -942,6 +942,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var hashMap:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
 					if (hashMap)
 						hashMap.setNameOrder([hashMap.getName(this)]);
+					else if (parent)
+						parent.setChildIndex(this, parent.numChildren - 1);
 				}
 				updatePinnedPanelOrder();
 			}
