@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="AdminInterface,weave.services.AdminInterface,activePassword,connectionNames,currentUserIsSuperuser,dataTableNames,databaseConfigInfo,dbfData,dbfKeyColumns,geometryCollectionNames,keyTypes,privateWeaveFileNames,service,sqlConfigExists,uploadedCSVFiles,uploadedShapeFiles,userHasAuthenticated,weaveFileNames,activeConnectionName,instance,addConfigDataTableFromDatabase,addDCElements,authenticate,checkKeyColumnForCSVImport,checkKeyColumnForSQLImport,convertShapefileToSQLStream,deleteDCElements,getConnectionInfo,getConnectionNames,getDBFData,getDataTableInfo,getDataTableNames,getGeometryCollectionInfo,getGeometryCollectionNames,getKeyTypes,getPrivateWeaveFileNames,getUploadedCSVFiles,getUploadedShapeFiles,getWeaveArchiveThumbail,getWeaveFileNames,importCSV,listDBFFileColumns,listDCElements,migrateConfigToDatabase,openWeavePopup,ping,removeConnectionInfo,removeDataTableInfo,removeGeometryCollectionInfo,removeWeaveFile,saveConnectionInfo,saveDataTableInfo,saveGeometryCollectionInfo,saveWeaveFile,showHelpForKeyType,storeDBFDataToDatabase,updateEditedDCElement,uploadFile" name="keywords">
+<meta content="AdminInterface,weave.services.AdminInterface,activePassword,connectionNames,currentUserIsSuperuser,dataTableNames,databaseConfigInfo,dbfData,dbfKeyColumns,geometryCollectionNames,keyTypes,privateWeaveFileNames,service,sqlConfigExists,uploadedCSVFiles,uploadedShapeFiles,userHasAuthenticated,weaveFileNames,activeConnectionName,instance,addConfigDataTableFromDatabase,addDCElements,authenticate,checkKeyColumnForCSVImport,checkKeyColumnForSQLImport,convertShapefileToSQLStream,deleteDCElements,getConnectionInfo,getConnectionNames,getDBFData,getDataTableInfo,getDataTableNames,getGeometryCollectionInfo,getGeometryCollectionNames,getKeyTypes,getPrivateWeaveFileNames,getUploadedCSVFiles,getUploadedShapeFiles,getWeaveFileInfo,getWeaveFileNames,importCSV,listDBFFileColumns,listDCElements,migrateConfigToDatabase,openWeavePopup,ping,removeConnectionInfo,removeDataTableInfo,removeGeometryCollectionInfo,removeWeaveFile,saveConnectionInfo,saveDataTableInfo,saveGeometryCollectionInfo,saveWeaveFile,showHelpForKeyType,storeDBFDataToDatabase,updateEditedDCElement,uploadFile" name="keywords">
 <title>weave.services.AdminInterface</title>
 </head>
 <body>
@@ -285,7 +285,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getWeaveArchiveThumbail()">getWeaveArchiveThumbail</a>(archiveName:String):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a>
+<a class="signatureLink" href="#getWeaveFileInfo()">getWeaveFileInfo</a>(fileName:String):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a>
 </div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">AdminInterface</td>
@@ -1149,17 +1149,17 @@ showHideInherited();
 </tr>
 </table>
 </div>
-<a name="getWeaveArchiveThumbail()"></a>
+<a name="getWeaveFileInfo()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">getWeaveArchiveThumbail</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">getWeaveFileInfo</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getWeaveArchiveThumbail(archiveName:String):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a></code><span class="label">Parameters</span>
+<code>public function getWeaveFileInfo(fileName:String):<a href="../services/DelayedAsyncInvocation.html">DelayedAsyncInvocation</a></code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">archiveName</span>:String</code></td>
+<td width="20px"></td><td><code><span class="label">fileName</span>:String</code></td>
 </tr>
 </table>
 <p></p>
