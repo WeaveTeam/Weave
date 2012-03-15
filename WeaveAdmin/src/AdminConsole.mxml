@@ -80,19 +80,12 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
-			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
-			import mx.controls.ProgressBar;
-			import mx.controls.ProgressBarLabelPlacement;
 			import mx.controls.TextArea;
-			import mx.core.IFlexDisplayObject;
-			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Strings;
 			import weave.Weave;
-			import weave.api.WeaveAPI;
-			import weave.api.getCallbackCollection;
 			import weave.services.AdminInterface;
 			import weave.services.WeaveAdminService;
 			import weave.ui.WeaveProgressBar;
@@ -101,7 +94,6 @@
 			import weave.ui.admin.wizards.CSVImportWizard;
 			import weave.ui.admin.wizards.SHPImportWizard;
 			import weave.ui.admin.wizards.SQLImportWizard;
-			import weave.utils.EventUtils;
 			
 			private static const version:String = Weave.properties.version.value;
 			private var loginPopup:LoginPopup;

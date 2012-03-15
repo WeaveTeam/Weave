@@ -69,14 +69,8 @@
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.controls.Alert;
-			import mx.controls.Image;
-			import mx.events.ListEvent;
-			import mx.rpc.events.ResultEvent;
 			
-			import weave.api.core.ICallbackCollection;
 			import weave.services.AdminInterface;
-			import weave.services.DelayedAsyncInvocation;
-			import weave.services.WeaveAdminService;
 			import weave.utils.EventUtils;
 			import weave.utils.PopUpUtils;
 			
@@ -86,8 +80,9 @@
 				BindingUtils.bindSetter(sharedTreeWithSearch.generateFlatTreeFromLabels, AdminInterface.instance, "weaveFileNames");
 				BindingUtils.bindSetter(userFolderTreeWithSearch.generateFlatTreeFromLabels, AdminInterface.instance, "privateWeaveFileNames");
 				
-				EventUtils.addDelayedEventCallback(userFolderTreeWithSearch.tree, Event.CHANGE, function():void { previewSelectedFile(userFolderTreeWithSearch) });
-				EventUtils.addDelayedEventCallback(sharedTreeWithSearch.tree, Event.CHANGE, function():void { previewSelectedFile(sharedTreeWithSearch) });
+				var delay:int = 100;
+				EventUtils.addDelayedEventCallback(userFolderTreeWithSearch.tree, Event.CHANGE, function():void { previewSelectedFile(userFolderTreeWithSearch) }, delay);
+				EventUtils.addDelayedEventCallback(sharedTreeWithSearch.tree, Event.CHANGE, function():void { previewSelectedFile(sharedTreeWithSearch) }, delay);
 			}
 			
 			private function openSelectedFile(component:TreeWithSearch):void
