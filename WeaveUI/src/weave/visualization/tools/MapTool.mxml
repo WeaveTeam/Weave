@@ -648,9 +648,9 @@
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Map Layers">
 			<mx:HBox width="100%">
-				<mx:Button label="Add Geometry Layer" click="addGeomLayer();"/>
-				<mx:Button label="Add Label Layer" click="addLabelLayer();"/>
-				<mx:Button label="Add WMS Layer" click="addWMSLayer();"/>
+				<mx:Button label="Add Base Map" click="addWMSLayer();" toolTip="Add an image layer underneath the geometries"/>
+				<mx:Button label="Add Geometry" click="addGeomLayer();" toolTip="Add a layer of polygons, lines, or points that can be colored according to the data"/>
+				<mx:Button label="Add Labels" click="addLabelLayer();" toolTip="Add labels to the selected geometry layer"/>
 			</mx:HBox>
 			
 			<!--<mx:DataGrid dataProvider="{_layerNames.reverse()}">
