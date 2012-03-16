@@ -169,8 +169,11 @@ package weave.primitives
 				{
 					if (newNode.index < leftTraversalNode.index) // will only happen once, when leftTraversalNode == currentNode
 					{
+						/*
+						// for debugging
 						if (leftTraversalNode != currentNode)
 							throw new Error("Unexpected error. leftTraversalNode != currentNode");
+						*/
 						
 						if (leftTraversalNode.left != null)
 						{
@@ -202,8 +205,11 @@ package weave.primitives
 				{
 					if (newNode.index > rightTraversalNode.index) // will only happen once, when rightTraversalNode == currentNode
 					{
+						/*
+						// for debugging
 						if (rightTraversalNode != currentNode)
 							throw new Error("Unexpected error. rightTraversalNode != currentNode");
+						*/
 						
 						if (rightTraversalNode.right != null)
 						{
@@ -267,7 +273,6 @@ package weave.primitives
 				var prevPrevGridTest:uint = 0;
 				var prevGridTest:uint = 0;
 				var gridTest:uint;
-				var sameOutsideGridID:Boolean = false; // true when the two previous consecutive points were in the same off-screen grid
 				var stackPos:int = 0;
 				var node:BLGNode;
 				var operation:int;
