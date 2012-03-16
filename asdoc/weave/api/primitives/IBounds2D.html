@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="IBounds2D,weave.api.primitives.IBounds2D,centeredResize,cloneBounds,constrainBounds,constrainBoundsCenterPoint,constrainPoint,contains,containsBounds,containsPoint,copyFrom,equals,getArea,getCenterPoint,getGridContainment,getHeight,getMaxPoint,getMinPoint,getRectangle,getWidth,getXCenter,getXCoverage,getXDirection,getXMax,getXMin,getXNumericMax,getXNumericMin,getYCenter,getYCoverage,getYDirection,getYMax,getYMin,getYNumericMax,getYNumericMin,includeBounds,includeCoords,includePoint,isEmpty,isUndefined,makeSizePositive,offset,overlaps,projectCoordsTo,projectPointTo,reset,setBounds,setCenter,setCenterPoint,setCenteredRectangle,setCenteredXRange,setCenteredYRange,setHeight,setMaxCoords,setMaxPoint,setMinCoords,setMinPoint,setRectangle,setWidth,setXCenter,setXMax,setXMin,setXRange,setYCenter,setYMax,setYMin,setYRange" name="keywords">
+<meta content="IBounds2D,weave.api.primitives.IBounds2D,centeredResize,cloneBounds,constrainBounds,constrainBoundsCenterPoint,constrainPoint,contains,containsBounds,containsPoint,copyFrom,equals,getArea,getCenterPoint,getGridTest,getHeight,getMaxPoint,getMinPoint,getRectangle,getWidth,getXCenter,getXCoverage,getXDirection,getXMax,getXMin,getXNumericMax,getXNumericMin,getYCenter,getYCoverage,getYDirection,getYMax,getYMin,getYNumericMax,getYNumericMin,includeBounds,includeCoords,includePoint,isEmpty,isUndefined,makeSizePositive,offset,overlaps,projectCoordsTo,projectPointTo,reset,setBounds,setCenter,setCenterPoint,setCenteredRectangle,setCenteredXRange,setCenteredYRange,setHeight,setMaxCoords,setMaxPoint,setMinCoords,setMinPoint,setRectangle,setWidth,setXCenter,setXMax,setXMin,setXRange,setYCenter,setYMax,setYMin,setYRange" name="keywords">
 <title>weave.api.primitives.IBounds2D</title>
 </head>
 <body>
@@ -164,15 +164,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getGridContainment()">getGridContainment</a>(x:Number, y:Number):Number</div>
+<a class="signatureLink" href="#getGridTest()">getGridTest</a>(x:Number, y:Number):uint</div>
 <div class="summaryTableDescription">
-   Grid numbers correspond to boxes in the following grid:
-       7 | 6 | 5
-       --+---+--
-       8 | 0 | 4
-       --+---+--
-       1 | 2 | 3
-   If an x,y point is contained in box 0, it is contained in the IBounds2D object.</div>
+   This function is used to determine which vertices of a polygon can be skipped when rendering within the bounds of this Bounds2D.</div>
 </td><td class="summaryTableOwnerCol">IBounds2D</td>
 </tr>
 <tr class="">
@@ -851,33 +845,28 @@ showHideInherited();
 </tr>
 </table>
 </div>
-<a name="getGridContainment()"></a>
+<a name="getGridTest()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">getGridContainment</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+<td class="detailHeaderName">getGridTest</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getGridContainment(x:Number, y:Number):Number</code><p>
-   Grid numbers correspond to boxes in the following grid:
-       7 | 6 | 5
-       --+---+--
-       8 | 0 | 4
-       --+---+--
-       1 | 2 | 3
-   If an x,y point is contained in box 0, it is contained in the IBounds2D object.
-   For example, if a point is contained in box 2, x is within the x-range and y < y-range.
+<code>public function getGridTest(x:Number, y:Number):uint</code><p>
+   This function is used to determine which vertices of a polygon can be skipped when rendering within the bounds of this Bounds2D.
+   While iterating over vertices, test each one with this function.
+   If (firstGridTest & secondGridTest & thirdGridTest) is non-zero, then the second vertex can be skipped.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">x</span>:Number</code> &mdash; The x-coordinate to test for grid containment.
+<td width="20px"></td><td><code><span class="label">x</span>:Number</code> &mdash; The x-coordinate to test.
    </td>
 </tr>
 <tr>
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">y</span>:Number</code> &mdash; The y-coordinate to test for grid containment.
+<td width="20px"></td><td><code><span class="label">y</span>:Number</code> &mdash; The y-coordinate to test.
    </td>
 </tr>
 </table>
@@ -885,7 +874,7 @@ showHideInherited();
 <span class="label">Returns</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20"></td><td><code>Number</code> &mdash; The grid number from 0 to 8 that the x,y point is contained in, or NaN if none.
+<td width="20"></td><td><code>uint</code> &mdash; A value to be ANDed with other results of getGridTest().
    </td>
 </tr>
 </table>

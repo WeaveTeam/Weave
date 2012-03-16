@@ -39,7 +39,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 </table>
 <p></p>
-  BLGTree
   Binary Line Generalization Tree
   This class defines a structure to represent a streamed polygon.
   
@@ -64,7 +63,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">BLGTree</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#lowestSavedImportance">lowestSavedImportance</a> : Number<div class="summaryTableDescription">[read-only]</div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#lowestSavedImportance">lowestSavedImportance</a> : Number<div class="summaryTableDescription">[read-only]
+   The lowest importance value for any point that has been stored in the tree
+   </div>
 </td><td class="summaryTableOwnerCol">BLGTree</td>
 </tr>
 </table>
@@ -81,7 +82,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#BLGTree()">BLGTree</a>()</div>
 <div class="summaryTableDescription">
-   BLGTree
    Create an empty tree.</div>
 </td><td class="summaryTableOwnerCol">BLGTree</td>
 </tr>
@@ -90,7 +90,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#clear()">clear</a>():void</div>
 <div class="summaryTableDescription">
-   clear
    Removes all points from the BLGTree.</div>
 </td><td class="summaryTableOwnerCol">BLGTree</td>
 </tr>
@@ -99,7 +98,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#getPointVector()">getPointVector</a>(minImportance:Number = 0, visibleBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a> = null):Vector</div>
 <div class="summaryTableDescription">
-   getPointVector
    This function performs an in-order traversal of nodes, skipping those
    with importance < minImportance.</div>
 </td><td class="summaryTableOwnerCol">BLGTree</td>
@@ -109,7 +107,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summarySignature">
 <a class="signatureLink" href="#insert()">insert</a>(index:int, importance:Number, x:Number, y:Number):void</div>
 <div class="summaryTableDescription">
-   insert
    Insert a new vertex into the BLGTree.</div>
 </td><td class="summaryTableOwnerCol">BLGTree</td>
 </tr>
@@ -119,7 +116,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#splitAtIndex()">splitAtIndex</a>(splitIndex:int):<a href="../primitives/BLGTree.html">BLGTree</a>
 </div>
 <div class="summaryTableDescription">
-   splitAtIndex
    </div>
 </td><td class="summaryTableOwnerCol">BLGTree</td>
 </tr>
@@ -151,7 +147,9 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>lowestSavedImportance:Number</code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
+<code>lowestSavedImportance:Number</code>&nbsp;&nbsp;[read-only]<p>
+   The lowest importance value for any point that has been stored in the tree
+   </p><span class="label">Implementation</span>
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get lowestSavedImportance():Number</code>
 <br>
@@ -166,7 +164,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function BLGTree()</code><p>
-   BLGTree
    Create an empty tree.
    </p></div>
 <a name="methodDetail"></a>
@@ -179,7 +176,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function clear():void</code><p>
-   clear
    Removes all points from the BLGTree.
    </p></div>
 <a name="getPointVector()"></a>
@@ -190,7 +186,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function getPointVector(minImportance:Number = 0, visibleBounds:<a href="../api/primitives/IBounds2D.html">IBounds2D</a> = null):Vector</code><p>
-   getPointVector
    This function performs an in-order traversal of nodes, skipping those
    with importance < minImportance.  The visit operation is to append the
    current node to the traversalVector.
@@ -225,7 +220,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function insert(index:int, importance:Number, x:Number, y:Number):void</code><p>
-   insert
    Insert a new vertex into the BLGTree.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -260,7 +254,6 @@ showHideInherited();
 </table>
 <div class="detailBody">
 <code>public function splitAtIndex(splitIndex:int):<a href="../primitives/BLGTree.html">BLGTree</a></code><p>
-   splitAtIndex
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
