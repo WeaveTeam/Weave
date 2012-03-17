@@ -124,12 +124,9 @@
 				log.validateNow();
 				log.verticalScrollPosition = log.maxVerticalScrollPosition;
 			}
-			private function consoleClear(now:Boolean = false):void
+			private function consoleClear():String
 			{
-				if (now)
-					log.text = '';
-				else
-					WeaveAPI.StageUtils.callLater(this, consoleClear, [true], false);
+				return log.text = '';
 			}
 			
 			private const symbolTable:Object = {
