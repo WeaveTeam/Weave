@@ -335,71 +335,72 @@ package weave.visualization.layers
 			return null;
 		}
 		
-		public var topMarginToolTip:String;
-		public var bottomMarginToolTip:String;
-		public var leftMarginToolTip:String;
-		public var rightMarginToolTip:String;
+		public var topMarginToolTip:String = null;
+		public var bottomMarginToolTip:String = null;
+		public var leftMarginToolTip:String = null;
+		public var rightMarginToolTip:String = null;
 		
-		public var topMarginColumn:IAttributeColumn;
-		public var bottomMarginColumn:IAttributeColumn;
-		public var leftMarginColumn:IAttributeColumn;
-		public var rightMarginColumn:IAttributeColumn;
+		public var topMarginColumn:IAttributeColumn = null;
+		public var bottomMarginColumn:IAttributeColumn = null;
+		public var leftMarginColumn:IAttributeColumn = null;
+		public var rightMarginColumn:IAttributeColumn = null;
 		
 		private var _axisToolTip:IToolTip = null;
 		override protected function handleMouseMove():void
 		{
 			super.handleMouseMove();
 			
-			
 			if (mouseIsRolledOver)
 			{
 				if (_axisToolTip)
 					ToolTipManager.destroyToolTip(_axisToolTip);
 				_axisToolTip = null;
-
 				
 				if (!WeaveAPI.StageUtils.mouseButtonDown)
 				{
 					var theMargin:LinkableString = getMarginAndSetQueryBounds(mouseX, mouseY, true);
 					var index:int = [marginTop, marginBottom, marginLeft, marginRight].indexOf(theMargin);
 					var axisColumn:IAttributeColumn = null;
-					var toolTip:String
+					var marginToolTip:String;
 					if (index >= 0)
 					{
 						var columns:Array = [topMarginColumn, bottomMarginColumn, leftMarginColumn, rightMarginColumn];
 						var toolTips:Array = [topMarginToolTip, bottomMarginToolTip, leftMarginToolTip, rightMarginToolTip];
 						axisColumn = columns[index];
-						toolTip = toolTips[index];
+						marginToolTip = toolTips[index];
 						if (!axisColumn)
 							theMargin = null;
 					}
 					
-					var stageWidth:int  = stage.stageWidth;
-					var stageHeight:int = stage.stageHeight ; //stage.height returns incorrect values
+					var stageWidth:int = stage.stageWidth;
+					var stageHeight:int = stage.stageHeight; //stage.height returns incorrect values
 					
 					if (theMargin && Weave.properties.enableToolControls.value)
 						CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
 					// if we should be creating a tooltip
 					if (axisColumn)
 					{
-						if (!toolTip)
+						if (marginToolTip == null)
 						{
-							toolTip = ColumnUtils.getTitle(axisColumn);
-							toolTip += "\n Key type: "   + ColumnUtils.getKeyType(axisColumn);
-							toolTip += "\n # of records: " + WeaveAPI.StatisticsCache.getCount(axisColumn);
-							toolTip += "\n Data source: " + ColumnUtils.getDataSource(axisColumn);
+							marginToolTip = ColumnUtils.getTitle(axisColumn);
+							marginToolTip += "\n Key type: "   + ColumnUtils.getKeyType(axisColumn);
+							marginToolTip += "\n # of records: " + WeaveAPI.StatisticsCache.getCount(axisColumn);
+							marginToolTip += "\n Data source: " + ColumnUtils.getDataSource(axisColumn);
 							if (Weave.properties.enableToolControls.value)
-								toolTip += "\n Click to select a different attribute.";
+								marginToolTip += "\n Click to select a different attribute.";
 						}
 						
-						// create the actual tooltip
-						// queryBounds was set above in getMarginAndSetQueryBounds().
-						var ttPoint:Point = localToGlobal( new Point(queryBounds.getXCenter(), queryBounds.getYCenter()) );
-						_axisToolTip = ToolTipManager.createToolTip(toolTip, ttPoint.x, ttPoint.y);
-						
-						// constrain the tooltip to fall within the bounds of the application											
-						_axisToolTip.x = Math.max( 0, Math.min(_axisToolTip.x, (stageWidth  - _axisToolTip.width) ) );
-						_axisToolTip.y = Math.max( 0, Math.min(_axisToolTip.y, (stageHeight - _axisToolTip.height) ) );
+						if (marginToolTip)
+						{
+							// create the actual tooltip
+							// queryBounds was set above in getMarginAndSetQueryBounds().
+							var ttPoint:Point = localToGlobal( new Point(queryBounds.getXCenter(), queryBounds.getYCenter()) );
+							_axisToolTip = ToolTipManager.createToolTip(marginToolTip, ttPoint.x, ttPoint.y);
+							
+							// constrain the tooltip to fall within the bounds of the application											
+							_axisToolTip.x = Math.max( 0, Math.min(_axisToolTip.x, (stageWidth  - _axisToolTip.width) ) );
+							_axisToolTip.y = Math.max( 0, Math.min(_axisToolTip.y, (stageHeight - _axisToolTip.height) ) );
+						}
 					}
 				}
 			}
