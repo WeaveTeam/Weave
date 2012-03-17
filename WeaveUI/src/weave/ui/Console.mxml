@@ -156,7 +156,17 @@
 			{
 				if (!input.text)
 					return;
-				
+
+				// append command text to log
+				log.text += '\r\r' + input.text;
+				// remove duplicate history items
+				var index:int;
+				while ((index = history.indexOf(input.text)) >= 0)
+					history.splice(index, 1);
+				// add command to end of history, and point historyIndex to that command
+				historyIndex = history.push(input.text) - 1;
+
+				// run the command
 				var result:*;
 				var decompiled:String;
 				try
@@ -183,18 +193,19 @@
 					{
 						result = String(result)
 					}
+					// if the command runs successfully, clear the input area
+					input.text = '';
+					historyIndex = history.length;
 				}
 				catch (e:Error)
 				{
 					result = e;
 				}
 				
-				log.text += StringUtil.substitute('\r\r{0}\r{1}', input.text, result);
-				input.setSelection(0, int.MAX_VALUE);
+				// append result to log
+				log.text += '\r' + result;
 				log.validateNow();
 				log.verticalScrollPosition = log.maxVerticalScrollPosition;
-
-				historyIndex = history.push(input.text);
 			}
 			private function handleConsoleLogClick():void
 			{
@@ -237,7 +248,7 @@
 				else
 					input.text = '';
 				
-				input.selectionBeginIndex = input.selectionEndIndex = input.text.length;
+				input.setSelection(int.MAX_VALUE, int.MAX_VALUE);
 			}
 		]]>
 	</mx:Script>
