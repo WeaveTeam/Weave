@@ -48,7 +48,6 @@ package weave.primitives
 		 * This is the root of the BLGTree.
 		 */
 		private var rootNode:BLGNode = null;
-		private var _lowestSavedImportance:Number = NaN;
 
 		public function get isEmpty():Boolean
 		{
@@ -56,22 +55,10 @@ package weave.primitives
 		}
 		
 		/**
-		 * The lowest importance value for any point that has been stored in the tree
-		 */
-		public function get lowestSavedImportance():Number
-		{
-			return _lowestSavedImportance;
-		}
-
-		/**
 		 * Insert a new vertex into the BLGTree.
 		 */
 		public function insert(index:int, importance:Number, x:Number, y:Number):void
 		{
-			// update lowest saved importance
-			if (isNaN(_lowestSavedImportance) || importance < _lowestSavedImportance)
-				_lowestSavedImportance = importance; 
-			
 			// if this new point would have been in the previous traversal,
 			// then the previous traversal is now invalid.
 			if (importance >= previousTraversalMinImportance)
@@ -407,7 +394,6 @@ package weave.primitives
 			var nodes:Vector.<BLGNode> = getPointVector();
 			// clear this tree
 			rootNode = null;
-			_lowestSavedImportance = NaN;
 			// add back all the points to the appropriate trees
 			for each (var node:BLGNode in nodes)
 			{
@@ -430,7 +416,6 @@ package weave.primitives
 			rootNode = null;
 			traversalVector.length = 0;
 			previousTraversalMinImportance = -1;
-			_lowestSavedImportance = NaN;
 		}
 	}
 }
