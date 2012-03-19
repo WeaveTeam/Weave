@@ -130,8 +130,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private const dataGridColumns:Dictionary = new Dictionary();
 			private var _currentDataGridColumns:Array = [];
 			
-			public const dataGridHorizontalScrollPosition:LinkableNumber = newLinkableChild(this,LinkableNumber);
-			public const dataGridVerticalScrollPosition:LinkableNumber = newLinkableChild(this,LinkableNumber);
+			public const dataGridHorizontalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+			public const dataGridVerticalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
 			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
