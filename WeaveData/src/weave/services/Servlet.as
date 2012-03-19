@@ -125,14 +125,20 @@ package weave.services
 				obj.methodParameters = methodParameters;
 				obj.streamParameterIndex = -1; // index of stream parameter
 				
-				var streamContent:ByteArray;
+				var streamContent:ByteArray = null;
 				var params:Array = methodParameters as Array;
-				var index:int = params ? params.length - 1 : -1;
-				if (params && params.length > 0 && params[index] is ByteArray)
+				if (params)
 				{
-					obj.streamParameterIndex = index; // tell the server about the stream parameter index
-					streamContent = params[index];
-					params[index] = null; // keep the placeholder where the server will insert the stream parameter
+					var index:int;
+					for (index = 0; index < params.length; index++)
+						if (params[index] is ByteArray)
+							break;
+					if (index < params.length)
+					{
+						obj.streamParameterIndex = index; // tell the server about the stream parameter index
+						streamContent = params[index];
+						params[index] = null; // keep the placeholder where the server will insert the stream parameter
+					}
 				}
 				
 				// serialize into compressed AMF3
