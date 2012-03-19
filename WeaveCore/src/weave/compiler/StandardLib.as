@@ -19,8 +19,6 @@
 
 package weave.compiler
 {
-	import flash.utils.describeType;
-	
 	import mx.formatters.NumberFormatter;
 	import mx.utils.ObjectUtil;
 

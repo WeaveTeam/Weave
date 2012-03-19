@@ -42,19 +42,28 @@
 	</mx:VBox>
 	<mx:VBox id="optionalSettingsPage" label="Configure data for Weave">
 		<ui:Indent label="{Strings.table_display_name}">
-			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="Enter a table name" text="{tableSelector.activeTable}" toolTip="{Strings.tip_csv_table_display_name}"/>
+			<ui:TextInputWithPrompt id="dataTableNameInput" prompt="Enter a table name" text="{tableSelector.activeTable}"/>
+			<ui:HelpComponent>This is the name that will be visible in Weave.</ui:HelpComponent>
 			<mx:CheckBox label="Overwrite" id="dataTableOverwriteCheck" selected="false"/>
 		</ui:Indent>
-		<ui:Indent label="Null flag values" toolTip="Specify flag values to treat as missing data, separated by commas">
+		<ui:Indent label="Null flag values">
 			<mx:TextInput id="nullFlagInput" editable="true"/>
+			<ui:HelpComponent>
+				If your data has values like "-1" representing missing data, you can enter the values here and Weave will treat them as missing data.  Separate multiple flag values by commas.
+			</ui:HelpComponent>
 		</ui:Indent>
-		<mx:CheckBox id="generateKeyColumn" selected="true"
-					 label="Generate a new primary key column"
-					 toolTip="Checking this box will generate a new unique key for each row."
-					 />
+		<mx:HBox>
+			<mx:CheckBox id="generateKeyColumn" selected="true" label="Generate a new primary key column"/>
+			<ui:HelpComponent>
+				This will generate a new unique key for each row.  It is the simplest option, but will not allow you to link the data to other data sets.
+			</ui:HelpComponent>
+		</mx:HBox>
 		<mx:VBox paddingLeft="{paddingIndent}" visible="{!generateKeyColumn.selected}">
 			<ui:Indent label="Key column" grouped="false">
-				<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true" toolTip="{Strings.tip_key_column_dropdown}"/><!-- editable because user may have typed in a file name manually -->
+				<ui:CustomComboBox id="csvKeyColumnCombo" text="" editable="true"/><!-- editable because user may have typed in a file name manually -->
+				<ui:HelpComponent>
+					Select the column whose values uniquely identify the rows in the table.  If there is no such column, you can either use the option to generate a new primary key column, or one of the advanced options below.
+				</ui:HelpComponent>
 			</ui:Indent>
 			
 			<mx:Label text="What do these keys correspond to?"/>
@@ -71,8 +80,20 @@
 				<ui:CustomComboBox id="csvSecondaryKeyColumnCombo" selectedIndex="-1" editable="true" toolTip="Select a secondary key column for use with the Dimension Slider" />
 			</ui:Indent>
 			
-			<mx:CheckBox id="generateFilterColumns" change="handleGenerateFilterColumns()" label="Generate filtered column queries" selected="false"/>					
-			<ui:IndentTextInput paddingLeft="{paddingIndent}" visible="{generateFilterColumns.selected}" label="Columns to use as filters" id="filterColumnsInput"/>
+			<mx:HBox>
+				<mx:CheckBox id="generateFilterColumns" change="handleGenerateFilterColumns()" label="Generate filtered column queries" selected="false"/>
+				<ui:HelpComponent>
+					This option is to be used when the new data table has a column that refers to keys in another data table but the keys do not uniquely identify rows in the new table.
+					
+					Other columns in the new table can be used to generate SQL queries that will return different subsets of the rows.  The key column will be used to uniquely identify rows in the subsets.
+				</ui:HelpComponent>
+			</mx:HBox>
+			<ui:Indent label="Columns to use as filters" paddingLeft="{paddingIndent}" visible="{generateFilterColumns.selected}">
+				<mx:TextInput id="filterColumnsInput"/>
+				<ui:HelpComponent>
+					Enter the names of columns to be used to break the data into subsets. Separate multiple column names by commas.
+				</ui:HelpComponent>
+			</ui:Indent>
 		</mx:VBox>
 	</mx:VBox>
 	<mx:VBox id="dublinCorePage" width="100%" label="Specify Dublin Core metadata">
@@ -104,12 +125,12 @@
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
-			import weave.ui.admin.ServerCSVFileViewer;
+			import weave.ui.admin.ServerFileViewer;
 			
 			private static const paddingIndent:int = 20;
 			
 			private var _csvFileReference:FileReference = new FileReference();
-			private var _serverFileBrowser:ServerCSVFileViewer = null;
+			private var _serverFileBrowser:ServerFileViewer = null;
 			
 			private function handleCreationComplete():void
 			{
@@ -173,8 +194,8 @@
 			}
 			private function openServerBrowser():void
 			{
-				_serverFileBrowser = ServerCSVFileViewer.createServerFileViewer(this);
-				_serverFileBrowser.selectButton.addEventListener(MouseEvent.CLICK, serverFileBrowserSelectFile);				
+				_serverFileBrowser = ServerFileViewer.createServerFileViewer(this, ServerFileViewer.INPUT_CSV);
+				_serverFileBrowser.selectButton.addEventListener(MouseEvent.CLICK, serverFileBrowserSelectFile);
 			}
 			private function serverFileBrowserSelectFile(e:MouseEvent):void
 			{

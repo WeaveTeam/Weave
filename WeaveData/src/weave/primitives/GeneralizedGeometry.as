@@ -94,18 +94,6 @@ package weave.primitives
 		}
 
 		/**
-		 * lowestSavedImportance
-		 * The lowest importance value for any point that has been added to the geometry.
-		 */
-		public function get lowestSavedImportance():Number
-		{
-			var result:Number = Infinity;
-			for each (var part:BLGTree in parts)
-				result = Math.min(result, part.lowestSavedImportance);
-			return result;
-		}
-
-		/**
 		 * getSimplifiedGeometry
 		 * @param minImportance No points with importance less than this value will be returned.
 		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.

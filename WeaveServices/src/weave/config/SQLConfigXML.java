@@ -520,6 +520,7 @@ public class SQLConfigXML implements ISQLConfig
 			// set sql properties
 			tag.setAttribute("connection", info.connection);
 			tag.setAttribute("dataWithKeysQuery", info.sqlQuery);
+			tag.setAttribute("sqlParams", info.sqlParams);
 			// set metadata properties
 			for (Metadata property : Metadata.values())
 				if (metadata.containsKey(property.toString()))
@@ -613,6 +614,7 @@ public class SQLConfigXML implements ISQLConfig
 			// if missing)
 			String connection = getCascadedAttribute(columnNodeProperties, "connection", tableProperties, "connection");
 			String sqlQuery = columnNodeProperties.getNamedItem("dataWithKeysQuery").getTextContent();
+			String sqlParams = columnNodeProperties.getNamedItem("sqlParams").getTextContent();
 			// get attributeColumn metadata properties
 			Map<String, String> columnMetadataResult = new HashMap<String, String>();
 			columnMetadataResult.put(Metadata.DATATABLE.toString(), tableName);
@@ -640,7 +642,7 @@ public class SQLConfigXML implements ISQLConfig
 				columnMetadataResult.put(property.toString(), value);
 			}
 			// System.out.println(resultMetadata);
-			columnInfoList.add(new AttributeColumnInfo(connection, sqlQuery, columnMetadataResult));
+			columnInfoList.add(new AttributeColumnInfo(connection, sqlQuery, sqlParams, columnMetadataResult));
 		}
 		return columnInfoList;
 	}

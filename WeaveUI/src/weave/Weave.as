@@ -229,17 +229,14 @@ package weave
 			target.requestObject(DEFAULT_SELECTION_KEYSET, KeySet, true);
 			var probe:KeySet = target.requestObject(DEFAULT_PROBE_KEYSET, KeySet, true);
 			var always:KeySet = target.requestObject(ALWAYS_HIGHLIGHT_KEYSET, KeySet, true);
-			probe.addImmediateCallback(always, _addKeysToKeySet, [always, probe]);
-			always.addImmediateCallback(probe, _addKeysToKeySet, [always, probe]);
+			var callback:Function = function():void { probe.addKeys(always.keys); };
+			probe.addImmediateCallback(always, callback);
+			always.addImmediateCallback(probe, callback);
 
 			target.requestObject(SAVED_SELECTION_KEYSETS, LinkableHashMap, true);
 			target.requestObject(SAVED_SUBSETS_KEYFILTERS, LinkableHashMap, true);
 		}
 		
-		private static function _addKeysToKeySet(source:KeySet, destination:KeySet):void
-		{
-			destination.addKeys(source.keys);
-		}
 		
 		
 		/******************************************************************************************/
@@ -355,6 +352,22 @@ package weave
 		}
 		
 		/**
+		 * This will change an ".xml" extension to ".weave" in a file name.
+		 * @param fileName A file name to fix.
+		 * @return A file name ending in ".weave".
+		 */
+		public static function fixWeaveFileName(fileName:String):String
+		{
+			var _xml:String = '.xml';
+			var _weave:String = '.weave';
+			if (fileName.substr(-_xml.length).toLowerCase() == _xml)
+				fileName = fileName.substr(0, -4);
+			if (fileName.substr(-_weave.length).toLowerCase() != _weave)
+				fileName += _weave;
+			return fileName;
+		}
+
+		/**
 		 * This function will create an object that can be saved to a file and recalled later with loadWeaveFileContent().
 		 */
 		public static function createWeaveFileContent():ByteArray
@@ -366,7 +379,8 @@ package weave
 			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
 			var output:WeaveArchive = new WeaveArchive();
 			output.files[ARCHIVE_THUMBNAIL_PNG] = _pngEncoder.encode(_thumbnail);
-			output.objects[ARCHIVE_PLUGINS_AMF] = _pluginList;
+			if (Weave.ALLOW_PLUGINS)
+				output.objects[ARCHIVE_PLUGINS_AMF] = _pluginList;
 			output.objects[ARCHIVE_HISTORY_AMF] = _history;
 			return output.serialize();
 		}
@@ -400,14 +414,17 @@ package weave
 				
 				var archive:WeaveArchive = content as WeaveArchive;
 				var _history:Object = archive.objects[ARCHIVE_HISTORY_AMF];
-				plugins = archive.objects[ARCHIVE_PLUGINS_AMF] as Array;
+				if (!_history)
+					throw new Error("Weave session history not found.");
+				
+				plugins = archive.objects[ARCHIVE_PLUGINS_AMF] as Array || [];
 				if (setPluginList(plugins, content))
 				{
 					history.setSessionState(_history);
 				}
 			}
 			
-			// TEMPORARY HACK to force menu to refresh
+			// hack for forcing VisApplication menu to refresh
 			getCallbackCollection(Weave.properties).triggerCallbacks();
 		}
 		

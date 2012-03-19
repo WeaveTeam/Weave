@@ -408,7 +408,11 @@ package weave.utils
 				keyTypeMap[key.keyType] = true;
 				
 				for (i = 0; i < definedAttrCols.length; i++)
-					record[columnTitles[i]] = (definedAttrCols[i] as IAttributeColumn).getValueFromKey(key, dataType);
+				{
+					var value:Object = (definedAttrCols[i] as IAttributeColumn).getValueFromKey(key, dataType);
+					if (!isNaN(value as Number))
+						record[columnTitles[i]] = value;
+				}
 				records.push(record);
 			}
 			

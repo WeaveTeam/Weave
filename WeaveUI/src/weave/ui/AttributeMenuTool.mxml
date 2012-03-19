@@ -168,9 +168,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// Since we're adding these callbacks after the children have been created,
 				// we don't have to worry about ui components being null inside the callbacks.
 				Weave.root.childListCallbacks.addGroupedCallback(this, handleGlobalListChange, true);
-				targetTool.addImmediateCallback(this, handleTargetToolChange, null, true);
-				targetAttribute.addImmediateCallback(this, handleTargetAttributeChange, null, true);
-				choices.addImmediateCallback(this, handleChoicesChange, null, true);
+				targetTool.addImmediateCallback(this, handleTargetToolChange, true);
+				targetAttribute.addImmediateCallback(this, handleTargetAttributeChange, true);
+				choices.addImmediateCallback(this, handleChoicesChange, true);
 				
 				choicesComponent.hashMap = choices;
 				

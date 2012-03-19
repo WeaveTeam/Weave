@@ -221,15 +221,15 @@ package weave.data
 		public function createCSVToken(str:String):String
 		{
 			if (str == null)
-				return null;
+				str = '';
+			
 			// determine if quotes are necessary
 			if ( str.length > 0
 				&& str.indexOf(quote) < 0
 				&& str.indexOf(delimiter) < 0
 				&& str.indexOf(LF) < 0
 				&& str.indexOf(CR) < 0
-				&& !StringUtil.isWhitespace(str.charAt(0))
-				&& !StringUtil.isWhitespace(str.charAt(str.length - 1)) )
+				&& str == StringUtil.trim(str) )
 			{
 				return str;
 			}

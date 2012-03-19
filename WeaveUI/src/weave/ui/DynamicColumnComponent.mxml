@@ -105,7 +105,7 @@
 				internalList.dynamicObject = value;
 				
 				if (value)
-					getCallbackCollection(value).addImmediateCallback(this, toggleLinkDropDown, null, true);
+					getCallbackCollection(value).addImmediateCallback(this, toggleLinkDropDown, true);
 			}
 			
 			private var _visTool:SimpleVisTool = null;

@@ -47,7 +47,7 @@ package weave.data.ColumnReferences
 		public function AbstractColumnReference()
 		{
 			// Whenever any property of the column reference changes, the hash value needs to be updated.
-			getCallbackCollection(this).addImmediateCallback(this, invalidateHash, null, true);
+			getCallbackCollection(this).addImmediateCallback(this, invalidateHash, true);
 			getCallbackCollection(this).addGroupedCallback(this, registerThisRef);
 		}
 		

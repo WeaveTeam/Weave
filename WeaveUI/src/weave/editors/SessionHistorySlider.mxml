@@ -26,10 +26,11 @@
 -->
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 xmlns="weave.editors.*"
+		 click="handleAnyClick();"
 		 width="100%" horizontalGap="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
 		 implements="weave.api.ui.ILinkableObjectEditor">
-	<mx:Button visible="{devMode}" includeInLayout="{devMode}" width="24" toolTip="Load session history from a file" icon="@Embed(source='/weave/resources/images/folder.png')" click="load()"/> 
-	<mx:Button visible="{devMode}" includeInLayout="{devMode}" width="24" toolTip="Save session history to a file" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
+	<mx:Button width="24" toolTip="Load session history from a file" icon="@Embed(source='/weave/resources/images/folder.png')" click="load()"/> 
+	<mx:Button width="24" toolTip="Save session history to a file" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
 	<mx:Button width="44" id="recordButton" toggle="true" icon="{recordButton.selected ? icon_historyRecordOn : icon_historyRecordOff}"
 			   visible="false" includeInLayout="false"
 			   click="_stateLog.enableLogging.value = recordButton.selected;"
@@ -49,14 +50,14 @@
 			import mx.core.Application;
 			import mx.managers.PopUpManager;
 			
+			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
+			import weave.api.juggleImmediateCallback;
 			import weave.core.SessionStateLog;
 			import weave.ui.ExportSessionStatePanel;
 			
 			private const padding:Number = 4;
-			
-			public static const devMode:Boolean = false;
 			
 			private var _stateLog:SessionStateLog = null; // this is the object we are editing
 
@@ -71,13 +72,9 @@
 			 */
 			public function setTarget(object:ILinkableObject):void
 			{
-				if (_stateLog)
-					getCallbackCollection(_stateLog).removeCallback(handleStateLogChange);
-				
+				juggleImmediateCallback(_stateLog, object, this, handleStateLogChange);
 				_stateLog = object as SessionStateLog;
-				
-				if (_stateLog)
-					getCallbackCollection(_stateLog).addImmediateCallback(this, handleStateLogChange, null, true);
+				handleStateLogChange();
 			}
 			
 			/**
@@ -88,6 +85,13 @@
 				// do nothing because changes are applied immediately.
 			}
 			
+			// called when anything is clicked
+			private function handleAnyClick():void
+			{
+				// hack so slider doesn't disappear
+				Weave.properties.showSessionHistoryControls.value = true;
+			}
+			
 			// called when slider value changes
 			private function handleSlider():void
 			{
@@ -96,6 +100,9 @@
 					_stateLog.undo(-delta);
 				else
 					_stateLog.redo(delta);
+				
+				// hack so slider doesn't disappear
+				handleAnyClick();
 			}
 			
 			// called when state log changes
@@ -126,7 +133,10 @@
 						Application.application.visApp.loadSessionState(e.target.data, _weaveFileRef.name);
 					} );
 				}
-				_weaveFileRef.browse([new FileFilter("Weave file", "*.weave"), new FileFilter("Weave XML session state", "*.xml")]);
+				_weaveFileRef.browse([
+					new FileFilter("Weave file", "*.weave"),
+					new FileFilter("All files", "*")
+				]);
 			}
 			
 			private function save():void

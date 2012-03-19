@@ -336,8 +336,8 @@ package weave.core
 			var state:Object = {
 				"version": 0,
 				"currentState": _prevState,
-				"undoHistory": _undoHistory,
-				"redoHistory": _redoHistory,
+				"undoHistory": _undoHistory.concat(),
+				"redoHistory": _redoHistory.concat(),
 				"nextId": _nextId,
 				"enableLogging": enableLogging.value
 			};

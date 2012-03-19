@@ -18,32 +18,64 @@
 */
 package weave.ui.CustomDataGrid
 {
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	
+	import mx.binding.utils.BindingUtils;
+	import mx.containers.Canvas;
 	import mx.controls.DataGrid;
+	import mx.controls.Image;
 	import mx.controls.Label;
 	import mx.controls.dataGridClasses.DataGridListData;
+	import mx.core.UIComponent;
 	
-	import weave.Weave;
-	import weave.api.WeaveAPI;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.registerLinkableChild;
+	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.ColorColumn;
+	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.KeySets.KeySet;
-	import weave.data.QKeyManager;
-	import weave.visualization.plotters.styles.SolidFillStyle;
 
-	public class DataGridCellRenderer extends Label
+	public class DataGridCellRenderer extends Canvas
 	{
 		public function DataGridCellRenderer()
 		{
-			super();
+			addChild(img);
+			addChild(lbl);
+			
+			horizontalScrollPolicy = "off";
+			
+			img.x = 1; // because there is a vertical grid line on the left that overlaps the item renderer
+			img.source = new Bitmap(null, 'auto', true);
 		}
 		
-		public var colorColumn:ColorColumn = null;
+		private var img:Image = new Image();
+		private var lbl:Label = new Label();
 		
+		public var attrColumn:IAttributeColumn = null;
+		public var showColors:LinkableBoolean = null;
+		public var colorColumn:ColorColumn = null;
 		public var keySet:KeySet = null;
 		
+		override public function set data(item:Object):void
+		{
+			var key:IQualifiedKey = item as IQualifiedKey;
+			
+			super.data = key;
+			if (attrColumn is ImageColumn)
+			{
+				lbl.visible = false;
+				lbl.text = toolTip = '';
+				(img.source as Bitmap).bitmapData = attrColumn.getValueFromKey(key) as BitmapData;
+			}
+			else
+			{
+				lbl.visible = true;
+				lbl.text = toolTip = attrColumn.getValueFromKey(key, String);
+				img.source = null;
+			}
+		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
@@ -51,35 +83,37 @@ package weave.ui.CustomDataGrid
 			
 			var g:Graphics = graphics;
 			g.clear();
-			var grid:DataGrid = DataGrid(DataGridListData(listData).owner);
-			if(keySet.keys.length > 0){
-				if (grid.isItemSelected(data) || grid.isItemHighlighted(data)){
+			
+			if (!showColors.value)
+				return;
+			
+			var grid:DataGrid = owner as DataGrid || owner.parent as DataGrid;
+			if (keySet.keys.length > 0)
+			{
+				if (grid.isItemSelected(data) || grid.isItemHighlighted(data))
+				{
 					setStyle("fontWeight", "bold");
 					alpha = 1.0;
 				}				
-				else{
+				else
+				{
 					setStyle("fontWeight", "normal");
 					alpha = 0.3;
 				}
 			}
-			else{
+			else
+			{
 				setStyle("fontWeight", "normal");
 				alpha = 1.0;	
 			}
 			
-			
-				
-			
 			var colorValue:Number = colorColumn.getValueFromKey(data as IQualifiedKey);
-			if(!isNaN(colorValue)){
+			if (!isNaN(colorValue))
+			{
 				g.beginFill(colorValue);
 				g.drawRect(0, 0, unscaledWidth, unscaledHeight);
 				g.endFill();
 			}
-				
-			
-		
-			
 		}
 	}
 }

@@ -54,7 +54,7 @@
 			</mx:TabNavigator>
 			<mx:TabNavigator width="100%" height="100%"
 							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
-				<ColumnListComponent label="Edit Variables" hashMap="{equationColumn.variables}" dragMoveEnabled="false" width="100%" height="100%"/>
+				<ColumnListComponent label="Edit Variables" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
 				<mx:Canvas label="Edit Variable Names" width="100%" height="100%">
 					<LinkableObjectGrid hashMap="{equationColumn.variables}" width="100%" height="100%"/>
 				</mx:Canvas>
@@ -166,15 +166,15 @@
 //				linkBindableProperty(equationColumn.columnTitle, titleInput, "text");
 				
 				titleInput.text = equationColumn.getMetadata(AttributeColumnMetadata.TITLE);
-				EventUtils.addDelayedCallback(titleInput, Event.CHANGE, handleTitleTextEntry);
+				EventUtils.addDelayedEventCallback(titleInput, Event.CHANGE, handleTitleTextEntry);
 				equationColumn.addImmediateCallback(this,handleTitleSessionStateChange);
 				
 				
 				textEditor.text = equationColumn.equation.value;
-				EventUtils.addDelayedCallback(textEditor, Event.CHANGE, handleEquationTextEntry);
+				EventUtils.addDelayedEventCallback(textEditor, Event.CHANGE, handleEquationTextEntry);
 				equationColumn.equation.addImmediateCallback(this,handleEquationSessionStateChange);
 				
-				Weave.root.childListCallbacks.addImmediateCallback(this, updateActiveEquationCombo, null, true);
+				Weave.root.childListCallbacks.addImmediateCallback(this, updateActiveEquationCombo, true);
 				activeEquationCombo.selectedIndex = 0;
 				handleActiveEquationSelect();
 				

@@ -352,10 +352,7 @@
 				visualization.zoomBounds.setDataBounds(_tempBounds);
 			}
 			
-			private var scrollWheelScaler:int = 3; // number of mouse wheel delta increments required to zoom in/out 2x
-			
 			private var _tempBounds:IBounds2D = new Bounds2D();
-			private var _tempPoint:Point = new Point();
 
 			[Embed(source="/weave/resources/images/ocean_background2.jpg")]
 			private static const BackgroundImage:Class;
@@ -436,13 +433,6 @@
 				visualization.zoomBounds.getDataBounds(_tempBounds);
 				xCenterCoord.text = String(_tempBounds.getXCenter());
 				yCenterCoord.text = String(_tempBounds.getYCenter());
-				
-				// The code below shouldn't be used because it causes the dataBounds callbacks
-				// to run twice and it messes up the behavior of PlotLayerContainer.updateDataBounds().
-				// These linkable variables are unnecessary anyway because
-				// you can get the values from the dataBounds.
-				//linkableXCenterCoord.value = xCenter; // this causes dataBounds callbacks to run.
-				//linkableYCenterCoord.value = yCenter; // and so does this.
 			}
 			
 			public var overviewPanel:MapOverviewWindow;
@@ -511,12 +501,12 @@
 		]]>
 	</mx:Script>
 
-	<mx:VBox	id="mapControls"
+	<mx:VBox id="mapControls"
 				horizontalAlign="center"
 				verticalGap="{zoomControlsToggle.selected ? 2 : 0}"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
-				right="2" bottom="2"
+				right="0" bottom="0"
 				backgroundColor="white" backgroundAlpha="0.01">
 		<mx:VBox paddingLeft="2" paddingRight="2" paddingBottom="2" paddingTop="2"
 				includeInLayout="{zoomControlsToggle.selected}"
@@ -534,7 +524,7 @@
 				
 				<mx:HBox horizontalGap="2">			
 					<mx:Button id="west"
-						    label="W"
+						    label="W" toolTip=""
 							fillAlphas="[1.0, 1.0, 1.0, 1.0]"
 							width="16" height="16"
 							click="handlePanButtonClick(-1,0)"
@@ -567,7 +557,7 @@
 				verticalGap="2"
 				includeInLayout="{zoomControlsToggle.selected}"
 				visible="{zoomControlsToggle.selected}"
-				backgroundColor="white" backgroundAlpha="0.5" borderStyle="outset">
+				backgroundColor="white" backgroundAlpha="0.85" borderStyle="outset">
 			<mx:Button id="zoomIn"
 					icon="@Embed(source='/weave/resources/images/zoomPlus.png')"
 					fillAlphas="[1.0, 1.0, 1.0, 1.0]"
@@ -658,9 +648,9 @@
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Map Layers">
 			<mx:HBox width="100%">
-				<mx:Button label="Add Geometry Layer" click="addGeomLayer();"/>
-				<mx:Button label="Add Label Layer" click="addLabelLayer();"/>
-				<mx:Button label="Add WMS Layer" click="addWMSLayer();"/>
+				<mx:Button label="Add Base Map" click="addWMSLayer();" toolTip="Add an image layer underneath the geometries"/>
+				<mx:Button label="Add Geometry" click="addGeomLayer();" toolTip="Add a layer of polygons, lines, or points that can be colored according to the data"/>
+				<mx:Button label="Add Labels" click="addLabelLayer();" toolTip="Add labels to the selected geometry layer"/>
 			</mx:HBox>
 			
 			<!--<mx:DataGrid dataProvider="{_layerNames.reverse()}">

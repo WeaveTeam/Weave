@@ -34,9 +34,10 @@ package weave.api.services
 		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
 		 * @param token An object that gets passed to the handler functions.
 		 * @param dataFormat The value to set as the dataFormat property of a URLLoader object.
+		 * @param reportProgress If set to true, WeaveAPI.ProgressIndicator will be notified of the download progress.
 		 * @return The URLLoader used to perform the HTTP GET request.
 		 */
-		function getURL(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary"):URLLoader;
+		function getURL(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary", reportProgress:Boolean = true):URLLoader;
 
 		/**
 		 * This function will download content from a URL and call the given handler functions when it completes or a fault occurrs.
@@ -45,8 +46,9 @@ package weave.api.services
 		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
 		 * @param token An object that gets passed to the handler functions.
 		 * @param useCache A boolean indicating whether to use the cached images. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
+		 * @param reportProgress If set to true, WeaveAPI.ProgressIndicator will be notified of the download progress.
 		 * @return An IURLRequestToken that can be used to cancel the request and cancel the async handlers.
 		 */
-		function getContent(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):IURLRequestToken;
+		function getContent(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true, reportProgress:Boolean = true):IURLRequestToken;
 	}
 }

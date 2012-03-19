@@ -171,9 +171,11 @@ public class DataService extends GenericServlet
 		Object recordData[][] =  new Object[keys.size()][infoList.size()];
 		
 		Map<String,String> metadataList[] = new Map[infoList.size()];
-		for (int colIndex = 0; colIndex < infoList.size(); colIndex++){
+		for (int colIndex = 0; colIndex < infoList.size(); colIndex++)
+		{
 			AttributeColumnInfo info = infoList.get(colIndex);
-			String dataWithKeysQuery = info.sqlQuery;
+			String sqlQuery = info.sqlQuery;
+			String sqlParams = info.sqlParams;
 			metadataList[colIndex] = info.metadata;
 
 			//if (dataWithKeysQuery.length() == 0)
@@ -208,7 +210,17 @@ public class DataService extends GenericServlet
 			try
 			{
 				//timer.start();
-				SQLResult result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery);
+				
+				SQLResult result;
+				if (sqlParams != null && sqlParams.length() > 0)
+				{
+					String[] sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams)[0];
+					result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, sqlQuery, sqlParamsArray);
+				}
+				else
+				{
+					result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, sqlQuery);
+				}
 				//timer.lap("get row set");
 				// if dataType is defined in the config file, use that value.
 				// otherwise, derive it from the sql result.
@@ -357,6 +369,10 @@ public class DataService extends GenericServlet
 		{
 			timer.start();
 			SQLResult result;
+			// use default sqlParams if not specified by query params
+			if (sqlParams == null || sqlParams.length() == 0)
+				sqlParams = info.sqlParams;
+			
 			if (sqlParams != null && sqlParams.length() > 0)
 			{
 				String[] args = CSVParser.defaultParser.parseCSV(sqlParams)[0];

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:VBox width="100%" horizontalAlign="center">
+		<mx:Label id="title" 	text="{_title}" />
+		<mx:VBox>
+			<mx:HBox>
+				<mx:Label text="Last Modified:" width="88" /><mx:Label text="{_lastMod}"/>
+			</mx:HBox>
+			<mx:HBox>
+				<mx:Label text="File Size:" width="88" /><mx:Label text="{_fileSize}"/>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:Canvas minHeight="128">
+			<mx:Image id="img" source="{_thumbByteArray}" />
+		</mx:Canvas>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Image;
+			import mx.formatters.NumberFormatter;
+			import mx.rpc.events.ResultEvent;
+			
+			import weave.services.AdminInterface;
+			
+			[Bindable] private var _title:String = "";
+			[Bindable] private var _thumbByteArray:ByteArray = null;
+			[Bindable] private var _lastMod:String = "";
+			[Bindable] private var _fileSize:String = "";
+			
+			private var formater:NumberFormatter = new NumberFormatter();
+
+			public function clearPreview():void
+			{
+				visible = false;
+				_title = '';
+				_thumbByteArray = null;
+				_lastMod = '';
+				_fileSize = '';
+			}
+			public function updatePreview(fileName:String):void
+			{
+				AdminInterface.instance.getWeaveFileInfo(fileName).addAsyncResponder(handleInfo);
+			}
+			private function handleInfo(event:ResultEvent, token:Object = null):void
+			{
+				visible = true;
+				
+				var _LM:Number = event.result.lastModified as Number;
+				var _FS:Number = event.result.fileSize as Number;
+				
+				_title = event.result.fileName as String;
+				if( event.result.thumb as ByteArray == null )
+				{
+					_thumbByteArray = null;
+					img.graphics.clear();
+				} 
+				else
+				{
+					_thumbByteArray = event.result.thumb as ByteArray;
+				}
+				
+				var d:Date = new Date();
+				d.time = _LM;
+				_lastMod = (d.getMonth() + 1)+"/"+d.getDate()+"/"+d.getFullYear()+" "+((d.getHours()>12)?d.getHours()-12:d.getHours())+":"+d.getMinutes()+" "+((d.getHours()>12)?"PM":"AM");
+				
+				
+				if( _FS < 1024 ) {
+					_fileSize = _FS + (( _FS == 1 ) ? " Byte" : " Bytes");
+					return;
+				}
+				
+				_FS = _FS / 1024;
+				if( _FS < 1024 ) {
+					formater.precision = 2;
+					_fileSize = formater.format(_FS) + (( _FS == 1 ) ? " Kilobyte" : " Kilobytes");
+					return;
+				}
+				
+				_FS = _FS / 1024;
+				if( _FS < 1024 ) {
+					formater.precision = 2;
+					_fileSize = formater.format(_FS) + (( _FS == 1 ) ? " Megabyte" : " Megabytes");
+					return;
+				}
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

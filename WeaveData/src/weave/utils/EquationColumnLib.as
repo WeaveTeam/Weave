@@ -172,7 +172,7 @@ package weave.utils
 				
 				// make sure when the column changes, the cache gets invalidated.
 				if (_reverseKeyLookupCache[column] === undefined)
-					column.addImmediateCallback(null, clearReverseLookupCache, [column]);
+					column.addImmediateCallback(null, function():void { clearReverseLookupCache(column); });
 				
 				_reverseKeyLookupCache[column] = lookup = new Dictionary();
 				for each (var recordKey:IQualifiedKey in column.keys)

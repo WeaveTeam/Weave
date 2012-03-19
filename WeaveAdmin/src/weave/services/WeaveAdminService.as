@@ -224,7 +224,7 @@ package weave.services
 			query.addAsyncResponder(alertResult);
 			return query;
 		}
-		public function saveWeaveFile(connectionName:String, password:String, fileContents:String, fileName:String, overwriteFile:Boolean):DelayedAsyncInvocation
+		public function saveWeaveFile(connectionName:String, password:String, fileContent:ByteArray, fileName:String, overwriteFile:Boolean):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = invokeAdminService("saveWeaveFile", arguments);
 			//query.addAsyncResponder(alertResult);
@@ -265,6 +265,11 @@ package weave.services
 			return query;
 		}
 
+		public function getWeaveFileInfo(connectionName:String, password:String, fileName:String):DelayedAsyncInvocation
+		{
+			return invokeAdminService("getWeaveFileInfo", arguments);
+		}
+		
 		
 		/**
 		 * Adds the given Dublin Core key-value pairs to the metadata store for

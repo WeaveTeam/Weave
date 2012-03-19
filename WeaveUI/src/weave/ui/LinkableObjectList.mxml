@@ -277,14 +277,18 @@ LinkableObjectList
 					var title:String = ColumnUtils.getTitle(col);
 					var keyType:String = ColumnUtils.getKeyType(col);
 					var dataType:String = ColumnUtils.getDataType(col);
-					if (!dataType)
+					
+					if (dataType && keyType)
+						return StringUtil.substitute("{0} ({1} -> {2})", title, keyType, dataType);
+					if (keyType)
 						return StringUtil.substitute("{0} (Key Type: {1})", title, keyType);
-					return StringUtil.substitute("{0} ({1} -> {2})", title, keyType, dataType);
+					if (dataType)
+						return StringUtil.substitute("{0} (Data Type: {1})", title, dataType);
+					
+					return title;
 				}
-				else
-				{
-					return label;
-				}
+				
+				return label;
 			}
 			
 			// this function updates the sessioned name order based on what is in the data provider

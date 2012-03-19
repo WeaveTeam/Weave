@@ -18,35 +18,23 @@
 */
 package weave.beans;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class UploadedFile {
 
-	public String size;
-	//public sizeObject size2;
+	public long size;
 	public String name;
-	public String lastModified;
-	//public dateObject lastModified2;
+	public long lastModified;
 	
-	private SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy hh:mm a");
-
-	public UploadedFile(String name, long size, long lastModified) {
-		
-		Date date = new Date(lastModified);
-		String tempSize = getSize(size);
-		
+	public UploadedFile(String name, long size, long lastModified) 
+	{
 		this.name 		  		= name;
-		this.size		  		= tempSize;
-		//this.size2.size	  		= size;
-		//this.size2.text	  		= tempSize;
-		this.lastModified 		= format.format(date);
-		//this.lastModified2.date = lastModified;
-		//this.lastModified2.text = format.format(date);
+		this.size		  		= size;
+		this.lastModified 		= lastModified;
 	}
 
-	private String getSize(long size) {
-		
+	@SuppressWarnings("unused")
+	private String getSize(long size) 
+	{
 		if( size < 1024 ) return size + (( size == 1 ) ? " Byte" : " Bytes");
 		size = size / 1024;
 		if( size < 1024 ) return size + (( size == 1 ) ? " Kilobyte" : " Kilobytes");
@@ -56,16 +44,8 @@ public class UploadedFile {
 		return size + (( size == 1 ) ? " Gigabyte" : " Gigabytes");
 	}
 	
-	public String toString() {
+	public String toString() 
+	{
 		return "name = " + name + ", size = " + size + ", last modified = " + lastModified;
-	}
-	
-	public class sizeObject {
-		public long size;
-		public String text;
-	}
-	public class dateObject {
-		public long date;
-		public String text;
 	}
 }

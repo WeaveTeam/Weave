@@ -45,6 +45,7 @@ package weave.core
 	import weave.api.core.ISessionManager;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
+	import weave.utils.Dictionary2D;
 
 	use namespace weave_internal;
 
@@ -134,7 +135,7 @@ package weave.core
 				// make child changes trigger parent callbacks
 				var parentCC:ICallbackCollection = getCallbackCollection(linkableParent as ILinkableObject);
 				// set alwaysCallLast=true for triggering parent callbacks, so parent will be triggered after all the other child callbacks
-				getCallbackCollection(linkableChild).addImmediateCallback(linkableParent, parentCC.triggerCallbacks, null, false, true); // parent-child relationship
+				getCallbackCollection(linkableChild).addImmediateCallback(linkableParent, parentCC.triggerCallbacks, false, true); // parent-child relationship
 			}
 
 			return linkableChild;
@@ -803,9 +804,8 @@ package weave.core
 								unlinkBindableProperty(linkableObject as ILinkableVariable, bindableParent, bindablePropertyName);
 					
 					// unlink this object from all other linkable objects
-					if (linkedObjectsDictionaryMap[linkableObject] !== undefined)
-						for (var otherObject:Object in linkedObjectsDictionaryMap[linkableObject])
-							unlinkSessionState(linkableObject, otherObject as ILinkableObject);
+					for (var otherObject:Object in linkFunctionCache.dictionary[linkableObject])
+						unlinkSessionState(linkableObject, otherObject as ILinkableObject);
 					
 					// dispose of all registered children that this object owns
 					var children:Dictionary = ownerToChildDictionaryMap[linkableObject] as Dictionary;
@@ -821,7 +821,10 @@ package weave.core
 					
 					// FOR DEBUGGING PURPOSES
 					if (Capabilities.isDebugger)
-						objectCC.addImmediateCallback(null, debugDisposedObject, [linkableObject, new Error("Object was disposed")]);
+					{
+						var error:Error = new Error("Object was disposed");
+						objectCC.addImmediateCallback(null, function():void { debugDisposedObject(linkableObject, error); } );
+					}
 				}
 				
 				var displayObject:DisplayObject = object as DisplayObject;
@@ -979,38 +982,24 @@ package weave.core
 				reportError("SessionManager.linkObjects(): Parameters to this function cannot be null.");
 				return;
 			}
-			
-			// prevent
 			if (primary == secondary)
 			{
 				reportError("Warning! Attempt to link session state of an object with itself");
 				return;
 			}
+			if (linkFunctionCache.get(primary, secondary) is Function)
+				return; // already linked
 			
-			if (objectToSetterMap[primary] === undefined)
-				objectToSetterMap[primary] = function(source:ILinkableObject):void {
-					setSessionState(primary, getSessionState(source), true);
-				};
-			if (objectToSetterMap[secondary] === undefined)
-				objectToSetterMap[secondary] = function(source:ILinkableObject):void {
-					setSessionState(secondary, getSessionState(source), true);
-				};
+			var setPrimary:Function = function():void { setSessionState(primary, getSessionState(secondary), true); };
+			var setSecondary:Function = function():void { setSessionState(secondary, getSessionState(primary), true); };
 			
-			var primaryCC:ICallbackCollection = getCallbackCollection(primary);
-			var secondaryCC:ICallbackCollection = getCallbackCollection(secondary);
-			// when secondary changes, copy from secondary to primary, no callback recursion
-			secondaryCC.addImmediateCallback(primary, objectToSetterMap[primary], [secondary]);
-			// when primary changes, copy from primary to secondary, no callback recursion
-			primaryCC.addImmediateCallback(secondary, objectToSetterMap[secondary], [primary], true); // copy from primary now
-
-			// initialize linkedObjectsDictionaryMap entries if necessary
-			if (linkedObjectsDictionaryMap[primary] === undefined)
-				linkedObjectsDictionaryMap[primary] = new Dictionary(true);
-			if (linkedObjectsDictionaryMap[secondary] === undefined)
-				linkedObjectsDictionaryMap[secondary] = new Dictionary(true);
-			// remember that these two objects are linked.
-			linkedObjectsDictionaryMap[primary][secondary] = true;
-			linkedObjectsDictionaryMap[secondary][primary] = true;
+			linkFunctionCache.set(primary, secondary, setPrimary);
+			linkFunctionCache.set(secondary, primary, setSecondary);
+			
+			// when secondary changes, copy from secondary to primary
+			getCallbackCollection(secondary).addImmediateCallback(primary, setPrimary);
+			// when primary changes, copy from primary to secondary
+			getCallbackCollection(primary).addImmediateCallback(secondary, setSecondary, true); // copy from primary now
 		}
 		/**
 		 * This will unlink the session state of two ILinkableObjects that were previously linked with linkSessionState().
@@ -1024,27 +1013,18 @@ package weave.core
 				reportError("SessionManager.unlinkObjects(): Parameters to this function cannot be null.");
 				return;
 			}
-
-			// clear the entries that say these two objects are linked.
-			if (linkedObjectsDictionaryMap[first] !== undefined)
-				delete linkedObjectsDictionaryMap[first][second];
-			if (linkedObjectsDictionaryMap[second] !== undefined)
-				delete linkedObjectsDictionaryMap[second][first];
 			
-			getCallbackCollection(first).removeCallback(objectToSetterMap[second]);
-			getCallbackCollection(second).removeCallback(objectToSetterMap[first]);
+			var setFirst:Function = linkFunctionCache.remove(first, second) as Function;
+			var setSecond:Function = linkFunctionCache.remove(second, first) as Function;
+			
+			getCallbackCollection(second).removeCallback(setFirst);
+			getCallbackCollection(first).removeCallback(setSecond);
 		}
 		/**
-		 * This maps an destination ILinkableObject to a function like:
-		 *     function(source:ILinkableObject):void { setSessionState(destination, getSessionState(source), true); }
-		 * The purpose of having this mapping is to have a different function pointer for each ILinkableObject so addImmediateCallback()
-		 * and removeCallback() can be used to link and unlink overlapping pairs of ILinkableObject objects.
+		 * This maps destination and source ILinkableObjects to a function like:
+		 *     function():void { setSessionState(destination, getSessionState(source), true); }
 		 */
-		private const objectToSetterMap:Dictionary = new Dictionary(true);
-		/**
-		 * This maps a sessioned object to a Dictionary, which maps a linked sessioned object to a value of true.
-		 */
-		private const linkedObjectsDictionaryMap:Dictionary = new Dictionary(true);
+		private const linkFunctionCache:Dictionary2D = new Dictionary2D(true, true);
 
 
 
@@ -1053,6 +1033,8 @@ package weave.core
 		/******************************************************
 		 * linking sessioned objects with bindable properties
 		 ******************************************************/
+		
+		private const VALUE_NOT_ACCEPTED:String = 'Value not accepted.'; // errorString used by linkBindableProperty
 		
 		/*private function debugLink(linkVal:Object, bindVal:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
 		{
@@ -1158,15 +1140,15 @@ package weave.core
 							{
 								if ((linkableVariable as LinkableVariable).verifyValue(bindableValue))
 								{
-									// clear any existing error string
-									if (uiComponent.errorString)
+									// clear previous error string
+									if (uiComponent.errorString == VALUE_NOT_ACCEPTED)
 										uiComponent.errorString = '';
 								}
 								else
 								{
 									// show error string if not already shown
 									if (!uiComponent.errorString)
-										uiComponent.errorString = 'Value not accepted.';
+										uiComponent.errorString = VALUE_NOT_ACCEPTED;
 								}
 							}
 							
@@ -1226,8 +1208,8 @@ package weave.core
 					if (bindableValue != linkableValue)
 						bindableParent[bindablePropertyName] = linkableValue;
 					
-					// clear any existing error string
-					if (uiComponent && linkableVariable is LinkableVariable && uiComponent.errorString)
+					// clear previous error string
+					if (uiComponent && linkableVariable is LinkableVariable && uiComponent.errorString == VALUE_NOT_ACCEPTED)
 						uiComponent.errorString = '';
 				}
 				else
@@ -1389,7 +1371,6 @@ package weave.core
 					// Replace the sessionState in the new DynamicState object with the diff.
 					if (oldTypedState != null && oldTypedState[DynamicState.CLASS_NAME] == className)
 					{
-						className = null; // no change
 						diffValue = computeDiff(oldTypedState[DynamicState.SESSION_STATE], sessionState);
 						if (diffValue === undefined)
 						{

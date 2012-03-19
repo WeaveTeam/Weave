@@ -24,12 +24,16 @@
 		 width="100%" 
 		 height="100%"
 		 >
-	
 		<mx:CheckBox toolTip="This option toggles access to the main toolbar"
 					 id="enableMenuBar"
 					 label="Show menu bar"
 					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');"
 					/>
+		<mx:CheckBox toolTip="Toggle access to Collaboration Toolbar"
+					 id="collabBar"
+					 label="Show Collaboration Menu Bar"
+					 creationComplete="linkBindableProperty(Weave.properties.enableCollaborationBar, event.target, 'selected');"
+					 />
 	
 	
 		<mx:TabNavigator resizeToContent="true" width="100%" height="100%">

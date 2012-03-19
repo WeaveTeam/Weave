@@ -174,9 +174,13 @@ public class DatabaseConfig
 		Connection conn = getConnection();
 		SQLUtils.createTable(conn, dbInfo.schema, dbInfo.dataConfigTable, columnNames, columnTypes);
 		// add (possibly) missing columns
-		for (String columnName : new String[]{AttributeColumnInfo.Metadata.TITLE.toString(), 
-											  AttributeColumnInfo.Metadata.NUMBER.toString(),
-											  AttributeColumnInfo.Metadata.STRING.toString()})
+		String[] newColumnNames = new String[] {
+				AttributeColumnInfo.Metadata.TITLE.toString(), 
+				AttributeColumnInfo.Metadata.NUMBER.toString(),
+				AttributeColumnInfo.Metadata.STRING.toString(),
+				AttributeColumnInfo.SQLPARAMS
+			};
+		for (String columnName : newColumnNames)
 		{
 			try
 			{
@@ -436,6 +440,7 @@ public class DatabaseConfig
 			Map<String, Object> valueMap = new HashMap<String, Object>(info.metadata);
 			valueMap.put(AttributeColumnInfo.CONNECTION, info.connection);
 			valueMap.put(AttributeColumnInfo.SQLQUERY, info.sqlQuery);
+			valueMap.put(AttributeColumnInfo.SQLPARAMS, info.sqlParams);
 			// insert all the info into the sql table
 			SQLUtils.insertRow(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, valueMap);
 		}
@@ -471,6 +476,7 @@ public class DatabaseConfig
 				Map<String, String> metadata = records.get(i);
 				String connection = metadata.remove(AttributeColumnInfo.CONNECTION);
 				String sqlQuery = metadata.remove(AttributeColumnInfo.SQLQUERY);
+				String sqlParams = metadata.remove(AttributeColumnInfo.SQLPARAMS);
 
 				// special case -- derive keyType from geometryCollection if
 				// keyType is missing
@@ -503,7 +509,7 @@ public class DatabaseConfig
 				// metadata.remove(key);
 				// }
 
-				results.add(new AttributeColumnInfo(connection, sqlQuery, metadata));
+				results.add(new AttributeColumnInfo(connection, sqlQuery, sqlParams, metadata));
 			}
 			t.report();
 		}
