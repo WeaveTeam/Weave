@@ -553,6 +553,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						else if (dataType == DataTypes.NUMBER)
 						{
 							classDef = SliderFilterComponent;
+							//Right Align numbers
+							dataGridColumns[columnName].setStyle('textAlign','right');
 						}						
 						dgc.filterComponent = filterComponents.requestObject(columnName, classDef, false);
 						
