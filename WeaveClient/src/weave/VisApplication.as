@@ -53,7 +53,6 @@ package weave
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
-	import weave.api.linkBindableProperty;
 	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
@@ -100,9 +99,7 @@ package weave
 	import weave.utils.VectorUtils;
 	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.plotters.GeometryPlotter;
-	import weave.visualization.tools.DataTableTool;
 	import weave.visualization.tools.MapTool;
-	import weave.visualization.tools.SimpleVisTool;
 
 	use namespace weave_internal;
 
@@ -1317,25 +1314,10 @@ package weave
 			// When the context menu is opened, save a pointer to the active tool, this is the tool we want to export an image of
 			_panelToExport = DraggablePanel.activePanel;
 			
-			// If this tool is valid (we are over a tool), then we want this menu item enabled, otherwise don't allow users to choose it			
-			if(_panelToExport != null  )
-			{
-				_panelPrintContextMenuItem.caption = "Print/Export Image of " + _panelToExport.title;
-				_panelPrintContextMenuItem.enabled = true;
-				// Export CSV option only for Simple vistool and Data Table
-				if(_panelToExport is SimpleVisTool || _panelToExport is DataTableTool){
-					_exportCSVContextMenuItem.enabled = true;
-				}					
-				else{
-					_exportCSVContextMenuItem.enabled = false;
-				}
-			}
-			else
-			{
-				_panelPrintContextMenuItem.caption = "Print/Export Image of ...";
-				_panelPrintContextMenuItem.enabled = false;	
-				_exportCSVContextMenuItem.enabled = false;
-			}
+			// If this tool is valid (we are over a tool), then we want this menu item enabled, otherwise don't allow users to choose it
+			_panelPrintContextMenuItem.caption = "Print/Export Image of " + (_panelToExport ? _panelToExport.title : "...");
+			_panelPrintContextMenuItem.enabled = (_panelToExport != null);
+			_exportCSVContextMenuItem.enabled = _panelToExport is ICSVExportable;
 		}
 		
 		private var _weaveFileRef:FileReference = null;
