@@ -39,8 +39,6 @@ package weave
 	import mx.containers.Canvas;
 	import mx.containers.VBox;
 	import mx.controls.Alert;
-	import mx.controls.ProgressBar;
-	import mx.controls.ProgressBarLabelPlacement;
 	import mx.controls.Text;
 	import mx.core.Application;
 	import mx.core.UIComponent;
@@ -55,6 +53,7 @@ package weave
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
+	import weave.api.linkBindableProperty;
 	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
@@ -88,6 +87,7 @@ package weave
 	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SubsetManager;
+	import weave.ui.WeaveProgressBar;
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
 	import weave.ui.collaboration.CollaborationEditor;
@@ -264,6 +264,53 @@ package weave
 				WeaveAPI.URLRequestUtils.getURL(new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
 			}
 		}
+		private function handleConfigFileDownloaded(event:ResultEvent = null, token:Object = null):void
+		{
+			var fileName:String = token as String;
+			if (!event)
+				loadSessionState(null, null);
+			else
+				loadSessionState(event.result, fileName);
+			
+			if (getFlashVarEditable())
+			{
+				Weave.properties.enableMenuBar.value = true;
+				Weave.properties.enableSessionMenu.value = true;
+				Weave.properties.enableWindowMenu.value = true;
+				Weave.properties.enableUserPreferences.value = true;
+			}
+			else if (getFlashVarEditable() === false) // triple equals because it may also be undefined
+			{
+				Weave.properties.enableMenuBar.value = false;
+				Weave.properties.dashboardMode.value = true;
+			}
+			
+			// enable JavaScript API after initial session state has loaded.
+			ExternalInterface.addCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
+			WeaveAPI.initializeExternalInterface(); // this calls weaveReady() in JavaScript
+			Weave.properties.runStartupJavaScript(); // run startup script after weaveReady()
+		}
+		private function handleConfigFileFault(event:FaultEvent, token:Object = null):void
+		{
+			// When creating a new file through the admin console, don't report an error for the missing file.
+			var adminDefault:Boolean = (getFlashVarAdminConnectionName() && !getFlashVarConfigFileName());
+			if (adminDefault)
+			{
+				// The admin hasn't created a default configuration yet.
+				// When we're creating a new config through the admin console, create a
+				// WeaveDataSource so the admin doesn't have to add it manually every time.
+				Weave.root.requestObject(null, WeaveDataSource, false);
+				// It's convenient if the admin sets probed columns first so new tools will have default attributes selected.
+				DraggablePanel.openStaticInstance(ProbeToolTipEditor);
+			}
+			else
+			{
+				reportError(event);
+			}
+			if (event.fault.faultCode == SecurityErrorEvent.SECURITY_ERROR)
+				Alert.show("The server hosting the configuration file does not have a permissive crossdomain policy.", "Security sandbox violation");
+		}
+		
 		
 		private function handleBackgroundColorChange():void
 		{
@@ -327,45 +374,18 @@ package weave
 				// backwards compatibility with old param name
 				const DEPRECATED_FILE_PARAM_NAME:String = 'defaults';
 				if (!_flashVars.hasOwnProperty(CONFIG_FILE_FLASH_VAR_NAME) && urlParams.hasOwnProperty(DEPRECATED_FILE_PARAM_NAME))
+				{
 					_flashVars[CONFIG_FILE_FLASH_VAR_NAME] = urlParams[DEPRECATED_FILE_PARAM_NAME];
+					_usingDeprecatedFlashVar = true;
+				}
 			}
 			catch(e:Error) { }
 		}
 		private static const CONFIG_FILE_FLASH_VAR_NAME:String = 'file';
 		private static const DEFAULT_CONFIG_FILE_NAME:String = 'defaults.xml';
+		private var _usingDeprecatedFlashVar:Boolean = false;
+		private const DEPRECATED_FLASH_VAR_MESSAGE:String = "The 'defaults=' URL parameter is deprecated.  Use 'file=' instead.";
 
-		private var _maxProgressBarValue:int = 0;
-		private var _progressBar:ProgressBar = new ProgressBar;
-		private function handleProgressIndicatorCounterChange():void
-		{
-			var pendingCount:int = WeaveAPI.ProgressIndicator.getTaskCount();
-			var tempString:String = pendingCount + " Background Task" + (pendingCount == 1 ? '' : 's');
-			
-			_progressBar.label = tempString;
-
-			if (pendingCount == 0)				// hide progress bar and text area
-			{
-				_progressBar.visible = false;
-				_progressBar.setProgress(0, 1); // reset progress bar
-				
-				_maxProgressBarValue = 0;
-			}
-			else								// display progress bar and text area
-			{
-				if (visDesktop.visible == false)
-					return;
-				
-				_progressBar.alpha = .8;
-				
-				if (pendingCount > _maxProgressBarValue)
-					_maxProgressBarValue = pendingCount;
-				
-				_progressBar.setProgress(WeaveAPI.ProgressIndicator.getNormalizedProgress(), 1); // progress between 0 and 1
-				_progressBar.visible = true;
-			}
-			
-		}
-		
 		private var _selectionIndicatorText:Text = new Text;
 		private var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 		private function handleSelectionChange():void
@@ -386,6 +406,8 @@ package weave
 			}
 			catch (e:Error) { }
 		}
+		
+		private var historySlider:UIComponent = null;
 		
 		override protected function createChildren():void
 		{
@@ -409,21 +431,7 @@ package weave
 			_selectionIndicatorText.setStyle("bottom", 0);
 			_selectionIndicatorText.setStyle("right", 0);
 			
-			getCallbackCollection(WeaveAPI.ProgressIndicator).addGroupedCallback(this, handleProgressIndicatorCounterChange, true);
-			visDesktop.addChild(_progressBar);
-			_progressBar.visible = false;
-			_progressBar.x = 0;
-			_progressBar.setStyle("bottom", 0);
-			_progressBar.setStyle("trackHeight", 16); //TODO: global UI setting instead of 12?
-			_progressBar.setStyle("borderColor", 0x000000);
-			_progressBar.setStyle("color", 0xFFFFFF); //color of text
-			_progressBar.setStyle("barColor", "haloBlue");
-			_progressBar.setStyle("trackColors", [0x000000, 0x000000]);
-			_progressBar.labelPlacement = ProgressBarLabelPlacement.CENTER;
-			_progressBar.label = '';
-			_progressBar.mode = "manual"; 
-			_progressBar.minHeight = 16;
-			_progressBar.minWidth = 135; // constant
+			PopUpManager.createPopUp(this, WeaveProgressBar);
 
 			this.addChild(VisTaskbar.instance);
 		}
@@ -468,9 +476,14 @@ package weave
 				Alert.show("Not connected to Admin Console.", "Error");
 				return;
 			}
+			
+			var fileName:String = getFlashVarConfigFileName().split("/").pop();
+			if (fileName.substr(-4).toLowerCase() == '.xml')
+				fileName = fileName.substr(0, -4) + '.weave';
+			
 			var fileSaveDialogBox:AlertTextBox;
 			fileSaveDialogBox = PopUpManager.createPopUp(this,AlertTextBox) as AlertTextBox;
-			fileSaveDialogBox.textInput = getFlashVarConfigFileName().split("/").pop();
+			fileSaveDialogBox.textInput = fileName;
 			fileSaveDialogBox.title = "Save File";
 			fileSaveDialogBox.message = "Enter a filename";
 			fileSaveDialogBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handleFileSaveClose);
@@ -485,7 +498,7 @@ package weave
 				
 				var token:AsyncToken = adminService.invokeAsyncMethod(
 						'saveWeaveFile',
-						[Weave.getSessionStateXML().toXMLString(), fileName, true]
+						[Weave.createWeaveFileContent(), fileName, true]
 					);
 				token.addResponder(new DelayedAsyncResponder(
 						function(event:ResultEvent, token:Object = null):void
@@ -539,6 +552,13 @@ package weave
 				callLater(toggleMenuBar);
 				return;
 			}
+			
+			if (!historySlider)
+			{
+				historySlider = EditorManager.getNewEditor(Weave.history) as UIComponent;
+				this.addChildAt(historySlider, this.getChildIndex(visDesktop));
+			}
+			
 			DraggablePanel.showRollOverBorders = adminService || getFlashVarEditable();
 			if (Weave.properties.enableMenuBar.value || adminService || getFlashVarEditable())
 			{
@@ -558,11 +578,12 @@ package weave
 				}
 				
 				// always show menu bar when admin service is present
-				_weaveMenu.alpha = Weave.properties.enableMenuBar.value ? 1.0 : 0.3;
+				historySlider.alpha = _weaveMenu.alpha = Weave.properties.enableMenuBar.value ? 1.0 : 0.3;
 			}
 			// otherwise there is no menu bar, (which normally includes the oiclogopane, so add one to replace it)
 			else
 			{
+				historySlider.visible = historySlider.includeInLayout = false;
 				try
 				{
 		   			if (_weaveMenu && this == _weaveMenu.parent)
@@ -690,15 +711,20 @@ package weave
 				setupSubsetsMenu();
 			}
 			
-			
+			var showHistorySlider:Boolean = false;
 			if (Weave.properties.enableSessionMenu.value || adminService)
 			{
 				_sessionMenu = _weaveMenu.addMenuToMenuBar("Session", false);
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Edit session state", SessionStateEditor.openDefaultEditor));
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Copy session state to clipboard", copySessionStateToClipboard));
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Copy session state XML to clipboard", copySessionStateToClipboard));
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session state...", handleImportSessionState));
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Export session state...", handleExportSessionState));
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Import session history...", handleImportSessionState));
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Export session history...", handleExportSessionState));
+				_weaveMenu.addSeparatorToMenu(_sessionMenu);
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
+					function():String { return (Weave.properties.showSessionHistoryControls.value ? "Hide" : "Show") + " session history controls"; },
+					function():void { Weave.properties.showSessionHistoryControls.value = !Weave.properties.showSessionHistoryControls.value; }
+				));
 				if (Weave.ALLOW_PLUGINS)
 				{
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
@@ -707,9 +733,12 @@ package weave
 				if (adminService)
 				{
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Save session state to server", saveSessionStateToServer));
+					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Save session history to server", saveSessionStateToServer));
 				}
+				
+				showHistorySlider = Weave.properties.showSessionHistoryControls.value;
 			}
+			historySlider.visible = historySlider.includeInLayout = showHistorySlider;
 			
 			if (Weave.properties.enableWindowMenu.value || adminService)
 			{
@@ -744,7 +773,11 @@ package weave
 			{
 				// attempt to parse as a Weave archive
 				if (fileContent)
+				{
 					Weave.loadWeaveFileContent(ByteArray(fileContent));
+					if (_usingDeprecatedFlashVar)
+						reportError(DEPRECATED_FLASH_VAR_MESSAGE);
+				}
 			}
 			catch (error:Error)
 			{
@@ -1147,70 +1180,6 @@ package weave
 			return panelsOnStage;
 		}
 		
-		/**
-		 * This function handles parsing the config file once it has downloaded.
-		 */
-		private function handleConfigFileDownloaded(event:ResultEvent = null, token:Object = null):void
-		{
-			var fileName:String = token as String;
-			if (!event)
-				loadSessionState(null, null);
-			else
-				loadSessionState(event.result, fileName);
-			
-			if (getFlashVarEditable())
-			{
-				Weave.properties.enableMenuBar.value = true;
-				Weave.properties.enableSessionMenu.value = true;
-				Weave.properties.enableWindowMenu.value = true;
-				Weave.properties.enableUserPreferences.value = true;
-			}
-			else if (getFlashVarEditable() === false) // triple equals because it may also be undefined
-			{
-				Weave.properties.enableMenuBar.value = false;
-				Weave.properties.dashboardMode.value = true;
-			}
-			
-			if (getFlashVarEditable())
-			{
-				var historySlider:UIComponent = EditorManager.getNewEditor(Weave.history) as UIComponent;
-				addChildAt(historySlider, getChildIndex(visDesktop));
-			}
-			else
-			{
-				Weave.history.enableLogging.value = false;
-			}
-			
-			// enable JavaScript API after initial session state has loaded.
-			ExternalInterface.addCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
-			WeaveAPI.initializeExternalInterface(); // this calls weaveReady() in JavaScript
-			Weave.properties.runStartupJavaScript(); // run startup script after weaveReady()
-		}
-		
-		/**
-		 * Handle a file fault when trying to download the config file -- for now, this just pops up a window showing that the file could not be downloaded.
-		 */
-		private function handleConfigFileFault(event:FaultEvent, token:Object = null):void
-		{
-			// When creating a new file through the admin console, don't report an error for the missing file.
-			var adminDefault:Boolean = (getFlashVarAdminConnectionName() && !getFlashVarConfigFileName());
-			if (adminDefault)
-			{
-				// The admin hasn't created a default configuration yet.
-				// When we're creating a new config through the admin console, create a
-				// WeaveDataSource so the admin doesn't have to add it manually every time.
-				Weave.root.requestObject(null, WeaveDataSource, false);
-				// It's convenient if the admin sets probed columns first so new tools will have default attributes selected.
-				DraggablePanel.openStaticInstance(ProbeToolTipEditor);
-			}
-			else
-			{
-				reportError(event);
-			}
-			if (event.fault.faultCode == SecurityErrorEvent.SECURITY_ERROR)
-				Alert.show("The server hosting the configuration file does not have a permissive crossdomain policy.", "Security sandbox violation");
-		}
-		
 		private var _printToolMenuItem:ContextMenuItem = null;
 		
 		/**
@@ -1378,7 +1347,7 @@ package weave
 				_weaveFileRef.addEventListener(Event.SELECT,   function (e:Event):void { _weaveFileRef.load(); } );
 				_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void { loadSessionState(e.target.data, _weaveFileRef.name); } );
 			}
-			_weaveFileRef.browse([new FileFilter("XML", "*.xml"),new FileFilter("All files", "*")]);
+			_weaveFileRef.browse([new FileFilter("Weave files", "*.weave"),new FileFilter("All files", "*")]);
 		}
 		
 		private function handleExportSessionState():void

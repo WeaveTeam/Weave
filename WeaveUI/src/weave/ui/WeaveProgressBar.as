@@ -1,24 +1,20 @@
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/* This is a progress bar for Weave which updates on tasks added to the ProgressIndicator
-@author skolman
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.ui
@@ -31,7 +27,14 @@ package weave.ui
 	
 	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
+	import weave.api.reportError;
 
+	/**
+	 * This is a progress bar for Weave which updates on tasks added to the ProgressIndicator
+	 * @author kmonico
+	 * @author adufilie
+	 * @author skolman
+	 */
 	public class WeaveProgressBar extends ProgressBar
 	{
 		override protected function childrenCreated():void
@@ -39,8 +42,9 @@ package weave.ui
 			super.childrenCreated();
 			
 			visible = false;
-			setStyle("bottom", 0);
-			setStyle("trackHeight", 16); //TODO: global UI setting instead?
+			mouseChildren = false;
+			includeInLayout = false;
+			setStyle("trackHeight", 16);
 			setStyle("borderColor", 0x000000);
 			setStyle("color", 0xFFFFFF); //color of text
 			setStyle("barColor", "haloBlue");
@@ -49,19 +53,23 @@ package weave.ui
 			label = '';
 			mode = "manual";
 			minHeight = 16;
-			minWidth = 135; // constant
+			minWidth = 135;
+			x = 0;
 			
 			getCallbackCollection(WeaveAPI.ProgressIndicator).addGroupedCallback(this, handleProgressIndicatorCounterChange);
 			
-			addEventListener(Event.ENTER_FRAME, enterFrame);
+			addEventListener(Event.ENTER_FRAME, handleEnterFrame);
 			
 			handleProgressIndicatorCounterChange();
 		}
 		
-		private function enterFrame(event:Event):void
+		private function handleEnterFrame(event:Event = null):void
 		{
-			if (parent)
+			if (parent && visible)
+			{
 				y = parent.height - height;
+				parent.setChildIndex(this, parent.numChildren - 1);
+			}
 		}
 		
 		private var _maxProgressBarValue:int = 0;
@@ -73,27 +81,22 @@ package weave.ui
 			
 			label = tempString;
 			
-			if (pendingCount == 0)				// hide progress bar and text area
+			if (pendingCount == 0) // hide progress bar and text area
 			{
 				visible = false;
 				setProgress(0, 1); // reset progress bar
 				
 				_maxProgressBarValue = 0;
 			}
-			else								// display progress bar and text area
+			else // display progress bar and text area
 			{
-				
-				//					progressBar.alpha = .8;
-				x = 0;
-				y = parent.height - 20;
-				PopUpManager.bringToFront(this);
 				if (pendingCount > _maxProgressBarValue)
 					_maxProgressBarValue = pendingCount;
 				
 				setProgress(WeaveAPI.ProgressIndicator.getNormalizedProgress(), 1); // progress between 0 and 1
 				visible = true;
+				handleEnterFrame();
 			}
-			
 		}
 	}
 }

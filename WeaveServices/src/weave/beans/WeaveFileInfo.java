@@ -26,6 +26,8 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import weave.utils.FileUtils;
+
 public class WeaveFileInfo 
 {
 	public long lastModified = 0;
@@ -44,7 +46,7 @@ public class WeaveFileInfo
 		{
 			try
 			{
-				this.thumb = getArchiveThumbnail(filePath);
+				this.thumb = getArchiveThumbnail(weaveFile);
 			}
 			catch (IOException e)
 			{
@@ -53,23 +55,28 @@ public class WeaveFileInfo
 		}
 	}
 	
-	private byte[] getArchiveThumbnail(String filePath) throws IOException
+	private byte[] getArchiveThumbnail(File file) throws IOException
 	{
-		ZipFile archive = new ZipFile(filePath);
-		ZipEntry entry = archive.getEntry("weave-files/thumbnail.png");
-		InputStream is = archive.getInputStream(entry);
-		
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		
-		int length = 0;
-		byte[] b = new byte[1024];
-		while( (length = is.read(b)) >= 0 )
+		ZipFile archive = null;
+		InputStream in = null;
+		ByteArrayOutputStream out = null;
+		try
 		{
-			out.write(b, 0, length);
+			archive = new ZipFile(file);
+			ZipEntry entry = archive.getEntry("weave-files/thumbnail.png");
+			in = archive.getInputStream(entry);
+			out = new ByteArrayOutputStream();
+			FileUtils.copy(in, out);
 		}
-		out.flush();
-		is.close();
-		out.close();
+		finally
+		{
+			if (in != null)
+				in.close();
+			if (out != null)
+				out.close();
+			if (archive != null)
+				archive.close();
+		}
 		return out.toByteArray();
 	}
 	

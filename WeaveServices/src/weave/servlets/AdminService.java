@@ -311,47 +311,50 @@ public class AdminService extends GenericServlet
 		return ListUtils.toStringArray(listOfFiles);
 	}
 
-	synchronized public String saveWeaveFile(String connectionName, String password, String fileContents, String xmlFile, boolean overwriteFile) throws RemoteException
+	/**
+	 * @param connectionName
+	 * @param password
+	 * @param fileContent
+	 * @param fileName
+	 * @param overwriteFile
+	 * @return
+	 * @throws RemoteException
+	 */
+	synchronized public String saveWeaveFile(String connectionName, String password, InputStream fileContent, String fileName, boolean overwriteFile) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
 		
-		// 5.2 client web page configuration file ***.xml
-		String output = "";
 		try
 		{
 			// remove special characters
-			xmlFile = xmlFile.replace("\\", "").replace("/", "");
-			if (!xmlFile.toLowerCase().endsWith(".xml"))
-				xmlFile += ".xml";
+			fileName = fileName.replace("\\", "").replace("/", "");
+			
+			if (!fileName.toLowerCase().endsWith(".weave"))
+				fileName += ".weave";
 			
 			String path = docrootPath;
 			if (info.folderName.length() > 0)
 				path = path + info.folderName + "/";
 			
-			File file = new File(path + xmlFile);
+			File file = new File(path + fileName);
 			
 			if (file.exists())
 			{
 				if (!overwriteFile)
-					return String.format("File already exists and was not changed: \"%s\"", xmlFile);
+					return String.format("File already exists and was not changed: \"%s\"", fileName);
 				if (!info.is_superuser && info.folderName.length() == 0)
 					return String.format("User \"%s\" does not have permission to overwrite configuration files.  Please save under a new filename.", connectionName);
 			}
 			
-			BufferedWriter out = new BufferedWriter(new FileWriter(file));
-
-			output = fileContents;
-
-			out.write(output);
-			out.close();
+			FileUtils.copy(fileContent, new FileOutputStream(file));
 		}
 		catch (IOException e)
 		{
 			throw new RemoteException("Error occurred while saving file", e);
 		}
 
-		return "Successfully generated " + xmlFile + ".";
+		return "Successfully generated " + fileName + ".";
 	}
 
 	/**
@@ -946,7 +949,6 @@ public class AdminService extends GenericServlet
 		}
 		catch (SQLException e)
 		{
-			// e.printStackTrace();
 			throw new RemoteException("Unable to get schema list from database.", e);
 		}
 		// don't want to list information_schema.
@@ -965,7 +967,6 @@ public class AdminService extends GenericServlet
 		}
 		catch (SQLException e)
 		{
-			// e.printStackTrace();
 			throw new RemoteException("Unable to get schema list from database.", e);
 		}
 		return tables;
@@ -982,7 +983,6 @@ public class AdminService extends GenericServlet
 		}
 		catch (SQLException e)
 		{
-			// e.printStackTrace();
 			throw new RemoteException("Unable to get column list from database.", e);
 		}
 		return columns;
@@ -1526,7 +1526,6 @@ public class AdminService extends GenericServlet
 					if (nextLine[i].equals(outputNullValue))
 						continue;
 
-					// 3.3.2 is a string, update the type.
 					// 04 is a string (but Integer.parseInt would not throw an exception)
 					try
 					{

@@ -21,6 +21,7 @@ package weave.services
 	import flash.events.Event;
 	import flash.external.ExternalInterface;
 	import flash.net.FileReference;
+	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.setTimeout;
 	
@@ -662,18 +663,14 @@ package weave.services
 			ExternalInterface.call(script);
 		}
 		
-		public function saveWeaveFile(sessionState:String, clientConfigFileName:String, fileOverwrite:Boolean):DelayedAsyncInvocation
+		public function saveWeaveFile(fileContent:ByteArray, clientConfigFileName:String, fileOverwrite:Boolean):DelayedAsyncInvocation
 		{
-			if (clientConfigFileName.length < 4 ||
-				clientConfigFileName.substr(clientConfigFileName.length - 4).toLowerCase() != '.xml')
-			{
-				clientConfigFileName += '.xml';
-			}
+			clientConfigFileName = Weave.fixWeaveFileName(clientConfigFileName);
 			
 			var query:DelayedAsyncInvocation = service.saveWeaveFile(
 				activeConnectionName,
 				activePassword,
-				sessionState,
+				fileContent,
 				clientConfigFileName,
 				fileOverwrite
 			);

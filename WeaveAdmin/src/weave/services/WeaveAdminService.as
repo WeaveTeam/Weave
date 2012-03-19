@@ -224,7 +224,7 @@ package weave.services
 			query.addAsyncResponder(alertResult);
 			return query;
 		}
-		public function saveWeaveFile(connectionName:String, password:String, fileContents:String, fileName:String, overwriteFile:Boolean):DelayedAsyncInvocation
+		public function saveWeaveFile(connectionName:String, password:String, fileContent:ByteArray, fileName:String, overwriteFile:Boolean):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = invokeAdminService("saveWeaveFile", arguments);
 			//query.addAsyncResponder(alertResult);

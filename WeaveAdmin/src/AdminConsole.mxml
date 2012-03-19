@@ -98,8 +98,6 @@
 			private static const version:String = Weave.properties.version.value;
 			private var loginPopup:LoginPopup;
 			
-			public var progressBar:WeaveProgressBar = new WeaveProgressBar();
-						
 			private function handleCreationComplete():void
 			{
 				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessageLog);
@@ -128,9 +126,7 @@
 					}
 				}
 				
-				progressBar = PopUpManager.createPopUp(this,WeaveProgressBar) as WeaveProgressBar;
-				PopUpManager.bringToFront(progressBar);
-				
+				PopUpManager.createPopUp(this, WeaveProgressBar);
 			}
 			
 		]]>
