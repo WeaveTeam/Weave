@@ -84,6 +84,11 @@ package weave.services
 		 * This is the data format of the results from HTTP GET requests.
 		 */
 		protected var _urlRequestDataFormat:String;
+		
+		/**
+		 * Set this to false to disable automatic progress reporting to WeaveAPI.ProgressIndicator.
+		 */		
+		internal var reportProgress:Boolean = true;
 
 		/**
 		 * This function makes a remote procedure call.
@@ -155,7 +160,7 @@ package weave.services
 			var token:AsyncToken = new AsyncToken();
 			
 			// the last argument is BINARY instead of _dataFormat because the stream should not be parsed
-			_asyncTokenToLoader[token] = WeaveAPI.URLRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY);
+			_asyncTokenToLoader[token] = WeaveAPI.URLRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY, reportProgress);
 			return token;
 		}
 		

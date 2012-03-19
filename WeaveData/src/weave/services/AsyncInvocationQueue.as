@@ -21,6 +21,9 @@ package weave.services
 {
 	import flash.events.Event;
 	
+	import weave.api.WeaveAPI;
+	import weave.api.reportError;
+	
 	/**
 	 * this class contains functions that handle a queue of remote procedure calls
 	 * 
@@ -32,17 +35,6 @@ package weave.services
 		public function AsyncInvocationQueue()
 		{
 		}
-
-		// perform a query in the queue
-		protected function performQuery(query:DelayedAsyncInvocation):void
-		{
-			//trace("performQuery (timeout = "+query.webService.requestTimeout+")",query.toString());
-			query.addAsyncResponder(handleQueryResultOrFault, handleQueryResultOrFault, query);
-			query.invoke();
-		}
-		
-		// Queue to handle concurrent requests to be downloaded.
-		private var _downloadQueue:Array = new Array();
 
 		// interface to add a query to the download queue. 
 		public function addToQueue(query:DelayedAsyncInvocation):void
@@ -56,6 +48,8 @@ package weave.services
 				return;
 			}
 			
+			WeaveAPI.ProgressIndicator.addTask(query);
+			
 			_downloadQueue.push(query);
 			
 			if(_downloadQueue.length == 1)
@@ -68,30 +62,39 @@ package weave.services
 				//trace("added to queue", query);
 			}
 		}
+	
+		// Queue to handle concurrent requests to be downloaded.
+		private var _downloadQueue:Array = new Array();
 
-		// returns the position of a query in the queue
-		public function getQueuePosition(query:DelayedAsyncInvocation):int
+		// perform a query in the queue
+		protected function performQuery(query:DelayedAsyncInvocation):void
 		{
-			return _downloadQueue.indexOf(query);
+			//trace("performQuery (timeout = "+query.webService.requestTimeout+")",query.toString());
+			query.addAsyncResponder(handleQueryResultOrFault, handleQueryResultOrFault, query);
+			
+			if (query.service is Servlet)
+				(query.service as Servlet).reportProgress = false;
+			
+			query.invoke();
+			
+			if (query.service is Servlet)
+				(query.service as Servlet).reportProgress = true;
 		}
-
-		// interface to remove a specific query from the download queue
-		// @return true if something was removed from the queue
-		public function removeFromQueue(query:DelayedAsyncInvocation, removeEvenIfDownloading:Boolean = false):Boolean
+		
+		// This function gets called when a query has been downloaded.  It will download the next query if available
+		protected function handleQueryResultOrFault(event:Event, token:Object = null):void
 		{
-			if (query == null)
-				return false;
+			var query:DelayedAsyncInvocation = token as DelayedAsyncInvocation;
+			WeaveAPI.ProgressIndicator.removeTask(query);
+			
 			// see if the query is in the queue
 			var index:int = _downloadQueue.indexOf(query);
 			// stop if query not found in queue
 			if (index < 0)
 			{
-				//trace("WARNING: query not found in queue", query);
-				return false;
+				reportError("Query not found in queue: " + query);
+				return;
 			}
-			// stop if query is currently downloading and removeEvenIfDownloading is false
-			if (index == 0 && !removeEvenIfDownloading)
-				return false;
 			
 			//trace("remove from queue (position "+index+", length: "+_downloadQueue.length+")", query);
 			
@@ -105,13 +108,7 @@ package weave.services
 				// get the next item in the list
 				performQuery(_downloadQueue[0]);
 			}
-			return true;
-		}
-		
-		// This function gets called when a query has been downloaded.  It will download the next query if available
-		protected function handleQueryResultOrFault(event:Event, token:Object = null):void
-		{
-			removeFromQueue(token as DelayedAsyncInvocation, true);
+			return;
 		}
 		
 		public function removeQueriesOfOperationTypes(... operations):void
@@ -126,6 +123,8 @@ package weave.services
 					{
 						//trace("REMOVING QUERY",i);
 						_downloadQueue.splice(i, 1);
+						
+						WeaveAPI.ProgressIndicator.removeTask(_downloadQueue[i]);
 					}
 				}
 			}
