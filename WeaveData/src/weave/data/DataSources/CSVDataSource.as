@@ -95,7 +95,7 @@ package weave.data.DataSources
 				return null;
 			var refCol:ReferencedColumn = destinationHashMap.requestObject(null, ReferencedColumn, false);
 			var hierarchyColRef1:HierarchyColumnReference =  refCol.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
-			hierarchyColRef1.hierarchyPath.value = <attribute csvColumn={ csvColumnName }/>;
+			hierarchyColRef1.hierarchyPath.value = <attribute title={csvColumnName} csvColumn={ csvColumnName }/>;
 			hierarchyColRef1.dataSourceName.value = sourceOwner.getName(this);
 			return refCol;
 		}
