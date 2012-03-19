@@ -43,6 +43,7 @@ package weave.ui.CustomDataGrid
 		{
 			addChild(img);
 			addChild(lbl);
+			lbl.percentWidth = 100;
 			
 			horizontalScrollPolicy = "off";
 			
@@ -92,12 +93,12 @@ package weave.ui.CustomDataGrid
 			{
 				if (grid.isItemSelected(data) || grid.isItemHighlighted(data))
 				{
-					setStyle("fontWeight", "bold");
+					lbl.setStyle("fontWeight", "bold");
 					alpha = 1.0;
 				}				
 				else
 				{
-					setStyle("fontWeight", "normal");
+					lbl.setStyle("fontWeight", "normal");
 					alpha = 0.3;
 				}
 			}
