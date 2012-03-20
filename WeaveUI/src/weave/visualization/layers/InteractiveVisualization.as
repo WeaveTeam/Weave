@@ -138,6 +138,8 @@ package weave.visualization.layers
 			{
 				_mouseMode = InteractionController.SELECT;
 			}
+			if( !enableZoomAndPan.value && (mouseEventType == InteractionController.DCLICK))
+				_mouseMode = InteractionController.SELECT_ALL;
 			if (!enableSelection.value && isModeSelection(_mouseMode))
 			{
 				_mouseMode = null;//Weave.properties.toolInteractions.defaultDragMode.value;
@@ -325,7 +327,7 @@ package weave.visualization.layers
 			}
 			else // not dragging -- ok to update mouse mode
 			{
-				updateMouseMode(eventType);
+					updateMouseMode(eventType);
 			}
 			
 			var dragReleased:Boolean = mouseDragActive && !event.buttonDown;
@@ -347,6 +349,12 @@ package weave.visualization.layers
 				{
 					if (mouseDragActive)
 						handleSelection(event, _mouseMode);
+					break;
+				}
+				case InteractionController.SELECT_ALL:
+				{
+					if( mouseIsRolledOver && !enableZoomAndPan.value )
+						selectAllVisibleRecords();
 					break;
 				}
 				case InteractionController.PAN:
@@ -432,15 +440,6 @@ package weave.visualization.layers
 			{
 				mouseDragActive = false;
 			}
-			
-//			if (_mouseMode == InteractionController.DCLICK
-//				&& mouseIsRolledOver
-//				&& !(	enableZoomAndPan.value
-//						&& _mouseMode != InteractionController.SELECT_ADD
-//						&& _mouseMode != InteractionController.SELECT_REMOVE	))
-//			{
-//				selectAllVisibleRecords();
-//			}
 			
 			updateSelectionRectangleGraphics();
 		}

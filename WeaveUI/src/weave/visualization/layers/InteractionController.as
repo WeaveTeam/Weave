@@ -47,6 +47,7 @@ package weave.visualization.layers
 		public static const SELECT:String = "select";
 		public static const SELECT_ADD:String = "selectAdd";
 		public static const SELECT_REMOVE:String = "selectRemove";
+		public static const SELECT_ALL:String = "selectAll";
 		
 		public static const PAN:String = "pan";		
 		public static const ZOOM:String = "zoom";
@@ -128,7 +129,7 @@ package weave.visualization.layers
 					if (!_mouseActionLookup.hasOwnProperty(actionStr))
 						_mouseActionLookup[actionStr] = mouseMode;
 					// save lookup from (modifier keys) to mouseMode
-					removeItems(row, [CLICK, DRAG, DCLICK, MOVE, WHEEL]);
+					removeItems(row, [CLICK, DRAG, MOVE, WHEEL]);
 					var modeStr:String = row.join(DELIM);
 					if ([PAN, SELECT, SELECT_ADD, SELECT_REMOVE, ZOOM, PROBE].indexOf(mouseMode) >= 0)
 						if (!_mouseModeLookup.hasOwnProperty(modeStr))
