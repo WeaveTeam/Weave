@@ -354,6 +354,8 @@ package weave.core
 			objectCC.resumeCallbacks();
 		}
 		
+		private const _getSessionStateIgnoreList:Dictionary = new Dictionary(true); // keeps track of which objects are currently being traversed
+		
 		/**
 		 * @param linkableObject An object containing sessioned properties (sessioned objects may be nested).
 		 * @return An object containing the values from the sessioned properties.
@@ -366,79 +368,76 @@ package weave.core
 				return null;
 			}
 			
-			var result:Object = internalGetSessionState(linkableObject, new Dictionary(true));
-			//trace("getSessionState " + getQualifiedClassName(sessionedObject).split("::")[1] + ObjectUtil.toString(result));
-			return result;
-		}
-		
-		/**
-		 * This function is for internal use only.
-		 * @param sessionedObject An object containing sessioned properties (sessioned objects may be nested).
-		 * @param ignoreList A dictionary that keeps track of which objects this function has already traversed.
-		 * @return An object containing the values from the sessioned properties.
-		 */
-		private function internalGetSessionState(sessionedObject:ILinkableObject, ignoreList:Dictionary):Object
-		{
-			// use ignore list to prevent infinite recursion
-			ignoreList[sessionedObject] = true;
+			var result:Object = null;
 			
 			// special cases (explicit session state)
-			if (sessionedObject is ILinkableVariable)
-				return (sessionedObject as ILinkableVariable).getSessionState();
-			if (sessionedObject is ILinkableCompositeObject)
-				return (sessionedObject as ILinkableCompositeObject).getSessionState();
-
-			// implicit session state
-			// first pass: get property names
-			var propertyNames:Array = getLinkablePropertyNames(sessionedObject);
-			var resultNames:Array = [];
-			var resultProperties:Array = [];
-			var property:ILinkableObject = null;
-			var i:int;
-			//trace("getting session state for "+getQualifiedClassName(sessionedObject),"propertyNames="+propertyNames);
-			for (i = 0; i < propertyNames.length; i++)
+			if (linkableObject is ILinkableVariable)
 			{
-				var name:String = propertyNames[i];
-				try
+				result = (linkableObject as ILinkableVariable).getSessionState();
+			}
+			else if (linkableObject is ILinkableCompositeObject)
+			{
+				result = (linkableObject as ILinkableCompositeObject).getSessionState();
+			}
+			else
+			{
+				// implicit session state
+				// first pass: get property names
+				var propertyNames:Array = getLinkablePropertyNames(linkableObject);
+				var resultNames:Array = [];
+				var resultProperties:Array = [];
+				var property:ILinkableObject = null;
+				var i:int;
+				//trace("getting session state for "+getQualifiedClassName(sessionedObject),"propertyNames="+propertyNames);
+				for (i = 0; i < propertyNames.length; i++)
 				{
-					property = null; // must set this to null first because accessing the property may fail
-					property = sessionedObject[name] as ILinkableObject;
+					var name:String = propertyNames[i];
+					try
+					{
+						property = null; // must set this to null first because accessing the property may fail
+						property = linkableObject[name] as ILinkableObject;
+					}
+					catch (e:Error)
+					{
+						reportError('Unable to get property "'+name+'" of class "'+getQualifiedClassName(linkableObject)+'"');
+					}
+					// first pass: set result[name] to the ILinkableObject
+					if (property != null && !_getSessionStateIgnoreList[property])
+					{
+						// skip this property if it was not registered as a linkable child of the sessionedObject.
+						if (childToParentDictionaryMap[property] === undefined || childToParentDictionaryMap[property][linkableObject] === undefined)
+							continue;
+						// avoid infinite recursion in implicit session states
+						_getSessionStateIgnoreList[property] = true;
+						resultNames.push(name);
+						resultProperties.push(property);
+					}
+					else
+					{
+						if (property != null)
+							trace("ignoring duplicate object:",name,property);
+					}
 				}
-				catch (e:Error)
+				// special case if there are no child objects -- return null
+				if (resultNames.length > 0)
 				{
-					trace('SessionManager.internalGetSessionState(): Unable to get property "'+name+'" of class "'+getQualifiedClassName(sessionedObject)+'"',e.getStackTrace());
-				}
-				// first pass: set result[name] to the ILinkableObject
-				if (property != null && ignoreList[property] === undefined)
-				{
-					// skip this property if it was not registered as a linkable child of the sessionedObject.
-					if (childToParentDictionaryMap[property] === undefined || childToParentDictionaryMap[property][sessionedObject] === undefined)
-						continue;
-					// only include this property in the session state once
-					ignoreList[property] = true;
-					resultNames.push(name);
-					resultProperties.push(property);
-				}
-				else
-				{
-					//trace("skipped property",name,property,ignoreList[property]);
+					// second pass: get values from property names
+					result = new Object();
+					for (i = 0; i < resultNames.length; i++)
+					{
+						var value:Object = getSessionState(resultProperties[i]);
+						property = resultProperties[i] as ILinkableObject;
+						// do not include objects that have a null implicit session state (no child objects)
+						if (value == null && !(property is ILinkableVariable) && !(property is ILinkableCompositeObject))
+							continue;
+						result[resultNames[i]] = value;
+						//trace("getState",getQualifiedClassName(sessionedObject),resultNames[i],result[resultNames[i]]);
+					}
 				}
 			}
-			// special case if there are no child objects
-			if (resultNames.length == 0)
-				return null;
-			// second pass: get values from property names
-			var result:Object = new Object();
-			for (i = 0; i < resultNames.length; i++)
-			{
-				var value:Object = internalGetSessionState(resultProperties[i], ignoreList);
-				property = resultProperties[i] as ILinkableObject;
-				// do not include objects that have a null implicit session state (no child objects)
-				if (value == null && !(property is ILinkableVariable) && !(property is ILinkableCompositeObject))
-					continue;
-				result[resultNames[i]] = value;
-				//trace("getState",getQualifiedClassName(sessionedObject),resultNames[i],result[resultNames[i]]);
-			}
+			
+			_getSessionStateIgnoreList[linkableObject] = undefined;
+			
 			return result;
 		}
 		
