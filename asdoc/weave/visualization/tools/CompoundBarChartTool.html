@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="CompoundBarChartTool,weave.visualization.tools.CompoundBarChartTool,includeToolAttributesInProbe,linkHeightAndSortColumns,showAllLabels,sizeAxisTickCountRequested,chartColors,colorColumn,heightColumns,constructor,createLegend,creationComplete,getSelectableAttributeNames,getSelectableAttributes,handlePanelTitleChange" name="keywords">
+<meta content="CompoundBarChartTool,weave.visualization.tools.CompoundBarChartTool,includeToolAttributesInProbe,linkHeightAndSortColumns,showAllLabels,sizeAxisTickCountRequested,chartColors,colorColumn,defaultPanelTitle,heightColumns,constructor,createLegend,creationComplete,getSelectableAttributeNames,getSelectableAttributes" name="keywords">
 <title>weave.visualization.tools.CompoundBarChartTool</title>
 </head>
 <body>
@@ -146,13 +146,17 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a onclick="javascript:setInheritedVisible(true,'ProtectedProperty');" href="#protectedPropertySummary" class="showHideLink"><img src="../../../images/collapsed.gif" class="showHideLinkImage"> Show Inherited Protected Properties</a>
 </div>
 </div>
-<table id="summaryTableProtectedProperty" class="summaryTable hideInheritedProtectedProperty" cellpadding="3" cellspacing="0">
+<table id="summaryTableProtectedProperty" class="summaryTable " cellpadding="3" cellspacing="0">
 <tr>
 <th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="hideInheritedProtectedProperty">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="../../ui/DraggablePanel.html#controlBarWidthBeforeScale">controlBarWidthBeforeScale</a> : int = -1<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="../../ui/DraggablePanel.html">DraggablePanel</a></td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#defaultPanelTitle">defaultPanelTitle</a> : String<div class="summaryTableDescription">[read-only]</div>
+</td><td class="summaryTableOwnerCol">CompoundBarChartTool</td>
 </tr>
 <tr class="hideInheritedProtectedProperty">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol"><a class="signatureLink" href="SimpleVisTool.html#layerListComponent">layerListComponent</a> : <a href="../../editors/managers/LayerListComponent.html">LayerListComponent</a>
@@ -456,12 +460,13 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol"><a href="../../ui/DraggablePanel.html">DraggablePanel</a></td>
 </tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<tr class="hideInheritedProtectedMethod">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#handlePanelTitleChange()">handlePanelTitleChange</a>():void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">CompoundBarChartTool</td>
+<a class="signatureLink" href="../../ui/DraggablePanel.html#handlePanelTitleChange()">handlePanelTitleChange</a>():void</div>
+<div class="summaryTableDescription">
+    This gets called when the panelTitle session state changes.</div>
+</td><td class="summaryTableOwnerCol"><a href="../../ui/DraggablePanel.html">DraggablePanel</a></td>
 </tr>
 <tr class="hideInheritedProtectedMethod">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol"><img class="inheritedSummaryImage" title="Inherited" alt="Inherited" src="../../../images/inheritedSummary.gif"></td><td class="summaryTableSignatureCol">
@@ -754,6 +759,18 @@ showHideInherited();
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get colorColumn():<a href="../../data/AttributeColumns/DynamicColumn.html">DynamicColumn</a></code>
 <br>
 </div>
+<a name="defaultPanelTitle"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">defaultPanelTitle</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>defaultPanelTitle:String</code>&nbsp;&nbsp;[read-only]<span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;protected function get defaultPanelTitle():String</code>
+<br>
+</div>
 <a name="heightColumns"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -826,15 +843,6 @@ showHideInherited();
 <td width="20"></td><td><code>Array</code></td>
 </tr>
 </table>
-</div>
-<a name="handlePanelTitleChange()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">handlePanelTitleChange</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected override function handlePanelTitleChange():void</code>
 </div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>

@@ -58,7 +58,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getContent()">getContent</a>(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):<a href="../services/IURLRequestToken.html">IURLRequestToken</a>
+<a class="signatureLink" href="#getContent()">getContent</a>(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true, reportProgress:Boolean = true):<a href="../services/IURLRequestToken.html">IURLRequestToken</a>
 </div>
 <div class="summaryTableDescription">
    This function will download content from a URL and call the given handler functions when it completes or a fault occurrs.</div>
@@ -67,7 +67,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("In
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#getURL()">getURL</a>(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary"):URLLoader</div>
+<a class="signatureLink" href="#getURL()">getURL</a>(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary", reportProgress:Boolean = true):URLLoader</div>
 <div class="summaryTableDescription">
    This function performs an HTTP GET request and calls result or fault handlers when the request succeeds or fails.</div>
 </td><td class="summaryTableOwnerCol">IURLRequestUtils</td>
@@ -88,7 +88,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getContent(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):<a href="../services/IURLRequestToken.html">IURLRequestToken</a></code><p>
+<code>public function getContent(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true, reportProgress:Boolean = true):<a href="../services/IURLRequestToken.html">IURLRequestToken</a></code><p>
    This function will download content from a URL and call the given handler functions when it completes or a fault occurrs.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -124,6 +124,13 @@ showHideInherited();
 <td width="20px"></td><td><code><span class="label">useCache</span>:Boolean</code> (default = <code>true</code>)<code></code> &mdash; A boolean indicating whether to use the cached images. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
    </td>
 </tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">reportProgress</span>:Boolean</code> (default = <code>true</code>)<code></code> &mdash; If set to true, WeaveAPI.ProgressIndicator will be notified of the download progress.
+   </td>
+</tr>
 </table>
 <p></p>
 <span class="label">Returns</span>
@@ -144,7 +151,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function getURL(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary"):URLLoader</code><p>
+<code>public function getURL(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary", reportProgress:Boolean = true):URLLoader</code><p>
    This function performs an HTTP GET request and calls result or fault handlers when the request succeeds or fails.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -178,6 +185,13 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">dataFormat</span>:String</code> (default = "<code>binary</code>")<code></code> &mdash; The value to set as the dataFormat property of a URLLoader object.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">reportProgress</span>:Boolean</code> (default = <code>true</code>)<code></code> &mdash; If set to true, WeaveAPI.ProgressIndicator will be notified of the download progress.
    </td>
 </tr>
 </table>

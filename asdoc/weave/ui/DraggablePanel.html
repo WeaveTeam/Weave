@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="DraggablePanel,weave.ui.DraggablePanel,activePanel,buttonRadius,closePanelButton,closeable,controlBarWidthBeforeScale,draggable,enableBorders,enableSubMenu,forceEnableBorders,maximizable,maximizeButton,maximized,minimizable,minimizeButton,minimized,panelBackgroundColor,panelBorderColor,panelHeight,panelStyleList,panelTitle,panelWidth,panelX,panelY,pinButton,pinToBackButton,pinnable,pinnableToBack,pinned,pinnedToBack,resizeable,showRollOverBorders,subMenuButton,userControlButton,activePanelName,controlPanel,percentHeight,percentWidth,percentX,percentY,x,y,addSubMenuItem,childrenCreated,commitProperties,constructor,createChildren,dispose,getStyle,getTopPanel,getTotalIconAreaWidth,handleMinimizeButtonClick,handlePanelTitleChange,layoutChrome,minimizePanel,move,openStaticInstance,preinitialize,removePanel,resourcesChanged,restorePanel,sendWindowToBackground,sendWindowToForeground,toggleControlPanel,toggleMaximized,togglePinned,togglePinnedToBack,updateBorders,updateDisplayList,updateForceEnableBorders" name="keywords">
+<meta content="DraggablePanel,weave.ui.DraggablePanel,activePanel,buttonRadius,closePanelButton,closeable,controlBarWidthBeforeScale,draggable,enableBorders,enableSubMenu,forceEnableBorders,maximizable,maximizeButton,maximized,minimizable,minimizeButton,minimized,panelBackgroundColor,panelBorderColor,panelHeight,panelStyleList,panelTitle,panelWidth,panelX,panelY,pinButton,pinToBackButton,pinnable,pinnableToBack,pinned,pinnedToBack,resizeable,showRollOverBorders,subMenuButton,userControlButton,activePanelName,controlPanel,defaultPanelTitle,percentHeight,percentWidth,percentX,percentY,x,y,addSubMenuItem,childrenCreated,commitProperties,constructor,createChildren,dispose,getStyle,getTopPanel,getTotalIconAreaWidth,handleMinimizeButtonClick,handlePanelTitleChange,layoutChrome,minimizePanel,move,openStaticInstance,preinitialize,removePanel,resourcesChanged,restorePanel,sendWindowToBackground,sendWindowToForeground,toggleControlPanel,toggleMaximized,togglePinned,togglePinnedToBack,updateBorders,updateDisplayList,updateForceEnableBorders" name="keywords">
 <title>weave.ui.DraggablePanel</title>
 </head>
 <body>
@@ -111,6 +111,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </tr>
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#controlBarWidthBeforeScale">controlBarWidthBeforeScale</a> : int = -1<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">DraggablePanel</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#defaultPanelTitle">defaultPanelTitle</a> : String<div class="summaryTableDescription">[read-only]
+    Override this function to provide a default panel title when the panelTitle session state is undefined.</div>
 </td><td class="summaryTableOwnerCol">DraggablePanel</td>
 </tr>
 </table>
@@ -294,7 +299,8 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
 <a class="signatureLink" href="#handlePanelTitleChange()">handlePanelTitleChange</a>():void</div>
-<div class="summaryTableDescription"></div>
+<div class="summaryTableDescription">
+    This gets called when the panelTitle session state changes.</div>
 </td><td class="summaryTableOwnerCol">DraggablePanel</td>
 </tr>
 <tr class="">
@@ -551,6 +557,22 @@ showHideInherited();
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get controlPanel():<a href="../ui/ControlPanel.html">ControlPanel</a></code>
 <br>
 </div>
+<a name="defaultPanelTitle"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">defaultPanelTitle</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>defaultPanelTitle:String</code>&nbsp;&nbsp;[read-only]<p>
+    Override this function to provide a default panel title when the panelTitle session state is undefined.
+    The panel title will be set when handlePanelTitleChange() is called.
+    If you need the panel title to be updated, you can call handlePanelTitleChange() directly or as a callback.
+    </p><span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;protected function get defaultPanelTitle():String</code>
+<br>
+</div>
 <a name="percentHeight"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -775,8 +797,11 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>protected function handlePanelTitleChange():void</code>
-</div>
+<code>protected function handlePanelTitleChange():void</code><p>
+    This gets called when the panelTitle session state changes.
+    If you need the panel title to be updated, you can call this function directly or as a callback.
+    If you need to override the default panel title, override the "get defaultPanelTitle" accessor function.
+    </p></div>
 <a name="layoutChrome()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
