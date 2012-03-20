@@ -349,11 +349,9 @@
 				else visualization.additionalProbeColumns = null;
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Scatter Plot of " + ColumnUtils.getTitle(plotter.xColumn) + " -vs- " + ColumnUtils.getTitle(plotter.yColumn);
+				return "Scatter Plot of " + ColumnUtils.getTitle(plotter.xColumn) + " -vs- " + ColumnUtils.getTitle(plotter.yColumn);
 			}
 			
 			override protected function childrenCreated():void

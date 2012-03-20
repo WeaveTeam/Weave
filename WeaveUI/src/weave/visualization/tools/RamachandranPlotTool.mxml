@@ -152,11 +152,9 @@
 			[Bindable]
 			private var rpToolTitle:String ="";
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Ramachandran Plot " + rpToolTitle;
+				return "Ramachandran Plot " + rpToolTitle;
 			}
 			
 			private function updateAxisLabels():void

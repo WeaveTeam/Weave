@@ -206,25 +206,21 @@
 				}
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
+				// try to get unique attribute names separated by commas
+				// should probably be unique names for parallel coordinates, single name for line chart with years listed...?
+				var newTitle:String = "Parallel Coordinates of ";
+				
+				var uniqueColumns:Dictionary = new Dictionary();
+				
+				var columns:Array = _plotter.columns.getObjects(IAttributeColumn);
+				for (var i:int = 0; i < columns.length; i++)
 				{
-					// try to get unique attribute names separated by commas
-					// should probably be unique names for parallel coordinates, single name for line chart with years listed...?
-					var newTitle:String = "Parallel Coordinates of ";
-					
-					var uniqueColumns:Dictionary = new Dictionary();
-					
-					var columns:Array = _plotter.columns.getObjects(IAttributeColumn);
-					for (var i:int = 0; i < columns.length; i++)
-					{
-						var column:IAttributeColumn = columns[i];
-						newTitle += ColumnUtils.getTitle(column) + ", ";
-					}
-					title = newTitle.substr(0, newTitle.length-2);
+					var column:IAttributeColumn = columns[i];
+					newTitle += ColumnUtils.getTitle(column) + ", ";
 				}
+				return newTitle.substr(0, newTitle.length-2);
 			}
 
 			private function alphaSliderFormatFunction(value:Number):String {

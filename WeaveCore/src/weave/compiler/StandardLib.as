@@ -153,6 +153,7 @@ package weave.compiler
 		 * This function will use a default NumberFormatter object to format a Number to a String.
 		 * @param number The number to format.
 		 * @param precision A precision value to pass to the default NumberFormatter.
+		 * @return The result of format(number) using the specified precision value.
 		 * @see mx.formatters.NumberFormatter#format
 		 */
 		public static function formatNumber(number:Number, precision:Number = NaN):String
@@ -236,7 +237,7 @@ package weave.compiler
 		 * @param value The value between min and max.
 		 * @param min The minimum value that corresponds to a result of 0.
 		 * @param max The maximum value that corresponds to a result of 1.
-		 * @param The normalized value between 0 and 1, or NaN if value is out of range.
+		 * @return The normalized value between 0 and 1, or NaN if value is out of range.
 		 */
 		public static function normalize(value:Number, min:Number, max:Number):Number
 		{
@@ -252,7 +253,7 @@ package weave.compiler
 		 * @param inputMax The maximum value in the input range.
 		 * @param outputMin The minimum value in the output range.
 		 * @param outputMax The maximum value in the output range.
-		 * @param The input value rescaled such that a value equal to inputMin is scaled to outputMin and a value equal to inputMax is scaled to outputMax.
+		 * @return The input value rescaled such that a value equal to inputMin is scaled to outputMin and a value equal to inputMax is scaled to outputMax.
 		 */
 		public static function scale(inputValue:Number, inputMin:Number, inputMax:Number, outputMin:Number, outputMax:Number):Number
 		{

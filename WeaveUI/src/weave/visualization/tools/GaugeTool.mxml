@@ -90,13 +90,9 @@
 				handlePanelTitleChange();
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!_plotter)
-					title = "Gauge";
-				if (!panelTitle.value)
-					title = "Gauge of " + ColumnUtils.getTitle(_plotter.meterColumn);
+				return "Gauge of " + ColumnUtils.getTitle(_plotter.meterColumn);
 			}
 			
 			[Bindable]

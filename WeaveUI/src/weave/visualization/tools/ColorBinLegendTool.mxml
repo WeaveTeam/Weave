@@ -168,11 +168,9 @@
 				LinkableTextFormat.defaultTextFormat.copyToStyle(marginLabel);
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Color Legend";
+				return "Color Legend";
 			}
 			
 			private static const DEFAULT_MARGIN_TOP:int = 25;

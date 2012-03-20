@@ -84,16 +84,14 @@
 				//else ProbeTextUtils.probedColumns.copyObject('probedColumns',oldProbeColumns);
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Stick Figure Plot of " + ColumnUtils.getTitle(_plotter.dataX)
-						+ " -vs- " + ColumnUtils.getTitle(_plotter.dataY)
-						+ ", with angles of " + ColumnUtils.getTitle(_plotter.theta1) 
-						+ ", " + ColumnUtils.getTitle(_plotter.theta2) 
-						+ ", " + ColumnUtils.getTitle(_plotter.theta3) 
-						+ ", " + ColumnUtils.getTitle(_plotter.theta4);
+				return "Stick Figure Plot of " + ColumnUtils.getTitle(_plotter.dataX)
+					+ " -vs- " + ColumnUtils.getTitle(_plotter.dataY)
+					+ ", with angles of " + ColumnUtils.getTitle(_plotter.theta1) 
+					+ ", " + ColumnUtils.getTitle(_plotter.theta2) 
+					+ ", " + ColumnUtils.getTitle(_plotter.theta3) 
+					+ ", " + ColumnUtils.getTitle(_plotter.theta4);
 			}
 
 			override protected function childrenCreated():void

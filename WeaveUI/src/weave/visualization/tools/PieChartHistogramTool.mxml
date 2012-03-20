@@ -102,11 +102,9 @@
 				handlePanelTitleChange();
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "[Pie Chart Histogram] of " + ColumnUtils.getTitle(_plotter.unfilteredData);
+				return "[Pie Chart Histogram] of " + ColumnUtils.getTitle(_plotter.unfilteredData);
 			}
 			
 			
