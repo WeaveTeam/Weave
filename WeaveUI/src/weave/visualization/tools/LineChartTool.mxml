@@ -302,38 +302,27 @@
 				yAxisLayer.axisPlotter.updateLabels();			
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
+				var columns:Array = _plotter.columns.getObjects();
+				if (columns.length == 0)
+					return 'Line Chart';
+				
+				if (_plotter.enableGroupBy.value)
+					return StringUtil.substitute(
+						"Line Chart of {0} by {1}",
+						ColumnUtils.getTitle(_plotter.yData),
+						ColumnUtils.getTitle(_plotter.xData)
+					);
+				
+				var newTitle:String = "Line Chart of ";
+				for (var i:int = 0; i < columns.length; i++)
 				{
-					var columns:Array = _plotter.columns.getObjects();
-					if (columns.length == 0)
-					{
-						title = 'Line Chart';
-						return;
-					}
-					
-					if (_plotter.enableGroupBy.value)
-					{
-						title = StringUtil.substitute(
-							"Line Chart of {0} by {1}",
-							ColumnUtils.getTitle(_plotter.yData),
-							ColumnUtils.getTitle(_plotter.xData)
-						);
-					}
-					else
-					{
-						var newTitle:String = "Line Chart of ";
-						for (var i:int = 0; i < columns.length; i++)
-						{
-							if (i > 0)
-								newTitle += ', ';
-							newTitle += ColumnUtils.getTitle(columns[i]);
-						}
-						title = newTitle;
-					}
+					if (i > 0)
+						newTitle += ', ';
+					newTitle += ColumnUtils.getTitle(columns[i]);
 				}
+				return newTitle;
 			}
 			
 			private function handleCurveCheckBox():void

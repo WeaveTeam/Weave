@@ -203,16 +203,12 @@
 					AttributeSelectorPanel.openToolSelector(this,_plotter.heightColumns);
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-				{
-					var columns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
-					for (var i:int = 0; i < columns.length; i++)
-						columns[i] = ColumnUtils.getTitle(columns[i] as IAttributeColumn);
-					title = "Bar Chart of " + columns.join(', ');
-				}
+				var columns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
+				for (var i:int = 0; i < columns.length; i++)
+					columns[i] = ColumnUtils.getTitle(columns[i] as IAttributeColumn);
+				return "Bar Chart of " + columns.join(', ');
 			}
 			
 			public function get colorColumn():DynamicColumn

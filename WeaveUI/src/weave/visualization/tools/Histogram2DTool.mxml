@@ -37,7 +37,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.unlinkSessionState;
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.BinnedColumn;
-			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColorController;
@@ -160,11 +159,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "2D Histogram of " + ColumnUtils.getTitle(plotter.xColumn) + " vs " + ColumnUtils.getTitle(plotter.yColumn) ;
+				return "2D Histogram of " + ColumnUtils.getTitle(plotter.xColumn) + " vs " + ColumnUtils.getTitle(plotter.yColumn) ;
 			}
 			
 			private function updateAxisLabels():void

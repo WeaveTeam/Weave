@@ -265,7 +265,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				rawChildren.addChild(_dragCanvas);
 			}
 			
-			// this gets called when panelTitle changes
+			/**
+			 * Override this function to provide a default panel title when the panelTitle session state is undefined.
+			 * The panel title will be set when handlePanelTitleChange() is called.
+			 * If you need the panel title to be updated, you can call handlePanelTitleChange() directly or as a callback.
+			 */
+			protected function get defaultPanelTitle():String
+			{
+				return getQualifiedClassName(this).split(':').pop();
+			}
+			
+			/**
+			 * This gets called when the panelTitle session state changes.
+			 * If you need the panel title to be updated, you can call this function directly or as a callback.
+			 * If you need to override the default panel title, override the "get defaultPanelTitle" accessor function.
+			 */
 			protected function handlePanelTitleChange():void
 			{
 				if (panelTitle.value)
@@ -275,7 +289,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				else
 				{
-					title = '';
+					title = defaultPanelTitle;
 				}
 			}
 			private const panelTitleFunction:LinkableFunction = registerDisposableChild(this, new LinkableFunction(null, true, true)); // this is used in handlePanelTitleChange()

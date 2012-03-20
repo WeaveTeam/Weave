@@ -110,11 +110,9 @@
 				}
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Histogram of " + ColumnUtils.getTitle(_plotter.dynamicColorColumn);
+				return "Histogram of " + ColumnUtils.getTitle(_plotter.dynamicColorColumn);
 			}
 
 			private var _prevBinnedColumn:BinnedColumn = null;

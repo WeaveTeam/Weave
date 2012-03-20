@@ -116,11 +116,9 @@
 				handlePanelTitleChange();
 			}
 
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Pie Chart of " + ColumnUtils.getTitle(_plotter.data);
+				return "Pie Chart of " + ColumnUtils.getTitle(_plotter.data);
 			}
 		]]>
 	</mx:Script>
