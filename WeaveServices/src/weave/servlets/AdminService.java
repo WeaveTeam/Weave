@@ -308,6 +308,7 @@ public class AdminService extends GenericServlet
 			throw new RemoteException("Permission error reading directory.",e);
 		}
 
+		Collections.sort(listOfFiles, String.CASE_INSENSITIVE_ORDER);
 		return ListUtils.toStringArray(listOfFiles);
 	}
 
