@@ -358,6 +358,7 @@
 			{
 				super.childrenCreated();
 
+				plotter.colorColumn.addImmediateCallback(this, handleColorColumnChange, true);
 				linkBindableProperty(plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(plotter.enabledSizeBy, sizeByCheck, "selected");
 				plotter.minScreenRadius.addGroupedCallback(this, updateSizeSlider);
@@ -470,18 +471,25 @@
 					return;
 				}
 				
-				var fill:SolidFillStyle = plotter.circlePlotter.fillStyle.requestLocalObject(SolidFillStyle, false);
 				if ( showColorPicker.value )
 				{
-					fill.color.defaultValue.value = overrideColor.value;
-					fill.color.internalDynamicColumn.removeObject();
+					plotter.colorColumn.defaultValue.value = overrideColor.value;
+					plotter.colorColumn.internalDynamicColumn.removeObject();
 				}
 				else
 				{
-					fill.color.defaultValue.value = NaN;
-					fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+					plotter.colorColumn.defaultValue.value = NaN;
+					plotter.colorColumn.internalDynamicColumn.requestGlobalObject(_prevGlobalColorColumnName, ColorColumn, false);
 				}
 				scatterplotColorOverride.enabled = showColorPicker.value;
+			}
+			
+			private var _prevGlobalColorColumnName:String = null;
+			private function handleColorColumnChange():void
+			{
+				var newName:String = plotter.colorColumn.internalDynamicColumn.globalName;
+				if (newName)
+					_prevGlobalColorColumnName = newName;
 			}
 			
 			public const showColorPicker:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
