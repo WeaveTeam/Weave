@@ -32,7 +32,7 @@ package weave.ui.CustomDataGrid
 	
 	public class WeaveCustomDataGridColumn extends DataGridColumn
 	{
-		public function WeaveCustomDataGridColumn(attrColumn:IAttributeColumn, showColors:LinkableBoolean)
+		public function WeaveCustomDataGridColumn(attrColumn:IAttributeColumn, showColors:LinkableBoolean, colorFunction:Function)
 		{
 			_attrColumn = attrColumn;
 			labelFunction = extractDataFunction;
@@ -43,7 +43,7 @@ package weave.ui.CustomDataGrid
 			factory.properties = {
 				attrColumn: attrColumn,
 				showColors: showColors,
-				colorColumn: Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN),
+				colorFunction: colorFunction,
 				keySet: Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET)
 			};
 			this.itemRenderer = factory;

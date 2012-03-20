@@ -99,6 +99,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
@@ -532,7 +533,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						}
 						else
 						{
-							dgc = new WeaveCustomDataGridColumn(attrColumn, showColors);
+							dgc = new WeaveCustomDataGridColumn(attrColumn, showColors, _cellColorFunction);
 							dataGridColumns[columnName] = dgc;
 						}
 						
@@ -566,6 +567,33 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					reportError(error);
 				}
+			}
+			
+			/**
+			 * This defines how cells will be colored.
+			 * Two parameters are made available to this function: column:IAttributeColumn, key:IQualifiedKey
+			 * The return value should be a color, or NaN for no color.
+			 */		
+			public const cellColorFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction("defaultCellColorFunction(column, key)", true, true, ['column', 'key']));
+			
+			// this gets passed to cell item renderers
+			private function _cellColorFunction(column:IAttributeColumn, key:IQualifiedKey):Number
+			{
+				try
+				{
+					return cellColorFunction.apply(this, arguments);
+				}
+				catch (e:Error)
+				{
+				}
+				return NaN;
+			}
+			
+			// default cell color function just gets color from global color column
+			public function defaultCellColorFunction(column:IAttributeColumn, key:IQualifiedKey):Number
+			{
+				var cc:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
+				return cc.getValueFromKey(key, Number);
 			}
 			
 			private function handleColumnReorder(event:IndexChangedEvent):void
