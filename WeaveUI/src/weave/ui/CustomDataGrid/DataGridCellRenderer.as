@@ -56,7 +56,12 @@ package weave.ui.CustomDataGrid
 		
 		public var attrColumn:IAttributeColumn = null;
 		public var showColors:LinkableBoolean = null;
-		public var colorColumn:ColorColumn = null;
+		
+		/**
+		 * This function should take two parameters: function(column:IAttributeColumn, key:IQualifiedKey):Number
+		 * The return value should be a color, or NaN for no color.
+		 */		
+		public var colorFunction:Function = null;
 		public var keySet:KeySet = null;
 		
 		override public function set data(item:Object):void
@@ -108,7 +113,7 @@ package weave.ui.CustomDataGrid
 				alpha = 1.0;	
 			}
 			
-			var colorValue:Number = colorColumn.getValueFromKey(data as IQualifiedKey);
+			var colorValue:Number = colorFunction(attrColumn, data as IQualifiedKey);
 			if (!isNaN(colorValue))
 			{
 				g.beginFill(colorValue);
