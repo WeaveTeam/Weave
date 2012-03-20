@@ -72,6 +72,8 @@
 			
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
+			import weave.utils.DateUtils;
+			import weave.utils.FileUtils;
 			
 			public static const INPUT_CSV:String = "INPUT_CSV";
 			public static const INPUT_SHP:String = "INPUT_SHP";
@@ -171,36 +173,11 @@
 			
 			private function sizeLabel(item:Object, column:DataGridColumn):String
 			{
-				var size:Number = item.size as Number;
-				var formater:NumberFormatter = new NumberFormatter();
-				
-				if( size < 1024 ) 
-					return size + (( size == 1 ) ? " Byte" : " Bytes");
-				
-				size = size / 1024;
-				if( size < 1024 ) {
-					formater.precision = 2;
-					return formater.format(size) + (( size == 1 ) ? " Kilobyte" : " Kilobytes");
-				}
-				
-				size = size / 1024;
-				if( size < 1024 ) {
-					formater.precision = 2;
-					return formater.format(size) + (( size == 1 ) ? " Megabyte" : " Megabytes");
-				}
-				
-				size = size / 1024;
-				formater.precision = 1;
-				return formater.format(size) + (( size == 1 ) ? " Gigabyte" : " Gigabytes");
+				return new FileUtils().parse(item.size as Number, 2);
 			}
 			private function lastModifiedLabel(item:Object, column:DataGridColumn):String
 			{
-				var d:Date = new Date();
-				d.time = item.lastModified;
-				
-				var format:DateFormatter = new DateFormatter();
-				format.formatString = "MM/DD/YYYY L:NN A";
-				return format.format(d);
+				return new DateUtils().parse(item.lastModified, "MM/DD/YYYY L:NN A");
 			}
 		]]>
 	</mx:Script>

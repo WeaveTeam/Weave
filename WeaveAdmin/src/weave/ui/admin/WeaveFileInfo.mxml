@@ -41,6 +41,8 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.services.AdminInterface;
+			import weave.utils.DateUtils;
+			import weave.utils.FileUtils;
 			
 			[Bindable] private var _title:String = "";
 			[Bindable] private var _thumbByteArray:ByteArray = null;
@@ -79,29 +81,8 @@
 					_thumbByteArray = event.result.thumb as ByteArray;
 				}
 				
-				var d:Date = new Date();
-				d.time = _LM;
-				_lastMod = (d.getMonth() + 1)+"/"+d.getDate()+"/"+d.getFullYear()+" "+((d.getHours()>12)?d.getHours()-12:d.getHours())+":"+d.getMinutes()+" "+((d.getHours()>12)?"PM":"AM");
-				
-				
-				if( _FS < 1024 ) {
-					_fileSize = _FS + (( _FS == 1 ) ? " Byte" : " Bytes");
-					return;
-				}
-				
-				_FS = _FS / 1024;
-				if( _FS < 1024 ) {
-					formater.precision = 2;
-					_fileSize = formater.format(_FS) + (( _FS == 1 ) ? " Kilobyte" : " Kilobytes");
-					return;
-				}
-				
-				_FS = _FS / 1024;
-				if( _FS < 1024 ) {
-					formater.precision = 2;
-					_fileSize = formater.format(_FS) + (( _FS == 1 ) ? " Megabyte" : " Megabytes");
-					return;
-				}
+				_lastMod = new DateUtils().parse(_LM, "MM/DD/YYYY L:NN A");
+				_fileSize = new FileUtils().parse(_FS, 2);
 			}
 		]]>
 	</mx:Script>
