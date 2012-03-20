@@ -90,9 +90,6 @@ package weave.ui.CustomDataGrid
 			var g:Graphics = graphics;
 			g.clear();
 			
-			if (!showColors.value)
-				return;
-			
 			var grid:DataGrid = owner as DataGrid || owner.parent as DataGrid;
 			if (keySet.keys.length > 0)
 			{
@@ -113,12 +110,15 @@ package weave.ui.CustomDataGrid
 				alpha = 1.0;	
 			}
 			
-			var colorValue:Number = colorFunction(attrColumn, data as IQualifiedKey);
-			if (!isNaN(colorValue))
+			if (showColors.value)
 			{
-				g.beginFill(colorValue);
-				g.drawRect(0, 0, unscaledWidth, unscaledHeight);
-				g.endFill();
+				var colorValue:Number = colorFunction(attrColumn, data as IQualifiedKey);
+				if (!isNaN(colorValue))
+				{
+					g.beginFill(colorValue);
+					g.drawRect(0, 0, unscaledWidth, unscaledHeight);
+					g.endFill();
+				}
 			}
 		}
 	}
