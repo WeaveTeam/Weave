@@ -89,7 +89,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#WeaveCustomDataGridColumn()">WeaveCustomDataGridColumn</a>(attrColumn:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>, showColors:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a>)</div>
+<a class="signatureLink" href="#WeaveCustomDataGridColumn()">WeaveCustomDataGridColumn</a>(attrColumn:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>, showColors:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a>, colorFunction:Function)</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">WeaveCustomDataGridColumn</td>
 </tr>
@@ -146,7 +146,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function WeaveCustomDataGridColumn(attrColumn:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>, showColors:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a>)</code><span class="label">Parameters</span>
+<code>public function WeaveCustomDataGridColumn(attrColumn:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>, showColors:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a>, colorFunction:Function)</code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">attrColumn</span>:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a></code></td>
@@ -156,6 +156,12 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">showColors</span>:<a href="../../core/LinkableBoolean.html">LinkableBoolean</a></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">colorFunction</span>:Function</code></td>
 </tr>
 </table>
 </div>
