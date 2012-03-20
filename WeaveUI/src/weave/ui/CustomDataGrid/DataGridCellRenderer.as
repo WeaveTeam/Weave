@@ -87,6 +87,9 @@ package weave.ui.CustomDataGrid
 		{
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 			
+			if (!owner)
+				return;
+			
 			var g:Graphics = graphics;
 			g.clear();
 			
