@@ -241,7 +241,7 @@ package weave
 		
 		/******************************************************************************************/
 		
-		private static const THUMBNAIL_SIZE:int = 128;
+		private static const THUMBNAIL_SIZE:int = 200;
 		private static const ARCHIVE_THUMBNAIL_PNG:String = "thumbnail.png";
 		private static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
 		private static const ARCHIVE_HISTORY_AMF:String = "history.amf";
