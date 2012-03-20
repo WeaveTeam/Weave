@@ -109,7 +109,7 @@ package weave.ui.CustomDataGrid
 			}
 			else
 			{
-				setStyle("fontWeight", "normal");
+				lbl.setStyle("fontWeight", "normal");
 				alpha = 1.0;	
 			}
 			
