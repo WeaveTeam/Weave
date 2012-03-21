@@ -346,7 +346,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			/**
-			 * This function gets called in ValidateProperties, 
+			 * This function gets called in Updatedisplaylist, 
 			 * when there is change in sortFieldIndex or sortInDescending 	
 			 * called with parameter if called from change in column 
 			 */							
@@ -609,7 +609,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if (isNaN(width) || width <= 5) // this happens when a column is stretched all the way to the right
 						width = _minSuggestedColumnSize;	
 					
-					sessionedWidth.value = (100 * width / dataGridColumnsWidth) + "%";
+					sessionedWidth.value = int(100 * width / dataGridColumnsWidth) + "%";
 					if (dgc.filterComponent)
 						dgc.filterComponent.width = dgc.width;
 				}
@@ -634,28 +634,36 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if (columnName == null)
 						continue;
 					var sessionedWidth:LinkableString = columnWidths.getObject(columnName) as LinkableString;
-					// we don't want to create a sessionedWidth because one will be created later if the column wasn't disposed
-					if (sessionedWidth == null)
-						continue; 
 					var tempWidth:Number;
-					if(sessionedWidth.value ){	
-						var sessionedValue:Number = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, allotedDisplayWidth);
-						tempWidth = sessionedValue;
-					}
-					else{
-						tempWidth = defaultValue;					
-						sessionedWidth.value = (100 * tempWidth/allotedDisplayWidth) + "%";
-					}
+					// when we reset width, we need all columns to have default value
+					 if (sessionedWidth == null){
+						 tempWidth = defaultValue;
+					 }
+					 else{
+						 if(sessionedWidth.value ){	
+							 var sessionedValue:Number = NumberUtils.getNumberFromNumberOrPercent(sessionedWidth.value, allotedDisplayWidth);
+							 tempWidth = sessionedValue;
+						 }
+						 else{
+							 tempWidth = defaultValue;					
+							 sessionedWidth.value = int(100 * tempWidth/allotedDisplayWidth) + "%";
+						 } 
+					 }
+					
 					//last column gets width to adjust in datgrid, so its necessay to get that width.					
-					if(j == _currentDataGridColumns.length -1) {
+					if(j == _currentDataGridColumns.length -1) 
+					{
 						tempWidth = allotedDisplayWidth - displayedColumnsTotalWidth ;
-						sessionedWidth.value = "";
+						if(sessionedWidth){
+							sessionedWidth.value = "";
+						}
+						
 					}
 					if (tempWidth <= 5 || isNaN(tempWidth)) {
 						tempWidth = _minSuggestedColumnSize;	
 					}	
-					//floor required as rendering works fast with whole number than with an integer
-					var newWidth:Number = Math.floor(Math.min(tempWidth, allotedDisplayWidth));
+					//int casting required as rendering works fast with whole number than with an floating number
+					var newWidth:Number = int(Math.min(tempWidth, allotedDisplayWidth));
 					
 					dgc.setWidth(newWidth);
 					dgc.width = newWidth;
@@ -839,9 +847,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Button label="Add Image Column" click="addImageColumn()"/>
 				<ui:HelpComponent>Select a column that contains image URLs. The images will be displayed in the data table.</ui:HelpComponent>
 			</mx:HBox>
-<!--
+
 			<mx:Button label="Reset column widths" click="columnWidths.removeAllObjects()"/>
--->
+
 		</mx:VBox>
 		<mx:VBox label="Advanced">
 			<mx:HBox>
