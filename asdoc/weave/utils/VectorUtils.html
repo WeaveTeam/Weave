@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="VectorUtils,weave.utils.VectorUtils,append,compare,copy,copyXMLListToVector,flatten,getMedianIndex,mergeSorted,randomSort,removeDuplicatesFromSortedArray,standardCompare" name="keywords">
+<meta content="VectorUtils,weave.utils.VectorUtils,append,compare,copy,copyXMLListToVector,flatten,getMedianIndex,joinItems,mergeSorted,randomSort,removeDuplicatesFromSortedArray,standardCompare" name="keywords">
 <title>weave.utils.VectorUtils</title>
 </head>
 <body>
@@ -103,6 +103,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <div class="summaryTableDescription">[static]
    See http://en.wikipedia.org/wiki/Quick_select#Partition-based_general_selection_algorithm
    </div>
+</td><td class="summaryTableOwnerCol">VectorUtils</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#joinItems()">joinItems</a>(arrayOfArrays:Array, separator:String, includeEmptyItems:Boolean):Array</div>
+<div class="summaryTableDescription">[static]
+   This will take an Array of Arrays of String items and produce a single list of String-joined items.</div>
 </td><td class="summaryTableOwnerCol">VectorUtils</td>
 </tr>
 <tr class="">
@@ -342,6 +350,45 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code>int</code> &mdash; The index the median element.
+   </td>
+</tr>
+</table>
+</div>
+<a name="joinItems()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">joinItems</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function joinItems(arrayOfArrays:Array, separator:String, includeEmptyItems:Boolean):Array</code><p>
+   This will take an Array of Arrays of String items and produce a single list of String-joined items.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">arrayOfArrays</span>:Array</code> &mdash; An Array of Arrays of String items.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">separator</span>:String</code> &mdash; The separator String used between joined items.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">includeEmptyItems</span>:Boolean</code> &mdash; Set this to true to include empty-strings and undefined items in the nested Arrays.
+   </td>
+</tr>
+</table>
+<p></p>
+<span class="label">Returns</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20"></td><td><code>Array</code> &mdash; An Array of String-joined items in the same order they appear in the nested Arrays.
    </td>
 </tr>
 </table>
