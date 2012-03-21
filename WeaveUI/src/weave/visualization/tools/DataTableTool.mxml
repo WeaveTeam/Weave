@@ -76,6 +76,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
 			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.events.DataGridEvent;
 			import mx.events.FlexEvent;
@@ -770,12 +771,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const showColors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			/**
 			 * This defines how cells will be colored.
-			 * Two parameters are made available to this function: column:IAttributeColumn, key:IQualifiedKey
+			 * Two parameters are made available to this function: column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent
 			 * The return value should be a color, or NaN for no color.
 			 */
-			public const cellColorFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction("defaultCellColorFunction(column, key)", true, true, ['column', 'key']));
+			public const cellColorFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction("defaultCellColorFunction(column, key, cell)", true, true, ['column', 'key', 'cell']));
 			// this gets passed to cell item renderers
-			private function _cellColorFunction(column:IAttributeColumn, key:IQualifiedKey):Number
+			private function _cellColorFunction(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent):Number
 			{
 				try
 				{
@@ -788,7 +789,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return NaN;
 			}
 			// default cell color function just gets color from global color column
-			public function defaultCellColorFunction(column:IAttributeColumn, key:IQualifiedKey):Number
+			public function defaultCellColorFunction(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent):Number
 			{
 				var cc:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
 				return cc.getValueFromKey(key, Number);
