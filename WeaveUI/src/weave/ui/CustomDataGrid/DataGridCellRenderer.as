@@ -22,18 +22,16 @@ package weave.ui.CustomDataGrid
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	
-	import mx.binding.utils.BindingUtils;
 	import mx.containers.Canvas;
 	import mx.controls.DataGrid;
 	import mx.controls.Image;
 	import mx.controls.Label;
-	import mx.controls.dataGridClasses.DataGridListData;
-	import mx.core.UIComponent;
 	
+	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.core.LinkableBoolean;
-	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.KeySets.KeySet;
 
@@ -112,6 +110,12 @@ package weave.ui.CustomDataGrid
 				lbl.setStyle("fontWeight", "normal");
 				alpha = 1.0;	
 			}
+			
+			// right-align numbers
+			if (attrColumn.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.NUMBER)
+				lbl.setStyle('textAlign', 'right');
+			else
+				lbl.setStyle('textAlign', 'left');
 			
 			if (showColors.value)
 			{

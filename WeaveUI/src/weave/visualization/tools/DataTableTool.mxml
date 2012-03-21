@@ -541,20 +541,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						
 						//filterComponent Section
 						var classDef:Class = null;
-						if (attrColumn is KeyColumn)
-						{
-							classDef = SearchFilterComponent;										
-						}
-						if (dataType == DataTypes.STRING)
-						{
-							classDef = SearchFilterComponent;
-						}
-						else if (dataType == DataTypes.NUMBER)
-						{
+						if (dataType == DataTypes.NUMBER)
 							classDef = SliderFilterComponent;
-							//Right Align numbers
-							dataGridColumns[columnName].setStyle('textAlign','right');
-						}						
+						else
+							classDef = SearchFilterComponent;
 						dgc.filterComponent = filterComponents.requestObject(columnName, classDef, false);
 						
 						//columnWidth section
