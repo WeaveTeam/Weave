@@ -280,9 +280,36 @@ package weave.utils
 			return destination;
 		}
 		
-		/*
-		trace(VectorUtils.copy(["Abc","aAc","abb","Aab"],new Vector.<String>()).sort(0));
-		trace(VectorUtils.copy(["Abc","aAc","abd","Aab"],new Vector.<String>()).sort(Array.CASEINSENSITIVE));
-		*/
+		/**
+		 * This will take an Array of Arrays of String items and produce a single list of String-joined items.
+		 * @param arrayOfArrays An Array of Arrays of String items.
+		 * @param separator The separator String used between joined items.
+		 * @param includeEmptyItems Set this to true to include empty-strings and undefined items in the nested Arrays.
+		 * @return An Array of String-joined items in the same order they appear in the nested Arrays.
+		 */
+		public static function joinItems(arrayOfArrays:Array, separator:String, includeEmptyItems:Boolean):Array
+		{
+			var maxLength:int = 0;
+			var itemList:Array;
+			for each (itemList in arrayOfArrays)
+				maxLength = Math.max(maxLength, itemList.length);
+			
+			var result:Array = [];
+			for (var itemIndex:int = 0; itemIndex < maxLength; itemIndex++)
+			{
+				var joinedItem:Array = [];
+				for (var listIndex:int = 0; listIndex < arrayOfArrays.length; listIndex++)
+				{
+					itemList = arrayOfArrays[listIndex] as Array;
+					var item:String = '';
+					if (itemList && itemIndex < itemList.length)
+						item = itemList[itemIndex] || '';
+					if (item || includeEmptyItems)
+						joinedItem.push(item);
+				}
+				result.push(joinedItem.join(separator));
+			}
+			return result;
+		}
 	}
 }
