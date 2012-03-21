@@ -414,8 +414,10 @@ package weave.core
 					}
 					else
 					{
+						/*
 						if (property != null)
 							trace("ignoring duplicate object:",name,property);
+						*/
 					}
 				}
 				// special case if there are no child objects -- return null
