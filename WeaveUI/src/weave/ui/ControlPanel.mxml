@@ -58,6 +58,7 @@
 			private var _targetObjects:Array = null;
 			private var _savedTargetSessionStates:Array;
 			private var _savedGlobalSessionStates:Array;
+			private var _savedGlobalNames:Object;
 			private var createdChildren:Boolean = false;
 			
 			override public function set width(value:Number):void
@@ -180,6 +181,7 @@
 						if (child is ILinkableObjectEditor)
 							(child as ILinkableObjectEditor).applyChanges();
 				
+				_savedGlobalNames = {};
 				_savedGlobalSessionStates = [];
 				_savedTargetSessionStates = [];
 				if (_targetObjects == null && parent is ILinkableObject)
@@ -203,8 +205,12 @@
 					dynamicObjects.unshift(object);
 				for each (var dynamicObject:ILinkableDynamicObject in dynamicObjects)
 				{
-					if (dynamicObject.internalObject && dynamicObject.globalName != null)
+					// if the dynamic object references a global object by name...
+					if (dynamicObject.internalObject && dynamicObject.globalName != null && !_savedGlobalNames[dynamicObject.globalName])
 					{
+						// avoid duplicate entries and infinite recursion
+						_savedGlobalNames[dynamicObject.globalName] = true;
+						// save the session state of the global object
 						_savedGlobalSessionStates.push(
 							new DynamicState(
 								dynamicObject.globalName,
