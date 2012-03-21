@@ -157,7 +157,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#defaultCellColorFunction()">defaultCellColorFunction</a>(column:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>, key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>):Number</div>
+<a class="signatureLink" href="#defaultCellColorFunction()">defaultCellColorFunction</a>(column:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>, key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, cell:UIComponent):Number</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">DataTableTool</td>
 </tr>
@@ -720,7 +720,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function defaultCellColorFunction(column:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>, key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>):Number</code><span class="label">Parameters</span>
+<code>public function defaultCellColorFunction(column:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a>, key:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a>, cell:UIComponent):Number</code><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20px"></td><td><code><span class="label">column</span>:<a href="../../api/data/IAttributeColumn.html">IAttributeColumn</a></code></td>
@@ -730,6 +730,12 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">key</span>:<a href="../../api/data/IQualifiedKey.html">IQualifiedKey</a></code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">cell</span>:UIComponent</code></td>
 </tr>
 </table>
 <p></p>
@@ -821,7 +827,7 @@ showHideInherited();
 <div class="detailBody">
 <code>public const cellColorFunction:<a href="../../core/LinkableFunction.html">LinkableFunction</a></code><p>
     This defines how cells will be colored.
-    Two parameters are made available to this function: column:IAttributeColumn, key:IQualifiedKey
+    Two parameters are made available to this function: column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent
     The return value should be a color, or NaN for no color.
     </p></div>
 <a name="columns"></a>
