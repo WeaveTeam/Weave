@@ -1466,16 +1466,16 @@ public class AdminService extends GenericServlet
 				colName = colName.replace("<", "less than");
 				colName = colName.replace(">", "more than");
 				// if the length of the column name is longer than the 64-character limit
-				int maxColNameLength = 64;
-				int halfMaxColNameLength = 30;
+				int maxColNameLength = 64 - 4; // leave space for "_123" if there end up being duplicate column names
 				boolean isKeyCol = csvKeyColumn.equalsIgnoreCase(colName);
-				if (colName.length() >= maxColNameLength)
-				{
+				// if name too long, remove spaces
+				if (colName.length() > maxColNameLength)
 					colName = colName.replace(" ", "");
-					if (colName.length() >= maxColNameLength)
-					{
-						colName = colName.substring(0, halfMaxColNameLength) + "_" + colName.substring(colName.length() - halfMaxColNameLength);
-					}
+				// if still too long, truncate
+				if (colName.length() > maxColNameLength)
+				{
+					int half = maxColNameLength / 2 - 1;
+					colName = colName.substring(0, half) + "_" + colName.substring(colName.length() - half);
 				}
 				// copy new name if key column changed
 				if (isKeyCol)
