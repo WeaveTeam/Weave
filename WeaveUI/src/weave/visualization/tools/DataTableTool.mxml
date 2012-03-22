@@ -35,7 +35,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
 		<mx:HBox id="topControls" horizontalAlign="left" width="100%">
 			<mx:Label text="Key type:"/>
-			<ui:CustomComboBox id="keyTypeCombo" change="filterByKeyType.value = keyTypeCombo.selectedItem as String;" toolTip="Only columns of the selected key type will be shown."/>
+			<ui:CustomComboBox id="keyTypeCombo" change="filterColumnsByKeyType.value = keyTypeCombo.selectedItem as String;" toolTip="Only columns of the selected key type will be shown."/>
 			<mx:Button label="Edit columns..." click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
 		</mx:HBox>
 		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid"  id="filterControls" width="100%"  verticalAlign="middle" horizontalScrollPolicy="off">
@@ -145,6 +145,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);	
 			public const exportKeys:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
+			
+			
+			
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -175,21 +178,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(showControls, showControlsCheckBox, "selected");
 				linkBindableProperty(showFilters, showFiltersCheckBox, "selected");
 				linkBindableProperty(showColors,showColorsCheckBox,"selected");
-				
-				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange,true);
-				
-				dataRowKeys.filterFunction = filterKeys;
-				dataRowKeys.refresh();
-				updateGlobalSelectionChange();
-				dimensionsList.hashMap = columns;
+				linkBindableProperty(dataGridHorizontalScrollPosition, dataGrid, 'horizontalScrollPosition', 0, true);
+				linkBindableProperty(dataGridVerticalScrollPosition, dataGrid, 'verticalScrollPosition', 0, true);
 				
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleColumnStretch);
 				dataGrid.addEventListener(ResizeEvent.RESIZE, handleToolResize);
 				
-				linkBindableProperty(dataGridHorizontalScrollPosition, dataGrid, 'horizontalScrollPosition', 0, true);
-				linkBindableProperty(dataGridVerticalScrollPosition, dataGrid, 'verticalScrollPosition', 0, true);
+				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange,true);				
+				dimensionsList.hashMap = columns;
 				
 				UIUtils.linkDisplayObjects(filterControls,filterComponents);
+				
 			}
 			
 			/**
@@ -217,26 +216,31 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				var columnsChanged:Boolean = detectLinkableObjectChange(updateDisplayList, columns);
 				if (columnsChanged)
-				{
-					sortCallback(true); 
+				{					
 					updateKeyTypeComboBox();
-					updateDataGridColumns();
+					updateDataGridColumns();					
 				}
-				if (columnsChanged || detectLinkableObjectChange(updateDisplayList, filterByKeyType))
+				if (columnsChanged || detectLinkableObjectChange(updateDisplayList, filterColumnsByKeyType))
 				{
-					updateKeysAndVisibleColumns();
+					updateKeysColumnsDataProviderAndSelection();
 				}
-				if (columnsChanged)
+				if (columnsChanged )
 				{
-					updateGlobalSelectionChange();
 					updateBorders();
 				} 
 				if (detectLinkableObjectChange(updateDisplayList, columnWidths))
 				{
 					updateColumnWidths();
 				}
-				
-				if (detectLinkableObjectChange(updateDisplayList, filterComponents))
+				if (detectLinkableObjectChange(updateDisplayList, _subset))
+				{
+					showFilters.value = false;
+				}
+				if (detectLinkableObjectChange(updateDisplayList, showFilters) )
+				{
+					updateFilters();
+				}
+				if (detectLinkableObjectChange(updateDisplayList, filterComponents) && showFilters.value)
 				{					
 					dataGrid.invalidateFilters();
 				}
@@ -248,14 +252,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{					
 					dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
 				}
-				if (detectLinkableObjectChange(updateDisplayList, _subset))
+				
+				if (detectLinkableObjectChange(updateDisplayList, _selection) )
 				{
-					showFilters.value = false;
+					updateGlobalSelectionChange();				
 				}
-				if (detectLinkableObjectChange(updateDisplayList, _selection))
-				{
-					updateGlobalSelectionChange();
-				}
+				
+				
 				if (detectLinkableObjectChange(updateDisplayList, colorColumn))
 				{
 					(dataGrid.dataProvider as ICollectionView).refresh();
@@ -265,7 +268,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					LinkableTextFormat.defaultTextFormat.copyToStyle(dataGrid);
 				}
 				if (detectLinkableObjectChange(updateDisplayList, sortFieldIndex) ||
-					detectLinkableObjectChange(updateDisplayList, sortInDescendingOrder))
+					detectLinkableObjectChange(updateDisplayList, sortInDescendingOrder) ||
+					columnsChanged )
 				{
 					sortCallback();
 				}
@@ -322,18 +326,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			/**
 			 * This function(event Listener) gets called during 
 			 * HeaderRelease event in Datagrid 
+			 * or Called (Manually )when column or sortFieldIndex or sortInDescendingOrder changes
 			 */				
-			private function handleHeaderRelease(event:DataGridEvent=null):void
+			private function handleHeaderRelease(event:DataGridEvent):void
 			{
-				if (event!=null)
-				{
-					var c:DataGridColumn = dataGrid.columns[event.columnIndex];
-					// we do a callLater to get the correct sorting order. 
-					// There is a bug in flex because of which the c.sortDescending will always return false
-					callLater(getOrder,[c,event.columnIndex]);
+				// There is a bug in flex: column.sortDescending will always return false				
+				if(UIUtils.hasFocus(dataGrid)){//need to update sessionState when called by User Interaction
+					sortInDescendingOrder.value = isSortedDescending();
+					sortFieldIndex.value = event.columnIndex;
 				}
+				
 			}
 			
+			private function isSortedDescending():Boolean
+			{
+				return dataGrid.sortDirection != 'ASC';
+			}
 			
 			/**
 			 * called from callLater of handleHeaderRelease listener ,to get the correct sorting order. 
@@ -341,8 +349,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */
 			private function getOrder(column:DataGridColumn,index:int):void
 			{
-				sortInDescendingOrder.value = column.sortDescending;
-				sortFieldIndex.value = index;
 			}
 			
 			/**
@@ -350,7 +356,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * when there is change in sortFieldIndex or sortInDescending 	
 			 * called with parameter if called from change in column 
 			 */							
-			private function sortCallback(forced:Boolean = false):void
+			private function sortCallback():void
 			{
 				if(isNaN(sortFieldIndex.value))
 					return;
@@ -360,10 +366,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				
 				// sort by the column specified in the session state , flip the sorting order if it is wrong
-				if (forced || dataGrid.sortIndex != sortFieldIndex.value || c.sortDescending != sortInDescendingOrder.value)
+				// each time we dispatch a header event, the sort order gets flipped, so we may have to flip it again
+				for(var i:int = 0 ; i<2; i++)
 				{
-					dataGrid.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, sortFieldIndex.value, null, 0, null, null, 0));
-				}				
+					if (dataGrid.sortIndex != sortFieldIndex.value || isSortedDescending() != sortInDescendingOrder.value)
+					{
+						dataGrid.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, sortFieldIndex.value, null, 0, null, null, 0));
+					}
+				}
 			}
 			
 			/**
@@ -432,14 +442,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				dataGrid.scrollToIndex(0);
 			}
 			
-			private function updateKeysAndVisibleColumns():void
+			/**
+			 * Called, when column or filterByKeyType changes  
+			 * Fills the datagrid Dataprovider based on KeyType, By default "Show All" 
+			 * and Update Global selection
+			 */	
+			private function updateKeysColumnsDataProviderAndSelection():void
 			{
 				var includedColumns:Array = [];
 				for each (var col:WeaveCustomDataGridColumn in dataGrid.columns)
 				{
 					if (keyTypeCombo.selectedItem == "Show All" ||
 						(col.attrColumn is KeyColumn) ||
-						(ColumnUtils.getKeyType(col.attrColumn) == filterByKeyType.value))
+						(ColumnUtils.getKeyType(col.attrColumn) == filterColumnsByKeyType.value))
 					{
 						col.visible = true;
 						includedColumns.push(col.attrColumn);
@@ -450,9 +465,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 				}
 				dataRowKeys.source = ColumnUtils.getAllKeys(includedColumns);
+				updateGlobalSelectionChange();
 			}
 			
-			public const filterByKeyType:LinkableString = newLinkableChild(this,LinkableString,updateKeyTypeComboBox,true);
+			public const filterColumnsByKeyType:LinkableString = newLinkableChild(this,LinkableString,updateKeyTypeComboBox,true);
 			private function updateKeyTypeComboBox():void
 			{
 				if (keyTypeCombo == null)
@@ -474,7 +490,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						keyTypeList.push(keyType);
 				}
 				keyTypeCombo.dataProvider = keyTypeList;				
-				keyTypeCombo.selectedItem = filterByKeyType.value || 'Show All';
+				keyTypeCombo.selectedItem = filterColumnsByKeyType.value || 'Show All';
 			}
 			
 			public function getExportDataProvider():*
@@ -515,7 +531,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function updateDataGridColumns():void
 			{
 				// if there isn't a parent or the grid isn't fully instantiated, return
-				if (!parent || dataGrid.width == 0)
+				if (!parent )
 					return callLater(updateDataGridColumns);
 				try
 				{
@@ -745,10 +761,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				catch (e:Error) 
 				{
+					reportError(e);
 				}
 			}
 			
-			public const showFilters:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false),updateFilters);
+			public const showFilters:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			private function updateFilters():void
 			{
 				if (!parent)
@@ -773,6 +790,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				catch (e:Error) 
 				{
+					reportError(e);
 				}
 			}
 			
