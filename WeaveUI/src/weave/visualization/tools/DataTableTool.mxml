@@ -795,12 +795,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			public const showColors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			private const DEFAULT_CELL_COLOR_FUNCTION_SCRIPT:String = "defaultCellColorFunction(column, key, cell)";
+			private var _lastCellColorError:Error = null;
 			/**
 			 * This defines how cells will be colored.
 			 * Two parameters are made available to this function: column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent
 			 * The return value should be a color, or NaN for no color.
 			 */
-			public const cellColorFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction("defaultCellColorFunction(column, key, cell)", true, true, ['column', 'key', 'cell']));
+			public const cellColorFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_CELL_COLOR_FUNCTION_SCRIPT, false, true, ['column', 'key', 'cell']), validateCellColorFunction);
+			private function validateCellColorFunction():void
+			{
+				try
+				{
+					_lastCellColorError = null;
+					cellColorFunction.validate();
+					cellColorFunctionEditor.errorString = '';
+				}
+				catch (e:Error)
+				{
+					cellColorFunctionEditor.errorString = e.message;
+				}
+			}
 			// this gets passed to cell item renderers
 			private function _cellColorFunction(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent):Number
 			{
@@ -810,7 +825,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				catch (e:Error)
 				{
-					reportError(e);
+					if (!_lastCellColorError)
+						reportError(_lastCellColorError = e);
 				}
 				return NaN;
 			}
@@ -883,12 +899,29 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					If a column contains numeric data, a slider will be displayed that allows selection of Min and Max values.
 				</ui:HelpComponent>
 			</mx:HBox>
-			<mx:CheckBox id="showColorsCheckBox" label="Color rows by data"/>
 			<ui:Indent label="Background colors">
 				<mx:ColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
 				<mx:ColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
 				<mx:Button label="Reset" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
 			</ui:Indent>
+			<mx:HBox verticalAlign="top" width="100%" height="100%">
+				<mx:VBox horizontalAlign="right">
+					<mx:HBox verticalAlign="middle">
+						<mx:CheckBox id="showColorsCheckBox" label="Enable cell coloring"/>
+						<ui:HelpComponent>
+							<ui:htmlText>
+								<![CDATA[
+									The result of this expression will be treated as a color value.  You can also put other ActionScript code in here to draw graphics in each cell. <!--
+									-->Available variables are <b>column</b>, <b>key</b>, and <b>cell</b>.
+								]]>
+							</ui:htmlText>
+						</ui:HelpComponent>
+					</mx:HBox>
+					<mx:Button label="Reset" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
+				</mx:VBox>
+				<mx:TextArea id="cellColorFunctionEditor" width="100%" height="100%" minHeight="48"
+							 creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>
+			</mx:HBox>
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ui:ControlPanel>

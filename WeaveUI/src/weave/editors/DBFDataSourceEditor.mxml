@@ -34,11 +34,11 @@
 	</mx:HBox>
 	<mx:HBox>
 		<mx:Label text="DBF Source URL *" width="120"/>
-		<mx:TextInput id="dbfURL" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your DBF Source file e.g. : http://vis.weave.com/st99_d00.dbf"/>
+		<mx:TextInput id="dbfURL" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your DBF Source file e.g. : http://www.example.com/st99_d00.dbf"/>
 	</mx:HBox>
 	<mx:HBox>
 		<mx:Label text="Shape Source URL" width="120"/>
-		<mx:TextInput id="shpURL" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your CSV Source file e.g. : http://vis.weave.com/st99_d00.shp"/>
+		<mx:TextInput id="shpURL" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your CSV Source file e.g. : http://www.example.com/st99_d00.shp"/>
 	</mx:HBox>
 	<mx:HBox>
 		<mx:Label text="Key Column" width="120"/>

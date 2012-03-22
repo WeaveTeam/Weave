@@ -50,7 +50,7 @@ package weave.ui.CustomDataGrid
 		
 		public function CustomDataGrid()
 		{
-			super();			
+			headerClass = CustomDataGridHeader;
 		}
 		/*override protected function setupColumnItemRenderer(c:DataGridColumn, contentHolder:ListBaseContentHolder, rowNum:int, colNum:int, data:Object, uid:String):IListItemRenderer{
 			return super.setupColumnItemRenderer(c,contentHolder,rowNum,colNum,data,uid);

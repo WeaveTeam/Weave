@@ -38,7 +38,13 @@
 		<mx:CheckBox id="saveHistoryCheckBox"
 					 label="Save history"
 					 selected="false"
+					 enabled="{!saveXMLCheckBox.selected}"
 					 visible="false"/>
+		<mx:CheckBox id="saveXMLCheckBox"
+					 label="Save as XML"
+					 selected="false"
+					 change="saveHistoryCheckBox.selected = !saveXMLCheckBox.selected;"
+					 />
 	</mx:VBox>
 	<mx:ControlBar>
 		<mx:Button label="Export" 
@@ -99,10 +105,16 @@
 				var format:DateFormatter = new DateFormatter();
 				format.formatString = "YYYY-MM-DD_HH.NN.SS";
 
-				var fileName:String = 'Weave_' + format.format(date) + '.weave';
+				var fileName:String = 'Weave_' + format.format(date);
 				
-				var content:ByteArray = null;
-				if (!saveHistoryCheckBox.selected)
+				var content:Object = null;
+				var extension:String = '.weave';
+				if (saveXMLCheckBox.selected)
+				{
+					content = Weave.getSessionStateXML().toXMLString();
+					extension = '.xml';
+				}
+				else if (!saveHistoryCheckBox.selected)
 				{
 					var historySessionState:Object = Weave.history.getSessionState();
 					Weave.history.clearHistory();
@@ -114,7 +126,7 @@
 					content = Weave.createWeaveFileContent();
 				}
 				var fr:FileReference = new FileReference();
-				fr.save(content, fileName);
+				fr.save(content, fileName + extension);
 				
 				removePanel();
 			}
