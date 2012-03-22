@@ -120,12 +120,11 @@ package weave.ui.CustomDataGrid
 			if (showColors.value)
 			{
 				var colorValue:Number = colorFunction(attrColumn, data as IQualifiedKey, this);
-				if (!isNaN(colorValue))
-				{
-					g.beginFill(colorValue);
-					g.drawRect(0, 0, unscaledWidth, unscaledHeight);
-					g.endFill();
-				}
+				setStyle('backgroundColor', colorValue);
+			}
+			else
+			{
+				setStyle('backgroundColor', null);
 			}
 		}
 	}
