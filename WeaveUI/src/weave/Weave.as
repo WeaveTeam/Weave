@@ -356,14 +356,17 @@ package weave
 		 * @param fileName A file name to fix.
 		 * @return A file name ending in ".weave".
 		 */
-		public static function fixWeaveFileName(fileName:String):String
+		public static function fixWeaveFileName(fileName:String, useWeaveExtension:Boolean):String
 		{
 			var _xml:String = '.xml';
 			var _weave:String = '.weave';
-			if (fileName.substr(-_xml.length).toLowerCase() == _xml)
-				fileName = fileName.substr(0, -4);
-			if (fileName.substr(-_weave.length).toLowerCase() != _weave)
-				fileName += _weave;
+			var oldExt:String = useWeaveExtension ? _xml : _weave;
+			var newExt:String = useWeaveExtension ? _weave : _xml;
+			
+			if (fileName.substr(-oldExt.length).toLowerCase() == oldExt)
+				fileName = fileName.substr(0, -oldExt.length);
+			if (fileName.substr(-newExt.length).toLowerCase() != newExt)
+				fileName += newExt;
 			return fileName;
 		}
 

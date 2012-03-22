@@ -256,7 +256,7 @@ public class AdminService extends GenericServlet
 		{
 			public boolean accept(File dir, String fileName)
 			{
-				return fileName.endsWith(".xml") || fileName.endsWith(".weave");
+				return fileName.endsWith(".weave") || fileName.endsWith(".xml");
 			}
 		};
 		
@@ -331,7 +331,7 @@ public class AdminService extends GenericServlet
 			// remove special characters
 			fileName = fileName.replace("\\", "").replace("/", "");
 			
-			if (!fileName.toLowerCase().endsWith(".weave"))
+			if (!fileName.toLowerCase().endsWith(".weave") && !fileName.toLowerCase().endsWith(".xml"))
 				fileName += ".weave";
 			
 			String path = docrootPath;

@@ -466,7 +466,8 @@ package weave
 			System.setClipboard(Weave.getSessionStateXML().toXMLString());
 		}
 		
-		private function saveSessionStateToServer():void
+		private var _useWeaveExtensionWhenSavingToServer:Boolean;
+		private function saveSessionStateToServer(useWeaveExtension:Boolean):void
 		{
 			if (adminService == null)
 			{
@@ -474,14 +475,15 @@ package weave
 				return;
 			}
 			
+			_useWeaveExtensionWhenSavingToServer = useWeaveExtension;
+			
 			var fileName:String = getFlashVarConfigFileName().split("/").pop();
-			if (fileName.substr(-4).toLowerCase() == '.xml')
-				fileName = fileName.substr(0, -4) + '.weave';
+			fileName = Weave.fixWeaveFileName(fileName, _useWeaveExtensionWhenSavingToServer);
 			
 			var fileSaveDialogBox:AlertTextBox;
 			fileSaveDialogBox = PopUpManager.createPopUp(this,AlertTextBox) as AlertTextBox;
 			fileSaveDialogBox.textInput = fileName;
-			fileSaveDialogBox.title = "Save File";
+			fileSaveDialogBox.title = useWeaveExtension ? "Save Session History" : "Save Session State XML";
 			fileSaveDialogBox.message = "Enter a filename";
 			fileSaveDialogBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handleFileSaveClose);
 			PopUpManager.centerPopUp(fileSaveDialogBox);
@@ -492,22 +494,32 @@ package weave
 			if (event.confirm)
 			{
 				var fileName:String = event.textInput;
+				fileName = Weave.fixWeaveFileName(fileName, _useWeaveExtensionWhenSavingToServer);
 				
-				var token:AsyncToken = adminService.invokeAsyncMethod(
-						'saveWeaveFile',
-						[Weave.createWeaveFileContent(), fileName, true]
-					);
-				token.addResponder(new DelayedAsyncResponder(
-						function(event:ResultEvent, token:Object = null):void
-						{
-							Alert.show(String(event.result), "Admin Console Response");
-						},
-						function(event:FaultEvent, token:Object = null):void
-						{
-							reportError(event.fault, "Unable to connect to Admin Console");
-						},
-						null
-					));
+				var content:ByteArray;
+				if (_useWeaveExtensionWhenSavingToServer)
+				{
+					content = Weave.createWeaveFileContent();
+				}
+				else
+				{
+					content = new ByteArray();
+					content.writeMultiByte(Weave.getSessionStateXML().toXMLString(), "utf-8");
+				}
+				
+				var token:AsyncToken = adminService.invokeAsyncMethod('saveWeaveFile', [content, fileName, true]);
+				DelayedAsyncResponder.addResponder(
+					token,
+					function(event:ResultEvent, token:Object = null):void
+					{
+						Alert.show(String(event.result), "Admin Console Response");
+					},
+					function(event:FaultEvent, token:Object = null):void
+					{
+						reportError(event.fault, "Unable to connect to Admin Console");
+					},
+					null
+				);
 				
 				setupVisMenuItems();
 			}
@@ -730,7 +742,15 @@ package weave
 				if (adminService)
 				{
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Save session history to server", saveSessionStateToServer));
+					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
+						"Save session state XML to server",
+						function():void { saveSessionStateToServer(false); }
+					));
+					_weaveMenu.addSeparatorToMenu(_sessionMenu);
+					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
+						"Save session history to server",
+						function():void { saveSessionStateToServer(true); }
+					));
 				}
 				
 				showHistorySlider = Weave.properties.showSessionHistoryControls.value;
