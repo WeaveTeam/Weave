@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute" width="400" height="300">
+	<mx:HBox width="100%" height="5%">
+	<mx:Label text="Macro Name:" height="5%"/>
+	<mx:TextInput id="macroNameField" width="100%" height="5%" creationComplete="setNameInput(event)"/>
+	</mx:HBox>
+	<mx:TextArea y="{.1*this.height}" width="100%" height="100%" id="macroEditArea"/>
+	<mx:ControlBar>
+		<mx:Button height="100%" width="33%" label="Rename Macro"
+				   click="renameButtonClicked(event)"/>
+		<mx:Button width="33%" height="100%" label="Save"
+				   click="saveButtonClicked(event)"/>
+		<mx:Button width="33%" height="100%" label="Cancel"
+				   click="cancelButtonClicked(event)"/>
+	</mx:ControlBar>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.TextInput;
+			import mx.events.FlexEvent;
+			
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableFunction;
+			
+			private var _macroName:String = "";
+			
+			public function set macroName(value:String):void
+			{
+				_macroName = value;	
+				macroEditArea.text = (LinkableFunction.macros.getObject(_macroName) as LinkableFunction).value;
+			}
+			
+			public function get macroName():String
+			{
+				return _macroName;
+			}
+			
+			protected function saveButtonClicked(event:MouseEvent):void
+			{
+				LinkableFunction.macros.removeObject(_macroName);
+				var savedFunc:LinkableFunction = LinkableFunction.macros.requestObject(_macroName, LinkableFunction, false);
+				savedFunc.value = macroEditArea.text;
+				this.removePanel();
+			}
+			
+			protected function cancelButtonClicked(event:MouseEvent):void
+			{
+				this.removePanel();				
+			}
+			
+			protected function renameButtonClicked(event:MouseEvent):void
+			{
+				if( _macroName != macroNameField.text)
+				{
+					var oldMacroName:String = _macroName;
+					var savedFunc:LinkableFunction = LinkableFunction.macros.requestObject(oldMacroName, LinkableFunction, false);
+					_macroName = macroNameField.text;
+					LinkableFunction.macros.requestObjectCopy(_macroName, savedFunc);
+					LinkableFunction.macros.removeObject(oldMacroName);
+				}
+			}
+			
+			protected function setNameInput(event:FlexEvent):void
+			{
+				macroNameField.text = _macroName;
+				
+			}
+			
+		]]>
+	</mx:Script>	
+</ui:DraggablePanel>
