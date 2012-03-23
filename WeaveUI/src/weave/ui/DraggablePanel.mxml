@@ -212,7 +212,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				minimizeButton.setStyle("downIcon", _minimizeDownIcon);
 				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
 				setupControlButton(userControlButton, _userControlIcon, toggleControlPanel, "Click here to change settings for this component.");
-				setupControlButton(subMenuButton, _subMenuIcon, openSubMenu, "Click here to open menu items for this component.");
+				setupControlButton(subMenuButton, _subMenuIcon, null, "Click here to open menu items for this component.");
 				setupControlButton(pinToBackButton, _pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
 				setupControlButton(pinButton, _pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
@@ -1194,12 +1194,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				button.setStyle("fillAlphas", [1,1] );
 				button.setStyle("fillColors", [_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );
 				
-				var buttonListener:Function = function(e:MouseEvent):*
+				
+				if(clickHandler != null)
 				{
-					clickHandler();
-					e.stopImmediatePropagation();
-				};
-				button.addEventListener(MouseEvent.CLICK, buttonListener);
+					var buttonListener:Function = function(e:MouseEvent):*
+					{
+						clickHandler();
+						e.stopImmediatePropagation();
+					};
+					button.addEventListener(MouseEvent.CLICK, buttonListener);
+				}
 				button.width = buttonSize;
 				button.height = buttonSize;
 				button.buttonMode = true;
@@ -1577,54 +1581,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private static const _instances:Dictionary = new Dictionary();
 			
-			private var subMenu:Menu;
-			
-			[Bindable]
-			private var subMenuDataProvider:Array = [];
-			public function addSubMenuItem(label:String,listener:Function):void
-			{
-				var menuItem:Object = new Object();
-				
-				menuItem["label"] = label;
-				menuItem["listener"] = listener;
-				
-				subMenuDataProvider.push(menuItem);
-				
-				subMenu = Menu.createMenu(this,subMenuDataProvider,false);
-				
-				
-				subMenu.addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
-				
-				
-			}
-			
-			private function handleSubMenuItemClick(event:MenuEvent):void
-			{
-				var item:Object = event.item;
-				
-				(item["listener"] as Function).call();
-			}
-			
-			private var toggleSubMenu:Boolean =  false;
-			private function openSubMenu():void
-			{
-				if(toggleSubMenu)
-				{
-					toggleSubMenu = false;
-					subMenu.hide();
-					return;
-				}
-				
-				toggleSubMenu = true;
-				
-				if(subMenuDataProvider.length == 0)
-					subMenu = Menu.createMenu(this,{label:"No Menu Items Added"},false);
-				
-				var menuLocation:Point = contentToGlobal(new Point(subMenuButton.x,subMenuButton.y));
-				
-				subMenu.setStyle("openDuration",0);
-				subMenu.show(menuLocation.x + buttonSize/2,menuLocation.y);
-			}
+			private var subMenu:SubMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
 			
 			
 			// backwards compatibility
