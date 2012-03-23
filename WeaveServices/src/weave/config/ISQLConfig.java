@@ -134,6 +134,7 @@ public abstract class ISQLConfig
         abstract public void removeChild(int parent, int child) throws RemoteException;
         abstract public int addTag(String tagtitle) throws RemoteException;
         abstract public void removeTag(int tag_id) throws RemoteException;
+        abstract public Boolean isTag(int tag) throws RemoteException;
         abstract public Collection<Integer> getChildren(Integer parent_id) throws RemoteException;
         abstract public Collection<Integer> getRoots() throws RemoteException;
         /* Former residents of SQLConfigUtils */
@@ -370,6 +371,7 @@ public abstract class ISQLConfig
 	static public class AttributeColumnInfo
 	{
 		public int id = -1;
+                public int type;
 		public Map<String,String> privateMetadata = Collections.EMPTY_MAP;
 		public Map<String,String> publicMetadata = Collections.EMPTY_MAP;
 		

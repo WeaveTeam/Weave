@@ -166,7 +166,6 @@ package weave.services
 //		    return query;
 //		}
 
-
 		// list entry names
 		public function getConnectionNames(connectionName:String, password:String):DelayedAsyncInvocation
 		{
@@ -176,14 +175,6 @@ package weave.services
 		{
 		    return invokeAdminService("getDataTableNames", arguments);
 		}
-                public function getCategories():DelayedAsyncInvocation
-                {
-                    return invokeAdminService("getCategories", arguments);
-                }
-                public function getMetadataFromIds(ids:Array, props:Array):DelayedAsyncInvocation
-                {
-                    return invokeAdminService("getMetadataFromIds", arguments);
-                }
 		public function getGeometryCollectionNames(connectionName:String, password:String):DelayedAsyncInvocation
 		{
 		    return invokeAdminService("getGeometryCollectionNames", arguments);
@@ -201,6 +192,32 @@ package weave.services
 		{
 			return invokeAdminService("getDatabaseConfigInfo", arguments);
 		}
+
+                // Tag information
+                public function addTagChild(connectionName:String, password:String, parent:int, child:int):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("addTagChild", arguments);
+                }
+                public function removeTagChild(connectionName:String, password:String, parent:int, child:int):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("removeTagChild", arguments);
+                }
+                public function addTag(connectionName:String, password:String, tagTitle:String):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("addTag", arguments);
+                }
+                public function removeTag(connectionName:String, password:String, tag_id:int):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("removeTag", arguments);
+                }
+                public function findAttributeColumnsByParent(connectionName:String, password:String, parent_id:int):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("findAttributeColumnsByParent", arguments);
+                }
+                public function findTagsByParent(connectionName:String, password:String, parent_id:int):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("findTagsByParent", arguments);
+                }
 		public function getConnectionInfo(loginConnectionName:String, loginPassword:String, connectionNameToGet:String):DelayedAsyncInvocation
 		{
 			return invokeAdminService("getConnectionInfo", arguments);

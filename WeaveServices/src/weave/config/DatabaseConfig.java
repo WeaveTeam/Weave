@@ -455,8 +455,10 @@ public class DatabaseConfig
 		}
 		return results;
 	}
+        /* legacy DatabaseConfig does not have tagging; however, dataTables are the hierarchy we should present as tags */
         public void addChild(int parent, int child) throws RemoteException
         {
+            return; 
         }
         public void removeChild(int parent, int child) throws RemoteException
         {
@@ -467,6 +469,10 @@ public class DatabaseConfig
         }
         public void removeTag(int tag_id) throws RemoteException
         {
+        }
+        public Boolean isTag(int tag_id) throws RemoteException
+        {
+            return false;
         }
         public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
         {

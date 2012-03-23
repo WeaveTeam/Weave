@@ -294,32 +294,6 @@ package weave.services
 		
 		// functions for managing DataTable entries
 		
-                public function getCategories():void
-                {
-                        categories = [];
-                        if (userHasAuthenticated)
-                        {
-                            service.getCategories().addAsyncResponder(handlegetCategories);
-                            function handlegetCategories(event:ResultEvent, token:Object = null):void
-                            {
-                                if (userHasAuthenticated)
-                                    categories = event.result as Object;
-                            }    
-                        }
-                }
-                public function getColumnCategories():void
-                {
-                        columnCategories = null
-                        if (userHasAuthenticated)
-                        {
-                            service.getMetadataFromIds([], ["name", "parent_id"]).addAsyncResponder(handlegetColumnCategories);
-                            function handlegetColumnCategories(event:ResultEvent, token:Object = null):void
-                            {
-                                if (userHasAuthenticated)
-                                    columnCategories = event.result as Object;
-                            }
-                        }
-                }
 		public function getDataTableNames():void
 		{
 			dataTableNames = [];

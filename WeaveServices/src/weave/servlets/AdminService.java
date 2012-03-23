@@ -35,6 +35,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -596,6 +597,70 @@ public class AdminService extends GenericServlet
 			dataConnection = connectionName; // get only the ones on this connection
 		return config.getDataTableNames(dataConnection);
 	}
+        synchronized public void addTagChild(String connectionName, String password, int parent, int child) throws RemoteException
+        {
+                ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+                ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
+                if (cInfo.is_superuser)
+                    config.addChild(parent, child);
+        }
+        synchronized public void removeTagChild(String connectionName, String password, int parent, int child) throws RemoteException
+        {
+                ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+                ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
+                if (cInfo.is_superuser)
+                    config.removeChild(parent, child);
+        }
+        synchronized public int addTag(String connectionName, String password, String tagName) throws RemoteException
+        {
+                ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+                ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
+                if (cInfo.is_superuser)
+                    return config.addTag(tagName);
+                else
+                    return -1;
+        }
+        synchronized public void removeTag(String connectionName, String password, int tag_id) throws RemoteException
+        {
+                ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+                ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
+                if (cInfo.is_superuser)
+                    config.removeTag(tag_id);
+                else
+                    return;
+        }
+        synchronized public AttributeColumnInfo[] findAttributeColumnsByParent(String connectionName, String password, int parent_id) throws RemoteException
+        {
+                ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+
+                Collection<Integer> ids = config.getChildren(parent_id);
+                List<AttributeColumnInfo> cols = new ArrayList<AttributeColumnInfo>(ids.size());
+                for (Integer id : ids)
+                {
+                    AttributeColumnInfo col = config.getAttributeColumnInfo(id);
+                    if (col != null)
+                        cols.add(col);
+
+                }
+                return cols.toArray(new AttributeColumnInfo[0]);
+        }
+        synchronized public Map<Integer,String> findTagsByParent(String connectionName, String password, int parent_id) throws RemoteException
+        {
+            ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+            Map<Integer,String> tags = new HashMap<Integer,String>();
+            Collection<Integer> ids = config.getChildren(parent_id);
+            String name;
+            for (Integer id : ids)
+            {
+                if (config.isTag(id));
+                {
+                    AttributeColumnInfo col = config.getAttributeColumnInfo(id);
+                    name = col.publicMetadata.get(PublicMetadata.NAME);
+                    tags.put(id, name);
+                }
+            }
+            return tags;
+        }
 
 	/**
 	 * Returns metadata about columns of the given data table.

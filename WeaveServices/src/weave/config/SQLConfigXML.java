@@ -667,6 +667,10 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
         public void removeTag(int tag_id) throws RemoteException
         {
         }
+        public Boolean isTag(int tag_id) throws RemoteException
+        {
+            return false;
+        }
         public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
         {
             return null;

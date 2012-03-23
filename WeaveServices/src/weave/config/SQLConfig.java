@@ -489,15 +489,7 @@ public class SQLConfig
             }
             return;
         }
-        public Map<Integer,Boolean> getEntityIsCategory(Collection<Integer> id_list) throws RemoteException
-        {
-            Map<Integer,Boolean> entityIsCategory = new HashMap<Integer,Boolean>();
-            // TODO: Speed this up by adding a new query to SQLUtils.
-            for (Integer id : id_list)
-                entityIsCategory.put(id, getEntityIsCategory(id));
-            return entityIsCategory;
-        }
-        private Boolean getEntityIsCategory(Integer id) throws RemoteException
+        public Boolean isTag(int id) throws RemoteException
         {
             Boolean entityIsCategory;
             List<Map<String,String>> sqlres;
@@ -522,26 +514,17 @@ public class SQLConfig
             }
             return entityIsCategory;
         }
-        public Map<Integer,String> getEntityTitles(Collection<Integer> id_list) throws RemoteException
-        {
-            List<String> properties = Arrays.asList(PublicMetadata.TITLE);
-            Map<Integer,String> entityNames = new HashMap<Integer,String>();
-            Map<Integer,Map<String,String>> nameMap = getMetadataFromIds(table_meta_public, id_list, properties);
-
-            for (Entry<Integer,Map<String,String>> entry: nameMap.entrySet())
-            {
-                Integer id = entry.getKey();
-                String name = entry.getValue().get(PublicMetadata.TITLE);
-                entityNames.put(id, name);
-            }
-            return entityNames;
-        }
         public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
         {
             Connection conn;
+
+            if (parent_id == -1)
+                return getRoots();
+            
             Map<String,Object> query = new HashMap<String,Object>();
             List<String> columns = new LinkedList<String>();
             List<Integer> children = new LinkedList<Integer>();
+
             columns.add(TAG_CHILD);
             query.put(TAG_PARENT, parent_id);
 
