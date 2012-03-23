@@ -75,6 +75,8 @@ package weave.core
 		private var _undoActive:Boolean = false; // true while an undo operation is active
 		private var _redoActive:Boolean = false; // true while a redo operation is active
 		
+		private var _syncTime:int = getTimer(); // this is set to getTimer() when synchronization occurs
+		private var _triggerDelay:int = -1; // this is set to (getTimer() - _syncTime) when immediate callbacks are triggered for the first time since the last synchronization occurred
 		private var _saveTime:uint = 0; // this is set to getTimer() + _syncDelay to determine when the next diff should be computed and logged
 		private var _savePending:Boolean = false; // true when a diff should be computed
 		
@@ -85,17 +87,27 @@ package weave.core
 		
 		/**
 		 * This will clear all undo and redo history.
+		 * @param directional Zero will clear everything. Set this to -1 to clear all undos or 1 to clear all redos.
 		 */
-		public function clearHistory():void
+		public function clearHistory(directional:int = 0):void
 		{
 			var cc:ICallbackCollection = getCallbackCollection(this);
 			cc.delayCallbacks();
 			
 			synchronizeNow();
-			if (_undoHistory.length > 0 || _redoHistory.length > 0)
-				cc.triggerCallbacks();
-			_undoHistory.length = 0;
-			_redoHistory.length = 0;
+			
+			if (directional <= 0)
+			{
+				if (_undoHistory.length > 0)
+					cc.triggerCallbacks();
+				_undoHistory.length = 0;
+			}
+			if (directional >= 0)
+			{
+				if (_redoHistory.length > 0)
+					cc.triggerCallbacks();
+				_redoHistory.length = 0;
+			}
 			
 			cc.resumeCallbacks();
 		}
@@ -128,7 +140,7 @@ package weave.core
 		
 		/**
 		 * This gets called as a grouped callback of the subject.
-		 */		
+		 */
 		private function groupedCallback():void
 		{
 			if (!enableLogging.value)
@@ -154,6 +166,10 @@ package weave.core
 		 */
 		private function saveDiff(immediately:Boolean = false):void
 		{
+			// remember how long it's been since the last synchronization
+			if (_triggerDelay < 0)
+				_triggerDelay = getTimer() - _syncTime;
+			
 			if (!immediately && getTimer() < _saveTime)
 			{
 				// we have to wait until the next frame to save the diff because grouped callbacks haven't finished.
@@ -172,13 +188,13 @@ package weave.core
 				var item:LogEntry;
 				if (_undoActive)
 				{
-					item = new LogEntry(_nextId++, backwardDiff, forwardDiff);
+					item = new LogEntry(_nextId++, backwardDiff, forwardDiff, _triggerDelay);
 					// overwrite first redo entry because grouped callbacks may have behaved differently
 					_redoHistory[0] = item;
 				}
 				else
 				{
-					item = new LogEntry(_nextId++, forwardDiff, backwardDiff);
+					item = new LogEntry(_nextId++, forwardDiff, backwardDiff, _triggerDelay);
 					if (_redoActive)
 					{
 						// overwrite last undo entry because grouped callbacks may have behaved differently
@@ -201,6 +217,8 @@ package weave.core
 			_undoActive = false;
 			_redoActive = false;
 			_savePending = false;
+			_triggerDelay = -1;
+			_syncTime = getTimer();
 			
 			cc.resumeCallbacks();
 		}
@@ -380,6 +398,8 @@ package weave.core
 				_redoActive = false;
 				_savePending = false;
 				_saveTime = 0;
+				_triggerDelay = -1;
+				_syncTime = getTimer();
 			
 				WeaveAPI.SessionManager.setSessionState(_subject, _prevState);
 			}
@@ -392,19 +412,22 @@ package weave.core
 		}
 	}
 }
+import flash.utils.getTimer;
 
 internal class LogEntry
 {
-	public function LogEntry(id:int, forward:Object, backward:Object)
+	public function LogEntry(id:int, forward:Object, backward:Object, triggerDelay:int)
 	{
 		this.id = id;
 		this.forward = forward;
 		this.backward = backward;
+		this.triggerDelay = triggerDelay;
 	}
 	
 	public var id:int;
-	public var forward:Object;
-	public var backward:Object;
+	public var forward:Object; // the diff for applying redo
+	public var backward:Object; // the diff for applying undo
+	public var triggerDelay:int; // the length of time between the last synchronization and the diff
 	
 	/**
 	 * This will convert an Array of generic objects to an Array of LogEntry objects.
@@ -416,7 +439,7 @@ internal class LogEntry
 		{
 			var o:Object = array[i];
 			if (!(o is LogEntry))
-				array[i] = new LogEntry(o.id, o.forward, o.backward);
+				array[i] = new LogEntry(o.id, o.forward, o.backward, o.triggerDelay);
 		}
 		return array;
 	}
