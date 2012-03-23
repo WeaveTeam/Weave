@@ -173,23 +173,29 @@
 					{
 						AdminInterface.instance.listDBFFileColumns(_dbfFileToRequestColumnNamesFrom.name);
 						
-						var dbfDataQuery:DelayedAsyncInvocation = AdminInterface.instance.getDBFData(_dbfFileToRequestColumnNamesFrom.name);
-						
-						dbfDataQuery.addAsyncResponder(handleDBFDataResult,handleDBFDataFault);
-						
-						function handleDBFDataResult(event:ResultEvent, token:Object = null):void
-						{
-							handleKeyColumnsChange();
-						}
-						function handleDBFDataFault(event:FaultEvent, token:Object = null):void
-						{
-							
-						}
-						
+						getDBFDataFromFile(_dbfFileToRequestColumnNamesFrom.name);
 						enableAllWidgets();
 					}
 				}
 			}
+			
+			private function getDBFDataFromFile(file:String):void
+			{
+				var dbfDataQuery:DelayedAsyncInvocation = AdminInterface.instance.getDBFData(file);
+				
+				dbfDataQuery.addAsyncResponder(handleDBFDataResult,handleDBFDataFault);
+				
+				function handleDBFDataResult(event:ResultEvent, token:Object = null):void
+				{
+					handleKeyColumnsChange();
+				}
+				function handleDBFDataFault(event:FaultEvent, token:Object = null):void
+				{
+					
+				}
+				
+			}
+				
 			
 			private var _serverFileBrowser:ServerFileViewer = null;
 			private function openServerBrowser():void
@@ -206,6 +212,8 @@
 				
 				AdminInterface.instance.listDBFFileColumns(tableName+".dbf");
 				tableSelector.activeTable = tableName;
+				
+				getDBFDataFromFile(tableName+".dbf");
 				
 				PopUpManager.removePopUp(_serverFileBrowser);
 				enableAllWidgets();
