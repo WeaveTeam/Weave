@@ -88,7 +88,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#clearHistory()">clearHistory</a>():void</div>
+<a class="signatureLink" href="#clearHistory()">clearHistory</a>(directional:int = 0):void</div>
 <div class="summaryTableDescription">
    This will clear all undo and redo history.</div>
 </td><td class="summaryTableOwnerCol">SessionStateLog</td>
@@ -232,9 +232,16 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function clearHistory():void</code><p>
+<code>public function clearHistory(directional:int = 0):void</code><p>
    This will clear all undo and redo history.
-   </p></div>
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">directional</span>:int</code> (default = <code>0</code>)<code></code> &mdash; Zero will clear everything. Set this to -1 to clear all undos or 1 to clear all redos.
+   </td>
+</tr>
+</table>
+</div>
 <a name="dispose()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
