@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../../print.css" type="text/css" media="print">
-<meta content="CustomDataGrid,weave.ui.CustomDataGrid.CustomDataGrid,enableFilters,lockedColumnCount,callAllFilterFunctions,drawSelectionIndicator,getAllFilterFunctions,getColumnDisplayWidth,invalidateFilters,setupColumnItemRenderer,updateDisplayList,updateList" name="keywords">
+<meta content="CustomDataGrid,weave.ui.CustomDataGrid.CustomDataGrid,dataProvider,enableFilters,callAllFilterFunctions,getAllFilterFunctions,getColumnDisplayWidth,invalidateFilters,updateDisplayList" name="keywords">
 <title>weave.ui.CustomDataGrid.CustomDataGrid</title>
 </head>
 <body>
@@ -58,11 +58,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined&nbsp;by</th>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#enableFilters">enableFilters</a> : Boolean<div class="summaryTableDescription">[write-only]</div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#dataProvider">dataProvider</a> : Object<div class="summaryTableDescription">[write-only]</div>
 </td><td class="summaryTableOwnerCol">CustomDataGrid</td>
 </tr>
 <tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#lockedColumnCount">lockedColumnCount</a> : int<div class="summaryTableDescription">[write-only]</div>
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#enableFilters">enableFilters</a> : Boolean<div class="summaryTableDescription">[write-only]</div>
 </td><td class="summaryTableOwnerCol">CustomDataGrid</td>
 </tr>
 </table>
@@ -118,13 +118,6 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#drawSelectionIndicator()">drawSelectionIndicator</a>(indicator:Sprite, x:Number, y:Number, width:Number, height:Number, color:uint, itemRenderer:IListItemRenderer):void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">CustomDataGrid</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
 <a class="signatureLink" href="#getAllFilterFunctions()">getAllFilterFunctions</a>():Array</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">CustomDataGrid</td>
@@ -132,21 +125,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#setupColumnItemRenderer()">setupColumnItemRenderer</a>(c:DataGridColumn, contentHolder:ListBaseContentHolder, rowNum:int, colNum:int, data:Object, uid:String):IListItemRenderer</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">CustomDataGrid</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
 <a class="signatureLink" href="#updateDisplayList()">updateDisplayList</a>(unscaledWidth:Number, unscaledHeight:Number):void</div>
-<div class="summaryTableDescription"></div>
-</td><td class="summaryTableOwnerCol">CustomDataGrid</td>
-</tr>
-<tr class="">
-<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
-<div class="summarySignature">
-<a class="signatureLink" href="#updateList()">updateList</a>():void</div>
 <div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">CustomDataGrid</td>
 </tr>
@@ -159,28 +138,28 @@ showHideInherited();
 <div class="MainContent">
 <a name="propertyDetail"></a>
 <div class="detailSectionHeader">Property detail</div>
+<a name="dataProvider"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">dataProvider</td><td class="detailHeaderType">property</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>dataProvider:Object</code>&nbsp;&nbsp;[write-only]<span class="label">Implementation</span>
+<br>
+<code>&nbsp;&nbsp;&nbsp;&nbsp;public function set dataProvider(value:Object):void</code>
+<br>
+</div>
 <a name="enableFilters"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
-<td class="detailHeaderName">enableFilters</td><td class="detailHeaderType">property</td>
+<td class="detailHeaderName">enableFilters</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
 </tr>
 </table>
 <div class="detailBody">
 <code>enableFilters:Boolean</code>&nbsp;&nbsp;[write-only]<span class="label">Implementation</span>
 <br>
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function set enableFilters(value:Boolean):void</code>
-<br>
-</div>
-<a name="lockedColumnCount"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">lockedColumnCount</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>lockedColumnCount:int</code>&nbsp;&nbsp;[write-only]<span class="label">Implementation</span>
-<br>
-<code>&nbsp;&nbsp;&nbsp;&nbsp;public function set lockedColumnCount(value:int):void</code>
 <br>
 </div>
 <a name="constructorDetail"></a>
@@ -218,56 +197,6 @@ showHideInherited();
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
 <td width="20"></td><td><code>Boolean</code></td>
-</tr>
-</table>
-</div>
-<a name="drawSelectionIndicator()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">drawSelectionIndicator</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected override function drawSelectionIndicator(indicator:Sprite, x:Number, y:Number, width:Number, height:Number, color:uint, itemRenderer:IListItemRenderer):void</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">indicator</span>:Sprite</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">x</span>:Number</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">y</span>:Number</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">width</span>:Number</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">height</span>:Number</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">color</span>:uint</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">itemRenderer</span>:IListItemRenderer</code></td>
 </tr>
 </table>
 </div>
@@ -312,57 +241,6 @@ showHideInherited();
 <div class="detailBody">
 <code>public function invalidateFilters():void</code>
 </div>
-<a name="setupColumnItemRenderer()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">setupColumnItemRenderer</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected override function setupColumnItemRenderer(c:DataGridColumn, contentHolder:ListBaseContentHolder, rowNum:int, colNum:int, data:Object, uid:String):IListItemRenderer</code><span class="label">Parameters</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20px"></td><td><code><span class="label">c</span>:DataGridColumn</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">contentHolder</span>:ListBaseContentHolder</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">rowNum</span>:int</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">colNum</span>:int</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">data</span>:Object</code></td>
-</tr>
-<tr>
-<td class="paramSpacer">&nbsp;</td>
-</tr>
-<tr>
-<td width="20px"></td><td><code><span class="label">uid</span>:String</code></td>
-</tr>
-</table>
-<p></p>
-<span class="label">Returns</span>
-<table border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="20"></td><td><code>IListItemRenderer</code></td>
-</tr>
-</table>
-</div>
 <a name="updateDisplayList()"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -382,15 +260,6 @@ showHideInherited();
 <td width="20px"></td><td><code><span class="label">unscaledHeight</span>:Number</code></td>
 </tr>
 </table>
-</div>
-<a name="updateList()"></a>
-<table cellspacing="0" cellpadding="0" class="detailHeader">
-<tr>
-<td class="detailHeaderName">updateList</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
-</tr>
-</table>
-<div class="detailBody">
-<code>protected override function updateList():void</code>
 </div>
 <br>
 <br>
