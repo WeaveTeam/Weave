@@ -55,6 +55,7 @@
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.juggleImmediateCallback;
@@ -102,6 +103,10 @@
 			{
 				if (playButton.selected)
 				{
+					// wait until background tasks complete
+					if (WeaveAPI.ProgressIndicator.getTaskCount() > 0)
+						return;
+					
 					// wait until appropriate time
 					if (getTimer() < _lastReplayTime + _replayTriggerDelay / _playSpeed)
 						return;
