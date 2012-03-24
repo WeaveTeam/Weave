@@ -382,8 +382,8 @@ package weave.core
 					case 0:
 					{
 						_prevState = state.currentState;
-						_undoHistory = LogEntry.convertGenericObjectsToLogEntries(state.undoHistory);
-						_redoHistory = LogEntry.convertGenericObjectsToLogEntries(state.redoHistory);
+						_undoHistory = LogEntry.convertGenericObjectsToLogEntries(state.undoHistory, _syncDelay);
+						_redoHistory = LogEntry.convertGenericObjectsToLogEntries(state.redoHistory, _syncDelay);
 						_nextId = state.nextId;
 						enableLogging.value = state.enableLogging;
 						
@@ -433,13 +433,13 @@ internal class LogEntry
 	 * This will convert an Array of generic objects to an Array of LogEntry objects.
 	 * Generic objects are easier to create backwards compatibility for.
 	 */
-	public static function convertGenericObjectsToLogEntries(array:Array):Array
+	public static function convertGenericObjectsToLogEntries(array:Array, defaultTriggerDelay:int):Array
 	{
 		for (var i:int = 0; i < array.length; i++)
 		{
 			var o:Object = array[i];
 			if (!(o is LogEntry))
-				array[i] = new LogEntry(o.id, o.forward, o.backward, o.triggerDelay);
+				array[i] = new LogEntry(o.id, o.forward, o.backward, o.triggerDelay || defaultTriggerDelay);
 		}
 		return array;
 	}
