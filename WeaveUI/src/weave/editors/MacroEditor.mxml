@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute"
-				   width="400" height="400" title="Macro Editor">			
-	<mx:HBox height="5%" width="100%" >
-		<mx:Button label="Edit" width="33%" click="editEntry(event)"/>
-		<mx:Button label="Delete" width="33%" click="deleteEntry(event)"/>
-		<mx:Button label="Add" width="33%" click="newMacroEntry(event)"/>
-	</mx:HBox>
-	<ui:LinkableObjectList id="macroList" height="95%" y="{.05*this.height}" width="100%"
-						   hashMap="{LinkableFunction.macros}">
+				   width="400" height="300" title="Macro Editor">			
+	<ui:LinkableObjectList id="macroList" height="100%" width="100%"
+						   hashMap="{LinkableFunction.macros}"/>
+		<mx:ControlBar>
+			<mx:Button label="Edit" height="100%" width="33%" click="editEntry(event)"/>
+			<mx:Button label="Delete" height="100%" width="33%" click="deleteEntry(event)"/>
+			<mx:Button label="Add" height="100%" width="33%" click="newMacroEntry(event)"/>
+		</mx:ControlBar>
 		<mx:Script>
 			<![CDATA[
 				import mx.core.Application;
@@ -44,5 +44,4 @@
 				}
 			]]>
 		</mx:Script>
-	</ui:LinkableObjectList>
 </ui:DraggablePanel>

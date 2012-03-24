@@ -6,11 +6,9 @@
 	</mx:HBox>
 	<mx:TextArea y="{.1*this.height}" width="100%" height="100%" id="macroEditArea"/>
 	<mx:ControlBar>
-		<mx:Button height="100%" width="33%" label="Rename Macro"
-				   click="renameButtonClicked(event)"/>
-		<mx:Button width="33%" height="100%" label="Save"
+		<mx:Button width="50%" height="100%" label="Save"
 				   click="saveButtonClicked(event)"/>
-		<mx:Button width="33%" height="100%" label="Cancel"
+		<mx:Button width="50%" height="100%" label="Cancel"
 				   click="cancelButtonClicked(event)"/>
 	</mx:ControlBar>
 	<mx:Script>
@@ -36,6 +34,16 @@
 			
 			protected function saveButtonClicked(event:MouseEvent):void
 			{
+				if( _macroName != macroNameField.text)
+				{
+					var oldMacroName:String = _macroName;
+					var savedFunc1:LinkableFunction = LinkableFunction.macros.requestObject(oldMacroName, LinkableFunction, false);
+					_macroName = macroNameField.text;
+					LinkableFunction.macros.requestObjectCopy(_macroName, savedFunc);
+					LinkableFunction.macros.removeObject(oldMacroName);
+					this.removePanel();
+					return;
+				}
 				LinkableFunction.macros.removeObject(_macroName);
 				var savedFunc:LinkableFunction = LinkableFunction.macros.requestObject(_macroName, LinkableFunction, false);
 				savedFunc.value = macroEditArea.text;
@@ -45,18 +53,6 @@
 			protected function cancelButtonClicked(event:MouseEvent):void
 			{
 				this.removePanel();				
-			}
-			
-			protected function renameButtonClicked(event:MouseEvent):void
-			{
-				if( _macroName != macroNameField.text)
-				{
-					var oldMacroName:String = _macroName;
-					var savedFunc:LinkableFunction = LinkableFunction.macros.requestObject(oldMacroName, LinkableFunction, false);
-					_macroName = macroNameField.text;
-					LinkableFunction.macros.requestObjectCopy(_macroName, savedFunc);
-					LinkableFunction.macros.removeObject(oldMacroName);
-				}
 			}
 			
 			protected function setNameInput(event:FlexEvent):void

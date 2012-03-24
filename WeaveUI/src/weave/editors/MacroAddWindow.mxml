@@ -14,6 +14,7 @@
 	</mx:ControlBar>
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.Alert;
 			import mx.controls.TextInput;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
@@ -31,9 +32,26 @@
 				}
 				else
 				{
+					if( LinkableFunction.macros.getObject(macroNameField.text) == null)
+					{
 					var funcToSave:LinkableFunction = LinkableFunction.macros.requestObject(macroNameField.text, LinkableFunction, false);
 					funcToSave.value = macroEditArea.text;
 					this.removePanel();
+					}
+					else
+					{
+						var box2:Alert = Alert.show("There already exists a macro with the same name, continuing to save will overwrite the previous macro of the same name. Would you like to overwrite the previous macro of the same name?", "Duplicate Macro Name", Alert.YES | Alert.NO, this, duplicateNameHandler);
+					}
+				}
+			}
+			
+			private function duplicateNameHandler(event:CloseEvent):void
+			{
+				if(event.detail == Alert.YES)
+				{
+					var funcToSave:LinkableFunction = LinkableFunction.macros.requestObject(macroNameField.text, LinkableFunction, false);
+					funcToSave.value = macroEditArea.text;
+					this.removePanel();	
 				}
 			}
 			
