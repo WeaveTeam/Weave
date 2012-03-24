@@ -62,6 +62,7 @@
 			import weave.Weave;
 			import weave.api.WeaveArchive;
 			import weave.api.linkBindableProperty;
+			import weave.api.reportError;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
@@ -126,6 +127,7 @@
 					content = Weave.createWeaveFileContent();
 				}
 				var fr:FileReference = new FileReference();
+				fr.addEventListener(IOErrorEvent.IO_ERROR, reportError);
 				fr.save(content, fileName + extension);
 				
 				removePanel();
