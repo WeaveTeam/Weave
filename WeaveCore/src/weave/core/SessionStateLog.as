@@ -190,6 +190,8 @@ package weave.core
 				{
 					item = new LogEntry(_nextId++, backwardDiff, forwardDiff, _triggerDelay);
 					// overwrite first redo entry because grouped callbacks may have behaved differently
+					// keep previous triggerDelay
+					item.triggerDelay = (_redoHistory[0] as LogEntry).triggerDelay;
 					_redoHistory[0] = item;
 				}
 				else
@@ -198,6 +200,8 @@ package weave.core
 					if (_redoActive)
 					{
 						// overwrite last undo entry because grouped callbacks may have behaved differently
+						// keep previous triggerDelay
+						item.triggerDelay = (_undoHistory[_undoHistory.length - 1] as LogEntry).triggerDelay;
 						_undoHistory[_undoHistory.length - 1] = item;
 					}
 					else
