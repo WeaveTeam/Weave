@@ -416,6 +416,16 @@ import flash.utils.getTimer;
 
 internal class LogEntry
 {
+	/**
+	 * This is an entry in the session history log.  It contains both undo and redo session state diffs.
+	 * The triggerDelay is the time it took for the user to make a change since the last synchronization.
+	 * This time difference does not include the time it took to set the session state.  This way, when
+	 * the session state is replayed at a reasonable speed regardless of the speed of the computer.
+	 * @param id
+	 * @param forward The diff for applying redo.
+	 * @param backward The diff for applying undo.
+	 * @param triggerDelay The length of time between the last synchronization and the diff.
+	 */
 	public function LogEntry(id:int, forward:Object, backward:Object, triggerDelay:int)
 	{
 		this.id = id;
