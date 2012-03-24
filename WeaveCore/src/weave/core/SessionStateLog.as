@@ -166,9 +166,11 @@ package weave.core
 		 */
 		private function saveDiff(immediately:Boolean = false):void
 		{
+			var currentTime:int = getTimer();
+			
 			// remember how long it's been since the last synchronization
 			if (_triggerDelay < 0)
-				_triggerDelay = getTimer() - _syncTime;
+				_triggerDelay = currentTime - _syncTime;
 			
 			if (!immediately && getTimer() < _saveTime)
 			{
@@ -184,45 +186,48 @@ package weave.core
 			var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
 			if (forwardDiff !== undefined)
 			{
+				var diffDuration:int = currentTime - (_syncTime + _triggerDelay);
 				var backwardDiff:* = WeaveAPI.SessionManager.computeDiff(state, _prevState);
-				var item:LogEntry;
+				var oldEntry:LogEntry;
+				var newEntry:LogEntry;
 				if (_undoActive)
 				{
-					item = new LogEntry(_nextId++, backwardDiff, forwardDiff, _triggerDelay);
-					// overwrite first redo entry because grouped callbacks may have behaved differently
-					// keep previous triggerDelay
-					item.triggerDelay = (_redoHistory[0] as LogEntry).triggerDelay;
-					_redoHistory[0] = item;
+					// To prevent new undo history from being added as a result of applying an undo, overwrite first redo entry.
+					// Keep existing delay/duration.
+					oldEntry = _redoHistory[0] as LogEntry;
+					newEntry = new LogEntry(_nextId++, backwardDiff, forwardDiff, oldEntry.triggerDelay, oldEntry.diffDuration);
+					_redoHistory[0] = newEntry;
 				}
 				else
 				{
-					item = new LogEntry(_nextId++, forwardDiff, backwardDiff, _triggerDelay);
+					newEntry = new LogEntry(_nextId++, forwardDiff, backwardDiff, _triggerDelay, diffDuration);
 					if (_redoActive)
 					{
-						// overwrite last undo entry because grouped callbacks may have behaved differently
-						// keep previous triggerDelay
-						item.triggerDelay = (_undoHistory[_undoHistory.length - 1] as LogEntry).triggerDelay;
-						_undoHistory[_undoHistory.length - 1] = item;
+						// To prevent new undo history from being added as a result of applying a redo, overwrite last undo entry.
+						// Keep existing delay/duration.
+						oldEntry = _undoHistory.pop() as LogEntry;
+						newEntry.triggerDelay = oldEntry.triggerDelay;
+						newEntry.diffDuration = oldEntry.diffDuration;
 					}
-					else
-					{
-						// save new undo entry
-						_undoHistory.push(item);
-					}
+					// save new undo entry
+					_undoHistory.push(newEntry);
 				}
 				
 				if (debug)
-					debugHistory(item);
+					debugHistory(newEntry);
 				
+				_syncTime = currentTime; // remember when diff was saved
 				cc.triggerCallbacks();
 			}
 			
+			// always reset sync time after undo/redo even if there was no new diff
+			if (_undoActive || _redoActive)
+				_syncTime = currentTime;
 			_prevState = state;
 			_undoActive = false;
 			_redoActive = false;
 			_savePending = false;
 			_triggerDelay = -1;
-			_syncTime = getTimer();
 			
 			cc.resumeCallbacks();
 		}
@@ -430,18 +435,20 @@ internal class LogEntry
 	 * @param backward The diff for applying undo.
 	 * @param triggerDelay The length of time between the last synchronization and the diff.
 	 */
-	public function LogEntry(id:int, forward:Object, backward:Object, triggerDelay:int)
+	public function LogEntry(id:int, forward:Object, backward:Object, triggerDelay:int, diffDuration:int)
 	{
 		this.id = id;
 		this.forward = forward;
 		this.backward = backward;
 		this.triggerDelay = triggerDelay;
+		this.diffDuration = diffDuration;
 	}
 	
 	public var id:int;
 	public var forward:Object; // the diff for applying redo
 	public var backward:Object; // the diff for applying undo
 	public var triggerDelay:int; // the length of time between the last synchronization and the diff
+	public var diffDuration:int; // the length of time in which the diff took place
 	
 	/**
 	 * This will convert an Array of generic objects to an Array of LogEntry objects.
@@ -453,7 +460,7 @@ internal class LogEntry
 		{
 			var o:Object = array[i];
 			if (!(o is LogEntry))
-				array[i] = new LogEntry(o.id, o.forward, o.backward, o.triggerDelay || defaultTriggerDelay);
+				array[i] = new LogEntry(o.id, o.forward, o.backward, o.triggerDelay || defaultTriggerDelay, o.diffDuration);
 		}
 		return array;
 	}

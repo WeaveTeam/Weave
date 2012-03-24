@@ -35,7 +35,7 @@
 			   visible="false" includeInLayout="false"
 			   click="_stateLog.enableLogging.value = recordButton.selected;"
 			   toolTip="Session history recording is {recordButton.selected ? 'enabled' : 'disabled'}."/>
-	<mx:Button id="playButton" label="Replay{ _playSpeed == 1 ? '' : ' (' + _playSpeed + 'x)' }" toggle="true" toolTip="Replay session history"/>
+	<mx:Button id="playButton" label="Replay{ _playSpeed == 1 ? '' : ' (' + _playSpeed + 'x)' }" toggle="true" toolTip="Replay session history" click="if (playButton.selected) play();"/>
 	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="Undo" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="Redo" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
 	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();"/>
@@ -82,7 +82,7 @@
 				_clearMenu.addSubMenuItem("Clear all redos", _stateLog.clearHistory, [1]);
 				
 				_playMenu = new SubMenu(playButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
-				for (var speed:int = 1; speed <= 5; speed++)
+				for each (var speed:int in [1,2,4,8,16])
 					_playMenu.addSubMenuItem(speed + 'x', play, [speed]);
 				addEventListener(Event.ENTER_FRAME, handleEnterFrame);
 			}
@@ -92,40 +92,45 @@
 			private var _playMenu:SubMenu;
 			[Bindable] private var _playSpeed:uint = 1;
 			private var _lastReplayTime:int = 0;
-			private var _replayTriggerDelay:int;
 			
-			private function play(speed:int = 1):void
+			private function play(speed:int = 0):void
 			{
 				playButton.selected = true;
-				_playSpeed = speed;
+				if (speed)
+					_playSpeed = speed;
+				// if at end, restart from beginning
+				if (_stateLog.redoHistory.length == 0)
+					_stateLog.undo(int.MAX_VALUE);
 			}
 			private function handleEnterFrame(event:Event):void
 			{
 				if (playButton.selected)
 				{
-					// wait until background tasks complete
-					if (WeaveAPI.ProgressIndicator.getTaskCount() > 0)
-						return;
-					
-					// wait until appropriate time
-					if (getTimer() < _lastReplayTime + _replayTriggerDelay / _playSpeed)
-						return;
+					var mouseDown:Boolean = WeaveAPI.StageUtils.mouseButtonDown;
 					if (_stateLog.redoHistory.length)
 					{
-						_stateLog.redo();
-						_lastReplayTime = getTimer();
-						if (_stateLog.redoHistory.length)
-							_replayTriggerDelay = _stateLog.redoHistory[0].triggerDelay;
+						// always read the current delay value because it may change due to undo/redo while playing
+						var entry:Object = _stateLog.redoHistory[0];
+						var delay:int = entry.triggerDelay + entry.diffDuration;
+						// wait until delay has passed
+						if (getTimer() < _lastReplayTime + delay / _playSpeed)
+							return;
+						// wait until background tasks complete
+						if (WeaveAPI.ProgressIndicator.getTaskCount() > 0)
+							return;
+						// pause while mouse button is pressed
+						if (!mouseDown)
+						{
+							_stateLog.redo();
+							// save current time as reference point
+							_lastReplayTime = getTimer();
+						}
 					}
-					else
+					else if (!mouseDown)
 					{
+						// stop playing
 						playButton.selected = false;
 					}
-				}
-				else
-				{
-					_lastReplayTime = 0;
-					_replayTriggerDelay = 0;
 				}
 			}
 			
@@ -181,6 +186,8 @@
 				slider.enabled = slider.maximum > slider.minimum;
 				undoButton.enabled = _stateLog.undoHistory.length > 0;
 				redoButton.enabled = _stateLog.redoHistory.length > 0;
+				// save current time as reference point
+				_lastReplayTime = getTimer();
 			}
 			
 			private var _weaveFileRef:FileReference = null;
