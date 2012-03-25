@@ -128,17 +128,18 @@ package weave.core
 			}
 			else
 			{
+				// don't allow globalName on global objects
+				if (getLinkableOwner(this) === globalHashMap)
+					return;
+				
 				var globalObject:ILinkableObject = globalHashMap.getObject(newGlobalName);
 				if (globalObject)
 				{
+					// don't allow recursive linking
 					var descendants:Array = getLinkableDescendants(globalObject, Object(this).constructor);
 					if (descendants.indexOf(this) >= 0)
-						return; // don't allow recursive linking
+						return;
 				}
-				var owner:ILinkableObject = getLinkableOwner(this);
-				if (owner === globalHashMap) // don't allow globalName on global objects
-					return;
-				
 				// if there is no global object of this name, create it now
 				if (globalObject == null)
 					globalHashMap.requestObjectCopy(newGlobalName, internalObject);
@@ -194,18 +195,17 @@ package weave.core
 			{
 				// make sure callbacks only run once
 				delayCallbacks();
-
+				
 				var objectName:String = dynamicState[DynamicState.OBJECT_NAME];
-				var className:String = dynamicState[DynamicState.CLASS_NAME];
-				if (objectName == null)
+				if (objectName)
 				{
-					initInternalObject(null, className); // init local object
-					if (_internalObject != null)
-						WeaveAPI.SessionManager.setSessionState(_internalObject, dynamicState[DynamicState.SESSION_STATE], removeMissingDynamicObjects);
+					globalName = objectName;
 				}
-				else if (getLinkableOwner(this) != globalHashMap) // don't allow globalName on global objects
+				else
 				{
-					initInternalObject(objectName, className); // link to global object
+					dynamicState[DynamicState.OBJECT_NAME] = LOCAL_OBJECT_NAME;
+					_localHashMap.setSessionState(newState, removeMissingDynamicObjects);
+					dynamicState[DynamicState.OBJECT_NAME] = null;
 				}
 			}
 			finally
