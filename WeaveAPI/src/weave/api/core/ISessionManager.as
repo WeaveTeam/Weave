@@ -143,6 +143,14 @@ package weave.api.core
 		 * @return A patch that generates the destination session state when applied to the source session state, or undefined if the two states are equivalent.
 		 */
 		function computeDiff(oldState:Object, newState:Object):*;
+		
+		/**
+		 * This modifies an existing diff to include an additional diff.
+		 * @param baseDiff The base diff which will be modified to include an additional diff.
+		 * @param diffToAdd The diff to add to the base diff.  This diff will not be modified.
+		 * @return The modified baseDiff, or a new diff object if baseDiff is a primitive value.
+		 */
+		function combineDiff(baseDiff:Object, diffToAdd:Object):Object;
 
 		/**
 		 * This function will copy the session state from one sessioned object to another.

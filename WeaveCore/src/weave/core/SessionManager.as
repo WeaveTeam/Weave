@@ -33,6 +33,7 @@ package weave.core
 	import mx.binding.utils.ChangeWatcher;
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
@@ -1278,6 +1279,8 @@ package weave.core
 		 */
 		private const _watcherToSynchronizeFunctionMap:Dictionary = new Dictionary(); // use weak links to be GC-friendly
 		
+		internal static const DIFF_DELETE:String = 'delete';
+		
 		/**
 		 * This function computes the diff of two session states.
 		 * @param oldState The source session state.
@@ -1356,7 +1359,7 @@ package weave.core
 					{
 						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
 							return undefined; // no diff
-						return newState;
+						return newState; // TODO: same object pointer.. potential problem?
 					}
 					
 					//note: there is no error checking here for typedState
@@ -1397,7 +1400,7 @@ package weave.core
 				// Add DynamicState entries with an invalid className ("delete") to convey that each of these objects should be removed.
 				for (objectName in oldLookup)
 				{
-					result.push(new DynamicState(objectName, 'delete'));
+					result.push(new DynamicState(objectName, DIFF_DELETE));
 					changeDetected = true;
 				}
 				
@@ -1429,12 +1432,144 @@ package weave.core
 					{
 						if (!diff)
 							diff = {};
-						diff[newName] = newState[newName];
+						diff[newName] = newState[newName]; // TODO: same object pointer.. potential problem?
 					}
 				}
 
 				return diff;
 			}
+		}
+		
+		/**
+		 * This modifies an existing diff to include an additional diff.
+		 * @param baseDiff The base diff which will be modified to include an additional diff.
+		 * @param diffToAdd The diff to add to the base diff.  This diff will not be modified.
+		 * @return The modified baseDiff, or a new diff object if baseDiff is a primitive value.
+		 */
+		public function combineDiff(baseDiff:Object, diffToAdd:Object):Object
+		{
+			// special case for no change
+			if (diffToAdd === null)
+				return baseDiff;
+			
+			var baseType:String = typeof(baseDiff); // the type of null is 'object'
+			var diffType:String = typeof(diffToAdd);
+
+			// special cases
+			if (baseDiff == null || baseType != diffType || baseType != 'object')
+			{
+				if (diffType == 'object') // not a primitive, so make a copy
+					baseDiff = ObjectUtil.copy(diffToAdd);
+				else
+					baseDiff = diffToAdd;
+			}
+			else if (baseDiff is Array && diffToAdd is Array)
+			{
+				var typedState:Object;
+				var i:int;
+				
+				// If a non-String, non-Array is found, treat both as Arrays of DynamicState objects
+				var isTyped:Boolean = false;
+				checkArrays: for each (var array:Array in arguments) // [baseDiff, diffToAdd]
+				{
+					for each (typedState in array)
+					{
+						if (!(typedState is String || typedState is Array))
+						{
+							isTyped = true;
+							break checkArrays;
+						}
+					}
+				}
+				if (isTyped)
+				{
+					var objectName:String;
+
+					// create lookup: objectName -> old diff entry
+					// temporarily turn baseDiff into an Array of object names
+					var baseLookup:Object = {};
+					for (i = 0; i < baseDiff.length; i++)
+					{
+						typedState = baseDiff[i];
+						// note: no error checking for typedState
+						if (typedState is String || typedState == null)
+							objectName = typedState as String;
+						else
+							objectName = typedState[DynamicState.OBJECT_NAME] as String;
+						baseLookup[objectName] = typedState;
+						// temporarily turn baseDiff into an Array of object names
+						baseDiff[i] = objectName;
+					}
+					// apply each typedState diff appearing in diffToAdd
+					for (i = 0; i < diffToAdd.length; i++)
+					{
+						typedState = diffToAdd[i];
+						// note: no error checking for typedState
+						if (typedState is String || typedState == null)
+							objectName = typedState as String;
+						else
+							objectName = typedState[DynamicState.OBJECT_NAME] as String;
+						
+						// adjust names list so this name appears at the end
+						if (baseLookup.hasOwnProperty(objectName))
+						{
+							for (var j:int = (baseDiff as Array).indexOf(objectName); j < baseDiff.length - 1; j++)
+								baseDiff[j] = baseDiff[j + 1];
+							baseDiff[baseDiff.length - 1] = objectName;
+						}
+						else
+						{
+							baseDiff.push(objectName);
+						}
+						
+						// apply diff
+						var oldTypedState:Object = baseLookup[objectName];
+						if (oldTypedState is String || oldTypedState == null)
+						{
+							if (typedState is String || typedState == null)
+								baseLookup[objectName] = typedState; // avoid unnecessary function call overhead
+							else
+								baseLookup[objectName] = ObjectUtil.copy(typedState);
+						}
+						else if (!(typedState is String || typedState == null)) // update dynamic state
+						{
+							var className:String = typedState[DynamicState.CLASS_NAME];
+							// if new className is different and not null, start with a fresh typedState diff
+							if (className && className != oldTypedState[DynamicState.CLASS_NAME])
+							{
+								baseLookup[objectName] = ObjectUtil.copy(typedState);
+							}
+							else // className hasn't changed, so combine the diffs
+							{
+								oldTypedState[DynamicState.SESSION_STATE] = combineDiff(oldTypedState[DynamicState.SESSION_STATE], typedState[DynamicState.SESSION_STATE]);
+							}
+						}
+					}
+					// change baseDiff back from names to typed states
+					for (i = 0; i < baseDiff.length; i++)
+						baseDiff[i] = baseLookup[baseDiff[i]];
+				}
+				else // not typed session state
+				{
+					// overwrite old Array with new Array's values
+					baseDiff.length = diffToAdd.length;
+					for (i = diffToAdd.length - 1; i >= 0; i--)
+					{
+						var value:Object = diffToAdd[i];
+						if (value is String)
+							baseDiff[i] = value; // avoid function call overhead
+						else
+							baseDiff[i] = combineDiff(baseDiff[i], value);
+					}
+				}
+			}
+			else // nested object
+			{
+				for (var newName:String in diffToAdd)
+					baseDiff[newName] = combineDiff(baseDiff[newName], diffToAdd[newName]);
+			}
+			
+			return baseDiff;
 		}
 	}
 }

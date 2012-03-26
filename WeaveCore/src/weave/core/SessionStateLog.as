@@ -276,6 +276,8 @@ package weave.core
 				if (_savePending && !_undoActive && !_redoActive)
 					synchronizeNow();
 				
+				var combine:Boolean = stepsRemaining > 2;
+				var baseDiff:Object = null;
 				getCallbackCollection(_subject).delayCallbacks();
 				while (stepsRemaining-- > 0)
 				{
@@ -294,10 +296,22 @@ package weave.core
 					if (debug)
 						trace('apply ' + (delta < 0 ? 'undo' : 'redo'), logEntry.id + ':', ObjectUtil.toString(diff));
 					
-					// remember the session state right before applying the last step
-					if (stepsRemaining == 0)
-						_prevState = WeaveAPI.SessionManager.getSessionState(_subject);
-					WeaveAPI.SessionManager.setSessionState(_subject, diff, false);
+					if (combine)
+					{
+						baseDiff = WeaveAPI.SessionManager.combineDiff(baseDiff, diff);
+						if (stepsRemaining == 1)
+						{
+							WeaveAPI.SessionManager.setSessionState(_subject, baseDiff, false);
+							combine = false;
+						}
+					}
+					else
+					{
+						// remember the session state right before applying the last step
+						if (stepsRemaining == 0)
+							_prevState = WeaveAPI.SessionManager.getSessionState(_subject);
+						WeaveAPI.SessionManager.setSessionState(_subject, diff, false);
+					}
 					
 					if (debug)
 					{

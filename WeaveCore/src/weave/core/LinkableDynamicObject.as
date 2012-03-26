@@ -180,23 +180,47 @@ package weave.core
  		 */
 		public function setSessionState(newState:Array, removeMissingDynamicObjects:Boolean):void
 		{
-			var dynamicState:Object = null;
-			if (newState && newState.length > 0)
-				dynamicState = newState[0];
-
-			if (!DynamicState.objectHasProperties(dynamicState))
-			{
-				if (removeMissingDynamicObjects)
-					removeObject();
-				return;
-			}
-
 			try
 			{
 				// make sure callbacks only run once
 				delayCallbacks();
 				
-				var objectName:String = dynamicState[DynamicState.OBJECT_NAME];
+				var dynamicState:Object = null;
+				var objectName:String;
+				for each (dynamicState in newState)
+				{
+					if (DynamicState.objectHasProperties(dynamicState))
+					{
+						if (dynamicState[DynamicState.CLASS_NAME] == SessionManager.DIFF_DELETE)
+						{
+							if (globalName == dynamicState[DynamicState.OBJECT_NAME])
+								removeObject();
+						}
+						else
+						{
+							// dynamicState is now the first entry that isn't for a deleted object
+							break;
+						}
+					}
+					else
+					{
+						// not a typed state
+						dynamicState = null;
+						break;
+					}
+				}
+				if (dynamicState == null)
+				{
+					if (removeMissingDynamicObjects)
+						removeObject();
+					return;
+				}
+				
+				// keep only one object
+				if (newState.length > 1)
+					newState = [dynamicState];
+				
+				objectName = dynamicState[DynamicState.OBJECT_NAME];
 				if (objectName)
 				{
 					globalName = objectName;
