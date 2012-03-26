@@ -34,7 +34,7 @@
 				<mx:Button label="Create new file" click="createFile()"/>
 			</mx:HBox>
 			<ui:TreeWithSearch id="userFolderTreeWithSearch" prompt="Search"
-							   doubleClickEnabled="true" doubleClick="openSelectedFile(userFolderTreeWithSearch)"
+							   doubleClickEnabled="true" doubleClick="if (userFolderTreeWithSearch.tree.contains(event.target as DisplayObject)) openSelectedFile(userFolderTreeWithSearch)"
 							   toolTip="Double-click a file name to open it with Weave."/>
 			<mx:HBox width="100%">
 				<mx:Spacer width="100%"/>
@@ -46,7 +46,7 @@
 				<mx:Button label="Open selected file" click="openSelectedFile(sharedTreeWithSearch)" enabled="{sharedTreeWithSearch.tree.selectedItem != null}"/>				
 			</mx:HBox>
 			<ui:TreeWithSearch id="sharedTreeWithSearch" prompt="Search"
-							   doubleClickEnabled="true" doubleClick="openSelectedFile(sharedTreeWithSearch)"
+							   doubleClickEnabled="true" doubleClick="if (sharedTreeWithSearch.tree.contains(event.target as DisplayObject)) openSelectedFile(sharedTreeWithSearch)"
 							   toolTip="Double-click a file name to open it with Weave."/>
 			<mx:HBox width="100%">
 				<mx:Spacer width="100%"/>
