@@ -23,6 +23,7 @@ package weave.services.beans
 	{
 		public var connection:String;
 		public var sqlQuery:String;
+		public var sqlParams:String;
 		public var metadata:Object;
 		
 		
@@ -30,6 +31,7 @@ package weave.services.beans
 		{
 			connection = o.connection;
 			sqlQuery = o.sqlQuery;
+			sqlParams = o.sqlParams;
 			metadata = o.metadata;
 			for (var name:String in metadata)
 				if (metadata[name] == null)

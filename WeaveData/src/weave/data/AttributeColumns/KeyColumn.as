@@ -19,6 +19,7 @@
 package weave.data.AttributeColumns
 {
 	import weave.api.data.IQualifiedKey;
+	import weave.utils.EquationColumnLib;
 
 	public class KeyColumn extends AbstractAttributeColumn
 	{
@@ -31,7 +32,10 @@ package weave.data.AttributeColumns
 		
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class=null):*
 		{
-			return key.localName;
+			if (dataType == String)
+				return key.localName;
+			
+			return EquationColumnLib.cast(key, dataType);
 		}
 		
 		override public function get keys():Array

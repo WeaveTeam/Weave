@@ -42,7 +42,7 @@
 	<CenteredImage source="@Embed(source='/weave/resources/images/trashCan.png')" buttonMode="true" height="24"
 			   click="clearAttribute()"
 			   toolTip="Click here to remove the column used for this property."/>
-	<CenteredImage id="linkImage" buttonMode="true" height="24"
+	<CenteredImage id="linkImage" buttonMode="true" height="24" visible="{showLinkControl}" includeInLayout="{showLinkControl}"
 				 mouseDown="toggleLinkDropDown(!linkDropDown.parent);"/>
 	
 	<mx:TitleWindow id="linkDropDown"
@@ -82,6 +82,8 @@
 			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.visualization.tools.SimpleVisTool;
+			
+			[Bindable] public var showLinkControl:Boolean = true;
 			
 			[Embed(source='/weave/resources/images/plug-connected.png')]
 			private static const icon_connected:Class;

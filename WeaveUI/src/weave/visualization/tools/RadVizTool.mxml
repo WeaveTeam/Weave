@@ -204,31 +204,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return [_plotter.radiusColumn,colorColumn,_plotter.columns];
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-				{				
-					// try to get unique attribute names separated by commas					
-					var newTitle:String = "RadViz of ";
-					
-					var uniqueColumns:Dictionary = new Dictionary();
-					
-					for each(var column:IAttributeColumn in _plotter.columns.getObjects(IAttributeColumn) )
-					{
-						uniqueColumns[ColumnUtils.getTitle(column)] = column;
-					}
-					
-					for (var uniqueTitle:String in uniqueColumns)
-					{
-						newTitle += uniqueTitle + ", ";
-					}
-					
-					if(newTitle.charAt(newTitle.length-1) == ",")
-						newTitle = newTitle.substr(0, newTitle.length-2);
-					
-					title = newTitle;
+				// try to get unique attribute names separated by commas					
+				var newTitle:String = "RadViz of ";
+				
+				var uniqueColumns:Dictionary = new Dictionary();
+				
+				for each(var column:IAttributeColumn in _plotter.columns.getObjects(IAttributeColumn) )
+				{
+					uniqueColumns[ColumnUtils.getTitle(column)] = column;
 				}
+				
+				for (var uniqueTitle:String in uniqueColumns)
+				{
+					newTitle += uniqueTitle + ", ";
+				}
+				
+				if(newTitle.charAt(newTitle.length-1) == ",")
+					newTitle = newTitle.substr(0, newTitle.length-2);
+				
+				return newTitle;
 			}
 			
 			private const colorRampName:LinkableString = newLinkableChild(this, LinkableString,handleColorRampName);

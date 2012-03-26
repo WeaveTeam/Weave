@@ -203,16 +203,12 @@
 					AttributeSelectorPanel.openToolSelector(this,_plotter.heightColumns);
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-				{
-					var columns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
-					for (var i:int = 0; i < columns.length; i++)
-						columns[i] = ColumnUtils.getTitle(columns[i] as IAttributeColumn);
-					title = "Bar Chart of " + columns.join(', ');
-				}
+				var columns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
+				for (var i:int = 0; i < columns.length; i++)
+					columns[i] = ColumnUtils.getTitle(columns[i] as IAttributeColumn);
+				return "Bar Chart of " + columns.join(', ');
 			}
 			
 			public function get colorColumn():DynamicColumn
@@ -388,7 +384,7 @@
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Basic">
 			<ui:DynamicColumnComponent visTool="{this}" id="colorColumnInput" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"
-									   toolTip="Color column selection is enabled when only a single column is in the list below."/>
+									   toolTip="Color column selection is enabled when only a single column is in the list below." showLinkControl="false"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Label" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.labelColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Sort" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
 			<mx:CheckBox id="groupBySortColumnCheckBox" label="Group bars by the sort column" creationComplete="linkBindableProperty(_plotter.groupBySortColumn, event.target, 'selected');"/>
@@ -402,9 +398,9 @@
 				<mx:RadioButton id="percentStackedRadioButton" groupName="groupMode" label="100% Stacked bars" value="{CompoundBarChartPlotter.PERCENT_STACK}"/>
 			</mx:HBox>
 			<mx:TabNavigator width="100%" height="100%">
-				<ui:ColumnListComponent visTool="{this}" label="Height attributes" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
-				<ui:ColumnListComponent visTool="{this}" label="Positive error" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
-				<ui:ColumnListComponent visTool="{this}" label="Negative error" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
+				<ui:ColumnListComponent visTool="{this}" label="Height attributes" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
+				<ui:ColumnListComponent visTool="{this}" label="Positive error" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
+				<ui:ColumnListComponent visTool="{this}" label="Negative error" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
 			</mx:TabNavigator>
 		</mx:VBox>
 		

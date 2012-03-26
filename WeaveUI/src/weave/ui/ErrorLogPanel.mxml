@@ -49,15 +49,14 @@
 -->
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.TextArea;
 			import mx.core.Application;
 			import mx.managers.PopUpManager;
 			import mx.rpc.Fault;
 			
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
-			import weave.core.SessionManager;
 			import weave.utils.DebugUtils;
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -122,10 +121,16 @@
 				var instance:ErrorLogPanel = getInstance();
 				if (!instance.parent)
 				{
+					var app:Application = Application.application as Application;
+					var desiredHeight:Number = 150;
+					var percentHeight:Number = Math.round(desiredHeight / app.stage.stageHeight * 100);
+					
+					instance.panelY.value = (100 - percentHeight) + "%";
+					instance.panelHeight.value = percentHeight + "%";
+					
 					instance.panelX.value = "0%";
-					instance.panelY.value = "80%";
 					instance.panelWidth.value = "100%";
-					instance.panelHeight.value = "20%";
+					
 					PopUpManager.addPopUp(instance, Application.application as Application);
 				}
 				instance.restorePanel();

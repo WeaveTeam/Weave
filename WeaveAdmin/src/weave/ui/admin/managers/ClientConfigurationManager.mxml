@@ -19,13 +19,14 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml"
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" 
-				width="100%" height="100%" 
+				width="100%" height="100%"
+				verticalAlign="middle"
 				label="Client configurations"
-				creationComplete="handleCreationComplete()">
-	<mx:TabNavigator height="100%" width="100%" paddingLeft="8" paddingRight="8" paddingBottom="8" paddingTop="8">
+				creationComplete="handleCreationComplete()" xmlns:admin="weave.ui.admin.*">
+	<mx:TabNavigator height="100%" paddingLeft="8" paddingRight="8" paddingBottom="8" paddingTop="8">
 		<mx:VBox label="My files">
 			<mx:HBox>
 				<mx:Button label="Open selected file" click="openSelectedFile(userFolderTreeWithSearch)" enabled="{userFolderTreeWithSearch.tree.selectedItem != null}"/>
@@ -53,6 +54,7 @@
 			</mx:HBox>
 		</mx:VBox>
 	</mx:TabNavigator>
+	<admin:WeaveFileInfo id="weaveFileInfo" width="100%"/>
 	
 <!--	<mx:TabNavigator paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
 		<mx:Canvas label="Settings" width="100%" height="100%">
@@ -68,29 +70,28 @@
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.controls.Alert;
-			import mx.events.ListEvent;
-			import mx.rpc.events.ResultEvent;
 			
 			import weave.services.AdminInterface;
-			import weave.services.DelayedAsyncInvocation;
 			import weave.utils.EventUtils;
 			import weave.utils.PopUpUtils;
 			
 			
 			private function handleCreationComplete():void
 			{
-				EventUtils.addBindCallback(AdminInterface.instance, "weaveFileNames", handleClientConfigFileNamesChange);
-				EventUtils.addBindCallback(AdminInterface.instance, "privateWeaveFileNames", handlePrivateClientConfigFileNamesChange);
-			}
-			
-			public function handleClientConfigFileNamesChange():void
-			{
-				sharedTreeWithSearch.generateFlatTreeFromLabels(AdminInterface.instance.weaveFileNames);
-			}
-			
-			public function handlePrivateClientConfigFileNamesChange():void
-			{
-				userFolderTreeWithSearch.generateFlatTreeFromLabels(AdminInterface.instance.privateWeaveFileNames);
+				BindingUtils.bindSetter(sharedTreeWithSearch.generateFlatTreeFromLabels, AdminInterface.instance, "weaveFileNames");
+				BindingUtils.bindSetter(userFolderTreeWithSearch.generateFlatTreeFromLabels, AdminInterface.instance, "privateWeaveFileNames");
+				
+				function clearPreview(..._):void { weaveFileInfo.clearPreview(); }
+				BindingUtils.bindSetter(clearPreview, AdminInterface.instance, "weaveFileNames");
+				BindingUtils.bindSetter(clearPreview, AdminInterface.instance, "privateWeaveFileNames");
+				
+				var delay:int = 100;
+				var preview:Function = function(event:Event):void {
+						previewSelectedFile(event.currentTarget.owner as TreeWithSearch);
+					};
+				preview = EventUtils.generateDelayedCallback(this, preview, delay, true);
+				userFolderTreeWithSearch.tree.addEventListener(Event.CHANGE, preview);
+				sharedTreeWithSearch.tree.addEventListener(Event.CHANGE, preview);
 			}
 			
 			private function openSelectedFile(component:TreeWithSearch):void
@@ -98,6 +99,13 @@
 				var item:Object = component.tree.selectedItem;
 				if (item)
 					AdminInterface.instance.openWeavePopup(item.label);
+			}
+			
+			private function previewSelectedFile(component:TreeWithSearch):void
+			{
+				var item:Object = component.tree.selectedItem;
+				if (item)
+					weaveFileInfo.updatePreview(item.label);
 			}
 			
 			private function createFile():void
@@ -137,7 +145,8 @@
 					Alert.show("No File was selected","Error");
 				}
 			}
+			
 		]]>
 	</mx:Script>
 	
-</mx:HDividedBox>
+</mx:HBox>

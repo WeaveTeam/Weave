@@ -19,7 +19,6 @@
 package weave.tests;
 
 
-//import weave.beans.WeaveRecordList;
 import java.rmi.RemoteException;
 import weave.beans.RResult;
 import weave.servlets.JRIService;

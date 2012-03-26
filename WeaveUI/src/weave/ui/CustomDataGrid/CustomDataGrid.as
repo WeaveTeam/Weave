@@ -50,9 +50,9 @@ package weave.ui.CustomDataGrid
 		
 		public function CustomDataGrid()
 		{
-			super();			
+			headerClass = CustomDataGridHeader;
 		}
-		override protected function setupColumnItemRenderer(c:DataGridColumn, contentHolder:ListBaseContentHolder, rowNum:int, colNum:int, data:Object, uid:String):IListItemRenderer{
+		/*override protected function setupColumnItemRenderer(c:DataGridColumn, contentHolder:ListBaseContentHolder, rowNum:int, colNum:int, data:Object, uid:String):IListItemRenderer{
 			return super.setupColumnItemRenderer(c,contentHolder,rowNum,colNum,data,uid);
 		}
 	
@@ -67,10 +67,19 @@ package weave.ui.CustomDataGrid
 		{ 
 			
 			super.lockedColumnCount = value;
-			/*if(value == 0){
-				invalidateProperties();
-			}*/
+			/
+		}*/
+		
+		
+		// need to set default filter when user sets the dataprovider
+		override public function set dataProvider(value:Object):void
+		{
+			super.dataProvider = value;
+			collection.filterFunction = filterKeys;
+			collection.refresh();
 		}
+		
+		
 		
 		
 		/**
@@ -97,8 +106,10 @@ package weave.ui.CustomDataGrid
 		private var _filtersEnabled:Boolean = false;
 		
 		public function set enableFilters(val:Boolean):void{
-			_filtersEnabled = val;
-			invalidateFilters();
+			if(_filtersEnabled != val){
+				_filtersEnabled = val;
+				invalidateFilters();
+			}			
 		}
 		
 		
@@ -178,8 +189,8 @@ package weave.ui.CustomDataGrid
 			return  cff;
 		}
 		
-		/*********************************************** Subset Section***************************************************/
-		
+		/*********************************************** Filter Section***************************************************/
+	
 		private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 		
 		private function filterKeys(item:Object):Boolean

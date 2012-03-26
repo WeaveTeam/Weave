@@ -29,6 +29,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	autoLayout="true"
 	paddingLeft="5"
 	paddingTop="5"
+	backgroundSize="100%"
 	>
 	
 	<mx:Script>
@@ -168,8 +169,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				map.addEventListener(MouseEvent.MOUSE_DOWN,handleMouseDown);
 				
-				addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
-				addSubMenuItem("Show All Documents",showAllDocuments);
+				subMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
+				subMenu.addSubMenuItem("Show All Documents",showAllDocuments);
 			}
 			
 			private var _subset:KeyFilter;
@@ -345,7 +346,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				
 				var keywords:Array = extractKeywordsFromSelection();
-				selectionKeywords.value = keywords.join(" AND ");
+				selectionKeywords.value = keywords.join(" OR ");
 				
 			}
 			
@@ -676,7 +677,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(op ==null)
 				{
 					//TODO: should take value from RadioButton. Value was null when last tried.
-					nodeHandler.node.operator.value = "AND";	
+					nodeHandler.node.operator.value = "OR";	
 				}
 				else{
 					

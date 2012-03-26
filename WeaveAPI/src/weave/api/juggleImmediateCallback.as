@@ -24,10 +24,9 @@ package weave.api
 	 * @param newTarget The new target, which may be null.
 	 * @param relevantContext Corresponds to the relevantContext parameter of ICallbackCollection.addImmediateCallback().
 	 * @param callback Corresponds to the callback parameter of ICallbackCollection.addImmediateCallback().
-	 * @param runCallbackNow Corresponds to the runCallbackNow parameter of ICallbackCollection.addImmediateCallback().
 	 * @see weave.api.core.ICallbackCollection#addImmediateCallback
 	 */
-	public function juggleImmediateCallback(oldTarget:ILinkableObject, newTarget:ILinkableObject, relevantContext:Object, callback:Function, runCallbackNow:Boolean = false):void
+	public function juggleImmediateCallback(oldTarget:ILinkableObject, newTarget:ILinkableObject, relevantContext:Object, callback:Function):void
 	{
 		// do nothing if the targets are the same.
 		if (oldTarget == newTarget)
@@ -39,6 +38,6 @@ package weave.api
 		
 		// add callback to new target
 		if (newTarget)
-			WeaveAPI.SessionManager.getCallbackCollection(newTarget).addImmediateCallback(relevantContext, callback, runCallbackNow);
+			WeaveAPI.SessionManager.getCallbackCollection(newTarget).addImmediateCallback(relevantContext, callback);
 	}
 }

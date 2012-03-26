@@ -112,14 +112,17 @@ package weave.data.AttributeColumns
 		 */		
 		private var _lastError:String;
 		/**
-		 * This is true while code inside getValueFromKey is executing.
-		 */		
-		private var in_getValueFromKey:Boolean = false;
-		/**
 		 * This is a mapping from keys to cached data values.
 		 */
 		private var _equationResultCache:Dictionary = new Dictionary();
+		/**
+		 * This is used to determine when to clear the cache.
+		 */		
 		private var _cacheTriggerCount:uint = 0;
+		/**
+		 * This is used as a placeholder in _equationResultCache.
+		 */		
+		private static const UNDEFINED:Object = {};
 		
 		
 		/**
@@ -275,16 +278,12 @@ package weave.data.AttributeColumns
 				|| LinkableFunction.macros.getObject(name) != null;
 		}
 		
-		
 		/**
 		 * @return The result of the compiled equation evaluated at the given record key.
 		 * @see weave.api.data.IAttributeColumn
 		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			if (in_getValueFromKey && EquationColumnLib.currentRecordKey == key)
-				return undefined; // recursively defined values are undefined
-			
 			// reset cached values if necessary
 			if (_cacheTriggerCount != triggerCounter)
 			{
@@ -320,12 +319,13 @@ package weave.data.AttributeColumns
 			var value:* = _constantResult;
 			if (!_equationIsConstant)
 			{
-				// otherwise, use cached equation results
+				// check the cache
 				value = _equationResultCache[key];
-				// if the data value was not cached for this key yet, cache it now.
-				if (value == undefined)
+				// define cached value if missing
+				if (value === undefined)
 				{
-					in_getValueFromKey = true; // prevent recursion caused by compiledEquation
+					// prevent recursion caused by compiledEquation
+					_equationResultCache[key] = UNDEFINED;
 					
 					// prepare EquationColumnLib static parameter before calling the compiled equation
 					EquationColumnLib.currentRecordKey = key;
@@ -342,11 +342,14 @@ package weave.data.AttributeColumns
 						}
 						//value = e;
 					}
-					if (_equationResultCache)
-						_equationResultCache[key] = value;
-					//trace('('+equation.value+')@"'+key+'" = '+value);
 					
-					in_getValueFromKey = false; // prevent recursion caused by compiledEquation
+					// save value in cache
+					_equationResultCache[key] = value;
+					//trace('('+equation.value+')@"'+key+'" = '+value);
+				}
+				else if (value === UNDEFINED)
+				{
+					value = undefined;
 				}
 			}
 			

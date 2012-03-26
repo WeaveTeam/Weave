@@ -54,7 +54,7 @@
 			
 			private function handleCreationComplete():void
 			{
-				EventUtils.addBindCallback(AdminInterface.instance, "geometryCollectionNames", loadGeomNames);
+				BindingUtils.bindSetter(loadGeomNames, AdminInterface.instance, "geometryCollectionNames");
 				treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, handleItemClick);
 			}
 			
@@ -94,9 +94,9 @@
 				geomEditor.dataChanged = false;
 			}
 			
-			public function loadGeomNames():void
+			public function loadGeomNames(names:Array):void
 			{
-				treeWithSearch.generateFlatTreeFromLabels(AdminInterface.instance.geometryCollectionNames);
+				treeWithSearch.generateFlatTreeFromLabels(names);
 			}
 		]]>
 	</mx:Script>

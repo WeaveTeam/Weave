@@ -199,11 +199,9 @@
 					visualization.additionalProbeColumns = null;
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Map " + (colorColumn.internalColumn == null ? '' : "of " + ColumnUtils.getTitle(colorColumn));
+				return "Map " + (colorColumn.internalColumn == null ? '' : "of " + ColumnUtils.getTitle(colorColumn));
 			}
 			
 			override protected function createChildren():void
@@ -648,9 +646,9 @@
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Map Layers">
 			<mx:HBox width="100%">
-				<mx:Button label="Add Geometry Layer" click="addGeomLayer();"/>
-				<mx:Button label="Add Label Layer" click="addLabelLayer();"/>
-				<mx:Button label="Add WMS Layer" click="addWMSLayer();"/>
+				<mx:Button label="Add Base Map" click="addWMSLayer();" toolTip="Add an image layer underneath the geometries"/>
+				<mx:Button label="Add Geometry" click="addGeomLayer();" toolTip="Add a layer of polygons, lines, or points that can be colored according to the data"/>
+				<mx:Button label="Add Labels" click="addLabelLayer();" toolTip="Add labels to the selected geometry layer"/>
 			</mx:HBox>
 			
 			<!--<mx:DataGrid dataProvider="{_layerNames.reverse()}">
@@ -665,7 +663,7 @@
 			
 			<managers:PlotLayerEditor id="layerEditor" creationComplete="layerEditor.visualization = visualization"/>
 			<mx:HBox width="100%" verticalAlign="middle">
-				<ui:DynamicColumnComponent label="color" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+				<ui:DynamicColumnComponent label="color" showLinkControl="false" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 				<mx:Button label="Edit Bins..." click="DraggablePanel.openStaticInstance(ColorController);"/>
 			</mx:HBox>
 		</mx:VBox>

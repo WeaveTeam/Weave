@@ -31,14 +31,20 @@
 		<mx:Label text="Choose Options"/>
 		<mx:CheckBox label="Dashboard mode" toolTip="Check this box to show all windows in 'dashboard' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel."
 					 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
-		<mx:CheckBox label="Show Menubar" toolTip="Check this box to show the top menu bar."
+		<mx:CheckBox label="Show menubar" toolTip="Check this box to show the top menu bar."
 					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
 		<mx:CheckBox label="Show copyright"
 					 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
 		<mx:CheckBox id="saveHistoryCheckBox"
 					 label="Save history"
 					 selected="false"
+					 enabled="{!saveXMLCheckBox.selected}"
 					 visible="false"/>
+		<mx:CheckBox id="saveXMLCheckBox"
+					 label="Save as XML"
+					 selected="false"
+					 change="saveHistoryCheckBox.selected = !saveXMLCheckBox.selected;"
+					 />
 	</mx:VBox>
 	<mx:ControlBar>
 		<mx:Button label="Export" 
@@ -50,11 +56,13 @@
 	</mx:ControlBar>
 	<mx:Script>
 		<![CDATA[
+			import mx.formatters.DateFormatter;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveArchive;
 			import weave.api.linkBindableProperty;
+			import weave.api.reportError;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.SessionManager;
@@ -81,7 +89,8 @@
 			{
 				super.childrenCreated();
 				
-				saveHistoryCheckBox.visible = Weave.history.enableLogging && SessionHistorySlider.devMode;
+				saveHistoryCheckBox.visible = Weave.history.enableLogging.value;
+				saveHistoryCheckBox.selected = Weave.history.enableLogging.value;
 			}
 			
 			private function zeropad(n:Number):String
@@ -94,21 +103,32 @@
 				// Create a date that we can append to the end of each file to make them unique
 				var date:Date = new Date();
 				
-				var dateString:String = StringUtil.substitute(
-					"{0}-{1}-{2} {3}.{4}.{5}",
-					date.fullYear, zeropad(date.month), zeropad(date.day),
-					zeropad(date.hours), zeropad(date.minutes), zeropad(date.seconds)
-				);
+				var format:DateFormatter = new DateFormatter();
+				format.formatString = "YYYY-MM-DD_HH.NN.SS";
+
+				var fileName:String = 'Weave_' + format.format(date);
 				
-				var fr:FileReference = new FileReference();
-				if (saveHistoryCheckBox.selected)
+				var content:Object = null;
+				var extension:String = '.weave';
+				if (saveXMLCheckBox.selected)
 				{
-					fr.save(Weave.createWeaveFileContent(), dateString + ".weave");
+					content = Weave.getSessionStateXML().toXMLString();
+					extension = '.xml';
+				}
+				else if (!saveHistoryCheckBox.selected)
+				{
+					var historySessionState:Object = Weave.history.getSessionState();
+					Weave.history.clearHistory();
+					content = Weave.createWeaveFileContent();
+					Weave.history.setSessionState(historySessionState);
 				}
 				else
 				{
-					fr.save(Weave.getSessionStateXML(), "Weave session state " + dateString + ".xml");
+					content = Weave.createWeaveFileContent();
 				}
+				var fr:FileReference = new FileReference();
+				fr.addEventListener(IOErrorEvent.IO_ERROR, reportError);
+				fr.save(content, fileName + extension);
 				
 				removePanel();
 			}

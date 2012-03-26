@@ -212,7 +212,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				minimizeButton.setStyle("downIcon", _minimizeDownIcon);
 				minimizeButton.setStyle("overIcon", _minimizeDownIcon);
 				setupControlButton(userControlButton, _userControlIcon, toggleControlPanel, "Click here to change settings for this component.");
-				setupControlButton(subMenuButton, _subMenuIcon, openSubMenu, "Click here to open menu items for this component.");
+				setupControlButton(subMenuButton, _subMenuIcon, null, "Click here to open menu items for this component.");
 				setupControlButton(pinToBackButton, _pinToBackIcon, togglePinnedToBack, "Click here to pin this window to the back of the stage");
 				setupControlButton(pinButton, _pinIcon, togglePinned, "Click here to pin this window to the stage.") ;
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
@@ -265,7 +265,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				rawChildren.addChild(_dragCanvas);
 			}
 			
-			// this gets called when panelTitle changes
+			/**
+			 * Override this function to provide a default panel title when the panelTitle session state is undefined.
+			 * The panel title will be set when handlePanelTitleChange() is called.
+			 * If you need the panel title to be updated, you can call handlePanelTitleChange() directly or as a callback.
+			 */
+			protected function get defaultPanelTitle():String
+			{
+				return getQualifiedClassName(this).split(':').pop();
+			}
+			
+			/**
+			 * This gets called when the panelTitle session state changes.
+			 * If you need the panel title to be updated, you can call this function directly or as a callback.
+			 * If you need to override the default panel title, override the "get defaultPanelTitle" accessor function.
+			 */
 			protected function handlePanelTitleChange():void
 			{
 				if (panelTitle.value)
@@ -275,7 +289,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				else
 				{
-					title = '';
+					title = defaultPanelTitle;
 				}
 			}
 			private const panelTitleFunction:LinkableFunction = registerDisposableChild(this, new LinkableFunction(null, true, true)); // this is used in handlePanelTitleChange()
@@ -772,6 +786,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function removePanel():void
 			{
 				var panels:Array = [this, _controlPanel];
+				DraggablePanel.activePanel = null;
 				for each (var panel:DraggablePanel in panels)
 				{
 					if (!panel)
@@ -921,6 +936,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if (!parent)
 					return;
+				DraggablePanel.activePanel = null;
 				
 				if (_resizeable && !_resizing)
 					CursorManager.removeCursor(draggablePanelCursorID);
@@ -940,6 +956,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var hashMap:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
 					if (hashMap)
 						hashMap.setNameOrder([hashMap.getName(this)]);
+					else if (parent)
+						parent.setChildIndex(this, parent.numChildren - 1);
 				}
 				updatePinnedPanelOrder();
 			}
@@ -1176,12 +1194,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				button.setStyle("fillAlphas", [1,1] );
 				button.setStyle("fillColors", [_titleBarButtonBackgroundColor, _titleBarButtonBackgroundColor] );
 				
-				var buttonListener:Function = function(e:MouseEvent):*
+				
+				if(clickHandler != null)
 				{
-					clickHandler();
-					e.stopImmediatePropagation();
-				};
-				button.addEventListener(MouseEvent.CLICK, buttonListener);
+					var buttonListener:Function = function(e:MouseEvent):*
+					{
+						clickHandler();
+						e.stopImmediatePropagation();
+					};
+					button.addEventListener(MouseEvent.CLICK, buttonListener);
+				}
 				button.width = buttonSize;
 				button.height = buttonSize;
 				button.buttonMode = true;
@@ -1386,6 +1408,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						pinToBackButton.visible = false;
 					}
+					
 					if(enableSubMenu.value)
 					{
 						if (titleBar != subMenuButton.parent)
@@ -1558,54 +1581,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private static const _instances:Dictionary = new Dictionary();
 			
-			private var subMenu:Menu;
-			
-			[Bindable]
-			private var subMenuDataProvider:Array = [];
-			public function addSubMenuItem(label:String,listener:Function):void
-			{
-				var menuItem:Object = new Object();
-				
-				menuItem["label"] = label;
-				menuItem["listener"] = listener;
-				
-				subMenuDataProvider.push(menuItem);
-				
-				subMenu = Menu.createMenu(this,subMenuDataProvider,false);
-				
-				
-				subMenu.addEventListener(MenuEvent.ITEM_CLICK,handleSubMenuItemClick);
-				
-				
-			}
-			
-			private function handleSubMenuItemClick(event:MenuEvent):void
-			{
-				var item:Object = event.item;
-				
-				(item["listener"] as Function).call();
-			}
-			
-			private var toggleSubMenu:Boolean =  false;
-			private function openSubMenu():void
-			{
-				if(toggleSubMenu)
-				{
-					toggleSubMenu = false;
-					subMenu.hide();
-					return;
-				}
-				
-				toggleSubMenu = true;
-				
-				if(subMenuDataProvider.length == 0)
-					subMenu = Menu.createMenu(this,{label:"No Menu Items Added"},false);
-				
-				var menuLocation:Point = contentToGlobal(new Point(subMenuButton.x,subMenuButton.y));
-				
-				subMenu.setStyle("openDuration",0);
-				subMenu.show(menuLocation.x + buttonSize/2,menuLocation.y);
-			}
+			public var subMenu:SubMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
 			
 			
 			// backwards compatibility

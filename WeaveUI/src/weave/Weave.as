@@ -241,7 +241,7 @@ package weave
 		
 		/******************************************************************************************/
 		
-		private static const THUMBNAIL_SIZE:int = 128;
+		private static const THUMBNAIL_SIZE:int = 200;
 		private static const ARCHIVE_THUMBNAIL_PNG:String = "thumbnail.png";
 		private static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
 		private static const ARCHIVE_HISTORY_AMF:String = "history.amf";
@@ -352,6 +352,25 @@ package weave
 		}
 		
 		/**
+		 * This will change an ".xml" extension to ".weave" in a file name.
+		 * @param fileName A file name to fix.
+		 * @return A file name ending in ".weave".
+		 */
+		public static function fixWeaveFileName(fileName:String, useWeaveExtension:Boolean):String
+		{
+			var _xml:String = '.xml';
+			var _weave:String = '.weave';
+			var oldExt:String = useWeaveExtension ? _xml : _weave;
+			var newExt:String = useWeaveExtension ? _weave : _xml;
+			
+			if (fileName.substr(-oldExt.length).toLowerCase() == oldExt)
+				fileName = fileName.substr(0, -oldExt.length);
+			if (fileName.substr(-newExt.length).toLowerCase() != newExt)
+				fileName += newExt;
+			return fileName;
+		}
+
+		/**
 		 * This function will create an object that can be saved to a file and recalled later with loadWeaveFileContent().
 		 */
 		public static function createWeaveFileContent():ByteArray
@@ -363,7 +382,8 @@ package weave
 			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
 			var output:WeaveArchive = new WeaveArchive();
 			output.files[ARCHIVE_THUMBNAIL_PNG] = _pngEncoder.encode(_thumbnail);
-			output.objects[ARCHIVE_PLUGINS_AMF] = _pluginList;
+			if (Weave.ALLOW_PLUGINS)
+				output.objects[ARCHIVE_PLUGINS_AMF] = _pluginList;
 			output.objects[ARCHIVE_HISTORY_AMF] = _history;
 			return output.serialize();
 		}
@@ -397,14 +417,17 @@ package weave
 				
 				var archive:WeaveArchive = content as WeaveArchive;
 				var _history:Object = archive.objects[ARCHIVE_HISTORY_AMF];
-				plugins = archive.objects[ARCHIVE_PLUGINS_AMF] as Array;
+				if (!_history)
+					throw new Error("Weave session history not found.");
+				
+				plugins = archive.objects[ARCHIVE_PLUGINS_AMF] as Array || [];
 				if (setPluginList(plugins, content))
 				{
 					history.setSessionState(_history);
 				}
 			}
 			
-			// TEMPORARY HACK to force menu to refresh
+			// hack for forcing VisApplication menu to refresh
 			getCallbackCollection(Weave.properties).triggerCallbacks();
 		}
 		

@@ -168,11 +168,9 @@
 				LinkableTextFormat.defaultTextFormat.copyToStyle(marginLabel);
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Color Legend";
+				return "Color Legend";
 			}
 			
 			private static const DEFAULT_MARGIN_TOP:int = 25;
@@ -202,7 +200,7 @@
 				 borderThickness="0" backgroundAlpha="0"/>
 	<ui:ControlPanel>
 		<mx:VBox label="Binning">
-			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data" showLinkControl="false"/>
 			<ui:BinningDefinitionEditor id="binEditor" width="100%"/>
 		</mx:VBox>
 		<mx:VBox label="Appearance">

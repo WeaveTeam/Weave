@@ -115,13 +115,12 @@
 
 			private function handleCreationComplete():void
 			{
-				EventUtils.addBindCallback(AdminInterface.instance, "connectionNames", handleConnectionNames);
+				BindingUtils.bindSetter(handleConnectionNames, AdminInterface.instance, "connectionNames");
 				treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, handleItemClick);
 			}
 			
-			public function handleConnectionNames():void
+			public function handleConnectionNames(names:Array):void
 			{
-				var names:Array = AdminInterface.instance.connectionNames;
 				treeWithSearch.generateFlatTreeFromLabels(names);
 				if (names.length == 0)
 				{

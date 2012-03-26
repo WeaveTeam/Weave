@@ -62,7 +62,6 @@
 										   click="outerDocument.removeColorItem();"/>
 								<mx:Script>
 									<![CDATA[
-										import mx.binding.utils.BindingUtils;
 										import mx.collections.ArrayCollection;
 										import mx.events.DragEvent;
 										

@@ -19,7 +19,6 @@
 
 package weave.core
 {
-	import flash.debugger.enterDebugger;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
@@ -31,7 +30,6 @@ package weave.core
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
 	
 	use namespace weave_internal;
 	

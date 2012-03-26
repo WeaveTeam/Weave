@@ -155,19 +155,14 @@ package weave.api.primitives
 		function containsBounds(other:IBounds2D):Boolean;
 
 		/**
-		 * Grid numbers correspond to boxes in the following grid:
-		 *     7 | 6 | 5
-		 *     --+---+--
-		 *     8 | 0 | 4
-		 *     --+---+--
-		 *     1 | 2 | 3
-		 * If an x,y point is contained in box 0, it is contained in the IBounds2D object.
-		 * For example, if a point is contained in box 2, x is within the x-range and y < y-range.
-		 * @param x The x-coordinate to test for grid containment.
-		 * @param y The y-coordinate to test for grid containment.
-		 * @return The grid number from 0 to 8 that the x,y point is contained in, or NaN if none.
+		 * This function is used to determine which vertices of a polygon can be skipped when rendering within the bounds of this Bounds2D.
+		 * While iterating over vertices, test each one with this function.
+		 * If (firstGridTest & secondGridTest & thirdGridTest) is non-zero, then the second vertex can be skipped.
+		 * @param x The x-coordinate to test.
+		 * @param y The y-coordinate to test.
+		 * @return A value to be ANDed with other results of getGridTest().
 		 */
-		function getGridContainment(x:Number, y:Number):Number;
+		function getGridTest(x:Number, y:Number):uint;
 		
 		/**
 		 * This function projects the coordinates of a Point object from this bounds to a

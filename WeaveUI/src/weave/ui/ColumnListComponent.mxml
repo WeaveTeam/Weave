@@ -19,13 +19,6 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-
-<!--
-ColumnListComponent
-
-
-@abaumann
--->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.ui.*"
 		 verticalGap="0"
@@ -46,7 +39,7 @@ ColumnListComponent
 			label="Remove all"
 			toolTip="Click here to remove all attributes from the list."
 			click="internalList.removeAllItems()"
-			enabled="{(internalList.dataProvider as ICollectionView).length > 0}"/>
+			enabled="{internalList.dataProvider.length > 0}"/>
 		<mx:Button
 			label="Remove selected"
 			toolTip="Click here to remove one or more selected attributes in the list above."
@@ -56,18 +49,12 @@ ColumnListComponent
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ICollectionView;
-			import mx.core.UIComponent;
-			import mx.events.DragEvent;
-			import mx.managers.DragManager;
 			
-			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
-			import weave.ui.AttributeSelectorPanel;
 			import weave.visualization.tools.SimpleVisTool;
 			
 			[Bindable] private var _visTool:SimpleVisTool= null;
 			
-			[Inspectable]
 			public function set visTool(value:SimpleVisTool):void
 			{
 				_visTool = value;
@@ -76,14 +63,13 @@ ColumnListComponent
 			private function openSelector():void
 			{
 				if (_visTool)
-					AttributeSelectorPanel.openToolSelector(_visTool,internalList.hashMap);
+					AttributeSelectorPanel.openToolSelector(_visTool, internalList.hashMap);
 				else
 					AttributeSelectorPanel.openDefaultSelector(internalList.hashMap, label);
 			}
 			
 			[Bindable] private var _hashMap:ILinkableHashMap = null;
 			
-			[Inspectable]
 			public function set hashMap(value:ILinkableHashMap):void
 			{
 				_hashMap = value;
@@ -92,34 +78,6 @@ ColumnListComponent
 			{
 				return internalList.hashMap;
 			}
-			
-			[Bindable]
-			public function get length():int
-			{
-				return hashMap.getNames().length;
-			}
-			public function set length(value:int):void
-			{
-				// untested
-				hashMap.getNames().length = value;
-			}
-			
-			[Bindable]
-			private var _minimumNumObjectsInList:int = -1;
-			public function set minimumNumObjectsInList(value:int):void
-			{
-				_minimumNumObjectsInList = value;
-			}
-			
-			[Inspectable]
-			public function set dragMoveEnabled(value:Boolean):void
-			{
-				// this value has to be stored for later because internalList may be null
-				_dragMoveEnabled = value;
-			}
-			[Bindable] private var _dragMoveEnabled:Boolean = false;
-
-			
 		]]>
 	</mx:Script>
 </mx:VBox>
