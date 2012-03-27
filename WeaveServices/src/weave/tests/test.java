@@ -21,6 +21,7 @@ package weave.tests;
 import java.rmi.RemoteException;
 
 import weave.beans.RResult;
+//import weave.servlets.RService;
 import weave.servlets.RService;
 
 public class test
@@ -31,7 +32,7 @@ public class test
 		
 		RResult[] scriptResult = null;
 		try {
-			scriptResult =	ws.runScript(inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
+			scriptResult =	ws.runScript(null,inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings,false);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
