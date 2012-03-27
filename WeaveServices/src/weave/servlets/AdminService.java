@@ -1744,10 +1744,9 @@ public class AdminService extends GenericServlet
 		List<Object[]> queryParamsList = new Vector<Object[]>();
 		List<String> dataTypes = new Vector<String>();
 		String query = null;
-		Connection conn = null;
+		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 		try
 		{
-			conn = SQLConfigUtils.getConnection(config, connectionName);
 			SQLResult filteredValues = null;
 			if (filterColumnNames != null && filterColumnNames.length > 0)
 			{
@@ -1837,10 +1836,6 @@ public class AdminService extends GenericServlet
 		{
 			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
 		}
-		finally
-		{
-			SQLUtils.cleanup(conn);
-		}
 		
 		return String.format("DataTable \"%s\" was added to the configuration with %s generated attribute column queries.\n", configDataTableName, titles.size());
 	}
@@ -1854,6 +1849,7 @@ public class AdminService extends GenericServlet
 	private String testQueryAndGetDataType(Connection conn, String query, Object[] params) throws RemoteException
 	{
 		CallableStatement cstmt = null;
+		Statement stmt = null;
 		ResultSet rs = null;
 		DataType dataType = null;
 		try
@@ -1862,11 +1858,20 @@ public class AdminService extends GenericServlet
 			if (!dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) && !dbms.equalsIgnoreCase(SQLUtils.ORACLE))
 				query += " LIMIT 1";
 	
-			cstmt = conn.prepareCall(query);
-			if (params != null)
+			if (params == null || params.length == 0)
+			{
+				// We have to use Statement when there are no parameters, because CallableStatement
+				// will fail in Microsoft SQL Server with "Incorrect syntax near the keyword 'SELECT'".
+				stmt = conn.createStatement();
+				rs = stmt.executeQuery(query);
+			}
+			else
+			{
+				cstmt = conn.prepareCall(query);
 				for (int i = 0; i < params.length; i++)
 					cstmt.setObject(i + 1, params[i]);
-			rs = cstmt.executeQuery();
+				rs = cstmt.executeQuery();
+			}
 	
 			dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
 		}
@@ -1878,6 +1883,7 @@ public class AdminService extends GenericServlet
 		{
 			SQLUtils.cleanup(rs);
 			SQLUtils.cleanup(cstmt);
+			SQLUtils.cleanup(stmt);
 		}
 		
 		return dataType.toString();

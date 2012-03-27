@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:TitleWindow xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				title="Quick Menu"
+				width="300" height="300"
+				layout="vertical"
+				horizontalAlign="center"
+				paddingTop="20"
+				showCloseButton="true"
+				close="close();">
+	
+	<mx:HBox paddingTop="20" width="100%">
+		<mx:Label text="Type command:" fontWeight="bold" />
+		<mx:TextInput id="keyword" width="150" change="filter()"/>
+	</mx:HBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
+			import mx.controls.Menu;
+			import mx.controls.MenuBar;
+			import mx.core.Application;
+			import mx.core.UIComponent;
+			import mx.events.MenuEvent;
+			import mx.managers.FocusManager;
+			import mx.managers.PopUpManager;
+			import mx.utils.ArrayUtil;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.core.UIUtils;
+			import weave.ui.controlBars.VisTaskbar;
+			import weave.ui.controlBars.WeaveMenuItem;
+			
+			private var autosuggest:SubMenu;
+			
+			private var menuItems:ArrayCollection = new ArrayCollection(); 
+			
+			private var lastFocus:UIComponent;
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				autosuggest =  new SubMenu(keyword);
+				
+				var items:ArrayCollection = (Application.application.visApp).getMenuItems();
+				
+				var menuItemsSource:Array = [];
+				
+				//Assumes 2D array
+				for each (var a:WeaveMenuItem in items.source)
+				{
+					if(a.children == null && a.weaveLabel)
+					{
+						menuItemsSource.push(a);
+						continue;
+					}	
+					
+					for each (var i:WeaveMenuItem in a.children.source)
+					{
+						if(i.weaveLabel)
+							menuItemsSource.push(i);
+					}
+				}
+				
+				
+				menuItems.source = menuItemsSource;
+				
+				menuItems.filterFunction = filterMenuItems;
+				
+				var sort:Sort = new Sort();
+				sort.fields = [new SortField("weaveLabel")];
+				
+				menuItems.sort = sort;
+				
+				keyword.setFocus();
+				
+				keyword.addEventListener(KeyboardEvent.KEY_DOWN,handleUpDown);
+				
+				autosuggest.addEventListener(MenuEvent.ITEM_CLICK,close);
+				
+			}
+			
+			private function close(event:Event=null):void
+			{
+				autosuggest.hide();
+				PopUpManager.removePopUp(this);
+			}
+			
+			private function handleUpDown(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.DOWN)
+				{
+					autosuggest.setFocus();
+					autosuggest.selectedIndex = 0;
+				}else if(event.keyCode == Keyboard.ESCAPE)
+				{
+					close();
+				}
+			}
+			
+			private function filterMenuItems(item:Object):Boolean
+			{
+				var searchKeywords:String = keyword.text.toLowerCase();
+				
+				var menuLabel:String = item.weaveLabel;
+				
+				return menuLabel.toLowerCase().search(searchKeywords) > -1;
+			}
+			
+			private function filter():void
+			{
+				autosuggest.hide();
+				
+				menuItems.refresh();
+				
+				autosuggest.removeAllSubMenuItems();
+				
+				if(menuItems.length == 0)
+					return;
+				
+				var items:Array = menuItems.toArray();
+				
+				for each(var item:WeaveMenuItem in items)
+				{
+					autosuggest.addSubMenuItem(item.weaveLabel,item.runClickFunction);
+				}
+				
+				autosuggest.showSubMenu();
+				keyword.setFocus();
+				keyword.setSelection(keyword.text.length,keyword.text.length);
+			}
+		]]>	
+	</mx:Script>
+	
+</mx:TitleWindow>

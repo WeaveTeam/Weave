@@ -384,7 +384,7 @@
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Basic">
 			<ui:DynamicColumnComponent visTool="{this}" id="colorColumnInput" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"
-									   toolTip="Color column selection is enabled when only a single column is in the list below."/>
+									   toolTip="Color column selection is enabled when only a single column is in the list below." showLinkControl="false"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Label" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.labelColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Sort" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
 			<mx:CheckBox id="groupBySortColumnCheckBox" label="Group bars by the sort column" creationComplete="linkBindableProperty(_plotter.groupBySortColumn, event.target, 'selected');"/>

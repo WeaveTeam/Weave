@@ -200,7 +200,7 @@
 				 borderThickness="0" backgroundAlpha="0"/>
 	<ui:ControlPanel>
 		<mx:VBox label="Binning">
-			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data" showLinkControl="false"/>
 			<ui:BinningDefinitionEditor id="binEditor" width="100%"/>
 		</mx:VBox>
 		<mx:VBox label="Appearance">

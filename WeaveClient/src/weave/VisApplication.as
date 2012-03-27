@@ -23,6 +23,7 @@ package weave
 	import flash.display.StageDisplayState;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.FileFilter;
@@ -36,6 +37,7 @@ package weave
 	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.collections.ArrayCollection;
 	import mx.containers.Canvas;
 	import mx.containers.VBox;
 	import mx.controls.Alert;
@@ -83,6 +85,7 @@ package weave
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.ProbeToolTipEditor;
+	import weave.ui.QuickMenuPanel;
 	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SubsetManager;
@@ -431,6 +434,22 @@ package weave
 			PopUpManager.createPopUp(this, WeaveProgressBar);
 
 			this.addChild(VisTaskbar.instance);
+			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN,this,handleKeyPress);
+		}
+		
+		private function handleKeyPress():void
+		{
+			var event:KeyboardEvent = WeaveAPI.StageUtils.keyboardEvent;
+			if(event.ctrlKey && event.keyCode == 77)
+			{
+				var qmenu:QuickMenuPanel = PopUpManager.createPopUp(this,QuickMenuPanel) as QuickMenuPanel;
+				PopUpManager.centerPopUp(qmenu);
+			}
+		}
+		
+		public function getMenuItems():ArrayCollection
+		{
+			return _weaveMenu.menubar.dataProvider as ArrayCollection;
 		}
 		
 		private function updateWorkspaceSize(..._):void
@@ -769,7 +788,7 @@ package weave
 				
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Weave Version: " + Weave.properties.version.value));
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Report a problem", function ():void {
-					navigateToURL(new URLRequest("http://bugs.oicweave.org/projects/weave/issues/new"), "_blank");
+					navigateToURL(new URLRequest("http://info.oicweave.org/projects/weave/issues/new"), "_blank");
 				}));
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Visit OICWeave.org", function ():void {
 					navigateToURL(new URLRequest("http://www.oicweave.org"), "_blank");

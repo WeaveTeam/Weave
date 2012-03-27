@@ -510,7 +510,7 @@
 		<mx:VBox id="VizControlsPanel" label="Visualization Controls">
 			<ui:DynamicColumnComponent visTool="{this}" label="x column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.xColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="y column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.yColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="size" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.radiusColumn"/>
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:CheckBox id="sizeByCheck" label="Size by: {sizeByCheck.selected ? 'ENABLED' : 'DISABLED'}"/>
