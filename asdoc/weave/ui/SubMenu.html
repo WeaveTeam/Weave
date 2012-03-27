@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="SubMenu,weave.ui.SubMenu,addSubMenuItem" name="keywords">
+<meta content="SubMenu,weave.ui.SubMenu,addSubMenuItem,removeAllSubMenuItems,showSubMenu" name="keywords">
 <title>weave.ui.SubMenu</title>
 </head>
 <body>
@@ -37,6 +37,9 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr>
 <td class="classHeaderTableLabel">Class</td><td class="classSignature">public class SubMenu</td>
 </tr>
+<tr>
+<td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">SubMenu <img class="inheritArrow" alt="Inheritance" title="Inheritance" src="../../images/inherit-arrow.gif"> mx.controls.Menu</td>
+</tr>
 </table>
 <p></p>
   This class adds a submenu to any UI Compnent.
@@ -57,7 +60,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#SubMenu()">SubMenu</a>(uiParent:UIComponent, openMenuEventTypes:Array, closeMenuEventTypes:Array = null)</div>
+<a class="signatureLink" href="#SubMenu()">SubMenu</a>(uiParent:UIComponent, openMenuEventTypes:Array = null, closeMenuEventTypes:Array = null)</div>
 <div class="summaryTableDescription">
    Adds a submenu to any UI Compnent.</div>
 </td><td class="summaryTableOwnerCol">SubMenu</td>
@@ -68,6 +71,22 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#addSubMenuItem()">addSubMenuItem</a>(label:String, listener:Function, params:Array = null):void</div>
 <div class="summaryTableDescription">
    Adds an item to the menu.</div>
+</td><td class="summaryTableOwnerCol">SubMenu</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#removeAllSubMenuItems()">removeAllSubMenuItems</a>():void</div>
+<div class="summaryTableDescription">
+   Removes all menu items
+   </div>
+</td><td class="summaryTableOwnerCol">SubMenu</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#showSubMenu()">showSubMenu</a>():void</div>
+<div class="summaryTableDescription"></div>
 </td><td class="summaryTableOwnerCol">SubMenu</td>
 </tr>
 </table>
@@ -86,7 +105,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function SubMenu(uiParent:UIComponent, openMenuEventTypes:Array, closeMenuEventTypes:Array = null)</code><p>
+<code>public function SubMenu(uiParent:UIComponent, openMenuEventTypes:Array = null, closeMenuEventTypes:Array = null)</code><p>
    Adds a submenu to any UI Compnent.
    Contructor takes a parent UIComponent and a String array of event listeners
    Use the addSubMenuItem function to add menu items
@@ -100,7 +119,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">openMenuEventTypes</span>:Array</code> &mdash; A list of event types which will toggle the submenu.
+<td width="20px"></td><td><code><span class="label">openMenuEventTypes</span>:Array</code> (default = <code>null</code>)<code></code> &mdash; A list of event types which will toggle the submenu.
    </td>
 </tr>
 <tr>
@@ -144,6 +163,25 @@ showHideInherited();
    </td>
 </tr>
 </table>
+</div>
+<a name="removeAllSubMenuItems()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">removeAllSubMenuItems</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function removeAllSubMenuItems():void</code><p>
+   Removes all menu items
+   </p></div>
+<a name="showSubMenu()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">showSubMenu</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public function showSubMenu():void</code>
 </div>
 <br>
 <br>
