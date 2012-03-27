@@ -142,10 +142,10 @@ package weave.ui
 			hide();
 		}
 		
-		public function hideSubMenu():void
-		{
-			hide();
-		}
+		//		public function hideSubMenu():void
+		//		{
+		//			hide();
+		//		}
 		
 		public function showSubMenu():void
 		{

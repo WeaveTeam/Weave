@@ -103,6 +103,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function close(event:Event=null):void
 			{
+				autosuggest.hide();
 				PopUpManager.removePopUp(this);
 			}
 			
@@ -129,7 +130,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function filter():void
 			{
-				autosuggest.hideSubMenu();
+				autosuggest.hide();
 				
 				menuItems.refresh();
 				
