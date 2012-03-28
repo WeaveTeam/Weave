@@ -70,15 +70,8 @@ package weave.utils
 		{
 			initialize();
 			
-			ExternalInterface.call("setData", barData.yDataArray, barData.axisMax, barData.axisMin);
-			ExternalInterface.call("setXgrid", barData.xTicks, barData.xAxisMax, barData.xAxisMin);			
-			ExternalInterface.call("setYgrid", barData.yTicks, barData.axisMax, barData.axisMin);
-			ExternalInterface.call("setWidthAndHeight", barData.width, barData.height);
-			ExternalInterface.call("setMargins", barData.marginTop, barData.marginLeft, barData.marginBottom, barData.marginRight);
-			ExternalInterface.call("setTitles", barData.title, barData.yTitle, barData.xTitle);
-			
-			var x:* = ExternalInterface.call('draw()');
-			Alert.show(ObjectUtil.toString(barData.xTicks),'svg');
+			ExternalInterface.call('generateBarChart', barData);
+			//Alert.show(ObjectUtil.toString(barData.xTicks),'svg');
 		}		
 	}
 }
