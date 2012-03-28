@@ -431,7 +431,6 @@ package weave
 		
 		// temporary?
 		public const rServiceURL:LinkableString = registerLinkableChild(this, new LinkableString("/WeaveServices/RService"), handleRServiceURLChange);// url of Weave R service using Rserve
-		public const jriServiceURL:LinkableString = new LinkableString("/WeaveServices/JRIService");// url of Weave R service using JRI
 		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
 		
 		private function handleRServiceURLChange():void
