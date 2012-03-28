@@ -197,7 +197,7 @@ JRITextEditor
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveJRIServlet;
-			import weave.services.WeaveStatisticsServlet;
+			import weave.services.WeaveRServlet;
 			import weave.services.beans.HierarchicalClusteringResult;
 			import weave.services.beans.KMeansClusteringResult;
 			import weave.services.beans.LinearRegressionResult;

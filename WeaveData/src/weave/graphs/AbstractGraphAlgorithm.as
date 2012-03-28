@@ -43,7 +43,7 @@ package weave.graphs
 	import weave.data.QKeyManager;
 	import weave.primitives.Bounds2D;
 	import weave.services.DelayedAsyncResponder;
-	import weave.services.WeaveStatisticsServlet;
+	import weave.services.WeaveRServlet;
 	import weave.services.beans.RResult;
 	import weave.utils.ComputationalGeometryUtils;
 
@@ -64,7 +64,7 @@ package weave.graphs
 				throw new Error("Invalid output parameters provided to R.");
 
 			var token:RToken = new RToken(bounds, ++_rId);
-			var asyncToken:AsyncToken = rService.runScript([], [], outputParams, script, "", true, true);
+			var asyncToken:AsyncToken = rService.runScript([],[], [], outputParams, script, "", true, true,false);
 			DelayedAsyncResponder.addResponder(asyncToken, handleLayoutResult, handleLayoutFault, token);
 		}
 
@@ -324,7 +324,7 @@ package weave.graphs
 		
 		public function initRService(url:String):void
 		{
-			rService = new WeaveStatisticsServlet(url);
+			rService = new WeaveRServlet(url);
 			getCallbackCollection(this).triggerCallbacks();
 		}
 
@@ -457,7 +457,7 @@ package weave.graphs
 		
 		
 		// R service
-		protected var rService:WeaveStatisticsServlet = null;
+		protected var rService:WeaveRServlet = null;
 
 		// the name of the graph for R
 		protected var graphName:String = 'weaveGraph';
