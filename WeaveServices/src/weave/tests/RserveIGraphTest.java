@@ -25,7 +25,7 @@ public class RserveIGraphTest
 		RResult result[];
 		try
 		{
-			result = rService.runScript(inputNames, inputValues, outputNames, script, "", false, true);
+			result = rService.runScript(null,inputNames, inputValues, outputNames, script, "", false, true,false);
 		}
 		catch (Exception e)
 		{
@@ -37,7 +37,7 @@ public class RserveIGraphTest
 		outputNames[0] = "temp";
 		try
 		{
-			result = rService.runScript(inputNames, inputValues, outputNames, script, "", false, true);
+			result = rService.runScript(null,inputNames, inputValues, outputNames, script, "", false, true,false);
 		}
 		catch (Exception e)
 		{

@@ -30,7 +30,7 @@
 		 xmlns="weave.ui.*"
 		 width="100%"
 		 implements="weave.api.core.ILinkableObject"
-		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3">
+		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3" creationPolicy="all">
 		<mx:VBox borderStyle="solid" borderThickness="1" cornerRadius="10"
 				  paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5">
 			
@@ -42,7 +42,9 @@
 				<ui:Indent enabled="{simpleRadio.selected}" label="Number of bins:" indent="{indent}">
 					<mx:NumericStepper minimum="1" maximum="100" stepSize="1" id="numOfBins" width="{inputWidth}"/>
 				</ui:Indent>
-				<ui:HelpComponent label="{simpleRadio.label}" content="Example: If your data is between 0 and 100 and you specify 4 bins, the following bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
+				<ui:HelpComponent label="{simpleRadio.label}">
+					Example: If your data is between 0 and 100 and you specify 4 bins, the following bins will be created: [0,25] [25,50] [50,75] [75,100]
+				</ui:HelpComponent>
 			</mx:HBox>
 			
 			<mx:HRule width="100%"/>
@@ -50,7 +52,9 @@
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="customRadio" label="Custom breaks" groupName="typeGroup" width="100%" data="{_customSplit}"/>
 				<mx:TextInput enabled="{customRadio.selected}" id="splitValues" width="100%"/>
-				<HelpComponent label="{customRadio.label}" content="Enter comma-separated custom break values for dividing the data into bins.  Example: &quot;0,50,100&quot; will create two bins: [0,50] and [50,100]"/>
+				<ui:HelpComponent label="{customRadio.label}">
+					Enter comma-separated custom break values for dividing the data into bins.  Example: "0,50,100" will create two bins: [0,50] and [50,100]
+				</ui:HelpComponent>
 			</mx:HBox>
 			
 			<mx:HRule width="100%"/>
@@ -60,7 +64,9 @@
 				<ui:Indent enabled="{quantileRadio.selected}" label="Reference quantile:" indent="{indent}">
 					<mx:TextInput id="refQuantile" width="{inputWidth}"/>
 				</ui:Indent>
-				<ui:HelpComponent label="{quantileRadio.label}" content="Example: If you specify 0.25, four bins will be created that each contain 25% of your data in sorted order"/>
+				<ui:HelpComponent label="{quantileRadio.label}">
+					Example: If you specify 0.25, four bins will be created that each contain 25% of your data in sorted order
+				</ui:HelpComponent>
 			</mx:HBox>
 			
 			<mx:HRule width="100%"/>
@@ -68,21 +74,27 @@
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="equalIntervalRadio" label="Equal interval" groupName="typeGroup" width="100%" data="{_equalInterval}"/>
 				<ui:IndentTextInput id="dataInterval" enabled="{equalIntervalRadio.selected}" label="Data interval:" indent="{indent}" inputWidth="{inputWidth}"/>
-				<ui:HelpComponent label="{equalIntervalRadio.label}" content="Example: If your data is between 0 and 100 and you specify an interval of 25, four bins will be created: [0,25] [25,50] [50,75] [75,100]"/>
+				<ui:HelpComponent label="{equalIntervalRadio.label}">
+					Example: If your data is between 0 and 100 and you specify an interval of 25, four bins will be created: [0,25] [25,50] [50,75] [75,100]
+				</ui:HelpComponent>
 			</mx:HBox>
 			
 			<mx:HRule width="100%"/>
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="sdRadio" label="Standard deviations" groupName="typeGroup" width="100%" data="{_stdDev}"/>
-				<ui:HelpComponent label="{sdRadio.label}" content="Six bins will be created for standard deviations above and below the mean value."/>
+				<ui:HelpComponent label="{sdRadio.label}">
+					Six bins will be created for standard deviations above and below the mean value.
+				</ui:HelpComponent>
 			</mx:HBox>
 		
 			<mx:HRule width="100%"/>
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="catRadio" label="All categories (string values)" groupName="typeGroup" width="100%" data="{_category}"/>
-				<ui:HelpComponent label="{catRadio.label}" content="One bin will be created for each unique string value in the column."/>
+				<ui:HelpComponent label="{catRadio.label}">
+					One bin will be created for each unique string value in the column.
+				</ui:HelpComponent>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox width="100%" height="100%">
@@ -114,14 +126,13 @@
 			import weave.data.BinningDefinitions.QuantileBinningDefinition;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
 			import weave.data.BinningDefinitions.StandardDeviationBinningDefinition;
-			import weave.utils.PopUpUtils;
 			
 			public const binnedColumn:BinnedColumn = newLinkableChild(this, BinnedColumn);
 			
 			private const indent:int = 120;
 			private const inputWidth:int = 64;
 			private const gridSource:ArrayCollection = new ArrayCollection();
-			private const _simple:SimpleBinningDefinition = newLinkableChild(this, SimpleBinningDefinition);
+			public const _simple:SimpleBinningDefinition = newLinkableChild(this, SimpleBinningDefinition);
 			private const _customSplit:CustomSplitBinningDefinition = newLinkableChild(this, CustomSplitBinningDefinition);
 			private const _quantile:QuantileBinningDefinition = newLinkableChild(this, QuantileBinningDefinition);
 			private const _equalInterval:EqualIntervalBinningDefinition = newLinkableChild(this, EqualIntervalBinningDefinition);
@@ -158,6 +169,12 @@
 			// called when the binned column changes
 			private function handleBinnedColumnChange():void
 			{
+				if (typeGroup.numRadioButtons == 0) // this may be zero even if children are created.
+				{
+					callLater(handleBinnedColumnChange);
+					return;
+				}
+				
 				// find the radio button with the same binning definition type
 				var def:IBinningDefinition = binnedColumn.binningDefinition.internalBinningDefinition;
 				for (var i:int = 0; i < typeGroup.numRadioButtons; i++)
@@ -222,7 +239,7 @@
 						names.push(source[i] as String);
 				}
 				
-				getAbstractDef().overrideBinNames.value = WeaveAPI.CSVParser.createCSVFromArrays([names]);
+				getAbstractDef().overrideBinNames.value = WeaveAPI.CSVParser.createCSV([names]);
 			}
 		]]>
 	</mx:Script>

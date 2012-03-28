@@ -84,16 +84,14 @@
 				//else ProbeTextUtils.probedColumns.copyObject('probedColumns',oldProbeColumns);
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Stick Figure Plot of " + ColumnUtils.getTitle(_plotter.dataX)
-						+ " -vs- " + ColumnUtils.getTitle(_plotter.dataY)
-						+ ", with angles of " + ColumnUtils.getTitle(_plotter.theta1) 
-						+ ", " + ColumnUtils.getTitle(_plotter.theta2) 
-						+ ", " + ColumnUtils.getTitle(_plotter.theta3) 
-						+ ", " + ColumnUtils.getTitle(_plotter.theta4);
+				return "Stick Figure Plot of " + ColumnUtils.getTitle(_plotter.dataX)
+					+ " -vs- " + ColumnUtils.getTitle(_plotter.dataY)
+					+ ", with angles of " + ColumnUtils.getTitle(_plotter.theta1) 
+					+ ", " + ColumnUtils.getTitle(_plotter.theta2) 
+					+ ", " + ColumnUtils.getTitle(_plotter.theta3) 
+					+ ", " + ColumnUtils.getTitle(_plotter.theta4);
 			}
 
 			override protected function childrenCreated():void
@@ -123,11 +121,9 @@
 					  width="100%" 
 					  borderAlpha="0.2" 
 					  borderStyle="none">
-				<userControls:ControlsSubsetBox>
-					<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-								 toolTip="Checking this box makes the x, y, color and size attributes visible in this tool's probe tooltip"
-								 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-				</userControls:ControlsSubsetBox>
+				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+							 toolTip="Checking this box makes the x, y, color and size attributes visible in this tool's probe tooltip"
+							 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 				<ui:DynamicColumnComponent visTool="{this}" label="data X" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataX"/>
 				<ui:DynamicColumnComponent visTool="{this}" label="data y" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataY"/>
 				<ui:DynamicColumnComponent visTool="{this}" label="theta1" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta1"/>

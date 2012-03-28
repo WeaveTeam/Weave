@@ -89,7 +89,7 @@
 			import weave.data.BinningDefinitions.DynamicBinningDefinition;
 			import weave.data.KeySets.KeySet;
 			import weave.services.DelayedAsyncResponder;
-			import weave.services.WeaveStatisticsServlet;
+			import weave.services.WeaveRServlet;
 			import weave.services.beans.RResult;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.DraggablePanel;
@@ -119,7 +119,7 @@
 			public const xRcolumn:DynamicColumn = new DynamicColumn();
 			public const yRcolumn:DynamicColumn = new DynamicColumn();
 			private static var selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			private var Rservice:WeaveStatisticsServlet = new WeaveStatisticsServlet(Weave.properties.rServiceURL.value);
+			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			private var _sessionFileLoader:FileReference = null;
 			private var _defaultsFilename:String = null;
 			
@@ -187,7 +187,7 @@
 				var plotScript:String = "";
 				
 				//Query is created from runScript with same signature from Jave side
-				var query:AsyncToken = Rservice.runScript(inputNames, inputValues, outputNames, script,plotScript,false,false);
+				var query:AsyncToken = Rservice.runScript(null, inputNames, inputValues, outputNames, script,plotScript,false,false, false);
 				//Keys are passed as token 
 				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, [joinedColumnKeys,query.operation]);			
 				
@@ -252,7 +252,7 @@
 				}
 				
 				//Query is created from runScript with same signature from Jave side
-				var query:AsyncToken = Rservice.runScript(inputNames, inputValues, outputNames, script,"",false,false);
+				var query:AsyncToken = Rservice.runScript(null,inputNames, inputValues, outputNames, script,"",false,false,false);
 				//Keys are passed as token 
 				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, [joinedColumnKeys,query.operation]);  
 			}
@@ -287,7 +287,7 @@
 						var testColumn:CSVColumn = Weave.root.requestObject(RresultArray[p].name, CSVColumn, false);
 						testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
 						testColumn.numericMode.value = true;
-						testColumn.csvData.value = WeaveAPI.CSVParser.createCSVFromArrays(table);
+						testColumn.csvData.value = WeaveAPI.CSVParser.createCSV(table);
 						testColumn.title.value = RresultArray[p].name;
 					}					
 				}

@@ -27,9 +27,11 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
@@ -37,6 +39,8 @@
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.plotters.PieChartPlotter;
 
+			WeaveAPI.registerImplementation(IVisTool, PieChartTool, "Pie Chart");
+			
 			public var _plotter:PieChartPlotter = null;
 			
 			override protected function constructor():void
@@ -65,7 +69,7 @@
 					}
 				}
 
-				_plotter.data.addImmediateCallback(this, updateProbeColumns, null, true);
+				_plotter.data.addImmediateCallback(this, updateProbeColumns, true);
 				
 				visualization.marginTop.value = "65";
 				visualization.marginBottom.value = "65";
@@ -112,31 +116,27 @@
 				handlePanelTitleChange();
 			}
 
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Pie Chart of " + ColumnUtils.getTitle(_plotter.data);
+				return "Pie Chart of " + ColumnUtils.getTitle(_plotter.data);
 			}
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Attributes for Pie Chart">
-			<userControls:ControlsSubsetBox>
-				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-							 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
-							 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			</userControls:ControlsSubsetBox>
+			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+						 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
+						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Wedge size" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.data"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Wedge color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="Label Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.label"/>
-			<userControls:ControlsSubsetBox>
+			<mx:HBox width="100%">
 				<mx:Label text="Label angle" fontWeight="bold"/>
 				<mx:HSlider id="labelAngleSlider"
 						snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 						dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
 						creationComplete="linkBindableProperty(_plotter.labelAngleRatio, event.target, 'value')"/>
-			</userControls:ControlsSubsetBox>
+			</mx:HBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

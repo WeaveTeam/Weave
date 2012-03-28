@@ -82,18 +82,30 @@ public class WeaveContextParams
 	
 	private String docrootPath, tempPath, uploadPath, configPath;
 
+	/**
+	 * @return The docroot path, ending in "/"
+	 */
 	public String getDocrootPath()
 	{
 		return docrootPath;
 	}
+	/**
+	 * @return The path where temp files are stored, ending in "/"
+	 */
 	public String getTempPath()
 	{
 		return tempPath;
 	}
+	/**
+	 * @return The path where uploaded files are stored, ending in "/"
+	 */
 	public String getUploadPath()
 	{
 		return uploadPath;
 	}
+	/**
+	 * @return The path where config files are stored, ending in "/"
+	 */
 	public String getConfigPath()
 	{
 		return configPath;

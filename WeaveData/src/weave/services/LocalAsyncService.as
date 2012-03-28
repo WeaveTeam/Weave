@@ -22,7 +22,9 @@ package weave.services
 	import flash.events.AsyncErrorEvent;
 	import flash.events.StatusEvent;
 	import flash.net.LocalConnection;
+	import flash.net.registerClassAlias;
 	import flash.utils.ByteArray;
+	import flash.utils.getQualifiedClassName;
 	
 	import mx.rpc.AsyncResponder;
 	import mx.rpc.AsyncToken;
@@ -36,6 +38,7 @@ package weave.services
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.newDisposableChild;
+	import weave.api.reportError;
 	import weave.api.services.IAsyncService;
 	import weave.core.CallbackCollection;
 	
@@ -70,13 +73,15 @@ package weave.services
 				conn.connect(localName);
 				//trace(localName,"connect");
 			}
-			catch (e:ArgumentError)
+			catch (error:ArgumentError)
 			{
-				trace("LocalAsyncService()", localName, e);
+				//trace("LocalAsyncService()", localName, error);
+				reportError(_lastError = error, "LocalAsyncService()");
 				WeaveAPI.StageUtils.callLater(errorCallbacks, errorCallbacks.triggerCallbacks, null, false);
 			}
 		}
 
+		private var _lastError:Error; // the last error that caused errorCallbacks to trigger
 		private var receivingObject:Object; // object that will be made available to run commands on
 		private var conn:LocalConnection = new LocalConnection();
 		private var localName:String; // local connection name
@@ -113,9 +118,10 @@ package weave.services
 			{
 				send("receiveCommand", commandID, methodName, methodParameters);
 			}
-			catch (e:ArgumentError)
+			catch (error:ArgumentError)
 			{
-				WeaveAPI.StageUtils.callLater(errorCallbacks, receiveFault, [commandID, new Fault(String(e.errorID), e.name, e.message)]);
+				reportError(_lastError = error);
+				WeaveAPI.StageUtils.callLater(errorCallbacks, receiveFault, [commandID, new Fault(String(error.errorID), error.name, error.message)]);
 			}
 			return tokens[commandID];
 		}
@@ -172,7 +178,7 @@ package weave.services
 		 */
 		private function handleFault(commandID:String, fault:Fault):void
 		{
-			send("receiveFault", commandID, fault);
+			send("receiveFault", commandID, new SerializableFault(fault));
 		}
 		
 		/**
@@ -325,19 +331,28 @@ package weave.services
 		private function handleAsyncError(event:AsyncErrorEvent):void
 		{
 			trace("LocalAsyncService.handleAsyncError()", localName, ObjectUtil.toString(event));
+			reportError(_lastError = event.error);
 			errorCallbacks.triggerCallbacks();
 		}
 
 		private function handleStatus(event:StatusEvent):void
 		{
 			if (event.level == 'error')
+			{
+				reportError('Received LocalConnection error status ' + ObjectUtil.toString(event));
 				errorCallbacks.triggerCallbacks();
+			}
 		}
 		
 		/**
 		 * These callbacks run when the LocalAsyncService is unable to connect.
 		 */		
 		public const errorCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
+		
+		public function get lastError():Error
+		{
+			return _lastError;
+		}
 		
 		/**
 		 * This will call close() on the LocalConnection object.
@@ -347,4 +362,28 @@ package weave.services
 			conn.close();
 		}
 	}
+}
+import flash.net.registerClassAlias;
+import flash.utils.getQualifiedClassName;
+
+import mx.rpc.Fault;
+
+internal class SerializableFault extends Fault
+{
+	{ // static code
+		registerClassAlias(getQualifiedClassName(SerializableFault), SerializableFault);
+	}
+	
+	public function SerializableFault(fault:Fault = null)
+	{
+		super(
+			fault ? fault.faultCode : null,
+			fault ? fault.faultString : null,
+			fault ? fault.faultDetail : null
+		);
+	}
+	
+	public function set faultCode(value:String):void { _faultCode = value; }
+	public function set faultDetail(value:String):void { _faultDetail = value; }
+	public function set faultString(value:String):void { _faultString = value; }
 }

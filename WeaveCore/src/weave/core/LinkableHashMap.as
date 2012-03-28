@@ -19,7 +19,6 @@
 
 package weave.core
 {
-	import flash.debugger.enterDebugger;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
@@ -31,7 +30,6 @@ package weave.core
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
 	
 	use namespace weave_internal;
 	
@@ -178,13 +176,9 @@ package weave.core
 		 */
 		public function requestObject(name:String, classDef:Class, lockObject:Boolean):*
 		{
-			if (classDef == null)
-			{
-				if (lockObject)
-					this.lockObject(name);
-				return getObject(name);
-			}
-			return initObjectByClassName(name, getQualifiedClassName(classDef), lockObject) as classDef;
+			var className:String = classDef ? getQualifiedClassName(classDef) : null;
+			var result:* = initObjectByClassName(name, className, lockObject);
+			return classDef ? result as classDef : null;
 		}
 		
 		/**

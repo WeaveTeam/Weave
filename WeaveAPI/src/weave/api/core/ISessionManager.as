@@ -143,6 +143,14 @@ package weave.api.core
 		 * @return A patch that generates the destination session state when applied to the source session state, or undefined if the two states are equivalent.
 		 */
 		function computeDiff(oldState:Object, newState:Object):*;
+		
+		/**
+		 * This modifies an existing diff to include an additional diff.
+		 * @param baseDiff The base diff which will be modified to include an additional diff.
+		 * @param diffToAdd The diff to add to the base diff.  This diff will not be modified.
+		 * @return The modified baseDiff, or a new diff object if baseDiff is a primitive value.
+		 */
+		function combineDiff(baseDiff:Object, diffToAdd:Object):Object;
 
 		/**
 		 * This function will copy the session state from one sessioned object to another.
@@ -174,8 +182,9 @@ package weave.api.core
 		 * @param bindableParent An object with a bindable property.
 		 * @param bindablePropertyName The variable name of the bindable property.
 		 * @param delay The delay to use before setting the linkable variable to reflect a change in the bindable property while the bindableParent has focus.
+		 * @param onlyWhenFocused If this is set to true and the bindableParent is a UIComponent, the bindable value will only be copied to the linkableVariable when the component has focus.
 		 */
-		function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0):void;
+		function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void;
 
 		/**
 		 * This function will unlink an ILinkableVariable from a bindable property that has been previously linked with linkBindableProperty().

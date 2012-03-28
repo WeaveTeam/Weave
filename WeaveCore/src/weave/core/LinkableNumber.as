@@ -31,10 +31,10 @@ package weave.core
 	 */
 	public class LinkableNumber extends LinkableVariable
 	{
-		public function LinkableNumber(defaultValue:Number = NaN, verifier:Function = null)
+		public function LinkableNumber(defaultValue:Number = NaN, verifier:Function = null, defaultValueTriggersCallbacks:Boolean = true)
 		{
 			_sessionState = NaN; // set to NaN instead of null because null==0
-			super(Number, verifier, defaultValue);
+			super(Number, verifier, defaultValue, defaultValueTriggersCallbacks);
 		}
 
 		public function get value():Number
@@ -66,6 +66,10 @@ package weave.core
 
 		override protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
+			// We must check for null here because "_sessionState = NaN" in the constructor
+			// does not take affect until after the super() constructor finishes.
+			if (_sessionState == null)
+				_sessionState = NaN;
 			if (isNaN(_sessionState) && isNaN(otherSessionState))
 				return true;
 			return _sessionState == otherSessionState;

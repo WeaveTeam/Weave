@@ -180,6 +180,7 @@ EquationUIComponent
 						compiledConstant.errorString = errorString;
 					equationStringContainer.addChild(compiledConstant);
 				}
+				this.errorString = errorString;
 			}
 			
 			private function extractEquationString():String

@@ -37,6 +37,7 @@
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
 			import weave.core.weave_internal;
@@ -52,6 +53,8 @@
 			import weave.visualization.plotters.CompoundBarChartPlotter;
 
 			use namespace weave_internal;
+			
+			WeaveAPI.registerImplementation(IVisTool, CompoundBarChartTool, "Bar Chart");
 
 			/**
 			 * When this is set to true, labels for all bars will be shown.
@@ -107,8 +110,8 @@
 				
 				visualization.enableZoomAndPan.value = false;
 
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, handleAxisClick, [true]);
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, handleAxisClick, [false]);
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { handleAxisClick(true); });
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { handleAxisClick(false); });
 				
 				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
 				var columnsToInit:Array = [_plotter.sortColumn];
@@ -194,23 +197,18 @@
 			
  			private function handleAxisClick(isXAxis:Boolean):void
 			{
-				
 				if (isXAxis != _plotter.horizontalMode.value)
 					AttributeSelectorPanel.openToolSelector(this,_plotter.sortColumn);
 				else
 					AttributeSelectorPanel.openToolSelector(this,_plotter.heightColumns);
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-				{
-					var columns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
-					for (var i:int = 0; i < columns.length; i++)
-						columns[i] = ColumnUtils.getTitle(columns[i] as IAttributeColumn);
-					title = "Bar Chart of " + columns.join(', ');
-				}
+				var columns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
+				for (var i:int = 0; i < columns.length; i++)
+					columns[i] = ColumnUtils.getTitle(columns[i] as IAttributeColumn);
+				return "Bar Chart of " + columns.join(', ');
 			}
 			
 			public function get colorColumn():DynamicColumn
@@ -386,7 +384,7 @@
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Basic">
 			<ui:DynamicColumnComponent visTool="{this}" id="colorColumnInput" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"
-									   toolTip="Color column selection is enabled when only a single column is in the list below."/>
+									   toolTip="Color column selection is enabled when only a single column is in the list below." showLinkControl="false"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Label" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.labelColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Sort" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
 			<mx:CheckBox id="groupBySortColumnCheckBox" label="Group bars by the sort column" creationComplete="linkBindableProperty(_plotter.groupBySortColumn, event.target, 'selected');"/>
@@ -400,9 +398,9 @@
 				<mx:RadioButton id="percentStackedRadioButton" groupName="groupMode" label="100% Stacked bars" value="{CompoundBarChartPlotter.PERCENT_STACK}"/>
 			</mx:HBox>
 			<mx:TabNavigator width="100%" height="100%">
-				<ui:ColumnListComponent visTool="{this}" label="Height attributes" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
-				<ui:ColumnListComponent visTool="{this}" label="Positive error" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
-				<ui:ColumnListComponent visTool="{this}" label="Negative error" minimumNumObjectsInList="1" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
+				<ui:ColumnListComponent visTool="{this}" label="Height attributes" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
+				<ui:ColumnListComponent visTool="{this}" label="Positive error" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
+				<ui:ColumnListComponent visTool="{this}" label="Negative error" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
 			</mx:TabNavigator>
 		</mx:VBox>
 		
@@ -419,17 +417,13 @@
 							<ui:Indent label="Color by record">
 								<mx:CheckBox id="colorRecordLabelsChk"
 											 creationComplete="linkBindableProperty(_plotter.recordLabelColoring, event.target, 'selected')"/>
-								<ui:HelpComponent><!--
-									-->This specifies if each label should have the same color as its corresponding record.<!--
-								--></ui:HelpComponent>
+								<ui:HelpComponent>This specifies if each label should have the same color as its corresponding record.</ui:HelpComponent>
 							</ui:Indent>
 							<mx:HBox id="colorRecordLabelsBox" 
 									 enabled="{!colorRecordLabelsChk.selected}">
 								<mx:Label text="Color"/>
 								<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
-								<ui:HelpComponent><!--
-									-->This specifies the color to use for every label.<!--
-								--></ui:HelpComponent>
+								<ui:HelpComponent>This specifies the color to use for every label.</ui:HelpComponent>
 							</mx:HBox>
 						</mx:VBox>
 						<ui:IndentTextInput inputWidth="64" label="Position" creationComplete="linkBindableProperty(_plotter.labelDataCoordinate, event.target, 'text')"/>
@@ -453,17 +447,13 @@
 							<ui:Indent label="Color by record">
 								<mx:CheckBox id="colorValueLabelsChk"
 											 creationComplete="linkBindableProperty(_plotter.recordValueLabelColoring, event.target, 'selected')"/>
-								<ui:HelpComponent><!--
-									-->This specifies if each label should have the same color as its corresponding record.<!--
-								--></ui:HelpComponent>
+								<ui:HelpComponent>This specifies if each label should have the same color as its corresponding record.</ui:HelpComponent>
 							</ui:Indent>
 							<mx:HBox id="colorValueLabelColorBox"
 									 enabled="{!colorValueLabelsChk.selected}">
 								<mx:Label text="Color"/>
 								<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
-								<ui:HelpComponent><!--
-									-->This specifies the color to use for every label.<!--
-								--></ui:HelpComponent>
+								<ui:HelpComponent>This specifies the color to use for every label.</ui:HelpComponent>
 							</mx:HBox>
 						</mx:VBox>
 						<ui:IndentTextInput inputWidth="64" label="Position" 

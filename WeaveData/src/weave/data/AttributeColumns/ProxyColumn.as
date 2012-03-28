@@ -130,7 +130,7 @@ package weave.data.AttributeColumns
 			
 			// initialize for new column
 			if (_internalColumn != null)
-				_internalColumn.addImmediateCallback(this, triggerCallbacks, null, false, true); // parent-child relationship
+				_internalColumn.addImmediateCallback(this, triggerCallbacks, false, true); // parent-child relationship
 
 			triggerCallbacks();
 		}
@@ -163,11 +163,7 @@ package weave.data.AttributeColumns
 
 		override public function toString():String
 		{
-			var result:String = proxyID;
-			result += ' -> ' + internalColumn;
-			if (internalColumn == null)
-				result += " " + super.toString();
-			return result;
+			return proxyID + '( ' + (internalColumn ? internalColumn : super.toString()) + ' )';
 		}
 		
 		/**

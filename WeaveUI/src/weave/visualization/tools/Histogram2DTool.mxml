@@ -27,17 +27,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   layout="absolute">
 	<mx:Script>
 		<![CDATA[
+			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
 			import weave.api.unlinkSessionState;
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.BinnedColumn;
+			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.ui.AttributeSelectorPanel;
+			import weave.ui.ColorController;
+			import weave.ui.DraggablePanel;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.Histogram2DPlotter;
+			
+			WeaveAPI.registerImplementation(IVisTool, Histogram2DTool, "Histogram 2D");
 			
 			public var plotter:Histogram2DPlotter = null;
 			
@@ -68,8 +76,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector, [this, plotter.xColumn])
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector, [this, plotter.yColumn])
+				var self:* = this;
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.xColumn); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.yColumn); })
 						
 				visualization.enableAutoZoomXToNiceNumbers.value = false;
 				visualization.enableAutoZoomYToNiceNumbers.value = false;
@@ -86,6 +95,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				handleBinColRadioButtonChange();
 				xColumnComponent.dynamicObject = plotter.xColumn;
 				yColumnComponent.dynamicObject = plotter.yColumn;
+				colorColumnComponent.dynamicObject = (Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn).internalDynamicColumn;
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -119,7 +129,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var selectedCol:String = binColGroup.selectedValue as String;
 				
 				//it is null when the tool loads for the first time and so it defaults to the x column
-				if(selectedCol == "xBinCol" || selectedCol == null)
+				if (selectedCol == "xBinCol" || selectedCol == null)
 				{
 					xBinColRadioButton.setStyle('fontWeight','bold');
 					yBinColRadioButton.setStyle('fontWeight','normal');
@@ -131,7 +141,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						linkSessionState(plotter.xBinnedColumn, binEditor.binnedColumn);
 					
 					_prevBinnedColumn = plotter.xBinnedColumn;
-				}else if(selectedCol == "yBinCol"){
+				}
+				else if (selectedCol == "yBinCol")
+				{
 					yBinColRadioButton.setStyle('fontWeight','bold');
 					xBinColRadioButton.setStyle('fontWeight','normal');
 					
@@ -147,11 +159,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "2D Histogram of " + ColumnUtils.getTitle(plotter.xColumn) + " vs " + ColumnUtils.getTitle(plotter.yColumn) ;
+				return "2D Histogram of " + ColumnUtils.getTitle(plotter.xColumn) + " vs " + ColumnUtils.getTitle(plotter.yColumn) ;
 			}
 			
 			private function updateAxisLabels():void
@@ -191,7 +201,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</mx:VBox>
 		<mx:VBox label="Binning Controls">
 				<mx:HBox>
-					<mx:Label text="Select Column : "/>
+					<mx:Label text="Select Column:"/>
 					<mx:RadioButtonGroup id="binColGroup" change="handleBinColRadioButtonChange()"/>
 					<mx:RadioButton groupName="binColGroup" label="X Column" value="xBinCol" id="xBinColRadioButton" selected="true"/>
 					<mx:RadioButton groupName="binColGroup" label="Y Column" value="yBinCol" id="yBinColRadioButton"/>
@@ -199,7 +209,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
 		<mx:VBox label="Advanced">
-			<ui:ColorRampEditor id="cRampEditor"/>
+			<mx:CheckBox id="showAverageColorData" label="Color by average data value instead of record count"
+						 creationComplete="linkBindableProperty(plotter.showAverageColorData, event.currentTarget, 'selected');"/>
+			<mx:HBox width="100%" verticalAlign="middle" enabled="{showAverageColorData.selected}">
+				<ui:DynamicColumnComponent id="colorColumnComponent" visTool="{this}" label="Color data"/>
+				<mx:Button label="Edit colors..." click="DraggablePanel.openStaticInstance(ColorController);"/>
+			</mx:HBox>
+			<ui:ColorRampEditor id="cRampEditor" enabled="{!showAverageColorData.selected}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

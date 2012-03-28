@@ -53,7 +53,7 @@ public abstract class ISQLConfig
 	 * When SQLConfigXML is used, this returns the connection information as
 	 * well as column configurations.
 	 */
-        public abstract Document getDocument() throws RemoteException;
+    public abstract Document getDocument() throws RemoteException;
 
 	/**
 	 * Gets the names of all connections in this configuration
@@ -120,127 +120,128 @@ public abstract class ISQLConfig
 	/**
 	 * @return true if this ISQLConfig object is successfully connected to the database using DatabaseConfigInfo.
 	 */
-        public abstract boolean isConnectedToDatabase();
+    public abstract boolean isConnectedToDatabase();
 	
 	/**
 	 * @return A DatabaseConfigInfo object, or null if this ISQLConfig is not configured to store info in a database.
 	 */
 	public abstract DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException;
 
-        /**
-         * Methods for the category system
-         */
-        abstract public void addChild(int parent, int child) throws RemoteException;
-        abstract public void removeChild(int parent, int child) throws RemoteException;
-        abstract public int getEntityType(int id) throws RemoteException;
-        abstract public int addTag(String tagtitle) throws RemoteException;
-        abstract public void removeTag(int tag_id) throws RemoteException;
-        abstract public Collection<Integer> getChildren(Integer parent_id) throws RemoteException;
-        abstract public Collection<Integer> getRoots() throws RemoteException;
-        /* Former residents of SQLConfigUtils */
-        /**
-         * @param attrib Attribute name to grab values from 
-         * @param filter AttributeColumnInfo selecting the columns to grab values from.
-         * @return An array of strings containing the unique values that populate the attribute name attrib.
-         */
-        public String[] getUniqueValues(String attrib, AttributeColumnInfo filter) throws RemoteException
+    /**
+     * Methods for the category system
+     */
+    abstract public void addChild(int parent, int child) throws RemoteException;
+    abstract public void removeChild(int parent, int child) throws RemoteException;
+    abstract public int getEntityType(int id) throws RemoteException;
+    abstract public int addTag(String tagtitle) throws RemoteException;
+    abstract public void removeTag(int tag_id) throws RemoteException;
+    abstract public Collection<Integer> getChildren(Integer parent_id) throws RemoteException;
+    abstract public Collection<Integer> getRoots() throws RemoteException;
+    /* Former residents of SQLConfigUtils */
+    /**
+     * @param attrib Attribute name to grab values from 
+     * @param filter AttributeColumnInfo selecting the columns to grab values from.
+     * @return An array of strings containing the unique values that populate the attribute name attrib.
+     */
+    public String[] getUniqueValues(String attrib, AttributeColumnInfo filter) throws RemoteException
+    {
+        if (filter == null)
         {
-            if (filter == null)
-            {
-                filter = new AttributeColumnInfo();
-            }
-            List<AttributeColumnInfo> columnList = findAttributeColumnInfo(filter);
-            Set<String> valueSet = new HashSet<String>();
+            filter = new AttributeColumnInfo();
+        }
+        List<AttributeColumnInfo> columnList = findAttributeColumnInfo(filter);
+        Set<String> valueSet = new HashSet<String>();
 
-            for (AttributeColumnInfo entry : columnList)
-            {
-                String value;
-                if ((value = entry.privateMetadata.get(attrib)) == null)
-                    if ((value = entry.publicMetadata.get(attrib)) == null)
-                        continue;
-                valueSet.add(value);
-            }
-            String[] uniqueValues = valueSet.toArray(new String[0]);
-            Arrays.sort(uniqueValues, String.CASE_INSENSITIVE_ORDER);
-            return uniqueValues;
+        for (AttributeColumnInfo entry : columnList)
+        {
+            String value;
+            if ((value = entry.privateMetadata.get(attrib)) == null)
+                if ((value = entry.publicMetadata.get(attrib)) == null)
+                    continue;
+            valueSet.add(value);
         }
-        public String[] getUniqueValues(String attrib) throws RemoteException
-        {
-            return getUniqueValues(attrib, null);
-        }
-        @Deprecated public String[] getKeyTypes() throws RemoteException
-        {
-            return getUniqueValues(PublicMetadata.KEYTYPE); 
-        }
-        @Deprecated public String[] getDataTableNames(String connectionName) throws RemoteException
-        {
-            if (connectionName == null)
-                return getUniqueValues(PublicMetadata.DATATABLE);
-            return getUniqueValues(PublicMetadata.DATATABLE, new AttributeColumnInfo(PrivateMetadata.CONNECTION, connectionName));
-        }
-        @Deprecated public String[] getGeometryCollectionNames(String connectionName) throws RemoteException
-        {
-            AttributeColumnInfo filter;
-            
-            if (connectionName == null)
-                filter = new AttributeColumnInfo(PublicMetadata.DATATYPE, DataType.GEOMETRY);
-            else
-                filter = new AttributeColumnInfo(PublicMetadata.DATATYPE, DataType.GEOMETRY, PrivateMetadata.CONNECTION, connectionName);
-            return getUniqueValues(PublicMetadata.DATATABLE, filter);
-        } 
-        @Deprecated public void removeDataTableInfo(String dataTableName) throws RemoteException
-        {
-            AttributeColumnInfo filter;
-            if (dataTableName == null || dataTableName.equals(""))
-                throw new IllegalArgumentException("Cannot remove data table with null or empty string name.");
-            filter = new AttributeColumnInfo(PublicMetadata.DATATABLE, dataTableName);
-            List<AttributeColumnInfo> attrColumns = findAttributeColumnInfo(filter);
-            for (AttributeColumnInfo column : attrColumns)
-                removeAttributeColumnInfo(column.id);
-        }
-        public boolean userCanModifyAttributeColumn(String connectionName, int id) throws RemoteException
-        {
-            ConnectionInfo connInfo = getConnectionInfo(connectionName);
-            if (connInfo == null)
-                return false;
-            if (connInfo.is_superuser)
-                return true;
-            AttributeColumnInfo attrInfo = getAttributeColumnInfo(id);
-            return (attrInfo == null) || (attrInfo.privateMetadata.get(PrivateMetadata.CONNECTION) == connectionName);
-        }
-        @Deprecated public boolean userCanModifyDataTable(String connectionName, String dataTableName) throws RemoteException
-        {
-            Map<String,String> publicMetadataFilter = new HashMap<String,String>();
-            publicMetadataFilter.put(PublicMetadata.DATATABLE, dataTableName);
-            AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
-            tmpinfo.publicMetadata = publicMetadataFilter;
-            tmpinfo.privateMetadata = Collections.EMPTY_MAP;
-            List<AttributeColumnInfo> info = findAttributeColumnInfo(tmpinfo);
-            
-            for (int i = 0; i < info.size(); i++) /* Is there a good reason for using for instead of foreach? */
-                if (!userCanModifyAttributeColumn(connectionName, info.get(i).id))
-                    throw new RemoteException(String.format("User \"%s\" does not have permission to remove DataTable \"%s\".", connectionName, dataTableName));
-            
+        String[] uniqueValues = valueSet.toArray(new String[0]);
+        Arrays.sort(uniqueValues, String.CASE_INSENSITIVE_ORDER);
+        return uniqueValues;
+    }
+    public String[] getUniqueValues(String attrib) throws RemoteException
+    {
+        return getUniqueValues(attrib, null);
+    }
+    @Deprecated public String[] getKeyTypes() throws RemoteException
+    {
+        return getUniqueValues(PublicMetadata.KEYTYPE); 
+    }
+    @Deprecated public String[] getDataTableNames(String connectionName) throws RemoteException
+    {
+        if (connectionName == null)
+            return getUniqueValues(PublicMetadata.DATATABLE);
+        return getUniqueValues(PublicMetadata.DATATABLE, new AttributeColumnInfo(PrivateMetadata.CONNECTION, connectionName));
+    }
+    @Deprecated public String[] getGeometryCollectionNames(String connectionName) throws RemoteException
+    {
+        AttributeColumnInfo filter;
+        
+        if (connectionName == null)
+            filter = new AttributeColumnInfo(PublicMetadata.DATATYPE, DataType.GEOMETRY);
+        else
+            filter = new AttributeColumnInfo(PublicMetadata.DATATYPE, DataType.GEOMETRY, PrivateMetadata.CONNECTION, connectionName);
+        return getUniqueValues(PublicMetadata.DATATABLE, filter);
+    } 
+    @Deprecated public void removeDataTableInfo(String dataTableName) throws RemoteException
+    {
+        AttributeColumnInfo filter;
+        if (dataTableName == null || dataTableName.equals(""))
+            throw new IllegalArgumentException("Cannot remove data table with null or empty string name.");
+        filter = new AttributeColumnInfo(PublicMetadata.DATATABLE, dataTableName);
+        List<AttributeColumnInfo> attrColumns = findAttributeColumnInfo(filter);
+        for (AttributeColumnInfo column : attrColumns)
+            removeAttributeColumnInfo(column.id);
+    }
+    public boolean userCanModifyAttributeColumn(String connectionName, int id) throws RemoteException
+    {
+        ConnectionInfo connInfo = getConnectionInfo(connectionName);
+        if (connInfo == null)
+            return false;
+        if (connInfo.is_superuser)
             return true;
-            
-        }
-        public Connection getNamedConnection(String connectionName) throws RemoteException
-        {
-            return getNamedConnection(connectionName, false);
-        }
-        public Connection getNamedConnection(String connectionName, boolean readOnly) throws RemoteException
-        {
-            Connection conn;
-            ConnectionInfo info = getConnectionInfo(connectionName);
+        AttributeColumnInfo attrInfo = getAttributeColumnInfo(id);
+        return (attrInfo == null) || (attrInfo.privateMetadata.get(PrivateMetadata.CONNECTION) == connectionName);
+    }
+    @SuppressWarnings("unchecked")
+	@Deprecated public boolean userCanModifyDataTable(String connectionName, String dataTableName) throws RemoteException
+    {
+        Map<String,String> publicMetadataFilter = new HashMap<String,String>();
+        publicMetadataFilter.put(PublicMetadata.DATATABLE, dataTableName);
+        AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+        tmpinfo.publicMetadata = publicMetadataFilter;
+        tmpinfo.privateMetadata = Collections.EMPTY_MAP;
+        List<AttributeColumnInfo> info = findAttributeColumnInfo(tmpinfo);
+        
+        for (int i = 0; i < info.size(); i++) /* Is there a good reason for using for instead of foreach? */
+            if (!userCanModifyAttributeColumn(connectionName, info.get(i).id))
+                throw new RemoteException(String.format("User \"%s\" does not have permission to remove DataTable \"%s\".", connectionName, dataTableName));
+        
+        return true;
+        
+    }
+    public Connection getNamedConnection(String connectionName) throws RemoteException
+    {
+        return getNamedConnection(connectionName, false);
+    }
+    public Connection getNamedConnection(String connectionName, boolean readOnly) throws RemoteException
+    {
+        Connection conn;
+        ConnectionInfo info = getConnectionInfo(connectionName);
 
-            if (info == null)
-                throw new RemoteException(String.format("Connection named \"%s\" doead not exist.", connectionName));
-            if (readOnly)
-                conn = info.getStaticReadOnlyConnection();
-            else
-                conn = info.getConnection();
-            return conn;
-        }
+        if (info == null)
+            throw new RemoteException(String.format("Connection named \"%s\" doead not exist.", connectionName));
+        if (readOnly)
+            conn = info.getStaticReadOnlyConnection();
+        else
+            conn = info.getConnection();
+        return conn;
+    }
 	/**
 	 * This class contains all the information related to where the
 	 * configuration should be stored in a database.
@@ -368,32 +369,33 @@ public abstract class ISQLConfig
 	/**
 	 * This class contains metadata for an attributeColumn entry.
 	 */
+	@SuppressWarnings("unchecked")
 	static public class AttributeColumnInfo
 	{
 		public int id = -1;
-                public int type;
+        public int type;
 		public Map<String,String> privateMetadata = Collections.EMPTY_MAP;
 		public Map<String,String> publicMetadata = Collections.EMPTY_MAP;
 		
-                public AttributeColumnInfo()
-                {
-                }
-                public AttributeColumnInfo(String... propvals)
-                {
-                    if (propvals.length % 2 == 1)
-                        throw new IllegalArgumentException("AttributeColumnInfo constructor's argument list length must be divisible by 2, ie, key,value,key,value...");
-                    privateMetadata = new HashMap<String,String>();
-                    publicMetadata = new HashMap<String,String>();
-                    for (int i = 0; i < propvals.length; i+=2)
-                    {
-                        String key = propvals[i];
-                        String value = propvals[i+1];
-                        if (PrivateMetadata.isPrivate(key))
-                            privateMetadata.put(key, value);
-                        else
-                            publicMetadata.put(key,value);
-                    }
-                }
+        public AttributeColumnInfo()
+        {
+        }
+        private AttributeColumnInfo(String... propvals)
+        {
+            if (propvals.length % 2 == 1)
+                throw new IllegalArgumentException("AttributeColumnInfo constructor's argument list length must be divisible by 2, ie, key,value,key,value...");
+            privateMetadata = new HashMap<String,String>();
+            publicMetadata = new HashMap<String,String>();
+            for (int i = 0; i < propvals.length; i+=2)
+            {
+                String key = propvals[i];
+                String value = propvals[i+1];
+                if (PrivateMetadata.isPrivate(key))
+                    privateMetadata.put(key, value);
+                else
+                    publicMetadata.put(key,value);
+            }
+        }
 		public String getConnectionName()
 		{
 			return privateMetadata.get(PrivateMetadata.CONNECTION);
@@ -402,6 +404,11 @@ public abstract class ISQLConfig
 		public String getSqlQuery()
 		{
 			return privateMetadata.get(PrivateMetadata.SQLQUERY);
+		}
+		
+		public String getSqlParams()
+		{
+			return privateMetadata.get(PrivateMetadata.SQLPARAMS);
 		}
 		
 		@Deprecated
@@ -413,10 +420,4 @@ public abstract class ISQLConfig
 			return result;
 		}
 	}
-        public static class InvalidParameterException extends Exception
-        {
-                private static final long serialVersionUID = 6290284095499981871L;
-                public InvalidParameterException(String msg) { super(msg); }
-        }
-
 }

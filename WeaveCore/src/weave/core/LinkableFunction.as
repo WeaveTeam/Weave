@@ -29,8 +29,6 @@ package weave.core
 	import weave.compiler.Compiler;
 	import weave.compiler.ProxyObject;
 	
-	use namespace weave_internal;
-
 	/**
 	 * LinkableFunction allows a function to be defined by a String that can use macros defined in the static macros hash map.
 	 * Libraries listed in macroLibraries variable will be included when compiling the function.
@@ -75,6 +73,27 @@ package weave.core
 		}
 		
 		/**
+		 * This is used as a placeholder to prevent re-compiling erroneous code.
+		 */
+		private static function RETURN_UNDEFINED(..._):* { return undefined; }
+		
+		/**
+		 * This will attempt to compile the function.  An Error will be thrown if this fails.
+		 */		
+		public function validate():void
+		{
+			if (_compiledMethod == null)
+			{
+				// in case compile fails, prevent re-compiling erroneous code
+				_compiledMethod = RETURN_UNDEFINED;
+				
+				if (_macroProxy == null)
+					_macroProxy = new ProxyObject(_hasMacro, evaluateMacro, null); // allows evaluating macros but not setting them
+				_compiledMethod = _compiler.compileToFunction(value, _macroProxy, _ignoreRuntimeErrors || debug, _useThisScope, _paramNames);
+			}
+		}
+		
+		/**
 		 * This will evaluate the function with the specified parameters.
 		 * @param thisArg The value of 'this' to be used when evaluating the function.
 		 * @param argArray An Array of arguments to be passed to the compiled function.
@@ -83,11 +102,7 @@ package weave.core
 		public function apply(thisArg:* = null, argArray:Array = null):*
 		{
 			if (_compiledMethod == null)
-			{
-				if (_macroProxy == null)
-					_macroProxy = new ProxyObject(_hasMacro, evaluateMacro, null); // allows evaluating macros but not setting them
-				_compiledMethod = _compiler.compileToFunction(value, _macroProxy, _ignoreRuntimeErrors || debug, _useThisScope, _paramNames);
-			}
+				validate();
 			return _compiledMethod.apply(thisArg, argArray);
 		}
 		
@@ -141,7 +156,7 @@ package weave.core
 				if (row.indexOf(libraryQName) >= 0)
 					return;
 			rows.push([libraryQName]);
-			macroLibraries.value = WeaveAPI.CSVParser.createCSVFromArrays(rows);
+			macroLibraries.value = WeaveAPI.CSVParser.createCSV(rows);
 		}
 		
 		{ /** begin static code block **/

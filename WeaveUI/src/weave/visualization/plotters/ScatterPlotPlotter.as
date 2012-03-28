@@ -19,10 +19,9 @@
 
 package weave.visualization.plotters
 {
+	import flash.debugger.enterDebugger;
 	import flash.display.BitmapData;
 	import flash.utils.Dictionary;
-	
-	import mx.utils.ObjectUtil;
 	
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
@@ -31,13 +30,11 @@ package weave.visualization.plotters
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.KeySets.KeySet;
-	import weave.primitives.Bounds2D;
 	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	
@@ -67,8 +64,7 @@ package weave.visualization.plotters
 			getCallbackCollection(this).removeCallback(updateKeys);
 			_keySet.replaceKeys(keys);
 			setKeySource(_keySet);
-			
-		}		
+		}
 
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
@@ -87,19 +83,21 @@ package weave.visualization.plotters
 		 */			
 		private var sortKeys:Function = null;
 		
-		// the private plotter being simplified
 		public function get circlePlotter():CircleGlyphPlotter { return internalPlotter as CircleGlyphPlotter; }
 		
-		public function get defaultScreenRadius():LinkableNumber {return circlePlotter.defaultScreenRadius;}
-		public function get enabledSizeBy():LinkableBoolean {return circlePlotter.enabledSizeBy; }
-		public function get minScreenRadius():LinkableNumber { return circlePlotter.minScreenRadius; }
-		public function get maxScreenRadius():LinkableNumber { return circlePlotter.maxScreenRadius; }
-		public function get xColumn():DynamicColumn { return circlePlotter.dataX; }
-		public function get yColumn():DynamicColumn { return circlePlotter.dataY; }
-		public function get alphaColumn():AlwaysDefinedColumn { return (circlePlotter.fillStyle.internalObject as SolidFillStyle).alpha; }
-		public function get colorColumn():AlwaysDefinedColumn { return (circlePlotter.fillStyle.internalObject as SolidFillStyle).color; }
-		public function get radiusColumn():DynamicColumn { return circlePlotter.screenRadius; }
-		public function get zoomToSubset():LinkableBoolean { return circlePlotter.zoomToSubset; }
+		// the private plotter being simplified
+		private function get _internalCirclePlotter():CircleGlyphPlotter { return internalPlotter as CircleGlyphPlotter; }
+		
+		public function get defaultScreenRadius():LinkableNumber {return _internalCirclePlotter.defaultScreenRadius;}
+		public function get enabledSizeBy():LinkableBoolean {return _internalCirclePlotter.enabledSizeBy; }
+		public function get minScreenRadius():LinkableNumber { return _internalCirclePlotter.minScreenRadius; }
+		public function get maxScreenRadius():LinkableNumber { return _internalCirclePlotter.maxScreenRadius; }
+		public function get xColumn():DynamicColumn { return _internalCirclePlotter.dataX; }
+		public function get yColumn():DynamicColumn { return _internalCirclePlotter.dataY; }
+		public function get alphaColumn():AlwaysDefinedColumn { return (_internalCirclePlotter.fillStyle.internalObject as SolidFillStyle).alpha; }
+		public function get colorColumn():AlwaysDefinedColumn { return (_internalCirclePlotter.fillStyle.internalObject as SolidFillStyle).color; }
+		public function get radiusColumn():DynamicColumn { return _internalCirclePlotter.screenRadius; }
+		public function get zoomToSubset():LinkableBoolean { return _internalCirclePlotter.zoomToSubset; }
 		
 		private function getAllKeys(...inputKeySets):Array
 		{

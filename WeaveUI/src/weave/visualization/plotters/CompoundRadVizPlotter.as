@@ -65,16 +65,13 @@ package weave.visualization.plotters
 			setNewRandomJitterColumn();		
 			iterations.value = 50;
 			
-			init()
-		}		
-		
-		private function init():void
-		{
 			algorithms[RANDOM_LAYOUT] = RandomLayoutAlgorithm;
 			algorithms[GREEDY_LAYOUT] = GreedyLayoutAlgorithm;
 			algorithms[NEAREST_NEIGHBOR] = NearestNeighborLayoutAlgorithm;
 			algorithms[INCREMENTAL_LAYOUT] = IncrementalLayoutAlgorithm;
 			algorithms[BRUTE_FORCE] = BruteForceLayoutAlgorithm;
+			
+			handleColumnsChange();
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
@@ -130,18 +127,18 @@ package weave.visualization.plotters
 			_columns = columns.getObjects(IAttributeColumn);
 			var sum:Number = 0;
 			
+			randomArrayIndexMap = 	new Dictionary(true);				
+			keyMaxMap = 			new Dictionary(true);
+			keyMinMap = 			new Dictionary(true);
+			keyNormMap = 			new Dictionary(true);
+			keyGlobalNormMap = 		new Dictionary(true);
+			keyNumberMap = 			new Dictionary(true);
+			columnTitleMap = 		new Dictionary(true);
+			
 			if (_columns.length > 0) 
 			{
 				setKeySource(_columns[0]);
 			
-				randomArrayIndexMap = 	new Dictionary(true);				
-				keyMaxMap = 			new Dictionary(true);
-				keyMinMap = 			new Dictionary(true);
-				keyNormMap = 			new Dictionary(true);
-				keyGlobalNormMap = 		new Dictionary(true);
-				keyNumberMap = 			new Dictionary(true);
-				columnTitleMap = 		new Dictionary(true);
-				
 				for each( var key:IQualifiedKey in keySet.keys)
 				{					
 					randomArrayIndexMap[key] = i ;										
@@ -316,6 +313,7 @@ package weave.visualization.plotters
 					randomValueArray.push( Math.random() % 10) ;
 					randomValueArray.push( -(Math.random() % 10)) ;
 				}
+			spatialCallbacks.triggerCallbacks();
 		}
 		
 		/**

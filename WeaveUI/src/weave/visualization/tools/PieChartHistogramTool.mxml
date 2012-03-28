@@ -26,15 +26,19 @@
 	     layout="absolute">
 	<mx:Script>
 		<![CDATA[
+			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.PieChartHistogramPlotter;
 
+			WeaveAPI.registerImplementation(IVisTool, PieChartHistogramTool, "Pie Chart Histogram");
+			
 			public var _plotter:PieChartHistogramPlotter = null;
 			
 			override protected function constructor():void
@@ -52,7 +56,7 @@
 				invalidateAxes();
 				
 				initColumnDefaults(_plotter.unfilteredData);
-				_plotter.binnedData.addImmediateCallback(this,updateProbeColumns,null,true);
+				_plotter.binnedData.addImmediateCallback(this,updateProbeColumns,true);
 				
 				visualization.marginTop.value = "65";
 				visualization.marginBottom.value = "65";
@@ -98,11 +102,9 @@
 				handlePanelTitleChange();
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "[Pie Chart Histogram] of " + ColumnUtils.getTitle(_plotter.unfilteredData);
+				return "[Pie Chart Histogram] of " + ColumnUtils.getTitle(_plotter.unfilteredData);
 			}
 			
 			

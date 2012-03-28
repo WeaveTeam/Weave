@@ -23,46 +23,38 @@ package weave.ui.CustomDataGrid
 	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.core.ClassFactory;
 	
+	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.utils.ColumnUtils;
-	import weave.visualization.tools.DataItemRenderer;
 	
-	
-	
-	public class WeaveCustomDataGridColumn extends DataGridColumn 
+	public class WeaveCustomDataGridColumn extends DataGridColumn
 	{
-		public function WeaveCustomDataGridColumn(attrColumn:IAttributeColumn)
+		public function WeaveCustomDataGridColumn(attrColumn:IAttributeColumn, showColors:LinkableBoolean, colorFunction:Function)
 		{
-			super();
-			
 			_attrColumn = attrColumn;
 			labelFunction = extractDataFunction;
 			sortCompareFunction = ColumnUtils.generateSortFunction([_attrColumn]);
 			headerWordWrap = true;
-			if( attrColumn is ImageColumn )
-			{
-				var factory:ClassFactory = new ClassFactory( DataItemRenderer );
-				factory.properties = { imageColumn: attrColumn };
-				this.itemRenderer = factory;
-			}
-			else
-			{
-				this.itemRenderer = new ClassFactory(Label);
-				//this.itemRenderer = new ClassFactory(HeatMapDataGridColumnRenderer);
-				//this.headerRenderer = new ClassFactory(LockableHeaderRenderer);
-			}
+			
+			var factory:ClassFactory = new ClassFactory(DataGridCellRenderer);
+			factory.properties = {
+				attrColumn: attrColumn,
+				showColors: showColors,
+				colorFunction: colorFunction,
+				keySet: Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET)
+			};
+			this.itemRenderer = factory;
 			
 			this.showDataTips = true;
 			//this.width = 20;
 			this.minWidth = 0;	
 			
-			_attrColumn.addImmediateCallback(this, handleColumnChange, null, true);						
+			_attrColumn.addImmediateCallback(this, handleColumnChange, true);						
 		}
 		
-		
-				
 		protected var _filterComponent:IFilterComponent;	
 		public function get filterComponent():IFilterComponent
 		{
@@ -71,11 +63,10 @@ package weave.ui.CustomDataGrid
 		
 		public function set filterComponent(filterComp:IFilterComponent):void
 		{				
-			if(filterComp)
+			if (filterComp)
 			{
 				_filterComponent = filterComp;
-				_filterComponent.mapColumnToFilter(this);
-				filterComp.width = this.width;				
+				_filterComponent.mapColumnToFilter(this);		
 			}			
 		}
 		

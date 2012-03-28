@@ -29,9 +29,9 @@ package weave.core
 	 */
 	public class LinkableString extends LinkableVariable
 	{
-		public function LinkableString(defaultValue:String = null, verifier:Function = null)
+		public function LinkableString(defaultValue:String = null, verifier:Function = null, defaultValueTriggersCallbacks:Boolean = true)
 		{
-			super(String, verifier, defaultValue);
+			super(String, verifier, defaultValue, defaultValueTriggersCallbacks);
 		}
 
 		public function get value():String

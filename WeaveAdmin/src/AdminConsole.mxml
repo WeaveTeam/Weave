@@ -32,13 +32,13 @@
 			<mx:VBox width="100%" height="100%">
 				<mx:HBox width="100%">
 					<!--mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="open dialog with wizard to import data from existing sql"/-->
-					<mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{Strings.tip_import_sql_data}"/>
+					<mx:Button label="Import existing SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{Strings.tip_import_sql_data}"/>
 					<mx:Button label="Import CSV data..." click="WizardPanel.createWizard(this, new CSVImportWizard())" toolTip="{Strings.tip_import_csv_data}"/>
 					<mx:Button label="Import SHP and DBF data..." click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{Strings.tip_import_shp_and_dbf}"/>
 					<ui:CustomVRule/>
 					<mx:Button label="Open Weave" click="AdminInterface.instance.openWeavePopup();" toolTip="This will open Weave in a new browser window which allows you to save a new client configuration."/>
 					<mx:Spacer width="100%"/>
-					<mx:Label text="{'Active Connection Name: ' + AdminInterface.instance.activeConnectionName}" textAlign="right"/>
+					<mx:Label text="{'Signed in as: ' + AdminInterface.instance.activeConnectionName}" textAlign="right"/>
 					<mx:Button label="Sign out" enabled="{AdminInterface.instance.sqlConfigExists == true}"
 							   click="AdminInterface.instance.activeConnectionName = AdminInterface.instance.activePassword = '';"/>
 				</mx:HBox>
@@ -47,6 +47,7 @@
 					<mx:TabNavigator id="tabNavigator" width="100%" height="100%" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" fontSize="10">
 						<managers:ClientConfigurationManager id="clientConfig"/>
 						<managers:DataTableManager/>
+						<managers:MetadataManager/>
 						<managers:GeometryCollectionManager/>
 						<managers:SQLConnectionManager id="sqlConnectionManager"/>
 					</mx:TabNavigator>
@@ -80,19 +81,12 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
-			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
-			import mx.controls.ProgressBar;
-			import mx.controls.ProgressBarLabelPlacement;
 			import mx.controls.TextArea;
-			import mx.core.IFlexDisplayObject;
-			import mx.events.CloseEvent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Strings;
 			import weave.Weave;
-			import weave.api.WeaveAPI;
-			import weave.api.getCallbackCollection;
 			import weave.services.AdminInterface;
 			import weave.services.WeaveAdminService;
 			import weave.ui.WeaveProgressBar;
@@ -101,13 +95,10 @@
 			import weave.ui.admin.wizards.CSVImportWizard;
 			import weave.ui.admin.wizards.SHPImportWizard;
 			import weave.ui.admin.wizards.SQLImportWizard;
-			import weave.utils.EventUtils;
 			
 			private static const version:String = Weave.properties.version.value;
 			private var loginPopup:LoginPopup;
 			
-			public var progressBar:WeaveProgressBar = new WeaveProgressBar();
-						
 			private function handleCreationComplete():void
 			{
 				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessageLog);
@@ -136,9 +127,7 @@
 					}
 				}
 				
-				progressBar = PopUpManager.createPopUp(this,WeaveProgressBar) as WeaveProgressBar;
-				PopUpManager.bringToFront(progressBar);
-				
+				PopUpManager.createPopUp(this, WeaveProgressBar);
 			}
 			
 		]]>

@@ -1,7 +1,7 @@
 <colorRampCollection>
 	<colorRamp name="5-Color" tags="OIC,basic">0xEFF3FF,0xBDD7E7,0x6BAED6,0x3182BD,0x08519C</colorRamp>
 	<colorRamp name="Campfire" tags="OIC,aesthetic">0x660000,0xFF0000,0xFFFF00</colorRamp>
-	<colorRamp name="Pink Rose" tags="OIC,aesthetic">0x660066,0xfa0094,0xffc7fa</colorRamp>
+	<colorRamp name="Pink Rose" tags="OIC,aesthetic">0xffc7fa,0xfa0094,0x660066</colorRamp>
 	<colorRamp name="Linear Gray" tags="OIC,visualization,colorblind-safe,single-hue">0x000000,0xffffff</colorRamp>
 	<colorRamp name="Blue Green Red" tags="OIC,visualization">0x0000ff,0x00ff00,0xff0000</colorRamp>
 	<colorRamp name="Red Scale" tags="OIC,visualization,single-hue">0x000000,0xff0000,0xffcccc</colorRamp>

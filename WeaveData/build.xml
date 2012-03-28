@@ -33,6 +33,7 @@
 	</target>
 
 	<target name="compile">
+		<echo message="Compiling ${ant.project.name}..."/>
 		<mkdir dir="${OUTPUT_DIR}"/>
 		<compc 
 			output="${OUTPUT_DIR}/WeaveData.swc"

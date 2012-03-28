@@ -28,13 +28,10 @@ package weave.data.AttributeColumns
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
-	import weave.core.LinkableString;
 	import weave.data.BinClassifiers.BinClassifierCollection;
 	import weave.data.BinningDefinitions.CategoryBinningDefinition;
 	import weave.data.BinningDefinitions.DynamicBinningDefinition;
 	import weave.data.BinningDefinitions.SimpleBinningDefinition;
-	import weave.data.CSVParser;
 	
 	/**
 	 * A binned column maps a record key to a bin key.
@@ -47,10 +44,10 @@ package weave.data.AttributeColumns
 		{
 			binningDefinition.requestLocalObject(SimpleBinningDefinition, false);
 
-			addImmediateCallback(this, invalidateBins, [false]);
+			addImmediateCallback(this, invalidateBins);
 			// when derived bins change, invalidate them
 			// this is to prevent changes to the derivedBins from affecting the internal code.
-			_derivedBins.addImmediateCallback(this, invalidateBins, [true]);
+			_derivedBins.addImmediateCallback(this, handleDerivedBinsChange);
 		}
 		
 		/**
@@ -105,11 +102,15 @@ package weave.data.AttributeColumns
 		/**
 		 * This function sets the dirty flag to true to invalidate the bins.
 		 */		
-		private function invalidateBins(callbackFromDerivedBins:Boolean):void
+		private function invalidateBins():void
 		{
-			if (callbackFromDerivedBins && _validateBinsCompleted)
-				return;
 			_dirty = true;
+		}
+		
+		private function handleDerivedBinsChange():void
+		{
+			if (!_validateBinsCompleted)
+				_dirty = true;
 		}
 		
 		/**
@@ -206,6 +207,11 @@ package weave.data.AttributeColumns
 			if (_dirty)
 				validateBins();
 			return _binnedKeysMap[binName] as Array;
+		}
+		
+		public function getBinIndexFromDataValue(value:*):Number
+		{
+			return _derivedBins.getBinIndexFromDataValue(value);
 		}
 
 		/**

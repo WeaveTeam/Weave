@@ -20,6 +20,8 @@
 package weave.visualization.tools
 {
 	import flash.events.Event;
+	import flash.net.FileReference;
+	import flash.utils.getQualifiedClassName;
 	
 	import mx.binding.utils.BindingUtils;
 	import mx.containers.Canvas;
@@ -32,13 +34,16 @@ package weave.visualization.tools
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.ICSVExportable;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.ui.IPlotLayer;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.api.ui.IVisTool;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.UIUtils;
@@ -64,7 +69,7 @@ package weave.visualization.tools
 	 * 
 	 * @author adufilie
 	 */
-	public class SimpleVisTool extends DraggablePanel implements ILinkableContainer
+	public class SimpleVisTool extends DraggablePanel implements IVisTool, ILinkableContainer,ICSVExportable
 	{
 		public function SimpleVisTool()
 		{
@@ -419,6 +424,17 @@ package weave.visualization.tools
 		override public function dispose():void
 		{
 			super.dispose();
+		}
+		
+		//ICSV exportbale interface Method
+		public function exportCSV():String{
+			var toolColumns:Array = getSelectableAttributes();
+			if(toolColumns.length == 0)
+			{
+				
+				return "";
+			}
+			return ColumnUtils.generateTableCSV(toolColumns);
 		}
 	}
 }

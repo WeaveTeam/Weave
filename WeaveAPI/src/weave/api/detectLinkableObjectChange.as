@@ -21,8 +21,14 @@ package weave.api
 	/**
 	 * @see weave.api.core.ISessionManager
 	 */
-	public function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject, clearChangedNow:Boolean = true):Boolean
+	public function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject, ...moreLinkableObjects):Boolean
 	{
-		return WeaveAPI.SessionManager.detectLinkableObjectChange(observer, linkableObject, clearChangedNow);
+		var changeDetected:Boolean = false;
+		moreLinkableObjects.unshift(linkableObject);
+		// it's important not to short-circuit with a boolean OR ( || ) because we need to clear the 'changed' flag on each object.
+		for each (linkableObject in moreLinkableObjects)
+			if (WeaveAPI.SessionManager.detectLinkableObjectChange(observer, linkableObject, true)) // clear 'changed' flag
+				changeDetected = true;
+		return changeDetected;
 	}
 }

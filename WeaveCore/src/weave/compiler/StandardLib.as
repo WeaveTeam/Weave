@@ -19,8 +19,6 @@
 
 package weave.compiler
 {
-	import flash.utils.describeType;
-	
 	import mx.formatters.NumberFormatter;
 	import mx.utils.ObjectUtil;
 
@@ -155,6 +153,7 @@ package weave.compiler
 		 * This function will use a default NumberFormatter object to format a Number to a String.
 		 * @param number The number to format.
 		 * @param precision A precision value to pass to the default NumberFormatter.
+		 * @return The result of format(number) using the specified precision value.
 		 * @see mx.formatters.NumberFormatter#format
 		 */
 		public static function formatNumber(number:Number, precision:Number = NaN):String
@@ -238,7 +237,7 @@ package weave.compiler
 		 * @param value The value between min and max.
 		 * @param min The minimum value that corresponds to a result of 0.
 		 * @param max The maximum value that corresponds to a result of 1.
-		 * @param The normalized value between 0 and 1, or NaN if value is out of range.
+		 * @return The normalized value between 0 and 1, or NaN if value is out of range.
 		 */
 		public static function normalize(value:Number, min:Number, max:Number):Number
 		{
@@ -254,7 +253,7 @@ package weave.compiler
 		 * @param inputMax The maximum value in the input range.
 		 * @param outputMin The minimum value in the output range.
 		 * @param outputMax The maximum value in the output range.
-		 * @param The input value rescaled such that a value equal to inputMin is scaled to outputMin and a value equal to inputMax is scaled to outputMax.
+		 * @return The input value rescaled such that a value equal to inputMin is scaled to outputMin and a value equal to inputMax is scaled to outputMax.
 		 */
 		public static function scale(inputValue:Number, inputMin:Number, inputMax:Number, outputMin:Number, outputMax:Number):Number
 		{
@@ -435,7 +434,7 @@ package weave.compiler
 		}
 		
 		/**
-		 * This function compares each of the elements in two arrays in order.
+		 * This function compares each of the elements in two arrays in order, supporting nested Arrays.
 		 * @param a The first Array for comparison
 		 * @param b The second Array for comparison
 		 * @return The first nonzero compare value, or zero if the arrays are equal.
@@ -450,11 +449,28 @@ package weave.compiler
 				return 1;
 			for (var i:int = 0; i < an; i++)
 			{
-				var result:int = ObjectUtil.compare(a[i], b[i]);
+				var ai:Object = a[i];
+				var bi:Object = b[i];
+				var result:int;
+				if (ai is Array && bi is Array)
+					result = arrayCompare(ai as Array, bi as Array);
+				else
+					result = ObjectUtil.compare(a[i], b[i]);
 				if (result != 0)
 					return result;
 			}
 			return 0;
+		}
+		
+		/**
+		 * This will perform a log transformation on a normalized value to produce another normalized value.
+		 * @param normValue A number between 0 and 1.
+		 * @param factor The log factor to use.
+		 * @return A number between 0 and 1.
+		 */
+		public static function logTransform(normValue:Number, factor:Number = 1024):Number
+		{
+			return Math.log(1 + normValue * factor) / Math.log(1 + factor);
 		}
 	}
 }

@@ -29,14 +29,17 @@
 			import mx.managers.CursorManager;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
+			import weave.api.ui.IVisTool;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.plotters.GaugePlotter;
 		
-		
+			WeaveAPI.registerImplementation(IVisTool, GaugeTool, "Gauge Tool");
+			
 			public var _plotter:GaugePlotter = null;
 			
 			override protected function childrenCreated():void
@@ -87,13 +90,9 @@
 				handlePanelTitleChange();
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!_plotter)
-					title = "Gauge";
-				if (!panelTitle.value)
-					title = "Gauge of " + ColumnUtils.getTitle(_plotter.meterColumn);
+				return "Gauge of " + ColumnUtils.getTitle(_plotter.meterColumn);
 			}
 			
 			[Bindable]

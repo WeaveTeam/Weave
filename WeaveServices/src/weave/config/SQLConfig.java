@@ -9,11 +9,11 @@
 package weave.config;
 
 import java.rmi.RemoteException;
+import java.security.InvalidParameterException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -343,13 +343,12 @@ public class SQLConfig
 	public int addAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
 	{
                 int new_id = addEntry(MAN_TYPE_COLUMN, info.privateMetadata, info.publicMetadata);
-                String dataTableName = info.publicMetadata.get(PublicMetadata.DATATABLE);
+                //String dataTableName = info.publicMetadata.get(PublicMetadata.DATATABLE);
 
                 return new_id;
 	} 
 	
 	// shortcut for calling the Map<String,String> version of this function
-	@SuppressWarnings("unchecked")
 	public List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName) throws RemoteException
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>(1);
@@ -492,7 +491,6 @@ public class SQLConfig
         }
         public int getEntityType(int id) throws RemoteException
         {
-            Boolean entityIsCategory;
             List<Map<String,String>> sqlres;
             Integer ent_type;
             Map<String,Integer> whereParams = new HashMap<String,Integer>();

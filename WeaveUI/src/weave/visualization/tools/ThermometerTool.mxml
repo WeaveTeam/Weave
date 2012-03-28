@@ -26,29 +26,17 @@
 		 xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*">
 	<mx:Script>
 		<![CDATA[
-			import weave.utils.ColumnUtils;
-			import mx.events.ChildExistenceChangedEvent;
-			import mx.events.FlexEvent;
-			import mx.events.IndexChangedEvent;
-			import mx.events.SliderEvent;
-			
 			import weave.Weave;
-			import weave.core.LinkableString;
-			import weave.core.LinkableVariable;
-			import weave.core.SessionManager;
+			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
+			import weave.api.ui.IVisTool;
 			import weave.ui.AttributeSelectorPanel;
-			import weave.ui.DraggablePanel;
 			import weave.utils.BitmapText;
-			import weave.utils.DebugUtils;
-			import weave.core.UIUtils;
-			import weave.visualization.layers.PlotLayer;
-			import weave.visualization.layers.SelectablePlotLayer;
-			import weave.visualization.plotters.AxisPlotter;
-			import weave.visualization.plotters.CircleGlyphPlotter;
+			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.ThermometerPlotter;
-			import weave.visualization.plotters.styles.SolidFillStyle;
 		
+			WeaveAPI.registerImplementation(IVisTool, ThermometerTool, "Thermometer Tool");
+			
 			public var _plotter:ThermometerPlotter = null;
 			override protected function constructor():void
 			{
@@ -65,7 +53,7 @@
 				//BEGIN TEMPORARY SOLUTION
 				visualization.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
 				visualization.marginBottomNumber.addImmediateCallback(this, updateAxisLabels);
-				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, null, true);
+				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, true);
 				// END TEMPORARY SOLUTION
 				
 				visualization.marginBottom.value = "80";
@@ -74,7 +62,8 @@
 				visualization.marginRight.value  = "10";
 				
 				yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 90;
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector,[this,_plotter.meterColumn])
+				var self:* = this;
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, _plotter.meterColumn); })
 
 				getCallbackCollection(visualization.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
@@ -98,11 +87,9 @@
 				handlePanelTitleChange();
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Thermometer of " + ColumnUtils.getTitle(_plotter.meterColumn);
+				return "Thermometer of " + ColumnUtils.getTitle(_plotter.meterColumn);
 			}
 			
 			private function updateAxisLabels():void
@@ -133,7 +120,6 @@
 					  borderAlpha="0.2" 
 					  borderStyle="none">
 				<ui:DynamicColumnComponent visTool="{this}" label="Meter column:" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.meterColumn"/>
-				<tools:MeterToolInputSelector/>
 				
 			</mx:Panel>
 	</ui:ControlPanel>

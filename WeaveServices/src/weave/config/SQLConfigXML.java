@@ -532,7 +532,7 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 			// get connection (first from column node, then from dataTable node if missing)
 			String connection = getCascadedAttribute(columnNodeProperties, "connection", tableProperties, "connection");
 			String sqlQuery = columnNodeProperties.getNamedItem("dataWithKeysQuery").getTextContent();
-			
+			String sqlParams = columnNodeProperties.getNamedItem("sqlParams").getTextContent();
 			// get attributeColumn metadata properties
 			AttributeColumnInfo info = new AttributeColumnInfo();
 			info.id = i;
@@ -540,6 +540,7 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 			info.privateMetadata = new HashMap<String,String>();
 			info.privateMetadata.put(PrivateMetadata.CONNECTION, connection);
 			info.privateMetadata.put(PrivateMetadata.SQLQUERY, sqlQuery);
+			info.privateMetadata.put(PrivateMetadata.SQLPARAMS, sqlParams);
 			
 			info.publicMetadata = new HashMap<String, String>();
 			info.publicMetadata.put(PublicMetadata.DATATABLE, tableName);
@@ -654,31 +655,38 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 		public String type;
 		public String name;
 	}
-        public void addChild(int parent, int child) throws RemoteException
-        {
-        }
-        public void removeChild(int parent, int child) throws RemoteException
-        {
-        }
-        public int addTag(String tagtitle) throws RemoteException
-        {
-            return 0;
-        }
-        public void removeTag(int tag_id) throws RemoteException
-        {
-        }
-        public Boolean isTag(int tag_id) throws RemoteException
-        {
-            return false;
-        }
-        public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
-        {
-            return null;
-        }
-        public Collection<Integer> getRoots() throws RemoteException
-        {
-            return null;
-        }
+    public void addChild(int parent, int child) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
+    public void removeChild(int parent, int child) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
+    public int addTag(String tagtitle) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
+    public void removeTag(int tag_id) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
+    public Boolean isTag(int tag_id) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
+    public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
+    public Collection<Integer> getRoots() throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
+    public int getEntityType(int id) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
 
 	// </sqlConfig>
 }

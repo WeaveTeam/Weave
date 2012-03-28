@@ -22,8 +22,8 @@
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 xmlns="weave.ui.*"
 		 verticalGap="8"
-		  horizontalScrollPolicy="off"
-		 height="100%" width="100%" creationComplete="handleCreationComplete()"
+		 horizontalScrollPolicy="off"
+		 height="100%" width="100%"
 		 >
 	<TextInputWithPrompt id="searchTerm" width="100%" prompt="{prompt}" clear="search()" change="search()"/><!-- toolTip="would show tree as flat list with columns (date, creator, etc) that could be sorted" -->
 	<mx:Tree id="tree" dataProvider="{treeSource}" showRoot="false" width="100%" height="100%" />
@@ -119,10 +119,6 @@
 			}
 			treeSource = root;
 			search();
-		}
-		private function handleCreationComplete():void
-		{
-			
 		}
 		
 		private function search():void

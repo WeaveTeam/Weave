@@ -23,20 +23,16 @@ package weave.utils
 	import flash.utils.Dictionary;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableDynamicObject;
-	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
+	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.StatisticsCache;
 	import weave.primitives.ColorRamp;
-	import weave.utils.ColumnUtils;
 	
 	/**
 	 * EquationColumnLib
@@ -176,7 +172,7 @@ package weave.utils
 				
 				// make sure when the column changes, the cache gets invalidated.
 				if (_reverseKeyLookupCache[column] === undefined)
-					column.addImmediateCallback(null, clearReverseLookupCache, [column]);
+					column.addImmediateCallback(null, function():void { clearReverseLookupCache(column); });
 				
 				_reverseKeyLookupCache[column] = lookup = new Dictionary();
 				for each (var recordKey:IQualifiedKey in column.keys)
@@ -321,6 +317,35 @@ package weave.utils
 			return result;
 		}
 		
+		/**
+		 * This will check a list of IKeySets for an IQualifiedKey.
+		 * @param keySets A list of IKeySets (can be IAttributeColumns).
+		 * @param key A key to search for.
+		 * @return The first IKeySet that contains the key.
+		 */
+		public static function findKeySet(keySets:Array, key:IQualifiedKey = null):IKeySet
+		{
+			// remember current key
+			var previousKey:IQualifiedKey = currentRecordKey;
+			
+			if (key == null)
+				key = currentRecordKey;
+			
+			var keySet:IKeySet = null;
+			for (var i:int = 0; i < keySets.length; i++)
+			{
+				keySet = keySets[i] as IKeySet;
+				if (keySet && keySet.containsKey(key))
+					break;
+				else
+					keySet = null;
+			}
+			
+			// revert to key that was set when entering the function (in case nested calls modified the static variables)
+			currentRecordKey = previousKey;
+			return keySet;
+		}
+		
 		public static function getRunningTotal(column:IAttributeColumn, key:IQualifiedKey = null):Number
 		{
 			// remember current key
@@ -332,7 +357,7 @@ package weave.utils
 			var result:Number = NaN;
 			if (column != null)
 			{
-				var runningTotals:Dictionary = StatisticsCache.instance.getRunningTotals(column);
+				var runningTotals:Dictionary = (WeaveAPI.StatisticsCache as StatisticsCache).getRunningTotals(column);
 				result = runningTotals[key];
 			}
 

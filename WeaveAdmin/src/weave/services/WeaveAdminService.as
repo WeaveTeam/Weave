@@ -75,24 +75,28 @@ package weave.services
 		 * This function will generate a DelayedAsyncInvocation representing a servlet method invocation and add it to the queue.
 		 * @param methodName The name of a Weave AdminService servlet method.
 		 * @param parameters Parameters for the servlet method.
-		 * @param byteArray An optional byteArray to append to the end of the stream.
+		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
 		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
 		 */		
-		private function invokeAdminService(methodName:String, parameters:Array):DelayedAsyncInvocation
+		private function invokeAdminService(methodName:String, parameters:Array, queued:Boolean = true):DelayedAsyncInvocation
 		{
-			return generateQueryAndAddToQueue(adminService, methodName, parameters);
+			if (queued)
+				return generateQueryAndAddToQueue(adminService, methodName, parameters);
+			return adminService.invokeAsyncMethod(methodName, parameters) as DelayedAsyncInvocation;
 		}
 			
 		/**
 		 * This function will generate a DelayedAsyncInvocation representing a servlet method invocation and add it to the queue.
 		 * @param methodName The name of a Weave DataService servlet method.
 		 * @param parameters Parameters for the servlet method.
-		 * @param byteArray An optional byteArray to append to the end of the stream.
+		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
 		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
 		 */		
-		private function invokeDataService(methodName:String, parameters:Array):DelayedAsyncInvocation
+		private function invokeDataService(methodName:String, parameters:Array, queued:Boolean = true):DelayedAsyncInvocation
 		{
-			return generateQueryAndAddToQueue(dataService, methodName, parameters);
+			if (queued)
+				return generateQueryAndAddToQueue(dataService, methodName, parameters);
+			return dataService.invokeAsyncMethod(methodName, parameters) as DelayedAsyncInvocation;
 		}
 			
 		/**
@@ -194,7 +198,7 @@ package weave.services
 		// get info
 		public function getDatabaseConfigInfo(connectionName:String, password:String):DelayedAsyncInvocation
 		{
-			return invokeAdminService("getDatabaseConfigInfo", arguments);
+			return invokeAdminService("getDatabaseConfigInfo", arguments, false);
 		}
 
                 // Tag information
@@ -220,19 +224,19 @@ package weave.services
                 }
 		public function getConnectionInfo(loginConnectionName:String, loginPassword:String, connectionNameToGet:String):DelayedAsyncInvocation
 		{
-			return invokeAdminService("getConnectionInfo", arguments);
+			return invokeAdminService("getConnectionInfo", arguments, false);
 		}
 		public function getDataTableInfo(connectionName:String, password:String, dataTableName:String):DelayedAsyncInvocation
 		{
-			return invokeAdminService("getDataTableInfo", arguments);
+			return invokeAdminService("getDataTableInfo", arguments, false);
 		}
 		public function getGeometryCollectionInfo(connectionName:String, password:String, geometryCollectionName:String):DelayedAsyncInvocation
 		{
-			return invokeAdminService("getGeometryCollectionInfo", arguments);
+			return invokeAdminService("getGeometryCollectionInfo", arguments, false);
 		}
 		public function testAllQueries(connectionName:String, password:String, dataTableName:String):DelayedAsyncInvocation
 		{
-			return invokeAdminService("testAllQueries", arguments);
+			return invokeAdminService("testAllQueries", arguments, false);
 		}
 		
 		// save info
@@ -254,7 +258,7 @@ package weave.services
 			query.addAsyncResponder(alertResult);
 			return query;
 		}
-		public function saveWeaveFile(connectionName:String, password:String, fileContents:String, fileName:String, overwriteFile:Boolean):DelayedAsyncInvocation
+		public function saveWeaveFile(connectionName:String, password:String, fileContent:ByteArray, fileName:String, overwriteFile:Boolean):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = invokeAdminService("saveWeaveFile", arguments);
 			//query.addAsyncResponder(alertResult);
@@ -295,6 +299,11 @@ package weave.services
 			return query;
 		}
 
+		public function getWeaveFileInfo(connectionName:String, password:String, fileName:String):DelayedAsyncInvocation
+		{
+			return invokeAdminService("getWeaveFileInfo", arguments, false); // bypass queue
+		}
+		
 		
 		/**
 		 * Adds the given Dublin Core key-value pairs to the metadata store for
@@ -353,17 +362,23 @@ package weave.services
 		}
 		public function getUploadedCSVFiles():DelayedAsyncInvocation
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("getUploadedCSVFiles", arguments);
+			var query:DelayedAsyncInvocation = invokeAdminService("getUploadedCSVFiles", arguments, false);
 			return query;
 		}
 		public function getUploadedShapeFiles():DelayedAsyncInvocation
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("getUploadedShapeFiles", arguments);
+			var query:DelayedAsyncInvocation = invokeAdminService("getUploadedShapeFiles", arguments, false);
 			return query;
 		}
 		public function getCSVColumnNames(csvFiles:String):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = invokeAdminService("getCSVColumnNames", arguments);
+			//query.addAsyncResponder(alertResult);
+			return query;
+		}
+		public function getCSVStringData(csvFile:String):DelayedAsyncInvocation
+		{
+			var query:DelayedAsyncInvocation = invokeAdminService("getCSVStringData", arguments);
 			//query.addAsyncResponder(alertResult);
 			return query;
 		}
@@ -397,7 +412,12 @@ package weave.services
 			var query:DelayedAsyncInvocation = invokeAdminService("checkKeyColumnForSQLImport", arguments);
 			return query;
 		}
-		public function convertShapefileToSQLStream(configConnectionName:String, password:String, fileNameWithoutExtension:String, keyColumns:Array, sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configGeometryCollectionName:String, configOverwrite:Boolean, configKeyType:String, srsCode:String, nullValues:String):DelayedAsyncInvocation
+		public function checkKeyColumnForCSVImport(csvFileName:String, keyColumnName:String, secondaryKeyColumnName:String):DelayedAsyncInvocation
+		{
+			var query:DelayedAsyncInvocation = invokeAdminService("checkKeyColumnForCSVImport",arguments);
+			return query;
+		}
+		public function convertShapefileToSQLStream(configConnectionName:String, password:String, fileNameWithoutExtension:String, keyColumns:Array, sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configGeometryCollectionName:String, configOverwrite:Boolean, configKeyType:String, srsCode:String, nullValues:String, importDBFAsDataTable:Boolean):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = invokeAdminService("convertShapefileToSQLStream", arguments);
 		    query.addAsyncResponder(alertResult);
@@ -423,15 +443,15 @@ package weave.services
 		 */
 		public function getSchemas(configConnectionName:String, password:String):DelayedAsyncInvocation
 		{
-		    return invokeAdminService("getSchemas", arguments);
+		    return invokeAdminService("getSchemas", arguments, false);
 		}
 		public function getTables(configConnectionName:String, password:String, schemaName:String):DelayedAsyncInvocation
 		{
-		    return invokeAdminService("getTables", arguments);
+		    return invokeAdminService("getTables", arguments, false);
 		}
 		public function getColumns(configConnectionName:String, password:String, schemaName:String, tableName:String):DelayedAsyncInvocation
 		{
-		    return invokeAdminService("getColumns", arguments);
+		    return invokeAdminService("getColumns", arguments, false);
 		}
 		
 		
@@ -439,7 +459,7 @@ package weave.services
 		
 		public function getAttributeColumn(metadata:Object):DelayedAsyncInvocation
 		{
-			return invokeDataService("getAttributeColumn", arguments);
+			return invokeDataService("getAttributeColumn", arguments, false);
 		}
 		
 		

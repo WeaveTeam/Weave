@@ -77,7 +77,6 @@
 		and extract them to the WEAVE_DESTROOT -->
 	<target name="build" depends="client, admin, ui, data, core, api, services">
 		<mkdir dir="${WEAVE_DESTROOT}"/>
-		<ant dir="${basedir}/${CLIENT}" target="build"/>
 		<extract_swc swc="${basedir}/${API}/bin/${API}.swc" rsl="${API}.swf"/>
 		<extract_swc swc="${basedir}/${CORE}/bin/${CORE}.swc" rsl="${CORE}.swf"/>
 		<extract_swc swc="${basedir}/${DATA}/bin/${DATA}.swc" rsl="${DATA}.swf"/>
@@ -93,23 +92,23 @@
 	</target>
 
 	<!-- These targets will build each project -->
-	<target name="client" depends="ui, data, core, api, check_client" unless="client_no_changes">
-		<ant dir="${basedir}/${CLIENT}" target="build"/>
+	<target name="api">
+		<buildproject targetproject="${API}" targetfileext="swc"/>
 	</target>
-	<target name="admin" depends="ui, data, core, api, check_admin" unless="admin_no_changes">
-		<ant dir="${basedir}/${ADMIN}" target="build"/>
+	<target name="core" depends="api">
+		<buildproject targetproject="${CORE}" targetfileext="swc"/>
 	</target>
-	<target name="api" depends="check_api" unless="api_no_changes">
-		<ant dir="${basedir}/${API}" target="build"/>
+	<target name="data" depends="core">
+		<buildproject targetproject="${DATA}" targetfileext="swc"/>
 	</target>
-	<target name="core" depends="api, check_core" unless="core_no_changes">
-		<ant dir="${basedir}/${CORE}" target="build"/>
+	<target name="ui" depends="data">
+		<buildproject targetproject="${UI}" targetfileext="swc"/>
 	</target>
-	<target name="data" depends="core, api, check_data" unless="data_no_changes">
-		<ant dir="${basedir}/${DATA}" target="build"/>
+	<target name="client" depends="ui">
+		<buildproject targetproject="${CLIENT}" targetfileext="swf"/>
 	</target>
-	<target name="ui" depends="data, core, api, check_ui" unless="ui_no_changes">
-		<ant dir="${basedir}/${UI}" target="build"/>
+	<target name="admin" depends="ui">
+		<buildproject targetproject="${ADMIN}" targetfileext="swf"/>
 	</target>
 	<target name="services">
 	    <ant dir="${basedir}/WeaveServices" target="dist"/>
@@ -130,67 +129,6 @@
 		<ant dir="${basedir}/${UI}" target="clean" />
 		<ant dir="${basedir}/${SERVICES}" target="clean" />
 	</target>
-
-
-	<!-- These targets set the properties ${project name}_no_changes if the target for each
-		project is more up-to-date than its source files or dependencies -->
-	<target name="check_api">
-		<echo message="Checking status of ${API}..."/>
-		<uptodate property="api_no_changes" targetfile="${basedir}/${API}/bin/${API}.swc">
-			<srcfiles dir="${basedir}/${API}" includes="**/*.as"/>
-			<srcfiles dir="${basedir}/${API}" includes="**/*.mxml"/>
-		</uptodate>
-	</target>
-	<target name="check_core">
-		<echo message="Checking status of ${CORE}..."/>
-		<uptodate property="core_no_changes" targetfile="${basedir}/${CORE}/bin/${CORE}.swc">
-			<srcfiles dir="${basedir}/${CORE}" includes="**/*.as"/>
-			<srcfiles dir="${basedir}/${CORE}" includes="**/*.mxml"/>
-			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
-		</uptodate>
-	</target>
-	<target name="check_data">
-		<echo message="Checking status of ${DATA}..."/>
-		<uptodate property="data_no_changes" targetfile="${basedir}/${DATA}/bin/${DATA}.swc">
-			<srcfiles dir="${basedir}/${DATA}" includes="**/*.as"/>
-			<srcfiles dir="${basedir}/${DATA}" includes="**/*.mxml"/>
-			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
-			<srcfiles dir="${basedir}/${CORE}/bin" includes="${CORE}.swc"/>
-		</uptodate>
-	</target>
-	<target name="check_ui">
-		<echo message="Checking status of ${UI}..."/>
-		<uptodate property="ui_no_changes" targetfile="${basedir}/${UI}/bin/${UI}.swc">
-			<srcfiles dir="${basedir}/${UI}" includes="**/*.as"/>
-			<srcfiles dir="${basedir}/${UI}" includes="**/*.mxml"/>
-			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
-			<srcfiles dir="${basedir}/${CORE}/bin" includes="${CORE}.swc"/>
-			<srcfiles dir="${basedir}/${DATA}/bin" includes="${DATA}.swc"/>
-		</uptodate>
-	</target>
-	<target name="check_client">
-		<echo message="Checking status of ${CLIENT}..."/>
-		<uptodate property="client_no_changes" targetfile="${basedir}/${CLIENT}/bin/${CLIENT}.swf">
-			<srcfiles dir="${basedir}/${CLIENT}" includes="**/*.as"/>
-			<srcfiles dir="${basedir}/${CLIENT}" includes="**/*.mxml"/>
-			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
-			<srcfiles dir="${basedir}/${CORE}/bin" includes="${CORE}.swc"/>
-			<srcfiles dir="${basedir}/${DATA}/bin" includes="${DATA}.swc"/>
-			<srcfiles dir="${basedir}/${UI}/bin" includes="${UI}.swc"/>
-		</uptodate>
-	</target>
-	<target name="check_admin">
-		<echo message="Checking status of ${ADMIN}..."/>
-		<uptodate property="admin_no_changes" targetfile="${basedir}/${ADMIN}/bin/${ADMIN}.swf">
-			<srcfiles dir="${basedir}/${ADMIN}" includes="**/*.as"/>
-			<srcfiles dir="${basedir}/${ADMIN}" includes="**/*.mxml"/>
-			<srcfiles dir="${basedir}/${API}/bin" includes="${API}.swc"/>
-			<srcfiles dir="${basedir}/${CORE}/bin" includes="${CORE}.swc"/>
-			<srcfiles dir="${basedir}/${DATA}/bin" includes="${DATA}.swc"/>
-			<srcfiles dir="${basedir}/${UI}/bin" includes="${UI}.swc"/>
-		</uptodate>
-	</target>
-
 
 	<target name="admin_wrapper">
 		<html-wrapper 
@@ -225,6 +163,7 @@
 			bgcolor="#7B96B6"
 		/>
 	</target>
+
 	<macrodef name="extract_swc">
 		<attribute name="swc"/>
 		<attribute name="rsl"/>
@@ -238,4 +177,24 @@
 			<delete dir="${WEAVE_DESTROOT}/temp"/>
 		</sequential>
 	</macrodef>
+	
+	<macrodef name="buildproject">
+		<attribute name="targetproject"/>
+		<attribute name="targetfileext"/>
+		<sequential>
+			<echo message="Checking @{targetproject}..."/>
+			<uptodate targetfile="${basedir}/@{targetproject}/bin/@{targetproject}.@{targetfileext}" property="@{targetproject}.uptodate">
+				<srcfiles dir="${basedir}/@{targetproject}" includes="**/*"/>
+			</uptodate>
+			<antcall target="conditional_build">
+				<param name="targetproject" value="@{targetproject}"/>
+			</antcall>
+		</sequential>
+	</macrodef>
+	<target name="conditional_build" unless="${targetproject}.uptodate">
+		<sequential>
+			<echo message="Building ${targetproject}..."/>
+			<ant dir="${basedir}/${targetproject}" target="build"/>
+		</sequential>
+	</target>
 </project>

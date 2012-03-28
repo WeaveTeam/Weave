@@ -30,6 +30,7 @@
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.reportError;
+			import weave.api.ui.IVisTool;
 			import weave.api.unlinkSessionState;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.data.AttributeColumns.ColorColumn;
@@ -41,6 +42,8 @@
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
 
+			WeaveAPI.registerImplementation(IVisTool, ColorBinLegendTool, "Color Legend");
+			
 			private var _plotter:ColorBinLegendPlotter = null;
 			override protected function constructor():void
 			{
@@ -71,7 +74,7 @@
 			{
 				super.childrenCreated();
 				dataColumnComponent.dynamicObject = _plotter.dynamicColorColumn;
-				_plotter.dynamicColorColumn.addImmediateCallback(this, colorColumnCallback, null, true);
+				_plotter.dynamicColorColumn.addImmediateCallback(this, colorColumnCallback, true);
 				visualization.marginTopNumber.addImmediateCallback(this, handleMarginChange);
 				linkBindableProperty(visualization.marginTopNumber, marginLabel, "height");
 				
@@ -165,11 +168,9 @@
 				LinkableTextFormat.defaultTextFormat.copyToStyle(marginLabel);
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Color Legend";
+				return "Color Legend";
 			}
 			
 			private static const DEFAULT_MARGIN_TOP:int = 25;
@@ -199,7 +200,7 @@
 				 borderThickness="0" backgroundAlpha="0"/>
 	<ui:ControlPanel>
 		<mx:VBox label="Binning">
-			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data" showLinkControl="false"/>
 			<ui:BinningDefinitionEditor id="binEditor" width="100%"/>
 		</mx:VBox>
 		<mx:VBox label="Appearance">

@@ -9,6 +9,7 @@
 package weave.config;
 
 import java.rmi.RemoteException;
+import java.security.InvalidParameterException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -172,7 +173,13 @@ public class DatabaseConfig
 		Connection conn = getConnection();
 		SQLUtils.createTable(conn, dbInfo.schema, dbInfo.dataConfigTable, columnNames, columnTypes);
 		// add (possibly) missing columns
-		for (String columnName : new String[]{PublicMetadata.TITLE, PublicMetadata.NUMBER, PublicMetadata.STRING})
+		String[] newColumnNames = new String[] {
+				PublicMetadata.TITLE,
+				PublicMetadata.NUMBER,
+				PublicMetadata.STRING,
+				PrivateMetadata.SQLPARAMS
+			};
+		for (String columnName : newColumnNames)
 		{
 			try
 			{
@@ -441,6 +448,7 @@ public class DatabaseConfig
 				Map<String, String> privateMetadata = new HashMap<String,String>();
 				privateMetadata.put(PrivateMetadata.CONNECTION, metadata.remove(PrivateMetadata.CONNECTION));
 				privateMetadata.put(PrivateMetadata.SQLQUERY, metadata.remove(PrivateMetadata.SQLQUERY));
+				privateMetadata.put(PrivateMetadata.SQLPARAMS, metadata.remove(PrivateMetadata.SQLPARAMS));
 
 				AttributeColumnInfo info = new AttributeColumnInfo();
 				info.privateMetadata = privateMetadata;
@@ -455,31 +463,37 @@ public class DatabaseConfig
 		}
 		return results;
 	}
-        /* legacy DatabaseConfig does not have tagging; however, dataTables are the hierarchy we should present as tags */
-        public void addChild(int parent, int child) throws RemoteException
-        {
-            return; 
-        }
-        public void removeChild(int parent, int child) throws RemoteException
-        {
-        }
-        public int addTag(String tagtitle) throws RemoteException
-        {
-            return 0;
-        }
-        public void removeTag(int tag_id) throws RemoteException
-        {
-        }
-        public Boolean isTag(int tag_id) throws RemoteException
-        {
-            return false;
-        }
-        public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
-        {
-            return null;
-        }
-        public Collection<Integer> getRoots() throws RemoteException
-        {
-            return null;
-        }
+    /* legacy DatabaseConfig does not have tagging; however, dataTables are the hierarchy we should present as tags */
+    public void addChild(int parent, int child) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public void removeChild(int parent, int child) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
+    public int addTag(String tagtitle) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public void removeTag(int tag_id) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
+    public Boolean isTag(int tag_id) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public Collection<Integer> getRoots() throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public int getEntityType(int id) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
 }

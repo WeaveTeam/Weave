@@ -29,7 +29,7 @@
 			>
 	<mx:Script>
 		<![CDATA[
-			import weave.WeaveProperties;
+			import weave.WeaveProperties;			
 		]]>
 	</mx:Script>
 	<WeavePropertiesAppearanceEditor label="Appearance"/>
@@ -40,12 +40,13 @@
 	<mx:VBox label="Advanced" width="100%" height="100%">
 		<ui:Indent label="Streaming geometry bounding box request mode">
 			<ui:CustomComboBox id="geometryMetadataRequestMode"/>
-			<ui:HelpComponent content='This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and probing on the map will not catch the shapes that are too small to be seen.'/>
+			<ui:HelpComponent>This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and probing on the map will not catch the shapes that are too small to be seen.</ui:HelpComponent>
 		</ui:Indent>
 		<ui:Indent label="Do not render geometry detail with pixel area less than">
 			<mx:NumericStepper width="64" minimum="1" maximum="100" stepSize="1" creationComplete="linkBindableProperty(Weave.properties.geometryMinimumScreenArea, event.target, 'value');"/>
-			<ui:HelpComponent content='This controls the filtering of vector tile requests and rendering.  Enter the minimum area requirement (in pixels) for geometry detail to be rendered.'/>
+			<ui:HelpComponent>This controls the filtering of vector tile requests and rendering.  Enter the minimum area requirement (in pixels) for geometry detail to be rendered.</ui:HelpComponent>
 		</ui:Indent>
+		<mx:Button label="Edit Macros" width="100" click="openMacroEditor(event)" />
 	</mx:VBox>
 	
 	<mx:Script>
@@ -79,6 +80,13 @@
 					PopUpManager.addPopUp(_instance, Application.application as Application);
 				
 				_instance.restorePanel();
+			}
+			
+			protected function openMacroEditor(event:MouseEvent):void
+			{
+				var mEditor:MacroEditor = new MacroEditor();
+				PopUpManager.addPopUp(mEditor, Application.application as Application);
+				mEditor.restorePanel();
 			}
 		]]>
 	</mx:Script>

@@ -84,6 +84,11 @@ package weave.services
 		 * This is the data format of the results from HTTP GET requests.
 		 */
 		protected var _urlRequestDataFormat:String;
+		
+		/**
+		 * Set this to false to disable automatic progress reporting to WeaveAPI.ProgressIndicator.
+		 */		
+		internal var reportProgress:Boolean = true;
 
 		/**
 		 * This function makes a remote procedure call.
@@ -110,7 +115,7 @@ package weave.services
 					for (var name:String in methodParameters)
 					{
 						if (methodParameters[name] is Array)
-							request.data[name] = WeaveAPI.CSVParser.createCSVFromArrays([methodParameters[name]]);
+							request.data[name] = WeaveAPI.CSVParser.createCSV([methodParameters[name]]);
 						else
 							request.data[name] = methodParameters[name];
 					}
@@ -125,14 +130,20 @@ package weave.services
 				obj.methodParameters = methodParameters;
 				obj.streamParameterIndex = -1; // index of stream parameter
 				
-				var streamContent:ByteArray;
+				var streamContent:ByteArray = null;
 				var params:Array = methodParameters as Array;
-				var index:int = params ? params.length - 1 : -1;
-				if (params && params.length > 0 && params[index] is ByteArray)
+				if (params)
 				{
-					obj.streamParameterIndex = index; // tell the server about the stream parameter index
-					streamContent = params[index];
-					params[index] = null; // keep the placeholder where the server will insert the stream parameter
+					var index:int;
+					for (index = 0; index < params.length; index++)
+						if (params[index] is ByteArray)
+							break;
+					if (index < params.length)
+					{
+						obj.streamParameterIndex = index; // tell the server about the stream parameter index
+						streamContent = params[index];
+						params[index] = null; // keep the placeholder where the server will insert the stream parameter
+					}
 				}
 				
 				// serialize into compressed AMF3
@@ -149,7 +160,7 @@ package weave.services
 			var token:AsyncToken = new AsyncToken();
 			
 			// the last argument is BINARY instead of _dataFormat because the stream should not be parsed
-			_asyncTokenToLoader[token] = WeaveAPI.URLRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY);
+			_asyncTokenToLoader[token] = WeaveAPI.URLRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY, reportProgress);
 			return token;
 		}
 		

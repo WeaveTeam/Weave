@@ -21,6 +21,7 @@ package weave.services
 	import flash.events.Event;
 	import flash.external.ExternalInterface;
 	import flash.net.FileReference;
+	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.setTimeout;
 	
@@ -392,7 +393,12 @@ package weave.services
 			return query;
 		}
 
-
+		// code for viewing a weave file archive thumbnail
+		
+		public function getWeaveFileInfo(fileName:String):DelayedAsyncInvocation
+		{
+			return service.getWeaveFileInfo(activeConnectionName, activePassword, fileName);
+		}
 		
 		
 		// code for viewing CSV and Shape file on the server
@@ -561,7 +567,7 @@ package weave.services
 		
 		public function convertShapefileToSQLStream(fileName:String, keyColumns:Array, sqlSchema:String, sqlTable:String, 
 													tableOverwriteCheck:Boolean, geometryCollection:String, configOverwriteCheck:Boolean, 
-													keyType:String, srsCode:String, nullValues:String):DelayedAsyncInvocation
+													keyType:String, srsCode:String, nullValues:String,importDBFAsDataTable:Boolean):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = service.convertShapefileToSQLStream(
 				activeConnectionName,
@@ -575,7 +581,8 @@ package weave.services
 				configOverwriteCheck,
 				keyType,
 				srsCode,
-				nullValues
+				nullValues,
+				importDBFAsDataTable
 			);
 			query.addAsyncResponder(handler);
 			function handler(..._):void
@@ -667,6 +674,16 @@ package weave.services
 			);
 			return query;
 		}
+		
+		public function checkKeyColumnForCSVImport(csvFileName:String, keyColumn:String, secondaryKeyColumn:String=null):DelayedAsyncInvocation
+		{
+			var query:DelayedAsyncInvocation = service.checkKeyColumnForCSVImport(
+				csvFileName,
+				keyColumn,
+				secondaryKeyColumn
+			);
+			return query;
+		}
 
 
 
@@ -692,18 +709,12 @@ package weave.services
 			ExternalInterface.call(script);
 		}
 		
-		public function saveWeaveFile(sessionState:String, clientConfigFileName:String, fileOverwrite:Boolean):DelayedAsyncInvocation
+		public function saveWeaveFile(fileContent:ByteArray, clientConfigFileName:String, fileOverwrite:Boolean):DelayedAsyncInvocation
 		{
-			if (clientConfigFileName.length < 4 ||
-				clientConfigFileName.substr(clientConfigFileName.length - 4).toLowerCase() != '.xml')
-			{
-				clientConfigFileName += '.xml';
-			}
-			
 			var query:DelayedAsyncInvocation = service.saveWeaveFile(
 				activeConnectionName,
 				activePassword,
-				sessionState,
+				fileContent,
 				clientConfigFileName,
 				fileOverwrite
 			);

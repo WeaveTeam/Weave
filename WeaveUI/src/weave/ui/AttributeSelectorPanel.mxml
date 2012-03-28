@@ -25,8 +25,7 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	title="Attribute Selector"
 	verticalScrollPolicy="off" horizontalScrollPolicy="off"
-	show="this.invalidateSize();"
-	backgroundColor="#EFF4BC"
+	backgroundColor="#EFF4BC" xmlns:editors="weave.editors.*"
 	>
 	<mx:VBox width="100%" height="100%" id="outerVBox" verticalGap="5">
 		<mx:HBox id="paramSelector" verticalAlign="middle">
@@ -39,11 +38,7 @@
 				itemClick="linkToObject(selectableAttributes[event.index]);"/>
 		</mx:HBox>
 		<mx:VDividedBox width="100%" height="100%" id="verticalDividedBox">
-		<!--<mx:VBox width="100%" height="0">
-			<mx:Button label="Refresh" click="{sessionNavigator.refresh()}"/>
-			<ui:SessionNavigator id="sessionNavigator" height="100%"/>
-		</mx:VBox>-->
-			<HierarchyColumnSelector id="hierarchyColumnSelector" width="100%" height="100%"/>
+			<editors:DynamicColumnEditor id="editor" width="100%" height="100%"/>
 			<mx:HBox id="addColumnControls" width="100%">
 				<mx:Spacer width="100%"/>
 				<mx:Button label="Add all" click="addAll()" toolTip="Add all attributes from the selected category"/>
@@ -54,54 +49,22 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
-			import mx.collections.ArrayCollection;
 			import mx.collections.ListCollectionView;
-			import mx.collections.XMLListCollection;
-			import mx.controls.Alert;
 			import mx.controls.Label;
-			import mx.controls.List;
 			import mx.core.Application;
-			import mx.core.Container;
-			import mx.core.DragSource;
-			import mx.core.IContainer;
-			import mx.core.IUIComponent;
-			import mx.core.UIComponent;
-			import mx.effects.easing.Circular;
-			import mx.events.DragEvent;
-			import mx.events.ItemClickEvent;
-			import mx.events.ListEvent;
-			import mx.graphics.Stroke;
-			import mx.managers.CursorManager;
-			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
-			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.copySessionState;
-			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
-			import weave.api.data.IDataSource;
 			import weave.api.disposeObjects;
-			import weave.api.linkSessionState;
-			import weave.api.registerLinkableChild;
-			import weave.api.unlinkSessionState;
-			import weave.core.LinkableHashMap;
-			import weave.core.LinkableString;
-			import weave.core.LinkableXML;
-			import weave.core.SessionManager;
-			import weave.core.WeaveXMLEncoder;
-			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
-			import weave.data.AttributeColumns.ProxyColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
-			import weave.primitives.AttributeHierarchy;
 			import weave.utils.HierarchyUtils;
 			import weave.visualization.tools.SimpleVisTool;
 
@@ -130,7 +93,7 @@
 			override public function dispose():void
 			{
 				super.dispose();
-				disposeObjects(hierarchyColumnSelector);
+				disposeObjects(editor);
 			}
 			
 			private function addAll():void
@@ -141,14 +104,14 @@
 					return;
 				}
 				
-				var root:XML = hierarchyColumnSelector.hierarchySelector.attributeHierarchy.value;
-				var attrs:Array = (hierarchyColumnSelector.hierarchySelector.attributesView.dataProvider as ListCollectionView).toArray();
+				var root:XML = editor.hierarchySelector.attributeHierarchy.value;
+				var attrs:Array = (editor.hierarchySelector.attributesView.dataProvider as ListCollectionView).toArray();
 				for (var i:int = 0; i < attrs.length; i++)
 				{
 					var attr:XML = attrs[i];
 					var col:ReferencedColumn = columnList.hashMap.requestObject(null, ReferencedColumn, false);
 					var ref:HierarchyColumnReference = col.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
-					hierarchyColumnSelector.copyPathToRef(HierarchyUtils.getPathFromNode(root, attr), ref);
+					editor.copyPathToRef(HierarchyUtils.getPathFromNode(root, attr), ref);
 				}
 			}
 			
@@ -159,36 +122,7 @@
 					linkToObject(null);
 					return;
 				}
-				columnList.hashMap.requestObjectCopy(null, hierarchyColumnSelector.dynamicColumn.internalObject);
-			}
-			
-			private var _prevLinkedColumn:DynamicColumn = null;
-			private function linkToDynamicColumn(linkObject:DynamicColumn):void
-			{
-				if (_prevLinkedColumn != null)
-					unlinkSessionState(_prevLinkedColumn, hierarchyColumnSelector.dynamicColumn);
-
-				_prevLinkedColumn = linkObject;
-				
-				if (linkObject != null)
-				{
-					linkSessionState(linkObject, hierarchyColumnSelector.dynamicColumn);
-
-					// if newly linked object doesn't have an internal column,
-					// keep the currently selected path except for the leaf node
-					if(linkObject.internalColumn == null)
-					{
-						var path:LinkableXML = hierarchyColumnSelector.hierarchySelector.selectedPath;
-						if (!path.value)
-							return;
-						var attr:XMLList = path.value.descendants("attribute");
-						if (attr.length() > 0)
-						{
-							delete attr[0];
-							path.detectChanges();
-						}
-					}
-				}
+				columnList.hashMap.requestObjectCopy(null, editor.dynamicColumn.internalObject);
 			}
 			
 			[Bindable] private var selectableAttributes:Array = [];
@@ -244,7 +178,7 @@
 					showOrHideParamSelector(false);
 				}
 				
-				linkToDynamicColumn(hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper));
+				editor.setTarget(hack_findInternalDynamicColumn(columnOrHashMap as IColumnWrapper));
 				
 				if (columnOrHashMap is ILinkableHashMap)
 				{
@@ -253,13 +187,13 @@
 					var columns:Array = (columnOrHashMap as ILinkableHashMap).getObjects(DynamicColumn);
 					if (columns.length > 0)
 					{
-						copySessionState(columns[0], hierarchyColumnSelector.dynamicColumn);
+						copySessionState(columns[0], editor.dynamicColumn);
 					}
 					else
 					{
 						columns = (columnOrHashMap as ILinkableHashMap).getObjects(IAttributeColumn);
 						if (columns.length > 0)
-							hierarchyColumnSelector.dynamicColumn.requestLocalObjectCopy(columns[0]);
+							editor.dynamicColumn.requestLocalObjectCopy(columns[0]);
 					}
 					
 					var child:DisplayObject = columnList.selectorControls;
@@ -307,7 +241,7 @@
 				if (!defaultSelector.parent)
 					PopUpManager.addPopUp(defaultSelector, Application.application as Application);
 
-				defaultSelector.hierarchyColumnSelector.clearSearch();
+				defaultSelector.editor.clearSearch();
 				
 				defaultSelector.linkToObject(linkTo, title);
 				defaultSelector.targets = linkTo ? [linkTo] : [];

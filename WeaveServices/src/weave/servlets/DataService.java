@@ -24,7 +24,6 @@ import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -188,7 +187,8 @@ public class DataService extends GenericServlet
 		{
 			AttributeColumnInfo info = infoList.get(colIndex);
 			String connectionName = info.privateMetadata.get(PrivateMetadata.CONNECTION);
-			String dataWithKeysQuery = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
+			String sqlQuery = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
+			String sqlParams = info.privateMetadata.get(PrivateMetadata.SQLPARAMS);
 			metadataList[colIndex] = info.publicMetadata;
 
 			//if (dataWithKeysQuery.length() == 0)
@@ -222,7 +222,19 @@ public class DataService extends GenericServlet
 			
 			try
 			{
-				SQLResult result = SQLUtils.getRowSetFromQuery(config.getNamedConnection(connectionName, true), dataWithKeysQuery);
+				//timer.start();
+				
+				SQLResult result;
+				if (sqlParams != null && sqlParams.length() > 0)
+				{
+					String[] sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams)[0];
+					result = SQLUtils.getRowSetFromQuery(config.getNamedConnection(connectionName, true), sqlQuery, sqlParamsArray);
+				}
+				else
+				{
+					result = SQLUtils.getRowSetFromQuery(config.getNamedConnection(connectionName, true), sqlQuery);
+				}
+				//timer.lap("get row set");
 				// if dataType is defined in the config file, use that value.
 				// otherwise, derive it from the sql result.
 				if (dataType.length() == 0)
@@ -303,7 +315,6 @@ public class DataService extends GenericServlet
 	/**
 	 * should return two columns -- keys and data
 	 */
-	@SuppressWarnings("unchecked")
 	public AttributeColumnDataWithKeys getAttributeColumn(Map<String, String> params)
 		throws RemoteException
 	{
@@ -369,6 +380,10 @@ public class DataService extends GenericServlet
 		{
 			String connectionName = info.privateMetadata.get(PrivateMetadata.CONNECTION);
 			SQLResult result;
+			// use default sqlParams if not specified by query params
+			if (sqlParams == null || sqlParams.length() == 0)
+				sqlParams = info.privateMetadata.get(PrivateMetadata.SQLPARAMS);
+			
 			if (sqlParams != null && sqlParams.length() > 0)
 			{
 				String[] args = CSVParser.defaultParser.parseCSV(sqlParams)[0];
@@ -469,7 +484,6 @@ public class DataService extends GenericServlet
 		return true;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public SQLResult getRowSetFromAttributeColumn(Map<String, String> params)
 		throws RemoteException
 	{
@@ -498,7 +512,6 @@ public class DataService extends GenericServlet
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	public GeometryStreamMetadata getGeometryStreamTileDescriptors(String geometryCollectionName)
 		throws RemoteException
 	{

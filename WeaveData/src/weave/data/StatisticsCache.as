@@ -22,13 +22,11 @@ package weave.data
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IStatisticsCache;
-	import weave.api.detectLinkableObjectChange;
 	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
@@ -40,11 +38,6 @@ package weave.data
 	 */
 	public class StatisticsCache implements IStatisticsCache
 	{
-		public static function get instance():StatisticsCache
-		{
-			return WeaveAPI.StatisticsCache as StatisticsCache;
-		}
-		
 		//TODO(?): median,range,coefficient of variance,midrange
 
 		public function StatisticsCache():void

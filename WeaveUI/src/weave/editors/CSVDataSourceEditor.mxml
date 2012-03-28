@@ -231,7 +231,7 @@
 					delete item['mx_internal_uid'];
 				
 				var tempArray:Array = WeaveAPI.CSVParser.convertRecordsToRows(csvDataArray);
-				csvDataString = WeaveAPI.CSVParser.createCSVFromArrays(tempArray);
+				csvDataString = WeaveAPI.CSVParser.createCSV(tempArray);
 				
 				//if the data entered through the text area, update the text area to reflect the changes made.
 				if (csvTextArea.text != "")

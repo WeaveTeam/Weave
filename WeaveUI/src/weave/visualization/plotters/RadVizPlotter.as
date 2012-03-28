@@ -65,16 +65,12 @@ package weave.visualization.plotters
 			setNewRandomJitterColumn();		
 			iterations.value = 50;
 			recordsPerDraw = 1;
-			init()
-		}		
-		
-		private function init():void
-		{
 			algorithms[RANDOM_LAYOUT] = RandomLayoutAlgorithm;
 			algorithms[GREEDY_LAYOUT] = GreedyLayoutAlgorithm;
 			algorithms[NEAREST_NEIGHBOR] = NearestNeighborLayoutAlgorithm;
 			algorithms[INCREMENTAL_LAYOUT] = IncrementalLayoutAlgorithm;
 			algorithms[BRUTE_FORCE] = BruteForceLayoutAlgorithm;
+			handleColumnsChange();
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
@@ -112,8 +108,6 @@ package weave.visualization.plotters
 		private var keyColorMap:Dictionary;
 		private var keyNormMap:Dictionary;
 		private var keyGlobalNormMap:Dictionary;
-		private var keyMaxMap:Dictionary;
-		private var keyMinMap:Dictionary;
 		private var columnTitleMap:Dictionary;
 		
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
@@ -128,18 +122,18 @@ package weave.visualization.plotters
 			_columns = columns.getObjects(IAttributeColumn);
 			var sum:Number = 0;
 			
+			randomArrayIndexMap = 	new Dictionary(true);				
+			var keyMaxMap:Dictionary = new Dictionary(true);
+			var keyMinMap:Dictionary = new Dictionary(true);
+			keyNormMap = 			new Dictionary(true);
+			keyGlobalNormMap = 		new Dictionary(true);
+			keyNumberMap = 			new Dictionary(true);
+			columnTitleMap = 		new Dictionary(true);
+			
 			if (_columns.length > 0) 
 			{
 				setKeySource(_columns[0]);
 			
-				randomArrayIndexMap = 	new Dictionary(true);				
-				keyMaxMap = 			new Dictionary(true);
-				keyMinMap = 			new Dictionary(true);
-				keyNormMap = 			new Dictionary(true);
-				keyGlobalNormMap = 		new Dictionary(true);
-				keyNumberMap = 			new Dictionary(true);
-				columnTitleMap = 		new Dictionary(true);
-				
 				for each( var key:IQualifiedKey in keySet.keys)
 				{					
 					randomArrayIndexMap[key] = i ;										
@@ -300,6 +294,7 @@ package weave.visualization.plotters
 					randomValueArray.push( Math.random() % 10) ;
 					randomValueArray.push( -(Math.random() % 10)) ;
 				}
+			spatialCallbacks.triggerCallbacks();
 		}
 		
 		/**

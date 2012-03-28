@@ -19,10 +19,12 @@
 
 package weave.primitives
 {
+	import mx.utils.StringUtil;
+	
 	import weave.api.primitives.IBounds2D;
+	import weave.compiler.StandardLib;
 	
 	/**
-	 * BLGTree
 	 * Binary Line Generalization Tree
 	 * This class defines a structure to represent a streamed polygon.
 	 * 
@@ -36,7 +38,6 @@ package weave.primitives
 	public class BLGTree
 	{
 		/**
-		 * BLGTree
 		 * Create an empty tree.
 		 */
 		public function BLGTree()
@@ -44,7 +45,6 @@ package weave.primitives
 		}
 
 		/**
-		 * rootNode
 		 * This is the root of the BLGTree.
 		 */
 		private var rootNode:BLGNode = null;
@@ -55,25 +55,10 @@ package weave.primitives
 		}
 		
 		/**
-		 * lowestSavedImportance
-		 * The lowest importance value for any point that has been stored in the tree
-		 */
-		private var _lowestSavedImportance:Number = NaN;
-		public function get lowestSavedImportance():Number
-		{
-			return _lowestSavedImportance;
-		}
-
-		/**
-		 * insert
 		 * Insert a new vertex into the BLGTree.
 		 */
 		public function insert(index:int, importance:Number, x:Number, y:Number):void
 		{
-			// update lowest saved importance
-			if (isNaN(_lowestSavedImportance) || importance < _lowestSavedImportance)
-				_lowestSavedImportance = importance; 
-			
 			// if this new point would have been in the previous traversal,
 			// then the previous traversal is now invalid.
 			if (importance >= previousTraversalMinImportance)
@@ -96,7 +81,7 @@ package weave.primitives
 				if (currentNode.index == newNode.index)
 				{
 					if (newNode.left != null || newNode.right != null) // sanity check -- this should never happen
-						trace("WARNING: BLGNode.insert: new node with children has index identical to an existing node"); 
+						throw new Error("BLGNode.insert: new node with children has index identical to an existing node");
 					return;
 				}
 				// if the new importance is greater than this importance, tree needs to be restructured.
@@ -171,8 +156,12 @@ package weave.primitives
 				{
 					if (newNode.index < leftTraversalNode.index) // will only happen once, when leftTraversalNode == currentNode
 					{
+						/*
+						// for debugging
 						if (leftTraversalNode != currentNode)
-							trace("BLGTree.insert() PROBLEM!?@#%?@#$%");
+							throw new Error("Unexpected error. leftTraversalNode != currentNode");
+						*/
+						
 						if (leftTraversalNode.left != null)
 						{
 							// travel down the tree to find the appropriate insertion spot
@@ -203,8 +192,12 @@ package weave.primitives
 				{
 					if (newNode.index > rightTraversalNode.index) // will only happen once, when rightTraversalNode == currentNode
 					{
+						/*
+						// for debugging
 						if (rightTraversalNode != currentNode)
-							trace("PROBLEM!?@#%?@#$%");
+							throw new Error("Unexpected error. rightTraversalNode != currentNode");
+						*/
+						
 						if (rightTraversalNode.right != null)
 						{
 							// travel down the tree to find the appropriate insertion spot
@@ -244,7 +237,6 @@ package weave.primitives
 		private static const OP_TRAVERSE:int = 1; // constant used with operationStack
 		
 		/**
-		 * getPointVector
 		 * This function performs an in-order traversal of nodes, skipping those
 		 * with importance < minImportance.  The visit operation is to append the
 		 * current node to the traversalVector.
@@ -257,8 +249,7 @@ package weave.primitives
 			if (minImportance == previousTraversalMinImportance && previousTraversalVisibleBounds.equals(visibleBounds))
 				return traversalVector; // avoid redundant computation
 
-			var gridContainmentFlag:int = -1;
-			
+			var visible:Boolean = (visibleBounds == null);
 			var resultCount:int = 0; // the number of nodes that have been stored in the traversalVector
 			if (rootNode != null)
 			{
@@ -266,9 +257,12 @@ package weave.primitives
 				// begin by putting a traverse operation on the stack
 				operationStack[0] = OP_TRAVERSE;
 				nodeStack[0] = rootNode;
-				var prevGridID:Number = 0, gridID:Number;
-				var consecutivePointsInGrid:int = 0;
-				var stackPos:int = 0, node:BLGNode, operation:int;
+				var prevPrevGridTest:uint = 0;
+				var prevGridTest:uint = 0;
+				var gridTest:uint;
+				var stackPos:int = 0;
+				var node:BLGNode;
+				var operation:int;
 				// loop until the stack is empty
 				while (stackPos >= 0)
 				{
@@ -312,33 +306,35 @@ package weave.primitives
 					}
 					else // OP_VISIT
 					{
+						/*
+						// for debugging
 						if (resultCount > 0 && traversalVector[resultCount - 1].index > node.index)
-							trace("PROBLEM!!!:",traversalVector[resultCount - 1].index,"to",node.index);
+						{
+							var errorMsg:String = StringUtil.substitute(
+								"Unexpected error. OP_VISIT out of order ({0} to {1})",
+								traversalVector[resultCount - 1].index,
+								node.index
+							);
+							throw new Error(errorMsg);
+						}
+						*/
 						if (visibleBounds != null)
 						{
-							gridID = visibleBounds.getGridContainment(node.x, node.y);
-							if (gridContainmentFlag == -1)
-								gridContainmentFlag = gridID;
-							else if (gridContainmentFlag != gridID && gridContainmentFlag != 0)
-								gridContainmentFlag = 0;
+							gridTest = visibleBounds.getGridTest(node.x, node.y);
+							if (prevPrevGridTest & prevGridTest & gridTest)
+							{
+								// Drop previous node.  Keep current prevPrevGridTest value.
+								resultCount--;
+							}
+							else
+							{
+								if (resultCount >= 2) // polygon should be rendered if at least 3 vertices exist
+									visible = true;
 								
-							if (gridID == prevGridID)
-							{
-								if (gridID != 0 && consecutivePointsInGrid == 2)
-									resultCount--; // drop previous node
-								else
-									consecutivePointsInGrid++;
+								// Don't drop previous node.  Shift prev grid test values.
+								prevPrevGridTest = prevGridTest;
 							}
-							else // gridID changed
-							{
-								// if both are not gridID 0 and the difference between gridIDs is 1 or 7,
-								// we only need one point from the previous gridID.
-								// so if there are two in the previous grid, drop one
-								if (gridID != 0 && prevGridID != 0 && consecutivePointsInGrid == 2 && Math.abs(gridID - prevGridID) % 6 == 1)
-									resultCount--; // drop previous node
-								prevGridID = gridID;
-								consecutivePointsInGrid = 1;
-							}
+							prevGridTest = gridTest;
 						}
 						// copy this node to the results
 						traversalVector[resultCount++] = node;
@@ -363,34 +359,31 @@ package weave.primitives
 			}
 			*/
 			
-			if (gridContainmentFlag > 0)
+			// if nothing is visible, don't return anything
+			if (!visible)
 				traversalVector.length = 0;
 			
 			return traversalVector;
 		}
 		
 		/**
-		 * traversalVector
 		 * This vector is used in getPointVector().  It contains pointers to nodes that
 		 * are currently being traversed. The first entry in the vector is the root node,
 		 * and each other entry corresponds to a child node of the previous entry.
 		 */
 		private var traversalVector:Vector.<BLGNode> = new Vector.<BLGNode>();
 		/**
-		 * previousTraversalMinImportance
 		 * This is the minImportance value from the last traversal.
 		 * It can be used to avoid redundant traversal computations.
 		 */
 		private var previousTraversalMinImportance:Number = -1;
 		/**
-		 * previousTraversalVisibleBounds
 		 * This is the visibleBounds value from the last traversal.
 		 * It can be used to avoid redundant traversal computations.
 		 */
 		private var previousTraversalVisibleBounds:IBounds2D = new Bounds2D();
 
 		/**
-		 * splitAtIndex
 		 * @param splitIndex An index to split the tree at.
 		 * @return A new BLGTree containing all the points whose index >= splitIndex.
 		 */
@@ -401,7 +394,6 @@ package weave.primitives
 			var nodes:Vector.<BLGNode> = getPointVector();
 			// clear this tree
 			rootNode = null;
-			_lowestSavedImportance = NaN;
 			// add back all the points to the appropriate trees
 			for each (var node:BLGNode in nodes)
 			{
@@ -417,7 +409,6 @@ package weave.primitives
 		}
 
 		/**
-		 * clear
 		 * Removes all points from the BLGTree.
 		 */		
 		public function clear():void
@@ -425,7 +416,6 @@ package weave.primitives
 			rootNode = null;
 			traversalVector.length = 0;
 			previousTraversalMinImportance = -1;
-			_lowestSavedImportance = NaN;
 		}
 	}
 }

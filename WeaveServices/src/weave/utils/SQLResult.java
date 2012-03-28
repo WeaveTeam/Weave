@@ -54,16 +54,20 @@ public class SQLResult
 		}
 		rows = linkedRows.toArray(new Object[linkedRows.size()][]);
 	}
-        public static int objAsInt(Object obj)
-        {
-            return (Integer)obj;
-        }
-	public static String objAsString(Object obj)
-        {
-            return (String)obj;
-        }
+	
+	/**
+	 * An array of column names from the ResultSetMetaData of the original ResultSet.
+	 */
 	public String[] columnNames;
+	
+	/**
+	 * An array of column types from the ResultSetMetaData of the original ResultSet.
+	 */
 	public int[] columnTypes;
+	
+	/**
+	 * A table of values from the original ResultSet.
+	 */
 	public Object[][] rows;
 	
 	/**
@@ -72,9 +76,8 @@ public class SQLResult
 	 */
 	public String toString()
 	{
-		String header = CSVParser.defaultParser.createCSVFromArrays(new String[][]{ columnNames }, true);
-		String[][] stringRows = CSVParser.defaultParser.convertObjectTableToStringTable(rows);
-		String data = CSVParser.defaultParser.createCSVFromArrays(stringRows, true);
+		String header = CSVParser.defaultParser.createCSV(new String[][]{ columnNames }, true);
+		String data = CSVParser.defaultParser.createCSV(rows, true);
 		return header + CSVParser.LF + data;
 	}
 }

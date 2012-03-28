@@ -36,7 +36,7 @@ package weave.graphs
 	import weave.api.graphs.IGraphNode;
 	import weave.api.primitives.IBounds2D;
 	import weave.services.DelayedAsyncResponder;
-	import weave.services.WeaveStatisticsServlet;
+	import weave.services.WeaveRServlet;
 	import weave.services.beans.RResult;
 	
 	/**

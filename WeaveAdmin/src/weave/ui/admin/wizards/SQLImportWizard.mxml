@@ -57,7 +57,7 @@
 							grouped="false"
 							label="Columns to use as filters"
 							id="filterColumnsInput"
-							text="{WeaveAPI.CSVParser.createCSVFromArrays([tableSelector.columns])}"/>
+							text="{WeaveAPI.CSVParser.createCSV([tableSelector.columns])}"/>
 			</mx:VBox>
 		</mx:VBox>
 	</mx:VBox>

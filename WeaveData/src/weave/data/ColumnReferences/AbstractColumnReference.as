@@ -28,7 +28,9 @@ package weave.data.ColumnReferences
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
+	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableString;
 	
@@ -47,9 +49,11 @@ package weave.data.ColumnReferences
 		public function AbstractColumnReference()
 		{
 			// Whenever any property of the column reference changes, the hash value needs to be updated.
-			getCallbackCollection(this).addImmediateCallback(this, invalidateHash, null, true);
+			getCallbackCollection(this).addImmediateCallback(this, invalidateHash, true);
 			getCallbackCollection(this).addGroupedCallback(this, registerThisRef);
 		}
+		
+		private const dynamicDataSource:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IDataSource));
 		
 		private function registerThisRef():void
 		{
@@ -70,7 +74,12 @@ package weave.data.ColumnReferences
 		/**
 		 * This is the name of an IDataSource in the top level session state.
 		 */
-		public const dataSourceName:LinkableString = newLinkableChild(this, LinkableString);
+		public const dataSourceName:LinkableString = newLinkableChild(this, LinkableString, updateGlobalName);
+		
+		private function updateGlobalName():void
+		{
+			dynamicDataSource.globalName = dataSourceName.value;
+		}
 
 		/**
 		 * This function returns the IDataSource that knows how to get the column this object refers to.
@@ -78,7 +87,7 @@ package weave.data.ColumnReferences
 		 */		
 		public function getDataSource():IDataSource
 		{
-			return LinkableDynamicObject.globalHashMap.getObject(dataSourceName.value) as IDataSource;
+			return dynamicDataSource.internalObject as IDataSource;
 		}
 
 		/**

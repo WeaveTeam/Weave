@@ -351,7 +351,7 @@ internal class Library implements IDisposableObject
 			{
 				// if _classQNames is null it means the library was unloaded or there was a fault.
 				if (!fault)
-					fault = new Fault("unloaded", "Library was unloaded");
+					fault = new Fault('Error', "Unable to load plugin " + _url);
 				var faultEvent:FaultEvent = FaultEvent.createEvent(fault, _asyncToken);
 				_asyncToken.mx_internal::applyFault(faultEvent);
 				

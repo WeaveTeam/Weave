@@ -26,6 +26,8 @@ package weave.core
 	import mx.rpc.xml.SimpleXMLDecoder;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.WeaveAPI;
+	
 	/**
 	 * XMLDecoder
 	 * This extension of SimpleXMLDecoder adds support for XML objects encoded with XMLEncoder.
@@ -164,7 +166,7 @@ package weave.core
 			{
 				// handle special cases indicated by the 'encoding' attribute
 				var encoding:String = String(dataNode.attributes.encoding).toLowerCase();
-				if (ObjectUtil.stringCompare(encoding, WeaveXMLEncoder.XML_ENCODING, true) == 0)
+				if (encoding == WeaveXMLEncoder.XML_ENCODING)
 				{
 					var children:XMLList = XML(dataNode).children();
 					if (children.length() == 0)
@@ -175,13 +177,17 @@ package weave.core
 					// make a copy to get rid of the parent node
 					//return children[0].copy();
 				}
-				/* else if (ObjectUtil.stringCompare(encoding, WeaveXMLEncoder.CSV_ENCODING, true) == 0)
+				else if (encoding == WeaveXMLEncoder.CSV_ENCODING || encoding == WeaveXMLEncoder.CSVROW_ENCODING)
 				{
 					// distinguish between null (<tag/>) and "" (<tag>""</tag>)
 					if (dataNode.firstChild == null)
 						return null;
-					return new CSV(XML(dataNode).text().toXMLString());
-				} */
+					var csvString:String = XML(dataNode).text().toXMLString();
+					var rows:Array = WeaveAPI.CSVParser.parseCSV(csvString);
+					if (encoding == WeaveXMLEncoder.CSV_ENCODING)
+						return rows;
+					return rows.length == 0 ? rows : rows[0]; // single row
+				}
 				else if (ObjectUtil.stringCompare(encoding, WeaveXMLEncoder.DYNAMIC_ENCODING, true) == 0)
 				{
 					return decodeDynamicStateXMLNode(dataNode);

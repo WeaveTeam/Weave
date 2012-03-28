@@ -952,6 +952,8 @@ public class SQLUtils
 		try
 		{
 			DatabaseMetaData md = conn.getMetaData();
+
+			tableName = escapeSearchString(conn, tableName);
 			
 			// MySQL uses "catalogs" instead of "schemas"
 			if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
@@ -1134,19 +1136,19 @@ public class SQLUtils
 			SQLUtils.cleanup(stmt);
 		}
 	}
-        private static String buildPreparedWhereClause(Connection conn, Collection<String> columns) /* Only for prepared case */ throws IllegalArgumentException, SQLException
+    private static String buildPreparedWhereClause(Connection conn, Collection<String> columns) /* Only for prepared case */ throws IllegalArgumentException, SQLException
+    {
+        Map<String,String> whereClauses = new HashMap<String,String>();
+        for (String key : columns)
         {
-                Map<String,String> whereClauses = new HashMap<String,String>();
-                for (String key : columns)
-                {
-                    whereClauses.put(key, "");
-                }
-                return buildWhereClause(conn, whereClauses, false, true);
+            whereClauses.put(key, "");
         }
-        private static String buildWhereClause(Connection conn, Map<String,String> whereClauses) throws IllegalArgumentException, SQLException
-        {
-                return buildWhereClause(conn, whereClauses, false, false);
-        }
+        return buildWhereClause(conn, whereClauses, false, true);
+    }
+    private static String buildWhereClause(Connection conn, Map<String,String> whereClauses) throws IllegalArgumentException, SQLException
+    {
+        return buildWhereClause(conn, whereClauses, false, false);
+    }
 	private static <T> String buildGenericWhereClause(Connection conn, Map<String,T> whereClauses /* boolean preQuoted = false */) throws IllegalArgumentException, SQLException
 	{
 		return buildPreparedWhereClause(conn, whereClauses.keySet());
@@ -1816,30 +1818,25 @@ public class SQLUtils
 	}
 
 	/**
-	 * @TODO Stop using this function. It isn't safe.  Use '?' placeholders in queries instead.
+	 * This will escape special characters in a SQL search string.
+	 * @param conn A SQL Connection.
+	 * @param searchString A SQL search string containing special characters to be escaped.
+	 * @return The searchString with special characters escaped.
+	 * @throws SQLException 
 	 */
-	public static String quoteString(Connection conn, String string)
+	public static String escapeSearchString(Connection conn, String searchString) throws SQLException
 	{
-		try 
+		String escape = conn.getMetaData().getSearchStringEscape();
+		StringBuilder sb = new StringBuilder();
+		int n = searchString.length();
+		for (int i = 0; i < n; i++)
 		{
-			return quoteString(conn.getMetaData().getDatabaseProductName(), string);
-		} 
-		catch (SQLException e) 
-		{
-			// this should never happen
-			throw new RuntimeException(e);
+			char c = searchString.charAt(i);
+			if (c == '.' || c == '%' || c == '_' || c == '"' || c == '\'' || c == '`')
+				sb.append(escape);
+			sb.append(c);
 		}
-	}
-	
-	/**
-	 * @TODO Stop using this function. It isn't safe.  Use '?' placeholders in queries instead.
-	 */
-	public static String quoteString(String dbms, String string)
-	{
-		String quote = "'";
-		
-		// make sure to escape matching quotes in the actual string
-		return quote + string.replace("\\","\\\\").replace(quote, "\\" + quote) + quote;
+		return sb.toString();
 	}
 	
 	/**
@@ -1956,27 +1953,41 @@ public class SQLUtils
 				if (prevAutoCommit)
 					conn.setAutoCommit(false);
 				
-				stmt = conn.createStatement();
-				
 				String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(formatted_CSV_path));
 				String[][] rows = CSVParser.defaultParser.parseCSV(csvData);
-				String query = "";
-				for (int i = 1; i < rows.length; i++) //Skip header line
+				String query = "", tempQuery = "INSERT INTO %s values (";
+				for (int column = 0; column < rows[0].length; column++) // Use header row to determine the number of columns
 				{
-					query = "insert into " + quotedTable + " values " + "(";
-					for (int j = 0; j < rows[i].length; j++)
-					{
-						if (j > 0)
-							query += ",";
-						query += SQLUtils.quoteString(conn, rows[i][j]);
-					}
-					query += ")";
-					stmt.executeUpdate(query);
+					if (column == rows[0].length - 1)
+						tempQuery = tempQuery + "?)";
+					else
+						tempQuery = tempQuery + "?,";
 				}
-				stmt.close();
 				
-				if (prevAutoCommit)
-					conn.setAutoCommit(true);
+				query = String.format(tempQuery, quotedTable);
+				
+				CallableStatement cstmt = null;
+				try
+				{
+					cstmt = conn.prepareCall(query);;
+
+					for (int row = 1; row < rows.length; row++) //Skip header line
+					{
+						for (int column = 0; column < rows[row].length; column++)
+						{
+							cstmt.setString(column+1, rows[row][column]);
+						}
+						cstmt.execute();
+					}
+				}
+				catch (SQLException e)
+				{
+					throw new RemoteException(e.getMessage(), e);
+				}
+				finally
+				{
+					SQLUtils.cleanup(cstmt);
+				}
 			}
 			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
 			{

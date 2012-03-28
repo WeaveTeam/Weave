@@ -29,7 +29,7 @@ package weave.core
 	 */
 	public class DynamicState
 	{
-		public function DynamicState(objectName:String = null, className:String = null, sessionState:Object = null)
+		public function DynamicState(objectName:String = null, className:String = null, sessionState:* = null)
 		{
 			this.objectName = objectName;
 			this.className = className;
@@ -49,7 +49,7 @@ package weave.core
 		/**
 		 * This is the session state for an object of the type specified by className.
 		 */
-		public var sessionState:Object = null;
+		public var sessionState:* = null;
 		
 		
 		///////////////////////////////////////////////////////////

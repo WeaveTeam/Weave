@@ -36,6 +36,7 @@ package weave.core
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IStageUtils;
 	import weave.api.reportError;
+	import weave.utils.DebugTimer;
 	
 	use namespace mx_internal;
 	
@@ -153,6 +154,10 @@ package weave.core
 			var currentTime:int = getTimer();
 			_previousFrameElapsedTime = currentTime - _currentFrameStartTime;
 			_currentFrameStartTime = currentTime;
+			
+			if (_previousFrameElapsedTime > 3000)
+				trace(_previousFrameElapsedTime);
+			
 			// update mouse coordinates
 			_lastMousePoint.x = _stage.mouseX;
 			_lastMousePoint.y = _stage.mouseY;
@@ -203,7 +208,12 @@ package weave.core
 					stackTrace = _stackTraceMap[args]; // check this for debugging where the call came from
 					// don't call the function if the relevantContext was disposed of.
 					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
+					{
+						// TODO: PROFILING: check how long this function takes to execute.
+						// if it takes a long time (> 1000 ms), something's wrong...
+						
 						(args[1] as Function).apply(null, args[2]);
+					}
 				}
 			}
 		}
@@ -491,19 +501,17 @@ package weave.core
 		 * WARNING: These callbacks will trigger on every mouse event that occurs on the stage.
 		 *          Developers should not add any callbacks that run computationally expensive code.
 		 * 
-		 * This function will add a callback using the given function and parameters.
-		 * Any callback previously added for the same function will be overwritten.
+		 * This function will add the given function as a callback.  The function must not require any parameters.
 		 * @param eventType The name of the event to add a callback for.
 		 * @param callback The function to call when an event of the specified type is dispatched from the stage.
-		 * @param parameters An array of parameters that will be used as parameters to the callback function.
 		 * @param runCallbackNow If this is set to true, the callback will be run immediately after it is added.
 		 */
-		public function addEventCallback(eventType:String, relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false):void
+		public function addEventCallback(eventType:String, relevantContext:Object, callback:Function, runCallbackNow:Boolean = false):void
 		{
 			var cc:ICallbackCollection = _callbackCollections[eventType] as ICallbackCollection;
 			if (cc != null)
 			{
-				cc.addImmediateCallback(relevantContext, callback, parameters, runCallbackNow);
+				cc.addImmediateCallback(relevantContext, callback, runCallbackNow);
 			}
 			else
 			{
