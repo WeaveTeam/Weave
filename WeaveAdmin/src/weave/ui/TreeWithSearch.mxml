@@ -102,51 +102,6 @@
                  * @param categories A map of Objects with keys, "name", "parent_id"
                  * @param columns A map of Objects with keys, "name", "parent_id"
                  */
-	        public function generateTreeFromCategories(categories:Object, columns:Object):void
-                {
-                        var root:Object = {label: "", object: "", children: []};
-                        var catNodes:Object = new Object();
-
-                        var cat_id:String;
-                        var cat_parent:String;
-                        var cat_name:String;
-
-                        var category:Object;
-                        var column:Object;
-                        for (cat_id in categories) /* pass 1 creates all the needed nodes. */
-                        {
-                            category = categories[cat_id];
-                            cat_name = category.name;
-                            cat_id = category.id;
-
-                            catNodes[cat_id] = {label: cat_name, object: cat_id, children: []}; 
-                            
-                        }
-                        for (cat_id in categories) /* pass 2 adds the nodes to one another */
-                        {
-                            category = categories[cat_id];
-                            
-                            cat_id = category.id;
-                            cat_parent = category.parent_id;
-                            if (cat_id != "0")
-                            {
-                                catNodes[cat_parent].children.push(catNodes[cat_id]);
-                            }
-                            else
-                            {
-                                root.children.push(catNodes[cat_id]);
-                            }
-                        }
-                        for (cat_id in columns) /* add the leaves. */
-                        {
-                            column = columns[cat_id];
-                            cat_parent = column.parent_id;
-                            cat_name = column.name;
-                            catNodes[cat_parent].children.push({label: cat_name, object: cat_id, children: []});
-                        }
-                        treeSource = root;
-                        search();
-                }	
 		/**
 		 * This will set the treeSource to a flat tree, generated from a list of labels.
 		 * @param labels A flat list of labels to use as items in the tree.
@@ -165,7 +120,6 @@
 			treeSource = root;
 			search();
 		}
-		
 		private function handleCreationComplete():void
 		{
 			

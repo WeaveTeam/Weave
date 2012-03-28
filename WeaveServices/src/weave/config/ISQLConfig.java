@@ -132,9 +132,9 @@ public abstract class ISQLConfig
          */
         abstract public void addChild(int parent, int child) throws RemoteException;
         abstract public void removeChild(int parent, int child) throws RemoteException;
+        abstract public int getEntityType(int id) throws RemoteException;
         abstract public int addTag(String tagtitle) throws RemoteException;
         abstract public void removeTag(int tag_id) throws RemoteException;
-        abstract public Boolean isTag(int tag) throws RemoteException;
         abstract public Collection<Integer> getChildren(Integer parent_id) throws RemoteException;
         abstract public Collection<Integer> getRoots() throws RemoteException;
         /* Former residents of SQLConfigUtils */

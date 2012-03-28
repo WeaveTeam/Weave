@@ -629,7 +629,7 @@ public class AdminService extends GenericServlet
                 else
                     return;
         }
-        synchronized public AttributeColumnInfo[] findAttributeColumnsByParent(String connectionName, String password, int parent_id) throws RemoteException
+        synchronized public AttributeColumnInfo[] findEntitiesByParent(String connectionName, String password, int parent_id) throws RemoteException
         {
                 ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 
@@ -643,23 +643,6 @@ public class AdminService extends GenericServlet
 
                 }
                 return cols.toArray(new AttributeColumnInfo[0]);
-        }
-        synchronized public Map<Integer,String> findTagsByParent(String connectionName, String password, int parent_id) throws RemoteException
-        {
-            ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-            Map<Integer,String> tags = new HashMap<Integer,String>();
-            Collection<Integer> ids = config.getChildren(parent_id);
-            String name;
-            for (Integer id : ids)
-            {
-                if (config.isTag(id));
-                {
-                    AttributeColumnInfo col = config.getAttributeColumnInfo(id);
-                    name = col.publicMetadata.get(PublicMetadata.NAME);
-                    tags.put(id, name);
-                }
-            }
-            return tags;
         }
 
 	/**

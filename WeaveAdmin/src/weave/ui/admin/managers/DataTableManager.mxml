@@ -29,7 +29,7 @@
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search data tables" click="handleTableSelectionChange()"/>
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
-			<mx:Button label="Refresh" click="AdminInterface.instance.getDataTableNames()"/>
+			<mx:Button label="Refresh" click="refreshTree()"/>
 		</mx:HBox>
 	</mx:VBox>
 	<mx:TabNavigator id="tabNavigator" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%" change="tabIndexChangeHandler(event)">
@@ -118,6 +118,7 @@
 			import mx.events.FlexEvent;
 			import mx.events.IndexChangedEvent;
 			import mx.events.ListEvent;
+			import mx.events.TreeEvent;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
@@ -147,20 +148,49 @@
 			
 			private function handleCreationComplete():void
 			{
-				EventUtils.addBindCallback(AdminInterface.instance, "dataTableNames", handleConfigDataTableNamesChange);
+                                AdminInterface.instance.populateTagNode(-1);
+
+                                BindingUtils.bindProperty(treeWithSearch.tree, "dataProvider", AdminInterface.instance, "columnTree");
+
 				treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, handleItemClick);
 				addEventListener(KeyboardEvent.KEY_DOWN, tableEditorKeyDownHandler);
 				addEventListener(KeyboardEvent.KEY_UP, tableEditorKeyUpHandler);
 			}
-			
+                        public function refreshTree():void
+                        {
+                                
+                                AdminInterface.instance.clearTreeNodes();
+                                AdminInterface.instance.populateTagNode(-1);
+                        }
 			public function handleConfigDataTableNamesChange():void
 			{
 				treeWithSearch.generateFlatTreeFromLabels(AdminInterface.instance.dataTableNames);
 			}
 			
-			private function changeSelectedTreeItem():void
-			{
-				metaDataChanged = false;
+                        private function yell(str:String):void
+                        {
+                                WeaveAdminService.messageDisplay(null, str, false);
+                        }
+			private function populateItem():void
+		                {
+                                var newItem:Object = treeWithSearch.tree.selectedItem.object;
+                                if (newItem == null)
+                                {
+                                    yell("Populating root.");
+                                    AdminInterface.instance.populateTagNode(-1);
+                                }
+                                else if (newItem.entity_type == 2)
+                                {
+                                    yell("Populating item: "  + newItem.id);
+                                    /* Populate with children. */
+                                    AdminInterface.instance.populateTagNode(newItem.id);
+                                }
+                                else
+                                {
+                                    yell("Loading metadata...");
+                                    /* Load metadata. */
+                                }
+			/*	metaDataChanged = false;
 				
 				// display no data while downloading
 				loadData([]);
@@ -174,6 +204,8 @@
 				
 				var tableName:String = getSelectedTableName();
 				AdminInterface.instance.getDataTableInfo(tableName).addAsyncResponder(handleDataTableInfo, null, tableName);
+                        */
+                                
 			}
 			
 			/**
@@ -181,6 +213,8 @@
 			 */
 			private function handleItemClick(event:ListEvent):void
 			{
+                                populateItem();
+/*
 				if (metaDataChanged) 
 				{
 					// ask user to confirm
@@ -202,7 +236,7 @@
 					}
 				}
 				else
-					changeSelectedTreeItem();
+*/
 			}
 			
 			private function handleDataTableInfo(event:ResultEvent, token:Object = null):void

@@ -22,7 +22,7 @@
 <project name="Weave" basedir="./../" default="build">
 
 	<property environment="env"/>
-
+        <property name="DEBUG" value="true"/>
 	<!-- This property must be defined here. Note the use of forward slashes '/' and
 		the slash required at the end -->
 	<property name="WEAVE_DOCROOT" value="/var/lib/tomcat6/webapps/ROOT"/>

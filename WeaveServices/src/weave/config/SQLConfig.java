@@ -61,7 +61,7 @@ public class SQLConfig
         private final String TAG_PARENT = "parent_id";
         
         /* Constants for type_id */
-        //private final Integer MAN_TYPE_DATATABLE = 0;
+        private final Integer MAN_TYPE_DATATABLE = 0;
         private final Integer MAN_TYPE_COLUMN = 1;
         private final Integer MAN_TYPE_TAG = 2;
 
@@ -424,6 +424,7 @@ public class SQLConfig
 
 		AttributeColumnInfo info = new AttributeColumnInfo();
 		info.id = id;
+                info.type = getEntityType(id);
 			
 		if (idToPrivateMeta.containsKey(id))
 			info.privateMetadata = idToPrivateMeta.get(id);
@@ -489,7 +490,7 @@ public class SQLConfig
             }
             return;
         }
-        public Boolean isTag(int id) throws RemoteException
+        public int getEntityType(int id) throws RemoteException
         {
             Boolean entityIsCategory;
             List<Map<String,String>> sqlres;
@@ -506,13 +507,12 @@ public class SQLConfig
                         dbInfo.schema, table_manifest, whereParams);
                 ent_type = new Integer(sqlres.get(0).get(MAN_TYPE));
                 
-                entityIsCategory = ent_type == MAN_TYPE_TAG;
+                return ent_type;
             }
             catch (SQLException sql_e)
             {
                 throw new RemoteException("Failed to retrieve entity information.", sql_e);
             }
-            return entityIsCategory;
         }
         public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
         {

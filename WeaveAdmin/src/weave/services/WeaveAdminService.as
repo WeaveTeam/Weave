@@ -109,7 +109,11 @@ package weave.services
 			// we want to use a queue so the admin functions will execute in the correct order.
 			queue.addToQueue(query);
 			// automatically display FaultEvent error messages as alert boxes
-			query.addAsyncResponder(null, alertFault, query);
+                        function outputToConsole(event:ResultEvent, token:Object = null):void
+                        {
+                               messageDisplay("Query sent:", String(token), false);
+                        }
+			query.addAsyncResponder(outputToConsole, alertFault, query);
 			return query;
 		}
 		
@@ -210,13 +214,9 @@ package weave.services
                 {
                         return invokeAdminService("removeTag", arguments);
                 }
-                public function findAttributeColumnsByParent(connectionName:String, password:String, parent_id:int):DelayedAsyncInvocation
+                public function findEntitiesByParent(connectionName:String, password:String, parent_id:int):DelayedAsyncInvocation
                 {
-                        return invokeAdminService("findAttributeColumnsByParent", arguments);
-                }
-                public function findTagsByParent(connectionName:String, password:String, parent_id:int):DelayedAsyncInvocation
-                {
-                        return invokeAdminService("findTagsByParent", arguments);
+                        return invokeAdminService("findEntitiesByParent", arguments);
                 }
 		public function getConnectionInfo(loginConnectionName:String, loginPassword:String, connectionNameToGet:String):DelayedAsyncInvocation
 		{

@@ -22,14 +22,14 @@ package weave.services.beans
 	public class AttributeColumnInfo
 	{
 		public var id:int;
-		public var description:String;
+		public var entity_type:int;
 		public var privateMetadata:Object;
 		public var publicMetadata:Object;
 		
 		public function AttributeColumnInfo(o:Object)
 		{
 			this.id = o.id;
-			this.description = o.description;
+                        this.entity_type = o.type
 			this.privateMetadata = o.privateMetadata;
 			this.publicMetadata = o.publicMetadata;
 			
