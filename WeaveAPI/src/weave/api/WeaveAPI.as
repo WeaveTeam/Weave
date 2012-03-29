@@ -176,7 +176,10 @@ package weave.api
 			}
 			catch (e:Error)
 			{
-				ErrorManager.reportError(e);
+				if (e.errorID == 2060)
+					ErrorManager.reportError(e, "In the HTML, make sure that the parameter 'allowscriptaccess' is set to 'always'.");
+				else
+					ErrorManager.reportError(e);
 			}
 		}
 		
