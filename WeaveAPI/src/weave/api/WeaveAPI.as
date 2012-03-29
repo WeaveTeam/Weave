@@ -146,31 +146,38 @@ package weave.api
 		 */
 		public static function initializeExternalInterface():void
 		{
-			var interfaces:Array = [IExternalSessionStateInterface]; // add more interfaces here if necessary
-			for each (var theInterface:Class in interfaces)
+			try
 			{
-				var classInfo:XML = describeType(theInterface);
-				// add a callback for each external interface function
-				for each (var methodName:String in classInfo.factory.method.@name)
+				var interfaces:Array = [IExternalSessionStateInterface]; // add more interfaces here if necessary
+				for each (var theInterface:Class in interfaces)
 				{
-					ExternalInterface.addCallback(methodName, generateExternalInterfaceCallback(methodName, theInterface));
+					var classInfo:XML = describeType(theInterface);
+					// add a callback for each external interface function
+					for each (var methodName:String in classInfo.factory.method.@name)
+					{
+						ExternalInterface.addCallback(methodName, generateExternalInterfaceCallback(methodName, theInterface));
+					}
 				}
+				var prev:Boolean = ExternalInterface.marshallExceptions;
+				ExternalInterface.marshallExceptions = false;
+				ExternalInterface.call(
+					'function(objectID) {' +
+					'  var weave = document.getElementById(objectID);' +
+					'  if (window && window.weaveReady) {' +
+					'    window.weaveReady(weave);' +
+					'  }' +
+					'  else if (weaveReady) {' +
+					'    weaveReady(weave);' +
+					'  }' +
+					'}',
+					[ExternalInterface.objectID]
+				);
+				ExternalInterface.marshallExceptions = prev;
 			}
-			var prev:Boolean = ExternalInterface.marshallExceptions;
-			ExternalInterface.marshallExceptions = false;
-			ExternalInterface.call(
-				'function(objectID) {' +
-				'  var weave = document.getElementById(objectID);' +
-				'  if (window && window.weaveReady) {' +
-				'    window.weaveReady(weave);' +
-				'  }' +
-				'  else if (weaveReady) {' +
-				'    weaveReady(weave);' +
-				'  }' +
-				'}',
-				[ExternalInterface.objectID]
-			);
-			ExternalInterface.marshallExceptions = prev;
+			catch (e:Error)
+			{
+				ErrorManager.reportError(e);
+			}
 		}
 		
 		/**

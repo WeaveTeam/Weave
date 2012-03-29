@@ -1417,7 +1417,14 @@ package weave
 		 */
 		private function updatePageTitle():void
 		{
-			ExternalInterface.call("setTitle", Weave.properties.pageTitle.value);
+			try
+			{
+				ExternalInterface.call("setTitle", Weave.properties.pageTitle.value);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 		
 		/** 

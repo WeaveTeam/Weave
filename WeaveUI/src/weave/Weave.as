@@ -119,12 +119,19 @@ package weave
 			
 			// initialize the session state interface to point to Weave.root
 			(WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).setLinkableObjectRoot(root);
-			
-			// FOR BACKWARDS COMPATIBILITY
-			ExternalInterface.addCallback("createObject", function(...args):* {
-				reportError("The Weave JavaScript API function createObject is deprecated.  Please use requestObject instead.");
-				WeaveAPI.ExternalSessionStateInterface.requestObject.apply(null, args);
-			});
+
+			try
+			{
+				// FOR BACKWARDS COMPATIBILITY
+				ExternalInterface.addCallback("createObject", function(...args):* {
+					reportError("The Weave JavaScript API function createObject is deprecated.  Please use requestObject instead.");
+					WeaveAPI.ExternalSessionStateInterface.requestObject.apply(null, args);
+				});
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 			
 			// include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
 			WeaveXMLDecoder.includePackages(
