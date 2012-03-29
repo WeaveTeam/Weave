@@ -189,6 +189,7 @@
 	
 		// Works in Firefox 3.6 and Webit and possibly any browser which supports the data-uri
 		//$("body").append($("<a href-lang='image/svg+xml' href='data:image/svg+xml;base64,\n"+b64+"' title='file.svg'>Download</a>"));
+		d3.select("body")[0][0].scrollTop = 99999;
 		alert("The SVG was added to the bottom of the HTML.");
 	}
 
