@@ -145,67 +145,112 @@
 			private var metadataArray:Array = new Array();
 			[Bindable]
 			private var metaDataChanged:Boolean = false;
-			
+		
+                        [Bindable] public var columnTree:Array = [];
+                        private var columnIds:Object = {};
+                        private var isPopulated:Object = {};
+
+                        public function addTreeNode(obj:AttributeColumnInfo, parent_id:int):void
+                        {
+                            if (columnIds[obj.id] != null)
+                            {
+                                /* We already exist. */
+                                return;
+                            }
+
+                            var title:String;
+                            if (obj.publicMetadata["title"]) title = obj.publicMetadata["title"];
+                            else title = obj.publicMetadata["name"];
+                            var treeNode:Object;
+                            if (obj.entity_type == 2)
+                                treeNode = {label: title, object: obj, children: [], isPopulated: false};
+                            else if (obj.entity_type == 1)
+                                treeNode = {label: title, object: obj, children: null};
+                            else
+                                return;
+                            columnIds[obj.id] = treeNode;
+                            if (parent_id == -1)
+                                columnTree.push(treeNode);
+                            else
+                                columnIds[parent_id].children.push(treeNode);
+                            return; 
+                        }
+                        public function clearTreeNodes():void
+                        {
+                            columnTree = [];
+                            columnIds = {};
+                            isPopulated = {};
+                        }
+                        public function populateTagNode(id:int):void
+                        {
+                            var mdm:MetadataManager = this;
+
+                            /* Connect an event handler for the async request to the service, and subsequently proceeds with the open. */
+                            function populateTagNodeHandler(event:ResultEvent, token:Object = null):void
+                            {
+                                yell("populateTagNodeHandler arrives!");
+                                var columns:Array = event.result as Array || [];
+                                for each (var column:Object in columns)
+                                {
+                                    var aci:AttributeColumnInfo = new AttributeColumnInfo(column);
+                                    yell("Adding entity.");
+                                    mdm.addTreeNode(aci, id);
+                                }
+                                if (id != -1)
+                                {
+                                    mdm.columnIds[id].isPopulated = true;
+                                    mdm.treeWithSearch.tree.expandItem(mdm.columnIds[id],true);
+                                }
+                                else
+                                {
+                                    mdm.treeWithSearch.tree.dataProvider = null; 
+                                    /* Won't refresh correctly otherwise. */
+                                    mdm.treeWithSearch.tree.dataProvider = columnTree;
+                                }
+                            }
+                            AdminInterface.instance.findEntitiesByParent(id, populateTagNodeHandler);
+
+                            return;
+                        }
+
 			private function handleCreationComplete():void
 			{
-                                AdminInterface.instance.populateTagNode(-1);
-
-                                BindingUtils.bindProperty(treeWithSearch.tree, "dataProvider", AdminInterface.instance, "columnTree");
-
-				treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, handleItemClick);
+                                BindingUtils.bindProperty(treeWithSearch.tree, "dataProvider", this, "columnTree");
+                                treeWithSearch.tree.addEventListener(TreeEvent.ITEM_OPENING, populateItem); // true?
+                                yell("Tree creation complete.");
 				addEventListener(KeyboardEvent.KEY_DOWN, tableEditorKeyDownHandler);
 				addEventListener(KeyboardEvent.KEY_UP, tableEditorKeyUpHandler);
 			}
                         public function refreshTree():void
                         {
                                 
-                                AdminInterface.instance.clearTreeNodes();
-                                AdminInterface.instance.populateTagNode(-1);
-                        }
-			public function handleConfigDataTableNamesChange():void
-			{
-				treeWithSearch.generateFlatTreeFromLabels(AdminInterface.instance.dataTableNames);
-			}
-			
+                                clearTreeNodes();
+                                populateTagNode(-1);
+                        }	
                         private function yell(str:String):void
                         {
                                 WeaveAdminService.messageDisplay(null, str, false);
                         }
-			private function populateItem():void
-		                {
-                                var newItem:Object = treeWithSearch.tree.selectedItem.object;
-                                if (newItem == null)
+			private function populateItem(event:TreeEvent):void
+		        {
+                                yell("Expand being called.");
+                                if (!event.opening) return;
+                                var treeItem:AttributeColumnInfo = event.item.object as AttributeColumnInfo;
+                                if (treeItem.entity_type == 2)
                                 {
-                                    yell("Populating root.");
-                                    AdminInterface.instance.populateTagNode(-1);
-                                }
-                                else if (newItem.entity_type == 2)
-                                {
-                                    yell("Populating item: "  + newItem.id);
-                                    /* Populate with children. */
-                                    AdminInterface.instance.populateTagNode(newItem.id);
+                                    if (!event.item.isPopulated)
+                                    {
+                                        yell("Populating item: "  + treeItem.id);
+                                        event.preventDefault();
+                                        populateTagNode(treeItem.id);
+                                    }
+                                    return;
                                 }
                                 else
                                 {
                                     yell("Loading metadata...");
                                     /* Load metadata. */
                                 }
-			/*	metaDataChanged = false;
-				
-				// display no data while downloading
-				loadData([]);
-				
-				//handle updates for the Metadata tab
-				if (tabNavigator.selectedIndex == tabNavigator.getChildIndex(metadataView))
-					loadDublinCoreElements();
-				
-				if (getSelectedTableName() == null)
-					return;
-				
-				var tableName:String = getSelectedTableName();
-				AdminInterface.instance.getDataTableInfo(tableName).addAsyncResponder(handleDataTableInfo, null, tableName);
-                        */
-                                
 			}
 			
 			/**
@@ -213,7 +258,6 @@
 			 */
 			private function handleItemClick(event:ListEvent):void
 			{
-                                populateItem();
 /*
 				if (metaDataChanged) 
 				{

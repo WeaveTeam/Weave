@@ -102,51 +102,6 @@ package weave.services
 		
 		
 		
-                public function addTreeNode(obj:AttributeColumnInfo, parent_id:int):void
-                {
-                    if (columnIds[obj.id] != null)
-                    {
-                        /* We already exist. */
-                        return;
-                    }
-
-                    var title:String;
-                    if (obj.publicMetadata["title"]) title = obj.publicMetadata["title"];
-                    else title = obj.publicMetadata["name"];
-                    var treeNode:Object;
-                    if (obj.entity_type == 2)
-                        treeNode = {label: title, object: obj, children: []};
-                    else if (obj.entity_type == 1)
-                        treeNode = {label: title, object: obj, children: null};
-                    else
-                        return;
-                    columnIds[obj.id] = treeNode;
-                    if (parent_id == -1)
-                        columnTree.push(treeNode);
-                    else
-                        columnIds[parent_id].children.push(treeNode);
-                    return; 
-                }
-                public function clearTreeNodes():void
-                {
-                    columnTree = [];
-                    columnIds = {};
-                }
-                public function populateTagNode(id:int):void
-                {
-                    service.findEntitiesByParent(activeConnectionName, activePassword, id).addAsyncResponder(populateTagNodeHandler);
-                    var iface:AdminInterface = this;
-                    function populateTagNodeHandler(event:ResultEvent, token:Object = null):void
-                    {
-                        var columns:Array = event.result as Array || [];
-                        for each (var column:Object in columns)
-                        {
-                            var aci:AttributeColumnInfo = new AttributeColumnInfo(column);
-                            iface.addTreeNode(aci, id);
-                        }
-                    }
-                    return;
-                }
 		// functions for managing static settings
 		public function getConnectionNames():void
 		{
@@ -340,6 +295,10 @@ package weave.services
 			
 		
 		// functions for managing DataTable entries
+                public function findEntitiesByParent(id:int, handler:Function):void
+                {
+                    service.findEntitiesByParent(activeConnectionName, activePassword, id).addAsyncResponder(handler);
+                }
 		
 		public function getDataTableNames():void
 		{
