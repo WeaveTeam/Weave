@@ -834,15 +834,10 @@ package weave.compiler
 			var rightBracket:String;
 			while (true)
 			{
-				// find first closing bracket
+				// find first closing bracket or '.' or '..'
 				for (close = 0; close < tokens.length; close++)
-					if ('])}'.indexOf(tokens[close]) >= 0)
+					if ('..])}'.indexOf(tokens[close]) >= 0)
 						break;
-				// if no closing bracket found, find first '.' or '..'
-				if (close == tokens.length)
-					for (close = 0; close < tokens.length; close++)
-						if ('..'.indexOf(tokens[close]) >= 0)
-							break;
 				if (close == tokens.length || close == 0)
 					break; // possible error, or no operator found
 				
@@ -873,9 +868,17 @@ package weave.compiler
 				}
 
 				// handle access and descendants operators
-				if (tokens[open] == '.' || tokens[open] == '..')
+				if ('..'.indexOf(tokens[open]) == 0)
 				{
 					var propertyToken:String = tokens[open + 1] as String;
+					
+					// special case for lone operator
+					if (open > 0 && token == OPERATOR_PREFIX && propertyToken == OPERATOR_SUFFIX)
+					{
+						tokens.splice(open - 1, 3, new CompiledConstant(OPERATOR_PREFIX + tokens[open] + OPERATOR_SUFFIX, operators[tokens[open]]));
+						continue;
+					}
+					
 					if (!token || !propertyToken || operators.hasOwnProperty(propertyToken))
 						break; // error
 					
