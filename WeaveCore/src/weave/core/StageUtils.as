@@ -36,6 +36,7 @@ package weave.core
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IStageUtils;
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 	import weave.utils.DebugTimer;
 	
 	use namespace mx_internal;
@@ -50,6 +51,9 @@ package weave.core
 	 */
 	public class StageUtils implements IStageUtils
 	{
+		private const frameTimes:Array = [];
+		private var debug_fps:Boolean = false;
+		
 		public function StageUtils()
 		{
 			initialize();
@@ -144,8 +148,9 @@ package weave.core
 		/**
 		 * When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.
 		 */
-		private const maxComputationTimePerFrame:int = 100;
-
+		[Bindable]
+		public var maxComputationTimePerFrame:int = 50;
+		
 		/**
 		 * This function gets called on ENTER_FRAME events.
 		 */
@@ -154,6 +159,16 @@ package weave.core
 			var currentTime:int = getTimer();
 			_previousFrameElapsedTime = currentTime - _currentFrameStartTime;
 			_currentFrameStartTime = currentTime;
+			
+			if (debug_fps)
+			{
+				frameTimes.push(previousFrameElapsedTime);
+				if (frameTimes.length == 24)
+				{
+					trace(Math.round(1000 / StandardLib.mean.apply(null, frameTimes)),'fps; max computation time',maxComputationTimePerFrame);
+					frameTimes.length = 0;
+				}
+			}
 			
 			if (_previousFrameElapsedTime > 3000)
 				trace(_previousFrameElapsedTime);
@@ -273,21 +288,32 @@ package weave.core
 		 *           index++;
 		 *           return index / array.length;  // this will return 1.0 on the last iteration.
 		 *       }
+		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
+		 * @see weave.api.WeaveAPI
 		 */
-		public function startTask(relevantContext:Object, iterativeTask:Function):void
+		public function startTask(relevantContext:Object, iterativeTask:Function, priority:int):void
 		{
 			// do nothing if task already active
 			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
 				return;
 			
+			if (priority <= 0)
+			{
+				reportError("Task priority " + priority + " is not supported.");
+				priority = WeaveAPI.TASK_PRIORITY_BUILDING;
+			}
+			
 			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
-			_iterateTask(relevantContext, iterativeTask);
+			
+			_iterateTask(relevantContext, iterativeTask, priority);
 		}
+		
+		public var debug_delayTasks:Boolean = false;
 		
 		/**
 		 * @private
 		 */
-		private function _iterateTask(context:Object, task:Function):void
+		private function _iterateTask(context:Object, task:Function, priority:int):void
 		{
 			// remove the task if the context was disposed of
 			if (WeaveAPI.SessionManager.objectWasDisposed(context))
@@ -296,9 +322,13 @@ package weave.core
 				return;
 			}
 			
+			var elapsed:int = currentFrameElapsedTime;
+			var remaining:int = maxComputationTimePerFrame - elapsed;
+			var stopTime:int = _currentFrameStartTime + maxComputationTimePerFrame / priority;
+			
 			var progress:* = undefined;
-			// iterate on the task until max computation time is reached
-			while (getTimer() - _currentFrameStartTime < maxComputationTimePerFrame)
+			// iterate on the task until stopTime is reached
+			while (getTimer() < stopTime)
 			{
 				// perform the next iteration of the task
 				progress = task() as Number;
@@ -313,6 +343,8 @@ package weave.core
 					WeaveAPI.ProgressIndicator.removeTask(task);
 					return;
 				}
+				if (debug_delayTasks)
+					break;
 			}
 			// max computation time reached without finishing the task, so update the progress indicator and continue the task later
 			if (progress !== undefined)

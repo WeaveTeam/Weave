@@ -21,9 +21,10 @@ package weave.utils
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.geom.Rectangle;
 	
-	import weave.primitives.Bounds2D;
 	import weave.api.ui.IPlotter;
+	import weave.primitives.Bounds2D;
 
 	/**
 	 * PlotterUtils
@@ -51,13 +52,14 @@ package weave.utils
 		
 		/**
 		 * This function updates the size of the BitmapData inside a Bitmap.
-		 * If the BitmapData inside the Bitmap is already the right size, this function has no effect.
+		 * The new or existing BitmapData will be filled with the specified fill color.
 		 * @param bitmap A Bitmap object to alter.
 		 * @param unscaledWidth The desired width of the BitmapData.
 		 * @param unscaledHeight The desired height of the BitmapData.
+		 * @param fillColor The BitmapData will be filled with this color.
 		 * @return true if the BitmapData was replaced with a new one having the new size, false if the size was not changed.
 		 */
-		public static function setBitmapDataSize(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number):Boolean
+		public static function setBitmapDataSize(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number, fillColor:uint = 0x00000000):Boolean
 		{
 			unscaledWidth = Math.round(unscaledWidth);
 			unscaledHeight = Math.round(unscaledHeight);
@@ -69,7 +71,7 @@ package weave.utils
 			{
 				try
 				{
-					var newBitmapData:BitmapData = new BitmapData(unscaledWidth, unscaledHeight, true, 0x00000000);
+					var newBitmapData:BitmapData = new BitmapData(unscaledWidth, unscaledHeight, true, fillColor);
 					//trace("new BitmapData(",[unscaledWidth, unscaledHeight, true, 0x00000000],");");
 					// dispose of oldBitmapData, if any exists
 					if (oldBitmapData != null)
@@ -84,8 +86,18 @@ package weave.utils
 						trace("PlotterUtils: Warning! Unscaled area too large to store in a Bitmap: "+[unscaledWidth, unscaledHeight]);
 				}
 			}
+			else
+			{
+				_tempRect.x = 0;
+				_tempRect.y = 0;
+				_tempRect.width = unscaledWidth;
+				_tempRect.height = unscaledWidth;
+				bitmap.bitmapData.fillRect(_tempRect, fillColor);
+			}
 			return result;
 		}
+		
+		private static const _tempRect:Rectangle = new Rectangle();
 		
 		/**
 		 * This function will make reset all the pixels in a BitmapData object to be transparent.

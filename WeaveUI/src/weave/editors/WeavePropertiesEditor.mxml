@@ -46,11 +46,17 @@
 			<mx:NumericStepper width="64" minimum="1" maximum="100" stepSize="1" creationComplete="linkBindableProperty(Weave.properties.geometryMinimumScreenArea, event.target, 'value');"/>
 			<ui:HelpComponent>This controls the filtering of vector tile requests and rendering.  Enter the minimum area requirement (in pixels) for geometry detail to be rendered.</ui:HelpComponent>
 		</ui:Indent>
+		<ui:Indent label="Max computation time per frame">
+			<mx:NumericStepper id="maxComputationTime" minimum="10" maximum="200" stepSize="10"/>
+		</ui:Indent>
 		<mx:Button label="Edit Macros" width="100" click="openMacroEditor(event)" />
 	</mx:VBox>
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.api.WeaveAPI;
+			import weave.utils.EventUtils;
+			import mx.binding.utils.BindingUtils;
 			import mx.core.Application;
 			import mx.managers.PopUpManager;
 			
@@ -64,6 +70,7 @@
 				
 				geometryMetadataRequestMode.dataProvider = StreamedGeometryColumn.metadataRequestModeEnum;
 				linkBindableProperty(StreamedGeometryColumn.metadataRequestMode, geometryMetadataRequestMode, 'selectedItem');
+				EventUtils.doubleBind(WeaveAPI.StageUtils, 'maxComputationTimePerFrame', maxComputationTime, 'value');
 			}
 			
 			private static var _instance:ControlPanel;

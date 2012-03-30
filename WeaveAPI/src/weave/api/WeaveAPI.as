@@ -45,6 +45,19 @@ package weave.api
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 		
 		/**
+		 * For use with StageUtils.startTask(); this priority is associated with rendering.
+		 */		
+		public static const TASK_PRIORITY_RENDERING:int = 1;
+		/**
+		 * For use with StageUtils.startTask(); this priority is associated with data manipulation tasks such as building an index.
+		 */
+		public static const TASK_PRIORITY_BUILDING:int = 2;
+		/**
+		 * For use with StageUtils.startTask(); this priority is associated with parsing raw data.
+		 */
+		public static const TASK_PRIORITY_PARSING:int = 3;
+		
+		/**
 		 * This is the singleton instance of the registered ISessionManager implementation.
 		 */
 		public static function get SessionManager():ISessionManager

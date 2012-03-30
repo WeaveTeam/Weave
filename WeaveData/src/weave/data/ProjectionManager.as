@@ -324,7 +324,14 @@ internal class WorkerThread
 		this.destinationProjSRS = destinationProjectionSRS;
 
 		// start reprojecting now and each time the unprojected column changes
-		unprojectedColumn.addImmediateCallback(this, function():void { WeaveAPI.StageUtils.startTask(unprojectedColumn, iterate); }, true);
+		unprojectedColumn.addImmediateCallback(
+			this,
+			function():void
+			{
+				WeaveAPI.StageUtils.startTask(unprojectedColumn, iterate, WeaveAPI.TASK_PRIORITY_PARSING);
+			},
+			true
+		);
 	}
 	
 	// values passed to the constructor -- these will not change.
