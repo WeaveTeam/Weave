@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="ExternalSessionStateInterface,weave.core.ExternalSessionStateInterface,addCallback,convertSessionStateObjectToXML,convertSessionStateXMLToObject,evaluateExpression,getChildNames,getObject,getObjectType,getSessionState,removeCallback,removeObject,requestObject,setChildNameOrder,setLinkableObjectRoot,setSessionState" name="keywords">
+<meta content="ExternalSessionStateInterface,weave.core.ExternalSessionStateInterface,addCallback,convertSessionStateObjectToXML,convertSessionStateXMLToObject,evaluateExpression,getChildNames,getObject,getObjectType,getSessionState,removeCallback,removeObject,requestObject,setChildNameOrder,setLinkableObjectRoot,setSessionState,tryAddCallback" name="keywords">
 <title>weave.core.ExternalSessionStateInterface</title>
 </head>
 <body>
@@ -172,6 +172,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <a class="signatureLink" href="#setSessionState()">setSessionState</a>(objectPath:Array, newState:Object, removeMissingObjects:Boolean = true):Boolean</div>
 <div class="summaryTableDescription">
    This function updates the current session state of an object.</div>
+</td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
+<div class="summarySignature">
+<a class="signatureLink" href="#tryAddCallback()">tryAddCallback</a>(functionName:String, closure:Function):void</div>
+<div class="summaryTableDescription">[static]
+   This surrounds ExternalInterface.addCallback() with try/catch and reports the error.</div>
 </td><td class="summaryTableOwnerCol">ExternalSessionStateInterface</td>
 </tr>
 </table>
@@ -622,6 +630,32 @@ showHideInherited();
    </td>
 </tr>
 </table>
+</div>
+<a name="tryAddCallback()"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">tryAddCallback</td><td class="detailHeaderParens">()</td><td class="detailHeaderType">method</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public static function tryAddCallback(functionName:String, closure:Function):void</code><p>
+   This surrounds ExternalInterface.addCallback() with try/catch and reports the error.
+   </p><span class="label">Parameters</span>
+<table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="20px"></td><td><code><span class="label">functionName</span>:String</code></td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">closure</span>:Function</code></td>
+</tr>
+</table>
+<p>
+<span class="label">See also</span>
+</p>
+<div class="seeAlso">flash.external.ExternalInterface.addCallback</div>
 </div>
 <br>
 <br>
