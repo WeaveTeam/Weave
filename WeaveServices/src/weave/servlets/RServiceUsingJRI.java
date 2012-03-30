@@ -169,21 +169,24 @@ public class RServiceUsingJRI
 		
 	}
 	
-	private static String plotEvalScript(ScriptEngine engine,String docrootPath,String script, boolean showWarnings) {
+	private static String plotEvalScript(ScriptEngine engine,String docrootPath,String script, boolean showWarnings) throws ScriptException {
 		String file = String.format("user_script_%s.jpg", UUID.randomUUID());
 		String dir = docrootPath + rFolderName + "/";
 		(new File(dir)).mkdirs();
-		String str = String.format("jpeg(\"%s\")", dir + file);
+		
+		String str = null;
 		try
 		{
+			str = String.format("jpeg(\"%s\")", dir + file);
 			evalScript(engine, str, showWarnings);
-			engine.eval(script);
-			engine.eval("dev.off()");
+			
+			engine.eval(str = script);
+			engine.eval(str = "dev.off()");
 		}
 		catch (ScriptException e)
 		{
 			System.out.println(str);
-			e.printStackTrace();
+			throw e;
 		}
 		
 		return rFolderName + "/" + file;

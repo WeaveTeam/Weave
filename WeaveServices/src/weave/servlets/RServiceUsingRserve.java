@@ -77,33 +77,41 @@ public class RServiceUsingRserve
 		}
 	}
 
-	private static String plotEvalScript(RConnection rConnection,String docrootPath , String script, boolean showWarnings) throws REXPMismatchException,RserveException
+	private static String plotEvalScript(RConnection rConnection,String docrootPath , String script, boolean showWarnings) throws RserveException, REXPMismatchException
 	{
 		String file = String.format("user_script_%s.jpg", UUID.randomUUID());
 		String dir = docrootPath + rFolderName + "/";
 		(new File(dir)).mkdirs();
-		String str = String.format("jpeg(\"%s\")", dir + file);
+		String str = null;
 		try
 		{
+			str = String.format("jpeg(\"%s\")", dir + file);
 			evalScript(rConnection, str, showWarnings);
+			
+			rConnection.eval(str = script);
+			rConnection.eval(str = "dev.off()");
 		}
-		catch (Exception e)
+		catch (RserveException e)
 		{
 			System.out.println(str);
+			throw e;
 		}
-		rConnection.eval(script);
-		rConnection.eval("dev.off()");		
+		catch (REXPMismatchException e)
+		{
+			System.out.println(str);
+			throw e;
+		}
 		return rFolderName + "/" + file;
 	}
 	
 	private static REXP evalScript(RConnection rConnection, String script, boolean showWarnings) throws REXPMismatchException,RserveException
 	{
 		REXP evalValue = null;
-		if(showWarnings)			
+		if (showWarnings)			
 			evalValue =  rConnection.eval("try({ options(warn=2) \n" + script + "},silent=TRUE)");
-			
 		else
-			evalValue =  rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");		
+			evalValue =  rConnection.eval("try({ options(warn=1) \n" + script + "},silent=TRUE)");
+		
 		return evalValue;
 	}
 	
