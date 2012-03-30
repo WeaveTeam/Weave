@@ -48,23 +48,54 @@ public class RService extends GenericServlet
 
 	private String docrootPath = "";
 	
+	enum ServiceType { JRI, RSERVE; }
+	private static ServiceType serviceType = ServiceType.RSERVE;
+	
 	public RResult[] runScript(String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{
+		Exception exception = null;
 		
-		try{
-			return RServiceUsingJRI.runScript( docrootPath, keys, inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings, useColumnAsList);
+		// check chosen service first
+		ServiceType[] types = ServiceType.values();
+		if (serviceType != types[0])
+		{
+			types[1] = types[0];
+			types[0] = serviceType;
 		}
-		catch (RServiceUsingJRI.JRIConnectionException excep)
+		for (ServiceType type : types)
 		{
 			try
 			{
-				return RServiceUsingRserve.runScript( docrootPath, inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
+				if (type == ServiceType.RSERVE)
+					return RServiceUsingRserve.runScript( docrootPath, inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
+				/*
+				// this crashes Tomcat
+				if (type == ServiceType.JRI)
+					return RServiceUsingJRI.runScript( docrootPath, keys, inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings, useColumnAsList);
+				*/
+			}
+			catch (RServiceUsingJRI.JRIConnectionException e)
+			{
+				System.out.println(e.getStackTrace());
+				// remember exception associated with chosen service
+				// alternate for next time
+				if (type == serviceType)
+					exception = e;
+				else
+					serviceType = type;
 			}
 			catch (RServiceUsingRserve.RserveConnectionException e)
 			{
-				throw new RemoteException("Unable to connect to RServe & Unable to initialize REngine", e);
+				System.out.println(e.getStackTrace());
+				// remember exception associated with chosen service
+				// alternate for next time
+				if (type == serviceType)
+					exception = e;
+				else
+					serviceType = type;
 			}
 		}
+		throw new RemoteException("Unable to connect to RServe & Unable to initialize REngine", exception);
 	}
 	
 	
