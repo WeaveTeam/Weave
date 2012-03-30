@@ -83,7 +83,14 @@ public class RServiceUsingRserve
 		String dir = docrootPath + rFolderName + "/";
 		(new File(dir)).mkdirs();
 		String str = String.format("jpeg(\"%s\")", dir + file);
-		evalScript(rConnection, str, showWarnings);
+		try
+		{
+			evalScript(rConnection, str, showWarnings);
+		}
+		catch (Exception e)
+		{
+			System.out.println(str);
+		}
 		rConnection.eval(script);
 		rConnection.eval("dev.off()");		
 		return rFolderName + "/" + file;

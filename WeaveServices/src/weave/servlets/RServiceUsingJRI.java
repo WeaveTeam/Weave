@@ -174,14 +174,18 @@ public class RServiceUsingJRI
 		String dir = docrootPath + rFolderName + "/";
 		(new File(dir)).mkdirs();
 		String str = String.format("jpeg(\"%s\")", dir + file);
-		try {
+		try
+		{
 			evalScript(engine, str, showWarnings);
 			engine.eval(script);
 			engine.eval("dev.off()");
-		} catch (ScriptException e) {
+		}
+		catch (ScriptException e)
+		{
+			System.out.println(str);
 			e.printStackTrace();
 		}
-				
+		
 		return rFolderName + "/" + file;
 	}
 	
