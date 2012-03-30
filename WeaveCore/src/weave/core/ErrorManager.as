@@ -76,7 +76,7 @@ package weave.core
 				faultContent = faultContent == null ? error : [error, faultContent];
 			if (!(error is Error) || faultMessage || faultContent != null)
 			{
-				if (!error is Fault)
+				if (!(error is Fault))
 				{
 					// wrap the error in a Fault object
 					if (!faultMessage && error is Error)
