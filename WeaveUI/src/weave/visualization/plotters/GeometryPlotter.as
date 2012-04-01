@@ -34,8 +34,10 @@ package weave.visualization.plotters
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.disposeObjects;
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
@@ -344,10 +346,26 @@ package weave.visualization.plotters
 							}
 						}
 						graphics.endFill();
-						task.destination.draw(tempShape);
+						try
+						{
+							task.destination.draw(tempShape);
+						}
+						catch (e:Error)
+						{
+							// bitmap was disposed of.
+							disposeObjects(task.destination);
+						}
 					}
 					task.recIndex++;
 					progress = task.recIndex / task.recordKeys.length;
+				}
+				
+				// Remove this task when the bitmap gets disposed of.
+				// This depends on someone else calling disposeObjects() on the BitmapData.
+				if (objectWasDisposed(task.destination))
+				{
+					delete _destinationToPlotTaskMap[task.destination];
+					return 1;
 				}
 				
 				if (progress == 1)
