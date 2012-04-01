@@ -309,6 +309,8 @@ package weave.visualization.plotters
 			WeaveAPI.StageUtils.startTask(this, task.iterate, WeaveAPI.TASK_PRIORITY_RENDERING);
 		}
 		
+		private const _singleGeom:Array = []; // reusable array for holding one item
+		
 		private function generateTaskIterator(task:PlotTask):Function
 		{
 			return function():Number
@@ -323,15 +325,15 @@ package weave.visualization.plotters
 					if (value is Array)
 						geoms = value;
 					else if (value is GeneralizedGeometry)
-						geoms = [value as GeneralizedGeometry];
+					{
+						geoms = _singleGeom;
+						_singleGeom[0] = value;
+					}
 					
 					if (geoms && geoms.length > 0)
 					{
 						var graphics:Graphics = tempShape.graphics;
-						graphics.clear();
-						
-						fill.beginFillStyle(recordKey, graphics);
-						line.beginLineStyle(recordKey, graphics);
+						var styleSet:Boolean = false;
 						
 						// draw the geom
 						for (var i:int = 0; i < geoms.length; i++)
@@ -342,13 +344,23 @@ package weave.visualization.plotters
 								// skip shapes that are considered unimportant at this zoom level
 								if (geom.geomType == GeneralizedGeometry.GEOM_TYPE_POLYGON && geom.bounds.getArea() < task.minImportance)
 									continue;
+								if (!styleSet)
+								{
+									graphics.clear();
+									fill.beginFillStyle(recordKey, graphics);
+									line.beginLineStyle(recordKey, graphics);
+									styleSet = true;
+								}
 								drawMultiPartShape(recordKey, geom.getSimplifiedGeometry(task.minImportance, task.dataBounds), geom.geomType, task.dataBounds, task.screenBounds, graphics, task.destination);
 							}
 						}
-						graphics.endFill();
 						try
 						{
-							task.destination.draw(tempShape);
+							if (styleSet)
+							{
+								graphics.endFill();
+								task.destination.draw(tempShape);
+							}
 						}
 						catch (e:Error)
 						{
