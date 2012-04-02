@@ -346,6 +346,7 @@ internal class Library implements IDisposableObject
 			{
 				var resultEvent:ResultEvent = ResultEvent.createEvent(_classQNames.concat(), _asyncToken);
 				_asyncToken.mx_internal::applyResult(resultEvent);
+				_asyncToken = null; // prevent responders from being called again
 			}
 			else
 			{
@@ -354,10 +355,10 @@ internal class Library implements IDisposableObject
 					fault = new Fault('Error', "Unable to load plugin " + _url);
 				var faultEvent:FaultEvent = FaultEvent.createEvent(fault, _asyncToken);
 				_asyncToken.mx_internal::applyFault(faultEvent);
+				_asyncToken = null; // prevent responders from being called again
 				
 				WeaveAPI.SessionManager.disposeObjects(this);
 			}
-			_asyncToken = null;
 		}
 	}
 }

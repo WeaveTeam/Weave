@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
+				   layout="absolute" width="400" height="300">
+	<mx:HBox width="100%" height="5%">
+		<mx:Label  height="5%" text="Macro Name:" />
+		<mx:TextInput id="macroNameField" height="5%" width="100%"/>
+	</mx:HBox>
+	<mx:TextArea y="{.05*this.height}" width="100%" height="100%" id="macroEditArea"/>
+	<mx:ControlBar>
+		<mx:Button width="50%" height="100%" label="Save"
+				   click="saveButtonClicked(event)"/>
+		<mx:Button width="50%" height="100%" label="Cancel"
+				   click="cancelButtonClicked(event)"/>
+	</mx:ControlBar>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			import mx.controls.TextInput;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			
+			import weave.core.LinkableFunction;
+			import weave.ui.AlertTextBox;
+			import weave.ui.AlertTextBoxEvent;
+			
+			protected function saveButtonClicked(event:MouseEvent):void
+			{
+				if(macroNameField.text == "")
+				{
+					var box:AlertTextBox = AlertTextBox.show("Macro Naming Error", "A name must be entered for the macro.");
+					box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkInput);
+				}
+				else
+				{
+					if( LinkableFunction.macros.getObject(macroNameField.text) == null)
+					{
+						var funcToSave:LinkableFunction = LinkableFunction.macros.requestObject(macroNameField.text, LinkableFunction, false);
+						funcToSave.value = macroEditArea.text;
+						this.removePanel();
+					}
+					else
+					{
+						Alert.show("There already exists a macro with the same name, continuing to save will overwrite the previous macro of the same name. Would you like to overwrite the macro of the same name?", "Duplicate Macro Name", Alert.YES | Alert.NO, this, duplicateNameHandler);
+					}
+				}
+			}
+			
+			private function duplicateNameHandler(event:CloseEvent):void
+			{
+				if(event.detail == Alert.YES)
+				{
+					var funcToSave:LinkableFunction = LinkableFunction.macros.requestObject(macroNameField.text, LinkableFunction, false);
+					funcToSave.value = macroEditArea.text;
+					this.removePanel();	
+				}
+			}
+			
+			private function checkInput(event:AlertTextBoxEvent):void
+			{
+				if( event.confirm == true )
+				{
+					macroNameField.text = event.textInput;
+					if( LinkableFunction.macros.getObject(macroNameField.text) != null)
+						Alert.show("There already exists a macro with the same name, continuing to save will overwrite the previous macro of the same name. Would you like to overwrite the previous macro of the same name?", "Duplicate Macro Name", Alert.YES | Alert.NO, this, duplicateNameHandler);
+					else
+					{
+						var funcToSave:LinkableFunction = LinkableFunction.macros.requestObject(macroNameField.text, LinkableFunction, false);
+						funcToSave.value = macroEditArea.text;
+						this.removePanel();
+					}
+				}
+			}
+			
+			protected function cancelButtonClicked(event:MouseEvent):void
+			{
+				this.removePanel();				
+			}
+			
+		]]>
+	</mx:Script>		
+</ui:DraggablePanel>

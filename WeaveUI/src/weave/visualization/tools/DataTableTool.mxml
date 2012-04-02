@@ -220,11 +220,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					updateKeyTypeComboBox();
 					updateDataGridColumns();					
 				}
-				if (columnsChanged || detectLinkableObjectChange(updateDisplayList, filterColumnsByKeyType))
+				if (detectLinkableObjectChange(updateDisplayList, filterColumnsByKeyType) || columnsChanged)
 				{
 					updateKeysColumnsDataProviderAndSelection();
 				}
-				if (columnsChanged )
+				if (columnsChanged)
 				{
 					updateBorders();
 				} 
@@ -236,7 +236,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					showFilters.value = false;
 				}
-				if (detectLinkableObjectChange(updateDisplayList, showFilters) )
+				if (detectLinkableObjectChange(updateDisplayList, showFilters))
 				{
 					updateFilters();
 				}
@@ -244,20 +244,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{					
 					dataGrid.invalidateFilters();
 				}
-				if (columnsChanged || detectLinkableObjectChange(updateDisplayList, dataGridHorizontalScrollPosition))
+				if (detectLinkableObjectChange(updateDisplayList, dataGridHorizontalScrollPosition) || columnsChanged)
 				{					
 					handleDataGridHorizontalScroll();
 				}
-				if (columnsChanged || detectLinkableObjectChange(updateDisplayList, dataGridVerticalScrollPosition))
+				if (detectLinkableObjectChange(updateDisplayList, dataGridVerticalScrollPosition) || columnsChanged)
 				{					
 					dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
 				}
 				
-				if (detectLinkableObjectChange(updateDisplayList, _selection) )
+				if (detectLinkableObjectChange(updateDisplayList, _selection))
 				{
 					updateGlobalSelectionChange();				
 				}
-				
 				
 				if (detectLinkableObjectChange(updateDisplayList, colorColumn))
 				{
@@ -267,14 +266,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					LinkableTextFormat.defaultTextFormat.copyToStyle(dataGrid);
 				}
-				if (detectLinkableObjectChange(updateDisplayList, sortFieldIndex) ||
-					detectLinkableObjectChange(updateDisplayList, sortInDescendingOrder) ||
-					columnsChanged )
+				if (detectLinkableObjectChange(updateDisplayList, sortFieldIndex, sortInDescendingOrder) || columnsChanged)
 				{
 					sortCallback();
 				}
-				if (detectLinkableObjectChange(updateDisplayList, backgroundColor1) ||
-					detectLinkableObjectChange(updateDisplayList, backgroundColor2))
+				if (detectLinkableObjectChange(updateDisplayList, backgroundColor1, backgroundColor2))
 				{
 					dataGrid.setStyle("alternatingItemColors", [backgroundColor1.value, backgroundColor2.value]);
 				}

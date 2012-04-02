@@ -58,6 +58,7 @@ package weave
 	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -289,7 +290,7 @@ package weave
 			}
 			
 			// enable JavaScript API after initial session state has loaded.
-			ExternalInterface.addCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
+			ExternalSessionStateInterface.tryAddCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
 			WeaveAPI.initializeExternalInterface(); // this calls weaveReady() in JavaScript
 			Weave.properties.runStartupJavaScript(); // run startup script after weaveReady()
 		}
@@ -1430,7 +1431,14 @@ package weave
 		 */
 		private function updatePageTitle():void
 		{
-			ExternalInterface.call("setTitle", Weave.properties.pageTitle.value);
+			try
+			{
+				ExternalInterface.call("setTitle", Weave.properties.pageTitle.value);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 		
 		/** 

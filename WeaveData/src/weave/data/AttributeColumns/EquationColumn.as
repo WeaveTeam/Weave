@@ -246,10 +246,12 @@ package weave.data.AttributeColumns
 			// return all the keys of all columns in the variables list
 			if (_allKeysTriggerCount != variables.triggerCounter)
 			{
+				_allKeys = null;
+				_allKeysTriggerCount = variables.triggerCounter; // prevent infinite recursion
+				
 				_allKeys = ColumnUtils.getAllKeys(variables.getObjects(IAttributeColumn));
-				_allKeysTriggerCount = variables.triggerCounter;
 			}
-			return _allKeys;
+			return _allKeys || [];
 		}
 
 		/**

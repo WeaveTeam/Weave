@@ -131,7 +131,7 @@ RTextEditor
 			import weave.data.KeySets.KeySet;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.DelayedAsyncResponder;
-			import weave.services.WeaveStatisticsServlet;
+			import weave.services.WeaveRServlet;
 			import weave.services.beans.HierarchicalClusteringResult;
 			import weave.services.beans.KMeansClusteringResult;
 			import weave.services.beans.LinearRegressionResult;
@@ -151,7 +151,7 @@ RTextEditor
 				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			}
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
-			private var Rservice:WeaveStatisticsServlet = new WeaveStatisticsServlet(Weave.properties.rServiceURL.value);
+			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			public const inputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			public const plotTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			public const outputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
@@ -272,7 +272,7 @@ RTextEditor
 				//Query is created from runScript with same signature from Jave side
 				var showIntermediateResults:Boolean = intermediateResultCB.selected;
 				var showWarnings:Boolean = warningCB.selected;
-				var query:AsyncToken = Rservice.runScript(assignNames, assignValues, outputNames, script,plotScript, showIntermediateResults,showWarnings);
+				var query:AsyncToken = Rservice.runScript(null,assignNames, assignValues, outputNames, script,plotScript, showIntermediateResults,showWarnings,false);
 				
 				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinedColumnQKeys);
 			}

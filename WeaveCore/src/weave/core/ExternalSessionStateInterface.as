@@ -388,5 +388,24 @@ package weave.core
 			getCallbackCollection(object).removeCallback(getCachedCallbackFunction(callback));
 			return true;
 		}
+		
+		/**
+		 * This surrounds ExternalInterface.addCallback() with try/catch and reports the error.
+		 * @see flash.external.ExternalInterface#addCallback
+		 */
+		public static function tryAddCallback(functionName:String, closure:Function):void
+		{
+			try
+			{
+				ExternalInterface.addCallback(functionName, closure);
+			}
+			catch (e:Error)
+			{
+				if (e.errorID == 2060)
+					reportError(e, "In the HTML, make sure that the parameter 'allowscriptaccess' is set to 'always'.");
+				else
+					reportError(e);
+			}
+		}
 	}
 }

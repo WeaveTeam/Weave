@@ -22,7 +22,7 @@ package weave.api.services
 	 * @author spurushe
 	 * @author sanbalag
 	 */
-	public interface IWeaveStatisticsService 
+	public interface IWeaveRService 
 	{
 		
 		// async result will be of type KMeansClusteringResult
@@ -30,6 +30,6 @@ package weave.api.services
 		// async result will be of type HierarchicalClusteringResult
 		function HierarchicalClustering(dataX:Array, dataY:Array):AsyncToken;			
 		function linearRegression(dataX:Array, dataY:Array):AsyncToken;			
-		function runScript(inputNames:Array, inputValues:Array, outputNames:Array, script:String,plotScript:String, showIntermediateResults:Boolean,showWarningMessages:Boolean ):AsyncToken;	
+		function runScript(keys:Array,inputNames:Array, inputValues:Array, outputNames:Array, script:String,plotScript:String, showIntermediateResults:Boolean,showWarningMessages:Boolean, useColumnsAsList:Boolean ):AsyncToken;	
 		}
 }

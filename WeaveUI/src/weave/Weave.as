@@ -84,7 +84,7 @@ package weave
 	public class Weave
 	{
 		public static var ALLOW_PLUGINS:Boolean = false; // TEMPORARY
-		
+		public static var debug:Boolean = false;
 		
 		{ /** begin static code block **/
 			initialize();
@@ -119,9 +119,9 @@ package weave
 			
 			// initialize the session state interface to point to Weave.root
 			(WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).setLinkableObjectRoot(root);
-			
+
 			// FOR BACKWARDS COMPATIBILITY
-			ExternalInterface.addCallback("createObject", function(...args):* {
+			ExternalSessionStateInterface.tryAddCallback("createObject", function(...args):* {
 				reportError("The Weave JavaScript API function createObject is deprecated.  Please use requestObject instead.");
 				WeaveAPI.ExternalSessionStateInterface.requestObject.apply(null, args);
 			});
@@ -265,6 +265,8 @@ package weave
 		 */
 		public static function setPluginList(newPluginList:Array, newWeaveContent:Object):Boolean
 		{
+			if (debug)
+				reportError("setPluginList " + newPluginList);
 			// remove duplicates
 			var array:Array = [];
 			for (i = 0; i < newPluginList.length; i++)
@@ -273,7 +275,9 @@ package weave
 			newPluginList = array;
 			// stop if no change
 			if (StandardLib.arrayCompare(_pluginList, newPluginList) == 0)
+			{
 				return true;
+			}
 			
 			var i:int;
 			var needReload:Boolean = false;
@@ -295,11 +299,10 @@ package weave
 			// save new plugin list
 			_pluginList = newPluginList;
 			
-			if (!newWeaveContent)
-				newWeaveContent = createWeaveFileContent();
-			
 			if (needReload)
 			{
+				if (!newWeaveContent)
+					newWeaveContent = createWeaveFileContent();
 				externalReload(newWeaveContent);
 			}
 			else
@@ -314,6 +317,8 @@ package weave
 					var faultEvent:FaultEvent = event as FaultEvent;
 					if (resultEvent)
 					{
+						if (debug)
+							reportError("Loaded plugin: " + token);
 						trace("Loaded plugin:", token);
 						var classQNames:Array = resultEvent.result as Array;
 						for (var i:int = 0; i < classQNames.length; i++)
@@ -322,17 +327,23 @@ package weave
 							// check if it implements ILinkableObject
 							if (ClassUtils.classImplements(classQName, ILinkableObject_classQName))
 							{
+								if (debug)
+									reportError(classQName);
 								trace(classQName);
 							}
 						}
 					}
 					else
 					{
+						if (debug)
+							reportError("Plugin failed to load: " + token);
 						trace("Plugin failed to load:", token);
 						reportError(faultEvent.fault);
 					}
 					
 					remaining--;
+					if (debug)
+						reportError('remaining '+remaining);
 					if (remaining == 0)
 						loadWeaveFileContent(newWeaveContent);
 				}
@@ -345,6 +356,7 @@ package weave
 				}
 				else
 				{
+					reportError("Unexpected");
 					loadWeaveFileContent(newWeaveContent);
 				}
 			}
@@ -394,6 +406,8 @@ package weave
 		 */
 		public static function loadWeaveFileContent(content:Object):void
 		{
+			if (debug)
+				reportError("loadWeaveFileContent",null,arguments);
 			var plugins:Array;
 			if (content is String)
 				content = XML(content);
@@ -410,7 +424,7 @@ package weave
 					history.clearHistory();
 				}
 			}
-			else
+			else if (content)
 			{
 				if (content is ByteArray)
 					content = new WeaveArchive(content as ByteArray);
@@ -497,6 +511,8 @@ package weave
 			
 			// get session history from shared object
 			var saved:Object = obj.data[uid];
+			if (debug)
+				reportError("handleWeaveReload", null, saved);
 			if (saved)
 			{
 				// delete session history from shared object
