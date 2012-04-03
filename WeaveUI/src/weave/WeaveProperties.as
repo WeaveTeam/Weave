@@ -52,6 +52,7 @@ package weave
 	import weave.core.SessionManager;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.AbstractAttributeColumn;
+	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
 	import weave.ui.AttributeMenuTool;
@@ -501,6 +502,8 @@ package weave
 		{
 			return value >= 1 && value <= 4;
 		}
+		
+		public function get SecondaryKeyNumColumn_useGlobalMinMaxValues():LinkableBoolean { return SecondaryKeyNumColumn.useGlobalMinMaxValues; }
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY

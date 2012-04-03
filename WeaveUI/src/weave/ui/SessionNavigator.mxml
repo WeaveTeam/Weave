@@ -23,7 +23,7 @@
 *  @author skolman
 *  
 -->
-<mx:Tree xmlns:mx="http://www.adobe.com/2006/mxml"  
+<ui:CustomTree xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
 		 width="100%" height="100%" 
 		 disclosureOpenIcon="@Embed(source='Assets.swf',symbol='TreeDisclosureOpen')" 
 		 disclosureClosedIcon="@Embed(source='Assets.swf',symbol='TreeDisclosureClosed')"
@@ -321,4 +321,4 @@
 		]]>
 	</mx:Script>
 
-</mx:Tree>
+</ui:CustomTree>

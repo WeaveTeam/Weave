@@ -73,6 +73,7 @@
 			dimsLabel.text = "Replace labels with values from a dimension with a secondary key:";
 		
 		SecondaryKeyNumColumn.secondaryKeyFilter.addGroupedCallback(this, handleSliderChange, true);
+		checkBox_useGlobalMinMax.visible = true;
 	}
 
 	/**
