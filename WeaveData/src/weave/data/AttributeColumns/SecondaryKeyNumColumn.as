@@ -34,6 +34,7 @@ package weave.data.AttributeColumns
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
 	import weave.utils.EquationColumnLib;
 	
@@ -46,7 +47,8 @@ package weave.data.AttributeColumns
 		public function SecondaryKeyNumColumn(metadata:XML = null)
 		{
 			super(metadata);
-			registerLinkableChild(this, secondaryKeyFilter);
+			secondaryKeyFilter.addImmediateCallback(this, triggerCallbacks);
+			useGlobalMinMaxValues.addImmediateCallback(this, triggerCallbacks);
 		}
 
 		/**
@@ -54,10 +56,12 @@ package weave.data.AttributeColumns
 		 */
 		override public function getMetadata(propertyName:String):String
 		{
-			switch (propertyName)
+			if (useGlobalMinMaxValues.value)
 			{
-				case AttributeColumnMetadata.MIN: return String(_minNumber);
-				case AttributeColumnMetadata.MAX: return String(_maxNumber);
+				if (propertyName == AttributeColumnMetadata.MIN)
+					return String(_minNumber);
+				if (propertyName == AttributeColumnMetadata.MAX)
+					return String(_maxNumber);
 			}
 			
 			var value:String = super.getMetadata(propertyName);
@@ -99,6 +103,7 @@ package weave.data.AttributeColumns
 		 * This is the value used to filter the data.
 		 */
 		public static const secondaryKeyFilter:LinkableString = new LinkableString();
+		public static const useGlobalMinMaxValues:LinkableBoolean = new LinkableBoolean(true);
 		
 		protected static const _uniqueSecondaryKeys:Array = new Array();
 		public static function get secondaryKeys():Array
