@@ -67,8 +67,18 @@ package weave.utils
 			
 			var result:Boolean = false;
 			var oldBitmapData:BitmapData = bitmap.bitmapData;
+			var sizeChanged:Boolean = true;
+			try
+			{
+				// this may crash if the BitmapData is invalid.
+				sizeChanged = (oldBitmapData == null || oldBitmapData.width != unscaledWidth || oldBitmapData.height != unscaledHeight);
+			}
+			catch (e:Error)
+			{
+				// invalid BitmapData, ignore error
+			}
 			// update size of internal BitmapData if necessary
-			if (oldBitmapData == null || oldBitmapData.width != unscaledWidth || oldBitmapData.height != unscaledHeight)
+			if (sizeChanged)
 			{
 				try
 				{
