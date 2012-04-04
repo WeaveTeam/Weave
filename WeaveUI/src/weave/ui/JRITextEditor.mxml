@@ -364,7 +364,10 @@ JRITextEditor
 				}
 				while(script.search("\r") > 0){// "\r" - replaced by "/n" in all occurance
 					script = script.replace("\r","\n");
-				}				
+				}
+				if(token == null){
+					token = "";
+				}
 				//Query is created from runScript with same signature from Jave side				
 				var query:AsyncToken = rService.runScript(joinedColumnKeys,assignNames, assignValues, outputNames, script,plotScript, showIntermediateResults,showWarnings,useColumnAsList);
 				DelayedAsyncResponder.addResponder(query, handleScriptResult, handleScriptFault, token);
