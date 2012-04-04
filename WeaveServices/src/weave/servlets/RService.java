@@ -49,7 +49,7 @@ public class RService extends GenericServlet
 	private String docrootPath = "";
 	
 	enum ServiceType { JRI, RSERVE; }
-	private static ServiceType serviceType = ServiceType.RSERVE;
+	private static ServiceType serviceType = ServiceType.JRI;
 	
 	public RResult[] runScript(String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{
@@ -68,15 +68,15 @@ public class RService extends GenericServlet
 			{
 				if (type == ServiceType.RSERVE)
 					return RServiceUsingRserve.runScript( docrootPath, inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
-				/*
+				
 				// this crashes Tomcat
 				if (type == ServiceType.JRI)
 					return RServiceUsingJRI.runScript( docrootPath, keys, inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings, useColumnAsList);
-				*/
+				
 			}
 			catch (RServiceUsingJRI.JRIConnectionException e)
 			{
-				System.out.println(e.getStackTrace());
+				e.printStackTrace();
 				// remember exception associated with chosen service
 				// alternate for next time
 				if (type == serviceType)
@@ -86,7 +86,7 @@ public class RService extends GenericServlet
 			}
 			catch (RServiceUsingRserve.RserveConnectionException e)
 			{
-				System.out.println(e.getStackTrace());
+				e.printStackTrace();
 				// remember exception associated with chosen service
 				// alternate for next time
 				if (type == serviceType)
