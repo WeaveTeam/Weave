@@ -40,7 +40,7 @@ package weave.ui.infomap.layout
 			baseLayoutDrawn = true;
 		}
 		
-		private var thumbnailSize:int = 50;
+		private var thumbnailSize:int = 25;
 		private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 		
 		public function plotThumbnails(thumbnails:Array):void
@@ -75,7 +75,7 @@ package weave.ui.infomap.layout
 					thumbnail.y = startY;			
 					thumbnail.x = startX;
 					
-					startX = startX + 5;
+					startX = startX + 25;
 				}
 			}	
 		}

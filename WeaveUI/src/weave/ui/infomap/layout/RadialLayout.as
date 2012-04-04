@@ -54,7 +54,7 @@ package weave.ui.infomap.layout
 		
 		
 		
-		private var thumbnailSize:int = 50;
+		private var thumbnailSize:int = 25;
 		private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 		
 		public function plotThumbnails(thumbnails:Array):void

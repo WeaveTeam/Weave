@@ -1,4 +1,4 @@
-package weave.ui.infomap.core
+package weave.primitives
 {
 	import weave.api.core.ILinkableObject;
 	import weave.api.newLinkableChild;

@@ -83,7 +83,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.CustomContextMenuManager;
 			import weave.ui.infomap.InfoMapLoader;
 			import weave.ui.infomap.admin.InfoMapAdminInterface;
-			import weave.ui.infomap.core.DateRangeFilter;
+			import weave.primitives.DateRangeFilter;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.SelectableInfoMapDocument;
 			import weave.ui.infomap.layout.NodeHandler;
@@ -106,7 +106,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * When a query is made by each node, the documents retrieved are stored in this map.
 			 * */
 			public const docs:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
-			public var docsInCSV:CSVDataSource = new CSVDataSource();
+			public const docsCSVDataSource:CSVDataSource = newLinkableChild(this,CSVDataSource);
 			public static const DOC_KEYTYPE:String = "infomapDocURL";
 			
 			/**
@@ -140,10 +140,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				 	if it alreadt exists we will use the existing data source 
 				*/
 				
-				docsInCSV = Weave.root.requestObject("docs",CSVDataSource, false);
-				docsInCSV.csvDataString.value = "title,url,summary,image url,date";
-				docsInCSV.keyColName.value = "url";
-				docsInCSV.keyType.value = DOC_KEYTYPE;
+//				docsCSVDataSource = Weave.root.requestObject("docs",CSVDataSource, false);
+				docsCSVDataSource.csvDataString.value = "title,url,summary,image url,date";
+				docsCSVDataSource.keyColName.value = "url";
+				docsCSVDataSource.keyType.value = DOC_KEYTYPE;
 				
 				
 				

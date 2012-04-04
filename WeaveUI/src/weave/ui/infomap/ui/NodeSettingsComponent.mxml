@@ -29,6 +29,11 @@ Info to provide a tooltip describing the node (like number of documents found)
 			<mx:Button label="Apply" click="applyKeyword()"/>
 		</mx:HBox>
 		<mx:HBox>
+			<mx:Label text="Boolean Operator: " fontWeight="bold" width="{_leftAlignWidth}"/>					
+			<mx:ComboBox id="operator"/>
+		</mx:HBox>
+		
+		<mx:HBox>
 			<mx:Label text="Search in Node: " fontWeight="bold"  width="{_leftAlignWidth}"/>					
 			<mx:TextInput id="searchTextInput" keyUp="handleEnterKeyOnSearch(event)"/>
 		</mx:HBox>
@@ -98,7 +103,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 import weave.core.LinkableString;
 				 import weave.data.CSVParser;
 				 import weave.ui.infomap.admin.InfoMapAdminInterface;
-				 import weave.ui.infomap.core.DateRangeFilter;
+				 import weave.primitives.DateRangeFilter;
 				 import weave.ui.infomap.core.InfoMapNode;
 				 import weave.ui.infomap.layout.CascadeLayout;
 				 import weave.ui.infomap.layout.GridLayout;
@@ -129,11 +134,15 @@ Info to provide a tooltip describing the node (like number of documents found)
 					 //even if it was not the selected item
 					 layoutComboBox.dataProvider =  ['Radial','Cascade','Grid','Horizontal','Vertical'] ;
 					 
+					 operator.dataProvider = ['OR','AND'];
+					 
 					 keyword.text = nodeHandler.node.keywords.value;
 					 
 					 
 					 linkBindableProperty(nodeHandler.searchFilter,searchTextInput,"text",500);
-					 
+					
+					 operator.selectedItem = nodeHandler.node.operator.value;
+					 linkBindableProperty(nodeHandler.node.operator,operator,"selectedItem");
 					 
 					 nodeHandler.node.dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);
 					 nodeHandler.node.dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,false);

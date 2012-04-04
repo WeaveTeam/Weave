@@ -23,7 +23,7 @@ It has 4 icons to:
 		<mx:Image id="settingsImg" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
 		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
 	</mx:HBox>	
-	<mx:TextArea id="keywordTextArea" borderThickness="0"/>
+	<mx:TextArea id="keywordTextArea" fontSize="12" borderThickness="0"/>
 	
 	<mx:Script>
 		<![CDATA[

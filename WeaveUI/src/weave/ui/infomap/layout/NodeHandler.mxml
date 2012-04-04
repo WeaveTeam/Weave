@@ -60,7 +60,7 @@
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.data.QKeyManager;
-			import weave.ui.infomap.core.DateRangeFilter;
+			import weave.primitives.DateRangeFilter;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.InfoMapDocument;
 			import weave.ui.infomap.core.InfoMapNode;
@@ -122,6 +122,8 @@
 			
 			private var _parentPanel:InfoMapPanel;
 			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
+			
+			
 			
 			override protected function createChildren():void
 			{
@@ -305,9 +307,10 @@
 			}
 			
 			
-			private function handleRequestError(event:Event):void
+			private function handleRequestError(event:IOErrorEvent):void
 			{
-				Alert.show("There was an error in your request. Please make sure your keywords are separated by commas.","Error");
+				WeaveAPI.ErrorManager.reportError(event.text);
+//				Alert.show("There was an error in your request. Please make sure your keywords are separated by commas.","Error");
 			}
 				
 			
@@ -339,8 +342,8 @@
 					var linkExtension:String = link.substring(linkLen-3,linkLen);
 					var imgExtension:String = ".jpg"
 					
-					if(!(linkExtension == "pdf"))
-						continue;
+//					if(!(linkExtension == "pdf"))
+//						continue;
 					
 //					currently disabled pdf files for cleaner results and testing purposes 
 					if(linkExtension == "pdf"){
@@ -363,9 +366,9 @@
 						docObject.url.value = link;
 						currentDoc.push(link);
 						
-						//TODO:right now limiting to 500 characters. Need to change this later to a better solution
-						docObject.summary.value = (doc.str.(@name=="description").text().toXMLString() as String).substr(0,500);
-						currentDoc.push((doc.str.(@name=="description").text().toXMLString() as String).substr(0,500));
+						//TODO:right now limiting to 200 characters. Need to change this later to a better solution
+						docObject.summary.value = (doc.str.(@name=="description").text().toXMLString() as String).substr(0,200);
+						currentDoc.push((doc.str.(@name=="description").text().toXMLString() as String).substr(0,200));
 						
 						var imgURL:String = doc.str.(@name=="imgName").text().toXMLString();
 						
@@ -380,9 +383,9 @@
 				}
 				
 				var csvDataString:String = parser.createCSV(docsArray);
-				csvDataString = _parentPanel.docsInCSV.csvDataString.value + '\n' + csvDataString;
+				csvDataString = _parentPanel.docsCSVDataSource.csvDataString.value + '\n' + csvDataString;
 				
-				_parentPanel.docsInCSV.csvDataString.value = csvDataString;
+				_parentPanel.docsCSVDataSource.csvDataString.value = csvDataString;
 				
 				_parentPanel.docs.resumeCallbacks(true);//test this
 				handleParsedResult(response);

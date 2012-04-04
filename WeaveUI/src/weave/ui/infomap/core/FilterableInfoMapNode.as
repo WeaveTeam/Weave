@@ -3,6 +3,7 @@ package weave.ui.infomap.core
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableString;
+	import weave.primitives.DateRangeFilter;
 
 	public class FilterableInfoMapNode extends InfoMapNode
 	{

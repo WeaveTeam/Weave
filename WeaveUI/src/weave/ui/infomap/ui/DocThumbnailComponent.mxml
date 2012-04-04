@@ -49,7 +49,7 @@ so that it can be moved, selected, handle filters.
 			import weave.core.SessionManager;
 			import weave.data.KeySets.KeySet;
 			import weave.services.URLRequestUtils;
-			import weave.ui.infomap.core.DateRangeFilter;
+			import weave.primitives.DateRangeFilter;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.IInfoMapNode;
 			import weave.ui.infomap.core.SelectableInfoMapDocument;
@@ -400,20 +400,21 @@ so that it can be moved, selected, handle filters.
 			{
 				if(_doc == null)
 					return;
-				if(_selection.keys.length == 0)
+//				if(_selection.keys.length == 0)
+//				{
+//					imageAlpha.value = 1.0;
+//					setStyle("borderThickness",0.5);
+//					setStyle("borderColor",defaultBorderColor.value);
+//				} else 
+				if(_doc.selected.value)
 				{
 					imageAlpha.value = 1.0;
-					setStyle("borderThickness",0.5);
-					setStyle("borderColor",defaultBorderColor.value);
-				} else if(_doc.selected.value)
-				{
-					imageAlpha.value = 1.0;
-					setStyle("borderThickness", 1);
+					setStyle("borderThickness", 1.5);
 					setStyle("borderColor",selectedBorderColor.value);
 				}
 				else
 				{
-					imageAlpha.value = 0.3;
+					imageAlpha.value = 0.5;
 					setStyle("borderThickness", 0.5);
 					setStyle("borderColor",defaultBorderColor.value);
 				}
