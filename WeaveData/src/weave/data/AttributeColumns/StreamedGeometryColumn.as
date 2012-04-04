@@ -130,8 +130,9 @@ package weave.data.AttributeColumns
 		private var _geometryStreamDownloadCounter:int = 0;
 		private var _metadataStreamDownloadCounter:int = 0;
 		
-		public var metadataTilesPerQuery:int = 10; //10;
-		public var geometryTilesPerQuery:int = 10; //30;
+		
+		public var metadataTilesPerQuery:int = 200; //10;
+		public var geometryTilesPerQuery:int = 200; //30;
 		
 		public function requestGeometryDetail(dataBounds:IBounds2D, lowestImportance:Number):void
 		{
