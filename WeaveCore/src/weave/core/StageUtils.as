@@ -35,6 +35,7 @@ package weave.core
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IStageUtils;
+	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.utils.DebugTimer;
@@ -51,6 +52,8 @@ package weave.core
 	 */
 	public class StageUtils implements IStageUtils
 	{
+		[Bindable] public var enableThreadPriorities:Boolean = false;
+		
 		private const frameTimes:Array = [];
 		private var debug_fps:Boolean = false;
 		
@@ -148,8 +151,7 @@ package weave.core
 		/**
 		 * When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.
 		 */
-		[Bindable]
-		public var maxComputationTimePerFrame:int = 200;
+		public var maxComputationTimePerFrame:uint = 100;
 		
 		/**
 		 * This function gets called on ENTER_FRAME events.
@@ -159,6 +161,8 @@ package weave.core
 			var currentTime:int = getTimer();
 			_previousFrameElapsedTime = currentTime - _currentFrameStartTime;
 			_currentFrameStartTime = currentTime;
+			if (maxComputationTimePerFrame == 0)
+				maxComputationTimePerFrame = 100;
 			
 			if (debug_fps)
 			{
@@ -206,10 +210,11 @@ package weave.core
 				// and prevents from newly added functions from being called until the next frame.
 				calls = _callLaterArray;
 				_callLaterArray = [];
+				var stopTime:int = _currentFrameStartTime + maxComputationTimePerFrame;
 				for (i = 0; i < calls.length; i++)
 				{
 					// if elapsed time reaches threshold, call everything else later
-					if (getTimer() - _currentFrameStartTime > maxComputationTimePerFrame)
+					if (getTimer() > stopTime)
 					{
 						// To preserve the order they were added, put the remaining callLater
 						// functions for this frame in front of any others that may have been added.
@@ -297,6 +302,12 @@ package weave.core
 			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
 				return;
 			
+			if (priority == WeaveAPI.TASK_PRIORITY_RENDERING && !enableThreadPriorities)
+			{
+				while (iterativeTask() < 1) { }
+				return;
+			}
+			
 			if (priority <= 0)
 			{
 				reportError("Task priority " + priority + " is not supported.");
@@ -322,9 +333,11 @@ package weave.core
 				return;
 			}
 			
-			var elapsed:int = currentFrameElapsedTime;
-			var remaining:int = maxComputationTimePerFrame - elapsed;
-			var stopTime:int = _currentFrameStartTime + maxComputationTimePerFrame / priority;
+			var stopTime:int;
+			if (enableThreadPriorities)
+				stopTime = _currentFrameStartTime + maxComputationTimePerFrame / priority;
+			else
+				stopTime = _currentFrameStartTime + 100;
 			
 			var progress:* = undefined;
 			// iterate on the task until stopTime is reached

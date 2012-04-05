@@ -41,6 +41,7 @@ package weave
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.linkBindableProperty;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -50,6 +51,7 @@ package weave
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
+	import weave.core.StageUtils;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
@@ -123,6 +125,9 @@ package weave
 			panelTitleTextFormat.color.value = 0xFFFFFF;
 			
 			_initToggleMap();
+			
+			linkBindableProperty(enableThreadPriorities, WeaveAPI.StageUtils, 'enableThreadPriorities');
+			linkBindableProperty(maxComputationTimePerFrame, WeaveAPI.StageUtils, 'maxComputationTimePerFrame');
 		}
 		
 		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
@@ -503,6 +508,8 @@ package weave
 		}
 		
 		public function get SecondaryKeyNumColumn_useGlobalMinMaxValues():LinkableBoolean { return SecondaryKeyNumColumn.useGlobalMinMaxValues; }
+		public const enableThreadPriorities:LinkableBoolean = new LinkableBoolean(false);
+		public const maxComputationTimePerFrame:LinkableNumber = new LinkableNumber(100);
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY
