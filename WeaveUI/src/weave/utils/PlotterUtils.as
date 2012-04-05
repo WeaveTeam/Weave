@@ -102,7 +102,7 @@ package weave.utils
 				_tempRect.x = 0;
 				_tempRect.y = 0;
 				_tempRect.width = unscaledWidth;
-				_tempRect.height = unscaledWidth;
+				_tempRect.height = unscaledHeight;
 				bitmap.bitmapData.fillRect(_tempRect, fillColor);
 			}
 			return result;
