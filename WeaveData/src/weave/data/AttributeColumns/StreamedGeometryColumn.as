@@ -24,6 +24,7 @@ package weave.data.AttributeColumns
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
@@ -216,7 +217,7 @@ package weave.data.AttributeColumns
 		{
 			if (event.result == null)
 			{
-				reportNullResult();
+				reportNullResult(ObjectUtil.toString(token));
 				return;
 			}
 			try
@@ -243,9 +244,9 @@ package weave.data.AttributeColumns
 		}
 		
 
-		private function reportNullResult():void
+		private function reportNullResult(token:Object):void
 		{
-			reportError("Did not receive any data from service for geometry column: " + ColumnUtils.getTitle(this));
+			reportError("Did not receive any data from service for geometry column. " + token);
 		}
 		
 		private var _totalDownloadedSize:int = 0;
@@ -256,7 +257,7 @@ package weave.data.AttributeColumns
 			
 			if (event.result == null)
 			{
-				reportNullResult();
+				reportNullResult(token);
 				return;
 			}
 			
@@ -274,7 +275,7 @@ package weave.data.AttributeColumns
 
 			if (event.result == null)
 			{
-				reportNullResult();
+				reportNullResult(token);
 				return;
 			}
 
