@@ -67,21 +67,38 @@ public class RServiceUsingJRI
 		try
 		{
 			String extension = "R";
-			ScriptEngineManager manager = new ScriptEngineManager();			
+			ScriptEngineManager manager = new ScriptEngineManager();
 			ScriptEngine engine = manager.getEngineByExtension(extension);
+			//Happens when JRI native Library not found - engine will be null
+			// as We set System.setProperty("jri.ignore.ule", "yes");
+			// in getScriptEngine method of RScriptFactory class 
+			if(engine == null){
+				throw  new RemoteException( "Native Library not found");
+			}
 			return engine;
+		}
+		catch(UnsatisfiedLinkError linkError){
+			throw new JRIConnectionException(linkError);
+		}
+		catch (NullPointerException e)	{
+			throw new JRIConnectionException( e);
+		}
+		catch(RuntimeException runtimeEx){
+			throw new JRIConnectionException(runtimeEx);
+		}
+		catch (Error error){
+			throw new JRIConnectionException(error);
 		}
 		catch (Exception e)
 		{
 			throw new JRIConnectionException( e);
 		}
-		catch (NoClassDefFoundError ncdfe) // not caught by default
-		{
-			throw new JRIConnectionException( ncdfe);
-		}
-		catch (Error error){
-			throw new JRIConnectionException(error);
-		}
+		
+		
+		
+		
+		
+		
 		
 	}
 	public static RResult[] runScript(String docrootPath, String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings ,boolean useColumnAsList) throws RemoteException
@@ -108,8 +125,17 @@ public class RServiceUsingJRI
 				// to clear R objects
 				evalScript(engine, "rm(list=ls())", false);
 			}
-			catch (Exception e)	{
+			//Happens when JRI native Library not found - engine will be null
+			// as We set System.setProperty("jri.ignore.ule", "yes");
+			// in getScriptEngine method of RScriptFactory class 
+			catch (NullPointerException e)	{
 				throw new RemoteException("Unable to run R script", e);
+			}
+			catch (Exception e)	{
+				e.printStackTrace();
+				String errorStatement = e.getMessage();
+				resultVector.add(new RResult("Error Statement", errorStatement));
+				//throw new RemoteException("Unable to run R script", e);
 			}
 			finally{
 				results = new RResult[resultVector.size()];

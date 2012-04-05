@@ -5,6 +5,7 @@ import static javax.script.ScriptEngine.LANGUAGE;
 import static javax.script.ScriptEngine.LANGUAGE_VERSION;
 import static javax.script.ScriptEngine.NAME;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
 
@@ -83,16 +84,51 @@ public class RScriptFactory implements ScriptEngineFactory {
 	}
 
 	public ScriptEngine getScriptEngine() {
-		try {							
+		try {	
+			// tell Rengine code not to die if it can't
+	        // load the JRI native DLLs. This allows
+	        // us to catch the UnsatisfiedLinkError
+	        // ourselves
+	        System.setProperty("jri.ignore.ule", "yes");
 			REngine rEngine = REngine.engineForClass( "org.rosuda.REngine.JRI.JRIEngine");
 			JRIBaseScriptEngine engine = new RScriptEngine(rEngine);
 			engine.setFactory(this);
 			return engine;
 		}
+		
+		catch(RuntimeException runTimeEx){
+			throw new RuntimeException(runTimeEx);
+		}
+		catch(UnsatisfiedLinkError linkError){
+			throw new RuntimeException(linkError);
+		}
+		catch(ClassNotFoundException cnfe){
+			throw new RuntimeException(cnfe);
+		}
+		catch(NoSuchMethodException nsme){
+			throw new RuntimeException(nsme);
+		}
+		catch(IllegalAccessException iae){
+			throw new RuntimeException(iae);
+		}
+		//Happens when JRI native Library not found - engine will be null
+		// as We set System.setProperty("jri.ignore.ule", "yes");
+		// in getScriptEngine method of RScriptFactory class 
+		catch(InvocationTargetException ite){
+			throw new RuntimeException(ite);
+		}
+		catch (LinkageError error){
+			throw new RuntimeException(error);
+		}
+		catch(Error e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 		catch(Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
+		
 	}
 	
 }

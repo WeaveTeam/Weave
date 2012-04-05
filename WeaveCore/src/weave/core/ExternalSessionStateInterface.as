@@ -128,12 +128,17 @@ package weave.core
 				for (var name:String in state)
 				{
 					var value:Object = state[name];
-					if (value.hasOwnProperty(LinkableXML.XML_STRING))
-						state[name] = value[LinkableXML.XML_STRING];
-					else if (value is XML)
+					if (value is XML)
+					{
 						state[name] = (value as XML).toXMLString();
-					else
-						convertSessionStateToPrimitives(value);
+					}
+					else if (value != null)
+					{
+						if (value.hasOwnProperty(LinkableXML.XML_STRING))
+							state[name] = value[LinkableXML.XML_STRING];
+						else
+							convertSessionStateToPrimitives(value);
+					}
 				}
 			}
 		}
