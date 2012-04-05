@@ -4,7 +4,7 @@
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" href="../../style.css" type="text/css" media="screen">
 <link rel="stylesheet" href="../../print.css" type="text/css" media="print">
-<meta content="StageUtils,weave.core.StageUtils,POINT_CLICK_EVENT,altKey,ctrlKey,currentFrameElapsedTime,event,keyboardEvent,mouseButtonDown,mouseEvent,mouseMoved,previousFrameElapsedTime,shiftKey,addEventCallback,callLater,getSupportedEventTypes,removeEventCallback,startTask" name="keywords">
+<meta content="StageUtils,weave.core.StageUtils,POINT_CLICK_EVENT,debug_delayTasks,enableThreadPriorities,maxComputationTimePerFrame,altKey,ctrlKey,currentFrameElapsedTime,event,keyboardEvent,mouseButtonDown,mouseEvent,mouseMoved,previousFrameElapsedTime,shiftKey,addEventCallback,callLater,getSupportedEventTypes,removeEventCallback,startTask" name="keywords">
 <title>weave.core.StageUtils</title>
 </head>
 <body>
@@ -74,6 +74,14 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 </td><td class="summaryTableOwnerCol">StageUtils</td>
 </tr>
 <tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#debug_delayTasks">debug_delayTasks</a> : Boolean = false<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">StageUtils</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#enableThreadPriorities">enableThreadPriorities</a> : Boolean = false<div class="summaryTableDescription"></div>
+</td><td class="summaryTableOwnerCol">StageUtils</td>
+</tr>
+<tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#event">event</a> : Event<div class="summaryTableDescription">[read-only]
    This is the last event that occurred on the stage.</div>
 </td><td class="summaryTableOwnerCol">StageUtils</td>
@@ -81,6 +89,11 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#keyboardEvent">keyboardEvent</a> : KeyboardEvent<div class="summaryTableDescription">[read-only]
    This is the last keyboard event that occurred on the stage.</div>
+</td><td class="summaryTableOwnerCol">StageUtils</td>
+</tr>
+<tr class="">
+<td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a class="signatureLink" href="#maxComputationTimePerFrame">maxComputationTimePerFrame</a> : uint = 100<div class="summaryTableDescription">
+   When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.</div>
 </td><td class="summaryTableOwnerCol">StageUtils</td>
 </tr>
 <tr class="">
@@ -159,7 +172,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#startTask()">startTask</a>(relevantContext:Object, iterativeTask:Function):void</div>
+<a class="signatureLink" href="#startTask()">startTask</a>(relevantContext:Object, iterativeTask:Function, priority:int):void</div>
 <div class="summaryTableDescription">
    This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.</div>
 </td><td class="summaryTableOwnerCol">StageUtils</td>
@@ -227,6 +240,25 @@ showHideInherited();
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get currentFrameElapsedTime():int</code>
 <br>
 </div>
+<a name="debug_delayTasks"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">debug_delayTasks</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var debug_delayTasks:Boolean = false</code>
+</div>
+<a name="enableThreadPriorities"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">enableThreadPriorities</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var enableThreadPriorities:Boolean = false</code>
+<p>This property can be used as the source for data binding.</p>
+</div>
 <a name="event"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -257,6 +289,16 @@ showHideInherited();
 <code>&nbsp;&nbsp;&nbsp;&nbsp;public function get keyboardEvent():KeyboardEvent</code>
 <br>
 </div>
+<a name="maxComputationTimePerFrame"></a>
+<table cellspacing="0" cellpadding="0" class="detailHeader">
+<tr>
+<td class="detailHeaderName">maxComputationTimePerFrame</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td>
+</tr>
+</table>
+<div class="detailBody">
+<code>public var maxComputationTimePerFrame:uint = 100</code><p>
+   When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.
+   </p></div>
 <a name="mouseButtonDown"></a>
 <table cellspacing="0" cellpadding="0" class="detailHeader">
 <tr>
@@ -464,7 +506,7 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public function startTask(relevantContext:Object, iterativeTask:Function):void</code><p>
+<code>public function startTask(relevantContext:Object, iterativeTask:Function, priority:int):void</code><p>
    This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
@@ -495,7 +537,20 @@ showHideInherited();
          }
    </td>
 </tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">priority</span>:int</code> &mdash; The task priority, which should be one of the static constants in WeaveAPI.
+   </td>
+</tr>
 </table>
+<p>
+<span class="label">See also</span>
+</p>
+<div class="seeAlso">
+<a href="../api/WeaveAPI.html" target="">weave.api.WeaveAPI</a>
+</div>
 </div>
 <a name="constantDetail"></a>
 <div class="detailSectionHeader">Constant detail</div>

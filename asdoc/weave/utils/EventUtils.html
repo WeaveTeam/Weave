@@ -61,7 +61,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#doubleBind()">doubleBind</a>(primaryHost:IEventDispatcher, primaryProperty:String, secondaryHost:IEventDispatcher, secondaryProperty:String):void</div>
+<a class="signatureLink" href="#doubleBind()">doubleBind</a>(primaryHost:Object, primaryProperty:String, secondaryHost:Object, secondaryProperty:String):void</div>
 <div class="summaryTableDescription">[static]
    This function sets up a two-way binding.</div>
 </td><td class="summaryTableOwnerCol">EventUtils</td>
@@ -122,12 +122,12 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function doubleBind(primaryHost:IEventDispatcher, primaryProperty:String, secondaryHost:IEventDispatcher, secondaryProperty:String):void</code><p>
+<code>public static function doubleBind(primaryHost:Object, primaryProperty:String, secondaryHost:Object, secondaryProperty:String):void</code><p>
    This function sets up a two-way binding.  Upon calling this function, the value from the primary host's property will be copied to the secondary host's property.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td width="20px"></td><td><code><span class="label">primaryHost</span>:IEventDispatcher</code> &mdash; The first host.
+<td width="20px"></td><td><code><span class="label">primaryHost</span>:Object</code> &mdash; The first host.
    </td>
 </tr>
 <tr>
@@ -141,7 +141,7 @@ showHideInherited();
 <td class="paramSpacer">&nbsp;</td>
 </tr>
 <tr>
-<td width="20px"></td><td><code><span class="label">secondaryHost</span>:IEventDispatcher</code> &mdash; The second host.
+<td width="20px"></td><td><code><span class="label">secondaryHost</span>:Object</code> &mdash; The second host.
    </td>
 </tr>
 <tr>

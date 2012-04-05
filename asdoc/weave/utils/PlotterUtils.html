@@ -72,7 +72,7 @@ if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("Cl
 <tr class="">
 <td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol">
 <div class="summarySignature">
-<a class="signatureLink" href="#setBitmapDataSize()">setBitmapDataSize</a>(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number):Boolean</div>
+<a class="signatureLink" href="#setBitmapDataSize()">setBitmapDataSize</a>(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number, fillColor:uint = 0x00000000):Boolean</div>
 <div class="summaryTableDescription">[static]
    This function updates the size of the BitmapData inside a Bitmap.</div>
 </td><td class="summaryTableOwnerCol">PlotterUtils</td>
@@ -134,9 +134,9 @@ showHideInherited();
 </tr>
 </table>
 <div class="detailBody">
-<code>public static function setBitmapDataSize(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number):Boolean</code><p>
+<code>public static function setBitmapDataSize(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number, fillColor:uint = 0x00000000):Boolean</code><p>
    This function updates the size of the BitmapData inside a Bitmap.
-   If the BitmapData inside the Bitmap is already the right size, this function has no effect.
+   The new or existing BitmapData will be filled with the specified fill color.
    </p><span class="label">Parameters</span>
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
@@ -155,6 +155,13 @@ showHideInherited();
 </tr>
 <tr>
 <td width="20px"></td><td><code><span class="label">unscaledHeight</span>:Number</code> &mdash; The desired height of the BitmapData.
+   </td>
+</tr>
+<tr>
+<td class="paramSpacer">&nbsp;</td>
+</tr>
+<tr>
+<td width="20px"></td><td><code><span class="label">fillColor</span>:uint</code> (default = <code>0x00000000</code>)<code></code> &mdash; The BitmapData will be filled with this color.
    </td>
 </tr>
 </table>
