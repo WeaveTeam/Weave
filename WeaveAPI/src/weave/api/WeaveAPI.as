@@ -202,8 +202,16 @@ package weave.api
 		private static function generateExternalInterfaceCallback(methodName:String, theInterface:Class):Function
 		{
 			return function (...args):* {
-				var instance:Object = getSingletonInstance(theInterface);
-				return (instance[methodName] as Function).apply(null, args);
+				try
+				{
+					var instance:Object = getSingletonInstance(theInterface);
+					return (instance[methodName] as Function).apply(null, args);
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+					throw e;
+				}
 			}
 		}
 		

@@ -101,21 +101,12 @@ package weave.core
 		 */
 		public function getSessionState(objectPath:Array):Object
 		{
-			try
-			{
-				var object:ILinkableObject = getObject(objectPath);
-				if (object == null)
-					return null;
-				var state:Object = WeaveAPI.SessionManager.getSessionState(object);
-				convertSessionStateToPrimitives(state); // do not allow XML objects to be returned
-				return state;
-			}
-			catch (e:Error)
-			{
-				reportError(e);
-				throw e;
-			}
-			return null; // unreachable
+			var object:ILinkableObject = getObject(objectPath);
+			if (object == null)
+				return null;
+			var state:Object = WeaveAPI.SessionManager.getSessionState(object);
+			convertSessionStateToPrimitives(state); // do not allow XML objects to be returned
+			return state;
 		}
 		/**
 		 * This function modifies a session state, converting any nested XML objects to Strings.
