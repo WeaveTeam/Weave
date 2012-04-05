@@ -25,7 +25,8 @@
 				width="100%" height="100%" 
 				label="Data Configuration{metaDataChanged?'*':''}"
 				creationComplete="handleCreationComplete()">
-	<mx:VBox height="100%">
+        <ui:NewAttributeColumnSelector width="100%" height="100%" id="columnSelector"/>
+	<mx:VBox width="0%">
 		<ui:TreeWithSearch id="treeWithSearch" prompt="Search data tables" click="handleTableSelectionChange()"/>
 		<mx:HBox width="100%">
 			<mx:Spacer width="100%"/>
@@ -85,16 +86,6 @@
 				</mx:DataGrid>
 			</mx:VBox>
 		</mx:Canvas>
-		<mx:Canvas id="treeView" label="Categories" width="100%" height="100%">
-					<mx:VBox height="100%" width="100%">
-						<mx:HBox>
-							<mx:Button id="addCategory" label="Add Category..."/>
-							<mx:Button id="deleteCategory" label="Delete Category"/>
-						</mx:HBox>
-						<mx:Tree width="100%" height="100%">
-						</mx:Tree>
-					</mx:VBox>
-		</mx:Canvas>
 	</mx:TabNavigator>
 	<mx:Script>
 		<![CDATA[
@@ -148,6 +139,9 @@
 		
                         [Bindable] public var columnTree:Array = [];
                         private var columnIds:Object = {};
+                        private var treeStoredExpands:Object = [];
+                        private var treeStoredSelection:Object = null;
+                        private var treeStoredScroll:Object = null;
                         private var isPopulated:Object = {};
 
                         public function addTreeNode(obj:AttributeColumnInfo, parent_id:int):void
@@ -188,12 +182,10 @@
                             /* Connect an event handler for the async request to the service, and subsequently proceeds with the open. */
                             function populateTagNodeHandler(event:ResultEvent, token:Object = null):void
                             {
-                                yell("populateTagNodeHandler arrives!");
                                 var columns:Array = event.result as Array || [];
                                 for each (var column:Object in columns)
                                 {
                                     var aci:AttributeColumnInfo = new AttributeColumnInfo(column);
-                                    yell("Adding entity.");
                                     mdm.addTreeNode(aci, id);
                                 }
                                 if (id != -1)
@@ -216,16 +208,58 @@
 			private function handleCreationComplete():void
 			{
                                 BindingUtils.bindProperty(treeWithSearch.tree, "dataProvider", this, "columnTree");
-                                treeWithSearch.tree.addEventListener(TreeEvent.ITEM_OPENING, populateItem); // true?
+                                treeWithSearch.tree.addEventListener(TreeEvent.ITEM_OPENING, populateItem); 
+                                treeWithSearch.tree.addEventListener(Event.SELECT, selectItem);
+                                treeWithSearch.tree.addEventListener(ListEvent.ITEM_CLICK, clickItem);
                                 yell("Tree creation complete.");
 				addEventListener(KeyboardEvent.KEY_DOWN, tableEditorKeyDownHandler);
 				addEventListener(KeyboardEvent.KEY_UP, tableEditorKeyUpHandler);
 			}
+                        private function storeTreeState():void
+                        {
+                                treeStoredExpands = [];
+                                for (var idx:String in columnIds)
+                                {
+                                    var obj:Object = columnIds[idx];
+                                    yell("Testing " + idx);
+                                    if (treeWithSearch.tree.isItemOpen(obj))
+                                    {
+                                        treeStoredExpands.push(idx);
+                                    }
+                                }
+                                yell("Finished checking openness");
+                                if (treeWithSearch.tree.firstVisibleItem != null)
+                                {
+                                    treeStoredScroll = treeWithSearch.tree.firstVisibleItem.object as AttributeColumnInfo;
+                                    if (treeStoredScroll != null) treeStoredScroll = treeStoredScroll.id;
+                                }
+                                if (treeWithSearch.tree.selectedItem != null)
+                                {
+                                    treeStoredSelection = treeWithSearch.tree.selectedItem.object as AttributeColumnInfo;
+                                    if (treeStoredSelection != null) treeStoredSelection = treeStoredSelection.id;
+                                }
+                        }
+                        private function restoreTreeState():void
+                        {
+                                for (var idx:String in  treeStoredExpands)
+                                {
+                                    
+                                    populateTagNode(parseInt(idx));
+                                }
+                                treeWithSearch.tree.firstVisibleItem = columnIds[treeStoredScroll];
+                                treeWithSearch.tree.selectedItem = columnIds[treeStoredSelection];
+                        }
                         public function refreshTree():void
                         {
-                                
+                                yell("Refreshing tree...");
+                                storeTreeState();
+                                yell("Stored tree state.");
                                 clearTreeNodes();
+                                yell("Cleared tree.");
                                 populateTagNode(-1);
+                                yell("Populated tree.");
+                                restoreTreeState();
+                                yell("Restored tree state.");
                         }	
                         private function yell(str:String):void
                         {
@@ -246,16 +280,20 @@
                                     }
                                     return;
                                 }
-                                else
-                                {
-                                    yell("Loading metadata...");
-                                    /* Load metadata. */
-                                }
+                                /* We shouldn't be expanding/closing anything else */
 			}
 			
 			/**
 			 * This responds to selections in the left-side list of data tables
 			 */
+                        private function selectItem(event:ListEvent):void
+                        {
+                        
+                        }
+                        private function clickItem(event:ListEvent):void
+                        {
+                        
+                        }
 			private function handleItemClick(event:ListEvent):void
 			{
 /*

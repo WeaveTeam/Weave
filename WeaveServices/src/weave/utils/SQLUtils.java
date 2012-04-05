@@ -86,10 +86,10 @@ public class SQLUtils
         public class AbstractSQLTable 
         {
             private ImmortalConnection conn;
-            private String schema;
-            private String name;
+            private String schemaName;
+            private String tableName;
             private Map<String,String> columns;
-            public AbstractSQLTable(ImmortalConnection conn, 
+            public AbstractSQLTable(ImmortalConnection iconn, 
                     String schema_name,
                     String table_name, 
                     Map<String,String> newColumns,
@@ -97,12 +97,12 @@ public class SQLUtils
                     Map<String,Pair<String,String>> keyMappings) throws SQLException
             {
                 this.conn = conn;
-                schema = schema_name;
-                name = table_name;
+                schemaName = schema_name;
+                tableName = table_name;
                 columns = newColumns;
-                init_table();
-                init_indices(indices);
-                init_foreignkeys(keyMappings);
+                initTable();
+                initIndices(indices);
+                initForeignKeys(keyMappings);
             }
 
             private void initTable() throws SQLException
@@ -122,7 +122,7 @@ public class SQLUtils
                 return;
             }
 
-            private void init_indices(List<List<String>> indices)
+            private void initIndices(List<List<String>> indices)
             {
                 Connection conn = this.conn.getConnection();
                 for (List<String> index : indices)
@@ -142,7 +142,7 @@ public class SQLUtils
                 }
                 return;
             }
-            private void init_foreignkeys(Map<String,Entry<String,String>> keyMappings) throws SQLException
+            private void initForeignKeys(Map<String,Entry<String,String>> keyMappings) throws SQLException
             {
                 Connection conn = this.conn.getConnection();
                 for (Map<String,Entry<String,String>> col : keyMappings)
@@ -152,7 +152,7 @@ public class SQLUtils
                 return;
             }
         }
-*/ 
+*/
 	public static String MYSQL = "MySQL";
 	public static String POSTGRESQL = "PostgreSQL";
 	public static String SQLSERVER = "Microsoft SQL Server";

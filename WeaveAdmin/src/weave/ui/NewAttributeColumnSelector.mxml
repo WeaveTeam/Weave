@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+                xmlns:ui="weave.ui.*"
+                width="100%" height="100%"
+                xmlns="weave.ui.*"
+                label="Attribute Column Selection"
+                creationComplete="handleCreationComplete()">
+    <mx:HDividedBox id="selectorBox" width="100%" height="100%">
+        <mx:VBox id="groupBox" height="100%" width="100%">
+            <mx:ComboBox id="modeCombo" height="20">
+            </mx:ComboBox>
+            <mx:Tree height="100%" width="100%" id="tagtableTree"/>
+        </mx:VBox>
+        <mx:VBox id="columnBox" height="100%" width="100%">
+            <mx:Label text="Attribute Columns" height="20"/>
+            <mx:List height="100%" width="100%" id="columnList"/>
+        </mx:VBox>
+    </mx:HDividedBox>
+    <mx:HBox id="searchBox" width="100%">
+        <mx:TextInput width="75%" id="searchInput"/>
+        <mx:ComboBox width="15%" id="metaCombo">
+        </mx:ComboBox>
+        <mx:Button width="10%" label="Search" id="searchButton"/>
+    </mx:HBox>
+    <mx:HBox id="editorBox" width="100%" visible="false">
+        <mx:Button label="Add Tag"/>
+        <mx:Button label="Delete Tag"/>
+    </mx:HBox>
+<mx:Script>
+<![CDATA[
+    import mx.binding.utils.BindingUtils;
+    import mx.events.ListEvent;
+    import mx.events.TreeEvent;
+    import mx.rpc.events.ResultEvent;
+    import weave.services.AdminInterface;
+    import weave.services.beans.AttributeColumnInfo;
+
+    private var internalDataService:AdminInterface;
+    private var tagEntities:Object;
+    private var columnEntities:Object;
+    private var tableEntities:Object;
+    private var pendingUserRequests:int; // The latest id that we were told to expand/select.
+    public function set dataService(svc:AdminInterface):void
+    {
+        internalDataService = svc;
+        return;
+    }
+    public function get dataService():AdminInterface
+    {
+        return internalDataService;
+    }
+    public function handleCreationComplete():void
+    {
+        return;
+    }
+    private function requestEntitiesByParent(id:int):void
+    {
+        /* Pokes the parent admininterface or datainterface?? */
+        var acs:NewAttributeColumnSelector = this;
+        dataService.findEntitiesByParent(id, handleUpdateEntities);
+        function handleUpdateEntities(event:ResultEvent, token:Object = null):void
+        {
+            acs.updateEntities(event.result as Array || []);
+        }
+    }
+    private function updateEntity(entity:AttributeColumnInfo):void
+    {
+        if (entity.entity_type == 2)
+            tagEntities[entity.id] = entity;
+        else if (entity.entity_type == 1)
+            columnEntities[entity.id] = entity;
+        else if (entity.entity_type == 0)
+            tableEntities[entity.id] = entity;
+        return;
+    }
+    private function updateEntities(entities:Array):void
+    {
+        for each (var obj:Object in entities)
+        {
+            var entity:AttributeColumnInfo = obj as AttributeColumnInfo;
+            if (entity != null)
+                updateEntity(entity);
+        }
+    }
+
+    private function onComboSelect(event:ListEvent):void
+    {
+         
+    }
+    private function onGroupSelect(event:ListEvent):void
+    {
+        
+    }
+    private function onColumnSelect(event:ListEvent):void
+    {
+        
+    }
+    
+]]>
+</mx:Script>
+</mx:VBox>

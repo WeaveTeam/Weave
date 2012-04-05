@@ -26,7 +26,7 @@
 		 height="100%" width="100%"
 		 >
 	<TextInputWithPrompt id="searchTerm" width="100%" prompt="{prompt}" clear="search()" change="search()"/><!-- toolTip="would show tree as flat list with columns (date, creator, etc) that could be sorted" -->
-	<mx:Tree id="tree" dataProvider="{treeSource}" showRoot="false" width="100%" height="100%" />
+	<mx:Tree id="tree" dataProvider="{treeSource}" showRoot="false" width="100%" height="100%" dragEnabled="true" dragMoveEnabled="true"/>
 <!--
 	<mx:HBox height="100%" width="100%">
 		<mx:List id="list" dataProvider="{treeSource.children}" width="100%" height="100%" horizontalScrollPolicy="off">
