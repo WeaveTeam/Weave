@@ -190,7 +190,7 @@ package weave.api
 			catch (e:Error)
 			{
 				if (e.errorID == 2060)
-					ErrorManager.reportError(e, "In the HTML, make sure that the parameter 'allowscriptaccess' is set to 'always'.");
+					ErrorManager.reportError(e, "In the HTML embedded object tag, make sure that the parameter 'allowScriptAccess' is set properly.");
 				else
 					ErrorManager.reportError(e);
 			}
@@ -202,16 +202,8 @@ package weave.api
 		private static function generateExternalInterfaceCallback(methodName:String, theInterface:Class):Function
 		{
 			return function (...args):* {
-				try
-				{
-					var instance:Object = getSingletonInstance(theInterface);
-					return (instance[methodName] as Function).apply(null, args);
-				}
-				catch (e:Error)
-				{
-					reportError(e);
-					throw e;
-				}
+				var instance:Object = getSingletonInstance(theInterface);
+				return (instance[methodName] as Function).apply(null, args);
 			}
 		}
 		
