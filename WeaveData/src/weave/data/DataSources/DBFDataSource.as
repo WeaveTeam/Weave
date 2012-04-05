@@ -39,6 +39,7 @@ package weave.data.DataSources
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IURLRequestUtils;
@@ -111,6 +112,8 @@ package weave.data.DataSources
 		 */
 		private function handleDBFDownload(event:ResultEvent, token:Object = null):void
 		{
+			if (objectWasDisposed(this))
+				return;
 			dbfData = ByteArray(event.result);
 			if (dbfData.length == 0)
 			{
@@ -141,6 +144,8 @@ package weave.data.DataSources
 		 */
 		private function handleShpDownload(event:ResultEvent, token:Object = null):void
 		{
+			if (objectWasDisposed(this))
+				return;
 			// ignore outdated results
 			if (token != shpUrl.value)
 				return;
@@ -162,6 +167,9 @@ package weave.data.DataSources
 		 */
 		private function handleDBFDownloadError(event:FaultEvent, token:Object = null):void
 		{
+			if (objectWasDisposed(this))
+				return;
+			
 			// ignore outdated results
 			if (token != shpUrl.value)
 				return;
