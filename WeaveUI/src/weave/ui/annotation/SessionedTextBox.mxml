@@ -133,6 +133,7 @@
 			import mx.binding.utils.BindingUtils;
 			import mx.core.IUITextField;
 			import mx.core.mx_internal;
+			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -687,15 +688,43 @@
 			*/
 			
 			private function getValueAt(dataSourceName:String, columnName:String, key:String):String {
-				var dataSource:IDataSource = Weave.root.getObject(dataSourceName) as IDataSource;
-				var columnList:XMLList = (dataSource.attributeHierarchy as AttributeHierarchy).value.descendants("attribute");
+				
+				if(dataSourceName.search("/") > 0) {
+					var path:Array = dataSourceName.split("/");
+					//The session state associated with each variable in the path
+					var state:Object = null;
+					
+					var dataSource:IDataSource = Weave.root.getObject(path[0]) as IDataSource;
+					trace( (dataSource.attributeHierarchy as AttributeHierarchy).value.children().toXMLString() );
+					//If the requested object is contained in the root, get the session state for that object
+					if(dataSource){
+						var sessionManager:SessionManager = (WeaveAPI.SessionManager as SessionManager);
+						//Get the session state associated with the first item in the path
+						state =  sessionManager.getSessionState(dataSource.attributeHierarchy);
+						//Iterate through the rest of the items in the path
+						for(var i:int=1;i<path.length;i++){						
+							state = state[path[i]];
+							
+							if(state == null)
+								break;
+						}
+						
+						ObjectUtil.toString(state);
+					}
+				}
+				else {
+					var dataSource:IDataSource = Weave.root.getObject(path[0]) as IDataSource;
+				}
+				/*var columnList:XMLList = (dataSource.attributeHierarchy as AttributeHierarchy).value.descendants();
 				var columnReference:HierarchyColumnReference = new HierarchyColumnReference();
 				columnReference.dataSourceName.value = dataSourceName;
+				trace(columnList.toXMLString());
 				columnReference.hierarchyPath.value = columnList.(@csvColumn == columnName)[0];
 				var column:IAttributeColumn = WeaveAPI.AttributeColumnCache.getColumn(columnReference);
 				var type:String = ColumnUtils.getKeyType(column);
 				
-				return column.getValueFromKey(WeaveAPI.QKeyManager.getQKey(type,key));;
+				return column.getValueFromKey(WeaveAPI.QKeyManager.getQKey(type,key));;*/
+				return null;
 			}
 		]]>
 	</mx:Script>

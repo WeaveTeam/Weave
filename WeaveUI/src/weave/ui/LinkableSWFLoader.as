@@ -27,7 +27,7 @@ package weave.ui
 			this.percentHeight = 100;
 			this.percentWidth = 100;
 //			this.source = "local_obesity.xml";
-			sourceValue.value = "weave.swf?file=local_obesity.xml&amp;editable=true";
+			sourceValue.value = "weave.swf?editable=false";
 			UIUtils.linkDisplayObjects(this,children);
 			
 		}

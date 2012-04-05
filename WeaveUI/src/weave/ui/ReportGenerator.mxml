@@ -10,6 +10,7 @@
 		<![CDATA[
 			import flash.utils.getQualifiedClassName;
 			
+			import mx.controls.Alert;
 			import mx.controls.SWFLoader;
 			import mx.core.Application;
 			import mx.events.FlexEvent;
@@ -29,7 +30,9 @@
 			import weave.visualization.tools.SimpleVisTool;
 			
 			private var xml:XML;
-			private	var xmlFile:URLRequest = new URLRequest("local_obesity.xml");  
+			private	var xmlFile:URLRequest = new URLRequest("4-1SessionStateAnnotated.xml");  
+
+//			private	var xmlFile:URLRequest = new URLRequest("local_obesity.xml");  
 			private	var loader:URLLoader = new URLLoader(xmlFile);  
 			private var loadedWeave:Object = null;
 			private var swfloader:LinkableSWFLoader;
@@ -38,7 +41,7 @@
 			private function stripState():void{
 				//create a linkable swfLoader and add it to the "children" tag of the session state
 				swfloader = children.requestObject(children.generateUniqueName("swfLoader"),LinkableSWFLoader, false);
-				
+				//swfloader.sourceValue.value = "weave.swf?file="+xmlFile+"&amp;editable=true";
 				//need to add an event listener to the swfLoader we created in order to edit the session state
 				swfloader.addEventListener(Event.COMPLETE,function (e:Event){
 					
@@ -46,27 +49,10 @@
 					//listen for the application to finish loading
 					manager.addEventListener(FlexEvent.APPLICATION_COMPLETE, function (e2:Event){
 						//get the instance of Weave's session state
-						
 						loadedWeave = (e2.target.application);
-						//						trace("ToString" + ObjectUtil.toString(loadedWeave.loaderInfo.content.application));
-						trace ("loaded weave" + ObjectUtil.toString(loadedWeave.loaderInfo.content.application["weaveProperties"]));
-						trace ( "Application.application " + getQualifiedClassName(Application.application) );
-						
-						
-						loadedWeave.loaderInfo.content.application["weaveProperties"]["enableMenuBar"]["value"] = false;
-						//						loadedWeave.["Weave"].properties.enableMenuBar.value = false;
-						//						swfloader["Weave"].properties.enableMenuBar.value = false;
-						
-						trace("enablemenubar? " + swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties);
-						
-						
-						//tell VisApplication that this is loaded from the swfloader, so remove the menubar instead of just dimming it
-						swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.isLoadedInSwfLoader = true;
-						
-						//when the application is actually loaded, the menubar is set to enabled, so wait for this to happen and then call the disableMenuBar function
-						swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.enableMenuBar.addImmediateCallback(this,editSessionVariables,null,false);
 					});
 				});
+				trace("file is " + xmlFile.url);
 				loader.load(xmlFile);  
 				loader.addEventListener("complete", xmlLoaded);  
 				//          myLoader.load(myXMLURL);  
@@ -91,7 +77,34 @@
 			
 			//get the instance of weave that is being loaded and load the sessionstate of that
 			public function loadSessionState(state:XML):void{
-				swfloader.loaderContext.applicationDomain.getDefinition("weave").loadSessionState(state);
+				if(loadedWeave == null)
+					callLater(loadSessionState, [state]);
+				else {
+					trace("load state");
+					xml = state;
+					
+					loadedWeave.loaderInfo.content.application.loadSessionStateFromXML(xml);
+					
+					//						trace("ToString" + ObjectUtil.toString(loadedWeave.loaderInfo.content.application));
+					trace ("loaded weave" + ObjectUtil.toString(loadedWeave.loaderInfo.content.application["weaveProperties"]));
+					trace ( "Application.application " + getQualifiedClassName(Application.application) );
+					
+					
+					loadedWeave.loaderInfo.content.application["weaveProperties"]["enableMenuBar"]["value"] = false;
+					//						loadedWeave.["Weave"].properties.enableMenuBar.value = false;
+					//						swfloader["Weave"].properties.enableMenuBar.value = false;
+					
+					trace("enablemenubar? " + swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties);
+					
+					
+					//tell VisApplication that this is loaded from the swfloader, so remove the menubar instead of just dimming it
+					swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.isLoadedInSwfLoader = true;
+					
+					//when the application is actually loaded, the menubar is set to enabled, so wait for this to happen and then call the disableMenuBar function
+					swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.enableMenuBar.addImmediateCallback(this,editSessionVariables,null,false);
+					
+					loadedWeave.loaderInfo.content.application['enabled'] = true;
+				}
 			}
 			
 		]]>

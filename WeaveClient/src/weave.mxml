@@ -43,6 +43,11 @@
 			public function get weaveProperties():WeaveProperties{
 				return Weave.properties;
 			}
+			
+			//AAThesis
+			public function loadSessionStateFromXML(state:XML):void{
+				visApp.loadSessionStateFromXML(state);
+			}
 		]]>
 	</mx:Script>
 </mx:Application>
