@@ -1,4 +1,4 @@
-package weave.ui.infomap.utils
+package weave.utils
 {
 	import mx.formatters.DateFormatter;
 

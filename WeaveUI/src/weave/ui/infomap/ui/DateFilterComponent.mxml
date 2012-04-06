@@ -34,7 +34,7 @@
 				
 				import weave.api.linkBindableProperty;
 				import weave.primitives.DateRangeFilter;
-				import weave.ui.infomap.utils.DateUtils;
+				import weave.utils.DateUtils;
 				
 				override protected function childrenCreated():void
 				{

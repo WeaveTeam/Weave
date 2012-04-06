@@ -55,7 +55,7 @@ so that it can be moved, selected, handle filters.
 			import weave.ui.infomap.core.SelectableInfoMapDocument;
 			import weave.ui.infomap.layout.IInfoMapNodeLayout;
 			import weave.ui.infomap.layout.NodeHandler;
-			import weave.ui.infomap.utils.DateUtils;
+			import weave.utils.DateUtils;
 			import weave.utils.BitmapUtils;
 			import weave.utils.CustomCursorManager;
 			
@@ -121,6 +121,8 @@ so that it can be moved, selected, handle filters.
 			private var _key:IQualifiedKey;
 			public function set doc(value:SelectableInfoMapDocument):void
 			{
+				if(value == null)
+					return;
 				_doc = value;
 				_doc.selected.addImmediateCallback(this,highlight);
 				_key = WeaveAPI.QKeyManager.getQKey("infomapDocURL",_doc.url.value);
@@ -229,7 +231,8 @@ so that it can be moved, selected, handle filters.
 				}
 				
 				img.source = _noImage;
-				token = WeaveAPI.URLRequestUtils.getContent(new URLRequest(_doc.imageURL.value),handleImageRequest,handleImageFaultRequest);
+				if(_doc)
+					token = WeaveAPI.URLRequestUtils.getContent(new URLRequest(_doc.imageURL.value),handleImageRequest,handleImageFaultRequest);
 			}
 			
 			public function dispose():void
@@ -356,7 +359,8 @@ so that it can be moved, selected, handle filters.
 			
 			private function toggleSelection():void
 			{
-				
+				if(_doc ==null)
+					return;
 				//toggling selection
 				if(_doc.selected.value)
 				{

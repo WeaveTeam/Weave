@@ -74,22 +74,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.StageUtils;
 			import weave.core.UIUtils;
 			import weave.data.DataSources.CSVDataSource;
+			import weave.data.DataSources.InfoMapsDataSource;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.data.QKeyManager;
+			import weave.primitives.DateRangeFilter;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.jquery.JQueryCaller;
 			import weave.ui.CustomContextMenuManager;
 			import weave.ui.infomap.InfoMapLoader;
 			import weave.ui.infomap.admin.InfoMapAdminInterface;
-			import weave.primitives.DateRangeFilter;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.SelectableInfoMapDocument;
 			import weave.ui.infomap.layout.NodeHandler;
-			import weave.ui.infomap.utils.DateUtils;
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
+			import weave.utils.DateUtils;
 			import weave.utils.PopUpUtils;
 			import weave.utils.ProbeTextUtils;
 			
@@ -98,6 +99,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * This is mapping of a link to a node where each node is a defined by a query of keywords,operator and filters
 			 * */
 			public const nodes:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
+			
+			public const infoMapsDataSource:InfoMapsDataSource = new InfoMapsDataSource();
 			
 			/**
 			 * @public

@@ -71,9 +71,9 @@
 			import weave.ui.infomap.ui.InfoMapPanel;
 			import weave.ui.infomap.ui.NodeBaseComponent;
 			import weave.ui.infomap.ui.NodeSettingsComponent;
-			import weave.ui.infomap.utils.DateUtils;
 			import weave.utils.BitmapUtils;
 			import weave.utils.CustomCursorManager;
+			import weave.utils.DateUtils;
 			
 			public const node:FilterableInfoMapNode = newLinkableChild(this,FilterableInfoMapNode);
 			
@@ -198,6 +198,8 @@
 				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
 				createAndSendQuery(false);
 				
+				docKeySet.addGroupedCallback(this,handleParsedResult,true);
+				
 			}
 			
 			//this variable is false when the user loads the map for the first time. 			
@@ -212,7 +214,7 @@
 			[Bindable]
 			public var nodeBase:NodeBaseComponent = new NodeBaseComponent();
 			
-			
+			private var docKeySet:KeySet = new KeySet();
 			
 			/**
 			 * @private
@@ -235,161 +237,168 @@
 					return;
 				}
 				
-				this.invalidateDisplayList();
-				
-				
-				var solrURL:String = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows="+node.numberOfDocs.value.toString()+"&sort=date_published desc&indent=on&q=";	
-				var query:String = "";
-				query = (node.keywords.value as String);				
-				
-				//if query is emtpy do nothing
-				if(query=="")
-					return;
-				
-				
-				var temp:Array = removeEmptyStringElementsFromArray(query.split(" "));	
-				
-				//after removing the empty strings we check to see if it is a single or empty word.
-				//if it is not a single word we add the operator between each keyword
-				//spliting the keywords at the spaces. 
-				if(temp.length != 0 || temp.length != 1)
-					query = temp.join(" "+node.operator.value+" ");
-				
-				//applying source filters
 				if(!node.sources.value == '')
 				{
 					var sourceNames:Array = node.sources.value.split(',');
-					
-					query += "&fq="
-					
-					for each(var sourceName:String in sourceNames)
-					{
-						query += 'source:"'+sourceName+'" OR ';
-					}
-					
-					//removing last OR 
-					query = query.substr(0,query.length-4);
 				}
 				
-				//applying date filters if set
-				if(node.dateFilter.endDate.value && node.dateFilter.startDate.value )
-				{
-					if(node.dateFilter.startDate.value != '' && node.dateFilter.endDate.value != '')
-					{
-						
-						var sDate:Date = DateUtils.getDateFromString(node.dateFilter.startDate.value);
-						var eDate:Date = DateUtils.getDateFromString(node.dateFilter.endDate.value);
-						
-						
-						//Solr requires the date format to be ISO 8601 Standard Compliant
-						//It should be in the form: 1995-12-31T23:59:59Z 
-						var sStr:String = DateUtils.getDateInStringFormat(sDate,'YYYY-MM-DD');
-						
-						//For start date we append 00:00:00 to set time to start of the day
-						sStr = sStr + 'T00:00:00Z';
-						
-						var eStr:String = DateUtils.getDateInStringFormat(eDate,'YYYY-MM-DD');
-						
-						//For end date we append 23:59:59 to set time to end of day
-						eStr = eStr + 'T23:59:59Z';
-						
-						query += "&fq=date_published:["+sStr+" TO "+eStr + "]";
-					}
-				}
+				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,node.keywords.value,node.operator.value,sourceNames);
 				
-				//creating and sending the query to the Solr server
-				var url:String = solrURL + query;
-				loader = new URLLoader();
-				var request:URLRequest = new URLRequest(url);
-				loader.addEventListener(Event.COMPLETE, xmlLoadCompleteHandler);
-				loader.addEventListener(IOErrorEvent.IO_ERROR,handleRequestError);
-				loader.load(request);
+//				this.invalidateDisplayList();
+//				
+//				
+//				var solrURL:String = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows="+node.numberOfDocs.value.toString()+"&sort=date_published desc&indent=on&q=";	
+//				var query:String = "";
+//				query = (node.keywords.value as String);				
+//				
+//				//if query is emtpy do nothing
+//				if(query=="")
+//					return;
+//				
+//				
+//				var temp:Array = removeEmptyStringElementsFromArray(query.split(" "));	
+//				
+//				//after removing the empty strings we check to see if it is a single or empty word.
+//				//if it is not a single word we add the operator between each keyword
+//				//spliting the keywords at the spaces. 
+//				if(temp.length != 0 || temp.length != 1)
+//					query = temp.join(" "+node.operator.value+" ");
+//				
+//				//applying source filters
+//				if(!node.sources.value == '')
+//				{
+//					var sourceNames:Array = node.sources.value.split(',');
+//					
+//					query += "&fq="
+//					
+//					for each(var sourceName:String in sourceNames)
+//					{
+//						query += 'source:"'+sourceName+'" OR ';
+//					}
+//					
+//					//removing last OR 
+//					query = query.substr(0,query.length-4);
+//				}
+//				
+//				//applying date filters if set
+//				if(node.dateFilter.endDate.value && node.dateFilter.startDate.value )
+//				{
+//					if(node.dateFilter.startDate.value != '' && node.dateFilter.endDate.value != '')
+//					{
+//						
+//						var sDate:Date = DateUtils.getDateFromString(node.dateFilter.startDate.value);
+//						var eDate:Date = DateUtils.getDateFromString(node.dateFilter.endDate.value);
+//						
+//						
+//						//Solr requires the date format to be ISO 8601 Standard Compliant
+//						//It should be in the form: 1995-12-31T23:59:59Z 
+//						var sStr:String = DateUtils.getDateInStringFormat(sDate,'YYYY-MM-DD');
+//						
+//						//For start date we append 00:00:00 to set time to start of the day
+//						sStr = sStr + 'T00:00:00Z';
+//						
+//						var eStr:String = DateUtils.getDateInStringFormat(eDate,'YYYY-MM-DD');
+//						
+//						//For end date we append 23:59:59 to set time to end of day
+//						eStr = eStr + 'T23:59:59Z';
+//						
+//						query += "&fq=date_published:["+sStr+" TO "+eStr + "]";
+//					}
+//				}
+//				
+//				//creating and sending the query to the Solr server
+//				var url:String = solrURL + query;
+//				loader = new URLLoader();
+//				var request:URLRequest = new URLRequest(url);
+//				loader.addEventListener(Event.COMPLETE, xmlLoadCompleteHandler);
+//				loader.addEventListener(IOErrorEvent.IO_ERROR,handleRequestError);
+//				loader.load(request);
 			}
 			
+//			
+//			private function handleRequestError(event:IOErrorEvent):void
+//			{
+//				WeaveAPI.ErrorManager.reportError(event.text);
+////				Alert.show("There was an error in your request. Please make sure your keywords are separated by commas.","Error");
+//			}
+//				
+//			
+//			private function xmlLoadCompleteHandler(event:Event):void {
+//				// checks to avoid null point error
+//				if(loader){
+//					// checks for data presence
+//					if(loader.data){
+//						var xml:XML = new XML(loader.data);
+//						parseSolrResponse(xml);
+//					}
+//				}
+//				
+//			}
 			
-			private function handleRequestError(event:IOErrorEvent):void
-			{
-				WeaveAPI.ErrorManager.reportError(event.text);
-//				Alert.show("There was an error in your request. Please make sure your keywords are separated by commas.","Error");
-			}
-				
 			
-			private function xmlLoadCompleteHandler(event:Event):void {
-				// checks to avoid null point error
-				if(loader){
-					// checks for data presence
-					if(loader.data){
-						var xml:XML = new XML(loader.data);
-						parseSolrResponse(xml);
-					}
-				}
-				
-			}
-			
-			
-			private function parseSolrResponse(result:XML):void
-			{
-				
-				var response:ArrayCollection = new ArrayCollection();
-				var docsArray:Array = [];
-				var docObject:SelectableInfoMapDocument;
-				_parentPanel.docs.delayCallbacks();
-				for each(var doc:XML in result.result.doc)
-				{
-					
-					var link:String = doc.str.(@name=="link").text().toXMLString();
-					var linkLen:int = link.length;
-					var linkExtension:String = link.substring(linkLen-3,linkLen);
-					var imgExtension:String = ".jpg"
-					
-//					if(!(linkExtension == "pdf"))
-//						continue;
-					
-//					currently disabled pdf files for cleaner results and testing purposes 
-					if(linkExtension == "pdf"){
+//			private function parseSolrResponse(result:XML):void
+//			{
+//				
+//				var response:ArrayCollection = new ArrayCollection();
+//				var docsArray:Array = [];
+//				var docObject:SelectableInfoMapDocument;
+//				_parentPanel.docs.delayCallbacks();
+//				for each(var doc:XML in result.result.doc)
+//				{
+//					
+//					var link:String = doc.str.(@name=="link").text().toXMLString();
+//					var linkLen:int = link.length;
+//					var linkExtension:String = link.substring(linkLen-3,linkLen);
+//					var imgExtension:String = ".jpg"
+//					
+////					if(!(linkExtension == "pdf"))
+////						continue;
+//					
+////					currently disabled pdf files for cleaner results and testing purposes 
+//					if(linkExtension == "pdf"){
+////						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+//						imgExtension = ".png";
+//						
+//					}
+//					else if(link.substring(linkLen-3,linkLen-1) == "doc"){
 //						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
-						imgExtension = ".png";
-						
-					}
-					else if(link.substring(linkLen-3,linkLen-1) == "doc"){
-						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
-						imgExtension = ".png";
-					}
-
-						//each document retrived is added to the docs map in the parent infomap panel
-						docObject = _parentPanel.docs.requestObject(link,SelectableInfoMapDocument,false);					
-						var currentDoc:Array = []
-						
-						docObject.title.value = doc.str.(@name=="title").text().toXMLString();
-						currentDoc.push(doc.str.(@name=="title").text().toXMLString());
-						
-						docObject.url.value = link;
-						currentDoc.push(link);
-						
-						//TODO:right now limiting to 200 characters. Need to change this later to a better solution
-						docObject.summary.value = (doc.str.(@name=="description").text().toXMLString() as String).substr(0,200);
-						currentDoc.push((doc.str.(@name=="description").text().toXMLString() as String).substr(0,200));
-						
-						var imgURL:String = doc.str.(@name=="imgName").text().toXMLString();
-						
-						docObject.imageURL.value = "http://129.63.8.219:8080/infomap/thumbnails/"+  imgURL + imgExtension;					
-						currentDoc.push("http://129.63.8.219:8080/infomap/thumbnails/"+  imgURL + imgExtension);
-						
-						docObject.date.value = doc.date.text().toXMLString();
-						currentDoc.push(doc.date.text().toXMLString());
-						
-						docsArray.push(currentDoc);
-						response.addItem(link);
-				}
-				
-				var csvDataString:String = parser.createCSV(docsArray);
-				csvDataString = _parentPanel.docsCSVDataSource.csvDataString.value + '\n' + csvDataString;
-				
-				_parentPanel.docsCSVDataSource.csvDataString.value = csvDataString;
-				
-				_parentPanel.docs.resumeCallbacks(true);//test this
-				handleParsedResult(response);
-			}
+//						imgExtension = ".png";
+//					}
+//
+//						//each document retrived is added to the docs map in the parent infomap panel
+//						docObject = _parentPanel.docs.requestObject(link,SelectableInfoMapDocument,false);					
+//						var currentDoc:Array = []
+//						
+//						docObject.title.value = doc.str.(@name=="title").text().toXMLString();
+//						currentDoc.push(doc.str.(@name=="title").text().toXMLString());
+//						
+//						docObject.url.value = link;
+//						currentDoc.push(link);
+//						
+//						//TODO:right now limiting to 200 characters. Need to change this later to a better solution
+//						docObject.summary.value = (doc.str.(@name=="description").text().toXMLString() as String).substr(0,200);
+//						currentDoc.push((doc.str.(@name=="description").text().toXMLString() as String).substr(0,200));
+//						
+//						var imgURL:String = doc.str.(@name=="imgName").text().toXMLString();
+//						
+//						docObject.imageURL.value = "http://129.63.8.219:8080/infomap/thumbnails/"+  imgURL + imgExtension;					
+//						currentDoc.push("http://129.63.8.219:8080/infomap/thumbnails/"+  imgURL + imgExtension);
+//						
+//						docObject.date.value = doc.date.text().toXMLString();
+//						currentDoc.push(doc.date.text().toXMLString());
+//						
+//						docsArray.push(currentDoc);
+//						response.addItem(link);
+//				}
+//				
+//				var csvDataString:String = parser.createCSV(docsArray);
+//				csvDataString = _parentPanel.docsCSVDataSource.csvDataString.value + '\n' + csvDataString;
+//				
+//				_parentPanel.docsCSVDataSource.csvDataString.value = csvDataString;
+//				
+//				_parentPanel.docs.resumeCallbacks(true);//test this
+//				handleParsedResult(response);
+//			}
 			
 
 			private	var docPreview:DocumentSummaryComponent = null;
@@ -405,7 +414,7 @@
 			 * for each of the corresponding links.
 			 * If the thumbnail object is already there then we use the replace its doc object with the latest doc object. 
 			 **/
-			private function handleParsedResult(response:ArrayCollection):void
+			private function handleParsedResult():void
 			{
 				if(thumbnails.getObjects().length == 0)
 				{
@@ -415,10 +424,11 @@
 				}
 				var obj:SelectableInfoMapDocument;
 				thumbnails.delayCallbacks();
+				var response:Array = docKeySet.keys;
 				for(var i:int; i<response.length ;i++)
 				{
-					var link:String = response[i] as String;					
-					obj = _parentPanel.docs.getObject(link) as SelectableInfoMapDocument;
+					var link:String = (response[i] as IQualifiedKey).localName;					
+					obj = _parentPanel.docs.requestObject(link,SelectableInfoMapDocument,false) as SelectableInfoMapDocument;
 					var thumbnail:DocThumbnailComponent = new DocThumbnailComponent();
 					
 					

@@ -112,7 +112,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 import weave.ui.infomap.layout.NodeHandler;
 				 import weave.ui.infomap.layout.RadialLayout;
 				 import weave.ui.infomap.layout.VerticalLayout;
-				 import weave.ui.infomap.utils.DateUtils;
+				 import weave.utils.DateUtils;
 				 import weave.utils.EventUtils;
 				 
 				 [Inspectable]
