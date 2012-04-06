@@ -407,7 +407,7 @@ package weave.core
 			catch (e:Error)
 			{
 				if (e.errorID == 2060)
-					reportError(e, "In the HTML, make sure that the parameter 'allowscriptaccess' is set to 'always'.");
+					reportError(e, "In the HTML embedded object tag, make sure that the parameter 'allowScriptAccess' is set properly. " + e.message);
 				else
 					reportError(e);
 			}

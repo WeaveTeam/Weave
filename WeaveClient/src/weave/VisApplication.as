@@ -341,7 +341,10 @@ package weave
 			if (domains is String)
 				domains = [domains];
 			for each (var domain:String in domains)
+			{
 				Security.allowDomain(domain);
+				Security.allowInsecureDomain(domain);
+			}
 		}
 		
 		private function getFlashVarAdminConnectionName():String
