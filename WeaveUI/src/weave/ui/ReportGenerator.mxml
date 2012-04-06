@@ -98,10 +98,10 @@
 					
 					
 					//tell VisApplication that this is loaded from the swfloader, so remove the menubar instead of just dimming it
-					swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.isLoadedInSwfLoader = true;
+					//swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.isLoadedInSwfLoader = true;
 					
 					//when the application is actually loaded, the menubar is set to enabled, so wait for this to happen and then call the disableMenuBar function
-					swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.enableMenuBar.addImmediateCallback(this,editSessionVariables,null,false);
+					//swfloader.loaderContext.applicationDomain.getDefinition("weave::Weave").properties.enableMenuBar.addImmediateCallback(this,editSessionVariables,null,false);
 					
 					loadedWeave.loaderInfo.content.application['enabled'] = true;
 				}

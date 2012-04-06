@@ -328,7 +328,6 @@ package weave
 		public function get enableDebugAlert():LinkableBoolean { return DebugUtils.enableDebugAlert; } // show debug_trace strings in alert boxes
 		public const showKeyTypeInColumnTitle:LinkableBoolean = new LinkableBoolean(false);
 		
-		public var isLoadedInSwfLoader:Boolean;  //need to tell the toggleMenuBar function that it is loaded from a swfloader so remove the menubar
 		
 		// cosmetic options
 		public const pageTitle:LinkableString = new LinkableString("Open Indicators Weave"); // title to show in browser window

@@ -648,10 +648,10 @@
 									break;
 							}
 						}
+						//If the user entered an invalid path/variable, alert them
+						if(root==null)
+							state = "~" + variable + "~";
 					}
-					//If the user entered an invalid path/variable, alert them
-					if(root==null)
-						state = "~" + variable + "~";
 					if(state==null)
 						state = "null";
 					
@@ -684,13 +684,13 @@
 			}
 			
 			/*
-			{getValueAt(obesity.csv,State,39)}
+			<getValueAt(obesity.csv,State,39)>
 			*/
 			
 			private function getValueAt(dataSourceName:String, columnName:String, key:String):String {
 				
+				var path:Array = dataSourceName.split("/");
 				if(dataSourceName.search("/") > 0) {
-					var path:Array = dataSourceName.split("/");
 					//The session state associated with each variable in the path
 					var state:Object = null;
 					
@@ -715,7 +715,7 @@
 				else {
 					var dataSource:IDataSource = Weave.root.getObject(path[0]) as IDataSource;
 				}
-				/*var columnList:XMLList = (dataSource.attributeHierarchy as AttributeHierarchy).value.descendants();
+				var columnList:XMLList = (dataSource.attributeHierarchy as AttributeHierarchy).value.descendants();
 				var columnReference:HierarchyColumnReference = new HierarchyColumnReference();
 				columnReference.dataSourceName.value = dataSourceName;
 				trace(columnList.toXMLString());
@@ -723,7 +723,7 @@
 				var column:IAttributeColumn = WeaveAPI.AttributeColumnCache.getColumn(columnReference);
 				var type:String = ColumnUtils.getKeyType(column);
 				
-				return column.getValueFromKey(WeaveAPI.QKeyManager.getQKey(type,key));;*/
+				return column.getValueFromKey(WeaveAPI.QKeyManager.getQKey(type,key));;
 				return null;
 			}
 		]]>

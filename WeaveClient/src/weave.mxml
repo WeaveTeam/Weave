@@ -46,7 +46,8 @@
 			
 			//AAThesis
 			public function loadSessionStateFromXML(state:XML):void{
-				visApp.loadSessionStateFromXML(state);
+				visApp.loadSessionState(state, null);
+				visApp.handleConfigFileDownloaded();
 			}
 		]]>
 	</mx:Script>
