@@ -22,6 +22,8 @@ package weave.utils
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import mx.collections.Sort;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
@@ -162,7 +164,7 @@ package weave.utils
 			}
 			
 			// insert bounds-to-key mappings in the kdtree
-			WeaveAPI.StageUtils.startTask(this, _insertNext);
+			WeaveAPI.StageUtils.startTask(this, _insertNext, WeaveAPI.TASK_PRIORITY_BUILDING);
 		}
 		
 		private function _insertNext():Number
@@ -307,7 +309,7 @@ package weave.utils
 			maxKDKey[XMIN_INDEX] = bounds.getXNumericMax(); // enforce result.XMIN <= query.xNumericMax
 			maxKDKey[YMIN_INDEX] = bounds.getYNumericMax(); // enforce result.YMIN <= query.yNumericMax
 			
-			return _kdTree.queryRange(minKDKey, maxKDKey);
+			return _kdTree.queryRange(minKDKey, maxKDKey, true, IMPORTANCE_INDEX, KDTree.DESCENDING);
 		}
 		
 		/**

@@ -824,7 +824,7 @@ package weave.core
 					// FOR DEBUGGING PURPOSES
 					if (Capabilities.isDebugger)
 					{
-						var error:Error = new Error("Object was disposed");
+						var error:Error = new Error("This is the stack trace from when the object was previously disposed.");
 						objectCC.addImmediateCallback(null, function():void { debugDisposedObject(linkableObject, error); } );
 					}
 				}
@@ -868,14 +868,15 @@ package weave.core
 		// FOR DEBUGGING PURPOSES
 		private function debugDisposedObject(disposedObject:ILinkableObject, disposedError:Error):void
 		{
-			// set some variables to aid in debugging
-			var obj:* = disposedObject;
+			// set some variables to aid in debugging - only useful if you add a breakpoint here.
+			var obj:*;
 			var ownerPath:Array = []; while (obj = getLinkableOwner(obj)) { ownerPath.unshift(obj); }
 			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject] || []) { parents.push[obj]; }
 			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject] || []) { children.push[obj]; }
 			var sessionState:Object = getSessionState(disposedObject);
 
-			var msg:String = "Disposed object still running callbacks: " + getQualifiedClassName(disposedObject);
+			// ADD A BREAKPOINT HERE TO DIAGNOSE THE PROBLEM
+			var msg:String = "WARNING: An object triggered callbacks after previously being disposed. " + getQualifiedClassName(disposedObject);
 			if (disposedObject is ILinkableVariable)
 				msg += ' (value = ' + (disposedObject as ILinkableVariable).getSessionState() + ')';
 			reportError(disposedError);

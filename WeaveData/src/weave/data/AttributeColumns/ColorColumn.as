@@ -24,12 +24,10 @@ package weave.data.AttributeColumns
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
-	import weave.data.QKeyManager;
 	import weave.primitives.ColorRamp;
 	
 	/**
@@ -72,11 +70,15 @@ package weave.data.AttributeColumns
 				}
 			}
 		}
+		private var _recordColorsTriggerCounter:uint = 0;
 		
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			if (detectLinkableObjectChange(handleRecordColors, recordColors))
+			if (_recordColorsTriggerCounter != recordColors.triggerCounter)
+			{
+				_recordColorsTriggerCounter = recordColors.triggerCounter;
 				handleRecordColors();
+			}
 			
 			var color:Number;
 
@@ -99,7 +101,7 @@ package weave.data.AttributeColumns
 			}
 			
 			// return a 6-digit hex value for a String version of the color
-			if (dataType == String && !isNaN(color))
+			if (dataType == String && isFinite(color))
 				return '0x' + StandardLib.numberToBase(color, 16, 6);
 			return color;
 		}

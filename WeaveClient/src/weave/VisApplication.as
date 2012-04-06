@@ -31,6 +31,7 @@ package weave
 	import flash.net.URLRequest;
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
+	import flash.system.Security;
 	import flash.system.System;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
@@ -211,6 +212,8 @@ package weave
 			Weave.properties.backgroundColor.addImmediateCallback(this, handleBackgroundColorChange, true);
 			
 			getFlashVars();
+			handleFlashVarAllowDomain();
+			
 			// disable application until it's ready
 			enabled = false;
 			
@@ -334,6 +337,18 @@ package weave
 		 */
 		private var _flashVars:Object;
 		public function get flashVars():Object { return _flashVars; }
+		
+		private function handleFlashVarAllowDomain():void
+		{
+			var domains:* = _flashVars['allowDomain'];
+			if (domains is String)
+				domains = [domains];
+			for each (var domain:String in domains)
+			{
+				Security.allowDomain(domain);
+				Security.allowInsecureDomain(domain);
+			}
+		}
 		
 		private function getFlashVarAdminConnectionName():String
 		{

@@ -493,7 +493,7 @@ package weave.utils
 			
 			_metadataStreamQueue[stream] = NameUtil.createUniqueName(stream);
 			
-			WeaveAPI.StageUtils.startTask(this, task);
+			WeaveAPI.StageUtils.startTask(this, task, WeaveAPI.TASK_PRIORITY_PARSING);
 		}
 
 		/**
@@ -607,7 +607,7 @@ package weave.utils
 			
 			_geometryStreamQueue[stream] = NameUtil.createUniqueName(stream);
 			
-			WeaveAPI.StageUtils.startTask(this, task);
+			WeaveAPI.StageUtils.startTask(this, task, WeaveAPI.TASK_PRIORITY_PARSING);
 		}
 
 		

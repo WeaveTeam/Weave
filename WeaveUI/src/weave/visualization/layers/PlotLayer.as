@@ -282,23 +282,6 @@ package weave.visualization.layers
 		}
 		
 		/**
-		 * This function gets called when the unscaled width or height changes.
-		 * This function will resize the BitmapData to the new unscaled width and height.
-		 */
-		private function handleSizeChange():void
-		{
-			//trace("sizeChanged",unscaledWidth,unscaledHeight);
-			
-			var bitmapChanged:Boolean = PlotterUtils.setBitmapDataSize(_plotBitmap, unscaledWidth, unscaledHeight);
-			if (bitmapChanged)
-				invalidateDisplayList();
-		}
-		
-		// these variables are used to detect a change in size
-		private var _prevUnscaledWidth:Number = NaN;
-		private var _prevUnscaledHeight:Number = NaN;
-		
-		/**
 		 * @inheritDoc
 		 */
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -306,12 +289,8 @@ package weave.visualization.layers
 			//trace("updateDisplayList",arguments);
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 			
-			// detect size change
-			var sizeChanged:Boolean = _prevUnscaledWidth != unscaledWidth || _prevUnscaledHeight != unscaledHeight;
-			_prevUnscaledWidth = unscaledWidth;
-			_prevUnscaledHeight = unscaledHeight;
-			if (sizeChanged)
-				handleSizeChange();
+			// resize bitmap if necessary, and clear graphics
+			PlotterUtils.setBitmapDataSize(_plotBitmap, unscaledWidth, unscaledHeight);
 			
 			//trace(name,'begin updateDisplayList', _dataBounds);
 			var shouldDraw:Boolean = (unscaledWidth * unscaledHeight > 0) && shouldBeRendered();
@@ -322,9 +301,7 @@ package weave.visualization.layers
 			// draw plot
 			if (!PlotterUtils.bitmapDataIsEmpty(_plotBitmap))
 			{
-				PlotterUtils.clear(_plotBitmap.bitmapData);
 				// get keys for plot, then draw the records
-				
 				if (shouldDraw)
 				{
 					if (!isOverlay.value)

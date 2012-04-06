@@ -81,8 +81,10 @@ package weave.api.core
 		 *           index++;
 		 *           return index / array.length;  // this will return 1.0 on the last iteration.
 		 *       }
+		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
+		 * @see weave.api.WeaveAPI
 		 */
-		function startTask(relevantContext:Object, iterativeTask:Function):void;
+		function startTask(relevantContext:Object, iterativeTask:Function, priority:int):void;
 		
 		/**
 		 * This is the last event that occurred on the stage.

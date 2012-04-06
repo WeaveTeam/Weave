@@ -332,7 +332,7 @@ internal class Library implements IDisposableObject
 			
 			return progress;
 		}
-		WeaveAPI.StageUtils.startTask(this, loadingTask);
+		WeaveAPI.StageUtils.startTask(this, loadingTask, WeaveAPI.TASK_PRIORITY_PARSING);
 	}
 	
 	/**

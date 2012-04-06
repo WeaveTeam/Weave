@@ -45,7 +45,7 @@ package weave.utils
 		 * @param secondaryHost The second host.
 		 * @param secondaryProperty The name of a property on the second host.
 		 */		
-		public static function doubleBind(primaryHost:IEventDispatcher, primaryProperty:String, secondaryHost:IEventDispatcher, secondaryProperty:String):void
+		public static function doubleBind(primaryHost:Object, primaryProperty:String, secondaryHost:Object, secondaryProperty:String):void
 		{
 			BindingUtils.bindSetter(function(primaryValue:Object):void {
 				if (secondaryHost[secondaryProperty] !== primaryValue)
