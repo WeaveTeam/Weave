@@ -130,7 +130,7 @@
 			}
 			
 			private const symbolTable:Object = {
-				'javaScript': function(...args):*
+				'call': function(...args):*
 				{
 					var prev:Boolean = ExternalInterface.marshallExceptions;
 					try
