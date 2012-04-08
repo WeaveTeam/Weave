@@ -476,6 +476,7 @@
 		</mx:VBox>
 		
 		<mx:VBox id="advControlsPanel" label="Advanced">
+			<mx:CheckBox label="In stacked mode, use gaps for missing data" creationComplete="linkBindableProperty(_plotter.stackedMissingDataGap, event.target, 'selected');"/>
 			<ui:Indent label="Bar spacing:">
 				<mx:HSlider id="barSpacingSlider" value="0" minimum="0" maximum="1" labels="['No gap', '1:3', '1:1']" tickInterval="0.25"
 							toolTip="Move this slider to change the gap between bars.  All the way to the left means no gap.  The highest value is a 1:1 ratio, meaning equal bar width to gap width." showDataTip="false"
