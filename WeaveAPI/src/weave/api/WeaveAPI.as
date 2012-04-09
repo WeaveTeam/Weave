@@ -307,6 +307,15 @@ package weave.api
 		 */		
 		public static function getSingletonInstance(singletonInterface:Class):*
 		{
+			if (!_initialized)
+			{
+				// run static initialization code to register weave implementations
+				try {
+					getDefinitionByName("_InitializeWeave"); // run static initialization code 
+				} catch (e:Error) { }
+				_initialized = true;
+			}
+			
 			var result:* = _singletonDictionary[singletonInterface];
 			// If no instance has been created yet, create one now.
 			if (!result)
@@ -337,6 +346,11 @@ package weave.api
 			// Return saved instance.
 			return result;
 		}
+		
+		/**
+		 * Used by getSingletonInstance.
+		 */		
+		private static var _initialized:Boolean = false;
 		
 		/**
 		 * This is used to save a mapping from an interface to its singleton implementation instance.
