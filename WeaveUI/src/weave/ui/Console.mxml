@@ -118,7 +118,7 @@
 					consoleTrace(script, e);
 				}
 			}
-			private function consoleTrace(...args):void
+			public function consoleTrace(...args):void
 			{
 				log.text += '\r\r' + args.join('\r');
 				log.validateNow();

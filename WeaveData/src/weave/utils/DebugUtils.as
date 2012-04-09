@@ -55,12 +55,17 @@ package weave.utils
 				trace(str);
 			return str;
 		}
-		// format debug info from stack trace
+		
+		private static const STACK_TRACE_DELIM:String = '\n\tat ';
+		/**
+		 * format debug info from stack trace
+		 * @author adufilie
+		 */
 		public static function getCompactStackTrace(e:Error):Array
 		{
 			if (!Capabilities.isDebugger)
 				return null;
-			var lines:Array = e.getStackTrace().split('\n\tat ');
+			var lines:Array = e.getStackTrace().split(STACK_TRACE_DELIM);
 			lines.shift(); // remove the first line which is not part of the stack trace
 			for (var i:int = 0; i < lines.length; i++)
 			{
@@ -88,14 +93,13 @@ package weave.utils
 		}
 
 		/**
-		 * generateID
 		 * This function returns a unique integer each time it is called.
 		 */
-		private static var nextGeneratedID:int = 0;
 		public static function generateID():int
 		{
 			return nextGeneratedID++;
 		}
+		private static var nextGeneratedID:int = 0;
 		
 		//		public static function debugLinkableObject(object:ILinkableObject):void
 		//		{
@@ -122,7 +126,7 @@ package weave.utils
 				if (item is Array)
 				{
 					for each (var arrayElement:* in item)
-					traceStr += formatDebugItem(arrayElement);
+						traceStr += formatDebugItem(arrayElement);
 				}
 				else if (item is XML)
 					traceStr += (item as XML).toXMLString();
@@ -154,6 +158,9 @@ package weave.utils
 			return classStr + ":  " + item + "\n";
 		}
 		
+		/**
+		 * @author adufilie
+		 */		
 		public static function getHexString(bytes:ByteArray):String
 		{
 			var hex:String = "0123456789ABCDEF";
@@ -170,7 +177,6 @@ package weave.utils
 		}
 		
 		/**
-		 * callLater
 		 * @param func The function to call.
 		 * @param params An array of parameters to pass to the function.
 		 * @param delay The delay before the function is called.
@@ -182,6 +188,55 @@ package weave.utils
 			var t:Timer = new Timer(delay, 1);
 			t.addEventListener(TimerEvent.TIMER, function(..._):*{ func.apply(null, params); });
 			t.start();
+		}
+		
+		/**
+		 * This function will increment a counter associated with a line of code that is causing this function to be called.
+		 * @param stackDepth The stack depth to record in the profile data.  Default zero will profile the line that is calling this function.
+		 * 
+		 * @author adufilie
+		 */
+		public static function profile(stackDepth:int = 0):void
+		{
+			// stop if disabled
+			if (!_profileLookup)
+				return;
+			
+			var stackTrace:String = new Error().getStackTrace();
+			
+			// disable when not running debug player
+			if (!stackTrace)
+			{
+				_profileLookup = null;
+				return;
+			}
+			
+			var stack:Array = stackTrace.split(STACK_TRACE_DELIM);
+			// stack[1] is the line in this file
+			// stack[2] is the line that called this function
+			var line:String = stack[2 + stackDepth];
+			_profileLookup[line] = uint(_profileLookup[line]) + 1;
+		}
+		private static var _profileLookup:Object = {};
+		
+		/**
+		 * This will retrieve a dynamic object containing the current profile data,
+		 * mapping a line of code to a number indicating how many times that line was executed.
+		 * @param reset Set this to true to clear the current profile data.
+		 * @return The current profile data.
+		 * 
+		 * @author adufilie
+		 */
+		public static function profileDump(reset:Boolean = false):Object
+		{
+			// stop if disabled
+			if (!_profileLookup)
+				return null;
+			
+			var dump:Object = _profileLookup;
+			if (reset)
+				_profileLookup = {};
+			return dump;
 		}
 	}
 }
