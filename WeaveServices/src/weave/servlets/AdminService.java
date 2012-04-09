@@ -1406,7 +1406,7 @@ public class AdminService extends GenericServlet
 			int i = 0;
 			int j = 0;
 			int num = 1;
-			String outputNullValue = SQLUtils.getCSVNullValue(conn);
+			
 			boolean ignoreKeyColumnQueries = false;
 			
 			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile),"ISO-8859-1");
@@ -1519,12 +1519,12 @@ public class AdminService extends GenericServlet
 						{
 							if (nextLine[i].equalsIgnoreCase(nullValue))
 							{
-								nextLine[i] = outputNullValue;
+								nextLine[i] = null;
 								break;
 							}
 						}
 					}
-					if (nextLine[i].equals(outputNullValue))
+					if (nextLine[i]== null)
 						continue;
 
 					// 04 is a string (but Integer.parseInt would not throw an exception)
@@ -1587,8 +1587,8 @@ public class AdminService extends GenericServlet
 			// save modified CSV
 //			BufferedWriter out = new BufferedWriter(new FileWriter(formatted_CSV_path));
 			File out = new File(formatted_CSV_path);
-			boolean quoteEmptyStrings = outputNullValue.length() > 0;
-			String temp = CSVParser.defaultParser.createCSV(rows, quoteEmptyStrings);
+			
+			String temp = SQLUtils.generateCSV(conn, rows);
 			org.apache.commons.io.FileUtils.writeStringToFile(out, temp, "ISO-8859-1");
 
 			// Import the CSV file into SQL.
