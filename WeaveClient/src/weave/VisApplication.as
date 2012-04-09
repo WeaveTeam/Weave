@@ -115,10 +115,6 @@ package weave
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 
-		{ /** BEGIN STATIC CODE BLOCK **/ 
-			Weave.initialize(); // this registers specific WeaveAPI implementation classes.
-		} /** END STATIC CODE BLOCK **/
-		
 		/**
 		 * Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
 		 * view to add new tools, manage windows, do advanced tasks, etc.
