@@ -1,6 +1,6 @@
 Weave: Web-based Analysis and Visualization Environment - http://www.oicweave.org/
 
-Issue Tracker & Wiki: http://bugs.oicweave.org/
+Issue Tracker & Wiki: http://info.oicweave.org/
 
 Developer documentation: http://ivpr.github.com/Weave/asdoc/
 
