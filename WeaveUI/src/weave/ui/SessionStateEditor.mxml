@@ -75,7 +75,7 @@ A text editor to change the Session State on the fly.
 				</mx:VBox>
 			</mx:HDividedBox>
 		</mx:VBox>
-		<ui:Console id="console" context="{null}" height="0"/>
+		<ui:Console id="console" height="0"/>
 	</mx:VDividedBox>
 	<mx:Script>
 		<![CDATA[
@@ -85,7 +85,6 @@ A text editor to change the Session State on the fly.
 			import mx.controls.Alert;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Application;
-			import mx.core.IInvalidating;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
@@ -111,7 +110,6 @@ A text editor to change the Session State on the fly.
 			import weave.core.WeaveXMLEncoder;
 			import weave.core.weave_internal;
 			import weave.utils.DebugUtils;
-			import weave.utils.EventUtils;
 			import weave.utils.PopUpUtils;
 			use namespace weave_internal;
 			use namespace mx_internal;
@@ -771,14 +769,19 @@ A text editor to change the Session State on the fly.
 				}
 			}
 			
+			// STATIC CODE - ADD KEYDOWN LISTENER IF RUNNING DEBUG PLAYER
+			private static function _initialize():void
+			{
+				if (new Error().getStackTrace())
+					WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
+			}
+			_initialize();
+			
 			private static var _instance:SessionStateEditor;
 			public static function getInstance():SessionStateEditor
 			{
 				if (!_instance)
-				{
 					_instance = new SessionStateEditor();
-					WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, _instance, handleKeyDown);
-				}
 				return _instance;
 			}
 			
@@ -797,7 +800,7 @@ A text editor to change the Session State on the fly.
 			}
 			
 			private static var _profileWithErrorLogPanel:Boolean = true;
-			
+			private static var _showProfileData:Boolean = false;
 			private static function handleKeyDown():void
 			{
 				var event:KeyboardEvent = WeaveAPI.StageUtils.keyboardEvent;
@@ -807,6 +810,7 @@ A text editor to change the Session State on the fly.
 					if (event.ctrlKey)
 						_profileWithErrorLogPanel = !_profileWithErrorLogPanel;
 					
+					var profileDump:Object = DebugUtils.profileDump(event.shiftKey); // hold shift to reset profile data
 					var console:Console;
 					if (_profileWithErrorLogPanel)
 					{
@@ -815,16 +819,21 @@ A text editor to change the Session State on the fly.
 					}
 					else // use error log panel
 					{
-						if (!_instance.parent)
+						var defaultEditor:SessionStateEditor = getInstance();
+						if (!defaultEditor.parent)
 							openDefaultEditor();
 						// show console
-						if (!_instance.showConsole.selected)
-							_instance.toggleShowConsole();
-						console = _instance.console;
+						if (profileDump && !defaultEditor.showConsole.selected)
+							defaultEditor.toggleShowConsole();
+						console = defaultEditor.console;
 					}
 					
-					var dump:Object = DebugUtils.profileDump(event.shiftKey); // hold shift to reset profile data
-					console.consoleTrace(ObjectUtil.toString(dump));
+					// don't show any profile data until we have some.
+					if (!_showProfileData)
+						_showProfileData = profileDump != null;
+					
+					if (_showProfileData)
+						console.consoleTrace(ObjectUtil.toString(profileDump));
 				}
 			}
 		]]>

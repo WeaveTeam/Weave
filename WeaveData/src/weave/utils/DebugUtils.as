@@ -198,18 +198,11 @@ package weave.utils
 		 */
 		public static function profile(description:String = null, stackDepth:int = 0):void
 		{
-			// stop if disabled
-			if (!_profileLookup)
+			// stop if we can't get a stack trace
+			if (!_canGetStackTrace)
 				return;
 			
 			var stackTrace:String = new Error().getStackTrace();
-			
-			// disable when not running debug player
-			if (!stackTrace)
-			{
-				_profileLookup = null;
-				return;
-			}
 			
 			var stack:Array = stackTrace.split(STACK_TRACE_DELIM);
 			// stack[1] is the line in this file
@@ -219,9 +212,12 @@ package weave.utils
 			if (description)
 				line += ' ' + description;
 			
+			if (!_profileLookup)
+				_profileLookup = {};
 			_profileLookup[line] = uint(_profileLookup[line]) + 1;
 		}
-		private static var _profileLookup:Object = {};
+		private static var _profileLookup:Object = null;
+		private static var _canGetStackTrace:Boolean = new Error().getStackTrace() != null;
 		
 		/**
 		 * This will retrieve a dynamic object containing the current profile data,
@@ -233,13 +229,9 @@ package weave.utils
 		 */
 		public static function profileDump(reset:Boolean = false):Object
 		{
-			// stop if disabled
-			if (!_profileLookup)
-				return null;
-			
 			var dump:Object = _profileLookup;
 			if (reset)
-				_profileLookup = {};
+				_profileLookup = null;
 			return dump;
 		}
 	}
