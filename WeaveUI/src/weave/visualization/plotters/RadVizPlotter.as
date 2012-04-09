@@ -468,7 +468,7 @@ package weave.visualization.plotters
 			} catch(e:Error) {return;}
 			var graphics:Graphics = destination;
 			graphics.clear();
-			if(probedKeys.length)
+			if(probedKeys.length && keySet.keys.length)
 				if(probedKeys[0].keyType != keySet.keys[0].keyType) return;
 			
 			for each( var key:IQualifiedKey in probedKeys)

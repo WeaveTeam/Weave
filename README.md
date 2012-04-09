@@ -4,7 +4,7 @@
 >>>>>>> c5d86392308b860fe9cf00f5d8a15b2abd4bee1b
 Weave: Web-based Analysis and Visualization Environment - http://www.oicweave.org/
 
-Issue Tracker & Wiki: http://bugs.oicweave.org/
+Issue Tracker & Wiki: http://info.oicweave.org/
 
 Developer documentation: http://ivpr.github.com/Weave/asdoc/
 
@@ -27,10 +27,14 @@ Components in this repository:
  * JTDS_SqlServerDriver: LGPL license, Java library for handling connections to Microsoft SQL Server.
  
 <<<<<<< HEAD
+<<<<<<< HEAD
 The bare minimum you need to build Weave is [Flex 3.6](http://opensource.adobe.com/wiki/display/flexsdk/Download+Flex+3) and [Java EE](http://www.oracle.com/technetwork/java/javaee/downloads/index.html).  However, we recommend the following setup: http://bugs.oicweave.org/projects/weave/wiki/Development_environment_setup
 =======
 The bare minimum you need to build Weave is [Flex 3.6A](http://opensource.adobe.com/wiki/display/flexsdk/Download+Flex+3) and [Java EE](http://www.oracle.com/technetwork/java/javaee/downloads/index.html).  However, we recommend the following setup: http://bugs.oicweave.org/projects/weave/wiki/Development_environment_setup
 >>>>>>> c5d86392308b860fe9cf00f5d8a15b2abd4bee1b
+=======
+The bare minimum you need to build Weave is [Flex 3.6A](http://opensource.adobe.com/wiki/display/flexsdk/Download+Flex+3) and [Java EE](http://www.oracle.com/technetwork/java/javaee/downloads/index.html).  However, we recommend the following setup: http://info.oicweave.org/projects/weave/wiki/Development_environment_setup
+>>>>>>> 37d197988c90843615b3610f3a35cb5a5368d6e5
 
 To build the projects on the command line, use the **WeaveClient/buildall.xml** and **WeaveServices/build.xml** Ant scripts.
 

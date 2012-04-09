@@ -90,6 +90,7 @@ A text editor to change the Session State on the fly.
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
 			import mx.managers.PopUpManager;
+			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -109,6 +110,7 @@ A text editor to change the Session State on the fly.
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
 			import weave.core.weave_internal;
+			import weave.utils.DebugUtils;
 			import weave.utils.EventUtils;
 			import weave.utils.PopUpUtils;
 			use namespace weave_internal;
@@ -773,7 +775,10 @@ A text editor to change the Session State on the fly.
 			public static function getInstance():SessionStateEditor
 			{
 				if (!_instance)
+				{
 					_instance = new SessionStateEditor();
+					WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, _instance, handleKeyDown);
+				}
 				return _instance;
 			}
 			
@@ -789,6 +794,38 @@ A text editor to change the Session State on the fly.
 				defaultEditor.sessionNav.rootObject = rootObject;
 				defaultEditor.refresh();
 				defaultEditor.restorePanel();
+			}
+			
+			private static var _profileWithErrorLogPanel:Boolean = true;
+			
+			private static function handleKeyDown():void
+			{
+				var event:KeyboardEvent = WeaveAPI.StageUtils.keyboardEvent;
+				if (event.keyCode == Keyboard.F8) // F8 to show profile data
+				{
+					// hold ctrl to toggle which panel to open
+					if (event.ctrlKey)
+						_profileWithErrorLogPanel = !_profileWithErrorLogPanel;
+					
+					var console:Console;
+					if (_profileWithErrorLogPanel)
+					{
+						ErrorLogPanel.openErrorLog();
+						console = ErrorLogPanel.getInstance().console;
+					}
+					else // use error log panel
+					{
+						if (!_instance.parent)
+							openDefaultEditor();
+						// show console
+						if (!_instance.showConsole.selected)
+							_instance.toggleShowConsole();
+						console = _instance.console;
+					}
+					
+					var dump:Object = DebugUtils.profileDump(event.shiftKey); // hold shift to reset profile data
+					console.consoleTrace(ObjectUtil.toString(dump));
+				}
 			}
 		]]>
 	</mx:Script>
