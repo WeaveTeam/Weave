@@ -151,7 +151,7 @@ package weave.core
 		/**
 		 * When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.
 		 */
-		public var maxComputationTimePerFrame:uint = 100;
+		[Bindable] public var maxComputationTimePerFrame:uint = 100;
 		
 		/**
 		 * This function gets called on ENTER_FRAME events.
