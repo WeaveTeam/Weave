@@ -18,7 +18,7 @@ Components in this repository:
  * GeometryStreamConverter: GPLv3 license, Java library for converting geometries into a streaming format
  * JTDS_SqlServerDriver: LGPL license, Java library for handling connections to Microsoft SQL Server.
  
-The bare minimum you need to build Weave is [Flex 3.6A](http://opensource.adobe.com/wiki/display/flexsdk/Download+Flex+3) and [Java EE](http://www.oracle.com/technetwork/java/javaee/downloads/index.html).  However, we recommend the following setup: http://bugs.oicweave.org/projects/weave/wiki/Development_environment_setup
+The bare minimum you need to build Weave is [Flex 3.6A](http://opensource.adobe.com/wiki/display/flexsdk/Download+Flex+3) and [Java EE](http://www.oracle.com/technetwork/java/javaee/downloads/index.html).  However, we recommend the following setup: http://info.oicweave.org/projects/weave/wiki/Development_environment_setup
 
 To build the projects on the command line, use the **WeaveClient/buildall.xml** and **WeaveServices/build.xml** Ant scripts.
 
