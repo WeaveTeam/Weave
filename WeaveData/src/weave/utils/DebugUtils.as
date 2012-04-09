@@ -196,7 +196,7 @@ package weave.utils
 		 * 
 		 * @author adufilie
 		 */
-		public static function profile(stackDepth:int = 0):void
+		public static function profile(description:String = null, stackDepth:int = 0):void
 		{
 			// stop if disabled
 			if (!_profileLookup)
@@ -215,6 +215,10 @@ package weave.utils
 			// stack[1] is the line in this file
 			// stack[2] is the line that called this function
 			var line:String = stack[2 + stackDepth];
+			
+			if (description)
+				line += ' ' + description;
+			
 			_profileLookup[line] = uint(_profileLookup[line]) + 1;
 		}
 		private static var _profileLookup:Object = {};

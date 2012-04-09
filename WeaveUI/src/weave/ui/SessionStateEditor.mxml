@@ -796,21 +796,35 @@ A text editor to change the Session State on the fly.
 				defaultEditor.restorePanel();
 			}
 			
+			private static var _profileWithErrorLogPanel:Boolean = true;
+			
 			private static function handleKeyDown():void
 			{
 				var event:KeyboardEvent = WeaveAPI.StageUtils.keyboardEvent;
 				if (event.keyCode == Keyboard.F8) // F8 to show profile data
 				{
-					if (!_instance.parent)
+					// hold ctrl to toggle which panel to open
+					if (event.ctrlKey)
+						_profileWithErrorLogPanel = !_profileWithErrorLogPanel;
+					
+					var console:Console;
+					if (_profileWithErrorLogPanel)
 					{
-						// show editor, expand console
-						openDefaultEditor();
+						ErrorLogPanel.openErrorLog();
+						console = ErrorLogPanel.getInstance().console;
+					}
+					else // use error log panel
+					{
+						if (!_instance.parent)
+							openDefaultEditor();
+						// show console
 						if (!_instance.showConsole.selected)
 							_instance.toggleShowConsole();
+						console = _instance.console;
 					}
 					
 					var dump:Object = DebugUtils.profileDump(event.shiftKey); // hold shift to reset profile data
-					_instance.console.consoleTrace(ObjectUtil.toString(dump));
+					console.consoleTrace(ObjectUtil.toString(dump));
 				}
 			}
 		]]>
