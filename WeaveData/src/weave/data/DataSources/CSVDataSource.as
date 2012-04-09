@@ -89,8 +89,12 @@ package weave.data.DataSources
 		 */		
 		public function getColumnByName(csvColumnName:String):IAttributeColumn
 		{
+			var sourceOwner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
+			if (!sourceOwner)
+				return null;
 			_reusableReference.hierarchyPath.value = <attribute title={csvColumnName} csvColumn={ csvColumnName }/>;
-			return getAttributeColumn(_reusableReference);
+			_reusableReference.dataSourceName.value = sourceOwner.getName(this);
+			return WeaveAPI.AttributeColumnCache.getColumn(_reusableReference);
 		}
 		
 		// used by getColumnByName
@@ -104,6 +108,7 @@ package weave.data.DataSources
 		 */		
 		public function putColumnInHashMap(csvColumnName:String, destinationHashMap:ILinkableHashMap):IAttributeColumn
 		{
+
 			var sourceOwner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
 			if (!sourceOwner)
 				return null;
