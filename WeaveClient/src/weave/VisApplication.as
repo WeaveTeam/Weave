@@ -864,6 +864,8 @@ package weave
 						tag.setLocalName("WeaveDataSource");
 					for each (tag in xml.descendants("OpenIndicatorsDataSource"))
 						tag.setLocalName("WeaveDataSource");
+					for each (tag in xml.descendants("EmptyTool"))
+						tag.setLocalName("CustomTool");
 					for each (tag in xml.descendants("WMSPlotter2"))
 						tag.setLocalName("WMSPlotter");
 					for each (tag in xml.descendants("SessionedTextArea"))
