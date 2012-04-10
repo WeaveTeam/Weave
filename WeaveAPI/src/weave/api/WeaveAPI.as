@@ -309,11 +309,11 @@ package weave.api
 		{
 			if (!_initialized)
 			{
+				_initialized = true;
 				// run static initialization code to register weave implementations
 				try {
 					getDefinitionByName("_InitializeWeave"); // run static initialization code 
 				} catch (e:Error) { }
-				_initialized = true;
 			}
 			
 			var result:* = _singletonDictionary[singletonInterface];

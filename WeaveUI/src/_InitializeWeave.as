@@ -57,12 +57,18 @@ package
 		// static initialization
 		initialize();
 		
+		private static var _initialized:Boolean = false;
+		
 		/**
 		 * This function gets called automatically and will register implementations of core API classes.
 		 * This function can be called explicitly to immediately register the classes.
 		 */
 		private static function initialize():void
 		{
+			if (_initialized)
+				return;
+			_initialized = true;
+			
 			// register singleton implementations for framework classes
 			WeaveAPI.registerSingleton(ISessionManager, SessionManager);
 			WeaveAPI.registerSingleton(IStageUtils, StageUtils);
