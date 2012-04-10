@@ -670,6 +670,8 @@ package weave.visualization.plotters
 			
 			tempRange.setRange(0, 0); // bar starts at zero
 			
+			var allMissing:Boolean = true;
+			
 			for (var i:int = 0; i < _heightColumns.length; i++)
 			{
 				var column:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
@@ -682,8 +684,15 @@ package weave.visualization.plotters
 				{
 					var height:Number = column.getValueFromKey(recordKey, Number);
 					// if height is missing, use mean value
-					if (stackedMissingDataGap.value)
-						height = WeaveAPI.StatisticsCache.getMean(column);
+					if (isNaN(height))
+					{
+						if (stackedMissingDataGap.value)
+							height = WeaveAPI.StatisticsCache.getMean(column);
+					}
+					else
+					{
+						allMissing = false;
+					}
 
 					var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
 					var negativeError:IAttributeColumn = _negErrCols[i] as IAttributeColumn;
@@ -709,6 +718,9 @@ package weave.visualization.plotters
 					}
 				}
 			}
+			
+			if (allMissing)
+				tempRange.setRange(0, 0); // bar starts at zero
 			
 			if (horizontalMode.value) // x range
 				bounds.setXRange(tempRange.begin, tempRange.end);
