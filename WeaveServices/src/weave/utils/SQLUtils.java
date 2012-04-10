@@ -1517,9 +1517,9 @@ public class SQLUtils
 
 				// sql server expects the actual EOL character '\n', and not the textual representation '\\n'
 				stmt.executeUpdate(String.format(
-						"BULK INSERT %s FROM '%s' WITH ( FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', KEEPNULLS )", 
-						quotedTable, formatted_CSV_path
-						));
+						"BULK INSERT %s FROM '%s' WITH ( FIRSTROW = 2, FIELDTERMINATOR = '%s', ROWTERMINATOR = '\n', KEEPNULLS )",
+						quotedTable, formatted_CSV_path, SQL_SERVER_DELIMETER
+					));
 			}
 		}
 		finally 
@@ -1541,7 +1541,7 @@ public class SQLUtils
 		return "SERIAL PRIMARY KEY";
 	}
 
-	public static String getCSVNullValue(Connection conn)
+	private static String getCSVNullValue(Connection conn)
 	{
 		try
 		{
@@ -1559,5 +1559,35 @@ public class SQLUtils
 			// this should never happen
 			throw new RuntimeException(e);
 		}
+	}
+	
+	private static final char SQL_SERVER_DELIMETER = (char)8;
+	
+	public static String generateCSV(Connection conn, String[][] csvData) throws SQLException
+	{
+		String outputNullValue = SQLUtils.getCSVNullValue(conn);
+		for (int i = 0; i < csvData.length; i++)
+		{
+			for (int j = 0; j < csvData[i].length; j++)
+			{
+				if (csvData[i][j] == null)
+					csvData[i][j] = outputNullValue;
+			}
+		}
+		
+		String dbms = conn.getMetaData().getDatabaseProductName();
+		if (SQLSERVER.equalsIgnoreCase(dbms))
+		{
+			// special case for Microsoft SQL Server because it does not support quotes.
+			CSVParser parser = new CSVParser(SQL_SERVER_DELIMETER);
+			return parser.createCSV(csvData, false);
+		}
+		else
+		{
+			boolean quoteEmptyStrings = outputNullValue.length() > 0;
+			return CSVParser.defaultParser.createCSV(csvData, quoteEmptyStrings);
+		}
+		
+		
 	}
 }
