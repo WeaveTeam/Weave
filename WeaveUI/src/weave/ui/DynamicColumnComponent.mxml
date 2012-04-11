@@ -68,20 +68,15 @@
 	</mx:TitleWindow>
 	<mx:Script>
 		<![CDATA[
-			import mx.core.UIComponent;
-			import mx.events.DragEvent;
-			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
 			import weave.api.core.ILinkableDynamicObject;
-			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
-			import weave.core.SessionManager;
+			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.visualization.tools.SimpleVisTool;
 			
 			[Bindable] public var showLinkControl:Boolean = true;
 			
@@ -110,9 +105,9 @@
 					getCallbackCollection(value).addImmediateCallback(this, toggleLinkDropDown, true);
 			}
 			
-			private var _visTool:SimpleVisTool = null;
+			private var _visTool:IVisToolWithSelectableAttributes = null;
 			[Inspectable]
-			public function set visTool(value:SimpleVisTool):void
+			public function set visTool(value:IVisToolWithSelectableAttributes):void
 			{
 				_visTool = value;
 			}

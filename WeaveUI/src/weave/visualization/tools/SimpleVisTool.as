@@ -44,6 +44,7 @@ package weave.visualization.tools
 	import weave.api.ui.IPlotLayer;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.IVisTool;
+	import weave.api.ui.IVisToolWithSelectableAttributes;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.UIUtils;
@@ -69,7 +70,7 @@ package weave.visualization.tools
 	 * 
 	 * @author adufilie
 	 */
-	public class SimpleVisTool extends DraggablePanel implements IVisTool, ILinkableContainer,ICSVExportable
+	public class SimpleVisTool extends DraggablePanel implements IVisToolWithSelectableAttributes, ILinkableContainer,ICSVExportable
 	{
 		public function SimpleVisTool()
 		{

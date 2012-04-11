@@ -25,6 +25,8 @@ package weave.editors
 	import weave.data.DataSources.WFSDataSource;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.DataSources.XLSDataSource;
+	import weave.primitives.ColorRamp;
+	import weave.ui.ColorRampEditor;
 	import weave.utils.EditorManager;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
@@ -53,6 +55,8 @@ package weave.editors
 		EditorManager.registerEditor(WMSPlotter, WMSPlotterEditor);
 		EditorManager.registerEditor(GridLinePlotter, GridLinePlotterEditor);
 		EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
+		
+		EditorManager.registerEditor(ColorRamp, ColorRampEditor);
 		
 		EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
 	}
