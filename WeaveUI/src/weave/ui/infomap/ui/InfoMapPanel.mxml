@@ -100,7 +100,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * */
 			public const nodes:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 			
-			public const infoMapsDataSource:InfoMapsDataSource = new InfoMapsDataSource();
+			public const infoMapsDataSource:InfoMapsDataSource = Weave.root.requestObject(InfoMapsDataSource.SOURCE_NAME,InfoMapsDataSource, true);
 			
 			/**
 			 * @public
@@ -108,9 +108,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * All the nodes within this panel will point to document objects in this map only.
 			 * When a query is made by each node, the documents retrieved are stored in this map.
 			 * */
-			public const docs:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
-			public const docsCSVDataSource:CSVDataSource = newLinkableChild(this,CSVDataSource);
-			public static const DOC_KEYTYPE:String = "infomapDocURL";
+//			public const docs:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
+//			public const docsCSVDataSource:CSVDataSource = newLinkableChild(this,CSVDataSource);
+//			public static const DOC_KEYTYPE:String = "infomapDocURL";
 			
 			/**
 			 * @public
@@ -130,7 +130,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 						
-			private static var _selectedKeySet:KeySet = null;
+			private static var _selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			
 			override protected function childrenCreated():void
 			{
@@ -139,26 +139,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				sortByTitle();
 				linkBindableProperty(globalSearchKeyword,globalSearchTextInput,"text",500);
 				
-				/*	we will create a CSVDataSource named docs which will hold all the doucments
-				 	if it alreadt exists we will use the existing data source 
-				*/
-				
-//				docsCSVDataSource = Weave.root.requestObject("docs",CSVDataSource, false);
-				docsCSVDataSource.csvDataString.value = "title,url,summary,image url,date";
-				docsCSVDataSource.keyColName.value = "url";
-				docsCSVDataSource.keyType.value = DOC_KEYTYPE;
-				
-				
-				
 				refreshTimer.start();
 				//call event for each tick of refreshTimer
 				refreshTimer.addEventListener(TimerEvent.TIMER, refreshNodes);
 				
 				registerDisposableChild(this,globalSearchKeyword);
 				registerDisposableChild(this,globalDateFilter);
-				
-				_selectedKeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-				_selectedKeySet.addImmediateCallback(this,handleSelectedKeySetChange);
 				
 				_subset = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 				
@@ -179,17 +165,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _subset:KeyFilter;
 			private function removeSelectedDocuments():void
 			{
+				var selectedKeys:Array = _selectedKeySet.keys;
 				var selectedDocs:Array = [];
-				var currentDocs:Array = docs.getObjects();
-				for each (var doc:SelectableInfoMapDocument in currentDocs)
-				{
-					if(doc.selected.value)
-					{
-						var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapPanel.DOC_KEYTYPE,doc.url.value);
-						selectedDocs.push(qKey);
-					}
-				}
 				
+				for each(var key:IQualifiedKey in selectedKeys)
+				{
+					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+						selectedDocs.push(key);
+				}
 				_subset.excludeKeys(selectedDocs);
 				
 				_selectedKeySet.clearKeys();
@@ -202,7 +185,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				for each(var key:IQualifiedKey in excludedKeys)
 				{
-					if(key.keyType == InfoMapPanel.DOC_KEYTYPE)
+					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
 						dockeys.push(key);
 				}
 				_subset.excluded.removeKeys(dockeys);
@@ -214,48 +197,48 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				
 				
-				//detect any changes in docs and make query for matched entity values
-				if(detectLinkableObjectChange(updateDisplayList,docs))
-				{
-					//selection happened outside of the panel then return
-					if(!(DraggablePanel.getTopPanel() is InfoMapPanel))
-						return;
-					
-					var docsArray:Array = docs.getObjects();
-					var selectedDocs:Array = [];
-					for each(var doc:SelectableInfoMapDocument in docsArray)
-					{
-						if(doc.selected.value)
-						{
-							selectedDocs.push(doc.url.value);
-						}
-					}
-					
-					if(selectedDocs.length == 0)
-					{
-						_selectedKeySet.clearKeys(); //test this
-						return;
-					}
-					
-					var entities:Array = extractAllEntitiyValues();
-					
-					var query:DelayedAsyncInvocation = InfoMapAdminInterface.instance.searchInDocuments(entities,selectedDocs);
-					query.addAsyncResponder(handleMatchedEntities,handleMatchedEntitiesFault);
-				}
-				
-				if(detectLinkableObjectChange(updateDisplayList,nodes))
-				{
-					var nodesArray:Array = nodes.getObjects();
-					
-					for each (var n:NodeHandler in nodesArray)
-					{
-						linkBindableProperty(n.defaultBorderColor,defaultNodeColorPicker,"selectedColor");
-						linkBindableProperty(n.selectedBorderColor,selectedNodeColorPicker,"selectedColor");
-						linkBindableProperty(n.defaultThumbnailBorderColor,defaultThumbnailBorderPicker,"selectedColor");
-						linkBindableProperty(n.selectedThumbnailBorderColor,selectedThumbnailBorderPicker,"selectedColor");
-						linkBindableProperty(n.newThumbnailGlowColor,thumbnailGlowColorPicker,"selectedColor");					
-					}
-				}
+//				//detect any changes in docs and make query for matched entity values
+//				if(detectLinkableObjectChange(updateDisplayList,docs))
+//				{
+//					//selection happened outside of the panel then return
+//					if(!(DraggablePanel.getTopPanel() is InfoMapPanel))
+//						return;
+//					
+//					var docsArray:Array = docs.getObjects();
+//					var selectedDocs:Array = [];
+//					for each(var doc:SelectableInfoMapDocument in docsArray)
+//					{
+//						if(doc.selected.value)
+//						{
+//							selectedDocs.push(doc.url.value);
+//						}
+//					}
+//					
+//					if(selectedDocs.length == 0)
+//					{
+//						_selectedKeySet.clearKeys(); //test this
+//						return;
+//					}
+//					
+//					var entities:Array = extractAllEntitiyValues();
+//					
+//					var query:DelayedAsyncInvocation = InfoMapAdminInterface.instance.searchInDocuments(entities,selectedDocs);
+//					query.addAsyncResponder(handleMatchedEntities,handleMatchedEntitiesFault);
+//				}
+//				
+//				if(detectLinkableObjectChange(updateDisplayList,nodes))
+//				{
+//					var nodesArray:Array = nodes.getObjects();
+//					
+//					for each (var n:NodeHandler in nodesArray)
+//					{
+//						linkBindableProperty(n.defaultBorderColor,defaultNodeColorPicker,"selectedColor");
+//						linkBindableProperty(n.selectedBorderColor,selectedNodeColorPicker,"selectedColor");
+//						linkBindableProperty(n.defaultThumbnailBorderColor,defaultThumbnailBorderPicker,"selectedColor");
+//						linkBindableProperty(n.selectedThumbnailBorderColor,selectedThumbnailBorderPicker,"selectedColor");
+//						linkBindableProperty(n.newThumbnailGlowColor,thumbnailGlowColorPicker,"selectedColor");					
+//					}
+//				}
 				
 			}
 			
@@ -297,34 +280,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleMatchedEntitiesFault(event:FaultEvent,token:Object=null):void
 			{
 				WeaveAPI.ErrorManager.reportError(event.type);
-			}
-			
-			
-			private function handleSelectedKeySetChange():void
-			{
-				var docsArray:Array = docs.getObjects();
-				
-					if(_selectedKeySet.keys.length == 0)
-					{
-						for each(var doc:SelectableInfoMapDocument in docsArray)
-						{
-							{
-								if(doc.selected.value)
-								{
-									doc.selected.value = false;
-								}else{
-									
-									doc.selected.triggerCallbacks();
-								}
-							}
-						}
-					}else{
-						
-						for each(var d:SelectableInfoMapDocument in docsArray)
-						{
-							d.selected.triggerCallbacks();
-						}
-					}
 			}
 			
 			
@@ -421,10 +376,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					for each (var t:DocThumbnailComponent in currentDocs)
 					{
+						var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t.docURL.value);
 						if(selectionRect.intersects(t.getRect(map)))
-							t.doc.selected.value = true;
+						{
+							_selectedKeySet.addKeys([key]);	
+						}
 						else
-							t.doc.selected.value = false;
+						{
+							_selectedKeySet.removeKeys([key]);
+						}
 					}
 				}
 				
@@ -573,26 +533,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function parseSelectionQueryResponse(result:XML):void
 			{
-				var selectedDocs:Array = [];
-				for each(var docXML:XML in result.result.doc)
-				{
-					var link:String = docXML.str.(@name=="link").text().toXMLString();
-//					var linkLen:int = link.length;
-//					var linkExtension:String = link.substring(linkLen-3,linkLen);
-//					if(linkExtension == "pdf"){
-//						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+//				var selectedDocs:Array = [];
+//				for each(var docXML:XML in result.result.doc)
+//				{
+//					var link:String = docXML.str.(@name=="link").text().toXMLString();
+////					var linkLen:int = link.length;
+////					var linkExtension:String = link.substring(linkLen-3,linkLen);
+////					if(linkExtension == "pdf"){
+////						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+////					}
+//					var doc:SelectableInfoMapDocument = docs.getObject(link) as SelectableInfoMapDocument;
+//					
+//					if(doc)
+//					{
+//						var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey("infomapDocURL",doc.url.value);
+//						doc.selected.value = true;
+//						selectedDocs.push(key);				
 //					}
-					var doc:SelectableInfoMapDocument = docs.getObject(link) as SelectableInfoMapDocument;
-					
-					if(doc)
-					{
-						var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey("infomapDocURL",doc.url.value);
-						doc.selected.value = true;
-						selectedDocs.push(key);				
-					}
-				}
-				
-				_selectedKeySet.addKeys(selectedDocs);
+//				}
+//				
+//				_selectedKeySet.addKeys(selectedDocs);
 			}
 			
 			
@@ -646,20 +606,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
-//			private function handleNodesChildListChange():void
-//			{
-//				var nodesArray:Array = nodes.getObjects();
-//				
-//				for each (var n:NodeHandler in nodesArray)
-//				{
-//					linkBindableProperty((n as NodeHandler).defaultBorderColor,this,"defaultNodeBorderColor");
-//					linkBindableProperty((n as NodeHandler).selectedBorderColor,this,"selectedNodeBorderColor");
-//					linkBindableProperty((n as NodeHandler).defaultThumbnailBorderColor,this,"defaultThumbnailBorderColor");
-//					linkBindableProperty((n as NodeHandler).selectedThumbnailBorderColor,this,"selectedThumbnailBorderColor");
-//					linkBindableProperty((n as NodeHandler).newThumbnailGlowColor,this,"newThumbnailGlowColor");					
-//				}
-//			}
-			
 			public function addInfoMapNode(query:String=null,op:String=null):void
 			{
 				var className:String = getQualifiedClassName(NodeHandler).split("::")[1];
@@ -680,7 +626,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(op ==null)
 				{
 					//TODO: should take value from RadioButton. Value was null when last tried.
-					nodeHandler.node.operator.value = "OR";	
+					nodeHandler.node.operator.value = "AND";	
 				}
 				else{
 					
@@ -746,11 +692,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				dp.sort = sort;
 			}
 			
-			private function startIndexing():void
-			{
-				WeaveAPI.URLRequestUtils.getURL(new URLRequest("http://129.63.8.219:8080/solr/select?clean=false&commit=true&qt=%2Fdataimport&command=full-import"));
-				
-			}
 			
 			
 			private function handleDateFilter():void
@@ -965,7 +906,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				</mx:columns>
 			</mx:DataGrid>
 		<mx:HBox width="100%">
-			<mx:Button label="Index Now" click="startIndexing()" />
+			<mx:Button label="Index Now" click="infoMapsDataSource.startIndexing()" />
 			<mx:Spacer width="100%"/>
 			<mx:Button  label="Delete Selected Feed" click="deleteRssFeed()"/>
 		</mx:HBox>

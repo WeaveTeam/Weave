@@ -41,10 +41,12 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
+			import weave.api.getLinkableOwner;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
@@ -56,7 +58,10 @@
 			import weave.core.SessionStateLog;
 			import weave.core.StageUtils;
 			import weave.core.UIUtils;
+			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.CSVParser;
+			import weave.data.ColumnReferences.HierarchyColumnReference;
+			import weave.data.DataSources.InfoMapsDataSource;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.data.QKeyManager;
@@ -67,11 +72,11 @@
 			import weave.ui.infomap.core.SelectableInfoMapDocument;
 			import weave.ui.infomap.ui.DateFilterComponent;
 			import weave.ui.infomap.ui.DocThumbnailComponent;
-			import weave.ui.infomap.ui.DocumentSummaryComponent;
 			import weave.ui.infomap.ui.InfoMapPanel;
 			import weave.ui.infomap.ui.NodeBaseComponent;
 			import weave.ui.infomap.ui.NodeSettingsComponent;
 			import weave.utils.BitmapUtils;
+			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.DateUtils;
 			
@@ -176,7 +181,7 @@
 				linkBindableProperty(yPos,this,"y");
 				
 				
-				UIUtils.linkDisplayObjects(this,thumbnails,true);
+//				UIUtils.linkDisplayObjects(this,thumbnails,true);
 				
 				//sets a pointer to the node's parent which is an InfoMapPanel
 				var hashmap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableOwner(this) as LinkableHashMap;
@@ -200,6 +205,11 @@
 				
 				docKeySet.addGroupedCallback(this,handleParsedResult,true);
 				
+				_searchKeySet.addGroupedCallback(this,handleSearchKeySetChange,true);
+				
+				_selection.addGroupedCallback(this,handleSelectionKeySetChange,true);
+				
+//				getCallbackCollection(_parentPanel.infoMapsDataSource).addGroupedCallback(this,handleSubsetChange,true);
 			}
 			
 			//this variable is false when the user loads the map for the first time. 			
@@ -239,174 +249,18 @@
 				
 				if(!node.sources.value == '')
 				{
-					var sourceNames:Array = node.sources.value.split(',');
+					var sourceNames:Array = parser.parseCSV(node.sources.value)[0]; //we send only the first row since this is a one-line CSV String
 				}
 				
-				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,node.keywords.value,node.operator.value,sourceNames);
+				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,node.keywords.value,node.operator.value,sourceNames,node.dateFilter);
 				
-//				this.invalidateDisplayList();
-//				
-//				
-//				var solrURL:String = "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows="+node.numberOfDocs.value.toString()+"&sort=date_published desc&indent=on&q=";	
-//				var query:String = "";
-//				query = (node.keywords.value as String);				
-//				
-//				//if query is emtpy do nothing
-//				if(query=="")
-//					return;
-//				
-//				
-//				var temp:Array = removeEmptyStringElementsFromArray(query.split(" "));	
-//				
-//				//after removing the empty strings we check to see if it is a single or empty word.
-//				//if it is not a single word we add the operator between each keyword
-//				//spliting the keywords at the spaces. 
-//				if(temp.length != 0 || temp.length != 1)
-//					query = temp.join(" "+node.operator.value+" ");
-//				
-//				//applying source filters
-//				if(!node.sources.value == '')
-//				{
-//					var sourceNames:Array = node.sources.value.split(',');
-//					
-//					query += "&fq="
-//					
-//					for each(var sourceName:String in sourceNames)
-//					{
-//						query += 'source:"'+sourceName+'" OR ';
-//					}
-//					
-//					//removing last OR 
-//					query = query.substr(0,query.length-4);
-//				}
-//				
-//				//applying date filters if set
-//				if(node.dateFilter.endDate.value && node.dateFilter.startDate.value )
-//				{
-//					if(node.dateFilter.startDate.value != '' && node.dateFilter.endDate.value != '')
-//					{
-//						
-//						var sDate:Date = DateUtils.getDateFromString(node.dateFilter.startDate.value);
-//						var eDate:Date = DateUtils.getDateFromString(node.dateFilter.endDate.value);
-//						
-//						
-//						//Solr requires the date format to be ISO 8601 Standard Compliant
-//						//It should be in the form: 1995-12-31T23:59:59Z 
-//						var sStr:String = DateUtils.getDateInStringFormat(sDate,'YYYY-MM-DD');
-//						
-//						//For start date we append 00:00:00 to set time to start of the day
-//						sStr = sStr + 'T00:00:00Z';
-//						
-//						var eStr:String = DateUtils.getDateInStringFormat(eDate,'YYYY-MM-DD');
-//						
-//						//For end date we append 23:59:59 to set time to end of day
-//						eStr = eStr + 'T23:59:59Z';
-//						
-//						query += "&fq=date_published:["+sStr+" TO "+eStr + "]";
-//					}
-//				}
-//				
-//				//creating and sending the query to the Solr server
-//				var url:String = solrURL + query;
-//				loader = new URLLoader();
-//				var request:URLRequest = new URLRequest(url);
-//				loader.addEventListener(Event.COMPLETE, xmlLoadCompleteHandler);
-//				loader.addEventListener(IOErrorEvent.IO_ERROR,handleRequestError);
-//				loader.load(request);
 			}
-			
-//			
-//			private function handleRequestError(event:IOErrorEvent):void
-//			{
-//				WeaveAPI.ErrorManager.reportError(event.text);
-////				Alert.show("There was an error in your request. Please make sure your keywords are separated by commas.","Error");
-//			}
-//				
-//			
-//			private function xmlLoadCompleteHandler(event:Event):void {
-//				// checks to avoid null point error
-//				if(loader){
-//					// checks for data presence
-//					if(loader.data){
-//						var xml:XML = new XML(loader.data);
-//						parseSolrResponse(xml);
-//					}
-//				}
-//				
-//			}
-			
-			
-//			private function parseSolrResponse(result:XML):void
-//			{
-//				
-//				var response:ArrayCollection = new ArrayCollection();
-//				var docsArray:Array = [];
-//				var docObject:SelectableInfoMapDocument;
-//				_parentPanel.docs.delayCallbacks();
-//				for each(var doc:XML in result.result.doc)
-//				{
-//					
-//					var link:String = doc.str.(@name=="link").text().toXMLString();
-//					var linkLen:int = link.length;
-//					var linkExtension:String = link.substring(linkLen-3,linkLen);
-//					var imgExtension:String = ".jpg"
-//					
-////					if(!(linkExtension == "pdf"))
-////						continue;
-//					
-////					currently disabled pdf files for cleaner results and testing purposes 
-//					if(linkExtension == "pdf"){
-////						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
-//						imgExtension = ".png";
-//						
-//					}
-//					else if(link.substring(linkLen-3,linkLen-1) == "doc"){
-//						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
-//						imgExtension = ".png";
-//					}
-//
-//						//each document retrived is added to the docs map in the parent infomap panel
-//						docObject = _parentPanel.docs.requestObject(link,SelectableInfoMapDocument,false);					
-//						var currentDoc:Array = []
-//						
-//						docObject.title.value = doc.str.(@name=="title").text().toXMLString();
-//						currentDoc.push(doc.str.(@name=="title").text().toXMLString());
-//						
-//						docObject.url.value = link;
-//						currentDoc.push(link);
-//						
-//						//TODO:right now limiting to 200 characters. Need to change this later to a better solution
-//						docObject.summary.value = (doc.str.(@name=="description").text().toXMLString() as String).substr(0,200);
-//						currentDoc.push((doc.str.(@name=="description").text().toXMLString() as String).substr(0,200));
-//						
-//						var imgURL:String = doc.str.(@name=="imgName").text().toXMLString();
-//						
-//						docObject.imageURL.value = "http://129.63.8.219:8080/infomap/thumbnails/"+  imgURL + imgExtension;					
-//						currentDoc.push("http://129.63.8.219:8080/infomap/thumbnails/"+  imgURL + imgExtension);
-//						
-//						docObject.date.value = doc.date.text().toXMLString();
-//						currentDoc.push(doc.date.text().toXMLString());
-//						
-//						docsArray.push(currentDoc);
-//						response.addItem(link);
-//				}
-//				
-//				var csvDataString:String = parser.createCSV(docsArray);
-//				csvDataString = _parentPanel.docsCSVDataSource.csvDataString.value + '\n' + csvDataString;
-//				
-//				_parentPanel.docsCSVDataSource.csvDataString.value = csvDataString;
-//				
-//				_parentPanel.docs.resumeCallbacks(true);//test this
-//				handleParsedResult(response);
-//			}
-			
-
-			private	var docPreview:DocumentSummaryComponent = null;
 			
 			private var thumbnailSize:int = 50;
 			
 			private var parser:CSVParser = new CSVParser();
 			
+//			public var titleColTest:IAttributeColumn = null;
 			
 			/**
 			 * @private
@@ -422,13 +276,15 @@
 				}else{
 					highlightNewDocuments = true;
 				}
+				
 				var obj:SelectableInfoMapDocument;
 				thumbnails.delayCallbacks();
 				var response:Array = docKeySet.keys;
 				for(var i:int; i<response.length ;i++)
 				{
+					
 					var link:String = (response[i] as IQualifiedKey).localName;					
-					obj = _parentPanel.docs.requestObject(link,SelectableInfoMapDocument,false) as SelectableInfoMapDocument;
+					
 					var thumbnail:DocThumbnailComponent = new DocThumbnailComponent();
 					
 					
@@ -438,7 +294,7 @@
 						thumbnail = thumbnails.requestObject(link,DocThumbnailComponent,false);
 						
 						//we replace the doc object because, the summary, description might have changed. 
-						thumbnail.doc = obj as SelectableInfoMapDocument;
+//						thumbnail.doc = obj as SelectableInfoMapDocument;
 						
 						linkSessionState(defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
 						linkSessionState(selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
@@ -448,7 +304,9 @@
 					}
 					thumbnail = thumbnails.requestObject(link,DocThumbnailComponent,false);
 					
-					thumbnail.doc = obj as SelectableInfoMapDocument;
+					addChild(thumbnail);
+					
+					thumbnail.docURL.value = link;
 					
 					linkSessionState(defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
 					linkSessionState(selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
@@ -463,16 +321,16 @@
 				}
 				
 				thumbnails.resumeCallbacks();			
-				
+				handleSubsetChange();
 			}
 			
 			override public function validateDisplayList():void
 			{
-//				graphics.beginFill(Math.random()*0xFFFFFF,1);
-//				graphics.drawCircle(0,0,50);
 				super.validateDisplayList();
-				if(detectLinkableObjectChange(validateDisplayList,thumbnails))
-					handleSubsetChange();
+//				This was added before using InfoMapsDataSource. This might not be needed
+//				TODO: delete later if not required
+//				if(detectLinkableObjectChange(validateDisplayList,thumbnails))
+//					handleSubsetChange();
 				
 			}
 			
@@ -485,13 +343,9 @@
 				for each(var t:DocThumbnailComponent in thumbnails.getObjects())
 				{
 					var docURL:String = thumbnails.getName(t);
-					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapPanel.DOC_KEYTYPE,docURL);
+					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
 					if(_subset.containsKey(qKey))
 					{
-						if(t.doc == null)
-						{
-							t.doc = _parentPanel.docs.getObject(docURL) as SelectableInfoMapDocument;	
-						}
 						thumbnailsToPlotArray.push(t);
 						t.visible = true;
 //						addChild(t);
@@ -499,12 +353,27 @@
 						
 						t.visible = false;
 					}
+					
 				}
 				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
-				
+				handleSelectionKeySetChange();
+				handleGlobalSearch();
 			}
 			
+			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			
+			private function handleSelectionKeySetChange():void
+			{
+				var docs:Array = thumbnails.getNames();
+				
+				for each(var doc:String in docs)
+				{
+					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,doc);
+					var t:DocThumbnailComponent = thumbnails.getObject(doc) as DocThumbnailComponent;
+					var selected:Boolean =_selection.containsKey(qKey) 
+					t.highlight(selected);
+				}
+			}
 			
 			
 			private function handleLayoutChange():void
@@ -703,10 +572,60 @@
 					searchFilter.value = searchText.text;
 			}
 			
+			private var _searchKeySet:KeySet = new KeySet();
 			private function handleGlobalSearch():void
 			{
-				if(node.selected.value)
-					searchFilter.value = _parentPanel.globalSearchKeyword.value;
+				
+				if(!_parentPanel.globalSearchKeyword.value)
+				{
+					_searchKeySet.clearKeys();
+					return;
+				}
+				
+				var fieldNames:Array = ['link'];
+				
+				var fieldValues:Array = [];
+				
+				fieldValues.push(thumbnails.getNames());
+				
+				if(!node.sources.value == '')
+				{
+					var sourceNames:Array = parser.parseCSV(node.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+				}
+				
+				
+				_parentPanel.infoMapsDataSource.getDocumentsForQueryWithFieldValues(_searchKeySet,_parentPanel.globalSearchKeyword.value,fieldNames,fieldValues,sourceNames,"OR",node.dateFilter);
+				
+			}
+			
+			private function handleSearchKeySetChange():void
+			{
+				var tnails:Array = thumbnails.getObjects();
+				
+				var searchMatchedKeys:Array =_searchKeySet.keys; 
+				
+				if(searchMatchedKeys.length == 0)
+				{
+					for each(var t1:DocThumbnailComponent in tnails)
+					{
+						t1.visible = true;
+					}
+				}else
+				{
+					for each(var t2:DocThumbnailComponent in tnails)
+					{
+						t2.visible = false;
+					}
+				}
+				
+				for each(var k:IQualifiedKey in searchMatchedKeys)
+				{
+					var t3:DocThumbnailComponent = thumbnails.getObject(k.localName) as DocThumbnailComponent;
+					
+					if(t3)
+						t3.visible = true;
+				}
+				
 			}
 			
 			private function handleGlobalDateChange():void

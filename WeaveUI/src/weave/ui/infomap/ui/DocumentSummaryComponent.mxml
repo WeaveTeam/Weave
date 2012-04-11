@@ -27,13 +27,16 @@ Use the static functions to show this as a popup.
 				import mx.rpc.events.FaultEvent;
 				import mx.rpc.events.ResultEvent;
 				
+				import weave.Weave;
 				import weave.api.WeaveAPI;
 				import weave.api.linkBindableProperty;
+				import weave.core.LinkableString;
+				import weave.data.DataSources.InfoMapsDataSource;
 				import weave.ui.infomap.core.IInfoMapDocument;
 				import weave.ui.infomap.core.InfoMapDocument;
 				import weave.ui.infomap.core.SelectableInfoMapDocument;
 
-				private static var doc:InfoMapDocument;
+				private static var _docURL:LinkableString = new LinkableString("");
 				
 				override protected function childrenCreated():void
 				{
@@ -46,9 +49,11 @@ Use the static functions to show this as a popup.
 					this.maxWidth = 250;
 					this.maxHeight = 300;
 					
-					linkBindableProperty(doc.summary,nodeDescription,"text");
-					linkBindableProperty(doc.title,nodeTitle,"text");
-					linkBindableProperty(doc.date,nodeTimeStamp,"text");
+//					_docURL.addGroupedCallback(this, updateText);
+					
+//					linkBindableProperty(doc.summary,nodeDescription,"text");
+//					linkBindableProperty(doc.title,nodeTitle,"text");
+//					linkBindableProperty(doc.date,nodeTimeStamp,"text");
 					
 				}
 				
@@ -61,14 +66,21 @@ Use the static functions to show this as a popup.
 				 * @param document The document object whose summary is to be displayed
 				 * @parent the parent display object calling this function
 				 * */
-				public static function show(xPos:Number,yPos:Number,document:IInfoMapDocument,parent:DisplayObject):void
+				public static function show(xPos:Number,yPos:Number,docURL:String,parent:DisplayObject):void
 				{
 					instance = new DocumentSummaryComponent();
-					doc = document as InfoMapDocument;
-					if(doc == null)
+					if(!docURL)
 						return;
+
+					_docURL.value = docURL;
+					
 					_bitmap = null;
-					WeaveAPI.URLRequestUtils.getContent(new URLRequest(doc.imageURL.value),handleImage,null,doc.imageURL);
+					
+					var source:InfoMapsDataSource = Weave.root.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
+					
+					var imgURL:String = source.getImageURLForURL(_docURL.value);
+					
+					WeaveAPI.URLRequestUtils.getContent(new URLRequest(imgURL),handleImage,null,_docURL.value);
 					instance.move(xPos,yPos);
 					PopUpManager.addPopUp(instance,parent);
 					instance.fadeIn.play();
@@ -83,12 +95,13 @@ Use the static functions to show this as a popup.
 					}
 				}
 				
-				
+				private var source:InfoMapsDataSource = Weave.root.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
+//								
 				[Bindable]
 				private static var _bitmap:Bitmap = new Bitmap();
 				private static function handleImage(event:ResultEvent,token:Object=null):void
 				{
-					if(token==doc.imageURL)
+					if(token==_docURL.value)
 						_bitmap = new Bitmap((event.result as Bitmap).bitmapData);
 
 				}
@@ -100,14 +113,14 @@ Use the static functions to show this as a popup.
 				
 			]]>
 		</mx:Script>
-		<mx:Text id="nodeTitle" fontWeight="bold" width="100%"/>
+		<mx:Text id="nodeTitle" text="{source.getTitleForURL(_docURL.value)}" fontWeight="bold" width="100%"/>
 		<!--<mx:HRule width="100%"/>-->
 		<mx:HBox width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
 			<mx:Image id="nodeThumbnail" source="{_bitmap}" maintainAspectRatio="false" maxWidth="140" maxHeight="140"/>
-			<mx:Text id="nodeDescription" width="100%" height="100%" />
+			<mx:Text text="{source.getTitleForURL(_docURL.value)}" id="nodeDescription" width="100%" height="100%" />
 		</mx:HBox>
 		
 		<mx:HRule width="100%"/>
-		<mx:Text id="nodeTimeStamp" fontWeight="bold" width="100%" height="5%" />
+		<mx:Text text="{source.getDatePublishedForURL(_docURL.value)}" id="nodeTimeStamp" fontWeight="bold" width="100%" height="5%" />
 		
 	</mx:VBox>

@@ -47,17 +47,18 @@ so that it can be moved, selected, handle filters.
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
+			import weave.data.DataSources.InfoMapsDataSource;
 			import weave.data.KeySets.KeySet;
-			import weave.services.URLRequestUtils;
 			import weave.primitives.DateRangeFilter;
+			import weave.services.URLRequestUtils;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.IInfoMapNode;
 			import weave.ui.infomap.core.SelectableInfoMapDocument;
 			import weave.ui.infomap.layout.IInfoMapNodeLayout;
 			import weave.ui.infomap.layout.NodeHandler;
-			import weave.utils.DateUtils;
 			import weave.utils.BitmapUtils;
 			import weave.utils.CustomCursorManager;
+			import weave.utils.DateUtils;
 			
 			/**
 			 * @public
@@ -117,22 +118,25 @@ so that it can be moved, selected, handle filters.
 			 * @private
 			 * The document object whose imageURL is used as the source for this image.
 			 * */
-			private var _doc:SelectableInfoMapDocument;
-			private var _key:IQualifiedKey;
-			public function set doc(value:SelectableInfoMapDocument):void
-			{
-				if(value == null)
-					return;
-				_doc = value;
-				_doc.selected.addImmediateCallback(this,highlight);
-				_key = WeaveAPI.QKeyManager.getQKey("infomapDocURL",_doc.url.value);
-				handleImage();
-			}
+//			private var _doc:SelectableInfoMapDocument;
+//			private var _key:IQualifiedKey;
+//			public function set doc(value:SelectableInfoMapDocument):void
+//			{
+//				if(value == null)
+//					return;
+//				_doc = value;
+//				_doc.selected.addImmediateCallback(this,highlight);
+//				_key = WeaveAPI.QKeyManager.getQKey("infomapDocURL",_doc.url.value);
+//				handleImage();
+//			}
+//			
+//			public function get doc():SelectableInfoMapDocument
+//			{
+//				return _doc;
+//			}
 			
-			public function get doc():SelectableInfoMapDocument
-			{
-				return _doc;
-			}
+			
+			public const docURL:LinkableString = newLinkableChild(this,LinkableString);
 			
 			override protected function childrenCreated():void
 			{
@@ -147,12 +151,6 @@ so that it can be moved, selected, handle filters.
 				selectedBorderColor.addGroupedCallback(this,highlight);
 				defaultBorderColor.addGroupedCallback(this,highlight);
 				
-				var filterableNode:FilterableInfoMapNode = (this.parent as NodeHandler).node as FilterableInfoMapNode;
-				//adding callback for a search query made in the node handler this belongs to
-				(this.parent as NodeHandler).searchFilter.addImmediateCallback(this,handleLocalSearchFilter,true);
-//				(this.parent as NodeHandler).defaultThumbnailBorderColor.addImmediateCallback(this,handleDefaultBorderColorChange,null,true);
-//				(this.parent as NodeHandler).selectedThumbnailBorderColor.addImmediateCallback(this,handleSelectedBorderColorChange,null,true);
-//				getCallbackCollection(_selection).addImmediateCallback(this, highlight);
 				
 			}
 			
@@ -161,62 +159,27 @@ so that it can be moved, selected, handle filters.
 			//if a match for the search query is not found in the doc object, it makes the image invisible
 			private function handleLocalSearchFilter():void
 			{
-				if(_doc == null)
-					return;
-				
-				var searchKey:String = (this.parent as NodeHandler).searchFilter.value;
-				if(searchKey == "" || searchKey == null)
-				{
-//					_selection.removeKeys([_key]);
-					doc.selected.value = false;
-					return;
-				}
-				
-				if(_doc.title.value.toLowerCase().search(searchKey.toLowerCase()) == -1)
-					if(_doc.summary.value.toLowerCase().search(searchKey.toLowerCase()) == -1)
-					{
-//						_selection.removeKeys([_key]);
-						doc.selected.value = false;
-						return;
-					}
-				
-//				_selection.addKeys([_key]);
-				doc.selected.value = true;
-				
-			}
-			
-			private var _dateFilterObject:DateRangeFilter;
-			private function handleDateFilter():void
-			{
-				
-				if(_dateFilterObject.startDate == null || _dateFilterObject.endDate == null)
-				{
-					this.visible = true;
-					return;
-				}
-				
-				
-				//if date is empty we do nothing. May change later
-				if(_doc.date.value == "")
-				{
-					this.visible = true;
-					return;	
-				}
-				
-				var s:String = _dateFilterObject.startDate.value;
-				var e:String = _dateFilterObject.endDate.value;
-				var d:String =_doc.date.value;
-				
-				//if either the start date or the end date is not set, do nothing. Sets the image back to visible
-				if(s == '' || s == null || e =='' || e == null)
-				{
-					this.visible = true;					
-					return;
-				}
-				
-				//if date of doc object is within the range set visibility to true else to false
-				this.visible = DateUtils.isDateStringWithinRange(d,s,e);
-				
+//				if(_doc == null)
+//					return;
+//				
+//				var searchKey:String = (this.parent as NodeHandler).searchFilter.value;
+//				if(searchKey == "" || searchKey == null)
+//				{
+////					_selection.removeKeys([_key]);
+//					doc.selected.value = false;
+//					return;
+//				}
+//				
+//				if(_doc.title.value.toLowerCase().search(searchKey.toLowerCase()) == -1)
+//					if(_doc.summary.value.toLowerCase().search(searchKey.toLowerCase()) == -1)
+//					{
+////						_selection.removeKeys([_key]);
+//						doc.selected.value = false;
+//						return;
+//					}
+//				
+////				_selection.addKeys([_key]);
+//				doc.selected.value = true;
 				
 			}
 			
@@ -231,8 +194,17 @@ so that it can be moved, selected, handle filters.
 				}
 				
 				img.source = _noImage;
-				if(_doc)
-					token = WeaveAPI.URLRequestUtils.getContent(new URLRequest(_doc.imageURL.value),handleImageRequest,handleImageFaultRequest);
+				if(docURL.value)
+				{
+					var source:InfoMapsDataSource = Weave.root.getObject("InfoMaps Data Source") as InfoMapsDataSource;
+					
+					if(source)
+					{
+						var imageURL:String = source.getImageURLForURL(docURL.value);
+					}
+					
+					token = WeaveAPI.URLRequestUtils.getContent(new URLRequest(imageURL),handleImageRequest,handleImageFaultRequest);
+				}
 			}
 			
 			public function dispose():void
@@ -287,9 +259,9 @@ so that it can be moved, selected, handle filters.
 			
 			private function handleDoubleClick(event:Event):void
 			{
-				if(_doc.url.value == "")
+				if(docURL.value == "")
 					return;
-				var link:String = _doc.url.value;
+				var link:String = docURL.value;
 				var linkLen:int = link.length;
 				var linkExtension:String = link.substring(linkLen-3,linkLen);
 				if(linkExtension == "pdf")
@@ -297,7 +269,7 @@ so that it can be moved, selected, handle filters.
 					link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
 				}
 				else{
-					link = _doc.url.value;
+					link = docURL.value;
 				}
 				navigateToURL(new URLRequest(link));
 			}
@@ -359,18 +331,15 @@ so that it can be moved, selected, handle filters.
 			
 			private function toggleSelection():void
 			{
-				if(_doc ==null)
-					return;
-				//toggling selection
-				if(_doc.selected.value)
+				var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL.value);
+				
+				if(_selection.containsKey(key))
 				{
-//					_selection.removeKeys([_key]);
-					_doc.selected.value = false;
+					_selection.removeKeys([key]);
 				}
 				else
 				{
-//					_selection.addKeys([_key]);
-					_doc.selected.value = true;
+					_selection.addKeys([key]);
 				}
 			}
 			
@@ -391,7 +360,7 @@ so that it can be moved, selected, handle filters.
 			private	var docPreview:DocumentSummaryComponent;
 			private function showDocSummary(event:MouseEvent):void
 			{
-				DocumentSummaryComponent.show(event.stageX,event.stageY,_doc,this);
+				DocumentSummaryComponent.show(event.stageX,event.stageY,docURL.value,this);
 				
 			}
 			
@@ -400,17 +369,13 @@ so that it can be moved, selected, handle filters.
 				DocumentSummaryComponent.hide();
 			}
 			
-			private function highlight():void
+			private var _selected:Boolean = false;
+			public function highlight(selected:Boolean = false):void
 			{
-				if(_doc == null)
-					return;
-//				if(_selection.keys.length == 0)
-//				{
-//					imageAlpha.value = 1.0;
-//					setStyle("borderThickness",0.5);
-//					setStyle("borderColor",defaultBorderColor.value);
-//				} else 
-				if(_doc.selected.value)
+				if(selected)
+					_selected = selected;
+				
+				if(selected)
 				{
 					imageAlpha.value = 1.0;
 					setStyle("borderThickness", 1.5);

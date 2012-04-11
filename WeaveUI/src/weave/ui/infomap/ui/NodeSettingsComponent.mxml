@@ -102,8 +102,8 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 import weave.core.LinkableDynamicObject;
 				 import weave.core.LinkableString;
 				 import weave.data.CSVParser;
-				 import weave.ui.infomap.admin.InfoMapAdminInterface;
 				 import weave.primitives.DateRangeFilter;
+				 import weave.ui.infomap.admin.InfoMapAdminInterface;
 				 import weave.ui.infomap.core.InfoMapNode;
 				 import weave.ui.infomap.layout.CascadeLayout;
 				 import weave.ui.infomap.layout.GridLayout;
@@ -346,7 +346,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 					 
 					 errorMsg.visible = false;
 					 
-					 addSourceString(feedTitle.text);
+					 addSourceString('"' + feedTitle.text + '"');
 					 
 				 }
 				 
@@ -371,36 +371,58 @@ Info to provide a tooltip describing the node (like number of documents found)
 				{
 					var selectedSources:Dictionary = sourcesGrid.selectedSources;
 					
+					var selectedSourcesArray:Array = new Array();
+					selectedSourcesArray.push([]);
 					
 					for (var key:String in selectedSources)
 					{
-						addSourceString(key);
+						selectedSourcesArray[0].push(key);
 					}
+					
+					var currentSourcesArray:Array = new Array();
+					
+					if(!nodeHandler.node.sources.value == '')
+						currentSourcesArray[0] = parser.parseCSV(nodeHandler.node.sources.value)[0];
+					
+					//if the source name already exists then ignore and return
+					for each(var src:String in currentSourcesArray[0])
+					{
+						if(!selectedSources[src])
+							selectedSourcesArray[0].push(key);
+					}
+					
+					nodeHandler.node.sources.value = parser.createCSV(selectedSourcesArray);
 				}
 				 
+				private var parser:CSVParser = new CSVParser();
 				private function addSourceString(source:String):void
 				{
 					
 					var sources:Array = new Array();
+					sources.push([]);
+					
+					var dict:Dictionary = new Dictionary();
 					
 					if(!nodeHandler.node.sources.value == '')
-						sources = nodeHandler.node.sources.value.split(',');
+						sources[0] = parser.parseCSV(nodeHandler.node.sources.value)[0];
 					
-					for each(var src:String in sources)
+					//if the source name already exists then ignore and return
+					for each(var src:String in sources[0])
 					{
-						if(src.toLowerCase() == source.toLowerCase())
-							return;
+						dict[src] = true;
 					}
 					
-					sources.push(source);
+					var newSources:Array = parser.parseCSV(source)[0]; 
+					sources[0] = sources[0].concat(newSources);
 					
 					//sorting so that sources always appear in the same order
 					//this is necessary so that the callbacks on sources are not called simply because the same sources are out of order.
-					sources.sort();
+					sources[0].sort();
 					
-					nodeHandler.node.sources.value = sources.toString();
+					nodeHandler.node.sources.value = parser.createCSV(sources);
 				}
-				private function handleSources():void
+				
+				 private function handleSources():void
 				{
 					if(nodeHandler.node.sources.value == '')
 					{
@@ -413,7 +435,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 						return;						
 					
 					
-					var sourceNames:Array = nodeHandler.node.sources.value.split(',');
+					var sourceNames:Array = parser.parseCSV(nodeHandler.node.sources.value)[0];
 					
 					if(selectedSourcesList.dataProvider)
 						(selectedSourcesList.dataProvider as ArrayCollection).removeAll();
@@ -426,19 +448,20 @@ Info to provide a tooltip describing the node (like number of documents found)
 				{
 					var sourcesToRemove:Array = selectedSourcesList.selectedItems;
 					
-					var currentSources:Array = nodeHandler.node.sources.value.split(',');
+					var currentSources:Array = parser.parseCSV(nodeHandler.node.sources.value)[0];
 					
-					var temp:Array = [];
+					var temp:Array = new Array();
+					temp.push([]);
 					
 					for each(var source:String in currentSources)
 					{
 						if(sourcesToRemove.indexOf(source) == -1)
 						{
-							temp.push(source);
+							temp[0].push(source);
 						}
 					}
 					
-					nodeHandler.node.sources.value = temp.toString();
+					nodeHandler.node.sources.value = parser.createCSV(temp) ;
 				}
 				 
 			 ]]>
