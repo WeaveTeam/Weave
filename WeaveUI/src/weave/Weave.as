@@ -114,9 +114,9 @@ package weave
 		
 		public static const DEFAULT_WEAVE_PROPERTIES:String = "WeaveProperties";
 		
+		public static const DEFAULT_COLOR_COLUMN:String = "defaultColorColumn";
 		public static const DEFAULT_COLOR_BIN_COLUMN:String = "defaultColorBinColumn";
 		public static const DEFAULT_COLOR_DATA_COLUMN:String = "defaultColorDataColumn";
-		public static const DEFAULT_COLOR_COLUMN:String = "defaultColorColumn";
 
 		public static const DEFAULT_SUBSET_KEYFILTER:String = "defaultSubsetKeyFilter";
 		public static const DEFAULT_SELECTION_KEYSET:String = "defaultSelectionKeySet";
@@ -124,6 +124,17 @@ package weave
 		public static const ALWAYS_HIGHLIGHT_KEYSET:String = "alwaysHighlightKeySet";
 		public static const SAVED_SELECTION_KEYSETS:String = "savedSelections";
 		public static const SAVED_SUBSETS_KEYFILTERS:String = "savedSubsets";
+
+		public static function get defaultColorColumn():ColorColumn { return root.getObject(DEFAULT_COLOR_COLUMN) as ColorColumn; }
+		public static function get defaultColorBinColumn():BinnedColumn { return root.getObject(DEFAULT_COLOR_BIN_COLUMN) as BinnedColumn; }
+		public static function get defaultColorDataColumn():FilteredColumn { return root.getObject(DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn; }
+		
+		public static function get defaultSubsetKeyFilter():KeyFilter { return root.getObject(DEFAULT_SUBSET_KEYFILTER) as KeyFilter; }
+		public static function get defaultSelectionKeySet():KeySet { return root.getObject(DEFAULT_SELECTION_KEYSET) as KeySet; }
+		public static function get defaultProbeKeySet():KeySet { return root.getObject(DEFAULT_PROBE_KEYSET) as KeySet; }
+		public static function get alwaysHighlightKeySet():KeySet { return root.getObject(ALWAYS_HIGHLIGHT_KEYSET) as KeySet; }
+		public static function get savedSelectionKeySets():LinkableHashMap { return root.getObject(SAVED_SELECTION_KEYSETS) as LinkableHashMap; }
+		public static function get savedSubsetsKeyFilters():LinkableHashMap { return root.getObject(SAVED_SUBSETS_KEYFILTERS) as LinkableHashMap; }
 		
 		/**
 		 * This initializes a default set of objects in an ILinkableHashMap.

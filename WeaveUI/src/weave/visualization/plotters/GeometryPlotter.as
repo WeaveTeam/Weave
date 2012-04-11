@@ -45,7 +45,6 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
-	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
@@ -65,7 +64,7 @@ package weave.visualization.plotters
 		{
 			// initialize default line & fill styles
 			line.scaleMode.defaultValue.setSessionState(LineScaleMode.NONE);
-			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 
 			line.weight.addImmediateCallback(this, disposeCachedBitmaps);
 			

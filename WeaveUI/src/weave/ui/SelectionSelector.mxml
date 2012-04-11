@@ -56,15 +56,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const includeAllRecordsOption:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateSubsets);
 			private var setToIndex:int = -1;
 			
-			private static function get savedSelectionsMap():LinkableHashMap
-			{
-				return Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS) as LinkableHashMap;
-			}
-			private static function get globalSelection():KeySet
-			{
-				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			}
-
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -76,17 +67,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				savedSelectionsMap.addGroupedCallback(this, updateSubsets, true);
-				getCallbackCollection(globalSelection).addGroupedCallback(this, handleGlobalSubsetChange);
+				Weave.savedSelectionKeySets.addGroupedCallback(this, updateSubsets, true);
+				Weave.defaultSelectionKeySet.addGroupedCallback(this, handleGlobalSubsetChange);
 			}
 			private function handleGlobalSubsetChange():void
 			{
-				if( !globalSelection.keys.length ) // IF SHOWING ALL RECORDS
+				if( !Weave.defaultSelectionKeySet.keys.length ) // IF SHOWING ALL RECORDS
 					selectionSelectorBox.selectedIndex = -1;
 			}
 			private function updateSubsets():void
 			{
-				var list:Array = savedSelectionsMap.getObjects();
+				var list:Array = Weave.savedSelectionKeySets.getObjects();
 				if (includeAllRecordsOption.value)
 					list.unshift(false);
 				selectionSelectorBox.dataProvider = list;
@@ -98,11 +89,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			public function setSelectionsSelectorIndex(subsetName:String):void
 			{
-				var list:Array = savedSelectionsMap.getObjects();
+				var list:Array = Weave.savedSelectionKeySets.getObjects();
 				var label:String = "";
 				var i:int = 0;
 				for( i; i < list.length; i++ ) {
-					label = savedSelectionsMap.getName(list[i]);
+					label = Weave.savedSelectionKeySets.getName(list[i]);
 					if( label == subsetName )
 						break;
 				}
@@ -118,7 +109,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return "No selection";
 				
 				// The label will be the name of the item followed by the record count
-				var label:String = savedSelectionsMap.getName(item as KeySet);
+				var label:String = Weave.savedSelectionKeySets.getName(item as KeySet);
 				return label + " (" + (item as KeySet).keys.length + " records)";
 			}
 			
@@ -129,9 +120,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				var selection:KeySet = selectionSelectorBox.selectedItem as KeySet;
 				if (selection)
-					copySessionState(selection, globalSelection);
+					copySessionState(selection, Weave.defaultSelectionKeySet);
 				else
-					globalSelection.clearKeys(); // all records
+					Weave.defaultSelectionKeySet.clearKeys(); // all records
 				
 				// reset the selected item to what it was before we set the global subset
 				selectionSelectorBox.selectedItem = selection;

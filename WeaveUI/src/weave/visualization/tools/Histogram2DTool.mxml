@@ -95,7 +95,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				handleBinColRadioButtonChange();
 				xColumnComponent.dynamicObject = plotter.xColumn;
 				yColumnComponent.dynamicObject = plotter.yColumn;
-				colorColumnComponent.dynamicObject = (Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn).internalDynamicColumn;
+				colorColumnComponent.dynamicObject = Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			override public function getSelectableAttributeNames():Array

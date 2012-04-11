@@ -60,19 +60,6 @@
 			public const includeAllRecordsOption:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateSubsets);
 			private var setToIndex:int = -1;
 			
-			private function get savedSubsetsMap():LinkableHashMap
-			{
-				return Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS) as LinkableHashMap;
-			}
-			private function get globalSelection():KeySet
-			{
-				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			}
-			private function get globalSubset():KeyFilter
-			{
-				return Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
-			}
-			
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -84,17 +71,17 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				savedSubsetsMap.addGroupedCallback(this, updateSubsets, true);
-				getCallbackCollection(globalSubset).addGroupedCallback(this, handleGlobalSubsetChange);
+				Weave.savedSubsetsKeyFilters.addGroupedCallback(this, updateSubsets, true);
+				getCallbackCollection(Weave.defaultSubsetKeyFilter).addGroupedCallback(this, handleGlobalSubsetChange);
 			}
 			private function handleGlobalSubsetChange():void
 			{
-				if( !globalSubset.included.keys.length ) // IF SHOWING ALL RECORDS
+				if( !Weave.defaultSubsetKeyFilter.included.keys.length ) // IF SHOWING ALL RECORDS
 					subsetSelectorBox.selectedIndex = -1;
 			}
 			private function updateSubsets():void
 			{
-				var list:Array = savedSubsetsMap.getObjects();
+				var list:Array = Weave.savedSubsetsKeyFilters.getObjects();
 				if (includeAllRecordsOption.value)
 					list.unshift(false);
 				subsetSelectorBox.dataProvider = list;
@@ -106,11 +93,11 @@
 			}
 			public function setSubsetSelectorIndex(subsetName:String):void
 			{
-				var list:Array = savedSubsetsMap.getObjects();
+				var list:Array = Weave.savedSubsetsKeyFilters.getObjects();
 				var label:String = "";
 				var i:int = 0;
 				for( i; i < list.length; i++ ) {
-					label = savedSubsetsMap.getName(list[i]);
+					label = Weave.savedSubsetsKeyFilters.getName(list[i]);
 					if( label == subsetName )
 						break;
 				}
@@ -125,7 +112,7 @@
 					return "All records";
 				
 				// the label will be the name of the item followed by the included/excluded records count
-				var label:String = savedSubsetsMap.getName(item as ILinkableObject);
+				var label:String = Weave.savedSubsetsKeyFilters.getName(item as ILinkableObject);
 				return label + " (" + getKeyFilterRecordsText(label) + ")";
 			}
 			
@@ -135,7 +122,7 @@
 			private function getKeyFilterRecordsText(keyFilterName:String):String
 			{
 				// get the subset by its name
-				var keyFilter:KeyFilter = (savedSubsetsMap.getObject(keyFilterName) as KeyFilter);
+				var keyFilter:KeyFilter = (Weave.savedSubsetsKeyFilters.getObject(keyFilterName) as KeyFilter);
 				
 				// create a string for the number of included keys followed by " records"
 				// if the excluded keys are used instead, the string will be excluded keys followed by " excluded records"
@@ -151,9 +138,9 @@
 				
 				var subset:KeyFilter = subsetSelectorBox.selectedItem as KeyFilter;
 				if (subset)
-					copySessionState(subset, globalSubset);
+					copySessionState(subset, Weave.defaultSubsetKeyFilter);
 				else
-					globalSubset.replaceKeys(true, true); // all records
+					Weave.defaultSubsetKeyFilter.replaceKeys(true, true); // all records
 				// reset the selected item to what it was before we set the global subset
 				subsetSelectorBox.selectedItem = subset;
 			}

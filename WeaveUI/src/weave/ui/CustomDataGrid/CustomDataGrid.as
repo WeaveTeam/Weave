@@ -19,20 +19,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 package weave.ui.CustomDataGrid
 {
-	import flash.display.Sprite;
-	import flash.geom.Point;
-	
 	import mx.controls.DataGrid;
 	import mx.controls.dataGridClasses.DataGridColumn;
-	import mx.controls.listClasses.IListItemRenderer;
-	import mx.controls.listClasses.ListBaseContentHolder;
-	import mx.controls.scrollClasses.ScrollBar;
 	import mx.core.mx_internal;
-	import mx.managers.LayoutManager;
 	
 	import weave.Weave;
 	import weave.api.data.IQualifiedKey;
-	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	
 	
@@ -120,7 +112,7 @@ package weave.ui.CustomDataGrid
 		}
 		private var _filtersInValid:Boolean = false;
 		
-		private var selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+		private var selectedKeySet:KeySet = Weave.defaultSelectionKeySet;
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
@@ -191,11 +183,9 @@ package weave.ui.CustomDataGrid
 		
 		/*********************************************** Filter Section***************************************************/
 	
-		private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
-		
 		private function filterKeys(item:Object):Boolean
 		{
-			if(_subset.containsKey(item as IQualifiedKey))
+			if(Weave.defaultSubsetKeyFilter.containsKey(item as IQualifiedKey))
 				return true;
 			else 
 				return false;

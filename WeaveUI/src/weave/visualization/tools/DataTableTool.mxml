@@ -135,9 +135,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const dataGridHorizontalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const dataGridVerticalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
-			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
-			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			private var colorColumn:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
+			private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
+			private var _selection:KeySet = Weave.defaultSelectionKeySet;
+			private var colorColumn:ColorColumn = Weave.defaultColorColumn;
 			
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
@@ -829,7 +829,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			// default cell color function just gets color from global color column
 			public function defaultCellColorFunction(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent = null):Number
 			{
-				var cc:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
+				var cc:ColorColumn = Weave.defaultColorColumn;
 				return cc.getValueFromKey(key, Number);
 			}
 			

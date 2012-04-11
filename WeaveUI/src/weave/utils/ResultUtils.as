@@ -54,8 +54,7 @@ package weave.utils
 			testColumn.numericMode.value = true;
 			testColumn.csvData.value = WeaveAPI.CSVParser.createCSV(table);
 			testColumn.title.value =colName;
-			var colorDataCol:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-			colorDataCol.internalDynamicColumn.globalName = Weave.root.getName(testColumn);
+			Weave.defaultColorDataColumn.internalDynamicColumn.globalName = Weave.root.getName(testColumn);
 			
 		}
 		
@@ -68,8 +67,7 @@ package weave.utils
 				result[qkey] = columnObject[key];
 				resultKeys.push(qkey);
 			}			
-			var selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			selectedKeySet.replaceKeys(resultKeys);			
+			Weave.defaultSelectionKeySet.replaceKeys(resultKeys);			
 		}
 		
 		public static function resultAsArrayCollection(objOfArrays:Object,displayAsSquareMatrix:Boolean = false):ArrayCollection{

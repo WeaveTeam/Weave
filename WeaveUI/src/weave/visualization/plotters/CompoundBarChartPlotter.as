@@ -35,7 +35,6 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
-	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -68,7 +67,7 @@ package weave.visualization.plotters
 	{
 		public function CompoundBarChartPlotter()
 		{
-			colorColumn.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+			colorColumn.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 
 			// get the keys from the sort column
 			setKeySource(sortColumn);

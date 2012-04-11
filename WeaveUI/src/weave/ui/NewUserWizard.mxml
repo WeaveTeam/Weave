@@ -268,8 +268,7 @@
 				var col2:IAttributeColumn = source.putColumnInHashMap(columnNames[columnNames.length - 1], hashMap);
 				
 				//setting color column to first column
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				fc.internalDynamicColumn.requestLocalObjectCopy(col1);
+				Weave.defaultColorDataColumn.internalDynamicColumn.requestLocalObjectCopy(col1);
 			}
 
 			

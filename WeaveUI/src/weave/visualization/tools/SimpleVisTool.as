@@ -20,8 +20,6 @@
 package weave.visualization.tools
 {
 	import flash.events.Event;
-	import flash.net.FileReference;
-	import flash.utils.getQualifiedClassName;
 	
 	import mx.binding.utils.BindingUtils;
 	import mx.containers.Canvas;
@@ -40,17 +38,14 @@ package weave.visualization.tools
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
 	import weave.api.ui.IPlotLayer;
 	import weave.api.ui.IPlotterWithGeometries;
-	import weave.api.ui.IVisTool;
 	import weave.api.ui.IVisToolWithSelectableAttributes;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.UIUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
-	import weave.data.KeySets.KeySet;
 	import weave.editors.SimpleAxisEditor;
 	import weave.editors.WindowSettingsEditor;
 	import weave.editors.managers.LayerListComponent;
@@ -308,7 +303,7 @@ package weave.visualization.tools
 			
 			if (probedColumns.length == 0)
 			{
-				var filteredColumn:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
+				var filteredColumn:FilteredColumn = Weave.defaultColorDataColumn;
 				if (filteredColumn.internalColumn)
 					probedColumns.push(filteredColumn.internalColumn);
 			}
@@ -360,10 +355,7 @@ package weave.visualization.tools
 		public function selectRecords(layerName:String):void
 		{
 			var keys:Array = getOverlappingQKeys(layerName);
-			
-			// set the selection keyset
-			var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			selectionKeySet.replaceKeys(keys);
+			Weave.defaultSelectionKeySet.replaceKeys(keys);
 		}
 		
 		

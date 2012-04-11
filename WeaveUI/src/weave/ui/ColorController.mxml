@@ -46,9 +46,9 @@
 			{
 				super.childrenCreated();
 				
-				var colorCol:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
-				var binCol:BinnedColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_BIN_COLUMN) as BinnedColumn;
-				var dataCol:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
+				var colorCol:ColorColumn = Weave.defaultColorColumn;
+				var binCol:BinnedColumn = Weave.defaultColorBinColumn;
+				var dataCol:FilteredColumn = Weave.defaultColorDataColumn;
 				dataColumnComponent.dynamicObject = dataCol.internalDynamicColumn;
 				cRampEditor.colorRamp = colorCol.ramp;
 				linkSessionState(binCol, binEditor.binnedColumn);
