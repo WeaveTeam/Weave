@@ -7,7 +7,7 @@
                 creationComplete="handleCreationComplete()">
     <mx:HDividedBox id="selectorBox" width="100%" height="100%">
         <mx:VBox id="groupBox" height="100%" width="100%">
-            <mx:ComboBox id="modeCombo" height="20">
+            <mx:ComboBox id="modeCombo" height="20" change="onComboSelect">
             </mx:ComboBox>
             <mx:Tree height="100%" width="100%" id="tagtableTree"/>
         </mx:VBox>
@@ -34,66 +34,65 @@
     import mx.rpc.events.ResultEvent;
     import weave.services.AdminInterface;
     import weave.services.beans.AttributeColumnInfo;
+    import weave.ui.EntityTreeNode;
 
-    private var internalDataService:AdminInterface;
-    private var tagEntities:Object;
-    private var columnEntities:Object;
-    private var tableEntities:Object;
-    private var pendingUserRequests:int; // The latest id that we were told to expand/select.
-    public function set dataService(svc:AdminInterface):void
-    {
-        internalDataService = svc;
-        return;
-    }
-    public function get dataService():AdminInterface
-    {
-        return internalDataService;
-    }
+    public var adminService:AdminInterface
+    [Bindable] public var selectedItem:Object;
+
+    private var tagTree:Array;
+    private var dataTables:Array;
+
+    private var entitiesById:Object;
+    private var expandList:Array;
+
     public function handleCreationComplete():void
     {
+        var comboArray:Array = new Array("Tags","Tables");
+        modeCombo.dataProvider = comboArray;
+         
         return;
     }
-    private function requestEntitiesByParent(id:int):void
+    public function populateRoot(onFinish:Function=null):void
     {
-        /* Pokes the parent admininterface or datainterface?? */
-        var acs:NewAttributeColumnSelector = this;
-        dataService.findEntitiesByParent(id, handleUpdateEntities);
-        function handleUpdateEntities(event:ResultEvent, token:Object = null):void
+        function populateRootHandler(event:ResultEvent, token:Object = null):void
         {
-            acs.updateEntities(event.result as Array || []);
+            var entities:Array = event.result as Array || [];
+            for each (var entity:AttributeColumnInfo in entities)
+            {
+                if (entity.entity_type == 2)
+                    tagTree.push(new EntityTreeNode(entity));
+                else if (entity.entity_type == 0)
+                    dataTables.push(new EntityTreeNode(entity));
+            }
+            if (onFinish != null)
+            {
+                onFinish();
+            }
         }
+        AdminInterface.instance.findEntitiesByParent(-1, populateRootHandler);
     }
-    private function updateEntity(entity:AttributeColumnInfo):void
+    private function frobProvider():void
     {
-        if (entity.entity_type == 2)
-            tagEntities[entity.id] = entity;
-        else if (entity.entity_type == 1)
-            columnEntities[entity.id] = entity;
-        else if (entity.entity_type == 0)
-            tableEntities[entity.id] = entity;
-        return;
+        var old:Object = tagtableTree.dataProvider;
+        tagtableTree.dataProvider = null;
+        tagtableTree.dataProvider = old;
+        
+        old = columnList.dataProvider;
+        columnList.dataProvider = null;
+        columnList.dataProvider = old;
     }
-    private function updateEntities(entities:Array):void
-    {
-        for each (var obj:Object in entities)
-        {
-            var entity:AttributeColumnInfo = obj as AttributeColumnInfo;
-            if (entity != null)
-                updateEntity(entity);
-        }
-    }
-
     private function onComboSelect(event:ListEvent):void
     {
-         
+        if (tagTree == null) tagTree = new Array();
+        populateRoot(this.frobProvider);
     }
     private function onGroupSelect(event:ListEvent):void
     {
-        
+        event.target.selectedItem.object;
     }
     private function onColumnSelect(event:ListEvent):void
     {
-        
+        selectedItem = event.target.selectedItem.object;
     }
     
 ]]>

@@ -23,6 +23,7 @@ package weave.services.beans
 	{
 		public var id:int;
 		public var entity_type:int;
+                public var parent_id:int;
 		public var privateMetadata:Object;
 		public var publicMetadata:Object;
 		
