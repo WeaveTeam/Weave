@@ -128,7 +128,7 @@ package weave.utils
 		 * This function will increment a counter associated with a line of code that is causing this function to be called.
 		 * @param stackDepth The stack depth to record in the profile data.  Default zero will profile the line that is calling this function.
 		 */
-		public static function profile(description:String = null, stackDepth:int = 0):void
+		public static function profile(description:String = null, stackDepth:int = 0):uint
 		{
 			var lookup:String = '';
 			if (_canGetStackTrace)
@@ -142,14 +142,15 @@ package weave.utils
 			else if (!description)
 			{
 				// do nothing if we can't get a stack trace and there is no description
-				return;
+				return 0;
 			}
 			
 			if (description)
 				lookup += ' ' + description;
 			if (!_profileLookup)
 				_profileLookup = {};
-			_profileLookup[lookup] = uint(_profileLookup[lookup]) + 1;
+			
+			return _profileLookup[lookup] = uint(_profileLookup[lookup]) + 1;
 		}
 		private static var _profileLookup:Object = null;
 		private static var _canGetStackTrace:Boolean = new Error().getStackTrace() != null;

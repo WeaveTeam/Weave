@@ -30,6 +30,7 @@ package weave.core
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
+	import weave.utils.DebugUtils;
 
 	use namespace weave_internal;
 	
@@ -45,24 +46,7 @@ package weave.core
 	 */
 	public class ExternalSessionStateInterface implements IExternalSessionStateInterface
 	{
-		/**
-		 * This function sets the root object that will be used by the other functions in this class.
-		 * This function must be called before the JavaScript API can be used.
-		 * @param root The root ILinkableObject to be used by the external interface functions.
-		 */
-		public function setLinkableObjectRoot(root:ILinkableObject):void
-		{
-			// the following should never happen, but we need to know about it if it does.
-			if (root != LinkableDynamicObject.globalHashMap)
-				reportError("ExternalSessionStateInterface root object not set properly");
-			
-			_rootObject = root;
-		}
-		
-		/**
-		 * @private
-		 */
-		private var _rootObject:ILinkableObject = null;
+		private var _rootObject:ILinkableObject = WeaveAPI.globalHashMap;
 		
 		/**
 		 * This function returns a pointer to an object appearing in the session state.

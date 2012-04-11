@@ -54,6 +54,7 @@ package weave
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.utils.BitmapUtils;
+	import weave.utils.DebugUtils;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -75,13 +76,9 @@ package weave
 		{
 			if (_root == null)
 			{
-				_root = LinkableDynamicObject.globalHashMap;
+				_root = WeaveAPI.globalHashMap;
 				createDefaultObjects(_root);
-				_history = new SessionStateLog(root, 100);
-				
-				var ext:ExternalSessionStateInterface = WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface;
-				if (ext.getObject([]) != LinkableDynamicObject.globalHashMap)
-					reportError("ERROR: ExternalSessionStateInterface root object is not set properly");
+				_history = new SessionStateLog(_root, 100);
 			}
 			return _root;
 		}

@@ -25,6 +25,7 @@ package weave.Reports
 	import mx.controls.Alert;
 	import mx.rpc.events.ResultEvent;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
@@ -52,8 +53,6 @@ package weave.Reports
 		private var reportDefinitionFileName:String = "";
 		private var dataSource:String = "";
 
-		private static function get _root():ILinkableHashMap { return LinkableDynamicObject.globalHashMap; }
-
 		/** 
 		 * get the report definition from the ObjectRepository and trigger it to
 		 * request the report from the server
@@ -63,7 +62,7 @@ package weave.Reports
 			//how do we know what datatable these keys are from?  
 			//are they a mix?
 			//get the keys for the current subset
-			var subset:KeyFilter = _root.getObject("defaultSubsetKeyFilter") as KeyFilter;
+			var subset:KeyFilter = WeaveAPI.globalHashMap.getObject("defaultSubsetKeyFilter") as KeyFilter;
 			var keys:Array = subset.included.keys;
 
 			if (report != null)
@@ -126,7 +125,7 @@ package weave.Reports
 
 			//request report through the datasource
 			//  only supporting WeaveDataSource reports for now
-			var oiDataSource:WeaveDataSource = _root.getObject(dataSource) as WeaveDataSource;
+			var oiDataSource:WeaveDataSource = WeaveAPI.globalHashMap.getObject(dataSource) as WeaveDataSource;
 			if (oiDataSource == null)
 				Alert.show("Data source " + dataSource + " not found");
 			else 
