@@ -41,6 +41,7 @@ package weave
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LibraryUtils;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableHashMap;
@@ -77,6 +78,10 @@ package weave
 				_root = LinkableDynamicObject.globalHashMap;
 				createDefaultObjects(_root);
 				_history = new SessionStateLog(root, 100);
+				
+				var ext:ExternalSessionStateInterface = WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface;
+				if (ext.getObject([]) != LinkableDynamicObject.globalHashMap)
+					reportError("ERROR: ExternalSessionStateInterface root object is not set properly");
 			}
 			return _root;
 		}

@@ -52,6 +52,10 @@ package weave.core
 		 */
 		public function setLinkableObjectRoot(root:ILinkableObject):void
 		{
+			// the following should never happen, but we need to know about it if it does.
+			if (root != LinkableDynamicObject.globalHashMap)
+				reportError("ExternalSessionStateInterface root object not set properly");
+			
 			_rootObject = root;
 		}
 		
