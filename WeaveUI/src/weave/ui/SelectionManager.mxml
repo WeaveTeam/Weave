@@ -211,11 +211,11 @@
 					// if the user clicked cancel, do nothing
 					if( !e.confirm )
 						return;
-					
-					_hashMap.requestObjectCopy(e.textInput, _globalSelection);
+					var name:String = e.textInput;
+					_hashMap.requestObjectCopy(name, _globalSelection);
 					var _selectionSelector:SelectionSelector = Weave.root.getObject("SelectionSelector") as SelectionSelector;
 					if( _selectionSelector )
-						_selectionSelector.setSelectionsSelectorIndex(e.textInput);
+						_selectionSelector.selectItem(name);
 				});
 			}
 		]]>

@@ -276,10 +276,11 @@
 						// if the user clicked cancel, then we will just return from here and save nothing
 						if( !e.confirm ) return;
 						
-						Weave.savedSubsetsKeyFilters.requestObjectCopy(e.textInput, Weave.defaultSubsetKeyFilter);
+						var name:String = e.textInput;
+						Weave.savedSubsetsKeyFilters.requestObjectCopy(name, Weave.defaultSubsetKeyFilter);
 						var _subsetSelector:SubsetSelector = Weave.root.getObject("SubsetSelector") as SubsetSelector;
 						if( _subsetSelector )
-							_subsetSelector.setSubsetSelectorIndex(e.textInput); // once saved, auto select the subset in the tool
+							_subsetSelector.selectItem(name); // once saved, auto select the subset in the tool
 					}
 				);
 			}

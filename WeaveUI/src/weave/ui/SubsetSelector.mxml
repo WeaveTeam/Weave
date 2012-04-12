@@ -91,17 +91,9 @@
 					setToIndex = -1;
 				}
 			}
-			public function setSubsetSelectorIndex(subsetName:String):void
+			public function selectItem(name:String):void
 			{
-				var list:Array = Weave.savedSubsetsKeyFilters.getObjects();
-				var label:String = "";
-				var i:int = 0;
-				for( i; i < list.length; i++ ) {
-					label = Weave.savedSubsetsKeyFilters.getName(list[i]);
-					if( label == subsetName )
-						break;
-				}
-				setToIndex = i;
+				setToIndex = Weave.savedSubsetsKeyFilters.getNames().indexOf(name);
 			}
 			/**
 			 * Function used solely to get the label for each list item

@@ -34,22 +34,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:Canvas>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			import mx.events.DropdownEvent;
-			import mx.events.FlexEvent;
-			import mx.utils.ObjectUtil;
-			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.core.ILinkableObject;
-			import weave.api.getCallbackCollection;
-			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
-			import weave.core.LinkableHashMap;
-			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			
 			
@@ -87,17 +76,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					setToIndex = -1;
 				}
 			}
-			public function setSelectionsSelectorIndex(subsetName:String):void
+			
+			public function selectItem(name:String):void
 			{
-				var list:Array = Weave.savedSelectionKeySets.getObjects();
-				var label:String = "";
-				var i:int = 0;
-				for( i; i < list.length; i++ ) {
-					label = Weave.savedSelectionKeySets.getName(list[i]);
-					if( label == subsetName )
-						break;
-				}
-				setToIndex = i;
+				setToIndex = Weave.savedSelectionKeySets.getNames().indexOf(name);
 			}
 			
 			/**
