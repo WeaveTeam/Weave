@@ -31,24 +31,47 @@ package
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
-	import weave.api.reportError;
 	import weave.api.services.IURLRequestUtils;
 	import weave.core.ErrorManager;
 	import weave.core.ExternalSessionStateInterface;
-	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableHashMap;
 	import weave.core.ProgressIndicator;
 	import weave.core.SessionManager;
+	import weave.core.SessionStateLog;
 	import weave.core.StageUtils;
 	import weave.core.WeaveXMLDecoder;
 	import weave.data.AttributeColumnCache;
+	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.CSVParser;
+	import weave.data.DataSources.CSVDataSource;
+	import weave.data.DataSources.DBFDataSource;
+	import weave.data.DataSources.WFSDataSource;
+	import weave.data.DataSources.WeaveDataSource;
+	import weave.data.DataSources.XLSDataSource;
 	import weave.data.ProjectionManager;
 	import weave.data.QKeyManager;
 	import weave.data.StatisticsCache;
-	import weave.editors._registerAllLinkableObjectEditors;
+	import weave.editors.AxisLabelPlotterEditor;
+	import weave.editors.CSVDataSourceEditor;
+	import weave.editors.DBFDataSourceEditor;
+	import weave.editors.DynamicColumnEditor;
+	import weave.editors.GeometryLabelPlotterEditor;
+	import weave.editors.GeometryPlotterEditor;
+	import weave.editors.GridLinePlotterEditor;
+	import weave.editors.SessionHistorySlider;
+	import weave.editors.WFSDataSourceEditor;
+	import weave.editors.WMSPlotterEditor;
+	import weave.editors.WeaveDataSourceEditor;
+	import weave.editors.XLSDataSourceEditor;
+	import weave.primitives.ColorRamp;
 	import weave.services.URLRequestUtils;
-	import weave.utils.DebugUtils;
+	import weave.ui.ColorRampEditor;
+	import weave.utils.EditorManager;
+	import weave.visualization.plotters.AxisLabelPlotter;
+	import weave.visualization.plotters.GeometryLabelPlotter;
+	import weave.visualization.plotters.GeometryPlotter;
+	import weave.visualization.plotters.GridLinePlotter;
+	import weave.visualization.plotters.WMSPlotter;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -57,60 +80,69 @@ package
 	 */
 	public class _InitializeWeave
 	{
-		// static initialization
-		initialize();
+		/**
+		 * Register singleton implementations for WeaveAPI framework classes
+		 */
+		WeaveAPI.registerSingleton(ISessionManager, SessionManager);
+		WeaveAPI.registerSingleton(IStageUtils, StageUtils);
+		WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
+		WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
+		WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
+		WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
+		WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
+		WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
+		WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
+		WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
+		WeaveAPI.registerSingleton(ICSVParser, CSVParser);
+		WeaveAPI.registerSingleton(ILinkableHashMap, LinkableHashMap);
 		
 		/**
-		 * This function gets called automatically and will register implementations of core API classes.
-		 * This function can be called explicitly to immediately register the classes.
+		 * Register all ILinkableObjectEditor implementations.
 		 */
-		private static function initialize():void
-		{
-			// register singleton implementations for framework classes
-			WeaveAPI.registerSingleton(ISessionManager, SessionManager);
-			WeaveAPI.registerSingleton(IStageUtils, StageUtils);
-			WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
-			WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
-			WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
-			WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
-			WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
-			WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
-			WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
-			WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
-			WeaveAPI.registerSingleton(ICSVParser, CSVParser);
-			WeaveAPI.registerSingleton(ILinkableHashMap, LinkableHashMap);
-			
-			_registerAllLinkableObjectEditors();
-			
-			// FOR BACKWARDS COMPATIBILITY
-			ExternalSessionStateInterface.tryAddCallback("createObject", function(...args):* {
-				reportError("The Weave JavaScript API function createObject is deprecated.  Please use requestObject instead.");
-				WeaveAPI.ExternalSessionStateInterface.requestObject.apply(null, args);
-			});
-			
-			// include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
-			WeaveXMLDecoder.includePackages(
-				"weave",
-				"weave.core",
-				"weave.data",
-				"weave.data.AttributeColumns",
-				"weave.data.BinClassifiers",
-				"weave.data.BinningDefinitions",
-				"weave.data.ColumnReferences",
-				"weave.data.DataSources",
-				"weave.data.KeySets",
-				"weave.editors",
-				"weave.primitives",
-				"weave.Reports",
-				"weave.test",
-				"weave.ui",
-				"weave.utils",
-				"weave.visualization",
-				"weave.visualization.tools",
-				"weave.visualization.layers",
-				"weave.visualization.plotters",
-				"weave.visualization.plotters.styles"
-			);
-		}
+		//EditorManager.registerEditor(WeaveProperties, WeavePropertiesEditor);
+		
+		EditorManager.registerEditor(DynamicColumn, DynamicColumnEditor);
+		
+		EditorManager.registerEditor(WeaveDataSource, WeaveDataSourceEditor);
+		EditorManager.registerEditor(WFSDataSource, WFSDataSourceEditor);
+		EditorManager.registerEditor(XLSDataSource, XLSDataSourceEditor);
+		EditorManager.registerEditor(DBFDataSource, DBFDataSourceEditor);
+		EditorManager.registerEditor(CSVDataSource, CSVDataSourceEditor);
+		
+		EditorManager.registerEditor(GeometryLabelPlotter, GeometryLabelPlotterEditor);
+		EditorManager.registerEditor(GeometryPlotter, GeometryPlotterEditor);
+		EditorManager.registerEditor(WMSPlotter, WMSPlotterEditor);
+		EditorManager.registerEditor(GridLinePlotter, GridLinePlotterEditor);
+		EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
+		
+		EditorManager.registerEditor(ColorRamp, ColorRampEditor);
+		
+		EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
+		
+		/**
+		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
+		 */
+		WeaveXMLDecoder.includePackages(
+			"weave",
+			"weave.core",
+			"weave.data",
+			"weave.data.AttributeColumns",
+			"weave.data.BinClassifiers",
+			"weave.data.BinningDefinitions",
+			"weave.data.ColumnReferences",
+			"weave.data.DataSources",
+			"weave.data.KeySets",
+			"weave.editors",
+			"weave.primitives",
+			"weave.Reports",
+			"weave.test",
+			"weave.ui",
+			"weave.utils",
+			"weave.visualization",
+			"weave.visualization.tools",
+			"weave.visualization.layers",
+			"weave.visualization.plotters",
+			"weave.visualization.plotters.styles"
+		);
 	}
 }
