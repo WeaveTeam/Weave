@@ -199,6 +199,7 @@
 	</mx:Script>
 	
 	<mx:TextArea id="marginLabel"
+			visible="{marginLabel.height > 0}"
 			mouseChildren="false" mouseEnabled="false"
 			fontWeight="bold" 
 			x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5" width="100%"

@@ -48,26 +48,18 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.controls.Alert;
 			import mx.core.Application;
-			import mx.events.CollectionEvent;
-			import mx.events.CollectionEventKind;
 			import mx.managers.PopUpManager;
-			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.copySessionState;
-			import weave.api.core.ILinkableObject;
 			import weave.core.LinkableHashMap;
-			import weave.core.SessionManager;
-			import weave.core.weave_internal;
 			import weave.data.KeySets.KeySet;
 			import weave.ui.controlBars.WeaveMenuBar;
 			import weave.ui.controlBars.WeaveMenuItem;
 			
-			[Bindable]
-			private var _hashMap:LinkableHashMap = savedSelectionsMap;
+			private static const _hashMap:LinkableHashMap = Weave.savedSelectionKeySets;
+			private static const _globalSelection:KeySet = Weave.defaultSelectionKeySet;
 			
 			private static var _popupManager:SelectionManager = null;
 			
@@ -77,7 +69,7 @@
 			private static function selectionsListLabelFunction(item:Object):String
 			{
 				// The label will be the name of the item followed by the record count
-				var label:String = savedSelectionsMap.getName(item as KeySet);
+				var label:String = _hashMap.getName(item as KeySet);
 				return label + " (" + (item as KeySet).keys.length + " records)";
 			}
 			
@@ -96,7 +88,7 @@
 				var clickFunction:Function;
 				var selectionActive:Function = function():Boolean
 				{
-					return globalSelection.keys.length > 0;
+					return _globalSelection.keys.length > 0;
 				}
 				
 				// menu item to save the current selection
@@ -109,7 +101,7 @@
 				// meny item to clear the current selection
 				if (Weave.properties.enableClearCurrentSelection.value)
 				{
-					clickFunction = globalSelection.clearKeys;
+					clickFunction = _globalSelection.clearKeys;
 					menuItem = new WeaveMenuItem("Clear current selection", clickFunction, null, selectionActive);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
@@ -128,7 +120,7 @@
 					};
 					var enableFunction:Function = function():Boolean
 					{
-						return savedSelectionsMap.getNames().length > 0;
+						return _hashMap.getNames().length > 0;
 					};
 					menuItem = new WeaveMenuItem("Manage saved selections...", clickFunction, null, enableFunction);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
@@ -144,7 +136,7 @@
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
-				var selections:Array = savedSelectionsMap.getObjects();
+				var selections:Array = _hashMap.getObjects();
 				if (selections.length > 0)
 					parentMenu.addSeparatorToMenu(destinationMenu);
 				
@@ -152,18 +144,9 @@
 				for (var i:int = 0; i < selections.length; i++)
 				{
 					var label:String = selectionsListLabelFunction(selections[i]);
-					menuItem = new WeaveMenuItem(label, copySessionState, [selections[i], globalSelection]);
+					menuItem = new WeaveMenuItem(label, copySessionState, [selections[i], _globalSelection]);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
-			}
-			
-			private static function get savedSelectionsMap():LinkableHashMap
-			{
-				return Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS) as LinkableHashMap;
-			}
-			private static function get globalSelection():KeySet
-			{
-				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			}
 			
 			override protected function constructor():void
@@ -183,7 +166,7 @@
 			 */
 			private function deleteSelection():void
 			{
-				savedSelectionsMap.removeObject(savedSelectionsMap.getName(savedSelectionsList.selectedItem as KeySet));
+				_hashMap.removeObject(_hashMap.getName(savedSelectionsList.selectedItem as KeySet));
 			}
 			
 			/**
@@ -200,16 +183,16 @@
 						return;
 					
 					var oldSubset:KeySet = savedSelectionsList.selectedItem as KeySet;
-					var oldName:String = savedSelectionsMap.getName(oldSubset);
+					var oldName:String = _hashMap.getName(oldSubset);
 					var newName:String = e.textInput;
 
 					// we want to put the new subset in the same position the old subset was
-					var nameOrder:Array = savedSelectionsMap.getNames();
+					var nameOrder:Array = _hashMap.getNames();
 					nameOrder[nameOrder.indexOf(oldName)] = newName;
 					
-					savedSelectionsMap.requestObjectCopy(newName, oldSubset);
-					savedSelectionsMap.removeObject(oldName);
-					savedSelectionsMap.setNameOrder(nameOrder);
+					_hashMap.requestObjectCopy(newName, oldSubset);
+					_hashMap.removeObject(oldName);
+					_hashMap.setNameOrder(nameOrder);
 
 					// invalidate the list so we see it update
 					savedSelectionsList.invalidateList();
@@ -228,11 +211,11 @@
 					// if the user clicked cancel, do nothing
 					if( !e.confirm )
 						return;
-					
-					savedSelectionsMap.requestObjectCopy(e.textInput, globalSelection);
+					var name:String = e.textInput;
+					_hashMap.requestObjectCopy(name, _globalSelection);
 					var _selectionSelector:SelectionSelector = Weave.root.getObject("SelectionSelector") as SelectionSelector;
 					if( _selectionSelector )
-						_selectionSelector.setSelectionsSelectorIndex(e.textInput);
+						_selectionSelector.selectItem(name);
 				});
 			}
 		]]>

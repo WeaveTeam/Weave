@@ -294,7 +294,7 @@ JRITextEditor
 				assignValues = joinedColumns;
 			}
 			private static function get selection():KeySet{
-				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+				return Weave.defaultSelectionKeySet;
 			}
 			
 			/**

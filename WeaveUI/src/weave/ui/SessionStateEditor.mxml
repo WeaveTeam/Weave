@@ -772,7 +772,7 @@ A text editor to change the Session State on the fly.
 			// STATIC CODE - ADD KEYDOWN LISTENER IF RUNNING DEBUG PLAYER
 			private static function _initialize():void
 			{
-				if (new Error().getStackTrace())
+				if (Capabilities.isDebugger)
 					WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
 			}
 			_initialize();

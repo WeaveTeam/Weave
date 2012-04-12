@@ -180,8 +180,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			private function popupHistogram():void
@@ -193,13 +192,12 @@
 				var sbd:SimpleBinningDefinition = histo.plotter.internalBinnedColumn.binningDefinition.internalBinningDefinition as SimpleBinningDefinition;
 				sbd.numberOfBins.value = 20;
 				var keySet:KeySet = histo.visualization.getPlotLayer().subsetFilter.requestLocalObject(KeySet, false)
-				copySessionState(Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET), keySet);
+				copySessionState(Weave.defaultSelectionKeySet, keySet);
 			}
 			public const histogramColumn:DynamicColumn = new DynamicColumn();
 			
 			public const xRcolumn:DynamicColumn = new DynamicColumn();
 			public const yRcolumn:DynamicColumn = new DynamicColumn();
-			private var selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			private var _sessionFileLoader:FileReference = null;
 			private var _defaultsFilename:String = null;
@@ -303,6 +301,7 @@
 			 */
 			private function joinColumns(columns:Array):Array
 			{
+				var selection:KeySet = Weave.defaultSelectionKeySet;
 				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
 				var result:Array = ColumnUtils.joinColumns(columns, Number, false, keys);
 				return [result.shift(), result];
@@ -478,7 +477,7 @@
 					keysFromSeq[keyIndex] = String(temp);							
 				}
 				
-				selection.replaceKeys(WeaveAPI.QKeyManager.getQKeys(pdbDataSourceKeyType, keysFromSeq));
+				Weave.defaultSelectionKeySet.replaceKeys(WeaveAPI.QKeyManager.getQKeys(pdbDataSourceKeyType, keysFromSeq));
 			}
 			
 			protected function sequenceTA_mouseUpHandler(event:MouseEvent):void
@@ -509,7 +508,7 @@
 					var temp:int = keysFromSelection[keyIndex]/4 + 1;
 					keysFromSelection[keyIndex] = String(temp);							
 				}
-				selection.replaceKeys(WeaveAPI.QKeyManager.getQKeys(pdbDataSourceKeyType, keysFromSelection));
+				Weave.defaultSelectionKeySet.replaceKeys(WeaveAPI.QKeyManager.getQKeys(pdbDataSourceKeyType, keysFromSelection));
 			}
 			
 		]]>

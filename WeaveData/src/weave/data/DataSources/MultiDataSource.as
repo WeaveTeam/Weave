@@ -72,8 +72,7 @@ package weave.data.DataSources
 				_instance = new MultiDataSource();
 			return _instance;
 		}
-		
-		private function get _root():ILinkableHashMap { return LinkableDynamicObject.globalHashMap; }
+		private var _root:ILinkableHashMap = WeaveAPI.globalHashMap;
 		
 		/**
 		 * attributeHierarchy

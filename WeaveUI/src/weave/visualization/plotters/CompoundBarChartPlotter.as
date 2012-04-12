@@ -35,7 +35,6 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
-	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -68,7 +67,7 @@ package weave.visualization.plotters
 	{
 		public function CompoundBarChartPlotter()
 		{
-			colorColumn.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+			colorColumn.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 
 			// get the keys from the sort column
 			setKeySource(sortColumn);
@@ -670,6 +669,8 @@ package weave.visualization.plotters
 			
 			tempRange.setRange(0, 0); // bar starts at zero
 			
+			var allMissing:Boolean = true;
+			
 			for (var i:int = 0; i < _heightColumns.length; i++)
 			{
 				var column:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
@@ -682,8 +683,15 @@ package weave.visualization.plotters
 				{
 					var height:Number = column.getValueFromKey(recordKey, Number);
 					// if height is missing, use mean value
-					if (stackedMissingDataGap.value)
-						height = WeaveAPI.StatisticsCache.getMean(column);
+					if (isNaN(height))
+					{
+						if (stackedMissingDataGap.value)
+							height = WeaveAPI.StatisticsCache.getMean(column);
+					}
+					else
+					{
+						allMissing = false;
+					}
 
 					var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
 					var negativeError:IAttributeColumn = _negErrCols[i] as IAttributeColumn;
@@ -709,6 +717,9 @@ package weave.visualization.plotters
 					}
 				}
 			}
+			
+			if (allMissing)
+				tempRange.setRange(0, 0); // bar starts at zero
 			
 			if (horizontalMode.value) // x range
 				bounds.setXRange(tempRange.begin, tempRange.end);

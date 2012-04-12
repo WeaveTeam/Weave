@@ -57,7 +57,7 @@ package weave.visualization.plotters
 		public function Histogram2DPlotter()
 		{
 			// hack, only supports default color column
-			var cc:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
+			var cc:ColorColumn = Weave.defaultColorColumn;
 			registerLinkableChild(this, cc);
 			
 			xColumn.addImmediateCallback(this, updateKeys);
@@ -134,7 +134,7 @@ package weave.visualization.plotters
 				return;
 			
 			// hack, only supports default color column
-			var colorCol:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
+			var colorCol:ColorColumn = Weave.defaultColorColumn;
 			var binCol:BinnedColumn = colorCol.internalColumn as BinnedColumn;
 			var dataCol:IAttributeColumn = binCol ? binCol.internalDynamicColumn : null;
 			var dataMin:Number = WeaveAPI.StatisticsCache.getMin(dataCol);

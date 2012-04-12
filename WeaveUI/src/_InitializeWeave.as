@@ -22,6 +22,7 @@ package
 	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.core.IStageUtils;
@@ -35,6 +36,7 @@ package
 	import weave.core.ErrorManager;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableDynamicObject;
+	import weave.core.LinkableHashMap;
 	import weave.core.ProgressIndicator;
 	import weave.core.SessionManager;
 	import weave.core.StageUtils;
@@ -46,6 +48,7 @@ package
 	import weave.data.StatisticsCache;
 	import weave.editors._registerAllLinkableObjectEditors;
 	import weave.services.URLRequestUtils;
+	import weave.utils.DebugUtils;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -75,11 +78,9 @@ package
 			WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
 			WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
 			WeaveAPI.registerSingleton(ICSVParser, CSVParser);
+			WeaveAPI.registerSingleton(ILinkableHashMap, LinkableHashMap);
 			
 			_registerAllLinkableObjectEditors();
-			
-			// initialize the session state interface to point to Weave.root
-			(WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).setLinkableObjectRoot(LinkableDynamicObject.globalHashMap);
 			
 			// FOR BACKWARDS COMPATIBILITY
 			ExternalSessionStateInterface.tryAddCallback("createObject", function(...args):* {

@@ -25,6 +25,7 @@ package weave.api
 	
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.core.IStageUtils;
@@ -133,6 +134,13 @@ package weave.api
 		public static function get URLRequestUtils():IURLRequestUtils
 		{
 			return getSingletonInstance(IURLRequestUtils);
+		}
+		/**
+		 * This is the top-level object in Weave.
+		 */		
+		public static function get globalHashMap():ILinkableHashMap
+		{
+			return getSingletonInstance(ILinkableHashMap);
 		}
 		/**************************************/
 
@@ -309,11 +317,11 @@ package weave.api
 		{
 			if (!_initialized)
 			{
+				_initialized = true;
 				// run static initialization code to register weave implementations
 				try {
 					getDefinitionByName("_InitializeWeave"); // run static initialization code 
 				} catch (e:Error) { }
-				_initialized = true;
 			}
 			
 			var result:* = _singletonDictionary[singletonInterface];
