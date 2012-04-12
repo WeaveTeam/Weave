@@ -312,9 +312,10 @@ package weave.api
 		 * 
 		 * @param singletonInterface An interface to a singleton class.
 		 * @return The singleton instance that implements the specified interface.
-		 */		
+		 */
 		public static function getSingletonInstance(singletonInterface:Class):*
 		{
+			// TEMPORARY SOLUTION until everything is a plug-in.
 			if (!_initialized)
 			{
 				_initialized = true;
@@ -333,7 +334,7 @@ package weave.api
 				{
 					// This may fail if there is no registered class,
 					// or the class doesn't have a getInstance() method.
-					return Singleton.getInstance(interfaceName);
+					result = Singleton.getInstance(interfaceName);
 				}
 				catch (e:Error)
 				{
