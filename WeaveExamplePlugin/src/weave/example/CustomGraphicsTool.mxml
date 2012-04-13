@@ -24,7 +24,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Canvas id="canvas" width="100%" height="100%" />
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IKeySet;
 			import weave.api.detectLinkableObjectChange;
@@ -39,7 +38,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.utils.PlotterUtils;
-			WeaveAPI.registerImplementation(IVisTool, CustomGraphicsTool);
 			
 			public const vars:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 			public const beginScript:LinkableFunction = registerLinkableChild(this, new LinkableFunction(null, false, true));

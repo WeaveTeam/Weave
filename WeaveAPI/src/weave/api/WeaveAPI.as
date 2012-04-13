@@ -232,10 +232,14 @@ package weave.api
 			if (!array)
 				_implementations[theInterface] = array = [];
 			
-			_implementationDisplayNames[theImplementation] = displayName || getQualifiedClassName(theImplementation).split(':').pop();
+			// overwrite existing displayName if specified
+			if (displayName || !_implementationDisplayNames[theImplementation])
+				_implementationDisplayNames[theImplementation] = displayName || getQualifiedClassName(theImplementation).split(':').pop();
+
 			if (array.indexOf(theImplementation) < 0)
 			{
 				array.push(theImplementation);
+				// sort by displayName
 				array.sort(_sortImplementations);
 			}
 		}
@@ -263,6 +267,7 @@ package weave.api
 		
 		/**
 		 * @private
+		 * sort by displayName
 		 */
 		private static function _sortImplementations(impl1:Class, impl2:Class):int
 		{
