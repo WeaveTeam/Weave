@@ -30,6 +30,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	paddingLeft="5"
 	paddingTop="5"
 	backgroundSize="100%"
+	dragDrop="dragDropHandler(event)"
+	dragEnter="dragEnterHandler(event)"
 	>
 	
 	<mx:Script>
@@ -43,9 +45,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.controls.Alert;
 			import mx.controls.Image;
 			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.core.IUIComponent;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.CollectionEvent;
+			import mx.events.DragEvent;
+			import mx.managers.DragManager;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.IResponder;
 			import mx.rpc.Responder;
@@ -129,6 +134,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.constructor();
 			}
 			
+			
 						
 			private static var _selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			
@@ -160,6 +166,30 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				subMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
 				subMenu.addSubMenuItem("Show All Documents",showAllDocuments);
+			}
+			
+			private function dragEnterHandler(event:DragEvent):void
+			{
+				if(event.dragInitiator is DocThumbnailComponent)
+				{
+					DragManager.acceptDragDrop(this);
+				}
+			}
+			
+			private function dragDropHandler(event:DragEvent):void
+			{
+				var t:DocThumbnailComponent = event.dragInitiator as DocThumbnailComponent;
+				
+				if(!(t.parent == this))
+				{
+					map.addChild(t);
+										
+					//setting the X and Y with reference to the map
+//					var tGlobalPoint:Point = (t.parent as Canvas).contentToGlobal(new Point(t.x,t.y));
+					var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
+					
+					t.move(localPoint.x,localPoint.y);
+				}
 			}
 			
 			private var _subset:KeyFilter;

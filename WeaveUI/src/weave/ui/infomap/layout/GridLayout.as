@@ -43,7 +43,7 @@ package weave.ui.infomap.layout
 		private var thumbnailSize:int = 25;
 		private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 		
-		public function plotThumbnails(thumbnails:Array):void
+		public function plotThumbnails(thumbnails:Array,reDraw:Boolean = false):void
 		{
 			//don't plot thumbnails till the base layout has been drawn
 			if(!baseLayoutDrawn)
@@ -53,16 +53,13 @@ package weave.ui.infomap.layout
 			//this image is used to a show a tooltip of information about the node. 
 			//For now it shows the number of documents found.
 			_parentNodeHandler.nodeBase.infoImg.visible = true;
-//			_parentNodeHandler.nodeBase.infoImg.toolTip = includedThumbnails.length.toString() + " documents found";
+			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbnails.length.toString() + " documents found";
 			
 			var startX:Number = _parentNodeHandler.nodeBase.x;
 			var startY:Number = _parentNodeHandler.nodeBase.y;
 			
 			//offet to  be below node base
 			startY = startY + _parentNodeHandler.nodeBase.height;
-			
-						
-			
 			
 			var gridSize:Number = Math.ceil(Math.sqrt(thumbnails.length));
 			

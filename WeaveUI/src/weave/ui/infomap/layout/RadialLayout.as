@@ -57,7 +57,7 @@ package weave.ui.infomap.layout
 		private var thumbnailSize:int = 25;
 		private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 		
-		public function plotThumbnails(thumbnails:Array):void
+		public function plotThumbnails(thumbnails:Array,reDraw:Boolean=false):void
 		{
 			//don't plot thumbnails till the base layout has been drawn
 			if(!baseLayoutDrawn)

@@ -29,6 +29,6 @@ package weave.ui.infomap.layout
 		/**
 		 * This function will plot the thumbnails based on a layout algorithm
 		 **/
-		function plotThumbnails(thumbnails:Array):void;
+		function plotThumbnails(thumbnails:Array,reDraw:Boolean=false):void;
 	}
 }

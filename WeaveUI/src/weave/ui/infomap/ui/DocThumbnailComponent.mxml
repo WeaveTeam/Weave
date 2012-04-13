@@ -17,14 +17,18 @@ so that it can be moved, selected, handle filters.
 				borderStyle="solid"
 				cornerRadius="5"
 				borderColor="black"
+				dragComplete="handleDragComplete(event)"
 				>
 	<mx:Image id="img" width="100%" height="100%"/>
 	<mx:Script>
 		<![CDATA[
 			import flash.text.engine.GroupElement;
 			
+			import mx.core.DragSource;
+			import mx.core.mx_internal;
 			import mx.events.DragEvent;
 			import mx.events.MoveEvent;
+			import mx.managers.DragManager;
 			import mx.managers.IFocusManagerComponent;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.FaultEvent;
@@ -36,6 +40,7 @@ so that it can be moved, selected, handle filters.
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
+			import weave.api.getLinkableOwner;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -138,6 +143,14 @@ so that it can be moved, selected, handle filters.
 			
 			public const docURL:LinkableString = newLinkableChild(this,LinkableString);
 			
+			private function handleDragComplete(event:DragEvent):void
+			{
+				DragManager.mx_internal::dragProxy.visible= false; //this disables the drop animation!
+				event.localX;
+				event.localY;
+				this.move(x-_lastMouseDownPoint.x,y-_lastMouseDownPoint.y);
+			}
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -147,13 +160,16 @@ so that it can be moved, selected, handle filters.
 				
 				linkBindableProperty(xPos,this,"x");
 				linkBindableProperty(yPos,this,"y");
-				
 				selectedBorderColor.addGroupedCallback(this,highlight);
 				defaultBorderColor.addGroupedCallback(this,highlight);
 				
-				
+				hasBeenMoved.addImmediateCallback(this,checkCallback);
 			}
 			
+			private function checkCallback():void
+			{
+				hasBeenMoved.value;
+			}
 			
 			//this function is called when a local search is made in the node handler this belongs to.
 			//if a match for the search query is not found in the doc object, it makes the image invisible
@@ -276,21 +292,31 @@ so that it can be moved, selected, handle filters.
 			
 			private var dragged:Boolean = false;
 			private var _mouseDown:Boolean = false;
+			private var _lastMouseDownPoint:Point = new Point();
 			private function handleMouseDown(event:MouseEvent):void
 			{
 				event.stopImmediatePropagation();
 				filters = [];
 				timer.stop();
-				this.startDrag();
 				removeDocSummary();
 				_mouseDown = true;
 				this.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+				_lastMouseDownPoint.x = event.localX;
+				_lastMouseDownPoint.y = event.localY;
 			}
 			
 			private function handleMouseMove(event:MouseEvent):void
 			{
 				dragged = true;	
-				hasBeenMoved.value = true;
+//				this.startDrag();
+//				var dragInitiator:InfoMapPanel = getLinkableOwner(getLinkableOwner(this.parent as NodeHandler) as LinkableHashMap) as InfoMapPanel;
+				var dragInitiator:DocThumbnailComponent = this;
+				var ds:DragSource = new DragSource();
+				var imgCopy:Image = new Image();
+				imgCopy.width = width;
+				imgCopy.height = height;
+				imgCopy.source = new Bitmap((img.source as Bitmap).bitmapData);
+				DragManager.doDrag(dragInitiator, ds, event,imgCopy);
 				stage.addEventListener(MouseEvent.MOUSE_UP,handleStageMouseUp);
 			}
 			
@@ -317,6 +343,7 @@ so that it can be moved, selected, handle filters.
 				//if it is drag move then we do nothing, else the mouseUp is a selection
 				if(dragged)
 				{
+					hasBeenMoved.value = true;
 					dragged = false;
 					return;
 				}

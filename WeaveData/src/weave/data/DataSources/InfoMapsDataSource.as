@@ -49,6 +49,74 @@ package weave.data.DataSources
 		
 		public static const SOURCE_NAME:String = "InfoMaps Data Source";
 		
+		private function getKeyValueForColumn(csvColumnName:String,key:IQualifiedKey):*
+		{
+			var col:IAttributeColumn = getColumnByName(csvColumnName);
+			
+			return col.getValueFromKey(key);
+		}
+		
+		public function getTitleForKey(key:IQualifiedKey):String
+		{
+			return getKeyValueForColumn("title",key) as String;
+		}
+		
+		public function getDescriptionForKey(key:IQualifiedKey):String
+		{
+			return getKeyValueForColumn("description",key) as String;
+		}
+		
+		public function getImageURLForKey(key:IQualifiedKey):String
+		{
+			return getKeyValueForColumn("imgURL",key) as String;
+		}
+		
+		public function getDatePublishedForKey(key:IQualifiedKey):String
+		{
+			return getKeyValueForColumn("date_published",key) as String;
+		}
+		
+		public function getDateAddedForKey(key:IQualifiedKey):String
+		{
+			return getKeyValueForColumn("date_added",key) as String;
+		}
+		
+		
+		private function getColumnValueForURL(csvColumnName:String,url:String):*
+		{
+			var col:IAttributeColumn = getColumnByName(csvColumnName);
+			
+			var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(DOC_KEYTYPE,url);
+			
+			return col.getValueFromKey(key);
+		}
+		
+		public function getTitleForURL(url:String):String
+		{
+			return getColumnValueForURL("title",url) as String;
+		}
+		
+		public function getDescriptionForURL(url:String):String
+		{
+			return getColumnValueForURL("description",url) as String;
+		}
+		
+		public function getImageURLForURL(url:String):String
+		{
+			return getColumnValueForURL("imgURL",url) as String;
+		}
+		
+		public function getDatePublishedForURL(url:String):String
+		{
+			return getColumnValueForURL("date_published",url) as String;
+		}
+		
+		public function getDateAddedForURL(url:String):String
+		{
+			return getColumnValueForURL("date_added",url) as String;
+		}
+		
+		
 		public function getDocumentsForQuery(docKeySet:KeySet,query:String,operator:String='AND',sources:Array=null,
 													dateFilter:DateRangeFilter=null,numberOfDocuments:int=100):void
 		{
@@ -155,76 +223,6 @@ package weave.data.DataSources
 			WeaveAPI.URLRequestUtils.getURL(new URLRequest(solrURL.value + "&clean=false&commit=true&qt=%2Fdataimport&command=full-import"));
 		}
 		
-		private function getKeyValueForColumn(csvColumnName:String,key:IQualifiedKey):*
-		{
-			var col:IAttributeColumn = getColumnByName(csvColumnName);
-			
-			return col.getValueFromKey(key);
-		}
-		
-		public function getTitleForKey(key:IQualifiedKey):String
-		{
-			return getKeyValueForColumn("title",key) as String;
-		}
-		
-		public function getDescriptionForKey(key:IQualifiedKey):String
-		{
-			return getKeyValueForColumn("description",key) as String;
-		}
-		
-		public function getImageURLForKey(key:IQualifiedKey):String
-		{
-			return getKeyValueForColumn("imgURL",key) as String;
-		}
-		
-		public function getDatePublishedForKey(key:IQualifiedKey):String
-		{
-			return getKeyValueForColumn("date_published",key) as String;
-		}
-			
-		public function getDateAddedForKey(key:IQualifiedKey):String
-		{
-			return getKeyValueForColumn("date_added",key) as String;
-		}
-		
-		
-		private function getColumnValueForURL(csvColumnName:String,url:String):*
-		{
-			var col:IAttributeColumn = getColumnByName(csvColumnName);
-			
-			var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(DOC_KEYTYPE,url);
-			
-			return col.getValueFromKey(key);
-		}
-		
-		public function getTitleForURL(url:String):String
-		{
-			return getColumnValueForURL("title",url) as String;
-		}
-		
-		public function getDescriptionForURL(url:String):String
-		{
-			return getColumnValueForURL("description",url) as String;
-		}
-		
-		public function getImageURLForURL(url:String):String
-		{
-			return getColumnValueForURL("imgURL",url) as String;
-		}
-		
-		public function getDatePublishedForURL(url:String):String
-		{
-			return getColumnValueForURL("date_published",url) as String;
-		}
-		
-		public function getDateAddedForURL(url:String):String
-		{
-			return getColumnValueForURL("date_added",url) as String;
-		}
-		
-		
-		
-		
 		private function handleSolrResponseError(event:FaultEvent,token:Object):void
 		{
 			WeaveAPI.ErrorManager.reportError(event.type + token.url);
@@ -238,8 +236,9 @@ package weave.data.DataSources
 			var resultInXML:XMLList = new XML(event.result).result[0].doc;
 			
 			var urlCol:IAttributeColumn =getColumnByName('url'); 
-			for each(var doc:XML in resultInXML)
+			for (var i:int = 0; i < resultInXML.length(); i++)
 			{
+				var doc:XML = resultInXML[i];
 				
 				var link:String = doc.str.(@name=="link").text().toXMLString();
 				
@@ -286,8 +285,8 @@ package weave.data.DataSources
 			
 			csvDataString.value = dataString;
 			
-			(token.keySet as KeySet).clearKeys();
-			(token.keySet as KeySet).addKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
+//			(token.keySet as KeySet).clearKeys();
+			(token.keySet as KeySet).replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
 			
 		}
 		

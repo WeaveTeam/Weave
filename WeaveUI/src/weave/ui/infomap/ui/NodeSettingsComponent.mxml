@@ -128,24 +128,24 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 
 				 override protected function childrenCreated():void
 				 {
-					 super.childrenCreated();
-					 rangeComboBox.dataProvider = ['--Quick Select--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
-					 //setting the dataprovide here fixes the combo box bug where it still showed the first item one by default
-					 //even if it was not the selected item
-					 layoutComboBox.dataProvider =  ['Radial','Cascade','Grid','Horizontal','Vertical'] ;
+					super.childrenCreated();
+					rangeComboBox.dataProvider = ['--Quick Select--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
+					//setting the dataprovide here fixes the combo box bug where it still showed the first item one by default
+					//even if it was not the selected item
+					layoutComboBox.dataProvider =  ['Radial','Cascade','Grid','Horizontal','Vertical'] ;
 					 
-					 operator.dataProvider = ['OR','AND'];
+					operator.dataProvider = ['OR','AND'];
 					 
-					 keyword.text = nodeHandler.node.keywords.value;
+					keyword.text = nodeHandler.node.keywords.value;
 					 
 					 
-					 linkBindableProperty(nodeHandler.searchFilter,searchTextInput,"text",500);
+//					linkBindableProperty(nodeHandler.searchFilter,searchTextInput,"text",500);
 					
-					 operator.selectedItem = nodeHandler.node.operator.value;
-					 linkBindableProperty(nodeHandler.node.operator,operator,"selectedItem");
-					 
-					 nodeHandler.node.dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);
-					 nodeHandler.node.dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,false);
+					operator.selectedItem = nodeHandler.node.operator.value;
+					linkBindableProperty(nodeHandler.node.operator,operator,"selectedItem");
+					
+					nodeHandler.node.dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);
+					nodeHandler.node.dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,false);
 					 
 					startDateStr.addGroupedCallback(this,handleDateChange);
 					endDateStr.addGroupedCallback(this,handleDateChange);
@@ -154,7 +154,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 					
 					nodeHandler.layout.addImmediateCallback(this,handleLayoutObjectChange,true);
 					
-					 this.targets = [nodeHandler.node.keywords,nodeHandler.layout,nodeHandler.node.sources,nodeHandler.node.dateFilter.startDate,nodeHandler.node.dateFilter.endDate]
+					this.targets = [nodeHandler.node.keywords,nodeHandler.layout,nodeHandler.node.sources,nodeHandler.node.dateFilter.startDate,nodeHandler.node.dateFilter.endDate]
 				 }
 				 
 				 private function handleLayoutObjectChange():void

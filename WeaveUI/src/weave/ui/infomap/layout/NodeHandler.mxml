@@ -4,7 +4,9 @@
 		   cacheAsBitmap="false"
 		   clipContent="false"
 		   autoLayout="false"
-		   >
+		   dragDrop ="dragDropHandler(event)"
+		   dragEnter="dragEnterHandler(event)"
+		>
 	<mx:Glow id="selectedBorder" 
 			 alphaFrom="1.0" alphaTo="1.0"   
 			 blurXFrom="10.0" blurYFrom="10.0" 
@@ -29,9 +31,12 @@
 			import mx.controls.Label;
 			import mx.controls.Text;
 			import mx.controls.TextArea;
+			import mx.core.IUIComponent;
 			import mx.events.CloseEvent;
+			import mx.events.DragEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.CursorManager;
+			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
 			import mx.managers.PopUpManagerChildList;
 			import mx.rpc.events.FaultEvent;
@@ -58,6 +63,7 @@
 			import weave.core.SessionStateLog;
 			import weave.core.StageUtils;
 			import weave.core.UIUtils;
+			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.CSVParser;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
@@ -69,7 +75,6 @@
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.InfoMapDocument;
 			import weave.ui.infomap.core.InfoMapNode;
-			import weave.ui.infomap.core.SelectableInfoMapDocument;
 			import weave.ui.infomap.ui.DateFilterComponent;
 			import weave.ui.infomap.ui.DocThumbnailComponent;
 			import weave.ui.infomap.ui.InfoMapPanel;
@@ -85,7 +90,7 @@
 			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			
-			public const layout:LinkableDynamicObject = newLinkableChild(this,LinkableDynamicObject,handleLayoutChange);
+			public const layout:LinkableDynamicObject = newLinkableChild(this,LinkableDynamicObject,handleLayoutChange,true);
 			
 			public const thumbnails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 			
@@ -98,11 +103,6 @@
 			public const selectedThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
 			
 			public const newThumbnailGlowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(3407820));
-			/**
-			 * @public 
-			 * A search filter to search within documents handled by this node. 
-			 * */ 
-			public const searchFilter:LinkableString = newLinkableChild(this,LinkableString);
 			
 			private var loader:URLLoader = null;
 			
@@ -145,72 +145,138 @@
 								
 				super.childrenCreated();
 								
-				//TODO: color property is not bindable to use callbakc function to set the colorproperty
-//				linkBindableProperty(defaultBorderColor,unselectedBorder,"color");
-//				linkBindableProperty(selectedBorderColor,selectedBorder,"color");
-				
 				node.keywords.addGroupedCallback(this,createAndSendQuery);
 				node.operator.addGroupedCallback(this,createAndSendQuery);
 				node.numberOfDocs.addGroupedCallback(this,createAndSendQuery);
 				node.dateFilter.startDate.addGroupedCallback(this,createAndSendQuery);
 				node.dateFilter.endDate.addGroupedCallback(this,createAndSendQuery);
 				node.sources.addGroupedCallback(this,createAndSendQuery);
+				
 				//if node is selected we highlight the nodeBase
 				node.selected.addGroupedCallback(this,highlightNode);
 				
 				//for now defaulting to Grid Layout
-				
 				if(layout.internalObject == null)
 					layout.requestLocalObject(GridLayout,false);
-				
 				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
 				
-				
+				//opens the settings panel
 				nodeBase.settingsImg.addEventListener(MouseEvent.CLICK,settings);
+				
+				//removes the node from the panel after confirmation
 				nodeBase.closeImg.addEventListener(MouseEvent.CLICK,close);
 				
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_UP,canvas1_mouseUpHandler);
 				
-				
+				//drawing the base which is the node with keywords and icons
 				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
 				
 				//sessioning the x and y positions of this node
 				linkBindableProperty(xPos,this,"x");
 				linkBindableProperty(yPos,this,"y");
 				
-				
-//				UIUtils.linkDisplayObjects(this,thumbnails,true);
-				
 				//sets a pointer to the node's parent which is an InfoMapPanel
 				var hashmap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableOwner(this) as LinkableHashMap;
 				_parentPanel = WeaveAPI.SessionManager.getLinkableOwner(hashmap) as InfoMapPanel;
 				
+				//adding a callback to the Global Search keyword. This will set the visibility of the thumbnails to true or false
+				//based on keyword match
 				_parentPanel.globalSearchKeyword.addImmediateCallback(this,handleGlobalSearch);
 				
+				//adding a callback to the Global Date Filter
+				//TODO: needs to be tested
 				_parentPanel.globalDateFilter.startDate.addGroupedCallback(this,handleGlobalDateChange);
 				_parentPanel.globalDateFilter.endDate.addGroupedCallback(this,handleGlobalDateChange);
 				
-				
+				//adding listener to Click event to toggle node selection
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.CLICK,handleClick);
 				
-				getCallbackCollection(_subset).addGroupedCallback(this,handleSubsetChange);
+				//adding callback to subset. Thumbnails will be re-drawn to plot only included thumbnails
+				getCallbackCollection(_subset).addGroupedCallback(this,drawThumbnails);
 				
+				//calling function to highlight the node based on node.selected.value
 				highlightNode();
 				
 				//we want to trigger the callback for thumbnails at each frame and check the trigger counter
 				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
+				
 				createAndSendQuery(false);
 				
-				docKeySet.addGroupedCallback(this,handleParsedResult,true);
+				//the set of keys matching the query is stored in docKeyset. 
+				//when the results are stored in this keySet a callback is triggered for parsing the results
+				docKeySet.addGroupedCallback(this,handleQueryResultKeySet,true);
 				
+				//this keySet stores the keys matching the search query.
+				//when the results are stored in this keySet a callback is triggered for setting the thumbnails' visible to true/false
 				_searchKeySet.addGroupedCallback(this,handleSearchKeySetChange,true);
 				
+				//adding a callback to the selection KeySet to highlight/unhighlight documents
 				_selection.addGroupedCallback(this,handleSelectionKeySetChange,true);
 				
-//				getCallbackCollection(_parentPanel.infoMapsDataSource).addGroupedCallback(this,handleSubsetChange,true);
 			}
+			
+			private function dragEnterHandler(event:DragEvent):void
+			{
+				 
+				if(event.dragInitiator is DocThumbnailComponent)
+				{
+					DragManager.acceptDragDrop(this);
+				}
+			}
+			
+			private function dragDropHandler(event:DragEvent):void
+			{
+				var t:DocThumbnailComponent = event.dragInitiator as DocThumbnailComponent;
+				
+				if(!(t.parent == this))
+				{
+					addChild(t);
+					
+					//setting the X and Y with reference to the map
+//					var tGlobalPoint2:Point = _parentPanel.map.contentToGlobal(new Point(event.stageX,event.stageY));
+					var localPoint2:Point =  this.globalToLocal(new Point(event.stageX,event.stageY));
+					
+					t.move(localPoint2.x,localPoint2.y);
+				}
+			}
+			
+			/**
+			 * This function adds the thumbnail as a child to the map and resets its position values with respect to the panel
+			 * The thumbnail won't move when the node is moved.
+			 * @param t The Thumbnail to add to the map
+			 **/
+//			private function addThumbnailToMap(t:DocThumbnailComponent):void
+//			{
+//				if(t.hasBeenMoved.value)
+//				{
+//					if(t.parent == _parentPanel.map)
+//						return;
+//					
+//					_parentPanel.map.addChild(t);
+//					
+//					//setting the X and Y with reference to the map
+//					var tGlobalPoint:Point = this.contentToGlobal(new Point(t.xPos.value,t.yPos.value));
+//					var localPoint:Point = _parentPanel.map.globalToLocal(tGlobalPoint);
+//					
+//					t.move(localPoint.x,localPoint.y);
+//					
+//				}else{
+//					
+//					if(t.parent == this)
+//						return;
+//					
+//					addChild(t);
+//					
+//					//setting the X and Y with reference to the map
+//					var tGlobalPoint2:Point = _parentPanel.map.contentToGlobal(new Point(t.xPos.value,t.yPos.value));
+//					var localPoint2:Point =  this.globalToLocal(tGlobalPoint2);
+//					
+//					t.move(localPoint2.x,localPoint2.y);
+//					
+//				}
+//			}
 			
 			//this variable is false when the user loads the map for the first time. 			
 			private var highlightNewDocuments:Boolean = false;
@@ -256,11 +322,7 @@
 				
 			}
 			
-			private var thumbnailSize:int = 50;
-			
 			private var parser:CSVParser = new CSVParser();
-			
-//			public var titleColTest:IAttributeColumn = null;
 			
 			/**
 			 * @private
@@ -268,7 +330,7 @@
 			 * for each of the corresponding links.
 			 * If the thumbnail object is already there then we use the replace its doc object with the latest doc object. 
 			 **/
-			private function handleParsedResult():void
+			private function handleQueryResultKeySet():void
 			{
 				if(thumbnails.getObjects().length == 0)
 				{
@@ -276,42 +338,39 @@
 				}else{
 					highlightNewDocuments = true;
 				}
-				
-				var obj:SelectableInfoMapDocument;
 				thumbnails.delayCallbacks();
 				var response:Array = docKeySet.keys;
+				var nameOrder:Array = [];
 				for(var i:int; i<response.length ;i++)
 				{
 					
 					var link:String = (response[i] as IQualifiedKey).localName;					
-					
+					nameOrder.push(link);
 					var thumbnail:DocThumbnailComponent = new DocThumbnailComponent();
 					
 					
-					//if the thumbnail already exists use previous x,y values
+					//if the thumbnail already exists use that
 					if(thumbnails.getObject(link))
 					{
 						thumbnail = thumbnails.requestObject(link,DocThumbnailComponent,false);
 						
-						//we replace the doc object because, the summary, description might have changed. 
-//						thumbnail.doc = obj as SelectableInfoMapDocument;
-						
 						linkSessionState(defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
 						linkSessionState(selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
 						linkSessionState(newThumbnailGlowColor,thumbnail.glowColor);
-						
+//						thumbnail.hasBeenMoved.addImmediateCallback(this,function ():void{addThumbnailToMap(thumbnail);});
+						addChild(thumbnail);
 						continue;
 					}
+					
 					thumbnail = thumbnails.requestObject(link,DocThumbnailComponent,false);
-					
-					addChild(thumbnail);
-					
+										
 					thumbnail.docURL.value = link;
 					
 					linkSessionState(defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
 					linkSessionState(selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
 					linkSessionState(newThumbnailGlowColor,thumbnail.glowColor);
-					
+//					thumbnail.hasBeenMoved.addImmediateCallback(this,function ():void{addThumbnailToMap(thumbnail);});
+					addChild(thumbnail);
 					
 					if(highlightNewDocuments)
 					{
@@ -319,9 +378,9 @@
 					}
 					
 				}
-				
+				thumbnails.setNameOrder(nameOrder);
 				thumbnails.resumeCallbacks();			
-				handleSubsetChange();
+				drawThumbnails();
 			}
 			
 			override public function validateDisplayList():void
@@ -329,26 +388,32 @@
 				super.validateDisplayList();
 //				This was added before using InfoMapsDataSource. This might not be needed
 //				TODO: delete later if not required
-//				if(detectLinkableObjectChange(validateDisplayList,thumbnails))
-//					handleSubsetChange();
+				if(detectLinkableObjectChange(validateDisplayList,thumbnails))
+					drawThumbnails();
 				
 			}
 			
 			private var thumbnailsToPlotArray:Array = [];
-			private function handleSubsetChange():void
+			
+			/**
+			 * This function goes through the list of thumbnails and adds the ones included in the subset to an array.
+			 * This array is then sent to a Layout Algorithm to plot the thumbnails. 
+			 * After the thumbnails are plotted we call the functions to highlight selected documents and set visiblity based on search keywords.
+			 **/
+			private function drawThumbnails():void
 			{
 				thumbnailsToPlotArray = [];
-				
-				//add all thumbanils to dictionary and set it all to false
-				for each(var t:DocThumbnailComponent in thumbnails.getObjects())
+				var tNails:Array = thumbnails.getObjects()
+
+				for (var i:int = 0; i<tNails.length; i++)
 				{
+					var t:DocThumbnailComponent = tNails[i];
 					var docURL:String = thumbnails.getName(t);
 					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
 					if(_subset.containsKey(qKey))
 					{
 						thumbnailsToPlotArray.push(t);
 						t.visible = true;
-//						addChild(t);
 					}else{
 						
 						t.visible = false;
@@ -361,7 +426,9 @@
 			}
 			
 			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			
+			/**
+			 * Highlights selected documents
+			 **/
 			private function handleSelectionKeySetChange():void
 			{
 				var docs:Array = thumbnails.getNames();
@@ -375,204 +442,21 @@
 				}
 			}
 			
-			
+			/**
+			 * redraw thumbnails to handle new layout selection
+			 **/
 			private function handleLayoutChange():void
 			{
 				if(layout.internalObject == null)
 					return;
 				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
 				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
-				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
+				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray,true);
 			}
 			
-			
-			//toggle node selection on click
-			private function handleClick(event:Event):void
-			{
-				if(wasDragged)
-				{
-					wasDragged = false;
-					return;
-				}
-				if(node.selected.value)
-					node.selected.value = false;
-				else
-					node.selected.value = true;
-			}
-			
-			//highlight node based on node.selected.value
-			private function highlightNode():void
-			{
-				unselectedBorder.color = defaultBorderColor.value;
-				selectedBorder.color = selectedBorderColor.value;
-				
-				if(node.selected.value)
-					selectedBorder.play();
-				else
-					unselectedBorder.play();
-			}
-			
-			//this variable will be  used to avoid selection/unselection when the node is dragged
-			private var wasDragged:Boolean = false;
-			protected function canvas1_mouseDownHandler(event:MouseEvent):void
-			{
-				event.stopImmediatePropagation();
-				applyKeywords();
-				nodeBase.keywordTextArea.setStyle("fontWeight","bold");
-				CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
-				this.startDrag();
-				this.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
-			}
-			
-			private function handleMouseMove(event:Event):void
-			{
-				wasDragged = true;
-			}
-			
-			protected function canvas1_mouseUpHandler(event:MouseEvent):void
-			{
-				nodeBase.keywordTextArea.setStyle("fontWeight","normal");
-				CustomCursorManager.removeCurrentCursor();
-				this.stopDrag();
-				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
-			}
-			
-			
-			
-			private function handleKeywordChange(event:KeyboardEvent):void
-			{
-				if(event.keyCode == Keyboard.ENTER)
-				{
-					event.preventDefault();
-					applyKeywords();
-				}
-			}
-			
-			
-			private function applyKeywords():void
-			{
-				// we take the focus back from the keyword text area and assign it back to the node handler
-				stage.focus = this;
-				nodeBase.keywordTextArea.editable = false;
-				nodeBase.keywordTextArea.selectable = false;
-				node.keywords.value = nodeBase.keywordTextArea.text;
-				toggleEdit = false;
-			}
-			
-			
-			
-			
-			private function filter(event:Event):void
-			{
-				DateFilterComponent.openInstance(this,node.dateFilter);
-			}
-
-			private var _instance:NodeSettingsComponent = null;
-			private function settings(event:Event):void
-			{
-				
-				if(_instance)
-				{
-					PopUpManager.addPopUp(_instance,this);
-				}
-				else
-				{
-					_instance = new NodeSettingsComponent();
-					_instance.nodeHandler = this;
-					PopUpManager.addPopUp(_instance,this);
-				}
-			}
-			
-			private function close(event:Event):void
-			{
-				Alert.show("Are you sure you want to remove this node?",
-							 "Remove Node?",
-							 Alert.YES | Alert.NO,
-							 null,
-							 handleCloseEvent
-							 );
-			}
-			
-			private function handleCloseEvent(e:CloseEvent):void
-			{
-					if(e.detail == Alert.YES)
-					{
-						thumbnails.removeAllObjects();
-						var parent:ILinkableHashMap = (WeaveAPI.SessionManager.getLinkableOwner(this) as ILinkableHashMap);
-						var nodeName:String  = parent.getName(this);
-						parent.removeObject(nodeName);
-					}
-					else if(e.detail == Alert.NO)
-					{
-						return;
-					}
-			}			
-			private var toggleEdit:Boolean = false;
-			private function edit(event:Event):void
-			{
-				if(toggleEdit)
-				{
-					toggleEdit = false;
-					stage.focus = this;
-					nodeBase.keywordTextArea.editable = false;
-					nodeBase.keywordTextArea.selectable = false;
-					return;
-				}
-				
-				toggleEdit = true;
-				nodeBase.keywordTextArea.editable = true;
-				nodeBase.keywordTextArea.selectable = true;
-				nodeBase.keywordTextArea.addEventListener(KeyboardEvent.KEY_DOWN,handleKeywordChange,true);
-				nodeBase.keywordTextArea.setSelection(nodeBase.keywordTextArea.text.length,nodeBase.keywordTextArea.text.length);
-				nodeBase.keywordTextArea.setFocus();
-			}
-			
-			
-			private function remove(event:Event):void //doesn't work if you decalre this as Mouse Event. 
-			{
-				thumbnails.removeAllObjects();
-				var parent:ILinkableHashMap = (WeaveAPI.SessionManager.getLinkableOwner(this) as ILinkableHashMap);
-				var nodeName:String  = parent.getName(this);
-				parent.removeObject(nodeName);
-			}
-			
-			private var searchText:TextArea = new TextArea();
-			
-			//this flag is used to toggle the search text area. 
-			private var toggleSearch:Boolean = false;
-			private function search(event:Event):void
-			{
-				if(toggleSearch)
-				{
-					this.removeChild(searchText);
-					toggleSearch = false;
-					return;
-				}
-				toggleSearch = true;
-				searchText.x = (event.currentTarget as Image).x + 20;
-				searchText.y = (event.currentTarget as Image).y - 10;
-				searchText.width = 100;
-				searchText.height = 20;
-				searchText.addEventListener(KeyboardEvent.KEY_UP,handleSearch);
-				searchText.text = searchFilter.value;
-				searchText.toolTip = 'Hit Enter or Esc to close this text box';
-				this.addChild(searchText);
-				searchText.setFocus();
-			}
-			
-			
-			private function handleSearch(event:KeyboardEvent):void
-			{
-					if(event.keyCode == Keyboard.ENTER  || event.keyCode == Keyboard.ESCAPE)
-					{
-						this.removeChild(searchText);
-						toggleSearch = false;
-						return;
-					}
-					searchFilter.value = searchText.text;
-			}
 			
 			private var _searchKeySet:KeySet = new KeySet();
+			//sends a query to solr for the search keywords filtrered by document links belonging to this node
 			private function handleGlobalSearch():void
 			{
 				
@@ -598,6 +482,8 @@
 				
 			}
 			
+			//this function is called when the _searchKeySet is set. 
+			//This sets the thumbnail's visiblity based if its link is included or excluded in the _searchKeySet
 			private function handleSearchKeySetChange():void
 			{
 				var tnails:Array = thumbnails.getObjects();
@@ -647,6 +533,102 @@
 				
 				return result;
 			}
+			
+			//toggle node selection on click
+			private function handleClick(event:Event):void
+			{
+				if(wasDragged)
+				{
+					wasDragged = false;
+					return;
+				}
+				if(node.selected.value)
+					node.selected.value = false;
+				else
+					node.selected.value = true;
+			}
+			
+			//highlight node based on node.selected.value
+			private function highlightNode():void
+			{
+				unselectedBorder.color = defaultBorderColor.value;
+				selectedBorder.color = selectedBorderColor.value;
+				
+				if(node.selected.value)
+					selectedBorder.play();
+				else
+					unselectedBorder.play();
+			}
+			
+			//this variable will be  used to avoid selection/unselection when the node is dragged
+			private var wasDragged:Boolean = false;
+			protected function canvas1_mouseDownHandler(event:MouseEvent):void
+			{
+				event.stopImmediatePropagation();
+				nodeBase.keywordTextArea.setStyle("fontWeight","bold");
+				CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
+				this.startDrag();
+				this.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+			}
+			
+			private function handleMouseMove(event:Event):void
+			{
+				wasDragged = true;
+			}
+			
+			protected function canvas1_mouseUpHandler(event:MouseEvent):void
+			{
+				nodeBase.keywordTextArea.setStyle("fontWeight","normal");
+				CustomCursorManager.removeCurrentCursor();
+				this.stopDrag();
+				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+			}
+			
+			private function filter(event:Event):void
+			{
+				DateFilterComponent.openInstance(this,node.dateFilter);
+			}
+			
+			private var _instance:NodeSettingsComponent = null;
+			private function settings(event:Event):void
+			{
+				
+				if(_instance)
+				{
+					PopUpManager.addPopUp(_instance,this);
+				}
+				else
+				{
+					_instance = new NodeSettingsComponent();
+					_instance.nodeHandler = this;
+					PopUpManager.addPopUp(_instance,this);
+				}
+			}
+			
+			private function close(event:Event):void
+			{
+				Alert.show("Are you sure you want to remove this node?",
+					"Remove Node?",
+					Alert.YES | Alert.NO,
+					null,
+					handleCloseEvent
+				);
+			}
+			
+			private function handleCloseEvent(e:CloseEvent):void
+			{
+				if(e.detail == Alert.YES)
+				{
+					thumbnails.removeAllObjects();
+					var parent:ILinkableHashMap = (WeaveAPI.SessionManager.getLinkableOwner(this) as ILinkableHashMap);
+					var nodeName:String  = parent.getName(this);
+					parent.removeObject(nodeName);
+				}
+				else if(e.detail == Alert.NO)
+				{
+					return;
+				}
+			}			
 			
 			
 		]]>
