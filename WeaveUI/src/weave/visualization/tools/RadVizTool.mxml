@@ -41,7 +41,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
 			import weave.primitives.ColorRamp;
 			import weave.ui.DraggablePanel;
@@ -190,8 +189,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -204,31 +202,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return [_plotter.radiusColumn,colorColumn,_plotter.columns];
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-				{				
-					// try to get unique attribute names separated by commas					
-					var newTitle:String = "RadViz of ";
-					
-					var uniqueColumns:Dictionary = new Dictionary();
-					
-					for each(var column:IAttributeColumn in _plotter.columns.getObjects(IAttributeColumn) )
-					{
-						uniqueColumns[ColumnUtils.getTitle(column)] = column;
-					}
-					
-					for (var uniqueTitle:String in uniqueColumns)
-					{
-						newTitle += uniqueTitle + ", ";
-					}
-					
-					if(newTitle.charAt(newTitle.length-1) == ",")
-						newTitle = newTitle.substr(0, newTitle.length-2);
-					
-					title = newTitle;
+				// try to get unique attribute names separated by commas					
+				var newTitle:String = "RadViz of ";
+				
+				var uniqueColumns:Dictionary = new Dictionary();
+				
+				for each(var column:IAttributeColumn in _plotter.columns.getObjects(IAttributeColumn) )
+				{
+					uniqueColumns[ColumnUtils.getTitle(column)] = column;
 				}
+				
+				for (var uniqueTitle:String in uniqueColumns)
+				{
+					newTitle += uniqueTitle + ", ";
+				}
+				
+				if(newTitle.charAt(newTitle.length-1) == ",")
+					newTitle = newTitle.substr(0, newTitle.length-2);
+				
+				return newTitle;
 			}
 			
 			private const colorRampName:LinkableString = newLinkableChild(this, LinkableString,handleColorRampName);

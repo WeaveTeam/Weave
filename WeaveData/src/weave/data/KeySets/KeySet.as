@@ -40,7 +40,7 @@ package weave.data.KeySets
 	{
 		public function KeySet()
 		{
-			super(String);
+			super(Array);
 			// The first callback will update the keys from the session state.
 			addImmediateCallback(this, updateKeys);
 		}
@@ -62,8 +62,8 @@ package weave.data.KeySets
 
 			// each row of CSV represents a different keyType (keyType is the first token in the row)
 			var newKeys:Array = [];
-			for each (var row:Array in WeaveAPI.CSVParser.parseCSV(_sessionState))
-				(newKeys.push as Function).apply(null, WeaveAPI.QKeyManager.getQKeys(row.shift(), row));
+			for each (var row:Array in _sessionState)
+				(newKeys.push as Function).apply(null, WeaveAPI.QKeyManager.getQKeys(row[0], row.slice(1)));
 			
 			// avoid internal recursion while still allowing callbacks to cause recursion afterwards
 			delayCallbacks();
@@ -102,7 +102,7 @@ package weave.data.KeySets
 			// avoid internal recursion while still allowing callbacks to cause recursion afterwards
 			delayCallbacks();
 			_currentlyUpdating = true;
-			setSessionState(WeaveAPI.CSVParser.createCSV(keyTable));
+			setSessionState(keyTable);
 			_currentlyUpdating = false;
 			resumeCallbacks();
 		}
@@ -296,7 +296,7 @@ package weave.data.KeySets
 		override public function setSessionState(value:Object):void
 		{
 			// backwards compatibility 0.9.6
-			if (!(value is String) && value != null)
+			if (!(value is String) && !(value is Array) && value != null)
 			{
 				var keysProperty:String = 'sessionedKeys';
 				var keyTypeProperty:String = 'sessionedKeyType';
@@ -304,7 +304,12 @@ package weave.data.KeySets
 					if (value[keyTypeProperty] != null && value[keysProperty] != null)
 						value = WeaveAPI.CSVParser.createCSVToken(value[keyTypeProperty]) + ',' + value[keysProperty];
 			}
+			// backwards compatibility -- parse CSV
+			if (value is String)
+				value = WeaveAPI.CSVParser.parseCSV(value as String);
 			
+			// expecting a two-dimensional Array at this point
+			// TODO: error checking?
 			super.setSessionState(value);
 		}
 		
@@ -315,7 +320,7 @@ package weave.data.KeySets
 		{
 			var k:KeySet = new KeySet();
 			var k2:KeySet = new KeySet();
-			k.addImmediateCallback(null, traceKeySet, [k]);
+			k.addImmediateCallback(null, function():void { traceKeySet(k); });
 			
 			testFunction(k, k.replaceKeys, 'create k', 't', ['a','b','c'], 't', ['a', 'b', 'c']);
 			testFunction(k, k.addKeys, 'add', 't', ['b','c','d','e'], 't', ['a','b','c','d','e']);

@@ -27,7 +27,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		  xmlns:ui="weave.ui.*"
 		  label="ColumnMetadataPopup"
 	      showCloseButton="true" close="closeColumnMetadataPopup(event)">
-	<mx:DataGrid id="popUpDataGrid" width="100%" height="100%" horizontalScrollPolicy="auto"/>
+	<mx:DataGrid id="popUpDataGrid" width="100%" height="100%" horizontalScrollPolicy="auto">
+		<mx:itemRenderer>
+			<mx:Component>
+				<mx:Label/>
+			</mx:Component>
+		</mx:itemRenderer>
+	</mx:DataGrid>
 	<!-- <mx:Label text= "The queries for these attribute columns failed.  Would you like to remove them?"/>
 	<mx:HBox>
 			<mx:Button id="YesButton"  label="Remove these columns" click="YesButton_clickHandler(event)"/>

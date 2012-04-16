@@ -27,7 +27,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * FileUtils
+ * @author adufilie
  */
 public class FileUtils
 {

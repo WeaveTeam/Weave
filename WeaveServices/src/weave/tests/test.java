@@ -18,37 +18,21 @@
 */
 package weave.tests;
 
-
-//import weave.beans.WeaveRecordList;
 import java.rmi.RemoteException;
 
 import weave.beans.RResult;
+//import weave.servlets.RService;
 import weave.servlets.RService;
-public class test {
 
-	/**
-	 * @param args
-	 * @throws Exception 
-	 */
+public class test
+{
 
-
-	/**
-	 * @TODO Do not use this function. It isn't safe.  Use '?' place-holders in SQL queries instead.
-	 */
-	@Deprecated public static String UNSAFE_quoteString(String string)
-	{
-		String quote = "'";
-		// make sure to escape matching quotes in the actual string
-		return quote + string.replace("\\","\\\\").replace(quote, "\\" + quote) + quote;
-	}
-
-	
 	static RService ws = null;
 	public static void call(String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception{
 		
 		RResult[] scriptResult = null;
 		try {
-			scriptResult =	ws.runScript(inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
+			scriptResult =	ws.runScript(null,inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings,false);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
@@ -75,10 +59,10 @@ public class test {
 //		//Object[] array3 = {"aa","bb","cc","dd","ee","ff"};
 		
 //		plotscript ="";
-//		script = "x<-5";
-//		inputNames = new String[]{};
-//		inputValues = new Object[][]{};
-//		resultNames = new String []{"x"};
+		//script = "x<-5";
+		//inputNames = new String[]{};
+		//inputValues = new Object[][]{};
+		//resultNames = new String []{"x"};
 //		keys = new  String[]{};
 //		call(inputNames,inputValues,resultNames,script,plotscript,false,false);
 //		
@@ -86,7 +70,7 @@ public class test {
 //		inputValues = new Object[][]{array1,array2};	
 //		keys = new String []{"0","1","2","3","4","5"};
 //		plotscript = "plot(x,y)";
-//		script = "df<-data.frame(x,y)";		
+		script = "a<-5 \n" +" df<-data.frame(x,y)";		
 //		resultNames =  new String []{"df"};			
 //		call(inputNames,inputValues,resultNames,script,plotscript,false,false);	
 		
@@ -103,12 +87,12 @@ public class test {
 //		call(inputNames,inputValues,resultNames,script,plotscript,false,false);
 		
 		inputNames =  new String []{"x","y"};
-		inputValues = new Object[][]{array1,array2};
+	inputValues = new Object[][]{array1,array2};
 		//plotscript = "plot(x,y)";
 		//keys = new  String[]{};
-		script = "d<-x[x>20]";		
-		resultNames =  new String []{"x","d"};			
-		call(inputNames,inputValues,resultNames,script,plotscript,false,false);
+		//script = "d<-x[x>20]";		
+		resultNames =  new String []{"x","df"};			
+		call(inputNames,inputValues,resultNames,script,plotscript,true,false);
 		
 	}
 }

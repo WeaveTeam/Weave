@@ -84,8 +84,9 @@
 				xAxisLayer.axisPlotter.setLabelFunction(labelFunctionX);
 				yAxisLayer.axisPlotter.setLabelFunction(labelFunctionY);
 				
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector, [this, plotter.xColumn])
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector, [this, plotter.yColumn])
+				var self:* = this;
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.xColumn); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.yColumn); })
 				
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
@@ -348,17 +349,16 @@
 				else visualization.additionalProbeColumns = null;
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Scatter Plot of " + ColumnUtils.getTitle(plotter.xColumn) + " -vs- " + ColumnUtils.getTitle(plotter.yColumn);
+				return "Scatter Plot of " + ColumnUtils.getTitle(plotter.xColumn) + " -vs- " + ColumnUtils.getTitle(plotter.yColumn);
 			}
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 
+				plotter.colorColumn.addImmediateCallback(this, handleColorColumnChange, true);
 				linkBindableProperty(plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(plotter.enabledSizeBy, sizeByCheck, "selected");
 				plotter.minScreenRadius.addGroupedCallback(this, updateSizeSlider);
@@ -430,8 +430,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			private function updateSizeSlider():void
@@ -471,18 +470,25 @@
 					return;
 				}
 				
-				var fill:SolidFillStyle = plotter.circlePlotter.fillStyle.requestLocalObject(SolidFillStyle, false);
 				if ( showColorPicker.value )
 				{
-					fill.color.defaultValue.value = overrideColor.value;
-					fill.color.internalDynamicColumn.removeObject();
+					plotter.colorColumn.defaultValue.value = overrideColor.value;
+					plotter.colorColumn.internalDynamicColumn.removeObject();
 				}
 				else
 				{
-					fill.color.defaultValue.value = NaN;
-					fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+					plotter.colorColumn.defaultValue.value = NaN;
+					plotter.colorColumn.internalDynamicColumn.requestGlobalObject(_prevGlobalColorColumnName, ColorColumn, false);
 				}
 				scatterplotColorOverride.enabled = showColorPicker.value;
+			}
+			
+			private var _prevGlobalColorColumnName:String = null;
+			private function handleColorColumnChange():void
+			{
+				var newName:String = plotter.colorColumn.internalDynamicColumn.globalName;
+				if (newName)
+					_prevGlobalColorColumnName = newName;
 			}
 			
 			public const showColorPicker:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
@@ -503,7 +509,7 @@
 		<mx:VBox id="VizControlsPanel" label="Visualization Controls">
 			<ui:DynamicColumnComponent visTool="{this}" label="x column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.xColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="y column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.yColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="size" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.radiusColumn"/>
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:CheckBox id="sizeByCheck" label="Size by: {sizeByCheck.selected ? 'ENABLED' : 'DISABLED'}"/>

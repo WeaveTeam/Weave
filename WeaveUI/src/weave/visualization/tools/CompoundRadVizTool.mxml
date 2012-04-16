@@ -39,7 +39,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.linkSessionState;
 			import weave.api.ui.IVisTool;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
 			import weave.ui.DraggablePanel;
 			import weave.ui.DynamicColumnComponent;
@@ -191,8 +190,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			override public function getSelectableAttributeNames():Array

@@ -48,11 +48,12 @@
 				//BEGIN TEMPORARY SOLUTION
 				visualization.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
 				visualization.marginBottomNumber.addImmediateCallback(this, updateAxisLabels);
-				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, null, true);
+				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, true);
 				// END TEMPORARY SOLUTION
 				
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector,[this,_plotter.xColumn])
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector,[this,_plotter.yColumn])
+				var self:* = this;
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, _plotter.xColumn); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, _plotter.yColumn); })
 				
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
@@ -101,11 +102,9 @@
 				handlePanelTitleChange();
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Scatter Plot of " + ColumnUtils.getTitle(_plotter.xColumn) + " -vs- " + ColumnUtils.getTitle(_plotter.yColumn);
+				return "Scatter Plot of " + ColumnUtils.getTitle(_plotter.xColumn) + " -vs- " + ColumnUtils.getTitle(_plotter.yColumn);
 			}
 			
 			private function updateAxisLabels():void

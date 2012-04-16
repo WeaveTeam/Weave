@@ -268,9 +268,9 @@ package weave.visualization.layers
 		{
 			if (!keys)
 			{
-				var selection:IKeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as IKeySet;
-				var probe:IKeySet = Weave.root.getObject(Weave.DEFAULT_PROBE_KEYSET) as IKeySet;
-				var alwaysHighlight:IKeySet = Weave.root.getObject(Weave.ALWAYS_HIGHLIGHT_KEYSET) as IKeySet;
+				var selection:IKeySet = Weave.defaultSelectionKeySet;
+				var probe:IKeySet = Weave.defaultProbeKeySet;
+				var alwaysHighlight:IKeySet = Weave.alwaysHighlightKeySet;
 				keys = selection.keys;
 				if (keys.length == 0)
 					keys = probe.keys;

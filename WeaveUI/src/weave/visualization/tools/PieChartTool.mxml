@@ -69,7 +69,7 @@
 					}
 				}
 
-				_plotter.data.addImmediateCallback(this, updateProbeColumns, null, true);
+				_plotter.data.addImmediateCallback(this, updateProbeColumns, true);
 				
 				visualization.marginTop.value = "65";
 				visualization.marginBottom.value = "65";
@@ -98,8 +98,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -116,11 +115,9 @@
 				handlePanelTitleChange();
 			}
 
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Pie Chart of " + ColumnUtils.getTitle(_plotter.data);
+				return "Pie Chart of " + ColumnUtils.getTitle(_plotter.data);
 			}
 		]]>
 	</mx:Script>

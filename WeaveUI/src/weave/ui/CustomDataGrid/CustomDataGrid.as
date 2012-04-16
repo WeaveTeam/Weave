@@ -19,20 +19,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 package weave.ui.CustomDataGrid
 {
-	import flash.display.Sprite;
-	import flash.geom.Point;
-	
 	import mx.controls.DataGrid;
 	import mx.controls.dataGridClasses.DataGridColumn;
-	import mx.controls.listClasses.IListItemRenderer;
-	import mx.controls.listClasses.ListBaseContentHolder;
-	import mx.controls.scrollClasses.ScrollBar;
 	import mx.core.mx_internal;
-	import mx.managers.LayoutManager;
 	
 	import weave.Weave;
 	import weave.api.data.IQualifiedKey;
-	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	
 	
@@ -50,9 +42,9 @@ package weave.ui.CustomDataGrid
 		
 		public function CustomDataGrid()
 		{
-			super();			
+			headerClass = CustomDataGridHeader;
 		}
-		override protected function setupColumnItemRenderer(c:DataGridColumn, contentHolder:ListBaseContentHolder, rowNum:int, colNum:int, data:Object, uid:String):IListItemRenderer{
+		/*override protected function setupColumnItemRenderer(c:DataGridColumn, contentHolder:ListBaseContentHolder, rowNum:int, colNum:int, data:Object, uid:String):IListItemRenderer{
 			return super.setupColumnItemRenderer(c,contentHolder,rowNum,colNum,data,uid);
 		}
 	
@@ -67,10 +59,19 @@ package weave.ui.CustomDataGrid
 		{ 
 			
 			super.lockedColumnCount = value;
-			/*if(value == 0){
-				invalidateProperties();
-			}*/
+			/
+		}*/
+		
+		
+		// need to set default filter when user sets the dataprovider
+		override public function set dataProvider(value:Object):void
+		{
+			super.dataProvider = value;
+			collection.filterFunction = filterKeys;
+			collection.refresh();
 		}
+		
+		
 		
 		
 		/**
@@ -97,8 +98,10 @@ package weave.ui.CustomDataGrid
 		private var _filtersEnabled:Boolean = false;
 		
 		public function set enableFilters(val:Boolean):void{
-			_filtersEnabled = val;
-			invalidateFilters();
+			if(_filtersEnabled != val){
+				_filtersEnabled = val;
+				invalidateFilters();
+			}			
 		}
 		
 		
@@ -109,7 +112,7 @@ package weave.ui.CustomDataGrid
 		}
 		private var _filtersInValid:Boolean = false;
 		
-		private var selectedKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+		private var selectedKeySet:KeySet = Weave.defaultSelectionKeySet;
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
@@ -178,13 +181,11 @@ package weave.ui.CustomDataGrid
 			return  cff;
 		}
 		
-		/*********************************************** Subset Section***************************************************/
-		
-		private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
-		
+		/*********************************************** Filter Section***************************************************/
+	
 		private function filterKeys(item:Object):Boolean
 		{
-			if(_subset.containsKey(item as IQualifiedKey))
+			if(Weave.defaultSubsetKeyFilter.containsKey(item as IQualifiedKey))
 				return true;
 			else 
 				return false;

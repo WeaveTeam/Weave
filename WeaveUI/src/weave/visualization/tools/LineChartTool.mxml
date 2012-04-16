@@ -100,7 +100,8 @@
 
 				getCallbackCollection(_plotter).addGroupedCallback(this, updateAxes, true);
 				// END TEMPORARY SOLUTION
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector, [this,_plotter.columns]);
+				var self:* = this;
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, _plotter.columns); });
 				
 				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
 				var columnsToInit:Array = [];
@@ -212,7 +213,7 @@
 					curveCheckBox.selected = _plotter.curveType.value == ParallelCoordinatesPlotter.CURVE_DOUBLE;
 				}
 				
-				visualization.getPlotLayer().backgroundIsVisible.addImmediateCallback(this, updateSelectionAndProbeOnlyCheckBox, null, true);
+				visualization.getPlotLayer().backgroundIsVisible.addImmediateCallback(this, updateSelectionAndProbeOnlyCheckBox, true);
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -226,8 +227,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			private function getColumnTitle( index:Number ):String
@@ -301,38 +301,27 @@
 				yAxisLayer.axisPlotter.updateLabels();			
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
+				var columns:Array = _plotter.columns.getObjects();
+				if (columns.length == 0)
+					return 'Line Chart';
+				
+				if (_plotter.enableGroupBy.value)
+					return StringUtil.substitute(
+						"Line Chart of {0} by {1}",
+						ColumnUtils.getTitle(_plotter.yData),
+						ColumnUtils.getTitle(_plotter.xData)
+					);
+				
+				var newTitle:String = "Line Chart of ";
+				for (var i:int = 0; i < columns.length; i++)
 				{
-					var columns:Array = _plotter.columns.getObjects();
-					if (columns.length == 0)
-					{
-						title = 'Line Chart';
-						return;
-					}
-					
-					if (_plotter.enableGroupBy.value)
-					{
-						title = StringUtil.substitute(
-							"Line Chart of {0} by {1}",
-							ColumnUtils.getTitle(_plotter.yData),
-							ColumnUtils.getTitle(_plotter.xData)
-						);
-					}
-					else
-					{
-						var newTitle:String = "Line Chart of ";
-						for (var i:int = 0; i < columns.length; i++)
-						{
-							if (i > 0)
-								newTitle += ', ';
-							newTitle += ColumnUtils.getTitle(columns[i]);
-						}
-						title = newTitle;
-					}
+					if (i > 0)
+						newTitle += ', ';
+					newTitle += ColumnUtils.getTitle(columns[i]);
 				}
+				return newTitle;
 			}
 			
 			private function handleCurveCheckBox():void
@@ -366,7 +355,7 @@
 				linkSessionState(visualization.getPlotLayer().backgroundIsVisible, layer.backgroundIsVisible);
 				labelPlotter = layer.getDynamicPlotter().requestLocalObject(TextGlyphPlotter, true);
 				
-				_plotter.columns.addImmediateCallback(this, updateColumns, null, true);
+				_plotter.columns.addImmediateCallback(this, updateColumns, true);
 
 				labelPlotter.xScreenOffset.value=5;
 				labelPlotter.hAlign.defaultValue.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
@@ -414,7 +403,7 @@
 	<mx:Number id="controlsFontSize">10</mx:Number>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Data">
-			<ui:DynamicColumnComponent visTool="{this}" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Label" id="labelComponent"/>
 			<ui:ColumnListComponent visTool="{this}" label="Attributes along X axis" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
 			<mx:HBox>

@@ -101,8 +101,7 @@
 			
 			private function getGlobalSelection():KeySet
 			{
-				var keySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-				return keySet;
+				return Weave.defaultSelectionKeySet;
 			}
 			
 			override protected function childrenCreated():void

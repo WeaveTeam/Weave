@@ -73,7 +73,7 @@ ConnectionComponent
 			_dynamicObj = value;
 			_prevStaticName = null;
 			if (_dynamicObj)
-				getCallbackCollection(_dynamicObj).addImmediateCallback(this,handleDynamicObjChange,null,true);
+				getCallbackCollection(_dynamicObj).addImmediateCallback(this,handleDynamicObjChange,true);
 		}
 		public function get dynamicObject():ILinkableDynamicObject
 		{
@@ -82,7 +82,7 @@ ConnectionComponent
 		
 		private function initDrag(event:MouseEvent):void
 		{
-			WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove, null, true);
+			WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove, true);
 			
 			var itemsArray:Array = new Array();
 			itemsArray.push(this);

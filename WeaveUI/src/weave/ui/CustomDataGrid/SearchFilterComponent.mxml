@@ -77,7 +77,7 @@
 				resultStr = resultStr.replace(/[\?]/g, ".");			
 				//replace strToSrch "*" with reg exp equivalen ".*?"
 				resultStr = resultStr.replace(/[\*]/g, ".*?");			
-				return new RegExp(resultStr, flags);
+				return new RegExp("^"+ resultStr, flags);
 			}
 			
 			

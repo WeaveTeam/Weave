@@ -35,7 +35,9 @@ package weave.core
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IStageUtils;
+	import weave.api.newLinkableChild;
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 	import weave.utils.DebugTimer;
 	
 	use namespace mx_internal;
@@ -50,6 +52,11 @@ package weave.core
 	 */
 	public class StageUtils implements IStageUtils
 	{
+		[Bindable] public var enableThreadPriorities:Boolean = false;
+		
+		private const frameTimes:Array = [];
+		private var debug_fps:Boolean = false;
+		
 		public function StageUtils()
 		{
 			initialize();
@@ -144,8 +151,8 @@ package weave.core
 		/**
 		 * When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.
 		 */
-		private const maxComputationTimePerFrame:int = 100;
-
+		[Bindable] public var maxComputationTimePerFrame:uint = 100;
+		
 		/**
 		 * This function gets called on ENTER_FRAME events.
 		 */
@@ -154,6 +161,18 @@ package weave.core
 			var currentTime:int = getTimer();
 			_previousFrameElapsedTime = currentTime - _currentFrameStartTime;
 			_currentFrameStartTime = currentTime;
+			if (maxComputationTimePerFrame == 0)
+				maxComputationTimePerFrame = 100;
+			
+			if (debug_fps)
+			{
+				frameTimes.push(previousFrameElapsedTime);
+				if (frameTimes.length == 24)
+				{
+					trace(Math.round(1000 / StandardLib.mean.apply(null, frameTimes)),'fps; max computation time',maxComputationTimePerFrame);
+					frameTimes.length = 0;
+				}
+			}
 			
 			if (_previousFrameElapsedTime > 3000)
 				trace(_previousFrameElapsedTime);
@@ -191,10 +210,11 @@ package weave.core
 				// and prevents from newly added functions from being called until the next frame.
 				calls = _callLaterArray;
 				_callLaterArray = [];
+				var stopTime:int = _currentFrameStartTime + maxComputationTimePerFrame;
 				for (i = 0; i < calls.length; i++)
 				{
 					// if elapsed time reaches threshold, call everything else later
-					if (getTimer() - _currentFrameStartTime > maxComputationTimePerFrame)
+					if (getTimer() > stopTime)
 					{
 						// To preserve the order they were added, put the remaining callLater
 						// functions for this frame in front of any others that may have been added.
@@ -273,21 +293,38 @@ package weave.core
 		 *           index++;
 		 *           return index / array.length;  // this will return 1.0 on the last iteration.
 		 *       }
+		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
+		 * @see weave.api.WeaveAPI
 		 */
-		public function startTask(relevantContext:Object, iterativeTask:Function):void
+		public function startTask(relevantContext:Object, iterativeTask:Function, priority:int):void
 		{
 			// do nothing if task already active
 			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
 				return;
 			
+			if (priority == WeaveAPI.TASK_PRIORITY_RENDERING && !enableThreadPriorities)
+			{
+				while (iterativeTask() < 1) { }
+				return;
+			}
+			
+			if (priority <= 0)
+			{
+				reportError("Task priority " + priority + " is not supported.");
+				priority = WeaveAPI.TASK_PRIORITY_BUILDING;
+			}
+			
 			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
-			_iterateTask(relevantContext, iterativeTask);
+			
+			_iterateTask(relevantContext, iterativeTask, priority);
 		}
+		
+		public var debug_delayTasks:Boolean = false;
 		
 		/**
 		 * @private
 		 */
-		private function _iterateTask(context:Object, task:Function):void
+		private function _iterateTask(context:Object, task:Function, priority:int):void
 		{
 			// remove the task if the context was disposed of
 			if (WeaveAPI.SessionManager.objectWasDisposed(context))
@@ -296,9 +333,15 @@ package weave.core
 				return;
 			}
 			
+			var stopTime:int;
+			if (enableThreadPriorities)
+				stopTime = _currentFrameStartTime + maxComputationTimePerFrame / priority;
+			else
+				stopTime = _currentFrameStartTime + 100;
+			
 			var progress:* = undefined;
-			// iterate on the task until max computation time is reached
-			while (getTimer() - _currentFrameStartTime < maxComputationTimePerFrame)
+			// iterate on the task until stopTime is reached
+			while (getTimer() < stopTime)
 			{
 				// perform the next iteration of the task
 				progress = task() as Number;
@@ -313,6 +356,8 @@ package weave.core
 					WeaveAPI.ProgressIndicator.removeTask(task);
 					return;
 				}
+				if (debug_delayTasks)
+					break;
 			}
 			// max computation time reached without finishing the task, so update the progress indicator and continue the task later
 			if (progress !== undefined)
@@ -501,19 +546,17 @@ package weave.core
 		 * WARNING: These callbacks will trigger on every mouse event that occurs on the stage.
 		 *          Developers should not add any callbacks that run computationally expensive code.
 		 * 
-		 * This function will add a callback using the given function and parameters.
-		 * Any callback previously added for the same function will be overwritten.
+		 * This function will add the given function as a callback.  The function must not require any parameters.
 		 * @param eventType The name of the event to add a callback for.
 		 * @param callback The function to call when an event of the specified type is dispatched from the stage.
-		 * @param parameters An array of parameters that will be used as parameters to the callback function.
 		 * @param runCallbackNow If this is set to true, the callback will be run immediately after it is added.
 		 */
-		public function addEventCallback(eventType:String, relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false):void
+		public function addEventCallback(eventType:String, relevantContext:Object, callback:Function, runCallbackNow:Boolean = false):void
 		{
 			var cc:ICallbackCollection = _callbackCollections[eventType] as ICallbackCollection;
 			if (cc != null)
 			{
-				cc.addImmediateCallback(relevantContext, callback, parameters, runCallbackNow);
+				cc.addImmediateCallback(relevantContext, callback, runCallbackNow);
 			}
 			else
 			{

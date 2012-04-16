@@ -70,7 +70,7 @@
 				visualization.marginRight.value  = "5";
 
 				visualization.topMarginClickCallbacks.addImmediateCallback(this, handleMarginLabelClick);
-				colorColumn.addImmediateCallback(this, updateMarginLabel, null, true);
+				colorColumn.addImmediateCallback(this, updateMarginLabel, true);
 				
 				panelWidth.value = "20%";
 				panelHeight.value = "50%";
@@ -155,13 +155,13 @@
 			
 			private function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 		]]>
 	</mx:Script>
 	
 	<mx:TextArea id="marginLabel"
+				 visible="{marginLabel.height > 0}"
 				 fontWeight="bold" click="handleMarginLabelClick()" 
 				 x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5"
 				 text="{marginLabelText}" width="100%"

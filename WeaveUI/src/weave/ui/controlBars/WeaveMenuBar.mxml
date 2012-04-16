@@ -132,36 +132,15 @@
 
     <mx:Script>
     	<![CDATA[
-			import flash.utils.setTimeout;
-			
 			import mx.collections.ArrayCollection;
-			import mx.collections.XMLListCollection;
-			import mx.containers.Box;
-			import mx.containers.Canvas;
-			import mx.controls.Button;
 			import mx.controls.Menu;
-			import mx.controls.menuClasses.MenuBarItem;
-			import mx.controls.menuClasses.MenuItemRenderer;
-			import mx.controls.scrollClasses.ScrollBar;
-			import mx.core.ScrollPolicy;
 			import mx.core.mx_internal;
-			import mx.events.DropdownEvent;
-			import mx.events.FlexEvent;
 			import mx.events.MenuEvent;
-			import mx.events.PropertyChangeEvent;
-			import mx.events.ScrollEvent;
-			import mx.utils.ObjectUtil;
-			import mx.utils.UIDUtil;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.reportError;
 			import weave.compiler.StandardLib;
-			import weave.core.ErrorManager;
-			import weave.core.StageUtils;
-			import weave.ui.DraggablePanel;
 			import weave.ui.OICLogoPane;
-			import weave.utils.EventUtils;
 			
 			use namespace mx_internal;
     		

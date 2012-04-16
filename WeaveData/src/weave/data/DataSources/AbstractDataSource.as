@@ -42,6 +42,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.primitives.AttributeHierarchy;
 	import weave.utils.DebugUtils;
+	import weave.utils.debug_trace;
 	
 	/**
 	 * This is a base class to make it easier to develope a new class that implements IDataSource.
@@ -73,7 +74,7 @@ package weave.data.DataSources
 		{
 			if (enableDebug)
 			{
-				DebugUtils.debug_trace(this, traceArgs);
+				debug_trace(this, traceArgs);
 				//trace.apply(null, traceArgs);
 			}
 		}

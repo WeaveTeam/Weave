@@ -32,6 +32,7 @@ package weave.visualization.tools
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.ICSVExportable;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
@@ -39,13 +40,12 @@ package weave.visualization.tools
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotLayer;
 	import weave.api.ui.IPlotterWithGeometries;
-	import weave.api.ui.IVisTool;
+	import weave.api.ui.IVisToolWithSelectableAttributes;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.UIUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
-	import weave.data.KeySets.KeySet;
 	import weave.editors.SimpleAxisEditor;
 	import weave.editors.WindowSettingsEditor;
 	import weave.editors.managers.LayerListComponent;
@@ -65,7 +65,7 @@ package weave.visualization.tools
 	 * 
 	 * @author adufilie
 	 */
-	public class SimpleVisTool extends DraggablePanel implements IVisTool, ILinkableContainer
+	public class SimpleVisTool extends DraggablePanel implements IVisToolWithSelectableAttributes, ILinkableContainer,ICSVExportable
 	{
 		public function SimpleVisTool()
 		{
@@ -303,7 +303,7 @@ package weave.visualization.tools
 			
 			if (probedColumns.length == 0)
 			{
-				var filteredColumn:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
+				var filteredColumn:FilteredColumn = Weave.defaultColorDataColumn;
 				if (filteredColumn.internalColumn)
 					probedColumns.push(filteredColumn.internalColumn);
 			}
@@ -355,10 +355,7 @@ package weave.visualization.tools
 		public function selectRecords(layerName:String):void
 		{
 			var keys:Array = getOverlappingQKeys(layerName);
-			
-			// set the selection keyset
-			var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			selectionKeySet.replaceKeys(keys);
+			Weave.defaultSelectionKeySet.replaceKeys(keys);
 		}
 		
 		
@@ -420,6 +417,17 @@ package weave.visualization.tools
 		override public function dispose():void
 		{
 			super.dispose();
+		}
+		
+		//ICSV exportbale interface Method
+		public function exportCSV():String{
+			var toolColumns:Array = getSelectableAttributes();
+			if(toolColumns.length == 0)
+			{
+				
+				return "";
+			}
+			return ColumnUtils.generateTableCSV(toolColumns);
 		}
 	}
 }

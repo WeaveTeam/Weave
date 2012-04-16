@@ -37,7 +37,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.unlinkSessionState;
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.BinnedColumn;
-			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColorController;
@@ -77,8 +76,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector, [this, plotter.xColumn])
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector, [this, plotter.yColumn])
+				var self:* = this;
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.xColumn); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.yColumn); })
 						
 				visualization.enableAutoZoomXToNiceNumbers.value = false;
 				visualization.enableAutoZoomYToNiceNumbers.value = false;
@@ -95,7 +95,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				handleBinColRadioButtonChange();
 				xColumnComponent.dynamicObject = plotter.xColumn;
 				yColumnComponent.dynamicObject = plotter.yColumn;
-				colorColumnComponent.dynamicObject = (Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn).internalDynamicColumn;
+				colorColumnComponent.dynamicObject = Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -159,11 +159,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "2D Histogram of " + ColumnUtils.getTitle(plotter.xColumn) + " vs " + ColumnUtils.getTitle(plotter.yColumn) ;
+				return "2D Histogram of " + ColumnUtils.getTitle(plotter.xColumn) + " vs " + ColumnUtils.getTitle(plotter.yColumn) ;
 			}
 			
 			private function updateAxisLabels():void

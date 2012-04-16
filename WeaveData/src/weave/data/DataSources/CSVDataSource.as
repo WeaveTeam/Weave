@@ -29,18 +29,22 @@ package weave.data.DataSources
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableOwner;
+	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.utils.ColumnUtils;
@@ -48,7 +52,6 @@ package weave.data.DataSources
 	import weave.utils.VectorUtils;
 	
 	/**
-	 * CSVDataSource
 	 * 
 	 * @author adufilie
 	 * @author skolman
@@ -66,6 +69,62 @@ package weave.data.DataSources
 		
 		// contains the parsed csv data
 		private var csvDataArray:Array = null;
+		
+		
+		/**
+		 * This will get a list of column names in the CSV data.
+		 * @return A list of column names in the CSV data. 
+		 */		
+		public function getColumnNames():Array
+		{
+			if (csvDataArray && csvDataArray.length)
+				return csvDataArray[0].concat();
+			return [];
+		}
+		
+		/**
+		 * This function will get a column by name.
+		 * @param csvColumnName The name of the CSV column to get.
+		 * @return The column.
+		 */		
+		public function getColumnByName(csvColumnName:String):IAttributeColumn
+		{
+			var sourceOwner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
+			if (!sourceOwner)
+				return null;
+			_reusableReference.hierarchyPath.value = <attribute title={csvColumnName} csvColumn={ csvColumnName }/>;
+			_reusableReference.dataSourceName.value = sourceOwner.getName(this);
+			return WeaveAPI.AttributeColumnCache.getColumn(_reusableReference);
+		}
+		
+		// used by getColumnByName
+		private const _reusableReference:HierarchyColumnReference = newDisposableChild(this, HierarchyColumnReference);
+		
+		/**
+		 * This function will create a column in an ILinkableHashMap that references a column from this CSVDataSource.
+		 * @param csvColumnName The name of the CSV column to put in the hash map.
+		 * @param destinationHashMap The hash map to put the column in.
+		 * @return The column that was created in the hash map.
+		 */		
+		public function putColumnInHashMap(csvColumnName:String, destinationHashMap:ILinkableHashMap):IAttributeColumn
+		{
+			var sourceOwner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
+			if (!sourceOwner)
+				return null;
+			
+			getCallbackCollection(destinationHashMap).delayCallbacks();
+			var refCol:ReferencedColumn = destinationHashMap.requestObject(null, ReferencedColumn, false);
+			var hierarchyColRef1:HierarchyColumnReference =  refCol.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
+			
+			getCallbackCollection(hierarchyColRef1).delayCallbacks();
+			hierarchyColRef1.hierarchyPath.value = <attribute title={csvColumnName} csvColumn={ csvColumnName }/>;
+			hierarchyColRef1.dataSourceName.value = sourceOwner.getName(this);
+			getCallbackCollection(hierarchyColRef1).resumeCallbacks();
+			
+			getCallbackCollection(destinationHashMap).resumeCallbacks();
+			return refCol;
+		}
+		
 		
 		/**
 		 * The keys in this Dictionary are ProxyColumns that have been filled in with data via requestColumnFromSource().
@@ -150,7 +209,6 @@ package weave.data.DataSources
 		}
 
 		/**
-		 * handleCSVDownload
 		 * Called when the CSV data is downloaded from a URL.
 		 */
 		private function handleCSVDownload(event:ResultEvent, token:Object = null):void
@@ -170,7 +228,6 @@ package weave.data.DataSources
 		}
 
 		/**
-		 * handleCSVDownloadError
 		 * Called when the CSV data fails to download from a URL.
 		 */
 		private function handleCSVDownloadError(event:FaultEvent, token:Object = null):void
@@ -179,7 +236,6 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * requestHierarchyFromSource
 		 * This function must be implemented by classes by extend AbstractDataSource.
 		 * This function should make a request to the source to fill in the hierarchy.
 		 * @param subtreeNode A pointer to a node in the hierarchy representing the root of the subtree to request from the source.
@@ -190,7 +246,6 @@ package weave.data.DataSources
 		}
 
 		/**
-		 * requestColumnFromSource
 		 * This function must be implemented by classes by extend AbstractDataSource.
 		 * This function should make a request to the source to fill in the proxy column.
 		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 

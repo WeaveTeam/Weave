@@ -43,11 +43,11 @@
 				swfloader = children.requestObject(children.generateUniqueName("swfLoader"),LinkableSWFLoader, false);
 				//swfloader.sourceValue.value = "weave.swf?file="+xmlFile+"&amp;editable=true";
 				//need to add an event listener to the swfLoader we created in order to edit the session state
-				swfloader.addEventListener(Event.COMPLETE,function (e:Event){
+				swfloader.addEventListener(Event.COMPLETE,function (e:Event):void{
 					
 					var manager:Object = (e.target.content);
 					//listen for the application to finish loading
-					manager.addEventListener(FlexEvent.APPLICATION_COMPLETE, function (e2:Event){
+					manager.addEventListener(FlexEvent.APPLICATION_COMPLETE, function (e2:Event):void{
 						//get the instance of Weave's session state
 						loadedWeave = (e2.target.application);
 					});
@@ -65,9 +65,6 @@
 			}
 			override protected function constructor():void{
 				super.constructor();
-				UIUtils.linkDisplayObjects(this,children);
-				//				(WeaveAPI.SessionManager as SessionManager).registerLinkableChild(this, swfLoader);
-				trace ("called constructor" + children.getNames().toString());
 			}
 			
 			public function xmlLoaded(event:Event):void{  

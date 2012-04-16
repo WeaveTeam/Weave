@@ -42,7 +42,7 @@
 	<CenteredImage source="@Embed(source='/weave/resources/images/trashCan.png')" buttonMode="true" height="24"
 			   click="clearAttribute()"
 			   toolTip="Click here to remove the column used for this property."/>
-	<CenteredImage id="linkImage" buttonMode="true" height="24"
+	<CenteredImage id="linkImage" buttonMode="true" height="24" visible="{showLinkControl}" includeInLayout="{showLinkControl}"
 				 mouseDown="toggleLinkDropDown(!linkDropDown.parent);"/>
 	
 	<mx:TitleWindow id="linkDropDown"
@@ -68,20 +68,17 @@
 	</mx:TitleWindow>
 	<mx:Script>
 		<![CDATA[
-			import mx.core.UIComponent;
-			import mx.events.DragEvent;
-			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
 			import weave.api.core.ILinkableDynamicObject;
-			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
-			import weave.core.SessionManager;
+			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.visualization.tools.SimpleVisTool;
+			
+			[Bindable] public var showLinkControl:Boolean = true;
 			
 			[Embed(source='/weave/resources/images/plug-connected.png')]
 			private static const icon_connected:Class;
@@ -105,12 +102,12 @@
 				internalList.dynamicObject = value;
 				
 				if (value)
-					getCallbackCollection(value).addImmediateCallback(this, toggleLinkDropDown, null, true);
+					getCallbackCollection(value).addImmediateCallback(this, toggleLinkDropDown, true);
 			}
 			
-			private var _visTool:SimpleVisTool = null;
+			private var _visTool:IVisToolWithSelectableAttributes = null;
 			[Inspectable]
-			public function set visTool(value:SimpleVisTool):void
+			public function set visTool(value:IVisToolWithSelectableAttributes):void
 			{
 				_visTool = value;
 			}

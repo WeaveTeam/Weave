@@ -410,57 +410,37 @@ package weave.primitives
 			}
 			return false;
 		}
-
+		
 		/**
-		 * Grid numbers correspond to boxes in the following grid:
-		 *     7 | 6 | 5
-		 *     --+---+--
-		 *     8 | 0 | 4
-		 *     --+---+--
-		 *     1 | 2 | 3
-		 * If an x,y point is contained in box 0, it is contained in the Bounds2D object.
-		 * For example, if a point is contained in box 2, x is within the x-range and y < y-range.
-		 * @param x The x-coordinate to test for grid containment.
-		 * @param y The y-coordinate to test for grid containment.
-		 * @return The grid number from 0 to 8 that the x,y point is contained in, or NaN if none.
+		 * This function is used to determine which vertices of a polygon can be skipped when rendering within the bounds of this Bounds2D.
+		 * While iterating over vertices, test each one with this function.
+		 * If (firstGridTest & secondGridTest & thirdGridTest) is non-zero, then the second vertex can be skipped.
+		 * @param x The x-coordinate to test.
+		 * @param y The y-coordinate to test.
+		 * @return A value to be ANDed with other results of getGridTest().
 		 */
-		public function getGridContainment(x:Number, y:Number):Number
+		public function getGridTest(x:Number, y:Number):uint
 		{
 			// Note: This function is optimized for speed
 			
+			// If three consecutive vertices all share one of (X_HI, X_LO, Y_HI, Y_LO) test results,
+			// then the middle point can be skipped when rendering inside the bounds.
+			
 			var xPositive:Boolean = xMin < xMax;
 			var yPositive:Boolean = yMin < yMax;
+			var xTest:uint = 0;
 			
-			var xGridID:Number = 0;
 			if (x < (xPositive ? xMin : xMax))
-				xGridID = -1;
+				xTest = 0x0001; // X_LO
 			else if (x > (xPositive ? xMax : xMin))
-				xGridID = 1;
+				xTest = 0x0010; // X_HI
 			
 			if (y < (yPositive ? yMin : yMax))
-				return 2 + xGridID; // 1 or 3
+				return xTest | 0x0100; // Y_LO
 			else if (y > (yPositive ? yMax : yMin)) 
-				return 6 - xGridID; // 5 or 7
-			else if (xGridID == 0)
-				return 0;
-			else
-				return 6 - 2 * xGridID; // 4 or 8
+				return xTest | 0x1000; // Y_HI
 			
-//			staticRange_A.setRange(xMin, xMax);
-//			staticRange_B.setRange(yMin, yMax);
-//			var xGridID:Number = staticRange_A.compare(x);
-//			var yGridID:Number = staticRange_B.compare(y);
-//			if (yGridID == -1)
-//				return 2 + xGridID;
-//			if (yGridID == 1)
-//				return 6 - xGridID;
-//			if (yGridID == 0)
-//			{
-//				if (xGridID == 0)
-//					return 0;
-//				return 6 - 2 * xGridID;
-//			}
-			return NaN;
+			return xTest;
 		}
 		
 		/**

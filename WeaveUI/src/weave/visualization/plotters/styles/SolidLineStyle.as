@@ -22,8 +22,10 @@ package weave.visualization.plotters.styles
 	import flash.display.Graphics;
 	import flash.utils.Dictionary;
 	
+	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.ui.ILineStyle;
 	import weave.compiler.StandardLib;
@@ -40,7 +42,11 @@ package weave.visualization.plotters.styles
 	{
 		public function SolidLineStyle()
 		{
+			_callbackCollection = getCallbackCollection(this);
 		}
+		
+		private var _callbackCollection:ICallbackCollection; // the ICallbackCollection for this object
+		private var _triggerCounter:uint = 0; // used to detect change
 		
 		// This maps an AlwaysDefinedColumn to its preferred value type.
 		private const _typesMap:Dictionary = new Dictionary(true);
@@ -85,8 +91,9 @@ package weave.visualization.plotters.styles
 		 */
 		public function beginLineStyle(recordKey:IQualifiedKey, target:Graphics):void
 		{
-			if (detectLinkableObjectChange(this, this))
+			if (_triggerCounter != _callbackCollection.triggerCounter)
 			{
+				_triggerCounter = _callbackCollection.triggerCounter;
 				// update the default values
 				for (var col:* in _typesMap)
 				{
@@ -108,15 +115,15 @@ package weave.visualization.plotters.styles
 			var _joints:* = _defaultValues[joints];
 			var _miterLimit:* = _defaultValues[miterLimit];
 			
-			var lineEnabled:Boolean = _enabled != undefined ? _enabled : StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
+			var lineEnabled:Boolean = _enabled !== undefined ? _enabled : StandardLib.asBoolean( enabled.getValueFromKey(recordKey) );
 			if (!lineEnabled)
 			{
 				target.lineStyle(0, 0, 0);
 			}
 			else
 			{
-				var lineWeight:Number = _weight != undefined ? _weight : weight.getValueFromKey(recordKey, Number);
-				var lineColor:Number = _color != undefined ? _color : color.getValueFromKey(recordKey, Number);
+				var lineWeight:Number = _weight !== undefined ? _weight : weight.getValueFromKey(recordKey, Number);
+				var lineColor:Number = _color !== undefined ? _color : color.getValueFromKey(recordKey, Number);
 				if (!isNaN(lineColor)) // if color is defined, use basic Graphics.lineStyle() function
 				{
 					if (lineWeight == 0) // treat lineWeight 0 as no line
@@ -125,12 +132,12 @@ package weave.visualization.plotters.styles
 					}
 					else
 					{
-						var         lineAlpha:Number = _alpha != undefined ? _alpha               :      alpha.getValueFromKey(recordKey, Number);
-						var linePixelHinting:Boolean = _pixelHinting != undefined ? _pixelHinting : ColumnUtils.getBoolean(pixelHinting, recordKey);
-						var     lineScaleMode:String = _scaleMode != undefined ? _scaleMode       :  scaleMode.getValueFromKey(recordKey, String) as String;
-						var          lineCaps:String = _caps != undefined ? _caps                 :       caps.getValueFromKey(recordKey, String) as String;
-						var        lineJoints:String = _joints != undefined ? _joints             :     joints.getValueFromKey(recordKey, String) as String;
-						var    lineMiterLimit:Number = _miterLimit != undefined ? _miterLimit     : miterLimit.getValueFromKey(recordKey, Number);
+						var         lineAlpha:Number = _alpha !== undefined ? _alpha               :      alpha.getValueFromKey(recordKey, Number);
+						var linePixelHinting:Boolean = _pixelHinting !== undefined ? _pixelHinting : ColumnUtils.getBoolean(pixelHinting, recordKey);
+						var     lineScaleMode:String = _scaleMode !== undefined ? _scaleMode       :  scaleMode.getValueFromKey(recordKey, String) as String;
+						var          lineCaps:String = _caps !== undefined ? _caps                 :       caps.getValueFromKey(recordKey, String) as String;
+						var        lineJoints:String = _joints !== undefined ? _joints             :     joints.getValueFromKey(recordKey, String) as String;
+						var    lineMiterLimit:Number = _miterLimit !== undefined ? _miterLimit     : miterLimit.getValueFromKey(recordKey, Number);
 
 						target.lineStyle(lineWeight, lineColor, lineAlpha, linePixelHinting, lineScaleMode, lineCaps, lineJoints, lineMiterLimit);
 						//trace("target.lineStyle(",lineWeight, lineColor, lineAlpha, linePixelHinting, lineScaleMode, lineCaps, lineJoints, lineMiterLimit,");");

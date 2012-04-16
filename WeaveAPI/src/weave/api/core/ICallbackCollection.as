@@ -23,16 +23,14 @@ package weave.api.core
 	public interface ICallbackCollection extends ILinkableObject
 	{
 		/**
-		 * This function will add a callback using the given function and parameters.
-		 * Any callback previously added for the same function will be overwritten.
+		 * This adds the given function as a callback.  The function must not require any parameters.
 		 * The callback function will not be called recursively as a result of it triggering callbacks recursively.
 		 * @param relevantContext If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
 		 * @param callback The function to call when callbacks are triggered.
-		 * @param parameters An array of parameters that will be used as parameters to the callback function.
 		 * @param runCallbackNow If this is set to true, the callback will be run immediately after it is added.
 		 * @param alwaysCallLast If this is set to true, the callback will be always be called after any callbacks that were added with alwaysCallLast=false.  Use this to establish the desired child-to-parent triggering order.
 		 */
-		function addImmediateCallback(relevantContext:Object, callback:Function, parameters:Array = null, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void;
+		function addImmediateCallback(relevantContext:Object, callback:Function, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void;
 		
 		/**
 		 * This function will add a callback that will be delayed except during a scheduled time each frame.  Grouped callbacks use a

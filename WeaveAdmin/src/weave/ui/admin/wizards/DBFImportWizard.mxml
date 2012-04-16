@@ -51,6 +51,7 @@
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
+			import weave.api.reportError;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			
@@ -76,7 +77,7 @@
 				{
 					//fileStatus.text = "Error";
 					Alert.show(err.message, err.name);
-					trace(err.getStackTrace());
+					reportError(err);
 				}
 			}
 			

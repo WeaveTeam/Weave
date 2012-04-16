@@ -33,6 +33,7 @@ package weave.core
 	import mx.binding.utils.ChangeWatcher;
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
@@ -44,6 +45,8 @@ package weave.core
 	import weave.api.core.ILinkableVariable;
 	import weave.api.core.ISessionManager;
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
+	import weave.utils.Dictionary2D;
 
 	use namespace weave_internal;
 
@@ -133,7 +136,7 @@ package weave.core
 				// make child changes trigger parent callbacks
 				var parentCC:ICallbackCollection = getCallbackCollection(linkableParent as ILinkableObject);
 				// set alwaysCallLast=true for triggering parent callbacks, so parent will be triggered after all the other child callbacks
-				getCallbackCollection(linkableChild).addImmediateCallback(linkableParent, parentCC.triggerCallbacks, null, false, true); // parent-child relationship
+				getCallbackCollection(linkableChild).addImmediateCallback(linkableParent, parentCC.triggerCallbacks, false, true); // parent-child relationship
 			}
 
 			return linkableChild;
@@ -352,6 +355,8 @@ package weave.core
 			objectCC.resumeCallbacks();
 		}
 		
+		private const _getSessionStateIgnoreList:Dictionary = new Dictionary(true); // keeps track of which objects are currently being traversed
+		
 		/**
 		 * @param linkableObject An object containing sessioned properties (sessioned objects may be nested).
 		 * @return An object containing the values from the sessioned properties.
@@ -364,79 +369,78 @@ package weave.core
 				return null;
 			}
 			
-			var result:Object = internalGetSessionState(linkableObject, new Dictionary(true));
-			//trace("getSessionState " + getQualifiedClassName(sessionedObject).split("::")[1] + ObjectUtil.toString(result));
-			return result;
-		}
-		
-		/**
-		 * This function is for internal use only.
-		 * @param sessionedObject An object containing sessioned properties (sessioned objects may be nested).
-		 * @param ignoreList A dictionary that keeps track of which objects this function has already traversed.
-		 * @return An object containing the values from the sessioned properties.
-		 */
-		private function internalGetSessionState(sessionedObject:ILinkableObject, ignoreList:Dictionary):Object
-		{
-			// use ignore list to prevent infinite recursion
-			ignoreList[sessionedObject] = true;
+			var result:Object = null;
 			
 			// special cases (explicit session state)
-			if (sessionedObject is ILinkableVariable)
-				return (sessionedObject as ILinkableVariable).getSessionState();
-			if (sessionedObject is ILinkableCompositeObject)
-				return (sessionedObject as ILinkableCompositeObject).getSessionState();
-
-			// implicit session state
-			// first pass: get property names
-			var propertyNames:Array = getLinkablePropertyNames(sessionedObject);
-			var resultNames:Array = [];
-			var resultProperties:Array = [];
-			var property:ILinkableObject = null;
-			var i:int;
-			//trace("getting session state for "+getQualifiedClassName(sessionedObject),"propertyNames="+propertyNames);
-			for (i = 0; i < propertyNames.length; i++)
+			if (linkableObject is ILinkableVariable)
 			{
-				var name:String = propertyNames[i];
-				try
+				result = (linkableObject as ILinkableVariable).getSessionState();
+			}
+			else if (linkableObject is ILinkableCompositeObject)
+			{
+				result = (linkableObject as ILinkableCompositeObject).getSessionState();
+			}
+			else
+			{
+				// implicit session state
+				// first pass: get property names
+				var propertyNames:Array = getLinkablePropertyNames(linkableObject);
+				var resultNames:Array = [];
+				var resultProperties:Array = [];
+				var property:ILinkableObject = null;
+				var i:int;
+				//trace("getting session state for "+getQualifiedClassName(sessionedObject),"propertyNames="+propertyNames);
+				for (i = 0; i < propertyNames.length; i++)
 				{
-					property = null; // must set this to null first because accessing the property may fail
-					property = sessionedObject[name] as ILinkableObject;
+					var name:String = propertyNames[i];
+					try
+					{
+						property = null; // must set this to null first because accessing the property may fail
+						property = linkableObject[name] as ILinkableObject;
+					}
+					catch (e:Error)
+					{
+						reportError('Unable to get property "'+name+'" of class "'+getQualifiedClassName(linkableObject)+'"');
+					}
+					// first pass: set result[name] to the ILinkableObject
+					if (property != null && !_getSessionStateIgnoreList[property])
+					{
+						// skip this property if it was not registered as a linkable child of the sessionedObject.
+						if (childToParentDictionaryMap[property] === undefined || childToParentDictionaryMap[property][linkableObject] === undefined)
+							continue;
+						// avoid infinite recursion in implicit session states
+						_getSessionStateIgnoreList[property] = true;
+						resultNames.push(name);
+						resultProperties.push(property);
+					}
+					else
+					{
+						/*
+						if (property != null)
+							trace("ignoring duplicate object:",name,property);
+						*/
+					}
 				}
-				catch (e:Error)
+				// special case if there are no child objects -- return null
+				if (resultNames.length > 0)
 				{
-					trace('SessionManager.internalGetSessionState(): Unable to get property "'+name+'" of class "'+getQualifiedClassName(sessionedObject)+'"',e.getStackTrace());
-				}
-				// first pass: set result[name] to the ILinkableObject
-				if (property != null && ignoreList[property] === undefined)
-				{
-					// skip this property if it was not registered as a linkable child of the sessionedObject.
-					if (childToParentDictionaryMap[property] === undefined || childToParentDictionaryMap[property][sessionedObject] === undefined)
-						continue;
-					// only include this property in the session state once
-					ignoreList[property] = true;
-					resultNames.push(name);
-					resultProperties.push(property);
-				}
-				else
-				{
-					//trace("skipped property",name,property,ignoreList[property]);
+					// second pass: get values from property names
+					result = new Object();
+					for (i = 0; i < resultNames.length; i++)
+					{
+						var value:Object = getSessionState(resultProperties[i]);
+						property = resultProperties[i] as ILinkableObject;
+						// do not include objects that have a null implicit session state (no child objects)
+						if (value == null && !(property is ILinkableVariable) && !(property is ILinkableCompositeObject))
+							continue;
+						result[resultNames[i]] = value;
+						//trace("getState",getQualifiedClassName(sessionedObject),resultNames[i],result[resultNames[i]]);
+					}
 				}
 			}
-			// special case if there are no child objects
-			if (resultNames.length == 0)
-				return null;
-			// second pass: get values from property names
-			var result:Object = new Object();
-			for (i = 0; i < resultNames.length; i++)
-			{
-				var value:Object = internalGetSessionState(resultProperties[i], ignoreList);
-				property = resultProperties[i] as ILinkableObject;
-				// do not include objects that have a null implicit session state (no child objects)
-				if (value == null && !(property is ILinkableVariable) && !(property is ILinkableCompositeObject))
-					continue;
-				result[resultNames[i]] = value;
-				//trace("getState",getQualifiedClassName(sessionedObject),resultNames[i],result[resultNames[i]]);
-			}
+			
+			_getSessionStateIgnoreList[linkableObject] = undefined;
+			
 			return result;
 		}
 		
@@ -802,9 +806,8 @@ package weave.core
 								unlinkBindableProperty(linkableObject as ILinkableVariable, bindableParent, bindablePropertyName);
 					
 					// unlink this object from all other linkable objects
-					if (linkedObjectsDictionaryMap[linkableObject] !== undefined)
-						for (var otherObject:Object in linkedObjectsDictionaryMap[linkableObject])
-							unlinkSessionState(linkableObject, otherObject as ILinkableObject);
+					for (var otherObject:Object in linkFunctionCache.dictionary[linkableObject])
+						unlinkSessionState(linkableObject, otherObject as ILinkableObject);
 					
 					// dispose of all registered children that this object owns
 					var children:Dictionary = ownerToChildDictionaryMap[linkableObject] as Dictionary;
@@ -820,7 +823,10 @@ package weave.core
 					
 					// FOR DEBUGGING PURPOSES
 					if (Capabilities.isDebugger)
-						objectCC.addImmediateCallback(null, debugDisposedObject, [linkableObject, new Error("Object was disposed")]);
+					{
+						var error:Error = new Error("This is the stack trace from when the object was previously disposed.");
+						objectCC.addImmediateCallback(null, function():void { debugDisposedObject(linkableObject, error); } );
+					}
 				}
 				
 				var displayObject:DisplayObject = object as DisplayObject;
@@ -862,14 +868,15 @@ package weave.core
 		// FOR DEBUGGING PURPOSES
 		private function debugDisposedObject(disposedObject:ILinkableObject, disposedError:Error):void
 		{
-			// set some variables to aid in debugging
-			var obj:* = disposedObject;
+			// set some variables to aid in debugging - only useful if you add a breakpoint here.
+			var obj:*;
 			var ownerPath:Array = []; while (obj = getLinkableOwner(obj)) { ownerPath.unshift(obj); }
 			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject] || []) { parents.push[obj]; }
 			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject] || []) { children.push[obj]; }
 			var sessionState:Object = getSessionState(disposedObject);
 
-			var msg:String = "Disposed object still running callbacks: " + getQualifiedClassName(disposedObject);
+			// ADD A BREAKPOINT HERE TO DIAGNOSE THE PROBLEM
+			var msg:String = "WARNING: An object triggered callbacks after previously being disposed. " + getQualifiedClassName(disposedObject);
 			if (disposedObject is ILinkableVariable)
 				msg += ' (value = ' + (disposedObject as ILinkableVariable).getSessionState() + ')';
 			reportError(disposedError);
@@ -978,38 +985,24 @@ package weave.core
 				reportError("SessionManager.linkObjects(): Parameters to this function cannot be null.");
 				return;
 			}
-			
-			// prevent
 			if (primary == secondary)
 			{
 				reportError("Warning! Attempt to link session state of an object with itself");
 				return;
 			}
+			if (linkFunctionCache.get(primary, secondary) is Function)
+				return; // already linked
 			
-			if (objectToSetterMap[primary] === undefined)
-				objectToSetterMap[primary] = function(source:ILinkableObject):void {
-					setSessionState(primary, getSessionState(source), true);
-				};
-			if (objectToSetterMap[secondary] === undefined)
-				objectToSetterMap[secondary] = function(source:ILinkableObject):void {
-					setSessionState(secondary, getSessionState(source), true);
-				};
+			var setPrimary:Function = function():void { setSessionState(primary, getSessionState(secondary), true); };
+			var setSecondary:Function = function():void { setSessionState(secondary, getSessionState(primary), true); };
 			
-			var primaryCC:ICallbackCollection = getCallbackCollection(primary);
-			var secondaryCC:ICallbackCollection = getCallbackCollection(secondary);
-			// when secondary changes, copy from secondary to primary, no callback recursion
-			secondaryCC.addImmediateCallback(primary, objectToSetterMap[primary], [secondary]);
-			// when primary changes, copy from primary to secondary, no callback recursion
-			primaryCC.addImmediateCallback(secondary, objectToSetterMap[secondary], [primary], true); // copy from primary now
-
-			// initialize linkedObjectsDictionaryMap entries if necessary
-			if (linkedObjectsDictionaryMap[primary] === undefined)
-				linkedObjectsDictionaryMap[primary] = new Dictionary(true);
-			if (linkedObjectsDictionaryMap[secondary] === undefined)
-				linkedObjectsDictionaryMap[secondary] = new Dictionary(true);
-			// remember that these two objects are linked.
-			linkedObjectsDictionaryMap[primary][secondary] = true;
-			linkedObjectsDictionaryMap[secondary][primary] = true;
+			linkFunctionCache.set(primary, secondary, setPrimary);
+			linkFunctionCache.set(secondary, primary, setSecondary);
+			
+			// when secondary changes, copy from secondary to primary
+			getCallbackCollection(secondary).addImmediateCallback(primary, setPrimary);
+			// when primary changes, copy from primary to secondary
+			getCallbackCollection(primary).addImmediateCallback(secondary, setSecondary, true); // copy from primary now
 		}
 		/**
 		 * This will unlink the session state of two ILinkableObjects that were previously linked with linkSessionState().
@@ -1023,27 +1016,18 @@ package weave.core
 				reportError("SessionManager.unlinkObjects(): Parameters to this function cannot be null.");
 				return;
 			}
-
-			// clear the entries that say these two objects are linked.
-			if (linkedObjectsDictionaryMap[first] !== undefined)
-				delete linkedObjectsDictionaryMap[first][second];
-			if (linkedObjectsDictionaryMap[second] !== undefined)
-				delete linkedObjectsDictionaryMap[second][first];
 			
-			getCallbackCollection(first).removeCallback(objectToSetterMap[second]);
-			getCallbackCollection(second).removeCallback(objectToSetterMap[first]);
+			var setFirst:Function = linkFunctionCache.remove(first, second) as Function;
+			var setSecond:Function = linkFunctionCache.remove(second, first) as Function;
+			
+			getCallbackCollection(second).removeCallback(setFirst);
+			getCallbackCollection(first).removeCallback(setSecond);
 		}
 		/**
-		 * This maps an destination ILinkableObject to a function like:
-		 *     function(source:ILinkableObject):void { setSessionState(destination, getSessionState(source), true); }
-		 * The purpose of having this mapping is to have a different function pointer for each ILinkableObject so addImmediateCallback()
-		 * and removeCallback() can be used to link and unlink overlapping pairs of ILinkableObject objects.
+		 * This maps destination and source ILinkableObjects to a function like:
+		 *     function():void { setSessionState(destination, getSessionState(source), true); }
 		 */
-		private const objectToSetterMap:Dictionary = new Dictionary(true);
-		/**
-		 * This maps a sessioned object to a Dictionary, which maps a linked sessioned object to a value of true.
-		 */
-		private const linkedObjectsDictionaryMap:Dictionary = new Dictionary(true);
+		private const linkFunctionCache:Dictionary2D = new Dictionary2D(true, true);
 
 
 
@@ -1052,6 +1036,8 @@ package weave.core
 		/******************************************************
 		 * linking sessioned objects with bindable properties
 		 ******************************************************/
+		
+		private const VALUE_NOT_ACCEPTED:String = 'Value not accepted.'; // errorString used by linkBindableProperty
 		
 		/*private function debugLink(linkVal:Object, bindVal:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
 		{
@@ -1157,15 +1143,15 @@ package weave.core
 							{
 								if ((linkableVariable as LinkableVariable).verifyValue(bindableValue))
 								{
-									// clear any existing error string
-									if (uiComponent.errorString)
+									// clear previous error string
+									if (uiComponent.errorString == VALUE_NOT_ACCEPTED)
 										uiComponent.errorString = '';
 								}
 								else
 								{
 									// show error string if not already shown
 									if (!uiComponent.errorString)
-										uiComponent.errorString = 'Value not accepted.';
+										uiComponent.errorString = VALUE_NOT_ACCEPTED;
 								}
 							}
 							
@@ -1225,8 +1211,8 @@ package weave.core
 					if (bindableValue != linkableValue)
 						bindableParent[bindablePropertyName] = linkableValue;
 					
-					// clear any existing error string
-					if (uiComponent && linkableVariable is LinkableVariable && uiComponent.errorString)
+					// clear previous error string
+					if (uiComponent && linkableVariable is LinkableVariable && uiComponent.errorString == VALUE_NOT_ACCEPTED)
 						uiComponent.errorString = '';
 				}
 				else
@@ -1294,6 +1280,8 @@ package weave.core
 		 */
 		private const _watcherToSynchronizeFunctionMap:Dictionary = new Dictionary(); // use weak links to be GC-friendly
 		
+		internal static const DIFF_DELETE:String = 'delete';
+		
 		/**
 		 * This function computes the diff of two session states.
 		 * @param oldState The source session state.
@@ -1344,8 +1332,17 @@ package weave.core
 				var sessionState:Object;
 				for (i = 0; i < oldState.length; i++)
 				{
-					//note: there is no error checking here for typedState
 					typedState = oldState[i];
+					
+					// if we see a string, assume both are String Arrays.
+					if (typedState is String || typedState is Array)
+					{
+						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
+							return undefined; // no diff
+						return newState;
+					}
+					
+					//note: there is no error checking here for typedState
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					oldLookup[objectName] = typedState;
 				}
@@ -1357,6 +1354,16 @@ package weave.core
 				for (i = 0; i < newState.length; i++)
 				{
 					typedState = newState[i];
+					
+					// if we see a string, assume both are String Arrays.
+					if (typedState is String || typedState is Array)
+					{
+						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
+							return undefined; // no diff
+						return newState; // TODO: same object pointer.. potential problem?
+					}
+					
+					//note: there is no error checking here for typedState
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					className = typedState[DynamicState.CLASS_NAME];
 					sessionState = typedState[DynamicState.SESSION_STATE];
@@ -1394,7 +1401,7 @@ package weave.core
 				// Add DynamicState entries with an invalid className ("delete") to convey that each of these objects should be removed.
 				for (objectName in oldLookup)
 				{
-					result.push(new DynamicState(objectName, 'delete'));
+					result.push(new DynamicState(objectName, DIFF_DELETE));
 					changeDetected = true;
 				}
 				
@@ -1426,12 +1433,144 @@ package weave.core
 					{
 						if (!diff)
 							diff = {};
-						diff[newName] = newState[newName];
+						diff[newName] = newState[newName]; // TODO: same object pointer.. potential problem?
 					}
 				}
 
 				return diff;
 			}
+		}
+		
+		/**
+		 * This modifies an existing diff to include an additional diff.
+		 * @param baseDiff The base diff which will be modified to include an additional diff.
+		 * @param diffToAdd The diff to add to the base diff.  This diff will not be modified.
+		 * @return The modified baseDiff, or a new diff object if baseDiff is a primitive value.
+		 */
+		public function combineDiff(baseDiff:Object, diffToAdd:Object):Object
+		{
+			// special case for no change
+			if (diffToAdd === null)
+				return baseDiff;
+			
+			var baseType:String = typeof(baseDiff); // the type of null is 'object'
+			var diffType:String = typeof(diffToAdd);
+
+			// special cases
+			if (baseDiff == null || baseType != diffType || baseType != 'object')
+			{
+				if (diffType == 'object') // not a primitive, so make a copy
+					baseDiff = ObjectUtil.copy(diffToAdd);
+				else
+					baseDiff = diffToAdd;
+			}
+			else if (baseDiff is Array && diffToAdd is Array)
+			{
+				var typedState:Object;
+				var i:int;
+				
+				// If a non-String, non-Array is found, treat both as Arrays of DynamicState objects
+				var isTyped:Boolean = false;
+				checkArrays: for each (var array:Array in arguments) // [baseDiff, diffToAdd]
+				{
+					for each (typedState in array)
+					{
+						if (!(typedState is String || typedState is Array))
+						{
+							isTyped = true;
+							break checkArrays;
+						}
+					}
+				}
+				if (isTyped)
+				{
+					var objectName:String;
+
+					// create lookup: objectName -> old diff entry
+					// temporarily turn baseDiff into an Array of object names
+					var baseLookup:Object = {};
+					for (i = 0; i < baseDiff.length; i++)
+					{
+						typedState = baseDiff[i];
+						// note: no error checking for typedState
+						if (typedState is String || typedState == null)
+							objectName = typedState as String;
+						else
+							objectName = typedState[DynamicState.OBJECT_NAME] as String;
+						baseLookup[objectName] = typedState;
+						// temporarily turn baseDiff into an Array of object names
+						baseDiff[i] = objectName;
+					}
+					// apply each typedState diff appearing in diffToAdd
+					for (i = 0; i < diffToAdd.length; i++)
+					{
+						typedState = diffToAdd[i];
+						// note: no error checking for typedState
+						if (typedState is String || typedState == null)
+							objectName = typedState as String;
+						else
+							objectName = typedState[DynamicState.OBJECT_NAME] as String;
+						
+						// adjust names list so this name appears at the end
+						if (baseLookup.hasOwnProperty(objectName))
+						{
+							for (var j:int = (baseDiff as Array).indexOf(objectName); j < baseDiff.length - 1; j++)
+								baseDiff[j] = baseDiff[j + 1];
+							baseDiff[baseDiff.length - 1] = objectName;
+						}
+						else
+						{
+							baseDiff.push(objectName);
+						}
+						
+						// apply diff
+						var oldTypedState:Object = baseLookup[objectName];
+						if (oldTypedState is String || oldTypedState == null)
+						{
+							if (typedState is String || typedState == null)
+								baseLookup[objectName] = typedState; // avoid unnecessary function call overhead
+							else
+								baseLookup[objectName] = ObjectUtil.copy(typedState);
+						}
+						else if (!(typedState is String || typedState == null)) // update dynamic state
+						{
+							var className:String = typedState[DynamicState.CLASS_NAME];
+							// if new className is different and not null, start with a fresh typedState diff
+							if (className && className != oldTypedState[DynamicState.CLASS_NAME])
+							{
+								baseLookup[objectName] = ObjectUtil.copy(typedState);
+							}
+							else // className hasn't changed, so combine the diffs
+							{
+								oldTypedState[DynamicState.SESSION_STATE] = combineDiff(oldTypedState[DynamicState.SESSION_STATE], typedState[DynamicState.SESSION_STATE]);
+							}
+						}
+					}
+					// change baseDiff back from names to typed states
+					for (i = 0; i < baseDiff.length; i++)
+						baseDiff[i] = baseLookup[baseDiff[i]];
+				}
+				else // not typed session state
+				{
+					// overwrite old Array with new Array's values
+					baseDiff.length = diffToAdd.length;
+					for (i = diffToAdd.length - 1; i >= 0; i--)
+					{
+						var value:Object = diffToAdd[i];
+						if (value is String)
+							baseDiff[i] = value; // avoid function call overhead
+						else
+							baseDiff[i] = combineDiff(baseDiff[i], value);
+					}
+				}
+			}
+			else // nested object
+			{
+				for (var newName:String in diffToAdd)
+					baseDiff[newName] = combineDiff(baseDiff[newName], diffToAdd[newName]);
+			}
+			
+			return baseDiff;
 		}
 	}
 }

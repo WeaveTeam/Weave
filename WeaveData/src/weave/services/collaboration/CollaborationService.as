@@ -17,23 +17,23 @@
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*
-	Whomeever this code gets passed onto, please feel free to delete or
-	rewrite the comments I have written. They are only painfully obvious
-	to facilitate the transferring of this code to the new maintainer.
-	
-	~Andrew Wilkinson
-*/
-
 package weave.services.collaboration
 {	
+	import flash.display.Stage;
+	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.media.Sound;
 	import flash.net.registerClassAlias;
 	import flash.utils.ByteArray;
+	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.collections.ArrayCollection;
+	import mx.collections.Sort;
+	import mx.containers.Canvas;
+	import mx.containers.HBox;
 	import mx.controls.Alert;
+	import mx.core.Application;
 	import mx.events.CloseEvent;
 	import mx.utils.Base64Decoder;
 	import mx.utils.Base64Encoder;
@@ -78,27 +78,35 @@ package weave.services.collaboration
 		private var serverIP:String;
 		private var serverName:String;
 		private var port:int;
-		private var roomToJoin:String;
-		private var room:Room;
+		private var username:String;
+		private var password:String;
 
-		private const baseEncoder:Base64Encoder = new Base64Encoder();
-		private const baseDecoder:Base64Decoder = new Base64Decoder();
-		private var connectedToRoom:Boolean = false;
-		private var stateLog:SessionStateLog = null;
-		private var synchronizingIncomingDiff:Boolean = false;
+		private const baseEncoder:Base64Encoder 		= new Base64Encoder();
+		private const baseDecoder:Base64Decoder 		= new Base64Decoder();
+		private var connectedToRoom:Boolean 			= false;
+		private var stateLog:SessionStateLog 			= null;
+		private var synchronizingIncomingDiff:Boolean 	= false;
 		
-		public const userList:ArrayCollection = new ArrayCollection();
-		public var username:String;
+		public const userList:ArrayCollection 			= new ArrayCollection();
+		public const TYPE_MIC:String 					= "MIC";
+		public const TYPE_CAM:String 					= "CAM";
+		
+		public var nickname:String;
+		public var roomToJoin:String;
 		public var myRole:String;
+		public var room:Room;
+		[Bindable] public var ping:Number;
 
 		public function CollaborationService( root:ILinkableObject )
 		{
 			this.root = root;
-			
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
 			// all of these classes are internal
-			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage])
+			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, Ping, AddonsMessage, AddonStatus])
 				registerClassAlias(getQualifiedClassName(c), c);
+				
+			userList.sort = new Sort();
+			userList.sort.compareFunction = ObjectUtil.stringCompare;
 		}
 		
 		// this will be called by SessionManager to clean everything up
@@ -112,7 +120,7 @@ package weave.services.collaboration
 			return connectedToRoom;
 		}
 		
-		public function connect( serverIP:String, serverName:String, port:int, roomToJoin:String, username:String ):void
+		public function connect( serverIP:String, serverName:String, port:int, roomToJoin:String, nickname:String, username:String = null, password:String = null ):void
 		{
 			//if already connected disconnect and start over
 			if (connectedToRoom)
@@ -123,7 +131,9 @@ package weave.services.collaboration
 			this.serverName = serverName;
 			this.port =	port;
 			this.roomToJoin = roomToJoin;
+			this.nickname = nickname;
 			this.username = username;
+			this.password = password;
 			
 			dispatchLogEvent("Connecting to " + serverName + " at " + serverIP + ":" + port.toString() + " ...");
 			connection = new XMPPConnection();
@@ -132,11 +142,11 @@ package weave.services.collaboration
 			//otherwise you can use the registered login below
 			connection.useAnonymousLogin = true;
 
-			/* 
-			Registered Login:
-			connection.username = "registeredUser";
-			connection.password = "password"; 
-			*/
+			if( !connection.useAnonymousLogin ) 
+			{
+				connection.username = username;
+				connection.password = password;
+			}
 			
 			connection.server = serverIP;
 			connection.port = port;
@@ -177,7 +187,7 @@ package weave.services.collaboration
 			if( room != null)
 			{
 				room.removeEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
-				room.removeEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
+//				room.removeEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 				room.removeEventListener(RoomEvent.USER_JOIN, onUserJoin);
 				room.removeEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
 			}
@@ -189,24 +199,63 @@ package weave.services.collaboration
 		//Sends messages to the room on the server
 		private function sendEncodedObject( message:Object, target:String ):void
 		{
-			if (!connectedToRoom)
-				throw new Error("Not connected");
+			if (!connectedToRoom) {
+				trace("Not connected");
+				return;
+//				throw new Error("Not connected");
+			}
 			
-			//trace( ObjectUtil.toString( message ) , ObjectUtil.toString( target )  );
 			if( target != null)
 				room.sendPrivateMessage( target, encodeObject(message) );
 			else
 				room.sendMessage( encodeObject(message) );
-			
 		}
-		
+		public function sendMouseMessage( id:String, color:uint, posX:Number, posY:Number ):void
+		{
+			var message:MouseMessage = new MouseMessage(id, color, posX, posY);
+			sendEncodedObject(message, null);
+		}
+		public function requestMouseMessage( id:String ):void
+		{
+			var message:RequestMouseMessage = new RequestMouseMessage(nickname);
+			sendEncodedObject(message, id);
+		}
+		public function requestAddonStatus( id:String, info:Dictionary = null ):void
+		{
+			var message:AddonStatus = new AddonStatus(id, info);
+			if( info == null )
+			{
+				var sendTo:String = userList[0];
+				if( sendTo == nickname )
+					sendTo = userList[1];
+				trace("sending request to", sendTo);
+				sendEncodedObject(message, sendTo);
+			} 
+			else
+			{
+				trace("sending addons to", id);
+				sendEncodedObject(message, id);
+			}
+		}
 		//Handles sending text messages
 		public function sendTextMessage( text:String, target:String=null ):void
 		{
 			var message:TextMessage = new TextMessage( selfJID, text );
 			sendEncodedObject( message, target );
 		}
-		
+		public function sendPing(id:String, sendToRoom:Boolean = false, ping:Number = 0):void
+		{
+			var message:Ping = new Ping(id, sendToRoom, ping);
+			if( sendToRoom )
+				sendEncodedObject(message, null);
+			else
+				sendEncodedObject(message, id);
+		}
+		public function sendAddonUpdate( id:String, type:String, toggle:Boolean ):void
+		{
+			var message:AddonsMessage = new AddonsMessage(id, type, toggle);
+			sendEncodedObject(message, null);
+		}
 		//Handles Sending the entire session state. Should only be used if
 		//someone needs a hard reset, or joining the collaboration server
 		//for the first time.
@@ -227,7 +276,7 @@ package weave.services.collaboration
 		//When a message is recieved pass it on to the user
 		private function dispatchLogEvent( message:String ) :void
 		{
-			dispatchEvent(new CollaborationEvent(CollaborationEvent.LOG, message));
+			dispatchEvent(new CollaborationEvent(CollaborationEvent.LOG, message ));
 		}
 		
 		//Goes through the room user list, sorts it, and reports it back to the Tool
@@ -236,7 +285,8 @@ package weave.services.collaboration
 			userList.removeAll();
 			if (room != null)
 				for( var i:int = 0; i < room.length; i++ )
-					userList.addItem( { name: room[i].displayName, role: room[i].role } );
+					userList.addItem( room[i].displayName );
+			dispatchEvent(new Event(CollaborationEvent.USER_LIST_UPDATED));
 		}
 		
 		//After you connect to a server, onLogin will direct you here
@@ -248,12 +298,12 @@ package weave.services.collaboration
 			
 			//nickname will replace the random string generated for Anonnymous users
 			//and can be used for private messages and most user to user functions
-			room.nickname = username;
+			room.nickname = nickname;
 			dispatchLogEvent( "Set alias to: " + room.nickname );
 			room.roomJID = new UnescapedJID(roomName + "@conference" + '.' + serverName);
 			
 			room.addEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
-			room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
+//			room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 			room.addEventListener(RoomEvent.USER_JOIN, onUserJoin);
 			room.addEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
 			room.addEventListener(RoomEvent.NICK_CONFLICT, nickConflictError);
@@ -294,7 +344,7 @@ package weave.services.collaboration
 				{
 					log.pop(); // suppress the outgoing diff that results from an incoming diff
 				}
-				else
+				else if (log.length > 0)
 				{
 					var entry:Object = log[log.length - 1];
 					sendSessionStateDiff( entry.id, entry.forward );
@@ -330,6 +380,7 @@ package weave.services.collaboration
 				
 				// handle a message from a user
 				var o:Object = null;
+				
 				try
 				{
 					o = decodeObject(event.data.body);
@@ -338,6 +389,7 @@ package weave.services.collaboration
 				{
 					reportError("Unable to decode message: " + event.data.body);
 				}
+				
 				//reportError( ObjectUtil.toString( o ) );
 				
 				//var room:String = event.data.from.node;
@@ -357,7 +409,7 @@ package weave.services.collaboration
 					if (stateLog != null) //don't do anything until the collaborative session state is loaded
 					{
 						var ssm:SessionStateMessage = o as SessionStateMessage;
-						if (userAlias == this.username)
+						if (userAlias == this.nickname)
 						{
 							//dispatchLogEvent('\nECHO ' + ssm.id + '\n--------------------------\n');
 							
@@ -407,16 +459,58 @@ package weave.services.collaboration
 				}
 				
 				//A text message from the text box
-				else if (o is TextMessage)
+				else if ( o is TextMessage)
 				{
 					var tm:TextMessage = o as TextMessage;
-					dispatchLogEvent( tm.id + ": " + tm.message );
+					dispatchLogEvent( tm.id + ": " + tm.message);
 				}
-				
+					
+				else if( o is RequestMouseMessage )
+				{
+					var rmm:RequestMouseMessage = o as RequestMouseMessage;
+					if( rmm.id != nickname ) 
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_MOUSE_POS, rmm.id, 0, xMousePercent(), yMousePercent()));
+				}
+				else if( o is MouseMessage )
+				{
+					var mm:MouseMessage = o as MouseMessage;
+					if( mm.id != nickname )
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_MOUSE_POS, mm.id, mm.color, mm.percentX, mm.percentY));
+				}
+				else if( o is Ping )
+				{
+					var p:Ping = o as Ping;
+					
+					if( !p.sendToRoom ) 
+					{
+						ping = (new Date().getMilliseconds() - p.time);
+						if( ping < 0 ) ping = 500;
+						sendPing(nickname, true, ping);
+					} 
+					else
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_PING, p.id, 0, p.time));
+				}
+				else if( o is AddonsMessage )
+				{
+					var am:AddonsMessage = o as AddonsMessage;
+					if( am.type == TYPE_MIC )
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_MIC, am.id, ( am.toggle ) ? 1 : 0));
+					else if( am.type == TYPE_CAM )
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_CAM, am.id, ( am.toggle ) ? 1 : 0));
+				}
+				else if( o is AddonStatus )
+				{
+					var status:AddonStatus = o as AddonStatus;
+					if( status.info == null )
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_USERLIST, status.id));
+					else
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_USERLIST, null, 0, 0, 0, status.info));
+				}
 				//an unknown message with data, but wasn't one of the pre-defined types
 				else
 				{
-					reportError("Unable to determine message type: ", ObjectUtil.toString(o));
+//					reportError("Unable to determine message type: ", ObjectUtil.toString(o));
+					trace(nickname,"Unknown type");
 				}
 			}
 			
@@ -437,7 +531,7 @@ package weave.services.collaboration
 			room = null;
 			selfJID = null;
 			
-			dispatchEvent(new CollaborationEvent(CollaborationEvent.DISCONNECT, null));
+			dispatchEvent(new CollaborationEvent(CollaborationEvent.DISCONNECT));
 		}
 		
 		private function onError(e:XIFFErrorEvent):void
@@ -462,6 +556,9 @@ package weave.services.collaboration
 			dispatchEvent(new CollaborationEvent(CollaborationEvent.CONNECT));
 		}
 		
+		private function xMousePercent():Number { return Application.application.stage.mouseX / Application.application.stage.stageWidth;  }
+		private function yMousePercent():Number { return Application.application.stage.mouseY / Application.application.stage.stageHeight; }
+
 		//Most servers have this enabled, where if you don't do anything for too long
 		//it'll fire the timeout event
 		private function onTimeout(e:RoomEvent):void
@@ -473,17 +570,14 @@ package weave.services.collaboration
 		private function disconnectHandler( e:CloseEvent ):void
 		{
 			if (e.detail == Alert.YES)
-				connect(this.serverIP, this.serverName, this.port, this.roomToJoin, this.username);
-			else
-				disconnect();		
+				connect(serverIP, serverName, port, roomToJoin, nickname);
 		}
-		
 		//handled whenever any user joins the same room as this
 		private function onUserJoin(e:RoomEvent):void
 		{
 			dispatchLogEvent(e.nickname + " has joined the room.");
 			updateUsersList();
-		
+			
 			//This whole sequence of steps is just to determine alphabetially
 			//who's on the top of the list. It needs to be sorted, because order
 			//of names in array is not guarenteed
@@ -503,18 +597,20 @@ package weave.services.collaboration
 			{
 				startLogging();
 			}
-			else if (username == userList[0].displayName) // if we are at the top of the list
+			else if (nickname == userList[0].displayName) // if we are at the top of the list
 			{
 				// send full session state to the user who just joined.
 				var debugID:int = stateLog.undoHistory[ stateLog.undoHistory.length - 1];
 				sendFullSessionState(debugID, getSessionState(root), e.nickname );
 			} 
+			if( connectedToRoom )
+				dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_JOINED_ROOM, e.nickname));
 		}
-		
 		//Handled when any user leaves the room this is in
 		private function onUserLeave(e:RoomEvent):void
 		{
 			dispatchLogEvent(e.nickname + " has left the room.");
+			dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_LEFT_ROOM, e.nickname));
 			updateUsersList();
 		}
 		private function nickConflictError(e:RoomEvent):void
@@ -551,9 +647,8 @@ package weave.services.collaboration
 		}
 	}
 }
+import flash.utils.Dictionary;
 
-//Internal classes are used to define the different message types
-//that will be sent over the server
 internal class FullSessionState
 {
 	public function FullSessionState(debugID:int = 0, state:Object = null)
@@ -588,4 +683,66 @@ internal class TextMessage
 	
 	public var id:String;
 	public var message:String;
+}
+internal class MouseMessage
+{
+	public function MouseMessage(id:String = null, color:uint = 0, posX:Number = 0, posY:Number = 0 )
+	{
+		this.id = id;
+		this.color = color;
+		this.percentX = posX;
+		this.percentY = posY;
+	}
+	
+	public var id:String;
+	public var color:uint;
+	public var percentX:Number;
+	public var percentY:Number;
+}
+internal class RequestMouseMessage
+{
+	public function RequestMouseMessage(id:String = null)
+	{
+		this.id = id;
+	}
+	
+	public var id:String;
+}
+internal class Ping
+{
+	public function Ping(id:String = null, sendToRoom:Boolean = false, ping:Number = 0)
+	{
+		this.id = id;
+		this.sendToRoom = sendToRoom;
+		if( !sendToRoom )
+			this.time = new Date().getMilliseconds();
+		else
+			this.time = ping;
+	}
+	
+	public var id:String;
+	public var sendToRoom:Boolean;
+	public var time:Number;
+}
+internal class AddonsMessage
+{
+	public function AddonsMessage(id:String = null, type:String = null, toggle:Boolean = false)
+	{
+		this.id = id;
+		this.type = type;
+		this.toggle = toggle;
+	}
+	public var id:String;
+	public var type:String;
+	public var toggle:Boolean;
+}
+internal class AddonStatus
+{
+	public function AddonStatus(id:String = null, info:Dictionary = null)
+	{
+		this.id = id;
+		this.info = info;
+	}
+	public var id:String;
+	public var info:Dictionary;
 }

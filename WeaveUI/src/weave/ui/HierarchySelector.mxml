@@ -42,26 +42,13 @@ Displays catoegories in a tree view and the attributes in a list.
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
-			import mx.collections.IList;
 			import mx.collections.XMLListCollection;
-			import mx.controls.Alert;
-			import mx.controls.ToolTip;
-			import mx.controls.Tree;
-			import mx.core.UIComponent;
-			import mx.events.DragEvent;
-			import mx.events.ListEvent;
-			import mx.managers.ToolTipManager;
-			import mx.utils.ObjectUtil;
 			
-			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
-			import weave.compiler.StandardLib;
 			import weave.core.LinkableString;
 			import weave.core.LinkableXML;
-			import weave.core.SessionManager;
-			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.primitives.AttributeHierarchy;
 			import weave.utils.HierarchyUtils;
 			

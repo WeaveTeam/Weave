@@ -75,20 +75,21 @@ A text editor to change the Session State on the fly.
 				</mx:VBox>
 			</mx:HDividedBox>
 		</mx:VBox>
-		<ui:Console id="console" context="{null}" height="0"/>
+		<ui:Console id="console" height="0"/>
 	</mx:VDividedBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
 			import mx.containers.VBox;
 			import mx.controls.Alert;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Application;
-			import mx.core.IInvalidating;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.DataGridEvent;
 			import mx.managers.PopUpManager;
+			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -99,6 +100,7 @@ A text editor to change the Session State on the fly.
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
 			import weave.api.getSessionState;
+			import weave.api.objectWasDisposed;
 			import weave.api.reportError;
 			import weave.api.setSessionState;
 			import weave.core.DynamicState;
@@ -107,7 +109,7 @@ A text editor to change the Session State on the fly.
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
 			import weave.core.weave_internal;
-			import weave.utils.EventUtils;
+			import weave.utils.DebugUtils;
 			import weave.utils.PopUpUtils;
 			use namespace weave_internal;
 			use namespace mx_internal;
@@ -133,7 +135,7 @@ A text editor to change the Session State on the fly.
 				//handle keyboard event CTRL +F to Search Box
 				this.addEventListener(KeyboardEvent.KEY_DOWN, handleCtrlFPressEvent)
 
-		    	EventUtils.addBindCallback(sessionNav, "selectedItem", handleSessionNavSelect);
+		    	BindingUtils.bindSetter(handleSessionNavSelect, sessionNav, "selectedItem");
 		    	
 				sessionNav.addEventListener(KeyboardEvent.KEY_UP, confirmDeleteSelectedItem);
 				
@@ -144,14 +146,6 @@ A text editor to change the Session State on the fly.
 				
 				sessionStateTextArea.getTextField().alwaysShowSelection = true;
 		    }
-			
-			override public function dispose():void
-			{
-				refreshTimer.stop();
-				EventUtils.removeBindCallback(sessionNav, "selectedItem", handleSessionNavSelect);
-				super.dispose();
-			}
-		    
 			
 		    private var _needRefresh:Boolean = false;
 		    private const refreshTimer:Timer = new Timer(200, 0);
@@ -180,6 +174,9 @@ A text editor to change the Session State on the fly.
 			}
 			private function handleRefreshTimer(event:TimerEvent):void
 		    {
+				if (objectWasDisposed(this))
+					return;
+				
 				if (visible && parent)
 				{
 					if (autoRefresh && _needRefresh && !_textModified) 
@@ -299,11 +296,11 @@ A text editor to change the Session State on the fly.
 		    		refresh();
 		    	}
 		    }
-			private function handleSessionNavSelect():void
+			private function handleSessionNavSelect(selectedItem:Object):void
 			{
 				var vsp:Number = sessionStateDataGrid.verticalScrollPosition;
-				if (sessionNav.selectedItem)
-					console.context = sessionNav.selectedItem.object;
+				if (selectedItem)
+					console.context = selectedItem.object;
 				
 				var dynamicObject:ILinkableDynamicObject = sessionNav.getSelectedLinkableObject() as ILinkableDynamicObject;
 				if (dynamicObject)
@@ -772,6 +769,14 @@ A text editor to change the Session State on the fly.
 				}
 			}
 			
+			// STATIC CODE - ADD KEYDOWN LISTENER IF RUNNING DEBUG PLAYER
+			private static function _initialize():void
+			{
+				if (Capabilities.isDebugger)
+					WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, null, handleKeyDown);
+			}
+			_initialize();
+			
 			private static var _instance:SessionStateEditor;
 			public static function getInstance():SessionStateEditor
 			{
@@ -792,6 +797,44 @@ A text editor to change the Session State on the fly.
 				defaultEditor.sessionNav.rootObject = rootObject;
 				defaultEditor.refresh();
 				defaultEditor.restorePanel();
+			}
+			
+			private static var _profileWithErrorLogPanel:Boolean = true;
+			private static var _showProfileData:Boolean = false;
+			private static function handleKeyDown():void
+			{
+				var event:KeyboardEvent = WeaveAPI.StageUtils.keyboardEvent;
+				if (event.keyCode == Keyboard.F8) // F8 to show profile data
+				{
+					// hold ctrl to toggle which panel to open
+					if (event.ctrlKey)
+						_profileWithErrorLogPanel = !_profileWithErrorLogPanel;
+					
+					var profileDump:Object = DebugUtils.profileDump(event.shiftKey); // hold shift to reset profile data
+					var console:Console;
+					if (_profileWithErrorLogPanel)
+					{
+						ErrorLogPanel.openErrorLog();
+						console = ErrorLogPanel.getInstance().console;
+					}
+					else // use error log panel
+					{
+						var defaultEditor:SessionStateEditor = getInstance();
+						if (!defaultEditor.parent)
+							openDefaultEditor();
+						// show console
+						if (profileDump && !defaultEditor.showConsole.selected)
+							defaultEditor.toggleShowConsole();
+						console = defaultEditor.console;
+					}
+					
+					// don't show any profile data until we have some.
+					if (!_showProfileData)
+						_showProfileData = profileDump != null;
+					
+					if (_showProfileData)
+						console.consoleTrace(ObjectUtil.toString(profileDump));
+				}
 			}
 		]]>
 	</mx:Script>

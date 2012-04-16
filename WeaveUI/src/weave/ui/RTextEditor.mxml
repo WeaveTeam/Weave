@@ -72,7 +72,7 @@ RTextEditor
 
 			<LabelWithWordWrap text="(6) Run your script on the server"/>
 			<mx:HBox>
-				<mx:Button id="B2" label="Run script"  buttonDown="viewAndSendbuttonClickHandler()"/>
+				<mx:Button id="B2" label="Run script"  click="viewAndSendbuttonClickHandler()"/>
 				<mx:CheckBox id="intermediateResultCB" label="Verbose" toolTip="Show intermediate results from R"/>
 				<mx:CheckBox id="warningCB" label="Warnings" toolTip="Show warnings from R"/>
 			</mx:HBox>
@@ -81,8 +81,8 @@ RTextEditor
 
 			<LabelWithWordWrap text="(7) Export your script for later use"/>
 			<mx:HBox>
-				<mx:Button id="exportBtn" label="Export" buttonDown="export_buttonDownHandler(event)"/>
-				<mx:Button id="importBtn" label="Import" buttonDown="import_buttonDownHandler(event)"/>	
+				<mx:Button id="exportBtn" label="Export" click="export_clickHandler(event)"/>
+				<mx:Button id="importBtn" label="Import" click="import_clickHandler(event)"/>	
 			</mx:HBox>						
 		</mx:VBox>
 		<mx:VBox width="25%" height="100%" verticalGap="0">
@@ -93,22 +93,14 @@ RTextEditor
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.controls.Alert;
 			import mx.controls.Image;
-			import mx.controls.List;
-			import mx.events.FlexEvent;
-			import mx.managers.FocusManager;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
-			import mx.utils.ArrayUtil;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableObject;
-			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
@@ -116,29 +108,16 @@ RTextEditor
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
-			import weave.core.DynamicState;
-			import weave.core.ErrorManager;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
-			import weave.core.SessionManager;
-			import weave.core.WeaveXMLDecoder;
-			import weave.core.WeaveXMLEncoder;
 			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.CSVColumn;
-			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.StringColumn;
-			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
-			import weave.services.DelayedAsyncInvocation;
 			import weave.services.DelayedAsyncResponder;
-			import weave.services.WeaveStatisticsServlet;
-			import weave.services.beans.HierarchicalClusteringResult;
-			import weave.services.beans.KMeansClusteringResult;
-			import weave.services.beans.LinearRegressionResult;
+			import weave.services.WeaveRServlet;
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
-			import weave.utils.DebugTimer;
-			import weave.utils.ProbeTextUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.tools.SimpleVisTool;
 			
@@ -146,12 +125,8 @@ RTextEditor
 			
 			private const padding:int = 5;
 			
-			private static function get selection():KeySet
-			{
-				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			}
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
-			private var Rservice:WeaveStatisticsServlet = new WeaveStatisticsServlet(Weave.properties.rServiceURL.value);
+			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			public const inputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			public const plotTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			public const outputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
@@ -201,6 +176,7 @@ RTextEditor
 			 */
 			private function joinColumns(columns:Array):Array
 			{
+				var selection:KeySet = Weave.defaultSelectionKeySet;
 				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
 				//make dataype Null, so that columns will be sent as exact dataype to R
 				//if mentioned as String or NUmber ,will convert all columns to String or Number .
@@ -208,7 +184,10 @@ RTextEditor
 				return [result.shift(), result];
 			}
 			
-			private function viewAndSendbuttonClickHandler(): void{
+			private function viewAndSendbuttonClickHandler():void
+			{
+				ResultTA.text = '';
+				
 				var result:Array = new Array();
 				//Columns from Joined columns Method
 				var joinedColumnQKeys:Array;
@@ -272,7 +251,7 @@ RTextEditor
 				//Query is created from runScript with same signature from Jave side
 				var showIntermediateResults:Boolean = intermediateResultCB.selected;
 				var showWarnings:Boolean = warningCB.selected;
-				var query:AsyncToken = Rservice.runScript(assignNames, assignValues, outputNames, script,plotScript, showIntermediateResults,showWarnings);
+				var query:AsyncToken = Rservice.runScript(null,assignNames, assignValues, outputNames, script,plotScript, showIntermediateResults,showWarnings,false);
 				
 				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinedColumnQKeys);
 			}
@@ -416,7 +395,7 @@ RTextEditor
 			
 			private var _sessionFileSaver:FileReference = null;
 			private var _sessionFileLoader:FileReference = null;
-			protected function export_buttonDownHandler(event:FlexEvent):void
+			protected function export_clickHandler(event:MouseEvent):void
 			{
 				var rScriptSessionState:XML =
 					<RScriptEditor>
@@ -442,7 +421,7 @@ RTextEditor
 			}
 			
 			private var _defaultsFilename:String = null;
-			protected function import_buttonDownHandler(event:FlexEvent):void
+			protected function import_clickHandler(event:MouseEvent):void
 			{
 				var loadedXML:XML = new XML();
 				if(_sessionFileLoader == null)

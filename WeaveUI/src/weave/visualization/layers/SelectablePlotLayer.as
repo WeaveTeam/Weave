@@ -42,7 +42,6 @@ package weave.visualization.layers
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
-	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.utils.SpatialIndex;
 	import weave.visualization.plotters.DynamicPlotter;
@@ -133,7 +132,7 @@ package weave.visualization.layers
 			
 			getCallbackCollection(selectionFilter).addGroupedCallback(this, showOrHideEmptySelectionText);
 			getCallbackCollection(probeFilter).addGroupedCallback(this, showOrHideEmptySelectionText);
-			getCallbackCollection(selectionFilter).addImmediateCallback(this, handleSelectionChange, null, true);
+			getCallbackCollection(selectionFilter).addImmediateCallback(this, handleSelectionChange, true);
 
 			registerLinkableChild(this, plotter);
 			registerLinkableChild(this, subsetFilter);
@@ -178,7 +177,7 @@ package weave.visualization.layers
 				return;
 
 			// don't animate if nothing is probed
-			if((Weave.root.getObject(Weave.DEFAULT_PROBE_KEYSET) as KeySet).keys.length == 0)
+			if (Weave.defaultProbeKeySet.keys.length == 0)
 			{
 				_frameTimeTotal = 0;
 				return;

@@ -172,11 +172,9 @@
 				LinkableTextFormat.defaultTextFormat.copyToStyle(marginLabel);
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "Bar Chart Legend";
+				return "Bar Chart Legend";
 			}
 			
 			private static const DEFAULT_MARGIN_TOP:int = 25;
@@ -201,6 +199,7 @@
 	</mx:Script>
 	
 	<mx:TextArea id="marginLabel"
+			visible="{marginLabel.height > 0}"
 			mouseChildren="false" mouseEnabled="false"
 			fontWeight="bold" 
 			x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5" width="100%"

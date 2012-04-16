@@ -31,8 +31,15 @@
 	paddingLeft="{padding}" paddingRight="{padding}" paddingBottom="{padding}" paddingTop="{padding}" verticalGap="{padding}"
 	minHeight="0"
 	verticalScrollPolicy="off">
-	<mx:TextArea id="log" click="handleConsoleLogClick()" mouseDown="handleConsoleLogClick()" width="100%" height="100%" minHeight="0" editable="false" borderStyle="{innerBorderStyle}"/>
-	<mx:TextInput id="input" width="100%" enter="runCommand()" borderStyle="{innerBorderStyle}"/>
+	<mx:TextArea id="log"
+				 click="handleConsoleLogClick()"
+				 mouseDown="handleConsoleLogClick()"
+				 width="100%" height="100%" minHeight="0" editable="false" borderStyle="{innerBorderStyle}"/>
+	<mx:TextInput id="input" width="100%"
+				  borderStyle="{innerBorderStyle}"
+				  enter="runCommand()"
+				  keyDown="handleConsoleKeyDown(event)"
+				  />
 	<mx:Script>
 		<![CDATA[
 			import mx.containers.VBox;
@@ -48,7 +55,6 @@
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
-			import weave.core.ClassUtils;
 			import weave.core.ExternalSessionStateInterface;
 			import weave.core.weave_internal;
 			use namespace weave_internal;
@@ -83,15 +89,21 @@
 					target = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(target as Array);
 				return ILinkableObject(target);
 			}
+			private const watchLookup:Dictionary = new Dictionary(true);
 			private function consoleWatch(target:Object, debugString:String):void
 			{
 				var linkableTarget:ILinkableObject = getObject(target);
-				getCallbackCollection(linkableTarget).addImmediateCallback(null, consoleTraceEval, [linkableTarget, debugString]);
+				consoleUnwatch(linkableTarget);
+				var callback:Function = function():void { consoleTraceEval(linkableTarget, debugString); };
+				watchLookup[linkableTarget] = callback;
+				getCallbackCollection(linkableTarget).addImmediateCallback(null, callback);
 			}
 			private function consoleUnwatch(target:Object):void
 			{
 				var linkableTarget:ILinkableObject = getObject(target);
-				getCallbackCollection(linkableTarget).removeCallback(consoleTraceEval);
+				var callback:Function = watchLookup[linkableTarget];
+				delete watchLookup[linkableTarget];
+				getCallbackCollection(linkableTarget).removeCallback(callback);
 			}
 			private function consoleTraceEval(thisArg:Object, script:String):void
 			{
@@ -106,22 +118,19 @@
 					consoleTrace(script, e);
 				}
 			}
-			private function consoleTrace(...args):void
+			public function consoleTrace(...args):void
 			{
 				log.text += '\r\r' + args.join('\r');
 				log.validateNow();
 				log.verticalScrollPosition = log.maxVerticalScrollPosition;
 			}
-			private function consoleClear(now:Boolean = false):void
+			private function consoleClear():String
 			{
-				if (now)
-					log.text = '';
-				else
-					WeaveAPI.StageUtils.callLater(this, consoleClear, [true], false);
+				return log.text = '';
 			}
 			
 			private const symbolTable:Object = {
-				'javaScript': function(...args):*
+				'call': function(...args):*
 				{
 					var prev:Boolean = ExternalInterface.marshallExceptions;
 					try
@@ -147,7 +156,17 @@
 			{
 				if (!input.text)
 					return;
-				
+
+				// append command text to log
+				log.text += '\r\r' + input.text;
+				// remove duplicate history items
+				var index:int;
+				while ((index = history.indexOf(input.text)) >= 0)
+					history.splice(index, 1);
+				// add command to end of history, and point historyIndex to that command
+				historyIndex = history.push(input.text) - 1;
+
+				// run the command
 				var result:*;
 				var decompiled:String;
 				try
@@ -174,14 +193,17 @@
 					{
 						result = String(result)
 					}
+					// if the command runs successfully, clear the input area
+					input.text = '';
+					historyIndex = history.length;
 				}
 				catch (e:Error)
 				{
 					result = e;
 				}
 				
-				log.text += StringUtil.substitute('\r\r{0}\r{1}', input.text, result);
-				input.setSelection(0, int.MAX_VALUE);
+				// append result to log
+				log.text += '\r' + result;
 				log.validateNow();
 				log.verticalScrollPosition = log.maxVerticalScrollPosition;
 			}
@@ -201,6 +223,32 @@
 					input.text = StringUtil.trim(log.text.substring(log.selectionBeginIndex, log.selectionEndIndex)).split('\r').join('; ');
 					input.setSelection(0, input.text.length);
 				}
+			}
+			
+			private var history:Array = [];
+			private var historyIndex:int = 0;
+			private function handleConsoleKeyDown(event:KeyboardEvent):void
+			{
+				if (event.keyCode == Keyboard.UP)
+				{
+					historyIndex = Math.max(0, historyIndex - 1);
+				}
+				else if (event.keyCode == Keyboard.DOWN)
+				{
+					historyIndex = Math.min(history.length, historyIndex + 1);
+				}
+				else
+				{
+					// do not modify input text
+					return;
+				}
+				
+				if (historyIndex < history.length)
+					input.text = history[historyIndex];
+				else
+					input.text = '';
+				
+				input.setSelection(int.MAX_VALUE, int.MAX_VALUE);
 			}
 		]]>
 	</mx:Script>

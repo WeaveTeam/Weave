@@ -2374,7 +2374,7 @@ wheel</zoom>
       </hierarchy>
     </attributeHierarchy>
     <hierarchyURL/>
-    <url>/WeaveServices/DataService</url>
+    <url>http://demo.oicweave.org:8080/WeaveServices/DataService</url>
   </WeaveDataSource>
   <LinkableHashMap name="Probe Header Columns" encoding="dynamic"/>
   <LinkableHashMap name="Probed Columns" encoding="dynamic"/>

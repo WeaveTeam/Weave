@@ -56,7 +56,7 @@
 				invalidateAxes();
 				
 				initColumnDefaults(_plotter.unfilteredData);
-				_plotter.binnedData.addImmediateCallback(this,updateProbeColumns,null,true);
+				_plotter.binnedData.addImmediateCallback(this,updateProbeColumns,true);
 				
 				visualization.marginTop.value = "65";
 				visualization.marginBottom.value = "65";
@@ -102,11 +102,9 @@
 				handlePanelTitleChange();
 			}
 			
-			override protected function handlePanelTitleChange():void
+			override protected function get defaultPanelTitle():String
 			{
-				super.handlePanelTitleChange();
-				if (!panelTitle.value)
-					title = "[Pie Chart Histogram] of " + ColumnUtils.getTitle(_plotter.unfilteredData);
+				return "[Pie Chart Histogram] of " + ColumnUtils.getTitle(_plotter.unfilteredData);
 			}
 			
 			

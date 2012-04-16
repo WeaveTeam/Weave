@@ -49,56 +49,24 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
-			import mx.collections.ArrayCollection;
 			import mx.collections.ListCollectionView;
-			import mx.collections.XMLListCollection;
-			import mx.controls.Alert;
 			import mx.controls.Label;
-			import mx.controls.List;
 			import mx.core.Application;
-			import mx.core.Container;
-			import mx.core.DragSource;
-			import mx.core.IContainer;
-			import mx.core.IUIComponent;
-			import mx.core.UIComponent;
-			import mx.effects.easing.Circular;
-			import mx.events.DragEvent;
-			import mx.events.ItemClickEvent;
-			import mx.events.ListEvent;
-			import mx.graphics.Stroke;
-			import mx.managers.CursorManager;
-			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
-			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.copySessionState;
-			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
-			import weave.api.data.IDataSource;
 			import weave.api.disposeObjects;
-			import weave.api.linkSessionState;
-			import weave.api.registerLinkableChild;
-			import weave.api.unlinkSessionState;
-			import weave.core.LinkableHashMap;
-			import weave.core.LinkableString;
-			import weave.core.LinkableXML;
-			import weave.core.SessionManager;
-			import weave.core.WeaveXMLEncoder;
-			import weave.core.weave_internal;
+			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
-			import weave.data.AttributeColumns.ProxyColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
-			import weave.primitives.AttributeHierarchy;
 			import weave.utils.HierarchyUtils;
-			import weave.visualization.tools.SimpleVisTool;
 
 			override protected function constructor():void
 			{
@@ -252,7 +220,7 @@
 				return _defaultSelector;
 			}
 			public static var _defaultSelector:AttributeSelectorPanel;
-			public static function openToolSelector(tool:SimpleVisTool, attributeToLinkTo:ILinkableObject):void
+			public static function openToolSelector(tool:IVisToolWithSelectableAttributes, attributeToLinkTo:ILinkableObject):void
 			{
 				if (!Weave.properties.enableToolControls.value)
 					return;

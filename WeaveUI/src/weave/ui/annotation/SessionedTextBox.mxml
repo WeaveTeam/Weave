@@ -177,7 +177,7 @@
 			
 			override protected function updateForceEnableBorders():void
 			{
-				if (controlPanel.parent)
+				if (controlPanel && controlPanel.parent)
 					super.updateForceEnableBorders();
 				else
 					forceEnableBorders.value = false;
@@ -690,11 +690,11 @@
 			private function getValueAt(dataSourceName:String, columnName:String, key:String):String {
 				
 				var path:Array = dataSourceName.split("/");
+				var dataSource:IDataSource = Weave.root.getObject(path[0]) as IDataSource;
 				if(dataSourceName.search("/") > 0) {
 					//The session state associated with each variable in the path
 					var state:Object = null;
 					
-					var dataSource:IDataSource = Weave.root.getObject(path[0]) as IDataSource;
 					trace( (dataSource.attributeHierarchy as AttributeHierarchy).value.children().toXMLString() );
 					//If the requested object is contained in the root, get the session state for that object
 					if(dataSource){
@@ -711,9 +711,6 @@
 						
 						ObjectUtil.toString(state);
 					}
-				}
-				else {
-					var dataSource:IDataSource = Weave.root.getObject(path[0]) as IDataSource;
 				}
 				var columnList:XMLList = (dataSource.attributeHierarchy as AttributeHierarchy).value.descendants();
 				var columnReference:HierarchyColumnReference = new HierarchyColumnReference();

@@ -60,10 +60,11 @@
 				//BEGIN TEMPORARY SOLUTION
 				visualization.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
 				visualization.marginBottomNumber.addImmediateCallback(this, updateAxisLabels);
-				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, null, true);
+				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, true);
 				// END TEMPORARY SOLUTION
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector,[this,_plotter.sortColumn])
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, AttributeSelectorPanel.openToolSelector,[this,_plotter.yBarEnd])
+				var self:* = this;
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, _plotter.sortColumn); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, _plotter.yBarEnd); })
 
 				initColumnDefaults(
 						_plotter.yBarEnd,
@@ -99,8 +100,7 @@
 			
 			private function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			private function alphaSliderFormatFunction(item:Number):String {

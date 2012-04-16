@@ -23,18 +23,15 @@ package weave.utils
 	import flash.display.DisplayObjectContainer;
 	import flash.events.TimerEvent;
 	import flash.system.Capabilities;
-	import flash.utils.*;
+	import flash.utils.ByteArray;
+	import flash.utils.Timer;
+	import flash.utils.getQualifiedClassName;
 	
-	import mx.controls.Alert;
 	import mx.utils.StringUtil;
 	
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableBoolean;
 	
 	/**
-	 * DebugUtils
-	 * 
-	 * @author abaumann
 	 * @author adufilie
 	 */
 	public class DebugUtils
@@ -55,12 +52,16 @@ package weave.utils
 				trace(str);
 			return str;
 		}
-		// format debug info from stack trace
+		
+		private static const STACK_TRACE_DELIM:String = '\n\tat ';
+		/**
+		 * format debug info from stack trace
+		 */
 		public static function getCompactStackTrace(e:Error):Array
 		{
 			if (!Capabilities.isDebugger)
 				return null;
-			var lines:Array = e.getStackTrace().split('\n\tat ');
+			var lines:Array = e.getStackTrace().split(STACK_TRACE_DELIM);
 			lines.shift(); // remove the first line which is not part of the stack trace
 			for (var i:int = 0; i < lines.length; i++)
 			{
@@ -88,71 +89,13 @@ package weave.utils
 		}
 
 		/**
-		 * generateID
 		 * This function returns a unique integer each time it is called.
 		 */
-		private static var nextGeneratedID:int = 0;
 		public static function generateID():int
 		{
 			return nextGeneratedID++;
 		}
-		
-		//		public static function debugLinkableObject(object:ILinkableObject):void
-		//		{
-		//			SessionManager.addImmediateCallback(object, _debugLinkableObject, [object], true);
-		//		}
-		//		
-		//		private static function _debugLinkableObject(object:ILinkableObject):void
-		//		{
-		//			var state:Object = SessionManager.getSessionState(object);
-		//			return; // add breakpoint here
-		//		}
-		
-		public static const enableDebugAlert:LinkableBoolean = new LinkableBoolean(false);
-		
-		public static function _trace(...args):void { trace(args); };
-		
-		public static function debug_trace(originClass:Object, ... args):void
-		{
-			var classStr:String = "[" + getTimer() + "] {" + getQualifiedClassName(originClass) + "}";
-			var traceStr:String = "";
-			
-			for each (var item:* in args)
-			{
-				if (item is Array)
-				{
-					for each (var arrayElement:* in item)
-					traceStr += formatDebugItem(arrayElement);
-				}
-				else if (item is XML)
-					traceStr += (item as XML).toXMLString();
-				else
-					traceStr += formatDebugItem(item);
-			}
-			
-			if (enableDebugAlert.value)
-				Alert.show(traceStr, classStr);
-			
-			trace(classStr + "\n" + traceStr);
-		}
-		
-		private static function formatDebugItem(item:*):String
-		{
-			var indent:int = 24;
-			var classStr:String = getQualifiedClassName(item);
-			
-			// get rid of path
-			var pos:int = classStr.indexOf("::");
-			if (pos >= 0)
-				classStr = classStr.substr(pos + 2);
-			
-			// indent so ':' will line up
-			classStr = "  {" + classStr + "}";
-			while (classStr.length < indent)
-				classStr += " ";
-			
-			return classStr + ":  " + item + "\n";
-		}
+		private static var nextGeneratedID:int = 0;
 		
 		public static function getHexString(bytes:ByteArray):String
 		{
@@ -170,18 +113,60 @@ package weave.utils
 		}
 		
 		/**
-		 * callLater
 		 * @param func The function to call.
 		 * @param params An array of parameters to pass to the function.
 		 * @param delay The delay before the function is called.
-		 * 
-		 * @author adufilie
 		 */
 		public static function callLater(delay:int, func:Function, params:Array = null):void
 		{
 			var t:Timer = new Timer(delay, 1);
 			t.addEventListener(TimerEvent.TIMER, function(..._):*{ func.apply(null, params); });
 			t.start();
+		}
+		
+		/**
+		 * This function will increment a counter associated with a line of code that is causing this function to be called.
+		 * @param stackDepth The stack depth to record in the profile data.  Default zero will profile the line that is calling this function.
+		 */
+		public static function profile(description:String = null, stackDepth:int = 0):uint
+		{
+			var lookup:String = '';
+			if (_canGetStackTrace)
+			{
+				var stackTrace:String = new Error().getStackTrace();
+				var stack:Array = stackTrace.split(STACK_TRACE_DELIM);
+				// stack[1] is the line in this file
+				// stack[2] is the line that called this function
+				lookup += stack[2 + stackDepth];
+			}
+			else if (!description)
+			{
+				// do nothing if we can't get a stack trace and there is no description
+				return 0;
+			}
+			
+			if (description)
+				lookup += ' ' + description;
+			if (!_profileLookup)
+				_profileLookup = {};
+			
+			return _profileLookup[lookup] = uint(_profileLookup[lookup]) + 1;
+		}
+		private static var _profileLookup:Object = null;
+		private static var _canGetStackTrace:Boolean = new Error().getStackTrace() != null;
+		
+		/**
+		 * This will retrieve a dynamic object containing the current profile data,
+		 * mapping a line of code to a number indicating how many times that line was executed.
+		 * @param reset Set this to true to clear the current profile data.
+		 * @return The current profile data.
+		 */
+		public static function profileDump(reset:Boolean = false):Object
+		{
+			var dump:Object = _profileLookup;
+			if (reset)
+				_profileLookup = null;
+			return dump;
 		}
 	}
 }

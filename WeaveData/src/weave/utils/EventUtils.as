@@ -20,16 +20,17 @@
 package weave.utils
 {
 	import flash.events.Event;
-	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
 	import flash.events.TimerEvent;
-	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 	
 	import mx.binding.utils.BindingUtils;
 	import mx.binding.utils.ChangeWatcher;
 	
+	import weave.api.core.ICallbackCollection;
+	import weave.api.newDisposableChild;
 	import weave.api.objectWasDisposed;
+	import weave.core.CallbackCollection;
 	
 	/**
 	 * Static functions related to event callbacks.
@@ -44,7 +45,7 @@ package weave.utils
 		 * @param secondaryHost The second host.
 		 * @param secondaryProperty The name of a property on the second host.
 		 */		
-		public static function doubleBind(primaryHost:IEventDispatcher, primaryProperty:String, secondaryHost:IEventDispatcher, secondaryProperty:String):void
+		public static function doubleBind(primaryHost:Object, primaryProperty:String, secondaryHost:Object, secondaryProperty:String):void
 		{
 			BindingUtils.bindSetter(function(primaryValue:Object):void {
 				if (secondaryHost[secondaryProperty] !== primaryValue)
@@ -56,57 +57,20 @@ package weave.utils
 			}, secondaryHost, secondaryProperty);
 		}
 		
-		
-		/**
-		 * This maps a bindable parent to a Dictionary.
-		 * That Dictionary maps a callback function to a change watcher that calls it.
-		 */
-		private static const bindableParentCallbackMap:Dictionary = new Dictionary(true); // weak keys = GC-friendly
-		
-		public static function addBindCallback(bindableParent:Object, bindablePropertyName:String, callback:Function, callbackParameters:Array = null):void
+		public static function addDelayedEventCallback(eventDispatcher:Object, event:String, callback:Function, delay:int = 500):void
 		{
-			removeBindCallback(bindableParent, bindablePropertyName, callback);
-			
-			var callbackMap:Object = bindableParentCallbackMap[bindableParent];
-			if (callbackMap == null)
-				bindableParentCallbackMap[bindableParent] = callbackMap = new Dictionary(); // strong references to keys because they will be inline functions
-			callbackMap[callback] = BindingUtils.bindSetter(
-					function(value:*):void{ callback.apply(null, callbackParameters); },
-					bindableParent, bindablePropertyName
-				);
-		}
-		
-		public static function removeBindCallback(bindableParent:Object, bindablePropertyName:String, callback:Function):void
-		{
-			var callbackMap:Object = bindableParentCallbackMap[bindableParent];
-			if (callbackMap == null)
-				return;
-			var cw:ChangeWatcher = callbackMap[callback] as ChangeWatcher;
-			if (cw == null)
-				return;
-			cw.unwatch();
-			delete callbackMap[callback];
-		}
-		
-		public static function addEventCallback(eventDispatcher:Object, event:String, callback:Function, params:Array = null):void
-		{
-			eventDispatcher.addEventListener(event, function(event:Event):void { callback.apply(null, params); } );
-		}
-		
-		public static function addDelayedCallback(eventDispatcher:Object, event:String, callback:Function, delay:int = 500):void
-		{
-			eventDispatcher.addEventListener(event, generateDelayedCallback(eventDispatcher, callback, [], delay));
+			eventDispatcher.addEventListener(event, generateDelayedCallback(eventDispatcher, callback, delay));
 		}
 		
 		/**
 		 * This function generates a delayed version of a callback.
 		 * @param relevantContext If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
-		 * @param callback The callback function
-		 * @param callbackParams If this is specified, parameters passed to the generated wrapper function will be ignored and these parameters will be used instead when calling the callback.
+		 * @param callback The callback function.
 		 * @param delay The number of milliseconds to delay before running the callback.
+		 * @param passDelayedParameters If this is set to true, the most recent parameters passed to the delayed callback will be passed to the original callback when it is called.  If this is set to false, no parameters will be passed to the original callback.
 		 * @return A wrapper around the callback that remembers the parameters and delays calling the original callback.
 		 */
-		public static function generateDelayedCallback(relevantContext:Object, callback:Function, callbackParams:Array = null, delay:int = 500):Function
+		public static function generateDelayedCallback(relevantContext:Object, callback:Function, delay:int = 500, passDelayedParameters:Boolean = false):Function
 		{
 			var _timer:Timer = new Timer(delay, 1);
 			var _delayedThisArg:Object;
@@ -125,11 +89,59 @@ package weave.utils
 			{
 				// call the original callback with the params passed to delayedCallback
 				if (!objectWasDisposed(relevantContext))
-					callback.apply(_delayedThisArg, callbackParams || _delayedParams);
+					callback.apply(_delayedThisArg, passDelayedParameters ? _delayedParams : null);
 			};
 			_timer.addEventListener(TimerEvent.TIMER_COMPLETE, callback_apply);
 			
 			return delayedCallback;
 		}
+		
+		/*
+		private static const bindCallbackCollectionCache:Dictionary2D = new Dictionary2D(true, true); // (bindableParent, bindablePropertyName) -> BindCallbackManager
+		public static function getBindablePropertyCallbackCollection(bindableParent:Object, bindablePropertyName:String):ICallbackCollection
+		{
+			var manager:BindCallbackManager = bindCallbackCollectionCache.get(bindableParent, bindablePropertyName);
+			if (!manager)
+			{
+				manager = new BindCallbackManager(bindableParent, bindablePropertyName);
+				bindCallbackCollectionCache.set(bindableParent, bindablePropertyName, manager);
+			}
+			return manager.callbackCollection;
+		}
+		
+		private static const eventCallbackCollectionCache:Dictionary2D = new Dictionary2D(true, true); // (dispatcher, eventType) -> ICallbackCollection
+		public static function getEventCallbackCollection(dispatcher:IEventDispatcher, eventType:String):ICallbackCollection
+		{
+			var cc:ICallbackCollection = eventCallbackCollectionCache.get(dispatcher, eventType);
+			if (!cc)
+			{
+				cc = newDisposableChild(dispatcher, CallbackCollection);
+				bindCallbackCollectionCache.set(dispatcher, eventType, cc);
+				dispatcher.addEventListener(eventType, function(event:Event):void { cc.triggerCallbacks(); });
+			}
+			return cc;
+		}
+		*/
 	}
 }
+/*
+import mx.binding.utils.BindingUtils;
+import mx.binding.utils.ChangeWatcher;
+
+import weave.api.core.ICallbackCollection;
+import weave.api.newDisposableChild;
+import weave.core.CallbackCollection;
+
+internal class BindCallbackManager
+{
+	public function BindCallbackManager(bindableParent:Object, bindablePropertyName:String)
+	{
+		callbackCollection = newDisposableChild(bindableParent, CallbackCollection);
+		var trigger:Function = function(value:*):void { callbackCollection.triggerCallbacks(); };
+		changeWatcher = BindingUtils.bindSetter(trigger, bindableParent, bindablePropertyName);
+	}
+	
+	public var changeWatcher:ChangeWatcher;
+	public var callbackCollection:ICallbackCollection;
+}
+*/

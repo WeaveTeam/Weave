@@ -48,8 +48,6 @@ package weave.visualization.plotters
 		public function AxisLabelPlotter()
 		{
 			hideOverlappingText.value = false;
-			xScreenOffset.value = 0;
-			yScreenOffset.value = 0;
 			setKeySource(text);
 			horizontal.value = true;
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
@@ -67,13 +65,15 @@ package weave.visualization.plotters
 		public const color:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
 		public const horizontal:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const text:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const textFormatAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
 		public const hAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_CENTER));
 		public const vAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const angle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		public const hideOverlappingText:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		public const xScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const yScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const xScreenOffset:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+		public const yScreenOffset:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 		public const maxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(80));
+		public const alignToDataMax:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['number', 'string']));
 
@@ -100,7 +100,8 @@ package weave.visualization.plotters
 			bitmapText.angle = angle.value;
 			bitmapText.verticalAlign = vAlign.value;
 			bitmapText.horizontalAlign = hAlign.value;
-			bitmapText.maxWidth = maxWidth.value - xScreenOffset.value;
+			bitmapText.maxWidth = maxWidth.value;
+			bitmapText.textFormat.align = textFormatAlign.value;
 			
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
@@ -125,16 +126,16 @@ package weave.visualization.plotters
 				if (horizontal.value)
 				{
 					tempPoint.x = number;
-					tempPoint.y = dataBounds.getYMin();
+					tempPoint.y = alignToDataMax.value ? dataBounds.getYMax() : dataBounds.getYMin();
 				}
 				else
 				{
-					tempPoint.x = dataBounds.getXMin();
+					tempPoint.x = alignToDataMax.value ? dataBounds.getXMax() : dataBounds.getXMin();
 					tempPoint.y = number;
 				}
 				dataBounds.projectPointTo(tempPoint, screenBounds);
-				bitmapText.x = tempPoint.x;
-				bitmapText.y = tempPoint.y;
+				bitmapText.x = tempPoint.x + xScreenOffset.value;
+				bitmapText.y = tempPoint.y + yScreenOffset.value;
 									
 				bitmapText.draw(destination);
 			}
