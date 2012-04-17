@@ -192,10 +192,6 @@
 				_plotter.resetIterations(1);
 				_plotter.resetAllNodes();
 			}
-			private function handleSpatialCallbacks(event:ContextMenuEvent):void
-			{
-				WeaveAPI.StageUtils.callLater(this, _plotter.spatialCallbacks.triggerCallbacks, null, true);
-			}
 			
 			override public function getSelectableAttributeNames():Array
 			{
