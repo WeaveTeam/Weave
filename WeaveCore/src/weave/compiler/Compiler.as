@@ -40,7 +40,11 @@ package weave.compiler
 			initialize();
 			includeLibraries(Math, StringUtil, StandardLib);
 			
-			//StageUtils.callLater(null, test);
+			if (!_testComplete)
+			{
+				_testComplete = true;
+				//test();
+			}
 		}
 		
 		/**
@@ -1401,6 +1405,7 @@ package weave.compiler
 		}
 		
 		//-----------------------------------------------------------------
+		private static var _testComplete:Boolean = false;
 		private static function test():void
 		{
 			var compiler:Compiler = new Compiler();

@@ -615,7 +615,7 @@ package weave
 
 					//trace("MENU BAR ADDED");
 					_weaveMenu.percentWidth = 100;
-					WeaveAPI.StageUtils.callLater(this,setupVisMenuItems,null,false);
+					callLater(setupVisMenuItems);
 					
 					//PopUpManager.addPopUp(_weaveMenu, this);
 					this.addChildAt(_weaveMenu, 0);
@@ -913,7 +913,7 @@ package weave
 			}
 			DebugTimer.end('loadSessionState', fileName);
 
-			WeaveAPI.StageUtils.callLater(this, toggleMenuBar, null, false);
+			callLater(toggleMenuBar);
 			
 			if (!getFlashVarAdminConnectionName())
 				enabled = true;
