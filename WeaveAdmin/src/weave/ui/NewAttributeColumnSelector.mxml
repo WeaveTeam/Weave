@@ -7,13 +7,18 @@
                 creationComplete="handleCreationComplete()">
     <mx:HDividedBox id="selectorBox" width="100%" height="100%">
         <mx:VBox id="groupBox" height="100%" width="100%">
-            <mx:ComboBox id="modeCombo" height="20" change="onComboSelect">
+            <mx:ComboBox id="modeCombo" height="20" change="onComboSelect(event)">
             </mx:ComboBox>
-            <mx:Tree height="100%" width="100%" id="tagtableTree"/>
+            <mx:Tree height="100%" width="100%" id="tagtableTree" itemOpening="onGroupExpand(event)" change="onGroupSelect(event)" itemClick="onGroupSelect(event)"/>
+            <mx:HBox id="editorBox" width="100%" includeInLayout="false" visible="false">
+                <ui:TextInputWithPrompt width="100%" id="addTagInput" prompt="New Tag Name"/>
+                <mx:Button label="Add Tag" id="addTagButton"/>
+                <mx:Button label="Delete Tag" id="deleteTagButton"/>
+            </mx:HBox>
         </mx:VBox>
         <mx:VBox id="columnBox" height="100%" width="100%">
             <mx:Label text="Attribute Columns" height="20"/>
-            <mx:List height="100%" width="100%" id="columnList"/>
+            <mx:List height="100%" width="100%" id="columnList" change="onColumnSelect(event)"/>
         </mx:VBox>
     </mx:HDividedBox>
     <mx:HBox id="searchBox" width="100%">
@@ -22,23 +27,19 @@
         </mx:ComboBox>
         <mx:Button width="10%" label="Search" id="searchButton"/>
     </mx:HBox>
-    <mx:HBox id="editorBox" width="100%" visible="false">
-        <mx:Button label="Add Tag"/>
-        <mx:Button label="Delete Tag"/>
-    </mx:HBox>
 <mx:Script>
 <![CDATA[
+    import mx.utils.ObjectUtil;
     import mx.binding.utils.BindingUtils;
     import mx.events.ListEvent;
     import mx.events.TreeEvent;
     import mx.rpc.events.ResultEvent;
     import weave.services.AdminInterface;
+    import weave.services.WeaveAdminService;
     import weave.services.beans.AttributeColumnInfo;
     import weave.ui.EntityTreeNode;
-
     public var adminService:AdminInterface
-    [Bindable] public var selectedItem:Object;
-
+    [Bindable] public var selectedItem:EntityTreeNode;
     private var tagTree:Array;
     private var dataTables:Array;
 
@@ -49,20 +50,27 @@
     {
         var comboArray:Array = new Array("Tags","Tables");
         modeCombo.dataProvider = comboArray;
+
          
         return;
     }
     public function populateRoot(onFinish:Function=null):void
     {
+        var acs:NewAttributeColumnSelector = this;
         function populateRootHandler(event:ResultEvent, token:Object = null):void
         {
+            acs.dataTables = new Array();
+            acs.tagTree = new Array();
             var entities:Array = event.result as Array || [];
-            for each (var entity:AttributeColumnInfo in entities)
+            for each (var obj:Object in entities)
             {
+                yell(ObjectUtil.toString(obj));
+                var entity:AttributeColumnInfo = new AttributeColumnInfo(obj);
+                if (entity == null) continue;
                 if (entity.entity_type == 2)
-                    tagTree.push(new EntityTreeNode(entity));
+                    acs.tagTree.push(new EntityTreeNode(entity));
                 else if (entity.entity_type == 0)
-                    dataTables.push(new EntityTreeNode(entity));
+                    acs.dataTables.push(new EntityTreeNode(entity));
             }
             if (onFinish != null)
             {
@@ -81,20 +89,54 @@
         columnList.dataProvider = null;
         columnList.dataProvider = old;
     }
+    private function yell(str:String):void
+    {
+        WeaveAdminService.messageDisplay(null, str, false);
+    }
     private function onComboSelect(event:ListEvent):void
     {
-        if (tagTree == null) tagTree = new Array();
+        yell("Combo selected.");
+        if (modeCombo.selectedItem == "Tags")
+        {
+            tagtableTree.dataProvider = tagTree;
+            /* Todo: Test if we are superuser. */
+            editorBox.includeInLayout = true;
+            editorBox.visible = true;
+        }
+        else
+        {
+            tagtableTree.dataProvider = dataTables;
+            editorBox.includeInLayout = false;
+            editorBox.visible = false;
+        }
         populateRoot(this.frobProvider);
+    }
+    private function onGroupExpand(event:TreeEvent):void
+    {
+        event.item.populate();
+        yell("Expanded item."); 
+    }
+    private function setListProvider(etn:EntityTreeNode):void
+    {
+        columnList.dataProvider = etn.columns;
     }
     private function onGroupSelect(event:ListEvent):void
     {
-        event.target.selectedItem.object;
+        var etn:EntityTreeNode = tagtableTree.selectedItem as EntityTreeNode;
+        if (etn == null) return;
+        if (!etn.is_populated) etn.populate(setListProvider);
+        setListProvider(etn);
+        selectedItem = etn;
+        columnList.selectedItem = null;
+        yell("Group Selected.");
     }
     private function onColumnSelect(event:ListEvent):void
     {
-        selectedItem = event.target.selectedItem.object;
-    }
-    
+        yell("Selected column.");
+        var etn:EntityTreeNode = columnList.selectedItem as EntityTreeNode;
+        if (etn != null)
+            selectedItem = etn;
+    } 
 ]]>
 </mx:Script>
 </mx:VBox>

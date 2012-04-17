@@ -23,7 +23,6 @@ package weave.services.beans
 	{
 		public var id:int;
 		public var entity_type:int;
-                public var parent_id:int;
 		public var privateMetadata:Object;
 		public var publicMetadata:Object;
 		
@@ -33,7 +32,7 @@ package weave.services.beans
                         this.entity_type = o.type
 			this.privateMetadata = o.privateMetadata;
 			this.publicMetadata = o.publicMetadata;
-			
+	
 			// replace nulls with empty strings
 			for each (var metadata:Object in [privateMetadata, publicMetadata])
 				for (var name:String in metadata)

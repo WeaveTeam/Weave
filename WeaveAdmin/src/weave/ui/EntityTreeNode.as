@@ -28,9 +28,12 @@ package weave.ui
         
             function populateHandler(event:ResultEvent, token:Object = null):void
             {
+                etn.children = [];
+                etn.columns = [];
                 var entities:Array = event.result as Array || [];
-                for each (var entity:AttributeColumnInfo in entities)
+                for each (var obj:Object in entities)
                 {
+                    var entity:AttributeColumnInfo = new AttributeColumnInfo(obj);
                     if (entity.entity_type == 2)
                     {
                         etn.children.push(new EntityTreeNode(entity));
@@ -48,6 +51,20 @@ package weave.ui
             }
             
             AdminInterface.instance.findEntitiesByParent(object.id, populateHandler);
+            return;
+        }
+        public function updateMetadata(metadata:Object):void
+        {
+            
+            /* Check difference between new data and data on record; only commit these differences. TODO: Bump version number. */
+            return;
+        }
+        public function addToParent(id:int):void
+        {
+            return;
+        }
+        public function deleteFromParent(id:int):void
+        {
             return;
         }
     }
