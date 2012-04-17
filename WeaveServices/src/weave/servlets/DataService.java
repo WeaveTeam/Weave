@@ -25,6 +25,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -155,9 +156,8 @@ public class DataService extends GenericServlet
 		params.put(AttributeColumnInfo.Metadata.KEYTYPE.toString(),keyType);
 		
 		HashMap<String,Integer> keyMap = new HashMap<String,Integer>();
-		for(int keyIndex =0; keyIndex < keysArray.length; keyIndex ++ ){
+		for (int keyIndex = 0; keyIndex < keysArray.length; keyIndex++)
 			keyMap.put( keysArray[keyIndex],keyIndex);
-		}
 		
 		int rowIndex =0;
 		configManager.detectConfigChanges();
@@ -183,9 +183,7 @@ public class DataService extends GenericServlet
 			
 			List<Double> numericData = null;
 			List<String> stringData = null;
-			List<String> secKeys = new ArrayList<String>();
 			String dataType = info.getMetadata(Metadata.DATATYPE.toString());
-			boolean hasSecondaryKey = true;
 			
 			// use config min,max or param min,max to filter the data
 			String infoMinStr = info.getMetadata(Metadata.MIN.toString());
@@ -234,10 +232,11 @@ public class DataService extends GenericServlet
 				Object keyObj, dataObj;
 				double value;
 				
-				for( int i = 0; i < result.rows.length; i++)
+				for (int i = 0; i < result.rows.length; i++)
 				{
 					keyObj = result.rows[i][0];
-					if(keyMap.get(keyObj)!= null){
+					if (keyMap.get(keyObj) != null)
+					{
 						rowIndex = keyMap.get(keyObj);
 						if (keyObj == null)
 							continue;
@@ -270,10 +269,8 @@ public class DataService extends GenericServlet
 								continue;
 							
 							stringData.add(dataObj.toString());
-							recordData[rowIndex][colIndex] =  dataObj;
+							recordData[rowIndex][colIndex] = dataObj;
 						}
-						if (hasSecondaryKey)
-							hasSecondaryKey = getSecKeys(result, secKeys, i);
 					}
 				}
 				//timer.lap("get rows");
@@ -281,14 +278,12 @@ public class DataService extends GenericServlet
 			catch (SQLException e)
 			{
 				e.printStackTrace();
-				
 			}
 			catch (NullPointerException e)
 			{
 				e.printStackTrace();
-				throw(new RemoteException(e.getMessage()));
+				throw new RemoteException(e.getMessage());
 			}
-			
 		}
 		
 		WeaveRecordList result = new WeaveRecordList();
@@ -339,9 +334,8 @@ public class DataService extends GenericServlet
 		List<String> keys = new ArrayList<String>();
 		List<Double> numericData = null;
 		List<String> stringData = null;
-		List<String> secKeys = new ArrayList<String>();
+		List<Object> thirdColumn = null;
 		String dataType = info.getMetadata(Metadata.DATATYPE.toString());
-		boolean hasSecondaryKey = true;
 		
 		// use config min,max or param min,max to filter the data
 		double minValue = Double.NEGATIVE_INFINITY;
@@ -395,9 +389,13 @@ public class DataService extends GenericServlet
 			else // for every other dataType, use String
 				stringData = new ArrayList<String>();
 			
+			// hack for dimension slider
+			if (result.columnTypes.length == 3)
+				thirdColumn = new LinkedList<Object>();
+			
 			Object keyObj, dataObj;
 			double value;
-			for( int i = 0; i < result.rows.length; i++)
+			for (int i = 0; i < result.rows.length; i++)
 			{
 				keyObj = result.rows[i][0];
 				if (keyObj == null)
@@ -406,11 +404,13 @@ public class DataService extends GenericServlet
 				dataObj = result.rows[i][1];
 				if (dataObj == null)
 					continue;
-	
+				
 				if (numericData != null)
 				{
 					try
 					{
+						if (dataObj instanceof String)
+							dataObj = Double.parseDouble((String)dataObj);
 						value = ((Number)dataObj).doubleValue();
 					}
 					catch (Exception e)
@@ -429,8 +429,9 @@ public class DataService extends GenericServlet
 					stringData.add(dataObj.toString());
 				}
 				keys.add(keyObj.toString());
-				if (hasSecondaryKey)
-					hasSecondaryKey = getSecKeys(result, secKeys, i);
+				
+				if (thirdColumn != null)
+					thirdColumn.add(result.rows[i][2]);
 			}
 			timer.lap("get rows");
 		}
@@ -454,26 +455,11 @@ public class DataService extends GenericServlet
 				info.metadata,
 				keys.toArray(new String[0]),
 				numericData != null ? numericData.toArray(new Double[0]) : stringData.toArray(new String[0]),
-				hasSecondaryKey ? secKeys.toArray(new String[0]) : null
+				thirdColumn != null ? thirdColumn.toArray(new Object[0]) : null
 			);
 		timer.report("prepare result");
 		
 		return result;
-	}
-	
-	private boolean getSecKeys(SQLResult rowset, List<String> secKeys, int rownum)
-	{
-		try
-		{
-			Object secKeyValueObject = rowset.rows[rownum][2];
-			if (! secKeyValueObject.equals(null))
-				secKeys.add(secKeyValueObject.toString());	
-		}
-		catch (Exception e)
-		{
-			return false;
-		}
-		return true;
 	}
 	
 	public SQLResult getRowSetFromAttributeColumn(Map<String, String> params)

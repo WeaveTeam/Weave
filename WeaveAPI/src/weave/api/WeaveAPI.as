@@ -232,10 +232,14 @@ package weave.api
 			if (!array)
 				_implementations[theInterface] = array = [];
 			
-			_implementationDisplayNames[theImplementation] = displayName || getQualifiedClassName(theImplementation).split(':').pop();
+			// overwrite existing displayName if specified
+			if (displayName || !_implementationDisplayNames[theImplementation])
+				_implementationDisplayNames[theImplementation] = displayName || getQualifiedClassName(theImplementation).split(':').pop();
+
 			if (array.indexOf(theImplementation) < 0)
 			{
 				array.push(theImplementation);
+				// sort by displayName
 				array.sort(_sortImplementations);
 			}
 		}
@@ -263,6 +267,7 @@ package weave.api
 		
 		/**
 		 * @private
+		 * sort by displayName
 		 */
 		private static function _sortImplementations(impl1:Class, impl2:Class):int
 		{
@@ -312,9 +317,10 @@ package weave.api
 		 * 
 		 * @param singletonInterface An interface to a singleton class.
 		 * @return The singleton instance that implements the specified interface.
-		 */		
+		 */
 		public static function getSingletonInstance(singletonInterface:Class):*
 		{
+			// TEMPORARY SOLUTION until everything is a plug-in.
 			if (!_initialized)
 			{
 				_initialized = true;
@@ -333,7 +339,7 @@ package weave.api
 				{
 					// This may fail if there is no registered class,
 					// or the class doesn't have a getInstance() method.
-					return Singleton.getInstance(interfaceName);
+					result = Singleton.getInstance(interfaceName);
 				}
 				catch (e:Error)
 				{

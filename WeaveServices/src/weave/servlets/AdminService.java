@@ -1575,6 +1575,8 @@ public class AdminService extends GenericServlet
 				// Format each line
 				for (i = 0; i < columnNames.length && i < nextLine.length; i++)
 				{
+					if(nextLine[i] == null)
+						continue;
 					String value = nextLine[i];
 					if (types[i] == IntType || types[i] == DoubleType)
 					{

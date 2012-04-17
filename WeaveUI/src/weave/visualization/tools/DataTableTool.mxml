@@ -328,7 +328,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				// There is a bug in flex: column.sortDescending will always return false				
 				if(UIUtils.hasFocus(dataGrid)){//need to update sessionState when called by User Interaction
-					sortInDescendingOrder.value = isSortedDescending();
+					sortInDescendingOrder.value = !isSortedDescending(); // each time will toggle ascending/descending
 					sortFieldIndex.value = event.columnIndex;
 				}
 				
@@ -354,22 +354,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */							
 			private function sortCallback():void
 			{
-				if(isNaN(sortFieldIndex.value))
+				if (isNaN(sortFieldIndex.value))
 					return;
 				
 				var c:DataGridColumn = dataGrid.columns[sortFieldIndex.value];
-				if(c == null)
+				if (c == null)
 					return;
 				
 				// sort by the column specified in the session state , flip the sorting order if it is wrong
 				// each time we dispatch a header event, the sort order gets flipped, so we may have to flip it again
-				for(var i:int = 0 ; i<2; i++)
-				{
-					if (dataGrid.sortIndex != sortFieldIndex.value || isSortedDescending() != sortInDescendingOrder.value)
-					{
-						dataGrid.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, sortFieldIndex.value, null, 0, null, null, 0));
-					}
-				}
+				var changeDir:Boolean = isSortedDescending() != sortInDescendingOrder.value;
+				var changeIndex:Boolean = dataGrid.sortIndex != sortFieldIndex.value;
+				var times:int = 0;
+				if (changeDir)
+					times = 1; // change direction only requires one event
+				else if (changeIndex)
+					times = 2; // (change index and keep direction) requires two events
+				
+				for (var i:int = 0 ; i < times; i++)
+					dataGrid.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, sortFieldIndex.value, null, 0, null, null, 0));
 			}
 			
 			/**

@@ -28,7 +28,6 @@ package weave.data.ColumnReferences
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
-	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableDynamicObject;
@@ -51,6 +50,15 @@ package weave.data.ColumnReferences
 			// Whenever any property of the column reference changes, the hash value needs to be updated.
 			getCallbackCollection(this).addImmediateCallback(this, invalidateHash, true);
 			getCallbackCollection(this).addGroupedCallback(this, registerThisRef);
+			WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, handleGlobalObjectListChange);
+		}
+		
+		private function handleGlobalObjectListChange():void
+		{
+			// If there is no data source name, trigger callbacks when the list of global objects changes.
+			// This is so global column objects can be detected.
+			if (!dataSourceName.value)
+				getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		private const dynamicDataSource:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IDataSource));
