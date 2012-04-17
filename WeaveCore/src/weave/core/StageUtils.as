@@ -201,38 +201,40 @@ package weave.core
 						(args[1] as Function).apply(null, args[2]);
 				}
 			}
-			
-			if (_callLaterArray.length > 0 && UIComponentGlobals.callLaterSuspendCount <= 0)
+			priorityLoop: for (var priority:uint = 0; priority < _priorityCallLaterQueues.length; priority++)
 			{
-				//trace("handle ENTER_FRAME, " + _callLaterArray.length + " callLater functions, " + currentFrameElapsedTime + " ms elapsed this frame");
-				// Make a copy of the function calls and clear the private array before executing any functions.
-				// This allows the private array to be filled up as a result of executing the functions,
-				// and prevents from newly added functions from being called until the next frame.
-				calls = _callLaterArray;
-				_callLaterArray = [];
-				var stopTime:int = _currentFrameStartTime + maxComputationTimePerFrame;
-				for (i = 0; i < calls.length; i++)
+				if (_priorityCallLaterQueues[priority].length > 0 && UIComponentGlobals.callLaterSuspendCount <= 0)
 				{
-					// if elapsed time reaches threshold, call everything else later
-					if (getTimer() > stopTime)
+					//trace("handle ENTER_FRAME, " + _callLaterArray.length + " callLater functions, " + currentFrameElapsedTime + " ms elapsed this frame");
+					// Make a copy of the function calls and clear the private array before executing any functions.
+					// This allows the private array to be filled up as a result of executing the functions,
+					// and prevents from newly added functions from being called until the next frame.
+					calls = _priorityCallLaterQueues[priority];
+					_priorityCallLaterQueues[priority] = [];
+					var stopTime:int = _currentFrameStartTime + maxComputationTimePerFrame;
+					for (i = 0; i < calls.length; i++)
 					{
-						// To preserve the order they were added, put the remaining callLater
-						// functions for this frame in front of any others that may have been added.
-						var j:int = calls.length;
-						while (--j >= i)
-							_callLaterArray.unshift(calls[j]);
-						break;
-					}
-					// args: (relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true)
-					args = calls[i] as Array;
-					stackTrace = _stackTraceMap[args]; // check this for debugging where the call came from
-					// don't call the function if the relevantContext was disposed of.
-					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
-					{
-						// TODO: PROFILING: check how long this function takes to execute.
-						// if it takes a long time (> 1000 ms), something's wrong...
-						
-						(args[1] as Function).apply(null, args[2]);
+						// if elapsed time reaches threshold, call everything else later
+						if (getTimer() > stopTime)
+						{
+							// To preserve the order they were added, put the remaining callLater
+							// functions for this frame in front of any others that may have been added.
+							var j:int = calls.length;
+							while (--j >= i)
+								_priorityCallLaterQueues[priority].unshift(calls[j]);
+							break priorityLoop;
+						}
+						// args: (relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true)
+						args = calls[i] as Array;
+						stackTrace = _stackTraceMap[args]; // check this for debugging where the call came from
+						// don't call the function if the relevantContext was disposed of.
+						if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
+						{
+							// TODO: PROFILING: check how long this function takes to execute.
+							// if it takes a long time (> 1000 ms), something's wrong...
+							
+							(args[1] as Function).apply(null, args[2]);
+						}
 					}
 				}
 			}
@@ -250,8 +252,9 @@ package weave.core
 		public function callLater(relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true):void
 		{
 			//trace("call later @",currentFrameElapsedTime);
+			var priority:uint = WeaveAPI.TASK_PRIORITY_BUILDING
 			if (allowMultipleFrameDelay)
-				_callLaterArray.push(arguments);
+				_priorityCallLaterQueues[priority].push(arguments);
 			else
 				_callNextFrameArray.push(arguments);
 			
@@ -268,10 +271,11 @@ package weave.core
 		private var _callNextFrameArray:Array = [];
 		
 		/**
-		 * This is an array of functions with parameters that will be executed the next time handleEnterFrame() is called.
-		 * This array gets populated by callLater().
-		 */
-		private var _callLaterArray:Array = [];
+		 * This is an Array of "callLater queues", each being an Array of function invocations to be done later.
+		 * The Arrays get populated by callLater().
+		 * There are four nested Arrays corresponding to the four priorities (0, 1, 2, 3) defined by static constants in WeaveAPI.
+		 */		
+		private const _priorityCallLaterQueues:Array = [[],[],[],[]];
 		
 		/**
 		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.

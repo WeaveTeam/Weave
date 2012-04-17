@@ -40,6 +40,7 @@ package weave.core
 	public class SessionStateLog implements ILinkableVariable, IDisposableObject
 	{
 		public static var debug:Boolean = false;
+		public static var enableHistoryRewrite:Boolean = true;
 		
 		public function SessionStateLog(subject:ILinkableObject, syncDelay:uint = 0)
 		{
@@ -190,7 +191,7 @@ package weave.core
 				var backwardDiff:* = WeaveAPI.SessionManager.computeDiff(state, _prevState);
 				var oldEntry:LogEntry;
 				var newEntry:LogEntry;
-				if (_undoActive)
+				if (_undoActive && enableHistoryRewrite)
 				{
 					// To prevent new undo history from being added as a result of applying an undo, overwrite first redo entry.
 					// Keep existing delay/duration.
@@ -201,7 +202,7 @@ package weave.core
 				else
 				{
 					newEntry = new LogEntry(_nextId++, forwardDiff, backwardDiff, _triggerDelay, diffDuration);
-					if (_redoActive)
+					if (_redoActive && enableHistoryRewrite)
 					{
 						// To prevent new undo history from being added as a result of applying a redo, overwrite last undo entry.
 						// Keep existing delay/duration.
