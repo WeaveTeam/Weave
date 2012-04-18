@@ -47,7 +47,7 @@ package weave.ui.CustomDataGrid
 		}
 		
 		private var img:Image;
-		private var lbl:Label = new Label();
+		public const lbl:Label = new Label();
 		
 		public var attrColumn:IAttributeColumn = null;
 		public var showColors:LinkableBoolean = null;
