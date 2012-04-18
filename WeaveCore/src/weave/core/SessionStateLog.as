@@ -191,24 +191,34 @@ package weave.core
 				var backwardDiff:* = WeaveAPI.SessionManager.computeDiff(state, _prevState);
 				var oldEntry:LogEntry;
 				var newEntry:LogEntry;
-				if (_undoActive && enableHistoryRewrite)
+				if (_undoActive)
 				{
 					// To prevent new undo history from being added as a result of applying an undo, overwrite first redo entry.
 					// Keep existing delay/duration.
 					oldEntry = _redoHistory[0] as LogEntry;
 					newEntry = new LogEntry(_nextId++, backwardDiff, forwardDiff, oldEntry.triggerDelay, oldEntry.diffDuration);
-					_redoHistory[0] = newEntry;
+					if (enableHistoryRewrite)
+					{
+						_redoHistory[0] = newEntry;
+					}
+					else if (ObjectUtil.compare(oldEntry.forward, newEntry.forward) != 0)
+					{
+						_redoHistory.unshift(newEntry);
+					}
 				}
 				else
 				{
 					newEntry = new LogEntry(_nextId++, forwardDiff, backwardDiff, _triggerDelay, diffDuration);
-					if (_redoActive && enableHistoryRewrite)
+					if (_redoActive)
 					{
 						// To prevent new undo history from being added as a result of applying a redo, overwrite last undo entry.
 						// Keep existing delay/duration.
 						oldEntry = _undoHistory.pop() as LogEntry;
 						newEntry.triggerDelay = oldEntry.triggerDelay;
 						newEntry.diffDuration = oldEntry.diffDuration;
+						
+						if (!enableHistoryRewrite && ObjectUtil.compare(oldEntry.forward, newEntry.forward) == 0)
+							newEntry = oldEntry; // keep old entry
 					}
 					// save new undo entry
 					_undoHistory.push(newEntry);
