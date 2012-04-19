@@ -61,7 +61,24 @@ package weave.ui.infomap.layout
 			//offet to  be below node base
 			startY = startY + _parentNodeHandler.nodeBase.height;
 			
-			var gridSize:Number = Math.ceil(Math.sqrt(thumbnails.length));
+			var temp:Array = [];
+			for (var i:int = 0; i < thumbnails.length; i++)
+			{
+				if(!thumbnails[i].hasBeenMoved.value)
+				{
+					temp.push(thumbnails[i])
+				}else
+				{
+					//if they have been moved, then draw them as it is without using a layout algorithm
+					thumbnails[i].imageWidth.value = thumbnailSize;
+					thumbnails[i].imageHeight.value = thumbnailSize;
+					
+					thumbnails[i].x = thumbnails[i].xPos.value;
+					thumbnails[i].y = thumbnails[i].yPos.value;
+				}
+			}
+			
+			var gridSize:Number = Math.ceil(Math.sqrt(temp.length));
 			
 			var count:int = 0;
 			
@@ -71,23 +88,22 @@ package weave.ui.infomap.layout
 				var nextX:int = startX;
 				for(var col:int=0; col<gridSize; col++)
 				{
-					if(count>=thumbnails.length)
+					if(count>=temp.length)
 						return;
-					var thumbnail:DocThumbnailComponent = thumbnails[count];
+					var thumbnail:DocThumbnailComponent = temp[count];
 					
 					count++;
 					
-					//if the thumbnail already exists use previous x,y values
-					if(!thumbnail.hasBeenMoved.value)
-					{
-						thumbnail.imageWidth.value = thumbnailSize;
-						thumbnail.imageHeight.value = thumbnailSize;
-						
-						thumbnail.y = nextY;			
-						thumbnail.x = nextX;
-						
-						nextX = nextX + thumbnailSize + 10;
-					}
+					thumbnail.imageWidth.value = thumbnailSize;
+					thumbnail.imageHeight.value = thumbnailSize;
+					
+					thumbnail.y = nextY;			
+					thumbnail.x = nextX;
+					
+					thumbnail.xPos.value = nextX;
+					thumbnail.yPos.value = nextY;
+					
+					nextX = nextX + thumbnailSize + 10;
 				}
 				nextY = nextY+ thumbnailSize + 10;
 			}

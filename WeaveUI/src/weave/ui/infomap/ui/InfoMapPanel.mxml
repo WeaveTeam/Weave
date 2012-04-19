@@ -45,6 +45,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.controls.Alert;
 			import mx.controls.Image;
 			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.core.Application;
 			import mx.core.IUIComponent;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
@@ -74,7 +75,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerLinkableChild;
 			import weave.api.unlinkBindableProperty;
 			import weave.core.ErrorManager;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.StageUtils;
 			import weave.core.UIUtils;
@@ -91,6 +94,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.infomap.InfoMapLoader;
 			import weave.ui.infomap.admin.InfoMapAdminInterface;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
+			import weave.ui.infomap.core.MovedThumbnailPosition;
 			import weave.ui.infomap.core.SelectableInfoMapDocument;
 			import weave.ui.infomap.layout.NodeHandler;
 			import weave.utils.BitmapUtils;
@@ -107,6 +111,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const infoMapsDataSource:InfoMapsDataSource = Weave.root.requestObject(InfoMapsDataSource.SOURCE_NAME,InfoMapsDataSource, true);
 			
+			public const defaultNodeBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(13421772),null,true);
+			
+			public const selectedNodeBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(39168),null,true);
+			
+			public const defaultThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(000000));
+			
+			public const selectedThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
+			
+			public const newThumbnailGlowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(255));
+			
+			public const enableAutoSave:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			/**
 			 * @public
 			 * This is mapping of a link to a document object. 
@@ -164,6 +179,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				map.addEventListener(MouseEvent.MOUSE_DOWN,handleMouseDown);
 				
+				linkBindableProperty(defaultNodeBorderColor,defaultNodeColorPicker,"selectedColor");
+				linkBindableProperty(selectedNodeBorderColor,selectedNodeColorPicker,"selectedColor");
+				linkBindableProperty(defaultThumbnailBorderColor,defaultThumbnailBorderPicker,"selectedColor");
+				linkBindableProperty(selectedThumbnailBorderColor,selectedThumbnailBorderPicker,"selectedColor");
+				linkBindableProperty(newThumbnailGlowColor,thumbnailGlowColorPicker,"selectedColor");
+				linkBindableProperty(enableAutoSave,autoSaveCheckBox,"selected");
+				
 				subMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
 				subMenu.addSubMenuItem("Show All Documents",showAllDocuments);
 			}
@@ -182,13 +204,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if(!(t.parent == this))
 				{
+					var parentNode:NodeHandler = t.parent as NodeHandler;
 					map.addChild(t);
-										
+					t.hasBeenMoved.value = true;	
+					
 					//setting the X and Y with reference to the map
 //					var tGlobalPoint:Point = (t.parent as Canvas).contentToGlobal(new Point(t.x,t.y));
 					var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
 					
 					t.move(localPoint.x,localPoint.y);
+					
+					var mtp:MovedThumbnailPosition = parentNode.movedThumbNails.requestObject(t.docURL.value,MovedThumbnailPosition,false) as MovedThumbnailPosition;
+					
+					mtp.xPos.value = localPoint.x;
+					mtp.yPos.value = localPoint.y;
 				}
 			}
 			
@@ -221,11 +250,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_subset.excluded.removeKeys(dockeys);
 			}
 			
-			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				
+				if(detectLinkableObjectChange(updateDisplayList,this))
+				{
+					if(enableAutoSave.value)
+						Application.application.visApp.saveInfoMapsSessionState();
+				}
 				
 //				//detect any changes in docs and make query for matched entity values
 //				if(detectLinkableObjectChange(updateDisplayList,docs))
@@ -300,8 +333,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				if(!keys.length == 0)
-//					_selectedKeySet.clearKeys();
-//				else
 					_selectedKeySet.replaceKeys(keys);
 				
 //				Alert.show((event.result as Array).toString());
@@ -889,6 +920,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Button label="Clear" click="clearImage()"/>
 				<mx:Button label="Save" click="saveImage(event)"/>
 			</mx:HBox>
+			<mx:CheckBox id="autoSaveCheckBox" label="Save session automatically"/>
 			<mx:Spacer height="50"/>
 			<mx:HBox>
 				<mx:VBox>
@@ -914,7 +946,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					</mx:HBox>
 					<mx:HBox>
 						<mx:ColorPicker id="thumbnailGlowColorPicker"/>
-						<mx:Label width="200" text="Selected Thumbnail Border Color"/>				
+						<mx:Label width="200" text="New Thumbnail Border Color"/>				
 					</mx:HBox>
 				</mx:VBox>
 			</mx:HBox>

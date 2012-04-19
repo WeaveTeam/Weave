@@ -113,5 +113,13 @@ package weave.core
 		private var _maxTaskCount:int = 0;
 		private const _taskToProgressMap:Dictionary = new Dictionary();
 		private const _taskToStackTraceMap:Dictionary = new Dictionary();
+		
+		public function test():void
+		{
+			for(var i:Object in _taskToProgressMap)
+			{
+				trace(i);
+			}
+		}
 	}
 }

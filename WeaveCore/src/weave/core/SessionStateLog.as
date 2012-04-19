@@ -39,7 +39,7 @@ package weave.core
 	 */
 	public class SessionStateLog implements ILinkableVariable, IDisposableObject
 	{
-		public static var debug:Boolean = false;
+		public static var debug:Boolean = true;
 		public static var enableHistoryRewrite:Boolean = true;
 		
 		public function SessionStateLog(subject:ILinkableObject, syncDelay:uint = 0)

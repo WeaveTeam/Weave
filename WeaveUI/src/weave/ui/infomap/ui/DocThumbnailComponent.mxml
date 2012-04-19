@@ -149,6 +149,8 @@ so that it can be moved, selected, handle filters.
 				event.localX;
 				event.localY;
 				this.move(x-_lastMouseDownPoint.x,y-_lastMouseDownPoint.y);
+				xPos.value = x;
+				yPos.value = y;
 			}
 			
 			override protected function childrenCreated():void
@@ -158,17 +160,10 @@ so that it can be moved, selected, handle filters.
 				linkBindableProperty(imageHeight,this,"height");	
 				linkBindableProperty(imageAlpha,this,"alpha");
 				
-				linkBindableProperty(xPos,this,"x");
-				linkBindableProperty(yPos,this,"y");
+//				linkBindableProperty(xPos,this,"x");
+//				linkBindableProperty(yPos,this,"y");
 				selectedBorderColor.addGroupedCallback(this,highlight);
 				defaultBorderColor.addGroupedCallback(this,highlight);
-				
-				hasBeenMoved.addImmediateCallback(this,checkCallback);
-			}
-			
-			private function checkCallback():void
-			{
-				hasBeenMoved.value;
 			}
 			
 			//this function is called when a local search is made in the node handler this belongs to.
@@ -201,6 +196,7 @@ so that it can be moved, selected, handle filters.
 			
 			private var token:IURLRequestToken;
 			
+			private var _imageURL:String = null;
 			private function handleImage():void
 			{
 				//temporary fix. Fault event is not called when thumbnail is not found.
@@ -210,16 +206,26 @@ so that it can be moved, selected, handle filters.
 				}
 				
 				img.source = _noImage;
+				
+				if(_imageURL)
+					token = WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest);
+				
 				if(docURL.value)
 				{
 					var source:InfoMapsDataSource = Weave.root.getObject("InfoMaps Data Source") as InfoMapsDataSource;
-					
+									
 					if(source)
 					{
-						var imageURL:String = source.getImageURLForURL(docURL.value);
+						source.getColumnByName("imgURL").addImmediateCallback(this, function():void{
+							//if URL is already set don't do anything. This is to avoid callbacks for csv sources
+							_imageURL = source.getImageURLForURL(docURL.value);
+							if(_imageURL == null)
+								return;
+							token = WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest);
+						},true);
+						
 					}
 					
-					token = WeaveAPI.URLRequestUtils.getContent(new URLRequest(imageURL),handleImageRequest,handleImageFaultRequest);
 				}
 			}
 			
@@ -343,7 +349,6 @@ so that it can be moved, selected, handle filters.
 				//if it is drag move then we do nothing, else the mouseUp is a selection
 				if(dragged)
 				{
-					hasBeenMoved.value = true;
 					dragged = false;
 					return;
 				}

@@ -53,6 +53,8 @@ package weave.utils
 		 * */
 		public static function getDateFromString(str:String):Date
 		{
+			if(!str)
+				return null;
 			
 			//if it does not start with now then use dateformatter to format the date
 			if(str.substr(0,3).toLowerCase() != 'now')

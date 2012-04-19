@@ -44,6 +44,7 @@
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
@@ -52,6 +53,7 @@
 			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
+			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
@@ -75,6 +77,7 @@
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.InfoMapDocument;
 			import weave.ui.infomap.core.InfoMapNode;
+			import weave.ui.infomap.core.MovedThumbnailPosition;
 			import weave.ui.infomap.ui.DateFilterComponent;
 			import weave.ui.infomap.ui.DocThumbnailComponent;
 			import weave.ui.infomap.ui.InfoMapPanel;
@@ -94,15 +97,7 @@
 			
 			public const thumbnails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 			
-			public const defaultBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(13421772),highlightNode,true);
-			
-			public const selectedBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(39168),highlightNode,true);
-			
-			public const defaultThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(000000));
-			
-			public const selectedThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
-			
-			public const newThumbnailGlowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(3407820));
+			public const movedThumbNails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 			
 			private var loader:URLLoader = null;
 			
@@ -194,7 +189,9 @@
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.CLICK,handleClick);
 				
 				//adding callback to subset. Thumbnails will be re-drawn to plot only included thumbnails
-				getCallbackCollection(_subset).addGroupedCallback(this,drawThumbnails);
+				getCallbackCollection(_subset).addGroupedCallback(this,handleThumbnails);
+				
+//				thumbnails.childListCallbacks.addGroupedCallback(this,handleThumbnails);
 				
 				//calling function to highlight the node based on node.selected.value
 				highlightNode();
@@ -202,11 +199,9 @@
 				//we want to trigger the callback for thumbnails at each frame and check the trigger counter
 				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
 				
-				createAndSendQuery(false);
-				
 				//the set of keys matching the query is stored in docKeyset. 
 				//when the results are stored in this keySet a callback is triggered for parsing the results
-				docKeySet.addGroupedCallback(this,handleQueryResultKeySet,true);
+				docKeySet.addGroupedCallback(this,handleThumbnails,true);
 				
 				//this keySet stores the keys matching the search query.
 				//when the results are stored in this keySet a callback is triggered for setting the thumbnails' visible to true/false
@@ -215,7 +210,18 @@
 				//adding a callback to the selection KeySet to highlight/unhighlight documents
 				_selection.addGroupedCallback(this,handleSelectionKeySetChange,true);
 				
+				createAndSendQuery();
+				
+				node.detectQueryChange(handleThumbnails);
 			}
+			
+			private var _redraw:Boolean = false;
+//			private function handleQueryChange():void
+//			{
+//				_redraw = true;
+//				createAndSendQuery();
+//				
+//			}
 			
 			private function dragEnterHandler(event:DragEvent):void
 			{
@@ -232,58 +238,27 @@
 				
 				if(!(t.parent == this))
 				{
+					movedThumbNails.removeObject(t.docURL.value);
+					
 					addChild(t);
+					
+					t.hasBeenMoved.value = false;
 					
 					//setting the X and Y with reference to the map
 //					var tGlobalPoint2:Point = _parentPanel.map.contentToGlobal(new Point(event.stageX,event.stageY));
 					var localPoint2:Point =  this.globalToLocal(new Point(event.stageX,event.stageY));
 					
 					t.move(localPoint2.x,localPoint2.y);
+					
 				}
 			}
 			
-			/**
-			 * This function adds the thumbnail as a child to the map and resets its position values with respect to the panel
-			 * The thumbnail won't move when the node is moved.
-			 * @param t The Thumbnail to add to the map
-			 **/
-//			private function addThumbnailToMap(t:DocThumbnailComponent):void
-//			{
-//				if(t.hasBeenMoved.value)
-//				{
-//					if(t.parent == _parentPanel.map)
-//						return;
-//					
-//					_parentPanel.map.addChild(t);
-//					
-//					//setting the X and Y with reference to the map
-//					var tGlobalPoint:Point = this.contentToGlobal(new Point(t.xPos.value,t.yPos.value));
-//					var localPoint:Point = _parentPanel.map.globalToLocal(tGlobalPoint);
-//					
-//					t.move(localPoint.x,localPoint.y);
-//					
-//				}else{
-//					
-//					if(t.parent == this)
-//						return;
-//					
-//					addChild(t);
-//					
-//					//setting the X and Y with reference to the map
-//					var tGlobalPoint2:Point = _parentPanel.map.contentToGlobal(new Point(t.xPos.value,t.yPos.value));
-//					var localPoint2:Point =  this.globalToLocal(tGlobalPoint2);
-//					
-//					t.move(localPoint2.x,localPoint2.y);
-//					
-//				}
-//			}
-			
 			//this variable is false when the user loads the map for the first time. 			
-			private var highlightNewDocuments:Boolean = false;
+			private var highlightNewDocuments:Boolean = true;
 			public function checkForNewDocuments():void
 			{
-//				highlightNewDocuments = true;
-				createAndSendQuery(false);
+				_redraw = false;
+				createAndSendQuery();
 			}
 		
 				
@@ -296,20 +271,24 @@
 			 * @private
 			 * This functions creates a query based on the keywords,operator and filters applied and sends a request to the Solr server
 			 **/
-			private function createAndSendQuery(clearDocuments:Boolean=true):void
+			private function createAndSendQuery():void
 			{
 				if(!node.keywords.value)
 					return;
 				
-				if(clearDocuments)
-					thumbnails.removeAllObjects();
-				
-				nodeBase.keywordTextArea.text = node.keywords.value;
-				nodeBase.keywordTextArea.toolTip = node.keywords.value;
+//				if(clearDocuments)
+//					thumbnails.removeAllObjects();
+//				getCallbackCollection(node).delayCallbacks();
+//				thumbnails.delayCallbacks();
+//				if(_redraw)
+//				{
+//					thumbnails.removeAllObjects();
+//					highlightNewDocuments = false;
+//				}
 				
 				if (this.parent == null)
 				{
-					WeaveAPI.StageUtils.callLater(this,createAndSendQuery,[clearDocuments]);
+					WeaveAPI.StageUtils.callLater(this,createAndSendQuery);
 					return;
 				}
 				
@@ -330,67 +309,64 @@
 			 * for each of the corresponding links.
 			 * If the thumbnail object is already there then we use the replace its doc object with the latest doc object. 
 			 **/
-			private function handleQueryResultKeySet():void
+			private function handleThumbnails():void
 			{
-				if(thumbnails.getObjects().length == 0)
-				{
-					highlightNewDocuments = false;
-				}else{
-					highlightNewDocuments = true;
-				}
-				thumbnails.delayCallbacks();
 				var response:Array = docKeySet.keys;
 				var nameOrder:Array = [];
+				
+//				if(response.length == 0)
+//				{
+//					thumbnails.resumeCallbacks();
+//					getCallbackCollection(node).resumeCallbacks();
+//					return;
+//				}
+				
+				if(node.detectQueryChange(handleThumbnails))
+				{
+					thumbnails.removeAllObjects();
+					
+					highlightNewDocuments = true;
+				}else{
+					highlightNewDocuments = false;
+				}
+				
+				
 				for(var i:int; i<response.length ;i++)
 				{
 					
 					var link:String = (response[i] as IQualifiedKey).localName;					
 					nameOrder.push(link);
-					var thumbnail:DocThumbnailComponent = new DocThumbnailComponent();
+					var thumbnail:DocThumbnailComponent = thumbnails.getObject(link) as DocThumbnailComponent;
 					
 					
-					//if the thumbnail already exists use that
-					if(thumbnails.getObject(link))
+					if(!thumbnail)
 					{
 						thumbnail = thumbnails.requestObject(link,DocThumbnailComponent,false);
 						
-						linkSessionState(defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
-						linkSessionState(selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
-						linkSessionState(newThumbnailGlowColor,thumbnail.glowColor);
-//						thumbnail.hasBeenMoved.addImmediateCallback(this,function ():void{addThumbnailToMap(thumbnail);});
-						addChild(thumbnail);
-						continue;
+						if(highlightNewDocuments)
+						{
+							thumbnail.startGlow();
+						}
 					}
-					
-					thumbnail = thumbnails.requestObject(link,DocThumbnailComponent,false);
+						
 										
 					thumbnail.docURL.value = link;
 					
-					linkSessionState(defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
-					linkSessionState(selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
-					linkSessionState(newThumbnailGlowColor,thumbnail.glowColor);
-//					thumbnail.hasBeenMoved.addImmediateCallback(this,function ():void{addThumbnailToMap(thumbnail);});
-					addChild(thumbnail);
+					linkSessionState(_parentPanel.defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
+					linkSessionState(_parentPanel.selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
+					linkSessionState(_parentPanel.newThumbnailGlowColor,thumbnail.glowColor);
 					
-					if(highlightNewDocuments)
-					{
-						thumbnail.startGlow();
-					}
 					
 				}
 				thumbnails.setNameOrder(nameOrder);
-				thumbnails.resumeCallbacks();			
-				drawThumbnails();
+				positionThumbnails();
 			}
 			
 			override public function validateDisplayList():void
 			{
 				super.validateDisplayList();
-//				This was added before using InfoMapsDataSource. This might not be needed
-//				TODO: delete later if not required
-				if(detectLinkableObjectChange(validateDisplayList,thumbnails))
-					drawThumbnails();
-				
+				if(detectLinkableObjectChange(invalidateDisplayList,thumbnails) || detectLinkableObjectChange(invalidateDisplayList,movedThumbNails))
+					positionThumbnails();
 			}
 			
 			private var thumbnailsToPlotArray:Array = [];
@@ -400,14 +376,48 @@
 			 * This array is then sent to a Layout Algorithm to plot the thumbnails. 
 			 * After the thumbnails are plotted we call the functions to highlight selected documents and set visiblity based on search keywords.
 			 **/
-			private function drawThumbnails():void
+			private function positionThumbnails():void
 			{
+				nodeBase.keywordTextArea.text = node.keywords.value;
+				nodeBase.keywordTextArea.toolTip = node.keywords.value;
 				thumbnailsToPlotArray = [];
 				var tNails:Array = thumbnails.getObjects()
 
 				for (var i:int = 0; i<tNails.length; i++)
 				{
 					var t:DocThumbnailComponent = tNails[i];
+					
+					//first check to see if the thumbnail is present in movedThumbnails
+					var position:MovedThumbnailPosition = movedThumbNails.getObject(t.docURL.value) as MovedThumbnailPosition;
+					
+					//if the document exists in movedThumbnails then make sure to set the moved positions and set hasBeenMoved to true;
+					if(position)
+					{
+						t.hasBeenMoved.value = true;
+						
+						copySessionState(position.xPos,t.xPos);
+						copySessionState(position.yPos,t.yPos);
+					}
+					
+					
+					//if thumbnail has been moved make sure to add it as a child to Panel else make sure to add it as child to node.
+					if(t.hasBeenMoved.value)
+					{
+						if(t.parent != _parentPanel.map)
+						{
+							_parentPanel.map.addChild(t);
+							
+						}
+						
+					}else
+					{
+						if(t.parent != this)
+						{
+							addChild(t);
+						}
+					}
+					
+					
 					var docURL:String = thumbnails.getName(t);
 					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
 					if(_subset.containsKey(qKey))
@@ -424,6 +434,30 @@
 				handleSelectionKeySetChange();
 				handleGlobalSearch();
 			}
+			
+//			private function positionMovedthumbNails():void
+//			{
+//				var thumbnailNames:Array = movedThumbNails.getNames();	
+//				
+//				for each (var url:String in thumbnailNames)
+//				{
+//					var t:DocThumbnailComponent = thumbnails.getObject(url) as DocThumbnailComponent;
+//					
+//					if(!t)
+//						continue;
+//					
+//					if(t.parent != _parentPanel.map)
+//					{
+//						_parentPanel.map.addChild(t);
+//					}
+//					
+//					var position:MovedThumbnailPosition = movedThumbNails.getObject(url) as MovedThumbnailPosition;
+//					
+//					copySessionState(position.xPos,t.xPos);
+//					copySessionState(position.yPos,t.yPos);
+//					
+//				}
+//			}
 			
 			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			/**
@@ -551,8 +585,8 @@
 			//highlight node based on node.selected.value
 			private function highlightNode():void
 			{
-				unselectedBorder.color = defaultBorderColor.value;
-				selectedBorder.color = selectedBorderColor.value;
+				unselectedBorder.color = _parentPanel.defaultNodeBorderColor.value;
+				selectedBorder.color = _parentPanel.selectedNodeBorderColor.value;
 				
 				if(node.selected.value)
 					selectedBorder.play();

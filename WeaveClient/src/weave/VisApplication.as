@@ -69,8 +69,11 @@ package weave
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.EditDataSourcePanel;
 	import weave.primitives.AttributeHierarchy;
+	import weave.services.DelayedAsyncInvocation;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.LocalAsyncService;
+	import weave.services.WeaveAdminService;
+	import weave.services.beans.ConnectionInfo;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
 	import weave.ui.AttributeSelectorPanel;
@@ -99,7 +102,6 @@ package weave
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
-
 	import weave.ui.infomap.InfoMapLoader;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DebugTimer;
@@ -499,6 +501,33 @@ package weave
 			fileSaveDialogBox.message = "Enter a filename";
 			fileSaveDialogBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handleFileSaveClose);
 			PopUpManager.centerPopUp(fileSaveDialogBox);
+		}
+		
+		private const _service:WeaveAdminService = new WeaveAdminService("/WeaveServices");
+		public function saveInfoMapsSessionState():void
+		{
+			if(!Weave.properties.enableInfoMap.value)
+				return;
+			
+			var fileName:String = getFlashVarConfigFileName().split("/").pop();
+			fileName = Weave.fixWeaveFileName(fileName, true);
+			
+			var content:ByteArray;
+			content = Weave.createWeaveFileContent();
+			
+			var token:DelayedAsyncInvocation = _service.saveWeaveFile("infomaps","infomaps",content,fileName,true);
+			
+			token.addAsyncResponder(
+				function(event:ResultEvent, token:Object = null):void
+				{
+//					reportError("Session State Saved");
+				},
+				function(event:FaultEvent, token:Object = null):void
+				{
+					reportError(event.fault, "Unable to Save Session State");
+				},
+				null
+			);
 		}
 		
 		private function handleFileSaveClose(event:AlertTextBoxEvent):void

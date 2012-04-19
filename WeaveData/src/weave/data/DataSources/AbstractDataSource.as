@@ -313,7 +313,7 @@ package weave.data.DataSources
 				debug('requestColumnFromSource', request.columnReference.getHashCode());
 				
 				WeaveAPI.StageUtils.callLater(this, requestColumnFromSource, [request.columnReference, request.proxyColumn]);
-				//requestColumnFromSource(request.columnReference, request.proxyColumn);
+//				requestColumnFromSource(request.columnReference, request.proxyColumn);
 			}
 			else
 			{
