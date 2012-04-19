@@ -99,7 +99,7 @@ SchafersMissingDataImputation
 			import weave.data.DataSources.CSVDataSource;
 			import weave.data.KeySets.KeySet;
 			import weave.services.DelayedAsyncResponder;
-			import weave.services.WeaveStatisticsServlet;
+			import weave.services.WeaveRServlet;
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
@@ -118,7 +118,7 @@ SchafersMissingDataImputation
 			}
 			
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
-			private var Rservice:WeaveStatisticsServlet = new WeaveStatisticsServlet(Weave.properties.rServiceURL.value);
+			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			public const inputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			public const outputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			public const assignTALinkable:LinkableString = newLinkableChild(this, LinkableString);

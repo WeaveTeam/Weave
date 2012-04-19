@@ -68,7 +68,12 @@ package weave.services
 			return servlet.invokeAsyncMethod("linearRegression", arguments);
 		}
 
+		public function handlingMissingData(inputNames:Array, inputValues:Array, outputNames:Array, script:String,plotScript:String, showIntermediateResults:Boolean, showWarningMessages:Boolean ):AsyncToken
+		{
+			return servlet.invokeAsyncMethod("handlingMissingData", arguments);
+		}
 		
+
 		
 
 		

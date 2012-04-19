@@ -123,4 +123,8 @@ public class RService extends GenericServlet
 		return RServiceUsingRserve.hierarchicalClustering( docrootPath, dataX, dataY);
 	}
 
+	public RResult[] handlingMissingData(String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception
+	{
+		return RServiceUsingRserve.handlingMissingData(inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
+	}
 }

@@ -27,6 +27,8 @@ import java.util.Vector;
 import javax.script.ScriptException;
 
 import org.rosuda.REngine.REXP;
+import org.rosuda.REngine.REXPDouble;
+import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
@@ -431,4 +433,87 @@ public class RServiceUsingRserve
 		return hclresult;
 	}
 
+	public static RResult[] handlingMissingData(String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception
+	{
+		RConnection rConnection = getRConnection();
+		
+		String output = "";
+		REXP evalValue;
+		RResult[] mdResult ;
+		String bindingInput = new String();
+		String names = "";
+		try
+		{
+//			We have to send columns to R and receive them back to be sent once again to R
+			for (int i = 0; i < inputNames.length; i++)
+			{
+				String name = inputNames[i];
+				if(names.length() != 0){
+					names = names + "," + name;}
+				else{
+					names = name;
+				}
+				double[] value = ListUtils.copyDoubleArray(inputValues[i], new double[inputValues[i].length]);
+				rConnection.assign(name, value);	
+		
+				bindingInput = "cbind(" + names + ")";
+			}
+			evalValue = rConnection.eval(bindingInput);
+		
+			rConnection.assign("Bind",evalValue);
+		
+			REXP completeEvalValue = evalScript(rConnection, script, showWarnings);
+		
+			int i = 0;
+			int iterationTimes = outputNames.length;
+		
+			mdResult = new RResult[outputNames.length];
+			for (; i < iterationTimes; i++)
+			{
+				String name;
+				// Boolean addedTolist = false;
+				if (iterationTimes == outputNames.length + 1){
+					name = outputNames[i - 1];
+				}
+				else{
+					name = outputNames[i];
+				}
+				// Script to get R - output
+				evalValue = evalScript(rConnection, name, showWarnings);				
+//				System.out.println(evalValue);
+				if (evalValue.isVector()){
+					if (evalValue instanceof REXPString)
+						mdResult[i] = new RResult(name, evalValue.asStrings());
+					else if (evalValue instanceof REXPInteger)
+						mdResult[i] = new RResult(name, evalValue.asIntegers());
+					else if (evalValue instanceof REXPDouble){
+						if (evalValue.dim() == null)
+							mdResult[i] = new RResult(name, evalValue.asDoubles());
+						else
+							mdResult[i] = new RResult(name, evalValue.asDoubleMatrix());
+					}
+					else{
+						// if no previous cases were true, return debug String
+						mdResult[i] = new RResult(name, evalValue.toDebugString());
+					}
+				}
+				else{
+					mdResult[i] = new RResult(name, evalValue.toDebugString());
+				}
+			}
+		}
+		catch (Exception e)	{
+			e.printStackTrace();
+			output += e.getMessage();
+			// to send error from R to As3 side results is created with one
+			// object
+			mdResult = new RResult[1];
+			mdResult[0] = new RResult("Error Statement", output);
+		}
+		finally
+		{
+			rConnection.close();
+		}
+		return mdResult;
+	}
 }

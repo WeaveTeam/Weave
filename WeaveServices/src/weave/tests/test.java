@@ -30,14 +30,14 @@ public class test
 	public static void call(String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception{
 		
 		RResult[] scriptResult = null;
-		try {
-			scriptResult =	ws.runScript(inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
-		finally{
-			System.out.println(scriptResult);
-		}
+//		try {
+//			scriptResult =	ws.runScript(null, inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
+//		} catch (RemoteException e) {
+//			e.printStackTrace();
+//		}
+//		finally{
+//			System.out.println(scriptResult);
+//		}
 	}
 	
 	public static void main(String[] args) throws Exception {
