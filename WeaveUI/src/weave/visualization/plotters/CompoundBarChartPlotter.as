@@ -35,7 +35,6 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
-	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -68,7 +67,7 @@ package weave.visualization.plotters
 	{
 		public function CompoundBarChartPlotter()
 		{
-			colorColumn.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+			colorColumn.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 
 			// get the keys from the sort column
 			setKeySource(sortColumn);
@@ -98,6 +97,7 @@ package weave.visualization.plotters
 		private const _filteredSortColumn:FilteredColumn = _sortedIndexColumn.requestLocalObject(FilteredColumn, true); // filters before sorting
 		public function get sortColumn():DynamicColumn { return _filteredSortColumn.internalDynamicColumn; }
 		public const labelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const stackedMissingDataGap:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		
 		private var _sortByColor:Function;
 		
@@ -309,12 +309,9 @@ package weave.visualization.plotters
 					var heightMissing:Boolean = isNaN(height);
 					if (heightMissing)
 					{
-						//if height is missing we set it to 0 for 100% stacked bar else
-						// we assign average value of the column
-						if (_groupingMode == PERCENT_STACK)
-							height = 0;
-						else
-							height = WeaveAPI.StatisticsCache.getMean(heightColumn);		
+						// if height is missing, use mean value unless we're in 100% stacked mode
+						if (stackedMissingDataGap.value && _groupingMode != PERCENT_STACK)
+							height = WeaveAPI.StatisticsCache.getMean(heightColumn);
 					}
 					if (isNaN(height)) // check again because getMean may return NaN
 						height = 0;
@@ -337,6 +334,8 @@ package weave.visualization.plotters
 					
 					if (!heightMissing)
 					{
+						// draw graphics
+						
 						var barStart:Number = xMin;
 						if (_groupingMode == GROUP)
 							barStart += i / numHeightColumns * recordWidth;
@@ -670,6 +669,8 @@ package weave.visualization.plotters
 			
 			tempRange.setRange(0, 0); // bar starts at zero
 			
+			var allMissing:Boolean = true;
+			
 			for (var i:int = 0; i < _heightColumns.length; i++)
 			{
 				var column:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
@@ -681,6 +682,17 @@ package weave.visualization.plotters
 				else
 				{
 					var height:Number = column.getValueFromKey(recordKey, Number);
+					// if height is missing, use mean value
+					if (isNaN(height))
+					{
+						if (stackedMissingDataGap.value)
+							height = WeaveAPI.StatisticsCache.getMean(column);
+					}
+					else
+					{
+						allMissing = false;
+					}
+
 					var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
 					var negativeError:IAttributeColumn = _negErrCols[i] as IAttributeColumn;
 					if (showErrorBars && positiveError && negativeError)
@@ -705,6 +717,9 @@ package weave.visualization.plotters
 					}
 				}
 			}
+			
+			if (allMissing)
+				tempRange.setRange(0, 0); // bar starts at zero
 			
 			if (horizontalMode.value) // x range
 				bounds.setXRange(tempRange.begin, tempRange.end);

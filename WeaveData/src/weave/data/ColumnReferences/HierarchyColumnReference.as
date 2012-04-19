@@ -19,8 +19,6 @@
 
 package weave.data.ColumnReferences
 {
-	import flash.utils.getQualifiedClassName;
-	
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableXML;
 	import weave.utils.HierarchyUtils;

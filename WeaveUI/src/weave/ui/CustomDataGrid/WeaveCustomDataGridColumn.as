@@ -44,7 +44,7 @@ package weave.ui.CustomDataGrid
 				attrColumn: attrColumn,
 				showColors: showColors,
 				colorFunction: colorFunction,
-				keySet: Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET)
+				keySet: Weave.defaultSelectionKeySet
 			};
 			this.itemRenderer = factory;
 			

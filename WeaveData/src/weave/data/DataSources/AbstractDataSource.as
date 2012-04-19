@@ -42,6 +42,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.primitives.AttributeHierarchy;
 	import weave.utils.DebugUtils;
+	import weave.utils.debug_trace;
 	
 	/**
 	 * This is a base class to make it easier to develope a new class that implements IDataSource.
@@ -73,7 +74,7 @@ package weave.data.DataSources
 		{
 			if (enableDebug)
 			{
-				DebugUtils.debug_trace(this, traceArgs);
+				debug_trace(this, traceArgs);
 				//trace.apply(null, traceArgs);
 			}
 		}
@@ -181,7 +182,6 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * requestHierarchyFromSource
 		 * This function must be implemented by classes by extend AbstractDataSource.
 		 * This function should make a request to the source to fill in the hierarchy at the given subtree.
 		 * This function will only be called once per subtreeNode.
@@ -190,7 +190,6 @@ package weave.data.DataSources
 		/* abstract */ protected function requestHierarchyFromSource(subtreeNode:XML = null):void { }
 
 		/**
-		 * requestHierarchyFromSource
 		 * This function must be implemented by classes that extend AbstractDataSource.
 		 * This function should make a request to the source to fill in the proxy column.
 		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 
@@ -199,7 +198,6 @@ package weave.data.DataSources
 		/* abstract */ protected function requestColumnFromSource(columnReference:IColumnReference, proxyColumn:ProxyColumn):void { }
 
 		/**
-		 * url
 		 * The url of the data source.
 		 * This is included here because most IDataSource implementations will have a URL.
 		 * It is a special case to have an IDataSource without one.
@@ -208,7 +206,6 @@ package weave.data.DataSources
 		public const url:LinkableString = newLinkableChild(this, LinkableString);
 
 		/**
-		 * getAttributeHierarchy
 		 * @return An AttributeHierarchy object that will be updated when new pieces of the hierarchy are filled in.
 		 */
 		public function get attributeHierarchy():IAttributeHierarchy
@@ -225,14 +222,12 @@ package weave.data.DataSources
 		private var _pendingColumnRequests:Array = [];
 		
 		/**
-		 * _requestedHierarchySubtreeStringMap
 		 * This maps a requested hierarchy subtree xml string to a value of true.
 		 * If a subtree node has not been requested yet, it will not appear in this Object.
 		 */
 		private var _requestedHierarchySubtreeStringMap:Object = new Object();
 		
 		/**
-		 * initializeHierarchySubtree
 		 * If the hierarchy subtree pointed to subtreeNode 
 		 * @param subtreeNode A pointer to a node in the hierarchy representing the root of the subtree to request from the source.
 		 */
@@ -302,7 +297,6 @@ package weave.data.DataSources
 		}
 
 		/**
-		 * handlePendingColumnRequest
 		 * This function will call requestColumnFromSource() if the hierarchyPointer in the column is now valid.
 		 * Otherwise, it will call delayColumnRequest() again.
 		 * This function may be overridden by classes that extend AbstractDataSource.
@@ -318,8 +312,8 @@ package weave.data.DataSources
 			{
 				debug('requestColumnFromSource', request.columnReference.getHashCode());
 				
-				//StageUtils.callLater(this, requestColumnFromSource, [request.columnReference, request.proxyColumn]);
-				requestColumnFromSource(request.columnReference, request.proxyColumn);
+				WeaveAPI.StageUtils.callLater(this, requestColumnFromSource, [request.columnReference, request.proxyColumn]);
+				//requestColumnFromSource(request.columnReference, request.proxyColumn);
 			}
 			else
 			{
@@ -328,7 +322,6 @@ package weave.data.DataSources
 		}
 
 		/**
-		 * delayColumnRequest
 		 * This will put an initialized proxy column into the list of pending requests.
 		 * It will also call initializeHierarchySubtree() for a subtree of the hierarchy, if a subtree is missing.
 		 * This function can be overridden to have different behavior, but this definition is recommended.
@@ -342,7 +335,6 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * handleAllPendingColumnRequests
 		 * This function will call handlePendingColumnRequest() on each pending column request.
 		 */
 		private function handleAllPendingColumnRequests():void
@@ -374,7 +366,6 @@ package weave.data.DataSources
 		private const _proxyColumnToReferenceMap:Dictionary = new Dictionary(false);
 		
 		/**
-		 * dispose
 		 * This function should be called when the IDataSource is no longer in use.
 		 * All existing pointers to objects should be set to null so they can be garbage collected.
 		 */

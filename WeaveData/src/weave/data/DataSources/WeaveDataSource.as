@@ -441,10 +441,11 @@ package weave.data.DataSources
 				var dataType:String = hierarchyNode['@' + AttributeColumnMetadata.DATA_TYPE];
 
 				var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(keyType, result.keys));
-				if (result.secKeys != null)
+				if (result.thirdColumn != null)
 				{
+					// hack for dimension slider
 					var newColumn:SecondaryKeyNumColumn = new SecondaryKeyNumColumn(hierarchyNode);
-					var secKeyVector:Vector.<String> = Vector.<String>(result.secKeys);
+					var secKeyVector:Vector.<String> = Vector.<String>(result.thirdColumn);
 					newColumn.updateRecords(keysVector, secKeyVector, result.data);
 					proxyColumn.internalColumn = newColumn;
 					proxyColumn.setMetadata(null); // this will allow SecondaryKeyNumColumn to use its getMetadata() code

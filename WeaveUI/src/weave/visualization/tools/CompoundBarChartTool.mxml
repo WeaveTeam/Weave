@@ -213,8 +213,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			private function updateAxisLabels():void
@@ -384,7 +383,7 @@
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Basic">
 			<ui:DynamicColumnComponent visTool="{this}" id="colorColumnInput" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"
-									   toolTip="Color column selection is enabled when only a single column is in the list below."/>
+									   toolTip="Color column selection is enabled when only a single column is in the list below." showLinkControl="false"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Label" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.labelColumn"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Sort" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
 			<mx:CheckBox id="groupBySortColumnCheckBox" label="Group bars by the sort column" creationComplete="linkBindableProperty(_plotter.groupBySortColumn, event.target, 'selected');"/>
@@ -476,6 +475,7 @@
 		</mx:VBox>
 		
 		<mx:VBox id="advControlsPanel" label="Advanced">
+			<mx:CheckBox label="In stacked mode, use gaps for missing data" creationComplete="linkBindableProperty(_plotter.stackedMissingDataGap, event.target, 'selected');"/>
 			<ui:Indent label="Bar spacing:">
 				<mx:HSlider id="barSpacingSlider" value="0" minimum="0" maximum="1" labels="['No gap', '1:3', '1:1']" tickInterval="0.25"
 							toolTip="Move this slider to change the gap between bars.  All the way to the left means no gap.  The highest value is a 1:1 ratio, meaning equal bar width to gap width." showDataTip="false"

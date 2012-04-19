@@ -40,7 +40,11 @@ package weave.compiler
 			initialize();
 			includeLibraries(Math, StringUtil, StandardLib);
 			
-			//StageUtils.callLater(null, test);
+			if (!_testComplete)
+			{
+				_testComplete = true;
+				//test();
+			}
 		}
 		
 		/**
@@ -50,18 +54,23 @@ package weave.compiler
 		
 		/**
 		 * This is the prefix used for the function notation of infix operators.
-		 * For example, the function notation for ( x + y ) is ( operator+(x,y) ).
+		 * For example, the function notation for ( x + y ) is ( (+)(x,y) ).
 		 */
-		public static const OPERATOR_PREFIX:String = 'operator';
+		public static const OPERATOR_PREFIX:String = '(';
+		/**
+		 * This is the suffix used for the function notation of infix operators.
+		 * For example, the function notation for ( x + y ) is ( (+)(x,y) ).
+		 */
+		public static const OPERATOR_SUFFIX:String = ')';
 		
 		/**
 		 * This is a String containing all the characters that are treated as whitespace.
 		 */
 		private static const WHITESPACE:String = '\r\n \t\f';
-		/**
-		 * This is the maximum allowed length of an operator.
-		 */		
-		private static const MAX_OPERATOR_LENGTH:int = 4;
+//		/**
+//		 * This is the maximum allowed length of an operator.
+//		 */		
+//		private static const MAX_OPERATOR_LENGTH:int = 4;
 		/**
 		 * This is used to match number tokens.
 		 */		
@@ -273,7 +282,7 @@ package weave.compiler
 				return object.flash_proxy::getDescendants(propertyName);
 			};
 			// array creation
-			operators["[]"] = function(...args):* { return args; };
+			operators["["] = function(...args):* { return args; };
 			// math
 			operators["**"] = Math.pow;
 			operators["*"] = function(x:*, y:*):Number { return x * y; };
@@ -345,12 +354,12 @@ package weave.compiler
 				['||']
 			];
 			// unary operators
-			unaryOperatorSymbols = ['#','-','~','!'];
+			unaryOperatorSymbols = ['-','~','!']; // '#'
 
 			// create a corresponding function name for each operator
 			for (var op:String in operators)
 				if (operators[op] is Function)
-					constants[OPERATOR_PREFIX + op] = operators[op];
+					constants[OPERATOR_PREFIX + op + OPERATOR_SUFFIX] = operators[op];
 		}
 
 		/**
@@ -428,7 +437,7 @@ package weave.compiler
 			// this function assumes operators has already been initialized
 			endIndex = index;
 			var op:String = null;
-			while (endIndex < n && op != '[') // special case for '[' so '[]' doesn't get treated as a single operator
+			while (endIndex < n)
 			{
 				op = expression.substring(index, endIndex + 1);
 				if (operators[op] == undefined)
@@ -455,8 +464,9 @@ package weave.compiler
 				// operator terminates a token
 				if (operators[c] != undefined)
 				{
+					/*
 					// special case: "operator" followed by an operator symbol is treated as a single token
-					if (expression.substring(index, endIndex) == OPERATOR_PREFIX)
+					if (expression.substring(index, endIndex) == OPERATOR_PREFIX1)
 					{
 						for (var operatorLength:int = MAX_OPERATOR_LENGTH; operatorLength > 0; operatorLength--)
 						{
@@ -467,6 +477,7 @@ package weave.compiler
 							}
 						}
 					}
+					*/
 					break;
 				}
 			}
@@ -512,8 +523,17 @@ package weave.compiler
 				}
 			}
 			
-			// next step: handle operators ".[]{}()"
+			// next step: handle operators "..[]{}()"
 			compileBracketsAndProperties(tokens);
+
+			// next step: compile lone operators (extension to allow getting pointers to operator functions)
+			if (tokens.length == 1 && tokens[0] is String && operators[tokens[0]] is Function)
+				tokens[0] = new CompiledConstant(OPERATOR_PREFIX + tokens[0] + OPERATOR_SUFFIX, operators[tokens[0]]);
+			
+			// next step: handle stray operators "..[](){}"
+			for each (token in tokens)
+				if (token is String && '..[](){}'.indexOf(token as String) >= 0)
+					throw new Error("Misplaced '" + token + "'");
 
 			// next step: compile constants and variable names
 			for (i = 0; i < tokens.length; i++)
@@ -535,7 +555,7 @@ package weave.compiler
 			}
 			
 			// next step: compile unary '#' operators
-			compileUnaryOperators(tokens, ['#']);
+			//compileUnaryOperators(tokens, ['#']);
 			
 			// next step: compile infix '**' operators
 			compileInfixOperators(tokens, ['**']);
@@ -590,7 +610,7 @@ package weave.compiler
 				if (enableOptimizations && condition is CompiledConstant)
 					result = (condition as CompiledConstant).value ? trueBranch : falseBranch;
 				else
-					result = compileFunctionCall(new CompiledConstant(OPERATOR_PREFIX + '?:', operators['?:']), [condition, trueBranch, falseBranch]);
+					result = compileFunctionCall(new CompiledConstant(OPERATOR_PREFIX + '?:' + OPERATOR_SUFFIX, operators['?:']), [condition, trueBranch, falseBranch]);
 				
 				tokens.splice(left - 1, end - left + 1, result);
 			}
@@ -623,7 +643,7 @@ package weave.compiler
 				
 				// verify that lhs.compiledMethod.name is 'operator.'
 				var lhsMethod:CompiledConstant = lhs.compiledMethod as CompiledConstant;
-				if (lhsMethod && lhsMethod.name == OPERATOR_PREFIX + '.')
+				if (lhsMethod && lhsMethod.name == OPERATOR_PREFIX + '.' + OPERATOR_SUFFIX)
 				{
 					// switch to the assignment operator
 					lhs.compiledParams.push(tokens[i + 1]);
@@ -818,15 +838,23 @@ package weave.compiler
 			var rightBracket:String;
 			while (true)
 			{
-				// find first closing bracket or '.'
+				// find first closing bracket or '.' or '..'
 				for (close = 0; close < tokens.length; close++)
 					if ('..])}'.indexOf(tokens[close]) >= 0)
 						break;
 				if (close == tokens.length || close == 0)
 					break; // possible error, or no operator found
-				// work backwards to the preceeding opening bracket or stop if '.'
+				
+				// use matching brackets
+				rightBracket = tokens[close];
+				if (rightBracket.charAt(0) == '.')
+					leftBracket = rightBracket;
+				else
+					leftBracket = '[({'.charAt('])}'.indexOf(rightBracket));
+				
+				// work backwards to the preceeding, matching opening bracket or stop if '.'
 				for (open = close; open >= 0; open--)
-					if ('..[({'.indexOf(tokens[open]) >= 0)
+					if (tokens[open] == leftBracket)
 						break;
 				if (open < 0 || open + 1 == tokens.length)
 					break; // possible error, or no operator found
@@ -844,9 +872,17 @@ package weave.compiler
 				}
 
 				// handle access and descendants operators
-				if (tokens[open] == '.' || tokens[open] == '..')
+				if ('..'.indexOf(tokens[open]) == 0)
 				{
 					var propertyToken:String = tokens[open + 1] as String;
+					
+					// special case for lone operator
+					if (open > 0 && token == OPERATOR_PREFIX && propertyToken == OPERATOR_SUFFIX)
+					{
+						tokens.splice(open - 1, 3, new CompiledConstant(OPERATOR_PREFIX + tokens[open] + OPERATOR_SUFFIX, operators[tokens[open]]));
+						continue;
+					}
+					
 					if (!token || !propertyToken || operators.hasOwnProperty(propertyToken))
 						break; // error
 					
@@ -856,9 +892,6 @@ package weave.compiler
 					continue;
 				}
 				
-				leftBracket = tokens[open];
-				rightBracket = tokens[close];
-
 				// cut out tokens between brackets
 				var subArray:Array = tokens.splice(open + 1, close - open - 1);
 				if (debug)
@@ -880,7 +913,7 @@ package weave.compiler
 					else
 					{
 						// array initialization -- replace '[' and ']' tokens
-						tokens.splice(open, 2, compileOperator('[]', compiledParams));
+						tokens.splice(open, 2, compileOperator('[', compiledParams));
 					}
 					continue;
 				}
@@ -911,9 +944,6 @@ package weave.compiler
 				
 				break;
 			}
-			for each (token in tokens)
-				if (token is String && '..[](){}'.indexOf(token as String) >= 0)
-					throw new Error("Misplaced '" + token + "'");
 		}
 		
 		/**
@@ -963,12 +993,12 @@ package weave.compiler
 		{
 			var compiledFunctionCall:CompiledFunctionCall = new CompiledFunctionCall(compiledMethod, compiledParams);
 			// If the compiled function call should not be evaluated to a constant, return it now.
-			// Only non-assignment operators will be evaluated to constants, except for the array operator [] which creates a mutable Array.
+			// Only non-assignment operators will be evaluated to constants, except for the array operator [ which creates a mutable Array.
 			var constantMethod:CompiledConstant = compiledMethod as CompiledConstant;
 			if (!enableOptimizations
 				|| !constantMethod
 				|| operators[constantMethod.name] == undefined
-				|| constantMethod.name == OPERATOR_PREFIX + '[]'
+				|| constantMethod.name == OPERATOR_PREFIX + '[' + OPERATOR_SUFFIX
 				|| assignmentOperators[constantMethod.value] != undefined)
 			{
 				return compiledFunctionCall;
@@ -1077,10 +1107,12 @@ package weave.compiler
 		 */
 		private function compileOperator(operatorName:String, compiledParams:Array):ICompiledObject
 		{
+			/*
 			// special case for variable lookup
 			if (operatorName == '#')
 				return new CompiledFunctionCall(compiledParams[0], null);
-			operatorName = OPERATOR_PREFIX + operatorName;
+			*/
+			operatorName = OPERATOR_PREFIX + operatorName + OPERATOR_SUFFIX;
 			return compileFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
 		}
 
@@ -1121,6 +1153,7 @@ package weave.compiler
 			if (name.indexOf(OPERATOR_PREFIX) == 0)
 			{
 				var op:String = name.substr(OPERATOR_PREFIX.length);
+				op = op.substr(0, -OPERATOR_SUFFIX.length);
 				if (op == '.' && params.length >= 2)
 				{
 					var result:String = params[0];
@@ -1143,7 +1176,7 @@ package weave.compiler
 					return result;
 				}
 				// variable number of params
-				if (op == '[]')
+				if (op == '[')
 					return '[' + params.join(', ') + ']'
 				if (op == ';')
 					return '{' + params.join('; ') + '}';
@@ -1200,9 +1233,9 @@ package weave.compiler
 			const TRUE_INDEX:int = 1;
 			const FALSE_INDEX:int = 2;
 			const BRANCH_LOOKUP:Dictionary = new Dictionary();
-			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '?:']] = true;
-			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '&&']] = true;
-			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '||']] = false;
+			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '?:' + OPERATOR_SUFFIX]] = true;
+			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '&&' + OPERATOR_SUFFIX]] = true;
+			BRANCH_LOOKUP[constants[OPERATOR_PREFIX + '||' + OPERATOR_SUFFIX]] = false;
 			const ASSIGN_OP_LOOKUP:Object = new Dictionary();
 			for each (var assigOp:Function in assignmentOperators)
 				ASSIGN_OP_LOOKUP[assigOp] = true;
@@ -1372,6 +1405,7 @@ package weave.compiler
 		}
 		
 		//-----------------------------------------------------------------
+		private static var _testComplete:Boolean = false;
 		private static function test():void
 		{
 			var compiler:Compiler = new Compiler();

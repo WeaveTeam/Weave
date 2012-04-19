@@ -665,8 +665,6 @@ package weave.services
 		
 		public function saveWeaveFile(fileContent:ByteArray, clientConfigFileName:String, fileOverwrite:Boolean):DelayedAsyncInvocation
 		{
-			clientConfigFileName = Weave.fixWeaveFileName(clientConfigFileName);
-			
 			var query:DelayedAsyncInvocation = service.saveWeaveFile(
 				activeConnectionName,
 				activePassword,

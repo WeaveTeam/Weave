@@ -28,7 +28,7 @@
 <mx:VBox xmlns:ui ="weave.ui.*"
 	xmlns:mx="http://www.adobe.com/2006/mxml" 
 	xmlns="weave.ui.*"
-	implements="weave.api.core.ILinkableObject"
+	implements="weave.api.ui.ILinkableObjectEditor"
 	width="100%" height="100%"
 	enabled="{colorRamp != null}"
 	>
@@ -219,6 +219,15 @@
 				
 				_colorRamp.value = rampStringValue;
 			}
+			public function setTarget(object:ILinkableObject):void
+			{
+				colorRamp = object as ColorRamp;
+			}
+			public function applyChanges():void
+			{
+				
+			}
+			
 		]]>
 	</mx:Script>
 </mx:VBox>

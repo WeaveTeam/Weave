@@ -19,14 +19,14 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml"
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" 
 				width="100%" height="100%"
 				verticalAlign="middle"
 				label="Client configurations"
 				creationComplete="handleCreationComplete()" xmlns:admin="weave.ui.admin.*">
-	<mx:TabNavigator height="100%" width="100%" paddingLeft="8" paddingRight="8" paddingBottom="8" paddingTop="8">
+	<mx:TabNavigator height="100%" paddingLeft="8" paddingRight="8" paddingBottom="8" paddingTop="8">
 		<mx:VBox label="My files">
 			<mx:HBox>
 				<mx:Button label="Open selected file" click="openSelectedFile(userFolderTreeWithSearch)" enabled="{userFolderTreeWithSearch.tree.selectedItem != null}"/>
@@ -34,7 +34,7 @@
 				<mx:Button label="Create new file" click="createFile()"/>
 			</mx:HBox>
 			<ui:TreeWithSearch id="userFolderTreeWithSearch" prompt="Search"
-							   doubleClickEnabled="true" doubleClick="openSelectedFile(userFolderTreeWithSearch)"
+							   doubleClickEnabled="true" doubleClick="if (userFolderTreeWithSearch.tree.contains(event.target as DisplayObject)) openSelectedFile(userFolderTreeWithSearch)"
 							   toolTip="Double-click a file name to open it with Weave."/>
 			<mx:HBox width="100%">
 				<mx:Spacer width="100%"/>
@@ -46,7 +46,7 @@
 				<mx:Button label="Open selected file" click="openSelectedFile(sharedTreeWithSearch)" enabled="{sharedTreeWithSearch.tree.selectedItem != null}"/>				
 			</mx:HBox>
 			<ui:TreeWithSearch id="sharedTreeWithSearch" prompt="Search"
-							   doubleClickEnabled="true" doubleClick="openSelectedFile(sharedTreeWithSearch)"
+							   doubleClickEnabled="true" doubleClick="if (sharedTreeWithSearch.tree.contains(event.target as DisplayObject)) openSelectedFile(sharedTreeWithSearch)"
 							   toolTip="Double-click a file name to open it with Weave."/>
 			<mx:HBox width="100%">
 				<mx:Spacer width="100%"/>
@@ -54,7 +54,7 @@
 			</mx:HBox>
 		</mx:VBox>
 	</mx:TabNavigator>
-	<admin:WeaveFileInfo id="weaveFileInfo" width="260"/>
+	<admin:WeaveFileInfo id="weaveFileInfo" width="100%"/>
 	
 <!--	<mx:TabNavigator paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" width="100%" height="100%">
 		<mx:Canvas label="Settings" width="100%" height="100%">
@@ -149,4 +149,4 @@
 		]]>
 	</mx:Script>
 	
-</mx:HDividedBox>
+</mx:HBox>

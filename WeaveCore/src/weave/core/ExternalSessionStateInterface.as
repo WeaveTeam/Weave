@@ -30,6 +30,7 @@ package weave.core
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
+	import weave.utils.DebugUtils;
 
 	use namespace weave_internal;
 	
@@ -45,20 +46,7 @@ package weave.core
 	 */
 	public class ExternalSessionStateInterface implements IExternalSessionStateInterface
 	{
-		/**
-		 * This function sets the root object that will be used by the other functions in this class.
-		 * This function must be called before the JavaScript API can be used.
-		 * @param root The root ILinkableObject to be used by the external interface functions.
-		 */
-		public function setLinkableObjectRoot(root:ILinkableObject):void
-		{
-			_rootObject = root;
-		}
-		
-		/**
-		 * @private
-		 */
-		private var _rootObject:ILinkableObject = null;
+		private var _rootObject:ILinkableObject = WeaveAPI.globalHashMap;
 		
 		/**
 		 * This function returns a pointer to an object appearing in the session state.
@@ -128,12 +116,17 @@ package weave.core
 				for (var name:String in state)
 				{
 					var value:Object = state[name];
-					if (value.hasOwnProperty(LinkableXML.XML_STRING))
-						state[name] = value[LinkableXML.XML_STRING];
-					else if (value is XML)
+					if (value is XML)
+					{
 						state[name] = (value as XML).toXMLString();
-					else
-						convertSessionStateToPrimitives(value);
+					}
+					else if (value != null)
+					{
+						if (value.hasOwnProperty(LinkableXML.XML_STRING))
+							state[name] = value[LinkableXML.XML_STRING];
+						else
+							convertSessionStateToPrimitives(value);
+					}
 				}
 			}
 		}
@@ -387,6 +380,25 @@ package weave.core
 				return false;
 			getCallbackCollection(object).removeCallback(getCachedCallbackFunction(callback));
 			return true;
+		}
+		
+		/**
+		 * This surrounds ExternalInterface.addCallback() with try/catch and reports the error.
+		 * @see flash.external.ExternalInterface#addCallback
+		 */
+		public static function tryAddCallback(functionName:String, closure:Function):void
+		{
+			try
+			{
+				ExternalInterface.addCallback(functionName, closure);
+			}
+			catch (e:Error)
+			{
+				if (e.errorID == 2060)
+					reportError(e, "In the HTML embedded object tag, make sure that the parameter 'allowScriptAccess' is set to 'always'. " + e.message);
+				else
+					reportError(e);
+			}
 		}
 	}
 }

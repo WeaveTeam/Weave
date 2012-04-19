@@ -168,7 +168,7 @@
 			
 			override protected function updateForceEnableBorders():void
 			{
-				if (controlPanel.parent)
+				if (controlPanel && controlPanel.parent)
 					super.updateForceEnableBorders();
 				else
 					forceEnableBorders.value = false;

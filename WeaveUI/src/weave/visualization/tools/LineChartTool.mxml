@@ -227,8 +227,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			private function getColumnTitle( index:Number ):String
@@ -404,7 +403,7 @@
 	<mx:Number id="controlsFontSize">10</mx:Number>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="Data">
-			<ui:DynamicColumnComponent visTool="{this}" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
 			<ui:DynamicColumnComponent visTool="{this}" label="Label" id="labelComponent"/>
 			<ui:ColumnListComponent visTool="{this}" label="Attributes along X axis" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
 			<mx:HBox>

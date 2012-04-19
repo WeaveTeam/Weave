@@ -135,7 +135,7 @@ public class AdminService extends GenericServlet
 	private static int DoubleType = 2;
 	private SQLConfigManager configManager;
 
-	synchronized public AdminServiceResponse checkSQLConfigExists()
+	public AdminServiceResponse checkSQLConfigExists()
 	{
 		try
 		{
@@ -154,14 +154,14 @@ public class AdminService extends GenericServlet
 		return new AdminServiceResponse(false, "The configuration storage location must be specified.");
 	}
 
-	synchronized private boolean databaseConfigExists() throws RemoteException
+	private boolean databaseConfigExists() throws RemoteException
 	{
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
 		return config.isConnectedToDatabase();
 	}
 
-	synchronized public boolean authenticate(String connectionName, String password) throws RemoteException
+	public boolean authenticate(String connectionName, String password) throws RemoteException
 	{
 		
 		boolean result = checkPasswordAndGetConfig(connectionName, password) != null;
@@ -172,7 +172,7 @@ public class AdminService extends GenericServlet
 		return result;
 	}
 
-	synchronized private ISQLConfig checkPasswordAndGetConfig(String connectionName, String password) throws RemoteException
+	private ISQLConfig checkPasswordAndGetConfig(String connectionName, String password) throws RemoteException
 	{
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
@@ -246,7 +246,7 @@ public class AdminService extends GenericServlet
 	 * @return A list of (xml) client config files existing in the docroot
 	 *         folder.
 	 */
-	synchronized public String[] getWeaveFileNames(String configConnectionName, String password, Boolean showAllFiles) throws RemoteException
+	public String[] getWeaveFileNames(String configConnectionName, String password, Boolean showAllFiles) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(configConnectionName, password);
 		ConnectionInfo info = config.getConnectionInfo(configConnectionName);
@@ -256,7 +256,7 @@ public class AdminService extends GenericServlet
 		{
 			public boolean accept(File dir, String fileName)
 			{
-				return fileName.endsWith(".xml") || fileName.endsWith(".weave");
+				return fileName.endsWith(".weave") || fileName.endsWith(".xml");
 			}
 		};
 		
@@ -331,7 +331,7 @@ public class AdminService extends GenericServlet
 			// remove special characters
 			fileName = fileName.replace("\\", "").replace("/", "");
 			
-			if (!fileName.toLowerCase().endsWith(".weave"))
+			if (!fileName.toLowerCase().endsWith(".weave") && !fileName.toLowerCase().endsWith(".xml"))
 				fileName += ".weave";
 			
 			String path = docrootPath;
@@ -404,7 +404,7 @@ public class AdminService extends GenericServlet
 		}
 	}
 
-	synchronized public WeaveFileInfo getWeaveFileInfo(String connectionName, String password, String fileName) throws RemoteException
+	public WeaveFileInfo getWeaveFileInfo(String connectionName, String password, String fileName) throws RemoteException
 	{
 		checkPasswordAndGetConfig(connectionName, password);
 		return new WeaveFileInfo(docrootPath + fileName);
@@ -415,7 +415,7 @@ public class AdminService extends GenericServlet
 	// functions for managing SQL connection entries
 	// /////////////////////////////////////////////////
 	
-	synchronized public String[] getConnectionNames(String connectionName, String password) throws RemoteException
+	public String[] getConnectionNames(String connectionName, String password) throws RemoteException
 	{
 		try
 		{
@@ -437,7 +437,7 @@ public class AdminService extends GenericServlet
 		}
 	}
 	
-	synchronized public ConnectionInfo getConnectionInfo(String loginConnectionName, String loginPassword, String connectionNameToGet) throws RemoteException
+	public ConnectionInfo getConnectionInfo(String loginConnectionName, String loginPassword, String connectionNameToGet) throws RemoteException
 	{
 		ISQLConfig config;
 		if (databaseConfigExists())
@@ -597,7 +597,7 @@ public class AdminService extends GenericServlet
 		}
 	}
 
-	synchronized public DatabaseConfigInfo getDatabaseConfigInfo(String connectionName, String password) throws RemoteException
+	public DatabaseConfigInfo getDatabaseConfigInfo(String connectionName, String password) throws RemoteException
 	{
 		try
 		{
@@ -656,7 +656,7 @@ public class AdminService extends GenericServlet
 	// functions for managing DataTable entries
 	// /////////////////////////////////////////////////
 
-	synchronized public String[] getDataTableNames(String connectionName, String password) throws RemoteException
+	public String[] getDataTableNames(String connectionName, String password) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
@@ -671,7 +671,7 @@ public class AdminService extends GenericServlet
 	/**
 	 * Returns metadata about columns of the given data table.
 	 */
-	synchronized public AttributeColumnInfo[] getDataTableInfo(String connectionName, String password, String dataTableName) throws RemoteException
+	public AttributeColumnInfo[] getDataTableInfo(String connectionName, String password, String dataTableName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		List<AttributeColumnInfo> info = config.getAttributeColumnInfo(dataTableName);
@@ -682,7 +682,7 @@ public class AdminService extends GenericServlet
 	/**
 	 * Returns the results of testing attribute column sql queries.
 	 */
-	synchronized public AttributeColumnInfo[] testAllQueries(String connectionName, String password, String dataTableName) throws RemoteException
+	public AttributeColumnInfo[] testAllQueries(String connectionName, String password, String dataTableName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		HashMap<String, String> params = new HashMap<String, String>();
@@ -819,7 +819,7 @@ public class AdminService extends GenericServlet
 	// functions for managing GeometryCollection entries
 	// /////////////////////////////////////////////////////
 
-	synchronized public String[] getGeometryCollectionNames(String connectionName, String password) throws RemoteException
+	public String[] getGeometryCollectionNames(String connectionName, String password) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
@@ -834,7 +834,7 @@ public class AdminService extends GenericServlet
 	/**
 	 * Returns metadata about the given geometry collection.
 	 */
-	synchronized public GeometryCollectionInfo getGeometryCollectionInfo(String connectionName, String password, String geometryCollectionName) throws RemoteException
+	public GeometryCollectionInfo getGeometryCollectionInfo(String connectionName, String password, String geometryCollectionName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		return config.getGeometryCollectionInfo(geometryCollectionName);
@@ -918,14 +918,14 @@ public class AdminService extends GenericServlet
 	 * The following functions get information about the database associated
 	 * with a given connection name.
 	 */
-	synchronized public String[] getSchemas(String configConnectionName, String password) throws RemoteException
+	public String[] getSchemas(String configConnectionName, String password) throws RemoteException
 	{
 		checkPasswordAndGetConfig(configConnectionName, password);
 		List<String> schemasList = getSchemasList(configConnectionName);
 		return ListUtils.toStringArray(getSortedUniqueValues(schemasList, false));
 	}
 
-	synchronized public String[] getTables(String configConnectionName, String password, String schemaName) throws RemoteException
+	public String[] getTables(String configConnectionName, String password, String schemaName) throws RemoteException
 	{
 		checkPasswordAndGetConfig(configConnectionName, password);
 		List<String> tablesList = getTablesList(configConnectionName, schemaName);
@@ -933,13 +933,13 @@ public class AdminService extends GenericServlet
 		return ListUtils.toStringArray(getSortedUniqueValues(tablesList, false));
 	}
 
-	synchronized public String[] getColumns(String configConnectionName, String password, String schemaName, String tableName) throws RemoteException
+	public String[] getColumns(String configConnectionName, String password, String schemaName, String tableName) throws RemoteException
 	{
 		checkPasswordAndGetConfig(configConnectionName, password);
 		return ListUtils.toStringArray(getColumnsList(configConnectionName, schemaName, tableName));
 	}
 
-	synchronized private List<String> getSchemasList(String connectionName) throws RemoteException
+	private List<String> getSchemasList(String connectionName) throws RemoteException
 	{
 		ISQLConfig config = configManager.getConfig();
 		List<String> schemas;
@@ -957,7 +957,7 @@ public class AdminService extends GenericServlet
 		return schemas;
 	}
 
-	synchronized private List<String> getTablesList(String connectionName, String schemaName) throws RemoteException
+	private List<String> getTablesList(String connectionName, String schemaName) throws RemoteException
 	{
 		ISQLConfig config = configManager.getConfig();
 		List<String> tables;
@@ -973,7 +973,7 @@ public class AdminService extends GenericServlet
 		return tables;
 	}
 
-	synchronized private List<String> getColumnsList(String connectionName, String schemaName, String tableName) throws RemoteException
+	private List<String> getColumnsList(String connectionName, String schemaName, String tableName) throws RemoteException
 	{
 		ISQLConfig config = configManager.getConfig();
 		List<String> columns;
@@ -993,13 +993,13 @@ public class AdminService extends GenericServlet
 	// functions for getting miscellaneous info
 	// ///////////////////////////////////////////
 
-	synchronized public String[] getKeyTypes(String connectionName, String password) throws RemoteException
+	public String[] getKeyTypes(String connectionName, String password) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		return ListUtils.toStringArray(getSortedUniqueValues(config.getKeyTypes(), true));
 	}
 
-	synchronized public UploadedFile[] getUploadedCSVFiles() throws RemoteException
+	public UploadedFile[] getUploadedCSVFiles() throws RemoteException
 	{
 		File directory = new File(uploadPath);
 		List<UploadedFile> list = new ArrayList<UploadedFile>();
@@ -1029,7 +1029,7 @@ public class AdminService extends GenericServlet
 		return list.toArray(new UploadedFile[n]);
 	}
 	
-	synchronized public UploadedFile[] getUploadedShapeFiles() throws RemoteException
+	public UploadedFile[] getUploadedShapeFiles() throws RemoteException
 	{
 		File directory = new File(uploadPath);
 		List<UploadedFile> list = new ArrayList<UploadedFile>();
@@ -1066,7 +1066,7 @@ public class AdminService extends GenericServlet
 	 * @return A list of common header files or null if none exist encoded using
 	 * 
 	 */
-	synchronized public String[] getCSVColumnNames(String csvFile) throws RemoteException
+	public String[] getCSVColumnNames(String csvFile) throws RemoteException
 	{
 		String[] headerLine = null;
 
@@ -1105,7 +1105,7 @@ public class AdminService extends GenericServlet
 	 * @return A list of common header files or null if none exist encoded using
 	 * 
 	 */
-	synchronized public Boolean checkKeyColumnForCSVImport(String csvFile,String keyColumn,String secondaryKeyColumn) throws RemoteException
+	public Boolean checkKeyColumnForCSVImport(String csvFile,String keyColumn,String secondaryKeyColumn) throws RemoteException
 	{
 
 		Boolean isUnique = true;
@@ -1196,7 +1196,7 @@ public class AdminService extends GenericServlet
 	 * @return the csv data string 
 	 * 
 	 */
-	synchronized public String getCSVStringData(String csvFile) throws RemoteException
+	public String getCSVStringData(String csvFile) throws RemoteException
 	{
 		String csvString = null;
 
@@ -1216,7 +1216,7 @@ public class AdminService extends GenericServlet
 		return csvString;
 	}
 
-	synchronized public String[] listDBFFileColumns(String dbfFileName) throws RemoteException
+	public String[] listDBFFileColumns(String dbfFileName) throws RemoteException
 	{
 		try
 		{
@@ -1229,7 +1229,7 @@ public class AdminService extends GenericServlet
 		}
 	}
 	
-	synchronized public Object[][] getDBFData(String dbfFileName) throws RemoteException
+	public Object[][] getDBFData(String dbfFileName) throws RemoteException
 	{
 		try
 		{
@@ -1242,7 +1242,7 @@ public class AdminService extends GenericServlet
 		}
 	}
 	
-	synchronized private String correctFileNameCase(String fileName)
+	private String correctFileNameCase(String fileName)
 	{
 		try 
 		{
@@ -1316,7 +1316,7 @@ public class AdminService extends GenericServlet
 	 * 
 	 * @return A list of files existing in the csv upload folder.
 	 */
-	synchronized public List<String> getUploadedFileNames() throws RemoteException
+	public List<String> getUploadedFileNames() throws RemoteException
 	{
 		File uploadFolder = new File(uploadPath);
 		File[] files = null;
@@ -1406,7 +1406,7 @@ public class AdminService extends GenericServlet
 			int i = 0;
 			int j = 0;
 			int num = 1;
-			String outputNullValue = SQLUtils.getCSVNullValue(conn);
+			
 			boolean ignoreKeyColumnQueries = false;
 			
 			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile),"ISO-8859-1");
@@ -1466,16 +1466,16 @@ public class AdminService extends GenericServlet
 				colName = colName.replace("<", "less than");
 				colName = colName.replace(">", "more than");
 				// if the length of the column name is longer than the 64-character limit
-				int maxColNameLength = 64;
-				int halfMaxColNameLength = 30;
+				int maxColNameLength = 64 - 4; // leave space for "_123" if there end up being duplicate column names
 				boolean isKeyCol = csvKeyColumn.equalsIgnoreCase(colName);
-				if (colName.length() >= maxColNameLength)
-				{
+				// if name too long, remove spaces
+				if (colName.length() > maxColNameLength)
 					colName = colName.replace(" ", "");
-					if (colName.length() >= maxColNameLength)
-					{
-						colName = colName.substring(0, halfMaxColNameLength) + "_" + colName.substring(colName.length() - halfMaxColNameLength);
-					}
+				// if still too long, truncate
+				if (colName.length() > maxColNameLength)
+				{
+					int half = maxColNameLength / 2 - 1;
+					colName = colName.substring(0, half) + "_" + colName.substring(colName.length() - half);
 				}
 				// copy new name if key column changed
 				if (isKeyCol)
@@ -1519,12 +1519,12 @@ public class AdminService extends GenericServlet
 						{
 							if (nextLine[i].equalsIgnoreCase(nullValue))
 							{
-								nextLine[i] = outputNullValue;
+								nextLine[i] = null;
 								break;
 							}
 						}
 					}
-					if (nextLine[i].equals(outputNullValue))
+					if (nextLine[i]== null)
 						continue;
 
 					// 04 is a string (but Integer.parseInt would not throw an exception)
@@ -1575,6 +1575,8 @@ public class AdminService extends GenericServlet
 				// Format each line
 				for (i = 0; i < columnNames.length && i < nextLine.length; i++)
 				{
+					if(nextLine[i] == null)
+						continue;
 					String value = nextLine[i];
 					if (types[i] == IntType || types[i] == DoubleType)
 					{
@@ -1587,8 +1589,8 @@ public class AdminService extends GenericServlet
 			// save modified CSV
 //			BufferedWriter out = new BufferedWriter(new FileWriter(formatted_CSV_path));
 			File out = new File(formatted_CSV_path);
-			boolean quoteEmptyStrings = outputNullValue.length() > 0;
-			String temp = CSVParser.defaultParser.createCSV(rows, quoteEmptyStrings);
+			
+			String temp = SQLUtils.generateCSV(conn, rows);
 			org.apache.commons.io.FileUtils.writeStringToFile(out, temp, "ISO-8859-1");
 
 			// Import the CSV file into SQL.
@@ -1744,10 +1746,9 @@ public class AdminService extends GenericServlet
 		List<Object[]> queryParamsList = new Vector<Object[]>();
 		List<String> dataTypes = new Vector<String>();
 		String query = null;
-		Connection conn = null;
+		Connection conn = SQLConfigUtils.getStaticReadOnlyConnection(config, connectionName);
 		try
 		{
-			conn = SQLConfigUtils.getConnection(config, connectionName);
 			SQLResult filteredValues = null;
 			if (filterColumnNames != null && filterColumnNames.length > 0)
 			{
@@ -1837,10 +1838,6 @@ public class AdminService extends GenericServlet
 		{
 			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
 		}
-		finally
-		{
-			SQLUtils.cleanup(conn);
-		}
 		
 		return String.format("DataTable \"%s\" was added to the configuration with %s generated attribute column queries.\n", configDataTableName, titles.size());
 	}
@@ -1854,6 +1851,7 @@ public class AdminService extends GenericServlet
 	private String testQueryAndGetDataType(Connection conn, String query, Object[] params) throws RemoteException
 	{
 		CallableStatement cstmt = null;
+		Statement stmt = null;
 		ResultSet rs = null;
 		DataType dataType = null;
 		try
@@ -1862,11 +1860,20 @@ public class AdminService extends GenericServlet
 			if (!dbms.equalsIgnoreCase(SQLUtils.SQLSERVER) && !dbms.equalsIgnoreCase(SQLUtils.ORACLE))
 				query += " LIMIT 1";
 	
-			cstmt = conn.prepareCall(query);
-			if (params != null)
+			if (params == null || params.length == 0)
+			{
+				// We have to use Statement when there are no parameters, because CallableStatement
+				// will fail in Microsoft SQL Server with "Incorrect syntax near the keyword 'SELECT'".
+				stmt = conn.createStatement();
+				rs = stmt.executeQuery(query);
+			}
+			else
+			{
+				cstmt = conn.prepareCall(query);
 				for (int i = 0; i < params.length; i++)
 					cstmt.setObject(i + 1, params[i]);
-			rs = cstmt.executeQuery();
+				rs = cstmt.executeQuery();
+			}
 	
 			dataType = DataType.fromSQLType(rs.getMetaData().getColumnType(2));
 		}
@@ -1878,6 +1885,7 @@ public class AdminService extends GenericServlet
 		{
 			SQLUtils.cleanup(rs);
 			SQLUtils.cleanup(cstmt);
+			SQLUtils.cleanup(stmt);
 		}
 		
 		return dataType.toString();
@@ -2148,7 +2156,7 @@ public class AdminService extends GenericServlet
 	 * If an error occurs, a map is returned with a single key-value pair whose
 	 * key is "error".
 	 */
-	synchronized public Map<String,String> listDCElements(String connectionName, String password, String dataTableName) throws RemoteException
+	public Map<String,String> listDCElements(String connectionName, String password, String dataTableName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		
@@ -2238,7 +2246,7 @@ public class AdminService extends GenericServlet
 		return "Successfully wrote the report definition file: " + reportDefFile.getAbsolutePath();
 	}
 	
-	synchronized public boolean checkKeyColumnForSQLImport(String connectionName, String password, String schemaName, String tableName, String keyColumnName, String secondaryKeyColumnName) throws RemoteException
+	public boolean checkKeyColumnForSQLImport(String connectionName, String password, String schemaName, String tableName, String keyColumnName, String secondaryKeyColumnName) throws RemoteException
 	{
 		Boolean isUnique = false;
 		

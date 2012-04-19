@@ -31,10 +31,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
-	import weave.data.AttributeColumns.ColorColumn;
 	import weave.utils.ColumnUtils;
-	import weave.visualization.plotters.styles.ExtendedFillStyle;
-	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 
@@ -47,7 +44,7 @@ package weave.visualization.plotters
 	{
 		public function SimpleGlyphPlotter()
 		{
-			fillStyle.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 		}
 		
 		private static const LEFT:String = 'left', CENTER:String = 'center', RIGHT:String = 'right';

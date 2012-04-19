@@ -163,11 +163,7 @@ package weave.data.AttributeColumns
 
 		override public function toString():String
 		{
-			var result:String = proxyID;
-			result += ' -> ' + internalColumn;
-			if (internalColumn == null)
-				result += " " + super.toString();
-			return result;
+			return proxyID + '( ' + (internalColumn ? internalColumn : super.toString()) + ' )';
 		}
 		
 		/**

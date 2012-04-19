@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute"
+				   width="400" height="300" title="Macro Editor">			
+	<ui:LinkableObjectList id="macroList" height="100%" width="100%"
+						   hashMap="{LinkableFunction.macros}"/>
+		<mx:ControlBar>
+			<mx:Button label="Edit" height="100%" width="33%" click="editEntry(event)"/>
+			<mx:Button label="Delete" height="100%" width="33%" click="deleteEntry(event)"/>
+			<mx:Button label="Add" height="100%" width="33%" click="newMacroEntry(event)"/>
+		</mx:ControlBar>
+		<mx:Script>
+			<![CDATA[
+				import mx.core.Application;
+				import mx.managers.PopUpManager;
+				
+				import weave.api.core.ILinkableHashMap;
+				import weave.core.LinkableFunction;
+				
+				protected function editEntry(event:MouseEvent):void
+				{
+					if(macroList.selectedIndex > -1)
+					{
+						var macroEditorWindow:MacroEditWindow = new MacroEditWindow();
+						PopUpManager.addPopUp(macroEditorWindow, Application.application as Application);
+						macroEditorWindow.restorePanel();
+						macroEditorWindow.macroName = macroList.hashMap.getName(macroList.selectedItem as LinkableFunction);	
+					}
+					
+				}
+
+				protected function deleteEntry(event:MouseEvent):void
+				{
+					if( macroList.selectedIndex > -1)
+					{
+						LinkableFunction.macros.removeObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction));
+					}
+				}
+				
+				protected function newMacroEntry(event:MouseEvent):void
+				{
+					var macroAddWindow:MacroAddWindow = new MacroAddWindow();
+					PopUpManager.addPopUp(macroAddWindow, Application.application as Application);
+					macroAddWindow.restorePanel();
+				}
+			]]>
+		</mx:Script>
+</ui:DraggablePanel>

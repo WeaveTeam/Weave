@@ -40,7 +40,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
-	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.KeySets.KeySet;
@@ -59,7 +58,7 @@ package weave.visualization.plotters
 	{
 		public function ParallelCoordinatesPlotter()
 		{
-			lineStyle.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+			lineStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			lineStyle.weight.defaultValue.value = 1;
 			lineStyle.alpha.defaultValue.value = 1.0;
 			setKeySource(_combinedKeySet);

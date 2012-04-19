@@ -61,12 +61,12 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
 			import weave.api.disposeObjects;
+			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.utils.HierarchyUtils;
-			import weave.visualization.tools.SimpleVisTool;
 
 			override protected function constructor():void
 			{
@@ -220,7 +220,7 @@
 				return _defaultSelector;
 			}
 			public static var _defaultSelector:AttributeSelectorPanel;
-			public static function openToolSelector(tool:SimpleVisTool, attributeToLinkTo:ILinkableObject):void
+			public static function openToolSelector(tool:IVisToolWithSelectableAttributes, attributeToLinkTo:ILinkableObject):void
 			{
 				if (!Weave.properties.enableToolControls.value)
 					return;

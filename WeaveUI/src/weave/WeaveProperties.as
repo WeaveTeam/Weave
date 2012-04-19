@@ -41,6 +41,7 @@ package weave
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.linkBindableProperty;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -50,8 +51,10 @@ package weave
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
+	import weave.core.StageUtils;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.AbstractAttributeColumn;
+	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
 	import weave.ui.AttributeMenuTool;
@@ -122,6 +125,9 @@ package weave
 			panelTitleTextFormat.color.value = 0xFFFFFF;
 			
 			_initToggleMap();
+			
+			linkBindableProperty(enableThreadPriorities, WeaveAPI.StageUtils, 'enableThreadPriorities');
+			linkBindableProperty(maxComputationTimePerFrame, WeaveAPI.StageUtils, 'maxComputationTimePerFrame');
 		}
 		
 		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
@@ -343,7 +349,6 @@ package weave
 		
 		public const enableAboutMenu:LinkableBoolean = new LinkableBoolean(true); //enable/disable About Menu
 		
-		public function get enableDebugAlert():LinkableBoolean { return DebugUtils.enableDebugAlert; } // show debug_trace strings in alert boxes
 		public const showKeyTypeInColumnTitle:LinkableBoolean = new LinkableBoolean(false);
 		
 		// cosmetic options
@@ -431,7 +436,6 @@ package weave
 		
 		// temporary?
 		public const rServiceURL:LinkableString = registerLinkableChild(this, new LinkableString("/WeaveServices/RService"), handleRServiceURLChange);// url of Weave R service using Rserve
-		public const jriServiceURL:LinkableString = new LinkableString("/WeaveServices/JRIService");// url of Weave R service using JRI
 		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
 		
 		private function handleRServiceURLChange():void
@@ -502,6 +506,10 @@ package weave
 		{
 			return value >= 1 && value <= 4;
 		}
+		
+		public function get SecondaryKeyNumColumn_useGlobalMinMaxValues():LinkableBoolean { return SecondaryKeyNumColumn.useGlobalMinMaxValues; }
+		public const enableThreadPriorities:LinkableBoolean = new LinkableBoolean(false);
+		public const maxComputationTimePerFrame:LinkableNumber = new LinkableNumber(100);
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY

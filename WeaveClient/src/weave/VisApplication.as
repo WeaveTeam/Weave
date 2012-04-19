@@ -23,6 +23,7 @@ package weave
 	import flash.display.StageDisplayState;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.FileFilter;
@@ -30,12 +31,14 @@ package weave
 	import flash.net.URLRequest;
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
+	import flash.system.Security;
 	import flash.system.System;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.collections.ArrayCollection;
 	import mx.containers.Canvas;
 	import mx.containers.VBox;
 	import mx.controls.Alert;
@@ -56,6 +59,7 @@ package weave
 	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
+	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -83,6 +87,7 @@ package weave
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.ProbeToolTipEditor;
+	import weave.ui.QuickMenuPanel;
 	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SubsetManager;
@@ -111,27 +116,6 @@ package weave
 	public class VisApplication extends VBox implements ILinkableObject
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
-
-		{ /** BEGIN STATIC CODE BLOCK **/ 
-			Weave.initialize(); // this registers specific WeaveAPI implementation classes.
-		} /** END STATIC CODE BLOCK **/
-		
-		/**
-		 * Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
-		 * view to add new tools, manage windows, do advanced tasks, etc.
-		 */
-		private var _weaveMenu:WeaveMenuBar = null;
-		
-		/**
-		 * Optional menu bar (bottom of screen) to control the collaboration service and interaction
-		 * between users.
-		 */
-		private var _collabMenu:CollaborationMenuBar = new CollaborationMenuBar();
-		
-		/**
-		 * This will be used to incorporate branding into any weave view.  Linkable to the Open Indicators Consortium website.
-		 */
-		private var _oicLogoPane:OICLogoPane = new OICLogoPane();
 
 		/**
 		 * Constructor.
@@ -209,6 +193,8 @@ package weave
 			Weave.properties.backgroundColor.addImmediateCallback(this, handleBackgroundColorChange, true);
 			
 			getFlashVars();
+			handleFlashVarAllowDomain();
+			
 			// disable application until it's ready
 			enabled = false;
 			
@@ -288,7 +274,7 @@ package weave
 			}
 			
 			// enable JavaScript API after initial session state has loaded.
-			ExternalInterface.addCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
+			ExternalSessionStateInterface.tryAddCallback('runStartupJavaScript', Weave.properties.runStartupJavaScript);
 			WeaveAPI.initializeExternalInterface(); // this calls weaveReady() in JavaScript
 			Weave.properties.runStartupJavaScript(); // run startup script after weaveReady()
 		}
@@ -332,6 +318,18 @@ package weave
 		 */
 		private var _flashVars:Object;
 		public function get flashVars():Object { return _flashVars; }
+		
+		private function handleFlashVarAllowDomain():void
+		{
+			var domains:* = _flashVars['allowDomain'];
+			if (domains is String)
+				domains = [domains];
+			for each (var domain:String in domains)
+			{
+				Security.allowDomain(domain);
+				Security.allowInsecureDomain(domain);
+			}
+		}
 		
 		private function getFlashVarAdminConnectionName():String
 		{
@@ -436,6 +434,17 @@ package weave
 			PopUpManager.createPopUp(this, WeaveProgressBar);
 
 			this.addChild(VisTaskbar.instance);
+			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN,this,handleKeyPress);
+		}
+		
+		private function handleKeyPress():void
+		{
+			var event:KeyboardEvent = WeaveAPI.StageUtils.keyboardEvent;
+			if(event.ctrlKey && event.keyCode == 77)
+			{
+				var qmenu:QuickMenuPanel = PopUpManager.createPopUp(this,QuickMenuPanel) as QuickMenuPanel;
+				PopUpManager.centerPopUp(qmenu);
+			}
 		}
 		
 		private function updateWorkspaceSize(..._):void
@@ -471,7 +480,8 @@ package weave
 			System.setClipboard(Weave.getSessionStateXML().toXMLString());
 		}
 		
-		private function saveSessionStateToServer():void
+		private var _useWeaveExtensionWhenSavingToServer:Boolean;
+		private function saveSessionStateToServer(useWeaveExtension:Boolean):void
 		{
 			if (adminService == null)
 			{
@@ -479,14 +489,15 @@ package weave
 				return;
 			}
 			
+			_useWeaveExtensionWhenSavingToServer = useWeaveExtension;
+			
 			var fileName:String = getFlashVarConfigFileName().split("/").pop();
-			if (fileName.substr(-4).toLowerCase() == '.xml')
-				fileName = fileName.substr(0, -4) + '.weave';
+			fileName = Weave.fixWeaveFileName(fileName, _useWeaveExtensionWhenSavingToServer);
 			
 			var fileSaveDialogBox:AlertTextBox;
 			fileSaveDialogBox = PopUpManager.createPopUp(this,AlertTextBox) as AlertTextBox;
 			fileSaveDialogBox.textInput = fileName;
-			fileSaveDialogBox.title = "Save File";
+			fileSaveDialogBox.title = useWeaveExtension ? "Save Session History" : "Save Session State XML";
 			fileSaveDialogBox.message = "Enter a filename";
 			fileSaveDialogBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, handleFileSaveClose);
 			PopUpManager.centerPopUp(fileSaveDialogBox);
@@ -497,22 +508,32 @@ package weave
 			if (event.confirm)
 			{
 				var fileName:String = event.textInput;
+				fileName = Weave.fixWeaveFileName(fileName, _useWeaveExtensionWhenSavingToServer);
 				
-				var token:AsyncToken = adminService.invokeAsyncMethod(
-						'saveWeaveFile',
-						[Weave.createWeaveFileContent(), fileName, true]
-					);
-				token.addResponder(new DelayedAsyncResponder(
-						function(event:ResultEvent, token:Object = null):void
-						{
-							Alert.show(String(event.result), "Admin Console Response");
-						},
-						function(event:FaultEvent, token:Object = null):void
-						{
-							reportError(event.fault, "Unable to connect to Admin Console");
-						},
-						null
-					));
+				var content:ByteArray;
+				if (_useWeaveExtensionWhenSavingToServer)
+				{
+					content = Weave.createWeaveFileContent();
+				}
+				else
+				{
+					content = new ByteArray();
+					content.writeMultiByte(Weave.getSessionStateXML().toXMLString(), "utf-8");
+				}
+				
+				var token:AsyncToken = adminService.invokeAsyncMethod('saveWeaveFile', [content, fileName, true]);
+				DelayedAsyncResponder.addResponder(
+					token,
+					function(event:ResultEvent, token:Object = null):void
+					{
+						Alert.show(String(event.result), "Admin Console Response");
+					},
+					function(event:FaultEvent, token:Object = null):void
+					{
+						reportError(event.fault, "Unable to connect to Admin Console");
+					},
+					null
+				);
 				
 				setupVisMenuItems();
 			}
@@ -524,8 +545,17 @@ package weave
 			ExternalInterface.call("window.close()");
 		}
 
+		/**
+		 * Optional menu bar (bottom of screen) to control the collaboration service and interaction
+		 * between users.
+		 */
+		private var _collabMenu:CollaborationMenuBar = null;
+		
 		private function toggleCollaborationMenuBar():void
 		{
+			if (!_collabMenu)
+				_collabMenu = new CollaborationMenuBar();
+			
 			if( Weave.properties.enableCollaborationBar.value )
 			{
 				if( !_collabMenu.parent )
@@ -547,6 +577,23 @@ package weave
 				}
 			}
 		}
+
+		public function getMenuItems():ArrayCollection
+		{
+			return _weaveMenu.menubar.dataProvider as ArrayCollection;
+		}
+		
+		/**
+		 * This will be used to incorporate branding into any weave view.  Linkable to the Open Indicators Consortium website.
+		 */
+		private var _oicLogoPane:OICLogoPane = new OICLogoPane();
+		
+		/**
+		 * Optional menu bar (top of the screen) and task bar (bottom of the screen).  These would be used for an advanced analyst
+		 * view to add new tools, manage windows, do advanced tasks, etc.
+		 */
+		private var _weaveMenu:WeaveMenuBar = null;
+		
 		private function toggleMenuBar():void
 		{
 			if (!enabled)
@@ -570,7 +617,7 @@ package weave
 
 					//trace("MENU BAR ADDED");
 					_weaveMenu.percentWidth = 100;
-					WeaveAPI.StageUtils.callLater(this,setupVisMenuItems,null,false);
+					callLater(setupVisMenuItems);
 					
 					//PopUpManager.addPopUp(_weaveMenu, this);
 					this.addChildAt(_weaveMenu, 0);
@@ -738,7 +785,15 @@ package weave
 				if (adminService)
 				{
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
-					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Save session history to server", saveSessionStateToServer));
+					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
+						"Save session state XML to server",
+						function():void { saveSessionStateToServer(false); }
+					));
+					_weaveMenu.addSeparatorToMenu(_sessionMenu);
+					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(
+						"Save session history to server",
+						function():void { saveSessionStateToServer(true); }
+					));
 				}
 				
 				showHistorySlider = Weave.properties.showSessionHistoryControls.value;
@@ -757,7 +812,7 @@ package weave
 				
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Weave Version: " + Weave.properties.version.value));
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Report a problem", function ():void {
-					navigateToURL(new URLRequest("http://bugs.oicweave.org/projects/weave/issues/new"), "_blank");
+					navigateToURL(new URLRequest("http://info.oicweave.org/projects/weave/issues/new"), "_blank");
 				}));
 				_weaveMenu.addMenuItemToMenu(_aboutMenu, new WeaveMenuItem("Visit OICWeave.org", function ():void {
 					navigateToURL(new URLRequest("http://www.oicweave.org"), "_blank");
@@ -821,6 +876,8 @@ package weave
 						tag.setLocalName("WeaveDataSource");
 					for each (tag in xml.descendants("OpenIndicatorsDataSource"))
 						tag.setLocalName("WeaveDataSource");
+					for each (tag in xml.descendants("EmptyTool"))
+						tag.setLocalName("CustomTool");
 					for each (tag in xml.descendants("WMSPlotter2"))
 						tag.setLocalName("WMSPlotter");
 					for each (tag in xml.descendants("SessionedTextArea"))
@@ -856,7 +913,7 @@ package weave
 			}
 			DebugTimer.end('loadSessionState', fileName);
 
-			WeaveAPI.StageUtils.callLater(this, toggleMenuBar, null, false);
+			callLater(toggleMenuBar);
 			
 			if (!getFlashVarAdminConnectionName())
 				enabled = true;
@@ -1386,7 +1443,14 @@ package weave
 		 */
 		private function updatePageTitle():void
 		{
-			ExternalInterface.call("setTitle", Weave.properties.pageTitle.value);
+			try
+			{
+				ExternalInterface.call("setTitle", Weave.properties.pageTitle.value);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 		
 		/** 

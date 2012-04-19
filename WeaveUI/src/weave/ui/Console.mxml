@@ -118,7 +118,7 @@
 					consoleTrace(script, e);
 				}
 			}
-			private function consoleTrace(...args):void
+			public function consoleTrace(...args):void
 			{
 				log.text += '\r\r' + args.join('\r');
 				log.validateNow();
@@ -130,7 +130,7 @@
 			}
 			
 			private const symbolTable:Object = {
-				'javaScript': function(...args):*
+				'call': function(...args):*
 				{
 					var prev:Boolean = ExternalInterface.marshallExceptions;
 					try

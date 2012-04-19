@@ -267,8 +267,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			
@@ -663,7 +662,7 @@
 			
 			<managers:PlotLayerEditor id="layerEditor" creationComplete="layerEditor.visualization = visualization"/>
 			<mx:HBox width="100%" verticalAlign="middle">
-				<ui:DynamicColumnComponent label="color" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+				<ui:DynamicColumnComponent label="color" showLinkControl="false" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
 				<mx:Button label="Edit Bins..." click="DraggablePanel.openStaticInstance(ColorController);"/>
 			</mx:HBox>
 		</mx:VBox>

@@ -73,12 +73,20 @@ package weave.core
 		}
 		
 		/**
+		 * This is used as a placeholder to prevent re-compiling erroneous code.
+		 */
+		private static function RETURN_UNDEFINED(..._):* { return undefined; }
+		
+		/**
 		 * This will attempt to compile the function.  An Error will be thrown if this fails.
 		 */		
 		public function validate():void
 		{
 			if (_compiledMethod == null)
 			{
+				// in case compile fails, prevent re-compiling erroneous code
+				_compiledMethod = RETURN_UNDEFINED;
+				
 				if (_macroProxy == null)
 					_macroProxy = new ProxyObject(_hasMacro, evaluateMacro, null); // allows evaluating macros but not setting them
 				_compiledMethod = _compiler.compileToFunction(value, _macroProxy, _ignoreRuntimeErrors || debug, _useThisScope, _paramNames);

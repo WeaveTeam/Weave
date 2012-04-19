@@ -56,14 +56,8 @@ package weave.visualization.plotters
 			hideOverlappingText.value = true;
 
 			// set up x,y columns to be derived from the geometry column
-			var xeq:EquationColumn = dataX.requestLocalObject(EquationColumn, true);
-			var yeq:EquationColumn = dataY.requestLocalObject(EquationColumn, true);
-			xeq.equation.value = 'getValue(geom)[0].bounds.getXCenter()';
-			yeq.equation.value = 'getValue(geom)[0].bounds.getYCenter()';
-			xeq.equation.lock();
-			yeq.equation.lock();
-			linkSessionState(geometryColumn, xeq.requestVariable("geom", ReprojectedGeometryColumn, true));
-			linkSessionState(geometryColumn, yeq.requestVariable("geom", ReprojectedGeometryColumn, true));
+			linkSessionState(geometryColumn, dataX.requestLocalObject(ReprojectedGeometryColumn, true));
+			linkSessionState(geometryColumn, dataY.requestLocalObject(ReprojectedGeometryColumn, true));
 		}
 		
 		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);

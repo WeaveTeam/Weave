@@ -21,21 +21,28 @@ package weave.services
 {
 	import mx.rpc.AsyncToken;
 	
-	import weave.api.services.IWeaveStatisticsService;
+	
 
 	/**
 	 * WSStatisticsServlet
 	 * @author spurushe
 	 * @author sanbalag
 	 */
-	public class WeaveStatisticsServlet implements IWeaveStatisticsService
+	public class WeaveRServlet
 	{
-		public function WeaveStatisticsServlet(url:String)
+		public function WeaveRServlet(url:String)
 		{
 			servlet = new AMF3Servlet(url);
 		}
 		
 		protected var servlet:AMF3Servlet;
+		
+		
+		
+		public function runScript(keys:Array, inputNames:Array, inputValues:Array, outputNames:Array, script:String,plotScript:String, showIntermediateResults:Boolean, showWarningMessages:Boolean , useColumnsAsList:Boolean ):AsyncToken
+		{
+			return servlet.invokeAsyncMethod("runScript", arguments);
+		}
 		
 		// async result will be of type KMeansClusteringResult
 		public function KMeansClustering(dataX:Array, dataY:Array, numberOfClusters:int):AsyncToken
@@ -63,10 +70,6 @@ package weave.services
 
 		
 		
-		public function runScript(inputNames:Array, inputValues:Array, outputNames:Array, script:String,plotScript:String, showIntermediateResults:Boolean, showWarningMessages:Boolean ):AsyncToken
-		{
-			return servlet.invokeAsyncMethod("runScript", arguments);
-		}
 
 		
 		

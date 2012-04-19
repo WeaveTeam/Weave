@@ -192,10 +192,6 @@
 				_plotter.resetIterations(1);
 				_plotter.resetAllNodes();
 			}
-			private function handleSpatialCallbacks(event:ContextMenuEvent):void
-			{
-				WeaveAPI.StageUtils.callLater(this, _plotter.spatialCallbacks.triggerCallbacks, null, true);
-			}
 			
 			override public function getSelectableAttributeNames():Array
 			{
@@ -225,8 +221,7 @@
 
 			public function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			//public function get colorColumn():AlwaysDefinedColumn { return _plotter.colorColumn; }

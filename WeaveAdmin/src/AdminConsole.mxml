@@ -20,6 +20,12 @@
 */
 -->
 <mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" backgroundColor="#7B96B6" creationComplete="handleCreationComplete()" creationPolicy="all" xmlns:managers="weave.ui.admin.managers.*" xmlns:admin="weave.ui.admin.*" xmlns:ui="weave.ui.*">
+	<mx:Script>
+		<![CDATA[
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
+		]]>
+	</mx:Script>
 	<mx:Panel
 		headerHeight="25"
 		title="Administration Console for Weave {version}"
@@ -32,13 +38,13 @@
 			<mx:VBox width="100%" height="100%">
 				<mx:HBox width="100%">
 					<!--mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="open dialog with wizard to import data from existing sql"/-->
-					<mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{Strings.tip_import_sql_data}"/>
+					<mx:Button label="Import existing SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{Strings.tip_import_sql_data}"/>
 					<mx:Button label="Import CSV data..." click="WizardPanel.createWizard(this, new CSVImportWizard())" toolTip="{Strings.tip_import_csv_data}"/>
 					<mx:Button label="Import SHP and DBF data..." click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{Strings.tip_import_shp_and_dbf}"/>
 					<ui:CustomVRule/>
 					<mx:Button label="Open Weave" click="AdminInterface.instance.openWeavePopup();" toolTip="This will open Weave in a new browser window which allows you to save a new client configuration."/>
 					<mx:Spacer width="100%"/>
-					<mx:Label text="{'Active Connection Name: ' + AdminInterface.instance.activeConnectionName}" textAlign="right"/>
+					<mx:Label text="{'Signed in as: ' + AdminInterface.instance.activeConnectionName}" textAlign="right"/>
 					<mx:Button label="Sign out" enabled="{AdminInterface.instance.sqlConfigExists == true}"
 							   click="AdminInterface.instance.activeConnectionName = AdminInterface.instance.activePassword = '';"/>
 				</mx:HBox>
@@ -49,6 +55,19 @@
 						<managers:DataTableManager/>
 						<managers:GeometryCollectionManager/>
 						<managers:SQLConnectionManager id="sqlConnectionManager"/>
+						<mx:VBox id="acsTab" label="ACS Header tool">
+							<mx:Label text="Paste the header rows you want to combine."/>
+							<mx:TextArea width="100%" height="100%" id="acsInput" change="mergeHeaderRows()"/>
+							<ui:Indent label="Separator used when merging header rows:">
+								<mx:TextInput id="acsSeparator" text=" - " change="mergeHeaderRows()"/>
+							</ui:Indent>
+							<mx:HBox>
+								<mx:Label text="Merged header rows:"/>
+								<mx:Spacer width="100%"/>
+								<mx:Button label="Copy to clipboard" click="Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, acsOutput.text);"/>
+							</mx:HBox>
+							<mx:TextArea width="100%" height="100%" id="acsOutput"/>
+						</mx:VBox>
 					</mx:TabNavigator>
 					<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false"/>
 				</mx:VDividedBox>
@@ -79,6 +98,10 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.api.reportError;
+			import weave.api.WeaveAPI;
+			import weave.data.CSVParser;
+			import weave.utils.VectorUtils;
 			import mx.binding.utils.BindingUtils;
 			import mx.controls.Alert;
 			import mx.controls.TextArea;
@@ -110,6 +133,15 @@
 						messageTextArea.percentHeight = 15;
 				}
 
+				BindingUtils.bindSetter(updateACSTool, AdminInterface.instance, "activeConnectionName");
+				function updateACSTool(name:String):void
+				{
+					if (acsTab.parent)
+						acsTab.parent.removeChild(acsTab);
+					if (name == 'resd')
+						tabNavigator.addChild(acsTab);
+				}
+				
 				BindingUtils.bindSetter(handlePermissionChange, AdminInterface.instance, "currentUserIsSuperuser");
 				function handlePermissionChange(isSuperuser:Boolean):void
 				{
@@ -129,6 +161,21 @@
 				PopUpManager.createPopUp(this, WeaveProgressBar);
 			}
 			
+			private function mergeHeaderRows():void
+			{
+				try
+				{
+					var table:Array = WeaveAPI.CSVParser.parseCSV(acsInput.text);
+					if (table.length > 10)
+						table.length = 10;
+					var joined:Array = VectorUtils.joinItems(table, acsSeparator.text, false);
+					acsOutput.text = WeaveAPI.CSVParser.createCSV([joined]);
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
+			}
 		]]>
 	</mx:Script>
 </mx:Application>

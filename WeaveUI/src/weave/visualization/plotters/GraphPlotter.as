@@ -40,7 +40,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
-	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.graphs.ForceDirectedLayout;
 	import weave.graphs.GridForceDirectedLayout;
@@ -60,11 +59,11 @@ package weave.visualization.plotters
 	{
 		public function GraphPlotter()
 		{
-			lineStyle.color.internalDynamicColumn.requestLocalObjectCopy(Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN));
+			lineStyle.color.internalDynamicColumn.requestLocalObjectCopy(Weave.defaultColorColumn);
 			lineStyle.scaleMode.defaultValue.value = LineScaleMode.NORMAL;
 			lineStyle.weight.defaultValue.value = 1.5;
 
-			fillStyle.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 			setKeySource(nodesColumn);
 
@@ -452,7 +451,7 @@ package weave.visualization.plotters
 			
 			// if there isn't a specified color column or if the color column's keytype differs from node column, request default
 			if (fillStyle.color.keys.length == 0 || (fillStyle.color.keys[0] as IQualifiedKey).keyType != sourceKey.keyType)
-				fillStyle.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+				fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 		}
 
 		public function resetIterations(newMaxValue:int):void

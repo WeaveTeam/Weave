@@ -121,6 +121,7 @@
 			
 			import weave.Strings;
 			import weave.api.WeaveAPI;
+			import weave.api.reportError;
 			import weave.data.AttributeColumns.CSVColumn;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
@@ -189,7 +190,7 @@
 				}
 				catch (e:Error)
 				{
-					trace(e.getStackTrace());
+					reportError(e);
 				}
 			}
 			private function openServerBrowser():void

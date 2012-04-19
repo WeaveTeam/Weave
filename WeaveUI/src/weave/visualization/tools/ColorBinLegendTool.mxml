@@ -193,6 +193,7 @@
 	</mx:Script>
 	
 	<mx:TextArea id="marginLabel"
+				 visible="{marginLabel.height > 0}"
 				 mouseChildren="false" mouseEnabled="false"
 				 x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5" width="100%"
 				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
@@ -200,7 +201,7 @@
 				 borderThickness="0" backgroundAlpha="0"/>
 	<ui:ControlPanel>
 		<mx:VBox label="Binning">
-			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data" showLinkControl="false"/>
 			<ui:BinningDefinitionEditor id="binEditor" width="100%"/>
 		</mx:VBox>
 		<mx:VBox label="Appearance">

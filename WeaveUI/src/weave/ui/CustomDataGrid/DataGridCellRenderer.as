@@ -22,18 +22,17 @@ package weave.ui.CustomDataGrid
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	
-	import mx.binding.utils.BindingUtils;
 	import mx.containers.Canvas;
 	import mx.controls.DataGrid;
 	import mx.controls.Image;
 	import mx.controls.Label;
-	import mx.controls.dataGridClasses.DataGridListData;
 	import mx.core.UIComponent;
 	
+	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.core.LinkableBoolean;
-	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.KeySets.KeySet;
 
@@ -41,24 +40,20 @@ package weave.ui.CustomDataGrid
 	{
 		public function DataGridCellRenderer()
 		{
-			addChild(img);
 			addChild(lbl);
 			lbl.percentWidth = 100;
 			
 			horizontalScrollPolicy = "off";
-			
-			img.x = 1; // because there is a vertical grid line on the left that overlaps the item renderer
-			img.source = new Bitmap(null, 'auto', true);
 		}
 		
-		private var img:Image = new Image();
-		private var lbl:Label = new Label();
+		private var img:Image;
+		public const lbl:Label = new Label();
 		
 		public var attrColumn:IAttributeColumn = null;
 		public var showColors:LinkableBoolean = null;
 		
 		/**
-		 * This function should take two parameters: function(column:IAttributeColumn, key:IQualifiedKey):Number
+		 * This function should take two parameters: function(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent):Number
 		 * The return value should be a color, or NaN for no color.
 		 */		
 		public var colorFunction:Function = null;
@@ -73,52 +68,82 @@ package weave.ui.CustomDataGrid
 			{
 				lbl.visible = false;
 				lbl.text = toolTip = '';
+				if (!img)
+				{
+					img = new Image();
+					img.x = 1; // because there is a vertical grid line on the left that overlaps the item renderer
+					img.source = new Bitmap(null, 'auto', true);
+					addChild(img);
+				}
+				img.visible = true;
 				(img.source as Bitmap).bitmapData = attrColumn.getValueFromKey(key) as BitmapData;
 			}
 			else
 			{
 				lbl.visible = true;
 				lbl.text = toolTip = attrColumn.getValueFromKey(key, String);
-				img.source = null;
+				if (img)
+				{
+					img.visible = false;
+					img.source.bitmapData = null;
+				}
 			}
+		}
+		
+		private static function _setStyle(target:UIComponent, styleProp:String, newValue:*):void
+		{
+			if (target.getStyle(styleProp) != newValue)
+				target.setStyle(styleProp, newValue);
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 			
+			if (!owner)
+				return;
+			
 			var g:Graphics = graphics;
 			g.clear();
-			
-			if (!showColors.value)
-				return;
 			
 			var grid:DataGrid = owner as DataGrid || owner.parent as DataGrid;
 			if (keySet.keys.length > 0)
 			{
 				if (grid.isItemSelected(data) || grid.isItemHighlighted(data))
 				{
-					lbl.setStyle("fontWeight", "bold");
+					_setStyle(lbl, "fontWeight", "bold");
 					alpha = 1.0;
 				}				
 				else
 				{
-					lbl.setStyle("fontWeight", "normal");
+					_setStyle(lbl, "fontWeight", "normal");
 					alpha = 0.3;
 				}
 			}
 			else
 			{
-				setStyle("fontWeight", "normal");
+				_setStyle(lbl, "fontWeight", "normal");
 				alpha = 1.0;	
 			}
 			
-			var colorValue:Number = colorFunction(attrColumn, data as IQualifiedKey);
-			if (!isNaN(colorValue))
+			// right-align numbers
+			if (attrColumn.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.NUMBER)
 			{
-				g.beginFill(colorValue);
-				g.drawRect(0, 0, unscaledWidth, unscaledHeight);
-				g.endFill();
+				_setStyle(lbl, 'textAlign', 'right');
+			}
+			else
+			{
+				_setStyle(lbl, 'textAlign', 'left');
+			}
+			
+			if (showColors.value)
+			{
+				var colorValue:Number = colorFunction(attrColumn, data as IQualifiedKey, this);
+				_setStyle(this, 'backgroundColor', colorValue);
+			}
+			else
+			{
+				_setStyle(this, 'backgroundColor', null);
 			}
 		}
 	}

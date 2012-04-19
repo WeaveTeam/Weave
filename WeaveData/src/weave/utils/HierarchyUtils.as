@@ -261,10 +261,5 @@ package weave.utils
 //			}
 //			return "";
 //		}
-		
-		private static function trace(...args):void
-		{
-			DebugUtils.debug_trace(HierarchyUtils, args);
-		}
 	}
 }

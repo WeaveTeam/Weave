@@ -20,6 +20,7 @@
 package weave.core
 {
 	import flash.debugger.enterDebugger;
+	import flash.events.ErrorEvent;
 	import flash.system.Capabilities;
 	
 	import mx.events.DynamicEvent;
@@ -67,13 +68,15 @@ package weave.core
 					faultMessage = StandardLib.asString(faultEvent.message.body);
 				error = faultEvent.fault;
 			}
+			if (error is ErrorEvent)
+				error = (error as ErrorEvent).text;
 			if (error is String)
 				error = new Error(error);
 			if (error != null && !(error is Error))
 				faultContent = faultContent == null ? error : [error, faultContent];
 			if (!(error is Error) || faultMessage || faultContent != null)
 			{
-				if (!error is Fault)
+				if (!(error is Fault))
 				{
 					// wrap the error in a Fault object
 					if (!faultMessage && error is Error)
