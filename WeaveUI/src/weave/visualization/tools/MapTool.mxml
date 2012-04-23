@@ -110,7 +110,7 @@
 			 */
 			public const projectionSRS:LinkableString = registerLinkableChild(this, new LinkableString(null, projectionVerifier));
 			// this function returns true if the projection SRS code is acceptable
-			private function projectionVerifier(srs:String):Boolean
+			internal function projectionVerifier(srs:String):Boolean
 			{
 				// allow no projection
 				if (srs == null || srs == '')
@@ -125,7 +125,7 @@
 			/**
 			 * This function links the MapTool.projectionSRS variable with another LinkableString.
 			 */
-			private function linkProjection(otherVariable:LinkableString):void
+			internal function linkProjection(otherVariable:LinkableString):void
 			{
 				if (_linkedProjectionVariablesLookup[otherVariable])
 					return;
@@ -138,7 +138,7 @@
 					linkSessionState(otherVariable, projectionSRS);
 			}
 			
-			[Bindable] private var _projComboBoxData:Array = [];
+			public const _projComboBoxData:Array = [];
 			private function handleLayersChange():void
 			{
 				_projComboBoxData.length = 0;
@@ -371,13 +371,13 @@
 				}
 			}
 			
-			private function addGeomLayer():void
+			internal function addGeomLayer():void
 			{
 				var layer:SelectablePlotLayer = visualization.layers.requestObject(visualization.layers.generateUniqueName("plot"), SelectablePlotLayer, false);
 				var plotter:GeometryPlotter = layer.getDynamicPlotter().requestLocalObject(GeometryPlotter, true);
 			}
 			
-			private function addLabelLayer():void
+			internal function addLabelLayer():void
 			{
 				var i:int;
 				// get existing layers before they change
@@ -413,7 +413,7 @@
 				}
 			}
 			
-			private function addWMSLayer():void
+			internal function addWMSLayer():void
 			{
 				var oldLayerNames:Array = visualization.layers.getNames();
 				var layer:PlotLayer = visualization.layers.requestObject(visualization.layers.generateUniqueName("wms"), PlotLayer, false);

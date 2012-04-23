@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:TabNavigator xmlns="weave.visualization.tools.*" 
+	     xmlns:mx="http://www.adobe.com/2006/mxml"
+	     xmlns:ui="weave.ui.*"
+		 implements="weave.api.ui.ILinkableObjectEditor" xmlns:managers="weave.editors.managers.*"
+	     >
+	<mx:Script>
+		<![CDATA[
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.AttributeColumnMetadata;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.data.AttributeColumns.ReprojectedGeometryColumn;
+			import weave.services.wms.WMSProviders;
+			import weave.ui.ColorController;
+			import weave.ui.DraggablePanel;
+			import weave.ui.IndentGroup;
+			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.plotters.GeometryLabelPlotter;
+			import weave.visualization.plotters.WMSPlotter;
+			
+			[Bindable] public var _target:MapTool;
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				_target = object as MapTool;
+			}
+			public function applyChanges():void
+			{
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				getCallbackCollection(_target.visualization).addGroupedCallback(this, updateZoomSlider);
+			}
+			
+			public function updateZoomSlider():void
+			{
+				if (scaleRangeTabZoomSlider)
+				{
+					currentlyUpdatingZoomSlider = true;
+					scaleRangeTabZoomSlider.value = _target.visualization.getZoomLevel();
+					currentlyUpdatingZoomSlider = false;
+				}
+			}
+			private var currentlyUpdatingZoomSlider:Boolean = false;
+			
+			private function handleZoomSliderChange(event:Event):void
+			{
+				if (!currentlyUpdatingZoomSlider)
+					_target.visualization.setZoomLevel(event.currentTarget.value);
+			}
+			
+			private function handleProjectionComboChange():void
+			{
+				if (_target.projectionVerifier(projComboBox.text))
+				{
+					projValidLabel.text = 'Valid';
+					projComboBox.errorString = '';
+				}
+				else
+				{
+					projValidLabel.text = 'Invalid';
+					projComboBox.errorString = 'Unknown projection';
+				}
+			}
+			
+			public const scaleRangeIndentGroup:IndentGroup = new IndentGroup();
+			[Bindable] public var zoomSliderMinimum:Number;
+			[Bindable] public var zoomSliderMaximum:Number;
+			[Bindable] public var zoomSliderSnapping:Number = 0.25;
+			
+		]]>
+	</mx:Script>
+	<mx:VBox id="attributesPanel" label="Map Layers">
+		<mx:HBox width="100%">
+			<mx:Button label="Add Base Map" click="_target.addWMSLayer();" toolTip="Add an image layer underneath the geometries"/>
+			<mx:Button label="Add Geometry" click="_target.addGeomLayer();" toolTip="Add a layer of polygons, lines, or points that can be colored according to the data"/>
+			<mx:Button label="Add Labels" click="_target.addLabelLayer();" toolTip="Add labels to the selected geometry layer"/>
+		</mx:HBox>
+		
+		<managers:PlotLayerEditor id="layerEditor" creationComplete="_target.layerEditor.visualization = _target.visualization"/>
+		<mx:HBox width="100%" verticalAlign="middle">
+			<ui:DynamicColumnComponent label="color" showLinkControl="false" visTool="{_target}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _target.colorColumn"/>
+			<mx:Button label="Edit Bins..." click="DraggablePanel.openStaticInstance(ColorController);"/>
+		</mx:HBox>
+	</mx:VBox>
+	<mx:VBox label="Advanced" verticalGap="10">
+		<mx:CheckBox label="Enable Map Overview Window" id="overviewCheckBox"
+					 creationComplete="linkBindableProperty(_target.enableOverview,event.target,'selected')"/>
+		<mx:HBox verticalAlign="bottom">
+			<mx:Button label="Zoom to full extent" click="_target.visualization.zoomToSelection()" />
+			<mx:VBox verticalGap="1">
+				<mx:Label text="Coordinates at map center:" fontWeight="bold"/>
+				<mx:HBox horizontalGap="0" borderStyle="outset" horizontalAlign="center">
+					<mx:Label text="(x: "/>
+					<!--<mx:TextInput id="xCenterCoord" width="50" change="setCenterCoords()" editable="false"/>-->
+					<mx:Label id="xCenterCoord" width="75"/>
+					<mx:Label text=", y: "/>
+					<!--<mx:TextInput id="yCenterCoord" width="50" change="setCenterCoords()" editable="false"/>-->
+					<mx:Label id="yCenterCoord" width="75"/>
+					<mx:Label text=")"/>
+				</mx:HBox>
+			</mx:VBox>
+		</mx:HBox>
+		<mx:HBox verticalAlign="center" horizontalAlign="center">
+			<mx:Label text="Projection"/> 
+			<ui:CustomComboBox id="projComboBox"
+							   dataProvider="{_target._projComboBoxData}"
+							   creationComplete="linkBindableProperty(_target.projectionSRS, event.target, 'text');"
+							   change="handleProjectionComboChange();"
+							   focusOut="projComboBox.selectedItem = _target.projectionSRS.value; projValidLabel.text = '';"
+							   editable="true"
+							   width="120"
+							   />
+			<!--<mx:TextInput id="projTextInput"
+			creationComplete="linkBindableProperty(projectionSRS, event.target, 'text');"
+				change="projValidLabel.text = projectionVerifier(projTextInput.text) ? 'Valid' : 'Invalid';"
+				focusOut="projTextInput.text = projectionSRS.value; projValidLabel.text = '';"
+				/>-->
+			<mx:Label id="projValidLabel" fontWeight="bold"/>
+		</mx:HBox>
+		<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+					 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
+					 creationComplete="linkBindableProperty(_target.includeToolAttributesInProbe,event.target,'selected')"/>
+		<mx:CheckBox id="zoomControlsToggle" label="Enable zoom and pan"
+					 toolTip="This option enables the zoom slider and pan buttons"
+					 creationComplete="linkBindableProperty(_target.showZoomControls,event.target,'selected')"/>
+		<mx:CheckBox id="mouseModeControlsToggle" label="Show mouse mode controls"
+					 toolTip="This option enables the mouse mode buttons"
+					 creationComplete="linkBindableProperty(_target.showMouseModeControls,event.target,'selected')"/>
+	</mx:VBox>
+	<mx:VBox label="Layer Visibility" verticalGap="10" id="visibleScaleRangesUI">
+		<ui:Indent label="Current Zoom" labelTextAlign="left" group="{scaleRangeIndentGroup}">
+			<mx:HSlider id="scaleRangeTabZoomSlider" 
+						width="100%" 
+						tickInterval="1"
+						change="handleZoomSliderChange(event);"
+						minimum="{zoomSliderMinimum}"
+						maximum="{zoomSliderMaximum}"
+						liveDragging="true" />
+		</ui:Indent>
+		<ui:LinkableObjectList id="visibleScaleRangesList"
+							   width="100%" height="100%"
+							   initialize="visibleScaleRangesList.hashMap = _target.visualization.layers"
+							   borderStyle="none"
+							   paddingLeft="0">
+			<ui:itemRenderer>
+				<mx:Component>
+					<ui:Indent label="{layerName}" labelTextAlign="left" group="{outerDocument.scaleRangeIndentGroup}">
+						<mx:Script>
+							<![CDATA[
+								import mx.events.SliderEvent;
+								
+								import weave.api.core.ILinkableObject;
+								import weave.api.juggleGroupedCallback;
+								import weave.api.primitives.IBounds2D;
+								import weave.core.UIUtils;
+								import weave.editors.managers.LayerListComponent;
+								import weave.utils.ZoomUtils;
+								import weave.visualization.layers.PlotLayer;
+								import weave.visualization.layers.SelectablePlotLayer;
+								[Bindable] private var layerName:String;
+								private var currentlyUpdatingLayerZoomRangeSlider:Boolean = false;
+								
+								private function handleLayerChange():void
+								{
+									if (!data)
+										return;
+									
+									var fullDataBounds:IBounds2D = outerDocument._target.visualization.fullDataBounds;
+									var area:Number = fullDataBounds.getArea();
+									if (!isNaN(area))
+									{
+										layerName = outerDocument._target.visualization.layers.getName(data as ILinkableObject);
+										
+										var minScreenSize:Number = outerDocument._target.visualization.minScreenSize.value;
+										
+										var minZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
+											fullDataBounds, minScreenSize, data.minVisibleScale.value
+										);
+										
+										var maxZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
+											fullDataBounds, minScreenSize, data.maxVisibleScale.value
+										);
+										
+										currentlyUpdatingLayerZoomRangeSlider = true;
+										layerZoomRangeSlider.values = [minZoomLevel, maxZoomLevel];
+										currentlyUpdatingLayerZoomRangeSlider = false;
+									}
+								}
+								
+								override public function set data(value:Object):void
+								{
+									value = value as SelectablePlotLayer || value as PlotLayer;
+									juggleGroupedCallback(data as ILinkableObject, value as ILinkableObject, this, handleLayerChange, true);
+									super.data = value;
+								}
+								private function handleScaleSliderChange(event:SliderEvent):void
+								{
+									if (data && !currentlyUpdatingLayerZoomRangeSlider && UIUtils.hasFocus(layerZoomRangeSlider))
+									{
+										var fullDataBounds:IBounds2D = outerDocument._target.visualization.fullDataBounds;
+										var minScreenSize:Number = outerDocument._target.visualization.minScreenSize.value;
+										var minVisibleZoomLevel:Number = layerZoomRangeSlider.values[0];
+										var maxVisibleZoomLevel:Number = layerZoomRangeSlider.values[1];
+										
+										data.minVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
+											fullDataBounds, minScreenSize, minVisibleZoomLevel
+										);
+										
+										data.maxVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
+											fullDataBounds, minScreenSize, maxVisibleZoomLevel
+										);
+									}
+								}
+							]]>
+						</mx:Script>
+						
+						<mx:HSlider id="layerZoomRangeSlider"
+									liveDragging="true"
+									thumbCount="2"
+									tickInterval="1"
+									snapInterval="{outerDocument.zoomSliderSnapping}"
+									showTrackHighlight="true" 
+									minimum="{outerDocument.zoomSliderMinimum}" 
+									maximum="{outerDocument.zoomSliderMaximum}"
+									change="handleScaleSliderChange(event)"
+									mouseDown="event.target.setFocus(); event.stopPropagation()"
+									width="100%"/>
+					</ui:Indent>
+				</mx:Component>			
+			</ui:itemRenderer>
+		</ui:LinkableObjectList>
+	</mx:VBox>
+</mx:TabNavigator>
