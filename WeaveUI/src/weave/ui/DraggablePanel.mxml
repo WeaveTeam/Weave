@@ -56,6 +56,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.core.Application;
 			import mx.core.BitmapAsset;
 			import mx.core.SpriteAsset;
+			import mx.core.UIComponent;
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
 			import mx.events.MenuEvent;
@@ -70,6 +71,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
+			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
@@ -81,6 +83,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableString;
 			import weave.primitives.ImageFactory;
 			import weave.ui.controlBars.VisTaskbar;
+			import weave.utils.EditorManager;
 			import weave.utils.NumberUtils;
 			
 			override protected function childrenCreated():void
@@ -243,6 +246,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						break;
 					}
 				}
+				
+				if (!_controlPanel && EditorManager.getEditorClass(this))
+				{
+					_controlPanel = newDisposableChild(this, ControlPanel);
+					_controlPanel.title = "Settings for " + getQualifiedClassName(this).split("::")[1];
+					
+					var editor:UIComponent = EditorManager.getNewEditor(this) as UIComponent;
+					
+					addChild(_controlPanel);
+					removeChild(_controlPanel);
+					_controlPanel.tabNavigator.addChild(editor);
+				}
+				
 				
 				titleBar.doubleClickEnabled = true;
 				titleBar.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
