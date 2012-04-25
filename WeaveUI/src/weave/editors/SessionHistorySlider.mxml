@@ -92,6 +92,7 @@
 			private var _playMenu:SubMenu;
 			[Bindable] private var _playSpeed:uint = 1;
 			private var _lastReplayTime:int = 0;
+			private var _maxStepDelay:int = 1000;
 			
 			private function play(speed:int = 0):void
 			{
@@ -113,7 +114,7 @@
 						var entry:Object = _stateLog.redoHistory[0];
 						var delay:int = entry.triggerDelay + entry.diffDuration;
 						// wait until delay has passed
-						if (getTimer() < _lastReplayTime + delay / _playSpeed)
+						if (getTimer() < _lastReplayTime + Math.min(delay / _playSpeed, _maxStepDelay))
 							return;
 						// wait until background tasks complete
 						if (WeaveAPI.ProgressIndicator.getTaskCount() > 0)
