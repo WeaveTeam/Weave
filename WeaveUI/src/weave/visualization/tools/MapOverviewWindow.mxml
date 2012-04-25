@@ -154,18 +154,25 @@
 			
 			private function handleMouseDown(e:MouseEvent):void 
 			{ 
-				if(forceEnableBorders.value) return;
-				mouseDown = true; handleMouseEvent(e);
+				if (forceEnableBorders.value)
+					return;
+				mouseDown = true;
+				handleMouseEvent(e);
 			}
 			
 			private function handleMouseUp(e:MouseEvent):void 
 			{ 
-				if(!mouseDown || forceEnableBorders.value) return; handleMouseEvent(e); mouseDown = false;
+				if (!mouseDown || forceEnableBorders.value)
+					return;
+				handleMouseEvent(e);
+				mouseDown = false;
 			}
 			
 			private function handleMouseMove(e:MouseEvent):void 
 			{ 
-				if(!mouseDown || forceEnableBorders.value) return; handleMouseEvent(e);
+				if (!mouseDown || forceEnableBorders.value)
+					return;
+				handleMouseEvent(e);
 			}
 						
 			private function handleMouseEvent(e:MouseEvent):void

@@ -52,6 +52,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.controls.Button;
+			import mx.controls.Image;
 			import mx.controls.Menu;
 			import mx.core.Application;
 			import mx.core.BitmapAsset;
@@ -201,6 +202,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// nothing here, just a placeholder
 			}
 			
+			[Embed(source="/weave/resources/images/panMode.png")]
+			private var MoveIcon:Class; 
+			
+			private var _moveImage:Image = new Image();
 			override protected function createChildren():void
 			{
 				super.createChildren();
@@ -222,6 +227,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Click here to maximize or restore this component.");
 				setupControlButton(closePanelButton, null, handleCloseButtonClick, "Click here to close this component.");
 				
+				var icon:Bitmap = new MoveIcon() as Bitmap;
+				_moveImage.source = icon;
+				_moveImage.x = resizeBorderThickness;
+				_moveImage.y = resizeBorderThickness;
+				_moveImage.width = icon.width;
+				_moveImage.height = icon.height;
+				_moveImage.toolTip = "Drag this icon to move the panel.";
+				_moveImage.scaleContent = false;
+				_moveImage.alpha = 0.3;
+				_moveImage.addEventListener(MouseEvent.MOUSE_DOWN,handleTitleBarMouseDown);
+
 				closePanelButton.label = "X";
 				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
 				closePanelButton.setStyle("textSelectedColor", 0xFFFFFF);
@@ -279,6 +295,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//_dragCanvas.percentWidth = 100;
 				//_dragCanvas.percentHeight = 100;
 				rawChildren.addChild(_dragCanvas);
+				rawChildren.addChild(_moveImage);
 			}
 			
 			/**
@@ -479,6 +496,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var forceBorderMargin:int = forceEnableBorders.value ? 22 : 12;
 				var enableBordersFlag:Boolean = globalEnableBorders && enableBorders.value;
 				var enableRollOverBorders:Boolean = showRollOverBorders && _mouseRolledOver && mouseY < forceBorderMargin;
+				enableRollOverBorders = false; // disabled
 				// setting forceEnableBorders may trigger panelNeedsUpdate()
 				forceEnableBorders.value = enableBordersFlag || enableRollOverBorders;
 			}
@@ -506,6 +524,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				invalidateSize();
 				invalidateDisplayList();
 				updateBorders();
+				updateMoveIcon();
+			}
+			
+			private function updateMoveIcon():void
+			{
+				//the moveImage will be enabled if the enableMoveIcon is enabled and the panel is moveable and headerHeight is zerp.
+				var headerHeight:Number = this.getStyle("headerHeight");
+				_moveImage.visible = draggable.value && headerHeight == 0;
 			}
 			
 			override public function move(x:Number, y:Number):void
@@ -1050,7 +1076,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				/*for each(var child:* in this.getChildren())
 				child.cacheAsBitmap = true;*/
 				
-				if ( getResizeStatus(stage.mouseX, stage.mouseY).resizing )
+				if (getResizeStatus(stage.mouseX, stage.mouseY).resizing)
 					_dragging = false;
 				else
 					_dragging = true;
@@ -1063,6 +1089,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					_resizing = false;
 				}
 			}
+			
 			private function handleStageMouseUp(event:MouseEvent):void
 			{
 				if (!draggable.value && !_resizeable)
@@ -1289,7 +1316,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var leftButtonX:int = getButtonOffsetFromSide();
 				var rightButtonX:int = unscaledWidth - buttonSize - getButtonOffsetFromSide();
 				
-				// we only need to utdate title, buttons if the height is > 0, otherwise do not show the buttons
+				// we only need to update title, buttons if the height is > 0, otherwise do not show the buttons
 				if (getStyle("headerHeight") <= 0)
 				{
 					userControlButton.visible = false;
