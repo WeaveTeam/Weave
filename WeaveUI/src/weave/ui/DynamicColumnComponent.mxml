@@ -32,7 +32,7 @@
 	<mx:Label text="{label}" fontWeight="bold" minWidth="64"/>
 	<LinkableObjectList id="internalList" 
 						variableRowHeight="false"
-			 
+			 			dynamicObject="{_dynamicObject}"
 		 				doubleClickEnabled="true" 
 		 				doubleClick="openAttributeSelector()"
 		 				width="100%" rowCount="1" height="24"/>
@@ -93,20 +93,18 @@
 				linkDropDown.parent.removeChild(linkDropDown);
 			}
 			
-			[Inspectable]
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
-				if (internalList.dynamicObject)
-					getCallbackCollection(internalList.dynamicObject).removeCallback(toggleLinkDropDown);
+				if (_dynamicObject)
+					getCallbackCollection(_dynamicObject).removeCallback(toggleLinkDropDown);
 				
-				internalList.dynamicObject = value;
+				_dynamicObject = value;
 				
 				if (value)
 					getCallbackCollection(value).addImmediateCallback(this, toggleLinkDropDown, true);
 			}
-			
+			[Bindable] private var _dynamicObject:ILinkableDynamicObject
 			private var _visTool:IVisToolWithSelectableAttributes = null;
-			[Inspectable]
 			public function set visTool(value:IVisToolWithSelectableAttributes):void
 			{
 				_visTool = value;
@@ -129,6 +127,9 @@
 			
 			private function toggleLinkDropDown(show:Boolean = false):void
 			{
+				if (!parent)
+					return;
+				
 				var globalName:String = null;
 				if (internalList.dynamicObject)
 					globalName = internalList.dynamicObject.globalName;

@@ -822,6 +822,7 @@ A text editor to change the Session State on the fly.
 						var defaultEditor:SessionStateEditor = getInstance();
 						if (!defaultEditor.parent)
 							openDefaultEditor();
+						defaultEditor.restorePanel();
 						// show console
 						if (profileDump && !defaultEditor.showConsole.selected)
 							defaultEditor.toggleShowConsole();
