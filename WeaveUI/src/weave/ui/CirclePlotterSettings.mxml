@@ -43,24 +43,14 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			import mx.core.Application;
 			import mx.managers.PopUpManager;
 			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableContainer;
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
-			import weave.core.LinkableHashMap;
-			import weave.core.StageUtils;
 			import weave.primitives.Bounds2D;
-			import weave.primitives.ZoomBounds;
-			import weave.utils.EventUtils;
 			import weave.visualization.layers.SelectablePlotLayer;
-			import weave.visualization.plotters.CircleGlyphPlotter;
 			import weave.visualization.plotters.CirclePlotter;
-			import weave.visualization.plotters.SingleImagePlotter;
 			import weave.visualization.tools.MapTool;
 			
 			override protected function childrenCreated():void
@@ -139,7 +129,7 @@
 			
 			public static function openInstance(plotter:CirclePlotter,circleName:String):void
 			{
-				var settingsPanel:CirclePlotterSettings = PopUpManager.createPopUp(Application.application as Application, CirclePlotterSettings) as CirclePlotterSettings;
+				var settingsPanel:CirclePlotterSettings = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, CirclePlotterSettings) as CirclePlotterSettings;
 				PopUpManager.centerPopUp(settingsPanel);
 				
 				settingsPanel.plotter = plotter;

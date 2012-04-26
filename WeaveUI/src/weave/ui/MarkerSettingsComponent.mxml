@@ -39,20 +39,12 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			import mx.core.Application;
 			import mx.managers.PopUpManager;
 			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableContainer;
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
-			import weave.core.LinkableHashMap;
-			import weave.core.StageUtils;
 			import weave.primitives.Bounds2D;
-			import weave.primitives.ZoomBounds;
-			import weave.utils.EventUtils;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.SingleImagePlotter;
 			import weave.visualization.tools.MapTool;
@@ -141,7 +133,7 @@
 			
 			public static function openInstance(plotter:SingleImagePlotter,markerName:String):void
 			{
-				var settingsPanel:MarkerSettingsComponent = PopUpManager.createPopUp(Application.application as Application,MarkerSettingsComponent) as MarkerSettingsComponent;
+				var settingsPanel:MarkerSettingsComponent = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject,MarkerSettingsComponent) as MarkerSettingsComponent;
 				PopUpManager.bringToFront(settingsPanel);
 				
 				settingsPanel.plotter = plotter;

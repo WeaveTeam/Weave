@@ -1207,7 +1207,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (_controlPanel)
 				{
 					if (!_controlPanel.parent)
-						PopUpManager.addPopUp(_controlPanel, Application.application as Application);
+						PopUpManager.addPopUp(_controlPanel, WeaveAPI.topLevelApplication as UIComponent);
 					_controlPanel.sendWindowToForeground();
 				}
 				else
@@ -1617,7 +1617,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (!instance)
 					_instances[draggablePanelClass] = instance = new draggablePanelClass() as DraggablePanel;
 				if (!instance.parent)
-					PopUpManager.addPopUp(instance, Application.application as Application);
+					PopUpManager.addPopUp(instance, WeaveAPI.topLevelApplication as UIComponent);
 				instance.restorePanel();
 				
 				return instance;

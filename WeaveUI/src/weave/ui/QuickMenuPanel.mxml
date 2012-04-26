@@ -63,7 +63,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				autosuggest =  new SubMenu(keyword);
 				
-				var items:ArrayCollection = (Application.application.visApp).getMenuItems();
+				var items:ArrayCollection = (WeaveAPI.topLevelApplication.visApp).getMenuItems();
 				
 				var menuItemsSource:Array = [];
 				

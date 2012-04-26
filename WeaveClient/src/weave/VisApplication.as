@@ -300,7 +300,7 @@ package weave
 			var color:Number = Weave.properties.backgroundColor.value;
 			this.setStyle('backgroundColor', color);
 			
-			//(Application.application as Application).setStyle("backgroundGradientColors", [color, color]);
+			//(WeaveAPI.topLevelApplication as UIComponent).setStyle("backgroundGradientColors", [color, color]);
 		}
 		
 		/**
@@ -1424,7 +1424,7 @@ package weave
 			
 			//initialize the print format
 			var printPopUp:PrintPanel = new PrintPanel();
-   			PopUpManager.addPopUp(printPopUp, Application.application as Application, true);
+   			PopUpManager.addPopUp(printPopUp, WeaveAPI.topLevelApplication as UIComponent, true);
    			PopUpManager.centerPopUp(printPopUp);
    			//add current snapshot to Print Format
 			printPopUp.componentToScreenshot = component;

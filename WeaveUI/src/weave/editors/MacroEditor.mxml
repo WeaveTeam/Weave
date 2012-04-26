@@ -10,10 +10,9 @@
 		</mx:ControlBar>
 		<mx:Script>
 			<![CDATA[
-				import mx.core.Application;
 				import mx.managers.PopUpManager;
 				
-				import weave.api.core.ILinkableHashMap;
+				import weave.api.WeaveAPI;
 				import weave.core.LinkableFunction;
 				
 				protected function editEntry(event:MouseEvent):void
@@ -21,7 +20,7 @@
 					if(macroList.selectedIndex > -1)
 					{
 						var macroEditorWindow:MacroEditWindow = new MacroEditWindow();
-						PopUpManager.addPopUp(macroEditorWindow, Application.application as Application);
+						PopUpManager.addPopUp(macroEditorWindow, WeaveAPI.topLevelApplication as DisplayObject);
 						macroEditorWindow.restorePanel();
 						macroEditorWindow.macroName = macroList.hashMap.getName(macroList.selectedItem as LinkableFunction);	
 					}
@@ -39,7 +38,7 @@
 				protected function newMacroEntry(event:MouseEvent):void
 				{
 					var macroAddWindow:MacroAddWindow = new MacroAddWindow();
-					PopUpManager.addPopUp(macroAddWindow, Application.application as Application);
+					PopUpManager.addPopUp(macroAddWindow, WeaveAPI.topLevelApplication as DisplayObject);
 					macroAddWindow.restorePanel();
 				}
 			]]>

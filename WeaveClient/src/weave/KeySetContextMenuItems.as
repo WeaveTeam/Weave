@@ -25,22 +25,18 @@ package weave
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	
-	import mx.core.Application;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
 	
-	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.copySessionState;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDataRowSource;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.services.DelayedAsyncResponder;
-	import weave.services.WeaveDataServlet;
 	import weave.ui.CustomContextMenuManager;
 	import weave.ui.RecordDataTable;
-	import weave.utils.ProbeTextUtils;
 	
 	/**
 	 * TODO: this code should be moved into the multiVisLayer class
@@ -217,7 +213,7 @@ package weave
 						{
 							(e.target as RecordDataTable).setProbedKeySet(_localProbeKeySet);
 						});
-					PopUpManager.addPopUp(recordTable, Application.application as DisplayObject);
+					PopUpManager.addPopUp(recordTable, WeaveAPI.topLevelApplication as DisplayObject);
 				},
 				groupName
 				);

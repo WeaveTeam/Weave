@@ -200,7 +200,7 @@
 					_weaveFileRef.addEventListener(Event.SELECT,   function (e:Event):void { _weaveFileRef.load(); } );
 					_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void {
 						// TEMPORARY SOLUTION
-						Application.application.visApp.loadSessionState(e.target.data, _weaveFileRef.name);
+						WeaveAPI.topLevelApplication.visApp.loadSessionState(e.target.data, _weaveFileRef.name);
 					} );
 				}
 				_weaveFileRef.browse([

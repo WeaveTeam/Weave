@@ -177,7 +177,7 @@
 			}
 			private function handleCreateUserMouse(e:CollaborationEvent):void
 			{
-				cursorList.addItem(CollabMouseCursor.addPopUp(Application.application as DisplayObject));
+				cursorList.addItem(CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject));
 			}
 			
 			private var toolTipper:ToolTip = new ToolTip()
@@ -202,7 +202,7 @@
 			
 			protected function button1_clickHandler(event:MouseEvent):void
 			{
-				var cursor:IFlexDisplayObject = PopUpManager.createPopUp(Application.application as DisplayObject, CollabMouseCursor);
+				var cursor:IFlexDisplayObject = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, CollabMouseCursor);
 				PopUpManager.centerPopUp(cursor);
 				stage.addEventListener(MouseEvent.MOUSE_MOVE, 
 					function(_:MouseEvent):void 

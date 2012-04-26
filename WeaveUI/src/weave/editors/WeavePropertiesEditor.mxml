@@ -89,7 +89,7 @@
 					_instance = new WeavePropertiesEditor();
 				
 				if (!_instance.parent)
-					PopUpManager.addPopUp(_instance, Application.application as Application);
+					PopUpManager.addPopUp(_instance, WeaveAPI.topLevelApplication as DisplayObject);
 				
 				_instance.restorePanel();
 			}
@@ -97,7 +97,7 @@
 			protected function openMacroEditor(event:MouseEvent):void
 			{
 				var mEditor:MacroEditor = new MacroEditor();
-				PopUpManager.addPopUp(mEditor, Application.application as Application);
+				PopUpManager.addPopUp(mEditor, WeaveAPI.topLevelApplication as DisplayObject);
 				mEditor.restorePanel();
 			}
 		]]>
