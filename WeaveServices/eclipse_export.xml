@@ -10,7 +10,7 @@ Whenever you build WeaveServices, this will automatically export the WAR file.
 
 <project name="WeaveServices" default="dist">
 	<property environment="env"/>
-	<property name="TOMCAT_HOME" value="${env.TOMCAT_HOME}"/>
+	<property name="TOMCAT_HOME" value="/usr/local/apache-tomcat-7.0.25"/>
     <target name="dist">
     	<echo message="Deploying WeaveServices..."/>	
         <mkdir dir="build/jar"/>
