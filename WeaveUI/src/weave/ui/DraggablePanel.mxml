@@ -93,7 +93,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				panelNeedsUpdate();
 			}
 			
-			public static var showRollOverBorders:Boolean = false;
+			public static var adminMode:Boolean = false;
 			public static var activePanel:DraggablePanel = null;
 			public static function get activePanelName():String
 			{
@@ -121,7 +121,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const panelTitle:LinkableString = newLinkableChild(this, LinkableString, handlePanelTitleChange);
 			
-			public const draggable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true));
+			public const draggable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const enableSubMenu:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(false));
 			public const resizeable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const minimizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
@@ -145,8 +145,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			protected const closePanelButton:Button = new Button();
 			protected const pinButton:Button = new Button();
 			protected const pinToBackButton:Button = new Button();
-			// this is used to temporarily show the borders when in dashboard admin mode.
-			protected const forceEnableBorders:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), panelNeedsUpdate);
 			
 			private const _dragCanvas:Canvas = new Canvas();
 			
@@ -226,17 +224,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Click here to maximize or restore this component.");
 				setupControlButton(closePanelButton, null, handleCloseButtonClick, "Click here to close this component.");
-				
-				var icon:Bitmap = new MoveIcon() as Bitmap;
-				_moveImage.source = icon;
-				_moveImage.x = resizeBorderThickness;
-				_moveImage.y = resizeBorderThickness;
-				_moveImage.width = icon.width;
-				_moveImage.height = icon.height;
-				_moveImage.toolTip = "Drag this icon to move the panel.";
-				_moveImage.scaleContent = false;
-				_moveImage.alpha = 0.3;
-				_moveImage.addEventListener(MouseEvent.MOUSE_DOWN,handleTitleBarMouseDown);
 
 				closePanelButton.label = "X";
 				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
@@ -275,6 +262,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					_controlPanel.tabNavigator.addChild(editor);
 				}
 				
+				var icon:Bitmap = new MoveIcon() as Bitmap;
+				_moveImage.source = icon;
+				_moveImage.x = resizeBorderThickness;
+				_moveImage.y = resizeBorderThickness;
+				_moveImage.width = icon.width;
+				_moveImage.height = icon.height;
+//				_moveImage.toolTip = "Drag this icon to move the panel.";
+//				if (_controlPanel)
+//					_moveImage.toolTip += "  Double-click to open the control panel.";
+				_moveImage.scaleContent = false;
+				_moveImage.alpha = 0.25;
+				_moveImage.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
+				_moveImage.doubleClickEnabled = true;
+				_moveImage.addEventListener(MouseEvent.DOUBLE_CLICK, function(e:Event):void { toggleControlPanel(); });
 				
 				titleBar.doubleClickEnabled = true;
 				titleBar.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
@@ -383,7 +384,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				panelHeight.value = "" + value + "%";
 			}
 			
-			private var _styleNeedsUpdate:Boolean = false;
 			private function handlePanelStyleListChange():void
 			{
 				_overriddenStyles = new Object();
@@ -412,11 +412,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				// notify style change, just a random style chosen here so we only call it once instead of in the loop above
 				// this causes the style changes above to take effect
-				//styleChanged("headerHeight");
-				//notifyStyleChangeInChildren("headerHeight", true);
-				_styleNeedsUpdate = true;
-				
-				
 				styleChanged("headerHeight");
 				notifyStyleChangeInChildren("headerHeight", true);
 			}
@@ -486,21 +481,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-			protected function updateForceEnableBorders():void
-			{
-				if (_dragging || _resizing || WeaveAPI.StageUtils.mouseButtonDown)
-					return;
-				
-				// if this is a popup (parent == systemManager), ignore global borders setting
-				var globalEnableBorders:Boolean = !Weave.properties.dashboardMode.value || parent == systemManager;
-				var forceBorderMargin:int = forceEnableBorders.value ? 22 : 12;
-				var enableBordersFlag:Boolean = globalEnableBorders && enableBorders.value;
-				var enableRollOverBorders:Boolean = showRollOverBorders && _mouseRolledOver && mouseY < forceBorderMargin;
-				enableRollOverBorders = false; // disabled
-				// setting forceEnableBorders may trigger panelNeedsUpdate()
-				forceEnableBorders.value = enableBordersFlag || enableRollOverBorders;
-			}
-			
 			private function panelNeedsUpdate():void
 			{
 				if (!parent)
@@ -509,8 +489,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// disable highlight when borders are disabled (avoids display bug when corners are rounded)
 				setStyle('highlightAlphas', enableBorders.value ? undefined : [0,0]);
 				
-				updateForceEnableBorders();
-				_resizeable = (!Weave.properties.dashboardMode.value && resizeable.value) || forceEnableBorders.value || showRollOverBorders;
+				_resizeable = (!Weave.properties.dashboardMode.value && resizeable.value) || adminMode;
 				
 				if (!maximizable.value)
 					maximized.value = false;
@@ -524,14 +503,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				invalidateSize();
 				invalidateDisplayList();
 				updateBorders();
-				updateMoveIcon();
-			}
-			
-			private function updateMoveIcon():void
-			{
-				//the moveImage will be enabled if the enableMoveIcon is enabled and the panel is moveable and headerHeight is zerp.
-				var headerHeight:Number = this.getStyle("headerHeight");
-				_moveImage.visible = draggable.value && headerHeight == 0;
 			}
 			
 			override public function move(x:Number, y:Number):void
@@ -632,11 +603,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function updateBorders():void
 			{
 				if (!parent)
-					return callLater(updateBorders);
+					return;
 				
 				styleChanged("headerHeight");
 				notifyStyleChangeInChildren("headerHeight", true);
+				updateMoveIcon();
 				invalidateDisplayList();
+			}
+			
+			private function updateMoveIcon():void
+			{
+				//the moveImage will be enabled if the enableMoveIcon is enabled and the panel is moveable and headerHeight is zerp.
+				_moveImage.visible = draggable.value && !borderIsVisible && (adminMode || !Weave.properties.dashboardMode.value);
+			}
+			
+			protected function get borderIsVisible():Boolean
+			{
+				return enableBorders.value && !Weave.properties.dashboardMode.value;
 			}
 			
 			private var _overriddenStyles:Object = new Object();
@@ -647,15 +630,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// if we override the borders before the window has been intialized, tools display nothing
 				if (initialized && getLinkableOwner(this))
 				{
-					// update temporary admin dashboard border mode
-					var enableBordersFlag:Boolean = !Weave.properties.dashboardMode.value && enableBorders.value;
-					
 					// if we are hiding the borders, return style bogus values that cause the borders to hide
-					if (enableBordersFlag || forceEnableBorders.value)
-					{
-						// do not override border styles
-					}
-					else
+					if (!borderIsVisible)
 					{
 						// override border styles to hide the borders
 						
@@ -968,9 +944,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				DraggablePanel.activePanel = this;
 				_mouseRolledOver = true;
-				
-				updateForceEnableBorders();
-				invalidateDisplayList();
 			}
 			private function handleMouseRollOut(event:MouseEvent):void
 			{
@@ -985,9 +958,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if (_resizing)
 					event.stopImmediatePropagation();
-				
-				updateForceEnableBorders();
-				invalidateDisplayList();
 			}
 			
 			public function sendWindowToForeground():void
@@ -1105,9 +1075,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private function handleStageMouseMove(event:MouseEvent):void
 			{
-				// update temporary admin dashboard border mode
-				updateForceEnableBorders();
-				
 				// make sure cursors dont keep changing while resizing:  !_resizing
 				if (parent && !_resizing && !minimized.value && !maximized.value)
 				{
