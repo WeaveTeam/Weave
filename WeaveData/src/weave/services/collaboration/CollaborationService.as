@@ -556,8 +556,8 @@ package weave.services.collaboration
 			dispatchEvent(new CollaborationEvent(CollaborationEvent.CONNECT));
 		}
 		
-		private function xMousePercent():Number { return Application.application.stage.mouseX / Application.application.stage.stageWidth;  }
-		private function yMousePercent():Number { return Application.application.stage.mouseY / Application.application.stage.stageHeight; }
+		private function xMousePercent():Number { return WeaveAPI.topLevelApplication.stage.mouseX / WeaveAPI.topLevelApplication.stage.stageWidth;  }
+		private function yMousePercent():Number { return WeaveAPI.topLevelApplication.stage.mouseY / WeaveAPI.topLevelApplication.stage.stageHeight; }
 
 		//Most servers have this enabled, where if you don't do anything for too long
 		//it'll fire the timeout event

@@ -51,10 +51,10 @@
 		<![CDATA[
 			import mx.collections.ListCollectionView;
 			import mx.controls.Label;
-			import mx.core.Application;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
@@ -239,7 +239,7 @@
 					return;
 				
 				if (!defaultSelector.parent)
-					PopUpManager.addPopUp(defaultSelector, Application.application as Application);
+					PopUpManager.addPopUp(defaultSelector, WeaveAPI.topLevelApplication as DisplayObject);
 
 				defaultSelector.editor.clearSearch();
 				

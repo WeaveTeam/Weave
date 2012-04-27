@@ -150,17 +150,24 @@ package weave.api
 		
 		/**
 		 * This returns the top level application as defined by FlexGlobals.topLevelApplication
-		 * or Application.application if FlexGlobals isn't defined.
+		 * or WeaveAPI.topLevelApplication if FlexGlobals isn't defined.
 		 */
 		public static function get topLevelApplication():Object
 		{
-			//TODO: Application.application is deprecated
-			/*try {
-			return FlexGlobals.topLevelApplication;
-			} catch (e:Error) { }*/
-			
-			return getDefinitionByName('mx.core.Application').application;
+			if (!_topLevelApplication)
+			{
+				try
+				{
+					_topLevelApplication = getDefinitionByName('mx.core.FlexGlobals').topLevelApplication;
+				}
+				catch (e:Error)
+				{
+					_topLevelApplication = getDefinitionByName('mx.core.Application').application;
+				}
+			}
+			return _topLevelApplication;
 		}
+		private static var _topLevelApplication:Object;
 		
 		
 		/**

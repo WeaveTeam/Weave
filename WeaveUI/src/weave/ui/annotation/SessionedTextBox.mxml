@@ -27,14 +27,14 @@
 	<mx:TextArea id="textArea" width="100%" height="100%" minWidth="5" minHeight="5"
 				 borderStyle="solid" editable="false" wordWrap="true"/>
 	<ui:ControlPanel added="if (event.target == controlPanel) updateTextArea()"
-					 percentHeight="NaN" percentWidth="NaN"
+					 width="360" height="260"
 					 removed="if (event.target == controlPanel) callLater(updateTextArea)"
 					 sessionPanelCoordsAsPercentages="false" title="Annotation Editor">
 		<mx:VBox id="toolbar" width="100%" height="100%" horizontalGap="7"
 				 horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2" paddingRight="2"
 				 paddingTop="2" verticalScrollPolicy="off">
 
-			<mx:CheckBox id="lockCheckBox" label="Enable window borders and resizing"/>
+			<mx:CheckBox id="lockCheckBox" label="Show window borders"/>
 			
 			<mx:HBox width="100%" horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2"
 					 paddingRight="2" paddingTop="2" verticalScrollPolicy="off">
@@ -166,19 +166,10 @@
 				enableBorders.addImmediateCallback(this, updateBorders);
 			}
 			
-			override protected function updateForceEnableBorders():void
-			{
-				if (controlPanel && controlPanel.parent)
-					super.updateForceEnableBorders();
-				else
-					forceEnableBorders.value = false;
-			}
-			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				linkSessionState(enableBorders, resizeable);
 				linkBindableProperty(enableBorders, lockCheckBox, 'selected');
 				linkBindableProperty(backgroundAlpha, backgroundAlphaSlider, "value");
 				linkBindableProperty(backgroundColor, backgroundColorPicker, "selectedColor");

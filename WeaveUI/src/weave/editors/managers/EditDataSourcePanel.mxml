@@ -50,10 +50,10 @@
 		
 		<mx:Script>
 			<![CDATA[
-				import mx.core.Application;
 				import mx.managers.PopUpManager;
 				
 				import weave.Weave;
+				import weave.api.WeaveAPI;
 				import weave.api.core.ILinkableObject;
 				import weave.api.data.IDataSource;
 				import weave.api.ui.ILinkableObjectEditor;
@@ -80,7 +80,7 @@
 				{
 					if (_staticInstance == null)
 						_staticInstance = new EditDataSourcePanel();
-					_staticInstance = PopUpManager.createPopUp(Application.application as DisplayObject, EditDataSourcePanel, false) as EditDataSourcePanel;
+					_staticInstance = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, EditDataSourcePanel, false) as EditDataSourcePanel;
 					
 					PopUpManager.centerPopUp(_staticInstance);
 				}	

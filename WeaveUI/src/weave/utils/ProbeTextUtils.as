@@ -22,17 +22,16 @@ package weave.utils
 	import flash.display.Stage;
 	
 	import mx.controls.ToolTip;
-	import mx.core.Application;
 	import mx.core.IToolTip;
 	import mx.managers.ToolTipManager;
 	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
@@ -183,7 +182,7 @@ package weave.utils
 			
 			if (bounds == null)
 			{
-				var stage:Stage = Application.application.stage;
+				var stage:Stage = WeaveAPI.topLevelApplication.stage;
 				tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
 				bounds = tempBounds;
 			}

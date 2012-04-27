@@ -24,7 +24,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				width="300" height="200" implements="weave.api.ui.IVisTool"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
-	<mx:ViewStack id="layoutViewStack" width="100%" height="100%" selectedIndex="{layouts.indexOf(layoutCombo.selectedItem)}">
+	<mx:ViewStack id="layoutViewStack" width="100%" height="100%">
 		<mx:Canvas label="Combo Box">
 			<CustomComboBox id="choiceCombo" prompt="Select an attribute..."
 							width="100%" height="100%"
@@ -45,10 +45,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 		</mx:Canvas>
 		<mx:Canvas label="Horizontal Slider">
-			<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"
-						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
-						change="handleAttrSelected(choiceHSlider.value);"
-						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
+			<mx:HBox verticalAlign="middle" width="100%" height="100%">
+				<mx:VBox visible="{hack_showPlayButton}" includeInLayout="{hack_showPlayButton}" horizontalAlign="center">
+					<mx:Button id="playButton" label="&gt;" toggle="true" toolTip="Play" click="lastFrame = getTimer() - 1000 / playSlider.value / 2;"/>
+					<mx:HSlider id="playSlider" width="48" minWidth="0" minimum=".5" maximum="2" tickInterval="0.5" snapInterval="0.25" value=".75" dataTipFormatFunction="{formatPlayTip}" liveDragging="true"/>
+				</mx:VBox>
+				<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"
+							width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
+							change="handleAttrSelected(choiceHSlider.value);"
+							/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
+			</mx:HBox>
 		</mx:Canvas>
 	</mx:ViewStack>
 	
@@ -84,7 +90,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.ComboBox;
-			import mx.core.UIComponent;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
@@ -92,20 +97,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
-			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
-			import weave.core.StageUtils;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.SimpleVisTool;
@@ -114,10 +115,31 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 			private static const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			
+			[Bindable] public var hack_showPlayButton:Boolean = false;
+			private var lastFrame:int = 0;
+			private function enterFrame(event:Event):void
+			{
+				if (playButton.selected)
+				{
+					if (lastFrame == 0 || getTimer() > lastFrame + 1000 / playSlider.value)
+					{
+						if (lastFrame)
+							handleAttrSelected((choiceHSlider.value + 1) % choices.getNames().length);
+						lastFrame = getTimer();
+					}
+				}
+			}
+			private function formatPlayTip(value:Number):String
+			{
+				if (value == 1)
+					return "1 frame per second";
+				return value + ' frames per second';
+			};
+			
 			public const targetTool:LinkableString = newLinkableChild(this, LinkableString);
 			public const targetAttribute:LinkableString = newLinkableChild(this, LinkableString);
 			public const choices:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
-			public const layoutMode:LinkableString = newLinkableChild(this, LinkableString);
+			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(layouts[0], verifyLayoutMode));
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['column']), handleChoicesChange);
 			public const selectedAttribute:LinkableString = newLinkableChild(this, LinkableString, handleSelectedAttributeChange);
 			
@@ -141,6 +163,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private static const layouts:Array = ["ComboBox", "List", "VSlider", "HSlider"];
 			private static const layoutLabels:Array = ["Combo Box", "List", "Vertical Slider", "Horizontal Slider"];
+			private static function verifyLayoutMode(value:String):Boolean { return layouts.indexOf(value) >= 0; }
 
 			private function layoutLabelFunction(inputString:String):String
 			{
@@ -165,6 +188,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.childrenCreated();
 				
+				addEventListener(Event.ENTER_FRAME, enterFrame);
+				
 				// Since we're adding these callbacks after the children have been created,
 				// we don't have to worry about ui components being null inside the callbacks.
 				Weave.root.childListCallbacks.addGroupedCallback(this, handleGlobalListChange, true);
@@ -175,9 +200,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				choicesComponent.hashMap = choices;
 				
 				linkBindableProperty(layoutMode, layoutCombo, 'selectedItem');
+				layoutMode.addImmediateCallback(this, handleLayoutMode);
 				
 				callLater(showControlPanelIfNothingSelected);
 			}
+			
+			private function handleLayoutMode():void
+			{
+				layoutViewStack.selectedIndex = layouts.indexOf(layoutMode.value);
+			}
+			
 			private function showControlPanelIfNothingSelected():void
 			{
 				// when the tool is created and nothing is selected, show the control panel

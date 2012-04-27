@@ -31,8 +31,6 @@
 		 layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import mx.core.Application;
-			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.data.IKeySet;
@@ -46,7 +44,6 @@
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.Bounds2D;
 			import weave.visualization.layers.SelectablePlotLayer;
@@ -98,7 +95,7 @@
 				(edgeTargetComponent as DynamicColumnComponent).dynamicObject = edgeTargetColumn;
 				(edgeColorComponent as DynamicColumnComponent).dynamicObject = edgeColorColumn.internalDynamicColumn;
 								
-				this.contextMenu = (Application.application as Application).contextMenu;
+				this.contextMenu = (WeaveAPI.topLevelApplication as InteractiveObject).contextMenu;
 //				CustomContextMenuManager.createAndAddMenuItemToDestination('Layout Graph', this, handleLayoutGraph_click);
 //				CustomContextMenuManager.createAndAddMenuItemToDestination('Scale Selection', this, handleScaleSelection_click);
 //				CustomContextMenuManager.createAndAddMenuItemToDestination('Reset Positions', this, handleResetPositions);

@@ -143,8 +143,8 @@
 						ExternalInterface.marshallExceptions = prev;
 					}
 				},
-				'application': Application.application,
-				'visApp': Application.application.visApp,
+				'application': WeaveAPI.topLevelApplication,
+				'visApp': WeaveAPI.topLevelApplication.visApp,
 				'print': ObjectUtil.toString as Function,
 				'getObject': getObject,
 				'clear': consoleClear,

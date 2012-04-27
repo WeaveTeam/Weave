@@ -55,10 +55,10 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.core.Application;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
 			import weave.data.KeySets.KeyFilter;
@@ -176,7 +176,7 @@
 					clickFunction = function():void
 					{
 						// when a user clicks this option we will create the SelectionManager as a popup 
-						_popupManager = PopUpManager.createPopUp(Application.application as DisplayObject, SubsetManager) as SubsetManager;
+						_popupManager = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, SubsetManager) as SubsetManager;
 						
 						// this makes it so the popup is not draggable
 						//_popupManager.isPopUp = false;
