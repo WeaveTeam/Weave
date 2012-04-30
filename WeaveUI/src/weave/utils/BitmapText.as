@@ -29,10 +29,10 @@ package weave.utils
 	import flash.text.TextFormat;
 	import flash.text.TextFormatAlign;
 	
-	import mx.core.Application;
+	import mx.core.UIComponent;
 	import mx.utils.StringUtil;
 	
-	import weave.WeaveProperties;
+	import weave.api.WeaveAPI;
 	import weave.api.primitives.IBounds2D;
 	
 	/**
@@ -128,7 +128,7 @@ package weave.utils
 			
 			// If the font isn't embedded, we won't see anything.
 			// Use the default font if the specified one isn't embedded.
-			var app:Application = Application.application as Application;
+			var app:UIComponent = WeaveAPI.topLevelApplication as UIComponent;
 			if (app && !app.systemManager.isFontFaceEmbedded(textFormat))
 				textFormat.font = DEFAULT_FONT_FAMILY;
 			

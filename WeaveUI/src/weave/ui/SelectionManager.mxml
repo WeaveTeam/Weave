@@ -48,10 +48,10 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.core.Application;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.core.LinkableHashMap;
 			import weave.data.KeySets.KeySet;
@@ -113,7 +113,7 @@
 				{
 					clickFunction = function():void {
 						// create the SelectionManager as a modal PopUp
-						_popupManager = PopUpManager.createPopUp(Application.application as DisplayObject, SelectionManager, true) as SelectionManager;
+						_popupManager = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, SelectionManager, true) as SelectionManager;
 						// this will disable dragging of this popup
 						_popupManager.isPopUp = false;
 						PopUpManager.centerPopUp(_popupManager);
