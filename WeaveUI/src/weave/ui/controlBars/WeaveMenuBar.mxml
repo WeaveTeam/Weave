@@ -349,16 +349,16 @@
     		
     		private function handleMenuItemChosen(event:MenuEvent):void
     		{   
-    			try
-				{
+    			//try
+			//	{
     				var targetMenuItem:WeaveMenuItem = (event.item as WeaveMenuItem);    					
     				
     				targetMenuItem.runClickFunction();
-    			}
+    			/* }
     			catch (error:Error)
     			{
 					reportError(error);
-    			}
+    			} */
     		}
     	]]>
     </mx:Script>

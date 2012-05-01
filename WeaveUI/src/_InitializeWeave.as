@@ -72,6 +72,8 @@ package
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.WMSPlotter;
+	import weave.visualization.tools.RadVizTool;
+	import weave.visualization.tools.RadVizToolEditor;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -118,6 +120,7 @@ package
 		EditorManager.registerEditor(ColorRamp, ColorRampEditor);
 		
 		EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
+		EditorManager.registerEditor(RadVizTool, RadVizToolEditor);
 		
 		/**
 		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.

@@ -29,6 +29,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   mouseUp="handleMouseUp(event)">
 	<mx:Script>
 		<![CDATA[
+			import mx.core.UIComponent;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
@@ -47,6 +49,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.DraggablePanel;
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
+			import weave.utils.EditorManager;
 			import weave.utils.SpatialIndex;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.AnchorPlotter;
@@ -56,8 +59,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			WeaveAPI.registerImplementation(IVisTool, RadVizTool, "RadViz");
 			
 			[Bindable]
-			private var _plotter:RadVizPlotter ;
-			private var _anchorPlotter:AnchorPlotter ;
+			internal var _plotter:RadVizPlotter ;
+			internal var _anchorPlotter:AnchorPlotter ;
 			private var _anchorLayer:SelectablePlotLayer ;
 			
 			override protected function constructor():void
@@ -97,15 +100,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				
-				(size as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn ;
-				(colorComponent as DynamicColumnComponent).dynamicObject = colorColumn;
-				columnList.hashMap = _plotter.columns;
-				
-				linkBindableProperty(_plotter.enableJitter,jitterckbx,'selected');
-				linkBindableProperty(_plotter.radiusConstant,sizeSlider,'value');				
-				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
-				linkBindableProperty(_plotter.jitterLevel, jitterSlider, "value" );	
 				
 				plotLayer.rawChildren.addChild(probeSprite);
 			}
@@ -241,100 +235,5 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 		]]>
 	</mx:Script>
-	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="Attributes">
-			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" />
-			<ui:DynamicColumnComponent visTool="{this}" id="size" label="Size" />
-			<ui:ColumnListComponent visTool="{this}" id="columnList" label="Anchor Dimensions"/>
-		</mx:VBox>		
-		
-		<mx:VBox id="VizControlsPanel" label="Appearance">
-			<ui:Indent label="Point opacity"
-					   width="100%"
-					   toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).">
-				<mx:HSlider id="alphaSlider"
-							width="100%"
-							alpha="1.0"
-							snapInterval="0.1"
-							tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
-							dataTipFormatFunction="alphaSliderFormatFunction"
-							minimum="0.1" maximum="1.0" value="1.0"
-							liveDragging="true"/>
-			</ui:Indent>
-			<mx:Spacer/>
-			<ui:Indent label="Point radius"
-					   width="100%"
-					   toolTip="Use this control to adjust point radius">
-				<mx:HSlider id="sizeSlider"
-							width="100%"
-							alpha="1.0"
-							tickInterval="1" 
-							minimum="1" maximum="10" 
-							liveDragging="true"/>
-			</ui:Indent>
-			<mx:Spacer/>
-			<ui:Indent label="Label angle" width="100%">
-				<mx:HSlider id="labelAngleSlider" width="100%"
-					snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
-					dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
-					creationComplete="linkBindableProperty(_anchorPlotter.labelAngleRatio, event.target, 'value')"/>
-			</ui:Indent>
-		</mx:VBox>
-		
-		<mx:VBox id="advancedPanel" label="Advanced">			
-			<mx:VBox>
-				<mx:HBox
-					creationComplete="linkBindableProperty(_plotter.localNormalization,normalizationType,'selectedValue')">
-					<mx:Label text="Normalization method:"
-							  toolTip="Select the type of normalization used to calculate record coordinates"/>
-					<mx:RadioButtonGroup id="normalizationType"/>
-					<mx:RadioButton groupName="normalizationType"
-									id="localNorm"
-									value="true"
-									label="Local"
-									/>
-					<mx:RadioButton groupName="normalizationType"
-									id="globalNorm"
-									value="false"
-									label="Global"
-									/>
-				</mx:HBox>
-			</mx:VBox>
-			<mx:Spacer height="10"/>
-			<mx:VBox>
-				<mx:HBox>
-					<mx:CheckBox id="jitterckbx" label="Apply Jitter:" 
-							  toolTip="Use this control to change record coordinates by a random number"/>
-					<mx:Button label="Randomize Jitter"
-							   toolTip="Use this control to reseed jitter with new random values"
-							   click="_plotter.setNewRandomJitterColumn();"/>
-					<mx:Label text="Jitter Level:" 
-							  enabled="{jitterckbx.selected}"
-							  toolTip="Use slider to adjust the jitter level"/>					
-					<mx:HSlider id="jitterSlider"
-								enabled="{jitterckbx.selected}"
-								width="100%"
-								alpha="1.0"
-								snapInterval="1"
-								tickInterval="1"
-								labels="{['1','2','3','4','5','6','7','8','9','10']}"
-								showDataTip="false"
-								minimum="-19" maximum="-10"
-								liveDragging="true"/>
-				</mx:HBox>
-			</mx:VBox>
-			<mx:Spacer height="10"/>
-			<mx:VBox>
-				<mx:Label text="Dimensional Anchor Reordering Algorithm:"
-						  toolTip="Use this control to reorder the dimensional anchors"/>					
-				<mx:ComboBox id="algorithmComboBox" dataProvider="{_plotter.algorithms}"
-							 creationComplete="linkBindableProperty(_plotter.currentAlgorithm,event.target,'selectedItem')"/>
-				<mx:HBox enabled="{algorithmComboBox.selectedIndex == 0}">
-					<mx:Label text="Number of Iterations"/>
-					<mx:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
-								  creationComplete="linkBindableProperty(_plotter.iterations, event.target, 'text')"/>
-				</mx:HBox>
-			</mx:VBox>
-		</mx:VBox>
-	</ui:ControlPanel>
+
 </SimpleVisTool>
