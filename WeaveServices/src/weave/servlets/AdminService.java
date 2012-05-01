@@ -55,7 +55,7 @@ import weave.beans.UploadedFile;
 import weave.beans.WeaveFileInfo;
 import weave.config.DublinCoreUtils;
 import weave.config.ISQLConfig;
-import weave.config.ISQLConfig.AttributeColumnInfo;
+import weave.config.ISQLConfig.DataEntity;
 import weave.config.ISQLConfig.ConnectionInfo;
 import weave.config.ISQLConfig.DataType;
 import weave.config.ISQLConfig.DatabaseConfigInfo;
@@ -621,6 +621,8 @@ public class AdminService extends GenericServlet
 			dataConnection = connectionName; // get only the ones on this connection
 		return config.getDataTableNames(dataConnection);
 	}
+        /* These are the only things we should be using now. We should probably mark everything else as deprecated. */
+
         synchronized public void addTagChild(String connectionName, String password, int parent, int child) throws RemoteException
         {
                 ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
@@ -653,49 +655,47 @@ public class AdminService extends GenericServlet
                 else
                     return;
         }
-        synchronized public AttributeColumnInfo[] findEntitiesByParent(String connectionName, String password, int parent_id) throws RemoteException
+        synchronized public void updateEntity(String connectionName, String password, int entity_id, HashMap<String,String> newdata) throws RemoteException
         {
                 ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+                ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
+                config.updateDataEntity(newdata);
 
-                Collection<Integer> ids = config.getChildren(parent_id);
-                List<AttributeColumnInfo> cols = new ArrayList<AttributeColumnInfo>(ids.size());
-                for (Integer id : ids)
-                {
-                    AttributeColumnInfo col = config.getAttributeColumnInfo(id);
-                    if (col != null)
-                        cols.add(col);
-
-                }
-                return cols.toArray(new AttributeColumnInfo[0]);
+        }
+        synchronized public DataEntity[] findEntitiesByParent(String connectionName, String password, int parent_id) throws RemoteException
+        {
+                ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+                Collection<DataEntity> entities = config.getChildren(parent_id);
+                return entities.toArray(new DataEntity[0]);
         }
 
 	/**
 	 * Returns metadata about columns of the given data table.
 	 */
-	public AttributeColumnInfo[] getDataTableInfo(String connectionName, String password, String dataTableName) throws RemoteException
+	public DataEntity[] getDataTableInfo(String connectionName, String password, String dataTableName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		Map<String,String> publicMetadataFilter = new HashMap<String,String>();
 		publicMetadataFilter.put(PublicMetadata.DATATABLE, dataTableName);
-                AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+                DataEntity tmpinfo = new DataEntity();
                 tmpinfo.publicMetadata = publicMetadataFilter;
-		List<AttributeColumnInfo> info = config.findAttributeColumnInfo(tmpinfo);
+		List<DataEntity> info = config.findDataEntity(tmpinfo);
 
-		return info.toArray(new AttributeColumnInfo[info.size()]);
+		return info.toArray(new DataEntity[info.size()]);
 	}
 	
 	/**
 	 * Returns the results of testing attribute column sql queries.
 	 */
-	public AttributeColumnInfo[] testAllQueries(String connectionName, String password, String dataTableName) throws RemoteException
+	public DataEntity[] testAllQueries(String connectionName, String password, String dataTableName) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put(PublicMetadata.DATATABLE, dataTableName);
-		AttributeColumnInfo[] infoArray = getDataTableInfo(connectionName, password, dataTableName);
+		DataEntity[] infoArray = getDataTableInfo(connectionName, password, dataTableName);
 		for (int i = 0; i < infoArray.length; i++)
 		{
-			AttributeColumnInfo attributeColumnInfo = infoArray[i];
+			DataEntity attributeColumnInfo = infoArray[i];
 			try
 			{
 				String query = attributeColumnInfo.getSqlQuery();
@@ -760,11 +760,11 @@ public class AdminService extends GenericServlet
 		// overwrite all specified entries
 		for (int i = 0; i < ids.length; i++)
 		{
-			AttributeColumnInfo info = new AttributeColumnInfo();
+			DataEntity info = new DataEntity();
 			info.id = ids[i];
 			info.privateMetadata = createStringStringMap(privateMetadataArray[i]);
 			info.publicMetadata = createStringStringMap(publicMetadataArray[i]);
-			config.overwriteAttributeColumnInfo(info);
+			config.overwriteDataEntity(info);
 		}
 		return String.format("The dataTable entry \"%s\" was saved.", dataTableName);
 	}
@@ -776,9 +776,9 @@ public class AdminService extends GenericServlet
 		
 		Map<String,String> publicMetadataFilter = new HashMap<String,String>();
 		publicMetadataFilter.put(PublicMetadata.DATATABLE, dataTableName);
-		AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+		DataEntity tmpinfo = new DataEntity();
                 tmpinfo.publicMetadata = publicMetadataFilter;
-		List<AttributeColumnInfo> info = config.findAttributeColumnInfo(tmpinfo);
+		List<DataEntity> info = config.findDataEntity(tmpinfo);
 		
 		if (info.size() == 0)
 			throw new RemoteException("DataTable \"" + dataTableName + "\" does not exist.");
@@ -788,7 +788,7 @@ public class AdminService extends GenericServlet
 				throw new RemoteException(String.format("User \"%s\" does not have permission to remove DataTable \"%s\".", connectionName, dataTableName));
 		
 		for (int i = 0; i < info.size(); i++)
-			config.removeAttributeColumnInfo(info.get(i).id);
+			config.removeEntity(info.get(i).id);
 		
 		return "DataTable \"" + dataTableName + "\" was deleted.";
 	}
@@ -809,27 +809,27 @@ public class AdminService extends GenericServlet
 		return config.getGeometryCollectionNames(geometryConnection);
 	}
 
-	synchronized public void saveAttributeColumnInfo(String connectionName, String password, int id, Map<String,Object> privateMetadata, Map<String,Object> publicMetadata) throws RemoteException
+	synchronized public void saveDataEntity(String connectionName, String password, int id, Map<String,Object> privateMetadata, Map<String,Object> publicMetadata) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		if (!config.userCanModifyAttributeColumn(connectionName, id))
 			throw new RemoteException(String.format("User \"%s\" does not have permission to modify attribute column \"%s\".", connectionName, id));
 		
-		AttributeColumnInfo info = new AttributeColumnInfo();
+		DataEntity info = new DataEntity();
 		info.id = id;
 		info.privateMetadata = createStringStringMap(privateMetadata);
 		info.publicMetadata = createStringStringMap(publicMetadata);
-		config.overwriteAttributeColumnInfo(info);
+		config.overwriteDataEntity(info);
 	}
 
-	synchronized public void removeAttributeColumnInfo(String connectionName, String password, int id) throws RemoteException
+	synchronized public void removeDataEntity(String connectionName, String password, int id) throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 
 		if (!config.userCanModifyAttributeColumn(connectionName, id))
 			throw new RemoteException(String.format("User \"%s\" does not have permission to remove attribute column \"%s\".", connectionName, id));
 
-		config.removeAttributeColumnInfo(id);
+		config.removeDataEntity(id);
 	}
 
 	// ///////////////////////////////////////////
@@ -1742,10 +1742,14 @@ public class AdminService extends GenericServlet
 			int numberSqlColumns = titles.size();
                         int col_id;
                         int tag_id;
-			tag_id = config.addTag(configDataTableName); 
+                        int table_id;
+
+			tag_id = config.addTag(configDataTableName);
+                        table_id = config.addDataTable(configDataTableName);
+
 			for (int i = 0; i < numberSqlColumns; i++)
 			{
-				AttributeColumnInfo attrInfo = new AttributeColumnInfo();
+				DataEntity attrInfo = new DataEntity();
 				
 				attrInfo.privateMetadata = new HashMap<String, String>();
 				attrInfo.privateMetadata.put(PrivateMetadata.CONNECTION, connectionName);
@@ -1758,11 +1762,12 @@ public class AdminService extends GenericServlet
 				
 				attrInfo.publicMetadata = new HashMap<String, String>();
 				attrInfo.publicMetadata.put(PublicMetadata.DATATABLE, configDataTableName);
+                                attrInfo.publicMetadata.put(PublicMetadata.DATATABLE_ID, (new Integer(table_id)).toString());
 				attrInfo.publicMetadata.put(PublicMetadata.KEYTYPE, keyType);
 				attrInfo.publicMetadata.put(PublicMetadata.NAME, titles.get(i));
 				attrInfo.publicMetadata.put(PublicMetadata.DATATYPE, dataTypes.get(i));
 
-				col_id = config.addAttributeColumnInfo(attrInfo);
+				col_id = config.addDataEntity(attrInfo);
 				config.addChild(tag_id, col_id);
 			}
 		}
@@ -1964,7 +1969,7 @@ public class AdminService extends GenericServlet
 		}
 
 		// add geometry column
-		AttributeColumnInfo geomInfo = new AttributeColumnInfo();
+		DataEntity geomInfo = new DataEntity();
 		
 		geomInfo.privateMetadata = new HashMap<String, String>();
 		geomInfo.privateMetadata.put(PrivateMetadata.CONNECTION, configConnectionName);
@@ -1977,7 +1982,7 @@ public class AdminService extends GenericServlet
 		geomInfo.publicMetadata.put(PublicMetadata.KEYTYPE, configKeyType);
 		geomInfo.publicMetadata.put(PublicMetadata.PROJECTION, projectionSRS);
 		
-		config.addAttributeColumnInfo(geomInfo);
+		config.addDataEntity(geomInfo);
 
 		return resultAddSQL;
 	}

@@ -68,6 +68,12 @@ public class SQLConfig
 	private DatabaseConfigInfo dbInfo = null;
 	private ISQLConfig connectionConfig = null;
 	private Connection _lastConnection = null; // do not use this variable directly -- use getConnection() instead.
+        
+        protected AttributeValueTable public_attributes;
+        protected AttributeValueTable private_attributes;
+        protected ManifestTable manifest;
+        protected ParentChildTable relationships;
+        protected ImmortalConnection connection = null;
 
 	/**
 	 * This function gets a connection to the database containing the configuration information. This function will reuse a previously created
@@ -113,35 +119,19 @@ public class SQLConfig
 			// do nothing if schema creation fails -- temporary workaround for postgresql issue
 			// e.printStackTrace();
 		}
+                connection = new ImmortalConnection(connectionConfig);
 		initSQLTables();
 	}
 	private void initSQLTables() throws RemoteException, SQLException
 	{
-		Connection conn = getConnection();
-		
-		// Manifest table
-		List<String> columnNames = Arrays.asList(MAN_ID, MAN_TYPE);
-		List<String> columnTypes = Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TINYINT UNSIGNED");
-		SQLUtils.createTable(conn, dbInfo.schema, table_manifest, columnNames, columnTypes);
-		
-		// Metadata tables
-		columnNames = Arrays.asList(META_ID, META_PROPERTY, META_VALUE);
-		columnTypes = Arrays.asList("BIGINT UNSIGNED", "TEXT", "TEXT");
-		SQLUtils.createTable(conn, dbInfo.schema, table_meta_private, columnNames, columnTypes);
-		SQLUtils.createTable(conn, dbInfo.schema, table_meta_public, columnNames, columnTypes);
-		
-		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, META_ID, table_manifest, MAN_ID);
-		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, META_ID, table_manifest, MAN_ID);
+	        public_attributes = new AttributeValueTable(connection, dbInfo.schema, table_meta_private);
+                private_attributes = new AttributeValueTable(connection, dbInfo.schema, table_meta_public);	
+                relationships = new ParentChildTable(connection, dbInfo.schema, table_tags);
+                manifest = new ManifestTable(connection, dbInfo.schema, table_manifest);
+	/* TODO: Figure out nice way to do this from within the classes. */	
+        /*	SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, META_ID, table_manifest, MAN_ID);
+		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, META_ID, table_manifest, MAN_ID);*/
 	        
-                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_private, table_meta_private+META_ID+META_PROPERTY, new String[]{META_ID, META_PROPERTY}, new Integer[]{0,255});
-                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_private, table_meta_private+META_PROPERTY+META_VALUE, new String[]{META_PROPERTY, META_VALUE}, new Integer[]{255,255});
-                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_public, table_meta_public+META_ID+META_PROPERTY, new String[]{META_ID, META_PROPERTY}, new Integer[]{0,255});
-                SQLUtils.createIndex(conn, dbInfo.schema, table_meta_public, table_meta_public+META_PROPERTY+META_VALUE, new String[]{META_PROPERTY, META_VALUE}, new Integer[]{255,255});
-	
-		// Category table
-		columnNames = Arrays.asList(TAG_CHILD, TAG_PARENT);
-		columnTypes = Arrays.asList("BIGINT UNSIGNED", "BIGINT UNSIGNED");
-		SQLUtils.createTable(conn, dbInfo.schema, table_tags, columnNames, columnTypes);
 	}
         public boolean isConnectedToDatabase()
         {
@@ -161,163 +151,6 @@ public class SQLConfig
 	{
 		return connectionConfig.getConnectionNames();
 	}
-/* Private methods which handle the barebones of the entity-attribute-value system. */
-        private List<Integer> getIdsFromMetadata(String sqlTable, Map<String,String> constraints) throws RemoteException
-        {
-            List<Integer> ids = new LinkedList<Integer>();
-            try
-            {
-                Connection conn = getConnection();
-                List<Map<String,String>> crossRowArgs = new LinkedList<Map<String,String>>();
-                for (Entry<String,String> keyValPair : constraints.entrySet())
-                {
-                    Map<String,String> colvalpair = new HashMap<String,String>();
-                    colvalpair.put(META_PROPERTY, keyValPair.getKey());
-                    colvalpair.put(META_VALUE, keyValPair.getValue());
-                    crossRowArgs.add(colvalpair);
-                } 
-
-                if (crossRowArgs.size() == 0)
-                {
-                	ids = SQLUtils.getIntColumn(conn, dbInfo.schema, table_manifest, MAN_ID);
-                }
-                else
-                {
-                	ids = SQLUtils.crossRowSelect(conn, dbInfo.schema, sqlTable, META_ID, crossRowArgs);
-                }
-            }
-            catch (SQLException e)
-            {
-                throw new RemoteException("Unable to get IDs from property table.", e);
-            }
-            return ids;
-        }
-        private Map<Integer,Map<String,String>> getMetadataFromIds(String sqlTable, Collection<Integer> ids, Collection<String> properties) throws RemoteException
-        {
-        	Map<Integer,Map<String,String>> results;
-        	try 
-        	{
-        		Connection conn = getConnection();
-        		results = SQLUtils.idInSelect(conn, dbInfo.schema, sqlTable, META_ID, META_PROPERTY, META_VALUE, ids, properties);
-        	}
-        	catch (Exception e)
-        	{
-        		throw new RemoteException("Failed to get properties.", e);
-        	}
-        	return results; 
-        }
-        private void setMetadataProperty(String sqlTable, Integer id, String property, String value) throws RemoteException 
-        {
-        	try
-        	{
-        		Connection conn = getConnection();
-		        
-		        // to overwrite metadata, first delete then insert
-		        Map<String,Object> delete_args = new HashMap<String,Object>();
-		        delete_args.put(META_PROPERTY, property);
-		        delete_args.put(META_ID, id);
-		        SQLUtils.deleteRows(conn, dbInfo.schema, sqlTable, delete_args);
-		        
-		        if (value != null && value.length() > 0)
-		        {
-			        Map<String,Object> insert_args = new HashMap<String,Object>();
-			        insert_args.put(META_PROPERTY, property);
-			        insert_args.put(META_VALUE, value);
-			        insert_args.put(META_ID, id);
-			        SQLUtils.insertRow(conn, dbInfo.schema, sqlTable, insert_args);
-		        }
-	        }
-	        catch (Exception e)
-	        {
-		        throw new RemoteException("Failed to set property.", e);
-	        }
-        }
-        private void clearMetadata(String metaTable,Integer id) throws RemoteException
-        {
-            try {
-                Connection conn = getConnection();
-                Map<String,Object> whereParams = new HashMap<String,Object>();
-                
-                whereParams.put(META_ID, id);
-                SQLUtils.deleteRows(conn, dbInfo.schema, metaTable, whereParams);
-            }
-            catch (Exception e) {
-                throw new RemoteException(String.format("Failed to clear metadata for ID=%d.", id) , e);
-            }
-        }
-        private void delEntry(Integer id) throws RemoteException
-        {
-            try {
-
-                Connection conn = getConnection();
-                Map<String,Object> whereParams = new HashMap<String,Object>();
-
-                /* Wipe id's metadata */
-                clearMetadata(table_meta_public, id);
-                clearMetadata(table_meta_private, id);
-
-                /* Wipe id from the manifest table. */
-                whereParams.clear();
-                whereParams.put(MAN_ID, id);
-                SQLUtils.deleteRows(conn, dbInfo.schema, table_manifest, whereParams);
-                /* Wipe id from the tag table. */
-                whereParams.clear();
-                whereParams.put(TAG_CHILD, id); 
-                SQLUtils.deleteRows(conn, dbInfo.schema, table_tags, whereParams);
-                /* Wipe id's children from the tag table. They will become uncategorized. */
-                whereParams.clear();
-                whereParams.put(TAG_PARENT, id);
-                SQLUtils.deleteRows(conn, dbInfo.schema, table_tags, whereParams);
-            }
-            catch (Exception e)
-            {
-                throw new RemoteException("Failed to delete entry.", e);
-            }
-        }
-        private Integer addEntry(Integer type_val, Map<String,String> privateMetadata, Map<String,String> publicMetadata) throws RemoteException
-        {
-            Integer uniq_id = null; 
-            try
-            {
-                Connection conn = getConnection();
-                
-                Map<String,Object> record = new HashMap<String,Object>();
-                record.put(MAN_TYPE, type_val);
-                uniq_id = SQLUtils.insertRowReturnID(conn, dbInfo.schema, table_manifest, record);
-                // If we made it this far, we have a new unique ID in the manifest table. Now insert the metadata.
-                if (privateMetadata != null)
-                	for (Entry<String,String> entry : privateMetadata.entrySet())
-                		setMetadataProperty(table_meta_private, uniq_id, entry.getKey(), entry.getValue());
-                if (publicMetadata != null)
-                	for (Entry<String,String> entry : publicMetadata.entrySet())
-                		setMetadataProperty(table_meta_public, uniq_id, entry.getKey(), entry.getValue());
-            }
-            catch (Exception e)
-            {
-                throw new RemoteException("Unable to create Weave config entry.",e);
-            }
-            return uniq_id;
-        }
-        private boolean hasEntry(Integer id) throws RemoteException
-        {
-            try
-            {
-                Connection conn = getConnection();
-                Map<String,Object> whereParams = new HashMap<String,Object>();
-                List<Map<String,String>> results;
-                List<String> colList = new LinkedList<String>();
-
-                colList.add(MAN_ID);
-                whereParams.put(MAN_ID, id);
-                results = SQLUtils.getRecordsFromQuery(conn, colList, dbInfo.schema, table_manifest, whereParams);
-                return results.size() > 0; 
-            }
-            catch (Exception e)
-            {
-                throw new RemoteException("Unable to determine whether an ID exists.",e);
-            }
-        }
-/* ** END** Private methods which handle the barebones of the entity-attribute-value system. */
 
 	public void addConnection(ConnectionInfo info) throws RemoteException
 	{
@@ -334,233 +167,429 @@ public class SQLConfig
 		connectionConfig.removeConnection(name);
 	}
 
-	/**
-	 * This creates an attribute column entry in the configuration.
-	 * @param privateMetadata Private metadata for the attribute column.
-	 * @param publicMetadata Public metadata for the attribute column.
-	 * @return A new ID for the attribute column.
-	 */
-	public int addAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
-	{
-                int new_id = addEntry(MAN_TYPE_COLUMN, info.privateMetadata, info.publicMetadata);
-                //String dataTableName = info.publicMetadata.get(PublicMetadata.DATATABLE);
 
-                return new_id;
-	} 
-	
-	// shortcut for calling the Map<String,String> version of this function
-	public List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName) throws RemoteException
-	{
-		Map<String, String> metadataQueryParams = new HashMap<String, String>(1);
-		metadataQueryParams.put(PublicMetadata.DATATABLE, dataTableName);
-                AttributeColumnInfo info = new AttributeColumnInfo();
-                info.publicMetadata = metadataQueryParams;
-                info.privateMetadata = null;
-		return findAttributeColumnInfo(info);
-	}
-	
-	public void overwriteAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
-	{
-                if (!hasEntry(info.id)) throw new RemoteException("No such entry exists.", null);
-	        clearMetadata(table_meta_private, info.id);
-	        clearMetadata(table_meta_public, info.id);
-		
-                if (info.privateMetadata != null)
-        	for (Entry<String,String> entry : info.privateMetadata.entrySet())
-        		setMetadataProperty(table_meta_private, info.id, entry.getKey(), entry.getValue());
-                if (info.publicMetadata != null)
-            	for (Entry<String,String> entry : info.publicMetadata.entrySet())
-        		setMetadataProperty(table_meta_public, info.id, entry.getKey(), entry.getValue());
-	}
+        public Integer addEntity(Integer type_id, Map<String,String> properties) throws RemoteException
+        {
+            Integer id = manifest.addEntry(type_id);
+            updateEntity(id, properties);
+            return id;
+        }
+        public void removeEntity(Integer id) throws RemoteException
+        {
+            manifest.removeEntry(id);
+            relationships.purge(id);
+            public_attributes.clearId(id);
+            private_attributes.clearId(id);
+        }
+        public void updateEntity(Integer id, Map<String,String> properties) throws RemoteException
+        {
+            for (Entry<String,String> propval : properties.entrySet())
+            {
+                /* TODO: Optimize */
+                String key = propval.getKey();
+                String value = propval.getValue();
+                if (ISQLConfig.PrivateMetadata.isPrivate(key))
+                    private_attributes.setProperty(id, key, value);
+                else
+                    public_attributes.setProperty(id, key, value);
+            }
+        }
+        public Collection<DataEntity> findEntities(Map<String,String> properties) throws RemoteException
+        {
+            /* Sift the properties into separate public and private components. */
+            Map<String,String> publicprops = new HashMap<String,String>();
+            Map<String,String> privateprops = new HashMap<String,String>();
+            Set<Integer> publicmatches = null;
+            Set<Integer> privatematches = null;
+            Set<Integer> match_ids = null;
 
-	/**
-	 * @return A list of AttributeColumnInfo objects having info that matches the given parameters.
-	 */
-	public List<AttributeColumnInfo> findAttributeColumnInfo(AttributeColumnInfo filterInfo) throws RemoteException
-	{
-                Map<String,String> publicMetadataFilter = filterInfo.publicMetadata;
-                Map<String,String> privateMetadataFilter = filterInfo.privateMetadata; 
-		List<Integer> idList = getIdsFromMetadata(table_meta_public, publicMetadataFilter);
-		if (privateMetadataFilter != null)
-		{
-			List<Integer> privateIdList = getIdsFromMetadata(table_meta_private, privateMetadataFilter);
-			idList.retainAll(privateIdList); 
-		}
-		
-		List<AttributeColumnInfo> results = new Vector<AttributeColumnInfo>();
-		Map<Integer, Map<String, String>> idToPrivateMeta = getMetadataFromIds(table_meta_private, idList, null);
-		Map<Integer, Map<String, String>> idToPublicMeta = getMetadataFromIds(table_meta_public, idList, null);
-		for (Integer id : idList)
-		{
-			AttributeColumnInfo info = new AttributeColumnInfo();
-			info.id = id;
-			
-			if (idToPrivateMeta.containsKey(id))
-				info.privateMetadata = idToPrivateMeta.get(id);
-			else
-				info.privateMetadata = new HashMap<String,String>();
-			
-			if (idToPublicMeta.containsKey(id))
-				info.publicMetadata = idToPublicMeta.get(id);
-			else
-				info.publicMetadata = new HashMap<String,String>();
-			
-			results.add(info); 
-		}
-		return results;
-	}
-	
-	/**
-	 * @return AttributeColumnInfo for a given attribute column id.
-	 */
-	public AttributeColumnInfo getAttributeColumnInfo(int id) throws RemoteException
-	{
-		List<Integer> idList = new Vector<Integer>();
-		idList.add(id);
-		
-		Map<Integer, Map<String, String>> idToPrivateMeta = getMetadataFromIds(table_meta_private, idList, null);
-		Map<Integer, Map<String, String>> idToPublicMeta = getMetadataFromIds(table_meta_public, idList, null);
-
-		AttributeColumnInfo info = new AttributeColumnInfo();
-		info.id = id;
-                info.type = getEntityType(id);
-			
-		if (idToPrivateMeta.containsKey(id))
-			info.privateMetadata = idToPrivateMeta.get(id);
-		else
-			info.privateMetadata = new HashMap<String,String>();
-		
-		if (idToPublicMeta.containsKey(id))
-			info.publicMetadata = idToPublicMeta.get(id);
-		else
-			info.publicMetadata = new HashMap<String,String>();
-		
-		return info;
-	}
-	public void removeAttributeColumnInfo(int id) throws RemoteException
-	{
-		delEntry(id);
-	}
-	
-        /* Code regarding the new category table and logic */
-        public int addTag(String tagTitle) throws RemoteException
-        {
-            /* Add to the manifest. */
-            Map<String,String> pubMeta = new HashMap<String,String>();
-            pubMeta.put(PublicMetadata.TITLE, tagTitle);
-            return addEntry(MAN_TYPE_TAG, null, pubMeta);
-        }
-        public void removeTag(int tag_id) throws RemoteException
-        {
-            // TODO
-            return;
-        }
-        public void addChild(int parent, int child) throws RemoteException
-        {
-            Connection conn;
-            Map<String,Object> columns = new HashMap<String,Object>();
-            columns.put(TAG_PARENT, parent);
-            columns.put(TAG_CHILD, child);
-            try
-            {
-                conn = getConnection();
-                SQLUtils.insertRow(conn, dbInfo.schema, table_tags, columns);
-            }
-            catch (SQLException sql_e)
-            {
-                throw new RemoteException(String.format("Failed to add child %d to %d.", child, parent), sql_e);
-            }
-            return;
-        }
-        public void removeChild(int parent, int child) throws RemoteException
-        {
-            Connection conn;
-            Map<String,Object> columns = new HashMap<String,Object>();
-            columns.put(TAG_PARENT, parent);
-            columns.put(TAG_CHILD, child);
-            try
-            {
-                conn = getConnection();
-                SQLUtils.deleteRows(conn, dbInfo.schema, table_tags, columns);
-            }
-            catch (SQLException sql_e)
-            {
-                throw new RemoteException(String.format("Failed to remove child %d from %d.", child, parent), sql_e);
-            }
-            return;
-        }
-        public int getEntityType(int id) throws RemoteException
-        {
-            List<Map<String,String>> sqlres;
-            Integer ent_type;
-            Map<String,Integer> whereParams = new HashMap<String,Integer>();
-            Connection conn = null;
-            try
-            {
-                conn = getConnection();
-                whereParams.clear();
-                whereParams.put(MAN_ID, id);
-                sqlres = SQLUtils.getRecordsFromQuery(
-                        conn, Arrays.asList(MAN_ID, MAN_TYPE), 
-                        dbInfo.schema, table_manifest, whereParams);
-                ent_type = new Integer(sqlres.get(0).get(MAN_TYPE));
-                
-                return ent_type;
-            }
-            catch (SQLException sql_e)
-            {
-                throw new RemoteException("Failed to retrieve entity information.", sql_e);
-            }
-        }
-        public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
-        {
-            Connection conn;
-
-            if (parent_id == -1)
-                return getRoots();
+            Map<Integer, Map<String,String>> publicresults = null;
+            Map<Integer, Map<String,String>> privateresults = null;
+            Map<Integer,Integer> typeresults = null;
             
-            Map<String,Object> query = new HashMap<String,Object>();
-            List<String> columns = new LinkedList<String>();
-            List<Integer> children = new LinkedList<Integer>();
+            List<DataEntity> finalresults = new LinkedList<DataEntity>();
 
-            columns.add(TAG_CHILD);
-            query.put(TAG_PARENT, parent_id);
-
-            try
+            for (Entry<String,String> propval : properties.entrySet())
             {
-                List<Map<String,String>> results;
-                conn = getConnection();
-                results = SQLUtils.getRecordsFromQuery(conn, columns, dbInfo.schema, table_tags, query);
-                for (Map<String,String> row : results)
+                String key = propval.getKey();
+                String value = propval.getValue();
+                if (ISQLConfig.PrivateMetadata.isPrivate(key))
+                    privateprops.put(key, value);
+                else
+                    publicprops.put(key, value); 
+            }
+            if (publicprops.size() > 0)
+                publicmatches = public_attributes.filter(publicprops);
+            if (privateprops.size() > 0)
+                privatematches = private_attributes.filter(privateprops);
+
+            /* Ick */
+            if ((publicmatches != null) && (privatematches != null))
+            {
+                publicmatches.retainAll(privatematches);
+                match_ids = publicmatches;
+            }
+            else if (publicmatches != null)
+                match_ids = publicmatches;
+            else if (privatematches != null)
+                match_ids = privatematches;
+
+            if (match_ids == null || match_ids.size() < 1)
+                return new LinkedList<DataEntity>(); /* return an empty list */
+            else
+                return getEntities(match_ids);
+        }
+        public Collection<DataEntity> getEntities(Collection<Integer> ids) throws RemoteException
+        {
+            List<DataEntity> results = new LinkedList<DataEntity>();
+            Map<Integer,Integer> typeresults = manifest.getEntryTypes(ids);
+            Map<Integer,Map<String,String>> publicresults = public_attributes.getProperties(ids);
+            Map<Integer,Map<String,String>> privateresults = private_attributes.getProperties(ids);
+            for (Integer id : ids)
+            {
+                DataEntity tmp = new DataEntity();
+                tmp.id = id;
+                tmp.publicMetadata = publicresults.get(id);
+                tmp.privateMetadata = privateresults.get(id);
+                tmp.type = typeresults.get(id);
+                results.add(tmp);
+            }
+            return results;
+        }
+        public void addChild(Integer child_id, Integer parent_id)
+        {
+            
+        }
+        public void removeChild(Integer child_id, Integer parent_id)
+        {
+            
+        }
+        public List<DataEntity> getChildren(Integer id)
+        {
+            return null;
+        }  
+/* Abstractions to tidy up the config code. */
+        private abstract class AbstractTable
+        {
+            protected ImmortalConnection conn = null;
+            protected String tableName = null;
+            protected String schemaName = null;
+            public AbstractTable(ImmortalConnection conn, String schemaName, String tableName) throws RemoteException
+            {
+                this.conn = conn;
+                this.tableName = tableName;
+                this.schemaName = schemaName;
+                initTable();
+            }
+            protected abstract void initTable() throws RemoteException;
+//            private abstract boolean tableExists() throws RemoteException;
+        }
+        private class AttributeValueTable extends AbstractTable
+        {
+            public AttributeValueTable(ImmortalConnection conn, String schemaName, String tableName) throws RemoteException
+            {
+                super(conn, schemaName, tableName);
+            }
+            protected void initTable() throws RemoteException
+            {
+                try 
                 {
-                    children.add(Integer.parseInt(row.get(TAG_CHILD)));
+                Connection conn = this.conn.getConnection();
+                SQLUtils.createTable(conn, schemaName, tableName, 
+                    Arrays.asList(META_ID, META_PROPERTY, META_VALUE),
+                    Arrays.asList("BIGINT UNSIGNED", "TEXT", "TEXT"));
+
+                /* Index of (ID, Property) */
+                SQLUtils.createIndex(conn, schemaName, tableName,
+                    tableName+META_ID+META_PROPERTY,
+                    new String[]{META_ID, META_PROPERTY},
+                    new Integer[]{0, 255});
+
+                /* Index of (Property, Value) */
+                SQLUtils.createIndex(conn, schemaName, tableName,
+                    tableName+META_PROPERTY+META_VALUE,
+                    new String[]{META_PROPERTY, META_VALUE},
+                    new Integer[]{255,255});
+                } 
+                catch (SQLException e)
+                {
+                    throw new RemoteException("Unable to initialize attribute-value-table.", e);
                 }
             }
-            catch (SQLException sql_e)
+            /* TODO: Add optimized methods for adding/removing multiple entries. */
+            /* if it is a null or empty string, it will simply unset the property. */
+            public void setProperty(Integer id, String property, String value) throws RemoteException
             {
-                throw new RemoteException("Failed to retrieve all categories.", sql_e);
+                try 
+                {
+                    Connection conn = this.conn.getConnection();
+                    Map<String, Object> sql_args = new HashMap<String,Object>();
+                    sql_args.put(META_PROPERTY, property);
+                    sql_args.put(META_ID, id);
+                    SQLUtils.deleteRows(conn, schemaName, tableName, sql_args);
+                    if (value != null && value.length() > 0)
+                    {
+                        sql_args.clear();
+                        sql_args.put(META_VALUE, value);
+                        sql_args.put(META_PROPERTY, property);
+                        sql_args.put(META_ID, id);
+                        SQLUtils.insertRow(conn, schemaName, tableName, sql_args);
+                    }
+                } 
+                catch (SQLException e)
+                {
+                    throw new RemoteException("Unable to set property.", e);
+                }
             }
-            return children;
+            /* Nuke all entries for a given id */
+            public void clearId(Integer id) throws RemoteException
+            {
+                try 
+                {
+                    Connection conn = this.conn.getConnection();
+                    Map<String, Object> sql_args  = new HashMap<String,Object>();
+                    sql_args.put(META_ID, id);
+                    SQLUtils.deleteRows(conn, schemaName, tableName, sql_args);
+                }
+                catch (SQLException e)
+                {
+                    throw new RemoteException("Unable to clear properties for a given id.", e);
+                }
+            }
+            
+            public Map<Integer, Map<String,String>> getProperties(Collection<Integer> ids) throws RemoteException
+            {
+                try 
+                {
+                    Connection conn = this.conn.getConnection();
+                    return SQLUtils.idInSelect(conn, schemaName, tableName, META_ID, META_PROPERTY, META_VALUE, ids, null);
+                }   
+                catch (SQLException e)
+                {
+                    throw new RemoteException("Unable to get properties for a list of ids.", e);
+                }
+            }
+            public Set<Integer> filter(Map<String,String> constraints) throws RemoteException
+            {
+                try
+                {
+                    Connection conn = this.conn.getConnection();
+                    Set<Integer> ids;
+                    List<Map<String,String>> crossRowArgs = new LinkedList<Map<String,String>>();
+
+                    for (Entry<String,String> keyValPair : constraints.entrySet())
+                    {
+                        if (keyValPair.getKey() == null || keyValPair.getValue() == null) continue;
+                        Map<String,String> colValPair = new HashMap<String,String>();
+                        colValPair.put(META_PROPERTY, keyValPair.getKey());
+                        colValPair.put(META_VALUE, keyValPair.getValue());
+                        crossRowArgs.add(colValPair);
+                    }
+                    return new HashSet<Integer>(SQLUtils.crossRowSelect(conn, schemaName, tableName, META_ID, crossRowArgs));
+                }
+                catch (SQLException e)
+                {
+                    throw new RemoteException("Unable to get ids given a set of property/value pairs.", e);
+                }
+            }
         }
-        public Collection<Integer> getRoots() throws RemoteException
+        private class ParentChildTable extends AbstractTable
         {
-            Set<Integer> manifest_ids;
-            Set<Integer> child_ids;
-            Connection conn;
-            try
+            public ParentChildTable(ImmortalConnection conn, String schemaName, String tableName) throws RemoteException
             {
-                conn = getConnection();
-
-                child_ids = new HashSet<Integer>(SQLUtils.getIntColumn(conn, dbInfo.schema, table_tags, TAG_CHILD));
-                manifest_ids = new HashSet<Integer>(SQLUtils.getIntColumn(conn, dbInfo.schema, table_manifest, MAN_ID));
-                
-                manifest_ids.removeAll(child_ids);
-
+                super(conn, schemaName, tableName);
             }
-            catch (SQLException sql_e)
+            public void initTable() throws RemoteException
             {
-                throw new RemoteException("Failed to retrieve all categories.", sql_e); 
+                try 
+                {
+                    Connection conn = this.conn.getConnection();
+                    SQLUtils.createTable(conn, schemaName, tableName,
+                        Arrays.asList(TAG_CHILD, TAG_PARENT),
+                        Arrays.asList("BIGINT UNSIGNED", "BIGINT UNSIGNED"));
+                /* No indices needed. */
+                }
+                catch (SQLException e)
+                {
+                    throw new RemoteException("Unable to initialize parent/child table.", e);
+                }
             }
-            return manifest_ids;
+            public void addChild(Integer child_id, Integer parent_id) throws RemoteException
+            {
+                try 
+                {
+                    Connection conn = this.conn.getConnection();
+                    Map<String, Object> sql_args = new HashMap<String,Object>();
+                    removeChild(child_id, parent_id);
+                    sql_args.put(TAG_CHILD, child_id);
+                    sql_args.put(TAG_PARENT, parent_id);
+                    SQLUtils.insertRow(conn, schemaName, tableName, sql_args);
+                }
+                catch (SQLException e)
+                {
+                    throw new RemoteException("Unable to add child.",e);
+                }
+            }
+            /* getChildren(null) will return all ids that appear in the 'child' column */
+            public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
+            {
+                try
+                {
+                    Connection conn = this.conn.getConnection();
+                    if (parent_id == null)
+                    {
+                        return new HashSet<Integer>(SQLUtils.getIntColumn(conn, schemaName, tableName, TAG_CHILD));
+                    }
+                    else 
+                    {
+                        List<String> columns = new LinkedList<String>();
+                        Map<String,Object> query = new HashMap<String,Object>();
+                        Set<Integer> children = new HashSet<Integer>();
+                        query.put(TAG_PARENT, parent_id);
+                        /* Ew. Need to add properly generic select. Or use JOOQ. */
+                        for (Map<String,String> row : SQLUtils.getRecordsFromQuery(conn, columns, schemaName, tableName, query))
+                        {
+                            children.add(Integer.parseInt(row.get(TAG_CHILD)));
+                        }
+                        return children;
+                    }
+                }
+                catch (SQLException e)
+                {
+                    throw new RemoteException("Unable to retrieve children.");
+                }
+            }
+            /* passing in a null releases the constraint. */
+            public void removeChild(Integer child_id, Integer parent_id) throws RemoteException
+            {
+                try
+                {
+                    Connection conn = this.conn.getConnection();
+                    Map<String,Object> sql_args = new HashMap<String,Object>();
+                    if (child_id == null && parent_id == null)
+                        throw new RemoteException("removeChild called with two nulls. This is not what you want.", null);
+                    if (child_id != null)
+                        sql_args.put(TAG_CHILD, child_id);
+                    if (parent_id != null) 
+                        sql_args.put(TAG_PARENT, parent_id);
+                    SQLUtils.deleteRows(conn, schemaName, tableName, sql_args);
+                }
+                catch (SQLException e)
+                {
+                    throw new RemoteException("Unable to remove child.", e);
+                }
+            }
+            /* Remove all relationships containing a given parent */
+            public void purgeByParent(Integer parent_id) throws RemoteException
+            {
+                removeChild(null, parent_id);
+            }
+            /* Remove all relationships containing a given child */
+            public void purgeByChild(Integer child_id) throws RemoteException
+            {
+                removeChild(child_id, null);
+            }
+            public void purge(Integer id) throws RemoteException
+            {
+                purgeByChild(id);
+                purgeByParent(id);
+            }
+        }
+        private class ManifestTable extends AbstractTable
+        {
+            public ManifestTable(ImmortalConnection conn, String schemaName, String tableName) throws RemoteException
+            {
+                super(conn, schemaName, tableName);
+            }
+            protected void initTable() throws RemoteException
+            {
+                try
+                {
+                    Connection conn = this.conn.getConnection();
+                    SQLUtils.createTable(conn, schemaName, tableName,
+                        Arrays.asList(MAN_ID, MAN_TYPE),
+                        Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TINYINT UNSIGNED"));
+                    /* TODO: Add necessary foreign keys. */
+                }
+                catch (SQLException e)
+                {
+                    throw new RemoteException("Unable to initialize manifest table.", e);
+                }
+            }
+            public Integer addEntry(Integer type_id) throws RemoteException
+            {
+                try
+                {
+                    Connection conn = this.conn.getConnection();
+                    Map<String,Object> record = new HashMap<String,Object>();
+                    record.put(MAN_TYPE, type_id);
+                    return SQLUtils.insertRowReturnID(conn, schemaName, tableName, record);
+                }
+                catch (SQLException e)
+                {
+                    throw new RemoteException("Unable to add entry to manifest table.", e);
+                }
+            }
+            public void removeEntry(Integer id) throws RemoteException
+            {
+                try
+                {
+                    Integer uniq_id = null;
+                    Connection conn = this.conn.getConnection();
+                    Map<String,Object> whereParams = new HashMap<String,Object>();
+                    whereParams.put(MAN_ID, id);
+                    SQLUtils.deleteRows(conn, schemaName, tableName, whereParams);
+                }
+                catch (Exception e)
+                {
+                    throw new RemoteException("Unable to remove entry from manifest table.", e);
+                }
+            }
+            public Map<Integer,Integer> getEntryTypes(Collection<Integer> ids) throws RemoteException
+            {
+                /* TODO: Optimize. */
+                try
+                {
+                    Connection conn = this.conn.getConnection();
+                    Map<Integer,Integer> result = new HashMap<Integer,Integer>();
+                    Map<String,Integer> whereParams = new HashMap<String,Integer>();
+                    List<Map<String,String>> sqlres;
+                    for (Integer id : ids)
+                    {
+                        whereParams.clear();
+                        whereParams.put(MAN_ID, id);
+                        sqlres = SQLUtils.getRecordsFromQuery(
+                            conn, Arrays.asList(MAN_ID, MAN_TYPE), schemaName, tableName, whereParams);
+                        result.put(id, new Integer(sqlres.get(0).get(MAN_TYPE)));
+                    }
+                    return result;
+                }
+                catch (Exception e)
+                {
+                    throw new RemoteException("Unable to get entry types.", e);
+                }
+            }
+            public Collection<Integer> getByType(Integer type_id) throws RemoteException
+            {
+                try
+                {
+                    Collection<Integer> ids = new LinkedList<Integer>();
+                    Map<String,Integer> whereParams = new HashMap<String,Integer>();
+                    List<Map<String,String>> sqlres;
+                    Connection conn = this.conn.getConnection();
+                    whereParams.put(MAN_TYPE, type_id);
+                    sqlres = SQLUtils.getRecordsFromQuery(
+                        conn, Arrays.asList(MAN_ID, MAN_TYPE), schemaName, tableName, whereParams);
+                    for (Map<String,String> row : sqlres)
+                    {
+                        ids.add(Integer.parseInt(row.get(MAN_ID)));
+                    }
+                    return ids;
+                }
+                catch (Exception e)
+                {
+                    throw new RemoteException("Unable to get by type.", e);
+                }
+            }
         }
 }

@@ -49,6 +49,7 @@ import java.util.Vector;
 
 import org.postgresql.PGConnection;
 
+
 /**
  * SQLUtils
  * 
@@ -65,24 +66,9 @@ import org.postgresql.PGConnection;
 public class SQLUtils
 {
 /* Wrapper class around SQLUtils. Eventually we should fold SQLUtils entirely into this class. */
+/* Actually, we should probably skip this and use JOOQ instead. */
+
 /*
-        public class ImmortalConnection
-        {
-            private Connection _lastConnection = null;
-            private ISQLConfig cfg = null;
-            private DatabaseConfigInfo dbInfo = null;
-            public ImmortalConnection(ISQLConfig newcfg)
-            {
-                cfg = newcfg;
-                dbInfo = cfg.getDatabaseConfigInfo();
-            }
-            public Connection getConnection()
-            {
-                if (connectionIsValid(_lastConnection))
-                    return _lastConnection;
-                return _lastConnection = null;
-            }
-        }
         public class AbstractSQLTable 
         {
             private ImmortalConnection conn;
@@ -94,7 +80,7 @@ public class SQLUtils
                     String table_name, 
                     Map<String,String> newColumns,
                     List<List<String>> indices,
-                    Map<String,Pair<String,String>> keyMappings) throws SQLException
+                    Map<String,Entry<String,String>> keyMappings) throws SQLException
             {
                 this.conn = conn;
                 schemaName = schema_name;
@@ -151,8 +137,8 @@ public class SQLUtils
                 }
                 return;
             }
-        }
-*/
+        } */
+
 	public static String MYSQL = "MySQL";
 	public static String POSTGRESQL = "PostgreSQL";
 	public static String SQLSERVER = "Microsoft SQL Server";
@@ -1361,7 +1347,6 @@ public class SQLUtils
 	                queryParams.size()
 	            );
             }
-            System.out.println(query);
             stmt = conn.prepareStatement(query);
 
             int i = 1;

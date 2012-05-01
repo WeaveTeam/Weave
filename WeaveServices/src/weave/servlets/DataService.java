@@ -38,7 +38,7 @@ import weave.beans.DataTableMetadata;
 import weave.beans.GeometryStreamMetadata;
 import weave.beans.WeaveRecordList;
 import weave.config.ISQLConfig;
-import weave.config.ISQLConfig.AttributeColumnInfo;
+import weave.config.ISQLConfig.DataEntity;
 import weave.config.ISQLConfig.DataType;
 import weave.config.ISQLConfig.PrivateMetadata;
 import weave.config.ISQLConfig.PublicMetadata;
@@ -133,7 +133,7 @@ public class DataService extends GenericServlet
 			return null;
 		
 		boolean geometryCollectionExists = ListUtils.findString(dataTableName, config.getGeometryCollectionNames(null)) >= 0;
-		List<AttributeColumnInfo> infoList = config.getAttributeColumnInfo(dataTableName);
+		List<DataEntity> infoList = config.getDataEntity(dataTableName);
 		if (infoList.size() == 0 && !geometryCollectionExists)
 			throw new RemoteException("DataTable \""+dataTableName+"\" does not exist.");
 		
@@ -165,7 +165,7 @@ public class DataService extends GenericServlet
 		keys = ListUtils.copyArrayToList(keysArray, keys);
 		HashMap<String,String> params = new HashMap<String,String>();
 		params.put(PublicMetadata.KEYTYPE,keyType);
-	        AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+	        DataEntity tmpinfo = new DataEntity();
                 tmpinfo.publicMetadata = params;	
 		HashMap<String,Integer> keyMap = new HashMap<String,Integer>();
 		for (int keyIndex = 0; keyIndex < keysArray.length; keyIndex ++ )
@@ -174,7 +174,7 @@ public class DataService extends GenericServlet
 		int rowIndex =0;
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfo(tmpinfo);
+		List<DataEntity> infoList = config.findDataEntity(tmpinfo);
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		if (infoList.size() > 100)
@@ -185,7 +185,7 @@ public class DataService extends GenericServlet
 		Map<String,String> metadataList[] = new Map[infoList.size()];
 		for (int colIndex = 0; colIndex < infoList.size(); colIndex++)
 		{
-			AttributeColumnInfo info = infoList.get(colIndex);
+			DataEntity info = infoList.get(colIndex);
 			String connectionName = info.privateMetadata.get(PrivateMetadata.CONNECTION);
 			String sqlQuery = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
 			String sqlParams = info.privateMetadata.get(PrivateMetadata.SQLPARAMS);
@@ -211,7 +211,7 @@ public class DataService extends GenericServlet
 			// override config min,max with param values if given
 			
 			/**
-			 * columnInfoArray = config.getAttributeColumnInfo(params);
+			 * columnInfoArray = config.getDataEntity(params);
 			 * for each info in columnInfoArray
 			 *      get sql data
 			 *      for each row in sql data
@@ -311,7 +311,6 @@ public class DataService extends GenericServlet
 		
 		return result;
 	}	
-	
 	/**
 	 * should return two columns -- keys and data
 	 */
@@ -329,9 +328,9 @@ public class DataService extends GenericServlet
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
 		
-                AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+                DataEntity tmpinfo = new DataEntity();
                 tmpinfo.publicMetadata = params;
-		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfo(tmpinfo);
+		List<DataEntity> infoList = config.findDataEntity(tmpinfo);
 		
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
@@ -341,7 +340,7 @@ public class DataService extends GenericServlet
 		if (infoList.size() > 1)
 			throw new RemoteException("More than one matching column found. "+params+debug);
 		
-		AttributeColumnInfo info = infoList.get(0);
+		DataEntity info = infoList.get(0);
 		String dataWithKeysQuery = info.privateMetadata.get(PrivateMetadata.SQLQUERY);
 
 		if (dataWithKeysQuery.length() == 0)
@@ -489,15 +488,15 @@ public class DataService extends GenericServlet
 	{
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-                AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+                DataEntity tmpinfo = new DataEntity();
                 tmpinfo.publicMetadata = params;
-		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfo(tmpinfo);
+		List<DataEntity> infoList = config.findDataEntity(tmpinfo);
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		if (infoList.size() > 1)
 			throw new RemoteException("More than one matching column found. "+params);
 		
-		AttributeColumnInfo info = infoList.get(0);
+		DataEntity info = infoList.get(0);
 		try
 		{
 			String connectionName = info.privateMetadata.get(PrivateMetadata.CONNECTION);
@@ -519,9 +518,9 @@ public class DataService extends GenericServlet
 		ISQLConfig config = configManager.getConfig();
 		Map<String,String> publicMetadataFilter = new HashMap<String,String>();
 		publicMetadataFilter.put(PublicMetadata.NAME, geometryCollectionName);
-                AttributeColumnInfo tmpinfo = new AttributeColumnInfo();
+                DataEntity tmpinfo = new DataEntity();
                 tmpinfo.publicMetadata = publicMetadataFilter;
-		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfo(tmpinfo);
+		List<DataEntity> infoList = config.findDataEntity(tmpinfo);
 		if (infoList.size() == 1)
 			return getGeometryStreamTileDescriptors(infoList.get(0).id);
 		throw new RemoteException(String.format("%s matches for geometry collection \"%s\"", infoList.size(), geometryCollectionName));
@@ -532,7 +531,7 @@ public class DataService extends GenericServlet
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
 	
-		AttributeColumnInfo info = config.getAttributeColumnInfo(id);
+		DataEntity info = config.getDataEntity(id);
 		if (info == null)
 			throw new RemoteException(String.format("Geometry collection with id \"%s\" does not exist.", id));
 		
@@ -572,7 +571,7 @@ public class DataService extends GenericServlet
 		throws RemoteException
 	{
 		ISQLConfig config = configManager.getConfig();
-		AttributeColumnInfo info = config.getAttributeColumnInfo(geometryColumnId);
+		DataEntity info = config.getDataEntity(geometryColumnId);
 		if (info == null)
 			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryColumnId));
 	
@@ -604,7 +603,7 @@ public class DataService extends GenericServlet
 		throws RemoteException
 	{
 		ISQLConfig config = configManager.getConfig();
-		AttributeColumnInfo info = config.getAttributeColumnInfo(geometryColumnId);
+		DataEntity info = config.getDataEntity(geometryColumnId);
 		if (info == null)
 			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryColumnId));
 	
