@@ -43,6 +43,7 @@ package weave.visualization.plotters
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.ImageColumn;
@@ -88,6 +89,7 @@ package weave.visualization.plotters
 		 *  This is the default URL path for images, when using images in place of points.
 		 */
 		public const pointDataImageColumn:ImageColumn = newLinkableChild(this, ImageColumn);
+		public const useFixedImageSize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		[Embed(source="/weave/resources/images/missing.png")]
 		private static var _missingImageClass:Class;
@@ -422,8 +424,10 @@ package weave.visualization.plotters
 					if (pointDataImageColumn.internalColumn)
 					{
 						var bitmapData:BitmapData = pointDataImageColumn.getValueFromKey(key) || _missingImage;
+						var imgWidth:Number = useFixedImageSize.value ? pointShapeSize.value : bitmapData.width;
+						var imgHeight:Number = useFixedImageSize.value ? pointShapeSize.value : bitmapData.height;
 						tempMatrix.identity();
-						tempMatrix.translate(tempPoint.x - bitmapData.width / 2, tempPoint.y - bitmapData.height / 2);
+						tempMatrix.translate(tempPoint.x - imgWidth / 2, tempPoint.y - imgHeight / 2);
 						outputBitmapData.draw(bitmapData, tempMatrix);
 					}
 					else

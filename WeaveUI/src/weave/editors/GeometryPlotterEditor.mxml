@@ -71,7 +71,7 @@
 		</mx:HBox>
 	</mx:VBox>
 	
-	<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0" enabled="{!useImagesCheck.selected}"
+	<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0" enabled="{!useImagesCheck.selected || fixedImageSizeCheck.selected}"
 			 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
 		<mx:Label text="point size:"/>
 		<mx:NumericStepper 	id="pointSize" 
@@ -82,9 +82,10 @@
 	</mx:VBox>
 	<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
 			 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
-		<mx:CheckBox id="useImagesCheck" label="Enable Images" click="handleGeomPlotterImageToggle()"/>
-		<mx:TextInput id="imageURL" creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
-		<ui:DynamicColumnComponent id="imageURLColumnSelector" label="Specify a column for the map point data icon:"/>
+		<mx:CheckBox id="useImagesCheck" label="Enable images for point data" click="handleGeomPlotterImageToggle()"/>
+		<ui:IndentTextInput id="imageURL" label="Default image URL" creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
+		<ui:DynamicColumnComponent id="imageURLColumnSelector" label="Image URL column" dynamicObject="{_plotter.pointDataImageColumn}"/>
+		<mx:CheckBox id="fixedImageSizeCheck" label="Use specified size" enabled="{useImagesCheck.selected}" creationComplete="linkBindableProperty(_plotter.useFixedImageSize, fixedImageSizeCheck, 'selected');"/>
 	</mx:VBox>
 	<mx:HBox>
 		<mx:CheckBox id="ignoreSubsetCheck" label="Ignore Subset" change="handleIgnoreSubsetCheck()"/>
@@ -105,7 +106,7 @@
 			import weave.utils.EventUtils;
 			import weave.visualization.plotters.GeometryPlotter;
 			
-			private var _plotter:GeometryPlotter = null;
+			[Bindable] private var _plotter:GeometryPlotter = null;
 			
 			public function setTarget(object:ILinkableObject):void
 			{
@@ -122,8 +123,8 @@
 				super.childrenCreated();
 				_plotter.pointDataImageColumn.addImmediateCallback(this, handleGeomPlotterImageURLChange);
 				getCallbackCollection(_plotter.keySet).addImmediateCallback(this, handleSubsetChange, true);
+				_plotter.pointDataImageColumn.addImmediateCallback(this, handleImageColumn, true);
 				geometryComponent.dynamicObject = _plotter.geometryColumn.internalDynamicColumn;
-				imageURLColumnSelector.dynamicObject = _plotter.pointDataImageColumn;
 			}
 			
 			private function handleSolidFillColorCheck():void
@@ -179,8 +180,17 @@
 				}
 			}
 			
-			private function handleSubsetChange():void {
+			private function handleSubsetChange():void
+			{
 				ignoreSubsetCheck.selected = _plotter.keySet.keyFilter.globalName ? false : true;
+			}
+			
+			private function handleImageColumn():void
+			{
+				useImagesCheck.selected = (_plotter.pointDataImageColumn.internalColumn != null);
+				var adc:AlwaysDefinedColumn = _plotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
+				if (adc)
+					imageURL.text = adc.defaultValue.value as String;
 			}
 		]]>
 	</mx:Script>
