@@ -38,26 +38,7 @@
 			
 			<mx:HBox width="100%" horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2"
 					 paddingRight="2" paddingTop="2" verticalScrollPolicy="off">
-				
-				<mx:ColorPicker id="colorPicker" width="22" height="22"
-								change="applyTextFormat(event)"/>
-				
-				<ui:CustomComboBox id="fontFamilyCombo" change="applyTextFormat(event)"
-								   dataProvider="{fontFamilyArray}" editable="false"/>
-				
-				<ui:CustomComboBox id="fontSizeCombo" change="applyTextFormat(event)"
-								   dataProvider="{fontSizeArray}" editable="false" paddingLeft="2"
-								   paddingRight="2"/>
-				
-				<mx:HBox id="toolBar2" horizontalGap="0">
-					<mx:Button id="boldButton" width="30" label="B" change="applyTextFormat(event)"
-							   fontFamily="_serif" fontWeight="bold" toggle="true" toolTip="Bold"/>
-					<mx:Button id="italicButton" width="30" label="I" change="applyTextFormat(event)"
-							   fontFamily="_serif" fontStyle="italic" toggle="true" toolTip="Italic"/>
-					<mx:Button id="underlineButton" width="30" label="U"
-							   change="applyTextFormat(event)" fontFamily="_serif"
-							   textDecoration="underline" toggle="true" toolTip="Underline"/>
-				</mx:HBox>
+				<ui:FontControl id="fontControls" />
 			</mx:HBox>
 			
 			<mx:Grid>
@@ -133,6 +114,9 @@
 			import mx.binding.utils.BindingUtils;
 			import mx.core.IUITextField;
 			import mx.core.mx_internal;
+			import mx.events.ColorPickerEvent;
+			import mx.events.ListEvent;
+			import mx.events.StateChangeEvent;
 			
 			import weave.Weave;
 			import weave.api.core.ILinkableContainer;
@@ -176,6 +160,7 @@
 			
 			override protected function childrenCreated():void
 			{
+				fontControls.initialize();
 				super.childrenCreated();
 				
 				linkSessionState(enableBorders, resizeable);
@@ -191,6 +176,17 @@
 
 				getTextField().alwaysShowSelection = true;
 				textArea.setStyle("focusAlpha", 0);
+				getTextField().embedFonts = true;
+				textArea.setStyle("embedFonts", true);
+				
+				fontControls.fontFamilyCombo.selectedLabel = getTextField().defaultTextFormat.font;
+				fontControls.fontSizeCombo.selectedItem = getTextField().defaultTextFormat.size;
+				fontControls.colorPicker.addEventListener(ColorPickerEvent.CHANGE, applyTextFormat);
+				fontControls.fontFamilyCombo.addEventListener(ListEvent.CHANGE, applyTextFormat);
+				fontControls.fontSizeCombo.addEventListener(ListEvent.CHANGE, applyTextFormat);
+				fontControls.boldButton.addEventListener(Event.CHANGE, applyTextFormat);
+				fontControls.italicButton.addEventListener(Event.CHANGE, applyTextFormat);
+				fontControls.underlineButton.addEventListener(Event.CHANGE, applyTextFormat);
 				
 				applyStyle();
 			}
@@ -234,7 +230,7 @@
 						break;
 					
 					// make sure the text between begin & end only has a single format
-					var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
+				 	var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
 					_tempTextField.setTextFormat(f, begin, end + 1);
 					
 //					// replace the text from { to }
@@ -244,6 +240,9 @@
 				}
 				
 				htmlTextFunction.value = '`' + _tempTextField.htmlText.split('`').join('\\`') + '`';
+				
+				//This is a hack to keep re-applying the currently selected text format.
+				applyTextFormat(new Event("LIST"));
 				
 				updateTextArea();
 			}
@@ -351,18 +350,12 @@
 				
 				// get text format from gui
 				var f:TextFormat = new TextFormat();
-				if (e.target == fontFamilyCombo)
-					f.font = fontFamilyCombo.selectedItem as String;
-				if (e.target == fontSizeCombo)
-					f.size = fontSizeCombo.selectedItem;
-				if (e.target == boldButton)
-					f.bold = boldButton.selected;
-				if (e.target == italicButton)
-					f.italic = italicButton.selected;
-				if (e.target == underlineButton)
-					f.underline = underlineButton.selected;
-				if (e.target == colorPicker)
-					f.color = colorPicker.selectedColor;
+				f.font = fontControls.fontFamilyCombo.selectedItem as String;
+				f.size = fontControls.fontSizeCombo.selectedItem;
+				f.color = fontControls.colorPicker.selectedColor;
+				f.bold = fontControls.boldButton.selected;
+				f.italic = fontControls.italicButton.selected;
+				f.underline = fontControls.underlineButton.selected;
 				if (e.target == paragraphCombo)
 				{
 					if (paragraphCombo.selectedIndex == 4)
@@ -377,8 +370,16 @@
 				}
 				
 				// set text format using temporary text field
-				getTextField().defaultTextFormat = f;
-				if (beginIndex >= 0 && beginIndex < getTextField().length)
+				if( beginIndex == getTextField().caretIndex && endIndex == getTextField().caretIndex )
+				{
+					getTextField().defaultTextFormat = f;
+					textArea.setStyle("fontFamily", fontControls.fontFamilyCombo.selectedLabel);
+				}
+				else
+				{
+					getTextField().setTextFormat(f, beginIndex, endIndex);
+				}
+/* 				if (beginIndex >= 0 && beginIndex < getTextField().length)
 				{
 					// compute new htmlText using temporary text field
 					_tempTextField.htmlText = textArea.htmlText;
@@ -387,7 +388,7 @@
 					if (beginIndex < endIndex)
 						_tempTextField.setTextFormat(f, beginIndex, endIndex);
 					htmlText.value = _tempTextField.htmlText;
-				}
+				} */
 				
 				textArea.setFocus();
 				textArea.validateNow();
