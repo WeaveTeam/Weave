@@ -30,7 +30,6 @@ package weave.core
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
-	import weave.utils.DebugUtils;
 
 	use namespace weave_internal;
 	
