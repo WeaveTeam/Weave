@@ -31,7 +31,6 @@ package weave
 	import flash.net.URLRequest;
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
-	import flash.system.Security;
 	import flash.system.System;
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
@@ -43,7 +42,6 @@ package weave
 	import mx.containers.VBox;
 	import mx.controls.Alert;
 	import mx.controls.Text;
-	import mx.core.Application;
 	import mx.core.UIComponent;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
@@ -321,8 +319,8 @@ package weave
 				domains = [domains];
 			for each (var domain:String in domains)
 			{
-				Security.allowDomain(domain);
-				Security.allowInsecureDomain(domain);
+				systemManager.allowDomain(domain);
+				systemManager.allowInsecureDomain(domain);
 			}
 		}
 		
