@@ -19,6 +19,7 @@
 
 package weave.compiler
 {
+	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
 	import mx.utils.ObjectUtil;
 
@@ -472,5 +473,34 @@ package weave.compiler
 		{
 			return Math.log(1 + normValue * factor) / Math.log(1 + factor);
 		}
+		
+		/**
+		 * This will parse a date string into a Date object or a Number.
+		 * @param dateString The date string to parse.
+		 * @param formatString The format of the date string.
+		 * @param returnDateObject If set to true, a Date object will be returned.  Otherwise, a Number will be returned.
+		 * @return The result of parsing the date string.
+		 * 
+		 * @see mx.formatters::DateFormatter#formatString
+		 * @see Date
+		 */		
+		public static function parseDate(dateString:String, formatString:String = null, returnDateObject:Boolean = true):Object
+		{
+			var formattedDateString:String = dateString;
+			if (formatString)
+			{
+				_dateFormatter.formatString = formatString;
+				formattedDateString = _dateFormatter.format(dateString);
+			}
+			if (returnDateObject)
+				return DateFormatter.parseDateString(formattedDateString);
+			return Date.parse(formattedDateString);
+			
+		}
+		
+		/**
+		 * This is the DateFormatter used by parseDate().
+		 */		
+		private static const _dateFormatter:DateFormatter = new DateFormatter();
 	}
 }
