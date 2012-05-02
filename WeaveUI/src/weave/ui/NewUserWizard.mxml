@@ -71,15 +71,15 @@
 				</ui:htmlText>
 			</ui:HelpComponent>
 		</mx:HBox>
-		<mx:HBox visible="{uniqueColumns.length != 0}">
-		<mx:Label text="Unique Identifier Column" />
-		<ui:CustomComboBox toolTip="This is the column which uniquely identifies each row in your dataset. If you prefer you can change it to a different column." selectedIndex="0" id="keyColumnSelector"/>
-	</mx:HBox>
-	<mx:HBox id="delimiterBox">
-		<mx:Label text="Delimiter: "/>
-		<ui:CustomComboBox id="delimiterSelector" toolTip="If there is a problem, try changing the delimiter (you can also type a different delimiter)." editable="true" dataProvider="['Comma','Space','Tab','Semi Colon']" keyUp="handleDelimiterChange(event)" change="handleDelimiterChange(event)"/>
-	</mx:HBox>
-	<mx:DataGrid id="grid" height="100%"/>
+		<mx:HBox visible="{(keyColumnSelector.dataProvider as ICollectionView).length != 0}">
+			<mx:Label text="Unique Identifier Column" />
+			<ui:CustomComboBox toolTip="This is the column which uniquely identifies each row in your dataset. If you prefer you can change it to a different column." selectedIndex="0" id="keyColumnSelector"/>
+		</mx:HBox>
+		<mx:HBox id="delimiterBox">
+			<mx:Label text="Delimiter: "/>
+			<ui:CustomComboBox id="delimiterSelector" toolTip="If there is a problem, try changing the delimiter (you can also type a different delimiter)." editable="true" dataProvider="['Comma','Space','Tab','Semi Colon']" keyUp="handleDelimiterChange(event)" change="handleDelimiterChange(event)"/>
+		</mx:HBox>
+		<mx:DataGrid id="grid" height="100%"/>
 		
 	</mx:VBox>
 	<mx:VBox id="visTools" width="100%">
@@ -141,6 +141,7 @@
 			import com.as3xls.xls.Sheet;
 			
 			import mx.collections.ArrayCollection;
+			import mx.collections.ICollectionView;
 			import mx.controls.Alert;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			

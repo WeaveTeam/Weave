@@ -96,6 +96,9 @@ package weave.core
 		 */
 		private var _callbacksAreRunning:Boolean = false;
 		
+		private static const STACK_TRACE_ADD:String = "This is the stack trace from when the callback was added.";
+		private static const STACK_TRACE_REMOVE:String = "This is the stack trace from when the callback was removed.";
+		
 		/**
 		 * This adds the given function as a callback.  The function must not require any parameters.
 		 * The callback function will not be called recursively as a result of it triggering callbacks recursively.
@@ -121,7 +124,7 @@ package weave.core
 				entry.schedule = 1;
 			
 			if (debug)
-				entry.addCallback_stackTrace = new Error("Stack trace").getStackTrace();
+				entry.addCallback_stackTrace = new Error(STACK_TRACE_ADD).getStackTrace();
 
 			// run callback now if requested
 			if (runCallbackNow)
@@ -196,7 +199,7 @@ package weave.core
 					if (shouldRemoveEntry)
 					{
 						if (debug && entry.callback != null)
-							entry.removeCallback_stackTrace = new Error("context disposed").getStackTrace();
+							entry.removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
 						// help the garbage-collector a bit
 						entry.context = null;
 						entry.callback = null;
@@ -245,7 +248,7 @@ package weave.core
 					entry.context = null;
 					entry.callback = null;
 					if (debug)
-						entry.removeCallback_stackTrace = new Error("removeCallback called").getStackTrace();
+						entry.removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
 					// done removing the callback
 					return;
 				}
@@ -403,7 +406,7 @@ package weave.core
 				triggerEntry.recursionLimit = recursionLimit;
 				triggerEntry.context = [relevantContext]; // the context in this entry will be an array of contexts
 				if (debug)
-					triggerEntry.addCallback_stackTrace = new Error("Stack trace").getStackTrace();
+					triggerEntry.addCallback_stackTrace = new Error(STACK_TRACE_ADD).getStackTrace();
 				triggerEntry.callback = function():void
 				{
 					if (_runningGroupedCallbacksNow)
@@ -423,7 +426,7 @@ package weave.core
 						{
 							triggerEntry.callback = null; // help the garbage-collector a bit
 							if (debug)
-								triggerEntry.removeCallback_stackTrace = new Error("All contexts disposed").getStackTrace();
+								triggerEntry.removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
 							delete _groupedCallbackToTriggerEntryMap[groupedCallback];
 							return;
 						}

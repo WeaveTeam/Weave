@@ -43,7 +43,7 @@
 		<mx:TextInput change="{dataChanged=true}" id="projectionInput" toolTip="Example: EPSG:4326"/>
 	</ui:Indent>
 	<ui:Indent label="Import Notes">
-		<mx:TextInput change="{dataChanged=true}" id="importNotesInput"/>
+		<mx:TextInput change="{dataChanged=true}" id="importNotesInput" editable="false"/>
 	</ui:Indent>
 	
 	<mx:HBox>

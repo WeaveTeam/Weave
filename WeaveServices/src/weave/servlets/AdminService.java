@@ -1412,7 +1412,7 @@ public class AdminService extends GenericServlet
 			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile),"ISO-8859-1");
 			
 			String[][] rows = CSVParser.defaultParser.parseCSV(csvData);
-
+			
 			if (rows.length == 0)
 				throw new RemoteException("CSV file is empty: " + csvFile);
 
@@ -1513,14 +1513,15 @@ public class AdminService extends GenericServlet
 					
 					// Change missing data into NULL, later add more cases to deal with missing data.
 					String[] nullValuesStandard = new String[]{"", ".", "..", " ", "-", "\"NULL\"", "NULL", "NaN"};
-					for(String[] values : new String[][] {nullValuesStandard, nullValues })
+					ALL_NULL_VALUES: for(String[] values : new String[][] {nullValuesStandard, nullValues })
 					{			
 						for (String nullValue : values)
 						{
-							if (nextLine[i].equalsIgnoreCase(nullValue))
+							if (nextLine[i] != null && nextLine[i].equalsIgnoreCase(nullValue))
 							{
 								nextLine[i] = null;
-								break;
+								
+								break ALL_NULL_VALUES;
 							}
 						}
 					}

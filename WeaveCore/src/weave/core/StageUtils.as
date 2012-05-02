@@ -272,7 +272,7 @@ package weave.core
 				_callNextFrameArray.push(arguments);
 			
 			if (CallbackCollection.debug)
-				_stackTraceMap[arguments] = new Error("Stack trace").getStackTrace();
+				_stackTraceMap[arguments] = new Error("This is the stack trace from when callLater() was called.").getStackTrace();
 		}
 		
 		private const _stackTraceMap:Dictionary = new Dictionary(true);

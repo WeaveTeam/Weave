@@ -568,6 +568,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						
 					}  
 					dataGrid.columns = _currentDataGridColumns;
+					numLockedColumns.maximum = attrColumns.length;
 				}
 				catch (error:Error)
 				{
@@ -873,7 +874,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:CheckBox id="showKeyColumnCheckBox" label="Show Key Column" change="handleKeyColumnCheckBox()"/>
 			<mx:HBox>
 				<mx:Label text="Number of Locked Columns"/>
-				<mx:NumericStepper id="numLockedColumns" minimum="0" maximum="{dataGrid.columns.length}" 
+				<mx:NumericStepper id="numLockedColumns" minimum="0" 
 								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value');"/>	
 			</mx:HBox>
 			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="Columns"/>

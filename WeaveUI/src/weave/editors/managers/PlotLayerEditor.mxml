@@ -284,7 +284,7 @@
 								</mx:HBox>
 							</mx:VBox>
 							
-							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0" enabled="{!useImagesCheck.selected}"
+							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0" enabled="{!useImagesCheck.selected || fixedImageSizeCheck.selected}"
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
 								<mx:Label text="point size:"/>
 								<mx:NumericStepper 	id="pointSize" 
@@ -296,6 +296,7 @@
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
 								<mx:CheckBox id="useImagesCheck" label="Enable Images" click="handleGeomPlotterImageToggle()"/>
 								<mx:TextInput id="imageURL" creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
+								<mx:CheckBox id="fixedImageSizeCheck" label="Use specified size" enabled="{useImagesCheck.selected}" />
 							</mx:VBox>
 						</mx:HBox>
 						<mx:HBox>
@@ -480,6 +481,7 @@
 								geomPlotter.pointDataImageColumn.addImmediateCallback(null, handleGeomPlotterImageURLChange);
 								getCallbackCollection(geomPlotter.keySet).addImmediateCallback(null, handleSubsetChange, true);
 								linkBindableProperty(geomPlotter.pointShapeSize, pointSize, "value");
+								linkBindableProperty(geomPlotter.useFixedImageSize, fixedImageSizeCheck, "selected");
 								
 								linkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
 								linkBindableProperty(geomPlotter.fill.alpha.defaultValue, fillAlpha, "value");
@@ -531,6 +533,7 @@
 								geomPlotter.pointDataImageColumn.removeCallback(handleGeomPlotterImageURLChange);
 								getCallbackCollection(geomPlotter.keySet).removeCallback(handleSubsetChange);
 								unlinkBindableProperty(geomPlotter.pointShapeSize, pointSize, "value");
+								unlinkBindableProperty(geomPlotter.useFixedImageSize, fixedImageSizeCheck, "selected");
 									
 								unlinkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
 								unlinkBindableProperty(geomPlotter.fill.alpha.defaultValue, fillAlpha, "value");
@@ -566,14 +569,17 @@
 								var projString:String;
 								if (plotter is GeometryPlotter)
 								{
-									// use the column as a geometry column to get the source projection
-									var column:ReprojectedGeometryColumn = (plotter as GeometryPlotter).geometryColumn as ReprojectedGeometryColumn;
-									if (column)
-									{
-										projString = column.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION);
-										if (projString != null)
-											projLabel = ' (' + projString + ')';
-									}
+									var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
+									
+									// get the source projection to be used in the label
+									projString = geomPlotter.geometryColumn.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION);
+									if (projString != null)
+										projLabel = ' (' + projString + ')';
+									
+									useImagesCheck.selected = (geomPlotter.pointDataImageColumn.internalColumn != null);
+									var adc:AlwaysDefinedColumn = geomPlotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
+									if (adc)
+										imageURL.text = adc.defaultValue.value as String;
 								}
 								else if (plotter is WMSPlotter)
 								{
