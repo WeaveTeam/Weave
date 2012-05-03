@@ -335,9 +335,16 @@ package weave.api
 			{
 				_initialized = true;
 				// run static initialization code to register weave implementations
-				try {
-					getDefinitionByName("_InitializeWeave"); // run static initialization code 
-				} catch (e:Error) { }
+				try
+				{
+					getDefinitionByName("_InitializeWeaveCore");
+					getDefinitionByName("_InitializeWeaveData"); 
+					getDefinitionByName("_InitializeWeaveUI");
+				}
+				catch (e:Error)
+				{
+					trace(e.getStackTrace());
+				}
 			}
 			
 			var result:* = _singletonDictionary[singletonInterface];
