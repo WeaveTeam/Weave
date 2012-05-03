@@ -186,8 +186,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(newThumbnailGlowColor,thumbnailGlowColorPicker,"selectedColor");
 				linkBindableProperty(enableAutoSave,autoSaveCheckBox,"selected");
 				
-				subMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
-				subMenu.addSubMenuItem("Show All Documents",showAllDocuments);
+//				subMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
+//				subMenu.addSubMenuItem("Show All Documents",showAllDocuments);
 			}
 			
 			private function dragEnterHandler(event:DragEvent):void
@@ -202,23 +202,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				var t:DocThumbnailComponent = event.dragInitiator as DocThumbnailComponent;
 				
-				if(!(t.parent == this))
+				//if the parent is a NodeHandler set hasBeenMoved to true and add it as a child to the InfoMapPanel
+				if(!(t.parent == this.map))
 				{
-					var parentNode:NodeHandler = t.parent as NodeHandler;
 					map.addChild(t);
 					t.hasBeenMoved.value = true;	
-					
-					//setting the X and Y with reference to the map
-//					var tGlobalPoint:Point = (t.parent as Canvas).contentToGlobal(new Point(t.x,t.y));
-					var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
-					
-					t.move(localPoint.x,localPoint.y);
-					
-					var mtp:MovedThumbnailPosition = parentNode.movedThumbNails.requestObject(t.docURL.value,MovedThumbnailPosition,false) as MovedThumbnailPosition;
-					
-					mtp.xPos.value = localPoint.x;
-					mtp.yPos.value = localPoint.y;
 				}
+				
+				//move the thumbnail to the new location
+				var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
+				t.move(localPoint.x,localPoint.y);
 			}
 			
 			private var _subset:KeyFilter;
@@ -760,19 +753,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				DateFilterComponent.openInstance(this,globalDateFilter);
 			}
 			
-			private function handleSelectAll():void
-			{
-				var handlers:Array = nodes.getObjects();
-				
-				for (var i:int = 0;i<handlers.length;i++)
-				{
-					if(handlers[i] is NodeHandler)
-						(handlers[i] as NodeHandler).node.selected.value = selectAllCheckBox.selected;
-					
-				}
-			
-				
-			}
+//			private function handleSelectAll():void
+//			{
+//				var handlers:Array = nodes.getObjects();
+//				
+//				for (var i:int = 0;i<handlers.length;i++)
+//				{
+//					if(handlers[i] is NodeHandler)
+//						(handlers[i] as NodeHandler).node.selected.value = selectAllCheckBox.selected;
+//					
+//				}
+//			
+//				
+//			}
 			
 			
 			private function handleNodeComboBoxChange():void
@@ -900,12 +893,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					<mx:Spacer width="150"/>
 					<mx:VBox>
 						<mx:HBox>
-							<mx:Label fontWeight="bold" text="Search in Selected Nodes:"/>
+							<mx:Label fontWeight="bold" text="Search in Nodes:"/>
 							<mx:TextInput id="globalSearchTextInput" borderStyle="solid" cornerRadius="5" width="200" />
 							<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Add Date Filter in Selected Nodes" click="handleDateFilter()"/>
 							<mx:Spacer width="50"/>
 						</mx:HBox>
-						<mx:CheckBox id="selectAllCheckBox" change="handleSelectAll()" label="Select All Nodes" selected="false"/>
+						<!--<mx:CheckBox id="selectAllCheckBox" change="handleSelectAll()" label="Select All Nodes" selected="false"/>-->
 					</mx:VBox>
 				</mx:HBox>
 				

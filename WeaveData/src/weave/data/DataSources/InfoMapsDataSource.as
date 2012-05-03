@@ -122,14 +122,21 @@ package weave.data.DataSources
 		{
 			var temp:Array = removeEmptyStringElementsFromArray(query.split(" "));	
 			
+			//force all queries to check for values in title and description
+			
 			//after removing the empty strings we check to see if it is a single or empty word.
 			//if it is not a single word we add the operator between each keyword
 			//spliting the keywords at the spaces. 
 			if(temp.length > 1)
 				query = temp.join(" "+operator+" ");
 			
-			createAndSendQuery(docKeySet,query,operator,sources,
-				dateFilter,numberOfDocuments);	
+			//we need to search in both the title and the description fields.
+			//the solr syntax for searching multiple words in a single field is "field_name:(query words)"
+			var queryTerms:String = "title:(" + query + ") OR description:(" + query + ")";
+			
+			createAndSendQuery(docKeySet,queryTerms,operator,sources,
+				dateFilter,numberOfDocuments);
+			
 		}
 		/**
 		 * This function takes a query and adds a filter to restrict by field values 
@@ -146,7 +153,21 @@ package weave.data.DataSources
 			if(fieldsNames.length == 0)
 				return;
 			
-			query += "&fq="
+			var temp:Array = removeEmptyStringElementsFromArray(query.split(" "));	
+			
+			//force all queries to check for values in title and description
+			
+			//after removing the empty strings we check to see if it is a single or empty word.
+			//if it is not a single word we add the operator between each keyword
+			//spliting the keywords at the spaces. 
+			if(temp.length > 1)
+				query = temp.join(" "+operator+" ");
+			
+			//we need to search in both the title and the description fields.
+			//the solr syntax for searching multiple words in a single field is "field_name:(query words)"
+			var queryTerms:String = "title:(" + query + ") OR description:(" + query + ")";
+			
+			queryTerms += "&fq="
 			for(var i:int = 0; i<fieldsNames.length; i++)
 			{
 				for(var j:int = 0; j <fieldValues[i].length; j++)
@@ -158,13 +179,13 @@ package weave.data.DataSources
 					//TODO: need to test how this might affect non-link text
 					val = escape(val);
 					
-					query += fieldsNames[i] + ':"' + val + '" '+operator+' ';
+					queryTerms += fieldsNames[i] + ':"' + val + '" '+operator+' ';
 				}
 			}
 			
-			query = query.substr(0,query.length-(2+operator.length));
+			queryTerms = queryTerms.substr(0,queryTerms.length-(2+operator.length));
 			
-			createAndSendQuery(docKeySet,query,operator,sources,dateFilter,numberOfDocuments);
+			createAndSendQuery(docKeySet,queryTerms,operator,sources,dateFilter,numberOfDocuments);
 		}
 		
 		private function createAndSendQuery(docKeySet:KeySet,query:String,operator:String='AND',sources:Array=null,
@@ -208,7 +229,7 @@ package weave.data.DataSources
 			
 			//creating and sending the query to the Solr server
 			//TODO: change number of documents from fixed number to a variable
-			var url:String = solrURL.value + "&start=0&rows=100&sort=date_published desc&indent=on&q=" + query;
+			var url:String = solrURL.value + "&start=0&rows=100&sort=date_added desc&indent=on&q=" + query;
 			
 			
 			var loader:URLLoader = new URLLoader();
@@ -287,7 +308,8 @@ package weave.data.DataSources
 			
 //			(token.keySet as KeySet).clearKeys();
 			(token.keySet as KeySet).replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
-			
+			// we force to trigger callbacks so that if a empty keyset is replaced with empty keys the callbacks are still called
+			(token.keySet as KeySet).triggerCallbacks(); 
 		}
 		
 		private var parser:CSVParser = new CSVParser();

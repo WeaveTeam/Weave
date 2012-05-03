@@ -205,7 +205,7 @@
 				
 				//this keySet stores the keys matching the search query.
 				//when the results are stored in this keySet a callback is triggered for setting the thumbnails' visible to true/false
-				_searchKeySet.addGroupedCallback(this,handleSearchKeySetChange,true);
+				_searchKeySet.addImmediateCallback(this,handleSearchKeySetChange,true);
 				
 				//adding a callback to the selection KeySet to highlight/unhighlight documents
 				_selection.addGroupedCallback(this,handleSelectionKeySetChange,true);
@@ -302,6 +302,7 @@
 			}
 			
 			private var parser:CSVParser = new CSVParser();
+			private var _firstLoad:Boolean = true;
 			
 			/**
 			 * @private
@@ -320,15 +321,24 @@
 //					getCallbackCollection(node).resumeCallbacks();
 //					return;
 //				}
-				
-				if(node.detectQueryChange(handleThumbnails))
+
+				if(_firstLoad && node.thumbnails.getNames().length == 0 && movedThumbNails.getNames().length == 0)
 				{
-					thumbnails.removeAllObjects();
-					
-					highlightNewDocuments = true;
-				}else{
 					highlightNewDocuments = false;
+				}else{
+					
+					if(node.detectQueryChange(handleThumbnails))
+					{
+						thumbnails.removeAllObjects();
+						
+						highlightNewDocuments = false;
+					}else{
+						highlightNewDocuments = true;
+					}
 				}
+				
+				_firstLoad = false;
+				
 				
 				
 				for(var i:int; i<response.length ;i++)
@@ -497,6 +507,7 @@
 				if(!_parentPanel.globalSearchKeyword.value)
 				{
 					_searchKeySet.clearKeys();
+					_searchKeySet.triggerCallbacks();
 					return;
 				}
 				
@@ -526,9 +537,12 @@
 				
 				if(searchMatchedKeys.length == 0)
 				{
+					//if searchKeys length is zero and if there is search keyword then none of the documents matched. So we set all visiblity to false
+					//else set all to true;
+					var visiblity:Boolean =  (_parentPanel.globalSearchKeyword.value != "");
 					for each(var t1:DocThumbnailComponent in tnails)
 					{
-						t1.visible = true;
+						t1.visible = !visiblity;
 					}
 				}else
 				{

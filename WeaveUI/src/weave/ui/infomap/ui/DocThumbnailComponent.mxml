@@ -58,6 +58,7 @@ so that it can be moved, selected, handle filters.
 			import weave.services.URLRequestUtils;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.IInfoMapNode;
+			import weave.ui.infomap.core.MovedThumbnailPosition;
 			import weave.ui.infomap.core.SelectableInfoMapDocument;
 			import weave.ui.infomap.layout.IInfoMapNodeLayout;
 			import weave.ui.infomap.layout.NodeHandler;
@@ -119,39 +120,7 @@ so that it can be moved, selected, handle filters.
 			 * */
 			public const hasBeenMoved:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false));
 			
-			/**
-			 * @private
-			 * The document object whose imageURL is used as the source for this image.
-			 * */
-//			private var _doc:SelectableInfoMapDocument;
-//			private var _key:IQualifiedKey;
-//			public function set doc(value:SelectableInfoMapDocument):void
-//			{
-//				if(value == null)
-//					return;
-//				_doc = value;
-//				_doc.selected.addImmediateCallback(this,highlight);
-//				_key = WeaveAPI.QKeyManager.getQKey("infomapDocURL",_doc.url.value);
-//				handleImage();
-//			}
-//			
-//			public function get doc():SelectableInfoMapDocument
-//			{
-//				return _doc;
-//			}
-			
-			
 			public const docURL:LinkableString = newLinkableChild(this,LinkableString);
-			
-			private function handleDragComplete(event:DragEvent):void
-			{
-				DragManager.mx_internal::dragProxy.visible= false; //this disables the drop animation!
-				event.localX;
-				event.localY;
-				this.move(x-_lastMouseDownPoint.x,y-_lastMouseDownPoint.y);
-				xPos.value = x;
-				yPos.value = y;
-			}
 			
 			override protected function childrenCreated():void
 			{
@@ -306,9 +275,9 @@ so that it can be moved, selected, handle filters.
 				timer.stop();
 				removeDocSummary();
 				_mouseDown = true;
-				this.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 				_lastMouseDownPoint.x = event.localX;
 				_lastMouseDownPoint.y = event.localY;
+				this.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 			}
 			
 			private function handleMouseMove(event:MouseEvent):void
@@ -325,6 +294,46 @@ so that it can be moved, selected, handle filters.
 				DragManager.doDrag(dragInitiator, ds, event,imgCopy);
 				stage.addEventListener(MouseEvent.MOUSE_UP,handleStageMouseUp);
 			}
+			
+			private function handleDragComplete(event:DragEvent):void
+			{
+				DragManager.mx_internal::dragProxy.visible= false; //this disables the drop animation
+				
+				var mtp:MovedThumbnailPosition = null;
+				
+				var parentNH:NodeHandler = null;
+				if(this.parent is NodeHandler)
+				{
+					parentNH = this.parent as NodeHandler;
+					
+					parentNH.movedThumbNails.removeObject(docURL.value) as MovedThumbnailPosition;
+					
+				}else
+				{
+					this.move(x- _lastMouseDownPoint.x ,y - _lastMouseDownPoint.y);
+					xPos.value = x;
+					yPos.value = y;
+					
+					var parentMap:InfoMapPanel = (this.parent.parent) as InfoMapPanel; //better way ?
+				
+					var nodeHandlers:Array = parentMap.nodes.getObjects();
+					for each (var n:NodeHandler in nodeHandlers)
+					{
+						if(n.thumbnails.getObject(docURL.value) == this)
+						{
+							parentNH = n;
+							break;
+						}
+					}
+				
+					//set the movedThumbnailPosition for the thumbnail
+					mtp = parentNH.movedThumbNails.requestObject(docURL.value,MovedThumbnailPosition,false) as MovedThumbnailPosition;
+					
+					mtp.xPos.value = x;
+					mtp.yPos.value = y;
+				}
+			}
+			
 			
 			private function handleStageMouseUp(event:MouseEvent):void
 			{
