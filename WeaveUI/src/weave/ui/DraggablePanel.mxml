@@ -1582,7 +1582,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				var instance:DraggablePanel = _instances[draggablePanelClass];
 				if (!instance)
+				{
 					_instances[draggablePanelClass] = instance = new draggablePanelClass() as DraggablePanel;
+					instance.pinnable.value = false;
+					instance.pinnableToBack.value = false;
+				}
 				if (!instance.parent)
 					PopUpManager.addPopUp(instance, WeaveAPI.topLevelApplication as UIComponent);
 				instance.restorePanel();

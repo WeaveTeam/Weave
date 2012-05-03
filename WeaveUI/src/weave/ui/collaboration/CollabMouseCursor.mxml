@@ -18,7 +18,7 @@
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
-		   width="18" height="24">	
+		   width="18" height="24" mouseChildren="false">	
 	
 	<mx:Move id="moveEvent" duration="600" 
 			 xFrom="{xFrom}" xTo="{xTo}"

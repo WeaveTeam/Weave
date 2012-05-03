@@ -69,18 +69,25 @@
 				<mx:HBox enabled="{toolsMenu.selected}">
 					<mx:Spacer width="10"/>
 					<mx:VBox verticalGap="{verticalGap}">
-						<mx:CheckBox toolTip="Checking this box will allow the user to open the Color Controller"
-									 label="Show Color Controller"
+						<mx:CheckBox toolTip="Allow the user to open the Color Controller"
+									 label="Color Controller"
 									 creationComplete="linkBindableProperty(Weave.properties.showColorController, event.target, 'selected')"/>
-						<mx:CheckBox toolTip="Checking this box will allow the user to open the Probe ToolTip Editor"
-									 label="Show Probe ToolTip Editor"
+						<mx:CheckBox toolTip="Allow the user to open the Probe ToolTip Editor"
+									 label="Probe ToolTip Editor"
 									 creationComplete="linkBindableProperty(Weave.properties.showProbeToolTipEditor, event.target, 'selected')"/>
-						<mx:CheckBox toolTip="Checking this box will allow the user to open the Equation Editor"
-									 label="Show Equation Editor"
+						<mx:CheckBox toolTip="Allow the user to open the Equation Editor"
+									 label="Equation Editor"
 									 creationComplete="linkBindableProperty(Weave.properties.showEquationEditor, event.target, 'selected')"/>
-						<mx:CheckBox toolTip="Checking this box will allow the user to open the Attribute Selector"
-									 label="Show Attribute Selector"
-									 creationComplete="linkBindableProperty(Weave.properties.showAttributeSelector, event.target, 'selected')"/>
+						<mx:CheckBox toolTip="Allow the user to open the Collaboration Settings panel"
+									 id="collabSettings"
+									 label="Collaboration Settings"
+									 creationComplete="linkBindableProperty(Weave.properties.showCollaborationEditor, event.target, 'selected');"
+									 />
+						<mx:CheckBox toolTip="Allow the user to open the collaboration panel"
+									 id="collabPanel"
+									 label="Connect to Collaboration Server"
+									 creationComplete="linkBindableProperty(Weave.properties.showCollaborationPanel, event.target, 'selected');"
+									 />
 					</mx:VBox>
 					<mx:VBox verticalGap="{verticalGap}" id="menuToggleVBox"/>
 				</mx:HBox>	

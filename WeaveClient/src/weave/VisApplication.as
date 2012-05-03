@@ -94,6 +94,7 @@ package weave
 	import weave.ui.annotation.SessionedTextBox;
 	import weave.ui.collaboration.CollaborationEditor;
 	import weave.ui.collaboration.CollaborationMenuBar;
+	import weave.ui.collaboration.CollaborationTool;
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
@@ -684,9 +685,6 @@ package weave
 					);
 				}
 				
-				if (Weave.properties.showAttributeSelector)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Browse data", AttributeSelectorPanel.openDefaultSelector));
-				
 				_weaveMenu.addMenuItemToMenu(_dataMenu,
 					new WeaveMenuItem("Refresh all data source hierarchies",
 						function ():void {
@@ -699,10 +697,10 @@ package weave
 					)
 				);
 				
-				if(Weave.properties.enableAddDataSource.value)
+				if (Weave.properties.enableAddDataSource.value)
 					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Add New Datasource", AddDataSourcePanel.showAsPopup));
 				
-				if(Weave.properties.enableEditDataSource.value)
+				if (Weave.properties.enableEditDataSource.value)
 					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Edit Datasources", EditDataSourcePanel.showAsPopup));
 			}
 			
@@ -715,7 +713,7 @@ package weave
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Probe ToolTip Editor", DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
 				createToolMenuItem(Weave.properties.showEquationEditor, "Equation Editor", DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showCollaborationEditor, "Collaboration Settings", DraggablePanel.openStaticInstance, [CollaborationEditor]);
-//				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Connect to Collaboration Server", DraggablePanel.openStaticInstance, [CollaborationTool]);
+				createToolMenuItem(Weave.properties.showCollaborationPanel, "Connect to Collaboration Server", DraggablePanel.openStaticInstance, [CollaborationTool]);
 				
 				var _this:VisApplication = this;
 

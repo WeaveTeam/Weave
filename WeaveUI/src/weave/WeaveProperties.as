@@ -207,12 +207,12 @@ package weave
 		public const collabServerPort:LinkableString = new LinkableString("5222");
 		public const collabServerRoomToJoin:LinkableString = new LinkableString("demo");
 		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);
+		public const showCollaborationPanel:LinkableBoolean = new LinkableBoolean(false); // menu item
 		
 		
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
-		public const showAttributeSelector:LinkableBoolean = new LinkableBoolean(true); // Show Attribute Selector tools menu
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
 
 		// BEGIN TEMPORARY SOLUTION
