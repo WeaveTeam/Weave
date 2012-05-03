@@ -1912,7 +1912,7 @@ public class AdminService extends GenericServlet
 		{
 			if (j > 0)
 				query += " and ";
-			query += String.format("%s=?", SQLUtils.quoteSymbol(conn, columnNames[j]));
+			query += String.format("cast(%s as char) %s ?", SQLUtils.quoteSymbol(conn, columnNames[j]), SQLUtils.caseSensitiveCompareOperator(conn));
 		}
 		return query;
 	}
