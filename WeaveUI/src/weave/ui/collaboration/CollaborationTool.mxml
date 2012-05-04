@@ -59,6 +59,21 @@
 			import weave.services.collaboration.CollaborationService;
 			import weave.ui.AlertTextBox;
 			
+			public static function get instance():CollaborationTool
+			{
+				return _instance;
+			}
+			private static var _instance:CollaborationTool;
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				if (!_instance)
+					_instance = this;
+				else
+					throw new Error("CollaborationTool should only have one instance");
+			}
+			
 			public const collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
 			
 			private const labelWidth:Number = 80;
@@ -210,9 +225,9 @@
 					<mx:TextInput id="username" width="{textAreaWidth}" change="trimInput(event);"/>
 				</ui:Indent>
 			</mx:VBox>
-			<ui:Indent label="Cursor color:">
+			<!--<ui:Indent label="Cursor color:">
 				<mx:ColorPicker id="picker" color="{Math.round(Math.random() * 0xFFFFFF)}" />
-			</ui:Indent>
+			</ui:Indent>-->
 			<mx:HBox width="100%">
 				<mx:Button id="connectButton" label="Connect" click="connect();" />
 				<mx:Button id="disconnectButton" label="Disconnect" enabled="false" click="collabService.disconnect();"/>

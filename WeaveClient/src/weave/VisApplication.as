@@ -685,17 +685,18 @@ package weave
 					);
 				}
 				
-				_weaveMenu.addMenuItemToMenu(_dataMenu,
-					new WeaveMenuItem("Refresh all data source hierarchies",
-						function ():void {
-							var sources:Array = Weave.root.getObjects(IDataSource);
-							for each (var source:IDataSource in sources)
-								(source.attributeHierarchy as AttributeHierarchy).value = null;
-						},
-						null,
-						function():Boolean { return Weave.properties.enableRefreshHierarchies.value }
-					)
-				);
+				if (Weave.properties.enableRefreshHierarchies.value)
+				{
+					_weaveMenu.addMenuItemToMenu(_dataMenu,
+						new WeaveMenuItem("Refresh all data source hierarchies",
+							function ():void {
+								var sources:Array = Weave.root.getObjects(IDataSource);
+								for each (var source:IDataSource in sources)
+									(source.attributeHierarchy as AttributeHierarchy).value = null;
+							}
+						)
+					);
+				}
 				
 				if (Weave.properties.enableAddDataSource.value)
 					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Add New Datasource", AddDataSourcePanel.showAsPopup));
@@ -713,7 +714,6 @@ package weave
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Probe ToolTip Editor", DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
 				createToolMenuItem(Weave.properties.showEquationEditor, "Equation Editor", DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showCollaborationEditor, "Collaboration Settings", DraggablePanel.openStaticInstance, [CollaborationEditor]);
-				createToolMenuItem(Weave.properties.showCollaborationPanel, "Connect to Collaboration Server", DraggablePanel.openStaticInstance, [CollaborationTool]);
 				
 				var _this:VisApplication = this;
 
@@ -769,6 +769,24 @@ package weave
 				{
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem("Manage plugins...", managePlugins));
+				}
+				if (Weave.properties.showCollaborationMenuItem.value)
+				{
+					_weaveMenu.addSeparatorToMenu(_sessionMenu);
+					_weaveMenu.addMenuItemToMenu(
+						_sessionMenu,
+						new WeaveMenuItem(
+							function():String
+							{
+								var collabTool:CollaborationTool = CollaborationTool.instance;
+								return collabTool && collabTool.collabService.isConnected
+									? "Open collaboration window"
+									: "Connect to collaboration server...";
+							},
+							DraggablePanel.openStaticInstance,
+							[CollaborationTool]
+						)
+					);
 				}
 				if (adminService)
 				{
