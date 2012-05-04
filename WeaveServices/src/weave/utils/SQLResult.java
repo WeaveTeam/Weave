@@ -59,7 +59,12 @@ public class SQLResult
 		{
 			Object[] row = new Object[n];
 			for (int i = 0; i < n; i++)
-				row[i] = rs.getObject(i + 1);
+			{
+				if (convertToStrings)
+					row[i] = rs.getString(i + 1);
+				else
+					row[i] = rs.getObject(i + 1);
+			}
 			linkedRows.add(row);
 		}
 		rows = linkedRows.toArray(new Object[linkedRows.size()][]);
