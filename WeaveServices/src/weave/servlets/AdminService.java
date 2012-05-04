@@ -1767,7 +1767,7 @@ public class AdminService extends GenericServlet
 					SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable),
 					columnList
 				);
-				filteredValues = SQLUtils.getRowSetFromQuery(conn, query);
+				filteredValues = SQLUtils.getRowSetFromQuery(conn, query, true);
 //				System.out.println(query);
 //				System.out.println(filteredValues);
 			}
@@ -1912,7 +1912,7 @@ public class AdminService extends GenericServlet
 		{
 			if (j > 0)
 				query += " and ";
-			query += String.format("cast(%s as char) %s ?", SQLUtils.quoteSymbol(conn, columnNames[j]), SQLUtils.caseSensitiveCompareOperator(conn));
+			query += String.format("cast(%s as char) %s cast(? as char)", SQLUtils.quoteSymbol(conn, columnNames[j]), SQLUtils.caseSensitiveCompareOperator(conn));
 		}
 		return query;
 	}

@@ -359,13 +359,10 @@
 				if (generateFilterColumnsCheckBox.selected)
 				{
 					clearErrors();
-				}
-				else
-				{
-					keyColumnChange();
+					return;
 				}
 
-				if (generateKeyColumnCheckBox.selected || generateFilterColumnsCheckBox.selected)
+				if (generateKeyColumnCheckBox.selected)
 					return;
 				
 				finishEnabled = false;
@@ -378,7 +375,8 @@
 				{
 					AdminInterface.instance.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName,secKeyColName)
 						.addAsyncResponder(handleKeyColumnCheck,handleKeyColumnCheckFault);
-				}else
+				}
+				else
 				{
 					AdminInterface.instance.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName)
 						.addAsyncResponder(handleKeyColumnCheck,handleKeyColumnCheckFault);

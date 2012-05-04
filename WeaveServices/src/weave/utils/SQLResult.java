@@ -33,6 +33,16 @@ public class SQLResult
 {
 	public SQLResult(ResultSet rs) throws SQLException
 	{
+		read(rs, false);
+	}
+	
+	public SQLResult(ResultSet rs, boolean convertToStrings) throws SQLException
+	{
+		read(rs, convertToStrings);
+	}
+	
+	private void read(ResultSet rs, boolean convertToStrings) throws SQLException
+	{
 		ResultSetMetaData metadata = rs.getMetaData();
 		int n = metadata.getColumnCount();
 		
