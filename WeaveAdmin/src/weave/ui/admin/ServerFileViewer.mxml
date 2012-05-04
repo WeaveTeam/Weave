@@ -64,15 +64,12 @@
 		<![CDATA[
 			import mx.events.FlexEvent;
 			import mx.events.ListEvent;
-			import mx.formatters.DateFormatter;
-			import mx.formatters.NumberFormatter;
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.ResultEvent;
-			import mx.utils.ArrayUtil;
 			
+			import weave.compiler.StandardLib;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
-			import weave.utils.DateUtils;
 			import weave.utils.FileUtils;
 			
 			public static const INPUT_CSV:String = "INPUT_CSV";
@@ -177,7 +174,7 @@
 			}
 			private function lastModifiedLabel(item:Object, column:DataGridColumn):String
 			{
-				return new DateUtils().parse(item.lastModified, "MM/DD/YYYY L:NN A");
+				return StandardLib.formatDate(item.lastModified, "MM/DD/YYYY L:NN A", false);
 			}
 		]]>
 	</mx:Script>
