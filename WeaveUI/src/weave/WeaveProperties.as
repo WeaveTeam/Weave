@@ -227,7 +227,7 @@ package weave
 		public const collabServerIP:LinkableString = new LinkableString("demo.oicweave.org");
 		public const collabServerName:LinkableString = new LinkableString("ivpr-vm");
 		public const collabServerPort:LinkableString = new LinkableString("5222");
-		public const collabServerRoomToJoin:LinkableString = new LinkableString("demo");
+		public const collabServerRoom:LinkableString = new LinkableString("");
 		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);
 		public const showCollaborationMenuItem:LinkableBoolean = new LinkableBoolean(true); // menu item
 		

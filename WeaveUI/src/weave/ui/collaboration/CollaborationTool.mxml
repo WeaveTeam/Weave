@@ -94,9 +94,10 @@
 				linkBindableProperty(Weave.properties.collabServerIP, serverIP, 'text');
 				linkBindableProperty(Weave.properties.collabServerName, serverName, 'text');
 				linkBindableProperty(Weave.properties.collabServerPort, port, 'text');
-				linkBindableProperty(Weave.properties.collabServerRoomToJoin, roomToJoin, 'text');
+				linkBindableProperty(Weave.properties.collabServerRoom, roomToJoin, 'text');
 				
 				updateEnabledSettings();
+				serverSettings.addEventListener(KeyboardEvent.KEY_DOWN, handleSettingsKeyDown, true);
 			}
 			
 			//Sends a message from the text box(input) to the server as a TEXT message
@@ -118,7 +119,6 @@
 				input.text = "";	//clear the input
 			}
 			
-			
 			private function connect():void
 			{
 				if( username.text == "" || serverIP.text == "" || serverName.text == "" || roomToJoin.text == "" || port.text ==  "" )
@@ -129,15 +129,16 @@
 				{
 					collabService.connect(serverIP.text, serverName.text, int(port.text), roomToJoin.text, username.text);
 					updateEnabledSettings();
-					connectButton.enabled = false;
 					tabs.selectedChild = chat;
 				}
 			}
+			
 			private function updateEnabledSettings():void
 			{
 				var connected:Boolean = collabService.isConnected;
 				
-				connectButton.enabled = !connected;
+				serverSettings.enabled = !connected;
+				connectButton.enabled = !connected && username.text && serverIP.text && serverName.text && roomToJoin.text && port.text;
 				disconnectButton.enabled = connected;
 				input.enabled = connected;
 				sendButton.enabled = connected;
@@ -184,9 +185,11 @@
 				//cursorList.addItem(CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject));
 			}
 			
-			private function trimInput(event:Event):void
+			private function handleSettingsKeyDown(event:KeyboardEvent):void
 			{
-				event.target.text = StringUtil.trim(event.target.text); // hack
+				if (event.keyCode == Keyboard.SPACE)
+					event.stopImmediatePropagation();
+				updateEnabledSettings();
 			}
 		]]>
 	</mx:Script>
@@ -208,21 +211,21 @@
 		<mx:VBox label="Settings" width="100%" height="100%"
 				 paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
 				 id="settings" verticalScrollPolicy="auto" minHeight="0">
-			<mx:VBox enabled="{connectButton.enabled}" id="serverSettings">
+			<mx:VBox id="serverSettings">
 				<ui:Indent label="IP:">
-					<mx:TextInput id="serverIP" width="{textAreaWidth}" change="trimInput(event);"/>
+					<mx:TextInput id="serverIP" width="{textAreaWidth}" errorString="{serverIP.text?'':'Required'}"/>
 				</ui:Indent>
 				<ui:Indent label="ServerName:">
-					<mx:TextInput id="serverName" width="{textAreaWidth}" change="trimInput(event);"/>
+					<mx:TextInput id="serverName" width="{textAreaWidth}" errorString="{serverName.text?'':'Required'}"/>
 				</ui:Indent>
 				<ui:Indent label="Port:">
-					<mx:TextInput id="port" width="{textAreaWidth}" change="trimInput(event);"/>
+					<mx:TextInput id="port" width="{textAreaWidth}" errorString="{port.text?'':'Required'}"/>
 				</ui:Indent>
 				<ui:Indent label="Room Name:">
-					<mx:TextInput id="roomToJoin" width="{textAreaWidth}" change="trimInput(event);"/>
+					<mx:TextInput id="roomToJoin" width="{textAreaWidth}" errorString="{roomToJoin.text?'':'Required'}"/>
 				</ui:Indent>
 				<ui:Indent label="Username:">
-					<mx:TextInput id="username" width="{textAreaWidth}" change="trimInput(event);"/>
+					<mx:TextInput id="username" width="{textAreaWidth}" errorString="{username.text?'':'Required'}"/>
 				</ui:Indent>
 			</mx:VBox>
 			<!--<ui:Indent label="Cursor color:">

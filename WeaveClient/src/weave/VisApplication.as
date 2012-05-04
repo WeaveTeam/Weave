@@ -781,7 +781,7 @@ package weave
 								var collabTool:CollaborationTool = CollaborationTool.instance;
 								return collabTool && collabTool.collabService.isConnected
 									? "Open collaboration window"
-									: "Connect to collaboration server...";
+									: "Connect to collaboration server (Beta)...";
 							},
 							DraggablePanel.openStaticInstance,
 							[CollaborationTool]
