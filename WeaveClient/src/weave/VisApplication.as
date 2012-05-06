@@ -1400,7 +1400,7 @@ package weave
 				_weaveFileRef.addEventListener(Event.SELECT,   function (e:Event):void { _weaveFileRef.load(); } );
 				_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void { loadSessionState(e.target.data, _weaveFileRef.name); } );
 			}
-			_weaveFileRef.browse([new FileFilter("Weave files", "*.weave"),new FileFilter("All files", "*")]);
+			_weaveFileRef.browse([new FileFilter("Weave files", "*.weave"),new FileFilter("All files", "*.*")]);
 		}
 		
 		private function handleExportSessionState():void
