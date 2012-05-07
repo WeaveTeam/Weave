@@ -69,6 +69,7 @@ package weave.core
 		private var _mouseButtonDown:Boolean = false; // returned by get mouseButtonDown()
 		private var _currentFrameStartTime:int = getTimer(); // this is the result of getTimer() on the last ENTER_FRAME event.
 		private var _previousFrameElapsedTime:int = 0; // this is the amount of time it took to process the previous frame.
+		private var _currentTaskStopTime:int = 0; // set by used by handleEnterFrame, used by _iterateTask
 
 		private var _callbackCollectionsInitialized:Boolean = false; // This is true after the callback collections have been created.
 		private var _listenersInitialized:Boolean = false; // This is true after the mouse listeners have been added.
@@ -106,20 +107,14 @@ package weave.core
 		public static const POINT_CLICK_EVENT:String = "pointClick";
 		
 		/**
-		 * This is an array of functions with parameters that will be executed the next time handleEnterFrame() is called.
-		 * This array gets populated by callLater().
-		 */
-		private var _callNextFrameArray:Array = [];
-		/**
 		 * This is an Array of "callLater queues", each being an Array of function invocations to be done later.
 		 * The Arrays get populated by callLater().
 		 * There are four nested Arrays corresponding to the four priorities (0, 1, 2, 3) defined by static constants in WeaveAPI.
 		 */		
 		private const _priorityCallLaterQueues:Array = [[],[],[],[]];
-		/**
-		 * This is the task priority that is currently being processed.
-		 */		
-		private var _activePriority:uint = 0; // task priority that is currently being processed
+		private var _activePriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE; // task priority that is currently being processed
+		private const _priorityElapsedTimes:Array = [0,0,0,0]; // An Array of elapsed times corresponding to callLater queues.
+		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE,75,50,25]; // An Array of allocated times corresponding to callLater queues.
 		
 		/**
 		 * When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.
@@ -237,17 +232,17 @@ package weave.core
 			
 			var args:Array;
 			var stackTrace:String;
-			var calls:Array;
 			var i:int;
 
 			// first run the functions that cannot be delayed more than one frame.
-			if (_callNextFrameArray.length > 0)
+			var calls:Array = _priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] as Array;
+			if (calls.length > 0)
 			{
-				calls = _callNextFrameArray;
-				_callNextFrameArray = [];
+				// reset the Array now because these function calls may cause more calls to be queued, which shouldn't be called immediately.
+				_priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] = [];
 				for (i = 0; i < calls.length; i++)
 				{
-					// args: (relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true)
+					// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint = 0)
 					args = calls[i] as Array;
 					stackTrace = _stackTraceMap[args];
 					// don't call the function if the relevantContext was disposed of.
@@ -258,47 +253,69 @@ package weave.core
 			
 			if (UIComponentGlobals.callLaterSuspendCount > 0)
 				return;
-			
-			priorityLoop: for (var priorityIteration:uint = 0; priorityIteration < _priorityCallLaterQueues.length; priorityIteration++)
+//			trace('-------');
+			var minPriority:int = WeaveAPI.TASK_PRIORITY_IMMEDIATE + 1;
+			var allStop:int = _currentFrameStartTime + maxComputationTimePerFrame;
+			var pStart:int = getTimer();
+			var pAlloc:int = int(_priorityAllocatedTimes[_activePriority]);
+			var pElapsed:int = int(_priorityElapsedTimes[_activePriority]);
+			var pStop:int = Math.min(allStop, pStart + pAlloc - pElapsed);
+			var pQueue:Array = _priorityCallLaterQueues[_activePriority] as Array;
+			while (true)
 			{
-				_activePriority = _activePriority % _priorityCallLaterQueues.length;
-				
-				//trace("handle ENTER_FRAME, " + _callLaterArray.length + " callLater functions, " + currentFrameElapsedTime + " ms elapsed this frame");
-				// Make a copy of the function calls and clear the private array before executing any functions.
-				// This allows the private array to be filled up as a result of executing the functions,
-				// and prevents from newly added functions from being called until the next frame.
-				calls = _priorityCallLaterQueues[_activePriority];
-				if (calls.length > 0) // don't bother creating a new Array if it's empty
-					_priorityCallLaterQueues[_activePriority] = [];
-				var stopTime:int = _currentFrameStartTime + maxComputationTimePerFrame;
-				for (i = 0; i < calls.length; i++)
+				var now:int = getTimer();
+				if (now > pStop || pQueue.length == 0)
 				{
-					// if elapsed time reaches threshold, call everything else later
-					if (getTimer() > stopTime)
-					{
-						// To preserve the order they were added, put the remaining callLater
-						// functions for this frame in front of any others that may have been added.
-						var j:int = calls.length;
-						while (--j >= i)
-							_priorityCallLaterQueues[_activePriority].unshift(calls[j]);
-						// when time runs out, go on to the next priority
-						_activePriority++;
-						break priorityLoop;
-					}
-					// args: (relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true)
-					args = calls[i] as Array;
-					stackTrace = _stackTraceMap[args]; // check this for debugging where the call came from
-					// don't call the function if the relevantContext was disposed of.
-					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
-					{
-						// TODO: PROFILING: check how long this function takes to execute.
-						// if it takes a long time (> 1000 ms), something's wrong...
-						
-						(args[1] as Function).apply(null, args[2]);
-					}
+					// keep track of elapsed time for this priority
+					pElapsed += now - pStart;
+					_priorityElapsedTimes[_activePriority] = pElapsed;
+					
+					// if max computation time was reached for this frame, stop now
+					if (now > allStop)
+						break;
+					
+					// see if there are any entries left in the queues
+					var remaining:int = 0;
+					for (i = minPriority; i < _priorityCallLaterQueues.length; i++)
+						remaining += (_priorityCallLaterQueues[i] as Array).length;
+					// stop if no more entries
+					if (remaining == 0)
+						break;
+					
+					// reset elapsed counter for next time
+					// if we went overtime, let the overflow value carry over
+					pElapsed = Math.max(0, pElapsed - pAlloc);
+					_priorityElapsedTimes[_activePriority] = pElapsed;
+					
+					// switch to next priority
+					_activePriority++;
+					if (_activePriority == _priorityCallLaterQueues.length)
+						_activePriority = minPriority;
+					pStart = now;
+					pAlloc = int(_priorityAllocatedTimes[_activePriority]);
+					pElapsed = int(_priorityElapsedTimes[_activePriority]);
+					pStop = Math.min(allStop, pStart + pAlloc - pElapsed);
+					pQueue = _priorityCallLaterQueues[_activePriority] as Array;
+					
+					// restart loop to check stopping condition
+					continue;
 				}
-				// when we finish all tasks in this priority, go on to the next priority
-				_activePriority++;
+				
+//				trace('p',_activePriority,pElapsed,'/',pAlloc);
+				_currentTaskStopTime = pStop; // make sure _iterateTask knows when to stop
+				
+				// call the next function in the queue
+				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint)
+				args = pQueue.shift() as Array;
+				stackTrace = _stackTraceMap[args]; // check this for debugging where the call came from
+				// don't call the function if the relevantContext was disposed of.
+				if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
+				{
+					// TODO: PROFILING: check how long this function takes to execute.
+					// if it takes a long time (> 1000 ms), something's wrong...
+					
+					(args[1] as Function).apply(null, args[2]);
+				}
 			}
 		}
 		
@@ -310,7 +327,7 @@ package weave.core
 		 * @param parameters The parameters to pass to the function.
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 */
-		public function callLater(relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true, priority:uint = 2):void
+		public function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void
 		{
 			if (priority >= _priorityCallLaterQueues.length)
 			{
@@ -318,10 +335,7 @@ package weave.core
 				priority = WeaveAPI.TASK_PRIORITY_BUILDING;
 			}
 			//trace("call later @",currentFrameElapsedTime);
-			if (allowMultipleFrameDelay)
-				_priorityCallLaterQueues[priority].push(arguments);
-			else
-				_callNextFrameArray.push(arguments);
+			_priorityCallLaterQueues[priority].push(arguments);
 			
 			if (CallbackCollection.debug)
 				_stackTraceMap[arguments] = new Error("This is the stack trace from when callLater() was called.").getStackTrace();
@@ -385,15 +399,9 @@ package weave.core
 				return;
 			}
 			
-			var stopTime:int;
-			if (enableThreadPriorities)
-				stopTime = _currentFrameStartTime + maxComputationTimePerFrame / priority;
-			else
-				stopTime = _currentFrameStartTime + 100;
-			
 			var progress:* = undefined;
-			// iterate on the task until stopTime is reached
-			while (getTimer() < stopTime)
+			// iterate on the task until _currentTaskStopTime is reached
+			while (getTimer() <= _currentTaskStopTime)
 			{
 				// perform the next iteration of the task
 				progress = task() as Number;
@@ -417,7 +425,7 @@ package weave.core
 			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
 			// This makes sure that the task is removed when the actual context is disposed of.
-			callLater(null, _iterateTask, arguments, true, priority);
+			callLater(null, _iterateTask, arguments, priority);
 		}
 		
 		

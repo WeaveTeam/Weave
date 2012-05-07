@@ -55,8 +55,8 @@
 		super.constructor();
 		this.height = 40;
 		// wait 1 frame before initializing labels because other tools may not be initialized yet
-		WeaveAPI.StageUtils.callLater(this, initializeLabels, null, false);
-		WeaveAPI.StageUtils.callLater(this, addCallbacks, null, false);
+		WeaveAPI.StageUtils.callLater(this, initializeLabels, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+		WeaveAPI.StageUtils.callLater(this, addCallbacks, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 
 		getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateLabelProperties, true);
 	}
