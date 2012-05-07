@@ -94,9 +94,16 @@
 					generateFilterColumnsCheckBox.selected = false;
 					secondaryKeyColumnCheckBox.selected = false;
 				}
-				
+
 				keyColumnComboBox.errorString = '';
 				sqlSecondaryKeyColumnCombo.errorString = '';
+				
+				if (generateFilterColumnsCheckBox.selected)
+				{
+					finishEnabled = true;
+					nextEnabled = true;
+					return;
+				}
 				
 				finishEnabled = false;
 				var query:DelayedAsyncInvocation = AdminInterface.instance.checkKeyColumnForSQLImport(

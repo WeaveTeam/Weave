@@ -445,7 +445,19 @@ public class SQLUtils
 	 * @throws SQLException
 	 */
 	public static SQLResult getRowSetFromQuery(Connection connection, String query)
-		throws SQLException
+	throws SQLException
+	{
+		return getRowSetFromQuery(connection, query, false);
+	}
+	
+	/**
+	 * @param connection An SQL Connection
+	 * @param query An SQL query
+	 * @param convertToStrings Set this to true to convert all result values to Strings.
+	 * @return A SQLResult object containing the result of the query
+	 * @throws SQLException
+	 */
+	public static SQLResult getRowSetFromQuery(Connection connection, String query, boolean convertToStrings) throws SQLException
 	{
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -456,7 +468,7 @@ public class SQLUtils
 			rs = stmt.executeQuery(query);
 			
 			// make a copy of the query result
-			result = new SQLResult(rs);
+			result = new SQLResult(rs, convertToStrings);
 		}
 		catch (SQLException e)
 		{

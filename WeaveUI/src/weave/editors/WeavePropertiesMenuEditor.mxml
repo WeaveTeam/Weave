@@ -29,12 +29,6 @@
 					 label="Show menu bar"
 					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');"
 					/>
-		<mx:CheckBox toolTip="Toggle access to Collaboration Toolbar"
-					 id="collabBar"
-					 label="Show Collaboration Menu Bar"
-					 creationComplete="linkBindableProperty(Weave.properties.enableCollaborationBar, event.target, 'selected');"
-					 />
-	
 	
 		<mx:TabNavigator resizeToContent="true" width="100%" height="100%">
 			<mx:VBox  label="Data" paddingLeft="10" verticalGap="{verticalGap}">
@@ -82,11 +76,6 @@
 									 id="collabSettings"
 									 label="Collaboration Settings"
 									 creationComplete="linkBindableProperty(Weave.properties.showCollaborationEditor, event.target, 'selected');"
-									 />
-						<mx:CheckBox toolTip="Allow the user to open the collaboration panel"
-									 id="collabPanel"
-									 label="Connect to Collaboration Server"
-									 creationComplete="linkBindableProperty(Weave.properties.showCollaborationPanel, event.target, 'selected');"
 									 />
 					</mx:VBox>
 					<mx:VBox verticalGap="{verticalGap}" id="menuToggleVBox"/>
@@ -147,6 +136,11 @@
 							 label="Session Menu"
 							 width="120" 
 							 creationComplete="linkBindableProperty(Weave.properties.enableSessionMenu, event.target, 'selected')"/>
+				<mx:CheckBox toolTip="Allow the user to open the collaboration panel"
+							 id="collabPanel"
+							 label="Connect to Collaboration Server"
+							 creationComplete="linkBindableProperty(Weave.properties.showCollaborationMenuItem, event.target, 'selected');"
+							 />
 			</mx:VBox>	
 			
 			<mx:VBox  width="100%" label="Window" paddingLeft="10" verticalGap="{verticalGap}">	 	

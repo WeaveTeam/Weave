@@ -491,15 +491,22 @@ package weave.compiler
 			if (formatString)
 			{
 				// work around bug in DateFormatter that requires Year, Month, and Day to be in the formatString
-				var separator:String = ' //';
+				var separator:String = "//";
+				var appendFormat:String = "";
+				var appendDate:String = "";
 				for (var i:int = 0; i < 3; i++)
 				{
 					var char:String = "YMD".charAt(i);
 					if (formatString.indexOf(char) < 0)
 					{
-						formatString += separator + char;
-						dateString += separator + (char == 'Y' ? '1970' : '1');
+						appendFormat += separator + char;
+						appendDate += separator + (char == 'Y' ? '1970' : '1');
 					}
+				}
+				if (appendFormat)
+				{
+					formatString += " " + appendFormat;
+					dateString += " " + appendDate;
 				}
 				
 				_dateFormatter.formatString = formatString;

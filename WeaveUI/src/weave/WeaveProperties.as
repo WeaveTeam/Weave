@@ -44,6 +44,7 @@ package weave
 	import weave.api.linkBindableProperty;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
@@ -128,6 +129,27 @@ package weave
 			
 			linkBindableProperty(enableThreadPriorities, WeaveAPI.StageUtils, 'enableThreadPriorities');
 			linkBindableProperty(maxComputationTimePerFrame, WeaveAPI.StageUtils, 'maxComputationTimePerFrame');
+			
+			showCollaborationMenuItem.addGroupedCallback(this, function():void {
+				if (showCollaborationMenuItem.value)
+				{
+					enableCollaborationBar.delayCallbacks();
+					showCollaborationEditor.delayCallbacks();
+					
+					enableCollaborationBar.value = false;
+					showCollaborationEditor.value = false;
+					
+					enableCollaborationBar.resumeCallbacks();
+					showCollaborationEditor.resumeCallbacks();
+				}
+			});
+			function handleCollabBar():void
+			{
+				if (enableCollaborationBar.value || showCollaborationEditor.value)
+					showCollaborationMenuItem.value = false;
+			};
+			enableCollaborationBar.addGroupedCallback(this, handleCollabBar);
+			showCollaborationEditor.addGroupedCallback(this, handleCollabBar);
 		}
 		
 		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
@@ -205,9 +227,9 @@ package weave
 		public const collabServerIP:LinkableString = new LinkableString("demo.oicweave.org");
 		public const collabServerName:LinkableString = new LinkableString("ivpr-vm");
 		public const collabServerPort:LinkableString = new LinkableString("5222");
-		public const collabServerRoomToJoin:LinkableString = new LinkableString("demo");
+		public const collabServerRoom:LinkableString = new LinkableString("");
 		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);
-		public const showCollaborationPanel:LinkableBoolean = new LinkableBoolean(false); // menu item
+		public const showCollaborationMenuItem:LinkableBoolean = new LinkableBoolean(true); // menu item
 		
 		
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
