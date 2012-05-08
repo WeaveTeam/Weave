@@ -110,11 +110,48 @@ package weave.core
 		 * This is an Array of "callLater queues", each being an Array of function invocations to be done later.
 		 * The Arrays get populated by callLater().
 		 * There are four nested Arrays corresponding to the four priorities (0, 1, 2, 3) defined by static constants in WeaveAPI.
-		 */		
-		private const _priorityCallLaterQueues:Array = [[],[],[],[]];
-		private var _activePriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE; // task priority that is currently being processed
-		private const _priorityElapsedTimes:Array = [0,0,0,0]; // An Array of elapsed times corresponding to callLater queues.
-		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE,75,50,25]; // An Array of allocated times corresponding to callLater queues.
+		 */
+		private const _priorityCallLaterQueues:Array = [[], [], [], []];
+		private var _activePriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE + 1; // task priority that is currently being processed
+		private const _priorityElapsedTimes:Array = [0, 0, 0, 0]; // An Array of elapsed times corresponding to callLater queues.
+		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE, 75, 50, 25]; // An Array of allocated times corresponding to callLater queues.
+
+		/**
+		 * This gets the maximum milliseconds spent per frame performing asynchronous tasks.
+		 */
+		public function getMaxComputationTimePerFrame():uint
+		{
+			return maxComputationTimePerFrame;
+		}
+
+		/**
+		 * This sets the maximum milliseconds spent per frame performing asynchronous tasks.
+		 * @param The new value.
+		 */
+		public function setMaxComputationTimePerFrame(value:uint):void
+		{
+			maxComputationTimePerFrame = value;
+		}
+		
+		/**
+		 * This will get the time allocation for a specific task priority.
+		 * @param priority The task priority defined by one of the constants in WeaveAPI.
+		 * @return The time allocation for the specified task priority.
+		 */
+		public function getTaskPriorityTimeAllocation(priority:uint):uint
+		{
+			return uint(_priorityAllocatedTimes[priority]);
+		}
+		
+		/**
+		 * This will set the time allocation for a specific task priority.
+		 * @param priority The task priority defined by one of the constants in WeaveAPI.
+		 * @param milliseconds The new time allocation for the specified task priority.
+		 */
+		public function setTaskPriorityTimeAllocation(priority:uint, milliseconds:uint):void
+		{
+			_priorityAllocatedTimes[priority] = Math.max(milliseconds, 5);
+		}
 		
 		/**
 		 * When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.
