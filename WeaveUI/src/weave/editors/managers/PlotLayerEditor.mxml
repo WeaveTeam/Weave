@@ -286,9 +286,9 @@
 							
 							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0" enabled="{!useImagesCheck.selected || fixedImageSizeCheck.selected}"
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
-								<mx:Label text="point size:"/>
-								<mx:NumericStepper 	id="pointSize" 
-													toolTip="Set the default point size when point-based geometries are used."
+								<mx:Label text="Icon size:"/>
+								<mx:NumericStepper 	id="iconSize" 
+													toolTip="Set the default icon size when point-based geometries are used."
 													minimum="0.2" maximum="60"
 													width="50"/>
 							</mx:VBox>
@@ -480,7 +480,7 @@
 								
 								geomPlotter.pointDataImageColumn.addImmediateCallback(null, handleGeomPlotterImageURLChange);
 								getCallbackCollection(geomPlotter.keySet).addImmediateCallback(null, handleSubsetChange, true);
-								linkBindableProperty(geomPlotter.pointShapeSize, pointSize, "value");
+								linkBindableProperty(geomPlotter.iconSize, iconSize, "value");
 								linkBindableProperty(geomPlotter.useFixedImageSize, fixedImageSizeCheck, "selected");
 								
 								linkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");
@@ -532,7 +532,7 @@
 								
 								geomPlotter.pointDataImageColumn.removeCallback(handleGeomPlotterImageURLChange);
 								getCallbackCollection(geomPlotter.keySet).removeCallback(handleSubsetChange);
-								unlinkBindableProperty(geomPlotter.pointShapeSize, pointSize, "value");
+								unlinkBindableProperty(geomPlotter.iconSize, iconSize, "value");
 								unlinkBindableProperty(geomPlotter.useFixedImageSize, fixedImageSizeCheck, "selected");
 									
 								unlinkBindableProperty(geomPlotter.fill.enabled.defaultValue, fillEnabled, "selected");

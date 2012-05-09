@@ -1427,10 +1427,14 @@ package weave
 			// When the context menu is opened, save a pointer to the active tool, this is the tool we want to export an image of
 			_panelToExport = DraggablePanel.activePanel;
 			
-			// If this tool is valid (we are over a tool), then we want this menu item enabled, otherwise don't allow users to choose it
-			_panelPrintContextMenuItem.caption = "Print/Export Image of " + (_panelToExport ? _panelToExport.title : "...");
-			_panelPrintContextMenuItem.enabled = (_panelToExport != null);
-			_exportCSVContextMenuItem.enabled = _panelToExport is ICSVExportable;
+			if (_panelPrintContextMenuItem)
+			{
+				// If this tool is valid (we are over a tool), then we want this menu item enabled, otherwise don't allow users to choose it
+				_panelPrintContextMenuItem.caption = "Print/Export Image of " + (_panelToExport ? _panelToExport.title : "...");
+				_panelPrintContextMenuItem.enabled = (_panelToExport != null);
+			}
+			if (_exportCSVContextMenuItem)
+				_exportCSVContextMenuItem.enabled = _panelToExport is ICSVExportable;
 		}
 		
 		private var _weaveFileRef:FileReference = null;

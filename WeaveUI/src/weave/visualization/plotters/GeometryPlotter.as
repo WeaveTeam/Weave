@@ -107,8 +107,8 @@ package weave.visualization.plotters
 		/**
 		 * This is the size of the points drawn when the geometry represents point data.
 		 **/
-		public const pointShapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, validatePointShapeSize), disposeCachedBitmaps);
-		private function validatePointShapeSize(value:Number):Boolean { return 0.2 <= value && value <= 1024; };
+		public const iconSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, validateIconSize), disposeCachedBitmaps);
+		private function validateIconSize(value:Number):Boolean { return 0.2 <= value && value <= 1024; };
 
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
@@ -202,7 +202,7 @@ package weave.visualization.plotters
 			invalidateCachedBitmaps();
 			
 			var weight:Number = line.weight.getValueFromKey(null, Number);
-			pointOffset = Math.ceil(pointShapeSize.value) + weight / 2;
+			pointOffset = (Math.ceil(iconSize.value) + weight) / 2;
 			circleBitmapSize = Math.ceil(pointOffset * 2 + 1);
 			circleBitmapDataRectangle.width = circleBitmapSize;
 			circleBitmapDataRectangle.height = circleBitmapSize;
@@ -255,7 +255,7 @@ package weave.visualization.plotters
 					g.beginFill(color, fill.alpha.getValueFromKey(null, Number));
 				}
 				line.beginLineStyle(null, g);
-				g.drawCircle(pointOffset, pointOffset, pointShapeSize.value);
+				g.drawCircle(pointOffset, pointOffset, iconSize.value / 2);
 				g.endFill();
 				PlotterUtils.clear(bitmapData);
 				bitmapData.draw(tempShape);
@@ -421,14 +421,19 @@ package weave.visualization.plotters
 					tempPoint.x = currentNode.x;
 					tempPoint.y = currentNode.y;
 					dataBounds.projectPointTo(tempPoint, screenBounds);
+					// round coordinates for faster & more consistent rendering
+					tempPoint.x = Math.round(tempPoint.x);
+					tempPoint.y = Math.round(tempPoint.y);
 					if (pointDataImageColumn.internalColumn)
 					{
 						var bitmapData:BitmapData = pointDataImageColumn.getValueFromKey(key) || _missingImage;
-						var imgWidth:Number = useFixedImageSize.value ? pointShapeSize.value : bitmapData.width;
-						var imgHeight:Number = useFixedImageSize.value ? pointShapeSize.value : bitmapData.height;
+						var imgWidth:Number = useFixedImageSize.value ? iconSize.value : bitmapData.width;
+						var imgHeight:Number = useFixedImageSize.value ? iconSize.value : bitmapData.height;
 						tempMatrix.identity();
+						if (useFixedImageSize.value)
+							tempMatrix.scale(iconSize.value / bitmapData.width, iconSize.value / bitmapData.height);
 						tempMatrix.translate(tempPoint.x - imgWidth / 2, tempPoint.y - imgHeight / 2);
-						outputBitmapData.draw(bitmapData, tempMatrix);
+						outputBitmapData.draw(bitmapData, tempMatrix, null, null, null, true);
 					}
 					else
 					{
@@ -488,6 +493,8 @@ package weave.visualization.plotters
 		{
 			setSessionState(geometryColumn.internalDynamicColumn, value);
 		}
+		// backwards compatibility May 2012
+		[Deprecated(replacement="iconSize")] public function set pointShapeSize(value:Number):void { iconSize.value = value * 2; }
 	}
 }
 import flash.display.BitmapData;

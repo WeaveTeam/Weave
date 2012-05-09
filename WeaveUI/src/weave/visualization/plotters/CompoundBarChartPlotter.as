@@ -721,6 +721,9 @@ package weave.visualization.plotters
 			if (allMissing)
 				tempRange.setRange(0, 0); // bar starts at zero
 			
+			if (tempRange.end == 0)
+				tempRange.setRange(tempRange.end, tempRange.begin);
+			
 			if (horizontalMode.value) // x range
 				bounds.setXRange(tempRange.begin, tempRange.end);
 			else // y range
