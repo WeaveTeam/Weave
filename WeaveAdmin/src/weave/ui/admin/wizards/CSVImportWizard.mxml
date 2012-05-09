@@ -350,12 +350,6 @@
 			 * */
 			private function keyColumnChange(event:Event=null):void
 			{
-				if (secondaryKeyColumnCheckBox.selected && generateFilterColumnsCheckBox.selected)
-				{
-					generateFilterColumnsCheckBox.selected = false;
-					secondaryKeyColumnCheckBox.selected = false;
-				}
-
 				if (generateFilterColumnsCheckBox.selected)
 				{
 					clearErrors();
