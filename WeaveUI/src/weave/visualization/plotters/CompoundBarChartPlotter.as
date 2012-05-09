@@ -61,7 +61,6 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 * @author kmanohar
-	 * @author everyone and their uncle
 	 */
 	public class CompoundBarChartPlotter extends AbstractPlotter
 	{
@@ -260,7 +259,7 @@ package weave.visualization.plotters
 				var yNegativeMax:Number = 0;
 				
 				// x coordinates depend on sorted index
-				var sortedIndex:int;
+				var sortedIndex:Number;
 				if (_groupBySortColumn)
 					sortedIndex = _binnedSortColumn.getValueFromKey(recordKey, Number);
 				else
@@ -639,7 +638,7 @@ package weave.visualization.plotters
 			sortBins(); // make sure group-by-sort will work properly
 			
 			// bar position depends on sorted index
-			var sortedIndex:int;
+			var sortedIndex:Number;
 			if (_groupBySortColumn)
 				sortedIndex = _binnedSortColumn.getValueFromKey(recordKey, Number);
 			else

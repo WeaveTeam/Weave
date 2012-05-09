@@ -243,7 +243,7 @@ package weave.data.AttributeColumns
 			if (dataType == IQualifiedKey)
 			{
 				var type:String = _metadata.attribute(AttributeColumnMetadata.DATA_TYPE);
-				if (type == '')
+				if (!type)
 					type = DataTypes.STRING;
 				return WeaveAPI.QKeyManager.getQKey(type, str);
 			}
