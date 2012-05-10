@@ -240,7 +240,7 @@ package weave.visualization.plotters
 			var graphics:Graphics = tempShape.graphics;
 			var count:int = 0;
 			var numHeightColumns:int = _heightColumns.length;
-			var shouldDrawValueLabel:Boolean = showValueLabels.value && ((numHeightColumns >= 1 && _groupingMode == GROUP) || numHeightColumns == 1);
+			var shouldDrawValueLabel:Boolean = showValueLabels.value;
 			var shouldDrawLabel:Boolean = showLabels.value && (numHeightColumns >= 1) && (labelColumn.internalColumn != null);
 			
 			for (var iRecord:int = 0; iRecord < recordKeys.length; iRecord++)
@@ -541,7 +541,8 @@ package weave.visualization.plotters
 						_bitmapText.y = tempPoint.y;
 						_bitmapText.maxWidth = valueLabelMaxWidth.value;
 						_bitmapText.verticalAlign = valueLabelVerticalAlign.value;
-						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value; 
+						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value;
+						
 						if (isFinite(valueLabelRelativeAngle.value))
 							_bitmapText.angle += valueLabelRelativeAngle.value;
 						
