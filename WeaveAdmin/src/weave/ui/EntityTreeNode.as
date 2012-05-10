@@ -53,14 +53,20 @@ package weave.ui
             AdminInterface.instance.findEntitiesByParent(object.id, populateHandler);
             return;
         }
-        public function updateMetadata(metadata:Object):void
+        public function refresh():void
         {
             
+            return;
+        }
+        public function updateMetadata(metadata:Object):void
+        { 
             /* Check difference between new data and data on record; only commit these differences. TODO: Bump version number. */
+            /* Fetch attributecolumninfo for this id and update it. */
             return;
         }
         public function addToParent(id:int):void
         {
+            AdminInterface.instance.
             return;
         }
         public function deleteFromParent(id:int):void

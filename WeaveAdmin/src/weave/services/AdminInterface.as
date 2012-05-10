@@ -295,6 +295,18 @@ package weave.services
 			
 		
 		// functions for managing DataTable entries
+                public function addTag(label:String, handler:Function):void
+                {
+                    service.addTag(activeConnectionName, activePassword, label).addAsyncResponder(handler); 
+                }
+                public function removeTag(id:int, handler:Function):void
+                {
+                    service.removeTag(activeConnectionName, activePassword, id).addAsyncResponder(handler);
+                }
+                public function updateEntity(info:AttributeColumnInfo, handler:Function):void
+                {
+                    service.updateEntity(activeConnectionName, activePassword, info.id, info.getAllMetadata()).addAsyncResponder(handler);
+                }
                 public function findEntitiesByParent(id:int, handler:Function):void
                 {
                     service.findEntitiesByParent(activeConnectionName, activePassword, id).addAsyncResponder(handler);

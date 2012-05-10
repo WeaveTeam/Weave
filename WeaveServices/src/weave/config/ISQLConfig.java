@@ -92,14 +92,16 @@ public abstract class ISQLConfig
         public abstract void updateEntity(Integer id, Map<String,String> properties) throws RemoteException;
         public abstract Collection<DataEntity> findEntities(Map<String,String> properties) throws RemoteException;
         public abstract Collection<DataEntity> getEntities(Collection<Integer> ids) throws RemoteException;
+        public abstract Collection<DataEntity> getEntitiesByType(Integer id) throws RemoteException;
         public abstract void addChild(Integer child_id, Integer parent_id) throws RemoteException;
         public abstract void removeChild(Integer child_id, Integer parent_id) throws RemoteException;
         public abstract Collection<DataEntity> getChildren(Integer parent_id) throws RemoteException;
+        public abstract Collection<String> getUniqueValues(String property) throws RemoteException;
 
         public DataEntity getEntity(Integer id) throws RemoteException
         {
             for (DataEntity de : getEntities(Arrays.asList(id)))
-                return de; /* Return the first hit. Should be the only hit. */
+                return de; /* Return the first hit. Should be the only hit. If not we're in trouble. */
             return null;
         }
     /**
@@ -127,8 +129,7 @@ public abstract class ISQLConfig
             if (!userCanModifyAttributeColumn(connectionName, result.id))
                 throw new RemoteException(String.format("User \"%s\" does not have permission to remove DataTable \"%s\".", connectionName, dataTableName));
         
-        return true;
-        
+        return true;    
     }
     public Connection getNamedConnection(String connectionName) throws RemoteException
     {
@@ -278,11 +279,27 @@ public abstract class ISQLConfig
 	@SuppressWarnings("unchecked")
 	static public class DataEntity
 	{
+                public static final Integer MAN_TYPE_DATATABLE = 0;
+                public static final Integer MAN_TYPE_COLUMN = 1;
+                public static final Integer MAN_TYPE_TAG = 2;
 		public int id = -1;
                 public int type;
 		public Map<String,String> privateMetadata = Collections.EMPTY_MAP;
 		public Map<String,String> publicMetadata = Collections.EMPTY_MAP;
 	        private ISQLConfig sourceCfg = null;
+        /* For cases where the config API isn't sufficient. TODO */
+        public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params)
+        {
+            List<DataEntity> result = new LinkedList<DataEntity>();
+            for (DataEntity entity : entities)
+            {
+                boolean match = false;
+                for (Entry<String,String> entry : params.entrySet())
+                {
+                    
+                }
+            }
+        }
         public DataEntity()
         {
         }

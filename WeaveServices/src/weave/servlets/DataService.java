@@ -165,8 +165,6 @@ public class DataService extends GenericServlet
 		keys = ListUtils.copyArrayToList(keysArray, keys);
 		HashMap<String,String> params = new HashMap<String,String>();
 		params.put(PublicMetadata.KEYTYPE,keyType);
-	        DataEntity tmpinfo = new DataEntity();
-                tmpinfo.publicMetadata = params;	
 		HashMap<String,Integer> keyMap = new HashMap<String,Integer>();
 		for (int keyIndex = 0; keyIndex < keysArray.length; keyIndex ++ )
 			keyMap.put( keysArray[keyIndex],keyIndex);
@@ -174,7 +172,7 @@ public class DataService extends GenericServlet
 		int rowIndex =0;
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		List<DataEntity> infoList = config.findDataEntity(tmpinfo);
+		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(params));
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		if (infoList.size() > 100)
@@ -330,7 +328,7 @@ public class DataService extends GenericServlet
 		
                 DataEntity tmpinfo = new DataEntity();
                 tmpinfo.publicMetadata = params;
-		List<DataEntity> infoList = config.findDataEntity(tmpinfo);
+		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findDataEntity(tmpinfo));
 		
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);

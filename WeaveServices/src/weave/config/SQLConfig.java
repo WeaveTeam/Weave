@@ -27,6 +27,7 @@ import org.w3c.dom.Document;
 
 import weave.utils.SQLUtils;
 
+
 /**
  * DatabaseConfig This class reads from an SQL database and provides an interface to retrieve strings.
  * 
@@ -61,9 +62,6 @@ public class SQLConfig
         private final String TAG_PARENT = "parent_id";
         
         /* Constants for type_id */
-        private final Integer MAN_TYPE_DATATABLE = 0;
-        private final Integer MAN_TYPE_COLUMN = 1;
-        private final Integer MAN_TYPE_TAG = 2;
 
 	private DatabaseConfigInfo dbInfo = null;
 	private ISQLConfig connectionConfig = null;
@@ -171,12 +169,23 @@ public class SQLConfig
         public Integer addEntity(Integer type_id, Map<String,String> properties) throws RemoteException
         {
             Integer id = manifest.addEntry(type_id);
-            updateEntity(id, properties);
+            if (properties != null)
+                updateEntity(id, properties);
             return id;
+        }
+        private void removeChildren(Integer id) throws RemoteException
+        {
+            for (Integer child : relationships.getChildren(id))
+            {
+                removeEntity(child);
+            }
         }
         public void removeEntity(Integer id) throws RemoteException
         {
             manifest.removeEntry(id);
+            /* Need to delete all attributeColumns which are children of a table. */
+            if (getEntity(id).type == ISQLConfig.DataEntity.MAN_TYPE_DATATABLE)
+                removeChildren(id);
             relationships.purge(id);
             public_attributes.clearId(id);
             private_attributes.clearId(id);
@@ -193,6 +202,10 @@ public class SQLConfig
                 else
                     public_attributes.setProperty(id, key, value);
             }
+        }
+        public Collection<DataEntity> getEntitiesByType(Integer type_id) throws RemoteException
+        {
+            return getEntities(manifest.getByType(type_id));
         }
         public Collection<DataEntity> findEntities(Map<String,String> properties) throws RemoteException
         {
@@ -256,18 +269,29 @@ public class SQLConfig
             }
             return results;
         }
-        public void addChild(Integer child_id, Integer parent_id)
+        public void addChild(Integer child_id, Integer parent_id) throws RemoteException
         {
-            
+            relationships.addChild(child_id, parent_id);
         }
-        public void removeChild(Integer child_id, Integer parent_id)
+        public void removeChild(Integer child_id, Integer parent_id) throws RemoteException
         {
-            
+            relationships.removeChild(child_id, parent_id);
         }
-        public List<DataEntity> getChildren(Integer id)
+        public Collection<DataEntity> getChildren(Integer id) throws RemoteException
         {
-            return null;
-        }  
+            return getEntities(relationships.getChildren(id));
+        }
+        public Collection<String> getUniqueValues(String property) throws RemoteException
+        {
+            if (ISQLConfig.PrivateMetadata.isPrivate(property)) 
+            {
+                return new HashSet(private_attributes.getProperty(property).values());
+            }
+            else
+            {
+                return new HashSet(public_attributes.getProperty(property).values());
+            }
+        }
 /* Abstractions to tidy up the config code. */
         private abstract class AbstractTable
         {
@@ -356,7 +380,26 @@ public class SQLConfig
                     throw new RemoteException("Unable to clear properties for a given id.", e);
                 }
             }
-            
+            public Map<Integer, String> getProperty(String property) throws RemoteException
+            {
+                try
+                {
+                    Connection conn = this.conn.getConnection();
+                    Map<String,String> params = new HashMap<String,String>();
+                    Map<Integer,String> result = new HashMap<Integer,String>();
+                    params.put(META_PROPERTY, property);
+                    List<Map<String,String>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(META_ID, META_VALUE), schemaName,tableName, params);
+                    for (Map<String,String> row : rows)
+                    {
+                        result.put(Integer.parseInt(row.get(META_ID)), row.get(META_VALUE));
+                    }
+                    return result;
+                }
+                catch (SQLException e)
+                {
+                    throw new RemoteException("Unable to get all instances of a property.", e);
+                }
+            }
             public Map<Integer, Map<String,String>> getProperties(Collection<Integer> ids) throws RemoteException
             {
                 try 

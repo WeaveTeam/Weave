@@ -21,6 +21,9 @@ package weave.services.beans
 {
 	public class AttributeColumnInfo
 	{
+                public static const TYPE_DATATABLE:int = 0;
+                public static const TYPE_ATTRIBUTECOLUMN:int = 1;
+                public static const TYPE_TAG:int = 2;
 		public var id:int;
 		public var entity_type:int;
 		public var privateMetadata:Object;

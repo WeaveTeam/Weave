@@ -218,6 +218,10 @@ package weave.services
                 {
                         return invokeAdminService("removeTag", arguments);
                 }
+                public function updateEntity(connectionName:String, password:String, entity_id:int, properties:Object):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("updateEntity", arguments);
+                }
                 public function findEntitiesByParent(connectionName:String, password:String, parent_id:int):DelayedAsyncInvocation
                 {
                         return invokeAdminService("findEntitiesByParent", arguments);
