@@ -12,19 +12,31 @@ It has 4 icons to:
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
 	  mouseOver="handleMouseOver()"		   
 	  mouseOut="handleMouseOut()"
-	  autoLayout="false" horizontalAlign="center" 
-	  >
-	<mx:HBox horizontalAlign="right">
+	  autoLayout="false" 
+	  minWidth="200" width="100%">
+	<mx:HBox width="100%" horizontalAlign="center">
 		<!--<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
 		<mx:Image id="editImg" source="@Embed(source='/weave/resources/images/editButton.png')"/>
 		<mx:Image id="searchImg" source="@Embed(source='/weave/resources/images/search_icon.gif')"/>
 		<mx:Image id="filterImg" source="@Embed(source='/weave/resources/images/filter.png')"/>-->
 		<mx:Image id="infoImg" source="@Embed(source='/weave/resources/images/probe.png')"/>
 		<mx:Image id="settingsImg" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
+		<mx:Spacer width="60" />
 		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
 	</mx:HBox>	
-	<mx:TextArea id="keywordTextArea" fontSize="12" borderThickness="0"/>
-	
+	<mx:Canvas id="keywordCanvas" horizontalScrollPolicy="off" verticalScrollPolicy="off"  width="100%">
+		<mx:TextArea id="keywordTextArea" focusAlpha="0" fontSize="12" width="100%" borderThickness="1" borderStyle="solid" cornerRadius="5"/>
+		<mx:Image id="editImage" source="@Embed(source='/weave/resources/images/editButton.png')" 
+				  toolTip="click image to add comments" y="{keywordTextArea.height - editImage.height}" />		
+		<mx:TextArea visible="false"
+					 includeInLayout="false" id="commentTextArea" 
+					 cornerRadius="5" width="100%" borderThickness="0" 
+					 wordWrap="true"
+					 backgroundColor="{uint(0xd1fff9)}" y="{keywordTextArea.textHeight + 5}" maxChars="200" 
+					 />
+	</mx:Canvas>
+	<mx:HBox>
+	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
 			
@@ -80,6 +92,7 @@ It has 4 icons to:
 		{
 			
 		}
+			
 			
 		]]>
 	</mx:Script>

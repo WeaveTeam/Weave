@@ -52,6 +52,7 @@ so that it can be moved, selected, handle filters.
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.SessionManager;
+			import weave.core.StageUtils;
 			import weave.data.DataSources.InfoMapsDataSource;
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.DateRangeFilter;
@@ -362,16 +363,25 @@ so that it can be moved, selected, handle filters.
 					return;
 				}
 
-				toggleSelection();
 				
 				setStyle("borderStyle","solid");
 				
 				removeDocSummary();
-				
+ 				toggleSelection();
 			}
 			
 			private function toggleSelection():void
 			{
+				
+				//if the mouse is down on this do nothing
+				if(_mouseDown)
+					return;
+				
+//				var lastMouseEvent:Event = WeaveAPI.StageUtils.event;
+//				
+//				if(lastMouseEvent.type == MouseEvent.DOUBLE_CLICK)
+//					return;
+				
 				var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL.value);
 				
 				if(_selection.containsKey(key))

@@ -132,7 +132,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 					rangeComboBox.dataProvider = ['--Quick Select--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
 					//setting the dataprovide here fixes the combo box bug where it still showed the first item one by default
 					//even if it was not the selected item
-					layoutComboBox.dataProvider =  ['Radial','Cascade','Grid','Horizontal','Vertical'] ;
+					layoutComboBox.dataProvider =  ['Radial','Grid'] ;
 					 
 					operator.dataProvider = ['OR','AND'];
 					 

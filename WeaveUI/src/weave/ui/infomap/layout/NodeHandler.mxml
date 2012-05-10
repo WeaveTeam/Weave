@@ -87,6 +87,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.DateUtils;
+			import weave.utils.EventUtils;
 			
 			public const node:FilterableInfoMapNode = newLinkableChild(this,FilterableInfoMapNode);
 			
@@ -98,6 +99,8 @@
 			public const thumbnails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 			
 			public const movedThumbNails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
+			
+			public const comments:LinkableString = newLinkableChild(this,LinkableString);
 			
 			private var loader:URLLoader = null;
 			
@@ -210,9 +213,63 @@
 				//adding a callback to the selection KeySet to highlight/unhighlight documents
 				_selection.addGroupedCallback(this,handleSelectionKeySetChange,true);
 				
+				nodeBase.editImage.addEventListener(MouseEvent.CLICK,handleEditCommentsClick);
+				
+				delayedCommentKeyUp = EventUtils.generateDelayedCallback(nodeBase.commentTextArea,handleCommentKeyUp,500,true);
+				nodeBase.commentTextArea.addEventListener(KeyboardEvent.KEY_UP,delayedCommentKeyUp); 
+				nodeBase.commentTextArea.addEventListener(FocusEvent.FOCUS_OUT,updateCommentTextArea);
+				
+				comments.addImmediateCallback(this,handleCommentsChange,true);
 				createAndSendQuery();
 				
+				
 				node.detectQueryChange(handleThumbnails);
+				
+			}
+			
+			private var delayedCommentKeyUp:Function = null;
+			
+			private function handleEditCommentsClick(event:MouseEvent):void
+			{
+				nodeBase.editImage.visible = false;
+				nodeBase.commentTextArea.visible = true;
+				nodeBase.commentTextArea.setFocus();
+			}
+			
+			private function handleCommentsChange():void
+			{
+				if(nodeBase.commentTextArea.text != comments.value)
+					nodeBase.commentTextArea.text = comments.value;
+				if(comments.value)
+				{
+					nodeBase.commentTextArea.visible = true;
+					nodeBase.editImage.visible = false;
+					nodeBase.commentTextArea.validateNow();
+				}else{
+					nodeBase.commentTextArea.visible = false;
+					nodeBase.editImage.visible = true;
+				}
+			}
+			
+			private function handleCommentKeyUp(event:KeyboardEvent=null):void
+			{
+				
+				comments.value = nodeBase.commentTextArea.text;
+				if(event.keyCode == Keyboard.ESCAPE)
+				{
+					updateCommentTextArea();
+					nodeBase.keywordTextArea.setFocus();
+				}
+			}
+			
+			private function updateCommentTextArea(event:Event=null):void
+			{
+				nodeBase.commentTextArea.minHeight = nodeBase.commentTextArea.textHeight;
+
+				if(nodeBase.commentTextArea.text == "")
+				{
+					comments.triggerCallbacks();
+				}
 			}
 			
 			private var _redraw:Boolean = false;
@@ -599,13 +656,13 @@
 			//highlight node based on node.selected.value
 			private function highlightNode():void
 			{
-				unselectedBorder.color = _parentPanel.defaultNodeBorderColor.value;
-				selectedBorder.color = _parentPanel.selectedNodeBorderColor.value;
-				
-				if(node.selected.value)
-					selectedBorder.play();
-				else
-					unselectedBorder.play();
+//				unselectedBorder.color = _parentPanel.defaultNodeBorderColor.value;
+//				selectedBorder.color = _parentPanel.selectedNodeBorderColor.value;
+//				
+//				if(node.selected.value)
+//					selectedBorder.play();
+//				else
+//					unselectedBorder.play();
 			}
 			
 			//this variable will be  used to avoid selection/unselection when the node is dragged
@@ -630,6 +687,24 @@
 				CustomCursorManager.removeCurrentCursor();
 				this.stopDrag();
 				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+			}
+			
+		
+			
+			private function handleCommentAreaChange(event:Event):void
+			{
+				var ta_height:uint = 20;
+				
+				nodeBase.commentTextArea.validateNow();
+				
+				for(var i:int=0; i < nodeBase.commentTextArea.mx_internal::getTextField().numLines; i++) {
+					ta_height += nodeBase.commentTextArea.mx_internal::getTextField().getLineMetrics(i).height;
+				}
+				
+				nodeBase.commentTextArea.height = ta_height;
+				
+				nodeBase.height +=  ta_height;
+				nodeBase.invalidateDisplayList();
 			}
 			
 			private function filter(event:Event):void

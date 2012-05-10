@@ -1240,7 +1240,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if (Weave.properties.enableToolControls.value && _controlPanel)
 					leftIconWidths += buttonSize + spaceBetweenButtons;
-				if(subMenuButton.visible)
+				if(enableSubMenu.value)
 					leftIconWidths += buttonSize + spaceBetweenButtons;
 				
 				return leftIconWidths;

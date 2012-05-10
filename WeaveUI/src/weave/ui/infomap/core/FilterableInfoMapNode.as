@@ -14,7 +14,7 @@ package weave.ui.infomap.core
 	{
 		public function FilterableInfoMapNode()
 		{
-			WeaveAPI.StageUtils.callLater(this,function():void{reportChange=true},null,false);
+			WeaveAPI.StageUtils.callLater(this,function():void{reportChange=true},null);
 		}
 		
 		

@@ -63,30 +63,43 @@ package weave.ui.infomap.layout
 			if(!baseLayoutDrawn)
 				return;
 			
-			var centerPoint:Point = new Point(0,0);
+			var centerPoint:Point = new Point(_parentNodeHandler.nodeBase.x+ _parentNodeHandler.nodeBase.width/2,_parentNodeHandler.nodeBase.height/2);
 			
 			//this image is used to a show a tooltip of information about the node. 
-			//For now it shows the number of documents found.
-			_parentNodeHandler.nodeBase.infoImg.visible = true;
-//			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbNailsToPlot.length.toString() + " documents found";
+			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbnails.length.toString() + " documents found" ;
 			
-				
-			var location:Array = getNPointsOnCircle(centerPoint,radius.value,thumbnails.length);	
+			if(_parentNodeHandler.node.sources.value)
+				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.node.sources.value;
 			
-			for(var i:int=0; i<thumbnails.length ;i++)
+			
+			var temp:Array = [];
+			for (var i:int = 0; i < thumbnails.length; i++)
+			{
+				if(!thumbnails[i].hasBeenMoved.value)
+				{
+					temp.push(thumbnails[i])
+				}else
+				{
+					//if they have been moved, then draw them as it is without using a layout algorithm
+					thumbnails[i].imageWidth.value = thumbnailSize;
+					thumbnails[i].imageHeight.value = thumbnailSize;
+					
+					thumbnails[i].x = thumbnails[i].xPos.value;
+					thumbnails[i].y = thumbnails[i].yPos.value;
+				}
+			}
+			
+			var location:Array = getNPointsOnCircle(centerPoint,radius.value,temp.length);	
+			
+			for(var j:int=0; j<temp.length ;j++)
 			{
 				
-				var thumbnail:DocThumbnailComponent = thumbnails[i];
-				//if the thumbnail already exists use previous x,y values
-				if(!thumbnail.hasBeenMoved.value)
-				{
-					
-					thumbnail.imageWidth.value = thumbnailSize;
-					thumbnail.imageHeight.value = thumbnailSize;
-					var imgPosition:Point = location[i] as Point;
-					thumbnail.y = imgPosition.y-(thumbnailSize/2);			
-					thumbnail.x = imgPosition.x-(thumbnailSize/2);
-				}
+				var thumbnail:DocThumbnailComponent = temp[j];
+				thumbnail.imageWidth.value = thumbnailSize;
+				thumbnail.imageHeight.value = thumbnailSize;
+				var imgPosition:Point = location[j] as Point;
+				thumbnail.y = imgPosition.y-(thumbnailSize/2);			
+				thumbnail.x = imgPosition.x-(thumbnailSize/2);
 			}	
 		}
 		

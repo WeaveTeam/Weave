@@ -53,7 +53,10 @@ package weave.ui.infomap.layout
 			//this image is used to a show a tooltip of information about the node. 
 			//For now it shows the number of documents found.
 			_parentNodeHandler.nodeBase.infoImg.visible = true;
-			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbnails.length.toString() + " documents found";
+			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbnails.length.toString() + " documents found" ;
+			
+			if(_parentNodeHandler.node.sources.value)
+				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.node.sources.value;
 			
 			var startX:Number = _parentNodeHandler.nodeBase.x;
 			var startY:Number = _parentNodeHandler.nodeBase.y;
