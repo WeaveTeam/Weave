@@ -296,6 +296,9 @@ package weave.visualization.plotters
 					totalHeight = totalHeight + h;
 				}
 				
+				var tempPositiveValueLabelPos:Number = 0;
+				var tempNegativeValueLabelPos:Number = 0;
+				var stackValueLabelPos:Number = 0;
 				// loop over height columns, incrementing y coordinates
 				for (var i:int = 0; i < _heightColumns.length; i++)
 				{
@@ -523,6 +526,22 @@ package weave.visualization.plotters
 							valueLabelPos = (height >= 0) ? yMax : yNegativeMax;
 						}
 						
+						// For stack and percent stack bar charts, draw value label in the middle of each segment
+						if (_heightColumns.length > 1 && _groupingMode != GROUP)
+						{
+							if (height >= 0)
+							{
+								stackValueLabelPos = tempPositiveValueLabelPos + (valueLabelPos - tempPositiveValueLabelPos) / 2;
+								tempPositiveValueLabelPos = valueLabelPos;
+							}
+							else
+							{
+								stackValueLabelPos = tempNegativeValueLabelPos + (valueLabelPos - tempNegativeValueLabelPos) / 2;
+								tempNegativeValueLabelPos = valueLabelPos;
+							}
+							valueLabelPos = stackValueLabelPos;
+						}
+						
 						if (!_horizontalMode)
 						{
 							tempPoint.x = (barStart + barEnd) / 2;
@@ -542,7 +561,7 @@ package weave.visualization.plotters
 						_bitmapText.maxWidth = valueLabelMaxWidth.value;
 						_bitmapText.verticalAlign = valueLabelVerticalAlign.value;
 						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value;
-						
+												
 						if (isFinite(valueLabelRelativeAngle.value))
 							_bitmapText.angle += valueLabelRelativeAngle.value;
 						

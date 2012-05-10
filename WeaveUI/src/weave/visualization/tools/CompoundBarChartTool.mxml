@@ -382,7 +382,7 @@
 				if (showValueLabelsCheckBox.selected)
 				{
 					if ((stackedRadioButton.enabled && stackedRadioButton.selected)|| (percentStackedRadioButton.enabled && percentStackedRadioButton.selected))
-						_plotter.valueLabelHorizontalAlign.value = "right";
+						_plotter.valueLabelHorizontalAlign.value = "center";
 					else
 						_plotter.valueLabelHorizontalAlign.value = "left";
 				}
