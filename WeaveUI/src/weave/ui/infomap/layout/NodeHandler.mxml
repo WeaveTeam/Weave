@@ -167,6 +167,7 @@
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_UP,canvas1_mouseUpHandler);
+				nodeBase.keywordTextArea.addEventListener(KeyboardEvent.KEY_DOWN,keywordTextAreaKeyDownHandler);
 				
 				//drawing the base which is the node with keywords and icons
 				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
@@ -220,6 +221,15 @@
 				nodeBase.commentTextArea.addEventListener(FocusEvent.FOCUS_OUT,updateCommentTextArea);
 				
 				comments.addImmediateCallback(this,handleCommentsChange,true);
+				
+				if(!node.keywords.value)
+				{
+					nodeBase.keywordTextArea.editable = true;
+					nodeBase.keywordTextArea.selectable = true;
+					nodeBase.keywordTextArea.setFocus();
+					nodeBase.keywordTextArea.setSelection(0,0);
+				}
+				
 				createAndSendQuery();
 				
 				
@@ -689,7 +699,16 @@
 				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 			}
 			
-		
+			private function keywordTextAreaKeyDownHandler(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER)
+				{
+					event.preventDefault();
+					node.keywords.value = nodeBase.keywordTextArea.text;
+					nodeBase.keywordTextArea.editable = false;
+					nodeBase.keywordTextArea.selectable = false;
+				}
+			}
 			
 			private function handleCommentAreaChange(event:Event):void
 			{

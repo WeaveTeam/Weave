@@ -191,8 +191,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_infomapSubMenu.addSubMenuItem("Add Query Node",addInfoMapNode);
 				_infomapSubMenu.addSubMenuItem("Add Map Node",addInfoMapLink);
-				_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
-				_infomapSubMenu.addSubMenuItem("Show All Documents",showAllDocuments);
+//				_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
+//				_infomapSubMenu.addSubMenuItem("Show All Documents",showAllDocuments);
 			}
 			
 			
@@ -674,16 +674,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var nodeHandler:NodeHandler= new NodeHandler();
 				nodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
 				
-				if(query==null)
-				{
-					nodeHandler.node.keywords.value = extractKeywordsFromSelection().join(" ");
-					
-					//if query is null then user entered it from selection from another tool
-					//we clear this selection
-					_selectedKeySet.clearKeys();
-				}else{
-					nodeHandler.node.keywords.value = query;
-				}
+//				if(query==null)
+//				{
+//					nodeHandler.node.keywords.value = extractKeywordsFromSelection().join(" ");
+//					
+//					//if query is null then user entered it from selection from another tool
+//					//we clear this selection
+//					_selectedKeySet.clearKeys();
+//				}else{
+				nodeHandler.node.keywords.value = query;
+//				}
 				if(op ==null)
 				{
 					//TODO: should take value from RadioButton. Value was null when last tried.
@@ -877,7 +877,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Canvas backgroundImage="" id="map" clipContent="true" width="100%" height="100%" autoLayout="false" 
 			   verticalScrollPolicy="off" horizontalScrollPolicy="off" 
 			   resize="map.scrollRect=new Rectangle(0,0,map.width,map.height);handlePanelResize();"><!--For clipping the content at the edges-->
-				<mx:HBox paddingLeft="5" paddingTop="5" horizontalAlign="right">
+				<mx:HBox width="100%" paddingLeft="5" paddingTop="5" horizontalAlign="right">
 					<!--<mx:HBox>
 						<mx:ComboBox id="nodeComboBox" dataProvider="{['Add a Query Node','Add a Map Node']}" fontWeight="bold" change="handleNodeComboBoxChange()"/>
 						<mx:TextInput keyUp="handleKeyUp(event)" id="keywordsInput" enabled="true" cornerRadius="5" borderStyle="solid" toolTip="Separate your keywords by space to apply the operator correctly"/>
@@ -897,7 +897,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Select" click="handleDateFilter()"/>
 						<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Clear" click="clearDateFilter()"/>
 					</mx:HBox>-->
-						<mx:HBox>
+					<mx:HBox>
 							<mx:Label fontWeight="bold" text="Search in Nodes:"/>
 							<mx:TextInput id="globalSearchTextInput" borderStyle="solid" cornerRadius="5" width="200" />
 							<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Add Date Filter" click="handleDateFilter()"/>
