@@ -61,7 +61,6 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 * @author kmanohar
-	 * @author everyone and their uncle
 	 */
 	public class CompoundBarChartPlotter extends AbstractPlotter
 	{
@@ -241,7 +240,7 @@ package weave.visualization.plotters
 			var graphics:Graphics = tempShape.graphics;
 			var count:int = 0;
 			var numHeightColumns:int = _heightColumns.length;
-			var shouldDrawValueLabel:Boolean = showValueLabels.value && ((numHeightColumns >= 1 && _groupingMode == GROUP) || numHeightColumns == 1);
+			var shouldDrawValueLabel:Boolean = showValueLabels.value;
 			var shouldDrawLabel:Boolean = showLabels.value && (numHeightColumns >= 1) && (labelColumn.internalColumn != null);
 			
 			for (var iRecord:int = 0; iRecord < recordKeys.length; iRecord++)
@@ -260,7 +259,7 @@ package weave.visualization.plotters
 				var yNegativeMax:Number = 0;
 				
 				// x coordinates depend on sorted index
-				var sortedIndex:int;
+				var sortedIndex:Number;
 				if (_groupBySortColumn)
 					sortedIndex = _binnedSortColumn.getValueFromKey(recordKey, Number);
 				else
@@ -319,14 +318,14 @@ package weave.visualization.plotters
 					if (height >= 0)
 					{
 						//normalizing to 100% stack
-						if (_groupingMode == PERCENT_STACK)
+						if (_groupingMode == PERCENT_STACK && totalHeight)
 							yMax = yMin + (100 / totalHeight * height);
 						else
 							yMax = yMin + height;
 					}
 					else
 					{
-						if (_groupingMode == PERCENT_STACK)
+						if (_groupingMode == PERCENT_STACK && totalHeight)
 							yNegativeMax = yNegativeMin + (100 / totalHeight * height);
 						else
 							yNegativeMax = yNegativeMin + height;
@@ -497,15 +496,6 @@ package weave.visualization.plotters
 						//////////////////////////
 						// END draw graphics
 						//////////////////////////
-					}						
-					
-					if (_groupingMode != GROUP)
-					{
-						// the next bar starts on top of this bar
-						if (height >= 0)
-							yMin = yMax;
-						else
-							yNegativeMin = yNegativeMax;
 					}
 					//------------------------------------
 					// END code to draw one bar segment
@@ -519,9 +509,16 @@ package weave.visualization.plotters
 						_bitmapText.text = heightColumn.getValueFromKey(recordKey, String);
 						
 						var valueLabelPos:Number = valueLabelDataCoordinate.value;
-						if(!(valueLabelPos <= Infinity)) // alternative to isNaN
-						{
+						if (!isFinite(valueLabelPos))
 							valueLabelPos = (height >= 0) ? yMax : yNegativeMax;
+						
+						// For stack and percent stack bar charts, draw value label in the middle of each segment
+						if (_heightColumns.length > 1 && _groupingMode != GROUP)
+						{
+							if (height >= 0)
+								valueLabelPos = (yMin + yMax) / 2;
+							else
+								valueLabelPos = (yNegativeMin + yNegativeMax) / 2;
 						}
 						
 						if (!_horizontalMode)
@@ -542,7 +539,8 @@ package weave.visualization.plotters
 						_bitmapText.y = tempPoint.y;
 						_bitmapText.maxWidth = valueLabelMaxWidth.value;
 						_bitmapText.verticalAlign = valueLabelVerticalAlign.value;
-						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value; 
+						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value;
+												
 						if (isFinite(valueLabelRelativeAngle.value))
 							_bitmapText.angle += valueLabelRelativeAngle.value;
 						
@@ -604,6 +602,16 @@ package weave.visualization.plotters
 					//------------------------------------
 					// END code to draw one label using labelColumn
 					//------------------------------------
+
+					// update min values for next loop iteration
+					if (_groupingMode != GROUP)
+					{
+						// the next bar starts on top of this bar
+						if (height >= 0)
+							yMin = yMax;
+						else
+							yNegativeMin = yNegativeMax;
+					}
 				}
 				//------------------------------------
 				// END code to draw one compound bar
@@ -639,7 +647,7 @@ package weave.visualization.plotters
 			sortBins(); // make sure group-by-sort will work properly
 			
 			// bar position depends on sorted index
-			var sortedIndex:int;
+			var sortedIndex:Number;
 			if (_groupBySortColumn)
 				sortedIndex = _binnedSortColumn.getValueFromKey(recordKey, Number);
 			else
@@ -669,18 +677,18 @@ package weave.visualization.plotters
 			
 			tempRange.setRange(0, 0); // bar starts at zero
 			
-			var allMissing:Boolean = true;
 			
-			for (var i:int = 0; i < _heightColumns.length; i++)
+			if (_groupingMode == PERCENT_STACK)
 			{
-				var column:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
-				if (_groupingMode == PERCENT_STACK)
+				tempRange.begin = 0;
+				tempRange.end = 100;
+			}
+			else
+			{
+				var allMissing:Boolean = true;
+				for (var i:int = 0; i < _heightColumns.length; i++)
 				{
-					tempRange.begin = 0;
-					tempRange.end = 100;
-				}
-				else
-				{
+					var column:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
 					var height:Number = column.getValueFromKey(recordKey, Number);
 					// if height is missing, use mean value
 					if (isNaN(height))
@@ -716,13 +724,13 @@ package weave.visualization.plotters
 							tempRange.begin += height;
 					}
 				}
+				
+				if (allMissing)
+					tempRange.setRange(0, 0); // bar starts at zero
+				
+				if (tempRange.end == 0)
+					tempRange.setRange(tempRange.end, tempRange.begin);
 			}
-			
-			if (allMissing)
-				tempRange.setRange(0, 0); // bar starts at zero
-			
-			if (tempRange.end == 0)
-				tempRange.setRange(tempRange.end, tempRange.begin);
 			
 			if (horizontalMode.value) // x range
 				bounds.setXRange(tempRange.begin, tempRange.end);

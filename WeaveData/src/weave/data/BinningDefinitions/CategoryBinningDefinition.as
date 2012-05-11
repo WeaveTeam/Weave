@@ -68,7 +68,7 @@ package weave.data.BinningDefinitions
 			for each (var key:IQualifiedKey in column.keys)
 			{
 				str = column.getValueFromKey(key, String) as String;
-				if (!_sortMap.hasOwnProperty(str))
+				if (str && !_sortMap.hasOwnProperty(str))
 				{
 					strArray[int(i++)] = str;
 					_sortMap[str] = column.getValueFromKey(key, Number);

@@ -89,12 +89,6 @@
 			
 			private function handleKeyColumnChange():void
 			{
-				if (secondaryKeyColumnCheckBox.selected && generateFilterColumnsCheckBox.selected)
-				{
-					generateFilterColumnsCheckBox.selected = false;
-					secondaryKeyColumnCheckBox.selected = false;
-				}
-
 				keyColumnComboBox.errorString = '';
 				sqlSecondaryKeyColumnCombo.errorString = '';
 				

@@ -25,9 +25,11 @@ package weave
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.SecurityErrorEvent;
+	import flash.events.TimerEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.FileFilter;
 	import flash.net.FileReference;
+	import flash.net.SharedObject;
 	import flash.net.URLRequest;
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
@@ -35,6 +37,7 @@ package weave
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	import flash.utils.ByteArray;
+	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.collections.ArrayCollection;
@@ -150,7 +153,6 @@ package weave
 			waitForApplicationComplete();
 		}
 
-		
 		/**
 		 * This needs to be a function because FlashVars can't be fetched while the application is loading.
 		 */
@@ -206,6 +208,10 @@ package weave
 				{
 					_this.enabled = true;
 					adminService = pendingAdminService;
+					
+					saveTimer.addEventListener(TimerEvent.TIMER, saveRecoverPoint);
+					saveTimer.start();
+				
 					setupVisMenuItems(); // make sure 'save session state to server' is shown
 					downloadConfigFile();
 				};
@@ -239,7 +245,7 @@ package weave
 		
 		private function downloadConfigFile():void
 		{
-			if (Weave.handleWeaveReload())
+			if (getFlashVarRecover() || Weave.handleWeaveReload())
 			{
 				handleConfigFileDownloaded();
 			}
@@ -333,6 +339,10 @@ package weave
 		private function getFlashVarAdminConnectionName():String
 		{
 			return _flashVars['adminSession'] as String;
+		}
+		private function getFlashVarRecover():Boolean
+		{
+			return StandardLib.asBoolean(_flashVars['recover'] as String);
 		}
 		
 		/**
@@ -473,6 +483,19 @@ package weave
 
 		private var adminService:LocalAsyncService = null;
 		
+		private const saveTimer:Timer = new Timer( 10000 );
+		private static const RECOVER_SHARED_OBJECT:String = "WeaveAdminConsoleRecover";
+		private function saveRecoverPoint(event:Event = null):void
+		{
+			var cookie:SharedObject = SharedObject.getLocal(RECOVER_SHARED_OBJECT);
+			cookie.data[RECOVER_SHARED_OBJECT] = Weave.createWeaveFileContent();
+			cookie.flush();
+		}
+		private function getRecoverPoint():ByteArray
+		{
+			var cookie:SharedObject = SharedObject.getLocal(RECOVER_SHARED_OBJECT);
+			return cookie.data[RECOVER_SHARED_OBJECT] as ByteArray;
+		}
 		
 		private function copySessionStateToClipboard():void
 		{
@@ -874,6 +897,8 @@ package weave
 			DebugTimer.begin();
 			try
 			{
+				if (getFlashVarRecover())
+					fileContent = getRecoverPoint();
 				// attempt to parse as a Weave archive
 				if (fileContent)
 				{
