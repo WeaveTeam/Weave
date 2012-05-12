@@ -148,6 +148,7 @@ package weave.visualization.plotters
 		public const negativeErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
+		public const zoomToSubsetBars:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const barSpacing:LinkableNumber = registerSpatialProperty(new LinkableNumber(0));
 		public const groupingMode:LinkableString = registerSpatialProperty(new LinkableString(STACK, verifyGroupingMode));
 		public static const GROUP:String = 'group';
@@ -678,65 +679,71 @@ package weave.visualization.plotters
 			tempRange.setRange(0, 0); // bar starts at zero
 			
 			
-			if (_groupingMode == PERCENT_STACK)
+			var allMissing:Boolean = true;
+			for (var i:int = 0; i < _heightColumns.length; i++)
 			{
-				tempRange.begin = 0;
-				tempRange.end = 100;
+				var column:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
+				var height:Number = column.getValueFromKey(recordKey, Number);
+				if (isFinite(height))
+				{
+					// not all missing
+					allMissing = false;
+				}
+				else if (_heightColumns.length > 1 && stackedMissingDataGap.value)
+				{
+					// use mean value for missing data gap
+					height = WeaveAPI.StatisticsCache.getMean(column);
+				}
+
+				var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
+				var negativeError:IAttributeColumn = _negErrCols[i] as IAttributeColumn;
+				if (showErrorBars && positiveError && negativeError)
+				{
+					var errorPlus:Number = positiveError.getValueFromKey(recordKey, Number);
+					var errorMinus:Number = -negativeError.getValueFromKey(recordKey, Number);
+					if (height > 0 && errorPlus > 0)
+						height += errorPlus;
+					if (height < 0 && errorMinus < 0)
+						height += errorMinus;
+				}
+				if (_groupingMode == GROUP)
+				{
+					tempRange.includeInRange(height);
+				}
+				else
+				{
+					if (height > 0)
+						tempRange.end += height;
+					if (height < 0)
+						tempRange.begin += height;
+				}
+			}
+			
+			// if max value is zero, flip direction so negative bars go downward
+			if (tempRange.end == 0)
+				tempRange.setRange(tempRange.end, tempRange.begin);
+			
+			if (allMissing)
+				tempRange.setRange(NaN, NaN);
+			
+			if (allMissing && zoomToSubsetBars.value)
+			{
+				bounds.reset();
 			}
 			else
 			{
-				var allMissing:Boolean = true;
-				for (var i:int = 0; i < _heightColumns.length; i++)
+				if (_groupingMode == PERCENT_STACK)
 				{
-					var column:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
-					var height:Number = column.getValueFromKey(recordKey, Number);
-					// if height is missing, use mean value
-					if (isNaN(height))
-					{
-						if (stackedMissingDataGap.value)
-							height = WeaveAPI.StatisticsCache.getMean(column);
-					}
-					else
-					{
-						allMissing = false;
-					}
-
-					var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
-					var negativeError:IAttributeColumn = _negErrCols[i] as IAttributeColumn;
-					if (showErrorBars && positiveError && negativeError)
-					{
-						var errorPlus:Number = positiveError.getValueFromKey(recordKey, Number);
-						var errorMinus:Number = -negativeError.getValueFromKey(recordKey, Number);
-						if (height > 0 && errorPlus > 0)
-							height += errorPlus;
-						if (height < 0 && errorMinus < 0)
-							height += errorMinus;
-					}
-					if (_groupingMode == GROUP)
-					{
-						tempRange.includeInRange(height);
-					}
-					else
-					{
-						if (height > 0)
-							tempRange.end += height;
-						if (height < 0)
-							tempRange.begin += height;
-					}
+					tempRange.begin = 0;
+					tempRange.end = 100;
 				}
 				
-				if (allMissing)
-					tempRange.setRange(0, 0); // bar starts at zero
-				
-				if (tempRange.end == 0)
-					tempRange.setRange(tempRange.end, tempRange.begin);
+				if (horizontalMode.value) // x range
+					bounds.setXRange(tempRange.begin, tempRange.end);
+				else // y range
+					bounds.setYRange(tempRange.begin, tempRange.end);
 			}
 			
-			if (horizontalMode.value) // x range
-				bounds.setXRange(tempRange.begin, tempRange.end);
-			else // y range
-				bounds.setYRange(tempRange.begin, tempRange.end);
-
 			return [bounds];
 		}
 		
