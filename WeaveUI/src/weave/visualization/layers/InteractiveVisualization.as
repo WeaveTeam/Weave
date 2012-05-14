@@ -130,16 +130,14 @@ package weave.visualization.layers
 		private function updateMouseMode(mouseEventType:String = null):void
 		{
 			if (mouseEventType)
-				_mouseMode = Weave.properties.toolInteractions.determineMouseAction(mouseEventType);
+				_mouseMode = Weave.properties.toolInteractions.determineInteraction(mouseEventType);
 			else
-				_mouseMode = Weave.properties.toolInteractions.determineMouseMode();
+				_mouseMode = Weave.properties.toolInteractions.determineInteractionMode();
 			
 			if (!enableZoomAndPan.value && (isModeZoom(_mouseMode) || _mouseMode == InteractionController.PAN))
 			{
 				_mouseMode = InteractionController.SELECT;
 			}
-			if( !enableZoomAndPan.value && (mouseEventType == InteractionController.DCLICK))
-				_mouseMode = InteractionController.SELECT_ALL;
 			if (!enableSelection.value && isModeSelection(_mouseMode))
 			{
 				_mouseMode = null;//Weave.properties.toolInteractions.defaultDragMode.value;
@@ -353,7 +351,7 @@ package weave.visualization.layers
 				}
 				case InteractionController.SELECT_ALL:
 				{
-					if( mouseIsRolledOver && !enableZoomAndPan.value )
+					if (mouseIsRolledOver)
 						selectAllVisibleRecords();
 					break;
 				}

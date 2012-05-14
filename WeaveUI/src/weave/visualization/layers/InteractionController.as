@@ -33,36 +33,48 @@ package weave.visualization.layers
 	 */
 	public class InteractionController implements ILinkableObject
 	{
+		// mouse events
 		public static const MOVE:String = "move";
 		public static const DRAG:String = "drag";
 		public static const CLICK:String = "click";
 		public static const DCLICK:String = "dclick";
 		public static const WHEEL:String = "wheel";
 		
+		private static const MOUSE_EVENTS:Array = [MOVE, DRAG, CLICK, DCLICK, WHEEL];
+		
+		// modifier keys
 		public static const CTRL:String = "ctrl";
 		public static const ALT:String = "alt";
 		public static const SHIFT:String = "shift";
 
+		// interactions
 		public static const PROBE:String = "probe";
 		public static const SELECT:String = "select";
 		public static const SELECT_ADD:String = "selectAdd";
 		public static const SELECT_REMOVE:String = "selectRemove";
 		public static const SELECT_ALL:String = "selectAll";
-		
-		public static const PAN:String = "pan";		
+		public static const PAN:String = "pan";
 		public static const ZOOM:String = "zoom";
 		public static const ZOOM_IN:String = "zoomIn";
 		public static const ZOOM_OUT:String = "zoomOut";
 		public static const ZOOM_TO_EXTENT:String = "zoomToExtent";
+		
+		/**
+		 * This is a list of what are considered "modes" that affect what moving the mouse does.
+		 * This does not include one-time actions not affected by mouse movements.
+		 */		
+		private static const INTERACTION_MODES:Array = [PAN, SELECT, SELECT_ADD, SELECT_REMOVE, ZOOM, PROBE];
 	
 		public function InteractionController()			
 		{
 			super();
 			
+			// default session state
 			probe.value = MOVE;
 			select.value = [DRAG].join(DELIM);
 			selectAdd.value = [CTRL, DRAG].join(DELIM);
 			selectRemove.value = [CTRL, SHIFT, DRAG].join(DELIM);
+			selectAll.value = [CTRL, DCLICK].join(DELIM);
 			
 			pan.value = [ALT, DRAG].join(DELIM);
 			zoom.value = WeaveAPI.CSVParser.createCSV([[SHIFT, DRAG], [WHEEL]]);
@@ -84,6 +96,7 @@ package weave.visualization.layers
 		public const select:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
 		public const selectRemove:LinkableString 		= newLinkableChild(this, LinkableString, invalidate);
 		public const selectAdd:LinkableString 			= newLinkableChild(this, LinkableString, invalidate);
+		public const selectAll:LinkableString 			= newLinkableChild(this, LinkableString, invalidate);
 		public const pan:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
 		public const zoom:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
 		public const zoomIn:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
@@ -92,23 +105,25 @@ package weave.visualization.layers
 		
 		//private const whitespace:RegExp = new RegExp("\s") ;
 		private const DELIM:String = ',';
-		private var _mouseActionLookup:Object;
-		private var _mouseModeLookup:Object;
+		private var _interactionLookup:Object;
+		private var _interactionModeLookup:Object;
 		
 		private function invalidate():void
 		{
-			_mouseActionLookup = null;
-			_mouseModeLookup = null;
+			_interactionLookup = null;
+			_interactionModeLookup = null;
 		}
 		private function validate():void
 		{
-			_mouseActionLookup = {};
-			_mouseModeLookup = {};
+			_interactionLookup = {};
+			_interactionModeLookup = {};
+			// pairs of [action, modifiers + event] in the order they should be checked
 			var pairs:Array = [
 				[PROBE, probe],
 				[SELECT, select],
 				[SELECT_REMOVE, selectRemove],
 				[SELECT_ADD, selectAdd],
+				[SELECT_ALL, selectAll],
 				[PAN, pan],
 				[ZOOM, zoom],
 				[ZOOM_IN, zoomIn],
@@ -124,34 +139,26 @@ package weave.visualization.layers
 				{
 					// sort row
 					row.sort();
-					// save lookup from (modifier keys + mouse event) to mouseMode
+					// save lookup from (modifier keys + mouse event) to action
 					var actionStr:String = row.join(DELIM);
-					if (!_mouseActionLookup.hasOwnProperty(actionStr))
-						_mouseActionLookup[actionStr] = mouseMode;
-					// save lookup from (modifier keys) to mouseMode
-					removeItems(row, [CLICK, DRAG, MOVE, WHEEL]);
+					if (!_interactionLookup.hasOwnProperty(actionStr))
+						_interactionLookup[actionStr] = mouseMode;
+					
+					// remove event tokens, then save lookup from (modifier keys) to mouseMode
+					for each (var eventType:String in MOUSE_EVENTS)
+					{
+						var index:int = row.indexOf(eventType);
+						if (index >= 0)
+							row.splice(index, 1);
+					}
+					// row now only consists of modifier keys
 					var modeStr:String = row.join(DELIM);
-					if ([PAN, SELECT, SELECT_ADD, SELECT_REMOVE, ZOOM, PROBE].indexOf(mouseMode) >= 0)
-						if (!_mouseModeLookup.hasOwnProperty(modeStr))
-							_mouseModeLookup[modeStr] = mouseMode;
+					if (INTERACTION_MODES.indexOf(mouseMode) >= 0)
+						if (!_interactionModeLookup.hasOwnProperty(modeStr))
+							_interactionModeLookup[modeStr] = mouseMode;
 				}
 			}
 		}
-		
-		/**
-		 * This function removes matching items from an array.
-		 * @param array The Array to remove items from.
-		 * @param items A list of items to remove from the Array.
-		 */
-		private function removeItems(array:Array, items:Array):void
-		{
-			for each (var str:String in items)
-			{
-				var i:int = array.indexOf(str);
-				if(i != -1)
-					array.splice(i, 1);
-			}
-		}			
 		
 		/**
 		 * @return An Array containing String items corresponding to the active modifier keys (alt,ctrl,shift) 
@@ -173,9 +180,9 @@ package weave.visualization.layers
 		 * @param mouseEventType A mouse event type such as move, drag, click, or dclick
 		 * @return returns a string representing current mouse action to execute such as pan, zoom, or select
 		 */
-		public function determineMouseAction(mouseEventType:String):String
+		public function determineInteraction(mouseEventType:String):String
 		{
-			if (!_mouseActionLookup)
+			if (!_interactionLookup)
 				validate();
 			
 			var array:Array = getModifierSequence();
@@ -187,7 +194,7 @@ package weave.visualization.layers
 			array.push(mouseEventType);
 			
 			var str:String = array.sort().join(DELIM);
-			var action:String = _mouseActionLookup[str];
+			var action:String = _interactionLookup[str];
 			
 			//trace(defaultDragMode.value,'determineMouseAction',mouseEventType,'['+str+'] =>',action);
 			return action;
@@ -197,9 +204,9 @@ package weave.visualization.layers
 		 * Determine current mouse cursor mode from values in internal list of keyboard events
 		 * @return returns a string representing which mouse cursor to use
 		 */
-		public function determineMouseMode():String
+		public function determineInteractionMode():String
 		{
-			if (!_mouseModeLookup)
+			if (!_interactionModeLookup)
 				validate();
 			
 			var array:Array = getModifierSequence();
@@ -209,7 +216,7 @@ package weave.visualization.layers
 				return defaultDragMode.value;
 			
 			var str:String = array.sort().join(DELIM);
-			var mode:String = _mouseModeLookup[str];
+			var mode:String = _interactionModeLookup[str];
 			
 			//trace(defaultDragMode.value,'determineMouseMode','['+str+'] =>',mode);
 			return mode;
