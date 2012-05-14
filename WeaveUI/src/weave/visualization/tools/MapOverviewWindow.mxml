@@ -90,9 +90,9 @@
 				visualization.addChild(canvas);
 				canvas.toolTip = "Click or drag this rectangle to change the displayed area in the map";
 				
-				addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
-				addEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
-				addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
+				visualization.addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
+				visualization.addEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
+				visualization.addEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
 				
 			}
 						
@@ -154,18 +154,23 @@
 			
 			private function handleMouseDown(e:MouseEvent):void 
 			{ 
-				if(forceEnableBorders.value) return;
-				mouseDown = true; handleMouseEvent(e);
+				mouseDown = true;
+				handleMouseEvent(e);
 			}
 			
 			private function handleMouseUp(e:MouseEvent):void 
 			{ 
-				if(!mouseDown || forceEnableBorders.value) return; handleMouseEvent(e); mouseDown = false;
+				if (!mouseDown)
+					return;
+				handleMouseEvent(e);
+				mouseDown = false;
 			}
 			
 			private function handleMouseMove(e:MouseEvent):void 
 			{ 
-				if(!mouseDown || forceEnableBorders.value) return; handleMouseEvent(e);
+				if (!mouseDown)
+					return;
+				handleMouseEvent(e);
 			}
 						
 			private function handleMouseEvent(e:MouseEvent):void
@@ -181,14 +186,6 @@
 				parentZoomBounds.setBounds(tempBounds,parentScreenBounds, true);
 			}
 						
-			override public function dispose():void
-			{
-				super.dispose();
-				removeEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
-				removeEventListener(MouseEvent.MOUSE_UP, handleMouseUp);
-				removeEventListener(MouseEvent.MOUSE_MOVE, handleMouseMove);
-			}
-			
 			/**
 			 * This function was copied from ZoomBounds.as to get the correct dataBounds
 			 * @param dataBounds data bounds to correct

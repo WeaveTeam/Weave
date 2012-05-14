@@ -121,7 +121,7 @@
 				}
 				if (columnsToInit.length > 0)
 					(initColumnDefaults as Function).apply(null, columnsToInit);
-				_plotter.heightColumns.addGroupedCallback(this,updateProbeColumns);
+				getCallbackCollection(_plotter).addGroupedCallback(this,updateProbeColumns);
 			}
 			
 			protected function creationComplete():void
@@ -353,14 +353,12 @@
 				{
 					cRampEditor.enabled = true;
 					groupMode.enabled = true;
-					showValueLabelsCheckBox.enabled = groupedRadioButton.selected;
 					colorColumnInput.enabled = false;
 				}
 				else
 				{
 					cRampEditor.enabled = false;
 					groupMode.enabled = false;
-					showValueLabelsCheckBox.enabled = true;
 					colorColumnInput.enabled = true;
 				}
 			}
@@ -378,6 +376,18 @@
 			
 			// backwards compatibility
 			[Deprecated] public function set labelColumn(value:Object):void { setSessionState(_plotter.labelColumn, value); }
+			
+			private function showValueLabelsCheckBox_changeHandler():void
+			{
+				if (showValueLabelsCheckBox.selected)
+				{
+					if ((stackedRadioButton.enabled && stackedRadioButton.selected)|| (percentStackedRadioButton.enabled && percentStackedRadioButton.selected))
+						_plotter.valueLabelHorizontalAlign.value = "center";
+					else
+						_plotter.valueLabelHorizontalAlign.value = "left";
+				}
+			}
+			
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
@@ -440,7 +450,7 @@
 				
 				<mx:VBox>				
 					<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels"
-								 toolTip="This option will show a value label for each bar."/>
+								 toolTip="This option will show a value label for each bar." change="showValueLabelsCheckBox_changeHandler()"/>
 					<mx:VBox paddingLeft="20" enabled="{showValueLabelsCheckBox.selected}">
 						<mx:VBox>
 							<ui:Indent label="Color by record">
@@ -482,9 +492,12 @@
 							liveDragging="true"/>
 			</ui:Indent>
 			
-			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to subset" 
-						 toolTip="Enables automatic zooming to the subset of data currently displayed"
+			<mx:CheckBox label="Zoom to subset (height)"
+						 toolTip="Enables automatic zooming to the subset of height data currently displayed"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>
+			<mx:CheckBox label="Zoom to subset (bars)"
+						 toolTip="Enables automatic zooming to the subset of bars currently displayed"
+						 creationComplete="linkBindableProperty(_plotter.zoomToSubsetBars, event.target, 'selected')"/>
 			<ui:ColorRampEditor id="cRampEditor" toolTip="The color ramp can only be set when more than one height column is specified."/>
 		</mx:VBox>
 	</ui:ControlPanel>

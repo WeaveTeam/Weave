@@ -43,20 +43,23 @@ package weave.api
 	 */
 	public class WeaveAPI
 	{
-		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
-		
+		/**
+		 * For use with StageUtils.startTask(); this priority is used for things that must be done before anything else.
+		 * Tasks having this priority will take over the scheduler and prevent any other asynchronous task from running until it is completed.
+		 */
+		public static const TASK_PRIORITY_IMMEDIATE:uint = 0;
 		/**
 		 * For use with StageUtils.startTask(); this priority is associated with rendering.
-		 */		
-		public static const TASK_PRIORITY_RENDERING:int = 1;
+		 */
+		public static const TASK_PRIORITY_RENDERING:uint = 1;
 		/**
 		 * For use with StageUtils.startTask(); this priority is associated with data manipulation tasks such as building an index.
 		 */
-		public static const TASK_PRIORITY_BUILDING:int = 2;
+		public static const TASK_PRIORITY_BUILDING:uint = 2;
 		/**
 		 * For use with StageUtils.startTask(); this priority is associated with parsing raw data.
 		 */
-		public static const TASK_PRIORITY_PARSING:int = 3;
+		public static const TASK_PRIORITY_PARSING:uint = 3;
 		
 		/**
 		 * This is the singleton instance of the registered ISessionManager implementation.
@@ -147,17 +150,24 @@ package weave.api
 		
 		/**
 		 * This returns the top level application as defined by FlexGlobals.topLevelApplication
-		 * or Application.application if FlexGlobals isn't defined.
+		 * or WeaveAPI.topLevelApplication if FlexGlobals isn't defined.
 		 */
 		public static function get topLevelApplication():Object
 		{
-			//TODO: Application.application is deprecated
-			/*try {
-			return FlexGlobals.topLevelApplication;
-			} catch (e:Error) { }*/
-			
-			return getDefinitionByName('mx.core.Application').application;
+			if (!_topLevelApplication)
+			{
+				try
+				{
+					_topLevelApplication = getDefinitionByName('mx.core.FlexGlobals').topLevelApplication;
+				}
+				catch (e:Error)
+				{
+					_topLevelApplication = getDefinitionByName('mx.core.Application').application;
+				}
+			}
+			return _topLevelApplication;
 		}
+		private static var _topLevelApplication:Object;
 		
 		
 		/**
@@ -325,9 +335,16 @@ package weave.api
 			{
 				_initialized = true;
 				// run static initialization code to register weave implementations
-				try {
-					getDefinitionByName("_InitializeWeave"); // run static initialization code 
-				} catch (e:Error) { }
+				try
+				{
+					getDefinitionByName("_InitializeWeaveCore");
+					getDefinitionByName("_InitializeWeaveData"); 
+					getDefinitionByName("_InitializeWeaveUI");
+				}
+				catch (e:Error)
+				{
+					trace(e.getStackTrace());
+				}
 			}
 			
 			var result:* = _singletonDictionary[singletonInterface];

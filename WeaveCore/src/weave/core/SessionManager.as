@@ -1183,7 +1183,7 @@ package weave.core
 				// if the linkable variable's callbacks are delayed, delay synchronization
 				if (getCallbackCollection(linkableVariable).callbacksAreDelayed)
 				{
-					WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], false);
+					WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 					return;
 				}
 				

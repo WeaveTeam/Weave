@@ -40,14 +40,19 @@ package weave.ui.CustomDataGrid
 	{
 		public function DataGridCellRenderer()
 		{
+		}
+		
+		override protected function createChildren():void
+		{
+			super.createChildren();
+			
 			addChild(lbl);
 			lbl.percentWidth = 100;
-			
 			horizontalScrollPolicy = "off";
 		}
 		
 		private var img:Image;
-		private var lbl:Label = new Label();
+		public const lbl:Label = new Label();
 		
 		public var attrColumn:IAttributeColumn = null;
 		public var showColors:LinkableBoolean = null;

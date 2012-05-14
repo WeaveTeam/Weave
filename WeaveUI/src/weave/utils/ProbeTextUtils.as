@@ -21,24 +21,22 @@ package weave.utils
 {
 	import flash.display.Stage;
 	
-	import mx.controls.ToolTip;
-	import mx.core.Application;
 	import mx.core.IToolTip;
+	import mx.core.UIComponent;
 	import mx.managers.ToolTipManager;
 	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.primitives.Bounds2D;
-	import weave.visualization.layers.SimpleInteractiveVisualization;
 	
 	/**
 	 * A static class containing functions to manage a list of probed attribute columns
@@ -163,14 +161,14 @@ package weave.utils
 		
 		private static function setProbeToolTipAppearance():void
 		{
-			(probeToolTip as ToolTip).setStyle("backgroundAlpha", Weave.properties.probeToolTipBackgroundAlpha.value);
+			(probeToolTip as UIComponent).setStyle("backgroundAlpha", Weave.properties.probeToolTipBackgroundAlpha.value);
 			if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
-				(probeToolTip as ToolTip).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
-			
-			
-			
+				(probeToolTip as UIComponent).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
+			Weave.properties.defaultTextFormat.copyToStyle(probeToolTip as UIComponent);
 		}
 
+		public static var yAxisToolTip:IToolTip;
+		public static var xAxisToolTip:IToolTip;
 		public static function showProbeToolTip(probeText:String, stageX:Number, stageY:Number, bounds:IBounds2D = null, margin:int = 5):void
 		{
 			if (!probeToolTip)
@@ -183,7 +181,7 @@ package weave.utils
 			
 			if (bounds == null)
 			{
-				var stage:Stage = Application.application.stage;
+				var stage:Stage = WeaveAPI.topLevelApplication.stage;
 				tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
 				bounds = tempBounds;
 			}
@@ -196,14 +194,12 @@ package weave.utils
 			setProbeToolTipAppearance();
 			
 			//this step is required to set the height and width of probeToolTip to the right size.
-			(probeToolTip as ToolTip).validateNow();
+			(probeToolTip as UIComponent).validateNow();
 			
 			var xMin:Number = bounds.getXNumericMin();
 			var yMin:Number = bounds.getYNumericMin();
 			var xMax:Number = bounds.getXNumericMax() - probeToolTip.width;
 			var yMax:Number = bounds.getYNumericMax() - probeToolTip.height;
-			var yAxisToolTip:IToolTip = SimpleInteractiveVisualization.yAxisTooltipPtr ;
-			var xAxisToolTip:IToolTip = SimpleInteractiveVisualization.xAxisTooltipPtr ;
 			
 			// calculate y coordinate
 			var y:int;

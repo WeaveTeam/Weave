@@ -57,8 +57,8 @@ public class AttributeColumnDataWithKeys {
 	public Object[] getThirdColumn() {
 		return thirdColumn;
 	}
-	public void setThirdColumn(String[] secKeys){
-		this.thirdColumn = secKeys;
+	public void setThirdColumn(Object[] thirdColumn){
+		this.thirdColumn = thirdColumn;
 	}
 	public Object[] getData() {
 		return data;

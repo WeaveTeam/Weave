@@ -61,6 +61,11 @@
 			private var _savedGlobalNames:Object;
 			private var createdChildren:Boolean = false;
 			
+			override protected function get borderIsVisible():Boolean
+			{
+				return true;
+			}
+			
 			override public function set width(value:Number):void
 			{
 				super.width = value;

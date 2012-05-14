@@ -37,18 +37,15 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
-			import mx.core.Application;
-			import mx.core.IFlexDisplayObject;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
-			import mx.events.MenuEvent;
-			import mx.events.ResizeEvent;
 			import mx.managers.PopUpManager;
 			
 			import org.igniterealtime.xiff.conference.RoomOccupant;
 			import org.igniterealtime.xiff.events.RoomEvent;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.registerDisposableChild;
 			import weave.api.reportError;
 			import weave.services.collaboration.CollaborationEvent;
@@ -133,7 +130,7 @@
 				collabService.connect(Weave.properties.collabServerIP.value, 
 									  Weave.properties.collabServerName.value, 
 									  int(Weave.properties.collabServerPort.value), 
-									  Weave.properties.collabServerRoomToJoin.value, 
+									  Weave.properties.collabServerRoom.value, 
 									  SETTINGS.collab_NICKNAME);
 				
 				// Set timeout to 10 seconds
@@ -197,7 +194,7 @@
 			}
 			private function createWindowSettings():void
 			{
-				SETTINGS = PopUpManager.createPopUp(Application.application as Application, CollaborationSettingsWindow) as CollaborationSettingsWindow;
+				SETTINGS = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, CollaborationSettingsWindow) as CollaborationSettingsWindow;
 				SETTINGS.hide();
 				var p:Point = new Point(button_settings.x + button_settings.width/2, button_settings.y);
 				SETTINGS.x = localToGlobal(p).x - SETTINGS.width/2;
@@ -205,7 +202,7 @@
 			}
 			private function createWindowChat():void
 			{
-				CHAT = PopUpManager.createPopUp(Application.application as Application, CollaborationChatWindow) as CollaborationChatWindow;
+				CHAT = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, CollaborationChatWindow) as CollaborationChatWindow;
 				CHAT.visible = false;
 				var p:Point = new Point(button_chat.x, button_chat.y);
 				CHAT.xFrom = localToGlobal(p).x;
@@ -544,7 +541,7 @@
 				}
 				else // You are already in the room and someone joins
 				{
-					userMice[e.getText()] = CollabMouseCursor.addPopUp(Application.application as Application) as CollabMouseCursor;
+					userMice[e.getText()] = CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject) as CollabMouseCursor;
 				}
 			}
 			private function handleRemoveUserElements(e:CollaborationEvent):void
@@ -573,7 +570,7 @@
 				if( userMice == null )
 					joinedRoomCreateMouseList();
 				if( userMice[e.getText()] == null )
-					userMice[e.getText()] = CollabMouseCursor.addPopUp(Application.application as Application) as CollabMouseCursor;
+					userMice[e.getText()] = CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject) as CollabMouseCursor;
 				
 				userMice[e.getText()].setPos(percentToCoordX(e.getX()), percentToCoordY(e.getY()));
 				
@@ -602,12 +599,12 @@
 				}
 				userMice = null;
 			}
-			private function coordToPercentX(x:Number):Number { return x / Application.application.stage.stageWidth;   }
-			private function percentToCoordX(x:Number):Number { return x * Application.application.stage.stageWidth;   }
-			private function coordToPercentY(y:Number):Number { return y / Application.application.stage.stageHeight;  }
-			private function percentToCoordY(y:Number):Number { return y * Application.application.stage.stageHeight;  }
-			private function xMousePercent():Number { return Application.application.stage.mouseX / Application.application.stage.stageWidth;  }
-			private function yMousePercent():Number { return Application.application.stage.mouseY / Application.application.stage.stageHeight; }
+			private function coordToPercentX(x:Number):Number { return x / WeaveAPI.topLevelApplication.stage.stageWidth;   }
+			private function percentToCoordX(x:Number):Number { return x * WeaveAPI.topLevelApplication.stage.stageWidth;   }
+			private function coordToPercentY(y:Number):Number { return y / WeaveAPI.topLevelApplication.stage.stageHeight;  }
+			private function percentToCoordY(y:Number):Number { return y * WeaveAPI.topLevelApplication.stage.stageHeight;  }
+			private function xMousePercent():Number { return WeaveAPI.topLevelApplication.stage.mouseX / WeaveAPI.topLevelApplication.stage.stageWidth;  }
+			private function yMousePercent():Number { return WeaveAPI.topLevelApplication.stage.mouseY / WeaveAPI.topLevelApplication.stage.stageHeight; }
 
 		]]>
 	</mx:Script>

@@ -19,6 +19,8 @@
 
 package
 {
+	import flash.system.Security;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
@@ -78,7 +80,7 @@ package
 	 * 
 	 * @author adufilie
 	 */
-	public class _InitializeWeave
+	public class _InitializeWeaveUI
 	{
 		/**
 		 * Register singleton implementations for WeaveAPI framework classes

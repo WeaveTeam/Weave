@@ -399,13 +399,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(dataGrid.visibleLockedColumns && lockedColumns.value == 0 && dataGrid.visibleLockedColumns.length != 0)
 					validateNow();
 				
+				var item:Object;
+				var isSelected:Dictionary = new Dictionary(true);
+				for each (item in dataGrid.selectedItems)
+					isSelected[item] = true;
+				
+				var changeDetected:Boolean = false;
 				var selectedItems:Array = [];
-				for each (var item:Object in dataGrid.dataProvider)
+				for each (item in dataGrid.dataProvider)
 				{
 					if (_selection.containsKey(item as IQualifiedKey))
+					{
+						if (!isSelected[item])
+							changeDetected = true;
 						selectedItems.push(item);
-				}	
-				dataGrid.selectedItems = selectedItems;				
+					}
+				}
+				if (selectedItems.length != dataGrid.selectedItems.length)
+					changeDetected = true;
+				
+				if (changeDetected)
+					dataGrid.selectedItems = selectedItems;				
 			}
 			
 			
@@ -568,6 +582,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						
 					}  
 					dataGrid.columns = _currentDataGridColumns;
+					numLockedColumns.maximum = attrColumns.length;
 				}
 				catch (error:Error)
 				{
@@ -615,18 +630,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for (var i:int = 0; i < _currentDataGridColumns.length; ++i)
 				{
 					var dgc:WeaveCustomDataGridColumn = _currentDataGridColumns[i];
-					var width:Number = dgc.width;					
+					if (dgc.filterComponent)
+						dgc.filterComponent.width = dgc.width;
+					
+					var colWidth:Number = dgc.width;
 					
 					var column:IAttributeColumn = dgc.attrColumn;
 					var columnName:String = columns.getName(column);
 					var sessionedWidth:LinkableString = columnWidths.requestObject(columnName, LinkableString, false);
 					
-					if (isNaN(width) || width <= 5) // this happens when a column is stretched all the way to the right
-						width = _minSuggestedColumnSize;	
+					if (isNaN(colWidth) || width <= 5) // this happens when a column is stretched all the way to the right
+						colWidth = _minSuggestedColumnSize;	
 					
-					sessionedWidth.value = int(100 * width / dataGridColumnsWidth) + "%";
-					if (dgc.filterComponent)
-						dgc.filterComponent.width = dgc.width;
+					sessionedWidth.value = (100 * colWidth / dataGridColumnsWidth) + "%";
 				}
 			}
 			
@@ -661,7 +677,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						 }
 						 else{
 							 tempWidth = defaultValue;					
-							 sessionedWidth.value = int(100 * tempWidth/allotedDisplayWidth) + "%";
+							 sessionedWidth.value = (100 * tempWidth/allotedDisplayWidth) + "%";
 						 } 
 					 }
 					
@@ -872,7 +888,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:CheckBox id="showKeyColumnCheckBox" label="Show Key Column" change="handleKeyColumnCheckBox()"/>
 			<mx:HBox>
 				<mx:Label text="Number of Locked Columns"/>
-				<mx:NumericStepper id="numLockedColumns" minimum="0" maximum="{dataGrid.columns.length}" 
+				<mx:NumericStepper id="numLockedColumns" minimum="0" 
 								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value');"/>	
 			</mx:HBox>
 			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="Columns"/>

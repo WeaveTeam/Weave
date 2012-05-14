@@ -77,7 +77,7 @@
 			private static var _staticInstance:AddDataSourcePanel = null;
 			public static function showAsPopup():void
 			{
-				_staticInstance = PopUpManager.createPopUp(Application.application as DisplayObject, AddDataSourcePanel, false) as AddDataSourcePanel;
+				_staticInstance = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, AddDataSourcePanel, false) as AddDataSourcePanel;
 				
 				PopUpManager.centerPopUp(_staticInstance);
 			}

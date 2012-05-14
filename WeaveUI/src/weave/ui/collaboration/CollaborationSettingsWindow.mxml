@@ -125,7 +125,7 @@
 				}
 				if( Weave.properties.collabServerIP.value == "" || 
 					Weave.properties.collabServerName.value == "" || 
-					Weave.properties.collabServerRoomToJoin.value == "" || 
+					Weave.properties.collabServerRoom.value == "" || 
 					Weave.properties.collabServerPort.value ==  "" )
 				{
 					Alert.show("There is an error with the server properties.", "Error");

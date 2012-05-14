@@ -26,10 +26,10 @@ package weave.ui
 	import flash.geom.Point;
 	
 	import mx.controls.Menu;
-	import mx.core.Application;
 	import mx.core.UIComponent;
 	import mx.events.MenuEvent;
 	
+	import weave.api.WeaveAPI;
 	import weave.primitives.Bounds2D;
 	
 	/**
@@ -61,7 +61,7 @@ package weave.ui
 			_uiParent.addEventListener(type, closeSubMenu);
 			
 			tabEnabled = false;
-			owner = DisplayObjectContainer(Application.application);
+			owner = DisplayObjectContainer(WeaveAPI.topLevelApplication);
 			showRoot = false; //test this
 		}
 		
@@ -151,7 +151,7 @@ package weave.ui
 		{
 			var menuLocation:Point = _uiParent.contentToGlobal(new Point(0,_uiParent.height));
 			
-			var stage:Stage = Application.application.stage;
+			var stage:Stage = WeaveAPI.topLevelApplication.stage;
 			var tempBounds:Bounds2D = new Bounds2D();
 			tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
 			

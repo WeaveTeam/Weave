@@ -51,8 +51,8 @@
 					<ui:CustomComboBox change="handleKeyColumnChange()" id="sqlSecondaryKeyColumnCombo" dataProvider="{tableSelector.columns}" toolTip="Select a secondary key column for use with the Dimension Slider"/>
 				</ui:Indent>
 				
-				<mx:CheckBox id="generateFilterColumns" label="Generate filtered column queries" selected="false"/>					
-				<ui:IndentTextInput visible="{generateFilterColumns.selected}"
+				<mx:CheckBox id="generateFilterColumnsCheckBox" label="Generate filtered column queries" selected="false" change="handleKeyColumnChange();"/>
+				<ui:IndentTextInput visible="{generateFilterColumnsCheckBox.selected}"
 							paddingLeft="{paddingIndent}"
 							grouped="false"
 							label="Columns to use as filters"
@@ -92,12 +92,20 @@
 				keyColumnComboBox.errorString = '';
 				sqlSecondaryKeyColumnCombo.errorString = '';
 				
+				if (generateFilterColumnsCheckBox.selected)
+				{
+					finishEnabled = true;
+					nextEnabled = true;
+					return;
+				}
+				
 				finishEnabled = false;
 				var query:DelayedAsyncInvocation = AdminInterface.instance.checkKeyColumnForSQLImport(
 					tableSelector.activeSchema,
 					tableSelector.activeTable,
 					keyColumnComboBox.selectedLabel,
-					secondaryKeyColumnCheckBox.selected? sqlSecondaryKeyColumnCombo.selectedLabel:null);
+					secondaryKeyColumnCheckBox.selected ? sqlSecondaryKeyColumnCombo.selectedLabel : null
+				);
 				
 				query.addAsyncResponder(handleCheckResult,handleFaultCheck);
 				
@@ -129,7 +137,7 @@
 			override public function finish():void
 			{
 				var filterColumns:Array = null;
-				if (generateFilterColumns.selected && filterColumnsInput.text)
+				if (generateFilterColumnsCheckBox.selected && filterColumnsInput.text)
 					filterColumns = WeaveAPI.CSVParser.parseCSV(filterColumnsInput.text)[0];
 				var query:DelayedAsyncInvocation = AdminInterface.instance.addConfigDataTableFromDatabase(
 						tableSelector.activeSchema,
