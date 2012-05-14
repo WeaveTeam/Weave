@@ -399,13 +399,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(dataGrid.visibleLockedColumns && lockedColumns.value == 0 && dataGrid.visibleLockedColumns.length != 0)
 					validateNow();
 				
+				var item:Object;
+				var isSelected:Dictionary = new Dictionary(true);
+				for each (item in dataGrid.selectedItems)
+					isSelected[item] = true;
+				
+				var changeDetected:Boolean = false;
 				var selectedItems:Array = [];
-				for each (var item:Object in dataGrid.dataProvider)
+				for each (item in dataGrid.dataProvider)
 				{
 					if (_selection.containsKey(item as IQualifiedKey))
+					{
+						if (!isSelected[item])
+							changeDetected = true;
 						selectedItems.push(item);
-				}	
-				dataGrid.selectedItems = selectedItems;				
+					}
+				}
+				if (selectedItems.length != dataGrid.selectedItems.length)
+					changeDetected = true;
+				
+				if (changeDetected)
+					dataGrid.selectedItems = selectedItems;				
 			}
 			
 			
