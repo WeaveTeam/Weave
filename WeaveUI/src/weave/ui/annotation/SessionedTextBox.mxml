@@ -350,7 +350,7 @@
 				
 				// get text format from gui
 				var f:TextFormat = new TextFormat();
-				f.font = fontControls.fontFamilyCombo.selectedItem as String;
+				f.font = fontControls.fontFamilyCombo.selectedLabel;
 				f.size = fontControls.fontSizeCombo.selectedItem;
 				f.color = fontControls.colorPicker.selectedColor;
 				f.bold = fontControls.boldButton.selected;
@@ -373,7 +373,6 @@
 				if( beginIndex == getTextField().caretIndex && endIndex == getTextField().caretIndex )
 				{
 					getTextField().defaultTextFormat = f;
-					textArea.setStyle("fontFamily", fontControls.fontFamilyCombo.selectedLabel);
 				}
 				else
 				{
