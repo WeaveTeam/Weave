@@ -24,6 +24,8 @@ package weave.data.ColumnReferences
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.IChildListCallbackInterface;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
@@ -58,7 +60,11 @@ package weave.data.ColumnReferences
 			// If there is no data source name, trigger callbacks when the list of global objects changes.
 			// This is so global column objects can be detected.
 			if (!dataSourceName.value)
-				getCallbackCollection(this).triggerCallbacks();
+			{
+				var clc:IChildListCallbackInterface = WeaveAPI.globalHashMap.childListCallbacks;
+				if (clc.lastObjectAdded is IAttributeColumn || clc.lastObjectRemoved is IAttributeColumn)
+					getCallbackCollection(this).triggerCallbacks();
+			}
 		}
 		
 		private const dynamicDataSource:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IDataSource));
