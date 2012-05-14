@@ -92,7 +92,10 @@ package weave.data.ColumnReferences
 		
 		private function updateGlobalName():void
 		{
-			dynamicDataSource.globalName = dataSourceName.value;
+			if (dataSourceName.value)
+				dynamicDataSource.globalName = dataSourceName.value;
+			else
+				dynamicDataSource.removeObject();
 		}
 
 		/**
