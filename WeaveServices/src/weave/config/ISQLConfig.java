@@ -27,9 +27,11 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.w3c.dom.Document;
 
@@ -90,7 +92,11 @@ public abstract class ISQLConfig
         public abstract Integer addEntity(Integer type_id, Map<String,String> properties) throws RemoteException;
         public abstract void removeEntity(Integer id) throws RemoteException;
         public abstract void updateEntity(Integer id, Map<String,String> properties) throws RemoteException;
-        public abstract Collection<DataEntity> findEntities(Map<String,String> properties) throws RemoteException;
+        public Collection<DataEntity> findEntities(Map<String,String> properties) throws RemoteException
+        {
+            return findEntities(properties, -1);
+        }
+        public abstract Collection<DataEntity> findEntities(Map<String,String> properties, Integer type_id) throws RemoteException;
         public abstract Collection<DataEntity> getEntities(Collection<Integer> ids) throws RemoteException;
         public abstract Collection<DataEntity> getEntitiesByType(Integer id) throws RemoteException;
         public abstract void addChild(Integer child_id, Integer parent_id) throws RemoteException;
@@ -229,7 +235,7 @@ public abstract class ISQLConfig
 		static public final String NAME = "name";
 		static public final String KEYTYPE = "keyType";
 		static public final String DATATYPE = "dataType";
-		static public final String DATATABLE = "dataTable";
+		static public final String DATATABLE = "dataTable"; /* Deprecated */
 		static public final String PROJECTION = "projection";
 		static public final String YEAR = "year";
 		static public final String CATEGORY_ID = "category_id";
@@ -290,15 +296,28 @@ public abstract class ISQLConfig
         /* For cases where the config API isn't sufficient. TODO */
         public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params)
         {
+            return filterEntities(entities, params, -1);
+        }
+        public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params, Integer type_id)
+        {
             List<DataEntity> result = new LinkedList<DataEntity>();
             for (DataEntity entity : entities)
             {
-                boolean match = false;
+                if (type_id != -1 && type_id != entity.type)
+                    continue;
+                boolean match = true;
                 for (Entry<String,String> entry : params.entrySet())
                 {
-                    
+                    if (params.get(entry.getKey()) != entry.getValue())
+                    {
+                        match = false;
+                        break;
+                    }
                 }
+                if (match)
+                    result.add(entity);
             }
+            return result;
         }
         public DataEntity()
         {

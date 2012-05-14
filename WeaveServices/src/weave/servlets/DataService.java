@@ -315,20 +315,30 @@ public class DataService extends GenericServlet
 	public AttributeColumnDataWithKeys getAttributeColumn(Map<String, String> params)
 		throws RemoteException
 	{
-		String dataTableName = params.get(PublicMetadata.DATATABLE);
 		String attributeColumnName = params.get(PublicMetadata.NAME);
 
 		// remove min,max,sqlParams -- do not use them to query the config
 		String paramMinStr = params.remove(PublicMetadata.MIN);
 		String paramMaxStr = params.remove(PublicMetadata.MAX);
 		String sqlParams = params.remove(PrivateMetadata.SQLPARAMS);
+		String dataTableName = params.get(PublicMetadata.DATATABLE); /* We don't rely on this field anymore. */
 
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		
-                DataEntity tmpinfo = new DataEntity();
-                tmpinfo.publicMetadata = params;
-		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findDataEntity(tmpinfo));
+
+		/* Find what DataTable ID we're looking for. */
+                String tableId = null;
+                Map<String,String> tableParams = new HashMap<String,String>();
+                tableParams.put(PublicMetadata.TITLE, dataTableName);
+                List<DataEntity> tableList = new ArrayList<DataEntity>(config.findEntities(params, DataEntity.MAN_TYPE_DATATABLE));
+                if (tableList.size() > 1)
+                    throw new RemoteException(String.format("Multiple datatable matches for \"%s\"", dataTableName));
+                else if (tableList.size() == 0)
+                    throw new RemoteException(String.format("Could not find datatable \"%s\"", dataTableName));
+                else
+                    tableId = String.format("%d", tableList.get(0).id);
+                params.put(PublicMetadata.DATATABLE_ID, tableId); 
+		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(params));
 		
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
@@ -486,9 +496,7 @@ public class DataService extends GenericServlet
 	{
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-                DataEntity tmpinfo = new DataEntity();
-                tmpinfo.publicMetadata = params;
-		List<DataEntity> infoList = config.findDataEntity(tmpinfo);
+		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(params));
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		if (infoList.size() > 1)
@@ -516,9 +524,8 @@ public class DataService extends GenericServlet
 		ISQLConfig config = configManager.getConfig();
 		Map<String,String> publicMetadataFilter = new HashMap<String,String>();
 		publicMetadataFilter.put(PublicMetadata.NAME, geometryCollectionName);
-                DataEntity tmpinfo = new DataEntity();
-                tmpinfo.publicMetadata = publicMetadataFilter;
-		List<DataEntity> infoList = config.findDataEntity(tmpinfo);
+
+		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(publicMetadataFilter));
 		if (infoList.size() == 1)
 			return getGeometryStreamTileDescriptors(infoList.get(0).id);
 		throw new RemoteException(String.format("%s matches for geometry collection \"%s\"", infoList.size(), geometryCollectionName));
@@ -529,7 +536,7 @@ public class DataService extends GenericServlet
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
 	
-		DataEntity info = config.getDataEntity(id);
+		DataEntity info = config.getEntity(id);
 		if (info == null)
 			throw new RemoteException(String.format("Geometry collection with id \"%s\" does not exist.", id));
 		
@@ -569,7 +576,7 @@ public class DataService extends GenericServlet
 		throws RemoteException
 	{
 		ISQLConfig config = configManager.getConfig();
-		DataEntity info = config.getDataEntity(geometryColumnId);
+		DataEntity info = config.getEntity(geometryColumnId);
 		if (info == null)
 			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryColumnId));
 	
@@ -601,7 +608,7 @@ public class DataService extends GenericServlet
 		throws RemoteException
 	{
 		ISQLConfig config = configManager.getConfig();
-		DataEntity info = config.getDataEntity(geometryColumnId);
+		DataEntity info = config.getEntity(geometryColumnId);
 		if (info == null)
 			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryColumnId));
 	

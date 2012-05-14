@@ -207,14 +207,15 @@ public class SQLConfig
         {
             return getEntities(manifest.getByType(type_id));
         }
-        public Collection<DataEntity> findEntities(Map<String,String> properties) throws RemoteException
+        public Collection<DataEntity> findEntities(Map<String,String> properties, Integer type_id) throws RemoteException
         {
             /* Sift the properties into separate public and private components. */
             Map<String,String> publicprops = new HashMap<String,String>();
             Map<String,String> privateprops = new HashMap<String,String>();
             Set<Integer> publicmatches = null;
             Set<Integer> privatematches = null;
-            Set<Integer> match_ids = null;
+            Set<Integer> matches = null;
+            Set<Integer> type_matches = null;
 
             Map<Integer, Map<String,String>> publicresults = null;
             Map<Integer, Map<String,String>> privateresults = null;
@@ -235,22 +236,25 @@ public class SQLConfig
                 publicmatches = public_attributes.filter(publicprops);
             if (privateprops.size() > 0)
                 privatematches = private_attributes.filter(privateprops);
-
             /* Ick */
             if ((publicmatches != null) && (privatematches != null))
             {
                 publicmatches.retainAll(privatematches);
-                match_ids = publicmatches;
+                matches = publicmatches;
             }
             else if (publicmatches != null)
-                match_ids = publicmatches;
+                matches = publicmatches;
             else if (privatematches != null)
-                match_ids = privatematches;
+                matches = privatematches;
 
-            if (match_ids == null || match_ids.size() < 1)
+            if (matches == null || matches.size() < 1)
                 return new LinkedList<DataEntity>(); /* return an empty list */
             else
-                return getEntities(match_ids);
+            {
+                if (type_id != -1)
+                    matches.retainAll(getEntitiesByType(type_id));
+                return getEntities(matches);
+            }
         }
         public Collection<DataEntity> getEntities(Collection<Integer> ids) throws RemoteException
         {
