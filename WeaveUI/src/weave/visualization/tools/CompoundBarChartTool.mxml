@@ -121,7 +121,7 @@
 				}
 				if (columnsToInit.length > 0)
 					(initColumnDefaults as Function).apply(null, columnsToInit);
-				_plotter.heightColumns.addGroupedCallback(this,updateProbeColumns);
+				getCallbackCollection(_plotter).addGroupedCallback(this,updateProbeColumns);
 			}
 			
 			protected function creationComplete():void
@@ -492,9 +492,12 @@
 							liveDragging="true"/>
 			</ui:Indent>
 			
-			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to subset" 
-						 toolTip="Enables automatic zooming to the subset of data currently displayed"
+			<mx:CheckBox label="Zoom to subset (height)"
+						 toolTip="Enables automatic zooming to the subset of height data currently displayed"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>
+			<mx:CheckBox label="Zoom to subset (bars)"
+						 toolTip="Enables automatic zooming to the subset of bars currently displayed"
+						 creationComplete="linkBindableProperty(_plotter.zoomToSubsetBars, event.target, 'selected')"/>
 			<ui:ColorRampEditor id="cRampEditor" toolTip="The color ramp can only be set when more than one height column is specified."/>
 		</mx:VBox>
 	</ui:ControlPanel>

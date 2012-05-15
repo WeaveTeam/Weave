@@ -378,16 +378,43 @@ public class SQLUtils
 	}
 
 	/**
+	 * This will build a case sensitive compare expression out of two sql query expressions.
 	 * @param conn An SQL Connection.
-	 * @return The case-sensitive compare operator for the given connection.
+	 * @param expr1 The first SQL expression to be used in the comparison.
+	 * @param expr2 The second SQL expression to be used in the comparison.
+	 * @return A SQL expression comparing the two expressions using case-sensitive string comparison.
 	 */
-	public static String caseSensitiveCompareOperator(Connection conn) throws SQLException
+	public static String caseSensitiveCompare(Connection conn, String expr1, String expr2) throws SQLException
+	{
+		String operator;
+		if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
+			operator = "= BINARY";
+		else
+			operator = "=";
+		
+		return String.format(
+				"%s %s %s",
+				stringCast(conn, expr1),
+				operator,
+				stringCast(conn, expr2)
+			);
+	}
+	
+	/**
+	 * This will wrap a query expression in a string cast.
+	 * @param conn An SQL Connection.
+	 * @param queryExpression An expression to be used in a SQL Query.
+	 * @return The query expression wrapped in a string cast.
+	 */
+	private static String stringCast(Connection conn, String queryExpression) throws SQLException
 	{
 		if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
-		{
-			return "= BINARY";
-		}
-		return "=";
+			return String.format("cast(%s as char)", queryExpression);
+		if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(POSTGRESQL))
+			return String.format("cast(%s as varchar)", queryExpression);
+		
+		// dbms type not supported by this function yet
+		return queryExpression;
 	}
 	
 	/**
@@ -635,7 +662,7 @@ public class SQLUtils
 				String key = pair.getKey();
 				if( i > 0 )
 					whereQuery += " AND ";
-				whereQuery += quoteSymbol(conn, key) + caseSensitiveCompareOperator(conn) + " ?"; // case-sensitive
+				whereQuery += caseSensitiveCompare(conn, quoteSymbol(conn, key), "?");
 				i++;
 			}
 			if (whereQuery.length() > 0)
@@ -723,7 +750,7 @@ public class SQLUtils
 				String key = pair.getKey();
 				if( i > 0 )
 					whereQuery += " AND ";
-				whereQuery += quoteSymbol(conn, key) + caseSensitiveCompareOperator(conn) + " ?"; // case-sensitive
+				whereQuery += caseSensitiveCompare(conn, quoteSymbol(conn, key), "?"); // case-sensitive
 				i++;
 			}
 			if (whereQuery.length() > 0)
@@ -1329,7 +1356,7 @@ public class SQLUtils
 			{
 				if (i > 0)
 					query += " AND ";
-				query += SQLUtils.quoteSymbol(conn, params[i].getKey()) + " " + SQLUtils.caseSensitiveCompareOperator(conn) + " ?";
+				query += caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, params[i].getKey()), "?");
 			}
 			
 			cstmt = conn.prepareCall(query);

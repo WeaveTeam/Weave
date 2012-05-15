@@ -40,9 +40,14 @@ package weave.ui.CustomDataGrid
 	{
 		public function DataGridCellRenderer()
 		{
+		}
+		
+		override protected function createChildren():void
+		{
+			super.createChildren();
+			
 			addChild(lbl);
 			lbl.percentWidth = 100;
-			
 			horizontalScrollPolicy = "off";
 		}
 		
