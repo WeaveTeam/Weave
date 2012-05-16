@@ -289,6 +289,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				titleBar.setStyle("color", Weave.properties.panelTitleTextFormat.color.value);
 				
 				panelNeedsUpdate();
+				
+				//the focus goes back to the button after adding a node. This takes the cursor off the keyword text area.
+				//so focus is disabled
+				subMenuButton.focusEnabled = false;
 			}
 			
 			private function handleCreationComplete():void

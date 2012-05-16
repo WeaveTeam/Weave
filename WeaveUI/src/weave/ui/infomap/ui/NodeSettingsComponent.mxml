@@ -20,8 +20,6 @@ Info to provide a tooltip describing the node (like number of documents found)
 	addedToStage="if(sourcesGrid){sourcesGrid.refreshSourcesList();}if(feedTitle)feedTitle.text='';if(feedURL)feedURL.text='';"
 	>
 	<!--Non visual tags like Validator, Style,  etc should be added as the immediate children of the root mxml tag-->
-	<mx:Resize id="showListEffect" duration="500" target="{sourceBox}" heightTo="300"/>
-	<mx:Resize id="hideListEffect" duration="500" target="{sourceBox}" heightTo="0"/>
 	<mx:VBox paddingLeft="5" paddingTop="5" label="Basic">
 		<mx:HBox>
 			<mx:Label text="Edit Query: " fontWeight="bold" width="{_leftAlignWidth}"/>					
@@ -33,19 +31,25 @@ Info to provide a tooltip describing the node (like number of documents found)
 			<mx:ComboBox id="operator"/>
 		</mx:HBox>
 		
-		<mx:HBox>
+		<!--<mx:HBox>
 			<mx:Label text="Search in Node: " fontWeight="bold"  width="{_leftAlignWidth}"/>					
 			<mx:TextInput id="searchTextInput" keyUp="handleEnterKeyOnSearch(event)"/>
-		</mx:HBox>
+		</mx:HBox>-->
 		
 		<mx:HBox>
 			<mx:Label fontWeight="bold" text="Change Layout: "  width="{_leftAlignWidth}"/>			
 			<CustomComboBox id="layoutComboBox" change="handleLayoutChange()"/>
 		</mx:HBox>
-		<mx:Label fontWeight="bold" text="Sources to Query*"/>
+		<mx:HBox>
+			<mx:Label fontWeight="bold" text="Spacing: "  width="{_leftAlignWidth}"/>			
+			<mx:HSlider tickLength="0" tickThickness="0" minimum="-50" maximum="200" id="spacingSlider"
+						change="{(nodeHandler.layout.internalObject as IInfoMapNodeLayout).thumbnailSpacingValue = spacingSlider.value}" snapInterval="5" />
+		</mx:HBox>
+		
+		<!--<mx:Label fontWeight="bold" text="Sources to Query*"/>
 		<mx:List id="selectedSourcesList" selectable="true" allowMultipleSelection="true" width="50%"/>
 		<mx:Text fontSize="9" text="*if list is empty all available sources are queried."/>
-		<mx:Button label="Delete Selected Sources" click="removeSourceFromSelecedList()"/>
+		<mx:Button label="Delete Selected Sources" click="removeSourceFromSelecedList()"/>-->
 	</mx:VBox>
 
 	<mx:VBox label="Add Date Filter">
@@ -79,10 +83,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 		</mx:HBox>	
 		<mx:Label id="errorMsg" color="red" fontWeight="bold" text="Both fields are required." visible="false"/>
 		<!--<mx:Button id="sourcesListButton" label="Show Available Sources" click="handleSourceListClick()"/>-->
-		<mx:VBox id="sourceBox" height="100%" width="100%">
-			<ui:SourcesListComponent id="sourcesGrid" width="100%"/>
-			<mx:Button label="Add" click="addSelectedSources()"/>
-		</mx:VBox>
+		<ui:SourcesListComponent parentNode="{nodeHandler}" id="sourcesGrid" width="100%"/>
 	</mx:VBox>
 		 <mx:Script>
 			 <![CDATA[
@@ -150,7 +151,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 					startDateStr.addGroupedCallback(this,handleDateChange);
 					endDateStr.addGroupedCallback(this,handleDateChange);
 					
-					nodeHandler.node.sources.addGroupedCallback(this,handleSources,true);
+					
 					
 					nodeHandler.layout.addImmediateCallback(this,handleLayoutObjectChange,true);
 					
@@ -160,7 +161,10 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 private function handleLayoutObjectChange():void
 				 {
 					 if(nodeHandler.layout.internalObject)
+					 {
 					 	layoutComboBox.selectedLabel = (nodeHandler.layout.internalObject as IInfoMapNodeLayout).name;
+						spacingSlider.value = (nodeHandler.layout.internalObject as IInfoMapNodeLayout).thumbnailSpacingValue;									 
+					 }
 				 }
 				 
 				 // we only want to make a query if both dates are set. 
@@ -367,32 +371,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 					}
 				 }*/ 
 				 
-				private function  addSelectedSources():void
-				{
-					var selectedSources:Dictionary = sourcesGrid.selectedSources;
-					
-					var selectedSourcesArray:Array = new Array();
-					selectedSourcesArray.push([]);
-					
-					for (var key:String in selectedSources)
-					{
-						selectedSourcesArray[0].push(key);
-					}
-					
-					var currentSourcesArray:Array = new Array();
-					
-					if(!nodeHandler.node.sources.value == '')
-						currentSourcesArray[0] = parser.parseCSV(nodeHandler.node.sources.value)[0];
-					
-					//if the source name already exists then ignore and return
-					for each(var src:String in currentSourcesArray[0])
-					{
-						if(!selectedSources[src])
-							selectedSourcesArray[0].push(key);
-					}
-					
-					nodeHandler.node.sources.value = parser.createCSV(selectedSourcesArray);
-				}
+				
 				 
 				private var parser:CSVParser = new CSVParser();
 				private function addSourceString(source:String):void
@@ -422,47 +401,28 @@ Info to provide a tooltip describing the node (like number of documents found)
 					nodeHandler.node.sources.value = parser.createCSV(sources);
 				}
 				
-				 private function handleSources():void
-				{
-					if(nodeHandler.node.sources.value == '')
-					{
-						selectedSourcesList.dataProvider = [];
-						return;	
-					}
-					
-					//TODO:return or continue??
-					if(!nodeHandler.node.sources.value)
-						return;						
-					
-					
-					var sourceNames:Array = parser.parseCSV(nodeHandler.node.sources.value)[0];
-					
-					if(selectedSourcesList.dataProvider)
-						(selectedSourcesList.dataProvider as ArrayCollection).removeAll();
-					
-					selectedSourcesList.dataProvider = sourceNames;
-				}
+				
 				 
 				
-				private function removeSourceFromSelecedList():void
-				{
-					var sourcesToRemove:Array = selectedSourcesList.selectedItems;
-					
-					var currentSources:Array = parser.parseCSV(nodeHandler.node.sources.value)[0];
-					
-					var temp:Array = new Array();
-					temp.push([]);
-					
-					for each(var source:String in currentSources)
-					{
-						if(sourcesToRemove.indexOf(source) == -1)
-						{
-							temp[0].push(source);
-						}
-					}
-					
-					nodeHandler.node.sources.value = parser.createCSV(temp) ;
-				}
+//				private function removeSourceFromSelecedList():void
+//				{
+//					var sourcesToRemove:Array = selectedSourcesList.selectedItems;
+//					
+//					var currentSources:Array = parser.parseCSV(nodeHandler.node.sources.value)[0];
+//					
+//					var temp:Array = new Array();
+//					temp.push([]);
+//					
+//					for each(var source:String in currentSources)
+//					{
+//						if(sourcesToRemove.indexOf(source) == -1)
+//						{
+//							temp[0].push(source);
+//						}
+//					}
+//					
+//					nodeHandler.node.sources.value = parser.createCSV(temp) ;
+//				}
 				 
 			 ]]>
 		 </mx:Script>

@@ -5,28 +5,50 @@
 	<mx:Label text="Select from current sources"/>
 	<mx:DataGrid itemClick="handleItemClick(event)" selectable="true" id="sourcesList" width="100%">
 		<mx:columns>
-			<mx:DataGridColumn width="50" dataField="0" sortDescending="false" headerText="Select">
+			<mx:DataGridColumn sortCompareFunction="handleBooleanSort" id="sourceCheckBox" width="50" dataField="0" headerText="Select">
 			<mx:itemRenderer>
 				<mx:Component>
-					<mx:CheckBox paddingLeft="5" dataChange="selected=data[0]" change="outerDocument.handleCheckBoxChange(event,data)"/>
+					<mx:CheckBox enabled="{outerDocument.editable}" paddingLeft="5" dataChange="selected=data[0]" change="outerDocument.handleCheckBoxChange(event,data)"/>
 				</mx:Component>
 			</mx:itemRenderer>
 			</mx:DataGridColumn>
-			<mx:DataGridColumn dataField="1" sortDescending="true" headerText="Title"/>
+			<mx:DataGridColumn dataField="1" headerText="Title"/>
 			<mx:DataGridColumn dataField="2" headerText="URL"/>
 		</mx:columns>
 	</mx:DataGrid>
+	<mx:Button label="Edit" id="editButton" click="addSelectedSources()"/>
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
+			import mx.events.DataGridEvent;
+			import mx.utils.ObjectUtil;
+			
+			import weave.data.CSVParser;
 			import weave.ui.infomap.admin.InfoMapAdminInterface;
+			import weave.ui.infomap.layout.NodeHandler;
+			
+			
+			private var _parentNode:NodeHandler = null;
+			[Inspectable]
+			public function set parentNode(object:NodeHandler):void
+			{
+				_parentNode = object;
+				_parentNode.node.sources.addGroupedCallback(this,handleSources,true);
+			}
+			
 			
 			public var selectedSources:Dictionary = new Dictionary();
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				refreshSourcesList();
+				sourcesList.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, 0, null, 0, null, null, 0));
 			}
 			
+			[Bindable]
+			public var editable:Boolean = false;
 			public function refreshSourcesList():void
 			{
 				var sources:Array = new Array();
@@ -39,6 +61,31 @@
 				}
 				
 				sourcesList.dataProvider = sources;
+				
+				
+				//force sort by selected sources
+//				sourcesList.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, 0, null, 0, null, null, 0));
+//				sourcesList.invalidateDisplayList();
+//				sourcesList.invalidateList();
+//				sourcesList.invalidateProperties();
+//				(sourcesList.dataProvider as ArrayCollection).refresh();
+			}
+
+			private function sortBySelected():void
+			{
+				var dp:ArrayCollection = sourcesList.dataProvider as ArrayCollection;
+				var sort:Sort = new Sort();
+				var sortF:SortField = new SortField("0",true,false);
+				sortF.descending = true;
+				sort.fields = [sortF];
+				dp.sort = sort;
+				dp.refresh();
+			}
+			
+			private function handleBooleanSort(typeOne:Object, typeTwo:Object):int
+			{
+				var result:int = ObjectUtil.stringCompare(String(typeOne[0]),String(typeTwo[0]));
+				return result;
 			}
 			
 			private function handleItemClick(event:Event):void
@@ -65,6 +112,57 @@
 				//* Read the Recycling Renderers section in this page: http://www.adobe.com/devnet/flex/articles/itemrenderers_pt1.html
 				
 			}
+			
+			private var parser:CSVParser = new CSVParser();
+			private function  addSelectedSources():void
+			{
+				
+				if(editButton.label == 'Edit')
+				{
+					editable = true;
+					editButton.label = 'Done';
+					return;
+				}
+				
+				var selectedSourcesArray:Array = new Array();
+				selectedSourcesArray.push([]);
+				
+				for (var key:String in selectedSources)
+				{
+					selectedSourcesArray[0].push(key);
+				}
+				
+				_parentNode.node.sources.value = parser.createCSV(selectedSourcesArray);
+				editable = false;
+				editButton.label = 'Edit';
+			}
+			
+			private function handleSources():void
+			{
+				if(!_parentNode.node.sources.value)
+					return;						
+				
+				
+				var sourceNames:Array = parser.parseCSV(_parentNode.node.sources.value)[0];
+				
+				var allSources:Array = (sourcesList.dataProvider as ArrayCollection).source;
+				
+				for each (var sourceName:String in sourceNames)
+				{
+					for(var i:int = 0; i<allSources.length; i++)
+					{
+						if(sourceName == allSources[i][1])
+						{
+							allSources[i][0] = true;
+							selectedSources[sourceName] = true;
+							break;
+						}
+					}
+				}
+				sortBySelected();
+			}
+			
+			
 		]]>
 	</mx:Script>
 </mx:VBox>

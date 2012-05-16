@@ -18,6 +18,7 @@ package weave.ui.infomap.layout
 	{
 		public function RadialLayout()
 		{
+			thumbnailSpacing.addGroupedCallback(this,function():void{plotThumbnails(_lastThumbnailsPlotted);});
 		}
 		
 		public function get name():String
@@ -25,7 +26,7 @@ package weave.ui.infomap.layout
 			return 'Radial';
 		}
 		
-		public const radius:LinkableNumber = registerLinkableChild(this,new LinkableNumber(100));
+//		public const radius:LinkableNumber = registerLinkableChild(this,new LinkableNumber(100));
 		
 		private var _parentNodeHandler:NodeHandler;
 		public function set parentNodeHandler(value:NodeHandler):void
@@ -42,16 +43,27 @@ package weave.ui.infomap.layout
 				return;
 			graphics.lineStyle(0,0,0);
 			graphics.beginFill(0,0);
-			graphics.drawCircle(0,0,radius.value);
+			graphics.drawCircle(0,0,thumbnailSpacing.value);
 			
 			_parentNodeHandler.nodeBase.keywordTextArea.text = _parentNodeHandler.node.keywords.value;
 			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.node.keywords.value;
-			_parentNodeHandler.nodeBase.x = - (radius.value/2) - 20; //TODO: the value 20 should be replaced by an offset
+			_parentNodeHandler.nodeBase.x = - (thumbnailSpacing.value/2) - 20; //TODO: the value 20 should be replaced by an offset
 			_parentNodeHandler.nodeBase.keywordTextArea.setStyle("textAlign","center");
 			
 			baseLayoutDrawn = true;
 		}
 		
+		private var _lastThumbnailsPlotted:Array = [];
+		
+		public const thumbnailSpacing:LinkableNumber = registerLinkableChild(this,new LinkableNumber(100));
+		public function get thumbnailSpacingValue():Number
+		{
+			return thumbnailSpacing.value;
+		}
+		public function set thumbnailSpacingValue(value:Number):void
+		{
+			thumbnailSpacing.value = value;
+		}
 		
 		
 		private var thumbnailSize:int = 25;
@@ -62,6 +74,8 @@ package weave.ui.infomap.layout
 			//don't plot thumbnails till the base layout has been drawn
 			if(!baseLayoutDrawn)
 				return;
+			_lastThumbnailsPlotted = thumbnails;
+			
 			
 			var centerPoint:Point = new Point(_parentNodeHandler.nodeBase.x+ _parentNodeHandler.nodeBase.width/2,_parentNodeHandler.nodeBase.height/2);
 			
@@ -89,7 +103,7 @@ package weave.ui.infomap.layout
 				}
 			}
 			
-			var location:Array = getNPointsOnCircle(centerPoint,radius.value,temp.length);	
+			var location:Array = getNPointsOnCircle(centerPoint,thumbnailSpacing.value,temp.length);	
 			
 			for(var j:int=0; j<temp.length ;j++)
 			{

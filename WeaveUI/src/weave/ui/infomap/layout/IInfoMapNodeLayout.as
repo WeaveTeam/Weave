@@ -30,5 +30,13 @@ package weave.ui.infomap.layout
 		 * This function will plot the thumbnails based on a layout algorithm
 		 **/
 		function plotThumbnails(thumbnails:Array,reDraw:Boolean=false):void;
+		/**
+		 *This function returns the value of the thumbnailSpacing
+		 * @return 
+		 * 
+		 */		
+		function get thumbnailSpacingValue():Number;
+		
+		function set thumbnailSpacingValue(value:Number):void;
 	}
 }

@@ -233,6 +233,7 @@
 				createAndSendQuery();
 				
 				
+				
 				node.detectQueryChange(handleThumbnails);
 				
 			}
@@ -446,7 +447,7 @@
 					positionThumbnails();
 			}
 			
-			private var thumbnailsToPlotArray:Array = [];
+			public var thumbnailsToPlotArray:Array = [];
 			
 			/**
 			 * This function goes through the list of thumbnails and adds the ones included in the subset to an array.
@@ -565,6 +566,11 @@
 				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray,true);
 			}
 			
+			private function handleSpacingChange():void
+			{
+				if(layout.internalObject)
+					(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray,true);
+			}
 			
 			private var _searchKeySet:KeySet = new KeySet();
 			//sends a query to solr for the search keywords filtrered by document links belonging to this node

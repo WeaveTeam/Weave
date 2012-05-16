@@ -12,8 +12,8 @@
 	</mx:HBox>
 	<!--when TextImput is used, the text cursor is always displayed along with the hand cursor-->
 	<mx:TextArea color="blue" textDecoration="underline" id="mapNameTextArea" editable="false" selectable="false" textAlign="center" mouseOver="handleMouseOver()"
-				  mouseOut="handleMouseOut()" mouseDown="handleMouseDown()"  mouseUp="handleMouseUp()"
-				  />
+				  mouseOut="handleMouseOut()" mouseDown="handleMouseDown()"  mouseUp="handleMouseUp()" keyDown="handleKeyUp(event)"
+				  focusAlpha="0"/>
 	<mx:Glow id="borderGlow" 
 			 alphaFrom="0.0" alphaTo="0.1"   
 			 blurXFrom="10.0" blurYFrom="10.0" 
@@ -65,6 +65,14 @@
 				linkBindableProperty(yPos,this,"y");
 				linkBindableProperty(mapName,mapNameTextArea,"text");
 				infoImg.toolTip= "Link to Infomap : " + mapName.value;
+				
+				if(!mapNameTextArea.text)
+				{
+					mapNameTextArea.selectable = true;
+					mapNameTextArea.editable = true;
+					mapNameTextArea.setFocus();
+					mapNameTextArea.setSelection(0,0);
+				}
 			}
 			
 			private function changeToolTip():void
@@ -110,7 +118,16 @@
 				
 			}
 			
-			
+			private function handleKeyUp(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER)
+				{
+					event.preventDefault();
+					mapName.value = mapNameTextArea.text;
+					mapNameTextArea.editable = false;
+					mapNameTextArea.selectable = false;
+				}
+			}
 			
 			private function openMap():void
 			{

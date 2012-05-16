@@ -6,6 +6,8 @@ package weave.ui.infomap.layout
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.registerLinkableChild;
+	import weave.core.LinkableNumber;
 	import weave.data.KeySets.KeyFilter;
 	import weave.ui.infomap.ui.DocThumbnailComponent;
 	
@@ -42,6 +44,16 @@ package weave.ui.infomap.layout
 		
 		private var thumbnailSize:int = 25;
 		private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
+		
+		public const thumbnailSpacing:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10));
+		public function get thumbnailSpacingValue():Number
+		{
+			return thumbnailSpacing.value;
+		}
+		public function set thumbnailSpacingValue(value:Number):void
+		{
+			thumbnailSpacing.value = value;
+		}
 		
 		public function plotThumbnails(thumbnails:Array,reDraw:Boolean=false):void
 		{

@@ -6,6 +6,8 @@ package weave.ui.infomap.layout
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.registerLinkableChild;
+	import weave.core.LinkableNumber;
 	import weave.data.KeySets.KeyFilter;
 	import weave.ui.infomap.ui.DocThumbnailComponent;
 	
@@ -13,6 +15,7 @@ package weave.ui.infomap.layout
 	{
 		public function GridLayout()
 		{
+			thumbnailSpacing.addGroupedCallback(this,function():void{plotThumbnails(_lastThumbnailsPlotted);});
 		}
 		
 		public function get name():String
@@ -40,15 +43,26 @@ package weave.ui.infomap.layout
 			baseLayoutDrawn = true;
 		}
 		
+		public const thumbnailSpacing:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10));
+		public function get thumbnailSpacingValue():Number
+		{
+			return thumbnailSpacing.value;
+		}
+		public function set thumbnailSpacingValue(value:Number):void
+		{
+			thumbnailSpacing.value = value;
+		}
+		
 		private var thumbnailSize:int = 25;
 		private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 		
-		public function plotThumbnails(thumbnails:Array,reDraw:Boolean = false):void
+		private var _lastThumbnailsPlotted:Array = [];
+		public function plotThumbnails(thumbnails:Array,reDraw:Boolean=false):void
 		{
 			//don't plot thumbnails till the base layout has been drawn
 			if(!baseLayoutDrawn)
 				return;
-			
+			_lastThumbnailsPlotted = thumbnails;
 			
 			//this image is used to a show a tooltip of information about the node. 
 			//For now it shows the number of documents found.
@@ -106,9 +120,9 @@ package weave.ui.infomap.layout
 					thumbnail.xPos.value = nextX;
 					thumbnail.yPos.value = nextY;
 					
-					nextX = nextX + thumbnailSize + 10;
+					nextX = nextX + thumbnailSize + thumbnailSpacing.value;
 				}
-				nextY = nextY+ thumbnailSize + 10;
+				nextY = nextY+ thumbnailSize + thumbnailSpacing.value;
 			}
 			
 		}
