@@ -19,8 +19,6 @@
 
 package
 {
-	import flash.system.Security;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
@@ -74,6 +72,8 @@ package
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.WMSPlotter;
+	import weave.visualization.tools.HistogramTool;
+	import weave.visualization.tools.HistogramToolEditor;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -118,6 +118,7 @@ package
 		EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
 		
 		EditorManager.registerEditor(ColorRamp, ColorRampEditor);
+		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
 		
 		EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
 		
