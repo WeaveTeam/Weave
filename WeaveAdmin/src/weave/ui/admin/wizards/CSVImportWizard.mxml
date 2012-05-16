@@ -34,7 +34,7 @@
 			<ui:TextInputWithPrompt id="csvFileNameInput" prompt="Select a CSV file." change="enableAllWidgets(csvFileNameInput.text.length > 0)" editable="true"/>
 			<mx:Button label="Upload File" click="browseAndUpload();"/>
 			<mx:Button label="Choose File on Server" click="openServerBrowser();" />
-			<mx:Text text="{fileStatus.text}" id="fileStatus"/>
+			<mx:Text id="fileStatus"/>
 		</ui:Indent>
 		<mx:VBox visible="{csvFileNameInput.asTextInput().text.length > 0}">
 			<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="false" tableOverwriteCheckVisible="{AdminInterface.instance.currentUserIsSuperuser}"/>
@@ -69,7 +69,7 @@
 			<mx:Label text="What do these keys correspond to?"/>
 			<admin:GeometryCollectionDialog id="geometrySelector"
 											paddingLeft="{paddingIndent}"
-											keyType="{dataTableNameInput.asTextInput().text}"/>
+											defaultKeyType="{dataTableNameInput.asTextInput().text}"/>
 			
 			<mx:CheckBox id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
 			<ui:Indent label="Secondary key column"
