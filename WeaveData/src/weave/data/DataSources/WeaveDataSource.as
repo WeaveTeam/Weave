@@ -227,7 +227,7 @@ package weave.data.DataSources
 		
 		private function handleGetDataServiceMetadata(event:ResultEvent, token:Object = null):void
 		{
-			if (objectWasDisposed(this))
+			if (objectWasDisposed(this) || _attributeHierarchy.value != null)
 				return;
 			
 			try
