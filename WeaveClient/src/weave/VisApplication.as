@@ -1037,6 +1037,17 @@ package weave
 			var click:Function;
 			var enable:*;
 			
+			// edit
+			label = "Edit This Window";
+			click = function():void {
+					if (topPanel)
+						topPanel.toggleControlPanel();
+				};
+			enable = function():Boolean {
+					return (topPanel && topPanel.controlPanel);
+				};
+			_weaveMenu.addMenuItemToMenu(_windowMenu, new WeaveMenuItem(label, click, null, enable) );
+			
 			// minimize
 			label = "Minimize This Window";
 			click = function():void {

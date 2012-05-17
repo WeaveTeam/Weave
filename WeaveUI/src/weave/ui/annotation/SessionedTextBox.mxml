@@ -159,8 +159,7 @@
 				super.childrenCreated();
 				
 				linkBindableProperty(enableBorders, borderCheckBox, 'selected');
-				linkBindableProperty(draggable, moveResizeCheckBox, 'selected');
-				linkBindableProperty(resizeable, moveResizeCheckBox, 'selected');
+				linkBindableProperty(enableMoveResize, moveResizeCheckBox, 'selected');
 				
 				linkBindableProperty(backgroundAlpha, backgroundAlphaSlider, "value");
 				linkBindableProperty(backgroundColor, backgroundColorPicker, "selectedColor");
