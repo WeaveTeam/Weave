@@ -34,7 +34,10 @@
 				 horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2" paddingRight="2"
 				 paddingTop="2" verticalScrollPolicy="off">
 
-			<mx:CheckBox id="lockCheckBox" label="Show window borders"/>
+			<mx:HBox>
+				<mx:CheckBox id="borderCheckBox" label="Show window borders"/>
+				<mx:CheckBox id="moveResizeCheckBox" label="Allow moving and resizing"/>
+			</mx:HBox>
 			
 			<mx:HBox width="100%" horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2"
 					 paddingRight="2" paddingTop="2" verticalScrollPolicy="off">
@@ -155,7 +158,10 @@
 				fontControls.initialize();
 				super.childrenCreated();
 				
-				linkBindableProperty(enableBorders, lockCheckBox, 'selected');
+				linkBindableProperty(enableBorders, borderCheckBox, 'selected');
+				linkBindableProperty(draggable, moveResizeCheckBox, 'selected');
+				linkBindableProperty(resizeable, moveResizeCheckBox, 'selected');
+				
 				linkBindableProperty(backgroundAlpha, backgroundAlphaSlider, "value");
 				linkBindableProperty(backgroundColor, backgroundColorPicker, "selectedColor");
 				linkBindableProperty(cornerRadius,    cornerRadiusSlider, "value" );

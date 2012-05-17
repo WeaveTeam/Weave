@@ -434,6 +434,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return false;
 			}
 			
+			/**
+			 * @TODO This should be a mode, not a one-time action.
+			 *       Use AdvancedDataGrid and lockedRowCount.
+			 *       The locked rows should also be sorted by the active sort column.
+			 *       We shouldn't be resetting the sort.
+			 */
 			private function moveSelectedToTop():void
 			{
 				//push selected Objects into an Array

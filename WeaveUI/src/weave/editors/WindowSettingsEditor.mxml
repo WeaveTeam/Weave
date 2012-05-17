@@ -38,7 +38,7 @@
 		<mx:VBox width="100%" height="100%">
 			<mx:CheckBox label="Show borders" toolTip="Selecting this option will turn the borders of this tool on or off"
 						 creationComplete="linkBindableProperty(_panel.enableBorders, event.target, 'selected');"/>
-			<mx:CheckBox label="Allow dragging" toolTip="Selecting this option will enable the user to move the tool by clicking on the header and dragging"
+			<mx:CheckBox label="Allow moving" toolTip="Selecting this option will enable the user to move the tool by clicking on the header and dragging"
 						 creationComplete="linkBindableProperty(_panel.draggable, event.target, 'selected')"/>
 			<mx:CheckBox label="Allow resizing" toolTip="Selecting will enable the user to resize this tool" 
 						 creationComplete="linkBindableProperty(_panel.resizeable, event.target, 'selected')"/>
