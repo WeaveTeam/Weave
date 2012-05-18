@@ -212,6 +212,7 @@
 				}
 				
 				_tempTextField.htmlText = htmlText.value; // use the textField temporarily for getTextFormat,setTextFormat
+				
 				// make sure the text between each pair of { and } brackets only has a single format.
 				var begin:int;
 				var end:int = 0;
@@ -235,7 +236,16 @@
 //					_tempTextField.replaceText(begin, end + 1, String(htmlTextFunction.apply()));
 				}
 				
-				htmlTextFunction.value = '`' + _tempTextField.htmlText.split('`').join('\\`') + '`';
+				try
+				{
+					// converting to XML and then toXMLString() will fix the problem where the "'" character is represented as "&apos;"
+					var xml:XML = XML(_tempTextField.htmlText);
+					htmlTextFunction.value = '`' + xml.toXMLString().split('`').join('\\`') + '`';
+				}
+				catch (error:Error)
+				{
+					reportError(error);
+				}
 				
 				//This is a hack to keep re-applying the currently selected text format.
 				applyTextFormat(new Event("LIST"));
