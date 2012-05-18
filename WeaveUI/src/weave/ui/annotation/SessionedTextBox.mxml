@@ -211,6 +211,9 @@
 					return;
 				}
 				
+				var selBegin:int = _tempTextField.selectionBeginIndex;
+				var selEnd:int = _tempTextField.selectionEndIndex;
+				
 				_tempTextField.htmlText = htmlText.value; // use the textField temporarily for getTextFormat,setTextFormat
 				
 				// make sure the text between each pair of { and } brackets only has a single format.
@@ -227,25 +230,22 @@
 						break;
 					
 					// make sure the text between begin & end only has a single format
-				 	var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
-					_tempTextField.setTextFormat(f, begin, end + 1);
+//				 	var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
+//					_tempTextField.setTextFormat(f, begin, end + 1);
+				 	_tempTextField.setSelection(begin, end + 1);
+					_tempTextField.replaceSelectedText(_tempTextField.text.substring(begin, end + 1));
 					
 //					// replace the text from { to }
 //					var script:String = _tempTextField.text.substring(begin + 1, end);
 //					htmlTextFunction.value = script;
 //					_tempTextField.replaceText(begin, end + 1, String(htmlTextFunction.apply()));
 				}
+			 	_tempTextField.setSelection(selBegin, selEnd);
 				
-				try
-				{
-					// converting to XML and then toXMLString() will fix the problem where the "'" character is represented as "&apos;"
-					var xml:XML = XML(_tempTextField.htmlText);
-					htmlTextFunction.value = '`' + xml.toXMLString().split('`').join('\\`') + '`';
-				}
-				catch (error:Error)
-				{
-					reportError(error);
-				}
+				var ht:String = _tempTextField.htmlText;
+				ht = ht.split('&apos;').join("'");
+				ht = ht.split('&quot;').join('"');
+				htmlTextFunction.value = '`' + ht.split('`').join('\\`') + '`';
 				
 				//This is a hack to keep re-applying the currently selected text format.
 				applyTextFormat(new Event("LIST"));
