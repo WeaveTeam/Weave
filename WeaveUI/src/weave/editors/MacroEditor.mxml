@@ -20,21 +20,23 @@
 		<mx:Script>
 			<![CDATA[
 				import mx.events.ListEvent;
-				import mx.managers.PopUpManager;
 				
-				import weave.api.WeaveAPI;
 				import weave.core.LinkableFunction;
 				import weave.ui.AlertTextBox;
 				import weave.ui.AlertTextBoxEvent;
-				import weave.visualization.tools.ScatterPlotTool;
+				import weave.utils.PopUpUtils;
+				
+				private var _textEdited:Boolean = false;
 				
 				override protected function childrenCreated():void
 				{
 					super.childrenCreated();
-					if( !(LinkableFunction.macros.getNames().length > 0) )
-						funcValues.editable = false;
-					else
-						funcValues.editable = true;
+					if( macroList.hashMap.getNames().length > 0 )
+					{
+						macroList.selectedIndex = 0;
+						funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+						funcValues_changeHandler(null);
+					}
 				}
 				
 				protected function applyEntry(event:MouseEvent):void
@@ -43,6 +45,7 @@
 					{
 						var funcToSave:LinkableFunction = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction);	
 						funcToSave.value = funcValues.text;
+						_textEdited = false;
 					}
 					
 				}
@@ -52,6 +55,17 @@
 					if( macroList.selectedIndex > -1)
 					{
 						LinkableFunction.macros.removeObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction));
+					}
+					if( macroList.hashMap.getNames().length > 0 )
+					{
+						macroList.selectedIndex = 0;
+						funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+						_textEdited = false;
+					}
+					else
+					{
+						_textEdited = false;
+						funcValues.text = "";
 					}
 				}
 				
@@ -74,22 +88,104 @@
 								box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkInput);
 							}
 						}
+						lastClickedMacro = macroList.selectedIndex;
 						var funcToSave:LinkableFunction = LinkableFunction.macros.requestObject(event.textInput, LinkableFunction, false);
-						funcValues.editable = true;
+						if( macroList.hashMap.getNames().length == 1 )
+						{
+							macroList.selectedIndex = 0;
+							lastClickedMacro = 0;
+							funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+						}
+						else
+						{
+							if( funcValues.text != "" && _textEdited == true )
+							{
+								PopUpUtils.confirm(
+									this,
+									"Save Changes?",
+									"The macro definition has been changed. Save changes?",
+									saveMacro, discardChanges,
+									"Save", "Discard"
+								);
+							}
+							macroList.selectedIndex = macroList.hashMap.getNames().length - 1;
+							if( _textEdited == false )
+								funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+						}
+						
 					}
 				}
 				
+				//Keeps track of perviously selected LinkableFunction.
+				private var lastClickedMacro:int = 0;
+				
 				protected function macroList_itemClickHandler(event:ListEvent):void
 				{
-					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+					if( macroList.selectedIndex > -1 )
+						funcValues.editable = true;
+					if( _textEdited == true && macroList.selectedIndex == lastClickedMacro && macroList.selectedIndex > -1)
+					{
+						return;
+					}
+					if( macroList.selectedIndex != lastClickedMacro && funcValues.text != "" && _textEdited == true)
+					{
+						PopUpUtils.confirm(
+							this,
+							"Save Changes?",
+							"The macro definition has been changed. Save changes?",
+							saveMacro, discardChanges,
+							"Save", "Discard"
+						);
+					}	
+					else
+					{
+						macroResult.text = "";
+						funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;					
+						lastClickedMacro = macroList.selectedIndex;
+						_textEdited = false;
+					}
+				}
+				
+				private function discardChanges():void
+				{
+					macroResult.text = "";
+					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;					
+					lastClickedMacro = macroList.selectedIndex;
+					_textEdited = false;
+				}
+				
+				private function saveMacro():void
+				{
+					macroResult.text = "";
+					var funcToSave:LinkableFunction = (macroList.hashMap.getObject(macroList.hashMap.getNames()[lastClickedMacro]) as LinkableFunction);	
+					funcToSave.value = funcValues.text;
+					_textEdited = false;
+					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;					
+					lastClickedMacro = macroList.selectedIndex;
+				}
+				
+				private function saveMacroandClose():void
+				{
+					var funcToSave:LinkableFunction = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction);	
+					funcToSave.value = funcValues.text;
+					_textEdited = false;
+					super.removePanel();
 				}
 				
 				protected function funcValues_changeHandler(event:Event):void
 				{
+					if( funcValues.text != "")
+						_textEdited = true;
 					try{
+						//This part of the code is inefficient. This constantly requests then destroys a LinkableFunction object, this quick fix was done to prevent
+						//the LinkableFunction used to test the output of whatever is typed in from appearing in the LinkableObjectList on the left side of the window.
 						var funcToSave:LinkableFunction = LinkableFunction.macros.requestObject("_internalTestFunc", LinkableFunction, false);
 						funcToSave.value = funcValues.text;
 						macroResult.text = LinkableFunction.evaluateMacro("_internalTestFunc");
+						LinkableFunction.macros.removeObject("_internalTestFunc");
+						macroList.selectedIndex = lastClickedMacro;
+						if( macroResult.text == "" )
+							macroResult.text = "Error.";
 					}
 					catch(e:Error)
 					{
@@ -97,6 +193,19 @@
 					}
 				}
 				
+				override public function removePanel():void
+				{
+					if( _textEdited == true && macroList.hashMap.getNames().length > 0 )
+						PopUpUtils.confirm(
+							this,
+							"Save Changes?",
+							"The macro definition has been changed. Save changes?",
+							saveMacroandClose, super.removePanel,
+							"Save", "Discard"
+						);
+					else
+						super.removePanel();
+				}
 			]]>
 		</mx:Script>
 </ui:DraggablePanel>
