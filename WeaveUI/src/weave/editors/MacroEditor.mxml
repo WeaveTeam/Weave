@@ -1,4 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<!---
+@author jfallon
+-->
 <ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute"
 				   width="400" height="300" title="Macro Editor" backgroundColor="#EFF4BC">
 	<mx:VBox height="100%" width="100%" paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
@@ -8,8 +32,11 @@
 			<mx:Button label="Add" height="100%" width="33%" click="newMacroEntry(event)"/>
 		</mx:HBox>
 	<mx:HDividedBox height="100%" width="100%">
-		<ui:LinkableObjectList id="macroList" height="100%" width="100%"
-						  	 hashMap="{LinkableFunction.macros}" itemClick="macroList_itemClickHandler(event)"/>
+		<mx:VBox height="100%" width="100%" >
+			<ui:LinkableObjectList id="macroList" height="100%" width="100%"
+						  		hashMap="{LinkableFunction.macros}" itemClick="macroList_itemClickHandler(event)" itemEditEnd="macroList_itemEditEndHandler(event)"/>
+			<mx:CheckBox id="overrideNames" label="Edit Macro Names" change="overrideNames_changeHandler(event)"/>
+		</mx:VBox>
 		<mx:VBox height="100%" width="100%">
 			<mx:TextArea id="funcValues" height="100%" width="100%" change="funcValues_changeHandler(event)"/>
 			<mx:Text text="Macro Result:" />
@@ -19,6 +46,7 @@
 	</mx:VBox>
 		<mx:Script>
 			<![CDATA[
+				import mx.controls.listClasses.ListData;
 				import mx.events.ListEvent;
 				
 				import weave.core.LinkableFunction;
@@ -206,6 +234,25 @@
 					else
 						super.removePanel();
 				}
+				
+				protected function overrideNames_changeHandler(event:Event):void
+				{
+					if(overrideNames.selected)
+						macroList.editable = true;
+					else
+						macroList.editable = false;
+				}
+				
+				protected function macroList_itemEditEndHandler(event:ListEvent):void
+				{
+					//This function will update the list with a new name, but the label isn't being properly written.
+					var newName:String = (event.target as LinkableObjectList).itemEditorInstance[(event.target as LinkableObjectList).editorDataField];
+					var list:LinkableObjectList = event.target as LinkableObjectList;
+					 if( list )
+						if( newName != macroList.hashMap.getNames()[event.rowIndex] )
+							callLater(macroList.hashMap.renameObject, [macroList.hashMap.getNames()[event.rowIndex], newName]);
+				}
+				
 			]]>
 		</mx:Script>
 </ui:DraggablePanel>
