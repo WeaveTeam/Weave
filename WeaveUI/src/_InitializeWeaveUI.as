@@ -19,8 +19,6 @@
 
 package
 {
-	import flash.system.Security;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
@@ -118,6 +116,7 @@ package
 		EditorManager.registerEditor(AxisLabelPlotter, AxisLabelPlotterEditor);
 		
 		EditorManager.registerEditor(ColorRamp, ColorRampEditor);
+//		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
 		
 		EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
 		

@@ -34,7 +34,10 @@
 				 horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2" paddingRight="2"
 				 paddingTop="2" verticalScrollPolicy="off">
 
-			<mx:CheckBox id="lockCheckBox" label="Show window borders"/>
+			<mx:HBox>
+				<mx:CheckBox id="borderCheckBox" label="Show window borders"/>
+				<mx:CheckBox id="moveResizeCheckBox" label="Allow moving and resizing"/>
+			</mx:HBox>
 			
 			<mx:HBox width="100%" horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2"
 					 paddingRight="2" paddingTop="2" verticalScrollPolicy="off">
@@ -155,7 +158,9 @@
 				fontControls.initialize();
 				super.childrenCreated();
 				
-				linkBindableProperty(enableBorders, lockCheckBox, 'selected');
+				linkBindableProperty(enableBorders, borderCheckBox, 'selected');
+				linkBindableProperty(enableMoveResize, moveResizeCheckBox, 'selected');
+				
 				linkBindableProperty(backgroundAlpha, backgroundAlphaSlider, "value");
 				linkBindableProperty(backgroundColor, backgroundColorPicker, "selectedColor");
 				linkBindableProperty(cornerRadius,    cornerRadiusSlider, "value" );
@@ -206,7 +211,11 @@
 					return;
 				}
 				
+				var selBegin:int = _tempTextField.selectionBeginIndex;
+				var selEnd:int = _tempTextField.selectionEndIndex;
+				
 				_tempTextField.htmlText = htmlText.value; // use the textField temporarily for getTextFormat,setTextFormat
+				
 				// make sure the text between each pair of { and } brackets only has a single format.
 				var begin:int;
 				var end:int = 0;
@@ -221,16 +230,22 @@
 						break;
 					
 					// make sure the text between begin & end only has a single format
-				 	var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
-					_tempTextField.setTextFormat(f, begin, end + 1);
+//				 	var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
+//					_tempTextField.setTextFormat(f, begin, end + 1);
+				 	_tempTextField.setSelection(begin, end + 1);
+					_tempTextField.replaceSelectedText(_tempTextField.text.substring(begin, end + 1));
 					
 //					// replace the text from { to }
 //					var script:String = _tempTextField.text.substring(begin + 1, end);
 //					htmlTextFunction.value = script;
 //					_tempTextField.replaceText(begin, end + 1, String(htmlTextFunction.apply()));
 				}
+			 	_tempTextField.setSelection(selBegin, selEnd);
 				
-				htmlTextFunction.value = '`' + _tempTextField.htmlText.split('`').join('\\`') + '`';
+				var ht:String = _tempTextField.htmlText;
+				ht = ht.split('&apos;').join("'");
+				ht = ht.split('&quot;').join('"');
+				htmlTextFunction.value = '`' + ht.split('`').join('\\`') + '`';
 				
 				//This is a hack to keep re-applying the currently selected text format.
 				applyTextFormat(new Event("LIST"));

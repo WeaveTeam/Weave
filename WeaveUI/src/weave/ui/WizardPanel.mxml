@@ -68,7 +68,6 @@
 			override protected function constructor():void
 			{
 				super.constructor();
-				resizeable.value = false;
 				minimizable.value = false;
 				maximizable.value = false;
 			}
