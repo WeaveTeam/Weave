@@ -26,6 +26,8 @@
 		 xmlns:settings="weave.ui.settings.*" layout="absolute">
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ListCollectionView;
+			import mx.events.ListEvent;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
@@ -39,6 +41,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableNumber;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
@@ -121,6 +124,7 @@
 			
 			private function updateProbeColumns():void
 			{
+				columnLabelList = _plotter.columns.getObjects();
 				if (includeToolAttributesInProbe.value)
 				{
 					visualization.additionalProbeColumns = _plotter.columns.getObjects(IAttributeColumn);
@@ -357,7 +361,7 @@
 				
 				_plotter.columns.addImmediateCallback(this, updateColumns, true);
 
-				labelPlotter.xScreenOffset.value=5;
+				labelPlotter.xScreenOffset.value = 5;
 				labelPlotter.hAlign.defaultValue.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
 				labelPlotter.hideOverlappingText.value = true;
 				linkSessionState(labelPlotter.dataY, labelPlotter.sortColumn);
@@ -395,6 +399,53 @@
 							break;
 						}
 					}
+				}
+			}
+			
+			[Bindable]
+			private var columnLabelList:Array = null;
+			
+			public const labelColumnChange:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), colListChange);
+			public const columnListSelection:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), colListChange);
+			
+			protected function colListChange():void
+			{
+				if( labelPlotter == null )
+					addLabelLayer();
+				if( labelColumnChange.value == true )
+				{
+					colList.enabled = true;
+					var _columns:Array = _plotter.columns.getObjects();
+					var x:AlwaysDefinedColumn = labelPlotter.dataX.requestLocalObject(AlwaysDefinedColumn, false);
+					x.defaultValue.value = columnListSelection.value;
+					
+					if (_columns.length == 0)
+					{
+						labelPlotter.dataY.removeObject();
+						return;
+					}
+					
+					for(var j:int = _columns.length; j > columnListSelection.value; j--)
+						var chosenColumn:IAttributeColumn = _columns.pop();
+					labelPlotter.dataY.requestLocalObjectCopy(chosenColumn as ILinkableObject);
+					
+					if (labelPlotter.text.internalColumn == null)
+					{
+						var headers:Array = ProbeTextUtils.probeHeaderColumns.getObjects();
+						for (var i:int = 0; i < headers.length; i++)
+						{
+							if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(chosenColumn))
+							{
+								labelPlotter.text.requestLocalObjectCopy(headers[i]);
+								break;
+							}
+						}
+					}
+				}
+				else
+				{
+					colList.enabled = false;
+					updateColumns();
 				}
 			}
 			
@@ -490,6 +541,10 @@
 			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
 						 toolTip="Enables automatic zooming to the subset of data currently displayed"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>
+			<mx:HBox height="100%" width="100%" >
+				<mx:CheckBox id="labelColumnChoice" creationComplete="linkBindableProperty(labelColumnChange, event.target, 'selected')" label="Write labels at the column specified to the right"/>
+				<mx:List id="colList" dataProvider="{columnLabelList}" creationComplete="linkBindableProperty(columnListSelection, event.target,'selectedIndex')" enabled="false" width="100%" height="100%"/>
+			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="Grouping">
 			<mx:CheckBox id="enableGroupByCheckBox" creationComplete="linkBindableProperty(_plotter.enableGroupBy, event.target, 'selected')"
