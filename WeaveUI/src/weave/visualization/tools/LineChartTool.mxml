@@ -377,16 +377,22 @@
 			{
 				var _columns:Array = _plotter.columns.getObjects();
 				var x:AlwaysDefinedColumn = labelPlotter.dataX.requestLocalObject(AlwaysDefinedColumn, false);
-				x.defaultValue.value = _columns.length - 1;
+				x.defaultValue.value = _columns.length;
 				
 				if (_columns.length == 0)
 				{
 					labelPlotter.dataY.removeObject();
 					return;
 				}
-			
-				var lastColumn:IAttributeColumn = _columns.pop();
-				labelPlotter.dataY.requestLocalObjectCopy(lastColumn as ILinkableObject);
+				var lastColumn:IAttributeColumn;
+				do
+				{
+					if( _columns.length == 0 )
+						break;
+					x.defaultValue.value = (x.defaultValue.value as Number) - 1;
+					lastColumn= _columns.pop();
+					labelPlotter.dataY.requestLocalObjectCopy(lastColumn as ILinkableObject);
+				} while (labelPlotter.dataY.keys[0] == undefined );
 
 				if (labelPlotter.text.internalColumn == null)
 				{
