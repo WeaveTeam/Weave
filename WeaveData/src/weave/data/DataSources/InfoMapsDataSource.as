@@ -13,6 +13,8 @@ package weave.data.DataSources
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import org.igniterealtime.xiff.events.BookmarkChangedEvent;
+	
 	import weave.*;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
@@ -48,6 +50,16 @@ package weave.data.DataSources
 		public static const DOC_KEYTYPE:String = "infoMapsDoc";
 		
 		public static const SOURCE_NAME:String = "InfoMaps Data Source";
+		
+		public function containsDoc(key:IQualifiedKey):Boolean
+		{
+			var title:String = getTitleForKey(key);
+			
+			if(title)
+				return true;
+			else 
+				return false;
+		}
 		
 		private function getKeyValueForColumn(csvColumnName:String,key:IQualifiedKey):*
 		{

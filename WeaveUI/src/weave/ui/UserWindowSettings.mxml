@@ -85,14 +85,14 @@
 						 selected="true"
 						 id="draggableCheckBox" 
 						 toolTip="Selecting this option will enable the user to move the tool by clicking on the header and dragging"
-						 initialize="linkBindableProperty(_tool.draggable,draggableCheckBox,'selected')"/>
+						 initialize="linkBindableProperty(_tool.enableMoveResize,draggableCheckBox,'selected')"/>
 			<mx:CheckBox label="Allow Resizing" 
 						 fontWeight="bold"
 						 fontSize="12" 
 						 selected="true"
 						 toolTip="Selecting will enable the user to resize this tool" 
 						 id="resizeCheckBox" 
-						 initialize="linkBindableProperty(_tool.resizeable, resizeCheckBox,'selected')"/>
+						 initialize="linkBindableProperty(_tool.enableMoveResize, resizeCheckBox,'selected')"/>
 		</mx:VBox>	
 		<mx:VBox width="100%" height="100%">
 			<mx:CheckBox label="Allow Pinning to back" 

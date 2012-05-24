@@ -710,6 +710,10 @@
 			<mx:CheckBox id="mouseModeControlsToggle" label="Show mouse mode controls"
 						 toolTip="This option enables the mouse mode buttons"
 						 creationComplete="linkBindableProperty(showMouseModeControls,event.target,'selected')"/>
+			<mx:HBox>
+				<mx:Label text="Mouse wheel scroll factor:" />
+				<mx:NumericStepper maximum="10" minimum="1" stepSize=".01" creationComplete="linkBindableProperty(this.visualization.zoomFactor, event.target, 'value')"/>
+			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="Layer Visibility" verticalGap="10" id="visibleScaleRangesUI">
 			<ui:Indent label="Current Zoom" labelTextAlign="left" group="{scaleRangeIndentGroup}">

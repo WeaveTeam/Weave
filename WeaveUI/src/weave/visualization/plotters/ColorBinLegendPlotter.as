@@ -216,7 +216,7 @@ package weave.visualization.plotters
 			
 			var margin:int = 4;
 			var height:Number = screenBounds.getYCoverage() / dataBounds.getYCoverage();			
-			var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value, height - margin));
+			var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value,(height - margin)/numBins));
 			var iconGap:Number = actualShapeSize + margin * 2;
 			var circleCenterOffset:Number = margin + actualShapeSize / 2; 
 			var internalMin:Number = WeaveAPI.StatisticsCache.getMin(getInternalColorColumn().internalDynamicColumn);

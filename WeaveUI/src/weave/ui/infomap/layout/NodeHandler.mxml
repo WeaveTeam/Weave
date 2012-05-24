@@ -193,7 +193,7 @@
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.CLICK,handleClick);
 				
 				//adding callback to subset. Thumbnails will be re-drawn to plot only included thumbnails
-				getCallbackCollection(_subset).addGroupedCallback(this,handleThumbnails);
+				getCallbackCollection(_subset).addGroupedCallback(this,positionThumbnails);
 				
 //				thumbnails.childListCallbacks.addGroupedCallback(this,handleThumbnails);
 				
@@ -221,14 +221,6 @@
 				nodeBase.commentTextArea.addEventListener(FocusEvent.FOCUS_OUT,updateCommentTextArea);
 				
 				comments.addImmediateCallback(this,handleCommentsChange,true);
-				
-				if(!node.keywords.value)
-				{
-					nodeBase.keywordTextArea.editable = true;
-					nodeBase.keywordTextArea.selectable = true;
-					nodeBase.keywordTextArea.setFocus();
-					nodeBase.keywordTextArea.setSelection(0,0);
-				}
 				
 				createAndSendQuery();
 				
@@ -342,8 +334,15 @@
 			private function createAndSendQuery():void
 			{
 				if(!node.keywords.value)
+				{
+					nodeBase.keywordTextArea.editable = true;
+					nodeBase.keywordTextArea.selectable = true;
+					nodeBase.keywordTextArea.setFocus();
+					nodeBase.keywordTextArea.setSelection(0,0);
 					return;
-				
+				}
+				nodeBase.keywordTextArea.editable = false;
+				nodeBase.keywordTextArea.selectable = false;
 //				if(clearDocuments)
 //					thumbnails.removeAllObjects();
 //				getCallbackCollection(node).delayCallbacks();
@@ -615,21 +614,26 @@
 					var visiblity:Boolean =  (_parentPanel.globalSearchKeyword.value != "");
 					for each(var t1:DocThumbnailComponent in tnails)
 					{
-						t1.visible = !visiblity;
+						var qKey1:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t1.docURL.value);
+						if(_subset.containsKey(qKey1))
+							t1.visible = !visiblity;
 					}
 				}else
 				{
 					for each(var t2:DocThumbnailComponent in tnails)
 					{
-						t2.visible = false;
+						var qKey2:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t2.docURL.value);
+						if(_subset.containsKey(qKey2))
+							t2.visible = false;
 					}
 				}
 				
 				for each(var k:IQualifiedKey in searchMatchedKeys)
 				{
 					var t3:DocThumbnailComponent = thumbnails.getObject(k.localName) as DocThumbnailComponent;
-					
-					if(t3)
+					var qKey3:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t3.docURL.value);
+											
+					if(t3 && _subset.containsKey(qKey3))
 						t3.visible = true;
 				}
 				

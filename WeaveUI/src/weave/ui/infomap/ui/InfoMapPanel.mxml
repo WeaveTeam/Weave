@@ -174,7 +174,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				stage.addEventListener(MouseEvent.MOUSE_UP,handleMouseUp);
 				
-				selectionKeywords.addGroupedCallback(this,sendSelectionQuery,false);
+				selectionKeywords.addGroupedCallback(this,handleRecordsSelection,false);
+				
+				_entityKeySet.addGroupedCallback(this,parseRecordsSelectionQueryResponse,false);
 				
 				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
 				
@@ -191,8 +193,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_infomapSubMenu.addSubMenuItem("Add Query Node",addInfoMapNode);
 				_infomapSubMenu.addSubMenuItem("Add Map Node",addInfoMapLink);
-//				_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
-//				_infomapSubMenu.addSubMenuItem("Show All Documents",showAllDocuments);
+				_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
+				_infomapSubMenu.addSubMenuItem("Show All Documents",showAllDocuments);
 			}
 			
 			
@@ -224,18 +226,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _subset:KeyFilter;
 			private function removeSelectedDocuments():void
 			{
-				var selectedKeys:Array = _selectedKeySet.keys;
-				var selectedDocs:Array = [];
+				var selectedDocs:Array = getSelectedDocumentKeys();
 				
-				for each(var key:IQualifiedKey in selectedKeys)
-				{
-					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
-						selectedDocs.push(key);
-				}
 				_subset.excludeKeys(selectedDocs);
 				
 				_selectedKeySet.clearKeys();
 			}
+			
+			
 			
 			private function showAllDocuments():void
 			{
@@ -250,6 +248,34 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_subset.excluded.removeKeys(dockeys);
 			}
 			
+			private function getSelectedDocumentURLs():Array
+			{
+				var selectedKeys:Array = _selectedKeySet.keys;
+				var selectedDocs:Array = [];
+				
+				for each(var key:IQualifiedKey in selectedKeys)
+				{
+					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+						selectedDocs.push(key.localName);
+				}
+				
+				return selectedDocs;
+			}
+			
+			private function getSelectedDocumentKeys():Array
+			{
+				var selectedKeys:Array = _selectedKeySet.keys;
+				var selectedDocs:Array = [];
+				
+				for each(var key:IQualifiedKey in selectedKeys)
+				{
+					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+						selectedDocs.push(key);
+				}
+				
+				return selectedDocs;
+			}
+			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
@@ -260,34 +286,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						Application.application.visApp.saveInfoMapsSessionState();
 				}
 				
-//				//detect any changes in docs and make query for matched entity values
-//				if(detectLinkableObjectChange(updateDisplayList,docs))
-//				{
-//					//selection happened outside of the panel then return
-//					if(!(DraggablePanel.getTopPanel() is InfoMapPanel))
-//						return;
-//					
-//					var docsArray:Array = docs.getObjects();
-//					var selectedDocs:Array = [];
-//					for each(var doc:SelectableInfoMapDocument in docsArray)
-//					{
-//						if(doc.selected.value)
-//						{
-//							selectedDocs.push(doc.url.value);
-//						}
-//					}
-//					
-//					if(selectedDocs.length == 0)
-//					{
-//						_selectedKeySet.clearKeys(); //test this
-//						return;
-//					}
-//					
-//					var entities:Array = extractAllEntitiyValues();
-//					
-//					var query:DelayedAsyncInvocation = InfoMapAdminInterface.instance.searchInDocuments(entities,selectedDocs);
-//					query.addAsyncResponder(handleMatchedEntities,handleMatchedEntitiesFault);
-//				}
+				//detect any changes in selectionKeySet and make query for matched entity values
+				if(detectLinkableObjectChange(updateDisplayList,_selectedKeySet))
+				{
+					//selection happened outside of the panel then return
+					if(!(DraggablePanel.getTopPanel() is InfoMapPanel))
+						return;
+					
+					var selectedDocs:Array = getSelectedDocumentURLs();
+					
+					if(selectedDocs.length == 0)
+					{
+						_selectedKeySet.clearKeys();
+						return;
+					}
+					
+					var entities:Array = extractAllEntitiyValues();
+					
+					var query:DelayedAsyncInvocation = InfoMapAdminInterface.instance.searchInDocuments(entities,selectedDocs);
+					query.addAsyncResponder(handleMatchedEntities,handleMatchedEntitiesFault);
+				}
 //				
 //				if(detectLinkableObjectChange(updateDisplayList,nodes))
 //				{
@@ -333,7 +351,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				if(!keys.length == 0)
-					_selectedKeySet.replaceKeys(keys);
+					_selectedKeySet.addKeys(keys);
+				else
+					_selectedKeySet.clearKeys();
 				
 //				Alert.show((event.result as Array).toString());
 			}
@@ -347,7 +367,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var selectionKeywords:LinkableString = new LinkableString("",null,false);
 			private function handleMouseUp(event:MouseEvent):void
 			{
-				//we should set the selection keywords only if the mousup happened from outside of InfoMap panel
+				//we should set the selection keywords only if the mouseup happened from outside of InfoMap panel
 				//This is still not the right way to do it. Need to find a more efficient solution
 				
 				removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseDrag);
@@ -364,8 +384,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				
 				
-				var keywords:Array = extractKeywordsFromSelection();
-				selectionKeywords.value = keywords.join(" OR ");
+				var keywords:Array = InfoMapLoader.extractKeywordsFromSelection();
+				selectionKeywords.value = keywords.join(" ");
 				
 			}
 			
@@ -492,74 +512,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return uniqueEntityValues;
 			}
 			
-			/**
-			 * This function extracts keywords for the selected keys from entity columns
-			 * and returns an array of unique keywords
-			 * */ 
-			private function extractKeywordsFromSelection():Array
-			{
-				var keys:Array = _selectedKeySet.keys;
-				
-				if(keys.length == 0)
-					return[];
-				
-				//get all keytypes from selected keys
-				var keyTypes:Dictionary = new Dictionary();
-				
-				for each (var key:IQualifiedKey in keys)
-				{
-					if(keyTypes[key.keyType] == undefined)
-						keyTypes[key.keyType] = true;
-				}
-				
-				//get all entity attribute columns of selected keytype
-				var attrCols:Array = getLinkableDescendants(Weave.root,IAttributeColumn);
-				var entityCols:Array = [];
-				
-				for each (var attrCol:IAttributeColumn in attrCols)
-				{
-					var entityValue:String = attrCol.getMetadata("isEntity");
-					var keyType:String =  attrCol.getMetadata("keyType");
-					if(entityValue == "true" && keyTypes[keyType])
-					{
-						entityCols.push(attrCol);
-					}
-				}
-				
-				var temp:Array = [];
-				
-				//extract values from entity columns
-				for each(var col:IAttributeColumn in entityCols)
-				{
-					for each (var k:IQualifiedKey in keys)
-					{
-						var value:String = ColumnUtils.getString(col,k);
-						if(value)
-						{
-							temp.push('"'+value+'"');
-						}
-					}
-				}
-				
-				//get unique keywords from extracted values
-				var dict:Dictionary = new Dictionary();
-				
-				for each(var word:String in temp)
-				{
-					if(dict[word] == undefined)
-						dict[word] = word;
-				}
-				
-				var uniqueTemp:Array = []
-				for each(var prop:String in dict)
-				{
-					uniqueTemp.push(prop);	
-				}
-				
-				return uniqueTemp;
-			}
+			
 			private var _selectionLoader:URLLoader = null;
-			private function sendSelectionQuery():void
+			private var _entityKeySet:KeySet = new KeySet();
+			private function handleRecordsSelection():void
 			{
 				if(!selectionKeywords.value)
 					return;
@@ -567,53 +523,50 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var solrURL:String =  "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows=2000&sort=date_published%20desc&indent=on&fl=link&q=" + 
 					selectionKeywords.value;
 				
-				//close any previous selection requests
-				if(_selectionLoader)
-					_selectionLoader.close();
+				infoMapsDataSource.getDocumentsForQuery(_entityKeySet,selectionKeywords.value,"OR");
 				
-				_selectionLoader = new URLLoader();
-				
-				var request:URLRequest = new URLRequest(solrURL);
-				_selectionLoader.addEventListener(Event.COMPLETE, handleSelectionQuery);
-				_selectionLoader.addEventListener(IOErrorEvent.IO_ERROR,handleRequestError);
-				_selectionLoader.load(request);
+//				//close any previous selection requests
+//				if(_selectionLoader)
+//					_selectionLoader.close();
+//				
+//				_selectionLoader = new URLLoader();
+//				
+//				var request:URLRequest = new URLRequest(solrURL);
+//				_selectionLoader.addEventListener(Event.COMPLETE, handleRecordsSelectionQuery);
+//				_selectionLoader.addEventListener(IOErrorEvent.IO_ERROR,handleRequestError);
+//				_selectionLoader.load(request);
 			}
 			
-			private function handleSelectionQuery(event:Event):void
-			{
-				// checks to avoid null point error
-				if(_selectionLoader){
-					// checks for data presence
-					if(_selectionLoader.data){
-						var xml:XML = new XML(_selectionLoader.data);
-						parseSelectionQueryResponse(xml);
-					}
-				}
-			}
+//			private function handleRecordsSelectionQuery(event:Event):void
+//			{
+//				// checks to avoid null point error
+//				if(_selectionLoader){
+//					// checks for data presence
+//					if(_selectionLoader.data){
+//						var xml:XML = new XML(_selectionLoader.data);
+//						parseRecordsSelectionQueryResponse(xml);
+//					}
+//				}
+//			}
 			
 			
-			private function parseSelectionQueryResponse(result:XML):void
+			private function parseRecordsSelectionQueryResponse():void
 			{
-//				var selectedDocs:Array = [];
+				var selectedDocs:Array = _entityKeySet.keys;
 //				for each(var docXML:XML in result.result.doc)
 //				{
 //					var link:String = docXML.str.(@name=="link").text().toXMLString();
-////					var linkLen:int = link.length;
-////					var linkExtension:String = link.substring(linkLen-3,linkLen);
-////					if(linkExtension == "pdf"){
-////						link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
-////					}
-//					var doc:SelectableInfoMapDocument = docs.getObject(link) as SelectableInfoMapDocument;
-//					
-//					if(doc)
-//					{
-//						var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey("infomapDocURL",doc.url.value);
-//						doc.selected.value = true;
-//						selectedDocs.push(key);				
-//					}
+//					var linkLen:int = link.length;
+//					var linkExtension:String = link.substring(linkLen-3,linkLen);
+//					var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,link);
+//					selectedDocs.push(key);				
 //				}
-//				
-//				_selectedKeySet.addKeys(selectedDocs);
+				
+				for each (var key:IQualifiedKey in selectedDocs)
+				{
+					if(infoMapsDataSource.containsDoc(key))
+						_selectedKeySet.addKeys(selectedDocs);
+				}
 			}
 			
 			
@@ -674,16 +627,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var nodeHandler:NodeHandler= new NodeHandler();
 				nodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
 				
-//				if(query==null)
-//				{
-//					nodeHandler.node.keywords.value = extractKeywordsFromSelection().join(" ");
-//					
-//					//if query is null then user entered it from selection from another tool
-//					//we clear this selection
-//					_selectedKeySet.clearKeys();
-//				}else{
 				nodeHandler.node.keywords.value = query;
-//				}
 				if(op ==null)
 				{
 					//TODO: should take value from RadioButton. Value was null when last tried.

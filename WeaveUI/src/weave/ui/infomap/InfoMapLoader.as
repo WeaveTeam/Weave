@@ -10,6 +10,7 @@ package weave.ui.infomap
 	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getLinkableDescendants;
 	import weave.data.KeySets.KeySet;
 	import weave.ui.CustomContextMenuManager;
 	import weave.ui.infomap.ui.InfoMapPanel;
@@ -75,12 +76,80 @@ package weave.ui.infomap
 		{
 			var panel:InfoMapPanel = Weave.root.requestObject("InfoMapPanel",InfoMapPanel,false);
 			
+			var keywords:Array = extractKeywordsFromSelection();
 			
-			panel.addInfoMapNode();
+			panel.addInfoMapNode(keywords.join(" "));
 			
 			//show infomap panel
 			panel.restorePanel();
 			Weave.root.setNameOrder(["InfoMapPanel"]);
+		}
+		
+		/**
+		 * This function extracts keywords for the selected keys from entity columns
+		 * and returns an array of unique keywords
+		 * */ 
+		public static function extractKeywordsFromSelection():Array
+		{
+			var keys:Array = _selectedKeySet.keys;
+			
+			if(keys.length == 0)
+				return[];
+			
+			//get all keytypes from selected keys
+			var keyTypes:Dictionary = new Dictionary();
+			
+			for each (var key:IQualifiedKey in keys)
+			{
+				if(keyTypes[key.keyType] == undefined)
+					keyTypes[key.keyType] = true;
+			}
+			
+			//get all entity attribute columns of selected keytype
+			var attrCols:Array = getLinkableDescendants(Weave.root,IAttributeColumn);
+			var entityCols:Array = [];
+			
+			for each (var attrCol:IAttributeColumn in attrCols)
+			{
+				var entityValue:String = attrCol.getMetadata("isEntity");
+				var keyType:String =  attrCol.getMetadata("keyType");
+				if(entityValue == "true" && keyTypes[keyType])
+				{
+					entityCols.push(attrCol);
+				}
+			}
+			
+			var temp:Array = [];
+			
+			//extract values from entity columns
+			for each(var col:IAttributeColumn in entityCols)
+			{
+				for each (var k:IQualifiedKey in keys)
+				{
+					var value:String = ColumnUtils.getString(col,k);
+					if(value)
+					{
+						temp.push('"'+value+'"');
+					}
+				}
+			}
+			
+			//get unique keywords from extracted values
+			var dict:Dictionary = new Dictionary();
+			
+			for each(var word:String in temp)
+			{
+				if(dict[word] == undefined)
+					dict[word] = word;
+			}
+			
+			var uniqueTemp:Array = []
+			for each(var prop:String in dict)
+			{
+				uniqueTemp.push(prop);	
+			}
+			
+			return uniqueTemp;
 		}
 	}
 }
