@@ -169,7 +169,8 @@ package weave.utils
 
 		public static var yAxisToolTip:IToolTip;
 		public static var xAxisToolTip:IToolTip;
-		public static function showProbeToolTip(probeText:String, stageX:Number, stageY:Number, bounds:IBounds2D = null, margin:int = 5):void
+		//For now the location parameter will be utilised by the ColorBinLegendTool. In the future this feature can be generalised for every tool.
+		public static function showProbeToolTip(probeText:String, stageX:Number, stageY:Number, bounds:IBounds2D = null, margin:int = 5, location:String = "CENTER"):void
 		{
 			if (!probeToolTip)
 				probeToolTip = ToolTipManager.createToolTip('', 0, 0);
@@ -179,12 +180,11 @@ package weave.utils
 			if (!enableProbeToolTip.value)
 				return;
 			
+			var stage:Stage = WeaveAPI.topLevelApplication.stage;
+			tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
+			
 			if (bounds == null)
-			{
-				var stage:Stage = WeaveAPI.topLevelApplication.stage;
-				tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
 				bounds = tempBounds;
-			}
 			
 			// create new tooltip
 			probeToolTip.text = probeText;
@@ -204,11 +204,27 @@ package weave.utils
 			// calculate y coordinate
 			var y:int;
 			// calculate y pos depending on toolTipAbove setting
-			if (toolTipAbove)
+			if (toolTipAbove && location == CENTER_WINDOW)
 			{
 				y = stageY - (probeToolTip.height + 2 * margin);
 				if (yAxisToolTip != null)
 					y = yAxisToolTip.y - margin - probeToolTip.height ;
+			}
+			else if( location == ABOVE_WINDOW )
+			{
+				y = bounds.getYMin() - (probeToolTip.height / 2);
+			}
+			else if( location == LEFT_WINDOW )
+			{
+				y = stageY;
+			}
+			else if( location == BELOW_WINDOW )
+			{
+				y = bounds.getYMax() + (probeToolTip.height / 2 );
+			}
+			else if( location == RIGHT_WINDOW )
+			{
+				y = stageY;
 			}
 			else // below
 			{
@@ -223,7 +239,7 @@ package weave.utils
 			
 			// calculate x coordinate
 			var x:int;
-			if (cornerToolTip)
+			if (cornerToolTip && location == CENTER_WINDOW)
 			{
 				// want toolTip corner to be near probe point
 				if (toolTipToTheLeft)
@@ -243,6 +259,22 @@ package weave.utils
 				if ((x < xMin && toolTipToTheLeft) || (x > xMax && !toolTipToTheLeft))
 					toolTipToTheLeft = !toolTipToTheLeft;
 			}
+			else if( location == ABOVE_WINDOW )
+			{
+				x = bounds.getXMin();
+			}
+			else if( location == LEFT_WINDOW )
+			{
+				x = bounds.getXMin() - probeToolTip.width;
+			}
+			else if( location == BELOW_WINDOW )
+			{
+				x = bounds.getXMin();
+			}
+			else if( location == RIGHT_WINDOW )
+			{
+				x = bounds.getXMax();
+			}
 			else // center x coordinate
 			{
 				x = stageX - probeToolTip.width / 2;
@@ -253,8 +285,22 @@ package weave.utils
 				x += 10;
 			
 			// enforce min/max values and position tooltip
-			x = Math.max(xMin, Math.min(x, xMax));
-			y = Math.max(yMin, Math.min(y, yMax));
+			if( location == CENTER_WINDOW )
+			{
+				x = Math.max(xMin, Math.min(x, xMax));
+				y = Math.max(yMin, Math.min(y, yMax));
+			}
+			else
+			{
+				if( x < 0  && location == LEFT_WINDOW )
+					x = tempBounds.getXMin();
+				else if( x > tempBounds.getXMax() - probeToolTip.width && !(location == LEFT_WINDOW ) )
+					x = tempBounds.getXMax() - probeToolTip.width;
+				if( y < probeToolTip.height && location == ABOVE_WINDOW )
+					y = probeToolTip.height;
+				else if( y > tempBounds.getYMax() - probeToolTip.height && location == BELOW_WINDOW )
+					y = tempBounds.getYMax() - probeToolTip.height;
+			}
 			
 			probeToolTip.move(x, y);
 		}
@@ -270,6 +316,14 @@ package weave.utils
 		private static var toolTipToTheLeft:Boolean = false;
 		private static var probeToolTip:IToolTip = null;
 		private static const tempBounds:IBounds2D = new Bounds2D();
+		
+		//Constants used for defining where the probe tooltip should appear.
+		public static const ABOVE_WINDOW:String = "ABOVE";
+		public static const BELOW_WINDOW:String = "BELOW";
+		public static const RIGHT_WINDOW:String = "RIGHT";
+		public static const LEFT_WINDOW:String = "LEFT";
+		//CENTER_WINDOW is meant in the sense that it will appear where the cursor is, and is the default location.
+		public static const CENTER_WINDOW:String = "CENTER";
 		
 		
 		

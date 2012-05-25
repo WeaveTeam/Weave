@@ -25,13 +25,18 @@
 	     layout="absolute" xmlns:userControls="weave.ui.userControls.*">
 	<mx:Script>
 		<![CDATA[
+			import mx.events.ListEvent;
+			
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
+			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.api.unlinkSessionState;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -40,11 +45,15 @@
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
+			import weave.utils.ProbeTextUtils;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
 
 			WeaveAPI.registerImplementation(IVisTool, ColorBinLegendTool, "Color Legend");
 			
 			private var _plotter:ColorBinLegendPlotter = null;
+			public const useUnobtrusiveToolTips:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), boxUnchecked);
+			public const toolTipLocation:LinkableString = registerLinkableChild(this, new LinkableString(ProbeTextUtils.CENTER_WINDOW));
+			
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -82,9 +91,40 @@
 				linkBindableProperty(_plotter.ascendingOrder, legendControls.ascendingOrderCheck, 'selected');
 				linkBindableProperty(_plotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
 				linkBindableProperty(_plotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
+				linkBindableProperty(useUnobtrusiveToolTips, legendControls.aboveToolTips, 'selected');
+				legendControls.toolTipSide.addEventListener(ListEvent.CHANGE, updateToolTipSide);
 				legendControls.chkShowLegendAttrName.addEventListener(Event.CHANGE, toggleShowAttributeName);
 				
 				_plotter.legendTitleFunction.addGroupedCallback(this, updateMarginLabel, true);
+			}
+			
+			private function boxUnchecked():void
+			{
+				if( legendControls.aboveToolTips.selected == false )
+					toolTipLocation.value = ProbeTextUtils.CENTER_WINDOW;
+				else
+				{	
+					if( legendControls.toolTipSide.selectedIndex == 0 )
+						toolTipLocation.value = ProbeTextUtils.ABOVE_WINDOW;
+					else if( legendControls.toolTipSide.selectedIndex == 1 )
+						toolTipLocation.value = ProbeTextUtils.LEFT_WINDOW;
+					else if( legendControls.toolTipSide.selectedIndex == 2 )
+						toolTipLocation.value = ProbeTextUtils.RIGHT_WINDOW;	
+					else if( legendControls.toolTipSide.selectedIndex == 3 )
+						toolTipLocation.value = ProbeTextUtils.BELOW_WINDOW;
+				}
+			}
+			
+			private function updateToolTipSide(event:ListEvent):void
+			{
+				if( legendControls.toolTipSide.selectedIndex == 0 )
+					toolTipLocation.value = ProbeTextUtils.ABOVE_WINDOW;
+				else if( legendControls.toolTipSide.selectedIndex == 1 )
+					toolTipLocation.value = ProbeTextUtils.LEFT_WINDOW;
+				else if( legendControls.toolTipSide.selectedIndex == 2 )
+					toolTipLocation.value = ProbeTextUtils.RIGHT_WINDOW;	
+				else if( legendControls.toolTipSide.selectedIndex == 3 )
+					toolTipLocation.value = ProbeTextUtils.BELOW_WINDOW;
 			}
 			
 			private var _prevBinnedColumn:BinnedColumn;

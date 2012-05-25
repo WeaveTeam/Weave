@@ -21,6 +21,7 @@ package weave.visualization.layers
 {
 	import com.cartogrammar.drawing.DashedLine;
 	
+	import flash.display.DisplayObjectContainer;
 	import flash.display.Graphics;
 	import flash.display.InteractiveObject;
 	import flash.events.ContextMenuEvent;
@@ -35,6 +36,7 @@ package weave.visualization.layers
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableContainer;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -44,11 +46,14 @@ package weave.visualization.layers
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
+	import weave.editors.SimpleAxisEditor;
 	import weave.primitives.Bounds2D;
 	import weave.utils.CustomCursorManager;
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
+	import weave.visualization.tools.ColorBinLegendTool;
+	import weave.visualization.tools.SimpleVisTool;
 	
 	/**
 	 * This is a container for a list of PlotLayers
@@ -797,9 +802,31 @@ package weave.visualization.layers
 				else
 				{
 					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
-					ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
+					var colorLegend:SimpleVisTool
+					if(colorLegend = getParentTool(parent, ColorBinLegendTool) )
+						if( (colorLegend as ColorBinLegendTool).useUnobtrusiveToolTips.value == true )
+							ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY, new Bounds2D( colorLegend.x, colorLegend.y, colorLegend.x + colorLegend.width, colorLegend.y + colorLegend.height), 5, (colorLegend as ColorBinLegendTool).toolTipLocation.value);
+						else
+						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
+					else
+						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
 				}
 			}
+		}
+		
+		private static function getParentTool(target:DisplayObjectContainer, type:Class):SimpleVisTool
+		{
+			var targetComponent:* = target;
+			
+			while(targetComponent)
+			{
+				if(targetComponent is type)
+					return targetComponent;
+				
+				targetComponent = targetComponent.parent;
+			}
+			
+			return null;
 		}
 		
 		/**
