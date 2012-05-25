@@ -76,7 +76,7 @@
                 onFinish();
             }
         }
-        AdminInterface.instance.findEntitiesByParent(-1, populateRootHandler);
+        AdminInterface.instance.getEntityChildren(-1, populateRootHandler);
     }
     private function frobProvider():void
     {

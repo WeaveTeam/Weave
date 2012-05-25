@@ -9,8 +9,10 @@ package weave.ui
     public class EntityTreeNode
     {
         public var label:String;
-        public var object:AttributeColumnInfo
+        public var object:AttributeColumnInfo;
         public var children:Array = [];
+        [Bindable] public var committed:Boolean = true;
+        public var oldobject:AttributeColumnInfo;
 
         public var columns:Array = [];
         public var is_populated:Boolean = false;
@@ -18,6 +20,7 @@ package weave.ui
         public function EntityTreeNode(info:AttributeColumnInfo)
         {
             this.object = info;
+            this.oldobject = info;
             label = info.publicMetadata["title"];
             if (info.entity_type == 1 || info.entity_type == 0) children = null;
             if (label == null) label = info.publicMetadata["name"]; // TODO: hack, remove later after full migration code is written.
@@ -50,27 +53,58 @@ package weave.ui
                 etn.is_populated = true;
             }
             
-            AdminInterface.instance.findEntitiesByParent(object.id, populateHandler);
+            AdminInterface.instance.getEntityChildren(object.id, populateHandler);
             return;
         }
-        public function refresh():void
+        public function refresh(onComplete:Function = null):void
         {
-            
+            var etn:EntityTreeNode = this;
+            function refreshHandler(event:ResultEvent, token:Object = null):void
+            {
+                var freshetn:AttributeColumnInfo = new AttributeColumnInfo(event.result);
+                etn.oldobject = freshetn;
+                etn.object = freshetn.deepcopy();
+                if (onComplete != null)
+                    onComplete(etn);
+                etn.is_populated = true;
+            }
+            AdminInterface.instance.getEntity(object.id, refreshHandler);
             return;
         }
-        public function updateMetadata(metadata:Object):void
+        public function update(meta:Object):void
+        {
+            var splitMeta:Array = AttributeColumnInfo.splitObject(meta);
+            object.publicMetadata = splitMeta[0];
+            object.privateMetadata = splitMeta[1];
+            committed = false;
+        }
+        public function revert():void
+        {
+            object = oldobject;
+            committed = true;
+        }
+        public function commit():void 
         { 
+            
             /* Check difference between new data and data on record; only commit these differences. TODO: Bump version number. */
-            /* Fetch attributecolumninfo for this id and update it. */
+            var old:Object = AttributeColumnInfo.mergeObjects(oldobject.publicMetadata, oldobject.privateMetadata);
+            var fresh:Object = AttributeColumnInfo.mergeObjects(object.publicMetadata, object.privateMetadata);
+            var diff:Object = AttributeColumnInfo.diffObjects(old, fresh);
+            var etn:EntityTreeNode = this;
+            AdminInterface.instance.updateEntity(object.id, diff, commitHandler);
+            function commitHandler(event:ResultEvent, token:Object = null):void
+            {
+                if (event.result as Boolean) etn.committed = true;
+            }
+        }
+        public function addToParent(parent_id:int):void
+        {
+            AdminInterface.instance.addChild(object.id, parent_id, null);
             return;
         }
-        public function addToParent(id:int):void
+        public function removeFromParent(parent_id:int):void
         {
-            AdminInterface.instance.
-            return;
-        }
-        public function deleteFromParent(id:int):void
-        {
+            AdminInterface.instance.removeChild(object.id, parent_id, null);
             return;
         }
     }

@@ -159,6 +159,10 @@ package weave.services
 			return invokeAdminService("authenticate", arguments);
 		}
 
+                public function getConnectionInfo(loginConnectionName:String, loginPassword:String, connectionNameToGet:String):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("getConnectionInfo", arguments, false);
+                }
                 //public String setDatabaseConfigInfo(String connectionName, String password, String schema) 
                 public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String):DelayedAsyncInvocation
                 {
@@ -179,14 +183,6 @@ package weave.services
 		{
 			return invokeAdminService("getConnectionNames", arguments);
 		}
-		public function getDataTableNames(connectionName:String, password:String):DelayedAsyncInvocation
-		{
-		    return invokeAdminService("getDataTableNames", arguments);
-		}
-		public function getGeometryCollectionNames(connectionName:String, password:String):DelayedAsyncInvocation
-		{
-		    return invokeAdminService("getGeometryCollectionNames", arguments);
-		}
 		public function getWeaveFileNames(connectionName:String, password:String, sharedFiles:Boolean):DelayedAsyncInvocation
 		{
 			return invokeAdminService("getWeaveFileNames", arguments);
@@ -200,48 +196,7 @@ package weave.services
 		{
 			return invokeAdminService("getDatabaseConfigInfo", arguments, false);
 		}
-
-                // Tag information
-                public function addTagChild(connectionName:String, password:String, parent:int, child:int):DelayedAsyncInvocation
-                {
-                        return invokeAdminService("addTagChild", arguments);
-                }
-                public function removeTagChild(connectionName:String, password:String, parent:int, child:int):DelayedAsyncInvocation
-                {
-                        return invokeAdminService("removeTagChild", arguments);
-                }
-                public function addTag(connectionName:String, password:String, tagTitle:String):DelayedAsyncInvocation
-                {
-                        return invokeAdminService("addTag", arguments);
-                }
-                public function removeTag(connectionName:String, password:String, tag_id:int):DelayedAsyncInvocation
-                {
-                        return invokeAdminService("removeTag", arguments);
-                }
-                public function updateEntity(connectionName:String, password:String, entity_id:int, properties:Object):DelayedAsyncInvocation
-                {
-                        return invokeAdminService("updateEntity", arguments);
-                }
-                public function findEntitiesByParent(connectionName:String, password:String, parent_id:int):DelayedAsyncInvocation
-                {
-                        return invokeAdminService("findEntitiesByParent", arguments);
-                }
-		public function getConnectionInfo(loginConnectionName:String, loginPassword:String, connectionNameToGet:String):DelayedAsyncInvocation
-		{
-			return invokeAdminService("getConnectionInfo", arguments, false);
-		}
-		public function getDataTableInfo(connectionName:String, password:String, dataTableName:String):DelayedAsyncInvocation
-		{
-			return invokeAdminService("getDataTableInfo", arguments, false);
-		}
-		public function getGeometryCollectionInfo(connectionName:String, password:String, geometryCollectionName:String):DelayedAsyncInvocation
-		{
-			return invokeAdminService("getGeometryCollectionInfo", arguments, false);
-		}
-		public function testAllQueries(connectionName:String, password:String, dataTableName:String):DelayedAsyncInvocation
-		{
-			return invokeAdminService("testAllQueries", arguments, false);
-		}
+                
 		
 		// save info
 		public function saveConnectionInfo(activeConnectionName:String, activePassword:String, info:ConnectionInfo, configOverwrite:Boolean):DelayedAsyncInvocation
@@ -250,18 +205,6 @@ package weave.services
 		    query.addAsyncResponder(alertResult);
 		    return query;
 		}
-		public function saveDataTableInfo(connectionName:String, password:String, metadata:Array):DelayedAsyncInvocation
-		{
-			var query:DelayedAsyncInvocation = invokeAdminService("saveDataTableInfo", arguments);
-			query.addAsyncResponder(alertResult);
-			return query;
-		}
-		public function saveGeometryCollectionInfo(connectionName:String, password:String, info:GeometryCollectionInfo):DelayedAsyncInvocation
-		{
-			var query:DelayedAsyncInvocation = invokeAdminService("saveGeometryCollectionInfo", [connectionName, password, info.name, info.connection, info.schema, info.tablePrefix, info.keyType, info.importNotes, info.projection]);
-			query.addAsyncResponder(alertResult);
-			return query;
-		}
 		public function saveWeaveFile(connectionName:String, password:String, fileContent:ByteArray, fileName:String, overwriteFile:Boolean):DelayedAsyncInvocation
 		{
 			var query:DelayedAsyncInvocation = invokeAdminService("saveWeaveFile", arguments);
@@ -269,7 +212,7 @@ package weave.services
 			return query;
 		}
 
-		
+	        	
 		// remove info
 		public function removeConnectionInfo(loginConnectionName:String, loginPassword:String, connectionNameToRemove:String):DelayedAsyncInvocation
 		{
@@ -307,8 +250,59 @@ package weave.services
 		{
 			return invokeAdminService("getWeaveFileInfo", arguments, false); // bypass queue
 		}
-		
-		
+	        public function testAllQueries(connectionName:String, password:String, dataTableName:String):DelayedAsyncInvocation
+                {
+                    return invokeAdminService("testAllQueries", arguments, false);
+                }
+                public function addChild(connectionName:String, password:String, child:int, parent:int):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("addChild", arguments);
+                }
+                public function removeChild(connectionName:String, password:String, child:int, parent:int):DelayedAsyncInvocation{
+                        return invokeAdminService("removeChild", arguments);
+                }
+                public function addTag(connectionName:String, password:String, metadata:Object):DelayedAsyncInvocation{
+                        return invokeAdminService("addTag", arguments);
+                }
+                public function addDataTable(connectionName:String, password:String, metadata:Object):DelayedAsyncInvocation{
+                        return invokeAdminService("addDataTable", arguments);
+                }
+                public function addAttributeColumn(connectionName:String, password:String, metadata:Object):DelayedAsyncInvocation{
+                        return invokeAdminService("addAttributeColumn", arguments);
+                }
+                public function getTags(connectionName:String, password:String):DelayedAsyncInvocation{
+                        return invokeAdminService("getTags", arguments);
+                }
+                public function getDataTables(connectionName:String, password:String):DelayedAsyncInvocation{
+                        return invokeAdminService("getDataTables", arguments);
+                }
+                public function getAttributeColumns(connectionName:String, password:String):DelayedAsyncInvocation{
+                        return invokeAdminService("getAttributeColumns", arguments);
+                }
+
+                public function removeEntity(connectionName:String, password:String, id:int):DelayedAsyncInvocation{
+                        return invokeAdminService("removeEntity", arguments);
+                }
+                public function updateEntity(connectionName:String, password:String, id:int, metadata:Object):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("updateEntity", arguments);
+                }
+                public function getEntityChildren(connectionName:String, password:String, id:int):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("getEntityChildren", arguments);
+                }
+                public function getEntity(connectionName:String, password:String, id:int):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("getEntity", arguments);
+                }
+                public function getEntities(connectionName:String, password:String, metadata:Object):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("getEntities", arguments);
+                }
+                public function getEntitiesWithType(connectionName:String, password:String, type_id:int, metadata:Object):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("getEntitiesWithType", arguments);
+                }
 		/**
 		 * Adds the given Dublin Core key-value pairs to the metadata store for
 		 * the dataset with the given name.

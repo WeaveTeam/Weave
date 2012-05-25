@@ -269,11 +269,17 @@
 					);
 				function overwrite():void
 				{
+                                        
 					AdminInterface.instance.saveDataTableInfo(metadataArray);
 					metaDataChanged = false;
 				}
 			}
 			
+                        private function getActiveDataTableId():int
+                        {
+                                var dataTableName:String = getActiveDataTableName();
+                                var params:Object = {
+                        }
 			private function deleteDataTable():void
 			{
 				var dataTableName:String = getActiveDataTableName();

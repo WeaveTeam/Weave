@@ -636,7 +636,7 @@ public class AdminService extends GenericServlet
         {
             return getEntitiesByType(connectionName, password, ISQLConfig.DataEntity.MAN_TYPE_TAG);       
         }
-        synchronized public DataEntity[] getColumns(String connectionName, String password) throws RemoteException
+        synchronized public DataEntity[] getAttributeColumns(String connectionName, String password) throws RemoteException
         {
             return getEntitiesByType(connectionName, password, ISQLConfig.DataEntity.MAN_TYPE_COLUMN);
         }
@@ -654,7 +654,7 @@ public class AdminService extends GenericServlet
                 else
                     return;
         }
-        synchronized public void updateEntity(String connectionName, String password, int entity_id, HashMap<String,String> newdata) throws RemoteException
+        synchronized public boolean updateEntity(String connectionName, String password, int entity_id, HashMap<String,String> newdata) throws RemoteException
         {
                 ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
                 ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
@@ -678,6 +678,11 @@ public class AdminService extends GenericServlet
         {
             ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
             return config.findEntities(meta).toArray(new DataEntity[0]);
+        }
+        synchronized public DataEntity[] getEntitiesWithType(String connectionName, String password, Integer type_id, HashMap<String,String> meta)
+        {
+            ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+            return config.findEntities(meta, type_id).toArray(new DataEntity[0]);
         }
 
 

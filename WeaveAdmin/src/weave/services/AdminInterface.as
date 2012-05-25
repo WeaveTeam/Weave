@@ -173,12 +173,13 @@ package weave.services
 						currentUserIsSuperuser = cInfo.is_superuser;
 					}
 					
+                                        /* Do we really want to do this on auth? */
 					getWeaveFileNames();
 					getPrivateWeaveFileNames();
-					getDataTableNames();
-					getGeometryCollectionNames();
-					getKeyTypes();
 					getConnectionNames();
+					//getDataTableNames();
+					//getGeometryCollectionNames();
+					//getKeyTypes();
 				}
 			}
 			return query;
@@ -277,8 +278,9 @@ package weave.services
 			function handler(event:ResultEvent, token:Object=null):void
 			{
 				sqlConfigExists = Boolean(event.result);
-				getDataTableNames();
-				getGeometryCollectionNames();
+                                //TODO: Should we really do this cosmetic thing here?
+				//getDataTableNames();
+				//getGeometryCollectionNames();
 				getKeyTypes();
 			}
 			return query;
@@ -295,30 +297,71 @@ package weave.services
 			
 		
 		// functions for managing DataTable entries
-                public function addTag(label:String, handler:Function):void
+                public function addDataTable(metadata:Object, handler:Function):void
                 {
-                    service.addTag(activeConnectionName, activePassword, label).addAsyncResponder(handler); 
+                    service.addTag(activeConnectionName, activePassword, metadata).addAsyncResponder(handler);
                 }
-                public function removeTag(id:int, handler:Function):void
+                public function addTag(metadata:Object, handler:Function):void
                 {
-                    service.removeTag(activeConnectionName, activePassword, id).addAsyncResponder(handler);
+                    service.addTag(activeConnectionName, activePassword, metadata).addAsyncResponder(handler); 
                 }
-                public function updateEntity(info:AttributeColumnInfo, handler:Function):void
+                public function addChild(child_id:int, parent_id:int, handler:Function):void
                 {
-                    service.updateEntity(activeConnectionName, activePassword, info.id, info.getAllMetadata()).addAsyncResponder(handler);
+                    service.addChild(activeConnectionName, activePassword, child_id, parent_id).addAsyncResponder(handler);
                 }
-                public function findEntitiesByParent(id:int, handler:Function):void
+                public function removeChild(child_id:int, parent_id:int, handler:Function):void
                 {
-                    service.findEntitiesByParent(activeConnectionName, activePassword, id).addAsyncResponder(handler);
+                    service.removeChild(activeConnectionName, activePassword, child_id, parent_id).addAsyncResponder(handler);
                 }
-		
-		public function getDataTableNames():void
+                public function removeEntity(id:int, handler:Function):void
+                {
+                    service.removeEntity(activeConnectionName, activePassword, id).addAsyncResponder(handler);
+                }
+                public function updateEntity(id:int, meta:Object, handler:Function):void
+                {
+                    service.updateEntity(activeConnectionName, activePassword, id, meta).addAsyncResponder(handler);
+                }
+                public function getEntity(id:int, handler:Function):void
+                {
+                    service.getEntity(activeConnectionName, activePassword, id).addAsyncResponder(handler);
+                }
+                public function getEntityChildren(id:int, handler:Function):void
+                {
+                    service.getEntityChildren(activeConnectionName, activePassword, id).addAsyncResponder(handler);
+                }
+                public function getEntities(meta:Object, handler:Function):void
+                {
+                    service.getEntities(activeConnectionName, activePassword, meta).addAsyncResponder(handler);
+                }
+                public function getEntitiesWithType(type_id:int, meta:Object, handler:Function):void
+                {
+                    service.getEntitiesWithType(activeConnectionName, activePassword, type_id, meta).addAsyncResponder(handler);
+                }
+                public function getGeometryCollectionInfo(title:String):DelayedAsyncInvocation
+                {
+                    var params:Object = {"title": title, "dataType": "geometry"}; // TODO: make these all constants.
+                    return service.getEntitiesWithType(activeConnectionName, activePassword, AttributeColumnInfo.COLUMN, params);
+                }
+	        public function saveGeometryCollectionInfo(info:AttributeColumnInfo):void
+                {
+                    // TODO: find ID with getEntitiesWithType, then updateEntity
+                }
+                public function removeGeometryCollectionInfo(title:String):void
+                {
+                    // TODO: find ID with getEntitiesWithType, then removeEntity
+                }
+                public function getDataTableInfo(title:String):DelayedAsyncInvocation
+                {
+                    var params:Object = {"title": title};
+                    return service.getEntitiesWithType(activeConnectionName, activePassword, AttributeColumnInfo.COLUMN, params);
+                }
+		public function getDataTables():void
 		{
 			dataTableNames = [];
 			
 			if (userHasAuthenticated)
 			{
-				service.getDataTableNames(activeConnectionName, activePassword).addAsyncResponder(handlegetDataTableNames);
+				service.getDataTables(activeConnectionName, activePassword).addAsyncResponder(handlegetDataTableNames);
 				function handlegetDataTableNames(event:ResultEvent, token:Object = null):void
 				{
 					if (userHasAuthenticated)
@@ -327,42 +370,6 @@ package weave.services
 			}
 		}
 		
-		public function getDataTableInfo(dataTableName:String):DelayedAsyncInvocation
-		{
-			return service.getDataTableInfo(
-				activeConnectionName, activePassword, dataTableName
-			);
-		}
-		public function saveDataTableInfo(metadata:Array):DelayedAsyncInvocation
-		{
-			var query:DelayedAsyncInvocation = service.saveDataTableInfo(
-				activeConnectionName,
-				activePassword,
-				metadata
-			);
-			query.addAsyncResponder(handler);
-			function handler(event:ResultEvent, token:Object=null):void
-			{
-				getDataTableNames();
-				getKeyTypes();
-			}
-			return query;
-		}
-		public function removeDataTableInfo(tableName:String):DelayedAsyncInvocation
-		{
-			var query:DelayedAsyncInvocation = service.removeDataTableInfo(
-				activeConnectionName,
-				activePassword,
-				tableName
-			);
-			query.addAsyncResponder(handler);
-			function handler(event:ResultEvent, token:Object=null):void
-			{
-				getDataTableNames();
-				getKeyTypes();
-			}
-			return query;
-		}
 
 		// code for viewing a weave file archive thumbnail
 		
@@ -409,59 +416,6 @@ package weave.services
 
 
 
-		// code for managing GeometryCollection entries
-		
-		/**
-		 * @return Either a DelayedAsyncInvocation, or null if the user has not authenticated yet.
-		 */		
-		public function getGeometryCollectionNames():DelayedAsyncInvocation
-		{
-			geometryCollectionNames = [];
-			if (userHasAuthenticated)
-			{
-				var query:DelayedAsyncInvocation = service.getGeometryCollectionNames(activeConnectionName, activePassword);
-				query.addAsyncResponder(handleGetGeometryCollectionNames);
-				function handleGetGeometryCollectionNames(event:ResultEvent, token:Object = null):void
-				{
-					if (userHasAuthenticated)
-						geometryCollectionNames = event.result as Array || [];
-				}
-				return query;
-			}
-			return null;
-		}
-		public function getGeometryCollectionInfo(geometryCollectionName:String):DelayedAsyncInvocation
-		{
-			return service.getGeometryCollectionInfo(
-				activeConnectionName, activePassword, geometryCollectionName
-			);
-		}
-		public function saveGeometryCollectionInfo(info:GeometryCollectionInfo):DelayedAsyncInvocation
-		{
-			var query:DelayedAsyncInvocation = service.saveGeometryCollectionInfo(activeConnectionName, activePassword, info);
-			query.addAsyncResponder(handler);
-			function handler(event:ResultEvent, token:Object=null):void
-			{
-				getGeometryCollectionNames();
-				getKeyTypes();
-			}
-			return query;
-		}
-		public function removeGeometryCollectionInfo(geometryCollectionName:String):DelayedAsyncInvocation
-		{
-			var query:DelayedAsyncInvocation = service.removeGeometryCollectionInfo(
-				activeConnectionName,
-				activePassword,
-				geometryCollectionName
-			);
-			query.addAsyncResponder(handler);
-			function handler(event:ResultEvent, token:Object=null):void
-			{
-				getGeometryCollectionNames();
-				getKeyTypes();
-			}
-			return query;
-		}
 
 
 
@@ -510,7 +464,7 @@ package weave.services
 			query.addAsyncResponder(handler);
 			function handler(..._):void
 			{
-				getDataTableNames();
+				getDataTables();
 				getKeyTypes();
 			}
 			return query;
@@ -558,8 +512,8 @@ package weave.services
 			query.addAsyncResponder(handler);
 			function handler(..._):void
 			{
-				getDataTableNames();
-				getGeometryCollectionNames();
+				//getDataTableNames();
+				//getGeometryCollectionNames();
 				getKeyTypes();
 			}
 			return query;
@@ -601,7 +555,7 @@ package weave.services
 			query.addAsyncResponder(handler);
 			function handler(event:ResultEvent, token:Object=null):void
 			{
-				getDataTableNames();
+				getDataTables();
 				getKeyTypes();
 			}
 			
@@ -626,7 +580,7 @@ package weave.services
 			query.addAsyncResponder(handler);
 			function handler(event:ResultEvent, token:Object=null):void
 			{
-				getDataTableNames();
+				getDataTables();
 				getKeyTypes();
 			}
 			return query;
