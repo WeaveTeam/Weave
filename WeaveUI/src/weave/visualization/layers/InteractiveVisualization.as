@@ -803,7 +803,8 @@ package weave.visualization.layers
 				{
 					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
 					var colorLegend:SimpleVisTool
-					if(colorLegend = getParentTool(parent, ColorBinLegendTool) )
+					colorLegend = getParentTool(parent, ColorBinLegendTool)
+					if( colorLegend )
 						if( (colorLegend as ColorBinLegendTool).useUnobtrusiveToolTips.value == true )
 							ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY, new Bounds2D( colorLegend.x, colorLegend.y, colorLegend.x + colorLegend.width, colorLegend.y + colorLegend.height), 5, (colorLegend as ColorBinLegendTool).toolTipLocation.value);
 						else
