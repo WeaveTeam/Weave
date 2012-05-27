@@ -442,6 +442,8 @@ package weave.compiler
 		 */
 		public static function arrayCompare(a:Array, b:Array):int
 		{
+			if (!a || !b)
+				return ObjectUtil.compare(a, b);
 			var an:int = a.length;
 			var bn:int = b.length;
 			if (an < bn)

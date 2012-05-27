@@ -91,11 +91,6 @@ package weave.core
 		 */
 		private var _triggerCounter:uint = DEFAULT_TRIGGER_COUNT;
 		
-		/**
-		 * If this is true, it means _runCallbacksImmediately() is currently executing.
-		 */
-		private var _callbacksAreRunning:Boolean = false;
-		
 		private static const STACK_TRACE_ADD:String = "This is the stack trace from when the callback was added.";
 		private static const STACK_TRACE_REMOVE:String = "This is the stack trace from when the callback was removed.";
 		
@@ -166,10 +161,6 @@ package weave.core
 			_triggerCounter++;
 			_runCallbacksIsPending = false;
 			
-			// save current value of this variable to prevent recursive calls from making it incorrect.
-			var previouslyRunningCallbacks:Boolean = _callbacksAreRunning;
-			_callbacksAreRunning = true;
-			
 			// This flag is set to false before running the callbacks.  When it becomes true, the loop exits.
 			_runCallbacksCompleted = false;
 			
@@ -223,8 +214,6 @@ package weave.core
 
 			// This flag is now set to true in case this function was called recursively.  This causes the outer call to exit its loop.
 			_runCallbacksCompleted = true;
-			
-			_callbacksAreRunning = previouslyRunningCallbacks;
 		}
 		
 		/**
