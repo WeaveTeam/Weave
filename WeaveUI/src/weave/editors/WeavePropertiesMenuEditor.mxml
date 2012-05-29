@@ -46,16 +46,23 @@
 				<mx:HBox enabled="{dataMenu.selected}">
 					<mx:Spacer width="10"/>
 					<mx:VBox verticalGap="{verticalGap}">
+						
+						<mx:CheckBox toolTip="Checking this box will allow the user to Load all data"
+									 label="Load My data"
+									 creationComplete="linkBindableProperty(Weave.properties.enableLoadMyData, event.target, 'selected'"/>
+						
 						<mx:CheckBox toolTip="Checking this box will allow the user to refresh all data source hierarchies"
 									 label="Refresh data source hierarchies"
 									 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies, event.target, 'selected')"/> 
+						
 						<mx:CheckBox toolTip="Checking this box will allow the user to import a new data set"
-									 label="New Dataset"
-									 creationComplete="linkBindableProperty(Weave.properties.enableNewDataset, event.target, 'selected')"/> 
-						<mx:CheckBox toolTip="Checking this box will allow the user to add a new Open Indicators data source"
-									 label="Add WeaveDataSource"
-									 visible="false"
-									 creationComplete="linkBindableProperty(Weave.properties.enableAddWeaveDataSource, event.target, 'selected')"/> 
+									 label="New Datasource"
+									 creationComplete="linkBindableProperty(Weave.properties.enableAddNewDatasource, event.target, 'selected')"/> 
+						
+						<mx:CheckBox toolTip="Checking this box will allow the user to edit data sources"
+									 label="Edit Datasources"
+									 creationComplete="linkBindableProperty(Weave.properties.enableEditDatasources, event.target, 'selected')"/>
+						
 					</mx:VBox>
 				</mx:HBox>			
 			</mx:VBox>
@@ -203,6 +210,7 @@
 			import mx.events.CloseEvent;
 			
 			import weave.Weave;
+			import weave.WeaveProperties;
 			import weave.api.WeaveAPI;
 			import weave.api.linkBindableProperty;
 			import weave.core.SessionManager;
