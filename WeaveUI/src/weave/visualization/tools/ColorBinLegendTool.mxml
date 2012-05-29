@@ -45,6 +45,7 @@
 			WeaveAPI.registerImplementation(IVisTool, ColorBinLegendTool, "Color Legend");
 			
 			private var _plotter:ColorBinLegendPlotter = null;
+			
 			override protected function constructor():void
 			{
 				super.constructor();
