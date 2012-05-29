@@ -90,7 +90,7 @@ package weave.core
 				var type:String = typeof(otherSessionState);
 				if (type != typeof(_sessionState))
 					return false; // types differ, so not equal
-				if (type == 'object')
+				if (type == 'object' && otherSessionState != null) // typeof(null) == 'object'
 					return false; // do not attempt an object compare.. assume not equal
 				return ObjectUtil.compare(_sessionState, otherSessionState) == 0; // compare primitive value
 			}

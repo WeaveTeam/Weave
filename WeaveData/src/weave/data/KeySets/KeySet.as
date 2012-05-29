@@ -29,6 +29,7 @@ package weave.data.KeySets
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getSessionState;
 	import weave.api.setSessionState;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableVariable;
 	
 	/**
@@ -43,6 +44,14 @@ package weave.data.KeySets
 			super(Array);
 			// The first callback will update the keys from the session state.
 			addImmediateCallback(this, updateKeys);
+		}
+		
+		/**
+		 * Changed to use StandardLib.arrayCompare().
+		 */
+		override protected function sessionStateEquals(otherSessionState:*):Boolean
+		{
+			return StandardLib.arrayCompare(_sessionState, otherSessionState) == 0;
 		}
 		
 		/**
