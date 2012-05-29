@@ -36,6 +36,8 @@ package weave.utils
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
+	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
 	
 	/**
@@ -46,6 +48,8 @@ package weave.utils
 	public class ProbeTextUtils
 	{
 		public static const enableProbeToolTip:LinkableBoolean = new LinkableBoolean(true);
+		public static const useUnobtrusiveToolTips:LinkableBoolean = new LinkableBoolean(false);
+		public static const toolTipLocation:LinkableNumber = new LinkableNumber(ABOVE_WINDOW);
 		
 		public static function get probedColumns():ILinkableHashMap
 		{
@@ -169,8 +173,8 @@ package weave.utils
 
 		public static var yAxisToolTip:IToolTip;
 		public static var xAxisToolTip:IToolTip;
-		//For now the location parameter will be utilised by the ColorBinLegendTool. In the future this feature can be generalised for every tool.
-		public static function showProbeToolTip(probeText:String, stageX:Number, stageY:Number, bounds:IBounds2D = null, margin:int = 5, location:String = "CENTER"):void
+		//For now the toolTipLocation.value parameter will be utilised by the ColorBinLegendTool. In the future this feature can be generalised for every tool.
+		public static function showProbeToolTip(probeText:String, stageX:Number, stageY:Number, bounds:IBounds2D = null, margin:int = 5):void
 		{
 			if (!probeToolTip)
 				probeToolTip = ToolTipManager.createToolTip('', 0, 0);
@@ -204,25 +208,25 @@ package weave.utils
 			// calculate y coordinate
 			var y:int;
 			// calculate y pos depending on toolTipAbove setting
-			if (toolTipAbove && location == CENTER_WINDOW)
+			if (toolTipAbove && !useUnobtrusiveToolTips.value)
 			{
 				y = stageY - (probeToolTip.height + 2 * margin);
 				if (yAxisToolTip != null)
 					y = yAxisToolTip.y - margin - probeToolTip.height ;
 			}
-			else if( location == ABOVE_WINDOW )
+			else if( toolTipLocation.value == ABOVE_WINDOW && useUnobtrusiveToolTips.value )
 			{
 				y = bounds.getYMin() - (probeToolTip.height / 2);
 			}
-			else if( location == LEFT_WINDOW )
+			else if( toolTipLocation.value == LEFT_WINDOW && useUnobtrusiveToolTips.value)
 			{
 				y = stageY;
 			}
-			else if( location == BELOW_WINDOW )
+			else if( toolTipLocation.value == BELOW_WINDOW && useUnobtrusiveToolTips.value)
 			{
 				y = bounds.getYMax() + (probeToolTip.height / 2 );
 			}
-			else if( location == RIGHT_WINDOW )
+			else if( toolTipLocation.value == RIGHT_WINDOW && useUnobtrusiveToolTips.value)
 			{
 				y = stageY;
 			}
@@ -239,7 +243,7 @@ package weave.utils
 			
 			// calculate x coordinate
 			var x:int;
-			if (cornerToolTip && location == CENTER_WINDOW)
+			if (cornerToolTip && !useUnobtrusiveToolTips.value)
 			{
 				// want toolTip corner to be near probe point
 				if (toolTipToTheLeft)
@@ -259,19 +263,19 @@ package weave.utils
 				if ((x < xMin && toolTipToTheLeft) || (x > xMax && !toolTipToTheLeft))
 					toolTipToTheLeft = !toolTipToTheLeft;
 			}
-			else if( location == ABOVE_WINDOW )
+			else if( toolTipLocation.value == ABOVE_WINDOW && useUnobtrusiveToolTips.value)
 			{
 				x = bounds.getXMin();
 			}
-			else if( location == LEFT_WINDOW )
+			else if( toolTipLocation.value == LEFT_WINDOW && useUnobtrusiveToolTips.value)
 			{
 				x = bounds.getXMin() - probeToolTip.width;
 			}
-			else if( location == BELOW_WINDOW )
+			else if( toolTipLocation.value == BELOW_WINDOW && useUnobtrusiveToolTips.value)
 			{
 				x = bounds.getXMin();
 			}
-			else if( location == RIGHT_WINDOW )
+			else if( toolTipLocation.value == RIGHT_WINDOW && useUnobtrusiveToolTips.value)
 			{
 				x = bounds.getXMax();
 			}
@@ -285,20 +289,20 @@ package weave.utils
 				x += 10;
 			
 			// enforce min/max values and position tooltip
-			if( location == CENTER_WINDOW )
+			if(!useUnobtrusiveToolTips.value)
 			{
 				x = Math.max(xMin, Math.min(x, xMax));
 				y = Math.max(yMin, Math.min(y, yMax));
 			}
 			else
 			{
-				if( x < 0  && location == LEFT_WINDOW )
+				if( x < 0  && toolTipLocation.value == LEFT_WINDOW )
 					x = tempBounds.getXMin();
-				else if( x > tempBounds.getXMax() - probeToolTip.width && !(location == LEFT_WINDOW ) )
+				else if( x > tempBounds.getXMax() - probeToolTip.width && !(toolTipLocation.value == LEFT_WINDOW ) )
 					x = tempBounds.getXMax() - probeToolTip.width;
-				if( y < probeToolTip.height && location == ABOVE_WINDOW )
+				if( y < probeToolTip.height && toolTipLocation.value == ABOVE_WINDOW )
 					y = probeToolTip.height;
-				else if( y > tempBounds.getYMax() - probeToolTip.height && location == BELOW_WINDOW )
+				else if( y > tempBounds.getYMax() - probeToolTip.height && toolTipLocation.value == BELOW_WINDOW )
 					y = tempBounds.getYMax() - probeToolTip.height;
 			}
 			
@@ -318,12 +322,10 @@ package weave.utils
 		private static const tempBounds:IBounds2D = new Bounds2D();
 		
 		//Constants used for defining where the probe tooltip should appear.
-		public static const ABOVE_WINDOW:String = "ABOVE";
-		public static const BELOW_WINDOW:String = "BELOW";
-		public static const RIGHT_WINDOW:String = "RIGHT";
-		public static const LEFT_WINDOW:String = "LEFT";
-		//CENTER_WINDOW is meant in the sense that it will appear where the cursor is, and is the default location.
-		public static const CENTER_WINDOW:String = "CENTER";
+		public static const ABOVE_WINDOW:Number = 0;
+		public static const LEFT_WINDOW:Number = 1;
+		public static const RIGHT_WINDOW:Number = 2;
+		public static const BELOW_WINDOW:Number = 3;
 		
 		
 		

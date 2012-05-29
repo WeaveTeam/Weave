@@ -21,7 +21,7 @@ package weave.visualization.layers
 {
 	import com.cartogrammar.drawing.DashedLine;
 	
-	import flash.display.DisplayObjectContainer;
+	import flash.display.DisplayObject;
 	import flash.display.Graphics;
 	import flash.display.InteractiveObject;
 	import flash.events.ContextMenuEvent;
@@ -46,13 +46,11 @@ package weave.visualization.layers
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
-	import weave.editors.SimpleAxisEditor;
 	import weave.primitives.Bounds2D;
 	import weave.utils.CustomCursorManager;
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
-	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.SimpleVisTool;
 	
 	/**
@@ -801,32 +799,27 @@ package weave.visualization.layers
 				}
 				else
 				{
+					var tool:SimpleVisTool = getVisTool(parent);
 					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
-					var colorLegend:SimpleVisTool;
-					colorLegend = getParentTool(parent, ColorBinLegendTool)
-					if( colorLegend )
-						if( (colorLegend as ColorBinLegendTool).useUnobtrusiveToolTips.value == true )
-							ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY, new Bounds2D( colorLegend.x, colorLegend.y, colorLegend.x + colorLegend.width, colorLegend.y + colorLegend.height), 5, (colorLegend as ColorBinLegendTool).toolTipLocation.value);
-						else
-						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
+					if( tool != null && Weave.properties.useUnobtrusiveToolTips)
+						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY, new Bounds2D(tool.x, tool.y, tool.x + tool.width, tool.y + tool.height));
 					else
 						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
 				}
 			}
 		}
-		
-		private static function getParentTool(target:DisplayObjectContainer, type:Class):SimpleVisTool
+
+		private function getVisTool( target:DisplayObject ):SimpleVisTool
 		{
-			var targetComponent:* = target;
-			
-			while(targetComponent)
-			{
-				if(targetComponent is type)
-					return targetComponent;
+				var targetComponent:* = target;
 				
-				targetComponent = targetComponent.parent;
-			}
-			
+				while(targetComponent)
+				{
+					if(targetComponent is SimpleVisTool)
+						return targetComponent as SimpleVisTool;
+					
+					targetComponent = targetComponent.parent;
+				}			
 			return null;
 		}
 		

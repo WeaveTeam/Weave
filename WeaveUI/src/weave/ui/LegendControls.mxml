@@ -31,12 +31,8 @@
 		 creationPolicy="all" clipContent="false"
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
 		 label="Legend settings" width="100%">
-	
-	<mx:HBox width="100%">
+
 		<mx:CheckBox id="chkShowLegendAttrName" label="Show legend attribute name"/>
-		<mx:CheckBox id="aboveToolTips" label="Use unobtrusive tooltips" />
-		<mx:ComboBox id="toolTipSide" dataProvider="{['Above','Left','Right','Below']}" enabled="{aboveToolTips.selected}"/>
-	</mx:HBox>
 	<IndentTextInput id="txtLegendAttrNameFunc" label="Title label function:" inputWidth="100%" enabled="{chkShowLegendAttrName.selected}"/>
 	
 	<mx:CheckBox id="ascendingOrderCheck" label="Ascending item order"/>
