@@ -122,7 +122,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const newThumbnailGlowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(255));
 			
-			public const enableAutoSave:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			
 			/**
 			 * @public
 			 * This is mapping of a link to a document object. 
@@ -187,7 +187,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(defaultThumbnailBorderColor,defaultThumbnailBorderPicker,"selectedColor");
 				linkBindableProperty(selectedThumbnailBorderColor,selectedThumbnailBorderPicker,"selectedColor");
 				linkBindableProperty(newThumbnailGlowColor,thumbnailGlowColorPicker,"selectedColor");
-				linkBindableProperty(enableAutoSave,autoSaveCheckBox,"selected");
 				
 				_infomapSubMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK]);
 				
@@ -196,7 +195,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
 				_infomapSubMenu.addSubMenuItem("Show All Documents",showAllDocuments);
 			}
-			
 			
 			private var _infomapSubMenu:SubMenu = null;
 			private function dragEnterHandler(event:DragEvent):void
@@ -280,11 +278,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				
-				if(detectLinkableObjectChange(updateDisplayList,this))
-				{
-					if(enableAutoSave.value)
-						Application.application.visApp.saveInfoMapsSessionState();
-				}
+//				if(detectLinkableObjectChange(updateDisplayList,this))
+//				{
+////					if(enableAutoSave.value)
+////						Application.application.visApp.saveInfoMapsSessionState();
+//				}
 				
 				//detect any changes in selectionKeySet and make query for matched entity values
 				if(detectLinkableObjectChange(updateDisplayList,_selectedKeySet))
@@ -860,7 +858,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Button label="Clear" click="clearImage()"/>
 				<mx:Button label="Save" click="saveImage(event)"/>
 			</mx:HBox>
-			<mx:CheckBox id="autoSaveCheckBox" label="Save session automatically"/>
+			<!--<mx:CheckBox id="autoSaveCheckBox" label="Save session automatically"/>-->
 			<mx:Spacer height="50"/>
 			<mx:HBox>
 				<mx:VBox>

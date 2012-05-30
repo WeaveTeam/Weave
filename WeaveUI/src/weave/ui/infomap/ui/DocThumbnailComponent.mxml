@@ -97,6 +97,14 @@ so that it can be moved, selected, handle filters.
 			 * This variable sets the color of the glow filter for highlighting new documents.
 			 * */
 			public const glowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber());
+			
+			/**
+			 * @public
+			 * This variable highlights the document. Used for highlighing new document.s
+			 * */
+			public const highlighted:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false),highlightDoc);
+			
+			
 			/**
 			 * @public
 			 * This variable sets the thickness of the border of this image.
@@ -129,6 +137,7 @@ so that it can be moved, selected, handle filters.
 				linkBindableProperty(imageWidth,this,"width");
 				linkBindableProperty(imageHeight,this,"height");	
 				linkBindableProperty(imageAlpha,this,"alpha");
+				
 				
 //				linkBindableProperty(xPos,this,"x");
 //				linkBindableProperty(yPos,this,"y");
@@ -272,7 +281,7 @@ so that it can be moved, selected, handle filters.
 			private function handleMouseDown(event:MouseEvent):void
 			{
 				event.stopImmediatePropagation();
-				filters = [];
+				highlighted.value = false;
 				timer.stop();
 				removeDocSummary();
 				_mouseDown = true;
@@ -444,13 +453,20 @@ so that it can be moved, selected, handle filters.
 			
 			private var glowFilter:GlowFilter = new GlowFilter(glowColor.value);
 			private var timer:Timer = new Timer(125);
-			public function startGlow():void
+			private function startGlow():void
 			{
 				filters = [glowFilter];
 				timer.addEventListener(TimerEvent.TIMER,changeGlow);
 				timer.start();
 			}
 			
+			private function highlightDoc():void
+			{
+				if(highlighted.value)
+					startGlow();
+				else
+					filters = [];
+			}
 			
 			private function changeGlow(event:TimerEvent):void
 			{

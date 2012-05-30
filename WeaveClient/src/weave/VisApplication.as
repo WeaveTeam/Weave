@@ -56,6 +56,7 @@ package weave
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
@@ -444,6 +445,14 @@ package weave
 
 			this.addChild(VisTaskbar.instance);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN,this,handleKeyPress);
+			
+			if(Weave.properties.enableAutoSave.value)
+			{
+				saveSessionTimer = new Timer(5000);
+				saveSessionTimer.addEventListener(TimerEvent.TIMER,saveSessionState);
+				saveSessionTimer.start();
+			}
+			
 		}
 		
 		private function handleKeyPress():void
@@ -526,12 +535,22 @@ package weave
 		}
 		
 		private const _service:WeaveAdminService = new WeaveAdminService("/WeaveServices");
-		public function saveInfoMapsSessionState():void
+		
+		private var saveSessionTimer:Timer = null;
+		private function saveSessionState(event:TimerEvent):void
+		{
+			if(!Weave.properties.enableAutoSave.value)
+				return;
+			if (detectLinkableObjectChange(saveSessionState,Weave.history))
+				saveInfoMapsSessionState();
+		}
+		
+		private function saveInfoMapsSessionState():void
 		{
 			if(!Weave.properties.enableInfoMap.value)
 				return;
 			
-			var fileName:String = getFlashVarConfigFileName().split("/").pop();
+			var fileName:String = getFlashVarConfigFileName                                                                                                 ().split("/").pop();
 			fileName = Weave.fixWeaveFileName(fileName, true);
 			
 			var content:ByteArray;

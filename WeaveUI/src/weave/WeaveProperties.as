@@ -358,6 +358,8 @@ package weave
 		public const enableAddDataSource:LinkableBoolean = new LinkableBoolean(true);// enable/disable Manage saved subsets option
 		public const enableEditDataSource:LinkableBoolean = new LinkableBoolean(true);
 		
+		public const enableAutoSave:LinkableBoolean = new LinkableBoolean(true);
+		
 		public const dashboardMode:LinkableBoolean = new LinkableBoolean(false);	 // enable/disable borders/titleBar on windows
 		public const enableToolControls:LinkableBoolean = new LinkableBoolean(true); // enable tool controls (which enables attribute selector too)
 		
