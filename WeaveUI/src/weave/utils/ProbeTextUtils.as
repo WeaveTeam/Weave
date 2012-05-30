@@ -174,7 +174,7 @@ package weave.utils
 		public static var yAxisToolTip:IToolTip;
 		public static var xAxisToolTip:IToolTip;
 		//For now the toolTipLocation.value parameter will be utilised by the ColorBinLegendTool. In the future this feature can be generalised for every tool.
-		public static function showProbeToolTip(probeText:String, stageX:Number, stageY:Number, bounds:IBounds2D = null, margin:int = 5):void
+		public static function showProbeToolTip(probeText:String, stageX:Number, stageY:Number, stageBounds:IBounds2D = null, margin:int = 5):void
 		{
 			if (!probeToolTip)
 				probeToolTip = ToolTipManager.createToolTip('', 0, 0);
@@ -187,8 +187,8 @@ package weave.utils
 			var stage:Stage = WeaveAPI.topLevelApplication.stage;
 			tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
 			
-			if (bounds == null)
-				bounds = tempBounds;
+			if (stageBounds == null)
+				stageBounds = tempBounds;
 			
 			// create new tooltip
 			probeToolTip.text = probeText;
@@ -200,10 +200,10 @@ package weave.utils
 			//this step is required to set the height and width of probeToolTip to the right size.
 			(probeToolTip as UIComponent).validateNow();
 			
-			var xMin:Number = bounds.getXNumericMin();
-			var yMin:Number = bounds.getYNumericMin();
-			var xMax:Number = bounds.getXNumericMax() - probeToolTip.width;
-			var yMax:Number = bounds.getYNumericMax() - probeToolTip.height;
+			var xMin:Number = stageBounds.getXNumericMin();
+			var yMin:Number = stageBounds.getYNumericMin();
+			var xMax:Number = stageBounds.getXNumericMax() - probeToolTip.width;
+			var yMax:Number = stageBounds.getYNumericMax() - probeToolTip.height;
 			
 			// calculate y coordinate
 			var y:int;
@@ -216,7 +216,7 @@ package weave.utils
 			}
 			else if( toolTipLocation.value == ABOVE_WINDOW && useUnobtrusiveToolTips.value )
 			{
-				y = bounds.getYMin() - (probeToolTip.height / 2);
+				y = stageBounds.getYMin() - probeToolTip.height;
 			}
 			else if( toolTipLocation.value == LEFT_WINDOW && useUnobtrusiveToolTips.value)
 			{
@@ -224,7 +224,7 @@ package weave.utils
 			}
 			else if( toolTipLocation.value == BELOW_WINDOW && useUnobtrusiveToolTips.value)
 			{
-				y = bounds.getYMax() + (probeToolTip.height / 2 );
+				y = stageBounds.getYMax() + probeToolTip.height;
 			}
 			else if( toolTipLocation.value == RIGHT_WINDOW && useUnobtrusiveToolTips.value)
 			{
@@ -265,19 +265,19 @@ package weave.utils
 			}
 			else if( toolTipLocation.value == ABOVE_WINDOW && useUnobtrusiveToolTips.value)
 			{
-				x = bounds.getXMin();
+				x = stageBounds.getXMin();
 			}
 			else if( toolTipLocation.value == LEFT_WINDOW && useUnobtrusiveToolTips.value)
 			{
-				x = bounds.getXMin() - probeToolTip.width;
+				x = stageBounds.getXMin() - probeToolTip.width;
 			}
 			else if( toolTipLocation.value == BELOW_WINDOW && useUnobtrusiveToolTips.value)
 			{
-				x = bounds.getXMin();
+				x = stageBounds.getXMin();
 			}
 			else if( toolTipLocation.value == RIGHT_WINDOW && useUnobtrusiveToolTips.value)
 			{
-				x = bounds.getXMax();
+				x = stageBounds.getXMax();
 			}
 			else // center x coordinate
 			{

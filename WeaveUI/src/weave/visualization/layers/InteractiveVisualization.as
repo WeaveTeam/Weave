@@ -51,7 +51,6 @@ package weave.visualization.layers
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
-	import weave.visualization.tools.SimpleVisTool;
 	
 	/**
 	 * This is a container for a list of PlotLayers
@@ -330,7 +329,7 @@ package weave.visualization.layers
 			}
 			else // not dragging -- ok to update mouse mode
 			{
-					updateMouseMode(eventType);
+				updateMouseMode(eventType);
 			}
 			
 			var dragReleased:Boolean = mouseDragActive && !event.buttonDown;
@@ -799,30 +798,21 @@ package weave.visualization.layers
 				}
 				else
 				{
-					var tool:SimpleVisTool = getVisTool(parent);
 					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
-					if( tool != null && Weave.properties.useUnobtrusiveToolTips)
-						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY, new Bounds2D(tool.x, tool.y, tool.x + tool.width, tool.y + tool.height));
+					if (Weave.properties.useUnobtrusiveToolTips.value)
+					{
+						var stagePos:Point = localToGlobal(new Point(0,0));
+						_tempBounds.setRectangle(stagePos.x, stagePos.y, this.width, this.height);
+						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY, _tempBounds);
+					}
 					else
+					{
 						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
+					}
 				}
 			}
 		}
 
-		private function getVisTool( target:DisplayObject ):SimpleVisTool
-		{
-				var targetComponent:* = target;
-				
-				while(targetComponent)
-				{
-					if(targetComponent is SimpleVisTool)
-						return targetComponent as SimpleVisTool;
-					
-					targetComponent = targetComponent.parent;
-				}			
-			return null;
-		}
-		
 		/**
 		 * An array of additional columns to be displayed in the probe tooltip for this visualization instance 
 		 */		
