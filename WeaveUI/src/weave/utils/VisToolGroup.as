@@ -24,7 +24,9 @@ package weave.utils
 	import weave.api.data.IKeySet;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableDynamicObject;
+	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
+	import weave.data.AttributeColumns.FilteredColumn;
 
 	/**
 	 * This is an encapsulation of a set of references to global objects used by a visualization tool.
@@ -39,9 +41,11 @@ package weave.utils
 		public const globalSelectionKeySet:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet));
 		public const globalSubsetKeyFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter));
 		
-		public function get colorColumn():ColorColumn { return globalColorColumn.internalObject as ColorColumn; }
-		public function get probe():IKeySet { return globalProbeKeySet.internalObject as IKeySet; }
-		public function get selection():IKeySet { return globalSelectionKeySet.internalObject as IKeySet; }
-		public function get subset():IKeyFilter { return globalSubsetKeyFilter.internalObject as IKeyFilter; }
+		public function getColorColumn():ColorColumn { return globalColorColumn.internalObject as ColorColumn; }
+		public function getColorBinColumn():BinnedColumn { return getColorColumn().internalColumn as BinnedColumn; }
+		public function getColorDataColumn():FilteredColumn { return getColorBinColumn().internalColumn as FilteredColumn; }
+		public function getProbe():IKeySet { return globalProbeKeySet.internalObject as IKeySet; }
+		public function getSelection():IKeySet { return globalSelectionKeySet.internalObject as IKeySet; }
+		public function getSubset():IKeyFilter { return globalSubsetKeyFilter.internalObject as IKeyFilter; }
 	}
 }

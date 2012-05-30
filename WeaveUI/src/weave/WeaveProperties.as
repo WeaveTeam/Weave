@@ -21,11 +21,8 @@ package weave
 {
 	import flash.display.Stage;
 	import flash.events.Event;
-	import flash.events.IOErrorEvent;
-	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.URLRequest;
-	import flash.system.ApplicationDomain;
 	import flash.text.Font;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
@@ -44,7 +41,6 @@ package weave
 	import weave.api.linkBindableProperty;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
-	import weave.api.setSessionState;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
@@ -52,9 +48,7 @@ package weave
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
-	import weave.core.StageUtils;
 	import weave.core.weave_internal;
-	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
@@ -62,7 +56,6 @@ package weave
 	import weave.ui.JRITextEditor;
 	import weave.ui.RTextEditor;
 	import weave.utils.CSSUtils;
-	import weave.utils.DebugUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.NumberUtils;
 	import weave.utils.ProbeTextUtils;
@@ -453,6 +446,8 @@ package weave
 		
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
 		public function get enableProbeToolTip():LinkableBoolean { return ProbeTextUtils.enableProbeToolTip; }
+		public function get useUnobtrusiveToolTips():LinkableBoolean { return ProbeTextUtils.useUnobtrusiveToolTips; }
+		public function get toolTipLocation():LinkableNumber { return ProbeTextUtils.toolTipLocation; }
 
 		public const toolInteractions:InteractionController = new InteractionController();
 		

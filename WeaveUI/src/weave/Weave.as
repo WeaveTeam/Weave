@@ -26,7 +26,6 @@ package weave
 	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.core.Application;
 	import mx.core.UIComponent;
 	import mx.graphics.codec.PNGEncoder;
 	import mx.rpc.events.FaultEvent;
