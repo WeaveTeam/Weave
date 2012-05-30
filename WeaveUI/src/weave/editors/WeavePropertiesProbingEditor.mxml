@@ -128,7 +128,7 @@
 			import weave.Weave;
 			import weave.api.linkBindableProperty;
 			
-			private const indentPadding:int = 20
+			private const indentPadding:int = 24;
 			
 			override protected function childrenCreated():void
 			{
