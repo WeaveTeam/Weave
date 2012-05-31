@@ -21,7 +21,6 @@ package weave.visualization.layers
 {
 	import com.cartogrammar.drawing.DashedLine;
 	
-	import flash.display.DisplayObject;
 	import flash.display.Graphics;
 	import flash.display.InteractiveObject;
 	import flash.events.ContextMenuEvent;
@@ -36,7 +35,6 @@ package weave.visualization.layers
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableContainer;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -799,16 +797,7 @@ package weave.visualization.layers
 				else
 				{
 					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
-					if (Weave.properties.useUnobtrusiveToolTips.value)
-					{
-						var stagePos:Point = localToGlobal(new Point(0,0));
-						_tempBounds.setRectangle(stagePos.x, stagePos.y, this.width, this.height);
-						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY, _tempBounds);
-					}
-					else
-					{
-						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
-					}
+					ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
 				}
 			}
 		}
