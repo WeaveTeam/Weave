@@ -102,16 +102,16 @@ package weave
 						// first check to see if there is a selection - if so make subset from selection
 						if(selection.keys.length > 0)
 						{
-							_removeFromSubsetCMI.caption = "Remove " + SUBSET_REMOVE_SELECTION_CAPTION;
-							_createSubsetCMI.caption     = "Create " + SUBSET_CREATE_SELECTION_CAPTION;
+							_removeFromSubsetCMI.caption = lang("Remove " + SUBSET_REMOVE_SELECTION_CAPTION);
+							_createSubsetCMI.caption     = lang("Create " + SUBSET_CREATE_SELECTION_CAPTION);
 						}
 						// if there is not a selection and something is probed, then use it for the subset 
 						else if(_localProbeKeySet.keys.length > 0)
 						{
 							_viewRecordCMI.enabled = true;
-							_viewRecordCMI.caption = "Show data for probed record" + ((_localProbeKeySet.keys.length > 1)? "s" : "" );
-							_removeFromSubsetCMI.caption = "Remove " + SUBSET_REMOVE_PROBE_CAPTION;
-							_createSubsetCMI.caption     = "Create " + SUBSET_CREATE_PROBE_CAPTION;
+							_viewRecordCMI.caption = lang("Show data for probed record" + ((_localProbeKeySet.keys.length > 1)? "s" : "" ));
+							_removeFromSubsetCMI.caption = lang("Remove " + SUBSET_REMOVE_PROBE_CAPTION);
+							_createSubsetCMI.caption     = lang("Create " + SUBSET_CREATE_PROBE_CAPTION);
 						}
 						if(_localProbeKeySet.keys.length <= 0 ) _viewRecordCMI.enabled = false;
 						
