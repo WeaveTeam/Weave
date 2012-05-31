@@ -20,6 +20,7 @@ package weave.ui.controlBars
 {
 	import mx.collections.ArrayCollection;
 	import mx.controls.menuClasses.MenuBarItem;
+	import mx.utils.StringUtil;
 		
 	public class WeaveMenuItem extends MenuBarItem
 	{	
@@ -61,10 +62,10 @@ package weave.ui.controlBars
 		//or a function for determining the labels. (If the data provider is in E4X XML format, you must specify one of these 
 		//properties to display a label.) If the data provider is an array of strings, Flex uses the string value as the label.
 		private var _maxLabelLength:int = 75;
-		private var _label:String = "unnamed menu item";
+		private var _label:String = '';
 		[Bindable]
 		public function get weaveLabel():String 
-		{ 
+		{
 			if(labelFunction != null)
 			{
 				_label = labelFunction();
@@ -75,8 +76,11 @@ package weave.ui.controlBars
 
 			return _label; 
 		}
-		public function set weaveLabel(value:String):void { _label = value; }	
-
+		public function set weaveLabel(value:String):void
+		{
+			_label = lang(value);
+		}
+		
 		//Specifies whether a check or radio item is selected. If not specified, Flex treats the item as if the value were false 
 		//and the item is not selected.  If you use the default data descriptor, data providers must use a toggled XML 
 		//attribute or object field to specify this characteristic.

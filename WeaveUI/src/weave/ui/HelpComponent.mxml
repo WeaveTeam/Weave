@@ -24,7 +24,7 @@
 @author adufilie
 -->
 
-<mx:Box label="Help"
+<mx:Box label="{lang('Help')}"
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns:ui ="weave.ui.*"
 	width="18" height="18"
@@ -151,15 +151,19 @@
 				
 			private function setContent(value:*, asXML:Boolean):void
 			{
-				value = StandardLib.replace(StringUtil.trim(value), '\t', '');
+				if (value is String)
+					value = StandardLib.replace(StringUtil.trim(value), '\t', '');
 				
 				if (!value)
 					return;
 				
-				toolTip = "Click for help";
+				toolTip = lang("Click for help");
 				
 				if (value is String)
 				{
+					// localization
+					value = lang(value);
+					
 					var textArea:AutoResizingTextArea = new AutoResizingTextArea();
 					if (asXML)
 					{
@@ -222,7 +226,7 @@
 				// show error if no children available
 				if (!helpChildren || helpChildren.length == 0)
 				{
-					Alert.show("No help available.", "Error");
+					Alert.show(lang("No help available."), lang("Error"));
 					return;
 				}
 				

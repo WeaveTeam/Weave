@@ -441,12 +441,12 @@
 				
 				if ( textArea == null)
 				{ 
-					_textAreaAddRemoveContextMenuItem.caption = ADD_CAPTION;
+					_textAreaAddRemoveContextMenuItem.caption = lang(ADD_CAPTION);
 					_textAreaEditContextMenuItem.enabled = false;
 				}
 				else
 				{
-					_textAreaAddRemoveContextMenuItem.caption = REMOVE_CAPTION;
+					_textAreaAddRemoveContextMenuItem.caption = lang(REMOVE_CAPTION);
 					_textAreaEditContextMenuItem.enabled = true;
 				}
 			}

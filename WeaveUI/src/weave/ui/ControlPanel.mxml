@@ -21,7 +21,7 @@
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				title="Control Panel"
+				title="{lang('Control Panel')}"
 				backgroundColor="0xCCCCCC"
 				addedToStage="handleAddedToStage();"
 				width="640"

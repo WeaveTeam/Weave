@@ -112,6 +112,8 @@ package weave.ui
 			if(!destination.hasOwnProperty("contextMenu") )
 				return null;
 				
+			text = lang(text);
+			
 			// create the menu item from the passed parameters
 			var menuItem:ContextMenuItem = new ContextMenuItem(text);
 			menuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, itemSelectListener);
