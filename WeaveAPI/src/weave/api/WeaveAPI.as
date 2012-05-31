@@ -501,7 +501,8 @@ package weave.api
 		 */
 		public static function initializeLocale(locale:String):void
 		{
-			registerTranslation(null, locale.split(['_'])[0], null);
+			locale = locale.split('_')[0];
+			registerTranslation(null, locale, null);
 		}
 		
 		/**
@@ -537,6 +538,7 @@ package weave.api
 			{
 				for each (locale in ResourceManager.getInstance().localeChain)
 				{
+					locale = locale.split('_')[0];
 					// since locale is specified, keepTrying will be false in recursive call
 					result = localize(text, locale);
 					// stop when we find a translation
