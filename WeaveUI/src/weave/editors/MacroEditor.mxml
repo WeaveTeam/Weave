@@ -23,19 +23,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 <!---
 @author jfallon
 -->
-<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute"
+<ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute"
 				   width="400" height="300" title="Macro Editor" backgroundColor="#EFF4BC">
 	<mx:VBox height="100%" width="100%" paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
 		<mx:HBox>
-			<mx:Button label="Apply" height="100%" width="33%" click="applyEntry(event)"/>
 			<mx:Button label="Delete" height="100%" width="33%" click="deleteEntry(event)"/>
 			<mx:Button label="Add" height="100%" width="33%" click="newMacroEntry(event)"/>
+			<mx:Button label="Rename" height="100%" width="33%" click="renameMacroEntry(event)"/>
 		</mx:HBox>
 		<mx:HDividedBox height="100%" width="100%">
 			<mx:VBox height="100%" width="100%" >
 				<ui:LinkableObjectList id="macroList" height="100%" width="100%"
-									   hashMap="{LinkableFunction.macros}" itemClick="macroList_itemClickHandler(event)" itemEditEnd="macroList_itemEditEndHandler(event)"/>
-				<mx:CheckBox id="overrideNames" label="Edit Macro Names" change="overrideNames_changeHandler(event)"/>
+									   hashMap="{LinkableFunction.macros}" itemClick="macroList_itemClickHandler(event)"/>
 			</mx:VBox>
 			<mx:VBox height="100%" width="100%">
 				<mx:TextArea id="funcValues" height="100%" width="100%" change="funcValues_changeHandler(event)"/>
@@ -46,8 +45,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.TextInput;
-			import mx.controls.listClasses.ListData;
 			import mx.events.ListEvent;
 			
 			import weave.core.LinkableFunction;
@@ -66,6 +63,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
 					funcValues_changeHandler(null);
 				}
+				this.targets = macroList.hashMap.getObjects(LinkableFunction);
 			}
 			
 			protected function applyEntry(event:MouseEvent):void
@@ -141,7 +139,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						if( _textEdited == false )
 							funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
 					}
-					
+					funcValues_changeHandler(null);
 				}
 			}
 			
@@ -155,6 +153,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if( _textEdited == true && macroList.selectedIndex == lastClickedMacro && macroList.selectedIndex > -1)
 				{
 					return;
+					funcValues_changeHandler(null);
 				}
 				if( macroList.selectedIndex != lastClickedMacro && funcValues.text != "" && _textEdited == true)
 				{
@@ -172,6 +171,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;					
 					lastClickedMacro = macroList.selectedIndex;
 					_textEdited = false;
+					funcValues_changeHandler(null);
 				}
 			}
 			
@@ -205,20 +205,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if( funcValues.text != "")
 					_textEdited = true;
-				try{
-					//This part of the code is inefficient. This constantly requests then destroys a LinkableFunction object, this quick fix was done to prevent
-					//the LinkableFunction used to test the output of whatever is typed in from appearing in the LinkableObjectList on the left side of the window.
-					var funcToSave:LinkableFunction = LinkableFunction.macros.requestObject("_internalTestFunc", LinkableFunction, false);
-					funcToSave.value = funcValues.text;
-					macroResult.text = LinkableFunction.evaluateMacro("_internalTestFunc");
-					LinkableFunction.macros.removeObject("_internalTestFunc");
-					macroList.selectedIndex = lastClickedMacro;
-					if( macroResult.text == "" )
-						macroResult.text = "Error.";
-				}
-				catch(e:Error)
+				if(macroList.selectedIndex > -1)
 				{
-					macroResult.text = "Error.";
+					try{
+						//This part of the code is inefficient. This constantly requests then destroys a LinkableFunction object, this quick fix was done to prevent
+						//the LinkableFunction used to test the output of whatever is typed in from appearing in the LinkableObjectList on the left side of the window.
+						var funcToSave:LinkableFunction = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction);	
+						funcToSave.value = funcValues.text;
+						_textEdited = false;
+						macroResult.text = LinkableFunction.evaluateMacro(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction));
+						if( macroResult.text == "" )
+							macroResult.text = "Error.";
+					}
+					catch(e:Error)
+					{
+						macroResult.text = "Error.";
+					}
 				}
 			}
 			
@@ -236,38 +238,38 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					super.removePanel();
 			}
 			
-			protected function overrideNames_changeHandler(event:Event):void
+			protected function renameMacroEntry(event:MouseEvent):void
 			{
-				if(overrideNames.selected)
-					macroList.editable = true;
-				else
-					macroList.editable = false;
+				if( macroList.selectedIndex > -1 )
+				{
+					var box:AlertTextBox = AlertTextBox.show("Macro Renaming Window", "Enter a new name for the macro:");
+					box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkRenameInput);
+				}
 			}
 			
-			protected function macroList_itemEditEndHandler(event:ListEvent):void
+			private function checkRenameInput(event:AlertTextBoxEvent):void
 			{
-				//This function will update the list with a new name, but the label isn't being properly written.
-				var newName:String = (event.target as LinkableObjectList).itemEditorInstance[(event.target as LinkableObjectList).editorDataField];
-				var list:LinkableObjectList = event.target as LinkableObjectList;
-				var input:TextInput = macroList.itemEditorInstance as TextInput;
-				input.errorString = '';
-				var macroNames:Array = LinkableFunction.macros.getNames();
-				for( var i:int = 0; i < macroNames.length; i++)
+				if( event.confirm == true )
 				{
-					if( newName == macroNames[i] )
+					var macroNames:Array = LinkableFunction.macros.getNames();
+					for( var i:int = 0; i < macroNames.length; i++)
 					{
-						input.errorString = "Name already exists.";
-						
-						// don't save the new value
-						event.preventDefault();
-						return;
+						if( event.textInput == macroNames[i])
+						{
+							var box:AlertTextBox = AlertTextBox.show("Macro Naming Window", "The name you entered is already being used. Please enter a new name:");
+							box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkInput);
+						}
 					}
+					macroList.hashMap.renameObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction), event.textInput);
 				}
-				if( list )
-					if( newName != macroList.hashMap.getNames()[event.rowIndex] )
-						callLater(macroList.hashMap.renameObject, [macroList.hashMap.getNames()[event.rowIndex], newName]);
+			}
+			
+			override public function revert():void
+			{
+				super.revert();
+				funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
 			}
 			
 		]]>
 	</mx:Script>
-</ui:DraggablePanel>
+</ui:ControlPanel>
