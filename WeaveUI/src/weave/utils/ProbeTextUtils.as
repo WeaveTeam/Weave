@@ -36,8 +36,8 @@ package weave.utils
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
+	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
-	import weave.ui.ProbeToolTipWindow;
 	
 	/**
 	 * A static class containing functions to manage a list of probed attribute columns
@@ -48,6 +48,7 @@ package weave.utils
 	{
 		public static const enableProbeToolTip:LinkableBoolean = new LinkableBoolean(true);
 		public static const useUnobtrusiveToolTips:LinkableBoolean = new LinkableBoolean(false);
+		public static const probeString:LinkableString = new LinkableString("");
 		
 		public static function get probedColumns():ILinkableHashMap
 		{
@@ -266,8 +267,7 @@ package weave.utils
 				probeToolTip.move(x, y);
 				return;
 			}
-			if( Weave.root.getObjects(ProbeToolTipWindow)[0] != null )
-				(Weave.root.getObjects(ProbeToolTipWindow)[0] as ProbeToolTipWindow).probeTextArea.text = probeText;
+			probeString.value = probeText;
 		}
 		
 		
@@ -287,6 +287,7 @@ package weave.utils
 		{
 			if (probeToolTip)
 				probeToolTip.visible = false;
+			probeString.value = "";
 		}
 	}
 }

@@ -111,7 +111,6 @@
 				creationComplete="linkBindableProperty(Weave.properties.probeToolTipMaxWidth, event.target, 'text' );"
 			/>
 	</mx:VBox>
-	<mx:CheckBox id="aboveToolTips" label="Use unobtrusive tooltips" creationComplete="linkBindableProperty(Weave.properties.useUnobtrusiveToolTips, event.target, 'selected')"/>
 	<mx:CheckBox label="Enable probe axis lines"
 				 creationComplete="linkBindableProperty(Weave.properties.enableProbeLines, event.target, 'selected')"/>
 	
@@ -130,21 +129,6 @@
 			override protected function childrenCreated():void
 			{
 				Weave.properties.probeToolTipBackgroundColor.addGroupedCallback(this, backgroundColorCallback, true);
-				Weave.properties.useUnobtrusiveToolTips.addGroupedCallback(this, probeToolTipWindow, true);
-			}
-			private function probeToolTipWindow():void
-			{
-				if( Weave.properties.useUnobtrusiveToolTips.value )
-				{
-					Weave.root.requestObject(Weave.root.generateUniqueName("ProbeToolTipWindow"),ProbeToolTipWindow, false);
-				}
-				else
-				{
-					var nameArray:Array = Weave.root.getNames(ProbeToolTipWindow);
-					if( nameArray != null )
-						Weave.root.removeObject(nameArray[0]);
-				}
-					
 			}
 			private function backgroundColorCallback():void
 			{

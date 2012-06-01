@@ -69,6 +69,9 @@
 						<mx:CheckBox toolTip="Allow the user to open the Probe ToolTip Editor"
 									 label="Probe ToolTip Editor"
 									 creationComplete="linkBindableProperty(Weave.properties.showProbeToolTipEditor, event.target, 'selected')"/>
+						<mx:CheckBox toolTip="Allow the user to open the Probe ToolTip Window for unobtrusive tool tips"
+									 label="Probe ToolTip Window"
+									 creationComplete="linkBindableProperty(Weave.properties.showProbeWindow, event.target, 'selected')"/>
 						<mx:CheckBox toolTip="Allow the user to open the Equation Editor"
 									 label="Equation Editor"
 									 creationComplete="linkBindableProperty(Weave.properties.showEquationEditor, event.target, 'selected')"/>
@@ -198,15 +201,12 @@
 		</mx:TabNavigator>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
 			import mx.controls.Alert;
 			import mx.events.CloseEvent;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.linkBindableProperty;
-			import weave.core.SessionManager;
 			
 			override protected function createChildren():void
 			{

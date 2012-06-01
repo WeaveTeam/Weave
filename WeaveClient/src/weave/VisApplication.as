@@ -88,6 +88,7 @@ package weave
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.ProbeToolTipEditor;
+	import weave.ui.ProbeToolTipWindow;
 	import weave.ui.QuickMenuPanel;
 	import weave.ui.SelectionManager;
 	import weave.ui.SessionStateEditor;
@@ -736,6 +737,7 @@ package weave
 
 				createToolMenuItem(Weave.properties.showColorController, "Color Controller", DraggablePanel.openStaticInstance, [ColorController]);
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Probe ToolTip Editor", DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
+				createToolMenuItem(Weave.properties.showProbeWindow, "Probe ToolTip Window", DraggablePanel.openStaticInstance, [ProbeToolTipWindow]);
 				createToolMenuItem(Weave.properties.showEquationEditor, "Equation Editor", DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showCollaborationEditor, "Collaboration Settings", DraggablePanel.openStaticInstance, [CollaborationEditor]);
 				
