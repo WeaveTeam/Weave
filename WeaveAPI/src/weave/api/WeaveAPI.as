@@ -16,6 +16,7 @@
 package weave.api
 {
 	import flash.external.ExternalInterface;
+	import flash.net.SharedObject;
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
 	import flash.utils.getDefinitionByName;
@@ -398,9 +399,10 @@ package weave.api
 		 * Localization
 		 *************************************/
 		
-		private static const _localizations:Object = {};
+		private static var _localizations:Object = {};
 		private static var _locale:String = null;
 		private static var _supportedLocales:Object = {};
+		private static var _gotLocaleChain:Boolean = false;
 		
 		/**
 		 * This returns a list of all supported locales.
@@ -411,11 +413,15 @@ package weave.api
 			var locale:String;
 			for (locale in _supportedLocales)
 				result.push(locale);
-			if (result.length == 0)
+			
+			if (!_gotLocaleChain)
 			{
-				result = ResourceManager.getInstance().localeChain.concat();
-				for each (locale in result)
+				// get initial list of locales
+				var locales:Array = ResourceManager.getInstance().localeChain;
+				for each (locale in locales)
 					initializeLocale(locale);
+				if (locales) // may be null
+					_gotLocaleChain = true;
 			}
 			
 			result.sort();
@@ -449,6 +455,7 @@ package weave.api
 					existingLookup[locale] = newLookup[locale];
 				}
 			}
+			saveSharedObject();
 		}
 		
 		/**
@@ -469,9 +476,45 @@ package weave.api
 					_localizations[originalText][locale] = localizedText;
 				else
 					delete _localizations[originalText][locale];
+				saveSharedObject();
 			}
 		}
 		
+		// BEGIN TEMPORARY SOLUTION
+		private static const LOCALIZATIONS:String = '_localizations';
+		private static const LOCALE:String = '_locale';
+		initSharedObject();
+		private static function initSharedObject():void
+		{
+			if (!WeaveLangSharedObject)
+			{
+				// load previously stored translation data
+				var obj:SharedObject = SharedObject.getLocal('Weave.lang');
+				importLocalizations(obj.data[LOCALIZATIONS]);
+				setLocale(obj.data[LOCALE]);
+				
+				WeaveLangSharedObject = obj;
+			}
+		}
+		private static var WeaveLangSharedObject:SharedObject = null;
+		private static function saveSharedObject():void
+		{
+			if (WeaveLangSharedObject)
+			{
+				// save translation data
+				WeaveLangSharedObject.data[LOCALIZATIONS] = getAllLocalizations();
+				WeaveLangSharedObject.data[LOCALE] = getLocale();
+				WeaveLangSharedObject.flush();
+			}
+		}
+		// END TEMPORARY SOLUTION
+		
+		
+		public static function clearAllLocalizations():void
+		{
+			_localizations = {};
+			WeaveLangSharedObject.clear();
+		}
 		/**
 		 * This will get the active locale used by the localize() function.
 		 */
@@ -488,11 +531,15 @@ package weave.api
 		 */
 		public static function setLocale(locale:String):void
 		{
+			if (!locale)
+				return;
+			
 			locale = locale.split('_')[0];
 			_supportedLocales[locale] = locale;
 			_locale = locale;
 			
 			//_locale = 'piglatin'; // for testing
+			saveSharedObject();
 		}
 		
 		/**
