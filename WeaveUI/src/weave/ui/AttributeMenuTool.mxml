@@ -174,7 +174,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.constructor();
 				
 				// have a default dynamic title
-				panelTitle.value = lang('Attribute menu for {targetAttribute.value}');
+				panelTitle.value = lang('Attribute menu for {0}', '{targetAttribute.value}');
 				
 				// have some default choices ready when the tool is created
 				copySessionState(ProbeTextUtils.probedColumns, choices);

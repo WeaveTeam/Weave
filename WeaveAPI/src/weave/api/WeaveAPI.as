@@ -566,10 +566,6 @@ package weave.api
 			if (!locale)
 				locale = _locale;
 			
-			// for testing
-			if (locale == 'piglatin')
-				return makePigLatins(text);
-			
 			var result:String = null;
 			if (_localizations.hasOwnProperty(text))
 			{
@@ -593,9 +589,16 @@ package weave.api
 						break;
 				}
 			}
+
 			// if we couldn't find an alternate translation, just return the original text
 			if (result == null && keepTrying)
+			{
+				// for testing
+				if (locale == 'piglatin')
+					return makePigLatins(text);
+	
 				result = text;
+			}
 			
 			//trace('localize(',arguments,') = ',result);
 			return result;

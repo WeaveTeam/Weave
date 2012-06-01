@@ -15,17 +15,31 @@
 
 package
 {
+	import mx.utils.StringUtil;
+	
 	import weave.api.WeaveAPI;
 
 	/**
 	 * This is a convenient global function for retrieving localized text.
 	 * Sample syntax:
 	 *     lang("hello world")
-	 * Sample result (if locale is set to es_ES):
-	 *     "hola mundo"
+	 * 
+	 * You can also specify a format string with parameters which will be passed to StringUtil.substitute():
+	 *     lang("{0} and {1}", first, second)
+	 * 
+	 * @param text The original text or format string to translate.
+	 * @param parameters Parameters to be passed to StringUtil.substitute() if the text is to be treated as a format string.
 	 */
-	public function lang(text:String):String
+	public function lang(text:String, ...parameters):String
 	{
-		return WeaveAPI.localize(text);
+		var newText:String = WeaveAPI.localize(text);
+		
+		if (parameters.length)
+		{
+			parameters.unshift(newText);
+			return StringUtil.substitute.apply(null, parameters);
+		}
+		
+		return newText;
 	}
 }

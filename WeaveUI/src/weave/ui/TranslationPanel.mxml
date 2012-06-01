@@ -25,15 +25,10 @@
 -->
 <DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
 		xmlns="weave.ui.*"
-		borderColor="#626154"
+		borderColor="#939178"
 		title="{lang('Translations')}"
 		addedToStage="refresh()"
 		>
-	<mx:Script>
-		<![CDATA[
-			import weave.Weave;
-		]]>
-	</mx:Script>
 	<mx:VBox width="100%" height="100%"
 			paddingLeft="8"
 			paddingRight="8"
@@ -48,9 +43,9 @@
 			<mx:ComboBox id="localeComboBox" change="handleLocaleChange()" />
 			<mx:Button label="{lang('New locale...')}" click="createNewLocale()"/>
 		</mx:HBox>
-		<mx:DataGrid id="dataGrid"
+		<mx:DataGrid id="dataGrid" variableRowHeight="true"
 					 doubleClickEnabled="true" editable="true"
-					 doubleClick="openTranslationEditor(event)"
+					 doubleClick="openTranslationEditor()"
 					 itemEditEnd="itemEditEndHandler(event)"
 					 width="100%" height="100%">
 			<mx:columns>
@@ -60,21 +55,28 @@
 		</mx:DataGrid>
 		<mx:HBox width="100%" verticalAlign="bottom">
 			<AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
-								  text="{lang('Modified translations are stored on your local machine.\nSome GUI elements will not be updated until Weave is restarted.')}"
+								  text="{lang('Double-click on an item to open a larger editor.\nModified translations are stored on your local machine.\nSome GUI elements will not be updated until Weave is restarted.')}"
 								  wordWrap="true"/>
 			<mx:Button label="{lang('Restart Weave')}" click="Weave.externalReload();"/>
 		</mx:HBox>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
 			import mx.events.DataGridEvent;
 			
+			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.core.UIUtils;
+			import weave.utils.PopUpUtils;
 			
 			private static const ORIGINAL:String = "original";
 			private static const LOCALED:String = "localed";
+			
+			override protected function constructor():void
+			{
+				enableSubMenu.value = true;
+				subMenu.addSubMenuItem(lang("Erase all translation data..."), resetAll);
+			}
 			
 			override protected function childrenCreated():void
 			{
@@ -126,9 +128,13 @@
 			
 			protected function itemEditEndHandler(event:DataGridEvent):void
 			{
-				var item:Object = event.itemRenderer.data;
-				var newText:String = dataGrid.itemEditorInstance[dataGrid.columns[event.columnIndex].editorDataField];
-				WeaveAPI.registerTranslation(item[ORIGINAL], activeLocale, newText)
+				if (event.itemRenderer)
+				{
+					var item:Object = event.itemRenderer.data;
+					var newText:String = dataGrid.itemEditorInstance[dataGrid.columns[event.columnIndex].editorDataField];
+					if (item[LOCALED] != newText)
+						WeaveAPI.registerTranslation(item[ORIGINAL], activeLocale, newText)
+				}
 			}
 			
 			private var fileReference:FileReference = new FileReference();
@@ -176,12 +182,16 @@
 				);
 			}
 			
-			private function openTranslationEditor(event:MouseEvent):void
+			private function openTranslationEditor():void
 			{
 				var item:Object = dataGrid.selectedItem;
 				if (!item)
 					return;
-				var alertBox:AlertTextBox = AlertTextBox.show(lang("Translate to ") + activeLocale, item[ORIGINAL], item[LOCALED]);
+				var alertBox:AlertTextBox = AlertTextBox.show(
+					lang("Translate to {0}", activeLocale),
+					lang("Translate the following text to {0}:\n\n{1}", activeLocale, item[ORIGINAL]),
+					item[LOCALED]
+				);
 				alertBox.allowEmptyInput = true;
 				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
 					function (e:AlertTextBoxEvent):void 
@@ -190,8 +200,29 @@
 						if( !e.confirm )
 							return;
 						
-						WeaveAPI.registerTranslation(item[ORIGINAL], activeLocale, e.textInput);
-						refresh();
+						var newText:String = e.textInput;
+						if (item[LOCALED] != newText)
+						{
+							var vsp:int = dataGrid.verticalScrollPosition;
+							WeaveAPI.registerTranslation(item[ORIGINAL], activeLocale, newText);
+							item[LOCALED] = newText;
+							dataGrid.dataProvider.refresh();
+							dataGrid.verticalScrollPosition = vsp;
+						}
+					}
+				);
+			}
+			
+			private function resetAll():void
+			{
+				PopUpUtils.confirm(
+					this,
+					lang("Erase all translation data?"),
+					lang("Are you sure you want to erase all translations for all locales and restart Weave? This cannot be undone."),
+					function():void
+					{
+						WeaveAPI.clearAllLocalizations();
+						Weave.externalReload();
 					}
 				);
 			}

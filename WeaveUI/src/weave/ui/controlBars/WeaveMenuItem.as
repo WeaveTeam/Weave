@@ -78,7 +78,7 @@ package weave.ui.controlBars
 		}
 		public function set weaveLabel(value:String):void
 		{
-			_label = lang(value);
+			_label = value;
 		}
 		
 		//Specifies whether a check or radio item is selected. If not specified, Flex treats the item as if the value were false 
