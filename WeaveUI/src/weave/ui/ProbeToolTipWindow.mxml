@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" title="Probe Information" layout="absolute" width="25%" height="20%" creationComplete="draggablepanel1_creationCompleteHandler(event)" remove="draggablepanel1_removeHandler(event)" xmlns:editors="weave.editors.*">
+	<mx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import weave.Weave;
+			import weave.api.linkBindableProperty;
+			
+			protected function draggablepanel1_creationCompleteHandler(event:FlexEvent):void
+			{
+				Weave.properties.useUnobtrusiveToolTips.value = true;
+			}
+			
+			protected function draggablepanel1_removeHandler(event:FlexEvent):void
+			{
+				Weave.properties.useUnobtrusiveToolTips.value = false;
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:TextArea id="probeTextArea" height="100%" width="100%" editable="false" creationComplete="linkBindableProperty(Weave.properties.probeString, event.target, 'text')"/>
+	<ui:ControlPanel>
+		<editors:WindowSettingsEditor target="{this}" />
+	</ui:ControlPanel>
+</ui:DraggablePanel>

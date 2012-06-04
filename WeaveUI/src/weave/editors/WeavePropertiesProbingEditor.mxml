@@ -87,10 +87,6 @@
 	
 	<mx:CheckBox label="Enable probe ToolTips" id="enableProbeToolTipCheck"
 				 creationComplete="linkBindableProperty(Weave.properties.enableProbeToolTip, event.target, 'selected')"/>
-	<mx:HBox>
-		<mx:CheckBox id="aboveToolTips" label="Use unobtrusive tooltips" creationComplete="linkBindableProperty(Weave.properties.useUnobtrusiveToolTips, event.target, 'selected')"/>
-		<mx:ComboBox id="toolTipSide" dataProvider="{['Above','Left','Right','Below']}" enabled="{aboveToolTips.selected}" creationComplete="linkBindableProperty(Weave.properties.toolTipLocation, event.target, 'selectedIndex')"/>
-	</mx:HBox>
 	<mx:VBox visible="{enableProbeToolTipCheck.selected}" includeInLayout="{enableProbeToolTipCheck.selected}" paddingLeft="{indentPadding}">
 		<ui:Indent label="Maximum records shown" toolTip="Set the maximum number of records displayed in probe toolTips">
 			<mx:NumericStepper id="maxRecordsShown"
@@ -115,7 +111,6 @@
 				creationComplete="linkBindableProperty(Weave.properties.probeToolTipMaxWidth, event.target, 'text' );"
 			/>
 	</mx:VBox>
-	
 	<mx:CheckBox label="Enable probe axis lines"
 				 creationComplete="linkBindableProperty(Weave.properties.enableProbeLines, event.target, 'selected')"/>
 	
@@ -127,8 +122,9 @@
 			
 			import weave.Weave;
 			import weave.api.linkBindableProperty;
+			import weave.ui.ProbeToolTipWindow;
 			
-			private const indentPadding:int = 20
+			private const indentPadding:int = 24;
 			
 			override protected function childrenCreated():void
 			{

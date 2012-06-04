@@ -21,7 +21,6 @@ package weave.visualization.layers
 {
 	import com.cartogrammar.drawing.DashedLine;
 	
-	import flash.display.DisplayObject;
 	import flash.display.Graphics;
 	import flash.display.InteractiveObject;
 	import flash.events.ContextMenuEvent;
@@ -36,7 +35,6 @@ package weave.visualization.layers
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableContainer;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -51,7 +49,6 @@ package weave.visualization.layers
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
-	import weave.visualization.tools.SimpleVisTool;
 	
 	/**
 	 * This is a container for a list of PlotLayers
@@ -330,7 +327,7 @@ package weave.visualization.layers
 			}
 			else // not dragging -- ok to update mouse mode
 			{
-					updateMouseMode(eventType);
+				updateMouseMode(eventType);
 			}
 			
 			var dragReleased:Boolean = mouseDragActive && !event.buttonDown;
@@ -799,30 +796,12 @@ package weave.visualization.layers
 				}
 				else
 				{
-					var tool:SimpleVisTool = getVisTool(parent);
 					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
-					if( tool != null && Weave.properties.useUnobtrusiveToolTips)
-						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY, new Bounds2D(tool.x, tool.y, tool.x + tool.width, tool.y + tool.height));
-					else
-						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
+					ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
 				}
 			}
 		}
 
-		private function getVisTool( target:DisplayObject ):SimpleVisTool
-		{
-				var targetComponent:* = target;
-				
-				while(targetComponent)
-				{
-					if(targetComponent is SimpleVisTool)
-						return targetComponent as SimpleVisTool;
-					
-					targetComponent = targetComponent.parent;
-				}			
-			return null;
-		}
-		
 		/**
 		 * An array of additional columns to be displayed in the probe tooltip for this visualization instance 
 		 */		

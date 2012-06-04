@@ -21,7 +21,6 @@
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				title="Control Panel"
 				backgroundColor="0xCCCCCC"
 				addedToStage="handleAddedToStage();"
 				width="640"
@@ -101,6 +100,10 @@
 				pinnable.value = false;
 				minimizable.value = false;
 				maximizable.value = false;
+				
+				// title is set here instead of in the mxml because otherwise it would
+				// overwrite any other value set in mxml components based on this class.
+				title = lang('Control Panel');
 			}
 			
 			public function set children(array:Array):void

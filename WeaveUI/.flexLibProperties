@@ -2,6 +2,7 @@
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="weave.editors.ImageGlyphPlotterEditor"/>
+    <classEntry path="weave.ui.ProbeToolTipWindow"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

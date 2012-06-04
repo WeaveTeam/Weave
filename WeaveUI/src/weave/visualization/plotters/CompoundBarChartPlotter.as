@@ -36,6 +36,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -134,7 +135,8 @@ package weave.visualization.plotters
 		public const valueLabelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(200, verifyLabelMaxWidth));
 		public const recordValueLabelColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
-		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));	
+		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const labelFormatter:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
 		public const labelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
 		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
 		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
@@ -242,7 +244,7 @@ package weave.visualization.plotters
 			var count:int = 0;
 			var numHeightColumns:int = _heightColumns.length;
 			var shouldDrawValueLabel:Boolean = showValueLabels.value;
-			var shouldDrawLabel:Boolean = showLabels.value && (numHeightColumns >= 1) && (labelColumn.internalColumn != null);
+			var shouldDrawLabel:Boolean = showLabels.value && (numHeightColumns >= 1) && (labelColumn.internalColumn || _groupingMode == GROUP);
 			
 			for (var iRecord:int = 0; iRecord < recordKeys.length; iRecord++)
 			{
@@ -558,12 +560,22 @@ package weave.visualization.plotters
 					//------------------------------------
 					// BEGIN code to draw one label using labelColumn (or column title if grouped)
 					//------------------------------------
-					if (shouldDrawLabel && !heightMissing)
+					// avoid drawing duplicate overlapping labels
+					if (shouldDrawLabel && !heightMissing && (i == 0 || _groupingMode == GROUP))
 					{
 						if (_groupingMode == GROUP)
 							_bitmapText.text = ColumnUtils.getTitle(heightColumn);
 						else
 							_bitmapText.text = labelColumn.getValueFromKey(recordKey, String);
+						
+						try
+						{
+							_bitmapText.text = labelFormatter.apply(null, [_bitmapText.text]);
+						}
+						catch (e:Error)
+						{
+							_bitmapText.text = '';
+						}
 
 						var labelPos:Number = labelDataCoordinate.value;
 						if (_horizontalMode)

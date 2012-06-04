@@ -611,14 +611,14 @@ package weave.ui
 		private static var _removeDrawingsMenuItem:ContextMenuItem = null;
 		private static var _changeDrawingMode:ContextMenuItem = null;
 		private static var _selectRecordsMenuItem:ContextMenuItem = null;
-		private static const ENABLE_PEN:String = "Enable Pen Tool";
-		private static const DISABLE_PEN:String = "Disable Pen Tool";
-		private static const REMOVE_DRAWINGS:String = "Remove All Drawings";
-		private static const CHANGE_DRAWING_MODE:String = "Change Drawing Mode";
+		private static const ENABLE_PEN:String = lang("Enable Pen Tool");
+		private static const DISABLE_PEN:String = lang("Disable Pen Tool");
+		private static const REMOVE_DRAWINGS:String = lang("Remove All Drawings");
+		private static const CHANGE_DRAWING_MODE:String = lang("Change Drawing Mode");
 		private static const PEN_OBJECT_NAME:String = "penTool";
-		public static const FREE_DRAW_MODE:String = "Free Draw Mode";
-		public static const POLYGON_DRAW_MODE:String = "Polygon Draw Mode";
-		private static const SELECT_RECORDS:String = "Select Records in Polygon";
+		public static const FREE_DRAW_MODE:String = lang("Free Draw Mode");
+		public static const POLYGON_DRAW_MODE:String = lang("Polygon Draw Mode");
+		private static const SELECT_RECORDS:String = lang("Select Records in Polygon");
 		private static const _menuGroupName:String = "5 drawingMenuitems";
 		public static function createContextMenuItems(destination:DisplayObject):Boolean
 		{

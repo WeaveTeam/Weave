@@ -25,7 +25,7 @@
 	layout="absolute"
 	title="Add New Data Source"
 	borderAlpha="1"
-	borderColor="#C5C3A8"
+	borderColor="#939178"
 	borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
@@ -34,7 +34,7 @@
 	width="184"
 	creationComplete="handleDataSelect()" xmlns:ui="weave.ui.*">
 	<mx:HBox height="100%">
-		<mx:VBox borderThickness="5" borderStyle="solid" borderColor="#C5C3A8" borderSides="right" paddingLeft="5" paddingTop="5" height="100%">
+		<mx:VBox borderThickness="5" borderStyle="solid" borderColor="#939178" borderSides="right" paddingLeft="5" paddingTop="5" height="100%">
 			<mx:RadioButtonGroup id="dataSourceType" itemClick="handleDataSelect(event)"/>
 			<mx:RadioButton selected="true" groupName="dataSourceType" id="wfsSource" value="{WFSDataSource}" label="WFS Data Source"/>
 			<mx:RadioButton groupName="dataSourceType" id="csvSource" value="{CSVDataSource}" label="CSV Data Source"/>

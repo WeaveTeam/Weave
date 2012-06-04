@@ -227,6 +227,7 @@ package weave
 		
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
+		public const showProbeWindow:LinkableBoolean = new LinkableBoolean(true); // Show Probe Tool Tip Window in tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
 
@@ -449,7 +450,7 @@ package weave
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
 		public function get enableProbeToolTip():LinkableBoolean { return ProbeTextUtils.enableProbeToolTip; }
 		public function get useUnobtrusiveToolTips():LinkableBoolean { return ProbeTextUtils.useUnobtrusiveToolTips; }
-		public function get toolTipLocation():LinkableNumber { return ProbeTextUtils.toolTipLocation; }
+		public function get probeString():LinkableString { return ProbeTextUtils.probeString; }
 
 		public const toolInteractions:InteractionController = new InteractionController();
 		
