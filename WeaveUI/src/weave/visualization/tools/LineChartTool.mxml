@@ -380,14 +380,18 @@
 					return;
 				}
 				var lastColumn:IAttributeColumn;
+				var repeat:Boolean = false;
 				do
 				{
+					repeat = false;
 					if( _columns.length == 0 )
 						break;
 					x.defaultValue.value = (x.defaultValue.value as Number) - 1;
 					lastColumn= _columns.pop();
 					labelPlotter.dataY.requestLocalObjectCopy(lastColumn as ILinkableObject);
-				} while (labelPlotter.dataY.keys[0] == undefined );
+					if( labelPlotter.dataY.keys[0] != undefined )
+						repeat = isNaN(lastColumn.getValueFromKey(labelPlotter.dataY.keys[0], Number));
+				} while (labelPlotter.dataY.keys[0] == undefined || repeat );
 
 				if (labelPlotter.text.internalColumn == null)
 				{
