@@ -26,8 +26,6 @@
 		 xmlns:settings="weave.ui.settings.*" layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ListCollectionView;
-			import mx.events.ListEvent;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
@@ -41,11 +39,9 @@
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
-			import weave.core.LinkableNumber;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColumnListComponent;
@@ -124,7 +120,6 @@
 			
 			private function updateProbeColumns():void
 			{
-				columnLabelList = _plotter.columns.getObjects();
 				if (includeToolAttributesInProbe.value)
 				{
 					visualization.additionalProbeColumns = _plotter.columns.getObjects(IAttributeColumn);
@@ -407,9 +402,6 @@
 					}
 				}
 			}
-			
-			[Bindable]
-			private var columnLabelList:Array = null;
 			
 		]]>
 	</mx:Script>
