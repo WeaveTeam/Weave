@@ -122,7 +122,6 @@
 			
 			import weave.Weave;
 			import weave.api.linkBindableProperty;
-			import weave.ui.ProbeToolTipWindow;
 			
 			private const indentPadding:int = 24;
 			

@@ -449,8 +449,6 @@ package weave
 		
 		public const enableProbeLines:LinkableBoolean = new LinkableBoolean(true);
 		public function get enableProbeToolTip():LinkableBoolean { return ProbeTextUtils.enableProbeToolTip; }
-		public function get useUnobtrusiveToolTips():LinkableBoolean { return ProbeTextUtils.useUnobtrusiveToolTips; }
-		public function get probeString():LinkableString { return ProbeTextUtils.probeString; }
 
 		public const toolInteractions:InteractionController = new InteractionController();
 		
