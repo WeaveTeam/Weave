@@ -42,12 +42,17 @@
 					<mx:VBox verticalGap="{verticalGap}">
 						
 						<mx:CheckBox toolTip="Checking this box will allow the user to Load all data"
-									 label="Load My data"
-									 creationComplete="linkBindableProperty(Weave.properties.enableLoadMyData, event.target, 'selected'"/>
+									 label="Load my data"
+									 creationComplete="linkBindableProperty(Weave.properties.enableLoadMyData, event.target, 'selected')"/>
 						
-						<mx:CheckBox toolTip="Checking this box will allow the user to refresh all data source hierarchies"
+						<mx:CheckBox toolTip="Checking this box will allow the user to Browse data"
+									 label="Browse data"
+									 creationComplete="linkBindableProperty(Weave.properties.enableBrowseData, event.target, 'selected')"/>
+						
+						<mx:CheckBox id="refreshDataCheckBox"
+									 toolTip="Checking this box will allow the user to refresh all data source hierarchies"
 									 label="Refresh data source hierarchies"
-									 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies, event.target, 'selected')"/> 
+									 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies, refreshDataCheckBox, 'selected')"/> 
 						
 						<mx:CheckBox toolTip="Checking this box will allow the user to import a new data set"
 									 label="New Datasource"
@@ -161,6 +166,7 @@
 							 creationComplete="linkBindableProperty(Weave.properties.enableWindowMenu, event.target, 'selected')"/> 
 				<mx:HBox >
 					<mx:Spacer width="10"/>
+					
 					<mx:VBox verticalGap="{verticalGap}">
 						<mx:CheckBox toolTip="Checking this box will allow the user to open the User Interface Preferences Panel"
 									 label="Preferences"

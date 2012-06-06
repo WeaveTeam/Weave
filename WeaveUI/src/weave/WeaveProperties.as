@@ -332,6 +332,7 @@ package weave
 		
 		public const enableDataMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Data Menu
 		public const enableLoadMyData:LinkableBoolean = new LinkableBoolean(true); // enable/disable Load MyData option
+		public const enableBrowseData:LinkableBoolean = new LinkableBoolean(true); // enable/disable Browse Data option
 		public const enableRefreshHierarchies:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddNewDatasource:LinkableBoolean = new LinkableBoolean(true); // enable/disable New Datasource option
 		public const enableEditDatasources:LinkableBoolean = new LinkableBoolean(true); // enable/disable Edit Datasources option
