@@ -222,7 +222,7 @@
 				// Disable certain features on this manager so that it is purely modal and has to be closed manually
 				// before doing anything else
 				minimizable.value = false;
-				draggable.value = false;
+				enableMoveResize.value = false;
 				maximizable.value = false;
 				closeable.value = false;
 			}

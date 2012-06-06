@@ -38,11 +38,10 @@
 		<![CDATA[
 			import mx.controls.Image;
 			import mx.formatters.NumberFormatter;
-			import mx.managers.CursorManager;
 			import mx.rpc.events.ResultEvent;
 			
+			import weave.compiler.StandardLib;
 			import weave.services.AdminInterface;
-			import weave.utils.DateUtils;
 			import weave.utils.FileUtils;
 			
 			[Bindable] private var _title:String = "";
@@ -82,7 +81,7 @@
 					_thumbByteArray = event.result.thumb as ByteArray;
 				}
 				
-				_lastMod = new DateUtils().parse(_LM, "MM/DD/YYYY L:NN A");
+				_lastMod = StandardLib.formatDate(_LM, "MM/DD/YYYY L:NN A", false);
 				_fileSize = new FileUtils().parse(_FS, 2);
 			}
 			

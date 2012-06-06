@@ -151,7 +151,7 @@ package weave.data.KeySets
 			if (_deprecatedState == null)
 			{
 				_deprecatedState = {};
-				WeaveAPI.StageUtils.callLater(this, _applyDeprecatedSessionState, null, false);
+				WeaveAPI.StageUtils.callLater(this, _applyDeprecatedSessionState, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 			}
 			_deprecatedState[propertyName] = value;
 		}

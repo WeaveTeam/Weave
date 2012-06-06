@@ -29,56 +29,40 @@
 	<ui:ControlPanel added="if (event.target == controlPanel) updateTextArea()"
 					 width="360" height="260"
 					 removed="if (event.target == controlPanel) callLater(updateTextArea)"
-					 sessionPanelCoordsAsPercentages="false" title="Annotation Editor">
+					 sessionPanelCoordsAsPercentages="false" title="{lang('Annotation Editor')}">
 		<mx:VBox id="toolbar" width="100%" height="100%" horizontalGap="7"
 				 horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2" paddingRight="2"
 				 paddingTop="2" verticalScrollPolicy="off">
 
-			<mx:CheckBox id="lockCheckBox" label="Show window borders"/>
+			<mx:HBox>
+				<mx:CheckBox id="borderCheckBox" label="{lang('Show window borders')}"/>
+				<mx:CheckBox id="moveResizeCheckBox" label="{lang('Allow moving and resizing')}"/>
+			</mx:HBox>
 			
 			<mx:HBox width="100%" horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2"
 					 paddingRight="2" paddingTop="2" verticalScrollPolicy="off">
-				
-				<mx:ColorPicker id="colorPicker" width="22" height="22"
-								change="applyTextFormat(event)"/>
-				
-				<ui:CustomComboBox id="fontFamilyCombo" change="applyTextFormat(event)"
-								   dataProvider="{fontFamilyArray}" editable="false"/>
-				
-				<ui:CustomComboBox id="fontSizeCombo" change="applyTextFormat(event)"
-								   dataProvider="{fontSizeArray}" editable="false" paddingLeft="2"
-								   paddingRight="2"/>
-				
-				<mx:HBox id="toolBar2" horizontalGap="0">
-					<mx:Button id="boldButton" width="30" label="B" change="applyTextFormat(event)"
-							   fontFamily="_serif" fontWeight="bold" toggle="true" toolTip="Bold"/>
-					<mx:Button id="italicButton" width="30" label="I" change="applyTextFormat(event)"
-							   fontFamily="_serif" fontStyle="italic" toggle="true" toolTip="Italic"/>
-					<mx:Button id="underlineButton" width="30" label="U"
-							   change="applyTextFormat(event)" fontFamily="_serif"
-							   textDecoration="underline" toggle="true" toolTip="Underline"/>
-				</mx:HBox>
+				<ui:FontControl id="fontControls" />
 			</mx:HBox>
 			
 			<mx:Grid>
 				<mx:GridRow>
 					<mx:GridItem>
-						<mx:Label text="Paragraph style:"/>
+						<mx:Label text="{lang('Paragraph style:')}"/>
 					</mx:GridItem>
 					<mx:GridItem>
 						<ui:CustomComboBox id="paragraphCombo" change="applyParagraphFormat(event);"
-										   dataProvider="{['Left align','Right align','Center','Justify','Bullet']}"
+										   dataProvider="{[lang('Left align'),lang('Right align'),lang('Center'),lang('Justify'),lang('Bullet')]}"
 										   selectedIndex="0"/>
 					</mx:GridItem>
 				</mx:GridRow>
 				<mx:GridRow>
 					<mx:GridItem>
-						<mx:Label id="roundingLabel" text="Corner rounding:"/>
+						<mx:Label id="roundingLabel" text="{lang('Corner rounding:')}"/>
 					</mx:GridItem>
 					<mx:GridItem>
 						<mx:HSlider id="cornerRadiusSlider" width="100%" liveDragging="true"
 									maximum="30" minimum="0" snapInterval="1"
-									toolTip="Change the editing text area's corner rounding."
+									toolTip="{lang('Change the editing text area\'s corner rounding.')}"
 									value="0"/>
 					</mx:GridItem>
 				</mx:GridRow>
@@ -89,38 +73,38 @@
 					<mx:GridItem>
 						<mx:HSlider id="paddingSlider" width="100%" liveDragging="true" maximum="25"
 									minimum="0" snapInterval="1"
-									toolTip="Set the space between the text and the text box."
+									toolTip="{lang('Set the space between the text and the text box.')}"
 									value="0"/>
 					</mx:GridItem>
 				</mx:GridRow>
 				<mx:GridRow>
 					<mx:GridItem>
-						<mx:Label id="backgroundLabel" text="Background properties:"/>
+						<mx:Label id="backgroundLabel" text="{lang('Background properties:')}"/>
 					</mx:GridItem>
 					<mx:GridItem>
 						<mx:HBox width="100%">
 							<mx:ColorPicker id="backgroundColorPicker" selectedColor="white"
-											toolTip="Change the editing text area's background color."/>
+											toolTip="{lang('Change the editing text area\'s background color.')}"/>
 							<mx:HSlider id="backgroundAlphaSlider" width="100%" liveDragging="true"
 										maximum="1" minimum="0"
-										toolTip="Change the editing text area's background transparency.  A value of 1 (slider to the right) is fully opaque, 0 (slider to the left) is fully transparent."
+										toolTip="{lang('Change the editing text area\'s background transparency.  A value of 1 (slider to the right) is fully opaque, 0 (slider to the left) is fully transparent.')}"
 										value="1.0"/>
 						</mx:HBox>
 					</mx:GridItem>
 				</mx:GridRow>
 				<mx:GridRow>
 					<mx:GridItem>
-						<mx:Label id="borderLabel" text="Border properties:"/>
+						<mx:Label id="borderLabel" text="{lang('Border properties:')}"/>
 					</mx:GridItem>
 					<mx:GridItem>
 						<mx:HBox width="100%">
 							<mx:ColorPicker id="borderColorPicker"
 											enabled="{borderThicknessSlider.value &gt; 0}"
-											toolTip="Change the editing text area's border color."/>
+											toolTip="{lang('Change the editing text area\'s border color.')}"/>
 							
 							<mx:HSlider id="borderThicknessSlider"
 										value="1" minimum="0" maximum="25" snapInterval="1" 
-										toolTip = "Change the editing text area's border thickness."
+										toolTip = "{lang('Change the editing text area\'s border thickness.')}"
 										width="100%" liveDragging="true"/>
 						</mx:HBox>
 					</mx:GridItem>
@@ -133,6 +117,9 @@
 			import mx.binding.utils.BindingUtils;
 			import mx.core.IUITextField;
 			import mx.core.mx_internal;
+			import mx.events.ColorPickerEvent;
+			import mx.events.ListEvent;
+			import mx.events.StateChangeEvent;
 			
 			import weave.Weave;
 			import weave.api.core.ILinkableContainer;
@@ -168,9 +155,12 @@
 			
 			override protected function childrenCreated():void
 			{
+				fontControls.initialize();
 				super.childrenCreated();
 				
-				linkBindableProperty(enableBorders, lockCheckBox, 'selected');
+				linkBindableProperty(enableBorders, borderCheckBox, 'selected');
+				linkBindableProperty(enableMoveResize, moveResizeCheckBox, 'selected');
+				
 				linkBindableProperty(backgroundAlpha, backgroundAlphaSlider, "value");
 				linkBindableProperty(backgroundColor, backgroundColorPicker, "selectedColor");
 				linkBindableProperty(cornerRadius,    cornerRadiusSlider, "value" );
@@ -182,6 +172,17 @@
 
 				getTextField().alwaysShowSelection = true;
 				textArea.setStyle("focusAlpha", 0);
+				getTextField().embedFonts = true;
+				textArea.setStyle("embedFonts", true);
+				
+				fontControls.fontFamilyCombo.selectedLabel = getTextField().defaultTextFormat.font;
+				fontControls.fontSizeCombo.selectedItem = getTextField().defaultTextFormat.size;
+				fontControls.colorPicker.addEventListener(ColorPickerEvent.CHANGE, applyTextFormat);
+				fontControls.fontFamilyCombo.addEventListener(ListEvent.CHANGE, applyTextFormat);
+				fontControls.fontSizeCombo.addEventListener(ListEvent.CHANGE, applyTextFormat);
+				fontControls.boldButton.addEventListener(Event.CHANGE, applyTextFormat);
+				fontControls.italicButton.addEventListener(Event.CHANGE, applyTextFormat);
+				fontControls.underlineButton.addEventListener(Event.CHANGE, applyTextFormat);
 				
 				applyStyle();
 			}
@@ -210,7 +211,11 @@
 					return;
 				}
 				
+				var selBegin:int = _tempTextField.selectionBeginIndex;
+				var selEnd:int = _tempTextField.selectionEndIndex;
+				
 				_tempTextField.htmlText = htmlText.value; // use the textField temporarily for getTextFormat,setTextFormat
+				
 				// make sure the text between each pair of { and } brackets only has a single format.
 				var begin:int;
 				var end:int = 0;
@@ -225,16 +230,25 @@
 						break;
 					
 					// make sure the text between begin & end only has a single format
-					var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
-					_tempTextField.setTextFormat(f, begin, end + 1);
+//				 	var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
+//					_tempTextField.setTextFormat(f, begin, end + 1);
+				 	_tempTextField.setSelection(begin, end + 1);
+					_tempTextField.replaceSelectedText(_tempTextField.text.substring(begin, end + 1));
 					
 //					// replace the text from { to }
 //					var script:String = _tempTextField.text.substring(begin + 1, end);
 //					htmlTextFunction.value = script;
 //					_tempTextField.replaceText(begin, end + 1, String(htmlTextFunction.apply()));
 				}
+			 	_tempTextField.setSelection(selBegin, selEnd);
 				
-				htmlTextFunction.value = '`' + _tempTextField.htmlText.split('`').join('\\`') + '`';
+				var ht:String = _tempTextField.htmlText;
+				ht = ht.split('&apos;').join("'");
+				ht = ht.split('&quot;').join('"');
+				htmlTextFunction.value = '`' + ht.split('`').join('\\`') + '`';
+				
+				//This is a hack to keep re-applying the currently selected text format.
+				applyTextFormat(new Event("LIST"));
 				
 				updateTextArea();
 			}
@@ -342,18 +356,12 @@
 				
 				// get text format from gui
 				var f:TextFormat = new TextFormat();
-				if (e.target == fontFamilyCombo)
-					f.font = fontFamilyCombo.selectedItem as String;
-				if (e.target == fontSizeCombo)
-					f.size = fontSizeCombo.selectedItem;
-				if (e.target == boldButton)
-					f.bold = boldButton.selected;
-				if (e.target == italicButton)
-					f.italic = italicButton.selected;
-				if (e.target == underlineButton)
-					f.underline = underlineButton.selected;
-				if (e.target == colorPicker)
-					f.color = colorPicker.selectedColor;
+				f.font = fontControls.fontFamilyCombo.selectedLabel;
+				f.size = fontControls.fontSizeCombo.selectedItem;
+				f.color = fontControls.colorPicker.selectedColor;
+				f.bold = fontControls.boldButton.selected;
+				f.italic = fontControls.italicButton.selected;
+				f.underline = fontControls.underlineButton.selected;
 				if (e.target == paragraphCombo)
 				{
 					if (paragraphCombo.selectedIndex == 4)
@@ -368,8 +376,15 @@
 				}
 				
 				// set text format using temporary text field
-				getTextField().defaultTextFormat = f;
-				if (beginIndex >= 0 && beginIndex < getTextField().length)
+				if( beginIndex == getTextField().caretIndex && endIndex == getTextField().caretIndex )
+				{
+					getTextField().defaultTextFormat = f;
+				}
+				else
+				{
+					getTextField().setTextFormat(f, beginIndex, endIndex);
+				}
+/* 				if (beginIndex >= 0 && beginIndex < getTextField().length)
 				{
 					// compute new htmlText using temporary text field
 					_tempTextField.htmlText = textArea.htmlText;
@@ -378,7 +393,7 @@
 					if (beginIndex < endIndex)
 						_tempTextField.setTextFormat(f, beginIndex, endIndex);
 					htmlText.value = _tempTextField.htmlText;
-				}
+				} */
 				
 				textArea.setFocus();
 				textArea.validateNow();
@@ -405,9 +420,9 @@
 			 */
 			private static var _textAreaEditContextMenuItem:ContextMenuItem 	= null;
 			private static var _textAreaAddRemoveContextMenuItem:ContextMenuItem = null;
-			private static const ADD_CAPTION:String           = "Add Annotation"
-			private static const REMOVE_CAPTION:String        = "Remove Annotation"
-			private static const EDIT_TEXT_CAPTION:String     = "Edit Annotation"
+			private static const ADD_CAPTION:String           = lang("Add Annotation");
+			private static const REMOVE_CAPTION:String        = lang("Remove Annotation");
+			private static const EDIT_TEXT_CAPTION:String     = lang("Edit Annotation");
 			private static const fontSizeArray:Array = [8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72];
 			private static const fontFamilyArray:Array = ['_sans','_serif','_typewriter','Arial','Courier','Courier New', 'Geneva', 'Georgia', 'Helvetica', 'Times New Roman', 'Times', 'Verdana'];
 			

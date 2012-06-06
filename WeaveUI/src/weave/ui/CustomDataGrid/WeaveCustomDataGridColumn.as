@@ -52,6 +52,7 @@ package weave.ui.CustomDataGrid
 			//this.width = 20;
 			this.minWidth = 0;	
 			
+			// TODO: this callback still runs after this DataGridColumn goes away?
 			_attrColumn.addImmediateCallback(this, handleColumnChange, true);						
 		}
 		

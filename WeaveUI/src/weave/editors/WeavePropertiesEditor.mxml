@@ -46,11 +46,25 @@
 			<mx:NumericStepper width="64" minimum="1" maximum="100" stepSize="1" creationComplete="linkBindableProperty(Weave.properties.geometryMinimumScreenArea, event.target, 'value');"/>
 			<ui:HelpComponent>This controls the filtering of vector tile requests and rendering.  Enter the minimum area requirement (in pixels) for geometry detail to be rendered.</ui:HelpComponent>
 		</ui:Indent>
-		<mx:CheckBox label="Enable async map rendering (experimental first attempt, no double-buffering yet)" id="enableThreadPriorities"
-					 change="Weave.properties.maxComputationTimePerFrame.value = enableThreadPriorities.selected ? 200 : 100;"/>
-		<ui:Indent label="Max computation time per frame" enabled="{enableThreadPriorities.selected}">
-			<mx:NumericStepper id="maxComputationTime" minimum="10" maximum="200" stepSize="10"/>
-		</ui:Indent>
+		<mx:CheckBox label="Enable async map rendering (experimental first attempt, no double-buffering yet)" id="enableThreadPriorities"/>
+		
+		<mx:VBox width="100%">
+			<ui:Indent label="Max computation time per frame">
+				<mx:NumericStepper id="maxComputationTime" minimum="10" maximum="200" stepSize="10"/>
+			</ui:Indent>
+			
+			<mx:Label text="Asynchronous task time allocation (milliseconds):"/>
+			<ui:Indent label="Render">
+				<mx:HSlider id="renderAlloc" minimum="5" maximum="200" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
+			</ui:Indent>
+			<ui:Indent label="Build">
+				<mx:HSlider id="buildAlloc" minimum="5" maximum="200" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
+			</ui:Indent>
+			<ui:Indent label="Parse">
+				<mx:HSlider id="parseAlloc" minimum="5" maximum="200" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
+			</ui:Indent>
+		</mx:VBox>
+		
 		<mx:Button label="Edit Macros" width="100" click="openMacroEditor(event)" />
 	</mx:VBox>
 	
@@ -76,6 +90,19 @@
 				linkBindableProperty(StreamedGeometryColumn.metadataRequestMode, geometryMetadataRequestMode, 'selectedItem');
 				linkBindableProperty(Weave.properties.maxComputationTimePerFrame, maxComputationTime, 'value');
 				linkBindableProperty(Weave.properties.enableThreadPriorities, enableThreadPriorities, 'selected');
+				
+				// time allocation
+				renderAlloc.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_RENDERING);
+				buildAlloc.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_BUILDING);
+				parseAlloc.value = (WeaveAPI.StageUtils as StageUtils).getTaskPriorityTimeAllocation(WeaveAPI.TASK_PRIORITY_PARSING);
+			}
+			
+			private function setAlloc(event:Event):void
+			{
+				var slider:HSlider = event.currentTarget as HSlider;
+				var sliderIndex:int = [renderAlloc, buildAlloc, parseAlloc].indexOf(slider);
+				var priority:int = [WeaveAPI.TASK_PRIORITY_RENDERING, WeaveAPI.TASK_PRIORITY_BUILDING, WeaveAPI.TASK_PRIORITY_PARSING][sliderIndex];
+				(WeaveAPI.StageUtils as StageUtils).setTaskPriorityTimeAllocation(priority, slider.value);
 			}
 			
 			private static var _instance:ControlPanel;

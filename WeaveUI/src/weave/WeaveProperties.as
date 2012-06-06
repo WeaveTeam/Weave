@@ -21,11 +21,8 @@ package weave
 {
 	import flash.display.Stage;
 	import flash.events.Event;
-	import flash.events.IOErrorEvent;
-	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.URLRequest;
-	import flash.system.ApplicationDomain;
 	import flash.text.Font;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
@@ -51,9 +48,7 @@ package weave
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
-	import weave.core.StageUtils;
 	import weave.core.weave_internal;
-	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
@@ -61,7 +56,6 @@ package weave
 	import weave.ui.JRITextEditor;
 	import weave.ui.RTextEditor;
 	import weave.utils.CSSUtils;
-	import weave.utils.DebugUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.NumberUtils;
 	import weave.utils.ProbeTextUtils;
@@ -128,6 +122,27 @@ package weave
 			
 			linkBindableProperty(enableThreadPriorities, WeaveAPI.StageUtils, 'enableThreadPriorities');
 			linkBindableProperty(maxComputationTimePerFrame, WeaveAPI.StageUtils, 'maxComputationTimePerFrame');
+			
+			showCollaborationMenuItem.addGroupedCallback(this, function():void {
+				if (showCollaborationMenuItem.value)
+				{
+					enableCollaborationBar.delayCallbacks();
+					showCollaborationEditor.delayCallbacks();
+					
+					enableCollaborationBar.value = false;
+					showCollaborationEditor.value = false;
+					
+					enableCollaborationBar.resumeCallbacks();
+					showCollaborationEditor.resumeCallbacks();
+				}
+			});
+			function handleCollabBar():void
+			{
+				if (enableCollaborationBar.value || showCollaborationEditor.value)
+					showCollaborationMenuItem.value = false;
+			};
+			enableCollaborationBar.addGroupedCallback(this, handleCollabBar);
+			showCollaborationEditor.addGroupedCallback(this, handleCollabBar);
 		}
 		
 		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
@@ -205,14 +220,15 @@ package weave
 		public const collabServerIP:LinkableString = new LinkableString("demo.oicweave.org");
 		public const collabServerName:LinkableString = new LinkableString("ivpr-vm");
 		public const collabServerPort:LinkableString = new LinkableString("5222");
-		public const collabServerRoomToJoin:LinkableString = new LinkableString("demo");
+		public const collabServerRoom:LinkableString = new LinkableString("");
 		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);
+		public const showCollaborationMenuItem:LinkableBoolean = new LinkableBoolean(true); // menu item
 		
 		
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
+		public const showProbeWindow:LinkableBoolean = new LinkableBoolean(true); // Show Probe Tool Tip Window in tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
-		public const showAttributeSelector:LinkableBoolean = new LinkableBoolean(true); // Show Attribute Selector tools menu
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
 
 		// BEGIN TEMPORARY SOLUTION

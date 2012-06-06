@@ -42,7 +42,6 @@
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColumnListComponent;
@@ -357,7 +356,7 @@
 				
 				_plotter.columns.addImmediateCallback(this, updateColumns, true);
 
-				labelPlotter.xScreenOffset.value=5;
+				labelPlotter.xScreenOffset.value = 5;
 				labelPlotter.hAlign.defaultValue.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
 				labelPlotter.hideOverlappingText.value = true;
 				linkSessionState(labelPlotter.dataY, labelPlotter.sortColumn);
@@ -373,16 +372,26 @@
 			{
 				var _columns:Array = _plotter.columns.getObjects();
 				var x:AlwaysDefinedColumn = labelPlotter.dataX.requestLocalObject(AlwaysDefinedColumn, false);
-				x.defaultValue.value = _columns.length - 1;
+				x.defaultValue.value = _columns.length;
 				
 				if (_columns.length == 0)
 				{
 					labelPlotter.dataY.removeObject();
 					return;
 				}
-			
-				var lastColumn:IAttributeColumn = _columns.pop();
-				labelPlotter.dataY.requestLocalObjectCopy(lastColumn as ILinkableObject);
+				var lastColumn:IAttributeColumn;
+				var repeat:Boolean = false;
+				do
+				{
+					repeat = false;
+					if( _columns.length == 0 )
+						break;
+					x.defaultValue.value = (x.defaultValue.value as Number) - 1;
+					lastColumn= _columns.pop();
+					labelPlotter.dataY.requestLocalObjectCopy(lastColumn as ILinkableObject);
+					if( labelPlotter.dataY.keys[0] != undefined )
+						repeat = isNaN(lastColumn.getValueFromKey(labelPlotter.dataY.keys[0], Number));
+				} while (labelPlotter.dataY.keys[0] == undefined || repeat );
 
 				if (labelPlotter.text.internalColumn == null)
 				{

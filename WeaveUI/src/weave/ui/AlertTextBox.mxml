@@ -19,11 +19,6 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<!--	AlertTextBox
-   	*  @author skolman
- 	*  Saves the file to the server.
--->
-
 <mx:TitleWindow
     xmlns:ui ="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
@@ -39,12 +34,23 @@
 	paddingLeft="10" paddingRight="10" paddingTop="10" paddingBottom="10"
 	>
 	<ui:AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
-						  text="{_message}" selectable="false" wordWrap="true" minWidth="300" creationComplete="event.currentTarget.height = 0"/>
-	<mx:TextInput text="{_textInput}" id="textBox" change="_textInput = textBox.text;" enter="if (textBox.text || allowEmptyInput) handleOKClick()" width="100%"/>
+						  text="{_message}" selectable="true" wordWrap="true" minWidth="300" creationComplete="event.currentTarget.height = 0"/>
+	<mx:Canvas width="100%">
+		<mx:TextArea text="{_textInput}" id="textBox" change="_textInput = textBox.text;" keyDown="handleKeyDown(event)"
+					 width="100%" height="{multiLineEdit ? 64 : 20}" verticalScrollPolicy="{multiLineEdit ? 'on' : 'off'}"/>
+		<mx:LinkButton
+					label="{multiLineEdit ? '-' : '+'}"
+					alpha="0.5" useHandCursor="true"
+					paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"
+					width="20" height="20" top="0" right="{multiLineEdit ? 16 : 0}"
+					includeInLayout="false"
+					mouseDown="multiLineEdit = !multiLineEdit; callLater(textBox.setFocus);"
+					/>
+	</mx:Canvas>
 	<mx:HBox id="alertButtons" width="100%">
 		<mx:Spacer width="100%"/>
-		<mx:Button label="Ok" click="handleOKClick()" emphasized="true" enabled="{Boolean(textBox.text) || allowEmptyInput}"/>
-		<mx:Button label="Cancel" click="handleCancelClick()"/>
+		<mx:Button label="{lang('Ok')}" click="handleOKClick()" emphasized="true" enabled="{Boolean(textBox.text) || allowEmptyInput}" minWidth="64"/>
+		<mx:Button label="{lang('Cancel')}" click="handleCancelClick()" minWidth="64"/>
 	</mx:HBox>
 	
     <mx:Metadata>
@@ -58,6 +64,7 @@
 		import weave.api.WeaveAPI;
 		import weave.compiler.StandardLib;
 		
+		[Bindable] public var multiLineEdit:Boolean = false;
 		[Bindable] public var allowEmptyInput:Boolean = false;
 		
 		//Message before TextBox
@@ -81,13 +88,18 @@
 		}
 	    public function set textInput(value:String):void
 		{
-			_textInput = value;
+			_textInput = value || '';
+			
+			if (_textInput.indexOf('\r') >= 0 || _textInput.indexOf('\n') >= 0)
+				multiLineEdit = true;
 		}
 	
 		private function handleCreationComplete(event:Event):void
 		{
 			focusManager.setFocus(textBox);
-		}		
+		}
+		
+		public static var lastInstance:Object;
 		
 		public static function show(title:String, message:String, defaultInput:String = ""):AlertTextBox 
 		{
@@ -97,8 +109,11 @@
 			newAlert.isPopUp = false;
 			newAlert.message = message;
 			newAlert.textInput = defaultInput;
+			newAlert.validateNow();
 			
 			PopUpManager.centerPopUp(newAlert);
+			
+			lastInstance = newAlert;
 			
 			return newAlert;
 		}
@@ -129,6 +144,15 @@
 			cancelClickEvent.confirm = false;
 			this.dispatchEvent(cancelClickEvent);
 			closeAlertTextBox();
+		}
+		
+		private function handleKeyDown(event:KeyboardEvent):void
+		{
+			if (event.keyCode == Keyboard.ENTER && !multiLineEdit)
+			{
+				if (textBox.text || allowEmptyInput)
+					handleOKClick();
+			}
 		}
 		
 		override public function move(x:Number, y:Number):void

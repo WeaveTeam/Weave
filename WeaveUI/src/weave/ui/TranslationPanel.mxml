@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/**
+ * @author adufilie
+ */
+-->
+<DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
+		xmlns="weave.ui.*"
+		borderColor="#939178"
+		title="{lang('Translations')}"
+		addedToStage="refresh()"
+		>
+	<mx:VBox width="100%" height="100%"
+			paddingLeft="8"
+			paddingRight="8"
+			paddingTop="8"
+			paddingBottom="8">
+		<mx:HBox width="100%">
+			<mx:Button label="{lang('Import')}" click="importFile()" />
+			<mx:Button label="{lang('Export')}" click="exportFile()" />
+			<mx:Button label="{lang('Refresh')}" click="refresh()" />
+			<mx:Spacer width="100%" />
+			<mx:Label text="{lang('Active locale:')}"/>
+			<mx:ComboBox id="localeComboBox" change="handleLocaleChange()" />
+			<mx:Button label="{lang('New locale...')}" click="createNewLocale()"/>
+		</mx:HBox>
+		<mx:DataGrid id="dataGrid" variableRowHeight="true"
+					 doubleClickEnabled="true" editable="true"
+					 doubleClick="openTranslationEditor()"
+					 itemEditEnd="itemEditEndHandler(event)"
+					 width="100%" height="100%">
+			<mx:columns>
+				<mx:DataGridColumn dataField="{ORIGINAL}" headerText="{lang('Original Text')}" editable="false" />
+				<mx:DataGridColumn dataField="{LOCALED}" headerText="{lang('Translated Text')}" editable="true" />
+			</mx:columns>
+		</mx:DataGrid>
+		<mx:HBox width="100%" verticalAlign="bottom">
+			<AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
+								  text="{lang('Double-click on an item to open a larger editor.\nModified translations are stored on your local machine.\nSome GUI elements will not be updated until Weave is restarted.')}"
+								  wordWrap="true"/>
+			<mx:Button label="{lang('Restart Weave')}" click="Weave.externalReload();"/>
+		</mx:HBox>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.events.DataGridEvent;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.core.UIUtils;
+			import weave.utils.PopUpUtils;
+			
+			private static const ORIGINAL:String = "original";
+			private static const LOCALED:String = "localed";
+			
+			override protected function constructor():void
+			{
+				enableSubMenu.value = true;
+				subMenu.addSubMenuItem(lang("Erase all translation data..."), resetAll);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				refresh();
+			}
+			
+			private function set activeLocale(value:String):void
+			{
+				WeaveAPI.setLocale(value);
+				refresh();
+			}
+			private function get activeLocale():String
+			{
+				return WeaveAPI.getLocale();
+			}
+			
+			private function handleLocaleChange():void
+			{
+				if (UIUtils.hasFocus(localeComboBox))
+				{
+					activeLocale = localeComboBox.selectedItem as String;
+				}
+			}
+			private function refresh():void
+			{
+				if (!localeComboBox)
+					return callLater(refresh);
+				
+				var locale:String = activeLocale;
+				var allLocales:Array = WeaveAPI.getAllLocales();
+				localeComboBox.dataProvider = allLocales;
+				localeComboBox.selectedItem = activeLocale;
+				
+				var items:Array = [];
+				var allData:Object = WeaveAPI.getAllLocalizations();
+				
+				for (var text:String in allData)
+				{
+					var item:Object = {};
+					item[ORIGINAL] = text;
+					item[LOCALED] = allData[text][locale];
+					items.push(item);
+				}
+				items.sortOn(ORIGINAL);
+				
+				dataGrid.dataProvider = items;
+			}
+			
+			protected function itemEditEndHandler(event:DataGridEvent):void
+			{
+				if (event.itemRenderer)
+				{
+					var item:Object = event.itemRenderer.data;
+					var newText:String = dataGrid.itemEditorInstance[dataGrid.columns[event.columnIndex].editorDataField];
+					if (item[LOCALED] != newText)
+						WeaveAPI.registerTranslation(item[ORIGINAL], activeLocale, newText)
+				}
+			}
+			
+			private var fileReference:FileReference = new FileReference();
+			
+			private function importFile():void
+			{
+				fileReference.browse([ new FileFilter(lang("Weave language file"), "*.lang") ]);
+				fileReference.addEventListener(Event.SELECT,   function (e:Event):void { fileReference.load(); } );
+				fileReference.addEventListener(Event.COMPLETE, function (e:Event):void {
+					var bytes:ByteArray = fileReference.data;
+					bytes.uncompress();
+					WeaveAPI.importLocalizations(bytes.readObject());
+					refresh();
+				});
+			}
+			private function exportFile():void
+			{
+				var bytes:ByteArray = new ByteArray();
+				bytes.writeObject(WeaveAPI.getAllLocalizations());
+				bytes.compress();
+				
+				fileReference.save(bytes, "Weave.lang");
+			}
+			
+			private function createNewLocale():void
+			{
+				var alertBox:AlertTextBox = AlertTextBox.show(lang("New locale"), lang("Please enter a new locale string (ISO 639-1 code):"));
+				var button:Button = new Button();
+				button.label = lang("ISO 639-1 codes...");
+				button.addEventListener(MouseEvent.CLICK, function(..._):void {
+					navigateToURL(new URLRequest("http://www.sil.org/iso639-3/codes.asp?order=639_1&letter=%25"), "_blank");
+				});
+				alertBox.alertButtons.addChildAt(button, 0);
+				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
+					function (e:AlertTextBoxEvent):void 
+					{
+						// if the user clicked cancel, then we will just return from here and save nothing
+						if( !e.confirm )
+							return;
+						
+						// get the code in the list
+						WeaveAPI.initializeLocale(e.textInput);
+						activeLocale = e.textInput;
+					}
+				);
+			}
+			
+			private function openTranslationEditor():void
+			{
+				var item:Object = dataGrid.selectedItem;
+				if (!item)
+					return;
+				var alertBox:AlertTextBox = AlertTextBox.show(
+					lang("Translate to {0}", activeLocale),
+					lang("Translate the following text to {0}:\n\n{1}", activeLocale, item[ORIGINAL]),
+					item[LOCALED]
+				);
+				alertBox.allowEmptyInput = true;
+				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
+					function (e:AlertTextBoxEvent):void 
+					{
+						// if the user clicked cancel, then we will just return from here and save nothing
+						if( !e.confirm )
+							return;
+						
+						var newText:String = e.textInput;
+						if (item[LOCALED] != newText)
+						{
+							var vsp:int = dataGrid.verticalScrollPosition;
+							WeaveAPI.registerTranslation(item[ORIGINAL], activeLocale, newText);
+							item[LOCALED] = newText;
+							dataGrid.dataProvider.refresh();
+							dataGrid.verticalScrollPosition = vsp;
+						}
+					}
+				);
+			}
+			
+			private function resetAll():void
+			{
+				PopUpUtils.confirm(
+					this,
+					lang("Erase all translation data?"),
+					lang("Are you sure you want to erase all translations for all locales and restart Weave? This cannot be undone."),
+					function():void
+					{
+						WeaveAPI.clearAllLocalizations();
+						Weave.externalReload();
+					}
+				);
+			}
+		]]>
+	</mx:Script>
+</DraggablePanel>

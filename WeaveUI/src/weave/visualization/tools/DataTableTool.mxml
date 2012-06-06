@@ -399,13 +399,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(dataGrid.visibleLockedColumns && lockedColumns.value == 0 && dataGrid.visibleLockedColumns.length != 0)
 					validateNow();
 				
+				var item:Object;
+				var isSelected:Dictionary = new Dictionary(true);
+				for each (item in dataGrid.selectedItems)
+					isSelected[item] = true;
+				
+				var changeDetected:Boolean = false;
 				var selectedItems:Array = [];
-				for each (var item:Object in dataGrid.dataProvider)
+				for each (item in dataGrid.dataProvider)
 				{
 					if (_selection.containsKey(item as IQualifiedKey))
+					{
+						if (!isSelected[item])
+							changeDetected = true;
 						selectedItems.push(item);
-				}	
-				dataGrid.selectedItems = selectedItems;				
+					}
+				}
+				if (selectedItems.length != dataGrid.selectedItems.length)
+					changeDetected = true;
+				
+				if (changeDetected)
+					dataGrid.selectedItems = selectedItems;				
 			}
 			
 			
@@ -420,6 +434,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return false;
 			}
 			
+			/**
+			 * @TODO This should be a mode, not a one-time action.
+			 *       Use AdvancedDataGrid and lockedRowCount.
+			 *       The locked rows should also be sorted by the active sort column.
+			 *       We shouldn't be resetting the sort.
+			 */
 			private function moveSelectedToTop():void
 			{
 				//push selected Objects into an Array
@@ -568,6 +588,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						
 					}  
 					dataGrid.columns = _currentDataGridColumns;
+					numLockedColumns.maximum = attrColumns.length;
 				}
 				catch (error:Error)
 				{
@@ -873,7 +894,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:CheckBox id="showKeyColumnCheckBox" label="Show Key Column" change="handleKeyColumnCheckBox()"/>
 			<mx:HBox>
 				<mx:Label text="Number of Locked Columns"/>
-				<mx:NumericStepper id="numLockedColumns" minimum="0" maximum="{dataGrid.columns.length}" 
+				<mx:NumericStepper id="numLockedColumns" minimum="0" 
 								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value');"/>	
 			</mx:HBox>
 			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="Columns"/>

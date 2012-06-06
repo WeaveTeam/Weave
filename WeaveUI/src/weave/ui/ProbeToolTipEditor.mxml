@@ -22,48 +22,48 @@
 <ControlPanel xmlns="weave.ui.*"
 			  xmlns:mx="http://www.adobe.com/2006/mxml"
 			  backgroundColor="#EFF4BC" horizontalScrollPolicy="off" layout="absolute"
-			  title="Probe ToolTip Editor" verticalScrollPolicy="off">
-	<mx:VBox label="Header Columns">
+			  title="{lang('Probe ToolTip Editor')}" verticalScrollPolicy="off">
+	<mx:VBox label="{lang('Header Columns')}">
 		<mx:HBox width="100%" verticalAlign="middle">
-			<HelpComponent label="Header Columns">
-				<mx:Label text="Example tooltip:"/>
+			<HelpComponent label="{lang('Header Columns')}">
+				<mx:Label text="{lang('Example tooltip:')}"/>
 				<mx:HBox styleName="exampleStyle">
 					<mx:Image source="@Embed(source='/weave/resources/images/tooltipheader.png')"/> 
 				</mx:HBox>
-				<mx:Label text="The attributes highlighted in green are header columns"/>
+				<mx:Label text="{lang('The attributes highlighted in green are header columns')}"/>
 			</HelpComponent>
 			<AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
-						 text="The values from these columns will be listed in a single line, separated by commas."
+						 text="{lang('The values from these columns will be listed in a single line, separated by commas.')}"
 						 wordWrap="true"/>
 		</mx:HBox>
-		<ColumnListComponent id="headerList" width="100%" height="100%" label="Header Columns"
+		<ColumnListComponent id="headerList" width="100%" height="100%" label="{lang('Header Columns')}"
 							 hashMap="{ProbeTextUtils.probeHeaderColumns}"/>		
-		<mx:CheckBox label="Enable probe ToolTips"
+		<mx:CheckBox label="{lang('Enable probe ToolTips')}"
 					 creationComplete="linkBindableProperty(ProbeTextUtils.enableProbeToolTip, event.target, 'selected')"/>
 	</mx:VBox>
 	
-	<mx:VDividedBox label="Probed Columns">
+	<mx:VDividedBox label="{lang('Probed Columns')}">
 		<mx:VBox width="100%" height="100%">
 			<mx:HBox width="100%" verticalAlign="middle">
-				<HelpComponent label="Probed Columns">
-					<mx:Label text="Example tooltip:"/>
+				<HelpComponent label="{lang('Probed Columns')}">
+					<mx:Label text="{lang('Example tooltip:')}"/>
 					<mx:HBox styleName="exampleStyle">
 						<mx:Image source="@Embed(source='/weave/resources/images/tooltipProbed.png')"/>
 					</mx:HBox>
-					<mx:Label text="The attributes highlighted in green are the probed columns"/>
+					<mx:Label text="{lang('The attributes highlighted in green are the probed columns')}"/>
 				</HelpComponent>
 				<AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
-							 text="The values from these columns will be displayed under the header line along with the column names."
+							 text="{lang('The values from these columns will be displayed under the header line along with the column names.')}"
 							 wordWrap="true"/>
 			</mx:HBox>
-			<ColumnListComponent id="columnList" width="100%" height="100%" label="Probed columns"
+			<ColumnListComponent id="columnList" width="100%" height="100%" label="{lang('Probed columns')}"
 								 hashMap="{ProbeTextUtils.probedColumns}"/>
 		</mx:VBox>
 		<mx:VBox width="100%">
-			<Indent label="Format" height="100%">
+			<Indent label="{lang('Format')}" height="100%">
 				<mx:TextArea id="format" width="100%" height="100%" minHeight="48"
 							 creationComplete="linkBindableProperty(ProbeTextUtils.probeLineFormatter, event.target, 'text');"/>
-				<mx:Button label="Reset" click="ProbeTextUtils.probeLineFormatter.value = ProbeTextUtils.DEFAULT_LINE_FORMAT;"/>
+				<mx:Button label="{lang('Reset')}" click="ProbeTextUtils.probeLineFormatter.value = ProbeTextUtils.DEFAULT_LINE_FORMAT;"/>
 				<HelpComponent>
 					<htmlText>
 						<![CDATA[
@@ -73,7 +73,7 @@
 					</htmlText>
 				</HelpComponent>
 			</Indent>
-			<mx:CheckBox label="Enable probe ToolTips"
+			<mx:CheckBox label="{lang('Enable probe ToolTips')}"
 						 creationComplete="linkBindableProperty(ProbeTextUtils.enableProbeToolTip, event.target, 'selected')"/>
 		</mx:VBox>
 	</mx:VDividedBox>
