@@ -28,8 +28,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:VBox height="100%" width="100%" paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
 		<mx:HBox>
 			<mx:Button label="Add" height="100%" width="33%" click="newMacroEntry(event)"/>
-			<mx:Button label="Delete" height="100%" width="33%" click="deleteEntry(event)"/>
-			<mx:Button label="Rename" height="100%" width="33%" click="renameMacroEntry(event)"/>
+			<mx:Button label="Delete" height="100%" width="33%" click="deleteEntry(event)" enabled="{buttonsEnabled}"/>
+			<mx:Button label="Rename" height="100%" width="33%" click="renameMacroEntry(event)" enabled="{buttonsEnabled}"/>
 		</mx:HBox>
 		<mx:HDividedBox height="100%" width="100%">
 			<mx:VBox height="100%" width="100%" >
@@ -45,22 +45,32 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import weave.core.LinkableHashMap;
+			
 			import mx.events.ListEvent;
 			
 			import weave.core.LinkableFunction;
 			import weave.ui.AlertTextBox;
 			import weave.ui.AlertTextBoxEvent;
 			
+			//Used for enabling/disabling the delete and rename button based on whether this macroList has at least one item.
+			[Bindable]
+			private var buttonsEnabled:Boolean = false;
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				if( macroList.hashMap.getNames().length > 0 )
 				{
+					buttonsEnabled = true;
 					macroList.selectedIndex = 0;
 					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
 					funcValues_changeHandler(null);
 				}
 				this.targets = macroList.hashMap.getObjects(LinkableFunction);
+				(macroList.hashMap as LinkableHashMap).addImmediateCallback(this, enableButtonsCheck, true);
 			}
 			
 			protected function deleteEntry(event:MouseEvent):void
@@ -105,6 +115,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if( renaming )
 					{
 						macroList.hashMap.renameObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction), event.textInput);
+						macroList.selectedIndex = lastSelectedIndex;
 						renaming = false;
 						return;
 					}
@@ -150,13 +161,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			//Used to flag that there is a renaming going on.
 			private var renaming:Boolean = false;
+			//Use to set the selectedIndex back to where it should be once renaming is completed.
+			private var lastSelectedIndex:int = 0;
 			
 			protected function renameMacroEntry(event:MouseEvent):void
 			{
 				if( macroList.selectedIndex > -1 )
 				{
 					renaming = true;
+					lastSelectedIndex = macroList.selectedIndex;
 					var box:AlertTextBox = AlertTextBox.show("Macro Renaming Window", "Enter a new name for the macro:");
 					box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkInput);
 				}
@@ -165,7 +180,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override public function revert():void
 			{
 				super.revert();
-				funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+				if( macroList.hashMap.getNames(LinkableFunction).length > 0 )
+					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+			}
+			
+			protected function enableButtonsCheck():void
+			{
+				if( macroList.hashMap.getNames(LinkableFunction).length > 0 )
+				{
+					buttonsEnabled = true;
+					funcValues.editable = true;
+				}
+				else
+				{
+					buttonsEnabled = false;	
+					funcValues.editable = false;
+				}
 			}
 			
 		]]>
