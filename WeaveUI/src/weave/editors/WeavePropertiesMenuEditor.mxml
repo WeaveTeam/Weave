@@ -44,11 +44,6 @@
 						<mx:CheckBox toolTip="Checking this box will allow the user to Load all data"
 									 label="Load my data"
 									 creationComplete="linkBindableProperty(Weave.properties.enableLoadMyData, event.target, 'selected')"/>
-						
-						<mx:CheckBox toolTip="Checking this box will allow the user to Browse data"
-									 label="Browse data"
-									 creationComplete="linkBindableProperty(Weave.properties.enableBrowseData, event.target, 'selected')"/>
-						
 						<mx:CheckBox id="refreshDataCheckBox"
 									 toolTip="Checking this box will allow the user to refresh all data source hierarchies"
 									 label="Refresh data source hierarchies"
