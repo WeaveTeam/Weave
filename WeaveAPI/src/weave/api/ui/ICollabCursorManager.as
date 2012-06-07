@@ -29,6 +29,11 @@ package weave.api.ui
 	public interface ICollabCursorManager
 	{
 		/**
+		 * This function creates a mouse cursor and needs to be passed a name, preferably the collaborator's username.
+		 * @param id Identity to use to refer to the mouse cursor with.
+		 */		
+		function createCursor(id:String):void;
+		/**
 		 * This is a list of all existing cursor ids.
 		 * @return An Array of mouse cursor ids.
 		 */
