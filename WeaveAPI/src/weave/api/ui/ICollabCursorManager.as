@@ -45,7 +45,7 @@ package weave.api.ui
 		 * @param visible Set to true if the mouse should become visible, or false if it should become invisible.
 		 * @param duration The duration of the visibility transition, in milliseconds.
 		 */
-		function setVisible(id:String, visible:Boolean, duration:uint = 1000):void;
+		function setVisible(id:String, visible:Boolean, duration:uint = 3000):void;
 
 		/**
 		 * Set the coordinates of a specific mouse cursor.
@@ -64,6 +64,14 @@ package weave.api.ui
 		 * @param duration The duration of the color change effect, in milliseconds.
 		 */
 		function setColor(id:String, color:uint, duration:uint = 1000):void;
+		
+		/**
+		 *This function returns the color of a specified mouse cursor's color. 
+		 * @param Id of the mouse.
+		 * @return Returns the color of the cursor, or NaN if the cursor doesn't exist.
+		 * 
+		 */
+		function getColor(id:String):Number;
 		
 		/**
 		 * Remove a specific mouse cursor immediately so it no longer appears on the screen or in the list of cursor ids.

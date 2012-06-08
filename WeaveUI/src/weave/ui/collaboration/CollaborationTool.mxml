@@ -78,7 +78,6 @@
 			
 			private const labelWidth:Number = 80;
 			private const textAreaWidth:Number = 200;
-			private var cursorList:ArrayCollection = new ArrayCollection();
 			
 			override protected function childrenCreated():void
 			{
@@ -89,7 +88,6 @@
 				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
 				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
 				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
-				collabService.addEventListener(CollaborationEvent.USER_JOINED_ROOM, handleCreateUserMouse);
 				
 				linkBindableProperty(Weave.properties.collabServerIP, serverIP, 'text');
 				linkBindableProperty(Weave.properties.collabServerName, serverName, 'text');
@@ -179,10 +177,6 @@
 			private function handleConnect( e:CollaborationEvent):void
 			{
 				updateEnabledSettings();
-			}
-			private function handleCreateUserMouse(e:CollaborationEvent):void
-			{
-				//cursorList.addItem(CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject));
 			}
 			
 			private function handleSettingsKeyDown(event:KeyboardEvent):void
