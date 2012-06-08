@@ -19,6 +19,8 @@
 
 package
 {
+	import weave.api.WeaveAPI;
+	import weave.api.ui.ICollabCursorManager;
 	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -55,6 +57,7 @@ package
 	import weave.ui.DataFilter;
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
+	import weave.ui.collaboration.CollaborationCursorManager;
 	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.EditorManager;
 	import weave.utils.LinkableTextFormat;
@@ -105,6 +108,8 @@ package
 	{
 		private static var _:* = function():void
 		{
+			WeaveAPI.registerSingleton(ICollabCursorManager, CollaborationCursorManager);
+			
 			/**
 			 * Register all ILinkableObjectEditor implementations.
 			 */

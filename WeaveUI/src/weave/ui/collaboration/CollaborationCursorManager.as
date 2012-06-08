@@ -11,15 +11,22 @@ package weave.ui.collaboration
 	
 	public class CollaborationCursorManager implements ICollabCursorManager
 	{
-		public var cursorList:Dictionary = new Dictionary();
+		private var cursorList:Dictionary = null;
 		
 		public function createCursor(id:String):void
 		{
-			cursorList[id] = new CollabMouseCursor();
+			if( cursorList == null )
+				cursorList = new Dictionary();
+			if( cursorList[id] is CollabMouseCursor )
+				return;
+			cursorList[id] = CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject);
+			(cursorList[id] as CollabMouseCursor).alpha = 0;
 		}
 		
 		public function getCursorIds():Array
 		{
+			if( cursorList == null )
+				return null;
 			var localArray:Array = new Array();
 			for( var i:String in cursorList )
 				localArray.push(i);
@@ -28,14 +35,13 @@ package weave.ui.collaboration
 		
 		private var mouseID:String;
 		
-		public function setVisible(id:String, visible:Boolean, duration:uint=1000):void
+		public function setVisible(id:String, visible:Boolean, duration:uint=3000):void
 		{
 			if(visible && duration > 0)
 			{
-				cursorList[id] = CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject);
-				(cursorList[id] as CollabMouseCursor).alpha = 100;
+				(cursorList[id] as CollabMouseCursor).alpha = 1;
 				mouseID = id;
-				var time:Timer = new Timer(duration);
+				var time:Timer = new Timer(duration, 1);
 				time.addEventListener(TimerEvent.TIMER_COMPLETE, fadeMouse);
 				time.start();
 			}
@@ -47,14 +53,25 @@ package weave.ui.collaboration
 		
 		private function fadeMouse(event:TimerEvent):void
 		{
-			(cursorList[mouseID] as CollabMouseCursor).alpha = 0;
+			if( cursorList != null )
+				if( cursorList[mouseID] != null )
+				{
+					var timer:Timer = new Timer(20, 25);
+					var i:int = 0;
+					timer.start();
+					timer.addEventListener(TimerEvent.TIMER, function fadeCursor(e:TimerEvent):void
+					{
+						i++;
+						(cursorList[mouseID] as CollabMouseCursor).alpha = 1 - i/25;
+					});
+				}
 		}
 		
 		public function setPosition(id:String, x:Number, y:Number, duration:uint):void
 		{
-			(cursorList[id] as CollabMouseCursor).setPos(x, y);
 			if( duration > 0 )
 				setVisible(id, true, duration);
+			(cursorList[id] as CollabMouseCursor).setPos(x, y);
 		}
 		
 		public function setColor(id:String, color:uint, duration:uint=1000):void
@@ -63,11 +80,21 @@ package weave.ui.collaboration
 			setVisible(id, true, duration);
 		}
 		
+		public function getColor(id:String):Number
+		{
+			if( cursorList[id] == null )
+				return NaN;
+			return (cursorList[id] as CollabMouseCursor).color;
+		}
+		
 		public function removeCursor(id:String):void
 		{
 			try
 			{
+				(cursorList[id] as CollabMouseCursor).removePopUp();
 				delete cursorList[id];
+				if( getCursorIds().length == 0 )
+					cursorList = null;
 			}
 			catch(e:Error)
 			{
