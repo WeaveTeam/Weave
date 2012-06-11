@@ -35,9 +35,17 @@
 	>
 	<ui:AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
 						  text="{_message}" selectable="true" wordWrap="true" minWidth="300" creationComplete="event.currentTarget.height = 0"/>
-	<mx:Canvas width="100%">
-		<mx:TextArea text="{_textInput}" id="textBox" change="_textInput = textBox.text;" keyDown="handleKeyDown(event)"
-					 width="100%" height="{multiLineEdit ? 64 : 20}" verticalScrollPolicy="{multiLineEdit ? 'on' : 'off'}"/>
+	<mx:Canvas width="100%"
+			includeInLayout="{autoCompleteChoices == null}"
+			visible="{autoCompleteChoices == null}"
+			   >
+		<mx:TextArea text="{_textInput}"
+					 id="textBox"
+					 change="_textInput = textBox.text;"
+					 keyDown="handleKeyDown(event)"
+					 width="100%"
+					 height="{multiLineEdit ? 64 : 20}"
+					 verticalScrollPolicy="{multiLineEdit ? 'on' : 'off'}"/>
 		<mx:LinkButton
 					label="{multiLineEdit ? '-' : '+'}"
 					alpha="0.5" useHandCursor="true"
@@ -47,6 +55,14 @@
 					mouseDown="multiLineEdit = !multiLineEdit; callLater(textBox.setFocus);"
 					/>
 	</mx:Canvas>
+	<mx:List id="autoComplete"
+			 includeInLayout="{autoCompleteChoices != null}"
+			 visible="{autoCompleteChoices != null}"
+			 width="100%"
+			 change="_textInput = autoComplete.selectedItem as String"
+			 focusOut="/* autoComplete.visible = false; */"
+			 dataProvider="{autoCompleteChoices}"
+			 />
 	<mx:HBox id="alertButtons" width="100%">
 		<mx:Spacer width="100%"/>
 		<mx:Button label="{lang('Ok')}" click="handleOKClick()" emphasized="true" enabled="{Boolean(textBox.text) || allowEmptyInput}" minWidth="64"/>
@@ -66,6 +82,7 @@
 		
 		[Bindable] public var multiLineEdit:Boolean = false;
 		[Bindable] public var allowEmptyInput:Boolean = false;
+		[Bindable] public var autoCompleteChoices:Array = null;
 		
 		//Message before TextBox
 		[Bindable]
@@ -152,6 +169,47 @@
 			{
 				if (textBox.text || allowEmptyInput)
 					handleOKClick();
+			}
+			else if (autoCompleteChoices)
+			{
+				textBox.validateProperties();
+				var text:String = textBox.text;
+				if (!text)
+				{
+					/* autoComplete.visible = false; */
+					return;
+				}
+				var found:int = 0;
+				for (var i:int = 0; i < autoCompleteChoices.length; i++)
+				{
+					var str:String = autoCompleteChoices[i] as String;
+					if (str.search("^" + text) >= 0)
+					{
+						found++;
+						if (found == 1)
+						{
+							autoComplete.selectedItem = str;
+							autoComplete.scrollToIndex(i);
+							textBox.text = str;
+							textBox.selectionBeginIndex = text.length;
+							textBox.selectionEndIndex = int.MAX_VALUE;
+						}
+						else
+						{
+							var p:Point = textBox.localToGlobal(new Point(0, textBox.height));
+							p = autoComplete.globalToLocal(p);
+							autoComplete.x = p.x;
+							autoComplete.y = p.y;
+							autoComplete.width = textBox.width;
+							//TODO: mouse down event that closes the list
+							/* autoComplete.visible = true; */
+						}
+					}
+				}
+				if (found <= 1)
+				{
+					/* autoComplete.visible = false; */
+				}
 			}
 		}
 		
