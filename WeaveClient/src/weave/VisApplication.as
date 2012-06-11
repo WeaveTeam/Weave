@@ -725,10 +725,10 @@ package weave
 				}
 
 				if(Weave.properties.enableAddDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Add New Datasource", AddDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableAddNewDatasource.value }));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Add New Datasource"), AddDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableAddNewDatasource.value }));
 				
 				if(Weave.properties.enableEditDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Edit Datasources", EditDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableEditDatasources.value }));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Edit Datasources"), EditDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableEditDatasources.value }));
 			}
 			
 			
