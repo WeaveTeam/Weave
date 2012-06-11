@@ -564,7 +564,7 @@
 			}
 			private function updateMousePos(e:CollaborationEvent):void
 			{
-				if( WeaveAPI.CollaborationCursorManager.getCursorIds() == null )
+				if( WeaveAPI.CollaborationCursorManager.getCursorIds().length == 0 )
 					joinedRoomCreateMouseList();
 				var found:Boolean = false;
 				for( var i:int = 0; i < WeaveAPI.CollaborationCursorManager.getCursorIds().length; i++ )
