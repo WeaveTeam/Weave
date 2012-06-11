@@ -34,6 +34,7 @@ package weave.ui.collaboration
 		}
 		
 		private var mouseID:String;
+		private var time:Timer = null;
 		
 		public function setVisible(id:String, visible:Boolean, duration:uint=3000):void
 		{
@@ -41,7 +42,9 @@ package weave.ui.collaboration
 			{
 				(cursorList[id] as CollabMouseCursor).alpha = 1;
 				mouseID = id;
-				var time:Timer = new Timer(duration, 1);
+				if( time != null )
+					time.removeEventListener(TimerEvent.TIMER_COMPLETE, fadeMouse);
+				time = new Timer(duration, 1);
 				time.addEventListener(TimerEvent.TIMER_COMPLETE, fadeMouse);
 				time.start();
 			}
