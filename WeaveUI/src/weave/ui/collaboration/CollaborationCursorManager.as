@@ -25,11 +25,12 @@ package weave.ui.collaboration
 		
 		public function getCursorIds():Array
 		{
-			if( cursorList == null )
-				return null;
 			var localArray:Array = new Array();
-			for( var i:String in cursorList )
-				localArray.push(i);
+			if( cursorList != null )
+			{
+				for( var i:String in cursorList )
+					localArray.push(i);
+			}
 			return localArray;		
 		}
 		
