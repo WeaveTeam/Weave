@@ -77,6 +77,7 @@ package weave
 	import weave.ui.CirclePlotterSettings;
 	import weave.ui.ColorController;
 	import weave.ui.CustomContextMenuManager;
+	import weave.ui.DisabilityOptions;
 	import weave.ui.DraggablePanel;
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
@@ -717,6 +718,8 @@ package weave
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, "Probe ToolTip Editor", DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
 				createToolMenuItem(Weave.properties.showEquationEditor, "Equation Editor", DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showCollaborationEditor, "Collaboration Settings", DraggablePanel.openStaticInstance, [CollaborationEditor]);
+				createToolMenuItem(Weave.properties.showDisabilityOptions, "Disability Options", DraggablePanel.openStaticInstance, [DisabilityOptions]);
+
 //				createToolMenuItem(Weave.properties.enableAddCollaborationTool, "Connect to Collaboration Server", DraggablePanel.openStaticInstance, [CollaborationTool]);
 				
 				var _this:VisApplication = this;

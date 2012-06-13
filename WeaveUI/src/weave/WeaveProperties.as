@@ -208,7 +208,7 @@ package weave
 		public const collabServerRoomToJoin:LinkableString = new LinkableString("demo");
 		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);
 		
-		
+		public const showDisabilityOptions:LinkableBoolean = new LinkableBoolean(true)// Show Disability Options tools menu
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
