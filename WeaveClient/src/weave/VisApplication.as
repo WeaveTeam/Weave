@@ -776,10 +776,10 @@ package weave
 				}
 
 				if(Weave.properties.enableAddDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Add New Datasource", AddDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableAddNewDatasource.value }));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Add New Datasource"), AddDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableAddNewDatasource.value }));
 				
 				if(Weave.properties.enableEditDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Edit Datasources", EditDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableEditDatasources.value }));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Edit Datasources"), EditDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableEditDatasources.value }));
 			}
 			
 			
@@ -789,7 +789,7 @@ package weave
 
 				createToolMenuItem(Weave.properties.showColorController, lang("Color Controller"), DraggablePanel.openStaticInstance, [ColorController]);
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, lang("Probe Info Editor"), DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
-				createToolMenuItem(Weave.properties.showProbeWindow, lang("Probe Info Window"), ProbeToolTipWindow.createInstance);
+				createToolMenuItem(Weave.properties.showProbeWindow, lang("Probe Info Window"), createGlobalObject, [ProbeToolTipWindow, "ProbeToolTipWindow"]);
 				createToolMenuItem(Weave.properties.showEquationEditor, lang("Equation Editor"), DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showCollaborationEditor, lang("Collaboration Settings"), DraggablePanel.openStaticInstance, [CollaborationEditor]);
 				
