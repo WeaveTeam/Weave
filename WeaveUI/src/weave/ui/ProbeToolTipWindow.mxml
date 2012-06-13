@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute" width="25%" height="20%" creationComplete="draggablepanel1_creationCompleteHandler(event)" xmlns:editors="weave.editors.*">
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Button;
+			import mx.events.FlexEvent;
+			
+			import weave.Weave;
+			import weave.data.KeySets.KeySet;
+			import weave.utils.ProbeTextUtils;
+			
+			private var probeKeySet:KeySet = null;
+			
+			protected function draggablepanel1_creationCompleteHandler(event:FlexEvent):void
+			{
+				panelTitle.value = lang("Probe Information");
+				probeKeySet = Weave.root.getObject(Weave.DEFAULT_PROBE_KEYSET) as KeySet;
+				probeKeySet.addImmediateCallback(this, updateText);
+				var button:Button = new Button();
+				button.label = lang("Open probe tool tip editor");
+				button.addEventListener(MouseEvent.CLICK, openToolTipEditor);
+				settingsEditor.addChild(button); 
+			}
+			
+			private function updateText():void
+			{
+				if( probeKeySet.keys.length > 0 )
+					probeTextArea.text = ProbeTextUtils.getProbeText(probeKeySet.keys);
+				else
+					probeTextArea.text = "";
+			}
+			
+			protected function openToolTipEditor(event:MouseEvent):void
+			{
+				DraggablePanel.openStaticInstance(ProbeToolTipEditor);
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:TextArea id="probeTextArea" height="100%" width="100%" editable="false"/>
+	<ui:ControlPanel>
+		<editors:WindowSettingsEditor id="settingsEditor" target="{this}" />
+	</ui:ControlPanel>
+</ui:DraggablePanel>

@@ -60,7 +60,7 @@ package weave.api.core
 		 * @param parameters The parameters to pass to the function.
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 */
-		function callLater(relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true, priority:uint = 2):void;
+		function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void;
 		
 		/**
 		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.

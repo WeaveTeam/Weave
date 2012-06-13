@@ -22,21 +22,11 @@
 
 
 
-<!-- 
-/*
-	Whomeever this code gets passed onto, please feel free to delete or
-	rewrite the comments I have written. They are only painfully obvious
-	to facilitate the transferring of this code to the new maintainer.
-
-	~Andrew Wilkinson
-*/
--->
-
-
 <ui:DraggablePanel xmlns="weave.visualization.tools.*"
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*"
 				   xmlns:userControls="weave.ui.userControls.*"
+				   title="Collaboration"
 				   creationPolicy="all" layout="absolute">
 	<mx:Script>
 		<![CDATA[
@@ -58,6 +48,7 @@
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
+			import weave.api.linkBindableProperty;
 			import weave.api.newDisposableChild;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
@@ -68,27 +59,45 @@
 			import weave.services.collaboration.CollaborationService;
 			import weave.ui.AlertTextBox;
 			
+			public static function get instance():CollaborationTool
+			{
+				return _instance;
+			}
+			private static var _instance:CollaborationTool;
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				if (!_instance)
+					_instance = this;
+				else
+					throw new Error("CollaborationTool should only have one instance");
+			}
+			
 			public const collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
 			
 			private const labelWidth:Number = 80;
 			private const textAreaWidth:Number = 200;
 			private var cursorList:ArrayCollection = new ArrayCollection();
 			
-			//Guaranteed to run at the creation of the tool. Is used to register all the event listeners.
 			override protected function childrenCreated():void
-			{	
-				//Pops up the control panel when a user opens the tool
-				//so that they can type in the server to connect to.
-				toggleControlPanel();
+			{
+				super.childrenCreated();
 				
-				//Callbakcs to be heard from the collabService, this is how the collabservice
-				//can talk back to the Collaboration tool
 				collabService.addEventListener(CollaborationEvent.LOG, handleLogEvent);
 				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
 				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
 				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
 				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
 				collabService.addEventListener(CollaborationEvent.USER_JOINED_ROOM, handleCreateUserMouse);
+				
+				linkBindableProperty(Weave.properties.collabServerIP, serverIP, 'text');
+				linkBindableProperty(Weave.properties.collabServerName, serverName, 'text');
+				linkBindableProperty(Weave.properties.collabServerPort, port, 'text');
+				linkBindableProperty(Weave.properties.collabServerRoom, roomToJoin, 'text');
+				
+				updateEnabledSettings();
+				serverSettings.addEventListener(KeyboardEvent.KEY_DOWN, handleSettingsKeyDown, true);
 			}
 			
 			//Sends a message from the text box(input) to the server as a TEXT message
@@ -110,9 +119,6 @@
 				input.text = "";	//clear the input
 			}
 			
-			
-			//On connection, the config page is removed, and all the buttons that are only available
-			//while connected are enabled.
 			private function connect():void
 			{
 				if( username.text == "" || serverIP.text == "" || serverName.text == "" || roomToJoin.text == "" || port.text ==  "" )
@@ -122,34 +128,33 @@
 				else
 				{
 					collabService.connect(serverIP.text, serverName.text, int(port.text), roomToJoin.text, username.text);
-					cPanel.removePanel();
 					updateEnabledSettings();
-					usernameError.visible = false;
-					serverNameError.visible = false;
+					tabs.selectedChild = chat;
 				}
 			}
-			override public function toggleControlPanel():void
-			{
-				super.toggleControlPanel();
-				updateEnabledSettings();
-			}
+			
 			private function updateEnabledSettings():void
 			{
-				connectButton.enabled = !collabService.isConnected;
-				disconnectButton.enabled = collabService.isConnected;
-				input.enabled = collabService.isConnected;
-				sendButton.enabled = collabService.isConnected;
+				var connected:Boolean = collabService.isConnected;
+				
+				serverSettings.enabled = !connected;
+				connectButton.enabled = !connected && username.text && serverIP.text && serverName.text && roomToJoin.text && port.text;
+				disconnectButton.enabled = connected;
+				input.enabled = connected;
+				sendButton.enabled = connected;
+				
+				tabs.selectedChild = connected ? chat : settings;
 			}
 			
 			private function lockedError(e:Event):void
 			{
-				toggleControlPanel();
-				serverNameError.visible = true;
+				updateEnabledSettings();
+				Alert.show("Server cannot be reached.", "Connect error");
 			}
 			private function nickConflictError(e:Event):void
 			{
-				toggleControlPanel();
-				usernameError.visible = true;
+				updateEnabledSettings();
+				Alert.show("Username already in use.  Please choose another.", "Connect error");
 			}
 			
 			//For when a text message is recieved from the server, it is displayed to the log
@@ -177,176 +182,60 @@
 			}
 			private function handleCreateUserMouse(e:CollaborationEvent):void
 			{
-				cursorList.addItem(CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject));
+				//cursorList.addItem(CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject));
 			}
 			
-			private var toolTipper:ToolTip = new ToolTip()
-			
-			protected function users_itemRollOverHandler(event:ListEvent):void
+			private function handleSettingsKeyDown(event:KeyboardEvent):void
 			{
-				toolTipper.text = collabService.userList[event.rowIndex].name;
-				toolTipper.x = mouseX;
-				toolTipper.y = mouseY;
-				addChild( toolTipper );
+				if (event.keyCode == Keyboard.SPACE)
+					event.stopImmediatePropagation();
+				updateEnabledSettings();
 			}
-			
-			protected function users_itemRollOutHandler(event:ListEvent):void
-			{
-				removeChild( toolTipper );				
-			}
-			
-			private function trimInput(event:Event):void
-			{
-				event.target.text = StringUtil.trim(event.target.text); // hack
-			}
-			
-			protected function button1_clickHandler(event:MouseEvent):void
-			{
-				var cursor:IFlexDisplayObject = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, CollabMouseCursor);
-				PopUpManager.centerPopUp(cursor);
-				stage.addEventListener(MouseEvent.MOUSE_MOVE, 
-					function(_:MouseEvent):void 
-					{
-						cursor.x = _.stageX+30;
-						cursor.y = _.stageY;
-					}
-				);
-			}
-			
 		]]>
 	</mx:Script>
 
+	<mx:TabNavigator width="100%" height="100%" id="tabs">
+		<mx:VBox label="Chat" width="100%" height="100%"
+				 paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
+				 id="chat">
+			<mx:HDividedBox width="100%" height="100%" enabled="{disconnectButton.enabled}">
+				<mx:TextArea id="log" width="80%" height="100%" editable="false"/>
+				<mx:List id="users" height="100%" width="20%" minWidth="100" editable="false" dataProvider="{collabService.userList}" />
+			</mx:HDividedBox>
+			<mx:HBox width="100%" enabled="{disconnectButton.enabled}">
+				<mx:TextInput id="input" width="100%" enabled="false" enter="sendToRoomButton()"/>
+				<mx:Button id="sendButton" label="Send" enabled="false" click="sendToRoomButton();"/>
+			</mx:HBox>
+		</mx:VBox>
 	
-	<mx:VBox width="100%" height="100%" paddingBottom="10" paddingLeft="10" paddingRight="10"
-			 paddingTop="10">
-		<mx:HDividedBox width="100%" height="100%">
-			<mx:TextArea id="log" width="80%" height="100%" editable="false"/>
-			<mx:List id="users" height="100%" width="20%" minWidth="100"
-					 editable="false" dataProvider="{collabService.userList}" itemRollOver="users_itemRollOverHandler(event)" itemRollOut="users_itemRollOutHandler(event)">
-				<mx:itemRenderer>
-					<mx:Component>
-						<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off">
-							
-							<mx:Script>
-								<![CDATA[
-									import mx.collections.ArrayCollection;
-									import mx.controls.Alert;
-									import mx.events.CloseEvent;
-									
-									private var roleID:String = "";
-									
-									private function changeRole(event:MouseEvent):void
-									{
-										if( outerDocument.collabService.myRole != "moderator" )
-											return;
-										
-										roleID = event.currentTarget.name;
-										var role:String = getRole(roleID);
-										if( !role ) return;
-										
-										if( role == "moderator" )
-											if( roleID == outerDocument.collabService.nickname )
-												Alert.show("You are about to remove your own moderator status. Continue?", "Warning", Alert.YES | Alert.NO, null, handleMod);
-											else
-												setRole(roleID, "participant");
-										else
-											setRole(roleID, "moderator");
-									}
-									private function handleMod(e:CloseEvent):void
-									{
-										if( e.detail == Alert.YES )
-											setRole(roleID, "participant");
-									}
-									private function getRole(id:String):String
-									{
-										var list:ArrayCollection = outerDocument.collabService.userList;
-										for( var i:int = 0; i < list.length; i++ )
-										{
-											if( list[i].name == id )
-												return list[i].role;
-										}
-										return null;
-									}
-									private function setRole(id:String, role:String):void
-									{
-										var list:ArrayCollection = outerDocument.collabService.userList;
-										for( var i:int = 0; i < list.length; i++ )
-										{
-											if( list[i].name == id )
-											{
-												if( id == outerDocument.collabService.nickname )
-													outerDocument.collabService.myRole = role;
-												switch( getRole(id) )
-												{
-													case "moderator":
-														outerDocument.collabService.userList[i].affiliation = "none";
-														break;
-													case "participant":
-														outerDocument.collabService.userList[i].affiliation = "owner";
-														break;
-												}
-												outerDocument.collabService.userList[i].role = role;
-												outerDocument.collabService.userList.refresh();
-												return;
-											}
-										}
-									}
-								]]>
-							</mx:Script>
-							
-							<mx:Label text="{data.name}" horizontalCenter="0" left="5" width="100%" />
-							<!--
-							<mx:Spacer width="100%" />
-							<mx:Image id="img" right="15" click="changeRole(event)" name="{data.name}"
-									  source="{ ((data.role == 'moderator') ? 'http://129.63.17.193/star.png' : 'http://129.63.17.193/unstar.png' ) }" />
-							-->
-						</mx:HBox>
-					</mx:Component>
-				</mx:itemRenderer>
-			</mx:List>
-			<!--<mx:TextArea id="users" height="100%" editable="false"/>-->
-		</mx:HDividedBox>
-		<mx:HBox width="100%">
-			<mx:TextInput id="input" width="100%" enabled="false" enter="sendToRoomButton()"/>
-			<mx:Button id="sendButton" label="Send" enabled="false" click="sendToRoomButton();"/>
-		</mx:HBox>
-	</mx:VBox>
-	
-	<!--
-		The input fields are filled with the defaults from the server I was testing
-		on. If you're making your own server, make sure annonymous login is enabled.
-	-->
-	
-	<ui:ControlPanel id="cPanel">
-		<mx:VBox label="Visualization Controls">
-			<mx:HBox width="100%">
-				<mx:Label text="IP:" width="{labelWidth}" />
-				<mx:TextInput id="serverIP" width="{textAreaWidth}" text="demo.oicweave.org" change="trimInput(event);"/>
-			</mx:HBox>
-			<mx:HBox width="100%">
-				<mx:Label text="ServerName:" width="{labelWidth}" />
-				<mx:TextInput id="serverName" width="{textAreaWidth}" text="ivpr-vm" change="trimInput(event);"/>
-				<mx:Label id="serverNameError" text="Server cannot be reached, please try another." visible="false" includeInLayout="{serverNameError.visible}" />
-			</mx:HBox>
-			<mx:HBox width="100%">
-				<mx:Label text="Port:" width="{labelWidth}" />
-				<mx:TextInput id="port" width="{textAreaWidth}" text="5222" change="trimInput(event);"/>
-			</mx:HBox>
-			<mx:HBox width="100%">
-				<mx:Label text="Username:" width="{labelWidth}" />
-				<mx:TextInput id="username" width="{textAreaWidth}" change="trimInput(event);"/>	
-				<mx:Label id="usernameError" text="Username already exists, please try another." visible="false" includeInLayout="{usernameError.visible}"/>
-			</mx:HBox>
-			<mx:HBox width="100%">
-				<mx:Label text="Room Name:" width="{labelWidth}" />
-				<mx:TextInput id="roomToJoin" width="{textAreaWidth}" text="Test" change="trimInput(event);"/>
-			</mx:HBox>
+		<mx:VBox label="Settings" width="100%" height="100%"
+				 paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
+				 id="settings" verticalScrollPolicy="auto" minHeight="0">
+			<mx:VBox id="serverSettings">
+				<ui:Indent label="IP:">
+					<mx:TextInput id="serverIP" width="{textAreaWidth}" errorString="{serverIP.text?'':'Required'}"/>
+				</ui:Indent>
+				<ui:Indent label="ServerName:">
+					<mx:TextInput id="serverName" width="{textAreaWidth}" errorString="{serverName.text?'':'Required'}"/>
+				</ui:Indent>
+				<ui:Indent label="Port:">
+					<mx:TextInput id="port" width="{textAreaWidth}" errorString="{port.text?'':'Required'}"/>
+				</ui:Indent>
+				<ui:Indent label="Room Name:">
+					<mx:TextInput id="roomToJoin" width="{textAreaWidth}" errorString="{roomToJoin.text?'':'Required'}"/>
+				</ui:Indent>
+				<ui:Indent label="Username:">
+					<mx:TextInput id="username" width="{textAreaWidth}" errorString="{username.text?'':'Required'}"/>
+				</ui:Indent>
+			</mx:VBox>
+			<!--<ui:Indent label="Cursor color:">
+				<mx:ColorPicker id="picker" color="{Math.round(Math.random() * 0xFFFFFF)}" />
+			</ui:Indent>-->
 			<mx:HBox width="100%">
 				<mx:Button id="connectButton" label="Connect" click="connect();" />
 				<mx:Button id="disconnectButton" label="Disconnect" enabled="false" click="collabService.disconnect();"/>
 			</mx:HBox>
-			<mx:ColorPicker id="picker" color="{Math.random() * 0xFFFFFF}" />
 		</mx:VBox>
-	</ui:ControlPanel>
+	</mx:TabNavigator>
 	
 </ui:DraggablePanel>

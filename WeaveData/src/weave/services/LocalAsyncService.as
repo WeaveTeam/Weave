@@ -77,7 +77,7 @@ package weave.services
 			{
 				//trace("LocalAsyncService()", localName, error);
 				reportError(_lastError = error, "LocalAsyncService()");
-				WeaveAPI.StageUtils.callLater(errorCallbacks, errorCallbacks.triggerCallbacks, null, false);
+				WeaveAPI.StageUtils.callLater(errorCallbacks, errorCallbacks.triggerCallbacks, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 			}
 		}
 

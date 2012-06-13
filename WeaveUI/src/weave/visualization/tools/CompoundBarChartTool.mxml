@@ -121,7 +121,7 @@
 				}
 				if (columnsToInit.length > 0)
 					(initColumnDefaults as Function).apply(null, columnsToInit);
-				_plotter.heightColumns.addGroupedCallback(this,updateProbeColumns);
+				getCallbackCollection(_plotter).addGroupedCallback(this,updateProbeColumns);
 			}
 			
 			protected function creationComplete():void
@@ -353,14 +353,12 @@
 				{
 					cRampEditor.enabled = true;
 					groupMode.enabled = true;
-					showValueLabelsCheckBox.enabled = groupedRadioButton.selected;
 					colorColumnInput.enabled = false;
 				}
 				else
 				{
 					cRampEditor.enabled = false;
 					groupMode.enabled = false;
-					showValueLabelsCheckBox.enabled = true;
 					colorColumnInput.enabled = true;
 				}
 			}
@@ -378,6 +376,18 @@
 			
 			// backwards compatibility
 			[Deprecated] public function set labelColumn(value:Object):void { setSessionState(_plotter.labelColumn, value); }
+			
+			private function showValueLabelsCheckBox_changeHandler():void
+			{
+				if (showValueLabelsCheckBox.selected)
+				{
+					if ((stackedRadioButton.enabled && stackedRadioButton.selected)|| (percentStackedRadioButton.enabled && percentStackedRadioButton.selected))
+						_plotter.valueLabelHorizontalAlign.value = "center";
+					else
+						_plotter.valueLabelHorizontalAlign.value = "left";
+				}
+			}
+			
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
@@ -405,73 +415,78 @@
 		
 		<mx:VBox label="Labeling">
 			<mx:Button label="Show legend" click="createLegend()"/>
+			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
+						 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
+						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			<mx:CheckBox label="Show all axis labels" creationComplete="linkBindableProperty(showAllLabels, event.target, 'selected');"/>
-			
-			<mx:HBox borderStyle="inset" borderThickness="1">
-				<mx:VBox>
-					<mx:CheckBox label="Show record labels" id="labelsChkBx" toolTip="This option enables bar labels that use the Label column"							 
+			<mx:HBox width="100%">
+				<mx:VBox width="100%">
+					<mx:CheckBox label="Show bar labels" id="labelsChkBx"
 								 creationComplete="linkBindableProperty(_plotter.showLabels, event.target, 'selected')"/>
-					<mx:VBox paddingLeft="20" enabled="{labelsChkBx.selected}">
-						<mx:VBox>
-							<ui:Indent label="Color by record">
-								<mx:CheckBox id="colorRecordLabelsChk"
-											 creationComplete="linkBindableProperty(_plotter.recordLabelColoring, event.target, 'selected')"/>
-								<ui:HelpComponent>This specifies if each label should have the same color as its corresponding record.</ui:HelpComponent>
-							</ui:Indent>
-							<mx:HBox id="colorRecordLabelsBox" 
-									 enabled="{!colorRecordLabelsChk.selected}">
+					<mx:VBox paddingLeft="24" enabled="{labelsChkBx.selected}" width="100%">
+						<mx:HBox>
+							<mx:CheckBox id="colorRecordLabelsChk" label="Color by record"
+										 creationComplete="linkBindableProperty(_plotter.recordLabelColoring, event.target, 'selected')"/>
+							<ui:HelpComponent>This specifies if each label should have the same color as its corresponding record.</ui:HelpComponent>
+							<mx:Spacer width="100%"/>
+							<mx:HBox id="colorRecordLabelsBox" enabled="{!colorRecordLabelsChk.selected}">
 								<mx:Label text="Color"/>
 								<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
 								<ui:HelpComponent>This specifies the color to use for every label.</ui:HelpComponent>
 							</mx:HBox>
-						</mx:VBox>
-						<ui:IndentTextInput inputWidth="64" label="Position" creationComplete="linkBindableProperty(_plotter.labelDataCoordinate, event.target, 'text')"/>
-						<ui:Indent label="Angle">
-							<mx:NumericStepper minimum="-180" maximum="180" stepSize="15"
-									creationComplete="linkBindableProperty(_plotter.labelRelativeAngle, event.target, 'value')"/>
-						</ui:Indent>
-						<ui:AlignmentControl creationComplete="linkBindableProperty(_plotter.labelVerticalAlign, event.target, 'verticalAlign'); linkBindableProperty(_plotter.labelHorizontalAlign, event.target, 'horizontalAlign');"/>
-						<ui:Indent label="Label width">
-							<mx:NumericStepper minimum="5" maximum="1000" stepSize="5"
-									creationComplete="linkBindableProperty(_plotter.labelMaxWidth, event.target, 'value')"/>
-						</ui:Indent>
+						</mx:HBox>
+						<mx:HBox>
+							<mx:VBox>
+								<ui:IndentTextInput inputWidth="64" label="Position" creationComplete="linkBindableProperty(_plotter.labelDataCoordinate, event.target, 'text')"/>
+								<ui:Indent label="Angle">
+									<mx:NumericStepper minimum="-180" maximum="180" stepSize="15" width="64"
+											creationComplete="linkBindableProperty(_plotter.labelRelativeAngle, event.target, 'value')"/>
+								</ui:Indent>
+								<ui:Indent label="Max width">
+									<mx:NumericStepper minimum="5" maximum="1000" stepSize="5" width="64"
+											creationComplete="linkBindableProperty(_plotter.labelMaxWidth, event.target, 'value')"/>
+								</ui:Indent>
+							</mx:VBox>
+							<ui:AlignmentControl creationComplete="linkBindableProperty(_plotter.labelVerticalAlign, event.target, 'verticalAlign'); linkBindableProperty(_plotter.labelHorizontalAlign, event.target, 'horizontalAlign');"/>
+						</mx:HBox>
+						<mx:Label text="Label formatter:"/>
+						<mx:Box paddingLeft="24">
+							<mx:TextArea width="100%" height="100%" creationComplete="linkBindableProperty(_plotter.labelFormatter, event.target, 'text');"/>
+						</mx:Box>
 					</mx:VBox>
 				</mx:VBox>
-				
-				<mx:VBox>				
-					<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels"
-								 toolTip="This option will show a value label for each bar."/>
-					<mx:VBox paddingLeft="20" enabled="{showValueLabelsCheckBox.selected}">
-						<mx:VBox>
-							<ui:Indent label="Color by record">
-								<mx:CheckBox id="colorValueLabelsChk"
-											 creationComplete="linkBindableProperty(_plotter.recordValueLabelColoring, event.target, 'selected')"/>
-								<ui:HelpComponent>This specifies if each label should have the same color as its corresponding record.</ui:HelpComponent>
-							</ui:Indent>
-							<mx:HBox id="colorValueLabelColorBox"
-									 enabled="{!colorValueLabelsChk.selected}">
+				<mx:Spacer width="100%"/>
+				<mx:VBox width="100%">
+					<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels" change="showValueLabelsCheckBox_changeHandler()"/>
+					<mx:VBox paddingLeft="24" enabled="{showValueLabelsCheckBox.selected}" width="100%">
+						<mx:HBox>
+							<mx:CheckBox id="colorValueLabelsChk" label="Color by record"
+										 creationComplete="linkBindableProperty(_plotter.recordValueLabelColoring, event.target, 'selected')"/>
+							<ui:HelpComponent>This specifies if each label should have the same color as its corresponding record.</ui:HelpComponent>
+							<mx:Spacer width="100%"/>
+							<mx:HBox id="colorValueLabelColorBox" enabled="{!colorValueLabelsChk.selected}">
 								<mx:Label text="Color"/>
 								<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
 								<ui:HelpComponent>This specifies the color to use for every label.</ui:HelpComponent>
 							</mx:HBox>
-						</mx:VBox>
-						<ui:IndentTextInput inputWidth="64" label="Position" 
-									creationComplete="linkBindableProperty(_plotter.valueLabelDataCoordinate, event.target, 'text')"/>							  
-						<ui:Indent label="Angle">
-							<mx:NumericStepper minimum="-180" maximum="180" stepSize="15"
-									creationComplete="linkBindableProperty(_plotter.valueLabelRelativeAngle, event.target, 'value')"/>
-						</ui:Indent>
-						<ui:AlignmentControl creationComplete="linkBindableProperty(_plotter.valueLabelVerticalAlign, event.target, 'verticalAlign'); linkBindableProperty(_plotter.valueLabelHorizontalAlign, event.target, 'horizontalAlign');"/>
-						<ui:Indent label="Label width">
-							<mx:NumericStepper minimum="5" maximum="1000" stepSize="5"
-									creationComplete="linkBindableProperty(_plotter.valueLabelMaxWidth, event.target, 'value')"/>
-						</ui:Indent>
+						</mx:HBox>
+						<mx:HBox>
+							<mx:VBox>
+								<ui:IndentTextInput inputWidth="64" label="Position" creationComplete="linkBindableProperty(_plotter.valueLabelDataCoordinate, event.target, 'text')"/>
+								<ui:Indent label="Angle">
+									<mx:NumericStepper minimum="-180" maximum="180" stepSize="15" width="64"
+											creationComplete="linkBindableProperty(_plotter.valueLabelRelativeAngle, event.target, 'value')"/>
+								</ui:Indent>
+								<ui:Indent label="Max width">
+									<mx:NumericStepper minimum="5" maximum="1000" stepSize="5" width="64"
+											creationComplete="linkBindableProperty(_plotter.valueLabelMaxWidth, event.target, 'value')"/>
+								</ui:Indent>
+							</mx:VBox>
+							<ui:AlignmentControl creationComplete="linkBindableProperty(_plotter.valueLabelVerticalAlign, event.target, 'verticalAlign'); linkBindableProperty(_plotter.valueLabelHorizontalAlign, event.target, 'horizontalAlign');"/>
+						</mx:HBox>
 					</mx:VBox>
 				</mx:VBox>
 			</mx:HBox>
-			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-						 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
-						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 		</mx:VBox>
 		
 		<mx:VBox id="advControlsPanel" label="Advanced">
@@ -482,9 +497,12 @@
 							liveDragging="true"/>
 			</ui:Indent>
 			
-			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to subset" 
-						 toolTip="Enables automatic zooming to the subset of data currently displayed"
+			<mx:CheckBox label="Zoom to subset (height)"
+						 toolTip="Enables automatic zooming to the subset of height data currently displayed"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>
+			<mx:CheckBox label="Zoom to subset (bars)"
+						 toolTip="Enables automatic zooming to the subset of bars currently displayed"
+						 creationComplete="linkBindableProperty(_plotter.zoomToSubsetBars, event.target, 'selected')"/>
 			<ui:ColorRampEditor id="cRampEditor" toolTip="The color ramp can only be set when more than one height column is specified."/>
 		</mx:VBox>
 	</ui:ControlPanel>

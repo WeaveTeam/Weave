@@ -29,7 +29,7 @@
 		layout="absolute"
 		title="{viewStack.label}"
 		borderAlpha="1"
-		borderColor="#C5C3A8"
+		borderColor="#939178"
 		borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
 		verticalScrollPolicy="off"
 		horizontalScrollPolicy="off"
@@ -68,7 +68,6 @@
 			override protected function constructor():void
 			{
 				super.constructor();
-				resizeable.value = false;
 				minimizable.value = false;
 				maximizable.value = false;
 			}

@@ -94,7 +94,12 @@ package weave.data.AttributeColumns
 			_keyToIndexMap = new Dictionary();
 			var i:int = _keys.length;
 			while (--i > -1)
-				_keyToIndexMap[_keys[i]] = i;
+			{
+				// since numericCompare sorts NaN at the end, ignoring NaN's won't affect the remaining indices
+				var key:IQualifiedKey = _keys[i] as IQualifiedKey;
+				if (!isNaN(internalColumn.getValueFromKey(key, Number)))
+					_keyToIndexMap[_keys[i]] = i;
+			}
 		}
 
 		/**

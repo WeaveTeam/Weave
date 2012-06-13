@@ -46,6 +46,7 @@
 		import mx.printing.FlexPrintJobScaleType;
 		
 		import weave.Weave;
+		import weave.api.reportError;
 		import weave.utils.BitmapUtils;
 		
 		//Snapshot of the Application/Tool to be printed
@@ -63,6 +64,10 @@
 			{
 				// the following will crash when component is the application.
 				_imageSource = ImageSnapshot.captureImage(component).data;
+			}
+			catch (se:SecurityError)
+			{
+				reportError(se, "Unable to create screenshot due to lack of permissive policy file for embedded image. " + se.message);
 			}
 			catch (e:Error)
 			{

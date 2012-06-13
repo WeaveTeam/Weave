@@ -21,11 +21,8 @@ package weave
 {
 	import flash.display.Stage;
 	import flash.events.Event;
-	import flash.events.IOErrorEvent;
-	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
 	import flash.net.URLRequest;
-	import flash.system.ApplicationDomain;
 	import flash.text.Font;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
@@ -51,9 +48,7 @@ package weave
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
-	import weave.core.StageUtils;
 	import weave.core.weave_internal;
-	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
@@ -61,7 +56,6 @@ package weave
 	import weave.ui.JRITextEditor;
 	import weave.ui.RTextEditor;
 	import weave.utils.CSSUtils;
-	import weave.utils.DebugUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.NumberUtils;
 	import weave.utils.ProbeTextUtils;
@@ -128,6 +122,27 @@ package weave
 			
 			linkBindableProperty(enableThreadPriorities, WeaveAPI.StageUtils, 'enableThreadPriorities');
 			linkBindableProperty(maxComputationTimePerFrame, WeaveAPI.StageUtils, 'maxComputationTimePerFrame');
+			
+			showCollaborationMenuItem.addGroupedCallback(this, function():void {
+				if (showCollaborationMenuItem.value)
+				{
+					enableCollaborationBar.delayCallbacks();
+					showCollaborationEditor.delayCallbacks();
+					
+					enableCollaborationBar.value = false;
+					showCollaborationEditor.value = false;
+					
+					enableCollaborationBar.resumeCallbacks();
+					showCollaborationEditor.resumeCallbacks();
+				}
+			});
+			function handleCollabBar():void
+			{
+				if (enableCollaborationBar.value || showCollaborationEditor.value)
+					showCollaborationMenuItem.value = false;
+			};
+			enableCollaborationBar.addGroupedCallback(this, handleCollabBar);
+			showCollaborationEditor.addGroupedCallback(this, handleCollabBar);
 		}
 		
 		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
@@ -205,14 +220,15 @@ package weave
 		public const collabServerIP:LinkableString = new LinkableString("demo.oicweave.org");
 		public const collabServerName:LinkableString = new LinkableString("ivpr-vm");
 		public const collabServerPort:LinkableString = new LinkableString("5222");
-		public const collabServerRoomToJoin:LinkableString = new LinkableString("demo");
+		public const collabServerRoom:LinkableString = new LinkableString("");
 		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);
+		public const showCollaborationMenuItem:LinkableBoolean = new LinkableBoolean(true); // menu item
 		
 		public const showDisabilityOptions:LinkableBoolean = new LinkableBoolean(true)// Show Disability Options tools menu
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
+		public const showProbeWindow:LinkableBoolean = new LinkableBoolean(true); // Show Probe Tool Tip Window in tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
-		public const showAttributeSelector:LinkableBoolean = new LinkableBoolean(true); // Show Attribute Selector tools menu
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
 
 		// BEGIN TEMPORARY SOLUTION
@@ -315,10 +331,13 @@ package weave
 		public const enableExportApplicationScreenshot:LinkableBoolean = new LinkableBoolean(true); // print/export application screenshot
 		
 		public const enableDataMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Data Menu
+		public const enableLoadMyData:LinkableBoolean = new LinkableBoolean(true); // enable/disable Load MyData option
+		public const enableBrowseData:LinkableBoolean = new LinkableBoolean(true); // enable/disable Browse Data option
 		public const enableRefreshHierarchies:LinkableBoolean = new LinkableBoolean(true);
-		public const enableNewDataset:LinkableBoolean = new LinkableBoolean(true); // enable/disable New Dataset option
-		public const enableAddWeaveDataSource:LinkableBoolean = new LinkableBoolean(true); // enable/disable Add WeaveDataSource option
+		public const enableAddNewDatasource:LinkableBoolean = new LinkableBoolean(true); // enable/disable New Datasource option
+		public const enableEditDatasources:LinkableBoolean = new LinkableBoolean(true); // enable/disable Edit Datasources option
 		
+			
 		public const enableWindowMenu:LinkableBoolean = new LinkableBoolean(true); // enable/disable Window Menu
 		public const enableFullScreen:LinkableBoolean = new LinkableBoolean(false); // enable/disable FullScreen option
 		public const enableCloseAllWindows:LinkableBoolean = new LinkableBoolean(true); // enable/disable Close All Windows
@@ -342,6 +361,9 @@ package weave
 		public const enableSubsetSelectionBox:LinkableBoolean = new LinkableBoolean(true);// enable/disable Subset Selection Combo Box option
 		public const enableAddDataSource:LinkableBoolean = new LinkableBoolean(true);// enable/disable Manage saved subsets option
 		public const enableEditDataSource:LinkableBoolean = new LinkableBoolean(true);
+		public const enableNewDataset:LinkableBoolean = new LinkableBoolean(true); // enable/disable New Dataset option
+		public const enableAddWeaveDataSource:LinkableBoolean = new LinkableBoolean(true); // enable/disable Add WeaveDataSource option
+		
 		
 		public const dashboardMode:LinkableBoolean = new LinkableBoolean(false);	 // enable/disable borders/titleBar on windows
 		public const enableToolControls:LinkableBoolean = new LinkableBoolean(true); // enable tool controls (which enables attribute selector too)

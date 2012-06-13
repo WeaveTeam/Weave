@@ -130,7 +130,7 @@
 				collabService.connect(Weave.properties.collabServerIP.value, 
 									  Weave.properties.collabServerName.value, 
 									  int(Weave.properties.collabServerPort.value), 
-									  Weave.properties.collabServerRoomToJoin.value, 
+									  Weave.properties.collabServerRoom.value, 
 									  SETTINGS.collab_NICKNAME);
 				
 				// Set timeout to 10 seconds

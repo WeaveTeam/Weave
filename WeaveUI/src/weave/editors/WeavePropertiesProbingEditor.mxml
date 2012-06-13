@@ -111,13 +111,11 @@
 				creationComplete="linkBindableProperty(Weave.properties.probeToolTipMaxWidth, event.target, 'text' );"
 			/>
 	</mx:VBox>
-	
 	<mx:CheckBox label="Enable probe axis lines"
 				 creationComplete="linkBindableProperty(Weave.properties.enableProbeLines, event.target, 'selected')"/>
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.ToolTip;
 			import mx.core.IToolTip;
 			import mx.core.UIComponent;
 			import mx.managers.ToolTipManager;
@@ -125,7 +123,7 @@
 			import weave.Weave;
 			import weave.api.linkBindableProperty;
 			
-			private const indentPadding:int = 20
+			private const indentPadding:int = 24;
 			
 			override protected function childrenCreated():void
 			{

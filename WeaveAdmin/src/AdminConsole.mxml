@@ -24,6 +24,9 @@
 		<![CDATA[
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
+			
+			import weave.ui.DraggablePanel;
+			import weave.ui.TranslationPanel;
 		]]>
 	</mx:Script>
 	<mx:Panel
@@ -41,9 +44,13 @@
 					<mx:Button label="Import existing SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{Strings.tip_import_sql_data}"/>
 					<mx:Button label="Import CSV data..." click="WizardPanel.createWizard(this, new CSVImportWizard())" toolTip="{Strings.tip_import_csv_data}"/>
 					<mx:Button label="Import SHP and DBF data..." click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{Strings.tip_import_shp_and_dbf}"/>
+
 					<ui:CustomVRule/>
 					<mx:Button label="Open Weave" click="AdminInterface.instance.openWeavePopup();" toolTip="This will open Weave in a new browser window which allows you to save a new client configuration."/>
+					<mx:Button label="Recover Last Session" click="AdminInterface.instance.openWeavePopup(null, true);" toolTip="This will open Weave with your last configuration."/>
+					
 					<mx:Spacer width="100%"/>
+					<mx:Button id="translationButton" label="{lang('Edit translations')}" click="DraggablePanel.openStaticInstance(TranslationPanel);"/>
 					<mx:Label text="{'Signed in as: ' + AdminInterface.instance.activeConnectionName}" textAlign="right"/>
 					<mx:Button label="Sign out" enabled="{AdminInterface.instance.sqlConfigExists == true}"
 							   click="AdminInterface.instance.activeConnectionName = AdminInterface.instance.activePassword = '';"/>
@@ -140,6 +147,8 @@
 						acsTab.parent.removeChild(acsTab);
 					if (name == 'resd')
 						tabNavigator.addChild(acsTab);
+					
+					translationButton.visible = translationButton.includeInLayout = (name == 'resd');
 				}
 				
 				BindingUtils.bindSetter(handlePermissionChange, AdminInterface.instance, "currentUserIsSuperuser");

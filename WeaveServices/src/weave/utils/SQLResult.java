@@ -33,6 +33,16 @@ public class SQLResult
 {
 	public SQLResult(ResultSet rs) throws SQLException
 	{
+		read(rs, false);
+	}
+	
+	public SQLResult(ResultSet rs, boolean convertToStrings) throws SQLException
+	{
+		read(rs, convertToStrings);
+	}
+	
+	private void read(ResultSet rs, boolean convertToStrings) throws SQLException
+	{
 		ResultSetMetaData metadata = rs.getMetaData();
 		int n = metadata.getColumnCount();
 		
@@ -49,7 +59,12 @@ public class SQLResult
 		{
 			Object[] row = new Object[n];
 			for (int i = 0; i < n; i++)
-				row[i] = rs.getObject(i + 1);
+			{
+				if (convertToStrings)
+					row[i] = rs.getString(i + 1);
+				else
+					row[i] = rs.getObject(i + 1);
+			}
 			linkedRows.add(row);
 		}
 		rows = linkedRows.toArray(new Object[linkedRows.size()][]);
