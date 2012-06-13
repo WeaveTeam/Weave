@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
 		   width="18" height="24" mouseChildren="false">	
@@ -28,6 +28,13 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.reportError;
+			import weave.api.services.IURLRequestToken;
+			
 			
 			private var vertices:Array =
 				[
@@ -50,10 +57,9 @@
 			[Bindable] public var yFrom:Number = 0;
 			[Bindable] public var yTo:Number = 0;
 			
-			override protected function createChildren():void
-			{
-				super.createChildren();
-			}
+			private var useImage:Boolean = true;
+			private var imageLink:String = "http://sstatic.net/ads/img/careers2-ad-header-so.png";
+			
 			public static function addPopUp(parent:DisplayObject):CollabMouseCursor
 			{
 				var cursor:CollabMouseCursor = PopUpManager.createPopUp(parent, CollabMouseCursor) as CollabMouseCursor;
@@ -74,13 +80,30 @@
 			}
 			public function initializeCursor():void
 			{
-				color = 0;
-				graphics.clear();
-				graphics.lineStyle(1, 0, 1.0, true);
-				graphics.moveTo(0, 0);
-				for each( var vertex:Array in vertices )
+				if( !useImage )
+				{
+					color = 0;
+					graphics.clear();
+					graphics.lineStyle(1, 0, 1.0, true);
+					graphics.moveTo(0, 0);
+					for each( var vertex:Array in vertices )
 					graphics.lineTo(vertex[0], vertex[1]);
+				}
+				else
+				{
+					applyImage();
+				}
 			}
+			
+			private function applyImage():void
+			{
+				var outputBitMap:Bitmap = new Bitmap(_missingImage);
+				this.rawChildren.addChild(outputBitMap);
+				graphics.beginBitmapFill(outputBitMap.bitmapData);
+				outputBitMap.bitmapData.draw(this);
+				graphics.endFill();
+			}
+			
 			public function fillCursor(color:uint):void
 			{
 				this.color = color;
@@ -89,7 +112,7 @@
 				graphics.moveTo(0, 0);
 				graphics.beginFill(color, 0.5);
 				for each( var vertex:Array in vertices )
-					graphics.lineTo(vertex[0], vertex[1]);
+				graphics.lineTo(vertex[0], vertex[1]);
 				graphics.endFill();
 				this.filters = [ new DropShadowFilter() ];
 			}
@@ -97,6 +120,40 @@
 			{
 				PopUpManager.removePopUp(this);
 			}
+			
+			[Embed( source="/weave/resources/images/missing.png")]
+			private static var _missingImageClass:Class;
+			private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
+			
+			/**
+			 * This is the image cache.
+			 */
+			private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
+			
+		/* 	private function getImage(url:String):BitmapData
+			{
+				if (url && _urlToImageMap[url] === undefined)
+				{
+					_urlToImageMap[url] = null;
+					var tokencheck:IURLRequestToken = WeaveAPI.URLRequestUtils.getContent(new URLRequest(url), handleImageDownload, handleFault, url);
+				}
+				return _urlToImageMap[url] as BitmapData;
+			}
+			
+			private function handleImageDownload(event:ResultEvent, token:Object = null):void
+			{
+				var bitmap:Bitmap = event.result as Bitmap;
+				_urlToImageMap[token] = bitmap.bitmapData;
+			}
+			
+			/**
+			 * This function is called when there is an error downloading an image.
+			 *
+			private function handleFault(event:FaultEvent, token:Object=null):void
+			{
+				_urlToImageMap[token] = _missingImage;
+				reportError(event);
+			}		 */
 		]]>
 	</mx:Script>
 </mx:Canvas>
