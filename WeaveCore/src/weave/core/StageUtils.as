@@ -37,6 +37,7 @@ package weave.core
 	import weave.api.core.IStageUtils;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
+	import weave.utils.DebugTimer;
 	
 	use namespace mx_internal;
 	
@@ -60,6 +61,7 @@ package weave.core
 		private const frameTimes:Array = [];
 		private var debug_fps:Boolean = false; // set to true to trace the frames per second
 		public var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
+		public var debug_callLater:Boolean = false; // set this to true to delay async tasks
 		private const _stackTraceMap:Dictionary = new Dictionary(true); // used by callLater to remember stack traces
 		
 		private var _event:Event = null; // returned by get event()
@@ -279,12 +281,18 @@ package weave.core
 				_priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] = [];
 				for (i = 0; i < calls.length; i++)
 				{
+					if (debug_callLater)
+						DebugTimer.begin();
+					
 					// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint = 0)
 					args = calls[i] as Array;
 					stackTrace = _stackTraceMap[args];
 					// don't call the function if the relevantContext was disposed of.
 					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
 						(args[1] as Function).apply(null, args[2]);
+					
+					if (debug_callLater)
+						DebugTimer.end(stackTrace);
 				}
 			}
 			
@@ -300,6 +308,9 @@ package weave.core
 			var pQueue:Array = _priorityCallLaterQueues[_activePriority] as Array;
 			while (true)
 			{
+				if (debug_callLater)
+					DebugTimer.begin();
+				
 				var now:int = getTimer();
 				if (now > pStop || pQueue.length == 0)
 				{
@@ -353,6 +364,9 @@ package weave.core
 					
 					(args[1] as Function).apply(null, args[2]);
 				}
+				
+				if (debug_callLater)
+					DebugTimer.end(stackTrace);
 			}
 		}
 		
