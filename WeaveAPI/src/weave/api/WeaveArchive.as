@@ -68,7 +68,7 @@ package weave.api
 					files[path[1]] = zip.getInput(entry);
 				if (path[0] == FOLDER_AMF)
 				{
-					trace("length is " + zip.getInput(entry).length);
+//					trace("length is " + zip.getInput(entry).length);
 					objects[path[1]] = zip.getInput(entry).readObject();
 					
 				}

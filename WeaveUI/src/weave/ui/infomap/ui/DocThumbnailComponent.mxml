@@ -20,6 +20,7 @@ so that it can be moved, selected, handle filters.
 				dragComplete="handleDragComplete(event)"
 				>
 	<mx:Image id="img" width="100%" height="100%"/>
+	<mx:Canvas includeInLayout="false" id="point"/>
 	<mx:Script>
 		<![CDATA[
 			import flash.text.engine.GroupElement;
@@ -71,12 +72,12 @@ so that it can be moved, selected, handle filters.
 			 * @public
 			 * This variable sets the width of this image.
 			 * */
-			public const imageWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(),handleImage,true);
+			public const imageWidth:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleImage,true);
 			/**
 			 * @public
 			 * This variable sets the height of this image.
 			 * */
-			public const imageHeight:LinkableNumber = registerLinkableChild(this,new LinkableNumber(),handleImage,true);
+			public const imageHeight:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10),handleImage,true);
 			/**
 			 * @public
 			 * This variable sets the alpha/transparency of this image.
@@ -136,41 +137,53 @@ so that it can be moved, selected, handle filters.
 				super.childrenCreated();
 				linkBindableProperty(imageWidth,this,"width");
 				linkBindableProperty(imageHeight,this,"height");	
-				linkBindableProperty(imageAlpha,this,"alpha");
+				linkBindableProperty(imageAlpha,img,"alpha");
 				
 				
-//				linkBindableProperty(xPos,this,"x");
-//				linkBindableProperty(yPos,this,"y");
-				selectedBorderColor.addGroupedCallback(this,highlight);
-				defaultBorderColor.addGroupedCallback(this,highlight);
+				selectedBorderColor.addGroupedCallback(this,setSelection);
+				defaultBorderColor.addGroupedCallback(this,setSelection);
+				
+				hasBeenMoved.addGroupedCallback(this,handleMode,true);
+				
+				var g:Graphics = point.graphics;
+				g.lineStyle(1,0,1.0);
+				g.beginFill(defaultBorderColor.value,1.0);
+				g.drawCircle(0,0,imageWidth.value/2);	
 			}
 			
-			//this function is called when a local search is made in the node handler this belongs to.
-			//if a match for the search query is not found in the doc object, it makes the image invisible
-			private function handleLocalSearchFilter():void
+			private function handleMode():void
 			{
-//				if(_doc == null)
-//					return;
-//				
-//				var searchKey:String = (this.parent as NodeHandler).searchFilter.value;
-//				if(searchKey == "" || searchKey == null)
-//				{
-////					_selection.removeKeys([_key]);
-//					doc.selected.value = false;
-//					return;
-//				}
-//				
-//				if(_doc.title.value.toLowerCase().search(searchKey.toLowerCase()) == -1)
-//					if(_doc.summary.value.toLowerCase().search(searchKey.toLowerCase()) == -1)
-//					{
-////						_selection.removeKeys([_key]);
-//						doc.selected.value = false;
-//						return;
-//					}
-//				
-////				_selection.addKeys([_key]);
-//				doc.selected.value = true;
-				
+				if(hasBeenMoved.value)
+				{
+					img.visible = true;
+					img.includeInLayout = true;
+					
+					point.visible = false;
+					point.includeInLayout = false;
+					
+					setStyle("borderStyle","solid");
+					setStyle("borderThickness", 1.5);
+					handleImage();
+				}
+				else
+				{
+					img.visible = false;
+					img.includeInLayout = false;
+					
+					point.visible = true;
+					point.includeInLayout = true;
+					
+					imageHeight.value = 10;
+					imageWidth.value = 10;
+					
+					var g:Graphics = point.graphics;
+					g.clear();
+					g.lineStyle(1,0,1.0);
+					g.beginFill(defaultBorderColor.value,1.0);
+					g.drawCircle(0,0,imageWidth.value/2);	
+					
+					setStyle("borderStyle","none");
+				}
 			}
 			
 			private var token:IURLRequestToken;
@@ -250,7 +263,8 @@ so that it can be moved, selected, handle filters.
 				_mouseOver = true;
 				if(!event.buttonDown)
 				{
-					setStyle("borderStyle","none");
+					if(hasBeenMoved.value)
+						setStyle("borderStyle","none");
 //					this.invalidateDisplayList();
 					showDocSummary(event);
 				}
@@ -298,9 +312,16 @@ so that it can be moved, selected, handle filters.
 				var dragInitiator:DocThumbnailComponent = this;
 				var ds:DragSource = new DragSource();
 				var imgCopy:Image = new Image();
-				imgCopy.width = width;
-				imgCopy.height = height;
-				imgCopy.source = new Bitmap((img.source as Bitmap).bitmapData);
+//				imgCopy.width = width;
+//				imgCopy.height = height;
+//				imgCopy.source = new Bitmap((img.source as Bitmap).bitmapData);
+				
+				var bd:BitmapData = new BitmapData(width,height,true,0x000000);
+				var m: Matrix = new Matrix();
+				bd.draw(this,m );
+				imgCopy.source = new Bitmap(bd);
+				
+				
 				DragManager.doDrag(dragInitiator, ds, event,imgCopy);
 				stage.addEventListener(MouseEvent.MOUSE_UP,handleStageMouseUp);
 			}
@@ -373,7 +394,8 @@ so that it can be moved, selected, handle filters.
 				}
 
 				
-				setStyle("borderStyle","solid");
+				if(hasBeenMoved.value)
+					setStyle("borderStyle","solid");
 				
 				removeDocSummary();
  				toggleSelection();
@@ -396,10 +418,12 @@ so that it can be moved, selected, handle filters.
 				if(_selection.containsKey(key))
 				{
 					_selection.removeKeys([key]);
+					point.filters = [selectionBlur];
 				}
 				else
 				{
 					_selection.addKeys([key]);
+					point.filters = [shadow];
 				}
 			}
 			
@@ -411,7 +435,8 @@ so that it can be moved, selected, handle filters.
 				//fix for buggy drag-drop
 				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 				
-				setStyle("borderStyle","solid");
+				if(hasBeenMoved.value)
+					setStyle("borderStyle","solid");
 //				this.invalidateDisplayList();
 				
 				removeDocSummary();
@@ -429,8 +454,11 @@ so that it can be moved, selected, handle filters.
 				DocumentSummaryComponent.hide();
 			}
 			
+			private var shadow:DropShadowFilter 	= new DropShadowFilter(2, 45, 0, 0.5, 4, 4, 2);
+			private var selectionBlur:BlurFilter = new BlurFilter(Weave.properties.selectionBlurringAmount.value,Weave.properties.selectionBlurringAmount.value,3);
+			
 			private var _selected:Boolean = false;
-			public function highlight(selected:Boolean = false):void
+			public function setSelection(selected:Boolean = false):void
 			{
 				if(selected)
 					_selected = selected;
@@ -440,17 +468,23 @@ so that it can be moved, selected, handle filters.
 					imageAlpha.value = 1.0;
 					setStyle("borderThickness", 1.5);
 					setStyle("borderColor",selectedBorderColor.value);
+					point.filters = [shadow];
 				}
 				else
 				{
-					imageAlpha.value = 0.5;
-					setStyle("borderThickness", 0.5);
+					imageAlpha.value = 1.0;
+					setStyle("borderThickness", 1.5);
 					setStyle("borderColor",defaultBorderColor.value);
+					point.filters = [];
 				}
 				//this will force a call to the updateDisplayList which will draw a border around this image
 				this.invalidateDisplayList();
 			}
 			
+			public function setSelectionBlur():void
+			{
+				point.filters = [selectionBlur];
+			}
 			private var glowFilter:GlowFilter = new GlowFilter(glowColor.value);
 			private var timer:Timer = new Timer(125);
 			private function startGlow():void

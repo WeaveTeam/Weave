@@ -98,6 +98,8 @@
 			
 			public const thumbnails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 			
+			public const thumbnailsDefaultColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0));
+			
 			public const movedThumbNails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 			
 			public const comments:LinkableString = newLinkableChild(this,LinkableString);
@@ -220,6 +222,12 @@
 				nodeBase.commentTextArea.addEventListener(KeyboardEvent.KEY_UP,delayedCommentKeyUp); 
 				nodeBase.commentTextArea.addEventListener(FocusEvent.FOCUS_OUT,updateCommentTextArea);
 				
+				
+				refreshTimer.start();
+				//call event for each tick of refreshTimer
+				refreshTimer.addEventListener(TimerEvent.TIMER, checkForNewDocuments);
+				
+				
 				comments.addImmediateCallback(this,handleCommentsChange,true);
 				
 				createAndSendQuery();
@@ -286,7 +294,7 @@
 			private function dragEnterHandler(event:DragEvent):void
 			{
 				 
-				if(event.dragInitiator is DocThumbnailComponent)
+				if(event.dragInitiator is DocThumbnailComponent && movedThumbNails.getObject((event.dragInitiator as DocThumbnailComponent).docURL.value))
 				{
 					DragManager.acceptDragDrop(this);
 				}
@@ -313,9 +321,12 @@
 				}
 			}
 			
+			
+			private var refreshTimer:Timer = new Timer(300000);
+			
 			//this variable is false when the user loads the map for the first time. 			
 			private var highlightNewDocuments:Boolean = true;
-			public function checkForNewDocuments():void
+			private function checkForNewDocuments(event:TimerEvent):void
 			{
 				_redraw = false;
 				createAndSendQuery();
@@ -333,6 +344,12 @@
 			 **/
 			private function createAndSendQuery():void
 			{
+				
+				//this function is called every time the query parameters changes, so we will reset the timer so that it is not called immediately
+				//when the query changes. This way we can avoid adding old results for a new query.
+				refreshTimer.reset();
+				refreshTimer.start();
+				
 				if(!node.keywords.value)
 				{
 					nodeBase.keywordTextArea.editable = true;
@@ -429,7 +446,7 @@
 										
 					thumbnail.docURL.value = link;
 					
-					linkSessionState(_parentPanel.defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
+//					linkSessionState(_parentPanel.defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
 					linkSessionState(_parentPanel.selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
 					linkSessionState(_parentPanel.newThumbnailGlowColor,thumbnail.glowColor);
 					
@@ -439,9 +456,9 @@
 				positionThumbnails();
 			}
 			
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			override public function validateDisplayList():void
 			{
-				super.updateDisplayList(unscaledWidth, unscaledHeight);
+				super.validateDisplayList();
 				if(detectLinkableObjectChange(invalidateDisplayList,thumbnails,movedThumbNails))
 					positionThumbnails();
 			}
@@ -463,6 +480,8 @@
 				for (var i:int = 0; i<tNails.length; i++)
 				{
 					var t:DocThumbnailComponent = tNails[i];
+					
+					t.defaultBorderColor.value = thumbnailsDefaultColor.value;
 					
 					//first check to see if the thumbnail is present in movedThumbnails
 					var position:MovedThumbnailPosition = movedThumbNails.getObject(t.docURL.value) as MovedThumbnailPosition;
@@ -544,13 +563,44 @@
 			{
 				var docs:Array = thumbnails.getNames();
 				
+				var selectedDocs:Array = getSelectedDocumentKeys();
+				
+				//if none are selected set all to 
+				if(selectedDocs.length == 0)
+				{
+					for each(var doc1:String in docs)
+					{
+						var t1:DocThumbnailComponent = thumbnails.getObject(doc1) as DocThumbnailComponent;
+						t1.setSelection(false);
+					}
+					return;
+				}
+				
 				for each(var doc:String in docs)
 				{
 					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,doc);
 					var t:DocThumbnailComponent = thumbnails.getObject(doc) as DocThumbnailComponent;
 					var selected:Boolean =_selection.containsKey(qKey) 
-					t.highlight(selected);
+					if(selected)
+						t.setSelection(selected);
+					else
+						t.setSelectionBlur();
 				}
+			}
+			
+			
+			private function getSelectedDocumentKeys():Array
+			{
+				var selectedKeys:Array = _selection.keys;
+				var selectedDocs:Array = [];
+				
+				for each(var key:IQualifiedKey in selectedKeys)
+				{
+					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+						selectedDocs.push(key);
+				}
+				
+				return selectedDocs;
 			}
 			
 			/**
@@ -594,8 +644,7 @@
 					var sourceNames:Array = parser.parseCSV(node.sources.value)[0]; //we send only the first row since this is a one-line CSV String
 				}
 				
-				
-				_parentPanel.infoMapsDataSource.getDocumentsForQueryWithFieldValues(_searchKeySet,_parentPanel.globalSearchKeyword.value,fieldNames,fieldValues,sourceNames,"OR",node.dateFilter);
+				_parentPanel.infoMapsDataSource.getDocumentsForQueryWithFieldValues(_searchKeySet,_parentPanel.globalSearchKeyword.value,fieldNames,fieldValues,null,"OR",null,2000,true);
 				
 			}
 			
@@ -631,9 +680,14 @@
 				for each(var k:IQualifiedKey in searchMatchedKeys)
 				{
 					var t3:DocThumbnailComponent = thumbnails.getObject(k.localName) as DocThumbnailComponent;
+					
+					if(!t3)
+						continue;
+					
 					var qKey3:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t3.docURL.value);
-											
-					if(t3 && _subset.containsKey(qKey3))
+								
+					
+					if(t3 && qKey3 && _subset.containsKey(qKey3))
 						t3.visible = true;
 				}
 				

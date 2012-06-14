@@ -74,6 +74,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.unlinkBindableProperty;
+			import weave.compiler.StandardLib;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableHashMap;
@@ -86,6 +87,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.data.QKeyManager;
+			import weave.primitives.ColorRamp;
 			import weave.primitives.DateRangeFilter;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.DelayedAsyncResponder;
@@ -93,7 +95,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.CustomContextMenuManager;
 			import weave.ui.SubMenu;
 			import weave.ui.infomap.InfoMapLoader;
-			import weave.ui.infomap.admin.InfoMapAdminInterface;
+			import weave.services.InfoMapAdminInterface;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.MovedThumbnailPosition;
 			import weave.ui.infomap.core.SelectableInfoMapDocument;
@@ -161,10 +163,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				sortByTitle();
 				linkBindableProperty(globalSearchKeyword,globalSearchTextInput,"text",500);
 				
-				refreshTimer.start();
-				//call event for each tick of refreshTimer
-				refreshTimer.addEventListener(TimerEvent.TIMER, refreshNodes);
-				
 				registerDisposableChild(this,globalSearchKeyword);
 				registerDisposableChild(this,globalDateFilter);
 				
@@ -181,6 +179,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
 				
 				map.addEventListener(MouseEvent.MOUSE_DOWN,handleMouseDown);
+				
+				internalColorRamp.value = '<colorRamp name="Dark2" tags="ColorBrewer,basic,qualitative,printer-friendly">0x1B9E77,0xD95F02,0x7570B3,0xE7298A,0x66A61E,0xE6AB02,0xA6761D,0x666666</colorRamp>';
 				
 				linkBindableProperty(defaultNodeBorderColor,defaultNodeColorPicker,"selectedColor");
 				linkBindableProperty(selectedNodeBorderColor,selectedNodeColorPicker,"selectedColor");
@@ -219,6 +219,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//move the thumbnail to the new location
 				var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
 				t.move(localPoint.x,localPoint.y);
+				
+				t.imageHeight.value = 50;
+				t.imageWidth.value = 50;
+				
 			}
 			
 			private var _subset:KeyFilter;
@@ -278,12 +282,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				
-//				if(detectLinkableObjectChange(updateDisplayList,this))
-//				{
-////					if(enableAutoSave.value)
-////						Application.application.visApp.saveInfoMapsSessionState();
-//				}
-				
 				//detect any changes in selectionKeySet and make query for matched entity values
 				if(detectLinkableObjectChange(updateDisplayList,_selectedKeySet))
 				{
@@ -304,21 +302,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var query:DelayedAsyncInvocation = InfoMapAdminInterface.instance.searchInDocuments(entities,selectedDocs);
 					query.addAsyncResponder(handleMatchedEntities,handleMatchedEntitiesFault);
 				}
-//				
-//				if(detectLinkableObjectChange(updateDisplayList,nodes))
-//				{
-//					var nodesArray:Array = nodes.getObjects();
-//					
-//					for each (var n:NodeHandler in nodesArray)
-//					{
-//						linkBindableProperty(n.defaultBorderColor,defaultNodeColorPicker,"selectedColor");
-//						linkBindableProperty(n.selectedBorderColor,selectedNodeColorPicker,"selectedColor");
-//						linkBindableProperty(n.defaultThumbnailBorderColor,defaultThumbnailBorderPicker,"selectedColor");
-//						linkBindableProperty(n.selectedThumbnailBorderColor,selectedThumbnailBorderPicker,"selectedColor");
-//						linkBindableProperty(n.newThumbnailGlowColor,thumbnailGlowColorPicker,"selectedColor");					
-//					}
-//				}
-				
 			}
 			
 			private function handleMatchedEntities(event:ResultEvent,token:Object=null):void
@@ -350,8 +333,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if(!keys.length == 0)
 					_selectedKeySet.addKeys(keys);
-				else
-					_selectedKeySet.clearKeys();
+//				else
+//					_selectedKeySet.clearKeys();
 				
 //				Alert.show((event.result as Array).toString());
 			}
@@ -449,8 +432,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				var currentNodes:Array = nodes.getObjects();
 				
-				for each (var node:NodeHandler  in currentNodes)
+				for (var i:int = 0; i<currentNodes.length; i++)
 				{
+					if(currentNodes[i] is LinkToInfoMapComponent)
+						continue;
+					var node:NodeHandler = currentNodes[i];
 					var currentDocs:Array = node.thumbnails.getObjects();
 					
 					for each (var t:DocThumbnailComponent in currentDocs)
@@ -523,43 +509,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				infoMapsDataSource.getDocumentsForQuery(_entityKeySet,selectionKeywords.value,"OR");
 				
-//				//close any previous selection requests
-//				if(_selectionLoader)
-//					_selectionLoader.close();
-//				
-//				_selectionLoader = new URLLoader();
-//				
-//				var request:URLRequest = new URLRequest(solrURL);
-//				_selectionLoader.addEventListener(Event.COMPLETE, handleRecordsSelectionQuery);
-//				_selectionLoader.addEventListener(IOErrorEvent.IO_ERROR,handleRequestError);
-//				_selectionLoader.load(request);
 			}
-			
-//			private function handleRecordsSelectionQuery(event:Event):void
-//			{
-//				// checks to avoid null point error
-//				if(_selectionLoader){
-//					// checks for data presence
-//					if(_selectionLoader.data){
-//						var xml:XML = new XML(_selectionLoader.data);
-//						parseRecordsSelectionQueryResponse(xml);
-//					}
-//				}
-//			}
-			
 			
 			private function parseRecordsSelectionQueryResponse():void
 			{
 				var selectedDocs:Array = _entityKeySet.keys;
-//				for each(var docXML:XML in result.result.doc)
-//				{
-//					var link:String = docXML.str.(@name=="link").text().toXMLString();
-//					var linkLen:int = link.length;
-//					var linkExtension:String = link.substring(linkLen-3,linkLen);
-//					var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,link);
-//					selectedDocs.push(key);				
-//				}
-				
 				for each (var key:IQualifiedKey in selectedDocs)
 				{
 					if(infoMapsDataSource.containsDoc(key))
@@ -573,40 +527,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				WeaveAPI.ErrorManager.reportError(event.text);
 			}
 			
-			private var refreshTimer:Timer = new Timer(300000);
+		
 			
-			private function refreshNodes(event:TimerEvent):void
-			{
-				var handlers:Array = nodes.getObjects();
-				
-				for (var i:int = 0;i<handlers.length;i++)
-				{
-					if(handlers[i] is NodeHandler)
-						(handlers[i] as NodeHandler).checkForNewDocuments();
-					
-				}
-			}
+//			private function refreshNodes(event:TimerEvent):void
+//			{
+//				var handlers:Array = nodes.getObjects();
+//				
+//				for (var i:int = 0;i<handlers.length;i++)
+//				{
+//					if(handlers[i] is NodeHandler)
+//						(handlers[i] as NodeHandler).checkForNewDocuments();
+//					
+//				}
+//			}
 			
 			
 			private function handlePanelResize():void
 			{
 				map.validateNow();
 			}
-			
-			
-			
-//			private function handleKeyUp(event:KeyboardEvent):void
-//			{
-//				if(event.keyCode == Keyboard.ENTER)
-//					handleAddNodeButtonClick();
-//			}
-//			private function handleAddNodeButtonClick():void
-//			{
-//				if(nodeComboBox.selectedItem == 'Add a Query Node')
-//					addInfoMapNode(keywordsInput.text);
-//				else if (nodeComboBox.selectedItem == 'Add a Map Node')
-//					addInfoMapLink(keywordsInput.text);
-//			}
 			
 			private function addInfoMapLink(mapName:String=null):void
 			{
@@ -618,6 +557,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
+			private var internalColorRamp:ColorRamp = new ColorRamp();
+			private var internalMin:Number = 1;
+			private var internalMax:Number = 10;
 			public function addInfoMapNode(query:String=null,op:String=null):void
 			{
 				var className:String = getQualifiedClassName(NodeHandler).split("::")[1];
@@ -635,6 +577,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					nodeHandler.node.operator.value = op;
 				}
+				
+				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
 			}
 			
 			private var loader:URLLoader = null;
@@ -701,31 +645,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				DateFilterComponent.openInstance(this,globalDateFilter);
 			}
-			
-//			private function handleSelectAll():void
-//			{
-//				var handlers:Array = nodes.getObjects();
-//				
-//				for (var i:int = 0;i<handlers.length;i++)
-//				{
-//					if(handlers[i] is NodeHandler)
-//						(handlers[i] as NodeHandler).node.selected.value = selectAllCheckBox.selected;
-//					
-//				}
-//			
-//				
-//			}
-			
-			
-//			private function handleNodeComboBoxChange():void
-//			{
-//				if(nodeComboBox.selectedItem == 'Add a Query Node')
-//					keywordsInput.toolTip = 'Enter keywords to query';
-//				else
-//					keywordsInput.toolTip = 'Enter a name to link to an Infomap';
-//			}
-			
-			
 			
 			private var _fileLoader:FileReference = null;
 			/**

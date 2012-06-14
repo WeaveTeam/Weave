@@ -652,7 +652,7 @@ package weave.services
 		
 		public function openWeavePopup(fileName:String = null, recover:Boolean = false):void
 		{
-			var url:String = 'weave.html?';
+			var url:String = 'weave-infomaps.html?';
 			if (fileName)
 				url += 'file=' + fileName + '&'
 			url += 'adminSession=' + createWeaveService();

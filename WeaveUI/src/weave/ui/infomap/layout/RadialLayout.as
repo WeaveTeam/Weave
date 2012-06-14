@@ -66,7 +66,7 @@ package weave.ui.infomap.layout
 		}
 		
 		
-		private var thumbnailSize:int = 25;
+//		private var thumbnailSize:int = 25;
 		private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 		
 		public function plotThumbnails(thumbnails:Array,reDraw:Boolean=false):void
@@ -95,8 +95,8 @@ package weave.ui.infomap.layout
 				}else
 				{
 					//if they have been moved, then draw them as it is without using a layout algorithm
-					thumbnails[i].imageWidth.value = thumbnailSize;
-					thumbnails[i].imageHeight.value = thumbnailSize;
+//					thumbnails[i].imageWidth.value = thumbnailSize;
+//					thumbnails[i].imageHeight.value = thumbnailSize;
 					
 					thumbnails[i].x = thumbnails[i].xPos.value;
 					thumbnails[i].y = thumbnails[i].yPos.value;
@@ -109,11 +109,11 @@ package weave.ui.infomap.layout
 			{
 				
 				var thumbnail:DocThumbnailComponent = temp[j];
-				thumbnail.imageWidth.value = thumbnailSize;
-				thumbnail.imageHeight.value = thumbnailSize;
+//				thumbnail.imageWidth.value = thumbnailSize;
+//				thumbnail.imageHeight.value = thumbnailSize;
 				var imgPosition:Point = location[j] as Point;
-				thumbnail.y = imgPosition.y-(thumbnailSize/2);			
-				thumbnail.x = imgPosition.x-(thumbnailSize/2);
+				thumbnail.y = imgPosition.y-(thumbnail.imageWidth.value/2);			
+				thumbnail.x = imgPosition.x-(thumbnail.imageHeight.value/2);
 			}	
 		}
 		

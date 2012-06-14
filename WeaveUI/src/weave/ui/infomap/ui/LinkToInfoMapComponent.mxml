@@ -9,10 +9,12 @@
 	<mx:HBox horizontalAlign="right">
 		<mx:Image id="infoImg" source="@Embed(source='/weave/resources/images/probe.png')"/>
 		<mx:Image buttonMode="true" id="settingsImg" click="openSettingsPanel()" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
+		<mx:Spacer width="60" />
+		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
 	</mx:HBox>
 	<!--when TextImput is used, the text cursor is always displayed along with the hand cursor-->
 	<mx:TextArea color="blue" textDecoration="underline" id="mapNameTextArea" editable="false" selectable="false" textAlign="center" mouseOver="handleMouseOver()"
-				  mouseOut="handleMouseOut()" mouseDown="handleMouseDown()"  mouseUp="handleMouseUp()" keyDown="handleKeyUp(event)"
+				  mouseOut="handleMouseOut()" mouseDown="handleMouseDown(event)"  mouseUp="handleMouseUp()" keyDown="handleKeyUp(event)"
 				  focusAlpha="0"/>
 	<mx:Glow id="borderGlow" 
 			 alphaFrom="0.0" alphaTo="0.1"   
@@ -22,8 +24,12 @@
 			 duration="0" target="{this}"/>	
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
 			import mx.managers.CursorManager;
 			
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
@@ -66,6 +72,13 @@
 				linkBindableProperty(mapName,mapNameTextArea,"text");
 				infoImg.toolTip= "Link to Infomap : " + mapName.value;
 				
+				closeImg.toolTip = "Remove this node";
+				closeImg.width = 12;
+				closeImg.height = 12;
+				closeImg.visible = true;
+				closeImg.buttonMode = true; //you need this for click event to work on an image!
+				closeImg.addEventListener(MouseEvent.CLICK,close);
+				
 				if(!mapNameTextArea.text)
 				{
 					mapNameTextArea.selectable = true;
@@ -94,8 +107,10 @@
 				CustomCursorManager.removeCurrentCursor();
 			}
 			private var _wasDragged:Boolean = false;
-			private function handleMouseDown():void
+			private function handleMouseDown(event:MouseEvent):void
 			{
+				event.stopImmediatePropagation();
+				CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
 				mapNameTextArea.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 				this.startDrag();
 			}
@@ -108,6 +123,7 @@
 			
 			private function handleMouseUp():void
 			{
+				CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
 				this.stopDrag();
 				if(!_wasDragged)
 				{
@@ -131,13 +147,38 @@
 			
 			private function openMap():void
 			{
-				InfoMapLoader.openPanelWithName(mapName.value);
+				if(mapNameTextArea.text)
+					InfoMapLoader.openPanelWithName(mapName.value);
 			}
 			
 			private function openSettingsPanel():void
 			{
 				LinktoInfoMapSettings.openInstance(this);
 			}
+			
+			private function close(event:Event):void
+			{
+				Alert.show("Are you sure you want to remove this node?",
+					"Remove Node?",
+					Alert.YES | Alert.NO,
+					null,
+					handleCloseEvent
+				);
+			}
+			
+			private function handleCloseEvent(e:CloseEvent):void
+			{
+				if(e.detail == Alert.YES)
+				{
+					var parent:ILinkableHashMap = (WeaveAPI.SessionManager.getLinkableOwner(this) as ILinkableHashMap);
+					var nodeName:String  = parent.getName(this);
+					parent.removeObject(nodeName);
+				}
+				else if(e.detail == Alert.NO)
+				{
+					return;
+				}
+			}		
 		]]>
 	</mx:Script>
 </mx:VBox>

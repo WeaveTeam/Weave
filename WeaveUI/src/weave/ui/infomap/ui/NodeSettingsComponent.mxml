@@ -104,7 +104,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 import weave.core.LinkableString;
 				 import weave.data.CSVParser;
 				 import weave.primitives.DateRangeFilter;
-				 import weave.ui.infomap.admin.InfoMapAdminInterface;
+				 import weave.services.InfoMapAdminInterface;
 				 import weave.ui.infomap.core.InfoMapNode;
 				 import weave.ui.infomap.layout.CascadeLayout;
 				 import weave.ui.infomap.layout.GridLayout;

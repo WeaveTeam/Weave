@@ -29,6 +29,8 @@ package weave.data.DataSources
 	import weave.data.CSVParser;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.DateRangeFilter;
+	import weave.services.DelayedAsyncInvocation;
+	import weave.services.InfoMapAdminInterface;
 	import weave.utils.DateUtils;
 
 	public class InfoMapsDataSource extends CSVDataSource
@@ -50,6 +52,8 @@ package weave.data.DataSources
 		public static const DOC_KEYTYPE:String = "infoMapsDoc";
 		
 		public static const SOURCE_NAME:String = "InfoMaps Data Source";
+		
+		public static const defaultNumberOfDocumentsPerRequest:int = 100;
 		
 		public function containsDoc(key:IQualifiedKey):Boolean
 		{
@@ -130,23 +134,12 @@ package weave.data.DataSources
 		
 		
 		public function getDocumentsForQuery(docKeySet:KeySet,query:String,operator:String='AND',sources:Array=null,
-													dateFilter:DateRangeFilter=null,numberOfDocuments:int=100):void
+													dateFilter:DateRangeFilter=null,numberOfDocuments:int=100,partialMatch:Boolean=false):void
 		{
-			var temp:Array = removeEmptyStringElementsFromArray(query.split(" "));	
 			
-			//force all queries to check for values in title and description
+			var queryTerms:String = parseBasicQuery(query,operator,partialMatch);
 			
-			//after removing the empty strings we check to see if it is a single or empty word.
-			//if it is not a single word we add the operator between each keyword
-			//spliting the keywords at the spaces. 
-			if(temp.length > 1)
-				query = temp.join(" "+operator+" ");
-			
-			//we need to search in both the title and the description fields.
-			//the solr syntax for searching multiple words in a single field is "field_name:(query words)"
-			var queryTerms:String = "title:(" + query + ") OR description:(" + query + ")";
-			
-			createAndSendQuery(docKeySet,queryTerms,operator,sources,
+			createAndSendQuery(docKeySet,queryTerms,null,operator,sources,
 				dateFilter,numberOfDocuments);
 			
 		}
@@ -160,12 +153,55 @@ package weave.data.DataSources
 		 * @param numberOfDocuments
 		 * 
 		 */		
-		public function getDocumentsForQueryWithFieldValues(docKeySet:KeySet,query:String,fieldsNames:Array,fieldValues:Array,sources:Array,operator:String='AND',dateFilter:DateRangeFilter=null,numberOfDocuments:int=100):void
+		public function getDocumentsForQueryWithFieldValues(docKeySet:KeySet,query:String,fieldsNames:Array,fieldValues:Array,sources:Array,operator:String='AND',dateFilter:DateRangeFilter=null,numberOfDocuments:int=100,partialMatch:Boolean=false):void
 		{
 			if(fieldsNames.length == 0)
 				return;
 			
+			var filteredQuery:String = "";
+			
+			for (var i:int=0; i< fieldsNames.length; i++)
+			{
+				filteredQuery += fieldsNames[i] + ":(";
+				for(var j:int=0; j <fieldValues[i].length; j++)
+				{
+					//replacing $amp; with &
+//					var val:String = (fieldValues[i][j] as String).replace( /\&amp\;/g,'&');
+					
+//					var val:String = (fieldValues[i][j] as String).replace( /\&amp\;/g,'%26');
+//					val = val.replace( /\:/g,'\:');
+					
+					//encoding the fieldValues in case it is a link
+					//TODO: need to test how this might affect non-link text
+					//val = escape(val);
+					
+					
+					
+					filteredQuery += '"' + fieldValues[i][j] + '" ' + "OR" + ' ';
+				}
+				filteredQuery = filteredQuery.substr(0,filteredQuery.length-(4));
+				filteredQuery += ") AND ";
+			}
+			
+			//removing the last AND
+			filteredQuery = filteredQuery.substr(0,filteredQuery.length-(5));
+			
+			var queryTerms:String = parseBasicQuery(query,operator,partialMatch);
+			
+			createAndSendQuery(docKeySet,queryTerms,filteredQuery,operator,sources,dateFilter,numberOfDocuments);
+		}
+		
+		private function parseBasicQuery(query:String,operator:String,partialMatch:Boolean):String
+		{
 			var temp:Array = removeEmptyStringElementsFromArray(query.split(" "));	
+			
+			if(partialMatch)
+			{
+				for(var k:int = 0; k<temp.length; k++)
+				{
+					temp[k] = temp[k] + '*';
+				}
+			}
 			
 			//force all queries to check for values in title and description
 			
@@ -174,106 +210,96 @@ package weave.data.DataSources
 			//spliting the keywords at the spaces. 
 			if(temp.length > 1)
 				query = temp.join(" "+operator+" ");
-			
+			else
+			{
+				if(partialMatch)
+					query = query + '*';
+			}
 			//we need to search in both the title and the description fields.
 			//the solr syntax for searching multiple words in a single field is "field_name:(query words)"
 			var queryTerms:String = "title:(" + query + ") OR description:(" + query + ")";
 			
-			queryTerms += "&fq="
-			for(var i:int = 0; i<fieldsNames.length; i++)
-			{
-				for(var j:int = 0; j <fieldValues[i].length; j++)
-				{
-					//replacing $amp; with &
-					var val:String = (fieldValues[i][j] as String).replace( /\&amp\;/g,'&');
-					
-					//encoding the fieldValues in case it is a link
-					//TODO: need to test how this might affect non-link text
-					val = escape(val);
-					
-					queryTerms += fieldsNames[i] + ':"' + val + '" '+operator+' ';
-				}
-			}
-			
-			queryTerms = queryTerms.substr(0,queryTerms.length-(2+operator.length));
-			
-			createAndSendQuery(docKeySet,queryTerms,operator,sources,dateFilter,numberOfDocuments);
+			return queryTerms;
 		}
 		
-		private function createAndSendQuery(docKeySet:KeySet,query:String,operator:String='AND',sources:Array=null,
-											dateFilter:DateRangeFilter=null,numberOfDocuments:int=100):void
+		private function createAndSendQuery(docKeySet:KeySet,query:String,filterQuery:String=null,operator:String='AND',sources:Array=null,
+											dateFilter:DateRangeFilter=null,numberOfDocuments:int=100,sortField:String="date_added"):void
 		{
 			
-			query += "&fq="
+			if(!filterQuery)
+				filterQuery = "";
 			
-			for each(var sourceName:String in sources)
+			var fq:String = "";
+			if(sources)
 			{
-				query += 'source:"'+sourceName+'" OR ';
-			}
-			
-			query = query.substr(0,query.length-4);
-			
-			//applying date filters if set
-			if(dateFilter)
-			{
-				if(dateFilter.startDate.value != '' && dateFilter.endDate.value != '')
+				fq = "source:(";
+				
+				for each(var sourceName:String in sources)
 				{
-					
-					var sDate:Date = DateUtils.getDateFromString(dateFilter.startDate.value);
-					var eDate:Date = DateUtils.getDateFromString(dateFilter.endDate.value);
-					
-					
-					//Solr requires the date format to be ISO 8601 Standard Compliant
-					//It should be in the form: 1995-12-31T23:59:59Z 
-					var sStr:String = DateUtils.getDateInStringFormat(sDate,'YYYY-MM-DD');
-					
-					//For start date we append 00:00:00 to set time to start of the day
-					sStr = sStr + 'T00:00:00Z';
-					
-					var eStr:String = DateUtils.getDateInStringFormat(eDate,'YYYY-MM-DD');
-					
-					//For end date we append 23:59:59 to set time to end of day
-					eStr = eStr + 'T23:59:59Z';
-					
-					query += "&fq=date_added:["+sStr+" TO "+eStr + "]";
+					fq += '"'+sourceName+'" OR ';
 				}
+				
+				fq = fq.substr(0,fq.length-4);
+				fq = fq + ')';	
 			}
+			
+			if(filterQuery && fq)
+				filterQuery += ' AND ' + fq;
+			else if(fq)
+				filterQuery = fq;
+			
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getQueryResults(query,filterQuery,sortField,defaultNumberOfDocumentsPerRequest);
+			q.addAsyncResponder(handleQueryResults,handleQueryFault,docKeySet);
+//			
+//			//applying date filters if set
+//			if(dateFilter)
+//			{
+//				if(dateFilter.startDate.value != '' && dateFilter.endDate.value != '')
+//				{
+//					
+//					var sDate:Date = DateUtils.getDateFromString(dateFilter.startDate.value);
+//					var eDate:Date = DateUtils.getDateFromString(dateFilter.endDate.value);
+//					
+//					
+//					//Solr requires the date format to be ISO 8601 Standard Compliant
+//					//It should be in the form: 1995-12-31T23:59:59Z 
+//					var sStr:String = DateUtils.getDateInStringFormat(sDate,'YYYY-MM-DD');
+//					
+//					//For start date we append 00:00:00 to set time to start of the day
+//					sStr = sStr + 'T00:00:00Z';
+//					
+//					var eStr:String = DateUtils.getDateInStringFormat(eDate,'YYYY-MM-DD');
+//					
+//					//For end date we append 23:59:59 to set time to end of day
+//					eStr = eStr + 'T23:59:59Z';
+//					
+//					query += "&fq=date_added:["+sStr+" TO "+eStr + "]";
+//				}
+//			}
 			
 			//creating and sending the query to the Solr server
 			//TODO: change number of documents from fixed number to a variable
-			var url:String = solrURL.value + "&start=0&rows=100&sort=date_added desc&indent=on&q=" + query;
+//			var url:String = solrURL.value + "&start=0&rows=100&sort=date_added desc&indent=on&q=" + query;
 			
 			
-			var loader:URLLoader = new URLLoader();
-			var request:URLRequest = new URLRequest(url);
-			
-			
-			WeaveAPI.URLRequestUtils.getURL(request,parseSolrResponse,handleSolrResponseError,{keySet:docKeySet,url:url},URLLoaderDataFormat.TEXT);
+//			var loader:URLLoader = new URLLoader();
+//			var request:URLRequest = new URLRequest(url);
+//			
+//			
+//			WeaveAPI.URLRequestUtils.getURL(request,parseSolrResponse,handleSolrResponseError,{keySet:docKeySet,url:url},URLLoaderDataFormat.TEXT);
 		}
 		
-		public function startIndexing():void
+		private function handleQueryResults(event:ResultEvent,token:Object=null):void
 		{
-			WeaveAPI.URLRequestUtils.getURL(new URLRequest(solrURL.value + "&clean=false&commit=true&qt=%2Fdataimport&command=full-import"));
-		}
-		
-		private function handleSolrResponseError(event:FaultEvent,token:Object):void
-		{
-			WeaveAPI.ErrorManager.reportError(event.type + token.url);
-		}
-		
-		private function parseSolrResponse(event:ResultEvent,token:Object):void
-		{
-			
-			var docsArray:Array = [];
+			var docsArray:Array = event.result as Array;
+			var docsToAdd:Array = [];
 			var keys:Array = [];
-			var resultInXML:XMLList = new XML(event.result).result[0].doc;
 			
 			var urlCol:IAttributeColumn =getColumnByName('url'); 
-			for (var i:int = 0; i < resultInXML.length(); i++)
+			
+			for (var i:int = 0; i < docsArray.length; i++)
 			{
-				var doc:XML = resultInXML[i];
-				
-				var link:String = doc.str.(@name=="link").text().toXMLString();
+				var link:String = docsArray[i][0];
 				
 				var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey("infoMapsDoc",link);
 				
@@ -285,30 +311,7 @@ package weave.data.DataSources
 					continue;
 				}
 				
-				var linkLen:int = link.length;
-				var linkExtension:String = link.substring(linkLen-3,linkLen);
-				var imgExtension:String = ".jpg"
-				
-				if(linkExtension == "pdf" || linkExtension == "doc"){
-					imgExtension = ".png";
-				}
-				
-				var currentDoc:Array = []
-				
-				currentDoc.push(link);
-				currentDoc.push(doc.str.(@name=="title").text().toXMLString());
-				
-				
-				//TODO:right now limiting to 200 characters. Need to change this later to a better solution
-				currentDoc.push((doc.str.(@name=="description").text().toXMLString() as String).substr(0,200));
-				
-				var imgURL:String = doc.str.(@name=="imgName").text().toXMLString();
-				
-				currentDoc.push("http://129.63.8.219:8080/infomap/thumbnails/"+  imgURL + imgExtension);
-				
-				currentDoc.push(doc.date.text().toXMLString());
-				
-				docsArray.push(currentDoc);
+				docsToAdd.push(docsArray[i]);
 				
 				keys.push(link);
 			}
@@ -318,11 +321,89 @@ package weave.data.DataSources
 			
 			csvDataString.value = dataString;
 			
-//			(token.keySet as KeySet).clearKeys();
-			(token.keySet as KeySet).replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
+			//			(token.keySet as KeySet).clearKeys();
+			(token as KeySet).replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
 			// we force to trigger callbacks so that if a empty keyset is replaced with empty keys the callbacks are still called
-			(token.keySet as KeySet).triggerCallbacks(); 
+			(token as KeySet).triggerCallbacks(); 
 		}
+		
+		
+		private function handleQueryFault(event:FaultEvent,token:Object=null):void
+		{
+			return;
+		}
+		public function startIndexing():void
+		{
+			WeaveAPI.URLRequestUtils.getURL(new URLRequest(solrURL.value + "&clean=false&commit=true&qt=%2Fdataimport&command=full-import"));
+		}
+		
+		private function handleSolrResponseError(event:FaultEvent,token:Object):void
+		{
+			WeaveAPI.ErrorManager.reportError(event.type + token.url);
+		}
+		
+//		private function parseSolrResponse(event:ResultEvent,token:Object):void
+//		{
+//			
+//			var docsArray:Array = [];
+//			var keys:Array = [];
+//			var resultInXML:XMLList = new XML(event.result).result[0].doc;
+//			
+//			var urlCol:IAttributeColumn =getColumnByName('url'); 
+//			for (var i:int = 0; i < resultInXML.length(); i++)
+//			{
+//				var doc:XML = resultInXML[i];
+//				
+//				var link:String = doc.str.(@name=="link").text().toXMLString();
+//				
+//				var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey("infoMapsDoc",link);
+//				
+//				//if the key is already present in the column, then we only add it to the keys keyset
+//				//we will not add the currentDoc to the docsArray, this way the rows are not repeated in the csvDataString
+//				if(urlCol.containsKey(key))
+//				{
+//					keys.push(link);
+//					continue;
+//				}
+//				
+//				var linkLen:int = link.length;
+//				var linkExtension:String = link.substring(linkLen-3,linkLen);
+//				var imgExtension:String = ".jpg"
+//				
+//				if(linkExtension == "pdf" || linkExtension == "doc"){
+//					imgExtension = ".png";
+//				}
+//				
+//				var currentDoc:Array = [];
+//				
+//				currentDoc.push(link);
+//				currentDoc.push(doc.str.(@name=="title").text().toXMLString());
+//				
+//				
+//				//TODO:right now limiting to 200 characters. Need to change this later to a better solution
+//				currentDoc.push((doc.str.(@name=="description").text().toXMLString() as String).substr(0,200));
+//				
+//				var imgURL:String = doc.str.(@name=="imgName").text().toXMLString();
+//				
+//				currentDoc.push("http://129.63.8.219:8080/infomap/thumbnails/"+  imgURL + imgExtension);
+//				
+//				currentDoc.push(doc.date.text().toXMLString());
+//				
+//				docsArray.push(currentDoc);
+//				
+//				keys.push(link);
+//			}
+//			
+//			var dataString:String = parser.createCSV(docsArray);
+//			dataString = csvDataString.value + '\n' + dataString;
+//			
+//			csvDataString.value = dataString;
+//			
+////			(token.keySet as KeySet).clearKeys();
+//			(token.keySet as KeySet).replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
+//			// we force to trigger callbacks so that if a empty keyset is replaced with empty keys the callbacks are still called
+//			(token.keySet as KeySet).triggerCallbacks(); 
+//		}
 		
 		private var parser:CSVParser = new CSVParser();
 		

@@ -43,7 +43,7 @@ package weave.ui.infomap.layout
 			baseLayoutDrawn = true;
 		}
 		
-		public const thumbnailSpacing:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10));
+		public const thumbnailSpacing:LinkableNumber = registerLinkableChild(this,new LinkableNumber(15));
 		public function get thumbnailSpacingValue():Number
 		{
 			return thumbnailSpacing.value;
@@ -53,7 +53,7 @@ package weave.ui.infomap.layout
 			thumbnailSpacing.value = value;
 		}
 		
-		private var thumbnailSize:int = 25;
+//		private var thumbnailSize:int = 25;
 		private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 		
 		private var _lastThumbnailsPlotted:Array = [];
@@ -87,8 +87,8 @@ package weave.ui.infomap.layout
 				}else
 				{
 					//if they have been moved, then draw them as it is without using a layout algorithm
-					thumbnails[i].imageWidth.value = thumbnailSize;
-					thumbnails[i].imageHeight.value = thumbnailSize;
+//					thumbnails[i].imageWidth.value = thumbnailSize;
+//					thumbnails[i].imageHeight.value = thumbnailSize;
 					
 					thumbnails[i].x = thumbnails[i].xPos.value;
 					thumbnails[i].y = thumbnails[i].yPos.value;
@@ -111,8 +111,8 @@ package weave.ui.infomap.layout
 					
 					count++;
 					
-					thumbnail.imageWidth.value = thumbnailSize;
-					thumbnail.imageHeight.value = thumbnailSize;
+//					thumbnail.imageWidth.value = thumbnailSize;
+//					thumbnail.imageHeight.value = thumbnailSize;
 					
 					thumbnail.y = nextY;			
 					thumbnail.x = nextX;
@@ -120,9 +120,9 @@ package weave.ui.infomap.layout
 					thumbnail.xPos.value = nextX;
 					thumbnail.yPos.value = nextY;
 					
-					nextX = nextX + thumbnailSize + thumbnailSpacing.value;
+					nextX = nextX + thumbnailSpacing.value;
 				}
-				nextY = nextY+ thumbnailSize + thumbnailSpacing.value;
+				nextY = nextY + thumbnailSpacing.value;
 			}
 			
 		}

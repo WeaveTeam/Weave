@@ -26,7 +26,7 @@
 			import mx.utils.ObjectUtil;
 			
 			import weave.data.CSVParser;
-			import weave.ui.infomap.admin.InfoMapAdminInterface;
+			import weave.services.InfoMapAdminInterface;
 			import weave.ui.infomap.layout.NodeHandler;
 			
 			

@@ -5,7 +5,6 @@
 	<projects>
 		<project>WeaveAPI</project>
 		<project>WeaveCore</project>
-		<project>WeaveData</project>
 		<project>WeaveUI</project>
 	</projects>
 	<buildSpec>
