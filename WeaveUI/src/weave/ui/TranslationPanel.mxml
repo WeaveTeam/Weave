@@ -78,6 +78,7 @@
 			{
 				super.constructor();
 				enableSubMenu.value = true;
+				subMenu.addSubMenuItem(lang("Switch to developer testing mode"), switchToDeveloperMode);
 				subMenu.addSubMenuItem(lang("Erase all translation data..."), resetAll);
 			}
 			
@@ -241,6 +242,12 @@
 						Weave.externalReload();
 					}
 				);
+			}
+			
+			private function switchToDeveloperMode():void
+			{
+				WeaveAPI.setLocale('developer');
+				Weave.externalReload();
 			}
 		]]>
 	</mx:Script>
