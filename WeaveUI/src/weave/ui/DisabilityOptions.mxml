@@ -77,6 +77,15 @@
 					width="100%" 
 					height = "30%"
 					backgroundColor="#EEEEEE"/>
+				<mx:VBox>
+					<mx:CheckBox id="barChart" label="{lang('Bar Chart')}"/>				
+					<mx:CheckBox id="dataTable" label="{lang('Data Table')}"/>
+					<mx:CheckBox id="histogram" label="{lang('Histogram')}"/>
+					<mx:CheckBox id="lineChart" label="{lang('Line Chart')}"/>
+					<mx:CheckBox id="scatterPlot" label="{lang('Scatterplot')}"/>
+				
+					
+				</mx:VBox>
 				
 			</mx:VBox>
 		</mx:TabNavigator>
