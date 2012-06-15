@@ -81,6 +81,37 @@ package weave.utils
 		}
 		
 		/**
+		 * This function will draw an image centered on an x,y coordinate.
+		 * @param graphics The Graphics object where the icon should be drawn.
+		 * @param x The center x coordinate used to draw the icon.
+		 * @param y The center y coordinate used to draw the icon.
+		 * @param source The icon image.
+		 * @param fillColor A background fill color.
+		 * @param fillAlpha A background fill alpha.
+		 * @param scale A scale value used to resize the source image.
+		 */
+		public static function drawMouseImageIcon(graphics:Graphics, x:Number, y:Number, source:BitmapData, scale:Matrix, fillColor:Number = NaN, fillAlpha:Number = 1.0):void
+		{
+			// don't draw if we don't have valid coordinates
+			if (isNaN(x) || isNaN(y))
+				return;
+			
+			var scaledWidth:Number = scale.a * source.width;
+			var scaledHeight:Number = scale.d * source.height;
+			
+			if (!isNaN(fillColor))
+			{
+				graphics.beginFill(fillColor, fillAlpha);
+				graphics.drawRect(x, y, scaledWidth, scaledHeight);
+				graphics.endFill();
+			}
+			
+			graphics.beginBitmapFill(source, scale, false, true);
+			graphics.drawRect(x, y, scaledWidth, scaledHeight);
+			graphics.endFill();
+		}
+		
+		/**
 		 * This function will create a high quality thumbnail for a BitmapData.
 		 * @param source A BitmapData to create a thumbnail for.
 		 * @param width The maximum desired width of the result.
