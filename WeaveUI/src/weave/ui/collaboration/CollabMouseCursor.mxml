@@ -58,8 +58,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable] public var yFrom:Number = 0;
 			[Bindable] public var yTo:Number = 0;
 			
-			private var useImage:Boolean = true;
-			private var imageLink:String = "http://flash-world.ru/files/images/swf-flv-toolbox.jpg";
+			[Bindable]
+			public static var useImage:Boolean = false;
+			public static var imageLink:String = "";
 			
 			public static function addPopUp(parent:DisplayObject):CollabMouseCursor
 			{
@@ -72,7 +73,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function setPos(x:Number, y:Number):void
 			{
-				if( !picSuccess )
+				if( !picSuccess && useImage )
 					applyImage();
 				moveEvent.stop();
 				yFrom = this.y;
@@ -90,7 +91,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				graphics.moveTo(0, 0);
 				for each( var vertex:Array in vertices )
 					graphics.lineTo(vertex[0], vertex[1]);
-				applyImage();
+				if( useImage )	
+					applyImage();
 			}
 			
 			private var picSuccess:Boolean = false;
