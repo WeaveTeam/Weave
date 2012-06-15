@@ -811,11 +811,10 @@ package weave
 							function():String
 							{
 								var collabTool:CollaborationTool = CollaborationTool.instance;
-								return lang(
-									collabTool && collabTool.collabService.isConnected
-									? lang("Open collaboration window")
-									: lang("Connect to collaboration server (Beta)...")
-								);
+								if (collabTool && collabTool.collabService.isConnected)
+									return lang("Open collaboration window")
+								else
+									return lang("Connect to collaboration server (Beta)...")
 							},
 							DraggablePanel.openStaticInstance,
 							[CollaborationTool]
