@@ -91,6 +91,12 @@
 				rtmpService.addEventListener(NetStatusEvent.NET_STATUS, rtmpNetStatus);
 				rtmpService.addEventListener(SecurityErrorEvent.SECURITY_ERROR, rtmpSecurityError);
 				
+				createWindowChat();
+				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
+				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
+				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
+				CHAT.userNameList = collabService.userList;
+				
 				button_connect.addEventListener(MouseEvent.CLICK, connect);
 				button_chat.addEventListener(MouseEvent.CLICK, toggleChat);
 				button_settings.addEventListener(MouseEvent.CLICK, toggleSettings);
@@ -103,15 +109,10 @@
 				button_chat.enabled 	= false;
 				button_settings.enabled = true;
 				
-				createWindowChat();
 				createWindowSettings();
 				
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, settingsConnSaved);
 				SETTINGS.addEventListener(CollaborationEvent.ADDON_SETTINGS_SAVED, settingsAddonSaved);
-				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
-				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
-				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
-				CHAT.userNameList = collabService.userList;
 				
 				resizeHandler();
 			}

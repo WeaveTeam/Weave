@@ -20,7 +20,7 @@
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 verticalScrollPolicy="off" horizontalScrollPolicy="off"
 		 borderColor="#54585E" borderThickness="3" borderStyle="solid"
-		 backgroundAlpha="1" backgroundColor="#CCCCCC"
+		 backgroundAlpha="1" backgroundColor="#CCCCCC" height="400"
 		 showEffect="{moveIn}" hideEffect="{moveOut}" xmlns:collab="weave.ui.collaboration.*" xmlns:ui="weave.ui.*">
 
 	<mx:Move id="moveIn" duration="1000"
