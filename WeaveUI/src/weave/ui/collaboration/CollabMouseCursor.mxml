@@ -75,6 +75,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if( !picSuccess && useImage )
 					applyImage();
+				else if( usingPic && !useImage )
+					initializeCursor();
 				moveEvent.stop();
 				yFrom = this.y;
 				xFrom = this.x;
@@ -84,21 +86,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			public function initializeCursor():void
 			{
+				usingPic = false;
+				picSuccess = false;
 				this.mouseChildren = false;
-				color = 0;
-				graphics.clear();
-				graphics.lineStyle(1, 0, 1.0, true);
-				graphics.moveTo(0, 0);
-				for each( var vertex:Array in vertices )
-					graphics.lineTo(vertex[0], vertex[1]);
 				if( useImage )	
 					applyImage();
+				else
+				{
+					color = 0;
+					graphics.clear();
+					graphics.lineStyle(1, 0, 1.0, true);
+					graphics.moveTo(0, 0);
+					for each( var vertex:Array in vertices )
+						graphics.lineTo(vertex[0], vertex[1]);
+				}
 			}
 			
 			private var picSuccess:Boolean = false;
+			private var usingPic:Boolean = false;
 			
 			private function applyImage():void
 			{
+				usingPic = true;
 				var outputBitMap:Bitmap
 				var bData:BitmapData = getImage(imageLink);
 				if( bData != null )
