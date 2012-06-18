@@ -61,7 +61,6 @@
 			private var connTimer:Timer 						= null;
 			private var mouseTimer:Timer						= null;
 			private var pingTimer:Timer							= null;
-			private var userMice:Dictionary						= null;
 			private var disConButtonPushed:Boolean				= false;
 			private var connectedToRTMPService:Boolean			= false;
 			
@@ -522,11 +521,11 @@
 			private function joinedRoomCreateMouseList():void
 			{
 				trace("joinedRoomCreateMouseList();");
-				userMice = new Dictionary();
 				
 				for each( var person:RoomOccupant in collabService.room ) 
 				{
 					if( person.displayName == collabService.nickname ) continue;
+					WeaveAPI.CollaborationCursorManager.createCursor(person.displayName);
 					trace("asking " + person.displayName + " for mouse pos");
 					collabService.requestMouseMessage(person.displayName);
 				}
@@ -535,27 +534,25 @@
 			{
 				trace("handleCreateUserMouse();");
 				if( e.getText() == collabService.nickname ) return;
-				if( !userMice )	// You have just joined the room and ask everyone for their mice
+				if( WeaveAPI.CollaborationCursorManager.getCursorIds() == null )	// You have just joined the room and ask everyone for their mice
 				{
 					joinedRoomCreateMouseList();
 				}
 				else // You are already in the room and someone joins
 				{
-					userMice[e.getText()] = CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject) as CollabMouseCursor;
+					WeaveAPI.CollaborationCursorManager.createCursor(e.getText());
+					WeaveAPI.CollaborationCursorManager.setVisible(e.getText(), true);
 				}
 			}
 			private function handleRemoveUserElements(e:CollaborationEvent):void
 			{
 				trace( "Removing " + e.getText() + "\'s cursor" );
-				var cm:CollabMouseCursor = userMice[e.getText()];
-				if( cm == null ) 
+				if( WeaveAPI.CollaborationCursorManager == null ) 
 				{
 					reportError(e.getText() + "\'s mouse does not exist.");
 					return;
 				}
-				
-				cm.removePopUp();
-				delete userMice[e.getText()];
+				WeaveAPI.CollaborationCursorManager.removeCursor(e.getText());
 				
 				CHAT.setUserAttribute(CHAT.TYPE_CAM, e.getText(), 0);
 				CHAT.setUserAttribute(CHAT.TYPE_MIC, e.getText(), 0);
@@ -567,16 +564,22 @@
 			}
 			private function updateMousePos(e:CollaborationEvent):void
 			{
-				if( userMice == null )
+				if( WeaveAPI.CollaborationCursorManager.getCursorIds().length == 0 )
 					joinedRoomCreateMouseList();
-				if( userMice[e.getText()] == null )
-					userMice[e.getText()] = CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject) as CollabMouseCursor;
-				
-				userMice[e.getText()].setPos(percentToCoordX(e.getX()), percentToCoordY(e.getY()));
-				
-				if( userMice[e.getText()].color != e.getColor() )
+				var found:Boolean = false;
+				for( var i:int = 0; i < WeaveAPI.CollaborationCursorManager.getCursorIds().length; i++ )
 				{
-					userMice[e.getText()].fillCursor(e.getColor());
+					if( WeaveAPI.CollaborationCursorManager.getCursorIds()[i] == e.getText() )
+						found = true;
+				}
+				if( !found )
+					WeaveAPI.CollaborationCursorManager.createCursor(e.getText());
+				
+				WeaveAPI.CollaborationCursorManager.setPosition(e.getText(), percentToCoordX(e.getX()), percentToCoordY(e.getY()), 5000);
+				
+				if( e.getColor() != WeaveAPI.CollaborationCursorManager.getColor(e.getText()) )
+				{
+					WeaveAPI.CollaborationCursorManager.setColor(e.getText(), e.getColor(), 1000);
 					CHAT.setUserAttribute(CHAT.TYPE_COLOR, e.getText(), e.getColor());
 				}
 			}
@@ -592,12 +595,8 @@
 			}
 			private function resetUserMice():void
 			{
-				for( var m:String in userMice )
-				{
-					userMice[m].removePopUp();
-					delete userMice[m];
-				}
-				userMice = null;
+				for( var i:int = 0;i < WeaveAPI.CollaborationCursorManager.getCursorIds().length; i++ )
+					WeaveAPI.CollaborationCursorManager.removeCursor(WeaveAPI.CollaborationCursorManager.getCursorIds()[i]);
 			}
 			private function coordToPercentX(x:Number):Number { return x / WeaveAPI.topLevelApplication.stage.stageWidth;   }
 			private function percentToCoordX(x:Number):Number { return x * WeaveAPI.topLevelApplication.stage.stageWidth;   }

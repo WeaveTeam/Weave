@@ -32,6 +32,7 @@ package
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
 	import weave.api.services.IURLRequestUtils;
+	import weave.api.ui.ICollabCursorManager;
 	import weave.core.ErrorManager;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableHashMap;
@@ -67,6 +68,7 @@ package
 	import weave.primitives.ColorRamp;
 	import weave.services.URLRequestUtils;
 	import weave.ui.ColorRampEditor;
+	import weave.ui.collaboration.CollaborationCursorManager;
 	import weave.utils.EditorManager;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
@@ -86,6 +88,7 @@ package
 		 * Register singleton implementations for WeaveAPI framework classes
 		 */
 		WeaveAPI.registerSingleton(ISessionManager, SessionManager);
+		WeaveAPI.registerSingleton(ICollabCursorManager, CollaborationCursorManager);
 		WeaveAPI.registerSingleton(IStageUtils, StageUtils);
 		WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
 		WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
