@@ -348,17 +348,18 @@ package weave.utils
 				for (var kIndex:int = 0; kIndex < keys.length; kIndex++)
 				{
 					var value:* = column.getValueFromKey(keys[kIndex] as IQualifiedKey, dataType);
-					if (!allowMissingData && StandardLib.isUndefined(value))
+					var isUndef:Boolean = StandardLib.isUndefined(value);
+					if (!allowMissingData && isUndef)
 					{
 						// value is undefined, so remove this key and all associated data from the list
 						for each (var array:Array in result)
 							array.splice(kIndex, 1);
 						kIndex--; // avoid skipping the next key
 					}
+					else if (isUndef)
+						values.push(undefined);
 					else
-					{
 						values.push(value);
-					}
 				}
 				result.push(values);
 			}

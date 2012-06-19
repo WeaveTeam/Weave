@@ -35,34 +35,60 @@ SchafersMissingDataImputation
 @spurushe
 
 -->
-<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				title="Schafers Missing Data Imputation"
-				x="15%" width="70%" y="15%" height="70%"
-				backgroundColor="#EFF4BC" 
-				layout="horizontal"
-				autoLayout="true" implements="weave.api.ui.IVisTool"
-				>
-	<mx:HBox width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
+<DraggablePanel xmlns="weave.ui.*"
+				xmlns:mx="http://www.adobe.com/2006/mxml"
+				x="15%" y="15%" width="70%" height="70%" autoLayout="true" backgroundColor="#EFF4BC"
+				horizontalScrollPolicy="off" implements="weave.api.ui.IVisTool" layout="horizontal"
+				title="Schafers Missing Data Imputation" verticalScrollPolicy="off">
+	<mx:HBox width="100%" height="100%" paddingBottom="{padding}" paddingLeft="{padding}"
+			 paddingRight="{padding}" paddingTop="{padding}">
 		<mx:VBox width="20%" height="100%" verticalGap="0">
 			<mx:Label text="(1) Select data to use in your script"/>
-			<ColumnListComponent id="inputColumnList" label="Input columns" hashMap="{variables}" width="100%" height="100%"   />			
+			<ColumnListComponent id="inputColumnList" width="100%" height="100%"
+								 label="Input columns" hashMap="{variables}"/>			
 		</mx:VBox>
-		<mx:VBox  id="vb" width="45%" height="100%" verticalGap="0">
+		<mx:VBox id="vb" width="70%" height="100%" verticalGap="0">
 			<LabelWithWordWrap text="(2)Assign variable names and check Attributes for Missing Data"/>
-			<mx:TextArea id = "assignTA" width="100%" height="100%" wordWrap="false"/>
+			<mx:TextArea id="assignTA" width="50%" height="25%" wordWrap="false"/>
 			<mx:Spacer height="{padding}"/>
+			<mx:VBox width="100%">
+				<LabelWithWordWrap text="(3)Check if selected columns have missing data"/>
+				<mx:Button id="checkforNA" label="Check dataset for missing data?"
+						   buttonDown="imputing_buttonDownHandler(event)"/>	
+			</mx:VBox>
+			<mx:Spacer height="{padding}"/>
+			<mx:VBox width="100%">
+				<LabelWithWordWrap text="(4)Impute the missing data"/>
+				<mx:Button id="imputeMD" label="Impute Missing Data"
+						   buttonDown="imputing_buttonDownHandler(event)"/>
+			</mx:VBox>
 			
 			<mx:Spacer height="{padding}"/>
-			<mx:Button id="checkforNA" label="Impute Missing Data" buttonDown= "imputing_buttonDownHandler(event)"/>
+			
+			<mx:VBox>
+			<mx:HBox>
+				<mx:CheckBox id="kMeansCheckbox"/> 
+				<mx:LinkButton label="K Means Clustering"
+							   click="kmeanslinkButton_clickHandler(event)"/>
+			    
+			</mx:HBox>
+			
+			<mx:HBox>
+				<mx:CheckBox id="hClusteringCheckbox"/> 
+				<mx:LinkButton label="Hierarchical Clustering"/>
+										
+			</mx:HBox>
+				<LabelWithWordWrap text="Assign variable names and check Attributes KMeans Clustering"/>
+				<mx:TextArea id="clusterTA" width="50%" height="25%" wordWrap="false"/>
+				
+				</mx:VBox>
 		
 			<mx:Spacer height="{padding}"/>
 			
-			
-			<LabelWithWordWrap text="(6) Run your script on the server"/>
+		
 			<mx:HBox>
-				<!--mx:Button id="B2" label="Run script"  buttonDown="viewAndSendbuttonClickHandler()"/-->
-				<mx:CheckBox id="intermediateResultCB" label="Verbose" toolTip="Show intermediate results from R"/>
+				<mx:CheckBox id="intermediateResultCB" label="Verbose"
+							 toolTip="Show intermediate results from R"/>
 				<mx:CheckBox id="warningCB" label="Warnings" toolTip="Show warnings from R"/>
 			</mx:HBox>
 			
@@ -70,13 +96,17 @@ SchafersMissingDataImputation
 		
 	</mx:VBox>
 	</mx:HBox>	
+	
+	
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
 			import mx.controls.DataGrid;
 			import mx.controls.Image;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
@@ -84,6 +114,7 @@ SchafersMissingDataImputation
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
@@ -107,8 +138,8 @@ SchafersMissingDataImputation
 			import weave.visualization.tools.DataTableTool;
 			import weave.visualization.tools.SimpleVisTool;
 			
+			WeaveAPI.registerImplementation(IVisTool, SchafersMissingDataTool, "Schafers Missing Data Imputation Tool");
 			
-			WeaveAPI.registerImplementation(IVisTool, SchafersMissingDataTool);
 			
 			private const padding:int = 5;
 			
@@ -156,22 +187,17 @@ SchafersMissingDataImputation
 			
 			private var headings:Array = new Array();
 			//private var currentDataGrid:DataGrid = null;
+			private var dataTB:DataTableTool ;
 			
-			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
+			
+			 private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
 			{
-				var finalReturnedRColumns:Array = new Array();
-				var missingRecordNumber:Array = new Array();
-				/* This is the final array added as a CSVDataSource having structure
-				[
-					["k","x","y","z"]
-					["k1",1,2,3]
-					["k2",3,4,6]
-					["k3",2,4,56]
-				] */
+				 var finalImputedRColumns:Array = new Array();
+				 var missingCountInEachColumn:Array = new Array();
+				
 			
 				//Object to stored returned result - Which is array of object{name: , value: }
-				var Robj:Array = event.result as Array;
-				
+				var Robj:Array = event.result as Array;				
 				
 				if (Robj == null)
 				{
@@ -191,56 +217,138 @@ SchafersMissingDataImputation
 						continue;
 					}
 					var rResult:RResult = new RResult(Robj[i]);
-					RresultArray.push(rResult);	
-					
-					
+					RresultArray.push(rResult);						
 				}	
 				
-				//We copy the object, one to be used for displaying Imputed Columns, the other to create the CSVDatasource
-				var imputedValuesForDisplay:Object = ObjectUtil.copy(RresultArray);
-				//finalCollection = fillingMissingDataNumber(headings, RresultArray[0].value);
+				/* This is the final array added as a CSVDataSource having structure
+				[
+				["k","x","y","z"]
+				["k1",1,2,3]
+				["k2",3,4,6]
+				["k3",2,4,56]
+				] */
 				
-				//missingDataGrid.dataProvider = finalCollection;
-				
-				/**
-				 * Creating a new Datatable tool
-				 **/
-				
-				var dataTB:DataTableTool = Weave.root.requestObject(null,DataTableTool,false);
-				dataTB.title = dataTB.title + "Original and Imputed Columns";
+				/* Creates the final array, stated above, for CSVDatasource
+					Keys used from token
+					We use the localName property because otherwise it casts the same key for all the values and thus 
+					each key is not unique
+					*/
 				
 				//To make availabe for Weave -Mapping with key returned from Token
 				var keys:Array = token as Array;
 				
-				missingRecordNumber = RresultArray[0].value;
-				finalReturnedRColumns = RresultArray[1].value;
-				
-				/* Creates the final array, stated above, for CSVDatasource
-				Keys used from token
-				We use the localName property because otherwise it casts the same key for all the values and thus 
-				each key is not unique
-				*/
-				for (var c:int = 0; c < keys.length; c++)
+				missingCountInEachColumn = [];
+				finalImputedRColumns = []; 
 					
+					if (RresultArray.length == 1)//if only one element inthe returned R obj then only report missing data counts
 					{
-						finalReturnedRColumns[c].unshift(missingRecordNumber[c]);
-						finalReturnedRColumns[c].unshift(keys[c].localName);
+						missingCountInEachColumn = RresultArray[0].value;
+						for(var f:int = 0 ; f < missingCountInEachColumn.length ; f++)
+						{
+							if(missingCountInEachColumn[f] != 0)
+							{
+								Alert.show("Your data has missing values.\n Impute Data using the 'Impute Missing Data' button");
+								break;
+							}
+						} 
 					}
+					
+					
+					else
+					{
+						missingCountInEachColumn = RresultArray[0].value;//missing data count in each COLUMN
+						finalImputedRColumns = RresultArray[1].value;
+						for (var c:int = 0; c < keys.length; c++)					
+						{
+							finalImputedRColumns[c].unshift(missingCountInEachRecord[c]);
+							finalImputedRColumns[c].unshift(keys[c].localName);
+						}
+						
+						finalImputedRColumns.unshift(columnNames);
+						
+						
+						/**
+						 * Creating  new CSVDatacource
+						 **/
+						
+						//Give it a unique name incase we need to store the columns from multiple imputations
+						var name:String = Weave.root.generateUniqueName("ImputedColumns");
+						var imputedCsvDataSource:CSVDataSource = Weave.root.requestObject( name,CSVDataSource,false);
+						imputedCsvDataSource.setCSVData(finalImputedRColumns);
+						imputedCsvDataSource.keyType.value = (keys[0] as IQualifiedKey).keyType;
+						imputedCsvDataSource.keyColName.value = "Key";
+						
+						
+						
+						/**
+						 * Creating a new Datatable tool
+						 **/
+						
+						//checks if a datatable already exists, if not creates one
+						var dataTBName:String = Weave.root.getName(this) + "DataTableTool";
+						if(Weave.root.getObject(dataTBName)==null)
+						{
+							dataTB = Weave.root.requestObject(dataTBName,DataTableTool,false);
+							dataTB.columns.removeAllObjects();
+							
+						}
+						
+						//dataTB.columns.setSessionState(variables.getSessionState(),false);
+						//helps us get the original columns with the missing data
+						var variableObjects:Array = variables.getObjects();
+						 for(var h:int = 0; h < variableObjects.length; h++)
+						{
+							dataTB.columns.requestObjectCopy(null,variableObjects[h]);
+						} 
+						
+						
+						//this loop includes the imputed columns in the datatable, the imputedcolumns being taken from
+						 //the imputedCsvDatasource
+						var csvColNames:Array = imputedCsvDataSource.getColumnNames();
+						for (var idx:int = 0; idx < csvColNames.length ; idx++)
+						{
+							imputedCsvDataSource.putColumnInHashMap(csvColNames[idx],dataTB.columns as ILinkableHashMap);
+						}   
+						
+					}	
+					
+			}
+			
+		/* 	
+			private function handleClusterScriptResult(event:ResultEvent, token:Object = null):void
+			{
+				//Object to stored returned result - Which is array of object{name: , value: }
+				var Robj:Array = event.result as Array;
+				trace('Robj:',ObjectUtil.toString(Robj));
+				if (Robj == null)
+				{
+					reportError("R Servlet did not return an Array of results as expected.");
+					return;
+				}
+				
+				
+				var RresultArray:Array = new Array();
+				//collecting Objects of type RResult(Should Match result object from Java side)
+				for (var i:int = 0; i < (event.result).length; i++)
+				{
+					if (Robj[i] == null)
+					{
+						trace("WARNING! R Service returned null in results array at index "+i);
+						continue;
+					}
+					var rResult:RResult = new RResult(Robj[i]);
+					RresultArray.push(rResult);				
+				}
 				
 				
 				
-			     finalReturnedRColumns.unshift(columnNames);
-				 
-				 //Give it a unique name incase we need to store the columns from multiple imputations
-				 var name:String = Weave.root.generateUniqueName("ImputedColumns");
-				 var imputedCsvDataSource:CSVDataSource = Weave.root.requestObject(name,CSVDataSource,false);
-				 imputedCsvDataSource.setCSVData(finalReturnedRColumns);
-				 imputedCsvDataSource.keyType.value = (keys[0] as IQualifiedKey).keyType;
-				 imputedCsvDataSource.keyColName.value = "Key";
+				//To make availabe for Weave -Mapping with key returned from Token
+				var keys:Array = token as Array;
 				
 				//Objects "(object{name: , value:}" are mapped whose value length that equals Keys length
 				for (var p:int = 0;p < RresultArray.length; p++)
 				{
+					
 					if(RresultArray[p].value is Array){
 						if(keys){
 							if ((RresultArray[p].value).length == keys.length){
@@ -273,39 +381,40 @@ SchafersMissingDataImputation
 				}
 			}
 			
+ */			
 			private function handleRunScriptFault(event:FaultEvent, token:Object = null):void
 			{
 				trace(["fault", token, event.message].join('\n'));
 				reportError(event);
 			}
 			
-			/* protected function assignTA_clickHandler(event:MouseEvent):void
-			{
-				var selectedTA:TextArea = (focusManager.getFocus()) as TextArea;
-				focusedTA = selectedTA;
-			}  */
-			
-			
 			private var assignToBeValues:Array = new Array();
-			private var ar:ArrayCollection = new ArrayCollection();
+			var assignNames: Array = new Array();
 			private var columnNames:Array = new Array();//stores the names of the columns (an array of strings)
+			var missingCountInEachRecord:Array = new Array();//need to display in a column in the final datatable
 			
+		
 			protected function imputing_buttonDownHandler(event:FlexEvent):void
 			{
 				
 				var result:Array = new Array();
 				var joinedColumnQKeys:Array; //Columns from Joined columns Method
 				var joinedColumns:Array;
+				
 		    	var selectedColumns:Array = variables.getObjects(); //Columns from ColumnListComponent 
 				
 				var attributeColumns:Array = new Array();
+				columnNames = [];//clear this array preparing it for every new imputation
 				//Use as Attribute column as joinColumns takes members of IAttributeColumn
 				for(var i:int = 0; i<selectedColumns.length; i++)
 				{
 					attributeColumns[i] = selectedColumns[i] as IAttributeColumn;
 					columnNames[i] = ColumnUtils.getTitle(attributeColumns[i]);
+					columnNames[i] = "Imputed"+columnNames[i];
 				}
-				columnNames.unshift("NoOfMissingR");
+					
+				
+				columnNames.unshift("NoOfMissingValues");
 				columnNames.unshift("Key");
 				//joinColumns Called only When columns are added to ColumnListComponent
 				
@@ -318,41 +427,148 @@ SchafersMissingDataImputation
 					
 				}
 				
+				//getting the number of missing values in EACH RECORD
+				var rowNumber:Array = joinedColumns[0];
+				var missingCount:int = 0;
+				for(var h:int = 0; h < rowNumber.length; h++)
+				{
+					for(var g:int = 0; g < joinedColumns.length;g++){
+						var tempArray:Array = joinedColumns[g];
+						if(tempArray[h] == undefined){
+							missingCount++;
+						}
+					}
+					
+					missingCountInEachRecord.push(missingCount);
+					missingCount = 0;
+				}
+				
+				
+	
 				assignToBeValues = joinedColumns;
 				
 				//variable names for the columns to be used in R
 				 var RscriptAssignNames:String = assignTA.text;//as complete string
 				
 				//broken into individual variable names
-				var assignNames:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(assignTA.text));
+				 assignNames = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(assignTA.text));
+				 
+				 
+				 if(assignNames.length > selectedColumns.length)
+				 {
+					 Alert.show("Please delete "+ (assignNames.length - selectedColumns.length) + "variable(s)");
+				 }
+				 
+				 if(selectedColumns.length > assignNames.length)
+				 {
+					 Alert.show("Please enter "+ (selectedColumns.length - assignNames.length) + "variable(s)");
+				 }
+				 
 				
 				
 				headings = assignNames;//to get the headings for the missing data columns
 				
 				
-				outputNames = ["pre$nmis","imp"];					
+				outputNames = [];//empty this for every new communication with R
 				
 				//Query is created from runScript with same signature from Jave side
 				var showIntermediateResults:Boolean = intermediateResultCB.selected;
 				var showWarnings:Boolean = warningCB.selected;
-				var script:String = "library(norm) \n pre<-prelim.norm(Bind) \n Em <- em.norm(pre) \n rngseed(34215) \n " +
-									"Da <- da.norm(pre, Em, steps = 20) \n imp <- imp.norm(pre, Da, Bind)";
+				 
+				//var query:AsyncToken = Rservice.runScript([],assignNames, assignToBeValues, outputNames, script,"", showIntermediateResults,showWarnings,false);
+				//Script is built in on the java side in RserviceUsingRserve
+				var imputationQuery:AsyncToken;
 				
-				var query:AsyncToken = Rservice.handlingMissingData(assignNames, assignToBeValues, outputNames, script,"", showIntermediateResults,showWarnings);
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinedColumnQKeys);
+				if (event.currentTarget == checkforNA)
+				{
+					outputNames.push("pre$nmis");
+					imputationQuery = Rservice.handlingMissingData(assignNames,assignToBeValues,outputNames,false,false,false);
+				}
+				
+				else
+				{
+					outputNames.push("pre$nmis");
+					outputNames.push("imputed");
+					imputationQuery = Rservice.handlingMissingData(assignNames,assignToBeValues,outputNames,false,false,true);
+				}
+				
+				
+				DelayedAsyncResponder.addResponder(imputationQuery, handleRunScriptResult, handleRunScriptFault, joinedColumnQKeys);
 				
 			}
-			
-			/* protected function loadIntoReditor(xml:XML):void{
-				assignTA.text = xml.assignNames;
-				outputTA.text = xml.outputScript;
-			}
-			
-			private var focusedTA:TextArea = null; */
-			private var outputNames:Array = new Array();//global
-			
-			
 		
+			private var focusedTA:TextArea = null; 
+			private var outputNames:Array = new Array();
+			private var clusterInputValues = new Array();
+			
+			
+/* 		
+			protected function clusterButton_clickHandler(event:MouseEvent):void
+				
+			{
+				var result:Array = new Array();
+				var joinedColumnQKeys:Array; //Columns from Joined columns Method
+				var joinedColumns:Array;
+				
+				//TO BE DONE
+				//Determine choice of columns for clustering, (1)Original (2) Imputed  (3)Both
+				//var selectedColumns:Array = dataTB.columns.getObjects(); imputed data used for clustering
+				var selectedColumns:Array = variables.getObjects(); //Columns from ColumnListComponent
+				
+				var attributeColumns:Array = new Array();
+				columnNames = [];
+				//Use as Attribute column as joinColumns takes members of IAttributeColumn
+				var idx:int = 0;
+				for(var i:int = 0; i<selectedColumns.length; i++)
+				{
+					var attrCol:IAttributeColumn = selectedColumns[i] as IAttributeColumn;
+					 if((ColumnUtils.getTitle(attrCol) == "Key") || (ColumnUtils.getTitle(attrCol) == "NoOfMissingR")){
+						
+					}
+					else{
+						attributeColumns[idx] = attrCol;
+						idx++;
+					} 
+					
+					
+				}
+				//joinColumns Called only When columns are added to ColumnListComponent
+				
+				if(selectedColumns.length >0)
+				{					
+					// get records for keys common to all columns 
+					result = joinColumns(attributeColumns);
+					joinedColumnQKeys = result[0];
+					joinedColumns = result[1];
+					
+				}
+				
+				clusterInputValues = joinedColumns;
+				
+				//variable names for the columns to be used in R
+				var RscriptAssignNames:String = clusterTA.text;//as complete string
+				
+				//broken into individual variable names
+				assignNames = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(clusterTA.text));				
+				
+				
+				var showWarnings:Boolean = warningCB.selected;
+				
+				
+				
+				//var clusterQuery:AsyncToken = Rservice.KMeansClustering(assignNames, clusterInputValues,false, Number(clusterNumber.text),Number(iterationNumber.text));
+				
+				DelayedAsyncResponder.addResponder(clusterQuery, handleClusterScriptResult, handleRunScriptFault, joinedColumnQKeys);
+				
+			} */
+			
+			protected function kmeanslinkButton_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var kMeansPopupEditor:KMeansClusteringEditor = new KMeansClusteringEditor();
+				mx.managers.PopUpManager.addPopUp(kMeansPopupEditor,this, false);
+			}
+			
 		]]>
 	</mx:Script>
 	

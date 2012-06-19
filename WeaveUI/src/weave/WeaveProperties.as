@@ -60,6 +60,7 @@ package weave
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.JRITextEditor;
 	import weave.ui.RTextEditor;
+	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.CSSUtils;
 	import weave.utils.DebugUtils;
 	import weave.utils.LinkableTextFormat;
@@ -239,6 +240,7 @@ package weave
 				[enableAddRadViz, RadVizTool],
 				[enableAddRamachandranPlot, RamachandranPlotTool],
 				[enableAddScatterplot, ScatterPlotTool],
+				[enableAddSchafersMissingDataTool, SchafersMissingDataTool],
 				[enableAddThermometerTool, ThermometerTool],
 				[enableAddTimeSliderTool, TimeSliderTool],
 				[enableAddDataTable, TransposedTableTool],
@@ -256,7 +258,7 @@ package weave
 		public const enableAddColormapHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Colormap Histogram option tools menu
 		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
 		public const enableAddCustomTool:LinkableBoolean = new LinkableBoolean(true);
-		public const enableScahfersMissingDataTool:LinkableBoolean = new LinkableBoolean(true);
+		public const enableAddSchafersMissingDataTool:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddDataFilter:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddDataTable:LinkableBoolean = new LinkableBoolean(true); // Add Data Table option tools menu
 		public const enableAddGaugeTool:LinkableBoolean = new LinkableBoolean(true); // Add Gauge Tool option tools menu
@@ -274,7 +276,6 @@ package weave
 		public const enableAddScatterplot:LinkableBoolean = new LinkableBoolean(true); // Add Scatterplot option tools menu
 		public const enableAddThermometerTool:LinkableBoolean = new LinkableBoolean(true); // Add Thermometer Tool option tools menu
 		public const enableAddTimeSliderTool:LinkableBoolean = new LinkableBoolean(true); // Add Time Slider Tool option tools menu
-		
 		public const enablePanelCoordsPercentageMode:LinkableBoolean = new LinkableBoolean(true); // resize/position tools when window gets resized (percentage based rather than absolute)
 		public const enableToolAttributeEditing:LinkableBoolean = new LinkableBoolean(true); // edit the bindings of tool vis attributes
 		public const showVisToolCloseDialog:LinkableBoolean = new LinkableBoolean(false); // show "close this window?" yes/no box
