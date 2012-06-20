@@ -30,6 +30,7 @@ package weave.core
 	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.utils.Dictionary2D;
@@ -50,6 +51,30 @@ package weave.core
 		{
 			var focus:DisplayObject = component.getFocus();
 			return focus && component.contains(focus);
+		}
+		
+		/**
+		 * This will add a callback to a linkable variable that will set a style property of a UIComponent.
+		 * @param linkableVariable
+		 * @param uiComponent
+		 * @param stylePropertyName
+		 */		
+		public static function bindStyle(linkableVariable:ILinkableVariable, uiComponent:UIComponent, stylePropertyName:String, groupedCallback:Boolean = true):void
+		{
+			var callback:Function = function():void
+			{
+				if (!uiComponent.parent)
+				{
+					uiComponent.callLater(callback);
+					return;
+				}
+				uiComponent.setStyle(stylePropertyName, linkableVariable.getSessionState());
+			};
+			
+			if (groupedCallback)
+				getCallbackCollection(linkableVariable).addGroupedCallback(null, callback, true);
+			else
+				getCallbackCollection(linkableVariable).addImmediateCallback(null, callback, true);
 		}
 		
 		private static const linkFunctionCache:Dictionary2D = new Dictionary2D(true, true);
