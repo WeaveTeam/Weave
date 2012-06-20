@@ -87,12 +87,14 @@
 				collabService.addEventListener(CollaborationEvent.UPDATE_PING, updatePing);
 				collabService.addEventListener(CollaborationEvent.UPDATE_MIC, userMicUpdated);
 				collabService.addEventListener(CollaborationEvent.UPDATE_CAM, userCamUpdated);
+				collabService.addEventListener(CollaborationEvent.REQUEST_MOUSE_CONTROL, addMouseToQueue);
 				
 				rtmpService.addEventListener(NetStatusEvent.NET_STATUS, rtmpNetStatus);
 				rtmpService.addEventListener(SecurityErrorEvent.SECURITY_ERROR, rtmpSecurityError);
 				
 				createWindowChat();
 				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
+				CHAT.addEventListener(CollaborationEvent.SEND_MOUSE_CONTROL_REQUEST, sendRequestMessage);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
 				CHAT.userNameList = collabService.userList;
@@ -599,6 +601,17 @@
 				for( var i:int = 0;i < WeaveAPI.CollaborationCursorManager.getCursorIds().length; i++ )
 					WeaveAPI.CollaborationCursorManager.removeCursor(WeaveAPI.CollaborationCursorManager.getCursorIds()[i]);
 			}
+			
+			private function addMouseToQueue(e:CollaborationEvent):void
+			{
+					WeaveAPI.CollaborationCursorManager.addToQueue(e.getText());
+			}
+			
+			public function sendRequestMessage(e:CollaborationEvent):void
+			{
+				collabService.requestMouseControl(collabService.nickname);
+			}
+			
 			private function coordToPercentX(x:Number):Number { return x / WeaveAPI.topLevelApplication.stage.stageWidth;   }
 			private function percentToCoordX(x:Number):Number { return x * WeaveAPI.topLevelApplication.stage.stageWidth;   }
 			private function coordToPercentY(y:Number):Number { return y / WeaveAPI.topLevelApplication.stage.stageHeight;  }

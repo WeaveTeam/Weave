@@ -38,6 +38,7 @@ package weave.services.collaboration
 		public static const USER_UPDATE_USERLIST:String		= "user_update_userlist";
 		public static const USER_REQUEST_USERLIST:String	= "user_request_userlist";
 		public static const USER_LIST_UPDATED:String		= "user_list_updated";
+		public static const REQUEST_MOUSE_CONTROL:String    = "collab_request_mouse_control";
 		
 		/* ERROR EVENTS */
 		public static const NICK_ERROR:String 				= 'collab_nick_error';
@@ -53,6 +54,7 @@ package weave.services.collaboration
 		public static const UPDATE_PING:String				= "collab_update_ping";
 		public static const UPDATE_MIC:String				= "collab_update_mic";
 		public static const UPDATE_CAM:String				= "collab_update_cam";
+		public static const SEND_MOUSE_CONTROL_REQUEST:String = "collab_send_mouse_control_request";
 		
 		private var text:String;
 		private var color:uint;

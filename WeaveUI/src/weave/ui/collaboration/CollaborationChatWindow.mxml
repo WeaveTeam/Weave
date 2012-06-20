@@ -58,50 +58,53 @@
 							 showEffect="{fadeIn}" hideEffect="{fadeOut}" visible="false" includeInLayout="false" />
 				<mx:HDividedBox width="100%" height="100%" horizontalScrollPolicy="off">
 					<mx:TextArea id="log" width="100%" height="100%" editable="false" />
-					<mx:List id="userList" width="0%" height="100%" labelField="name" minWidth="130">
-						<mx:itemRenderer>
-							<mx:Component>
-								<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off" paddingRight="4">
-									<mx:Script>
-										<![CDATA[
-											import mx.controls.ToolTip;
-											
-											override public function set data(value:Object):void
-											{
-												if( outerDocument._userListInfo[value] != null )
+					<mx:VBox height="100%">
+						<mx:List id="userList" width="100%" height="100%" labelField="name" minWidth="130">
+							<mx:itemRenderer>
+								<mx:Component>
+									<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off" paddingRight="4">
+										<mx:Script>
+											<![CDATA[
+												import mx.controls.ToolTip;
+												
+												override public function set data(value:Object):void
 												{
-													color.setStyle("backgroundColor", 	outerDocument._userListInfo[value].color );
-													micPic.visible 			= outerDocument._userListInfo[value].mic;
-													micPic.includeInLayout 	= outerDocument._userListInfo[value].mic;
-													camPic.visible			= outerDocument._userListInfo[value].cam;
-													camPic.includeInLayout	= outerDocument._userListInfo[value].cam;
-													specPic.visible			= outerDocument._userListInfo[value].spec;
-													specPic.includeInLayout = outerDocument._userListInfo[value].spec;
-													collabPing.ping			= outerDocument._userListInfo[value].ping;
+													if( outerDocument._userListInfo[value] != null )
+													{
+														color.setStyle("backgroundColor", 	outerDocument._userListInfo[value].color );
+														micPic.visible 			= outerDocument._userListInfo[value].mic;
+														micPic.includeInLayout 	= outerDocument._userListInfo[value].mic;
+														camPic.visible			= outerDocument._userListInfo[value].cam;
+														camPic.includeInLayout	= outerDocument._userListInfo[value].cam;
+														specPic.visible			= outerDocument._userListInfo[value].spec;
+														specPic.includeInLayout = outerDocument._userListInfo[value].spec;
+														collabPing.ping			= outerDocument._userListInfo[value].ping;
+													}
+													labelName.text = value as String;
+													if( (value as String) == outerDocument.nickname )
+														labelName.setStyle("fontWeight", "bold");
+													else
+														labelName.setStyle("fontWeight", "normal");
 												}
-												labelName.text = value as String;
-												if( (value as String) == outerDocument.nickname )
-													labelName.setStyle("fontWeight", "bold");
-												else
-													labelName.setStyle("fontWeight", "normal");
-											}
-											
-										]]>
-									</mx:Script>
-									<mx:Canvas id="color" width="16" height="16" borderStyle="solid" 
-											   cornerRadius="8" borderThickness="2"
-											   borderColor="0"/>
-									<mx:Canvas width="100%" clipContent="true" horizontalScrollPolicy="off">
-										<mx:Label id="labelName" fontSize="12" width="100%" toolTip="{labelName.text}" />
-									</mx:Canvas>
-									<mx:Image id="micPic" source="@Embed(source='/weave/resources/images/collab/mic.png')" width="15" height="15" />
-									<mx:Image id="camPic" source="@Embed(source='/weave/resources/images/collab/cam.png')" width="15" height="15" />
-									<mx:Image id="specPic" source="@Embed(source='/weave/resources/images/collab/eye.png')" width="22" height="12" />
-									<collab:CollaborationPing id="collabPing" width="16" height="14" />
-								</mx:HBox>
-							</mx:Component>
-						</mx:itemRenderer>
-					</mx:List>
+												
+											]]>
+										</mx:Script>
+										<mx:Canvas id="color" width="16" height="16" borderStyle="solid" 
+												   cornerRadius="8" borderThickness="2"
+												   borderColor="0"/>
+										<mx:Canvas width="100%" clipContent="true" horizontalScrollPolicy="off">
+											<mx:Label id="labelName" fontSize="12" width="100%" toolTip="{labelName.text}" />
+										</mx:Canvas>
+										<mx:Image id="micPic" source="@Embed(source='/weave/resources/images/collab/mic.png')" width="15" height="15" />
+										<mx:Image id="camPic" source="@Embed(source='/weave/resources/images/collab/cam.png')" width="15" height="15" />
+										<mx:Image id="specPic" source="@Embed(source='/weave/resources/images/collab/eye.png')" width="22" height="12" />
+										<collab:CollaborationPing id="collabPing" width="16" height="14" />
+									</mx:HBox>
+								</mx:Component>
+							</mx:itemRenderer>
+						</mx:List>
+						<mx:Button label="Request Cursor Control" height="10%" click="button1_clickHandler(event)"/>
+					</mx:VBox>
 				</mx:HDividedBox>
 				<mx:HBox width="100%">
 					<mx:TextInput id="input" width="100%" enter="dispatchMessageEvent()" />
@@ -113,6 +116,7 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.api.WeaveAPI;
 			import mx.utils.ObjectUtil;
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
@@ -462,6 +466,12 @@
 			{
 				return dictionaryLength(nsPlayCamList);
 			}
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				dispatchEvent(new CollaborationEvent( CollaborationEvent.SEND_MOUSE_CONTROL_REQUEST ) );
+			}
+			
 		]]>
 	</mx:Script>
 </mx:Canvas>
