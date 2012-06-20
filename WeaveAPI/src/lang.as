@@ -32,6 +32,18 @@ package
 	 */
 	public function lang(text:String, ...parameters):String
 	{
+		try
+		{
+			if (WeaveAPI.getLocale() == 'developer')
+			{
+				parameters.unshift(text);
+				return 'lang("' + parameters.join('", "') + '")';
+			}
+		}
+		catch (e:Error)
+		{
+		}
+		
 		var newText:String = WeaveAPI.localize(text);
 		
 		if (parameters.length)
