@@ -537,7 +537,6 @@ package weave.api
 			_supportedLocales[locale] = locale;
 			_locale = locale;
 			
-			//_locale = 'piglatin'; // for testing
 			saveSharedObject();
 		}
 		
@@ -575,7 +574,7 @@ package weave.api
 				_localizations[text] = {};
 			}
 			
-			if (result == null && keepTrying)
+			if (result == null && keepTrying && locale != 'piglatin')
 			{
 				for each (locale in ResourceManager.getInstance().localeChain)
 				{

@@ -22,8 +22,7 @@
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.ui.*"
 		 verticalGap="0"
-		 width="100%" height="100%"
-		 label="{lang('Attributes')}">
+		 width="100%" height="100%" >
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
 		<mx:HBox width="100%" id="selectorControls">
@@ -53,7 +52,17 @@
 			import weave.api.core.ILinkableHashMap;
 			import weave.visualization.tools.SimpleVisTool;
 			
-			[Bindable] private var _visTool:SimpleVisTool= null;
+			/**
+			 * This code will be executed at the time the object is being created.
+			 */
+			private var _constructor:* = function():void
+			{
+				// title is set here instead of in the mxml because if it is set through binding,
+				// it will overwrite any other value set in mxml components based on this class.
+				label = lang('Attributes');
+			}();
+			
+			[Bindable] private var _visTool:SimpleVisTool = null;
 			
 			public function set visTool(value:SimpleVisTool):void
 			{

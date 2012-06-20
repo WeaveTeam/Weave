@@ -83,6 +83,7 @@ package weave
 	import weave.ui.CirclePlotterSettings;
 	import weave.ui.ColorController;
 	import weave.ui.CustomContextMenuManager;
+	import weave.ui.DisabilityOptions;
 	import weave.ui.DraggablePanel;
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
@@ -787,11 +788,15 @@ package weave
 			{
 				_toolsMenu = _weaveMenu.addMenuToMenuBar(lang("Tools"), false);
 
+
 				createToolMenuItem(Weave.properties.showColorController, lang("Color Controller"), DraggablePanel.openStaticInstance, [ColorController]);
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, lang("Probe Info Editor"), DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
 				createToolMenuItem(Weave.properties.showProbeWindow, lang("Probe Info Window"), createGlobalObject, [ProbeToolTipWindow, "ProbeToolTipWindow"]);
 				createToolMenuItem(Weave.properties.showEquationEditor, lang("Equation Editor"), DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showCollaborationEditor, lang("Collaboration Settings"), DraggablePanel.openStaticInstance, [CollaborationEditor]);
+				createToolMenuItem(Weave.properties.showDisabilityOptions, "Disability Options", DraggablePanel.openStaticInstance, [DisabilityOptions]);
+
+	
 				
 				var _this:VisApplication = this;
 
@@ -862,11 +867,10 @@ package weave
 							function():String
 							{
 								var collabTool:CollaborationTool = CollaborationTool.instance;
-								return lang(
-									collabTool && collabTool.collabService.isConnected
-									? lang("Open collaboration window")
-									: lang("Connect to collaboration server (Beta)...")
-								);
+								if (collabTool && collabTool.collabService.isConnected)
+									return lang("Open collaboration window")
+								else
+									return lang("Connect to collaboration server (Beta)...")
 							},
 							DraggablePanel.openStaticInstance,
 							[CollaborationTool]
