@@ -24,8 +24,10 @@ package weave.ui.collaboration
 	import flash.utils.Timer;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.ui.ICollabCursorManager;
+	import weave.core.LinkableNumber;
 	
 	/**
 	 * A manager for the cursors in collaboration.
@@ -34,12 +36,16 @@ package weave.ui.collaboration
 	 */
 	public class CollaborationCursorManager implements ICollabCursorManager
 	{
+		public static var numMouses:Number = new Number(2);
 		private var cursorList:Dictionary = null;
+		private var cursorQueue:Array = null;
 		
 		public function createCursor(id:String):void
 		{
 			if( cursorList == null )
 				cursorList = new Dictionary();
+			if( cursorQueue == null )
+				cursorQueue = new Array();
 			if( cursorList[id] is CollabMouseCursor )
 				return;
 			cursorList[id] = CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject);
@@ -62,6 +68,8 @@ package weave.ui.collaboration
 		
 		public function setVisible(id:String, visible:Boolean, duration:uint=3000):void
 		{
+			if( !checkQueuePosition(id) )
+				return;
 			if(visible && duration > 0)
 			{
 				(cursorList[id] as CollabMouseCursor).alpha = 1;
@@ -98,6 +106,8 @@ package weave.ui.collaboration
 		
 		public function setPosition(id:String, x:Number, y:Number, duration:uint):void
 		{
+			if( !checkQueuePosition(id) )
+				return;
 			if( duration > 0 )
 				setVisible(id, true, duration);
 			(cursorList[id] as CollabMouseCursor).setPos(x, y);
@@ -105,6 +115,8 @@ package weave.ui.collaboration
 		
 		public function setColor(id:String, color:uint, duration:uint=1000):void
 		{
+			if( !checkQueuePosition(id) )
+				return;
 			(cursorList[id] as CollabMouseCursor).fillCursor(color);
 			setVisible(id, true, duration);
 		}
@@ -128,6 +140,36 @@ package weave.ui.collaboration
 			catch(e:Error)
 			{
 				reportError(e, "Could not delete specified cursor.");
+			}
+		}
+		
+		private function checkQueuePosition(id:String):Boolean
+		{
+			for( var i:int = 0; i < cursorQueue.length; i++ )
+			{
+				if( cursorQueue[i] == id )
+					if( i < numMouses )
+						return true;
+			}
+			return false;
+		}
+		
+		public function addToQueue(id:String):void
+		{
+			for( var i:int = 0; i < cursorQueue.length; i++ )
+			{
+				if( cursorQueue[i] == id )
+					return;
+			}	
+			cursorQueue[cursorQueue.length] = id;
+		}
+		
+		public function removeFromQueue(id:String):void
+		{
+			for( var i:int = 0; i < cursorQueue.length; i++ )
+			{
+				if( cursorQueue[i] == id )
+					cursorQueue.splice(i, 1);
 			}
 		}
 	}

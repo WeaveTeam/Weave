@@ -18,6 +18,7 @@
 */
 package weave.api.ui
 {
+
 	/**
 	 * This is an interface for a collaboration cursor manager, which is in charge of rendering collaboration mouse cursors.
 	 * After any change in the property of a cursor, if nothing occurs after a set amount of time (for example, 5000 milliseconds),
@@ -78,5 +79,7 @@ package weave.api.ui
 		 * @param id Identifies a cursor. If the cursor doesn't exist, this function has no effect.
 		 */		
 		function removeCursor(id:String):void;
+		
+		function addToQueue(id:String):void;
 	}
 }
