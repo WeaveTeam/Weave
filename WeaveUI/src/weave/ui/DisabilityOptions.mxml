@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 
@@ -25,14 +25,14 @@
 -->
 
 <ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				backgroundColor="#EFF4BC"
-				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
-				title="Disability Options"
-				sessionPanelCoordsAsPercentages="false"
-				width="400"
-				height="400"
-				>
+			  backgroundColor="#EFF4BC"
+			  horizontalScrollPolicy="off" verticalScrollPolicy="off"
+			  xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
+			  title="Disability Options"
+			  sessionPanelCoordsAsPercentages="false"
+			  width="400"
+			  height="400"
+			  >
 	
 	<mx:HDividedBox id="disabilityOptions" width="100%" 
 					height="100%"
@@ -42,16 +42,16 @@
 					paddingLeft="{padding}">
 		<mx:TabNavigator borderStyle="inset" height="100%">
 			
-		
+			
 			<mx:VBox label="Basic" 
-				width="100%"
-				 height = "100%"
-				 verticalAlign="top"
-				 horizontalAlign="left"
-				 >
+					 width="100%"
+					 height = "100%"
+					 verticalAlign="top"
+					 horizontalAlign="left"
+					 >
 				<mx:Label text="HTML Alt Text:"
 						  textAlign="left"/>
-					  
+				
 				<mx:TextInput 
 					id="altTextInputBox"
 					horizontalCenter="true"
@@ -59,7 +59,7 @@
 					width="100%" 
 					height = "30%"
 					backgroundColor="#EEEEEE"/>
-		
+				
 			</mx:VBox>
 			<mx:VBox label="Advanced" 
 					 width="100%"
@@ -77,71 +77,55 @@
 					width="100%" 
 					height = "30%"
 					backgroundColor="#EEEEEE"/>
-				<mx:VBox>
-					<mx:CheckBox id="barChart" label="{lang('Bar Chart')}"/>				
-					<mx:CheckBox id="dataTable" label="{lang('Data Table')}"/>
-					<mx:CheckBox id="histogram" label="{lang('Histogram')}"/>
-					<mx:CheckBox id="lineChart" label="{lang('Line Chart')}"/>
-					<mx:CheckBox id="scatterPlot" label="{lang('Scatterplot')}"/>
 				
+				<mx:VBox verticalScrollPolicy="on" id="menuToggleVBox">
 					
-				</mx:VBox>
+				</mx:VBox> 
 				
 			</mx:VBox>
 		</mx:TabNavigator>
 	</mx:HDividedBox>
-		<!--<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
-			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:Label text="Active equation"/>
-				<CustomComboBox id="activeEquationCombo" prompt="Select an equation" labelFunction="{getActiveEquationLabel}" change="handleActiveEquationSelect()" width="100%"/>
-			</mx:HBox>
-			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:Label text="Title"/>
-				<mx:TextInput id="titleInput" toolTip="Enter a title for this column." width="100%"/>
-			</mx:HBox>
-			<mx:TabNavigator width="100%" height="100%"
-							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
-				<mx:Canvas label="Equation Text">
-					<mx:TextArea id="textEditor" width="100%" height="100%" errorString="{baseEquationUIComp.errorString}"/>
-				</mx:Canvas>
-				<mx:Canvas label="Equation Tree" id="equationBox" width="100%" backgroundColor="#F2F2F2" borderThickness="1" height="100%" borderStyle="solid" dragEnter="handleDragEnter(event)" dragDrop="handleDragDrop(event)">
-					<EquationUIComponent id="baseEquationUIComp"/>
-				</mx:Canvas>
-			</mx:TabNavigator>
-			<mx:TabNavigator width="100%" height="100%"
-							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
-				<ColumnListComponent label="Edit Variables" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
-				<mx:Canvas label="Edit Variable Names" width="100%" height="100%">
-					<LinkableObjectGrid hashMap="{equationColumn.variables}" width="100%" height="100%"/>
-				</mx:Canvas>
-			</mx:TabNavigator>
-		</mx:VBox>
-		<mx:VBox height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
-			<mx:Label text="Available functions"/>
-			<mx:Accordion id="functionLists" height="100%" minHeight="300" width="100%"/>
-		</mx:VBox>
-	</mx:HDividedBox>
-	<mx:Fade id="fadeIn" duration="800" alphaFrom="0.0" alphaTo="1.0"/>
-	<mx:Fade id="fadeOut" duration="800" alphaFrom="1.0" alphaTo="0.0"/> 
-	*/-->
+	
 	<mx:Script>
 		<![CDATA[
+			import mx.accessibility.CheckBoxAccImpl;
 			import mx.controls.List;
+			import mx.controls.Menu;
 			import mx.controls.TextInput;
 			import mx.core.IUIComponent;
 			import mx.events.DragEvent;
+			import mx.events.FlexEvent;
 			import mx.managers.DragManager;
+			import mx.controls.CheckBox;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.AttributeColumnMetadata;
+			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
+			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.ui.ILinkableObjectEditor;
+			import weave.api.ui.IPlotLayer;
+			import weave.api.ui.IPlotter;
+			import weave.api.unlinkBindableProperty;
 			import weave.api.unlinkSessionState;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
+			import weave.editors.WeavePropertiesMenuEditor;
+			import weave.ui.AlertTextBox;
+			import weave.ui.AlertTextBoxEvent;
+			import weave.ui.ControlPanel;
+			import weave.ui.SessionStateEditor;
+			import weave.ui.controlBars.WeaveMenuBar;
+			import weave.ui.controlBars.WeaveMenuItem;
+			import weave.utils.EditorManager;
 			import weave.utils.EventUtils;
+			import weave.visualization.layers.PlotLayer;
+			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.plotters.DynamicPlotter;
 			
 			private const padding:int = 5;
 			
@@ -155,201 +139,64 @@
 				panelY.value = "15%";
 			}
 			
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-		//		var constantVBox:VBox = new VBox();
-		//	    constantVBox.percentWidth = 100;
-		//	    constantVBox.percentHeight = 100;
-		//		constantVBox.label = "Constants";
-		//		var constants:Array = new Array();
 				
-		//		var libraries:Array = EquationColumn.compiler.getAllLibraries();
-		/*		for each (var library:Object in libraries)
+				var panels:Array = Weave.root.getObjects(DraggablePanel);
+				var panelsOnStage:Array = [];
+				var cbArray:Array = [];
+				var cb:CheckBox;
+				
+				for each (var panel:DraggablePanel in panels)
 				{
-					var functions:Array = new Array();
+					if (!panel.minimized.value) {
+						//panelsOnStage.push(panel.title);
+						
+						cb = new CheckBox();
+						//cb.label = panelsOnStage.toString();	
+						cb.label = WeaveAPI.getRegisteredImplementationDisplayName(panel as Class) || getQualifiedClassName(panel).split(':').pop();
+						linkBindableProperty(panels[panel], cb, 'selected');
+						cbArray.push(cb);
+						
+						//panelsOnStage.push(panel.title);
+					}
 					
-					var classInfo:XML = describeType(library);
-					for each (var constantTag:XML in classInfo.child("constant"))
-						if (constantTag.@name.toString() != 'VERSION')
-							constants.push(constantTag);
-					for each (var functionTag:XML in classInfo.child("method"))
-						functions.push(functionTag);
 					
-					functions.sortOn("@name",Array.CASEINSENSITIVE);
-					
-					var listVBox:VBox = new VBox();
-					listVBox.percentWidth = 100;
-					listVBox.percentHeight = 100;
-					listVBox.label = classInfo.@name;
-					var lastIndex:int = listVBox.label.lastIndexOf(":");
-					if(lastIndex != -1)
-						listVBox.label = listVBox.label.substring(lastIndex+1,listVBox.label.length);
-					var functionList:List = new List();
-					functionList.dataProvider = functions; 
-					functionList.labelFunction= getLabel;
-					functionList.minHeight = 300;
-					functionList.percentWidth = 100;
-					functionList.dragEnabled = true;
-					functionList.doubleClickEnabled = true;
-					functionList.rowCount = functionList.dataProvider.length;
-					functionList.setStyle("borderStyle","none");
-					functionList.addEventListener(MouseEvent.DOUBLE_CLICK,handleListItemDoubleClick);
-					listVBox.addChild(functionList);
-					
-					functionLists.addChild(listVBox);
-				
-				*/
-				}
-			/*
-				constants.sortOn("@name",Array.CASEINSENSITIVE);
-				
-				var constantsList:List = new List();
-				constantsList.dataProvider = constants; 
-				constantsList.labelFunction = getLabel;
-				constantsList.minHeight = 300;
-				constantsList.percentWidth = 100;
-				constantsList.dragEnabled = true;
-				constantsList.rowCount = constantsList.dataProvider.length;
-				constantsList.setStyle("borderStyle", "none");
-				constantVBox.addChild(constantsList);
-				
-				functionLists.addChild(constantVBox);
-				
-				equationBox.addEventListener(DragEvent.DRAG_DROP, captureDragDrop, true);
-
-				linkSessionState(equationColumn.equation, baseEquationUIComp.equation);
-//				linkBindableProperty(equationColumn.equation, textEditor, "text");
-//				linkBindableProperty(equationColumn.columnTitle, titleInput, "text");
-				
-				titleInput.text = equationColumn.getMetadata(AttributeColumnMetadata.TITLE);
-				EventUtils.addDelayedEventCallback(titleInput, Event.CHANGE, handleTitleTextEntry);
-				equationColumn.addImmediateCallback(this,handleTitleSessionStateChange);
-				
-				
-				textEditor.text = equationColumn.equation.value;
-				EventUtils.addDelayedEventCallback(textEditor, Event.CHANGE, handleEquationTextEntry);
-				equationColumn.equation.addImmediateCallback(this,handleEquationSessionStateChange);
-				
-				Weave.root.childListCallbacks.addImmediateCallback(this, updateActiveEquationCombo, true);
-				activeEquationCombo.selectedIndex = 0;
-				handleActiveEquationSelect();
-				
-				this.targets = [dynamicColumn];
-			}
-			*/
-			//public const dynamicColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(EquationColumn), handleGlobalColumnChange);
-			//private const equationColumn:EquationColumn = newLinkableChild(this, EquationColumn);
-			
-			/*private function getActiveEquationLabel(eqCol:EquationColumn):String
-			{
-				if (eqCol == equationColumn)
-					return 'Create New Equation...';
-				return eqCol.getMetadata(AttributeColumnMetadata.TITLE) || 'Untitled';
-			}
-			private function handleActiveEquationSelect():void
-			{
-				if (activeEquationCombo.selectedItem == equationColumn)
-				{
-					var newEquation:EquationColumn = Weave.root.requestObject(null, EquationColumn, false);
-					newEquation.setMetadata(AttributeColumnMetadata.TITLE, Weave.root.getName(newEquation));
-					activeEquationCombo.selectedItem = newEquation;
-				}
-				dynamicColumn.globalName = Weave.root.getName(activeEquationCombo.selectedItem as EquationColumn);
-			}
-			private function updateActiveEquationCombo():void
-			{
-				activeEquationCombo.dataProvider = Weave.root.getObjects(EquationColumn).concat(equationColumn); // 'new equation' at end of list
-				activeEquationCombo.selectedItem = dynamicColumn.internalColumn;
-			}
-			
-			private var _previousGlobalColumn:EquationColumn = null;
-			private function handleGlobalColumnChange():void
-			{
-				var shouldSave:Boolean = false;
-				if (_previousGlobalColumn != dynamicColumn.internalColumn as EquationColumn)
-				{
-					if (_previousGlobalColumn)
-						unlinkSessionState(_previousGlobalColumn, equationColumn);
-					_previousGlobalColumn = dynamicColumn.internalColumn as EquationColumn;
-					if (_previousGlobalColumn)
-						linkSessionState(_previousGlobalColumn, equationColumn);
-					shouldSave = true;
-				}
-				activeEquationCombo.selectedItem = dynamicColumn.internalColumn;
-				handleActiveEquationSelect();
-				if (shouldSave)
-					save();
-			}
-			
-			private function handleListItemDoubleClick(event:MouseEvent):void
-			{
-				baseEquationUIComp.replaceEquation(((event.currentTarget as List).selectedItem) as XML);
-					
-			}
-			private function handleDragEnter(event:DragEvent):void
-			{
-				var dropTarget:IUIComponent = event.currentTarget as IUIComponent
-				DragManager.acceptDragDrop(dropTarget);
-			}
-			
-			private function handleDragDrop(event:DragEvent):void
-			{
-				baseEquationUIComp.replaceEquation(((event.dragInitiator as List).selectedItem) as XML);
-			}
-			
-			private function captureDragDrop(event:DragEvent):void
-			{
-				var items:Array = event.dragSource.dataForFormat("items") as Array;
-				if (items[0] is ILinkableObject)
-				{
-					var eqName:String = equationColumn.variables.getName(items[0] as ILinkableObject);
-				
-					eqName = "get(" + EquationColumn.compiler.encodeString(eqName) + ")";
-					
-					event.draggedItem = eqName;
-				}
+					cbArray.sortOn('label');
+					for each (cb in cbArray)
+					menuToggleVBox.addChild(cb);}
 				
 			}
 			
-			private function getLabel(item:Object):String
-			{
-				if ((item as XML).localName() == "constant")
-					return item.@name;
-				var label:String = (item as XML).@name + "(";
-				var params:XMLList = item.parameter;
-				for (var i:int = 0; i < params.length(); i++)
-				{
-					if (i > 0)
-						label += ',';
-					label += String(params[i].@type).split("::").pop();
-				}
-				label += ")";
-				return label;
-			}
-			
-			private function handleTitleTextEntry():void
-			{
-				equationColumn.setMetadata(AttributeColumnMetadata.TITLE, titleInput.text);
-			}
-			private function handleTitleSessionStateChange():void
-			{
-				// get the actual metadata string instead of the result of applying the title function
-				if (equationColumn.metadata.value)
-					titleInput.text = equationColumn.metadata.value[AttributeColumnMetadata.TITLE];
-			}
 			
 			
-			private function handleEquationTextEntry():void
+			
+			/*	private function getWindowsOnStage(): Array
 			{
-				equationColumn.equation.value = textEditor.text;
-			}
-			private function handleEquationSessionStateChange():void
+			var panels:Array = Weave.root.getObjects(DraggablePanel);
+			var panelsOnStage:Array = [];
+			
+			
+			for each (var panel:DraggablePanel in panels)
 			{
-				textEditor.text = equationColumn.equation.value;
+			if (!panel.minimized.value) 
+			panelsOnStage.push(panel);
+			//panelsOnStage.push(panel.title);
 			}
-			*/
+			
+			return panelsOnStage;
+			}*/
+			
+			
+			
+			
+			
+			
+			
+			
 		]]>
 	</mx:Script>
 	
