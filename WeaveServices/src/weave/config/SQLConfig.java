@@ -122,8 +122,8 @@ public class SQLConfig
 	}
 	private void initSQLTables() throws RemoteException, SQLException
 	{
-	        public_attributes = new AttributeValueTable(connection, dbInfo.schema, table_meta_private);
-                private_attributes = new AttributeValueTable(connection, dbInfo.schema, table_meta_public);	
+	        public_attributes = new AttributeValueTable(connection, dbInfo.schema, table_meta_public);
+                private_attributes = new AttributeValueTable(connection, dbInfo.schema, table_meta_private);	
                 relationships = new ParentChildTable(connection, dbInfo.schema, table_tags);
                 manifest = new ManifestTable(connection, dbInfo.schema, table_manifest);
 	/* TODO: Figure out nice way to do this from within the classes. */	
@@ -283,7 +283,15 @@ public class SQLConfig
         }
         public Collection<DataEntity> getChildren(Integer id) throws RemoteException
         {
-            return getEntities(relationships.getChildren(id));
+            if (id == -1) id = null;
+            Collection<Integer> children_ids = relationships.getChildren(id);
+            if (id == null)
+            {
+                Collection<Integer> completeSet = manifest.getAll();
+                completeSet.removeAll(children_ids);
+                children_ids = completeSet;
+            }
+            return getEntities(children_ids);
         }
         public Collection<String> getUniqueValues(String property) throws RemoteException
         {
@@ -637,6 +645,19 @@ public class SQLConfig
                 {
                     throw new RemoteException("Unable to get by type.", e);
                 }
+            }
+            public Collection<Integer> getAll() throws RemoteException
+            {
+                try
+                {
+                    Connection conn = this.conn.getConnection();
+                    Collection<Integer> ids = new LinkedList<Integer>();
+                    return new HashSet<Integer>(SQLUtils.getIntColumn(conn, schemaName, tableName, MAN_ID));
+                }
+                catch (Exception e)
+                {
+                    throw new RemoteException("Unable to get complete manifest.", e);
+                } 
             }
         }
 }

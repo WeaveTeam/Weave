@@ -43,7 +43,7 @@ package weave.services.beans
 		public function AttributeColumnInfo(o:Object)
 		{
 			this.id = o.id;
-                        this.entity_type = o.type
+                        this.entity_type = o.type;
 			this.privateMetadata = o.privateMetadata;
 			this.publicMetadata = o.publicMetadata;
 	

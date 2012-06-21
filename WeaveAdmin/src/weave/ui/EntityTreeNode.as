@@ -83,6 +83,32 @@ package weave.ui
             object = oldobject;
             committed = true;
         }
+        public function updateFromDataProvider(dp:Array):void
+        {
+            if (this.committed == true)
+            {
+
+            }
+            for each (var row:Object in dp)
+            {
+            }
+            return;
+        }
+        public function asDataProvider():Array
+        {
+            function objToArr(o:Object, isPrivate:Boolean = false):Array
+            {
+                var arr:Array = [];
+                for (var prop:String in o) 
+                {
+                    arr.push({property: prop, value: o[prop], isPrivate: isPrivate});
+                }
+                return arr;
+            }
+            var dgarr:Array = objToArr(object.publicMetadata);
+            dgarr = dgarr.concat(objToArr(object.privateMetadata, true));
+            return dgarr;
+        }
         public function commit():void 
         { 
             

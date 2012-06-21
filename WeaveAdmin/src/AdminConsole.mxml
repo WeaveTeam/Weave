@@ -46,9 +46,7 @@
 				<mx:VDividedBox width="100%" height="100%" >
 					<mx:TabNavigator id="tabNavigator" width="100%" height="100%" paddingBottom="8" paddingLeft="8" paddingRight="8" paddingTop="8" fontSize="10">
 						<managers:ClientConfigurationManager id="clientConfig"/>
-						<managers:DataTableManager/>
 						<managers:MetadataManager/>
-						<managers:GeometryCollectionManager/>
 						<managers:SQLConnectionManager id="sqlConnectionManager"/>
 					</mx:TabNavigator>
 					<mx:TextArea width="100%" height="0%" id="messageTextArea" editable="false"/>

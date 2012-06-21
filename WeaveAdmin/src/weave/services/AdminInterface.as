@@ -337,19 +337,6 @@ package weave.services
                 {
                     service.getEntitiesWithType(activeConnectionName, activePassword, type_id, meta).addAsyncResponder(handler);
                 }
-                public function getGeometryCollectionInfo(title:String):DelayedAsyncInvocation
-                {
-                    var params:Object = {"title": title, "dataType": "geometry"}; // TODO: make these all constants.
-                    return service.getEntitiesWithType(activeConnectionName, activePassword, AttributeColumnInfo.COLUMN, params);
-                }
-	        public function saveGeometryCollectionInfo(info:AttributeColumnInfo):void
-                {
-                    // TODO: find ID with getEntitiesWithType, then updateEntity
-                }
-                public function removeGeometryCollectionInfo(title:String):void
-                {
-                    // TODO: find ID with getEntitiesWithType, then removeEntity
-                }
                 public function getDataTableInfo(title:String):DelayedAsyncInvocation
                 {
                     var params:Object = {"title": title};

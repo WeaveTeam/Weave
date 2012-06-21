@@ -652,22 +652,24 @@ public class AdminService extends GenericServlet
                 if (cInfo.is_superuser)
                     config.removeEntity(tag_id);
                 else
-                    return;
+                    throw new RemoteException("User cannot remove entity.", null);
         }
-        synchronized public boolean updateEntity(String connectionName, String password, int entity_id, HashMap<String,String> newdata) throws RemoteException
+        synchronized public void updateEntity(String connectionName, String password, int entity_id, HashMap<String,String> newdata) throws RemoteException
         {
                 ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
                 ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
                 if (cInfo.is_superuser)
                     config.updateEntity(entity_id, newdata);
                 else
-                    throw new RemoteException("User cannot modify column.", null);
+                    throw new RemoteException("User cannot modify entity.", null);
         }
         synchronized public DataEntity[] getEntityChildren(String connectionName, String password, int parent_id) throws RemoteException
         {
                 ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+                Collection<DataEntity> children = config.getChildren(parent_id);
+                System.out.println(String.format("getEntityChildren called; returned %d results.", children.size()));
                 /* Maybe I should fold this out into a hashMap of types to hashmaps of ids to hashmaps of properties to strings? */
-                return config.getChildren(parent_id).toArray(new DataEntity[0]);
+                return children.toArray(new DataEntity[0]);
         }
         synchronized public DataEntity getEntity(String connectionName, String password, int id) throws RemoteException
         {
@@ -679,7 +681,7 @@ public class AdminService extends GenericServlet
             ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
             return config.findEntities(meta).toArray(new DataEntity[0]);
         }
-        synchronized public DataEntity[] getEntitiesWithType(String connectionName, String password, Integer type_id, HashMap<String,String> meta)
+        synchronized public DataEntity[] getEntitiesWithType(String connectionName, String password, Integer type_id, HashMap<String,String> meta) throws RemoteException
         {
             ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
             return config.findEntities(meta, type_id).toArray(new DataEntity[0]);

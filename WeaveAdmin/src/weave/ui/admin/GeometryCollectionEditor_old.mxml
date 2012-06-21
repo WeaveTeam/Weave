@@ -103,7 +103,7 @@
 					info.importNotes = importNotesInput.text;
 					info.projection = projectionInput.text;
 					
-					AdminInterface.instance.saveGeometryCollectionInfo(info);
+//					AdminInterface.instance.saveGeometryCollectionInfo(info);
 					dataChanged = false;
 				}
 			}
@@ -113,7 +113,7 @@
 				// ask user to confirm
 				function del():void
 				{
-					AdminInterface.instance.removeGeometryCollectionInfo(nameInput.text);
+//					AdminInterface.instance.removeGeometryCollectionInfo(nameInput.text);
 				}
 				PopUpUtils.confirm(
 						this,

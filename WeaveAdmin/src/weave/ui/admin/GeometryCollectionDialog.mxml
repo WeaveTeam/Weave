@@ -91,6 +91,7 @@
 			
 			private function getGeometryCollectionNames():void
 			{
+                            /*
 				var query:DelayedAsyncInvocation = AdminInterface.instance.getGeometryCollectionNames();
 				if (query)
 				{
@@ -98,6 +99,7 @@
 					var handler:Function = function(..._):void { refreshingGeoms = false; };
 					query.addAsyncResponder(handler, handler);
 				}
+                            */
 			}
 			private function getKeyTypes():void
 			{
