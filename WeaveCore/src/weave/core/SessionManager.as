@@ -464,7 +464,7 @@ package weave.core
 		{
 			if (root == null)
 			{
-				reportError("SessionManager.getDescendants(): root cannot be null.");
+				reportError("SessionManager.getLinkableDescendants(): root cannot be null.");
 				return [];
 			}
 
@@ -871,8 +871,8 @@ package weave.core
 			// set some variables to aid in debugging - only useful if you add a breakpoint here.
 			var obj:*;
 			var ownerPath:Array = []; while (obj = getLinkableOwner(obj)) { ownerPath.unshift(obj); }
-			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject] || []) { parents.push[obj]; }
-			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject] || []) { children.push[obj]; }
+			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject]) { parents.push[obj]; }
+			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject]) { children.push[obj]; }
 			var sessionState:Object = getSessionState(disposedObject);
 
 			// ADD A BREAKPOINT HERE TO DIAGNOSE THE PROBLEM
@@ -899,7 +899,7 @@ package weave.core
 		/**
 		 * This function is for debugging purposes only.
 		 */
-		private function getPaths(root:ILinkableObject, descendant:ILinkableObject):Array
+		private function _getPaths(root:ILinkableObject, descendant:ILinkableObject):Array
 		{
 			var results:Array = [];
 			for (var parent:Object in childToParentDictionaryMap[descendant])
@@ -908,12 +908,12 @@ package weave.core
 				if (parent is ILinkableHashMap)
 					name = (parent as ILinkableHashMap).getName(descendant);
 				else
-					name = getChildPropertyName(parent as ILinkableObject, descendant);
+					name = _getChildPropertyName(parent as ILinkableObject, descendant);
 				
 				if (name != null)
 				{
 					// this parent may be the one we want
-					var result:Array = getPaths(root, parent as ILinkableObject);
+					var result:Array = _getPaths(root, parent as ILinkableObject);
 					if (result != null)
 					{
 						result.push(name);
@@ -929,7 +929,7 @@ package weave.core
 		/**
 		 * internal use only
 		 */
-		private function getChildPropertyName(parent:ILinkableObject, child:ILinkableObject):String
+		private function _getChildPropertyName(parent:ILinkableObject, child:ILinkableObject):String
 		{
 			// find the property name that returns the child
 			for each (var name:String in getLinkablePropertyNames(parent))
@@ -1037,7 +1037,7 @@ package weave.core
 		 * linking sessioned objects with bindable properties
 		 ******************************************************/
 		
-		private const VALUE_NOT_ACCEPTED:String = 'Value not accepted.'; // errorString used by linkBindableProperty
+		private const VALUE_NOT_ACCEPTED:String = lang('Value not accepted.'); // errorString used by linkBindableProperty
 		
 		/*private function debugLink(linkVal:Object, bindVal:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
 		{
@@ -1279,6 +1279,15 @@ package weave.core
 		 * This maps a ChangeWatcher object to a function that was added as a callback to the corresponding ILinkableVariable.
 		 */
 		private const _watcherToSynchronizeFunctionMap:Dictionary = new Dictionary(); // use weak links to be GC-friendly
+		
+		
+		
+		
+		
+		/*******************
+		 * Computing diffs
+		 *******************/
+		
 		
 		internal static const DIFF_DELETE:String = 'delete';
 		
