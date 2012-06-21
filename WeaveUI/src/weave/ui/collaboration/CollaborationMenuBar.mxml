@@ -88,6 +88,7 @@
 				collabService.addEventListener(CollaborationEvent.UPDATE_MIC, userMicUpdated);
 				collabService.addEventListener(CollaborationEvent.UPDATE_CAM, userCamUpdated);
 				collabService.addEventListener(CollaborationEvent.REQUEST_MOUSE_CONTROL, addMouseToQueue);
+				collabService.addEventListener(CollaborationEvent.RELINQUISH_MOUSE_CONTROL, removeMouseFromQueue);
 				
 				rtmpService.addEventListener(NetStatusEvent.NET_STATUS, rtmpNetStatus);
 				rtmpService.addEventListener(SecurityErrorEvent.SECURITY_ERROR, rtmpSecurityError);
@@ -95,6 +96,7 @@
 				createWindowChat();
 				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
 				CHAT.addEventListener(CollaborationEvent.SEND_MOUSE_CONTROL_REQUEST, sendRequestMessage);
+				CHAT.addEventListener(CollaborationEvent.SEND_RELINQUISH_MOUSE_CONTROL, sendRelinquishMessage);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
 				CHAT.userNameList = collabService.userList;
@@ -604,12 +606,24 @@
 			
 			private function addMouseToQueue(e:CollaborationEvent):void
 			{
-					WeaveAPI.CollaborationCursorManager.addToQueue(e.getText());
+				if( WeaveAPI.CollaborationCursorManager.addToQueue(e.getText(), collabService.nickname) )
+					CHAT.cursorButton.label = lang("Relinquish Control");
 			}
 			
 			public function sendRequestMessage(e:CollaborationEvent):void
 			{
 				collabService.requestMouseControl(collabService.nickname);
+			}
+			
+			public function sendRelinquishMessage(e:CollaborationEvent):void
+			{
+				collabService.relinquishMouseControl(collabService.nickname);
+			}
+			
+			public function removeMouseFromQueue(e:CollaborationEvent):void
+			{
+				if( WeaveAPI.CollaborationCursorManager.removeFromQueue(e.getText(), collabService.nickname) )
+					CHAT.cursorButton.label = lang("Relinquish Control");
 			}
 			
 			private function coordToPercentX(x:Number):Number { return x / WeaveAPI.topLevelApplication.stage.stageWidth;   }

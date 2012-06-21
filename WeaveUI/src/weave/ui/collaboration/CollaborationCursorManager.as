@@ -154,23 +154,29 @@ package weave.ui.collaboration
 			return false;
 		}
 		
-		public function addToQueue(id:String):void
+		public function addToQueue(id:String, self:String):Boolean
 		{
 			for( var i:int = 0; i < cursorQueue.length; i++ )
 			{
 				if( cursorQueue[i] == id )
-					return;
+					return checkQueuePosition(self);
 			}	
-			cursorQueue[cursorQueue.length] = id;
+			cursorQueue.push(id);
+			return checkQueuePosition(self);
 		}
 		
-		public function removeFromQueue(id:String):void
+		public function removeFromQueue(id:String, self:String):Boolean
 		{
 			for( var i:int = 0; i < cursorQueue.length; i++ )
 			{
 				if( cursorQueue[i] == id )
+				{
+					if( cursorList[id] != null )
+						(cursorList[id] as CollabMouseCursor).alpha = 0;
 					cursorQueue.splice(i, 1);
+				}
 			}
+			return checkQueuePosition(self);
 		}
 	}
 }

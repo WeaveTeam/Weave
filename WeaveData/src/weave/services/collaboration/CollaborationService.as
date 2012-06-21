@@ -102,7 +102,7 @@ package weave.services.collaboration
 			this.root = root;
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
 			// all of these classes are internal
-			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, RequestMouseControl, Ping, AddonsMessage, AddonStatus])
+			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, RequestMouseControl, RelinquishMouseControl, Ping, AddonsMessage, AddonStatus])
 				registerClassAlias(getQualifiedClassName(c), c);
 				
 			userList.sort = new Sort();
@@ -223,6 +223,11 @@ package weave.services.collaboration
 		public function requestMouseControl(id:String):void
 		{
 			var message:RequestMouseControl = new RequestMouseControl(nickname);
+			sendEncodedObject(message, null);
+		}
+		public function relinquishMouseControl(id:String):void
+		{
+			var message:RelinquishMouseControl = new RelinquishMouseControl(nickname);
 			sendEncodedObject(message, null);
 		}
 		public function requestAddonStatus( id:String, info:Dictionary = null ):void
@@ -481,6 +486,11 @@ package weave.services.collaboration
 					var rmc:RequestMouseControl = o as RequestMouseControl;
 					dispatchEvent(new CollaborationEvent(CollaborationEvent.REQUEST_MOUSE_CONTROL, rmc.id));	
 				}
+				else if( o is RelinquishMouseControl )
+				{
+					var rlmc:RelinquishMouseControl = o as RelinquishMouseControl;
+					dispatchEvent(new CollaborationEvent(CollaborationEvent.RELINQUISH_MOUSE_CONTROL, rlmc.id));
+				}
 				else if( o is MouseMessage )
 				{
 					var mm:MouseMessage = o as MouseMessage;
@@ -721,6 +731,15 @@ internal class RequestMouseMessage
 internal class RequestMouseControl
 {
 	public function RequestMouseControl(id:String = null)
+	{
+		this.id = id;
+	}
+	
+	public var id:String;
+}
+internal class RelinquishMouseControl
+{
+	public function RelinquishMouseControl(id:String = null)
 	{
 		this.id = id;
 	}

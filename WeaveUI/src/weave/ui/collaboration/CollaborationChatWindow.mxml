@@ -103,12 +103,12 @@
 								</mx:Component>
 							</mx:itemRenderer>
 						</mx:List>
-						<mx:Button label="Request Cursor Control" height="10%" click="button1_clickHandler(event)"/>
+						<mx:Button id="cursorButton" label="{lang('Request Cursor Control')}" height="10%" click="button1_clickHandler(event)"/>
 					</mx:VBox>
 				</mx:HDividedBox>
 				<mx:HBox width="100%">
 					<mx:TextInput id="input" width="100%" enter="dispatchMessageEvent()" />
-					<mx:Button id="button_send" label="Send" click="dispatchMessageEvent()" />
+					<mx:Button id="button_send" label="{lang('Send')}" click="dispatchMessageEvent()" />
 				</mx:HBox>
 			</mx:VBox>
 		</mx:VBox>
@@ -469,7 +469,16 @@
 			
 			protected function button1_clickHandler(event:MouseEvent):void
 			{
-				dispatchEvent(new CollaborationEvent( CollaborationEvent.SEND_MOUSE_CONTROL_REQUEST ) );
+				if( lang("Request Cursor Control") == cursorButton.label )
+				{
+					dispatchEvent(new CollaborationEvent( CollaborationEvent.SEND_MOUSE_CONTROL_REQUEST ) );
+					cursorButton.label = lang("Cancel Control Request");
+				}
+				else if( lang("Relinquish Control") == cursorButton.label || lang("Cancel Control Request") == cursorButton.label)
+				{
+					dispatchEvent(new CollaborationEvent( CollaborationEvent.SEND_RELINQUISH_MOUSE_CONTROL ) );
+					cursorButton.label = lang("Request Cursor Control");
+				}
 			}
 			
 		]]>
