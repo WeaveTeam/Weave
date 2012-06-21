@@ -23,6 +23,7 @@ package
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILocaleManager;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.core.IStageUtils;
@@ -35,6 +36,7 @@ package
 	import weave.core.ErrorManager;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableHashMap;
+	import weave.core.LocaleManager;
 	import weave.core.ProgressIndicator;
 	import weave.core.SessionManager;
 	import weave.core.SessionStateLog;
@@ -96,6 +98,7 @@ package
 		WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
 		WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
 		WeaveAPI.registerSingleton(ICSVParser, CSVParser);
+		WeaveAPI.registerSingleton(ILocaleManager, LocaleManager);
 		WeaveAPI.registerSingleton(ILinkableHashMap, LinkableHashMap);
 		
 		/**

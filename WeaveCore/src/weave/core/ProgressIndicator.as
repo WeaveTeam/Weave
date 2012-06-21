@@ -30,6 +30,25 @@ package weave.core
 	 */
 	public class ProgressIndicator implements IProgressIndicator
 	{
+		private const _objToTask:Dictionary = new Dictionary(true);
+		
+		public function registerDependency(owner:Object, taskToken:Object):void
+		{
+			
+		}
+		
+		// hasActiveTask
+		// hasAsyncTask
+		// hasAsyncDependency
+		// isAsync
+		// isBusy
+		// linkableObjectIsBusy
+		
+		public function linkableObjectIsBusy(linkableObject:Object):Boolean
+		{
+			return false;
+		}
+
 		/**
 		 * @inheritDoc
 		 */

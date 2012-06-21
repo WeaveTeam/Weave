@@ -34,7 +34,7 @@ package
 	{
 		try
 		{
-			if (WeaveAPI.getLocale() == 'developer')
+			if (WeaveAPI.LocaleManager.getLocale() == 'developer')
 			{
 				parameters.unshift(text);
 				return 'lang("' + parameters.join('", "') + '")';
@@ -44,7 +44,7 @@ package
 		{
 		}
 		
-		var newText:String = WeaveAPI.localize(text);
+		var newText:String = WeaveAPI.LocaleManager.localize(text);
 		
 		if (parameters.length)
 		{
