@@ -32,6 +32,8 @@ package
 	 */
 	public function lang(text:String, ...parameters):String
 	{
+		var newText:String = WeaveAPI.LocaleManager.localize(text);
+		
 		try
 		{
 			if (WeaveAPI.LocaleManager.getLocale() == 'developer')
@@ -43,8 +45,6 @@ package
 		catch (e:Error)
 		{
 		}
-		
-		var newText:String = WeaveAPI.LocaleManager.localize(text);
 		
 		if (parameters.length)
 		{
