@@ -24,10 +24,8 @@ package weave.ui.collaboration
 	import flash.utils.Timer;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.ui.ICollabCursorManager;
-	import weave.core.LinkableNumber;
 	
 	/**
 	 * A manager for the cursors in collaboration.
@@ -36,7 +34,7 @@ package weave.ui.collaboration
 	 */
 	public class CollaborationCursorManager implements ICollabCursorManager
 	{
-		public static var numMouses:Number = new Number(1);
+		public static var numMouses:Number = 1;
 		private var cursorList:Dictionary = null;
 		private var cursorQueue:Array = null;
 		
@@ -85,7 +83,7 @@ package weave.ui.collaboration
 				(cursorList[id] as CollabMouseCursor).alpha = 0;
 			}
 		}
-		
+		//This function is used to produce the effect of the mouse fading.
 		private function fadeMouse(event:TimerEvent):void
 		{
 			if( cursorList != null )
@@ -96,6 +94,7 @@ package weave.ui.collaboration
 					timer.start();
 					timer.addEventListener(TimerEvent.TIMER, function fadeCursor(e:TimerEvent):void
 					{
+						//Inline function for fading effect.
 						i++;
 						if( cursorList[mouseID] == null )
 							return;
@@ -141,22 +140,7 @@ package weave.ui.collaboration
 			{
 				reportError(e, "Could not delete specified cursor.");
 			}
-		}
-		
-		private function checkQueuePosition(id:String):Number
-		{
-			for( var i:int = 0; i < cursorQueue.length; i++ )
-			{
-				if( cursorQueue[i] == id )
-				{
-					if( i - numMouses < 0 )
-						return 0;
-					else if( i - numMouses >= 0 )
-						return i - numMouses + 1;
-				}
-			}
-			return -1;
-		}
+		}	
 		
 		public function addToQueue(id:String, self:String):Number
 		{
@@ -185,6 +169,24 @@ package weave.ui.collaboration
 				}
 			}
 			return checkQueuePosition(self);
+		}
+		
+		/*This will return 0 if the id is an active mouse, return a number above 0 to indicate
+		* position in the line to become an active mouse, or return -1 if the id is not in the queue.
+		*/
+		private function checkQueuePosition(id:String):Number
+		{
+			for( var i:int = 0; i < cursorQueue.length; i++ )
+			{
+				if( cursorQueue[i] == id )
+				{
+					if( i - numMouses < 0 )
+						return 0;
+					else if( i - numMouses >= 0 )
+						return i - numMouses + 1;
+				}
+			}
+			return -1;
 		}
 	}
 }

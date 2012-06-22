@@ -80,8 +80,22 @@ package weave.api.ui
 		 */		
 		function removeCursor(id:String):void;
 		
+		/**
+		 * 
+		 * @param id The id of the mouse to be added to the queue.
+		 * @param self The id of yourself to check if your mouse should be displayed for others.
+		 * @return Returns a number indicating your position in the queue. 0 means actively being displayed, >0 represents the position in line in the queue till active mouse, and -1 means not in the queue.
+		 * 
+		 */
 		function addToQueue(id:String, self:String):Number;
 		
+		/**
+		 * Remove a person from the mouse queue.
+		 * @param id The id of the mouse to be removed from the queue.
+		 * @param self The id of yourself to check if your mouse should be displayed for others.
+		 * @return Returns a number indicating your position in the queue. 0 means actively being displayed, >0 represents the position in line in the queue till active mouse, and -1 means not in the queue.
+		 * 
+		 */
 		function removeFromQueue(id:String, self:String):Number;
 	}
 }
