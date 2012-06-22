@@ -130,6 +130,8 @@ package weave.visualization.plotters
 			keyNumberMap = 			new Dictionary(true);
 			columnTitleMap = 		new Dictionary(true);
 			
+			setAnchorLocations();
+			
 			if (_columns.length > 0) 
 			{
 				setKeySource(_columns[0]);
@@ -176,8 +178,6 @@ package weave.visualization.plotters
 			}
 			else
 				setKeySource(null);
-			
-			setAnchorLocations();
 		}
 		
 		private function handleRadiusColumnChange():void
@@ -341,39 +341,6 @@ package weave.visualization.plotters
 			graphics.endFill();
 		}
 		
-		/**
-		 * This function draws the background graphics for this plotter, if applicable.
-		 * An example background would be the origin lines of an axis.
-		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
-		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
-		 * @param destination The sprite to draw the graphics onto.
-		 */
-		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			var g:Graphics = tempShape.graphics;
-			g.clear();
-
-			coordinate.x = -1;
-			coordinate.y = -1;
-			dataBounds.projectPointTo(coordinate, screenBounds);
-			var x:Number = coordinate.x;
-			var y:Number = coordinate.y;
-			coordinate.x = 1;
-			coordinate.y = 1;
-			dataBounds.projectPointTo(coordinate, screenBounds);
-			
-			// draw RadViz circle
-			try {
-				g.lineStyle(2, 0, .2);
-				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);
-			} catch (e:Error) { }
-			
-			destination.draw(tempShape);
-			_destination = destination;
-			
-			_currentScreenBounds.copyFrom(screenBounds);
-		}
-			
 		/**
 		 * This function sorts record keys based on their radiusColumn values, then by their colorColumn values
 		 * @param key1 First record key (a)

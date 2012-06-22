@@ -51,6 +51,7 @@ package weave.visualization.plotters
 		private var _keySet:KeySet;
 		private const tempPoint:Point = new Point();
 		private const _bitmapText:BitmapText = new BitmapText();
+		private var coordinate:Point = new Point();//reusable object
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
 		public var anchorColorMap:Dictionary;
@@ -164,9 +165,38 @@ package weave.visualization.plotters
 			_currentDataBounds.copyFrom(dataBounds);
 		}
 		
+		
+		/**
+		 * This function draws the background graphics for this plotter, if applicable.
+		 * An example background would be the origin lines of an axis.
+		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
+		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
+		 * @param destination The sprite to draw the graphics onto.
+		 */
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			super.drawBackground(dataBounds,screenBounds,destination);
+			var g:Graphics = tempShape.graphics;
+			g.clear();
+			
+			coordinate.x = -1;
+			coordinate.y = -1;
+			
+			
+			dataBounds.projectPointTo(coordinate, screenBounds);
+			var x:Number = coordinate.x;
+			var y:Number = coordinate.y;
+			coordinate.x = 1;
+			coordinate.y = 1;
+			dataBounds.projectPointTo(coordinate, screenBounds);
+			
+			// draw RadViz circle
+			try {
+				g.lineStyle(2, 0, .2);
+				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);
+			} catch (e:Error) { }
+			
+			destination.draw(tempShape);
 			
 			_currentScreenBounds.copyFrom(screenBounds);
 			_currentDataBounds.copyFrom(dataBounds);
