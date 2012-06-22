@@ -604,6 +604,7 @@
 					WeaveAPI.CollaborationCursorManager.removeCursor(WeaveAPI.CollaborationCursorManager.getCursorIds()[i]);
 			}
 			
+			//Received a message requesting control of the mouse, so this function adds it to the queue.
 			private function addMouseToQueue(e:CollaborationEvent):void
 			{
 				var position:Number = WeaveAPI.CollaborationCursorManager.addToQueue(e.getText(), collabService.nickname);
@@ -623,6 +624,7 @@
 				collabService.relinquishMouseControl(collabService.nickname);
 			}
 			
+			//Received a message for giving up control of the mouse, so this function removes it from the queue.
 			public function removeMouseFromQueue(e:CollaborationEvent):void
 			{
 				var position:Number =  WeaveAPI.CollaborationCursorManager.removeFromQueue(e.getText(), collabService.nickname);
