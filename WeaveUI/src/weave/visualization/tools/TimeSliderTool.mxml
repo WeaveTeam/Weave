@@ -35,9 +35,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.data.IDataSource;
-			import weave.api.getSessionState;
 			import weave.api.ui.IVisTool;
-			import weave.core.SessionManager;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.primitives.AttributeHierarchy;
 			import weave.utils.HierarchyUtils;

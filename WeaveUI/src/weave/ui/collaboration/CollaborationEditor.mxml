@@ -66,13 +66,13 @@
 				linkBindableProperty(Weave.properties.collabServerIP, serverIP, 'text');
 				linkBindableProperty(Weave.properties.collabServerName, serverName, 'text');
 				linkBindableProperty(Weave.properties.collabServerPort, port, 'text');
-				linkBindableProperty(Weave.properties.collabServerRoomToJoin, roomToJoin, 'text');
+				linkBindableProperty(Weave.properties.collabServerRoom, roomToJoin, 'text');
 				linkBindableProperty(Weave.properties.enableCollaborationBar, collabBar, 'selected');
 				
 				this.targets = [Weave.properties.collabServerIP, 
 								Weave.properties.collabServerName, 
 								Weave.properties.collabServerPort, 
-								Weave.properties.collabServerRoomToJoin,
+								Weave.properties.collabServerRoom,
 								Weave.properties.enableCollaborationBar];
 			}
 			

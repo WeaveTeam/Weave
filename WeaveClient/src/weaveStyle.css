@@ -9,7 +9,7 @@
 }
 
 .weave-panel-style, .weave-system-style {
-	borderAlpha: 0.95;
+	borderAlpha: 1.0;
 	alpha: 1.0;
 	backgroundAlpha: 1.0;
 	borderColor: #4D5258;
@@ -40,7 +40,7 @@
 }
 .weave-panel-title-style {
 	color: #FFFFFF;
-	borderAlpha: 0.95;
+	borderAlpha: 1.0;
 	alpha: 1.0;
 	backgroundAlpha: 1.0;
 	borderColor: #4D5258;

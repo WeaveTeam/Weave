@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
-    <classEntry path="weave.ui.userControls.KMeansClusteringEditor"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

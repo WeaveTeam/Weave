@@ -21,8 +21,11 @@ package weave.core
 {
 	import flash.utils.Dictionary;
 	
+	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.getCallbackCollection;
+	import weave.utils.Dictionary2D;
 
 	/**
 	 * This is an implementation of IProgressIndicator.
@@ -30,6 +33,28 @@ package weave.core
 	 */
 	public class ProgressIndicator implements IProgressIndicator
 	{
+//		private const _assignedTasks:Dictionary2D = new Dictionary2D(true, true);
+//		
+//		public function assignTask(owner:ILinkableObject, taskToken:Object):void
+//		{
+//			while (owner)
+//			{
+//				_assignedTasks.set(owner, taskToken, true)
+//				owner = WeaveAPI.SessionManager.getLinkableOwner(owner);
+//			}
+//		}
+//		
+//		/**
+//		 * A linkable object is considered busy if a task has been assigned to it or one of its descendants.
+//		 * @param linkableObject
+//		 * @return 
+//		 * 
+//		 */		
+//		public function linkableObjectIsBusy(linkableObject:Object):Boolean
+//		{
+//			return false;
+//		}
+
 		/**
 		 * @inheritDoc
 		 */

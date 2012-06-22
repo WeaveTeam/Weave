@@ -20,34 +20,33 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				title="Attribute menu"
 				width="300" height="200" implements="weave.api.ui.IVisTool"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
 	<mx:ViewStack id="layoutViewStack" width="100%" height="100%">
-		<mx:Canvas label="Combo Box">
-			<CustomComboBox id="choiceCombo" prompt="Select an attribute..."
+		<mx:Canvas label="{lang('Combo Box')}">
+			<CustomComboBox id="choiceCombo" prompt="{lang('Select an attribute...')}"
 							width="100%" height="100%"
 							labelFunction="choiceLabelFunction"
 							valueCommit="if (UIUtils.hasFocus(choiceCombo)) handleAttrSelected(choiceCombo.selectedIndex);"
 							/>
 		</mx:Canvas>
-		<mx:Canvas label="List">
+		<mx:Canvas label="{lang('List')}">
 			<mx:List id="choiceList" width="100%" height="100%"
 					 labelFunction="choiceLabelFunction"
 					 change="handleAttrSelected(choiceList.selectedIndex);"
 					 />
 		</mx:Canvas>
-		<mx:Canvas label="Vertical Slider">
+		<mx:Canvas label="{lang('Vertical Slider')}">
 			<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
 						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
 						change="handleAttrSelected(choiceVSlider.maximum - choiceVSlider.value);"
 						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 		</mx:Canvas>
-		<mx:Canvas label="Horizontal Slider">
+		<mx:Canvas label="{lang('Horizontal Slider')}">
 			<mx:HBox verticalAlign="middle" width="100%" height="100%">
 				<mx:VBox visible="{hack_showPlayButton}" includeInLayout="{hack_showPlayButton}" horizontalAlign="center">
-					<mx:Button id="playButton" label="&gt;" toggle="true" toolTip="Play" click="lastFrame = getTimer() - 1000 / playSlider.value / 2;"/>
+					<mx:Button id="playButton" label="&gt;" toggle="true" toolTip="{lang('Play')}" click="lastFrame = getTimer() - 1000 / playSlider.value / 2;"/>
 					<mx:HSlider id="playSlider" width="48" minWidth="0" minimum=".5" maximum="2" tickInterval="0.5" snapInterval="0.25" value=".75" dataTipFormatFunction="{formatPlayTip}" liveDragging="true"/>
 				</mx:VBox>
 				<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"
@@ -59,30 +58,30 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:ViewStack>
 	
 	<ControlPanel>
-		<mx:VBox width="100%" label="Settings">
+		<mx:VBox width="100%" label="{lang('Settings')}">
 			<mx:HBox>
 				<mx:VBox>
-					<Indent label="Visualization tool:" indent="140">
-						<CustomComboBox prompt="Select a tool..." id="targetToolCombo" enabled="{targetToolCombo.dataProvider.length > 0}"
+					<Indent label="{lang('Visualization tool:')}">
+						<CustomComboBox prompt="{lang('Select a tool...')}" id="targetToolCombo" enabled="{targetToolCombo.dataProvider.length > 0}"
 										valueCommit="handleComboChange(targetToolCombo, targetTool);" />
-						<HelpComponent>Select the visualization tool that you want the attribute menu to be linked to.</HelpComponent>
+						<HelpComponent content="{lang('Select the visualization tool that you want the attribute menu to be linked to.')}"/>
 					</Indent>
-					<Indent label="Visualization attribute:" indent="140" toolTip="The selected attribute will be modified by the combo box in this menu tool.">
-						<CustomComboBox prompt="Select an attribute..." id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
+					<Indent label="{lang('Visualization attribute:')}">
+						<CustomComboBox prompt="{lang('Select an attribute...')}" id="targetAttributeCombo" enabled="{targetAttributeCombo.dataProvider.length > 0}"
 										valueCommit="handleComboChange(targetAttributeCombo, targetAttribute);" />
-						<HelpComponent>Select the visualization attribute that you want the menu to be linked to.</HelpComponent>
+						<HelpComponent content="{lang('Select the visualization attribute that you want the menu to be linked to.')}"/>
 					</Indent>
-					<Indent label="Menu layout:" indent="140">
-						<CustomComboBox id="layoutCombo" prompt="Select a layout..." labelFunction="{layoutLabelFunction}"
+					<Indent label="{lang('Menu layout:')}">
+						<CustomComboBox id="layoutCombo" prompt="{lang('Select a layout...')}" labelFunction="{layoutLabelFunction}"
 										dataProvider="{layouts}"/>
-						<HelpComponent>Select the layout for the attribute menu.</HelpComponent>
+						<HelpComponent content="{lang('Select the layout for the attribute menu.')}"/>
 					</Indent>
 				</mx:VBox>
 			</mx:HBox>
-			<ColumnListComponent id="choicesComponent" label="Attributes to appear in the menu" />
-			<Indent label="Label function">
+			<ColumnListComponent id="choicesComponent" label="{lang('Attributes to appear in the menu')}" />
+			<Indent label="{lang('Label function')}">
 				<mx:TextInput width="100%" creationComplete="linkBindableProperty(labelFunction, event.target, 'text');"/>
-				<mx:Button label="Reset" click="labelFunction.value = DEFAULT_LABEL_FUNCTION;"/>
+				<mx:Button label="{lang('Reset')}" click="labelFunction.value = DEFAULT_LABEL_FUNCTION;"/>
 			</Indent>
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
@@ -90,6 +89,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.ComboBox;
+			import mx.core.UIComponent;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
@@ -97,6 +97,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -108,6 +109,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.utils.ColumnUtils;
+			import weave.utils.LinkableTextFormat;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.SimpleVisTool;
 
@@ -132,8 +134,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function formatPlayTip(value:Number):String
 			{
 				if (value == 1)
-					return "1 frame per second";
-				return value + ' frames per second';
+					return lang('1 frame per second');
+				return value + lang(' frames per second');
 			};
 			
 			public const targetTool:LinkableString = newLinkableChild(this, LinkableString);
@@ -162,7 +164,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			private static const layouts:Array = ["ComboBox", "List", "VSlider", "HSlider"];
-			private static const layoutLabels:Array = ["Combo Box", "List", "Vertical Slider", "Horizontal Slider"];
+			private static const layoutLabels:Array = [lang('Combo Box'), lang('List'), lang('Vertical Slider'), lang('Horizontal Slider')];
 			private static function verifyLayoutMode(value:String):Boolean { return layouts.indexOf(value) >= 0; }
 
 			private function layoutLabelFunction(inputString:String):String
@@ -175,12 +177,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.constructor();
 				
 				// have a default dynamic title
-				panelTitle.value = "Attribute menu for {targetAttribute.value}"
+				panelTitle.value = lang('Attribute menu for {0}', '{targetAttribute.value}');
 				
 				// have some default choices ready when the tool is created
 				copySessionState(ProbeTextUtils.probedColumns, choices);
 				
 				pinned.value = true;
+				
+				var ltf:LinkableTextFormat = Weave.properties.defaultTextFormat;
+				var target:UIComponent = this;
+				getCallbackCollection(ltf).addGroupedCallback(this, function():void { ltf.copyToStyle(target); }, true);
 			}
 			
 			// called after children have been created

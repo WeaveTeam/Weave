@@ -21,7 +21,7 @@
 -->
 <DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
 		xmlns="weave.ui.*" 
-		borderColor="#C5C3A8"
+		borderColor="#939178"
 		title="Error Log"
 		>
 	<Console id="console" context="{WeaveAPI.ErrorManager}" padding="0"/>

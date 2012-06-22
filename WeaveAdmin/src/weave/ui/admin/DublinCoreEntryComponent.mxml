@@ -25,7 +25,7 @@
 		  width="600" height="400"
 		  title="Metadata entry"
 		  borderAlpha="1"
-		  borderColor="#C5C3A8"
+		  borderColor="#939178"
 		  borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
 		  headerHeight="20" roundedBottomCorners="true">
 	<mx:VBox 	xmlns:mx="http://www.adobe.com/2006/mxml"

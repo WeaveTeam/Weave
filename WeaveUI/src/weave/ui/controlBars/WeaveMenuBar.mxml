@@ -244,27 +244,6 @@
 			{
 				super.createChildren();
 
-    			var saveCurrentMenuItem:WeaveMenuItem = new WeaveMenuItem("Save current selection...");
-    			_dp.addItem(saveCurrentMenuItem);
-    			_dp.addItem(WeaveMenuItem.makeNewSeparatorItem());
-    			
-    			var manageSelectionsMenuItem:WeaveMenuItem = new WeaveMenuItem("Manage selections...");
-    			_dp.addItem(manageSelectionsMenuItem);
-    			
-    			_dp.addItem(WeaveMenuItem.makeNewSeparatorItem());
-    			
-    			_dp.addItem( new WeaveMenuItem("test") );
-    			
-    			var mi:WeaveMenuItem = new WeaveMenuItem("test2");
-    			mi.type = WeaveMenuItem.TYPE_RADIO;
-				mi.groupName = "savedSelections";
-				mi.enabled = true;
-				mi.toggledFunction = function ():Boolean {
-					return Math.random() > 0.5;
-				};
-				
-    			_dp.addItem( mi );
-				
 				Weave.properties.showCopyright.addGroupedCallback(this, addLogo, true);
 				
     			//iconSet.addIcon("/weave/resources/images/lockOpen.png", true, "/weave/resources/images/lockClosed.png", true);

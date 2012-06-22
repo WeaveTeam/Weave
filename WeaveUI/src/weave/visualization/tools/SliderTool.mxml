@@ -31,21 +31,21 @@
 	height="40">
 
 <mx:Script>
-		<![CDATA[
-			import mx.collections.ArrayCollection;
-			
-			import weave.Weave;
-			import weave.api.WeaveAPI;
-			import weave.api.getCallbackCollection;
-			import weave.api.linkBindableProperty;
-			import weave.api.newLinkableChild;
-			import weave.api.registerLinkableChild;
-			import weave.core.LinkableNumber;
-			import weave.core.LinkableString;
-			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
-			import weave.data.ColumnReferences.HierarchyColumnReference;
-			import weave.utils.HierarchyUtils;
-			import weave.utils.LinkableTextFormat;
+<![CDATA[
+	import mx.collections.ArrayCollection;
+	
+	import weave.Weave;
+	import weave.api.WeaveAPI;
+	import weave.api.getCallbackCollection;
+	import weave.api.linkBindableProperty;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
+	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
+	import weave.data.ColumnReferences.HierarchyColumnReference;
+	import weave.utils.HierarchyUtils;
+	import weave.utils.LinkableTextFormat;
 
 	//constructor
 	
@@ -55,16 +55,14 @@
 		super.constructor();
 		this.height = 40;
 		// wait 1 frame before initializing labels because other tools may not be initialized yet
-		WeaveAPI.StageUtils.callLater(this, initializeLabels, null, false);
-		WeaveAPI.StageUtils.callLater(this, addCallbacks, null, false);
+		WeaveAPI.StageUtils.callLater(this, initializeLabels, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+		WeaveAPI.StageUtils.callLater(this, addCallbacks, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 
 		getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateLabelProperties, true);
 	}
 
 	//class data
 
-	//@TODO session this so that the admin can specify a different maximum tick count
-	protected static const MAX_LABEL_COUNT:int = 10;
 	//@TODO session this so that the admin can specify a different maximum delay
 	private static const MAX_TIMER_DELAY:Number = 2500;
 	public const timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
@@ -73,6 +71,7 @@
 	public static const dimensionsRefs:ArrayCollection = new ArrayCollection();
 	public const labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange, true);
 	public const currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
+	public const maxLabelCount:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite), handleLabelChange);
 	private var _timer:Timer;
 	
 	////abstract functions that must be overridden by subclasses of this class
@@ -238,7 +237,7 @@
 	/**
 	 * This event is triggered when the user changes the dimension in the attrListCombo box
 	 * */
-	private function dimensionChange(event:Event):void
+	private function dimensionChange():void
 	{
 		var index:int = attrListCombo.selectedIndex;
 		if (index >= dimensionsRefs.length)
@@ -261,6 +260,8 @@
 		{
 			dimensionsList.addItem(strToAdd);
 			dimensionsRefs.addItem(ref);
+			if (!labelsLinkableString.value)
+				dimensionChange();
 		}
 	}
 	
@@ -343,61 +344,51 @@
 		}
 	}
 			
-		]]>
-	</mx:Script>
-<mx:HBox width="100%">
-	<mx:VBox width="5%">
-		<mx:Button
-			width="5%" id="playButton" label=">" alpha="1.0" 
-			fillAlphas="[1.0, 1.0, 1.0, 1.0]" 
-			click="playButtonPushed()"/>
-	<mx:HSlider
-		height="90%"
-		id="speedSlider"
-		width="50"
-		liveDragging="true"
-		dataTipFormatFunction="formatSpeedDataTip"
-		change="speedSliderChange();"/>
-	</mx:VBox>
-	<mx:HSlider 
+]]>
+</mx:Script>
+	<mx:HBox width="100%">
+		<mx:VBox width="5%">
+			<mx:Button
+				width="5%" id="playButton" label=">" alpha="1.0" 
+				fillAlphas="[1.0, 1.0, 1.0, 1.0]" 
+				click="playButtonPushed()"/>
+		<mx:HSlider
 			height="90%"
-			id="dimensionSlider"
-			width="100%"
-			dataTipFormatFunction="formatDataTip"
-			snapInterval="1"
-			tickInterval="1"
+			id="speedSlider"
+			width="50"
 			liveDragging="true"
-			name="Time Slider Tool"
-			> 				
-	</mx:HSlider>
-</mx:HBox>
+			dataTipFormatFunction="formatSpeedDataTip"
+			change="speedSliderChange();"/>
+		</mx:VBox>
+		<mx:HSlider 
+				height="90%"
+				id="dimensionSlider"
+				width="100%"
+				dataTipFormatFunction="formatDataTip"
+				snapInterval="1"
+				tickInterval="1"
+				liveDragging="true"
+				name="Time Slider Tool"
+				> 				
+		</mx:HSlider>
+	</mx:HBox>
 	<ui:ControlPanel>
-			<mx:Panel id="VizControlsPanel" 
-					  label="Visualization Controls" 
-					  headerHeight="2"
-					  borderColor="0x000000" 
-					  backgroundColor="0xCCCCCC" 
-					  backgroundAlpha="0.0" 
-					  borderThickness="0.0" 
-					  width="100%" 
-					  borderAlpha="0.2" 
-					  addedToStage="onUserControlsAddedToStage(event)"
-					  borderStyle="none">
-				<mx:VBox width="100%" verticalGap="0">
-					<mx:VBox width="100%" id="timesliderControls">
-						<mx:HBox width="100%">
-							<mx:Label text="Time slider labels:"/>
-							<mx:TextInput id="labelsInput" 
-										  width="90%"
-										  toolTip="Entering a title here will override the automatic title generated by the tool."
-										  />
-						</mx:HBox>
-						<mx:Label id="dimsLabel" text="Replace slider labels with values from a dimension with year values:" />
-						<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsList}" change="dimensionChange(event)"/>
-						<mx:CheckBox id="checkBox_useGlobalMinMax" visible="false" includeInLayout="{checkBox_useGlobalMinMax.visible}" label="Use global min,max values" creationComplete="linkBindableProperty(SecondaryKeyNumColumn.useGlobalMinMaxValues, event.target, 'selected');"/>
-					</mx:VBox>
-				</mx:VBox>
-			</mx:Panel>
+		<mx:VBox width="100%" id="timesliderControls"
+				label="Slider controls"
+				addedToStage="onUserControlsAddedToStage(event)">
+			<ui:Indent label="Time slider labels:">
+				<mx:TextInput id="labelsInput" 
+							  width="90%"
+							  toolTip="Entering a title here will override the automatic title generated by the tool."
+							  />
+			</ui:Indent>
+			<mx:Label id="dimsLabel" text="Replace slider labels with values from a dimension with year values:" />
+			<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsList}" change="dimensionChange()"/>
+			<ui:Indent label="Max labels shown">
+				<mx:NumericStepper minimum="0" maximum="100" stepSize="1" creationComplete="linkBindableProperty(maxLabelCount, event.target, 'value');"/>
+			</ui:Indent>
+			<mx:CheckBox id="checkBox_useGlobalMinMax" visible="false" includeInLayout="false" label="Use global min,max values" creationComplete="linkBindableProperty(SecondaryKeyNumColumn.useGlobalMinMaxValues, event.target, 'selected');"/>
+		</mx:VBox>
 	</ui:ControlPanel>
 
 </SimpleVisTool>

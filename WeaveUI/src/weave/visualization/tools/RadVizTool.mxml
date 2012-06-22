@@ -52,7 +52,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.EditorManager;
 			import weave.utils.SpatialIndex;
 			import weave.visualization.layers.PlotLayer;
-			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.AnchorPlotter;
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.RadVizPlotter;
@@ -60,8 +59,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			WeaveAPI.registerImplementation(IVisTool, RadVizTool, "RadViz");
 			
 			[Bindable]
-			public var _plotter:RadVizPlotter ;
-			public var _anchorPlotter:AnchorPlotter ;
+			internal var _plotter:RadVizPlotter ;
+			internal var _anchorPlotter:AnchorPlotter ;
 			private var _anchorLayer:PlotLayer ;
 			
 			override protected function constructor():void
@@ -90,7 +89,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_anchorLayer = visualization.layers.requestObject("anchorLayer", PlotLayer, true );
 				_anchorPlotter = _anchorLayer.getDynamicPlotter().requestLocalObject(AnchorPlotter, true) ;
 				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);	
-				//_anchorLayer.useTextBitmapFilters.value = true;				
 				
 				getCallbackCollection(plotLayer.probeFilter).addImmediateCallback(this,drawProbeLines);
 				

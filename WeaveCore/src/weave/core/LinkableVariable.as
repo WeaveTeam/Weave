@@ -65,7 +65,7 @@ package weave.core
 				// If callbacks were triggered, make sure callbacks are triggered again one frame later when
 				// it is possible for other classes to have a pointer to this object and retrieve the value.
 				if (defaultValueTriggersCallbacks && triggerCounter > DEFAULT_TRIGGER_COUNT)
-					WeaveAPI.StageUtils.callLater(this, _defaultValueTrigger, null, false);
+					WeaveAPI.StageUtils.callLater(this, _defaultValueTrigger, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 			}
 		}
 		
@@ -90,7 +90,7 @@ package weave.core
 				var type:String = typeof(otherSessionState);
 				if (type != typeof(_sessionState))
 					return false; // types differ, so not equal
-				if (type == 'object')
+				if (type == 'object' && otherSessionState != null) // typeof(null) == 'object'
 					return false; // do not attempt an object compare.. assume not equal
 				return ObjectUtil.compare(_sessionState, otherSessionState) == 0; // compare primitive value
 			}

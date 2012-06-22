@@ -650,14 +650,20 @@ package weave.services
 		// this function is for verifying the local connection between Weave and the AdminConsole.
 		public function ping():String { return "pong"; }
 		
-		public function openWeavePopup(fileName:String = null):void
+		public function openWeavePopup(fileName:String = null, recover:Boolean = false):void
 		{
 			var url:String = 'weave.html?';
 			if (fileName)
 				url += 'file=' + fileName + '&'
 			url += 'adminSession=' + createWeaveService();
+			
+			if (recover) {
+				url += '&recover=true';
+			}
+			
 			var target:String = '_blank';
 			var params:String = 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1';
+			
 			// use setTimeout so it will call later without blocking ActionScript
 			var script:String = StringUtil.substitute('setTimeout(function(){ window.open("{0}", "{1}", "{2}"); }, 0)', url, target, params);
 			ExternalInterface.call(script);

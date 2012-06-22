@@ -42,7 +42,7 @@ LayerListComponent
 	<ui:LinkableObjectList id="internalList" width="100%" height="100%" hashMap="{_hashMap}">
 		<ui:itemRenderer>
 			<mx:Component>
-				<mx:HBox width="100%">
+				<mx:HBox width="100%" horizontalScrollPolicy="off">
 					<mx:Script>
 						<![CDATA[
 							import mx.managers.PopUpManager;
@@ -146,8 +146,9 @@ LayerListComponent
 					</mx:Script>
 					<mx:CheckBox id="visibleCheckbox" label="visible" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
 					<mx:CheckBox id="selectedCheckbox" label="selectable" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
-					<mx:Button textAlign="center" width="100%" label="{outerDocument.internalList.getItemLabel(data)}" toolTip="Click to rename the layer." click="onLayerRenameButtonClick(event,data)"/>
-					<mx:Button label="settings" click="openSettingsPanel(data as IPlotLayer)"/>
+					<mx:Label textAlign="center" width="100%" text="{outerDocument.internalList.getItemLabel(data)}"/>
+					<mx:Button label="Rename..." toolTip="Click to rename the layer." click="onLayerRenameButtonClick(event,data)"/>
+					<mx:Button label="Settings..." click="openSettingsPanel(data as IPlotLayer)"/>
 				</mx:HBox>
 			</mx:Component>
 		</ui:itemRenderer>

@@ -464,7 +464,7 @@ package weave.core
 		{
 			if (root == null)
 			{
-				reportError("SessionManager.getDescendants(): root cannot be null.");
+				reportError("SessionManager.getLinkableDescendants(): root cannot be null.");
 				return [];
 			}
 
@@ -520,7 +520,7 @@ package weave.core
 		/**
 		 * @private
 		 */
-		weave_internal function getDeprecatedSetterNames(linkableObject:ILinkableObject):Array
+		private function getDeprecatedSetterNames(linkableObject:ILinkableObject):Array
 		{
 			if (linkableObject == null)
 			{
@@ -686,40 +686,6 @@ package weave.core
 		}
 
 		/**
-		 * This function is used to detect if callbacks of a linkable object were triggered since the last time detectLinkableObjectChange
-		 * was called with the same parameters, likely by the observer.  Note that once this function returns true, subsequent calls will
-		 * return false until the callbacks are triggered again, unless clearChangedNow is set to false.  It may be a good idea to specify
-		 * a private object as the observer so no other code can call detectLinkableObjectChange with the same observer and linkableObject
-		 * parameters.
-		 * @param observer The object that is observing the change.
-		 * @param linkableObject The object that is being observed.
-		 * @param clearChangedNow If this is true, the trigger counter will be reset to the current value now so that this function will
-		 *        return false if called again with the same parameters before the next time the linkable object triggers its callbacks.
-		 * @return A value of true if the callbacks have triggered since the last time this function was called with the given parameters.
-		 */
-		public function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject, clearChangedNow:Boolean = true):Boolean
-		{
-			if (!_triggerCounterMap[linkableObject])
-				_triggerCounterMap[linkableObject] = new Dictionary(false); // weakKeys=false to allow observers to be Functions
-			
-			var previousCount:* = _triggerCounterMap[linkableObject][observer]; // untyped to handle undefined value
-			var newCount:uint = getCallbackCollection(linkableObject).triggerCounter;
-			if (previousCount !== newCount) // no casting to handle 0 !== undefined
-			{
-				if (clearChangedNow)
-					_triggerCounterMap[linkableObject][observer] = newCount;
-				return true;
-			}
-			return false;
-		}
-		
-		/**
-		 * This is a two-dimensional dictionary, where _triggerCounterMap[linkableObject][observer]
-		 * equals the previous triggerCounter value from linkableObject observed by the observer.
-		 */		
-		private const _triggerCounterMap:Dictionary = new Dictionary(true);
-
-		/**
 		 * This function checks if an object has been disposed of by the ISessionManager.
 		 * @param object An object to check.
 		 * @return A value of true if disposeObjects() was called for the specified object.
@@ -871,8 +837,8 @@ package weave.core
 			// set some variables to aid in debugging - only useful if you add a breakpoint here.
 			var obj:*;
 			var ownerPath:Array = []; while (obj = getLinkableOwner(obj)) { ownerPath.unshift(obj); }
-			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject] || []) { parents.push[obj]; }
-			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject] || []) { children.push[obj]; }
+			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject]) { parents.push[obj]; }
+			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject]) { children.push[obj]; }
 			var sessionState:Object = getSessionState(disposedObject);
 
 			// ADD A BREAKPOINT HERE TO DIAGNOSE THE PROBLEM
@@ -899,7 +865,7 @@ package weave.core
 		/**
 		 * This function is for debugging purposes only.
 		 */
-		private function getPaths(root:ILinkableObject, descendant:ILinkableObject):Array
+		private function _getPaths(root:ILinkableObject, descendant:ILinkableObject):Array
 		{
 			var results:Array = [];
 			for (var parent:Object in childToParentDictionaryMap[descendant])
@@ -908,12 +874,12 @@ package weave.core
 				if (parent is ILinkableHashMap)
 					name = (parent as ILinkableHashMap).getName(descendant);
 				else
-					name = getChildPropertyName(parent as ILinkableObject, descendant);
+					name = _getChildPropertyName(parent as ILinkableObject, descendant);
 				
 				if (name != null)
 				{
 					// this parent may be the one we want
-					var result:Array = getPaths(root, parent as ILinkableObject);
+					var result:Array = _getPaths(root, parent as ILinkableObject);
 					if (result != null)
 					{
 						result.push(name);
@@ -929,7 +895,7 @@ package weave.core
 		/**
 		 * internal use only
 		 */
-		private function getChildPropertyName(parent:ILinkableObject, child:ILinkableObject):String
+		private function _getChildPropertyName(parent:ILinkableObject, child:ILinkableObject):String
 		{
 			// find the property name that returns the child
 			for each (var name:String in getLinkablePropertyNames(parent))
@@ -1037,7 +1003,7 @@ package weave.core
 		 * linking sessioned objects with bindable properties
 		 ******************************************************/
 		
-		private const VALUE_NOT_ACCEPTED:String = 'Value not accepted.'; // errorString used by linkBindableProperty
+		private const VALUE_NOT_ACCEPTED:String = lang('Value not accepted.'); // errorString used by linkBindableProperty
 		
 		/*private function debugLink(linkVal:Object, bindVal:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
 		{
@@ -1183,7 +1149,7 @@ package weave.core
 				// if the linkable variable's callbacks are delayed, delay synchronization
 				if (getCallbackCollection(linkableVariable).callbacksAreDelayed)
 				{
-					WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], false);
+					WeaveAPI.StageUtils.callLater(linkableVariable, synchronize, [firstParam, true], WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 					return;
 				}
 				
@@ -1279,6 +1245,15 @@ package weave.core
 		 * This maps a ChangeWatcher object to a function that was added as a callback to the corresponding ILinkableVariable.
 		 */
 		private const _watcherToSynchronizeFunctionMap:Dictionary = new Dictionary(); // use weak links to be GC-friendly
+		
+		
+		
+		
+		
+		/*******************
+		 * Computing diffs
+		 *******************/
+		
 		
 		internal static const DIFF_DELETE:String = 'delete';
 		

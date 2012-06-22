@@ -16,12 +16,18 @@
 package weave.api
 {
 	import flash.external.ExternalInterface;
+	import flash.net.SharedObject;
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.Singleton;
+	import mx.managers.ISystemManager;
+	import mx.resources.Locale;
+	import mx.resources.ResourceManager;
+	import mx.utils.ObjectUtil;
+	import mx.utils.StringUtil;
 	
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
@@ -35,6 +41,7 @@ package weave.api
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
 	import weave.api.services.IURLRequestUtils;
+	import weave.api.core.ILocaleManager;
 
 	/**
 	 * Static functions for managing implementations of Weave framework classes.
@@ -137,6 +144,13 @@ package weave.api
 		public static function get URLRequestUtils():IURLRequestUtils
 		{
 			return getSingletonInstance(IURLRequestUtils);
+		}
+		/**
+		 * This is the singleton instance of the registered ILocaleManager implementation.
+		 */
+		public static function get LocaleManager():ILocaleManager
+		{
+			return getSingletonInstance(ILocaleManager);
 		}
 		/**
 		 * This is the top-level object in Weave.
@@ -335,9 +349,16 @@ package weave.api
 			{
 				_initialized = true;
 				// run static initialization code to register weave implementations
-				try {
-					getDefinitionByName("_InitializeWeave"); // run static initialization code 
-				} catch (e:Error) { }
+				try
+				{
+					getDefinitionByName("_InitializeWeaveCore");
+					getDefinitionByName("_InitializeWeaveData"); 
+					getDefinitionByName("_InitializeWeaveUI");
+				}
+				catch (e:Error)
+				{
+					trace(e.getStackTrace());
+				}
 			}
 			
 			var result:* = _singletonDictionary[singletonInterface];

@@ -36,6 +36,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -61,7 +62,6 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 * @author kmanohar
-	 * @author everyone and their uncle
 	 */
 	public class CompoundBarChartPlotter extends AbstractPlotter
 	{
@@ -135,7 +135,8 @@ package weave.visualization.plotters
 		public const valueLabelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(200, verifyLabelMaxWidth));
 		public const recordValueLabelColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
-		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));	
+		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const labelFormatter:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
 		public const labelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
 		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
 		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
@@ -149,6 +150,7 @@ package weave.visualization.plotters
 		public const negativeErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
+		public const zoomToSubsetBars:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const barSpacing:LinkableNumber = registerSpatialProperty(new LinkableNumber(0));
 		public const groupingMode:LinkableString = registerSpatialProperty(new LinkableString(STACK, verifyGroupingMode));
 		public static const GROUP:String = 'group';
@@ -241,8 +243,8 @@ package weave.visualization.plotters
 			var graphics:Graphics = tempShape.graphics;
 			var count:int = 0;
 			var numHeightColumns:int = _heightColumns.length;
-			var shouldDrawValueLabel:Boolean = showValueLabels.value && ((numHeightColumns >= 1 && _groupingMode == GROUP) || numHeightColumns == 1);
-			var shouldDrawLabel:Boolean = showLabels.value && (numHeightColumns >= 1) && (labelColumn.internalColumn != null);
+			var shouldDrawValueLabel:Boolean = showValueLabels.value;
+			var shouldDrawLabel:Boolean = showLabels.value && (numHeightColumns >= 1) && (labelColumn.internalColumn || _groupingMode == GROUP);
 			
 			for (var iRecord:int = 0; iRecord < recordKeys.length; iRecord++)
 			{
@@ -260,7 +262,7 @@ package weave.visualization.plotters
 				var yNegativeMax:Number = 0;
 				
 				// x coordinates depend on sorted index
-				var sortedIndex:int;
+				var sortedIndex:Number;
 				if (_groupBySortColumn)
 					sortedIndex = _binnedSortColumn.getValueFromKey(recordKey, Number);
 				else
@@ -319,14 +321,14 @@ package weave.visualization.plotters
 					if (height >= 0)
 					{
 						//normalizing to 100% stack
-						if (_groupingMode == PERCENT_STACK)
+						if (_groupingMode == PERCENT_STACK && totalHeight)
 							yMax = yMin + (100 / totalHeight * height);
 						else
 							yMax = yMin + height;
 					}
 					else
 					{
-						if (_groupingMode == PERCENT_STACK)
+						if (_groupingMode == PERCENT_STACK && totalHeight)
 							yNegativeMax = yNegativeMin + (100 / totalHeight * height);
 						else
 							yNegativeMax = yNegativeMin + height;
@@ -497,15 +499,6 @@ package weave.visualization.plotters
 						//////////////////////////
 						// END draw graphics
 						//////////////////////////
-					}						
-					
-					if (_groupingMode != GROUP)
-					{
-						// the next bar starts on top of this bar
-						if (height >= 0)
-							yMin = yMax;
-						else
-							yNegativeMin = yNegativeMax;
 					}
 					//------------------------------------
 					// END code to draw one bar segment
@@ -519,9 +512,16 @@ package weave.visualization.plotters
 						_bitmapText.text = heightColumn.getValueFromKey(recordKey, String);
 						
 						var valueLabelPos:Number = valueLabelDataCoordinate.value;
-						if(!(valueLabelPos <= Infinity)) // alternative to isNaN
-						{
+						if (!isFinite(valueLabelPos))
 							valueLabelPos = (height >= 0) ? yMax : yNegativeMax;
+						
+						// For stack and percent stack bar charts, draw value label in the middle of each segment
+						if (_heightColumns.length > 1 && _groupingMode != GROUP)
+						{
+							if (height >= 0)
+								valueLabelPos = (yMin + yMax) / 2;
+							else
+								valueLabelPos = (yNegativeMin + yNegativeMax) / 2;
 						}
 						
 						if (!_horizontalMode)
@@ -542,7 +542,8 @@ package weave.visualization.plotters
 						_bitmapText.y = tempPoint.y;
 						_bitmapText.maxWidth = valueLabelMaxWidth.value;
 						_bitmapText.verticalAlign = valueLabelVerticalAlign.value;
-						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value; 
+						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value;
+												
 						if (isFinite(valueLabelRelativeAngle.value))
 							_bitmapText.angle += valueLabelRelativeAngle.value;
 						
@@ -559,12 +560,22 @@ package weave.visualization.plotters
 					//------------------------------------
 					// BEGIN code to draw one label using labelColumn (or column title if grouped)
 					//------------------------------------
-					if (shouldDrawLabel && !heightMissing)
+					// avoid drawing duplicate overlapping labels
+					if (shouldDrawLabel && !heightMissing && (i == 0 || _groupingMode == GROUP))
 					{
 						if (_groupingMode == GROUP)
 							_bitmapText.text = ColumnUtils.getTitle(heightColumn);
 						else
 							_bitmapText.text = labelColumn.getValueFromKey(recordKey, String);
+						
+						try
+						{
+							_bitmapText.text = labelFormatter.apply(null, [_bitmapText.text]);
+						}
+						catch (e:Error)
+						{
+							_bitmapText.text = '';
+						}
 
 						var labelPos:Number = labelDataCoordinate.value;
 						if (_horizontalMode)
@@ -604,6 +615,16 @@ package weave.visualization.plotters
 					//------------------------------------
 					// END code to draw one label using labelColumn
 					//------------------------------------
+
+					// update min values for next loop iteration
+					if (_groupingMode != GROUP)
+					{
+						// the next bar starts on top of this bar
+						if (height >= 0)
+							yMin = yMax;
+						else
+							yNegativeMin = yNegativeMax;
+					}
 				}
 				//------------------------------------
 				// END code to draw one compound bar
@@ -639,7 +660,7 @@ package weave.visualization.plotters
 			sortBins(); // make sure group-by-sort will work properly
 			
 			// bar position depends on sorted index
-			var sortedIndex:int;
+			var sortedIndex:Number;
 			if (_groupBySortColumn)
 				sortedIndex = _binnedSortColumn.getValueFromKey(recordKey, Number);
 			else
@@ -669,63 +690,72 @@ package weave.visualization.plotters
 			
 			tempRange.setRange(0, 0); // bar starts at zero
 			
-			var allMissing:Boolean = true;
 			
+			var allMissing:Boolean = true;
 			for (var i:int = 0; i < _heightColumns.length; i++)
 			{
 				var column:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
+				var height:Number = column.getValueFromKey(recordKey, Number);
+				if (isFinite(height))
+				{
+					// not all missing
+					allMissing = false;
+				}
+				else if (_heightColumns.length > 1 && stackedMissingDataGap.value)
+				{
+					// use mean value for missing data gap
+					height = WeaveAPI.StatisticsCache.getMean(column);
+				}
+
+				var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
+				var negativeError:IAttributeColumn = _negErrCols[i] as IAttributeColumn;
+				if (showErrorBars && positiveError && negativeError)
+				{
+					var errorPlus:Number = positiveError.getValueFromKey(recordKey, Number);
+					var errorMinus:Number = -negativeError.getValueFromKey(recordKey, Number);
+					if (height > 0 && errorPlus > 0)
+						height += errorPlus;
+					if (height < 0 && errorMinus < 0)
+						height += errorMinus;
+				}
+				if (_groupingMode == GROUP)
+				{
+					tempRange.includeInRange(height);
+				}
+				else
+				{
+					if (height > 0)
+						tempRange.end += height;
+					if (height < 0)
+						tempRange.begin += height;
+				}
+			}
+			
+			// if max value is zero, flip direction so negative bars go downward
+			if (tempRange.end == 0)
+				tempRange.setRange(tempRange.end, tempRange.begin);
+			
+			if (allMissing)
+				tempRange.setRange(NaN, NaN);
+			
+			if (allMissing && zoomToSubsetBars.value)
+			{
+				bounds.reset();
+			}
+			else
+			{
 				if (_groupingMode == PERCENT_STACK)
 				{
 					tempRange.begin = 0;
 					tempRange.end = 100;
 				}
-				else
-				{
-					var height:Number = column.getValueFromKey(recordKey, Number);
-					// if height is missing, use mean value
-					if (isNaN(height))
-					{
-						if (stackedMissingDataGap.value)
-							height = WeaveAPI.StatisticsCache.getMean(column);
-					}
-					else
-					{
-						allMissing = false;
-					}
-
-					var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
-					var negativeError:IAttributeColumn = _negErrCols[i] as IAttributeColumn;
-					if (showErrorBars && positiveError && negativeError)
-					{
-						var errorPlus:Number = positiveError.getValueFromKey(recordKey, Number);
-						var errorMinus:Number = -negativeError.getValueFromKey(recordKey, Number);
-						if (height > 0 && errorPlus > 0)
-							height += errorPlus;
-						if (height < 0 && errorMinus < 0)
-							height += errorMinus;
-					}
-					if (_groupingMode == GROUP)
-					{
-						tempRange.includeInRange(height);
-					}
-					else
-					{
-						if (height > 0)
-							tempRange.end += height;
-						if (height < 0)
-							tempRange.begin += height;
-					}
-				}
+				
+				if (horizontalMode.value) // x range
+					bounds.setXRange(tempRange.begin, tempRange.end);
+				else // y range
+					bounds.setYRange(tempRange.begin, tempRange.end);
 			}
 			
-			if (allMissing)
-				tempRange.setRange(0, 0); // bar starts at zero
-			
-			if (horizontalMode.value) // x range
-				bounds.setXRange(tempRange.begin, tempRange.end);
-			else // y range
-				bounds.setYRange(tempRange.begin, tempRange.end);
-
 			return [bounds];
 		}
 		

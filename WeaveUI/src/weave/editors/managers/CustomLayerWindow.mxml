@@ -30,6 +30,11 @@
 				percentWidth="NaN" percentHeight="NaN"
 				sessionPanelCoordsAsPercentages="false"
 				layout="vertical" xmlns:ui="weave.ui.*">
+	<mx:Script>
+		<![CDATA[
+			import weave.visualization.plotters.ImageGlyphPlotter;
+		]]>
+	</mx:Script>
 	<mx:VBox borderStyle="solid"
 			 paddingLeft="5" paddingTop="5" paddingBottom="5" paddingRight="5"
 			 backgroundAlpha="0.8" backgroundColor="white"
@@ -45,6 +50,7 @@
 			<mx:Object label="Grid lines" plotterClass="{GridLinePlotter}" layerClass="{PlotLayer}"/>
 			<mx:Object label="Labels" plotterClass="{AxisLabelPlotter}" layerClass="{PlotLayer}"/>
 			<mx:Object label="Rectangle Plotter" plotterClass="{RectanglePlotter}" layerClass="{SelectablePlotLayer}"/>
+			<mx:Object label="Image Plotter" plotterClass="{ImageGlyphPlotter}" layerClass="{SelectablePlotLayer}"/>
 		</mx:List>
 	
 		<mx:Button label="Add new layer" right="0" click="openControls()" enabled="{layerSelector.selectedItem != null}"/>

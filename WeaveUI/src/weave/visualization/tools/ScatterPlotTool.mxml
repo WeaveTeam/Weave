@@ -196,8 +196,8 @@
 					layer.showMissingRecords(true);
 					
 					linkSessionState(plotLayer.backgroundIsVisible, layer.backgroundIsVisible);
-					linkSessionState(plotLayer.layerIsVisible, layer.layerIsVisible);
-					linkSessionState(plotLayer.layerIsSelectable, layer.layerIsSelectable);					
+//					linkSessionState(plotLayer.layerIsVisible, layer.layerIsVisible);
+//					linkSessionState(plotLayer.layerIsSelectable, layer.layerIsSelectable);					
 				} 																		
 				
 				addEventListener(MouseEvent.MOUSE_MOVE, displayToolTip);

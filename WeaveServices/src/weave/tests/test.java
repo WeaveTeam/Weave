@@ -27,17 +27,24 @@ public class test
 {
 
 	static RService ws = null;
-	public static void call(String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception{
+	public static void call(String[] inputNames, Object[][] inputValues,  
+			 boolean showWarnings, int clusternumber, int iterationNumber) throws Exception{
+	
+//	public static void call(String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript,
+//   boolean showIntermediateResults, boolean showWarnings) throws Exception;
 		
 		RResult[] scriptResult = null;
-//		try {
-//			scriptResult =	ws.runScript(null, inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings);
-//		} catch (RemoteException e) {
-//			e.printStackTrace();
-//		}
-//		finally{
-//			System.out.println(scriptResult);
-//		}
+	try {
+//			scriptResult =	ws.kMeansClustering(inputNames, inputValues,  
+//					  showWarnings,clusterNo, iterations);
+		//scriptResult = ws.handlingMissingData(inputNames, inputValues, outputNames, false, false, false);
+		scriptResult = ws.kMeansClustering(inputNames, inputValues, false, 3, 10);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+		finally{
+			System.out.println(scriptResult);
+		}
 	}
 	
 	public static void main(String[] args) throws Exception {
@@ -52,8 +59,8 @@ public class test
 		String script = "";		
 		String [] resultNames = {};	
 		
-		Object[] array1 = {0,10,20,30,Double.NaN,50,60,55,89,33,44,54,21};
-		Object[] array2 = {10,20,Double.NaN,52,34,87,45,65,76,87,23,12,34};
+		Object[] array1 = {0,10,20,30,22,50,60,55,89,33,44,54,21};
+		Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
 		//String[] keys = {"a","b","c","d","e","f"};
 //		//Object[] array3 = {"aa","bb","cc","dd","ee","ff"};
 		
@@ -63,8 +70,6 @@ public class test
 //		inputValues = new Object[][]{};
 //		resultNames = new String []{"x"};
 //		keys = new  String[]{};
-//		call(inputNames,inputValues,resultNames,script,plotscript,false,false);
-//		
 //		inputNames =  new String []{"x","y"};
 //		inputValues = new Object[][]{array1,array2};	
 //		keys = new String []{"0","1","2","3","4","5"};
@@ -74,6 +79,8 @@ public class test
 //		call(inputNames,inputValues,resultNames,script,plotscript,false,false);	
 		
 
+		String docrootPath  = "";
+		
 		inputNames =  new String []{"x","y"};
 	inputValues = new Object[][]{array1,array2};	
 //		keys = new String []{"a","b","c","d","e","f"};
@@ -85,16 +92,29 @@ public class test
 //		resultNames =  new String []{"d"};			
 //		call(inputNames,inputValues,resultNames,script,plotscript,false,false);
 		
-		inputNames =  new String []{"x","y"};
-		inputValues = new Object[][]{array1,array2};
-		//plotscript = "plot(x,y)";
+		
+		
 		//keys = new  String[]{};
-		//script = "d<-x[x>20]";	
-		script = " Bind<- cbind(x,y) \n library(norm) \n pre<-prelim.norm(Bind) \n Em <- em.norm(pre) \n rngseed(34215) \n " +
-					"Da <- da.norm(pre, Em, steps = 20) \n imp <- imp.norm(pre, Da, Bind) ";
-		//script = "x <- 5\n y<- 6";
-		resultNames =  new String []{"pre$nmis","imp" };			
-		call(inputNames,inputValues,resultNames,script,plotscript,true,false);
+//		script = "Clustering <- function(clusternumber, iterations)\n" +
+//				 "{result1 <- kmeans(dataframe1, clusternumber, iterations)\n" +
+//				 "result2 <- kmeans(dataframe1, clusternumber, (iterations-1))\n" +
+//				 "while(result1$centers != result2$centers)\n" + 
+	//			 "{ iterations <- iterations + 1\n" +
+//				 "result1 <- kmeans(dataframe1, clusternumber, iterations)\n" + 
+//				 "result2 <- kmeans(dataframe1, clusternumber, (iterations-1))}\n" + 
+//				 "print(result1)\n" + 
+//				 "print(result2)}\n" +
+//				 "CluResult <- Clustering(clusterNo, iterations)";
+			
+		
+	    //imputation script
+//		script = "  library(norm) \n pre<-prelim.norm(Bind) \n eeo <- em.norm(pre) \n rngseed(34215) \n " +
+//				 " imputed <- imp.norm(pre, eeo, Bind) ";
+		
+		//resultNames =  new String []{"pre$nmis","imputed" };
+		
+		//resultNames = new String[]{"CluResult$cluster", "CluResult$centers", "CluResult$size", "CluResult$withinss"};
+		call(inputNames, inputValues, false, 3, 10);
 		
 	}
 }
