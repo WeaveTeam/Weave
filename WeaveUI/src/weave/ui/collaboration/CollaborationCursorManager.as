@@ -36,7 +36,7 @@ package weave.ui.collaboration
 	 */
 	public class CollaborationCursorManager implements ICollabCursorManager
 	{
-		public static var numMouses:Number = new Number(2);
+		public static var numMouses:Number = new Number(1);
 		private var cursorList:Dictionary = null;
 		private var cursorQueue:Array = null;
 		
@@ -68,7 +68,7 @@ package weave.ui.collaboration
 		
 		public function setVisible(id:String, visible:Boolean, duration:uint=3000):void
 		{
-			if( !checkQueuePosition(id) )
+			if( checkQueuePosition(id) != 0)
 				return;
 			if(visible && duration > 0)
 			{
@@ -106,7 +106,7 @@ package weave.ui.collaboration
 		
 		public function setPosition(id:String, x:Number, y:Number, duration:uint):void
 		{
-			if( !checkQueuePosition(id) )
+			if( checkQueuePosition(id) != 0)
 				return;
 			if( duration > 0 )
 				setVisible(id, true, duration);
@@ -115,7 +115,7 @@ package weave.ui.collaboration
 		
 		public function setColor(id:String, color:uint, duration:uint=1000):void
 		{
-			if( !checkQueuePosition(id) )
+			if( checkQueuePosition(id) != 0 )
 				return;
 			(cursorList[id] as CollabMouseCursor).fillCursor(color);
 			setVisible(id, true, duration);
@@ -143,19 +143,25 @@ package weave.ui.collaboration
 			}
 		}
 		
-		private function checkQueuePosition(id:String):Boolean
+		private function checkQueuePosition(id:String):Number
 		{
 			for( var i:int = 0; i < cursorQueue.length; i++ )
 			{
 				if( cursorQueue[i] == id )
-					if( i < numMouses )
-						return true;
+				{
+					if( i - numMouses < 0 )
+						return 0;
+					else if( i - numMouses >= 0 )
+						return i - numMouses + 1;
+				}
 			}
-			return false;
+			return -1;
 		}
 		
-		public function addToQueue(id:String, self:String):Boolean
+		public function addToQueue(id:String, self:String):Number
 		{
+			if( cursorQueue == null )
+				return -1;
 			for( var i:int = 0; i < cursorQueue.length; i++ )
 			{
 				if( cursorQueue[i] == id )
@@ -165,8 +171,10 @@ package weave.ui.collaboration
 			return checkQueuePosition(self);
 		}
 		
-		public function removeFromQueue(id:String, self:String):Boolean
+		public function removeFromQueue(id:String, self:String):Number
 		{
+			if( cursorQueue == null )
+				return -1;
 			for( var i:int = 0; i < cursorQueue.length; i++ )
 			{
 				if( cursorQueue[i] == id )

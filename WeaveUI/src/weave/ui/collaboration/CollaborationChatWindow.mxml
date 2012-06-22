@@ -103,7 +103,7 @@
 								</mx:Component>
 							</mx:itemRenderer>
 						</mx:List>
-						<mx:Button id="cursorButton" label="{lang('Request Cursor Control')}" height="10%" click="button1_clickHandler(event)"/>
+						<mx:Button id="cursorButton" label="{lang('Request Cursor Control')}" height="10%" click="cursorButtonClick(event)"/>
 					</mx:VBox>
 				</mx:HDividedBox>
 				<mx:HBox width="100%">
@@ -467,14 +467,14 @@
 				return dictionaryLength(nsPlayCamList);
 			}
 			
-			protected function button1_clickHandler(event:MouseEvent):void
+			protected function cursorButtonClick(event:MouseEvent):void
 			{
 				if( lang("Request Cursor Control") == cursorButton.label )
 				{
 					dispatchEvent(new CollaborationEvent( CollaborationEvent.SEND_MOUSE_CONTROL_REQUEST ) );
 					cursorButton.label = lang("Cancel Control Request");
 				}
-				else if( lang("Relinquish Control") == cursorButton.label || lang("Cancel Control Request") == cursorButton.label)
+				else
 				{
 					dispatchEvent(new CollaborationEvent( CollaborationEvent.SEND_RELINQUISH_MOUSE_CONTROL ) );
 					cursorButton.label = lang("Request Cursor Control");
