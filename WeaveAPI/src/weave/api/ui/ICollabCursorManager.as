@@ -80,8 +80,8 @@ package weave.api.ui
 		 */		
 		function removeCursor(id:String):void;
 		
-		function addToQueue(id:String, self:String):Boolean;
+		function addToQueue(id:String, self:String):Number;
 		
-		function removeFromQueue(id:String, self:String):Boolean;
+		function removeFromQueue(id:String, self:String):Number;
 	}
 }

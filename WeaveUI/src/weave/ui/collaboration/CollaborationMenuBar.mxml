@@ -606,8 +606,11 @@
 			
 			private function addMouseToQueue(e:CollaborationEvent):void
 			{
-				if( WeaveAPI.CollaborationCursorManager.addToQueue(e.getText(), collabService.nickname) )
+				var position:Number = WeaveAPI.CollaborationCursorManager.addToQueue(e.getText(), collabService.nickname);
+				if( position == 0 )
 					CHAT.cursorButton.label = lang("Relinquish Control");
+				else if( position > 0 )
+					CHAT.cursorButton.label = lang("You are in position ") + position + " (Click to cancel)";
 			}
 			
 			public function sendRequestMessage(e:CollaborationEvent):void
@@ -622,8 +625,11 @@
 			
 			public function removeMouseFromQueue(e:CollaborationEvent):void
 			{
-				if( WeaveAPI.CollaborationCursorManager.removeFromQueue(e.getText(), collabService.nickname) )
+				var position:Number =  WeaveAPI.CollaborationCursorManager.removeFromQueue(e.getText(), collabService.nickname);
+				if( position == 0 )
 					CHAT.cursorButton.label = lang("Relinquish Control");
+				else if( position > 0 )
+					CHAT.cursorButton.label = lang("You are in position ") + position + " (Click to cancel)";
 			}
 			
 			private function coordToPercentX(x:Number):Number { return x / WeaveAPI.topLevelApplication.stage.stageWidth;   }
