@@ -520,7 +520,7 @@ package weave.core
 		/**
 		 * @private
 		 */
-		weave_internal function getDeprecatedSetterNames(linkableObject:ILinkableObject):Array
+		private function getDeprecatedSetterNames(linkableObject:ILinkableObject):Array
 		{
 			if (linkableObject == null)
 			{
@@ -684,40 +684,6 @@ package weave.core
 			}
 			return true; // component already has a linkable owner
 		}
-
-		/**
-		 * This function is used to detect if callbacks of a linkable object were triggered since the last time detectLinkableObjectChange
-		 * was called with the same parameters, likely by the observer.  Note that once this function returns true, subsequent calls will
-		 * return false until the callbacks are triggered again, unless clearChangedNow is set to false.  It may be a good idea to specify
-		 * a private object as the observer so no other code can call detectLinkableObjectChange with the same observer and linkableObject
-		 * parameters.
-		 * @param observer The object that is observing the change.
-		 * @param linkableObject The object that is being observed.
-		 * @param clearChangedNow If this is true, the trigger counter will be reset to the current value now so that this function will
-		 *        return false if called again with the same parameters before the next time the linkable object triggers its callbacks.
-		 * @return A value of true if the callbacks have triggered since the last time this function was called with the given parameters.
-		 */
-		public function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject, clearChangedNow:Boolean = true):Boolean
-		{
-			if (!_triggerCounterMap[linkableObject])
-				_triggerCounterMap[linkableObject] = new Dictionary(false); // weakKeys=false to allow observers to be Functions
-			
-			var previousCount:* = _triggerCounterMap[linkableObject][observer]; // untyped to handle undefined value
-			var newCount:uint = getCallbackCollection(linkableObject).triggerCounter;
-			if (previousCount !== newCount) // no casting to handle 0 !== undefined
-			{
-				if (clearChangedNow)
-					_triggerCounterMap[linkableObject][observer] = newCount;
-				return true;
-			}
-			return false;
-		}
-		
-		/**
-		 * This is a two-dimensional dictionary, where _triggerCounterMap[linkableObject][observer]
-		 * equals the previous triggerCounter value from linkableObject observed by the observer.
-		 */		
-		private const _triggerCounterMap:Dictionary = new Dictionary(true);
 
 		/**
 		 * This function checks if an object has been disposed of by the ISessionManager.
