@@ -101,7 +101,7 @@ package weave.api.core
 		function getLinkableOwner(child:ILinkableObject):ILinkableObject;
 		
 		/**
-		 * This function will return all the descendant objects that implement ILinkableObject.
+		 * This function will return all the descendant objects that implement ILinkableObject and are publicly accessible.
 		 * If the filter parameter is specified, the results will contain only those objects that extend or implement the filter class.
 		 * @param root A root object to get the descendants of.
 		 * @param filter An optional Class definition which will be used to filter the results.

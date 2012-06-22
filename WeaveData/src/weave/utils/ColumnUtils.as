@@ -73,6 +73,11 @@ package weave.utils
 			return title;
 		}
 		
+		/**
+		 * Temporary solution
+		 * @param column
+		 * @return 
+		 */		
 		public static function getDataSource(column:IAttributeColumn):String
 		{
 			var name:String;

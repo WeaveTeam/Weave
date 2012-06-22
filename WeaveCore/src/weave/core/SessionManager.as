@@ -452,70 +452,6 @@ package weave.core
 		 * This maps a qualified class name to an Array of names of deprecated setter functions contained in that class.
 		 */
 		private const classNameToDeprecatedSetterNamesMap:Object = new Object();
-
-		/**
-		 * This function will return all the descendant objects that implement ILinkableObject.
-		 * If the filter parameter is specified, the results will contain only those objects that extend or implement the filter class.
-		 * @param root A root object to get the descendants of.
-		 * @param filter An optional Class definition which will be used to filter the results.
-		 * @return An Array containing a list of descendant objects.
-		 */
-		public function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array
-		{
-			if (root == null)
-			{
-				reportError("SessionManager.getLinkableDescendants(): root cannot be null.");
-				return [];
-			}
-
-			var result:Array = [];
-			internalGetDescendants(result, root, filter, new Dictionary(true), int.MAX_VALUE);
-			// don't include root object
-			if (result.length > 0 && result[0] == root)
-				result.shift();
-			return result;
-		}
-		private function internalGetDescendants(output:Array, root:ILinkableObject, filter:Class, ignoreList:Dictionary, depth:int):void
-		{
-			if (root == null || ignoreList[root] !== undefined)
-				return;
-			ignoreList[root] = true;
-			if (filter == null || root is filter)
-				output.push(root);
-			if (--depth <= 0)
-				return;
-			
-			var object:ILinkableObject;
-			var names:Array;
-			var name:String;
-			var i:int;
-			if (root is ILinkableDynamicObject)
-			{
-				object = (root as ILinkableDynamicObject).internalObject;
-				internalGetDescendants(output, object, filter, ignoreList, depth);
-			}
-			else if (root is ILinkableHashMap)
-			{
-				names = (root as ILinkableHashMap).getNames();
-				var objects:Array = (root as ILinkableHashMap).getObjects();
-				for (i = 0; i < names.length; i++)
-				{
-					name = names[i] as String;
-					object = objects[i] as ILinkableObject;
-					internalGetDescendants(output, object, filter, ignoreList, depth);
-				}
-			}
-			else
-			{
-				names = getLinkablePropertyNames(root);
-				for (i = 0; i < names.length; i++)
-				{
-					name = names[i] as String;
-					object = root[name] as ILinkableObject;
-					internalGetDescendants(output, object, filter, ignoreList, depth);
-				}
-			}
-		}
 		
 		/**
 		 * @private
@@ -601,6 +537,117 @@ package weave.core
 		 * Example: parentToChildDictionaryMap[parent][child] == true
 		 */
 		private const parentToChildDictionaryMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
+		
+		/**
+		 * This function will return all the descendant objects that implement ILinkableObject and are publicly accessible.
+		 * If the filter parameter is specified, the results will contain only those objects that extend or implement the filter class.
+		 * @param root A root object to get the descendants of.
+		 * @param filter An optional Class definition which will be used to filter the results.
+		 * @return An Array containing a list of descendant objects.
+		 */
+		public function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array
+		{
+			if (root == null)
+			{
+				reportError("SessionManager.getLinkableDescendants(): root cannot be null.");
+				return [];
+			}
+			
+			var result:Array = [];
+			internalGetDescendants(result, root, filter, new Dictionary(true), int.MAX_VALUE);
+			// don't include root object
+			if (result.length > 0 && result[0] == root)
+				result.shift();
+			return result;
+		}
+		private function internalGetDescendants(output:Array, root:ILinkableObject, filter:Class, ignoreList:Dictionary, depth:int):void
+		{
+			if (root == null || ignoreList[root] !== undefined)
+				return;
+			ignoreList[root] = true;
+			if (filter == null || root is filter)
+				output.push(root);
+			if (--depth <= 0)
+				return;
+			
+			var object:ILinkableObject;
+			var names:Array;
+			var name:String;
+			var i:int;
+			if (root is ILinkableDynamicObject)
+			{
+				object = (root as ILinkableDynamicObject).internalObject;
+				internalGetDescendants(output, object, filter, ignoreList, depth);
+			}
+			else if (root is ILinkableHashMap)
+			{
+				names = (root as ILinkableHashMap).getNames();
+				var objects:Array = (root as ILinkableHashMap).getObjects();
+				for (i = 0; i < names.length; i++)
+				{
+					name = names[i] as String;
+					object = objects[i] as ILinkableObject;
+					internalGetDescendants(output, object, filter, ignoreList, depth);
+				}
+			}
+			else
+			{
+				names = getLinkablePropertyNames(root);
+				for (i = 0; i < names.length; i++)
+				{
+					name = names[i] as String;
+					object = root[name] as ILinkableObject;
+					internalGetDescendants(output, object, filter, ignoreList, depth);
+				}
+			}
+		}
+		
+		private const d2dOwnerTask:Dictionary2D = new Dictionary2D(true, true);
+		private const d2dTaskOwner:Dictionary2D = new Dictionary2D(true, true);
+		private const dBusyTraversal:Dictionary = new Dictionary(true);
+		
+		public function assignBusyTask(taskToken:Object, linkableObject:ILinkableObject):void
+		{
+			d2dOwnerTask.set(linkableObject, taskToken, true);
+			d2dTaskOwner.set(taskToken, linkableObject, true);
+		}
+		
+		public function unassignBusyTask(taskToken:Object):void
+		{
+			var dOwner:Dictionary = d2dTaskOwner.dictionary[taskToken];
+			delete d2dTaskOwner.dictionary[taskToken];
+			for (var owner:Object in dOwner)
+				delete d2dOwnerTask.dictionary[owner][taskToken];
+		}
+		
+		public function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean
+		{
+			if (dBusyTraversal[linkableObject])
+				return false;
+			
+			// if the object is assigned a task, it's busy
+			for (var task:Object in d2dOwnerTask.dictionary[linkableObject])
+				return true;
+			
+			// avoid infinite recursion
+			dBusyTraversal[linkableObject] = true;
+			// see if children are busy
+			var dChild:Dictionary = parentToChildDictionaryMap[linkableObject];
+			for (var child:Object in dChild)
+			{
+				if (linkableObjectIsBusy(child as ILinkableObject))
+				{
+					dBusyTraversal[linkableObject] = false;
+					// busy
+					return true;
+				}
+			}
+			dBusyTraversal[linkableObject] = false;
+			// not busy
+			return false;
+		}
+		
+		
 		/**
 		 * This maps an ILinkableObject to a ICallbackCollection associated with it.
 		 */
@@ -633,7 +680,7 @@ package weave.core
 				{
 					var component:UIComponent = linkableObject as UIComponent;
 					if (!_registerUIComponent(component))
-						component.addEventListener(Event.ADDED, _registerUIComponentListener);
+						component.addEventListener(Event.ADDED, _registerUIComponentLater);
 				}
 			}
 			return objectCC;
@@ -643,13 +690,13 @@ package weave.core
 		 * This function is an event listener that in turn calls _registerUIComponent.
 		 * @param event The event dispatched by the UIComponent to be passed to _registerUIComponent.
 		 */
-		private function _registerUIComponentListener(event:Event):void
+		private function _registerUIComponentLater(event:Event):void
 		{
 			if (event.target == event.currentTarget)
 			{
 				var component:UIComponent = event.currentTarget as UIComponent;
 				if (_registerUIComponent(component))
-					component.removeEventListener(event.type, _registerUIComponentListener, event.eventPhase == EventPhase.CAPTURING_PHASE);
+					component.removeEventListener(event.type, _registerUIComponentLater, event.eventPhase == EventPhase.CAPTURING_PHASE);
 			}
 		}
 		
@@ -664,7 +711,7 @@ package weave.core
 		{
 			if (objectWasDisposed(linkableComponent))
 			{
-				reportError('UIComponent running event listener after being disposed');
+				reportError('UIComponent running _registerUIComponent after being disposed');
 				return true; // so the event listener will be removed
 			}
 			var owner:ILinkableObject = childToOwnerMap[linkableComponent] as ILinkableObject;
@@ -939,6 +986,11 @@ package weave.core
 
 
 		/**
+		 * This maps destination and source ILinkableObjects to a function like:
+		 *     function():void { setSessionState(destination, getSessionState(source), true); }
+		 */
+		private const linkFunctionCache:Dictionary2D = new Dictionary2D(true, true);
+		/**
 		 * This will link the session state of two ILinkableObjects.
 		 * The session state of 'primary' will be copied over to 'secondary' after linking them.
 		 * @param primary An ILinkableObject to give authority over the initial shared value.
@@ -989,11 +1041,6 @@ package weave.core
 			getCallbackCollection(second).removeCallback(setFirst);
 			getCallbackCollection(first).removeCallback(setSecond);
 		}
-		/**
-		 * This maps destination and source ILinkableObjects to a function like:
-		 *     function():void { setSessionState(destination, getSessionState(source), true); }
-		 */
-		private const linkFunctionCache:Dictionary2D = new Dictionary2D(true, true);
 
 
 

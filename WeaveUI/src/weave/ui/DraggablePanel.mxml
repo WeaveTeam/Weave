@@ -34,7 +34,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				resize="handleResize(event)"
 				creationComplete="handleCreationComplete()"
 				layout="absolute"
-				
 				close="handleCloseButtonClick()"
 				
 				closeButtonUpSkin="@Embed(source='/weave/resources/images/cancel.png')"
@@ -48,19 +47,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				>
 	<mx:Script>
 		<![CDATA[
+//				enterFrame="alpha = (WeaveAPI.SessionManager as SessionManager).linkableObjectIsBusy(this) ? 0.5 : 1.0"
 			import mx.containers.Canvas;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.controls.Button;
 			import mx.controls.Image;
-			import mx.controls.Menu;
-			import mx.core.Application;
 			import mx.core.BitmapAsset;
 			import mx.core.SpriteAsset;
 			import mx.core.UIComponent;
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
-			import mx.events.MenuEvent;
 			import mx.events.ResizeEvent;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
@@ -82,11 +79,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.SessionManager;
 			import weave.primitives.ImageFactory;
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.EditorManager;
 			import weave.utils.NumberUtils;
-			
+
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
