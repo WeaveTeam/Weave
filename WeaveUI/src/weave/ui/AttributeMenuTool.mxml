@@ -89,6 +89,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.ComboBox;
+			import mx.core.UIComponent;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
@@ -96,6 +97,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -107,6 +109,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.utils.ColumnUtils;
+			import weave.utils.LinkableTextFormat;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.tools.SimpleVisTool;
 
@@ -180,6 +183,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				copySessionState(ProbeTextUtils.probedColumns, choices);
 				
 				pinned.value = true;
+				
+				var ltf:LinkableTextFormat = Weave.properties.defaultTextFormat;
+				var target:UIComponent = this;
+				getCallbackCollection(ltf).addGroupedCallback(this, function():void { ltf.copyToStyle(target); }, true);
 			}
 			
 			// called after children have been created

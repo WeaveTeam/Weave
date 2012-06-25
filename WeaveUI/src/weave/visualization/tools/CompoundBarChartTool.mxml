@@ -389,6 +389,34 @@
 				}
 			}
 			
+			//The following functions: generateBarChartMessage, identifyBarChartMessageCaegory,  are prototype functions for 
+			//implementation of accessibility options
+			//The output of generateBarChartMessage should eventually replace the user input for ADA options in the bar chart 
+			//tools menu
+			
+			private function generateBarChartMessage():String {
+				//parameters passed to the function should include the message category and any data values that are pertinent to that message category 
+				//OR should determine within the function which data values it needs to pull out, given the message category
+				//the code inside this function should realize a sentence using the message category and the pertinent data values for that message category
+				//Fuf Surge here!
+				return "This is a bar chart";
+			}
+			
+			private function identifyBarChartMessageCaegory():String {
+				//should use stats or R to determine which message category the bar chart belongs to
+				//message categories from lit for bar chart include: 
+				return "Outlier";
+			}
+			//UpdateBarChartMessage should be called whenever it's necessary to update the
+			//message when major changes have been made to the visualization
+			
+			private function updateBarChartMessage():String{
+				
+				//if major changes have been made, update message
+				return generateBarChartMessage();
+
+			}
+			
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>

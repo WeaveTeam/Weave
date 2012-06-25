@@ -452,75 +452,11 @@ package weave.core
 		 * This maps a qualified class name to an Array of names of deprecated setter functions contained in that class.
 		 */
 		private const classNameToDeprecatedSetterNamesMap:Object = new Object();
-
-		/**
-		 * This function will return all the descendant objects that implement ILinkableObject.
-		 * If the filter parameter is specified, the results will contain only those objects that extend or implement the filter class.
-		 * @param root A root object to get the descendants of.
-		 * @param filter An optional Class definition which will be used to filter the results.
-		 * @return An Array containing a list of descendant objects.
-		 */
-		public function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array
-		{
-			if (root == null)
-			{
-				reportError("SessionManager.getDescendants(): root cannot be null.");
-				return [];
-			}
-
-			var result:Array = [];
-			internalGetDescendants(result, root, filter, new Dictionary(true), int.MAX_VALUE);
-			// don't include root object
-			if (result.length > 0 && result[0] == root)
-				result.shift();
-			return result;
-		}
-		private function internalGetDescendants(output:Array, root:ILinkableObject, filter:Class, ignoreList:Dictionary, depth:int):void
-		{
-			if (root == null || ignoreList[root] !== undefined)
-				return;
-			ignoreList[root] = true;
-			if (filter == null || root is filter)
-				output.push(root);
-			if (--depth <= 0)
-				return;
-			
-			var object:ILinkableObject;
-			var names:Array;
-			var name:String;
-			var i:int;
-			if (root is ILinkableDynamicObject)
-			{
-				object = (root as ILinkableDynamicObject).internalObject;
-				internalGetDescendants(output, object, filter, ignoreList, depth);
-			}
-			else if (root is ILinkableHashMap)
-			{
-				names = (root as ILinkableHashMap).getNames();
-				var objects:Array = (root as ILinkableHashMap).getObjects();
-				for (i = 0; i < names.length; i++)
-				{
-					name = names[i] as String;
-					object = objects[i] as ILinkableObject;
-					internalGetDescendants(output, object, filter, ignoreList, depth);
-				}
-			}
-			else
-			{
-				names = getLinkablePropertyNames(root);
-				for (i = 0; i < names.length; i++)
-				{
-					name = names[i] as String;
-					object = root[name] as ILinkableObject;
-					internalGetDescendants(output, object, filter, ignoreList, depth);
-				}
-			}
-		}
 		
 		/**
 		 * @private
 		 */
-		weave_internal function getDeprecatedSetterNames(linkableObject:ILinkableObject):Array
+		private function getDeprecatedSetterNames(linkableObject:ILinkableObject):Array
 		{
 			if (linkableObject == null)
 			{
@@ -601,6 +537,117 @@ package weave.core
 		 * Example: parentToChildDictionaryMap[parent][child] == true
 		 */
 		private const parentToChildDictionaryMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
+		
+		/**
+		 * This function will return all the descendant objects that implement ILinkableObject and are publicly accessible.
+		 * If the filter parameter is specified, the results will contain only those objects that extend or implement the filter class.
+		 * @param root A root object to get the descendants of.
+		 * @param filter An optional Class definition which will be used to filter the results.
+		 * @return An Array containing a list of descendant objects.
+		 */
+		public function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array
+		{
+			if (root == null)
+			{
+				reportError("SessionManager.getLinkableDescendants(): root cannot be null.");
+				return [];
+			}
+			
+			var result:Array = [];
+			internalGetDescendants(result, root, filter, new Dictionary(true), int.MAX_VALUE);
+			// don't include root object
+			if (result.length > 0 && result[0] == root)
+				result.shift();
+			return result;
+		}
+		private function internalGetDescendants(output:Array, root:ILinkableObject, filter:Class, ignoreList:Dictionary, depth:int):void
+		{
+			if (root == null || ignoreList[root] !== undefined)
+				return;
+			ignoreList[root] = true;
+			if (filter == null || root is filter)
+				output.push(root);
+			if (--depth <= 0)
+				return;
+			
+			var object:ILinkableObject;
+			var names:Array;
+			var name:String;
+			var i:int;
+			if (root is ILinkableDynamicObject)
+			{
+				object = (root as ILinkableDynamicObject).internalObject;
+				internalGetDescendants(output, object, filter, ignoreList, depth);
+			}
+			else if (root is ILinkableHashMap)
+			{
+				names = (root as ILinkableHashMap).getNames();
+				var objects:Array = (root as ILinkableHashMap).getObjects();
+				for (i = 0; i < names.length; i++)
+				{
+					name = names[i] as String;
+					object = objects[i] as ILinkableObject;
+					internalGetDescendants(output, object, filter, ignoreList, depth);
+				}
+			}
+			else
+			{
+				names = getLinkablePropertyNames(root);
+				for (i = 0; i < names.length; i++)
+				{
+					name = names[i] as String;
+					object = root[name] as ILinkableObject;
+					internalGetDescendants(output, object, filter, ignoreList, depth);
+				}
+			}
+		}
+		
+		private const d2dOwnerTask:Dictionary2D = new Dictionary2D(true, true);
+		private const d2dTaskOwner:Dictionary2D = new Dictionary2D(true, true);
+		private const dBusyTraversal:Dictionary = new Dictionary(true);
+		
+		public function assignBusyTask(taskToken:Object, linkableObject:ILinkableObject):void
+		{
+			d2dOwnerTask.set(linkableObject, taskToken, true);
+			d2dTaskOwner.set(taskToken, linkableObject, true);
+		}
+		
+		public function unassignBusyTask(taskToken:Object):void
+		{
+			var dOwner:Dictionary = d2dTaskOwner.dictionary[taskToken];
+			delete d2dTaskOwner.dictionary[taskToken];
+			for (var owner:Object in dOwner)
+				delete d2dOwnerTask.dictionary[owner][taskToken];
+		}
+		
+		public function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean
+		{
+			if (dBusyTraversal[linkableObject])
+				return false;
+			
+			// if the object is assigned a task, it's busy
+			for (var task:Object in d2dOwnerTask.dictionary[linkableObject])
+				return true;
+			
+			// avoid infinite recursion
+			dBusyTraversal[linkableObject] = true;
+			// see if children are busy
+			var dChild:Dictionary = parentToChildDictionaryMap[linkableObject];
+			for (var child:Object in dChild)
+			{
+				if (linkableObjectIsBusy(child as ILinkableObject))
+				{
+					dBusyTraversal[linkableObject] = false;
+					// busy
+					return true;
+				}
+			}
+			dBusyTraversal[linkableObject] = false;
+			// not busy
+			return false;
+		}
+		
+		
 		/**
 		 * This maps an ILinkableObject to a ICallbackCollection associated with it.
 		 */
@@ -633,7 +680,7 @@ package weave.core
 				{
 					var component:UIComponent = linkableObject as UIComponent;
 					if (!_registerUIComponent(component))
-						component.addEventListener(Event.ADDED, _registerUIComponentListener);
+						component.addEventListener(Event.ADDED, _registerUIComponentLater);
 				}
 			}
 			return objectCC;
@@ -643,13 +690,13 @@ package weave.core
 		 * This function is an event listener that in turn calls _registerUIComponent.
 		 * @param event The event dispatched by the UIComponent to be passed to _registerUIComponent.
 		 */
-		private function _registerUIComponentListener(event:Event):void
+		private function _registerUIComponentLater(event:Event):void
 		{
 			if (event.target == event.currentTarget)
 			{
 				var component:UIComponent = event.currentTarget as UIComponent;
 				if (_registerUIComponent(component))
-					component.removeEventListener(event.type, _registerUIComponentListener, event.eventPhase == EventPhase.CAPTURING_PHASE);
+					component.removeEventListener(event.type, _registerUIComponentLater, event.eventPhase == EventPhase.CAPTURING_PHASE);
 			}
 		}
 		
@@ -664,7 +711,7 @@ package weave.core
 		{
 			if (objectWasDisposed(linkableComponent))
 			{
-				reportError('UIComponent running event listener after being disposed');
+				reportError('UIComponent running _registerUIComponent after being disposed');
 				return true; // so the event listener will be removed
 			}
 			var owner:ILinkableObject = childToOwnerMap[linkableComponent] as ILinkableObject;
@@ -684,40 +731,6 @@ package weave.core
 			}
 			return true; // component already has a linkable owner
 		}
-
-		/**
-		 * This function is used to detect if callbacks of a linkable object were triggered since the last time detectLinkableObjectChange
-		 * was called with the same parameters, likely by the observer.  Note that once this function returns true, subsequent calls will
-		 * return false until the callbacks are triggered again, unless clearChangedNow is set to false.  It may be a good idea to specify
-		 * a private object as the observer so no other code can call detectLinkableObjectChange with the same observer and linkableObject
-		 * parameters.
-		 * @param observer The object that is observing the change.
-		 * @param linkableObject The object that is being observed.
-		 * @param clearChangedNow If this is true, the trigger counter will be reset to the current value now so that this function will
-		 *        return false if called again with the same parameters before the next time the linkable object triggers its callbacks.
-		 * @return A value of true if the callbacks have triggered since the last time this function was called with the given parameters.
-		 */
-		public function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject, clearChangedNow:Boolean = true):Boolean
-		{
-			if (!_triggerCounterMap[linkableObject])
-				_triggerCounterMap[linkableObject] = new Dictionary(false); // weakKeys=false to allow observers to be Functions
-			
-			var previousCount:* = _triggerCounterMap[linkableObject][observer]; // untyped to handle undefined value
-			var newCount:uint = getCallbackCollection(linkableObject).triggerCounter;
-			if (previousCount !== newCount) // no casting to handle 0 !== undefined
-			{
-				if (clearChangedNow)
-					_triggerCounterMap[linkableObject][observer] = newCount;
-				return true;
-			}
-			return false;
-		}
-		
-		/**
-		 * This is a two-dimensional dictionary, where _triggerCounterMap[linkableObject][observer]
-		 * equals the previous triggerCounter value from linkableObject observed by the observer.
-		 */		
-		private const _triggerCounterMap:Dictionary = new Dictionary(true);
 
 		/**
 		 * This function checks if an object has been disposed of by the ISessionManager.
@@ -871,8 +884,8 @@ package weave.core
 			// set some variables to aid in debugging - only useful if you add a breakpoint here.
 			var obj:*;
 			var ownerPath:Array = []; while (obj = getLinkableOwner(obj)) { ownerPath.unshift(obj); }
-			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject] || []) { parents.push[obj]; }
-			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject] || []) { children.push[obj]; }
+			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject]) { parents.push[obj]; }
+			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject]) { children.push[obj]; }
 			var sessionState:Object = getSessionState(disposedObject);
 
 			// ADD A BREAKPOINT HERE TO DIAGNOSE THE PROBLEM
@@ -899,7 +912,7 @@ package weave.core
 		/**
 		 * This function is for debugging purposes only.
 		 */
-		private function getPaths(root:ILinkableObject, descendant:ILinkableObject):Array
+		private function _getPaths(root:ILinkableObject, descendant:ILinkableObject):Array
 		{
 			var results:Array = [];
 			for (var parent:Object in childToParentDictionaryMap[descendant])
@@ -908,12 +921,12 @@ package weave.core
 				if (parent is ILinkableHashMap)
 					name = (parent as ILinkableHashMap).getName(descendant);
 				else
-					name = getChildPropertyName(parent as ILinkableObject, descendant);
+					name = _getChildPropertyName(parent as ILinkableObject, descendant);
 				
 				if (name != null)
 				{
 					// this parent may be the one we want
-					var result:Array = getPaths(root, parent as ILinkableObject);
+					var result:Array = _getPaths(root, parent as ILinkableObject);
 					if (result != null)
 					{
 						result.push(name);
@@ -929,7 +942,7 @@ package weave.core
 		/**
 		 * internal use only
 		 */
-		private function getChildPropertyName(parent:ILinkableObject, child:ILinkableObject):String
+		private function _getChildPropertyName(parent:ILinkableObject, child:ILinkableObject):String
 		{
 			// find the property name that returns the child
 			for each (var name:String in getLinkablePropertyNames(parent))
@@ -972,6 +985,11 @@ package weave.core
 
 
 
+		/**
+		 * This maps destination and source ILinkableObjects to a function like:
+		 *     function():void { setSessionState(destination, getSessionState(source), true); }
+		 */
+		private const linkFunctionCache:Dictionary2D = new Dictionary2D(true, true);
 		/**
 		 * This will link the session state of two ILinkableObjects.
 		 * The session state of 'primary' will be copied over to 'secondary' after linking them.
@@ -1023,11 +1041,6 @@ package weave.core
 			getCallbackCollection(second).removeCallback(setFirst);
 			getCallbackCollection(first).removeCallback(setSecond);
 		}
-		/**
-		 * This maps destination and source ILinkableObjects to a function like:
-		 *     function():void { setSessionState(destination, getSessionState(source), true); }
-		 */
-		private const linkFunctionCache:Dictionary2D = new Dictionary2D(true, true);
 
 
 
@@ -1037,7 +1050,7 @@ package weave.core
 		 * linking sessioned objects with bindable properties
 		 ******************************************************/
 		
-		private const VALUE_NOT_ACCEPTED:String = 'Value not accepted.'; // errorString used by linkBindableProperty
+		private const VALUE_NOT_ACCEPTED:String = lang('Value not accepted.'); // errorString used by linkBindableProperty
 		
 		/*private function debugLink(linkVal:Object, bindVal:Object, useLinkableBefore:Boolean, useLinkableAfter:Boolean, callingLater:Boolean):void
 		{
@@ -1279,6 +1292,15 @@ package weave.core
 		 * This maps a ChangeWatcher object to a function that was added as a callback to the corresponding ILinkableVariable.
 		 */
 		private const _watcherToSynchronizeFunctionMap:Dictionary = new Dictionary(); // use weak links to be GC-friendly
+		
+		
+		
+		
+		
+		/*******************
+		 * Computing diffs
+		 *******************/
+		
 		
 		internal static const DIFF_DELETE:String = 'delete';
 		

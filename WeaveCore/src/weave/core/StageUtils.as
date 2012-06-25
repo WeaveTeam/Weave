@@ -34,6 +34,7 @@ package weave.core
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ILinkableObject;
 	import weave.api.core.IStageUtils;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -421,9 +422,12 @@ package weave.core
 			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
 				return;
 			
+			(WeaveAPI.SessionManager as SessionManager).assignBusyTask(iterativeTask, relevantContext as ILinkableObject);
+			
 			if (priority == WeaveAPI.TASK_PRIORITY_RENDERING && !enableThreadPriorities)
 			{
 				while (iterativeTask() < 1) { }
+				(WeaveAPI.SessionManager as SessionManager).unassignBusyTask(iterativeTask);
 				return;
 			}
 			

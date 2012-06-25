@@ -19,12 +19,7 @@
 
 package weave.utils
 {
-	import flash.text.FontStyle;
-	import flash.text.FontType;
-	import flash.text.TextDisplayMode;
 	import flash.text.TextFormat;
-	import flash.text.engine.FontDescription;
-	import flash.text.engine.FontMetrics;
 	import flash.text.engine.FontPosture;
 	import flash.text.engine.FontWeight;
 	
