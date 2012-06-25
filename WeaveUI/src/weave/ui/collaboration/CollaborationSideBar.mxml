@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="15%" height="500" title="Collaboration Group" xmlns:collaboration="weave.ui.collaboration.*">
+	<mx:List id="userList" width="100%" height="100%" labelField="name" minWidth="130">
+		<mx:itemRenderer>
+			<mx:Component>
+				<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off" paddingRight="4">
+					<mx:Script>
+						<![CDATA[
+							import mx.controls.ToolTip;
+														
+							override public function set data(value:Object):void
+							{
+								if( outerDocument._userListInfo[value] != null )
+								{
+									color.setStyle("backgroundColor", 	outerDocument._userListInfo[value].color );
+									micPic.visible 			= outerDocument._userListInfo[value].mic;
+									micPic.includeInLayout 	= outerDocument._userListInfo[value].mic;
+									camPic.visible			= outerDocument._userListInfo[value].cam;
+									camPic.includeInLayout	= outerDocument._userListInfo[value].cam;
+									specPic.visible			= outerDocument._userListInfo[value].spec;
+									specPic.includeInLayout = outerDocument._userListInfo[value].spec;
+									collabPing.ping			= outerDocument._userListInfo[value].ping;
+								}
+								labelName.text = value as String;
+								if( (value as String) == outerDocument.nickname )
+									labelName.setStyle("fontWeight", "bold");
+								else
+									labelName.setStyle("fontWeight", "normal");
+							}
+							
+						]]>
+					</mx:Script>
+					<mx:Canvas id="color" width="16" height="16" borderStyle="solid" 
+							   cornerRadius="8" borderThickness="2"
+							   borderColor="0"/>
+					<mx:Canvas width="100%" clipContent="true" horizontalScrollPolicy="off">
+						<mx:Label id="labelName" fontSize="12" width="100%" toolTip="{labelName.text}" />
+					</mx:Canvas>
+					<mx:Image id="micPic" source="@Embed(source='/weave/resources/images/collab/mic.png')" width="15" height="15" />
+					<mx:Image id="camPic" source="@Embed(source='/weave/resources/images/collab/cam.png')" width="15" height="15" />
+					<mx:Image id="specPic" source="@Embed(source='/weave/resources/images/collab/eye.png')" width="22" height="12" />
+					<collaboration:CollaborationPing id="collabPing" width="16" height="14" />
+				</mx:HBox>
+			</mx:Component>
+		</mx:itemRenderer>
+	</mx:List>
+	<mx:Button id="cursorButton" width="100%" label="{lang('Request Cursor Control')}" click="cursorButtonClick(event)" y="{this.height - this.borderMetrics.bottom - this.borderMetrics.top - cursorButton.height}"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.collections.ICollectionView;
+			import weave.services.collaboration.CollaborationEvent;
+			
+			public const TYPE_MIC:String						= "MIC";
+			public const TYPE_CAM:String						= "CAM";
+			public const TYPE_SPEC:String						= "SPEC";
+			public const TYPE_PING:String						= "PING";
+			public const TYPE_COLOR:String						= "COLOR";
+			
+			[Bindable] internal var _userListInfo:Dictionary	= new Dictionary();
+			internal var nickname:String 						= null;
+			
+			public function setUserAttribute(type:String, name:String, val:Number):void
+			{
+				var o:Object = null;
+				
+				if( _userListInfo[name] == null )
+				{
+					o = new Object();
+					_userListInfo[name] = o;
+				}
+				switch( type )
+				{
+					case TYPE_COLOR:
+						_userListInfo[name].color = val;
+						break;
+					case TYPE_MIC:
+						_userListInfo[name].mic = val;
+						break;
+					case TYPE_CAM:
+						_userListInfo[name].cam = val;
+						break;
+					case TYPE_PING:
+						_userListInfo[name].ping = val;
+						break;
+					case TYPE_SPEC:
+						_userListInfo[name].spec = val;
+						break;
+				}
+				(userList.dataProvider as ICollectionView).refresh();
+				
+/* 				if( name == nickname ) return;
+				if( !rtmpService ) 	   return;
+				
+				if( val == 1 )
+				{
+					if( type == TYPE_MIC )
+					{
+						var ns:NetStream = new NetStream(rtmpService);
+						ns.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
+						ns.play("m-"+roomName+"-"+name);
+						nsPlayMicList[name] = ns;
+					}
+					else if( type == TYPE_CAM )
+					{
+						var remoteVideo:CollaborationVideo = new CollaborationVideo();
+						remoteVideo.stream = new NetStream(rtmpService);
+						remoteVideo.stream.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
+						remoteVideo.video = new Video(140, 105);
+						remoteVideo.play("v-"+roomName+"-"+name);
+						//						remoteVideo.setPos(containerRemoteCams.width/2-remoteVideo.width/2, 0);
+						remoteVideo.nickname = name;
+						containerRemoteCams.addChild(remoteVideo);
+						nsPlayCamList[name] = remoteVideo;
+						
+						if( dictionaryLength(nsPlayCamList) > 0 )
+							showRemoteDisplay();
+						
+						//						organizeRemoteVideos();
+					}
+				}
+				else
+				{
+					if( type == TYPE_MIC )
+					{
+						if( nsPlayMicList[name] )
+						{
+							nsPlayMicList[name].removeEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
+							nsPlayMicList[name].close();
+							delete nsPlayMicList[name];
+						}
+					}
+					else if( type == TYPE_CAM )
+					{
+						if( nsPlayCamList[name] )
+						{
+							nsPlayCamList[name].stream.removeEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
+							containerRemoteCams.removeChild(nsPlayCamList[name]);
+							nsPlayCamList[name].close();
+							delete nsPlayCamList[name];
+							
+							if( dictionaryLength(nsPlayCamList) == 0 && enabledCam )
+								showLocalDisplay();
+							else if( dictionaryLength(nsPlayCamList) == 0 && !enabledCam )
+								hideRemoteDisplay();
+							
+							//							organizeRemoteVideos();
+						}
+					}
+				}
+				(userList.dataProvider as ICollectionView).refresh(); */
+			} 
+			
+			protected function cursorButtonClick(event:MouseEvent):void
+			{
+				if( lang("Request Cursor Control") == cursorButton.label )
+				{
+					dispatchEvent(new CollaborationEvent( CollaborationEvent.SEND_MOUSE_CONTROL_REQUEST ) );
+					cursorButton.label = lang("Cancel Control Request");
+				}
+				else
+				{
+					dispatchEvent(new CollaborationEvent( CollaborationEvent.SEND_RELINQUISH_MOUSE_CONTROL ) );
+					cursorButton.label = lang("Request Cursor Control");
+				}
+			}
+			
+			public function set userNameList(array:ArrayCollection):void
+			{
+				userList.dataProvider = array;
+			}
+		]]>
+	</mx:Script>
+</mx:Panel>

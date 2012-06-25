@@ -56,7 +56,10 @@
 					</ui:Center>
 					<mx:Spacer height="100%" />
 					<ui:Center>
-						<mx:Button id="saveConnectionButton" label="Save" click="saveSettings(event)" />
+						<mx:HBox>
+							<mx:Button id="connectButton" label="Connect" click="saveSettings(event)" />
+							<mx:Button id="cancelButton" label="Cancel"/>
+						</mx:HBox>
 					</ui:Center>
 				</mx:VBox>
 				<mx:VBox width="100%" height="100%" label="Add-ons" enabled="false"
@@ -144,7 +147,7 @@
 				dispatchEvent(new Event(CollaborationEvent.CONN_SETTINGS_SAVED));
 				
 				// Slow down the fadeout to read
-				saveConnectionButton.label = "Settings Saved";
+				connectButton.label = "Connecting";
 				fadeOut.duration = 1500;
 				hide();
 			}
@@ -160,7 +163,7 @@
 			public function show():void
 			{
 				this.visible = true;
-				saveConnectionButton.label = "Save";
+				connectButton.label = "Save";
 				saveAddonsButton.label = "Save";
 				fadeOut.duration = 500;
 				

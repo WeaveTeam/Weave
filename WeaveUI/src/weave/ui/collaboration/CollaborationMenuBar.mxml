@@ -57,6 +57,7 @@
 			private const rtmpPath:String = "rtmpt://demo.oicweave.org:8086/live";
 			
 			private var CHAT:CollaborationChatWindow 			= null;
+			private var BAR:CollaborationSideBar             = null;
 			private var SETTINGS:CollaborationSettingsWindow 	= null;
 			private var connTimer:Timer 						= null;
 			private var mouseTimer:Timer						= null;
@@ -93,13 +94,17 @@
 				rtmpService.addEventListener(NetStatusEvent.NET_STATUS, rtmpNetStatus);
 				rtmpService.addEventListener(SecurityErrorEvent.SECURITY_ERROR, rtmpSecurityError);
 				
+				createBarWindow();
 				createWindowChat();
 				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
+				BAR.addEventListener(CollaborationEvent.SEND_MOUSE_CONTROL_REQUEST, sendRequestMessage);
+				BAR.addEventListener(CollaborationEvent.SEND_RELINQUISH_MOUSE_CONTROL, sendRelinquishMessage);
 				CHAT.addEventListener(CollaborationEvent.SEND_MOUSE_CONTROL_REQUEST, sendRequestMessage);
 				CHAT.addEventListener(CollaborationEvent.SEND_RELINQUISH_MOUSE_CONTROL, sendRelinquishMessage);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
 				CHAT.userNameList = collabService.userList;
+				BAR.userNameList = collabService.userList;
 				
 				button_connect.addEventListener(MouseEvent.CLICK, connect);
 				button_chat.addEventListener(MouseEvent.CLICK, toggleChat);
@@ -107,6 +112,14 @@
 				stage.addEventListener(Event.RESIZE, resizeHandler);
 				
 			}
+			private function createBarWindow():void
+			{
+				BAR = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, CollaborationSideBar) as CollaborationSideBar;
+				BAR.visible = true;
+				BAR.x = 0;
+				BAR.y = (WeaveAPI.topLevelApplication as DisplayObject).height * .75 - BAR.height;
+			}
+			
 			public function addedToStage():void
 			{
 				button_connect.enabled 	= false;
@@ -169,6 +182,7 @@
 				
 				collabService.room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 				collabService.sendMouseMessage(SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
+				collabService.hasControl = false;
 			}
 			private function disconnect(e:MouseEvent = null):void
 			{
@@ -291,6 +305,7 @@
 			{
 				button_connect.enabled = true;
 				CHAT.setUserAttribute(CHAT.TYPE_COLOR, SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR);
+				BAR.setUserAttribute(BAR.TYPE_COLOR, SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR);
 			}
 			private function settingsAddonSaved(e:Event):void
 			{
@@ -475,6 +490,7 @@
 			private function handleUserRequestUserlist(e:CollaborationEvent):void
 			{
 				collabService.requestAddonStatus(e.getText(), CHAT._userListInfo);
+				collabService.requestAddonStatus(e.getText(), BAR._userListInfo);
 			}
 			private function handleUserUpdateUserlist(e:CollaborationEvent):void
 			{
@@ -483,14 +499,19 @@
 				{
 					trace( "Setting attributes for:", name );
 					CHAT.setUserAttribute(CHAT.TYPE_CAM,	name, info[name].cam);
+					BAR.setUserAttribute(CHAT.TYPE_CAM,	name, info[name].cam);
 					trace( "Cam:", info[name].cam );
 					CHAT.setUserAttribute(CHAT.TYPE_COLOR, 	name, info[name].color);
+					BAR.setUserAttribute(CHAT.TYPE_COLOR, 	name, info[name].color);
 					trace( "color:", info[name].color );
 					CHAT.setUserAttribute(CHAT.TYPE_MIC,  	name, info[name].mic);
+					BAR.setUserAttribute(CHAT.TYPE_MIC,  	name, info[name].mic);
 					trace( "mic:", info[name].mic);
 					CHAT.setUserAttribute(CHAT.TYPE_PING, 	name, info[name].ping);
+					BAR.setUserAttribute(CHAT.TYPE_PING, 	name, info[name].ping);
 					trace( "ping:", info[name].ping );
 					CHAT.setUserAttribute(CHAT.TYPE_SPEC, 	name, info[name].spec);
+					BAR.setUserAttribute(CHAT.TYPE_SPEC, 	name, info[name].spec);
 					trace( "spec:", info[name].spec );
 				}
 			}
@@ -514,11 +535,11 @@
  */
 			
 			private function requestPing(e:TimerEvent):void 		   { collabService.sendPing(SETTINGS.collab_NICKNAME); }
-			private function updatePing(e:CollaborationEvent):void 	   { CHAT.setUserAttribute(CHAT.TYPE_PING, e.getText(), e.getX()); }
+			private function updatePing(e:CollaborationEvent):void 	   { BAR.setUserAttribute(BAR.TYPE_PING, e.getText(), e.getX()); }
 			private function updateUserMic(e:CollaborationEvent):void  { collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, collabService.TYPE_MIC, ( e.getText() == "1" )); }
 			private function updateUserCam(e:CollaborationEvent):void  { collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, collabService.TYPE_CAM, ( e.getText() == "1" )); }
-			private function userMicUpdated(e:CollaborationEvent):void { CHAT.setUserAttribute(CHAT.TYPE_MIC, e.getText(), Number(e.getColor())); }
-			private function userCamUpdated(e:CollaborationEvent):void { CHAT.setUserAttribute(CHAT.TYPE_CAM, e.getText(), Number(e.getColor())); }
+			private function userMicUpdated(e:CollaborationEvent):void { BAR.setUserAttribute(BAR.TYPE_MIC, e.getText(), Number(e.getColor())); }
+			private function userCamUpdated(e:CollaborationEvent):void { BAR.setUserAttribute(BAR.TYPE_CAM, e.getText(), Number(e.getColor())); }
 			
 			private var lastX:Number = 0;
 			private var lastY:Number = 0;
@@ -561,6 +582,8 @@
 				
 				CHAT.setUserAttribute(CHAT.TYPE_CAM, e.getText(), 0);
 				CHAT.setUserAttribute(CHAT.TYPE_MIC, e.getText(), 0);
+				BAR.setUserAttribute(BAR.TYPE_CAM, e.getText(), 0);
+				BAR.setUserAttribute(BAR.TYPE_MIC, e.getText(), 0);
 			}
 			private function handleUserRequestMousePos(e:CollaborationEvent):void
 			{
@@ -585,7 +608,7 @@
 				if( e.getColor() != WeaveAPI.CollaborationCursorManager.getColor(e.getText()) )
 				{
 					WeaveAPI.CollaborationCursorManager.setColor(e.getText(), e.getColor(), 1000);
-					CHAT.setUserAttribute(CHAT.TYPE_COLOR, e.getText(), e.getColor());
+					BAR.setUserAttribute(BAR.TYPE_COLOR, e.getText(), e.getColor());
 				}
 			}
 			private function mouseMove(e:TimerEvent):void
@@ -609,9 +632,15 @@
 			{
 				var position:Number = WeaveAPI.CollaborationCursorManager.addToQueue(e.getText(), collabService.nickname);
 				if( position == 0 )
-					CHAT.cursorButton.label = lang("Relinquish Control");
+				{
+					collabService.hasControl = true;
+					BAR.cursorButton.label = lang("Relinquish Control");
+				}
 				else if( position > 0 )
-					CHAT.cursorButton.label = lang("You are in position ") + position + " (Click to cancel)";
+				{
+					collabService.hasControl = false;
+					BAR.cursorButton.label = lang("You are in position ") + position + " (Click to cancel)";
+				}
 			}
 			
 			public function sendRequestMessage(e:CollaborationEvent):void
@@ -622,6 +651,7 @@
 			public function sendRelinquishMessage(e:CollaborationEvent):void
 			{
 				collabService.relinquishMouseControl(collabService.nickname);
+				collabService.hasControl = false;
 			}
 			
 			//Received a message for giving up control of the mouse, so this function removes it from the queue.
@@ -629,9 +659,15 @@
 			{
 				var position:Number =  WeaveAPI.CollaborationCursorManager.removeFromQueue(e.getText(), collabService.nickname);
 				if( position == 0 )
-					CHAT.cursorButton.label = lang("Relinquish Control");
+				{
+					collabService.hasControl = true;
+					BAR.cursorButton.label = lang("Relinquish Control");
+				}
 				else if( position > 0 )
-					CHAT.cursorButton.label = lang("You are in position ") + position + " (Click to cancel)";
+				{
+					collabService.hasControl = false;
+					BAR.cursorButton.label = lang("You are in position ") + position + " (Click to cancel)";
+				}
 			}
 			
 			private function coordToPercentX(x:Number):Number { return x / WeaveAPI.topLevelApplication.stage.stageWidth;   }

@@ -95,6 +95,7 @@ package weave.services.collaboration
 		public var roomToJoin:String;
 		public var myRole:String;
 		public var room:Room;
+		public var hasControl:Boolean;
 		[Bindable] public var ping:Number;
 
 		public function CollaborationService( root:ILinkableObject )
@@ -357,7 +358,8 @@ package weave.services.collaboration
 				else if (log.length > 0)
 				{
 					var entry:Object = log[log.length - 1];
-					sendSessionStateDiff( entry.id, entry.forward );
+					if( hasControl )
+						sendSessionStateDiff( entry.id, entry.forward );
 				}
 			}
 		}
