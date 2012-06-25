@@ -602,47 +602,50 @@ package weave.core
 			}
 		}
 		
-		private const d2dOwnerTask:Dictionary2D = new Dictionary2D(true, true);
-		private const d2dTaskOwner:Dictionary2D = new Dictionary2D(true, true);
-		private const dBusyTraversal:Dictionary = new Dictionary(true);
+		private const _d2dOwnerTask:Dictionary2D = new Dictionary2D(true, true);
+		private const _d2dTaskOwner:Dictionary2D = new Dictionary2D(true, true);
+		private const _dBusyTraversal:Dictionary = new Dictionary(true); // ILinkableObject -> Boolean
 		
+		/**
+		 * 
+		 * @param taskToken
+		 * @param linkableObject
+		 */		
 		public function assignBusyTask(taskToken:Object, linkableObject:ILinkableObject):void
 		{
-			d2dOwnerTask.set(linkableObject, taskToken, true);
-			d2dTaskOwner.set(taskToken, linkableObject, true);
+			_d2dOwnerTask.set(linkableObject, taskToken, true);
+			_d2dTaskOwner.set(taskToken, linkableObject, true);
 		}
 		
 		public function unassignBusyTask(taskToken:Object):void
 		{
-			var dOwner:Dictionary = d2dTaskOwner.dictionary[taskToken];
-			delete d2dTaskOwner.dictionary[taskToken];
+			var dOwner:Dictionary = _d2dTaskOwner.dictionary[taskToken];
+			delete _d2dTaskOwner.dictionary[taskToken];
 			for (var owner:Object in dOwner)
-				delete d2dOwnerTask.dictionary[owner][taskToken];
+				delete _d2dOwnerTask.dictionary[owner][taskToken];
 		}
 		
 		public function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean
 		{
-			if (dBusyTraversal[linkableObject])
-				return false;
-			
 			// if the object is assigned a task, it's busy
-			for (var task:Object in d2dOwnerTask.dictionary[linkableObject])
+			for (var task:Object in _d2dOwnerTask.dictionary[linkableObject])
 				return true;
 			
 			// avoid infinite recursion
-			dBusyTraversal[linkableObject] = true;
+			_dBusyTraversal[linkableObject] = true;
 			// see if children are busy
 			var dChild:Dictionary = parentToChildDictionaryMap[linkableObject];
 			for (var child:Object in dChild)
 			{
-				if (linkableObjectIsBusy(child as ILinkableObject))
+				// check traversal flag before recursive call
+				if (!_dBusyTraversal[child] && linkableObjectIsBusy(child as ILinkableObject))
 				{
-					dBusyTraversal[linkableObject] = false;
+					_dBusyTraversal[linkableObject] = false;
 					// busy
 					return true;
 				}
 			}
-			dBusyTraversal[linkableObject] = false;
+			_dBusyTraversal[linkableObject] = false;
 			// not busy
 			return false;
 		}
