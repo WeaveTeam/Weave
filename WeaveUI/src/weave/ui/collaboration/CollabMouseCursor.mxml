@@ -157,7 +157,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (url && _urlToImageMap[url] === undefined)
 				{
 					_urlToImageMap[url] = null;
-					var tokencheck:IURLRequestToken = WeaveAPI.URLRequestUtils.getContent(new URLRequest(url), handleImageDownload, handleFault, url);
+					var tokencheck:IURLRequestToken = WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(url), handleImageDownload, handleFault, url);
 				}
 				return _urlToImageMap[url] as BitmapData;
 			}
