@@ -11,7 +11,7 @@
             </mx:ComboBox>
             <mx:Tree height="100%" width="100%" id="tagtableTree" itemOpening="onGroupExpand(event)" change="onGroupSelect(event)" itemClick="onGroupSelect(event)" enabled="{enabled}"/>
             <mx:HBox id="editorBox" width="100%" includeInLayout="false" visible="false">
-                <ui:TextInputWithPrompt width="100%" id="addTagInput" prompt="New Tag Name" enabled="{enabled}"/>
+                <ui:TextInputWithPrompt width="100%" id="addTagInput" prompt="New Tag Name" enabled="{enabled}" enter="addNewTag()"/>
                 <mx:Button label="Add Tag" id="addTagButton" enabled="{enabled}" buttonDown="addNewTag()"/>
                 <mx:Button label="Delete Tag" id="deleteTagButton" enabled="{enabled}" buttonDown="removeTag()"/>
             </mx:HBox>
@@ -34,6 +34,7 @@
     import mx.events.ListEvent;
     import mx.events.TreeEvent;
     import mx.rpc.events.ResultEvent;
+    import weave.core.UIUtils;
     import weave.services.AdminInterface;
     import weave.services.WeaveAdminService;
     import weave.services.beans.AttributeColumnInfo;
@@ -138,12 +139,14 @@
     }
     private function addNewTag():void
     {
+        if (!addTagInput.text)
+            UIUtils.componentPulse(addTagInput);
     }
     private function removeTag():void
     {
         if (selectedItem.object.entity_type == 2)
         {
-            
+              
         }
     }
 ]]>

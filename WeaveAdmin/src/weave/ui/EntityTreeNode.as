@@ -11,8 +11,6 @@ package weave.ui
         public var label:String;
         public var object:AttributeColumnInfo;
         public var children:Array = [];
-        [Bindable] public var committed:Boolean = true;
-        public var oldobject:AttributeColumnInfo;
 
         public var columns:Array = [];
         public var is_populated:Boolean = false;
@@ -20,7 +18,6 @@ package weave.ui
         public function EntityTreeNode(info:AttributeColumnInfo)
         {
             this.object = info;
-            this.oldobject = info;
             label = info.publicMetadata["title"];
             if (info.entity_type == 1 || info.entity_type == 0) children = null;
             if (label == null) label = info.publicMetadata["name"]; // TODO: hack, remove later after full migration code is written.
@@ -62,8 +59,7 @@ package weave.ui
             function refreshHandler(event:ResultEvent, token:Object = null):void
             {
                 var freshetn:AttributeColumnInfo = new AttributeColumnInfo(event.result);
-                etn.oldobject = freshetn;
-                etn.object = freshetn.deepcopy();
+                etn.object = freshetn;
                 if (onComplete != null)
                     onComplete(etn);
                 etn.is_populated = true;
@@ -71,28 +67,22 @@ package weave.ui
             AdminInterface.instance.getEntity(object.id, refreshHandler);
             return;
         }
-        public function update(meta:Object):void
+        public function updateFromDataProvider(rows:Array):Boolean
         {
-            var splitMeta:Array = AttributeColumnInfo.splitObject(meta);
-            object.publicMetadata = splitMeta[0];
-            object.privateMetadata = splitMeta[1];
-            committed = false;
-        }
-        public function revert():void
-        {
-            object = oldobject;
-            committed = true;
-        }
-        public function updateFromDataProvider(dp:Array):void
-        {
-            if (this.committed == true)
+            var pub:Object = {};
+            var priv:Object = {};
+                
+            for each (var row:Object in rows)
             {
-
+                if (row.isPrivate)
+                    priv[row.property] = row.value;
+                else
+                    pub[row.property] = row.value;
             }
-            for each (var row:Object in dp)
-            {
-            }
-            return;
+            // TODO: Actually commit to DB and return success/fail
+            this.object.publicMetadata = pub;
+            this.object.privateMetadata = pub;
+            return true;
         }
         public function asDataProvider():Array
         {
@@ -108,20 +98,6 @@ package weave.ui
             var dgarr:Array = objToArr(object.publicMetadata);
             dgarr = dgarr.concat(objToArr(object.privateMetadata, true));
             return dgarr;
-        }
-        public function commit():void 
-        { 
-            
-            /* Check difference between new data and data on record; only commit these differences. TODO: Bump version number. */
-            var old:Object = AttributeColumnInfo.mergeObjects(oldobject.publicMetadata, oldobject.privateMetadata);
-            var fresh:Object = AttributeColumnInfo.mergeObjects(object.publicMetadata, object.privateMetadata);
-            var diff:Object = AttributeColumnInfo.diffObjects(old, fresh);
-            var etn:EntityTreeNode = this;
-            AdminInterface.instance.updateEntity(object.id, diff, commitHandler);
-            function commitHandler(event:ResultEvent, token:Object = null):void
-            {
-                if (event.result as Boolean) etn.committed = true;
-            }
         }
         public function addToParent(parent_id:int):void
         {
