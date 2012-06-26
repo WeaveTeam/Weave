@@ -410,7 +410,7 @@ A text editor to change the Session State on the fly.
 			}
 			private function confirmDeleteSelectedItem(event:KeyboardEvent):void
 			{
-				if (event.keyCode == 46)
+				if (event.keyCode == Keyboard.DELETE || event.keyCode == Keyboard.BACKSPACE)
 				{
 					var parent:ILinkableObject = getLinkableOwner(sessionNav.selectedItem.object);
 					if (!parent)

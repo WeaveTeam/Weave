@@ -255,7 +255,7 @@
 			
 			private function handleKeyDown(event:KeyboardEvent):void
 			{
-				if (dataGrid.selectedItem && event.keyCode == Keyboard.DELETE)
+				if (dataGrid.selectedItem && (event.keyCode == Keyboard.DELETE || event.keyCode == Keyboard.BACKSPACE))
 				{
 					var originalText:String = dataGrid.selectedItem[ORIGINAL];
 					var yes:Function = function():void
