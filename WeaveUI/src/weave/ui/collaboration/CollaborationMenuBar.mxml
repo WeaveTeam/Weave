@@ -103,7 +103,6 @@
 				CHAT.addEventListener(CollaborationEvent.SEND_RELINQUISH_MOUSE_CONTROL, sendRelinquishMessage);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
-				CHAT.userNameList = collabService.userList;
 				BAR.userNameList = collabService.userList;
 				
 				button_connect.addEventListener(MouseEvent.CLICK, connect);
@@ -165,9 +164,9 @@
 				toggleChat();
 				CHAT.nickname = collabService.nickname;
 				CHAT.roomName = collabService.roomToJoin;
-				CHAT.setUserAttribute(CHAT.TYPE_MIC, SETTINGS.collab_NICKNAME, 0);
-				CHAT.setUserAttribute(CHAT.TYPE_CAM, SETTINGS.collab_NICKNAME, 0);
-				CHAT.setUserAttribute(CHAT.TYPE_SPEC, SETTINGS.collab_NICKNAME, (Weave.properties.collabSpectating.value) ? 1 : 0);
+				BAR.setUserAttribute(BAR.TYPE_MIC, SETTINGS.collab_NICKNAME, 0);
+				BAR.setUserAttribute(BAR.TYPE_CAM, SETTINGS.collab_NICKNAME, 0);
+				BAR.setUserAttribute(BAR.TYPE_SPEC, SETTINGS.collab_NICKNAME, (Weave.properties.collabSpectating.value) ? 1 : 0);
 				
 				joinedRoomCreateMouseList();
 				connectToRTMPServer();
@@ -304,7 +303,6 @@
 			private function settingsConnSaved(e:Event):void
 			{
 				button_connect.enabled = true;
-				CHAT.setUserAttribute(CHAT.TYPE_COLOR, SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR);
 				BAR.setUserAttribute(BAR.TYPE_COLOR, SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR);
 			}
 			private function settingsAddonSaved(e:Event):void
@@ -498,19 +496,14 @@
 				for( var name:String in info )
 				{
 					trace( "Setting attributes for:", name );
-					CHAT.setUserAttribute(CHAT.TYPE_CAM,	name, info[name].cam);
 					BAR.setUserAttribute(CHAT.TYPE_CAM,	name, info[name].cam);
 					trace( "Cam:", info[name].cam );
-					CHAT.setUserAttribute(CHAT.TYPE_COLOR, 	name, info[name].color);
 					BAR.setUserAttribute(CHAT.TYPE_COLOR, 	name, info[name].color);
 					trace( "color:", info[name].color );
-					CHAT.setUserAttribute(CHAT.TYPE_MIC,  	name, info[name].mic);
 					BAR.setUserAttribute(CHAT.TYPE_MIC,  	name, info[name].mic);
 					trace( "mic:", info[name].mic);
-					CHAT.setUserAttribute(CHAT.TYPE_PING, 	name, info[name].ping);
 					BAR.setUserAttribute(CHAT.TYPE_PING, 	name, info[name].ping);
 					trace( "ping:", info[name].ping );
-					CHAT.setUserAttribute(CHAT.TYPE_SPEC, 	name, info[name].spec);
 					BAR.setUserAttribute(CHAT.TYPE_SPEC, 	name, info[name].spec);
 					trace( "spec:", info[name].spec );
 				}
@@ -579,9 +572,6 @@
 					return;
 				}
 				WeaveAPI.CollaborationCursorManager.removeCursor(e.getText());
-				
-				CHAT.setUserAttribute(CHAT.TYPE_CAM, e.getText(), 0);
-				CHAT.setUserAttribute(CHAT.TYPE_MIC, e.getText(), 0);
 				BAR.setUserAttribute(BAR.TYPE_CAM, e.getText(), 0);
 				BAR.setUserAttribute(BAR.TYPE_MIC, e.getText(), 0);
 			}
