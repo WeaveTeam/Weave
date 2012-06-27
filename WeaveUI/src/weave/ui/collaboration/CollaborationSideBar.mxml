@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="15%" height="500" title="Collaboration Group" xmlns:collaboration="weave.ui.collaboration.*">
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="15%" height="500" title="Collaboration Group" xmlns:collaboration="weave.ui.collaboration.*" creationComplete="creationCompleteHandler(event)">
 	<mx:List id="userList" width="100%" height="100%" labelField="name" minWidth="130">
 		<mx:itemRenderer>
 			<mx:Component>
@@ -47,18 +47,42 @@
 	<mx:Button id="cursorButton" width="100%" label="{lang('Request Cursor Control')}" click="cursorButtonClick(event)" y="{this.height - this.borderMetrics.bottom - this.borderMetrics.top - cursorButton.height}"/>
 	<mx:Script>
 		<![CDATA[
+			import org.igniterealtime.xiff.events.RoomEvent;
+			import weave.Weave;
+			import weave.services.collaboration.CollaborationService;
+			import weave.api.registerDisposableChild;
+			import weave.api.WeaveAPI;
+			import mx.managers.PopUpManager;
+			import mx.core.mx_internal;
+			import mx.events.FlexEvent;
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
 			import weave.services.collaboration.CollaborationEvent;
+			import mx.controls.Image;
 			
 			public const TYPE_MIC:String						= "MIC";
 			public const TYPE_CAM:String						= "CAM";
 			public const TYPE_SPEC:String						= "SPEC";
 			public const TYPE_PING:String						= "PING";
 			public const TYPE_COLOR:String						= "COLOR";
+			private var CHAT:CollaborationChatWindow 			= null;
+			private var SETTINGS:CollaborationSettingsWindow 	= null;
+			
+			private var mouseTimer:Timer						= null;
+			private var pingTimer:Timer							= null;
+			
+			[Embed(source="/weave/resources/images/tinyWrench2.png")]	private const iSettings:Class;
+			[Embed(source="/weave/resources/images/collab/chat.png")]   private const iChat:Class;  
+			public const collabService:CollaborationService 	= registerDisposableChild(this, new CollaborationService(Weave.root));
 			
 			[Bindable] internal var _userListInfo:Dictionary	= new Dictionary();
 			internal var nickname:String 						= null;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				cursorButton.enabled = false;
+			}
 			
 			public function setUserAttribute(type:String, name:String, val:Number):void
 			{
@@ -169,6 +193,122 @@
 			{
 				userList.dataProvider = array;
 			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				//Service event listeners.
+				collabService.addEventListener(CollaborationEvent.LOG, handleLogEvent);
+/* 				collabService.addEventListener(CollaborationEvent.DISCONNECT, handleDisconnect);
+				collabService.addEventListener(CollaborationEvent.CONNECT, handleConnect);
+				collabService.addEventListener(CollaborationEvent.NICK_ERROR, nickConflictError);
+				collabService.addEventListener(CollaborationEvent.LOCKED_ERROR, lockedError);
+				collabService.addEventListener(CollaborationEvent.USER_JOINED_ROOM, handleCreateUserMouse);
+				collabService.addEventListener(CollaborationEvent.USER_LEFT_ROOM, handleRemoveUserElements);
+				collabService.addEventListener(CollaborationEvent.USER_REQUEST_MOUSE_POS, handleUserRequestMousePos);
+				collabService.addEventListener(CollaborationEvent.USER_UPDATE_MOUSE_POS, updateMousePos);
+				collabService.addEventListener(CollaborationEvent.USER_REQUEST_USERLIST, handleUserRequestUserlist);
+				collabService.addEventListener(CollaborationEvent.USER_UPDATE_USERLIST, handleUserUpdateUserlist);
+				collabService.addEventListener(CollaborationEvent.UPDATE_PING, updatePing);
+				collabService.addEventListener(CollaborationEvent.UPDATE_MIC, userMicUpdated);
+				collabService.addEventListener(CollaborationEvent.UPDATE_CAM, userCamUpdated);
+				collabService.addEventListener(CollaborationEvent.REQUEST_MOUSE_CONTROL, addMouseToQueue);
+				collabService.addEventListener(CollaborationEvent.RELINQUISH_MOUSE_CONTROL, removeMouseFromQueue); */
+				
+				
+				//Setting up the buttons for settings and chat.
+				var settingsButton:Button = new Button();
+				settingsButton.setStyle("icon", iSettings);
+				settingsButton.width  = this.getHeaderHeight() * .75;
+				settingsButton.height = this.getHeaderHeight();
+				settingsButton.x = this.width - settingsButton.width;
+				settingsButton.setStyle("cornerRadius", 3);
+				titleBar.addChild(settingsButton);			
+				var chatButton:Button = new Button();
+				chatButton.setStyle("icon", iChat);
+				chatButton.width  = this.getHeaderHeight() * .75;
+				chatButton.height = this.getHeaderHeight();
+				chatButton.x = this.width - settingsButton.width - chatButton.width;
+				chatButton.setStyle("cornerRadius", 3);
+				titleBar.addChild(chatButton);	
+				chatButton.enabled = false;
+				settingsButton.addEventListener(MouseEvent.CLICK, openSettingsPanel);
+				chatButton.addEventListener(MouseEvent.CLICK, openChatWindow);
+				createSettingsPanel();
+				createChatPanel();
+				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, connectToCollabServer);
+			}
+			
+			private function handleLogEvent(e:CollaborationEvent):void
+			{
+				CHAT.logText(e.getText());
+				if( !CHAT.visible && collabService.isConnected ) {
+					//Add in a change to make the chat button orange.
+				} else {
+					CHAT.unreadMessages = 0;
+				}
+			}
+			
+			private function requestPing(e:TimerEvent):void 		   { collabService.sendPing(SETTINGS.collab_NICKNAME); }
+			
+			private var connTimer:Timer;
+			
+			private function connectToCollabServer(e:CollaborationEvent):void
+			{
+				setUserAttribute(TYPE_COLOR, SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR);
+				collabService.connect(Weave.properties.collabServerIP.value, 
+					Weave.properties.collabServerName.value, 
+					int(Weave.properties.collabServerPort.value), 
+					Weave.properties.collabServerRoom.value, 
+					SETTINGS.collab_NICKNAME);
+				
+				// Set timeout to 10 seconds
+				connTimer = new Timer(10000);
+				connTimer.addEventListener(TimerEvent.TIMER, serverUnresponsive);
+				connTimer.start();
+			}
+			
+			private function serverUnresponsive(e:TimerEvent):void
+			{
+				connTimer = null;
+				
+				if( !SETTINGS.visible ) SETTINGS.show();
+				SETTINGS.showConnectionWarning("Server not responding");
+			}
+			
+			private function createSettingsPanel():void
+			{
+				SETTINGS = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, CollaborationSettingsWindow) as CollaborationSettingsWindow;
+				SETTINGS.hide();
+				SETTINGS.x = this.width;
+				SETTINGS.y = this.y;
+			}
+			
+			private function createChatPanel():void
+			{
+				CHAT = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, CollaborationChatWindow) as CollaborationChatWindow;
+				CHAT.visible = false;
+				CHAT.width = 300;
+				CHAT.height = this.height;
+				CHAT.x = this.width;
+				CHAT.y = this.y;
+			}
+			
+			private function openSettingsPanel(e:MouseEvent):void
+			{
+				if( !SETTINGS.visible )
+					SETTINGS.show();
+				else
+					SETTINGS.hide();
+			}
+			
+			private function openChatWindow(e:MouseEvent):void				
+			{
+				if( !CHAT.visible )
+					CHAT.visible = true;
+				else
+					CHAT.visible = false;
+			}
+			
 		]]>
 	</mx:Script>
 </mx:Panel>

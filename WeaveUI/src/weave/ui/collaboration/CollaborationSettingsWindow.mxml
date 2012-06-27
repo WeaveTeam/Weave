@@ -21,8 +21,8 @@
 		   width="300" height="315" creationPolicy="all"
 		   backgroundAlpha="0" backgroundColor="#CCCCCC"
 		   showEffect="{fadeIn}" hideEffect="{fadeOut}" xmlns:ui="weave.ui.*">	
-	<mx:Fade id="fadeIn" duration="500" alphaFrom="0" alphaTo="1" />
-	<mx:Fade id="fadeOut" duration="500" alphaFrom="1" alphaTo="0" />
+	<mx:Fade id="fadeIn" duration="200" alphaFrom="0" alphaTo="1" />
+	<mx:Fade id="fadeOut" duration="200" alphaFrom="1" alphaTo="0" />
 	
 	<mx:VBox width="100%" height="100%" verticalGap="0" horizontalGap="0">
 		<mx:Canvas id="SettingsWindow" width="290" height="300"
@@ -94,9 +94,6 @@
 				</mx:VBox>
 			</mx:TabNavigator>
 		</mx:Canvas>
-		<ui:Center>
-			<mx:Canvas id="anchor" width="{2*anchorSize}" height="{anchorSize}" creationComplete="generateAnchor()" />
-		</ui:Center>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
@@ -144,7 +141,7 @@
 				collab_NICKNAME 	= nickname.text;
 				collab_COLOR 		= picker.selectedColor;
 				
-				dispatchEvent(new Event(CollaborationEvent.CONN_SETTINGS_SAVED));
+				dispatchEvent(new CollaborationEvent(CollaborationEvent.CONN_SETTINGS_SAVED));
 				
 				// Slow down the fadeout to read
 				connectButton.label = "Connecting";
@@ -163,7 +160,7 @@
 			public function show():void
 			{
 				this.visible = true;
-				connectButton.label = "Save";
+				connectButton.label = "Connect";
 				saveAddonsButton.label = "Save";
 				fadeOut.duration = 500;
 				
@@ -242,14 +239,6 @@
 			{
 				warningMsg = "";
 				warningVisible = false;
-			}
-			private function generateAnchor():void
-			{
-				anchor.graphics.beginFill(uint("0x54585E"), 1);
-				anchor.graphics.moveTo(0, 0);
-				anchor.graphics.lineTo(anchor.width/2, anchor.height);
-				anchor.graphics.lineTo(anchor.width, 0);
-				anchor.graphics.lineTo(0, 0);
 			}
 			private function generateRandomColor():uint
 			{
