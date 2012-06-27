@@ -31,6 +31,8 @@
 		<mx:Label text="Choose Options"/>
 		<mx:CheckBox label="Dashboard mode" toolTip="Check this box to show all windows in 'dashboard' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel."
 					 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
+		<mx:CheckBox label="Enable control panels and attribute selection"
+					 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
 		<mx:CheckBox label="Show menubar" toolTip="Check this box to show the top menu bar."
 					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
 		<mx:CheckBox label="Show copyright"
