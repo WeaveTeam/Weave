@@ -48,8 +48,6 @@ package weave.core
 	import weave.compiler.StandardLib;
 	import weave.utils.Dictionary2D;
 
-	use namespace weave_internal;
-
 	/**
 	 * This is a collection of core functions in the Weave session framework.
 	 * 
@@ -193,9 +191,12 @@ package weave.core
 		 * @param parent A parent that the specified child objects were previously registered with.
 		 * @param child The child object to unregister from the parent.
 		 */
-		weave_internal function unregisterLinkableChild(parent:ILinkableObject, child:ILinkableObject):void
+		internal function unregisterLinkableChild(parent:ILinkableObject, child:ILinkableObject):void
 		{
-			removeLinkableChildFromSessionState(parent, child);
+			if (childToParentDictionaryMap[child])
+				delete childToParentDictionaryMap[child][parent];
+			if (parentToChildDictionaryMap[parent])
+				delete parentToChildDictionaryMap[parent][child];
 			getCallbackCollection(child).removeCallback(getCallbackCollection(parent).triggerCallbacks);
 		}
 		
@@ -207,26 +208,27 @@ package weave.core
 		 * @param parent A parent that the specified child objects were previously registered with.
 		 * @param child The child object to remove from the session state of the parent.
 		 */
-		public function removeLinkableChildFromSessionState(parent:ILinkableObject, child:ILinkableObject):void
+		public function excludeLinkableChildFromSessionState(parent:ILinkableObject, child:ILinkableObject):void
 		{
 			if (parent == null || child == null)
 			{
 				reportError("SessionManager.removeLinkableChildrenFromSessionState(): Parameters to this function cannot be null.");
 				return;
 			}
-			if (childToParentDictionaryMap[child] !== undefined)
-				delete childToParentDictionaryMap[child][parent];
-			if (parentToChildDictionaryMap[parent] !== undefined)
-				delete parentToChildDictionaryMap[parent][child];
+			if (childToParentDictionaryMap[child] !== undefined && childToParentDictionaryMap[child][parent])
+				childToParentDictionaryMap[child][parent] = false;
+			if (parentToChildDictionaryMap[parent] !== undefined && parentToChildDictionaryMap[parent][child])
+				parentToChildDictionaryMap[parent][child] = false;
 		}
 		
 		/**
+		 * @private
 		 * This function will return all the child objects that have been registered with a parent.
 		 * @param parent A parent object to get the registered children of.
 		 * @return An Array containing a list of linkable objects that have been registered as children of the specified parent.
 		 *         This list includes all children that have been registered, even those that do not appear in the session state.
 		 */
-		weave_internal function getRegisteredChildren(parent:ILinkableObject):Array
+		private function _getRegisteredChildren(parent:ILinkableObject):Array
 		{
 			var result:Array = [];
 			if (parentToChildDictionaryMap[parent] !== undefined)
@@ -246,17 +248,80 @@ package weave.core
 		}
 
 		/**
-		 * This function checks if a parent-child relationship exists between two ILinkableObjects
-		 * and the child appears in the session state of the parent.
-		 * @param parent A suspected parent object.
-		 * @param child A suspected child object.
-		 * @return true if the child is registered as a child of the parent.
+		 * @param root The linkable object to be placed at the root node of the tree.
+		 * @return A tree of nodes with the properties "label", "object", and "children"
 		 */
-		weave_internal function isChildInSessionState(parent:ILinkableObject, child:ILinkableObject):Boolean
+		public function getSessionStateTree(object:ILinkableObject, objectName:String, objectTypeFilter:*=null):Object
 		{
-			return childToParentDictionaryMap[child] !== undefined && childToParentDictionaryMap[child][parent];
+			var result:Object = {label: objectName, object: object, children: []};
+			
+			var names:Array = [];
+			var childObject:ILinkableObject;
+			var tempObject:Object;
+			var ignoreList:Dictionary = new Dictionary(true);
+			if (object is ILinkableHashMap)
+			{
+				names = (object as ILinkableHashMap).getNames();
+				
+				var sessionObjects:Array = (object as ILinkableHashMap).getObjects();
+				
+				for (var i:int = 0; i < names.length; i++)
+				{
+					childObject = sessionObjects[i];
+					if (childToParentDictionaryMap[childObject] && childToParentDictionaryMap[childObject][object])
+					{
+						// don't include duplicate siblings
+						if (ignoreList[childObject] != undefined)
+							continue;
+						ignoreList[childObject] = true;
+						
+						// get subtree
+						tempObject = getSessionStateTree(childObject,names[i],objectTypeFilter);
+						if (tempObject != null)
+							result.children.push(tempObject);
+					}
+				}
+			}
+			else
+			{
+				if (object is ILinkableDynamicObject)
+				{
+					// do not show static object in tree
+					names = (object as ILinkableDynamicObject).globalName ? [] : ["internalObject"];
+				}
+				else if (object)
+				{
+					names = (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
+				}
+				for (var j:int = 0; j < names.length; j++)
+				{
+					childObject = object[names[j]];
+					if (!childObject)
+						continue;
+					if (/* object is ILinkableDynamicObject ||  */childToParentDictionaryMap[childObject] && childToParentDictionaryMap[childObject][object])
+					{
+						// don't include duplicate siblings
+						if (ignoreList[childObject] != undefined)
+							continue;
+						ignoreList[childObject] = true;
+						
+						// get subtree
+						tempObject = getSessionStateTree(childObject,names[j],objectTypeFilter);
+						if (tempObject != null)
+							result.children.push(tempObject);
+					}
+				}
+			}
+			
+			if (result.children.length == 0)
+				result.children = null;
+			if (objectTypeFilter == null)
+				return result;
+			if (result.children == null && !(object is objectTypeFilter))
+				return null;
+			return result;
 		}
-		
+
 		/**
 		 * This function will copy the session state from one sessioned object to another.
 		 * If the two objects are of different types, the behavior of this function is undefined.
@@ -339,8 +404,8 @@ package weave.core
 				if (property == null)
 					continue;
 
-				// skip this property if it was not registered as a linkable child of the sessionedObject.
-				if (childToParentDictionaryMap[property] === undefined || childToParentDictionaryMap[property][linkableObject] === undefined)
+				// skip this property if it should not appear in the session state under the parent.
+				if (childToParentDictionaryMap[property] === undefined || !childToParentDictionaryMap[property][linkableObject])
 					continue;
 					
 				setSessionState(property, newState[name], removeMissingDynamicObjects);
@@ -405,8 +470,8 @@ package weave.core
 					// first pass: set result[name] to the ILinkableObject
 					if (property != null && !_getSessionStateIgnoreList[property])
 					{
-						// skip this property if it was not registered as a linkable child of the sessionedObject.
-						if (childToParentDictionaryMap[property] === undefined || childToParentDictionaryMap[property][linkableObject] === undefined)
+						// skip this property if it should not appear in the session state under the parent.
+						if (childToParentDictionaryMap[property] === undefined || !childToParentDictionaryMap[property][linkableObject])
 							continue;
 						// avoid infinite recursion in implicit session states
 						_getSessionStateIgnoreList[property] = true;
@@ -483,7 +548,7 @@ package weave.core
 		 * @param linkableObject An object containing sessioned properties.
 		 * @return An Array containing the names of the sessioned properties of that object class.
 		 */
-		weave_internal function getLinkablePropertyNames(linkableObject:ILinkableObject):Array
+		public function getLinkablePropertyNames(linkableObject:ILinkableObject):Array
 		{
 			if (linkableObject == null)
 			{
@@ -528,12 +593,12 @@ package weave.core
 		 */
 		private const childToOwnerMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
 		/**
-		 * This maps a child ILinkableObject to a Dictionary, which maps each of its registered parent ILinkableObjects to a value of true.
+		 * This maps a child ILinkableObject to a Dictionary, which maps each of its registered parent ILinkableObjects to a value of true if the child should appear in the session state automatically or false if not.
 		 * Example: childToParentDictionaryMap[child][parent] == true
 		 */
 		private const childToParentDictionaryMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
 		/**
-		 * This maps a parent ILinkableObject to a Dictionary, which maps each of its registered child ILinkableObjects to a value of true.
+		 * This maps a parent ILinkableObject to a Dictionary, which maps each of its registered child ILinkableObjects to a value of true if the child should appear in the session state automatically or false if not.
 		 * Example: parentToChildDictionaryMap[parent][child] == true
 		 */
 		private const parentToChildDictionaryMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly

@@ -48,7 +48,6 @@ package weave
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
-	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
@@ -82,8 +81,6 @@ package weave
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
 
-	use namespace weave_internal;
-	
 	/**
 	 * A list of global settings for a Weave instance.
 	 */

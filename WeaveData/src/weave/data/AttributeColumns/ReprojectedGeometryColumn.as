@@ -28,10 +28,8 @@ package weave.data.AttributeColumns
 	import weave.api.newLinkableChild;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableString;
-	import weave.core.weave_internal;
 	import weave.utils.ColumnUtils;
 
-	use namespace weave_internal;
 	
 	/**
 	 * This column provides reprojected geometries for an internal geometry column.

@@ -31,8 +31,6 @@ package weave.core
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 
-	use namespace weave_internal;
-	
 	/**
 	 * A set of static functions intended for use as a JavaScript API.
 	 * 

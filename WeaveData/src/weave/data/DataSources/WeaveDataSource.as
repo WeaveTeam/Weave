@@ -22,7 +22,6 @@ package weave.data.DataSources
 	import flash.net.URLRequest;
 	
 	import mx.rpc.AsyncToken;
-	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
@@ -35,7 +34,6 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.reportError;

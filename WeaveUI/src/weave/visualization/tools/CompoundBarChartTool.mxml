@@ -41,9 +41,7 @@
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableNumber;
-			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.primitives.ColorRamp;
 			import weave.ui.AttributeSelectorPanel;
@@ -53,8 +51,6 @@
 			import weave.visualization.layers.AxisLayer;
 			import weave.visualization.plotters.CompoundBarChartPlotter;
 
-			use namespace weave_internal;
-			
 			WeaveAPI.registerImplementation(IVisTool, CompoundBarChartTool, "Bar Chart");
 
 			/**

@@ -107,10 +107,8 @@ A text editor to change the Session State on the fly.
 			import weave.core.SessionManager;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
-			import weave.core.weave_internal;
 			import weave.utils.DebugUtils;
 			import weave.utils.PopUpUtils;
-			use namespace weave_internal;
 			use namespace mx_internal;
 
 		    private var selectors:Array = null;
@@ -571,60 +569,19 @@ A text editor to change the Session State on the fly.
 				}
 				else if (_editor == DATA_GRID)
 				{
-					var i:int;
 					var tempValue:Object;
 					var dataGridProvider:ArrayCollection = new ArrayCollection();
 					var childObject:ILinkableObject;
-					var ignoreList:Dictionary = new Dictionary(true);
-					var names:Array;
-					var sessionedObjects:Array;
-					// check for LinkableHashMap (Array of DynamicState objects)
-					if (_currentSelectedObject is ILinkableHashMap)
-					{
-						names = (_currentSelectedObject as ILinkableHashMap).getNames();
-						sessionedObjects = (_currentSelectedObject as ILinkableHashMap).getObjects();
 					
-						for (i = 0; i < names.length; ++i)
-						{
-							childObject = sessionedObjects[i] as ILinkableObject;
-							if (childObject is ILinkableVariable && (WeaveAPI.SessionManager as SessionManager).isChildInSessionState(_currentSelectedObject, childObject))
-							{
-								if (ignoreList[childObject] != undefined)
-									continue;
-								ignoreList[childObject] = true;
-								
-								tempValue = getSessionState(childObject);
-								if (tempValue === null || (tempValue as String) === '')
-									tempValue = ' ';
-								dataGridProvider.addItem( {Name: names[i], Value: tempValue.toString()} );
-							}
-						}
-					}
-					else // an object mapping
+					for each (var node:Object in sessionNav.selectedItem.children)
 					{
-						if (_currentSelectedObject is ILinkableDynamicObject)
+						childObject = node.object as ILinkableObject;
+						if (childObject is ILinkableVariable)
 						{
-							names = (_currentSelectedObject as ILinkableDynamicObject).globalName ? [] : ["internalObject"];
-						}
-						else if (_currentSelectedObject)
-						{
-							names = (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(_currentSelectedObject);
-						}
-						for (i = 0; i < names.length; i++)
-						{
-							childObject = _currentSelectedObject[names[i]];
-							if (!childObject)
-								continue;
-							if (childObject is ILinkableVariable &&(WeaveAPI.SessionManager as SessionManager).isChildInSessionState(_currentSelectedObject, childObject))
-							{
-								// don't include duplicate siblings
-								if (ignoreList[childObject] != undefined)
-									continue;
-								ignoreList[childObject] = true;
-								
-								tempValue = getSessionState(childObject);
-								dataGridProvider.addItem( {Name: names[i], Value: tempValue } );
-							}
+							tempValue = getSessionState(childObject);
+							if (tempValue === null || (tempValue as String) === '')
+								tempValue = ' ';
+							dataGridProvider.addItem( {Name: node.label, Value: tempValue.toString()} );
 						}
 					}
 

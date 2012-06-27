@@ -22,12 +22,10 @@ package weave.data.BinningDefinitions
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableNumber;
-	import weave.core.weave_internal;
 	import weave.data.BinClassifiers.NumberClassifier;
 	
 	/**
