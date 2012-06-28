@@ -23,8 +23,8 @@
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" 
 				width="100%" height="100%" 
-				label="Data Configuration{metadataEditor.dataChanged?'*':''}" 
+				label="Data Configuration{metadataEditor.isChanged?'*':''}" 
                                 >
-        <ui:NewAttributeColumnSelector width="33%" height="100%" id="columnSelector" enabled="{!metadataEditor.dataChanged}"/>
-        <ui:MetadataEditor width="66%" height="100%" id="metadataEditor" currentEntity="{columnSelector.selectedItem}"/>
+        <ui:NewAttributeColumnSelector width="33%" height="100%" id="columnSelector" enabled="{!metadataEditor.isChanged}"/>
+        <ui:MetadataEditor width="66%" height="100%" id="metadataEditor" targetItem="{columnSelector.selectedItem}"/>
 </mx:HDividedBox>

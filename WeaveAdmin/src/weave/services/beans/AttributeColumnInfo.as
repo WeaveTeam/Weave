@@ -53,49 +53,18 @@ package weave.services.beans
 					if (metadata[name] == null)
 						metadata[name] = '';
 		}
-		public function deepcopy():AttributeColumnInfo
-                {
-                    var tmpobj:Object = {};
-                    tmpobj.id = this.id;
-                    tmpobj.entity_type = this.entity_type;
-                    tmpobj.privateMetadata = {};
-                    tmpobj.publicMetadata = {};
-                    var prop:String;
-                    /* Probably a cleaner way to do this. */
-                    for (prop in this.privateMetadata)
-                    {
-                        tmpobj.privateMetadata[prop] = this.privateMetadata[prop];
-                    }
-                    for (prop in this.publicMetadata)
-                    {
-                        tmpobj.publicMetadata[prop] = this.publicMetadata[prop];
-                    }
-                    var result:AttributeColumnInfo = new AttributeColumnInfo(tmpobj) 
-                    return result; 
-                }
-                static public function splitObject(obj:Object):Array /* Returns an array containing [publicMeta, privateMeta] */
-                {
-                    var pub:Object = {};
-                    var priv:Object = {};
-                    for each (var prop:String in obj)
-                        if (isPrivate(prop))
-                            priv[prop] = obj[prop];
-                        else
-                            pub[prop] = obj[prop];
-                    return [pub, priv];         
-                }
                 static public function mergeObjects(a:Object, b:Object):Object
                 {
                     var result:Object = {}
                     for each (var obj:Object in [a, b])
-                        for each (var property:Object in obj)
+                        for (var property:Object in obj)
                             result[property] = obj[property];
                     return result;
                 }
                 static public function diffObjects(old:Object, fresh:Object):Object
                 {
                     var diff:Object = {};
-                    for each (var property:String in mergeObjects(old, fresh))
+                    for (var property:String in mergeObjects(old, fresh))
                         if (old[property] != fresh[property])
                             diff[property] = fresh[property];
                     return diff;

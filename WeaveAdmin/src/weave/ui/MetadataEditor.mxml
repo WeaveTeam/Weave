@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns:ui="weave.ui.*"
+    xmlns="weave.ui.*"
+    width="100%" height="100%" creationComplete="handleCreationComplete()" enabled="{targetItem != null}">
+    <mx:TabNavigator width="100%" height="100%">
+        <ui:MetadataGrid id="publicMetaGrid" label="Public" 
+            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" enabled="{targetItem != null}"/>    
+        <ui:MetadataGrid id="privateMetaGrid" label="Private" 
+            paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" enabled="{targetItem != null}"/>
+    </mx:TabNavigator>
+    <mx:HBox>
+        <mx:Button label="Discard Changes" id="discardButton" enabled="{isChanged}" click="setEditors(null)"/>
+        <mx:Button label="Save Changes" id="saveButton" enabled="{isChanged}" click="saveChanges()"/>
+    </mx:HBox>
+<mx:Script>
+<![CDATA[
+    import weave.services.AdminInterface;
+    import weave.services.beans.AttributeColumnInfo;
+    import weave.core.UIUtils;
+    import mx.binding.utils.ChangeWatcher;
+    import weave.services.WeaveAdminService;
+    import weave.ui.EntityTreeNode;
+    import mx.controls.Alert;
+    [Bindable] public var targetItem:EntityTreeNode = null;
+    [Bindable] public var isChanged:Boolean = false;
+    public var privDiff:Object; 
+    public var pubDiff:Object;
+
+    private var pubWatcher:ChangeWatcher;
+    private var privWatcher:ChangeWatcher;
+    public function handleCreationComplete():void
+    {
+        ChangeWatcher.watch(this, "targetItem", setEditors);
+        pubWatcher = ChangeWatcher.watch(publicMetaGrid, "metadata", metaChanged);
+        privWatcher = ChangeWatcher.watch(privateMetaGrid, "metadata", metaChanged);
+    }
+    private function setEditors(o:Object):void
+    {
+        if (targetItem == null) return;
+        /* Shut off the changewatchers. */
+        pubWatcher.unwatch();
+        privWatcher.unwatch();
+        publicMetaGrid.metadata = targetItem.object.publicMetadata;
+        privateMetaGrid.metadata = targetItem.object.privateMetadata;
+        /* Turn them back on. */
+        pubWatcher.reset(publicMetaGrid);
+        privWatcher.reset(privateMetaGrid);
+        metaChanged(null);
+    }
+    private function metaChanged(o:Object):void
+    {
+        pubDiff = EntityTreeNode.diffObjects(publicMetaGrid.metadata, targetItem.object.publicMetadata);
+        privDiff = EntityTreeNode.diffObjects(privateMetaGrid.metadata, targetItem.object.privateMetadata);
+        var prop:String;
+        printobj(pubDiff);
+        printobj(privDiff);
+        for (prop in pubDiff)
+        {
+            isChanged = true;
+            return;
+        }
+        for (prop in privDiff)
+        {
+            isChanged = true;
+            return;
+        }
+    }
+    private function saveChanges():void
+    {
+        /* TODO: Test for success. */
+        isChanged = false;
+    }
+    private static function printobj(o:Object):void
+    {
+        for (var prop:String in o)
+            yell(prop + ":" + o[prop]);
+    }
+    private static function yell(str:String):void
+    {
+        WeaveAdminService.messageDisplay(null, str, false);
+    }
+
+
+]]>
+</mx:Script>
+</mx:VBox>

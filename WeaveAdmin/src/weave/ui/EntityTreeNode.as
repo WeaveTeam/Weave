@@ -3,6 +3,7 @@ package weave.ui
 {
     import weave.services.beans.AttributeColumnInfo;
     import weave.services.AdminInterface;
+    import weave.services.WeaveAdminService;
     import mx.controls.Tree;
     import mx.rpc.events.ResultEvent;
 
@@ -14,7 +15,7 @@ package weave.ui
 
         public var columns:Array = [];
         public var is_populated:Boolean = false;
-
+        public var pending_commit:Boolean = false;
         public function EntityTreeNode(info:AttributeColumnInfo)
         {
             this.object = info;
@@ -67,37 +68,9 @@ package weave.ui
             AdminInterface.instance.getEntity(object.id, refreshHandler);
             return;
         }
-        public function updateFromDataProvider(rows:Array):Boolean
+        public function update(privObj:Object, pubObj:Object):void
         {
-            var pub:Object = {};
-            var priv:Object = {};
-                
-            for each (var row:Object in rows)
-            {
-                if (row.isPrivate)
-                    priv[row.property] = row.value;
-                else
-                    pub[row.property] = row.value;
-            }
-            // TODO: Actually commit to DB and return success/fail
-            this.object.publicMetadata = pub;
-            this.object.privateMetadata = pub;
-            return true;
-        }
-        public function asDataProvider():Array
-        {
-            function objToArr(o:Object, isPrivate:Boolean = false):Array
-            {
-                var arr:Array = [];
-                for (var prop:String in o) 
-                {
-                    arr.push({property: prop, value: o[prop], isPrivate: isPrivate});
-                }
-                return arr;
-            }
-            var dgarr:Array = objToArr(object.publicMetadata);
-            dgarr = dgarr.concat(objToArr(object.privateMetadata, true));
-            return dgarr;
+            
         }
         public function addToParent(parent_id:int):void
         {
@@ -109,5 +82,36 @@ package weave.ui
             AdminInterface.instance.removeChild(object.id, parent_id, null);
             return;
         }
+        private function commit(diff:Object, handler:Function):void
+        {
+            AdminInterface.instance.updateEntity(object.id, diff, handler);
+            refresh(null);
+        }
+        static public function mergeObjects(a:Object, b:Object):Object
+        {
+            var result:Object = {}
+            for each (var obj:Object in [a, b])
+                for (var property:Object in obj)
+                    result[property] = obj[property];
+            return result;
+        }
+        static public function diffObjects(old:Object, fresh:Object):Object
+        {
+            var diff:Object = {};
+            for (var property:String in mergeObjects(old, fresh))
+                if (old[property] != fresh[property])
+                    diff[property] = fresh[property];
+            return diff;
+        }
+        private static function yell(str:String):void
+        {
+            WeaveAdminService.messageDisplay(null, str, false);
+        }
+        private static function printobj(o:Object):void
+        {
+            for (var prop:String in o)
+                yell(prop + ":" + o[prop]);
+        }
+
     }
 }
