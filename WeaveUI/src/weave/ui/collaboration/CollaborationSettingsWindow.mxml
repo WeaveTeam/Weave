@@ -57,8 +57,8 @@
 					<mx:Spacer height="100%" />
 					<ui:Center>
 						<mx:HBox>
-							<mx:Button id="connectButton" label="Connect" click="saveSettings(event)" />
-							<mx:Button id="cancelButton" label="Cancel"/>
+							<mx:Button id="connectButton" label="{lang('Connect')}" click="saveSettings(event)" />
+							<mx:Button id="cancelButton" label="{lang('Cancel')}"/>
 						</mx:HBox>
 					</ui:Center>
 				</mx:VBox>
@@ -89,7 +89,7 @@
 					</mx:HBox>
 					<mx:Spacer height="100%" />
 					<ui:Center>
-						<mx:Button id="saveAddonsButton" label="Save" click="saveAddons(event)" />
+						<mx:Button id="saveAddonsButton" label="{lang('Save')}" click="saveAddons(event)" />
 					</ui:Center>
 				</mx:VBox>
 			</mx:TabNavigator>
@@ -141,10 +141,19 @@
 				collab_NICKNAME 	= nickname.text;
 				collab_COLOR 		= picker.selectedColor;
 				
-				dispatchEvent(new CollaborationEvent(CollaborationEvent.CONN_SETTINGS_SAVED));
+				if( connectButton.label == lang("Connect" ) )
+				{
+					connectButton.label = lang("Connecting");
+					dispatchEvent(new CollaborationEvent(CollaborationEvent.CONN_SETTINGS_CONNECT));
+				}
+				else
+				{
+					connectButton.label = lang("Disconnecting");
+					dispatchEvent(new CollaborationEvent(CollaborationEvent.CONN_SETTINGS_DISCONNECT));
+				}
+				
 				
 				// Slow down the fadeout to read
-				connectButton.label = "Connecting";
 				fadeOut.duration = 1500;
 				hide();
 			}
@@ -160,8 +169,7 @@
 			public function show():void
 			{
 				this.visible = true;
-				connectButton.label = "Connect";
-				saveAddonsButton.label = "Save";
+				saveAddonsButton.label = lang("Save");
 				fadeOut.duration = 500;
 				
 				if( nav.selectedIndex == 1 ) {
