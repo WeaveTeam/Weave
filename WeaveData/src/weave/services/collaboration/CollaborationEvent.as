@@ -47,7 +47,8 @@ package weave.services.collaboration
 		public static const RECONNECT_ERROR:String			= 'collab_reconnect_error';
 
 		/* UI EVENTS */
-		public static const CONN_SETTINGS_SAVED:String 		= "collab_conn_saved_settings";
+		public static const CONN_SETTINGS_CONNECT:String 	= "collab_conn_settings_connect";
+		public static const CONN_SETTINGS_DISCONNECT:String = "collab_conn_settings_disconnect";
 		public static const ADDON_SETTINGS_SAVED:String 	= "collab_addon_settings_saved";
 		
 		/* CHAT EVENTS */

@@ -127,7 +127,7 @@
 				
 				createWindowSettings();
 				
-				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_SAVED, settingsConnSaved);
+				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_CONNECT, settingsConnSaved);
 				SETTINGS.addEventListener(CollaborationEvent.ADDON_SETTINGS_SAVED, settingsAddonSaved);
 				
 				resizeHandler();
