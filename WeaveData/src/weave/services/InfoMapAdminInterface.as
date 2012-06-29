@@ -1,13 +1,16 @@
 package weave.services
 {
+		import flash.net.FileReference;
 		import flash.utils.ByteArray;
 		import flash.utils.Dictionary;
 		
 		import mx.controls.Alert;
+		import mx.rpc.Fault;
 		import mx.rpc.events.FaultEvent;
 		import mx.rpc.events.ResultEvent;
 		import mx.utils.StringUtil;
 		
+		import weave.api.objectWasDisposed;
 		import weave.api.services.IAsyncService;
 		import weave.core.CallbackCollection;
 		import weave.services.AMF3Servlet;
@@ -147,10 +150,35 @@ package weave.services
 				return query;
 			}
 			
+			public function addDocumentToSolr(username:String,file:FileReference):void
+			{
+				generateQueryAndAddToQueue("addTextDocument",[username,file.name,file.data]).addAsyncResponder(resultHandler,errorHandler);
+				function resultHandler(event:ResultEvent, token:Object = null):void
+				{
+//					Alert.show(event.result.toString());
+				}
+				function errorHandler(event:FaultEvent, token:Object = null):void
+				{
+					Alert.show(event.fault.toString());
+				}
+			}
+			
 			public function getQueryResults(queryURL:String,filterQuery:String,sortField:String,rows:int):DelayedAsyncInvocation
 			{
 				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getQueryResults",[queryURL,filterQuery,sortField,rows]);
 				return query;
+			}
+			
+			public function testDropBox():DelayedAsyncInvocation
+			{
+				var q:DelayedAsyncInvocation = generateQueryAndAddToQueue("testDropbox",[]);
+				return q;
+			}
+			
+			public function testAddFileToDropBox():DelayedAsyncInvocation
+			{
+				var q:DelayedAsyncInvocation = generateQueryAndAddToQueue("testAddFileToDropBox",[]);
+				return q;
 			}
 		}
 }

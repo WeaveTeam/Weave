@@ -21,6 +21,8 @@ package weave.api
 	import nochump.util.zip.ZipEntry;
 	import nochump.util.zip.ZipFile;
 	import nochump.util.zip.ZipOutput;
+	
+	import weave.utils.OrderedHashMap;
 
 	/**
 	 * This is an interface for reading and writing data in the Weave file format.
@@ -42,13 +44,13 @@ package weave.api
 		 * This is a dynamic object containing all the files (ByteArray objects) in the archive.
 		 * The property names used in this object must be valid filenames or serialize() will fail.
 		 */
-		public const objects:Object = new OrderedHashMap();
+		public const objects:OrderedHashMap = new OrderedHashMap();
 		
 		/**
 		 * This is a dynamic object containing all the amf objects stored in the archive.
 		 * The property names used in this object must be valid filenames or serialize() will fail.
 		 */
-		public const files:Object = new OrderedHashMap();
+		public const files:OrderedHashMap = new OrderedHashMap();
 		
 		private static const FOLDER_AMF:String = "weave-amf"; // folder used for amf-encoded objects
 		private static const FOLDER_FILES:String = "weave-files"; // folder used for raw files
@@ -111,56 +113,5 @@ package weave.api
 			
 			return zipOut.byteArray;
 		}
-	}
-}
-
-import flash.utils.Proxy;
-import flash.utils.flash_proxy;
-
-/**
- * The names and values in this object are enumerated in the order they were added.
- */
-internal class OrderedHashMap extends Proxy
-{
-	private var names:Array = [];
-	private var values:Array = [];
-	
-	override flash_proxy function getProperty(name:*):*
-	{
-		var i:int = names.indexOf(String(name));
-		if (i >= 0)
-			return values[i];
-		return null;
-	}
-	override flash_proxy function setProperty(name:*, value:*):void
-	{
-		flash_proxy::deleteProperty(name);
-		
-		names.push(String(name));
-		values.push(value);
-	}
-	override flash_proxy function deleteProperty(name:*):Boolean
-	{
-		var i:int = names.indexOf(String(name));
-		if (i >= 0)
-		{
-			names.splice(i, 1);
-			values.splice(i, 1);
-		}
-		return i >= 0;
-	}
-	override flash_proxy function nextNameIndex(index:int):int
-	{
-		if (index < names.length)
-			return index + 1;
-		return 0;
-	}
-	override flash_proxy function nextName(index:int):String
-	{
-		return names[index - 1];
-	}
-	override flash_proxy function nextValue(index:int):*
-	{
-		return values[index - 1];
 	}
 }

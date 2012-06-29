@@ -19,20 +19,15 @@
 
 package weave.data.BinningDefinitions
 {
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.weave_internal;
 	import weave.data.BinClassifiers.NumberClassifier;
-	import weave.utils.VectorUtils;
 	
 	/**
 	 * Divides a data range into a number of bins based on range entered by user.

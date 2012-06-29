@@ -42,9 +42,9 @@ package weave.data.DataSources
 			keyColName.value = "url";
 			keyType.value = "infoMapsDoc";
 			
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this,csvDataString);
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this,keyColName);
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this,keyType);
+			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this,csvDataString);
+			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this,keyColName);
+			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this,keyType);
 		}
 		
 		public const solrURL:LinkableString = newLinkableChild(this,LinkableString);
@@ -248,35 +248,43 @@ package weave.data.DataSources
 			else if(fq)
 				filterQuery = fq;
 			
+			
+			var dateFilterString:String = "";
+			
+			//applying date filters if set
+			if(dateFilter)
+			{
+				if(dateFilter.startDate.value != '' && dateFilter.endDate.value != '')
+				{
+					
+					var sDate:Date = DateUtils.getDateFromString(dateFilter.startDate.value);
+					var eDate:Date = DateUtils.getDateFromString(dateFilter.endDate.value);
+					
+					
+					//Solr requires the date format to be ISO 8601 Standard Compliant
+					//It should be in the form: 1995-12-31T23:59:59Z 
+					var sStr:String = DateUtils.getDateInStringFormat(sDate,'YYYY-MM-DD');
+					
+					//For start date we append 00:00:00 to set time to start of the day
+					sStr = sStr + 'T00:00:00Z';
+					
+					var eStr:String = DateUtils.getDateInStringFormat(eDate,'YYYY-MM-DD');
+					
+					//For end date we append 23:59:59 to set time to end of day
+					eStr = eStr + 'T23:59:59Z';
+					
+					dateFilterString = "date_added:["+sStr+" TO "+eStr + "]";
+				}
+			}
+			
+			if(dateFilterString && filterQuery)
+				filterQuery = filterQuery + ' AND ' + dateFilterString;
+			else if(dateFilterString)
+				filterQuery = dateFilterString;
+				
+			
 			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getQueryResults(query,filterQuery,sortField,defaultNumberOfDocumentsPerRequest);
 			q.addAsyncResponder(handleQueryResults,handleQueryFault,docKeySet);
-//			
-//			//applying date filters if set
-//			if(dateFilter)
-//			{
-//				if(dateFilter.startDate.value != '' && dateFilter.endDate.value != '')
-//				{
-//					
-//					var sDate:Date = DateUtils.getDateFromString(dateFilter.startDate.value);
-//					var eDate:Date = DateUtils.getDateFromString(dateFilter.endDate.value);
-//					
-//					
-//					//Solr requires the date format to be ISO 8601 Standard Compliant
-//					//It should be in the form: 1995-12-31T23:59:59Z 
-//					var sStr:String = DateUtils.getDateInStringFormat(sDate,'YYYY-MM-DD');
-//					
-//					//For start date we append 00:00:00 to set time to start of the day
-//					sStr = sStr + 'T00:00:00Z';
-//					
-//					var eStr:String = DateUtils.getDateInStringFormat(eDate,'YYYY-MM-DD');
-//					
-//					//For end date we append 23:59:59 to set time to end of day
-//					eStr = eStr + 'T23:59:59Z';
-//					
-//					query += "&fq=date_added:["+sStr+" TO "+eStr + "]";
-//				}
-//			}
-			
 			//creating and sending the query to the Solr server
 			//TODO: change number of documents from fixed number to a variable
 //			var url:String = solrURL.value + "&start=0&rows=100&sort=date_added desc&indent=on&q=" + query;

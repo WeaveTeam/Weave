@@ -62,10 +62,10 @@
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.SessionManager;
 			import weave.core.SessionStateLog;
 			import weave.core.StageUtils;
 			import weave.core.UIUtils;
-			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.CSVParser;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
@@ -78,6 +78,7 @@
 			import weave.ui.infomap.core.InfoMapDocument;
 			import weave.ui.infomap.core.InfoMapNode;
 			import weave.ui.infomap.core.MovedThumbnailPosition;
+			import weave.ui.infomap.core.QueryObject;
 			import weave.ui.infomap.ui.DateFilterComponent;
 			import weave.ui.infomap.ui.DocThumbnailComponent;
 			import weave.ui.infomap.ui.InfoMapPanel;
@@ -90,6 +91,10 @@
 			import weave.utils.EventUtils;
 			
 			public const node:FilterableInfoMapNode = newLinkableChild(this,FilterableInfoMapNode);
+			
+			public const query:QueryObject = newLinkableChild(this,QueryObject);
+			
+			public const previousQuery:QueryObject = newLinkableChild(this,QueryObject);
 			
 			public const xPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
 			public const yPos:LinkableNumber = newLinkableChild(this,LinkableNumber);
@@ -145,12 +150,16 @@
 								
 				super.childrenCreated();
 								
-				node.keywords.addGroupedCallback(this,createAndSendQuery);
-				node.operator.addGroupedCallback(this,createAndSendQuery);
+//				node.keywords.addGroupedCallback(this,createAndSendQuery);
+//				node.operator.addGroupedCallback(this,createAndSendQuery);
+//				node.dateFilter.startDate.addGroupedCallback(this,createAndSendQuery);
+//				node.dateFilter.endDate.addGroupedCallback(this,createAndSendQuery);
+//				node.sources.addGroupedCallback(this,createAndSendQuery);
+				
+				getCallbackCollection(query).addGroupedCallback(this,createAndSendQuery);
+				
 				node.numberOfDocs.addGroupedCallback(this,createAndSendQuery);
-				node.dateFilter.startDate.addGroupedCallback(this,createAndSendQuery);
-				node.dateFilter.endDate.addGroupedCallback(this,createAndSendQuery);
-				node.sources.addGroupedCallback(this,createAndSendQuery);
+
 				
 				//if node is selected we highlight the nodeBase
 				node.selected.addGroupedCallback(this,highlightNode);
@@ -207,14 +216,14 @@
 				
 				//the set of keys matching the query is stored in docKeyset. 
 				//when the results are stored in this keySet a callback is triggered for parsing the results
-				docKeySet.addGroupedCallback(this,handleThumbnails,true);
+				docKeySet.addGroupedCallback(this,handleThumbnails,false);
 				
 				//this keySet stores the keys matching the search query.
 				//when the results are stored in this keySet a callback is triggered for setting the thumbnails' visible to true/false
 				_searchKeySet.addImmediateCallback(this,handleSearchKeySetChange,true);
 				
 				//adding a callback to the selection KeySet to highlight/unhighlight documents
-				_selection.addGroupedCallback(this,handleSelectionKeySetChange,true);
+				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
 				
 				nodeBase.editImage.addEventListener(MouseEvent.CLICK,handleEditCommentsClick);
 				
@@ -232,9 +241,8 @@
 				
 				createAndSendQuery();
 				
-				
-				
-				node.detectQueryChange(handleThumbnails);
+				//to clear the flag so that it doesn't detect the first time
+//				node.detectQueryChange(handleThumbnails);
 				
 			}
 			
@@ -283,13 +291,6 @@
 				}
 			}
 			
-			private var _redraw:Boolean = false;
-//			private function handleQueryChange():void
-//			{
-//				_redraw = true;
-//				createAndSendQuery();
-//				
-//			}
 			
 			private function dragEnterHandler(event:DragEvent):void
 			{
@@ -328,8 +329,11 @@
 			private var highlightNewDocuments:Boolean = true;
 			private function checkForNewDocuments(event:TimerEvent):void
 			{
-				_redraw = false;
-				createAndSendQuery();
+				if(!previousQuery.sources.value == '')
+				{
+					var sourceNames:Array = parser.parseCSV(previousQuery.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+				}
+				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,previousQuery.keywords.value,previousQuery.operator.value,sourceNames,previousQuery.dateFilter);
 			}
 		
 				
@@ -350,7 +354,7 @@
 				refreshTimer.reset();
 				refreshTimer.start();
 				
-				if(!node.keywords.value)
+				if(!query.keywords.value)
 				{
 					nodeBase.keywordTextArea.editable = true;
 					nodeBase.keywordTextArea.selectable = true;
@@ -360,15 +364,6 @@
 				}
 				nodeBase.keywordTextArea.editable = false;
 				nodeBase.keywordTextArea.selectable = false;
-//				if(clearDocuments)
-//					thumbnails.removeAllObjects();
-//				getCallbackCollection(node).delayCallbacks();
-//				thumbnails.delayCallbacks();
-//				if(_redraw)
-//				{
-//					thumbnails.removeAllObjects();
-//					highlightNewDocuments = false;
-//				}
 				
 				if (this.parent == null)
 				{
@@ -376,17 +371,25 @@
 					return;
 				}
 				
-				if(!node.sources.value == '')
+				var diff:* = WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(previousQuery),WeaveAPI.SessionManager.getSessionState(query));
+				if(diff)//diff is undefined if there is no difference.
+					thumbnails.removeAllObjects();
+
+				
+				if(!query.sources.value == '')
 				{
-					var sourceNames:Array = parser.parseCSV(node.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
 				}
 				
-				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,node.keywords.value,node.operator.value,sourceNames,node.dateFilter);
+				
+				WeaveAPI.SessionManager.copySessionState(query,previousQuery);
+				
+				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
 				
 			}
 			
 			private var parser:CSVParser = new CSVParser();
-			private var _firstLoad:Boolean = true;
+//			private var _firstLoad:Boolean = true;
 			
 			/**
 			 * @private
@@ -399,30 +402,26 @@
 				var response:Array = docKeySet.keys;
 				var nameOrder:Array = [];
 				
-//				if(response.length == 0)
-//				{
-//					thumbnails.resumeCallbacks();
-//					getCallbackCollection(node).resumeCallbacks();
-//					return;
-//				}
-
-				if(_firstLoad && node.thumbnails.getNames().length == 0 && movedThumbNails.getNames().length == 0)
+				if(response.length == 0)
 				{
+					thumbnails.resumeCallbacks();
+					getCallbackCollection(node).resumeCallbacks();
+					return;
+				}
+
+				var diff:* = WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(previousQuery),WeaveAPI.SessionManager.getSessionState(query));
+				if(diff)
+				{
+					//its a new query
+					thumbnails.removeAllObjects();
 					highlightNewDocuments = false;
 				}else{
-					
-					if(node.detectQueryChange(handleThumbnails))
-					{
-						thumbnails.removeAllObjects();
-						
+					//its an old query
+					if(thumbnails.getObjects().length == 0)
 						highlightNewDocuments = false;
-					}else{
+					else
 						highlightNewDocuments = true;
-					}
 				}
-				
-				_firstLoad = false;
-				
 				
 				
 				for(var i:int; i<response.length ;i++)
@@ -472,8 +471,8 @@
 			 **/
 			private function positionThumbnails():void
 			{
-				nodeBase.keywordTextArea.text = node.keywords.value;
-				nodeBase.keywordTextArea.toolTip = node.keywords.value;
+				nodeBase.keywordTextArea.text = query.keywords.value;
+				nodeBase.keywordTextArea.toolTip = query.keywords.value;
 				thumbnailsToPlotArray = [];
 				var tNails:Array = thumbnails.getObjects()
 
@@ -639,12 +638,12 @@
 				
 				fieldValues.push(thumbnails.getNames());
 				
-				if(!node.sources.value == '')
+				if(!query.sources.value == '')
 				{
-					var sourceNames:Array = parser.parseCSV(node.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
 				}
 				
-				_parentPanel.infoMapsDataSource.getDocumentsForQueryWithFieldValues(_searchKeySet,_parentPanel.globalSearchKeyword.value,fieldNames,fieldValues,null,"OR",null,2000,true);
+				_parentPanel.infoMapsDataSource.getDocumentsForQueryWithFieldValues(_searchKeySet,_parentPanel.globalSearchKeyword.value,fieldNames,fieldValues,null,"OR",null,2000,false);
 				
 			}
 			
@@ -695,11 +694,11 @@
 			
 			private function handleGlobalDateChange():void
 			{
-				if(node.selected.value)
-				{
-					node.dateFilter.startDate.value = _parentPanel.globalDateFilter.startDate.value;
-					node.dateFilter.endDate.value = _parentPanel.globalDateFilter.endDate.value;
-				}
+//				if(node.selected.value)
+//				{
+				query.dateFilter.startDate.value = _parentPanel.globalDateFilter.startDate.value;
+				query.dateFilter.endDate.value = _parentPanel.globalDateFilter.endDate.value;
+//				}
 			}
 			private function removeEmptyStringElementsFromArray(arg:Array):Array
 			{
@@ -768,7 +767,7 @@
 				if(event.keyCode == Keyboard.ENTER)
 				{
 					event.preventDefault();
-					node.keywords.value = nodeBase.keywordTextArea.text;
+					query.keywords.value = nodeBase.keywordTextArea.text;
 					nodeBase.keywordTextArea.editable = false;
 					nodeBase.keywordTextArea.selectable = false;
 				}
@@ -792,7 +791,7 @@
 			
 			private function filter(event:Event):void
 			{
-				DateFilterComponent.openInstance(this,node.dateFilter);
+				DateFilterComponent.openInstance(this,query.dateFilter);
 			}
 			
 			private var _instance:NodeSettingsComponent = null;

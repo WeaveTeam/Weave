@@ -21,7 +21,6 @@ package weave.data.BinClassifiers
 {
 	import weave.api.data.IBinClassifier;
 	import weave.core.LinkableHashMap;
-	import weave.core.weave_internal;
 	
 	/**
 	 * This object contains an ordered, named list of IBinClassifier objects.

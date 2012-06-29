@@ -35,7 +35,7 @@ package weave.ui.infomap.layout
 			if(_parentNodeHandler == null ||_parentNodeHandler.nodeBase.keywordTextArea ==null)
 				return;
 			
-			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.node.keywords.value;
+			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.query.keywords.value;
 			_parentNodeHandler.nodeBase.keywordTextArea.setStyle("textAlign","center");
 			
 			
@@ -69,8 +69,8 @@ package weave.ui.infomap.layout
 			_parentNodeHandler.nodeBase.infoImg.visible = true;
 			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbnails.length.toString() + " documents found" ;
 			
-			if(_parentNodeHandler.node.sources.value)
-				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.node.sources.value;
+			if(_parentNodeHandler.query.sources.value)
+				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.query.sources.value;
 			
 			var startX:Number = _parentNodeHandler.nodeBase.x;
 			var startY:Number = _parentNodeHandler.nodeBase.y;

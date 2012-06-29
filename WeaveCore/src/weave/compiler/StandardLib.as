@@ -321,14 +321,33 @@ package weave.compiler
 
 		/**
 		 * @param normValue A Number between 0 and 1.
-		 * @param minColor A color associated with a value of 0.
-		 * @param maxColor A color associated with a value of 1.
+		 * @param colors An Array or list of colors to interpolate between.  Normalized values of 0 and 1 will be mapped to the first and last colors.
 		 * @return An interpolated color associated with the given normValue based on the min,max color values.
 		 */
-		public static function interpolateColor(normValue:Number, minColor:int, maxColor:int):Number
+		public static function interpolateColor(normValue:Number, ...colors):Number
 		{
-			if (normValue < 0 || normValue > 1)
+			// handle an array of colors as the second parameter
+			if (colors.length == 1 && colors[0] is Array)
+				colors = colors[0];
+			
+			// handle invalid parameters
+			if (normValue < 0 || normValue > 1 || colors.length == 0)
 				return NaN;
+			
+			// find the min and max colors we want to interpolate between
+			
+			var maxIndex:int = colors.length - 1;
+			var leftIndex:int = maxIndex * normValue;
+			var rightIndex:int = leftIndex + 1;
+			
+			// handle boundary condition
+			if (rightIndex == colors.length)
+				return colors[leftIndex];
+			
+			var minColor:Number = colors[leftIndex];
+			var maxColor:Number = colors[rightIndex];
+			// normalize the norm value between the two norm values associated with the surrounding colors
+			normValue = normValue * maxIndex - leftIndex;
 			
 			var percentLeft:Number = 1 - normValue; // relevance of minColor
 			var percentRight:Number = normValue; // relevance of maxColor

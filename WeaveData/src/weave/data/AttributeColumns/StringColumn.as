@@ -30,7 +30,6 @@ package weave.data.AttributeColumns
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
-	import weave.core.weave_internal;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -45,7 +44,7 @@ package weave.data.AttributeColumns
 			super(metadata);
 		}
 		
-		weave_internal function get metadata():XML
+		public function get metadata():XML
 		{
 			return _metadata;
 		}

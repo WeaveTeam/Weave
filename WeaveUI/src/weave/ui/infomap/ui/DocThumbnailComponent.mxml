@@ -2,7 +2,7 @@
 <!--This is a Flex Image component modified to adjust to act as a thumbnail for infomap
 so that it can be moved, selected, handle filters.
 -->
-<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
 	   			paddingBottom="2"
 				paddingLeft="2"
 				paddingRight="2"
@@ -18,9 +18,10 @@ so that it can be moved, selected, handle filters.
 				cornerRadius="5"
 				borderColor="black"
 				dragComplete="handleDragComplete(event)"
-				>
+				horizontalScrollPolicy="off"
+				verticalScrollPolicy="off">
 	<mx:Image id="img" width="100%" height="100%"/>
-	<mx:Canvas includeInLayout="false" id="point"/>
+	<mx:Canvas id="point"/>
 	<mx:Script>
 		<![CDATA[
 			import flash.text.engine.GroupElement;
@@ -144,11 +145,6 @@ so that it can be moved, selected, handle filters.
 				defaultBorderColor.addGroupedCallback(this,setSelection);
 				
 				hasBeenMoved.addGroupedCallback(this,handleMode,true);
-				
-				var g:Graphics = point.graphics;
-				g.lineStyle(1,0,1.0);
-				g.beginFill(defaultBorderColor.value,1.0);
-				g.drawCircle(0,0,imageWidth.value/2);	
 			}
 			
 			private function handleMode():void
@@ -156,25 +152,39 @@ so that it can be moved, selected, handle filters.
 				if(hasBeenMoved.value)
 				{
 					img.visible = true;
-					img.includeInLayout = true;
+//					img.includeInLayout = true;
 					
 					point.visible = false;
-					point.includeInLayout = false;
+//					point.includeInLayout = false;
 					
 					setStyle("borderStyle","solid");
 					setStyle("borderThickness", 1.5);
+					
+					imageHeight.value = 55;
+					imageWidth.value = 55;
+					
+					img.width = 50;
+					img.height = 50;
+					point.width = 0;
+					point.height = 0;
+					
 					handleImage();
 				}
 				else
 				{
 					img.visible = false;
-					img.includeInLayout = false;
+//					img.includeInLayout = false;
 					
 					point.visible = true;
-					point.includeInLayout = true;
+//					point.includeInLayout = true;
 					
 					imageHeight.value = 10;
 					imageWidth.value = 10;
+					
+					img.width = 0;
+					img.height = 0;
+					point.width = 10;
+					point.height = 10;
 					
 					var g:Graphics = point.graphics;
 					g.clear();
@@ -512,6 +522,6 @@ so that it can be moved, selected, handle filters.
 	</mx:Script>
 	
 	<!--<mx:Image id="img"/>-->
-</mx:HBox>
+</mx:Canvas>
 
 				

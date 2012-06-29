@@ -35,7 +35,7 @@
 			public function set parentNode(object:NodeHandler):void
 			{
 				_parentNode = object;
-				_parentNode.node.sources.addGroupedCallback(this,handleSources,true);
+				_parentNode.query.sources.addGroupedCallback(this,handleSources,true);
 			}
 			
 			
@@ -132,18 +132,18 @@
 					selectedSourcesArray[0].push(key);
 				}
 				
-				_parentNode.node.sources.value = parser.createCSV(selectedSourcesArray);
+				_parentNode.query.sources.value = parser.createCSV(selectedSourcesArray);
 				editable = false;
 				editButton.label = 'Edit';
 			}
 			
 			private function handleSources():void
 			{
-				if(!_parentNode.node.sources.value)
+				if(!_parentNode.query.sources.value)
 					return;						
 				
 				
-				var sourceNames:Array = parser.parseCSV(_parentNode.node.sources.value)[0];
+				var sourceNames:Array = parser.parseCSV(_parentNode.query.sources.value)[0];
 				
 				var allSources:Array = (sourcesList.dataProvider as ArrayCollection).source;
 				

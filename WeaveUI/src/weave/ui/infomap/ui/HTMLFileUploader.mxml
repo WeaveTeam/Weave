@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns="weave.ui.*"
+				xmlns:flexiframe="http://code.google.com/p/flex-iframe/"
+				title="Upload Files"
+				closeButtonUpSkin="@Embed(source='/weave/resources/images/cancel.png')"
+				closeButtonOverSkin="@Embed(source='/weave/resources/images/cancel.png')"
+				closeButtonDownSkin="@Embed(source='/weave/resources/images/cancel.png')">
+	<flexiframe:IFrame  id="loader" label="Upload Files" source="fileUploader.html" width="400" height="400"/>
+</DraggablePanel>

@@ -98,6 +98,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 
 				 import weave.api.WeaveAPI;
 				 import weave.api.core.ILinkableHashMap;
+				 import weave.api.getCallbackCollection;
 				 import weave.api.linkBindableProperty;
 				 import weave.api.unlinkBindableProperty;
 				 import weave.core.LinkableDynamicObject;
@@ -137,16 +138,16 @@ Info to provide a tooltip describing the node (like number of documents found)
 					 
 					operator.dataProvider = ['OR','AND'];
 					 
-					keyword.text = nodeHandler.node.keywords.value;
-					 
+//					keyword.text = nodeHandler.node.keywords.value;
+					keyword.text = nodeHandler.query.keywords.value;
 					 
 //					linkBindableProperty(nodeHandler.searchFilter,searchTextInput,"text",500);
 					
-					operator.selectedItem = nodeHandler.node.operator.value;
-					linkBindableProperty(nodeHandler.node.operator,operator,"selectedItem");
+					operator.selectedItem = nodeHandler.query.operator.value;
+					linkBindableProperty(nodeHandler.query.operator,operator,"selectedItem");
 					
-					nodeHandler.node.dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);
-					nodeHandler.node.dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,false);
+					nodeHandler.query.dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);
+					nodeHandler.query.dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,false);
 					 
 					startDateStr.addGroupedCallback(this,handleDateChange);
 					endDateStr.addGroupedCallback(this,handleDateChange);
@@ -155,7 +156,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 					
 					nodeHandler.layout.addImmediateCallback(this,handleLayoutObjectChange,true);
 					
-					this.targets = [nodeHandler.node.keywords,nodeHandler.layout,nodeHandler.node.sources,nodeHandler.node.dateFilter.startDate,nodeHandler.node.dateFilter.endDate]
+					this.targets = [nodeHandler.query.keywords,nodeHandler.layout,nodeHandler.query.sources,nodeHandler.query.dateFilter.startDate,nodeHandler.query.dateFilter.endDate]
 				 }
 				 
 				 private function handleLayoutObjectChange():void
@@ -172,37 +173,41 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 {
 					 if(startDateStr.value == '' || endDateStr.value == '')
 						 return;
-					 nodeHandler.node.dateFilter.startDate.value = startDateStr.value;
-					 nodeHandler.node.dateFilter.endDate.value = endDateStr.value;
+					 getCallbackCollection(nodeHandler.query.dateFilter).delayCallbacks();
+
+					 nodeHandler.query.dateFilter.startDate.value = startDateStr.value;
+					 nodeHandler.query.dateFilter.endDate.value = endDateStr.value;
 					 
+					 getCallbackCollection(nodeHandler.query.dateFilter).resumeCallbacks();
+					 getCallbackCollection(nodeHandler.query.dateFilter).triggerCallbacks();				 
 				 }
 				 
 				 private function handleStartDateFilterChange():void
 				 {
-					 if(nodeHandler.node.dateFilter.startDate.value != null)
+					 if(nodeHandler.query.dateFilter.startDate.value != null)
 					 {
-						 startDateStr.value = nodeHandler.node.dateFilter.startDate.value;
-					 	startRange.selectedDate = DateUtils.getDateFromString(nodeHandler.node.dateFilter.startDate.value);
-					 if(nodeHandler.node.dateFilter.startDate.value.search('NOW') == -1)
+						 startDateStr.value = nodeHandler.query.dateFilter.startDate.value;
+					 	startRange.selectedDate = DateUtils.getDateFromString(nodeHandler.query.dateFilter.startDate.value);
+					 if(nodeHandler.query.dateFilter.startDate.value.search('NOW') == -1)
 					 	rangeComboBox.selectedItem = "--Quick Select--";
 					 }
 				 }
 				 
 				 private function handleEndDateFilterChange():void
 				 {
-					 if(nodeHandler.node.dateFilter.endDate.value != null)
+					 if(nodeHandler.query.dateFilter.endDate.value != null)
 					 {
-						endDateStr.value = nodeHandler.node.dateFilter.endDate.value;
-					 	endRange.selectedDate = DateUtils.getDateFromString(nodeHandler.node.dateFilter.endDate.value);
+						endDateStr.value = nodeHandler.query.dateFilter.endDate.value;
+					 	endRange.selectedDate = DateUtils.getDateFromString(nodeHandler.query.dateFilter.endDate.value);
 					 }
-					 if(nodeHandler.node.dateFilter.endDate.value &&  nodeHandler.node.dateFilter.startDate.value.search('NOW') == -1)
+					 if(nodeHandler.query.dateFilter.endDate.value &&  nodeHandler.query.dateFilter.startDate.value.search('NOW') == -1)
 						 rangeComboBox.selectedItem = "--Quick Select--";
 				 }
 				 
 				 private function applyKeyword():void
 				 {
-					 if(nodeHandler && nodeHandler.node && keyword)
-						 nodeHandler.node.keywords.value = keyword.text;
+					 if(nodeHandler && nodeHandler.query && keyword)
+						 nodeHandler.query.keywords.value = keyword.text;
 				 }
 				 
 				 private function handleLayoutChange():void
@@ -255,7 +260,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 
 				 private function editQuery():void
 				 {
-					 nodeHandler.node.keywords.value = keyword.text;
+					 nodeHandler.query.keywords.value = keyword.text;
 				 }
 				 
 				 private function handleEnterKeyOnSearch(event:KeyboardEvent):void
@@ -316,8 +321,8 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 private function handleClearDates():void
 				 {
 					 //clearning dates in filterObject
-					 nodeHandler.node.dateFilter.endDate.value = '';
-					 nodeHandler.node.dateFilter.startDate.value = '';
+					 nodeHandler.query.dateFilter.endDate.value = '';
+					 nodeHandler.query.dateFilter.startDate.value = '';
 					 
 					 
 					 startRange.selectedDate = null;
@@ -382,8 +387,8 @@ Info to provide a tooltip describing the node (like number of documents found)
 					
 					var dict:Dictionary = new Dictionary();
 					
-					if(!nodeHandler.node.sources.value == '')
-						sources[0] = parser.parseCSV(nodeHandler.node.sources.value)[0];
+					if(!nodeHandler.query.sources.value == '')
+						sources[0] = parser.parseCSV(nodeHandler.query.sources.value)[0];
 					
 					//if the source name already exists then ignore and return
 					for each(var src:String in sources[0])
@@ -398,7 +403,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 					//this is necessary so that the callbacks on sources are not called simply because the same sources are out of order.
 					sources[0].sort();
 					
-					nodeHandler.node.sources.value = parser.createCSV(sources);
+					nodeHandler.query.sources.value = parser.createCSV(sources);
 				}
 				
 				

@@ -4,11 +4,12 @@ Use the static functions to show this as a popup.
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 			 xmlns:infomap="weave.ui.infomap.*" 
-			 width="100%" height="100%" 
+			 width="350" height="250" 
 			 verticalScrollPolicy="off" 
 			 horizontalScrollPolicy="off" 
 			 paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5"
-			 visible="true">
+			 visible="true"
+			 mouseChildren="false">
 		<mx:Fade target="{this}" id="fadeIn" alphaFrom="0.0" alphaTo="1.0" duration="700"/>
 	    <mx:Fade target="{this}" id="fadeOut" alphaFrom="1.0" alphaTo="0.0" duration="700"/>
 		
@@ -57,7 +58,7 @@ Use the static functions to show this as a popup.
 					
 				}
 				
-				private static var instance:DocumentSummaryComponent;
+				private static var instance:DocumentSummaryComponent = null;
 				/**
 				 * Call this function to show a Summary Component as a Popup
 				 * 
@@ -68,10 +69,12 @@ Use the static functions to show this as a popup.
 				 * */
 				public static function show(xPos:Number,yPos:Number,docURL:String,parent:DisplayObject):void
 				{
-					instance = new DocumentSummaryComponent();
+					if(!instance)
+						instance = new DocumentSummaryComponent();
 					if(!docURL)
 						return;
 
+					instance.fadeOut.stop();
 					_docURL.value = docURL;
 					
 					_bitmap = null;
@@ -117,7 +120,8 @@ Use the static functions to show this as a popup.
 		<!--<mx:HRule width="100%"/>-->
 		<mx:HBox width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
 			<mx:Image id="nodeThumbnail" source="{_bitmap}" maintainAspectRatio="false" maxWidth="140" maxHeight="140"/>
-			<mx:Text text="{source.getTitleForURL(_docURL.value)}" id="nodeDescription" width="100%" height="100%" />
+			<mx:Text  htmlText="{source.getDescriptionForURL(_docURL.value)}" id="nodeDescription" width="100%" height="100%">
+			</mx:Text>
 		</mx:HBox>
 		
 		<mx:HRule width="100%"/>

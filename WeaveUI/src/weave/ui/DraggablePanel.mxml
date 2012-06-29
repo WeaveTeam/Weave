@@ -35,6 +35,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				creationComplete="handleCreationComplete()"
 				layout="absolute"
 				close="handleCloseButtonClick()"
+				enterFrame="busyIndicator.visible = (WeaveAPI.SessionManager as SessionManager).linkableObjectIsBusy(this);"
 				
 				closeButtonUpSkin="@Embed(source='/weave/resources/images/cancel.png')"
 				closeButtonOverSkin="@Embed(source='/weave/resources/images/cancel.png')"
@@ -47,7 +48,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				>
 	<mx:Script>
 		<![CDATA[
-//				enterFrame="alpha = (WeaveAPI.SessionManager as SessionManager).linkableObjectIsBusy(this) ? 0.5 : 1.0"
 			import mx.containers.Canvas;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
@@ -288,10 +288,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				panelNeedsUpdate();
 				
+
 				//the focus goes back to the button after adding a node. This takes the cursor off the keyword text area.
 				//so focus is disabled
 				subMenuButton.focusEnabled = false;
+
 			}
+			public var busyIndicator:BusyIndicator = new BusyIndicator();
 			
 			private function handleCreationComplete():void
 			{
@@ -299,6 +302,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//_dragCanvas.percentHeight = 100;
 				rawChildren.addChild(_dragCanvas);
 				rawChildren.addChild(_moveImage);
+				rawChildren.addChild(busyIndicator);
 			}
 			
 			/**

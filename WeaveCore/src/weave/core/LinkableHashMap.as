@@ -31,8 +31,6 @@ package weave.core
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	
-	use namespace weave_internal;
-	
 	/**
 	 * This contains an ordered list of name-to-object mappings.
 	 * 

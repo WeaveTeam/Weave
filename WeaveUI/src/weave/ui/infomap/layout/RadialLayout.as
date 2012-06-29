@@ -45,8 +45,8 @@ package weave.ui.infomap.layout
 			graphics.beginFill(0,0);
 			graphics.drawCircle(0,0,thumbnailSpacing.value);
 			
-			_parentNodeHandler.nodeBase.keywordTextArea.text = _parentNodeHandler.node.keywords.value;
-			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.node.keywords.value;
+			_parentNodeHandler.nodeBase.keywordTextArea.text = _parentNodeHandler.query.keywords.value;
+			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.query.keywords.value;
 			_parentNodeHandler.nodeBase.x = - (thumbnailSpacing.value/2) - 20; //TODO: the value 20 should be replaced by an offset
 			_parentNodeHandler.nodeBase.keywordTextArea.setStyle("textAlign","center");
 			
@@ -82,8 +82,8 @@ package weave.ui.infomap.layout
 			//this image is used to a show a tooltip of information about the node. 
 			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbnails.length.toString() + " documents found" ;
 			
-			if(_parentNodeHandler.node.sources.value)
-				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.node.sources.value;
+			if(_parentNodeHandler.query.sources.value)
+				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.query.sources.value;
 			
 			
 			var temp:Array = [];

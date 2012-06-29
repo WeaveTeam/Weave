@@ -36,6 +36,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	
 	<mx:Script>
 		<![CDATA[
+			import com.as3xls.cdf.Directory;
 			import com.cartogrammar.drawing.DashedLine;
 			
 			import mx.binding.utils.BindingUtils;
@@ -52,6 +53,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.CollectionEvent;
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
+			import mx.managers.PopUpManager;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.IResponder;
 			import mx.rpc.Responder;
@@ -91,11 +93,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.primitives.DateRangeFilter;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.DelayedAsyncResponder;
+			import weave.services.InfoMapAdminInterface;
 			import weave.services.jquery.JQueryCaller;
 			import weave.ui.CustomContextMenuManager;
 			import weave.ui.SubMenu;
 			import weave.ui.infomap.InfoMapLoader;
-			import weave.services.InfoMapAdminInterface;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.MovedThumbnailPosition;
 			import weave.ui.infomap.core.SelectableInfoMapDocument;
@@ -194,6 +196,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_infomapSubMenu.addSubMenuItem("Add Map Node",addInfoMapLink);
 				_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
 				_infomapSubMenu.addSubMenuItem("Show All Documents",showAllDocuments);
+				
+				_fileReference.addEventListener(Event.SELECT, folderSelectHanlder);
+//				_fileReference.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
+				_fileReference.addEventListener(IOErrorEvent.IO_ERROR, folderErrorHandler)
 			}
 			
 			private var _infomapSubMenu:SubMenu = null;
@@ -430,7 +436,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				var selectionRect:Rectangle = sprite.getRect(map);
 				
+				map.graphics.clear();
+				
 				var currentNodes:Array = nodes.getObjects();
+				
+				var selectedKeys:Array = [];
 				
 				for (var i:int = 0; i<currentNodes.length; i++)
 				{
@@ -439,19 +449,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var node:NodeHandler = currentNodes[i];
 					var currentDocs:Array = node.thumbnails.getObjects();
 					
+					
 					for each (var t:DocThumbnailComponent in currentDocs)
 					{
+						var r:Rectangle = t.getRect(map);
 						var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t.docURL.value);
-						if(selectionRect.intersects(t.getRect(map)))
+						if(selectionRect.intersects(r))
 						{
-							_selectedKeySet.addKeys([key]);	
-						}
-						else
-						{
-							_selectedKeySet.removeKeys([key]);
+//							map.graphics.lineStyle(1,0);
+//							map.graphics.drawRect(r.x,r.y,r.width,r.height);
+							selectedKeys.push(key);
 						}
 					}
 				}
+				
+				_selectedKeySet.replaceKeys(selectedKeys);
+				
 				
 			}
 			
@@ -567,15 +580,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var nodeHandler:NodeHandler= new NodeHandler();
 				nodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
 				
-				nodeHandler.node.keywords.value = query;
+				nodeHandler.query.keywords.value = query;
 				if(op ==null)
 				{
 					//TODO: should take value from RadioButton. Value was null when last tried.
-					nodeHandler.node.operator.value = "AND";	
+					nodeHandler.query.operator.value = "AND";	
 				}
 				else{
 					
-					nodeHandler.node.operator.value = op;
+					nodeHandler.query.operator.value = op;
 				}
 				
 				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
@@ -731,6 +744,92 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				backgroundImageName.value = "";				
 			}
 			
+			private var _fileReference:FileReferenceList = new FileReferenceList();
+//			private var _fileReferenceList:FileReferenceList = new FileReferenceList();
+			
+			private function browseAndUpload():void
+			{
+				var fileTypes:Array = [new FileFilter("Text Files", "*.doc; *.docx; *.txt; *.csv; *.pdf")];
+				_fileReference.browse(fileTypes);
+//				_fileReference.
+			}
+			
+			private function popupLoader():void
+			{
+//				var loader:HTMLFileUploader = PopUpManager.createPopUp(this,HTMLFileUploader) as HTMLFileUploader;
+//				PopUpManager.centerPopUp(loader);
+//				loader.addEventListener(CloseEvent.CLOSE,function():void{PopUpManager.removePopUp(loader);});
+				
+				var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.testDropBox();
+				q.addAsyncResponder(callDropBox,faultDropBox);
+			}
+			
+			private function callDropBox(event:ResultEvent,token:Object = null)
+			{
+				ExternalInterface.call(event.result as String);
+			}
+			
+			private function faultDropBox(event:FaultEvent,token:Object = null)
+			{
+				
+			}
+			
+			[Bindable] private var fileUploadCount:int = 0;
+			[Bindable] private var targetFileUploadCount:int = 0;
+			private function folderSelectHanlder(event:Event):void
+			{
+				if(!username.text)
+				{
+					Alert.show("Please enter an username to associate with the files","Error");
+					return;
+				}
+				
+				var file:FileReference;
+				var selectedFiles:Array = _fileReference.fileList;
+				fileUploadCount = 0;
+				targetFileUploadCount = selectedFiles.length;
+				for (var i:int = 0; i < selectedFiles.length; i++)
+				{
+					file = selectedFiles[i] as FileReference;
+					file.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
+					if(file.size > 10000000)
+					{
+						WeaveAPI.ErrorManager.reportError("Error", "Cannot Upload file " + file.name + ". Maximum file size is 10 MB");
+						return;
+					}
+					try{
+						
+						file.load();
+					}
+					catch(e:Error)
+					{
+						WeaveAPI.ErrorManager.reportError(e.message);
+					}
+				}
+			}
+			
+			private function folderErrorHandler(event:IOErrorEvent):void
+			{
+				var fileRef:FileReference = event.target as FileReference;
+				WeaveAPI.ErrorManager.reportError(
+					"File upload failed",
+					"File: " + fileRef.name + "\n" + "Size: " + fileRef.size + "\n" + event.text);
+			}
+			
+			
+			private function fileLoadCompleteHandler(event:Event):void
+			{
+				if ((event.target as FileReference).data == null)
+					return;
+				if(!username.text)
+				{
+					Alert.show("Please enter an username to associate with the files","Error");
+					return;
+				}
+				InfoMapAdminInterface.instance.addDocumentToSolr(username.text,event.target as FileReference);
+				fileUploadCount++; //TODO Check for file index status.
+			}
+			
 			
 		]]>
 	</mx:Script>
@@ -830,6 +929,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:Button  label="Delete Selected Feed" click="deleteRssFeed()"/>
 		</mx:HBox>
 			<mx:TextArea backgroundColor="0xCCCCCC" borderThickness="0" editable="false" width="500" height="100%" fontWeight="bold" text="The indexing is scheduled to run every hour. You can hit the Index Now button if you want to index your feeds you added recently. Please allow 10 -15 minutes for the results to show up."/>
+		</mx:VBox>
+		<mx:VBox id="uploadFilesPanel" label="Index Local Files">
+			<mx:HBox>
+				<mx:Label text="Enter username: "/>
+				<mx:TextInput width="200" id="username" />
+			</mx:HBox>
+			<mx:HBox>
+				<ui:TextInputWithPrompt id="fileNameInput" prompt="Select files/folder."/>
+				<mx:Button label="Upload File" click="browseAndUpload();"/>
+				<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files uploaded' : ''}"/>
+			</mx:HBox>
+			<mx:Button label="Open Loader" click="popupLoader()"/>
 		</mx:VBox>
 		<ui:UserWindowSettings targetTool="{this}"/>
 	</ui:ControlPanel>
