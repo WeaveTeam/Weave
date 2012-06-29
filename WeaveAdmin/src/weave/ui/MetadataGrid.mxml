@@ -2,8 +2,14 @@
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
     width="100%" height="100%">
-    <mx:DataGrid id="grid" editable="true" itemEditEnd="editEndHandler(event)" change="changedItemSelect(event)"/>
-    <mx:HBox>
+    <mx:DataGrid id="grid" editable="true" itemEditEnd="editEndHandler(event)" change="changedItemSelect(event)"
+        width="100%" height="100%">
+        <mx:columns>
+            <mx:DataGridColumn headerText="Property" labelFunction = "labelFunction" editable="false"/>
+            <mx:DataGridColumn headerText="Value" dataField = "value" editable="true"/>
+        </mx:columns>
+    </mx:DataGrid>
+    <mx:HBox width="100%">
         <ui:TextInputWithPrompt id="newPropName" prompt="New Property Name" enter="addProp()"/>
         <mx:Button id="addPropButton" label="Add Property" click="addProp()"/>
         <mx:Button id="delPropButton" label="Delete Property" click="delProp()" 
@@ -11,6 +17,7 @@
     </mx:HBox>
 <mx:Script>
 <![CDATA[
+    import weave.services.WeaveAdminService;
     import weave.services.AdminInterface;
     import weave.services.beans.AttributeColumnInfo;
     import weave.ui.EntityTreeNode;
@@ -22,16 +29,15 @@
     import mx.events.ListEvent;
     import mx.collections.ListCollectionView;
 
-    
-    public function handleCreationComplete():void
+    private static function labelFunction(item:Object, column:DataGridColumn):String
     {
-        var propColumnHeader:DataGridColumn = new DataGridColumn("Property");
-        var valColumnHeader:DataGridColumn = new DataGridColumn("Value");
-        propColumnHeader.dataField = "property";
-        valColumnHeader.dataField = "value";
-        propColumnHeader.editable = false;
-        valColumnHeader.editable = true;
-        grid.columns = [propColumnHeader, valColumnHeader];
+        /* TODO: Pretty formatting to make it clear that these prefixes aren't part of the name.*/
+        if (item.deleted)
+            return "[DELETED] " + item.property;
+        else if (item.original == false)
+            return "[ADDED] " + item.property;
+        else
+            return item.property;
     }
     [Bindable(event="metaChanged")] public function get metadata():Object
     {
@@ -42,10 +48,16 @@
         var destmeta:Object = new Object();
         for each (var row:Object in rows)
         {
-            if (!row["removed"])
+            if (row.deleted)
+            {
+                if (row.original)
+                    destmeta[row.property] = null;
+                else
+                    continue; /* If a nonoriginal property was deleted 
+                                we don't need other components to hear about it. */
+            }
+            else
                 destmeta[row.property] = row.value;
-            else 
-                destmeta[row.property] = null;
         }
         return destmeta;
     }
@@ -54,7 +66,7 @@
         /* Convert from an object to a format expected by the dataProvider */
         var rows:Array = new Array();
         for (var prop:String in srcmeta)
-            rows.push({property: prop, value: srcmeta[prop]});
+            rows.push({property: prop, value: srcmeta[prop], original: true, deleted: false});
         grid.dataProvider = rows;
         dispatchEvent(new Event("metaChanged"));
     }
@@ -70,30 +82,33 @@
     }
     public function addProp():void
     {
-        if (newPropName.text) 
-        {
-            var tmpmeta:Object = metadata;
-            tmpmeta[newPropName.text] = "";
-            metadata = tmpmeta;
-        }
+        var prop:String = newPropName.text;
+        var datalist:ListCollectionView = grid.dataProvider as ListCollectionView;
+        if (prop) 
+            datalist.addItem({property: prop, value: "", original: false, deleted: false});
         else
-        {
             UIUtils.componentPulse(newPropName);
-        }    
+        dispatchEvent(new Event("metaChanged"));
     }
     public function delProp():void
     {
+        var datalist:ListCollectionView = grid.dataProvider as ListCollectionView;
         var row:Object = grid.selectedItem;
-        if (row["removed"])
-            delete(row.removed);
-        else
-            row["removed"] = true;
+        var idx:int;
+        row.deleted = !row.deleted;
+        if (!row.original && row.deleted)
+        {
+            idx = datalist.getItemIndex(row);
+            datalist.removeItemAt(idx);
+        }
+        grid.dataProvider.refresh();
+        changedItemSelect(null);
         dispatchEvent(new Event("metaChanged"));
     }
     public function changedItemSelect(event:ListEvent):void
     {
         if (!grid.selectedItem) return;
-        if (grid.selectedItem["removed"])
+        if (grid.selectedItem.deleted)
         {
             delPropButton.label = "Undo Delete";
         }

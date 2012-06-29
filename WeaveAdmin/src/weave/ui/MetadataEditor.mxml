@@ -11,8 +11,9 @@
             paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5" enabled="{targetItem != null}"/>
     </mx:TabNavigator>
     <mx:HBox>
-        <mx:Button label="Discard Changes" id="discardButton" enabled="{isChanged}" click="setEditors(null)"/>
-        <mx:Button label="Save Changes" id="saveButton" enabled="{isChanged}" click="saveChanges()"/>
+        <mx:Button label="Discard Changes" enabled="{isChanged}" click="setEditors(null)"/>
+        <mx:Button label="Save Changes" enabled="{isChanged}" click="saveChanges()"/>
+        <mx:Button label="Debug Meta" click="printpubMeta()"/>
     </mx:HBox>
 <mx:Script>
 <![CDATA[
@@ -38,24 +39,18 @@
     }
     private function setEditors(o:Object):void
     {
-        if (targetItem == null) return;
-        /* Shut off the changewatchers. */
-        pubWatcher.unwatch();
-        privWatcher.unwatch();
+        if (targetItem == null)
+        {
+            return;
+        }
         publicMetaGrid.metadata = targetItem.object.publicMetadata;
         privateMetaGrid.metadata = targetItem.object.privateMetadata;
-        /* Turn them back on. */
-        pubWatcher.reset(publicMetaGrid);
-        privWatcher.reset(privateMetaGrid);
-        metaChanged(null);
     }
     private function metaChanged(o:Object):void
     {
         pubDiff = EntityTreeNode.diffObjects(publicMetaGrid.metadata, targetItem.object.publicMetadata);
         privDiff = EntityTreeNode.diffObjects(privateMetaGrid.metadata, targetItem.object.privateMetadata);
         var prop:String;
-        printobj(pubDiff);
-        printobj(privDiff);
         for (prop in pubDiff)
         {
             isChanged = true;
@@ -66,6 +61,7 @@
             isChanged = true;
             return;
         }
+        isChanged = false;
     }
     private function saveChanges():void
     {
@@ -77,11 +73,14 @@
         for (var prop:String in o)
             yell(prop + ":" + o[prop]);
     }
-    private static function yell(str:String):void
+    public static function yell(str:String):void
     {
         WeaveAdminService.messageDisplay(null, str, false);
     }
-
+    private function printpubMeta():void
+    {
+        printobj(publicMetaGrid.metadata);
+    }
 
 ]]>
 </mx:Script>
