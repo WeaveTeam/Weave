@@ -76,7 +76,6 @@ package weave.application
 	import weave.api.ui.IVisTool;
 	import weave.api.ui.IVisToolWithSelectableAttributes;
 	import weave.compiler.StandardLib;
-	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
@@ -110,7 +109,7 @@ package weave.application
 	import weave.ui.WizardPanel;
 	import weave.ui.annotation.SessionedTextBox;
 	import weave.ui.collaboration.CollaborationEditor;
-	import weave.ui.collaboration.CollaborationMenuBar;
+	import weave.ui.collaboration.CollaborationSideBar;
 	import weave.ui.collaboration.CollaborationTool;
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
@@ -192,7 +191,7 @@ package weave.application
 			WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, setupWindowMenu);
 			Weave.properties.showCopyright.addGroupedCallback(this, toggleMenuBar);
 			Weave.properties.enableMenuBar.addGroupedCallback(this, toggleMenuBar);
-			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationMenuBar);
+			Weave.properties.enableCollaborationBar.addGroupedCallback(this, toggleCollaborationSideBar);
 			Weave.properties.pageTitle.addGroupedCallback(this, updatePageTitle);
 			
 			getCallbackCollection(Weave.savedSelectionKeySets).addGroupedCallback(this, setupSelectionsMenu);
@@ -619,43 +618,41 @@ package weave.application
 		{
 			ExternalInterface.call("window.close()");
 		}
+		public function getMenuItems():ArrayCollection
+		{
+			return _weaveMenu.menubar.dataProvider as ArrayCollection;
+		}
 
 		/**
 		 * Optional menu bar (bottom of screen) to control the collaboration service and interaction
 		 * between users.
 		 */
-		private var _collabMenu:CollaborationMenuBar = null;
+		private var _collabBar:CollaborationSideBar = null;
 		
-		private function toggleCollaborationMenuBar():void
+		private function toggleCollaborationSideBar():void
 		{
-			if (!_collabMenu)
-				_collabMenu = new CollaborationMenuBar();
+			if (!_collabBar)
+				_collabBar = new CollaborationSideBar();
 			
 			if( Weave.properties.enableCollaborationBar.value )
 			{
-				if( !_collabMenu.parent )
+				if( !_collabBar.parent )
 				{
-					_collabMenu.percentWidth = 100;
-					this.addChild(_collabMenu);
-					_collabMenu.addedToStage();
+					
+					PopUpManager.addPopUp(_collabBar, this);
 				}
 			} else {
 				try
 				{
-					if( this == _collabMenu.parent ) {
-						_collabMenu.dispose();
-						this.removeChild(_collabMenu);
+					if( this == _collabBar.parent ) {
+						_collabBar.removed();
+						PopUpManager.removePopUp(_collabBar);
 					}
 					
 				} catch( error:Error ) {
 					reportError(error);
 				}
 			}
-		}
-
-		public function getMenuItems():ArrayCollection
-		{
-			return _weaveMenu.menubar.dataProvider as ArrayCollection;
 		}
 		
 		/**

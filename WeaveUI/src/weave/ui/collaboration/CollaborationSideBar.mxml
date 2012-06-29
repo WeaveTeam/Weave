@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="15%" height="500" title="Collaboration Group" xmlns:collaboration="weave.ui.collaboration.*" creationComplete="creationCompleteHandler(event)">
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="185" height="500" title="Collaboration Group" xmlns:collaboration="weave.ui.collaboration.*" horizontalScrollPolicy="off" move="repositionWindowsHandler(event)" creationComplete="creationCompleteHandler(event)">
 	<mx:List id="userList" width="100%" height="100%" labelField="name" minWidth="130">
 		<mx:itemRenderer>
 			<mx:Component>
@@ -44,9 +44,11 @@
 			</mx:Component>
 		</mx:itemRenderer>
 	</mx:List>
-	<mx:Button id="cursorButton" width="100%" label="{lang('Request Cursor Control')}" click="cursorButtonClick(event)" y="{this.height - this.borderMetrics.bottom - this.borderMetrics.top - cursorButton.height}"/>
+	<mx:Button id="cursorButton" width="100%" label="{lang('Request Cursor Control')}" click="cursorButtonClick(event)"/>
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.Button;
+			import mx.events.MoveEvent;
 			import mx.events.CloseEvent;
 			import mx.controls.Alert;
 			import org.igniterealtime.xiff.conference.RoomOccupant;
@@ -88,6 +90,30 @@
 			public function set userNameList(array:ArrayCollection):void
 			{
 				userList.dataProvider = array;
+			}
+			
+			private function adjustCursorButtonHeight():void
+			{
+				cursorButton.y = this.userList.height - cursorButton.height; 
+			}
+			
+			protected function repositionWindowsHandler(event:MoveEvent):void
+			{
+				if( SETTINGS && CHAT )
+				{
+					if( (WeaveAPI.topLevelApplication as DisplayObject).width - (this.x + this.width) < CHAT.width )
+					{
+						SETTINGS.x = this.x - SETTINGS.width;
+						CHAT.x = this.x - CHAT.width;
+					}
+					else
+					{
+						SETTINGS.x = this.x + this.width;
+						CHAT.x = this.x + this.width;
+					}
+					SETTINGS.y = this.y;
+					CHAT.y = this.y;
+				}
 			}
 			
 			public function setUserAttribute(type:String, name:String, val:Number):void
@@ -183,7 +209,9 @@
 			
 			protected function creationCompleteHandler(event:FlexEvent):void
 			{
+				adjustCursorButtonHeight();
 				cursorButton.enabled = false;
+				this.y = (WeaveAPI.topLevelApplication as DisplayObject).height * .75 - this.height;
 				
 				//Service event listeners.
 				collabService.addEventListener(CollaborationEvent.LOG, handleLogEvent);
@@ -230,6 +258,23 @@
 				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
+			}
+			
+			public function removed():void
+			{
+				disConButtonPushed = true;
+				disconnect();
+				resetUserMice();
+				if(CHAT)
+				{
+					PopUpManager.removePopUp(CHAT);
+					CHAT = null;
+				}
+				if(SETTINGS)
+				{
+					PopUpManager.removePopUp(SETTINGS);
+					SETTINGS = null;
+				}
 			}
 			
 			private function connect(e:CollaborationEvent = null):void
@@ -410,9 +455,10 @@
 			{
 				CHAT.logText(e.getText());
 				if( !CHAT.visible && collabService.isConnected ) {
-					//Add in a change to make the chat button orange.
+					chatButton.setStyle("fillColors", [0xFF6600, 0xFF6600]);
 				} else {
 					CHAT.unreadMessages = 0;
+					chatButton.setStyle("fillColors", [0xFFFFFF, 0xCCCCCC]);
 				}
 			}
 			
@@ -454,7 +500,14 @@
 			
 			private function openChatWindow(e:MouseEvent = null):void				
 			{
-				if(CHAT) CHAT.visible ? CHAT.visible = false : CHAT.visible = true;
+				if(CHAT) 
+					if(CHAT.visible)
+						CHAT.visible = false 
+					else
+					{
+						CHAT.visible = true; 
+						chatButton.setStyle("fillColors", [0xFFFFFF, 0xCCCCCC]);
+					}
 			}
 			
 			//Mouse functions		
@@ -481,12 +534,14 @@
 				{
 					collabService.requestMouseControl(collabService.nickname);
 					cursorButton.label = lang("Cancel Control Request");
+					adjustCursorButtonHeight();
 				}
 				else
 				{
 					collabService.relinquishMouseControl(collabService.nickname);
 					collabService.hasControl = false;
 					cursorButton.label = lang("Request Cursor Control");
+					adjustCursorButtonHeight();
 				}
 			}
 			
@@ -497,11 +552,13 @@
 				{
 					collabService.hasControl = true;
 					cursorButton.label = lang("Relinquish Control");
+					adjustCursorButtonHeight();
 				}
 				else if( position > 0 )
 				{
 					collabService.hasControl = false;
-					cursorButton.label = lang("You are in position ") + position + " (Click to cancel)";
+					cursorButton.label = lang("You are in position ") + position;
+					adjustCursorButtonHeight();
 				}
 			}
 			
@@ -512,11 +569,13 @@
 				{
 					collabService.hasControl = true;
 					cursorButton.label = lang("Relinquish Control");
+					adjustCursorButtonHeight();
 				}
 				else if( position > 0 )
 				{
 					collabService.hasControl = false;
-					cursorButton.label = lang("You are in position ") + position + " (Click to cancel)";
+					cursorButton.label = lang("You are in position ") + position;
+					adjustCursorButtonHeight();
 				}
 			}
 			
