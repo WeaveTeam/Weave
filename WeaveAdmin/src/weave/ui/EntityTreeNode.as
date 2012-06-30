@@ -68,10 +68,6 @@ package weave.ui
             AdminInterface.instance.getEntity(object.id, refreshHandler);
             return;
         }
-        public function update(privObj:Object, pubObj:Object):void
-        {
-            
-        }
         public function addToParent(parent_id:int):void
         {
             AdminInterface.instance.addChild(object.id, parent_id, null);
@@ -82,14 +78,17 @@ package weave.ui
             AdminInterface.instance.removeChild(object.id, parent_id, null);
             return;
         }
-        private function commit(diff:Object, handler:Function):void
+        public function commit(diff:Object, handler:Function = null):void
         {
-            AdminInterface.instance.updateEntity(object.id, diff, handler);
-            refresh(null);
+            function commitHandler(o:Object):void
+            {
+                refresh(handler);
+            }
+            AdminInterface.instance.updateEntity(object.id, diff, commitHandler);
         }
         static public function mergeObjects(a:Object, b:Object):Object
         {
-            var result:Object = {}
+            var result:Object = {};
             for each (var obj:Object in [a, b])
                 for (var property:Object in obj)
                     result[property] = obj[property];

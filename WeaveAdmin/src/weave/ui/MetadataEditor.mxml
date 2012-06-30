@@ -26,8 +26,6 @@
     import mx.controls.Alert;
     [Bindable] public var targetItem:EntityTreeNode = null;
     [Bindable] public var isChanged:Boolean = false;
-    public var privDiff:Object; 
-    public var pubDiff:Object;
 
     private var pubWatcher:ChangeWatcher;
     private var privWatcher:ChangeWatcher;
@@ -37,7 +35,7 @@
         pubWatcher = ChangeWatcher.watch(publicMetaGrid, "metadata", metaChanged);
         privWatcher = ChangeWatcher.watch(privateMetaGrid, "metadata", metaChanged);
     }
-    private function setEditors(o:Object):void
+    private function setEditors(o:Object = null):void
     {
         if (targetItem == null)
         {
@@ -46,10 +44,10 @@
         publicMetaGrid.metadata = targetItem.object.publicMetadata;
         privateMetaGrid.metadata = targetItem.object.privateMetadata;
     }
-    private function metaChanged(o:Object):void
+    private function metaChanged(o:Object = null):void
     {
-        pubDiff = EntityTreeNode.diffObjects(publicMetaGrid.metadata, targetItem.object.publicMetadata);
-        privDiff = EntityTreeNode.diffObjects(privateMetaGrid.metadata, targetItem.object.privateMetadata);
+        var pubDiff:Object = EntityTreeNode.diffObjects(publicMetaGrid.metadata, targetItem.object.publicMetadata);
+        var privDiff:Object = EntityTreeNode.diffObjects(privateMetaGrid.metadata, targetItem.object.privateMetadata);
         var prop:String;
         for (prop in pubDiff)
         {
@@ -65,8 +63,20 @@
     }
     private function saveChanges():void
     {
-        /* TODO: Test for success. */
-        isChanged = false;
+        var pubDiff:Object = EntityTreeNode.diffObjects(targetItem.object.publicMetadata, publicMetaGrid.metadata);
+        var privDiff:Object = EntityTreeNode.diffObjects(targetItem.object.privateMetadata, privateMetaGrid.metadata);
+        var fullDiff:Object = EntityTreeNode.mergeObjects(pubDiff, privDiff);
+        printobj(pubDiff);
+        printobj(fullDiff);
+        function validateCommit(o:Object = null):void
+        {
+            metaChanged();
+            if (isChanged)
+                /* Spit out error */ ;
+            else
+                setEditors();
+        }
+        targetItem.commit(fullDiff, validateCommit);
     }
     private static function printobj(o:Object):void
     {

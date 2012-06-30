@@ -2,7 +2,8 @@
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
     width="100%" height="100%">
-    <mx:DataGrid id="grid" editable="true" itemEditEnd="editEndHandler(event)" change="changedItemSelect(event)"
+    <mx:DataGrid id="grid" editable="true" 
+        change="changedItemSelect(event)"
         width="100%" height="100%">
         <mx:columns>
             <mx:DataGridColumn headerText="Property" labelFunction = "labelFunction" editable="false"/>
@@ -26,9 +27,13 @@
     
     import mx.controls.dataGridClasses.DataGridColumn; 
     import mx.events.DataGridEvent;
+    import mx.events.CollectionEvent;
     import mx.events.ListEvent;
     import mx.collections.ListCollectionView;
-
+    private function emitMetaChanged(o:Object = null):void
+    {
+        dispatchEvent(new Event("metaChanged"));
+    }
     private static function labelFunction(item:Object, column:DataGridColumn):String
     {
         /* TODO: Pretty formatting to make it clear that these prefixes aren't part of the name.*/
@@ -68,17 +73,8 @@
         for (var prop:String in srcmeta)
             rows.push({property: prop, value: srcmeta[prop], original: true, deleted: false});
         grid.dataProvider = rows;
+        (grid.dataProvider as ListCollectionView).addEventListener(CollectionEvent.COLLECTION_CHANGE, emitMetaChanged);
         dispatchEvent(new Event("metaChanged"));
-    }
-    public function editEndHandler(event:DataGridEvent):void
-    {
-        var row:Object = grid.dataProvider[event.rowIndex];
-        var newValue:String = grid.itemEditorInstance[grid.columns[event.columnIndex].editorDataField];
-        var oldValue:String = row.value;
-        if (newValue != oldValue)
-        {
-            dispatchEvent(new Event("metaChanged"));
-        }
     }
     public function addProp():void
     {
