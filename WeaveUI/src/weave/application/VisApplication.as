@@ -641,7 +641,8 @@ package weave.application
 				try
 				{
 						_collabBar.removed();
-						PopUpManager.removePopUp(_collabBar);					
+						PopUpManager.removePopUp(_collabBar);		
+						_collabBar = null;
 				} 
 				catch( error:Error )
 				{
