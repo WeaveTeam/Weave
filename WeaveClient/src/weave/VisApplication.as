@@ -567,7 +567,7 @@ package weave
 		}
 
 		/**
-		 * Optional menu bar (bottom of screen) to control the collaboration service and interaction
+		 * Optional menu bar (side of screen) to control the collaboration service and interaction
 		 * between users.
 		 */
 		private var _collabBar:CollaborationSideBar = null;
@@ -577,22 +577,17 @@ package weave
 			if (!_collabBar)
 				_collabBar = new CollaborationSideBar();
 			
-			if( Weave.properties.enableCollaborationBar.value )
-			{
-				if( !_collabBar.parent )
-				{
-					
+			if( Weave.properties.enableCollaborationBar.value )			
 					PopUpManager.addPopUp(_collabBar, this);
-				}
-			} else {
+			 else
+			 {
 				try
 				{
-					if( this == _collabBar.parent ) {
 						_collabBar.removed();
-						PopUpManager.removePopUp(_collabBar);
-					}
-					
-				} catch( error:Error ) {
+						PopUpManager.removePopUp(_collabBar);					
+				} 
+				catch( error:Error )
+				{
 					reportError(error);
 				}
 			}
