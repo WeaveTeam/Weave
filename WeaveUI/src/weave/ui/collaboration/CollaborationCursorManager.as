@@ -145,7 +145,7 @@ package weave.ui.collaboration
 		public function addToQueue(id:String, self:String):Number
 		{
 			if( cursorQueue == null )
-				return -1;
+				cursorQueue = new Array();
 			for( var i:int = 0; i < cursorQueue.length; i++ )
 			{
 				if( cursorQueue[i] == id )
@@ -163,8 +163,9 @@ package weave.ui.collaboration
 			{
 				if( cursorQueue[i] == id )
 				{
-					if( cursorList[id] != null )
-						(cursorList[id] as CollabMouseCursor).alpha = 0;
+					if( id != self )
+						if( cursorList[id] != null )
+							(cursorList[id] as CollabMouseCursor).alpha = 0;
 					cursorQueue.splice(i, 1);
 				}
 			}
