@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,7 @@ import java.util.Map;
 //import junit.framework.Assert;
 
 import weave.config.ISQLConfig;
-import weave.config.ISQLConfig.AttributeColumnInfo;
+import weave.config.ISQLConfig.DataEntity;
 import weave.config.ISQLConfig.PublicMetadata;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
@@ -72,11 +73,13 @@ public class AttributeColumnData
 		params.put(PublicMetadata.NAME, attributeColumnName);
 		if ((year != null) && (year.length() > 0))
 			params.put(PublicMetadata.YEAR, year);
-//		Assert.assertTrue(config != null);
-                AttributeColumnInfo info = new AttributeColumnInfo();
-                info.publicMetadata = params;
-		List<AttributeColumnInfo> infoList = config.findAttributeColumnInfo(info);
-		info = infoList.get(0);
+		Collection<DataEntity> infoList = config.findEntities(params, DataEntity.MAN_TYPE_DATATABLE);
+                DataEntity info = null;
+                for (DataEntity i : infoList)
+                {
+                    info = i;
+                    break;
+                }
 		String connection = info.getConnectionName();
 		String dataWithKeysQuery = info.getSqlQuery();
 		

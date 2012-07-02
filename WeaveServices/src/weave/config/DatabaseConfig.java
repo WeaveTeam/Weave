@@ -383,42 +383,42 @@ public class DatabaseConfig
 		return null;
 	}
 
-	public int addAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
+	public int addDataEntity(DataEntity info) throws RemoteException
 	{
 		throw new RemoteException("Not implemented");
 	}
 
-	public void overwriteAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
+	public void overwriteDataEntity(DataEntity info) throws RemoteException
 	{
 		throw new RemoteException("Not implemented");
 	}
 	
 	// shortcut for calling the Map<String,String> version of this function
 	@SuppressWarnings("unchecked")
-	public List<AttributeColumnInfo> getAttributeColumnInfo(String dataTableName) throws RemoteException
+	public List<DataEntity> getDataEntity(String dataTableName) throws RemoteException
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>(1);
 		metadataQueryParams.put(PublicMetadata.DATATABLE, dataTableName);
-                AttributeColumnInfo info = new AttributeColumnInfo();
+                DataEntity info = new DataEntity();
                 info.publicMetadata = metadataQueryParams;
-		return findAttributeColumnInfo(info);
+		return findDataEntity(info);
 	}
 
-	synchronized public AttributeColumnInfo getAttributeColumnInfo(int _) throws RemoteException
+	synchronized public DataEntity getDataEntity(int _) throws RemoteException
 	{
 		throw new RemoteException("Not implemented");
 	}
-	synchronized public void removeAttributeColumnInfo(int _) throws RemoteException
+	synchronized public void removeDataEntity(int _) throws RemoteException
 	{
 		throw new RemoteException("Not implemented");
 	}
-	synchronized public List<AttributeColumnInfo> findAttributeColumnInfo(AttributeColumnInfo filterinfo) throws RemoteException
+	synchronized public List<DataEntity> findDataEntity(DataEntity filterinfo) throws RemoteException
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>();
 		metadataQueryParams.putAll(filterinfo.privateMetadata);
 		metadataQueryParams.putAll(filterinfo.publicMetadata);
 		
-		List<AttributeColumnInfo> results = new Vector<AttributeColumnInfo>();
+		List<DataEntity> results = new Vector<DataEntity>();
 		try
 		{
 			// get rows matching given parameters
@@ -450,7 +450,7 @@ public class DatabaseConfig
 				privateMetadata.put(PrivateMetadata.SQLQUERY, metadata.remove(PrivateMetadata.SQLQUERY));
 				privateMetadata.put(PrivateMetadata.SQLPARAMS, metadata.remove(PrivateMetadata.SQLPARAMS));
 
-				AttributeColumnInfo info = new AttributeColumnInfo();
+				DataEntity info = new DataEntity();
 				info.privateMetadata = privateMetadata;
 				info.publicMetadata = metadata;
 				
@@ -464,36 +464,4 @@ public class DatabaseConfig
 		return results;
 	}
     /* legacy DatabaseConfig does not have tagging; however, dataTables are the hierarchy we should present as tags */
-    public void addChild(int parent, int child) throws RemoteException
-    {
-        throw new RemoteException("Not implemented");
-    }
-    public void removeChild(int parent, int child) throws RemoteException
-    {
-    	throw new RemoteException("Not implemented");
-    }
-    public int addTag(String tagtitle) throws RemoteException
-    {
-        throw new RemoteException("Not implemented");
-    }
-    public void removeTag(int tag_id) throws RemoteException
-    {
-    	throw new RemoteException("Not implemented");
-    }
-    public Boolean isTag(int tag_id) throws RemoteException
-    {
-        throw new RemoteException("Not implemented");
-    }
-    public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
-    {
-        throw new RemoteException("Not implemented");
-    }
-    public Collection<Integer> getRoots() throws RemoteException
-    {
-        throw new RemoteException("Not implemented");
-    }
-    public int getEntityType(int id) throws RemoteException
-    {
-    	throw new RemoteException("Not implemented");
-    }
 }

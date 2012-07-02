@@ -436,7 +436,7 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 	 * @param info The definition of the attributeColumn entry.  The id property will be ignored.
 	 * @return The id of the new attributeColumn entry.
 	 */
-	public int addAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
+	public int addDataEntity(DataEntity info) throws RemoteException
 	{
 		throw new RemoteException("Not implemented");
 	}
@@ -445,7 +445,7 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 	 * This will overwrite an existing attribute column entry with the same id.
 	 * @param info The id and definition of the attributeColumn entry.
 	 */
-	public void overwriteAttributeColumnInfo(AttributeColumnInfo info) throws RemoteException
+	public void overwriteDataEntity(DataEntity info) throws RemoteException
 	{
 		throw new RemoteException("Not implemented");
 	}
@@ -492,26 +492,26 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 		return null;
 	}
 
-	synchronized public AttributeColumnInfo getAttributeColumnInfo(int _) throws RemoteException
+	synchronized public DataEntity getDataEntity(int _) throws RemoteException
 	{
 		throw new RemoteException("Not implemented");
 	}
-	synchronized public void setAttributeColumnInfo(int _, Map<String, String> privateMetadata, Map<String,String> publicMetadata) throws RemoteException
+	synchronized public void setDataEntity(int _, Map<String, String> privateMetadata, Map<String,String> publicMetadata) throws RemoteException
 	{
 		throw new RemoteException("Not implemented");
 	}
-	synchronized public void removeAttributeColumnInfo(int _) throws RemoteException
+	synchronized public void removeDataEntity(int _) throws RemoteException
 	{
 		throw new RemoteException("Not implemented");
 	}
-	synchronized public List<AttributeColumnInfo> findAttributeColumnInfo(AttributeColumnInfo filterinfo)
+	synchronized public List<DataEntity> findDataEntity(DataEntity filterinfo)
 	{
 		Map<String, String> metadataQueryParams = filterinfo.getPrivateAndPublicMetadata();
 		
 		validateCache();
 
 		NodeList columnNodes = getAttributeColumnNodes(metadataQueryParams);
-		List<AttributeColumnInfo> columnInfoList = new Vector<AttributeColumnInfo>(columnNodes.getLength());
+		List<DataEntity> columnInfoList = new Vector<DataEntity>(columnNodes.getLength());
 		// copy tag info
 		for (int i = 0; i < columnNodes.getLength(); i++)
 		{
@@ -534,7 +534,7 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 			String sqlQuery = columnNodeProperties.getNamedItem("dataWithKeysQuery").getTextContent();
 			String sqlParams = columnNodeProperties.getNamedItem("sqlParams").getTextContent();
 			// get attributeColumn metadata properties
-			AttributeColumnInfo info = new AttributeColumnInfo();
+			DataEntity info = new DataEntity();
 			info.id = i;
 			
 			info.privateMetadata = new HashMap<String,String>();
@@ -655,38 +655,6 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 		public String type;
 		public String name;
 	}
-    public void addChild(int parent, int child) throws RemoteException
-    {
-    	throw new RemoteException("Not implemented");
-    }
-    public void removeChild(int parent, int child) throws RemoteException
-    {
-    	throw new RemoteException("Not implemented");
-    }
-    public int addTag(String tagtitle) throws RemoteException
-    {
-    	throw new RemoteException("Not implemented");
-    }
-    public void removeTag(int tag_id) throws RemoteException
-    {
-    	throw new RemoteException("Not implemented");
-    }
-    public Boolean isTag(int tag_id) throws RemoteException
-    {
-    	throw new RemoteException("Not implemented");
-    }
-    public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
-    {
-    	throw new RemoteException("Not implemented");
-    }
-    public Collection<Integer> getRoots() throws RemoteException
-    {
-    	throw new RemoteException("Not implemented");
-    }
-    public int getEntityType(int id) throws RemoteException
-    {
-    	throw new RemoteException("Not implemented");
-    }
 
 	// </sqlConfig>
 }

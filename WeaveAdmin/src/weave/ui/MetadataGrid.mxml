@@ -84,6 +84,7 @@
             datalist.addItem({property: prop, value: "", original: false, deleted: false});
         else
             UIUtils.componentPulse(newPropName);
+        newPropName.text = null;
         dispatchEvent(new Event("metaChanged"));
     }
     public function delProp():void

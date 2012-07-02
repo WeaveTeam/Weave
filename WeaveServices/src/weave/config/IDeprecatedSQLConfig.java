@@ -23,6 +23,8 @@ import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
+import java.util.Collection;
 
 /**
  * ISQLConfig An interface to retrieve strings from a configuration file. TODO:
@@ -59,7 +61,7 @@ public abstract class IDeprecatedSQLConfig extends ISQLConfig
 
 	static public class GeometryCollectionInfo
 	{
-		public AttributeColumnInfo getAttributeColumnInfo()
+		public DataEntity getDataEntity()
 		{
 			// private metadata
 			Map<String, String> pri = new HashMap<String, String>();
@@ -75,7 +77,7 @@ public abstract class IDeprecatedSQLConfig extends ISQLConfig
 			pub.put(PublicMetadata.PROJECTION, projection);
 			pub.put(PublicMetadata.DATATYPE, DataType.GEOMETRY);
 			
-			AttributeColumnInfo info = new AttributeColumnInfo();
+			DataEntity info = new DataEntity();
 			info.publicMetadata = pub;
 			info.privateMetadata = pri;
 			return info;
@@ -106,4 +108,62 @@ public abstract class IDeprecatedSQLConfig extends ISQLConfig
 		PublicMetadata.NUMBER,
 		PublicMetadata.STRING
 	};
+
+    public void addChild(Integer parent, Integer child) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public void removeChild(Integer parent, Integer child) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
+    public int addTag(String tagtitle) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public Integer addEntity(Integer type_id, Map<String,String> properties) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public void removeTag(int tag_id) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
+    public Boolean isTag(int tag_id) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public Collection<String> getUniqueValues(String property) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public Collection<DataEntity> findEntities(Map<String,String> properties, Integer type_id) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public void updateEntity(Integer id, Map<String,String> properties) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public void removeEntity(Integer id) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    
+    public Collection<DataEntity> getEntities(Collection<Integer> entity_ids) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public Collection<DataEntity> getEntitiesByType(Integer type_id) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public Collection<DataEntity> getChildren(Integer parent_id) throws RemoteException
+    {
+        throw new RemoteException("Not implemented");
+    }
+    public int getEntityType(int id) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
+    }
 }
