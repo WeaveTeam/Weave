@@ -22,6 +22,7 @@ package weave.data
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
@@ -175,11 +176,15 @@ package weave.data
 			//---
 			
 			if (column == null)
-				return NaN;
+				return undefined;
 
 			// the cache becomes invalid when the trigger counter has changed
 			if (uint(cache[validateCache][column]) != column.triggerCounter)
 			{
+				// statistics are undefined while column is busy
+				if (WeaveAPI.SessionManager.linkableObjectIsBusy(column))
+					return undefined;
+				
 				var min:Number = NaN;
 				var max:Number = NaN;
 				var count:Number = 0;

@@ -294,7 +294,7 @@ package weave.core
 					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
 						(args[1] as Function).apply(null, args[2]);
 					
-					//(WeaveAPI.SessionManager as SessionManager).unassignBusyTask(args);
+					//WeaveAPI.SessionManager.unassignBusyTask(args);
 					
 					if (debug_callLater)
 						DebugTimer.end(stackTrace);
@@ -370,7 +370,7 @@ package weave.core
 					(args[1] as Function).apply(null, args[2]);
 				}
 				
-				//(WeaveAPI.SessionManager as SessionManager).unassignBusyTask(args);
+				//WeaveAPI.SessionManager.unassignBusyTask(args);
 				
 				if (debug_callLater)
 					DebugTimer.end(stackTrace);
@@ -387,7 +387,7 @@ package weave.core
 		 */
 		public function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void
 		{
-			//(WeaveAPI.SessionManager as SessionManager).assignBusyTask(arguments, relevantContext as ILinkableObject);
+			//WeaveAPI.SessionManager.assignBusyTask(arguments, relevantContext as ILinkableObject);
 			
 			if (priority >= _priorityCallLaterQueues.length)
 			{
@@ -430,12 +430,12 @@ package weave.core
 			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
 				return;
 			
-			(WeaveAPI.SessionManager as SessionManager).assignBusyTask(iterativeTask, relevantContext as ILinkableObject);
+			WeaveAPI.SessionManager.assignBusyTask(iterativeTask, relevantContext as ILinkableObject);
 			
 			if (priority == WeaveAPI.TASK_PRIORITY_RENDERING && !enableThreadPriorities)
 			{
 				while (iterativeTask() < 1) { }
-				(WeaveAPI.SessionManager as SessionManager).unassignBusyTask(iterativeTask);
+				WeaveAPI.SessionManager.unassignBusyTask(iterativeTask);
 				return;
 			}
 			

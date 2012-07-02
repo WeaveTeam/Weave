@@ -646,9 +646,11 @@ package weave.core
 		private const _dBusyTraversal:Dictionary = new Dictionary(true); // ILinkableObject -> Boolean
 		
 		/**
+		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>
+		 * will return true until all assigned tasks are unassigned using <code>unassignBusyTask(taskToken)</code>.
 		 * @param taskToken A token representing an asynchronous task.
 		 * @param busyObject The object that is busy waiting for the task to complete.
-		 */		
+		 */
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
 			_d2dOwnerTask.set(busyObject, taskToken, true);
@@ -656,6 +658,7 @@ package weave.core
 		}
 		
 		/**
+		 * This will unassign an asynchronous task from all linkable objects it has been previously assigned to.
 		 * @param taskToken A token representing an asynchronous task.
 		 */
 		public function unassignBusyTask(taskToken:Object):void
@@ -666,6 +669,11 @@ package weave.core
 				delete _d2dOwnerTask.dictionary[owner][taskToken];
 		}
 		
+		/**
+		 * This checks if any asynchronous tasks have been assigned to a linkable object or any of its registered descendants.
+		 * @param linkableObject The object to check.
+		 * @return A value of true if any asynchronous tasks have been assigned to the object.
+		 */
 		public function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean
 		{
 			// if the object is assigned a task, it's busy
