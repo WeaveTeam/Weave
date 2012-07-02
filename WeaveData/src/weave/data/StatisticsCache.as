@@ -167,7 +167,7 @@ package weave.data
 				{
 					if (column is wrapperType && getQualifiedClassName(column) == getQualifiedClassName(wrapperType))
 					{
-						column = (column as IColumnWrapper).internalColumn;
+						column = (column as IColumnWrapper).getInternalColumn();
 						foundWrapper = true;
 					}
 				}

@@ -70,7 +70,7 @@ package weave.data.AttributeColumns
 
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			var column:IAttributeColumn = internalColumn;
+			var column:IAttributeColumn = getInternalColumn();
 			var keyFilter:IKeyFilter = filter.getInternalKeyFilter();
 			if (column && keyFilter && keyFilter.containsKey(key))
 				return column.getValueFromKey(key, dataType);

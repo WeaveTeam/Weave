@@ -102,7 +102,7 @@
 			
 			[Bindable]
 			public var selectedColor:uint;
-			private var g1:IndentGroup = new IndentGroup();
+			private const g1:IndentGroup = new IndentGroup();
 			
 			override protected function childrenCreated():void
 			{

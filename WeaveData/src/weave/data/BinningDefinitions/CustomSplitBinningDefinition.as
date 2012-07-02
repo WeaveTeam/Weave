@@ -63,7 +63,7 @@ package weave.data.BinningDefinitions
 			
 			var nonWrapperColumn:IAttributeColumn = column;
 			while (nonWrapperColumn is IColumnWrapper)
-				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).internalColumn;
+				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).getInternalColumn();
 			
 			var i:int;
 			var values:Array = splitValues.value.split(',');

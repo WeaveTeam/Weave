@@ -44,6 +44,7 @@ package weave.utils
 		public static function loadStyleSheet(url:String):void
 		{
 			WeaveAPI.URLRequestUtils.getURL(
+				null,
 				new URLRequest(url),
 				function(event:ResultEvent, token:Object = null):void
 				{

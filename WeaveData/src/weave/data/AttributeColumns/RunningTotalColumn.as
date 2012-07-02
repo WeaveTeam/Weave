@@ -54,12 +54,12 @@ package weave.data.AttributeColumns
 			if (_runningTotalMap == null)
 			{
 				_runningTotalMap = new Dictionary();
-				var keys:Array = internalColumn ? internalColumn.keys : [];
+				var keys:Array = getInternalColumn() ? getInternalColumn().keys : [];
 				var sum:Number = 0;
 				for (var i:int = 0; i < keys.length; i++)
 				{
 					var _key:IQualifiedKey = keys[i];
-					sum += internalColumn.getValueFromKey(_key, Number);
+					sum += getInternalColumn().getValueFromKey(_key, Number);
 					_runningTotalMap[_key] = sum;
 					//trace("RunningTotalColumn "+_key+"("+i+") -> "+sum);
 				}

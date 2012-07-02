@@ -161,7 +161,7 @@ package weave.visualization.plotters
 			// try to find an internal StreamedGeometryColumn
 			var column:IAttributeColumn = geometryColumn;
 			while (!(column is StreamedGeometryColumn) && column is IColumnWrapper)
-				column = (column as IColumnWrapper).internalColumn;
+				column = (column as IColumnWrapper).getInternalColumn();
 			
 			// if the internal geometry column is a streamed column, request the required detail
 			var streamedColumn:StreamedGeometryColumn = column as StreamedGeometryColumn;
@@ -424,7 +424,7 @@ package weave.visualization.plotters
 					// round coordinates for faster & more consistent rendering
 					tempPoint.x = Math.round(tempPoint.x);
 					tempPoint.y = Math.round(tempPoint.y);
-					if (pointDataImageColumn.internalColumn)
+					if (pointDataImageColumn.getInternalColumn())
 					{
 						var bitmapData:BitmapData = pointDataImageColumn.getValueFromKey(key) || _missingImage;
 						var imgWidth:Number = useFixedImageSize.value ? iconSize.value : bitmapData.width;

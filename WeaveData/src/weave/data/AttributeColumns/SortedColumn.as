@@ -78,7 +78,7 @@ package weave.data.AttributeColumns
 			if (_keys.length == 0)
 			{
 				// get the keys from the internal column
-				var keys:Array = internalColumn ? internalColumn.keys : [];
+				var keys:Array = getInternalColumn() ? getInternalColumn().keys : [];
 				// make a copy of the list of keys
 				VectorUtils.copy(keys, _keys);
 				// set sort mode
@@ -104,7 +104,7 @@ package weave.data.AttributeColumns
 			var key1:IQualifiedKey = _sortAscending ? firstKey : secondKey;
 			var key2:IQualifiedKey = _sortAscending ? secondKey : firstKey;
 			
-			var column:IAttributeColumn = internalDynamicColumn.internalColumn;
+			var column:IAttributeColumn = internalDynamicColumn.getInternalColumn();
 			
 			var val1:Number = column ? column.getValueFromKey(key1, Number) : NaN;
 			var val2:Number = column ? column.getValueFromKey(key2, Number) : NaN;

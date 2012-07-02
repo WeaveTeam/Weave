@@ -42,8 +42,8 @@ package weave.utils
 		public const globalSubsetKeyFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter));
 		
 		public function getColorColumn():ColorColumn { return globalColorColumn.internalObject as ColorColumn; }
-		public function getColorBinColumn():BinnedColumn { return getColorColumn().internalColumn as BinnedColumn; }
-		public function getColorDataColumn():FilteredColumn { return getColorBinColumn().internalColumn as FilteredColumn; }
+		public function getColorBinColumn():BinnedColumn { return getColorColumn().getInternalColumn() as BinnedColumn; }
+		public function getColorDataColumn():FilteredColumn { return getColorBinColumn().getInternalColumn() as FilteredColumn; }
 		public function getProbe():IKeySet { return globalProbeKeySet.internalObject as IKeySet; }
 		public function getSelection():IKeySet { return globalSelectionKeySet.internalObject as IKeySet; }
 		public function getSubset():IKeyFilter { return globalSubsetKeyFilter.internalObject as IKeyFilter; }

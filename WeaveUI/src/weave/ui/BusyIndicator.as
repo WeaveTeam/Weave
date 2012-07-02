@@ -25,9 +25,11 @@ package weave.ui
 	import mx.core.UIComponent;
 	
 	import weave.compiler.StandardLib;
-	import weave.primitives.ColorRamp;
 
 	/**
+	 * This is a component that shows a busy animation.
+	 * It will animate automatically when added to the stage.
+	 * It will not animate when the <code>visible</code> property is set to false.
 	 * 
 	 * @author adufilie
 	 */
@@ -52,28 +54,31 @@ package weave.ui
 		public var diameterRatio:Number = 0.25;
 		public var circleRatio:Number = 0.2;
 		public var numCircles:uint = 12;
-		public var pid:int = _pid++;
-		
-		private static var _pid:int = 0;
+		private var prevFrame:int = -1;
 		
 		private function render(e:Event):void
 		{
 			if (!stage || !visible)
 				return;
 			
-			graphics.clear();
+			var frame:Number = (fps * getTimer() / 1000);
+			
+			if (prevFrame == int(frame))
+				return;
+			
+			prevFrame = int(frame);
+			
 			var cx:Number = parent.width / 2;
 			var cy:Number = parent.height / 2;
 			var radius:Number = Math.min(parent.width, parent.height) * diameterRatio / 2;
-			var frame:Number = (fps * getTimer() / 1000);
 			var revolution:Number = frame / numCircles;
 			var colorIndexNorm:Number = revolution % (colorStartList.length - 1) / (colorStartList.length - 1);
-			if (!pid)
-				trace(colorIndexNorm);
 			var colorStart:Number = StandardLib.interpolateColor(colorIndexNorm, colorStartList);
 			var colorEnd:Number = StandardLib.interpolateColor(colorIndexNorm, colorEndList);
 			var step:int = frame % numCircles;
 			var angle:Number = Math.PI * 2 * step / numCircles;
+			
+			graphics.clear();
 			for (var i:int = 0; i < numCircles; i++)
 			{
 				var norm:Number = 1 - i / (numCircles - 1);

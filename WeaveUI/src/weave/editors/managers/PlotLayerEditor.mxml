@@ -573,8 +573,8 @@
 									if (projString != null)
 										projLabel = ' (' + projString + ')';
 									
-									useImagesCheck.selected = (geomPlotter.pointDataImageColumn.internalColumn != null);
-									var adc:AlwaysDefinedColumn = geomPlotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
+									useImagesCheck.selected = (geomPlotter.pointDataImageColumn.getInternalColumn() != null);
+									var adc:AlwaysDefinedColumn = geomPlotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
 									if (adc)
 										imageURL.text = adc.defaultValue.value as String;
 								}
@@ -741,7 +741,7 @@
 						private function handleGeomPlotterImageURLChange():void
 						{
 							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
-							var adc:AlwaysDefinedColumn = plotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
+							var adc:AlwaysDefinedColumn = plotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
 							if (adc)
 								imageURL.text = adc.defaultValue.value as String;
 						}

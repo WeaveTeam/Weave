@@ -118,8 +118,8 @@ package weave.visualization.plotters
 				maxBinSize = Math.max(maxBinSize, keys.length);
 			}
 			
-			var xCol:IAttributeColumn = xBinnedColumn.internalColumn;
-			var yCol:IAttributeColumn = yBinnedColumn.internalColumn;
+			var xCol:IAttributeColumn = xBinnedColumn.getInternalColumn();
+			var yCol:IAttributeColumn = yBinnedColumn.getInternalColumn();
 			var sc:IStatisticsCache = WeaveAPI.StatisticsCache;
 			xBinWidth = (sc.getMax(xCol) - sc.getMin(xCol)) / xBinnedColumn.numberOfBins;
 			yBinWidth = (sc.getMax(yCol) - sc.getMin(yCol)) / yBinnedColumn.numberOfBins;
@@ -135,7 +135,7 @@ package weave.visualization.plotters
 			
 			// hack, only supports default color column
 			var colorCol:ColorColumn = Weave.defaultColorColumn;
-			var binCol:BinnedColumn = colorCol.internalColumn as BinnedColumn;
+			var binCol:BinnedColumn = colorCol.getInternalColumn() as BinnedColumn;
 			var dataCol:IAttributeColumn = binCol ? binCol.internalDynamicColumn : null;
 			var dataMin:Number = WeaveAPI.StatisticsCache.getMin(dataCol);
 			var dataMax:Number = WeaveAPI.StatisticsCache.getMax(dataCol);
@@ -204,7 +204,7 @@ package weave.visualization.plotters
 		 */
 		override public function getBackgroundDataBounds():IBounds2D
 		{
-			if (xBinnedColumn.internalColumn != null && yBinnedColumn.internalColumn != null)
+			if (xBinnedColumn.getInternalColumn() != null && yBinnedColumn.getInternalColumn() != null)
 				return getReusableBounds(-0.5, -0.5, xBinnedColumn.numberOfBins - 0.5, yBinnedColumn.numberOfBins -0.5);
 			return getReusableBounds();
 		}
@@ -215,7 +215,7 @@ package weave.visualization.plotters
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
 			
-			if(xBinnedColumn.internalColumn == null || yBinnedColumn.internalColumn == null)
+			if(xBinnedColumn.getInternalColumn() == null || yBinnedColumn.getInternalColumn() == null)
 				return [getReusableBounds()];
 			
 			var shapeKey:String = keyToCellMap[recordKey];

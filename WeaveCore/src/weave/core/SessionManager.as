@@ -191,7 +191,7 @@ package weave.core
 		 * @param parent A parent that the specified child objects were previously registered with.
 		 * @param child The child object to unregister from the parent.
 		 */
-		internal function unregisterLinkableChild(parent:ILinkableObject, child:ILinkableObject):void
+		public function unregisterLinkableChild(parent:ILinkableObject, child:ILinkableObject):void
 		{
 			if (childToParentDictionaryMap[child])
 				delete childToParentDictionaryMap[child][parent];
@@ -604,7 +604,7 @@ package weave.core
 		private const parentToChildDictionaryMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
 		
 		/**
-		 * This function will return all the descendant objects that implement ILinkableObject and are publicly accessible.
+		 * This function will return all the descendant objects that implement ILinkableObject.
 		 * If the filter parameter is specified, the results will contain only those objects that extend or implement the filter class.
 		 * @param root A root object to get the descendants of.
 		 * @param filter An optional Class definition which will be used to filter the results.
@@ -635,35 +635,9 @@ package weave.core
 			if (--depth <= 0)
 				return;
 			
-			var object:ILinkableObject;
-			var names:Array;
-			var name:String;
-			var i:int;
-			if (root is ILinkableDynamicObject)
+			for (var object:Object in parentToChildDictionaryMap[root])
 			{
-				object = (root as ILinkableDynamicObject).internalObject;
-				internalGetDescendants(output, object, filter, ignoreList, depth);
-			}
-			else if (root is ILinkableHashMap)
-			{
-				names = (root as ILinkableHashMap).getNames();
-				var objects:Array = (root as ILinkableHashMap).getObjects();
-				for (i = 0; i < names.length; i++)
-				{
-					name = names[i] as String;
-					object = objects[i] as ILinkableObject;
-					internalGetDescendants(output, object, filter, ignoreList, depth);
-				}
-			}
-			else
-			{
-				names = getLinkablePropertyNames(root);
-				for (i = 0; i < names.length; i++)
-				{
-					name = names[i] as String;
-					object = root[name] as ILinkableObject;
-					internalGetDescendants(output, object, filter, ignoreList, depth);
-				}
+				internalGetDescendants(output, object as ILinkableObject, filter, ignoreList, depth);
 			}
 		}
 		
@@ -672,16 +646,18 @@ package weave.core
 		private const _dBusyTraversal:Dictionary = new Dictionary(true); // ILinkableObject -> Boolean
 		
 		/**
-		 * 
-		 * @param taskToken
-		 * @param linkableObject
+		 * @param taskToken A token representing an asynchronous task.
+		 * @param busyObject The object that is busy waiting for the task to complete.
 		 */		
-		public function assignBusyTask(taskToken:Object, linkableObject:ILinkableObject):void
+		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
-			_d2dOwnerTask.set(linkableObject, taskToken, true);
-			_d2dTaskOwner.set(taskToken, linkableObject, true);
+			_d2dOwnerTask.set(busyObject, taskToken, true);
+			_d2dTaskOwner.set(taskToken, busyObject, true);
 		}
 		
+		/**
+		 * @param taskToken A token representing an asynchronous task.
+		 */
 		public function unassignBusyTask(taskToken:Object):void
 		{
 			var dOwner:Dictionary = _d2dTaskOwner.dictionary[taskToken];

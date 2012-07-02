@@ -146,7 +146,7 @@ package weave.utils
 		{
 			// try to find an internal IPrimitiveColumn
 			while (column is IColumnWrapper)
-				column = (column as IColumnWrapper).internalColumn;
+				column = (column as IColumnWrapper).getInternalColumn();
 			return column;
 		}
 
@@ -383,14 +383,14 @@ package weave.utils
 			var i:int;
 			for ( i = 0; i < attrCols.length; i++){
 				// to make sure only available attributes are added for export
-				if ((attrCols[i] is  IColumnWrapper) && (attrCols[i] as  IColumnWrapper).internalColumn){
+				if ((attrCols[i] is  IColumnWrapper) && (attrCols[i] as  IColumnWrapper).getInternalColumn()){
 					columnTitles.push(ColumnUtils.getTitle(attrCols[i]));
 					definedAttrCols.push(attrCols[i]);
 				}					
 				if (attrCols[i] is  LinkableHashMap)  {
 					var hashMapColumns:Array = (attrCols[i] as  LinkableHashMap).getObjects();
 					for (var j:int = 0; j < hashMapColumns.length; j++){
-						if ((hashMapColumns[j] as  IColumnWrapper).internalColumn){
+						if ((hashMapColumns[j] as  IColumnWrapper).getInternalColumn()){
 							columnTitles.push(ColumnUtils.getTitle(hashMapColumns[j]));
 							definedAttrCols.push(hashMapColumns[j]);
 						}								

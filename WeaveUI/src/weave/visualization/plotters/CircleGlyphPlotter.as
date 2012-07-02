@@ -110,7 +110,7 @@ package weave.visualization.plotters
 			}
 //			if (hasPrevPoint)
 //				graphics.lineTo(tempPoint.x, tempPoint.y);
-			if (screenRadius.internalColumn != null && isNaN(radius)) // missing screenRadius value
+			if (screenRadius.getInternalColumn() != null && isNaN(radius)) // missing screenRadius value
 			{
 				radius = defaultScreenRadius.value;
 				//draw a square for missing values

@@ -83,7 +83,7 @@ package weave.visualization.plotters
 		{
 			var cc:ColorColumn = internalColorColumn;
 			if (cc)
-				return cc.internalColumn as BinnedColumn
+				return cc.getInternalColumn() as BinnedColumn
 			return null;
 		}
 		/**
@@ -92,7 +92,7 @@ package weave.visualization.plotters
 		 */
 		public function get internalColorColumn():ColorColumn
 		{
-			return fillStyle.color.internalColumn as ColorColumn;
+			return fillStyle.color.getInternalColumn() as ColorColumn;
 		}
 		/**
 		 * This column object will always remain for the life of the plotter.

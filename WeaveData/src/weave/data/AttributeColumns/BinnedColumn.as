@@ -121,7 +121,7 @@ package weave.data.AttributeColumns
 		{
 			_derivedBins.delayCallbacks(); // make sure callbacks don't run until we're done
 			
-			var column:IAttributeColumn = internalDynamicColumn.internalColumn;
+			var column:IAttributeColumn = internalDynamicColumn.getInternalColumn();
 			var def:IBinningDefinition = (binningDefinition.internalObject as IBinningDefinition);
 			// reset cached values
 			_keyToBinIndexMap = new Dictionary();

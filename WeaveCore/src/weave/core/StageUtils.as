@@ -60,7 +60,8 @@ package weave.core
 		[Bindable] public var enableThreadPriorities:Boolean = false;
 		
 		private const frameTimes:Array = [];
-		private var debug_fps:Boolean = false; // set to true to trace the frames per second
+		public var debug_fps:Boolean = false; // set to true to trace the frames per second
+		public var aft:int = 0;
 		public var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
 		public var debug_callLater:Boolean = false; // set this to true to delay async tasks
 		private const _stackTraceMap:Dictionary = new Dictionary(true); // used by callLater to remember stack traces
@@ -258,7 +259,8 @@ package weave.core
 				frameTimes.push(previousFrameElapsedTime);
 				if (frameTimes.length == 24)
 				{
-					trace(Math.round(1000 / StandardLib.mean.apply(null, frameTimes)),'fps; max computation time',maxComputationTimePerFrame);
+					aft = StandardLib.mean.apply(null, frameTimes);
+					trace(Math.round(1000 / aft),'fps; max computation time',maxComputationTimePerFrame);
 					frameTimes.length = 0;
 				}
 			}
@@ -291,6 +293,8 @@ package weave.core
 					// don't call the function if the relevantContext was disposed of.
 					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
 						(args[1] as Function).apply(null, args[2]);
+					
+					//(WeaveAPI.SessionManager as SessionManager).unassignBusyTask(args);
 					
 					if (debug_callLater)
 						DebugTimer.end(stackTrace);
@@ -366,6 +370,8 @@ package weave.core
 					(args[1] as Function).apply(null, args[2]);
 				}
 				
+				//(WeaveAPI.SessionManager as SessionManager).unassignBusyTask(args);
+				
 				if (debug_callLater)
 					DebugTimer.end(stackTrace);
 			}
@@ -381,6 +387,8 @@ package weave.core
 		 */
 		public function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void
 		{
+			//(WeaveAPI.SessionManager as SessionManager).assignBusyTask(arguments, relevantContext as ILinkableObject);
+			
 			if (priority >= _priorityCallLaterQueues.length)
 			{
 				reportError("Invalid priority value: " + priority);

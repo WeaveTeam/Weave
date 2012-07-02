@@ -98,7 +98,7 @@ package weave.visualization.plotters.styles
 				for (var col:* in _typesMap)
 				{
 					var column:AlwaysDefinedColumn = col as AlwaysDefinedColumn;
-					if (column.internalColumn != null)
+					if (column.getInternalColumn() != null)
 						delete _defaultValues[column];
 					else
 						_defaultValues[column] = EquationColumnLib.cast(column.defaultValue.value, _typesMap[column]);

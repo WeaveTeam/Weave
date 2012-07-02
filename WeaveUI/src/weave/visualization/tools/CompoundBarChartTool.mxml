@@ -308,7 +308,7 @@
 			
 			private function handleSortColumnChange():void
 			{
-				if (!_plotter.sortColumn.internalColumn)
+				if (!_plotter.sortColumn.getInternalColumn())
 					return;
 				
 				if (linkHeightAndSortColumns.value)

@@ -85,7 +85,7 @@
 	override protected function getValuesFromColHier(ref:HierarchyColumnReference):Array
 	{
 		var dimensionColumn:ProxyColumn = WeaveAPI.AttributeColumnCache.getColumn(ref) as ProxyColumn;
-		if (dimensionColumn && dimensionColumn.internalColumn)
+		if (dimensionColumn && dimensionColumn.getInternalColumn())
 			addToListOfDims(ref);
 		return SecondaryKeyNumColumn.secondaryKeys;
 	}
