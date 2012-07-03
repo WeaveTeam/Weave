@@ -211,7 +211,7 @@
 			{
 				adjustCursorButtonHeight();
 				cursorButton.enabled = false;
-				this.y = (WeaveAPI.topLevelApplication as DisplayObject).height * .75 - this.height;
+				this.y = (WeaveAPI.topLevelApplication as DisplayObject).height * .25;
 				
 				//Service event listeners.
 				collabService.addEventListener(CollaborationEvent.LOG, handleLogEvent);
@@ -296,6 +296,7 @@
 			private function disconnect(e:CollaborationEvent = null):void
 			{
 				disConButtonPushed = true;
+				CHAT.visible = false;
 				if( collabService.isConnected )
 					collabService.disconnect();
 				//	disconnectionFromRTMPServer();
