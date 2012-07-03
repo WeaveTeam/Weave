@@ -24,26 +24,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 @author adufilie
 -->
 
-<ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+<ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"
 			  backgroundColor="#EFF4BC"
 			  horizontalScrollPolicy="off" verticalScrollPolicy="off"
-			  xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
+			  xmlns:LinkableObjectList="weave.ui.LinkableObjectList*"
 			  title="Disability Options"
 			  sessionPanelCoordsAsPercentages="false"
 			  width="400"
 			  height="400"
 			  >
 	
-	<mx:HDividedBox id="disabilityOptions" width="100%" 
+	<mx:HDividedBox id="disabilityOptions" width="100%"
 					height="100%"
-					paddingBottom="{padding}" 
-					paddingTop="{padding}" 
-					paddingRight="{padding}" 
+					paddingBottom="{padding}"
+					paddingTop="{padding}"
+					paddingRight="{padding}"
 					paddingLeft="{padding}">
 		<mx:TabNavigator borderStyle="inset" height="100%">
 			
 			
-			<mx:VBox label="Basic" 
+			<mx:VBox label="Basic"
 					 width="100%"
 					 height = "100%"
 					 verticalAlign="top"
@@ -52,16 +52,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Label text="HTML Alt Text:"
 						  textAlign="left"/>
 				
-				<mx:TextInput 
+				<mx:TextInput
 					id="altTextInputBox"
 					horizontalCenter="true"
-					toolTip="Text entered here will be used to set the html alt attribute for this instance of Weave when it is embedded in a web page. This input field is restricted to 125 characters. The alt attribute is used by standard screen reading tools to give information about graphics elements for to blind or visually impaired individuals." 
-					width="100%" 
+					toolTip="Text entered here will be used to set the html alt attribute for this instance of Weave when it is embedded in a web page. This input field is restricted to 125 characters. The alt attribute is used by standard screen reading tools to give information about graphics elements for to blind or visually impaired individuals."
+					width="100%"
 					height = "30%"
 					backgroundColor="#EEEEEE"/>
 				
 			</mx:VBox>
-			<mx:VBox label="Advanced" 
+			<mx:VBox label="Advanced"
 					 width="100%"
 					 height = "100%"
 					 verticalAlign="top"
@@ -70,102 +70,233 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Label text="longdesc text"
 						  textAlign="left"/>
 				
-				<mx:TextInput 
+				<mx:TextInput
 					id="longDescTextInputBox"
 					horizontalCenter="true"
-					toolTip="Text entered here will be used to set the html longdesc attribute for this instance of Weave when it is embedded in a web page. This input size is not restricted but it is not recommended that it be any longer than necessary." 
-					width="100%" 
+					toolTip="Text entered here will be used to set the html longdesc attribute for this instance of Weave when it is embedded in a web page. This input size is not restricted but it is not recommended that it be any longer than necessary."
+					width="100%"
 					height = "30%"
 					backgroundColor="#EEEEEE"/>
 				
 				<mx:VBox verticalScrollPolicy="on" id="menuToggleVBox">
 					
-				</mx:VBox> 
+					
+					
+					
+					<mx:Script>
+						<![CDATA[
+							import mx.controls.CheckBox;
+							import mx.controls.TextInput;
+							import mx.events.FlexEvent;
+							
+							import weave.Weave;
+							import weave.api.WeaveAPI;
+							import weave.api.reportError;
+							import weave.ui.controlBars.WeaveMenuBar;
+							import weave.ui.controlBars.WeaveMenuItem;
+							
+							
+							
+							private const padding:int = 5;
+							private var _windowMenu:WeaveMenuItem  = null;
+							private var _weaveMenu:WeaveMenuBar = null;
+							private var cbArray:Array = [];
+							
+							override protected function constructor():void
+							{
+								super.constructor();
+								
+								panelWidth.value = "70%";
+								panelHeight.value = "70%";
+								panelX.value = "15%";
+								panelY.value = "15%";
+							}
+							
+							
+							override protected function childrenCreated():void
+							{
+								super.childrenCreated();
+								
+						//	super.createChildren();
+								
+								//var panels:Array = Weave.root.getObjects(DraggablePanel);
+								var panels:Array = [];
+								panels = getWindowsOnStage();
+								//var panelsOnStage:Array = [];
+								
+								var cb:CheckBox;
+								
+								//    var panel:DraggablePanel = panels[i] as DraggablePanel;
+								
+								//if (menuToggleVBox.numChildren > 0)
+									//return;
+								
+								reportError("ALLAHU EKBER");
+								
+								for each(var panel:DraggablePanel in panels)
+								{
+									
+									cb = new CheckBox();
+									cb.label = WeaveAPI.getRegisteredImplementationDisplayName(panel as Class) || getQualifiedClassName(panel).split(':').pop();
+							//		linkBindableProperty(, cb, 'selected');
+									
+									
+									cbArray.push(cb);
+								}                       
+								
+								
+								//panelsOnStage.push(panel.title);
+								
+								
+								/*for each(var panel:DraggablePanel in panels)
+								{
+								if (!panel.minimized.value)
+								{
+								panelsOnStage.push(panel);
+								//panelsOnStage.push(panel.title);                   
+								cb = new CheckBox();
+								//cb.label = panelsOnStage.toString();   
+								cb.label = WeaveAPI.getRegisteredImplementationDisplayName(panel as Class) || getQualifiedClassName(panel).split(':').pop();
+								linkBindableProperty(panels[panel], cb, 'selected');
+								cbArray.push(cb);
+								//linkBindableProperty(panelsOnStage[panel], cb, 'selected');
+								}                       
+								
+								//panelsOnStage.push(panel.title);
+								}*/
+								
+								cbArray.sortOn('label');
+								for each (cb in cbArray)
+								{
+									menuToggleVBox.addChild(cb);
+								
+								
+									cb.addEventListener(MouseEvent.CLICK, clickHandler);
+								
+								//	longDescTextInputBox.text=cb.label; 
+								
+								}
+								
+								
+								// We have to find the event type that is invoked when a draggable panel is close for real time
+								addEventListener(FlexEvent.SHOW, panelRemovedEventHandler);
+								
+								//addEventListener(FlexEvent.ENTER_FRAME, panelRemovedEventHandler);
+								//menuToggleVBox.addEventListener(FlexEvent.REMOVE, panelRemovedEventHandler);
+								
+								
+							}
+							
+							protected function panelRemovedEventHandler(event:Event):void {
+								
+								  var Name : String 					= WeaveAPI.getRegisteredImplementationDisplayName(event.currentTarget as Class) || getQualifiedClassName(event.currentTarget).split(':').pop(); 
+								  var cb:CheckBox  						= null;
+								  
+								  var panels:Array = [];
+								  reportError("Enter Panel Removed Event Handler");
+								  
+								 
+								  cbArray = [];
+								  menuToggleVBox.removeAllChildren();
+								  
+								  
+								  panels = getWindowsOnStage();
+								  
+								  
+								  
+								  for each(var panel:DraggablePanel in panels)
+								  {
+									  
+									  cb = new CheckBox();
+									  cb.label = WeaveAPI.getRegisteredImplementationDisplayName(panel as Class) || getQualifiedClassName(panel).split(':').pop();
+									  //		linkBindableProperty(, cb, 'selected');
+									  
+									  
+									  cbArray.push(cb);
+									  
+								  }              
+								  
+								  cbArray.sortOn('label');
+								  for each (cb in cbArray)
+								  {
+									  menuToggleVBox.addChild(cb);
+									  
+									  
+									  cb.addEventListener(MouseEvent.CLICK, clickHandler);
+									  
+									  //	longDescTextInputBox.text=cb.label; 
+									  
+								  }
+								  
+								  
+								/*  
+								  reportError("OSMAAN");
+								  for(var i:int = 0; i < cbArray.length ; i++)
+								  {
+									  if(cbArray[i].label == Name)
+										  cbArray.splice(i,1);
+									  
+								  }
+								  
+								  
+								  menuToggleVBox.removeAllChildren();
+								  
+								  cbArray.sortOn('label');
+								  for each (cb in cbArray)
+								  {
+									  menuToggleVBox.addChild(cb);
+									  
+									  
+									  cb.addEventListener(MouseEvent.CLICK, clickHandler);
+									  
+									  //	longDescTextInputBox.text=cb.label; 
+									  
+								  }
+								  
+								  */
+								  
+								  
+							}
+							
+							protected function clickHandler(event:MouseEvent):void {
+								longDescTextInputBox.enabled = true; //event.target.selected;
+								longDescTextInputBox.text = event.currentTarget.label;
+								
+								
+							}
+							
+							
+							
+							
+							private function getWindowsOnStage(): Array
+							{
+								var panels:Array = Weave.root.getObjects(DraggablePanel);
+								var panelsOnStage:Array = [];
+								
+								
+								for each (var panel:DraggablePanel in panels)
+								{
+									if (!panel.minimized.value)
+										panelsOnStage.push(panel);
+									//panelsOnStage.push(panel.title);
+								}
+								
+								return panelsOnStage;
+							}
+							
+							
+							
+						]]>
+					</mx:Script>
+					
+					
+				</mx:VBox>
+				
 				
 			</mx:VBox>
+			
+			
 		</mx:TabNavigator>
 	</mx:HDividedBox>
-	
-	<mx:Script>
-		<![CDATA[
-			import mx.controls.CheckBox;
-			import mx.controls.TextInput;
-			
-			import weave.Weave;
-			import weave.api.WeaveAPI;
-			import weave.api.linkBindableProperty;
-			
-			private const padding:int = 5;
-			
-			override protected function constructor():void
-			{
-				super.constructor();
-				
-				panelWidth.value = "70%";
-				panelHeight.value = "70%";
-				panelX.value = "15%";
-				panelY.value = "15%";
-			}
-			
-			
-			override protected function childrenCreated():void
-			{
-				super.childrenCreated();
-				
-				
-				var panels:Array = Weave.root.getObjects(DraggablePanel);
-				var panelsOnStage:Array = [];
-				var cbArray:Array = [];
-				var cb:CheckBox;
-				
-				for each (var panel:DraggablePanel in panels)
-				{
-					if (!panel.minimized.value) {
-						//panelsOnStage.push(panel.title);
-						
-						cb = new CheckBox();
-						//cb.label = panelsOnStage.toString();	
-						cb.label = WeaveAPI.getRegisteredImplementationDisplayName(panel as Class) || getQualifiedClassName(panel).split(':').pop();
-						linkBindableProperty(panels[panel], cb, 'selected');
-						cbArray.push(cb);
-						
-						//panelsOnStage.push(panel.title);
-					}
-					
-					
-					cbArray.sortOn('label');
-					for each (cb in cbArray)
-					menuToggleVBox.addChild(cb);}
-				
-			}
-			
-			
-			
-			
-			/*	private function getWindowsOnStage(): Array
-			{
-			var panels:Array = Weave.root.getObjects(DraggablePanel);
-			var panelsOnStage:Array = [];
-			
-			
-			for each (var panel:DraggablePanel in panels)
-			{
-			if (!panel.minimized.value) 
-			panelsOnStage.push(panel);
-			//panelsOnStage.push(panel.title);
-			}
-			
-			return panelsOnStage;
-			}*/
-			
-			
-			
-			
-			
-			
-			
-			
-		]]>
-	</mx:Script>
 	
 </ControlPanel>
