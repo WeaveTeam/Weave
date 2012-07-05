@@ -422,9 +422,10 @@ package weave.core
 		 *           return index / array.length;  // this will return 1.0 on the last iteration.
 		 *       }
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
+		 * @param finalCallback A function that should be called after the task is completed.
 		 * @see weave.api.WeaveAPI
 		 */
-		public function startTask(relevantContext:Object, iterativeTask:Function, priority:int):void
+		public function startTask(relevantContext:Object, iterativeTask:Function, priority:int, finalCallback:Function = null):void
 		{
 			// do nothing if task already active
 			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
@@ -432,12 +433,17 @@ package weave.core
 			
 			WeaveAPI.SessionManager.assignBusyTask(iterativeTask, relevantContext as ILinkableObject);
 			
+			// begin temporary hack
 			if (priority == WeaveAPI.TASK_PRIORITY_RENDERING && !enableThreadPriorities)
 			{
 				while (iterativeTask() < 1) { }
 				WeaveAPI.SessionManager.unassignBusyTask(iterativeTask);
+				// run final callback after task completes
+				if (finalCallback != null)
+					finalCallback();
 				return;
 			}
+			// end temporary hack
 			
 			if (priority <= 0)
 			{
@@ -447,13 +453,13 @@ package weave.core
 			
 			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
 			
-			_iterateTask(relevantContext, iterativeTask, priority);
+			_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
 		}
 		
 		/**
 		 * @private
 		 */
-		private function _iterateTask(context:Object, task:Function, priority:int):void
+		private function _iterateTask(context:Object, task:Function, priority:int, finalCallback:Function):void
 		{
 			// remove the task if the context was disposed of
 			if (WeaveAPI.SessionManager.objectWasDisposed(context))
@@ -477,6 +483,9 @@ package weave.core
 				{
 					// task is done, so remove the task
 					WeaveAPI.ProgressIndicator.removeTask(task);
+					// run final callback after task completes
+					if (finalCallback != null)
+						finalCallback();
 					return;
 				}
 				if (debug_delayTasks)
