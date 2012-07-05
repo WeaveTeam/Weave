@@ -1,0 +1,82 @@
+<mx:Tree xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns:ui="weave.ui.*"
+    xmlns="weave.ui.*"
+    itemOpening="onExpand(event)" creationComplete="handleCreated()" 
+    change="onChange(event)"
+    openDuration="0">
+<mx:Script>
+<![CDATA[
+import weave.services.AdminInterface;
+import weave.services.beans.AttributeColumnInfo;
+import weave.services.WeaveAdminService;
+import weave.ui.EntityTreeNode;
+
+import mx.collections.ArrayCollection;
+import mx.events.ListEvent;
+import mx.events.TreeEvent;
+import mx.events.PropertyChangeEvent;
+import mx.rpc.events.ResultEvent;
+import mx.binding.utils.ChangeWatcher;
+import mx.utils.ObjectUtil;
+
+public var entityType:int;
+private var connWatcher:ChangeWatcher;
+[Bindable] public var selectedType:int;
+public function onExpand(event:TreeEvent):void
+{
+    if (!event.opening) return; /* If we're closing, don't do anything. */
+    event.preventDefault();
+    var item:EntityTreeNode = event.item as EntityTreeNode;
+    item.populate(onPopulated);
+    function onPopulated(etn:EntityTreeNode):void
+    {
+        var tree:Tree = event.target as Tree;
+        tree.expandItem(event.item, true, false);
+    }
+}
+public function onChange(event:ListEvent):void
+{
+    var etn:EntityTreeNode = selectedItem as EntityTreeNode;
+    if (etn == null) selectedType = -1;
+    else selectedType = etn.object.entity_type;
+}
+private function filterByType(item:Object):Boolean
+{
+    var etn:EntityTreeNode = item as EntityTreeNode;
+    return (etn.object.entity_type == entityType || etn.object.entity_type == AttributeColumnInfo.COLUMN); 
+}
+public function handleCreated():void
+{
+    connWatcher = ChangeWatcher.watch(AdminInterface.instance, "userHasAuthenticated", connectionReady);
+}
+private function connectionReady(event:PropertyChangeEvent):void
+{
+    if (event.newValue == true)
+        refresh();
+}
+private function yell(str:String):void
+{
+    WeaveAdminService.messageDisplay(null, str, false);
+}
+public function refresh(o:Object = null)
+{
+    AdminInterface.instance.getEntityChildren(-1, populateRoot);
+}
+private function populateRoot(event:Object):void
+{
+    var objects:Array = event.result as Array || [];
+    var srcArray:Array = [];
+    var view:ArrayCollection = new ArrayCollection();
+    for each (var o:Object in objects)
+    {
+        var aci:AttributeColumnInfo = new AttributeColumnInfo(o);
+        var etn:EntityTreeNode = new EntityTreeNode(aci);
+        srcArray.push(etn);
+    }
+    view.filterFunction = filterByType;
+    view.source = srcArray;
+    dataProvider = view;
+}
+]]>
+</mx:Script>
+</mx:Tree>

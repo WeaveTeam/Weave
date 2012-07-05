@@ -276,12 +276,9 @@
 				query.addAsyncResponder(handleImportCSV, handleFault);
 				function handleImportCSV(event:ResultEvent, token:Object = null):void
 				{
-                                        Alert.show("I should close after this.");
-                                        parentCancel();
-//                                        cancelButton.dispatchEvent(MouseEvent.CLICK);
-/*					selectedChild = dublinCorePage;
+					selectedChild = dublinCorePage;
 					commitDublinCoreElements();
-					controlBarEnabled = true; */
+					controlBarEnabled = true; 
 				}
 				function handleFault(event:FaultEvent, token:Object = null):void
 				{
@@ -289,17 +286,7 @@
 				}
 			}
 			
-            private function parentCancel():void
-            {
-                var uiElement:Object;
-                var topLevel:WizardPanel;
-                while (describeType(uiElement) == describeType(this))
-                {
-                    uiElement = uiElement.parent;
-                }
-                topLevel = uiElement as WizardPanel;
-                topLevel.cancelButton.dispatchEvent(new MouseEvent(MouseEvent.CLICK));
-            }
+            
 			private function commitDublinCoreElements():void
 			{
 				var elements:Object = new Object();

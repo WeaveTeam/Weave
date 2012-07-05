@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml"
+                xmlns:ui="weave.ui.*"
+                xmlns:aci="weave.services.beans.*"
+                xmlns="weave.ui.*"
+                label="Hierarchy Editor">
+    <mx:VBox height="100%" width="40%">
+        <mx:Label text="Tables"/>
+        <ui:EntityTree id="tableTree" entityType="{AttributeColumnInfo.TABLE}"
+            width="100%" height="100%"/>
+        <mx:HBox width="100%">
+            <mx:Button label="Import Table..." click="importTable()"/>
+            <mx:Button label="Delete Table" click="deleteTable()" enabled="{tableTree.selectedType == AttributeColumnInfo.TABLE}"/>
+        </mx:HBox>
+    </mx:VBox>
+    <mx:VBox height="100%" width="60%">
+        <mx:Label text="Tags"/>
+        <ui:EntityTree id="tagTree" entityType="{AttributeColumnInfo.TAG}"
+            width="100%" height="100%"/>
+        <mx:HBox>
+            <ui:TextInputWithPrompt id="tagNameInput" prompt="New tag name" width="100%"/>
+            <mx:Button label="Add Tag" click="addTag(tagNameInput.text)"/>
+            <mx:Button label="Remove" click="remove()" enabled="{tagTree.selectedType != -1}"/>
+        </mx:HBox>
+    </mx:VBox>
+<mx:Script>
+<![CDATA[
+    import weave.services.beans.AttributeColumnInfo;
+    import weave.services.AdminInterface;
+    import weave.core.UIUtils;
+
+    import mx.events.PropertyChangeEvent;
+    import mx.binding.utils.ChangeWatcher;
+
+    [Bindable] public var selectedItem:EntityTreeNode;
+    public function importTable():void
+    {
+        /* Pop up table import wizard */
+    }
+    public function deleteTable():void
+    {
+        /* Pop up confirmation, then delete table. */ 
+    }
+    public function addTag(name:String):void
+    {
+        if (!name)
+        {
+            UIUtils.componentPulse(tagNameInput);
+            return;
+        }
+        AdminInterface.instance.addTag({title: name}, tagTree.refresh);
+    }
+    public function selectionsChanged(event:PropertyChangeEvent)
+    {
+        
+    }
+    public function remove():void
+    {
+        /* These behaviours kinda suck, just using these til someone comes up with something better. */
+        var item:EntityTreeNode = tagTree.selectedItem as EntityTreeNode;
+        var entity_type = item.object.entity_type;
+        if (entity_type == AttributeColumnInfo.TAG)
+        {
+            /* Remove tag from parent tag if necessary; remove entirely if it has no parent. */
+            /* Warn before totally removing a tag. */
+             
+        }
+        else if (entity_type == AttributeColumnInfo.COLUMN)
+        {
+            /* Remove column from current parent. */ 
+        }
+    }
+]]>
+</mx:Script>
+</mx:HDividedBox>
