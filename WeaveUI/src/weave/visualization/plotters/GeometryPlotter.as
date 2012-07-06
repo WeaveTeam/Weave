@@ -289,24 +289,6 @@ package weave.visualization.plotters
 			task.recIndex = 0;
 			task.minImportance = getDataAreaPerPixel(dataBounds, screenBounds) * pixellation.value;
 			
-			// find nested StreamedGeometryColumn objects
-			var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(geometryColumn, StreamedGeometryColumn);
-			// request the required detail
-			for each (var streamedColumn:StreamedGeometryColumn in descendants)
-			{
-				var requestedDataBounds:IBounds2D = dataBounds;
-				var requestedMinImportance:Number = task.minImportance;
-				if (requestedDataBounds.isUndefined())// if data bounds is empty
-				{
-					// use the collective bounds from the geometry column and re-calculate the min importance
-					requestedDataBounds = streamedColumn.collectiveBounds;
-					requestedMinImportance = getDataAreaPerPixel(requestedDataBounds, screenBounds);
-				}
-				// only request more detail if requestedDataBounds is defined
-				if (!requestedDataBounds.isUndefined())
-					streamedColumn.requestGeometryDetail(requestedDataBounds, requestedMinImportance);
-			}
-			
 			WeaveAPI.StageUtils.startTask(this, task.iterate, WeaveAPI.TASK_PRIORITY_RENDERING);
 		}
 		
