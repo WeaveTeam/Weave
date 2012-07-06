@@ -631,12 +631,12 @@ package weave.application
 		
 		private function toggleCollaborationSideBar():void
 		{
-			if (!_collabBar)
+			if (!_collabBar && Weave.properties.enableCollaborationBar.value )
 				_collabBar = new CollaborationSideBar();
 			
 			if( Weave.properties.enableCollaborationBar.value )			
 					PopUpManager.addPopUp(_collabBar, this);
-			 else
+			 else if( _collabBar != null )
 			 {
 				try
 				{
