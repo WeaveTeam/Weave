@@ -402,6 +402,28 @@ package weave.core
 		}
 		
 		/**
+		 * This will generate an iterative task function that is the combination of a list of tasks to be completed in order.
+		 * @param iterativeTasks An Array of iterative task functions.
+		 * @return A single iterative task function that invokes the other tasks to completion in order.
+		 * @see #startTask
+		 */
+		public static function generateCompoundIterativeTask(iterativeTasks:Array):Function
+		{
+			var iTask:int = 0;
+			return function():Number
+			{
+				if (iTask >= iterativeTasks.length)
+					return 1;
+				var iterate:Function = iterativeTasks[iTask] as Function;
+				var progress:Number = iterate();
+				var totalProgress:Number = (iTask + progress) / iterativeTasks.length;
+				if (progress == 1)
+					iTask++;
+				return totalProgress;
+			}
+		}
+		
+		/**
 		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
 		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed of, the task will no longer be iterated.
 		 * @param iterativeTask A function that performs a single iteration of the asynchronous task.

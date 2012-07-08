@@ -87,12 +87,8 @@ package weave.data.AttributeColumns
 			return _keyToNumericDataMapping[key] !== undefined;
 		}
 		
-
 		public function setRecords(keys:Vector.<IQualifiedKey>, numericData:Vector.<Number>):void
 		{
-			var index:int;
-			var key:Object;
-
 			if (keys.length != numericData.length)
 			{
 				reportError("Array lengths differ");
@@ -101,7 +97,10 @@ package weave.data.AttributeColumns
 			
 			// clear previous data mapping
 			_keyToNumericDataMapping = new Dictionary();
+			_keyToStringDataMapping = new Dictionary();
+			_uniqueKeys.length = 0;
 
+			numberToStringFunction = StandardLib.formatNumber;
 			// compile the string format function from the metadata
 			var stringFormat:String = getMetadata(AttributeColumnMetadata.STRING);
 			if (stringFormat)
@@ -115,28 +114,56 @@ package weave.data.AttributeColumns
 					reportError(e);
 				}
 			}
-
+			
+			_i = 0;
+			_keys = keys;
+			_numericData = numericData;
+			
+			WeaveAPI.StageUtils.startTask(this, _iterate, WeaveAPI.TASK_PRIORITY_PARSING, _asyncComplete);
+		}
+		
+		private var _i:int;
+		private var _keys:Vector.<IQualifiedKey>;
+		private var _numericData:Vector.<Number>;
+		
+		private function _iterate():Number
+		{
+			if (_i >= _keys.length)
+				return 1;
+			
 			// save a mapping from keys to data
-			for (index = keys.length - 1; index >= 0; index--)
+			var key:IQualifiedKey = _keys[_i] as IQualifiedKey;
+			var number:Number = _numericData[_i] as Number; // fast and safe because numericData is Vector.<Number>
+			if (!isNaN(number))
 			{
-				key = keys[index] as IQualifiedKey;
-				var number:Number = numericData[index] as Number; // fast and safe because numericData is Vector.<Number>
-				if (!isNaN(number))
+				if (_keyToNumericDataMapping[key] === undefined)
 				{
+					_uniqueKeys.push(key);
 					_keyToNumericDataMapping[key] = number;
 					_keyToStringDataMapping[key] = StandardLib.asString(numberToStringFunction(number));
 				}
+				else
+				{
+					var fmt:String = 'Record dropped due to duplicate key ({0}).  Attribute column: {1}';
+					var str:String = StringUtil.substitute(fmt, key.localName, _metadata.toXMLString());
+					reportError(str);
+				}
 			}
+			
+			// prepare for next iteration
+			_i++;
+			
+			return _i / _keys.length;
+		}
 
-			// save list of unique keys
-			index = 0;
-			for (key in _keyToNumericDataMapping)
-				_uniqueKeys[index++] = key;
-			_uniqueKeys.length = index; // trim to new size
+		private function _asyncComplete():void
+		{
+			_keys = null;
+			_numericData = null;
 			
 			triggerCallbacks();
 		}
-
+		
 		private static const compiler:Compiler = new Compiler();
 		private var numberToStringFunction:Function = StandardLib.formatNumber;
 		
