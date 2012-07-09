@@ -143,9 +143,10 @@ package weave
 		}
 		
 		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
-		private static function loadWeaveFontsSWF():void
+		private function loadWeaveFontsSWF():void
 		{
 			WeaveAPI.URLRequestUtils.getURL(
+				null,
 				new URLRequest('WeaveFonts.swf'),
 				function(event:ResultEvent, token:Object = null):void
 				{

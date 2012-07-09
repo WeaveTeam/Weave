@@ -303,12 +303,12 @@ package weave.visualization.plotters
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{						
 			var graphics:Graphics = tempShape.graphics;
-			var radius:Number = (screenRadius.internalColumn) ? keyNormedRadiusMap[recordKey] : NaN;
+			var radius:Number = (screenRadius.getInternalColumn()) ? keyNormedRadiusMap[recordKey] : NaN;
 			
 			// Get coordinates of record and add jitter (if specified)
 			getXYcoordinates(recordKey);
 
-			if(screenRadius.internalColumn != null)
+			if(screenRadius.getInternalColumn() != null)
 			{
 				if(radius <= Infinity) radius = 2 + (radius *(10-2));
 				if(isNaN(radius))
@@ -384,8 +384,8 @@ package weave.visualization.plotters
 		private function sortKeys(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{			
 			// sort descending (high radius values drawn first)
-			if( screenRadius.internalColumn )
-			{				
+			if (screenRadius.getInternalColumn())
+			{
 				// compare size
 				var a:Number = keyRadiusMap[key1];
 				var b:Number = keyRadiusMap[key2];
@@ -394,7 +394,7 @@ package weave.visualization.plotters
 				else if( isNaN(b) || (a > b) ) return 1;
 			}
 			// size equal.. compare color (if global colorColumn is used)
-			if(fillStyle.color.internalColumn)
+			if (fillStyle.color.getInternalColumn())
 			{
 				a = keyColorMap[key1];
 				b = keyColorMap[key2];

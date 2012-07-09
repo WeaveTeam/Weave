@@ -115,10 +115,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				visualization.additionalProbeColumns = [];
 				if (includeToolAttributesInProbe.value)
 				{
-					if (plotter.xBinnedColumn.internalColumn && plotter.yBinnedColumn.internalColumn)
+					if (plotter.xBinnedColumn.getInternalColumn() && plotter.yBinnedColumn.getInternalColumn())
 					{
-						visualization.additionalProbeColumns.push(plotter.xBinnedColumn.internalColumn);
-						visualization.additionalProbeColumns.push(plotter.xBinnedColumn.internalColumn);
+						visualization.additionalProbeColumns.push(plotter.xBinnedColumn.getInternalColumn());
+						visualization.additionalProbeColumns.push(plotter.xBinnedColumn.getInternalColumn());
 					}
 				}
 			}

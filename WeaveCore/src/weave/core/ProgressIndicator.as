@@ -22,10 +22,8 @@ package weave.core
 	import flash.utils.Dictionary;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.getCallbackCollection;
-	import weave.utils.Dictionary2D;
 
 	/**
 	 * This is an implementation of IProgressIndicator.
@@ -85,7 +83,7 @@ package weave.core
 			if (_taskToProgressMap[taskToken] === undefined)
 				return;
 
-			(WeaveAPI.SessionManager as SessionManager).unassignBusyTask(taskToken);
+			WeaveAPI.SessionManager.unassignBusyTask(taskToken);
 
 			var stackTrace:String = _taskToStackTraceMap[taskToken]; // check this when debugging
 			

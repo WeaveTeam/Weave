@@ -63,6 +63,7 @@ package weave
 	import weave.compiler.StandardLib;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
+	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
@@ -255,7 +256,7 @@ package weave
 				// load the session state file
 				var fileName:String = getFlashVarConfigFileName() || DEFAULT_CONFIG_FILE_NAME;
 				var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
-				WeaveAPI.URLRequestUtils.getURL(new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
+				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
 			}
 		}
 		private function handleConfigFileDownloaded(event:ResultEvent = null, token:Object = null):void
@@ -403,18 +404,27 @@ package weave
 			_selectionIndicatorText.text = lang("{0} Records Selected", selectionKeySet.keys.length.toString());
 			try
 			{
-				if (selectionKeySet.keys.length == 0 || !Weave.properties.showSelectedRecordsText.value)
+				var show:Boolean = Weave.properties.showSelectedRecordsText.value && selectionKeySet.keys.length > 0;
+				if ((WeaveAPI.StageUtils as StageUtils).debug_fps)
 				{
-					if (visDesktop == _selectionIndicatorText.parent)
-						visDesktop.removeChild(_selectionIndicatorText);
+					show = true;
+					_selectionIndicatorText.text = (WeaveAPI.StageUtils as StageUtils).aft + ' average frame time';
 				}
-				else
+				if (show)
 				{
 					if (visDesktop != _selectionIndicatorText.parent)
 						visDesktop.addChild(_selectionIndicatorText);
 				}
+				else
+				{
+					if (visDesktop == _selectionIndicatorText.parent)
+						visDesktop.removeChild(_selectionIndicatorText);
+				}
 			}
-			catch (e:Error) { }
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 		
 		private var historySlider:UIComponent = null;
@@ -467,6 +477,9 @@ package weave
 		
 		private function updateWorkspaceSize(..._):void
 		{
+			if ((WeaveAPI.StageUtils as StageUtils).debug_fps)
+				handleSelectionChange();
+			
 			if (!this.parent)
 				return;
 			

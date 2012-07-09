@@ -27,6 +27,7 @@ package weave.visualization.layers
 	import mx.utils.NameUtil;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IQualifiedKey;
@@ -46,6 +47,7 @@ package weave.visualization.layers
 	import weave.core.LinkableNumber;
 	import weave.core.SessionManager;
 	import weave.core.StageUtils;
+	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.primitives.Bounds2D;
 	import weave.utils.DebugUtils;
@@ -307,11 +309,36 @@ package weave.visualization.layers
 					if (!isOverlay.value)
 						plotter.drawBackground(_dataBounds, _screenBounds, _plotBitmap.bitmapData);
 					
+					requestGeometryDetail();
+					
 					var keys:Array = getSelectedKeys() || []; // use empty Array if keys are null
 					plotter.drawPlot(keys, _dataBounds, _screenBounds, _plotBitmap.bitmapData);
 				}
 			}
 			//trace(name,'end updateDisplayList', _dataBounds);
+		}
+		
+		private function requestGeometryDetail():void
+		{
+			var minImportance:Number = _dataBounds.getArea() / _screenBounds.getArea();
+			
+			// find nested StreamedGeometryColumn objects
+			var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(this, StreamedGeometryColumn);
+			// request the required detail
+			for each (var streamedColumn:StreamedGeometryColumn in descendants)
+			{
+				var requestedDataBounds:IBounds2D = _dataBounds;
+				var requestedMinImportance:Number = minImportance;
+				if (requestedDataBounds.isUndefined())// if data bounds is empty
+				{
+					// use the collective bounds from the geometry column and re-calculate the min importance
+					requestedDataBounds = streamedColumn.collectiveBounds;
+					requestedMinImportance = requestedDataBounds.getArea() / _screenBounds.getArea();
+				}
+				// only request more detail if requestedDataBounds is defined
+				if (!requestedDataBounds.isUndefined())
+					streamedColumn.requestGeometryDetail(requestedDataBounds, requestedMinImportance);
+			}
 		}
 	}
 }

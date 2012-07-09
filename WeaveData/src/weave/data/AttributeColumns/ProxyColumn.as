@@ -19,11 +19,15 @@
 
 package weave.data.AttributeColumns
 {
+	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.registerDisposableChild;
+	import weave.api.registerLinkableChild;
+	import weave.core.SessionManager;
 	import weave.utils.DebugUtils;
-	
+
 	/**
 	 * ProxyColumn
 	 * This class is a proxy (a wrapper) for another attribute column.
@@ -106,11 +110,11 @@ package weave.data.AttributeColumns
 		 * This is the IAttributeColumn object contained in this ProxyColumn.
 		 */
 		private var _internalColumn:IAttributeColumn = null;
-		public function get internalColumn():IAttributeColumn
+		public function getInternalColumn():IAttributeColumn
 		{
 			return _internalColumn;
 		}
-		public function set internalColumn(newColumn:IAttributeColumn):void
+		public function setInternalColumn(newColumn:IAttributeColumn):void
 		{
 			if (newColumn == this)
 			{
@@ -123,14 +127,14 @@ package weave.data.AttributeColumns
 
 			// clean up ties to previous column
 			if (_internalColumn != null)
-				_internalColumn.removeCallback(triggerCallbacks);
+				(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _internalColumn);
 
 			// save pointer to new column
 			_internalColumn = newColumn;
 			
 			// initialize for new column
 			if (_internalColumn != null)
-				_internalColumn.addImmediateCallback(this, triggerCallbacks, false, true); // parent-child relationship
+				registerLinkableChild(this, _internalColumn);
 
 			triggerCallbacks();
 		}
@@ -158,12 +162,12 @@ package weave.data.AttributeColumns
 		override public function dispose():void
 		{
 			super.dispose();
-			internalColumn = null; // this will remove the callback that was added to the internal column
+			setInternalColumn(null); // this will remove the callback that was added to the internal column
 		}
 
 		override public function toString():String
 		{
-			return proxyID + '( ' + (internalColumn ? internalColumn : super.toString()) + ' )';
+			return proxyID + '( ' + (getInternalColumn() ? getInternalColumn() : super.toString()) + ' )';
 		}
 		
 		/**
@@ -171,6 +175,6 @@ package weave.data.AttributeColumns
 		 * This object can be used as an alternative to a null
 		 * return value for a function returning a ProxyColumn.
 		 */
-		public static const undefinedColumn:ProxyColumn = new ProxyColumn(<attribute name="Undefined"/>);
+		public static const undefinedColumn:ProxyColumn = registerDisposableChild(ProxyColumn, new ProxyColumn(<attribute name="Undefined"/>));
 	}
 }

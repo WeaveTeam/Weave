@@ -89,7 +89,7 @@ package weave.data.AttributeColumns
 			}
 			else
 			{
-				var column:IAttributeColumn = internalDynamicColumn.internalColumn;
+				var column:IAttributeColumn = internalDynamicColumn.getInternalColumn();
 				var dataMin:Number = WeaveAPI.StatisticsCache.getMin(column);
 				var dataMax:Number = WeaveAPI.StatisticsCache.getMax(column);
 				var value:Number = column ? column.getValueFromKey(key, Number) : NaN;

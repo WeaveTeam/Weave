@@ -159,9 +159,9 @@ package weave.visualization.plotters
 			}					
 			
 			// check for missing columns
-			if (!(xData.internalColumn && yData.internalColumn && groupBy.internalColumn))
+			if (!(xData.getInternalColumn() && yData.getInternalColumn() && groupBy.getInternalColumn()))
 			{
-				if (groupBy.internalColumn)
+				if (groupBy.getInternalColumn())
 					columns.removeAllObjects();
 				return;
 			}

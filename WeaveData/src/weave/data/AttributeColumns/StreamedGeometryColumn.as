@@ -38,7 +38,6 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableString;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.beans.GeometryStreamMetadata;
-	import weave.utils.ColumnUtils;
 	import weave.utils.GeometryStreamDecoder;
 	
 	/**

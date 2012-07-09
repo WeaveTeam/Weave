@@ -427,7 +427,7 @@ package weave.data.DataSources
 					(newColumn as StringColumn).setRecords(keysVector, VectorUtils.copyXMLListToVector(dataList, new Vector.<String>()));
 				}
 				// save pointer to new column inside the matching proxy column
-				proxyColumn.internalColumn = newColumn;
+				proxyColumn.setInternalColumn(newColumn);
 			}
 			catch (e:Error)
 			{

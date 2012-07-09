@@ -75,7 +75,7 @@ package weave.visualization.plotters
 		 */
 		public function getInternalColorColumn():ColorColumn
 		{
-			return dynamicColorColumn.internalColumn as ColorColumn;
+			return dynamicColorColumn.getInternalColumn() as ColorColumn;
 		}
 		
 		/**
@@ -127,7 +127,7 @@ package weave.visualization.plotters
 			if (!internalColorColumn)
 				return;
 			
-			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
+			var binnedColumn:BinnedColumn = internalColorColumn.getInternalColumn() as BinnedColumn;
 			if (binnedColumn == null)
 			{
 				numBins = 0;
@@ -182,7 +182,7 @@ package weave.visualization.plotters
 			var internalColorColumn:ColorColumn = getInternalColorColumn();
 			if (internalColorColumn == null)
 				return; // draw nothing
-			if (internalColorColumn.internalColumn is BinnedColumn)
+			if (internalColorColumn.getInternalColumn() is BinnedColumn)
 				drawBinnedPlot(recordKeys, dataBounds, screenBounds, destination);
 			else
 				drawContinuousPlot(recordKeys, dataBounds, screenBounds, destination);
@@ -199,7 +199,7 @@ package weave.visualization.plotters
 			if (!internalColorColumn)
 				return;
 			
-			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
+			var binnedColumn:BinnedColumn = internalColorColumn.getInternalColumn() as BinnedColumn;
 			if (binnedColumn == null)
 				return;
 			
@@ -272,7 +272,7 @@ package weave.visualization.plotters
 			if (!internalColorColumn)
 				return [ getReusableBounds() ];
 			
-			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
+			var binnedColumn:BinnedColumn = internalColorColumn.getInternalColumn() as BinnedColumn;
 			if (binnedColumn)
 			{
 				var index:Number = binnedColumn.getValueFromKey(recordKey, Number);

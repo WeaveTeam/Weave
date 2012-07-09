@@ -21,6 +21,7 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinningDefinition;
@@ -44,10 +45,7 @@ package weave.data.AttributeColumns
 		{
 			binningDefinition.requestLocalObject(SimpleBinningDefinition, false);
 
-			addImmediateCallback(this, invalidateBins);
-			// when derived bins change, invalidate them
-			// this is to prevent changes to the derivedBins from affecting the internal code.
-			_derivedBins.addImmediateCallback(this, handleDerivedBinsChange);
+			addImmediateCallback(this, handleChange);
 		}
 		
 		/**
@@ -86,7 +84,7 @@ package weave.data.AttributeColumns
 			return _derivedBins;
 		}
 		
-		private const _derivedBins:BinClassifierCollection = newDisposableChild(this, BinClassifierCollection); // returned by public getter
+		private const _derivedBins:BinClassifierCollection = newLinkableChild(this, BinClassifierCollection); // returned by public getter
 		private var _binNames:Array = null; // maps a bin index to a bin name
 		private var _keyToBinIndexMap:Dictionary = null; // maps a record key to a bin index
 		private var _binnedKeysArray:Array = null; // maps a bin index to a list of keys in that bin
@@ -100,17 +98,19 @@ package weave.data.AttributeColumns
 		private var _validateBinsCompleted:Boolean = false;
 		
 		/**
-		 * This function sets the dirty flag to true to invalidate the bins.
+		 * This function updates the _dirty flag
 		 */		
-		private function invalidateBins():void
+		private function handleChange():void
 		{
-			_dirty = true;
-		}
-		
-		private function handleDerivedBinsChange():void
-		{
-			if (!_validateBinsCompleted)
+			if (_validateBinsCompleted)
+			{
+				_validateBinsCompleted = false;
+				_dirty = false;
+			}
+			else
+			{
 				_dirty = true;
+			}
 		}
 		
 		/**
@@ -119,47 +119,62 @@ package weave.data.AttributeColumns
 		 */
 		private function validateBins():void
 		{
+			_dirty = false;
 			_derivedBins.delayCallbacks(); // make sure callbacks don't run until we're done
 			
-			var column:IAttributeColumn = internalDynamicColumn.internalColumn;
-			var def:IBinningDefinition = (binningDefinition.internalObject as IBinningDefinition);
+			_column = internalDynamicColumn.getInternalColumn();
+			_def = (binningDefinition.internalObject as IBinningDefinition);
 			// reset cached values
 			_keyToBinIndexMap = new Dictionary();
 			_binnedKeysArray = [];
 			_binnedKeysMap = {};
 			_largestBinSize = 0;
 			_derivedBins.removeAllObjects();
-			if (def != null && column != null)
-				def.getBinClassifiersForColumn(column, _derivedBins);
+			if (_def != null && _column != null)
+				_def.getBinClassifiersForColumn(_column, _derivedBins);
 			// save bin names for faster lookup
 			_binNames = _derivedBins.getNames();
-			if (_binNames.length > 0)
+			var bins:Array = _derivedBins.getObjects();
+			var i:int;
+			// create empty key arrays
+			for (i = 0; i < _binNames.length; i++)
+				_binnedKeysMap[_binNames[i]] = _binnedKeysArray[i] = []; // same Array pointer
+			// fill all mappings
+			_keys = keys;
+			_i = 0;
+			WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_BUILDING, _asyncComplete);
+		}
+		
+		private var _column:IAttributeColumn;
+		private var _def:IBinningDefinition;
+		private var _i:int;
+		private var _keys:Array;
+		private function _asyncIterate():Number
+		{
+			var progress:Number = 1;
+			if (_i < _keys.length)
 			{
-				var bins:Array = _derivedBins.getObjects();
-				var i:int;
-				// create empty key arrays
-				for (i = 0; i < _binNames.length; i++)
-					_binnedKeysMap[_binNames[i]] = _binnedKeysArray[i] = []; // same Array pointer
-				// fill all mappings
-				for (i = 0; i < keys.length; i++)
+				var key:IQualifiedKey = keys[_i];
+				// hack: assuming bin classifiers are NumberClassifiers except for CategoryBinningDefinition
+				var dataType:Class = _def is CategoryBinningDefinition ? String : Number;
+				var value:* = _column.getValueFromKey(key, dataType);
+				var binIndex:Number = _derivedBins.getBinIndexFromDataValue(value);
+				if (!isNaN(binIndex))
 				{
-					var key:IQualifiedKey = keys[i];
-					// hack: assuming bin classifiers are NumberClassifiers except for CategoryBinningDefinition
-					var dataType:Class = def is CategoryBinningDefinition ? String : Number;
-					var value:* = column.getValueFromKey(key, dataType);
-					var binIndex:Number = _derivedBins.getBinIndexFromDataValue(value);
-					if (isNaN(binIndex))
-						continue;
 					_keyToBinIndexMap[key] = binIndex;
-					(_binnedKeysMap[_binNames[binIndex]] as Array).push(key);
+					var array:Array = _binnedKeysArray[binIndex] as Array;
+					if (array.push(key) > _largestBinSize)
+						_largestBinSize = array.length;
 				}
-				for each (var bin:Array in _binnedKeysArray)
-					_largestBinSize = Math.max(_largestBinSize, bin.length);
+				progress = _i++ / _keys.length;
 			}
-			_validateBinsCompleted = true; // this prevents invalidateBins() from setting dirty to true			
-			_dirty = false;
-			_derivedBins.resumeCallbacks(); // allow callbacks to run now
-			_validateBinsCompleted = false;
+			return progress;
+		}
+		
+		private function _asyncComplete():void
+		{
+			_validateBinsCompleted = true; // tells handleChange() that the bins are now valid
+			_derivedBins.resumeCallbacks(true); // allow callbacks to run now
 		}
 
 		/**

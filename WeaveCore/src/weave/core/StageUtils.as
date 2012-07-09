@@ -60,7 +60,8 @@ package weave.core
 		[Bindable] public var enableThreadPriorities:Boolean = false;
 		
 		private const frameTimes:Array = [];
-		private var debug_fps:Boolean = false; // set to true to trace the frames per second
+		public var debug_fps:Boolean = false; // set to true to trace the frames per second
+		public var aft:int = 0;
 		public var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
 		public var debug_callLater:Boolean = false; // set this to true to delay async tasks
 		private const _stackTraceMap:Dictionary = new Dictionary(true); // used by callLater to remember stack traces
@@ -258,7 +259,8 @@ package weave.core
 				frameTimes.push(previousFrameElapsedTime);
 				if (frameTimes.length == 24)
 				{
-					trace(Math.round(1000 / StandardLib.mean.apply(null, frameTimes)),'fps; max computation time',maxComputationTimePerFrame);
+					aft = StandardLib.mean.apply(null, frameTimes);
+					trace(Math.round(1000 / aft),'fps; max computation time',maxComputationTimePerFrame);
 					frameTimes.length = 0;
 				}
 			}
@@ -291,6 +293,8 @@ package weave.core
 					// don't call the function if the relevantContext was disposed of.
 					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
 						(args[1] as Function).apply(null, args[2]);
+					
+					//WeaveAPI.SessionManager.unassignBusyTask(args);
 					
 					if (debug_callLater)
 						DebugTimer.end(stackTrace);
@@ -366,6 +370,8 @@ package weave.core
 					(args[1] as Function).apply(null, args[2]);
 				}
 				
+				//WeaveAPI.SessionManager.unassignBusyTask(args);
+				
 				if (debug_callLater)
 					DebugTimer.end(stackTrace);
 			}
@@ -381,6 +387,8 @@ package weave.core
 		 */
 		public function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void
 		{
+			//WeaveAPI.SessionManager.assignBusyTask(arguments, relevantContext as ILinkableObject);
+			
 			if (priority >= _priorityCallLaterQueues.length)
 			{
 				reportError("Invalid priority value: " + priority);
@@ -391,6 +399,28 @@ package weave.core
 			
 			if (CallbackCollection.debug)
 				_stackTraceMap[arguments] = new Error("This is the stack trace from when callLater() was called.").getStackTrace();
+		}
+		
+		/**
+		 * This will generate an iterative task function that is the combination of a list of tasks to be completed in order.
+		 * @param iterativeTasks An Array of iterative task functions.
+		 * @return A single iterative task function that invokes the other tasks to completion in order.
+		 * @see #startTask
+		 */
+		public static function generateCompoundIterativeTask(iterativeTasks:Array):Function
+		{
+			var iTask:int = 0;
+			return function():Number
+			{
+				if (iTask >= iterativeTasks.length)
+					return 1;
+				var iterate:Function = iterativeTasks[iTask] as Function;
+				var progress:Number = iterate();
+				var totalProgress:Number = (iTask + progress) / iterativeTasks.length;
+				if (progress == 1)
+					iTask++;
+				return totalProgress;
+			}
 		}
 		
 		/**
@@ -414,22 +444,28 @@ package weave.core
 		 *           return index / array.length;  // this will return 1.0 on the last iteration.
 		 *       }
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
+		 * @param finalCallback A function that should be called after the task is completed.
 		 * @see weave.api.WeaveAPI
 		 */
-		public function startTask(relevantContext:Object, iterativeTask:Function, priority:int):void
+		public function startTask(relevantContext:Object, iterativeTask:Function, priority:int, finalCallback:Function = null):void
 		{
 			// do nothing if task already active
 			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
 				return;
 			
-			(WeaveAPI.SessionManager as SessionManager).assignBusyTask(iterativeTask, relevantContext as ILinkableObject);
+			WeaveAPI.SessionManager.assignBusyTask(iterativeTask, relevantContext as ILinkableObject);
 			
+			// begin temporary hack
 			if (priority == WeaveAPI.TASK_PRIORITY_RENDERING && !enableThreadPriorities)
 			{
 				while (iterativeTask() < 1) { }
-				(WeaveAPI.SessionManager as SessionManager).unassignBusyTask(iterativeTask);
+				WeaveAPI.SessionManager.unassignBusyTask(iterativeTask);
+				// run final callback after task completes
+				if (finalCallback != null)
+					finalCallback();
 				return;
 			}
+			// end temporary hack
 			
 			if (priority <= 0)
 			{
@@ -439,13 +475,13 @@ package weave.core
 			
 			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
 			
-			_iterateTask(relevantContext, iterativeTask, priority);
+			_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
 		}
 		
 		/**
 		 * @private
 		 */
-		private function _iterateTask(context:Object, task:Function, priority:int):void
+		private function _iterateTask(context:Object, task:Function, priority:int, finalCallback:Function):void
 		{
 			// remove the task if the context was disposed of
 			if (WeaveAPI.SessionManager.objectWasDisposed(context))
@@ -469,6 +505,9 @@ package weave.core
 				{
 					// task is done, so remove the task
 					WeaveAPI.ProgressIndicator.removeTask(task);
+					// run final callback after task completes
+					if (finalCallback != null)
+						finalCallback();
 					return;
 				}
 				if (debug_delayTasks)

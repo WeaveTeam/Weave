@@ -22,6 +22,7 @@ package weave.services
 	import mx.rpc.AsyncToken;
 	
 	import weave.api.data.IQualifiedKey;
+	import weave.api.registerDisposableChild;
 	import weave.api.services.IWeaveDataService;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.utils.HierarchyUtils;
@@ -36,6 +37,7 @@ package weave.services
 		public function WeaveDataServlet(url:String)
 		{
 			servlet = new AMF3Servlet(url);
+			registerDisposableChild(this, servlet);
 		}
 		protected var servlet:AMF3Servlet;
 
@@ -98,7 +100,7 @@ package weave.services
 		
 		public function createTileService(geometryCollectionName:String):IWeaveGeometryTileService
 		{
-			return new WeaveGeometryTileServlet(this, geometryCollectionName);
+			return registerDisposableChild(this, new WeaveGeometryTileServlet(this, geometryCollectionName));
 		}
 
 		public function createReport(name:String, keys:Array):AsyncToken

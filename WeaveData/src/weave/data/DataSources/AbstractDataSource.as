@@ -354,7 +354,7 @@ package weave.data.DataSources
 		protected function handleUnsupportedColumnReference(columnReference:IColumnReference, proxyColumn:ProxyColumn):void
 		{
 			reportError(this + " Unsupported column reference type: " + getQualifiedClassName(columnReference));
-			proxyColumn.internalColumn = ProxyColumn.undefinedColumn;
+			proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
 			return;
 		}
 		
@@ -379,7 +379,7 @@ package weave.data.DataSources
 			for (proxyColumn in _proxyColumnToReferenceMap)
 			{
 				// clear the data and allow callbacks to run.
-				(proxyColumn as ProxyColumn).internalColumn = ProxyColumn.undefinedColumn;
+				(proxyColumn as ProxyColumn).setInternalColumn(ProxyColumn.undefinedColumn);
 				(proxyColumn as ProxyColumn).resumeCallbacks(true);
 			}
 			// clean up pointers to columns

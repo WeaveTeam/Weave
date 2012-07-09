@@ -117,7 +117,7 @@ package weave.visualization.plotters
 				return "Invalid tick mark value: "+value.toString();
 			
 			// if the labelColumn doesn't have any data, use default label
-			if (labelColumn.internalColumn == null)
+			if (labelColumn.getInternalColumn() == null)
 				return null;
 			
 			// otherwise return the value from the labelColumn
@@ -169,7 +169,7 @@ package weave.visualization.plotters
 		{
 			var columns:Array = heightColumns.getObjects();
 			
-			if (sortColumn.internalColumn == null && columns.length > 0)
+			if (sortColumn.getInternalColumn() == null && columns.length > 0)
 				sortColumn.requestLocalObjectCopy(columns[0]);
 		}
 		
@@ -200,7 +200,7 @@ package weave.visualization.plotters
 						break;
 					}
 					if (column is IColumnWrapper)
-						column = (column as IColumnWrapper).internalColumn;
+						column = (column as IColumnWrapper).getInternalColumn();
 				}
 				_sortByColor = ColumnUtils.generateSortFunction([column]);
 			}
@@ -244,7 +244,7 @@ package weave.visualization.plotters
 			var count:int = 0;
 			var numHeightColumns:int = _heightColumns.length;
 			var shouldDrawValueLabel:Boolean = showValueLabels.value;
-			var shouldDrawLabel:Boolean = showLabels.value && (numHeightColumns >= 1) && (labelColumn.internalColumn || _groupingMode == GROUP);
+			var shouldDrawLabel:Boolean = showLabels.value && (numHeightColumns >= 1) && (labelColumn.getInternalColumn() || _groupingMode == GROUP);
 			
 			for (var iRecord:int = 0; iRecord < recordKeys.length; iRecord++)
 			{

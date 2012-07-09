@@ -163,7 +163,7 @@
 			
 			private function handleGeomPlotterImageURLChange():void
 			{
-				var adc:AlwaysDefinedColumn = _plotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
+				var adc:AlwaysDefinedColumn = _plotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
 				if (adc)
 					imageURL.text = adc.defaultValue.value as String;
 			}
@@ -187,8 +187,8 @@
 			
 			private function handleImageColumn():void
 			{
-				useImagesCheck.selected = (_plotter.pointDataImageColumn.internalColumn != null);
-				var adc:AlwaysDefinedColumn = _plotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
+				useImagesCheck.selected = (_plotter.pointDataImageColumn.getInternalColumn() != null);
+				var adc:AlwaysDefinedColumn = _plotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
 				if (adc)
 					imageURL.text = adc.defaultValue.value as String;
 			}

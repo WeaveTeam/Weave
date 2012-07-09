@@ -129,7 +129,7 @@
 				if (attribute.length() > 0)
 				{
 					// if the internal column is not a ReferencedColumn, initialize it now
-					var refCol:ReferencedColumn = dynamicColumn.internalColumn as ReferencedColumn;
+					var refCol:ReferencedColumn = dynamicColumn.getInternalColumn() as ReferencedColumn;
 					if (refCol == null)
 						refCol = dynamicColumn.requestLocalObject(ReferencedColumn, false);
 					// if the internal column reference is not a HierarchyColumnReference, initialize it now, then return it
@@ -199,10 +199,10 @@
 			private function handleDynamicColumnChange():void
 			{
 				var ref:HierarchyColumnReference = null;
-				if (dynamicColumn.internalColumn is ReferencedColumn)
-					ref = (dynamicColumn.internalColumn as ReferencedColumn).internalColumnReference as HierarchyColumnReference;
-				if (dynamicColumn.internalColumn is EquationColumn)
-					ref = (dynamicColumn.internalColumn as EquationColumn).variables.getObject(DATA_VARIABLE) as HierarchyColumnReference;
+				if (dynamicColumn.getInternalColumn() is ReferencedColumn)
+					ref = (dynamicColumn.getInternalColumn() as ReferencedColumn).internalColumnReference as HierarchyColumnReference;
+				if (dynamicColumn.getInternalColumn() is EquationColumn)
+					ref = (dynamicColumn.getInternalColumn() as EquationColumn).variables.getObject(DATA_VARIABLE) as HierarchyColumnReference;
 				if (ref && ref.hierarchyPath.value)
 				{
 					// convert the column reference path to a path in the multiDataSource.
@@ -278,7 +278,7 @@
 				//trace("handleAttributeDrag",event.target, event.currentTarget);
 				
 				var itemsArray:Array = new Array();
-				itemsArray.push(dynamicColumn.internalColumn);
+				itemsArray.push(dynamicColumn.getInternalColumn());
 				
 				var ds:DragSource = new DragSource();
 				ds.addData(itemsArray,"items");
@@ -313,7 +313,7 @@
 					
 					// if newly linked object doesn't have an internal column,
 					// keep the currently selected path except for the leaf node
-					if (_currentTarget.internalColumn == null)
+					if (_currentTarget.getInternalColumn() == null)
 					{
 						var path:LinkableXML = hierarchySelector.selectedPath;
 						if (!path.value)

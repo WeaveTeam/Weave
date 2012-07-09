@@ -45,9 +45,9 @@ package weave.data.AttributeColumns
 		/**
 		 * This is for the IColumnWrapper interface.
 		 */
-		public function get internalColumn():IAttributeColumn
+		public function getInternalColumn():IAttributeColumn
 		{
-			return internalDynamicColumn.internalColumn;
+			return internalDynamicColumn.getInternalColumn();
 		}
 		
 		/**

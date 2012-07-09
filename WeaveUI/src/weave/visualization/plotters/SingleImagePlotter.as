@@ -101,7 +101,7 @@ package weave.visualization.plotters
 			if(imageBitmapData == null)
 			{
 				if(imageURL.value)
-					WeaveAPI.URLRequestUtils.getContent(new URLRequest(imageURL.value), handleImageRequest, handleImageFaultRequest, imageURL.value);
+					WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(imageURL.value), handleImageRequest, handleImageFaultRequest, imageURL.value);
 				else
 				{
 					var image:BitmapAsset = new defaultImageSource() as BitmapAsset;

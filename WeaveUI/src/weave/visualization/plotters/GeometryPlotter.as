@@ -161,7 +161,7 @@ package weave.visualization.plotters
 			// try to find an internal StreamedGeometryColumn
 			var column:IAttributeColumn = geometryColumn;
 			while (!(column is StreamedGeometryColumn) && column is IColumnWrapper)
-				column = (column as IColumnWrapper).internalColumn;
+				column = (column as IColumnWrapper).getInternalColumn();
 			
 			// if the internal geometry column is a streamed column, request the required detail
 			var streamedColumn:StreamedGeometryColumn = column as StreamedGeometryColumn;
@@ -289,24 +289,6 @@ package weave.visualization.plotters
 			task.recIndex = 0;
 			task.minImportance = getDataAreaPerPixel(dataBounds, screenBounds) * pixellation.value;
 			
-			// find nested StreamedGeometryColumn objects
-			var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(geometryColumn, StreamedGeometryColumn);
-			// request the required detail
-			for each (var streamedColumn:StreamedGeometryColumn in descendants)
-			{
-				var requestedDataBounds:IBounds2D = dataBounds;
-				var requestedMinImportance:Number = task.minImportance;
-				if (requestedDataBounds.isUndefined())// if data bounds is empty
-				{
-					// use the collective bounds from the geometry column and re-calculate the min importance
-					requestedDataBounds = streamedColumn.collectiveBounds;
-					requestedMinImportance = getDataAreaPerPixel(requestedDataBounds, screenBounds);
-				}
-				// only request more detail if requestedDataBounds is defined
-				if (!requestedDataBounds.isUndefined())
-					streamedColumn.requestGeometryDetail(requestedDataBounds, requestedMinImportance);
-			}
-			
 			WeaveAPI.StageUtils.startTask(this, task.iterate, WeaveAPI.TASK_PRIORITY_RENDERING);
 		}
 		
@@ -424,7 +406,7 @@ package weave.visualization.plotters
 					// round coordinates for faster & more consistent rendering
 					tempPoint.x = Math.round(tempPoint.x);
 					tempPoint.y = Math.round(tempPoint.y);
-					if (pointDataImageColumn.internalColumn)
+					if (pointDataImageColumn.getInternalColumn())
 					{
 						var bitmapData:BitmapData = pointDataImageColumn.getValueFromKey(key) || _missingImage;
 						var imgWidth:Number = useFixedImageSize.value ? iconSize.value : bitmapData.width;

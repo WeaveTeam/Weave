@@ -78,7 +78,7 @@
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [(_plotter.binnedData.internalColumn as FilteredColumn).internalDynamicColumn];
+				return [(_plotter.binnedData.getInternalColumn() as FilteredColumn).internalDynamicColumn];
 			}
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
 			
@@ -87,8 +87,8 @@
 				if (includeToolAttributesInProbe.value)
 				{
 					visualization.additionalProbeColumns = [];
-					if (_plotter.binnedData.internalColumn)
-						visualization.additionalProbeColumns.push(_plotter.binnedData.internalColumn);
+					if (_plotter.binnedData.getInternalColumn())
+						visualization.additionalProbeColumns.push(_plotter.binnedData.getInternalColumn());
 					if (visualization.additionalProbeColumns.length == 0)
 						visualization.additionalProbeColumns = null;
 				}
@@ -112,7 +112,7 @@
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox label="Binning">
-			<ui:DynamicColumnComponent visTool="{this}" label="data" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = (_plotter.binnedData.internalColumn as FilteredColumn).internalDynamicColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="data" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = (_plotter.binnedData.getInternalColumn() as FilteredColumn).internalDynamicColumn"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
 		<mx:VBox id="attributesPanel" label="Labeling">
