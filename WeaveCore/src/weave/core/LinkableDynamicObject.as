@@ -263,7 +263,7 @@ package weave.core
 			delayCallbacks();
 			
 			// handle both class definitions and class names
-			var newClassDef:Class = newClassNameOrDef as Class || ClassUtils.getClassDefinition(String(newClassNameOrDef));
+			var newClassDef:Class = newClassNameOrDef as Class || ClassUtils.getClassDefinition(newClassNameOrDef as String);
 			
 			if (newGlobalName == null) // local object
 			{

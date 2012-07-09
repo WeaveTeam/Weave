@@ -1418,7 +1418,8 @@ package weave.core
 					
 					//note: there is no error checking here for typedState
 					objectName = typedState[DynamicState.OBJECT_NAME];
-					oldLookup[objectName] = typedState;
+					// use '' instead of null to avoid "null"
+					oldLookup[objectName || ''] = typedState;
 				}
 				if (oldState.length != newState.length)
 					changeDetected = true;
@@ -1441,8 +1442,8 @@ package weave.core
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					className = typedState[DynamicState.CLASS_NAME];
 					sessionState = typedState[DynamicState.SESSION_STATE];
-					var oldTypedState:Object = oldLookup[objectName];
-					delete oldLookup[objectName]; // remove it from the lookup because it's already been handled
+					var oldTypedState:Object = oldLookup[objectName || ''];
+					delete oldLookup[objectName || '']; // remove it from the lookup because it's already been handled
 					
 					// If the object specified in newState does not exist in oldState, we don't need to do anything further.
 					// If the class is the same as before, then we can save a diff instead of the entire session state.
