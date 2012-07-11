@@ -19,6 +19,7 @@
 
 package weave.data.AttributeColumns
 {
+	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
@@ -197,9 +198,10 @@ package weave.data.AttributeColumns
 			}
 			else
 			{
-				var fmt:String = 'Record dropped due to duplicate key ({0}).  Attribute column: {1}';
+				var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}).  Attribute column: {1}';
 				var str:String = StringUtil.substitute(fmt, key.localName, _metadata.toXMLString());
-				reportError(str);
+				if (Capabilities.isDebugger)
+					reportError(str);
 			}
 			// keep track of unique strings
 			if (_stringToIndexMap[value] === undefined)
