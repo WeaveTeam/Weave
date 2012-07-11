@@ -81,8 +81,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:VBox verticalScrollPolicy="on" id="menuToggleVBox">
 					
 					
-					
-					
 					<mx:Script>
 						<![CDATA[
 							import mx.controls.CheckBox;
@@ -91,9 +89,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							
 							import weave.Weave;
 							import weave.api.WeaveAPI;
+							import weave.api.registerLinkableChild;
 							import weave.api.reportError;
+							import weave.core.LinkableString;
 							import weave.ui.controlBars.WeaveMenuBar;
 							import weave.ui.controlBars.WeaveMenuItem;
+							
 							
 							
 							
@@ -101,6 +102,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							private var _windowMenu:WeaveMenuItem  = null;
 							private var _weaveMenu:WeaveMenuBar = null;
 							private var cbArray:Array = [];
+							public const htmlText:LinkableString  = registerLinkableChild(this, new LinkableString(''), handleLinkableHtmlText, true);
 							
 							override protected function constructor():void
 							{
@@ -117,7 +119,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							{
 								super.childrenCreated();
 								
-						//	super.createChildren();
+								//    super.createChildren();
 								
 								//var panels:Array = Weave.root.getObjects(DraggablePanel);
 								var panels:Array = [];
@@ -129,52 +131,32 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								//    var panel:DraggablePanel = panels[i] as DraggablePanel;
 								
 								//if (menuToggleVBox.numChildren > 0)
-									//return;
+								//return;
 								
-								reportError("ALLAHU EKBER");
+								reportError("children create");
 								
 								for each(var panel:DraggablePanel in panels)
 								{
 									
 									cb = new CheckBox();
-									cb.label = WeaveAPI.getRegisteredImplementationDisplayName(panel as Class) || getQualifiedClassName(panel).split(':').pop();
-							//		linkBindableProperty(, cb, 'selected');
+									//        linkBindableProperty(, cb, 'selected');
+									cb.label = panel.title;
+									cb.toolTip = "Checking this box appends" + cb.label + "destination to the above text";
 									
 									
 									cbArray.push(cb);
-								}                       
-								
-								
-								//panelsOnStage.push(panel.title);
-								
-								
-								/*for each(var panel:DraggablePanel in panels)
-								{
-								if (!panel.minimized.value)
-								{
-								panelsOnStage.push(panel);
-								//panelsOnStage.push(panel.title);                   
-								cb = new CheckBox();
-								//cb.label = panelsOnStage.toString();   
-								cb.label = WeaveAPI.getRegisteredImplementationDisplayName(panel as Class) || getQualifiedClassName(panel).split(':').pop();
-								linkBindableProperty(panels[panel], cb, 'selected');
-								cbArray.push(cb);
-								//linkBindableProperty(panelsOnStage[panel], cb, 'selected');
-								}                       
-								
-								//panelsOnStage.push(panel.title);
-								}*/
+								}                      
 								
 								cbArray.sortOn('label');
 								for each (cb in cbArray)
 								{
 									menuToggleVBox.addChild(cb);
-								
-								
+									
+									
 									cb.addEventListener(MouseEvent.CLICK, clickHandler);
-								
-								//	longDescTextInputBox.text=cb.label; 
-								
+									
+									//    longDescTextInputBox.text=cb.label;
+									
 								}
 								
 								
@@ -189,85 +171,60 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							
 							protected function panelRemovedEventHandler(event:Event):void {
 								
-								  var Name : String 					= WeaveAPI.getRegisteredImplementationDisplayName(event.currentTarget as Class) || getQualifiedClassName(event.currentTarget).split(':').pop(); 
-								  var cb:CheckBox  						= null;
-								  
-								  var panels:Array = [];
-								  reportError("Enter Panel Removed Event Handler");
-								  
-								 
-								  cbArray = [];
-								  menuToggleVBox.removeAllChildren();
-								  
-								  
-								  panels = getWindowsOnStage();
-								  
-								  
-								  
-								  for each(var panel:DraggablePanel in panels)
-								  {
-									  
-									  cb = new CheckBox();
-									  cb.label = WeaveAPI.getRegisteredImplementationDisplayName(panel as Class) || getQualifiedClassName(panel).split(':').pop();
-									  //		linkBindableProperty(, cb, 'selected');
-									  
-									  
-									  cbArray.push(cb);
-									  
-								  }              
-								  
-								  cbArray.sortOn('label');
-								  for each (cb in cbArray)
-								  {
-									  menuToggleVBox.addChild(cb);
-									  
-									  
-									  cb.addEventListener(MouseEvent.CLICK, clickHandler);
-									  
-									  //	longDescTextInputBox.text=cb.label; 
-									  
-								  }
-								  
-								  
-								/*  
-								  reportError("OSMAAN");
-								  for(var i:int = 0; i < cbArray.length ; i++)
-								  {
-									  if(cbArray[i].label == Name)
-										  cbArray.splice(i,1);
-									  
-								  }
-								  
-								  
-								  menuToggleVBox.removeAllChildren();
-								  
-								  cbArray.sortOn('label');
-								  for each (cb in cbArray)
-								  {
-									  menuToggleVBox.addChild(cb);
-									  
-									  
-									  cb.addEventListener(MouseEvent.CLICK, clickHandler);
-									  
-									  //	longDescTextInputBox.text=cb.label; 
-									  
-								  }
-								  
-								  */
-								  
-								  
+								var Name : String = WeaveAPI.getRegisteredImplementationDisplayName(event.currentTarget as Class) || getQualifiedClassName(event.currentTarget).split(':').pop();
+								var cb:CheckBox   = null;
+								
+								var panels:Array = [];
+								reportError("Enter Panel Removed Event Handler");
+								
+								
+								cbArray = [];
+								menuToggleVBox.removeAllChildren();
+								
+								
+								panels = getWindowsOnStage();
+								
+								
+								
+								for each(var panel:DraggablePanel in panels)
+								{
+									
+									cb = new CheckBox();
+									//cb.label = WeaveAPI.getRegisteredImplementationDisplayName(panel as Class) || getQualifiedClassName(panel).split(':').pop();
+									cb.label=panel.title;
+									//        linkBindableProperty(, cb, 'selected');
+									cb.toolTip = "Checking this box appends" + cb.label + "destination to the above text";
+									
+									
+									cbArray.push(cb);
+									
+								}             
+								
+								cbArray.sortOn('label');
+								for each (cb in cbArray)
+								{
+									menuToggleVBox.addChild(cb);
+									
+									
+									cb.addEventListener(MouseEvent.CLICK, clickHandler);
+									
+									//    longDescTextInputBox.text=cb.label;
+									
+								}
+								
+								
 							}
 							
 							protected function clickHandler(event:MouseEvent):void {
 								longDescTextInputBox.enabled = true; //event.target.selected;
-								longDescTextInputBox.text = event.currentTarget.label;
+								longDescTextInputBox.htmlText = htmlText.value;
+								longDescTextInputBox.editable = true;
+								//longDescTextInputBox.text = event.currentTarget.label;
 								
 								
 							}
 							
-							
-							
-							
+						
 							private function getWindowsOnStage(): Array
 							{
 								var panels:Array = Weave.root.getObjects(DraggablePanel);
@@ -284,7 +241,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								return panelsOnStage;
 							}
 							
-							
+							private function handleLinkableHtmlText():void
+							{
+								if (!parent)
+								{
+									callLater(handleLinkableHtmlText);
+									return;
+								}
+								
+								
+							}
+				
 							
 						]]>
 					</mx:Script>
