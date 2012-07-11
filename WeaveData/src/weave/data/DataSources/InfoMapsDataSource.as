@@ -12,6 +12,7 @@ package weave.data.DataSources
 	import mx.rpc.IResponder;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.ObjectUtil;
 	
 	import org.igniterealtime.xiff.events.BookmarkChangedEvent;
 	
@@ -32,6 +33,7 @@ package weave.data.DataSources
 	import weave.services.DelayedAsyncInvocation;
 	import weave.services.InfoMapAdminInterface;
 	import weave.utils.DateUtils;
+	import weave.utils.VectorUtils;
 
 	public class InfoMapsDataSource extends CSVDataSource
 	{
@@ -133,13 +135,13 @@ package weave.data.DataSources
 		}
 		
 		
-		public function getDocumentsForQuery(docKeySet:KeySet,query:String,operator:String='AND',sources:Array=null,
+		public function getDocumentsForQuery(docKeySet:KeySet,wordCount:Array,query:String,operator:String='AND',sources:Array=null,
 													dateFilter:DateRangeFilter=null,numberOfDocuments:int=100,partialMatch:Boolean=false):void
 		{
 			
 			var queryTerms:String = parseBasicQuery(query,operator,partialMatch);
 			
-			createAndSendQuery(docKeySet,queryTerms,null,operator,sources,
+			createAndSendQuery(docKeySet,wordCount,queryTerms,null,operator,sources,
 				dateFilter,numberOfDocuments);
 			
 		}
@@ -188,7 +190,7 @@ package weave.data.DataSources
 			
 			var queryTerms:String = parseBasicQuery(query,operator,partialMatch);
 			
-			createAndSendQuery(docKeySet,queryTerms,filteredQuery,operator,sources,dateFilter,numberOfDocuments);
+			createAndSendQuery(docKeySet,null,queryTerms,filteredQuery,operator,sources,dateFilter,numberOfDocuments);
 		}
 		
 		private function parseBasicQuery(query:String,operator:String,partialMatch:Boolean):String
@@ -222,7 +224,7 @@ package weave.data.DataSources
 			return queryTerms;
 		}
 		
-		private function createAndSendQuery(docKeySet:KeySet,query:String,filterQuery:String=null,operator:String='AND',sources:Array=null,
+		private function createAndSendQuery(docKeySet:KeySet,wordCount:Array,query:String,filterQuery:String=null,operator:String='AND',sources:Array=null,
 											dateFilter:DateRangeFilter=null,numberOfDocuments:int=100,sortField:String="date_added"):void
 		{
 			
@@ -284,7 +286,7 @@ package weave.data.DataSources
 				
 			
 			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getQueryResults(query,filterQuery,sortField,defaultNumberOfDocumentsPerRequest);
-			q.addAsyncResponder(handleQueryResults,handleQueryFault,docKeySet);
+			q.addAsyncResponder(handleQueryResults,handleQueryFault,{docKeySet:docKeySet,wordCount:wordCount});
 			//creating and sending the query to the Solr server
 			//TODO: change number of documents from fixed number to a variable
 //			var url:String = solrURL.value + "&start=0&rows=100&sort=date_added desc&indent=on&q=" + query;
@@ -299,7 +301,7 @@ package weave.data.DataSources
 		
 		private function handleQueryResults(event:ResultEvent,token:Object=null):void
 		{
-			var docsArray:Array = event.result as Array;
+			var docsArray:Array = event.result.queryResult as Array;
 			var docsToAdd:Array = [];
 			var keys:Array = [];
 			
@@ -329,10 +331,12 @@ package weave.data.DataSources
 			
 			csvDataString.value = dataString;
 			
+			VectorUtils.copy(event.result.wordCount,token.wordCount);
+			
 			//			(token.keySet as KeySet).clearKeys();
-			(token as KeySet).replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
+			(token.docKeySet as KeySet).replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
 			// we force to trigger callbacks so that if a empty keyset is replaced with empty keys the callbacks are still called
-			(token as KeySet).triggerCallbacks(); 
+			(token.docKeySet as KeySet).triggerCallbacks(); 
 		}
 		
 		
@@ -342,7 +346,7 @@ package weave.data.DataSources
 		}
 		public function startIndexing():void
 		{
-			WeaveAPI.URLRequestUtils.getURL(new URLRequest(solrURL.value + "&clean=false&commit=true&qt=%2Fdataimport&command=full-import"));
+			WeaveAPI.URLRequestUtils.getURL(this,new URLRequest(solrURL.value + "&clean=false&commit=true&qt=%2Fdataimport&command=full-import"));
 		}
 		
 		private function handleSolrResponseError(event:FaultEvent,token:Object):void

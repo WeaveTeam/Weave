@@ -16,7 +16,9 @@
 			 alphaFrom="0.0" alphaTo="1.0"   
 			 blurXFrom="10.0" blurYFrom="10.0" 
 			 blurXTo="10.0" blurYTo="10.0"
-			 duration="0" target="{nodeBase}"/>	
+			 duration="0" target="{nodeBase}"/>
+	<mx:Fade id="fadeIn" alphaFrom="0.0" alphaTo="1.0" duration="750" />
+	<mx:Fade id="fadeOut" alphaFrom="1.0" alphaTo="0.0" duration="750" />
 	<mx:Script>
 		<![CDATA[
 			import flash.events.MouseEvent;
@@ -26,16 +28,19 @@
 			import flash.utils.Dictionary;
 			
 			import mx.collections.ArrayCollection;
+			import mx.containers.TabNavigator;
 			import mx.controls.Alert;
 			import mx.controls.Image;
 			import mx.controls.Label;
 			import mx.controls.Text;
 			import mx.controls.TextArea;
+			import mx.core.Application;
 			import mx.core.IUIComponent;
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.CursorManager;
+			import mx.managers.CursorManagerPriority;
 			import mx.managers.DragManager;
 			import mx.managers.PopUpManager;
 			import mx.managers.PopUpManagerChildList;
@@ -58,6 +63,8 @@
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.compiler.Compiler;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
@@ -73,6 +80,7 @@
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			import weave.data.QKeyManager;
+			import weave.primitives.ColorRamp;
 			import weave.primitives.DateRangeFilter;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.InfoMapDocument;
@@ -84,6 +92,7 @@
 			import weave.ui.infomap.ui.InfoMapPanel;
 			import weave.ui.infomap.ui.NodeBaseComponent;
 			import weave.ui.infomap.ui.NodeSettingsComponent;
+			import weave.ui.infomap.ui.TagCloud;
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
@@ -174,6 +183,8 @@
 				
 				//removes the node from the panel after confirmation
 				nodeBase.closeImg.addEventListener(MouseEvent.CLICK,close);
+				
+				nodeBase.filterImg.addEventListener(MouseEvent.CLICK, addTagCloud);
 				
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
@@ -329,11 +340,11 @@
 			private var highlightNewDocuments:Boolean = true;
 			private function checkForNewDocuments(event:TimerEvent):void
 			{
-				if(!previousQuery.sources.value == '')
-				{
-					var sourceNames:Array = parser.parseCSV(previousQuery.sources.value)[0]; //we send only the first row since this is a one-line CSV String
-				}
-				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,previousQuery.keywords.value,previousQuery.operator.value,sourceNames,previousQuery.dateFilter);
+//				if(!previousQuery.sources.value == '')
+//				{
+//					var sourceNames:Array = parser.parseCSV(previousQuery.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+//				}
+//				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,previousQuery.keywords.value,previousQuery.operator.value,sourceNames,previousQuery.dateFilter);
 			}
 		
 				
@@ -384,7 +395,10 @@
 				
 				WeaveAPI.SessionManager.copySessionState(query,previousQuery);
 				
-				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
+				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
+				wordCount = [];
+				
+				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
 				
 			}
 			
@@ -525,7 +539,7 @@
 					}
 					
 				}
-				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
+//				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
 				handleSelectionKeySetChange();
 				handleGlobalSearch();
 			}
@@ -818,6 +832,29 @@
 					null,
 					handleCloseEvent
 				);
+			}
+			
+			private var tagCanvas:TagCloud = null;
+			private var colorRamp:ColorRamp = new ColorRamp();
+			private var wordCount:Array = [];
+			private function addTagCloud(event:Event):void
+			{
+				if(tagCanvas == null)
+				{
+					tagCanvas = new TagCloud();
+					tagCanvas.alpha = 0;
+					addChild(tagCanvas);
+					tagCanvas.y= nodeBase.height;
+					tagCanvas.dataProvider = wordCount;
+					
+					tagCanvas.draw();
+						
+				}
+				
+				if(tagCanvas.alpha == 0)
+					fadeIn.play([tagCanvas]);
+				else
+					fadeOut.play([tagCanvas]);
 			}
 			
 			private function handleCloseEvent(e:CloseEvent):void

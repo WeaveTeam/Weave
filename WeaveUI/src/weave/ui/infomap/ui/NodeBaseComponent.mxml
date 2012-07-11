@@ -17,8 +17,8 @@ It has 4 icons to:
 	<mx:HBox width="100%" horizontalAlign="center">
 		<!--<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
 		<mx:Image id="editImg" source="@Embed(source='/weave/resources/images/editButton.png')"/>
-		<mx:Image id="searchImg" source="@Embed(source='/weave/resources/images/search_icon.gif')"/>
-		<mx:Image id="filterImg" source="@Embed(source='/weave/resources/images/filter.png')"/>-->
+		<mx:Image id="searchImg" source="@Embed(source='/weave/resources/images/search_icon.gif')"/>-->
+		<mx:Image id="filterImg" source="@Embed(source='/weave/resources/images/filter.png')"/>
 		<mx:Image id="infoImg" source="@Embed(source='/weave/resources/images/probe.png')"/>
 		<mx:Image id="settingsImg" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
 		<mx:Spacer width="60" />
@@ -69,11 +69,12 @@ It has 4 icons to:
 //			searchImg.visible = false;
 //			searchImg.buttonMode = true; //you need this for click event to work on an image!
 //			
-//			filterImg.toolTip = "Filter";
-//			filterImg.width = 12;
-//			filterImg.height = 12;
-//			filterImg.visible = false;
-//			filterImg.buttonMode = true; //you need this for click event to work on an image!
+			filterImg.toolTip = "Filter";
+			filterImg.width = 12;
+			filterImg.height = 12;
+			filterImg.visible = true;
+			filterImg.buttonMode = true; //you need this for click event to work on an image!
+			
 			
 			settingsImg.toolTip = "Settings";
 			settingsImg.width = 12;

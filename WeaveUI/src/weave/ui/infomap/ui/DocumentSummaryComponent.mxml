@@ -83,7 +83,7 @@ Use the static functions to show this as a popup.
 					
 					var imgURL:String = source.getImageURLForURL(_docURL.value);
 					
-					WeaveAPI.URLRequestUtils.getContent(new URLRequest(imgURL),handleImage,null,_docURL.value);
+					WeaveAPI.URLRequestUtils.getContent(instance,new URLRequest(imgURL),handleImage,null,_docURL.value);
 					instance.move(xPos,yPos);
 					PopUpManager.addPopUp(instance,parent);
 					instance.fadeIn.play();

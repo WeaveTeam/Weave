@@ -5,6 +5,7 @@
     <classEntry path="weave.ui.ProbeToolTipWindow"/>
     <classEntry path="weave.ui.infomap.core.QueryObject"/>
     <classEntry path="weave.ui.infomap.ui.HTMLFileUploader"/>
+    <classEntry path="weave.ui.infomap.ui.TagCloud"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

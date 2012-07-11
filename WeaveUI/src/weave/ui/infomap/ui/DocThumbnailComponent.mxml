@@ -210,7 +210,7 @@ so that it can be moved, selected, handle filters.
 				img.source = _noImage;
 				
 				if(_imageURL)
-					token = WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest);
+					token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest);
 				
 				if(docURL.value)
 				{
@@ -223,7 +223,7 @@ so that it can be moved, selected, handle filters.
 							_imageURL = source.getImageURLForURL(docURL.value);
 							if(_imageURL == null)
 								return;
-							token = WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest);
+							token = WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(_imageURL),handleImageRequest,handleImageFaultRequest);
 						},true);
 						
 					}

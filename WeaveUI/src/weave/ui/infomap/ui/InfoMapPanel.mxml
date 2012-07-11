@@ -520,7 +520,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var solrURL:String =  "http://129.63.8.219:8080/solr/select/?version=2.2&start=0&rows=2000&sort=date_published%20desc&indent=on&fl=link&q=" + 
 					selectionKeywords.value;
 				
-				infoMapsDataSource.getDocumentsForQuery(_entityKeySet,selectionKeywords.value,"OR");
+//				infoMapsDataSource.getDocumentsForQuery(_entityKeySet,selectionKeywords.value,"OR");
 				
 			}
 			
@@ -720,7 +720,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				request.method = URLRequestMethod.POST;
 				request.data = encoderStr;
 				trace('sent byteArray:', encoderStr.length);
-				WeaveAPI.URLRequestUtils.getURL(request, handleImageSave, handleImageSaveFault, null, URLLoaderDataFormat.BINARY);
+				WeaveAPI.URLRequestUtils.getURL(this,request, handleImageSave, handleImageSaveFault, null, URLLoaderDataFormat.BINARY);
 
 			}
 			
@@ -938,7 +938,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:HBox>
 				<ui:TextInputWithPrompt id="fileNameInput" prompt="Select files/folder."/>
 				<mx:Button label="Upload File" click="browseAndUpload();"/>
-				<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files uploaded' : ''}"/>
+				<mx:Label text="{fileUploadCount > 0 ? fileUploadCount + ' of ' + targetFileUploadCount + ' files indexed' : ''}"/>
 			</mx:HBox>
 			<mx:Button label="Open Loader" click="popupLoader()"/>
 		</mx:VBox>

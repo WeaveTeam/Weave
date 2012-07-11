@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"
+		   xmlns:infomap="weave.ui.infomap.*" 
+		   verticalScrollPolicy="off" 
+		   horizontalScrollPolicy="off" 
+		>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Label;
+			
+			import weave.compiler.StandardLib;
+			import weave.data.DataSources.CSVDataSource;
+			import weave.primitives.ColorRamp;
+			
+			/**
+			 * This is a 2D array with list of words and the respective word count.
+			 * First Column has the words, Second Column has the count value.
+			 **/
+			public var dataProvider:Array = [];
+			
+			public var colorRamp:ColorRamp = new ColorRamp();
+						
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				//default color ramp value
+				colorRamp.value = '<colorRamp>0x000000,0xff0000</colorRamp>';
+				
+				//default styling
+				setStyle("backgroundAlpha",0);
+				clipContent = false;
+				autoLayout = false;
+				cacheAsBitmap = true;
+				
+			}
+			
+			private var probeGlowOuter:GlowFilter = new GlowFilter(0xfffffff, 0.7, 3,3,10);	
+			private var shadow:DropShadowFilter 	= new DropShadowFilter(2, 45, 0, 0.5, 4, 4, 2);
+			public function draw():void
+			{
+				if(dataProvider.length == 0)
+					return;
+				
+				
+//				if(tagCanvas)
+//					this.removeChild(tagCanvas);
+//				tagCanvas = this.addChild(new TagCloud()) as Canvas;
+				
+				//rendering the tagCanvas to a BitMapData
+				var tagCanvasBitmapData:BitmapData = new BitmapData(width,height,true,0x00000000);
+				tagCanvasBitmapData.draw(this);
+				var tagCanvasLoc:Point = new Point(0,0);
+				
+//				x = 0;
+//				y = nodeBase.height;
+				
+				var minWordCount:int = dataProvider[dataProvider.length-1][1];
+				var maxWordCount:int = dataProvider[0][1];
+				
+				var maxWordHeight:int = Math.round(height/4);
+				
+				var labelLoc:Point = new Point(0,0);
+				
+				for (var i:int=0; i<dataProvider.length; i++)
+				{
+					
+					validateNow();
+					tagCanvasBitmapData.fillRect(tagCanvasBitmapData.rect,0x00000000);
+					tagCanvasBitmapData.draw(this);
+					
+					var currWordLabel:Label = new Label();
+					currWordLabel.addEventListener(MouseEvent.ROLL_OVER,function (event:MouseEvent):void{(event.target as Label).filters = [probeGlowOuter,shadow]});
+					currWordLabel.addEventListener(MouseEvent.ROLL_OUT,function (event:MouseEvent):void{(event.target as Label).filters = []});
+					addChild(currWordLabel);
+					
+					
+					var currWordHeight:Number = Math.floor((dataProvider[i][1]/maxWordCount)*maxWordHeight)
+					currWordLabel.setStyle("fontSize",currWordHeight);
+					currWordLabel.setStyle("color",colorRamp.getColorFromNorm(StandardLib.normalize(i, 0, dataProvider.length)));
+					currWordLabel.text = dataProvider[i][0];
+					currWordLabel.validateNow();
+					
+					currWordLabel.height = currWordLabel.textHeight + 10;//offset
+					currWordLabel.width = currWordLabel.textWidth + 10;//offset
+
+					labelLoc.x = (width/2) - Math.round(currWordLabel.textWidth/2);
+					labelLoc.y = (height/2) - Math.round(currWordLabel.textHeight/2);
+					
+					// set up these arrays so we can iterate through the four directions: right, down, left, up
+					var xDirectionArray:Array = [1,0,-1,0];
+					var yDirectionArray:Array = [0,1,0,-1];
+					
+					var direction:int = 0;
+					var stepCount:int = 0;
+					
+					// step size based on text size (suggestion from the paper - http://research.microsoft.com/en-us/um/redmond/groups/cue/publications/tvcg2010-maniwordle.pdf)
+					var stepSize:Number = Math.ceil(currWordHeight / 3);
+					var xDirection:Number = 0;
+					var yDirection:Number = 0;
+					
+					//rendering the label to BitmapData
+					var labelBitmapData:BitmapData = new BitmapData(currWordLabel.textWidth+10,currWordLabel.textHeight+10,true,0x00000000); // +10 for offset, to avoid word cutoff
+					labelBitmapData.applyFilter(labelBitmapData,labelBitmapData.rect,new Point(0,0),probeGlowOuter);
+					validateNow();
+					currWordLabel.validateNow();
+					labelBitmapData.draw(currWordLabel);
+					
+					var posFound:Boolean = false; 
+					
+					
+					while (!posFound)
+					{
+						// when going left or right, begin stepping one more than last time
+						if (xDirection != 0)
+							stepCount++;
+						
+						xDirection = xDirectionArray[direction % 4];
+						yDirection = yDirectionArray[direction % 4];
+						
+						for (var j:int = 0; j < stepCount; j++)
+						{
+							validateNow();
+							
+							// check current position before stepping, and stop if nothing overlaps
+							if(!tagCanvasBitmapData.hitTest(tagCanvasLoc,1,labelBitmapData,labelLoc,1))
+							{
+								currWordLabel.x = labelLoc.x;
+								currWordLabel.y = labelLoc.y;
+								
+								posFound = true;
+								break;
+							}
+							
+							// next step
+							labelLoc.x = labelLoc.x + xDirection * stepSize
+							labelLoc.y = labelLoc.y + yDirection * stepSize
+						}
+						// next turn in the spiral
+						direction++
+					}
+					
+					labelBitmapData.dispose();
+				}
+				tagCanvasBitmapData.dispose();
+			}
+		]]>
+	</mx:Script>
+</mx:Canvas>

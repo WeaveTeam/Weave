@@ -45,7 +45,7 @@
 				override public function set data(doc:Object):void
 				{
 					super.data = doc;
-					WeaveAPI.URLRequestUtils.getContent(new URLRequest(doc.imgName),handleImage,handleNoImage,doc.imgName);
+					WeaveAPI.URLRequestUtils.getContent(this,new URLRequest(doc.imgName),handleImage,handleNoImage,doc.imgName);
 				}
 				
 				private function handleImage(event:ResultEvent,token:Object=null):void

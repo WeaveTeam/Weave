@@ -20,8 +20,11 @@
 package weave.utils
 {
 	import flash.display.BitmapData;
+	import flash.display.DisplayObject;
 	import flash.display.Graphics;
 	import flash.geom.Matrix;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
 	
 	import mx.core.UIComponent;
@@ -40,6 +43,42 @@ package weave.utils
 	 */
 	public class BitmapUtils
 	{
+		
+//		public static function hitTest(coordSpace:DisplayObject,redClip:DisplayObject, blueClip:DisplayObject):Boolean
+//		{
+//			var stage:DisplayObject = coordSpace;
+//			
+//			var blueRect:Rectangle = blueClip.getBounds(stage);
+//			var blueOffset:Matrix = blueClip.transform.matrix;
+//			blueOffset.tx = blueClip.x - blueRect.x;
+//			blueOffset.ty = blueClip.y - blueRect.y;        
+//			
+//			var blueClipBmpData = new BitmapData(blueRect.width, blueRect.height, true, 0);
+//			blueClipBmpData.draw(blueClip, blueOffset);                
+//			
+//			var redRect:Rectangle = redClip.getBounds(stage);
+//			var redClipBmpData = new BitmapData(redRect.width, redRect.height, true, 0);
+//			
+//			var redOffset:Matrix = redClip.transform.matrix;
+//			redOffset.tx = redClip.x - redRect.x;
+//			redOffset.ty = redClip.y - redRect.y;        
+//			
+//			redClipBmpData.draw(redClip, redOffset);        
+//			
+//			var rLoc:Point = new Point(redRect.x, redRect.y);
+//			var bLoc:Point = new Point(blueRect.x, blueRect.y);        
+//			
+//			var result:Boolean = redClipBmpData.hitTest(rLoc,
+//				1,
+//				blueClipBmpData,
+//				bLoc,
+//				1
+//			);
+//			blueClipBmpData.dispose();
+//			redClipBmpData.dispose();
+//			return result;
+//		}
+//		
 		// reusable temporary objects
 		private static var tempMatrix:Matrix = new Matrix();
 		
