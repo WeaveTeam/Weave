@@ -251,7 +251,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									//	longDescTextInputBox.enabled = true;
 									//if(cb.selected == true)
 									
-									    cb.addEventListener(MouseEvent.CLICK, clickHandler);
+									cb.addEventListener( MouseEvent.CLICK, onChangeEvent_checkBox );
+									cb.addEventListener(MouseEvent.CLICK, clickHandler);
 										
 									
 									//    longDescTextInputBox.text=cb.label;
