@@ -89,9 +89,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							
 							import weave.Weave;
 							import weave.api.WeaveAPI;
-							import weave.api.registerLinkableChild;
 							import weave.api.reportError;
-							import weave.core.LinkableString;
 							import weave.ui.controlBars.WeaveMenuBar;
 							import weave.ui.controlBars.WeaveMenuItem;
 							
@@ -102,7 +100,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							private var _windowMenu:WeaveMenuItem  = null;
 							private var _weaveMenu:WeaveMenuBar = null;
 							private var cbArray:Array = [];
-							public const htmlText:LinkableString  = registerLinkableChild(this, new LinkableString(''), handleLinkableHtmlText, true);
+							private var selectedCB : CheckBox;
+
+							//public const htmlText:LinkableString  = registerLinkableChild(this, new LinkableString(''), handleLinkableHtmlText, true);
 							
 							override protected function constructor():void
 							{
@@ -141,7 +141,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									cb = new CheckBox();
 									//        linkBindableProperty(, cb, 'selected');
 									cb.label = panel.title;
-									cb.toolTip = "Checking this box appends" + cb.label + "destination to the above text";
+									cb.toolTip = "Checking this box appends " + cb.label + " destination to the above text";
 									
 									
 									cbArray.push(cb);
@@ -152,8 +152,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								{
 									menuToggleVBox.addChild(cb);
 									
+								//	longDescTextInputBox.enabled = false;
 									
+								
+										//longDescTextInputBox.enabled = true;
+								//	if(cb.selected == true)
+									cb.addEventListener( MouseEvent.CLICK, onChangeEvent_checkBox );
 									cb.addEventListener(MouseEvent.CLICK, clickHandler);
+									
+								
 									
 									//    longDescTextInputBox.text=cb.label;
 									
@@ -168,6 +175,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								
 								
 							}
+							/**one checkbox is able to be checked in a time*/
+							private function onChangeEvent_checkBox( event:MouseEvent) :void
+							{
+								var currentCB : CheckBox = CheckBox( event.target );
+								if( selectedCB && currentCB !== selectedCB )
+									selectedCB.selected = false;
+						
+								selectedCB = ( currentCB.selected ) ? currentCB : null;
+							}
+
 							
 							protected function panelRemovedEventHandler(event:Event):void {
 								
@@ -193,7 +210,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									//cb.label = WeaveAPI.getRegisteredImplementationDisplayName(panel as Class) || getQualifiedClassName(panel).split(':').pop();
 									cb.label=panel.title;
 									//        linkBindableProperty(, cb, 'selected');
-									cb.toolTip = "Checking this box appends" + cb.label + "destination to the above text";
+									cb.toolTip = "Checking this box appends " + cb.label + " destination to the above text";
 									
 									
 									cbArray.push(cb);
@@ -204,9 +221,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								for each (cb in cbArray)
 								{
 									menuToggleVBox.addChild(cb);
+									//longDescTextInputBox.enabled = false;
 									
+									//	longDescTextInputBox.enabled = true;
+									//if(cb.selected == true)
 									
-									cb.addEventListener(MouseEvent.CLICK, clickHandler);
+									    cb.addEventListener(MouseEvent.CLICK, clickHandler);
+										
 									
 									//    longDescTextInputBox.text=cb.label;
 									
@@ -216,10 +237,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							}
 							
 							protected function clickHandler(event:MouseEvent):void {
+								
+								//longDescTextInputBox.enabled = !event.target.selected;
 								longDescTextInputBox.enabled = true; //event.target.selected;
-								longDescTextInputBox.htmlText = htmlText.value;
+								//longDescTextInputBox.htmlText = htmlText.value;
+								
+								longDescTextInputBox.text = event.currentTarget.label;
 								longDescTextInputBox.editable = true;
-								//longDescTextInputBox.text = event.currentTarget.label;
 								
 								
 							}
@@ -241,16 +265,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								return panelsOnStage;
 							}
 							
-							private function handleLinkableHtmlText():void
-							{
-								if (!parent)
-								{
-									callLater(handleLinkableHtmlText);
-									return;
-								}
-								
-								
-							}
+							
 				
 							
 						]]>
