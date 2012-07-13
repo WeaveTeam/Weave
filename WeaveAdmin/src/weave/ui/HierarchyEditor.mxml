@@ -3,11 +3,12 @@
                 xmlns:ui="weave.ui.*"
                 xmlns:aci="weave.services.beans.*"
                 xmlns="weave.ui.*"
-                label="Hierarchy Editor">
+                label="Hierarchy Editor"
+                creationComplete="handleCreated()">
     <mx:VBox height="100%" width="40%">
         <mx:Label text="Tables"/>
         <ui:EntityTree id="tableTree" entityType="{AttributeColumnInfo.TABLE}"
-            width="100%" height="100%"/>
+            width="100%" height="100%" dragEnabled="true" dragMoveEnabled="false" dropEnabled="false"/>
         <mx:HBox width="100%">
             <mx:Button label="Import Table..." click="importTable()"/>
             <mx:Button label="Delete Table" click="deleteTable()" enabled="{tableTree.selectedType == AttributeColumnInfo.TABLE}"/>
@@ -15,8 +16,9 @@
     </mx:VBox>
     <mx:VBox height="100%" width="60%">
         <mx:Label text="Tags"/>
-        <ui:EntityTree id="tagTree" entityType="{AttributeColumnInfo.TAG}"
-            width="100%" height="100%"/>
+        <ui:EntityTree id="tagTree" entityType="{AttributeColumnInfo.TAG}" 
+            width="100%" height="100%" 
+            dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
         <mx:HBox>
             <ui:TextInputWithPrompt id="tagNameInput" prompt="New tag name" width="100%"/>
             <mx:Button label="Add Tag" click="addTag(tagNameInput.text)"/>
@@ -33,6 +35,11 @@
     import mx.binding.utils.ChangeWatcher;
 
     [Bindable] public var selectedItem:EntityTreeNode;
+    public function handleCreated():void
+    {
+        ChangeWatcher.watch(tableTree, "selectedItem", selectionsChanged);
+        ChangeWatcher.watch(tagTree, "selectedItem", selectionsChanged);
+    }
     public function importTable():void
     {
         /* Pop up table import wizard */
@@ -50,7 +57,7 @@
         }
         AdminInterface.instance.addTag({title: name}, tagTree.refresh);
     }
-    public function selectionsChanged(event:PropertyChangeEvent)
+    public function selectionsChanged(event:PropertyChangeEvent):void
     {
         
     }
@@ -58,16 +65,15 @@
     {
         /* These behaviours kinda suck, just using these til someone comes up with something better. */
         var item:EntityTreeNode = tagTree.selectedItem as EntityTreeNode;
-        var entity_type = item.object.entity_type;
+        var entity_type:int = item.object.entity_type;
         if (entity_type == AttributeColumnInfo.TAG)
         {
             /* Remove tag from parent tag if necessary; remove entirely if it has no parent. */
-            /* Warn before totally removing a tag. */
-             
+            /* Warn before totally removing a tag. */          
         }
         else if (entity_type == AttributeColumnInfo.COLUMN)
         {
-            /* Remove column from current parent. */ 
+            /* Remove column from current parent, then refresh current parent */ 
         }
     }
 ]]>

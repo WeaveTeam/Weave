@@ -5,77 +5,60 @@ package weave.ui
     import weave.services.AdminInterface;
     import weave.services.WeaveAdminService;
     import mx.controls.Tree;
-    import mx.rpc.events.ResultEvent;
-
-    public class EntityTreeNode
+    import flash.events.EventDispatcher;
+    import flash.events.Event;
+//    [RemoteClass]
+    public class EntityTreeNode extends EventDispatcher
     {
-        public var label:String;
-        public var object:AttributeColumnInfo;
-        public var children:Array = []; 
-
-        public var is_populated:Boolean = false;
-        public var pending_commit:Boolean = false;
-        public function EntityTreeNode(info:AttributeColumnInfo)
+        private var id:int;
+        public function EntityTreeNode(id:int)
         {
-            this.object = info;
-            label = info.publicMetadata["title"];
-            if (info.entity_type == AttributeColumnInfo.COLUMN) children = null;
-            if (label == null) label = info.publicMetadata["name"]; // TODO: hack, remove later after full migration code is written.
+            this.id = id;
         }
-        public function populate(onComplete:Function = null):void
+        private function objectChanged(obj:Object):void
         {
-            var etn:EntityTreeNode = this;
-            if (this.object.entity_type == AttributeColumnInfo.COLUMN) {if (onComplete != null) onComplete(etn); return;}
-            function populateHandler(event:ResultEvent, token:Object = null):void
-            {
-                etn.children = [];
-                var entities:Array = event.result as Array || [];
-                for each (var obj:Object in entities)
-                {
-                    var entity:AttributeColumnInfo = new AttributeColumnInfo(obj);
-                    etn.children.push(new EntityTreeNode(entity));
-                }
-                if (onComplete != null)
-                {
-                    onComplete(etn);
-                }
-                etn.is_populated = true;
-            }
-            
-            AdminInterface.instance.getEntityChildren(object.id, populateHandler);
-            return;
+            dispatchEvent(new Event("objectChanged"));
         }
-        public function refresh(onComplete:Function = null):void
+        private function childrenChanged(obj:Object):void
         {
-            var etn:EntityTreeNode = this;
-            function refreshHandler(event:ResultEvent, token:Object = null):void
-            {
-                var freshetn:AttributeColumnInfo = new AttributeColumnInfo(event.result);
-                etn.object = freshetn;
-                if (onComplete != null)
-                    onComplete(etn);
-                etn.is_populated = true;
-            }
-            AdminInterface.instance.getEntity(object.id, refreshHandler);
-            return;
+            dispatchEvent(new Event("childrenChanged"));
         }
-        public function addToParent(parent_id:int):void
+        [Bindable(event="objectChanged")] public function get label():String
         {
-            AdminInterface.instance.addChild(object.id, parent_id, null);
-            return;
+            var obj:Object = this.object;
+            var name:String;
+            if (obj)
+                return obj.publicMetadata["title"] || obj.publicMetadata["name"];
+            else
+                return "<Fetching...>"
         }
-        public function removeFromParent(parent_id:int):void
+        [Bindable(event="objectChanged")] public function get object():AttributeColumnInfo
         {
-            AdminInterface.instance.removeChild(object.id, parent_id, null);
-            return;
+            return AdminInterface.instance.meta_cache.get_metadata(id, objectChanged);
         }
-        public function commit(diff:Object, handler:Function = null):void
+        [Bindable(event="childrenChanged")] public function get children():Array
         {
-            function commitHandler(o:Object):void
-            {
-                refresh(handler);
-            }
-            AdminInterface.instance.updateEntity(object.id, diff, commitHandler);
+            if (this.object.entity_type == AttributeColumnInfo.COLUMN) return null;
+            var children_ids:Array = AdminInterface.instance.meta_cache.get_children(id, childrenChanged);
+            var _children:Array = [];
+            if (children_ids == null)
+                return null;
+            for each (var id:int in children_ids)
+                _children.push(new EntityTreeNode(id));
+            return _children;
+        }
+        public function commit(pubDiff:Object, privDiff:Object, onComplete:Function):void
+        {
+            AdminInterface.instance.meta_cache.update_metadata(id, pubDiff, privDiff, onComplete);
+        }
+        private static function yell(str:String):void
+        {
+            WeaveAdminService.messageDisplay(null, str, false);
+        }
+        private static function printobj(o:Object):void
+        {
+            for (var prop:String in o)
+                yell(prop + ":" + o[prop]);
         }
         static public function mergeObjects(a:Object, b:Object):Object
         {
@@ -93,15 +76,5 @@ package weave.ui
                     diff[property] = fresh[property];
             return diff;
         }
-        private static function yell(str:String):void
-        {
-            WeaveAdminService.messageDisplay(null, str, false);
-        }
-        private static function printobj(o:Object):void
-        {
-            for (var prop:String in o)
-                yell(prop + ":" + o[prop]);
-        }
-
     }
 }

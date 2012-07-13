@@ -33,6 +33,7 @@ package weave.services
 	
 	import weave.Strings;
 	import weave.Weave;
+        import weave.services.MetadataCache;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
 	import weave.services.beans.GeometryCollectionInfo;
@@ -102,6 +103,7 @@ package weave.services
 		
 		
 		
+                [Bindable] public var meta_cache:MetadataCache = new MetadataCache();
 		// functions for managing static settings
 		public function getConnectionNames():void
 		{

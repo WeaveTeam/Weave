@@ -65,9 +65,6 @@
     {
         var pubDiff:Object = EntityTreeNode.diffObjects(targetItem.object.publicMetadata, publicMetaGrid.metadata);
         var privDiff:Object = EntityTreeNode.diffObjects(targetItem.object.privateMetadata, privateMetaGrid.metadata);
-        var fullDiff:Object = EntityTreeNode.mergeObjects(pubDiff, privDiff);
-        printobj(pubDiff);
-        printobj(fullDiff);
         function validateCommit(o:Object = null):void
         {
             metaChanged();
@@ -76,7 +73,7 @@
             else
                 setEditors();
         }
-        targetItem.commit(fullDiff, validateCommit);
+        targetItem.commit(pubDiff, privDiff, validateCommit);
     }
     private static function printobj(o:Object):void
     {

@@ -1,9 +1,9 @@
 <mx:Tree xmlns:mx="http://www.adobe.com/2006/mxml"
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
-    itemOpening="onExpand(event)" creationComplete="handleCreated()" 
-    change="onChange(event)"
-    openDuration="0">
+    creationComplete="handleCreated()" itemOpening="onExpand(event)"
+    change="onChange(event)" dragDrop="arrangeHandler(event)"
+    openDuration="0" dragEnabled="true">
 <mx:Script>
 <![CDATA[
 import weave.services.AdminInterface;
@@ -14,26 +14,42 @@ import weave.ui.EntityTreeNode;
 import mx.collections.ArrayCollection;
 import mx.events.ListEvent;
 import mx.events.TreeEvent;
+import mx.events.DragEvent;
 import mx.events.PropertyChangeEvent;
 import mx.rpc.events.ResultEvent;
 import mx.binding.utils.ChangeWatcher;
 import mx.utils.ObjectUtil;
+
+import flash.utils.getQualifiedClassName;
 
 public var entityType:int;
 private var connWatcher:ChangeWatcher;
 [Bindable] public var selectedType:int;
 public function onExpand(event:TreeEvent):void
 {
-    if (!event.opening) return; /* If we're closing, don't do anything. */
+    if (!event.opening) return; /* If we're closing, don't do anything. */ 
     event.preventDefault();
     var item:EntityTreeNode = event.item as EntityTreeNode;
-    item.populate(onPopulated);
-    function onPopulated(etn:EntityTreeNode):void
+    var watch_once:ChangeWatcher = null;
+    if (item.children == null)
     {
+        /* Setup a oneoff changewatcher. There must be a better way to do this. */
+        watch_once = ChangeWatcher.watch(item, "children", onPopulated);
+    }
+    else
+    {
+        onPopulated(null);
+    }
+    function onPopulated(o:Object):void
+    {
+        yell("Opening tree.");
+        if (watch_once != null)
+            watch_once.unwatch();
         var tree:Tree = event.target as Tree;
+        tree.dataProvider.itemUpdated(event.item);
         tree.expandItem(event.item, true, false);
     }
-}
+} 
 public function onChange(event:ListEvent):void
 {
     var etn:EntityTreeNode = selectedItem as EntityTreeNode;
@@ -43,7 +59,15 @@ public function onChange(event:ListEvent):void
 private function filterByType(item:Object):Boolean
 {
     var etn:EntityTreeNode = item as EntityTreeNode;
-    return (etn.object.entity_type == entityType || etn.object.entity_type == AttributeColumnInfo.COLUMN); 
+    if (etn == null)
+    {
+        yell("Something has gone horribly wrong in EntityTree.");
+        return false;
+    }
+    if (etn.object != null)
+        return (etn.object.entity_type == entityType || etn.object.entity_type == AttributeColumnInfo.COLUMN); 
+    else
+        return false;
 }
 public function handleCreated():void
 {
@@ -54,28 +78,36 @@ private function connectionReady(event:PropertyChangeEvent):void
     if (event.newValue == true)
         refresh();
 }
-private function yell(str:String):void
+private static function yell(str:String):void
 {
     WeaveAdminService.messageDisplay(null, str, false);
 }
-public function refresh(o:Object = null)
+private static function printobj(o:Object):void
 {
-    AdminInterface.instance.getEntityChildren(-1, populateRoot);
+    for (var prop:String in o)
+       yell(prop + ":" + o[prop]);
+}
+public function refresh(o:Object = null):void
+{
+    AdminInterface.instance.meta_cache.get_children(-1, populateRoot);
 }
 private function populateRoot(event:Object):void
 {
-    var objects:Array = event.result as Array || [];
+    var child_ids:Array = AdminInterface.instance.meta_cache.get_children(-1) || [];
     var srcArray:Array = [];
     var view:ArrayCollection = new ArrayCollection();
-    for each (var o:Object in objects)
+    for each (var id:int in child_ids)
     {
-        var aci:AttributeColumnInfo = new AttributeColumnInfo(o);
-        var etn:EntityTreeNode = new EntityTreeNode(aci);
+        var etn:EntityTreeNode = new EntityTreeNode(id);
         srcArray.push(etn);
     }
     view.filterFunction = filterByType;
     view.source = srcArray;
     dataProvider = view;
+}
+private function arrangeHandler(event:DragEvent):void
+{
+      
 }
 ]]>
 </mx:Script>
