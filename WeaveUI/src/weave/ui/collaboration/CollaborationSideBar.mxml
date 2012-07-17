@@ -320,7 +320,6 @@
 				
 				mouseTimer = new Timer(600);
 				mouseTimer.addEventListener(TimerEvent.TIMER, mouseMove);
-				mouseTimer.start();
 				
 				pingTimer = new Timer(10000);
 				pingTimer.addEventListener(TimerEvent.TIMER, requestPing);
@@ -541,6 +540,7 @@
 				{
 					collabService.relinquishMouseControl(collabService.nickname);
 					collabService.hasControl = false;
+					mouseTimer.stop();
 					cursorButton.label = lang("Request Cursor Control");
 					adjustCursorButtonHeight();
 				}
@@ -552,12 +552,14 @@
 				if( position == 0 )
 				{
 					collabService.hasControl = true;
+					mouseTimer.start();
 					cursorButton.label = lang("Relinquish Control");
 					adjustCursorButtonHeight();
 				}
 				else if( position > 0 )
 				{
 					collabService.hasControl = false;
+					mouseTimer.stop();
 					cursorButton.label = lang("You are in position ") + position;
 					adjustCursorButtonHeight();
 				}
@@ -569,12 +571,14 @@
 				if( position == 0 )
 				{
 					collabService.hasControl = true;
+					mouseTimer.start();
 					cursorButton.label = lang("Relinquish Control");
 					adjustCursorButtonHeight();
 				}
 				else if( position > 0 )
 				{
 					collabService.hasControl = false;
+					mouseTimer.stop();
 					cursorButton.label = lang("You are in position ") + position;
 					adjustCursorButtonHeight();
 				}
