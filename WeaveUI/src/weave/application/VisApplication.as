@@ -636,8 +636,8 @@ package weave.application
 			
 			if( Weave.properties.enableCollaborationBar.value )			
 					PopUpManager.addPopUp(_collabBar, this);
-			 else if( _collabBar != null )
-			 {
+			else if( _collabBar != null )
+			{
 				try
 				{
 						_collabBar.removed();
