@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.utils
+package weave.primitives
 {
 	import flash.utils.Dictionary;
 	
