@@ -32,13 +32,14 @@
     import weave.core.UIUtils;
 
     import mx.events.PropertyChangeEvent;
+    import mx.events.ListEvent;
     import mx.binding.utils.ChangeWatcher;
 
     [Bindable] public var selectedItem:EntityTreeNode;
     public function handleCreated():void
     {
-        ChangeWatcher.watch(tableTree, "selectedItem", selectionsChanged);
-        ChangeWatcher.watch(tagTree, "selectedItem", selectionsChanged);
+        tableTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
+        tagTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
     }
     public function importTable():void
     {
@@ -57,9 +58,19 @@
         }
         AdminInterface.instance.addTag({title: name}, tagTree.refresh);
     }
-    public function selectionsChanged(event:PropertyChangeEvent):void
+    public function selectionsChanged(event:ListEvent):void
     {
-        
+        var item:EntityTreeNode = event.currentTarget.selectedItem as EntityTreeNode;
+        if (item != null) 
+        {
+            EntityTree.yell("Selections changed and item non-null.");
+            this.selectedItem = item;
+            if (event.currentTarget == tagTree) 
+                tableTree.selectedItem = null;
+            else 
+                tagTree.selectedItem = null;
+        }
+        EntityTree.yell("Selections changed.");
     }
     public function remove():void
     {

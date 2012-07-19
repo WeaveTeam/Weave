@@ -78,11 +78,11 @@ private function connectionReady(event:PropertyChangeEvent):void
     if (event.newValue == true)
         refresh();
 }
-private static function yell(str:String):void
+public static function yell(str:String):void
 {
     WeaveAdminService.messageDisplay(null, str, false);
 }
-private static function printobj(o:Object):void
+public static function printobj(o:Object):void
 {
     for (var prop:String in o)
        yell(prop + ":" + o[prop]);
