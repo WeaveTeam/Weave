@@ -138,5 +138,8 @@
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/sanjay/Weave/WeaveServices/lib/gson-2.2.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/sanjay/Weave/WeaveServices/lib/gson-2.2.1-javadoc.jar"/>
+	<classpathentry kind="lib" path="C:/Users/sanjay/Weave/WeaveServices/lib/gson-2.2.1-sources.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
