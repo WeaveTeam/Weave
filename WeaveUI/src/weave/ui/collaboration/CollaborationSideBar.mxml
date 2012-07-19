@@ -75,6 +75,7 @@
 			
 			private var CHAT:CollaborationChatWindow;
 			private var SETTINGS:CollaborationSettingsWindow;
+			private var PARTICIPANTS:ParticipantPanel;
 			private var disConButtonPushed:Boolean			= false;
 			private var mouseTimer:Timer;
 			private var pingTimer:Timer;
@@ -253,6 +254,8 @@
 				
 				createSettingsPanel();
 				createChatPanel();
+				createParticipantPanel();
+				PARTICIPANTS.addToParticpantList(nickname);
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_CONNECT, connect);
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_DISCONNECT, disconnect);
 				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
@@ -284,7 +287,6 @@
 					int(Weave.properties.collabServerPort.value), 
 					Weave.properties.collabServerRoom.value, 
 					SETTINGS.collab_NICKNAME);
-				
 				// Set timeout to 10 seconds
 				connTimer = new Timer(10000);
 				connTimer.addEventListener(TimerEvent.TIMER, serverUnresponsive);
@@ -493,6 +495,14 @@
 				CHAT.y = this.y;
 			}
 			
+			private function createParticipantPanel():void
+			{
+				PARTICIPANTS = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, ParticipantPanel) as ParticipantPanel;
+				PARTICIPANTS.visible = true;
+				PARTICIPANTS.y = WeaveAPI.topLevelApplication.visDesktop.y;
+				PARTICIPANTS.x = 0;
+			}
+			
 			private function openSettingsPanel(e:MouseEvent = null):void
 			{
 				if(SETTINGS) SETTINGS.visible ? SETTINGS.hide() : SETTINGS.show();
@@ -596,6 +606,7 @@
 				{
 					WeaveAPI.CollaborationCursorManager.createCursor(e.getText());
 					WeaveAPI.CollaborationCursorManager.setVisible(e.getText(), true);
+					PARTICIPANTS.addToParticpantList(e.getText());
 				}
 			}
 			
