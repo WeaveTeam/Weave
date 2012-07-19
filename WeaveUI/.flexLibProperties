@@ -4,6 +4,8 @@
     <classEntry path="weave.editors.ImageGlyphPlotterEditor"/>
     <classEntry path="weave.ui.ProbeToolTipWindow"/>
     <classEntry path="weave.ui.collaboration.CollaborationSideBar"/>
+    <classEntry path="weave.ui.collaboration.ParticipantPanel"/>
+    <classEntry path="weave.ui.collaboration.CollaborationVideoComponent"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

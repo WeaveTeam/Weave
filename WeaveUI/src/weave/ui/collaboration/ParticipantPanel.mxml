@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="{(WeaveAPI.topLevelApplication as DisplayObject).width}" height="100" headerHeight="5">
+	<mx:Script>
+		<![CDATA[
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+
+
+			private var canvasList:Array = new Array();
+
+			public function addToParticpantList(id:String):void
+			{
+				var collabVidComp:CollaborationVideoComponent = new CollaborationVideoComponent();
+				collabVidComp.labelText = id;
+				canvasList.push(collabVidComp);
+				adjustLayout();
+			}
+			
+			private function adjustLayout():void
+			{
+				var center:Number = width/2;
+				for( var i:int = 0; i < canvasList.length ; i++ )
+				{
+					if( i < canvasList.length / 2 )
+						canvasList[i].x = center - 100 * (canvasList.length / 2 - i);
+					else
+						canvasList[i].x = center + 100 * (canvasList.length / 2 - i);
+					addChild( canvasList[i] );
+				}
+				
+			}
+				
+		]]>
+	</mx:Script>
+	
+</mx:Panel>
