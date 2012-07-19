@@ -10,7 +10,10 @@
 			
 			import weave.compiler.StandardLib;
 			import weave.data.DataSources.CSVDataSource;
+			import weave.primitives.Bounds2D;
+			import weave.primitives.Bounds2DIndex;
 			import weave.primitives.ColorRamp;
+			import weave.ui.CustomLabel;
 			
 			/**
 			 * This is a 2D array with list of words and the respective word count.
@@ -33,15 +36,51 @@
 				autoLayout = false;
 				cacheAsBitmap = true;
 				
+				addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+				
+			}
+			
+			private var tempBounds:Bounds2D = new Bounds2D();
+			private var previousProbedLabels:Array = []; 
+			private function handleMouseMove(event:MouseEvent):void
+			{
+				//clear filters on previous probed lables
+				for each (var lab:CustomLabel in previousProbedLabels)
+				{
+					lab.filters = [];
+				}
+				
+				var  targetPoint:Point = new Point(event.stageX,event.stageY);
+				targetPoint = globalToLocal(targetPoint);
+				
+				tempBounds.setCenteredRectangle(targetPoint.x,targetPoint.y,0,0);
+				previousProbedLabels = boundsIndex.select(tempBounds);
+				
+				
+				for each(var l:CustomLabel in previousProbedLabels)
+				{
+					var hitX:Number = targetPoint.x-l.x;
+					var hitY:Number = targetPoint.y-l.y;
+					
+					var hitTargetRadius:int = 3;
+					
+					//for all probed labels highlight label with actual collision
+					if(l.labelBitmap.bitmapData.hitTest(new Point(0,0),1,new Rectangle(hitX-hitTargetRadius,hitY-hitTargetRadius,hitTargetRadius*2,hitTargetRadius*2)))
+					{
+						l.filters = [probeGlowOuter,shadow];
+						return;//just highlight the first label
+					}
+				}
 			}
 			
 			private var probeGlowOuter:GlowFilter = new GlowFilter(0xfffffff, 0.7, 3,3,10);	
 			private var shadow:DropShadowFilter 	= new DropShadowFilter(2, 45, 0, 0.5, 4, 4, 2);
+			
+			private var boundsIndex:Bounds2DIndex = new Bounds2DIndex();
 			public function draw():void
 			{
 				if(dataProvider.length == 0)
 					return;
-				
 				
 //				if(tagCanvas)
 //					this.removeChild(tagCanvas);
@@ -66,26 +105,32 @@
 				{
 					
 					validateNow();
-					tagCanvasBitmapData.fillRect(tagCanvasBitmapData.rect,0x00000000);
+//					tagCanvasBitmapData.fillRect(tagCanvasBitmapData.rect,0x00000000);
 					tagCanvasBitmapData.draw(this);
 					
-					var currWordLabel:Label = new Label();
-					currWordLabel.addEventListener(MouseEvent.ROLL_OVER,function (event:MouseEvent):void{(event.target as Label).filters = [probeGlowOuter,shadow]});
-					currWordLabel.addEventListener(MouseEvent.ROLL_OUT,function (event:MouseEvent):void{(event.target as Label).filters = []});
+					var currWordLabel:CustomLabel = new CustomLabel();
+//					currWordLabel.addEventListener(MouseEvent.ROLL_OVER,function (event:MouseEvent):void{(event.target as CustomLabel).filters = [probeGlowOuter,shadow]});
+//					currWordLabel.addEventListener(MouseEvent.ROLL_OUT,function (event:MouseEvent):void{(event.target as CustomLabel).filters = []});
+//					currWordLabel.addEventListener(MouseEvent.MOUSE_MOVE,function (event:MouseEvent):void{
+//						if((event.target as CustomLabel).labelBitmap.bitmapData.hitTest(new Point(0,0),1,new Point(event.localX,event.localY)))
+//							(event.target as CustomLabel).filters = [probeGlowOuter,shadow];
+//						else
+//							(event.target as CustomLabel).filters = [];
+//					});
 					addChild(currWordLabel);
 					
 					
 					var currWordHeight:Number = Math.floor((dataProvider[i][1]/maxWordCount)*maxWordHeight)
-					currWordLabel.setStyle("fontSize",currWordHeight);
-					currWordLabel.setStyle("color",colorRamp.getColorFromNorm(StandardLib.normalize(i, 0, dataProvider.length)));
-					currWordLabel.text = dataProvider[i][0];
-					currWordLabel.validateNow();
+					currWordLabel.l.setStyle("fontSize",currWordHeight);
+					currWordLabel.l.setStyle("color",colorRamp.getColorFromNorm(StandardLib.normalize(i, 0, dataProvider.length)));
+					currWordLabel.l.text = dataProvider[i][0];
+					currWordLabel.l.validateNow();
 					
-					currWordLabel.height = currWordLabel.textHeight + 10;//offset
-					currWordLabel.width = currWordLabel.textWidth + 10;//offset
+					currWordLabel.l.height = currWordLabel.l.textHeight + 10;//offset
+					currWordLabel.l.width = currWordLabel.l.textWidth + 10;//offset
 
-					labelLoc.x = (width/2) - Math.round(currWordLabel.textWidth/2);
-					labelLoc.y = (height/2) - Math.round(currWordLabel.textHeight/2);
+					labelLoc.x = (width/2) - Math.round(currWordLabel.l.textWidth/2);
+					labelLoc.y = (height/2) - Math.round(currWordLabel.l.textHeight/2);
 					
 					// set up these arrays so we can iterate through the four directions: right, down, left, up
 					var xDirectionArray:Array = [1,0,-1,0];
@@ -99,13 +144,13 @@
 					var xDirection:Number = 0;
 					var yDirection:Number = 0;
 					
+					currWordLabel.l.filters = [probeGlowOuter];
+
 					//rendering the label to BitmapData
-					var labelBitmapData:BitmapData = new BitmapData(currWordLabel.textWidth+10,currWordLabel.textHeight+10,true,0x00000000); // +10 for offset, to avoid word cutoff
-					labelBitmapData.applyFilter(labelBitmapData,labelBitmapData.rect,new Point(0,0),probeGlowOuter);
-					validateNow();
-					currWordLabel.validateNow();
-					labelBitmapData.draw(currWordLabel);
+					currWordLabel.renderLabel();
 					
+//					labelBitmapData.applyFilter(labelBitmapData,labelBitmapData.rect,new Point(0,0),probeGlowOuter); //to apply a spacing around the label
+					currWordLabel.l.filters = [];
 					var posFound:Boolean = false; 
 					
 					
@@ -123,10 +168,11 @@
 							validateNow();
 							
 							// check current position before stepping, and stop if nothing overlaps
-							if(!tagCanvasBitmapData.hitTest(tagCanvasLoc,1,labelBitmapData,labelLoc,1))
+							if(!tagCanvasBitmapData.hitTest(tagCanvasLoc,1,currWordLabel.labelBitmap.bitmapData,labelLoc,1))
 							{
 								currWordLabel.x = labelLoc.x;
 								currWordLabel.y = labelLoc.y;
+								
 								
 								posFound = true;
 								break;
@@ -140,7 +186,10 @@
 						direction++
 					}
 					
-					labelBitmapData.dispose();
+					currWordLabel.renderLabelAndDiscard();
+					tempBounds.setRectangle(currWordLabel.x,currWordLabel.y,currWordLabel.l.textWidth,currWordLabel.l.textHeight);
+					boundsIndex.insert(tempBounds,currWordLabel);
+					trace(currWordLabel.l.text,tempBounds);
 				}
 				tagCanvasBitmapData.dispose();
 			}

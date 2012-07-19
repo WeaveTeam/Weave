@@ -7,6 +7,7 @@
 		   dragDrop ="dragDropHandler(event)"
 		   dragEnter="dragEnterHandler(event)"
 		>
+	<mx:Canvas id="pointsCanvas" visible="false" clipContent="false" width="400" height="300"/>
 	<mx:Glow id="selectedBorder" 
 			 alphaFrom="1.0" alphaTo="1.0"   
 			 blurXFrom="10.0" blurYFrom="10.0" 
@@ -17,8 +18,8 @@
 			 blurXFrom="10.0" blurYFrom="10.0" 
 			 blurXTo="10.0" blurYTo="10.0"
 			 duration="0" target="{nodeBase}"/>
-	<mx:Fade id="fadeIn" alphaFrom="0.0" alphaTo="1.0" duration="750" />
-	<mx:Fade id="fadeOut" alphaFrom="1.0" alphaTo="0.0" duration="750" />
+	<mx:Fade id="fadeIn" alphaFrom="0.0" effectStart="handleFadeInEffectsStart(event)" alphaTo="1.0" duration="750" />
+	<mx:Fade id="fadeOut" alphaFrom="1.0" effectEnd="handleFadeOutEffectsEnd(event)" alphaTo="0.0" duration="750" />
 	<mx:Script>
 		<![CDATA[
 			import flash.events.MouseEvent;
@@ -36,8 +37,10 @@
 			import mx.controls.TextArea;
 			import mx.core.Application;
 			import mx.core.IUIComponent;
+			import mx.core.UITextField;
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
+			import mx.events.EffectEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
@@ -173,9 +176,9 @@
 				//if node is selected we highlight the nodeBase
 				node.selected.addGroupedCallback(this,highlightNode);
 				
-				//for now defaulting to Grid Layout
+				//for now defaulting to Random Layout
 				if(layout.internalObject == null)
-					layout.requestLocalObject(GridLayout,false);
+					layout.requestLocalObject(RandomLayout,false);
 				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
 				
 				//opens the settings panel
@@ -185,7 +188,7 @@
 				nodeBase.closeImg.addEventListener(MouseEvent.CLICK,close);
 				
 				nodeBase.filterImg.addEventListener(MouseEvent.CLICK, addTagCloud);
-				
+				nodeBase.searchImg.addEventListener(MouseEvent.CLICK,showPointCanvas);
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_UP,canvas1_mouseUpHandler);
@@ -242,6 +245,7 @@
 				nodeBase.commentTextArea.addEventListener(KeyboardEvent.KEY_UP,delayedCommentKeyUp); 
 				nodeBase.commentTextArea.addEventListener(FocusEvent.FOCUS_OUT,updateCommentTextArea);
 				
+				clickedWordKeySet.addImmediateCallback(this,handleClickedWordKeySetChange);
 				
 				refreshTimer.start();
 				//call event for each tick of refreshTimer
@@ -320,7 +324,7 @@
 				{
 					movedThumbNails.removeObject(t.docURL.value);
 					
-					addChild(t);
+					pointsCanvas.addChild(t);
 					
 					t.hasBeenMoved.value = false;
 					
@@ -472,8 +476,8 @@
 			override public function validateDisplayList():void
 			{
 				super.validateDisplayList();
-				if(detectLinkableObjectChange(invalidateDisplayList,thumbnails,movedThumbNails))
-					positionThumbnails();
+//				if(detectLinkableObjectChange(invalidateDisplayList,thumbnails,movedThumbNails))
+//					positionThumbnails();
 			}
 			
 			public var thumbnailsToPlotArray:Array = [];
@@ -485,8 +489,12 @@
 			 **/
 			private function positionThumbnails():void
 			{
-				nodeBase.keywordTextArea.text = query.keywords.value;
+//				nodeBase.keywordTextArea.text = query.keywords.value;
+				nodeBase.keywordTextArea.htmlText = "<b>Query: </b> " + query.keywords.value;
 				nodeBase.keywordTextArea.toolTip = query.keywords.value;
+				
+				pointsCanvas.y = nodeBase.height;
+				
 				thumbnailsToPlotArray = [];
 				var tNails:Array = thumbnails.getObjects()
 
@@ -522,24 +530,29 @@
 					{
 						if(t.parent != this)
 						{
-							addChild(t);
+							t.visible = false;
+							pointsCanvas.addChild(t);
 						}
 					}
 					
 					
 					var docURL:String = thumbnails.getName(t);
 					var qKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,docURL);
+					
+					//TODO: Handle subsets
+					
+					
 					if(_subset.containsKey(qKey))
 					{
 						thumbnailsToPlotArray.push(t);
-						t.visible = true;
+//						t.visible = true;
 					}else{
 						
-						t.visible = false;
+//						t.visible = false;
 					}
 					
 				}
-//				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
+				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
 				handleSelectionKeySetChange();
 				handleGlobalSearch();
 			}
@@ -678,7 +691,10 @@
 					{
 						var qKey1:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t1.docURL.value);
 						if(_subset.containsKey(qKey1))
-							t1.visible = !visiblity;
+						{
+							
+//							t1.visible = !visiblity;
+						}
 					}
 				}else
 				{
@@ -686,7 +702,10 @@
 					{
 						var qKey2:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t2.docURL.value);
 						if(_subset.containsKey(qKey2))
-							t2.visible = false;
+						{
+							
+//							t2.visible = false;
+						}
 					}
 				}
 				
@@ -701,7 +720,10 @@
 								
 					
 					if(t3 && qKey3 && _subset.containsKey(qKey3))
-						t3.visible = true;
+					{
+						
+//						t3.visible = true;
+					}
 				}
 				
 			}
@@ -842,6 +864,7 @@
 				if(tagCanvas == null)
 				{
 					tagCanvas = new TagCloud();
+					tagCanvas.addEventListener(MouseEvent.CLICK,handleTagCloudClick);
 					tagCanvas.alpha = 0;
 					addChild(tagCanvas);
 					tagCanvas.y= nodeBase.height;
@@ -851,10 +874,59 @@
 						
 				}
 				
-				if(tagCanvas.alpha == 0)
+					fadeOut.play([pointsCanvas]);
 					fadeIn.play([tagCanvas]);
-				else
+			}
+			
+			private function showPointCanvas(event:Event):void
+			{
+				
+				if(!(tagCanvas == null))
 					fadeOut.play([tagCanvas]);
+				(layout.internalObject as RandomLayout).updateTitleLabel();
+				fadeIn.play([pointsCanvas]);
+			}
+			
+			private var clickedWordKeySet:KeySet = new KeySet();
+			private function handleTagCloudClick(event:MouseEvent):void
+			{
+				if(event.target is UITextField)
+					var clickedWord:String = (event.target as UITextField).text;
+				
+				if(!query.sources.value == '')
+				{
+					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+				}
+				
+				_parentPanel.infoMapsDataSource.getDocumentsForQuery(clickedWordKeySet,[],query.keywords.value + " " + clickedWord,query.operator.value,sourceNames,query.dateFilter);
+			}
+			
+			private function handleClickedWordKeySetChange():void
+			{
+				var keys:Array = clickedWordKeySet.keys;
+				var includeKeys:Array = []
+				
+				for each(var k:IQualifiedKey in keys)
+				{
+					if(thumbnails.getObject(k.localName))
+					{
+						includeKeys.push(k);	
+					}
+				}
+				
+				_subset.replaceKeys(false,true,includeKeys);
+				fadeOut.play([tagCanvas]);
+				fadeIn.play([pointsCanvas]);
+			}
+			
+			private function handleFadeInEffectsStart(event:EffectEvent):void
+			{
+				(event.effectInstance.target as Canvas).visible = true;
+			}
+			
+			private function handleFadeOutEffectsEnd(event:EffectEvent):void
+			{
+				(event.effectInstance.target as Canvas).visible = false;
 			}
 			
 			private function handleCloseEvent(e:CloseEvent):void

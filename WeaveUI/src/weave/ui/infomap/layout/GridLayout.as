@@ -72,11 +72,11 @@ package weave.ui.infomap.layout
 			if(_parentNodeHandler.query.sources.value)
 				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.query.sources.value;
 			
-			var startX:Number = _parentNodeHandler.nodeBase.x;
-			var startY:Number = _parentNodeHandler.nodeBase.y;
+			var startX:Number = 0;//_parentNodeHandler.nodeBase.x;
+			var startY:Number = 0;//_parentNodeHandler.nodeBase.y;
 			
 			//offet to  be below node base
-			startY = startY + _parentNodeHandler.nodeBase.height;
+//			startY = startY + _parentNodeHandler.nodeBase.height;
 			
 			var temp:Array = [];
 			for (var i:int = 0; i < thumbnails.length; i++)

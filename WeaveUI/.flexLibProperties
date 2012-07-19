@@ -6,6 +6,7 @@
     <classEntry path="weave.ui.infomap.core.QueryObject"/>
     <classEntry path="weave.ui.infomap.ui.HTMLFileUploader"/>
     <classEntry path="weave.ui.infomap.ui.TagCloud"/>
+    <classEntry path="weave.ui.infomap.layout.RandomLayout"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

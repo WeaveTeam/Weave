@@ -19,13 +19,14 @@ so that it can be moved, selected, handle filters.
 				borderColor="black"
 				dragComplete="handleDragComplete(event)"
 				horizontalScrollPolicy="off"
-				verticalScrollPolicy="off">
+				verticalScrollPolicy="off" width="100%" clipContent="false">
 	<mx:Image id="img" width="100%" height="100%"/>
-	<mx:Canvas id="point"/>
+	<mx:Canvas id="point" height="100%" verticalScrollPolicy="off" clipContent="false"/>
 	<mx:Script>
 		<![CDATA[
 			import flash.text.engine.GroupElement;
 			
+			import mx.controls.Label;
 			import mx.core.DragSource;
 			import mx.core.mx_internal;
 			import mx.events.DragEvent;
@@ -133,6 +134,8 @@ so that it can be moved, selected, handle filters.
 			
 			public const docURL:LinkableString = newLinkableChild(this,LinkableString);
 			
+			public var titleLabel:Label = new Label();
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -145,6 +148,9 @@ so that it can be moved, selected, handle filters.
 				defaultBorderColor.addGroupedCallback(this,setSelection);
 				
 				hasBeenMoved.addGroupedCallback(this,handleMode,true);
+				
+				point.addChild(titleLabel);
+				
 			}
 			
 			private function handleMode():void
@@ -428,12 +434,12 @@ so that it can be moved, selected, handle filters.
 				if(_selection.containsKey(key))
 				{
 					_selection.removeKeys([key]);
-					point.filters = [selectionBlur];
+//					point.filters = [selectionBlur];
 				}
 				else
 				{
 					_selection.addKeys([key]);
-					point.filters = [shadow];
+//					point.filters = [shadow];
 				}
 			}
 			
@@ -478,7 +484,7 @@ so that it can be moved, selected, handle filters.
 					imageAlpha.value = 1.0;
 					setStyle("borderThickness", 1.5);
 					setStyle("borderColor",selectedBorderColor.value);
-					point.filters = [shadow];
+//					point.filters = [shadow];
 				}
 				else
 				{
