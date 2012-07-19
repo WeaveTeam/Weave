@@ -102,8 +102,12 @@ package weave.visualization.layers
 		public const enableZoomAndPan:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const enableSelection:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const enableProbe:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		public const zoomFactor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2));
+		public const zoomFactor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2, verifyZoomFactor));
 		
+		private function verifyZoomFactor(value:Number):Boolean
+		{
+			return value >= 1;
+		}
 		
 		private var activeKeyType:String = null;
 		private var mouseDragActive:Boolean = false;
@@ -380,8 +384,6 @@ package weave.visualization.layers
 						{
 							zoomBounds.getDataBounds(_tempBounds);
 							zoomBounds.getScreenBounds(_screenBounds);
-							if( zoomFactor.value < 1 )
-								zoomFactor.value = 2;
 							if (event.delta > 0)
 								ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,zoomFactor.value,false);
 							else if (event.delta < 0)

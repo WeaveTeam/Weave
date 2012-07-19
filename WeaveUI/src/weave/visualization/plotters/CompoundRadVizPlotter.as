@@ -322,7 +322,7 @@ package weave.visualization.plotters
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{						
 			var graphics:Graphics = tempShape.graphics;
-			var radius:Number = (screenRadius.internalColumn) ? keyNormedRadiusMap[recordKey] : radiusConstant.value;
+			var radius:Number = (screenRadius.getInternalColumn()) ? keyNormedRadiusMap[recordKey] : radiusConstant.value;
 			
 			// Get coordinates of record and add jitter (if specified)
 			var sum:Number= getXYcoordinates(recordKey);
@@ -330,7 +330,7 @@ package weave.visualization.plotters
 			// missing values skipped
 			if(isNaN(coordinate.x) || isNaN(coordinate.y)) return;
 				
-			if(isNaN(radius) && (screenRadius.internalColumn != null))
+			if(isNaN(radius) && (screenRadius.getInternalColumn() != null))
 			{			
 				radius = radiusConstant.value;
 				
@@ -369,7 +369,8 @@ package weave.visualization.plotters
 				else
 					fillStyle.beginFillStyle(recordKey, graphics);
 
-				if( screenRadius.internalColumn ) {					
+				if (screenRadius.getInternalColumn())
+				{					
 					drawWedge(graphics, beginRadians, spanRadians, coordinate, radius*radiusConstant.value/3);
 				}
 				else
@@ -423,17 +424,19 @@ package weave.visualization.plotters
 		private function sortKeys(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{			
 			// sort descending (high radius values drawn first)
-			if( screenRadius.internalColumn )
+			if (screenRadius.getInternalColumn())
 			{				
 				// compare size
 				var a:Number = keyRadiusMap[key1];
 				var b:Number = keyRadiusMap[key2];
 				
-				if( isNaN(a) || (a < b) )	return -1;
-				else if( isNaN(b) || (a > b) ) return 1;
+				if (isNaN(a) || a < b)
+					return -1;
+				else if (isNaN(b) || a > b)
+					return 1;
 			}
 			// size equal.. compare color (if global colorColumn is used)
-			if( !enableWedgeColoring.value)
+			if (!enableWedgeColoring.value)
 			{
 				a = keyColorMap[key1];
 				b = keyColorMap[key2];

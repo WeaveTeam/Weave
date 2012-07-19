@@ -36,7 +36,6 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
-			import mx.controls.Alert;
 			import mx.events.DragEvent;
 			
 			import weave.api.core.ILinkableObject;
@@ -329,7 +328,6 @@
 						import weave.core.LinkableBoolean;
 						import weave.core.LinkableHashMap;
 						import weave.core.SessionManager;
-						import weave.core.weave_internal;
 						import weave.data.AttributeColumns.AlwaysDefinedColumn;
 						import weave.data.AttributeColumns.GeometryColumn;
 						import weave.data.AttributeColumns.ReprojectedGeometryColumn;
@@ -353,7 +351,6 @@
 						import weave.visualization.plotters.WMSPlotter;
 						import weave.visualization.plotters.styles.SolidFillStyle;
 						import weave.visualization.plotters.styles.SolidLineStyle;
-						use namespace weave_internal;
 						
 						private function get editor():PlotLayerEditor { return outerDocument; }
 						
@@ -576,8 +573,8 @@
 									if (projString != null)
 										projLabel = ' (' + projString + ')';
 									
-									useImagesCheck.selected = (geomPlotter.pointDataImageColumn.internalColumn != null);
-									var adc:AlwaysDefinedColumn = geomPlotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
+									useImagesCheck.selected = (geomPlotter.pointDataImageColumn.getInternalColumn() != null);
+									var adc:AlwaysDefinedColumn = geomPlotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
 									if (adc)
 										imageURL.text = adc.defaultValue.value as String;
 								}
@@ -744,7 +741,7 @@
 						private function handleGeomPlotterImageURLChange():void
 						{
 							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
-							var adc:AlwaysDefinedColumn = plotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
+							var adc:AlwaysDefinedColumn = plotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
 							if (adc)
 								imageURL.text = adc.defaultValue.value as String;
 						}

@@ -350,15 +350,12 @@
 			 * */
 			private function keyColumnChange(event:Event=null):void
 			{
-				if (generateFilterColumnsCheckBox.selected)
+				if (generateFilterColumnsCheckBox.selected || generateKeyColumnCheckBox.selected)
 				{
 					clearErrors();
 					return;
 				}
 
-				if (generateKeyColumnCheckBox.selected)
-					return;
-				
 				finishEnabled = false;
 				nextEnabled = false;
 				
@@ -381,6 +378,10 @@
 			
 			private function handleKeyColumnCheck(e:ResultEvent,token:Object=null):void
 			{
+				if (generateFilterColumnsCheckBox.selected || generateKeyColumnCheckBox.selected)
+				{
+					return; //we don't clear errors because because this is an asynchronous call, so we don't want it to update UI, if the result is late.
+				}
 				
 				if(!e.result)
 				{
@@ -402,7 +403,7 @@
 			
 			private function handleKeyColumnCheckFault(e:FaultEvent,token:Object=null):void
 			{
-				clearErrors();
+				WeaveAPI.ErrorManager.reportError("Error checking Key Column");
 			}
 			
 			/**

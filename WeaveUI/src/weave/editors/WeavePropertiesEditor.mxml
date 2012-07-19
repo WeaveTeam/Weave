@@ -33,10 +33,24 @@
 		]]>
 	</mx:Script>
 	<WeavePropertiesAppearanceEditor label="Appearance"/>
+	
 	<WeavePropertiesMenuEditor label="Menus"/>
-	<WeavePropertiesInteractivityEditor label="Interactivity"/>
+	
+	<mx:VBox label="Interactivity">
+		<mx:CheckBox label="Enable probing"
+					 creationComplete="linkBindableProperty(Weave.properties.enableToolProbe,event.target,'selected')"/>
+		<mx:CheckBox label="Enable selection"
+					 creationComplete="linkBindableProperty(Weave.properties.enableToolSelection, event.target, 'selected');"/>
+		<mx:CheckBox label="Enable right-click menu"
+					 creationComplete="linkBindableProperty(Weave.properties.enableRightClick,event.target,'selected')"/>
+		<mx:CheckBox label="Enable control panels and attribute selection"
+					 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
+	</mx:VBox>
+	
 	<WeavePropertiesProbingEditor label="Probing"/>
+	
 	<WeavePropertiesSelectionEditor label="Selection"/>
+	
 	<mx:VBox label="Advanced" width="100%" height="100%">
 		<ui:Indent label="Streaming geometry bounding box request mode">
 			<ui:CustomComboBox id="geometryMetadataRequestMode"/>

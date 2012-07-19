@@ -30,20 +30,6 @@ package weave.api.core
 		 * @return The ICallbackCollection associated with the given object.
 		 */
 		function getCallbackCollection(linkableObject:ILinkableObject):ICallbackCollection;
-
-		/**
-		 * This function is used to detect if callbacks of a linkable object were triggered since the last time detectLinkableObjectChange
-		 * was called with the same parameters, likely by the observer.  Note that once this function returns true, subsequent calls will
-		 * return false until the callbacks are triggered again, unless clearChangedNow is set to false.  It may be a good idea to specify
-		 * a private object as the observer so no other code can call detectLinkableObjectChange with the same observer and linkableObject
-		 * parameters.
-		 * @param observer The object that is observing the change.
-		 * @param linkableObject The object that is being observed.
-		 * @param clearChangedNow If this is true, the trigger counter will be reset to the current value now so that this function will
-		 *        return false if called again with the same parameters before the next time the linkable object triggers its callbacks.
-		 * @return A value of true if the callbacks have triggered since the last time this function was called with the given parameters.
-		 */
-		function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject, clearChangedNow:Boolean = true):Boolean
 		
 		/**
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
@@ -123,6 +109,27 @@ package weave.api.core
 		 */
 		function getLinkableDescendants(root:ILinkableObject, flter:Class = null):Array;
 		
+		/**
+		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>
+		 * will return true until all assigned tasks are unassigned using <code>unassignBusyTask(taskToken)</code>.
+		 * @param taskToken A token representing an asynchronous task.
+		 * @param busyObject The object that is busy waiting for the task to complete.
+		 */
+		function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void;
+		
+		/**
+		 * This will unassign an asynchronous task from all linkable objects it has been previously assigned to.
+		 * @param taskToken A token representing an asynchronous task.
+		 */
+		function unassignBusyTask(taskToken:Object):void;
+		
+		/**
+		 * This checks if any asynchronous tasks have been assigned to a linkable object or any of its registered descendants.
+		 * @param linkableObject The object to check.
+		 * @return A value of true if any asynchronous tasks have been assigned to the object.
+		 */
+		function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean;
+
 		/**
 		 * @param linkableObject An object containing sessioned properties (sessioned objects may be nested).
 		 * @param newState An object containing the new values for sessioned properties in the sessioned object.

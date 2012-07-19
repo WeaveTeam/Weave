@@ -48,7 +48,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
 			import weave.utils.SpatialIndex;
-			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.plotters.AnchorPlotter;
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.RadVizPlotter;
@@ -58,7 +58,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable]
 			private var _plotter:RadVizPlotter ;
 			private var _anchorPlotter:AnchorPlotter ;
-			private var _anchorLayer:SelectablePlotLayer ;
+			private var _anchorLayer:PlotLayer ;
 			
 			override protected function constructor():void
 			{
@@ -83,10 +83,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					(initColumnDefaults as Function).apply(null, columnsToInit);
 				
 				_plotter.setAnchorLocations();
-				_anchorLayer = visualization.layers.requestObject("anchorLayer", SelectablePlotLayer, false );
-				_anchorPlotter = _anchorLayer.getDynamicPlotter().requestLocalObject(AnchorPlotter, false) ;
+				_anchorLayer = visualization.layers.requestObject("anchorLayer", PlotLayer, true );
+				_anchorPlotter = _anchorLayer.getDynamicPlotter().requestLocalObject(AnchorPlotter, true) ;
 				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);	
-				_anchorLayer.useTextBitmapFilters.value = true;				
 				
 				getCallbackCollection(plotLayer.probeFilter).addImmediateCallback(this,drawProbeLines);
 				

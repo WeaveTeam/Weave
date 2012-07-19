@@ -21,6 +21,7 @@ package weave.services
 {
 	import mx.rpc.AsyncToken;
 	
+	import weave.api.registerDisposableChild;
 	import weave.api.services.IWeaveGeometryTileService;
 	
 	/**

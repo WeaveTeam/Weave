@@ -20,25 +20,17 @@
 package weave.data
 {
 	import flash.utils.Dictionary;
-	import flash.utils.getQualifiedClassName;
-	
-	import mx.core.Singleton;
-	import mx.utils.object_proxy;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.getCallbackCollection;
 	import weave.core.SessionManager;
-	import weave.core.weave_internal;
-	import weave.primitives.AttributeHierarchy;
-	import weave.primitives.WeakReference;
 	
 	/**
 	 * This class manages a global list of IQualifiedKey objects.

@@ -85,7 +85,7 @@ package weave.data.AttributeColumns
 		private function createLookupTable():void
 		{
 			// get the keys from the internal column
-			var keys:Array = internalColumn ? internalColumn.keys : [];
+			var keys:Array = getInternalColumn() ? getInternalColumn().keys : [];
 			// make a copy of the list of keys
 			VectorUtils.copy(keys, _keys);
 			// sort the keys based on the numeric values associated with them
@@ -97,7 +97,7 @@ package weave.data.AttributeColumns
 			{
 				// since numericCompare sorts NaN at the end, ignoring NaN's won't affect the remaining indices
 				var key:IQualifiedKey = _keys[i] as IQualifiedKey;
-				if (!isNaN(internalColumn.getValueFromKey(key, Number)))
+				if (!isNaN(getInternalColumn().getValueFromKey(key, Number)))
 					_keyToIndexMap[_keys[i]] = i;
 			}
 		}
@@ -110,8 +110,8 @@ package weave.data.AttributeColumns
 		 */
 		private function sortByNumericValue(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{
-			var val1:Number = internalColumn.getValueFromKey(key1, Number);
-			var val2:Number = internalColumn.getValueFromKey(key2, Number);
+			var val1:Number = getInternalColumn().getValueFromKey(key1, Number);
+			var val2:Number = getInternalColumn().getValueFromKey(key2, Number);
 			// if numeric values are equal, compare the keys
 			return ObjectUtil.numericCompare(val1, val2) || ObjectUtil.compare(key1, key2);
 		}
@@ -124,7 +124,7 @@ package weave.data.AttributeColumns
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			var result:*;
-			if (internalColumn != null)
+			if (getInternalColumn() != null)
 			{
 				// validate lookup table if necessary
 				if (_keyToIndexMap == null)
@@ -138,7 +138,7 @@ package weave.data.AttributeColumns
 			}
 			// cast to other types
 			if (dataType == String)
-				result = internalColumn ? internalColumn.getValueFromKey(key, String) : '';
+				result = getInternalColumn() ? getInternalColumn().getValueFromKey(key, String) : '';
 			else if (dataType == Boolean)
 				result = !isNaN(result); // true if key exists in lookup table
 			
@@ -159,7 +159,7 @@ package weave.data.AttributeColumns
 			// return '' if there is no key at the given index value
 			if (index < 0 || index >= _keys.length)
 				return '';
-			return internalColumn ? internalColumn.getValueFromKey(_keys[index], String) : '';
+			return getInternalColumn() ? getInternalColumn().getValueFromKey(_keys[index], String) : '';
 		}
 	}
 }

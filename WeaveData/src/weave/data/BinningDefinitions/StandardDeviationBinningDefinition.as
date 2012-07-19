@@ -24,14 +24,6 @@ package weave.data.BinningDefinitions
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IBinningDefinition;
-	import weave.api.data.IPrimitiveColumn;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
-	import weave.compiler.StandardLib;
-	import weave.core.LinkableNumber;
-	import weave.core.weave_internal;
 	import weave.data.BinClassifiers.NumberClassifier;
 	
 	/**

@@ -116,6 +116,7 @@ LayerListComponent
 								{
 									linkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
 									linkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
+									selectedCheckbox.visible = true;
 								}
 								else
 								{

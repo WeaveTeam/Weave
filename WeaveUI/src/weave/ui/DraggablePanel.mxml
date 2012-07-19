@@ -34,8 +34,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				resize="handleResize(event)"
 				creationComplete="handleCreationComplete()"
 				layout="absolute"
-				
 				close="handleCloseButtonClick()"
+				enterFrame="busyIndicator.visible = WeaveAPI.SessionManager.linkableObjectIsBusy(this);"
 				
 				closeButtonUpSkin="@Embed(source='/weave/resources/images/cancel.png')"
 				closeButtonOverSkin="@Embed(source='/weave/resources/images/cancel.png')"
@@ -53,14 +53,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.controls.Alert;
 			import mx.controls.Button;
 			import mx.controls.Image;
-			import mx.controls.Menu;
-			import mx.core.Application;
 			import mx.core.BitmapAsset;
 			import mx.core.SpriteAsset;
 			import mx.core.UIComponent;
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
-			import mx.events.MenuEvent;
 			import mx.events.ResizeEvent;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
@@ -86,7 +83,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.EditorManager;
 			import weave.utils.NumberUtils;
-			
+
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -289,7 +286,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				titleBar.setStyle("color", Weave.properties.panelTitleTextFormat.color.value);
 				
 				panelNeedsUpdate();
+				
 			}
+			public var busyIndicator:BusyIndicator = new BusyIndicator();
 			
 			private function handleCreationComplete():void
 			{
@@ -297,6 +296,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//_dragCanvas.percentHeight = 100;
 				rawChildren.addChild(_dragCanvas);
 				rawChildren.addChild(_moveImage);
+				rawChildren.addChild(busyIndicator);
 			}
 			
 			/**

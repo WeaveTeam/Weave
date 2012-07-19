@@ -86,11 +86,6 @@ package weave.services
 		protected var _urlRequestDataFormat:String;
 		
 		/**
-		 * Set this to false to disable automatic progress reporting to WeaveAPI.ProgressIndicator.
-		 */		
-		internal var reportProgress:Boolean = true;
-
-		/**
 		 * This function makes a remote procedure call.
 		 * @param methodName The name of the method to call.
 		 * @param methodParameters The parameters to use when calling the method.
@@ -160,7 +155,7 @@ package weave.services
 			var token:AsyncToken = new AsyncToken();
 			
 			// the last argument is BINARY instead of _dataFormat because the stream should not be parsed
-			_asyncTokenToLoader[token] = WeaveAPI.URLRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY, reportProgress);
+			_asyncTokenToLoader[token] = WeaveAPI.URLRequestUtils.getURL(this, request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY);
 			return token;
 		}
 		

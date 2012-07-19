@@ -517,7 +517,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for each (var column:IAttributeColumn in columns.getObjects())
 				{
 					while (!(column is IPrimitiveColumn) && column is IColumnWrapper)
-						column = (column as IColumnWrapper).internalColumn;
+						column = (column as IColumnWrapper).getInternalColumn();
 					
 					if (column is SecondaryKeyNumColumn)
 					{

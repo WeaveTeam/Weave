@@ -48,7 +48,6 @@ package weave
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
-	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
@@ -82,8 +81,6 @@ package weave
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
 
-	use namespace weave_internal;
-	
 	/**
 	 * A list of global settings for a Weave instance.
 	 */
@@ -146,9 +143,10 @@ package weave
 		}
 		
 		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
-		private static function loadWeaveFontsSWF():void
+		private function loadWeaveFontsSWF():void
 		{
 			WeaveAPI.URLRequestUtils.getURL(
+				null,
 				new URLRequest('WeaveFonts.swf'),
 				function(event:ResultEvent, token:Object = null):void
 				{
@@ -224,7 +222,7 @@ package weave
 		public const collabSpectating:LinkableBoolean = new LinkableBoolean(false);
 		public const showCollaborationMenuItem:LinkableBoolean = new LinkableBoolean(true); // menu item
 		
-		
+		public const showDisabilityOptions:LinkableBoolean = new LinkableBoolean(true)// Show Disability Options tools menu
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
 		public const showProbeWindow:LinkableBoolean = new LinkableBoolean(true); // Show Probe Tool Tip Window in tools menu

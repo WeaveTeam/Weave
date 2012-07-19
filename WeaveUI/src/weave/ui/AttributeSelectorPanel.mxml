@@ -61,6 +61,7 @@
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
 			import weave.api.disposeObjects;
+			import weave.api.getCallbackCollection;
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
@@ -104,6 +105,7 @@
 					return;
 				}
 				
+				getCallbackCollection(columnList.hashMap).delayCallbacks();
 				var root:XML = editor.hierarchySelector.attributeHierarchy.value;
 				var attrs:Array = (editor.hierarchySelector.attributesView.dataProvider as ListCollectionView).toArray();
 				for (var i:int = 0; i < attrs.length; i++)
@@ -113,6 +115,7 @@
 					var ref:HierarchyColumnReference = col.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
 					editor.copyPathToRef(HierarchyUtils.getPathFromNode(root, attr), ref);
 				}
+				getCallbackCollection(columnList.hashMap).resumeCallbacks();
 			}
 			
 			private function addSelected():void
@@ -147,10 +150,10 @@
 					// temporary solution - find internal dynamic column
 					while (true)
 					{
-						if (columnWrapper.internalColumn is DynamicColumn)
-							columnWrapper = columnWrapper.internalColumn as IColumnWrapper;
-						else if (columnWrapper.internalColumn is ExtendedDynamicColumn)
-							columnWrapper = (columnWrapper.internalColumn as ExtendedDynamicColumn).internalDynamicColumn;
+						if (columnWrapper.getInternalColumn() is DynamicColumn)
+							columnWrapper = columnWrapper.getInternalColumn() as IColumnWrapper;
+						else if (columnWrapper.getInternalColumn() is ExtendedDynamicColumn)
+							columnWrapper = (columnWrapper.getInternalColumn() as ExtendedDynamicColumn).internalDynamicColumn;
 						else
 							break;
 					}

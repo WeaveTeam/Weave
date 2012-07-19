@@ -1,29 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" title="Probe Information" layout="absolute" width="25%" height="20%" creationComplete="draggablepanel1_creationCompleteHandler(event)" xmlns:editors="weave.editors.*">
+<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
+				   xmlns:ui="weave.ui.*"
+				   xmlns:editors="weave.editors.*"
+				   layout="absolute" width="25%" height="20%">
 	<mx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
 			import mx.controls.Button;
-			
-			import weave.data.KeySets.KeySet;
-			
 			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
-			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
+			import weave.api.getCallbackCollection;
+			import weave.data.KeySets.KeySet;
+			import weave.utils.LinkableTextFormat;
 			import weave.utils.ProbeTextUtils;
+			
+			override protected function constructor():void
+			{
+				super.constructor();
+				
+				var ltf:LinkableTextFormat = Weave.properties.defaultTextFormat;
+				var target:UIComponent = this;
+				getCallbackCollection(ltf).addGroupedCallback(this, function():void { ltf.copyToStyle(target); }, true);
+			}
+			
+			override protected function get defaultPanelTitle():String
+			{
+				return lang("Probe Information");
+			}
 			
 			private var probeKeySet:KeySet = null;
 			
-			protected function draggablepanel1_creationCompleteHandler(event:FlexEvent):void
+			override protected function createChildren():void
 			{
-				probeKeySet = Weave.root.getObject(Weave.DEFAULT_PROBE_KEYSET) as KeySet;
-				probeKeySet.addImmediateCallback(this, updateText);
+				super.createChildren();
 				var button:Button = new Button();
 				button.label = lang("Open probe tool tip editor");
 				button.addEventListener(MouseEvent.CLICK, openToolTipEditor);
 				settingsEditor.addChild(button); 
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				probeKeySet = Weave.root.getObject(Weave.DEFAULT_PROBE_KEYSET) as KeySet;
+				probeKeySet.addImmediateCallback(this, updateText);
 			}
 			
 			private function updateText():void
@@ -32,16 +54,6 @@
 					probeTextArea.text = ProbeTextUtils.getProbeText(probeKeySet.keys);
 				else
 					probeTextArea.text = "";
-			}
-			
-			public static function createInstance():DraggablePanel
-			{
-				var instance:ProbeToolTipWindow = WeaveAPI.globalHashMap.requestObject(lang("ProbeToolTipWindow"), ProbeToolTipWindow, false);
-				if (!instance.parent)
-					PopUpManager.addPopUp(instance, WeaveAPI.topLevelApplication as UIComponent);
-				instance.restorePanel();
-				
-				return instance;
 			}
 			
 			protected function openToolTipEditor(event:MouseEvent):void

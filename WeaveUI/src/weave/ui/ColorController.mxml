@@ -23,7 +23,7 @@
 				  xmlns:mx="http://www.adobe.com/2006/mxml"
 				  xmlns:ui="weave.ui.*" 
 				  layout="absolute"
-				  title="Color Controller"
+				  title="{lang('Color Controller')}"
 				  backgroundColor="#EFF4BC"
 				  >
 	<mx:VBox id="VizControlsPanel" label="Binning">

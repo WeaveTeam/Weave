@@ -166,7 +166,7 @@ package weave.api.primitives
 		
 		/**
 		 * This function projects the coordinates of a Point object from this bounds to a
-		 * destination bounds.
+		 * destination bounds.  The specified point object will be modified to contain the result.
 		 * @param point The Point object containing coordinates to project.
 		 * @param toBounds The destination bounds.
 		 */
@@ -174,23 +174,21 @@ package weave.api.primitives
 		
 		/**
 		 * This function projects all four coordinates of a IBounds2D object from this bounds
-		 * to a destination bounds.
+		 * to a destination bounds.  The specified coords object will be modified to contain the result.
 		 * @param inputAndOutput A IBounds2D object containing coordinates to project.
 		 * @param toBounds The destination bounds.
 		 */		
 		function projectCoordsTo(coords:IBounds2D, toBounds:IBounds2D):void;
 
 		/**
-		 * This constrains a point to be within this IBounds2D.
+		 * This constrains a point to be within this IBounds2D.  The specified point object will be modified to contain the result.
 		 * @param point The point to constrain.
-		 * @param preserveSlope A boolean indicating whether a point outside of the bounds
-		 * should be constrained inside the bounds at a position which lies on a line from 
-		 * the bounds center to the original point's location.
 		 */
-		function constrainPoint(point:Point, preserveSlope:Boolean = false):void;
+		function constrainPoint(point:Point):void;
 
 		/**
 		 * This constrains the center point of another IBounds2D to be overlapping the center of this IBounds2D.
+		 * The specified boundsToConstrain object will be modified to contain the result.
 		 * @param boundsToConstrain The IBounds2D objects to constrain.
 		 */
 		function constrainBoundsCenterPoint(boundsToConstrain:IBounds2D):void;
@@ -198,6 +196,7 @@ package weave.api.primitives
 		/**
 		 * This function will reposition a bounds such that for the x and y dimensions of this
 		 * bounds and another bounds, at least one bounds will completely contain the other bounds.
+		 * The specified boundsToConstrain object will be modified to contain the result.
 		 * @param boundsToConstrain the bounds we want to constrain to be within this bounds
 		 * @param preserveSize if set to true, width,height of boundsToConstrain will remain the same
 		 */

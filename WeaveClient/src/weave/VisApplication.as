@@ -51,7 +51,6 @@ package weave
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
@@ -63,7 +62,7 @@ package weave
 	import weave.compiler.StandardLib;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
-	import weave.core.weave_internal;
+	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
@@ -79,6 +78,7 @@ package weave
 	import weave.ui.CirclePlotterSettings;
 	import weave.ui.ColorController;
 	import weave.ui.CustomContextMenuManager;
+	import weave.ui.DisabilityOptions;
 	import weave.ui.DraggablePanel;
 	import weave.ui.EquationEditor;
 	import weave.ui.ErrorLogPanel;
@@ -110,8 +110,6 @@ package weave
 	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.MapTool;
-
-	use namespace weave_internal;
 
 	public class VisApplication extends VBox implements ILinkableObject
 	{
@@ -252,7 +250,7 @@ package weave
 				// load the session state file
 				var fileName:String = getFlashVarConfigFileName() || DEFAULT_CONFIG_FILE_NAME;
 				var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
-				WeaveAPI.URLRequestUtils.getURL(new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
+				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
 			}
 		}
 		private function handleConfigFileDownloaded(event:ResultEvent = null, token:Object = null):void
@@ -400,18 +398,27 @@ package weave
 			_selectionIndicatorText.text = lang("{0} Records Selected", selectionKeySet.keys.length.toString());
 			try
 			{
-				if (selectionKeySet.keys.length == 0 || !Weave.properties.showSelectedRecordsText.value)
+				var show:Boolean = Weave.properties.showSelectedRecordsText.value && selectionKeySet.keys.length > 0;
+				if ((WeaveAPI.StageUtils as StageUtils).debug_fps)
 				{
-					if (visDesktop == _selectionIndicatorText.parent)
-						visDesktop.removeChild(_selectionIndicatorText);
+					show = true;
+					_selectionIndicatorText.text = (WeaveAPI.StageUtils as StageUtils).aft + ' average frame time';
 				}
-				else
+				if (show)
 				{
 					if (visDesktop != _selectionIndicatorText.parent)
 						visDesktop.addChild(_selectionIndicatorText);
 				}
+				else
+				{
+					if (visDesktop == _selectionIndicatorText.parent)
+						visDesktop.removeChild(_selectionIndicatorText);
+				}
 			}
-			catch (e:Error) { }
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 		
 		private var historySlider:UIComponent = null;
@@ -456,6 +463,9 @@ package weave
 		
 		private function updateWorkspaceSize(..._):void
 		{
+			if ((WeaveAPI.StageUtils as StageUtils).debug_fps)
+				handleSelectionChange();
+			
 			if (!this.parent)
 				return;
 			
@@ -725,10 +735,10 @@ package weave
 				}
 
 				if(Weave.properties.enableAddDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Add New Datasource", AddDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableAddNewDatasource.value }));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Add New Datasource"), AddDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableAddNewDatasource.value }));
 				
 				if(Weave.properties.enableEditDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem("Edit Datasources", EditDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableEditDatasources.value }));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Edit Datasources"), EditDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableEditDatasources.value }));
 			}
 			
 			
@@ -736,11 +746,16 @@ package weave
 			{
 				_toolsMenu = _weaveMenu.addMenuToMenuBar(lang("Tools"), false);
 
+
 				createToolMenuItem(Weave.properties.showColorController, lang("Color Controller"), DraggablePanel.openStaticInstance, [ColorController]);
 				createToolMenuItem(Weave.properties.showProbeToolTipEditor, lang("Probe Info Editor"), DraggablePanel.openStaticInstance, [ProbeToolTipEditor]);
-				createToolMenuItem(Weave.properties.showProbeWindow, lang("Probe Info Window"), ProbeToolTipWindow.createInstance);
+				createToolMenuItem(Weave.properties.showProbeWindow, lang("Probe Info Window"), createGlobalObject, [ProbeToolTipWindow, "ProbeToolTipWindow"]);
 				createToolMenuItem(Weave.properties.showEquationEditor, lang("Equation Editor"), DraggablePanel.openStaticInstance, [EquationEditor]);
 				createToolMenuItem(Weave.properties.showCollaborationEditor, lang("Collaboration Settings"), DraggablePanel.openStaticInstance, [CollaborationEditor]);
+				if(getFlashVarEditable())
+					createToolMenuItem(Weave.properties.showDisabilityOptions, "Disability Options", DraggablePanel.openStaticInstance, [DisabilityOptions]);
+
+	
 				
 				var _this:VisApplication = this;
 
@@ -806,11 +821,10 @@ package weave
 							function():String
 							{
 								var collabTool:CollaborationTool = CollaborationTool.instance;
-								return lang(
-									collabTool && collabTool.collabService.isConnected
-									? lang("Open collaboration window")
-									: lang("Connect to collaboration server (Beta)...")
-								);
+								if (collabTool && collabTool.collabService.isConnected)
+									return lang("Open collaboration window")
+								else
+									return lang("Connect to collaboration server (Beta)...")
 							},
 							DraggablePanel.openStaticInstance,
 							[CollaborationTool]

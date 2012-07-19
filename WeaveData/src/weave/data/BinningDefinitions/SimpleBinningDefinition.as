@@ -23,15 +23,12 @@ package weave.data.BinningDefinitions
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
-	import weave.core.weave_internal;
-	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.ColumnUtils;
 	
@@ -67,7 +64,7 @@ package weave.data.BinningDefinitions
 			
 			var nonWrapperColumn:IAttributeColumn = column;
 			while (nonWrapperColumn is IColumnWrapper)
-				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).internalColumn;
+				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).getInternalColumn();
 			
 			var dataType:String = nonWrapperColumn ? ColumnUtils.getDataType(nonWrapperColumn) : null;
 			if (dataType == null)
