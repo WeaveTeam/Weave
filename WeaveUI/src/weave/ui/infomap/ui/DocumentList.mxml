@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--This component is used for handling node operations.
+It has a text area which diplays the keywords.
+It has 4 icons to:
+Close/Delete the node
+Edit the keyword
+Search within the node.
+Filter by Date
+Info to provide a tooltip describing the node (like number of documents found)
+
+-->
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+width="400">
+	<mx:List id="docList" width="100%">
+		<mx:itemRenderer>
+			<mx:Component>
+				<mx:Label toolTip="{null}" width="100%">
+					<mx:Script>
+						<![CDATA[
+							import mx.managers.CursorManager;
+							
+							import weave.api.WeaveAPI;
+							import weave.data.DataSources.InfoMapsDataSource;
+							import weave.utils.CustomCursorManager;
+							
+							private var infomapDataSource:InfoMapsDataSource = WeaveAPI.globalHashMap.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
+							
+							override protected function childrenCreated():void
+							{
+								infomapDataSource.getColumnByName("title").addImmediateCallback(outerDocument.docList,updateLabelText);
+							}
+							override public function set data(value:Object):void
+							{
+								super.data = value;
+								
+								this.text = infomapDataSource.getTitleForURL(value as String);
+								
+								this.addEventListener(MouseEvent.MOUSE_OVER, function(event:MouseEvent):void {
+									CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
+									DocumentSummaryComponent.show(event.stageX,event.stageY,value as String,event.target as DisplayObject);
+										});
+								
+								this.addEventListener(MouseEvent.MOUSE_OUT, function(event:MouseEvent):void {
+									CustomCursorManager.removeCurrentCursor();
+									DocumentSummaryComponent.hide();
+								});
+								
+								this.addEventListener(MouseEvent.DOUBLE_CLICK, function (event:MouseEvent):void {
+									var link:String = value as String;
+									var linkLen:int = link.length;
+									var linkExtension:String = link.substring(linkLen-3,linkLen);
+									if(linkExtension == "pdf")
+									{
+										link = "http://129.63.8.219:8080/"+link.substring(link.indexOf("infomap"),linkLen);
+									}
+									navigateToURL(new URLRequest(link));
+								});
+							}
+							
+							private function updateLabelText():void
+							{
+								if(data != null)
+									this.text = infomapDataSource.getTitleForURL(data as String);
+							}
+							
+						]]>
+					</mx:Script>
+				</mx:Label>
+			</mx:Component>
+		</mx:itemRenderer>
+		
+	</mx:List>
+	<mx:HBox width="100%">
+		<mx:Button width="10%" label="Prev"/>
+		<mx:Spacer width="80%"/>
+		<mx:Button width="10%" label="Next"/>
+	</mx:HBox>
+</mx:VBox>

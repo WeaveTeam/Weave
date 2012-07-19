@@ -8,6 +8,7 @@
 		   dragEnter="dragEnterHandler(event)"
 		>
 	<mx:Canvas id="pointsCanvas" visible="false" clipContent="false" width="400" height="300"/>
+	<mx:Canvas id="listCanvas" visible="false" clipContent="false" width="400" height="300"/>
 	<mx:Glow id="selectedBorder" 
 			 alphaFrom="1.0" alphaTo="1.0"   
 			 blurXFrom="10.0" blurYFrom="10.0" 
@@ -92,6 +93,7 @@
 			import weave.ui.infomap.core.QueryObject;
 			import weave.ui.infomap.ui.DateFilterComponent;
 			import weave.ui.infomap.ui.DocThumbnailComponent;
+			import weave.ui.infomap.ui.DocumentList;
 			import weave.ui.infomap.ui.InfoMapPanel;
 			import weave.ui.infomap.ui.NodeBaseComponent;
 			import weave.ui.infomap.ui.NodeSettingsComponent;
@@ -189,6 +191,7 @@
 				
 				nodeBase.filterImg.addEventListener(MouseEvent.CLICK, addTagCloud);
 				nodeBase.searchImg.addEventListener(MouseEvent.CLICK,showPointCanvas);
+				nodeBase.listImg.addEventListener(MouseEvent.CLICK,showList);
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_UP,canvas1_mouseUpHandler);
@@ -418,6 +421,10 @@
 			private function handleThumbnails():void
 			{
 				var response:Array = docKeySet.keys;
+				
+				if(d.docList != null)
+					d.docList.dataProvider = docKeySet.keys;
+				
 				var nameOrder:Array = [];
 				
 				if(response.length == 0)
@@ -874,15 +881,39 @@
 						
 				}
 				
-					fadeOut.play([pointsCanvas]);
+					fadeOut.play([pointsCanvas,listCanvas]);
 					fadeIn.play([tagCanvas]);
+			}
+			
+			private var d:DocumentList = new DocumentList();
+			private function showList(event:Event):void
+			{
+				listCanvas.addChild(d);
+				d.y = nodeBase.height;
+				var k:Array = docKeySet.keys;
+				
+				var temp:Array = [];
+				for (var i:int = 0; i< 10; i++)//restricting to 10 for now
+				{
+					temp.push((k[i] as IQualifiedKey).localName);
+				}
+				
+				d.docList.dataProvider = temp;
+				
+				if(tagCanvas)
+					fadeOut.play([tagCanvas,pointsCanvas]);
+				else 
+					fadeOut.play([pointsCanvas]);
+				fadeIn.play([listCanvas]);
 			}
 			
 			private function showPointCanvas(event:Event):void
 			{
 				
 				if(!(tagCanvas == null))
-					fadeOut.play([tagCanvas]);
+					fadeOut.play([tagCanvas,listCanvas]);
+				else
+					fadeOut.play([listCanvas]);
 				(layout.internalObject as RandomLayout).updateTitleLabel();
 				fadeIn.play([pointsCanvas]);
 			}
@@ -915,7 +946,7 @@
 				}
 				
 				_subset.replaceKeys(false,true,includeKeys);
-				fadeOut.play([tagCanvas]);
+				fadeOut.play([tagCanvas,listCanvas]);
 				fadeIn.play([pointsCanvas]);
 			}
 			

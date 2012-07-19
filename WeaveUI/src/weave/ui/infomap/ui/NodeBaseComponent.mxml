@@ -15,10 +15,10 @@ It has 4 icons to:
 	  autoLayout="false" 
 	  minWidth="200" width="100%">
 	<mx:HBox width="100%" horizontalAlign="center">
-		<!--<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
-		<mx:Image id="editImg" source="@Embed(source='/weave/resources/images/editButton.png')"/>-->
-		<mx:Image id="searchImg" source="@Embed(source='/weave/resources/images/search_icon.gif')"/>
-		<mx:Image id="filterImg" source="@Embed(source='/weave/resources/images/filter.png')"/>
+		<!--<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>-->
+		<mx:Image id="listImg" source="@Embed(source='/weave/resources/images/list.png')"/>
+		<mx:Image id="searchImg" source="@Embed(source='/weave/resources/images/sphere.png')"/>
+		<mx:Image id="filterImg" source="@Embed(source='/weave/resources/images/cloud.png')"/>
 		<mx:Image id="infoImg" source="@Embed(source='/weave/resources/images/probe.png')"/>
 		<mx:Image id="settingsImg" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
 		<mx:Spacer width="60" />
@@ -52,26 +52,26 @@ It has 4 icons to:
 			infoImg.buttonMode = true; //you need this for click event to work on an image!
 			
 			closeImg.toolTip = "Remove this node";
-			closeImg.width = 12;
-			closeImg.height = 12;
+			closeImg.width = 16;
+			closeImg.height = 16;
 			closeImg.visible = true;
 			closeImg.buttonMode = true; //you need this for click event to work on an image!
-//			
-//			editImg.toolTip = "Edit keywords";
-//			editImg.width = 12;
-//			editImg.height = 12;
-//			editImg.visible = false;
-//			editImg.buttonMode = true; //you need this for click event to work on an image!
-//			
-			searchImg.toolTip = "Search";
-			searchImg.width = 12;
-			searchImg.height = 12;
+			
+			listImg.toolTip = "Show List";
+			listImg.width = 16;
+			listImg.height = 16;
+			listImg.visible = true;
+			listImg.buttonMode = true; //you need this for click event to work on an image!
+			
+			searchImg.toolTip = "Show points";
+			searchImg.width = 16;
+			searchImg.height = 16;
 			searchImg.visible = true;
 			searchImg.buttonMode = true; //you need this for click event to work on an image!
 			
-			filterImg.toolTip = "Filter";
-			filterImg.width = 12;
-			filterImg.height = 12;
+			filterImg.toolTip = "Show Word Cloud";
+			filterImg.width = 16;
+			filterImg.height = 16;
 			filterImg.visible = true;
 			filterImg.buttonMode = true; //you need this for click event to work on an image!
 			
@@ -81,6 +81,10 @@ It has 4 icons to:
 			settingsImg.height = 12;
 			settingsImg.visible = true;
 			settingsImg.buttonMode = true; //you need this for click event to work on an image!
+			
+			//cloud image : http://www.veryicon.com/icons/system/fresh-addon/weather-cloud.html
+			//list icon : http://www.iconfinder.com/icondetails/52314/48/list_icon
+			//sphere icon: http://www.iconfinder.com/icondetails/29260/16/
 		}
 		private function handleMouseOver():void
 		{
