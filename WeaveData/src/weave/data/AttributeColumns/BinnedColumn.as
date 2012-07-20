@@ -27,7 +27,6 @@ package weave.data.AttributeColumns
 	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.data.BinClassifiers.BinClassifierCollection;
 	import weave.data.BinningDefinitions.CategoryBinningDefinition;
@@ -46,6 +45,8 @@ package weave.data.AttributeColumns
 			binningDefinition.requestLocalObject(SimpleBinningDefinition, false);
 
 			addImmediateCallback(this, handleChange);
+//			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(internalDynamicColumn);
+//			getCallbackCollection(stats).addImmediateCallback(this, handleChange);
 		}
 		
 		/**
@@ -140,7 +141,7 @@ package weave.data.AttributeColumns
 			for (i = 0; i < _binNames.length; i++)
 				_binnedKeysMap[_binNames[i]] = _binnedKeysArray[i] = []; // same Array pointer
 			// fill all mappings
-			_keys = keys;
+			_keys = internalDynamicColumn.keys;
 			_i = 0;
 			WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_BUILDING, _asyncComplete);
 		}
@@ -154,7 +155,7 @@ package weave.data.AttributeColumns
 			var progress:Number = 1;
 			if (_i < _keys.length)
 			{
-				var key:IQualifiedKey = keys[_i];
+				var key:IQualifiedKey = _keys[_i];
 				// hack: assuming bin classifiers are NumberClassifiers except for CategoryBinningDefinition
 				var dataType:Class = _def is CategoryBinningDefinition ? String : Number;
 				var value:* = _column.getValueFromKey(key, dataType);

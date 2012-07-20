@@ -721,17 +721,10 @@ package weave.visualization.layers
 					//trace(layers.getName(layer),tempDataBounds,tempScreenBounds);
 					
 					// get data coords from screen coords
-					var buffer:Number = 10; 
+					var bufferSize:Number = 10; 
 					
-					tempPoint.x = mouseX - buffer;
-					tempPoint.y = mouseY - buffer;
-					tempScreenBounds.projectPointTo(tempPoint, tempDataBounds);
-					queryBounds.setMinPoint(tempPoint);
-					
-					tempPoint.x = mouseX + buffer;
-					tempPoint.y = mouseY + buffer;
-					tempScreenBounds.projectPointTo(tempPoint, tempDataBounds);
-					queryBounds.setMaxPoint(tempPoint);
+					queryBounds.setCenteredRectangle(mouseX, mouseY, bufferSize, bufferSize);
+					tempScreenBounds.projectCoordsTo(queryBounds, tempDataBounds);
 					
 					var xPrecision:Number = tempDataBounds.getXCoverage() / tempScreenBounds.getXCoverage();
 					var yPrecision:Number = tempDataBounds.getYCoverage() / tempScreenBounds.getYCoverage();

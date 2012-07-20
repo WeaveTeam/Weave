@@ -35,10 +35,8 @@ package weave.services.beans
 			this.rSquared = result.RSquared;
 
 			// convert arrays to vectors and store the residual values			
-			//var keys:Vector.<String> = VectorUtils.copy(result.keys, new Vector.<String>());
-			//var data:Vector.<Number> = VectorUtils.copy(result.residual, new Vector.<Number>());
 			//TODO: need residual.keyType
-			//this.residual.updateRecords(keys, data, true);
+			//this.residual.updateRecords(Vector.<String>(result.keys), Vector.<Number>(result.residual), true);
 		}
 		
 		public var slope:Number;

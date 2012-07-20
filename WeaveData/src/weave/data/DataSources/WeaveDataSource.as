@@ -34,6 +34,7 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.reportError;
@@ -75,7 +76,7 @@ package weave.data.DataSources
 		 */
 		private function handleURLChange():void
 		{
-			dataService = null;
+			url.delayCallbacks();
 			
 			var defaultBaseURL:String = '/WeaveServices';
 			var defaultServletName:String = '/DataService';
@@ -87,6 +88,12 @@ package weave.data.DataSources
 			// backwards compatibility -- if url ends in default base url, append default servlet name
 			if (url.value.split('/').pop() == defaultBaseURL.split('/').pop())
 				url.value += defaultServletName;
+			
+			// replace old dataService
+			disposeObjects(dataService);
+			dataService = new WeaveDataServlet(url.value);
+			
+			url.resumeCallbacks();
 		}
 		
 		/**
@@ -94,9 +101,6 @@ package weave.data.DataSources
 		 */
 		override protected function initialize():void
 		{
-			if (dataService == null)
-				dataService = new WeaveDataServlet(url.value);
-
 			super.initialize();
 		}
 		

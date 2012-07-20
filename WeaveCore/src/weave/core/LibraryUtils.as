@@ -301,48 +301,36 @@ internal class Library implements IDisposableObject
 		var index:int = 0;
 		function loadingTask():Number
 		{
-			var progress:Number;
-			if (index < _classQNames.length) // in case the length is zero
+			if (index >= _classQNames.length) // in case the length is zero
+				return 1;
+
+			var classQName:String = _classQNames[index] as String;
+			try
 			{
-				var classQName:String = _classQNames[index] as String;
-				try
-				{
-					// initialize the class
-					var classDef:Class = ClassUtils.getClassDefinition(classQName);
-					
-					// register this class as an implementation of every interface it implements.
-					var type:XML = describeType(classDef);
-					for each (var i:XML in type.factory.implementsInterface)
-					{
-						var interfaceQName:String = i.attribute("type").toString();
-						var interfaceDef:Class = ClassUtils.getClassDefinition(interfaceQName);
-						WeaveAPI.registerImplementation(interfaceDef, classDef);
-					}
-				}
-				catch (e:Error)
-				{
-					var fault:Fault = new Fault(String(e.errorID), e.name, e.message);
-					_notifyResponders(fault);
-					return 1;
-				}
+				// initialize the class
+				var classDef:Class = ClassUtils.getClassDefinition(classQName);
 				
-				index++;
-				progress = index / _classQNames.length;  // this will be 1.0 on the last iteration.
+				// register this class as an implementation of every interface it implements.
+				var type:XML = describeType(classDef);
+				for each (var i:XML in type.factory.implementsInterface)
+				{
+					var interfaceQName:String = i.attribute("type").toString();
+					var interfaceDef:Class = ClassUtils.getClassDefinition(interfaceQName);
+					WeaveAPI.registerImplementation(interfaceDef, classDef);
+				}
 			}
-			else
+			catch (e:Error)
 			{
-				progress = 1;
+				var fault:Fault = new Fault(String(e.errorID), e.name, e.message);
+				_notifyResponders(fault);
+				return 1;
 			}
 			
-			if (progress == 1)
-			{
-				// done
-				_notifyResponders();
-			}
+			index++;
 			
-			return progress;
+			return index / _classQNames.length;  // this will be 1.0 after the last iteration.
 		}
-		WeaveAPI.StageUtils.startTask(this, loadingTask, WeaveAPI.TASK_PRIORITY_PARSING);
+		WeaveAPI.StageUtils.startTask(this, loadingTask, WeaveAPI.TASK_PRIORITY_PARSING, _notifyResponders);
 	}
 	
 	/**

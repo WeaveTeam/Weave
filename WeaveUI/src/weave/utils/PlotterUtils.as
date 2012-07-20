@@ -52,6 +52,19 @@ package weave.utils
 		}
 		
 		/**
+		 * This will compare width and height values with the width and height of a BitmapData object inside a Bitmap.
+		 * @param bitmap
+		 * @param unscaledWidth
+		 * @param unscaledHeight
+		 * @return true if the width and height of bitmap.bitmapData equal the unscaledWidth and unscaledHeight parameters. 
+		 */		
+		public static function bitmapDataSizeCompare(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number):Boolean
+		{
+			var bd:BitmapData = bitmap.bitmapData;
+			return bd && bd.width == Math.round(unscaledWidth) && bd.height == Math.round(unscaledHeight);
+		}
+		
+		/**
 		 * This function updates the size of the BitmapData inside a Bitmap.
 		 * The new or existing BitmapData will be filled with the specified fill color.
 		 * @param bitmap A Bitmap object to alter.
