@@ -58,7 +58,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					toolTip="Text entered here will be used to set the html alt attribute for this instance of Weave when it is embedded in a web page. This input field is restricted to 125 characters. The alt attribute is used by standard screen reading tools to give information about graphics elements for to blind or visually impaired individuals."
 					width="100%"
 					height = "30%"
-					backgroundColor="#EEEEEE"/>
+					backgroundColor="#EEEEEE"
+					editable = "true" />
 				
 			</mx:VBox>
 			<mx:VBox label="Advanced"
@@ -90,19 +91,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							import weave.Weave;
 							import weave.api.WeaveAPI;
 							import weave.api.reportError;
-							import weave.ui.controlBars.WeaveMenuBar;
-							import weave.ui.controlBars.WeaveMenuItem;
 							
 							
 							
 							
 							private const padding:int = 5;
-							private var _windowMenu:WeaveMenuItem  = null;
-							private var _weaveMenu:WeaveMenuBar = null;
 							private var cbArray:Array = [];
 							private var selectedCB : CheckBox;
 
-							//public const htmlText:LinkableString  = registerLinkableChild(this, new LinkableString(''), handleLinkableHtmlText, true);
+							
 							
 							override protected function constructor():void
 							{
@@ -119,19 +116,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							{
 								super.childrenCreated();
 								
-								//    super.createChildren();
-								
-								//var panels:Array = Weave.root.getObjects(DraggablePanel);
 								var panels:Array = [];
 								panels = getWindowsOnStage();
-								//var panelsOnStage:Array = [];
-								
+						
 								var cb:CheckBox;
-								
-								//    var panel:DraggablePanel = panels[i] as DraggablePanel;
-								
-								//if (menuToggleVBox.numChildren > 0)
-								//return;
 								
 								reportError("children create");
 								
@@ -152,17 +140,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								{
 									menuToggleVBox.addChild(cb);
 									
-								//	longDescTextInputBox.enabled = false;
-									
-								
-										//longDescTextInputBox.enabled = true;
-								//	if(cb.selected == true)
-									cb.addEventListener( MouseEvent.CLICK, onChangeEvent_checkBox );
+									cb.addEventListener( MouseEvent.CLICK, onChangeEvent_checkBox );//one checkbox is able to be checked in a time
+									longDescTextInputBox.enabled = false;
+
 									cb.addEventListener(MouseEvent.CLICK, clickHandler);
-									
-								
-									
-									//    longDescTextInputBox.text=cb.label;
 									
 								}
 								
@@ -172,7 +153,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								
 								//addEventListener(FlexEvent.ENTER_FRAME, panelRemovedEventHandler);
 								//menuToggleVBox.addEventListener(FlexEvent.REMOVE, panelRemovedEventHandler);
-								
+								//longDescTextInputBox.text = 
+								//textEditor.text = equationColumn.equation.value;
+								//EventUtils.addDelayedEventCallback(textEditor, Event.CHANGE, handleEquationTextEntry);
 								
 							}
 							/**one checkbox is able to be checked in a time*/
@@ -181,6 +164,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								var currentCB : CheckBox = CheckBox( event.target );
 								if( selectedCB && currentCB !== selectedCB )
 									selectedCB.selected = false;
+								
+								
 						
 								selectedCB = ( currentCB.selected ) ? currentCB : null;
 							}
@@ -198,10 +183,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								cbArray = [];
 								menuToggleVBox.removeAllChildren();
 								
-								
 								panels = getWindowsOnStage();
-								
-								
 								
 								for each(var panel:DraggablePanel in panels)
 								{
@@ -212,7 +194,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									//        linkBindableProperty(, cb, 'selected');
 									cb.toolTip = "Checking this box appends " + cb.label + " destination to the above text";
 									
-									
 									cbArray.push(cb);
 									
 								}             
@@ -221,40 +202,34 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								for each (cb in cbArray)
 								{
 									menuToggleVBox.addChild(cb);
-									//longDescTextInputBox.enabled = false;
-									
-									//	longDescTextInputBox.enabled = true;
-									//if(cb.selected == true)
-									
-									cb.addEventListener( MouseEvent.CLICK, onChangeEvent_checkBox );
-									cb.addEventListener(MouseEvent.CLICK, clickHandler);
-										
-									
-									//    longDescTextInputBox.text=cb.label;
-									
+			
+									cb.addEventListener(MouseEvent.CLICK, onChangeEvent_checkBox );
+									longDescTextInputBox.enabled = false;
+									cb.addEventListener(MouseEvent.CLICK, clickHandler);		
 								}
-								
-								
 							}
 							
 							protected function clickHandler(event:MouseEvent):void {
 								
-								//longDescTextInputBox.enabled = !event.target.selected;
-								longDescTextInputBox.enabled = true; //event.target.selected;
-								//longDescTextInputBox.htmlText = htmlText.value;
 								
-								longDescTextInputBox.text = event.currentTarget.label;
-								longDescTextInputBox.editable = true;
+								//longDescTextInputBox.text = event.currentTarget.label;
+								//longDescTextInputBox.text += " "; 
+								longDescTextInputBox.enabled = event.target.selected; //textInput is enabled only checkbox is selected
+								longDescTextInputBox.text += event.target.text;
 								
+			
+								//longDescTextInputBox.text += event.currentTarget.text;
+								
+								//longDescTextInputBox.text = event.currentTarget.value;
+								
+			
 								
 							}
-							
 						
 							private function getWindowsOnStage(): Array
 							{
 								var panels:Array = Weave.root.getObjects(DraggablePanel);
 								var panelsOnStage:Array = [];
-								
 								
 								for each (var panel:DraggablePanel in panels)
 								{
@@ -265,21 +240,69 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								
 								return panelsOnStage;
 							}
-							
-							
-				
+							private function handleLinkableHtmlText():void
+							{
+							/*	if (!parent)
+								{
+									callLater(handleLinkableHtmlText);
+									return;
+								}
+								
+								// use internal text field because the real _tempTextField loses formatting.
+								var _tempTextField:IUITextField = textArea.mx_internal::getTextField();
+								
+								if (!_tempTextField)
+								{
+									reportError("Unexpected: textArea.mx_internal::getTextField() is null");
+									return;
+								}
+								
+								var selBegin:int = _tempTextField.selectionBeginIndex;
+								var selEnd:int = _tempTextField.selectionEndIndex;
+								
+								_tempTextField.htmlText = htmlText.value; // use the textField temporarily for getTextFormat,setTextFormat
+								
+								// make sure the text between each pair of { and } brackets only has a single format.
+								var begin:int;
+								var end:int = 0;
+								while (true)
+								{
+									// find a pair of { and } brackets
+									begin = _tempTextField.text.indexOf("{", end);
+									if (begin < 0)
+										break;
+									end = _tempTextField.text.indexOf("}", begin);
+									if (end < 0)
+										break;
+									
+									// make sure the text between begin & end only has a single format
+									//				 	var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
+									//					_tempTextField.setTextFormat(f, begin, end + 1);
+									_tempTextField.setSelection(begin, end + 1);
+									_tempTextField.replaceSelectedText(_tempTextField.text.substring(begin, end + 1));
+									
+									//					// replace the text from { to }
+									//					var script:String = _tempTextField.text.substring(begin + 1, end);
+									//					htmlTextFunction.value = script;
+									//					_tempTextField.replaceText(begin, end + 1, String(htmlTextFunction.apply()));
+								}
+								_tempTextField.setSelection(selBegin, selEnd);
+								
+								var ht:String = _tempTextField.htmlText;
+								ht = ht.split('&apos;').join("'");
+								ht = ht.split('&quot;').join('"');
+								htmlTextFunction.value = '`' + ht.split('`').join('\\`') + '`';
+								
+								//This is a hack to keep re-applying the currently selected text format.
+								applyTextFormat(new Event("LIST"));
+								
+								updateTextArea();*/
+							}
 							
 						]]>
-					</mx:Script>
-					
-					
-				</mx:VBox>
-				
-				
+					</mx:Script>	
+				</mx:VBox>	
 			</mx:VBox>
-			
-			
 		</mx:TabNavigator>
 	</mx:HDividedBox>
-	
 </ControlPanel>
