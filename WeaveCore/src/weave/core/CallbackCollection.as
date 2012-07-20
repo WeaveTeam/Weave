@@ -25,6 +25,7 @@ package weave.core
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableObject;
 	
 	/**
 	 * This class manages a list of callback functions.
@@ -37,6 +38,8 @@ package weave.core
 		 * Set this to true to enable stack traces for debugging.
 		 */
 		public static var debug:Boolean = false;
+		internal var _linkableObject:ILinkableObject; // for debugging only... will be set when debug==true
+		private var _lastTriggerStackTrace:String; // for debugging only... will be set when debug==true
 
 		/**
 		 * If specified, the preCallback function will be called immediately before running each callback.
@@ -56,11 +59,6 @@ package weave.core
 		 * This is a list of CallbackEntry objects in the order they were created.
 		 */
 		private var _callbackEntries:Array = new Array();
-
-		/**
-		 * If this is set to true, delayCallbacks() behaves as described.  Otherwise, delayCallbacks() has no effect.
-		 */
-		protected var allowDelayCallbacks:Boolean = true;
 
 		/**
 		 * This is the function that gets called immediately before every callback.
@@ -91,6 +89,7 @@ package weave.core
 		 */
 		private var _triggerCounter:uint = DEFAULT_TRIGGER_COUNT;
 		
+		private static const STACK_TRACE_TRIGGER:String = "This is the stack trace from when the callbacks were last triggered.";
 		private static const STACK_TRACE_ADD:String = "This is the stack trace from when the callback was added.";
 		private static const STACK_TRACE_REMOVE:String = "This is the stack trace from when the callback was removed.";
 		
@@ -126,7 +125,7 @@ package weave.core
 			{
 				// increase the recursion count while the function is running
 				entry.recursionCount++;
-				callback();
+				callback.apply();
 				entry.recursionCount--;
 			}
 		}
@@ -137,8 +136,11 @@ package weave.core
 		 */
 		public final function triggerCallbacks():void
 		{
+			if (debug)
+				_lastTriggerStackTrace = new Error(STACK_TRACE_TRIGGER).getStackTrace();
 			if (_delayCount > 0)
 			{
+				// we still want to increase the counter even if callbacks are delayed
 				_triggerCounter++;
 				_runCallbacksIsPending = true;
 				return;
@@ -158,6 +160,7 @@ package weave.core
 		 */		
 		protected final function _runCallbacksImmediately(...preCallbackParams):void
 		{
+			// increase counter immediately
 			_triggerCounter++;
 			_runCallbacksIsPending = false;
 			
@@ -205,7 +208,7 @@ package weave.core
 						if (_preCallback != null)
 							_preCallback.apply(null, preCallbackParams);
 						
-						entry.callback();
+						entry.callback.apply();
 						
 						entry.recursionCount--; // decrease count because the callback finished.
 					}
@@ -268,8 +271,7 @@ package weave.core
 		 */
 		public final function delayCallbacks():void
 		{
-			if (allowDelayCallbacks)
-				_delayCount++;
+			_delayCount++;
 		}
 
 		/**
@@ -351,7 +353,7 @@ package weave.core
 			{
 				// run grouped callbacks in the order they were triggered
 				var triggerEntry:CallbackEntry = _triggeredGroupedCallbackEntryOrderedList.shift() as CallbackEntry;
-				(triggerEntry as CallbackEntry).callback();
+				(triggerEntry as CallbackEntry).callback.apply();
 				delete _triggeredGroupedCallbackEntryMap[triggerEntry];
 			}
 
@@ -427,7 +429,7 @@ package weave.core
 							// increase recursion count while the function is running.
 							triggerEntry.recursionCount++;
 							
-							groupedCallback();
+							groupedCallback.apply();
 							
 							triggerEntry.recursionCount--;
 						}

@@ -104,7 +104,7 @@ package weave.core
 			if (!(linkableParent is ILinkableObject))
 				throw new Error("registerLinkableChild(): Parent does not implement ILinkableObject.");
 			if (!(linkableChild is ILinkableObject))
-				throw new Error("registerLinkableChild(): Child does not implement ILinkableObject.");
+				throw new Error("registerLinkableChild(): Child parameter cannot be null.");
 			if (linkableParent == linkableChild)
 				throw new Error("registerLinkableChild(): Invalid attempt to register sessioned property having itself as its parent");
 			
@@ -644,6 +644,7 @@ package weave.core
 		private const _d2dOwnerTask:Dictionary2D = new Dictionary2D(true, true);
 		private const _d2dTaskOwner:Dictionary2D = new Dictionary2D(true, true);
 		private const _dBusyTraversal:Dictionary = new Dictionary(true); // ILinkableObject -> Boolean
+		private const _aBusyTraversal:Array = [];
 		
 		/**
 		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>
@@ -676,27 +677,43 @@ package weave.core
 		 */
 		public function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean
 		{
-			// if the object is assigned a task, it's busy
-			for (var task:Object in _d2dOwnerTask.dictionary[linkableObject])
-				return true;
+			var busy:Boolean = false;
 			
-			// avoid infinite recursion
+			_aBusyTraversal.push(linkableObject);
 			_dBusyTraversal[linkableObject] = true;
-			// see if children are busy
-			var dChild:Dictionary = parentToChildDictionaryMap[linkableObject];
-			for (var child:Object in dChild)
+			
+			outerLoop: for (var i:int = 0; i < _aBusyTraversal.length; i++)
 			{
-				// check traversal flag before recursive call
-				if (!_dBusyTraversal[child] && linkableObjectIsBusy(child as ILinkableObject))
+				linkableObject = _aBusyTraversal[i] as ILinkableObject;
+				
+				// if the object is assigned a task, it's busy
+				for (var task:Object in _d2dOwnerTask.dictionary[linkableObject])
 				{
-					_dBusyTraversal[linkableObject] = false;
-					// busy
-					return true;
+					busy = true;
+					break outerLoop;
+				}
+				
+				// see if children are busy
+				var dChild:Dictionary = parentToChildDictionaryMap[linkableObject];
+				for (var child:Object in dChild)
+				{
+					// queue all the children that haven't been queued yet
+					if (!_dBusyTraversal[child])
+					{
+						_aBusyTraversal.push(child);
+						_dBusyTraversal[child] = true;
+					}
 				}
 			}
-			_dBusyTraversal[linkableObject] = false;
-			// not busy
-			return false;
+			
+			// reset traversal dictionary for next time
+			for each (linkableObject in _aBusyTraversal)
+				_dBusyTraversal[linkableObject] = false;
+			
+			// reset traversal queue for next time
+			_aBusyTraversal.length = 0;
+			
+			return busy;
 		}
 		
 		
@@ -724,6 +741,8 @@ package weave.core
 			if (objectCC == null)
 			{
 				objectCC = new CallbackCollection();
+				if (CallbackCollection.debug)
+					(objectCC as CallbackCollection)._linkableObject = linkableObject;
 				linkableObjectToCallbackCollectionMap[linkableObject] = objectCC;
 				
 				// Make sure UIComponents get registered with linkable owners because MXML developers
