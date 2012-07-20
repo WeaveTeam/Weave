@@ -6,18 +6,53 @@
 			import weave.api.WeaveAPI;
 
 
+
 			private var canvasList:Array = new Array();
 
 			public function addToParticpantList(id:String):void
 			{
+				if( canvasList == null )
+					canvasList = new Array();
+				if( alreadyExists(id) ) return;
 				var collabVidComp:CollaborationVideoComponent = new CollaborationVideoComponent();
 				collabVidComp.labelText = id;
 				canvasList.push(collabVidComp);
 				adjustLayout();
 			}
 			
+			public function removeFromParticipantList(id:String):void
+			{
+				if( canvasList == null ) return;
+				for( var i:int = 0; i < canvasList.length; i++ )
+				{
+					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == id )
+					{
+						canvasList.splice(i, 1);
+						break;
+					}
+				}
+				adjustLayout();
+			}
+			
+			public function clearDisplay():void
+			{
+				removeAllChildren();
+				canvasList = null;
+			}
+			
+			private function alreadyExists(id:String):Boolean
+			{
+				for( var i:int = 0; i < canvasList.length; i++ )
+				{
+					if((canvasList[i] as CollaborationVideoComponent).nameLabel.text == id )
+						return true;
+				}
+				return false;
+			}
+			
 			private function adjustLayout():void
 			{
+				removeAllChildren();
 				var center:Number = width/2;
 				for( var i:int = 0; i < canvasList.length ; i++ )
 				{
@@ -27,10 +62,8 @@
 						canvasList[i].x = center + 100 * (canvasList.length / 2 - i);
 					addChild( canvasList[i] );
 				}
-				
 			}
 				
 		]]>
 	</mx:Script>
-	
 </mx:Panel>
