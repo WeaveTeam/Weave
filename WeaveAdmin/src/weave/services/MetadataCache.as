@@ -94,6 +94,7 @@ package weave.services
         }
         public function update_metadata(id:int, pubMeta:Object, privMeta:Object, onComplete:Function = null):void
         {
+ 
             /* Do stuff, and things. */ 
         }
     }

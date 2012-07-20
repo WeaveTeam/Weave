@@ -85,18 +85,27 @@ public abstract class ISQLConfig
 	 * @throws RemoteException
 	 *             if the info could not be retrieved.
 	 */
+        public static Map<String,Map<String,String>> siftMeta(Map<String,String> mergedMeta)
+        {
+            Map<String,Map<String,String>> result = new HashMap<String,Map<String,String>>();
+            Map<String,String> pubMeta = new HashMap<String,String>(); 
+            Map<String,String> privMeta = new HashMap<String,String>(); 
+            result.put("private", privMeta);
+            result.put("public", pubMeta);
+            return result;
+        }
 	public abstract ConnectionInfo getConnectionInfo(String connectionName) throws RemoteException;
 
         public abstract boolean isConnectedToDatabase();
 	public abstract DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException;
-        public abstract Integer addEntity(Integer type_id, Map<String,String> properties) throws RemoteException;
+        public abstract Integer addEntity(Integer type_id, Map<String,Map<String,String>> properties) throws RemoteException;
         public abstract void removeEntity(Integer id) throws RemoteException;
-        public abstract void updateEntity(Integer id, Map<String,String> properties) throws RemoteException;
-        public Collection<DataEntity> findEntities(Map<String,String> properties) throws RemoteException
+        public abstract void updateEntity(Integer id, Map<String,Map<String,String>> properties) throws RemoteException;
+        public Collection<DataEntity> findEntities(Map<String,Map<String,String>> properties) throws RemoteException
         {
             return findEntities(properties, -1);
         }
-        public abstract Collection<DataEntity> findEntities(Map<String,String> properties, Integer type_id) throws RemoteException;
+        public abstract Collection<DataEntity> findEntities(Map<String,Map<String,String>> properties, Integer type_id) throws RemoteException;
         public abstract Collection<DataEntity> getEntities(Collection<Integer> ids) throws RemoteException;
         public abstract Collection<DataEntity> getEntitiesByType(Integer id) throws RemoteException;
         public abstract void addChild(Integer child_id, Integer parent_id) throws RemoteException;
@@ -127,9 +136,12 @@ public abstract class ISQLConfig
     @SuppressWarnings("unchecked")
 	@Deprecated public boolean userCanModifyDataTable(String connectionName, String dataTableName) throws RemoteException
     {
+        Map<String,Map<String,String>> metadataFilter = new HashMap<String,Map<String,String>>();
         Map<String,String> publicMetadataFilter = new HashMap<String,String>();
         publicMetadataFilter.put(PublicMetadata.DATATABLE, dataTableName);
-        Collection<DataEntity> entries = findEntities(publicMetadataFilter);
+        metadataFilter.put("public", publicMetadataFilter);
+        metadataFilter.put("private", null);
+        Collection<DataEntity> entries = findEntities(metadataFilter);
         
         for (DataEntity result : entries)
             if (!userCanModifyAttributeColumn(connectionName, result.id))
@@ -229,7 +241,7 @@ public abstract class ISQLConfig
 			return ListUtils.findString(propertyName, names) >= 0;
 		}
 	}
-
+        /*  */
 	static public class PublicMetadata
 	{
 		static public final String NAME = "name";

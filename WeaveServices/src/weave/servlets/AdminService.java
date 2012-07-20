@@ -606,7 +606,7 @@ public class AdminService extends GenericServlet
                     config.removeChild(child, parent);
         }
 /* To avoid risking any mismatch between the frontend and backend's constants for entity types, we'll explicitly make separate methods for each type, and make the generic addEntity private */
-        synchronized private int addEntity(String connectionName, String password, int entity_type, HashMap<String,String> newmeta) throws RemoteException
+        synchronized private int addEntity(String connectionName, String password, int entity_type, Map<String, Map<String,String>> newmeta) throws RemoteException
         {
                 ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
                 ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
@@ -620,15 +620,15 @@ public class AdminService extends GenericServlet
                 return config.getEntitiesByType(entity_type).toArray(new DataEntity[0]);
         }
 /* Type-specific AdminService methods */
-        synchronized public int addTag(String connectionName, String password, HashMap<String,String> newdata) throws RemoteException
+        synchronized public int addTag(String connectionName, String password, Map<String,Map<String,String>> newdata) throws RemoteException
         {
                 return addEntity(connectionName, password, 2, newdata);
         }
-        synchronized public int addDataTable(String connectionName, String password, HashMap<String,String> newmeta) throws RemoteException
+        synchronized public int addDataTable(String connectionName, String password, Map<String,Map<String,String>> newmeta) throws RemoteException
         {
                 return addEntity(connectionName, password, 0, newmeta);
         }
-        synchronized public int addAttributeColumn(String connectionName, String password, HashMap<String,String> newmeta) throws RemoteException
+        synchronized public int addAttributeColumn(String connectionName, String password, Map<String,Map<String,String>> newmeta) throws RemoteException
         {
                 return addEntity(connectionName, password, 1, newmeta);
         }
@@ -654,7 +654,7 @@ public class AdminService extends GenericServlet
                 else
                     throw new RemoteException("User cannot remove entity.", null);
         }
-        synchronized public void updateEntity(String connectionName, String password, int entity_id, HashMap<String,String> newdata) throws RemoteException
+        synchronized public void updateEntity(String connectionName, String password, int entity_id, Map<String,Map<String,String>> newdata) throws RemoteException
         {
                 ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
                 ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
@@ -676,12 +676,12 @@ public class AdminService extends GenericServlet
             ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
             return config.getEntity(id);
         }
-        synchronized public DataEntity[] getEntities(String connectionName, String password, HashMap<String,String> meta) throws RemoteException
+        synchronized public DataEntity[] getEntities(String connectionName, String password, Map<String,Map<String,String>> meta) throws RemoteException
         {
             ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
             return config.findEntities(meta).toArray(new DataEntity[0]);
         }
-        synchronized public DataEntity[] getEntitiesWithType(String connectionName, String password, Integer type_id, HashMap<String,String> meta) throws RemoteException
+        synchronized public DataEntity[] getEntitiesWithType(String connectionName, String password, Integer type_id, Map<String,Map<String,String>> meta) throws RemoteException
         {
             ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
             return config.findEntities(meta, type_id).toArray(new DataEntity[0]);
@@ -695,8 +695,10 @@ public class AdminService extends GenericServlet
         public DataEntity[] testAllQueries(String connectionName, String password, String tableName) throws RemoteException
         {
             ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-            Map<String,String> params = new HashMap<String,String>();
-            params.put(PublicMetadata.TITLE, tableName);
+            Map<String,Map<String,String>> params = new HashMap<String,Map<String,String>>();
+            Map<String,String> publicParams = new HashMap<String,String>();
+            publicParams.put(PublicMetadata.TITLE, tableName);
+            params.put("public", publicParams);
             Collection<DataEntity> ids = config.findEntities(params);
             for (DataEntity e : ids)
             {
@@ -1668,23 +1670,30 @@ public class AdminService extends GenericServlet
                         int table_id;
 
 
-                        Map<String,String> tableProperties = new HashMap<String,String>();
-                        tableProperties.put(PublicMetadata.TITLE, configDataTableName);
+                        Map<String,Map<String,String>> tableProperties = new HashMap<String,Map<String,String>>();
+                        Map<String,String> publicTableProperties = new HashMap<String,String>();
+                        publicTableProperties.put(PublicMetadata.TITLE, configDataTableName);
+                        tableProperties.put("public", publicTableProperties);
                         table_id = config.addEntity(DataEntity.MAN_TYPE_DATATABLE, tableProperties);
 
 			for (int i = 0; i < numberSqlColumns; i++)
 			{
-                                Map<String,String> newMeta = new HashMap<String,String>();
-				newMeta.put(PrivateMetadata.CONNECTION, connectionName);
-				newMeta.put(PrivateMetadata.SQLQUERY, queries.get(i));
+                                Map<String,String> publicMeta = new HashMap<String,String>();
+                                Map<String,String> privateMeta = new HashMap<String,String>();
+                                Map<String,Map<String,String>> newMeta = new HashMap<String,Map<String,String>>();
+				privateMeta.put(PrivateMetadata.CONNECTION, connectionName);
+				privateMeta.put(PrivateMetadata.SQLQUERY, queries.get(i));
 				if (filteredValues != null)
 				{
 					String paramsStr = CSVParser.defaultParser.createCSV(new Object[][]{ queryParamsList.get(i) }, true);
-					newMeta.put(PrivateMetadata.SQLPARAMS, paramsStr);
+					privateMeta.put(PrivateMetadata.SQLPARAMS, paramsStr);
 				}
-				newMeta.put(PublicMetadata.KEYTYPE, keyType);
-				newMeta.put(PublicMetadata.NAME, titles.get(i));
-				newMeta.put(PublicMetadata.DATATYPE, dataTypes.get(i));
+				publicMeta.put(PublicMetadata.KEYTYPE, keyType);
+				publicMeta.put(PublicMetadata.NAME, titles.get(i));
+				publicMeta.put(PublicMetadata.DATATYPE, dataTypes.get(i));
+                                
+                                newMeta.put("public", publicMeta);
+                                newMeta.put("private", privateMeta);
 
 				col_id = config.addEntity(DataEntity.MAN_TYPE_COLUMN, newMeta);
 				config.addChild(col_id, table_id);
@@ -1888,17 +1897,21 @@ public class AdminService extends GenericServlet
 		}
 
 		// add geometry column
-		Map<String,String> geomInfo = new HashMap<String,String>();
+		Map<String,Map<String,String>> geomInfo = new HashMap<String,Map<String,String>>();
+                Map<String,String> privateInfo = new HashMap<String,String>();
+                Map<String,String> publicInfo = new HashMap<String,String>();
 		
-		geomInfo.put(PrivateMetadata.CONNECTION, configConnectionName);
-		geomInfo.put(PrivateMetadata.SCHEMA, sqlSchema);
-		geomInfo.put(PrivateMetadata.TABLEPREFIX, sqlTablePrefix);
-		geomInfo.put(PrivateMetadata.IMPORTNOTES, importNotes);
+		privateInfo.put(PrivateMetadata.CONNECTION, configConnectionName);
+		privateInfo.put(PrivateMetadata.SCHEMA, sqlSchema);
+		privateInfo.put(PrivateMetadata.TABLEPREFIX, sqlTablePrefix);
+		privateInfo.put(PrivateMetadata.IMPORTNOTES, importNotes);
 		
-		geomInfo.put(PublicMetadata.TITLE, configGeometryCollectionName);
-		geomInfo.put(PublicMetadata.KEYTYPE, configKeyType);
-		geomInfo.put(PublicMetadata.PROJECTION, projectionSRS);
+		publicInfo.put(PublicMetadata.TITLE, configGeometryCollectionName);
+		publicInfo.put(PublicMetadata.KEYTYPE, configKeyType);
+		publicInfo.put(PublicMetadata.PROJECTION, projectionSRS);
 		
+                geomInfo.put("private", privateInfo);
+                geomInfo.put("public", publicInfo);
 		config.addEntity(DataEntity.MAN_TYPE_COLUMN, geomInfo);
 
 		return resultAddSQL;

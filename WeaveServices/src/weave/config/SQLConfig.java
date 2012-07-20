@@ -166,7 +166,7 @@ public class SQLConfig
 	}
 
 
-        public Integer addEntity(Integer type_id, Map<String,String> properties) throws RemoteException
+        public Integer addEntity(Integer type_id, Map<String,Map<String,String>> properties) throws RemoteException
         {
             Integer id = manifest.addEntry(type_id);
             if (properties != null)
@@ -190,28 +190,33 @@ public class SQLConfig
             public_attributes.clearId(id);
             private_attributes.clearId(id);
         }
-        public void updateEntity(Integer id, Map<String,String> properties) throws RemoteException
+        public void updateEntity(Integer id, Map<String,Map<String,String>> properties) throws RemoteException
         {
-            for (Entry<String,String> propval : properties.entrySet())
+            Map<String,String> pubMeta = properties.get("public");
+            Map<String,String> privMeta = properties.get("private");
+            if (pubMeta == null)
+            for (Entry<String,String> propval : pubMeta.entrySet())
             {
-                /* TODO: Optimize */
                 String key = propval.getKey();
                 String value = propval.getValue();
-                if (ISQLConfig.PrivateMetadata.isPrivate(key))
-                    private_attributes.setProperty(id, key, value);
-                else
-                    public_attributes.setProperty(id, key, value);
+                public_attributes.setProperty(id, key, value);
+            }
+            if (privMeta == null)
+            for (Entry<String,String> propval : privMeta.entrySet())
+            {
+                String key = propval.getKey();
+                String value = propval.getValue();
+                private_attributes.setProperty(id, key, value);
             }
         }
         public Collection<DataEntity> getEntitiesByType(Integer type_id) throws RemoteException
         {
             return getEntities(manifest.getByType(type_id));
         }
-        public Collection<DataEntity> findEntities(Map<String,String> properties, Integer type_id) throws RemoteException
+        public Collection<DataEntity> findEntities(Map<String,Map<String,String>> properties, Integer type_id) throws RemoteException
         {
-            /* Sift the properties into separate public and private components. */
-            Map<String,String> publicprops = new HashMap<String,String>();
-            Map<String,String> privateprops = new HashMap<String,String>();
+            Map<String,String> publicprops = properties.get("public");
+            Map<String,String> privateprops = properties.get("private");
             Set<Integer> publicmatches = null;
             Set<Integer> privatematches = null;
             Set<Integer> matches = null;
@@ -223,18 +228,9 @@ public class SQLConfig
             
             List<DataEntity> finalresults = new LinkedList<DataEntity>();
 
-            for (Entry<String,String> propval : properties.entrySet())
-            {
-                String key = propval.getKey();
-                String value = propval.getValue();
-                if (ISQLConfig.PrivateMetadata.isPrivate(key))
-                    privateprops.put(key, value);
-                else
-                    publicprops.put(key, value); 
-            }
-            if (publicprops.size() > 0)
+            if (publicprops != null && publicprops.size() > 0)
                 publicmatches = public_attributes.filter(publicprops);
-            if (privateprops.size() > 0)
+            if (privateprops != null && privateprops.size() > 0)
                 privatematches = private_attributes.filter(privateprops);
             /* Ick */
             if ((publicmatches != null) && (privatematches != null))

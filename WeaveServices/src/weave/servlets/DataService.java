@@ -172,7 +172,7 @@ public class DataService extends GenericServlet
 		int rowIndex =0;
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(params));
+		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(ISQLConfig.siftMeta(params)));
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		if (infoList.size() > 100)
@@ -330,7 +330,7 @@ public class DataService extends GenericServlet
                 String tableId = null;
                 Map<String,String> tableParams = new HashMap<String,String>();
                 tableParams.put(PublicMetadata.TITLE, dataTableName);
-                List<DataEntity> tableList = new ArrayList<DataEntity>(config.findEntities(params, DataEntity.MAN_TYPE_DATATABLE));
+                List<DataEntity> tableList = new ArrayList<DataEntity>(config.findEntities(ISQLConfig.siftMeta(params), DataEntity.MAN_TYPE_DATATABLE));
                 if (tableList.size() > 1)
                     throw new RemoteException(String.format("Multiple datatable matches for \"%s\"", dataTableName));
                 else if (tableList.size() == 0)
@@ -338,7 +338,7 @@ public class DataService extends GenericServlet
                 else
                     tableId = String.format("%d", tableList.get(0).id);
                 params.put(PublicMetadata.DATATABLE_ID, tableId); 
-		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(params));
+		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(ISQLConfig.siftMeta(params)));
 		
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
@@ -496,7 +496,7 @@ public class DataService extends GenericServlet
 	{
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(params));
+		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(ISQLConfig.siftMeta(params)));
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		if (infoList.size() > 1)
@@ -525,7 +525,7 @@ public class DataService extends GenericServlet
 		Map<String,String> publicMetadataFilter = new HashMap<String,String>();
 		publicMetadataFilter.put(PublicMetadata.NAME, geometryCollectionName);
 
-		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(publicMetadataFilter));
+		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(ISQLConfig.siftMeta(publicMetadataFilter)));
 		if (infoList.size() == 1)
 			return getGeometryStreamTileDescriptors(infoList.get(0).id);
 		throw new RemoteException(String.format("%s matches for geometry collection \"%s\"", infoList.size(), geometryCollectionName));

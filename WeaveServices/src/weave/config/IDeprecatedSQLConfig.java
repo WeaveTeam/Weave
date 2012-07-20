@@ -121,7 +121,7 @@ public abstract class IDeprecatedSQLConfig extends ISQLConfig
     {
         throw new RemoteException("Not implemented");
     }
-    public Integer addEntity(Integer type_id, Map<String,String> properties) throws RemoteException
+    public Integer addEntity(Integer type_id, Map<String,Map<String,String>> properties) throws RemoteException
     {
         throw new RemoteException("Not implemented");
     }
@@ -137,11 +137,11 @@ public abstract class IDeprecatedSQLConfig extends ISQLConfig
     {
         throw new RemoteException("Not implemented");
     }
-    public Collection<DataEntity> findEntities(Map<String,String> properties, Integer type_id) throws RemoteException
+    public Collection<DataEntity> findEntities(Map<String,Map<String,String>> properties, Integer type_id) throws RemoteException
     {
         throw new RemoteException("Not implemented");
     }
-    public void updateEntity(Integer id, Map<String,String> properties) throws RemoteException
+    public void updateEntity(Integer id, Map<String,Map<String,String>> properties) throws RemoteException
     {
         throw new RemoteException("Not implemented");
     }
