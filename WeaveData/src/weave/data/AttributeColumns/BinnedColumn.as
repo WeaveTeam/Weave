@@ -161,7 +161,8 @@ package weave.data.AttributeColumns
 		
 		private function _asyncComplete():void
 		{
-			_prevTriggerCounter++; // increase by 1 now to account for _derivedBins trigger
+			if (_prevTriggerCounter == triggerCounter)
+				_prevTriggerCounter++; // increase by 1 now to account for _derivedBins trigger
 			_derivedBins.triggerCallbacks();
 			_derivedBins.resumeCallbacks(true); // allow callbacks to run now
 		}
@@ -211,6 +212,7 @@ package weave.data.AttributeColumns
 		
 		public function getBinIndexFromDataValue(value:*):Number
 		{
+			validateBins();
 			return _derivedBins.getBinIndexFromDataValue(value);
 		}
 
