@@ -258,17 +258,11 @@ package weave.utils
 		 * @param key A key in the given column to get the value for.
 		 * @return The Number corresponding to the given key, normalized to be between 0 and 1.
 		 */
+		[Deprecated(replacement="WeaveAPI.StatisticsCache.getColumnStatistics(column).getNorm(key)")]
 		public static function getNorm(column:IAttributeColumn, key:Object):Number
 		{
-			if (column != null)
-			{
-				var qkey:IQualifiedKey = getQKey(key);
-				var min:Number = WeaveAPI.StatisticsCache.getMin(column);
-				var max:Number = WeaveAPI.StatisticsCache.getMax(column);
-				var value:Number = column.getValueFromKey(qkey, Number);
-				return (value - min) / (max - min);
-			}
-			return NaN;
+			var qkey:IQualifiedKey = getQKey(key);
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getNorm(qkey);
 		}
 		
 		/**

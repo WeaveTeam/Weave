@@ -25,6 +25,8 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import weave.api.WeaveAPI;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
@@ -60,6 +62,7 @@ package weave.visualization.plotters
 		private var _beginRadians:EquationColumn;
 		private var _spanRadians:EquationColumn;
 		private var _binLookup:StringLookupColumn;
+		private var _binLookupStats:IColumnStatistics;
 		private var _binnedData:BinnedColumn;
 		private var _filteredData:FilteredColumn;
 		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
@@ -87,6 +90,7 @@ package weave.visualization.plotters
 			var binSize:EquationColumn = _spanRadians.requestVariable("binSize", EquationColumn, true);
 			binSize.equation.value = "getValue(binLookup).length";
 			_binLookup = binSize.requestVariable("binLookup", StringLookupColumn, true);
+			_binLookupStats = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(_binLookup));
 			_binnedData = _binLookup.requestLocalObject(BinnedColumn, true);
 			_filteredData = binnedData.internalDynamicColumn.requestLocalObject(FilteredColumn, true);
 			linkSessionState(keySet.keyFilter, _filteredData.filter);
@@ -127,7 +131,7 @@ package weave.visualization.plotters
 			//fillStyle.beginFillStyle(recordKey, graphics);
 			
 			// draw graphics
-			var color:Number = chartColors.getColorFromNorm( ColumnUtils.getNorm(_binLookup, recordKey) );
+			var color:Number = chartColors.getColorFromNorm( _binLookupStats.getNorm(recordKey) );
 			graphics.beginFill(color, 1);
 			
 			// move to center point

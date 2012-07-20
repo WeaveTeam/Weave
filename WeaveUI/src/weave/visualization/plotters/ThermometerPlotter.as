@@ -114,7 +114,7 @@ package weave.visualization.plotters
 			
 			//project data max top point
 			top.x = 0;
-			top.y = WeaveAPI.StatisticsCache.getMax(meterColumn);
+			top.y = meterColumnStats.getMax();
 			dataBounds.projectPointTo(top, screenBounds);
 			top.x += xOffset;
 			
@@ -139,12 +139,12 @@ package weave.visualization.plotters
 		 */
 		override public function getBackgroundDataBounds():IBounds2D
 		{
-			return getReusableBounds(0, 0, 1, WeaveAPI.StatisticsCache.getMax(meterColumn));
+			return getReusableBounds(0, 0, 1, meterColumnStats.getMax());
 		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			return [getReusableBounds(0, 0, 1, WeaveAPI.StatisticsCache.getMax(meterColumn))];
+			return [getReusableBounds(0, 0, 1, meterColumnStats.getMax())];
 		}
 	}
 }

@@ -30,6 +30,7 @@ package weave.data
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.getCallbackCollection;
+	import weave.api.objectWasDisposed;
 	import weave.core.SessionManager;
 	
 	/**
@@ -108,6 +109,31 @@ package weave.data
 			
 			_callbackCollection.resumeCallbacks();
 			return keys;
+		}
+
+		/**
+		 * Get a list of QKey objects, all with the same key type.
+		 * 
+		 * @return An array of QKeys that will be filled in asynchronously.
+		 */
+		public function getQKeysAsync(keyType:String, keyStrings:Array, relevantContext:Object, asyncCallback:Function, outputKeys:Vector.<IQualifiedKey>):void
+		{
+			outputKeys.length = keyStrings.length;
+			var i:int = 0;
+			var iterate:Function = function():Number
+			{
+				if (i >= keyStrings.length)
+					return 1;
+				
+				outputKeys[i] = getQKey(keyType, keyStrings[i]);
+				
+				i++;
+				
+				return i / keyStrings.length;
+			};
+			
+			WeaveAPI.SessionManager.assignBusyTask(iterate, this);
+			WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_PARSING, asyncCallback);
 		}
 
 		/**

@@ -26,8 +26,11 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
@@ -71,6 +74,19 @@ package weave.visualization.plotters
 			algorithms[INCREMENTAL_LAYOUT] = IncrementalLayoutAlgorithm;
 			algorithms[BRUTE_FORCE] = BruteForceLayoutAlgorithm;
 			handleColumnsChange();
+			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
+		}
+		private function handleColumnsListChange():void
+		{
+			// when a column is removed, remove callback trigger
+			var oldColumn:IAttributeColumn = columns.childListCallbacks.lastObjectRemoved as IAttributeColumn;
+			if (oldColumn)
+				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(oldColumn)).removeCallback(handleColumnsChange);
+			
+			// make callbacks trigger when statistics change for the column
+			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
+			if (newColumn)
+				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn)).addImmediateCallback(this, handleColumnsChange);
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
@@ -96,15 +112,13 @@ package weave.visualization.plotters
 		/**
 		 * This is the radius of the circle, in screen coordinates.
 		 */
-		private const screenRadius:DynamicColumn = newLinkableChild(this, DynamicColumn, handleRadiusColumnChange);
-		public function get radiusColumn():DynamicColumn { return screenRadius; }
+		public const radiusColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		private const radiusColumnStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(radiusColumn));
 		public const radiusConstant:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		
 		private static var randomValueArray:Array = new Array();		
 		private static var randomArrayIndexMap:Dictionary;
 		private var keyNumberMap:Dictionary;		
-		private var keyRadiusMap:Dictionary;
-		private var keyNormedRadiusMap:Dictionary;
 		private var keyColorMap:Dictionary;
 		private var keyNormMap:Dictionary;
 		private var keyGlobalNormMap:Dictionary;
@@ -113,7 +127,7 @@ package weave.visualization.plotters
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
 		
 		private function handleColumnsChange():void
-		{			
+		{
 			var i:int = 0;
 			var keyNormArray:Array;
 			var columnNormArray:Array;
@@ -146,7 +160,8 @@ package weave.visualization.plotters
 					{
 						if(i == 0)
 							columnTitleMap[column] = columns.getName(column);
-						columnNormArray.push(ColumnUtils.getNorm(column, key));
+						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+						columnNormArray.push(stats.getNorm(key));
 						columnNumberMap[column] = column.getValueFromKey(key, Number);
 						columnNumberArray.push(columnNumberMap[column]);
 					}
@@ -178,18 +193,6 @@ package weave.visualization.plotters
 				setKeySource(null);
 			
 			setAnchorLocations();
-		}
-		
-		private function handleRadiusColumnChange():void
-		{			
-			keyRadiusMap = 			new Dictionary(true);
-			keyNormedRadiusMap = 	new Dictionary(true);
-			
-			for each(var key:IQualifiedKey in keySet.keys)
-			{
-				keyNormedRadiusMap[key] = ColumnUtils.getNorm(screenRadius,key);
-				keyRadiusMap[key] = screenRadius.getValueFromKey(key, Number);				
-			}			
 		}
 		
 		private function handleColorColumnChange():void
@@ -239,8 +242,10 @@ package weave.visualization.plotters
 			if(!array) keyMapExists = false;
 			var array2:Dictionary = keyNumberMap[recordKey];
 			var i:int = 0;
-			for each( var column:IAttributeColumn in _columns)  {				
-				value = (keyMapExists) ? array[i] : ColumnUtils.getNorm(column,recordKey);
+			for each( var column:IAttributeColumn in _columns)
+			{
+				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+				value = (keyMapExists) ? array[i] : stats.getNorm(recordKey);
 				name = (keyMapExists) ? columnTitleMap[column] : columns.getName(column);	
 				sum += (keyMapExists) ? array2[column] : column.getValueFromKey(recordKey, Number);
 				anchor = anchors.getObject(name) as AnchorPoint;
@@ -303,12 +308,12 @@ package weave.visualization.plotters
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{						
 			var graphics:Graphics = tempShape.graphics;
-			var radius:Number = (screenRadius.getInternalColumn()) ? keyNormedRadiusMap[recordKey] : NaN;
+			var radius:Number = radiusColumnStats.getNorm(recordKey);
 			
 			// Get coordinates of record and add jitter (if specified)
 			getXYcoordinates(recordKey);
 
-			if(screenRadius.getInternalColumn() != null)
+			if(radiusColumn.getInternalColumn() != null)
 			{
 				if(radius <= Infinity) radius = 2 + (radius *(10-2));
 				if(isNaN(radius))
@@ -384,11 +389,11 @@ package weave.visualization.plotters
 		private function sortKeys(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{			
 			// sort descending (high radius values drawn first)
-			if (screenRadius.getInternalColumn())
+			if (radiusColumn.getInternalColumn())
 			{
 				// compare size
-				var a:Number = keyRadiusMap[key1];
-				var b:Number = keyRadiusMap[key2];
+				var a:Number = radiusColumn.getValueFromKey(key1, Number);
+				var b:Number = radiusColumn.getValueFromKey(key2, Number);
 				
 				if( isNaN(a) || (a < b) )	return -1;
 				else if( isNaN(b) || (a > b) ) return 1;

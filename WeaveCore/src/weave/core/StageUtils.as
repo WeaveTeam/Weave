@@ -248,7 +248,6 @@ package weave.core
 		private static var _times:Array = [];
 		public static function debugTime(str:String):int
 		{
-			return 0;
 			var now:int = getTimer();
 			var dur:int = (now - _time);
 			if (dur > 100)

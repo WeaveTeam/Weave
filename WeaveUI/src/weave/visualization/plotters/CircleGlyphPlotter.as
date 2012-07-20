@@ -25,6 +25,8 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -32,7 +34,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
@@ -46,10 +47,6 @@ package weave.visualization.plotters
 	public class CircleGlyphPlotter extends AbstractGlyphPlotter
 	{
 		public function CircleGlyphPlotter()
-		{
-			init();
-		}
-		private function init():void
 		{
 			// initialize default line & fill styles
 			lineStyle.requestLocalObject(SolidLineStyle, false);
@@ -66,6 +63,8 @@ package weave.visualization.plotters
 		 * This is the radius of the circle, in screen coordinates.
 		 */
 		public const screenRadius:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		// delare dependency on statistics (for norm values)
+		private const _screenRadiusStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(screenRadius));
 		/**
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
@@ -91,7 +90,7 @@ package weave.visualization.plotters
 			var graphics:Graphics = tempShape.graphics;
 			
 			// project data coordinates to screen coordinates and draw graphics
-			var radius:Number = ColumnUtils.getNorm(screenRadius, recordKey);
+			var radius:Number = _screenRadiusStats.getNorm(recordKey);
 			
 			tempPoint.x = getCoordFromRecordKey(recordKey, true);
 			tempPoint.y = getCoordFromRecordKey(recordKey, false);

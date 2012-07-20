@@ -24,8 +24,6 @@ package weave.utils
 	import flash.geom.Rectangle;
 	
 	import weave.api.disposeObjects;
-	import weave.api.ui.IPlotter;
-	import weave.primitives.Bounds2D;
 
 	/**
 	 * PlotterUtils
