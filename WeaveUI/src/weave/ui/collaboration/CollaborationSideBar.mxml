@@ -255,7 +255,6 @@
 				createSettingsPanel();
 				createChatPanel();
 				createParticipantPanel();
-				PARTICIPANTS.addToParticpantList(nickname);
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_CONNECT, connect);
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_DISCONNECT, disconnect);
 				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
@@ -292,6 +291,8 @@
 				connTimer.addEventListener(TimerEvent.TIMER, serverUnresponsive);
 				connTimer.start();
 				
+				PARTICIPANTS.addToParticpantList(collabService.nickname);
+				
 				disConButtonPushed = false;
 			}
 			
@@ -299,6 +300,7 @@
 			{
 				disConButtonPushed = true;
 				CHAT.visible = false;
+				PARTICIPANTS.clearDisplay();
 				if( collabService.isConnected )
 					collabService.disconnect();
 				//	disconnectionFromRTMPServer();
@@ -415,6 +417,7 @@
 			private function handleRemoveUserElements(e:CollaborationEvent):void
 			{
 				trace( "Removing " + e.getText() + "\'s cursor" );
+				PARTICIPANTS.removeFromParticipantList(e.getText());
 				if( WeaveAPI.CollaborationCursorManager == null ) 
 				{
 					reportError(e.getText() + "\'s mouse does not exist.");
@@ -533,6 +536,7 @@
 				{
 					if( person.displayName == collabService.nickname ) continue;
 					WeaveAPI.CollaborationCursorManager.createCursor(person.displayName);
+					PARTICIPANTS.addToParticpantList(person.displayName);
 					trace("asking " + person.displayName + " for mouse pos");
 					collabService.requestMouseMessage(person.displayName);
 				}
@@ -596,6 +600,7 @@
 			
 			private function handleCreateUserMouse(e:CollaborationEvent):void
 			{
+				
 				trace("handleCreateUserMouse();");
 				if( e.getText() == collabService.nickname ) return;
 				if( WeaveAPI.CollaborationCursorManager.getCursorIds() == null )	// You have just joined the room and ask everyone for their mice
