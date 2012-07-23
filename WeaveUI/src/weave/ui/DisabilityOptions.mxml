@@ -98,7 +98,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							import weave.Weave;
 							import weave.api.WeaveAPI;
 							import weave.api.core.ILinkableObject;
-							import weave.api.data.AttributeColumnMetadata;
 							import weave.api.linkBindableProperty;
 							import weave.api.linkSessionState;
 							import weave.api.newDisposableChild;
@@ -109,19 +108,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							import weave.api.unlinkBindableProperty;
 							import weave.api.unlinkSessionState;
 							import weave.core.LinkableString;
-							import weave.data.AttributeColumns.DynamicColumn;
-							import weave.data.AttributeColumns.EquationColumn;
-							import weave.editors.WeavePropertiesMenuEditor;
 							import weave.ui.ControlPanel;
 							import weave.ui.SessionStateEditor;
-							import weave.ui.controlBars.WeaveMenuBar;
-							import weave.ui.controlBars.WeaveMenuItem;
-							import weave.visualization.layers.PlotLayer;
-							import weave.visualization.layers.SelectablePlotLayer;
-							import weave.visualization.plotters.DynamicPlotter;
-							
-							
-							
+					
 							
 							private const padding:int = 5;
 							private var cbArray:Array = [];
@@ -168,15 +157,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								{
 									menuToggleVBox.addChild(cb);
 									
-									cb.addEventListener( MouseEvent.CLICK, onChangeEvent_checkBox );//one checkbox is able to be checked in a time
+									//cb.addEventListener( MouseEvent.CLICK, onChangeEvent_checkBox );//one checkbox is able to be checked in a time
 									longDescTextInputBox.enabled = false;
 
 									cb.addEventListener(MouseEvent.CLICK, clickHandler);
 									
 								}
 								
-								
-								// We have to find the event type that is invoked when a draggable panel is close for real time
 								addEventListener(FlexEvent.SHOW, panelRemovedEventHandler);
 								
 								//addEventListener(FlexEvent.ENTER_FRAME, panelRemovedEventHandler);
@@ -187,7 +174,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								
 							}
 							/**one checkbox is able to be checked in a time*/
-							private function onChangeEvent_checkBox( event:MouseEvent) :void
+							/*private function onChangeEvent_checkBox( event:MouseEvent) :void
 							{
 								var currentCB : CheckBox = CheckBox( event.target );
 								if( selectedCB && currentCB !== selectedCB )
@@ -196,7 +183,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								
 						
 								selectedCB = ( currentCB.selected ) ? currentCB : null;
-							}
+							}*/
 
 							
 							protected function panelRemovedEventHandler(event:Event):void {
@@ -231,7 +218,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								{
 									menuToggleVBox.addChild(cb);
 			
-									cb.addEventListener(MouseEvent.CLICK, onChangeEvent_checkBox );
+									//cb.addEventListener(MouseEvent.CLICK, onChangeEvent_checkBox );
 									longDescTextInputBox.enabled = false;
 									cb.addEventListener(MouseEvent.CLICK, clickHandler);		
 								}
@@ -240,9 +227,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							protected function clickHandler(event:MouseEvent):void {
 								
 								
-								//longDescTextInputBox.text = event.currentTarget.label;
-								//longDescTextInputBox.text += " "; 
-								longDescTextInputBox.enabled = event.target.selected; //textInput is enabled only checkbox is selected
+								
+								//longDescTextInputBox.enabled = event.target.selected; //textInput is enabled only checkbox is selected
 								longDescTextInputBox.text += event.target.text;
 								
 			
@@ -270,61 +256,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							}
 							private function handleLinkableHtmlText():void
 							{
-							/*	if (!parent)
-								{
-									callLater(handleLinkableHtmlText);
-									return;
-								}
-								
-								// use internal text field because the real _tempTextField loses formatting.
-								var _tempTextField:IUITextField = textArea.mx_internal::getTextField();
-								
-								if (!_tempTextField)
-								{
-									reportError("Unexpected: textArea.mx_internal::getTextField() is null");
-									return;
-								}
-								
-								var selBegin:int = _tempTextField.selectionBeginIndex;
-								var selEnd:int = _tempTextField.selectionEndIndex;
-								
-								_tempTextField.htmlText = htmlText.value; // use the textField temporarily for getTextFormat,setTextFormat
-								
-								// make sure the text between each pair of { and } brackets only has a single format.
-								var begin:int;
-								var end:int = 0;
-								while (true)
-								{
-									// find a pair of { and } brackets
-									begin = _tempTextField.text.indexOf("{", end);
-									if (begin < 0)
-										break;
-									end = _tempTextField.text.indexOf("}", begin);
-									if (end < 0)
-										break;
-									
-									// make sure the text between begin & end only has a single format
-									//				 	var f:TextFormat = _tempTextField.getTextFormat(begin, end + 1);
-									//					_tempTextField.setTextFormat(f, begin, end + 1);
-									_tempTextField.setSelection(begin, end + 1);
-									_tempTextField.replaceSelectedText(_tempTextField.text.substring(begin, end + 1));
-									
-									//					// replace the text from { to }
-									//					var script:String = _tempTextField.text.substring(begin + 1, end);
-									//					htmlTextFunction.value = script;
-									//					_tempTextField.replaceText(begin, end + 1, String(htmlTextFunction.apply()));
-								}
-								_tempTextField.setSelection(selBegin, selEnd);
-								
-								var ht:String = _tempTextField.htmlText;
-								ht = ht.split('&apos;').join("'");
-								ht = ht.split('&quot;').join('"');
-								htmlTextFunction.value = '`' + ht.split('`').join('\\`') + '`';
-								
-								//This is a hack to keep re-applying the currently selected text format.
-								applyTextFormat(new Event("LIST"));
-								
-								updateTextArea();*/
+							
 							}
 							
 						]]>

@@ -3,6 +3,7 @@
   <includeClasses>
     <classEntry path="weave.editors.ImageGlyphPlotterEditor"/>
     <classEntry path="weave.ui.ProbeToolTipWindow"/>
+    <classEntry path="weave.editors.Disability"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

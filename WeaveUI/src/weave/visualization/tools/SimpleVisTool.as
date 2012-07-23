@@ -46,6 +46,7 @@ package weave.visualization.tools
 	import weave.core.UIUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.editors.Disability;
 	import weave.editors.SimpleAxisEditor;
 	import weave.editors.WindowSettingsEditor;
 	import weave.editors.managers.LayerListComponent;
@@ -98,6 +99,7 @@ package weave.visualization.tools
 		protected var layerListComponent:LayerListComponent;
 		protected var simpleAxisEditor:SimpleAxisEditor;
 		protected var windowSettingsEditor:WindowSettingsEditor;
+		protected var disability : Disability;
 		
 		private var createdChildren:Boolean = false;
 		override protected function createChildren():void
@@ -152,9 +154,12 @@ package weave.visualization.tools
 			windowSettingsEditor = new WindowSettingsEditor();
 			windowSettingsEditor.target = this;
 			
+			disability = new Disability();
+			disability.target = this;
+			
 			if (controlPanel)
 			{
-				controlPanel.children = [layerListComponent, simpleAxisEditor, windowSettingsEditor];
+				controlPanel.children = [layerListComponent, simpleAxisEditor, windowSettingsEditor, disability];
 			}
 		}
 		
