@@ -1,5 +1,7 @@
 package weave.data.DataSources
 {
+	import com.as3xls.xls.formula.Tokens;
+	
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.net.URLLoader;
@@ -55,7 +57,7 @@ package weave.data.DataSources
 		
 		public static const SOURCE_NAME:String = "InfoMaps Data Source";
 		
-		public static const defaultNumberOfDocumentsPerRequest:int = 100;
+		public static const defaultNumberOfDocumentsPerRequest:int = 2000;
 		
 		public function containsDoc(key:IQualifiedKey):Boolean
 		{
@@ -136,7 +138,7 @@ package weave.data.DataSources
 		
 		
 		public function getDocumentsForQuery(docKeySet:KeySet,wordCount:Array,query:String,operator:String='AND',sources:Array=null,
-													dateFilter:DateRangeFilter=null,numberOfDocuments:int=100,partialMatch:Boolean=false):void
+													dateFilter:DateRangeFilter=null,numberOfDocuments:int=2000,partialMatch:Boolean=false):void
 		{
 			
 			var queryTerms:String = parseBasicQuery(query,operator,partialMatch);
@@ -155,7 +157,7 @@ package weave.data.DataSources
 		 * @param numberOfDocuments
 		 * 
 		 */		
-		public function getDocumentsForQueryWithFieldValues(docKeySet:KeySet,query:String,fieldsNames:Array,fieldValues:Array,sources:Array,operator:String='AND',dateFilter:DateRangeFilter=null,numberOfDocuments:int=100,partialMatch:Boolean=false):void
+		public function getDocumentsForQueryWithFieldValues(docKeySet:KeySet,query:String,fieldsNames:Array,fieldValues:Array,sources:Array,operator:String='AND',dateFilter:DateRangeFilter=null,numberOfDocuments:int=2000,partialMatch:Boolean=false):void
 		{
 			if(fieldsNames.length == 0)
 				return;
@@ -193,7 +195,7 @@ package weave.data.DataSources
 			createAndSendQuery(docKeySet,null,queryTerms,filteredQuery,operator,sources,dateFilter,numberOfDocuments);
 		}
 		
-		private function parseBasicQuery(query:String,operator:String,partialMatch:Boolean):String
+		private static function parseBasicQuery(query:String,operator:String,partialMatch:Boolean):String
 		{
 			var temp:Array = removeEmptyStringElementsFromArray(query.split(" "));	
 			
@@ -224,10 +226,34 @@ package weave.data.DataSources
 			return queryTerms;
 		}
 		
+		public static function getNumberOfMatchedDocuments(query:String,operator:String="AND",sources:Array=null,
+													dateFilter:DateRangeFilter=null):DelayedAsyncInvocation 
+		{
+		
+			var numOfDocs:int;
+			
+			query = parseBasicQuery(query,operator,false);
+			
+			var filterQuery:String = parseFilterQuery(filterQuery,dateFilter,sources);
+			
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getNumberOfMatchedDocuments(query,filterQuery);
+			
+			return q;			
+		}
+			
 		private function createAndSendQuery(docKeySet:KeySet,wordCount:Array,query:String,filterQuery:String=null,operator:String='AND',sources:Array=null,
-											dateFilter:DateRangeFilter=null,numberOfDocuments:int=100,sortField:String="date_added"):void
+											dateFilter:DateRangeFilter=null,numberOfDocuments:int=2000,sortField:String="date_added"):void
 		{
 			
+			filterQuery = parseFilterQuery(filterQuery,dateFilter);
+				
+			
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getQueryResults(query,filterQuery,sortField,numberOfDocuments);
+			q.addAsyncResponder(handleQueryResults,handleQueryFault,{docKeySet:docKeySet,wordCount:wordCount});
+		}
+		
+		private static function parseFilterQuery(filterQuery:String,dateFilter:DateRangeFilter=null,sources:Array=null):String
+		{
 			if(!filterQuery)
 				filterQuery = "";
 			
@@ -283,10 +309,8 @@ package weave.data.DataSources
 				filterQuery = filterQuery + ' AND ' + dateFilterString;
 			else if(dateFilterString)
 				filterQuery = dateFilterString;
-				
 			
-			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getQueryResults(query,filterQuery,sortField,defaultNumberOfDocumentsPerRequest);
-			q.addAsyncResponder(handleQueryResults,handleQueryFault,{docKeySet:docKeySet,wordCount:wordCount});
+			return filterQuery;
 		}
 		
 		private function handleQueryResults(event:ResultEvent,token:Object=null):void
@@ -346,7 +370,7 @@ package weave.data.DataSources
 		
 		private var parser:CSVParser = new CSVParser();
 		
-		private function removeEmptyStringElementsFromArray(arg:Array):Array
+		private static function removeEmptyStringElementsFromArray(arg:Array):Array
 		{
 			var result:Array = [];
 			for each(var item:String in arg)

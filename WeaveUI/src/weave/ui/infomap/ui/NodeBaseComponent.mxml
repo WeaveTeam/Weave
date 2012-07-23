@@ -25,7 +25,7 @@ It has 4 icons to:
 		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
 	</mx:HBox>	
 	<mx:Canvas id="keywordCanvas" horizontalScrollPolicy="off" verticalScrollPolicy="off"  width="100%">
-		<mx:TextArea id="keywordTextArea" editable="false" selectable="false" focusAlpha="0" fontSize="12" width="100%" borderThickness="1" borderStyle="solid" cornerRadius="5"/>
+		<mx:TextArea paddingLeft="20" id="keywordTextArea" editable="false" selectable="false" focusAlpha="0" fontSize="12" width="100%" borderThickness="1" borderStyle="solid" cornerRadius="5"/>
 		<mx:Image id="editImage" source="@Embed(source='/weave/resources/images/editButton.png')" 
 				  toolTip="click image to add comments" y="{keywordTextArea.height - editImage.height}" />		
 		<mx:TextArea visible="false"

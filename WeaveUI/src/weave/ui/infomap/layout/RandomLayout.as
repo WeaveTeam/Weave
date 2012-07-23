@@ -40,9 +40,7 @@ package weave.ui.infomap.layout
 				return;
 			
 			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.query.keywords.value;
-			_parentNodeHandler.nodeBase.keywordTextArea.setStyle("textAlign","center");
-			
-			
+			_parentNodeHandler.nodeBase.keywordTextArea.setStyle("textAlign","left");
 			
 			baseLayoutDrawn = true;
 			source.getColumnByName("title").addImmediateCallback(this,updateTitleLabel);
@@ -98,7 +96,7 @@ package weave.ui.infomap.layout
 			//For now it shows the number of documents found.
 			_parentNodeHandler.nodeBase.infoImg.visible = true;
 			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbnails.length.toString() + " documents found" ;
-			_parentNodeHandler.nodeBase.keywordTextArea.htmlText += "<br/><b>" +  thumbnails.length.toString() + "</b> documents found" ;
+//			_parentNodeHandler.nodeBase.keywordTextArea.htmlText += "<br/><b>" +  thumbnails.length.toString() + "</b> documents found" ;
 			if(_parentNodeHandler.query.sources.value)
 			{
 				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.query.sources.value;

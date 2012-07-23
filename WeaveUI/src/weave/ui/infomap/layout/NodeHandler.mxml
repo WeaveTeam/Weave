@@ -7,7 +7,7 @@
 		   dragDrop ="dragDropHandler(event)"
 		   dragEnter="dragEnterHandler(event)"
 		>
-	<mx:Canvas id="pointsCanvas" visible="false" clipContent="false" width="400" height="300"/>
+	<mx:Canvas id="pointsCanvas" enabled="false" visible="false" clipContent="false" width="400" height="300"/>
 	<mx:Canvas id="listCanvas" visible="false" clipContent="false" width="400" height="300"/>
 	<mx:Glow id="selectedBorder" 
 			 alphaFrom="1.0" alphaTo="1.0"   
@@ -86,6 +86,8 @@
 			import weave.data.QKeyManager;
 			import weave.primitives.ColorRamp;
 			import weave.primitives.DateRangeFilter;
+			import weave.services.DelayedAsyncInvocation;
+			import weave.ui.ResizableBox;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.InfoMapDocument;
 			import weave.ui.infomap.core.InfoMapNode;
@@ -407,6 +409,15 @@
 				
 				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
 				
+				var numOfDocsQuery:DelayedAsyncInvocation = InfoMapsDataSource.getNumberOfMatchedDocuments(
+											query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
+				
+				nodeBase.keywordTextArea.htmlText = "<b>Query: </b> " + query.keywords.value;
+				numOfDocsQuery.addAsyncResponder(function(event:ResultEvent,token:Object=null):void{
+					nodeBase.keywordTextArea.htmlText +="<b>Documents Found:</b> " +  event.result.toString();
+				},function(event:FaultEvent,token:Object=null):void{
+					nodeBase.keywordTextArea.htmlText +="<br/><b>" +  -1 + "</b> documents found" ;
+				});
 			}
 			
 			private var parser:CSVParser = new CSVParser();
@@ -422,8 +433,8 @@
 			{
 				var response:Array = docKeySet.keys;
 				
-				if(d.docList != null)
-					d.docList.dataProvider = docKeySet.keys;
+//				if(d.docList != null)
+//					d.docList.dataProvider = docKeySet.keys;
 				
 				var nameOrder:Array = [];
 				
@@ -497,7 +508,7 @@
 			private function positionThumbnails():void
 			{
 //				nodeBase.keywordTextArea.text = query.keywords.value;
-				nodeBase.keywordTextArea.htmlText = "<b>Query: </b> " + query.keywords.value;
+				
 				nodeBase.keywordTextArea.toolTip = query.keywords.value;
 				
 				pointsCanvas.y = nodeBase.height;
@@ -552,10 +563,10 @@
 					if(_subset.containsKey(qKey))
 					{
 						thumbnailsToPlotArray.push(t);
-//						t.visible = true;
+						t.visible = true;
 					}else{
 						
-//						t.visible = false;
+						t.visible = false;
 					}
 					
 				}
@@ -700,7 +711,7 @@
 						if(_subset.containsKey(qKey1))
 						{
 							
-//							t1.visible = !visiblity;
+							t1.visible = !visiblity;
 						}
 					}
 				}else
@@ -711,7 +722,7 @@
 						if(_subset.containsKey(qKey2))
 						{
 							
-//							t2.visible = false;
+							t2.visible = false;
 						}
 					}
 				}
@@ -729,7 +740,7 @@
 					if(t3 && qKey3 && _subset.containsKey(qKey3))
 					{
 						
-//						t3.visible = true;
+						t3.visible = true;
 					}
 				}
 				
@@ -892,13 +903,16 @@
 				d.y = nodeBase.height;
 				var k:Array = docKeySet.keys;
 				
+				if(k.length <= 0)
+					return;
+				
 				var temp:Array = [];
-				for (var i:int = 0; i< 10; i++)//restricting to 10 for now
+				for (var i:int = 0; i< k.length; i++)
 				{
 					temp.push((k[i] as IQualifiedKey).localName);
 				}
 				
-				d.docList.dataProvider = temp;
+				d.docKeys = temp;
 				
 				if(tagCanvas)
 					fadeOut.play([tagCanvas,pointsCanvas]);

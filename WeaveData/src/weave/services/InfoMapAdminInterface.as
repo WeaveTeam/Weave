@@ -169,6 +169,12 @@ package weave.services
 				return query;
 			}
 			
+			public function getNumberOfMatchedDocuments(queryURL:String,filterQuery:String):DelayedAsyncInvocation
+			{
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getNumberOfMatchedDocuments",[queryURL,filterQuery]);
+				return query;
+			}
+			
 			public function testDropBox():DelayedAsyncInvocation
 			{
 				var q:DelayedAsyncInvocation = generateQueryAndAddToQueue("testDropbox",[]);

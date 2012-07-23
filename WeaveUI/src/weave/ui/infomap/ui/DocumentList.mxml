@@ -9,12 +9,14 @@ Filter by Date
 Info to provide a tooltip describing the node (like number of documents found)
 
 -->
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+<mx:VBox implements="weave.api.core.ILinkableObject" xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
 width="400">
-	<mx:List id="docList" width="100%">
+	<mx:List toolTip="" id="docList" width="100%">
 		<mx:itemRenderer>
 			<mx:Component>
-				<mx:Label toolTip="{null}" width="100%">
+				<!--Setting the tool tip to empty so that you can only see the Document Summary Component on mouse over.
+				Setting it to null does not work.-->
+				<mx:Label toolTip="" width="100%"> 
 					<mx:Script>
 						<![CDATA[
 							import mx.managers.CursorManager;
@@ -35,16 +37,18 @@ width="400">
 								
 								this.text = infomapDataSource.getTitleForURL(value as String);
 								
+								//Show DocumentSummaryComponent on mouse over and show link cursor
 								this.addEventListener(MouseEvent.MOUSE_OVER, function(event:MouseEvent):void {
 									CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
 									DocumentSummaryComponent.show(event.stageX,event.stageY,value as String,event.target as DisplayObject);
 										});
-								
+								//Hide DocumentSummaryComponent on mouse out and hide link cursor
 								this.addEventListener(MouseEvent.MOUSE_OUT, function(event:MouseEvent):void {
 									CustomCursorManager.removeCurrentCursor();
 									DocumentSummaryComponent.hide();
 								});
 								
+								//go to document link on double click
 								this.addEventListener(MouseEvent.DOUBLE_CLICK, function (event:MouseEvent):void {
 									var link:String = value as String;
 									var linkLen:int = link.length;
@@ -71,8 +75,125 @@ width="400">
 		
 	</mx:List>
 	<mx:HBox width="100%">
-		<mx:Button width="10%" label="Prev"/>
-		<mx:Spacer width="80%"/>
-		<mx:Button width="10%" label="Next"/>
+		<mx:Button id="prevButton" width="10%" label="Prev" click="prev()"/>
+		<mx:Label id="indexText" textAlign="center" width="80%"/>
+		<mx:Button id="nextButton" width="10%" label="Next" click="next()"/>
 	</mx:HBox>
+	
+	<mx:Script>
+		<![CDATA[
+			import weave.utils.VectorUtils;
+			import org.igniterealtime.xiff.events.OutgoingDataEvent;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			
+			private var _docKeys:Array = new Array();
+			public function set docKeys(value:Array):void
+			{
+				_docKeys = [];
+				VectorUtils.copy(value,_docKeys);
+				handleKeysChange();
+			}
+			
+			public var startIndex:LinkableNumber = new LinkableNumber(0);
+			
+			private var rowCount:int = 10;
+			override protected function childrenCreated():void
+			{
+				startIndex.addImmediateCallback(this,updateDocumentList,true);
+			}
+			
+			private function handleKeysChange():void
+			{
+				startIndex.value = 0;
+				
+				startIndex.triggerCallbacks();
+			}
+			
+			private function prev():void
+			{
+				//if startIndex is less than row count we don't want index to go below 0
+				if(startIndex.value <rowCount)
+				{
+					startIndex.value = 0;
+					return;
+				}
+				startIndex.value -= rowCount;
+				
+			}
+			
+			private function next():void
+			{
+				if(startIndex.value + rowCount > _docKeys.length)
+				{
+					return;//nothing more to show
+				}
+				
+				startIndex.value += rowCount;
+			}
+			
+			//updates the list of documents to show based on the starting index
+			//checks to see if data is less than rows to display and updates list's dataprovider accordingly
+			private function updateDocumentList():void
+			{
+				if(!_docKeys || _docKeys.length == 0)
+					return;
+				var listMaxLength:int = 10;
+				
+				var temp:Array = [];
+				
+				
+				
+				if(_docKeys.length < startIndex.value + listMaxLength)
+					listMaxLength = _docKeys.length - startIndex.value;
+				
+				for(var i:int=0+startIndex.value; i<startIndex.value+listMaxLength; i++)
+				{
+					temp.push(_docKeys[i]);
+				}
+				
+				docList.dataProvider = temp;
+				
+				//disable nextButton if showing the last set of documents
+				if(startIndex.value + rowCount >= _docKeys.length)
+				{
+					nextButton.enabled = false;
+				}else
+				{
+					nextButton.enabled = true;	
+				}
+				
+				//disable prevButton if showing the first set of documents
+				if(startIndex.value < rowCount)
+				{
+					prevButton.enabled = false;
+				}
+				else
+				{
+					prevButton.enabled = true;
+				}
+				
+				updateIndexText(); 
+			}
+			
+			private function updateIndexText():void
+			{
+				var st:int = startIndex.value+1;
+				
+				indexText.text = "Showing " + st.toString()  + " to "; //+1 to avoid showing 0
+				
+				if((startIndex.value + rowCount) < _docKeys.length)
+				{
+					var et:int = startIndex.value + rowCount; 					
+					indexText.text += et.toString();
+				}
+				else
+					indexText.text += _docKeys.length;
+				
+				indexText.text += " of " + _docKeys.length;
+					
+			}
+		]]>
+	</mx:Script>
 </mx:VBox>
