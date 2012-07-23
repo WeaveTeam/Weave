@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="185" height="500" title="Collaboration Group" xmlns:collaboration="weave.ui.collaboration.*" horizontalScrollPolicy="off" move="repositionWindowsHandler(event)" creationComplete="creationCompleteHandler(event)">
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="185" height="{(WeaveAPI.topLevelApplication as DisplayObject).height / 1.5}" title="Collaboration Group" xmlns:collaboration="weave.ui.collaboration.*" horizontalScrollPolicy="off" move="repositionWindowsHandler(event)" creationComplete="creationCompleteHandler(event)">
 	<mx:List id="userList" width="100%" height="100%" labelField="name" minWidth="130">
 		<mx:itemRenderer>
 			<mx:Component>
@@ -47,6 +47,7 @@
 	<mx:Button id="cursorButton" width="100%" label="{lang('Request Cursor Control')}" click="cursorButtonClick(event)"/>
 	<mx:Script>
 		<![CDATA[
+			import mx.events.ResizeEvent;
 			import mx.controls.Button;
 			import mx.events.MoveEvent;
 			import mx.events.CloseEvent;
@@ -231,6 +232,8 @@
 				collabService.addEventListener(CollaborationEvent.UPDATE_CAM, userCamUpdated);
 				collabService.addEventListener(CollaborationEvent.REQUEST_MOUSE_CONTROL, addMouseToQueue);
 				collabService.addEventListener(CollaborationEvent.RELINQUISH_MOUSE_CONTROL, removeMouseFromQueue);
+				
+				stage.addEventListener(Event.RESIZE, handleResize);
 	
 				userNameList = collabService.userList;
 				
@@ -503,7 +506,7 @@
 				PARTICIPANTS = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, ParticipantPanel) as ParticipantPanel;
 				PARTICIPANTS.visible = true;
 				PARTICIPANTS.y = WeaveAPI.topLevelApplication.visDesktop.y;
-				PARTICIPANTS.x = 0;
+				PARTICIPANTS.x = (WeaveAPI.topLevelApplication as DisplayObject).width / 2;
 			}
 			
 			private function openSettingsPanel(e:MouseEvent = null):void
@@ -666,6 +669,12 @@
 			private function percentToCoordY(y:Number):Number { return y * WeaveAPI.topLevelApplication.stage.stageHeight;  }
 			private function xMousePercent():Number { return WeaveAPI.topLevelApplication.stage.mouseX / WeaveAPI.topLevelApplication.stage.stageWidth;  }
 			private function yMousePercent():Number { return WeaveAPI.topLevelApplication.stage.mouseY / WeaveAPI.topLevelApplication.stage.stageHeight; }
+			
+			protected function handleResize(event:Event):void
+			{
+				this.height = (WeaveAPI.topLevelApplication as DisplayObject).height / 1.5;
+				adjustCursorButtonHeight();
+			}
 			
 		]]>
 	</mx:Script>
