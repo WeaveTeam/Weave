@@ -730,8 +730,8 @@
 									import mx.events.SliderEvent;
 									
 									import weave.api.core.ILinkableObject;
-									import weave.api.juggleGroupedCallback;
 									import weave.api.primitives.IBounds2D;
+									import weave.core.CallbackJuggler;
 									import weave.core.UIUtils;
 									import weave.editors.managers.LayerListComponent;
 									import weave.utils.ZoomUtils;
@@ -767,11 +767,10 @@
 										}
 									}
 									
+									private const layerJuggler:CallbackJuggler = new CallbackJuggler(this, handleLayerChange, true);
 									override public function set data(value:Object):void
 									{
-										value = value as SelectablePlotLayer || value as PlotLayer;
-										juggleGroupedCallback(data as ILinkableObject, value as ILinkableObject, this, handleLayerChange, true);
-										super.data = value;
+										super.data = layerJuggler.target = value as SelectablePlotLayer || value as PlotLayer;
 									}
 									private function handleScaleSliderChange(event:SliderEvent):void
 									{

@@ -60,6 +60,7 @@ package weave.core
 		[Bindable] public var enableThreadPriorities:Boolean = false;
 		
 		private const frameTimes:Array = [];
+		public var debug_async_stack:Boolean = false;
 		public var debug_fps:Boolean = false; // set to true to trace the frames per second
 		public var aft:int = 0;
 		public var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
@@ -243,11 +244,39 @@ package weave.core
 			return getTimer() - _currentFrameStartTime;
 		}
 		
+		private static var _time:int;
+		private static var _times:Array = [];
+		public static function debugTime(str:String):int
+		{
+			var now:int = getTimer();
+			var dur:int = (now - _time);
+			if (dur > 100)
+			{
+				_times.push(dur + ' ' + str);
+			}
+			else
+			{
+				var dots:String = '...';
+				var n:int = _times.length;
+				if (n && _times[n - 1] != dots)
+					_times.push(dots);
+			}
+			_time = now;
+			return dur;
+		}
+		private static function resetDebugTime():void
+		{
+			_times.length = 0;
+			_time = getTimer();
+		}
+		
 		/**
 		 * This function gets called on ENTER_FRAME events.
 		 */
 		private function handleEnterFrame():void
 		{
+			resetDebugTime();
+			
 			var currentTime:int = getTimer();
 			_previousFrameElapsedTime = currentTime - _currentFrameStartTime;
 			_currentFrameStartTime = currentTime;
@@ -405,15 +434,24 @@ package weave.core
 		 * This will generate an iterative task function that is the combination of a list of tasks to be completed in order.
 		 * @param iterativeTasks An Array of iterative task functions.
 		 * @return A single iterative task function that invokes the other tasks to completion in order.
+		 *         The function will accept an optional <code>restart:Boolean</code> parameter, which when set to true will
+		 *         reset the task counter to zero so the compound task will start from the first task again.
 		 * @see #startTask
 		 */
 		public static function generateCompoundIterativeTask(iterativeTasks:Array):Function
 		{
 			var iTask:int = 0;
-			return function():Number
+			return function(restart:Boolean = false):Number
 			{
+				if (restart)
+				{
+					iTask = 0;
+					return 0;
+				}
+				
 				if (iTask >= iterativeTasks.length)
 					return 1;
+				
 				var iterate:Function = iterativeTasks[iTask] as Function;
 				var progress:Number = iterate();
 				var totalProgress:Number = (iTask + progress) / iterativeTasks.length;
@@ -473,6 +511,8 @@ package weave.core
 				priority = WeaveAPI.TASK_PRIORITY_BUILDING;
 			}
 			
+			if (debug_async_stack)
+				_stackTraceMap[iterativeTask] = new Error("Stack trace").getStackTrace();
 			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
 			
 			_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
@@ -492,7 +532,8 @@ package weave.core
 			
 			var progress:* = undefined;
 			// iterate on the task until _currentTaskStopTime is reached
-			while (getTimer() <= _currentTaskStopTime)
+			var time:int;
+			while ((time = getTimer()) <= _currentTaskStopTime)
 			{
 				// perform the next iteration of the task
 				progress = task() as Number;
@@ -500,6 +541,11 @@ package weave.core
 				{
 					reportError("Received unexpected result from iterative task (" + progress + ").  Expecting a number between 0 and 1.  Task cancelled.");
 					progress = 1;
+				}
+				if (debug_async_stack && currentFrameElapsedTime > 3000)
+				{
+					trace(getTimer() - time, _stackTraceMap[task]);
+					task();
 				}
 				if (progress == 1)
 				{

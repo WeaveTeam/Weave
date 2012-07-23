@@ -104,8 +104,10 @@ package weave.core
 		{
 			// add up the percentages
 			var sum:Number = 0;
-			for each (var percentage:Number in _taskToProgressMap)
-				sum += percentage;
+			for (var task:Object in _taskToProgressMap)
+			{
+				sum += Number(_taskToProgressMap[task]);
+			}
 			// make any pending requests that no longer exist count as 100% done
 			sum += _maxTaskCount - _taskCount;
 			// divide by the max count to get overall percentage

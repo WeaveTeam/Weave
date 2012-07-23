@@ -21,16 +21,14 @@ package weave.data.AttributeColumns
 {
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.juggleImmediateCallback;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.CallbackCollection;
+	import weave.core.CallbackJuggler;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
 	import weave.utils.ColumnUtils;
@@ -91,23 +89,20 @@ package weave.data.AttributeColumns
 			delayCallbacks();
 			
 			if (_reprojectedColumn)
-			{
 				(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _reprojectedColumn);
-				_reprojectedColumn.removeCallback(handleReprojectedColumnChange);
-			}
 			
 			_reprojectedColumn = newColumn;
 			
 			if (_reprojectedColumn)
-			{
 				registerLinkableChild(this, _reprojectedColumn);
-				_reprojectedColumn.addImmediateCallback(this, handleReprojectedColumnChange);
-			}
 			
-			handleReprojectedColumnChange();
+			handleReprojectedColumnChangeJuggler.target = _reprojectedColumn;
+			
 			triggerCallbacks();
 			resumeCallbacks();
 		}
+		
+		private const handleReprojectedColumnChangeJuggler:CallbackJuggler = new CallbackJuggler(this, handleReprojectedColumnChange, false);
 		
 		private function handleReprojectedColumnChange(cleanup:Boolean = false):void
 		{
@@ -115,17 +110,10 @@ package weave.data.AttributeColumns
 			var _unprojectedColumn:StreamedGeometryColumn = ColumnUtils.hack_findNonWrapperColumn(_reprojectedColumn) as StreamedGeometryColumn;
 			
 			// get the callback target that should trigger boundingBoxCallbacks
-			var target:ILinkableObject = _unprojectedColumn ? _unprojectedColumn.boundingBoxCallbacks : _reprojectedColumn;
-			
-			if (_prevBBTarget != target)
-			{
-				juggleImmediateCallback(_prevBBTarget, target, this, boundingBoxCallbacks.triggerCallbacks);
-				boundingBoxCallbacks.triggerCallbacks();
-				_prevBBTarget = target;
-			}
+			boundingBoxCallbacksTriggerJuggler.target = _unprojectedColumn ? _unprojectedColumn.boundingBoxCallbacks : _reprojectedColumn;
 		}
 		
-		private var _prevBBTarget:ILinkableObject = null;
+		private const boundingBoxCallbacksTriggerJuggler:CallbackJuggler = new CallbackJuggler(this, boundingBoxCallbacks.triggerCallbacks, false);
 		
 		private var _reprojectedColumn:IAttributeColumn = null;
 		

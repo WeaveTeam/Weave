@@ -382,7 +382,7 @@ package weave.visualization.layers
 						{
 							marginToolTip = ColumnUtils.getTitle(axisColumn);
 							marginToolTip += "\n Key type: "   + ColumnUtils.getKeyType(axisColumn);
-							marginToolTip += "\n # of records: " + WeaveAPI.StatisticsCache.getCount(axisColumn);
+							marginToolTip += "\n # of records: " + WeaveAPI.StatisticsCache.getColumnStatistics(axisColumn).getCount();
 							marginToolTip += "\n Data source: " + ColumnUtils.getDataSource(axisColumn);
 							if (Weave.properties.enableToolControls.value)
 								marginToolTip += "\n Click to select a different attribute.";

@@ -141,12 +141,12 @@ package weave.primitives
 				// After that, only consider keys that overlap query center.
 				if (!foundQueryCenterOverlap || overlapsQueryCenter)
 				{
-					// if this is the first record that overlaps the query center, reset the list of keys
+					// if this is the first record that overlaps the query center, reset the result
 					if (!foundQueryCenterOverlap && overlapsQueryCenter)
 					{
-						resultCount = 0;
-						closestDistanceSq = distanceSq;
 						foundQueryCenterOverlap = true;
+						resultCount = 0;
+						closestDistanceSq = Infinity;
 					}
 					// if this distance is closer than any previous distance, clear all previous keys
 					if (distanceSq < closestDistanceSq)
@@ -163,6 +163,17 @@ package weave.primitives
 			
 			result.length = resultCount;
 			return result;
+		}
+		
+		public static function test():void
+		{
+			var a:Bounds2D = new Bounds2D(69, 110, 121, 129);
+			var b:Bounds2D = new Bounds2D(92, 120, 117, 139);
+			var i:Bounds2DIndex = new Bounds2DIndex();
+			i.insert(a, 'a');
+			i.insert(b, 'b');
+			var p:Bounds2D = new Bounds2D(108, 120, 110, 122);
+			trace(i.probe(p)); // returns b because b's center is closest to the query bounds center
 		}
 	}
 }

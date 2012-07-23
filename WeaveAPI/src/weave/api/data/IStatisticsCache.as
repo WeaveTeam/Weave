@@ -23,51 +23,10 @@ package weave.api.data
 	public interface IStatisticsCache
 	{
 		/**
+		 * This will retrieve a reusable IColumnStatistics object responsible for reporting statistics from an IAttributeColumn.
 		 * @param column A column to get statistics for.
-		 * @return The minimum numeric value defined in the column.
+		 * @return An IColumnStatistics object for the specified column.
 		 */
-		function getMin(column:IAttributeColumn):Number;
-		
-		/**
-		 * @param column A column to get statistics for.
-		 * @return The maximum numeric value defined in the column.
-		 */
-		function getMax(column:IAttributeColumn):Number;
-		
-		/**
-		 * @param column A column to get statistics for.
-		 * @return The count of the records having numeric values defined in the column.
-		 */
-		function getCount(column:IAttributeColumn):Number;
-		
-		/**
-		 * @param column A column to get statistics for.
-		 * @return The sum of all the numeric values defined in the column.
-		 */
-		function getSum(column:IAttributeColumn):Number;
-		
-		/**
-		 * @param column A column to get statistics for.
-		 * @return The sum of the squared numeric values defined in the column.
-		 */
-		function getSquareSum(column:IAttributeColumn):Number;
-		
-		/**
-		 * @param column A column to get statistics for.
-		 * @return The mean value of all the numeric values defined in the column.
-		 */
-		function getMean(column:IAttributeColumn):Number;
-		
-		/**
-		 * @param column A column to get statistics for.
-		 * @return The variance of the numeric values defined in the column.
-		 */
-		function getVariance(column:IAttributeColumn):Number;
-		
-		/**
-		 * @param column A column to get statistics for.
-		 * @return The standard deviation of the numeric values defined in the column.
-		 */
-		function getStandardDeviation(column:IAttributeColumn):Number;
+		function getColumnStatistics(column:IAttributeColumn):IColumnStatistics;
 	}
 }

@@ -23,39 +23,21 @@
 					 title="Saved Subsets"
 					 width="25%" height="10%"
 					 layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
-	<mx:Script>
-		<![CDATA[
-			import weave.api.linkBindableProperty;
-		]]>
-	</mx:Script>
-	
-	<mx:Canvas width="100%" height="100%">
-		
 	<CustomComboBox id="subsetSelectorBox" prompt="Select a subset..."
-				 width="100%" height="100%"
+				 width="100%" height="100%" minHeight="0"
 				 labelFunction="subsetsListLabelFunction"
 				 valueCommit="itemSelected()"
 				 />
-	</mx:Canvas>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			import mx.events.DropdownEvent;
-			import mx.events.FlexEvent;
-			import mx.utils.ObjectUtil;
-			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
-			import weave.api.getSessionState;
+			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
-			import weave.core.LinkableHashMap;
 			import weave.data.KeySets.KeyFilter;
-			import weave.data.KeySets.KeySet;
-			
 			
 			public const includeAllRecordsOption:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateSubsets);
 			private var setToIndex:int = -1;
@@ -136,7 +118,6 @@
 				// reset the selected item to what it was before we set the global subset
 				subsetSelectorBox.selectedItem = subset;
 			}
-			
 		]]>
 	</mx:Script>
 	<ControlPanel>
