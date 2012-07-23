@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="{(WeaveAPI.topLevelApplication as DisplayObject).width}" height="100" headerHeight="5">
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="120" height="97" headerHeight="5" move="panel1_moveHandler(event)">
 	<mx:Script>
 		<![CDATA[
+			import mx.events.MoveEvent;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 
-
-
 			private var canvasList:Array = new Array();
+			private var autoMove:Boolean = true;
 
 			public function addToParticpantList(id:String):void
 			{
@@ -36,8 +37,8 @@
 			
 			public function clearDisplay():void
 			{
-				removeAllChildren();
 				canvasList = null;
+				adjustLayout();
 			}
 			
 			private function alreadyExists(id:String):Boolean
@@ -53,17 +54,35 @@
 			private function adjustLayout():void
 			{
 				removeAllChildren();
-				var center:Number = width/2;
-				for( var i:int = 0; i < canvasList.length ; i++ )
+				if( autoMove )
+					this.x = (WeaveAPI.topLevelApplication as DisplayObject).width / 2;
+				if( canvasList != null )
 				{
-					if( i < canvasList.length / 2 )
-						canvasList[i].x = center - 100 * (canvasList.length / 2 - i);
-					else
-						canvasList[i].x = center + 100 * (canvasList.length / 2 - i);
-					addChild( canvasList[i] );
+					this.width = (canvasList[0] as CollaborationVideoComponent).width * canvasList.length + 20;
+					if( autoMove )
+						this.x = ((WeaveAPI.topLevelApplication as DisplayObject).width / 2) - (this.width / 2);
+					for( var i:int = 0; i < canvasList.length ; i++ )
+					{
+						(canvasList[i] as CollaborationVideoComponent).x = i * (canvasList[0] as CollaborationVideoComponent).width;
+						addChild( canvasList[i] );
+					}
 				}
+				else
+					this.width = 120;
 			}
+			
+			private var first:Boolean = false;
 				
+			protected function panel1_moveHandler(event:MoveEvent):void
+			{
+				if(!first)
+				{
+					first = true;
+					return;
+				}
+				autoMove = false;
+			}
+			
 		]]>
 	</mx:Script>
 </mx:Panel>
