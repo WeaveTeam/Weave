@@ -55,6 +55,7 @@ package weave.data.BinningDefinitions
 			
 			//var integerValuesOnly:Boolean = column is StringColumn;
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			_statsJuggler.target = stats;
 			var dataMin:Number = stats.getMin();
 			var dataMax:Number = stats.getMax();
 			var binMin:Number;

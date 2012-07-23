@@ -83,6 +83,7 @@ package weave.data.BinningDefinitions
 			
 			var integerValuesOnly:Boolean = nonWrapperColumn && dataType != DataTypes.NUMBER;
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			_statsJuggler.target = stats;
 			var dataMin:Number = stats.getMin();
 			var dataMax:Number = stats.getMax();
 			

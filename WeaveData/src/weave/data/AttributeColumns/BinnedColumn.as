@@ -44,8 +44,6 @@ package weave.data.AttributeColumns
 		public function BinnedColumn()
 		{
 			binningDefinition.requestLocalObject(SimpleBinningDefinition, false);
-
-			registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(internalDynamicColumn));
 		}
 		
 		/**
@@ -97,7 +95,8 @@ package weave.data.AttributeColumns
 		 */
 		private function validateBins():void
 		{
-			if (_prevTriggerCounter != triggerCounter && !WeaveAPI.SessionManager.linkableObjectIsBusy(internalDynamicColumn))
+			var busy:Boolean = WeaveAPI.SessionManager.linkableObjectIsBusy(internalDynamicColumn);
+			if (_prevTriggerCounter != triggerCounter && !busy)
 			{
 				_prevTriggerCounter = triggerCounter;
 				

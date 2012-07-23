@@ -335,7 +335,7 @@ internal class ColumnStatistics implements IColumnStatistics
 	private function validateCache(statsFunction:Function):*
 	{
 		// the cache becomes invalid when the trigger counter has changed
-		if (prevTriggerCounter != column.triggerCounter && !asyncCompleted)
+		if (prevTriggerCounter != column.triggerCounter)
 		{
 			// statistics are undefined while column is busy
 			busy = WeaveAPI.SessionManager.linkableObjectIsBusy(column);
@@ -363,8 +363,6 @@ internal class ColumnStatistics implements IColumnStatistics
 	private var variance:Number;
 	private var standardDeviation:Number;
 	
-	private var asyncCompleted:Boolean = false;
-	
 	private function asyncStart():void
 	{
 		// remember the trigger counter from when we begin calculating
@@ -387,7 +385,11 @@ internal class ColumnStatistics implements IColumnStatistics
 	{
 		// when the column is found to be busy or modified since last time, stop immediately
 		if (busy || prevTriggerCounter != column.triggerCounter)
+		{
+			// make sure trigger counter is reset because cache is now invalid
+			prevTriggerCounter = 0;
 			return 1;
+		}
 		
 		if (i >= keys.length)
 			return 1;

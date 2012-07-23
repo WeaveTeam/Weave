@@ -57,6 +57,7 @@ package weave.data.BinningDefinitions
 			output.removeAllObjects();
 			
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			_statsJuggler.target = stats;
 			var dataMin:Number = stats.getMin();
 			var dataMax:Number = stats.getMax();
 			var sortedColumn:Array = getSortedColumn(column); 

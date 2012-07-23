@@ -47,6 +47,7 @@ package weave.data.BinningDefinitions
 			output.removeAllObjects();
 			
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			_statsJuggler.target = stats;
 			var mean:Number = stats.getMean();
 			var stdDev:Number = stats.getStandardDeviation();
 			var binNumber:int = 0;
