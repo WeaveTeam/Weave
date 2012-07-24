@@ -60,13 +60,6 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
-			import mx.utils.ObjectUtil;
-			import mx.collections.ArrayCollection;
-			import mx.collections.ICollectionView;
-			import mx.collections.Sort;
-			import mx.utils.StringUtil;
-			
 			import weave.services.collaboration.CollaborationEvent;
 			
 			public const TYPE_MIC:String						= "MIC";

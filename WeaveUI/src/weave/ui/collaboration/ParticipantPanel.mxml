@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="120" height="97" headerHeight="5" move="panel1_moveHandler(event)">
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="120" height="97" headerHeight="5">
 	<mx:Script>
 		<![CDATA[
-			import mx.events.MoveEvent;
-			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
 
 			private var canvasList:Array = new Array();
-			private var autoMove:Boolean = true;
 
 			public function addToParticpantList(id:String):void
 			{
@@ -16,7 +12,10 @@
 					canvasList = new Array();
 				if( alreadyExists(id) ) return;
 				var collabVidComp:CollaborationVideoComponent = new CollaborationVideoComponent();
-				collabVidComp.labelText = id;
+				if( id.length > 10 )
+					collabVidComp.labelText = id.substr(0, 10) + "...";
+				else
+					collabVidComp.labelText = id;
 				canvasList.push(collabVidComp);
 				adjustLayout();
 			}
@@ -54,33 +53,21 @@
 			private function adjustLayout():void
 			{
 				removeAllChildren();
-				if( autoMove )
-					this.x = (WeaveAPI.topLevelApplication as DisplayObject).width / 2;
 				if( canvasList != null )
 				{
 					this.width = (canvasList[0] as CollaborationVideoComponent).width * canvasList.length + 20;
-					if( autoMove )
-						this.x = ((WeaveAPI.topLevelApplication as DisplayObject).width / 2) - (this.width / 2);
 					for( var i:int = 0; i < canvasList.length ; i++ )
 					{
 						(canvasList[i] as CollaborationVideoComponent).x = i * (canvasList[0] as CollaborationVideoComponent).width;
 						addChild( canvasList[i] );
 					}
+					this.x = ((WeaveAPI.topLevelApplication as DisplayObject).width / 2) - (this.width / 2);
 				}
 				else
-					this.width = 120;
-			}
-			
-			private var first:Boolean = false;
-				
-			protected function panel1_moveHandler(event:MoveEvent):void
-			{
-				if(!first)
 				{
-					first = true;
-					return;
+					this.width = 120;
+					this.x = (WeaveAPI.topLevelApplication as DisplayObject).width / 2 - this.width / 2;
 				}
-				autoMove = false;
 			}
 			
 		]]>
