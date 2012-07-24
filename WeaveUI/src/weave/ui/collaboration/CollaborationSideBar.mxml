@@ -506,7 +506,7 @@
 				PARTICIPANTS = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, ParticipantPanel) as ParticipantPanel;
 				PARTICIPANTS.visible = true;
 				PARTICIPANTS.y = WeaveAPI.topLevelApplication.visDesktop.y;
-				PARTICIPANTS.x = (WeaveAPI.topLevelApplication as DisplayObject).width / 2;
+				PARTICIPANTS.x = (WeaveAPI.topLevelApplication as DisplayObject).width / 2 - PARTICIPANTS.width / 2;
 			}
 			
 			private function openSettingsPanel(e:MouseEvent = null):void

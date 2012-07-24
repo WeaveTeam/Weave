@@ -35,18 +35,14 @@ package weave.services.collaboration
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
-	import org.igniterealtime.xiff.auth.*;
-	import org.igniterealtime.xiff.bookmark.*;
-	import org.igniterealtime.xiff.conference.*;
-	import org.igniterealtime.xiff.core.*;
-	import org.igniterealtime.xiff.data.*;
-	import org.igniterealtime.xiff.events.*;
-	import org.igniterealtime.xiff.exception.*;
-	import org.igniterealtime.xiff.filter.*;
-	import org.igniterealtime.xiff.im.*;
-	import org.igniterealtime.xiff.privatedata.*;
-	import org.igniterealtime.xiff.util.*;
-	import org.igniterealtime.xiff.vcard.*;
+	import org.igniterealtime.xiff.conference.Room;
+	import org.igniterealtime.xiff.core.UnescapedJID;
+	import org.igniterealtime.xiff.core.XMPPConnection;
+	import org.igniterealtime.xiff.events.DisconnectionEvent;
+	import org.igniterealtime.xiff.events.LoginEvent;
+	import org.igniterealtime.xiff.events.MessageEvent;
+	import org.igniterealtime.xiff.events.RoomEvent;
+	import org.igniterealtime.xiff.events.XIFFErrorEvent;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;

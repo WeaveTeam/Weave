@@ -99,7 +99,6 @@
 		<![CDATA[
 			import mx.controls.Alert;
 			import mx.events.IndexChangedEvent;
-			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
