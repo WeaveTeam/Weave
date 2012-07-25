@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" creationPolicy="all" width="100" height="80" borderColor="#54585E" borderThickness="3" borderStyle="solid">
-	<mx:VBox height="100%" width="100%">
-		<mx:VideoDisplay id="video" height="100%" width="100%" />
-		<mx:Label id="nameLabel" height="3%" width="100%"/>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   width="100" height="80" borderColor="#54585E" borderStyle="solid" borderThickness="3"
+		   creationPolicy="all">
+	<mx:VBox width="100%" height="100%">
+		<mx:VideoDisplay id="video" width="100%" height="100%"/>
+		<mx:Label id="nameLabel" width="100%" height="3%"/>
 	</mx:VBox>	
 	
 	<mx:Script>
 		<![CDATA[
+			public static var defaultHeight:Number = 80;
+			public static var defaultWidth:Number = 100;
 			private var _labelText:String;
 			
 			public function set labelText(id:String):void

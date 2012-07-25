@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="120" height="97" headerHeight="5">
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml"
+		  width="120" height="97" headerHeight="5" layout="absolute">
 	<mx:Script>
 		<![CDATA[
 			import weave.api.WeaveAPI;
+			
+			private const windowSizeConstant:Number = .4;
 
 			private var canvasList:Array = new Array();
+			private var controlList:Array = new Array();
 
 			public function addToParticpantList(id:String):void
 			{
 				if( canvasList == null )
 					canvasList = new Array();
-				if( alreadyExists(id) ) return;
+				if( alreadyExists(id, canvasList) ) return;
 				var collabVidComp:CollaborationVideoComponent = new CollaborationVideoComponent();
 				if( id.length > 10 )
 					collabVidComp.labelText = id.substr(0, 10) + "...";
@@ -40,11 +44,59 @@
 				adjustLayout();
 			}
 			
-			private function alreadyExists(id:String):Boolean
+			public function inControl(id:String):void
 			{
+				if( alreadyExists(id, controlList) )
+					return;
 				for( var i:int = 0; i < canvasList.length; i++ )
 				{
-					if((canvasList[i] as CollaborationVideoComponent).nameLabel.text == id )
+					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == id )
+					{
+						controlList.push(id);
+						(canvasList[i] as CollaborationVideoComponent).width += (canvasList.length - 1) * CollaborationVideoComponent.defaultWidth * windowSizeConstant;
+						(canvasList[i] as CollaborationVideoComponent).height += (canvasList.length - 1) * CollaborationVideoComponent.defaultHeight * windowSizeConstant;
+						this.height = (canvasList[i] as CollaborationVideoComponent).height + 18;
+					}
+					else
+					{
+						(canvasList[i] as CollaborationVideoComponent).width -= CollaborationVideoComponent.defaultWidth * windowSizeConstant;
+						(canvasList[i] as CollaborationVideoComponent).height -= CollaborationVideoComponent.defaultHeight * windowSizeConstant;
+					}
+				}
+				adjustLayout();
+			}
+			
+			public function lostControl(id:String):void
+			{
+				var maxHeight:Number = 0;
+				for( var i:int = 0; i < canvasList.length; i++ )
+				{
+					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == id )
+					{
+						(canvasList[i] as CollaborationVideoComponent).width -= (canvasList.length - 1) * CollaborationVideoComponent.defaultWidth * windowSizeConstant;
+						(canvasList[i] as CollaborationVideoComponent).height -= (canvasList.length - 1) * CollaborationVideoComponent.defaultHeight * windowSizeConstant;
+						if( (canvasList[i] as CollaborationVideoComponent).height > maxHeight )
+							maxHeight = (canvasList[i] as CollaborationVideoComponent).height;
+						//This needs to be updated to search for the right index later on when there is more than 1 person.
+						controlList.splice(0, 1);
+					}
+					else
+					{
+						(canvasList[i] as CollaborationVideoComponent).width += CollaborationVideoComponent.defaultWidth * windowSizeConstant;
+						(canvasList[i] as CollaborationVideoComponent).height += CollaborationVideoComponent.defaultHeight * windowSizeConstant;
+						if( (canvasList[i] as CollaborationVideoComponent).height > maxHeight )
+							maxHeight = (canvasList[i] as CollaborationVideoComponent).height;
+					}
+				}
+				this.height = maxHeight + 18;
+				adjustLayout();
+			}
+			
+			private function alreadyExists(id:String, arrayToCheck:Array):Boolean
+			{
+				for( var i:int = 0; i < arrayToCheck.length; i++ )
+				{
+					if((arrayToCheck[i] as CollaborationVideoComponent).nameLabel.text == id )
 						return true;
 				}
 				return false;
@@ -52,13 +104,15 @@
 			
 			private function adjustLayout():void
 			{
+				var xCoord:Number = 0;
 				removeAllChildren();
 				if( canvasList != null )
 				{
-					this.width = (canvasList[0] as CollaborationVideoComponent).width * canvasList.length + 20;
+					this.width = CollaborationVideoComponent.defaultWidth * canvasList.length + 20;
 					for( var i:int = 0; i < canvasList.length ; i++ )
 					{
-						(canvasList[i] as CollaborationVideoComponent).x = i * (canvasList[0] as CollaborationVideoComponent).width;
+						(canvasList[i] as CollaborationVideoComponent).x = xCoord;
+						xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width
 						addChild( canvasList[i] );
 					}
 					this.x = ((WeaveAPI.topLevelApplication as DisplayObject).width / 2) - (this.width / 2);
