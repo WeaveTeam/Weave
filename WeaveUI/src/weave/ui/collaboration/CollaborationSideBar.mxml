@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="185" height="{(WeaveAPI.topLevelApplication as DisplayObject).height / 1.5}" title="Collaboration Group" xmlns:collaboration="weave.ui.collaboration.*" horizontalScrollPolicy="off" move="repositionWindowsHandler(event)" creationComplete="creationCompleteHandler(event)">
-	<mx:List id="userList" width="100%" height="100%" labelField="name" minWidth="130">
+<mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml"
+		  xmlns:collaboration="weave.ui.collaboration.*"
+		  width="185" height="{(WeaveAPI.topLevelApplication as DisplayObject).height / 1.5}"
+		  creationComplete="creationCompleteHandler(event)" horizontalScrollPolicy="off"
+		  layout="absolute" move="repositionWindowsHandler(event)" title="Collaboration Group">
+	<mx:List id="userList" width="100%" height="100%" minWidth="130" labelField="name">
 		<mx:itemRenderer>
 			<mx:Component>
 				<mx:HBox width="100%" height="100%" horizontalScrollPolicy="off" paddingRight="4">
@@ -30,21 +34,25 @@
 							
 						]]>
 					</mx:Script>
-					<mx:Canvas id="color" width="16" height="16" borderStyle="solid" 
-							   cornerRadius="8" borderThickness="2"
-							   borderColor="0"/>
+					<mx:Canvas id="color" width="16" height="16" borderColor="0" borderStyle="solid"
+							   borderThickness="2" cornerRadius="8"/>
 					<mx:Canvas width="100%" clipContent="true" horizontalScrollPolicy="off">
-						<mx:Label id="labelName" fontSize="12" width="100%" toolTip="{labelName.text}" />
+						<mx:Label id="labelName" width="100%" fontSize="12"
+								  toolTip="{labelName.text}"/>
 					</mx:Canvas>
-					<mx:Image id="micPic" source="@Embed(source='/weave/resources/images/collab/mic.png')" width="15" height="15" />
-					<mx:Image id="camPic" source="@Embed(source='/weave/resources/images/collab/cam.png')" width="15" height="15" />
-					<mx:Image id="specPic" source="@Embed(source='/weave/resources/images/collab/eye.png')" width="22" height="12" />
-					<collaboration:CollaborationPing id="collabPing" width="16" height="14" />
+					<mx:Image id="micPic" width="15" height="15"
+							  source="@Embed(source='/weave/resources/images/collab/mic.png')"/>
+					<mx:Image id="camPic" width="15" height="15"
+							  source="@Embed(source='/weave/resources/images/collab/cam.png')"/>
+					<mx:Image id="specPic" width="22" height="12"
+							  source="@Embed(source='/weave/resources/images/collab/eye.png')"/>
+					<collaboration:CollaborationPing id="collabPing" width="16" height="14"/>
 				</mx:HBox>
 			</mx:Component>
 		</mx:itemRenderer>
 	</mx:List>
-	<mx:Button id="cursorButton" width="100%" label="{lang('Request Cursor Control')}" click="cursorButtonClick(event)"/>
+	<mx:Button id="cursorButton" width="100%" label="{lang('Request Cursor Control')}"
+			   click="cursorButtonClick(event)"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.events.ResizeEvent;
