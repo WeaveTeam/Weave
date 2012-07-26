@@ -87,7 +87,7 @@ package weave.api.ui
 		 * @return Returns a number indicating your position in the queue. 0 means actively being displayed, >0 represents the position in line in the queue till active mouse, and -1 means not in the queue.
 		 * 
 		 */
-		function addToQueue(id:String, self:String):Number;
+		function addToQueue(id:String, self:String):Array;
 		
 		/**
 		 * Remove a person from the mouse queue.
@@ -96,6 +96,6 @@ package weave.api.ui
 		 * @return Returns a number indicating your position in the queue. 0 means actively being displayed, >0 represents the position in line in the queue till active mouse, and -1 means not in the queue.
 		 * 
 		 */
-		function removeFromQueue(id:String, self:String):Number;
+		function removeFromQueue(id:String, self:String):Array;
 	}
 }

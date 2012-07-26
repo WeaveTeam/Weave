@@ -573,40 +573,42 @@
 			
 			private function addMouseToQueue(e:CollaborationEvent):void
 			{
-				var position:Number = WeaveAPI.CollaborationCursorManager.addToQueue(e.getText(), collabService.nickname);
-				if( position == 0 )
+				var position:Array = WeaveAPI.CollaborationCursorManager.addToQueue(e.getText(), collabService.nickname);
+				if( position[0] == 0 )
 				{
 					collabService.hasControl = true;
 					mouseTimer.start();
 					cursorButton.label = lang("Relinquish Control");
 					adjustCursorButtonHeight();
 				}
-				else if( position > 0 )
+				else if( position[0] > 0 )
 				{
 					collabService.hasControl = false;
 					mouseTimer.stop();
-					cursorButton.label = lang("You are in position ") + position;
+					cursorButton.label = lang("You are in position ") + position[0];
 					adjustCursorButtonHeight();
 				}
+				PARTICIPANTS.inControl(position);
 			}
 			
 			private function removeMouseFromQueue(e:CollaborationEvent):void
 			{
-				var position:Number =  WeaveAPI.CollaborationCursorManager.removeFromQueue(e.getText(), collabService.nickname);
-				if( position == 0 )
+				var position:Array =  WeaveAPI.CollaborationCursorManager.removeFromQueue(e.getText(), collabService.nickname);
+				if( position[0] == 0 )
 				{
 					collabService.hasControl = true;
 					mouseTimer.start();
 					cursorButton.label = lang("Relinquish Control");
 					adjustCursorButtonHeight();
 				}
-				else if( position > 0 )
+				else if( position[0] > 0 )
 				{
 					collabService.hasControl = false;
 					mouseTimer.stop();
-					cursorButton.label = lang("You are in position ") + position;
+					cursorButton.label = lang("You are in position ") + position[0];
 					adjustCursorButtonHeight();
 				}
+				PARTICIPANTS.inControl(position);
 			}
 			
 			private function handleCreateUserMouse(e:CollaborationEvent):void

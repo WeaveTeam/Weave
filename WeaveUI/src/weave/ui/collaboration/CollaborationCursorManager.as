@@ -142,23 +142,27 @@ package weave.ui.collaboration
 			}
 		}	
 		
-		public function addToQueue(id:String, self:String):Number
+		public function addToQueue(id:String, self:String):Array
 		{
 			if( cursorQueue == null )
 				cursorQueue = new Array();
 			for( var i:int = 0; i < cursorQueue.length; i++ )
 			{
 				if( cursorQueue[i] == id )
-					return checkQueuePosition(self);
+					return checkPeoplePosition(self);
 			}	
 			cursorQueue.push(id);
-			return checkQueuePosition(self);
+			return checkPeoplePosition(self);
 		}
 		
-		public function removeFromQueue(id:String, self:String):Number
+		public function removeFromQueue(id:String, self:String):Array
 		{
 			if( cursorQueue == null )
-				return -1;
+			{
+				var testArray:Array = new Array();
+				testArray.push(-1);
+				return testArray;
+			}
 			for( var i:int = 0; i < cursorQueue.length; i++ )
 			{
 				if( cursorQueue[i] == id )
@@ -169,7 +173,7 @@ package weave.ui.collaboration
 					cursorQueue.splice(i, 1);
 				}
 			}
-			return checkQueuePosition(self);
+			return checkPeoplePosition(self);
 		}
 		
 		/*This will return 0 if the id is an active mouse, return a number above 0 to indicate
@@ -188,6 +192,32 @@ package weave.ui.collaboration
 				}
 			}
 			return -1;
+		}
+		
+		private function checkPeoplePosition(id:String):Array
+		{
+			var array:Array = new Array();
+			for( var i:int = 0; i < cursorQueue.length; i++ )
+			{
+				if( cursorQueue[i] == id )
+				{
+					if( i - numMouses < 0 )
+					{
+						array.push(0);
+						break;
+					}					
+					else if( i - numMouses >= 0 )
+					{
+						array.push(i - numMouses + 1);
+						break;
+					}
+				}
+			}	
+			for( var j:int = 0; i < cursorQueue.length - numMouses + 1; i++ )
+			{
+				array.push(cursorQueue[i]);
+			}
+			return array;
 		}
 	}
 }
