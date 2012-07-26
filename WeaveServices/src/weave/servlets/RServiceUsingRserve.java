@@ -28,6 +28,7 @@ import javax.script.ScriptException;
 
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
+import org.rosuda.REngine.REXPList;
 import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
@@ -141,7 +142,8 @@ public class RServiceUsingRserve
 				// handle 2-d matrix
 				RList rList = new RList();
 				for (Object item : array)
-					rList.add(item);
+					rList.add(getREXP(item));
+				return new REXPList(rList);
 			}
 			else if (array[0] instanceof String)
 			{
