@@ -22,12 +22,11 @@ package weave.data.BinningDefinitions
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IBinningDefinition;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
-	import weave.core.weave_internal;
 	import weave.data.BinClassifiers.NumberClassifier;
 	
 	/**
@@ -55,8 +54,10 @@ package weave.data.BinningDefinitions
 			output.removeAllObjects();
 			
 			//var integerValuesOnly:Boolean = column is StringColumn;
-			var dataMin:Number = WeaveAPI.StatisticsCache.getMin(column);
-			var dataMax:Number = WeaveAPI.StatisticsCache.getMax(column);
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			_statsJuggler.target = stats;
+			var dataMin:Number = stats.getMin();
+			var dataMax:Number = stats.getMax();
 			var binMin:Number;
 			var binMax:Number = dataMin;
 			var maxInclusive:Boolean;

@@ -84,9 +84,9 @@
 				if(includeToolAttributesInProbe.value)
 				{
 					visualization.additionalProbeColumns = [];
-					if (_plotter.data.internalColumn)
-						visualization.additionalProbeColumns.push(_plotter.data.internalColumn);
-					if (colorColumn.internalColumn)	
+					if (_plotter.data.getInternalColumn())
+						visualization.additionalProbeColumns.push(_plotter.data.getInternalColumn());
+					if (colorColumn.getInternalColumn())	
 						visualization.additionalProbeColumns.push(colorColumn);
 					if (visualization.additionalProbeColumns.length == 0)
 						visualization.additionalProbeColumns = null;

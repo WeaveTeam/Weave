@@ -24,9 +24,11 @@ package weave.visualization.plotters
 	import flash.text.TextFormat;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
@@ -43,28 +45,20 @@ package weave.visualization.plotters
 		
 		public function WeaveWordlePlotter()
 		{
-			init();
-		}	
-		
-		public const wordColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
-		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
-		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
-		
-		private function init():void
-		{
 			
 			// default fill color
 			fillStyle.color.defaultValue.setSessionState(0x808080);
 			
 			// set up session state
 			setKeySource(wordColumn);
-		}
-		override public function dispose():void
-		{
-			// need to clean up anything not registered as a child of the plotter
-			super.dispose();
-		}
-				
+			
+			registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(wordColumn));
+		}	
+		
+		public const wordColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
+		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
+		
 		override public function getBackgroundDataBounds():IBounds2D
 		{
 			var words:Array = wordColumn.keys;
@@ -115,17 +109,6 @@ package weave.visualization.plotters
 		 * This function retrieves a max and min value from the keys to later be used for sizing purposes.
 		 */
 		
-		private function normalizeKeySize( recordKeys:Array ):void
-		{
-			var i:int;
-			var temp:Number;
-			
-			lowest = WeaveAPI.StatisticsCache.getMin( wordColumn );
-			highest = WeaveAPI.StatisticsCache.getMax( wordColumn );
-			
-			if( highest == lowest )
-				highest = highest + 1;
-		}
 		/**
 		 * This draws the words to the screen and sized based on count.
 		 */
@@ -136,7 +119,11 @@ package weave.visualization.plotters
 			var maxDisplay:uint;
 			orderKeys( recordKeys );
 			screenBoundaries = screenBounds;
-			normalizeKeySize( recordKeys );
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(wordColumn);
+			var lowest:Number = stats.getMin();
+			var highest:Number = stats.getMax();
+			if( highest == lowest )
+				highest = highest + 1;
 			//maxDisplay is used for putting a word limit if necessary, 200 seems to fill the screen.
 			maxDisplay = recordKeys.length;
 			
@@ -399,8 +386,6 @@ package weave.visualization.plotters
 		
 		private var count:Number = 1;
 		private var flag:Boolean = false;
-		private var highest:Number = new Number();
-		private var lowest:Number = new Number();
 		private const bitMapper:BitmapText = new BitmapText();
 		private const tempPoint:Point = new Point();
 		private const tempBounds:Bounds2D = new Bounds2D(); // reusable temporary object	

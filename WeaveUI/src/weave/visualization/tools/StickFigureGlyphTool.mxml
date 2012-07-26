@@ -72,12 +72,12 @@
 				if(includeToolAttributesInProbe.value)
 				{
 					visualization.additionalProbeColumns = [];
-					if(_plotter.dataX.internalColumn) visualization.additionalProbeColumns.push(_plotter.dataX.internalColumn);
-					if(_plotter.dataY.internalColumn) visualization.additionalProbeColumns.push(_plotter.dataY.internalColumn);
-					if(_plotter.theta1.internalColumn) visualization.additionalProbeColumns.push(_plotter.theta1.internalColumn);
-					if(_plotter.theta2.internalColumn) visualization.additionalProbeColumns.push(_plotter.theta2.internalColumn);
-					if(_plotter.theta3.internalColumn) visualization.additionalProbeColumns.push(_plotter.theta3.internalColumn);
-					if(_plotter.theta4.internalColumn) visualization.additionalProbeColumns.push(_plotter.theta4.internalColumn);
+					if(_plotter.dataX.getInternalColumn()) visualization.additionalProbeColumns.push(_plotter.dataX.getInternalColumn());
+					if(_plotter.dataY.getInternalColumn()) visualization.additionalProbeColumns.push(_plotter.dataY.getInternalColumn());
+					if(_plotter.theta1.getInternalColumn()) visualization.additionalProbeColumns.push(_plotter.theta1.getInternalColumn());
+					if(_plotter.theta2.getInternalColumn()) visualization.additionalProbeColumns.push(_plotter.theta2.getInternalColumn());
+					if(_plotter.theta3.getInternalColumn()) visualization.additionalProbeColumns.push(_plotter.theta3.getInternalColumn());
+					if(_plotter.theta4.getInternalColumn()) visualization.additionalProbeColumns.push(_plotter.theta4.getInternalColumn());
 					if(visualization.additionalProbeColumns.length == 0) visualization.additionalProbeColumns = null ;
 				}
 				else visualization.additionalProbeColumns = null;

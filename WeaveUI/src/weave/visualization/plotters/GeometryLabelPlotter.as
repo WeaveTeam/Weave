@@ -27,17 +27,11 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
 	import weave.core.SessionManager;
-	import weave.core.weave_internal;
-	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
-
-	use namespace weave_internal;
 
 	/**
 	 * This plotter is for drawing text labels on the map, corresponding to a geometry column.
@@ -51,8 +45,8 @@ package weave.visualization.plotters
 			registerSpatialProperty(geometryColumn);
 			
 			// hide dataX,dataY because they don't need to be shown in the session state.
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, dataX);
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, dataY);
+			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, dataX);
+			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, dataY);
 			hideOverlappingText.value = true;
 
 			// set up x,y columns to be derived from the geometry column

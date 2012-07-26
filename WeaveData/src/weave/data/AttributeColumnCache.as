@@ -26,7 +26,7 @@ package weave.data
 	import weave.api.data.IDataSource;
 	import weave.core.SessionManager;
 	import weave.data.DataSources.MultiDataSource;
-	import weave.primitives.WeakReference;
+	import weave.utils.WeakReference;
 	
 	/**
 	 * This is a cache that maps IColumnReference hash values to IAttributeColumns.

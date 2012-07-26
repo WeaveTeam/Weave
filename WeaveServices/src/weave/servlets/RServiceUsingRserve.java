@@ -45,6 +45,10 @@ import weave.utils.ListUtils;
 
 
  
+/**
+ * @author Andy
+ *
+ */
 public class RServiceUsingRserve 
 {
 	private static final long serialVersionUID = 1L;
@@ -121,23 +125,50 @@ public class RServiceUsingRserve
 	}
 	
 	
+	/**
+	 * This will wrap an object in an REXP object.
+	 * @param object
+	 * @return
+	 * @throws RemoteException if the object type is unsupported
+	 */
+	private static REXP getREXP(Object object) throws RemoteException
+	{
+		// if it's an array...
+		if (object instanceof Object[])
+		{
+			Object[] array = (Object[])object;
+			if (array[0] instanceof Object[]) // 2-d matrix
+			{
+				// handle 2-d matrix
+				RList rList = new RList();
+				for (Object item : array)
+					rList.add(item);
+			}
+			else if (array[0] instanceof String)
+			{
+				String[] strings = ListUtils.copyStringArray(array, new String[array.length]);
+				return new REXPString(strings);
+			}
+			else if (array[0] instanceof Number)
+			{
+				double[] doubles = ListUtils.copyDoubleArray(array, new double[array.length]);
+				return new REXPDouble(doubles);
+			}
+			else
+				throw new RemoteException("Unsupported value type");
+		}
+		
+		// handle non-array by wrapping it in an array
+		return getREXP(new Object[]{object});
+	}
 
-	private  static void assignNamesToVector(RConnection rConnection,String[] inputNames,Object[][] inputValues) throws Exception{
+	private  static void assignNamesToVector(RConnection rConnection,String[] inputNames,Object[] inputValues) throws Exception
+	{
 		for (int i = 0; i < inputNames.length; i++)
 		{
 			String name = inputNames[i];
-			if (inputValues[i][0] instanceof String)
-			{
-				String[] value = ListUtils.copyStringArray(inputValues[i], new String[inputValues[i].length]);
-				rConnection.assign(name, value);
-			}
-			else
-			{
-				double[] value = ListUtils.copyDoubleArray(inputValues[i], new double[inputValues[i].length]);
-				rConnection.assign(name, value);
-			}
+			rConnection.assign(name, getREXP(inputValues[i]));
 		}
-
 	}
 	
 	
@@ -163,7 +194,7 @@ public class RServiceUsingRserve
 	
 	
 	
-	public static RResult[] runScript( String docrootPath, String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception
+	public static RResult[] runScript( String docrootPath, String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings) throws Exception
 	{		
 		RConnection rConnection = getRConnection();
 		

@@ -89,8 +89,8 @@
 				if(includeToolAttributesInProbe.value)
 				{
 					visualization.additionalProbeColumns = [];
-					if(_plotter.xColumn.internalColumn) visualization.additionalProbeColumns.push(_plotter.xColumn.internalColumn);
-					if(_plotter.yColumn.internalColumn) visualization.additionalProbeColumns.push(_plotter.yColumn.internalColumn);
+					if(_plotter.xColumn.getInternalColumn()) visualization.additionalProbeColumns.push(_plotter.xColumn.getInternalColumn());
+					if(_plotter.yColumn.getInternalColumn()) visualization.additionalProbeColumns.push(_plotter.yColumn.getInternalColumn());
 					if(visualization.additionalProbeColumns.length == 0) visualization.additionalProbeColumns = null ;
 				}
 				else visualization.additionalProbeColumns = null;

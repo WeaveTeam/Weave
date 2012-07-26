@@ -110,7 +110,6 @@ RTextEditor
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
-			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.CSVColumn;
 			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.KeySets.KeySet;
@@ -317,14 +316,12 @@ RTextEditor
 							if ((RresultArray[p].value).length == keys.length){
 								if (RresultArray[p].value[0] is String)	{
 									var testStringColumn:StringColumn = Weave.root.requestObject(RresultArray[p].name, StringColumn, false);
-									var keyVec:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-									var dataVec:Vector.<String> = new Vector.<String>();
-									VectorUtils.copy(keys, keyVec);
-									VectorUtils.copy(Robj[p].value, dataVec);
+									var keyVec:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keys);
+									var dataVec:Vector.<String> = Vector.<String>(Robj[p].value);
 									testStringColumn.setRecords(keyVec, dataVec);
 									if (keys.length > 0)
-										testStringColumn.weave_internal::metadata.@keyType = (keys[0] as IQualifiedKey).keyType;
-									testStringColumn.weave_internal::metadata.@name = RresultArray[p].name;
+										testStringColumn.metadata.@keyType = (keys[0] as IQualifiedKey).keyType;
+									testStringColumn.metadata.@name = RresultArray[p].name;
 								}
 								else{
 									var table:Array = [];

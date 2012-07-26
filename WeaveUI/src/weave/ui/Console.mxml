@@ -43,7 +43,6 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.containers.VBox;
-			import mx.core.Application;
 			import mx.core.mx_internal;
 			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
@@ -56,8 +55,6 @@
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
 			import weave.core.ExternalSessionStateInterface;
-			import weave.core.weave_internal;
-			use namespace weave_internal;
 			use namespace mx_internal;
 			
 			[Bindable] public var padding:int = 5;
@@ -133,15 +130,17 @@
 				'call': function(...args):*
 				{
 					var prev:Boolean = ExternalInterface.marshallExceptions;
+					var result:*;
 					try
 					{
 						ExternalInterface.marshallExceptions = true;
-						ExternalInterface.call.apply(this, args);
+						result = ExternalInterface.call.apply(this, args);
 					}
 					finally
 					{
 						ExternalInterface.marshallExceptions = prev;
 					}
+					return result;
 				},
 				'application': WeaveAPI.topLevelApplication,
 				'visApp': WeaveAPI.topLevelApplication.visApp,

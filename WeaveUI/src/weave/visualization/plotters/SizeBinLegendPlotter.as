@@ -24,6 +24,7 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -55,6 +56,7 @@ package weave.visualization.plotters
 		}
 		
 		public const radiusColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
+		private const radiusColumnStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(radiusColumn));
 		public const minScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const maxScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const defaultScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
@@ -90,8 +92,8 @@ package weave.visualization.plotters
 			numberOfTick = Math.floor(screenBounds.getYCoverage() / (maxScreenRadius.value * 2.5));
 			
 			// calculate how many circles should be drawn
-			valueMax = WeaveAPI.StatisticsCache.getMax(radiusColumn);
-			valueMin = WeaveAPI.StatisticsCache.getMin(radiusColumn);
+			valueMax = radiusColumnStats.getMax();
+			valueMin = radiusColumnStats.getMin();
 			var tempNumberOfTick:Number = numberOfTick;
 			var numberOfTickReturned:Number = 0;
 			

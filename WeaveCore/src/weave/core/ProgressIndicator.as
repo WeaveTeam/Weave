@@ -22,10 +22,8 @@ package weave.core
 	import flash.utils.Dictionary;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.getCallbackCollection;
-	import weave.utils.Dictionary2D;
 
 	/**
 	 * This is an implementation of IProgressIndicator.
@@ -33,28 +31,6 @@ package weave.core
 	 */
 	public class ProgressIndicator implements IProgressIndicator
 	{
-//		private const _assignedTasks:Dictionary2D = new Dictionary2D(true, true);
-//		
-//		public function assignTask(owner:ILinkableObject, taskToken:Object):void
-//		{
-//			while (owner)
-//			{
-//				_assignedTasks.set(owner, taskToken, true)
-//				owner = WeaveAPI.SessionManager.getLinkableOwner(owner);
-//			}
-//		}
-//		
-//		/**
-//		 * A linkable object is considered busy if a task has been assigned to it or one of its descendants.
-//		 * @param linkableObject
-//		 * @return 
-//		 * 
-//		 */		
-//		public function linkableObjectIsBusy(linkableObject:Object):Boolean
-//		{
-//			return false;
-//		}
-
 		/**
 		 * @inheritDoc
 		 */
@@ -106,7 +82,9 @@ package weave.core
 			// if the token isn't in the dictionary, do nothing
 			if (_taskToProgressMap[taskToken] === undefined)
 				return;
-			
+
+			WeaveAPI.SessionManager.unassignBusyTask(taskToken);
+
 			var stackTrace:String = _taskToStackTraceMap[taskToken]; // check this when debugging
 			
 			delete _taskToProgressMap[taskToken];
@@ -126,8 +104,10 @@ package weave.core
 		{
 			// add up the percentages
 			var sum:Number = 0;
-			for each (var percentage:Number in _taskToProgressMap)
-				sum += percentage;
+			for (var task:Object in _taskToProgressMap)
+			{
+				sum += Number(_taskToProgressMap[task]);
+			}
 			// make any pending requests that no longer exist count as 100% done
 			sum += _maxTaskCount - _taskCount;
 			// divide by the max count to get overall percentage

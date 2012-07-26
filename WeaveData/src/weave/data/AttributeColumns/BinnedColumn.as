@@ -21,13 +21,14 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.data.BinClassifiers.BinClassifierCollection;
 	import weave.data.BinningDefinitions.CategoryBinningDefinition;
 	import weave.data.BinningDefinitions.DynamicBinningDefinition;
@@ -43,11 +44,6 @@ package weave.data.AttributeColumns
 		public function BinnedColumn()
 		{
 			binningDefinition.requestLocalObject(SimpleBinningDefinition, false);
-
-			addImmediateCallback(this, invalidateBins);
-			// when derived bins change, invalidate them
-			// this is to prevent changes to the derivedBins from affecting the internal code.
-			_derivedBins.addImmediateCallback(this, handleDerivedBinsChange);
 		}
 		
 		/**
@@ -81,37 +77,17 @@ package weave.data.AttributeColumns
 		 */
 		public function getDerivedBins():BinClassifierCollection
 		{
-			if (_dirty)
-				validateBins();
+			validateBins();
 			return _derivedBins;
 		}
 		
-		private const _derivedBins:BinClassifierCollection = newDisposableChild(this, BinClassifierCollection); // returned by public getter
+		private const _derivedBins:BinClassifierCollection = newLinkableChild(this, BinClassifierCollection); // returned by public getter
 		private var _binNames:Array = null; // maps a bin index to a bin name
 		private var _keyToBinIndexMap:Dictionary = null; // maps a record key to a bin index
 		private var _binnedKeysArray:Array = null; // maps a bin index to a list of keys in that bin
 		private var _binnedKeysMap:Object = null; // maps a bin name to a list of keys in that bin
 		private var _largestBinSize:uint = 0;
-		
-		/**
-		 * This flag is true when the derivedBins are invalid.
-		 */		
-		private var _dirty:Boolean = true;
-		private var _validateBinsCompleted:Boolean = false;
-		
-		/**
-		 * This function sets the dirty flag to true to invalidate the bins.
-		 */		
-		private function invalidateBins():void
-		{
-			_dirty = true;
-		}
-		
-		private function handleDerivedBinsChange():void
-		{
-			if (!_validateBinsCompleted)
-				_dirty = true;
-		}
+		private var _prevTriggerCounter:uint;
 		
 		/**
 		 * This function generates bins using the binning definition and the internal column,
@@ -119,47 +95,75 @@ package weave.data.AttributeColumns
 		 */
 		private function validateBins():void
 		{
-			_derivedBins.delayCallbacks(); // make sure callbacks don't run until we're done
-			
-			var column:IAttributeColumn = internalDynamicColumn.internalColumn;
-			var def:IBinningDefinition = (binningDefinition.internalObject as IBinningDefinition);
-			// reset cached values
-			_keyToBinIndexMap = new Dictionary();
-			_binnedKeysArray = [];
-			_binnedKeysMap = {};
-			_largestBinSize = 0;
-			_derivedBins.removeAllObjects();
-			if (def != null && column != null)
-				def.getBinClassifiersForColumn(column, _derivedBins);
-			// save bin names for faster lookup
-			_binNames = _derivedBins.getNames();
-			if (_binNames.length > 0)
+			var busy:Boolean = WeaveAPI.SessionManager.linkableObjectIsBusy(internalDynamicColumn);
+			if (_prevTriggerCounter != triggerCounter && !busy)
 			{
+				_prevTriggerCounter = triggerCounter;
+				
+				_derivedBins.delayCallbacks(); // make sure callbacks don't run until we're done
+				
+				_column = internalDynamicColumn.getInternalColumn();
+				_def = (binningDefinition.internalObject as IBinningDefinition);
+				// reset cached values
+				_keyToBinIndexMap = new Dictionary();
+				_binnedKeysArray = [];
+				_binnedKeysMap = {};
+				_largestBinSize = 0;
+				_derivedBins.removeAllObjects();
+				if (_def != null && _column != null)
+					_def.getBinClassifiersForColumn(_column, _derivedBins);
+				// save bin names for faster lookup
+				_binNames = _derivedBins.getNames();
 				var bins:Array = _derivedBins.getObjects();
 				var i:int;
 				// create empty key arrays
 				for (i = 0; i < _binNames.length; i++)
 					_binnedKeysMap[_binNames[i]] = _binnedKeysArray[i] = []; // same Array pointer
 				// fill all mappings
-				for (i = 0; i < keys.length; i++)
-				{
-					var key:IQualifiedKey = keys[i];
-					// hack: assuming bin classifiers are NumberClassifiers except for CategoryBinningDefinition
-					var dataType:Class = def is CategoryBinningDefinition ? String : Number;
-					var value:* = column.getValueFromKey(key, dataType);
-					var binIndex:Number = _derivedBins.getBinIndexFromDataValue(value);
-					if (isNaN(binIndex))
-						continue;
-					_keyToBinIndexMap[key] = binIndex;
-					(_binnedKeysMap[_binNames[binIndex]] as Array).push(key);
-				}
-				for each (var bin:Array in _binnedKeysArray)
-					_largestBinSize = Math.max(_largestBinSize, bin.length);
+				_keys = internalDynamicColumn.keys;
+				_i = 0;
+				WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_BUILDING, _asyncComplete);
 			}
-			_validateBinsCompleted = true; // this prevents invalidateBins() from setting dirty to true			
-			_dirty = false;
-			_derivedBins.resumeCallbacks(); // allow callbacks to run now
-			_validateBinsCompleted = false;
+		}
+		
+		private var _column:IAttributeColumn;
+		private var _def:IBinningDefinition;
+		private var _i:int;
+		private var _keys:Array;
+		private function _asyncIterate():Number
+		{
+			// stop immediately if there are no more keys or callbacks were triggered
+			if (_i >= _keys.length || _prevTriggerCounter != triggerCounter)
+				return 1;
+
+			var key:IQualifiedKey = _keys[_i];
+			// hack: assuming bin classifiers are NumberClassifiers except for CategoryBinningDefinition
+			var dataType:Class = _def is CategoryBinningDefinition ? String : Number;
+			var value:* = _column.getValueFromKey(key, dataType);
+			var binIndex:Number = _derivedBins.getBinIndexFromDataValue(value);
+			if (!isNaN(binIndex))
+			{
+				_keyToBinIndexMap[key] = binIndex;
+				var array:Array = _binnedKeysArray[binIndex] as Array;
+				if (array.push(key) > _largestBinSize)
+					_largestBinSize = array.length;
+			}
+			else
+			{
+				var x:Number = 0;
+			}
+			
+			_i++;
+			
+			return _i / _keys.length;
+		}
+		
+		private function _asyncComplete():void
+		{
+			if (_prevTriggerCounter == triggerCounter)
+				_prevTriggerCounter++; // increase by 1 now to account for _derivedBins trigger
+			_derivedBins.triggerCallbacks();
+			_derivedBins.resumeCallbacks(true); // allow callbacks to run now
 		}
 
 		/**
@@ -168,8 +172,7 @@ package weave.data.AttributeColumns
 		 */
 		public function get numberOfBins():uint
 		{
-			if (_dirty)
-				validateBins();
+			validateBins();
 			return _binNames.length;
 		}
 		
@@ -178,8 +181,7 @@ package weave.data.AttributeColumns
 		 */		
 		public function get largestBinSize():uint
 		{
-			if (_dirty)
-				validateBins();
+			validateBins();
 			return _largestBinSize;
 		}
 		
@@ -190,8 +192,7 @@ package weave.data.AttributeColumns
 		 */
 		public function getKeysFromBinIndex(binIndex:uint):Array
 		{
-			if (_dirty)
-				validateBins();
+			validateBins();
 			if (binIndex < _binnedKeysArray.length)
 				return _binnedKeysArray[binIndex];
 			return null;
@@ -204,13 +205,13 @@ package weave.data.AttributeColumns
 		 */
 		public function getKeysFromBinName(binName:String):Array
 		{
-			if (_dirty)
-				validateBins();
+			validateBins();
 			return _binnedKeysMap[binName] as Array;
 		}
 		
 		public function getBinIndexFromDataValue(value:*):Number
 		{
+			validateBins();
 			return _derivedBins.getBinIndexFromDataValue(value);
 		}
 
@@ -227,8 +228,7 @@ package weave.data.AttributeColumns
 		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			if (_dirty)
-				validateBins();
+			validateBins();
 			
 			var binIndex:Number = Number(_keyToBinIndexMap[key]); // undefined -> NaN
 			
@@ -259,8 +259,7 @@ package weave.data.AttributeColumns
 		 */
 		public function deriveStringFromNumber(value:Number):String
 		{
-			if (_dirty)
-				validateBins();
+			validateBins();
 			
 			try
 			{

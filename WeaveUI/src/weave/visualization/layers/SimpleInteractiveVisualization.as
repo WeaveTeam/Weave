@@ -46,7 +46,6 @@ package weave.visualization.layers
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
 	import weave.core.SessionManager;
-	import weave.core.weave_internal;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
@@ -56,8 +55,6 @@ package weave.visualization.layers
 	import weave.visualization.plotters.ProbeLinePlotter;
 	import weave.visualization.plotters.SimpleAxisPlotter;
 
-	use namespace weave_internal;
-	
 	/**
 	 * This is a container for a list of PlotLayers
 	 * 
@@ -152,7 +149,7 @@ package weave.visualization.layers
 					linkSessionState(var1, var0);
 				else
 					linkSessionState(var0, var1);
-				(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(p, pair[1]);
+				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(p, pair[1]);
 			}
 			//(WeaveAPI.SessionManager as SessionManager).removeLinkableChildrenFromSessionState(p, p.axisLineDataBounds);
 		}
@@ -385,7 +382,7 @@ package weave.visualization.layers
 						{
 							marginToolTip = ColumnUtils.getTitle(axisColumn);
 							marginToolTip += "\n Key type: "   + ColumnUtils.getKeyType(axisColumn);
-							marginToolTip += "\n # of records: " + WeaveAPI.StatisticsCache.getCount(axisColumn);
+							marginToolTip += "\n # of records: " + WeaveAPI.StatisticsCache.getColumnStatistics(axisColumn).getCount();
 							marginToolTip += "\n Data source: " + ColumnUtils.getDataSource(axisColumn);
 							if (Weave.properties.enableToolControls.value)
 								marginToolTip += "\n Click to select a different attribute.";

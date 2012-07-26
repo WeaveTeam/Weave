@@ -22,9 +22,10 @@ package weave.data.AttributeColumns
 	import flash.utils.Dictionary;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
@@ -39,7 +40,11 @@ package weave.data.AttributeColumns
 	{
 		public function ColorColumn()
 		{
+			_internalColumnStats = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(internalDynamicColumn));
 		}
+		
+		// color values depend on the min,max stats of the internal column
+		private var _internalColumnStats:IColumnStatistics;
 		
 		public const ramp:ColorRamp = newLinkableChild(this, ColorRamp);
 		
@@ -89,10 +94,9 @@ package weave.data.AttributeColumns
 			}
 			else
 			{
-				var column:IAttributeColumn = internalDynamicColumn.internalColumn;
-				var dataMin:Number = WeaveAPI.StatisticsCache.getMin(column);
-				var dataMax:Number = WeaveAPI.StatisticsCache.getMax(column);
-				var value:Number = column ? column.getValueFromKey(key, Number) : NaN;
+				var dataMin:Number = _internalColumnStats.getMin();
+				var dataMax:Number = _internalColumnStats.getMax();
+				var value:Number = internalDynamicColumn.getValueFromKey(key, Number);
 				if (isNaN(value) || value < dataMin || value > dataMax)
 					return NaN;
 				

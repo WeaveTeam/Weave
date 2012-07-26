@@ -34,11 +34,9 @@
 		<![CDATA[
 			import weave.api.WeaveAPI;
 			import weave.api.ui.IVisTool;
-			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.ProxyColumn;
 			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
-            use namespace weave_internal;
 
 			WeaveAPI.registerImplementation(IVisTool, DimensionSliderTool, "Dimension Slider Tool");
 			
@@ -87,7 +85,7 @@
 	override protected function getValuesFromColHier(ref:HierarchyColumnReference):Array
 	{
 		var dimensionColumn:ProxyColumn = WeaveAPI.AttributeColumnCache.getColumn(ref) as ProxyColumn;
-		if (dimensionColumn && dimensionColumn.internalColumn)
+		if (dimensionColumn && dimensionColumn.getInternalColumn())
 			addToListOfDims(ref);
 		return SecondaryKeyNumColumn.secondaryKeys;
 	}

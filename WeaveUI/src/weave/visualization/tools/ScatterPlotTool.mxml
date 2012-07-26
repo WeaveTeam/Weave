@@ -337,12 +337,12 @@
 				if(includeToolAttributesInProbe.value)
 				{
 					visualization.additionalProbeColumns = [];
-					if (plotter.xColumn.internalColumn)
-						visualization.additionalProbeColumns.push(plotter.xColumn.internalColumn);
-					if (plotter.yColumn.internalColumn)
-						visualization.additionalProbeColumns.push(plotter.yColumn.internalColumn);
-					if (colorColumn.internalColumn)
-						visualization.additionalProbeColumns.push(colorColumn.internalColumn);
+					if (plotter.xColumn.getInternalColumn())
+						visualization.additionalProbeColumns.push(plotter.xColumn.getInternalColumn());
+					if (plotter.yColumn.getInternalColumn())
+						visualization.additionalProbeColumns.push(plotter.yColumn.getInternalColumn());
+					if (colorColumn.getInternalColumn())
+						visualization.additionalProbeColumns.push(colorColumn.getInternalColumn());
 					if (visualization.additionalProbeColumns.length == 0)
 						visualization.additionalProbeColumns = null ;
 				}

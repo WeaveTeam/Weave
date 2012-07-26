@@ -22,12 +22,11 @@ package weave.data.BinningDefinitions
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IBinningDefinition;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableNumber;
-	import weave.core.weave_internal;
 	import weave.data.BinClassifiers.NumberClassifier;
 	
 	/**
@@ -57,15 +56,17 @@ package weave.data.BinningDefinitions
 			// clear any existing bin classifiers
 			output.removeAllObjects();
 			
-			var dataMin:Number = WeaveAPI.StatisticsCache.getMin(column);
-			var dataMax:Number = WeaveAPI.StatisticsCache.getMax(column);
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			_statsJuggler.target = stats;
+			var dataMin:Number = stats.getMin();
+			var dataMax:Number = stats.getMax();
 			var sortedColumn:Array = getSortedColumn(column); 
 			var binMin:Number;
 			var binMax:Number = sortedColumn[0]; 
 			var maxInclusive:Boolean;				
 						          
-			var refBinSize:Number = Math.ceil(WeaveAPI.StatisticsCache.getCount(column) * refQuantile.value);//how many records in a bin
-			var numberOfBins:int = Math.ceil(WeaveAPI.StatisticsCache.getCount(column)/ refBinSize);
+			var refBinSize:Number = Math.ceil(stats.getCount() * refQuantile.value);//how many records in a bin
+			var numberOfBins:int = Math.ceil(stats.getCount()/ refBinSize);
 			var binRecordCount:uint = refBinSize;
 				
 			for (var iBin:int = 0; iBin < numberOfBins; iBin++)

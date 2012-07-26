@@ -117,7 +117,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleHeaderColumnChange():void
 			{
 				
-				if(headerAttributeColumn.internalColumn)
+				if(headerAttributeColumn.getInternalColumn())
 					createHeaderColumns(headerAttributeColumn,false);
 				else
 					createHeaderColumns(columns.getObjects()[0]);

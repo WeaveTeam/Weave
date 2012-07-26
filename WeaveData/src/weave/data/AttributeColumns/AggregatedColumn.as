@@ -59,7 +59,7 @@ package weave.data.AttributeColumns
 				_cache = new Dictionary();
 
 			var value:* = _cache[key];
-			if (value == undefined && internalColumn != null)
+			if (value == undefined && getInternalColumn() != null)
 			{
 				var internalKeys:Array = keyMapping.getValueFromKey(key, Array) as Array;
 				if (internalKeys == null)
@@ -73,7 +73,7 @@ package weave.data.AttributeColumns
 						for (var i:int = 0; i < internalKeys.length; i++)
 						{
 							var internalKey:IQualifiedKey = internalKeys[i] as IQualifiedKey;
-							sum += internalColumn.getValueFromKey(internalKey, Number);
+							sum += getInternalColumn().getValueFromKey(internalKey, Number);
 						}
 						value = sum;
 					

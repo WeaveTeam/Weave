@@ -48,7 +48,6 @@ package weave
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.core.SessionManager;
-	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
@@ -83,8 +82,6 @@ package weave
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
 
-	use namespace weave_internal;
-	
 	/**
 	 * A list of global settings for a Weave instance.
 	 */
@@ -147,9 +144,10 @@ package weave
 		}
 		
 		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
-		private static function loadWeaveFontsSWF():void
+		private function loadWeaveFontsSWF():void
 		{
 			WeaveAPI.URLRequestUtils.getURL(
+				null,
 				new URLRequest('WeaveFonts.swf'),
 				function(event:ResultEvent, token:Object = null):void
 				{
@@ -275,7 +273,6 @@ package weave
 		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
 		public const enableAddCustomTool:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddSchafersMissingDataTool:LinkableBoolean = new LinkableBoolean(true);
-		public const enableAddDataFilter:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddDataTable:LinkableBoolean = new LinkableBoolean(true); // Add Data Table option tools menu
 		public const enableAddGaugeTool:LinkableBoolean = new LinkableBoolean(true); // Add Gauge Tool option tools menu
 		public const enableAddHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Histogram option tools menu

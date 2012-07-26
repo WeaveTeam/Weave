@@ -144,6 +144,13 @@ package weave.core
 			_localizations = {};
 			WeaveLangSharedObject.clear();
 		}
+		
+		public function removeEntry(originalText:String):void
+		{
+			delete _localizations[originalText];
+			saveSharedObject();
+		}
+		
 		/**
 		 * This will get the active locale used by the localize() function.
 		 */

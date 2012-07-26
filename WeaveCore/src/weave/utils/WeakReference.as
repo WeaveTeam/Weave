@@ -17,14 +17,13 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package weave.primitives
+package weave.utils
 {
 	import flash.utils.Dictionary;
 
 	/**
-	 * WeakReference
 	 * This class is a wrapper for a weak reference to an object.
-	 * See the documentation for the Dictionary class for more info.
+	 * See the documentation for the Dictionary class for more info about weak references.
 	 * 
 	 * @author adufilie
 	 */	
@@ -36,7 +35,6 @@ package weave.primitives
 		}
 
 		/**
-		 * value
 		 * A weak reference to an object.
 		 */
 		public function get value():Object
@@ -65,7 +63,6 @@ package weave.primitives
 		}
 
 		/**
-		 * dictionary
 		 * The reference is stored as a key in this Dictionary, which uses the weakKeys option.
 		 */
 		private var dictionary:Dictionary = new Dictionary(true);

@@ -137,11 +137,11 @@
 			{
 				if(!_plotter.enableGroupBy.value) 
 					return;
-				if(!labelPlotter.text.internalColumn)
+				if(!labelPlotter.text.getInternalColumn())
 					return;
 				if(ColumnUtils.getKeyType(labelPlotter.text) != ColumnUtils.getKeyType(_plotter.xData))
 					return;
-				if(labelPlotter.text.internalColumn is EquationColumn)
+				if(labelPlotter.text.getInternalColumn() is EquationColumn)
 					return;
 				
 				var labelColumn:DynamicColumn = new DynamicColumn();
@@ -393,7 +393,7 @@
 						repeat = isNaN(lastColumn.getValueFromKey(labelPlotter.dataY.keys[0], Number));
 				} while (labelPlotter.dataY.keys[0] == undefined || repeat );
 
-				if (labelPlotter.text.internalColumn == null)
+				if (labelPlotter.text.getInternalColumn() == null)
 				{
 					var headers:Array = ProbeTextUtils.probeHeaderColumns.getObjects();
 					for (var i:int = 0; i < headers.length; i++)

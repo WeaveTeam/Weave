@@ -33,7 +33,7 @@ package weave.api
 	{
 		var changeDetected:Boolean = false;
 		moreLinkableObjects.unshift(linkableObject);
-		// it's important not to short-circuit with a boolean OR ( || ) because we need to clear the 'changed' flag on each object.
+		// it's important not to short-circuit with a boolean OR (||) because we need to clear the 'changed' flag on each object.
 		for each (linkableObject in moreLinkableObjects)
 			if (Internal.detectLinkableObjectChange(observer, linkableObject, true)) // clear 'changed' flag
 				changeDetected = true;
@@ -68,7 +68,7 @@ internal class Internal
 		
 		var previousCount:* = _triggerCounterMap[linkableObject][observer]; // untyped to handle undefined value
 		var newCount:uint = WeaveAPI.SessionManager.getCallbackCollection(linkableObject).triggerCounter;
-		if (previousCount !== newCount) // no casting to handle 0 !== undefined
+		if (previousCount !== newCount) // !== avoids casting to handle 0 !== undefined
 		{
 			if (clearChangedNow)
 				_triggerCounterMap[linkableObject][observer] = newCount;

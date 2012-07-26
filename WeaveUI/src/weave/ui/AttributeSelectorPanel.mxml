@@ -150,10 +150,10 @@
 					// temporary solution - find internal dynamic column
 					while (true)
 					{
-						if (columnWrapper.internalColumn is DynamicColumn)
-							columnWrapper = columnWrapper.internalColumn as IColumnWrapper;
-						else if (columnWrapper.internalColumn is ExtendedDynamicColumn)
-							columnWrapper = (columnWrapper.internalColumn as ExtendedDynamicColumn).internalDynamicColumn;
+						if (columnWrapper.getInternalColumn() is DynamicColumn)
+							columnWrapper = columnWrapper.getInternalColumn() as IColumnWrapper;
+						else if (columnWrapper.getInternalColumn() is ExtendedDynamicColumn)
+							columnWrapper = (columnWrapper.getInternalColumn() as ExtendedDynamicColumn).internalDynamicColumn;
 						else
 							break;
 					}

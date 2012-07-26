@@ -28,8 +28,10 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -68,6 +70,19 @@ package weave.visualization.plotters
 			
 			// bounds need to be re-indexed when this option changes
 			registerSpatialProperty(Weave.properties.enableGeometryProbing);
+			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
+		}
+		private function handleColumnsListChange():void
+		{
+			// when a column is removed, remove callback trigger
+			var oldColumn:IAttributeColumn = columns.childListCallbacks.lastObjectRemoved as IAttributeColumn;
+			if (oldColumn)
+				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(oldColumn)).removeCallback(getCallbackCollection(this).triggerCallbacks);
+			
+			// make callbacks trigger when statistics change for the column
+			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
+			if (newColumn)
+				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn)).addImmediateCallback(this, getCallbackCollection(this).triggerCallbacks);
 		}
 
 		/*
@@ -159,9 +174,9 @@ package weave.visualization.plotters
 			}					
 			
 			// check for missing columns
-			if (!(xData.internalColumn && yData.internalColumn && groupBy.internalColumn))
+			if (!(xData.getInternalColumn() && yData.getInternalColumn() && groupBy.getInternalColumn()))
 			{
-				if (groupBy.internalColumn)
+				if (groupBy.getInternalColumn())
 					columns.removeAllObjects();
 				return;
 			}
@@ -256,7 +271,7 @@ package weave.visualization.plotters
 				
 				x = i;
 				if (_normalize)
-					y = ColumnUtils.getNorm(_columns[i], recordKey);
+					y = WeaveAPI.StatisticsCache.getColumnStatistics(_columns[i]).getNorm(recordKey);
 				else
 					y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number);
 				
@@ -269,7 +284,7 @@ package weave.visualization.plotters
 						// include a bounds for the line segment
 						var bounds:IBounds2D = getReusableBounds(x, y, x, y);
 						if (_normalize)
-							y = ColumnUtils.getNorm(_columns[i+1], recordKey);
+							y = WeaveAPI.StatisticsCache.getColumnStatistics(_columns[i+1]).getNorm(recordKey);
 						else
 							y = (_columns[i+1] as IAttributeColumn).getValueFromKey(recordKey, Number);
 						bounds.includeCoords(x + 1, y);
@@ -299,7 +314,7 @@ package weave.visualization.plotters
 			{
 				x = i;
 				if (_normalize)
-					y = ColumnUtils.getNorm(_columns[i], recordKey);
+					y = WeaveAPI.StatisticsCache.getColumnStatistics(_columns[i]).getNorm(recordKey);
 				else
 					y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number);
 				
@@ -342,7 +357,7 @@ package weave.visualization.plotters
 				// project data coordinates to screen coordinates and draw graphics
 				tempPoint.x = i;
 				if (_normalize)
-					tempPoint.y = ColumnUtils.getNorm(_columns[i], recordKey);
+					tempPoint.y = WeaveAPI.StatisticsCache.getColumnStatistics(_columns[i]).getNorm(recordKey);
 				else
 					tempPoint.y = (_columns[i] as IAttributeColumn).getValueFromKey(recordKey, Number);
 				
@@ -441,9 +456,10 @@ package weave.visualization.plotters
 					bounds.setYRange(NaN, NaN);
 					for each (var column:IAttributeColumn in columns.getObjects())
 					{
+						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
 						// expand y range to include all data coordinates
-						bounds.includeCoords(0, WeaveAPI.StatisticsCache.getMin(column));
-						bounds.includeCoords(0, WeaveAPI.StatisticsCache.getMax(column));
+						bounds.includeCoords(0, stats.getMin());
+						bounds.includeCoords(0, stats.getMax());
 					}
 				}
 			}

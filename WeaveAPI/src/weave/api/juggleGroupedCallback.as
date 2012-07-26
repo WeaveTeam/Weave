@@ -25,13 +25,14 @@ package weave.api
 	 * @param relevantContext Corresponds to the relevantContext parameter of ICallbackCollection.addGroupedCallback().
 	 * @param groupedCallback Corresponds to the groupedCallback parameter of ICallbackCollection.addGroupedCallback().
 	 * @param triggerCallbackNow Corresponds to the triggerCallbackNow parameter of ICallbackCollection.addGroupedCallback().
+	 * @return A value of true if the new target is different from the old and the callback was juggled.
 	 * @see weave.api.core.ICallbackCollection#addGroupedCallback
 	 */
-	public function juggleGroupedCallback(oldTarget:ILinkableObject, newTarget:ILinkableObject, relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void
+	public function juggleGroupedCallback(oldTarget:ILinkableObject, newTarget:ILinkableObject, relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):Boolean
 	{
 		// do nothing if the targets are the same.
 		if (oldTarget == newTarget)
-			return;
+			return false;
 		
 		// remove callback from old target
 		if (oldTarget)
@@ -40,5 +41,7 @@ package weave.api
 		// add callback to new target
 		if (newTarget)
 			WeaveAPI.SessionManager.getCallbackCollection(newTarget).addGroupedCallback(relevantContext, groupedCallback, triggerCallbackNow);
+		
+		return true;
 	}
 }

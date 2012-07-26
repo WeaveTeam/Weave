@@ -71,10 +71,10 @@ package weave.visualization.layers
 			
 			layers.addImmediateCallback(this, updateZoom);
 			
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, marginBottomNumber);
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, marginTopNumber);
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, marginLeftNumber);
-			(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(this, marginRightNumber);
+			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, marginBottomNumber);
+			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, marginTopNumber);
+			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, marginLeftNumber);
+			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, marginRightNumber);
 		}
 		
 		public const layers:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotLayer));

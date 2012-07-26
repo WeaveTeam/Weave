@@ -19,18 +19,22 @@ package weave.api
 	import weave.api.core.ILinkableObject;
 	
 	/**
-	 * This function will remove a grouped callback from one ILinkableObject or ICallbackCollection and add it to another.
+	 * This function will remove an immediate callback from one ILinkableObject or ICallbackCollection and add it to another.
+	 * There is no option provided here to call the callback immediately because typically when this function is used, the
+	 * current target is stored somewhere, and errors would easily arise if the callback was called before the current target
+	 * variable was updated.  It would also be inconvenient to update the current target variable prior to calling this function.
 	 * @param oldTarget The old target, which may be null.
 	 * @param newTarget The new target, which may be null.
 	 * @param relevantContext Corresponds to the relevantContext parameter of ICallbackCollection.addImmediateCallback().
 	 * @param callback Corresponds to the callback parameter of ICallbackCollection.addImmediateCallback().
+	 * @return A value of true if the new target is different from the old and the callback was juggled.
 	 * @see weave.api.core.ICallbackCollection#addImmediateCallback
 	 */
-	public function juggleImmediateCallback(oldTarget:ILinkableObject, newTarget:ILinkableObject, relevantContext:Object, callback:Function):void
+	public function juggleImmediateCallback(oldTarget:ILinkableObject, newTarget:ILinkableObject, relevantContext:Object, callback:Function):Boolean
 	{
 		// do nothing if the targets are the same.
 		if (oldTarget == newTarget)
-			return;
+			return false;
 		
 		// remove callback from old target
 		if (oldTarget)
@@ -39,5 +43,7 @@ package weave.api
 		// add callback to new target
 		if (newTarget)
 			WeaveAPI.SessionManager.getCallbackCollection(newTarget).addImmediateCallback(relevantContext, callback);
+		
+		return true;
 	}
 }

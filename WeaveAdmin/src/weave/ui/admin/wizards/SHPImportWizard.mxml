@@ -80,6 +80,7 @@
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
+			import mx.utils.StringUtil;
 			
 			import weave.Strings;
 			import weave.api.WeaveAPI;
@@ -232,9 +233,13 @@
 					Alert.show("You must specify the name of the GeometryCollection to be visible by users.", alertTitle);
 				else
 				{
+					
+					var trimmedKeyCols:String = StringUtil.trimArrayElements(dbfKeyColumnsCombo.text,",");
+					var keyCols:Array = trimmedKeyCols.split(","); 
+					
 					var query:DelayedAsyncInvocation = AdminInterface.instance.convertShapefileToSQLStream(
 							shpFileNameInput.text,
-							dbfKeyColumnsCombo.text.split(","),
+							keyCols,
 							tableSelector.activeSchema,
 							tableSelector.activeTable,
 							tableSelector.tableOverwriteCheck.selected,
@@ -295,15 +300,40 @@
 					return;
 				}
 				
-				var selectedKeyColumn:String = dbfKeyColumnsCombo.selectedItem as String;
+//				var selectedKeyColumn:String = dbfKeyColumnsCombo.selectedItem as String;
 				
-				var keyIndex:int = AdminInterface.instance.dbfKeyColumns.indexOf(selectedKeyColumn);
+				var selectedKeyColumns:String = dbfKeyColumnsCombo.text;
+				
+				var selectedKeyColumnsArray:Array = selectedKeyColumns.split(",");
+				
+				var selectedKeyColumnIndex:Array =[];
+				for (var i:int = 0; i<selectedKeyColumnsArray.length; i++)
+				{
+					selectedKeyColumnIndex.push(AdminInterface.instance.dbfKeyColumns.indexOf(StringUtil.trim(selectedKeyColumnsArray[i])));
+					//check if last element added is -1. if True then the keycolumn name is wrong.
+					if(selectedKeyColumnIndex[selectedKeyColumnIndex.length-1] == -1)
+					{
+						dbfKeyColumnsCombo.errorString = "Key Column name '"+ StringUtil.trim(selectedKeyColumnsArray[i]) + "' does not exist";
+						finishEnabled = false;
+						nextEnabled = false;
+						return;
+					}
+						
+				}
+				
+				var keyIndex:int = AdminInterface.instance.dbfKeyColumns.indexOf(selectedKeyColumns);
 				
 				var keyColValues:Array = [];
 				
-				for (var i:int=0; i< AdminInterface.instance.dbfData.length; i++)
+				var temp:Array;
+				for (var j:int=0; j< AdminInterface.instance.dbfData.length; j++)
 				{
-					keyColValues.push(AdminInterface.instance.dbfData[i][keyIndex]);
+					temp = [];
+					for (var k:int = 0; k<selectedKeyColumnIndex.length; k++)
+					{
+						temp.push(AdminInterface.instance.dbfData[j][selectedKeyColumnIndex[k]]);
+					}
+					keyColValues.push(temp.join(","));
 				}
 				
 				if(!isUnique(keyColValues))

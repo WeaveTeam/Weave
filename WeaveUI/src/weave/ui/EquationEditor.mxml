@@ -203,23 +203,23 @@
 			private function updateActiveEquationCombo():void
 			{
 				activeEquationCombo.dataProvider = Weave.root.getObjects(EquationColumn).concat(equationColumn); // 'new equation' at end of list
-				activeEquationCombo.selectedItem = dynamicColumn.internalColumn;
+				activeEquationCombo.selectedItem = dynamicColumn.getInternalColumn();
 			}
 			
 			private var _previousGlobalColumn:EquationColumn = null;
 			private function handleGlobalColumnChange():void
 			{
 				var shouldSave:Boolean = false;
-				if (_previousGlobalColumn != dynamicColumn.internalColumn as EquationColumn)
+				if (_previousGlobalColumn != dynamicColumn.getInternalColumn() as EquationColumn)
 				{
 					if (_previousGlobalColumn)
 						unlinkSessionState(_previousGlobalColumn, equationColumn);
-					_previousGlobalColumn = dynamicColumn.internalColumn as EquationColumn;
+					_previousGlobalColumn = dynamicColumn.getInternalColumn() as EquationColumn;
 					if (_previousGlobalColumn)
 						linkSessionState(_previousGlobalColumn, equationColumn);
 					shouldSave = true;
 				}
-				activeEquationCombo.selectedItem = dynamicColumn.internalColumn;
+				activeEquationCombo.selectedItem = dynamicColumn.getInternalColumn();
 				handleActiveEquationSelect();
 				if (shouldSave)
 					save();

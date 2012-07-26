@@ -45,6 +45,9 @@ package weave.api.core
 		function registerTranslation(originalText:String, locale:String, localizedText:String):void;
 		
 		function clearAllLocalizations():void;
+		
+		function removeEntry(originalText:String):void;
+		
 		/**
 		 * This will get the active locale used by the localize() function.
 		 */

@@ -110,6 +110,27 @@ package weave.api.core
 		function getLinkableDescendants(root:ILinkableObject, flter:Class = null):Array;
 		
 		/**
+		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>
+		 * will return true until all assigned tasks are unassigned using <code>unassignBusyTask(taskToken)</code>.
+		 * @param taskToken A token representing an asynchronous task.
+		 * @param busyObject The object that is busy waiting for the task to complete.
+		 */
+		function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void;
+		
+		/**
+		 * This will unassign an asynchronous task from all linkable objects it has been previously assigned to.
+		 * @param taskToken A token representing an asynchronous task.
+		 */
+		function unassignBusyTask(taskToken:Object):void;
+		
+		/**
+		 * This checks if any asynchronous tasks have been assigned to a linkable object or any of its registered descendants.
+		 * @param linkableObject The object to check.
+		 * @return A value of true if any asynchronous tasks have been assigned to the object.
+		 */
+		function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean;
+
+		/**
 		 * @param linkableObject An object containing sessioned properties (sessioned objects may be nested).
 		 * @param newState An object containing the new values for sessioned properties in the sessioned object.
 		 * @param removeMissingDynamicObjects If true, this will remove any properties from an ILinkableCompositeObject that do not appear in the session state.
