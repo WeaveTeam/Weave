@@ -620,13 +620,13 @@
 			//Received a message requesting control of the mouse, so this function adds it to the queue.
 			private function addMouseToQueue(e:CollaborationEvent):void
 			{
-				var position:Number = WeaveAPI.CollaborationCursorManager.addToQueue(e.getText(), collabService.nickname);
-				if( position == 0 )
+				var position:Array = WeaveAPI.CollaborationCursorManager.addToQueue(e.getText(), collabService.nickname);
+				if( position[0] == 0 )
 				{
 					collabService.hasControl = true;
 					BAR.cursorButton.label = lang("Relinquish Control");
 				}
-				else if( position > 0 )
+				else if( position[0] > 0 )
 				{
 					collabService.hasControl = false;
 					BAR.cursorButton.label = lang("You are in position ") + position + " (Click to cancel)";
@@ -647,13 +647,13 @@
 			//Received a message for giving up control of the mouse, so this function removes it from the queue.
 			public function removeMouseFromQueue(e:CollaborationEvent):void
 			{
-				var position:Number =  WeaveAPI.CollaborationCursorManager.removeFromQueue(e.getText(), collabService.nickname);
-				if( position == 0 )
+				var position:Array =  WeaveAPI.CollaborationCursorManager.removeFromQueue(e.getText(), collabService.nickname);
+				if( position[0] == 0 )
 				{
 					collabService.hasControl = true;
 					BAR.cursorButton.label = lang("Relinquish Control");
 				}
-				else if( position > 0 )
+				else if( position[0] > 0 )
 				{
 					collabService.hasControl = false;
 					BAR.cursorButton.label = lang("You are in position ") + position + " (Click to cancel)";

@@ -5,7 +5,7 @@
 		<![CDATA[
 			import weave.api.WeaveAPI;
 			
-			private const windowSizeConstant:Number = .4;
+			private const windowSizeConstant:Number = 2;
 
 			private var canvasList:Array = new Array();
 			private var controlList:Array = new Array();
@@ -44,25 +44,32 @@
 				adjustLayout();
 			}
 			
-			public function inControl(id:String):void
+			public function inControl(ids:Array):void
 			{
-				if( alreadyExists(id, controlList) )
-					return;
-				for( var i:int = 0; i < canvasList.length; i++ )
-				{
-					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == id )
+				for( var i:int = 1; i < ids.length; i++ )
+					if( !alreadyExists(ids[i], controlList) )
+						controlList.push(ids[i]);
+				for( var j:int = 0; j < controlList.length; j++ )
+					if( !alreadyExists(controlList[j], ids) )
 					{
-						controlList.push(id);
-						(canvasList[i] as CollaborationVideoComponent).width += (canvasList.length - 1) * CollaborationVideoComponent.defaultWidth * windowSizeConstant;
-						(canvasList[i] as CollaborationVideoComponent).height += (canvasList.length - 1) * CollaborationVideoComponent.defaultHeight * windowSizeConstant;
-						this.height = (canvasList[i] as CollaborationVideoComponent).height + 18;
+						lostControl(controlList[j]);
+						controlList.splice(j, 1);
 					}
-					else
+				for( var k:int = 1; k < ids.length; k++ )
+					for( var l:int = 0; l < canvasList.length; l++ )
 					{
-						(canvasList[i] as CollaborationVideoComponent).width -= CollaborationVideoComponent.defaultWidth * windowSizeConstant;
-						(canvasList[i] as CollaborationVideoComponent).height -= CollaborationVideoComponent.defaultHeight * windowSizeConstant;
+						if( (canvasList[l] as CollaborationVideoComponent).nameLabel.text == ids[k] )
+						{
+							(canvasList[l] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth * windowSizeConstant;
+							(canvasList[l] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight * windowSizeConstant;
+							this.height = (canvasList[l] as CollaborationVideoComponent).height + 18;
+						}/*
+						else
+						{
+							(canvasList[l] as CollaborationVideoComponent).width -= CollaborationVideoComponent.defaultWidth * windowSizeConstant;
+							(canvasList[l] as CollaborationVideoComponent).height -= CollaborationVideoComponent.defaultHeight * windowSizeConstant;
+						}*/
 					}
-				}
 				adjustLayout();
 			}
 			
@@ -73,20 +80,20 @@
 				{
 					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == id )
 					{
-						(canvasList[i] as CollaborationVideoComponent).width -= (canvasList.length - 1) * CollaborationVideoComponent.defaultWidth * windowSizeConstant;
-						(canvasList[i] as CollaborationVideoComponent).height -= (canvasList.length - 1) * CollaborationVideoComponent.defaultHeight * windowSizeConstant;
+						(canvasList[i] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth;
+						(canvasList[i] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight;
 						if( (canvasList[i] as CollaborationVideoComponent).height > maxHeight )
 							maxHeight = (canvasList[i] as CollaborationVideoComponent).height;
 						//This needs to be updated to search for the right index later on when there is more than 1 person.
 						controlList.splice(0, 1);
-					}
+					}/*
 					else
 					{
 						(canvasList[i] as CollaborationVideoComponent).width += CollaborationVideoComponent.defaultWidth * windowSizeConstant;
 						(canvasList[i] as CollaborationVideoComponent).height += CollaborationVideoComponent.defaultHeight * windowSizeConstant;
 						if( (canvasList[i] as CollaborationVideoComponent).height > maxHeight )
 							maxHeight = (canvasList[i] as CollaborationVideoComponent).height;
-					}
+					}*/
 				}
 				this.height = maxHeight + 18;
 				adjustLayout();
@@ -96,8 +103,15 @@
 			{
 				for( var i:int = 0; i < arrayToCheck.length; i++ )
 				{
-					if((arrayToCheck[i] as CollaborationVideoComponent).nameLabel.text == id )
-						return true;
+					if( arrayToCheck[i] is CollaborationVideoComponent )
+					{
+						if((arrayToCheck[i] as CollaborationVideoComponent).nameLabel.text == id )
+							return true;
+					}
+					else
+						if( arrayToCheck[i] == id )
+							return true;
+						
 				}
 				return false;
 			}
