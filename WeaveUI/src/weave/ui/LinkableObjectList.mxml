@@ -53,31 +53,24 @@ LinkableObjectList
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.juggleGroupedCallback;
-			import weave.api.juggleImmediateCallback;
+			import weave.core.CallbackJuggler;
 			import weave.core.SessionManager;
 			import weave.utils.ColumnUtils;
 			
 			// This is a pointer to an existing object map.  Do not create a new private one. 
 			private var _hashMap:ILinkableHashMap = null; // <- do not create a new object map
+			private const hashMapJuggler:CallbackJuggler = new CallbackJuggler(this, refreshLabels, true);
+			private const childListJuggler:CallbackJuggler = new CallbackJuggler(this, updateDataProvider, false);
 			
 			[Inspectable] public function set hashMap(value:ILinkableHashMap):void
 			{
-				juggleImmediateCallback(
-					_hashMap && _hashMap.childListCallbacks,
-					value && value.childListCallbacks,
-					this,
-					updateDataProvider
-				);
-				
-				juggleGroupedCallback(_hashMap, value, this, refreshLabels, true);
-
 				_hashMap = value;
 				
 				if (_hashMap)
 					dynamicObject = null;
 				
-				updateDataProvider();
+				hashMapJuggler.target = _hashMap;
+				childListJuggler.target = _hashMap && _hashMap.childListCallbacks;
 			}
 			public function get hashMap():ILinkableHashMap
 			{
@@ -89,23 +82,18 @@ LinkableObjectList
 				return _hashMap;
 			}
 			
-			private var _dynamicObject:ILinkableDynamicObject = null;
+			private var _dynamicObjectJuggler:CallbackJuggler = new CallbackJuggler(this, updateDataProvider, true);
+			
 			public function get dynamicObject():ILinkableDynamicObject
 			{
-				if (_dynamicObject && (WeaveAPI.SessionManager as SessionManager).objectWasDisposed(_dynamicObject))
-				{
-					dynamicObject = null;
-				}
-				
-				return _dynamicObject;
+				return _dynamicObjectJuggler.target as ILinkableDynamicObject;
 			}
-			[Inspectable] public function set dynamicObject(value:ILinkableDynamicObject):void
+
+			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
-				juggleGroupedCallback(_dynamicObject, value, this, updateDataProvider, true);
+				_dynamicObjectJuggler.target = value;
 				
-				_dynamicObject = value;
-				
-				if (_dynamicObject)
+				if (value)
 				{
 					hashMap = null;
 					rowCount = 1;

@@ -122,6 +122,7 @@ package weave.data.AttributeColumns
 			_numberToKeyMapping = new Dictionary();
 			_stringToNumberFunction = null;
 			_numberToStringFunction = null;
+			_reportedDuplicate = false;
 			
 			// compile the number format function from the metadata
 			var numberFormat:String = getMetadata(AttributeColumnMetadata.NUMBER);
@@ -151,6 +152,7 @@ package weave.data.AttributeColumns
 				}
 			}
 			
+			_iterateAll(true); // restart from first task
 			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_PARSING, _asyncComplete);
 		}
 		
@@ -163,6 +165,7 @@ package weave.data.AttributeColumns
 		private var _keys:Vector.<IQualifiedKey>;
 		private var _stringData:Vector.<String>;
 		private var _stringToIndexMap:Object;
+		private var _reportedDuplicate:Boolean = false;
 		
 		// variables that do not get reset after async task
 		private static const compiler:Compiler = new Compiler();
@@ -196,9 +199,10 @@ package weave.data.AttributeColumns
 				// save key-to-data mapping
 				_keyToStringMap[key] = value;
 			}
-			else
+			else if (!_reportedDuplicate)
 			{
-				var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}).  Attribute column: {1}';
+				_reportedDuplicate = true;
+				var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
 				var str:String = StringUtil.substitute(fmt, key.localName, _metadata.toXMLString());
 				if (Capabilities.isDebugger)
 					reportError(str);

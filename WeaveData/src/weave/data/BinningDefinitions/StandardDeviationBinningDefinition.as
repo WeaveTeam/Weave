@@ -24,6 +24,7 @@ package weave.data.BinningDefinitions
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
 	import weave.data.BinClassifiers.NumberClassifier;
 	
 	/**
@@ -45,8 +46,10 @@ package weave.data.BinningDefinitions
 			// clear any existing bin classifiers
 			output.removeAllObjects();
 			
-			var mean:Number = WeaveAPI.StatisticsCache.getMean(column);
-			var stdDev:Number = WeaveAPI.StatisticsCache.getStandardDeviation(column);
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			_statsJuggler.target = stats;
+			var mean:Number = stats.getMean();
+			var stdDev:Number = stats.getStandardDeviation();
 			var binNumber:int = 0;
 			for (var i:int = -MAX_SD; i <= MAX_SD; i++)
 				if (i != 0)

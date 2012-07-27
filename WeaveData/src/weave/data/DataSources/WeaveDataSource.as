@@ -34,6 +34,7 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.reportError;
@@ -46,6 +47,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
+	import weave.data.QKeyManager;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.WeaveDataServlet;
 	import weave.services.beans.AttributeColumnDataWithKeys;
@@ -75,7 +77,7 @@ package weave.data.DataSources
 		 */
 		private function handleURLChange():void
 		{
-			dataService = null;
+			url.delayCallbacks();
 			
 			var defaultBaseURL:String = '/WeaveServices';
 			var defaultServletName:String = '/DataService';
@@ -87,6 +89,12 @@ package weave.data.DataSources
 			// backwards compatibility -- if url ends in default base url, append default servlet name
 			if (url.value.split('/').pop() == defaultBaseURL.split('/').pop())
 				url.value += defaultServletName;
+			
+			// replace old dataService
+			disposeObjects(dataService);
+			dataService = new WeaveDataServlet(url.value);
+			
+			url.resumeCallbacks();
 		}
 		
 		/**
@@ -94,9 +102,6 @@ package weave.data.DataSources
 		 */
 		override protected function initialize():void
 		{
-			if (dataService == null)
-				dataService = new WeaveDataServlet(url.value);
-
 			super.initialize();
 		}
 		
@@ -394,8 +399,8 @@ package weave.data.DataSources
 			if (proxyColumn.wasDisposed)
 				return;
 			
-			try
-			{
+//			try
+//			{
 				if (!event.result)
 				{
 					var msg:String = "Did not receive any data from service for attribute column: "
@@ -437,37 +442,41 @@ package weave.data.DataSources
 				
 				var keyType:String = hierarchyNode['@' + AttributeColumnMetadata.KEY_TYPE];
 				var dataType:String = hierarchyNode['@' + AttributeColumnMetadata.DATA_TYPE];
-
-				var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(keyType, result.keys));
-				if (result.thirdColumn != null)
+				
+				var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
+				var setRecords:Function = function():void
 				{
-					// hack for dimension slider
-					var newColumn:SecondaryKeyNumColumn = new SecondaryKeyNumColumn(hierarchyNode);
-					var secKeyVector:Vector.<String> = Vector.<String>(result.thirdColumn);
-					newColumn.updateRecords(keysVector, secKeyVector, result.data);
-					proxyColumn.setInternalColumn(newColumn);
-					proxyColumn.setMetadata(null); // this will allow SecondaryKeyNumColumn to use its getMetadata() code
-				}
-				else if (ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0)
-				{
-					var newNumericColumn:NumberColumn = new NumberColumn(hierarchyNode);
-					newNumericColumn.setRecords(keysVector, Vector.<Number>(result.data));
-					proxyColumn.setInternalColumn(newNumericColumn);
-				}
-				else
-				{
-					var newStringColumn:StringColumn = new StringColumn(hierarchyNode);
-					newStringColumn.setRecords(keysVector, Vector.<String>(result.data));
-					proxyColumn.setInternalColumn(newStringColumn);
-				}
-				//trace("column downloaded: ",proxyColumn);
-				// run hierarchy callbacks because we just modified the hierarchy.
-				_attributeHierarchy.detectChanges();
-			}
-			catch (e:Error)
-			{
-				trace(this,"handleGetAttributeColumn",pathInHierarchy.toXMLString(),e.getStackTrace());
-			}
+					if (result.thirdColumn != null)
+					{
+						// hack for dimension slider
+						var newColumn:SecondaryKeyNumColumn = new SecondaryKeyNumColumn(hierarchyNode);
+						var secKeyVector:Vector.<String> = Vector.<String>(result.thirdColumn);
+						newColumn.updateRecords(keysVector, secKeyVector, result.data);
+						proxyColumn.setInternalColumn(newColumn);
+						proxyColumn.setMetadata(null); // this will allow SecondaryKeyNumColumn to use its getMetadata() code
+					}
+					else if (ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0)
+					{
+						var newNumericColumn:NumberColumn = new NumberColumn(hierarchyNode);
+						newNumericColumn.setRecords(keysVector, Vector.<Number>(result.data));
+						proxyColumn.setInternalColumn(newNumericColumn);
+					}
+					else
+					{
+						var newStringColumn:StringColumn = new StringColumn(hierarchyNode);
+						newStringColumn.setRecords(keysVector, Vector.<String>(result.data));
+						proxyColumn.setInternalColumn(newStringColumn);
+					}
+					//trace("column downloaded: ",proxyColumn);
+					// run hierarchy callbacks because we just modified the hierarchy.
+					_attributeHierarchy.detectChanges();
+				};
+				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keyType, result.keys, proxyColumn, setRecords, keysVector);
+//			}
+//			catch (e:Error)
+//			{
+//				trace(this,"handleGetAttributeColumn",pathInHierarchy.toXMLString(),e.getStackTrace());
+//			}
 		}
 		
 		public function getReport(name:String, keyStrings:Array):void	

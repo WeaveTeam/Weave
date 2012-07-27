@@ -53,8 +53,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(!column){
 					return callLater(rangeSlider_initializeHandler,[event]);
 				}
-				dataMinimum = WeaveAPI.StatisticsCache.getMin(column.attrColumn);
-				dataMaximum = WeaveAPI.StatisticsCache.getMax(column.attrColumn);
+				dataMinimum = WeaveAPI.StatisticsCache.getColumnStatistics(column.attrColumn).getMin();
+				dataMaximum = WeaveAPI.StatisticsCache.getColumnStatistics(column.attrColumn).getMax();
 				rangeSlider.values = [dataMinimum, dataMaximum];
 				BindingUtils.bindSetter(handleBindableValues, rangeSlider, 'values');
 				getCallbackCollection(this).addGroupedCallback(this, handleLinkableValues);				

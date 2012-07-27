@@ -26,9 +26,11 @@ package weave.visualization.plotters
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
+	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
@@ -82,6 +84,20 @@ package weave.visualization.plotters
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 			
 			_binnedSortColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, true); // creates one bin per unique value in the sort column
+			
+			heightColumns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
+		}
+		private function handleColumnsListChange():void
+		{
+			// when a column is removed, remove callback trigger
+			var oldColumn:IAttributeColumn = heightColumns.childListCallbacks.lastObjectRemoved as IAttributeColumn;
+			if (oldColumn)
+				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(oldColumn)).removeCallback(spatialCallbacks.triggerCallbacks);
+			
+			// make callbacks trigger when statistics change for the column
+			var newColumn:IAttributeColumn = heightColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
+			if (newColumn)
+				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn)).addImmediateCallback(this, spatialCallbacks.triggerCallbacks);
 		}
 		
 		/**
@@ -313,7 +329,7 @@ package weave.visualization.plotters
 					{
 						// if height is missing, use mean value unless we're in 100% stacked mode
 						if (stackedMissingDataGap.value && _groupingMode != PERCENT_STACK)
-							height = WeaveAPI.StatisticsCache.getMean(heightColumn);
+							height = WeaveAPI.StatisticsCache.getColumnStatistics(heightColumn).getMean();
 					}
 					if (isNaN(height)) // check again because getMean may return NaN
 						height = 0;
@@ -704,7 +720,7 @@ package weave.visualization.plotters
 				else if (_heightColumns.length > 1 && stackedMissingDataGap.value)
 				{
 					// use mean value for missing data gap
-					height = WeaveAPI.StatisticsCache.getMean(column);
+					height = WeaveAPI.StatisticsCache.getColumnStatistics(column).getMean();
 				}
 
 				var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
@@ -782,14 +798,15 @@ package weave.visualization.plotters
 					}
 					else
 					{
-						var max:Number = WeaveAPI.StatisticsCache.getMax(column);
-						var min:Number = WeaveAPI.StatisticsCache.getMin(column);
+						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+						var max:Number = stats.getMax();
+						var min:Number = stats.getMin();
 						var positiveError:IAttributeColumn = _posErrCols[i] as IAttributeColumn;
 						var negativeError:IAttributeColumn = _negErrCols[i] as IAttributeColumn;
 						if (showErrorBars && positiveError && negativeError)
 						{
-							var errorMax:Number = WeaveAPI.StatisticsCache.getMax(positiveError);
-							var errorMin:Number = -WeaveAPI.StatisticsCache.getMax(negativeError);
+							var errorMax:Number = WeaveAPI.StatisticsCache.getColumnStatistics(positiveError).getMax();
+							var errorMin:Number = -WeaveAPI.StatisticsCache.getColumnStatistics(negativeError).getMax();
 							if (max > 0 && errorMax > 0)
 								max += errorMax;
 							if (min < 0 && errorMin < 0)

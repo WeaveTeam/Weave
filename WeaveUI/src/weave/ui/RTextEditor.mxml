@@ -316,10 +316,8 @@ RTextEditor
 							if ((RresultArray[p].value).length == keys.length){
 								if (RresultArray[p].value[0] is String)	{
 									var testStringColumn:StringColumn = Weave.root.requestObject(RresultArray[p].name, StringColumn, false);
-									var keyVec:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-									var dataVec:Vector.<String> = new Vector.<String>();
-									VectorUtils.copy(keys, keyVec);
-									VectorUtils.copy(Robj[p].value, dataVec);
+									var keyVec:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keys);
+									var dataVec:Vector.<String> = Vector.<String>(Robj[p].value);
 									testStringColumn.setRecords(keyVec, dataVec);
 									if (keys.length > 0)
 										testStringColumn.metadata.@keyType = (keys[0] as IQualifiedKey).keyType;

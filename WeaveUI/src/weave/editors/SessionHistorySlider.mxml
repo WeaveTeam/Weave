@@ -48,25 +48,20 @@
 	</mx:Style>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getTimer;
-			
-			import mx.controls.Alert;
-			import mx.core.Application;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
-			import weave.api.getCallbackCollection;
-			import weave.api.juggleImmediateCallback;
+			import weave.core.CallbackJuggler;
 			import weave.core.SessionStateLog;
 			import weave.ui.ExportSessionStatePanel;
 			import weave.ui.SubMenu;
-			import weave.utils.DebugUtils;
 			
 			private const padding:Number = 4;
 			
 			private var _stateLog:SessionStateLog = null; // this is the object we are editing
+			private const _stateLogJuggler:CallbackJuggler = new CallbackJuggler(this, handleStateLogChange, false);
 
 			[Embed(source='/weave/resources/images/history-record-on.png')]
 			private static const icon_historyRecordOn:Class;
@@ -140,9 +135,7 @@
 			 */
 			public function setTarget(object:ILinkableObject):void
 			{
-				juggleImmediateCallback(_stateLog, object, this, handleStateLogChange);
-				_stateLog = object as SessionStateLog;
-				handleStateLogChange();
+				_stateLogJuggler.target = _stateLog = object as SessionStateLog;
 			}
 			
 			/**

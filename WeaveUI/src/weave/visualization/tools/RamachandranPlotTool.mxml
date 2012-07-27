@@ -280,10 +280,8 @@
 						//testColumn are named after respective Objects Name (i.e) object{name: , value:}
 						var testColumn:StringColumn = Weave.root.requestObject(RresultArray[p].name, StringColumn, false);
 						//testColumn.numericMode.value = false;
-						var keyVec:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-						var dataVec:Vector.<String> = new Vector.<String>();
-						VectorUtils.copy(keys, keyVec);
-						VectorUtils.copy(Robj[p].value, dataVec);
+						var keyVec:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keys);
+						var dataVec:Vector.<String> = Vector.<String>(Robj[p].value);
 						testColumn.setRecords(keyVec, dataVec);
 						//testColumn.csvData.value = WeaveAPI.CSVParser.createCSV(table);						
 					}					

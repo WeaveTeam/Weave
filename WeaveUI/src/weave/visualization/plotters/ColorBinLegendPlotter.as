@@ -28,11 +28,14 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
+	import weave.core.CallbackJuggler;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
@@ -193,6 +196,12 @@ package weave.visualization.plotters
 			//todo
 		}
 		
+		private var statsJuggler:CallbackJuggler = new CallbackJuggler(this, handleStatsChange, false);
+		private function handleStatsChange():void
+		{
+			getCallbackCollection(this).triggerCallbacks();
+		}
+		
 		protected function drawBinnedPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var internalColorColumn:ColorColumn = getInternalColorColumn();
@@ -219,8 +228,10 @@ package weave.visualization.plotters
 			var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value,(height - margin)/numBins));
 			var iconGap:Number = actualShapeSize + margin * 2;
 			var circleCenterOffset:Number = margin + actualShapeSize / 2; 
-			var internalMin:Number = WeaveAPI.StatisticsCache.getMin(getInternalColorColumn().internalDynamicColumn);
-			var internalMax:Number = WeaveAPI.StatisticsCache.getMax(getInternalColorColumn().internalDynamicColumn);
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(getInternalColorColumn().internalDynamicColumn);
+			statsJuggler.target = stats;
+			var internalMin:Number = stats.getMin();
+			var internalMax:Number = stats.getMax();
 			var internalColorRamp:ColorRamp = getInternalColorColumn().ramp;
 			var binCount:int = binnedColumn.getDerivedBins().getObjects().length;
 			for (var iBin:int = 0; iBin < binCount; ++iBin)

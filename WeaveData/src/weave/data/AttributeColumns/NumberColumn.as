@@ -119,6 +119,7 @@ package weave.data.AttributeColumns
 			_i = 0;
 			_keys = keys;
 			_numericData = numericData;
+			_reportedDuplicate = false;
 			
 			WeaveAPI.StageUtils.startTask(this, _iterate, WeaveAPI.TASK_PRIORITY_PARSING, _asyncComplete);
 		}
@@ -126,6 +127,7 @@ package weave.data.AttributeColumns
 		private var _i:int;
 		private var _keys:Vector.<IQualifiedKey>;
 		private var _numericData:Vector.<Number>;
+		private var _reportedDuplicate:Boolean = false;
 		
 		private function _iterate():Number
 		{
@@ -143,9 +145,10 @@ package weave.data.AttributeColumns
 					_keyToNumericDataMapping[key] = number;
 					_keyToStringDataMapping[key] = StandardLib.asString(numberToStringFunction(number));
 				}
-				else
+				else if (!_reportedDuplicate)
 				{
-					var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}).  Attribute column: {1}';
+					_reportedDuplicate = true;
+					var fmt:String = 'Warning: Key column values are not unique.  Record dropped due to duplicate key ({0}) (only reported for first duplicate).  Attribute column: {1}';
 					var str:String = StringUtil.substitute(fmt, key.localName, _metadata.toXMLString());
 					if (Capabilities.isDebugger)
 						reportError(str);

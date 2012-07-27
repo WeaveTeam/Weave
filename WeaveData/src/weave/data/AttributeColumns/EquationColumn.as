@@ -75,6 +75,21 @@ package weave.data.AttributeColumns
 			setMetadata(AttributeColumnMetadata.TITLE, "Untitled Equation");
 			//setMetadata(AttributeColumnMetadata.DATA_TYPE, DataTypes.NUMBER);
 			equation.value = 'undefined';
+			
+			variables.childListCallbacks.addImmediateCallback(this, handleVariableListChange);
+		}
+		
+		private function handleVariableListChange():void
+		{
+			// when a column is removed, remove callback trigger
+			var oldColumn:IAttributeColumn = variables.childListCallbacks.lastObjectRemoved as IAttributeColumn;
+			if (oldColumn)
+				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(oldColumn)).removeCallback(triggerCallbacks);
+			
+			// make callbacks trigger when statistics change for listed variables
+			var newColumn:IAttributeColumn = variables.childListCallbacks.lastObjectAdded as IAttributeColumn;
+			if (newColumn)
+				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn)).addImmediateCallback(this, triggerCallbacks);
 		}
 		
 		/**

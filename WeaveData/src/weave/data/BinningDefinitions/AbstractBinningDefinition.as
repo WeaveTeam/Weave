@@ -22,7 +22,9 @@ package weave.data.BinningDefinitions
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinningDefinition;
+	import weave.api.getCallbackCollection;
 	import weave.api.registerLinkableChild;
+	import weave.core.CallbackJuggler;
 	import weave.core.LinkableString;
 	import weave.data.CSVParser;
 
@@ -30,6 +32,13 @@ package weave.data.BinningDefinitions
 	{
 		public function AbstractBinningDefinition()
 		{
+		}
+		
+		protected const _statsJuggler:CallbackJuggler = new CallbackJuggler(this, handleStatsChange, false);
+		protected function handleStatsChange():void
+		{
+			// hack -- trigger callbacks so bins will be recalculated
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		public const overrideBinNames:LinkableString = registerLinkableChild(this, new LinkableString(''));

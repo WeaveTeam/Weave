@@ -23,6 +23,7 @@ package weave.data.BinningDefinitions
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
@@ -81,8 +82,10 @@ package weave.data.BinningDefinitions
 			}
 			
 			var integerValuesOnly:Boolean = nonWrapperColumn && dataType != DataTypes.NUMBER;
-			var dataMin:Number = WeaveAPI.StatisticsCache.getMin(column);
-			var dataMax:Number = WeaveAPI.StatisticsCache.getMax(column);
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			_statsJuggler.target = stats;
+			var dataMin:Number = stats.getMin();
+			var dataMax:Number = stats.getMax();
 			
 			// stop if there is no data
 			if (isNaN(dataMin))
