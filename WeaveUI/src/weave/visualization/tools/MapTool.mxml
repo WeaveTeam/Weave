@@ -212,9 +212,11 @@
 				var backgroundImageCheck:CheckBox = new CheckBox();
 				backgroundImageCheck.label = "Enable ocean background image";
 				linkBindableProperty(enableBackground, backgroundImageCheck, "selected");
-				simpleAxisEditor.initialize();
-				simpleAxisEditor.addChild(backgroundImageCheck);
-				simpleAxisEditor.marginProperties.parent.removeChild(simpleAxisEditor.marginProperties);
+				windowSettingsEditor.initialize();
+				windowSettingsEditor.addChild(backgroundImageCheck);
+				windowSettingsEditor.removeChild(windowSettingsEditor.titleControls);
+				windowSettingsEditor.addChildAt(simpleAxisEditor.titleControls, 0);
+				simpleAxisEditor.parent.removeChild(simpleAxisEditor);
 				
 				linkBindableProperty(visualization.minZoomLevel, this, "zoomSliderMinimum");
 				linkBindableProperty(visualization.maxZoomLevel, this, "zoomSliderMaximum");

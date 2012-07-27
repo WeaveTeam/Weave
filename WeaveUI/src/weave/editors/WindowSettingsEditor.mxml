@@ -23,8 +23,8 @@
 		xmlns="weave.ui.editors.*"
 		label="Window"
 		enabled="{_panel != null}"
-		creationPolicy="all" xmlns:ui="weave.ui.editors.*">
-	<mx:HBox width="100%">
+		creationPolicy="all" xmlns:ui="weave.ui.*">
+	<mx:HBox id="titleControls" width="100%">
 		<mx:Label text="Window title:"/>
 		<mx:TextInput id="titleInput"
 					  width="100%"
@@ -55,13 +55,18 @@
 		</mx:VBox>
 	</mx:HBox>
 
-	<mx:HBox>
-		<mx:Label text="Border color:"/>
+	<ui:Indent label="Background color:">
+		<mx:ColorPicker toolTip="Select a color for the background of this visualization tool." 
+						id="backgroundColorPicker"
+						change="backgroundColorPicked();"/>
+		<mx:Button label="Reset" click="_panel.panelBackgroundColor.value = NaN;"/>
+	</ui:Indent>
+	<ui:Indent label="Border color:">
 		<mx:ColorPicker id="borderColorPicker"
 						toolTip="Select a color for the border of this visualization - this will have no effect if the border is not enabled"
 						change="borderColorPicked();"/>
 		<mx:Button label="Reset" click="_panel.panelBorderColor.value = NaN;"/>
-	</mx:HBox>
+	</ui:Indent>
 
 	<mx:Script>
 		<![CDATA[
@@ -86,9 +91,21 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				
+				_panel.panelBackgroundColor.addGroupedCallback(this, backgroundColorCallback, true);
+				_panel.addEventListener(FlexEvent.UPDATE_COMPLETE, function(..._):void { backgroundColorCallback(); });
 
 				_panel.panelBorderColor.addGroupedCallback(this, borderColorCallback, true);
 				_panel.addEventListener(FlexEvent.UPDATE_COMPLETE, function(..._):void { borderColorCallback(); });
+			}
+			
+			private function backgroundColorCallback():void
+			{
+				backgroundColorPicker.selectedColor = _panel.getStyle('backgroundColor');
+			}
+			private function backgroundColorPicked():void
+			{
+				_panel.panelBackgroundColor.value = backgroundColorPicker.selectedColor;
 			}
 			
 			private function borderColorCallback():void
