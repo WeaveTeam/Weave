@@ -39,6 +39,7 @@ package weave
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.linkBindableProperty;
+	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -60,6 +61,8 @@ package weave
 	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.InteractionController;
 	import weave.visualization.layers.LinkableEventListener;
+	import weave.visualization.layers.filters.LinkableDropShadowFilter;
+	import weave.visualization.layers.filters.LinkableGlowFilter;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.ColormapHistogramTool;
 	import weave.visualization.tools.CompoundBarChartTool;
@@ -422,21 +425,24 @@ package weave
 		
 		public function get probeLineFormatter():LinkableFunction { return ProbeTextUtils.probeLineFormatter; }
 		
-		public const probeInnerGlowColor:LinkableNumber = new LinkableNumber(0xffffff, isFinite);
-		public const probeInnerGlowAlpha:LinkableNumber = new LinkableNumber(1, verifyAlpha);
-		public const probeInnerGlowBlur:LinkableNumber = new LinkableNumber(5);
-		public const probeInnerGlowStrength:LinkableNumber = new LinkableNumber(10);
+		public const probeInnerGlow:LinkableGlowFilter = new LinkableGlowFilter(0xffffff, 1, 5, 5, 10);
+		[Deprecated(replacement="probeInnerGlow")] public function set probeInnerGlowColor(value:Number):void { probeInnerGlow.color.value = value; }
+		[Deprecated(replacement="probeInnerGlow")] public function set probeInnerGlowAlpha(value:Number):void { probeInnerGlow.alpha.value = value; }
+		[Deprecated(replacement="probeInnerGlow")] public function set probeInnerGlowBlur(value:Number):void { probeInnerGlow.blurX.value = value; probeInnerGlow.blurY.value = value; }
+		[Deprecated(replacement="probeInnerGlow")] public function set probeInnerGlowStrength(value:Number):void { probeInnerGlow.strength.value = value; }
 		
-		public const probeOuterGlowColor:LinkableNumber    = new LinkableNumber(0, isFinite);
-		public const probeOuterGlowAlpha:LinkableNumber    = new LinkableNumber(1, verifyAlpha);
-		public const probeOuterGlowBlur:LinkableNumber 	   = new LinkableNumber(3);
-		public const probeOuterGlowStrength:LinkableNumber = new LinkableNumber(3);
+		public const probeOuterGlow:LinkableGlowFilter = new LinkableGlowFilter(0, 1, 3, 3, 3);
+		[Deprecated(replacement="probeOuterGlow")] public function set probeOuterGlowColor(value:Number):void { probeOuterGlow.color.value = value; }
+		[Deprecated(replacement="probeOuterGlow")] public function set probeOuterGlowAlpha(value:Number):void { probeOuterGlow.alpha.value = value; }
+		[Deprecated(replacement="probeOuterGlow")] public function set probeOuterGlowBlur(value:Number):void { probeOuterGlow.blurX.value = value; probeOuterGlow.blurY.value = value; }
+		[Deprecated(replacement="probeOuterGlow")] public function set probeOuterGlowStrength(value:Number):void { probeOuterGlow.strength.value = value; }
 		
-		public const shadowDistance:LinkableNumber  = new LinkableNumber(2);
-		public const shadowAngle:LinkableNumber    	= new LinkableNumber(45);
-		public const shadowColor:LinkableNumber 	= new LinkableNumber(0x000000, isFinite);
-		public const shadowAlpha:LinkableNumber 	= new LinkableNumber(0.5, verifyAlpha);
-		public const shadowBlur:LinkableNumber 		= new LinkableNumber(4);
+		public const selectionDropShadow:LinkableDropShadowFilter = new LinkableDropShadowFilter(2, 45, 0, 0.5);
+		[Deprecated(replacement="selectionDropShadow")] public function set shadowDistance(value:Number):void { selectionDropShadow.distance.value = value; }
+		[Deprecated(replacement="selectionDropShadow")] public function set shadowAngle(value:Number):void { selectionDropShadow.angle.value = value; }
+		[Deprecated(replacement="selectionDropShadow")] public function set shadowColor(value:Number):void { selectionDropShadow.color.value = value; }
+		[Deprecated(replacement="selectionDropShadow")] public function set shadowAlpha(value:Number):void { selectionDropShadow.alpha.value = value; }
+		[Deprecated(replacement="selectionDropShadow")] public function set shadowBlur(value:Number):void { selectionDropShadow.blurX.value = value; selectionDropShadow.blurY.value = value; }
 		
 		public const probeToolTipBackgroundAlpha:LinkableNumber = new LinkableNumber(1.0, verifyAlpha);
 		public const probeToolTipBackgroundColor:LinkableNumber = new LinkableNumber(NaN);

@@ -58,37 +58,13 @@ package weave.visualization.layers
 			init();
 		}
 		
-		private function addGroupedCallbacks(callback:Function, property:ILinkableObject, ...moreProperties):void
-		{
-			moreProperties.unshift(property);
-			for each (property in moreProperties)
-				getCallbackCollection(property).addGroupedCallback(this, callback, true);
-		}
 		private function init():void
 		{
-			addGroupedCallbacks(handleProbeInnerGlowFilterChange,
-					Weave.properties.probeInnerGlowColor,
-					Weave.properties.probeInnerGlowAlpha,
-					Weave.properties.probeInnerGlowBlur,
-					Weave.properties.probeInnerGlowStrength
-				);
-			addGroupedCallbacks(handleProbeOuterGlowFilterChange,
-					Weave.properties.probeOuterGlowColor,
-					Weave.properties.probeOuterGlowAlpha,
-					Weave.properties.probeOuterGlowBlur,
-					Weave.properties.probeOuterGlowStrength
-				);
-			addGroupedCallbacks(handleShadowFilterChange,
-					Weave.properties.shadowDistance,
-					Weave.properties.shadowAngle,
-					Weave.properties.shadowColor,
-					Weave.properties.shadowAlpha,
-					Weave.properties.shadowBlur
-				);
-			addGroupedCallbacks(handleBlurringFilterChange,
-					Weave.properties.selectionBlurringAmount,
-					Weave.properties.selectionAlphaAmount
-				);
+			getCallbackCollection(Weave.properties.probeInnerGlow).addGroupedCallback(this, handleProbeInnerGlowFilterChange, true);
+			getCallbackCollection(Weave.properties.probeOuterGlow).addGroupedCallback(this, handleProbeOuterGlowFilterChange, true);
+			getCallbackCollection(Weave.properties.selectionDropShadow).addGroupedCallback(this, handleShadowFilterChange, true);
+			Weave.properties.selectionBlurringAmount.addGroupedCallback(this, handleBlurringFilterChange, true);
+			Weave.properties.selectionAlphaAmount.addGroupedCallback(this, handleBlurringFilterChange, true);
 
 			Weave.properties.enableBitmapFilters.addGroupedCallback(this, handleToggleBitmapFilters);
 			
@@ -412,35 +388,26 @@ package weave.visualization.layers
 		
 		private function handleProbeInnerGlowFilterChange():void
 		{
-			var blur:Number = useTextBitmapFilters.value ? 2 : Weave.properties.probeInnerGlowBlur.value;
-			var strength:Number = useTextBitmapFilters.value ? 255 : Weave.properties.probeInnerGlowStrength.value;
-			probeGlowInner.color 	= Weave.properties.probeInnerGlowColor.value;
-			probeGlowInner.alpha 	= Weave.properties.probeInnerGlowAlpha.value;
-			probeGlowInner.blurX	= blur;
-			probeGlowInner.blurY	= blur;
-			probeGlowInner.strength = strength;
+			Weave.properties.probeInnerGlow.copyTo(probeGlowInner);
+			if (useTextBitmapFilters.value)
+			{
+				probeGlowInner.blurX = 2;
+				probeGlowInner.blurY = 2;
+				probeGlowInner.strength = 255;
+			}
 			handleToggleBitmapFilters();
 		}
 		
 		private var probeGlowOuter:GlowFilter = new GlowFilter(0xff0000, 0.7, 3,3,10);		
 		private function handleProbeOuterGlowFilterChange():void
 		{
-			probeGlowOuter.color 	= Weave.properties.probeOuterGlowColor.value;
-			probeGlowOuter.alpha 	= Weave.properties.probeOuterGlowAlpha.value;
-			probeGlowOuter.blurX	= Weave.properties.probeOuterGlowBlur.value;
-			probeGlowOuter.blurY	= Weave.properties.probeOuterGlowBlur.value;
-			probeGlowOuter.strength = Weave.properties.probeOuterGlowStrength.value;
+			Weave.properties.probeOuterGlow.copyTo(probeGlowOuter);
 			handleToggleBitmapFilters();
 		}
 		
 		private function handleShadowFilterChange():void
 		{
-			shadow.distance = Weave.properties.shadowDistance.value;
-			shadow.angle 	= Weave.properties.shadowAngle.value;
-			shadow.color	= Weave.properties.shadowColor.value;
-			shadow.alpha	= Weave.properties.shadowAlpha.value;
-			shadow.blurX	= Weave.properties.shadowBlur.value;
-			shadow.blurY	= Weave.properties.shadowBlur.value;
+			Weave.properties.selectionDropShadow.copyTo(shadow);
 			handleToggleBitmapFilters();
 		}
 		private var shadow:DropShadowFilter 	= new DropShadowFilter(2, 45, 0, 0.5, 4, 4, 2);

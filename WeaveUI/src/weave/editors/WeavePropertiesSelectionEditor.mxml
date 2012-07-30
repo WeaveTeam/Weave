@@ -46,7 +46,7 @@
 					  textAlign="right"
 					  toolTip="Set the shadow color of selected points"/>
 			<mx:ColorPicker id="shadowColor"
-							creationComplete="linkBindableProperty(Weave.properties.shadowColor, event.target, 'selectedColor' );"
+							creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.color, event.target, 'selectedColor' );"
 							/>
 		</mx:HBox>
 		<mx:HBox>
@@ -57,7 +57,7 @@
 			<mx:NumericStepper id="shadowAlpha"
 							   maximum="1"
 							   stepSize="0.1"
-							   creationComplete="linkBindableProperty(Weave.properties.shadowAlpha, event.target, 'value' );"
+							   creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.alpha, event.target, 'value' );"
 							   />
 		</mx:HBox>
 	</mx:VBox>
