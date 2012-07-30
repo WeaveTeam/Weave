@@ -2,7 +2,7 @@
 <mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml"
 		  xmlns:collaboration="weave.ui.collaboration.*"
 		  width="185" height="{(WeaveAPI.topLevelApplication as DisplayObject).height / 1.5}"
-		  creationComplete="creationCompleteHandler(event)" horizontalScrollPolicy="off"
+		  creationComplete="creationCompleteHandler(event)" horizontalScrollPolicy="off" verticalScrollPolicy="off"
 		  layout="absolute" move="repositionWindowsHandler(event)" title="Collaboration Group">
 	<mx:List id="userList" width="100%" height="100%" minWidth="130" labelField="name">
 		<mx:itemRenderer>
