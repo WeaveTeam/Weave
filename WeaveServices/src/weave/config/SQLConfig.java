@@ -194,14 +194,14 @@ public class SQLConfig
         {
             Map<String,String> pubMeta = properties.get("public");
             Map<String,String> privMeta = properties.get("private");
-            if (pubMeta == null)
+            if (pubMeta != null)
             for (Entry<String,String> propval : pubMeta.entrySet())
             {
                 String key = propval.getKey();
                 String value = propval.getValue();
                 public_attributes.setProperty(id, key, value);
             }
-            if (privMeta == null)
+            if (privMeta != null)
             for (Entry<String,String> propval : privMeta.entrySet())
             {
                 String key = propval.getKey();

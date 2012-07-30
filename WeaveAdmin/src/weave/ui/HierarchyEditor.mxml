@@ -63,14 +63,14 @@
         var item:EntityTreeNode = event.currentTarget.selectedItem as EntityTreeNode;
         if (item != null) 
         {
-            EntityTree.yell("Selections changed and item non-null.");
+            EntityTreeNode.yell("Selections changed and item non-null.");
             this.selectedItem = item;
             if (event.currentTarget == tagTree) 
                 tableTree.selectedItem = null;
             else 
                 tagTree.selectedItem = null;
         }
-        EntityTree.yell("Selections changed.");
+        EntityTreeNode.yell("Selections changed.");
     }
     public function remove():void
     {

@@ -7,13 +7,18 @@ package weave.ui
     import mx.controls.Tree;
     import flash.events.EventDispatcher;
     import flash.events.Event;
-//    [RemoteClass]
+    import mx.utils.ObjectUtil;
     public class EntityTreeNode extends EventDispatcher
     {
-        private var id:int;
+        public var _id:int;
+        public function get id():int
+        {
+            return _id;
+        }
+        
         public function EntityTreeNode(id:int)
         {
-            this.id = id;
+            this._id = id;
         }
         private function objectChanged(obj:Object):void
         {
@@ -47,18 +52,25 @@ package weave.ui
                 _children.push(new EntityTreeNode(id));
             return _children;
         }
+        public function add_child(child_id:int):void
+        {
+            AdminInterface.instance.meta_cache.add_child(child_id, this.id);
+        }
+        public function remove_child(child_id:int):void
+        {
+            AdminInterface.instance.meta_cache.remove_child(child_id, this.id);
+        }
         public function commit(pubDiff:Object, privDiff:Object, onComplete:Function):void
         {
             AdminInterface.instance.meta_cache.update_metadata(id, pubDiff, privDiff, onComplete);
         }
-        private static function yell(str:String):void
+        public static function yell(str:String):void
         {
             WeaveAdminService.messageDisplay(null, str, false);
         }
-        private static function printobj(o:Object):void
+        public static function printobj(o:Object):void
         {
-            for (var prop:String in o)
-                yell(prop + ":" + o[prop]);
+            yell(ObjectUtil.toString(o));
         }
         static public function mergeObjects(a:Object, b:Object):Object
         {
