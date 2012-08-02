@@ -26,8 +26,7 @@
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*"
 				   xmlns:userControls="weave.ui.userControls.*"
-				   title="Collaboration"
-				   creationPolicy="all" layout="absolute">
+				   creationPolicy="all" layout="absolute" title="Collaboration">
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -167,46 +166,52 @@
 		]]>
 	</mx:Script>
 
-	<mx:TabNavigator width="100%" height="100%" id="tabs">
-		<mx:VBox label="Chat" width="100%" height="100%"
-				 paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
-				 id="chat">
+	<mx:TabNavigator id="tabs" width="100%" height="100%">
+		<mx:VBox id="chat" width="100%" height="100%" label="Chat" paddingBottom="10"
+				 paddingLeft="10" paddingRight="10" paddingTop="10">
 			<mx:HDividedBox width="100%" height="100%" enabled="{disconnectButton.enabled}">
 				<mx:TextArea id="log" width="80%" height="100%" editable="false"/>
-				<mx:List id="users" height="100%" width="20%" minWidth="100" editable="false" dataProvider="{collabService.userList}" />
+				<mx:List id="users" width="20%" height="100%" minWidth="100"
+						 dataProvider="{collabService.userList}" editable="false"/>
 			</mx:HDividedBox>
 			<mx:HBox width="100%" enabled="{disconnectButton.enabled}">
 				<mx:TextInput id="input" width="100%" enabled="false" enter="sendToRoomButton()"/>
-				<mx:Button id="sendButton" label="Send" enabled="false" click="sendToRoomButton();"/>
+				<mx:Button id="sendButton" label="Send" click="sendToRoomButton();" enabled="false"/>
 			</mx:HBox>
 		</mx:VBox>
 	
-		<mx:VBox label="Settings" width="100%" height="100%"
+		<mx:VBox id="settings" width="100%" height="100%" minHeight="0" label="Settings"
 				 paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
-				 id="settings" verticalScrollPolicy="auto" minHeight="0">
+				 verticalScrollPolicy="auto">
 			<mx:VBox id="serverSettings">
 				<ui:Indent label="IP:">
-					<mx:TextInput id="serverIP" width="{textAreaWidth}" errorString="{serverIP.text?'':'Required'}"/>
+					<mx:TextInput id="serverIP" width="{textAreaWidth}"
+								  errorString="{serverIP.text?'':'Required'}"/>
 				</ui:Indent>
 				<ui:Indent label="ServerName:">
-					<mx:TextInput id="serverName" width="{textAreaWidth}" errorString="{serverName.text?'':'Required'}"/>
+					<mx:TextInput id="serverName" width="{textAreaWidth}"
+								  errorString="{serverName.text?'':'Required'}"/>
 				</ui:Indent>
 				<ui:Indent label="Port:">
-					<mx:TextInput id="port" width="{textAreaWidth}" errorString="{port.text?'':'Required'}"/>
+					<mx:TextInput id="port" width="{textAreaWidth}"
+								  errorString="{port.text?'':'Required'}"/>
 				</ui:Indent>
 				<ui:Indent label="Room Name:">
-					<mx:TextInput id="roomToJoin" width="{textAreaWidth}" errorString="{roomToJoin.text?'':'Required'}"/>
+					<mx:TextInput id="roomToJoin" width="{textAreaWidth}"
+								  errorString="{roomToJoin.text?'':'Required'}"/>
 				</ui:Indent>
 				<ui:Indent label="Username:">
-					<mx:TextInput id="username" width="{textAreaWidth}" errorString="{username.text?'':'Required'}"/>
+					<mx:TextInput id="username" width="{textAreaWidth}"
+								  errorString="{username.text?'':'Required'}"/>
 				</ui:Indent>
 			</mx:VBox>
 			<!--<ui:Indent label="Cursor color:">
 				<mx:ColorPicker id="picker" color="{Math.round(Math.random() * 0xFFFFFF)}" />
 			</ui:Indent>-->
 			<mx:HBox width="100%">
-				<mx:Button id="connectButton" label="Connect" click="connect();" />
-				<mx:Button id="disconnectButton" label="Disconnect" enabled="false" click="collabService.disconnect();"/>
+				<mx:Button id="connectButton" label="Connect" click="connect();"/>
+				<mx:Button id="disconnectButton" label="Disconnect"
+						   click="collabService.disconnect();" enabled="false"/>
 			</mx:HBox>
 		</mx:VBox>
 	</mx:TabNavigator>

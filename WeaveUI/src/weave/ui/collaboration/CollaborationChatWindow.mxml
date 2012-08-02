@@ -17,42 +17,44 @@
 	You should have received a copy of the GNU General Public License
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" 
-		 verticalScrollPolicy="off" horizontalScrollPolicy="off"
-		 borderColor="#54585E" borderThickness="3" borderStyle="solid"
-		 backgroundAlpha="1" backgroundColor="#CCCCCC" height="400"
-		 xmlns:collab="weave.ui.collaboration.*" xmlns:ui="weave.ui.*">
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+		   xmlns:collab="weave.ui.collaboration.*"
+		   xmlns:ui="weave.ui.*"
+		   height="400" backgroundAlpha="1" backgroundColor="#CCCCCC" borderColor="#54585E"
+		   borderStyle="solid" borderThickness="3" horizontalScrollPolicy="off"
+		   verticalScrollPolicy="off">
 	
-	<mx:Fade id="fadeIn" duration="200" alphaFrom="0" alphaTo="1" />
-	<mx:Fade id="fadeOut" duration="200" alphaFrom="1" alphaTo="0" />
+	<mx:Fade id="fadeIn" alphaFrom="0" alphaTo="1" duration="200"/>
+	<mx:Fade id="fadeOut" alphaFrom="1" alphaTo="0" duration="200"/>
 	
-	<mx:VBox width="100%" height="100%"
-			 paddingBottom="{padding}" paddingLeft="{padding}"
+	<mx:VBox width="100%" height="100%" paddingBottom="{padding}" paddingLeft="{padding}"
 			 paddingRight="{padding}" paddingTop="{padding}">
 		<mx:VBox id="containerGlobal" width="100%" height="100%">
 			<mx:VBox id="containerAddons" width="100%" height="0" horizontalScrollPolicy="off">
-				<mx:Canvas width="100%" height="100%" clipContent="true"
-						   horizontalScrollPolicy="off" verticalScrollPolicy="off">
-					<mx:Canvas id="containerRemoteCams" width="100%" height="100%" autoLayout="false" />
-					<mx:HBox verticalAlign="bottom" horizontalAlign="right" bottom="0" right="0">
-						<mx:UIComponent id="containerLocalCam" width="80" height="60" />
+				<mx:Canvas width="100%" height="100%" clipContent="true" horizontalScrollPolicy="off"
+						   verticalScrollPolicy="off">
+					<mx:Canvas id="containerRemoteCams" width="100%" height="100%" autoLayout="false"/>
+					<mx:HBox right="0" bottom="0" horizontalAlign="right" verticalAlign="bottom">
+						<mx:UIComponent id="containerLocalCam" width="80" height="60"/>
 					</mx:HBox>
 				</mx:Canvas>
-				<mx:HBox id="addonControls" width="100%" horizontalAlign="center" horizontalScrollPolicy="off">
-					<mx:Button id="button_mic" width="28" height="22" toggle="true" 
-							   enabled="{addOnsSaved}" click="toggleMic(event)"/>
-					<mx:Button id="button_cam" width="28" height="22" toggle="true" 
-							   enabled="{addOnsSaved}" click="toggleCam(event)"/>
+				<mx:HBox id="addonControls" width="100%" horizontalAlign="center"
+						 horizontalScrollPolicy="off">
+					<mx:Button id="button_mic" width="28" height="22" click="toggleMic(event)"
+							   enabled="{addOnsSaved}" toggle="true"/>
+					<mx:Button id="button_cam" width="28" height="22" click="toggleCam(event)"
+							   enabled="{addOnsSaved}" toggle="true"/>
 				</mx:HBox>
 			</mx:VBox>
 			<mx:VBox id="containerChat" width="100%" height="100%">
-				<mx:TextArea id="rtmpErrorLabel" borderThickness="0" backgroundAlpha="0" editable="false"
-							 wordWrap="true" color="#FF0000" fontWeight="bold" width="100%" height="20"
-							 showEffect="{fadeIn}" hideEffect="{fadeOut}" visible="false" includeInLayout="false" />
-					<mx:TextArea id="log" width="100%" height="100%" editable="false" />
+				<mx:TextArea id="rtmpErrorLabel" visible="false" width="100%" height="20"
+							 backgroundAlpha="0" borderThickness="0" color="#FF0000"
+							 editable="false" fontWeight="bold" hideEffect="{fadeOut}"
+							 includeInLayout="false" showEffect="{fadeIn}" wordWrap="true"/>
+					<mx:TextArea id="log" width="100%" height="100%" editable="false"/>
 				<mx:HBox width="100%">
-					<mx:TextInput id="input" width="100%" enter="dispatchMessageEvent()" />
-					<mx:Button id="button_send" label="{lang('Send')}" click="dispatchMessageEvent()" />
+					<mx:TextInput id="input" width="100%" enter="dispatchMessageEvent()"/>
+					<mx:Button id="button_send" label="{lang('Send')}" click="dispatchMessageEvent()"/>
 				</mx:HBox>
 			</mx:VBox>
 		</mx:VBox>
