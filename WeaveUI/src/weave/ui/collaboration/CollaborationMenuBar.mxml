@@ -18,16 +18,11 @@
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
-		 width="100%" height="25"
-		 backgroundAlpha="0"
-		 backgroundColor="0x8a8a8a"
-		 cornerRadius="7"
-		 bottom="0" horizontalGap="0"
-		 verticalAlign="middle"
-		 creationComplete="creationComplete(event)"
-		 resize="resizeHandler(event)"
-		 horizontalScrollPolicy="off" verticalScrollPolicy="off">
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 bottom="0" width="100%" height="25" backgroundAlpha="0" backgroundColor="0x8a8a8a"
+		 cornerRadius="7" creationComplete="creationComplete(event)" horizontalGap="0"
+		 horizontalScrollPolicy="off" resize="resizeHandler(event)" verticalAlign="middle"
+		 verticalScrollPolicy="off">
 	
 	<mx:Spacer width="100%" />
 	<mx:Button id="button_connect"  label="{lang('Connect')}"  icon="{iCon}" cornerRadius="0" height="100%" />

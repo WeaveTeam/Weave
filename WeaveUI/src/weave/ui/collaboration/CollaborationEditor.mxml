@@ -27,7 +27,7 @@
 				  creationComplete="creationComplete()">
 	<mx:VBox label="{lang('Server Settings')}" width="100%" height="100%">
 		<mx:HBox width="100%">
-			<mx:Label text="IP:" width="{labelWidth}" />
+			<mx:Label width="{labelWidth}" text="IP:"/>
 			<mx:TextInput id="serverIP" width="{textAreaWidth}" change="trimInput(event);"/>
 		</mx:HBox>
 		<mx:HBox width="100%">
@@ -35,16 +35,15 @@
 			<mx:TextInput id="serverName" width="{textAreaWidth}" change="trimInput(event);"/>
 		</mx:HBox>
 		<mx:HBox width="100%">
-			<mx:Label text="Port:" width="{labelWidth}" />
+			<mx:Label width="{labelWidth}" text="Port:"/>
 			<mx:TextInput id="port" width="{textAreaWidth}" change="trimInput(event);"/>
 		</mx:HBox>
 		<mx:HBox width="100%">
 			<mx:Label text="{lang('Room Name:')}" width="{labelWidth}" />
 			<mx:TextInput id="roomToJoin" width="{textAreaWidth}" change="trimInput(event);"/>
 		</mx:HBox>
-		<mx:CheckBox toolTip="{lang('Toggle access to Collaboration Toolbar')}"
-					 id="collabBar"
-					 label="{lang('Show Collaboration Menu Bar')}"/>
+		<mx:CheckBox id="collabBar" label="{lang('Show Collaboration Menu Bar')}"
+					 toolTip="{lang('Toggle access to Collaboration Toolbar')}"/>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
