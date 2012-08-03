@@ -19,7 +19,7 @@ so that it can be moved, selected, handle filters.
 				borderColor="black"
 				dragComplete="handleDragComplete(event)"
 				horizontalScrollPolicy="off"
-				verticalScrollPolicy="off" width="100%" clipContent="false">
+				verticalScrollPolicy="off" width="100%">
 	<mx:Image id="img" width="100%" height="100%"/>
 	<mx:Canvas id="point" height="100%" verticalScrollPolicy="off" clipContent="false"/>
 	<mx:Script>
@@ -44,6 +44,7 @@ so that it can be moved, selected, handle filters.
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
+			import weave.api.getLinkableRoot;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -157,6 +158,15 @@ so that it can be moved, selected, handle filters.
 			{
 				if(hasBeenMoved.value)
 				{
+					if(!parent)
+					{
+						var hashMap:LinkableHashMap = getLinkableOwner(this) as LinkableHashMap;
+						var nodeHandler:ILinkableObject = getLinkableOwner(hashMap);
+						var panelHashMap:ILinkableObject = getLinkableOwner(nodeHandler) as ILinkableObject;
+						var panel:InfoMapPanel = getLinkableOwner(panelHashMap) as InfoMapPanel;
+						var root:ILinkableObject = getLinkableRoot(this);
+						panel.map.addChild(this);
+					}
 					img.visible = true;
 //					img.includeInLayout = true;
 					
@@ -175,30 +185,34 @@ so that it can be moved, selected, handle filters.
 					point.height = 0;
 					
 					handleImage();
+					
+					
 				}
 				else
 				{
-					img.visible = false;
-//					img.includeInLayout = false;
-					
-					point.visible = true;
-//					point.includeInLayout = true;
-					
-					imageHeight.value = 10;
-					imageWidth.value = 10;
-					
-					img.width = 0;
-					img.height = 0;
-					point.width = 10;
-					point.height = 10;
-					
-					var g:Graphics = point.graphics;
-					g.clear();
-					g.lineStyle(1,0,1.0);
-					g.beginFill(defaultBorderColor.value,1.0);
-					g.drawCircle(0,0,imageWidth.value/2);	
-					
-					setStyle("borderStyle","none");
+					if(parent)
+						parent.removeChild(this);
+//					img.visible = false;
+////					img.includeInLayout = false;
+//					
+//					point.visible = true;
+////					point.includeInLayout = true;
+//					
+//					imageHeight.value = 10;
+//					imageWidth.value = 10;
+//					
+//					img.width = 0;
+//					img.height = 0;
+//					point.width = 10;
+//					point.height = 10;
+//					
+//					var g:Graphics = point.graphics;
+//					g.clear();
+//					g.lineStyle(1,0,1.0);
+//					g.beginFill(defaultBorderColor.value,1.0);
+//					g.drawCircle(0,0,imageWidth.value/2);	
+//					
+//					setStyle("borderStyle","none");
 				}
 			}
 			
@@ -491,7 +505,7 @@ so that it can be moved, selected, handle filters.
 					imageAlpha.value = 1.0;
 					setStyle("borderThickness", 1.5);
 					setStyle("borderColor",defaultBorderColor.value);
-					point.filters = [];
+//					point.filters = [];
 				}
 				//this will force a call to the updateDisplayList which will draw a border around this image
 				this.invalidateDisplayList();
@@ -499,7 +513,7 @@ so that it can be moved, selected, handle filters.
 			
 			public function setSelectionBlur():void
 			{
-				point.filters = [selectionBlur];
+//				point.filters = [selectionBlur];
 			}
 			private var glowFilter:GlowFilter = new GlowFilter(glowColor.value);
 			private var timer:Timer = new Timer(125);

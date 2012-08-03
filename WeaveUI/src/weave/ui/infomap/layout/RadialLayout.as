@@ -80,10 +80,10 @@ package weave.ui.infomap.layout
 			var centerPoint:Point = new Point(_parentNodeHandler.nodeBase.x+ _parentNodeHandler.nodeBase.width/2,_parentNodeHandler.nodeBase.height/2);
 			
 			//this image is used to a show a tooltip of information about the node. 
-			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbnails.length.toString() + " documents found" ;
+//			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbnails.length.toString() + " documents found" ;
 			
-			if(_parentNodeHandler.query.sources.value)
-				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.query.sources.value;
+//			if(_parentNodeHandler.query.sources.value)
+//				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.query.sources.value;
 			
 			
 			var temp:Array = [];

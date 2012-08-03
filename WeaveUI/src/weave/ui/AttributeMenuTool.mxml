@@ -34,6 +34,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:Canvas label="{lang('List')}">
 			<mx:List id="choiceList" width="100%" height="100%"
 					 labelFunction="choiceLabelFunction"
+					 backgroundColor="{panelBackgroundColor.value}"
 					 change="handleAttrSelected(choiceList.selectedIndex);"
 					 />
 		</mx:Canvas>

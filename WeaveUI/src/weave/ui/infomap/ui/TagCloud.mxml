@@ -2,18 +2,20 @@
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"
 		   xmlns:infomap="weave.ui.infomap.*" 
 		   verticalScrollPolicy="off" 
-		   horizontalScrollPolicy="off" 
+		   horizontalScrollPolicy="off"
 		>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Label;
 			
 			import weave.compiler.StandardLib;
+			import weave.core.LinkableString;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.primitives.Bounds2D;
 			import weave.primitives.Bounds2DIndex;
 			import weave.primitives.ColorRamp;
 			import weave.ui.CustomLabel;
+			import weave.utils.EquationColumnLib;
 			
 			/**
 			 * This is a 2D array with list of words and the respective word count.
@@ -39,6 +41,8 @@
 				addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 				
 			}
+			
+			public var lastProbedWord:LinkableString = new LinkableString();
 			
 			private var tempBounds:Bounds2D = new Bounds2D();
 			private var previousProbedLabels:Array = []; 
@@ -68,6 +72,7 @@
 					if(l.labelBitmap.bitmapData.hitTest(new Point(0,0),1,new Rectangle(hitX-hitTargetRadius,hitY-hitTargetRadius,hitTargetRadius*2,hitTargetRadius*2)))
 					{
 						l.filters = [probeGlowOuter,shadow];
+						lastProbedWord.value = l.labelText.text;
 						return;//just highlight the first label
 					}
 				}
@@ -97,9 +102,17 @@
 				var minWordCount:int = dataProvider[dataProvider.length-1][1];
 				var maxWordCount:int = dataProvider[0][1];
 				
-				var maxWordHeight:int = Math.round(height/4);
+				var maxWordHeight:int = Math.round(height/10);
+				var minWordHeight:int = 10;
 				
 				var labelLoc:Point = new Point(0,0);
+				
+				var maxX:Number = -Infinity;
+				var maxY:Number = -Infinity;
+				
+				var minX:Number = Infinity;
+				var minY:Number = Infinity;				
+//				trace("number of words is " + dataProvider.length);
 				
 				for (var i:int=0; i<dataProvider.length; i++)
 				{
@@ -109,28 +122,23 @@
 					tagCanvasBitmapData.draw(this);
 					
 					var currWordLabel:CustomLabel = new CustomLabel();
-//					currWordLabel.addEventListener(MouseEvent.ROLL_OVER,function (event:MouseEvent):void{(event.target as CustomLabel).filters = [probeGlowOuter,shadow]});
-//					currWordLabel.addEventListener(MouseEvent.ROLL_OUT,function (event:MouseEvent):void{(event.target as CustomLabel).filters = []});
-//					currWordLabel.addEventListener(MouseEvent.MOUSE_MOVE,function (event:MouseEvent):void{
-//						if((event.target as CustomLabel).labelBitmap.bitmapData.hitTest(new Point(0,0),1,new Point(event.localX,event.localY)))
-//							(event.target as CustomLabel).filters = [probeGlowOuter,shadow];
-//						else
-//							(event.target as CustomLabel).filters = [];
-//					});
 					addChild(currWordLabel);
 					
 					
-					var currWordHeight:Number = Math.floor((dataProvider[i][1]/maxWordCount)*maxWordHeight)
-					currWordLabel.l.setStyle("fontSize",currWordHeight);
-					currWordLabel.l.setStyle("color",colorRamp.getColorFromNorm(StandardLib.normalize(i, 0, dataProvider.length)));
-					currWordLabel.l.text = dataProvider[i][0];
-					currWordLabel.l.validateNow();
+					var currWordHeight:Number = Math.floor((StandardLib.normalize(dataProvider[i][1],minWordCount,maxWordCount))*maxWordHeight) + minWordHeight;
 					
-					currWordLabel.l.height = currWordLabel.l.textHeight + 10;//offset
-					currWordLabel.l.width = currWordLabel.l.textWidth + 10;//offset
+//					trace("word height is " + currWordHeight);
+					
+					currWordLabel.labelText.setStyle("fontSize",currWordHeight);
+					currWordLabel.labelText.setStyle("color",colorRamp.getColorFromNorm(StandardLib.normalize(i, 0, dataProvider.length)));
+					currWordLabel.labelText.text = dataProvider[i][0];
+					currWordLabel.labelText.validateNow();
+					
+					currWordLabel.labelText.height = currWordLabel.labelText.textHeight + 10;//offset
+					currWordLabel.labelText.width = currWordLabel.labelText.textWidth + 10;//offset
 
-					labelLoc.x = (width/2) - Math.round(currWordLabel.l.textWidth/2);
-					labelLoc.y = (height/2) - Math.round(currWordLabel.l.textHeight/2);
+					labelLoc.x = (width/2) - Math.round(currWordLabel.labelText.textWidth/2);
+					labelLoc.y = (height/2) - Math.round(currWordLabel.labelText.textHeight/2);
 					
 					// set up these arrays so we can iterate through the four directions: right, down, left, up
 					var xDirectionArray:Array = [1,0,-1,0];
@@ -144,15 +152,14 @@
 					var xDirection:Number = 0;
 					var yDirection:Number = 0;
 					
-					currWordLabel.l.filters = [probeGlowOuter];
+					currWordLabel.labelText.filters = [probeGlowOuter];
 
 					//rendering the label to BitmapData
 					currWordLabel.renderLabel();
 					
 //					labelBitmapData.applyFilter(labelBitmapData,labelBitmapData.rect,new Point(0,0),probeGlowOuter); //to apply a spacing around the label
-					currWordLabel.l.filters = [];
+					currWordLabel.labelText.filters = [];
 					var posFound:Boolean = false; 
-					
 					
 					while (!posFound)
 					{
@@ -173,7 +180,6 @@
 								currWordLabel.x = labelLoc.x;
 								currWordLabel.y = labelLoc.y;
 								
-								
 								posFound = true;
 								break;
 							}
@@ -187,11 +193,42 @@
 					}
 					
 					currWordLabel.renderLabelAndDiscard();
-					tempBounds.setRectangle(currWordLabel.x,currWordLabel.y,currWordLabel.l.textWidth,currWordLabel.l.textHeight);
-					boundsIndex.insert(tempBounds,currWordLabel);
-					trace(currWordLabel.l.text,tempBounds);
+					
+					if(currWordLabel.x < minX)
+					{
+						minX = currWordLabel.x;
+					}
+					
+					if(currWordLabel.x > maxX)
+					{
+						maxX = currWordLabel.x;
+//						trace(maxX,currWordLabel.x,currWordLabel.labelText.text);
+					}
+					
+					if(currWordLabel.y < minY)
+						minY = currWordLabel.y;
+					
+					if(currWordLabel.y+currWordLabel.height > maxY)
+					{
+						maxY = currWordLabel.y+currWordLabel.labelText.height;
+					}
+					
 				}
 				tagCanvasBitmapData.dispose();
+				
+//				adjusting space by moving all labels to smallest x and y value.
+				for each(var cl:CustomLabel in getChildren())
+				{
+					cl.move(cl.x-minX,cl.y-minY);
+					tempBounds.setRectangle(cl.x,cl.y,cl.labelText.textWidth,cl.labelText.textHeight);
+					boundsIndex.insert(tempBounds,cl);
+				}
+				
+				//adjusting the hieght and width so that it doesn't overlap other tag clouds. 
+				//even if this is less than the actual width and height of the rightmost and topmost word
+				//clipContent is false so the words are still visible
+				this.height = maxY - minY;
+				this.width = maxX - minX;
 			}
 		]]>
 	</mx:Script>

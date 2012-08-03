@@ -45,9 +45,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.collections.SortField;
 			import mx.controls.Alert;
 			import mx.controls.Image;
+			import mx.controls.List;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.Application;
 			import mx.core.IUIComponent;
+			import mx.core.UITextField;
 			import mx.core.mx_internal;
 			import mx.events.CloseEvent;
 			import mx.events.CollectionEvent;
@@ -124,7 +126,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const selectedThumbnailBorderColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(16711680));
 			
-			public const newThumbnailGlowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(255));
+			public const newThumbnailGlowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10092492));
 			
 			
 			/**
@@ -182,10 +184,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				map.addEventListener(MouseEvent.MOUSE_DOWN,handleMouseDown);
 				
-				internalColorRamp.value = '<colorRamp name="Dark2" tags="ColorBrewer,basic,qualitative,printer-friendly">0x1B9E77,0xD95F02,0x7570B3,0xE7298A,0x66A61E,0xE6AB02,0xA6761D,0x666666</colorRamp>';
+				internalColorRamp.value = '<colorRamp name="Dark2" tags="ColorBrewer,basic,qualitative,printer-friendly">0x04E9E7,0x009DF4,0x0201F4,0x01FC01,0x00C400,0x008C00,0x0FDF801,0xF99200,0xFD0000,0xBC0000,0xF800FD,0x9854C6</colorRamp>';
 				
-				linkBindableProperty(defaultNodeBorderColor,defaultNodeColorPicker,"selectedColor");
-				linkBindableProperty(selectedNodeBorderColor,selectedNodeColorPicker,"selectedColor");
+//				linkBindableProperty(defaultNodeBorderColor,defaultNodeColorPicker,"selectedColor");
+//				linkBindableProperty(selectedNodeBorderColor,selectedNodeColorPicker,"selectedColor");
 				linkBindableProperty(defaultThumbnailBorderColor,defaultThumbnailBorderPicker,"selectedColor");
 				linkBindableProperty(selectedThumbnailBorderColor,selectedThumbnailBorderPicker,"selectedColor");
 				linkBindableProperty(newThumbnailGlowColor,thumbnailGlowColorPicker,"selectedColor");
@@ -194,6 +196,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_infomapSubMenu.addSubMenuItem("Add Query Node",addInfoMapNode);
 				_infomapSubMenu.addSubMenuItem("Add Map Node",addInfoMapLink);
+				_infomapSubMenu.addSubMenuItem("Show all Tag Clouds",showAllTagClouds);
+				_infomapSubMenu.addSubMenuItem("Hide all Tag Clouds",hideAllTagClouds);
 				_infomapSubMenu.addSubMenuItem("Remove Selected Documents",removeSelectedDocuments);
 				_infomapSubMenu.addSubMenuItem("Show All Documents",showAllDocuments);
 				
@@ -205,7 +209,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _infomapSubMenu:SubMenu = null;
 			private function dragEnterHandler(event:DragEvent):void
 			{
-				if(event.dragInitiator is DocThumbnailComponent)
+				if(event.dragInitiator is DocThumbnailComponent || event.dragInitiator is List)
 				{
 					DragManager.acceptDragDrop(this);
 				}
@@ -213,7 +217,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function dragDropHandler(event:DragEvent):void
 			{
-				var t:DocThumbnailComponent = event.dragInitiator as DocThumbnailComponent;
+				
+				var t:DocThumbnailComponent;
+				
+				if(event.dragInitiator is List)
+				{
+					t = (event.dragInitiator as List).selectedItem as DocThumbnailComponent; 
+				}
+				else{
+					t =	event.dragInitiator as DocThumbnailComponent; 
+				}
 				
 				//if the parent is a NodeHandler set hasBeenMoved to true and add it as a child to the InfoMapPanel
 				if(!(t.parent == this.map))
@@ -245,15 +258,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function showAllDocuments():void
 			{
-				var excludedKeys:Array =  _subset.excluded.keys;
-				var dockeys:Array = [];
+//				var excludedKeys:Array =  _subset.excluded.keys;
+//				var dockeys:Array = [];
+//				
+//				for each(var key:IQualifiedKey in excludedKeys)
+//				{
+//					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
+//						dockeys.push(key);
+//				}
+//				_subset.excluded.removeKeys(dockeys);
 				
-				for each(var key:IQualifiedKey in excludedKeys)
-				{
-					if(key.keyType == InfoMapsDataSource.DOC_KEYTYPE)
-						dockeys.push(key);
-				}
-				_subset.excluded.removeKeys(dockeys);
+				//clearing all keys for now
+				_subset.replaceKeys(true,true);
 			}
 			
 			private function getSelectedDocumentURLs():Array
@@ -387,6 +403,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var dragStartY:Number;
 			private function handleMouseDown(event:MouseEvent):void
 			{
+				//if the mouse is down on an item in the list don't listen for selection
+				if(event.target is UITextField)
+					return;
+				
 				var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
 				
 				dragStartX = localPoint.x;
@@ -570,15 +590,33 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
+			private function showAllTagClouds():void
+			{
+				for each(var n:NodeHandler in nodes.getObjects())
+				{
+					n.showTagCloud();
+				}
+			}
+			
+			private function hideAllTagClouds():void
+			{
+				for each(var n:NodeHandler in nodes.getObjects())
+				{
+					n.hideTagCloud();
+				}
+			}
+			
 			private var internalColorRamp:ColorRamp = new ColorRamp();
-			private var internalMin:Number = 1;
-			private var internalMax:Number = 10;
+			private var internalMin:Number = 0;
+			private var internalMax:Number = 13;
 			public function addInfoMapNode(query:String=null,op:String=null):void
 			{
 				var className:String = getQualifiedClassName(NodeHandler).split("::")[1];
 				var nodeName:String = nodes.generateUniqueName(className);
 				var nodeHandler:NodeHandler= new NodeHandler();
 				nodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
+				
+				nodeHandler.nodeBase.width = 200;//starting off with wide text area
 				
 				nodeHandler.query.keywords.value = query;
 				if(op ==null)
@@ -592,6 +630,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
+				nodeHandler.nodeBase.keywordTextArea.setStyle("borderColor",nodeHandler.thumbnailsDefaultColor.value);
 			}
 			
 			private var loader:URLLoader = null;
@@ -764,12 +803,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				q.addAsyncResponder(callDropBox,faultDropBox);
 			}
 			
-			private function callDropBox(event:ResultEvent,token:Object = null)
+			private function callDropBox(event:ResultEvent,token:Object = null):void
 			{
 				ExternalInterface.call(event.result as String);
 			}
 			
-			private function faultDropBox(event:FaultEvent,token:Object = null)
+			private function faultDropBox(event:FaultEvent,token:Object = null):void
 			{
 				
 			}

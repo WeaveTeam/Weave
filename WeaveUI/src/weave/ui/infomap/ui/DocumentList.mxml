@@ -10,19 +10,27 @@ Info to provide a tooltip describing the node (like number of documents found)
 
 -->
 <mx:VBox implements="weave.api.core.ILinkableObject" xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
-width="400">
-	<mx:List toolTip="" id="docList" width="100%">
+width="400" xmlns:ui="weave.ui.infomap.ui.*">
+	<mx:List mouseMove="handleMouseMove(event)" toolTip="" dragEnabled="true" id="docList" width="100%">
 		<mx:itemRenderer>
 			<mx:Component>
 				<!--Setting the tool tip to empty so that you can only see the Document Summary Component on mouse over.
 				Setting it to null does not work.-->
-				<mx:Label toolTip="" width="100%"> 
+				<ui:CustomLabelTextField toolTip="" width="100%"> 
 					<mx:Script>
 						<![CDATA[
+							import com.modestmaps.core.Coordinate;
+							
+							import mx.controls.ColorPicker;
+							import mx.core.UITextField;
+							import mx.core.mx_internal;
+							import mx.events.DragEvent;
 							import mx.managers.CursorManager;
 							
 							import weave.api.WeaveAPI;
+							import weave.core.StageUtils;
 							import weave.data.DataSources.InfoMapsDataSource;
+							import weave.ui.infomap.layout.NodeHandler;
 							import weave.utils.CustomCursorManager;
 							
 							private var infomapDataSource:InfoMapsDataSource = WeaveAPI.globalHashMap.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
@@ -30,27 +38,43 @@ width="400">
 							override protected function childrenCreated():void
 							{
 								infomapDataSource.getColumnByName("title").addImmediateCallback(outerDocument.docList,updateLabelText);
-							}
-							override public function set data(value:Object):void
-							{
-								super.data = value;
 								
-								this.text = infomapDataSource.getTitleForURL(value as String);
-								
-								//Show DocumentSummaryComponent on mouse over and show link cursor
-								this.addEventListener(MouseEvent.MOUSE_OVER, function(event:MouseEvent):void {
-									CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
-									DocumentSummaryComponent.show(event.stageX,event.stageY,value as String,event.target as DisplayObject);
-										});
 								//Hide DocumentSummaryComponent on mouse out and hide link cursor
 								this.addEventListener(MouseEvent.MOUSE_OUT, function(event:MouseEvent):void {
 									CustomCursorManager.removeCurrentCursor();
 									DocumentSummaryComponent.hide();
 								});
+							}
+							
+							private var _mouseDown:Boolean = false;
+							
+							private var stageUtils:StageUtils = new StageUtils();
+							
+							override public function set data(value:Object):void
+							{
+								super.data = value;
+								
+								var t:DocThumbnailComponent = (value as DocThumbnailComponent);
+								
+								//changing background color if document is new/highlighted
+								t.highlighted.addImmediateCallback(this,changeBackgroundColor,true);
+								
+								//removing highlighted background color if any when user clicks on the list item
+								this.addEventListener(MouseEvent.CLICK,handleMouseClick);
+								
+								this.text = infomapDataSource.getTitleForURL(t.docURL.value);
+								
+								//Show DocumentSummaryComponent on mouse over and show link cursor
+								this.addEventListener(MouseEvent.MOUSE_OVER, function(event:MouseEvent):void {
+									CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
+//									trace("in MOUSE OVER" + _mouseDown + name);
+									if(!stageUtils.mouseButtonDown)
+										DocumentSummaryComponent.show(event.stageX,event.stageY,t.docURL.value,event.target as DisplayObject);
+								});
 								
 								//go to document link on double click
 								this.addEventListener(MouseEvent.DOUBLE_CLICK, function (event:MouseEvent):void {
-									var link:String = value as String;
+									var link:String = t.docURL.value;
 									var linkLen:int = link.length;
 									var linkExtension:String = link.substring(linkLen-3,linkLen);
 									if(linkExtension == "pdf")
@@ -61,15 +85,37 @@ width="400">
 								});
 							}
 							
+							private function changeBackgroundColor():void
+							{
+								if((data as DocThumbnailComponent).highlighted.value && (outerDocument.parent.parent) is NodeHandler)
+								{
+									(this as CustomLabelTextField).getTextField().background = true;
+									(this as CustomLabelTextField).getTextField().backgroundColor = 10092492;
+										//TODO:Change this to use sessioned color
+//										(outerDocument.parent.parent.parent.parent as InfoMapPanel).newThumbnailGlowColor.value;
+//									(this as CustomLabelTextField).validateDisplayList();
+								}else{
+									//the item renderer will retain the background and only replace the content for the rows. 
+									//So it is necessary to clear the background color 
+									(this as CustomLabelTextField).getTextField().background = false;		
+								}
+							}
+							
+							//remove background color if any
+							private function handleMouseClick(event:MouseEvent):void
+							{
+								(this as CustomLabelTextField).getTextField().background = false;
+//								(this as CustomLabelTextField).getTextField().backgroundColor = undefined;
+							}
+							
 							private function updateLabelText():void
 							{
 								if(data != null)
-									this.text = infomapDataSource.getTitleForURL(data as String);
+									this.text = infomapDataSource.getTitleForURL((data as DocThumbnailComponent).docURL.value);
 							}
-							
 						]]>
 					</mx:Script>
-				</mx:Label>
+				</ui:CustomLabelTextField>
 			</mx:Component>
 		</mx:itemRenderer>
 		
@@ -82,6 +128,16 @@ width="400">
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.ui.infomap.layout.NodeHandler;
+			import weave.data.DataSources.InfoMapsDataSource;
+			import weave.api.WeaveAPI;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.getCallbackCollection;
+			import weave.Weave;
+			import weave.data.KeySets.KeyFilter;
+			import mx.core.DragSource;
+			import mx.managers.DragManager;
+			import mx.events.DragEvent;
 			import weave.utils.VectorUtils;
 			import org.igniterealtime.xiff.events.OutgoingDataEvent;
 			import weave.api.newLinkableChild;
@@ -96,12 +152,15 @@ width="400">
 				handleKeysChange();
 			}
 			
+			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
+			
 			public var startIndex:LinkableNumber = new LinkableNumber(0);
 			
 			private var rowCount:int = 10;
 			override protected function childrenCreated():void
 			{
 				startIndex.addImmediateCallback(this,updateDocumentList,true);
+				getCallbackCollection(_subset).addGroupedCallback(this,updateDocumentList);
 			}
 			
 			private function handleKeysChange():void
@@ -139,24 +198,35 @@ width="400">
 			{
 				if(!_docKeys || _docKeys.length == 0)
 					return;
+				
+				var includedKeys:Array = [];
+				
+				for (var i:int = 0; i < _docKeys.length; i++)
+				{
+					var k:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,(_docKeys[i] as DocThumbnailComponent).docURL.value);
+					
+					if(_subset.containsKey(k))
+						includedKeys.push((this.parent.parent as NodeHandler).thumbnails.getObject(k.localName)); 
+				}
+				
 				var listMaxLength:int = 10;
 				
 				var temp:Array = [];
 				
 				
 				
-				if(_docKeys.length < startIndex.value + listMaxLength)
-					listMaxLength = _docKeys.length - startIndex.value;
+				if(includedKeys.length < startIndex.value + listMaxLength)
+					listMaxLength = includedKeys.length - startIndex.value;
 				
-				for(var i:int=0+startIndex.value; i<startIndex.value+listMaxLength; i++)
+				for(var j:int=0+startIndex.value; j<startIndex.value+listMaxLength; j++)
 				{
-					temp.push(_docKeys[i]);
+					temp.push(includedKeys[j]);
 				}
 				
 				docList.dataProvider = temp;
 				
 				//disable nextButton if showing the last set of documents
-				if(startIndex.value + rowCount >= _docKeys.length)
+				if(startIndex.value + rowCount >= includedKeys.length)
 				{
 					nextButton.enabled = false;
 				}else
@@ -174,25 +244,31 @@ width="400">
 					prevButton.enabled = true;
 				}
 				
-				updateIndexText(); 
+				updateIndexText(includedKeys); 
 			}
 			
-			private function updateIndexText():void
+			private function updateIndexText(keysToShow:Array):void
 			{
 				var st:int = startIndex.value+1;
 				
 				indexText.text = "Showing " + st.toString()  + " to "; //+1 to avoid showing 0
 				
-				if((startIndex.value + rowCount) < _docKeys.length)
+				if((startIndex.value + rowCount) < keysToShow.length)
 				{
 					var et:int = startIndex.value + rowCount; 					
 					indexText.text += et.toString();
 				}
 				else
-					indexText.text += _docKeys.length;
+					indexText.text += keysToShow.length;
 				
-				indexText.text += " of " + _docKeys.length;
+				indexText.text += " of " + keysToShow.length;
 					
+			}
+			
+			private function handleMouseMove(event:MouseEvent):void
+			{
+				//we don't want selection rectangle to be drawn when mouse is down on list.
+				event.stopImmediatePropagation();
 			}
 		]]>
 	</mx:Script>

@@ -26,18 +26,18 @@ package weave.ui {
 		override protected function createChildren():void
 		{
 			super.createChildren();
-			addChild(l);
+			addChild(labelText);
 //			addChild(labelBitmap);
 		}
 		
 		public var labelBitmap:Bitmap = new Bitmap();
-		public var l:Label = new Label();
+		public var labelText:Label = new Label();
 		
 		public function renderLabel():void
 		{
-			PlotterUtils.setBitmapDataSize(labelBitmap,l.textWidth+10,l.textHeight+10);
-			l.validateNow();
-			labelBitmap.bitmapData.draw(l);
+			PlotterUtils.setBitmapDataSize(labelBitmap,labelText.textWidth+10,labelText.textHeight+10);
+			labelText.validateNow();
+			labelBitmap.bitmapData.draw(labelText);
 		}
 		
 		public function renderLabelAndDiscard():void
@@ -47,7 +47,7 @@ package weave.ui {
 			graphics.drawRect(0, 0, labelBitmap.bitmapData.width, labelBitmap.bitmapData.height);
 			graphics.endFill();
 
-			removeChild(l);
+			removeChild(labelText);
 		}
 	}
 }

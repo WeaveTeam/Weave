@@ -197,6 +197,8 @@ package weave.data.DataSources
 		
 		private static function parseBasicQuery(query:String,operator:String,partialMatch:Boolean):String
 		{
+			if(!query)
+				return "";
 			var temp:Array = removeEmptyStringElementsFromArray(query.split(" "));	
 			
 			if(partialMatch)
@@ -245,7 +247,7 @@ package weave.data.DataSources
 											dateFilter:DateRangeFilter=null,numberOfDocuments:int=2000,sortField:String="date_added"):void
 		{
 			
-			filterQuery = parseFilterQuery(filterQuery,dateFilter);
+			filterQuery = parseFilterQuery(filterQuery,dateFilter,sources);
 				
 			
 			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getQueryResults(query,filterQuery,sortField,numberOfDocuments);
@@ -345,7 +347,11 @@ package weave.data.DataSources
 			
 			csvDataString.value = dataString;
 			
+			if(!event.result.wordCount || !token)
+				return;
+			
 			VectorUtils.copy(event.result.wordCount,token.wordCount);
+			
 			
 			//			(token.keySet as KeySet).clearKeys();
 			(token.docKeySet as KeySet).replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));

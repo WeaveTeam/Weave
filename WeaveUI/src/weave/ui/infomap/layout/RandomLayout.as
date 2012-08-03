@@ -94,15 +94,18 @@ package weave.ui.infomap.layout
 			
 			//this image is used to a show a tooltip of information about the node. 
 			//For now it shows the number of documents found.
-			_parentNodeHandler.nodeBase.infoImg.visible = true;
-			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbnails.length.toString() + " documents found" ;
+//			_parentNodeHandler.nodeBase.infoImg.visible = true;
+//			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbnails.length.toString() + " documents found" ;
 //			_parentNodeHandler.nodeBase.keywordTextArea.htmlText += "<br/><b>" +  thumbnails.length.toString() + "</b> documents found" ;
 			if(_parentNodeHandler.query.sources.value)
 			{
-				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.query.sources.value;
+//				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.query.sources.value;
 				_parentNodeHandler.nodeBase.keywordTextArea.htmlText += "<br/><b>Sources : " +  _parentNodeHandler.query.sources.value + "</b>";
 			}
 			
+			_parentNodeHandler.nodeBase.keywordTextArea.validateNow();
+			
+			_parentNodeHandler.nodeBase.width = _parentNodeHandler.nodeBase.keywordTextArea.textWidth + 20; 
 			
 			var temp:Array = [];
 			for (var i:int = 0; i < thumbnails.length; i++)
