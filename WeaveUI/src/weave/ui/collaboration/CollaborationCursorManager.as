@@ -213,10 +213,8 @@ package weave.ui.collaboration
 					}
 				}
 			}	
-			for( var j:int = 0; i < cursorQueue.length - numMouses + 1; i++ )
-			{
-				array.push(cursorQueue[i]);
-			}
+			for( var j:int = 0; j < numMouses; j++ )
+				array.push(cursorQueue[j]);
 			return array;
 		}
 	}
