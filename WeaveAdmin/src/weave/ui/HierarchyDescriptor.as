@@ -23,8 +23,9 @@ package weave.ui
         public function removeChildAt(parent:Object, child:Object, index:int, model:Object = null):Boolean
         {
             var parentEntity:EntityTreeNode = parent as EntityTreeNode;
-            parentEntity.remove_child(child._id);
-            return true;
+            if (parentEntity != null)
+                parentEntity.remove_child(child._id);
+            return parentEntity != null;
         }
         public function getChildren(node:Object, model:Object = null):ICollectionView
         {

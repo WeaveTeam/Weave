@@ -10,7 +10,11 @@ package weave.ui
     import mx.utils.ObjectUtil;
     public class EntityTreeNode extends EventDispatcher
     {
+        public static var inc:int = 0;
+        public var objid:int = 0;
         public var _id:int;
+        private var _children:Array; /* internal list of EntityTreeNode children to ensure we don't go creating unnecessary objects */
+        private var children_ids:Array; /* the ID array from which _children was built */
         public function get id():int
         {
             return _id;
@@ -18,6 +22,7 @@ package weave.ui
         
         public function EntityTreeNode(id:int)
         {
+            objid = inc++;
             this._id = id;
         }
         private function objectChanged(obj:Object):void
@@ -33,9 +38,9 @@ package weave.ui
             var obj:Object = this.object;
             var name:String;
             if (obj)
-                return obj.publicMetadata["title"] || obj.publicMetadata["name"];
+                return obj.publicMetadata["title"] || obj.publicMetadata["name"] || "[No label.]";
             else
-                return "<Fetching...>"
+                return "<Fetching...>";
         }
         [Bindable(event="objectChanged")] public function get object():AttributeColumnInfo
         {
@@ -44,17 +49,26 @@ package weave.ui
         [Bindable(event="childrenChanged")] public function get children():Array
         {
             if (this.object.entity_type == AttributeColumnInfo.COLUMN) return null;
-            var children_ids:Array = AdminInterface.instance.meta_cache.get_children(id, childrenChanged);
-            var _children:Array = [];
+            var fresh_children_ids:Array = AdminInterface.instance.meta_cache.get_children(id, childrenChanged);
+            if (children_ids == fresh_children_ids)
+                return _children;
+            else
+                children_ids = fresh_children_ids;
+
+            var new_children:Array = [];
             if (children_ids == null)
                 return null;
             for each (var id:int in children_ids)
-                _children.push(new EntityTreeNode(id));
-            return _children;
+                new_children.push(new EntityTreeNode(id));
+            return _children = new_children;
         }
         public function add_child(child_id:int):void
         {
             AdminInterface.instance.meta_cache.add_child(child_id, this.id);
+        }
+        public function remove_self():void
+        {
+            AdminInterface.instance.meta_cache.delete_entity(this.id);
         }
         public function remove_child(child_id:int):void
         {

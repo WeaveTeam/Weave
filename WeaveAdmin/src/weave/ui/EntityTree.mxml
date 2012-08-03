@@ -27,35 +27,39 @@ import flash.utils.getQualifiedClassName;
 public var entityType:int;
 private var connWatcher:ChangeWatcher;
 [Bindable] public var selectedType:int;
+
 public function onExpand(event:TreeEvent):void
 {
-    if (!event.opening) return; /* If we're closing, don't do anything. */ 
-    event.preventDefault();
+    if (!event.opening) return; // If we're closing, don't do anything.
     var item:EntityTreeNode = event.item as EntityTreeNode;
     var watch_once:ChangeWatcher = null;
     if (item.children == null)
     {
-        /* Setup a oneoff changewatcher. There must be a better way to do this. */
+        event.preventDefault();
+        // Setup a oneoff changewatcher. There must be a better way to do this. 
         watch_once = ChangeWatcher.watch(item, "children", onPopulated);
-    }
-    else
-    {
-        onPopulated(null);
     }
     function onPopulated(o:Object):void
     {
         if (watch_once != null)
             watch_once.unwatch();
         var tree:Tree = event.target as Tree;
-        tree.dataProvider.itemUpdated(event.item);
+       // tree.dataProvider.itemUpdated(event.item);
         tree.expandItem(event.item, true, false);
+        tree.validateNow();
     }
 } 
+
 public function onChange(event:ListEvent):void
 {
     var etn:EntityTreeNode = selectedItem as EntityTreeNode;
-    if (etn == null) selectedType = -1;
-    else selectedType = etn.object.entity_type;
+    if (etn == null) 
+    {
+        selectedType = -1;
+        return;
+    }
+    selectedType = etn.object.entity_type;
+
 }
 private function filterByType(item:Object):Boolean
 {
@@ -85,7 +89,7 @@ public function refresh(o:Object = null):void
     AdminInterface.instance.meta_cache.get_children(-1, populateRoot);
 }
 private function populateRoot(event:Object):void
-{
+{ 
     var child_ids:Array = AdminInterface.instance.meta_cache.get_children(-1) || [];
     var srcArray:Array = [];
     var view:ArrayCollection = new ArrayCollection();
@@ -96,7 +100,7 @@ private function populateRoot(event:Object):void
     }
     view.filterFunction = filterByType;
     view.source = srcArray;
-    dataProvider = view;
+    dataProvider = view; 
 }
 ]]>
 </mx:Script>

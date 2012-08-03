@@ -92,6 +92,19 @@ package weave.services
                 }
             }
         }
+        public function invalidate(id:int = -2):void
+        {
+            if (id == -2)
+            {
+                entity_metacache = {};
+                entity_childcache = {};
+            }
+            else 
+            {
+                delete entity_metacache[id];
+                delete entity_childcache[id];
+            }
+        }
         public function update_metadata(id:int, pubMeta:Object, privMeta:Object, onComplete:Function = null):void
         {
             function afterUpdate():void
@@ -101,6 +114,16 @@ package weave.services
             delete entity_metacache[id];;
             AdminInterface.instance.updateEntity(id, {"public":pubMeta, "private":privMeta}, afterUpdate);
             /* Do stuff, and things. */ 
+        }
+        public function add_entity(id:int):void
+        {
+        }
+        public function delete_entity(id:int):void
+        {
+            AdminInterface.instance.removeEntity(id, null);
+
+            delete entity_childcache[id];
+            delete entity_metacache[id]; 
         }
         public function add_child(child_id:int, parent_id:int):void
         {

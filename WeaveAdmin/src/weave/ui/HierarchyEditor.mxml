@@ -30,6 +30,7 @@
     import weave.services.beans.AttributeColumnInfo;
     import weave.services.AdminInterface;
     import weave.core.UIUtils;
+    import weave.utils.PopUpUtils;
 
     import mx.events.PropertyChangeEvent;
     import mx.events.ListEvent;
@@ -47,6 +48,13 @@
     }
     public function deleteTable():void
     {
+        var item:EntityTreeNode = tagTree.selectedItem as EntityTreeNode;
+        PopUpUtils.confirm(this, "Delete Table", "Delete selected table? All data columns in this table will also be deleted from all associated tags.", deleteTableFunction, null, "Delete", "Keep")
+        function deleteTableFunction():void
+        {
+            tableTree.validateNow();
+            return;
+        }
         /* Pop up confirmation, then delete table. */ 
     }
     public function addTag(name:String):void
@@ -56,35 +64,52 @@
             UIUtils.componentPulse(tagNameInput);
             return;
         }
-        AdminInterface.instance.addTag({title: name}, tagTree.refresh);
+        var meta:Object = {};
+        meta["public"] = {title: name};
+        AdminInterface.instance.addTag(meta, tagTree.refresh);
+        
     }
     public function selectionsChanged(event:ListEvent):void
     {
         var item:EntityTreeNode = event.currentTarget.selectedItem as EntityTreeNode;
-        if (item != null) 
-        {
-            EntityTreeNode.yell("Selections changed and item non-null.");
-            this.selectedItem = item;
-            if (event.currentTarget == tagTree) 
-                tableTree.selectedItem = null;
-            else 
-                tagTree.selectedItem = null;
-        }
-        EntityTreeNode.yell("Selections changed.");
+        if (item == null) return;
+        this.selectedItem = item;
+        if (event.currentTarget == tagTree) 
+            tableTree.selectedItem = null;
+        else 
+            tagTree.selectedItem = null;
+
+        var parent:EntityTreeNode = event.currentTarget.getParentItem(item);
+        if (parent)
+            EntityTreeNode.yell("Parent: " + parent.label); 
     }
     public function remove():void
     {
         /* These behaviours kinda suck, just using these til someone comes up with something better. */
         var item:EntityTreeNode = tagTree.selectedItem as EntityTreeNode;
         var entity_type:int = item.object.entity_type;
-        if (entity_type == AttributeColumnInfo.TAG)
+        var parent:EntityTreeNode = tagTree.getParentItem(item);
+        if (parent)
         {
-            /* Remove tag from parent tag if necessary; remove entirely if it has no parent. */
-            /* Warn before totally removing a tag. */          
+            parent.remove_child(item.id);
+            tagTree.validateNow();
         }
-        else if (entity_type == AttributeColumnInfo.COLUMN)
+        else 
         {
-            /* Remove column from current parent, then refresh current parent */ 
+            if (entity_type == AttributeColumnInfo.TAG)
+            {
+                PopUpUtils.confirm(this, "Delete Tag", "Delete tag \"" + item.label + "\"?", deleteTagFunction, null, "Delete", "Keep")
+                // TODO: Add confirmation dialog
+                function deleteTagFunction():void
+                {
+                    item.remove_self();
+                    tagTree.validateNow();
+                }
+            }
+            else
+            {
+                // TODO: Add error, as this should never happen.
+            }
         }
     }
 ]]>
