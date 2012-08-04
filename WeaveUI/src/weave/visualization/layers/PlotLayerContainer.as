@@ -259,6 +259,49 @@ package weave.visualization.layers
 			getCallbackCollection(this).resumeCallbacks();
 		}
 		
+		// for debugging
+		[Exclude] public function isBusy():Boolean
+		{
+			var busy:Boolean = WeaveAPI.SessionManager.linkableObjectIsBusy(this);
+			if (busy)
+				return true;
+			WeaveAPI.ProgressIndicator.getNormalizedProgress();
+			return false;
+		}
+		
+		// for debugging
+		[Exclude] public function traceSelectionBounds():String
+		{
+			var selection:IKeySet = Weave.defaultSelectionKeySet;
+			var probe:IKeySet = Weave.defaultProbeKeySet;
+			var alwaysHighlight:IKeySet = Weave.alwaysHighlightKeySet;
+			var keys:Array = selection.keys;
+			if (keys.length == 0)
+				keys = probe.keys;
+			if (keys.length == 0)
+				keys = alwaysHighlight.keys;
+			
+			// get the bounds containing all the records on all the layers
+			tempBounds.reset();
+			var layers:Array = layers.getObjects(IPlotLayer);
+			for each (var key:* in keys)
+			{
+				// support for generic objects coming from JavaScript
+				if (!(key is IQualifiedKey))
+					key = WeaveAPI.QKeyManager.getQKey(key.keyType, key.localName);
+				
+				for each (var layer:IPlotLayer in layers)
+				{
+					var boundsArray:Array = (layer.spatialIndex as SpatialIndex).getBoundsFromKey(key);
+					for each (var bounds:IBounds2D in boundsArray)
+						tempBounds.includeBounds(bounds);
+				}
+			}
+			
+			return (tempBounds as Bounds2D).toString();
+		}
+		
+		
 		/**
 		 * This function will zoom the visualization to the bounds corresponding to a list of keys.
 		 * @param keys An Array of IQualifiedKey objects, or null to get them from the current selection.

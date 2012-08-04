@@ -32,6 +32,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableNumber;
@@ -53,7 +54,7 @@ package weave.data.AttributeColumns
 		{
 			super(metadata);
 			
-			_tileService = tileService;
+			_tileService = registerLinkableChild(this, tileService);
 			
 			// request a list of tiles for this geometry collection
 			var query:AsyncToken = _tileService.getTileDescriptors();

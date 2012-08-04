@@ -70,7 +70,7 @@ package weave.services
 			var urlLoader:CustomURLLoader;
 			try
 			{
-				urlLoader = new CustomURLLoader(request, dataFormat, true);
+				urlLoader = new CustomURLLoader(relevantContext, request, dataFormat, true);
 				urlLoader.addResponder(new CustomAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token));
 			}
 			catch (e:Error)
@@ -78,7 +78,7 @@ package weave.services
 				// When an error occurs, we need to run the asyncFaultHandler later
 				// and return a new URLLoader. CustomURLLoader doesn't load if the 
 				// last parameter to the constructor is false.
-				urlLoader = new CustomURLLoader(request, dataFormat, false);
+				urlLoader = new CustomURLLoader(relevantContext, request, dataFormat, false);
 				WeaveAPI.StageUtils.callLater(
 					relevantContext, 
 					asyncFaultHandler || noOp, 
@@ -213,11 +213,12 @@ import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 
 import weave.api.WeaveAPI;
+import weave.api.core.ILinkableObject;
 import weave.api.services.IURLRequestToken;
 
 internal class CustomURLLoader extends URLLoader
 {
-	public function CustomURLLoader(request:URLRequest, dataFormat:String, loadNow:Boolean)
+	public function CustomURLLoader(relevantContext:Object, request:URLRequest, dataFormat:String, loadNow:Boolean)
 	{
 		super.dataFormat = dataFormat;
 		_urlRequest = request;
@@ -226,6 +227,8 @@ internal class CustomURLLoader extends URLLoader
 		{
 			// keep track of pending requests
 			WeaveAPI.ProgressIndicator.addTask(this);
+			if (relevantContext is ILinkableObject)
+				WeaveAPI.SessionManager.assignBusyTask(this, relevantContext as ILinkableObject);
 			addResponder(new AsyncResponder(removeTask, removeTask));
 			
 			// set up event listeners
