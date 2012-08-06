@@ -212,6 +212,8 @@ package weave.ui.collaboration
 						break;
 					}
 				}
+				else
+					array.push("placeholder");
 			}	
 			for( var j:int = 0; j < numMouses; j++ )
 				array.push(cursorQueue[j]);
