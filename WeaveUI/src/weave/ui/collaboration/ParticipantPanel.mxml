@@ -56,13 +56,13 @@
 						controlList.splice(j, 1);
 					}
 				for( var k:int = 1; k < ids.length; k++ )
-					for( var l:int = 0; l < canvasList.length; l++ )
+					for( var m:int = 0; m < canvasList.length; m++ )
 					{
-						if( (canvasList[l] as CollaborationVideoComponent).nameLabel.text == ids[k] )
+						if( (canvasList[m] as CollaborationVideoComponent).nameLabel.text == ids[k] )
 						{
-							(canvasList[l] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth * windowSizeConstant;
-							(canvasList[l] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight * windowSizeConstant;
-							this.height = (canvasList[l] as CollaborationVideoComponent).height + 18;
+							(canvasList[m] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth * windowSizeConstant;
+							(canvasList[m] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight * windowSizeConstant;
+							this.height = (canvasList[m] as CollaborationVideoComponent).height + 18;
 						}/*
 						else
 						{
@@ -75,17 +75,13 @@
 			
 			public function lostControl(id:String):void
 			{
-				var maxHeight:Number = 0;
 				for( var i:int = 0; i < canvasList.length; i++ )
 				{
 					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == id )
 					{
 						(canvasList[i] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth;
 						(canvasList[i] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight;
-						if( (canvasList[i] as CollaborationVideoComponent).height > maxHeight )
-							maxHeight = (canvasList[i] as CollaborationVideoComponent).height;
-						//This needs to be updated to search for the right index later on when there is more than 1 person.
-						controlList.splice(0, 1);
+						this.height = 97;
 					}/*
 					else
 					{
@@ -95,7 +91,6 @@
 							maxHeight = (canvasList[i] as CollaborationVideoComponent).height;
 					}*/
 				}
-				this.height = maxHeight + 18;
 				adjustLayout();
 			}
 			
@@ -122,7 +117,10 @@
 				removeAllChildren();
 				if( canvasList != null )
 				{
-					this.width = CollaborationVideoComponent.defaultWidth * canvasList.length + 20;
+					this.width = 0;
+					for( var j:int = 0; j < canvasList.length; j++ )
+						this.width += (canvasList[j] as CollaborationVideoComponent).width;
+					this.width += 20;
 					for( var i:int = 0; i < canvasList.length ; i++ )
 					{
 						(canvasList[i] as CollaborationVideoComponent).x = xCoord;
