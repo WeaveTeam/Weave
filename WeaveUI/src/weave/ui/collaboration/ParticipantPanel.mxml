@@ -55,10 +55,10 @@
 						lostControl(controlList[j]);
 						controlList.splice(j, 1);
 					}
-				for( var k:int = 1; k < ids.length; k++ )
+				for( var k:int = 0; k < controlList.length; k++ )
 					for( var m:int = 0; m < canvasList.length; m++ )
 					{
-						if( (canvasList[m] as CollaborationVideoComponent).nameLabel.text == ids[k] )
+						if( (canvasList[m] as CollaborationVideoComponent).nameLabel.text == controlList[k] )
 						{
 							(canvasList[m] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth * windowSizeConstant;
 							(canvasList[m] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight * windowSizeConstant;
