@@ -36,6 +36,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					 labelFunction="choiceLabelFunction"
 					 backgroundColor="{panelBackgroundColor.value}"
 					 change="handleAttrSelected(choiceList.selectedIndex);"
+					 backgroundAlpha="0" borderStyle="none"
 					 />
 		</mx:Canvas>
 		<mx:Canvas label="{lang('Vertical Slider')}">

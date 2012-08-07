@@ -523,7 +523,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * This function constrains x,y,width,height so that this DraggablePanel is contained in its parent,
 			 * then it saves the coordinates (absolute or percentage) to the sessioned properties.
 			 */
-			private function constrainAndSaveCoordinates():void
+			protected function constrainAndSaveCoordinates():void
 			{
 				// don't copy coordinates while tool is minimized or maximized
 				if (!parent || minimized.value || maximized.value)

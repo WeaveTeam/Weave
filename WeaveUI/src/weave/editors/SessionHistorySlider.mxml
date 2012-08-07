@@ -38,7 +38,7 @@
 	<mx:Button id="playButton" label="Replay{ _playSpeed == 1 ? '' : ' (' + _playSpeed + 'x)' }" toggle="true" toolTip="Replay session history" click="if (playButton.selected) play();"/>
 	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="Undo" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="Redo" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
-	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();"/>
+	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();" mouseDown="slider.getThumbAt(0).setFocus()"/>
 	<mx:Button id="clearButton" label="Clear" click="_stateLog.clearHistory();" toolTip="Clear session history" styleName="clearButtonStyle"/>
 	<mx:Style>
 		.clearButtonStyle {

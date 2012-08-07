@@ -360,7 +360,6 @@ package weave.data.DataSources
 			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value;
 			
 			//trace("requestColumnFromSource()",pathInHierarchy.toXMLString());
-			var query:AsyncToken;
 			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
 			proxyColumn.setMetadata(leafNode);
 			if (ObjectUtil.stringCompare(ColumnUtils.getDataType(proxyColumn), DataTypes.GEOMETRY, true) == 0)
@@ -371,9 +370,10 @@ package weave.data.DataSources
 			else
 			{
 				// request attribute column
-				query = dataService.getAttributeColumn(pathInHierarchy);
+				var query:AsyncToken = dataService.getAttributeColumn(pathInHierarchy);
 				var token:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
 				DelayedAsyncResponder.addResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, token);
+				WeaveAPI.SessionManager.assignBusyTask(query, proxyColumn);
 			}
 		}
 		private function handleGetAttributeColumnFault(event:FaultEvent, token:Object = null):void
@@ -497,6 +497,7 @@ package weave.data.DataSources
 	}
 }
 
+import weave.api.WeaveAPI;
 import weave.data.AttributeColumns.ProxyColumn;
 
 /**

@@ -38,7 +38,6 @@ package weave.services
 	import weave.api.services.IURLRequestUtils;
 	
 	/**
-	 * Servlet
 	 * This is an IAsyncService interface for a servlet that takes its parameters from URL variables.
 	 * 
 	 * @author adufilie
