@@ -271,6 +271,9 @@
 				if (y < 0 || y > yMargin)
 					panelY.value = String((yMargin - yRange)/2 + Math.random() * yRange);
 				
+				if(xMargin < 0 || yMargin < 0)
+					constrainAndSaveCoordinates();
+				
 				save();
 			}
 		]]>
