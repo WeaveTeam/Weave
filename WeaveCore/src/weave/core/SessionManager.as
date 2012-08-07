@@ -1231,7 +1231,7 @@ package weave.core
 					if (uiComponent)
 					{
 						var obj:DisplayObject = uiComponent.getFocus();
-						if (obj && uiComponent.contains(obj))
+						if (obj && uiComponent.contains(obj)) // has focus
 						{
 							if (linkableVariable is LinkableVariable)
 							{
