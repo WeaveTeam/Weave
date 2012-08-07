@@ -319,11 +319,12 @@ package weave.core
 					// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint = 0)
 					args = calls[i] as Array;
 					stackTrace = _stackTraceMap[args];
+					
+//					WeaveAPI.SessionManager.unassignBusyTask(args);
+					
 					// don't call the function if the relevantContext was disposed of.
 					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
 						(args[1] as Function).apply(null, args[2]);
-					
-					//WeaveAPI.SessionManager.unassignBusyTask(args);
 					
 					if (debug_callLater)
 						DebugTimer.end(stackTrace);
@@ -390,6 +391,9 @@ package weave.core
 				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint)
 				args = pQueue.shift() as Array;
 				stackTrace = _stackTraceMap[args]; // check this for debugging where the call came from
+				
+//				WeaveAPI.SessionManager.unassignBusyTask(args);
+				
 				// don't call the function if the relevantContext was disposed of.
 				if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
 				{
@@ -398,8 +402,6 @@ package weave.core
 					
 					(args[1] as Function).apply(null, args[2]);
 				}
-				
-				//WeaveAPI.SessionManager.unassignBusyTask(args);
 				
 				if (debug_callLater)
 					DebugTimer.end(stackTrace);
@@ -416,7 +418,7 @@ package weave.core
 		 */
 		public function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void
 		{
-			//WeaveAPI.SessionManager.assignBusyTask(arguments, relevantContext as ILinkableObject);
+//			WeaveAPI.SessionManager.assignBusyTask(arguments, relevantContext as ILinkableObject);
 			
 			if (priority >= _priorityCallLaterQueues.length)
 			{
@@ -426,7 +428,7 @@ package weave.core
 			//trace("call later @",currentFrameElapsedTime);
 			_priorityCallLaterQueues[priority].push(arguments);
 			
-			if (CallbackCollection.debug)
+			if (debug_async_stack)
 				_stackTraceMap[arguments] = new Error("This is the stack trace from when callLater() was called.").getStackTrace();
 		}
 		
