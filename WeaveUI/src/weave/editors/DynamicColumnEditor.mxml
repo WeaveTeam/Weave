@@ -67,6 +67,7 @@
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.api.unlinkSessionState;
 			import weave.core.LinkableXML;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -128,10 +129,18 @@
 				var attribute:XMLList = selectedPath.value.descendants("attribute");
 				if (attribute.length() > 0)
 				{
-					// if the internal column is not a ReferencedColumn, initialize it now
+					// if the internal column is not a ReferencedColumn, attempt to initialize it now
+					if (!(dynamicColumn.getInternalColumn() is ReferencedColumn))
+						dynamicColumn.requestLocalObject(ReferencedColumn, false);
+					
 					var refCol:ReferencedColumn = dynamicColumn.getInternalColumn() as ReferencedColumn;
+					// if the dynamicColumn does not allow changing the internal object, stop now
 					if (refCol == null)
-						refCol = dynamicColumn.requestLocalObject(ReferencedColumn, false);
+					{
+						reportError("This DynamicColumn is locked.");
+						setTarget(null);
+						return;
+					}
 					// if the internal column reference is not a HierarchyColumnReference, initialize it now, then return it
 					var ref:HierarchyColumnReference = refCol.internalColumnReference as HierarchyColumnReference;
 					if (ref == null)

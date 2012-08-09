@@ -68,13 +68,15 @@
 			override public function set width(value:Number):void
 			{
 				super.width = value;
-				panelWidth.value = String(value);
+				if (!initialized)
+					panelWidth.value = String(value);
 			}
 			
 			override public function set height(value:Number):void
 			{
 				super.height = value;
-				panelHeight.value = String(value);
+				if (!initialized)
+					panelHeight.value = String(value);
 			}
 			
 			/**
