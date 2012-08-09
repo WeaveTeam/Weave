@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				title="Gene Expression UI"
+				x="15%" width="70%" y="15%" height="70%"
+				backgroundColor="#EFF4BC" 
+				layout="horizontal"
+				autoLayout="true"
+				implements="weave.api.ui.IVisTool"
+				>
+	
+	<mx:HBox width="100%">
+		<mx:VBox>
+			<mx:Label text="EnsemblID"/>
+			<mx:TextInput id="geneID"/>
+		</mx:VBox>	
+		<mx:VBox>
+			<mx:Label text="Expressions"/>
+			<mx:ComboBox id="expressions">
+				<mx:ArrayCollection>
+					<mx:Object state="up/down in" value="updownIn"/>
+					<mx:Object state="up in" capital="upIn"/>
+					<mx:Object state="down in" capital="downIn"/>
+				</mx:ArrayCollection>
+			</mx:ComboBox>
+		</mx:VBox>		
+		<mx:VBox>
+			<mx:Label text="Organism"/>
+			<mx:ComboBox id="organism">
+				<mx:ArrayCollection>
+					<mx:Object state="anopheles gambiae" value="anopheles+gambiae"/>
+					<mx:Object state="arabidopsis thaliana" value="arabidopsis+thaliana"/>
+					<mx:Object state="bacillus subtilis" value="bacillus+subtilis"/>
+					<mx:Object state="bos taurus" value="bos+taurus"/>
+					<mx:Object state="caenorhabditis elegans" value="caenorhabditis+elegans"/>
+					<!--<mx:Object state="canis familiaris" value=""/>
+					<mx:Object state="ciona intestinalis" value=""/>
+					<mx:Object state="ciona savignyi" value=""/>
+					<mx:Object state="danio rerio" value=""/>
+					<mx:Object state="dasypus novemcinctus" value=""/>
+					<mx:Object state="drosophila melanogaster" value=""/>
+					<mx:Object state="epstein barr virus" value=""/>
+					<mx:Object state="equus caballus" value=""/>
+					<mx:Object state="gallus gallus" value=""/>-->
+					<mx:Object state="homo sapiens" value="homo+sapiens"/>
+					<!--<mx:Object state="human cytomegalovirus" value=""/>
+					<mx:Object state="human immunodeficiency virus" value=""/>
+					<mx:Object state="kaposi sarcoma-associated herpesvirus" value=""/>
+					<mx:Object state="macaca mulatta" value=""/>
+					<mx:Object state="mus musculus" value=""/>
+					<mx:Object state="oryza sativa" value=""/>
+					<mx:Object state="populus trichocarpa" value=""/>
+					<mx:Object state="rattus norvegicus" value=""/>
+					<mx:Object state="saccharomyces cerevisiae" value=""/>
+					<mx:Object state="schizosaccharomyces pombe" value=""/>
+					<mx:Object state="sus scrofa" value=""/>
+					<mx:Object state="unknown" value=""/>
+					<mx:Object state="vitis vinifera" value=""/>
+					<mx:Object state="xenopus laevis" value=""/>
+					<mx:Object state="xenopus tropicalis" value=""/>-->
+				</mx:ArrayCollection>
+			</mx:ComboBox>
+		</mx:VBox>
+		<mx:VBox>
+			<mx:Label text="Conditions"/>
+			<mx:TextInput id="conditions"/>
+		</mx:VBox>
+		<mx:Button id="search" label="Search" click="search_clickHandler(event)"/>
+		
+	</mx:HBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.newLinkableChild;
+			import weave.core.LinkableString;
+			import weave.services.DelayedAsyncResponder;
+			import weave.services.WeaveGeneExpressionServlet;
+			
+			
+			WeaveAPI.registerImplementation(IVisTool, GeneExpressionTool, "Gene Expression UI");
+			
+			private var geneExpService:WeaveGeneExpressionServlet = new WeaveGeneExpressionServlet(Weave.properties.geneExpressionServiceURL.value);			
+			public const queryString:LinkableString = newLinkableChild(this,LinkableString);
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				queryString.addImmediateCallback(this,callAtlasServer);
+			}
+			
+			private function callAtlasServer():void{
+				var query:AsyncToken = geneExpService.getGeneExpressionData(queryString.value);
+				DelayedAsyncResponder.addResponder(query, handleQueryResult, handleQueryFault);
+			}
+			
+			protected function search_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				//queryString.value = "http://www.ebi.ac.uk/gxa/api/vx?geneGeneIs="+geneID.text+"&species="+(organism.selectedItem).value+"&"+(expressions.selectedItem).value+"="+conditions.text+"&format=json";
+				queryString.value = "http://www.ebi.ac.uk/gxa/api/vx?geneGeneIs=ENSG00000066279&species=&updownIn=EFO_0000815&rows=50&start=0&format=json"
+				
+				
+			}
+			
+			private function handleQueryResult(event:ResultEvent, token:Object = null):void
+			{
+			
+			}
+			
+			
+			private function handleQueryFault(event:FaultEvent, token:Object = null):void
+			{
+				trace("fault on "+token, event.message);
+			}
+			
+		]]>
+	</mx:Script>
+	
+</DraggablePanel>
