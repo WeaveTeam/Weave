@@ -56,6 +56,7 @@ package weave.utils
 		}
 		
 		private var _kdTree:KDTree = new KDTree(5);
+		private var _prevTriggerCounter:uint = 0; // used by iterative tasks & clear()
 		private const _keysArray:Array = []; // of IQualifiedKey
 		private var _keyToBoundsMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of IBounds2D
 		private var _keyToGeometriesMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of GeneralizedGeometry or ISimpleGeometry
@@ -165,6 +166,7 @@ package weave.utils
 			}
 			
 			// insert bounds-to-key mappings in the kdtree
+			_prevTriggerCounter = triggerCounter; // used to detect change during iterations
 			_iterateAll(true); // restart from first task
 			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_BUILDING, triggerCallbacks);
 		}
@@ -184,6 +186,10 @@ package weave.utils
 				var geoms:Array = ((_plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
 				_keyToGeometriesMap[key] = geoms;
 			}
+			
+			// stop if callbacks were triggered since the iterations started
+			if (triggerCounter != _prevTriggerCounter)
+				return 0;
 			
 			_keysIndex++;
 			
