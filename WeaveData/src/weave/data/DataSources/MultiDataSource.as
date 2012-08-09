@@ -33,6 +33,7 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableXML;
+	import weave.data.AttributeColumns.CSVColumn;
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
@@ -119,7 +120,7 @@ package weave.data.DataSources
 			
 			// add category for global column objects
 			// TEMPORARY SOLUTION -- only allow EquationColumns
-			var eqCols:Array = _root.getObjects(EquationColumn);
+			var eqCols:Array = _root.getObjects(EquationColumn).concat(_root.getObjects(CSVColumn));
 			if (eqCols.length > 0)
 			{
 				var globalCategory:XML = <category title="Equations"/>;
