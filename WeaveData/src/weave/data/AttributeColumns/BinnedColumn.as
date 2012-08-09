@@ -82,10 +82,10 @@ package weave.data.AttributeColumns
 		}
 		
 		private const _derivedBins:BinClassifierCollection = newLinkableChild(this, BinClassifierCollection); // returned by public getter
-		private var _binNames:Array = null; // maps a bin index to a bin name
-		private var _keyToBinIndexMap:Dictionary = null; // maps a record key to a bin index
-		private var _binnedKeysArray:Array = null; // maps a bin index to a list of keys in that bin
-		private var _binnedKeysMap:Object = null; // maps a bin name to a list of keys in that bin
+		private var _binNames:Array = []; // maps a bin index to a bin name
+		private var _keyToBinIndexMap:Dictionary = new Dictionary(); // maps a record key to a bin index
+		private var _binnedKeysArray:Array = []; // maps a bin index to a list of keys in that bin
+		private var _binnedKeysMap:Object = {}; // maps a bin name to a list of keys in that bin
 		private var _largestBinSize:uint = 0;
 		private var _prevTriggerCounter:uint;
 		
