@@ -32,6 +32,7 @@ package weave.api
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILocaleManager;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.core.IStageUtils;
@@ -41,7 +42,6 @@ package weave.api
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
 	import weave.api.services.IURLRequestUtils;
-	import weave.api.core.ILocaleManager;
 
 	/**
 	 * Static functions for managing implementations of Weave framework classes.
@@ -401,5 +401,11 @@ package weave.api
 		 * This is used to save a mapping from an interface to its singleton implementation instance.
 		 */
 		private static const _singletonDictionary:Dictionary = new Dictionary();
+		
+		public static function externalTrace(...params):void
+		{
+			params.unshift('console.log');
+			ExternalInterface.call.apply(null, params);
+		}
 	}
 }

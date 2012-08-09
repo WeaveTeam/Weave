@@ -23,6 +23,7 @@ package weave.services
 	
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerDisposableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.services.IWeaveDataService;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.utils.HierarchyUtils;
@@ -37,7 +38,7 @@ package weave.services
 		public function WeaveDataServlet(url:String)
 		{
 			servlet = new AMF3Servlet(url);
-			registerDisposableChild(this, servlet);
+			registerLinkableChild(this, servlet);
 		}
 		protected var servlet:AMF3Servlet;
 
@@ -100,12 +101,62 @@ package weave.services
 		
 		public function createTileService(geometryCollectionName:String):IWeaveGeometryTileService
 		{
-			return registerDisposableChild(this, new WeaveGeometryTileServlet(this, geometryCollectionName));
+			var tileService:IWeaveGeometryTileService = new WeaveGeometryTileServlet(this, geometryCollectionName);
+			
+			// when we dispose of this servlet, we also want to dispose of the spawned tile servlet
+			registerDisposableChild(this, tileService);
+			
+			return tileService;
 		}
 
 		public function createReport(name:String, keys:Array):AsyncToken
 		{
 			return servlet.invokeAsyncMethod("createReport", arguments);
 		}
+	}
+}
+
+
+import mx.rpc.AsyncToken;
+
+import weave.api.WeaveAPI;
+import weave.api.services.IWeaveGeometryTileService;
+import weave.services.WeaveDataServlet;
+
+/**
+ * This is an implementation of IWeaveGeometryTileService that uses a WeaveDataServlet as the tile source.
+ * 
+ * @author adufilie
+ */
+internal class WeaveGeometryTileServlet implements IWeaveGeometryTileService
+{
+	public function WeaveGeometryTileServlet(service:WeaveDataServlet, geometryCollectionName:String)
+	{
+		_service = service;
+		_geometryCollectionName = geometryCollectionName;
+	}
+	
+	private var _service:WeaveDataServlet;
+	private var _geometryCollectionName:String;
+	
+	public function getTileDescriptors():AsyncToken
+	{
+		var token:AsyncToken = _service.getTileDescriptors(_geometryCollectionName);
+		WeaveAPI.SessionManager.assignBusyTask(token, this);
+		return token;
+	}
+	
+	public function getMetadataTiles(tileIDs:Array):AsyncToken
+	{
+		var token:AsyncToken = _service.getMetadataTiles(_geometryCollectionName, tileIDs);
+		WeaveAPI.SessionManager.assignBusyTask(token, this);
+		return token;
+	}
+	
+	public function getGeometryTiles(tileIDs:Array):AsyncToken
+	{
+		var token:AsyncToken = _service.getGeometryTiles(_geometryCollectionName, tileIDs);
+		WeaveAPI.SessionManager.assignBusyTask(token, this);
+		return token;
 	}
 }
