@@ -3,6 +3,15 @@
     <wb-module deploy-name="WeaveServices">
         <wb-resource deploy-path="/" source-path="/WebContent"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
+        <dependent-module archiveName="gson-2.2.1.jar" deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/C:/Users/sanjay/Weave/WeaveServices/lib/gson-2.2.1.jar">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="gson-2.2.1-sources.jar" deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/C:/Users/sanjay/Weave/WeaveServices/lib/gson-2.2.1-sources.jar">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="gson-2.2.1-javadoc.jar" deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/C:/Users/sanjay/Weave/WeaveServices/lib/gson-2.2.1-javadoc.jar">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
         <property name="java-output-path"/>
         <property name="context-root" value="WeaveServices"/>
     </wb-module>

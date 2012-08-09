@@ -52,6 +52,7 @@ package weave
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.CSVParser;
 	import weave.ui.AttributeMenuTool;
+	import weave.ui.GeneExpressionTool;
 	import weave.ui.JRITextEditor;
 	import weave.ui.RTextEditor;
 	import weave.utils.CSSUtils;
@@ -242,6 +243,7 @@ package weave
 				[enableAddDataTable, DataTableTool],
 				[enableAddDimensionSliderTool, DimensionSliderTool],
 				[enableAddGaugeTool, GaugeTool],
+				[enableAddGeneExpTool, GeneExpressionTool],
 				[enableAddHistogram, HistogramTool],
 				[enableAdd2DHistogram, Histogram2DTool],
 				[enableAddRScriptEditor, JRITextEditor],
@@ -272,6 +274,7 @@ package weave
 		public const enableAddCustomTool:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddDataTable:LinkableBoolean = new LinkableBoolean(true); // Add Data Table option tools menu
 		public const enableAddGaugeTool:LinkableBoolean = new LinkableBoolean(true); // Add Gauge Tool option tools menu
+		public const enableAddGeneExpTool:LinkableBoolean = new LinkableBoolean(true); // Add Gauge Tool option tools menu
 		public const enableAddHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Histogram option tools menu
 		public const enableAdd2DHistogram:LinkableBoolean = new LinkableBoolean(true); // Add 2D Histogram option tools menu
 		public const enableAddGraphTool:LinkableBoolean = new LinkableBoolean(true); // Add Graph Tool option tools menu
@@ -455,6 +458,7 @@ package weave
 		// temporary?
 		public const rServiceURL:LinkableString = registerLinkableChild(this, new LinkableString("/WeaveServices/RService"), handleRServiceURLChange);// url of Weave R service using Rserve
 		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
+		public const geneExpressionServiceURL:LinkableString = new LinkableString("/WeaveServices/GXAService");
 		
 		private function handleRServiceURLChange():void
 		{

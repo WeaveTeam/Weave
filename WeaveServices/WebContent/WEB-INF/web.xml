@@ -67,4 +67,12 @@
     <servlet-name>JRIService</servlet-name>
     <url-pattern>/JRIService</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <servlet-name>GXAService</servlet-name>
+    <servlet-class>weave.servlets.GXAService</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>GXAService</servlet-name>
+    <url-pattern>/GXAService</url-pattern>
+  </servlet-mapping>
 </web-app>
