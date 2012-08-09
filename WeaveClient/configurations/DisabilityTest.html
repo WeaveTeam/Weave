@@ -1,0 +1,297 @@
+<!-- saved from url=(0014)about:internet -->
+<html lang="en">
+
+<!--
+Smart developers always View Source.
+
+This application was built using Adobe Flex, an open source framework
+for building rich Internet applications that get delivered via the
+Flash Player or to desktops via Adobe AIR.
+
+Learn more about Flex at http://flex.org
+// -->
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Open Indicators Weave</title>
+<script src="AC_OETags.js" language="javascript"></script>
+<style>
+body { margin: 10px; overflow:hidden }
+
+
+</style>
+<script language="JavaScript" type="text/javascript">
+<!--
+// -----------------------------------------------------------------------------
+// Globals
+// Major version of Flash required
+var requiredMajorVersion = 10;
+// Minor version of Flash required
+var requiredMinorVersion = 0;
+// Minor version of Flash required
+var requiredRevision = 0;
+// -----------------------------------------------------------------------------
+// -->
+</script>
+</head>
+
+<body scroll="no">
+
+Disability test page
+
+
+<table id="controls"><tr><td>
+<!-- 	<select id="methodInput" onchange="handleMethodSelect()"> -->
+<!-- 		<option>getSessionState(objectPath:Array):Object</option> -->
+<!-- 		<option>setSessionState(objectPath:Array, newState:Object, removeMissingObjects:Boolean = true):Boolean</option> -->
+<!-- 		<option>getObjectType(objectPath:Array):String</option> -->
+<!-- 		<option>getChildNames(objectPath:Array):Array</option> -->
+<!-- 		<option>setChildNameOrder(objectMapPath:Array, orderedChildNames:Array):Boolean</option> -->
+<!-- 		<option>requestObject(objectPath:Array, objectType:String):Boolean</option> -->
+<!-- 		<option>removeObject(objectPath:Array):Boolean</option> -->
+		<!--
+		<option>convertSessionStateObjectToXML(sessionState:Object, tagName:String = "sessionState"):String</option>
+		<option>convertSessionStateXMLToObject(sessionStateXML:Object):Object</option>
+		 -->
+<!-- 	</select><br> -->
+<!-- 	param1: <input id="input1" type="text" size="40" value="defaultSelectionKeySet"/><br> -->
+<!-- 	param2: <input id="input2" type="text" size="40" value="US State FIPS Code,01,28"/><br> -->
+<!-- 	<button id="b1" onclick="testWeaveAPI()">Test API Function</button><br> -->
+<!-- 	Weave Version: <span id="versionSpan">...</span><br> -->
+<!-- 	<button id="b2" onclick="weave.requestObject(['SPT'], 'ScatterPlotTool')">Create ScatterPlot</button><br> -->
+<!-- 	<button id="b3" onclick="testSwap()">Swap x,y on ScatterPlot</button><br> -->
+<!-- 	<button id="b4" onclick="showLegend()">Bring legend to foreground</button><br> -->
+<!-- 	<button id="b6" onclick="getImage()">Get Image</button><br> -->
+<!-- 	<input id="scriptInput" type="text" value="Hello, world."/></input> -->
+<!-- 	<button id="b5" onclick="runStartupScript()">Run sessioned startup script again</button><br> -->
+<!-- </td><td width="100%" height="100%"> -->
+<!-- 	<img id="img_tag"/> -->
+<!-- 	<textarea id="resultTextArea" cols="80" rows="10"></textarea> -->
+<!-- </td></tr></table> -->
+<script language="JavaScript" type="text/javascript" src="json2.js"></script>
+<script language="JavaScript" type="text/javascript">
+
+function getImage()
+{
+	var image = document.getElementById('weave').evaluateExpression(['MapTool'], 
+	  	            'getBase64Image(this)', 
+	  	             null, 
+	  	             ['weave.utils.BitmapUtils']);
+	 $.ajax({
+	  	data: image,
+		url: "/ImageService/Base64ImageService",
+		type: "POST",
+		dataType: "text",
+		success: function( data, textStatus, jqXHR ) {
+		imgName = data;
+		imgTag.src = "/ImageService/Base64ImageService?file="+ imgName;
+	 },
+	  error: function (qXHR, textStatus, errorThrown) {
+					
+	 }
+    });
+}
+// this function gets called when the weave instance is ready.
+function weaveReady(weave)
+{
+	disableButtons(false);
+	document.getElementById('versionSpan').innerHTML = weave.getSessionState(['WeaveProperties','version']);
+	alert('Weave JavaScript API is ready (id="'+(weave && weave.id)+'").');
+}
+// this function will enable or disable the api test buttons.
+// function disableButtons(disabled)
+// {
+// 	var buttons = ['b1','b2','b3','b4','b5'];
+// 	for (var i = 0; i < buttons.length; i++)
+// 		document.getElementById(buttons[i]).disabled = disabled;
+// }
+disableButtons(true);
+
+function runStartupScript()
+{
+	document.getElementById('weave').runStartupJavaScript();
+}
+
+// brings a color legend to the foreground
+// function showLegend()
+// {
+// 	var weave = document.getElementById('weave');
+// 	weave.requestObject(['ColorBinLegendTool'],'ColorBinLegendTool');
+// 	weave.setSessionState(['ColorBinLegendTool'], {panelX:'40%',panelY:'30%'});
+// 	weave.setChildNameOrder([], ['ColorBinLegendTool'])
+// }
+// swaps x and y dimensions on the scatterplot
+// function testSwap()
+// {
+// 	var weave = document.getElementById('weave');
+// 	var path1 = ['SPT', 'children', 'visualization', 'layers', 'plot', 'plotter', null, 'xColumn'];
+// 	var path2 = ['SPT', 'children', 'visualization', 'layers', 'plot', 'plotter', null, 'yColumn'];
+// 	var state1 = weave.getSessionState(path1);
+// 	var state2 = weave.getSessionState(path2);
+// 	weave.setSessionState(path1, state2);
+// 	weave.setSessionState(path2, state1);
+	alert(JSON.stringify(state1, replacer, '\t'));
+// }
+
+function getAltText()
+{
+	var weave = document.getElementById('weave');
+	var altText = 
+}
+
+function getMethodDescription()
+{
+	return methodInput.options[methodInput.selectedIndex].text;
+}
+// this function counts the number of required parameters in the selected api function
+function countRequiredParams()
+{
+	var funcDesc = getMethodDescription();
+	var total = funcDesc.split(',').length;
+	var optional = funcDesc.split('=').length - 1;
+	//alert(total + '-' + optional + ': ' + funcDesc);
+	return total - optional; // # of required params
+}
+// this function enables or disables the parameter input fields
+function handleMethodSelect()
+{
+	var method = getMethodDescription();
+	var count = countRequiredParams();
+	input1.disabled = count < 1;
+	input2.disabled = count < 2;
+}
+handleMethodSelect(); // call once now to initialize 'disabled' properties
+// this function replaces xml objects with strings if necessary
+function replacer(key, value)
+{
+	if (typeof(value) == 'xml')
+	{
+		return this[key] = value.toString();
+	}
+	return value;
+}
+// this function casts a String to the appropriate type
+function castParam(param, description)
+{
+	if (description == undefined)
+		return param;
+	if (description.indexOf(':Boolean') >= 0)
+	{
+		return param == 'true';
+	}
+	if (description.indexOf(':Array') >= 0)
+	{
+		param = param.split(',');
+		if (param.length == 1 && param[0] == '')
+			param.length = 0;
+	}
+	return param;
+}
+// this function executes the selected api function with the parameters entered in the input fields.
+function testWeaveAPI()
+{
+	var weave = document.getElementById('weave');
+	var funcDesc = getMethodDescription();
+	var paramCount = countRequiredParams();
+	var paramList = funcDesc.split('(')[1].split(')')[0].split(',');
+	var method = funcDesc.split('(')[0];
+	var param1 = castParam(input1.value, paramList[0]);
+	var param2 = castParam(input2.value, paramList[1]);
+
+	var result = null;
+	if (paramCount == 2)
+		result = weave[method](param1, param2);
+	if (paramCount == 1)
+		result = weave[method](param1);
+
+	var str = JSON.stringify(result, replacer, '\t');
+	resultTextArea.value = str;
+	//alert(str);
+}
+</script>
+
+
+<script language="JavaScript" type="text/javascript">
+<!--
+
+// Version check for the Flash Player that has the ability to start Player Product Install (6.0r65)
+var hasProductInstall = DetectFlashVer(6, 0, 65);
+
+// Version check based upon the values defined in globals
+var hasRequestedVersion = DetectFlashVer(requiredMajorVersion, requiredMinorVersion, requiredRevision);
+
+
+// Check to see if a player with Flash Product Install is available and the version does not meet the requirements for playback
+if ( hasProductInstall && !hasRequestedVersion ) {
+	// MMdoctitle is the stored document.title value used by the installation process to close the window that started the process
+	// This is necessary in order to close browser windows that are still utilizing the older version of the player after installation has completed
+	// DO NOT MODIFY THE FOLLOWING FOUR LINES
+	// Location visited after installation is complete if installation is required
+	var MMPlayerType = (isIE == true) ? "ActiveX" : "PlugIn";
+	var MMredirectURL = window.location;
+    document.title = document.title.slice(0, 47) + " - Flash Player Installation";
+    var MMdoctitle = document.title;
+
+	AC_FL_RunContent(
+		"src", "playerProductInstall",
+		"FlashVars", "MMredirectURL="+MMredirectURL+'&MMplayerType='+MMPlayerType+'&MMdoctitle='+MMdoctitle+"",
+		"width", "100%",
+		"height", "100%",
+		"align", "middle",
+		"id", "weave",
+		"quality", "high",
+		"bgcolor", "#cccccc",
+		"name", "weave",
+		"allowScriptAccess","sameDomain",
+		"type", "application/x-shockwave-flash",
+		"pluginspage", "http://www.adobe.com/go/getflashplayer",
+		"allowFullScreen", "true"
+	);
+} else if (hasRequestedVersion) {
+	// if we've detected an acceptable version
+	// embed the Flash Content SWF when all tests are passed
+	AC_FL_RunContent(
+			"src", "weave",
+			"width", "500",
+			"height", "500",
+			"align", "middle",
+			"id", "weave",
+			"quality", "high",
+			"bgcolor", "#cccccc",
+			"name", "weave",
+			"allowScriptAccess","sameDomain",
+			"type", "application/x-shockwave-flash",
+			"pluginspage", "http://www.adobe.com/go/getflashplayer",
+			"allowFullScreen", "true"
+	);
+  } else {  // flash is too old or we can't detect the plugin
+    var alternateContent = 'Alternate HTML content should be placed here. '
+  	+ 'This content requires the Adobe Flash Player. '
+   	+ '<a href=http://www.adobe.com/go/getflash/>Get Flash</a>';
+    document.write(alternateContent);  // insert non-flash content
+  }
+// -->
+</script>
+<noscript>
+  	<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"
+			id="weave" width="100%" height="100%"
+			codebase="http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab">
+			<param name="movie" value="weave.swf" />
+			<param name="quality" value="high" />
+			<param name="bgcolor" value="#cccccc" />
+			<param name="allowScriptAccess" value="sameDomain" />
+			<param name="allowFullScreen" value="true" />
+			<embed src="weave.swf" quality="high" bgcolor="#cccccc"
+				width="100%" height="100%" name="weave" align="middle"
+				play="true"
+				loop="false"
+				quality="high"
+				allowScriptAccess="sameDomain"
+				allowFullScreen="true"
+				type="application/x-shockwave-flash"
+				pluginspage="http://www.adobe.com/go/getflashplayer">
+			</embed>
+	</object>
+</noscript>
+</body>
+</html>
