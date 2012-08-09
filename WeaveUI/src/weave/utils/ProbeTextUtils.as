@@ -227,23 +227,27 @@ package weave.utils
 				var x:int;
 				if (cornerToolTip)
 				{
-					// want toolTip corner to be near probe point
-					if (toolTipToTheLeft)
+					// check twice to prevent flipping back and forth when weave desktop size is very small
+					for (var checkTwice:int = 0; checkTwice < 2; checkTwice++)
 					{
-						x = stageX - margin - probeToolTip.width;
-						if(xAxisToolTip != null)
-							x = xAxisToolTip.x - margin - probeToolTip.width; 
+						// want toolTip corner to be near probe point
+						if (toolTipToTheLeft)
+						{
+							x = stageX - margin - probeToolTip.width;
+							if(xAxisToolTip != null)
+								x = xAxisToolTip.x - margin - probeToolTip.width; 
+						}
+						else // to the right
+						{
+							x = stageX + margin;
+							if(xAxisToolTip != null)
+								x = xAxisToolTip.x+xAxisToolTip.width+margin;
+						}
+					
+						// flip x position if out of bounds
+						if ((x < xMin && toolTipToTheLeft) || (x > xMax && !toolTipToTheLeft))
+							toolTipToTheLeft = !toolTipToTheLeft;
 					}
-					else // to the right
-					{
-						x = stageX + margin;
-						if(xAxisToolTip != null)
-							x = xAxisToolTip.x+xAxisToolTip.width+margin;
-					}
-				
-					// flip x position if out of bounds
-					if ((x < xMin && toolTipToTheLeft) || (x > xMax && !toolTipToTheLeft))
-						toolTipToTheLeft = !toolTipToTheLeft;
 				}
 				else // center x coordinate
 				{
