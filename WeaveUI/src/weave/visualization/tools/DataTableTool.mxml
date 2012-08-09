@@ -63,6 +63,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:HBox id="bottomControls" width="100%" paddingTop="3" paddingLeft="3" paddingBottom="3" paddingRight="3">
 			<mx:Button label="Export Data..." click="saveToFileAsCSV()" />
 			<mx:Button click="moveSelectedToTop()" label="Move Selected Items to top"/>
+			<mx:Button click="_selection.clearKeys()" label="Clear Selection"/>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -144,9 +145,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);	
 			public const exportKeys:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-			
-			
-			
 			
 			override protected function constructor():void
 			{
@@ -390,6 +388,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				_selection.replaceKeys(selectedKeys);
 			}
+			
+//			private function clearSelection():void
+//			{
+//				_selection.clearKeys();
+//			}
 			
 			private function updateGlobalSelectionChange():void
 			{
