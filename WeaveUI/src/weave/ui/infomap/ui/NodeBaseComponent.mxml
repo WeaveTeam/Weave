@@ -13,18 +13,19 @@ It has 4 icons to:
 	  mouseOver="handleMouseOver()"		   
 	  mouseOut="handleMouseOut()"
 	  autoLayout="false" 
-	  width="100%" minWidth="150">
+	  width="100%" minWidth="200">
 	<mx:HBox width="{this.width}" horizontalAlign="left">
 		<!--<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>-->
 		<!--<mx:Image id="searchImg" source="@Embed(source='/weave/resources/images/sphere.png')"/>-->
-		<!--<mx:Image id="infoImg" source="@Embed(source='/weave/resources/images/probe.png')"/>-->
 		<mx:Image id="listImg" source="@Embed(source='/weave/resources/images/list.png')"/>
 		<mx:Image id="filterImg" source="@Embed(source='/weave/resources/images/cloud.png')"/>
 		<mx:Image id="settingsImg" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
+		<mx:Image id="tickImg" toolTip="mark all as read" source="@Embed(source='/weave/resources/images/tick-icon.png')"/><!--http://icons.iconarchive.com/icons/pixelmixer/basic/16/tick-icon.png-->
 		<mx:Spacer width="60%" />
 		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
 	</mx:HBox>	
-	<mx:TextArea id="keywordTextArea" height="100%" editable="false" selectable="false" focusAlpha="0" fontSize="12" width="100%" borderThickness="1" borderStyle="solid" cornerRadius="5"/>
+	<mx:TextArea id="keywordTextArea" height="100%" editable="false" selectable="false" 
+				 focusAlpha="0" fontSize="12" width="100%" borderThickness="1" borderStyle="solid" cornerRadius="5"/>
 	<!--<mx:Canvas id="keywordCanvas" horizontalScrollPolicy="off" verticalScrollPolicy="off"  width="100%">
 		<mx:Image id="editImage" source="@Embed(source='/weave/resources/images/editButton.png')" 
 				  toolTip="click image to add comments" y="{keywordTextArea.height - editImage.height}" />		
@@ -44,10 +45,10 @@ It has 4 icons to:
 			keywordTextArea.minWidth = 20;
 			keywordTextArea.verticalScrollPolicy = "off";
 			
-//			infoImg.width = 12;
-//			infoImg.height = 12;
-//			infoImg.visible = false;
-//			infoImg.buttonMode = true; //you need this for click event to work on an image!
+			tickImg.width = 12;
+			tickImg.height = 12;
+			tickImg.visible = false;
+			tickImg.buttonMode = true; //you need this for click event to work on an image!
 			
 			closeImg.toolTip = "Remove this node";
 			closeImg.width = 16;

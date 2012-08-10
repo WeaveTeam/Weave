@@ -6,13 +6,13 @@
 		   autoLayout="false"
 		   dragDrop ="dragDropHandler(event)"
 		   dragEnter="dragEnterHandler(event)"
-		>
+		   >
 	<!--Show this status box only when list is visible-->
 	<mx:HBox horizontalAlign="left" id="statusBox" y="{nodeBase.height}" width="400" includeInLayout="false">
 		<mx:Label id="status" />
 		<mx:Button focusAlpha="0" id="clearFiltersButton" label="Clear" visible="false" click="handleClearFiltersButton()"/>
 		<!--HTML encoding is requried when writing code in binding tag-->
-		<mx:Button label="Mark All as Read" enabled="{visible}" visible="false" id="clearNewDocuments" height="100%" click="clearAllNewDocuments()"/>
+		<mx:Button enabled="false" label="Mark All as Read" visible="false" id="clearNewDocuments" height="100%" click="clearAllNewDocuments()"/>
 	</mx:HBox>
 	<mx:Canvas id="pointsCanvas" enabled="false" visible="false" clipContent="false" width="400" height="300"/>
 	<mx:Canvas id="listCanvas" visible="false" clipContent="false" width="400" height="300"/>
@@ -119,10 +119,11 @@
 			import weave.utils.CustomCursorManager;
 			import weave.utils.DateUtils;
 			import weave.utils.EventUtils;
+			import weave.utils.VectorUtils;
 			
 			public const node:FilterableInfoMapNode = newLinkableChild(this,FilterableInfoMapNode);
 			
-			public const query:QueryObject = newLinkableChild(this,QueryObject);
+			private const query:QueryObject = newLinkableChild(this,QueryObject);
 			
 			public const previousQuery:QueryObject = newLinkableChild(this,QueryObject);
 			
@@ -138,6 +139,8 @@
 			public const movedThumbNails:LinkableHashMap = newLinkableChild(this,LinkableHashMap);
 			
 			public const comments:LinkableString = newLinkableChild(this,LinkableString);
+			
+			private const listWidth:LinkableNumber = new LinkableNumber();
 			
 			private var loader:URLLoader = null;
 			
@@ -157,7 +160,7 @@
 					super.y = isNaN(value)?parent.height/2:value;
 				else
 					super.y=value
-						
+				
 			}
 			
 			private var _parentPanel:InfoMapPanel;
@@ -169,32 +172,24 @@
 			
 			override protected function createChildren():void
 			{
-
+				
 				super.createChildren();
 				this.addChild(nodeBase);
 			}
 			
-//			private var log:SessionStateLog = new SessionStateLog(thumbnails);
+			//			private var log:SessionStateLog = new SessionStateLog(thumbnails);
 			
 			override protected function childrenCreated():void
 			{
 				
-								
+				
 				super.childrenCreated();
-								
-//				node.keywords.addGroupedCallback(this,createAndSendQuery);
-//				node.operator.addGroupedCallback(this,createAndSendQuery);
-//				node.dateFilter.startDate.addGroupedCallback(this,createAndSendQuery);
-//				node.dateFilter.endDate.addGroupedCallback(this,createAndSendQuery);
-//				node.sources.addGroupedCallback(this,createAndSendQuery);
 				
 				getCallbackCollection(query).addGroupedCallback(this,createAndSendQuery);
-				
-				node.numberOfDocs.addGroupedCallback(this,createAndSendQuery);
-
+				getCallbackCollection(previousQuery).addGroupedCallback(this,updateTextArea,true);
 				
 				//if node is selected we highlight the nodeBase
-//				node.selected.addGroupedCallback(this,highlightNode);
+				//				node.selected.addGroupedCallback(this,highlightNode);
 				
 				//for now defaulting to Random Layout
 				if(layout.internalObject == null)
@@ -204,11 +199,13 @@
 				//opens the settings panel
 				nodeBase.settingsImg.addEventListener(MouseEvent.CLICK,settings);
 				
+				nodeBase.tickImg.addEventListener(MouseEvent.CLICK,clearAllNewDocuments);
+				
 				//removes the node from the panel after confirmation
 				nodeBase.closeImg.addEventListener(MouseEvent.CLICK,close);
 				
 				nodeBase.filterImg.addEventListener(MouseEvent.CLICK, toggleTagCloud);
-//				nodeBase.searchImg.addEventListener(MouseEvent.CLICK,showPointCanvas);
+				//				nodeBase.searchImg.addEventListener(MouseEvent.CLICK,showPointCanvas);
 				nodeBase.listImg.addEventListener(MouseEvent.CLICK,toggleList);
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
@@ -222,13 +219,15 @@
 				linkBindableProperty(xPos,this,"x");
 				linkBindableProperty(yPos,this,"y");
 				
+				thumbnailsDefaultColor.addImmediateCallback(this,handleBorderColor,true);
+				
 				//sets a pointer to the node's parent which is an InfoMapPanel
 				var hashmap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableOwner(this) as LinkableHashMap;
 				_parentPanel = WeaveAPI.SessionManager.getLinkableOwner(hashmap) as InfoMapPanel;
 				
 				//adding a callback to the Global Search keyword. This will set the visibility of the thumbnails to true or false
 				//based on keyword match
-				_parentPanel.globalSearchKeyword.addImmediateCallback(this,handleGlobalSearch);
+//				_parentPanel.globalSearchKeyword.addImmediateCallback(this,handleGlobalSearch);
 				
 				//adding a callback to the Global Date Filter
 				//TODO: needs to be tested
@@ -241,10 +240,9 @@
 				//adding callback to subset. Thumbnails will be re-drawn to plot only included thumbnails
 				getCallbackCollection(_subset).addGroupedCallback(this,positionThumbnails);
 				getCallbackCollection(_tagWordSubset).addGroupedCallback(this,positionThumbnails);
-//				thumbnails.childListCallbacks.addGroupedCallback(this,handleThumbnails);
 				
 				//calling function to highlight the node based on node.selected.value
-//				highlightNode();
+				//				highlightNode();
 				
 				//we want to trigger the callback for thumbnails at each frame and check the trigger counter
 				getCallbackCollection(this).addImmediateCallback(this,invalidateDisplayList);
@@ -260,105 +258,68 @@
 				//adding a callback to the selection KeySet to highlight/unhighlight documents
 				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
 				
-//				nodeBase.editImage.addEventListener(MouseEvent.CLICK,handleEditCommentsClick);
-//				
-//				delayedCommentKeyUp = EventUtils.generateDelayedCallback(nodeBase.commentTextArea,handleCommentKeyUp,500,true);
-//				nodeBase.commentTextArea.addEventListener(KeyboardEvent.KEY_UP,delayedCommentKeyUp); 
-//				nodeBase.commentTextArea.addEventListener(FocusEvent.FOCUS_OUT,updateCommentTextArea);
+				filteredWords.addGroupedCallback(this,filterListByKeywords,false);
+				
+				thumbnails.addGroupedCallback(this,positionThumbnails);
+				
+				//				nodeBase.editImage.addEventListener(MouseEvent.CLICK,handleEditCommentsClick);
+				//				
+				//				delayedCommentKeyUp = EventUtils.generateDelayedCallback(nodeBase.commentTextArea,handleCommentKeyUp,500,true);
+				//				nodeBase.commentTextArea.addEventListener(KeyboardEvent.KEY_UP,delayedCommentKeyUp); 
+				//				nodeBase.commentTextArea.addEventListener(FocusEvent.FOCUS_OUT,updateCommentTextArea);
 				
 				clickedWordKeySet.addImmediateCallback(this,handleClickedWordKeySetChange);
+				prevNewDocsCount.addGroupedCallback(this,updateTextArea);
 				
 				refreshTimer.start();
 				//call event for each tick of refreshTimer
 				refreshTimer.addEventListener(TimerEvent.TIMER, checkForNewDocuments);
 				
-//				comments.addImmediateCallback(this,handleCommentsChange,true);
+				//				comments.addImmediateCallback(this,handleCommentsChange,true);
 				
-				createAndSendQuery();
+				//				createAndSendQuery();
 				
-				//to clear the flag so that it doesn't detect the first time
-//				node.detectQueryChange(handleThumbnails);
+				glowFilter.color = thumbnailsDefaultColor.value;
 				
 			}
 			
 			private var delayedCommentKeyUp:Function = null;
 			
-//			private function handleEditCommentsClick(event:MouseEvent):void
-//			{
-//				nodeBase.editImage.visible = false;
-//				nodeBase.commentTextArea.visible = true;
-//				nodeBase.commentTextArea.setFocus();
-//			}
-//			
-//			private function handleCommentsChange():void
-//			{
-//				if(nodeBase.commentTextArea.text != comments.value)
-//					nodeBase.commentTextArea.text = comments.value;
-//				if(comments.value)
-//				{
-//					nodeBase.commentTextArea.visible = true;
-//					nodeBase.editImage.visible = false;
-//					nodeBase.commentTextArea.validateNow();
-//				}else{
-//					nodeBase.commentTextArea.visible = false;
-//					nodeBase.editImage.visible = true;
-//				}
-//			}
-//			
-//			private function handleCommentKeyUp(event:KeyboardEvent=null):void
-//			{
-//				
-//				comments.value = nodeBase.commentTextArea.text;
-//				if(event.keyCode == Keyboard.ESCAPE)
-//				{
-//					updateCommentTextArea();
-//					nodeBase.keywordTextArea.setFocus();
-//				}
-//			}
-//			
-//			private function updateCommentTextArea(event:Event=null):void
-//			{
-//				nodeBase.commentTextArea.minHeight = nodeBase.commentTextArea.textHeight;
-//
-//				if(nodeBase.commentTextArea.text == "")
-//				{
-//					comments.triggerCallbacks();
-//				}
-//			}
+			//			
 			
 			
 			private function dragEnterHandler(event:DragEvent):void
 			{
-				 
-//				if(event.dragInitiator is DocThumbnailComponent && movedThumbNails.getObject((event.dragInitiator as DocThumbnailComponent).docURL.value))
-//				{
-//					DragManager.acceptDragDrop(this);
-//				}
+				
+				//				if(event.dragInitiator is DocThumbnailComponent && movedThumbNails.getObject((event.dragInitiator as DocThumbnailComponent).docURL.value))
+				//				{
+				//					DragManager.acceptDragDrop(this);
+				//				}
 			}
 			
 			private function dragDropHandler(event:DragEvent):void
 			{
-//				var t:DocThumbnailComponent = event.dragInitiator as DocThumbnailComponent;
-//				
-//				if(!(t.parent == this))
-//				{
-//					movedThumbNails.removeObject(t.docURL.value);
-//					
-//					pointsCanvas.addChild(t);
-//					
-//					t.hasBeenMoved.value = false;
-//					
-//					//setting the X and Y with reference to the map
-////					var tGlobalPoint2:Point = _parentPanel.map.contentToGlobal(new Point(event.stageX,event.stageY));
-//					var localPoint2:Point =  this.globalToLocal(new Point(event.stageX,event.stageY));
-//					
-//					t.move(localPoint2.x,localPoint2.y);
-//					
-//				}
+				//				var t:DocThumbnailComponent = event.dragInitiator as DocThumbnailComponent;
+				//				
+				//				if(!(t.parent == this))
+				//				{
+				//					movedThumbNails.removeObject(t.docURL.value);
+				//					
+				//					pointsCanvas.addChild(t);
+				//					
+				//					t.hasBeenMoved.value = false;
+				//					
+				//					//setting the X and Y with reference to the map
+				////					var tGlobalPoint2:Point = _parentPanel.map.contentToGlobal(new Point(event.stageX,event.stageY));
+				//					var localPoint2:Point =  this.globalToLocal(new Point(event.stageX,event.stageY));
+				//					
+				//					t.move(localPoint2.x,localPoint2.y);
+				//					
+				//				}
 			}
 			
 			
-			private var refreshTimer:Timer = new Timer(300000);
+			private var refreshTimer:Timer = new Timer(60*5*1000);
 			
 			//this variable is false when the user loads the map for the first time. 			
 			private var highlightNewDocuments:Boolean = true;
@@ -370,11 +331,94 @@
 				}
 				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
 				wordCount = [];
-				
+				status.text = "Searching...";
 				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
 			}
-		
+			
+			
+			
+			private function updateTextArea():void
+			{
+				if(!previousQuery.keywords.value)
+				{
+					nodeBase.keywordTextArea.editable = true;
+					nodeBase.keywordTextArea.selectable = true;
+					nodeBase.keywordTextArea.setFocus();
+					nodeBase.keywordTextArea.setSelection(0,0);
+					nodeBase.keywordTextArea.htmlText = "";
+					newDocumentHighlight.stop();//in case node is blinking
+					glowTimer.stop();
+					nodeBase.keywordTextArea.filters = [];
+					nodeBase.keywordTextArea.alpha = 1;//restore alpha value to 1 incase timer stops at lesser alpha value
+					if(listCanvas.contains(d))
+					{
+						d.docKeys = [];//clearing items in list
+						hideList();
+					}
+					if(tagCanvas)
+					{
+						hideTagCloud();
+						tagCanvas.clearCloud();
+						tagCanvas.dataProvider = [];//clearing word cloud
+						removeChild(tagCanvas);
+						tagCanvas = null;
+					}
+					return;
+				}
 				
+//				nodeBase.keywordTextArea.htmlText = "<b>Query: </b> " + previousQuery.keywords.value;
+				nodeBase.keywordTextArea.htmlText = previousQuery.keywords.value + "()";
+				nodeBase.keywordTextArea.editable = false;
+				nodeBase.keywordTextArea.selectable = false;
+				
+				var diff:* = WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(previousQuery),WeaveAPI.SessionManager.getSessionState(query));
+				
+				if(diff)
+					copySessionState(previousQuery,query);
+				
+				testAndBlinkNode();
+			}
+			
+			private function testAndBlinkNode():void
+			{
+				if((prevNewDocsCount.value>0) || (highlightNewDocuments && currentNewDocsCount>0 && currentNewDocsCount != prevNewDocsCount.value))
+				{
+//					prevNewDocsCount.value = currentNewDocsCount;
+					//if the New documents text already exists just update the value
+//					if(nodeBase.keywordTextArea.htmlText.indexOf("New Documents") >-1)
+//						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/New Documents: <\/B> [0-9]*/g,"New Documents: <\/B> " + currentNewDocsCount);
+//					else
+//						nodeBase.keywordTextArea.htmlText +="<br/><b>New Documents: </b> " +  prevNewDocsCount.value;
+					
+					if(nodeBase.keywordTextArea.htmlText.indexOf("/") >-1)
+						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\([0-9]*\//g,"(" + currentNewDocsCount + "/");
+					else
+						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\(/g,"(" + currentNewDocsCount + "/");
+						
+					
+					nodeBase.tickImg.enabled = true;
+					nodeBase.tickImg.visible = true;
+					glowTimer.addEventListener(TimerEvent.TIMER,changeGlow);
+					glowTimer.reset();
+					glowTimer.start();
+				}else{
+					clearNewDocuments.visible = false;
+					nodeBase.tickImg.enabled = false;
+					nodeBase.tickImg.visible = false;
+					glowTimer.stop();
+					nodeBase.keywordTextArea.filters = [];
+				}
+				
+				positionThumbnails();
+				adjustNodeBase();
+			}
+			
+			/* Since we use a private query object we define a public function to set variable */
+			public function applyKeywords(keywords:String):void
+			{
+				query.keywords.value = keywords;	
+			}
+			
 			[Bindable]
 			public var nodeBase:NodeBaseComponent = new NodeBaseComponent();
 			
@@ -386,7 +430,7 @@
 			 **/
 			private function createAndSendQuery():void
 			{
-				
+				trace("in createAndSendQuery");
 				//this function is called every time the query parameters changes, so we will reset the timer so that it is not called immediately
 				//when the query changes. This way we can avoid adding old results for a new query.
 				refreshTimer.reset();
@@ -394,15 +438,14 @@
 				
 				if(!query.keywords.value)
 				{
-					nodeBase.keywordTextArea.editable = true;
-					nodeBase.keywordTextArea.selectable = true;
-					nodeBase.keywordTextArea.setFocus();
-					nodeBase.keywordTextArea.setSelection(0,0);
-					nodeBase.keywordTextArea.htmlText = "";
+					getCallbackCollection(previousQuery).delayCallbacks();
+					thumbnails.delayCallbacks();
+					previousQuery.keywords.value = ""; //clearing previous query
+					thumbnails.removeAllObjects();//remove any old objects if any
+					getCallbackCollection(previousQuery).resumeCallbacks();
+					thumbnails.resumeCallbacks();
 					return;
 				}
-				nodeBase.keywordTextArea.editable = false;
-				nodeBase.keywordTextArea.selectable = false;
 				
 				if (this.parent == null)
 				{
@@ -410,11 +453,19 @@
 					return;
 				}
 				status.text = "Searching...";
-								
+				
+				//delay callbacks till we get back query results
+				thumbnails.delayCallbacks();
+
 				var diff:* = WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(previousQuery),WeaveAPI.SessionManager.getSessionState(query));
 				if(diff)//diff is undefined if there is no difference.
+				{
 					thumbnails.removeAllObjects();
-
+					currentNewDocsCount = 0;
+					hideList();
+					hideTagCloud();
+				}
+				
 				
 				if(!query.sources.value == '')
 				{
@@ -427,24 +478,23 @@
 						currentNewDocsCount++;
 				}
 				
-				WeaveAPI.SessionManager.copySessionState(query,previousQuery);
 				
 				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
 				wordCount = [];
 				
+				
 				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
 				
-				var numOfDocsQuery:DelayedAsyncInvocation = InfoMapsDataSource.getNumberOfMatchedDocuments(
-											query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
+				//				var numOfDocsQuery:DelayedAsyncInvocation = InfoMapsDataSource.getNumberOfMatchedDocuments(
+				//											query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
 				
-				nodeBase.keywordTextArea.htmlText = "<b>Query: </b> " + query.keywords.value;
-				numOfDocsQuery.addAsyncResponder(function(event:ResultEvent,token:Object=null):void{
-					nodeBase.keywordTextArea.htmlText +="<b>Total Documents Found:</b> " +  event.result.toString();
-					adjustNodeBase();
-					status.text = "";
-				},function(event:FaultEvent,token:Object=null):void{
-					nodeBase.keywordTextArea.htmlText +="<br/>No documents found" ;
-				});
+				//				numOfDocsQuery.addAsyncResponder(function(event:ResultEvent,token:Object=null):void{
+				//					nodeBase.keywordTextArea.htmlText +="<b>Total Documents Found:</b> " +  event.result.toString();
+				//					adjustNodeBase();
+				//					status.text = "";
+				//				},function(event:FaultEvent,token:Object=null):void{
+				//					nodeBase.keywordTextArea.htmlText +="<br/>No documents found" ;
+				//				});
 				
 				
 			}
@@ -455,7 +505,7 @@
 			public const prevNewDocsCount:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0)); 
 			[Bindable]
 			private var currentNewDocsCount:int = 0;
-//			private var _firstLoad:Boolean = true;
+			//			private var _firstLoad:Boolean = true;
 			
 			/**
 			 * @private
@@ -465,22 +515,22 @@
 			 **/
 			private function handleThumbnails():void
 			{
+				trace("in handleThumbnails");
+				status.text = "";
 				var response:Array = docKeySet.keys;
 				
-				
-				
-//				if(d.docList != null)
-//					d.docList.dataProvider = docKeySet.keys;
+				//				if(d.docList != null)
+				//					d.docList.dataProvider = docKeySet.keys;
 				
 				var nameOrder:Array = [];
 				
-				if(response.length == 0)
-				{
-					thumbnails.resumeCallbacks();
-					getCallbackCollection(node).resumeCallbacks();
-					return;
-				}
-
+				//				if(response.length == 0)
+				//				{
+				//					thumbnails.resumeCallbacks();
+				//					getCallbackCollection(node).resumeCallbacks();
+				//					return;
+				//				}
+				
 				var diff:* = WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(previousQuery),WeaveAPI.SessionManager.getSessionState(query));
 				if(diff)
 				{
@@ -511,49 +561,33 @@
 						if(highlightNewDocuments)
 						{
 							thumbnail.highlighted.value = true;
+							currentNewDocsCount++;
 						}
-						currentNewDocsCount++;
 					}
-						
-										
+					
+					
 					thumbnail.docURL.value = link;
 					
-//					linkSessionState(_parentPanel.defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
+					//					linkSessionState(_parentPanel.defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
 					linkSessionState(_parentPanel.selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
 					linkSessionState(_parentPanel.newThumbnailGlowColor,thumbnail.glowColor);
 					
-					
 				}
 				
-				if(highlightNewDocuments && currentNewDocsCount>0 && currentNewDocsCount != prevNewDocsCount.value)
-				{
-					prevNewDocsCount.value = currentNewDocsCount;
-					//if the New documents text already exists just update the value
-					if(nodeBase.keywordTextArea.htmlText.indexOf("New Documents") >-1)
-						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/New Documents: <\/B> [0-9]*/g,"New Documents: <\/B> " + currentNewDocsCount);
-					else
-						nodeBase.keywordTextArea.htmlText +="<b>New Documents: </b> " +  currentNewDocsCount;
-					
-					clearNewDocuments.visible = true;
-					adjustNodeBase();
-					timer.addEventListener(TimerEvent.TIMER,blinkNode);
-					timer.reset();
-					timer.start();
-				}else{
-					clearNewDocuments.visible = false;
-				}
+				
+//				if(!highlightNewDocuments)
+//				{
+//					currentNewDocsCount = 0;
+//				}
+				
 				thumbnails.setNameOrder(nameOrder);
-				positionThumbnails();
+				WeaveAPI.SessionManager.copySessionState(query,previousQuery);
+				thumbnails.resumeCallbacks();
+				prevNewDocsCount.value = currentNewDocsCount;
+				testAndBlinkNode();
 			}
 			
-			public function testRegEx():String
-			{
-				var t:Array = nodeBase.keywordTextArea.htmlText.match(/New Documents: <\/B> [0-9]*/g);
-				return t.join("|");
-			}
-				
-			
-			private function clearAllNewDocuments():void
+			private function clearAllNewDocuments(event:Event=null):void
 			{
 				currentNewDocsCount = 0;
 				
@@ -561,12 +595,37 @@
 				{
 					t.highlighted.value = false;
 				}
+				glowTimer.stop();
+				nodeBase.keywordTextArea.filters = [];
+				prevNewDocsCount.value = 0;
+				currentNewDocsCount = 0;
+				nodeBase.tickImg.visible = false;
+//				updateTextArea();
 			}
 			
 			private function blinkNode(event:TimerEvent):void
 			{
-				newDocumentHighlight.play();
+//				newDocumentHighlight.play();
+				startGlow();
 			}
+			
+			
+			private var glowFilter:GlowFilter = new GlowFilter();
+			private var glowTimer:Timer = new Timer(125);
+			private function startGlow():void
+			{
+				nodeBase.keywordTextArea.filters = [glowFilter];
+				glowTimer.addEventListener(TimerEvent.TIMER,changeGlow);
+				glowTimer.start();
+			}
+			
+			private function changeGlow(event:TimerEvent):void
+			{
+				glowFilter.alpha = 0.125 + (event.target.currentCount % 8) *0.125;
+				glowFilter.color = thumbnailsDefaultColor.value;
+				nodeBase.keywordTextArea.filters=[glowFilter];
+			}
+			
 			
 			private function adjustNodeBase():void
 			{
@@ -580,8 +639,8 @@
 			override public function validateDisplayList():void
 			{
 				super.validateDisplayList();
-//				if(detectLinkableObjectChange(invalidateDisplayList,thumbnails,movedThumbNails))
-//					positionThumbnails();
+				//				if(detectLinkableObjectChange(invalidateDisplayList,thumbnails,movedThumbNails))
+				//					positionThumbnails();
 			}
 			
 			public var thumbnailsToPlotArray:Array = [];
@@ -593,15 +652,27 @@
 			 **/
 			private function positionThumbnails():void
 			{
-//				nodeBase.keywordTextArea.text = query.keywords.value;
-				
-				nodeBase.keywordTextArea.toolTip = query.keywords.value;
-				
+				//				nodeBase.keywordTextArea.text = query.keywords.value;
+				trace("in positionThumbnails");
+				if(!previousQuery.keywords.value)
+					return;
 				pointsCanvas.y = nodeBase.height;
 				
 				thumbnailsToPlotArray = [];
 				var tNails:Array = thumbnails.getObjects()
-
+				
+//				if(nodeBase.keywordTextArea.htmlText.indexOf("Total Documents") >-1)
+//					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/Total Documents Found:<\/B> [0-9]*/g,"Total Documents Found:<\/B> " + tNails.length);
+//				else
+//					nodeBase.keywordTextArea.htmlText +="<br/><b>Total Documents Found:</b> " +  tNails.length;
+				
+				if(nodeBase.keywordTextArea.htmlText.indexOf("/") >-1)
+					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\/[0-9]*/g,"/" + tNails.length);
+				else
+					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\([0-9]*/g,"(" + tNails.length);
+				
+				adjustNodeBase();	
+				
 				for (var i:int = 0; i<tNails.length; i++)
 				{
 					var t:DocThumbnailComponent = tNails[i];
@@ -627,17 +698,17 @@
 						if(t.parent != _parentPanel.map)
 						{
 							_parentPanel.map.addChild(t);
-							//xPos and yPos are not linked
-							t.move(t.xPos.value,t.yPos.value);
 							
 						}
+						//xPos and yPos are not linked
+						t.move(t.xPos.value,t.yPos.value);
 						
 					}else
 					{
 						if(t.parent != this)
 						{
 							t.visible = false;
-//							pointsCanvas.addChild(t);
+							//							pointsCanvas.addChild(t);
 						}
 					}
 					
@@ -658,35 +729,36 @@
 					}
 					
 				}
-//				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
+				//				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
 				d.docKeys = thumbnailsToPlotArray;
 				handleSelectionKeySetChange();
-				handleGlobalSearch();
+				adjustNodeBase();
+//				handleGlobalSearch();
 			}
 			
-//			private function positionMovedthumbNails():void
-//			{
-//				var thumbnailNames:Array = movedThumbNails.getNames();	
-//				
-//				for each (var url:String in thumbnailNames)
-//				{
-//					var t:DocThumbnailComponent = thumbnails.getObject(url) as DocThumbnailComponent;
-//					
-//					if(!t)
-//						continue;
-//					
-//					if(t.parent != _parentPanel.map)
-//					{
-//						_parentPanel.map.addChild(t);
-//					}
-//					
-//					var position:MovedThumbnailPosition = movedThumbNails.getObject(url) as MovedThumbnailPosition;
-//					
-//					copySessionState(position.xPos,t.xPos);
-//					copySessionState(position.yPos,t.yPos);
-//					
-//				}
-//			}
+			//			private function positionMovedthumbNails():void
+			//			{
+			//				var thumbnailNames:Array = movedThumbNails.getNames();	
+			//				
+			//				for each (var url:String in thumbnailNames)
+			//				{
+			//					var t:DocThumbnailComponent = thumbnails.getObject(url) as DocThumbnailComponent;
+			//					
+			//					if(!t)
+			//						continue;
+			//					
+			//					if(t.parent != _parentPanel.map)
+			//					{
+			//						_parentPanel.map.addChild(t);
+			//					}
+			//					
+			//					var position:MovedThumbnailPosition = movedThumbNails.getObject(url) as MovedThumbnailPosition;
+			//					
+			//					copySessionState(position.xPos,t.xPos);
+			//					copySessionState(position.yPos,t.yPos);
+			//					
+			//				}
+			//			}
 			
 			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 			/**
@@ -745,7 +817,7 @@
 					return;
 				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
 				(layout.internalObject as IInfoMapNodeLayout).drawBaseLayout(graphics);
-//				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray,true);
+				//				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray,true);
 			}
 			
 			private function handleSpacingChange():void
@@ -759,89 +831,95 @@
 			private function handleGlobalSearch():void
 			{
 				
-				if(!_parentPanel.globalSearchKeyword.value)
-				{
-					_searchKeySet.clearKeys();
-					_searchKeySet.triggerCallbacks();
-					return;
-				}
+//				if(!_parentPanel.globalSearchKeyword.value)
+//				{
+////					_searchKeySet.clearKeys();
+////					_searchKeySet.triggerCallbacks();
+//					return;
+//				}
+//				
+//				var fieldNames:Array = ['link'];
+//				
+//				var fieldValues:Array = [];
+//				
+//				fieldValues.push(thumbnails.getNames());
+//				
+//				if(!query.sources.value == '')
+//				{
+//					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+//				}
+//				
+//				_parentPanel.infoMapsDataSource.getDocumentsForQueryWithFieldValues(_searchKeySet,_parentPanel.globalSearchKeyword.value,fieldNames,fieldValues,null,"OR",null,2000,false);
 				
-				var fieldNames:Array = ['link'];
 				
-				var fieldValues:Array = [];
-				
-				fieldValues.push(thumbnails.getNames());
-				
-				if(!query.sources.value == '')
-				{
-					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
-				}
-				
-				_parentPanel.infoMapsDataSource.getDocumentsForQueryWithFieldValues(_searchKeySet,_parentPanel.globalSearchKeyword.value,fieldNames,fieldValues,null,"OR",null,2000,false);
-				
+//				filteredWords.value = 
+			}
+			
+			public function filterBy(keywords:String):void
+			{
+				filteredWords.value = keywords;
 			}
 			
 			//this function is called when the _searchKeySet is set. 
 			//This sets the thumbnail's visiblity based if its link is included or excluded in the _searchKeySet
 			private function handleSearchKeySetChange():void
 			{
-//				var tnails:Array = thumbnails.getObjects();
-//				
-//				var searchMatchedKeys:Array =_searchKeySet.keys; 
-//				
-//				if(searchMatchedKeys.length == 0)
-//				{
-//					//if searchKeys length is zero and if there is search keyword then none of the documents matched. So we set all visiblity to false
-//					//else set all to true;
-//					var visiblity:Boolean =  (_parentPanel.globalSearchKeyword.value != "");
-//					for each(var t1:DocThumbnailComponent in tnails)
-//					{
-//						var qKey1:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t1.docURL.value);
-//						if(_subset.containsKey(qKey1))
-//						{
-//							
-//							t1.visible = !visiblity;
-//						}
-//					}
-//				}else
-//				{
-//					for each(var t2:DocThumbnailComponent in tnails)
-//					{
-//						var qKey2:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t2.docURL.value);
-//						if(_subset.containsKey(qKey2))
-//						{
-//							
-//							t2.visible = false;
-//						}
-//					}
-//				}
-//				
-//				for each(var k:IQualifiedKey in searchMatchedKeys)
-//				{
-//					var t3:DocThumbnailComponent = thumbnails.getObject(k.localName) as DocThumbnailComponent;
-//					
-//					if(!t3)
-//						continue;
-//					
-//					var qKey3:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t3.docURL.value);
-//								
-//					
-//					if(t3 && qKey3 && _subset.containsKey(qKey3))
-//					{
-//						
-//						t3.visible = true;
-//					}
-//				}
+				//				var tnails:Array = thumbnails.getObjects();
+				//				
+				//				var searchMatchedKeys:Array =_searchKeySet.keys; 
+				//				
+				//				if(searchMatchedKeys.length == 0)
+				//				{
+				//					//if searchKeys length is zero and if there is search keyword then none of the documents matched. So we set all visiblity to false
+				//					//else set all to true;
+				//					var visiblity:Boolean =  (_parentPanel.globalSearchKeyword.value != "");
+				//					for each(var t1:DocThumbnailComponent in tnails)
+				//					{
+				//						var qKey1:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t1.docURL.value);
+				//						if(_subset.containsKey(qKey1))
+				//						{
+				//							
+				//							t1.visible = !visiblity;
+				//						}
+				//					}
+				//				}else
+				//				{
+				//					for each(var t2:DocThumbnailComponent in tnails)
+				//					{
+				//						var qKey2:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t2.docURL.value);
+				//						if(_subset.containsKey(qKey2))
+				//						{
+				//							
+				//							t2.visible = false;
+				//						}
+				//					}
+				//				}
+				//				
+				//				for each(var k:IQualifiedKey in searchMatchedKeys)
+				//				{
+				//					var t3:DocThumbnailComponent = thumbnails.getObject(k.localName) as DocThumbnailComponent;
+				//					
+				//					if(!t3)
+				//						continue;
+				//					
+				//					var qKey3:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(InfoMapsDataSource.DOC_KEYTYPE,t3.docURL.value);
+				//								
+				//					
+				//					if(t3 && qKey3 && _subset.containsKey(qKey3))
+				//					{
+				//						
+				//						t3.visible = true;
+				//					}
+				//				}
 				
 			}
 			
 			private function handleGlobalDateChange():void
 			{
-//				if(node.selected.value)
-//				{
+				getCallbackCollection(query).delayCallbacks();
 				query.dateFilter.startDate.value = _parentPanel.globalDateFilter.startDate.value;
 				query.dateFilter.endDate.value = _parentPanel.globalDateFilter.endDate.value;
-//				}
+				getCallbackCollection(query).resumeCallbacks();
 			}
 			private function removeEmptyStringElementsFromArray(arg:Array):Array
 			{
@@ -859,29 +937,30 @@
 			private function handleClick(event:Event):void
 			{
 				//if running to blink node.
-				timer.stop();
+				glowTimer.stop();
+				nodeBase.keywordTextArea.filters = [];
 				
 				if(wasDragged)
 				{
 					wasDragged = false;
 					return;
 				}
-//				if(node.selected.value)
-//					node.selected.value = false;
-//				else
-//					node.selected.value = true;
+				//				if(node.selected.value)
+				//					node.selected.value = false;
+				//				else
+				//					node.selected.value = true;
 			}
 			
 			//highlight node based on node.selected.value
 			private function highlightNode():void
 			{
-//				unselectedBorder.color = _parentPanel.defaultNodeBorderColor.value;
-//				selectedBorder.color = _parentPanel.selectedNodeBorderColor.value;
-//				
-//				if(node.selected.value)
-//					selectedBorder.play();
-//				else
-//					unselectedBorder.play();
+				//				unselectedBorder.color = _parentPanel.defaultNodeBorderColor.value;
+				//				selectedBorder.color = _parentPanel.selectedNodeBorderColor.value;
+				//				
+				//				if(node.selected.value)
+				//					selectedBorder.play();
+				//				else
+				//					unselectedBorder.play();
 			}
 			
 			//this variable will be  used to avoid selection/unselection when the node is dragged
@@ -919,22 +998,6 @@
 				}
 			}
 			
-//			private function handleCommentAreaChange(event:Event):void
-//			{
-//				var ta_height:uint = 20;
-//				
-//				nodeBase.commentTextArea.validateNow();
-//				
-//				for(var i:int=0; i < nodeBase.commentTextArea.mx_internal::getTextField().numLines; i++) {
-//					ta_height += nodeBase.commentTextArea.mx_internal::getTextField().getLineMetrics(i).height;
-//				}
-//				
-//				nodeBase.commentTextArea.height = ta_height;
-//				
-//				nodeBase.height +=  ta_height;
-//				nodeBase.invalidateDisplayList();
-//			}
-			
 			private function filter(event:Event):void
 			{
 				DateFilterComponent.openInstance(this,query.dateFilter);
@@ -951,7 +1014,7 @@
 				else
 				{
 					_instance = new NodeSettingsComponent();
-					_instance.nodeHandler = this;
+					_instance.query = this.query;
 					PopUpManager.addPopUp(_instance,this);
 				}
 			}
@@ -972,40 +1035,39 @@
 			private function toggleTagCloud(event:Event=null,forceShow:Boolean=false,forceHide:Boolean=false):void
 			{
 				clearFiltersButton.visible = false;
-//				statusBox.y = nodeBase.height + statusBox.height;
+				//				statusBox.y = nodeBase.height + statusBox.height;
 				if(tagCanvas == null)
 				{
 					tagCanvas = new TagCloud();
 					tagCanvas.addEventListener(MouseEvent.CLICK,handleTagCloudClick);
 					tagCanvas.alpha = 0;
 					addChild(tagCanvas);
-//					tagCanvas.y= nodeBase.height + statusBox.height;
-					tagCanvas.y= nodeBase.height;
+				}
+				tagCanvas.y= nodeBase.height;
+				if(!VectorUtils.compare(tagCanvas.dataProvider,wordCount))
+				{
 					tagCanvas.dataProvider = wordCount;
-					
 					tagCanvas.draw();
-						
+				}
+				fadeOut.play([pointsCanvas,listCanvas,clearNewDocuments]);
+				if(forceShow)
+				{
+					fadeIn.play([tagCanvas]);
+					return;
 				}
 				
-					fadeOut.play([pointsCanvas,listCanvas,clearNewDocuments]);
-					if(forceShow)
-					{
-						fadeIn.play([tagCanvas]);
-						return;
-					}
-					
-					if(forceHide)
-					{
-						fadeOut.play([tagCanvas]);
-						return;
-					}
-					
-					//toggle
-					if(tagCanvas.alpha ==0)
-						fadeIn.play([tagCanvas]);
-					else
-						fadeOut.play([tagCanvas]);
-					
+				if(forceHide)
+				{
+					fadeOut.play([tagCanvas]);
+					return;
+				}
+				
+				//toggle
+				if(tagCanvas.alpha ==0)
+					fadeIn.play([tagCanvas]);
+				else
+					fadeOut.play([tagCanvas]);
+				
 			}
 			
 			public function showTagCloud():void
@@ -1024,9 +1086,15 @@
 				//if the list is not added yet
 				if(!listCanvas.contains(d))
 				{
+					listCanvas.visible = false;
 					listCanvas.addChild(d);
+					
 					d.y = nodeBase.height + statusBox.height;
 					statusBox.y = d.y-statusBox.height;
+					
+					if(forceHide)
+						return;
+					
 					fadeIn.play([listCanvas,clearNewDocuments]);
 					//hide other canvases 
 					if(tagCanvas)
@@ -1035,6 +1103,9 @@
 						fadeOut.play([pointsCanvas]);
 					return;
 				}
+				
+				d.y = nodeBase.height + statusBox.height;
+				statusBox.y = d.y-statusBox.height;
 				
 				//hide other canvases 
 				if(tagCanvas)
@@ -1076,37 +1147,44 @@
 				toggleList(null,false,true);
 			}
 			
-			private function showPointCanvas(event:Event):void
-			{
-				
-				if(!(tagCanvas == null))
-					fadeOut.play([tagCanvas,listCanvas,clearNewDocuments]);
-				else
-					fadeOut.play([listCanvas,clearNewDocuments]);
-				(layout.internalObject as RandomLayout).updateTitleLabel();
-				fadeIn.play([pointsCanvas]);
-			}
+//			private function showPointCanvas(event:Event):void
+//			{
+//				
+//				if(!(tagCanvas == null))
+//					fadeOut.play([tagCanvas,listCanvas,clearNewDocuments]);
+//				else
+//					fadeOut.play([listCanvas,clearNewDocuments]);
+//				(layout.internalObject as RandomLayout).updateTitleLabel();
+//				fadeIn.play([pointsCanvas]);
+//			}
 			
 			private var clickedWordKeySet:KeySet = new KeySet();
-			private var clickedWord:String = "";
+			private var filteredWords:LinkableString = new LinkableString("",null,false);
 			private function handleTagCloudClick(event:MouseEvent):void
 			{
 				//we don't use the event.target for getting the text because this is based on the bounding box clicked and not necessarily the 
 				//probed word. So we used the last recorded probed word
 				if(event.target is CustomLabel)
-					clickedWord= ((event.target as CustomLabel).parent as TagCloud).lastProbedWord.value;
+					filteredWords.value= ((event.target as CustomLabel).parent as TagCloud).lastProbedWord.value;
 				else
 					return;
+			}
+			
+			private function filterListByKeywords():void
+			{
+				if(!filteredWords.value)
+					return;
+				
 				if(!query.sources.value == '')
 				{
 					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
 				}
 				
-				_parentPanel.infoMapsDataSource.getDocumentsForQuery(clickedWordKeySet,[],query.keywords.value + " " + clickedWord,"AND",sourceNames,query.dateFilter);
+				_parentPanel.infoMapsDataSource.getDocumentsForQuery(clickedWordKeySet,[],query.keywords.value + " " + filteredWords.value,"AND",sourceNames,query.dateFilter);
 				status.htmlText= "Filtering list...";
 				clearFiltersButton.visible = false;
-//				statusBox.width = 200;
-				toggleList();
+				//				statusBox.width = 200;
+				showList();
 			}
 			
 			private function handleClickedWordKeySetChange():void
@@ -1122,9 +1200,9 @@
 					}
 				}
 				
-//				_subset.replaceKeys(false,true,includeKeys);
+				//				_subset.replaceKeys(false,true,includeKeys);
 				_tagWordSubset.replaceKeys(false,true,includeKeys);
-				status.htmlText= "<b>Filtered by: </b>" + clickedWord;
+				status.htmlText= "<b>Filtered by: </b>" + filteredWords.value;
 				clearFiltersButton.visible = true;
 				
 			}
@@ -1134,7 +1212,7 @@
 				_tagWordSubset.replaceKeys(true,true);
 				status.text = "";
 				clearFiltersButton.visible = false;
-				clickedWord = "";
+				filteredWords.value = "";
 			}
 			
 			private function handleFadeInEffectsStart(event:EffectEvent):void
@@ -1142,7 +1220,7 @@
 				//if it is the clearNewDocumentsButton, test to see if need to show it 
 				if(event.effectInstance.target is Button)
 				{
-					if(highlightNewDocuments && currentNewDocsCount>0 && currentNewDocsCount != prevNewDocsCount.value)
+					if(prevNewDocsCount.value>0)
 					{
 						clearNewDocuments.visible = true;
 					}
@@ -1157,7 +1235,12 @@
 			
 			private function handleFadeOutEffectsEnd(event:EffectEvent):void
 			{
-					(event.effectInstance.target as DisplayObject).visible = false;
+				(event.effectInstance.target as DisplayObject).visible = false;
+			}
+			
+			private function handleBorderColor():void
+			{
+				nodeBase.keywordTextArea.setStyle("borderColor",thumbnailsDefaultColor.value);
 			}
 			
 			private function handleCloseEvent(e:CloseEvent):void
@@ -1175,6 +1258,65 @@
 				}
 			}			
 			
+			//							private function handleEditCommentsClick(event:MouseEvent):void
+			//			{
+			//				nodeBase.editImage.visible = false;
+			//				nodeBase.commentTextArea.visible = true;
+			//				nodeBase.commentTextArea.setFocus();
+			//			}
+			//			
+			//			private function handleCommentsChange():void
+			//			{
+			//				if(nodeBase.commentTextArea.text != comments.value)
+			//					nodeBase.commentTextArea.text = comments.value;
+			//				if(comments.value)
+			//				{
+			//					nodeBase.commentTextArea.visible = true;
+			//					nodeBase.editImage.visible = false;
+			//					nodeBase.commentTextArea.validateNow();
+			//				}else{
+			//					nodeBase.commentTextArea.visible = false;
+			//					nodeBase.editImage.visible = true;
+			//				}
+			//			}
+			//			
+			//			private function handleCommentKeyUp(event:KeyboardEvent=null):void
+			//			{
+			//				
+			//				comments.value = nodeBase.commentTextArea.text;
+			//				if(event.keyCode == Keyboard.ESCAPE)
+			//				{
+			//					updateCommentTextArea();
+			//					nodeBase.keywordTextArea.setFocus();
+			//				}
+			//			}
+			//			
+			//			private function updateCommentTextArea(event:Event=null):void
+			//			{
+			//				nodeBase.commentTextArea.minHeight = nodeBase.commentTextArea.textHeight;
+			//
+			//				if(nodeBase.commentTextArea.text == "")
+			//				{
+			//					comments.triggerCallbacks();
+			//				}
+			//			}	
+			
+			
+			//			private function handleCommentAreaChange(event:Event):void
+			//			{
+			//				var ta_height:uint = 20;
+			//				
+			//				nodeBase.commentTextArea.validateNow();
+			//				
+			//				for(var i:int=0; i < nodeBase.commentTextArea.mx_internal::getTextField().numLines; i++) {
+			//					ta_height += nodeBase.commentTextArea.mx_internal::getTextField().getLineMetrics(i).height;
+			//				}
+			//				
+			//				nodeBase.commentTextArea.height = ta_height;
+			//				
+			//				nodeBase.height +=  ta_height;
+			//				nodeBase.invalidateDisplayList();
+			//			}
 			
 		]]>
 	</mx:Script>

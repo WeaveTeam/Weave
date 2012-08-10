@@ -45,8 +45,8 @@ package weave.ui.infomap.layout
 			graphics.beginFill(0,0);
 			graphics.drawCircle(0,0,thumbnailSpacing.value);
 			
-			_parentNodeHandler.nodeBase.keywordTextArea.text = _parentNodeHandler.query.keywords.value;
-			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.query.keywords.value;
+//			_parentNodeHandler.nodeBase.keywordTextArea.text = _parentNodeHandler.query.keywords.value;
+//			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.query.keywords.value;
 			_parentNodeHandler.nodeBase.x = - (thumbnailSpacing.value/2) - 20; //TODO: the value 20 should be replaced by an offset
 			_parentNodeHandler.nodeBase.keywordTextArea.setStyle("textAlign","center");
 			

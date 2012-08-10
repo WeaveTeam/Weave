@@ -36,15 +36,15 @@ Info to provide a tooltip describing the node (like number of documents found)
 			<mx:TextInput id="searchTextInput" keyUp="handleEnterKeyOnSearch(event)"/>
 		</mx:HBox>-->
 		
-		<mx:HBox>
+		<!--<mx:HBox>
 			<mx:Label fontWeight="bold" text="Change Layout: "  width="{_leftAlignWidth}"/>			
 			<CustomComboBox id="layoutComboBox" change="handleLayoutChange()"/>
-		</mx:HBox>
-		<mx:HBox>
+		</mx:HBox>-->
+		<!--<mx:HBox>
 			<mx:Label fontWeight="bold" text="Spacing: "  width="{_leftAlignWidth}"/>			
 			<mx:HSlider tickLength="0" tickThickness="0" minimum="-50" maximum="200" id="spacingSlider"
 						change="{(nodeHandler.layout.internalObject as IInfoMapNodeLayout).thumbnailSpacingValue = spacingSlider.value}" snapInterval="5" />
-		</mx:HBox>
+		</mx:HBox>-->
 		
 		<!--<mx:Label fontWeight="bold" text="Sources to Query*"/>
 		<mx:List id="selectedSourcesList" selectable="true" allowMultipleSelection="true" width="50%"/>
@@ -83,7 +83,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 		</mx:HBox>	
 		<mx:Label id="errorMsg" color="red" fontWeight="bold" text="Both fields are required." visible="false"/>
 		<!--<mx:Button id="sourcesListButton" label="Show Available Sources" click="handleSourceListClick()"/>-->
-		<ui:SourcesListComponent parentNode="{nodeHandler}" id="sourcesGrid" width="100%"/>
+		<ui:SourcesListComponent parentNode="{query}" id="sourcesGrid" width="100%"/>
 	</mx:VBox>
 		 <mx:Script>
 			 <![CDATA[
@@ -107,6 +107,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 import weave.primitives.DateRangeFilter;
 				 import weave.services.InfoMapAdminInterface;
 				 import weave.ui.infomap.core.InfoMapNode;
+				 import weave.ui.infomap.core.QueryObject;
 				 import weave.ui.infomap.layout.CascadeLayout;
 				 import weave.ui.infomap.layout.GridLayout;
 				 import weave.ui.infomap.layout.HorizontalLayout;
@@ -118,7 +119,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 import weave.utils.EventUtils;
 				 
 				 [Inspectable]
-				 public var nodeHandler:NodeHandler= null;
+				 public var query:QueryObject= null;
 				 
 				 [Bindable]
 				 private var _leftAlignWidth:Number = 100;
@@ -134,118 +135,118 @@ Info to provide a tooltip describing the node (like number of documents found)
 					rangeComboBox.dataProvider = ['--Quick Select--','Since Last 1 Day','Since Last 3 Days','Since Last Week','Since Last Month','Since Last Year'];
 					//setting the dataprovide here fixes the combo box bug where it still showed the first item one by default
 					//even if it was not the selected item
-					layoutComboBox.dataProvider =  ['Radial','Grid'] ;
+//					layoutComboBox.dataProvider =  ['Radial','Grid'] ;
 					 
 					operator.dataProvider = ['OR','AND'];
 					 
 //					keyword.text = nodeHandler.node.keywords.value;
-					keyword.text = nodeHandler.query.keywords.value;
+					keyword.text = query.keywords.value;
 					 
 //					linkBindableProperty(nodeHandler.searchFilter,searchTextInput,"text",500);
 					
-					operator.selectedItem = nodeHandler.query.operator.value;
-					linkBindableProperty(nodeHandler.query.operator,operator,"selectedItem");
+					operator.selectedItem = query.operator.value;
+					linkBindableProperty(query.operator,operator,"selectedItem");
 					
-					nodeHandler.query.dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);
-					nodeHandler.query.dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,false);
+					query.dateFilter.startDate.addImmediateCallback(this,handleStartDateFilterChange,false);
+					query.dateFilter.endDate.addImmediateCallback(this,handleEndDateFilterChange,false);
 					 
 					startDateStr.addGroupedCallback(this,handleDateChange);
 					endDateStr.addGroupedCallback(this,handleDateChange);
 					
 					
 					
-					nodeHandler.layout.addImmediateCallback(this,handleLayoutObjectChange,true);
+//					nodeHandler.layout.addImmediateCallback(this,handleLayoutObjectChange,true);
 					
-					this.targets = [nodeHandler.query.keywords,nodeHandler.layout,nodeHandler.query.sources,nodeHandler.query.dateFilter.startDate,nodeHandler.query.dateFilter.endDate]
+					this.targets = [query.keywords,query.sources,query.dateFilter.startDate,query.dateFilter.endDate]
 				 }
 				 
-				 private function handleLayoutObjectChange():void
-				 {
-					 if(nodeHandler.layout.internalObject)
-					 {
-					 	layoutComboBox.selectedLabel = (nodeHandler.layout.internalObject as IInfoMapNodeLayout).name;
-						spacingSlider.value = (nodeHandler.layout.internalObject as IInfoMapNodeLayout).thumbnailSpacingValue;									 
-					 }
-				 }
+//				 private function handleLayoutObjectChange():void
+//				 {
+//					 if(nodeHandler.layout.internalObject)
+//					 {
+//					 	layoutComboBox.selectedLabel = (nodeHandler.layout.internalObject as IInfoMapNodeLayout).name;
+//						spacingSlider.value = (nodeHandler.layout.internalObject as IInfoMapNodeLayout).thumbnailSpacingValue;									 
+//					 }
+//				 }
 				 
 				 // we only want to make a query if both dates are set. 
 				 private function handleDateChange():void
 				 {
 					 if(startDateStr.value == '' || endDateStr.value == '')
 						 return;
-					 getCallbackCollection(nodeHandler.query.dateFilter).delayCallbacks();
+					 getCallbackCollection(query.dateFilter).delayCallbacks();
 
-					 nodeHandler.query.dateFilter.startDate.value = startDateStr.value;
-					 nodeHandler.query.dateFilter.endDate.value = endDateStr.value;
+					 query.dateFilter.startDate.value = startDateStr.value;
+					 query.dateFilter.endDate.value = endDateStr.value;
 					 
-					 getCallbackCollection(nodeHandler.query.dateFilter).resumeCallbacks();
-					 getCallbackCollection(nodeHandler.query.dateFilter).triggerCallbacks();				 
+					 getCallbackCollection(query.dateFilter).resumeCallbacks();
+					 getCallbackCollection(query.dateFilter).triggerCallbacks();				 
 				 }
 				 
 				 private function handleStartDateFilterChange():void
 				 {
-					 if(nodeHandler.query.dateFilter.startDate.value != null)
+					 if(query.dateFilter.startDate.value != null)
 					 {
-						 startDateStr.value = nodeHandler.query.dateFilter.startDate.value;
-					 	startRange.selectedDate = DateUtils.getDateFromString(nodeHandler.query.dateFilter.startDate.value);
-					 if(nodeHandler.query.dateFilter.startDate.value.search('NOW') == -1)
+						 startDateStr.value = query.dateFilter.startDate.value;
+					 	startRange.selectedDate = DateUtils.getDateFromString(query.dateFilter.startDate.value);
+					 if(query.dateFilter.startDate.value.search('NOW') == -1)
 					 	rangeComboBox.selectedItem = "--Quick Select--";
 					 }
 				 }
 				 
 				 private function handleEndDateFilterChange():void
 				 {
-					 if(nodeHandler.query.dateFilter.endDate.value != null)
+					 if(query.dateFilter.endDate.value != null)
 					 {
-						endDateStr.value = nodeHandler.query.dateFilter.endDate.value;
-					 	endRange.selectedDate = DateUtils.getDateFromString(nodeHandler.query.dateFilter.endDate.value);
+						endDateStr.value = query.dateFilter.endDate.value;
+					 	endRange.selectedDate = DateUtils.getDateFromString(query.dateFilter.endDate.value);
 					 }
-					 if(nodeHandler.query.dateFilter.endDate.value &&  nodeHandler.query.dateFilter.startDate.value.search('NOW') == -1)
+					 if(query.dateFilter.endDate.value &&  query.dateFilter.startDate.value.search('NOW') == -1)
 						 rangeComboBox.selectedItem = "--Quick Select--";
 				 }
 				 
 				 private function applyKeyword():void
 				 {
-					 if(nodeHandler && nodeHandler.query && keyword)
-						 nodeHandler.query.keywords.value = keyword.text;
+					 if(query && keyword)
+						 query.keywords.value = keyword.text;
 				 }
 				 
-				 private function handleLayoutChange():void
-				 {
-					 var currentLayout:LinkableDynamicObject = nodeHandler.layout;
-					 if(layoutComboBox.selectedItem as String == 'Radial')
-					 {
-						 if(currentLayout.internalObject is RadialLayout)
-							 return;
-						 currentLayout.removeObject();
-						 currentLayout.requestLocalObject(RadialLayout,false);
-					 }else if(layoutComboBox.selectedItem as String == 'Cascade')
-					 {
-						 if(currentLayout.internalObject is CascadeLayout)
-							 return;
-						 currentLayout.removeObject();
-						 currentLayout.requestLocalObject(CascadeLayout,false);
-					 }else if(layoutComboBox.selectedItem as String == 'Grid')
-					 {
-						 if(currentLayout.internalObject is GridLayout)
-							 return;
-						 currentLayout.removeObject();
-						 currentLayout.requestLocalObject(GridLayout,false);
-					 }else if(layoutComboBox.selectedItem as String == 'Horizontal')
-					 {
-						 if(currentLayout.internalObject is HorizontalLayout)
-							 return;
-						 currentLayout.removeObject();
-						 currentLayout.requestLocalObject(HorizontalLayout,false);
-					 }else if(layoutComboBox.selectedItem as String == 'Vertical')
-					 {
-						 if(currentLayout.internalObject is VerticalLayout)
-							 return;
-						 currentLayout.removeObject();
-						 currentLayout.requestLocalObject(VerticalLayout,false);
-					 }
-					 
-				 }
+//				 private function handleLayoutChange():void
+//				 {
+//					 var currentLayout:LinkableDynamicObject = nodeHandler.layout;
+//					 if(layoutComboBox.selectedItem as String == 'Radial')
+//					 {
+//						 if(currentLayout.internalObject is RadialLayout)
+//							 return;
+//						 currentLayout.removeObject();
+//						 currentLayout.requestLocalObject(RadialLayout,false);
+//					 }else if(layoutComboBox.selectedItem as String == 'Cascade')
+//					 {
+//						 if(currentLayout.internalObject is CascadeLayout)
+//							 return;
+//						 currentLayout.removeObject();
+//						 currentLayout.requestLocalObject(CascadeLayout,false);
+//					 }else if(layoutComboBox.selectedItem as String == 'Grid')
+//					 {
+//						 if(currentLayout.internalObject is GridLayout)
+//							 return;
+//						 currentLayout.removeObject();
+//						 currentLayout.requestLocalObject(GridLayout,false);
+//					 }else if(layoutComboBox.selectedItem as String == 'Horizontal')
+//					 {
+//						 if(currentLayout.internalObject is HorizontalLayout)
+//							 return;
+//						 currentLayout.removeObject();
+//						 currentLayout.requestLocalObject(HorizontalLayout,false);
+//					 }else if(layoutComboBox.selectedItem as String == 'Vertical')
+//					 {
+//						 if(currentLayout.internalObject is VerticalLayout)
+//							 return;
+//						 currentLayout.removeObject();
+//						 currentLayout.requestLocalObject(VerticalLayout,false);
+//					 }
+//					 
+//				 }
 				 
 				 
 				 
@@ -260,7 +261,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 
 				 private function editQuery():void
 				 {
-					 nodeHandler.query.keywords.value = keyword.text;
+					 query.keywords.value = keyword.text;
 				 }
 				 
 				 private function handleEnterKeyOnSearch(event:KeyboardEvent):void
@@ -321,8 +322,8 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 private function handleClearDates():void
 				 {
 					 //clearning dates in filterObject
-					 nodeHandler.query.dateFilter.endDate.value = '';
-					 nodeHandler.query.dateFilter.startDate.value = '';
+					 query.dateFilter.endDate.value = '';
+					 query.dateFilter.startDate.value = '';
 					 
 					 
 					 startRange.selectedDate = null;
@@ -387,8 +388,8 @@ Info to provide a tooltip describing the node (like number of documents found)
 					
 					var dict:Dictionary = new Dictionary();
 					
-					if(!nodeHandler.query.sources.value == '')
-						sources[0] = parser.parseCSV(nodeHandler.query.sources.value)[0];
+					if(!query.sources.value == '')
+						sources[0] = parser.parseCSV(query.sources.value)[0];
 					
 					//if the source name already exists then ignore and return
 					for each(var src:String in sources[0])
@@ -403,7 +404,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 					//this is necessary so that the callbacks on sources are not called simply because the same sources are out of order.
 					sources[0].sort();
 					
-					nodeHandler.query.sources.value = parser.createCSV(sources);
+					query.sources.value = parser.createCSV(sources);
 				}
 				
 				

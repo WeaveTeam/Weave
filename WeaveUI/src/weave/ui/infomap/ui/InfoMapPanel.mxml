@@ -165,7 +165,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.childrenCreated();
 				UIUtils.linkDisplayObjects(map,nodes,false);
 				sortByTitle();
-				linkBindableProperty(globalSearchKeyword,globalSearchTextInput,"text",500);
+//				linkBindableProperty(globalSearchKeyword,globalSearchTextInput,"text",500);
 				
 				registerDisposableChild(this,globalSearchKeyword);
 				registerDisposableChild(this,globalDateFilter);
@@ -192,6 +192,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(selectedThumbnailBorderColor,selectedThumbnailBorderPicker,"selectedColor");
 				linkBindableProperty(newThumbnailGlowColor,thumbnailGlowColorPicker,"selectedColor");
 				
+				globalSearchKeyword.addGroupedCallback(this,handleGlobalSearch);
+				
 				_infomapSubMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK]);
 				
 				_infomapSubMenu.addSubMenuItem("Add Query Node",addInfoMapNode);
@@ -204,6 +206,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_fileReference.addEventListener(Event.SELECT, folderSelectHanlder);
 //				_fileReference.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
 				_fileReference.addEventListener(IOErrorEvent.IO_ERROR, folderErrorHandler)
+			}
+			
+			private function handleGlobalKeyInput(event:KeyboardEvent):void
+			{
+				if(event.keyCode == Keyboard.ENTER)
+				{
+					event.preventDefault();
+					globalSearchKeyword.value = globalSearchTextInput.text;
+				}
+			}
+			
+			private function handleGlobalSearch():void
+			{
+				for each(var n:NodeHandler in nodes.getObjects())
+				{
+					n.filterBy(globalSearchKeyword.value);
+				}
 			}
 			
 			private var _infomapSubMenu:SubMenu = null;
@@ -238,6 +257,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//move the thumbnail to the new location
 				var localPoint:Point = map.globalToLocal(new Point(event.stageX,event.stageY));
 				t.move(localPoint.x,localPoint.y);
+				
+				t.xPos.value = t.x;
+				t.yPos.value = t.y;
 				
 				t.imageHeight.value = 50;
 				t.imageWidth.value = 50;
@@ -617,20 +639,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				nodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
 				
 				nodeHandler.nodeBase.width = 200;//starting off with wide text area
-				
-				nodeHandler.query.keywords.value = query;
-				if(op ==null)
-				{
-					//TODO: should take value from RadioButton. Value was null when last tried.
-					nodeHandler.query.operator.value = "AND";	
-				}
-				else{
-					
-					nodeHandler.query.operator.value = op;
-				}
-				
 				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
 				nodeHandler.nodeBase.keywordTextArea.setStyle("borderColor",nodeHandler.thumbnailsDefaultColor.value);
+
+				if(query)
+				{
+					nodeHandler.applyKeywords(query);
+				}
+				
+//				nodeHandler.query.keywords.value = query;
+//				if(op ==null)
+//				{
+//					//TODO: should take value from RadioButton. Value was null when last tried.
+//					nodeHandler.query.operator.value = "AND";	
+//				}
+//				else{
+//					
+//					nodeHandler.query.operator.value = op;
+//				}
+				
 			}
 			
 			private var loader:URLLoader = null;
@@ -898,7 +925,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					</mx:HBox>-->
 					<mx:HBox>
 							<mx:Label fontWeight="bold" text="Search in Nodes:"/>
-							<mx:TextInput id="globalSearchTextInput" borderStyle="solid" cornerRadius="5" width="200" />
+							<mx:TextInput id="globalSearchTextInput" keyDown="handleGlobalKeyInput(event)" borderStyle="solid" cornerRadius="5" width="200" />
 							<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Add Date Filter" click="handleDateFilter()"/>
 							<mx:Spacer width="50"/>
 						</mx:HBox>

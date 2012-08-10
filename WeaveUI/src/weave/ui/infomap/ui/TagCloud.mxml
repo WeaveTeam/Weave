@@ -230,6 +230,11 @@
 				this.height = maxY - minY;
 				this.width = maxX - minX;
 			}
+			
+			public function clearCloud():void
+			{
+				removeAllChildren();
+			}
 		]]>
 	</mx:Script>
 </mx:Canvas>

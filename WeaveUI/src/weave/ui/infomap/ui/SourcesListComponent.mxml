@@ -27,15 +27,16 @@
 			
 			import weave.data.CSVParser;
 			import weave.services.InfoMapAdminInterface;
+			import weave.ui.infomap.core.QueryObject;
 			import weave.ui.infomap.layout.NodeHandler;
 			
 			
-			private var _parentNode:NodeHandler = null;
+			private var _query:QueryObject = null;
 			[Inspectable]
-			public function set parentNode(object:NodeHandler):void
+			public function set parentNode(object:QueryObject):void
 			{
-				_parentNode = object;
-				_parentNode.query.sources.addGroupedCallback(this,handleSources,true);
+				_query = object;
+				_query.sources.addGroupedCallback(this,handleSources,true);
 			}
 			
 			
@@ -132,18 +133,18 @@
 					selectedSourcesArray[0].push(key);
 				}
 				
-				_parentNode.query.sources.value = parser.createCSV(selectedSourcesArray);
+				_query.sources.value = parser.createCSV(selectedSourcesArray);
 				editable = false;
 				editButton.label = 'Edit';
 			}
 			
 			private function handleSources():void
 			{
-				if(!_parentNode.query.sources.value)
+				if(!_query.sources.value)
 					return;						
 				
 				
-				var sourceNames:Array = parser.parseCSV(_parentNode.query.sources.value)[0];
+				var sourceNames:Array = parser.parseCSV(_query.sources.value)[0];
 				
 				var allSources:Array = (sourcesList.dataProvider as ArrayCollection).source;
 				

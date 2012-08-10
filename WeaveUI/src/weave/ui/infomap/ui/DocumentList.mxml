@@ -10,7 +10,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 
 -->
 <mx:VBox implements="weave.api.core.ILinkableObject" xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
-width="400" xmlns:ui="weave.ui.infomap.ui.*">
+width="200" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 	<mx:List mouseMove="handleMouseMove(event)" toolTip="" dragEnabled="true" id="docList" width="100%">
 		<mx:itemRenderer>
 			<mx:Component>
@@ -52,6 +52,8 @@ width="400" xmlns:ui="weave.ui.infomap.ui.*">
 							
 							override public function set data(value:Object):void
 							{
+								if(value == null)
+									return;
 								super.data = value;
 								
 								var t:DocThumbnailComponent = (value as DocThumbnailComponent);
@@ -110,6 +112,11 @@ width="400" xmlns:ui="weave.ui.infomap.ui.*">
 							
 							private function updateLabelText():void
 							{
+								//the list was blinking because the label used to be set from empty to the text again because
+								//the column is busy still getting the data
+								//so we test it to only update the labels when it has the data. 
+								if(WeaveAPI.SessionManager.linkableObjectIsBusy(infomapDataSource.getColumnByName("title")))
+									return;
 								if(data != null)
 									this.text = infomapDataSource.getTitleForURL((data as DocThumbnailComponent).docURL.value);
 							}
@@ -120,7 +127,7 @@ width="400" xmlns:ui="weave.ui.infomap.ui.*">
 		</mx:itemRenderer>
 		
 	</mx:List>
-	<mx:HBox width="100%">
+	<mx:HBox width="{docList.width}" clipContent="false">
 		<mx:Button id="prevButton" width="10%" label="Prev" click="prev()"/>
 		<mx:Label id="indexText" textAlign="center" width="80%"/>
 		<mx:Button id="nextButton" width="10%" label="Next" click="next()"/>
@@ -128,6 +135,7 @@ width="400" xmlns:ui="weave.ui.infomap.ui.*">
 	
 	<mx:Script>
 		<![CDATA[
+			import mx.collections.ArrayCollection;
 			import weave.ui.infomap.layout.NodeHandler;
 			import weave.data.DataSources.InfoMapsDataSource;
 			import weave.api.WeaveAPI;
@@ -197,7 +205,10 @@ width="400" xmlns:ui="weave.ui.infomap.ui.*">
 			private function updateDocumentList():void
 			{
 				if(!_docKeys || _docKeys.length == 0)
+				{
+					docList.dataProvider = [];					
 					return;
+				}
 				
 				var includedKeys:Array = [];
 				
@@ -223,7 +234,8 @@ width="400" xmlns:ui="weave.ui.infomap.ui.*">
 					temp.push(includedKeys[j]);
 				}
 				
-				docList.dataProvider = temp;
+				if(docList.dataProvider == null || !VectorUtils.compare(temp,(docList.dataProvider as ArrayCollection).source))
+					docList.dataProvider = temp;
 				
 				//disable nextButton if showing the last set of documents
 				if(startIndex.value + rowCount >= includedKeys.length)

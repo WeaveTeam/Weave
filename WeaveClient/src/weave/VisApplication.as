@@ -456,12 +456,12 @@ package weave
 			this.addChild(VisTaskbar.instance);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN,this,handleKeyPress);
 			
-			if(Weave.properties.enableAutoSave.value)
-			{
-				saveSessionTimer = new Timer(5000);
-				saveSessionTimer.addEventListener(TimerEvent.TIMER,saveSessionState);
-				saveSessionTimer.start();
-			}
+//			if(Weave.properties.enableAutoSave.value)
+//			{
+//				saveSessionTimer = new Timer(5000);
+//				saveSessionTimer.addEventListener(TimerEvent.TIMER,saveSessionState);
+//				saveSessionTimer.start();
+//			}
 			
 		}
 		

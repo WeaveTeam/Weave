@@ -39,7 +39,7 @@ package weave.ui.infomap.layout
 			if(_parentNodeHandler == null ||_parentNodeHandler.nodeBase.keywordTextArea ==null)
 				return;
 			
-			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.query.keywords.value;
+//			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.query.keywords.value;
 			_parentNodeHandler.nodeBase.keywordTextArea.setStyle("textAlign","left");
 			
 			baseLayoutDrawn = true;
@@ -97,11 +97,11 @@ package weave.ui.infomap.layout
 //			_parentNodeHandler.nodeBase.infoImg.visible = true;
 //			_parentNodeHandler.nodeBase.infoImg.toolTip = thumbnails.length.toString() + " documents found" ;
 //			_parentNodeHandler.nodeBase.keywordTextArea.htmlText += "<br/><b>" +  thumbnails.length.toString() + "</b> documents found" ;
-			if(_parentNodeHandler.query.sources.value)
-			{
-//				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.query.sources.value;
-				_parentNodeHandler.nodeBase.keywordTextArea.htmlText += "<br/><b>Sources : " +  _parentNodeHandler.query.sources.value + "</b>";
-			}
+//			if(_parentNodeHandler.previousQuery.sources.value)
+//			{
+////				_parentNodeHandler.nodeBase.infoImg.toolTip += " sourced from : " + _parentNodeHandler.query.sources.value;
+//				_parentNodeHandler.nodeBase.keywordTextArea.htmlText += "<br/><b>Sources : " +  _parentNodeHandler.previousQuery.sources.value + "</b>";
+//			}
 			
 			_parentNodeHandler.nodeBase.keywordTextArea.validateNow();
 			

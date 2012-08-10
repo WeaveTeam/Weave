@@ -35,7 +35,7 @@ package weave.ui.infomap.layout
 			if(_parentNodeHandler == null ||_parentNodeHandler.nodeBase.keywordTextArea ==null)
 				return;
 			
-			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.query.keywords.value;
+//			_parentNodeHandler.nodeBase.keywordTextArea.toolTip = _parentNodeHandler.query.keywords.value;
 			_parentNodeHandler.nodeBase.keywordTextArea.setStyle("textAlign","center");
 			
 			
