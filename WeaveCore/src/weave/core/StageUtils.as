@@ -517,7 +517,10 @@ package weave.core
 				_stackTraceMap[iterativeTask] = new Error("Stack trace").getStackTrace();
 			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
 			
-			_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
+			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
+			// This makes sure that the task is removed when the actual context is disposed of.
+			callLater(null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback], priority);
+			//_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
 		}
 		
 		/**

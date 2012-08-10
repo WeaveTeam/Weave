@@ -181,22 +181,40 @@ package weave.utils
 			{
 				if (compareFunction(list[i], pivotValue) < 0)
 				{
-					// swap elements at storeIndex and i
-					temp = list[storeIndex];
-					list[storeIndex] = list[i];
-					list[i] = temp;
+					if (storeIndex != i)
+					{
+						// swap elements at storeIndex and i
+						temp = list[storeIndex];
+						list[storeIndex] = list[i];
+						list[i] = temp;
+					}
+					
 					storeIndex++;
 				}
 			}
-			// Move pivot to its final place
-			temp = list[storeIndex];
-			list[storeIndex] = list[lastIndex];
-			list[lastIndex] = temp;
+			if (storeIndex != lastIndex)
+			{
+				// Move pivot to its final place
+				temp = list[storeIndex];
+				list[storeIndex] = list[lastIndex];
+				list[lastIndex] = temp;
+			}
 			// everything to the left of storeIndex is < pivot element
 			// everything to the right of storeIndex is >= pivot element
 			return storeIndex;
 		}
-
+		
+		//testPartition()
+		private static function testPartition():void
+		{
+			var list:Array = [3,7,5,8,2];
+			var pivotIndex:int = partition(list, 0, list.length - 1, list.length/2, ObjectUtil.compare);
+			
+			for (var i:int = 0; i < list.length; i++)
+				if (i < pivotIndex != list[i] < list[pivotIndex])
+					throw new Error('assertion fail');
+		}
+		
 		/**
 		 * See http://en.wikipedia.org/wiki/Quick_select#Partition-based_general_selection_algorithm
 		 * @param list An Array or Vector to be re-organized.
@@ -211,17 +229,13 @@ package weave.utils
 			var right:int = (lastIndex >= 0) ? (lastIndex) : (list.length - 1);
 			if (left >= right)
 				return left;
-			var k:int = (left + right) / 2;
-			var pivotIndex:int;
+			var medianIndex:int = (left + right) / 2;
 			while (true)
 			{
-				pivotIndex = (left + right) / 2; 
-				// pivotIndex could be random, if desired
-				//pivotIndex = left + Math.random() * right - left;
-				pivotIndex = partition(list, left, right, pivotIndex, compareFunction);
-				if (k == pivotIndex)
-					return k;
-				if (k < pivotIndex)
+				var pivotIndex:int = partition(list, left, right, (left + right) / 2, compareFunction);
+				if (medianIndex == pivotIndex)
+					return medianIndex;
+				if (medianIndex < pivotIndex)
 					right = pivotIndex - 1;
 				else
 					left = pivotIndex + 1;

@@ -47,6 +47,7 @@
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.SessionManager;
 			import weave.utils.EditorManager;
+			import weave.utils.PopUpUtils;
 
 			private var _rootObject:ILinkableObject = null;
 			public function set rootObject(value:ILinkableObject):void
@@ -116,18 +117,9 @@
 				//expandItem(selectedItem, !isItemOpen(selectedItem))
 				refresh();
 				
-				var linkableObject:ILinkableObject = getSelectedLinkableObject();
-				var editor:ILinkableObjectEditor = EditorManager.getNewEditor(linkableObject);
-				if (editor)
-				{
-					var controls:ControlPanel = newDisposableChild(linkableObject, ControlPanel);
-					PopUpManager.addPopUp(controls, this);
-					PopUpManager.centerPopUp(controls);
-					controls.targets = [linkableObject];
-					
-					controls.tabNavigator.addChild(editor as DisplayObject);
-				}
+				ControlPanel.openEditor(getSelectedLinkableObject());
 			}
+			
 			private var _sessionObjectTypeFilter:Class = null;
 			public function set sessionObjectTypeFilter(className:Class):void
 			{
