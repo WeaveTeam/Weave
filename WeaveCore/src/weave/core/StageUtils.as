@@ -219,6 +219,9 @@ package weave.core
 			return _mouseButtonDown;
 		}
 		
+		/**
+		 * @return true if the mouse was clicked without moving
+		 */
 		public function get pointClicked():Boolean
 		{
 			return _pointClicked;

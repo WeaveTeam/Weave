@@ -45,6 +45,8 @@
 					 creationComplete="linkBindableProperty(Weave.properties.enableRightClick,event.target,'selected')"/>
 		<mx:CheckBox label="Enable control panels and attribute selection"
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
+		<mx:CheckBox label="Enable axis tool tips"
+					 creationComplete="linkBindableProperty(Weave.properties.enableAxisToolTips, event.target, 'selected');"/>
 	</mx:VBox>
 	
 	<WeavePropertiesProbingEditor label="Probing"/>
