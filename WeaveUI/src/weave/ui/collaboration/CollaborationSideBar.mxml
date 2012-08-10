@@ -83,6 +83,13 @@
 			public const TYPE_PING:String					= "PING";
 			public const TYPE_COLOR:String					= "COLOR";
 			
+			public var rtmpService:NetConnection 				= null;
+			private const rtmpPath:String 						= "rtmpt://demo.oicweave.org:8086/live";
+			private var connectedToRTMPService:Boolean			= false;
+			internal var roomName:String 						= null;
+			private var nsPlayMicList:Dictionary  				= new Dictionary();
+			private var nsPlayCamList:Dictionary				= new Dictionary();
+			
 			private var CHAT:CollaborationChatWindow;
 			private var SETTINGS:CollaborationSettingsWindow;
 			private var PARTICIPANTS:ParticipantPanel;
@@ -156,7 +163,7 @@
 				}
 				(userList.dataProvider as ICollectionView).refresh();
 				
-/* 				if( name == nickname ) return;
+ 				if( name == nickname ) return;
 				if( !rtmpService ) 	   return;
 				
 				if( val == 1 )
@@ -170,20 +177,10 @@
 					}
 					else if( type == TYPE_CAM )
 					{
-						var remoteVideo:CollaborationVideo = new CollaborationVideo();
-						remoteVideo.stream = new NetStream(rtmpService);
-						remoteVideo.stream.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
-						remoteVideo.video = new Video(140, 105);
-						remoteVideo.play("v-"+roomName+"-"+name);
-						//						remoteVideo.setPos(containerRemoteCams.width/2-remoteVideo.width/2, 0);
-						remoteVideo.nickname = name;
-						containerRemoteCams.addChild(remoteVideo);
-						nsPlayCamList[name] = remoteVideo;
-						
-						if( dictionaryLength(nsPlayCamList) > 0 )
-							showRemoteDisplay();
-						
-						//						organizeRemoteVideos();
+						var theStream:NetStream = new NetStream(rtmpService);
+						theStream.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
+						PARTICIPANTS.addCameraStream(theStream, "v-"+roomName+"-"+name, name);
+						nsPlayCamList[name] = name;
 					}
 				}
 				else
@@ -202,20 +199,13 @@
 						if( nsPlayCamList[name] )
 						{
 							nsPlayCamList[name].stream.removeEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
-							containerRemoteCams.removeChild(nsPlayCamList[name]);
+							PARTICIPANTS.removeCameraStream(name);
 							nsPlayCamList[name].close();
 							delete nsPlayCamList[name];
-							
-							if( dictionaryLength(nsPlayCamList) == 0 && enabledCam )
-								showLocalDisplay();
-							else if( dictionaryLength(nsPlayCamList) == 0 && !enabledCam )
-								hideRemoteDisplay();
-							
-							//							organizeRemoteVideos();
 						}
 					}
 				}
-				(userList.dataProvider as ICollectionView).refresh(); */
+				(userList.dataProvider as ICollectionView).refresh();
 			} 
 			
 			protected function creationCompleteHandler(event:FlexEvent):void
@@ -223,6 +213,10 @@
 				adjustCursorButtonHeight();
 				cursorButton.enabled = false;
 				this.y = (WeaveAPI.topLevelApplication as DisplayObject).height * .25;
+				
+				rtmpService = new NetConnection();
+				rtmpService.addEventListener(NetStatusEvent.NET_STATUS, rtmpNetStatus);
+				rtmpService.addEventListener(SecurityErrorEvent.SECURITY_ERROR, rtmpSecurityError);
 				
 				//Service event listeners.
 				collabService.addEventListener(CollaborationEvent.LOG, handleLogEvent);
@@ -314,7 +308,7 @@
 				CHAT.visible = false;
 				if( collabService.isConnected )
 					collabService.disconnect();
-				//	disconnectionFromRTMPServer();
+				disconnectionFromRTMPServer();
 			}
 			
 			private function handleConnect( e:CollaborationEvent ):void
@@ -330,7 +324,7 @@
 				setUserAttribute(TYPE_SPEC, SETTINGS.collab_NICKNAME, (Weave.properties.collabSpectating.value) ? 1 : 0);
 				
 				joinedRoomCreateMouseList();
-				//	connectToRTMPServer();
+				connectToRTMPServer();
 				cursorButton.enabled = true;
 				
 				mouseTimer = new Timer(600);
@@ -388,7 +382,7 @@
 			{
 				if( !disConButtonPushed ) {
 					resetUserMice();
-					//disconnectionFromRTMPServer();
+					disconnectionFromRTMPServer();
 					Alert.show("Would you like to reconnect to the room?", "Disconnection Alert", Alert.YES | Alert.NO, null, disconnectHandler);
 				}
 			}
@@ -406,7 +400,7 @@
 				SETTINGS.showConnectionWarning("Username already exists");
 				updateEnabledSettings();
 				
-				//disconnectionFromRTMPServer();
+				disconnectionFromRTMPServer();
 			}
 			
 			private function lockedError(e:Event):void
@@ -443,25 +437,6 @@
 			private function handleUserRequestUserlist(e:CollaborationEvent):void
 			{
 				collabService.requestAddonStatus(e.getText(), _userListInfo);
-			}
-			
-			private function handleUserUpdateUserlist(e:CollaborationEvent):void
-			{
-				var info:Dictionary = e.getInfo() as Dictionary;
-				for( var name:String in info )
-				{
-					trace( "Setting attributes for:", name );
-					setUserAttribute(CHAT.TYPE_CAM,	name, info[name].cam);
-					trace( "Cam:", info[name].cam );
-					setUserAttribute(CHAT.TYPE_COLOR, 	name, info[name].color);
-					trace( "color:", info[name].color );
-					setUserAttribute(CHAT.TYPE_MIC,  	name, info[name].mic);
-					trace( "mic:", info[name].mic);
-					setUserAttribute(CHAT.TYPE_PING, 	name, info[name].ping);
-					trace( "ping:", info[name].ping );
-					setUserAttribute(CHAT.TYPE_SPEC, 	name, info[name].spec);
-					trace( "spec:", info[name].spec );
-				}
 			}
 			
 			private function updatePing(e:CollaborationEvent):void 	   { setUserAttribute(TYPE_PING, e.getText(), e.getX()); }
@@ -685,6 +660,166 @@
 			{
 				this.height = (WeaveAPI.topLevelApplication as DisplayObject).height / 1.5;
 				adjustCursorButtonHeight();
+			}
+			
+			
+			/*
+			* RTMP requesting to a remote media server.
+			*/
+			
+			private var rtmpTimer:Timer 			= new Timer(10000);
+			private var rtmpPollingTimer:Timer 		= new Timer(30000);
+			private var rtmpUserClosed:Boolean 		= false;
+			private var rtmpPollingServer:Boolean	= false;
+			
+			private function connectToRTMPServer():void
+			{
+				rtmpService.client = this;
+				rtmpService.connect(rtmpPath);
+				
+				if( !rtmpPollingServer )
+				{
+					rtmpTimer.addEventListener(TimerEvent.TIMER, handleRTMPReconnect);
+					rtmpPollingTimer.addEventListener(TimerEvent.TIMER, pollRTMPServer);
+				}
+			}
+			private function disconnectionFromRTMPServer():void
+			{
+				rtmpUserClosed = true;
+				rtmpPollingServer = false;
+				rtmpTimer.stop();
+				rtmpPollingTimer.stop();
+				if( rtmpService.connected )	rtmpService.close();
+			}
+			private function handleRTMPReconnect(e:TimerEvent):void
+			{
+				rtmpTimer.stop();
+				connectToRTMPServer();
+			}
+			private function pollRTMPServer(e:TimerEvent):void
+			{
+				rtmpPollingServer = true;
+				connectToRTMPServer();
+			}
+			private function rtmpNetStatus(e:NetStatusEvent):void
+			{
+				trace( e.info.code+": "+e.info.description );
+				
+				switch( e.info.code )
+				{
+					case "NetConnection.Connect.Success":
+						if( !CHAT ) break;
+						CHAT.showRTMPWarning();
+						CHAT.showAddonControls();
+						rtmpPollingTimer.stop();
+						rtmpTimer.stop();
+						connectedToRTMPService 		= true;
+						CHAT.connectedToRTMPService = true;
+						CHAT.rtmpService 			= rtmpService;
+						rtmpPollingServer 			= false;
+						
+						if( collabService.room.length > 1 ) requestAddonStatus();
+						
+						break;
+					
+					case "NetConnection.Connect.Closed":
+						if( !CHAT ) break;
+						if( !rtmpUserClosed )
+						{
+							rtmpTimer.start();
+							rtmpUserClosed 			= false;
+							CHAT.showRTMPWarning("Lost connection to media server. Retrying...");
+						}
+						connectedToRTMPService 		= false;
+						CHAT.connectedToRTMPService = false;
+						CHAT.rtmpService 			= null;
+						CHAT.hideAddonControls();
+						collabService.sendAddonUpdate(collabService.nickname, collabService.TYPE_CAM, false);
+						collabService.sendAddonUpdate(collabService.nickname, collabService.TYPE_MIC, false);
+						break;
+					
+					case "NetConnection.Connect.Failed":
+						connectedToRTMPService 		= false;
+						if( !CHAT ) break;
+						CHAT.connectedToRTMPService = false;
+						CHAT.rtmpService 			= null;
+						CHAT.hideAddonControls();
+						if( !rtmpPollingServer )
+						{
+							CHAT.showRTMPWarning("Cannot connect to media server.", 10000);
+							rtmpPollingTimer.start();
+						}
+						break;
+					
+					default:
+						break;
+				}
+			}
+			private function handleUserUpdateUserlist(e:CollaborationEvent):void
+			{
+				var info:Dictionary = e.getInfo() as Dictionary;
+				for( var name:String in info )
+				{
+					trace( "Setting attributes for:", name );
+					setUserAttribute(CHAT.TYPE_CAM,	name, info[name].cam);
+					trace( "Cam:", info[name].cam );
+					setUserAttribute(CHAT.TYPE_COLOR, 	name, info[name].color);
+					trace( "color:", info[name].color );
+					setUserAttribute(CHAT.TYPE_MIC,  	name, info[name].mic);
+					trace( "mic:", info[name].mic);
+					setUserAttribute(CHAT.TYPE_PING, 	name, info[name].ping);
+					trace( "ping:", info[name].ping );
+					setUserAttribute(CHAT.TYPE_SPEC, 	name, info[name].spec);
+					trace( "spec:", info[name].spec );
+				}
+			}
+			private function requestAddonStatus():void
+			{
+				trace("requesting addon status");
+				collabService.requestAddonStatus(SETTINGS.collab_NICKNAME);
+			}
+			private function rtmpSecurityError(e:SecurityErrorEvent):void
+			{
+				trace(e.text);
+			}
+			public function onBWDone():void
+			{
+				trace("onBWDone");
+			}
+			private function netStatusEventHandler(e:NetStatusEvent):void
+			{
+				switch( e.info.code )
+				{
+					case "NetStream.Publish.BadName":
+						showRTMPWarning("Error publishing stream: Bad Name", 10000);
+						break;
+					default:
+						trace("Unhandled netstatus event: "+e.info.code);
+						break;
+				}
+			}
+			public function showRTMPWarning(msg:String = null, fadeout:Number = -1):void
+			{
+				if( msg )
+				{
+					//Create lable for this message in the Participant window.
+				}
+				else
+				{
+					
+				}
+				if( fadeout > 0 )
+				{
+					var t:Timer = new Timer(fadeout);
+					t.addEventListener(TimerEvent.TIMER,
+						function():void
+						{
+							t.stop();
+							showRTMPWarning();
+						}
+					);
+					t.start();
+				}
 			}
 			
 		]]>

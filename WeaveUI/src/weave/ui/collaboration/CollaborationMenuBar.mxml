@@ -53,7 +53,7 @@
 			private const rtmpPath:String = "rtmpt://demo.oicweave.org:8086/live";
 			
 			private var CHAT:CollaborationChatWindow 			= null;
-			private var BAR:CollaborationSideBar             = null;
+			private var BAR:CollaborationSideBar             	= null;
 			private var SETTINGS:CollaborationSettingsWindow 	= null;
 			private var connTimer:Timer 						= null;
 			private var mouseTimer:Timer						= null;

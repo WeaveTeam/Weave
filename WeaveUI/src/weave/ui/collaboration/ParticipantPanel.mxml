@@ -136,6 +136,16 @@
 				}
 			}
 			
+			public function addCameraStream(stream:NetStream, streamPath:String, userName:String):void
+			{
+				
+			}
+			
+			public function removeCameraStream(userName:String):void
+			{
+				
+			}
+			
 		]]>
 	</mx:Script>
 </mx:Panel>
