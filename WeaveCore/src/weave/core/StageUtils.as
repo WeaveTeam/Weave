@@ -75,6 +75,7 @@ package weave.core
 		private var _currentFrameStartTime:int = getTimer(); // this is the result of getTimer() on the last ENTER_FRAME event.
 		private var _previousFrameElapsedTime:int = 0; // this is the amount of time it took to process the previous frame.
 		private var _currentTaskStopTime:int = 0; // set by used by handleEnterFrame, used by _iterateTask
+		private var _pointClicked:Boolean = false;
 
 		private var _callbackCollectionsInitialized:Boolean = false; // This is true after the callback collections have been created.
 		private var _listenersInitialized:Boolean = false; // This is true after the mouse listeners have been added.
@@ -216,6 +217,11 @@ package weave.core
 		public function get mouseButtonDown():Boolean
 		{
 			return _mouseButtonDown;
+		}
+		
+		public function get pointClicked():Boolean
+		{
+			return _pointClicked;
 		}
 		
 		/**
@@ -592,8 +598,13 @@ package weave.core
 			if (_lastMouseDownPoint.x == mouseEvent.stageX && _lastMouseDownPoint.y == mouseEvent.stageY)
 			{
 				var cc:ICallbackCollection = _callbackCollections[POINT_CLICK_EVENT] as ICallbackCollection;
+				_pointClicked = true;
 				cc.triggerCallbacks();
 				cc.resumeCallbacks(true);
+			}
+			else
+			{
+				_pointClicked = false;
 			}
 		}
 		
