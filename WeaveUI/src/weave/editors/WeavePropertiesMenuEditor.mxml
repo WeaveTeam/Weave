@@ -46,7 +46,7 @@
 					
 					<ui:Indent label="{lang('Data Info URL')}" width="100%">
 						<ui:HelpComponent>
-							If you enter a URL here, a right-click menu option will appear ("Show information about this dataset...") that will open the URL.
+							If you enter a URL here, a right-click menu option will appear that opens the URL. ("Show information about this dataset...")
 						</ui:HelpComponent>
 						<ui:TextInputWithPrompt width="100%" prompt="http://www.example.com/example.html" creationComplete="linkBindableProperty(Weave.properties.dataInfoURL, event.target, 'text');"/>
 					</ui:Indent>
