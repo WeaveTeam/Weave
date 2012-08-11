@@ -1345,9 +1345,6 @@ package weave
 				
 				if (Weave.properties.enablePenTool.value)
 					PenTool.createContextMenuItems(this);
-					
-				if (Weave.properties.dataInfoURL.value)
-					addLinkContextMenuItem(lang("Show Information About This Dataset..."), Weave.properties.dataInfoURL.value);
 				
 				if (Weave.properties.enableExportToolImage.value)
 				{
@@ -1387,6 +1384,9 @@ package weave
 				// Add context menu items for handling search queries
 				if (Weave.properties.enableSearchForRecord.value)
 					SearchEngineUtils.createContextMenuItems(this);
+				
+				if (Weave.properties.dataInfoURL.value)
+					addLinkContextMenuItem(lang("Show Information About This Dataset..."), Weave.properties.dataInfoURL.value);
 			}
 		}
 
@@ -1528,7 +1528,7 @@ package weave
 			CustomContextMenuManager.createAndAddMenuItemToDestination(text, 
 															  this, 
                                                               function(e:Event):void { navigateToURL(new URLRequest(url), "_blank"); },
-                                                              "linkMenuItems");	
+                                                              "4 linkMenuItems");	
 		}
 
 		/**

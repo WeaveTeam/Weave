@@ -35,7 +35,7 @@
 	>
 	<ui:AutoResizingTextArea width="100%" backgroundAlpha="0" borderThickness="0" editable="false"
 						  text="{_message}" selectable="true" wordWrap="true" minWidth="300" creationComplete="event.currentTarget.height = 0"/>
-	<mx:Canvas width="100%"
+	<mx:Canvas id="inputCanvas" width="100%"
 			includeInLayout="{autoCompleteChoices == null}"
 			visible="{autoCompleteChoices == null}"
 			   >
