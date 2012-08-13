@@ -84,11 +84,10 @@
 			public const TYPE_COLOR:String					= "COLOR";
 			
 			public var rtmpService:NetConnection 				= null;
-			private const rtmpPath:String 						= "rtmpt://demo.oicweave.org:8086/live";
+			private const rtmpPath:String 						= "rtmp://demo.oicweave.org/live";
 			private var connectedToRTMPService:Boolean			= false;
 			internal var roomName:String 						= null;
 			private var nsPlayMicList:Dictionary  				= new Dictionary();
-			private var nsPlayCamList:Dictionary				= new Dictionary();
 			
 			private var CHAT:CollaborationChatWindow;
 			private var SETTINGS:CollaborationSettingsWindow;
@@ -180,7 +179,6 @@
 						var theStream:NetStream = new NetStream(rtmpService);
 						theStream.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
 						PARTICIPANTS.addCameraStream(theStream, "v-"+roomName+"-"+name, name);
-						nsPlayCamList[name] = name;
 					}
 				}
 				else
@@ -196,13 +194,9 @@
 					}
 					else if( type == TYPE_CAM )
 					{
-						if( nsPlayCamList[name] )
-						{
-							nsPlayCamList[name].stream.removeEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
-							PARTICIPANTS.removeCameraStream(name);
-							nsPlayCamList[name].close();
-							delete nsPlayCamList[name];
-						}
+						var theCamStream:NetStream = PARTICIPANTS.removeCameraStream(name);
+						if( theCamStream != null )
+							theCamStream.removeEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
 					}
 				}
 				(userList.dataProvider as ICollectionView).refresh();
@@ -320,6 +314,7 @@
 				openChatWindow();
 				CHAT.nickname = collabService.nickname;
 				CHAT.roomName = collabService.roomToJoin;
+				roomName = collabService.roomToJoin;
 				setUserAttribute(TYPE_MIC, SETTINGS.collab_NICKNAME, 0);
 				setUserAttribute(TYPE_CAM, SETTINGS.collab_NICKNAME, 0);
 				setUserAttribute(TYPE_SPEC, SETTINGS.collab_NICKNAME, (Weave.properties.collabSpectating.value) ? 1 : 0);

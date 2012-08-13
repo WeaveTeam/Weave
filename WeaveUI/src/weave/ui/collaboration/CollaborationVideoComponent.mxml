@@ -10,7 +10,9 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.events.FlexEvent;
-			public var stream:NetStream;
+			import mx.events.ResizeEvent;
+
+			public var stream:NetStream = null;
 			public var video:Video = new Video();
 			public static var defaultHeight:Number = 80;
 			public static var defaultWidth:Number = 100;
@@ -38,12 +40,22 @@
 				video.attachNetStream(null);
 				video.clear();
 				stream.close();
-				videoArea.removeChild(video);
 			}
 			
 			protected function creationComplete(event:FlexEvent):void
 			{
+				video.height = videoArea.height;
+				video.width = videoArea.width;
 				videoArea.addChild(video);
+			}
+			
+			public function adjustCamera():void
+			{
+				if( videoArea != null )
+				{
+					video.height = videoArea.height;
+					video.width = videoArea.width;
+				}
 			}
 			
 		]]>
