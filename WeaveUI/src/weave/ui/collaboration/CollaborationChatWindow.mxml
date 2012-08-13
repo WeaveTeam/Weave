@@ -92,7 +92,6 @@
 			private var nsPublishMic:NetStream 					= null;
 			private var nsPublishCam:NetStream 					= null;
 			private var nsPlayMicList:Dictionary  				= new Dictionary();
-			private var nsPlayCamList:Dictionary				= new Dictionary();
 
 			public var cam:Camera;
 			public var mic:Microphone;
@@ -162,33 +161,19 @@
 				{
 					if( enabledCam )
 					{
-						localVideo = new Video(containerLocalCam.width, containerLocalCam.height);
 						cam.setQuality(0, 90);
-						localVideo.attachCamera(cam);
-						containerLocalCam.addChild(localVideo);
 						
 						nsPublishCam = new NetStream(rtmpService);
 						nsPublishCam.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
 						nsPublishCam.attachCamera(cam);
 						nsPublishCam.publish("v-"+roomName+"-"+nickname, "live");
-						
-						if( dictionaryLength(nsPlayCamList) == 0 )
-							showLocalDisplay();
 					}
 					else
-					{
-						localVideo.attachCamera(null);
-						localVideo.clear();
-						containerLocalCam.removeChild(localVideo);
-						localVideo = null;
-						
+					{						
 						nsPublishCam.attachCamera(null);
 						nsPublishCam.removeEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
 						nsPublishCam.close();
 						nsPublishCam = null;
-						
-						if( dictionaryLength(nsPlayCamList) == 0 )
-							hideLocalDisplay();
 					}
 				}
 			}
@@ -247,70 +232,12 @@
 					t.start();
 				}
 			}
-			
-			public function organizeRemoteVideos():void
-			{
-				var maxWidth:Number = 140;
-				var minWidth:Number = 92;
-				var count:Number = streamingCount();
-				var usable:Number = containerRemoteCams.width;
-				var camWidth:Number = ((usable/(count+1)) > maxWidth) ? maxWidth : (usable/(count+1));
-				var names:Array = new Array();
-				
-				if( camWidth < minWidth )
-					camWidth = minWidth;
-				
-				trace( "Usable width: "+usable);
-				trace( usable,"/",count+1,">",maxWidth,"[",((usable / (count+1) > maxWidth)?"T":"F"),"] =",maxWidth,":",camWidth);
-				
-				for( var n:String in nsPlayCamList ) names.push(n);
-				names.sort();
-				
-				switch( count )
-				{
-					case 1:
-						var vid:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
-						vid.setSize(camWidth);
-						vid.setPos(usable/2-vid.width/2, 0);
-						trace("setPos(", usable/2-vid.width/2,", 0);");
-						break;
-					case 2:
-						var vid1:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
-						vid1.setSize(camWidth);
-//						vid1.setPos(usable/3-vid1.width/2, 0);
-						
-						var vid2:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
-						vid2.setSize(camWidth);
-//						vid2.setPos(2*usable/3-vid2.width/2, 0);
-						break;
-					case 3:
-//						var vid1:CollaborationVideo = nsPlayCamList[names[0]] as CollaborationVideo;
-//						vid1.setSize(camWidth);
-//						vid1.setPos(usable/6-vid1.width/2, 0);
-						
-//						var vid2:CollaborationVideo = nsPlayCamList[names[1]] as CollaborationVideo;
-//						vid2.setSize(camWidth);
-//						vid2.setPos(2*usable/6-vid2.width/2, 0);
-						
-//						var vid3:CollaborationVideo = nsPlayCamList[names[2]] as CollaborationVideo;
-//						vid3.setSize(camWidth);
-//						vid3.setPos(4*usable/6-vid3.width/2, 0);
-						break;
-					default:
-						
-						break;
-				}
-			}
 			private function dictionaryLength(dic:Dictionary):Number
 			{
 				var n:Number = 0;
 				for( var key:Object in dic )
 					n++;
 				return n;
-			}
-			public function streamingCount():Number
-			{
-				return dictionaryLength(nsPlayCamList);
 			}
 			
 		]]>

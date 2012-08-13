@@ -63,6 +63,8 @@
 							(canvasList[m] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth * windowSizeConstant;
 							(canvasList[m] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight * windowSizeConstant;
 							this.height = (canvasList[m] as CollaborationVideoComponent).height + 18;
+							//Need to use callLater here, as the height and width changes don't take effect immediately.
+							callLater((canvasList[m] as CollaborationVideoComponent).adjustCamera);		
 						}/*
 						else
 						{
@@ -82,6 +84,8 @@
 						(canvasList[i] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth;
 						(canvasList[i] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight;
 						this.height = 97;
+						//Need to use callLater here, as the height and width changes don't take effect immediately.
+						callLater((canvasList[i] as CollaborationVideoComponent).adjustCamera);		
 					}/*
 					else
 					{
@@ -124,7 +128,7 @@
 					for( var i:int = 0; i < canvasList.length ; i++ )
 					{
 						(canvasList[i] as CollaborationVideoComponent).x = xCoord;
-						xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width
+						xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width;	
 						addChild( canvasList[i] );
 					}
 					this.x = ((WeaveAPI.topLevelApplication as DisplayObject).width / 2) - (this.width / 2);
@@ -138,14 +142,35 @@
 			
 			public function addCameraStream(stream:NetStream, streamPath:String, userName:String):void
 			{
-				
+				var tempCollaborationVideoComponent:CollaborationVideoComponent = findCamera(userName);
+				if( tempCollaborationVideoComponent == null )
+					return;
+				tempCollaborationVideoComponent.stream = stream;
+				stream.play(streamPath);
+				tempCollaborationVideoComponent.video.attachNetStream(stream);
 			}
 			
-			public function removeCameraStream(userName:String):void
+			public function removeCameraStream(userName:String):NetStream
 			{
-				
+				var tempCollaborationVideoComponent:CollaborationVideoComponent = findCamera(userName);
+				if( tempCollaborationVideoComponent == null )
+					return null;
+				tempCollaborationVideoComponent.video.attachNetStream(null);
+				tempCollaborationVideoComponent.video.clear();
+				if( tempCollaborationVideoComponent.stream != null )
+					tempCollaborationVideoComponent.stream.close();
+				return tempCollaborationVideoComponent.stream;
 			}
 			
+			private function findCamera(name:String):CollaborationVideoComponent
+			{
+				for( var i:int = 0; canvasList.length; i++ )
+				{
+					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == name )
+						return canvasList[i] as CollaborationVideoComponent;
+				}
+				return null;
+			}
 		]]>
 	</mx:Script>
 </mx:Panel>
