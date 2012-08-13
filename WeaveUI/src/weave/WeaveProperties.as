@@ -381,6 +381,21 @@ package weave
 		public const selectionBlurringAmount:LinkableNumber = new LinkableNumber(4);
 		public const selectionAlphaAmount:LinkableNumber    = new LinkableNumber(0.5, verifyAlpha);
 		
+		//selection location information
+		public static const selectionLocationMode:LinkableString = new LinkableString(SELECTION_LOCATION_LOWER_LEFT, verifyLocationMode);
+		
+		public static const SELECTION_LOCATION_LOWER_LEFT:String = 'Lower left';
+		public static const SELECTION_LOCATION_LOWER_RIGHT:String = 'Lower right';
+		public static function get selectionLocationEnum():Array
+		{
+			return [SELECTION_LOCATION_LOWER_LEFT, SELECTION_LOCATION_LOWER_RIGHT];
+		}
+		
+		private static function verifyLocationMode(value:String):Boolean
+		{
+			return selectionLocationEnum.indexOf(value) >= 0;
+		}
+		
 		/**
 		 * This is an array of LinkableEventListeners which specify a function to run on an event.
 		 */

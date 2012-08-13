@@ -86,7 +86,8 @@
 				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
 				
 				visualization.layers.addGroupedCallback(this,handleLayersChange,true);
-				colorColumn.addGroupedCallback(this,updateProbeColumns, true);				
+				colorColumn.addGroupedCallback(this,updateProbeColumns, true);
+				
 			}
 			
 			override public function getSelectableAttributeNames():Array
