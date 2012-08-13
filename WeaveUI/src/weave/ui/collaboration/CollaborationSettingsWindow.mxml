@@ -67,7 +67,7 @@
 						</mx:HBox>
 					</ui:Center>
 				</mx:VBox>
-				<mx:VBox width="100%" height="100%" label="Add-ons" enabled="false"
+				<mx:VBox width="100%" height="100%" label="Add-ons" enabled="true"
 						 paddingBottom="{padding}" paddingLeft="{padding}" paddingRight="{padding}"
 						 paddingTop="{padding}">
 					<mx:HBox width="100%">
