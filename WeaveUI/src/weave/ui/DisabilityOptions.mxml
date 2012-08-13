@@ -52,14 +52,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Label text="HTML Alt Text:"
 						  textAlign="left"/>
 				
-				<mx:TextInput
+				<mx:TextArea
 					id="altTextInputBox"
 					horizontalCenter="true"
 					toolTip="Text entered here will be used to set the html alt attribute for this instance of Weave when it is embedded in a web page. This input field is restricted to 125 characters. The alt attribute is used by standard screen reading tools to give information about graphics elements for to blind or visually impaired individuals."
 					width="100%"
 					height = "30%"
 					backgroundColor="#EEEEEE"
-					editable = "true" />
+					editable = "true" 
+					maxChars="50" 
+					wordWrap="true"/>
 				
 			</mx:VBox>
 			<mx:VBox label="Advanced"
@@ -71,13 +73,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				<mx:Label text="longdesc text"
 						  textAlign="left"/>
 				
-				<mx:TextInput
+				<mx:TextArea
 					id="longDescTextInputBox"
 					horizontalCenter="true"
 					toolTip="Text entered here will be used to set the html longdesc attribute for this instance of Weave when it is embedded in a web page. This input size is not restricted but it is not recommended that it be any longer than necessary."
 					width="100%"
 					height = "30%"
-					backgroundColor="#EEEEEE"/>
+					backgroundColor="#EEEEEE"  
+					wordWrap="true"/>
 				
 				<mx:VBox verticalScrollPolicy="on" id="menuToggleVBox">
 					
@@ -96,8 +99,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							private const padding:int = 5;
 							private var cbArray:Array = [];
 							private var selectedCB : CheckBox;
-
-							
+							public var disabilityAltText:String;
 							
 							override protected function constructor():void
 							{
@@ -109,7 +111,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								panelY.value = "15%";
 							}
 							
-							
+						
 							override protected function childrenCreated():void
 							{
 								super.childrenCreated();
@@ -188,7 +190,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									//cb.label = WeaveAPI.getRegisteredImplementationDisplayName(panel as Class) || getQualifiedClassName(panel).split(':').pop();
 									cb.label=panel.title;
 									//        linkBindableProperty(, cb, 'selected');
-									cb.toolTip = "Checking this box appends " + cb.label + " destination to the above text";
+									cb.toolTip = "Checking this box appends " + cb.label + " description to the above text";
 									
 									cbArray.push(cb);
 									
@@ -219,6 +221,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								
 			
 								
+							}
+							
+							private function getAltText():void {
+								
+								disabilityAltText = altTextInputBox.text;
 							}
 						
 							private function getWindowsOnStage(): Array
