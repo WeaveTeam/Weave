@@ -262,6 +262,7 @@
 				createChatPanel();
 				createParticipantPanel();
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_CONNECT, connect);
+				SETTINGS.addEventListener(CollaborationEvent.ADDON_SETTINGS_SAVED, settingsAddonSaved);
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_DISCONNECT, disconnect);
 				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
@@ -358,6 +359,13 @@
 				PARTICIPANTS.clearDisplay();
 				disConButtonPushed = false;
 				cursorButton.enabled = false;
+			}
+			
+			private function settingsAddonSaved(e:Event):void
+			{
+				CHAT.cam = SETTINGS.collab_CAMERA;
+				CHAT.mic = SETTINGS.collab_MIC;
+				CHAT.addOnsSaved = true;
 			}
 			
 			private function updateUserMic(e:CollaborationEvent):void  { collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, collabService.TYPE_MIC, ( e.getText() == "1" )); }
