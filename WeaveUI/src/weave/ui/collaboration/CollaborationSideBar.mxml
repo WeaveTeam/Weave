@@ -333,6 +333,8 @@
 				collabService.room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 				collabService.sendMouseMessage(SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
 				collabService.hasControl = false;
+				if( userList.dataProvider.length == 0 )
+					cursorButtonClick(new MouseEvent(MouseEvent.CLICK));
 			}
 			
 			private function handleDisconnect( e:CollaborationEvent ):void
@@ -435,6 +437,8 @@
 				WeaveAPI.CollaborationCursorManager.removeCursor(e.getText());
 				setUserAttribute(TYPE_CAM, e.getText(), 0);
 				setUserAttribute(TYPE_MIC, e.getText(), 0);
+				if( userList.dataProvider.length == 2 )
+					cursorButtonClick(new MouseEvent(MouseEvent.CLICK));
 			}
 			
 			private function handleUserRequestUserlist(e:CollaborationEvent):void
@@ -805,7 +809,7 @@
 			{
 				if( msg )
 				{
-					//Create lable for this message in the Participant window.
+					//Create label for this message in the Participant window.
 				}
 				else
 				{

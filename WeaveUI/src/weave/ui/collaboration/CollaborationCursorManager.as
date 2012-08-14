@@ -132,6 +132,7 @@ package weave.ui.collaboration
 			try
 			{
 				(cursorList[id] as CollabMouseCursor).removePopUp();
+				removeFromQueue(id, "");
 				delete cursorList[id];
 				if( getCursorIds().length == 0 )
 					cursorList = null;

@@ -33,10 +33,10 @@
 			<mx:VBox id="containerAddons" width="100%" height="0" horizontalScrollPolicy="off">
 				<mx:HBox id="addonControls" width="100%" horizontalAlign="center"
 						 horizontalScrollPolicy="off">
-					<mx:Button id="button_mic" width="28" height="22" label="MIC"
-							   click="toggleMic(event)" enabled="{addOnsSaved}" toggle="true"/>
-					<mx:Button id="button_cam" width="28" height="22" label="CAM"
-							   click="toggleCam(event)" enabled="{addOnsSaved}" toggle="true"/>
+					<mx:Button id="button_mic" width="50" height="22" label="MIC"
+							   click="toggleMic(event)" enabled="{addOnsSaved &amp;&amp; mic}" toggle="true"/>
+					<mx:Button id="button_cam" width="50" height="22" label="CAM"
+							   click="toggleCam(event)" enabled="{addOnsSaved &amp;&amp; cam}" toggle="true"/>
 				</mx:HBox>
 			</mx:VBox>
 			<mx:VBox id="containerChat" width="100%" height="100%">
@@ -86,8 +86,8 @@
 			private var nsPublishCam:NetStream 					= null;
 			private var nsPlayMicList:Dictionary  				= new Dictionary();
 
-			public var cam:Camera								= null;
-			public var mic:Microphone                         	= null;
+			[Bindable] public var cam:Camera								= null;
+			[Bindable] public var mic:Microphone                         	= null;
 			
 			[Embed(source="/weave/resources/images/collab/mic.png")]     internal const iconMic:Class;
 			[Embed(source="/weave/resources/images/collab/cam.png")]     internal const iconCam:Class;
@@ -97,6 +97,7 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				//Need to determine if icons should be used or text.
 //				button_mic.setStyle("icon", iconMic);
 //				button_cam.setStyle("icon", iconCam);
 			}
@@ -133,10 +134,10 @@
 					{
 						nsPublishMic = new NetStream(rtmpService);
 						nsPublishMic.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
-							mic.setUseEchoSuppression(true);
-							mic.setSilenceLevel(20);
-							nsPublishMic.attachAudio(mic);
-							nsPublishMic.publish("m-"+roomName+"-"+nickname, "live");
+						mic.setUseEchoSuppression(true);
+						mic.setSilenceLevel(20);
+						nsPublishMic.attachAudio(mic);
+						nsPublishMic.publish("m-"+roomName+"-"+nickname, "live");
 					}
 					else
 					{
