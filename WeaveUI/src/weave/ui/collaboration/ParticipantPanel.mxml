@@ -46,6 +46,7 @@
 			public function clearDisplay():void
 			{
 				canvasList = null;
+				this.height = 97;
 				adjustLayout();
 			}
 			
