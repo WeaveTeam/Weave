@@ -164,6 +164,7 @@
 				
  				if( name == nickname ) return;
 				if( !rtmpService ) 	   return;
+				if( !rtmpService.connected ) return;
 				
 				if( val == 1 )
 				{
@@ -437,7 +438,7 @@
 				WeaveAPI.CollaborationCursorManager.removeCursor(e.getText());
 				setUserAttribute(TYPE_CAM, e.getText(), 0);
 				setUserAttribute(TYPE_MIC, e.getText(), 0);
-				if( userList.dataProvider.length == 2 )
+				if( userList.dataProvider.length == 2 && !collabService.hasControl)
 					cursorButtonClick(new MouseEvent(MouseEvent.CLICK));
 			}
 			
