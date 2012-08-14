@@ -172,7 +172,7 @@
 					testID = name.substr(0, 10) + "...";
 				else
 					testID = name;
-				for( var i:int = 0; canvasList.length; i++ )
+				for( var i:int = 0; i < canvasList.length; i++ )
 				{
 					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == testID )
 						return canvasList[i] as CollaborationVideoComponent;
