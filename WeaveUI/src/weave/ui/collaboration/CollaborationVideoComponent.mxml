@@ -38,7 +38,8 @@
 			{
 				video.attachNetStream(null);
 				video.clear();
-				stream.close();
+				if( stream != null )
+					stream.close();
 			}
 			
 			protected function creationComplete(event:FlexEvent):void

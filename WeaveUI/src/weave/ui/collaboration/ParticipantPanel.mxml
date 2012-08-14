@@ -27,9 +27,14 @@
 			public function removeFromParticipantList(id:String):void
 			{
 				if( canvasList == null ) return;
+				var testID:String = new String();
+				if( id.length > 10 )
+					testID = id.substr(0, 10) + "...";
+				else
+					testID = id;
 				for( var i:int = 0; i < canvasList.length; i++ )
 				{
-					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == id )
+					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == testID )
 					{
 						canvasList.splice(i, 1);
 						break;
@@ -55,62 +60,64 @@
 						lostControl(controlList[j]);
 						controlList.splice(j, 1);
 					}
+				var testID:String = new String();
 				for( var k:int = 0; k < controlList.length; k++ )
+				{
+					if( controlList[k].length > 10 )
+						testID = controlList[k].substr(0, 10) + "...";
+					else
+						testID = controlList[k];
+						
 					for( var m:int = 0; m < canvasList.length; m++ )
-					{
-						if( (canvasList[m] as CollaborationVideoComponent).nameLabel.text == controlList[k] )
+						if( (canvasList[m] as CollaborationVideoComponent).nameLabel.text == testID )
 						{
 							(canvasList[m] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth * windowSizeConstant;
 							(canvasList[m] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight * windowSizeConstant;
 							this.height = (canvasList[m] as CollaborationVideoComponent).height + 18;
 							//Need to use callLater here, as the height and width changes don't take effect immediately.
 							callLater((canvasList[m] as CollaborationVideoComponent).adjustCamera);		
-						}/*
-						else
-						{
-							(canvasList[l] as CollaborationVideoComponent).width -= CollaborationVideoComponent.defaultWidth * windowSizeConstant;
-							(canvasList[l] as CollaborationVideoComponent).height -= CollaborationVideoComponent.defaultHeight * windowSizeConstant;
-						}*/
-					}
+						}
+				}
 				adjustLayout();
 			}
 			
 			public function lostControl(id:String):void
 			{
+				var testID:String = new String();
+				if( id.length > 10 )
+					testID = id.substr(0, 10) + "...";
+				else
+					testID = id;
 				for( var i:int = 0; i < canvasList.length; i++ )
-				{
-					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == id )
+					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == testID )
 					{
 						(canvasList[i] as CollaborationVideoComponent).width = CollaborationVideoComponent.defaultWidth;
 						(canvasList[i] as CollaborationVideoComponent).height = CollaborationVideoComponent.defaultHeight;
 						this.height = 97;
 						//Need to use callLater here, as the height and width changes don't take effect immediately.
 						callLater((canvasList[i] as CollaborationVideoComponent).adjustCamera);		
-					}/*
-					else
-					{
-						(canvasList[i] as CollaborationVideoComponent).width += CollaborationVideoComponent.defaultWidth * windowSizeConstant;
-						(canvasList[i] as CollaborationVideoComponent).height += CollaborationVideoComponent.defaultHeight * windowSizeConstant;
-						if( (canvasList[i] as CollaborationVideoComponent).height > maxHeight )
-							maxHeight = (canvasList[i] as CollaborationVideoComponent).height;
-					}*/
-				}
+					}
 				adjustLayout();
 			}
 			
 			private function alreadyExists(id:String, arrayToCheck:Array):Boolean
 			{
+				//testID is only for use for CollaborationVideoComponents, otherwise use the full id.
+				var testID:String = new String();
+				if( id.length > 10 )
+					testID = id.substr(0, 10) + "...";
+				else
+					testID = id;
 				for( var i:int = 0; i < arrayToCheck.length; i++ )
 				{
 					if( arrayToCheck[i] is CollaborationVideoComponent )
 					{
-						if((arrayToCheck[i] as CollaborationVideoComponent).nameLabel.text == id )
+						if((arrayToCheck[i] as CollaborationVideoComponent).nameLabel.text == testID )
 							return true;
 					}
 					else
 						if( arrayToCheck[i] == id )
 							return true;
-						
 				}
 				return false;
 			}
@@ -142,31 +149,32 @@
 			
 			public function addCameraStream(stream:NetStream, streamPath:String, userName:String):void
 			{
-				var tempCollaborationVideoComponent:CollaborationVideoComponent = findCamera(userName);
+				var tempCollaborationVideoComponent:CollaborationVideoComponent = findVideoComponent(userName);
 				if( tempCollaborationVideoComponent == null )
 					return;
 				tempCollaborationVideoComponent.stream = stream;
-				stream.play(streamPath);
-				tempCollaborationVideoComponent.video.attachNetStream(stream);
+				tempCollaborationVideoComponent.play(streamPath);
 			}
 			
 			public function removeCameraStream(userName:String):NetStream
 			{
-				var tempCollaborationVideoComponent:CollaborationVideoComponent = findCamera(userName);
+				var tempCollaborationVideoComponent:CollaborationVideoComponent = findVideoComponent(userName);
 				if( tempCollaborationVideoComponent == null )
 					return null;
-				tempCollaborationVideoComponent.video.attachNetStream(null);
-				tempCollaborationVideoComponent.video.clear();
-				if( tempCollaborationVideoComponent.stream != null )
-					tempCollaborationVideoComponent.stream.close();
+				tempCollaborationVideoComponent.close();
 				return tempCollaborationVideoComponent.stream;
 			}
 			
-			private function findCamera(name:String):CollaborationVideoComponent
+			private function findVideoComponent(name:String):CollaborationVideoComponent
 			{
+				var testID:String = new String();
+				if( name.length > 10 )
+					testID = name.substr(0, 10) + "...";
+				else
+					testID = name;
 				for( var i:int = 0; canvasList.length; i++ )
 				{
-					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == name )
+					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == testID )
 						return canvasList[i] as CollaborationVideoComponent;
 				}
 				return null;
