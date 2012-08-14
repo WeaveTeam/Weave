@@ -31,19 +31,12 @@
 			 paddingRight="{padding}" paddingTop="{padding}">
 		<mx:VBox id="containerGlobal" width="100%" height="100%">
 			<mx:VBox id="containerAddons" width="100%" height="0" horizontalScrollPolicy="off">
-				<mx:Canvas width="100%" height="100%" clipContent="true" horizontalScrollPolicy="off"
-						   verticalScrollPolicy="off">
-					<mx:Canvas id="containerRemoteCams" width="100%" height="100%" autoLayout="false"/>
-					<mx:HBox right="0" bottom="0" horizontalAlign="right" verticalAlign="bottom">
-						<mx:UIComponent id="containerLocalCam" width="80" height="60"/>
-					</mx:HBox>
-				</mx:Canvas>
 				<mx:HBox id="addonControls" width="100%" horizontalAlign="center"
 						 horizontalScrollPolicy="off">
 					<mx:Button id="button_mic" width="28" height="22" click="toggleMic(event)"
-							   enabled="{addOnsSaved}" toggle="true"/>
+							   enabled="{addOnsSaved}" label="MIC" toggle="true"/>
 					<mx:Button id="button_cam" width="28" height="22" click="toggleCam(event)"
-							   enabled="{addOnsSaved}" toggle="true"/>
+							   enabled="{addOnsSaved}" label="CAM" toggle="true"/>
 				</mx:HBox>
 			</mx:VBox>
 			<mx:VBox id="containerChat" width="100%" height="100%">
@@ -93,8 +86,8 @@
 			private var nsPublishCam:NetStream 					= null;
 			private var nsPlayMicList:Dictionary  				= new Dictionary();
 
-			public var cam:Camera;
-			public var mic:Microphone;
+			public var cam:Camera								= null;
+			public var mic:Microphone                         	= null;
 			
 			[Embed(source="/weave/resources/images/collab/mic.png")]     internal const iconMic:Class;
 			[Embed(source="/weave/resources/images/collab/cam.png")]     internal const iconCam:Class;
@@ -129,6 +122,8 @@
 			}
 			private function toggleMic(e:MouseEvent):void
 			{
+				if( mic == null )
+					return;
 				enabledMic = !enabledMic;
 				dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_MIC, ( enabledMic ) ? "1" : "0"));
 				
@@ -138,10 +133,10 @@
 					{
 						nsPublishMic = new NetStream(rtmpService);
 						nsPublishMic.addEventListener(NetStatusEvent.NET_STATUS, netStatusEventHandler);
-						mic.setUseEchoSuppression(true);
-						mic.setSilenceLevel(20);
-						nsPublishMic.attachAudio(mic);
-						nsPublishMic.publish("m-"+roomName+"-"+nickname, "live");
+							mic.setUseEchoSuppression(true);
+							mic.setSilenceLevel(20);
+							nsPublishMic.attachAudio(mic);
+							nsPublishMic.publish("m-"+roomName+"-"+nickname, "live");
 					}
 					else
 					{
@@ -154,6 +149,8 @@
 			}
 			private function toggleCam(e:MouseEvent):void
 			{
+				if( cam == null )
+					return;
 				enabledCam = !enabledCam;
 				dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_CAM, ( enabledCam ) ? "1" : "0"));
 				
@@ -193,17 +190,7 @@
 			{
 				containerAddons.height = addonControls.height + 6;
 			}
-			public function showLocalDisplay():void
-			{
-				containerAddons.height = addonControls.height + 66;
-			}
-			public function showRemoteDisplay():void
-			{
-				containerAddons.height = addonControls.height + 146;
-			}
 			public function hideAddonControls():void	{ containerAddons.height = 0; }
-			public function hideRemoteDisplay():void 	{ showAddonControls(); }
-			public function hideLocalDisplay():void 	{ showAddonControls(); }
 			
 			public function showRTMPWarning(msg:String = null, fadeout:Number = -1):void
 			{
@@ -231,13 +218,6 @@
 					);
 					t.start();
 				}
-			}
-			private function dictionaryLength(dic:Dictionary):Number
-			{
-				var n:Number = 0;
-				for( var key:Object in dic )
-					n++;
-				return n;
 			}
 			
 		]]>
