@@ -58,11 +58,13 @@ package weave
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableString;
 	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.WeaveDataSource;
@@ -311,6 +313,8 @@ package weave
 			
 			//(WeaveAPI.topLevelApplication as UIComponent).setStyle("backgroundGradientColors", [color, color]);
 		}
+		
+		
 		
 		/**
 		 * The desktop is the entire viewable area minus the space for the optional menu bar and taskbar

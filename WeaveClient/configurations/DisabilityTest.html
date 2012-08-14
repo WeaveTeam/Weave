@@ -71,6 +71,7 @@ Disability test page
 <script language="JavaScript" type="text/javascript" src="json2.js"></script>
 <script language="JavaScript" type="text/javascript">
 
+
 function getImage()
 {
 	var image = document.getElementById('weave').evaluateExpression(['MapTool'], 
@@ -107,11 +108,16 @@ function weaveReady(weave)
 // }
 disableButtons(true);
 
+var altPath = ['WeaveProperties', 'disabilityAltText'];
+var dAltText = weave.getSessionState(altpath);
+
+
+
 function runStartupScript()
 {
 	document.getElementById('weave').runStartupJavaScript();
 }
-
+	
 // brings a color legend to the foreground
 // function showLegend()
 // {
@@ -133,11 +139,6 @@ function runStartupScript()
 	alert(JSON.stringify(state1, replacer, '\t'));
 // }
 
-function getAltText()
-{
-	var weave = document.getElementById('weave');
-	var altText = 
-}
 
 function getMethodDescription()
 {
@@ -273,7 +274,7 @@ if ( hasProductInstall && !hasRequestedVersion ) {
 // -->
 </script>
 <noscript>
-  	<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"
+  	<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" 
 			id="weave" width="100%" height="100%"
 			codebase="http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab">
 			<param name="movie" value="weave.swf" />
@@ -281,8 +282,13 @@ if ( hasProductInstall && !hasRequestedVersion ) {
 			<param name="bgcolor" value="#cccccc" />
 			<param name="allowScriptAccess" value="sameDomain" />
 			<param name="allowFullScreen" value="true" />
-			<embed src="weave.swf" quality="high" bgcolor="#cccccc"
-				width="100%" height="100%" name="weave" align="middle"
+			<embed src="weave.swf"
+				quality="high" 
+				bgcolor="#cccccc"
+				width="100%" 
+				height="100%" 
+				name="weave" 
+				align="middle"
 				play="true"
 				loop="false"
 				quality="high"
@@ -293,5 +299,8 @@ if ( hasProductInstall && !hasRequestedVersion ) {
 			</embed>
 	</object>
 </noscript>
+
+
+
 </body>
 </html>
