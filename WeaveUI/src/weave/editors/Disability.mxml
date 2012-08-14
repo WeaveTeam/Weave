@@ -1,50 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"
-		 xmlns="weave.ui.editors.*"
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<!---
+@author mervetuccar
+-->
+
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"		 
+		 xmlns="weave.editors.*"
+		 xmlns:ui="weave.ui.*"
 		 label="Disability"
-		 enabled="{_panel != null}"
-		 creationPolicy="all" xmlns:ui="weave.ui.editors.*">
+		 implements="weave.api.core.ILinkableObject"
+		 enabled="{_panel != null}"	>
 	<mx:Label text="longdesc text:"
 			  textAlign="left"/>
-	<mx:TextInput id="longDescTextBox" width="100%" height="100%" minWidth="5" minHeight="5"
+	<mx:TextArea id="longDescTextBox" width="100%" height="100%" minWidth="5" minHeight="5"
 				 borderStyle="solid" editable="true"  keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');" 
-				 toolTip="Text entered here will be used to set the longdesc text (under disability options) for this instance of Weave when it is embedded in a web page. This input field is restricted to 125 characters. The alt attribute is used by standard screen reading tools to give information about graphics elements for to blind or visually impaired individuals."/>
+				 toolTip="Text entered here will be used to set the longdesc text (under disability options) for this instance of Weave when it is embedded in a web page. This input field is restricted to 125 characters. The alt attribute is used by standard screen reading tools to give information about graphics elements for to blind or visually impaired individuals."
+				 creationComplete="handleCreationComplete(event);"/>
 	
 	<mx:Script>
 		<![CDATA[
 			import mx.accessibility.CheckBoxAccImpl;
+			import mx.binding.utils.BindingUtils;
 			import mx.controls.Menu;
-			import mx.controls.TextInput;
+			import mx.controls.TextArea;
 			import mx.core.IUIComponent;
+			import mx.core.UIComponent;
 			import mx.events.DragEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.DragManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableObject;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.unlinkBindableProperty;
 			import weave.api.unlinkSessionState;
+			import weave.core.LinkableString;
 			import weave.ui.ControlPanel;
+			import weave.ui.DisabilityOptions;
 			import weave.ui.DraggablePanel;
-			
-			
-		
-			//override protected function constructor():void
-			//{
-				//super.constructor();
-				
-				//panelWidth.value = "70%";
-				//panelHeight.value = "70%";
-				//panelX.value = "15%";
-				//panelY.value = "15%";
-		//	}
+			import weave.utils.LinkableTextFormat;
 			
 			
 			
 			[Bindable]
 			private var _panel:DraggablePanel = null;
+			
+			public const disabilityText:LinkableString = newLinkableChild(this, LinkableString);
+			
+			
 			
 			public function set target(panel:DraggablePanel):void
 			{
@@ -53,15 +82,26 @@
 				
 				_panel = panel;
 			}
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				
 			}
 			
-
-
+			
+			private function handleCreationComplete(event:Event) : void
+			{
+				
+				DisabilityOptions.Instance.disabilityHashMap.requestObject('text', LinkableString, false);
+				var HashDisabilityText : LinkableString = (DisabilityOptions.Instance.disabilityHashMap.renameObject('text', _panel.title) as LinkableString);
+				
+				if( HashDisabilityText == null)
+					reportError("Error Creating request object from Disability Options");
+				else
+					linkBindableProperty(HashDisabilityText, event.target, "text");
+				
+			}
 		]]>
 	</mx:Script>
 </mx:VBox>

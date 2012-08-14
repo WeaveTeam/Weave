@@ -161,6 +161,8 @@ package weave.visualization.tools
 			{
 				controlPanel.children = [layerListComponent, simpleAxisEditor, windowSettingsEditor, disability];
 			}
+			
+			//DisabilityOptions.Instance.disabilityArray.push(disability);
 		}
 		
 		override protected function childrenCreated():void
