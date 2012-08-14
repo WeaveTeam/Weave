@@ -63,6 +63,7 @@
 				var testID:String = new String();
 				for( var k:int = 0; k < controlList.length; k++ )
 				{
+					if( controlList[k] is Number ) continue;
 					if( controlList[k].length > 10 )
 						testID = controlList[k].substr(0, 10) + "...";
 					else
