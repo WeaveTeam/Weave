@@ -97,7 +97,10 @@ package weave.ui.collaboration
 						//Inline function for fading effect.
 						i++;
 						if( cursorList[mouseID] == null )
+						{
+							timer.stop();
 							return;
+						}
 						(cursorList[mouseID] as CollabMouseCursor).alpha = 1 - i/25;
 					});
 				}
