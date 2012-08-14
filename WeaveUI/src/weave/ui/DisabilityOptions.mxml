@@ -99,7 +99,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							private const padding:int = 5;
 							private var cbArray:Array = [];
 							private var selectedCB : CheckBox;
-							public var disabilityAltText:String;
+							
 							
 							override protected function constructor():void
 							{
@@ -154,6 +154,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								//longDescTextInputBox.text = 
 								//textEditor.text = equationColumn.equation.value;
 								//EventUtils.addDelayedEventCallback(textEditor, Event.CHANGE, handleEquationTextEntry);
+								linkBindableProperty(Weave.properties.disabilityAltText, altTextInputBox, "text");
 								
 							}
 							/**one checkbox is able to be checked in a time*/
@@ -223,11 +224,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								
 							}
 							
-							private function getAltText():void {
-								
-								disabilityAltText = altTextInputBox.text;
-							}
-						
+					
 							private function getWindowsOnStage(): Array
 							{
 								var panels:Array = Weave.root.getObjects(DraggablePanel);
