@@ -92,11 +92,11 @@
 			private var CHAT:CollaborationChatWindow;
 			private var SETTINGS:CollaborationSettingsWindow;
 			private var PARTICIPANTS:ParticipantPanel;
-			private var disConButtonPushed:Boolean			= false;
+			private var disConButtonPushed:Boolean				= false;
 			private var mouseTimer:Timer;
 			private var pingTimer:Timer;
 			private var connTimer:Timer;
-			private var chatButton:Button              		= new Button();
+			private var chatButton:Button              			= new Button();
 			
 			[Embed(source="/weave/resources/images/tinyWrench2.png")]	private const iSettings:Class;
 			[Embed(source="/weave/resources/images/collab/chat.png")]   private const iChat:Class;  
