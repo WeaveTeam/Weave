@@ -231,6 +231,9 @@ package weave
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
 
+		
+		public const disabilityAltText:LinkableString = new LinkableString();
+		
 		// BEGIN TEMPORARY SOLUTION
 		public const _toggleMap:Dictionary = new Dictionary();
 		private function _initToggleMap():void
