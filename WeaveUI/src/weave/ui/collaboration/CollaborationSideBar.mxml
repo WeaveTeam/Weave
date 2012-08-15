@@ -84,7 +84,6 @@
 			public const TYPE_COLOR:String					= "COLOR";
 			
 			public var rtmpService:NetConnection 				= null;
-			private const rtmpPath:String 						= "rtmp://demo.oicweave.org/live";
 			private var connectedToRTMPService:Boolean			= false;
 			internal var roomName:String 						= null;
 			private var nsPlayMicList:Dictionary  				= new Dictionary();
@@ -683,7 +682,7 @@
 			private function connectToRTMPServer():void
 			{
 				rtmpService.client = this;
-				rtmpService.connect(rtmpPath);
+				rtmpService.connect(Weave.properties.collabRTMPServer.value);
 				
 				if( !rtmpPollingServer )
 				{

@@ -40,6 +40,10 @@
 			<mx:Label width="{labelWidth}" text="Room Name:"/>
 			<mx:TextInput id="roomToJoin" width="{textAreaWidth}" change="trimInput(event);"/>
 		</mx:HBox>
+		<mx:HBox width="100%">
+			<mx:Label width="{labelWidth}" text="Rtmp Server:"/>
+			<mx:TextInput id="rtmpServer" width="{textAreaWidth}" change="trimInput(event);"/>
+		</mx:HBox>
 		<mx:CheckBox id="collabBar" label="Show Collaboration Menu Bar"
 					 toolTip="Toggle access to Collaboration Toolbar"/>
 	</mx:VBox>
@@ -64,12 +68,14 @@
 				linkBindableProperty(Weave.properties.collabServerName, serverName, 'text');
 				linkBindableProperty(Weave.properties.collabServerPort, port, 'text');
 				linkBindableProperty(Weave.properties.collabServerRoom, roomToJoin, 'text');
+				linkBindableProperty(Weave.properties.collabRTMPServer, rtmpServer, 'text');
 				linkBindableProperty(Weave.properties.enableCollaborationBar, collabBar, 'selected');
 				
 				this.targets = [Weave.properties.collabServerIP, 
 								Weave.properties.collabServerName, 
 								Weave.properties.collabServerPort, 
 								Weave.properties.collabServerRoom,
+								Weave.properties.collabRTMPServer,
 								Weave.properties.enableCollaborationBar];
 			}
 			
