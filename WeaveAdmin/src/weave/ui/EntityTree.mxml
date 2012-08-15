@@ -3,13 +3,15 @@
     xmlns="weave.ui.*"
     creationComplete="handleCreated()" itemOpening="onExpand(event)"
     change="onChange(event)"
-    openDuration="0" dragEnabled="true">
+    openDuration="0" dragEnabled="true"
+    showRoot="false">
 <mx:Script>
 <![CDATA[
 import weave.services.AdminInterface;
 import weave.services.beans.AttributeColumnInfo;
 import weave.services.WeaveAdminService;
 import weave.ui.EntityTreeNode;
+import weave.ui.EntityTreeRoot;
 import weave.ui.HierarchyDescriptor;
 
 import mx.collections.ArrayCollection;
@@ -76,31 +78,25 @@ private function filterByType(item:Object):Boolean
 }
 public function handleCreated():void
 {
+    var tree:EntityTree = this as EntityTree;
+    function connectionReady(event:PropertyChangeEvent):void
+    {
+       tree.connectionReady(event, tree); 
+    }
     connWatcher = ChangeWatcher.watch(AdminInterface.instance, "userHasAuthenticated", connectionReady);
 }
-private function connectionReady(event:PropertyChangeEvent):void
+private function connectionReady(event:PropertyChangeEvent, tree:Tree):void
 {
     dataDescriptor = new HierarchyDescriptor();
     if (event.newValue == true)
-        refresh();
-}
-public function refresh(o:Object = null):void
-{
-    AdminInterface.instance.meta_cache.get_children(-1, populateRoot);
-}
-private function populateRoot(event:Object):void
-{ 
-    var child_ids:Array = AdminInterface.instance.meta_cache.get_children(-1) || [];
-    var srcArray:Array = [];
-    var view:ArrayCollection = new ArrayCollection();
-    for each (var id:int in child_ids)
     {
-        var etn:EntityTreeNode = new EntityTreeNode(id);
-        srcArray.push(etn);
+        function setProvider(event:Object):void
+        {
+            tree.dataProvider = new EntityTreeRoot(this.entityType);
+            tree.validateNow();
+        }
+        AdminInterface.instance.meta_cache.get_children(-1, setProvider);
     }
-    view.filterFunction = filterByType;
-    view.source = srcArray;
-    dataProvider = view; 
 }
 ]]>
 </mx:Script>

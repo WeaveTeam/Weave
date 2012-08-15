@@ -13,8 +13,8 @@ package weave.ui
         public static var inc:int = 0;
         public var objid:int = 0;
         public var _id:int;
-        private var _children:Array; /* internal list of EntityTreeNode children to ensure we don't go creating unnecessary objects */
-        private var children_ids:Array; /* the ID array from which _children was built */
+        protected var _children:Array; /* internal list of EntityTreeNode children to ensure we don't go creating unnecessary objects */
+        protected var children_ids:Array; /* the ID array from which _children was built */
         public function get id():int
         {
             return _id;
@@ -47,6 +47,10 @@ package weave.ui
             return AdminInterface.instance.meta_cache.get_metadata(id, objectChanged);
         }
         [Bindable(event="childrenChanged")] public function get children():Array
+        {
+            return get_children();
+        }
+        protected function get_children():Array
         {
             if (this.object.entity_type == AttributeColumnInfo.COLUMN) return null;
             var fresh_children_ids:Array = AdminInterface.instance.meta_cache.get_children(id, childrenChanged);

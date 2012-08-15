@@ -115,30 +115,45 @@ package weave.services
             AdminInterface.instance.updateEntity(id, {"public":pubMeta, "private":privMeta}, afterUpdate);
             /* Do stuff, and things. */ 
         }
-        public function add_entity(id:int):void
+        public function add_tag(label:String, onComplete:Function = null):void
         {
+            /* Entity creation should usually impact root, so we'll invalidate root's cache entry and refetch. */
+            function afterUpdate():void
+            {
+                fetch_children(-1, onComplete);
+            }
+            var meta:Object = {};
+            meta["public"] = {title: label};
+            AdminInterface.instance.addTag(meta, afterUpdate);
+            delete entity_childcache[-1];  /* Invalidate the root. */
         }
-        public function delete_entity(id:int):void
+        public function delete_entity(id:int, onComplete:Function = null):void
         {
-            AdminInterface.instance.removeEntity(id, null);
-
+            /* Entity deletion should usually impact root, so we'll invalidate root's cache entry and refetch. */
+            function afterUpdate():void
+            {
+                fetch_children(-1, onComplete);
+            }
             delete entity_childcache[id];
             delete entity_metacache[id]; 
+            /* Invalidate the root. */
+            delete entity_childcache[-1];
+            AdminInterface.instance.removeEntity(id, afterUpdate);
         }
-        public function add_child(child_id:int, parent_id:int):void
+        public function add_child(child_id:int, parent_id:int, onComplete:Function = null):void
         {
             function afterUpdate():void
             {
-                fetch_children(parent_id);
+                fetch_children(parent_id, onComplete);
             }
             delete entity_childcache[parent_id];
             AdminInterface.instance.addChild(child_id, parent_id, afterUpdate);
         }
-        public function remove_child(child_id:int, parent_id:int):void
+        public function remove_child(child_id:int, parent_id:int, onComplete:Function = null):void
         {
             function afterUpdate():void
             {
-                fetch_children(parent_id);
+                fetch_children(parent_id, onComplete);
             }
             delete entity_childcache[parent_id];
             AdminInterface.instance.removeChild(child_id, parent_id, afterUpdate);

@@ -64,9 +64,15 @@
             UIUtils.componentPulse(tagNameInput);
             return;
         }
+        /*
         var meta:Object = {};
         meta["public"] = {title: name};
-        AdminInterface.instance.addTag(meta, tagTree.refresh);
+        */
+        function validate(obj:Object=null):void
+        {
+            tagTree.validateNow();
+        };
+        AdminInterface.instance.meta_cache.add_tag(name, validate);
         
     }
     public function selectionsChanged(event:ListEvent):void

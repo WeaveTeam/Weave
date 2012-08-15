@@ -40,8 +40,9 @@ package weave.services.beans
 		public var privateMetadata:Object;
 		public var publicMetadata:Object;
 		
-		public function AttributeColumnInfo(o:Object)
+		public function AttributeColumnInfo(o:Object = null)
 		{
+                        if (o == null) return;
 			this.id = o.id;
                         this.entity_type = o.type;
 			this.privateMetadata = o.privateMetadata;
