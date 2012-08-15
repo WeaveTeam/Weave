@@ -39,7 +39,6 @@ var requiredRevision = 0;
 
 Disability test page
 
-
 <table id="controls"><tr><td>
 <!-- 	<select id="methodInput" onchange="handleMethodSelect()"> -->
 <!-- 		<option>getSessionState(objectPath:Array):Object</option> -->
@@ -63,53 +62,62 @@ Disability test page
 <!-- 	<button id="b4" onclick="showLegend()">Bring legend to foreground</button><br> -->
 <!-- 	<button id="b6" onclick="getImage()">Get Image</button><br> -->
 <!-- 	<input id="scriptInput" type="text" value="Hello, world."/></input> -->
-<!-- 	<button id="b5" onclick="runStartupScript()">Run sessioned startup script again</button><br> -->
-<!-- </td><td width="100%" height="100%"> -->
-<!-- 	<img id="img_tag"/> -->
-<!-- 	<textarea id="resultTextArea" cols="80" rows="10"></textarea> -->
-<!-- </td></tr></table> -->
+<!--  	<button id="b5" onclick="getAltText()">Run sessioned startup script again</button><br>  -->
+	</td><td width="100%" height="100%"> 
+	 	<textarea id="test" cols="80" rows="10"></textarea> 
+	 </td></tr></table> 
 <script language="JavaScript" type="text/javascript" src="json2.js"></script>
 <script language="JavaScript" type="text/javascript">
 
+ function getAltText(){
 
-function getImage()
-{
-	var image = document.getElementById('weave').evaluateExpression(['MapTool'], 
-	  	            'getBase64Image(this)', 
-	  	             null, 
-	  	             ['weave.utils.BitmapUtils']);
-	 $.ajax({
-	  	data: image,
-		url: "/ImageService/Base64ImageService",
-		type: "POST",
-		dataType: "text",
-		success: function( data, textStatus, jqXHR ) {
-		imgName = data;
-		imgTag.src = "/ImageService/Base64ImageService?file="+ imgName;
-	 },
-	  error: function (qXHR, textStatus, errorThrown) {
+ 	var weave = document.getElementById('weave');
+ 	var altPath = ['WeaveProperties', 'disabilityAltText'];
+ 	var dAltText = weave.getSessionState(altPath);
+ 	var testText =  document.getElementById('test');
+ 	testText.value = dAltText;
+ 
+ }
+
+
+// function getImage()
+// {
+// 	var image = document.getElementById('weave').evaluateExpression(['MapTool'], 
+// 	  	            'getBase64Image(this)', 
+// 	  	             null, 
+// 	  	             ['weave.utils.BitmapUtils']);
+// 	 $.ajax({
+// 	  	data: image,
+// 		url: "/ImageService/Base64ImageService",
+// 		type: "POST",
+// 		dataType: "text",
+// 		success: function( data, textStatus, jqXHR ) {
+// 		imgName = data;
+// 		imgTag.src = "/ImageService/Base64ImageService?file="+ imgName;
+// 	 },
+// 	  error: function (qXHR, textStatus, errorThrown) {
 					
-	 }
-    });
-}
+// 	 }
+//     });
+// }
 // this function gets called when the weave instance is ready.
 function weaveReady(weave)
 {
 	disableButtons(false);
-	document.getElementById('versionSpan').innerHTML = weave.getSessionState(['WeaveProperties','version']);
+// 	document.getElementById('versionSpan').innerHTML = weave.getSessionState(['WeaveProperties','version']);
 	alert('Weave JavaScript API is ready (id="'+(weave && weave.id)+'").');
+	getAltText();
+	
 }
-// this function will enable or disable the api test buttons.
-// function disableButtons(disabled)
-// {
+//this function will enable or disable the api test buttons.
+function disableButtons(disabled)
+{
 // 	var buttons = ['b1','b2','b3','b4','b5'];
 // 	for (var i = 0; i < buttons.length; i++)
 // 		document.getElementById(buttons[i]).disabled = disabled;
-// }
+}
 disableButtons(true);
 
-var altPath = ['WeaveProperties', 'disabilityAltText'];
-var dAltText = weave.getSessionState(altpath);
 
 
 
@@ -136,79 +144,80 @@ function runStartupScript()
 // 	var state2 = weave.getSessionState(path2);
 // 	weave.setSessionState(path1, state2);
 // 	weave.setSessionState(path2, state1);
-	alert(JSON.stringify(state1, replacer, '\t'));
+// 	alert(JSON.stringify(state1, replacer, '\t'));
 // }
 
 
-function getMethodDescription()
-{
-	return methodInput.options[methodInput.selectedIndex].text;
-}
+// function getMethodDescription()
+// {
+// 	return methodInput.options[methodInput.selectedIndex].text;
+// }
 // this function counts the number of required parameters in the selected api function
-function countRequiredParams()
-{
-	var funcDesc = getMethodDescription();
-	var total = funcDesc.split(',').length;
-	var optional = funcDesc.split('=').length - 1;
-	//alert(total + '-' + optional + ': ' + funcDesc);
-	return total - optional; // # of required params
-}
+// function countRequiredParams()
+// {
+// 	var funcDesc = getMethodDescription();
+// 	var total = funcDesc.split(',').length;
+// 	var optional = funcDesc.split('=').length - 1;
+// 	alert(total + '-' + optional + ': ' + funcDesc);
+// 	return total - optional; // # of required params
+// }
 // this function enables or disables the parameter input fields
-function handleMethodSelect()
-{
-	var method = getMethodDescription();
-	var count = countRequiredParams();
-	input1.disabled = count < 1;
-	input2.disabled = count < 2;
-}
-handleMethodSelect(); // call once now to initialize 'disabled' properties
+// function handleMethodSelect()
+// {
+// 	var method = getMethodDescription();
+// 	var count = countRequiredParams();
+// 	input1.disabled = count < 1;
+// 	input2.disabled = count < 2;
+// }
+// handleMethodSelect(); // call once now to initialize 'disabled' properties
 // this function replaces xml objects with strings if necessary
-function replacer(key, value)
-{
-	if (typeof(value) == 'xml')
-	{
-		return this[key] = value.toString();
-	}
-	return value;
-}
+// function replacer(key, value)
+// {
+// 	if (typeof(value) == 'xml')
+// 	{
+// 		return this[key] = value.toString();
+// 	}
+// 	return value;
+// }
 // this function casts a String to the appropriate type
-function castParam(param, description)
-{
-	if (description == undefined)
-		return param;
-	if (description.indexOf(':Boolean') >= 0)
-	{
-		return param == 'true';
-	}
-	if (description.indexOf(':Array') >= 0)
-	{
-		param = param.split(',');
-		if (param.length == 1 && param[0] == '')
-			param.length = 0;
-	}
-	return param;
-}
+// function castParam(param, description)
+// {
+// 	if (description == undefined)
+// 		return param;
+// 	if (description.indexOf(':Boolean') >= 0)
+// 	{
+// 		return param == 'true';
+// 	}
+// 	if (description.indexOf(':Array') >= 0)
+// 	{
+// 		param = param.split(',');
+// 		if (param.length == 1 && param[0] == '')
+// 			param.length = 0;
+// 	}
+// 	return param;
+// }
 // this function executes the selected api function with the parameters entered in the input fields.
-function testWeaveAPI()
-{
-	var weave = document.getElementById('weave');
-	var funcDesc = getMethodDescription();
-	var paramCount = countRequiredParams();
-	var paramList = funcDesc.split('(')[1].split(')')[0].split(',');
-	var method = funcDesc.split('(')[0];
-	var param1 = castParam(input1.value, paramList[0]);
-	var param2 = castParam(input2.value, paramList[1]);
+// function testWeaveAPI()
+// {
+// 	var weave = document.getElementById('weave');
+// 	var funcDesc = getMethodDescription();
+// 	var paramCount = countRequiredParams();
+// 	var paramList = funcDesc.split('(')[1].split(')')[0].split(',');
+// 	var method = funcDesc.split('(')[0];
+// 	var param1 = castParam(input1.value, paramList[0]);
+// 	var param2 = castParam(input2.value, paramList[1]);
 
-	var result = null;
-	if (paramCount == 2)
-		result = weave[method](param1, param2);
-	if (paramCount == 1)
-		result = weave[method](param1);
+// 	var result = null;
+// 	if (paramCount == 2)
+// 		result = weave[method](param1, param2);
+// 	if (paramCount == 1)
+// 		result = weave[method](param1);
 
-	var str = JSON.stringify(result, replacer, '\t');
-	resultTextArea.value = str;
-	//alert(str);
-}
+// 	var str = JSON.stringify(result, replacer, '\t');
+// 	resultTextArea.value = str;
+	
+// 	alert(str);
+// }
 </script>
 
 
@@ -244,6 +253,7 @@ if ( hasProductInstall && !hasRequestedVersion ) {
 		"bgcolor", "#cccccc",
 		"name", "weave",
 		"allowScriptAccess","sameDomain",
+		"alt", "dAltText",
 		"type", "application/x-shockwave-flash",
 		"pluginspage", "http://www.adobe.com/go/getflashplayer",
 		"allowFullScreen", "true"
@@ -261,6 +271,7 @@ if ( hasProductInstall && !hasRequestedVersion ) {
 			"bgcolor", "#cccccc",
 			"name", "weave",
 			"allowScriptAccess","sameDomain",
+			"alt", "testtest",
 			"type", "application/x-shockwave-flash",
 			"pluginspage", "http://www.adobe.com/go/getflashplayer",
 			"allowFullScreen", "true"
@@ -282,9 +293,11 @@ if ( hasProductInstall && !hasRequestedVersion ) {
 			<param name="bgcolor" value="#cccccc" />
 			<param name="allowScriptAccess" value="sameDomain" />
 			<param name="allowFullScreen" value="true" />
-			<embed src="weave.swf"
+			<param name="alt" value="testtest" />
+			<embed src="weave.swf" 
 				quality="high" 
 				bgcolor="#cccccc"
+				alt="testtest"
 				width="100%" 
 				height="100%" 
 				name="weave" 
