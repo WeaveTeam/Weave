@@ -500,6 +500,11 @@
 				PARTICIPANTS.x = (WeaveAPI.topLevelApplication as DisplayObject).width / 2 - PARTICIPANTS.width / 2;
 			}
 			
+			public function openParticipantPaenl():void
+			{
+				if(PARTICIPANTS) PARTICIPANTS.visible ? PARTICIPANTS.visible = false : PARTICIPANTS.visible = true;
+			}
+			
 			private function openSettingsPanel(e:MouseEvent = null):void
 			{
 				if(SETTINGS) SETTINGS.visible ? SETTINGS.hide() : SETTINGS.show();

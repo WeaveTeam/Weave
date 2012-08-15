@@ -53,6 +53,10 @@
 						<mx:Button label="Load" click="button1_clickHandler(event)"
 								   enabled="{CollabMouseCursor.useImage}"/>						
 					</mx:HBox>
+					<mx:HBox>
+						<mx:Label text="Show participants cameras:"/>
+						<mx:CheckBox id="showParticipantPanel" selected="true" click="showParticipantPanelClick(event)"/>					
+					</mx:HBox>
 					<mx:Spacer height="10"/>
 					<ui:Center>
 						<mx:Label visible="{warningVisible}" color="#FF0000" fontWeight="bold"
@@ -146,8 +150,8 @@
 				{
 					Alert.show("There is an error with the server properties.", "Error");
 				}
-				collab_NICKNAME 	= nickname.text;
-				collab_COLOR 		= picker.selectedColor;
+				collab_NICKNAME = nickname.text;
+				collab_COLOR = picker.selectedColor;
 				
 				if( connectButton.label == lang("Connect" ) )
 				{
@@ -306,6 +310,11 @@
 			protected function button1_clickHandler(event:MouseEvent):void
 			{
 				CollabMouseCursor.imageLink = linkForImage.text;			
+			}
+			
+			protected function showParticipantPanelClick(event:MouseEvent):void
+			{
+				
 			}
 			
 		]]>
