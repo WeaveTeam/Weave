@@ -490,7 +490,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleUserRequestUserlist(e:CollaborationEvent):void
 			{
-				collabService.requestAddonStatus(e.getText(), _userListInfo);
+				collabService.requestAddonStatus(e.getText(), _userListInfo, WeaveAPI.CollaborationCursorManager.getMouseQueue());
 			}
 			
 			private function updatePing(e:CollaborationEvent):void 	   { setUserAttribute(TYPE_PING, e.getText(), e.getX()); }
@@ -849,6 +849,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					setUserAttribute(CHAT.TYPE_PING, 	name, info[name].ping);
 					setUserAttribute(CHAT.TYPE_SPEC, 	name, info[name].spec);
 				}
+				var queueArray:Array = e.getQueue() as Array;
+				for( var i:int = 0; i < queueArray.length; i++ )
+				{
+					if( i < queueArray.length - 1 )
+						WeaveAPI.CollaborationCursorManager.addToQueue(queueArray[i], collabService.nickname);
+					else
+					{
+						var position:Array = WeaveAPI.CollaborationCursorManager.addToQueue(queueArray[i], collabService.nickname);
+						PARTICIPANTS.inControl(position);
+					}
+				}
+				
 			}
 			
 			private function requestAddonStatus():void
