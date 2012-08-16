@@ -50,6 +50,7 @@ package weave.services.collaboration
 		public static const CONN_SETTINGS_CONNECT:String 	= "collab_conn_settings_connect";
 		public static const CONN_SETTINGS_DISCONNECT:String = "collab_conn_settings_disconnect";
 		public static const ADDON_SETTINGS_SAVED:String 	= "collab_addon_settings_saved";
+		public static const PARTICIPANT_PANEL_SHOW:String   = "collab_participant_panel_show";
 		
 		/* CHAT EVENTS */
 		public static const SEND_MESSAGE:String 			= "collab_send_message";
