@@ -862,16 +862,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				CHAT.showRTMPWarning(e.text, 10000);
 			}
+			//This is a necessary callback function.
+			public function onBWDone():void
+			{
+			}
 			
 			private function netStatusEventHandler(e:NetStatusEvent):void
 			{
 				switch( e.info.code )
 				{
+					case "NetStream.Publish.Start":
+						break;
 					case "NetStream.Publish.BadName":
 						CHAT.showRTMPWarning("Error publishing stream: Bad Name", 10000);
 						break;
 					default:
-						CHAT.showRTMPWarning("Unhandled netstatus event: "+e.info.code, 10000);
 						break;
 				}
 			}

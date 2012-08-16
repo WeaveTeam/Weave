@@ -191,11 +191,12 @@
 			{
 				switch( e.info.code )
 				{
+					case "NetStream.Publish.Start":
+						break;
 					case "NetStream.Publish.BadName":
 						showRTMPWarning("Error publishing stream: Bad Name", 10000);
 						break;
 					default:
-						trace("Unhandled netstatus event: "+e.info.code);
 						break;
 				}
 			}
