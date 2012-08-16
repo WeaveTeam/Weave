@@ -351,17 +351,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;
 			
-			// this allows you to specify a percentage value like x="25%" in MXML.
+			// this metadata tag allows you to specify a percentage value like x="25%" in MXML.
 			[PercentProxy("percentX")]
 			override public function set x(value:Number):void
 			{
 				super.x = Math.round(value);
 			}
-			// this allows you to specify a percentage value like y="25%" in MXML.
+			// this metadata tag allows you to specify a percentage value like y="25%" in MXML.
 			[PercentProxy("percentY")]
 			override public function set y(value:Number):void
 			{
 				super.y = Math.round(value);
+			}
+			
+			override public function set width(value:Number):void
+			{
+				super.width = Math.round(value);
+			}
+			override public function set height(value:Number):void
+			{
+				super.height = Math.round(value);
 			}
 			
 			[Inspectable(environment="none")]
@@ -448,7 +457,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					copyCoordinateFromLinkableString(panelWidth, parent.width, "width", minWidth);
 				if (!singleProperty || singleProperty == panelHeight)
 					copyCoordinateFromLinkableString(panelHeight, parent.height, "height", minHeight);
+				if (y + height > parent.height) // rounding error, reproduceable when parent height is 625
+					height = parent.height - y;
 			}
+			// watch(this,"{ [panelX.value,panelY.value,panelWidth.value,panelHeight.value] }\r{ [x,y,width,height] }")
 			
 			private static const _maximizedCoordinates:Object = {x: "0%", y: "0%", width: "100%", height: "100%"};
 			
