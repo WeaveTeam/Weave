@@ -39,6 +39,8 @@ var requiredRevision = 0;
 
 Disability test page
 
+<p id="demo"></p>
+
 <table id="controls"><tr><td>
 <!-- 	<select id="methodInput" onchange="handleMethodSelect()"> -->
 <!-- 		<option>getSessionState(objectPath:Array):Object</option> -->
@@ -64,19 +66,20 @@ Disability test page
 <!-- 	<input id="scriptInput" type="text" value="Hello, world."/></input> -->
 <!--  	<button id="b5" onclick="getAltText()">Run sessioned startup script again</button><br>  -->
 	</td><td width="100%" height="100%"> 
-<!-- 	 	<textarea id="test" cols="80" rows="10"></textarea>  -->
+
 	 </td></tr></table> 
 <script language="JavaScript" type="text/javascript" src="json2.js"></script>
 <script language="JavaScript" type="text/javascript">
+
 
  function getAltText(){
 
  	var weave = document.getElementById('weave');
  	var altPath = ['WeaveProperties', 'disabilityAltText'];
  	var dAltText = weave.getSessionState(altPath);
- 	var testText =  document.getElementById('test');
- 	testText.value = dAltText;
- 	weave.alt = dAltText;
+ 	var testText =  document.getElementById('demo');
+ 	testText.innerHTML = dAltText;
+  	weave.alt = dAltText;	
  
  }
 
