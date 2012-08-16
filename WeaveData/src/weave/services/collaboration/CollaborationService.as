@@ -219,9 +219,9 @@ package weave.services.collaboration
 			var message:RelinquishMouseControl = new RelinquishMouseControl(nickname);
 			sendEncodedObject(message, null);
 		}
-		public function requestAddonStatus( id:String, info:Dictionary = null ):void
+		public function requestAddonStatus( id:String, info:Dictionary = null, mouseQueue:Array = null ):void
 		{
-			var message:AddonStatus = new AddonStatus(id, info);
+			var message:AddonStatus = new AddonStatus(id, info, mouseQueue);
 			if( info == null )
 			{
 				var sendTo:String = userList[0];
@@ -512,7 +512,7 @@ package weave.services.collaboration
 					if( status.info == null )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_USERLIST, status.id));
 					else
-						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_USERLIST, null, 0, 0, 0, status.info));
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_USERLIST, null, 0, 0, 0, status.info, status.queueArray));
 				}
 				//an unknown message with data, but wasn't one of the pre-defined types
 				else
@@ -763,11 +763,13 @@ internal class AddonsMessage
 }
 internal class AddonStatus
 {
-	public function AddonStatus(id:String = null, info:Dictionary = null)
+	public function AddonStatus(id:String = null, info:Dictionary = null, queueArray:Array = null)
 	{
 		this.id = id;
 		this.info = info;
+		this.queueArray = queueArray;
 	}
 	public var id:String;
 	public var info:Dictionary;
+	public var queueArray:Array;
 }

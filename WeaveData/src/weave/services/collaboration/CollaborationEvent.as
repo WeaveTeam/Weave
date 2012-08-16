@@ -65,9 +65,10 @@ package weave.services.collaboration
 		private var x:Number;
 		private var y:Number;
 		private var o:Object;
+		private var queue:Array;
 		
 		//Constructor for each CollaborationEvent.
-		public function CollaborationEvent(type:String, text:String = null, color:uint = 0, x:Number = 0, y:Number = 0, o:Object = null)
+		public function CollaborationEvent(type:String, text:String = null, color:uint = 0, x:Number = 0, y:Number = 0, o:Object = null, queue:Array = null)
 		{
 			super(type);
 			this.text = text;
@@ -75,6 +76,7 @@ package weave.services.collaboration
 			this.x = x;
 			this.y = y;
 			this.o = o;
+			this.queue = queue;
 		}
 		
 		public function getText():String
@@ -96,6 +98,10 @@ package weave.services.collaboration
 		public function getInfo():Object
 		{
 			return o;
+		}
+		public function getQueue():Array
+		{
+			return queue;
 		}
 	}
 }

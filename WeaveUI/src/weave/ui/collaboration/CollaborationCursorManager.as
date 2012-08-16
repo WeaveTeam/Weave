@@ -148,6 +148,12 @@ package weave.ui.collaboration
 				reportError(e, "Could not delete specified cursor.");
 			}
 		}	
+		
+		public function getMouseQueue():Array
+		{
+			return cursorQueue;
+		}
+		
 		//Adds a person into the mouse control queue.
 		public function addToQueue(id:String, self:String):Array
 		{

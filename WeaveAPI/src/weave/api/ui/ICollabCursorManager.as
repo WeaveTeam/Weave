@@ -81,6 +81,12 @@ package weave.api.ui
 		function removeCursor(id:String):void;
 		
 		/**
+		 * A function for returning the mouse queue.
+		 * @return An array containing the id's of all the users in the queue.
+		 */
+		function getMouseQueue():Array;
+		
+		/**
 		 * Adds a user into the mouse queue to get in line for control of the session.
 		 * @param id The id of the mouse to be added to the queue.
 		 * @param self The id of yourself to check if your mouse should be displayed for others.
