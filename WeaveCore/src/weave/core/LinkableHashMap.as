@@ -28,6 +28,7 @@ package weave.core
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
+	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	
@@ -193,9 +194,10 @@ package weave.core
 			delayCallbacks(); // make sure callbacks only trigger once
 			var className:String = getQualifiedClassName(objectToCopy);
 			var classDef:Class = ClassUtils.getClassDefinition(className);
+			var sessionState:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
 			var object:ILinkableObject = requestObject(name, classDef, false);
 			if (object != null)
-				copySessionState(objectToCopy, object);
+				WeaveAPI.SessionManager.setSessionState(object, sessionState);
 			resumeCallbacks();
 			
 			return object;
