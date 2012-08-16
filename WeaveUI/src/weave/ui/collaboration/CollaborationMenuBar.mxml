@@ -218,10 +218,10 @@
 				CHAT = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, CollaborationChatWindow) as CollaborationChatWindow;
 				CHAT.visible = false;
 				var p:Point = new Point(button_chat.x, button_chat.y);
-				CHAT.xFrom = localToGlobal(p).x;
+/* 				CHAT.xFrom = localToGlobal(p).x;
 				CHAT.xTo   = localToGlobal(p).x;
 				CHAT.yFrom = localToGlobal(p).y + button_chat.height;
-				CHAT.yTo   = localToGlobal(p).y - CHAT.height;
+				CHAT.yTo   = localToGlobal(p).y - CHAT.height; */
 				CHAT.x     = localToGlobal(p).x;
 				CHAT.y	   = localToGlobal(p).y + button_chat.height;
 				CHAT.width = button_chat.width;
@@ -285,12 +285,12 @@
 			{
 				var p:Point = new Point(button_chat.x, button_chat.y);
 				CHAT.x 	 = localToGlobal(p).x;
-				CHAT.xFrom = localToGlobal(p).x;
-				CHAT.xTo   = localToGlobal(p).x;
+/* 				CHAT.xFrom = localToGlobal(p).x;
+				CHAT.xTo   = localToGlobal(p).x; */
 				CHAT.width = button_chat.width;
 				CHAT.height= stage.stageHeight/2;
-				CHAT.yFrom = localToGlobal(p).y + button_chat.height;
-				CHAT.yTo   = localToGlobal(p).y - CHAT.height;
+/* 				CHAT.yFrom = localToGlobal(p).y + button_chat.height;
+				CHAT.yTo   = localToGlobal(p).y - CHAT.height; */
 				if( CHAT.visible )
 					CHAT.y = localToGlobal(p).y - CHAT.height;
 				else

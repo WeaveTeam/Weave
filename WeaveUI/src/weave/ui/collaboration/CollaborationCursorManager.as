@@ -34,7 +34,8 @@ package weave.ui.collaboration
 	 */
 	public class CollaborationCursorManager implements ICollabCursorManager
 	{
-		public static var numMouses:Number = 1;
+		//This static constant represents how many people can have control over a session at once.
+		public static const numMouses:Number = 1;
 		private var cursorList:Dictionary = null;
 		private var cursorQueue:Array = null;
 		
@@ -47,6 +48,7 @@ package weave.ui.collaboration
 			if( cursorList[id] is CollabMouseCursor )
 				return;
 			cursorList[id] = CollabMouseCursor.addPopUp(WeaveAPI.topLevelApplication as DisplayObject);
+			//Upon creation keep the mouse invisible.
 			(cursorList[id] as CollabMouseCursor).alpha = 0;
 		}
 		
@@ -62,6 +64,7 @@ package weave.ui.collaboration
 		}
 		
 		private var mouseID:String;
+		//Timer object for moue fade.
 		private var time:Timer = null;
 		
 		public function setVisible(id:String, visible:Boolean, duration:uint=3000):void
@@ -145,7 +148,7 @@ package weave.ui.collaboration
 				reportError(e, "Could not delete specified cursor.");
 			}
 		}	
-		
+		//Adds a person into the mouse control queue.
 		public function addToQueue(id:String, self:String):Array
 		{
 			if( cursorQueue == null )
@@ -158,7 +161,7 @@ package weave.ui.collaboration
 			cursorQueue.push(id);
 			return checkPeoplePosition(self);
 		}
-		
+		//Removes a person from the mouse control queue.
 		public function removeFromQueue(id:String, self:String):Array
 		{
 			if( cursorQueue == null )
@@ -180,7 +183,8 @@ package weave.ui.collaboration
 			return checkPeoplePosition(self);
 		}
 		
-		/*This will return 0 if the id is an active mouse, return a number above 0 to indicate
+		/*
+		* This will return 0 if the id is an active mouse, return a number above 0 to indicate
 		* position in the line to become an active mouse, or return -1 if the id is not in the queue.
 		*/
 		private function checkQueuePosition(id:String):Number
@@ -197,10 +201,18 @@ package weave.ui.collaboration
 			}
 			return -1;
 		}
-		
+		/*
+		* This function has the same basic functionality as the above function, except that it returns an array instead of just a number.
+		* The array is composed of the first index being your position in the queue, and all following indexes being the users that have control.
+		*/
 		private function checkPeoplePosition(id:String):Array
 		{
 			var array:Array = new Array();
+			if( cursorQueue == null )
+			{
+				 array.push(-1);
+				 return array;
+			}
 			for( var i:int = 0; i < cursorQueue.length; i++ )
 			{
 				if( cursorQueue[i] == id )

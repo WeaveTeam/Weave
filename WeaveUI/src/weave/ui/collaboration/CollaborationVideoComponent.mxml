@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
 		   width="100" height="80" borderColor="#54585E" borderStyle="solid" borderThickness="3"
 		   creationComplete="creationComplete(event)" creationPolicy="all">
@@ -17,23 +35,36 @@
 			public static var defaultWidth:Number = 100;
 			private var _labelText:String;
 			
+			/*
+			* This is used to set the label, since setting the label directly can result in an error sometimes.
+			*/
 			public function set labelText(id:String):void
 			{
 				_labelText = id;
 				invalidateProperties();
 			}
 			
+			/*
+			* Used as part of the set labelText solution.
+			*/
 			override protected function commitProperties():void
 			{
 				super.commitProperties();
 				nameLabel.text = _labelText;
 			}
 			
+			/*
+			* Plays the camera stream.
+			*/
 			public function play(str:String):void
 			{
 				stream.play(str);
 				video.attachNetStream(stream);
 			}
+			
+			/*
+			* Stop the camera stream.
+			*/
 			public function close():void
 			{
 				video.attachNetStream(null);
@@ -49,6 +80,9 @@
 				videoArea.addChild(video);
 			}
 			
+			/*
+			* Used for resizing the video object whenever the component gets bigger or smaller.
+			*/
 			public function adjustCamera():void
 			{
 				if( videoArea != null )

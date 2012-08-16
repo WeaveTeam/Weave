@@ -190,7 +190,6 @@ package weave.services.collaboration
 		private function sendEncodedObject( message:Object, target:String ):void
 		{
 			if (!connectedToRoom) {
-				trace("Not connected");
 				return;
 //				throw new Error("Not connected");
 			}
@@ -228,12 +227,10 @@ package weave.services.collaboration
 				var sendTo:String = userList[0];
 				if( sendTo == nickname )
 					sendTo = userList[1];
-				trace("sending request to", sendTo);
 				sendEncodedObject(message, sendTo);
 			} 
 			else
 			{
-				trace("sending addons to", id);
 				sendEncodedObject(message, id);
 			}
 		}
@@ -521,7 +518,6 @@ package weave.services.collaboration
 				else
 				{
 //					reportError("Unable to determine message type: ", ObjectUtil.toString(o));
-					trace(nickname,"Unknown type");
 				}
 			}
 			

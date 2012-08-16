@@ -34,9 +34,11 @@
 				<mx:HBox id="addonControls" width="100%" horizontalAlign="center"
 						 horizontalScrollPolicy="off">
 					<mx:Button id="button_mic" width="50" height="22" label="MIC"
-							   click="toggleMic(event)" enabled="{addOnsSaved &amp;&amp; mic}" toggle="true"/>
+							   click="toggleMic(event)" enabled="{addOnsSaved &amp;&amp; mic}"
+							   toggle="true"/>
 					<mx:Button id="button_cam" width="50" height="22" label="CAM"
-							   click="toggleCam(event)" enabled="{addOnsSaved &amp;&amp; cam}" toggle="true"/>
+							   click="toggleCam(event)" enabled="{addOnsSaved &amp;&amp; cam}"
+							   toggle="true"/>
 				</mx:HBox>
 			</mx:VBox>
 			<mx:VBox id="containerChat" width="100%" height="100%">
@@ -57,27 +59,24 @@
 		<![CDATA[
 			import weave.services.collaboration.CollaborationEvent;
 			
+			//Constants for identifying add-on components.
 			public const TYPE_MIC:String						= "MIC";
 			public const TYPE_CAM:String						= "CAM";
 			public const TYPE_SPEC:String						= "SPEC";
 			public const TYPE_PING:String						= "PING";
 			public const TYPE_COLOR:String						= "COLOR";
 			
-			[Bindable] public var xFrom:Number 					= 0;
-			[Bindable] public var xTo:Number 					= 0;
-			[Bindable] public var yFrom:Number 					= 0;
-			[Bindable] public var yTo:Number 					= 0;
 			[Bindable] public var unreadMessages:Number 		= 0;
 			[Bindable] internal var _userListInfo:Dictionary	= new Dictionary();
-			
-			[Bindable] public var addOnsSaved:Boolean 			= false;
-			[Bindable] public var connectedToRTMPService:Boolean= false;
-			[Bindable] public var rtmpService:NetConnection		= null;
-			[Bindable] public var ping:Number 					= 0;
 			
 			internal var nickname:String 						= null;
 			internal var roomName:String						= null;
 			
+			//Rtmp variables
+			[Bindable] public var addOnsSaved:Boolean 			= false;
+			[Bindable] public var connectedToRTMPService:Boolean= false;
+			[Bindable] public var rtmpService:NetConnection		= null;
+			[Bindable] public var ping:Number 					= 0;			
 			private const padding:Number 						= 10;
 			private var enabledMic:Boolean 						= false;
 			private var enabledCam:Boolean 						= false;
@@ -85,7 +84,6 @@
 			private var nsPublishMic:NetStream 					= null;
 			private var nsPublishCam:NetStream 					= null;
 			private var nsPlayMicList:Dictionary  				= new Dictionary();
-
 			[Bindable] public var cam:Camera								= null;
 			[Bindable] public var mic:Microphone                         	= null;
 			
@@ -101,6 +99,10 @@
 //				button_mic.setStyle("icon", iconMic);
 //				button_cam.setStyle("icon", iconCam);
 			}
+			
+			/*
+			* This function will add the text passed to it into the chat log.
+			*/
 			public function logText(txt:String):void
 			{
 				var from:String = txt.substr(0, txt.indexOf(":"));
@@ -116,11 +118,19 @@
 				);
 				if( !visible ) unreadMessages++;
 			}
+			
+			/*
+			* Dispatches an event notifying the system that the user has sent a text message.
+			*/
 			private function dispatchMessageEvent():void
 			{
 				dispatchEvent(new CollaborationEvent(CollaborationEvent.SEND_MESSAGE, input.text));
 				input.text = "";
 			}
+			
+			//Mic and Camera section.
+			//The following two functions are functions for the Mic and Cam buttons to handle publishing the streams.
+			
 			private function toggleMic(e:MouseEvent):void
 			{
 				if( mic == null )
@@ -148,6 +158,7 @@
 					}
 				}
 			}
+			
 			private function toggleCam(e:MouseEvent):void
 			{
 				if( cam == null )
@@ -175,6 +186,7 @@
 					}
 				}
 			}
+			
 			private function netStatusEventHandler(e:NetStatusEvent):void
 			{
 				switch( e.info.code )
@@ -187,11 +199,6 @@
 						break;
 				}
 			}
-			public function showAddonControls():void
-			{
-				containerAddons.height = addonControls.height + 6;
-			}
-			public function hideAddonControls():void	{ containerAddons.height = 0; }
 			
 			public function showRTMPWarning(msg:String = null, fadeout:Number = -1):void
 			{
@@ -220,6 +227,13 @@
 					t.start();
 				}
 			}
+			
+			//Hide/show Mic and Cam buttons.
+			public function showAddonControls():void
+			{
+				containerAddons.height = addonControls.height + 6;
+			}
+			public function hideAddonControls():void	{ containerAddons.height = 0; }
 			
 		]]>
 	</mx:Script>

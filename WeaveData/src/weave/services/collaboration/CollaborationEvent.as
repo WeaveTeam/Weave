@@ -21,10 +21,10 @@ package weave.services.collaboration
 {
 	import flash.events.Event;
 
-	
-	//This class defines a list of events that are used to talk
-	//from the collaboration service, to the collaboration tool
-	//that contains it.
+	/*	This class defines a list of events that are used to talk
+	*	from the collaboration service, to the collaboration tool
+	*	that contains it.
+	*/
 	public class CollaborationEvent extends Event
 	{
 		/* EVENTS */
@@ -66,6 +66,7 @@ package weave.services.collaboration
 		private var y:Number;
 		private var o:Object;
 		
+		//Constructor for each CollaborationEvent.
 		public function CollaborationEvent(type:String, text:String = null, color:uint = 0, x:Number = 0, y:Number = 0, o:Object = null)
 		{
 			super(type);
