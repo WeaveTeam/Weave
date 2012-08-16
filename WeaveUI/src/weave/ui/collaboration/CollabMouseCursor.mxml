@@ -33,6 +33,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.services.IURLRequestToken;
 			import weave.utils.BitmapUtils;
 			
+			//Vertices used to draw the mouse.
 			private var vertices:Array =
 				[
 					[ 0, 16 ],
@@ -80,6 +81,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				xTo = x;
 				moveEvent.play([this]);
 			}
+			
 			public function initializeCursor():void
 			{
 				usingPic = false;
@@ -93,6 +95,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					graphics.clear();
 					graphics.lineStyle(1, 0, 1.0, true);
 					graphics.moveTo(0, 0);
+					//Draw all the points of the mouse.
 					for each( var vertex:Array in vertices )
 						graphics.lineTo(vertex[0], vertex[1]);
 				}
@@ -101,6 +104,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var picSuccess:Boolean = false;
 			private var usingPic:Boolean = false;
 			
+			/*
+			* Used to replace the mouse cursor with an image.
+			*/
 			private function applyImage():void
 			{
 				usingPic = true;
@@ -119,6 +125,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				BitmapUtils.drawMouseImageIcon(graphics, 0, 0, outputBitMap.bitmapData, m);
 			}
 			
+			/*
+			* Puts the desired color as the cursors fill.
+			*/
 			public function fillCursor(color:uint):void
 			{
 				this.color = color;
@@ -135,6 +144,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				PopUpManager.removePopUp(this);
 			}
+			
+			//The following code is for using an image in place of the typical mouse cursor.
 			
 			[Embed( source="/weave/resources/images/missing.png")]
 			private static var _missingImageClass:Class;

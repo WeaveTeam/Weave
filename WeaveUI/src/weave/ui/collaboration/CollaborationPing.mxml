@@ -55,6 +55,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					strength = "N/A";
 				}
 			}
+			
+			/*
+			* This function is used for drawing the bars to show the ping.
+			*/
 			private function setBars(bars:Number):void
 			{
 				clearBars();
@@ -83,6 +87,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 				}
 			}
+			
 			private function clearBars():void
 			{
 				bar4.setStyle("backgroundAlpha", 0);

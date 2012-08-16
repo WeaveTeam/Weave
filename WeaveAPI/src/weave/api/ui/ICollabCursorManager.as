@@ -26,6 +26,7 @@ package weave.api.ui
 	 * the cursor should fade back into view quickly during the move animation.
 	 * 
 	 * @author adufilie
+	 * @author jfallon
 	 */
 	public interface ICollabCursorManager
 	{
@@ -67,10 +68,9 @@ package weave.api.ui
 		function setColor(id:String, color:uint, duration:uint = 1000):void;
 		
 		/**
-		 *This function returns the color of a specified mouse cursor's color. 
+		 * This function returns the color of a specified mouse cursor's color. 
 		 * @param Id of the mouse.
 		 * @return Returns the color of the cursor, or NaN if the cursor doesn't exist.
-		 * 
 		 */
 		function getColor(id:String):Number;
 		
@@ -81,11 +81,10 @@ package weave.api.ui
 		function removeCursor(id:String):void;
 		
 		/**
-		 * 
+		 * Adds a user into the mouse queue to get in line for control of the session.
 		 * @param id The id of the mouse to be added to the queue.
 		 * @param self The id of yourself to check if your mouse should be displayed for others.
-		 * @return Returns a number indicating your position in the queue. 0 means actively being displayed, >0 represents the position in line in the queue till active mouse, and -1 means not in the queue.
-		 * 
+		 * @return Returns an array of which the first index indicates your position in the queue. 0 means actively being displayed, >0 represents the position in line in the queue till active mouse, and -1 means not in the queue. The following indexes of the array are the usernames of the users who have control of the session. 
 		 */
 		function addToQueue(id:String, self:String):Array;
 		
@@ -93,8 +92,7 @@ package weave.api.ui
 		 * Remove a person from the mouse queue.
 		 * @param id The id of the mouse to be removed from the queue.
 		 * @param self The id of yourself to check if your mouse should be displayed for others.
-		 * @return Returns a number indicating your position in the queue. 0 means actively being displayed, >0 represents the position in line in the queue till active mouse, and -1 means not in the queue.
-		 * 
+		 * @return Returns an array of which the first index indicates your position in the queue. 0 means actively being displayed, >0 represents the position in line in the queue till active mouse, and -1 means not in the queue. The following indexes of the array are the usernames of the users who have control of the session.
 		 */
 		function removeFromQueue(id:String, self:String):Array;
 	}

@@ -1,13 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml"
 		  width="120" height="97" headerHeight="5" layout="absolute">
 	<mx:Script>
 		<![CDATA[
 			import weave.api.WeaveAPI;
 			
+			//Number that determines how much bigger the componenet of the user in control should be.
 			private const windowSizeConstant:Number = 2;
-
+			
+			//Canvas list is an array of all the components.
 			private var canvasList:Array = new Array();
+			//Control list is the list of all the users currently in control.
 			private var controlList:Array = new Array();
 
 			public function addToParticpantList(id:String):void
@@ -16,6 +37,7 @@
 					canvasList = new Array();
 				if( alreadyExists(id, canvasList) ) return;
 				var collabVidComp:CollaborationVideoComponent = new CollaborationVideoComponent();
+				//The username is longer than 10 characters shorten it so it isn't too big for the componenet.
 				if( id.length > 10 )
 					collabVidComp.labelText = id.substr(0, 10) + "...";
 				else
@@ -42,14 +64,20 @@
 				}
 				adjustLayout();
 			}
-			
+			/*
+			* This function will reset the Participant panel to how it originally starts.
+			*/
 			public function clearDisplay():void
 			{
 				canvasList = null;
+				controlList = new Array();
 				this.height = 97;
 				adjustLayout();
 			}
 			
+			/*
+			* This function checks the ids of the users who are in control and makes their components bigger and shrinks anyone's component who has lost control.
+			*/
 			public function inControl(ids:Array):void
 			{
 				for( var i:int = 1; i < ids.length; i++ )
@@ -82,8 +110,8 @@
 				}
 				adjustLayout();
 			}
-			
-			public function lostControl(id:String):void
+			//This function is used by inControl() to shrink a user's component when they lose control.
+			private function lostControl(id:String):void
 			{
 				var testID:String = new String();
 				if( id.length > 10 )
@@ -101,7 +129,9 @@
 					}
 				adjustLayout();
 			}
-			
+			/*
+			* Check if a member exists in a given array.
+			*/
 			private function alreadyExists(id:String, arrayToCheck:Array):Boolean
 			{
 				//testID is only for use for CollaborationVideoComponents, otherwise use the full id.
@@ -123,7 +153,9 @@
 				}
 				return false;
 			}
-			
+			/*
+			* This function is called whenever there is a change in the components to resize the participant panel. And lay out the components.
+			*/
 			private function adjustLayout():void
 			{
 				var xCoord:Number = 0;
@@ -149,6 +181,11 @@
 				}
 			}
 			
+			//Camera streaming functions.
+			
+			/*
+			* Adds a video stream to the component of the user specified.
+			*/
 			public function addCameraStream(stream:NetStream, streamPath:String, userName:String):void
 			{
 				var tempCollaborationVideoComponent:CollaborationVideoComponent = findVideoComponent(userName);
@@ -158,6 +195,9 @@
 				tempCollaborationVideoComponent.play(streamPath);
 			}
 			
+			/*
+			* Removes a video stream to the component of the user specified.
+			*/
 			public function removeCameraStream(userName:String):NetStream
 			{
 				var tempCollaborationVideoComponent:CollaborationVideoComponent = findVideoComponent(userName);
