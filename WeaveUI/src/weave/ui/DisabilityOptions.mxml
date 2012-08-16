@@ -75,6 +75,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					<mx:Script>
 						<![CDATA[
+							import flash.external.ExternalInterface;
+							
 							import mx.accessibility.CheckBoxAccImpl;
 							import mx.controls.CheckBox;
 							import mx.controls.ComboBox;
@@ -90,6 +92,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							import weave.Weave;
 							import weave.api.WeaveAPI;
 							import weave.api.core.ILinkableObject;
+							import weave.api.detectLinkableObjectChange;
 							import weave.api.linkBindableProperty;
 							import weave.api.linkSessionState;
 							import weave.api.newDisposableChild;
@@ -132,18 +135,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								Instance = this;
 								
 							}
-							
-							
+						
 							override protected function childrenCreated():void
 							{
 								super.childrenCreated();
 								
 								linkBindableProperty(Weave.properties.disabilityAltText, altTextInputBox, "text");
 								
+								Weave.properties.disabilityAltText.addImmediateCallback(this, handleDisabilityAltTextChange);
 								
 								updateCheckBoxes();	
-								addEventListener(FlexEvent.SHOW, panelRemovedEventHandler);			
+								addEventListener(FlexEvent.SHOW, panelRemovedEventHandler);	
+								
 							}
+							protected function handleDisabilityAltTextChange() : void
+							{
+								ExternalInterface.call("getAltText()");
+									  
+							}
+						
 							
 							protected function panelRemovedEventHandler(event:Event):void
 							{	
