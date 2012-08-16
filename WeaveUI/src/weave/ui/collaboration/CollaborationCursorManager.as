@@ -219,10 +219,12 @@ package weave.ui.collaboration
 				 array.push(-1);
 				 return array;
 			}
+			var found:Boolean = false;
 			for( var i:int = 0; i < cursorQueue.length; i++ )
 			{
 				if( cursorQueue[i] == id )
 				{
+					found = true;
 					if( i - numMouses < 0 )
 					{
 						array.push(0);
@@ -234,9 +236,9 @@ package weave.ui.collaboration
 						break;
 					}
 				}
-				else
-					array.push("placeholder");
-			}	
+			}
+			if( !found )
+				array.push("placeholder");
 			for( var j:int = 0; j < numMouses; j++ )
 				array.push(cursorQueue[j]);
 			return array;
