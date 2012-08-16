@@ -494,6 +494,16 @@
 			public const showColorPicker:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const overrideColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
 				
+			private function enableAbsHandler(event:Event):void
+			{
+				if( colorOverrideCheckbox.selected ) colorOverrideCheckbox.selected = false;
+			}
+			
+			private function enableOverrideHandler(event:Event):void
+			{
+				if( absoluteValueColorEnabledCheckbox.selected ) absoluteValueColorEnabledCheckbox.selected = false;
+			}
+			
 		]]>
 	</mx:Script>
 	<mx:TextArea id="equationText"
@@ -577,9 +587,41 @@
 				</ui:Indent>
 			</mx:VBox>
 			<mx:HBox>
-				<mx:CheckBox id="colorOverrideCheckbox" label="Override Global Color" creationComplete="linkBindableProperty(showColorPicker,event.target,'selected')"/>
+				<mx:CheckBox id="colorOverrideCheckbox" label="Override Global Color" creationComplete="linkBindableProperty(showColorPicker,event.target,'selected')"
+							 change="enableOverrideHandler(event)"/>
 				<mx:ColorPicker id="scatterplotColorOverride" creationComplete="linkBindableProperty(overrideColor,event.target,'selectedColor')"/>
 			</mx:HBox>
+			<mx:VBox>
+				<mx:CheckBox id="absoluteValueColorEnabledCheckbox" label="{lang('Absolute Value Colorize')}"
+							 creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueColorEnabled, event.target, 'selected')"
+							 change="enableAbsHandler(event)"/>
+				<ui:Indent>
+					<mx:VBox>
+						<mx:HBox>
+							<mx:Label text="{lang('Color for values &lt; 0')}" />
+							<mx:ColorPicker id="absoluteValueMinColorPicker" 
+											creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueColorMax, event.target, 'selectedColor')"
+											enabled="{absoluteValueColorEnabledCheckbox.selected}" />
+							<mx:HSlider id="absoluteValueMinSlider"
+										creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueOpacityMin, event.target, 'value')"
+										minimum="0" maximum="1" value="0.5" 
+										liveDragging="true" snapInterval="0.05" tickInterval="0.1"
+										enabled="{absoluteValueColorEnabledCheckbox.selected}" />
+						</mx:HBox>
+						<mx:HBox>
+							<mx:Label text="{lang('Color for values &gt; 0')}" />
+							<mx:ColorPicker id="absoluteValueMaxColorPicker" 
+											creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueColorMin, event.target, 'selectedColor')"
+											enabled="{absoluteValueColorEnabledCheckbox.selected}" />
+							<mx:HSlider id="absoluteValueMaxSlider"
+										creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueOpacityMax, event.target, 'value')"
+										minimum="0" maximum="1" value="0.5" 
+										liveDragging="true" snapInterval="0.05" tickInterval="0.1"
+										enabled="{absoluteValueColorEnabledCheckbox.selected}" />
+						</mx:HBox>
+					</mx:VBox>
+				</ui:Indent>
+			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

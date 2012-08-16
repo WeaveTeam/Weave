@@ -26,6 +26,7 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -58,6 +59,12 @@ package weave.visualization.plotters
 		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(12, isFinite));
 		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, isFinite));
 		public const enabledSizeBy:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+
+		public const absoluteValueColorEnabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const absoluteValueColorMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
+		public const absoluteValueOpacityMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.75));
+		public const absoluteValueColorMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
+		public const absoluteValueOpacityMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.75));
 		
 		/**
 		 * This is the radius of the circle, in screen coordinates.
@@ -91,6 +98,10 @@ package weave.visualization.plotters
 			
 			// project data coordinates to screen coordinates and draw graphics
 			var radius:Number = _screenRadiusStats.getNorm(recordKey);
+			var size:Number = 0;
+			
+			if( ((screenRadius.internalObject) as IAttributeColumn) != null )
+				size = ((screenRadius.internalObject) as IAttributeColumn).getValueFromKey(recordKey);
 			
 			tempPoint.x = getCoordFromRecordKey(recordKey, true);
 			tempPoint.y = getCoordFromRecordKey(recordKey, false);
@@ -99,6 +110,15 @@ package weave.visualization.plotters
 			
 			lineStyle.beginLineStyle(recordKey, graphics);
 			fillStyle.beginFillStyle(recordKey, graphics);
+			
+			if( absoluteValueColorEnabled.value == true )
+			{
+				if( size < 0 )
+					graphics.beginFill(absoluteValueColorMin.value, absoluteValueOpacityMin.value);
+				else if( size > 0 )
+					graphics.beginFill(absoluteValueColorMax.value, absoluteValueOpacityMax.value);
+			}
+			
 			if (enabledSizeBy.value == true)
 			{
 				radius = minScreenRadius.value + (radius *(maxScreenRadius.value - minScreenRadius.value));
@@ -121,7 +141,11 @@ package weave.visualization.plotters
 			}
 			else
 			{
-				graphics.drawCircle(tempPoint.x, tempPoint.y, radius);
+				if( absoluteValueColorEnabled.value == true ) {
+					if( size != 0 )
+						graphics.drawCircle(tempPoint.x, tempPoint.y, Math.abs(size));
+				} else
+					graphics.drawCircle(tempPoint.x, tempPoint.y, radius);
 			}
 			graphics.endFill();
 //			graphics.moveTo(tempPoint.x, tempPoint.y);
