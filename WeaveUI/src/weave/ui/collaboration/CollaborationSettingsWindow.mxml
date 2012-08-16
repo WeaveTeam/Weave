@@ -314,7 +314,7 @@
 			
 			protected function showParticipantPanelClick(event:MouseEvent):void
 			{
-				
+				dispatchEvent( new CollaborationEvent(CollaborationEvent.PARTICIPANT_PANEL_SHOW));
 			}
 			
 		]]>

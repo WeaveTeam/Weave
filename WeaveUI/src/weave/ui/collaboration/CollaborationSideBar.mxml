@@ -258,6 +258,7 @@
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_CONNECT, connect);
 				SETTINGS.addEventListener(CollaborationEvent.ADDON_SETTINGS_SAVED, settingsAddonSaved);
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_DISCONNECT, disconnect);
+				SETTINGS.addEventListener(CollaborationEvent.PARTICIPANT_PANEL_SHOW, openParticipantPaenl);
 				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
@@ -500,7 +501,7 @@
 				PARTICIPANTS.x = (WeaveAPI.topLevelApplication as DisplayObject).width / 2 - PARTICIPANTS.width / 2;
 			}
 			
-			public function openParticipantPaenl():void
+			public function openParticipantPaenl(e:CollaborationEvent):void
 			{
 				if(PARTICIPANTS) PARTICIPANTS.visible ? PARTICIPANTS.visible = false : PARTICIPANTS.visible = true;
 			}
