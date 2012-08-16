@@ -600,22 +600,22 @@
 						<mx:HBox>
 							<mx:Label text="{lang('Color for values &lt; 0')}" />
 							<mx:ColorPicker id="absoluteValueMinColorPicker" 
-											creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueColorMax, event.target, 'selectedColor')"
+											creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueColorMin, event.target, 'selectedColor')"
 											enabled="{absoluteValueColorEnabledCheckbox.selected}" />
 							<mx:HSlider id="absoluteValueMinSlider"
 										creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueOpacityMin, event.target, 'value')"
-										minimum="0" maximum="1" value="0.5" 
+										minimum="0" maximum="1"
 										liveDragging="true" snapInterval="0.05" tickInterval="0.1"
 										enabled="{absoluteValueColorEnabledCheckbox.selected}" />
 						</mx:HBox>
 						<mx:HBox>
 							<mx:Label text="{lang('Color for values &gt; 0')}" />
 							<mx:ColorPicker id="absoluteValueMaxColorPicker" 
-											creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueColorMin, event.target, 'selectedColor')"
+											creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueColorMax, event.target, 'selectedColor')"
 											enabled="{absoluteValueColorEnabledCheckbox.selected}" />
 							<mx:HSlider id="absoluteValueMaxSlider"
 										creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueOpacityMax, event.target, 'value')"
-										minimum="0" maximum="1" value="0.5" 
+										minimum="0" maximum="1"
 										liveDragging="true" snapInterval="0.05" tickInterval="0.1"
 										enabled="{absoluteValueColorEnabledCheckbox.selected}" />
 						</mx:HBox>
