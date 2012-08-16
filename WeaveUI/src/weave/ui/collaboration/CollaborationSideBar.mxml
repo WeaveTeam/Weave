@@ -76,6 +76,7 @@
 			import weave.services.collaboration.CollaborationEvent;
 			import mx.controls.Image;
 			
+			//Variables for the networking service of collaboration.
 			public const collabService:CollaborationService = registerDisposableChild(this, new CollaborationService(Weave.root));
 			public const TYPE_MIC:String					= "MIC";
 			public const TYPE_CAM:String					= "CAM";
@@ -83,11 +84,13 @@
 			public const TYPE_PING:String					= "PING";
 			public const TYPE_COLOR:String					= "COLOR";
 			
+			//Variables that deal with video and voice chat.
 			public var rtmpService:NetConnection 				= null;
 			private var connectedToRTMPService:Boolean			= false;
 			internal var roomName:String 						= null;
 			private var nsPlayMicList:Dictionary  				= new Dictionary();
 			
+			//Mostly UI variables.
 			private var CHAT:CollaborationChatWindow;
 			private var SETTINGS:CollaborationSettingsWindow;
 			private var PARTICIPANTS:ParticipantPanel;
@@ -108,11 +111,17 @@
 				userList.dataProvider = array;
 			}
 			
+			/*
+			* This function is a quick fix to keep the Mouse Queue button properly sized.
+			*/
 			private function adjustCursorButtonHeight():void
 			{
 				cursorButton.y = this.userList.height - cursorButton.height; 
 			}
 			
+			/*
+			* This function is called whenever the sidebar moves to make sure the Chat or Settings box isn't lost off screen.
+			*/
 			protected function repositionWindowsHandler(event:MoveEvent):void
 			{
 				if( SETTINGS && CHAT )
@@ -132,6 +141,9 @@
 				}
 			}
 			
+			/*
+			* Used for changing the status of a user's color, microphone, camera, or ping in the sidebar's userlist.
+			*/
 			public function setUserAttribute(type:String, name:String, val:Number):void
 			{
 				var o:Object = null;
@@ -165,6 +177,7 @@
 				if( !rtmpService ) 	   return;
 				if( !rtmpService.connected ) return;
 				
+				//val == 1 means that the user is broadcasting and val == 0 means the user is stopping broadcasting.				
 				if( val == 1 )
 				{
 					if( type == TYPE_MIC )
@@ -208,6 +221,7 @@
 				cursorButton.enabled = false;
 				this.y = (WeaveAPI.topLevelApplication as DisplayObject).height * .25;
 				
+				//Setting up the service for connecting to the cam/mic server.
 				rtmpService = new NetConnection();
 				rtmpService.addEventListener(NetStatusEvent.NET_STATUS, rtmpNetStatus);
 				rtmpService.addEventListener(SecurityErrorEvent.SECURITY_ERROR, rtmpSecurityError);
@@ -252,18 +266,22 @@
 				titleBar.addChild(chatButton);	
 				chatButton.enabled = false;
 				
+				//Create all the panels Collaboration uses and add their respective event listeners.
 				createSettingsPanel();
 				createChatPanel();
 				createParticipantPanel();
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_CONNECT, connect);
 				SETTINGS.addEventListener(CollaborationEvent.ADDON_SETTINGS_SAVED, settingsAddonSaved);
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_DISCONNECT, disconnect);
-				SETTINGS.addEventListener(CollaborationEvent.PARTICIPANT_PANEL_SHOW, openParticipantPaenl);
+				SETTINGS.addEventListener(CollaborationEvent.PARTICIPANT_PANEL_SHOW, openParticipantPanel);
 				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
 			}
 			
+			/*
+			* For use by VisApplication when getting rid of the sidebar.
+			*/
 			public function removed():void
 			{
 				disConButtonPushed = true;
@@ -309,7 +327,6 @@
 			
 			private function handleConnect( e:CollaborationEvent ):void
 			{
-				trace( "handleConnect()" );
 				stopConTimer();
 				updateEnabledSettings();
 				openChatWindow();
@@ -359,6 +376,9 @@
 				cursorButton.enabled = false;
 			}
 			
+			/*
+			* Stores references to the camera and microphone specified in the settings panel.
+			*/
 			private function settingsAddonSaved(e:Event):void
 			{
 				CHAT.cam = SETTINGS.collab_CAMERA;
@@ -370,6 +390,9 @@
 			private function updateUserCam(e:CollaborationEvent):void  { collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, collabService.TYPE_CAM, ( e.getText() == "1" )); }
 			private function requestPing(e:TimerEvent):void 		   { collabService.sendPing(SETTINGS.collab_NICKNAME); }
 			
+			/*
+			* Updates the Settings button to display either connected or disconnected depending on the collabservice status.
+			*/
 			private function updateEnabledSettings():void
 			{
 				if( collabService.isConnected )
@@ -384,6 +407,9 @@
 				}
 			}
 			
+			/*
+			* This is in case a user leaves a room due to inactiviuty.
+			*/
 			private function onTimeout(e:RoomEvent):void
 			{
 				if( !disConButtonPushed ) {
@@ -426,9 +452,11 @@
 				}
 			}
 			
+			/*
+			* Used for removing all elements of a user once they leave the room.
+			*/
 			private function handleRemoveUserElements(e:CollaborationEvent):void
 			{
-				trace( "Removing " + e.getText() + "\'s cursor" );
 				PARTICIPANTS.removeFromParticipantList(e.getText());
 				if( WeaveAPI.CollaborationCursorManager == null ) 
 				{
@@ -451,6 +479,7 @@
 			private function userMicUpdated(e:CollaborationEvent):void { setUserAttribute(TYPE_MIC, e.getText(), Number(e.getColor())); }
 			private function userCamUpdated(e:CollaborationEvent):void { setUserAttribute(TYPE_CAM, e.getText(), Number(e.getColor())); }
 			
+			//Make the chat button turn orange if a chat message is sent and the chat window isn't open.
 			private function handleLogEvent(e:CollaborationEvent):void
 			{
 				CHAT.logText(e.getText());
@@ -475,6 +504,9 @@
 				collabService.sendTextMessage( e.getText() );
 			}
 			
+			/*
+			* Settings Panel creator function.
+			*/
 			private function createSettingsPanel():void
 			{
 				SETTINGS = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, CollaborationSettingsWindow) as CollaborationSettingsWindow;
@@ -483,6 +515,9 @@
 				SETTINGS.y = this.y;
 			}
 			
+			/*
+			* Chat Panel creator function.
+			*/
 			private function createChatPanel():void
 			{
 				CHAT = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, CollaborationChatWindow) as CollaborationChatWindow;
@@ -493,6 +528,9 @@
 				CHAT.y = this.y;
 			}
 			
+			/*
+			* Participant Panel creator function.
+			*/
 			private function createParticipantPanel():void
 			{
 				PARTICIPANTS = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, ParticipantPanel) as ParticipantPanel;
@@ -501,7 +539,7 @@
 				PARTICIPANTS.x = (WeaveAPI.topLevelApplication as DisplayObject).width / 2 - PARTICIPANTS.width / 2;
 			}
 			
-			public function openParticipantPaenl(e:CollaborationEvent):void
+			public function openParticipantPanel(e:CollaborationEvent):void
 			{
 				if(PARTICIPANTS) PARTICIPANTS.visible ? PARTICIPANTS.visible = false : PARTICIPANTS.visible = true;
 			}
@@ -529,15 +567,12 @@
 			private var lastY:Number = 0;
 			
 			private function joinedRoomCreateMouseList():void
-			{
-				trace("joinedRoomCreateMouseList();");
-				
+			{				
 				for each( var person:RoomOccupant in collabService.room ) 
 				{
 					if( person.displayName == collabService.nickname ) continue;
 					WeaveAPI.CollaborationCursorManager.createCursor(person.displayName);
 					PARTICIPANTS.addToParticpantList(person.displayName);
-					trace("asking " + person.displayName + " for mouse pos");
 					collabService.requestMouseMessage(person.displayName);
 				}
 			}
@@ -559,6 +594,8 @@
 					adjustCursorButtonHeight();
 				}
 			}
+			
+			//The following two functions deal with the mouse queue which keeps track of who is in control of the session.
 			
 			private function addMouseToQueue(e:CollaborationEvent):void
 			{
@@ -602,8 +639,6 @@
 			
 			private function handleCreateUserMouse(e:CollaborationEvent):void
 			{
-				
-				trace("handleCreateUserMouse();");
 				if( e.getText() == collabService.nickname ) return;
 				if( WeaveAPI.CollaborationCursorManager.getCursorIds() == null )	// You have just joined the room and ask everyone for their mice
 				{
@@ -617,6 +652,7 @@
 				}
 			}
 			
+			//Clear the mouse list.
 			private function resetUserMice():void
 			{
 				for( var i:int = 0;i < WeaveAPI.CollaborationCursorManager.getCursorIds().length; i++ )
@@ -625,21 +661,25 @@
 			
 			private function handleUserRequestMousePos(e:CollaborationEvent):void
 			{
-				trace("handleUserRequestMousePos();");
 				collabService.sendMouseMessage(collabService.nickname, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
 			}
 			
+			/*
+			* When a set amount of time is up the user will send their mouse coordinates to everyone, assuming they have control.
+			*/
 			private function mouseMove(e:TimerEvent):void
 			{
 				if( collabService.room.length < 2 ) return;				// Your the only one in the room ( dont send )
 				if( lastX == mouseX && lastY == mouseY ) return;		// Your mouse never moved ( dont send )
 				
-				//				trace(collabService.username+" ("+xMousePercent()+"%,"+yMousePercent()+"%)");
 				collabService.sendMouseMessage(collabService.nickname, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
 				lastX = mouseX;
 				lastY = mouseY;
 			}
 			
+			/*
+			* Called when a mouse message is sent to update the position of a user's mouse.
+			*/
 			private function updateMousePos(e:CollaborationEvent):void
 			{
 				if( WeaveAPI.CollaborationCursorManager.getCursorIds().length == 0 )
@@ -662,6 +702,7 @@
 				}
 			}
 			
+			//Functions for getting percentage mouse coordinates to send and receive.
 			private function coordToPercentX(x:Number):Number { return x / WeaveAPI.topLevelApplication.stage.stageWidth;   }
 			private function percentToCoordX(x:Number):Number { return x * WeaveAPI.topLevelApplication.stage.stageWidth;   }
 			private function coordToPercentY(y:Number):Number { return y / WeaveAPI.topLevelApplication.stage.stageHeight;  }
@@ -669,6 +710,7 @@
 			private function xMousePercent():Number { return WeaveAPI.topLevelApplication.stage.mouseX / WeaveAPI.topLevelApplication.stage.stageWidth;  }
 			private function yMousePercent():Number { return WeaveAPI.topLevelApplication.stage.mouseY / WeaveAPI.topLevelApplication.stage.stageHeight; }
 			
+			//quick fix for when the user resizes the window to ensure the bar isn't too big.
 			protected function handleResize(event:Event):void
 			{
 				this.height = (WeaveAPI.topLevelApplication as DisplayObject).height / 1.5;
@@ -677,7 +719,7 @@
 			
 			
 			/*
-			* RTMP requesting to a remote media server.
+			* RTMP requesting to a remote media server. These functions are referenced by rtmpNetStatus.
 			*/
 			
 			private var rtmpTimer:Timer 			= new Timer(10000);
@@ -696,6 +738,7 @@
 					rtmpPollingTimer.addEventListener(TimerEvent.TIMER, pollRTMPServer);
 				}
 			}
+			
 			private function disconnectionFromRTMPServer():void
 			{
 				rtmpUserClosed = true;
@@ -704,20 +747,24 @@
 				rtmpPollingTimer.stop();
 				if( rtmpService.connected )	rtmpService.close();
 			}
+			
 			private function handleRTMPReconnect(e:TimerEvent):void
 			{
 				rtmpTimer.stop();
 				connectToRTMPServer();
 			}
+			
 			private function pollRTMPServer(e:TimerEvent):void
 			{
 				rtmpPollingServer = true;
 				connectToRTMPServer();
 			}
+			
+			/*
+			* Handler for netstatus connect attempt.
+			*/
 			private function rtmpNetStatus(e:NetStatusEvent):void
-			{
-				trace( e.info.code+": "+e.info.description );
-				
+			{				
 				switch( e.info.code )
 				{
 					case "NetConnection.Connect.Success":
@@ -768,70 +815,46 @@
 						break;
 				}
 			}
+			
+			/*
+			* This is for when a user joins a room that already has other users in it. A dictionary of all the other users
+			* is sent along with the status of all their add-ons. This function is only called upon joining a room.
+			*/
 			private function handleUserUpdateUserlist(e:CollaborationEvent):void
 			{
 				var info:Dictionary = e.getInfo() as Dictionary;
 				for( var name:String in info )
 				{
-					trace( "Setting attributes for:", name );
 					setUserAttribute(CHAT.TYPE_CAM,	name, info[name].cam);
-					trace( "Cam:", info[name].cam );
 					setUserAttribute(CHAT.TYPE_COLOR, 	name, info[name].color);
-					trace( "color:", info[name].color );
 					setUserAttribute(CHAT.TYPE_MIC,  	name, info[name].mic);
-					trace( "mic:", info[name].mic);
 					setUserAttribute(CHAT.TYPE_PING, 	name, info[name].ping);
-					trace( "ping:", info[name].ping );
 					setUserAttribute(CHAT.TYPE_SPEC, 	name, info[name].spec);
-					trace( "spec:", info[name].spec );
 				}
 			}
+			
 			private function requestAddonStatus():void
 			{
-				trace("requesting addon status");
 				collabService.requestAddonStatus(SETTINGS.collab_NICKNAME);
 			}
+			
+			//Rtmp error handlers.
+			
 			private function rtmpSecurityError(e:SecurityErrorEvent):void
 			{
-				trace(e.text);
+				CHAT.showRTMPWarning(e.text, 10000);
 			}
-			public function onBWDone():void
-			{
-				trace("onBWDone");
-			}
+			
 			private function netStatusEventHandler(e:NetStatusEvent):void
 			{
 				switch( e.info.code )
 				{
 					case "NetStream.Publish.BadName":
-						showRTMPWarning("Error publishing stream: Bad Name", 10000);
+						CHAT.showRTMPWarning("Error publishing stream: Bad Name", 10000);
 						break;
 					default:
-						trace("Unhandled netstatus event: "+e.info.code);
+						CHAT.showRTMPWarning("Unhandled netstatus event: "+e.info.code, 10000);
 						break;
-				}
-			}
-			public function showRTMPWarning(msg:String = null, fadeout:Number = -1):void
-			{
-				if( msg )
-				{
-					//Create label for this message in the Participant window.
-				}
-				else
-				{
-					
-				}
-				if( fadeout > 0 )
-				{
-					var t:Timer = new Timer(fadeout);
-					t.addEventListener(TimerEvent.TIMER,
-						function():void
-						{
-							t.stop();
-							showRTMPWarning();
-						}
-					);
-					t.start();
 				}
 			}
 			
