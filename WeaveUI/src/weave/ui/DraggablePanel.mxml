@@ -364,14 +364,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.y = Math.round(value);
 			}
 			
-			override public function set width(value:Number):void
-			{
-				super.width = Math.round(value);
-			}
-			override public function set height(value:Number):void
-			{
-				super.height = Math.round(value);
-			}
+//			[PercentProxy("percentWidth")]
+//			override public function set width(value:Number):void
+//			{
+//				super.width = Math.round(value);
+//			}
+//			[PercentProxy("percentHeight")]
+//			override public function set height(value:Number):void
+//			{
+//				super.height = Math.round(value);
+//			}
 			
 			[Inspectable(environment="none")]
 			public function set percentX(value:Number):void
@@ -457,6 +459,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					copyCoordinateFromLinkableString(panelWidth, parent.width, "width", minWidth);
 				if (!singleProperty || singleProperty == panelHeight)
 					copyCoordinateFromLinkableString(panelHeight, parent.height, "height", minHeight);
+				callLater(fixHeight);
+			}
+			private function fixHeight():void
+			{
+				if (!parent)
+					return;
 				if (y + height > parent.height) // rounding error, reproduceable when parent height is 625
 					height = parent.height - y;
 			}
