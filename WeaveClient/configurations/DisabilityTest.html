@@ -1,4 +1,3 @@
-<!-- saved from url=(0014)about:internet -->
 <html lang="en">
 
 <!--
@@ -41,192 +40,48 @@ Disability test page
 
 <p id="demo"></p>
 
-<table id="controls"><tr><td>
-<!-- 	<select id="methodInput" onchange="handleMethodSelect()"> -->
-<!-- 		<option>getSessionState(objectPath:Array):Object</option> -->
-<!-- 		<option>setSessionState(objectPath:Array, newState:Object, removeMissingObjects:Boolean = true):Boolean</option> -->
-<!-- 		<option>getObjectType(objectPath:Array):String</option> -->
-<!-- 		<option>getChildNames(objectPath:Array):Array</option> -->
-<!-- 		<option>setChildNameOrder(objectMapPath:Array, orderedChildNames:Array):Boolean</option> -->
-<!-- 		<option>requestObject(objectPath:Array, objectType:String):Boolean</option> -->
-<!-- 		<option>removeObject(objectPath:Array):Boolean</option> -->
-		<!--
-		<option>convertSessionStateObjectToXML(sessionState:Object, tagName:String = "sessionState"):String</option>
-		<option>convertSessionStateXMLToObject(sessionStateXML:Object):Object</option>
-		 -->
-<!-- 	</select><br> -->
-<!-- 	param1: <input id="input1" type="text" size="40" value="defaultSelectionKeySet"/><br> -->
-<!-- 	param2: <input id="input2" type="text" size="40" value="US State FIPS Code,01,28"/><br> -->
-<!-- 	<button id="b1" onclick="testWeaveAPI()">Test API Function</button><br> -->
-<!-- 	Weave Version: <span id="versionSpan">...</span><br> -->
-<!-- 	<button id="b2" onclick="weave.requestObject(['SPT'], 'ScatterPlotTool')">Create ScatterPlot</button><br> -->
-<!-- 	<button id="b3" onclick="testSwap()">Swap x,y on ScatterPlot</button><br> -->
-<!-- 	<button id="b4" onclick="showLegend()">Bring legend to foreground</button><br> -->
-<!-- 	<button id="b6" onclick="getImage()">Get Image</button><br> -->
-<!-- 	<input id="scriptInput" type="text" value="Hello, world."/></input> -->
-<!--  	<button id="b5" onclick="getAltText()">Run sessioned startup script again</button><br>  -->
-	</td><td width="100%" height="100%"> 
 
-	 </td></tr></table> 
 <script language="JavaScript" type="text/javascript" src="json2.js"></script>
 <script language="JavaScript" type="text/javascript">
 
 
+//sets the "altText" of the current Weave instance using the text from the basic disability UI
  function getAltText(){
 
  	var weave = document.getElementById('weave');
  	var altPath = ['WeaveProperties', 'disabilityAltText'];
  	var dAltText = weave.getSessionState(altPath);
- 	var testText =  document.getElementById('demo');
- 	testText.innerHTML = dAltText;
+ 	var demoText =  document.getElementById('demo');
+ 	demoText.innerHTML = dAltText;
   	weave.alt = dAltText;	
  
  }
 
-
-// function getImage()
-// {
-// 	var image = document.getElementById('weave').evaluateExpression(['MapTool'], 
-// 	  	            'getBase64Image(this)', 
-// 	  	             null, 
-// 	  	             ['weave.utils.BitmapUtils']);
-// 	 $.ajax({
-// 	  	data: image,
-// 		url: "/ImageService/Base64ImageService",
-// 		type: "POST",
-// 		dataType: "text",
-// 		success: function( data, textStatus, jqXHR ) {
-// 		imgName = data;
-// 		imgTag.src = "/ImageService/Base64ImageService?file="+ imgName;
-// 	 },
-// 	  error: function (qXHR, textStatus, errorThrown) {
-					
-// 	 }
-//     });
-// }
-// this function gets called when the weave instance is ready.
 function weaveReady(weave)
 {
 	disableButtons(false);
-// 	document.getElementById('versionSpan').innerHTML = weave.getSessionState(['WeaveProperties','version']);
 	alert('Weave JavaScript API is ready (id="'+(weave && weave.id)+'").');
 	getAltText();
 	
 }
+
 //this function will enable or disable the api test buttons.
 function disableButtons(disabled)
 {
-// 	var buttons = ['b1','b2','b3','b4','b5'];
-// 	for (var i = 0; i < buttons.length; i++)
-// 		document.getElementById(buttons[i]).disabled = disabled;
 }
 disableButtons(true);
-
-
-
 
 function runStartupScript()
 {
 	document.getElementById('weave').runStartupJavaScript();
 }
 	
-// brings a color legend to the foreground
-// function showLegend()
-// {
-// 	var weave = document.getElementById('weave');
-// 	weave.requestObject(['ColorBinLegendTool'],'ColorBinLegendTool');
-// 	weave.setSessionState(['ColorBinLegendTool'], {panelX:'40%',panelY:'30%'});
-// 	weave.setChildNameOrder([], ['ColorBinLegendTool'])
-// }
-// swaps x and y dimensions on the scatterplot
-// function testSwap()
-// {
-// 	var weave = document.getElementById('weave');
-// 	var path1 = ['SPT', 'children', 'visualization', 'layers', 'plot', 'plotter', null, 'xColumn'];
-// 	var path2 = ['SPT', 'children', 'visualization', 'layers', 'plot', 'plotter', null, 'yColumn'];
-// 	var state1 = weave.getSessionState(path1);
-// 	var state2 = weave.getSessionState(path2);
-// 	weave.setSessionState(path1, state2);
-// 	weave.setSessionState(path2, state1);
-// 	alert(JSON.stringify(state1, replacer, '\t'));
-// }
 
-
-// function getMethodDescription()
-// {
-// 	return methodInput.options[methodInput.selectedIndex].text;
-// }
-// this function counts the number of required parameters in the selected api function
-// function countRequiredParams()
-// {
-// 	var funcDesc = getMethodDescription();
-// 	var total = funcDesc.split(',').length;
-// 	var optional = funcDesc.split('=').length - 1;
-// 	alert(total + '-' + optional + ': ' + funcDesc);
-// 	return total - optional; // # of required params
-// }
-// this function enables or disables the parameter input fields
-// function handleMethodSelect()
-// {
-// 	var method = getMethodDescription();
-// 	var count = countRequiredParams();
-// 	input1.disabled = count < 1;
-// 	input2.disabled = count < 2;
-// }
-// handleMethodSelect(); // call once now to initialize 'disabled' properties
-// this function replaces xml objects with strings if necessary
-// function replacer(key, value)
-// {
-// 	if (typeof(value) == 'xml')
-// 	{
-// 		return this[key] = value.toString();
-// 	}
-// 	return value;
-// }
-// this function casts a String to the appropriate type
-// function castParam(param, description)
-// {
-// 	if (description == undefined)
-// 		return param;
-// 	if (description.indexOf(':Boolean') >= 0)
-// 	{
-// 		return param == 'true';
-// 	}
-// 	if (description.indexOf(':Array') >= 0)
-// 	{
-// 		param = param.split(',');
-// 		if (param.length == 1 && param[0] == '')
-// 			param.length = 0;
-// 	}
-// 	return param;
-// }
-// this function executes the selected api function with the parameters entered in the input fields.
-// function testWeaveAPI()
-// {
-// 	var weave = document.getElementById('weave');
-// 	var funcDesc = getMethodDescription();
-// 	var paramCount = countRequiredParams();
-// 	var paramList = funcDesc.split('(')[1].split(')')[0].split(',');
-// 	var method = funcDesc.split('(')[0];
-// 	var param1 = castParam(input1.value, paramList[0]);
-// 	var param2 = castParam(input2.value, paramList[1]);
-
-// 	var result = null;
-// 	if (paramCount == 2)
-// 		result = weave[method](param1, param2);
-// 	if (paramCount == 1)
-// 		result = weave[method](param1);
-
-// 	var str = JSON.stringify(result, replacer, '\t');
-// 	resultTextArea.value = str;
-	
-// 	alert(str);
-// }
 </script>
 
 
 <script language="JavaScript" type="text/javascript">
-<!--
+
 
 // Version check for the Flash Player that has the ability to start Player Product Install (6.0r65)
 var hasProductInstall = DetectFlashVer(6, 0, 65);
@@ -281,12 +136,10 @@ if ( hasProductInstall && !hasRequestedVersion ) {
 			"allowFullScreen", "true"
 	);
   } else {  // flash is too old or we can't detect the plugin
-    var alternateContent = 'Alternate HTML content should be placed here. '
-  	+ 'This content requires the Adobe Flash Player. '
-   	+ '<a href=http://www.adobe.com/go/getflash/>Get Flash</a>';
+    var alternateContent = dAltText;
     document.write(alternateContent);  // insert non-flash content
   }
-// -->
+  
 </script>
 <noscript>
   	<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" 
