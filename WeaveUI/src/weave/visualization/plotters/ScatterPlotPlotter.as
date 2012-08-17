@@ -94,8 +94,8 @@ package weave.visualization.plotters
 		public function get maxScreenRadius():LinkableNumber { return _internalCirclePlotter.maxScreenRadius; }
 		public function get xColumn():DynamicColumn { return _internalCirclePlotter.dataX; }
 		public function get yColumn():DynamicColumn { return _internalCirclePlotter.dataY; }
-		public function get alphaColumn():AlwaysDefinedColumn { return (_internalCirclePlotter.fillStyle.internalObject as SolidFillStyle).alpha; }
-		public function get colorColumn():AlwaysDefinedColumn { return (_internalCirclePlotter.fillStyle.internalObject as SolidFillStyle).color; }
+		public function get alphaColumn():AlwaysDefinedColumn { return _internalCirclePlotter.fill.alpha; }
+		public function get colorColumn():AlwaysDefinedColumn { return _internalCirclePlotter.fill.color; }
 		public function get radiusColumn():DynamicColumn { return _internalCirclePlotter.screenRadius; }
 		public function get zoomToSubset():LinkableBoolean { return _internalCirclePlotter.zoomToSubset; }
 		

@@ -99,13 +99,7 @@ package weave.visualization.layers
 			
 			linkBindableProperty(layerIsVisible, this, 'visible');
 			
-			getCallbackCollection(this).addImmediateCallback(this, handleChange);
-		}
-		
-		private function handleChange():void
-		{
-			WeaveAPI.SessionManager.assignBusyTask(updateDisplayList, this);
-			invalidateDisplayList();
+			getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
 		}
 		
 		/**
@@ -345,8 +339,6 @@ package weave.visualization.layers
 				}
 				//trace(name,'end updateDisplayList', _dataBounds);
 			}
-			
-			WeaveAPI.SessionManager.unassignBusyTask(updateDisplayList);
 		}
 		
 		private function requestGeometryDetail():void

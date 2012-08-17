@@ -107,17 +107,17 @@
 					copySessionState(scatterPlot.plotter.maxScreenRadius, _sizeBinLegendPlotter.maxScreenRadius);
 				}
 				
-				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
-				{
-					// show global color ramp legend
-					_colorLegendLayer.layerIsVisible.value = true;
-					plotLayer.layerIsVisible.value = false;
-				}
-				else
+				if (scatterPlot && scatterPlot.plotter.enabledSizeBy.value)
 				{
 					// show size bin legend
 					_colorLegendLayer.layerIsVisible.value = false;
 					plotLayer.layerIsVisible.value = true;
+				}
+				else
+				{
+					// show global color ramp legend
+					_colorLegendLayer.layerIsVisible.value = true;
+					plotLayer.layerIsVisible.value = false;
 				}
 				
 				updateMarginLabel();

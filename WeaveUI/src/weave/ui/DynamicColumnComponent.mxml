@@ -29,7 +29,7 @@
 		 width="100%" height="30"
 		 verticalAlign="middle" implements="weave.api.core.ILinkableObject"
 		 horizontalGap="4">
-	<mx:Label text="{label}" fontWeight="bold" minWidth="64"/>
+	<mx:Label text="{label}" fontWeight="bold" minWidth="64" visible="{showLabel}" includeInLayout="{showLabel}"/>
 	<LinkableObjectList id="internalList" 
 						variableRowHeight="false"
 			 			dynamicObject="{_dynamicObject}"
@@ -78,6 +78,7 @@
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.data.AttributeColumns.DynamicColumn;
 			
+			[Bindable] public var showLabel:Boolean = true;
 			[Bindable] public var showLinkControl:Boolean = true;
 			
 			[Embed(source='/weave/resources/images/plug-connected.png')]
