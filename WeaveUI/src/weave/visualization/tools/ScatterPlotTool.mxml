@@ -264,14 +264,14 @@
 				plotLayer.getScreenBounds(b);
 				graphics.moveTo(b.getXMax() + marginRight / 2, b.getYMin());
 				graphics.lineTo(b.getXMax() + marginRight / 2, b.getYMax());
-				b.setXMin(b.getXMax() + marginRight);
+				b.setXRange(b.getXMax() + marginRight * 1 / 4, b.getXMax() + marginRight * 3 / 4);
 				_undefinedXLayer.hack_lockScreenBounds(b);
 				
 				// top margin; undefined y
 				plotLayer.getScreenBounds(b);
 				graphics.moveTo(b.getXMin(), b.getYMax() / 2);
 				graphics.lineTo(b.getXMax(), b.getYMax() / 2);
-				b.setYMin(0);
+				b.setYRange(b.getYMax() * 1 / 4, b.getYMax() * 3 / 4);
 				_undefinedYLayer.hack_lockScreenBounds(b);
 				
 				// top-right corner; undefined x and y
