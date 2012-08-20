@@ -163,14 +163,46 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if( canvasList != null )
 				{
 					this.width = 0;
+					var counted:int = 0;
 					for( var j:int = 0; j < canvasList.length; j++ )
-						this.width += (canvasList[j] as CollaborationVideoComponent).width;
+					{
+						if( (canvasList[j] as CollaborationVideoComponent).width == CollaborationVideoComponent.defaultWidth && counted == 1 )
+							counted = 0;
+						else
+						{
+							this.width += (canvasList[j] as CollaborationVideoComponent).width;
+							if( (canvasList[j] as CollaborationVideoComponent).width == CollaborationVideoComponent.defaultWidth )
+								counted++;
+						}
+					}
 					this.width += 20;
+					counted = 0;
 					for( var i:int = 0; i < canvasList.length ; i++ )
 					{
-						(canvasList[i] as CollaborationVideoComponent).x = xCoord;
-						xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width;	
-						addChild( canvasList[i] );
+						if( counted == 0 || (canvasList[i] as CollaborationVideoComponent).width > CollaborationVideoComponent.defaultWidth )
+						{
+							(canvasList[i] as CollaborationVideoComponent).x = xCoord;
+							(canvasList[i] as CollaborationVideoComponent).y = 0;
+							if( (canvasList[i] as CollaborationVideoComponent).width > CollaborationVideoComponent.defaultWidth )
+							{
+								xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width;	
+								if( i > 0 )
+									if( (canvasList[i] as CollaborationVideoComponent).x == (canvasList[i-1] as CollaborationVideoComponent).x )
+										(canvasList[i] as CollaborationVideoComponent).x = (canvasList[i] as CollaborationVideoComponent).x + CollaborationVideoComponent.defaultWidth;
+								counted = 0;										
+							}
+							addChild( canvasList[i] );
+							if( (canvasList[i] as CollaborationVideoComponent).width == CollaborationVideoComponent.defaultWidth )
+								counted++;
+						}
+						else
+						{
+							(canvasList[i] as CollaborationVideoComponent).x = xCoord;
+							(canvasList[i] as CollaborationVideoComponent).y = CollaborationVideoComponent.defaultHeight;
+							addChild( canvasList[i] );
+							xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width;	
+							counted = 0;
+						}
 					}
 					this.x = ((WeaveAPI.topLevelApplication as DisplayObject).width / 2) - (this.width / 2);
 				}
