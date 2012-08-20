@@ -31,6 +31,10 @@
 			import weave.core.SessionManager;
 		]]>
 	</mx:Script>
+	<mx:CheckBox label='Enable Circular Selection'
+				 id="circularSelectionCheckbox"
+				 selected="false"
+				 creationComplete="linkBindableProperty(Weave.properties.enableCircularSelection, event.target, 'selected')"/>
 	<mx:CheckBox label='Show "Selected Records" tooltip'
 				 id="showSelectedRecordsText"
 				 selected="true"
