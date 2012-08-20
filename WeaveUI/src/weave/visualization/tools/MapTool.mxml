@@ -55,6 +55,7 @@
 			import weave.ui.ColorController;
 			import weave.ui.DraggablePanel;
 			import weave.ui.DynamicColumnComponent;
+			import weave.ui.SubMenu;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.InteractionController;
@@ -89,6 +90,8 @@
 				colorColumn.addGroupedCallback(this,updateProbeColumns, true);
 				
 			}
+			
+			private var selectionSubMenu:SubMenu;
 			
 			override public function getSelectableAttributeNames():Array
 			{
@@ -225,6 +228,17 @@
 				if (visualization.layers.getNames().length == 0)
 					addGeomLayer();
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, handleBoundsChange, true);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				selectionSubMenu= new SubMenu(selectModeButton,[MouseEvent.MOUSE_DOWN],[MouseEvent.MOUSE_UP]);
+				
+				selectionSubMenu.addSubMenuItem("Rectangular Selection",function():void{
+					Weave.properties.enableCircularSelection.value = false;});
+				
+				selectionSubMenu.addSubMenuItem("Circular Selection",function():void{
+					Weave.properties.enableCircularSelection.value = true;});
 			}
 			
 			private function handleMouseModeChange(event:Event = null):void

@@ -52,6 +52,9 @@ package weave.ui
 		 */
 		public function SubMenu(uiParent:UIComponent, openMenuEventTypes:Array = null, closeMenuEventTypes:Array = null)
 		{
+			if(uiParent == null)
+				return;
+			
 			_uiParent = uiParent;
 			
 			var type:String;
