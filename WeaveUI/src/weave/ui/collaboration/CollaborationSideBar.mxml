@@ -605,6 +605,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				else
 				{
+					if( WeaveAPI.CollaborationCursorManager.getMouseQueue().length == 1) 
+					{
+						CHAT.showRTMPWarning("There is no one else in the control queue.", 5000);
+						return;
+					}
 					collabService.relinquishMouseControl(collabService.nickname);
 					collabService.hasControl = false;
 					mouseTimer.stop();
