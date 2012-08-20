@@ -19,10 +19,12 @@
 
 package weave.visualization.layers
 {
+	import flash.display.BitmapData;
 	import flash.events.Event;
 	import flash.filters.BlurFilter;
 	import flash.filters.DropShadowFilter;
 	import flash.filters.GlowFilter;
+	import flash.geom.Point;
 	
 	import mx.containers.Canvas;
 	import mx.controls.Label;
@@ -300,14 +302,6 @@ package weave.visualization.layers
 		
 		public function getDynamicPlotter():DynamicPlotter { return _plotLayer.getDynamicPlotter(); }
 		
-		/**
-		 * @private
-		 */		
-		internal function validateSpatialIndex():void
-		{
-			_plotLayer.validateSpatialIndex();
-		}
-
 		/**
 		 * IPlotLayer interface
 		 */

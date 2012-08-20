@@ -140,13 +140,6 @@ package weave.visualization.layers
 				if (plotLayer && !plotLayer.layerIsVisible.value)
 					continue;
 				
-				//trace(layers.getName(layer), (layer.spatialIndex as SpatialIndex).collectiveBounds, selectablePlotLayer && selectablePlotLayer.plotLayer._spatialIndexDirty);
-				// BEGIN HACK
-				if (selectablePlotLayer)
-					selectablePlotLayer.validateSpatialIndex();
-				if (plotLayer)
-					plotLayer.validateSpatialIndex();
-				// END HACK
 				fullDataBounds.includeBounds((layer.spatialIndex as SpatialIndex).collectiveBounds);
 			}
 			if (!tempBounds.equals(fullDataBounds))

@@ -20,8 +20,10 @@
 package weave.visualization.layers
 {
 	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.PixelSnapping;
 	import flash.events.Event;
+	import flash.geom.Point;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.UIComponent;
@@ -233,7 +235,7 @@ package weave.visualization.layers
 		 * This is used to index the keys in the plotter by dataBounds.
 		 */
 		public function get spatialIndex():ISpatialIndex { return _spatialIndex; }
-		public var showMissingRecords:Boolean = false;
+		internal var showMissingRecords:Boolean = false;
 		
 		// these bitmaps will be added as a children
 		private const _plotBitmap:Bitmap = new Bitmap(null, PixelSnapping.ALWAYS, false);
@@ -244,7 +246,7 @@ package weave.visualization.layers
 		internal function validateSpatialIndex():void
 		{
 			// spatial index becomes invalid when spatial callbacks are triggered
-			if (detectLinkableObjectChange(validateSpatialIndex, _dynamicPlotter.spatialCallbacks))
+			if (detectLinkableObjectChange(_spatialIndex.createIndex, _dynamicPlotter.spatialCallbacks))
 				_spatialIndex.createIndex(plotter, showMissingRecords);
 		}
 		public function getSelectedKeys():Array
