@@ -29,8 +29,12 @@ import java.net.URL;
 import org.apache.commons.io.IOUtils;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
-import weave.beans.GXAResult;
+import weave.beans.GXA.GXAResult;
 
 
 public class GXAService extends GenericServlet
@@ -57,6 +61,19 @@ public class GXAService extends GenericServlet
 //		GXAResult gxaResult = new Gson().fromJson(jarrayExpressions.get(1).getAsJsonObject(), GXAResult.class);
 		System.out.println(gxaResult);
 		return gxaResult;
+	}
+	//object name is built on dynamic object name - queryValue
+	// so didn't used the new Gson().fromJson method
+	public JsonArray getGeneList(String queryValue) throws IOException{
+		String queryURL = "http://www.ebi.ac.uk/gxa/fval?q=" + queryValue+ "&factor=&type=gene&limit=15";
+		String jsonString = stringOfUrl(queryURL);
+		JsonElement jElement = new JsonParser().parse(jsonString);
+		JsonObject  jobject = jElement.getAsJsonObject();
+		JsonObject completionsJObj = jobject.getAsJsonObject("completions");
+		JsonArray jsonArray = completionsJObj.getAsJsonArray(queryValue);
+//		jobject = jarray.get(1).getAsJsonObject();
+//		JsonArray jarrayExpressions = jobject.getAsJsonArray("expressions");
+		return jsonArray;
 	}
 	
 	public static String stringOfUrl(String addr) throws IOException {
