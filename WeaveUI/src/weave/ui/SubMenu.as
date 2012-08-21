@@ -53,7 +53,7 @@ package weave.ui
 		public function SubMenu(uiParent:UIComponent, openMenuEventTypes:Array = null, closeMenuEventTypes:Array = null)
 		{
 			if(uiParent == null)
-				return;
+				throw new Error("uiParent cannot be null");
 			
 			_uiParent = uiParent;
 			
