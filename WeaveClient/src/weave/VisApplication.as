@@ -96,6 +96,7 @@ package weave
 	import weave.ui.ProbeToolTipWindow;
 	import weave.ui.QuickMenuPanel;
 	import weave.ui.SelectionManager;
+	import weave.ui.SelectionLocation;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SubsetManager;
 	import weave.ui.TranslationPanel;
@@ -412,8 +413,17 @@ package weave
 				}
 				if (show)
 				{
-					if (visDesktop != _selectionIndicatorText.parent)
+					if (visDesktop != _selectionIndicatorText.parent){
 						visDesktop.addChild(_selectionIndicatorText);
+						if( SelectionLocation.selectionLocationMode.value == SelectionLocation.SELECTION_LOCATION_LOWER_LEFT ){
+							_selectionIndicatorText.setStyle( "left", 0 ) ;
+							_selectionIndicatorText.setStyle( "right", null ) ;
+						}
+						else if( SelectionLocation.selectionLocationMode.value == SelectionLocation.SELECTION_LOCATION_LOWER_RIGHT ){
+							_selectionIndicatorText.setStyle( "right", 0 ) ;
+							_selectionIndicatorText.setStyle( "left", null ) ;
+						}	
+					}
 				}
 				else
 				{
@@ -449,20 +459,19 @@ package weave
 			_selectionIndicatorText.setStyle("color", 0xFFFFFF);
 			_selectionIndicatorText.opaqueBackground = 0x000000;
 			_selectionIndicatorText.setStyle("bottom", 0);
-			_selectionIndicatorText.setStyle("right", 0);
+			_selectionIndicatorText.setStyle("left", 0);
 			
 			PopUpManager.createPopUp(this, WeaveProgressBar);
-
+			
+			//			if(Weave.properties.enableAutoSave.value)
+			//			{
+			//				saveSessionTimer = new Timer(5000);
+			//				saveSessionTimer.addEventListener(TimerEvent.TIMER,saveSessionState);
+			//				saveSessionTimer.start();
+			//			}
+			
 			this.addChild(VisTaskbar.instance);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN,this,handleKeyPress);
-			
-//			if(Weave.properties.enableAutoSave.value)
-//			{
-//				saveSessionTimer = new Timer(5000);
-//				saveSessionTimer.addEventListener(TimerEvent.TIMER,saveSessionState);
-//				saveSessionTimer.start();
-//			}
-			
 		}
 		
 		private function handleKeyPress():void
@@ -1401,9 +1410,6 @@ package weave
 				
 				if (Weave.properties.enablePenTool.value)
 					PenTool.createContextMenuItems(this);
-					
-				if (Weave.properties.dataInfoURL.value)
-					addLinkContextMenuItem(lang("Show Information About This Dataset..."), Weave.properties.dataInfoURL.value);
 				
 				if (Weave.properties.enableExportToolImage.value)
 				{
@@ -1448,6 +1454,9 @@ package weave
 				// Add context menu items for handling search queries
 				if (Weave.properties.enableSearchForRecord.value)
 					SearchEngineUtils.createContextMenuItems(this);
+				
+				if (Weave.properties.dataInfoURL.value)
+					addLinkContextMenuItem(lang("Show Information About This Dataset..."), Weave.properties.dataInfoURL.value);
 			}
 		}
 
@@ -1589,7 +1598,7 @@ package weave
 			CustomContextMenuManager.createAndAddMenuItemToDestination(text, 
 															  this, 
                                                               function(e:Event):void { navigateToURL(new URLRequest(url), "_blank"); },
-                                                              "linkMenuItems");	
+                                                              "4 linkMenuItems");	
 		}
 
 		/**

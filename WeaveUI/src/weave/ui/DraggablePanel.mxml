@@ -119,7 +119,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const panelTitle:LinkableString = newLinkableChild(this, LinkableString, handlePanelTitleChange);
 			
 			public const enableMoveResize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const enableSubMenu:LinkableBoolean    = registerLinkableChild(this, new LinkableBoolean(true));
+			public const enableSubMenu:LinkableBoolean    = registerLinkableChild(this, new LinkableBoolean(false));
 			public const minimizable:LinkableBoolean      = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const maximizable:LinkableBoolean      = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const pinnable:LinkableBoolean         = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
@@ -287,11 +287,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				panelNeedsUpdate();
 				
-
-				//the focus goes back to the button after adding a node. This takes the cursor off the keyword text area.
-				//so focus is disabled
-				subMenuButton.focusEnabled = false;
-
 			}
 			public var busyIndicator:BusyIndicator = new BusyIndicator();
 			
@@ -356,18 +351,29 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;
 			
-			// this allows you to specify a percentage value like x="25%" in MXML.
+			// this metadata tag allows you to specify a percentage value like x="25%" in MXML.
 			[PercentProxy("percentX")]
 			override public function set x(value:Number):void
 			{
 				super.x = Math.round(value);
 			}
-			// this allows you to specify a percentage value like y="25%" in MXML.
+			// this metadata tag allows you to specify a percentage value like y="25%" in MXML.
 			[PercentProxy("percentY")]
 			override public function set y(value:Number):void
 			{
 				super.y = Math.round(value);
 			}
+			
+//			[PercentProxy("percentWidth")]
+//			override public function set width(value:Number):void
+//			{
+//				super.width = Math.round(value);
+//			}
+//			[PercentProxy("percentHeight")]
+//			override public function set height(value:Number):void
+//			{
+//				super.height = Math.round(value);
+//			}
 			
 			[Inspectable(environment="none")]
 			public function set percentX(value:Number):void
@@ -453,7 +459,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					copyCoordinateFromLinkableString(panelWidth, parent.width, "width", minWidth);
 				if (!singleProperty || singleProperty == panelHeight)
 					copyCoordinateFromLinkableString(panelHeight, parent.height, "height", minHeight);
+				callLater(fixHeight);
 			}
+			private function fixHeight():void
+			{
+				if (!parent)
+					return;
+				if (y + height > parent.height) // rounding error, reproduceable when parent height is 625
+					height = parent.height - y;
+			}
+			// watch(this,"{ [panelX.value,panelY.value,panelWidth.value,panelHeight.value] }\r{ [x,y,width,height] }")
 			
 			private static const _maximizedCoordinates:Object = {x: "0%", y: "0%", width: "100%", height: "100%"};
 			
@@ -1245,7 +1260,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				if (Weave.properties.enableToolControls.value && _controlPanel)
 					leftIconWidths += buttonSize + spaceBetweenButtons;
-				if(enableSubMenu.value)
+				if(subMenuButton.visible)
 					leftIconWidths += buttonSize + spaceBetweenButtons;
 				
 				return leftIconWidths;

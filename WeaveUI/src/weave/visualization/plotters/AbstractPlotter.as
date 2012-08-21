@@ -34,6 +34,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.core.CallbackCollection;
 	import weave.data.KeySets.FilteredKeySet;
@@ -190,9 +191,23 @@ package weave.visualization.plotters
 		protected var recordsPerDraw:int = 100; // for use with the template drawPlot code
 		
 		/**
-		 * This function must be defined with override by classes that extend AbstractPlotter.
+		 * This function will perform one iteration of an asynchronous rendering task.
+		 * This function will be called multiple times across several frames until its return value is 1.0.
+		 * This function may be defined with override by classes that extend AbstractPlotter.
+		 * @param task An object containing the rendering parameters.
+		 * @return A number between 0 and 1 indicating the progress that has been made so far in the asynchronous rendering.
+		 */
+		public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			// default behavior - no asynchronous rendering
+			drawPlot(task.recordKeys, task.dataBounds, task.screenBounds, task.destination);
+			return 1;
+		}
+		
+		/**
+		 * This function may be defined with override by classes that extend AbstractPlotter.
 		 * 
-		 * Draws the graphics for a list of records onto a sprite.
+		 * Draws all the graphics for a list of records onto a sprite, immediately.
 		 * @param recordKeys The list of keys that identify which records should be used to generate the graphics.
 		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
 		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.

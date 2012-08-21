@@ -30,6 +30,7 @@ package weave.visualization.plotters
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.unlinkSessionState;
@@ -141,6 +142,20 @@ package weave.visualization.plotters
 				return [];
 		}
 		
+		/**
+		 * This function will perform one iteration of an asynchronous rendering task.
+		 * This function will be called multiple times across several frames until its return value is 1.0.
+		 * This function may be defined with override by classes that extend AbstractPlotter.
+		 * @param task An object containing the rendering parameters.
+		 * @return A number between 0 and 1 indicating the progress that has been made so far in the asynchronous rendering.
+		 */
+		public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			if (internalObject is IPlotter)
+				return (internalObject as IPlotter).drawPlotAsyncIteration(task);
+			return 1;
+		}
+
 		/**
 		 * Draws the graphics for a record onto a sprite.
 		 * @param recordKey The key of a data record.

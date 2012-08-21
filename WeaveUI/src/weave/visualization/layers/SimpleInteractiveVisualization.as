@@ -387,7 +387,7 @@ package weave.visualization.layers
 					if (theMargin && Weave.properties.enableToolControls.value)
 						CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
 					// if we should be creating a tooltip
-					if (axisColumn)
+					if (axisColumn && Weave.properties.enableAxisToolTips.value)
 					{
 						if (marginToolTip == null)
 						{

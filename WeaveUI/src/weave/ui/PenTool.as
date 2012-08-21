@@ -619,7 +619,7 @@ package weave.ui
 		public static const FREE_DRAW_MODE:String = lang("Free Draw Mode");
 		public static const POLYGON_DRAW_MODE:String = lang("Polygon Draw Mode");
 		private static const SELECT_RECORDS:String = lang("Select Records in Polygon");
-		private static const _menuGroupName:String = "5 drawingMenuitems";
+		private static const _menuGroupName:String = "9 drawingMenuitems";
 		public static function createContextMenuItems(destination:DisplayObject):Boolean
 		{
 			if (!destination.hasOwnProperty("contextMenu"))

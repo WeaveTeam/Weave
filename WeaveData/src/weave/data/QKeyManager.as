@@ -132,7 +132,6 @@ package weave.data
 				return i / keyStrings.length;
 			};
 			
-			WeaveAPI.SessionManager.assignBusyTask(iterate, this);
 			WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_PARSING, asyncCallback);
 		}
 

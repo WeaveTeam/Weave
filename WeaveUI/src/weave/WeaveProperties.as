@@ -351,6 +351,7 @@ package weave
 		public const enableClearCurrentSelection:LinkableBoolean = new LinkableBoolean(true);// enable/disable Clear Current Selection option
 		public const enableManageSavedSelections:LinkableBoolean = new LinkableBoolean(true);// enable/disable Manage Saved Selections option
 		public const enableSelectionSelectorBox:LinkableBoolean = new LinkableBoolean(true); //enable/disable SelectionSelector option
+		public const enableCircularSelection:LinkableBoolean = new LinkableBoolean(false);//enable making selection by drawing circle
 		
 		public const enableSubsetsMenu:LinkableBoolean = new LinkableBoolean(true);// enable/disable Subsets Menu
 		public const enableCreateSubsets:LinkableBoolean = new LinkableBoolean(true);// enable/disable Create subset from selected records option
@@ -367,6 +368,7 @@ package weave
 		
 		public const dashboardMode:LinkableBoolean = new LinkableBoolean(false);	 // enable/disable borders/titleBar on windows
 		public const enableToolControls:LinkableBoolean = new LinkableBoolean(true); // enable tool controls (which enables attribute selector too)
+		public const enableAxisToolTips:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableInfoMap:LinkableBoolean = new LinkableBoolean(true);//enable/disable InfoMap
 		public const enableAboutMenu:LinkableBoolean = new LinkableBoolean(true); //enable/disable About Menu
@@ -380,6 +382,21 @@ package weave
 		// probing and selection
 		public const selectionBlurringAmount:LinkableNumber = new LinkableNumber(4);
 		public const selectionAlphaAmount:LinkableNumber    = new LinkableNumber(0.5, verifyAlpha);
+		
+		//selection location information
+		public static const selectionLocationMode:LinkableString = new LinkableString(SELECTION_LOCATION_LOWER_LEFT, verifyLocationMode);
+		
+		public static const SELECTION_LOCATION_LOWER_LEFT:String = 'Lower left';
+		public static const SELECTION_LOCATION_LOWER_RIGHT:String = 'Lower right';
+		public static function get selectionLocationEnum():Array
+		{
+			return [SELECTION_LOCATION_LOWER_LEFT, SELECTION_LOCATION_LOWER_RIGHT];
+		}
+		
+		private static function verifyLocationMode(value:String):Boolean
+		{
+			return selectionLocationEnum.indexOf(value) >= 0;
+		}
 		
 		/**
 		 * This is an array of LinkableEventListeners which specify a function to run on an event.

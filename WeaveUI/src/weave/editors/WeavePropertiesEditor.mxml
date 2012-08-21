@@ -41,10 +41,10 @@
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolProbe,event.target,'selected')"/>
 		<mx:CheckBox label="Enable selection"
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolSelection, event.target, 'selected');"/>
-		<mx:CheckBox label="Enable right-click menu"
-					 creationComplete="linkBindableProperty(Weave.properties.enableRightClick,event.target,'selected')"/>
 		<mx:CheckBox label="Enable control panels and attribute selection"
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
+		<mx:CheckBox label="Enable axis tool tips"
+					 creationComplete="linkBindableProperty(Weave.properties.enableAxisToolTips, event.target, 'selected');"/>
 	</mx:VBox>
 	
 	<WeavePropertiesProbingEditor label="Probing"/>
@@ -52,8 +52,6 @@
 	<WeavePropertiesSelectionEditor label="Selection"/>
 	
 	<mx:VBox label="Advanced" width="100%" height="100%">
-		<mx:CheckBox id="autoSaveCheckBox" label="Save Session State automatically" creationComplete="event.target.selected = Weave.properties.enableAutoSave.value"
-					 change="Weave.properties.enableAutoSave.value = autoSaveCheckBox.selected"/>
 		<ui:Indent label="Streaming geometry bounding box request mode">
 			<ui:CustomComboBox id="geometryMetadataRequestMode"/>
 			<ui:HelpComponent>This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and probing on the map will not catch the shapes that are too small to be seen.</ui:HelpComponent>

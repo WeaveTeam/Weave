@@ -31,6 +31,7 @@ package weave.data.ColumnReferences
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
+	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableString;
@@ -53,6 +54,7 @@ package weave.data.ColumnReferences
 			getCallbackCollection(this).addImmediateCallback(this, invalidateHash, true);
 			getCallbackCollection(this).addGroupedCallback(this, registerThisRef);
 			WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, handleGlobalObjectListChange);
+			dynamicDataSource.addImmediateCallback(this, handleDataSourceChange, true);
 		}
 		
 		private function handleGlobalObjectListChange():void
@@ -67,7 +69,16 @@ package weave.data.ColumnReferences
 			}
 		}
 		
-		private const dynamicDataSource:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IDataSource));
+		private const dynamicDataSource:LinkableDynamicObject = registerDisposableChild(this, new LinkableDynamicObject(IDataSource));
+		private var _dataSource:IDataSource = null;
+		private function handleDataSourceChange():void
+		{
+			if (_dataSource != getDataSource())
+			{
+				_dataSource = getDataSource();
+				getCallbackCollection(this).triggerCallbacks();
+			}
+		}
 		
 		private function registerThisRef():void
 		{

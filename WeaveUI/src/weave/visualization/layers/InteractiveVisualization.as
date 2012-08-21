@@ -45,7 +45,9 @@ package weave.visualization.layers
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.SimpleGeometry;
 	import weave.utils.CustomCursorManager;
+	import weave.utils.DebugTimer;
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
@@ -85,6 +87,7 @@ package weave.visualization.layers
 			//			addEventListener(KeyboardEvent.KEY_UP, handleKeyboardEvent);
 			
 			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, true);
+			
 		}
 		
 		private function addContextMenuEventListener():void
@@ -464,6 +467,7 @@ package weave.visualization.layers
 		}
 		
 		private var _selectionRectangleGraphicsCleared:Boolean = true;
+		private var _circleGeometry:SimpleGeometry = new SimpleGeometry();
 		protected function updateSelectionRectangleGraphics():void 
 		{
 			if (!Weave.properties.enableToolSelection.value || !enableSelection.value) return;
@@ -522,7 +526,44 @@ package weave.visualization.layers
 			var width:Number = tempScreenBounds.getXCoverage();
 			var height:Number = tempScreenBounds.getYCoverage();
 			
-			_dashedLine.drawRect(xStart, yStart, width, height, startCorner);
+			
+			if(!Weave.properties.enableCircularSelection.value)
+			{
+				_dashedLine.drawRect(xStart, yStart, width, height, startCorner); // this draws onto the _selectionRectangleCanvas.graphics
+			}
+			else
+			{
+				//solution of approximating polygon to circle from here: http://www.missiondata.com/blog/systems-integration/44/approximating-a-circle-with-a-polygon/				
+				var radius:Number = Math.sqrt(width*width + height*height);
+				var points:Array = [];
+				zoomBounds.getDataBounds(tempDataBounds);
+				zoomBounds.getScreenBounds(tempScreenBounds);
+				
+				var lineWidth:Number = _dashedLine.lengthsString.split(',')[0];
+				var segmentLength:Number = _dashedLine.lengthsString.split(',')[1]; // pixels
+				var segmentSpan:Number = segmentLength / radius; // radians
+				segmentSpan = Math.min(Math.PI / 4, segmentSpan); // maximum 45 degrees per segment
+				// draw the segments
+				var numOfPoints:Number = Math.ceil(Math.PI * 2 / segmentSpan);
+				
+				for (var i:int=0; i < numOfPoints+1; i++) 
+				{
+					
+					var theta:Number = Math.PI * (i / (numOfPoints/2));
+					var circleX:Number = xStart + ((radius) * Math.cos(theta)); // center a + radius x * cos(theta)
+					var circleY:Number = yStart + ((radius) * Math.sin(theta)); // center b + radius y * sin(theta)
+					if(i==0)
+						_dashedLine.moveTo(circleX,circleY);
+					else
+						_dashedLine.lineTo(circleX,circleY);
+					
+					var currPoint:Point = new Point(circleX,circleY);
+					tempScreenBounds.projectPointTo(currPoint,tempDataBounds)
+					points.push(currPoint);
+				}
+				_circleGeometry.setVertices(points);//set the geometry for making the query
+			}
+
 		}
 		
 		private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
@@ -677,7 +718,14 @@ package weave.visualization.layers
 					continue;
 				tempDataBounds.constrainBounds(queryBounds, false);
 				
-				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
+				var keys:Array = [];
+				if(!Weave.properties.enableCircularSelection.value)
+				{
+					keys= (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
+				}else
+				{
+					keys= (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_circleGeometry, minImportance, false);	
+				}
 				setSelectionKeys(layer, keys, true);
 				
 				break; // select only one layer at a time

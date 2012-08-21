@@ -21,6 +21,7 @@
 -->
 <mx:VBox xmlns="weave.editors.*" 
 		 xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 xmlns:ui="weave.ui.*"
 		 width="100%" 
 		 height="100%">
 	<mx:Script>
@@ -30,9 +31,23 @@
 			import weave.core.SessionManager;
 		]]>
 	</mx:Script>
-	<mx:CheckBox label='Show "Selected Records" tooltip in lower-right corner'
+	<mx:CheckBox label='Enable Circular Selection'
+				 id="circularSelectionCheckbox"
+				 selected="false"
+				 creationComplete="linkBindableProperty(Weave.properties.enableCircularSelection, event.target, 'selected')"/>
+	<mx:CheckBox label='Show "Selected Records" tooltip'
+				 id="showSelectedRecordsText"
+				 selected="true"
 				 creationComplete="linkBindableProperty(Weave.properties.showSelectedRecordsText, event.target, 'selected')"/>
-				 
+		<mx:VBox enabled="{showSelectedRecordsText.selected}">
+			<mx:HBox>
+				<mx:Label text="Location" 
+				 		  width="200"	
+				  		  textAlign="right"
+				  		  toolTip="Select the location for the selected records tooltip"/>
+				<ui:CustomComboBox id="selectionLocation"/>
+			</mx:HBox>
+		</mx:VBox>
 	<mx:CheckBox toolTip="Check this box to enable bitmap filters used when probing or selecting"
 				 id="enableBitmapFilters"
 				 label="Enable Bitmap Filters"
@@ -78,8 +93,14 @@
 	<mx:Script>
 		<![CDATA[
 			import com.cartogrammar.drawing.DashedLine;
+			import weave.core.LinkableString;
+			import weave.ui.SelectionLocation;
+			
 			override protected function childrenCreated():void
 			{
+				selectionLocation.dataProvider = SelectionLocation.selectionLocationEnum ;
+				linkBindableProperty( SelectionLocation.selectionLocationMode, selectionLocation, 'selectedItem');
+				
 				Weave.properties.dashedSelectionBox.addGroupedCallback(this, drawDashedLinePreview, true);
 				xStart = 5; 
 				yStart = 10;
