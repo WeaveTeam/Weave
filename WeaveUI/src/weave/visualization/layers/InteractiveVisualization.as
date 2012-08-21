@@ -36,6 +36,7 @@ package weave.visualization.layers
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -214,7 +215,6 @@ package weave.visualization.layers
 		// this function can be defined with override by extending classes and call super.handleMouseClick(event);
 		protected function handleMouseClick(event:MouseEvent):void
 		{
-			clearSelection();
 			handleMouseEvent(event);
 		}
 		
@@ -227,6 +227,9 @@ package weave.visualization.layers
 		protected function handleMouseDown(event:MouseEvent):void
 		{			
 			updateMouseMode(InteractionController.DRAG); // modifier keys may have changed just prior to pressing mouse button, so update mode now
+			
+			//for detecting change between drag start and drag end
+			detectLinkableObjectChange( handleMouseDown, layers );
 			
 			mouseDragActive = true;
 			// clear probe when drag starts
@@ -348,7 +351,9 @@ package weave.visualization.layers
 				}
 				case InteractionController.SELECT:
 				{
-					if (mouseDragActive)
+					if ( dragReleased && !detectLinkableObjectChange( handleMouseDown, layers ))
+						clearSelection();
+				   	else if (mouseDragActive)
 						handleSelection(event, _mouseMode);
 					break;
 				}
@@ -594,21 +599,9 @@ package weave.visualization.layers
 			{
 				// only if selection is enabled
 				if (enableSelection.value)
-				{
-					// handle selection
-					if (mode == InteractionController.SELECT && mouseDragStageCoords.getWidth() == 0 && mouseDragStageCoords.getHeight() == 0)
-					{
-						// clear selection when drag area is empty
-						clearSelection();
-					}
-					else
-					{
-						delayedHandleSelection();
-					}
-				}
+					delayedHandleSelection();
 			}
 		}
-		
 		private function clearSelection():void
 		{
 			var _layers:Array = layers.getObjects(SelectablePlotLayer);
@@ -690,7 +683,7 @@ package weave.visualization.layers
 			// don't set a selection or clear the probe keys if selection is disabled
 			if (!enableSelection.value)
 				return;
-			
+
 			var _layers:Array = layers.getObjects(SelectablePlotLayer); // bottom to top
 			// loop from bottom layer to top layer
 			for (var index:int = 0; index < _layers.length; index++)
@@ -706,7 +699,6 @@ package weave.visualization.layers
 				// when using the selection layer, clear the probe
 				setProbeKeys(layer, []);
 				projectDragBoundsToDataQueryBounds(layer, false);
-				
 				
 				// calculate minImportance
 				layer.getDataBounds(tempDataBounds);
@@ -806,14 +798,14 @@ package weave.visualization.layers
 		}
 		
 		protected function setSelectionKeys(layer:SelectablePlotLayer, keys:Array, useMouseMode:Boolean = false):void
-		{
+		{	
 			if (!Weave.properties.enableToolSelection.value || !enableSelection.value)
 				return;
 			
 			// set the probe filter to a new set of keys
 			var keySet:KeySet = layer.selectionFilter.internalObject as KeySet;
 			if (keySet != null)
-			{
+			{	
 				if (useMouseMode && _mouseMode == InteractionController.SELECT_ADD)
 					keySet.addKeys(keys);
 				else if (useMouseMode && _mouseMode == InteractionController.SELECT_REMOVE)
