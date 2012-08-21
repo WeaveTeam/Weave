@@ -22,17 +22,23 @@ package weave.visualization.layers
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObjects;
+	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ZoomBounds;
 
 	/**
+	 * Callbacks are triggered when the rendering task completes, or the plotter becomes busy during rendering.
+	 * Busy status should be checked when callbacks trigger.
+	 * 
 	 * @author adufilie
 	 */
 	public class PlotTask implements IPlotTask, ILinkableObject, IDisposableObject
@@ -40,7 +46,9 @@ package weave.visualization.layers
 		public function PlotTask(zoomBounds:ZoomBounds, plotter:IPlotter)
 		{
 			_zoomBounds = zoomBounds;
-			_plotter = plotter;
+			_plotter = registerLinkableChild(this, plotter);
+			
+			getCallbackCollection(_plotter).addImmediateCallback(this, asyncStart, true);
 		}
 		
 		public function dispose():void
@@ -63,18 +71,40 @@ package weave.visualization.layers
 		/*
 		
 		todo:
-		start task automatically, or when asked to validate
-		however, do not attempt to render while plotter is busy
-		trigger callbacks when task completes
-		add a way to pause the task
+		add a way to disable the task
+		derive recordKeys asynchronously from _plotter.keys and a key filter (see PlotLayer.getSelectedKeys())
 		
 		*/
 		
+		private function asyncStart():void
+		{
+			_iteration = 0;
+			WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_RENDERING, asyncComplete);
+		}
+		
+		private function asyncIterate():Number
+		{
+			// if the plotter is busy, stop immediately
+			if (WeaveAPI.SessionManager.linkableObjectIsBusy(_plotter))
+				return 1;
+			
+			var progress:Number = _plotter.drawPlotAsyncIteration(this);
+			
+			_iteration++;
+			
+			return progress;
+		}
+		
+		private function asyncComplete():void
+		{
+			if (!WeaveAPI.SessionManager.linkableObjectIsBusy(_plotter))
+				getCallbackCollection(this).triggerCallbacks();
+		}
 		
 		public function setRecordKeys(keys:Array):void
 		{
 			_recordKeys = keys;
-			_iteration = 0;
+			asyncStart();
 		}
 		
 		
@@ -111,7 +141,7 @@ package weave.visualization.layers
 		// This counter is incremented after each iteration.  When the task parameters change, this counter is reset to zero.
 		public function get iteration():uint
 		{
-			if (detectLinkableObjectChange(this, _zoomBounds))
+			if (detectLinkableObjectChange(this, _zoomBounds, _plotter))
 				_iteration = 0;
 			
 			return _iteration;
