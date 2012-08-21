@@ -177,10 +177,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 					this.width += 20;
 					counted = 0;
+					var bigWindow:Boolean = false;
 					for( var i:int = 0; i < canvasList.length ; i++ )
 					{
 						if( counted == 0 || (canvasList[i] as CollaborationVideoComponent).width > CollaborationVideoComponent.defaultWidth )
 						{
+							bigWindow = false;
 							(canvasList[i] as CollaborationVideoComponent).x = xCoord;
 							(canvasList[i] as CollaborationVideoComponent).y = 0;
 							if( (canvasList[i] as CollaborationVideoComponent).width > CollaborationVideoComponent.defaultWidth )
@@ -188,8 +190,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width;	
 								if( i > 0 )
 									if( (canvasList[i] as CollaborationVideoComponent).x == (canvasList[i-1] as CollaborationVideoComponent).x )
+									{
 										(canvasList[i] as CollaborationVideoComponent).x = (canvasList[i] as CollaborationVideoComponent).x + CollaborationVideoComponent.defaultWidth;
-								counted = 0;										
+										xCoord += (canvasList[i-1] as CollaborationVideoComponent).width;
+									}
+								bigWindow = true;										
 							}
 							addChild( canvasList[i] );
 							if( (canvasList[i] as CollaborationVideoComponent).width == CollaborationVideoComponent.defaultWidth )
@@ -197,11 +202,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						}
 						else
 						{
-							(canvasList[i] as CollaborationVideoComponent).x = xCoord;
+							if( !bigWindow )
+								(canvasList[i] as CollaborationVideoComponent).x = xCoord;
+							else
+								(canvasList[i] as CollaborationVideoComponent).x = xCoord - (canvasList[i-1] as CollaborationVideoComponent).width - CollaborationVideoComponent.defaultWidth;
 							(canvasList[i] as CollaborationVideoComponent).y = CollaborationVideoComponent.defaultHeight;
 							addChild( canvasList[i] );
-							xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width;	
+							if( !bigWindow )
+								xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width;	
+							if( bigWindow )
+								xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width + (canvasList[i-1] as CollaborationVideoComponent).width;
 							counted = 0;
+							bigWindow = false;
 						}
 					}
 					this.x = ((WeaveAPI.topLevelApplication as DisplayObject).width / 2) - (this.width / 2);
