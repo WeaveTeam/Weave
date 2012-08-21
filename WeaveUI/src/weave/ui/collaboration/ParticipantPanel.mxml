@@ -173,6 +173,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							this.width += (canvasList[j] as CollaborationVideoComponent).width;
 							if( (canvasList[j] as CollaborationVideoComponent).width == CollaborationVideoComponent.defaultWidth )
 								counted++;
+							else
+								this.height = (canvasList[j] as CollaborationVideoComponent).height + 18;
 						}
 					}
 					this.width += 20;
