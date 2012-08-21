@@ -102,14 +102,8 @@ package weave.visualization.layers
 			
 			layerIsVisible.value = true;
 			layerIsSelectable.value = true;
-			backgroundIsVisible.value = true;
 			
 			// initialize label that says there is no selection
-			emptySelectionText.text = "No records are selected";
-			emptySelectionText.setStyle("fontWeight", "bold");
-			
-			getCallbackCollection(selectionFilter).addGroupedCallback(this, showOrHideEmptySelectionText);
-			getCallbackCollection(probeFilter).addGroupedCallback(this, showOrHideEmptySelectionText);
 			getCallbackCollection(selectionFilter).addImmediateCallback(this, handleSelectionChange, true);
 
 			registerLinkableChild(this, plotter);
@@ -205,46 +199,7 @@ package weave.visualization.layers
 				_probeLayer.alpha = _alphaAnimValue;
 		}
 
-		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
-		{
-			//_plotLayer.getDataBounds(tempBounds); trace(name, 'updateDisplayList dataBounds', tempBounds);
-			
-			super.updateDisplayList(unscaledWidth, unscaledHeight);
-			
-			// center this text
-			_plotLayer.getScreenBounds(tempBounds);
-			emptySelectionText.x = tempBounds.getXCenter() - emptySelectionText.width / 2;
-			emptySelectionText.y = tempBounds.getYCenter() - emptySelectionText.height / 2;
-			
-		}
-		
 		private const tempBounds:IBounds2D = new Bounds2D();
-
-		private const emptySelectionText:Label = new Label();
-		
-		private function showOrHideEmptySelectionText():void
-		{
-			if (!backgroundIsVisible.value && !selectionExists && !probeExists)
-			{
-				if (this != emptySelectionText.parent)
-					this.addChild(emptySelectionText);
-			}
-			else
-			{
-				if (this == emptySelectionText.parent)
-					this.removeChild(emptySelectionText);
-			}	
-		}
-		
-		
-		private function get probeExists():Boolean
-		{
-			return (
-				//probeFilter.keyType == plotter.keySet.keyType &&
-				probeFilter.internalObject is IKeySet &&
-				(probeFilter.internalObject as IKeySet).keys.length > 0
-			);
-		}
 		
 		private function get selectionExists():Boolean
 		{
@@ -255,8 +210,6 @@ package weave.visualization.layers
 			);
 		}
 
-		//public const testFilter:LinkableWrapper = registerLinkableChild(this, new LinkableWrapper(BitmapFilter), handleSelectionChange);
-		
 		private function handleSelectionChange():void
 		{
 			if (selectionExists)
@@ -404,17 +357,9 @@ package weave.visualization.layers
 			Weave.properties.selectionDropShadow.copyTo(shadow);
 			handleToggleBitmapFilters();
 		}
-		private var shadow:DropShadowFilter 	= new DropShadowFilter(2, 45, 0, 0.5, 4, 4, 2);
+		private var shadow:DropShadowFilter = new DropShadowFilter(2, 45, 0, 0.5, 4, 4, 2);
 		
-		
-		public const backgroundIsVisible:LinkableBoolean =  newLinkableChild(this, LinkableBoolean, handleBackgroundLayerVisibleChange);
-		private function handleBackgroundLayerVisibleChange():void
-		{
-			_plotLayer.visible = backgroundIsVisible.value;
-			showOrHideEmptySelectionText();
-		}
-		
-		public const layerIsSelectable:LinkableBoolean =  newLinkableChild(this, LinkableBoolean);
+		public const layerIsSelectable:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
 		/**
 		 * This returns true if the layer should be rendered and selectable/probeable

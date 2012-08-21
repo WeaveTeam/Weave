@@ -27,6 +27,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.utils.ColumnUtils;
 	
 	/**
@@ -60,13 +61,6 @@ package weave.data.AttributeColumns
 		 */
 		protected function handleInternalColumnChange():void
 		{
-			delayCallbacks();
-			
-			// invalidate lookup
-			_keyLookup = null;
-			_numberLookup = null;
-			_uniqueStringKeys.length = 0;
-			
 			// update unit
 			if (getInternalColumn() != null)
 			{
@@ -74,8 +68,6 @@ package weave.data.AttributeColumns
 				if (!_keyType)
 					_keyType = DataTypes.STRING;
 			}
-			
-			resumeCallbacks();
 		}
 		
 		private var _keyType:String = DataTypes.STRING;
@@ -101,8 +93,7 @@ package weave.data.AttributeColumns
 		 */
 		override public function get keys():Array
 		{
-			if (_keyLookup == null)
-				createLookupTable();
+			createLookupTable();
 			return _uniqueStringKeys;
 		}
 
@@ -112,6 +103,7 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
+			createLookupTable();
 			return _keyLookup[key] != undefined;
 		}
 		
@@ -120,6 +112,9 @@ package weave.data.AttributeColumns
 		 */
 		private function createLookupTable():void
 		{
+			if (!detectLinkableObjectChange(createLookupTable, getInternalColumn()))
+				return;
+			
 			// reset
 			_uniqueStringKeys.length = 0;
 			_keyLookup = new Dictionary();
@@ -158,6 +153,8 @@ package weave.data.AttributeColumns
 			}
 			// sort the unique values because these will be the keys and we want them to be in a predictable order
 			_uniqueStringKeys.sort(compareStringKeys);
+			
+			detectLinkableObjectChange(createLookupTable, getInternalColumn());
 		}
 
 		/**
@@ -185,8 +182,7 @@ package weave.data.AttributeColumns
 			if (getInternalColumn() != null)
 			{
 				// validate lookup table if necessary
-				if (_keyLookup == null)
-					createLookupTable();
+				createLookupTable();
 				
 				if (dataType == Number)
 					return Number(_numberLookup[stringKey]); // the Number associated with the stringValue
@@ -220,8 +216,7 @@ package weave.data.AttributeColumns
 				return null;
 			
 			// validate lookup table if necessary
-			if (_keyLookup == null)
-				createLookupTable();
+			createLookupTable();
 			
 			var stringValue:String = getInternalColumn().getValueFromKey(internalColumnKey, String) as String;
 			return WeaveAPI.QKeyManager.getQKey(_keyType, stringValue);
