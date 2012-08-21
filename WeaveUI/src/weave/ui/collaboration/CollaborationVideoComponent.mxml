@@ -28,12 +28,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import mx.events.FlexEvent;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.reportError;
+			import weave.api.services.IURLRequestToken;
+
 
 			public var stream:NetStream = null;
 			public var video:Video = new Video();
 			public static var defaultHeight:Number = 80;
 			public static var defaultWidth:Number = 100;
 			private var _labelText:String;
+			private var profilePicture:Bitmap = null;
+			private var streamingVid:Boolean = false;
 			
 			/*
 			* This is used to set the label, since setting the label directly can result in an error sometimes.
@@ -58,6 +67,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			*/
 			public function play(str:String):void
 			{
+				streamingVid = true;
+				applyImage();
 				stream.play(str);
 				video.attachNetStream(stream);
 			}
@@ -68,9 +79,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function close():void
 			{
 				video.attachNetStream(null);
-				video.clear();
 				if( stream != null )
 					stream.close();
+				video.clear();
+				streamingVid = false;
+				applyImage();
 			}
 			
 			protected function creationComplete(event:FlexEvent):void
@@ -89,7 +102,59 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					video.height = videoArea.height;
 					video.width = videoArea.width;
+					applyImage();
 				}
+			}
+			
+			public function applyImage(imageURL:String = null):void
+			{
+				if( imageURL != null )
+				{
+					profilePicture = new Bitmap(getImage(imageURL));
+				}
+				if( !streamingVid && profilePicture != null )
+				{
+					profilePicture.height = videoArea.height + 3;
+					profilePicture.width = videoArea.width + 3;
+					this.rawChildren.addChild(profilePicture);
+				}
+				else if( streamingVid )
+					this.rawChildren.removeChild(profilePicture);
+			}
+			
+			//The following code is for using an image in place of the typical mouse cursor.
+			
+			[Embed( source="/weave/resources/images/missing.png")]
+			private static var _missingImageClass:Class;
+			private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
+			
+			/**
+			 * This is the image cache.
+			 */
+			private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
+			
+			private function getImage(url:String):BitmapData
+			{
+				if (url && _urlToImageMap[url] === undefined)
+				{
+					_urlToImageMap[url] = null;
+					var tokencheck:IURLRequestToken = WeaveAPI.URLRequestUtils.getContent(new URLRequest(url), handleImageDownload, handleFault, url);
+				}
+				return _urlToImageMap[url] as BitmapData;
+			}
+			
+			private function handleImageDownload(event:ResultEvent, token:Object = null):void
+			{
+				var bitmap:Bitmap = event.result as Bitmap;
+				_urlToImageMap[token] = bitmap.bitmapData;
+			}
+			
+			/**
+			 * This function is called when there is an error downloading an image.
+			 */
+			private function handleFault(event:FaultEvent, token:Object=null):void
+			{
+				_urlToImageMap[token] = _missingImage;
 			}
 			
 		]]>

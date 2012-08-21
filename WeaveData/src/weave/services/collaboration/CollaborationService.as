@@ -93,7 +93,7 @@ package weave.services.collaboration
 			this.root = root;
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
 			// all of these classes are internal
-			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, RequestMouseControl, RelinquishMouseControl, Ping, AddonsMessage, AddonStatus])
+			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, RequestMouseControl, RelinquishMouseControl, Ping, AddonsMessage, AddonStatus, ProfilePicMessage])
 				registerClassAlias(getQualifiedClassName(c), c);
 				
 			userList.sort = new Sort();
@@ -252,6 +252,11 @@ package weave.services.collaboration
 		public function sendAddonUpdate( id:String, type:String, toggle:Boolean ):void
 		{
 			var message:AddonsMessage = new AddonsMessage(id, type, toggle);
+			sendEncodedObject(message, null);
+		}
+		public function sendProfilePicLink( id:String, link:String):void
+		{
+			var message:ProfilePicMessage = new ProfilePicMessage(id, link);
 			sendEncodedObject(message, null);
 		}
 		//Handles Sending the entire session state. Should only be used if
@@ -507,6 +512,11 @@ package weave.services.collaboration
 					else if( am.type == TYPE_CAM )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_CAM, am.id, ( am.toggle ) ? 1 : 0));
 				}
+				else if( o is ProfilePicMessage )
+				{
+					var ppm:ProfilePicMessage = o as ProfilePicMessage;
+					dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_USER_PROFILE_PIC, ppm.link, 0, 0, 0, ppm.id));
+				}
 				else if( o is AddonStatus )
 				{
 					var status:AddonStatus = o as AddonStatus;
@@ -761,6 +771,16 @@ internal class AddonsMessage
 	public var id:String;
 	public var type:String;
 	public var toggle:Boolean;
+}
+internal class ProfilePicMessage
+{
+	public function ProfilePicMessage(id:String = null, link:String = null)
+	{
+		this.id = id;
+		this.link = link;
+	}
+	public var id:String;
+	public var link:String;
 }
 internal class AddonStatus
 {

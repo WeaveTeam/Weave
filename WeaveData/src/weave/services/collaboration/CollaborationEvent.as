@@ -40,6 +40,7 @@ package weave.services.collaboration
 		public static const USER_LIST_UPDATED:String		= "user_list_updated";
 		public static const REQUEST_MOUSE_CONTROL:String    = "collab_request_mouse_control";
 		public static const RELINQUISH_MOUSE_CONTROL:String = "collab_relinquish_mouse_control";
+		public static const UPDATE_USER_PROFILE_PIC:String  = "collab_update_user_profile_pic";
 		
 		/* ERROR EVENTS */
 		public static const NICK_ERROR:String 				= 'collab_nick_error';
@@ -51,6 +52,7 @@ package weave.services.collaboration
 		public static const CONN_SETTINGS_DISCONNECT:String = "collab_conn_settings_disconnect";
 		public static const ADDON_SETTINGS_SAVED:String 	= "collab_addon_settings_saved";
 		public static const PARTICIPANT_PANEL_SHOW:String   = "collab_participant_panel_show";
+		public static const PROFILE_PICTURE:String          = "collab_profile_picture_update";
 		
 		/* CHAT EVENTS */
 		public static const SEND_MESSAGE:String 			= "collab_send_message";
