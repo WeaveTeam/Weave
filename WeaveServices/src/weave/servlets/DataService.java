@@ -97,17 +97,11 @@ public class DataService extends GenericServlet
 		for (int i = 0; i < geomNames.length; i++)
 			geomKeyTypes[i] = config.getGeometryCollectionInfo(geomNames[i]).keyType;
 		
-		@SuppressWarnings("unchecked")
-		Map<String,String>[] tableMetadata = new Map[tableNames.length];
 		// get dublin core metadata
 		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
 		ConnectionInfo connInfo = config.getConnectionInfo(configInfo.connection);
 		Connection conn = connInfo.getStaticReadOnlyConnection();
-		for (int i = 0; i < tableNames.length; i++)
-		{
-			tableMetadata[i] = DublinCoreUtils.listDCElements(conn, configInfo.schema, tableNames[i]);
-			tableMetadata[i].put(ISQLConfig.AttributeColumnInfo.Metadata.NAME.toString(), tableNames[i]);
-		}
+		Map<String,String>[] tableMetadata = DublinCoreUtils.listDCElements(conn, configInfo.schema, tableNames);
 		
 		return new DataServiceMetadata(config.getServerName(), tableMetadata, geomNames, geomKeyTypes);
 	}
