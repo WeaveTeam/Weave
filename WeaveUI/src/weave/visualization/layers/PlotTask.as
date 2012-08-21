@@ -25,11 +25,12 @@ package weave.visualization.layers
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
+	import weave.api.data.IDynamicKeyFilter;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.primitives.Bounds2D;
@@ -43,12 +44,14 @@ package weave.visualization.layers
 	 */
 	public class PlotTask implements IPlotTask, ILinkableObject, IDisposableObject
 	{
-		public function PlotTask(zoomBounds:ZoomBounds, plotter:IPlotter)
+		public function PlotTask(zoomBounds:ZoomBounds, plotter:IPlotter, keyFilter:IDynamicKeyFilter)
 		{
+			_plotter = plotter;
+			_keyFilter = keyFilter;
 			_zoomBounds = zoomBounds;
-			_plotter = registerLinkableChild(this, plotter);
 			
-			getCallbackCollection(_plotter).addImmediateCallback(this, asyncStart, true);
+			getCallbackCollection(_keyFilter).addImmediateCallback(this, asyncStart);
+			getCallbackCollection(_plotter).addImmediateCallback(this, asyncStart);
 		}
 		
 		public function dispose():void
@@ -60,19 +63,20 @@ package weave.visualization.layers
 		
 		private var _bitmap:Bitmap = new Bitmap();
 		private var _plotter:IPlotter = null;
+		private var _keyFilter:IDynamicKeyFilter = null;
 		private var _zoomBounds:ZoomBounds;
 		private var _tempDataBounds:Bounds2D = new Bounds2D();
 		private var _tempScreenBounds:Bounds2D = new Bounds2D();
 		private var _iteration:uint = 0;
 		private var _recordKeys:Array;
 		private var _asyncState:Object;
-		
+		private var _pendingRecordKeys:Array;
+		private var _iPendingRecordKey:uint;
 		
 		/*
 		
 		todo:
 		add a way to disable the task
-		derive recordKeys asynchronously from _plotter.keys and a key filter (see PlotLayer.getSelectedKeys())
 		
 		*/
 		
@@ -87,9 +91,39 @@ package weave.visualization.layers
 			// if the plotter is busy, stop immediately
 			if (WeaveAPI.SessionManager.linkableObjectIsBusy(_plotter))
 				return 1;
+
+			// if keys change, restart
+			if (detectLinkableObjectChange(this, _plotter, _keyFilter))
+			{
+				_iPendingRecordKey = 0;
+				_pendingRecordKeys = _plotter.keySet.keys;
+				_recordKeys = [];
+			}
 			
+			// if keys aren't ready yet, prepare keys
+			if (_pendingRecordKeys)
+			{
+				if (_iPendingRecordKey < _pendingRecordKeys.length)
+				{
+					// next key iteration - add key if included in filter
+					var key:IQualifiedKey = _pendingRecordKeys[_iPendingRecordKey] as IQualifiedKey;
+					if (_keyFilter.getInternalKeyFilter().containsKey(key))
+						_recordKeys.push(key);
+					
+					// prepare for next iteration
+					_iPendingRecordKey++;
+					
+					// not done yet
+					return 0;
+				}
+				// done with keys
+				_pendingRecordKeys = null;
+			}
+			
+			// next draw iteration
 			var progress:Number = _plotter.drawPlotAsyncIteration(this);
 			
+			// prepare for next iteration
 			_iteration++;
 			
 			return progress;
@@ -97,14 +131,9 @@ package weave.visualization.layers
 		
 		private function asyncComplete():void
 		{
+			// if the plotter is busy, the graphics aren't ready, so don't trigger callbacks
 			if (!WeaveAPI.SessionManager.linkableObjectIsBusy(_plotter))
 				getCallbackCollection(this).triggerCallbacks();
-		}
-		
-		public function setRecordKeys(keys:Array):void
-		{
-			_recordKeys = keys;
-			asyncStart();
 		}
 		
 		
