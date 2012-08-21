@@ -180,11 +180,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					this.width += 20;
 					counted = 0;
 					var bigWindow:Boolean = false;
+					var extraWidth:Boolean = false;
 					for( var i:int = 0; i < canvasList.length ; i++ )
 					{
 						if( counted == 0 || (canvasList[i] as CollaborationVideoComponent).width > CollaborationVideoComponent.defaultWidth )
 						{
 							bigWindow = false;
+							extraWidth = false;
 							(canvasList[i] as CollaborationVideoComponent).x = xCoord;
 							(canvasList[i] as CollaborationVideoComponent).y = 0;
 							if( (canvasList[i] as CollaborationVideoComponent).width > CollaborationVideoComponent.defaultWidth )
@@ -195,6 +197,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									{
 										(canvasList[i] as CollaborationVideoComponent).x = (canvasList[i] as CollaborationVideoComponent).x + CollaborationVideoComponent.defaultWidth;
 										xCoord += (canvasList[i-1] as CollaborationVideoComponent).width;
+										extraWidth = true;
 									}
 								bigWindow = true;										
 							}
@@ -206,14 +209,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						{
 							if( !bigWindow )
 								(canvasList[i] as CollaborationVideoComponent).x = xCoord;
-							else
+							else if( bigWindow && extraWidth )
+							{
 								(canvasList[i] as CollaborationVideoComponent).x = xCoord - (canvasList[i-1] as CollaborationVideoComponent).width - CollaborationVideoComponent.defaultWidth;
+								extraWidth = false;
+							}
+							else if( bigWindow && !extraWidth )
+								(canvasList[i] as CollaborationVideoComponent).x = xCoord - (canvasList[i-1] as CollaborationVideoComponent).width;
 							(canvasList[i] as CollaborationVideoComponent).y = CollaborationVideoComponent.defaultHeight;
 							addChild( canvasList[i] );
 							if( !bigWindow )
 								xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width;	
-							if( bigWindow )
-								xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width + (canvasList[i-1] as CollaborationVideoComponent).width;
 							counted = 0;
 							bigWindow = false;
 						}
