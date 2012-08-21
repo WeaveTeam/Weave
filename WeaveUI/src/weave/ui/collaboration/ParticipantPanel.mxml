@@ -259,6 +259,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return tempCollaborationVideoComponent.stream;
 			}
 			
+			public function createUserProfilePic(id:String, imageURL:String):void
+			{
+				findVideoComponent(id).applyImage(imageURL);
+			}
+			
 			private function findVideoComponent(name:String):CollaborationVideoComponent
 			{
 				var testID:String = new String();

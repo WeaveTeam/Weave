@@ -74,6 +74,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   click="cursorButtonClick(event)"/>
 	<mx:Script>
 		<![CDATA[
+			import flash.profiler.profile;
 			import mx.events.ResizeEvent;
 			import mx.controls.Button;
 			import mx.events.MoveEvent;
@@ -259,6 +260,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				collabService.addEventListener(CollaborationEvent.UPDATE_PING, updatePing);
 				collabService.addEventListener(CollaborationEvent.UPDATE_MIC, userMicUpdated);
 				collabService.addEventListener(CollaborationEvent.UPDATE_CAM, userCamUpdated);
+				collabService.addEventListener(CollaborationEvent.UPDATE_USER_PROFILE_PIC, updateUserPic);
 				collabService.addEventListener(CollaborationEvent.REQUEST_MOUSE_CONTROL, addMouseToQueue);
 				collabService.addEventListener(CollaborationEvent.RELINQUISH_MOUSE_CONTROL, removeMouseFromQueue);
 				
@@ -292,6 +294,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				SETTINGS.addEventListener(CollaborationEvent.ADDON_SETTINGS_SAVED, settingsAddonSaved);
 				SETTINGS.addEventListener(CollaborationEvent.CONN_SETTINGS_DISCONNECT, disconnect);
 				SETTINGS.addEventListener(CollaborationEvent.PARTICIPANT_PANEL_SHOW, openParticipantPanel);
+				SETTINGS.addEventListener(CollaborationEvent.PROFILE_PICTURE, sendProfilePicLink);
 				CHAT.addEventListener(CollaborationEvent.SEND_MESSAGE, sendMessageEventHandler);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_MIC, updateUserMic);
 				CHAT.addEventListener(CollaborationEvent.UPDATE_CAM, updateUserCam);
@@ -368,6 +371,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				collabService.room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 				collabService.sendMouseMessage(SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
+				if( SETTINGS.profilePicURL != "" )
+					collabService.sendProfilePicLink(collabService.nickname, SETTINGS.profilePicURL);
 				collabService.hasControl = false;
 				if( userList.dataProvider.length == 0 )
 					cursorButtonClick(new MouseEvent(MouseEvent.CLICK));
@@ -402,6 +407,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				CHAT.cam = SETTINGS.collab_CAMERA;
 				CHAT.mic = SETTINGS.collab_MIC;
 				CHAT.addOnsSaved = true;
+			}
+			
+			private function sendProfilePicLink(e:Event):void
+			{
+				if( SETTINGS.profilePicURL != "" )
+					collabService.sendProfilePicLink(collabService.nickname, SETTINGS.profilePicURL);
 			}
 			
 			private function updateUserMic(e:CollaborationEvent):void  { collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, collabService.TYPE_MIC, ( e.getText() == "1" )); }
@@ -496,7 +507,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function updatePing(e:CollaborationEvent):void 	   { setUserAttribute(TYPE_PING, e.getText(), e.getX()); }
 			private function userMicUpdated(e:CollaborationEvent):void { setUserAttribute(TYPE_MIC, e.getText(), Number(e.getColor())); }
 			private function userCamUpdated(e:CollaborationEvent):void { setUserAttribute(TYPE_CAM, e.getText(), Number(e.getColor())); }
-			
+			private function updateUserPic(e:CollaborationEvent):void  { PARTICIPANTS.createUserProfilePic(e.getInfo() as String, e.getText()); }
+				
 			//Make the chat button turn orange if a chat message is sent and the chat window isn't open.
 			private function handleLogEvent(e:CollaborationEvent):void
 			{

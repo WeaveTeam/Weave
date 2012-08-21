@@ -48,13 +48,19 @@
 									 selected="{CollabMouseCursor.useImage}"/>
 					</mx:HBox>
 					<mx:HBox>
-						<mx:Label text="Link:"/>
-						<mx:TextInput id="linkForImage" enabled="{CollabMouseCursor.useImage}"/>
+						<mx:Label text="Cursor Image Link:"/>
+						<mx:TextInput id="linkForImage" width="69"
+									  enabled="{CollabMouseCursor.useImage}"/>
 						<mx:Button label="Load" click="loadImage(event)"
 								   enabled="{CollabMouseCursor.useImage}"/>						
 					</mx:HBox>
 					<mx:HBox>
-						<mx:Label text="Show participants cameras:"/>
+						<mx:Label text="Profile Picture Link:"/>
+						<mx:TextInput id="profilePic" width="70"/>
+						<mx:Button label="Load" click="loadProfilePicture(event)"/>						
+					</mx:HBox>
+					<mx:HBox>
+						<mx:Label text="Show participants' cameras:"/>
 						<mx:CheckBox id="showParticipantPanel"
 									 click="showParticipantPanelClick(event)" selected="true"/>					
 					</mx:HBox>
@@ -63,7 +69,7 @@
 						<mx:Label visible="{warningVisible}" color="#FF0000" fontWeight="bold"
 								  text="{warningMsg}"/>
 					</ui:Center>
-					<mx:Spacer height="100%"/>
+					<mx:Spacer height="95%"/>
 					<ui:Center>
 						<mx:HBox>
 							<mx:Button id="connectButton" label="{lang('Connect')}"
@@ -132,6 +138,7 @@
 			
 			public var collab_NICKNAME:String;
 			public var collab_COLOR:uint;
+			public var profilePicURL:String;
 			
 			[Bindable] public var warningMsg:String = "";
 			[Bindable] public var warningVisible:Boolean = false;
@@ -157,6 +164,7 @@
 				}
 				collab_NICKNAME = nickname.text;
 				collab_COLOR = picker.selectedColor;
+				profilePicURL = profilePic.text;
 				
 				if( connectButton.label == lang("Connect" ) )
 				{
@@ -341,6 +349,13 @@
 			protected function loadImage(event:MouseEvent):void
 			{
 				CollabMouseCursor.imageLink = linkForImage.text;			
+			}
+			
+			protected function loadProfilePicture(event:MouseEvent):void
+			{
+				profilePicURL = profilePic.text;
+				if( connectButton.label == lang("Disconnect") )
+					dispatchEvent(new CollaborationEvent(CollaborationEvent.PROFILE_PICTURE, profilePicURL));
 			}
 			
 		]]>
