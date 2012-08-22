@@ -4,9 +4,9 @@ package weave.ui
     import weave.services.beans.AttributeColumnInfo;
     public class EntityTreeRoot extends EntityTreeNode
     {
-        private var filterTag:int;
+        private var filterFunc:Function;
         private var aci:AttributeColumnInfo;
-        public function EntityTreeRoot(filterTag:int)
+        public function EntityTreeRoot(filterFunc:Function)
         {
             super(-1);
             aci = new AttributeColumnInfo();
@@ -14,7 +14,7 @@ package weave.ui
             aci.entity_type = AttributeColumnInfo.TABLE;
             aci.privateMetadata = {};
             aci.publicMetadata = {};
-            this.filterTag = filterTag;
+            this.filterFunc = filterFunc;
         }
         override public function get label():String
         {
@@ -26,14 +26,11 @@ package weave.ui
         }
         override public function get children():Array
         {
-            var filterFunc:Function = function(etn:EntityTreeNode, index:int, arr:Array):Boolean
-            {
-                var t:int = etn.object.entity_type;
-                return (t == filterTag || t == AttributeColumnInfo.COLUMN);
-            };
-            var filtered:Array = super.get_children().filter(filterFunc)
-            printobj(filtered);
-            return filtered;
+            var unfiltered:Array = super.get_children();
+            if (unfiltered != null)
+                return unfiltered.filter(filterFunc)
+            else
+                return [];
         }
     }
 }

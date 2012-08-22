@@ -25,12 +25,13 @@ package weave.ui
             objid = inc++;
             this._id = id;
         }
-        private function objectChanged(obj:Object):void
+        private function objectChanged(obj:Object = null):void
         {
             dispatchEvent(new Event("objectChanged"));
         }
-        private function childrenChanged(obj:Object):void
+        private function childrenChanged(obj:Object = null):void
         {
+            yell("Children changed @ " + this.label);
             dispatchEvent(new Event("childrenChanged"));
         }
         [Bindable(event="objectChanged")] public function get label():String
@@ -63,12 +64,20 @@ package weave.ui
             if (children_ids == null)
                 return null;
             for each (var id:int in children_ids)
-                new_children.push(new EntityTreeNode(id));
-            return _children = new_children;
+            {
+                var new_etn:EntityTreeNode = new EntityTreeNode(id)
+                new_etn.addEventListener("objectChanged", childrenChanged);
+                new_etn.addEventListener("childrenChanged", childrenChanged);
+                new_children.push(new_etn);
+            }
+            _children = new_children;
+            childrenChanged();
+            return _children;
         }
         public function add_child(child_id:int):void
         {
-            AdminInterface.instance.meta_cache.add_child(child_id, this.id);
+            AdminInterface.instance.meta_cache.add_child(child_id, this.id, childrenChanged);
+            
         }
         public function remove_self():void
         {
@@ -76,7 +85,7 @@ package weave.ui
         }
         public function remove_child(child_id:int):void
         {
-            AdminInterface.instance.meta_cache.remove_child(child_id, this.id);
+            AdminInterface.instance.meta_cache.remove_child(child_id, this.id, childrenChanged);
         }
         public function commit(pubDiff:Object, privDiff:Object, onComplete:Function):void
         {

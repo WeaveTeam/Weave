@@ -93,11 +93,13 @@
     {
         /* These behaviours kinda suck, just using these til someone comes up with something better. */
         var item:EntityTreeNode = tagTree.selectedItem as EntityTreeNode;
+        if (item == null) return;
         var entity_type:int = item.object.entity_type;
         var parent:EntityTreeNode = tagTree.getParentItem(item);
         if (parent)
         {
             parent.remove_child(item.id);
+
             tagTree.validateNow();
         }
         else 
@@ -108,6 +110,7 @@
                 // TODO: Add confirmation dialog
                 function deleteTagFunction():void
                 {
+                    tagTree.etn_root.remove_child(item.id);
                     item.remove_self();
                     tagTree.validateNow();
                 }

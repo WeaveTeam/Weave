@@ -16,14 +16,14 @@ package weave.ui
         {
 
             var parentEntity:EntityTreeNode = parent as EntityTreeNode;
-            EntityTreeNode.printobj(newChild);
-            parentEntity.add_child(newChild._id);
-            return true;
+            if (parentEntity != null && newChild != null)
+                parentEntity.add_child(newChild._id);
+            return parentEntity != null && newChild != null;
         }
         public function removeChildAt(parent:Object, child:Object, index:int, model:Object = null):Boolean
         {
             var parentEntity:EntityTreeNode = parent as EntityTreeNode;
-            if (parentEntity != null)
+            if (parentEntity == null) 
                 parentEntity.remove_child(child._id);
             return parentEntity != null;
         }

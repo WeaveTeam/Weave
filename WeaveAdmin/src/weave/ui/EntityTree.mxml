@@ -28,6 +28,7 @@ import flash.utils.getQualifiedClassName;
 
 public var entityType:int;
 private var connWatcher:ChangeWatcher;
+public var etn_root:EntityTreeRoot;
 [Bindable] public var selectedType:int;
 
 public function onExpand(event:TreeEvent):void
@@ -63,7 +64,7 @@ public function onChange(event:ListEvent):void
     selectedType = etn.object.entity_type;
 
 }
-private function filterByType(item:Object):Boolean
+private function filterByType(item:EntityTreeNode, index:int, arr:Array):Boolean
 {
     var etn:EntityTreeNode = item as EntityTreeNode;
     if (etn == null)
@@ -87,12 +88,23 @@ public function handleCreated():void
 }
 private function connectionReady(event:PropertyChangeEvent, tree:Tree):void
 {
-    dataDescriptor = new HierarchyDescriptor();
     if (event.newValue == true)
     {
+        function emptyValidate(obj:Object):void
+        { 
+            /* Twiddle the dataProvider */
+            EntityTreeNode.yell("Validating!");
+            tree.dataProvider.refresh()
+            tree.invalidateList();
+            tree.validateNow();
+        }
         function setProvider(event:Object):void
-        {
-            tree.dataProvider = new EntityTreeRoot(this.entityType);
+        { 
+            etn_root = new EntityTreeRoot(filterByType);
+            dataDescriptor = new HierarchyDescriptor();
+            tree.dataProvider = etn_root;
+            tree.dataProvider.enableAutoUpdate();
+            etn_root.addEventListener("childrenChanged", emptyValidate);
             tree.validateNow();
         }
         AdminInterface.instance.meta_cache.get_children(-1, setProvider);

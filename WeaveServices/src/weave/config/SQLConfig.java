@@ -262,8 +262,8 @@ public class SQLConfig
             {
                 DataEntity tmp = new DataEntity();
                 tmp.id = id;
-                tmp.publicMetadata = publicresults.get(id);
-                tmp.privateMetadata = privateresults.get(id);
+                tmp.publicMetadata = publicresults == null ? null : publicresults.get(id);
+                tmp.privateMetadata = privateresults == null ? null : privateresults.get(id);
                 tmp.type = typeresults.get(id);
                 results.add(tmp);
             }
@@ -599,10 +599,10 @@ public class SQLConfig
             public Map<Integer,Integer> getEntryTypes(Collection<Integer> ids) throws RemoteException
             {
                 /* TODO: Optimize. */
+                Map<Integer,Integer> result = new HashMap<Integer,Integer>();
                 try
                 {
                     Connection conn = this.conn.getConnection();
-                    Map<Integer,Integer> result = new HashMap<Integer,Integer>();
                     Map<String,Integer> whereParams = new HashMap<String,Integer>();
                     List<Map<String,String>> sqlres;
                     for (Integer id : ids)
@@ -613,6 +613,10 @@ public class SQLConfig
                             conn, Arrays.asList(MAN_ID, MAN_TYPE), schemaName, tableName, whereParams);
                         result.put(id, new Integer(sqlres.get(0).get(MAN_TYPE)));
                     }
+                    return result;
+                }
+                catch (ArrayIndexOutOfBoundsException e)
+                {
                     return result;
                 }
                 catch (Exception e)
