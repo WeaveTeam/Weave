@@ -54,6 +54,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					testID = id.substr(0, 10) + "...";
 				else
 					testID = id;
+				for( var j:int = 0; j < controlList.length; j++ )
+				{
+					if( controlList[j] == testID )
+					{
+						controlList.splice(j, 1);
+						break;
+					}
+				}
 				for( var i:int = 0; i < canvasList.length; i++ )
 				{
 					if( (canvasList[i] as CollaborationVideoComponent).nameLabel.text == testID )
@@ -201,6 +209,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									}
 								bigWindow = true;										
 							}
+							(canvasList[i] as CollaborationVideoComponent).adjustCamera();		
 							addChild( canvasList[i] );
 							if( (canvasList[i] as CollaborationVideoComponent).width == CollaborationVideoComponent.defaultWidth )
 								counted++;
@@ -217,6 +226,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							else if( bigWindow && !extraWidth )
 								(canvasList[i] as CollaborationVideoComponent).x = xCoord - (canvasList[i-1] as CollaborationVideoComponent).width;
 							(canvasList[i] as CollaborationVideoComponent).y = CollaborationVideoComponent.defaultHeight;
+							(canvasList[i] as CollaborationVideoComponent).adjustCamera();		
 							addChild( canvasList[i] );
 							if( !bigWindow )
 								xCoord = xCoord + (canvasList[i] as CollaborationVideoComponent).width;	

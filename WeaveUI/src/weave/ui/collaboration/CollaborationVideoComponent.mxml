@@ -34,6 +34,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.WeaveAPI;
 			import weave.api.reportError;
 			import weave.api.services.IURLRequestToken;
+			import weave.utils.BitmapUtils;
 
 
 			public var stream:NetStream = null;
@@ -41,7 +42,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public static var defaultHeight:Number = 80;
 			public static var defaultWidth:Number = 100;
 			private var _labelText:String;
-			private var profilePicture:Bitmap = null;
+			private var profilePicture:Bitmap = new Bitmap(new BitmapData(100, 100));
 			private var streamingVid:Boolean = false;
 			
 			/*
@@ -106,27 +107,35 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			//Temporary object to store a user's picture.
+			private var image:BitmapData = null;
+			
 			public function applyImage(imageURL:String = null):void
 			{
-				if( imageURL != null )
-				{
-					profilePicture = new Bitmap(new BitmapData(videoArea.width, videoArea.height));
-				}
-				if( !streamingVid && profilePicture != null && imageURL != null)
+				if( !streamingVid && profilePicture != null)
 				{
 					profilePicture.height = videoArea.height;
 					profilePicture.width = videoArea.width;
-					if( !videoArea.contains(profilePicture) )
-						videoArea.addChild(profilePicture);
-					var image:BitmapData = getImage(imageURL);
+					profilePicture.bitmapData = new BitmapData( videoArea.width, videoArea.height);
+					var tempMatrix:Matrix = new Matrix();
 					if( image != null )
 					{
-						var tempMatrix:Matrix = new Matrix();
-						tempMatrix.scale(videoArea.width / image.width, videoArea.height / image.height)
+						tempMatrix.scale( 1 / image.width * videoArea.width, 1 / image.height * videoArea.height);
 						profilePicture.bitmapData.draw(image, tempMatrix);
 					}
-					else
-						callLater(applyImage, [imageURL]);
+					if( !videoArea.contains(profilePicture) )
+						videoArea.addChild(profilePicture);
+					if( imageURL != null )
+					{
+						image = getImage(imageURL);
+						if( image != null )
+						{
+							tempMatrix.scale( 1 / image.width * videoArea.width, 1 / image.height * videoArea.height);
+							profilePicture.bitmapData.draw(image, tempMatrix);
+						}
+						else
+							callLater(applyImage, [imageURL]);
+					}
 				}
 				else if( streamingVid && profilePicture != null && videoArea.contains(profilePicture))
 					videoArea.removeChild(profilePicture);
