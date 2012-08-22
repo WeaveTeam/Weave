@@ -107,13 +107,6 @@ package weave.visualization.plotters
 					// set a placeholder so it doesn't get downloaded again
 					_urlToImageMap[_imageURL] = _missingImage;
 					
-					
-					if( StringUtil.trim(_imageURL) == "" )
-					{
-						getCallbackCollection(this).triggerCallbacks();						
-						return;
-					}
-					
 					// download the image
 //					WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
 					
