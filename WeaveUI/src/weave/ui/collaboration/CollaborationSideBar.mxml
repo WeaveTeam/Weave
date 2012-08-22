@@ -502,6 +502,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				setUserAttribute(TYPE_MIC, e.getText(), 0);
 				if( userList.dataProvider.length == 2 && !collabService.hasControl)
 					cursorButtonClick(new MouseEvent(MouseEvent.CLICK));
+				else if( userList.dataProvider.length > 2 && WeaveAPI.CollaborationCursorManager.getMouseQueue().length == 0 && (collabService.userList[0] == collabService.nickname || ((collabService.userList[0] == e.getText()) && collabService.userList[1] == collabService.nickname)))
+					cursorButtonClick(new MouseEvent(MouseEvent.CLICK));
 			}
 			
 			private function handleUserRequestUserlist(e:CollaborationEvent):void
