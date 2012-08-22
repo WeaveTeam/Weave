@@ -110,19 +110,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				if( imageURL != null )
 				{
-					profilePicture = new Bitmap(getImage(imageURL));
+					profilePicture = new Bitmap(new BitmapData(videoArea.width, videoArea.height));
 				}
-				if( !streamingVid && profilePicture != null )
+				if( !streamingVid && profilePicture != null && imageURL != null)
 				{
-					profilePicture.height = videoArea.height + 3;
-					profilePicture.width = videoArea.width + 3;
-					//this.rawChildren.addChild(profilePicture);
-					videoArea.addChild(profilePicture);
+					profilePicture.height = videoArea.height;
+					profilePicture.width = videoArea.width;
+					if( !videoArea.contains(profilePicture) )
+						videoArea.addChild(profilePicture);
+					var image:BitmapData = getImage(imageURL);
+					if( image != null )
+					{
+						var tempMatrix:Matrix = new Matrix();
+						tempMatrix.scale(videoArea.width / image.width, videoArea.height / image.height)
+						profilePicture.bitmapData.draw(image, tempMatrix);
+					}
+					else
+						callLater(applyImage, [imageURL]);
 				}
 				else if( streamingVid && profilePicture != null && videoArea.contains(profilePicture))
-					//this.rawChildren.removeChild(profilePicture);
 					videoArea.removeChild(profilePicture);
-				callLater(invalidateDisplayList);
 			}
 			
 			//The following code is for using an image in place of the typical mouse cursor.
@@ -150,6 +157,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				var bitmap:Bitmap = event.result as Bitmap;
 				_urlToImageMap[token] = bitmap.bitmapData;
+				applyImage();
 			}
 			
 			/**
