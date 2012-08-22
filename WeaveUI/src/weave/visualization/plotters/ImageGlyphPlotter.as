@@ -71,8 +71,6 @@ package weave.visualization.plotters
 		private static var _missingImageClass:Class;
 		private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
 
-		private var _imageURL:String;
-		
 		/**
 		 * Draws the graphics onto BitmapData.
 		 */
@@ -81,7 +79,7 @@ package weave.visualization.plotters
 			for (var i:int = 0; i < recordKeys.length; i++)
 			{
 				var recordKey:IQualifiedKey = recordKeys[i] as IQualifiedKey;
-				_imageURL = imageURL.getValueFromKey(recordKey, String) as String;
+				var _imageURL:String = imageURL.getValueFromKey(recordKey, String) as String;
 				var _imageSize:Number = imageSize.getValueFromKey(recordKey, Number);
 				if (isNaN(_imageSize))
 					_imageSize = 32;
@@ -146,7 +144,7 @@ package weave.visualization.plotters
 		{
 			trace("Error downloading image:", ObjectUtil.toString(event.message), token);
 			
-			_urlToImageMap[_imageURL] = _missingImage;
+			_urlToImageMap[token] = _missingImage;
 			getCallbackCollection(this).triggerCallbacks();
 		}
 	}
