@@ -114,7 +114,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var SETTINGS:CollaborationSettingsWindow;
 			private var PARTICIPANTS:ParticipantPanel;
 			private var disConButtonPushed:Boolean				= false;
-			private var mouseTimer:Timer;
+			private var mouseTimer:Timer						= new Timer(600);
 			private var pingTimer:Timer;
 			private var connTimer:Timer;
 			private var chatButton:Button              			= new Button();
@@ -363,7 +363,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				connectToRTMPServer();
 				cursorButton.enabled = true;
 				
-				mouseTimer = new Timer(600);
 				mouseTimer.addEventListener(TimerEvent.TIMER, mouseMove);
 				
 				pingTimer = new Timer(10000);
@@ -386,7 +385,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if( mouseTimer ) {
 					mouseTimer.stop();
 					mouseTimer.removeEventListener(TimerEvent.TIMER, mouseMove);
-					mouseTimer = null;
 				}
 				if( pingTimer ) {
 					pingTimer.stop();
@@ -493,13 +491,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			*/
 			private function handleRemoveUserElements(e:CollaborationEvent):void
 			{
-				PARTICIPANTS.removeFromParticipantList(e.getText());
 				if( WeaveAPI.CollaborationCursorManager == null ) 
 				{
 					reportError(e.getText() + "\'s mouse does not exist.");
 					return;
 				}
 				WeaveAPI.CollaborationCursorManager.removeCursor(e.getText());
+				PARTICIPANTS.removeFromParticipantList(e.getText());
 				setUserAttribute(TYPE_CAM, e.getText(), 0);
 				setUserAttribute(TYPE_MIC, e.getText(), 0);
 				if( userList.dataProvider.length == 2 && !collabService.hasControl)
