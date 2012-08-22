@@ -109,16 +109,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			//Temporary object to store a user's picture.
 			private var image:BitmapData = null;
+			private var tempMatrix:Matrix = new Matrix();
 			
 			public function applyImage(imageURL:String = null):void
 			{
+				tempMatrix.identity();
 				if( !streamingVid && profilePicture != null)
 				{
 					profilePicture.height = videoArea.height;
 					profilePicture.width = videoArea.width;
-					profilePicture.bitmapData = new BitmapData( videoArea.width, videoArea.height);
-					var tempMatrix:Matrix = new Matrix();
-					if( image != null )
+					if( videoArea.width > 0 && videoArea.height > 0 )
+						profilePicture.bitmapData = new BitmapData( videoArea.width, videoArea.height);
+					if( image != null && imageURL == null)
 					{
 						tempMatrix.scale( 1 / image.width * videoArea.width, 1 / image.height * videoArea.height);
 						profilePicture.bitmapData.draw(image, tempMatrix);
