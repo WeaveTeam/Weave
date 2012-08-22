@@ -116,10 +116,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					profilePicture.height = videoArea.height + 3;
 					profilePicture.width = videoArea.width + 3;
-					this.rawChildren.addChild(profilePicture);
+					//this.rawChildren.addChild(profilePicture);
+					videoArea.addChild(profilePicture);
 				}
-				else if( streamingVid )
-					this.rawChildren.removeChild(profilePicture);
+				else if( streamingVid && profilePicture != null && videoArea.contains(profilePicture))
+					//this.rawChildren.removeChild(profilePicture);
+					videoArea.removeChild(profilePicture);
+				callLater(invalidateDisplayList);
 			}
 			
 			//The following code is for using an image in place of the typical mouse cursor.

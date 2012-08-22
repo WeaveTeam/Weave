@@ -92,7 +92,7 @@ package weave.services.collaboration
 			this.root = root;
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
 			// all of these classes are internal
-			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, RequestMouseControl, RelinquishMouseControl, Ping, AddonsMessage, AddonStatus, ProfilePicMessage])
+			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, RequestMouseControl, RelinquishMouseControl, Ping, AddonsMessage, AddonStatus, ProfilePicMessage, RequestProfilePic])
 				registerClassAlias(getQualifiedClassName(c), c);
 				
 			userList.sort = new Sort();
@@ -209,6 +209,11 @@ package weave.services.collaboration
 			var message:RequestMouseMessage = new RequestMouseMessage(nickname);
 			sendEncodedObject(message, id);
 		}
+		public function requestProfilePic( id:String ):void
+		{
+			var message:RequestProfilePic = new RequestProfilePic(nickname);
+			sendEncodedObject(message, id);
+		}
 		public function requestMouseControl(id:String):void
 		{
 			var message:RequestMouseControl = new RequestMouseControl(nickname);
@@ -253,10 +258,10 @@ package weave.services.collaboration
 			var message:AddonsMessage = new AddonsMessage(id, type, toggle);
 			sendEncodedObject(message, null);
 		}
-		public function sendProfilePicLink( id:String, link:String):void
+		public function sendProfilePicLink( id:String, link:String, messageTo:String = null):void
 		{
 			var message:ProfilePicMessage = new ProfilePicMessage(id, link);
-			sendEncodedObject(message, null);
+			sendEncodedObject(message, messageTo);
 		}
 		//Handles Sending the entire session state. Should only be used if
 		//someone needs a hard reset, or joining the collaboration server
@@ -473,6 +478,12 @@ package weave.services.collaboration
 					var rmm:RequestMouseMessage = o as RequestMouseMessage;
 					if( rmm.id != nickname ) 
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_MOUSE_POS, rmm.id, 0, xMousePercent(), yMousePercent()));
+				}
+				else if( o is RequestProfilePic )
+				{
+					var rpp:RequestProfilePic = o as RequestProfilePic;
+					if( rpp.id != nickname ) 
+						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_PROFILE_PIC_LINK, rpp.id));
 				}
 				else if( o is RequestMouseControl )
 				{
@@ -719,6 +730,15 @@ internal class MouseMessage
 internal class RequestMouseMessage
 {
 	public function RequestMouseMessage(id:String = null)
+	{
+		this.id = id;
+	}
+	
+	public var id:String;
+}
+internal class RequestProfilePic
+{
+	public function RequestProfilePic(id:String = null)
 	{
 		this.id = id;
 	}

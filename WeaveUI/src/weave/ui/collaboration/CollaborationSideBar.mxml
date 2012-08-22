@@ -263,6 +263,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				collabService.addEventListener(CollaborationEvent.UPDATE_USER_PROFILE_PIC, updateUserPic);
 				collabService.addEventListener(CollaborationEvent.REQUEST_MOUSE_CONTROL, addMouseToQueue);
 				collabService.addEventListener(CollaborationEvent.RELINQUISH_MOUSE_CONTROL, removeMouseFromQueue);
+				collabService.addEventListener(CollaborationEvent.USER_REQUEST_PROFILE_PIC_LINK, requestPicLink);
 				
 				stage.addEventListener(Event.RESIZE, handleResize);
 	
@@ -371,8 +372,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				collabService.room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 				collabService.sendMouseMessage(SETTINGS.collab_NICKNAME, SETTINGS.collab_COLOR, xMousePercent(), yMousePercent());
-				if( SETTINGS.profilePicURL != "" )
-					collabService.sendProfilePicLink(collabService.nickname, SETTINGS.profilePicURL);
+				if( SETTINGS.profilePic.text != "" )
+					collabService.sendProfilePicLink(collabService.nickname, SETTINGS.profilePic.text);
 				collabService.hasControl = false;
 				if( userList.dataProvider.length == 0 )
 					cursorButtonClick(new MouseEvent(MouseEvent.CLICK));
@@ -409,10 +410,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				CHAT.addOnsSaved = true;
 			}
 			
+			private function requestPicLink(e:CollaborationEvent):void
+			{
+				if( SETTINGS.profilePic.text != "" )
+					collabService.sendProfilePicLink(collabService.nickname, SETTINGS.profilePic.text, e.getText());
+			}
+			
 			private function sendProfilePicLink(e:Event):void
 			{
-				if( SETTINGS.profilePicURL != "" )
-					collabService.sendProfilePicLink(collabService.nickname, SETTINGS.profilePicURL);
+				if( SETTINGS.profilePic.text != "" )
+					collabService.sendProfilePicLink(collabService.nickname, SETTINGS.profilePic.text);
 			}
 			
 			private function updateUserMic(e:CollaborationEvent):void  { collabService.sendAddonUpdate(SETTINGS.collab_NICKNAME, collabService.TYPE_MIC, ( e.getText() == "1" )); }
@@ -604,6 +611,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					WeaveAPI.CollaborationCursorManager.createCursor(person.displayName);
 					PARTICIPANTS.addToParticpantList(person.displayName);
 					collabService.requestMouseMessage(person.displayName);
+					collabService.requestProfilePic(person.displayName);
 				}
 			}
 			
