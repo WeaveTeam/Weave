@@ -138,7 +138,6 @@
 			
 			public var collab_NICKNAME:String;
 			public var collab_COLOR:uint;
-			public var profilePicURL:String;
 			
 			[Bindable] public var warningMsg:String = "";
 			[Bindable] public var warningVisible:Boolean = false;
@@ -164,7 +163,6 @@
 				}
 				collab_NICKNAME = nickname.text;
 				collab_COLOR = picker.selectedColor;
-				profilePicURL = profilePic.text;
 				
 				if( connectButton.label == lang("Connect" ) )
 				{
@@ -353,9 +351,8 @@
 			
 			protected function loadProfilePicture(event:MouseEvent):void
 			{
-				profilePicURL = profilePic.text;
 				if( connectButton.label == lang("Disconnect") )
-					dispatchEvent(new CollaborationEvent(CollaborationEvent.PROFILE_PICTURE, profilePicURL));
+					dispatchEvent(new CollaborationEvent(CollaborationEvent.PROFILE_PICTURE, profilePic.text));
 			}
 			
 		]]>

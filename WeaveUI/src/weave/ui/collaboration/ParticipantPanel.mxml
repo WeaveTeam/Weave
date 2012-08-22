@@ -261,7 +261,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function createUserProfilePic(id:String, imageURL:String):void
 			{
-				findVideoComponent(id).applyImage(imageURL);
+				var personsPanel:CollaborationVideoComponent = findVideoComponent(id);
+				if( personsPanel != null )
+					personsPanel.applyImage(imageURL);
+				adjustLayout();
 			}
 			
 			private function findVideoComponent(name:String):CollaborationVideoComponent
