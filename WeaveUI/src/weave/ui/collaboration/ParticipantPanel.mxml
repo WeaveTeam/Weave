@@ -241,6 +241,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					this.width = 120;
 					this.x = (WeaveAPI.topLevelApplication as DisplayObject).width / 2 - this.width / 2;
 				}
+				for( var z:int = 0; z < canvasList.length; z++ )
+					callLater((canvasList[z] as CollaborationVideoComponent).adjustCamera);
 			}
 			
 			//Camera streaming functions.
