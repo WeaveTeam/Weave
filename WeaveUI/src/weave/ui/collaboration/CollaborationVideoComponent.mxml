@@ -32,9 +32,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.WeaveAPI;
-			import weave.api.reportError;
 			import weave.api.services.IURLRequestToken;
-			import weave.utils.BitmapUtils;
 
 
 			public var stream:NetStream = null;
