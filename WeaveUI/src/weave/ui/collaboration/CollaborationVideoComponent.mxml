@@ -109,6 +109,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var image:BitmapData = null;
 			private var tempMatrix:Matrix = new Matrix();
 			
+			/*
+			* Gets passed an image URL and then loads the image and inserts it into the UIComponent, videoArea, and if the user is streaming
+			* their cam it will download the image but not show it until the cam is done streaming.
+			*/
 			public function applyImage(imageURL:String = null):void
 			{
 				tempMatrix.identity();
@@ -118,6 +122,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					profilePicture.width = videoArea.width;
 					if( videoArea.width > 0 && videoArea.height > 0 )
 						profilePicture.bitmapData = new BitmapData( videoArea.width, videoArea.height);
+					//This runs if called by another function to apply the image to the window.
 					if( image != null && imageURL == null)
 					{
 						tempMatrix.scale( 1 / image.width * videoArea.width, 1 / image.height * videoArea.height);
@@ -125,6 +130,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 					if( !videoArea.contains(profilePicture) )
 						videoArea.addChild(profilePicture);
+					//Downloading and applying image.
 					if( imageURL != null )
 					{
 						image = getImage(imageURL);
@@ -134,6 +140,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							profilePicture.bitmapData.draw(image, tempMatrix);
 						}
 						else
+							//Need to do callLater in case the image hasn't downloaded yet.
 							callLater(applyImage, [imageURL]);
 					}
 				}
