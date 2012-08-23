@@ -126,7 +126,6 @@
 			private const labelWidth:Number = 80;
 			private const textAreaWidth:Number = 150;
 			private const padding:Number = 10;
-			private const anchorSize:Number = 15;
 
 			//Mic and cam variables.
 			private var testMic:Microphone;

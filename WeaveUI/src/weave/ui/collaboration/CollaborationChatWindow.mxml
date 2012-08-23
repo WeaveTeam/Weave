@@ -87,10 +87,8 @@
 			[Bindable] public var cam:Camera								= null;
 			[Bindable] public var mic:Microphone                         	= null;
 			
-			[Embed(source="/weave/resources/images/collab/mic.png")]     internal const iconMic:Class;
-			[Embed(source="/weave/resources/images/collab/cam.png")]     internal const iconCam:Class;
-			[Embed(source="/weave/resources/images/collab/speaker.png")] internal const iconSpeaker:Class;
-			[Embed(source="/weave/resources/images/collab/eye.png")]     internal const iconEye:Class;
+			//[Embed(source="/weave/resources/images/collab/mic.png")]     internal const iconMic:Class;
+			//[Embed(source="/weave/resources/images/collab/cam.png")]     internal const iconCam:Class;
 
 			override protected function childrenCreated():void
 			{
@@ -201,6 +199,9 @@
 				}
 			}
 			
+			/*
+			* Shows a warning in the chat window, typically meant for rtmpserver issues.
+			*/
 			public function showRTMPWarning(msg:String = null, fadeout:Number = -1):void
 			{
 				if( msg )

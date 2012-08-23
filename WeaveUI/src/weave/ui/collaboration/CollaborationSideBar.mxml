@@ -408,6 +408,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				CHAT.addOnsSaved = true;
 			}
 			
+			//The following two functions deal with sending your profile picture in response to the Settings button being pressed
+			//or if a user has requested it.
 			private function requestPicLink(e:CollaborationEvent):void
 			{
 				if( SETTINGS.profilePic.text != "" )
