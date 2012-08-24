@@ -316,14 +316,20 @@
 			private function handleZoomInClick():void
 			{
 				visualization.zoomBounds.getDataBounds(_tempBounds);
-				_tempBounds.centeredResize(_tempBounds.getWidth() / 2, _tempBounds.getHeight() / 2);
+				_tempBounds.centeredResize(
+					_tempBounds.getWidth() / visualization.zoomFactor.value,
+					_tempBounds.getHeight() / visualization.zoomFactor.value
+				);
 				visualization.zoomBounds.setDataBounds(_tempBounds);
 			}
 			
 			private function handleZoomOutClick():void
 			{
 				visualization.zoomBounds.getDataBounds(_tempBounds);
-				_tempBounds.centeredResize(_tempBounds.getWidth() * 2, _tempBounds.getHeight() * 2);
+				_tempBounds.centeredResize(
+					_tempBounds.getWidth() * visualization.zoomFactor.value,
+					_tempBounds.getHeight() * visualization.zoomFactor.value
+				);
 				visualization.zoomBounds.setDataBounds(_tempBounds);
 			}
 			
@@ -720,7 +726,7 @@
 						 toolTip="This option enables the mouse mode buttons"
 						 creationComplete="linkBindableProperty(showMouseModeControls,event.target,'selected')"/>
 			<mx:HBox>
-				<mx:Label text="Mouse wheel scroll factor:" />
+				<mx:Label text="Zoom factor for mouse wheel and zoom buttons:" />
 				<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(this.visualization.zoomFactor, event.target, 'value')"/>
 			</mx:HBox>
 		</mx:VBox>

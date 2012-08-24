@@ -229,7 +229,8 @@ package weave.visualization.layers
 			updateMouseMode(InteractionController.DRAG); // modifier keys may have changed just prior to pressing mouse button, so update mode now
 			
 			//for detecting change between drag start and drag end
-			detectLinkableObjectChange( handleMouseDown, layers );
+			// TEMPORARY HACK - Weave.defaultSelectionKeySet
+			detectLinkableObjectChange( handleMouseDown, Weave.defaultSelectionKeySet );
 			
 			mouseDragActive = true;
 			// clear probe when drag starts
@@ -351,7 +352,8 @@ package weave.visualization.layers
 				}
 				case InteractionController.SELECT:
 				{
-					if ( dragReleased && !detectLinkableObjectChange( handleMouseDown, layers ))
+					// TEMPORARY HACK - Weave.defaultSelectionKeySet
+					if ( dragReleased && !detectLinkableObjectChange( handleMouseDown, Weave.defaultSelectionKeySet ))
 						clearSelection();
 				   	else if (mouseDragActive)
 						handleSelection(event, _mouseMode);
@@ -431,9 +433,9 @@ package weave.visualization.layers
 					{
 						var multiplier:Number = 1;
 						if (_mouseMode == InteractionController.ZOOM_IN)
-							multiplier = 0.5; // zoom in 2x
+							multiplier = 1 / zoomFactor.value;
 						else
-							multiplier = 2; // zoom out 2x
+							multiplier = zoomFactor.value;
 						
 						projectDragBoundsToDataQueryBounds(null, false);
 						zoomBounds.getDataBounds(_tempBounds);
