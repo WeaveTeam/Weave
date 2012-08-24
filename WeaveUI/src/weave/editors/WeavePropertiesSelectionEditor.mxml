@@ -45,7 +45,7 @@
 				 		  width="200"	
 				  		  textAlign="right"
 				  		  toolTip="Select the location for the selected records tooltip"/>
-				<ui:CustomComboBox id="selectionLocation"/>
+				<ui:CustomComboBox id="recordsTooltip"/>
 			</mx:HBox>
 		</mx:VBox>
 	<mx:CheckBox toolTip="Check this box to enable bitmap filters used when probing or selecting"
@@ -94,12 +94,11 @@
 		<![CDATA[
 			import com.cartogrammar.drawing.DashedLine;
 			import weave.core.LinkableString;
-			import weave.ui.SelectionLocation;
 			
 			override protected function childrenCreated():void
 			{
-				selectionLocation.dataProvider = SelectionLocation.selectionLocationEnum ;
-				linkBindableProperty( SelectionLocation.selectionLocationMode, selectionLocation, 'selectedItem');
+				recordsTooltip.dataProvider = Weave.properties.recordsTooltipEnum ;
+				linkBindableProperty( Weave.properties.recordsTooltipLocation, recordsTooltip, 'selectedItem');
 				
 				Weave.properties.dashedSelectionBox.addGroupedCallback(this, drawDashedLinePreview, true);
 				xStart = 5; 

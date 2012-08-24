@@ -383,18 +383,18 @@ package weave
 		public const selectionAlphaAmount:LinkableNumber    = new LinkableNumber(0.5, verifyAlpha);
 		
 		//selection location information
-		public static const selectionLocationMode:LinkableString = new LinkableString(SELECTION_LOCATION_LOWER_LEFT, verifyLocationMode);
+		public const recordsTooltipLocation:LinkableString = new LinkableString(RECORDS_TOOLTIP_LOWER_LEFT, verifyLocationMode);
 		
-		public static const SELECTION_LOCATION_LOWER_LEFT:String = 'Lower left';
-		public static const SELECTION_LOCATION_LOWER_RIGHT:String = 'Lower right';
-		public static function get selectionLocationEnum():Array
+		public static const RECORDS_TOOLTIP_LOWER_LEFT:String = 'Lower left';
+		public static const RECORDS_TOOLTIP_LOWER_RIGHT:String = 'Lower right';
+		public function get recordsTooltipEnum():Array
 		{
-			return [SELECTION_LOCATION_LOWER_LEFT, SELECTION_LOCATION_LOWER_RIGHT];
+			return [RECORDS_TOOLTIP_LOWER_LEFT, RECORDS_TOOLTIP_LOWER_RIGHT];
 		}
 		
-		private static function verifyLocationMode(value:String):Boolean
+		private function verifyLocationMode(value:String):Boolean
 		{
-			return selectionLocationEnum.indexOf(value) >= 0;
+			return recordsTooltipEnum.indexOf(value) >= 0;
 		}
 		
 		/**
