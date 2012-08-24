@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---
+@author adufilie
+-->
+<DynamicColumnComponent xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="weave.ui.*">
+	<mx:Script>
+		<![CDATA[
+			import weave.api.linkBindableProperty;
+			import weave.data.AttributeColumns.NormalizedColumn;
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				minBox.prompt = 'min';
+				maxBox.prompt = 'max';
+				
+				for each (var box:TextInputWithPrompt in [minBox, maxBox])
+				{
+					box.width = 32;
+					addChild(box);
+				}
+			}
+			
+			private var _normalizedColumn:NormalizedColumn;
+
+			public function set normalizedColumn(nc:NormalizedColumn):void
+			{
+				if (_normalizedColumn)
+					throw new Error("normalizedColumn should only be set once.");
+				
+				_normalizedColumn = nc;
+				dynamicObject = nc.internalDynamicColumn;
+				linkBindableProperty(nc.min, minBox, 'text');
+				linkBindableProperty(nc.max, maxBox, 'text');
+			}
+
+			private var minBox:TextInputWithPrompt = new TextInputWithPrompt();
+			private var maxBox:TextInputWithPrompt = new TextInputWithPrompt();
+		]]>
+	</mx:Script>
+</DynamicColumnComponent>
