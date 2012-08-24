@@ -45,6 +45,9 @@ package weave.visualization.plotters.styles
 		{
 			_callbackCollection = getCallbackCollection(this);
 			weight.internalDynamicColumn.requestLocalObject(NormalizedColumn, true);
+			
+			normalizedWeightColumn.min.value = 1;
+			normalizedWeightColumn.max.value = 5;
 		}
 		
 		private var _callbackCollection:ICallbackCollection; // the ICallbackCollection for this object

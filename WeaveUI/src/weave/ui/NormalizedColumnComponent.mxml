@@ -25,6 +25,8 @@
 <DynamicColumnComponent xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="weave.ui.*">
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.Label;
+			
 			import weave.api.linkBindableProperty;
 			import weave.data.AttributeColumns.NormalizedColumn;
 			
@@ -34,10 +36,16 @@
 				
 				minBox.prompt = 'min';
 				maxBox.prompt = 'max';
+				normalizedBetweenLabel.text = 'Normalized between';
+				andLabel.text = 'and';
+				
+				addChild(normalizedBetweenLabel);
 				
 				for each (var box:TextInputWithPrompt in [minBox, maxBox])
 				{
 					box.width = 32;
+					if( box == maxBox )
+						addChild(andLabel);
 					addChild(box);
 				}
 			}
@@ -57,6 +65,8 @@
 
 			private var minBox:TextInputWithPrompt = new TextInputWithPrompt();
 			private var maxBox:TextInputWithPrompt = new TextInputWithPrompt();
+			private var normalizedBetweenLabel:Label = new Label();
+			private var andLabel:Label = new Label();
 		]]>
 	</mx:Script>
 </DynamicColumnComponent>
