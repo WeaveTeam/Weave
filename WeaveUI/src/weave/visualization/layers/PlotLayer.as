@@ -259,7 +259,7 @@ package weave.visualization.layers
 					{
 						if (keyBounds.overlaps(_dataBounds))
 						{
-							if(!keyBounds.isUndefined() || showMissingRecords)
+							if (!keyBounds.isUndefined() || showMissingRecords)
 								keys.push(key);
 							break;
 						}
@@ -291,7 +291,7 @@ package weave.visualization.layers
 				return;
 			
 			var changeDetected:Boolean = detectLinkableObjectChange(updateDisplayList, this);
-			if (!PlotterUtils.bitmapDataSizeCompare(_plotBitmap, unscaledWidth, unscaledHeight))
+			if (!PlotterUtils.bitmapDataSizeEquals(_plotBitmap, unscaledWidth, unscaledHeight))
 				zoomChanged = true;
 			
 			if (changeDetected || zoomChanged)

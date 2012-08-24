@@ -61,12 +61,12 @@ package weave.utils
 		private var _keyToBoundsMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of IBounds2D
 		private var _keyToGeometriesMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of GeneralizedGeometry or ISimpleGeometry
 		
-		private var _queryMissingBounds:Boolean; // used by _insertNext
-		private var _keysArrayIndex:int; // used by _insertNext
-		private var _keysIndex:int; // used by _insertNext
-		private var _plotter:IPlotter;//used by _insertNext
-		private var _boundsArrayIndex:int; // used by _insertNext
-		private var _boundsArray:Array; // used by _insertNext
+		private var _queryMissingBounds:Boolean; // used by async code
+		private var _keysArrayIndex:int; // used by async code
+		private var _keysIndex:int; // used by async code
+		private var _plotter:IPlotter;//used by async code
+		private var _boundsArrayIndex:int; // used by async code
+		private var _boundsArray:Array; // used by async code
 		
 		/**
 		 * These constants define indices in a KDKey corresponding to xmin,ymin,xmax,ymax,importance values.

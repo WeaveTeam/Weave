@@ -17,15 +17,19 @@ package weave.api.ui
 {
 	import flash.display.BitmapData;
 	
+	import weave.api.core.ILinkableObject;
 	import weave.api.primitives.IBounds2D;
 
 	/**
+	 * An IPlotTask provides information for an IPlotter for rendering a plot asynchronously.
+	 * @see weave.api.ui.IPlotter#drawPlotAsyncIteration
+	 * 
 	 * @author adufilie
 	 */
 	public interface IPlotTask
 	{
-		// this is the off-screen buffer
-		function get destination():BitmapData;
+		// this is the off-screen buffer, which may change
+		function get buffer():BitmapData;
 		
 		// specifies the range of data to be rendered
 		function get dataBounds():IBounds2D;

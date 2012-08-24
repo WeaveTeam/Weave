@@ -78,7 +78,8 @@ package weave.core
 		
 		/**
 		 * This is the default value of triggerCounter.
-		 */		
+		 * The default value is 1 to avoid being equal to a newly initialized uint=0.
+		 */
 		protected const DEFAULT_TRIGGER_COUNT:uint = 1;
 		
 		/**

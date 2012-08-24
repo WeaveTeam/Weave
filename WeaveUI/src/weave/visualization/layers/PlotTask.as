@@ -22,19 +22,28 @@ package weave.visualization.layers
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	
+	import mx.binding.utils.BindingUtils;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
-	import weave.api.data.IDynamicKeyFilter;
+	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
+	import weave.api.linkBindableProperty;
+	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
+	import weave.core.CallbackCollection;
+	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ZoomBounds;
+	import weave.utils.PlotterUtils;
+	import weave.utils.SpatialIndex;
 
 	/**
 	 * Callbacks are triggered when the rendering task completes, or the plotter becomes busy during rendering.
@@ -44,81 +53,194 @@ package weave.visualization.layers
 	 */
 	public class PlotTask implements IPlotTask, ILinkableObject, IDisposableObject
 	{
-		public function PlotTask(zoomBounds:ZoomBounds, plotter:IPlotter, keyFilter:IDynamicKeyFilter)
+		public static const TASK_TYPE_SUBSET:int = 0;
+		public static const	TASK_TYPE_SELECTION:int = 1;
+		public static const TASK_TYPE_PROBE:int = 2;
+		
+		/**
+		 * @param plotter
+		 * @param taskType One of TASK_TYPE_SUBSET, TASK_TYPE_SELECTION, TASK_TYPE_PROBE
+		 * @param spatialIndex
+		 * @param zoomBounds
+		 * @param layerSettings
+		 */		
+		public function PlotTask(taskType:int, plotter:IPlotter, spatialIndex:SpatialIndex, zoomBounds:ZoomBounds, layerSettings:LayerSettings)
 		{
+			// _dependencies is used as the parent so we can check its busy status with a single function call.
+			_taskType = taskType;
 			_plotter = plotter;
-			_keyFilter = keyFilter;
+			_spatialIndex = spatialIndex;
 			_zoomBounds = zoomBounds;
+			_layerSettings = layerSettings;
 			
-			getCallbackCollection(_keyFilter).addImmediateCallback(this, asyncStart);
-			getCallbackCollection(_plotter).addImmediateCallback(this, asyncStart);
+			var list:Array = [_plotter, _spatialIndex, _zoomBounds, _layerSettings];
+			for each (var dependency:ILinkableObject in list)
+				registerLinkableChild(_dependencies, dependency);
+			
+			_dependencies.addImmediateCallback(this, asyncStart, true);
+			
+			linkBindableProperty(_layerSettings.visible, bitmap, 'visible');
 		}
 		
 		public function dispose():void
 		{
-			_zoomBounds = null;
 			_plotter = null;
-			disposeObjects(_bitmap.bitmapData);
+			_spatialIndex = null;
+			_zoomBounds = null;
+			_layerSettings = null;
+			disposeObjects(bitmap.bitmapData);
 		}
 		
-		private var _bitmap:Bitmap = new Bitmap();
+		/**
+		 * This is the Bitmap that contains the BitmapData modified by the plotter.
+		 */		
+		public const bitmap:Bitmap = new Bitmap(null, 'auto', true);
+		
+		private var _dependencies:CallbackCollection = newDisposableChild(this, CallbackCollection);
+		private var _prevBusyGroupTriggerCounter:uint = 0;
+		
+		private var _unscaledWidth:int = 0;
+		private var _unscaledHeight:int = 0;
+		
+		private var _taskType:int = -1;
 		private var _plotter:IPlotter = null;
-		private var _keyFilter:IDynamicKeyFilter = null;
+		private var _spatialIndex:SpatialIndex;
 		private var _zoomBounds:ZoomBounds;
-		private var _tempDataBounds:Bounds2D = new Bounds2D();
-		private var _tempScreenBounds:Bounds2D = new Bounds2D();
+		private var _layerSettings:LayerSettings;
+		
+		private var _dataBounds:Bounds2D = new Bounds2D();
+		private var _screenBounds:Bounds2D = new Bounds2D();
 		private var _iteration:uint = 0;
+		private var _keyFilter:IKeyFilter;
 		private var _recordKeys:Array;
-		private var _asyncState:Object;
-		private var _pendingRecordKeys:Array;
-		private var _iPendingRecordKey:uint;
+		private var _asyncState:Object = {};
+		private var _pendingKeys:Array;
+		private var _iPendingKey:uint;
 		
-		/*
-		
-		todo:
-		add a way to disable the task
-		
-		*/
-		
-		private function asyncStart():void
+		/**
+		 * This function must be called to set the size of the BitmapData buffer.
+		 * @param width New width of the buffer, in pixels
+		 * @param height New height of the buffer, in pixels
+		 */
+		public function setBitmapDataSize(width:int, height:int):void
 		{
-			_iteration = 0;
-			WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_RENDERING, asyncComplete);
+			if (_unscaledWidth != width || _unscaledHeight != height)
+			{
+				_unscaledWidth = width;
+				_unscaledHeight = height;
+				_dependencies.triggerCallbacks();
+			}
+		}
+		
+		/**
+		 * This returns true if the layer should be rendered and selectable/probeable
+		 * @return true if the layer should be rendered and selectable/probeable
+		 */		
+		private function shouldBeRendered():Boolean
+		{
+			if (!_layerSettings.visible.value)
+				return false;
+			if (!_layerSettings.selectable.value && _taskType != TASK_TYPE_SUBSET)
+				return false;
+			
+			var min:Number = _layerSettings.minVisibleScale.value;
+			var max:Number = _layerSettings.maxVisibleScale.value;
+			var xScale:Number = _zoomBounds.getXScale();
+			var yScale:Number = _zoomBounds.getYScale();
+			return min <= xScale && xScale <= max
+				&& min <= yScale && yScale <= max;
+		}
+		
+		private function asyncStart(..._):void
+		{
+			if (shouldBeRendered())
+			{
+				// begin validating spatial index if necessary
+				if (detectLinkableObjectChange(_spatialIndex.createIndex, _plotter.spatialCallbacks))
+					_spatialIndex.createIndex(_plotter, _layerSettings.hack_includeMissingRecordBounds);
+				
+				WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_RENDERING, asyncComplete);
+			}
 		}
 		
 		private function asyncIterate():Number
 		{
-			// if the plotter is busy, stop immediately
-			if (WeaveAPI.SessionManager.linkableObjectIsBusy(_plotter))
+			// if plotter is busy, stop immediately
+			if (WeaveAPI.SessionManager.linkableObjectIsBusy(_dependencies))
 				return 1;
+			
+			/***** initialize *****/
 
-			// if keys change, restart
-			if (detectLinkableObjectChange(this, _plotter, _keyFilter))
+			// restart if necessary, initializing variables
+			if (_prevBusyGroupTriggerCounter != _dependencies.triggerCounter)
 			{
-				_iPendingRecordKey = 0;
-				_pendingRecordKeys = _plotter.keySet.keys;
+				_prevBusyGroupTriggerCounter = _dependencies.triggerCounter;
+				
+				_iteration = 0;
+				_iPendingKey = 0;
+				_pendingKeys = _plotter.keySet.keys;
 				_recordKeys = [];
+				_zoomBounds.getDataBounds(_dataBounds);
+				_zoomBounds.getScreenBounds(_screenBounds);
+				if (_taskType == TASK_TYPE_SUBSET)
+					_keyFilter = _layerSettings.subsetFilter.getInternalKeyFilter();
+				else if (_taskType == TASK_TYPE_SELECTION)
+					_keyFilter = _layerSettings.selectionFilter.getInternalKeyFilter();
+				else if (_taskType == TASK_TYPE_PROBE)
+					_keyFilter = _layerSettings.probeFilter.getInternalKeyFilter();
+
+				// stop immediately if we shouldn't be rendering
+				if (!shouldBeRendered())
+					return 1;
+				
+				// clear bitmap and resize if necessary
+				PlotterUtils.setBitmapDataSize(bitmap, _unscaledWidth, _unscaledHeight);
+
+				// stop immediately if the bitmap is invalid
+				if (PlotterUtils.bitmapDataIsEmpty(bitmap))
+					return 1;
+				
+				// hacks
+				hack_requestGeometryDetail();
+				
+				// hack - draw background on subset layer
+				if (_taskType == TASK_TYPE_SUBSET)
+					_plotter.drawBackground(_dataBounds, _screenBounds, bitmap.bitmapData);
 			}
 			
+			/***** prepare keys *****/
+			
 			// if keys aren't ready yet, prepare keys
-			if (_pendingRecordKeys)
+			if (_pendingKeys)
 			{
-				if (_iPendingRecordKey < _pendingRecordKeys.length)
+				if (_iPendingKey < _pendingKeys.length)
 				{
-					// next key iteration - add key if included in filter
-					var key:IQualifiedKey = _pendingRecordKeys[_iPendingRecordKey] as IQualifiedKey;
-					if (_keyFilter.getInternalKeyFilter().containsKey(key))
-						_recordKeys.push(key);
+					// next key iteration - add key if included in filter and on screen
+					var key:IQualifiedKey = _pendingKeys[_iPendingKey] as IQualifiedKey;
+					if (!_keyFilter || _keyFilter.containsKey(key)) // accept all keys if _keyFilter is null
+					{
+						for each (var keyBounds:IBounds2D in _spatialIndex.getBoundsFromKey(key))
+						{
+							if (keyBounds.overlaps(_dataBounds))
+							{
+								if (!keyBounds.isUndefined() || _layerSettings.hack_includeMissingRecordBounds)
+									_recordKeys.push(key);
+								break;
+							}
+						}
+					}
 					
 					// prepare for next iteration
-					_iPendingRecordKey++;
+					_iPendingKey++;
 					
 					// not done yet
 					return 0;
 				}
 				// done with keys
-				_pendingRecordKeys = null;
+				_pendingKeys = null;
 			}
+			
+			/***** draw *****/
 			
 			// next draw iteration
 			var progress:Number = _plotter.drawPlotAsyncIteration(this);
@@ -131,9 +253,37 @@ package weave.visualization.layers
 		
 		private function asyncComplete():void
 		{
-			// if the plotter is busy, the graphics aren't ready, so don't trigger callbacks
-			if (!WeaveAPI.SessionManager.linkableObjectIsBusy(_plotter))
+			// if visible is false or the plotter is busy, the graphics aren't ready, so don't trigger callbacks
+			if (shouldBeRendered() && !WeaveAPI.SessionManager.linkableObjectIsBusy(_dependencies))
 				getCallbackCollection(this).triggerCallbacks();
+		}
+		
+		
+		/*************
+		 **  hacks  **
+		 *************/
+		
+		private function hack_requestGeometryDetail():void
+		{
+			var minImportance:Number = _dataBounds.getArea() / _screenBounds.getArea();
+			
+			// find nested StreamedGeometryColumn objects
+			var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(_dependencies, StreamedGeometryColumn);
+			// request the required detail
+			for each (var streamedColumn:StreamedGeometryColumn in descendants)
+			{
+				var requestedDataBounds:IBounds2D = _dataBounds;
+				var requestedMinImportance:Number = minImportance;
+				if (requestedDataBounds.isUndefined())// if data bounds is empty
+				{
+					// use the collective bounds from the geometry column and re-calculate the min importance
+					requestedDataBounds = streamedColumn.collectiveBounds;
+					requestedMinImportance = requestedDataBounds.getArea() / _screenBounds.getArea();
+				}
+				// only request more detail if requestedDataBounds is defined
+				if (!requestedDataBounds.isUndefined())
+					streamedColumn.requestGeometryDetail(requestedDataBounds, requestedMinImportance);
+			}
 		}
 		
 		
@@ -141,24 +291,22 @@ package weave.visualization.layers
 		 **  IPlotTask interface  **
 		 ***************************/
 		
-		// this is the off-screen buffer
-		public function get destination():BitmapData
+		// this is the off-screen buffer, which may change
+		public function get buffer():BitmapData
 		{
-			return _bitmap.bitmapData;
+			return bitmap.bitmapData;
 		}
 		
 		// specifies the range of data to be rendered
 		public function get dataBounds():IBounds2D
 		{
-			_zoomBounds.getDataBounds(_tempDataBounds);
-			return _tempDataBounds;
+			return _dataBounds;
 		}
 		
 		// specifies the pixel range where the graphics should be rendered
 		public function get screenBounds():IBounds2D
 		{
-			_zoomBounds.getScreenBounds(_tempScreenBounds);
-			return _tempScreenBounds;
+			return _screenBounds;
 		}
 		
 		// these are the IQualifiedKey objects identifying which records should be rendered
@@ -170,9 +318,6 @@ package weave.visualization.layers
 		// This counter is incremented after each iteration.  When the task parameters change, this counter is reset to zero.
 		public function get iteration():uint
 		{
-			if (detectLinkableObjectChange(this, _zoomBounds, _plotter))
-				_iteration = 0;
-			
 			return _iteration;
 		}
 		

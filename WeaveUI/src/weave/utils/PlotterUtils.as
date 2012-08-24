@@ -56,7 +56,7 @@ package weave.utils
 		 * @param unscaledHeight
 		 * @return true if the width and height of bitmap.bitmapData equal the unscaledWidth and unscaledHeight parameters. 
 		 */		
-		public static function bitmapDataSizeCompare(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number):Boolean
+		public static function bitmapDataSizeEquals(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number):Boolean
 		{
 			var bd:BitmapData = bitmap.bitmapData;
 			return bd && bd.width == Math.round(unscaledWidth) && bd.height == Math.round(unscaledHeight);
