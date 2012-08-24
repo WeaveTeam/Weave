@@ -352,10 +352,7 @@ package weave.visualization.layers
 				}
 				case InteractionController.SELECT:
 				{
-					// TEMPORARY HACK - Weave.defaultSelectionKeySet
-					if ( dragReleased && !detectLinkableObjectChange( handleMouseDown, Weave.defaultSelectionKeySet ))
-						clearSelection();
-				   	else if (mouseDragActive)
+				   	if (mouseDragActive)
 						handleSelection(event, _mouseMode);
 					break;
 				}
@@ -534,41 +531,44 @@ package weave.visualization.layers
 			var height:Number = tempScreenBounds.getYCoverage();
 			
 			
-			if(!Weave.properties.enableCircularSelection.value)
+			if (Weave.properties.enableCircularSelection.value)
 			{
-				_dashedLine.drawRect(xStart, yStart, width, height, startCorner); // this draws onto the _selectionRectangleCanvas.graphics
-			}
-			else
-			{
-				//solution of approximating polygon to circle from here: http://www.missiondata.com/blog/systems-integration/44/approximating-a-circle-with-a-polygon/				
+				var direction:Number = -tempScreenBounds.getXDirection() || 1;
+				var thetaOffset:Number = Math.atan2(tempScreenBounds.getHeight(), tempScreenBounds.getWidth());
 				var radius:Number = Math.sqrt(width*width + height*height);
 				var points:Array = [];
-				zoomBounds.getDataBounds(tempDataBounds);
-				zoomBounds.getScreenBounds(tempScreenBounds);
 				
 				var lineWidth:Number = _dashedLine.lengthsString.split(',')[0];
 				var segmentLength:Number = _dashedLine.lengthsString.split(',')[1]; // pixels
 				var segmentSpan:Number = segmentLength / radius; // radians
 				segmentSpan = Math.min(Math.PI / 4, segmentSpan); // maximum 45 degrees per segment
 				// draw the segments
-				var numOfPoints:Number = Math.ceil(Math.PI * 2 / segmentSpan);
+				var segmentCount:Number = Math.ceil(Math.PI * 2 / segmentSpan);
+				segmentCount = Math.min(64, segmentCount);
 				
-				for (var i:int=0; i < numOfPoints+1; i++) 
+				// init temp bounds for reprojecting coordinates
+				zoomBounds.getDataBounds(tempDataBounds);
+				zoomBounds.getScreenBounds(tempScreenBounds);
+				
+				for (var i:int = 0; i < segmentCount + 1; i++)
 				{
-					
-					var theta:Number = Math.PI * (i / (numOfPoints/2));
-					var circleX:Number = xStart + ((radius) * Math.cos(theta)); // center a + radius x * cos(theta)
-					var circleY:Number = yStart + ((radius) * Math.sin(theta)); // center b + radius y * sin(theta)
-					if(i==0)
-						_dashedLine.moveTo(circleX,circleY);
+					var theta:Number = direction * i * 2 * Math.PI / segmentCount + thetaOffset;
+					var circleX:Number = xStart + radius * Math.cos(theta); // center a + radius x * cos(theta)
+					var circleY:Number = yStart + radius * Math.sin(theta); // center b + radius y * sin(theta)
+					if (i == 0)
+						_dashedLine.moveTo(circleX, circleY);
 					else
-						_dashedLine.lineTo(circleX,circleY);
+						_dashedLine.lineTo(circleX, circleY);
 					
-					var currPoint:Point = new Point(circleX,circleY);
-					tempScreenBounds.projectPointTo(currPoint,tempDataBounds)
+					var currPoint:Point = new Point(circleX, circleY);
+					tempScreenBounds.projectPointTo(currPoint, tempDataBounds);
 					points.push(currPoint);
 				}
 				_circleGeometry.setVertices(points);//set the geometry for making the query
+			}
+			else // rectangle
+			{
+				_dashedLine.drawRect(xStart, yStart, width, height, startCorner); // this draws onto the _selectionRectangleCanvas.graphics
 			}
 
 		}
@@ -579,7 +579,7 @@ package weave.visualization.layers
 			_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
 		}
 		
-		private function handleSelection(event:MouseEvent,mode:String):void
+		private function handleSelection(event:MouseEvent, mode:String):void
 		{
 			var _layers:Array;
 			var i:int;
@@ -593,7 +593,8 @@ package weave.visualization.layers
 			}
 			else
 			{
-				// IMPORTANT: for speed, use the current mouse coordinates instead of the event coordinates
+				// IMPORTANT: for interaction speed, use the current mouse coordinates instead of the event coordinates.
+				// otherwise, queued mouse events will be handled individually and it will feel sluggish
 				mouseDragStageCoords.setMaxCoords(stage.mouseX, stage.mouseY);
 			}
 			
@@ -713,17 +714,29 @@ package weave.visualization.layers
 				tempDataBounds.constrainBounds(queryBounds, false);
 				
 				var keys:Array = [];
-				if(!Weave.properties.enableCircularSelection.value)
+				if (Weave.properties.enableCircularSelection.value)
 				{
-					keys= (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
-				}else
+					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_circleGeometry, minImportance, false);
+				}
+				else // rectangle
 				{
-					keys= (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_circleGeometry, minImportance, false);	
+					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
 				}
 				setSelectionKeys(layer, keys, true);
 				
 				break; // select only one layer at a time
 			}
+			
+			
+			// if mouse is released and selection hasn't changed since mouse down, clear selection
+			// TEMPORARY HACK - Weave.defaultSelectionKeySet
+			if (_mouseMode == InteractionController.SELECT &&
+				!WeaveAPI.StageUtils.mouseButtonDown &&
+				!detectLinkableObjectChange(handleMouseDown, Weave.defaultSelectionKeySet))
+			{
+				clearSelection();
+			}
+
 		}
 		
 		/**
