@@ -233,6 +233,7 @@ package weave
 
 		
 		public const disabilityAltText:LinkableString = new LinkableString();
+		public const disabilityHashMap:LinkableHashMap = new LinkableHashMap();
 		
 		// BEGIN TEMPORARY SOLUTION
 		public const _toggleMap:Dictionary = new Dictionary();
