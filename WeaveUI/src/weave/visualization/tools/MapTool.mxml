@@ -235,10 +235,13 @@
 				selectionSubMenu= new SubMenu(selectModeButton,[MouseEvent.MOUSE_DOWN],[MouseEvent.MOUSE_UP]);
 				
 				selectionSubMenu.addSubMenuItem("Rectangular Selection",function():void{
-					Weave.properties.enableCircularSelection.value = false;});
+					Weave.properties.selectionMode.value = InteractionController.RECTANGLE_SELECTION_MODE;});
 				
 				selectionSubMenu.addSubMenuItem("Circular Selection",function():void{
-					Weave.properties.enableCircularSelection.value = true;});
+					Weave.properties.selectionMode.value = InteractionController.CIRCULAR_SELECTION_MODE;});
+				
+				/* selectionSubMenu.addSubMenuItem("Lasso Selection",function():void{
+					Weave.properties.selectionMode.value = InteractionController.LASSO_SELECTION_MODE;}); */
 			}
 			
 			private function handleMouseModeChange(event:Event = null):void

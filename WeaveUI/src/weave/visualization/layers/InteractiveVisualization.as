@@ -245,6 +245,8 @@ package weave.visualization.layers
 		{
 			updateMouseCursor();
 			
+			_lassoScreenPoints = [];//clearing lasso points when mouse is up.
+			
 			// when the mouse is released, handle mouse move so the selection rectangle will cause the selection to update.
 			handleMouseEvent(WeaveAPI.StageUtils.mouseEvent);
 		}
@@ -472,6 +474,10 @@ package weave.visualization.layers
 		
 		private var _selectionRectangleGraphicsCleared:Boolean = true;
 		private var _circleGeometry:SimpleGeometry = new SimpleGeometry();
+		private var _lassoGeometry:SimpleGeometry = new SimpleGeometry();
+		private var _lastLassoPoint:Point = null;
+		private var _lassoScreenPoints:Array = [];
+		
 		protected function updateSelectionRectangleGraphics():void 
 		{
 			if (!Weave.properties.enableToolSelection.value || !enableSelection.value) return;
@@ -531,7 +537,7 @@ package weave.visualization.layers
 			var height:Number = tempScreenBounds.getYCoverage();
 			
 			
-			if (Weave.properties.enableCircularSelection.value)
+			if (Weave.properties.selectionMode.value == InteractionController.CIRCULAR_SELECTION_MODE)
 			{
 				var direction:Number = -tempScreenBounds.getXDirection() || 1;
 				var thetaOffset:Number = Math.atan2(tempScreenBounds.getHeight(), tempScreenBounds.getWidth());
@@ -566,9 +572,47 @@ package weave.visualization.layers
 				}
 				_circleGeometry.setVertices(points);//set the geometry for making the query
 			}
-			else // rectangle
+			else if (Weave.properties.selectionMode.value == InteractionController.RECTANGLE_SELECTION_MODE)
 			{
 				_dashedLine.drawRect(xStart, yStart, width, height, startCorner); // this draws onto the _selectionRectangleCanvas.graphics
+			}else if(Weave.properties.selectionMode.value == InteractionController.LASSO_SELECTION_MODE)
+			{
+				// init temp bounds for reprojecting coordinates
+				zoomBounds.getDataBounds(tempDataBounds);
+				zoomBounds.getScreenBounds(tempScreenBounds);
+				
+				//projecting stage points to local
+				var temp:Point = globalToLocal(new Point(mouseDragStageCoords.getXMax(),mouseDragStageCoords.getYMax()));
+				
+				//if it is the first point or if the next point is at least 5 pixels away in either direction, add it to lasso
+				if(_lassoScreenPoints.length == 0 || Math.abs(temp.x-_lastLassoPoint.x)>=5 || Math.abs(temp.y-_lastLassoPoint.y)>=5 )
+				{
+					_lastLassoPoint = temp;
+					_lassoScreenPoints.push(_lastLassoPoint.clone());
+				}
+				
+				//this array will store all the data points and used to set the vertices in the _lassoGeometry
+				var lassoDataPoints:Array =[];
+				g.beginFill(0x000000,0.2);
+				for (var k:int = 0; k< _lassoScreenPoints.length +1; k++)
+				{
+					if(k==0)
+						_dashedLine.moveTo(_lassoScreenPoints[k].x,_lassoScreenPoints[k].y);
+					else if(k==_lassoScreenPoints.length)
+					{
+						_dashedLine.lineTo(_lassoScreenPoints[0].x,_lassoScreenPoints[0].y);//closing the lasso
+						break;
+					}
+					else
+						_dashedLine.lineTo(_lassoScreenPoints[k].x,_lassoScreenPoints[k].y);
+					
+					
+					var tempDataPoint:Point = (_lassoScreenPoints[k] as Point).clone();
+					tempScreenBounds.projectPointTo(tempDataPoint,tempDataBounds);
+					lassoDataPoints.push(tempDataPoint);
+				}
+				g.endFill();
+				_lassoGeometry.setVertices(lassoDataPoints);
 			}
 
 		}
@@ -714,14 +758,20 @@ package weave.visualization.layers
 				tempDataBounds.constrainBounds(queryBounds, false);
 				
 				var keys:Array = [];
-				if (Weave.properties.enableCircularSelection.value)
+				if (Weave.properties.selectionMode.value == InteractionController.CIRCULAR_SELECTION_MODE)
 				{
 					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_circleGeometry, minImportance, false);
 				}
-				else // rectangle
+				else if (Weave.properties.selectionMode.value == InteractionController.RECTANGLE_SELECTION_MODE)
 				{
 					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
 				}
+				else if (Weave.properties.selectionMode.value == InteractionController.LASSO_SELECTION_MODE)
+				{
+					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_lassoGeometry, minImportance, false);
+				}
+				
+				
 				setSelectionKeys(layer, keys, true);
 				
 				break; // select only one layer at a time

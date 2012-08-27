@@ -29,12 +29,17 @@
 			import weave.Weave;
 			import weave.api.linkBindableProperty;
 			import weave.core.SessionManager;
+			import weave.visualization.layers.InteractionController;
 		]]>
 	</mx:Script>
-	<mx:CheckBox label='Enable Circular Selection'
-				 id="circularSelectionCheckbox"
-				 selected="false"
-				 creationComplete="linkBindableProperty(Weave.properties.enableCircularSelection, event.target, 'selected')"/>
+	<mx:HBox>
+		<mx:Label text="Selection Mode"/>
+		<!--Add Lasso option when implemented -->
+		<mx:ComboBox 
+					 id="circularSelectionCheckbox"
+					 dataProvider="{[InteractionController.RECTANGLE_SELECTION_MODE,InteractionController.CIRCULAR_SELECTION_MODE]}"
+				 creationComplete="linkBindableProperty(Weave.properties.selectionMode, event.target, 'text')"/>
+	</mx:HBox>
 	<mx:CheckBox label='Show "Selected Records" tooltip'
 				 id="showSelectedRecordsText"
 				 selected="true"
