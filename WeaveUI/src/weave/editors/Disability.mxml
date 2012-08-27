@@ -93,8 +93,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleCreationComplete(event:Event) : void
 			{
 				
-				DisabilityOptions.Instance.disabilityHashMap.requestObject('text', LinkableString, false);
-				var HashDisabilityText : LinkableString = (DisabilityOptions.Instance.disabilityHashMap.renameObject('text', _panel.title) as LinkableString);
+				Weave.properties.disabilityHashMap.requestObject('text', LinkableString, false);
+				var HashDisabilityText : LinkableString = (Weave.properties.disabilityHashMap.renameObject('text', _panel.title) as LinkableString);
 				
 				if( HashDisabilityText == null)
 					reportError("Error Creating request object from Disability Options");

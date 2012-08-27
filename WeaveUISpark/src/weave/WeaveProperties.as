@@ -240,6 +240,7 @@ package weave
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu
 
 		public const disabilityAltText:LinkableString = new LinkableString();
+		public const disabilityHashMap:LinkableHashMap = new LinkableHashMap();
 		
 		public const toolToggles:ILinkableHashMap = new LinkableHashMap(LinkableBoolean); // className -> LinkableBoolean
 		public function getToolToggle(classDef:Class):LinkableBoolean
