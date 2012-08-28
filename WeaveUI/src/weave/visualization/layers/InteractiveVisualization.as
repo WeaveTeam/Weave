@@ -69,7 +69,7 @@ package weave.visualization.layers
 			enableProbe.value = true;
 			enableAutoZoomToExtent.value = true;
 			// adding a canvas as child gets the selection rectangle on top of the vis
-			addChild(selectionRectangleCanvas);
+			addChild(selectionCanvas);
 			
 			addContextMenuEventListener();
 			
@@ -115,7 +115,7 @@ package weave.visualization.layers
 		
 		private var activeKeyType:String = null;
 		private var mouseDragActive:Boolean = false;
-		private const selectionRectangleCanvas:Canvas = new Canvas();
+		private const selectionCanvas:Canvas = new Canvas();
 		
 		private const mouseDragStageCoords:IBounds2D = new Bounds2D();
 		
@@ -237,15 +237,14 @@ package weave.visualization.layers
 			clearProbe();
 			// start the selection rectangle from the mouse down point
 			// for accuracy, use the stage coordinates from the event, not the current coordinates from the stage
-			mouseDragStageCoords.setCenteredRectangle(event.stageX, event.stageY, 0, 0);
+			mouseDragStageCoords.setRectangle(event.stageX, event.stageY, 0, 0);
+			updateSelectionCoords(true);
 			
 			handleMouseEvent(event);
 		}
 		protected function handleMouseUp():void
 		{
 			updateMouseCursor();
-			
-			_lassoScreenPoints = [];//clearing lasso points when mouse is up.
 			
 			// when the mouse is released, handle mouse move so the selection rectangle will cause the selection to update.
 			handleMouseEvent(WeaveAPI.StageUtils.mouseEvent);
@@ -337,6 +336,7 @@ package weave.visualization.layers
 					// IMPORTANT: for speed, use the current mouse coordinates instead of the event coordinates
 					mouseDragStageCoords.setMaxCoords(stage.mouseX, stage.mouseY);
 				}
+				updateSelectionCoords();
 			}
 			else // not dragging -- ok to update mouse mode
 			{
@@ -472,34 +472,48 @@ package weave.visualization.layers
 			immediateHandleSelection();
 		}
 		
-		private var _selectionRectangleGraphicsCleared:Boolean = true;
-		private var _circleGeometry:SimpleGeometry = new SimpleGeometry();
-		private var _lassoGeometry:SimpleGeometry = new SimpleGeometry();
-		private var _lastLassoPoint:Point = null;
+		private var _selectionGraphicsCleared:Boolean = true;
+		private const _selectionGeometry:SimpleGeometry = new SimpleGeometry();
 		private var _lassoScreenPoints:Array = [];
+		private var _lastLassoPoint:Point = null;
+		
+		protected function updateSelectionCoords(reset:Boolean = false):void
+		{
+			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
+			
+			var localMaxPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+			if (reset || _lassoScreenPoints.length == 0)
+			{
+				mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
+				var localMinPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+				
+				_lassoScreenPoints = [localMinPoint, localMaxPoint];
+				_lastLassoPoint = localMaxPoint;
+			}
+			else if (Math.abs(localMaxPoint.x - _lastLassoPoint.x) >= 5 || Math.abs(localMaxPoint.y - _lastLassoPoint.y) >= 5 )
+			{
+				// if the new point is far enough away from the previous point, add it to the coords
+				_lassoScreenPoints.push(localMaxPoint);
+				_lastLassoPoint = localMaxPoint;
+			}
+		}
 		
 		protected function updateSelectionRectangleGraphics():void 
 		{
-			if (!Weave.properties.enableToolSelection.value || !enableSelection.value) return;
-			var g:Graphics = selectionRectangleCanvas.graphics;
-			if (!_selectionRectangleGraphicsCleared)
-				g.clear(); 
+			if (!Weave.properties.enableToolSelection.value || !enableSelection.value)
+				return;
+			
+			var g:Graphics = selectionCanvas.graphics;
+			if (!_selectionGraphicsCleared)
+				g.clear();
 			
 			if (!mouseDragActive || _mouseMode == InteractionController.PAN)
 			{
-				_selectionRectangleGraphicsCleared = true;
+				_selectionGraphicsCleared = true;
 				return;
 			}
 			
-			_selectionRectangleGraphicsCleared = false; 
-			
-			mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
-			var localMinPoint:Point = selectionRectangleCanvas.globalToLocal(tempPoint); // local screen coords
-			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
-			var localMaxPoint:Point = selectionRectangleCanvas.globalToLocal(tempPoint); // local screen coords
-			
-			tempScreenBounds.setMinPoint(localMinPoint);
-			tempScreenBounds.setMaxPoint(localMaxPoint);
+			_selectionGraphicsCleared = false; 
 			
 			// use a blue rectangle for zoom mode, green for selection
 			_dashedLine.graphics = g; 
@@ -512,55 +526,45 @@ package weave.visualization.layers
 				_dashedLine.lineStyle(2, 0x00ff00, .75);
 			}
 			
+			mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
+			var localMinPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
+			var localMaxPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
 			
-			var startCorner:int;
-			// if height < 0, then the box is dragged upward
-			// if width < 0, then the box is dragged leftward
-			if (tempScreenBounds.getHeight() < 0)
+			tempScreenBounds.setMinPoint(localMinPoint);
+			tempScreenBounds.setMaxPoint(localMaxPoint);
+			var dragX:Number = tempScreenBounds.getXMin();
+			var dragY:Number = tempScreenBounds.getYMin();
+			var dragWidth:Number = tempScreenBounds.getWidth();
+			var dragHeight:Number = tempScreenBounds.getHeight();
+			
+			// init temp bounds for reprojecting coordinates
+			zoomBounds.getDataBounds(tempDataBounds);
+			zoomBounds.getScreenBounds(tempScreenBounds);
+			
+			if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
 			{
-				if (tempScreenBounds.getWidth() < 0)
-					startCorner = DashedLine.BOTTOM_RIGHT;
-				else
-					startCorner = DashedLine.BOTTOM_LEFT;
+				_dashedLine.drawRect(dragX, dragY, dragWidth, dragHeight);
 			}
-			else 
+			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
 			{
-				if (tempScreenBounds.getWidth() < 0)
-					startCorner = DashedLine.TOP_RIGHT;
-				else
-					startCorner = DashedLine.TOP_LEFT;
-			}
-			
-			var xStart:Number = tempScreenBounds.getXMin();
-			var yStart:Number = tempScreenBounds.getYMin();
-			var width:Number = tempScreenBounds.getXCoverage();
-			var height:Number = tempScreenBounds.getYCoverage();
-			
-			
-			if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
-			{
-				var direction:Number = -tempScreenBounds.getXDirection() || 1;
-				var thetaOffset:Number = Math.atan2(tempScreenBounds.getHeight(), tempScreenBounds.getWidth());
-				var radius:Number = Math.sqrt(width*width + height*height);
+				var direction:Number = -mouseDragStageCoords.getXDirection() || 1;
+				var thetaOffset:Number = Math.atan2(mouseDragStageCoords.getHeight(), mouseDragStageCoords.getWidth());
+				var radius:Number = Math.sqrt(dragWidth*dragWidth + dragHeight*dragHeight);
 				var points:Array = [];
 				
-				var lineWidth:Number = _dashedLine.lengthsString.split(',')[0];
-				var segmentLength:Number = _dashedLine.lengthsString.split(',')[1]; // pixels
+				var segmentLength:Number = 8; // pixels
 				var segmentSpan:Number = segmentLength / radius; // radians
 				segmentSpan = Math.min(Math.PI / 4, segmentSpan); // maximum 45 degrees per segment
 				// draw the segments
 				var segmentCount:Number = Math.ceil(Math.PI * 2 / segmentSpan);
 				segmentCount = Math.min(64, segmentCount);
 				
-				// init temp bounds for reprojecting coordinates
-				zoomBounds.getDataBounds(tempDataBounds);
-				zoomBounds.getScreenBounds(tempScreenBounds);
-				
 				for (var i:int = 0; i < segmentCount + 1; i++)
 				{
 					var theta:Number = direction * i * 2 * Math.PI / segmentCount + thetaOffset;
-					var circleX:Number = xStart + radius * Math.cos(theta); // center a + radius x * cos(theta)
-					var circleY:Number = yStart + radius * Math.sin(theta); // center b + radius y * sin(theta)
+					var circleX:Number = dragX + radius * Math.cos(theta); // center a + radius x * cos(theta)
+					var circleY:Number = dragY + radius * Math.sin(theta); // center b + radius y * sin(theta)
 					if (i == 0)
 						_dashedLine.moveTo(circleX, circleY);
 					else
@@ -570,50 +574,24 @@ package weave.visualization.layers
 					tempScreenBounds.projectPointTo(currPoint, tempDataBounds);
 					points.push(currPoint);
 				}
-				_circleGeometry.setVertices(points);//set the geometry for making the query
-			}
-			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
-			{
-				_dashedLine.drawRect(xStart, yStart, width, height, startCorner); // this draws onto the _selectionRectangleCanvas.graphics
+				_selectionGeometry.setVertices(points);//set the geometry for making the query
 			}
 			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_LASSO)
 			{
-				// init temp bounds for reprojecting coordinates
-				zoomBounds.getDataBounds(tempDataBounds);
-				zoomBounds.getScreenBounds(tempScreenBounds);
-				
-				//projecting stage points to local
-				var temp:Point = globalToLocal(new Point(mouseDragStageCoords.getXMax(),mouseDragStageCoords.getYMax()));
-				
-				//if it is the first point or if the next point is at least 5 pixels away in either direction, add it to lasso
-				if(_lassoScreenPoints.length == 0 || Math.abs(temp.x-_lastLassoPoint.x)>=5 || Math.abs(temp.y-_lastLassoPoint.y)>=5 )
-				{
-					_lastLassoPoint = temp;
-					_lassoScreenPoints.push(_lastLassoPoint.clone());
-				}
-				
 				fillPolygon(g, _dashedLine.lineColor, 0.05, _lassoScreenPoints);
 				
-				//this array will store all the data points and used to set the vertices in the _lassoGeometry
-				var lassoDataPoints:Array =[];
-				for (var k:int = 0; k< _lassoScreenPoints.length +1; k++)
+				for (var k:int = 0; k < _lassoScreenPoints.length + 1; k++)
 				{
-					if(k==0)
-						_dashedLine.moveTo(_lassoScreenPoints[k].x,_lassoScreenPoints[k].y);
-					else if(k==_lassoScreenPoints.length)
+					if (k == 0)
+						_dashedLine.moveTo(_lassoScreenPoints[k].x, _lassoScreenPoints[k].y);
+					else if (k == _lassoScreenPoints.length)
 					{
-						_dashedLine.lineTo(_lassoScreenPoints[0].x,_lassoScreenPoints[0].y);//closing the lasso
+						_dashedLine.lineTo(_lassoScreenPoints[0].x, _lassoScreenPoints[0].y);//closing the lasso
 						break;
 					}
 					else
-						_dashedLine.lineTo(_lassoScreenPoints[k].x,_lassoScreenPoints[k].y);
-					
-					
-					var tempDataPoint:Point = (_lassoScreenPoints[k] as Point).clone();
-					tempScreenBounds.projectPointTo(tempDataPoint,tempDataBounds);
-					lassoDataPoints.push(tempDataPoint);
+						_dashedLine.lineTo(_lassoScreenPoints[k].x, _lassoScreenPoints[k].y);
 				}
-				_lassoGeometry.setVertices(lassoDataPoints);
 			}
 		}
 		
@@ -776,17 +754,27 @@ package weave.visualization.layers
 				tempDataBounds.constrainBounds(queryBounds, false);
 				
 				var keys:Array = [];
-				if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
-				{
-					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_circleGeometry, minImportance, false);
-				}
-				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
+				if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
 				{
 					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
 				}
+				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
+				{
+					//TODO - set geom coords here
+					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_selectionGeometry, minImportance, false);
+				}
 				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_LASSO)
 				{
-					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_lassoGeometry, minImportance, false);
+					var lassoDataPoints:Array = [];
+					for each (var screenPoint:Point in _lassoScreenPoints)
+					{
+						var tempDataPoint:Point = screenPoint.clone();
+						tempScreenBounds.projectPointTo(tempDataPoint, tempDataBounds);
+						lassoDataPoints.push(tempDataPoint);
+					}
+					_selectionGeometry.setVertices(lassoDataPoints);
+					
+					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_selectionGeometry, minImportance, false);
 				}
 				
 				
