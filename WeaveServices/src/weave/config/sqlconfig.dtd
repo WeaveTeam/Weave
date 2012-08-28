@@ -1,5 +1,6 @@
 <!ELEMENT sqlConfig (databaseConfig*, connection*,accessLog*,geometryCollection*,dataTable*)*>
 <!ATTLIST sqlConfig serverName CDATA "Open Indicators Server"><!-- the name of the server, can be anything -->
+<!ATTLIST sqlConfig includeGeometryInTable CDATA "true"><!-- to show/hide geometry column under data table of same name -->
 
 <!ELEMENT databaseConfig EMPTY><!-- defines a connection for an SQL server -->
 <!ATTLIST databaseConfig connection CDATA "">
