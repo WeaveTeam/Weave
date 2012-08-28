@@ -28,6 +28,7 @@ package weave.data
 	import weave.api.data.IStatisticsCache;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
+	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
@@ -76,10 +77,8 @@ package weave.data
 				else
 					stats = new ColumnStatistics(column);
 				
-				// we want stats busy status to propogate to column busy status
-				_columnToStats[column] = registerLinkableChild(column, stats);
-				// we don't want stats callbacks to trigger column callbacks
-				getCallbackCollection(stats).removeCallback(getCallbackCollection(column).triggerCallbacks);
+				// when the column is disposed, the stats should be disposed
+				_columnToStats[column] = registerDisposableChild(column, stats);
 			}
 			return stats;
 		}
