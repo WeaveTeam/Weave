@@ -232,6 +232,8 @@
 			
 			override protected function childrenCreated():void
 			{
+				super.childrenCreated();
+				
 				selectionSubMenu= new SubMenu(selectModeButton,[MouseEvent.MOUSE_DOWN],[MouseEvent.MOUSE_UP]);
 				
 				selectionSubMenu.addSubMenuItem("Rectangular Selection",function():void{
