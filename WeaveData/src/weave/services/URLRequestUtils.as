@@ -19,6 +19,9 @@
 
 package weave.services
 {
+	import com.as3xls.xls.formula.Tokens;
+	
+	import flash.display.Bitmap;
 	import flash.display.Loader;
 	import flash.display.LoaderInfo;
 	import flash.events.ErrorEvent;
@@ -29,6 +32,7 @@ package weave.services
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
+	import flash.net.URLVariables;
 	import flash.utils.ByteArray;
 	
 	import mx.core.mx_internal;
@@ -38,11 +42,14 @@ package weave.services
 	import mx.rpc.IResponder;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IURLRequestUtils;
+	import weave.utils.ImageLoaderUtils;
+	import weave.utils.ImageLoaderUtilsEvent;
 
 	/**
 	 * An all-static class containing functions for downloading URLs.
@@ -51,6 +58,9 @@ package weave.services
 	 */
 	public class URLRequestUtils implements IURLRequestUtils
 	{
+		public static var delayResults:Boolean = false; // when true, delays result/fault handling and fills the 'delayed' Array.
+		public static const delayed:Array = []; // array of objects with properties:  label:String, resume:Function
+		
 		public static const DATA_FORMAT_TEXT:String = URLLoaderDataFormat.TEXT;
 		public static const DATA_FORMAT_BINARY:String = URLLoaderDataFormat.BINARY;
 		public static const DATA_FORMAT_VARIABLES:String = URLLoaderDataFormat.VARIABLES;
@@ -70,7 +80,7 @@ package weave.services
 			var urlLoader:CustomURLLoader;
 			try
 			{
-				urlLoader = new CustomURLLoader(request, dataFormat, true);
+				urlLoader = new CustomURLLoader(relevantContext, request, dataFormat, true);
 				urlLoader.addResponder(new CustomAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token));
 			}
 			catch (e:Error)
@@ -78,7 +88,7 @@ package weave.services
 				// When an error occurs, we need to run the asyncFaultHandler later
 				// and return a new URLLoader. CustomURLLoader doesn't load if the 
 				// last parameter to the constructor is false.
-				urlLoader = new CustomURLLoader(request, dataFormat, false);
+				urlLoader = new CustomURLLoader(relevantContext, request, dataFormat, false);
 				WeaveAPI.StageUtils.callLater(
 					relevantContext, 
 					asyncFaultHandler || noOp, 
@@ -131,9 +141,51 @@ package weave.services
 		}
 		
 		/**
+		 * This function will download an image from the URL and call the given handler functions when it completes or a fault occurrs.
+		 * @param relevantContext Specifies an object that the async handlers are relevant to.  If the object is disposed via WeaveAPI.SessionManager.dispose() before the download finishes, the async handler functions will not be called.  This parameter may be null.
+		 * @param request The URL from which to get the image.
+		 * @param asyncResultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
+		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
+		 * @param token An object that gets passed to the handler functions.
+		 * @param useCache A boolean indicating whether to use the cached images. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
+		 * @return An IURLRequestToken that can be used to cancel the request and cancel the async handlers.
+		 */
+		public function getImage(relavantContext:Object, request:URLRequest, asyncResulthandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):void
+		{
+			var imageLoaderUtils:ImageLoaderUtils = new ImageLoaderUtils();
+			var handleLoadComplete:Function = function(e:ImageLoaderUtilsEvent):void 
+			{
+				var resultEvent:ResultEvent = ResultEvent.createEvent(e.bitmap);
+				if( asyncResulthandler != null )
+				{
+					_bitmapCache[request.url] = e.bitmap;
+					asyncResulthandler(resultEvent, request.url);
+				}
+			}
+			var handleLoadError:Function = function(e:ImageLoaderUtilsEvent):void
+			{
+				var faultEvent:FaultEvent = FaultEvent.createEvent(new Fault(e.event.type, e.event.target as String));
+				if( asyncFaultHandler != null )
+				{
+					delete _bitmapCache[request.url];
+					asyncFaultHandler(faultEvent, request.url);
+				}
+			}
+			
+			imageLoaderUtils.addEventListener(ImageLoaderUtilsEvent.LOAD_COMPLETE, handleLoadComplete);
+			imageLoaderUtils.addEventListener(ImageLoaderUtilsEvent.ERROR, handleLoadError);
+			imageLoaderUtils.url = request.url;
+		}
+		
+		/**
 		 * This maps a URL to the content that was downloaded from that URL.
 		 */		
 		private const _contentCache:Object = new Object();
+		
+		/**
+		 * This maps a URL to the bitmap data of the image downloaded from that URL.
+		 */
+		private const _bitmapCache:Object = new Object();
 		
 		/**
 		 * A mapping of URL Strings to CustomURLLoaders.
@@ -211,21 +263,40 @@ import mx.rpc.Fault;
 import mx.rpc.IResponder;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
+import mx.utils.ObjectUtil;
 
 import weave.api.WeaveAPI;
+import weave.api.core.ILinkableObject;
 import weave.api.services.IURLRequestToken;
+import weave.services.URLRequestUtils;
 
 internal class CustomURLLoader extends URLLoader
 {
-	public function CustomURLLoader(request:URLRequest, dataFormat:String, loadNow:Boolean)
+	public function CustomURLLoader(relevantContext:Object, request:URLRequest, dataFormat:String, loadNow:Boolean)
 	{
 		super.dataFormat = dataFormat;
 		_urlRequest = request;
 		
 		if (loadNow)
 		{
+			if (URLRequestUtils.delayed)
+			{
+				label = request.url;
+				try
+				{
+					var bytes:ByteArray = ObjectUtil.copy(request.data as ByteArray) as ByteArray;
+					bytes.uncompress();
+					label += ' ' + ObjectUtil.toString(bytes.readObject()).split('\n').join(' ');
+				}
+				catch (e:Error) { }
+				//WeaveAPI.externalTrace('requested ' + label);
+				URLRequestUtils.delayed.push({"label": label, "resume": resume});
+			}
+			
 			// keep track of pending requests
 			WeaveAPI.ProgressIndicator.addTask(this);
+			if (relevantContext is ILinkableObject)
+				WeaveAPI.SessionManager.assignBusyTask(this, relevantContext as ILinkableObject);
 			addResponder(new AsyncResponder(removeTask, removeTask));
 			
 			// set up event listeners
@@ -238,6 +309,7 @@ internal class CustomURLLoader extends URLLoader
 		}
 	}
 	
+	internal var label:String;
 	private var _asyncToken:AsyncToken = new AsyncToken();
 	private var _isClosed:Boolean = false;
 	private var _urlRequest:URLRequest = null;
@@ -330,13 +402,39 @@ internal class CustomURLLoader extends URLLoader
 	{
 		WeaveAPI.ProgressIndicator.removeTask(this);
 	}
-
+	
+	private var _resumeFunc:Function = null;
+	private var _resumeParam:Object = null;
+	/**
+	 * When URLRequestUtils.delayResults is set to true, this function will resume
+	 * @return true  
+	 */	
+	public function resume():void
+	{
+		if (_resumeFunc == null)
+		{
+			_resumeFunc = resume; // this cancels the pending delay behavior
+		}
+		else
+		{
+			_resumeFunc(_resumeParam);
+		}
+	}
+	
 	/**
 	 * This function gets called when a URLLoader generated by getURL() dispatches a COMPLETE Event.
 	 * @param event The COMPLETE Event from a URLLoader.
 	 */
 	private function handleGetResult(event:Event):void
 	{
+		//WeaveAPI.externalTrace('getResult ' + label);
+		if (URLRequestUtils.delayResults && _resumeFunc == null)
+		{
+			_resumeFunc = handleGetResult;
+			_resumeParam = event;
+			return;
+		}
+		
 		// broadcast result to responders
 		_asyncToken.mx_internal::applyResult(ResultEvent.createEvent(data));
 	}
@@ -347,6 +445,13 @@ internal class CustomURLLoader extends URLLoader
 	 */
 	private function handleGetError(event:Event):void
 	{
+		if (URLRequestUtils.delayResults && _resumeFunc == null)
+		{
+			_resumeFunc = handleGetError;
+			_resumeParam = event;
+			return;
+		}
+		
 		// broadcast fault to responders
 		var fault:Fault;
 		if (event is ErrorEvent)

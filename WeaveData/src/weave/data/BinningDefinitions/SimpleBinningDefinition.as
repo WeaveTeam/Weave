@@ -144,7 +144,7 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.maxInclusive.value = maxInclusive;
 				
 				//first get name from overrideBinNames
-				name = getNameFromOverrideString(iBin);
+				name = getOverrideNames()[iBin] || '';
 				//if it is empty string set it from generateBinLabel
 				if(!name)
 					name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);

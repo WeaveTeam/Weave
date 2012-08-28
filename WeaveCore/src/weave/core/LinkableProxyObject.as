@@ -31,6 +31,7 @@ package weave.core
 	 * 
 	 * @author adufilie
 	 */
+	[ExcludeClass]
 	public class LinkableProxyObject extends Proxy implements ILinkableObject
 	{
 		override flash_proxy function callProperty(name:*, ...parameters):*

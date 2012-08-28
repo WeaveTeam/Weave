@@ -17,11 +17,13 @@ package weave.api.services
 {
 	import mx.rpc.AsyncToken;
 	
+	import weave.api.core.ILinkableObject;
+	
 	/**
 	 * This is an interface for an asynchronous service.
 	 * The invokeAsyncMethod() function invokes an asynchronous method and returns an AsyncToken which you can add IResponder objects to.
 	 */
-	public interface IAsyncService
+	public interface IAsyncService extends ILinkableObject
 	{
 		/**
 		 * This function will invoke an asynchronous method using the given parameters object.

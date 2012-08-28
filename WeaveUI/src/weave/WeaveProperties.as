@@ -18,6 +18,7 @@
 */
 
 package weave
+
 {
 	import flash.display.Stage;
 	import flash.events.Event;
@@ -39,6 +40,7 @@ package weave
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.linkBindableProperty;
+	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -54,14 +56,16 @@ package weave
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.JRITextEditor;
 	import weave.ui.RTextEditor;
-	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.ui.userControls.DataStatisticsTool;
+	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.CSSUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.NumberUtils;
 	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.InteractionController;
 	import weave.visualization.layers.LinkableEventListener;
+	import weave.visualization.layers.filters.LinkableDropShadowFilter;
+	import weave.visualization.layers.filters.LinkableGlowFilter;
 	import weave.visualization.tools.ColorBinLegendTool;
 	import weave.visualization.tools.ColormapHistogramTool;
 	import weave.visualization.tools.CompoundBarChartTool;
@@ -82,6 +86,8 @@ package weave
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
+
+
 
 	/**
 	 * A list of global settings for a Weave instance.
@@ -248,6 +254,7 @@ package weave
 				[enableAdd2DHistogram, Histogram2DTool],
 				[enableAddRScriptEditor, JRITextEditor],
 				[enableAddLineChart, LineChartTool],
+				[enableAddDataStatisticsTool, DataStatisticsTool],
 				[enableAddMap, MapTool],
 				[enableAddPieChart, PieChartTool],
 				[enableAddPieChartHistogram, PieChartHistogramTool],
@@ -255,8 +262,6 @@ package weave
 				[enableAddRadViz, RadVizTool],
 				[enableAddRamachandranPlot, RamachandranPlotTool],
 				[enableAddScatterplot, ScatterPlotTool],
-				[enableAddSchafersMissingDataTool, SchafersMissingDataTool],
-				[enableAddDataStatisticsTool, DataStatisticsTool],
 				[enableAddThermometerTool, ThermometerTool],
 				[enableAddTimeSliderTool, TimeSliderTool],
 				[enableAddDataTable, TransposedTableTool],
@@ -268,15 +273,20 @@ package weave
 		// END TEMPORARY SOLUTION
 		
 		public const enableAddAttributeMenuTool:LinkableBoolean = new LinkableBoolean(true); // Add Attribute Menu Tool option tools menu
+
 		public const enableAddBarChart:LinkableBoolean = new LinkableBoolean(true); // Add Bar Chart option tools menu
 //		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
 		public const enableAddColorLegend:LinkableBoolean = new LinkableBoolean(true); // Add Color legend Tool option tools menu		
 		public const enableAddColormapHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Colormap Histogram option tools menu
+
+
 		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
 		public const enableAddCustomTool:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddSchafersMissingDataTool:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddDataStatisticsTool:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddDataTable:LinkableBoolean = new LinkableBoolean(true); // Add Data Table option tools menu
+
+
 		public const enableAddGaugeTool:LinkableBoolean = new LinkableBoolean(true); // Add Gauge Tool option tools menu
 		public const enableAddHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Histogram option tools menu
 		public const enableAdd2DHistogram:LinkableBoolean = new LinkableBoolean(true); // Add 2D Histogram option tools menu
@@ -306,13 +316,6 @@ package weave
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
 		public function get geometryMetadataRequestMode():LinkableString { return StreamedGeometryColumn.metadataRequestMode; }
 		public function get geometryMinimumScreenArea():LinkableNumber { return StreamedGeometryColumn.geometryMinimumScreenArea; }
-		
-		public function shouldEnableGeometryProbing():Boolean
-		{
-			// disable detailed geometry probing while there are background tasks
-			return enableGeometryProbing.value
-				&& WeaveAPI.ProgressIndicator.getTaskCount() == 0;
-		}
 		
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const showSessionHistoryControls:LinkableBoolean = new LinkableBoolean(true); // show session history controls inside Weave interface
@@ -353,6 +356,9 @@ package weave
 		public const enableClearCurrentSelection:LinkableBoolean = new LinkableBoolean(true);// enable/disable Clear Current Selection option
 		public const enableManageSavedSelections:LinkableBoolean = new LinkableBoolean(true);// enable/disable Manage Saved Selections option
 		public const enableSelectionSelectorBox:LinkableBoolean = new LinkableBoolean(true); //enable/disable SelectionSelector option
+		public const selectionMode:LinkableString = new LinkableString(InteractionController.SELECTION_MODE_RECTANGLE, verifySelectionMode);
+		
+		private function verifySelectionMode(value:String):Boolean { return InteractionController.enumSelectionMode().indexOf(value) >= 0; }
 		
 		public const enableSubsetsMenu:LinkableBoolean = new LinkableBoolean(true);// enable/disable Subsets Menu
 		public const enableCreateSubsets:LinkableBoolean = new LinkableBoolean(true);// enable/disable Create subset from selected records option
@@ -369,6 +375,7 @@ package weave
 		
 		public const dashboardMode:LinkableBoolean = new LinkableBoolean(false);	 // enable/disable borders/titleBar on windows
 		public const enableToolControls:LinkableBoolean = new LinkableBoolean(true); // enable tool controls (which enables attribute selector too)
+		public const enableAxisToolTips:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableAboutMenu:LinkableBoolean = new LinkableBoolean(true); //enable/disable About Menu
 		
@@ -381,6 +388,21 @@ package weave
 		// probing and selection
 		public const selectionBlurringAmount:LinkableNumber = new LinkableNumber(4);
 		public const selectionAlphaAmount:LinkableNumber    = new LinkableNumber(0.5, verifyAlpha);
+		
+		//selection location information
+		public const recordsTooltipLocation:LinkableString = new LinkableString(RECORDS_TOOLTIP_LOWER_LEFT, verifyLocationMode);
+		
+		public static const RECORDS_TOOLTIP_LOWER_LEFT:String = 'Lower left';
+		public static const RECORDS_TOOLTIP_LOWER_RIGHT:String = 'Lower right';
+		public function get recordsTooltipEnum():Array
+		{
+			return [RECORDS_TOOLTIP_LOWER_LEFT, RECORDS_TOOLTIP_LOWER_RIGHT];
+		}
+		
+		private function verifyLocationMode(value:String):Boolean
+		{
+			return recordsTooltipEnum.indexOf(value) >= 0;
+		}
 		
 		/**
 		 * This is an array of LinkableEventListeners which specify a function to run on an event.
@@ -427,21 +449,24 @@ package weave
 		
 		public function get probeLineFormatter():LinkableFunction { return ProbeTextUtils.probeLineFormatter; }
 		
-		public const probeInnerGlowColor:LinkableNumber = new LinkableNumber(0xffffff, isFinite);
-		public const probeInnerGlowAlpha:LinkableNumber = new LinkableNumber(1, verifyAlpha);
-		public const probeInnerGlowBlur:LinkableNumber = new LinkableNumber(5);
-		public const probeInnerGlowStrength:LinkableNumber = new LinkableNumber(10);
+		public const probeInnerGlow:LinkableGlowFilter = new LinkableGlowFilter(0xffffff, 1, 5, 5, 10);
+		[Deprecated(replacement="probeInnerGlow")] public function set probeInnerGlowColor(value:Number):void { probeInnerGlow.color.value = value; }
+		[Deprecated(replacement="probeInnerGlow")] public function set probeInnerGlowAlpha(value:Number):void { probeInnerGlow.alpha.value = value; }
+		[Deprecated(replacement="probeInnerGlow")] public function set probeInnerGlowBlur(value:Number):void { probeInnerGlow.blurX.value = value; probeInnerGlow.blurY.value = value; }
+		[Deprecated(replacement="probeInnerGlow")] public function set probeInnerGlowStrength(value:Number):void { probeInnerGlow.strength.value = value; }
 		
-		public const probeOuterGlowColor:LinkableNumber    = new LinkableNumber(0, isFinite);
-		public const probeOuterGlowAlpha:LinkableNumber    = new LinkableNumber(1, verifyAlpha);
-		public const probeOuterGlowBlur:LinkableNumber 	   = new LinkableNumber(3);
-		public const probeOuterGlowStrength:LinkableNumber = new LinkableNumber(3);
+		public const probeOuterGlow:LinkableGlowFilter = new LinkableGlowFilter(0, 1, 3, 3, 3);
+		[Deprecated(replacement="probeOuterGlow")] public function set probeOuterGlowColor(value:Number):void { probeOuterGlow.color.value = value; }
+		[Deprecated(replacement="probeOuterGlow")] public function set probeOuterGlowAlpha(value:Number):void { probeOuterGlow.alpha.value = value; }
+		[Deprecated(replacement="probeOuterGlow")] public function set probeOuterGlowBlur(value:Number):void { probeOuterGlow.blurX.value = value; probeOuterGlow.blurY.value = value; }
+		[Deprecated(replacement="probeOuterGlow")] public function set probeOuterGlowStrength(value:Number):void { probeOuterGlow.strength.value = value; }
 		
-		public const shadowDistance:LinkableNumber  = new LinkableNumber(2);
-		public const shadowAngle:LinkableNumber    	= new LinkableNumber(45);
-		public const shadowColor:LinkableNumber 	= new LinkableNumber(0x000000, isFinite);
-		public const shadowAlpha:LinkableNumber 	= new LinkableNumber(0.5, verifyAlpha);
-		public const shadowBlur:LinkableNumber 		= new LinkableNumber(4);
+		public const selectionDropShadow:LinkableDropShadowFilter = new LinkableDropShadowFilter(2, 45, 0, 0.5);
+		[Deprecated(replacement="selectionDropShadow")] public function set shadowDistance(value:Number):void { selectionDropShadow.distance.value = value; }
+		[Deprecated(replacement="selectionDropShadow")] public function set shadowAngle(value:Number):void { selectionDropShadow.angle.value = value; }
+		[Deprecated(replacement="selectionDropShadow")] public function set shadowColor(value:Number):void { selectionDropShadow.color.value = value; }
+		[Deprecated(replacement="selectionDropShadow")] public function set shadowAlpha(value:Number):void { selectionDropShadow.alpha.value = value; }
+		[Deprecated(replacement="selectionDropShadow")] public function set shadowBlur(value:Number):void { selectionDropShadow.blurX.value = value; selectionDropShadow.blurY.value = value; }
 		
 		public const probeToolTipBackgroundAlpha:LinkableNumber = new LinkableNumber(1.0, verifyAlpha);
 		public const probeToolTipBackgroundColor:LinkableNumber = new LinkableNumber(NaN);

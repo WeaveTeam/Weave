@@ -53,7 +53,7 @@ package weave.data.BinningDefinitions
 			var binNumber:int = 0;
 			for (var i:int = -MAX_SD; i <= MAX_SD; i++)
 				if (i != 0)
-					addBin(output, Math.abs(i), i < 0, stdDev, mean, getNameFromOverrideString(binNumber++));
+					addBin(output, Math.abs(i), i < 0, stdDev, mean, getOverrideNames()[binNumber++]);
 		}
 		
 		private static const MAX_SD:int = 3;

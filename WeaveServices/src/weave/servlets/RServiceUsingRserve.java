@@ -29,7 +29,6 @@ import javax.script.ScriptException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
-import org.rosuda.REngine.REXPList;
 import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
@@ -144,11 +143,14 @@ public class RServiceUsingRserve
 				RList rList = new RList();
 				for (Object item : array)
 					rList.add(getREXP(item));
+
 				try {
 					return REXP.createDataFrame(rList);
 				} catch (REXPMismatchException e) {
 					throw new RemoteException("Failed to Create Dataframe",e);
 				}
+
+		
 			}
 			else if (array[0] instanceof String)
 			{
@@ -341,7 +343,6 @@ public class RServiceUsingRserve
 	}
 
 	
-	@SuppressWarnings("unused")
 	public static RResult[] kMeansClustering( String[] inputNames, Object[][] inputValues, 
 													      boolean showWarnings,
 													     	int numberOfClusters, int iterations)throws RemoteException

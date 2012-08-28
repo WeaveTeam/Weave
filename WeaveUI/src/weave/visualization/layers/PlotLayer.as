@@ -21,12 +21,8 @@ package weave.visualization.layers
 {
 	import flash.display.Bitmap;
 	import flash.display.PixelSnapping;
-	import flash.events.Event;
-	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.UIComponent;
-	import mx.utils.NameUtil;
-	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -39,24 +35,18 @@ package weave.visualization.layers
 	import weave.api.linkBindableProperty;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
-	import weave.api.objectWasDisposed;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotLayer;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISpatialIndex;
-	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
-	import weave.core.SessionManager;
-	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.primitives.Bounds2D;
-	import weave.utils.DebugUtils;
 	import weave.utils.PlotterUtils;
 	import weave.utils.SpatialIndex;
-	import weave.utils.ZoomUtils;
 	import weave.visualization.plotters.DynamicPlotter;
 	
 	/**
@@ -233,18 +223,18 @@ package weave.visualization.layers
 		 * This is used to index the keys in the plotter by dataBounds.
 		 */
 		public function get spatialIndex():ISpatialIndex { return _spatialIndex; }
-		public var showMissingRecords:Boolean = false;
+		internal var showMissingRecords:Boolean = false;
 		
 		// these bitmaps will be added as a children
 		private const _plotBitmap:Bitmap = new Bitmap(null, PixelSnapping.ALWAYS, false);
 		
 		/**
 		 * @private
-		 */		
+		 */
 		internal function validateSpatialIndex():void
 		{
 			// spatial index becomes invalid when spatial callbacks are triggered
-			if (detectLinkableObjectChange(validateSpatialIndex, _dynamicPlotter.spatialCallbacks))
+			if (detectLinkableObjectChange(_spatialIndex.createIndex, _dynamicPlotter.spatialCallbacks))
 				_spatialIndex.createIndex(plotter, showMissingRecords);
 		}
 		public function getSelectedKeys():Array
@@ -269,7 +259,7 @@ package weave.visualization.layers
 					{
 						if (keyBounds.overlaps(_dataBounds))
 						{
-							if(!keyBounds.isUndefined() || showMissingRecords)
+							if (!keyBounds.isUndefined() || showMissingRecords)
 								keys.push(key);
 							break;
 						}
@@ -301,7 +291,7 @@ package weave.visualization.layers
 				return;
 			
 			var changeDetected:Boolean = detectLinkableObjectChange(updateDisplayList, this);
-			if (!PlotterUtils.bitmapDataSizeCompare(_plotBitmap, unscaledWidth, unscaledHeight))
+			if (!PlotterUtils.bitmapDataSizeEquals(_plotBitmap, unscaledWidth, unscaledHeight))
 				zoomChanged = true;
 			
 			if (changeDetected || zoomChanged)

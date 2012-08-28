@@ -33,6 +33,8 @@ package weave.core
 	import mx.binding.utils.ChangeWatcher;
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
+	import mx.rpc.AsyncResponder;
+	import mx.rpc.AsyncToken;
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
@@ -109,7 +111,7 @@ package weave.core
 				throw new Error("registerLinkableChild(): Invalid attempt to register sessioned property having itself as its parent");
 			
 			// add a callback that will be cleaned up when the parent is disposed of.
-			// add this callback BEFORE registering the child, so this callback triggers first.
+			// this callback will be called BEFORE the child triggers the parent callbacks.
 			if (callback != null)
 			{
 				var cc:ICallbackCollection = getCallbackCollection(linkableChild);
@@ -649,13 +651,21 @@ package weave.core
 		/**
 		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>
 		 * will return true until all assigned tasks are unassigned using <code>unassignBusyTask(taskToken)</code>.
-		 * @param taskToken A token representing an asynchronous task.
+		 * @param taskToken A token representing an asynchronous task.  If this is an AsyncToken, a responder will be added that will automatically call unassignBusyTask(taskToken) on success or failure.
 		 * @param busyObject The object that is busy waiting for the task to complete.
 		 */
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
+			if (taskToken is AsyncToken)
+				(taskToken as AsyncToken).addResponder(new AsyncResponder(unassignAsyncToken, unassignAsyncToken, taskToken));
+			
 			_d2dOwnerTask.set(busyObject, taskToken, true);
 			_d2dTaskOwner.set(taskToken, busyObject, true);
+		}
+		
+		private function unassignAsyncToken(event:Event, token:Object):void
+		{
+			unassignBusyTask(token);
 		}
 		
 		/**
@@ -1221,7 +1231,7 @@ package weave.core
 					if (uiComponent)
 					{
 						var obj:DisplayObject = uiComponent.getFocus();
-						if (obj && uiComponent.contains(obj))
+						if (obj && uiComponent.contains(obj)) // has focus
 						{
 							if (linkableVariable is LinkableVariable)
 							{
@@ -1427,7 +1437,7 @@ package weave.core
 				{
 					typedState = oldState[i];
 					
-					// if we see a string, assume both are String Arrays.
+					// if we see a string in oldState, assume both oldState and newState are String Arrays.
 					if (typedState is String || typedState is Array)
 					{
 						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
@@ -1457,6 +1467,7 @@ package weave.core
 						return newState; // TODO: same object pointer.. potential problem?
 					}
 					
+					// assume everthing is typed session state
 					//note: there is no error checking here for typedState
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					className = typedState[DynamicState.CLASS_NAME];
@@ -1543,15 +1554,11 @@ package weave.core
 		 */
 		public function combineDiff(baseDiff:Object, diffToAdd:Object):Object
 		{
-			// special case for no change
-			if (diffToAdd === null)
-				return baseDiff;
-			
 			var baseType:String = typeof(baseDiff); // the type of null is 'object'
 			var diffType:String = typeof(diffToAdd);
 
 			// special cases
-			if (baseDiff == null || baseType != diffType || baseType != 'object')
+			if (baseDiff == null || diffToAdd == null || baseType != diffType || baseType != 'object')
 			{
 				if (diffType == 'object') // not a primitive, so make a copy
 					baseDiff = ObjectUtil.copy(diffToAdd);
@@ -1665,6 +1672,39 @@ package weave.core
 			}
 			
 			return baseDiff;
+		}
+		
+		public function testDiff():void
+		{
+			var states:Array = [
+				[
+					{objectName: 'a', className: 'aClass', sessionState: 'aVal'},
+					{objectName: 'b', className: 'bClass', sessionState: 'bVal1'}
+				],
+				[
+					{objectName: 'b', className: 'bClass', sessionState: 'bVal2'},
+					{objectName: 'a', className: 'aClass', sessionState: 'aVal'}
+				],
+				[
+					{objectName: 'a', className: 'aNewClass', sessionState: 'aVal'},
+					{objectName: 'b', className: 'bClass', sessionState: null}
+				],
+				[
+					{objectName: 'b', className: 'bClass', sessionState: null}
+				]
+			];
+			var diffs:Array = [];
+			var combined:Array = [];
+			var baseDiff:* = null;
+			for (var i:int = 1; i < states.length; i++)
+			{
+				var diff:* = computeDiff(states[i - 1], states[i]);
+				diffs.push(diff);
+				baseDiff = combineDiff(baseDiff, diff);
+				combined.push(ObjectUtil.copy(baseDiff));
+			}
+			trace('diffs',ObjectUtil.toString(diffs));
+			trace('combined',ObjectUtil.toString(combined));
 		}
 	}
 }

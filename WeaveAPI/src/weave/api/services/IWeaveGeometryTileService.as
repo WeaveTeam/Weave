@@ -17,12 +17,14 @@ package weave.api.services
 {
 	import mx.rpc.AsyncToken;
 	
+	import weave.api.core.ILinkableObject;
+	
 	/**
 	 * This is an interface for requesting tiles for a streamed geometry collection.
 	 * 
 	 * @author adufilie
 	 */
-	public interface IWeaveGeometryTileService
+	public interface IWeaveGeometryTileService extends ILinkableObject
 	{
 		// This function should return an AsyncToken whose ResultEvent will contain a GeometryStreamMetadata object as the result.
 		function getTileDescriptors():AsyncToken;

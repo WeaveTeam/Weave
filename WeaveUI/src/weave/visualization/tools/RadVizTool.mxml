@@ -83,7 +83,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var cdLayout:ClassDiscriminationLayoutAlgorithm= new ClassDiscriminationLayoutAlgorithm();
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			//public var colObjects:Array;
-			public var columnNames:Array = new Array();
+			
+			public var latestjoinedColumnKeys:Array = new Array();
 			
 			
 			override protected function constructor():void
@@ -125,8 +126,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.childrenCreated();
 				
 				plotLayer.rawChildren.addChild(probeSprite);
-				_plotter.columns.addImmediateCallback(this, normalizationInR);
-				classDiscriminatorColumn.addImmediateCallback(this, getColumnNames);
+				_plotter.columns.addGroupedCallback(this, normalizationInR);
+				//classDiscriminatorColumn.addGroupedCallback(this, getColumnNames);
 				
 			}
 			
@@ -143,14 +144,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var probeSprite:Sprite = new Sprite() ;			
 			
 			
-			private function getColumnNames():void
+			/* private function getColumnNames():void
 			{
 				var colObjectss:Array = _plotter.columns.getObjects();
 				for(var h:int = 0; h < colObjectss.length; h ++)
 				{
 					columnNames[h] = ColumnUtils.getTitle(colObjectss[h] as IAttributeColumn);
 				}
-			}
+			} */
 			
 			private function joinColumns(columns:Array):Array
 			{
@@ -186,19 +187,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					"normOutput <- donorm(frame)\n";
 				
 				var result:Array = joinColumns(columns);
-				var joinedColumnsKeys:Array = result[0];
+				latestjoinedColumnKeys = result[0];
 				var joinedColumns:Array = result[1];
 				
-				
-				inputValues.push(joinedColumns); 
-				var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
-				DelayedAsyncResponder.addResponder(query, handleNormScriptResult, handleRunScriptFault,joinedColumnsKeys);
+				if ( latestjoinedColumnKeys.length != 0)
+				{
+					inputValues.push(joinedColumns); 
+					var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
+					DelayedAsyncResponder.addResponder(query, handleNormScriptResult, handleRunScriptFault,latestjoinedColumnKeys);
+				}
 			} 
+			
 			
 			
 			/** Returns the normalized dataset */
 			private function handleNormScriptResult(event:ResultEvent, token:Object = null):void
 			{
+                 if (token != latestjoinedColumnKeys){return;}
 				var colObjects:Array = _plotter.columns.getObjects();//user selected columns
 				var temRObjects:Array = new Array();
 				//Object to stored returned result - Which is array of object{name: , value: }
@@ -225,10 +230,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				for (var j:int = 0 ; j < temRObjects.length; j++)
 				{
-					normalizedColumns.push(ResultUtils.resultAsNumberColumn(token,temRObjects[j],columnNames[j]+"norm"));
+					normalizedColumns.push(ResultUtils.resultAsNumberColumn(token,temRObjects[j],_plotter.columns.getNames()[j]+"norm"));
 				}
 				
-				cdLayout.fillingClassToColumnMap(classDiscriminatorColumn,colObjects,columnNames,normalizedColumns);
+				cdLayout.fillingClassToColumnMap(classDiscriminatorColumn,colObjects,_plotter.columns.getNames(),normalizedColumns);
 				_plotter.doCDLayout = true;
 				_plotter.LayoutClasses = cdLayout.tAndpMapping;
 				

@@ -68,7 +68,7 @@ internal class Internal
 		
 		var previousCount:* = _triggerCounterMap[linkableObject][observer]; // untyped to handle undefined value
 		var newCount:uint = WeaveAPI.SessionManager.getCallbackCollection(linkableObject).triggerCounter;
-		if (previousCount !== newCount) // !== avoids casting to handle 0 !== undefined
+		if (previousCount !== newCount) // !== avoids casting to handle the case (0 !== undefined)
 		{
 			if (clearChangedNow)
 				_triggerCounterMap[linkableObject][observer] = newCount;
@@ -81,5 +81,5 @@ internal class Internal
 	 * This is a two-dimensional dictionary, where _triggerCounterMap[linkableObject][observer]
 	 * equals the previous triggerCounter value from linkableObject observed by the observer.
 	 */		
-	private static const _triggerCounterMap:Dictionary = new Dictionary(true);
+	private static const _triggerCounterMap:Dictionary = new Dictionary(true); // weakKeys=true to avoid keeping old linkable objects in memory.
 }

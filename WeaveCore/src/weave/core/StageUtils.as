@@ -75,6 +75,7 @@ package weave.core
 		private var _currentFrameStartTime:int = getTimer(); // this is the result of getTimer() on the last ENTER_FRAME event.
 		private var _previousFrameElapsedTime:int = 0; // this is the amount of time it took to process the previous frame.
 		private var _currentTaskStopTime:int = 0; // set by used by handleEnterFrame, used by _iterateTask
+		private var _pointClicked:Boolean = false;
 
 		private var _callbackCollectionsInitialized:Boolean = false; // This is true after the callback collections have been created.
 		private var _listenersInitialized:Boolean = false; // This is true after the mouse listeners have been added.
@@ -219,6 +220,14 @@ package weave.core
 		}
 		
 		/**
+		 * @return true if the mouse was clicked without moving
+		 */
+		public function get pointClicked():Boolean
+		{
+			return _pointClicked;
+		}
+		
+		/**
 		 * @return true if the mouse moved since the last frame.
 		 */
 		public function get mouseMoved():Boolean
@@ -319,11 +328,12 @@ package weave.core
 					// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint = 0)
 					args = calls[i] as Array;
 					stackTrace = _stackTraceMap[args];
+					
+//					WeaveAPI.SessionManager.unassignBusyTask(args);
+					
 					// don't call the function if the relevantContext was disposed of.
 					if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
 						(args[1] as Function).apply(null, args[2]);
-					
-					//WeaveAPI.SessionManager.unassignBusyTask(args);
 					
 					if (debug_callLater)
 						DebugTimer.end(stackTrace);
@@ -390,6 +400,9 @@ package weave.core
 				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint)
 				args = pQueue.shift() as Array;
 				stackTrace = _stackTraceMap[args]; // check this for debugging where the call came from
+				
+//				WeaveAPI.SessionManager.unassignBusyTask(args);
+				
 				// don't call the function if the relevantContext was disposed of.
 				if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
 				{
@@ -398,8 +411,6 @@ package weave.core
 					
 					(args[1] as Function).apply(null, args[2]);
 				}
-				
-				//WeaveAPI.SessionManager.unassignBusyTask(args);
 				
 				if (debug_callLater)
 					DebugTimer.end(stackTrace);
@@ -416,7 +427,7 @@ package weave.core
 		 */
 		public function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void
 		{
-			//WeaveAPI.SessionManager.assignBusyTask(arguments, relevantContext as ILinkableObject);
+//			WeaveAPI.SessionManager.assignBusyTask(arguments, relevantContext as ILinkableObject);
 			
 			if (priority >= _priorityCallLaterQueues.length)
 			{
@@ -426,7 +437,7 @@ package weave.core
 			//trace("call later @",currentFrameElapsedTime);
 			_priorityCallLaterQueues[priority].push(arguments);
 			
-			if (CallbackCollection.debug)
+			if (debug_async_stack)
 				_stackTraceMap[arguments] = new Error("This is the stack trace from when callLater() was called.").getStackTrace();
 		}
 		
@@ -515,7 +526,10 @@ package weave.core
 				_stackTraceMap[iterativeTask] = new Error("Stack trace").getStackTrace();
 			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
 			
-			_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
+			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
+			// This makes sure that the task is removed when the actual context is disposed of.
+			callLater(null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback], priority);
+			//_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
 		}
 		
 		/**
@@ -587,8 +601,13 @@ package weave.core
 			if (_lastMouseDownPoint.x == mouseEvent.stageX && _lastMouseDownPoint.y == mouseEvent.stageY)
 			{
 				var cc:ICallbackCollection = _callbackCollections[POINT_CLICK_EVENT] as ICallbackCollection;
+				_pointClicked = true;
 				cc.triggerCallbacks();
 				cc.resumeCallbacks(true);
+			}
+			else
+			{
+				_pointClicked = false;
 			}
 		}
 		

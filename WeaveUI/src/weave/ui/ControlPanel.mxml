@@ -41,17 +41,20 @@
 			import mx.core.Container;
 			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getSessionState;
+			import weave.api.newDisposableChild;
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.ClassUtils;
 			import weave.core.DynamicState;
 			import weave.core.SessionManager;
+			import weave.utils.EditorManager;
 			
 
 			private var _targetObjects:Array = null;
@@ -68,13 +71,15 @@
 			override public function set width(value:Number):void
 			{
 				super.width = value;
-				panelWidth.value = String(value);
+				if (!initialized)
+					panelWidth.value = String(value);
 			}
 			
 			override public function set height(value:Number):void
 			{
 				super.height = value;
-				panelHeight.value = String(value);
+				if (!initialized)
+					panelHeight.value = String(value);
 			}
 			
 			/**
@@ -271,7 +276,25 @@
 				if (y < 0 || y > yMargin)
 					panelY.value = String((yMargin - yRange)/2 + Math.random() * yRange);
 				
+				if(xMargin < 0 || yMargin < 0)
+					constrainAndSaveCoordinates();
+				
 				save();
+			}
+			
+			public static function openEditor(linkableObject:ILinkableObject):ILinkableObjectEditor
+			{
+				var editor:ILinkableObjectEditor = EditorManager.getNewEditor(linkableObject);
+				if (editor)
+				{
+					var controls:ControlPanel = newDisposableChild(linkableObject, ControlPanel);
+					PopUpManager.addPopUp(controls, WeaveAPI.topLevelApplication as DisplayObject);
+					PopUpManager.centerPopUp(controls);
+					controls.targets = [linkableObject];
+					
+					controls.tabNavigator.addChild(editor as DisplayObject);
+				}
+				return editor;
 			}
 		]]>
 	</mx:Script>

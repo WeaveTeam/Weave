@@ -61,7 +61,7 @@ package weave
 		private static var   _globalProbeKeySet:KeySet = null;        // pointer to global probe key set
 		private static const _localProbeKeySet:KeySet = new KeySet(); // local object to store last non-empty probe set
 		
-		private static const groupName:String = "2 subsetMenuItems";
+		private static const groupName:String = "1 subsetMenuItems";
 		
 		private static const SUBSET_CREATE_SELECTION_CAPTION:String = lang("Create subset from selected record(s)");
 		private static const SUBSET_CREATE_PROBE_CAPTION:String     = lang("Create subset from probed record(s)");

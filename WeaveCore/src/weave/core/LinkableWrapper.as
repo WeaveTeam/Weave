@@ -33,6 +33,7 @@ package weave.core
 	 * 
 	 * @author adufilie
 	 */
+	[ExcludeClass]
 	public class LinkableWrapper extends CallbackCollection implements ILinkableObject
 	{
 		public function LinkableWrapper(typeRestriction:Class = null)

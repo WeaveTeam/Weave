@@ -55,6 +55,14 @@ package weave.api.ui
 		 */
 		function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array;
 
+		/**
+		 * This function will perform one iteration of an asynchronous rendering task.
+		 * This function will be called multiple times across several frames until its return value is 1.0.
+		 * This function may be defined with override by classes that extend AbstractPlotter.
+		 * @param task An object containing the rendering parameters.
+		 * @return A number between 0 and 1 indicating the progress that has been made so far in the asynchronous rendering.
+		 */
+		function drawPlotAsyncIteration(task:IPlotTask):Number;
 		
 		/**
 		 * Draws the graphics for a list of records onto a sprite.

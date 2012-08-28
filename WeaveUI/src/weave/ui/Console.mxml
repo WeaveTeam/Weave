@@ -87,8 +87,13 @@
 				return ILinkableObject(target);
 			}
 			private const watchLookup:Dictionary = new Dictionary(true);
-			private function consoleWatch(target:Object, debugString:String):void
+			private function consoleWatch(target:Object = null, debugString:String = null):void
 			{
+				if (!target || !debugString)
+				{
+					consoleTrace('Usage: consoleWatch( target , "{ <CODE> }" )');
+					return;
+				}
 				var linkableTarget:ILinkableObject = getObject(target);
 				consoleUnwatch(linkableTarget);
 				var callback:Function = function():void { consoleTraceEval(linkableTarget, debugString); };

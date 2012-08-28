@@ -36,6 +36,7 @@ package weave.visualization.layers
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -45,7 +46,9 @@ package weave.visualization.layers
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.SimpleGeometry;
 	import weave.utils.CustomCursorManager;
+	import weave.utils.DebugTimer;
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
@@ -85,6 +88,7 @@ package weave.visualization.layers
 			//			addEventListener(KeyboardEvent.KEY_UP, handleKeyboardEvent);
 			
 			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, true);
+			
 		}
 		
 		private function addContextMenuEventListener():void
@@ -211,7 +215,6 @@ package weave.visualization.layers
 		// this function can be defined with override by extending classes and call super.handleMouseClick(event);
 		protected function handleMouseClick(event:MouseEvent):void
 		{
-			clearSelection();
 			handleMouseEvent(event);
 		}
 		
@@ -225,6 +228,10 @@ package weave.visualization.layers
 		{			
 			updateMouseMode(InteractionController.DRAG); // modifier keys may have changed just prior to pressing mouse button, so update mode now
 			
+			//for detecting change between drag start and drag end
+			// TEMPORARY HACK - Weave.defaultSelectionKeySet
+			detectLinkableObjectChange( handleMouseDown, Weave.defaultSelectionKeySet );
+			
 			mouseDragActive = true;
 			// clear probe when drag starts
 			clearProbe();
@@ -237,6 +244,8 @@ package weave.visualization.layers
 		protected function handleMouseUp():void
 		{
 			updateMouseCursor();
+			
+			_lassoScreenPoints = [];//clearing lasso points when mouse is up.
 			
 			// when the mouse is released, handle mouse move so the selection rectangle will cause the selection to update.
 			handleMouseEvent(WeaveAPI.StageUtils.mouseEvent);
@@ -345,7 +354,7 @@ package weave.visualization.layers
 				}
 				case InteractionController.SELECT:
 				{
-					if (mouseDragActive)
+				   	if (mouseDragActive)
 						handleSelection(event, _mouseMode);
 					break;
 				}
@@ -423,9 +432,9 @@ package weave.visualization.layers
 					{
 						var multiplier:Number = 1;
 						if (_mouseMode == InteractionController.ZOOM_IN)
-							multiplier = 0.5; // zoom in 2x
+							multiplier = 1 / zoomFactor.value;
 						else
-							multiplier = 2; // zoom out 2x
+							multiplier = zoomFactor.value;
 						
 						projectDragBoundsToDataQueryBounds(null, false);
 						zoomBounds.getDataBounds(_tempBounds);
@@ -464,6 +473,11 @@ package weave.visualization.layers
 		}
 		
 		private var _selectionRectangleGraphicsCleared:Boolean = true;
+		private var _circleGeometry:SimpleGeometry = new SimpleGeometry();
+		private var _lassoGeometry:SimpleGeometry = new SimpleGeometry();
+		private var _lastLassoPoint:Point = null;
+		private var _lassoScreenPoints:Array = [];
+		
 		protected function updateSelectionRectangleGraphics():void 
 		{
 			if (!Weave.properties.enableToolSelection.value || !enableSelection.value) return;
@@ -522,7 +536,103 @@ package weave.visualization.layers
 			var width:Number = tempScreenBounds.getXCoverage();
 			var height:Number = tempScreenBounds.getYCoverage();
 			
-			_dashedLine.drawRect(xStart, yStart, width, height, startCorner); // this draws onto the _selectionRectangleCanvas.graphics
+			
+			if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
+			{
+				var direction:Number = -tempScreenBounds.getXDirection() || 1;
+				var thetaOffset:Number = Math.atan2(tempScreenBounds.getHeight(), tempScreenBounds.getWidth());
+				var radius:Number = Math.sqrt(width*width + height*height);
+				var points:Array = [];
+				
+				var lineWidth:Number = _dashedLine.lengthsString.split(',')[0];
+				var segmentLength:Number = _dashedLine.lengthsString.split(',')[1]; // pixels
+				var segmentSpan:Number = segmentLength / radius; // radians
+				segmentSpan = Math.min(Math.PI / 4, segmentSpan); // maximum 45 degrees per segment
+				// draw the segments
+				var segmentCount:Number = Math.ceil(Math.PI * 2 / segmentSpan);
+				segmentCount = Math.min(64, segmentCount);
+				
+				// init temp bounds for reprojecting coordinates
+				zoomBounds.getDataBounds(tempDataBounds);
+				zoomBounds.getScreenBounds(tempScreenBounds);
+				
+				for (var i:int = 0; i < segmentCount + 1; i++)
+				{
+					var theta:Number = direction * i * 2 * Math.PI / segmentCount + thetaOffset;
+					var circleX:Number = xStart + radius * Math.cos(theta); // center a + radius x * cos(theta)
+					var circleY:Number = yStart + radius * Math.sin(theta); // center b + radius y * sin(theta)
+					if (i == 0)
+						_dashedLine.moveTo(circleX, circleY);
+					else
+						_dashedLine.lineTo(circleX, circleY);
+					
+					var currPoint:Point = new Point(circleX, circleY);
+					tempScreenBounds.projectPointTo(currPoint, tempDataBounds);
+					points.push(currPoint);
+				}
+				_circleGeometry.setVertices(points);//set the geometry for making the query
+			}
+			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
+			{
+				_dashedLine.drawRect(xStart, yStart, width, height, startCorner); // this draws onto the _selectionRectangleCanvas.graphics
+			}
+			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_LASSO)
+			{
+				// init temp bounds for reprojecting coordinates
+				zoomBounds.getDataBounds(tempDataBounds);
+				zoomBounds.getScreenBounds(tempScreenBounds);
+				
+				//projecting stage points to local
+				var temp:Point = globalToLocal(new Point(mouseDragStageCoords.getXMax(),mouseDragStageCoords.getYMax()));
+				
+				//if it is the first point or if the next point is at least 5 pixels away in either direction, add it to lasso
+				if(_lassoScreenPoints.length == 0 || Math.abs(temp.x-_lastLassoPoint.x)>=5 || Math.abs(temp.y-_lastLassoPoint.y)>=5 )
+				{
+					_lastLassoPoint = temp;
+					_lassoScreenPoints.push(_lastLassoPoint.clone());
+				}
+				
+				fillPolygon(g, _dashedLine.lineColor, 0.05, _lassoScreenPoints);
+				
+				//this array will store all the data points and used to set the vertices in the _lassoGeometry
+				var lassoDataPoints:Array =[];
+				for (var k:int = 0; k< _lassoScreenPoints.length +1; k++)
+				{
+					if(k==0)
+						_dashedLine.moveTo(_lassoScreenPoints[k].x,_lassoScreenPoints[k].y);
+					else if(k==_lassoScreenPoints.length)
+					{
+						_dashedLine.lineTo(_lassoScreenPoints[0].x,_lassoScreenPoints[0].y);//closing the lasso
+						break;
+					}
+					else
+						_dashedLine.lineTo(_lassoScreenPoints[k].x,_lassoScreenPoints[k].y);
+					
+					
+					var tempDataPoint:Point = (_lassoScreenPoints[k] as Point).clone();
+					tempScreenBounds.projectPointTo(tempDataPoint,tempDataBounds);
+					lassoDataPoints.push(tempDataPoint);
+				}
+				_lassoGeometry.setVertices(lassoDataPoints);
+			}
+		}
+		
+		private function fillPolygon(graphics:Graphics, color:uint, alpha:Number, points:Array):void
+		{
+			graphics.lineStyle(0,0,0);
+			var n:int = points.length;
+			for (var i:int = 0; i <= n; i++)
+			{
+				var point:Point = points[i % n];
+				if (i == 0)
+				{
+					graphics.moveTo(point.x, point.y);
+					graphics.beginFill(color, alpha);
+				}
+				else
+					graphics.lineTo(point.x, point.y);
+			}
+			graphics.endFill();
 		}
 		
 		private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
@@ -531,7 +641,7 @@ package weave.visualization.layers
 			_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
 		}
 		
-		private function handleSelection(event:MouseEvent,mode:String):void
+		private function handleSelection(event:MouseEvent, mode:String):void
 		{
 			var _layers:Array;
 			var i:int;
@@ -545,7 +655,8 @@ package weave.visualization.layers
 			}
 			else
 			{
-				// IMPORTANT: for speed, use the current mouse coordinates instead of the event coordinates
+				// IMPORTANT: for interaction speed, use the current mouse coordinates instead of the event coordinates.
+				// otherwise, queued mouse events will be handled individually and it will feel sluggish
 				mouseDragStageCoords.setMaxCoords(stage.mouseX, stage.mouseY);
 			}
 			
@@ -553,21 +664,9 @@ package weave.visualization.layers
 			{
 				// only if selection is enabled
 				if (enableSelection.value)
-				{
-					// handle selection
-					if (mode == InteractionController.SELECT && mouseDragStageCoords.getWidth() == 0 && mouseDragStageCoords.getHeight() == 0)
-					{
-						// clear selection when drag area is empty
-						clearSelection();
-					}
-					else
-					{
-						delayedHandleSelection();
-					}
-				}
+					delayedHandleSelection();
 			}
 		}
-		
 		private function clearSelection():void
 		{
 			var _layers:Array = layers.getObjects(SelectablePlotLayer);
@@ -649,7 +748,7 @@ package weave.visualization.layers
 			// don't set a selection or clear the probe keys if selection is disabled
 			if (!enableSelection.value)
 				return;
-			
+
 			var _layers:Array = layers.getObjects(SelectablePlotLayer); // bottom to top
 			// loop from bottom layer to top layer
 			for (var index:int = 0; index < _layers.length; index++)
@@ -666,7 +765,6 @@ package weave.visualization.layers
 				setProbeKeys(layer, []);
 				projectDragBoundsToDataQueryBounds(layer, false);
 				
-				
 				// calculate minImportance
 				layer.getDataBounds(tempDataBounds);
 				layer.getScreenBounds(tempScreenBounds);
@@ -677,11 +775,36 @@ package weave.visualization.layers
 					continue;
 				tempDataBounds.constrainBounds(queryBounds, false);
 				
-				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
+				var keys:Array = [];
+				if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
+				{
+					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_circleGeometry, minImportance, false);
+				}
+				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
+				{
+					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
+				}
+				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_LASSO)
+				{
+					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_lassoGeometry, minImportance, false);
+				}
+				
+				
 				setSelectionKeys(layer, keys, true);
 				
 				break; // select only one layer at a time
 			}
+			
+			
+			// if mouse is released and selection hasn't changed since mouse down, clear selection
+			// TEMPORARY HACK - Weave.defaultSelectionKeySet
+			if (_mouseMode == InteractionController.SELECT &&
+				!WeaveAPI.StageUtils.mouseButtonDown &&
+				!detectLinkableObjectChange(handleMouseDown, Weave.defaultSelectionKeySet))
+			{
+				clearSelection();
+			}
+
 		}
 		
 		/**
@@ -758,14 +881,14 @@ package weave.visualization.layers
 		}
 		
 		protected function setSelectionKeys(layer:SelectablePlotLayer, keys:Array, useMouseMode:Boolean = false):void
-		{
+		{	
 			if (!Weave.properties.enableToolSelection.value || !enableSelection.value)
 				return;
 			
 			// set the probe filter to a new set of keys
 			var keySet:KeySet = layer.selectionFilter.internalObject as KeySet;
 			if (keySet != null)
-			{
+			{	
 				if (useMouseMode && _mouseMode == InteractionController.SELECT_ADD)
 					keySet.addKeys(keys);
 				else if (useMouseMode && _mouseMode == InteractionController.SELECT_REMOVE)

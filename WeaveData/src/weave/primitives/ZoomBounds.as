@@ -235,5 +235,21 @@ package weave.primitives
 				}
 			}
 		}
+		
+		/**
+		 * A scale of N means there is an N:1 correspondance of pixels to data coordinates.
+		 */		
+		public function getXScale():Number
+		{
+			return _screenBounds.getXCoverage() / _dataBounds.getXCoverage();
+		}
+		
+		/**
+		 * A scale of N means there is an N:1 correspondance of pixels to data coordinates.
+		 */		
+		public function getYScale():Number
+		{
+			return _screenBounds.getYCoverage() / _dataBounds.getYCoverage();
+		}
 	}
 }

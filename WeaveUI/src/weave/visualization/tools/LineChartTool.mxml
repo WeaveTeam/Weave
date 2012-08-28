@@ -211,8 +211,6 @@
 				{
 					curveCheckBox.selected = _plotter.curveType.value == ParallelCoordinatesPlotter.CURVE_DOUBLE;
 				}
-				
-				visualization.getPlotLayer().backgroundIsVisible.addImmediateCallback(this, updateSelectionAndProbeOnlyCheckBox, true);
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -336,22 +334,12 @@
             	return int((value * 100)) + "% Opaque" + "\n" + int(100 - (value * 100)) + "% Transparent";
             }
 			
-			private function updateSelectionAndProbeOnlyCheckBox():void
-			{
-				selectionAndProbeOnlyCheckBox.selected = !visualization.getPlotLayer().backgroundIsVisible.value;
-			}
-			private function handleSelectionAndProbeOnlyCheckBox():void
-			{
-				visualization.getPlotLayer().backgroundIsVisible.value = !selectionAndProbeOnlyCheckBox.selected;
-			}
-			
 			private var labelPlotter:TextGlyphPlotter = null ;
 			private function addLabelLayer():void
 			{
 				var layer:SelectablePlotLayer = visualization.layers.requestObject("label", SelectablePlotLayer, true);
 				layer.layerIsSelectable.value = false;
 				layer.layerIsSelectable.lock();
-				linkSessionState(visualization.getPlotLayer().backgroundIsVisible, layer.backgroundIsVisible);
 				labelPlotter = layer.getDynamicPlotter().requestLocalObject(TextGlyphPlotter, true);
 				
 				_plotter.columns.addImmediateCallback(this, updateColumns, true);
@@ -494,8 +482,6 @@
 				<mx:ColorPicker id="colorPicker" width="22" height="22"/>
 			</mx:HBox>
 
-			<mx:CheckBox id="selectionAndProbeOnlyCheckBox" label="Show selection &amp; probe only" 
-						 toolTip="" change="handleSelectionAndProbeOnlyCheckBox();"/>
 			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
 						 toolTip="Enables automatic zooming to the subset of data currently displayed"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>

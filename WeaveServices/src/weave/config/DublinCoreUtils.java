@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 import weave.utils.SQLUtils;
 
 /**
@@ -106,8 +105,13 @@ public class DublinCoreUtils
 		// System.out.println(rs.get);
 	}
 
+	private static boolean _exists = false;
+	
 	private static void ensureMetadataTableExists(Connection conn, String schema) throws SQLException
 	{
+		if (_exists) // only do this stuff once
+			return;
+		
 		if (!SQLUtils.tableExists(conn, schema, TABLE_NAME))
 		{
 			Statement stmt = null;
@@ -130,6 +134,18 @@ public class DublinCoreUtils
 				SQLUtils.cleanup(stmt);
 			}
 		}
+		
+		// add index
+		try
+		{
+			SQLUtils.createIndex(conn, schema, TABLE_NAME, new String[]{DATASET_COLUMN});
+		}
+		catch (SQLException e)
+		{
+			// ignore sql errors
+		}
+		
+		_exists = true;
 	}
 
 	/**
@@ -154,12 +170,11 @@ public class DublinCoreUtils
 			if (SQLUtils.tableExists(conn, schema, TABLE_NAME))
 			{
 				String query = String.format(
-						"SELECT %s,%s FROM %s WHERE %s = ? ORDER BY %s",
+						"SELECT %s,%s FROM %s WHERE %s = ?",
 						ELEMENT_COLUMN,
 						VALUE_COLUMN,
 						SQLUtils.quoteSchemaTable(conn, schema, TABLE_NAME),
-						DATASET_COLUMN,
-						ELEMENT_COLUMN
+						DATASET_COLUMN
 					);
 				
 				cstmt = conn.prepareCall(query);
@@ -177,6 +192,56 @@ public class DublinCoreUtils
 		finally
 		{
 			SQLUtils.cleanup(cstmt);
+		}
+	}
+	// temporary hack
+	@SuppressWarnings("unchecked")
+	public static Map<String,String>[] listDCElements(Connection conn, String schema, String[] tableNames) throws RemoteException
+	{
+		Statement stmt = null;
+		try
+		{
+			Map<String,Map<String,String>> map = new HashMap<String,Map<String,String>>();
+			Map<String,String>[] result = new Map[tableNames.length];
+			for (int i = 0; i < tableNames.length; i++)
+			{
+				String name = tableNames[i];
+				Map<String,String> metadata = new HashMap<String,String>();
+				metadata.put("name", name);
+				map.put(name, metadata);
+				result[i] = metadata;
+			}
+			
+			ensureMetadataTableExists(conn, schema);
+			if (SQLUtils.tableExists(conn, schema, TABLE_NAME))
+			{
+				String query = String.format(
+						"SELECT %s,%s,%s FROM %s",
+						DATASET_COLUMN,
+						ELEMENT_COLUMN,
+						VALUE_COLUMN,
+						SQLUtils.quoteSchemaTable(conn, schema, TABLE_NAME)
+				);
+				
+				stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(query);
+				while (rs.next())
+				{
+					String name = rs.getString(DATASET_COLUMN);
+					Map<String,String> metadata = map.get(name);
+					if (metadata != null)
+						metadata.put(rs.getString(ELEMENT_COLUMN), rs.getString(VALUE_COLUMN));
+				}
+			}
+			return result;
+		}
+		catch (SQLException e)
+		{
+			throw new RemoteException(e.getMessage(), e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
 		}
 	}
 
