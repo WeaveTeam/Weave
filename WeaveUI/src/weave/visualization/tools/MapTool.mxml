@@ -236,14 +236,14 @@
 				
 				selectionSubMenu= new SubMenu(selectModeButton,[MouseEvent.MOUSE_DOWN],[MouseEvent.MOUSE_UP]);
 				
-				selectionSubMenu.addSubMenuItem("Rectangular Selection",function():void{
-					Weave.properties.selectionMode.value = InteractionController.RECTANGLE_SELECTION_MODE;});
+				selectionSubMenu.addSubMenuItem(lang("Rectangular Selection"),function():void{
+					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_RECTANGLE;});
 				
-				selectionSubMenu.addSubMenuItem("Circular Selection",function():void{
-					Weave.properties.selectionMode.value = InteractionController.CIRCULAR_SELECTION_MODE;});
+				selectionSubMenu.addSubMenuItem(lang("Circular Selection"),function():void{
+					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_CIRCLE;});
 				
-				/* selectionSubMenu.addSubMenuItem("Lasso Selection",function():void{
-					Weave.properties.selectionMode.value = InteractionController.LASSO_SELECTION_MODE;}); */
+				selectionSubMenu.addSubMenuItem(lang("Lasso Selection"),function():void{
+					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_LASSO;});
 			}
 			
 			private function handleMouseModeChange(event:Event = null):void

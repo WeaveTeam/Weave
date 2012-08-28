@@ -305,13 +305,6 @@ package weave
 		public function get geometryMetadataRequestMode():LinkableString { return StreamedGeometryColumn.metadataRequestMode; }
 		public function get geometryMinimumScreenArea():LinkableNumber { return StreamedGeometryColumn.geometryMinimumScreenArea; }
 		
-		public function shouldEnableGeometryProbing():Boolean
-		{
-			// disable detailed geometry probing while there are background tasks
-			return enableGeometryProbing.value
-				&& WeaveAPI.ProgressIndicator.getTaskCount() == 0;
-		}
-		
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const showSessionHistoryControls:LinkableBoolean = new LinkableBoolean(true); // show session history controls inside Weave interface
 
@@ -351,7 +344,9 @@ package weave
 		public const enableClearCurrentSelection:LinkableBoolean = new LinkableBoolean(true);// enable/disable Clear Current Selection option
 		public const enableManageSavedSelections:LinkableBoolean = new LinkableBoolean(true);// enable/disable Manage Saved Selections option
 		public const enableSelectionSelectorBox:LinkableBoolean = new LinkableBoolean(true); //enable/disable SelectionSelector option
-		public const selectionMode:LinkableString = new LinkableString(InteractionController.RECTANGLE_SELECTION_MODE,verifySelectionMode);//enable making selection by drawing circle
+		public const selectionMode:LinkableString = new LinkableString(InteractionController.SELECTION_MODE_RECTANGLE, verifySelectionMode);
+		
+		private function verifySelectionMode(value:String):Boolean { return InteractionController.enumSelectionMode().indexOf(value) >= 0; }
 		
 		public const enableSubsetsMenu:LinkableBoolean = new LinkableBoolean(true);// enable/disable Subsets Menu
 		public const enableCreateSubsets:LinkableBoolean = new LinkableBoolean(true);// enable/disable Create subset from selected records option
@@ -546,14 +541,6 @@ package weave
 		private function verifyWorkspaceMultiplier(value:Number):Boolean
 		{
 			return value >= 1 && value <= 4;
-		}
-		
-		private function verifySelectionMode(value:String):Boolean
-		{
-			if(value == InteractionController.RECTANGLE_SELECTION_MODE || value == InteractionController.CIRCULAR_SELECTION_MODE
-			|| value == InteractionController.LASSO_SELECTION_MODE)
-				return true;
-			else return false;
 		}
 		
 		public function get SecondaryKeyNumColumn_useGlobalMinMaxValues():LinkableBoolean { return SecondaryKeyNumColumn.useGlobalMinMaxValues; }

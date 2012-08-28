@@ -34,10 +34,9 @@
 	</mx:Script>
 	<mx:HBox>
 		<mx:Label text="Selection Mode"/>
-		<!--Add Lasso option when implemented -->
 		<mx:ComboBox 
-					 id="circularSelectionCheckbox"
-					 dataProvider="{[InteractionController.RECTANGLE_SELECTION_MODE,InteractionController.CIRCULAR_SELECTION_MODE]}"
+				 id="circularSelectionCheckbox"
+				 dataProvider="{InteractionController.enumSelectionMode()}"
 				 creationComplete="linkBindableProperty(Weave.properties.selectionMode, event.target, 'text')"/>
 	</mx:HBox>
 	<mx:CheckBox label='Show "Selected Records" tooltip'

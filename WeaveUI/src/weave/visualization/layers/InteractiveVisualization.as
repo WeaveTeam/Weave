@@ -537,7 +537,7 @@ package weave.visualization.layers
 			var height:Number = tempScreenBounds.getYCoverage();
 			
 			
-			if (Weave.properties.selectionMode.value == InteractionController.CIRCULAR_SELECTION_MODE)
+			if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
 			{
 				var direction:Number = -tempScreenBounds.getXDirection() || 1;
 				var thetaOffset:Number = Math.atan2(tempScreenBounds.getHeight(), tempScreenBounds.getWidth());
@@ -572,10 +572,11 @@ package weave.visualization.layers
 				}
 				_circleGeometry.setVertices(points);//set the geometry for making the query
 			}
-			else if (Weave.properties.selectionMode.value == InteractionController.RECTANGLE_SELECTION_MODE)
+			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
 			{
 				_dashedLine.drawRect(xStart, yStart, width, height, startCorner); // this draws onto the _selectionRectangleCanvas.graphics
-			}else if(Weave.properties.selectionMode.value == InteractionController.LASSO_SELECTION_MODE)
+			}
+			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_LASSO)
 			{
 				// init temp bounds for reprojecting coordinates
 				zoomBounds.getDataBounds(tempDataBounds);
@@ -591,9 +592,10 @@ package weave.visualization.layers
 					_lassoScreenPoints.push(_lastLassoPoint.clone());
 				}
 				
+				fillPolygon(g, _dashedLine.lineColor, 0.05, _lassoScreenPoints);
+				
 				//this array will store all the data points and used to set the vertices in the _lassoGeometry
 				var lassoDataPoints:Array =[];
-				g.beginFill(0x000000,0.2);
 				for (var k:int = 0; k< _lassoScreenPoints.length +1; k++)
 				{
 					if(k==0)
@@ -611,10 +613,26 @@ package weave.visualization.layers
 					tempScreenBounds.projectPointTo(tempDataPoint,tempDataBounds);
 					lassoDataPoints.push(tempDataPoint);
 				}
-				g.endFill();
 				_lassoGeometry.setVertices(lassoDataPoints);
 			}
-
+		}
+		
+		private function fillPolygon(graphics:Graphics, color:uint, alpha:Number, points:Array):void
+		{
+			graphics.lineStyle(0,0,0);
+			var n:int = points.length;
+			for (var i:int = 0; i <= n; i++)
+			{
+				var point:Point = points[i % n];
+				if (i == 0)
+				{
+					graphics.moveTo(point.x, point.y);
+					graphics.beginFill(color, alpha);
+				}
+				else
+					graphics.lineTo(point.x, point.y);
+			}
+			graphics.endFill();
 		}
 		
 		private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
@@ -758,15 +776,15 @@ package weave.visualization.layers
 				tempDataBounds.constrainBounds(queryBounds, false);
 				
 				var keys:Array = [];
-				if (Weave.properties.selectionMode.value == InteractionController.CIRCULAR_SELECTION_MODE)
+				if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
 				{
 					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_circleGeometry, minImportance, false);
 				}
-				else if (Weave.properties.selectionMode.value == InteractionController.RECTANGLE_SELECTION_MODE)
+				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
 				{
 					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
 				}
-				else if (Weave.properties.selectionMode.value == InteractionController.LASSO_SELECTION_MODE)
+				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_LASSO)
 				{
 					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_lassoGeometry, minImportance, false);
 				}

@@ -277,7 +277,7 @@ package weave.visualization.plotters
 				
 				// Disable geometry probing when we're in parallel coordinates (normalize) mode
 				// because line segment intersection means nothing in parallel coordinates.
-				if (Weave.properties.shouldEnableGeometryProbing() && !_normalize)
+				if (Weave.properties.enableGeometryProbing.value && !_normalize)
 				{
 					if (i < _columns.length - 1)
 					{
