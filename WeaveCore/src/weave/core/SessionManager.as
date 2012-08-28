@@ -57,6 +57,8 @@ package weave.core
 	 */
 	public class SessionManager implements ISessionManager
 	{
+		public static var debugBusyTasks:Boolean = false;
+		
 		/**
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
 		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed of.
@@ -663,8 +665,8 @@ package weave.core
 		 */
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
-			//if (debug)
-				_dTaskStackTrace[taskToken] = new Error("Assign busy task").getStackTrace();
+			if (debugBusyTasks)
+				_dTaskStackTrace[taskToken] = new Error("Stack trace").getStackTrace();
 			
 			if (taskToken is AsyncToken)
 				(taskToken as AsyncToken).addResponder(new AsyncResponder(unassignAsyncToken, unassignAsyncToken, taskToken));
@@ -709,8 +711,11 @@ package weave.core
 				// if the object is assigned a task, it's busy
 				for (var task:Object in _d2dOwnerTask.dictionary[linkableObject])
 				{
-					var stackTrace:String = _dTaskStackTrace[task];
-					trace(stackTrace);
+					if (debugBusyTasks)
+					{
+						var stackTrace:String = _dTaskStackTrace[task];
+						trace(stackTrace);
+					}
 					busy = true;
 					break outerLoop;
 				}
