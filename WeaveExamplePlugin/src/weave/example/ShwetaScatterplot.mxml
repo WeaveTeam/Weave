@@ -26,6 +26,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.api.data.IColumnStatistics;
 			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
@@ -87,10 +88,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var drawingPt:Point = new Point();
 				var r:Number = 5;
 				
-				var minX:Number = WeaveAPI.StatisticsCache.getMin(xData);
-				var maxX:Number = WeaveAPI.StatisticsCache.getMax(xData);
-				var minY:Number = WeaveAPI.StatisticsCache.getMin(yData);
-				var maxY:Number = WeaveAPI.StatisticsCache.getMax(yData);
+				var minX:Number = WeaveAPI.StatisticsCache.getColumnStatistics(xData).getMin();
+				var maxX:Number = WeaveAPI.StatisticsCache.getColumnStatistics(xData).getMax();
+				var minY:Number = WeaveAPI.StatisticsCache.getColumnStatistics(yData).getMin();
+				var maxY:Number = WeaveAPI.StatisticsCache.getColumnStatistics(yData).getMax();
 				can.graphics.clear();
 				
 				var dataBounds:Bounds2D = new Bounds2D(minX, minY, maxX, maxY);

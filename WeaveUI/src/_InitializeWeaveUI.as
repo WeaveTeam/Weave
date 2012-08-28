@@ -125,7 +125,7 @@ package
 		
 		EditorManager.registerEditor(ColorRamp, ColorRampEditor);
 //		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
-		EditorManager.registerEditor(RadVizTool, RadVizToolEditor);
+        EditorManager.registerEditor(RadVizTool, RadVizToolEditor);
 		
 		EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
 		

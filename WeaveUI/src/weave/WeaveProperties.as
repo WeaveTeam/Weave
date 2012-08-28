@@ -55,6 +55,7 @@ package weave
 	import weave.ui.JRITextEditor;
 	import weave.ui.RTextEditor;
 	import weave.ui.userControls.SchafersMissingDataTool;
+	import weave.ui.userControls.DataStatisticsTool;
 	import weave.utils.CSSUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.NumberUtils;
@@ -255,6 +256,7 @@ package weave
 				[enableAddRamachandranPlot, RamachandranPlotTool],
 				[enableAddScatterplot, ScatterPlotTool],
 				[enableAddSchafersMissingDataTool, SchafersMissingDataTool],
+				[enableAddDataStatisticsTool, DataStatisticsTool],
 				[enableAddThermometerTool, ThermometerTool],
 				[enableAddTimeSliderTool, TimeSliderTool],
 				[enableAddDataTable, TransposedTableTool],
@@ -273,6 +275,7 @@ package weave
 		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
 		public const enableAddCustomTool:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddSchafersMissingDataTool:LinkableBoolean = new LinkableBoolean(true);
+		public const enableAddDataStatisticsTool:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddDataTable:LinkableBoolean = new LinkableBoolean(true); // Add Data Table option tools menu
 		public const enableAddGaugeTool:LinkableBoolean = new LinkableBoolean(true); // Add Gauge Tool option tools menu
 		public const enableAddHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Histogram option tools menu

@@ -18,6 +18,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+@ kmanohar
+@ spurushe
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
@@ -30,6 +33,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import mx.core.UIComponent;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -40,16 +46,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
+			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
+			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
+			import weave.data.KeySets.KeySet;
 			import weave.primitives.Bounds2D;
 			import weave.primitives.ColorRamp;
+			import weave.radviz.ClassDiscriminationLayoutAlgorithm;
+			import weave.services.DelayedAsyncResponder;
+			import weave.services.WeaveRServlet;
+			import weave.services.beans.RResult;
 			import weave.ui.DraggablePanel;
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
 			import weave.utils.EditorManager;
+			import weave.utils.ResultUtils;
 			import weave.utils.SpatialIndex;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.plotters.AnchorPlotter;
@@ -59,9 +75,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			WeaveAPI.registerImplementation(IVisTool, RadVizTool, "RadViz");
 			
 			[Bindable]
-			internal var _plotter:RadVizPlotter ;
-			internal var _anchorPlotter:AnchorPlotter ;
+			public var _plotter:RadVizPlotter ;
+			public var _anchorPlotter:AnchorPlotter ;
 			private var _anchorLayer:PlotLayer ;
+			public var normalizedColumns:Array = new Array();//normalized columns returned from R
+			public const classDiscriminatorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);//column used as the Class Discriminator
+			public var cdLayout:ClassDiscriminationLayoutAlgorithm= new ClassDiscriminationLayoutAlgorithm();
+			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
+			//public var colObjects:Array;
+			public var columnNames:Array = new Array();
+			
 			
 			override protected function constructor():void
 			{
@@ -85,6 +108,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(columnsToInit.length > 0)
 					(initColumnDefaults as Function).apply(null, columnsToInit);
 				
+				
 				_plotter.setAnchorLocations();
 				_anchorLayer = visualization.layers.requestObject("anchorLayer", PlotLayer, true );
 				_anchorPlotter = _anchorLayer.getDynamicPlotter().requestLocalObject(AnchorPlotter, true) ;
@@ -101,6 +125,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.childrenCreated();
 				
 				plotLayer.rawChildren.addChild(probeSprite);
+				_plotter.columns.addImmediateCallback(this, normalizationInR);
+				classDiscriminatorColumn.addImmediateCallback(this, getColumnNames);
+				
 			}
 			
 			private var tempBounds:Bounds2D = new Bounds2D();
@@ -114,6 +141,104 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var enableAutoZoom:Boolean;
 			
 			private var probeSprite:Sprite = new Sprite() ;			
+			
+			
+			private function getColumnNames():void
+			{
+				var colObjectss:Array = _plotter.columns.getObjects();
+				for(var h:int = 0; h < colObjectss.length; h ++)
+				{
+					columnNames[h] = ColumnUtils.getTitle(colObjectss[h] as IAttributeColumn);
+				}
+			}
+			
+			private function joinColumns(columns:Array):Array
+			{
+				var selection:KeySet = Weave.defaultSelectionKeySet;
+				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
+				var result:Array = ColumnUtils.joinColumns(columns, Number, false, keys);
+				return [result.shift(), result];
+			}
+			
+			/**this function sends the data in the form of a matrix for normalization in R*/
+			private function normalizationInR():void
+			{
+				if (WeaveAPI.SessionManager.linkableObjectIsBusy(_plotter.columns))
+					return;
+				
+				var columns:Array = _plotter.columns.getObjects();
+				var inputValues:Array = new Array(); var inputNames:Array;
+				inputNames = ["mymatrix"];
+				var outputNames:Array = ["normOutput"];
+				var script:String = "frame <- data.frame(mymatrix)\n" +
+					"donorm <- function(frame){\n" +
+					"RR <- nrow(frame)\n"+
+					"CC <- ncol(frame)\n"+
+					"for (z in 1:CC){\n"+
+					"maxr <- max(frame[z])\n"+
+					"minr <- min(frame[z])\n"+
+					"for(i in 1:RR){\n"+
+					" frame[i,z] <- (frame[i,z] - minr) / (maxr - minr)\n"+
+					" }\n"+
+					"}\n"+
+					"frame\n"+
+					"}\n"+
+					"normOutput <- donorm(frame)\n";
+				
+				var result:Array = joinColumns(columns);
+				var joinedColumnsKeys:Array = result[0];
+				var joinedColumns:Array = result[1];
+				
+				
+				inputValues.push(joinedColumns); 
+				var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
+				DelayedAsyncResponder.addResponder(query, handleNormScriptResult, handleRunScriptFault,joinedColumnsKeys);
+			} 
+			
+			
+			/** Returns the normalized dataset */
+			private function handleNormScriptResult(event:ResultEvent, token:Object = null):void
+			{
+				var colObjects:Array = _plotter.columns.getObjects();//user selected columns
+				var temRObjects:Array = new Array();
+				//Object to stored returned result - Which is array of object{name: , value: }
+				var Robj:Array = event.result as Array;				
+				
+				if (Robj == null)
+				{
+					reportError("R Servlet did not return an Array of results as expected.");
+					return;
+				}
+				
+				//collecting Objects of type RResult(Should Match result object from Java side)
+				for (var i:int = 0; i < (event.result).length; i++)
+				{
+					if (Robj[i] == null)
+					{
+						trace("WARNING! R Service returned null in results array at index "+i);
+						continue;
+					}
+					var rResult:RResult = new RResult(Robj[i]);
+					temRObjects = (rResult.value) as Array;
+					
+				}	
+				
+				for (var j:int = 0 ; j < temRObjects.length; j++)
+				{
+					normalizedColumns.push(ResultUtils.resultAsNumberColumn(token,temRObjects[j],columnNames[j]+"norm"));
+				}
+				
+				cdLayout.fillingClassToColumnMap(classDiscriminatorColumn,colObjects,columnNames,normalizedColumns);
+				_plotter.doCDLayout = true;
+				_plotter.LayoutClasses = cdLayout.tAndpMapping;
+				
+			}
+			
+			private function handleRunScriptFault(event:FaultEvent, token:Object = null):void
+			{
+				trace(["fault", token, event.message].join('\n'));
+				reportError(event);
+			}
 			
 			private function drawProbeLines():void
 			{ 
@@ -232,6 +357,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
 			}
+			
+			
+			
 		]]>
 	</mx:Script>
 

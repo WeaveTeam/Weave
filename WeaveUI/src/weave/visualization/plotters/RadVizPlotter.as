@@ -189,6 +189,8 @@ package weave.visualization.plotters
 						i++;
 					}					
 					keyGlobalNormMap[k] = keyNormArray;
+					trace('a',keyGlobalNormMap[k]);
+					trace(keyNormMap[k]);
 				}
 			}
 			else
@@ -204,21 +206,66 @@ package weave.visualization.plotters
 			}
 		}
 		
-		public function setAnchorLocations():void
-		{			
-			_columns = columns.getObjects(IAttributeColumn);
-			var theta:Number = (2*Math.PI)/_columns.length;
-			var anchor:AnchorPoint;
-			anchors.delayCallbacks();
-			anchors.removeAllObjects();
-			for( var i:int = 0; i < _columns.length; i++ )
+		public var doCDLayout:Boolean = false;
+		public var LayoutClasses:Dictionary = null;
+		
+		public function setAnchorLocations( ):void
+		{	
+			if(!doCDLayout)
 			{
-				anchor = anchors.requestObject(columns.getName(_columns[i]), AnchorPoint, false) as AnchorPoint ;								
-				anchor.x.value = Math.cos(theta*i);
-				anchor.y.value = Math.sin(theta*i);	
-				anchor.title.value = ColumnUtils.getTitle(_columns[i]);
+				_columns = columns.getObjects(IAttributeColumn);
+				var theta:Number = (2*Math.PI)/_columns.length;
+				var anchor:AnchorPoint;
+				anchors.delayCallbacks();
+				anchors.removeAllObjects();
+				for( var i:int = 0; i < _columns.length; i++ )
+				{
+					anchor = anchors.requestObject(columns.getName(_columns[i]), AnchorPoint, false) as AnchorPoint ;								
+					anchor.x.value = Math.cos(theta*i);
+					trace(anchor.x.value);
+					anchor.y.value = Math.sin(theta*i);	
+					trace(anchor.y.value);
+					anchor.title.value = ColumnUtils.getTitle(_columns[i]);
+				}
+				anchors.resumeCallbacks();
 			}
-			anchors.resumeCallbacks();
+			//if true do CdLayout algorithm
+			else
+			{
+				var numOfClasses:int = 0;
+				for ( var type:Object in LayoutClasses)
+				{
+					numOfClasses++;
+				}
+				anchors.delayCallbacks();
+				anchors.removeAllObjects();
+				var classTheta:Number = (2*Math.PI)/(numOfClasses);
+				
+				var classIncrementor:Number = 0;
+				for( var cdtype:Object in LayoutClasses)
+				{
+					var cdAnchor:AnchorPoint;
+					
+					var colNames:Array = (LayoutClasses[cdtype] as Array);
+					var numOfDivs:int = colNames.length + 1;
+					var columnTheta:Number = classTheta /numOfDivs;//needed for equidistant spacing of columns
+					var currentClassPos:Number = classTheta * classIncrementor;
+					
+					//for drawing on the first division and not the 0th, we begin the loop with 1
+					for( var columnIncrementor :int = 1; columnIncrementor < numOfDivs; columnIncrementor++)
+					{
+						cdAnchor = anchors.requestObject(colNames[columnIncrementor], AnchorPoint, false) as AnchorPoint;
+						cdAnchor.x.value  = Math.cos(currentClassPos + (columnTheta * columnIncrementor));
+						cdAnchor.y.value = Math.sin(currentClassPos + (columnTheta * columnIncrementor));
+						cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[columnIncrementor]) as IAttributeColumn);
+					}
+					
+					classIncrementor++;
+				}
+				
+				anchors.resumeCallbacks();
+			
+			}
 		}			
 				
 		/**

@@ -29,6 +29,7 @@ import javax.script.ScriptException;
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
 import org.rosuda.REngine.REXPInteger;
+import org.rosuda.REngine.REXPList;
 import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
@@ -142,7 +143,12 @@ public class RServiceUsingRserve
 				// handle 2-d matrix
 				RList rList = new RList();
 				for (Object item : array)
-					rList.add(item);
+					rList.add(getREXP(item));
+				try {
+					return REXP.createDataFrame(rList);
+				} catch (REXPMismatchException e) {
+					throw new RemoteException("Failed to Create Dataframe",e);
+				}
 			}
 			else if (array[0] instanceof String)
 			{
@@ -352,7 +358,6 @@ public class RServiceUsingRserve
 		try {
 			rConnection.assign("clusternumber", noOfClusters);
 		} catch (REngineException e1) {
-			// TODO Auto-generated catch block
 			throw new RemoteException ("",e1);
 			
 		}
@@ -545,6 +550,7 @@ public class RServiceUsingRserve
 		}
 		return hclresult;
 	}
+
 
 	//this function does not take in a script from the as3 side for imputation, but the script is built in
 	public static RResult[] handlingMissingData(String[] inputNames, Object[][] inputValues, String[] outputNames, boolean showIntermediateResults, boolean showWarnings, boolean completeProcess) throws Exception

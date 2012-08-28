@@ -26,9 +26,12 @@ package weave.utils
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.data.AttributeColumns.CSVColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.data.AttributeColumns.NumberColumn;
+	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.KeySets.KeySet;
 	
 	public class ResultUtils
@@ -93,6 +96,14 @@ package weave.utils
 				}
 			}
 			return arrayColl;			
+		}
+		
+		public static function resultAsNumberColumn( keys:Object , column:Object,columName:String = ""):NumberColumn{
+			var numColumn:NumberColumn = new NumberColumn();
+			var keyVec:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keys);			
+			var dataVec:Vector.<Number> = Vector.<Number>(column);
+			numColumn.setRecords(keyVec, dataVec);
+			return numColumn;
 		}
 		
 	}
