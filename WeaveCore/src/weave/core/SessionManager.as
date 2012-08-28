@@ -643,10 +643,17 @@ package weave.core
 			}
 		}
 		
-		private const _d2dOwnerTask:Dictionary2D = new Dictionary2D(true, true);
-		private const _d2dTaskOwner:Dictionary2D = new Dictionary2D(true, true);
+		private const _dTaskStackTrace:Dictionary = new Dictionary(false);
+		private const _d2dOwnerTask:Dictionary2D = new Dictionary2D(true, false); // task cannot use weak pointer because it may be a function
+		private const _d2dTaskOwner:Dictionary2D = new Dictionary2D(false, true); // task cannot use weak pointer because it may be a function
 		private const _dBusyTraversal:Dictionary = new Dictionary(true); // ILinkableObject -> Boolean
 		private const _aBusyTraversal:Array = [];
+		
+		private function disposeBusyTaskPointers(disposedObject:ILinkableObject):void
+		{
+			_d2dOwnerTask.removeAllPrimary(disposedObject);
+			_d2dTaskOwner.removeAllSecondary(disposedObject);
+		}
 		
 		/**
 		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>
@@ -656,6 +663,9 @@ package weave.core
 		 */
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
+			//if (debug)
+				_dTaskStackTrace[taskToken] = new Error("Assign busy task").getStackTrace();
+			
 			if (taskToken is AsyncToken)
 				(taskToken as AsyncToken).addResponder(new AsyncResponder(unassignAsyncToken, unassignAsyncToken, taskToken));
 			
@@ -699,6 +709,8 @@ package weave.core
 				// if the object is assigned a task, it's busy
 				for (var task:Object in _d2dOwnerTask.dictionary[linkableObject])
 				{
+					var stackTrace:String = _dTaskStackTrace[task];
+					trace(stackTrace);
 					busy = true;
 					break outerLoop;
 				}
@@ -845,6 +857,9 @@ package weave.core
 			if (object != null && !_disposedObjectsMap[object])
 			{
 				_disposedObjectsMap[object] = true;
+				
+				// clean up pointers to busy tasks
+				disposeBusyTaskPointers(object as ILinkableObject);
 				
 				try
 				{
