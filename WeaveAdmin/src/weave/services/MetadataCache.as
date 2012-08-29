@@ -120,12 +120,12 @@ package weave.services
             /* Entity creation should usually impact root, so we'll invalidate root's cache entry and refetch. */
             function afterUpdate():void
             {
+                delete entity_childcache[-1];  /* Invalidate the root. */
                 fetch_children(-1, onComplete);
             }
             var meta:Object = {};
             meta["public"] = {title: label};
             AdminInterface.instance.addTag(meta, afterUpdate);
-            delete entity_childcache[-1];  /* Invalidate the root. */
         }
         public function delete_entity(id:int, onComplete:Function = null):void
         {

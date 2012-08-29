@@ -23,7 +23,7 @@ package weave.ui
         public function removeChildAt(parent:Object, child:Object, index:int, model:Object = null):Boolean
         {
             var parentEntity:EntityTreeNode = parent as EntityTreeNode;
-            if (parentEntity == null) 
+            if (parentEntity != null) 
                 parentEntity.remove_child(child._id);
             return parentEntity != null;
         }

@@ -68,11 +68,12 @@
         var meta:Object = {};
         meta["public"] = {title: name};
         */
-        function validate(obj:Object=null):void
+        function finish_add_tag(obj:Object=null):void
         {
-            tagTree.validateNow();
+            tagNameInput.text = "";
+            tagTree.reload();
         };
-        AdminInterface.instance.meta_cache.add_tag(name, validate);
+        AdminInterface.instance.meta_cache.add_tag(name, finish_add_tag);
         
     }
     public function selectionsChanged(event:ListEvent):void
@@ -110,9 +111,10 @@
                 // TODO: Add confirmation dialog
                 function deleteTagFunction():void
                 {
+                    // TODO: Regenerate the list.
                     tagTree.etn_root.remove_child(item.id);
                     item.remove_self();
-                    tagTree.validateNow();
+                    tagTree.reload();
                 }
             }
             else

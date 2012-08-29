@@ -182,10 +182,10 @@ public class SQLConfig
         }
         public void removeEntity(Integer id) throws RemoteException
         {
-            manifest.removeEntry(id);
             /* Need to delete all attributeColumns which are children of a table. */
             if (getEntity(id).type == ISQLConfig.DataEntity.MAN_TYPE_DATATABLE)
                 removeChildren(id);
+            manifest.removeEntry(id);
             relationships.purge(id);
             public_attributes.clearId(id);
             private_attributes.clearId(id);
@@ -258,13 +258,16 @@ public class SQLConfig
             Map<Integer,Integer> typeresults = manifest.getEntryTypes(ids);
             Map<Integer,Map<String,String>> publicresults = public_attributes.getProperties(ids);
             Map<Integer,Map<String,String>> privateresults = private_attributes.getProperties(ids);
+            if (typeresults == null) return results;
             for (Integer id : ids)
             {
+                Integer type = typeresults.get(id);
+                if (type == null) continue;
                 DataEntity tmp = new DataEntity();
-                tmp.id = id;
-                tmp.publicMetadata = publicresults == null ? null : publicresults.get(id);
-                tmp.privateMetadata = privateresults == null ? null : privateresults.get(id);
-                tmp.type = typeresults.get(id);
+                tmp.id = id; 
+                tmp.type = type;
+                tmp.publicMetadata = publicresults.get(id);
+                tmp.privateMetadata = privateresults.get(id);
                 results.add(tmp);
             }
             return results;
