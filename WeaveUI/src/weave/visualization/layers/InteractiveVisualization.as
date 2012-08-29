@@ -336,7 +336,8 @@ package weave.visualization.layers
 					// IMPORTANT: for speed, use the current mouse coordinates instead of the event coordinates
 					mouseDragStageCoords.setMaxCoords(stage.mouseX, stage.mouseY);
 				}
-				updateSelectionCoords();
+				if (isModeSelection(_mouseMode))
+					updateSelectionCoords();
 			}
 			else // not dragging -- ok to update mouse mode
 			{
@@ -479,9 +480,12 @@ package weave.visualization.layers
 		
 		protected function updateSelectionCoords(reset:Boolean = false):void
 		{
-			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
+			if (!isModeSelection(_mouseMode))
+				return;
 			
+			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
 			var localMaxPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+			
 			if (reset || _lassoScreenPoints.length == 0)
 			{
 				mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
@@ -531,12 +535,10 @@ package weave.visualization.layers
 			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
 			var localMaxPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
 			
-			tempScreenBounds.setMinPoint(localMinPoint);
-			tempScreenBounds.setMaxPoint(localMaxPoint);
-			var dragX:Number = tempScreenBounds.getXMin();
-			var dragY:Number = tempScreenBounds.getYMin();
-			var dragWidth:Number = tempScreenBounds.getWidth();
-			var dragHeight:Number = tempScreenBounds.getHeight();
+			var dragX:Number = localMinPoint.x;
+			var dragY:Number = localMinPoint.y;
+			var dragWidth:Number = localMaxPoint.x - localMinPoint.x;
+			var dragHeight:Number = localMaxPoint.y - localMinPoint.y;
 			
 			// init temp bounds for reprojecting coordinates
 			zoomBounds.getDataBounds(tempDataBounds);
@@ -548,51 +550,61 @@ package weave.visualization.layers
 			}
 			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
 			{
-				var direction:Number = -mouseDragStageCoords.getXDirection() || 1;
-				var thetaOffset:Number = Math.atan2(mouseDragStageCoords.getHeight(), mouseDragStageCoords.getWidth());
-				var radius:Number = Math.sqrt(dragWidth*dragWidth + dragHeight*dragHeight);
-				var points:Array = [];
-				
-				var segmentLength:Number = 8; // pixels
-				var segmentSpan:Number = segmentLength / radius; // radians
-				segmentSpan = Math.min(Math.PI / 4, segmentSpan); // maximum 45 degrees per segment
-				// draw the segments
-				var segmentCount:Number = Math.ceil(Math.PI * 2 / segmentSpan);
-				segmentCount = Math.min(64, segmentCount);
-				
-				for (var i:int = 0; i < segmentCount + 1; i++)
+				var coords:Array = getCircleLocalScreenCoords();
+				for (var i:int = 0; i <= coords.length; i++)
 				{
-					var theta:Number = direction * i * 2 * Math.PI / segmentCount + thetaOffset;
-					var circleX:Number = dragX + radius * Math.cos(theta); // center a + radius x * cos(theta)
-					var circleY:Number = dragY + radius * Math.sin(theta); // center b + radius y * sin(theta)
+					var point:Point = coords[i % coords.length];
 					if (i == 0)
-						_dashedLine.moveTo(circleX, circleY);
+						_dashedLine.moveTo(point.x, point.y);
 					else
-						_dashedLine.lineTo(circleX, circleY);
-					
-					var currPoint:Point = new Point(circleX, circleY);
-					tempScreenBounds.projectPointTo(currPoint, tempDataBounds);
-					points.push(currPoint);
+						_dashedLine.lineTo(point.x, point.y);
 				}
-				_selectionGeometry.setVertices(points);//set the geometry for making the query
 			}
 			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_LASSO)
 			{
 				fillPolygon(g, _dashedLine.lineColor, 0.05, _lassoScreenPoints);
 				
-				for (var k:int = 0; k < _lassoScreenPoints.length + 1; k++)
+				for (var k:int = 0; k <= _lassoScreenPoints.length; k++)
 				{
+					var kp:Point = _lassoScreenPoints[k % _lassoScreenPoints.length];
 					if (k == 0)
-						_dashedLine.moveTo(_lassoScreenPoints[k].x, _lassoScreenPoints[k].y);
-					else if (k == _lassoScreenPoints.length)
-					{
-						_dashedLine.lineTo(_lassoScreenPoints[0].x, _lassoScreenPoints[0].y);//closing the lasso
-						break;
-					}
+						_dashedLine.moveTo(kp.x, kp.y);
 					else
-						_dashedLine.lineTo(_lassoScreenPoints[k].x, _lassoScreenPoints[k].y);
+						_dashedLine.lineTo(kp.x, kp.y);
 				}
 			}
+		}
+		
+		private function getCircleLocalScreenCoords():Array
+		{
+			mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
+			var localMinPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
+			var localMaxPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+			
+			var dragWidth:Number = localMaxPoint.x - localMinPoint.x;
+			var dragHeight:Number = localMaxPoint.y - localMinPoint.y;
+
+			var direction:Number = -mouseDragStageCoords.getXDirection() || 1;
+			var thetaOffset:Number = Math.atan2(dragHeight, dragWidth);
+			var radius:Number = Math.sqrt(dragWidth*dragWidth + dragHeight*dragHeight);
+			
+			const segmentLength:Number = 8; // pixels
+			var segmentSpan:Number = segmentLength / radius; // radians
+			segmentSpan = Math.min(Math.PI / 4, segmentSpan); // maximum 45 degrees per segment
+			// draw the segments
+			var segmentCount:Number = Math.ceil(Math.PI * 2 / segmentSpan);
+			segmentCount = Math.min(64, segmentCount);
+			
+			var result:Array = [];
+			for (var i:int = 0; i < segmentCount + 1; i++)
+			{
+				var theta:Number = direction * i * 2 * Math.PI / segmentCount + thetaOffset;
+				var _x:Number = localMinPoint.x + radius * Math.cos(theta); // center a + radius x * cos(theta)
+				var _y:Number = localMinPoint.y + radius * Math.sin(theta); // center b + radius y * sin(theta)
+				result.push(new Point(_x, _y));
+			}
+			return result;
 		}
 		
 		private function fillPolygon(graphics:Graphics, color:uint, alpha:Number, points:Array):void
@@ -760,7 +772,11 @@ package weave.visualization.layers
 				}
 				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
 				{
-					//TODO - set geom coords here
+					var coords:Array = getCircleLocalScreenCoords();
+					for each (var point:Point in coords)
+						tempScreenBounds.projectPointTo(point, tempDataBounds);
+					_selectionGeometry.setVertices(coords);
+					
 					keys = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlapGeometry(_selectionGeometry, minImportance, false);
 				}
 				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_LASSO)
