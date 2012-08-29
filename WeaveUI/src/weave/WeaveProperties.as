@@ -305,13 +305,6 @@ package weave
 		public function get geometryMetadataRequestMode():LinkableString { return StreamedGeometryColumn.metadataRequestMode; }
 		public function get geometryMinimumScreenArea():LinkableNumber { return StreamedGeometryColumn.geometryMinimumScreenArea; }
 		
-		public function shouldEnableGeometryProbing():Boolean
-		{
-			// disable detailed geometry probing while there are background tasks
-			return enableGeometryProbing.value
-				&& WeaveAPI.ProgressIndicator.getTaskCount() == 0;
-		}
-		
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const showSessionHistoryControls:LinkableBoolean = new LinkableBoolean(true); // show session history controls inside Weave interface
 
@@ -351,7 +344,9 @@ package weave
 		public const enableClearCurrentSelection:LinkableBoolean = new LinkableBoolean(true);// enable/disable Clear Current Selection option
 		public const enableManageSavedSelections:LinkableBoolean = new LinkableBoolean(true);// enable/disable Manage Saved Selections option
 		public const enableSelectionSelectorBox:LinkableBoolean = new LinkableBoolean(true); //enable/disable SelectionSelector option
-		public const enableCircularSelection:LinkableBoolean = new LinkableBoolean(false);//enable making selection by drawing circle
+		public const selectionMode:LinkableString = new LinkableString(InteractionController.SELECTION_MODE_RECTANGLE, verifySelectionMode);
+		
+		private function verifySelectionMode(value:String):Boolean { return InteractionController.enumSelectionMode().indexOf(value) >= 0; }
 		
 		public const enableSubsetsMenu:LinkableBoolean = new LinkableBoolean(true);// enable/disable Subsets Menu
 		public const enableCreateSubsets:LinkableBoolean = new LinkableBoolean(true);// enable/disable Create subset from selected records option
@@ -361,16 +356,15 @@ package weave
 		public const enableManageSavedSubsets:LinkableBoolean = new LinkableBoolean(true);// enable/disable Manage saved subsets option
 		public const enableSubsetSelectionBox:LinkableBoolean = new LinkableBoolean(true);// enable/disable Subset Selection Combo Box option
 		public const enableAddDataSource:LinkableBoolean = new LinkableBoolean(true);// enable/disable Manage saved subsets option
-		public const enableAutoSave:LinkableBoolean = new LinkableBoolean(true);
 		public const enableEditDataSource:LinkableBoolean = new LinkableBoolean(true);
 		public const enableNewDataset:LinkableBoolean = new LinkableBoolean(true); // enable/disable New Dataset option
 		public const enableAddWeaveDataSource:LinkableBoolean = new LinkableBoolean(true); // enable/disable Add WeaveDataSource option
+		
 		
 		public const dashboardMode:LinkableBoolean = new LinkableBoolean(false);	 // enable/disable borders/titleBar on windows
 		public const enableToolControls:LinkableBoolean = new LinkableBoolean(true); // enable tool controls (which enables attribute selector too)
 		public const enableAxisToolTips:LinkableBoolean = new LinkableBoolean(true);
 		
-		public const enableInfoMap:LinkableBoolean = new LinkableBoolean(true);//enable/disable InfoMap
 		public const enableAboutMenu:LinkableBoolean = new LinkableBoolean(true); //enable/disable About Menu
 		
 		public const showKeyTypeInColumnTitle:LinkableBoolean = new LinkableBoolean(false);
@@ -384,18 +378,22 @@ package weave
 		public const selectionAlphaAmount:LinkableNumber    = new LinkableNumber(0.5, verifyAlpha);
 		
 		//selection location information
-		public static const selectionLocationMode:LinkableString = new LinkableString(SELECTION_LOCATION_LOWER_LEFT, verifyLocationMode);
+		public const recordsTooltipLocation:LinkableString = new LinkableString(RECORDS_TOOLTIP_LOWER_LEFT, verifyLocationMode);
 		
-		public static const SELECTION_LOCATION_LOWER_LEFT:String = 'Lower left';
-		public static const SELECTION_LOCATION_LOWER_RIGHT:String = 'Lower right';
-		public static function get selectionLocationEnum():Array
+		//infomap properties
+		public const enableAutoSave:LinkableBoolean = new LinkableBoolean(false);
+		public const enableInfoMap:LinkableBoolean = new LinkableBoolean(true);
+		
+		public static const RECORDS_TOOLTIP_LOWER_LEFT:String = 'Lower left';
+		public static const RECORDS_TOOLTIP_LOWER_RIGHT:String = 'Lower right';
+		public function get recordsTooltipEnum():Array
 		{
-			return [SELECTION_LOCATION_LOWER_LEFT, SELECTION_LOCATION_LOWER_RIGHT];
+			return [RECORDS_TOOLTIP_LOWER_LEFT, RECORDS_TOOLTIP_LOWER_RIGHT];
 		}
 		
-		private static function verifyLocationMode(value:String):Boolean
+		private function verifyLocationMode(value:String):Boolean
 		{
-			return selectionLocationEnum.indexOf(value) >= 0;
+			return recordsTooltipEnum.indexOf(value) >= 0;
 		}
 		
 		/**

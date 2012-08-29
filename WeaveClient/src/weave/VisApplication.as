@@ -96,7 +96,6 @@ package weave
 	import weave.ui.ProbeToolTipWindow;
 	import weave.ui.QuickMenuPanel;
 	import weave.ui.SelectionManager;
-	import weave.ui.SelectionLocation;
 	import weave.ui.SessionStateEditor;
 	import weave.ui.SubsetManager;
 	import weave.ui.TranslationPanel;
@@ -413,17 +412,17 @@ package weave
 				}
 				if (show)
 				{
-					if (visDesktop != _selectionIndicatorText.parent){
+					if (visDesktop != _selectionIndicatorText.parent)
 						visDesktop.addChild(_selectionIndicatorText);
-						if( SelectionLocation.selectionLocationMode.value == SelectionLocation.SELECTION_LOCATION_LOWER_LEFT ){
-							_selectionIndicatorText.setStyle( "left", 0 ) ;
-							_selectionIndicatorText.setStyle( "right", null ) ;
-						}
-						else if( SelectionLocation.selectionLocationMode.value == SelectionLocation.SELECTION_LOCATION_LOWER_RIGHT ){
-							_selectionIndicatorText.setStyle( "right", 0 ) ;
-							_selectionIndicatorText.setStyle( "left", null ) ;
-						}	
+						
+					if( Weave.properties.recordsTooltipLocation.value == WeaveProperties.RECORDS_TOOLTIP_LOWER_LEFT ){
+						_selectionIndicatorText.setStyle( "left", 0 ) ;
+						_selectionIndicatorText.setStyle( "right", null ) ;
 					}
+					else if( Weave.properties.recordsTooltipLocation.value == WeaveProperties.RECORDS_TOOLTIP_LOWER_RIGHT ){
+						_selectionIndicatorText.setStyle( "right", 0 ) ;
+						_selectionIndicatorText.setStyle( "left", null ) ;
+					}	
 				}
 				else
 				{
@@ -456,6 +455,8 @@ package weave
 			// Code for selection indicator
 			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
 			Weave.properties.showSelectedRecordsText.addGroupedCallback(this, handleSelectionChange, true);
+			Weave.properties.recordsTooltipLocation.addGroupedCallback(this, handleSelectionChange, true);
+			
 			_selectionIndicatorText.setStyle("color", 0xFFFFFF);
 			_selectionIndicatorText.opaqueBackground = 0x000000;
 			_selectionIndicatorText.setStyle("bottom", 0);

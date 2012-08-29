@@ -200,7 +200,7 @@ package weave.visualization.plotters
 		public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
 			// default behavior - no asynchronous rendering
-			drawPlot(task.recordKeys, task.dataBounds, task.screenBounds, task.destination);
+			drawPlot(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
 			return 1;
 		}
 		

@@ -61,7 +61,8 @@ package weave
 	{
 		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 		
-		public static var ALLOW_PLUGINS:Boolean = true; // TEMPORARY
+		public static var ALLOW_PLUGINS:Boolean = false; // TEMPORARY
+
 		public static var debug:Boolean = false;
 		
 		
@@ -358,7 +359,16 @@ package weave
 			else if (content)
 			{
 				if (content is ByteArray)
-					content = new WeaveArchive(content as ByteArray);
+				{
+					try
+					{
+						content = new WeaveArchive(content as ByteArray);
+					}
+					catch (e:Error)
+					{
+						throw new Error("Invalid Weave session state.");
+					}
+				}
 				
 				var archive:WeaveArchive = content as WeaveArchive;
 				var _history:Object = archive.objects[ARCHIVE_HISTORY_AMF];

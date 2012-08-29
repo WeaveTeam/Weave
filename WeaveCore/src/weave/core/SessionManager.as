@@ -57,6 +57,8 @@ package weave.core
 	 */
 	public class SessionManager implements ISessionManager
 	{
+		public static var debugBusyTasks:Boolean = false;
+		
 		/**
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
 		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed of.
@@ -643,10 +645,17 @@ package weave.core
 			}
 		}
 		
-		private const _d2dOwnerTask:Dictionary2D = new Dictionary2D(true, true);
-		private const _d2dTaskOwner:Dictionary2D = new Dictionary2D(true, true);
+		private const _dTaskStackTrace:Dictionary = new Dictionary(false);
+		private const _d2dOwnerTask:Dictionary2D = new Dictionary2D(true, false); // task cannot use weak pointer because it may be a function
+		private const _d2dTaskOwner:Dictionary2D = new Dictionary2D(false, true); // task cannot use weak pointer because it may be a function
 		private const _dBusyTraversal:Dictionary = new Dictionary(true); // ILinkableObject -> Boolean
 		private const _aBusyTraversal:Array = [];
+		
+		private function disposeBusyTaskPointers(disposedObject:ILinkableObject):void
+		{
+			_d2dOwnerTask.removeAllPrimary(disposedObject);
+			_d2dTaskOwner.removeAllSecondary(disposedObject);
+		}
 		
 		/**
 		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>
@@ -656,6 +665,9 @@ package weave.core
 		 */
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
+			if (debugBusyTasks)
+				_dTaskStackTrace[taskToken] = new Error("Stack trace").getStackTrace();
+			
 			if (taskToken is AsyncToken)
 				(taskToken as AsyncToken).addResponder(new AsyncResponder(unassignAsyncToken, unassignAsyncToken, taskToken));
 			
@@ -699,6 +711,11 @@ package weave.core
 				// if the object is assigned a task, it's busy
 				for (var task:Object in _d2dOwnerTask.dictionary[linkableObject])
 				{
+					if (debugBusyTasks)
+					{
+						var stackTrace:String = _dTaskStackTrace[task];
+						trace(stackTrace);
+					}
 					busy = true;
 					break outerLoop;
 				}
@@ -845,6 +862,9 @@ package weave.core
 			if (object != null && !_disposedObjectsMap[object])
 			{
 				_disposedObjectsMap[object] = true;
+				
+				// clean up pointers to busy tasks
+				disposeBusyTaskPointers(object as ILinkableObject);
 				
 				try
 				{

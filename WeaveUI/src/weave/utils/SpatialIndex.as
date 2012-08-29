@@ -61,12 +61,12 @@ package weave.utils
 		private var _keyToBoundsMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of IBounds2D
 		private var _keyToGeometriesMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of GeneralizedGeometry or ISimpleGeometry
 		
-		private var _queryMissingBounds:Boolean; // used by _insertNext
-		private var _keysArrayIndex:int; // used by _insertNext
-		private var _keysIndex:int; // used by _insertNext
-		private var _plotter:IPlotter;//used by _insertNext
-		private var _boundsArrayIndex:int; // used by _insertNext
-		private var _boundsArray:Array; // used by _insertNext
+		private var _queryMissingBounds:Boolean; // used by async code
+		private var _keysArrayIndex:int; // used by async code
+		private var _keysIndex:int; // used by async code
+		private var _plotter:IPlotter;//used by async code
+		private var _boundsArrayIndex:int; // used by async code
+		private var _boundsArray:Array; // used by async code
 		
 		/**
 		 * These constants define indices in a KDKey corresponding to xmin,ymin,xmax,ymax,importance values.
@@ -350,7 +350,7 @@ package weave.utils
 			var keys:Array = getKeysBoundingBoxOverlap(queryBounds, filterBoundingBoxesByImportance ? minImportance : 0);
 			
 			// if this index isn't for an IPlotterWithGeometries OR the user wants legacy probing
-			if (_keyToGeometriesMap == null || !Weave.properties.shouldEnableGeometryProbing())
+			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value)
 				return keys;
 			
 			// if there are 0 keys
@@ -504,7 +504,7 @@ package weave.utils
 				var key:IQualifiedKey = keys[iKey];
 				var overlapsQueryCenter:Boolean = false;
 				var geoms:Array = null;
-				if (_keyToGeometriesMap && Weave.properties.shouldEnableGeometryProbing())
+				if (_keyToGeometriesMap && Weave.properties.enableGeometryProbing.value)
 					geoms = _keyToGeometriesMap[key] as Array; // may be null if async task hasn't completed
 				
 				if (geoms) // the plotter is an IPlotterWithGeometries and the user wants geometry probing
@@ -718,7 +718,7 @@ package weave.utils
 			var queryGeomVertices:Array = geometry.getVertices();
 			var keys:Array = getKeysBoundingBoxOverlap((geometry as SimpleGeometry).bounds, filterBoundingBoxesByImportance ? minImportance : 0);
 			
-			if (_keyToGeometriesMap == null || !Weave.properties.shouldEnableGeometryProbing())
+			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value)
 				return keys;
 			
 			var result:Array = [];
