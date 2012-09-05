@@ -355,8 +355,8 @@ package weave.services.collaboration
 				else if (log.length > 0)
 				{
 					var entry:Object = log[log.length - 1];
-					if( hasControl )
-						sendSessionStateDiff( entry.id, entry.forward );
+					//if( hasControl )
+					sendSessionStateDiff( entry.id, entry.forward );
 				}
 			}
 		}
