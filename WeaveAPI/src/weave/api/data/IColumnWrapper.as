@@ -29,6 +29,6 @@ package weave.api.data
 		/**
 		 * @return The internal column this object is a wrapper for.
 		 */
-		function get internalColumn():IAttributeColumn;
+		function getInternalColumn():IAttributeColumn;
 	}
 }

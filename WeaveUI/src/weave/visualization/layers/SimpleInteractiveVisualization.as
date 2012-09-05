@@ -46,7 +46,6 @@ package weave.visualization.layers
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
 	import weave.core.SessionManager;
-	import weave.core.weave_internal;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
@@ -56,8 +55,6 @@ package weave.visualization.layers
 	import weave.visualization.plotters.ProbeLinePlotter;
 	import weave.visualization.plotters.SimpleAxisPlotter;
 
-	use namespace weave_internal;
-	
 	/**
 	 * This is a container for a list of PlotLayers
 	 * 
@@ -70,22 +67,6 @@ package weave.visualization.layers
 			super();
 		}
 
-		public static const PROBE_LINE_LAYER_NAME:String = "probeLine";
-		public static const X_AXIS_LAYER_NAME:String = "xAxis";
-		public static const Y_AXIS_LAYER_NAME:String = "yAxis";
-		public static const PLOT_LAYER_NAME:String = "plot";
-		
-		private var _probeLineLayer:PlotLayer ;
-		private var _plotLayer:SelectablePlotLayer;
-		private var _xAxisLayer:AxisLayer;
-		private var _yAxisLayer:AxisLayer;
-
-		public function getProbeLineLayer():PlotLayer { return _probeLineLayer; }
-		public function getPlotLayer():SelectablePlotLayer { return _plotLayer; }
-		public function getXAxisLayer():AxisLayer { return _xAxisLayer; }
-		public function getYAxisLayer():AxisLayer { return _yAxisLayer; }
-		public function getDefaultPlotter():IPlotter { return _plotLayer ? _plotLayer.getDynamicPlotter().internalObject as IPlotter : null; }
-		
 		public const enableAutoZoomXToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
 		public const enableAutoZoomYToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
 		
@@ -96,6 +77,46 @@ package weave.visualization.layers
 		public const axesThickness:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const axesColor:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const axesAlpha:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		
+		public const bottomMarginClickCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
+		public const leftMarginClickCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
+		public const topMarginClickCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
+		public const rightMarginClickCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
+		
+		public static const PROBE_LINE_LAYER_NAME:String = "probeLine";
+		public static const X_AXIS_LAYER_NAME:String = "xAxis";
+		public static const Y_AXIS_LAYER_NAME:String = "yAxis";
+		public static const PLOT_LAYER_NAME:String = "plot";
+		
+		public var topMarginToolTip:String = null;
+		public var bottomMarginToolTip:String = null;
+		public var leftMarginToolTip:String = null;
+		public var rightMarginToolTip:String = null;
+		
+		public var topMarginColumn:IAttributeColumn = null;
+		public var bottomMarginColumn:IAttributeColumn = null;
+		public var leftMarginColumn:IAttributeColumn = null;
+		public var rightMarginColumn:IAttributeColumn = null;
+		
+		private var _probeLineLayer:PlotLayer ;
+		private var _plotLayer:SelectablePlotLayer;
+		private var _xAxisLayer:AxisLayer;
+		private var _yAxisLayer:AxisLayer;
+		private var _probePlotter:ProbeLinePlotter = null ;
+		private var _axisToolTip:IToolTip = null;
+		private var xToolTipEnabled:Boolean;
+		private var yToolTipEnabled:Boolean;
+		private var yAxisTooltip:IToolTip = null;
+		private var xAxisTooltip:IToolTip = null;
+		
+		private const tempPoint:Point = new Point(); // reusable temp object
+		private const tempBounds:Bounds2D = new Bounds2D();
+		
+		public function getProbeLineLayer():PlotLayer { return _probeLineLayer; }
+		public function getPlotLayer():SelectablePlotLayer { return _plotLayer; }
+		public function getXAxisLayer():AxisLayer { return _xAxisLayer; }
+		public function getYAxisLayer():AxisLayer { return _yAxisLayer; }
+		public function getDefaultPlotter():IPlotter { return _plotLayer ? _plotLayer.getDynamicPlotter().internalObject as IPlotter : null; }
 		
 		/**
 		 * @param mainPlotterClass The main plotter class definition.
@@ -152,13 +173,11 @@ package weave.visualization.layers
 					linkSessionState(var1, var0);
 				else
 					linkSessionState(var0, var1);
-				(WeaveAPI.SessionManager as SessionManager).removeLinkableChildFromSessionState(p, pair[1]);
+				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(p, pair[1]);
 			}
 			//(WeaveAPI.SessionManager as SessionManager).removeLinkableChildrenFromSessionState(p, p.axisLineDataBounds);
 		}
 
-		private var tempPoint:Point = new Point(); // reusable temp object
-		
 		/**
 		 * This function orders the layers from top to bottom in this order: 
 		 * probe (probe lines), plot, yAxis, xAxis
@@ -336,17 +355,6 @@ package weave.visualization.layers
 			return null;
 		}
 		
-		public var topMarginToolTip:String = null;
-		public var bottomMarginToolTip:String = null;
-		public var leftMarginToolTip:String = null;
-		public var rightMarginToolTip:String = null;
-		
-		public var topMarginColumn:IAttributeColumn = null;
-		public var bottomMarginColumn:IAttributeColumn = null;
-		public var leftMarginColumn:IAttributeColumn = null;
-		public var rightMarginColumn:IAttributeColumn = null;
-		
-		private var _axisToolTip:IToolTip = null;
 		override protected function handleMouseMove():void
 		{
 			super.handleMouseMove();
@@ -379,13 +387,13 @@ package weave.visualization.layers
 					if (theMargin && Weave.properties.enableToolControls.value)
 						CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
 					// if we should be creating a tooltip
-					if (axisColumn)
+					if (axisColumn && Weave.properties.enableAxisToolTips.value)
 					{
 						if (marginToolTip == null)
 						{
 							marginToolTip = ColumnUtils.getTitle(axisColumn);
 							marginToolTip += "\n Key type: "   + ColumnUtils.getKeyType(axisColumn);
-							marginToolTip += "\n # of records: " + WeaveAPI.StatisticsCache.getCount(axisColumn);
+							marginToolTip += "\n # of records: " + WeaveAPI.StatisticsCache.getColumnStatistics(axisColumn).getCount();
 							marginToolTip += "\n Data source: " + ColumnUtils.getDataSource(axisColumn);
 							if (Weave.properties.enableToolControls.value)
 								marginToolTip += "\n Click to select a different attribute.";
@@ -410,10 +418,6 @@ package weave.visualization.layers
 			}
 		}
 		
-		/**
-		 * a ProbeLinePlotter instance for the probe line layer 
-		 */		
-		private var _probePlotter:ProbeLinePlotter = null ;
 		
 		/**
 		 * This function should be called by a tool to initialize a probe line layer and its ProbeLinePlotter.
@@ -439,9 +443,6 @@ package weave.visualization.layers
 			this.yToolTipEnabled = yToolTipEnabled;
 			getCallbackCollection(_plotLayer.probeFilter).addImmediateCallback(this, updateProbeLines, false);
 		}
-		
-		private var xToolTipEnabled:Boolean;
-		private var yToolTipEnabled:Boolean;
 		
 		/**
 		 * Draws the probe lines using _probePlotter and the corresponding axes tooltips
@@ -645,15 +646,5 @@ package weave.visualization.layers
 				ProbeTextUtils.xAxisToolTip = xAxisTooltip = null;
 			}
 		}
-		
-		private var yAxisTooltip:IToolTip = null;
-		private var xAxisTooltip:IToolTip = null;
-		
-		public const bottomMarginClickCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
-		public const leftMarginClickCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
-		public const topMarginClickCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
-		public const rightMarginClickCallbacks:ICallbackCollection = newDisposableChild(this, CallbackCollection);
-		
-		private const tempBounds:Bounds2D = new Bounds2D();
 	}
 }

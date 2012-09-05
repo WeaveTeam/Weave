@@ -137,11 +137,11 @@
 			{
 				if(!_plotter.enableGroupBy.value) 
 					return;
-				if(!labelPlotter.text.internalColumn)
+				if(!labelPlotter.text.getInternalColumn())
 					return;
 				if(ColumnUtils.getKeyType(labelPlotter.text) != ColumnUtils.getKeyType(_plotter.xData))
 					return;
-				if(labelPlotter.text.internalColumn is EquationColumn)
+				if(labelPlotter.text.getInternalColumn() is EquationColumn)
 					return;
 				
 				var labelColumn:DynamicColumn = new DynamicColumn();
@@ -211,8 +211,6 @@
 				{
 					curveCheckBox.selected = _plotter.curveType.value == ParallelCoordinatesPlotter.CURVE_DOUBLE;
 				}
-				
-				visualization.getPlotLayer().backgroundIsVisible.addImmediateCallback(this, updateSelectionAndProbeOnlyCheckBox, true);
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -336,22 +334,12 @@
             	return int((value * 100)) + "% Opaque" + "\n" + int(100 - (value * 100)) + "% Transparent";
             }
 			
-			private function updateSelectionAndProbeOnlyCheckBox():void
-			{
-				selectionAndProbeOnlyCheckBox.selected = !visualization.getPlotLayer().backgroundIsVisible.value;
-			}
-			private function handleSelectionAndProbeOnlyCheckBox():void
-			{
-				visualization.getPlotLayer().backgroundIsVisible.value = !selectionAndProbeOnlyCheckBox.selected;
-			}
-			
 			private var labelPlotter:TextGlyphPlotter = null ;
 			private function addLabelLayer():void
 			{
 				var layer:SelectablePlotLayer = visualization.layers.requestObject("label", SelectablePlotLayer, true);
 				layer.layerIsSelectable.value = false;
 				layer.layerIsSelectable.lock();
-				linkSessionState(visualization.getPlotLayer().backgroundIsVisible, layer.backgroundIsVisible);
 				labelPlotter = layer.getDynamicPlotter().requestLocalObject(TextGlyphPlotter, true);
 				
 				_plotter.columns.addImmediateCallback(this, updateColumns, true);
@@ -393,7 +381,7 @@
 						repeat = isNaN(lastColumn.getValueFromKey(labelPlotter.dataY.keys[0], Number));
 				} while (labelPlotter.dataY.keys[0] == undefined || repeat );
 
-				if (labelPlotter.text.internalColumn == null)
+				if (labelPlotter.text.getInternalColumn() == null)
 				{
 					var headers:Array = ProbeTextUtils.probeHeaderColumns.getObjects();
 					for (var i:int = 0; i < headers.length; i++)
@@ -494,8 +482,6 @@
 				<mx:ColorPicker id="colorPicker" width="22" height="22"/>
 			</mx:HBox>
 
-			<mx:CheckBox id="selectionAndProbeOnlyCheckBox" label="Show selection &amp; probe only" 
-						 toolTip="" change="handleSelectionAndProbeOnlyCheckBox();"/>
 			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
 						 toolTip="Enables automatic zooming to the subset of data currently displayed"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>

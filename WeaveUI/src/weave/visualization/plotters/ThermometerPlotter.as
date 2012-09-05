@@ -62,21 +62,19 @@ package weave.visualization.plotters
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			//compute the meter value by averaging all record values
-			var meterValue:Number = 0, n:Number = recordKeys.length;
+			var meterValue:Number = 0;
+			var n:Number = recordKeys.length;
 			
-			if(n > 0){
-				if(n == 1)
-					meterValue = meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number)
-				else{
-					for (var i:int = 0; i < n; i++)//TODO handle missing values
-						meterValue += meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number);
-					meterValue /= n;
-				}
-				
+			for (var i:int = 0; i < n; i++)//TODO handle missing values
+				meterValue += meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number);
+			meterValue /= n;
+					
+			if (isFinite(meterValue))
+			{
 				//clear the graphics
 				var graphics:Graphics = tempShape.graphics;
 				graphics.clear();
-					
+				
 				//project bottom point
 				bottom.x = bottom.y = 0;
 				dataBounds.projectPointTo(bottom, screenBounds);
@@ -95,7 +93,6 @@ package weave.visualization.plotters
 				
 				destination.draw(tempShape);
 			}
-			
 		}
 		
 		/**
@@ -117,7 +114,7 @@ package weave.visualization.plotters
 			
 			//project data max top point
 			top.x = 0;
-			top.y = WeaveAPI.StatisticsCache.getMax(meterColumn);
+			top.y = meterColumnStats.getMax();
 			dataBounds.projectPointTo(top, screenBounds);
 			top.x += xOffset;
 			
@@ -126,9 +123,9 @@ package weave.visualization.plotters
 			graphics.moveTo(bottom.x, bottom.y+bulbRadius);
 			graphics.lineTo(top.x, top.y);
 				
-			//draw background red circle
+			//draw background circle
 			graphics.lineStyle(5,backgroundCenterLineColor);
-			graphics.beginFill(0xff0000);
+			graphics.beginFill(0xFF0000);
 			graphics.drawCircle(bottom.x,bottom.y+bulbRadius,bulbRadius);
 			graphics.endFill();
 			
@@ -142,12 +139,12 @@ package weave.visualization.plotters
 		 */
 		override public function getBackgroundDataBounds():IBounds2D
 		{
-			return getReusableBounds(0, 0, 1, WeaveAPI.StatisticsCache.getMax(meterColumn));
+			return getReusableBounds(0, 0, 1, meterColumnStats.getMax());
 		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			return [getReusableBounds(0, 0, 1, WeaveAPI.StatisticsCache.getMax(meterColumn))];
+			return [getReusableBounds(0, 0, 1, meterColumnStats.getMax())];
 		}
 	}
 }

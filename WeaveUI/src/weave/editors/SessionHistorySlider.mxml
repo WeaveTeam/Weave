@@ -38,7 +38,7 @@
 	<mx:Button id="playButton" label="Replay{ _playSpeed == 1 ? '' : ' (' + _playSpeed + 'x)' }" toggle="true" toolTip="Replay session history" click="if (playButton.selected) play();"/>
 	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="Undo" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="Redo" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
-	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();"/>
+	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();" mouseDown="slider.getThumbAt(0).setFocus()"/>
 	<mx:Button id="clearButton" label="Clear" click="_stateLog.clearHistory();" toolTip="Clear session history" styleName="clearButtonStyle"/>
 	<mx:Style>
 		.clearButtonStyle {
@@ -48,25 +48,21 @@
 	</mx:Style>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getTimer;
-			
-			import mx.controls.Alert;
-			import mx.core.Application;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
-			import weave.api.getCallbackCollection;
-			import weave.api.juggleImmediateCallback;
+			import weave.api.reportError;
+			import weave.core.CallbackJuggler;
 			import weave.core.SessionStateLog;
 			import weave.ui.ExportSessionStatePanel;
 			import weave.ui.SubMenu;
-			import weave.utils.DebugUtils;
 			
 			private const padding:Number = 4;
 			
 			private var _stateLog:SessionStateLog = null; // this is the object we are editing
+			private const _stateLogJuggler:CallbackJuggler = new CallbackJuggler(this, handleStateLogChange, false);
 
 			[Embed(source='/weave/resources/images/history-record-on.png')]
 			private static const icon_historyRecordOn:Class;
@@ -140,9 +136,7 @@
 			 */
 			public function setTarget(object:ILinkableObject):void
 			{
-				juggleImmediateCallback(_stateLog, object, this, handleStateLogChange);
-				_stateLog = object as SessionStateLog;
-				handleStateLogChange();
+				_stateLogJuggler.target = _stateLog = object as SessionStateLog;
 			}
 			
 			/**
@@ -197,11 +191,22 @@
 				if (!_weaveFileRef)
 				{
 					_weaveFileRef = new FileReference();
-					_weaveFileRef.addEventListener(Event.SELECT,   function (e:Event):void { _weaveFileRef.load(); } );
-					_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void {
-						// TEMPORARY SOLUTION
-						WeaveAPI.topLevelApplication.visApp.loadSessionState(e.target.data, _weaveFileRef.name);
-					} );
+					_weaveFileRef.addEventListener(IOErrorEvent.IO_ERROR, reportError);
+					_weaveFileRef.addEventListener(
+						Event.SELECT,
+						function (e:Event):void
+						{
+							_weaveFileRef.load();
+						}
+					);
+					_weaveFileRef.addEventListener(
+						Event.COMPLETE,
+						function (e:Event):void
+						{
+							// TEMPORARY SOLUTION
+							WeaveAPI.topLevelApplication.visApp.loadSessionState(e.target.data, _weaveFileRef.name);
+						}
+					);
 				}
 				_weaveFileRef.browse([
 					new FileFilter("Weave file", "*.weave"),

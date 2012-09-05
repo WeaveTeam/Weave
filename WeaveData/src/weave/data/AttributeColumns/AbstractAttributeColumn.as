@@ -81,7 +81,7 @@ package weave.data.AttributeColumns
 */		
 		public function toString():String
 		{
-			return getQualifiedClassName(this).split("::")[1] + ' "' + ColumnUtils.getTitle(this) + '"';
+			return getQualifiedClassName(this).split("::")[1] + '(' + ColumnUtils.getTitle(this) + ')';
 		}
 	}
 }

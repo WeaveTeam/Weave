@@ -21,6 +21,7 @@ package weave.core
 {
 	import flash.utils.Dictionary;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.getCallbackCollection;
 
@@ -81,7 +82,9 @@ package weave.core
 			// if the token isn't in the dictionary, do nothing
 			if (_taskToProgressMap[taskToken] === undefined)
 				return;
-			
+
+			WeaveAPI.SessionManager.unassignBusyTask(taskToken);
+
 			var stackTrace:String = _taskToStackTraceMap[taskToken]; // check this when debugging
 			
 			delete _taskToProgressMap[taskToken];
@@ -101,8 +104,10 @@ package weave.core
 		{
 			// add up the percentages
 			var sum:Number = 0;
-			for each (var percentage:Number in _taskToProgressMap)
-				sum += percentage;
+			for (var task:Object in _taskToProgressMap)
+			{
+				sum += Number(_taskToProgressMap[task]);
+			}
 			// make any pending requests that no longer exist count as 100% done
 			sum += _maxTaskCount - _taskCount;
 			// divide by the max count to get overall percentage

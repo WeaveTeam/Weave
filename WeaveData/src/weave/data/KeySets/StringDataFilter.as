@@ -16,17 +16,27 @@
     You should have received a copy of the GNU General Public License
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-package weave.core
+package weave.data.KeySets
 {
-	/**
-	 *  This namespace is used for undocumented APIs -- usually implementation
-	 *  details -- which can't be private because they need to visible
-	 *  to other classes.
-	 *  APIs in this namespace are completely unsupported and are likely to
-	 *  change in future versions of Weave.
-	 * 
-	 * @author adufilie
-	 */
-	public namespace weave_internal = "http://www.openindicators.org/as3/weave/internal";
+	import weave.api.core.ILinkableObject;
+	import weave.api.data.IKeyFilter;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
+	import weave.core.LinkableString;
+	import weave.data.AttributeColumns.DynamicColumn;
+
+	public class StringDataFilter implements IKeyFilter, ILinkableObject
+	{
+		public function StringDataFilter()
+		{
+		}
+		
+		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const stringValue:LinkableString = newLinkableChild(this, LinkableString);
+		
+		public function containsKey(key:IQualifiedKey):Boolean
+		{
+			return column.getValueFromKey(key, String) == stringValue.value;
+		}
+	}
 }

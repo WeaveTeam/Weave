@@ -83,9 +83,10 @@ package weave.api.core
 		 *           return index / array.length;  // this will return 1.0 on the last iteration.
 		 *       }
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
+		 * @param finalCallback A function that should be called after the task is completed.
 		 * @see weave.api.WeaveAPI
 		 */
-		function startTask(relevantContext:Object, iterativeTask:Function, priority:int):void;
+		function startTask(relevantContext:Object, iterativeTask:Function, priority:int, finalCallback:Function = null):void;
 		
 		/**
 		 * This is the last event that occurred on the stage.
@@ -124,6 +125,11 @@ package weave.api.core
 		 * @return The current pressed state of the mouse button.
 		 */
 		function get mouseButtonDown():Boolean;
+		
+		/**
+		 * @return true if the mouse was clicked without moving
+		 */
+		function get pointClicked():Boolean;
 		
 		/**
 		 * @return true if the mouse moved since the last frame.

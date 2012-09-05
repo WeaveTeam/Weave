@@ -19,10 +19,12 @@
 
 package weave.visualization.layers
 {
+	import flash.display.BitmapData;
 	import flash.events.Event;
 	import flash.filters.BlurFilter;
 	import flash.filters.DropShadowFilter;
 	import flash.filters.GlowFilter;
+	import flash.geom.Point;
 	
 	import mx.containers.Canvas;
 	import mx.controls.Label;
@@ -58,37 +60,13 @@ package weave.visualization.layers
 			init();
 		}
 		
-		private function addGroupedCallbacks(callback:Function, property:ILinkableObject, ...moreProperties):void
-		{
-			moreProperties.unshift(property);
-			for each (property in moreProperties)
-				getCallbackCollection(property).addGroupedCallback(this, callback, true);
-		}
 		private function init():void
 		{
-			addGroupedCallbacks(handleProbeInnerGlowFilterChange,
-					Weave.properties.probeInnerGlowColor,
-					Weave.properties.probeInnerGlowAlpha,
-					Weave.properties.probeInnerGlowBlur,
-					Weave.properties.probeInnerGlowStrength
-				);
-			addGroupedCallbacks(handleProbeOuterGlowFilterChange,
-					Weave.properties.probeOuterGlowColor,
-					Weave.properties.probeOuterGlowAlpha,
-					Weave.properties.probeOuterGlowBlur,
-					Weave.properties.probeOuterGlowStrength
-				);
-			addGroupedCallbacks(handleShadowFilterChange,
-					Weave.properties.shadowDistance,
-					Weave.properties.shadowAngle,
-					Weave.properties.shadowColor,
-					Weave.properties.shadowAlpha,
-					Weave.properties.shadowBlur
-				);
-			addGroupedCallbacks(handleBlurringFilterChange,
-					Weave.properties.selectionBlurringAmount,
-					Weave.properties.selectionAlphaAmount
-				);
+			getCallbackCollection(Weave.properties.probeInnerGlow).addGroupedCallback(this, handleProbeInnerGlowFilterChange, true);
+			getCallbackCollection(Weave.properties.probeOuterGlow).addGroupedCallback(this, handleProbeOuterGlowFilterChange, true);
+			getCallbackCollection(Weave.properties.selectionDropShadow).addGroupedCallback(this, handleShadowFilterChange, true);
+			Weave.properties.selectionBlurringAmount.addGroupedCallback(this, handleBlurringFilterChange, true);
+			Weave.properties.selectionAlphaAmount.addGroupedCallback(this, handleBlurringFilterChange, true);
 
 			Weave.properties.enableBitmapFilters.addGroupedCallback(this, handleToggleBitmapFilters);
 			
@@ -124,14 +102,8 @@ package weave.visualization.layers
 			
 			layerIsVisible.value = true;
 			layerIsSelectable.value = true;
-			backgroundIsVisible.value = true;
 			
 			// initialize label that says there is no selection
-			emptySelectionText.text = "No records are selected";
-			emptySelectionText.setStyle("fontWeight", "bold");
-			
-			getCallbackCollection(selectionFilter).addGroupedCallback(this, showOrHideEmptySelectionText);
-			getCallbackCollection(probeFilter).addGroupedCallback(this, showOrHideEmptySelectionText);
 			getCallbackCollection(selectionFilter).addImmediateCallback(this, handleSelectionChange, true);
 
 			registerLinkableChild(this, plotter);
@@ -227,46 +199,7 @@ package weave.visualization.layers
 				_probeLayer.alpha = _alphaAnimValue;
 		}
 
-		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
-		{
-			//_plotLayer.getDataBounds(tempBounds); trace(name, 'updateDisplayList dataBounds', tempBounds);
-			
-			super.updateDisplayList(unscaledWidth, unscaledHeight);
-			
-			// center this text
-			_plotLayer.getScreenBounds(tempBounds);
-			emptySelectionText.x = tempBounds.getXCenter() - emptySelectionText.width / 2;
-			emptySelectionText.y = tempBounds.getYCenter() - emptySelectionText.height / 2;
-			
-		}
-		
 		private const tempBounds:IBounds2D = new Bounds2D();
-
-		private const emptySelectionText:Label = new Label();
-		
-		private function showOrHideEmptySelectionText():void
-		{
-			if (!backgroundIsVisible.value && !selectionExists && !probeExists)
-			{
-				if (this != emptySelectionText.parent)
-					this.addChild(emptySelectionText);
-			}
-			else
-			{
-				if (this == emptySelectionText.parent)
-					this.removeChild(emptySelectionText);
-			}	
-		}
-		
-		
-		private function get probeExists():Boolean
-		{
-			return (
-				//probeFilter.keyType == plotter.keySet.keyType &&
-				probeFilter.internalObject is IKeySet &&
-				(probeFilter.internalObject as IKeySet).keys.length > 0
-			);
-		}
 		
 		private function get selectionExists():Boolean
 		{
@@ -277,8 +210,6 @@ package weave.visualization.layers
 			);
 		}
 
-		//public const testFilter:LinkableWrapper = registerLinkableChild(this, new LinkableWrapper(BitmapFilter), handleSelectionChange);
-		
 		private function handleSelectionChange():void
 		{
 			if (selectionExists)
@@ -324,14 +255,6 @@ package weave.visualization.layers
 		
 		public function getDynamicPlotter():DynamicPlotter { return _plotLayer.getDynamicPlotter(); }
 		
-		/**
-		 * @private
-		 */		
-		internal function validateSpatialIndex():void
-		{
-			_plotLayer.validateSpatialIndex();
-		}
-
 		/**
 		 * IPlotLayer interface
 		 */
@@ -412,48 +335,31 @@ package weave.visualization.layers
 		
 		private function handleProbeInnerGlowFilterChange():void
 		{
-			var blur:Number = useTextBitmapFilters.value ? 2 : Weave.properties.probeInnerGlowBlur.value;
-			var strength:Number = useTextBitmapFilters.value ? 255 : Weave.properties.probeInnerGlowStrength.value;
-			probeGlowInner.color 	= Weave.properties.probeInnerGlowColor.value;
-			probeGlowInner.alpha 	= Weave.properties.probeInnerGlowAlpha.value;
-			probeGlowInner.blurX	= blur;
-			probeGlowInner.blurY	= blur;
-			probeGlowInner.strength = strength;
+			Weave.properties.probeInnerGlow.copyTo(probeGlowInner);
+			if (useTextBitmapFilters.value)
+			{
+				probeGlowInner.blurX = 2;
+				probeGlowInner.blurY = 2;
+				probeGlowInner.strength = 255;
+			}
 			handleToggleBitmapFilters();
 		}
 		
 		private var probeGlowOuter:GlowFilter = new GlowFilter(0xff0000, 0.7, 3,3,10);		
 		private function handleProbeOuterGlowFilterChange():void
 		{
-			probeGlowOuter.color 	= Weave.properties.probeOuterGlowColor.value;
-			probeGlowOuter.alpha 	= Weave.properties.probeOuterGlowAlpha.value;
-			probeGlowOuter.blurX	= Weave.properties.probeOuterGlowBlur.value;
-			probeGlowOuter.blurY	= Weave.properties.probeOuterGlowBlur.value;
-			probeGlowOuter.strength = Weave.properties.probeOuterGlowStrength.value;
+			Weave.properties.probeOuterGlow.copyTo(probeGlowOuter);
 			handleToggleBitmapFilters();
 		}
 		
 		private function handleShadowFilterChange():void
 		{
-			shadow.distance = Weave.properties.shadowDistance.value;
-			shadow.angle 	= Weave.properties.shadowAngle.value;
-			shadow.color	= Weave.properties.shadowColor.value;
-			shadow.alpha	= Weave.properties.shadowAlpha.value;
-			shadow.blurX	= Weave.properties.shadowBlur.value;
-			shadow.blurY	= Weave.properties.shadowBlur.value;
+			Weave.properties.selectionDropShadow.copyTo(shadow);
 			handleToggleBitmapFilters();
 		}
-		private var shadow:DropShadowFilter 	= new DropShadowFilter(2, 45, 0, 0.5, 4, 4, 2);
+		private var shadow:DropShadowFilter = new DropShadowFilter(2, 45, 0, 0.5, 4, 4, 2);
 		
-		
-		public const backgroundIsVisible:LinkableBoolean =  newLinkableChild(this, LinkableBoolean, handleBackgroundLayerVisibleChange);
-		private function handleBackgroundLayerVisibleChange():void
-		{
-			_plotLayer.visible = backgroundIsVisible.value;
-			showOrHideEmptySelectionText();
-		}
-		
-		public const layerIsSelectable:LinkableBoolean =  newLinkableChild(this, LinkableBoolean);
+		public const layerIsSelectable:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
 		/**
 		 * This returns true if the layer should be rendered and selectable/probeable

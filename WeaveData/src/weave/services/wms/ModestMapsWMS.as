@@ -95,6 +95,15 @@ package weave.services.wms
 				case WMSProviders.MAPQUEST_AERIAL:
 					_mapProvider = new OpenMapQuestAerialProvider();
 					break;
+				case WMSProviders.STAMEN_TONER:
+					_mapProvider = new StamenProvider(StamenProvider.STYLE_TONER);
+					break;
+				case WMSProviders.STAMEN_TERRAIN:
+					_mapProvider = new StamenProvider(StamenProvider.STYLE_TERRAIN);
+					break;
+				case WMSProviders.STAMEN_WATERCOLOR:
+					_mapProvider = new StamenProvider(StamenProvider.STYLE_WATERCOLOR);
+					break;
 				default:
 					reportError("Attempt to set invalid map provider.");
 					return;
@@ -282,7 +291,7 @@ package weave.services.wms
 			// not all providers allow the same zoom range
 			if (_mapProvider is BlueMarbleMapProvider)
 				maxZoom = 9;
-			else if (_mapProvider is OpenStreetMapProvider)
+			else if (_mapProvider is OpenStreetMapProvider || _mapProvider is StamenProvider)
 				maxZoom = 18;
 			else if (_mapProvider is MicrosoftProvider)
 				maxZoom = 20;
@@ -462,6 +471,8 @@ package weave.services.wms
 				return 'Tiles Courtesy of MapQuest and (c) OpenStreetMap contributors, CC-BY-SA';
 			else if (_mapProvider is OpenMapQuestAerialProvider)
 				return 'Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency';
+			else if (_mapProvider is StamenProvider)
+				return 'Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under CC BY SA.';
 			
 			return '';
 		}

@@ -21,6 +21,7 @@
 -->
 <mx:VBox xmlns="weave.editors.*" 
 		 xmlns:mx="http://www.adobe.com/2006/mxml" 
+		 xmlns:ui="weave.ui.*"
 		 width="100%" 
 		 height="100%">
 	<mx:Script>
@@ -28,11 +29,29 @@
 			import weave.Weave;
 			import weave.api.linkBindableProperty;
 			import weave.core.SessionManager;
+			import weave.visualization.layers.InteractionController;
 		]]>
 	</mx:Script>
-	<mx:CheckBox label='Show "Selected Records" tooltip in lower-right corner'
+	<mx:HBox>
+		<mx:Label text="Selection Mode"/>
+		<mx:ComboBox 
+				 id="circularSelectionCheckbox"
+				 dataProvider="{InteractionController.enumSelectionMode()}"
+				 creationComplete="linkBindableProperty(Weave.properties.selectionMode, event.target, 'text')"/>
+	</mx:HBox>
+	<mx:CheckBox label='Show "Selected Records" tooltip'
+				 id="showSelectedRecordsText"
+				 selected="true"
 				 creationComplete="linkBindableProperty(Weave.properties.showSelectedRecordsText, event.target, 'selected')"/>
-				 
+		<mx:VBox enabled="{showSelectedRecordsText.selected}">
+			<mx:HBox>
+				<mx:Label text="Location" 
+				 		  width="200"	
+				  		  textAlign="right"
+				  		  toolTip="Select the location for the selected records tooltip"/>
+				<ui:CustomComboBox id="recordsTooltip"/>
+			</mx:HBox>
+		</mx:VBox>
 	<mx:CheckBox toolTip="Check this box to enable bitmap filters used when probing or selecting"
 				 id="enableBitmapFilters"
 				 label="Enable Bitmap Filters"
@@ -46,7 +65,7 @@
 					  textAlign="right"
 					  toolTip="Set the shadow color of selected points"/>
 			<mx:ColorPicker id="shadowColor"
-							creationComplete="linkBindableProperty(Weave.properties.shadowColor, event.target, 'selectedColor' );"
+							creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.color, event.target, 'selectedColor' );"
 							/>
 		</mx:HBox>
 		<mx:HBox>
@@ -57,7 +76,7 @@
 			<mx:NumericStepper id="shadowAlpha"
 							   maximum="1"
 							   stepSize="0.1"
-							   creationComplete="linkBindableProperty(Weave.properties.shadowAlpha, event.target, 'value' );"
+							   creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.alpha, event.target, 'value' );"
 							   />
 		</mx:HBox>
 	</mx:VBox>
@@ -78,8 +97,13 @@
 	<mx:Script>
 		<![CDATA[
 			import com.cartogrammar.drawing.DashedLine;
+			import weave.core.LinkableString;
+			
 			override protected function childrenCreated():void
 			{
+				recordsTooltip.dataProvider = Weave.properties.recordsTooltipEnum ;
+				linkBindableProperty( Weave.properties.recordsTooltipLocation, recordsTooltip, 'selectedItem');
+				
 				Weave.properties.dashedSelectionBox.addGroupedCallback(this, drawDashedLinePreview, true);
 				xStart = 5; 
 				yStart = 10;

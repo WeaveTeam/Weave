@@ -21,6 +21,7 @@ package weave.visualization.plotters
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.events.Event;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.net.URLRequest;
@@ -28,15 +29,18 @@ package weave.visualization.plotters
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
+	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.services.IURLRequestUtils;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.utils.ImageLoaderUtils;
 	
 	/**
 	 * ImagePlotter
@@ -102,8 +106,12 @@ package weave.visualization.plotters
 				{
 					// set a placeholder so it doesn't get downloaded again
 					_urlToImageMap[_imageURL] = _missingImage;
+					
 					// download the image
-					WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
+//					WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
+					
+					// get all images hack
+					WeaveAPI.URLRequestUtils.getImage(this, new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
 				}
 			}
 		}
@@ -121,12 +129,14 @@ package weave.visualization.plotters
 			_urlToImageMap[token] = bitmap.bitmapData;
 			getCallbackCollection(this).triggerCallbacks();
 		}
+		
 		/**
 		 * This function is called when there is an error downloading an image.
 		 */
 		private function handleFault(event:FaultEvent, token:Object=null):void
 		{
 			trace("Error downloading image:", ObjectUtil.toString(event.message), token);
+			
 			_urlToImageMap[token] = _missingImage;
 			getCallbackCollection(this).triggerCallbacks();
 		}

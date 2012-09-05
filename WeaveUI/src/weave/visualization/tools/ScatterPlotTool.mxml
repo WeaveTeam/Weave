@@ -99,11 +99,12 @@
 				plotter.yColumn.addGroupedCallback(this, updateProbeColumns);
 				colorColumn.addGroupedCallback(this, updateProbeColumns);
 				
-				plotter.enabledSizeBy.value = true;
 				visualization.marginBottom.value = "80";
 				visualization.marginTop.value    = "30";
 				visualization.marginLeft.value   = "80";
 				visualization.marginRight.value  = "30";
+				
+				getCallbackCollection(plotter.circlePlotter).addGroupedCallback(this, handlePlotterChange, true);
 				
 				initializeUndefinedLayers();				
 				initRegressionLayer();
@@ -192,17 +193,11 @@
 				visualization.gridLineThickness.addImmediateCallback(this, invalidateDisplayList);
 				
 				for each (var layer:SelectablePlotLayer in [_undefinedXLayer, _undefinedYLayer, _undefinedXYLayer])
-				{					
 					layer.showMissingRecords(true);
-					
-					linkSessionState(plotLayer.backgroundIsVisible, layer.backgroundIsVisible);
-//					linkSessionState(plotLayer.layerIsVisible, layer.layerIsVisible);
-//					linkSessionState(plotLayer.layerIsSelectable, layer.layerIsSelectable);					
-				} 																		
 				
 				addEventListener(MouseEvent.MOUSE_MOVE, displayToolTip);
 				addEventListener(MouseEvent.MOUSE_OUT, destroyToolTip);
-			}						
+			}
 			
 			private function setUndefinedPlotterKeySource():void
 			{
@@ -263,14 +258,14 @@
 				plotLayer.getScreenBounds(b);
 				graphics.moveTo(b.getXMax() + marginRight / 2, b.getYMin());
 				graphics.lineTo(b.getXMax() + marginRight / 2, b.getYMax());
-				b.setXMin(b.getXMax() + marginRight);
+				b.setXRange(b.getXMax() + marginRight * 1 / 4, b.getXMax() + marginRight * 3 / 4);
 				_undefinedXLayer.hack_lockScreenBounds(b);
 				
 				// top margin; undefined y
 				plotLayer.getScreenBounds(b);
 				graphics.moveTo(b.getXMin(), b.getYMax() / 2);
 				graphics.lineTo(b.getXMax(), b.getYMax() / 2);
-				b.setYMin(0);
+				b.setYRange(b.getYMax() * 1 / 4, b.getYMax() * 3 / 4);
 				_undefinedYLayer.hack_lockScreenBounds(b);
 				
 				// top-right corner; undefined x and y
@@ -337,12 +332,12 @@
 				if(includeToolAttributesInProbe.value)
 				{
 					visualization.additionalProbeColumns = [];
-					if (plotter.xColumn.internalColumn)
-						visualization.additionalProbeColumns.push(plotter.xColumn.internalColumn);
-					if (plotter.yColumn.internalColumn)
-						visualization.additionalProbeColumns.push(plotter.yColumn.internalColumn);
-					if (colorColumn.internalColumn)
-						visualization.additionalProbeColumns.push(colorColumn.internalColumn);
+					if (plotter.xColumn.getInternalColumn())
+						visualization.additionalProbeColumns.push(plotter.xColumn.getInternalColumn());
+					if (plotter.yColumn.getInternalColumn())
+						visualization.additionalProbeColumns.push(plotter.yColumn.getInternalColumn());
+					if (colorColumn.getInternalColumn())
+						visualization.additionalProbeColumns.push(colorColumn.getInternalColumn());
 					if (visualization.additionalProbeColumns.length == 0)
 						visualization.additionalProbeColumns = null ;
 				}
@@ -361,8 +356,6 @@
 				plotter.colorColumn.addImmediateCallback(this, handleColorColumnChange, true);
 				linkBindableProperty(plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(plotter.enabledSizeBy, sizeByCheck, "selected");
-				plotter.minScreenRadius.addGroupedCallback(this, updateSizeSlider);
-				plotter.maxScreenRadius.addGroupedCallback(this, updateSizeSlider, true);
 				visualization.marginLeftNumber.addGroupedCallback(this, updateEquation);
 				visualization.marginBottomNumber.addGroupedCallback(this, updateEquation);
 				getCallbackCollection(_regressionPlotter).addGroupedCallback(this, updateEquation, true);
@@ -433,28 +426,11 @@
 				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
-			private function updateSizeSlider():void
-			{
-				sizeBySlider.values = [plotter.minScreenRadius.value, plotter.maxScreenRadius.value];
-			}
-			
 			private function alphaSliderFormatFunction(item:Number):String {
 				//return int(100 - (item * 100)) + "% Transparent";
 				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
 			}
 			
-			
-			private function handleSizeSliderChange(event:SliderEvent):void
-			{
-				if(event.thumbIndex == 0)
-				{
-					plotter.minScreenRadius.value = event.value;
-				}
-				else
-				{
-					plotter.maxScreenRadius.value = event.value;
-				}
-			}
 			
 			protected function createLegend():void
 			{
@@ -494,6 +470,59 @@
 			public const showColorPicker:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const overrideColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
 				
+			private function enableAbsHandler(event:Event):void
+			{
+				if( colorOverrideCheckbox.selected ) colorOverrideCheckbox.selected = false;
+			}
+			
+			private function enableOverrideHandler(event:Event):void
+			{
+				if( absoluteValueColorEnabledCheckbox.selected ) absoluteValueColorEnabledCheckbox.selected = false;
+			}
+			
+			
+			private function handlePlotterChange():void
+			{
+				// when the plotter settings change, update the slider interface
+				if (plotter.circlePlotter.absoluteValueColorEnabled.value)
+				{
+					sizeBySlider.thumbCount = 1;
+					sizeBySlider.value = plotter.maxScreenRadius.value;
+				}
+				else if (plotter.enabledSizeBy.value)
+				{
+					sizeBySlider.thumbCount = 2;
+					sizeBySlider.values = [plotter.minScreenRadius.value, plotter.maxScreenRadius.value];
+				}
+				else
+				{
+					sizeBySlider.thumbCount = 1;
+					sizeBySlider.value = plotter.defaultScreenRadius.value;
+				}
+			}
+			private function handleSizeSliderChange(event:SliderEvent):void
+			{
+				// when user interacts with slider, update session state
+				if (plotter.circlePlotter.absoluteValueColorEnabled.value)
+				{
+					plotter.maxScreenRadius.value = event.value;
+				}
+				else if (plotter.enabledSizeBy.value)
+				{
+					if(event.thumbIndex == 0)
+					{
+						plotter.minScreenRadius.value = event.value;
+					}
+					else
+					{
+						plotter.maxScreenRadius.value = event.value;
+					}
+				}
+				else
+				{
+					plotter.defaultScreenRadius.value = event.value;
+				}
+			}
 		]]>
 	</mx:Script>
 	<mx:TextArea id="equationText"
@@ -507,19 +536,18 @@
 		left="0"/>
 	<ui:ControlPanel>
 		<mx:VBox id="VizControlsPanel" label="Visualization Controls">
-			<ui:DynamicColumnComponent visTool="{this}" label="x column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.xColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="y column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.yColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="size" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.radiusColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="X" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.xColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Y" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.yColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
+			<mx:CheckBox id="sizeByCheck" label="Size" fontWeight="bold" width="64" creationComplete="sizeSelector.addChildAt(sizeByCheck, 0);"/>
+			<ui:DynamicColumnComponent id="sizeSelector" visTool="{this}" showLabel="false" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.radiusColumn"/>
 			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:CheckBox id="sizeByCheck" label="Size by: {sizeByCheck.selected ? 'ENABLED' : 'DISABLED'}"/>
 				
 				<mx:Label text="Point Size:"/>
 				<mx:HSlider id="sizeBySlider"
-							enabled="{sizeByCheck.selected}"
 							liveDragging="true"
 							width="100%"
-							thumbCount="2" 
+							thumbCount="2"
 							snapInterval="1"
 							minimum="1" 
 							maximum="60"
@@ -577,9 +605,41 @@
 				</ui:Indent>
 			</mx:VBox>
 			<mx:HBox>
-				<mx:CheckBox id="colorOverrideCheckbox" label="Override Global Color" creationComplete="linkBindableProperty(showColorPicker,event.target,'selected')"/>
+				<mx:CheckBox id="colorOverrideCheckbox" label="Override Global Color" creationComplete="linkBindableProperty(showColorPicker,event.target,'selected')"
+							 change="enableOverrideHandler(event)"/>
 				<mx:ColorPicker id="scatterplotColorOverride" creationComplete="linkBindableProperty(overrideColor,event.target,'selectedColor')"/>
 			</mx:HBox>
+			<mx:VBox>
+				<mx:HBox>
+					<mx:CheckBox id="absoluteValueColorEnabledCheckbox" label="{lang('Color by positive or negative \'size\' column values')}"
+								 creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueColorEnabled, event.target, 'selected')"
+								 change="enableAbsHandler(event)"/>
+					<ui:HelpComponent>
+						Select this option to highlight the differences in your 'size' column.
+						* All values greater than 0 radius will be one color.
+						* All values less than 0 radius will be another color.
+						* If you have a size of 0 radius the circle will not be drawn.
+						
+						** If a size column is not specified, nothing will be drawn in this mode.
+					</ui:HelpComponent>
+				</mx:HBox>
+				<ui:Indent>
+					<mx:VBox>
+						<mx:HBox>
+							<mx:Label text="{lang('Color for values &lt; 0')}" />
+							<mx:ColorPicker id="absoluteValueMinColorPicker" 
+											creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueColorMin, event.target, 'selectedColor')"
+											enabled="{absoluteValueColorEnabledCheckbox.selected}" />
+						</mx:HBox>
+						<mx:HBox>
+							<mx:Label text="{lang('Color for values &gt; 0')}" />
+							<mx:ColorPicker id="absoluteValueMaxColorPicker" 
+											creationComplete="linkBindableProperty(plotter.circlePlotter.absoluteValueColorMax, event.target, 'selectedColor')"
+											enabled="{absoluteValueColorEnabledCheckbox.selected}" />
+						</mx:HBox>
+					</mx:VBox>
+				</ui:Indent>
+			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

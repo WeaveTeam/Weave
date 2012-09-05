@@ -23,6 +23,7 @@ package weave.data.BinningDefinitions
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinningDefinition;
@@ -80,10 +81,10 @@ package weave.data.BinningDefinitions
 			for (i = 0; i < n; i++)
 			{
 				//first get name from overrideBinNames
-				str = getNameFromOverrideString(i);
-				//if it is empty string set it from generateBinLabel
-				if(!str)
-					str = strArray[i] as String;
+				str = strArray[i] as String;
+				
+				//TODO: look up replacement name once we store original + modified names together rather than a simple Array of replacement names.
+				
 				var svc:SingleValueClassifier = output.requestObject(str, SingleValueClassifier, false);
 				svc.value = strArray[i];
 			}

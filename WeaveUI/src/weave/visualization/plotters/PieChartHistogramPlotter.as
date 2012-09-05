@@ -25,9 +25,11 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import weave.api.WeaveAPI;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
-	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableNumber;
@@ -38,7 +40,6 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.StringLookupColumn;
 	import weave.primitives.ColorRamp;
 	import weave.utils.BitmapText;
-	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
@@ -60,6 +61,7 @@ package weave.visualization.plotters
 		private var _beginRadians:EquationColumn;
 		private var _spanRadians:EquationColumn;
 		private var _binLookup:StringLookupColumn;
+		private var _binLookupStats:IColumnStatistics;
 		private var _binnedData:BinnedColumn;
 		private var _filteredData:FilteredColumn;
 		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
@@ -80,13 +82,14 @@ package weave.visualization.plotters
 		{
 			(fillStyle.internalObject as SolidFillStyle).color.defaultValue.setSessionState(0x808080);
 			
-			_beginRadians = newDisposableChild(this, EquationColumn);
+			_beginRadians = newLinkableChild(this, EquationColumn);
 			_beginRadians.equation.value = "0.5 * PI + getRunningTotal(spanRadians) - getNumber(spanRadians)";
 			_spanRadians = _beginRadians.requestVariable("spanRadians", EquationColumn, true);
 			_spanRadians.equation.value = "getNumber(binSize) / getSum(binSize) * 2 * PI";
 			var binSize:EquationColumn = _spanRadians.requestVariable("binSize", EquationColumn, true);
 			binSize.equation.value = "getValue(binLookup).length";
 			_binLookup = binSize.requestVariable("binLookup", StringLookupColumn, true);
+			_binLookupStats = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(_binLookup));
 			_binnedData = _binLookup.requestLocalObject(BinnedColumn, true);
 			_filteredData = binnedData.internalDynamicColumn.requestLocalObject(FilteredColumn, true);
 			linkSessionState(keySet.keyFilter, _filteredData.filter);
@@ -127,7 +130,7 @@ package weave.visualization.plotters
 			//fillStyle.beginFillStyle(recordKey, graphics);
 			
 			// draw graphics
-			var color:Number = chartColors.getColorFromNorm( ColumnUtils.getNorm(_binLookup, recordKey) );
+			var color:Number = chartColors.getColorFromNorm( _binLookupStats.getNorm(recordKey) );
 			graphics.beginFill(color, 1);
 			
 			// move to center point

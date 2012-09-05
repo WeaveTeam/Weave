@@ -73,7 +73,7 @@
 				
 				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, openAttributeSelector);
 				
-				var fc:FilteredColumn = _plotter.internalBinnedColumn.internalColumn as FilteredColumn;
+				var fc:FilteredColumn = _plotter.internalBinnedColumn.getInternalColumn() as FilteredColumn;
 				initColumnDefaults(fc.internalDynamicColumn);
 				
 				_plotter.dynamicColorColumn.addGroupedCallback(this, updateProbeColumns);
@@ -105,8 +105,8 @@
 				visualization.additionalProbeColumns = [];
 				if (includeToolAttributesInProbe.value)
 				{
-					if (_plotter.internalBinnedColumn && _plotter.internalBinnedColumn.internalColumn)
-						visualization.additionalProbeColumns.push(_plotter.internalBinnedColumn.internalColumn);
+					if (_plotter.internalBinnedColumn && _plotter.internalBinnedColumn.getInternalColumn())
+						visualization.additionalProbeColumns.push(_plotter.internalBinnedColumn.getInternalColumn());
 				}
 			}
 			
@@ -141,7 +141,7 @@
 			{
 				try
 				{
-					return (_plotter.internalBinnedColumn.internalColumn as FilteredColumn).internalDynamicColumn;
+					return (_plotter.internalBinnedColumn.getInternalColumn() as FilteredColumn).internalDynamicColumn;
 				}
 				catch (e:Error) { } // do nothing if there is no data column
 				return null;

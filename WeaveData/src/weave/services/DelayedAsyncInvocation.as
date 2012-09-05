@@ -115,7 +115,7 @@ package weave.services
 			internalAsyncToken = service.invokeAsyncMethod(methodName, parameters);
 			
 			// when the query finishes, forward the event to the responders in this AsyncToken.
-			internalAsyncToken.addResponder(new DelayedAsyncResponder(handleResult, handleFault));
+			internalAsyncToken.addResponder(new DelayedAsyncResponder(handleResult, handleFault, this));
 		}
 		
 		/**

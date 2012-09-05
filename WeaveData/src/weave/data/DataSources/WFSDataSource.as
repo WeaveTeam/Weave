@@ -33,8 +33,10 @@ package weave.data.DataSources
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.disposeObjects;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
-	import weave.core.ErrorManager;
+	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
@@ -59,13 +61,19 @@ package weave.data.DataSources
 			url.addImmediateCallback(this, handleURLChange);
 		}
 		
-		public var wfsDataService:WFSServlet = null;
+		public const useURLsInGetCapabilities:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), handleURLChange);
+		
+		private var wfsDataService:WFSServlet = null;
 		
 		private function handleURLChange():void
 		{
 			if (url.value == null)
 				url.value = '/geoserver/wfs';
-			wfsDataService = new WFSServlet(url.value);
+			disposeObjects(WFSDataSource);
+			
+			//TODO: dispose of all old columns, too
+			
+			wfsDataService = registerLinkableChild(this, new WFSServlet(url.value, useURLsInGetCapabilities.value));
 		}
 		
 		override protected function initialize():void
@@ -141,25 +149,19 @@ package weave.data.DataSources
 		{
 			var owsNS:String = 'http://www.opengis.net/ows';
 			var wfsNS:String = 'http://www.opengis.net/wfs';
-			var owsProviderName:QName = new QName(owsNS, 'ProviderName');
-			var wfsFeatureTypeName:QName = new QName(wfsNS, 'FeatureType');
-			var wfsDefaultSRS:QName = new QName(wfsNS, 'DefaultSRS');
-			var wfsName:QName = new QName(wfsNS, 'Name');
-			var wfsTitle:QName = new QName(wfsNS, 'Title');
-			
 			var xml:XML;
 			try
 			{
 				xml = XML(event.result);
-				var rootTitle:String = xml.descendants(owsProviderName).text().toXMLString();
+				var rootTitle:String = xml.descendants(new QName(owsNS, 'ProviderName')).text().toXMLString();
 				var root:XML = <hierarchy name={ rootTitle }/>;
-				var featureTypeNames:XMLList = xml.descendants(wfsFeatureTypeName);
+				var featureTypeNames:XMLList = xml.descendants(new QName(wfsNS, 'FeatureType'));
 				for (var i:int = 0; i < featureTypeNames.length(); i++)
 				{
 					var type:XML = featureTypeNames[i];
-					var defaultSRS:String = type.child(wfsDefaultSRS).text().toXMLString();
-					var categoryName:String = type.child(wfsName).text().toXMLString();
-					var categoryTitle:String = type.child(wfsTitle).text().toXMLString();
+					var defaultSRS:String = type.child(new QName(wfsNS, 'DefaultSRS')).text().toXMLString();
+					var categoryName:String = type.child(new QName(wfsNS, 'Name')).text().toXMLString();
+					var categoryTitle:String = type.child(new QName(wfsNS, 'Title')).text().toXMLString();
 					var category:XML = <category name={ categoryName } title={ categoryTitle } defaultSRS={ defaultSRS }/>;
 					root.appendChild(category);
 				}
@@ -427,7 +429,7 @@ package weave.data.DataSources
 					(newColumn as StringColumn).setRecords(keysVector, VectorUtils.copyXMLListToVector(dataList, new Vector.<String>()));
 				}
 				// save pointer to new column inside the matching proxy column
-				proxyColumn.internalColumn = newColumn;
+				proxyColumn.setInternalColumn(newColumn);
 			}
 			catch (e:Error)
 			{

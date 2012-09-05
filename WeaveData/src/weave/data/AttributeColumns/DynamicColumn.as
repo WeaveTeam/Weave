@@ -62,7 +62,7 @@ package weave.data.AttributeColumns
 		/**
 		 * This function lets you skip the step of casting internalObject as an IAttributeColumn.
 		 */
-		public function get internalColumn():IAttributeColumn
+		public function getInternalColumn():IAttributeColumn
 		{
 			return internalObject as IAttributeColumn;
 		}
@@ -83,7 +83,7 @@ package weave.data.AttributeColumns
 		 */
 		public function get keys():Array
 		{
-			return internalColumn ? internalColumn.keys : [];
+			return getInternalColumn() ? getInternalColumn().keys : [];
 		}
 		
 		/**
@@ -110,7 +110,7 @@ package weave.data.AttributeColumns
 		
 		public function toString():String
 		{
-			return getQualifiedClassName(this).split("::")[1] + ' ' + ColumnUtils.getTitle(this);
+			return getQualifiedClassName(this).split("::")[1] + '(' + ColumnUtils.getTitle(this) + ')';
 		}
 	}
 }

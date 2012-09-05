@@ -36,6 +36,9 @@ package weave.services.wms
 			_providersToSRS[OPEN_STREET_MAP] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
 			_providersToSRS[MAPQUEST] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
 			_providersToSRS[MAPQUEST_AERIAL] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
+			_providersToSRS[STAMEN_TONER] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
+			_providersToSRS[STAMEN_TERRAIN] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
+			_providersToSRS[STAMEN_WATERCOLOR] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
 				
 			/*_providersToSRS[MICROSOFT1] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
 			_providersToSRS[MICROSOFT2] = ModestMapsWMS.IMAGE_PROJECTION_SRS;
@@ -75,6 +78,9 @@ package weave.services.wms
 		public static const OPEN_STREET_MAP:String = 'Open Street Map';
 		public static const MAPQUEST:String = 'Open MapQuest';
 		public static const MAPQUEST_AERIAL:String = 'Open MapQuest Aerial';
+		public static const STAMEN_TONER:String = 'Stamen Toner';
+		public static const STAMEN_TERRAIN:String = 'Stamen Terrain';
+		public static const STAMEN_WATERCOLOR:String = 'Stamen Watercolor';
 		
 		/*public static const MICROSOFT1:String = 'Microsoft Aerial';
 		public static const MICROSOFT2:String = 'Microsoft RoadMap';

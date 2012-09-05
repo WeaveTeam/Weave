@@ -59,7 +59,7 @@ package weave.data.AttributeColumns
 			if (url && _urlToImageMap[url] === undefined) // only request image if not already requested
 			{
 				_urlToImageMap[url] = null; // set this here so we don't make multiple requests
-				WeaveAPI.URLRequestUtils.getContent(new URLRequest(url), handleImageDownload, handleFault, url);
+				WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(url), handleImageDownload, handleFault, url);
 			}
 			
 			return _urlToImageMap[url] as BitmapData;

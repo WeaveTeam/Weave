@@ -30,6 +30,7 @@ package weave.visualization.plotters.styles
 	import weave.api.ui.ILineStyle;
 	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
+	import weave.data.AttributeColumns.NormalizedColumn;
 	import weave.utils.ColumnUtils;
 	import weave.utils.EquationColumnLib;
 
@@ -43,6 +44,10 @@ package weave.visualization.plotters.styles
 		public function SolidLineStyle()
 		{
 			_callbackCollection = getCallbackCollection(this);
+			weight.internalDynamicColumn.requestLocalObject(NormalizedColumn, true);
+			
+			normalizedWeightColumn.min.value = 1;
+			normalizedWeightColumn.max.value = 5;
 		}
 		
 		private var _callbackCollection:ICallbackCollection; // the ICallbackCollection for this object
@@ -78,6 +83,8 @@ package weave.visualization.plotters.styles
 		public const weight:AlwaysDefinedColumn = createColumn(Number, 1);
 		public const alpha:AlwaysDefinedColumn = createColumn(Number, 0.5);
 		
+		public function get normalizedWeightColumn():NormalizedColumn { return weight.getInternalColumn() as NormalizedColumn; }
+		
 		public const pixelHinting:AlwaysDefinedColumn = createColumn(Boolean, false);
 		public const scaleMode:AlwaysDefinedColumn = createColumn(String, "normal");
 		public const caps:AlwaysDefinedColumn = createColumn(String, null);
@@ -98,7 +105,7 @@ package weave.visualization.plotters.styles
 				for (var col:* in _typesMap)
 				{
 					var column:AlwaysDefinedColumn = col as AlwaysDefinedColumn;
-					if (column.internalColumn != null)
+					if (column.getInternalColumn() != null)
 						delete _defaultValues[column];
 					else
 						_defaultValues[column] = EquationColumnLib.cast(column.defaultValue.value, _typesMap[column]);

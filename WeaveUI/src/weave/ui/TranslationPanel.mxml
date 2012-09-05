@@ -47,6 +47,7 @@
 					 doubleClickEnabled="true" editable="true"
 					 doubleClick="openTranslationEditor()"
 					 itemEditEnd="itemEditEndHandler(event)"
+					 keyDown="handleKeyDown(event)"
 					 width="100%" height="100%">
 			<mx:columns>
 				<mx:DataGridColumn dataField="{ORIGINAL}" headerText="{lang('Original Text')}" editable="false" />
@@ -90,12 +91,12 @@
 			
 			private function set activeLocale(value:String):void
 			{
-				WeaveAPI.setLocale(value);
+				WeaveAPI.LocaleManager.setLocale(value);
 				refresh();
 			}
 			private function get activeLocale():String
 			{
-				return WeaveAPI.getLocale();
+				return WeaveAPI.LocaleManager.getLocale();
 			}
 			
 			private function handleLocaleChange():void
@@ -110,13 +111,14 @@
 				if (!localeComboBox)
 					return callLater(refresh);
 				
+				var vsp:int = dataGrid.verticalScrollPosition;
 				var locale:String = activeLocale;
-				var allLocales:Array = WeaveAPI.getAllLocales();
+				var allLocales:Array = WeaveAPI.LocaleManager.getAllLocales();
 				localeComboBox.dataProvider = allLocales;
 				localeComboBox.selectedItem = activeLocale;
 				
 				var items:Array = [];
-				var allData:Object = WeaveAPI.getAllLocalizations();
+				var allData:Object = WeaveAPI.LocaleManager.getAllLocalizations();
 				
 				for (var text:String in allData)
 				{
@@ -128,6 +130,7 @@
 				items.sortOn(ORIGINAL);
 				
 				dataGrid.dataProvider = items;
+				dataGrid.verticalScrollPosition = vsp;
 			}
 			
 			protected function itemEditEndHandler(event:DataGridEvent):void
@@ -137,7 +140,7 @@
 					var item:Object = event.itemRenderer.data;
 					var newText:String = dataGrid.itemEditorInstance[dataGrid.columns[event.columnIndex].editorDataField];
 					if (item[LOCALED] != newText)
-						WeaveAPI.registerTranslation(item[ORIGINAL], activeLocale, newText)
+						WeaveAPI.LocaleManager.registerTranslation(item[ORIGINAL], activeLocale, newText)
 				}
 			}
 			
@@ -150,14 +153,14 @@
 				fileReference.addEventListener(Event.COMPLETE, function (e:Event):void {
 					var bytes:ByteArray = fileReference.data;
 					bytes.uncompress();
-					WeaveAPI.importLocalizations(bytes.readObject());
+					WeaveAPI.LocaleManager.importLocalizations(bytes.readObject());
 					refresh();
 				});
 			}
 			private function exportFile():void
 			{
 				var bytes:ByteArray = new ByteArray();
-				bytes.writeObject(WeaveAPI.getAllLocalizations());
+				bytes.writeObject(WeaveAPI.LocaleManager.getAllLocalizations());
 				bytes.compress();
 				
 				fileReference.save(bytes, "Weave.lang");
@@ -193,7 +196,7 @@
 							return;
 						
 						// get the code in the list
-						WeaveAPI.initializeLocale(e.textInput);
+						WeaveAPI.LocaleManager.initializeLocale(e.textInput);
 						activeLocale = e.textInput;
 					}
 				);
@@ -221,7 +224,7 @@
 						if (item[LOCALED] != newText)
 						{
 							var vsp:int = dataGrid.verticalScrollPosition;
-							WeaveAPI.registerTranslation(item[ORIGINAL], activeLocale, newText);
+							WeaveAPI.LocaleManager.registerTranslation(item[ORIGINAL], activeLocale, newText);
 							item[LOCALED] = newText;
 							dataGrid.dataProvider.refresh();
 							dataGrid.verticalScrollPosition = vsp;
@@ -238,7 +241,7 @@
 					lang("Are you sure you want to erase all translations for all locales and restart Weave? This cannot be undone."),
 					function():void
 					{
-						WeaveAPI.clearAllLocalizations();
+						WeaveAPI.LocaleManager.clearAllLocalizations();
 						Weave.externalReload();
 					}
 				);
@@ -246,8 +249,23 @@
 			
 			private function switchToDeveloperMode():void
 			{
-				WeaveAPI.setLocale('developer');
+				WeaveAPI.LocaleManager.setLocale('developer');
 				Weave.externalReload();
+			}
+			
+			private function handleKeyDown(event:KeyboardEvent):void
+			{
+				if (dataGrid.selectedItem && (event.keyCode == Keyboard.DELETE || event.keyCode == Keyboard.BACKSPACE))
+				{
+					var originalText:String = dataGrid.selectedItem[ORIGINAL];
+					var yes:Function = function():void
+					{
+						dataGrid.selectedItem = null;
+						WeaveAPI.LocaleManager.removeEntry(originalText);
+						refresh();
+					};
+					PopUpUtils.confirm(this, "Remove entry", "Are you sure you want to remove this entry from all locales?", yes, null, lang("Remove"), lang("Cancel"));
+				}
 			}
 		]]>
 	</mx:Script>

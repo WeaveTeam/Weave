@@ -34,8 +34,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				resize="handleResize(event)"
 				creationComplete="handleCreationComplete()"
 				layout="absolute"
-				
 				close="handleCloseButtonClick()"
+				render="busyIndicator.visible = WeaveAPI.SessionManager.linkableObjectIsBusy(this);"
 				
 				closeButtonUpSkin="@Embed(source='/weave/resources/images/cancel.png')"
 				closeButtonOverSkin="@Embed(source='/weave/resources/images/cancel.png')"
@@ -53,14 +53,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.controls.Alert;
 			import mx.controls.Button;
 			import mx.controls.Image;
-			import mx.controls.Menu;
-			import mx.core.Application;
 			import mx.core.BitmapAsset;
 			import mx.core.SpriteAsset;
 			import mx.core.UIComponent;
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
-			import mx.events.MenuEvent;
 			import mx.events.ResizeEvent;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
@@ -86,7 +83,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.EditorManager;
 			import weave.utils.NumberUtils;
-			
+
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -289,7 +286,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				titleBar.setStyle("color", Weave.properties.panelTitleTextFormat.color.value);
 				
 				panelNeedsUpdate();
+				
 			}
+			public var busyIndicator:BusyIndicator = new BusyIndicator();
 			
 			private function handleCreationComplete():void
 			{
@@ -297,6 +296,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//_dragCanvas.percentHeight = 100;
 				rawChildren.addChild(_dragCanvas);
 				rawChildren.addChild(_moveImage);
+				rawChildren.addChild(busyIndicator);
 			}
 			
 			/**
@@ -351,18 +351,29 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;
 			
-			// this allows you to specify a percentage value like x="25%" in MXML.
+			// this metadata tag allows you to specify a percentage value like x="25%" in MXML.
 			[PercentProxy("percentX")]
 			override public function set x(value:Number):void
 			{
 				super.x = Math.round(value);
 			}
-			// this allows you to specify a percentage value like y="25%" in MXML.
+			// this metadata tag allows you to specify a percentage value like y="25%" in MXML.
 			[PercentProxy("percentY")]
 			override public function set y(value:Number):void
 			{
 				super.y = Math.round(value);
 			}
+			
+//			[PercentProxy("percentWidth")]
+//			override public function set width(value:Number):void
+//			{
+//				super.width = Math.round(value);
+//			}
+//			[PercentProxy("percentHeight")]
+//			override public function set height(value:Number):void
+//			{
+//				super.height = Math.round(value);
+//			}
 			
 			[Inspectable(environment="none")]
 			public function set percentX(value:Number):void
@@ -448,7 +459,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					copyCoordinateFromLinkableString(panelWidth, parent.width, "width", minWidth);
 				if (!singleProperty || singleProperty == panelHeight)
 					copyCoordinateFromLinkableString(panelHeight, parent.height, "height", minHeight);
+				callLater(fixHeight);
 			}
+			private function fixHeight():void
+			{
+				if (!parent)
+					return;
+				if (y + height > parent.height) // rounding error, reproduceable when parent height is 625
+					height = parent.height - y;
+			}
+			// watch(this,"{ [panelX.value,panelY.value,panelWidth.value,panelHeight.value] }\r{ [x,y,width,height] }")
 			
 			private static const _maximizedCoordinates:Object = {x: "0%", y: "0%", width: "100%", height: "100%"};
 			
@@ -518,7 +538,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * This function constrains x,y,width,height so that this DraggablePanel is contained in its parent,
 			 * then it saves the coordinates (absolute or percentage) to the sessioned properties.
 			 */
-			private function constrainAndSaveCoordinates():void
+			protected function constrainAndSaveCoordinates():void
 			{
 				// don't copy coordinates while tool is minimized or maximized
 				if (!parent || minimized.value || maximized.value)

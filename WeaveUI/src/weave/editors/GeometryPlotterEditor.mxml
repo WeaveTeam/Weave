@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="500" height="600" implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*" xmlns="weave.editors.*">									
-	<mx:VBox width="100%">
-		<ui:DynamicColumnComponent id="geometryComponent" label="Geometry"/> 	
-	</mx:VBox>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="500" height="600" implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*" xmlns="weave.editors.*">
+	<ui:DynamicColumnComponent id="geometryComponent" label="Geometry"/>
 	<mx:VBox borderStyle="solid" verticalGap="0" 
-			paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
+			paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1" width="100%">
 		<mx:CheckBox id="fillEnabled" label="Enable Fill Color" fontWeight="bold"
 					 toolTip="Check this box to enable the color used inside each shape.  &#13;This would typically be unchecked if the shapes are to be used for borders only, such as overlaying state borders over colored in municipalities."
 					 creationComplete="linkBindableProperty(_plotter.fill.enabled.defaultValue,event.target,'selected')"/>
@@ -39,7 +37,7 @@
 	</mx:VBox>
 	
 	<mx:VBox borderStyle="solid" verticalGap="0" 
-			 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
+			 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1" width="100%">
 		<mx:CheckBox id="lineEnabled" label="Enable Borders" fontWeight="bold" 
 					 toolTip="Check this box to enable borders around each shape.  &#13;This would typically be unchecked to have a more subtle mesh of colors on a map, rather than distinguished by borders between areas."
 					 creationComplete="linkBindableProperty(_plotter.line.enabled.defaultValue,event.target,'selected')"/>
@@ -69,10 +67,11 @@
 								creationComplete="linkBindableProperty(_plotter.line.color.defaultValue,event.target,'selectedColor')"/>
 			</mx:VBox>
 		</mx:HBox>
+		<ui:NormalizedColumnComponent enabled="{lineEnabled.selected}" id="normalizedWeightComponent" label="Border Thickness"/>
 	</mx:VBox>
 	
 	<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0" enabled="{!useImagesCheck.selected || fixedImageSizeCheck.selected}"
-			 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
+			 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1" width="100%">
 		<mx:Label text="Icon size:"/>
 		<mx:NumericStepper 	id="iconSize" 
 							toolTip="Set the default icon size when point-based geometries are used."
@@ -81,7 +80,7 @@
 							creationComplete="linkBindableProperty(_plotter.iconSize, event.target, 'value')"/>
 	</mx:VBox>
 	<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
-			 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
+			 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1" width="100%">
 		<mx:CheckBox id="useImagesCheck" label="Enable images for point data" click="handleGeomPlotterImageToggle()"/>
 		<ui:IndentTextInput id="imageURL" label="Default image URL" creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
 		<ui:DynamicColumnComponent id="imageURLColumnSelector" label="Image URL column" dynamicObject="{_plotter.pointDataImageColumn}"/>
@@ -98,6 +97,7 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.data.AttributeColumns.NormalizedColumn;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
@@ -125,6 +125,9 @@
 				getCallbackCollection(_plotter.keySet).addImmediateCallback(this, handleSubsetChange, true);
 				_plotter.pointDataImageColumn.addImmediateCallback(this, handleImageColumn, true);
 				geometryComponent.dynamicObject = _plotter.geometryColumn.internalDynamicColumn;
+				
+				normalizedWeightComponent.normalizedColumn = _plotter.line.normalizedWeightColumn;
+				
 			}
 			
 			private function handleSolidFillColorCheck():void
@@ -163,7 +166,7 @@
 			
 			private function handleGeomPlotterImageURLChange():void
 			{
-				var adc:AlwaysDefinedColumn = _plotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
+				var adc:AlwaysDefinedColumn = _plotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
 				if (adc)
 					imageURL.text = adc.defaultValue.value as String;
 			}
@@ -187,8 +190,8 @@
 			
 			private function handleImageColumn():void
 			{
-				useImagesCheck.selected = (_plotter.pointDataImageColumn.internalColumn != null);
-				var adc:AlwaysDefinedColumn = _plotter.pointDataImageColumn.internalColumn as AlwaysDefinedColumn;
+				useImagesCheck.selected = (_plotter.pointDataImageColumn.getInternalColumn() != null);
+				var adc:AlwaysDefinedColumn = _plotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
 				if (adc)
 					imageURL.text = adc.defaultValue.value as String;
 			}

@@ -19,6 +19,9 @@
 
 package weave.services
 {
+	import com.as3xls.xls.formula.Tokens;
+	
+	import flash.display.Bitmap;
 	import flash.display.Loader;
 	import flash.display.LoaderInfo;
 	import flash.events.ErrorEvent;
@@ -29,6 +32,7 @@ package weave.services
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
+	import flash.net.URLVariables;
 	import flash.utils.ByteArray;
 	
 	import mx.core.mx_internal;
@@ -38,10 +42,14 @@ package weave.services
 	import mx.rpc.IResponder;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IURLRequestUtils;
+	import weave.utils.ImageLoaderUtils;
+	import weave.utils.ImageLoaderUtilsEvent;
 
 	/**
 	 * An all-static class containing functions for downloading URLs.
@@ -50,36 +58,39 @@ package weave.services
 	 */
 	public class URLRequestUtils implements IURLRequestUtils
 	{
+		public static var delayResults:Boolean = false; // when true, delays result/fault handling and fills the 'delayed' Array.
+		public static const delayed:Array = []; // array of objects with properties:  label:String, resume:Function
+		
 		public static const DATA_FORMAT_TEXT:String = URLLoaderDataFormat.TEXT;
 		public static const DATA_FORMAT_BINARY:String = URLLoaderDataFormat.BINARY;
 		public static const DATA_FORMAT_VARIABLES:String = URLLoaderDataFormat.VARIABLES;
 		
 		/**
 		 * This function performs an HTTP GET request and calls result or fault handlers when the request succeeds or fails.
+		 * @param relevantContext Specifies an object that the async handlers are relevant to.  If the object is disposed via WeaveAPI.SessionManager.dispose() before the download finishes, the async handler functions will not be called.  This parameter may be null.
 		 * @param request The URL to get.
 		 * @param asyncResultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
 		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
 		 * @param token An object that gets passed to the handler functions.
 		 * @param dataFormat The value to set as the dataFormat property of a URLLoader object.
-		 * @param reportProgress If set to true, WeaveAPI.ProgressIndicator will be notified of the download progress.
 		 * @return The URLLoader used to perform the HTTP GET request.
 		 */
-		public function getURL(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary", reportProgress:Boolean = true):URLLoader
+		public function getURL(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary"):URLLoader
 		{
-			var urlLoader:CustomURLLoader; 
+			var urlLoader:CustomURLLoader;
 			try
 			{
-				urlLoader = new CustomURLLoader(request, dataFormat, reportProgress, true);
-				urlLoader.addResponder(new AsyncResponder(asyncResultHandler || noOp, asyncFaultHandler || noOp, token));
+				urlLoader = new CustomURLLoader(relevantContext, request, dataFormat, true);
+				urlLoader.addResponder(new CustomAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token));
 			}
 			catch (e:Error)
 			{
 				// When an error occurs, we need to run the asyncFaultHandler later
 				// and return a new URLLoader. CustomURLLoader doesn't load if the 
 				// last parameter to the constructor is false.
-				urlLoader = new CustomURLLoader(request, dataFormat, reportProgress, false);
+				urlLoader = new CustomURLLoader(relevantContext, request, dataFormat, false);
 				WeaveAPI.StageUtils.callLater(
-					this, 
+					relevantContext, 
 					asyncFaultHandler || noOp, 
 					[new FaultEvent(FaultEvent.FAULT, false, true, new Fault(String(e.errorID), e.name, e.message)), token]
 				);
@@ -92,15 +103,15 @@ package weave.services
 
 		/**
 		 * This function will download content from a URL and call the given handler functions when it completes or a fault occurrs.
+		 * @param relevantContext Specifies an object that the async handlers are relevant to.  If the object is disposed via WeaveAPI.SessionManager.dispose() before the download finishes, the async handler functions will not be called.  This parameter may be null.
 		 * @param request The URL from which to get content.
 		 * @param asyncResultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
 		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
 		 * @param token An object that gets passed to the handler functions.
 		 * @param useCache A boolean indicating whether to use the cached images. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
-		 * @param reportProgress If set to true, WeaveAPI.ProgressIndicator will be notified of the download progress.
 		 * @return An IURLRequestToken that can be used to cancel the request and cancel the async handlers.
 		 */
-		public function getContent(request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true, reportProgress:Boolean = true):IURLRequestToken
+		public function getContent(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):IURLRequestToken
 		{
 			if (useCache)
 			{
@@ -108,10 +119,10 @@ package weave.services
 				if (content)
 				{
 					// create a request token so its cancel function can be used and the result handler won't be called next frame
-					var contentRequestToken:ContentRequestToken = new ContentRequestToken(null, asyncResultHandler, asyncFaultHandler, token);
+					var contentRequestToken:ContentAsyncResponder = new ContentAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token);
 					var resultEvent:ResultEvent = ResultEvent.createEvent(content);
 					// wait one frame and make sure to call contentResult() instead of result().
-					WeaveAPI.StageUtils.callLater(null, contentRequestToken.contentResult, [resultEvent], WeaveAPI.TASK_PRIORITY_PARSING);
+					WeaveAPI.StageUtils.callLater(relevantContext, contentRequestToken.contentResult, [resultEvent], WeaveAPI.TASK_PRIORITY_PARSING);
 					return contentRequestToken;
 				}
 			}
@@ -121,18 +132,60 @@ package weave.services
 			if (loader == null || loader.isClosed)
 			{
 				// make the request and add handler function that will load the content
-				loader = getURL(request, handleGetContentResult, null, request.url, DATA_FORMAT_BINARY, reportProgress) as CustomURLLoader;
+				loader = getURL(relevantContext, request, handleGetContentResult, null, request.url, DATA_FORMAT_BINARY) as CustomURLLoader;
 				_requestURLToLoader[request.url] = loader;
 			}
 			
 			// create a ContentRequestToken so the handlers will run when the content finishes loading.
-			return new ContentRequestToken(loader, asyncResultHandler, asyncFaultHandler, token);
+			return new ContentAsyncResponder(relevantContext, loader, asyncResultHandler, asyncFaultHandler, token);
+		}
+		
+		/**
+		 * This function will download an image from the URL and call the given handler functions when it completes or a fault occurrs.
+		 * @param relevantContext Specifies an object that the async handlers are relevant to.  If the object is disposed via WeaveAPI.SessionManager.dispose() before the download finishes, the async handler functions will not be called.  This parameter may be null.
+		 * @param request The URL from which to get the image.
+		 * @param asyncResultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
+		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
+		 * @param token An object that gets passed to the handler functions.
+		 * @param useCache A boolean indicating whether to use the cached images. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
+		 * @return An IURLRequestToken that can be used to cancel the request and cancel the async handlers.
+		 */
+		public function getImage(relavantContext:Object, request:URLRequest, asyncResulthandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):void
+		{
+			var imageLoaderUtils:ImageLoaderUtils = new ImageLoaderUtils();
+			var handleLoadComplete:Function = function(e:ImageLoaderUtilsEvent):void 
+			{
+				var resultEvent:ResultEvent = ResultEvent.createEvent(e.bitmap);
+				if( asyncResulthandler != null )
+				{
+					_bitmapCache[request.url] = e.bitmap;
+					asyncResulthandler(resultEvent, request.url);
+				}
+			}
+			var handleLoadError:Function = function(e:ImageLoaderUtilsEvent):void
+			{
+				var faultEvent:FaultEvent = FaultEvent.createEvent(new Fault(e.event.type, e.event.target as String));
+				if( asyncFaultHandler != null )
+				{
+					delete _bitmapCache[request.url];
+					asyncFaultHandler(faultEvent, request.url);
+				}
+			}
+			
+			imageLoaderUtils.addEventListener(ImageLoaderUtilsEvent.LOAD_COMPLETE, handleLoadComplete);
+			imageLoaderUtils.addEventListener(ImageLoaderUtilsEvent.ERROR, handleLoadError);
+			imageLoaderUtils.url = request.url;
 		}
 		
 		/**
 		 * This maps a URL to the content that was downloaded from that URL.
 		 */		
 		private const _contentCache:Object = new Object();
+		
+		/**
+		 * This maps a URL to the bitmap data of the image downloaded from that URL.
+		 */
+		private const _bitmapCache:Object = new Object();
 		
 		/**
 		 * A mapping of URL Strings to CustomURLLoaders.
@@ -172,7 +225,7 @@ package weave.services
 				var contentResultEvent:ResultEvent = ResultEvent.createEvent(result);
 				for (var i:int = 0; i < responders.length; i++)
 				{
-					var contentRequestToken:ContentRequestToken = responders[i] as ContentRequestToken;
+					var contentRequestToken:ContentAsyncResponder = responders[i] as ContentAsyncResponder;
 					if (contentRequestToken)
 						contentRequestToken.contentResult(contentResultEvent);
 				}
@@ -210,25 +263,41 @@ import mx.rpc.Fault;
 import mx.rpc.IResponder;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
+import mx.utils.ObjectUtil;
 
 import weave.api.WeaveAPI;
+import weave.api.core.ILinkableObject;
 import weave.api.services.IURLRequestToken;
 import weave.services.URLRequestUtils;
 
 internal class CustomURLLoader extends URLLoader
 {
-	public function CustomURLLoader(request:URLRequest, dataFormat:String, reportProgress:Boolean, loadNow:Boolean)
+	public function CustomURLLoader(relevantContext:Object, request:URLRequest, dataFormat:String, loadNow:Boolean)
 	{
 		super.dataFormat = dataFormat;
 		_urlRequest = request;
-		_reportProgress = reportProgress;
 		
 		if (loadNow)
 		{
+			if (URLRequestUtils.delayed)
+			{
+				label = request.url;
+				try
+				{
+					var bytes:ByteArray = ObjectUtil.copy(request.data as ByteArray) as ByteArray;
+					bytes.uncompress();
+					label += ' ' + ObjectUtil.toString(bytes.readObject()).split('\n').join(' ');
+				}
+				catch (e:Error) { }
+				//WeaveAPI.externalTrace('requested ' + label);
+				URLRequestUtils.delayed.push({"label": label, "resume": resume});
+			}
+			
 			// keep track of pending requests
-			if (_reportProgress)
-				WeaveAPI.ProgressIndicator.addTask(this);
-			addResponder(new AsyncResponder(removePendingRequest, removePendingRequest));
+			WeaveAPI.ProgressIndicator.addTask(this);
+			if (relevantContext is ILinkableObject)
+				WeaveAPI.SessionManager.assignBusyTask(this, relevantContext as ILinkableObject);
+			addResponder(new AsyncResponder(removeTask, removeTask));
 			
 			// set up event listeners
 			addEventListener(Event.COMPLETE, handleGetResult);
@@ -240,7 +309,7 @@ internal class CustomURLLoader extends URLLoader
 		}
 	}
 	
-	private var _reportProgress:Boolean;
+	internal var label:String;
 	private var _asyncToken:AsyncToken = new AsyncToken();
 	private var _isClosed:Boolean = false;
 	private var _urlRequest:URLRequest = null;
@@ -252,8 +321,7 @@ internal class CustomURLLoader extends URLLoader
 	
 	override public function close():void
 	{
-		if (_reportProgress)
-			WeaveAPI.ProgressIndicator.removeTask(this);
+		WeaveAPI.ProgressIndicator.removeTask(this);
 		_isClosed = true;
 		try {
 			super.close();
@@ -297,7 +365,7 @@ internal class CustomURLLoader extends URLLoader
 	 * This provides a convenient way to remove a URLRequestToken as a responder.
 	 * @param responder
 	 */
-	public function removeResponder(responder:URLRequestToken):void
+	public function removeResponder(responder:CustomAsyncResponder):void
 	{
 		var responders:Array = _asyncToken.responders;
 		var index:int = responders.indexOf(responder);
@@ -307,7 +375,7 @@ internal class CustomURLLoader extends URLLoader
 			responders.splice(index, 1);
 			// see if there are any more URLRequestTokens
 			for each (var obj:Object in _asyncToken.responders)
-				if (obj is URLRequestToken)
+				if (obj is CustomAsyncResponder)
 					return;
 			// no more URLRequestTokens found, so cancel
 			close();
@@ -323,26 +391,50 @@ internal class CustomURLLoader extends URLLoader
 	 */
 	private function handleProgressUpdate(event:Event):void
 	{
-		if (_reportProgress)
-			WeaveAPI.ProgressIndicator.updateTask(this, bytesLoaded / bytesTotal);
+		WeaveAPI.ProgressIndicator.updateTask(this, bytesLoaded / bytesTotal);
 	}
 
 	/**
 	 * This function gets called when a getURL request succeeds or fails.
-	 * @param token The URLLoader to remove from the pendingRequests Array.
+	 * @param token The URLLoader to remove from the task list.
 	 */
-	private function removePendingRequest(event:Event, token:Object = null):void
+	private function removeTask(event:Event, token:Object = null):void
 	{
-		if (_reportProgress)
-			WeaveAPI.ProgressIndicator.removeTask(this);
+		WeaveAPI.ProgressIndicator.removeTask(this);
 	}
-
+	
+	private var _resumeFunc:Function = null;
+	private var _resumeParam:Object = null;
+	/**
+	 * When URLRequestUtils.delayResults is set to true, this function will resume
+	 * @return true  
+	 */	
+	public function resume():void
+	{
+		if (_resumeFunc == null)
+		{
+			_resumeFunc = resume; // this cancels the pending delay behavior
+		}
+		else
+		{
+			_resumeFunc(_resumeParam);
+		}
+	}
+	
 	/**
 	 * This function gets called when a URLLoader generated by getURL() dispatches a COMPLETE Event.
 	 * @param event The COMPLETE Event from a URLLoader.
 	 */
 	private function handleGetResult(event:Event):void
 	{
+		//WeaveAPI.externalTrace('getResult ' + label);
+		if (URLRequestUtils.delayResults && _resumeFunc == null)
+		{
+			_resumeFunc = handleGetResult;
+			_resumeParam = event;
+			return;
+		}
+		
 		// broadcast result to responders
 		_asyncToken.mx_internal::applyResult(ResultEvent.createEvent(data));
 	}
@@ -353,6 +445,13 @@ internal class CustomURLLoader extends URLLoader
 	 */
 	private function handleGetError(event:Event):void
 	{
+		if (URLRequestUtils.delayResults && _resumeFunc == null)
+		{
+			_resumeFunc = handleGetError;
+			_resumeParam = event;
+			return;
+		}
+		
 		// broadcast fault to responders
 		var fault:Fault;
 		if (event is ErrorEvent)
@@ -390,11 +489,13 @@ internal class CustomURLLoader extends URLLoader
  * 
  * @author adufilie
  */
-internal class URLRequestToken extends AsyncResponder implements IURLRequestToken
+internal class CustomAsyncResponder extends AsyncResponder implements IURLRequestToken
 {
-	public function URLRequestToken(loader:CustomURLLoader = null, result:Function = null, fault:Function = null, token:Object = null)
+	public function CustomAsyncResponder(relevantContext:Object, loader:CustomURLLoader, result:Function, fault:Function, token:Object = null)
 	{
 		super(result || noOp, fault || noOp, token);
+	
+		this.relevantContext = relevantContext;
 		
 		this.loader = loader;
 		if (loader)
@@ -404,45 +505,45 @@ internal class URLRequestToken extends AsyncResponder implements IURLRequestToke
 	private static function noOp(..._):void {} // does nothing
 	
 	private var loader:CustomURLLoader;
-	private var cancelled:Boolean = false;
+	private var relevantContext:Object;
 	
 	public function cancelRequest():void
 	{
-		if (!cancelled && loader)
+		if (loader && !WeaveAPI.SessionManager.objectWasDisposed(this))
 			loader.removeResponder(this);
-		cancelled = true;
+		WeaveAPI.SessionManager.disposeObjects(this);
 	}
 	
 	override public function result(data:Object):void
 	{
-		if (!cancelled)
+		if (!WeaveAPI.SessionManager.objectWasDisposed(this) && !WeaveAPI.SessionManager.objectWasDisposed(relevantContext))
 			super.result(data);
 	}
 	
-	override public function fault(info:Object):void
+	override public function fault(data:Object):void
 	{
-		if (!cancelled)
-			super.fault(info);
+		if (!WeaveAPI.SessionManager.objectWasDisposed(this) && !WeaveAPI.SessionManager.objectWasDisposed(relevantContext))
+			super.fault(data);
 	}
 }
 
 /**
- * This is a URLRequestToken that is used by getContent() to delay the handlers until the content finishes loading.
+ * This is a CustomAsyncResponder that is used by getContent() to delay the handlers until the content finishes loading.
  * 
  * @author adufilie
  */
-internal class ContentRequestToken extends URLRequestToken
+internal class ContentAsyncResponder extends CustomAsyncResponder
 {
-	public function ContentRequestToken(loader:CustomURLLoader = null, result:Function = null, fault:Function = null, token:Object = null)
+	public function ContentAsyncResponder(relevantContext:Object, loader:CustomURLLoader, result:Function, fault:Function, token:Object = null)
 	{
-		super(loader, result, fault, token);
+		super(relevantContext, loader, result, fault, token);
 	}
 	
 	/**
 	 * This function should be called when the content is loaded.
 	 * @param event
 	 */	
-	public function contentResult(event:ResultEvent):void
+	internal function contentResult(event:ResultEvent):void
 	{
 		super.result(event);
 	}

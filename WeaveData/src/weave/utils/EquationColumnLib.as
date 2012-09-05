@@ -32,7 +32,6 @@ package weave.utils
 	import weave.core.ClassUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.StatisticsCache;
-	import weave.primitives.ColorRamp;
 	
 	/**
 	 * EquationColumnLib
@@ -295,6 +294,7 @@ package weave.utils
 		 * @param key A key to get the Number for.
 		 * @return The Number corresponding to the given key, normalized to be between 0 and 1.
 		 */
+		[Deprecated(replacement="WeaveAPI.StatisticsCache.getColumnStatistics(column).getNorm(key)")]
 		public static function getNorm(column:IAttributeColumn, key:IQualifiedKey = null):Number
 		{
 			// remember current key
@@ -305,12 +305,7 @@ package weave.utils
 
 			var result:Number = NaN;
 			if (column != null)
-			{
-				var min:Number = WeaveAPI.StatisticsCache.getMin(column);
-				var max:Number = WeaveAPI.StatisticsCache.getMax(column);
-				var value:Number = column.getValueFromKey(key, Number);
-				result = (value - min) / (max - min);
-			}
+				result = WeaveAPI.StatisticsCache.getColumnStatistics(column).getNorm(key);
 
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
 			currentRecordKey = previousKey;
@@ -346,7 +341,42 @@ package weave.utils
 			return keySet;
 		}
 		
-		public static function getRunningTotal(column:IAttributeColumn, key:IQualifiedKey = null):Number
+		[Deprecated] public static function getSum(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getSum();
+		}
+		
+		[Deprecated] public static function getMean(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getMean();
+		}
+		
+		[Deprecated] public static function getVariance(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getVariance();
+		}
+		
+		[Deprecated] public static function getStandardDeviation(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getStandardDeviation();
+		}
+		
+		[Deprecated] public static function getMin(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getMin();
+		}
+		
+		[Deprecated] public static function getMax(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getMax();
+		}
+		
+		[Deprecated] public static function getCount(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getCount();
+		}
+		
+		[Deprecated] public static function getRunningTotal(column:IAttributeColumn, key:IQualifiedKey = null):Number
 		{
 			// remember current key
 			var previousKey:IQualifiedKey = currentRecordKey;
@@ -360,32 +390,6 @@ package weave.utils
 				var runningTotals:Dictionary = (WeaveAPI.StatisticsCache as StatisticsCache).getRunningTotals(column);
 				result = runningTotals[key];
 			}
-
-			// revert to key that was set when entering the function (in case nested calls modified the static variables)
-			currentRecordKey = previousKey;
-			return result;
-		}
-		/**
-		 * @param ramp A ColorRamp to apply to a normalized value.
-		 * @param normValueOrColumn Either an IAttributeColumn to get a normalized value from, or a normalized value between 0 and 1.
-		 * @return The result of ramp.getColorFromNorm() called on the normalized value.
-		 */
-		public static function applyColorRamp(ramp:ColorRamp, normValueOrColumn:*):Number
-		{
-			// remember current key
-			var previousKey:IQualifiedKey = currentRecordKey;
-
-			var result:Number;
-			var column:IAttributeColumn = (normValueOrColumn as IAttributeColumn);
-			if (column != null)
-			{
-				var min:Number = WeaveAPI.StatisticsCache.getMin(column);
-				var max:Number = WeaveAPI.StatisticsCache.getMax(column);
-				var value:Number = column.getValueFromKey(previousKey, Number);
-				result = ramp.getColorFromNorm((value - min) / (max - min));
-			}
-			else
-				result = ramp.getColorFromNorm(Number(normValueOrColumn));
 
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
 			currentRecordKey = previousKey;

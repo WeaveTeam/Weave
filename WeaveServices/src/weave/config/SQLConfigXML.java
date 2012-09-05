@@ -76,6 +76,8 @@ public class SQLConfigXML implements ISQLConfig
 	public static final String XML_FILENAME = "sqlconfig.xml";
 	public static final String DTD_FILENAME = "sqlconfig.dtd";
 	public static final URL DTD_EMBEDDED = SQLConfigXML.class.getResource("/weave/config/" + DTD_FILENAME);
+	
+	public static boolean includeGeometryInTable = true;
 
 	private Document doc = null;
 	private XPath xpath = null;
@@ -131,6 +133,7 @@ public class SQLConfigXML implements ISQLConfig
 			accessLogConnectionName = XMLUtils.getStringFromXPath(doc, xpath, "/sqlConfig/accessLog/@connection");
 			accessLogSchema = XMLUtils.getStringFromXPath(doc, xpath, "/sqlConfig/accessLog/@schema");
 			accessLogTable = XMLUtils.getStringFromXPath(doc, xpath, "/sqlConfig/accessLog/@table");
+			includeGeometryInTable = XMLUtils.getStringFromXPath(doc, xpath, "/sqlConfig/@includeGeometryInTable").equalsIgnoreCase("true");
 
 			removeDuplicateEntries();
 		}

@@ -51,7 +51,7 @@ public class RService extends GenericServlet
 	enum ServiceType { JRI, RSERVE; }
 	private static ServiceType serviceType = ServiceType.JRI;
 	
-	public RResult[] runScript(String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
+	public RResult[] runScript(String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception
 	{
 		Exception exception = null;
 		

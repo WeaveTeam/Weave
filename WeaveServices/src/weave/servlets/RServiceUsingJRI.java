@@ -101,7 +101,7 @@ public class RServiceUsingJRI
 		
 		
 	}
-	public static RResult[] runScript(String docrootPath, String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings ,boolean useColumnAsList) throws RemoteException
+	public static RResult[] runScript(String docrootPath, String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings ,boolean useColumnAsList) throws RemoteException
 	{	
 		engine = null;
 		engine = getREngine();
@@ -148,15 +148,20 @@ public class RServiceUsingJRI
 	
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private  static void assignNamesToVector(String[] inputNames,Object[][] inputValues,String[] keys,boolean useColumnAsList){
+	private  static void assignNamesToVector(String[] inputNames,Object[] inputValues,String[] keys,boolean useColumnAsList){
 		// ASSIGNS inputNames to respective Vector in R "like x<-c(1,2,3,4)"
 		Bindings bindedVectors = engine.createBindings();//engine needs to be static , otherwise throws null point error
 		for (int i = 0; i < inputNames.length; i++){
 			String name = inputNames[i];
-			if(useColumnAsList){//if column to consider as list in R
+			if (useColumnAsList) //if column to consider as list in R
+			{
 				HashMap hm = new HashMap();
+				
+				//TODO: support more than just vectors
+				Object[] array = (Object[])inputValues[i];
+				
 				for(int keyID = 0; keyID < keys.length ;keyID++)
-					hm.put(keys[keyID], inputValues[i][keyID]);
+					hm.put(keys[keyID], array[keyID]);
 				bindedVectors.put(name, hm);
 			}
 			else				

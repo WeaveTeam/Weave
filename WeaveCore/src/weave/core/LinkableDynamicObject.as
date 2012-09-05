@@ -31,10 +31,7 @@ package weave.core
 	import weave.api.getLinkableOwner;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
-	import weave.utils.DebugUtils;
 
-	use namespace weave_internal;
-	
 	/**
 	 * This object links to an internal ILinkableObject.
 	 * The internal object can be either a local one or a global one identified by a global name.
@@ -266,7 +263,7 @@ package weave.core
 			delayCallbacks();
 			
 			// handle both class definitions and class names
-			var newClassDef:Class = newClassNameOrDef as Class || ClassUtils.getClassDefinition(String(newClassNameOrDef));
+			var newClassDef:Class = newClassNameOrDef as Class || ClassUtils.getClassDefinition(newClassNameOrDef as String);
 			
 			if (newGlobalName == null) // local object
 			{

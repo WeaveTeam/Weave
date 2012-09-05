@@ -51,21 +51,18 @@ package weave
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVExportable;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.api.ui.IVisTool;
 	import weave.compiler.StandardLib;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableBoolean;
-	import weave.core.LinkableString;
-	import weave.core.weave_internal;
+	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeySet;
@@ -113,8 +110,6 @@ package weave
 	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.MapTool;
-
-	use namespace weave_internal;
 
 	public class VisApplication extends VBox implements ILinkableObject
 	{
@@ -255,7 +250,7 @@ package weave
 				// load the session state file
 				var fileName:String = getFlashVarConfigFileName() || DEFAULT_CONFIG_FILE_NAME;
 				var noCacheHack:String = "?" + (new Date()).getTime(); // prevent flex from using cache
-				WeaveAPI.URLRequestUtils.getURL(new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
+				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(fileName + noCacheHack), handleConfigFileDownloaded, handleConfigFileFault, fileName);
 			}
 		}
 		private function handleConfigFileDownloaded(event:ResultEvent = null, token:Object = null):void
@@ -313,8 +308,6 @@ package weave
 			
 			//(WeaveAPI.topLevelApplication as UIComponent).setStyle("backgroundGradientColors", [color, color]);
 		}
-		
-		
 		
 		/**
 		 * The desktop is the entire viewable area minus the space for the optional menu bar and taskbar
@@ -405,18 +398,36 @@ package weave
 			_selectionIndicatorText.text = lang("{0} Records Selected", selectionKeySet.keys.length.toString());
 			try
 			{
-				if (selectionKeySet.keys.length == 0 || !Weave.properties.showSelectedRecordsText.value)
+				var show:Boolean = Weave.properties.showSelectedRecordsText.value && selectionKeySet.keys.length > 0;
+				if ((WeaveAPI.StageUtils as StageUtils).debug_fps)
+				{
+					show = true;
+					_selectionIndicatorText.text = (WeaveAPI.StageUtils as StageUtils).aft + ' average frame time';
+				}
+				if (show)
+				{
+					if (visDesktop != _selectionIndicatorText.parent)
+						visDesktop.addChild(_selectionIndicatorText);
+						
+					if( Weave.properties.recordsTooltipLocation.value == WeaveProperties.RECORDS_TOOLTIP_LOWER_LEFT ){
+						_selectionIndicatorText.setStyle( "left", 0 ) ;
+						_selectionIndicatorText.setStyle( "right", null ) ;
+					}
+					else if( Weave.properties.recordsTooltipLocation.value == WeaveProperties.RECORDS_TOOLTIP_LOWER_RIGHT ){
+						_selectionIndicatorText.setStyle( "right", 0 ) ;
+						_selectionIndicatorText.setStyle( "left", null ) ;
+					}	
+				}
+				else
 				{
 					if (visDesktop == _selectionIndicatorText.parent)
 						visDesktop.removeChild(_selectionIndicatorText);
 				}
-				else
-				{
-					if (visDesktop != _selectionIndicatorText.parent)
-						visDesktop.addChild(_selectionIndicatorText);
-				}
 			}
-			catch (e:Error) { }
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 		}
 		
 		private var historySlider:UIComponent = null;
@@ -438,10 +449,12 @@ package weave
 			// Code for selection indicator
 			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
 			Weave.properties.showSelectedRecordsText.addGroupedCallback(this, handleSelectionChange, true);
+			Weave.properties.recordsTooltipLocation.addGroupedCallback(this, handleSelectionChange, true);
+			
 			_selectionIndicatorText.setStyle("color", 0xFFFFFF);
 			_selectionIndicatorText.opaqueBackground = 0x000000;
 			_selectionIndicatorText.setStyle("bottom", 0);
-			_selectionIndicatorText.setStyle("right", 0);
+			_selectionIndicatorText.setStyle("left", 0);
 			
 			PopUpManager.createPopUp(this, WeaveProgressBar);
 
@@ -461,6 +474,9 @@ package weave
 		
 		private function updateWorkspaceSize(..._):void
 		{
+			if ((WeaveAPI.StageUtils as StageUtils).debug_fps)
+				handleSelectionChange();
+			
 			if (!this.parent)
 				return;
 			
@@ -1340,9 +1356,6 @@ package weave
 				
 				if (Weave.properties.enablePenTool.value)
 					PenTool.createContextMenuItems(this);
-					
-				if (Weave.properties.dataInfoURL.value)
-					addLinkContextMenuItem(lang("Show Information About This Dataset..."), Weave.properties.dataInfoURL.value);
 				
 				if (Weave.properties.enableExportToolImage.value)
 				{
@@ -1382,6 +1395,9 @@ package weave
 				// Add context menu items for handling search queries
 				if (Weave.properties.enableSearchForRecord.value)
 					SearchEngineUtils.createContextMenuItems(this);
+				
+				if (Weave.properties.dataInfoURL.value)
+					addLinkContextMenuItem(lang("Show Information About This Dataset..."), Weave.properties.dataInfoURL.value);
 			}
 		}
 
@@ -1523,7 +1539,7 @@ package weave
 			CustomContextMenuManager.createAndAddMenuItemToDestination(text, 
 															  this, 
                                                               function(e:Event):void { navigateToURL(new URLRequest(url), "_blank"); },
-                                                              "linkMenuItems");	
+                                                              "4 linkMenuItems");	
 		}
 
 		/**

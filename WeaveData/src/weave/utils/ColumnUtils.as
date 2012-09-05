@@ -73,6 +73,11 @@ package weave.utils
 			return title;
 		}
 		
+		/**
+		 * Temporary solution
+		 * @param column
+		 * @return 
+		 */		
 		public static function getDataSource(column:IAttributeColumn):String
 		{
 			var name:String;
@@ -141,7 +146,7 @@ package weave.utils
 		{
 			// try to find an internal IPrimitiveColumn
 			while (column is IColumnWrapper)
-				column = (column as IColumnWrapper).internalColumn;
+				column = (column as IColumnWrapper).getInternalColumn();
 			return column;
 		}
 
@@ -253,17 +258,11 @@ package weave.utils
 		 * @param key A key in the given column to get the value for.
 		 * @return The Number corresponding to the given key, normalized to be between 0 and 1.
 		 */
+		[Deprecated(replacement="WeaveAPI.StatisticsCache.getColumnStatistics(column).getNorm(key)")]
 		public static function getNorm(column:IAttributeColumn, key:Object):Number
 		{
-			if (column != null)
-			{
-				var qkey:IQualifiedKey = getQKey(key);
-				var min:Number = WeaveAPI.StatisticsCache.getMin(column);
-				var max:Number = WeaveAPI.StatisticsCache.getMax(column);
-				var value:Number = column.getValueFromKey(qkey, Number);
-				return (value - min) / (max - min);
-			}
-			return NaN;
+			var qkey:IQualifiedKey = getQKey(key);
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getNorm(qkey);
 		}
 		
 		/**
@@ -378,14 +377,14 @@ package weave.utils
 			var i:int;
 			for ( i = 0; i < attrCols.length; i++){
 				// to make sure only available attributes are added for export
-				if ((attrCols[i] is  IColumnWrapper) && (attrCols[i] as  IColumnWrapper).internalColumn){
+				if ((attrCols[i] is  IColumnWrapper) && (attrCols[i] as  IColumnWrapper).getInternalColumn()){
 					columnTitles.push(ColumnUtils.getTitle(attrCols[i]));
 					definedAttrCols.push(attrCols[i]);
 				}					
 				if (attrCols[i] is  LinkableHashMap)  {
 					var hashMapColumns:Array = (attrCols[i] as  LinkableHashMap).getObjects();
 					for (var j:int = 0; j < hashMapColumns.length; j++){
-						if ((hashMapColumns[j] as  IColumnWrapper).internalColumn){
+						if ((hashMapColumns[j] as  IColumnWrapper).getInternalColumn()){
 							columnTitles.push(ColumnUtils.getTitle(hashMapColumns[j]));
 							definedAttrCols.push(hashMapColumns[j]);
 						}								

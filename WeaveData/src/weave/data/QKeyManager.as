@@ -20,25 +20,18 @@
 package weave.data
 {
 	import flash.utils.Dictionary;
-	import flash.utils.getQualifiedClassName;
-	
-	import mx.core.Singleton;
-	import mx.utils.object_proxy;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.getCallbackCollection;
+	import weave.api.objectWasDisposed;
 	import weave.core.SessionManager;
-	import weave.core.weave_internal;
-	import weave.primitives.AttributeHierarchy;
-	import weave.primitives.WeakReference;
 	
 	/**
 	 * This class manages a global list of IQualifiedKey objects.
@@ -116,6 +109,30 @@ package weave.data
 			
 			_callbackCollection.resumeCallbacks();
 			return keys;
+		}
+
+		/**
+		 * Get a list of QKey objects, all with the same key type.
+		 * 
+		 * @return An array of QKeys that will be filled in asynchronously.
+		 */
+		public function getQKeysAsync(keyType:String, keyStrings:Array, relevantContext:Object, asyncCallback:Function, outputKeys:Vector.<IQualifiedKey>):void
+		{
+			outputKeys.length = keyStrings.length;
+			var i:int = 0;
+			var iterate:Function = function():Number
+			{
+				if (i >= keyStrings.length)
+					return 1;
+				
+				outputKeys[i] = getQKey(keyType, keyStrings[i]);
+				
+				i++;
+				
+				return i / keyStrings.length;
+			};
+			
+			WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_PARSING, asyncCallback);
 		}
 
 		/**

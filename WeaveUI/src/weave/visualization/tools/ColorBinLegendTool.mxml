@@ -120,7 +120,7 @@
 			{
 				var cc:ColorColumn = _plotter.getInternalColorColumn();
 				if (cc)
-					return cc.internalColumn as BinnedColumn
+					return cc.getInternalColumn() as BinnedColumn
 				return null;
 			}
 
@@ -128,7 +128,7 @@
 			{
 				try
 				{
-					return (internalBinnedColumn.internalColumn as FilteredColumn).internalDynamicColumn;
+					return (internalBinnedColumn.getInternalColumn() as FilteredColumn).internalDynamicColumn;
 				}
 				catch (e:Error) { } // do nothing if there is no data column
 				return null;

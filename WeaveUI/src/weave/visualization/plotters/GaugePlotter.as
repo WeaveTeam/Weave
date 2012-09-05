@@ -128,8 +128,8 @@ package weave.visualization.plotters
 		 * numberOfTickMarks. This should be called whenever any one of those changes.
 		 */ 
 		private function updateAxis():void{
-			var max:Number = WeaveAPI.StatisticsCache.getMax(meterColumn);
-			var min:Number = WeaveAPI.StatisticsCache.getMin(meterColumn);
+			var max:Number = meterColumnStats.getMax();
+			var min:Number = meterColumnStats.getMin();
 			axis.setParams(min,max,numberOfTickMarks);
 		}
 		
@@ -169,8 +169,8 @@ package weave.visualization.plotters
 			//project tip point (angle driven by data value)
 			//TODO: use a normalization abstraction here
 			var meterValue:Number = getMeterValue(recordKeys);
-			var meterValueMax:Number = WeaveAPI.StatisticsCache.getMax(meterColumn);
-			var meterValueMin:Number = WeaveAPI.StatisticsCache.getMin(meterColumn);
+			var meterValueMax:Number = meterColumnStats.getMax();
+			var meterValueMin:Number = meterColumnStats.getMin();
 			var norm:Number = (meterValue - meterValueMin)/(meterValueMax - meterValueMin);
 
 			//compute the angle and project to screen coordinates

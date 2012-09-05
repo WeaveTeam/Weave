@@ -311,8 +311,8 @@ package weave.visualization.tools
 			if (probedColumns.length == 0)
 			{
 				var filteredColumn:FilteredColumn = Weave.defaultColorDataColumn;
-				if (filteredColumn.internalColumn)
-					probedColumns.push(filteredColumn.internalColumn);
+				if (filteredColumn.getInternalColumn())
+					probedColumns.push(filteredColumn.getInternalColumn());
 			}
 			
 			return probedColumns;
@@ -379,7 +379,7 @@ package weave.visualization.tools
 			{
 				var selectedColumn:ILinkableObject = probedColumns[i % probedColumns.length] as ILinkableObject;
 				var columnToInit:DynamicColumn = moreDynamicColumns[i] as DynamicColumn;
-				if (columnToInit.internalColumn == null)
+				if (columnToInit.getInternalColumn() == null)
 				{
 					if (selectedColumn is DynamicColumn)
 						copySessionState(selectedColumn, columnToInit);

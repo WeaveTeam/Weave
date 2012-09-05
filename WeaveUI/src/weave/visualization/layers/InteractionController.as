@@ -21,8 +21,9 @@ package weave.visualization.layers
 {
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
+	import weave.api.registerDisposableChild;
 	import weave.core.LinkableString;
 
 	/**
@@ -59,6 +60,14 @@ package weave.visualization.layers
 		public static const ZOOM_OUT:String = "zoomOut";
 		public static const ZOOM_TO_EXTENT:String = "zoomToExtent";
 		
+		public static const SELECTION_MODE_RECTANGLE:String = "rectangle";
+		public static const SELECTION_MODE_CIRCLE:String = "circle";
+		public static const SELECTION_MODE_LASSO:String = "lasso";
+		public static function enumSelectionMode():Array
+		{
+			return [SELECTION_MODE_RECTANGLE, SELECTION_MODE_CIRCLE, SELECTION_MODE_LASSO];
+		}
+		
 		/**
 		 * This is a list of what are considered "modes" that affect what moving the mouse does.
 		 * This does not include one-time actions not affected by mouse movements.
@@ -81,27 +90,30 @@ package weave.visualization.layers
 			zoomIn.value = DCLICK;
 			zoomOut.value = [SHIFT, DCLICK].join(DELIM);
 			zoomToExtent.value = [CTRL, ALT, SHIFT, DCLICK].join(DELIM);
+			
+			getCallbackCollection(this).addImmediateCallback(this, invalidate);
 		}
 		
 		/**
 		 * This is the default mode to use when dragging and no modifier keys are pressed.
+		 * Not included in session state.
 		 */
-		public const defaultDragMode:LinkableString = registerLinkableChild(this, new LinkableString(null, verifyDefaultMode), validate);
+		public const defaultDragMode:LinkableString = registerDisposableChild(this, new LinkableString(SELECT, verifyDefaultMode));
 		private function verifyDefaultMode(value:String):Boolean
 		{
 			return !value || [PROBE, SELECT, PAN, ZOOM].indexOf(value) >= 0;
 		}
 		
-		public const probe:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
-		public const select:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
-		public const selectRemove:LinkableString 		= newLinkableChild(this, LinkableString, invalidate);
-		public const selectAdd:LinkableString 			= newLinkableChild(this, LinkableString, invalidate);
-		public const selectAll:LinkableString 			= newLinkableChild(this, LinkableString, invalidate);
-		public const pan:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
-		public const zoom:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
-		public const zoomIn:LinkableString 				= newLinkableChild(this, LinkableString, invalidate);
-		public const zoomOut:LinkableString 			= newLinkableChild(this, LinkableString, invalidate);
-		public const zoomToExtent:LinkableString 		= newLinkableChild(this, LinkableString, invalidate);
+		public const probe:LinkableString 				= newLinkableChild(this, LinkableString);
+		public const select:LinkableString 				= newLinkableChild(this, LinkableString);
+		public const selectRemove:LinkableString 		= newLinkableChild(this, LinkableString);
+		public const selectAdd:LinkableString 			= newLinkableChild(this, LinkableString);
+		public const selectAll:LinkableString 			= newLinkableChild(this, LinkableString);
+		public const pan:LinkableString 				= newLinkableChild(this, LinkableString);
+		public const zoom:LinkableString 				= newLinkableChild(this, LinkableString);
+		public const zoomIn:LinkableString 				= newLinkableChild(this, LinkableString);
+		public const zoomOut:LinkableString 			= newLinkableChild(this, LinkableString);
+		public const zoomToExtent:LinkableString 		= newLinkableChild(this, LinkableString);
 		
 		//private const whitespace:RegExp = new RegExp("\s") ;
 		private const DELIM:String = ',';

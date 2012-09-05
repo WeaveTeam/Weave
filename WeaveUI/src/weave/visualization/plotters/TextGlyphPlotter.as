@@ -110,7 +110,7 @@ package weave.visualization.plotters
 		 */
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if (sortColumn.internalColumn != null)
+			if (sortColumn.getInternalColumn() != null)
 				recordKeys.sort(compareRecords);
 
 			var textWasDrawn:Array = [];
