@@ -141,6 +141,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								super.childrenCreated();
 								
 								linkBindableProperty(Weave.properties.disabilityAltText, altTextInputBox, "text");
+								linkBindableProperty(Weave.properties.disabilityLongAltText, longDescTextInputBox, "text");
 								
 								Weave.properties.disabilityAltText.addImmediateCallback(this, handleDisabilityAltTextChange);
 								
