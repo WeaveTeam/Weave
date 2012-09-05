@@ -226,10 +226,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							{
 								longDescTextInputBox.text = "";
 								
-								if(shortDescriptionCheckbox.selected == true)
+								var label:String;
+								
+								if (shortDescriptionCheckbox.selected == true)
 								{
 									longDescTextInputBox.text = (Weave.properties.disabilityAltText).value + " ";
-									for each(var label:String in selectedCheckBoxLabelArray)
+									for each (label in selectedCheckBoxLabelArray)
 									{
 										longDescTextInputBox.text += (Weave.properties.disabilityHashMap.getObject(label) as LinkableString).value + " " ;
 									}
@@ -238,7 +240,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								}
 								else 
 								{
-									for each(var label:String in selectedCheckBoxLabelArray)
+									for each (label in selectedCheckBoxLabelArray)
 									{
 										longDescTextInputBox.text += (Weave.properties.disabilityHashMap.getObject(label) as LinkableString).value + " " ;
 									}
