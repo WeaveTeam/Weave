@@ -157,19 +157,6 @@ package weave.visualization.plotters
 		}
 
 		/**
-		 * Draws the graphics for a record onto a sprite.
-		 * @param recordKey The key of a data record.
-		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
-		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
-		 * @param destination The sprite to draw the graphics onto.
-		 */
-		public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			if (internalObject is AbstractPlotter)
-				(internalObject as AbstractPlotter).drawPlot(recordKeys, dataBounds, screenBounds, destination);
-		}
-		
-		/**
 		 * This function draws the background graphics for this plotter, if applicable.
 		 * An example background would be the origin lines of an axis.
 		 * @param dataBounds The data coordinates that correspond to the given screenBounds.

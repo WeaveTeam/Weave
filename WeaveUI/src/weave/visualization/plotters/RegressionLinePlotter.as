@@ -28,15 +28,12 @@ package weave.visualization.plotters
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.reportError;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.primitives.Bounds2D;
 	import weave.primitives.Range;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.WeaveRServlet;

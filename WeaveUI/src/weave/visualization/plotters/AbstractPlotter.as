@@ -20,7 +20,6 @@
 package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
-	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.Rectangle;
 	
@@ -194,7 +193,12 @@ package weave.visualization.plotters
 			return [];
 		}
 		
-		protected var recordsPerDraw:int = 100; // for use with the template drawPlot code
+		/**
+		 * variables for template code
+		 */		
+		protected const clipRectangle:Rectangle = new Rectangle();
+		protected var clipDrawing:Boolean = true;
+		protected const tempShape:Shape = new Shape(); // reusable temporary object
 		
 		/**
 		 * This function will perform one iteration of an asynchronous rendering task.
@@ -205,67 +209,38 @@ package weave.visualization.plotters
 		 */
 		public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			//trace(this,'drawPlot');
-			// default behavior - no asynchronous rendering
-			drawPlot(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
-			return 1;
+			// this template will draw one record per iteration
+			if (task.iteration < task.recordKeys.length)
+			{
+				//------------------------
+				// draw one record
+				var key:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
+				tempShape.graphics.clear();
+				addRecordGraphicsToTempShape(key, task.dataBounds, task.screenBounds, tempShape);
+				if (clipDrawing)
+				{
+					// get clipRectangle
+					task.screenBounds.getRectangle(clipRectangle);
+					// increase width and height by 1 to avoid clipping rectangle borders drawn with vector graphics.
+					clipRectangle.width++;
+					clipRectangle.height++;
+				}
+				task.buffer.draw(tempShape, null, null, null, clipDrawing ? clipRectangle : null);
+				//------------------------
+				
+				// report progress
+				return task.iteration / task.recordKeys.length;
+			}
+			
+			// report progress
+			return 1; // avoids division by zero in case task.recordKeys.length == 0
 		}
 		
 		/**
-		 * This function may be defined with override by classes that extend AbstractPlotter.
-		 * 
-		 * Draws all the graphics for a list of records onto a sprite, immediately.
-		 * @param recordKeys The list of keys that identify which records should be used to generate the graphics.
-		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
-		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
-		 * @param destination The sprite to draw the graphics onto.
-		 */
-		public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			// BEGIN template code for defining a drawPlot() function.
-			//---------------------------------------------------------
-			
-			var graphics:Graphics = tempShape.graphics;
-			var count:int = 0;
-			graphics.clear();
-			screenBounds.getRectangle(clipRectangle);
-			
-			// increase width and height by 1 to avoid clipping rectangle borders drawn with vector graphics.
-			clipRectangle.width++;
-			clipRectangle.height++;
-			
-			for (var i:int = 0; i < recordKeys.length; i++)
-			{
-				var recordKey:IQualifiedKey = recordKeys[i] as IQualifiedKey;
-
-				// project data coordinates to screen coordinates and draw graphics onto tempShape
-				addRecordGraphicsToTempShape(recordKey, dataBounds, screenBounds, tempShape);
-				
-				// If the recordsPerDraw count has been reached, flush the tempShape "buffer" onto the destination BitmapData.
-				if (++count > recordsPerDraw)
-				{
-					destination.draw(tempShape, null, null, null, (clipDrawing == true) ? clipRectangle : null);
-					graphics.clear();
-					count = 0;
-				}
-			}
-
-			// flush the tempShape buffer
-			if (count > 0)
-				destination.draw(tempShape, null, null, null, (clipDrawing == true) ? clipRectangle : null);
-			
-			//---------------------------------------------------------
-			// END template code
-		}
-		protected const clipRectangle:Rectangle = new Rectangle();
-		protected var clipDrawing:Boolean = true;
-		protected const tempShape:Shape = new Shape(); // reusable temporary object
-		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
-		protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
+		protected /* abstract */ function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
-			// to be implemented by an extending class
 		}
 		
 		/**

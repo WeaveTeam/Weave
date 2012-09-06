@@ -19,9 +19,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 package weave.visualization.plotters
 {
-	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -36,13 +36,13 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -227,427 +227,454 @@ package weave.visualization.plotters
 			}
 		}
 				
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			// save local copies of these values to speed up calculations
-			var _barSpacing:Number = barSpacing.value;
-			var _heightColumns:Array = heightColumns.getObjects();
-			var _posErrCols:Array = positiveErrorColumns.getObjects();
-			var _negErrCols:Array = negativeErrorColumns.getObjects();
-			var _groupingMode:String = getActualGroupingMode();
-			var _horizontalMode:Boolean = horizontalMode.value;
-			var _groupBySortColumn:Boolean = groupBySortColumn.value;
-			var reverseOrder:Boolean = (_horizontalMode == (_groupingMode == GROUP));
-			if (reverseOrder)
+			if (!(task.asyncState is Function))
 			{
-				_heightColumns.reverse();
-				_posErrCols.reverse();
-				_negErrCols.reverse();
-			}
-			sortBins(); // make sure group-by-sort will work properly
-			
-			var showErrorBars:Boolean = _groupingMode == GROUP || _heightColumns.length == 1;
-			
-			LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);
-			
-			// BEGIN template code for defining a drawPlot() function.
-			//---------------------------------------------------------
-			screenBounds.getRectangle(clipRectangle, true);
-			clipRectangle.width++; // avoid clipping lines
-			clipRectangle.height++; // avoid clipping lines
-			var graphics:Graphics = tempShape.graphics;
-			var count:int = 0;
-			var numHeightColumns:int = _heightColumns.length;
-			var shouldDrawValueLabel:Boolean = showValueLabels.value;
-			var shouldDrawLabel:Boolean = showLabels.value && (numHeightColumns >= 1) && (labelColumn.getInternalColumn() || _groupingMode == GROUP);
-			
-			for (var iRecord:int = 0; iRecord < recordKeys.length; iRecord++)
-			{
-				var recordKey:IQualifiedKey = recordKeys[iRecord] as IQualifiedKey;
+				// these variables are used to save state between function calls
+				var _barSpacing:Number;
+				var _heightColumns:Array;
+				var _posErrCols:Array;
+				var _negErrCols:Array;
+				var _groupingMode:String;
+				var _horizontalMode:Boolean;
+				var _groupBySortColumn:Boolean;
+				var reverseOrder:Boolean;
+				var showErrorBars:Boolean;
+				var clipRectangle:Rectangle = new Rectangle();
+				var graphics:Graphics = tempShape.graphics;
+				var count:int;
+				var numHeightColumns:int;
+				var shouldDrawValueLabel:Boolean;
+				var shouldDrawLabel:Boolean;
 				
-				//------------------------------------
-				// BEGIN code to draw one compound bar
-				//------------------------------------
-				graphics.clear();
-				
-				// y coordinates depend on height columns
-				var yMin:Number = 0; // start first bar at zero
-				var yMax:Number = 0;
-				var yNegativeMin:Number = 0;
-				var yNegativeMax:Number = 0;
-				
-				// x coordinates depend on sorted index
-				var sortedIndex:Number;
-				if (_groupBySortColumn)
-					sortedIndex = _binnedSortColumn.getValueFromKey(recordKey, Number);
-				else
-					sortedIndex = _sortedIndexColumn.getValueFromKey(recordKey, Number);
-				
-				var spacing:Number = StandardLib.constrain(_barSpacing, 0, 1) / 2; // max distance between bar groups is 0.5 in data coordinates
-				var xMin:Number = sortedIndex - (0.5 - spacing / 2);
-				var xMax:Number = sortedIndex + (0.5 - spacing / 2);
-				
-				var recordWidth:Number = xMax - xMin;
-				var barWidth:Number = _groupingMode == GROUP ? recordWidth / numHeightColumns : recordWidth;
-				if (_groupBySortColumn)
+				task.asyncState = function():Number
 				{
-					var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex); // already sorted
-					if (keysInBin)
+					if (task.iteration == 0)
 					{
-						var index:int = keysInBin.indexOf(recordKey);
-						recordWidth /= keysInBin.length;
-						barWidth /= keysInBin.length;
-						xMin += index * recordWidth;
-						xMax = xMin + recordWidth;
-					}
-				}
-				
-				var totalHeight:Number = 0;
-				for (var hCount:int = 0; hCount < _heightColumns.length; hCount++)
-				{
-					var column:IAttributeColumn = _heightColumns[hCount] as IAttributeColumn;
-					var h:Number = column.getValueFromKey(recordKey, Number);
-					
-					if (isNaN(h))
-						continue;
-					
-					totalHeight = totalHeight + h;
-				}
-				
-				// loop over height columns, incrementing y coordinates
-				for (var i:int = 0; i < _heightColumns.length; i++)
-				{
-					//------------------------------------
-					// BEGIN code to draw one bar segment
-					//------------------------------------
-					var heightColumn:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
-					// add this height to the current bar
-					var height:Number = heightColumn.getValueFromKey(recordKey, Number);
-					var heightMissing:Boolean = isNaN(height);
-					if (heightMissing)
-					{
-						// if height is missing, use mean value unless we're in 100% stacked mode
-						if (stackedMissingDataGap.value && _groupingMode != PERCENT_STACK)
-							height = WeaveAPI.StatisticsCache.getColumnStatistics(heightColumn).getMean();
-					}
-					if (isNaN(height)) // check again because getMean may return NaN
-						height = 0;
-					
-					if (height >= 0)
-					{
-						//normalizing to 100% stack
-						if (_groupingMode == PERCENT_STACK && totalHeight)
-							yMax = yMin + (100 / totalHeight * height);
-						else
-							yMax = yMin + height;
-					}
-					else
-					{
-						if (_groupingMode == PERCENT_STACK && totalHeight)
-							yNegativeMax = yNegativeMin + (100 / totalHeight * height);
-						else
-							yNegativeMax = yNegativeMin + height;
+						// save local copies of these values to speed up calculations
+						_barSpacing = barSpacing.value;
+						_heightColumns = heightColumns.getObjects();
+						_posErrCols = positiveErrorColumns.getObjects();
+						_negErrCols = negativeErrorColumns.getObjects();
+						_groupingMode = getActualGroupingMode();
+						_horizontalMode = horizontalMode.value;
+						_groupBySortColumn = groupBySortColumn.value;
+						reverseOrder = (_horizontalMode == (_groupingMode == GROUP));
+						if (reverseOrder)
+						{
+							_heightColumns.reverse();
+							_posErrCols.reverse();
+							_negErrCols.reverse();
+						}
+						sortBins(); // make sure group-by-sort will work properly
+						
+						showErrorBars = _groupingMode == GROUP || _heightColumns.length == 1;
+						
+						LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);
+						
+						// BEGIN template code for defining a drawPlot() function.
+						//---------------------------------------------------------
+						task.screenBounds.getRectangle(clipRectangle, true);
+						clipRectangle.width++; // avoid clipping lines
+						clipRectangle.height++; // avoid clipping lines
+						count = 0;
+						numHeightColumns = _heightColumns.length;
+						shouldDrawValueLabel = showValueLabels.value;
+						shouldDrawLabel = showLabels.value && (numHeightColumns >= 1) && (labelColumn.getInternalColumn() || _groupingMode == GROUP);
 					}
 					
-					if (!heightMissing)
+					if (task.iteration < task.recordKeys.length)
 					{
-						// draw graphics
+						var recordKey:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
 						
-						var barStart:Number = xMin;
-						if (_groupingMode == GROUP)
-							barStart += i / numHeightColumns * recordWidth;
-						var barEnd:Number = barStart + barWidth;
-						
-						if ( height >= 0)
-						{
-							// project data coordinates to screen coordinates
-							if (_horizontalMode)
-							{
-								tempPoint.x = yMin; // swapped
-								tempPoint.y = barStart;
-							}
-							else
-							{
-								tempPoint.x = barStart;
-								tempPoint.y = yMin;
-							}
-						}
-						else
-						{
-							if (_horizontalMode)
-							{
-								tempPoint.x = yNegativeMax; // swapped
-								tempPoint.y = barStart;
-							}
-							else
-							{
-								tempPoint.x = barStart;
-								tempPoint.y = yNegativeMax;
-							}
-						}
-						tempBounds.setMinPoint(tempPoint);
-						
-						if (height >= 0)
-						{
-							if (_horizontalMode)
-							{
-								tempPoint.x = yMax; // swapped
-								tempPoint.y = barEnd;
-							}
-							else
-							{
-								tempPoint.x = barEnd;
-								tempPoint.y = yMax;
-							}
-						}
-						else
-						{
-							if (_horizontalMode)
-							{
-								tempPoint.x = yNegativeMin; // swapped
-								tempPoint.y = barEnd;
-							}
-							else
-							{
-								tempPoint.x = barEnd;
-								tempPoint.y = yNegativeMin;
-							}
-						}
-						tempBounds.setMaxPoint(tempPoint);
-						
-						dataBounds.projectCoordsTo(tempBounds, screenBounds);
-						
-						//////////////////////////
-						// BEGIN draw graphics
-						//////////////////////////
+						//-------------------------------
+						// BEGIN code to draw one record
+						//-------------------------------
 						graphics.clear();
 						
-						var colorNorm:Number = i / (_heightColumns.length - 1);
-						if (reverseOrder)
-							colorNorm = 1 - colorNorm;
-						var color:Number = chartColors.getColorFromNorm(colorNorm);
+						// y coordinates depend on height columns
+						var yMin:Number = 0; // start first bar at zero
+						var yMax:Number = 0;
+						var yNegativeMin:Number = 0;
+						var yNegativeMax:Number = 0;
 						
-						// if there is one column, act like a regular bar chart and color in with a chosen color
-						if (_heightColumns.length == 1)
+						// x coordinates depend on sorted index
+						var sortedIndex:Number;
+						if (_groupBySortColumn)
+							sortedIndex = _binnedSortColumn.getValueFromKey(recordKey, Number);
+						else
+							sortedIndex = _sortedIndexColumn.getValueFromKey(recordKey, Number);
+						
+						var spacing:Number = StandardLib.constrain(_barSpacing, 0, 1) / 2; // max distance between bar groups is 0.5 in data coordinates
+						var xMin:Number = sortedIndex - (0.5 - spacing / 2);
+						var xMax:Number = sortedIndex + (0.5 - spacing / 2);
+						
+						var recordWidth:Number = xMax - xMin;
+						var barWidth:Number = _groupingMode == GROUP ? recordWidth / numHeightColumns : recordWidth;
+						if (_groupBySortColumn)
 						{
-							// this might introduce a little overhead...
-							color = fillStyle.color.getValueFromKey(recordKey, Number) as Number;
-							
-							fillStyle.beginFillStyle(recordKey, graphics); 
-						}
-						else // otherwise use a pre-defined set of colors for each bar segment
-							graphics.beginFill(color, 1);
-						
-						
-						lineStyle.beginLineStyle(recordKey, graphics);
-						if (tempBounds.getHeight() == 0)
-							graphics.lineStyle(0,0,0);
-						
-						graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
-						
-						graphics.endFill();
-						
-						if (showErrorBars)
-						{
-							//------------------------------------
-							// BEGIN code to draw one error bar
-							//------------------------------------
-							var positiveError:IAttributeColumn = _posErrCols.length > i ? _posErrCols[i] as IAttributeColumn : null;
-							var negativeError:IAttributeColumn = _negErrCols.length > i ? _negErrCols[i] as IAttributeColumn : null;
-							var errorPlusVal:Number = positiveError ? positiveError.getValueFromKey(recordKey, Number) : NaN;
-							var errorMinusVal:Number = negativeError ? negativeError.getValueFromKey(recordKey, Number) : NaN;
-							if (isFinite(errorPlusVal) && isFinite(errorMinusVal))
+							var keysInBin:Array = _binnedSortColumn.getKeysFromBinIndex(sortedIndex); // already sorted
+							if (keysInBin)
 							{
-								var center:Number = (barStart + barEnd) / 2;
-								var width:Number = barEnd - barStart; 
-								var left:Number = center - width / 4;
-								var right:Number = center + width / 4;
-								var top:Number;
-								var bottom:Number;
-								if (height >= 0)
-								{
-									top = yMax + errorPlusVal;
-									bottom = yMax - errorMinusVal;
-								}
+								var index:int = keysInBin.indexOf(recordKey);
+								recordWidth /= keysInBin.length;
+								barWidth /= keysInBin.length;
+								xMin += index * recordWidth;
+								xMax = xMin + recordWidth;
+							}
+						}
+						
+						var totalHeight:Number = 0;
+						for (var hCount:int = 0; hCount < _heightColumns.length; hCount++)
+						{
+							var column:IAttributeColumn = _heightColumns[hCount] as IAttributeColumn;
+							var h:Number = column.getValueFromKey(recordKey, Number);
+							
+							if (isNaN(h))
+								continue;
+							
+							totalHeight = totalHeight + h;
+						}
+						
+						// loop over height columns, incrementing y coordinates
+						for (var i:int = 0; i < _heightColumns.length; i++)
+						{
+							//------------------------------------
+							// BEGIN code to draw one bar segment
+							//------------------------------------
+							var heightColumn:IAttributeColumn = _heightColumns[i] as IAttributeColumn;
+							// add this height to the current bar
+							var height:Number = heightColumn.getValueFromKey(recordKey, Number);
+							var heightMissing:Boolean = isNaN(height);
+							if (heightMissing)
+							{
+								// if height is missing, use mean value unless we're in 100% stacked mode
+								if (stackedMissingDataGap.value && _groupingMode != PERCENT_STACK)
+									height = WeaveAPI.StatisticsCache.getColumnStatistics(heightColumn).getMean();
+							}
+							if (isNaN(height)) // check again because getMean may return NaN
+								height = 0;
+							
+							if (height >= 0)
+							{
+								//normalizing to 100% stack
+								if (_groupingMode == PERCENT_STACK && totalHeight)
+									yMax = yMin + (100 / totalHeight * height);
 								else
+									yMax = yMin + height;
+							}
+							else
+							{
+								if (_groupingMode == PERCENT_STACK && totalHeight)
+									yNegativeMax = yNegativeMin + (100 / totalHeight * height);
+								else
+									yNegativeMax = yNegativeMin + height;
+							}
+							
+							if (!heightMissing)
+							{
+								// draw graphics
+								
+								var barStart:Number = xMin;
+								if (_groupingMode == GROUP)
+									barStart += i / numHeightColumns * recordWidth;
+								var barEnd:Number = barStart + barWidth;
+								
+								if ( height >= 0)
 								{
-									top = yNegativeMax + errorPlusVal;
-									bottom = yNegativeMax - errorMinusVal;
-								}
-								if (top != bottom)
-								{
-									var coords:Array = []; // each pair of 4 numbers represents a line segment to draw
-									if (!_horizontalMode)
+									// project data coordinates to screen coordinates
+									if (_horizontalMode)
 									{
-										coords.push(left, top, right, top);
-										coords.push(center, top, center, bottom);
-										coords.push(left, bottom, right, bottom);
+										tempPoint.x = yMin; // swapped
+										tempPoint.y = barStart;
 									}
 									else
 									{
-										coords.push(top, left, top, right);
-										coords.push(top, center, bottom, center);
-										coords.push(bottom, left, bottom, right);
+										tempPoint.x = barStart;
+										tempPoint.y = yMin;
 									}
-									
-									// BEGIN DRAW
-									lineStyle.beginLineStyle(recordKey, graphics);
-									for (var iCoord:int = 0; iCoord < coords.length; iCoord += 2) // loop over x,y coordinate pairs
-									{
-										tempPoint.x = coords[iCoord];
-										tempPoint.y = coords[iCoord + 1];
-										dataBounds.projectPointTo(tempPoint, screenBounds);
-										if (iCoord % 4 == 0) // every other pair
-											graphics.moveTo(tempPoint.x, tempPoint.y);
-										else
-											graphics.lineTo(tempPoint.x, tempPoint.y);
-									}
-									// END DRAW
 								}
+								else
+								{
+									if (_horizontalMode)
+									{
+										tempPoint.x = yNegativeMax; // swapped
+										tempPoint.y = barStart;
+									}
+									else
+									{
+										tempPoint.x = barStart;
+										tempPoint.y = yNegativeMax;
+									}
+								}
+								tempBounds.setMinPoint(tempPoint);
+								
+								if (height >= 0)
+								{
+									if (_horizontalMode)
+									{
+										tempPoint.x = yMax; // swapped
+										tempPoint.y = barEnd;
+									}
+									else
+									{
+										tempPoint.x = barEnd;
+										tempPoint.y = yMax;
+									}
+								}
+								else
+								{
+									if (_horizontalMode)
+									{
+										tempPoint.x = yNegativeMin; // swapped
+										tempPoint.y = barEnd;
+									}
+									else
+									{
+										tempPoint.x = barEnd;
+										tempPoint.y = yNegativeMin;
+									}
+								}
+								tempBounds.setMaxPoint(tempPoint);
+								
+								task.dataBounds.projectCoordsTo(tempBounds, task.screenBounds);
+								
+								//////////////////////////
+								// BEGIN draw graphics
+								//////////////////////////
+								graphics.clear();
+								
+								var colorNorm:Number = i / (_heightColumns.length - 1);
+								if (reverseOrder)
+									colorNorm = 1 - colorNorm;
+								var color:Number = chartColors.getColorFromNorm(colorNorm);
+								
+								// if there is one column, act like a regular bar chart and color in with a chosen color
+								if (_heightColumns.length == 1)
+								{
+									// this might introduce a little overhead...
+									color = fillStyle.color.getValueFromKey(recordKey, Number) as Number;
+									
+									fillStyle.beginFillStyle(recordKey, graphics); 
+								}
+								else // otherwise use a pre-defined set of colors for each bar segment
+									graphics.beginFill(color, 1);
+								
+								
+								lineStyle.beginLineStyle(recordKey, graphics);
+								if (tempBounds.getHeight() == 0)
+									graphics.lineStyle(0,0,0);
+								
+								graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
+								
+								graphics.endFill();
+								
+								if (showErrorBars)
+								{
+									//------------------------------------
+									// BEGIN code to draw one error bar
+									//------------------------------------
+									var positiveError:IAttributeColumn = _posErrCols.length > i ? _posErrCols[i] as IAttributeColumn : null;
+									var negativeError:IAttributeColumn = _negErrCols.length > i ? _negErrCols[i] as IAttributeColumn : null;
+									var errorPlusVal:Number = positiveError ? positiveError.getValueFromKey(recordKey, Number) : NaN;
+									var errorMinusVal:Number = negativeError ? negativeError.getValueFromKey(recordKey, Number) : NaN;
+									if (isFinite(errorPlusVal) && isFinite(errorMinusVal))
+									{
+										var center:Number = (barStart + barEnd) / 2;
+										var width:Number = barEnd - barStart; 
+										var left:Number = center - width / 4;
+										var right:Number = center + width / 4;
+										var top:Number;
+										var bottom:Number;
+										if (height >= 0)
+										{
+											top = yMax + errorPlusVal;
+											bottom = yMax - errorMinusVal;
+										}
+										else
+										{
+											top = yNegativeMax + errorPlusVal;
+											bottom = yNegativeMax - errorMinusVal;
+										}
+										if (top != bottom)
+										{
+											var coords:Array = []; // each pair of 4 numbers represents a line segment to draw
+											if (!_horizontalMode)
+											{
+												coords.push(left, top, right, top);
+												coords.push(center, top, center, bottom);
+												coords.push(left, bottom, right, bottom);
+											}
+											else
+											{
+												coords.push(top, left, top, right);
+												coords.push(top, center, bottom, center);
+												coords.push(bottom, left, bottom, right);
+											}
+											
+											// BEGIN DRAW
+											lineStyle.beginLineStyle(recordKey, graphics);
+											for (var iCoord:int = 0; iCoord < coords.length; iCoord += 2) // loop over x,y coordinate pairs
+											{
+												tempPoint.x = coords[iCoord];
+												tempPoint.y = coords[iCoord + 1];
+												task.dataBounds.projectPointTo(tempPoint, task.screenBounds);
+												if (iCoord % 4 == 0) // every other pair
+													graphics.moveTo(tempPoint.x, tempPoint.y);
+												else
+													graphics.lineTo(tempPoint.x, tempPoint.y);
+											}
+											// END DRAW
+										}
+									}
+									//------------------------------------
+									// END code to draw one error bar
+									//------------------------------------
+								}
+									
+								task.buffer.draw(tempShape, null, null, null, clipRectangle);
+								//////////////////////////
+								// END draw graphics
+								//////////////////////////
 							}
 							//------------------------------------
-							// END code to draw one error bar
+							// END code to draw one bar segment
 							//------------------------------------
-						}
 							
-						destination.draw(tempShape, null, null, null, clipRectangle);
-						//////////////////////////
-						// END draw graphics
-						//////////////////////////
-					}
-					//------------------------------------
-					// END code to draw one bar segment
-					//------------------------------------
-					
-					//------------------------------------
-					// BEGIN code to draw one bar value label (directly to BitmapData) 
-					//------------------------------------
-					if (shouldDrawValueLabel && !heightMissing)
-					{
-						_bitmapText.text = heightColumn.getValueFromKey(recordKey, String);
-						
-						var valueLabelPos:Number = valueLabelDataCoordinate.value;
-						if (!isFinite(valueLabelPos))
-							valueLabelPos = (height >= 0) ? yMax : yNegativeMax;
-						
-						// For stack and percent stack bar charts, draw value label in the middle of each segment
-						if (_heightColumns.length > 1 && _groupingMode != GROUP)
-						{
-							if (height >= 0)
-								valueLabelPos = (yMin + yMax) / 2;
-							else
-								valueLabelPos = (yNegativeMin + yNegativeMax) / 2;
-						}
-						
-						if (!_horizontalMode)
-						{
-							tempPoint.x = (barStart + barEnd) / 2;
-							tempPoint.y = valueLabelPos;
-							_bitmapText.angle = 270;
-						}
-						else
-						{
-							tempPoint.x = valueLabelPos;
-							tempPoint.y = (barStart + barEnd) / 2;
-							_bitmapText.angle = 0;
-						}
-						
-						dataBounds.projectPointTo(tempPoint, screenBounds);
-						_bitmapText.x = tempPoint.x;
-						_bitmapText.y = tempPoint.y;
-						_bitmapText.maxWidth = valueLabelMaxWidth.value;
-						_bitmapText.verticalAlign = valueLabelVerticalAlign.value;
-						_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value;
-												
-						if (isFinite(valueLabelRelativeAngle.value))
-							_bitmapText.angle += valueLabelRelativeAngle.value;
-						
-						if (recordValueLabelColoring.value)
-							_bitmapText.textFormat.color = color;
-						else
-							_bitmapText.textFormat.color = valueLabelColor.value;
-						_bitmapText.draw(destination);
-					}
-					//------------------------------------
-					// END code to draw one bar value label (directly to BitmapData)
-					//------------------------------------
-					
-					//------------------------------------
-					// BEGIN code to draw one label using labelColumn (or column title if grouped)
-					//------------------------------------
-					// avoid drawing duplicate overlapping labels
-					if (shouldDrawLabel && !heightMissing && (i == 0 || _groupingMode == GROUP))
-					{
-						if (_groupingMode == GROUP)
-							_bitmapText.text = ColumnUtils.getTitle(heightColumn);
-						else
-							_bitmapText.text = labelColumn.getValueFromKey(recordKey, String);
-						
-						try
-						{
-							_bitmapText.text = labelFormatter.apply(null, [_bitmapText.text]);
-						}
-						catch (e:Error)
-						{
-							_bitmapText.text = '';
-						}
-
-						var labelPos:Number = labelDataCoordinate.value;
-						if (_horizontalMode)
-						{
-							if (!(labelPos <= Infinity)) // alternative to isNaN
-								labelPos = (height >= 0) ? dataBounds.getXMin(): dataBounds.getXMax();
+							//------------------------------------
+							// BEGIN code to draw one bar value label (directly to BitmapData) 
+							//------------------------------------
+							if (shouldDrawValueLabel && !heightMissing)
+							{
+								_bitmapText.text = heightColumn.getValueFromKey(recordKey, String);
+								
+								var valueLabelPos:Number = valueLabelDataCoordinate.value;
+								if (!isFinite(valueLabelPos))
+									valueLabelPos = (height >= 0) ? yMax : yNegativeMax;
+								
+								// For stack and percent stack bar charts, draw value label in the middle of each segment
+								if (_heightColumns.length > 1 && _groupingMode != GROUP)
+								{
+									if (height >= 0)
+										valueLabelPos = (yMin + yMax) / 2;
+									else
+										valueLabelPos = (yNegativeMin + yNegativeMax) / 2;
+								}
+								
+								if (!_horizontalMode)
+								{
+									tempPoint.x = (barStart + barEnd) / 2;
+									tempPoint.y = valueLabelPos;
+									_bitmapText.angle = 270;
+								}
+								else
+								{
+									tempPoint.x = valueLabelPos;
+									tempPoint.y = (barStart + barEnd) / 2;
+									_bitmapText.angle = 0;
+								}
+								
+								task.dataBounds.projectPointTo(tempPoint, task.screenBounds);
+								_bitmapText.x = tempPoint.x;
+								_bitmapText.y = tempPoint.y;
+								_bitmapText.maxWidth = valueLabelMaxWidth.value;
+								_bitmapText.verticalAlign = valueLabelVerticalAlign.value;
+								_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value;
+														
+								if (isFinite(valueLabelRelativeAngle.value))
+									_bitmapText.angle += valueLabelRelativeAngle.value;
+								
+								if (recordValueLabelColoring.value)
+									_bitmapText.textFormat.color = color;
+								else
+									_bitmapText.textFormat.color = valueLabelColor.value;
+								_bitmapText.draw(task.buffer);
+							}
+							//------------------------------------
+							// END code to draw one bar value label (directly to BitmapData)
+							//------------------------------------
 							
-							tempPoint.x = labelPos;
-							tempPoint.y = (barStart + barEnd) / 2;
-							_bitmapText.angle = 0;
+							//------------------------------------
+							// BEGIN code to draw one label using labelColumn (or column title if grouped)
+							//------------------------------------
+							// avoid drawing duplicate overlapping labels
+							if (shouldDrawLabel && !heightMissing && (i == 0 || _groupingMode == GROUP))
+							{
+								if (_groupingMode == GROUP)
+									_bitmapText.text = ColumnUtils.getTitle(heightColumn);
+								else
+									_bitmapText.text = labelColumn.getValueFromKey(recordKey, String);
+								
+								try
+								{
+									_bitmapText.text = labelFormatter.apply(null, [_bitmapText.text]);
+								}
+								catch (e:Error)
+								{
+									_bitmapText.text = '';
+								}
+		
+								var labelPos:Number = labelDataCoordinate.value;
+								if (_horizontalMode)
+								{
+									if (!(labelPos <= Infinity)) // alternative to isNaN
+										labelPos = (height >= 0) ? task.dataBounds.getXMin(): task.dataBounds.getXMax();
+									
+									tempPoint.x = labelPos;
+									tempPoint.y = (barStart + barEnd) / 2;
+									_bitmapText.angle = 0;
+								}
+								else
+								{
+									if (!(labelPos <= Infinity)) // alternative to isNaN
+										labelPos = (height >= 0) ? task.dataBounds.getYMin(): task.dataBounds.getYMax();
+									tempPoint.x = (barStart + barEnd) / 2;
+									tempPoint.y = labelPos;
+									_bitmapText.angle = 270;
+								}
+								
+								task.dataBounds.projectPointTo(tempPoint, task.screenBounds);
+								_bitmapText.x = tempPoint.x;
+								_bitmapText.y = tempPoint.y;
+								_bitmapText.maxWidth = labelMaxWidth.value;
+								if (isFinite(labelRelativeAngle.value))
+									_bitmapText.angle += labelRelativeAngle.value;
+								_bitmapText.verticalAlign = labelVerticalAlign.value;
+								_bitmapText.horizontalAlign = labelHorizontalAlign.value;
+								
+								if (recordLabelColoring.value)
+									_bitmapText.textFormat.color = color;
+								else
+									_bitmapText.textFormat.color = labelColor.value;
+								
+								_bitmapText.draw(task.buffer);
+							}
+							//------------------------------------
+							// END code to draw one label using labelColumn
+							//------------------------------------
+		
+							// update min values for next loop iteration
+							if (_groupingMode != GROUP)
+							{
+								// the next bar starts on top of this bar
+								if (height >= 0)
+									yMin = yMax;
+								else
+									yNegativeMin = yNegativeMax;
+							}
 						}
-						else
-						{
-							if (!(labelPos <= Infinity)) // alternative to isNaN
-								labelPos = (height >= 0) ? dataBounds.getYMin(): dataBounds.getYMax();
-							tempPoint.x = (barStart + barEnd) / 2;
-							tempPoint.y = labelPos;
-							_bitmapText.angle = 270;
-						}
-						
-						dataBounds.projectPointTo(tempPoint, screenBounds);
-						_bitmapText.x = tempPoint.x;
-						_bitmapText.y = tempPoint.y;
-						_bitmapText.maxWidth = labelMaxWidth.value;
-						if (isFinite(labelRelativeAngle.value))
-							_bitmapText.angle += labelRelativeAngle.value;
-						_bitmapText.verticalAlign = labelVerticalAlign.value;
-						_bitmapText.horizontalAlign = labelHorizontalAlign.value;
-						
-						if (recordLabelColoring.value)
-							_bitmapText.textFormat.color = color;
-						else
-							_bitmapText.textFormat.color = labelColor.value;
-						
-						_bitmapText.draw(destination);
+						//-----------------------------
+						// END code to draw one record
+						//-----------------------------
+						return task.iteration / task.recordKeys.length;
 					}
-					//------------------------------------
-					// END code to draw one label using labelColumn
-					//------------------------------------
-
-					// update min values for next loop iteration
-					if (_groupingMode != GROUP)
-					{
-						// the next bar starts on top of this bar
-						if (height >= 0)
-							yMin = yMax;
-						else
-							yNegativeMin = yNegativeMax;
-					}
-				}
-				//------------------------------------
-				// END code to draw one compound bar
-				//------------------------------------
-			}
+					
+					return 1; // avoids divide-by-zero when there are no record keys
+				}; // end task function
+			} // end if
 			
-			//---------------------------------------------------------
-			// END template code
+			return (task.asyncState as Function).apply(this, arguments);
 		}
 		
 		private const _bitmapText:BitmapText = new BitmapText();		

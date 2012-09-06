@@ -19,19 +19,16 @@
 
 package weave.visualization.plotters
 {
-	import flash.display.BitmapData;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.core.ClassUtils;
-	import weave.core.SessionManager;
-	import weave.primitives.Bounds2D;
 	
 	/**
 	 * The purpose of this class is to simplify the session state of an IPlotter object.
@@ -83,9 +80,9 @@ package weave.visualization.plotters
 		/**
 		 * Draws the graphics onto BitmapData.
 		 */
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			(internalPlotter as AbstractPlotter).drawPlot(recordKeys, dataBounds, screenBounds, destination);
+			return (internalPlotter as AbstractPlotter).drawPlotAsyncIteration(task);
 		}
 
 		/**

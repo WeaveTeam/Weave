@@ -29,6 +29,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
@@ -112,7 +113,12 @@ package weave.visualization.plotters
 		/**
 		 * This draws the words to the screen and sized based on count.
 		 */
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
+			return 1;
+		}
+		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var normalized:Number;
 			var j:int;

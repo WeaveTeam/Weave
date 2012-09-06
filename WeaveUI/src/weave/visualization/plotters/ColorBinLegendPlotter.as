@@ -34,6 +34,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackJuggler;
@@ -181,7 +182,12 @@ package weave.visualization.plotters
 			_drawBackground = false;
 		}
 
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
+			return 1;
+		}
+		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var internalColorColumn:ColorColumn = getInternalColorColumn();
 			if (internalColorColumn == null)

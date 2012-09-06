@@ -70,11 +70,6 @@ package weave.visualization.plotters
 		 */
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			// draw nothing -- everything is in the background layer
-		}
-		
 		private const tempPoint:Point = new Point(); // reusable temporary object
 		private var XMIN:Number = 0, YMIN:Number = 0, XMAX:Number = 1, YMAX:Number = 1;		
 		

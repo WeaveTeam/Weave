@@ -35,6 +35,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -318,6 +319,16 @@ package weave.visualization.plotters
 			spatialCallbacks.triggerCallbacks();
 		}
 		
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			if (task.iteration == 0)
+			{
+				if (!keyNumberMap || keyNumberMap[task.recordKeys[0]] == null)
+					return 1;
+				task.recordKeys.sort(sortKeys, Array.DESCENDING);
+			}
+			return super.drawPlotAsyncIteration(task);
+		}
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
@@ -449,26 +460,6 @@ package weave.visualization.plotters
 			
 			return 0 ;
 		}			
-		
-		/**
-		 * This function must be defined with override by classes that extend AbstractPlotter.
-		 * 
-		 * Draws the graphics for a list of records onto a sprite.
-		 * @param recordKeys The list of keys that identify which records should be used to generate the graphics.
-		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
-		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
-		 * @param destination The sprite to draw the graphics onto.
-		 */
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			//timer1.start();
-			if(!keyNumberMap) return;
-			if(keyNumberMap[recordKeys[0]] == null) return;
-			recordKeys.sort(sortKeys, Array.DESCENDING);			
-			super.drawPlot(recordKeys, dataBounds, screenBounds, destination );
-			/*timer1.debug("endplot");
-			timer1.stop();*/
-		}
 		
 		/**
 		 * This function must be implemented by classes that extend AbstractPlotter.

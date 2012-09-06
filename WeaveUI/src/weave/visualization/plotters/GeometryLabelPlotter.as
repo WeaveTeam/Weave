@@ -19,8 +19,6 @@
 
 package weave.visualization.plotters
 {
-	import flash.display.BitmapData;
-	
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
@@ -28,6 +26,7 @@ package weave.visualization.plotters
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.setSessionState;
+	import weave.api.ui.IPlotTask;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.primitives.Bounds2D;
@@ -56,12 +55,12 @@ package weave.visualization.plotters
 		
 		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
 		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
 			// sort records by geometry bounds area before drawing them in the TextGlyphPlotter
-			recordKeys.sort(sortBySize, Array.DESCENDING);
-			
-			super.drawPlot(recordKeys, dataBounds, screenBounds, destination);
+			if (task.iteration == 0)
+				task.recordKeys.sort(sortBySize, Array.DESCENDING);
+			return super.drawPlotAsyncIteration(task);
 		}
 		
 		/**

@@ -23,7 +23,6 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
@@ -31,7 +30,6 @@ package weave.visualization.plotters
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableNumber;
-	import weave.core.LinkableString;
 	import weave.primitives.SimpleGeometry;
 
 	/**

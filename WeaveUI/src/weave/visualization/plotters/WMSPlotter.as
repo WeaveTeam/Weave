@@ -373,11 +373,6 @@ package weave.visualization.plotters
 			spatialCallbacks.triggerCallbacks();
 		}
 		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-		 	; // there are no selectable layers in this plotter
-		}
-		
 		override public function getBackgroundDataBounds():IBounds2D
 		{
 			var bounds:IBounds2D = getReusableBounds();

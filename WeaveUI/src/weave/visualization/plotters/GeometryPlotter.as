@@ -29,7 +29,6 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
@@ -37,7 +36,6 @@ package weave.visualization.plotters
 	import weave.api.disposeObjects;
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
-	import weave.api.objectWasDisposed;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
@@ -345,15 +343,26 @@ package weave.visualization.plotters
 				progress = task.iteration / task.recordKeys.length;
 			}
 			
-			// this will be true on the last iteration
-			if (progress == 1)
+			// hack for symbol plotters
+			var totalProgress:Number = 0;
+			var symbolPlottersArray:Array = symbolPlotters.getObjects();
+			var ourAsyncState:Object = task.asyncState;
+			for each (var plotter:IPlotter in symbolPlottersArray)
 			{
-				for each (var plotter:IPlotter in symbolPlotters.getObjects())
-					(plotter as AbstractPlotter).drawPlot(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
+				if (task.iteration == 0)
+					_asyncState[plotter] = {};
+				task.asyncState = _asyncState[plotter];
+				if (_asyncProgress[plotter] != 1)
+					_asyncProgress[plotter] = plotter.drawPlotAsyncIteration(task);
+				progress += _asyncProgress[plotter];
 			}
+			task.asyncState = ourAsyncState;
 			
-			return progress;
+			return progress / (1 + symbolPlottersArray.length);
 		}
+		
+		private const _asyncState:Dictionary = new Dictionary(true); // IPlotter -> Object
+		private const _asyncProgress:Dictionary = new Dictionary(true); // IPlotter -> Number
 		
 		private static const tempPoint:Point = new Point(); // reusable object
 		private static const tempMatrix:Matrix = new Matrix(); // reusable object
