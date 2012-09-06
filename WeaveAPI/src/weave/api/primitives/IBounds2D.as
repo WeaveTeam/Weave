@@ -15,6 +15,7 @@
 
 package weave.api.primitives
 {
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
@@ -109,6 +110,14 @@ package weave.api.primitives
 		 */
 		function getRectangle(output:Rectangle = null, makeSizePositive:Boolean = true):Rectangle;
 
+		/**
+		 * This will apply transformations to an existing Matrix for projecting coordinates from this bounds to another.
+		 * @param destinationBounds The destination bounds used to calculate the transformation.
+		 * @param outputMatrix The Matrix used to store the transformation.
+		 * @param startWithIdentity If this is true, then outputMatrix.identity() will be applied first.
+		 */
+		function transformMatrix(destinationBounds:IBounds2D, outputMatrix:Matrix, startWithIdentity:Boolean):void;
+		
 		/**
 		 * This function will expand this IBounds2D to include a point.
 		 * @param newPoint A point to include in this IBounds2D.
