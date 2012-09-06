@@ -17,7 +17,6 @@ package weave.api.ui
 {
 	import flash.display.BitmapData;
 	
-	import weave.api.core.ILinkableObject;
 	import weave.api.primitives.IBounds2D;
 
 	/**
@@ -28,23 +27,35 @@ package weave.api.ui
 	 */
 	public interface IPlotTask
 	{
-		// this is the off-screen buffer, which may change
+		/**
+		 * This is the off-screen buffer, which may change
+		 */
 		function get buffer():BitmapData;
 		
-		// specifies the range of data to be rendered
+		/**
+		 * This specifies the range of data to be rendered
+		 */
 		function get dataBounds():IBounds2D;
 		
-		// specifies the pixel range where the graphics should be rendered
+		/**
+		 * This specifies the pixel range where the graphics should be rendered
+		 */
 		function get screenBounds():IBounds2D;
 		
-		// these are the IQualifiedKey objects identifying which records should be rendered
+		/**
+		 * These are the IQualifiedKey objects identifying which records should be rendered
+		 */
 		function get recordKeys():Array;
 		
-		// This counter is incremented after each iteration.  When the task parameters change, this counter is reset to zero.
+		/**
+		 * This counter is incremented after each iteration.  When the task parameters change, this counter is reset to zero.
+		 */
 		function get iteration():uint;
 		
-		// can be used to optionally store additional state variables for resuming an asynchronous task where it previously left off.
-		// setting this will not reset the iteration counter.
+		/**
+		 * This object can be used to optionally store additional state variables for resuming an asynchronous task where it previously left off.
+		 * Setting this will not reset the iteration counter.
+		 */
 		function get asyncState():Object;
 		function set asyncState(value:Object):void;
 	}

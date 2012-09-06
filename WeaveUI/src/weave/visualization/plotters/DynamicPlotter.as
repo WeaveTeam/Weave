@@ -165,8 +165,8 @@ package weave.visualization.plotters
 		 */
 		public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if (internalObject is IPlotter)
-				(internalObject as IPlotter).drawPlot(recordKeys, dataBounds, screenBounds, destination);
+			if (internalObject is AbstractPlotter)
+				(internalObject as AbstractPlotter).drawPlot(recordKeys, dataBounds, screenBounds, destination);
 		}
 		
 		/**

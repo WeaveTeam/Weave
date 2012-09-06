@@ -41,7 +41,7 @@
 			import weave.api.linkSessionState;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
-			import weave.api.ui.IPlotLayer;
+			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableString;
@@ -59,8 +59,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.InteractionController;
-			import weave.visualization.layers.PlotLayer;
-			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.layers.LayerSettings;
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			import weave.visualization.plotters.GeometryPlotter;
 			import weave.visualization.plotters.SingleImagePlotter;
@@ -68,25 +67,25 @@
 
 			WeaveAPI.registerImplementation(IVisTool, MapTool, "Map");
 			
-			// disable default plot layer
-			override protected function get plotLayer():SelectablePlotLayer { return null; }
+			// no main plotter
+			override protected function get mainPlotter():IPlotter { return null; }
 			
 			override protected function constructor():void
 			{
 				super.constructor();
 								
 				// make sure WMS layers are included in the full data bounds
-				visualization.includeNonSelectableLayersInAutoZoom.value = true;
-				visualization.includeNonSelectableLayersInAutoZoom.lock();
+				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = true;
+				visualization.plotManager.includeNonSelectableLayersInAutoZoom.lock();
 				
-				visualization.enableFixedAspectRatio.value = true;
-				visualization.enableAutoZoomToExtent.value = false;
+				visualization.plotManager.enableFixedAspectRatio.value = true;
+				visualization.plotManager.enableAutoZoomToExtent.value = false;
 				getCallbackCollection(visualization).addGroupedCallback(this, updateZoomSlider);
 				
 				colorColumn.addGroupedCallback(this, handlePanelTitleChange);
 				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
 				
-				visualization.layers.addGroupedCallback(this,handleLayersChange,true);
+				visualization.plotManager.plotters.addGroupedCallback(this,handlePlottersChange,true);
 				colorColumn.addGroupedCallback(this,updateProbeColumns, true);
 				
 			}
@@ -144,7 +143,7 @@
 			}
 			
 			[Bindable] private var _projComboBoxData:Array = [];
-			private function handleLayersChange():void
+			private function handlePlottersChange():void
 			{
 				_projComboBoxData.length = 0;
 				// TEMPORARY: set the selected item in the combo box because changing the data provider 
@@ -158,7 +157,7 @@
 				var projString:String;
 				
 				// make sure wms layer projections are identical
-				var wmsPlotters:Array = WeaveAPI.SessionManager.getLinkableDescendants(visualization.layers, WMSPlotter);
+				var wmsPlotters:Array = WeaveAPI.SessionManager.getLinkableDescendants(visualization.plotManager.plotters, WMSPlotter);
 				for each (var wmsPlotter:WMSPlotter in wmsPlotters)
 				{
 					linkProjection(wmsPlotter.srs);
@@ -168,7 +167,7 @@
 				}
 				
 				// make sure all geometry column projections are identical
-				var reprojectedColumns:Array = WeaveAPI.SessionManager.getLinkableDescendants(visualization.layers, ReprojectedGeometryColumn);
+				var reprojectedColumns:Array = WeaveAPI.SessionManager.getLinkableDescendants(visualization.plotManager.plotters, ReprojectedGeometryColumn);
 				for each (var column:ReprojectedGeometryColumn in reprojectedColumns)
 				{
 					linkProjection(column.projectionSRS);
@@ -177,28 +176,18 @@
 						_projComboBoxData.push(projString);					
 				}
 				
-				// force label plotters to use text bitmap filters
-				for each (var layer:SelectablePlotLayer in visualization.layers.getObjects(SelectablePlotLayer))
-					if (layer.getDynamicPlotter().internalObject is GeometryLabelPlotter)
-						layer.useTextBitmapFilters.value = true;
-
 				updateProbeColumns();
 			}
 			private function updateProbeColumns():void
 			{
 				if (includeToolAttributesInProbe.value)
 				{
-					visualization.additionalProbeColumns = [] ;
-					var plotLayers:Array = visualization.layers.getObjects(SelectablePlotLayer);
-					for (var i:int = 0; i < plotLayers.length; i++)
-					{
-						var spl:SelectablePlotLayer = (plotLayers[i] as SelectablePlotLayer);
-						// get all ReferencedColumn objects, excluding geometry columns
-						var refCols:Array = WeaveAPI.SessionManager.getLinkableDescendants(spl.plotter, ReferencedColumn);
-						for each (var col:IAttributeColumn in refCols)
-							if (ObjectUtil.stringCompare(ColumnUtils.getDataType(col), DataTypes.GEOMETRY, true) != 0) // non-geometry
-								visualization.additionalProbeColumns.push(col);
-					}
+					visualization.additionalProbeColumns = [];
+					// get all ReferencedColumn objects, excluding geometry columns
+					var refCols:Array = WeaveAPI.SessionManager.getLinkableDescendants(visualization, ReferencedColumn);
+					for each (var col:IAttributeColumn in refCols)
+						if (ObjectUtil.stringCompare(ColumnUtils.getDataType(col), DataTypes.GEOMETRY, true) != 0) // non-geometry
+							visualization.additionalProbeColumns.push(col);
 				}
 				else
 					visualization.additionalProbeColumns = null;
@@ -219,15 +208,16 @@
 				windowSettingsEditor.initialize();
 				windowSettingsEditor.addChild(backgroundImageCheck);
 				windowSettingsEditor.removeChild(windowSettingsEditor.titleControls);
+				
 				windowSettingsEditor.addChildAt(simpleAxisEditor.titleControls, 0);
 				simpleAxisEditor.parent.removeChild(simpleAxisEditor);
 				
-				linkBindableProperty(visualization.minZoomLevel, this, "zoomSliderMinimum");
-				linkBindableProperty(visualization.maxZoomLevel, this, "zoomSliderMaximum");
+				linkBindableProperty(visualization.plotManager.minZoomLevel, this, "zoomSliderMinimum");
+				linkBindableProperty(visualization.plotManager.maxZoomLevel, this, "zoomSliderMaximum");
 				
-				if (visualization.layers.getNames().length == 0)
+				if (visualization.plotManager.plotters.getNames().length == 0)
 					addGeomLayer();
-				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, handleBoundsChange, true);
+				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, handleBoundsChange, true);
 			}
 			
 			override protected function childrenCreated():void
@@ -320,34 +310,34 @@
 			
 			private function handleZoomInClick():void
 			{
-				visualization.zoomBounds.getDataBounds(_tempBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(_tempBounds);
 				_tempBounds.centeredResize(
 					_tempBounds.getWidth() / visualization.zoomFactor.value,
 					_tempBounds.getHeight() / visualization.zoomFactor.value
 				);
-				visualization.zoomBounds.setDataBounds(_tempBounds);
+				visualization.plotManager.zoomBounds.setDataBounds(_tempBounds);
 			}
 			
 			private function handleZoomOutClick():void
 			{
-				visualization.zoomBounds.getDataBounds(_tempBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(_tempBounds);
 				_tempBounds.centeredResize(
 					_tempBounds.getWidth() * visualization.zoomFactor.value,
 					_tempBounds.getHeight() * visualization.zoomFactor.value
 				);
-				visualization.zoomBounds.setDataBounds(_tempBounds);
+				visualization.plotManager.zoomBounds.setDataBounds(_tempBounds);
 			}
 			
 			private function handlePanButtonClick(xPan:Number, yPan:Number):void
 			{
 				var panPercent:Number = 0.3;
 				
-				visualization.zoomBounds.getDataBounds(_tempBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(_tempBounds);
 				_tempBounds.offset(
 						_tempBounds.getWidth() * panPercent * xPan,
 						_tempBounds.getHeight() * panPercent * yPan
 					);
-				visualization.zoomBounds.setDataBounds(_tempBounds);
+				visualization.plotManager.zoomBounds.setDataBounds(_tempBounds);
 			}
 			
 			private var _tempBounds:IBounds2D = new Bounds2D();
@@ -374,37 +364,36 @@
 			
 			private function addGeomLayer():void
 			{
-				var layer:SelectablePlotLayer = visualization.layers.requestObject(visualization.layers.generateUniqueName("plot"), SelectablePlotLayer, false);
-				var plotter:GeometryPlotter = layer.getDynamicPlotter().requestLocalObject(GeometryPlotter, true);
+				var name:String = visualization.plotManager.plotters.generateUniqueName("plot");
+				visualization.plotManager.plotters.requestObject(name, GeometryPlotter, false);
 			}
 			
 			private function addLabelLayer():void
 			{
 				var i:int;
 				// get existing layers before they change
-				var layers:Array = visualization.layers.getObjects(SelectablePlotLayer).reverse(); // top to bottom
+				var layerNames:Array = visualization.plotManager.plotters.getNames().reverse(); // top to bottom
 				// if a layer is selected in the editor, check that one first.
-				if (layerEditor.selectedItem is SelectablePlotLayer)
-					layers.unshift(layerEditor.selectedItem);
+				if (visualization.plotManager.getPlotter(layerEditor.selectedItem as String))
+					layerNames.unshift(layerEditor.selectedItem);
 				// create new label layer
-				var labelLayer:SelectablePlotLayer = visualization.layers.requestObject(visualization.layers.generateUniqueName("label"), SelectablePlotLayer, false);
-				var plotter:GeometryLabelPlotter = labelLayer.getDynamicPlotter().requestLocalObject(GeometryLabelPlotter, true);
+				var labelLayerName:String = visualization.plotManager.plotters.generateUniqueName("label");
+				var labelPlotter:GeometryLabelPlotter = visualization.plotManager.plotters.requestObject(labelLayerName, GeometryLabelPlotter, false);
 				// loop through existing layers to find geometry layer that we can add corresponding labels for
-				for (i = 0; i < layers.length; i++)
+				for each (var layerName:String in layerNames)
 				{
-					var geomLayer:SelectablePlotLayer = layers[i];
-					var geomPlotter:GeometryPlotter = geomLayer.getDynamicPlotter().internalObject as GeometryPlotter;
+					var geomPlotter:GeometryPlotter = visualization.plotManager.getPlotter(layerName) as GeometryPlotter;
 					if (geomPlotter)
 					{
 						// found a geometry layer
-						copySessionState(geomPlotter.geometryColumn, plotter.geometryColumn);
+						copySessionState(geomPlotter.geometryColumn, labelPlotter.geometryColumn);
 						// see if there is a matching column in probe headers
 						var headers:Array = ProbeTextUtils.probeHeaderColumns.getObjects();
 						for (i = 0; i < headers.length; i++)
 						{
 							if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(geomPlotter.geometryColumn))
 							{
-								plotter.text.requestLocalObjectCopy(headers[i]);
+								labelPlotter.text.requestLocalObjectCopy(headers[i]);
 								break;
 							}
 						}
@@ -416,19 +405,19 @@
 			
 			private function addWMSLayer():void
 			{
-				var oldLayerNames:Array = visualization.layers.getNames();
-				var layer:PlotLayer = visualization.layers.requestObject(visualization.layers.generateUniqueName("wms"), PlotLayer, false);
-				var plotter:WMSPlotter = layer.getDynamicPlotter().requestLocalObject(WMSPlotter, true) as WMSPlotter;
+				var oldLayerNames:Array = visualization.plotManager.plotters.getNames();
 				
-				//plotter.serviceName = WMSProviders.NASA;
+				var name:String = visualization.plotManager.plotters.generateUniqueName("wms");
+				visualization.plotManager.plotters.requestObject(name, WMSPlotter, false);
+				
 				// put old layers on top
-				visualization.layers.setNameOrder(oldLayerNames);
+				visualization.plotManager.plotters.setNameOrder(oldLayerNames);
 			}
 
 			private function handleBoundsChange():void
 			{
 				// update center coordinates text boxes
-				visualization.zoomBounds.getDataBounds(_tempBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(_tempBounds);
 				xCenterCoord.text = String(_tempBounds.getXCenter());
 				yCenterCoord.text = String(_tempBounds.getYCenter());
 			}
@@ -440,15 +429,14 @@
 			{				
 				if (enableOverview.value)
 				{					
-					overviewPanel = children.requestObject(OVERVIEW_PANEL_NAME,MapOverviewWindow,false); //not locked because it should be removable
-					overviewPanel.parentTool = this;
+					overviewPanel = children.requestObject(OVERVIEW_PANEL_NAME, MapOverviewWindow, false); //not locked because it should be removable
 
 					// remove overview window from parent's session state
 					(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(children, overviewPanel);
-					linkSessionState(visualization.layers, overviewPanel.visualization.layers);
-					linkSessionState(visualization.zoomBounds, overviewPanel.parentZoomBounds);
+					linkSessionState(visualization.plotManager.layerSettings, overviewPanel.visualization.plotManager.layerSettings);
+					linkSessionState(visualization.plotManager.plotters, overviewPanel.visualization.plotManager.plotters);
+					linkSessionState(visualization.plotManager.zoomBounds, overviewPanel.parentZoomBounds);
 					children.addGroupedCallback(this, bringOverviewToTop);
-					visualization.layers.addGroupedCallback(this,overviewPanel.drawBoundsRectangle);
 				}
 				else
 				{
@@ -458,9 +446,7 @@
 			
 			public function addMarker(name:String,url:String,x:Number,y:Number,width:Number=NaN,height:Number=NaN):void
 			{
-				var plotLayer:PlotLayer = visualization.layers.requestObject(name, PlotLayer, false);
-				
-				var marker:SingleImagePlotter = plotLayer.getDynamicPlotter().requestLocalObject(SingleImagePlotter, false);
+				var marker:SingleImagePlotter = visualization.plotManager.plotters.requestObject(name, SingleImagePlotter, false);
 				
 				marker.imageURL.value = url;
 				
@@ -483,21 +469,13 @@
 				if (UIUtils.hasFocus(projComboBox))
 				{
 					// clear all layer visibility settings because they are no longer valid in the new projection
-					visualization.layers.delayCallbacks();
-					for each (var layer:IPlotLayer in visualization.layers.getObjects(IPlotLayer))
+					visualization.plotManager.layerSettings.delayCallbacks();
+					for each (var settings:LayerSettings in visualization.plotManager.layerSettings.getObjects())
 					{
-						if (layer is PlotLayer)
-						{
-							(layer as PlotLayer).minVisibleScale.value = 0;
-							(layer as PlotLayer).maxVisibleScale.value = Infinity;
-						}
-						if (layer is SelectablePlotLayer)
-						{
-							(layer as SelectablePlotLayer).minVisibleScale.value = 0;
-							(layer as SelectablePlotLayer).maxVisibleScale.value = Infinity;
-						}
+						settings.minVisibleScale.value = 0;
+						settings.maxVisibleScale.value = Infinity;
 					}
-					visualization.layers.resumeCallbacks();
+					visualization.plotManager.layerSettings.resumeCallbacks();
 				}
 				if (projectionVerifier(projComboBox.text))
 				{
@@ -513,7 +491,7 @@
 			
 			
 			// BACKWARDS COMPATIBILITY
-			[Deprecated(replacement="visualization.zoomToSelection")] public function get zoomToSelection():Function { return visualization.zoomToSelection; }
+			[Deprecated(replacement="visualization.zoomToSelection")] public function get zoomToSelection():Function { return visualization.plotManager.zoomToSelection; }
 		]]>
 	</mx:Script>
 
@@ -747,7 +725,7 @@
 			</ui:Indent>
 			<ui:LinkableObjectList id="visibleScaleRangesList"
 								   width="100%" height="100%"
-								   initialize="visibleScaleRangesList.hashMap = visualization.layers"
+								   initialize="visibleScaleRangesList.hashMap = visualization.plotManager.layerSettings"
 								   borderStyle="none"
 								   paddingLeft="0">
 				<ui:itemRenderer>
@@ -763,30 +741,37 @@
 									import weave.core.UIUtils;
 									import weave.editors.managers.LayerListComponent;
 									import weave.utils.ZoomUtils;
-									import weave.visualization.layers.PlotLayer;
-									import weave.visualization.layers.SelectablePlotLayer;
+									import weave.visualization.layers.LayerSettings;
+									import weave.visualization.layers.PlotManager;
+									
 									[Bindable] private var layerName:String;
+									
 									private var currentlyUpdatingLayerZoomRangeSlider:Boolean = false;
 									
-									private function handleLayerChange():void
+									private function get vm():PlotManager { return outerDocument.visualization.plotManager; }
+									private function get settings():LayerSettings { return data as LayerSettings; }
+									
+									override public function set data(value:Object):void
 									{
-										if (!data)
+										super.data = settingsJuggler.target = value as LayerSettings;
+									}
+									
+									private const settingsJuggler:CallbackJuggler = new CallbackJuggler(this, handleSettingsChange, true);
+									private function handleSettingsChange():void
+									{
+										if (!settings)
 											return;
 										
-										var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
-										var area:Number = fullDataBounds.getArea();
+										layerName = vm.layerSettings.getName(settings);
+										var area:Number = vm.fullDataBounds.getArea();
 										if (!isNaN(area))
 										{
-											layerName = outerDocument.visualization.layers.getName(data as ILinkableObject);
-											
-											var minScreenSize:Number = outerDocument.visualization.minScreenSize.value;
-											
 											var minZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
-												fullDataBounds, minScreenSize, data.minVisibleScale.value
+												vm.fullDataBounds, vm.minScreenSize.value, settings.minVisibleScale.value
 											);
 											
 											var maxZoomLevel:Number = ZoomUtils.getZoomLevelFromScale(
-												fullDataBounds, minScreenSize, data.maxVisibleScale.value
+												vm.fullDataBounds, vm.minScreenSize.value, settings.maxVisibleScale.value
 											);
 											
 											currentlyUpdatingLayerZoomRangeSlider = true;
@@ -795,26 +780,20 @@
 										}
 									}
 									
-									private const layerJuggler:CallbackJuggler = new CallbackJuggler(this, handleLayerChange, true);
-									override public function set data(value:Object):void
-									{
-										super.data = layerJuggler.target = value as SelectablePlotLayer || value as PlotLayer;
-									}
 									private function handleScaleSliderChange(event:SliderEvent):void
 									{
 										if (data && !currentlyUpdatingLayerZoomRangeSlider && UIUtils.hasFocus(layerZoomRangeSlider))
 										{
-											var fullDataBounds:IBounds2D = outerDocument.visualization.fullDataBounds;
-											var minScreenSize:Number = outerDocument.visualization.minScreenSize.value;
+											var minScreenSize:Number = vm.minScreenSize.value;
 											var minVisibleZoomLevel:Number = layerZoomRangeSlider.values[0];
 											var maxVisibleZoomLevel:Number = layerZoomRangeSlider.values[1];
 											
 											data.minVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
-												fullDataBounds, minScreenSize, minVisibleZoomLevel
+												vm.fullDataBounds, minScreenSize, minVisibleZoomLevel
 											);
 											
 											data.maxVisibleScale.value = ZoomUtils.getScaleFromZoomLevel(
-												fullDataBounds, minScreenSize, maxVisibleZoomLevel
+												vm.fullDataBounds, minScreenSize, maxVisibleZoomLevel
 											);
 										}
 									}

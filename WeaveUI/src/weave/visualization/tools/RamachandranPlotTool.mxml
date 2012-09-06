@@ -48,7 +48,6 @@
 			import weave.api.ui.IVisTool;
 			import weave.api.unlinkBindableProperty;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
@@ -67,8 +66,6 @@
 			import weave.utils.HierarchyUtils;
 			import weave.utils.PlotterUtils;
 			import weave.utils.ProbeTextUtils;
-			import weave.utils.VectorUtils;
-			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.plotters.RamachandranBackgroundPlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 			
@@ -79,32 +76,31 @@
 			{
 				super.constructor();
 				// add background layer
-				var bg:PlotLayer = visualization.layers.requestObject("background", PlotLayer, true);
-				bg.getDynamicPlotter().requestLocalObject(RamachandranBackgroundPlotter, true);
+				visualization.plotManager.plotters.requestObject("background", RamachandranBackgroundPlotter, true);
 				
 				// lock dynamic objects into place
 				_plotter = initializePlotters(ScatterPlotPlotter, true);
 				
-				xAxisLayer.axisPlotter.forceTickCount.value = true;
-				yAxisLayer.axisPlotter.forceTickCount.value = true;
-				xAxisLayer.axisPlotter.forceTickCount.lock();
-				yAxisLayer.axisPlotter.forceTickCount.lock();
-				xAxisLayer.axisPlotter.tickCountRequested.value = 9;
-				yAxisLayer.axisPlotter.tickCountRequested.value = 9;
-				xAxisLayer.axisPlotter.tickCountRequested.lock();
-				yAxisLayer.axisPlotter.tickCountRequested.lock();
+				xAxisPlotter.forceTickCount.value = true;
+				yAxisPlotter.forceTickCount.value = true;
+				xAxisPlotter.forceTickCount.lock();
+				yAxisPlotter.forceTickCount.lock();
+				xAxisPlotter.tickCountRequested.value = 9;
+				yAxisPlotter.tickCountRequested.value = 9;
+				xAxisPlotter.tickCountRequested.lock();
+				yAxisPlotter.tickCountRequested.lock();
 				
 				//BEGIN TEMPORARY SOLUTION
-				visualization.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
-				visualization.marginBottomNumber.addImmediateCallback(this, updateAxisLabels);
+				visualization.plotManager.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
+				visualization.plotManager.marginBottomNumber.addImmediateCallback(this, updateAxisLabels);
 				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, true);
 				// END TEMPORARY SOLUTION
 				
-				visualization.includeNonSelectableLayersInAutoZoom.value = true;
+				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = true;
 				visualization.enableZoomAndPan.value = false;
-				visualization.enableAutoZoomToExtent.value = false;
-				visualization.enableAutoZoomToExtent.lock();
-				visualization.zoomBounds.setDataBounds(new Bounds2D(-180,-180,180,180));
+				visualization.plotManager.enableAutoZoomToExtent.value = false;
+				visualization.plotManager.enableAutoZoomToExtent.lock();
+				visualization.plotManager.zoomBounds.setDataBounds(new Bounds2D(-180,-180,180,180));
 				
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(_plotter.xColumn); })
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(_plotter.yColumn); })
@@ -112,7 +108,7 @@
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
 				
-				getCallbackCollection(visualization.zoomBounds).addImmediateCallback(this, invalidateAxes);
+				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				
@@ -126,10 +122,10 @@
 				
 				_plotter.enabledSizeBy.value = true;
 				
-				visualization.marginBottom.value = "80";
-				visualization.marginTop.value    = "10";
-				visualization.marginLeft.value   = "80";
-				visualization.marginRight.value  = "10";
+				visualization.plotManager.marginBottom.value = "80";
+				visualization.plotManager.marginTop.value    = "10";
+				visualization.plotManager.marginLeft.value   = "80";
+				visualization.plotManager.marginRight.value  = "10";
 				
 				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
@@ -165,14 +161,14 @@
 				
 				if (_plotter == null)
 					title = lang("Ramachandran Plot");
-				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.xColumn),
+				xAxisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.xColumn),
 					0,   
-					0, visualization.marginBottomNumber.value - 3, 
+					0, visualization.plotManager.marginBottomNumber.value - 3, 
 					BitmapText.VERTICAL_ALIGN_BOTTOM);
 				
-				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.yColumn), 
+				yAxisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.yColumn), 
 					-90, 
-					-visualization.marginLeftNumber.value, 0, 
+					-visualization.plotManager.marginLeftNumber.value, 0, 
 					BitmapText.VERTICAL_ALIGN_TOP);
 			}
 			
@@ -189,7 +185,7 @@
 				copySessionState(histogramColumn, histo.internalDataColumn);
 				var sbd:SimpleBinningDefinition = histo.plotter.internalBinnedColumn.binningDefinition.internalBinningDefinition as SimpleBinningDefinition;
 				sbd.numberOfBins.value = 20;
-				var keySet:KeySet = histo.visualization.getPlotLayer().subsetFilter.requestLocalObject(KeySet, false)
+				var keySet:KeySet = histo.visualization.getMainLayerSettings().subsetFilter.requestLocalObject(KeySet, false)
 				copySessionState(Weave.defaultSelectionKeySet, keySet);
 			}
 			public const histogramColumn:DynamicColumn = new DynamicColumn();

@@ -94,7 +94,7 @@ package weave.visualization.plotters
 				for (var plotterIndex:int = 0; plotterIndex < _plotters.length; plotterIndex++)
 				{
 					var _plotter:IPlotter = _plotters[plotterIndex] as IPlotter;
-					_plotter.drawPlot(singleRecord, dataBounds, screenBounds, destination);
+					(_plotter as AbstractPlotter).drawPlot(singleRecord, dataBounds, screenBounds, destination);
 				}
 			}
 		}

@@ -34,6 +34,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackJuggler;
 	import weave.core.LinkableBoolean;
@@ -56,7 +57,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class ColorBinLegendPlotter extends AbstractPlotter
+	public class ColorBinLegendPlotter extends AbstractPlotter implements ITextPlotter
 	{
 		public function ColorBinLegendPlotter()
 		{

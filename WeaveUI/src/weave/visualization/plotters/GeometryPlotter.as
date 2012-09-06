@@ -41,6 +41,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
+	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.LinkableBoolean;
@@ -73,7 +74,10 @@ package weave.visualization.plotters
 
 			setKeySource(geometryColumn);
 			
-			_filteredKeySet.removeCallback(spatialCallbacks.triggerCallbacks); // not every change to the geometries changes the bounding boxes
+			// not every change to the geometries changes the keys
+			geometryColumn.removeCallback(_filteredKeySet.triggerCallbacks);
+			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, _filteredKeySet.triggerCallbacks);
+			
 			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks); // bounding box should trigger spatial
 			registerSpatialProperty(_filteredKeySet.keyFilter); // subset should trigger spatial callbacks
 		}
@@ -273,104 +277,82 @@ package weave.visualization.plotters
 		
 		private const _destinationToPlotTaskMap:Dictionary = new Dictionary(true);
 		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			var task:PlotTask = _destinationToPlotTaskMap[destination] as PlotTask;
-			if (!task)
-			{
-				_destinationToPlotTaskMap[destination] = task = new PlotTask(destination);
-				task.iterate = generateTaskIterator(task);
-			}
-			
-			task.recordKeys = recordKeys;
-			task.dataBounds = dataBounds;
-			task.screenBounds = screenBounds;
-			
-			task.recIndex = 0;
-			task.minImportance = getDataAreaPerPixel(dataBounds, screenBounds) * pixellation.value;
-			
-			WeaveAPI.StageUtils.startTask(this, task.iterate, WeaveAPI.TASK_PRIORITY_RENDERING);
-		}
-		
 		private const _singleGeom:Array = []; // reusable array for holding one item
 		
-		private function generateTaskIterator(task:PlotTask):Function
+		private const MIN_IMPORTANCE:String = 'minImportance';
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			return function():Number
+			if (task.iteration == 0)
 			{
-				// loop through the records and draw the geometries
-				var progress:Number = 1;
-				if (task.recIndex < task.recordKeys.length)
+				task.asyncState[MIN_IMPORTANCE] = getDataAreaPerPixel(task.dataBounds, task.screenBounds) * pixellation.value;
+			}
+			
+			var minImportance:Number = task.asyncState[MIN_IMPORTANCE];
+			var progress:Number = 1;
+			if (task.iteration < task.recordKeys.length)
+			{
+				var recordKey:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
+				var geoms:Array = null;
+				var value:* = geometryColumn.getValueFromKey(recordKey);
+				if (value is Array)
+					geoms = value;
+				else if (value is GeneralizedGeometry)
 				{
-					var recordKey:IQualifiedKey = task.recordKeys[task.recIndex] as IQualifiedKey;
-					var geoms:Array = null;
-					var value:* = geometryColumn.getValueFromKey(recordKey);
-					if (value is Array)
-						geoms = value;
-					else if (value is GeneralizedGeometry)
-					{
-						geoms = _singleGeom;
-						_singleGeom[0] = value;
-					}
+					geoms = _singleGeom;
+					_singleGeom[0] = value;
+				}
+				
+				if (geoms && geoms.length > 0)
+				{
+					var graphics:Graphics = tempShape.graphics;
+					var styleSet:Boolean = false;
 					
-					if (geoms && geoms.length > 0)
+					// draw the geom
+					for (var i:int = 0; i < geoms.length; i++)
 					{
-						var graphics:Graphics = tempShape.graphics;
-						var styleSet:Boolean = false;
-						
-						// draw the geom
-						for (var i:int = 0; i < geoms.length; i++)
+						var geom:GeneralizedGeometry = geoms[i] as GeneralizedGeometry;
+						if (geom)
 						{
-							var geom:GeneralizedGeometry = geoms[i] as GeneralizedGeometry;
-							if (geom)
+							// skip shapes that are considered unimportant at this zoom level
+							if (geom.geomType == GeneralizedGeometry.GEOM_TYPE_POLYGON && geom.bounds.getArea() < minImportance)
+								continue;
+							if (!styleSet)
 							{
-								// skip shapes that are considered unimportant at this zoom level
-								if (geom.geomType == GeneralizedGeometry.GEOM_TYPE_POLYGON && geom.bounds.getArea() < task.minImportance)
-									continue;
-								if (!styleSet)
-								{
-									graphics.clear();
-									fill.beginFillStyle(recordKey, graphics);
-									line.beginLineStyle(recordKey, graphics);
-									styleSet = true;
-								}
-								drawMultiPartShape(recordKey, geom.getSimplifiedGeometry(task.minImportance, task.dataBounds), geom.geomType, task.dataBounds, task.screenBounds, graphics, task.destination);
+								graphics.clear();
+								fill.beginFillStyle(recordKey, graphics);
+								line.beginLineStyle(recordKey, graphics);
+								styleSet = true;
 							}
-						}
-						try
-						{
-							if (styleSet)
-							{
-								graphics.endFill();
-								task.destination.draw(tempShape);
-							}
-						}
-						catch (e:Error)
-						{
-							// bitmap was disposed of.
-							disposeObjects(task.destination);
+							drawMultiPartShape(recordKey, geom.getSimplifiedGeometry(minImportance, task.dataBounds), geom.geomType, task.dataBounds, task.screenBounds, graphics, task.buffer);
 						}
 					}
-					task.recIndex++;
-					progress = task.recIndex / task.recordKeys.length;
+					try
+					{
+						if (styleSet)
+						{
+							graphics.endFill();
+							task.buffer.draw(tempShape);
+						}
+					}
+					catch (e:Error)
+					{
+						// bitmap was disposed of.
+						disposeObjects(task.buffer);
+					}
 				}
 				
-				// Remove this task when the bitmap gets disposed of.
-				// This depends on someone else calling disposeObjects() on the BitmapData.
-				if (objectWasDisposed(task.destination))
-				{
-					delete _destinationToPlotTaskMap[task.destination];
-					return 1;
-				}
-				
-				if (progress == 1)
-				{
-					for each (var plotter:IPlotter in symbolPlotters.getObjects())
-						plotter.drawPlot(task.recordKeys, task.dataBounds, task.screenBounds, task.destination);
-				}
-				
-				return progress;
-			};
+				// this progress value will be less than 1
+				progress = task.iteration / task.recordKeys.length;
+			}
+			
+			// this will be true on the last iteration
+			if (progress == 1)
+			{
+				for each (var plotter:IPlotter in symbolPlotters.getObjects())
+					(plotter as AbstractPlotter).drawPlot(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
+			}
+			
+			return progress;
 		}
 		
 		private static const tempPoint:Point = new Point(); // reusable object
@@ -478,20 +460,4 @@ package weave.visualization.plotters
 		// backwards compatibility May 2012
 		[Deprecated(replacement="iconSize")] public function set pointShapeSize(value:Number):void { iconSize.value = value * 2; }
 	}
-}
-import flash.display.BitmapData;
-
-import weave.api.primitives.IBounds2D;
-
-internal class PlotTask
-{
-	public function PlotTask(destination:BitmapData)
-	{
-		this.destination = destination;
-	}
-	
-	public var destination:BitmapData;
-	public var recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D;
-	public var recIndex:int, minImportance:Number;
-	public var iterate:Function;
 }

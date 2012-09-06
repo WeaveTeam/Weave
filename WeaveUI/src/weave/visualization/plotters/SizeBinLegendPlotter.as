@@ -28,6 +28,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ITextPlotter;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
@@ -40,7 +41,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author yluo
 	 */
-	public class SizeBinLegendPlotter extends AbstractPlotter
+	public class SizeBinLegendPlotter extends AbstractPlotter implements ITextPlotter
 	{
 		public function SizeBinLegendPlotter()
 		{

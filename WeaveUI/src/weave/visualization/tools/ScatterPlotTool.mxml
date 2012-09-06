@@ -55,8 +55,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.PlotterUtils;
-			import weave.visualization.layers.PlotLayer;
-			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.layers.LayerSettings;
 			import weave.visualization.plotters.RegressionLinePlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 
@@ -73,15 +72,15 @@
 				visualization.enableProbeLine(true, true);
 				
 				//BEGIN TEMPORARY SOLUTION
-				visualization.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
-				visualization.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
+				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
+				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				// END TEMPORARY SOLUTION
 				
 				visualization.enableZoomAndPan.value = false;
 				
-				xAxisLayer.axisPlotter.setLabelFunction(labelFunctionX);
-				yAxisLayer.axisPlotter.setLabelFunction(labelFunctionY);
+				xAxisPlotter.setLabelFunction(labelFunctionX);
+				yAxisPlotter.setLabelFunction(labelFunctionY);
 				
 				var self:* = this;
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.xColumn); })
@@ -98,10 +97,10 @@
 				plotter.yColumn.addGroupedCallback(this, updateProbeColumns);
 				colorColumn.addGroupedCallback(this, updateProbeColumns);
 				
-				visualization.marginBottom.value = "80";
-				visualization.marginTop.value    = "30";
-				visualization.marginLeft.value   = "80";
-				visualization.marginRight.value  = "30";
+				visualization.plotManager.marginBottom.value = "80";
+				visualization.plotManager.marginTop.value    = "30";
+				visualization.plotManager.marginLeft.value   = "80";
+				visualization.plotManager.marginRight.value  = "30";
 				
 				getCallbackCollection(plotter.circlePlotter).addGroupedCallback(this, handlePlotterChange, true);
 				
@@ -118,14 +117,12 @@
 				return [plotter.xColumn, plotter.yColumn, colorColumn, plotter.radiusColumn];
 			}
 			
-			private var _regressionLineLayer:PlotLayer ;
 			private const REGRESSION_LAYER_NAME:String = "regressionLine";
 			private var _regressionPlotter:RegressionLinePlotter = null;
 			
 			private function initRegressionLayer():void
 			{
-				_regressionLineLayer = visualization.layers.requestObject(REGRESSION_LAYER_NAME, PlotLayer, true);
-				_regressionPlotter = _regressionLineLayer.getDynamicPlotter().requestLocalObject(RegressionLinePlotter,true);
+				_regressionPlotter = visualization.plotManager.plotters.requestObject(REGRESSION_LAYER_NAME, RegressionLinePlotter, true);
 				linkSessionState(plotter.xColumn, _regressionPlotter.xColumn);
 				linkSessionState(plotter.yColumn, _regressionPlotter.yColumn);
 				_regressionPlotter.drawLine.value = false;				
@@ -134,14 +131,14 @@
 			
 			/*BEGIN UNDEFINED LAYER CODE*/
 					
-			private var _undefinedXLayer:SelectablePlotLayer;
-			private var _undefinedYLayer:SelectablePlotLayer;
-			private var _undefinedXYLayer:SelectablePlotLayer;
+			private var _undefinedXSettings:LayerSettings;
+			private var _undefinedYSettings:LayerSettings;
+			private var _undefinedXYSettings:LayerSettings;
 			
 			private var _undefinedXPlotter:ScatterPlotPlotter;
 			private var _undefinedYPlotter:ScatterPlotPlotter;
 			private var _undefinedXYPlotter:ScatterPlotPlotter;
-									
+			
 			private const UNDEFINED_X_NAME:String = "undefinedX";
 			private const UNDEFINED_Y_NAME:String = "undefinedY";
 			private const UNDEFINED_XY_NAME:String = "undefinedXY";
@@ -153,13 +150,12 @@
 			
 			private function initializeUndefinedLayers():void
 			{
-				_undefinedXLayer = visualization.layers.requestObject(UNDEFINED_X_NAME,SelectablePlotLayer, true);
-				_undefinedYLayer = visualization.layers.requestObject(UNDEFINED_Y_NAME, SelectablePlotLayer, true);
-				_undefinedXYLayer = visualization.layers.requestObject(UNDEFINED_XY_NAME,SelectablePlotLayer, true);
-				
-				_undefinedXPlotter = _undefinedXLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
-				_undefinedYPlotter = _undefinedYLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
-				_undefinedXYPlotter = _undefinedXYLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
+				_undefinedXPlotter = visualization.plotManager.plotters.requestObject(UNDEFINED_X_NAME, ScatterPlotPlotter, true);
+				_undefinedYPlotter = visualization.plotManager.plotters.requestObject(UNDEFINED_Y_NAME, ScatterPlotPlotter, true);
+				_undefinedXYPlotter = visualization.plotManager.plotters.requestObject(UNDEFINED_XY_NAME, ScatterPlotPlotter, true);
+				_undefinedXSettings = visualization.plotManager.getLayerSettings(UNDEFINED_X_NAME);
+				_undefinedYSettings = visualization.plotManager.getLayerSettings(UNDEFINED_Y_NAME);
+				_undefinedXYSettings = visualization.plotManager.getLayerSettings(UNDEFINED_XY_NAME);
 				
 				for each(var _plotter:ScatterPlotPlotter in [_undefinedXPlotter, _undefinedYPlotter, _undefinedXYPlotter])
 				{
@@ -180,19 +176,24 @@
 					column.addGroupedCallback(this, setUndefinedPlotterKeySource, true);
 				}
 				
-				getCallbackCollection(visualization.zoomBounds).addImmediateCallback(this, invalidateDisplayList);
+				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, invalidateDisplayList);
 				
-				visualization.marginTopNumber.addImmediateCallback(this, invalidateDisplayList);
-				visualization.marginBottomNumber.addImmediateCallback(this, invalidateDisplayList);
-				visualization.marginRightNumber.addImmediateCallback(this, invalidateDisplayList);
-				visualization.marginLeftNumber.addImmediateCallback(this, invalidateDisplayList);
+				visualization.plotManager.marginTopNumber.addImmediateCallback(this, invalidateDisplayList);
+				visualization.plotManager.marginBottomNumber.addImmediateCallback(this, invalidateDisplayList);
+				visualization.plotManager.marginRightNumber.addImmediateCallback(this, invalidateDisplayList);
+				visualization.plotManager.marginLeftNumber.addImmediateCallback(this, invalidateDisplayList);
 				
 				visualization.gridLineAlpha.addImmediateCallback(this, invalidateDisplayList);
 				visualization.gridLineColor.addImmediateCallback(this, invalidateDisplayList);
 				visualization.gridLineThickness.addImmediateCallback(this, invalidateDisplayList);
 				
-				for each (var layer:SelectablePlotLayer in [_undefinedXLayer, _undefinedYLayer, _undefinedXYLayer])
-					layer.showMissingRecords(true);
+				for each (var settings:LayerSettings in [_undefinedXSettings, _undefinedYSettings, _undefinedXYSettings])
+				{
+					settings.hack_includeMissingRecordBounds = true;
+					settings.hack_lockScreenBounds = new Bounds2D();
+				}
+				
+				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, updateUndefinedPlotterBounds);
 				
 				addEventListener(MouseEvent.MOUSE_MOVE, displayToolTip);
 				addEventListener(MouseEvent.MOUSE_OUT, destroyToolTip);
@@ -229,18 +230,10 @@
 				_undefinedXYPlotter.setCustomKeySource(missingXYkeys);
 			}
 			
-			
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
-			{
-				super.updateDisplayList(unscaledWidth, unscaledHeight);
-				updateUndefinedPlotterBounds();
-			}
-			
-			
 			private function updateUndefinedPlotterBounds():void
 			{
 				var b:IBounds2D = _tempBounds;
-				plotLayer.getScreenBounds(b);
+				visualization.plotManager.zoomBounds.getScreenBounds(b);
 				if (b.isEmpty())
 				{
 					callLater(updateUndefinedPlotterBounds);
@@ -251,26 +244,26 @@
 				graphics.clear();
 				graphics.lineStyle(visualization.gridLineThickness.value, visualization.gridLineColor.value, visualization.gridLineAlpha.value);
 				
-				var marginRight:Number = visualization.marginRightNumber.value;
+				var marginRight:Number = visualization.plotManager.marginRightNumber.value;
 				
 				// right margin; undefined x
-				plotLayer.getScreenBounds(b);
+				b = _undefinedXSettings.hack_lockScreenBounds;
+				visualization.plotManager.zoomBounds.getScreenBounds(b);
 				graphics.moveTo(b.getXMax() + marginRight / 2, b.getYMin());
 				graphics.lineTo(b.getXMax() + marginRight / 2, b.getYMax());
 				b.setXRange(b.getXMax() + marginRight * 1 / 4, b.getXMax() + marginRight * 3 / 4);
-				_undefinedXLayer.hack_lockScreenBounds(b);
 				
 				// top margin; undefined y
-				plotLayer.getScreenBounds(b);
+				b = _undefinedYSettings.hack_lockScreenBounds;
+				visualization.plotManager.zoomBounds.getScreenBounds(b);
 				graphics.moveTo(b.getXMin(), b.getYMax() / 2);
 				graphics.lineTo(b.getXMax(), b.getYMax() / 2);
 				b.setYRange(b.getYMax() * 1 / 4, b.getYMax() * 3 / 4);
-				_undefinedYLayer.hack_lockScreenBounds(b);
 				
 				// top-right corner; undefined x and y
-				plotLayer.getScreenBounds(b);
+				b = _undefinedXYSettings.hack_lockScreenBounds;
+				visualization.plotManager.zoomBounds.getScreenBounds(b);
 				b.setMinCoords(b.getXMax() + marginRight, 0);
-				_undefinedXYLayer.hack_lockScreenBounds(b);
 			}
 			
 			
@@ -280,32 +273,30 @@
 				destroyToolTip(event);
 				_tempPoint = this.globalToContent(new Point(event.stageX, event.stageY));
 								
-				var probeExists:Boolean = plotLayer.probeFilter.internalObject is IKeySet &&
-					(plotLayer.probeFilter.internalObject as IKeySet).keys.length > 0;
+				var probeExists:Boolean = mainLayerSettings.probeFilter.internalObject is IKeySet &&
+					(mainLayerSettings.probeFilter.internalObject as IKeySet).keys.length > 0;
 
-				var selectionExists:Boolean = plotLayer.selectionFilter.internalObject is IKeySet &&
-					(plotLayer.selectionFilter.internalObject as IKeySet).keys.length > 0;
+				var selectionExists:Boolean = mainLayerSettings.selectionFilter.internalObject is IKeySet &&
+					(mainLayerSettings.selectionFilter.internalObject as IKeySet).keys.length > 0;
 				
-				if(probeExists || selectionExists) return;
+				if (probeExists || selectionExists)
+					return;
 				
-				_undefinedXLayer.getScreenBounds(_tempBounds);				
-				if(_tempBounds.containsPoint(_tempPoint))
+				if (_undefinedXSettings.hack_lockScreenBounds.containsPoint(_tempPoint))
 				{
 					_tempPoint = this.contentToGlobal(_tempPoint);
 					_toolTip = ToolTipManager.createToolTip(lang("undefined x"),_tempPoint.x, _tempPoint.y);	
 					visualization.constrainToolTipsToStage(_toolTip);
 					return;
 				}
-				_undefinedYLayer.getScreenBounds(_tempBounds);
-				if(_tempBounds.containsPoint(_tempPoint))
+				if (_undefinedYSettings.hack_lockScreenBounds.containsPoint(_tempPoint))
 				{
 					_tempPoint = this.contentToGlobal(_tempPoint);
 					_toolTip = ToolTipManager.createToolTip(lang("undefined y"),_tempPoint.x, _tempPoint.y);
 					visualization.constrainToolTipsToStage(_toolTip);
 					return;
 				}
-				_undefinedXYLayer.getScreenBounds(_tempBounds);
-				if(_tempBounds.containsPoint(_tempPoint))
+				if (_undefinedXYSettings.hack_lockScreenBounds.containsPoint(_tempPoint))
 				{
 					_tempPoint = this.contentToGlobal(_tempPoint);
 					_toolTip = ToolTipManager.createToolTip(lang("undefined x,y"),_tempPoint.x, _tempPoint.y);
@@ -355,8 +346,8 @@
 				plotter.colorColumn.addImmediateCallback(this, handleColorColumnChange, true);
 				linkBindableProperty(plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(plotter.enabledSizeBy, sizeByCheck, "selected");
-				visualization.marginLeftNumber.addGroupedCallback(this, updateEquation);
-				visualization.marginBottomNumber.addGroupedCallback(this, updateEquation);
+				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateEquation);
+				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateEquation);
 				getCallbackCollection(_regressionPlotter).addGroupedCallback(this, updateEquation, true);
 				showColorPicker.addGroupedCallback(this, updateColorPicker);
 				overrideColor.addGroupedCallback(this, updateColorPicker);
@@ -381,8 +372,8 @@
 					equationText.text = lang("slope = {0}\nintercept = {0}", slope, intercept);
 					equationText.validateNow();
 					// severely hacked
-					equationText.width = visualization.marginLeftNumber.value * 2;
-					equationText.height = Math.min(equationText.textHeight + 10, visualization.marginBottomNumber.value);
+					equationText.width = visualization.plotManager.marginLeftNumber.value * 2;
+					equationText.height = Math.min(equationText.textHeight + 10, visualization.plotManager.marginBottomNumber.value);
 				}
 				else
 				{ 
@@ -396,17 +387,17 @@
 				visualization.bottomMarginColumn = plotter.xColumn;
 				visualization.leftMarginColumn = plotter.yColumn;
 				
-				xAxisLayer.axisPlotter.setSideAxisName(
+				xAxisPlotter.setSideAxisName(
 					ColumnUtils.getTitle(plotter.xColumn), 
 					0,   
-					0, visualization.marginBottomNumber.value - 3, 
+					0, visualization.plotManager.marginBottomNumber.value - 3, 
 					BitmapText.VERTICAL_ALIGN_BOTTOM
 				);
 				
-				yAxisLayer.axisPlotter.setSideAxisName(
+				yAxisPlotter.setSideAxisName(
 					ColumnUtils.getTitle(plotter.yColumn), 
 					-90, 
-					-visualization.marginLeftNumber.value, 0, 
+					-visualization.plotManager.marginLeftNumber.value, 0, 
 					BitmapText.VERTICAL_ALIGN_TOP
 				);
 			}

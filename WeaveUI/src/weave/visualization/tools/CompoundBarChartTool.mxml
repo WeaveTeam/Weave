@@ -37,6 +37,7 @@
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
+			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
@@ -48,8 +49,8 @@
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
-			import weave.visualization.layers.AxisLayer;
 			import weave.visualization.plotters.CompoundBarChartPlotter;
+			import weave.visualization.plotters.SimpleAxisPlotter;
 
 			WeaveAPI.registerImplementation(IVisTool, CompoundBarChartTool, "Bar Chart");
 
@@ -79,31 +80,31 @@
 				_plotter.heightColumns.addGroupedCallback(this, handleHeightColumnsChange);
 				
 				var objects:Array = [
-						xAxisLayer.axisPlotter,
-						yAxisLayer.axisPlotter,
-						visualization.marginLeftNumber,
-						visualization.marginBottomNumber,
-						visualization.marginTopNumber,
-						visualization.marginRightNumber,
+						xAxisPlotter,
+						yAxisPlotter,
+						visualization.plotManager.marginLeftNumber,
+						visualization.plotManager.marginBottomNumber,
+						visualization.plotManager.marginTopNumber,
+						visualization.plotManager.marginRightNumber,
 						_plotter
 					];
 				for each (var object:ILinkableObject in objects)
 					getCallbackCollection(object).addGroupedCallback(this, updateAxisLabels, true);
 				
 				for each (var override:ILinkableObject in [
-						visualization.overrideXMin,
-						visualization.overrideYMin,
-						visualization.overrideXMax,
-						visualization.overrideYMax])
+						visualization.plotManager.overrideXMin,
+						visualization.plotManager.overrideYMin,
+						visualization.plotManager.overrideXMax,
+						visualization.plotManager.overrideYMax])
 				{
-					for each (var axis:AxisLayer in [xAxisLayer, yAxisLayer])
-						getCallbackCollection(override).addImmediateCallback(this, axis.axisPlotter.spatialCallbacks.triggerCallbacks);
+					for each (var axisPlotter:IPlotter in [xAxisPlotter, yAxisPlotter])
+						getCallbackCollection(override).addImmediateCallback(this, axisPlotter.spatialCallbacks.triggerCallbacks);
 				}
 
-				visualization.marginBottom.value = "80";
-				visualization.marginLeft.value = "80";
-				visualization.marginTop.value = "30";
-				visualization.marginRight.value = "30";
+				visualization.plotManager.marginBottom.value = "80";
+				visualization.plotManager.marginLeft.value = "80";
+				visualization.plotManager.marginTop.value = "30";
+				visualization.plotManager.marginRight.value = "30";
 				
 				visualization.enableZoomAndPan.value = false;
 
@@ -232,8 +233,8 @@
 				var sortAxisToolTipColumn:IAttributeColumn = _plotter.sortColumn;
 				var heightAxisToolTipColumn:IAttributeColumn = heightColumns.length > 0 ? heightColumns[0] : null;
 				
-				var sortAxisLayer:AxisLayer;
-				var heightAxisLayer:AxisLayer;
+				var sortAxis:SimpleAxisPlotter;
+				var heightAxis:SimpleAxisPlotter;
 				
 				var xAxisTitle:String; // title for x axis, whether or not horizontal mode is on
 				var yAxisTitle:String; // title for y axis, whether or not horizontal mode is on
@@ -243,10 +244,10 @@
 				if (_plotter.horizontalMode.value)
 				{
 					yAxisTitle = sortAxisTitle;
-					sortAxisLayer = yAxisLayer;
+					sortAxis = yAxisPlotter;
 					visualization.leftMarginColumn = sortAxisToolTipColumn;
 									
-					heightAxisLayer = xAxisLayer;
+					heightAxis = xAxisPlotter;
 					xAxisTitle = heightAxisTitle;
 					visualization.bottomMarginColumn = heightAxisToolTipColumn;
 					
@@ -255,40 +256,40 @@
 				else
 				{
 					xAxisTitle = sortAxisTitle;
-					sortAxisLayer = xAxisLayer;
+					sortAxis = xAxisPlotter;
 					visualization.bottomMarginColumn = sortAxisToolTipColumn;
 					
 					yAxisTitle = heightAxisTitle;
-					heightAxisLayer = yAxisLayer;
+					heightAxis = yAxisPlotter;
 					visualization.leftMarginColumn = heightAxisToolTipColumn;
 					
 					visualization.enableProbeLine(false, _groupingMode == CompoundBarChartPlotter.STACK);
 				}
 				
-				sortAxisLayer.axisPlotter.setLabelFunction(_plotter.sortAxisLabelFunction);
-				heightAxisLayer.axisPlotter.setLabelFunction(heightAxisLabelFunction);
+				sortAxis.setLabelFunction(_plotter.sortAxisLabelFunction);
+				heightAxis.setLabelFunction(heightAxisLabelFunction);
 				
 				// height axis uses automatic min,max based on data
-				heightAxisLayer.axisPlotter.tickMinValue.value = NaN;
-				heightAxisLayer.axisPlotter.tickMaxValue.value = NaN;
-				heightAxisLayer.axisPlotter.forceTickCount.value = false;
-				heightAxisLayer.axisPlotter.tickCountRequested.value = sizeAxisTickCountRequested.value;
-				heightAxisLayer.axisPlotter.showLabels.value = true;
+				heightAxis.tickMinValue.value = NaN;
+				heightAxis.tickMaxValue.value = NaN;
+				heightAxis.forceTickCount.value = false;
+				heightAxis.tickCountRequested.value = sizeAxisTickCountRequested.value;
+				heightAxis.showLabels.value = true;
 
 				// sort axis automatic min,max would be -0.5, numBars-0.5.  we don't want that.
-				sortAxisLayer.axisPlotter.tickMinValue.value = 0;
-				sortAxisLayer.axisPlotter.tickMaxValue.value = _plotter.maxTickMarks - 1;
-				sortAxisLayer.axisPlotter.forceTickCount.value = showAllLabels.value;
+				sortAxis.tickMinValue.value = 0;
+				sortAxis.tickMaxValue.value = _plotter.maxTickMarks - 1;
+				sortAxis.forceTickCount.value = showAllLabels.value;
 				if (showAllLabels.value)
-					sortAxisLayer.axisPlotter.tickCountRequested.value = _plotter.maxTickMarks;
+					sortAxis.tickCountRequested.value = _plotter.maxTickMarks;
 				else
-					sortAxisLayer.axisPlotter.tickCountRequested.value = Math.min(_plotter.maxTickMarks, 11);
-				sortAxisLayer.axisPlotter.showLabels.value = !_plotter.showLabels.value || showAllLabels.value;
+					sortAxis.tickCountRequested.value = Math.min(_plotter.maxTickMarks, 11);
+				sortAxis.showLabels.value = !_plotter.showLabels.value || showAllLabels.value;
 				
 				// END handling of horizontal/vertical mode --------------------------------
 				
-				xAxisLayer.axisPlotter.setSideAxisName(xAxisTitle, 0, 0, visualization.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
-				yAxisLayer.axisPlotter.setSideAxisName(yAxisTitle, -90, -visualization.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				xAxisPlotter.setSideAxisName(xAxisTitle, 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				yAxisPlotter.setSideAxisName(yAxisTitle, -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 			
 			private function heightAxisLabelFunction(value:Number):String

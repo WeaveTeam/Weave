@@ -32,6 +32,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ITextPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
@@ -42,11 +43,9 @@ package weave.visualization.plotters
 	import weave.utils.ObjectPool;
 	
 	/**
-	 * TextGlyphPlotter
-	 * 
 	 * @author adufilie
 	 */
-	public class TextGlyphPlotter extends AbstractGlyphPlotter
+	public class TextGlyphPlotter extends AbstractGlyphPlotter implements ITextPlotter
 	{
 		public function TextGlyphPlotter()
 		{

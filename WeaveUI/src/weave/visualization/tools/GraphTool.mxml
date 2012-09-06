@@ -46,7 +46,6 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.Bounds2D;
-			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.GraphLabelPlotter;
 			import weave.visualization.plotters.GraphPlotter;
 
@@ -58,13 +57,12 @@
 				super.constructor();
 				// lock dynamic objects into place
 				_plotter = initializePlotters(GraphPlotter, false);
-				var layers:Array = visualization.layers.getObjects(SelectablePlotLayer);
 				// create new label layer
-				var labelLayer:SelectablePlotLayer = visualization.layers.requestObject(visualization.layers.generateUniqueName("label"), SelectablePlotLayer, true);
-				_labelPlotter = labelLayer.getDynamicPlotter().requestLocalObject(GraphLabelPlotter, true);
-				visualization.layers.setNameOrder([ visualization.layers.getName(labelLayer) ]);
-				visualization.enableAutoZoomToExtent.value = true;
-				visualization.enableFixedAspectRatio.value = true;
+				var labelLayerName:String = visualization.plotManager.plotters.generateUniqueName("label");
+				_labelPlotter = visualization.plotManager.plotters.requestObject(labelLayerName, GraphLabelPlotter, true);
+				visualization.plotManager.plotters.setNameOrder([ labelLayerName ]);
+				visualization.plotManager.enableAutoZoomToExtent.value = true;
+				visualization.plotManager.enableFixedAspectRatio.value = true;
 				visualization.enableZoomAndPan.value = false;
 				visualization.enableSelection.value = false;
 
@@ -137,7 +135,7 @@
 				var probedKey:IQualifiedKey = visualization.lastProbedKey;
 				if (!probedKey)
 					return;
-				var _keySet:KeySet = plotLayer.selectionFilter.internalObject as KeySet;
+				var _keySet:KeySet = mainLayerSettings.selectionFilter.internalObject as KeySet;
 				_probedKeys = _keySet ? _keySet.keys.concat() : []; // save these keys
 				var boundsArray:Array = _plotter.getDataBoundsFromRecordKey(probedKey);
 				if (!boundsArray || boundsArray.length == 0)
@@ -174,13 +172,13 @@
 			private function handleLayoutGraph_click(event:ContextMenuEvent):void
 			{
 				_plotter.resetIterations(1);
-				var keySet:IKeySet = plotLayer.selectionFilter.internalObject as IKeySet;
+				var keySet:IKeySet = mainLayerSettings.selectionFilter.internalObject as IKeySet;
 				var keys:Array = (keySet && keySet.keys.length > 0) ? keySet.keys : null;
 				_plotter.continueComputation(keys);
 			}
 			private function handleScaleSelection_click(event:ContextMenuEvent):void
 			{
-				var keySet:IKeySet = plotLayer.selectionFilter.internalObject as IKeySet;
+				var keySet:IKeySet = mainLayerSettings.selectionFilter.internalObject as IKeySet;
 				var keys:Array = (keySet && keySet.keys.length > 0) ? keySet.keys : null;
 				_plotter.scaleNodes(keys, 2);
 			}
@@ -283,12 +281,12 @@
 			}
 			private function getDataBounds():IBounds2D
 			{
-				plotLayer.getDataBounds(_dataBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(_dataBounds);
 				return _dataBounds;
 			}
 			private function getScreenBounds():IBounds2D
 			{
-				plotLayer.getScreenBounds(_screenBounds);
+				visualization.plotManager.zoomBounds.getScreenBounds(_screenBounds);
 				return _screenBounds;
 			}
 			private function projectBoundsToData(b:IBounds2D):IBounds2D

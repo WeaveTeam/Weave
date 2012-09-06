@@ -85,7 +85,7 @@ package weave.visualization.plotters
 		 */
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			internalPlotter.drawPlot(recordKeys, dataBounds, screenBounds, destination);
+			(internalPlotter as AbstractPlotter).drawPlot(recordKeys, dataBounds, screenBounds, destination);
 		}
 
 		/**

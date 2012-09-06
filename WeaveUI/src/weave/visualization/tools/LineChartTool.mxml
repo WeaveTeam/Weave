@@ -26,8 +26,6 @@
 		 xmlns:settings="weave.ui.settings.*" layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import mx.utils.StringUtil;
-			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
@@ -50,8 +48,7 @@
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.PlotterUtils;
 			import weave.utils.ProbeTextUtils;
-			import weave.visualization.layers.AxisLayer;
-			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.layers.LayerSettings;
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.plotters.TextGlyphPlotter;
 			
@@ -63,22 +60,19 @@
 			{
 				super.constructor();
 				
-				visualization.marginBottom.value = "80";
-				visualization.marginTop.value    = "10";
-				visualization.marginLeft.value   = "80";
-				visualization.marginRight.value  = "80";
+				visualization.plotManager.marginBottom.value = "80";
+				visualization.plotManager.marginTop.value    = "10";
+				visualization.plotManager.marginLeft.value   = "80";
+				visualization.plotManager.marginRight.value  = "80";
 				
 				// lock dynamic objects into place
 				_plotter = initializePlotters(ParallelCoordinatesPlotter, true);
 				
 				// default axis values
-				yAxisLayer.axisPlotter.tickCountRequested.value = 5;
-				xAxisLayer.axisPlotter.forceTickCount.value = true;
+				yAxisPlotter.tickCountRequested.value = 5;
+				xAxisPlotter.forceTickCount.value = true;
 
-				// add this callback first because it needs to be called for each column that is removed
-				_plotter.columns.childListCallbacks.addImmediateCallback(this, handleColumnAddRemoveReorder);
-				
-				visualization.includeNonSelectableLayersInAutoZoom.lock();
+				visualization.plotManager.includeNonSelectableLayersInAutoZoom.lock();
 				visualization.enableZoomAndPan.value = false;
 
 				//This variable represents whether or not the tool is a 
@@ -90,13 +84,13 @@
 				
 				linkSessionState(labelPlotter.zoomToSubset, _plotter.zoomToSubset);
 
-				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxes);
+				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, updateAxes);
 			
 				// BEGIN TEMPORARY SOLUTION
-				visualization.marginLeftNumber.addGroupedCallback(this, updateAxes);
-				visualization.marginBottomNumber.addGroupedCallback(this, updateAxes);
-				visualization.marginTopNumber.addGroupedCallback(this, updateAxes);
-				visualization.marginRightNumber.addGroupedCallback(this, updateAxes);
+				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateAxes);
+				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateAxes);
+				visualization.plotManager.marginTopNumber.addGroupedCallback(this, updateAxes);
+				visualization.plotManager.marginRightNumber.addGroupedCallback(this, updateAxes);
 
 				getCallbackCollection(_plotter).addGroupedCallback(this, updateAxes, true);
 				// END TEMPORARY SOLUTION
@@ -114,7 +108,7 @@
 				_plotter.xData.addGroupedCallback(this, updateFilterText);
 				_plotter.xValues.addGroupedCallback(this, updateFilterText, true);
 				
-				linkSessionState(visualization.marginRightNumber, labelPlotter.maxWidth);
+				linkSessionState(visualization.plotManager.marginRightNumber, labelPlotter.maxWidth);
 			}
 
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -182,19 +176,15 @@
 			{
 				super.childrenCreated();
 				
-				// fix session state from old versions
-				for each (var name:String in visualization.layers.getNames(AxisLayer))
-					visualization.layers.removeObject(name);
+				xAxisPlotter.setLabelFunction(getColumnTitle);
+				xAxisPlotter.axisLabelRelativeAngle.value = -45;
+				xAxisPlotter.labelHorizontalAlign.value = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+				xAxisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
+				xAxisPlotter.labelDistanceIsVertical.value = false;
 				
-				xAxisLayer.axisPlotter.setLabelFunction(getColumnTitle);
-				xAxisLayer.axisPlotter.axisLabelRelativeAngle.value = -45;
-				xAxisLayer.axisPlotter.labelHorizontalAlign.value = BitmapText.HORIZONTAL_ALIGN_RIGHT;
-				xAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
-				xAxisLayer.axisPlotter.labelDistanceIsVertical.value = false;
+				yAxisPlotter.setLabelFunction(yAxisLabelFunction);
 				
-				yAxisLayer.axisPlotter.setLabelFunction(yAxisLabelFunction);
-				
-				visualization.includeNonSelectableLayersInAutoZoom.value = false;
+				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = false;
 				
 				(labelComponent as DynamicColumnComponent).dynamicObject = labelPlotter.text;
 				
@@ -237,17 +227,6 @@
 				return "";
 			}
 			
-			private var axisPrefix:String =  lang("Axis for: ");
-			private function handleColumnAddRemoveReorder():void
-			{
-				var removedName:String = _plotter.columns.childListCallbacks.lastNameRemoved;
-				if (removedName != null)
-				{
-					//trace("removed:",removedName)
-					visualization.layers.removeObject(axisPrefix + removedName);
-				}
-			}
-			
 			private static const tempBounds:Bounds2D = new Bounds2D(); // reusable temporary object
 			
 			private function yAxisLabelFunction(value:Number):String
@@ -264,16 +243,16 @@
 				
 				var columns:Array = _plotter.columns.getObjects();
 				
-				xAxisLayer.axisPlotter.tickCountRequested.value = Math.max(2, columns.length);
+				xAxisPlotter.tickCountRequested.value = Math.max(2, columns.length);
 				
 				// get bounds for y axis
-				visualization.zoomBounds.getDataBounds(tempBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(tempBounds);
 				tempBounds.xMax = tempBounds.xMin;
 				
-				yAxisLayer.axisPlotter.axisLineMinValue.value = tempBounds.yMin;
-				yAxisLayer.axisPlotter.axisLineMaxValue.value = tempBounds.yMax;
+				yAxisPlotter.axisLineMinValue.value = tempBounds.yMin;
+				yAxisPlotter.axisLineMaxValue.value = tempBounds.yMax;
 			
-				yAxisLayer.axisPlotter.axisLineDataBounds.copyFrom(tempBounds);
+				yAxisPlotter.axisLineDataBounds.copyFrom(tempBounds);
 				
 				var xAxisName:String = '';
 				var yAxisName:String = '';
@@ -282,21 +261,21 @@
 					xAxisName = ColumnUtils.getTitle(_plotter.xData);
 					yAxisName = ColumnUtils.getTitle(_plotter.yData);
 				}
-				xAxisLayer.axisPlotter.setSideAxisName(
+				xAxisPlotter.setSideAxisName(
 					xAxisName,
 					0,
-					0, visualization.marginBottomNumber.value - 3,
+					0, visualization.plotManager.marginBottomNumber.value - 3,
 					BitmapText.VERTICAL_ALIGN_BOTTOM
 				);
-				yAxisLayer.axisPlotter.setSideAxisName(
+				yAxisPlotter.setSideAxisName(
 					yAxisName,
 					-90,
-					-visualization.marginLeftNumber.value, 0,
+					-visualization.plotManager.marginLeftNumber.value, 0,
 					BitmapText.VERTICAL_ALIGN_TOP
 				);
 
-				xAxisLayer.axisPlotter.updateLabels();
-				yAxisLayer.axisPlotter.updateLabels();			
+				xAxisPlotter.updateLabels();
+				yAxisPlotter.updateLabels();			
 			}
 			
 			override protected function get defaultPanelTitle():String
@@ -329,10 +308,11 @@
 			private var labelPlotter:TextGlyphPlotter = null ;
 			private function addLabelLayer():void
 			{
-				var layer:SelectablePlotLayer = visualization.layers.requestObject("label", SelectablePlotLayer, true);
-				layer.layerIsSelectable.value = false;
-				layer.layerIsSelectable.lock();
-				labelPlotter = layer.getDynamicPlotter().requestLocalObject(TextGlyphPlotter, true);
+				var name:String = "label";
+				var labelPlotter:TextGlyphPlotter = visualization.plotManager.plotters.requestObject(name, TextGlyphPlotter, true);
+				var settings:LayerSettings = visualization.plotManager.getLayerSettings(name);
+				settings.selectable.value = false;
+				settings.selectable.lock();
 				
 				_plotter.columns.addImmediateCallback(this, updateColumns, true);
 

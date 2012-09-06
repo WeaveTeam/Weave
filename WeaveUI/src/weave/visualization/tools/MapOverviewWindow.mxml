@@ -21,7 +21,6 @@
 -->
 <!---
 @author kmanohar
-<br/>A SimpleVisTool that is linked to the MapTool's layers
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
@@ -32,13 +31,10 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.containers.Canvas;
-			import mx.events.FlexEvent;
-			import mx.events.ResizeEvent;
 			
 			import weave.api.getCallbackCollection;
 			import weave.api.newLinkableChild;
 			import weave.api.primitives.IBounds2D;
-			import weave.api.ui.IPlotLayer;
 			import weave.primitives.Bounds2D;
 			import weave.primitives.ZoomBounds;
 
@@ -60,25 +56,17 @@
 				
 				clipContent = true;
 
-				visualization.enableAutoZoomToExtent.value = true;
-				visualization.enableAutoZoomToExtent.lock();
+				visualization.plotManager.enableAutoZoomToExtent.value = true;
+				visualization.plotManager.enableAutoZoomToExtent.lock();
 				visualization.enableSelection.value = false;
 				visualization.enableSelection.lock();
 				visualization.enableProbe.value = false;
 								
-				visualization.includeNonSelectableLayersInAutoZoom.value = true;
-				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this,drawBoundsRectangle);
-				visualization.enableFixedAspectRatio.value = true;
+				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = true;
+				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this,drawBoundsRectangle);
+				visualization.plotManager.enableFixedAspectRatio.value = true;
 			
-				sessionPanelCoordsAsPercentages = false;	
-				
-				addEventListener(FlexEvent.CREATION_COMPLETE, function (e:FlexEvent):void
-				{
-					if(parentTool)
-						parentTool.addEventListener(ResizeEvent.RESIZE, handleMapResize);							
-					getParentScreenBounds(parentScreenBounds);
-					drawBoundsRectangle();
-				});
+				sessionPanelCoordsAsPercentages = false;
 			}
 			
 			override protected function childrenCreated():void
@@ -96,7 +84,6 @@
 				
 			}
 						
-			public var parentTool:SimpleVisTool;
 			public const parentZoomBounds:ZoomBounds = newLinkableChild(this, ZoomBounds, drawBoundsRectangle, true);
 			public const parentScreenBounds:IBounds2D = new Bounds2D();
 			
@@ -107,20 +94,12 @@
 			private var canvas:Canvas = new Canvas();
 			
 			/**
-			 * Updates parentScreenBounds and bounds rectangle when parent tool resizes
-			 */
-			private function handleMapResize(event:ResizeEvent):void
-			{
-				drawBoundsRectangle();
-				getParentScreenBounds(parentScreenBounds);
-			}
-			
-			/**
 			 * This function draws a rectangle around the area currently displayed in the parent MapTool.
 			 */
 			public function drawBoundsRectangle():void
-			{				
-				getScreenBounds(screenBounds);
+			{
+				parentScreenBounds.setRectangle(0,0,parent.width,parent.height);
+				screenBounds.setRectangle(0,0,width,height);
 				parentZoomBounds.getDataBounds(tempBounds);	
 				
 				if( tempBounds.isEmpty()) return;				
@@ -129,7 +108,7 @@
 				if(!parentScreenBounds.isEmpty())
 					_fixAspectRatio(tempBounds,parentScreenBounds);
 				
-				visualization.zoomBounds.getDataBounds(overviewDataBounds);				
+				visualization.plotManager.zoomBounds.getDataBounds(overviewDataBounds);				
 				
 				overviewDataBounds.projectCoordsTo(tempBounds,screenBounds);
 				
@@ -175,15 +154,15 @@
 						
 			private function handleMouseEvent(e:MouseEvent):void
 			{
-				visualization.zoomBounds.getScreenBounds(screenBounds);				
+				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);				
 
 				tempPoint = visualization.globalToLocal(new Point(e.stageX, e.stageY));
 				tempBounds.setBounds(tempPoint.x, tempPoint.y, tempPoint.x+boundWidth,tempPoint.y+boundHeight);
 				tempBounds.setCenter(tempPoint.x,tempPoint.y); 
-				visualization.zoomBounds.getDataBounds(overviewDataBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(overviewDataBounds);
 				
 				screenBounds.projectCoordsTo(tempBounds, overviewDataBounds);
-				parentZoomBounds.setBounds(tempBounds,parentScreenBounds, true);
+				parentZoomBounds.setDataBounds(tempBounds);
 			}
 						
 			/**
@@ -199,33 +178,6 @@
 				{
 					var scale:Number = Math.sqrt(Math.abs(xScale * yScale));
 					dataBounds.centeredResize(_screenBounds.getXCoverage() * scale, _screenBounds.getYCoverage() * scale);
-				}
-			}
-			
-			/**
-			 * Gets the screenBounds of the parentTool
-			 * @param outputScreenBounds A bounds to store the result in.
-			 */
-			private function getParentScreenBounds(outputScreenBounds:IBounds2D):void
-			{
-				if(!parentTool) return;				
-				for each(var layer:IPlotLayer in parentTool.visualization.layers.getObjects(IPlotLayer))
-				{
-					layer.getScreenBounds(outputScreenBounds);
-					outputScreenBounds.includeBounds(outputScreenBounds);
-				}
-			}
-			
-			/**
-			 * Gets the screenBounds
-			 * @param outputScreenBounds A bounds to store the result in.
-			 */
-			private function getScreenBounds(outputScreenBounds:IBounds2D):void
-			{
-				for each(var layer:IPlotLayer in visualization.layers.getObjects(IPlotLayer))
-				{
-					layer.getScreenBounds(outputScreenBounds);
-					outputScreenBounds.includeBounds(outputScreenBounds);
 				}
 			}
 		]]>

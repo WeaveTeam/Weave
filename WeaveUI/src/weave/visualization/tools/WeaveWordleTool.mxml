@@ -36,10 +36,10 @@
 				// lock dynamic objects into place
 				plotter = initializePlotters(WeaveWordlePlotter, false);
 				
-				visualization.marginBottom.value = "80";
-				visualization.marginTop.value    = "80";
-				visualization.marginLeft.value   = "80";
-				visualization.marginRight.value  = "80";
+				visualization.plotManager.marginBottom.value = "80";
+				visualization.plotManager.marginTop.value    = "80";
+				visualization.plotManager.marginLeft.value   = "80";
+				visualization.plotManager.marginRight.value  = "80";
 				visualization.enableZoomAndPan.value = false;
 				
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(plotter.wordColumn); });

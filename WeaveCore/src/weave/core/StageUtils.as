@@ -57,8 +57,6 @@ package weave.core
 			initialize();
 		}
 		
-		[Bindable] public var enableThreadPriorities:Boolean = false;
-		
 		private const frameTimes:Array = [];
 		public var debug_async_stack:Boolean = false;
 		public var debug_fps:Boolean = false; // set to true to trace the frames per second
@@ -503,18 +501,6 @@ package weave.core
 				return;
 			
 			WeaveAPI.SessionManager.assignBusyTask(iterativeTask, relevantContext as ILinkableObject);
-			
-			// begin temporary hack
-			if (priority == WeaveAPI.TASK_PRIORITY_RENDERING && !enableThreadPriorities)
-			{
-				while (iterativeTask() < 1) { }
-				WeaveAPI.SessionManager.unassignBusyTask(iterativeTask);
-				// run final callback after task completes
-				if (finalCallback != null)
-					finalCallback();
-				return;
-			}
-			// end temporary hack
 			
 			if (priority <= 0)
 			{

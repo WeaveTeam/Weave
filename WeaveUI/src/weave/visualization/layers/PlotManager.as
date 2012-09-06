@@ -20,6 +20,12 @@
 package weave.visualization.layers
 {
 	import flash.display.Bitmap;
+	import flash.display.BitmapData;
+	import flash.display.DisplayObject;
+	import flash.events.Event;
+	import flash.filters.GlowFilter;
+	import flash.geom.ColorTransform;
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
@@ -31,14 +37,15 @@ package weave.visualization.layers
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotter;
+	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -57,13 +64,17 @@ package weave.visualization.layers
 	 * 
 	 * @author adufilie
 	 */
-	public class ViewManager implements ILinkableObject
+	public class PlotManager implements ILinkableObject
 	{
-		public function ViewManager()
+		private function debugTrace(..._):void { } // comment this line to enable debugging
+		
+		public function PlotManager()
 		{
 			// zoom depends on plotters and layerSettings
 			plotters.addImmediateCallback(this, updateZoom);
 			layerSettings.addImmediateCallback(this, updateZoom);
+			layerSettings.addImmediateCallback(this, refreshLayers);
+			getCallbackCollection(zoomBounds).addImmediateCallback(this, refreshLayers);
 			
 			plotters.childListCallbacks.addImmediateCallback(this, handlePlottersList);
 			layerSettings.childListCallbacks.addImmediateCallback(this, handleSettingsList);
@@ -72,6 +83,9 @@ package weave.visualization.layers
 			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, marginTopNumber);
 			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, marginLeftNumber);
 			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, marginRightNumber);
+			
+			WeaveAPI.StageUtils.addEventCallback(Event.FRAME_CONSTRUCTED, this, handleFrameConstructed);
+			Weave.properties.filter_callbacks.addImmediateCallback(this, refreshLayers);
 		}
 		
 		/**
@@ -150,12 +164,27 @@ package weave.visualization.layers
 				var spatialIndex:SpatialIndex = _name_to_SpatialIndex[name] as SpatialIndex;
 				fullDataBounds.includeBounds(spatialIndex.collectiveBounds);
 			}
+			
+			// ----------------- hack --------------------
+			if (hack_adjustFullDataBounds != null)
+				hack_adjustFullDataBounds();
+			// -------------------------------------------
+			
 			if (!tempBounds.equals(fullDataBounds))
 			{
 				//trace('fullDataBounds changed',ObjectUtil.toString(fullDataBounds));
 				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
+		
+		/**
+		 * This can be set to a function that will be called to adjust fullDataBounds whenever it is updated.
+		 */		
+		public var hack_adjustFullDataBounds:Function = null;
+		/**
+		 * This can be set to a function that will be called whenever updateZoom is called.
+		 */		
+		public var hack_updateZoom:Function = null;
 		
 		/**
 		 * This function will update the fullDataBounds and zoomBounds based on the current state of the layers.
@@ -236,6 +265,11 @@ package weave.visualization.layers
 			zoomBounds.setBounds(tempDataBounds, tempScreenBounds, enableFixedAspectRatio.value);
 			if (enableAutoZoomToSelection.value)
 				zoomToSelection();
+			
+			// ----------------- hack --------------------
+			if (hack_updateZoom != null)
+				hack_updateZoom();
+			// -------------------------------------------
 			
 			getCallbackCollection(zoomBounds).resumeCallbacks();
 			getCallbackCollection(this).resumeCallbacks();
@@ -371,10 +405,14 @@ package weave.visualization.layers
 			// when settings are removed, remove plotter
 			var oldName:String = layerSettings.childListCallbacks.lastNameRemoved;
 			plotters.removeObject(oldName);
+			plotters.setNameOrder(layerSettings.getNames());
 		}
 		
 		private function handlePlottersList():void
 		{
+			plotters.delayCallbacks();
+			layerSettings.delayCallbacks();
+			
 			// when plotter is removed, remove settings
 			var oldName:String = plotters.childListCallbacks.lastNameRemoved;
 			if (oldName)
@@ -394,13 +432,73 @@ package weave.visualization.layers
 				for each (var taskType:int in [PlotTask.TASK_TYPE_SUBSET, PlotTask.TASK_TYPE_SELECTION, PlotTask.TASK_TYPE_PROBE])
 				{
 					var plotTask:PlotTask = new PlotTask(taskType, newPlotter, spatialIndex, zoomBounds, settings);
-					registerDisposableChild(newPlotter, plotTask);
+					registerDisposableChild(newPlotter, plotTask); // plotter is owner of task
+					registerLinkableChild(this, plotTask); // task affects busy status of PlotManager
 					tasks.push(plotTask);
+					// set initial size
+					plotTask.setBitmapDataSize(_unscaledWidth, _unscaledHeight);
 					
 					// when the plot task triggers callbacks, we need to render the layered visualization
-					getCallbackCollection(plotTask).addImmediateCallback(this, renderLayers);
+					getCallbackCollection(plotTask).addImmediateCallback(this, refreshLayers);
 				}
+				setupBitmapFilters(newPlotter, settings, tasks[0], tasks[1], tasks[2]);
+				// when spatial index is recreated, we need to update zoom
+				spatialIndex.addImmediateCallback(this, updateZoom);
+				
+				if (newPlotter is ITextPlotter)
+					settings.hack_useTextBitmapFilters = true;
 			}
+			
+			layerSettings.setNameOrder(plotters.getNames());
+			// make sure new plot task gets the correct size
+			setBitmapDataSize(_unscaledWidth, _unscaledHeight);
+			
+			plotters.resumeCallbacks();
+			layerSettings.resumeCallbacks();
+		}
+		
+		private function setupBitmapFilters(plotter:IPlotter, settings:LayerSettings, subsetTask:PlotTask, selectionTask:PlotTask, probeTask:PlotTask):void
+		{
+			var updateFilters:Function = function():void
+			{
+				var keySet:IKeySet = settings.selectionFilter.internalObject as IKeySet;
+				if (settings.selectable.value && keySet && keySet.keys.length) // selection
+				{
+					subsetTask.completedBitmap.alpha = Weave.properties.selectionAlphaAmount.value;
+					
+					if (Weave.properties.enableBitmapFilters.value)
+					{
+						subsetTask.completedBitmap.filters = [Weave.properties.filter_selectionBlur];
+					}
+					else
+					{
+						subsetTask.completedBitmap.filters = null;
+					}
+				}
+				else // no selection
+				{
+					subsetTask.completedBitmap.alpha = 1.0;
+					subsetTask.completedBitmap.filters = null;
+				}
+				
+				if (Weave.properties.enableBitmapFilters.value)
+				{
+					selectionTask.completedBitmap.filters = [Weave.properties.filter_selectionShadow];
+					var inner:GlowFilter = plotter is ITextPlotter
+						? Weave.properties.filter_probeGlowInnerText
+						: Weave.properties.filter_probeGlowInner;
+					probeTask.completedBitmap.filters = [inner, Weave.properties.filter_probeGlowOuter];
+				}
+				else
+				{
+					selectionTask.completedBitmap.filters = null;
+					probeTask.completedBitmap.filters = [Weave.properties.filter_selectionShadow];
+				}
+			};
+			settings.selectable.addImmediateCallback(plotter, updateFilters);
+			getCallbackCollection(settings.selectionFilter).addImmediateCallback(plotter, updateFilters);
+			Weave.properties.filter_callbacks.addImmediateCallback(plotter, updateFilters);
+			updateFilters();
 		}
 		
 		/**
@@ -414,7 +512,7 @@ package weave.visualization.layers
 				_unscaledHeight = unscaledHeight;
 				
 				updateZoom();
-				
+			
 				for each (var name:String in plotters.getNames(IPlotter))
 				{
 					for each (var plotTask:PlotTask in _name_to_PlotTask_Array[name])
@@ -426,34 +524,138 @@ package weave.visualization.layers
 		}
 		
 		/**
+		 * This returns true if the layer should be rendered and selectable/probeable
+		 * @return true if the layer should be rendered and selectable/probeable
+		 */
+		public function layerShouldBeRendered(layerName:String):Boolean
+		{
+			var settings:LayerSettings = layerSettings.getObject(layerName) as LayerSettings;
+			if (!settings.visible.value)
+				return false;
+			
+			var min:Number = settings.minVisibleScale.value;
+			var max:Number = settings.maxVisibleScale.value;
+			var xScale:Number = zoomBounds.getXScale();
+			var yScale:Number = zoomBounds.getYScale();
+			return min <= xScale && xScale <= max
+				&& min <= yScale && yScale <= max;
+		}
+		
+		public function hack_getSpatialIndex(layerName:String):SpatialIndex
+		{
+			return _name_to_SpatialIndex[layerName] as SpatialIndex;
+		}
+		
+		private function handleFrameConstructed():void
+		{
+			if (shouldRender)
+				refreshLayers(true);
+		}
+		
+		private var shouldRender:Boolean = false;
+		
+		/**
 		 * This gets called when a PlotTask triggers its callbacks.
 		 */
-		private function renderLayers():void
+		private function refreshLayers(immediately:Boolean = false):void
 		{
-			try
+			if (!immediately)
 			{
-				PlotterUtils.setBitmapDataSize(bitmap, _unscaledWidth, _unscaledHeight);
-				
+				shouldRender = true;
+				return;
+			}
+			shouldRender = false;
+			
+			zoomBounds.getDataBounds(tempDataBounds);
+			zoomBounds.getScreenBounds(tempScreenBounds);
+			debugTrace(this,'\n\tdata',String(tempDataBounds),'\n\tscreen',String(tempScreenBounds));
+			
+			PlotterUtils.setBitmapDataSize(bitmap, _unscaledWidth, _unscaledHeight);
+			if (_unscaledWidth && _unscaledHeight)
+			{
 				var origin:Point = new Point(0,0);
 				var rect:Rectangle = bitmap.bitmapData.rect;
 				for each (var name:String in plotters.getNames(IPlotter))
 				{
-					var settings:LayerSettings = layerSettings.getObject(name) as LayerSettings;
-					for each (var task:PlotTask in _name_to_PlotTask_Array[name])
+					if (linkableObjectIsBusy(hack_getSpatialIndex(name)))
+						continue;
+					
+					if (layerShouldBeRendered(name))
 					{
-						// don't render if plot task is busy
-						if (WeaveAPI.SessionManager.linkableObjectIsBusy(task))
-							continue;
-						
-						if (task.buffer)
-							bitmap.bitmapData.copyPixels(task.buffer, rect, origin, null, null, true);
+						debugTrace('render',name,getPlotter(name));
+						for each (var task:PlotTask in _name_to_PlotTask_Array[name])
+						{
+							// don't render if plot task is busy
+//							if (linkableObjectIsBusy(task))
+//								continue;
+							
+							if (!task.completedDataBounds.isUndefined())
+							{
+								debugTrace(String(task),'completed','\n\tdata',String(task.completedDataBounds),'\n\tscreen',String(task.completedScreenBounds));
+								
+//								bitmap.bitmapData.copyPixels(task.completedBitmap.bitmapData, rect, origin, null, null, true);
+								copyScaledPlotGraphics(
+									task.completedBitmap, task.completedDataBounds, task.completedScreenBounds,
+									bitmap.bitmapData, tempDataBounds, tempScreenBounds
+								);
+							}
+							else
+							{
+								debugTrace(String(task),'undefined',name);
+							}
+						}
+					}
+					else
+					{
+						debugTrace('do not render',name);
 					}
 				}
 			}
-			catch (e:Error)
+		}
+		private const _colorTransform:ColorTransform = new ColorTransform();
+		private const _clipRect:Rectangle = new Rectangle();
+		private const _matrix:Matrix = new Matrix();
+		private function copyScaledPlotGraphics(source:DisplayObject, sourceDataBounds:IBounds2D, sourceScreenBounds:IBounds2D, destination:BitmapData, destinationDataBounds:IBounds2D, destinationScreenBounds:IBounds2D):void
+		{
+			// don't draw if offscreen
+			if (!sourceDataBounds.overlaps(destinationDataBounds))
+				return;
+			
+			var matrix:Matrix = null;
+			var clipRect:Rectangle = null;
+			if (!sourceDataBounds.equals(destinationDataBounds) || !sourceScreenBounds.equals(destinationScreenBounds))
 			{
-				reportError(e);
+				matrix = _matrix;
+				sourceScreenBounds.transformMatrix(sourceDataBounds, matrix, true);
+				destinationDataBounds.transformMatrix(destinationScreenBounds, matrix, false);
+				
+				// Note: this still doesn't fix the following bug:
+				// "Warning: Filter will not render.  The DisplayObject's filtered dimensions (8444, 2596) are too large to be drawn."
+//				clipRect = _clipRect;
+//				tempBounds.setBounds(0, 0, destination.width, destination.height);
+//				destinationScreenBounds.projectCoordsTo(tempBounds, destinationDataBounds);
+//				sourceDataBounds.projectCoordsTo(tempBounds, sourceScreenBounds);
+//				tempBounds.getRectangle(clipRect);
 			}
+			
+			var colorTransform:ColorTransform = null;
+			if (source.alpha != 1)
+			{
+				colorTransform = _colorTransform;
+				colorTransform.alphaMultiplier = source.alpha;
+			}
+
+			// smoothing does not seem to make a difference.
+			destination.draw(source, matrix, colorTransform, null, clipRect, false);
+		}
+		
+		public function getPlotter(name:String):IPlotter
+		{
+			return plotters.getObject(name) as IPlotter;
+		}
+		public function getLayerSettings(name:String):LayerSettings
+		{
+			return layerSettings.getObject(name) as LayerSettings;
 		}
 		
 		//-------------------------------------------------------------------------------------------------

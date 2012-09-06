@@ -65,7 +65,7 @@ package weave.visualization.plotters
 			_keySet.replaceKeys(keys);
 			setKeySource(_keySet);
 		}
-
+		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			if (sortKeys == null)

@@ -39,23 +39,17 @@
 			import mx.events.DragEvent;
 			
 			import weave.api.core.ILinkableObject;
+			import weave.core.CallbackJuggler;
 			import weave.visualization.layers.InteractiveVisualization;
-			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.WMSPlotter;
 			
 			protected var _visualization:InteractiveVisualization = null;
+			private const _updateDataProvider_juggler:CallbackJuggler = new CallbackJuggler(this, updateDataProvider, true);
 			
 			[Inspectable] public function set visualization(value:InteractiveVisualization):void
 			{
-				if (_visualization == value)
-					return;
-
-				if (_visualization)
-					_visualization.layers.childListCallbacks.removeCallback(updateDataProvider);
-
 				_visualization = value;
-
-				_visualization.layers.childListCallbacks.addGroupedCallback(this, updateDataProvider, true);
+				_updateDataProvider_juggler.target = _visualization.plotManager.plotters.childListCallbacks;
 			}
 			
 			public function get visualization():InteractiveVisualization
@@ -75,7 +69,7 @@
 					var vsp:int = verticalScrollPosition;
 					
 					// Reverse the order of the layer objects so the topmost layer appears first.
-					dataProvider = _visualization.layers.getObjects().reverse();
+					dataProvider = _visualization.plotManager.plotters.getNames().reverse();
 					
 					verticalScrollPosition = vsp;
 				}
@@ -88,13 +82,8 @@
 			
 			private function handleDragComplete():void
 			{
-				var temp:Array = (dataProvider as ArrayCollection).toArray().reverse();
-				for(var i:int = 0; i < temp.length; i++)
-				{
-					if (temp[i] is ILinkableObject)
-						temp[i] = _visualization.layers.getName(temp[i]);
-				}
-				_visualization.layers.setNameOrder(temp);
+				var newNameOrder:Array = (dataProvider as ArrayCollection).toArray().reverse();
+				_visualization.plotManager.plotters.setNameOrder(newNameOrder);
 			}
 			
 		]]>
@@ -321,7 +310,6 @@
 						import weave.api.data.AttributeColumnMetadata;
 						import weave.api.getCallbackCollection;
 						import weave.api.linkBindableProperty;
-						import weave.api.ui.IPlotLayer;
 						import weave.api.ui.IPlotter;
 						import weave.api.unlinkBindableProperty;
 						import weave.compiler.StandardLib;
@@ -341,8 +329,8 @@
 						import weave.utils.ColumnUtils;
 						import weave.utils.EventUtils;
 						import weave.utils.NumberUtils;
-						import weave.visualization.layers.PlotLayer;
-						import weave.visualization.layers.SelectablePlotLayer;
+						import weave.visualization.layers.LayerSettings;
+						import weave.visualization.layers.PlotManager;
 						import weave.visualization.plotters.CirclePlotter;
 						import weave.visualization.plotters.DynamicPlotter;
 						import weave.visualization.plotters.GeometryLabelPlotter;
@@ -356,9 +344,9 @@
 						
 						private function handleStyleInputChange():void
 						{
-							var plotter:WMSPlotter = getPlotter(data as IPlotLayer) as WMSPlotter;
+							var wmsp:WMSPlotter = plotter as WMSPlotter;
 							
-							if (plotter == null)
+							if (wmsp == null)
 								return;
 							
 							if (requestStyles.selectedLabel == null || requestStyles.selectedLabel == '')
@@ -371,7 +359,7 @@
 							
 							requestStyles.text = requestStyles.text.replace(' ','');
 							
-							plotter.styles.value = requestStyles.text;
+							wmsp.styles.value = requestStyles.text;
 						}
 
 						private function handleEditButtonClicked(button:Button, stack:ViewStack, layerName:String=null):void
@@ -380,7 +368,6 @@
 								controlsStack.selectedChild = empty;
 							else
 							{
-								var plotter:IPlotter = getPlotter(data as IPlotLayer);
 								if (plotter is GeometryLabelPlotter)
 									controlsStack.selectedChild = labelPlotterControls;
 								if (plotter is GeometryPlotter)
@@ -404,7 +391,6 @@
 						
 						private function handleLinkButtonCreated():void 
 						{
-							var plotter:IPlotter = getPlotter(data as IPlotLayer);
 							if (plotter is GeometryLabelPlotter)
 								layerName.toolTip = lang('Click here to set the label attribute') ;
 							if (plotter is GeometryPlotter)
@@ -416,7 +402,6 @@
 						private function handleSolidFillColorCheck():void
 						{
 							// copy gui values to session state
-							var plotter:IPlotter  = getPlotter(data as IPlotLayer);
 							var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 							var defaultColor:Number = StandardLib.asNumber(geomPlotter.fill.color.defaultValue.value);
 							if (enableDefaultColor.selected)
@@ -431,7 +416,6 @@
 						private function handleFillColorSelected():void
 						{
 							// copy gui values to session state
-							var plotter:IPlotter  = getPlotter(data as IPlotLayer);
 							var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 							geomPlotter.fill.color.defaultValue.value = fillColor.selectedColor;
 						}
@@ -439,7 +423,6 @@
 						private function handleFillColorSessionStateChange():void
 						{
 							// copy session state values to gui
-							var plotter:IPlotter  = getPlotter(data as IPlotLayer);
 							var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
 							var defaultColor:Number = StandardLib.asNumber(geomPlotter.fill.color.defaultValue.value);
 							if (isNaN(defaultColor))
@@ -460,7 +443,6 @@
 								
 							settingsButton.visible = false;
 							
-							var plotter:IPlotter = getPlotter(data as IPlotLayer);
 							if (plotter is GeometryLabelPlotter)
 							{
 								settingsButton.visible = true;
@@ -513,8 +495,6 @@
 							if (!data)
 								return;
 								
-							var plotter:IPlotter = getPlotter(data as IPlotLayer);
-							
 							if (plotter is GeometryLabelPlotter)
 							{
 								var labelPlotter:GeometryLabelPlotter = plotter as GeometryLabelPlotter;
@@ -554,41 +534,44 @@
 						
 						private function updateLabel(value:Object = null):void
 						{
-							var layer:IPlotLayer = (value || data) as IPlotLayer;
-							_label = getLabel(layer);
-							if (!layer)
+							_label = '';
+							
+							if (!plotter)
 								return;
-							if (layer.plotter is DynamicPlotter)
+							
+							if (plotter is GeometryPlotter)
+								_label = ColumnUtils.getTitle((plotter as GeometryPlotter).geometryColumn);
+							else if (plotter is WMSPlotter)
+								_label = (plotter as WMSPlotter).serviceName.value;
+							else
+								_label = data as String;
+							
+							var projLabel:String = '';
+							var projString:String;
+							if (plotter is GeometryPlotter)
 							{
-								var dynPlotter:DynamicPlotter = layer.plotter as DynamicPlotter;
-								var plotter:IPlotter = dynPlotter.internalObject as IPlotter;
-								var projLabel:String = '';
-								var projString:String;
-								if (plotter is GeometryPlotter)
-								{
-									var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
-									
-									// get the source projection to be used in the label
-									projString = geomPlotter.geometryColumn.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION);
-									if (projString != null)
-										projLabel = ' (' + projString + ')';
-									
-									useImagesCheck.selected = (geomPlotter.pointDataImageColumn.getInternalColumn() != null);
-									var adc:AlwaysDefinedColumn = geomPlotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
-									if (adc)
-										imageURL.text = adc.defaultValue.value as String;
-								}
-								else if (plotter is WMSPlotter)
-								{
-									projLabel = ' (' + WMSProviders.getSRS((plotter as WMSPlotter).serviceName.value) + ')'; 
-								}
-								_label += projLabel;
+								var geomPlotter:GeometryPlotter = plotter as GeometryPlotter;
+								
+								// get the source projection to be used in the label
+								projString = geomPlotter.geometryColumn.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION);
+								if (projString != null)
+									projLabel = ' (' + projString + ')';
+								
+								useImagesCheck.selected = (geomPlotter.pointDataImageColumn.getInternalColumn() != null);
+								var adc:AlwaysDefinedColumn = geomPlotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
+								if (adc)
+									imageURL.text = adc.defaultValue.value as String;
 							}
+							else if (plotter is WMSPlotter)
+							{
+								projLabel = ' (' + WMSProviders.getSRS((plotter as WMSPlotter).serviceName.value) + ')'; 
+							}
+							_label += projLabel;
 						}
 						
-						[Bindable]private var _label:String = "";
-						[Bindable]public var layerIsVisible:Boolean = true;
-						[Bindable]public var layerIsSelectable:Boolean = true;
+						[Bindable] private var _label:String = "";
+						[Bindable] public var layerIsVisible:Boolean = true;
+						[Bindable] public var layerIsSelectable:Boolean = true;
 						override public function set data(value:Object):void
 						{
 							updateLabel(value);
@@ -599,17 +582,13 @@
 							// unlink button label from old layer
 							if (data is ILinkableObject)
 							{
-								getCallbackCollection(data as ILinkableObject).removeCallback(updateLabel);
+								getCallbackCollection(plotter).removeCallback(updateLabel);
 							}
 							// unlink checkbox from old layer
-							if (data is PlotLayer)
+							if (layerSettings)
 							{
-								unlinkBindableProperty((data as PlotLayer).layerIsVisible, this, "layerIsVisible");
-							}
-							if (data is SelectablePlotLayer)
-							{
-								unlinkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
-								unlinkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
+								unlinkBindableProperty(layerSettings.visible, this, "layerIsVisible");
+								unlinkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
 							}
 							// unlink the edit controls
 							unlinkGeometryProperties();
@@ -617,10 +596,10 @@
 							// this becomes an issue when dragging layers -- when it starts to drag it tries to set data on an item in the
 							// list that has just been removed, so we check if the controlsStack is null before we try to set properties inside
 							// it that are also null
-							if(!controlsStack)
+							if (!controlsStack)
 								return;
 
-							if(controlsStack)
+							if (controlsStack)
 								controlsStack.selectedChild = empty;
 							
 							settingsButton.selected = false;
@@ -634,69 +613,29 @@
 								getCallbackCollection(data as ILinkableObject).addGroupedCallback(this, updateLabel);
 							}
 							// link checkbox to new layer
-							if (data is PlotLayer)
+							if (layerSettings)
 							{
-								linkBindableProperty((data as PlotLayer).layerIsVisible, this, "layerIsVisible");
-								layerIsSelectable = false;
-							}
-							if (data is SelectablePlotLayer)
-							{
-								linkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
-								linkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
-								if((data as SelectablePlotLayer).getDynamicPlotter().internalObject is SingleImagePlotter || (data as SelectablePlotLayer).getDynamicPlotter().internalObject is CirclePlotter)
-									
-									selectableCheckbox.visible = false;
-								else
-									selectableCheckbox.visible = true;
-							}
-							else
-							{
-								selectableCheckbox.visible = false;
+								linkBindableProperty(layerSettings.visible, this, "layerIsVisible");
+								linkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
+								//selectableCheckbox.visible = true;
 							}
 							
 							// link the edit controls	
 							callLater(linkGeometryProperties, [data]);
-							
-							
 						}
 
-						private function getPlotter(layer:IPlotLayer):IPlotter
+						private function get layerSettings():LayerSettings
 						{
-							//added this change because closing all layers in the Map tool returned a null error.
-							if (layer == null)
-								return null;
-
-							var plotter:IPlotter = layer.plotter;
-							while (plotter is DynamicPlotter)
-								plotter = (plotter as DynamicPlotter).internalObject as IPlotter;
-
-							return plotter;
+							return outerDocument.visualization.plotManager.getLayerSettings(data as String);
 						}
 						
-						private function getLabel(value:IPlotLayer):String
+						private function get plotter():IPlotter
 						{
-							if (value == null)
-								return null;
-
-							var plotter:IPlotter = value.plotter;
-							
-							while (plotter is DynamicPlotter)
-							{
-								plotter = (plotter as DynamicPlotter).internalObject as IPlotter;
-							}
-							var result:String = '';
-							if (plotter is GeometryPlotter)
-								result = ColumnUtils.getTitle((plotter as GeometryPlotter).geometryColumn);
-							else if (plotter is WMSPlotter)
-								result = (plotter as WMSPlotter).serviceName.value;
-							else
-								result = editor.visualization.layers.getName(value);
-							
-							return result;
+							return outerDocument.visualization.plotManager.getPlotter(data as String);
 						}
+						
 						private function editLayer(event:MouseEvent = null):void
 						{
-							var plotter:IPlotter = getPlotter(data as IPlotLayer);
 							if (plotter is GeometryPlotter)
 							{
 								AttributeSelectorPanel.openDefaultSelector((plotter as GeometryPlotter).geometryColumn, "Geometry");
@@ -704,28 +643,28 @@
 							else if (plotter is WMSPlotter)
 							{
 								SessionStateEditor.openDefaultEditor(plotter);
-							}else if(plotter is SingleImagePlotter || plotter is CirclePlotter)
+							}
+							else if (plotter is SingleImagePlotter || plotter is CirclePlotter)
 							{
 								return;
 							}
 							else
 							{
-								SessionStateEditor.openDefaultEditor(data as IPlotLayer);
+								SessionStateEditor.openDefaultEditor(plotter);
 							}
 						}
 						
 						private function removeLayer(event:MouseEvent):void
 						{
-							var hashMap:ILinkableHashMap = editor.visualization.layers;
-							var name:String = hashMap.getName(data as ILinkableObject);
-							hashMap.removeObject(name);
+							var hashMap:ILinkableHashMap = outerDocument.visualization.plotManager.plotters;
+							hashMap.removeObject(data as String);
 							
 							unlinkGeometryProperties();
 						}
 						
 						private function handleGeomPlotterImageToggle():void
 						{
-							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
+							var plotter:GeometryPlotter = plotter as GeometryPlotter;
 							if (!useImagesCheck.selected)
 								plotter.pointDataImageColumn.removeObject();
 							else
@@ -734,20 +673,19 @@
 						private function handleGeomPlotterImageInput():void
 						{
 							var url:String = imageURL.text;
-							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
-							var adc:AlwaysDefinedColumn = plotter.pointDataImageColumn.requestLocalObject(AlwaysDefinedColumn, false);
+							var gp:GeometryPlotter = plotter as GeometryPlotter;
+							var adc:AlwaysDefinedColumn = gp.pointDataImageColumn.requestLocalObject(AlwaysDefinedColumn, false);
 							adc.defaultValue.value = url;
 						}
 						private function handleGeomPlotterImageURLChange():void
 						{
-							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
-							var adc:AlwaysDefinedColumn = plotter.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
+							var gp:GeometryPlotter = plotter as GeometryPlotter;
+							var adc:AlwaysDefinedColumn = gp.pointDataImageColumn.getInternalColumn() as AlwaysDefinedColumn;
 							if (adc)
 								imageURL.text = adc.defaultValue.value as String;
 						}
 						private function handleIgnoreSubsetCheck():void
 						{
-							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
 							if (ignoreSubsetCheck.selected)
 							{
 								plotter.keySet.keyFilter.removeObject();
@@ -759,7 +697,6 @@
 						}
 						private function handleSubsetChange():void
 						{
-							var plotter:GeometryPlotter = getPlotter(data as IPlotLayer) as GeometryPlotter;
 							ignoreSubsetCheck.selected = plotter.keySet.keyFilter.globalName ? false : true;
 						}
 					]]>

@@ -47,21 +47,21 @@
 				// lock dynamic objects into place
 				_plotter = initializePlotters(PieChartHistogramPlotter, false);
 				
-				visualization.enableAutoZoomToExtent.value = true;
-				visualization.enableFixedAspectRatio.value = true;
+				visualization.plotManager.enableAutoZoomToExtent.value = true;
+				visualization.plotManager.enableFixedAspectRatio.value = true;
 				
 				
-				getCallbackCollection(visualization.zoomBounds).addImmediateCallback(this, invalidateAxes);
+				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				
 				initColumnDefaults(_plotter.unfilteredData);
 				_plotter.binnedData.addImmediateCallback(this,updateProbeColumns,true);
 				
-				visualization.marginTop.value = "65";
-				visualization.marginBottom.value = "65";
-				visualization.marginLeft.value = "85";
-				visualization.marginRight.value = "85";
+				visualization.plotManager.marginTop.value = "65";
+				visualization.plotManager.marginBottom.value = "65";
+				visualization.plotManager.marginLeft.value = "85";
+				visualization.plotManager.marginRight.value = "85";
 			}
 			
 			override protected function childrenCreated():void

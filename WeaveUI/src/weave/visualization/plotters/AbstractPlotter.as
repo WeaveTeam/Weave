@@ -48,12 +48,18 @@ package weave.visualization.plotters
 	 */
 	public class AbstractPlotter implements IPlotter, IDisposableObject
 	{
+		private function debugTrace(..._):void { } // comment this line to enable debugging
+		
 		/**
 		 * @param columnToGetKeysFrom The column that the IKeySet object uses to get keys from.
 		 */
 		public function AbstractPlotter()
 		{
 			spatialCallbacks.addImmediateCallback(this, returnPooledObjects);
+
+			var self:Object = this;
+			spatialCallbacks.addImmediateCallback(this, function():void{ debugTrace(self, 'spatialCallbacks', spatialCallbacks); });
+			getCallbackCollection(keySet).addImmediateCallback(this, function():void{ debugTrace(self,'keys',keySet.keys.length); });
 		}
 		
 		/**
@@ -199,6 +205,7 @@ package weave.visualization.plotters
 		 */
 		public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
+			//trace(this,'drawPlot');
 			// default behavior - no asynchronous rendering
 			drawPlot(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
 			return 1;
@@ -222,8 +229,11 @@ package weave.visualization.plotters
 			var count:int = 0;
 			graphics.clear();
 			screenBounds.getRectangle(clipRectangle);
-			clipRectangle.width++; // avoid clipping lines
-			clipRectangle.height++; // avoid clipping lines
+			
+			// increase width and height by 1 to avoid clipping rectangle borders drawn with vector graphics.
+			clipRectangle.width++;
+			clipRectangle.height++;
+			
 			for (var i:int = 0; i < recordKeys.length; i++)
 			{
 				var recordKey:IQualifiedKey = recordKeys[i] as IQualifiedKey;

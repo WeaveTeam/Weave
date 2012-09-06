@@ -44,8 +44,7 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
-			import weave.primitives.Bounds2D;
-			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.layers.PlotManager;
 			import weave.visualization.plotters.SingleImagePlotter;
 			import weave.visualization.tools.MapTool;
 			
@@ -60,9 +59,9 @@
 			
 			private static var _editContextMenuItem:ContextMenuItem 	= null;
 			private static var _addRemoveContextMenuItem:ContextMenuItem = null;
-			private static const ADD_CAPTION:String           = lang("Add Marker")
-//			private static const REMOVE_CAPTION:String        = lang("Remove Remove Marker")
-//			private static const EDIT_TEXT_CAPTION:String     = lang("Edit Marker")
+			private static const ADD_CAPTION:String           = "Add Marker"
+//			private static const REMOVE_CAPTION:String        = "Remove Remove Marker"
+//			private static const EDIT_TEXT_CAPTION:String     = "Edit Marker"
 				
 			public static function createContextMenuItems(destination:DisplayObject):Boolean
 			{
@@ -83,30 +82,19 @@
 			
 			private static function handleAddMarker(e:ContextMenuEvent):void
 			{
-				if(panel)
+				if (panel)
 				{
-					var name:String = (panel as MapTool).visualization.layers.generateUniqueName("marker");
-					var plotLayer:SelectablePlotLayer = (panel as MapTool).visualization.layers.requestObject(name,SelectablePlotLayer,false);
-					var plotter:SingleImagePlotter = plotLayer.getDynamicPlotter().requestLocalObject(SingleImagePlotter,false);
-					
-					var tempScreenBounds:Bounds2D = new Bounds2D();
-					var tempDataBounds:Bounds2D = new Bounds2D();
-					
-					(panel as MapTool).visualization.zoomBounds.getScreenBounds(tempScreenBounds);
-					(panel as MapTool).visualization.zoomBounds.getDataBounds(tempDataBounds);
+					var pm:PlotManager = (panel as MapTool).visualization.plotManager;
+					var name:String = pm.plotters.generateUniqueName("marker");
+					var plotter:SingleImagePlotter = pm.plotters.requestObject(name, SingleImagePlotter, false);
 					
 					var localAnchorPoint:Point = (panel as MapTool).visualization.globalToLocal(anchorPoint);
-					
-					tempScreenBounds.projectPointTo(localAnchorPoint,tempDataBounds);
+					pm.zoomBounds.projectScreenToData(localAnchorPoint);
 					
 					plotter.dataX.value = localAnchorPoint.x;
 					plotter.dataY.value = localAnchorPoint.y;
-					
-					
 				}
 			}
-			
-			
 			
 			private static var panel:DraggablePanel = null;
 			private static var anchorPoint:Point = new Point();
