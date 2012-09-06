@@ -340,7 +340,18 @@
 						import weave.visualization.plotters.styles.SolidFillStyle;
 						import weave.visualization.plotters.styles.SolidLineStyle;
 						
-						private function get editor():PlotLayerEditor { return outerDocument; }
+						private function get plotterName():String
+						{
+							return data as String;
+						}
+						private function get plotter():IPlotter
+						{
+							return outerDocument.visualization.plotManager.getPlotter(plotterName);
+						}
+						private function get layerSettings():LayerSettings
+						{
+							return outerDocument.visualization.plotManager.getLayerSettings(plotterName);
+						}
 						
 						private function handleStyleInputChange():void
 						{
@@ -532,7 +543,7 @@
 							}
 						}
 						
-						private function updateLabel(value:Object = null):void
+						private function updateLabel():void
 						{
 							_label = '';
 							
@@ -544,7 +555,7 @@
 							else if (plotter is WMSPlotter)
 								_label = (plotter as WMSPlotter).serviceName.value;
 							else
-								_label = data as String;
+								_label = plotterName;
 							
 							var projLabel:String = '';
 							var projString:String;
@@ -574,10 +585,11 @@
 						[Bindable] public var layerIsSelectable:Boolean = true;
 						override public function set data(value:Object):void
 						{
-							updateLabel(value);
-							
 							if (value == data)
+							{
+								updateLabel();
 								return;
+							}
 							
 							// unlink button label from old layer
 							if (data is ILinkableObject)
@@ -597,15 +609,16 @@
 							// list that has just been removed, so we check if the controlsStack is null before we try to set properties inside
 							// it that are also null
 							if (!controlsStack)
-								return;
-
-							if (controlsStack)
+								value = null;
+							else
 								controlsStack.selectedChild = empty;
 							
 							settingsButton.selected = false;
 
 							// save pointer to new layer
 							super.data = value;
+							
+							updateLabel();
 							
 							// link button label to new layer
 							if (data is ILinkableObject)
@@ -624,16 +637,6 @@
 							callLater(linkGeometryProperties, [data]);
 						}
 
-						private function get layerSettings():LayerSettings
-						{
-							return outerDocument.visualization.plotManager.getLayerSettings(data as String);
-						}
-						
-						private function get plotter():IPlotter
-						{
-							return outerDocument.visualization.plotManager.getPlotter(data as String);
-						}
-						
 						private function editLayer(event:MouseEvent = null):void
 						{
 							if (plotter is GeometryPlotter)
@@ -657,7 +660,7 @@
 						private function removeLayer(event:MouseEvent):void
 						{
 							var hashMap:ILinkableHashMap = outerDocument.visualization.plotManager.plotters;
-							hashMap.removeObject(data as String);
+							hashMap.removeObject(plotterName);
 							
 							unlinkGeometryProperties();
 						}
