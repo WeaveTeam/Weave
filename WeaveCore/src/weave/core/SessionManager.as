@@ -1403,7 +1403,7 @@ package weave.core
 		 *******************/
 		
 		
-		internal static const DIFF_DELETE:String = 'delete';
+		public static const DIFF_DELETE:String = 'delete';
 		
 		/**
 		 * This function computes the diff of two session states.
