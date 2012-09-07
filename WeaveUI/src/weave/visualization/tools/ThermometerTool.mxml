@@ -75,7 +75,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Meter"];
+				return [lang("Meter")];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -89,13 +89,13 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Thermometer of " + ColumnUtils.getTitle(_plotter.meterColumn);
+				return lang("Thermometer of ") + ColumnUtils.getTitle(_plotter.meterColumn);
 			}
 			
 			private function updateAxisLabels():void
 			{
 				if (_plotter == null)
-					title = "Thermometer";
+					title = lang("Thermometer");
 /*				else
 					title = "Thermometer of " + _plotter.meterColumn.title;
 	*/			
@@ -109,7 +109,7 @@
 	</mx:Script>
 	<ui:ControlPanel>
 			<mx:Panel id="attributesPanel" 
-					  label="Attributes for Thermometer" 
+					  label="{lang('Attributes for Thermometer')}" 
 					  headerHeight="2"
 					  borderColor="0x000000" 
 					  backgroundColor="0xCCCCCC" 
@@ -119,7 +119,7 @@
 					  width="100%" 
 					  borderAlpha="0.2" 
 					  borderStyle="none">
-				<ui:DynamicColumnComponent visTool="{this}" label="Meter column:" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.meterColumn"/>
+				<ui:DynamicColumnComponent visTool="{this}" label="{lang('Meter column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.meterColumn"/>
 				
 			</mx:Panel>
 	</ui:ControlPanel>

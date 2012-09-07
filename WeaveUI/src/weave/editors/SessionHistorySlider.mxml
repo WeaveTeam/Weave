@@ -29,17 +29,17 @@
 		 click="handleAnyClick();"
 		 width="100%" horizontalGap="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
 		 implements="weave.api.ui.ILinkableObjectEditor">
-	<mx:Button width="24" toolTip="Load session history from a file" icon="@Embed(source='/weave/resources/images/folder.png')" click="load()"/> 
-	<mx:Button width="24" toolTip="Save session history to a file" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
+	<mx:Button width="24" toolTip="{lang('Load session history from a file')}" icon="@Embed(source='/weave/resources/images/folder.png')" click="load()"/> 
+	<mx:Button width="24" toolTip="{lang('Save session history to a file')}" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
 	<mx:Button width="44" id="recordButton" toggle="true" icon="{recordButton.selected ? icon_historyRecordOn : icon_historyRecordOff}"
 			   visible="false" includeInLayout="false"
 			   click="_stateLog.enableLogging.value = recordButton.selected;"
 			   toolTip="Session history recording is {recordButton.selected ? 'enabled' : 'disabled'}."/>
-	<mx:Button id="playButton" label="Replay{ _playSpeed == 1 ? '' : ' (' + _playSpeed + 'x)' }" toggle="true" toolTip="Replay session history" click="if (playButton.selected) play();"/>
-	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="Undo" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
-	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="Redo" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
+	<mx:Button id="playButton" label="{ _playSpeed == 1 ? lang('Replay') : lang('Replay ({0}x)', _playSpeed) }" toggle="true" toolTip="{lang('Replay session history')}" click="if (playButton.selected) play();"/>
+	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="{lang('Undo')}" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
+	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
 	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();" mouseDown="slider.getThumbAt(0).setFocus()"/>
-	<mx:Button id="clearButton" label="Clear" click="_stateLog.clearHistory();" toolTip="Clear session history" styleName="clearButtonStyle"/>
+	<mx:Button id="clearButton" label="{lang('Clear')}" click="_stateLog.clearHistory();" toolTip="{lang('Clear session history')}" styleName="clearButtonStyle"/>
 	<mx:Style>
 		.clearButtonStyle {
 			paddingLeft: 4;
@@ -74,8 +74,8 @@
 				super.childrenCreated();
 				
 				_clearMenu = new SubMenu(clearButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
-				_clearMenu.addSubMenuItem("Clear all undos", _stateLog.clearHistory, [-1]);
-				_clearMenu.addSubMenuItem("Clear all redos", _stateLog.clearHistory, [1]);
+				_clearMenu.addSubMenuItem(lang("Clear all undos"), _stateLog.clearHistory, [-1]);
+				_clearMenu.addSubMenuItem(lang("Clear all redos"), _stateLog.clearHistory, [1]);
 				
 				_playMenu = new SubMenu(playButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
 				for each (var speed:int in [1,2,4,8,16])

@@ -138,7 +138,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["X","Y","Color","Size","Histogram Column"];
+				return ["X","Y",lang("Color"),lang("Size"),lang("Histogram Column")];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -333,7 +333,7 @@
 			{
 				if (sizeByCheck.selected)
 				{ 
-					sizeByCheck.label = "Size by: " + ColumnUtils.getTitle(_plotter.radiusColumn);
+					sizeByCheck.label = lang("Size by: ") + ColumnUtils.getTitle(_plotter.radiusColumn);
 					sizeByCheck.setStyle("textRollOverColor", "0x339900");
 					sizeByCheck.setStyle("textSelectedColor", "0x339900");
 					sizeByCheck.setStyle("Color", "0x339900");
@@ -341,7 +341,7 @@
 					
 				}
 				else{
-					sizeByCheck.label = "Size by: DISABLED";
+					sizeByCheck.label = lang("Size by: DISABLED");
 					sizeByCheck.setStyle("textRollOverColor", "0xCC3300");
 					sizeByCheck.setStyle("textSelectedColor", "0xCC3300");
 					sizeByCheck.setStyle("Color", "0xCC3300");
@@ -353,7 +353,7 @@
 			
 			private function alphaSliderFormatFunction(item:Number):String {
 				//return int(100 - (item * 100)) + "% Transparent";
-				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
+				return int((item * 100)) + lang("% Opaque") + "\n" + int(100 - (item * 100)) + lang("% Transparent");
 			}
 			
 			
@@ -377,7 +377,7 @@
 				var residueObj:ArrayCollection = event.result as ArrayCollection;
 				//temp solution for wrong PDB entry (need to pass the same error)
 				if(!residueObj){
-					Alert.show(PDBid.text.toUpperCase() + " doesn't exist.","PDB ID Error");
+					Alert.show(PDBid.text.toUpperCase() + lang(" doesn't exist."),lang("PDB ID Error"));
 					return;
 				}
 				//var sequenceArray:Array = residueObj["resName"];				
@@ -512,11 +512,11 @@
 		]]>
 	</mx:Script>
 	
-	<mx:Button  label="Histogram" click="popupHistogram()" bottom="10" right="5"/>
+	<mx:Button  label="{lang('Histogram')}" click="popupHistogram()" bottom="10" right="5"/>
 	
 	<ui:ControlPanel>
 		<mx:Panel id="RamachandranControls" 
-				  label="Ramachandran Plot Controls" 
+				  label="{lang('Ramachandran Plot Controls')}" 
 				  headerHeight="2"
 				  borderColor="0x000000" 
 				  backgroundColor="0xCCCCCC" 
@@ -527,7 +527,7 @@
 				  borderStyle="none">
 			<mx:HBox right="35" bottom="5">
 				<mx:TextInput id="PDBid"/>
-				<mx:Button id="sendPDBidBtn" label="Send" click="sendPDBidBtn_clickHandler(event)"/>
+				<mx:Button id="sendPDBidBtn" label="{lang('Send')}" click="sendPDBidBtn_clickHandler(event)"/>
 				
 			</mx:HBox>
 			<mx:TextArea editable="false" id="sequenceTA" text="{sequence}" width="100%" height="80%" mouseUp="sequenceTA_mouseUpHandler(event)"/>
@@ -539,7 +539,7 @@
 			
 		</mx:Panel>
 		<mx:Panel id="VizControlsPanel" 
-				  label="Visualization Controls" 
+				  label="{lang('Visualization Controls')}" 
 				  headerHeight="2"
 				  borderColor="0x000000" 
 				  backgroundColor="0xCCCCCC" 
@@ -556,9 +556,9 @@
 							 borderStyle="inset" 
 							 backgroundColor="0xFFFFFF" 
 							 backgroundAlpha="0.7">
-						<mx:Label text="Point Opacity:" 
+						<mx:Label text="{lang('Point Opacity:')}" 
 								  color="0x000000" fontSize="12" 
-								  toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
+								  toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}"/>
 						
 						<mx:HSlider id="alphaSlider" 
 									width="100%" 
@@ -574,7 +574,7 @@
 						<mx:HBox width="100%"> 
 							<mx:CheckBox id="sizeByCheck" 
 										 fontSize="12" 
-										 label="Size by: ENABLED" 
+										 label="{lang('Size by: ENABLED')}" 
 										 color="{sizeByCheck.selected? 0x339900 : 0xCC3300}"
 										 textRollOverColor="0x339900"
 										 selected="true" 
@@ -583,7 +583,7 @@
 						</mx:HBox>
 						
 						<mx:HBox width="100%"> 
-							<mx:Label text="Point Size:" 
+							<mx:Label text="{lang('Point Size:')}" 
 									  color="0x000000" 
 									  fontSize="12"/>
 							<mx:HSlider id="sizeBySlider"
@@ -596,11 +596,11 @@
 										change="handleSizeSliderChange(event)"
 										mouseDown="event.stopImmediatePropagation();"/>
 						</mx:HBox>
-						<ui:DynamicColumnComponent label="x column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
-						<ui:DynamicColumnComponent label="y column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
-						<ui:DynamicColumnComponent label="color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-						<ui:DynamicColumnComponent label="size" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn"/>
-						<ui:DynamicColumnComponent label="Histogram Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = histogramColumn"/>
+						<ui:DynamicColumnComponent label="{lang('x column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
+						<ui:DynamicColumnComponent label="{lang('y column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
+						<ui:DynamicColumnComponent label="{lang('color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+						<ui:DynamicColumnComponent label="{lang('size')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn"/>
+						<ui:DynamicColumnComponent label="{lang('Histogram Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = histogramColumn"/>
 					</mx:VBox>
 				</mx:VBox>
 				<mx:HBox width="100%">

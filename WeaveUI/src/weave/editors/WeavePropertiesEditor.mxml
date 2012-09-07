@@ -24,7 +24,7 @@
 			xmlns="weave.editors.*"
 			xmlns:ui="weave.ui.*"
 			backgroundColor="#EFF4BC"
-			title="Preferences"
+			title="{lang('Preferences')}"
 			targets="{[Weave.properties]}"
 			>
 	<mx:Script>
@@ -32,54 +32,54 @@
 			import weave.WeaveProperties;			
 		]]>
 	</mx:Script>
-	<WeavePropertiesAppearanceEditor label="Appearance"/>
+	<WeavePropertiesAppearanceEditor label="{lang('Appearance')}"/>
 	
-	<WeavePropertiesMenuEditor label="Menus"/>
+	<WeavePropertiesMenuEditor label="{lang('Menus')}"/>
 	
 	<mx:VBox label="Interactivity">
-		<mx:CheckBox label="Enable probing"
+		<mx:CheckBox label="{lang('Enable probing')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolProbe,event.target,'selected')"/>
-		<mx:CheckBox label="Enable selection"
+		<mx:CheckBox label="{lang('Enable selection')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolSelection, event.target, 'selected');"/>
-		<mx:CheckBox label="Enable control panels and attribute selection"
+		<mx:CheckBox label="{lang('Enable control panels and attribute selection')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
-		<mx:CheckBox label="Enable axis tool tips"
+		<mx:CheckBox label="{lang('Enable axis tool tips')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableAxisToolTips, event.target, 'selected');"/>
 	</mx:VBox>
 	
-	<WeavePropertiesProbingEditor label="Probing"/>
+	<WeavePropertiesProbingEditor label="{lang('Probing')}"/>
 	
-	<WeavePropertiesSelectionEditor label="Selection"/>
+	<WeavePropertiesSelectionEditor label="{lang('Selection')}"/>
 	
-	<mx:VBox label="Advanced" width="100%" height="100%">
-		<ui:Indent label="Streaming geometry bounding box request mode">
+	<mx:VBox label="{lang('Advanced')}" width="100%" height="100%">
+		<ui:Indent label="{lang('Streaming geometry bounding box request mode')}">
 			<ui:CustomComboBox id="geometryMetadataRequestMode"/>
 			<ui:HelpComponent>This controls how metadata tile requests are filtered based on the map zoom level.  Unless all metadata tiles are requested for the current X-Y range, selection and probing on the map will not catch the shapes that are too small to be seen.</ui:HelpComponent>
 		</ui:Indent>
-		<ui:Indent label="Do not render geometry detail with pixel area less than">
+		<ui:Indent label="{lang('Do not render geometry detail with pixel area less than')}">
 			<mx:NumericStepper width="64" minimum="1" maximum="100" stepSize="1" creationComplete="linkBindableProperty(Weave.properties.geometryMinimumScreenArea, event.target, 'value');"/>
 			<ui:HelpComponent>This controls the filtering of vector tile requests and rendering.  Enter the minimum area requirement (in pixels) for geometry detail to be rendered.</ui:HelpComponent>
 		</ui:Indent>
-		<mx:CheckBox label="Enable async map rendering (experimental first attempt, no double-buffering yet)" id="enableThreadPriorities"/>
+		<mx:CheckBox label="{lang('Enable async map rendering (experimental first attempt, no double-buffering yet)')}" id="enableThreadPriorities"/>
 		
 		<mx:VBox width="100%">
-			<ui:Indent label="Max computation time per frame">
+			<ui:Indent label="{lang('Max computation time per frame')}">
 				<mx:NumericStepper id="maxComputationTime" minimum="10" maximum="200" stepSize="10"/>
 			</ui:Indent>
 			
-			<mx:Label text="Asynchronous task time allocation (milliseconds):"/>
-			<ui:Indent label="Render">
+			<mx:Label text="{lang('Asynchronous task time allocation (milliseconds):')}"/>
+			<ui:Indent label="{lang('Render')}">
 				<mx:HSlider id="renderAlloc" minimum="5" maximum="200" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
 			</ui:Indent>
-			<ui:Indent label="Build">
+			<ui:Indent label="{lang('Build')}">
 				<mx:HSlider id="buildAlloc" minimum="5" maximum="200" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
 			</ui:Indent>
-			<ui:Indent label="Parse">
+			<ui:Indent label="{lang('Parse')}">
 				<mx:HSlider id="parseAlloc" minimum="5" maximum="200" snapInterval="5" liveDragging="true" change="setAlloc(event)" width="100%"/>
 			</ui:Indent>
 		</mx:VBox>
 		
-		<mx:Button label="Edit Macros" width="100" click="openMacroEditor(event)" />
+		<mx:Button label="{lang('Edit Macros')}" width="100" click="openMacroEditor(event)" />
 	</mx:VBox>
 	
 	<mx:Script>

@@ -20,11 +20,11 @@
 */
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-					 title="Saved Subsets"
+					 title="{lang('Saved Subsets')}"
 					 width="25%" height="10%"
 					 layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
-	<CustomComboBox id="subsetSelectorBox" prompt="Select a subset..."
-				 width="100%" height="100%" minHeight="0"
+	<CustomComboBox id="subsetSelectorBox" prompt="{lang('Select a subset...')}"
+				 width="100%" height="100%"
 				 labelFunction="subsetsListLabelFunction"
 				 valueCommit="itemSelected()"
 				 />
@@ -83,7 +83,7 @@
 			private function subsetsListLabelFunction(item:Object):String
 			{
 				if (!item)
-					return "All records";
+					return lang("All records");
 				
 				// the label will be the name of the item followed by the included/excluded records count
 				var label:String = Weave.savedSubsetsKeyFilters.getName(item as ILinkableObject);
@@ -101,9 +101,9 @@
 				// create a string for the number of included keys followed by " records"
 				// if the excluded keys are used instead, the string will be excluded keys followed by " excluded records"
 				if (keyFilter.includeMissingKeys.value && keyFilter.excluded.keys.length > 0)
-					return keyFilter.excluded.keys.length + ' excluded records';
+					return keyFilter.excluded.keys.length + lang(' excluded records');
 				else
-					return keyFilter.included.keys.length + ' records';
+					return keyFilter.included.keys.length + lang(' records');
 			}
 			
 			protected function itemSelected():void
@@ -121,7 +121,7 @@
 		]]>
 	</mx:Script>
 	<ControlPanel>
-		<mx:VBox label="Settings">
+		<mx:VBox label="{lang('Settings')}">
 			<mx:CheckBox label='Include "All Records" option' creationComplete="linkBindableProperty(includeAllRecordsOption, event.target, 'selected')"/>
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>

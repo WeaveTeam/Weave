@@ -26,34 +26,34 @@ Editor for custom layers using AxisLabelPlotters
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 xmlns="weave.editors.*"
 		 implements="weave.api.ui.ILinkableObjectEditor"
-		 label="Label Settings" xmlns:ui="weave.ui.*">
+		 label="{lang('Label Settings')}" xmlns:ui="weave.ui.*">
 
 	<mx:HBox>
 		<mx:RadioButtonGroup id="hv"/>
 		<mx:RadioButton group="{hv}" label="Vertical" selected="{!horizontalCheckBox.selected}"/>
 		<mx:RadioButton id="horizontalCheckBox" group="{hv}"
-					 label="Horizontal"
+					 label="{lang('Horizontal')}"
 					 creationComplete="linkBindableProperty(_plotter.horizontal, event.target, 'selected')"/>
 	</mx:HBox>
 	
-	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="Start:"
+	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('Start:')}"
 				creationComplete="linkBindableProperty(_plotter.start, event.target, 'text')"/>
-	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="End:"
+	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('End:')}"
 				creationComplete="linkBindableProperty(_plotter.end, event.target, 'text')"/>
-	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="Interval:"
+	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('Interval:')}"
 				creationComplete="linkBindableProperty(_plotter.interval, event.target, 'text')"/>
-	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="Angle"
+	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('Angle')}"
 				creationComplete="linkBindableProperty(_plotter.angle, event.target, 'text')"/>
 	<mx:Spacer/>
 	
-	<ui:Indent indent="{indent}" label="Color:">		
-		<mx:ColorPicker toolTip="Select a font color" id="labelColorPicker" 
+	<ui:Indent indent="{indent}" label="{lang('Color:')}">		
+		<mx:ColorPicker toolTip="{lang('Select a font color')}" id="labelColorPicker" 
 						creationComplete="linkBindableProperty(_plotter.color, event.target, 'selectedColor')"/>
 	</ui:Indent>
 	
 	<ui:AlignmentControl id="alignment"/>
 	
-	<ui:IndentTextInput label="Label function" indent="{indent}" creationComplete="linkBindableProperty(_plotter.labelFunction, event.target, 'text');"/>
+	<ui:IndentTextInput label="{lang('Label function')}" indent="{indent}" creationComplete="linkBindableProperty(_plotter.labelFunction, event.target, 'text');"/>
 
 	<mx:Script>
 		<![CDATA[
@@ -87,7 +87,7 @@ Editor for custom layers using AxisLabelPlotters
 			
 			private function alphaSliderFormatFunction(value:Number):String {
 				//return int(100 - (value * 100)) + "% Transparent";
-				return int((value * 100)) + "% Opaque" + "\n" + int(100 - (value * 100)) + "% Transparent";
+				return int((value * 100)) + lang("% Opaque") + "\n" + int(100 - (value * 100)) + lang("% Transparent");
 			}
 			
 		]]>

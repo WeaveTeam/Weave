@@ -26,18 +26,18 @@
 				 xmlns:ui="weave.ui.*"
 				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				 layout="absolute"
-				 title="Circle Settings"
+				 title="{lang('Circle Settings')}"
 				 width="40%"
 				 height="40%"
 				 >
 	
 	<mx:VBox id="circlePlotterControls" width="100%" paddingTop="3" horizontalAlign="left">
-		<ui:IndentTextInput indent="100" label="X coordinate:" id="dataXText"/>
-		<ui:IndentTextInput indent="100" label="Y coordinate:" id="dataYText"/>
-		<ui:IndentTextInput indent="100" label="Radius:" id="radiusText"/>
+		<ui:IndentTextInput indent="100" label="{lang('X coordinate:')}" id="dataXText"/>
+		<ui:IndentTextInput indent="100" label="{lang('Y coordinate:')}" id="dataYText"/>
+		<ui:IndentTextInput indent="100" label="{lang('Radius:')}" id="radiusText"/>
 		<mx:Spacer/>
-		<ui:IndentTextInput indent="100" label="Thickness:" id="thicknessText"/>
-		<ui:Indent indent="100" label="Color:">
+		<ui:IndentTextInput indent="100" label="{lang('Thickness:')}" id="thicknessText"/>
+		<ui:Indent indent="100" label="{lang('Color:')}">
 			<mx:ColorPicker id="colorPicker"/>
 		</ui:Indent>
 	</mx:VBox>
@@ -59,7 +59,7 @@
 			}
 			
 			private static var _addRemoveContextMenuItem:ContextMenuItem = null;
-			private static const ADD_CAPTION:String           = "Add Circle"
+			private static const ADD_CAPTION:String           = lang('Add Circle')
 			
 			public static function createContextMenuItems(destination:DisplayObject):Boolean
 			{
@@ -137,7 +137,7 @@
 				
 				var owner:ILinkableObject = WeaveAPI.SessionManager.getLinkableOwner(plotter);
 				
-				settingsPanel.title = "Edit " + circleName;
+				settingsPanel.title = lang('Edit ') + circleName;
 				
 				linkBindableProperty(settingsPanel.plotter.dataX, settingsPanel.dataXText, "text");
 				linkBindableProperty(settingsPanel.plotter.dataY, settingsPanel.dataYText, "text");

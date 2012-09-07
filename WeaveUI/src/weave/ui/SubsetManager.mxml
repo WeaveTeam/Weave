@@ -22,7 +22,7 @@
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				width="312" height="300" 
 				initialize="init()" 
-				title="Saved Subsets"
+				title="{lang('Saved Subsets')}"
 				layout="vertical">
 
 	
@@ -41,16 +41,16 @@
 			 allowMultipleSelection="false" />
 	
 	<mx:HBox>
-		<mx:Button label="Delete" 
+		<mx:Button label="{lang('Delete')}" 
 				   enabled="{savedSubsetsList.selectedIndex >= 0}" 
 				   click="deleteSubset()"/>
-		<mx:Button label="Rename" 
+		<mx:Button label="{lang('Rename')}" 
 				   enabled="{savedSubsetsList.selectedIndex >= 0}" 
 				   click="renameSubset()"/>
 	</mx:HBox>
 	<mx:ControlBar height="33" paddingBottom="3" paddingLeft="3" paddingRight="3" paddingTop="3">
 		<mx:Spacer width="100%"/>
-		<mx:Button label="close" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
+		<mx:Button label="{lang('close')}" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
 	</mx:ControlBar>
 	
 	<mx:Script>
@@ -124,7 +124,7 @@
 						Weave.defaultSubsetKeyFilter.replaceKeys(false, true, Weave.defaultSelectionKeySet.keys);
 						Weave.defaultSelectionKeySet.clearKeys();
 					};
-					menuItem = new WeaveMenuItem("Create subset from selected records", clickFunction, null, selectionActive);
+					menuItem = new WeaveMenuItem(lang("Create subset from selected records"), clickFunction, null, selectionActive);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				if( Weave.properties.enableCreateSubsets.value && Weave.properties.enableSaveCurrentSubset)
@@ -135,7 +135,7 @@
 						Weave.defaultSelectionKeySet.clearKeys();
 						saveSubset();
 					};
-					menuItem = new WeaveMenuItem("Create and save subset from selected records", clickFunction, null, (subsetActive && selectionActive));
+					menuItem = new WeaveMenuItem(lang("Create and save subset from selected records"), clickFunction, null, (subsetActive && selectionActive));
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				// menu item to remove selected records
@@ -147,7 +147,7 @@
 						Weave.defaultSubsetKeyFilter.excludeKeys(Weave.defaultSelectionKeySet.keys);
 						Weave.defaultSelectionKeySet.clearKeys();
 					};
-					menuItem = new WeaveMenuItem("Remove selected records from subset", clickFunction, null, selectionActive);
+					menuItem = new WeaveMenuItem(lang("Remove selected records from subset"), clickFunction, null, selectionActive);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
@@ -159,7 +159,7 @@
 						Weave.defaultSubsetKeyFilter.replaceKeys(true, true);
 						Weave.defaultSelectionKeySet.clearKeys();
 					};
-					menuItem = new WeaveMenuItem("Show all records", clickFunction, null, subsetActive);
+					menuItem = new WeaveMenuItem(lang("Show all records"), clickFunction, null, subsetActive);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
@@ -167,7 +167,7 @@
 				if (Weave.properties.enableSaveCurrentSubset.value)
 				{
 					parentMenu.addSeparatorToMenu(destinationMenu);
-					menuItem = new WeaveMenuItem("Save current subset...", saveSubset, null, subsetActive);
+					menuItem = new WeaveMenuItem(lang("Save current subset..."), saveSubset, null, subsetActive);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
@@ -188,7 +188,7 @@
 						// we can manage subsets when there is at least one saved subset
 						return Weave.savedSubsetsKeyFilters.getNames().length > 0;
 					};
-					menuItem = new WeaveMenuItem("Manage saved subsets...", clickFunction, null, enableFunction);
+					menuItem = new WeaveMenuItem(lang("Manage saved subsets..."), clickFunction, null, enableFunction);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
@@ -198,7 +198,7 @@
 					{
 						Weave.root.requestObject("SubsetSelector", SubsetSelector, false);
 					};
-					menuItem = new WeaveMenuItem("Subset Selector Tool", clickFunction);
+					menuItem = new WeaveMenuItem(lang("Subset Selector Tool"), clickFunction);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
@@ -240,7 +240,7 @@
 			 **/
 			private function renameSubset():void
 			{
-				var alertBox:AlertTextBox = AlertTextBox.show("Subset Name", "Please enter a name for the subset: ");
+				var alertBox:AlertTextBox = AlertTextBox.show(lang("Subset Name"), lang("Please enter a name for the subset: "));
 				
 				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
 					if( !e.confirm )
@@ -268,7 +268,7 @@
 			 **/
 			public static function saveSubset():void
 			{
-				var alertBox:AlertTextBox = AlertTextBox.show("Subset Name", "Please enter a name for the subset: ");
+				var alertBox:AlertTextBox = AlertTextBox.show(lang("Subset Name"), lang("Please enter a name for the subset: "));
 				
 				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
 					function (e:AlertTextBoxEvent):void 

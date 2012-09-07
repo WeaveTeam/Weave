@@ -49,14 +49,14 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Wordle visualization";
+				return lang("Wordle visualization");
 			}
 		]]>
 	</mx:Script>
 	
 	<ui:ControlPanel>
 			<mx:Panel id="VizControlsPanel" 
-					  label="Visualization Controls" 
+					  label="{lang('Visualization Controls')}" 
 					  headerHeight="2"
 					  borderColor="0x000000" 
 					  backgroundColor="0xCCCCCC" 

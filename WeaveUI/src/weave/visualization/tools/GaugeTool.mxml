@@ -78,7 +78,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Gauge Column"];
+				return [lang("Gauge Column")];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -92,7 +92,7 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Gauge of " + ColumnUtils.getTitle(_plotter.meterColumn);
+				return lang("Gauge of ") + ColumnUtils.getTitle(_plotter.meterColumn);
 			}
 			
 			[Bindable]
@@ -141,11 +141,11 @@
 				 textAlign="center"
 				 toolTip="{marginLabelText} &#13;&#09;Click here to select a different attribute."/>
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="Attributes for Gauge" >
-			<ui:DynamicColumnComponent visTool="{this}" label="Gauge column:" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.meterColumn"/>
+		<mx:VBox id="attributesPanel" label="{lang('Attributes for Gauge')}" >
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Gauge column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.meterColumn"/>
 		</mx:VBox>
-		<mx:VBox id="advControlsPanel" label="Advanced">
-			<mx:CheckBox id="marginLabelCheckBox" label="Show attribute name" change="visualization.marginBottomNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0;" toolTip="Click to hide the title."/>
+		<mx:VBox id="advControlsPanel" label="{lang('Advanced')}">
+			<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" change="visualization.marginBottomNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0;" toolTip="{lang('Click to hide the title.')}"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 	</ui:ControlPanel>

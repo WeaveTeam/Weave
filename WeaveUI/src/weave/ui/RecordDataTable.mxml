@@ -21,14 +21,14 @@
 -->
 <!--- @author kmanohar -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml"
-				title="Probed Records Table"
+				title="{lang('Probed Records Table')}"
 				>
 	<mx:HDividedBox  height="100%" width="100%">
 		<mx:VBox height="100%" width="20%">
 			<mx:Text id="keytypeLabel" width="100%"/>
 			<mx:List id="recordList"
 					 width="100%" height="100%"
-					 toolTip="Select a record"
+					 toolTip="{lang('Select a record')}"
 					 labelFunction="getProbeHeaderText"
 					 change="recordListChange(event)">
 				
@@ -36,7 +36,7 @@
 		</mx:VBox>
 		<mx:DataGrid id="dataGrid" width="80%" height="100%">
 			<mx:columns>
-				<mx:DataGridColumn dataField="Attribute"/>
+				<mx:DataGridColumn dataField="Attribute')}"/>
 				<mx:DataGridColumn dataField="Value"/>
 				<mx:DataGridColumn dataField="DataTable"/>
 			</mx:columns>

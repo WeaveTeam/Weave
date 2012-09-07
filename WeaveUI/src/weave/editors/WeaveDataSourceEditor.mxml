@@ -33,7 +33,7 @@
 		<mx:TextInput id="sourceName" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
 	</mx:HBox>
 	<mx:HBox>
-		<mx:Label text="Source URL" width="120"/>
+		<mx:Label text="{lang('Source URL')}" width="120"/>
 		<mx:TextInput id="url" width="300" cornerRadius="5" borderStyle="solid"/>
 	</mx:HBox>
 	<mx:Spacer height="20"/>
@@ -69,14 +69,14 @@
 					sourceName.text = Weave.root.getName(_weaveDataSource);
 					url.text = _weaveDataSource.url.value;
 					sourceName.editable = false;
-					sourceName.toolTip = "Source name is not editable once added to the session. If needed, delete the source and add it again with the new name."
+					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
 				}
 			}
 			
 			public function applyChanges():void
 			{
 				_weaveDataSource.url.value = url.text;
-				Alert.show("Changes saved.")
+				Alert.show(lang("Changes saved."))
 			}
 			
 		]]>

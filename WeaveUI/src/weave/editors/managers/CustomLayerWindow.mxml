@@ -44,16 +44,16 @@
 			<!-- For now, add new plotter editors here. later, there will be a way of listing them automatically. -->
 			
 			<!--<mx:Object label="Bars" plotterClass="{CompoundBarChartPlotter}" layerClass="{SelectablePlotLayer}"/>-->
-			<mx:Object label="Geometry Labels" plotterClass="{GeometryLabelPlotter}" layerClass="{SelectablePlotLayer}"/>
-			<mx:Object label="Geometry Plotter" plotterClass="{GeometryPlotter}" layerClass="{SelectablePlotLayer}"/>
-			<mx:Object label="WMS Plotter" plotterClass="{WMSPlotter}" layerClass="{SelectablePlotLayer}"/>
-			<mx:Object label="Grid lines" plotterClass="{GridLinePlotter}" layerClass="{PlotLayer}"/>
-			<mx:Object label="Labels" plotterClass="{AxisLabelPlotter}" layerClass="{PlotLayer}"/>
-			<mx:Object label="Rectangle Plotter" plotterClass="{RectanglePlotter}" layerClass="{SelectablePlotLayer}"/>
-			<mx:Object label="Image Plotter" plotterClass="{ImageGlyphPlotter}" layerClass="{SelectablePlotLayer}"/>
+			<mx:Object label="{lang('Geometry Labels')}" plotterClass="{GeometryLabelPlotter}" layerClass="{SelectablePlotLayer}"/>
+			<mx:Object label="{lang('Geometry Plotter')}" plotterClass="{GeometryPlotter}" layerClass="{SelectablePlotLayer}"/>
+			<mx:Object label="{lang('WMS Plotter')}" plotterClass="{WMSPlotter}" layerClass="{SelectablePlotLayer}"/>
+			<mx:Object label="{lang('Grid lines')}" plotterClass="{GridLinePlotter}" layerClass="{PlotLayer}"/>
+			<mx:Object label="{lang('Labels')}" plotterClass="{AxisLabelPlotter}" layerClass="{PlotLayer}"/>
+			<mx:Object label="{lang('Rectangle Plotter')}" plotterClass="{RectanglePlotter}" layerClass="{SelectablePlotLayer}"/>
+			<mx:Object label="{lang('Image Plotter')}" plotterClass="{ImageGlyphPlotter}" layerClass="{SelectablePlotLayer}"/>
 		</mx:List>
 	
-		<mx:Button label="Add new layer" right="0" click="openControls()" enabled="{layerSelector.selectedItem != null}"/>
+		<mx:Button label="{lang('Add new layer')}" right="0" click="openControls()" enabled="{layerSelector.selectedItem != null}"/>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
@@ -87,7 +87,7 @@
 			public function set targetTool(value:SimpleVisTool):void
 			{
 				if (_tool != value && _tool != null)
-					throw new Error("targetTool should not be set more than once");
+					throw new Error(lang("targetTool should not be set more than once"));
 				
 				_tool = value;
 			}

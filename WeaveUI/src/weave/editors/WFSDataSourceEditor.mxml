@@ -34,7 +34,7 @@
 	</mx:HBox>
 	<mx:HBox>
 		<mx:Label text="Source URL *" width="120"/>
-		<mx:TextInput id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the base url of your WFS Source e.g. : http://openscales.org/geoserver/wfs"/>
+		<mx:TextInput id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the base url of your WFS Source e.g. : http://openscales.org/geoserver/wfs')}"/>
 	</mx:HBox>
 	<mx:Spacer height="20"/>
 	<mx:Label text="* = required"/>
@@ -69,7 +69,7 @@
 					sourceName.text = Weave.root.getName(_wfsDataSource);
 					url.text = _wfsDataSource.url.value;
 					sourceName.editable = false;
-					sourceName.toolTip = "Source name is not editable once added to the session. If needed, delete the source and add it again with the new name."
+					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
 				}
 			}
 			
@@ -78,11 +78,11 @@
 				try
 				{
 					_wfsDataSource.url.value = url.text;
-					Alert.show("Changes saved.")
+					Alert.show(lang("Changes saved."))
 				}
 				catch (e:Error)
 				{
-					Alert.show("Changes could not be saved. " + e.message, "Error");
+					Alert.show(lang("Changes could not be saved. ") + e.message, lang("Error"));
 				}
 			}
 			

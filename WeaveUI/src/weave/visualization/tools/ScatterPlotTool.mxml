@@ -49,7 +49,6 @@
 			import weave.core.LinkableNumber;
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
@@ -59,7 +58,6 @@
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.RegressionLinePlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
-			import weave.visualization.plotters.styles.SolidFillStyle;
 
 			WeaveAPI.registerImplementation(IVisTool, ScatterPlotTool, "Scatterplot");
 
@@ -112,7 +110,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["X", "Y", "Color", "Size"];
+				return ["X", "Y", lang("Color"), lang("Size")];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -293,7 +291,7 @@
 				if(_tempBounds.containsPoint(_tempPoint))
 				{
 					_tempPoint = this.contentToGlobal(_tempPoint);
-					_toolTip = ToolTipManager.createToolTip("undefined x",_tempPoint.x, _tempPoint.y);	
+					_toolTip = ToolTipManager.createToolTip(lang("undefined x"),_tempPoint.x, _tempPoint.y);	
 					visualization.constrainToolTipsToStage(_toolTip);
 					return;
 				}
@@ -301,7 +299,7 @@
 				if(_tempBounds.containsPoint(_tempPoint))
 				{
 					_tempPoint = this.contentToGlobal(_tempPoint);
-					_toolTip = ToolTipManager.createToolTip("undefined y",_tempPoint.x, _tempPoint.y);
+					_toolTip = ToolTipManager.createToolTip(lang("undefined y"),_tempPoint.x, _tempPoint.y);
 					visualization.constrainToolTipsToStage(_toolTip);
 					return;
 				}
@@ -309,7 +307,7 @@
 				if(_tempBounds.containsPoint(_tempPoint))
 				{
 					_tempPoint = this.contentToGlobal(_tempPoint);
-					_toolTip = ToolTipManager.createToolTip("undefined x,y",_tempPoint.x, _tempPoint.y);
+					_toolTip = ToolTipManager.createToolTip(lang("undefined x,y"),_tempPoint.x, _tempPoint.y);
 					visualization.constrainToolTipsToStage(_toolTip);
 					return;
 				}   
@@ -346,7 +344,7 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Scatter Plot of " + ColumnUtils.getTitle(plotter.xColumn) + " -vs- " + ColumnUtils.getTitle(plotter.yColumn);
+				return lang("Scatter Plot of ") + ColumnUtils.getTitle(plotter.xColumn) + lang(" -vs- ") + ColumnUtils.getTitle(plotter.yColumn);
 			}
 			
 			override protected function childrenCreated():void
@@ -378,8 +376,8 @@
 						visCanvas.addChild(equationText);
 					var slope:Number = StandardLib.roundSignificant(_regressionPlotter.getSlope(), 4);
 					var intercept:Number = StandardLib.roundSignificant(_regressionPlotter.getIntercept(), 4);
-					lineEquation.text = "Equation: y = " + slope + "x"+ " + " + intercept;
-					equationText.text = "slope = " + slope + "\nintercept = " + intercept;
+					lineEquation.text = lang("Equation:") + " y = " + slope + "x"+ " + " + intercept;
+					equationText.text = lang("slope = ") + slope + "\n" + lang("intercept = ") + intercept;
 					equationText.validateNow();
 					// severely hacked
 					equationText.width = visualization.marginLeftNumber.value * 2;
@@ -389,7 +387,7 @@
 				{ 
 					if (equationText.parent)
 						equationText.parent.removeChild(equationText);
-					lineEquation.text = "Equation: y = mx + b";
+					lineEquation.text = lang("Equation: y = mx + b");
 				}
 			}
 			private function updateAxisLabels():void
@@ -428,7 +426,7 @@
 			
 			private function alphaSliderFormatFunction(item:Number):String {
 				//return int(100 - (item * 100)) + "% Transparent";
-				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
+				return int((item * 100)) + lang("% Opaque") + "\n" + int(100 - (item * 100)) + lang("% Transparent");
 			}
 			
 			
@@ -535,15 +533,15 @@
 		bottom="0"
 		left="0"/>
 	<ui:ControlPanel>
-		<mx:VBox id="VizControlsPanel" label="Visualization Controls">
-			<ui:DynamicColumnComponent visTool="{this}" label="X" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.xColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Y" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.yColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
-			<mx:CheckBox id="sizeByCheck" label="Size" fontWeight="bold" width="64" creationComplete="sizeSelector.addChildAt(sizeByCheck, 0);"/>
+		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('X')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.xColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Y')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.yColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
+			<mx:CheckBox id="sizeByCheck" label="{lang('Size')}" fontWeight="bold" width="64" creationComplete="sizeSelector.addChildAt(sizeByCheck, 0);"/>
 			<ui:DynamicColumnComponent id="sizeSelector" visTool="{this}" showLabel="false" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.radiusColumn"/>
 			<mx:HBox width="100%" verticalAlign="middle">
 				
-				<mx:Label text="Point Size:"/>
+				<mx:Label text="{lang('Point Size:')}"/>
 				<mx:HSlider id="sizeBySlider"
 							liveDragging="true"
 							width="100%"
@@ -556,8 +554,8 @@
 							mouseDown="event.stopImmediatePropagation();"/>
 			</mx:HBox>
 			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:Label text="Point Opacity:" 
-						  toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
+				<mx:Label text="{lang('Point Opacity:')}" 
+						  toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}"/>
 				
 				<mx:HSlider id="alphaSlider" 
 							width="100%" 
@@ -566,27 +564,27 @@
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"/>
 			</mx:HBox>
-			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-						 toolTip="Checking this box makes the x, y, color and size attributes visible in this tool's probe tooltip"
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						 toolTip="{lang('Checking this box makes the x, y, color and size attributes visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			<mx:Button label="Show legend" click="createLegend()"/>
+			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
 		</mx:VBox>
-		<mx:VBox id="AdvancedPanel" label="Advanced">
+		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
 			<mx:VBox>
-				<mx:CheckBox id="regressionLineCheckBox" label="Enable regression line"
-							 toolTip="Check this box to draw a regression line on the scatterplot"
+				<mx:CheckBox id="regressionLineCheckBox" label="{lang('Enable regression line')}"
+							 toolTip="{lang('Check this box to draw a regression line on the scatterplot')}"
 							 creationComplete="linkBindableProperty(_regressionPlotter.drawLine,event.target,'selected')"/>
 				<ui:Indent>
 					<mx:VBox>
-						<mx:Label id="lineEquation" text="Equation: y = mx + b"/>
+						<mx:Label id="lineEquation" text="{lang('Equation: y = mx + b')}"/>
 						<mx:HBox>
-							<mx:Label text="Line Color" />
+							<mx:Label text="{lang('Line Color'" />
 							<mx:ColorPicker id="regressionColorPicker" 
 											creationComplete="linkBindableProperty(_regressionPlotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"
 											enabled="{regressionLineCheckBox.selected}"/>
 						</mx:HBox>
 						<mx:HBox>
-							<mx:Label text="Line Thickness" />
+							<mx:Label text="{lang('Line Thickness')}" />
 							<mx:HSlider id="regressionThicknessSlider"
 										creationComplete="linkBindableProperty(_regressionPlotter.lineStyle.weight.defaultValue, event.target, 'value')"
 										enabled="{regressionLineCheckBox.selected}"
@@ -594,7 +592,7 @@
 										tickInterval="1"/>
 						</mx:HBox>
 						<mx:HBox>
-							<mx:Label text="Line Opacity" />
+							<mx:Label text="{lang('Line Opacity')}" />
 							<mx:HSlider id="regressionAlphaSlider"
 										enabled="{regressionLineCheckBox.selected}"
 										minimum="0.1" maximum="1" snapInterval=".1" liveDragging="true"
@@ -605,7 +603,7 @@
 				</ui:Indent>
 			</mx:VBox>
 			<mx:HBox>
-				<mx:CheckBox id="colorOverrideCheckbox" label="Override Global Color" creationComplete="linkBindableProperty(showColorPicker,event.target,'selected')"
+				<mx:CheckBox id="colorOverrideCheckbox" label="{lang('Override Global Color')}" creationComplete="linkBindableProperty(showColorPicker,event.target,'selected')"
 							 change="enableOverrideHandler(event)"/>
 				<mx:ColorPicker id="scatterplotColorOverride" creationComplete="linkBindableProperty(overrideColor,event.target,'selectedColor')"/>
 			</mx:HBox>

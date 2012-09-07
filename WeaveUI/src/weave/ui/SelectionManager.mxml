@@ -21,7 +21,7 @@
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				width="312" height="300" 
-				title="Saved Selections"
+				title="{lang('Saved Selections')}"
 				layout="vertical">
 
 	
@@ -34,16 +34,16 @@
 	</LinkableObjectList>
 	
 	<mx:HBox>
-		<mx:Button label="Delete" 
+		<mx:Button label="{lang('Delete')}" 
 				   enabled="{savedSelectionsList.selectedIndex >= 0}" 
 				   click="deleteSelection()"/>
-		<mx:Button label="Rename" 
+		<mx:Button label="{lang('Rename')}" 
 				   enabled="{savedSelectionsList.selectedIndex >= 0}" 
 				   click="renameSelection()"/>
 	</mx:HBox>
 	<mx:ControlBar height="33" paddingBottom="3" paddingLeft="3" paddingRight="3" paddingTop="3">
 		<mx:Spacer width="100%"/>
-		<mx:Button label="close" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
+		<mx:Button label="{lang('close')}" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
 	</mx:ControlBar>
 	
 	<mx:Script>
@@ -70,7 +70,7 @@
 			{
 				// The label will be the name of the item followed by the record count
 				var label:String = _hashMap.getName(item as KeySet);
-				return label + " (" + (item as KeySet).keys.length + " records)";
+				return label + " (" + (item as KeySet).keys.length + "{lang(' records')}" + ")";
 			}
 			
 			/**
@@ -94,7 +94,7 @@
 				// menu item to save the current selection
 				if (Weave.properties.enableSaveCurrentSelection.value)
 				{
-					menuItem = new WeaveMenuItem("Save current selection...", saveSelection, null, selectionActive);
+					menuItem = new WeaveMenuItem(lang("Save current selection..."), saveSelection, null, selectionActive);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
@@ -102,7 +102,7 @@
 				if (Weave.properties.enableClearCurrentSelection.value)
 				{
 					clickFunction = _globalSelection.clearKeys;
-					menuItem = new WeaveMenuItem("Clear current selection", clickFunction, null, selectionActive);
+					menuItem = new WeaveMenuItem(lang("Clear current selection"), clickFunction, null, selectionActive);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
@@ -122,7 +122,7 @@
 					{
 						return _hashMap.getNames().length > 0;
 					};
-					menuItem = new WeaveMenuItem("Manage saved selections...", clickFunction, null, enableFunction);
+					menuItem = new WeaveMenuItem(lang("Manage saved selections..."), clickFunction, null, enableFunction);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 
@@ -132,7 +132,7 @@
 					{
 						Weave.root.requestObject("SelectionSelector", SelectionSelector, false);
 					};
-					menuItem = new WeaveMenuItem("Selection Selector Tool", clickFunction);
+					menuItem = new WeaveMenuItem(lang("Selection Selector Tool"), clickFunction);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
@@ -175,7 +175,7 @@
 			private function renameSelection():void
 			{
 				// create a text-input alert box for the user to enter the new name for the selection
-				var alertBox:AlertTextBox = AlertTextBox.show("Selection Name", "Please enter a name for the selection: ");
+				var alertBox:AlertTextBox = AlertTextBox.show(lang("Selection Name"), lang("Please enter a name for the selection: "));
 				
 				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
 					// if the user clicked cancel, do nothing
@@ -205,7 +205,7 @@
 			public static function saveSelection():void
 			{
 				// create a text-input alert box for the user to enter the new name for the selection
-				var alertBox:AlertTextBox = AlertTextBox.show("Selection Name", "Please enter a name for the selection: ");
+				var alertBox:AlertTextBox = AlertTextBox.show(lang("Selection Name"), lang("Please enter a name for the selection: "));
 				
 				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
 					// if the user clicked cancel, do nothing

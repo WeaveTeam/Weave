@@ -68,7 +68,7 @@
 				</mx:GridRow>
 				<mx:GridRow>
 					<mx:GridItem>
-						<mx:Label id="paddingLabel" text="Padding around text:"/>
+						<mx:Label id="paddingLabel" text="{lang('Padding around text:')}"/>
 					</mx:GridItem>
 					<mx:GridItem>
 						<mx:HSlider id="paddingSlider" width="100%" liveDragging="true" maximum="25"

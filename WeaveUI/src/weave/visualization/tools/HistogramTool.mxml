@@ -112,7 +112,7 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Histogram of " + ColumnUtils.getTitle(_plotter.dynamicColorColumn);
+				return lang("Histogram of ") + ColumnUtils.getTitle(_plotter.dynamicColorColumn);
 			}
 
 			private var _prevBinnedColumn:BinnedColumn = null;
@@ -167,22 +167,22 @@
 				}
 				
 				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.dynamicColorColumn), 0, 0, visualization.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
-				yAxisLayer.axisPlotter.setSideAxisName("Number of Records", -90, -visualization.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				yAxisLayer.axisPlotter.setSideAxisName(lang("Number of Records"), -90, -visualization.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 		]]>
 	</mx:Script>
 
 	<ui:ControlPanel>
-		<mx:VBox label="Visualization Controls">
-			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-						 toolTip="Checking this box makes the tool's binned attribute visible in this tool's probe tooltip"
+		<mx:VBox label="{lang('Visualization Controls')}">
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="bin data"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="{lang('bin data')}"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
-		<mx:VBox label="Advanced">
+		<mx:VBox label="{lang('Advanced')}">
 			<mx:CheckBox id="drawPartialCheckBox"
-						 label="Draw partial histogram bars for selection and probe"
+						 label="{lang('Draw partial histogram bars for selection and probe')}"
 						 creationComplete="linkBindableProperty(_plotter.drawPartialBins, event.target, 'selected');"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>

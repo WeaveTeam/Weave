@@ -32,18 +32,18 @@
 			 borderColor="#000000" 
 			 horizontalScrollPolicy="off" verticalScrollPolicy="off">
 		<ui:TextInputWithPrompt id="searchCategoryTerms"
-					  prompt="Search categories"
+					  prompt="{lang('Search categories')}"
 					  keyUp="loadFilteredCategories();"
 					  clear="loadFilteredCategories();"
 					  width="100%"/>
 		<ui:TextInputWithPrompt id="searchAttrTerms"
-					  prompt="Search attribute columns"
+					  prompt="{lang('Search attribute columns')}"
 					  keyUp="loadFilteredAttributes();"
 					  clear="loadFilteredAttributes();"
 					  width="100%"/>
 		<mx:HBox id="keyTypeControls" width="100%">
 			<!--  toolTip="Select a desired key type.  Use this feature when you want to match up this data to a key type other than its own." -->
-			<mx:Label text="Key type:"/>
+			<mx:Label text="{lang('Key type:')}"/>
 			<ui:CustomComboBox id="keyTypeCombo" width="100%" change="handleKeyTypeComboChange();"/>
 		</mx:HBox>
 	</mx:HBox>

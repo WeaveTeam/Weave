@@ -23,7 +23,7 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns="weave.editors.managers.*"
 	layout="absolute"
-	title="Edit Data Sources"
+	title="{lang('Edit Data Sources')}"
 	borderAlpha="1"
 	borderColor="#939178"
 	borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
@@ -41,10 +41,10 @@
 		</mx:Box>
 	</mx:HBox>
 	<mx:ControlBar paddingTop="5" paddingBottom="5">
-		<mx:Button label="New data source..." click="addSource()"/>
-		<mx:Button label="Remove selected" click="removeSelected()"/>
+		<mx:Button label="{lang('New data source...')}" click="addSource()"/>
+		<mx:Button label="{lang('Remove selected')}" click="removeSelected()"/>
 		<mx:Spacer width="100%"/>
-		<mx:Button label="Apply changes to selected" click="save()"/>
+		<mx:Button label="{lang('Apply changes to selected')}" click="save()"/>
 		<mx:Button label="Close" click="removePanel()"/>
 	</mx:ControlBar>
 		

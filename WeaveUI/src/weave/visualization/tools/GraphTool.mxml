@@ -192,7 +192,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Color", "Node IDs", "Label", "Edge Source IDs", "Edge Target IDs", "Edge Color Column"];
+				return [lang("Color"), lang("Node IDs"), lang("Label"), lang("Edge Source IDs"), lang("Edge Target IDs"), lang("Edge Color Column")];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -229,7 +229,7 @@
 			public function get edgeColorColumn():AlwaysDefinedColumn { return _plotter.edgeColorColumn; }
 			
 			private function alphaSliderFormatFunction(item:Number):String {
-				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
+				return int((item * 100)) + lang("% Opaque") + "\n" + int(100 - (item * 100)) + lang("% Transparent");
 			}
 			
 			[Bindable] private var algorithmRunning:Boolean = false;
@@ -325,8 +325,8 @@
 	</mx:Script>
 	
 	<ui:ControlPanel>
-		<mx:VBox id="VizControlsPanel" label="Visualization Controls">
-			<!--<mx:CheckBox label="Show Labels:" id="chkShowLabels"
+		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
+			<!--<mx:CheckBox label="('Show Labels:" id="chkShowLabels"
 			creationComplete="linkBindableProperty(showLabels, event.target, 'selected');"/>-->
 			<!--<mx:HBox width="100%" 
 					 borderStyle="inset" 
@@ -347,38 +347,38 @@
 			creationComplete="linkBindableProperty(_plotter.alphaColumn.defaultValue, event.target, 'value')"/>
 			</mx:HBox>-->
 			<mx:HBox>
-				<mx:Label text="Radius Size:"
+				<mx:Label text="{lang('Radius Size:')}"
 						  color="0x0" fontSize="12"
-						  toolTip="Use this option to control the size of the each node in the graph."/>
+						  toolTip="{lang('Use this option to control the size of the each node in the graph.')}"/>
 				<mx:NumericStepper id="numRadiusSize" minimum="1"
 								   creationComplete="linkBindableProperty(_plotter.radius, event.target, 'value')"/>
 			</mx:HBox>
 			<mx:HBox>
-				<mx:Label text="Curved Lines:"
+				<mx:Label text="{lang('Curved Lines:')}"
 						  color="0x0" fontSize="12"
-						  toolTip="Use this option to specify drawing with curved lines instead of a gradient for doubly connected nodes."/>
+						  toolTip="{lang('Use this option to specify drawing with curved lines instead of a gradient for doubly connected nodes.')}"/>
 				<mx:CheckBox id="drawCurvedLines"
 							 creationComplete="linkBindableProperty(_plotter.drawCurvedLines, event.target, 'selected')"/>
 			</mx:HBox>
 		</mx:VBox>
 		
-		<mx:VBox id="attributesPanel" label="Attributes for Graph">
-			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="nodeComponent" label="Nodes"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="labelComponent" label="Labels"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="edgeSourceComponent" label="Edge Sources"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="edgeTargetComponent" label="Edge Targets"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="edgeColorComponent" label="Edge Colors"/>
-			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-						 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
+		<mx:VBox id="attributesPanel" label="{lang('Attributes for Graph')}">
+			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="nodeComponent" label="{lang('Nodes')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="labelComponent" label="{lang('Labels')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeSourceComponent" label="{lang('Edge Sources')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeTargetComponent" label="{lang('Edge Targets')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="edgeColorComponent" label="{lang('Edge Colors')}"/>
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe, event.target, 'selected')"/>
 			<mx:HBox>
-				<mx:Label text="Algorithm"/>
+				<mx:Label text="{lang('Algorithm')}"/>
 				<mx:ComboBox id="algorithmChoice"  dataProvider="{_plotter.algorithms}"
 							 creationComplete="linkBindableProperty(_plotter.currentAlgorithm, event.target, 'selectedItem')"/>
 			</mx:HBox>
 			<mx:VBox>
-				<mx:Button id="recomputePositions" enabled="{!algorithmRunning}" label="Recalculate Node Positions" click="handleStartComputation()"/> 
+				<mx:Button id="recomputePositions" enabled="{!algorithmRunning}" label="{lang('Recalculate Node Positions')}" click="handleStartComputation()"/> 
 			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>

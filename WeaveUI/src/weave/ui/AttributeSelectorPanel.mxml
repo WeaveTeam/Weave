@@ -169,15 +169,15 @@
 				if (index >= 0)
 				{
 					objectTitle = selectableAttributeNames[index];
-					title = "Attribute selector for " + objectTitle;
+					title = lang("Attribute selector for ") + objectTitle;
 					dimensionTypeLinks.selectedIndex = index;
 					showOrHideParamSelector(true);
 				}
 				else
 				{
-					title = "Attribute selector";
+					title = lang("Attribute selector");
 					if (objectTitle)
-						title += ' for ' + objectTitle;
+						title += lang(' for ') + objectTitle;
 					showOrHideParamSelector(false);
 				}
 				
@@ -203,7 +203,7 @@
 					if (child.parent)
 						child.parent.removeChild(child);
 					columnList.hashMap = columnOrHashMap as ILinkableHashMap;
-					columnList.label = objectTitle ? objectTitle : 'Selected attributes';
+					columnList.label = objectTitle ? objectTitle : lang('Selected attributes');
 					verticalDividedBox.addChild(columnList);
 				}
 				else if (verticalDividedBox == columnList.parent)

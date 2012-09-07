@@ -23,7 +23,7 @@
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns="weave.editors.managers.*"
 	layout="absolute"
-	title="Add New Data Source"
+	title="{lang('Add New Data Source')}"
 	borderAlpha="1"
 	borderColor="#939178"
 	borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
@@ -37,18 +37,18 @@
 		<mx:VBox borderThickness="5" borderStyle="solid" borderColor="#939178" borderSides="right" paddingLeft="5" paddingTop="5" height="100%">
 			<mx:RadioButtonGroup id="dataSourceType" itemClick="handleDataSelect(event)"/>
 			<mx:RadioButton selected="true" groupName="dataSourceType" id="wfsSource" value="{WFSDataSource}" label="WFS Data Source"/>
-			<mx:RadioButton groupName="dataSourceType" id="csvSource" value="{CSVDataSource}" label="CSV Data Source"/>
+			<mx:RadioButton groupName="dataSourceType" id="csvSource" value="{CSVDataSource}" label="{lang('CSV Data Source')}"/>
 			<mx:RadioButton groupName="dataSourceType" id="xlsSource" value="{XLSDataSource}" label="XLS Data Source"/>
-			<mx:RadioButton groupName="dataSourceType" id="dbfSource" value="{DBFDataSource}" label="DBF Data Source"/>
-			<mx:RadioButton groupName="dataSourceType" id="weaveSource" value="{WeaveDataSource}" label="Weave Data Source"/>
+			<mx:RadioButton groupName="dataSourceType" id="dbfSource" value="{DBFDataSource}" label="{lang('DBF Data Source')}"/>
+			<mx:RadioButton groupName="dataSourceType" id="weaveSource" value="{WeaveDataSource}" label="{lang('Weave Data Source')}"/>
 		</mx:VBox>
 		<mx:Box width="100%" height="100%" id="container" cornerRadius="5">
 			
 		</mx:Box>
 	</mx:HBox>
 	<mx:ControlBar paddingTop="5" paddingBottom="5">
-		<mx:Button id="addButton" label="Add this data source" click="addSource()"/>
-		<mx:Button id="cancelButton" label="Close" click="removePanel()"/>
+		<mx:Button id="addButton" label="{lang('Add this data source')}" click="addSource()"/>
+		<mx:Button id="cancelButton" label="{lang('Close')}" click="removePanel()"/>
 	</mx:ControlBar>
 	
 	<mx:Script>
@@ -103,18 +103,18 @@
 				{
 					if (wfsDataSourceEditor.sourceName.text == "" || wfsDataSourceEditor.url.text == "")
 					{
-						Alert.show("Please fill all required fields","Error");
+						Alert.show(lang("Please fill all required fields"),lang("Error"));
 						return;
 					}
 					checkObj = Weave.root.getObject(wfsDataSourceEditor.sourceName.text);
 					if (checkObj != null)
 					{
-						Alert.show("Source Name already being used. Please give a different name", "Error");
+						Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
 						return;
 					}
 					var wfsDataSource:WFSDataSource = Weave.root.requestObject(wfsDataSourceEditor.sourceName.text, WFSDataSource, false);
 					if (wfsDataSource != null)
-						Alert.show("Data Source added successfully");
+						Alert.show(lang("Data Source added successfully"));
 					wfsDataSource.url.value = wfsDataSourceEditor.url.text;
 				}
 				
@@ -123,18 +123,18 @@
 				{
 					if (csvDataSourceEditor.sourceName.text == "" || (csvDataSourceEditor.url.text == "" && csvDataSourceEditor.csvDataString == "") || csvDataSourceEditor.keyType.text == "")
 					{
-						Alert.show("Please fill all required fields","Error");
+						Alert.show(lang("Please fill all required fields"),lang("Error"));
 						return;
 					}
 					checkObj = Weave.root.getObject(csvDataSourceEditor.sourceName.text);
 					if (checkObj != null)
 					{
-						Alert.show("Source Name already being used. Please give a different name", "Error");
+						Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
 						return;
 					}
 					var csvDataSource:CSVDataSource = Weave.root.requestObject(csvDataSourceEditor.sourceName.text, CSVDataSource, false);
 					if (csvDataSource != null)
-						Alert.show("Data Source added successfully");
+						Alert.show(lang("Data Source added successfully"));
 					csvDataSource.url.value = csvDataSourceEditor.url.text;
 					csvDataSource.csvDataString.value = csvDataSourceEditor.csvDataString;
 					csvDataSource.keyColName.value = csvDataSourceEditor.keyColumnName.text;
@@ -146,18 +146,18 @@
 				{
 					if (dbfDataSourceEditor.sourceName.text == "" || dbfDataSourceEditor.dbfURL.text == "")
 					{
-						Alert.show("Please fill all required fields","Error");
+						Alert.show(lang("Please fill all required fields"),lang("Error"));
 						return;
 					}
 					checkObj = Weave.root.getObject(dbfDataSourceEditor.sourceName.text);
 					if (checkObj != null)
 					{
-						Alert.show("Source Name already being used. Please give a different name", "Error");
+						Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
 						return;
 					}
 					var dbfDataSource:DBFDataSource = Weave.root.requestObject(dbfDataSourceEditor.sourceName.text, DBFDataSource, false);
 					if (dbfDataSource != null)
-						Alert.show("Data Source added successfully");
+						Alert.show(lang("Data Source added successfully"));
 					dbfDataSource.dbfUrl.value = dbfDataSourceEditor.dbfURL.text;
 					dbfDataSource.shpUrl.value = dbfDataSourceEditor.shpURL.text;
 					dbfDataSource.keyColName.value = dbfDataSourceEditor.keyColumnName.text;
@@ -169,13 +169,13 @@
 				{
 					if (xlsDataSourceEditor.sourceName.text == "" || (xlsDataSourceEditor.url.text == "" && xlsDataSourceEditor.xlsFile == null))
 					{
-						Alert.show("Please fill all required fields","Error");
+						Alert.show(lang("Please fill all required fields"),lang("Error"));
 						return;
 					}
 					checkObj = Weave.root.getObject(xlsDataSourceEditor.sourceName.text);
 					if (checkObj != null)
 					{
-						Alert.show("Source Name already being used. Please give a different name", "Error");
+						Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
 						return;
 					}
 					//if an XLS file has been loaded we create and add it to a CSVDataSource
@@ -183,7 +183,7 @@
 					{
 						var csvSource:CSVDataSource = Weave.root.requestObject(xlsDataSourceEditor.sourceName.text, CSVDataSource, false);
 						if (csvSource != null)
-							Alert.show("Data Source added successfully");
+							Alert.show(lang("Data Source added successfully"));
 						csvSource.url.value = xlsDataSourceEditor.url.text;
 						csvSource.csvDataString.value = WeaveAPI.CSVParser.createCSV(xlsDataSourceEditor.xlsDataArray);
 						csvSource.keyColName.value = xlsDataSourceEditor.keyColumnName.text;
@@ -192,7 +192,7 @@
 					}
 					var xlsDataSource:XLSDataSource = Weave.root.requestObject(xlsDataSourceEditor.sourceName.text, XLSDataSource, false);
 					if (xlsDataSource != null)
-						Alert.show("Data Source added successfully");
+						Alert.show(lang("Data Source added successfully"));
 					xlsDataSource.url.value = xlsDataSourceEditor.url.text;
 					xlsDataSource.keyColName.value = xlsDataSourceEditor.keyColumnName.text;
 					xlsDataSource.keyType.value = xlsDataSourceEditor.keyType.text;
@@ -203,18 +203,18 @@
 				{
 					if (weaveDataSourceEditor.sourceName.text == "")
 					{
-						Alert.show("Please fill all required fields","Error");
+						Alert.show(lang("Please fill all required fields"),lang("Error"));
 						return;
 					}
 					checkObj = Weave.root.getObject(weaveDataSourceEditor.sourceName.text);
 					if (checkObj != null)
 					{
-						Alert.show("Source Name already being used. Please give a different name", "Error");
+						Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
 						return;
 					}
 					var weaveDataSource:WeaveDataSource = Weave.root.requestObject(weaveDataSourceEditor.sourceName.text, WeaveDataSource, false);
 					if (weaveDataSource != null)
-						Alert.show("Data Source added successfully");
+						Alert.show(lang("Data Source added successfully"));
 					weaveDataSource.url.value = weaveDataSourceEditor.url.text;
 				}
 			}

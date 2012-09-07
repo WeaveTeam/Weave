@@ -194,7 +194,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Size","Color","Anchor Dimensions"];
+				return [lang("Size"),lang("Color"),lang("Anchor Dimensions")];
 			}
 			
 			override public function getSelectableAttributes():Array
@@ -205,7 +205,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function get defaultPanelTitle():String
 			{
 				// try to get unique attribute names separated by commas					
-				var newTitle:String = "RadViz of ";
+				var newTitle:String = lang("RadViz of ");
 				
 				var uniqueColumns:Dictionary = new Dictionary();
 				
@@ -241,16 +241,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="Attributes">
-			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" />
-			<ui:DynamicColumnComponent visTool="{this}" id="size" label="Size" />
-			<ui:ColumnListComponent visTool="{this}" id="columnList" label="Anchor Dimensions"/>
+		<mx:VBox id="attributesPanel" label="{lang('Attributes')}">
+			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="{lang('Color')}" />
+			<ui:DynamicColumnComponent visTool="{this}" id="size" label="{lang('Size')}" />
+			<ui:ColumnListComponent visTool="{this}" id="columnList" label="{lang('Anchor Dimensions')}"/>
 		</mx:VBox>		
 		
-		<mx:VBox id="VizControlsPanel" label="Appearance">
-			<ui:Indent label="Point opacity"
+		<mx:VBox id="VizControlsPanel" label="{lang('Appearance')}">
+			<ui:Indent label="{lang('Point opacity')}"
 					   width="100%"
-					   toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).">
+					   toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}">
 				<mx:HSlider id="alphaSlider"
 							width="100%"
 							alpha="1.0"
@@ -261,9 +261,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							liveDragging="true"/>
 			</ui:Indent>
 			<mx:Spacer/>
-			<ui:Indent label="Point radius"
+			<ui:Indent label="{lang('Point radius')}"
 					   width="100%"
-					   toolTip="Use this control to adjust point radius">
+					   toolTip="{lang('Use this control to adjust point radius')}">
 				<mx:HSlider id="sizeSlider"
 							width="100%"
 							alpha="1.0"
@@ -272,7 +272,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							liveDragging="true"/>
 			</ui:Indent>
 			<mx:Spacer/>
-			<ui:Indent label="Label angle" width="100%">
+			<ui:Indent label="{lang('Label angle')}" width="100%">
 				<mx:HSlider id="labelAngleSlider" width="100%"
 					snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 					dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
@@ -280,36 +280,36 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</ui:Indent>
 		</mx:VBox>
 		
-		<mx:VBox id="advancedPanel" label="Advanced">			
+		<mx:VBox id="advancedPanel" label="{lang('Advanced')}">			
 			<mx:VBox>
 				<mx:HBox
 					creationComplete="linkBindableProperty(_plotter.localNormalization,normalizationType,'selectedValue')">
-					<mx:Label text="Normalization method:"
-							  toolTip="Select the type of normalization used to calculate record coordinates"/>
+					<mx:Label text="{lang('Normalization method:')}"
+							  toolTip="{lang('Select the type of normalization used to calculate record coordinates')}"/>
 					<mx:RadioButtonGroup id="normalizationType"/>
 					<mx:RadioButton groupName="normalizationType"
 									id="localNorm"
 									value="true"
-									label="Local"
+									label="{lang('Local')}"
 									/>
 					<mx:RadioButton groupName="normalizationType"
 									id="globalNorm"
 									value="false"
-									label="Global"
+									label="{lang('Global')}"
 									/>
 				</mx:HBox>
 			</mx:VBox>
 			<mx:Spacer height="10"/>
 			<mx:VBox>
 				<mx:HBox>
-					<mx:CheckBox id="jitterckbx" label="Apply Jitter:" 
-							  toolTip="Use this control to change record coordinates by a random number"/>
-					<mx:Button label="Randomize Jitter"
-							   toolTip="Use this control to reseed jitter with new random values"
+					<mx:CheckBox id="jitterckbx" label="{lang('Apply Jitter:')}" 
+							  toolTip="{lang('Use this control to change record coordinates by a random number')}"/>
+					<mx:Button label="{lang('Randomize Jitter')}"
+							   toolTip="{lang('Use this control to reseed jitter with new random values')}"
 							   click="_plotter.setNewRandomJitterColumn();"/>
-					<mx:Label text="Jitter Level:" 
+					<mx:Label text="{lang('Jitter Level:')}" 
 							  enabled="{jitterckbx.selected}"
-							  toolTip="Use slider to adjust the jitter level"/>					
+							  toolTip="{lang('Use slider to adjust the jitter level')}"/>					
 					<mx:HSlider id="jitterSlider"
 								enabled="{jitterckbx.selected}"
 								width="100%"
@@ -324,12 +324,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</mx:VBox>
 			<mx:Spacer height="10"/>
 			<mx:VBox>
-				<mx:Label text="Dimensional Anchor Reordering Algorithm:"
-						  toolTip="Use this control to reorder the dimensional anchors"/>					
+				<mx:Label text="{lang('Dimensional Anchor Reordering Algorithm:')}"
+						  toolTip="{lang('Use this control to reorder the dimensional anchors')}"/>					
 				<mx:ComboBox id="algorithmComboBox" dataProvider="{_plotter.algorithms}"
 							 creationComplete="linkBindableProperty(_plotter.currentAlgorithm,event.target,'selectedItem')"/>
 				<mx:HBox enabled="{algorithmComboBox.selectedIndex == 0}">
-					<mx:Label text="Number of Iterations"/>
+					<mx:Label text="{lang('Number of Iterations')}"/>
 					<mx:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
 								  creationComplete="linkBindableProperty(_plotter.iterations, event.target, 'text')"/>
 				</mx:HBox>

@@ -110,13 +110,13 @@
 					 verticalGap="0">
 				<mx:HBox width="100%" horizontalGap="1" verticalAlign="middle" paddingBottom="0" paddingTop="0">
 					<mx:CheckBox id="visibleCheckbox" 
-								 label="visible" 
-								 toolTip="Check this box to set this layer visible." 
+								 label="{lang('visible')}" 
+								 toolTip="{lang('Check this box to set this layer visible.')}" 
 								 selected="{layerIsVisible}" 
 								 change="layerIsVisible = visibleCheckbox.selected"/>
 					<mx:CheckBox id="selectableCheckbox" 
-								 label="selectable"
-								 toolTip="Check this box to enable selection and probing on this layer." 
+								 label="{lang('selectable')}"
+								 toolTip="{lang('Check this box to enable selection and probing on this layer.')}" 
 								 selected="{layerIsSelectable}"
 								 change="layerIsSelectable = selectableCheckbox.selected"/>
 								 
@@ -143,17 +143,17 @@
 					
 					<mx:Button id="settingsButton"
 						   toggle="true" 
-						   label="settings" 
+						   label="{lang('settings')}" 
 						   paddingLeft="2" paddingRight="2"
 						   width="60"
-						   toolTip="Click here to view this layer's modifiable parameters."
+						   toolTip="{lang('Click here to view this layer\'s modifiable parameters.')}"
 						   click="handleEditButtonClicked(settingsButton, controlsStack,_label)"
 						   />
 					
 					
 					
 					<mx:Spacer width="10"/>
-					<mx:Image toolTip="Remove this layer" source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true" click="removeLayer(event)"/>
+					<mx:Image toolTip="{lang('Remove this layer')}" source="@Embed(source='/weave/resources/images/cancel.png')" buttonMode="true" click="removeLayer(event)"/>
 				</mx:HBox>
 				
 				<!-- these are the controls that are shown when hitting the "Settings" button -->
@@ -165,44 +165,44 @@
 						<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="left">
 							<mx:CheckBox id="wmsPreferLowerQuality"
 											 selected="false"
-											 label="Prefer Lower Quality"
+											 label="{lang('Prefer Lower Quality')}"
 											 labelPlacement="right" 
 											 toolTip="{'Check this box to download lower quality images from the WMS service. This option may be '
 											 	+ 'preferred when using the OpenStreetMap service.'}"/>
 							<mx:CheckBox id="wmsDisplayMissing"
 											 selected="true"
-											 label="Show Failed Downloads"
+											 label="{lang('Show Failed Downloads')}"
 											 labelPlacement="right" 
 											 toolTip="{'Check this box to enable drawing of the missing image for failed requests. If this is unchecked, '
 											 	+ 'the plotter will fill missing images with lower quality images which cover the same area.'}"/>
 							<mx:HBox width="100%" horizontalAlign="center" verticalAlign="middle">
-								<mx:Label text="Service:"/>
+								<mx:Label text="{lang('Service:')}"/>
 								<!-- for each provider's name, append '(SRS_CODE)' to the end -->
 								<ui:CustomComboBox editable="false" id="wmsLayerService"
-												 prompt="Select a service"
+												 prompt="{lang('Select a service')}"
 												 dataProvider="{WMSProviders.providers}"
 												 width="200"
-												 toolTip="Select the WMS provider to use." />
+												 toolTip="{lang('Select the WMS provider to use.')}" />
 							</mx:HBox>
 						</mx:VBox>
 						<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="center" verticalAlign="middle">
 							<mx:HBox width="100%" horizontalAlign="center">
-									<mx:Label text="Month:"/>
+									<mx:Label text="{lang('Month:')}"/>
 									<ui:CustomComboBox enabled="{(wmsLayerService.selectedItem as String) == WMSProviders.NASA}" visible="{enabled == true}" editable="false" 
 													 dataProvider="{['Dec ','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan ']}" 
 													 change="handleStyleInputChange()" id="requestStyles" width="80" 
-													 toolTip="Enter the month of the NASA images."/>
+													 toolTip="{lang('Enter the month of the NASA images.')}"/>
 							</mx:HBox>
 						</mx:VBox>
 					</mx:HBox>
 					
 					<mx:VBox id="labelPlotterControls" width="100%" >
 						<mx:VBox width="100%">
-							<ui:DynamicColumnComponent id="labelComponent" label="Label"/> 
-							<ui:DynamicColumnComponent id="geometryComponent" label="Geometry"/> 
+							<ui:DynamicColumnComponent id="labelComponent" label="{lang('Label')}"/> 
+							<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}"/> 
 						</mx:VBox>
 						<mx:HBox width="100%">
-							<mx:Label text="Label Text Size: " fontWeight="bold"/>
+							<mx:Label text="{lang('Label Text Size: ')}" fontWeight="bold"/>
 							<mx:HSlider id="labelSizeSlider"
 										width="100%"
 										alpha="1.0"
@@ -212,7 +212,7 @@
 										liveDragging="true" mouseDown="event.stopPropagation()"/>
 						</mx:HBox>
 						<mx:HBox width="100%">
-							<mx:Label text="Label Text Color:" fontWeight="bold"/>
+							<mx:Label text="{lang('Label Text Color:')}" fontWeight="bold"/>
 							<mx:ColorPicker id="colorPicker" width="22" height="22"/>
 						</mx:HBox>
 					</mx:VBox>
@@ -221,31 +221,31 @@
 						<mx:HBox  width="100%" horizontalAlign="center" verticalAlign="middle">												
 							<mx:VBox borderStyle="solid" verticalGap="0" 
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
-								<mx:CheckBox id="fillEnabled" label="Enable Fill Color" fontWeight="bold"
-											 toolTip="Check this box to enable the color used inside each shape.  &#13;This would typically be unchecked if the shapes are to be used for borders only, such as overlaying state borders over colored in municipalities."/>
+								<mx:CheckBox id="fillEnabled" label="{lang('Enable Fill Color')}" fontWeight="bold"
+											 toolTip="{lang('Check this box to enable the color used inside each shape. \r This would typically be unchecked if the shapes are to be used for borders only, such as overlaying state borders over colored in municipalities.')}"/>
 								
 								<mx:HBox verticalAlign="middle" >
 									<mx:VBox enabled="{fillEnabled.selected}" verticalGap="0">
-										<mx:Label text="alpha:"/>
+										<mx:Label text="{lang('alpha:')}"/>
 										<mx:NumericStepper 	id="fillAlpha" 
 															minimum="0" maximum="1" stepSize="0.1" 
 															value="0"
 															width="50"
-															toolTip="Set the alpha (0: transparent, 1: opaque) of the color inside each shape."/>
+															toolTip="{lang('Set the alpha (0: transparent, 1: opaque) of the color inside each shape.')}"/>
 										
 									</mx:VBox>
 									
 								<mx:VBox enabled="{fillEnabled.selected}" verticalGap="0" horizontalAlign="center">
-										<mx:Label text="default color:"/>
+										<mx:Label text="{lang('default color:')}"/>
 										<mx:HBox>
 											<mx:CheckBox id="enableDefaultColor" label="" 
 														 change="handleSolidFillColorCheck()"
-														 toolTip="Check this box to allow choosing a color that will be used either when there is missing data when data is mapped to the color, or as the color for all shapes when no data is mapped.   &#13;This would typically be checked when a single color is desired for all shapes (no data mapped to color), or when the missing data is to be shown as a solid color rather than the default pattern."/>
+														 toolTip="{lang('Check this box to allow choosing a color that will be used either when there is missing data when data is mapped to the color, or as the color for all shapes when no data is mapped.  \rThis would typically be checked when a single color is desired for all shapes (no data mapped to color), or when the missing data is to be shown as a solid color rather than the default pattern.')}"/>
 											<mx:ColorPicker id="fillColor"
 															enabled="{enableDefaultColor.selected}"
 															change="handleFillColorSelected()"
 															selectedColor="0xFFFFFF"
-															toolTip="Set the color to fill in the shape when there is no data mapped to the shapes or when there is missing data when data is being mapped to the shapes." />
+															toolTip="{lang('Set the color to fill in the shape when there is no data mapped to the shapes or when there is missing data when data is being mapped to the shapes.')}" />
 										</mx:HBox>
 										
 									</mx:VBox>
@@ -256,50 +256,50 @@
 							
 							<mx:VBox borderStyle="solid" verticalGap="0" 
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
-								<mx:CheckBox id="lineEnabled" label="Enable Borders" fontWeight="bold" 
+								<mx:CheckBox id="lineEnabled" label="{lang('Enable Borders')}" fontWeight="bold" 
 											 toolTip="Check this box to enable borders around each shape.  &#13;This would typically be unchecked to have a more subtle mesh of colors on a map, rather than distinguished by borders between areas."/>
 								
 								<mx:HBox verticalAlign="middle" >
 									<mx:VBox enabled="{lineEnabled.selected}" verticalGap="0">
-										<mx:Label text="alpha:"/>
+										<mx:Label text="{lang('alpha:')}"/>
 										<mx:NumericStepper 	id="lineAlpha" 
 															minimum="0" maximum="1" stepSize="0.1"
 															width="50"
-															toolTip="Set the alpha (0: transparent, 1: opaque) of the borders around each shape."/>
+															toolTip="{lang('Set the alpha (0: transparent, 1: opaque) of the borders around each shape.')}"/>
 									</mx:VBox>
 									
 									<mx:VBox enabled="{lineEnabled.selected}" verticalGap="0">
-										<mx:Label text="weight:"/>
+										<mx:Label text="{lang('weight:')}"/>
 										<mx:NumericStepper 	id="lineWeight" 
 															minimum="1" maximum="10"
 															width="50"
-															toolTip="Set the thickness of the borders around each shape."/>
+															toolTip="{lang('Set the thickness of the borders around each shape.')}"/>
 									</mx:VBox>
 									<mx:VBox enabled="{lineEnabled.selected}" verticalGap="0">
-										<mx:Label text="color:"/>
+										<mx:Label text="{lang('color:')}"/>
 										<mx:ColorPicker id="lineColor"
-														toolTip="Set the color used for the borders around each shape." />
+														toolTip="{lang('Set the color used for the borders around each shape.')}" />
 									</mx:VBox>
 								</mx:HBox>
 							</mx:VBox>
 							
 							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0" enabled="{!useImagesCheck.selected || fixedImageSizeCheck.selected}"
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
-								<mx:Label text="Icon size:"/>
+								<mx:Label text="{lang('Icon size:')}"/>
 								<mx:NumericStepper 	id="iconSize" 
-													toolTip="Set the default icon size when point-based geometries are used."
+													toolTip="{lang('Set the default icon size when point-based geometries are used.')}"
 													minimum="0.2" maximum="60"
 													width="50"/>
 							</mx:VBox>
 							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
-								<mx:CheckBox id="useImagesCheck" label="Enable Images" click="handleGeomPlotterImageToggle()"/>
+								<mx:CheckBox id="useImagesCheck" label="{lang('Enable Images')}" click="handleGeomPlotterImageToggle()"/>
 								<mx:TextInput id="imageURL" creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>
-								<mx:CheckBox id="fixedImageSizeCheck" label="Use specified size" enabled="{useImagesCheck.selected}" />
+								<mx:CheckBox id="fixedImageSizeCheck" label="{lang('Use specified size')}" enabled="{useImagesCheck.selected}" />
 							</mx:VBox>
 						</mx:HBox>
 						<mx:HBox>
-							<mx:CheckBox id="ignoreSubsetCheck" label="Ignore Subset" change="handleIgnoreSubsetCheck()"/>
+							<mx:CheckBox id="ignoreSubsetCheck" label="{lang('Ignore Subset')}" change="handleIgnoreSubsetCheck()"/>
 							<ui:HelpComponent>
 								Check this box to always display these geometries whether or not they are in the current subset.
 								Fill color will only be displayed on the geometries in the current subset.  Only the borders will be displayed for the rest.
@@ -406,11 +406,11 @@
 						{
 							var plotter:IPlotter = getPlotter(data as IPlotLayer);
 							if (plotter is GeometryLabelPlotter)
-								layerName.toolTip = "Click here to set the label attribute" ;
+								layerName.toolTip = lang('Click here to set the label attribute') ;
 							if (plotter is GeometryPlotter)
-								layerName.toolTip = "Click here to set the geometry" ;
+								layerName.toolTip = lang('Click here to set the geometry') ;
 							if (plotter is WMSPlotter)
-								layerName.toolTip = "Click here to set the WMS service" ;
+								layerName.toolTip = lang('Click here to set the WMS service') ;
 						}
 						
 						private function handleSolidFillColorCheck():void

@@ -37,7 +37,7 @@
 		dataProvider="{ColorRamp.allColorRamps.colorRamp}"
 		change="handleColorRampSelected()">
 	<mx:columns>
-		<mx:DataGridColumn dataField="@name"  headerText="Color scale presets">
+		<mx:DataGridColumn dataField="@name"  headerText="{lang('Color scale presets')}">
 			<mx:itemRenderer>
 				<mx:Component>
 					<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 

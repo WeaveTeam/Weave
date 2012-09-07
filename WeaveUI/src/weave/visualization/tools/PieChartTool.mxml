@@ -98,12 +98,12 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				return Weave.defaultColorDataColumn.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn
 			}
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Wedge Size","Wedge Color","Label"];
+				return [lang("Wedge Size"),lang("Wedge Color"),lang("Label")];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -117,20 +117,20 @@
 
 			override protected function get defaultPanelTitle():String
 			{
-				return "Pie Chart of " + ColumnUtils.getTitle(_plotter.data);
+				return lang("Pie Chart of ") + ColumnUtils.getTitle(_plotter.data);
 			}
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="Attributes for Pie Chart">
-			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-						 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
+		<mx:VBox id="attributesPanel" label="{lang('Attributes for Pie Chart')}">
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Wedge size" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.data"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Wedge color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="Label Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.label"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Wedge size')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.data"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Wedge color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="{lang('Label Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.label"/>
 			<mx:HBox width="100%">
-				<mx:Label text="Label angle" fontWeight="bold"/>
+				<mx:Label text="{lang('Label angle')}" fontWeight="bold"/>
 				<mx:HSlider id="labelAngleSlider"
 						snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 						dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"

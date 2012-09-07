@@ -30,12 +30,12 @@ LayerListComponent
 		 xmlns="weave.editors.managers.*"
 		 verticalGap="0"
 		 width="100%" height="100%"
-		 label="Layers (Beta)" xmlns:ui="weave.ui.*">
+		 label="{lang('Layers (Beta)')}" xmlns:ui="weave.ui.*">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
 		<mx:HBox width="100%" id="selectorControls">
 			<mx:Spacer width="100%"/>
-			<mx:Button label="Add layer..." click="addLayer()"/>
+			<mx:Button label="{lang('Add layer...')}" click="addLayer()"/>
 			<!--<mx:Button label="Open editor..." click="openSelector()"/>-->
 		</mx:HBox>
 	</mx:HBox>
@@ -128,7 +128,7 @@ LayerListComponent
 							protected function onLayerRenameButtonClick(event:MouseEvent,data:Object):void
 							{
 								var defaultInputString:String = outerDocument.internalList.getItemLabel(data);
-								var alertBox:AlertTextBox = AlertTextBox.show("Rename Layer","Please enter a new layer name:",defaultInputString);
+								var alertBox:AlertTextBox = AlertTextBox.show(lang("Rename Layer"),lang("Please enter a new layer name:"),defaultInputString);
 								
 								alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
 									function (e:AlertTextBoxEvent):void 
@@ -145,11 +145,11 @@ LayerListComponent
 							
 						]]>
 					</mx:Script>
-					<mx:CheckBox id="visibleCheckbox" label="visible" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
-					<mx:CheckBox id="selectedCheckbox" label="selectable" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
+					<mx:CheckBox id="visibleCheckbox" label="{lang('visible')}" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
+					<mx:CheckBox id="selectedCheckbox" label="{lang('selectable')}" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
 					<mx:Label textAlign="center" width="100%" text="{outerDocument.internalList.getItemLabel(data)}"/>
-					<mx:Button label="Rename..." toolTip="Click to rename the layer." click="onLayerRenameButtonClick(event,data)"/>
-					<mx:Button label="Settings..." click="openSettingsPanel(data as IPlotLayer)"/>
+					<mx:Button label="{lang('Rename...')}" toolTip="{lang('Click to rename the layer.')}" click="onLayerRenameButtonClick(event,data)"/>
+					<mx:Button label="{lang('Settings...')}" click="openSettingsPanel(data as IPlotLayer)"/>
 				</mx:HBox>
 			</mx:Component>
 		</ui:itemRenderer>
@@ -157,8 +157,8 @@ LayerListComponent
 	<mx:HBox width="100%">
 		<mx:Spacer width="100%"/>
 		<mx:Button
-			label="Remove selected"
-			toolTip="Click here to remove one or more selected layers in the list above."
+			label="{lang('Remove selected')}"
+			toolTip="{lang('Click here to remove one or more selected layers in the list above.')}"
 			click="internalList.removeSelectedItem()"
 			enabled="{internalList.selectedIndex >= 0}"/>
 	</mx:HBox>
@@ -169,7 +169,7 @@ LayerListComponent
 				 creationComplete="linkBindableProperty(_visTool.visualization.enableZoomAndPan, event.target, 'selected');"/>
 	-->
 	<mx:HBox width="100%" id="boundsProperties" verticalAlign="middle">
-		<mx:Label text="Override auto zoom:"/>
+		<mx:Label text="{lang('Override auto zoom:')}"/>
 		<ui:TextInputWithPrompt id="overrideXMin" prompt="xMin" width="{boundsInputWidth}"/>
 		<mx:VBox>
 			<ui:TextInputWithPrompt id="overrideYMax" prompt="yMax" width="{boundsInputWidth}"/>
