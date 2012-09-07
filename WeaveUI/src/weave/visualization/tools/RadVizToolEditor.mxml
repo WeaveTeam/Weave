@@ -35,6 +35,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<![CDATA[
 			import flash.utils.getQualifiedClassName;
 			
+			import mx.controls.Alert;
 			import mx.events.ListEvent;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
@@ -46,6 +47,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -71,9 +73,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable] 
 			public var columnNames:Array  = new Array();
 			public var selectedColumnName:String;
-			public var cdLayout:ClassDiscriminationLayoutAlgorithm = new ClassDiscriminationLayoutAlgorithm(); 
+			// var editorCdLayout:ClassDiscriminationLayoutAlgorithm = new ClassDiscriminationLayoutAlgorithm(); 
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
-			//public var ClassToColumnMap:Dictionary = new Dictionary();// contains unique classes 
 			
 			 override protected function childrenCreated():void
 			{
@@ -83,16 +84,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				(colorComponent as DynamicColumnComponent).dynamicObject = _target.colorColumn;
 				columnList.hashMap = _target._plotter.columns;
 				(classDis as DynamicColumnComponent).dynamicObject = _target.classDiscriminatorColumn;
-				
 				linkBindableProperty(_target._plotter.enableJitter,jitterckbx,'selected');
 				linkBindableProperty(_target._plotter.radiusConstant,sizeSlider,'value');				
 				linkBindableProperty(_target._plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_target._plotter.jitterLevel, jitterSlider, "value" );	
-				
-				//updating options for classes
-				_target._plotter.columns.addImmediateCallback(this, updateClassColumnOptions);
-				
-				
+								
 			} 
 			
 			public function setTarget(object:ILinkableObject):void
@@ -110,178 +106,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
 			}
 			
-			/* private function joinColumns(columns:Array):Array
-			{
-				var selection:KeySet = Weave.defaultSelectionKeySet;
-				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
-				var result:Array = ColumnUtils.joinColumns(columns, Number, false, keys);
-				return [result.shift(), result];
-			} */
 			
-			/**this function updates the options for chosing the column to decide classes for the CDlayout*/
-			private function updateClassColumnOptions():void{ 
-			     var colObjects:Array = _target._plotter.columns.getObjects();//user selected columns
-				var attributeColumns:Array = new Array(); 
-				
-				for(var i:int = 0; i < colObjects.length; i++)
-				{
-					attributeColumns[i] = colObjects[i] as IAttributeColumn;
-					columnNames[i] = ColumnUtils.getTitle(attributeColumns[i]);
-				} 
-				 classColumnCB.dataProvider = columnNames;
-				 classColumnCB.selectedIndex = 0; 
-				
-			}
-			
-			
-			/**this function sends the data in the form of a matrix for normalization in R*/
-			/*  private function normalizationInR(unNormcolumns:Array):void
-			{
-				var inputValues:Array = new Array(); var inputNames:Array;
-				inputNames = ["mymatrix"];
-			    var outputNames:Array = ["normOutput"];
-				var script:String = "frame <- data.frame(mymatrix)\n" +
-					"donorm <- function(frame){\n" +
-					"RR <- nrow(frame)\n"+
-					"CC <- ncol(frame)\n"+
-					"for (z in 1:CC){\n"+
-					"maxr <- max(frame[z])\n"+
-					"minr <- min(frame[z])\n"+
-					"for(i in 1:RR){\n"+
-					" frame[i,z] <- (frame[i,z] - minr) / (maxr - minr)\n"+
-					" }\n"+
-					"}\n"+
-					"frame\n"+
-					"}\n"+
-					"normOutput <- donorm(frame)\n";
-		
-			var result:Array = joinColumns(unNormcolumns);
-			var joinedColumnsKeys:Array = result[0];
-			var joinedColumns:Array = result[1];
-				 
-			
-				inputValues.push(joinedColumns); 
-				var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
-				DelayedAsyncResponder.addResponder(query, handleNormScriptResult, handleRunScriptFault,joinedColumnsKeys);
-			}  */
-			
-			
-			protected function classColumnCB_changeHandler(event:ListEvent):void
-			{
-					selectedColumnName = classColumnCB.selectedLabel;
-					var colObjects:Array = _target._plotter.columns.getObjects();//user selected columns
-					//normalizationInR(colObjects);//sending unnormalized columns
-					
-			}
-			
-			/** This function determines the classes and  populates the Dictionary called ClassToColumnMap which is used for the Class Discrimination Layout Algorithm
-			can be used when the discriminator class is of a categorical nature  */
-			/* private function fillingClassToColumnMap():void
-			{
-				//if(UIUtils.hasFocus(classColumnCB)){
-					
-				//}
-				
-				var colObjects:Array = _target._plotter.columns.getObjects();//user selected columns
-					
-				 for(var j:int = 0; j < colObjects.length; j++)//Step 1 Finding the column which has been selected
-				{ 
-					var selectedOptionName:String= classColumnCB.selectedLabel;
-					var attr:IAttributeColumn = colObjects[j] as IAttributeColumn;
-					var attrName:String = ColumnUtils.getTitle(attr);
-					if(selectedOptionName == attrName )
-					{ 
-						//Step 2 Looping thru the keys in the found column and populating the type dictionary
-						for(var g:int = 0; g < attr.keys.length; g++)
-						{
-							var mkey:IQualifiedKey = attr.keys[g] as IQualifiedKey;
-							var type:Object = attr.getValueFromKey(mkey,String);//"japanese", "american" etc
-							
-							
-							
-							if(!ClassToColumnMap.hasOwnProperty(type) && !tAndpMapping.hasOwnProperty(type))
-							{
-								ClassToColumnMap[type] = new ClassInfoObject();
-								tAndpMapping[type] = new Array();
-								
-							}
-							
-							var infoObject:ClassInfoObject = ClassToColumnMap[type];
-							for (var f:int = 0; f < colObjects.length; f ++)//filling in the type columnMapping with arrays
-							{
-								if(!infoObject.columnMapping.hasOwnProperty(columnNames[f]))							 
-									
-									infoObject.columnMapping[columnNames[f]] = new Array();
-							}
-							
-							for(var b:int = 0; b < normalizedColumns.length; b++)
-							{
-								var tempEntry:Number = (normalizedColumns[b] as IAttributeColumn).getValueFromKey(mkey,Number);
-								var zz:Array = infoObject.columnMapping[columnNames[b]] as Array ;
-								zz.push(tempEntry);
-							}
-							
-						}//ClassToColumnMap gets filled 
-						
-					}
-					
-				}
-				
-			} */
-			
-			
-			
-			/** Returns the normalized dataset */
-		/* 	private function handleNormScriptResult(event:ResultEvent, token:Object = null):void
-			{
-				var colObjects:Array = _target._plotter.columns.getObjects();//user selected columns
-				var temRObjects:Array = new Array();
-				//Object to stored returned result - Which is array of object{name: , value: }
-				var Robj:Array = event.result as Array;				
-				
-				if (Robj == null)
-				{
-					reportError("R Servlet did not return an Array of results as expected.");
-					return;
-				}
-				
-				//collecting Objects of type RResult(Should Match result object from Java side)
-				for (var i:int = 0; i < (event.result).length; i++)
-				{
-					if (Robj[i] == null)
-					{
-						trace("WARNING! R Service returned null in results array at index "+i);
-						continue;
-					}
-					var rResult:RResult = new RResult(Robj[i]);
-					temRObjects = (rResult.value) as Array;
-				
-				}	
-				
-				for (var j:int = 0 ; j < temRObjects.length; j++)
-				{
-					normalizedColumns.push(ResultUtils.resultAsNumberColumn(token,temRObjects[j],columnNames[j]+"norm"));
-				}
-				
-				cdLayout.fillingClassToColumnMap(selectedColumnName,colObjects,columnNames,normalizedColumns);
-				_target._plotter.doCDLayout = true;
-				_target._plotter.LayoutClasses = cdLayout.tAndpMapping;
-				
-				
-			//	fillingClassToColumnMap();
-			}
-			 */
 			private var runScriptCounter:int = 0;
 			private var tickMax:int = 0;
 			
 			/**this function handles the results returned from R (the t-statistic and the p-values)*/
 			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
 			{
-					runScriptCounter = runScriptCounter + 1;
 				
 					//Object to stored returned result - Which is array of object{name: , value: }
 					var Robj:Array = event.result as Array;				
-					
+				
 					if (Robj == null)
 					{
 						reportError("R Servlet did not return an Array of results as expected.");
@@ -306,65 +141,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}	
 					
 					//var colIndex:int = token[1];
-					var colIndex:int = columnNames.indexOf(token[1]);
-				
+				     var colIndex: int = _target._plotter.columns.getNames().indexOf(token[1]);
 					//Fills in the t-statistic and pValues(hard coded since we will be receiving only two values from R)
 					(token[0] as ClassInfoObject).tStatisticArray[colIndex] = ((RresultArray[0] as RResult).value);
 					(token[0] as ClassInfoObject).pValuesArray[colIndex] =((RresultArray[1] as RResult).value);
 					trace("handlescript successful!");
-				
-					/* we use these two counters due to issues in asynchronous invocation, actualAlgo should run only
-					after all the results from the R-service call have been returned. */
-					 /* if(scriptCallCounter == runScriptCounter)
-					{ 	
-						scriptCallCounter = 0;
-						runScriptCounter = 0;	
-						//actualAlgo(ClassToColumnMap);
-						
-						
-					} 
-					 */
+			
 			}
 			
-			/* private function actualAlgo(ClassToColumnMap:Dictionary):Dictionary
-			{
-				trace(thresholdValue.text);
-				for (var r:int = 0 ; r < columnNames.length; r++)//for each column loop through the classes
-				{
-					var tempType:Object = new Object();
-					var isColumnLoopBegin:Boolean = true;
-					var compareNum:Number;
-					for (var type:Object in ClassToColumnMap)
-					{
-						var tempTValue:Number = (ClassToColumnMap[type] as ClassInfoObject).tStatisticArray[r];
-						 if (tempTValue > (thresholdValue.text as Number))
-						 {
-								if(isColumnLoopBegin)
-								{
-									isColumnLoopBegin = false;
-									compareNum = (ClassToColumnMap[type]as ClassInfoObject).tStatisticArray[r];
-									tempType = type;
-								}
-								else
-								{
-									if(compareNum < tempTValue)
-									{
-										compareNum = tempTValue;
-										tempType = type;
-									}
-									
-								}
-						 }
-					}
-					
-					//(tAndpMapping[tempType] as Array).push((ClassToColumnMap[tempType]as ClassInfoObject).columnMapping[columnNames[r]]);
-					(tAndpMapping[tempType] as Array).push(columnNames[r]);
-				}
-				
-				return tAndpMapping;
-			}
-			 */
-			
+	
 			private function handleRunScriptFault(event:FaultEvent, token:Object = null):void
 			{
 					trace(["fault", token, event.message].join('\n'));
@@ -379,8 +164,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var flag:Boolean;  */
 					if(UIUtils.hasFocus(layoutAlgoCB)){
 						var selectedOptionName:String= layoutAlgoCB.selectedLabel;
-						trace(selectedOptionName);
-						trace (script);
 					}
 					
 					/*  if (selectedOptionName == "t-statistic = variance"){flag = true;}
@@ -397,46 +180,89 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					/*  if(flag){script = "cdoutput <- t.test(x,y, var.equal = TRUE)"; trace(script);}
 					if(!flag){script = "cdoutput <- t.test(x,y, var.equal = FALSE)"; trace(script);}  */
 					
-					for (var type:Object in cdLayout.ClassToColumnMap)
+					for (var type:Object in _target.cdLayout.ClassToColumnMap)
 					{						
 						for(var l:int = 0; l < colObjects.length; l++)
 						{
 							var inputValues:Array = new Array();//sending two vectors to R
 							var inputNames:Array;
-							inputValues.push((cdLayout.ClassToColumnMap[type] as ClassInfoObject).columnMapping[columnNames[l]]);//pushing col belonging to type
+							inputValues.push((_target.cdLayout.ClassToColumnMap[type] as ClassInfoObject).columnMapping[_target._plotter.columns.getNames()[l]]);//pushing col belonging to type
 							var temArray:Array = new Array();
 							var temArray2:Array = new Array();
-							for(var comparetype:Object in cdLayout.ClassToColumnMap)
+							for(var comparetype:Object in _target.cdLayout.ClassToColumnMap)
 							{
 								if(type!= comparetype)//collecting the values of the same column for other types
 								{
-									temArray = temArray.concat((cdLayout.ClassToColumnMap[comparetype]as ClassInfoObject).columnMapping[columnNames[l]]);
+									temArray = temArray.concat((_target.cdLayout.ClassToColumnMap[comparetype]as ClassInfoObject).columnMapping[_target._plotter.columns.getNames()[l]]);
 								}
 							}
 							
 							inputValues.push(temArray);
 							inputNames = ["x", "y"];
 							
-							var idString:String = columnNames[l]+"_"+type+"_";
-							var script:String = idString+"cdoutput <- t.test(x,y)";
-							var outputNames:Array = [idString+"cdoutput$statistic",idString+"cdoutput$p.value"];//(tstatistic, pvalue) values to be obtained from R
+							//var idString:String = _target._plotter.columns.getNames()[l]+"_"+type+"_";
+							var script:String = "cdoutput <- t.test(x,y)";
+							var outputNames:Array = ["cdoutput$statistic","cdoutput$p.value"];//(tstatistic, pvalue) values to be obtained from R
 							
 							//send one column to R at a time
 							var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
-							DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,[cdLayout.ClassToColumnMap[type],columnNames[l]]);
+							DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,[_target.cdLayout.ClassToColumnMap[type],_target._plotter.columns.getNames()[l]]);
 							//DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,[cdLayout.ClassToColumnMap[type],l]);
-							scriptCallCounter = scriptCallCounter + 1;
 						}
 						
 					}
 					
 				}
 			
-			protected function Button_clickHandler(event:MouseEvent):void
+			
+			/**
+			 * This function runs the Class discrimination algorithm on the current columns. Every time a column is aded or removed
+			 * this algortihm must be redrawn 
+			 * */
+			protected function OKButton_clickHandler(event:MouseEvent):void
 			{
 				var thrValue:Number = Number(thresholdValue.text);
-				cdLayout.actualAlgo(_target._plotter.columns.getNames(),cdLayout.ClassToColumnMap,thrValue);
-				_target._plotter.columns.triggerCallbacks();
+			    var layoutMeasure:String = new String();
+				if(useThresholdCB.selected){layoutMeasure = measureCheck();} 
+				else{
+					layoutMeasure = "Tstat";
+				}
+				
+				_target.cdLayout.actualAlgo(_target._plotter.columns.getNames(),_target.cdLayout.ClassToColumnMap,layoutMeasure,thrValue);
+				_target._plotter.doCDLayout = true;
+				_target._plotter.LayoutClasses = _target.cdLayout.tAndpMapping; 
+				//_target._plotter.setAnchorLocations();
+				_target._plotter.setClassDiscriminationAnchors();//cd layout
+			}
+			
+			protected function useThresholdCB_clickHandler(event:MouseEvent):void
+			{
+				if(useThresholdCB.selected){ pValCB.enabled = true; tStatCB.enabled = true; thresholdValue.enabled = true; thrValLabel.enabled = true;}
+				if(!useThresholdCB.selected){ pValCB.enabled = false; tStatCB.enabled = false; thresholdValue.enabled = false; thrValLabel.enabled = false;}
+				
+			}
+			
+			//simply identifies which measure (pvalue or t-statistic) has been selected by the user for the CD algorithm 
+			protected function measureCheck():String
+			{
+				var layoutMeasure:String = new String();
+				if(useThresholdCB.selected)
+				{
+					if(tStatCB.selected){ layoutMeasure = "Tstat";}
+					if(pValCB.selected) { layoutMeasure = "PVal";}
+					if(tStatCB.selected && pValCB.selected){ Alert.show("Please select only one option","Alert Box",Alert.OK);}
+				}
+				
+				return layoutMeasure;
+			}
+				
+			
+			
+			protected function defaultDAs_clickHandler(event:MouseEvent):void
+			{
+				_target._plotter.doCDLayout = false;
+				_target._plotter.setAnchorLocations();//normal layout
+				
 			}
 			
 		]]>
@@ -542,10 +368,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 		
 		<mx:VBox width="45%">
-					<ui:Indent label="Class Column">
-					<mx:ComboBox id="classColumnCB" change="classColumnCB_changeHandler(event)" />
+					<ui:Indent label="Class Discriminator">
+						<ui:DynamicColumnComponent  visTool="{_target}" id="classDis" />	
 					</ui:Indent>
-			<ui:DynamicColumnComponent  visTool="{_target}" id="classDis" label="Class" />	
+			
 			
 				<ui:Indent label="Layout Algorithm">
 					
@@ -561,19 +387,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			<mx:Spacer height="10"/>
 		
-				<mx:CheckBox label="Use Threshold" id="useThresholdCB" />
+				<mx:CheckBox label="Use Threshold" id="useThresholdCB"  click="useThresholdCB_clickHandler(event)" />
 			<ui:Indent>
 				<mx:VBox>
-					<mx:CheckBox label="t-statistic"/>
-					<mx:CheckBox label="p-value"/>
+					<mx:CheckBox id = "tStatCB" label="t-statistic" enabled="false"/>
+					<mx:CheckBox id="pValCB" label="p-value" enabled="false"/>
 					
 				</mx:VBox>
 				
 			</ui:Indent>
 			<mx:HBox>
-				<mx:Label text="Threshold Value"/>
-				<mx:TextInput id="thresholdValue"/>
-				<mx:Button id="Button" label="OK" click="Button_clickHandler(event)"/>
+				<mx:Label  id="thrValLabel" text="Threshold Value" enabled="false"/>
+				<mx:TextInput id="thresholdValue" enabled="false"/>
+				<mx:Button id="Button" label="OK" click="OKButton_clickHandler(event)"/>
 			</mx:HBox>
 			
 			<mx:CheckBox label="Use Bonferroni Correction" id="useBonferroniCB" />
@@ -582,6 +408,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					<mx:CheckBox label="Use the number of active columns"/>
 					<mx:CheckBox label="Custom Value"/>
 					<mx:TextInput id="customValue"/>
+					
+					<mx:Button id="defaultDAs" label="Restore default ordering" click="defaultDAs_clickHandler(event)"/>
 				</mx:VBox>
 				
 			</ui:Indent>

@@ -38,17 +38,17 @@ package weave.radviz
 	 */	
 	public class ClassDiscriminationLayoutAlgorithm extends AbstractLayoutAlgorithm implements ILayoutAlgorithm
 	{
-		public var tAndpMapping:Dictionary = new Dictionary();//stores the columns belonging to a particular class{key = classname value = array of columns belonging to this class}
-		public var ClassToColumnMap:Dictionary = new Dictionary();
+		public var tAndpMapping:Dictionary;//stores the columns belonging to a particular class{key = classname value = array of columns belonging to this class}
+		public var ClassToColumnMap:Dictionary;
 		/** structure of ClassToColumnMap
 		 for example :    type                        				Array
 		 ClassToColumnMap[japanese]       			   			 Object 1
-																 ColumnName1  values in Column1
+																 ColumnName1     values in Column1
 		 														 ColumnName2		       Column2
 		 														 ColumnName3		       Column3
 		 
 		 ClassToColumnMap[american]          					 Object 2
-		 														 ColumnName1  values in Column1
+		 														 ColumnName1     values in Column1
 																 ColumnName2		       Column2
 																 ColumnName3		       Column3  
 		 */
@@ -67,38 +67,74 @@ package weave.radviz
 		
 		
 		/**This function segregates the columns into classes using the statistical measure (t-statistic in this case) */
-		public function actualAlgo(columnNames:Array,ClassToColumnMap:Dictionary, thresholdValue:Number):Dictionary
+		public function actualAlgo(columnNames:Array,ClassToColumnMap:Dictionary, layoutMeasure:String, thresholdValue:Number):Dictionary
 		{
+			tAndpMapping = new Dictionary();
 			for (var r:int = 0 ; r < columnNames.length; r++)//for each column loop through the classes
 			{
+				
+				
 				var tempType:Object = new Object();
 				var isColumnLoopBegin:Boolean = true;
 				var compareNum:Number;
+				
 				for (var type:Object in ClassToColumnMap)
 				{
-					var tempTValue:Number = (ClassToColumnMap[type] as ClassInfoObject).tStatisticArray[r];
-					if (tempTValue > thresholdValue)
+					
+					if(!tAndpMapping.hasOwnProperty(type))
 					{
-						if(isColumnLoopBegin)
+						tAndpMapping[type] = new Array();
+					}
+					
+					if(layoutMeasure == "PVal")//only if pvalue is selected
+					{
+						var tempPValue:Number = (ClassToColumnMap[type] as ClassInfoObject).pValuesArray[r];
+						if (tempPValue > thresholdValue)
 						{
-							isColumnLoopBegin = false;
-							compareNum = (ClassToColumnMap[type]as ClassInfoObject).tStatisticArray[r];
-							tempType = type;
-						}
-						else
-						{
-							if(compareNum < tempTValue)
+							if(isColumnLoopBegin)
 							{
-								compareNum = tempTValue;
+								isColumnLoopBegin = false;
+								compareNum = (ClassToColumnMap[type]as ClassInfoObject).pValuesArray[r];
 								tempType = type;
 							}
-							
+							else
+							{
+								if(compareNum < tempPValue)
+								{
+									compareNum = tempPValue;
+									tempType = type;
+								}
+								
+							}
 						}
 					}
+					
+					else// as default and if tstatistic is chosen as a measure 
+					{
+						var tempTValue:Number = (ClassToColumnMap[type] as ClassInfoObject).tStatisticArray[r];
+						if (tempTValue > thresholdValue)
+						{
+							if(isColumnLoopBegin)
+							{
+								isColumnLoopBegin = false;
+								compareNum = (ClassToColumnMap[type]as ClassInfoObject).tStatisticArray[r];
+								tempType = type;
+							}
+							else
+							{
+								if(compareNum < tempTValue)
+								{
+									compareNum = tempTValue;
+									tempType = type;
+								}
+								
+							}
+						}
+					}
+					
 				}
 				
-				var columnArray:Array = tAndpMapping[tempType] as Array;
-				columnArray.push(columnNames[r]);
+				tAndpMapping[tempType].push(columnNames[r]);
 			}
 			
 			return tAndpMapping;
@@ -110,32 +146,23 @@ package weave.radviz
 		 can be used when the discriminator class is of a categorical nature  */
 		public function fillingClassToColumnMap(selectedColumn:DynamicColumn,colObjects:Array, columnNames:Array, normalizedColumns:Array):void
 		{
-			//if(UIUtils.hasFocus(classColumnCB)){
-			
-			//}
-			
-			
-			/*for(var j:int = 0; j < colObjects.length; j++)//Step 1 Finding the column which has been selected
-			{ */
-				var selectedColumnName:String= ColumnUtils.getTitle(selectedColumn);
-				//var attr:IAttributeColumn = colObjects[j] as IAttributeColumn;
+				ClassToColumnMap = new Dictionary();//create a new one for every different column selected
+		
 				var attrType:String = ColumnUtils.getDataType(selectedColumn);// check if column has numercial or categorical values 
-				//var attrName:String = ColumnUtils.getTitle(attr);
-				//if(selectedColumnName == attrName && attrType == "string" )//handles categorical class discriminators
 				if(attrType == "string")
 				{ 
 					//Step 2 Looping thru the keys in the found column and populating the type dictionary
 					for(var g:int = 0; g < selectedColumn.keys.length; g++)
 					{
 						var mkey:IQualifiedKey = selectedColumn.keys[g] as IQualifiedKey;
-						var type:Object = selectedColumn.getValueFromKey(mkey,String);//"japanese", "american" etc
+						//var type:Object = selectedColumn.getValueFromKey(mkey,String);//"japanese", "american" etc
+						var type:Object = selectedColumn.getValueFromKey(mkey,String);
 						
 						
-						
-						if(!ClassToColumnMap.hasOwnProperty(type) && !tAndpMapping.hasOwnProperty(type))
+						if(!ClassToColumnMap.hasOwnProperty(type))// && !tAndpMapping.hasOwnProperty(type))
 						{
 							ClassToColumnMap[type] = new ClassInfoObject();
-							tAndpMapping[type] = new Array();
+							//tAndpMapping[type] = new Array();
 							
 						}
 						

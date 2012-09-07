@@ -53,6 +53,7 @@ package weave.visualization.plotters
 		private const _bitmapText:BitmapText = new BitmapText();
 		private var coordinate:Point = new Point();//reusable object
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
+		public const colorForClassDiscrimination:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillClassColor); 
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
 		public var anchorColorMap:Dictionary;
 		
@@ -88,6 +89,11 @@ package weave.visualization.plotters
 				anchorColorMap[anchors.getName(anchor)] = colorMap.getColorFromNorm(i / (_anchors.length - 1)); 
 				i++;
 			}
+		}
+		
+		private function fillClassColor():void
+		{
+			
 		}
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
