@@ -44,6 +44,7 @@ package weave.core
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.core.ISessionManager;
 	import weave.api.reportError;
@@ -707,6 +708,17 @@ package weave.core
 			outerLoop: for (var i:int = 0; i < _aBusyTraversal.length; i++)
 			{
 				linkableObject = _aBusyTraversal[i] as ILinkableObject;
+				
+				if (linkableObject is ILinkableObjectWithBusyStatus)
+				{
+					if ((linkableObject as ILinkableObjectWithBusyStatus).isBusy())
+					{
+						busy = true;
+						break;
+					}
+					// do not check children
+					continue;
+				}
 				
 				// if the object is assigned a task, it's busy
 				for (var task:Object in _d2dOwnerTask.dictionary[linkableObject])

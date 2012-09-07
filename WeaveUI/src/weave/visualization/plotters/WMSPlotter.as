@@ -33,6 +33,7 @@ package weave.visualization.plotters
 	import org.openscales.proj4as.ProjConstants;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
 	import weave.api.disposeObjects;
@@ -57,7 +58,7 @@ package weave.visualization.plotters
 	 * @author kmonico
 	 * @author skolman
 	 */
-	public class WMSPlotter extends AbstractPlotter
+	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus
 	{
 		// TODO: move the image reprojection code elsewhere
 		
@@ -421,6 +422,11 @@ package weave.visualization.plotters
 				return false;
 			
 			return WMSProviders.providers.indexOf(s) >= 0;
+		}
+		
+		public function isBusy():Boolean
+		{
+			return false;
 		}
 	}
 }
