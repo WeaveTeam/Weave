@@ -160,6 +160,12 @@
 				}
 			}
 			
+			private function changeRevertButton():void
+			{
+				controlPanelControls.revertBtn.visible = Weave.properties.showRevertButton.value;
+				controlPanelControls.revertBtn.includeInLayout = Weave.properties.showRevertButton.value;
+			}
+			
 			/**
 			 * This function reverts session state(s) in targets to the previous state(s) set in save() 
 			 */
@@ -255,6 +261,8 @@
 				{
 					controlPanelControls.tabNavigator.addChild(children[i]);
 				}
+				
+				Weave.properties.showRevertButton.addImmediateCallback(this, changeRevertButton, true);
 			}
 			
 			private function handleControlsCreated(e:FlexEvent):void
