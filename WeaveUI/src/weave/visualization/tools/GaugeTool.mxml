@@ -92,7 +92,7 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return lang("Gauge of ") + ColumnUtils.getTitle(_plotter.meterColumn);
+				return lang("Gauge of {0}", ColumnUtils.getTitle(_plotter.meterColumn));
 			}
 			
 			[Bindable]

@@ -47,6 +47,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.DraggablePanel;
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
+			import weave.utils.PlotterUtils;
 			import weave.utils.SpatialIndex;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.plotters.AnchorPlotter;
@@ -214,13 +215,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					uniqueColumns[ColumnUtils.getTitle(column)] = column;
 				}
 				
+				var comma:Boolean = false;
 				for (var uniqueTitle:String in uniqueColumns)
 				{
-					newTitle += uniqueTitle + ", ";
+					newTitle += uniqueTitle;
+					if (comma)
+						newTitle += lang(", ");
+					else
+						comma = true;
 				}
-				
-				if(newTitle.charAt(newTitle.length-1) == ",")
-					newTitle = newTitle.substr(0, newTitle.length-2);
 				
 				return newTitle;
 			}
@@ -232,11 +235,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (stage == null)
 					return callLater(handleColorRampName);
 				_plotter.colorMap.value = ColorRamp.getColorRampXMLByName(colorRampName.value);				
-			}
-			
-			private function alphaSliderFormatFunction(item:Number):String 
-			{
-				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
 			}
 		]]>
 	</mx:Script>
@@ -256,7 +254,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							alpha="1.0"
 							snapInterval="0.1"
 							tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
-							dataTipFormatFunction="alphaSliderFormatFunction"
+							dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"/>
 			</ui:Indent>

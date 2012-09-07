@@ -86,12 +86,15 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return lang("Stick Figure Plot of ") + ColumnUtils.getTitle(_plotter.dataX)
-					+ lang(" -vs- ") + ColumnUtils.getTitle(_plotter.dataY)
-					+ lang(", with angles of ") + ColumnUtils.getTitle(_plotter.theta1) 
-					+ ", " + ColumnUtils.getTitle(_plotter.theta2) 
-					+ ", " + ColumnUtils.getTitle(_plotter.theta3) 
-					+ ", " + ColumnUtils.getTitle(_plotter.theta4);
+				return lang(
+					"Stick Figure Plot of {0} -vs- {1}, with angles of {2}, {3}, {4}, {5}",
+					ColumnUtils.getTitle(_plotter.dataX),
+					ColumnUtils.getTitle(_plotter.dataY),
+					ColumnUtils.getTitle(_plotter.theta1), 
+					ColumnUtils.getTitle(_plotter.theta2), 
+					ColumnUtils.getTitle(_plotter.theta3), 
+					ColumnUtils.getTitle(_plotter.theta4)
+				);
 			}
 
 			override protected function childrenCreated():void
@@ -101,12 +104,6 @@
 				linkBindableProperty( _plotter.curvature,  curvatureSlider, "value");
 				linkBindableProperty( _plotter.lineStyle.weight.defaultValue,  thicknessSlider, "value");
 			}
-			
-			private function alphaSliderFormatFunction(item:Number):String {
-				//return int(100 - (item * 100)) + "% Transparent";
-				return int((item * 100)) + lang("% Opaque") + "\n" + int(100 - (item * 100)) + lang("% Transparent");
-			}
-			
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>

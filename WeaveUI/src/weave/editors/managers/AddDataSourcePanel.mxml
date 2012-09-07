@@ -38,7 +38,7 @@
 			<mx:RadioButtonGroup id="dataSourceType" itemClick="handleDataSelect(event)"/>
 			<mx:RadioButton selected="true" groupName="dataSourceType" id="wfsSource" value="{WFSDataSource}" label="WFS Data Source"/>
 			<mx:RadioButton groupName="dataSourceType" id="csvSource" value="{CSVDataSource}" label="{lang('CSV Data Source')}"/>
-			<mx:RadioButton groupName="dataSourceType" id="xlsSource" value="{XLSDataSource}" label="XLS Data Source"/>
+			<mx:RadioButton groupName="dataSourceType" id="xlsSource" value="{XLSDataSource}" label="{lang('XLS Data Source')}"/>
 			<mx:RadioButton groupName="dataSourceType" id="dbfSource" value="{DBFDataSource}" label="{lang('DBF Data Source')}"/>
 			<mx:RadioButton groupName="dataSourceType" id="weaveSource" value="{WeaveDataSource}" label="{lang('Weave Data Source')}"/>
 		</mx:VBox>

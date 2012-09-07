@@ -191,6 +191,8 @@
 					event.stopImmediatePropagation();
 				updateEnabledSettings();
 			}
+			
+			private static const REQUIRED:String = lang("Required");
 		]]>
 	</mx:Script>
 
@@ -212,23 +214,23 @@
 				 paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"
 				 id="settings" verticalScrollPolicy="auto" minHeight="0">
 			<mx:VBox id="serverSettings">
-				<ui:Indent label="IP:">
-					<mx:TextInput id="serverIP" width="{textAreaWidth}" errorString="{serverIP.text?'':'Required'}"/>
+				<ui:Indent label="{lang('IP:')}">
+					<mx:TextInput id="serverIP" width="{textAreaWidth}" errorString="{serverIP.text?'':REQUIRED}"/>
 				</ui:Indent>
 				<ui:Indent label="{lang('ServerName:')}">
-					<mx:TextInput id="serverName" width="{textAreaWidth}" errorString="{serverName.text?'':'Required'}"/>
+					<mx:TextInput id="serverName" width="{textAreaWidth}" errorString="{serverName.text?'':REQUIRED}"/>
 				</ui:Indent>
 				<ui:Indent label="{lang('Port:')}">
-					<mx:TextInput id="port" width="{textAreaWidth}" errorString="{port.text?'':'Required'}"/>
+					<mx:TextInput id="port" width="{textAreaWidth}" errorString="{port.text?'':REQUIRED}"/>
 				</ui:Indent>
 				<ui:Indent label="{lang('Room Name:')}">
-					<mx:TextInput id="roomToJoin" width="{textAreaWidth}" errorString="{roomToJoin.text?'':'Required'}"/>
+					<mx:TextInput id="roomToJoin" width="{textAreaWidth}" errorString="{roomToJoin.text?'':REQUIRED}"/>
 				</ui:Indent>
 				<ui:Indent label="{lang('Username:')}">
-					<mx:TextInput id="username" width="{textAreaWidth}" errorString="{username.text?'':'Required'}"/>
+					<mx:TextInput id="username" width="{textAreaWidth}" errorString="{username.text?'':REQUIRED}"/>
 				</ui:Indent>
 			</mx:VBox>
-			<!--<ui:Indent label="Cursor color:">
+			<!--<ui:Indent label="{lang('Cursor color:')}">
 				<mx:ColorPicker id="picker" color="{Math.round(Math.random() * 0xFFFFFF)}" />
 			</ui:Indent>-->
 			<mx:HBox width="100%">

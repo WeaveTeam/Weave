@@ -85,25 +85,18 @@
 				if (!item)
 					return lang("All records");
 				
-				// the label will be the name of the item followed by the included/excluded records count
-				var label:String = Weave.savedSubsetsKeyFilters.getName(item as ILinkableObject);
-				return label + " (" + getKeyFilterRecordsText(label) + ")";
-			}
-			
-			/**
-			 * Function used solely to get a string that says the number of records in either the included or excluded key sets
-			 **/
-			private function getKeyFilterRecordsText(keyFilterName:String):String
-			{
 				// get the subset by its name
-				var keyFilter:KeyFilter = (Weave.savedSubsetsKeyFilters.getObject(keyFilterName) as KeyFilter);
+				var keyFilter:KeyFilter = item as KeyFilter;
 				
+				// the label will be the name of the item followed by the included/excluded records count
+				var name:String = Weave.savedSubsetsKeyFilters.getName(keyFilter);
+			
 				// create a string for the number of included keys followed by " records"
 				// if the excluded keys are used instead, the string will be excluded keys followed by " excluded records"
 				if (keyFilter.includeMissingKeys.value && keyFilter.excluded.keys.length > 0)
-					return keyFilter.excluded.keys.length + lang(' excluded records');
+					return lang('{0} ({1} excluded records)', name, keyFilter.excluded.keys.length);
 				else
-					return keyFilter.included.keys.length + lang(' records');
+					return lang('{0} ({1} records)', name, keyFilter.included.keys.length);
 			}
 			
 			protected function itemSelected():void
@@ -122,7 +115,7 @@
 	</mx:Script>
 	<ControlPanel>
 		<mx:VBox label="{lang('Settings')}">
-			<mx:CheckBox label='Include "All Records" option' creationComplete="linkBindableProperty(includeAllRecordsOption, event.target, 'selected')"/>
+			<mx:CheckBox label='{lang("Include \"All records\" option")}' creationComplete="linkBindableProperty(includeAllRecordsOption, event.target, 'selected')"/>
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ControlPanel>

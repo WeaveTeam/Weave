@@ -9,6 +9,7 @@
     Weave is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License, Version 3,
     as published by the Free Software Foundation.
+
     Weave is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -24,18 +25,19 @@
 	     layout="absolute" xmlns:userControls="weave.ui.userControls.*">
 	<mx:Script>
 		<![CDATA[
-			import weave.utils.ColumnUtils;
-			import weave.api.linkBindableProperty;
 			import mx.events.FlexEvent;
 			
 			import weave.Weave;
-			import weave.core.LinkableBoolean;
 			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
+			import weave.utils.ColumnUtils;
+			import weave.utils.PlotterUtils;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.AxisPlotter;
 			import weave.visualization.plotters.BarChartPlotter;
@@ -92,8 +94,8 @@
 			private function updateAxisLabels():void
 			{
 				if (!panelTitle.value)
-					title = lang("Bar Chart of ") + ColumnUtils.getTitle(_plotter.yBarEnd) + lang(" sorted by ") + ColumnUtils.getTitle(_plotter.sortColumn);
-				xAxisLayer.axisPlotter.setSideAxisName(lang("Sorted by: ")+ColumnUtils.getTitle(_plotter.sortColumn), 0, 0, visualization.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+					title = lang("Bar Chart of {0} sorted by {1}", ColumnUtils.getTitle(_plotter.yBarEnd), ColumnUtils.getTitle(_plotter.sortColumn));
+				xAxisLayer.axisPlotter.setSideAxisName(lang("Sorted by: {0}", ColumnUtils.getTitle(_plotter.sortColumn)), 0, 0, visualization.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
 				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.yBarEnd), -90, -visualization.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 			
@@ -101,11 +103,6 @@
 			{
 				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
-			
-			private function alphaSliderFormatFunction(item:Number):String {
-            	//return int(100 - (item * 100)) + "% Transparent";
-            	return int((item * 100)) + lang("% Opaque") + "\n" + int(100 - (item * 100)) + lang("% Transparent");
-            }
 			
 		]]>
 	</mx:Script>
@@ -135,15 +132,15 @@
 							<mx:HSlider id="alphaSlider" 
 										width="100%" 
 										alpha="1.0"
-										dataTipFormatFunction="alphaSliderFormatFunction"
+										dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 										minimum="0.3" maximum="1.0" value="1.0"
 										liveDragging="true"/>
 						</mx:HBox>
 						<mx:CheckBox id="linkSortingToHeightCheck" fontSize="12" label="{lang('Sort')}"
 									 toolTip="{lang('Link the column used for sorting the bar order to the column used to set the height of the bars.  Checking this will make it so that if you change the bar height attribute, the bars will be sorted to match this column.  Unchecking this unlink these columns so the sorting can be set separately, but will still be sorted by the previous height column until set otherwise.')}"/>
-						<ui:DynamicColumnComponent visTool="{this}" label="{lang('height')}" creationComplete="event.target.dynamicObject = _plotter.yBarEnd"/>
-						<ui:DynamicColumnComponent visTool="{this}" label="{lang('sort')}" creationComplete="event.target.dynamicObject = _plotter.sortColumn"/>
-						<ui:DynamicColumnComponent visTool="{this}" label="{lang('color')}" creationComplete="event.target.dynamicObject = colorColumn"/>
+						<ui:DynamicColumnComponent visTool="{this}" label="{lang('Height')}" creationComplete="event.target.dynamicObject = _plotter.yBarEnd"/>
+						<ui:DynamicColumnComponent visTool="{this}" label="{lang('Sort')}" creationComplete="event.target.dynamicObject = _plotter.sortColumn"/>
+						<ui:DynamicColumnComponent visTool="{this}" label="{lang('Color')}" creationComplete="event.target.dynamicObject = colorColumn"/>
 						
 						<!--<mx:HBox width="100%" 
 								borderStyle="inset" 

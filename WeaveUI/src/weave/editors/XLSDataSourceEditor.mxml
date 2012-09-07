@@ -27,13 +27,13 @@
 	creationPolicy="all"
 	implements="weave.api.ui.ILinkableObjectEditor"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{_xlsDataSource ? 'Edit' : 'Add'} XLS Data Source"/>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{lang( (_xlsDataSource ? 'Edit' : 'Add') + ' XLS Data Source' )}"/>
 	<mx:HBox>
-		<mx:Label text="Source Name *" width="120"/>
+		<mx:Label text="{lang('Source Name *')}" width="120"/>
 		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
 	</mx:HBox>
 	<mx:HBox>
-		<mx:Label text="Source URL *" width="120"/>
+		<mx:Label text="{lang('Source URL *')}" width="120"/>
 		<mx:TextInput change="handleURLTextChange()" id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
 	</mx:HBox>
 	
@@ -42,21 +42,21 @@
 			<mx:Label fontWeight="bold" text="{lang('OR')}"/>
 		</mx:HBox>
 		<mx:HBox>
-			<mx:Label text="Open local XLS file*" width="120"/>
+			<mx:Label text="{lang('Open local XLS file *')}" width="120"/>
 			<mx:Button label="{lang('Browse')}" click="browseForFiles()"/>
 			<mx:Label id="uploadMessg" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
 		</mx:HBox>
 	</mx:VBox>
 	
 	<mx:HBox>
-		<mx:Label text="Key Type *" width="120"/>
+		<mx:Label text="{lang('Key Type *')}" width="120"/>
 		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter key type like US State Fips Code,etc. ')}"/>
 	</mx:HBox>
 	<mx:HBox>
 		<mx:Label text="{lang('Key Column')}" width="120"/>
 		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</mx:HBox>
-	<mx:Label text="* = required"/>
+	<mx:Label text="{lang('* = required')}"/>
 	<mx:Button enabled="false" label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()"/>
 	<mx:Script>
 		<![CDATA[
@@ -111,7 +111,7 @@
 					_xlsDataSource.url.value = url.text;
 					_xlsDataSource.keyColName.value = keyColumnName.text;
 					_xlsDataSource.keyType.value = keyType.text;
-					Alert.show(lang("Changes saved."))
+					Alert.show(lang("Changes saved."));
 				}
 				catch(e:Error)
 				{

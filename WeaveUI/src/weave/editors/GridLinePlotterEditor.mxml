@@ -54,7 +54,7 @@ Editor for custom layers using GridLinePlotters
 		<mx:HSlider id="gridLineAlphaSlider" 
 					snapInterval="0.1"
 					tickInterval="0.5" labels="{['0%','50%','100%']}" 
-					dataTipFormatFunction="alphaSliderFormatFunction"
+					dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 					minimum="0.0" maximum="1.0" 
 					liveDragging="true"
 					creationComplete="linkBindableProperty(_plotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
@@ -65,6 +65,7 @@ Editor for custom layers using GridLinePlotters
 			import weave.api.linkBindableProperty;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.utils.EditorManager;
+			import weave.utils.PlotterUtils;
 			import weave.visualization.plotters.GridLinePlotter;
 			import weave.visualization.tools.SimpleVisTool;
 			
@@ -86,11 +87,6 @@ Editor for custom layers using GridLinePlotters
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-			}
-			
-			private function alphaSliderFormatFunction(value:Number):String {
-				//return int(100 - (value * 100)) + "% Transparent";
-				return int((value * 100)) + lang("% Opaque") + "\n" + int(100 - (value * 100)) + lang("% Transparent");
 			}
 			
 		]]>

@@ -161,7 +161,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return lang("2D Histogram of ") + ColumnUtils.getTitle(plotter.xColumn) + " vs " + ColumnUtils.getTitle(plotter.yColumn) ;
+				return lang("2D Histogram of {0} vs {1}", ColumnUtils.getTitle(plotter.xColumn), ColumnUtils.getTitle(plotter.yColumn));
 			}
 			
 			private function updateAxisLabels():void

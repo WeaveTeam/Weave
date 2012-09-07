@@ -84,12 +84,6 @@ Editor for custom layers using AxisLabelPlotters
 				linkBindableProperty(_plotter.hAlign, alignment, 'horizontalAlign');
 				linkBindableProperty(_plotter.vAlign, alignment, 'verticalAlign');
 			}
-			
-			private function alphaSliderFormatFunction(value:Number):String {
-				//return int(100 - (value * 100)) + "% Transparent";
-				return int((value * 100)) + lang("% Opaque") + "\n" + int(100 - (value * 100)) + lang("% Transparent");
-			}
-			
 		]]>
 	</mx:Script>
 </mx:VBox>

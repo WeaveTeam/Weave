@@ -45,7 +45,7 @@
 		<mx:Button label="{lang('Remove selected')}" click="removeSelected()"/>
 		<mx:Spacer width="100%"/>
 		<mx:Button label="{lang('Apply changes to selected')}" click="save()"/>
-		<mx:Button label="Close" click="removePanel()"/>
+		<mx:Button label="{lang('Close')}" click="removePanel()"/>
 	</mx:ControlBar>
 		
 		<mx:Script>

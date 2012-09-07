@@ -35,7 +35,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.ThermometerPlotter;
 		
-			WeaveAPI.registerImplementation(IVisTool, ThermometerTool, "Thermometer Tool");
+			WeaveAPI.registerImplementation(IVisTool, ThermometerTool, lang("Thermometer Tool"));
 			
 			public var _plotter:ThermometerPlotter = null;
 			override protected function constructor():void
@@ -89,7 +89,7 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return lang("Thermometer of ") + ColumnUtils.getTitle(_plotter.meterColumn);
+				return lang("Thermometer of {0}", ColumnUtils.getTitle(_plotter.meterColumn));
 			}
 			
 			private function updateAxisLabels():void

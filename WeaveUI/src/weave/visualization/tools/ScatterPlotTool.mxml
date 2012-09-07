@@ -54,6 +54,7 @@
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
+			import weave.utils.PlotterUtils;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.RegressionLinePlotter;
@@ -110,7 +111,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["X", "Y", lang("Color"), lang("Size")];
+				return [lang("X"), lang("Y"), lang("Color"), lang("Size")];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -344,7 +345,7 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return lang("Scatter Plot of ") + ColumnUtils.getTitle(plotter.xColumn) + lang(" -vs- ") + ColumnUtils.getTitle(plotter.yColumn);
+				return lang("Scatter Plot of {0} -vs- {1}", ColumnUtils.getTitle(plotter.xColumn), ColumnUtils.getTitle(plotter.yColumn));
 			}
 			
 			override protected function childrenCreated():void
@@ -376,8 +377,8 @@
 						visCanvas.addChild(equationText);
 					var slope:Number = StandardLib.roundSignificant(_regressionPlotter.getSlope(), 4);
 					var intercept:Number = StandardLib.roundSignificant(_regressionPlotter.getIntercept(), 4);
-					lineEquation.text = lang("Equation:") + " y = " + slope + "x"+ " + " + intercept;
-					equationText.text = lang("slope = ") + slope + "\n" + lang("intercept = ") + intercept;
+					lineEquation.text = lang("Equation: y = {0}x + {1}", slope, intercept);
+					equationText.text = lang("slope = {0}\nintercept = {0}", slope, intercept);
 					equationText.validateNow();
 					// severely hacked
 					equationText.width = visualization.marginLeftNumber.value * 2;
@@ -423,12 +424,6 @@
 			{
 				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
-			
-			private function alphaSliderFormatFunction(item:Number):String {
-				//return int(100 - (item * 100)) + "% Transparent";
-				return int((item * 100)) + lang("% Opaque") + "\n" + int(100 - (item * 100)) + lang("% Transparent");
-			}
-			
 			
 			protected function createLegend():void
 			{
@@ -560,7 +555,7 @@
 				<mx:HSlider id="alphaSlider" 
 							width="100%" 
 							alpha="1.0"
-							dataTipFormatFunction="alphaSliderFormatFunction"
+							dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"/>
 			</mx:HBox>
@@ -578,7 +573,7 @@
 					<mx:VBox>
 						<mx:Label id="lineEquation" text="{lang('Equation: y = mx + b')}"/>
 						<mx:HBox>
-							<mx:Label text="{lang('Line Color'" />
+							<mx:Label text="{lang('Line Color')}" />
 							<mx:ColorPicker id="regressionColorPicker" 
 											creationComplete="linkBindableProperty(_regressionPlotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"
 											enabled="{regressionLineCheckBox.selected}"/>

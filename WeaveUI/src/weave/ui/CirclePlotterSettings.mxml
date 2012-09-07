@@ -53,13 +53,8 @@
 			import weave.visualization.plotters.CirclePlotter;
 			import weave.visualization.tools.MapTool;
 			
-			override protected function childrenCreated():void
-			{
-				
-			}
-			
 			private static var _addRemoveContextMenuItem:ContextMenuItem = null;
-			private static const ADD_CAPTION:String           = lang('Add Circle')
+			private static const ADD_CAPTION:String = lang('Add Circle')
 			
 			public static function createContextMenuItems(destination:DisplayObject):Boolean
 			{
@@ -137,7 +132,7 @@
 				
 				var owner:ILinkableObject = WeaveAPI.SessionManager.getLinkableOwner(plotter);
 				
-				settingsPanel.title = lang('Edit ') + circleName;
+				settingsPanel.title = lang('Edit {0}', circleName);
 				
 				linkBindableProperty(settingsPanel.plotter.dataX, settingsPanel.dataXText, "text");
 				linkBindableProperty(settingsPanel.plotter.dataY, settingsPanel.dataYText, "text");

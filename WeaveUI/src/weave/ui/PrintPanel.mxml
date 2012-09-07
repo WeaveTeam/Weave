@@ -173,7 +173,7 @@
 			
    		   	
 			var img:ImageSnapshot = ImageSnapshot.captureImage(printVbox);
-   			_fileSaver.save(img.data, lang("weave screenshot ") + dateString + ".png");
+   			_fileSaver.save(img.data, lang("Weave Screenshot {0}", dateString) + ".png");
    			
    			//close popup after image is saved
    			PopUpManager.removePopUp(this);	

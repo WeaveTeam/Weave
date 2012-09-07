@@ -44,6 +44,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.DraggablePanel;
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
+			import weave.utils.PlotterUtils;
 			import weave.utils.SpatialIndex;
 			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.AnchorPlotter;
@@ -230,10 +231,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-			private function alphaSliderFormatFunction(item:Number):String 
-			{
-				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
-			}
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
@@ -252,7 +249,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							alpha="1.0"
 							snapInterval="0.1"
 							tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
-							dataTipFormatFunction="alphaSliderFormatFunction"
+							dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"/>
 			</ui:Indent>

@@ -299,7 +299,7 @@
 	}
 	private function getDelay():String
 	{
-		var delayDescription:String = (MAX_TIMER_DELAY - speedSlider.value).toFixed(0) + lang(" millisecond delay"); 
+		var delayDescription:String = lang("{0} millisecond delay", (MAX_TIMER_DELAY - speedSlider.value).toFixed(0)); 
 		return delayDescription;
 	}
 	
@@ -325,7 +325,7 @@
 			currentSliderPosition.value = dimensionSlider.minimum;
 		if (_timer.currentCount == (_timer.repeatCount - 1))
 		{
-			playButton.label = "Play";
+			playButton.label = lang("Play");
 			_timer.reset();
 		}
 	}
@@ -336,11 +336,11 @@
 		var delayDescription:String = getDelay();
 		if (item < speedSlider.value)
 		{
-			return "slower: " + delayDescription;
+			return lang("slower: {0}", delayDescription);
 		}
 		else
 		{
-			return "faster: " + delayDescription;
+			return lang("faster: {0}", delayDescription);
 		}
 	}
 			

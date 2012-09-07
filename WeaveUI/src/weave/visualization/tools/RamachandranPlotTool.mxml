@@ -65,13 +65,14 @@
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.utils.HierarchyUtils;
+			import weave.utils.PlotterUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.plotters.RamachandranBackgroundPlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, RamachandranPlotTool, "Ramachandran Plot");
+			WeaveAPI.registerImplementation(IVisTool, RamachandranPlotTool, lang("Ramachandran Plot"));
 			
 			public var _plotter:ScatterPlotPlotter = null;
 			override protected function constructor():void
@@ -138,7 +139,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["X","Y",lang("Color"),lang("Size"),lang("Histogram Column")];
+				return [lang("X"),lang("Y"),lang("Color"),lang("Size"),lang("Histogram Column")];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -154,7 +155,7 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Ramachandran Plot " + rpToolTitle;
+				return lang("Ramachandran Plot {0}", rpToolTitle);
 			}
 			
 			private function updateAxisLabels():void
@@ -163,11 +164,8 @@
 				visualization.leftMarginColumn = _plotter.yColumn;
 				
 				if (_plotter == null)
-					title = "Ramachandran Plot";
-				/*			else
-				title = "Ramachandran Plot of " + _plotter.xColumn.title + " -vs- " + _plotter.yColumn.title;
-				*/			
-				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.xColumn), 
+					title = lang("Ramachandran Plot");
+				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.xColumn),
 					0,   
 					0, visualization.marginBottomNumber.value - 3, 
 					BitmapText.VERTICAL_ALIGN_BOTTOM);
@@ -187,7 +185,7 @@
 			{
 				var histo:HistogramTool = Weave.root.requestObject(null, HistogramTool, false);
 				histo.width = 300;
-				histo.title = histo.title + "(SubSelection)";
+				histo.title = lang("{0}(SubSelection)", histo.title);
 				copySessionState(histogramColumn, histo.internalDataColumn);
 				var sbd:SimpleBinningDefinition = histo.plotter.internalBinnedColumn.binningDefinition.internalBinningDefinition as SimpleBinningDefinition;
 				sbd.numberOfBins.value = 20;
@@ -333,10 +331,10 @@
 			{
 				if (sizeByCheck.selected)
 				{ 
-					sizeByCheck.label = lang("Size by: ") + ColumnUtils.getTitle(_plotter.radiusColumn);
+					sizeByCheck.label = lang("Size by: {0}", ColumnUtils.getTitle(_plotter.radiusColumn));
 					sizeByCheck.setStyle("textRollOverColor", "0x339900");
 					sizeByCheck.setStyle("textSelectedColor", "0x339900");
-					sizeByCheck.setStyle("Color", "0x339900");
+					sizeByCheck.setStyle("color", "0x339900");
 					sizeBySlider.enabled = true;
 					
 				}
@@ -344,18 +342,12 @@
 					sizeByCheck.label = lang("Size by: DISABLED");
 					sizeByCheck.setStyle("textRollOverColor", "0xCC3300");
 					sizeByCheck.setStyle("textSelectedColor", "0xCC3300");
-					sizeByCheck.setStyle("Color", "0xCC3300");
+					sizeByCheck.setStyle("color", "0xCC3300");
 					
 					sizeBySlider.enabled = false;
 				}
 				
 			}
-			
-			private function alphaSliderFormatFunction(item:Number):String {
-				//return int(100 - (item * 100)) + "% Transparent";
-				return int((item * 100)) + lang("% Opaque") + "\n" + int(100 - (item * 100)) + lang("% Transparent");
-			}
-			
 			
 			private var pdbService:WeavePDBServlet = new WeavePDBServlet(Weave.properties.pdbServiceURL.value);
 			
@@ -377,7 +369,7 @@
 				var residueObj:ArrayCollection = event.result as ArrayCollection;
 				//temp solution for wrong PDB entry (need to pass the same error)
 				if(!residueObj){
-					Alert.show(PDBid.text.toUpperCase() + lang(" doesn't exist."),lang("PDB ID Error"));
+					Alert.show(lang("{0} doesn't exist.", PDBid.text.toUpperCase()),lang("PDB ID Error"));
 					return;
 				}
 				//var sequenceArray:Array = residueObj["resName"];				
@@ -563,7 +555,7 @@
 						<mx:HSlider id="alphaSlider" 
 									width="100%" 
 									alpha="1.0"
-									dataTipFormatFunction="alphaSliderFormatFunction"
+									dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 									minimum="0.3" maximum="1.0" value="1.0"
 									liveDragging="true"/>
 					</mx:HBox>

@@ -48,6 +48,7 @@
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
+			import weave.utils.PlotterUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.AxisLayer;
 			import weave.visualization.layers.SelectablePlotLayer;
@@ -305,17 +306,13 @@
 					return lang('Line Chart');
 				
 				if (_plotter.enableGroupBy.value)
-					return StringUtil.substitute(
-						lang("Line Chart of ") + "{0}" + lang(" by ") + "{1}",
-						ColumnUtils.getTitle(_plotter.yData),
-						ColumnUtils.getTitle(_plotter.xData)
-					);
+					return lang("Line Chart of {0} by {1}", ColumnUtils.getTitle(_plotter.yData), ColumnUtils.getTitle(_plotter.xData));
 				
 				var newTitle:String = lang("Line Chart of ");
 				for (var i:int = 0; i < columns.length; i++)
 				{
 					if (i > 0)
-						newTitle += ', ';
+						newTitle += lang(', ');
 					newTitle += ColumnUtils.getTitle(columns[i]);
 				}
 				return newTitle;
@@ -328,11 +325,6 @@
 				else
 					_plotter.curveType.value = ParallelCoordinatesPlotter.CURVE_NONE;
 			}
-			
-			private function alphaSliderFormatFunction(value:Number):String {
-            	//return int(100 - (value * 100)) + "% Transparent";
-            	return int((value * 100)) + lang("% Opaque") + "\n" + int(100 - (value * 100)) + lang("% Transparent");
-            }
 			
 			private var labelPlotter:TextGlyphPlotter = null ;
 			private function addLabelLayer():void
@@ -459,7 +451,7 @@
 							width="100%" 
 							snapInterval="0.1"
 							tickInterval="0.5" labels="{['0%', '50%', '100%']}"
-							dataTipFormatFunction="alphaSliderFormatFunction"
+							dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 							minimum="0.0" maximum="1.0" 
 							liveDragging="true"/>
 				<mx:Label text="{lang('Thickness:')}"/>

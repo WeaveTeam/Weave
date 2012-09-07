@@ -302,7 +302,7 @@
 			{
 				CHAT.logText(e.getText());
 				if( !CHAT.visible && collabService.isConnected ) {
-					button_chat.label = "Chat [" + CHAT.unreadMessages + "]";
+					button_chat.label = lang("Chat [{0}]", CHAT.unreadMessages);
 				} else {
 					button_chat.label = lang("Chat");
 					CHAT.unreadMessages = 0;

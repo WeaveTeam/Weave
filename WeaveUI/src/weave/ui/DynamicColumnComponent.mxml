@@ -140,7 +140,7 @@
 				{
 					linkImage.source = icon_connected;
 					unlinkButton.enabled = true;
-					linkImage.toolTip = lang("Linked to ") + globalName;
+					linkImage.toolTip = lang("Linked to {0}", globalName);
 				}
 				else
 				{

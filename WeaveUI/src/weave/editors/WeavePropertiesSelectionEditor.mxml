@@ -38,7 +38,7 @@
 				 dataProvider="{InteractionController.enumSelectionMode()}"
 				 creationComplete="linkBindableProperty(Weave.properties.selectionMode, event.target, 'text')"/>
 	</mx:HBox>
-	<mx:CheckBox label='Show "Selected Records" tooltip'
+	<mx:CheckBox label='{lang("Show \"Selected Records\" tooltip")}'
 				 id="showSelectedRecordsText"
 				 selected="true"
 				 creationComplete="linkBindableProperty(Weave.properties.showSelectedRecordsText, event.target, 'selected')"/>

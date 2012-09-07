@@ -11,7 +11,7 @@
 	
 	<mx:VBox id="singleImagePlotterControls" width="100%" paddingTop="3" horizontalAlign="left" label="{lang('Marker Settings')}">
 		<mx:HBox>
-			<mx:Label width="100" fontWeight="bold" text="Image URL:"/>
+			<mx:Label width="100" fontWeight="bold" text="{lang('Image URL:')}"/>
 			<mx:TextInput id="imageURLText" borderStyle="solid" cornerRadius="5" width="200"/>
 			<ui:HelpComponent>Enter a URL to an image. If the URL empty it defaults to a red circle.</ui:HelpComponent>
 		</mx:HBox>
@@ -61,8 +61,8 @@
 			private static var _editContextMenuItem:ContextMenuItem 	= null;
 			private static var _addRemoveContextMenuItem:ContextMenuItem = null;
 			private static const ADD_CAPTION:String           = lang("Add Marker")
-//			private static const REMOVE_CAPTION:String        = "Remove Remove Marker"
-//			private static const EDIT_TEXT_CAPTION:String     = "Edit Marker"
+//			private static const REMOVE_CAPTION:String        = lang("Remove Remove Marker")
+//			private static const EDIT_TEXT_CAPTION:String     = lang("Edit Marker")
 				
 			public static function createContextMenuItems(destination:DisplayObject):Boolean
 			{
@@ -141,7 +141,7 @@
 				
 				var owner:ILinkableObject = WeaveAPI.SessionManager.getLinkableOwner(plotter);
 			
-				settingsPanel.title = "Edit " + markerName;
+				settingsPanel.title = lang("Edit {0}", markerName);
 				
 				linkBindableProperty(settingsPanel.plotter.imageURL, settingsPanel.imageURLText, "text", 1000);
 				

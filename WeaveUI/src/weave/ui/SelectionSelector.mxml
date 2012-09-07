@@ -88,11 +88,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private static function selectionsListLabelFunction(item:Object):String
 			{
 				if (!item)
-					return "No selection";
+					return lang("No selection");
 				
 				// The label will be the name of the item followed by the record count
 				var label:String = Weave.savedSelectionKeySets.getName(item as KeySet);
-				return label + " (" + (item as KeySet).keys.length + " records)";
+				return lang("{0} ({1} records)", label, (item as KeySet).keys.length);
 			}
 			
 			protected function itemSelected():void
@@ -114,7 +114,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:Script>
 	<ControlPanel>
 		<mx:VBox label="{lang('Settings')}">
-			<mx:CheckBox label="{lang('Include &quot;No selection&quot; option')}" creationComplete="linkBindableProperty(includeAllRecordsOption, event.target, 'selected')"/>
+			<mx:CheckBox label='{lang("Include \"No selection\" option")}' creationComplete="linkBindableProperty(includeAllRecordsOption, event.target, 'selected')"/>
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ControlPanel>

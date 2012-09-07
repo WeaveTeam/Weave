@@ -301,11 +301,6 @@
 				return null;
 			}
 			
-			private function alphaSliderFormatFunction(item:Number):String {
-				//return int(100 - (item * 100)) + "% Transparent";
-				return lang("{0}% Opaque", int(item * 100)) + "\n" + lang("{0}% Transparent", int(100 - item * 100));
-			}
-			
 			private function handleSortColumnChange():void
 			{
 				if (!_plotter.sortColumn.getInternalColumn())

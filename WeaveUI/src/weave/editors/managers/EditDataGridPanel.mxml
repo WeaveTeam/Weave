@@ -34,7 +34,7 @@
 	
 	<mx:ControlBar>
 		<mx:Spacer width="100%"/>
-		<mx:Button id="saveButton" click="removePanel();" label="Save &amp; Close"/>
+		<mx:Button id="saveButton" click="removePanel();" label="{lang('Save &amp; Close')}"/>
 		<mx:Button id="cancelButton" label="{lang('Cancel')}" click="removePanel();"/>
 	</mx:ControlBar>
 	

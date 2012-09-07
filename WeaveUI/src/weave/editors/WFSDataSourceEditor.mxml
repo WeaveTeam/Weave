@@ -69,7 +69,7 @@
 					sourceName.text = Weave.root.getName(_wfsDataSource);
 					url.text = _wfsDataSource.url.value;
 					sourceName.editable = false;
-					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
+					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
 				}
 			}
 			
@@ -78,7 +78,7 @@
 				try
 				{
 					_wfsDataSource.url.value = url.text;
-					Alert.show(lang("Changes saved."))
+					Alert.show(lang("Changes saved."));
 				}
 				catch (e:Error)
 				{

@@ -112,7 +112,7 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return lang("Histogram of ") + ColumnUtils.getTitle(_plotter.dynamicColorColumn);
+				return lang("Histogram of {0}", ColumnUtils.getTitle(_plotter.dynamicColorColumn));
 			}
 
 			private var _prevBinnedColumn:BinnedColumn = null;

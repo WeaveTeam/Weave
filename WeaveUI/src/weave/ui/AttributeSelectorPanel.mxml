@@ -169,15 +169,16 @@
 				if (index >= 0)
 				{
 					objectTitle = selectableAttributeNames[index];
-					title = lang("Attribute selector for ") + objectTitle;
+					title = lang("Attribute selector for {0}", objectTitle);
 					dimensionTypeLinks.selectedIndex = index;
 					showOrHideParamSelector(true);
 				}
 				else
 				{
-					title = lang("Attribute selector");
 					if (objectTitle)
-						title += lang(' for ') + objectTitle;
+						title = lang("Attribute selector for {0}", objectTitle);
+					else
+						title = lang("Attribute selector");
 					showOrHideParamSelector(false);
 				}
 				

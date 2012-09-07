@@ -137,10 +137,6 @@
 						label = lang("Margins");
 				}
 			}
-			private function alphaSliderFormatFunction(value:Number):String
-			{
-				return int((value * 100)) + lang("% Opaque") + "\n" + int(100 - (value * 100)) + lang("% Transparent");
-			}
 		]]>
 	</mx:Script>
 </mx:VBox>

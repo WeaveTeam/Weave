@@ -87,7 +87,7 @@
 			public function set targetTool(value:SimpleVisTool):void
 			{
 				if (_tool != value && _tool != null)
-					throw new Error(lang("targetTool should not be set more than once"));
+					throw new Error("targetTool should not be set more than once");
 				
 				_tool = value;
 			}

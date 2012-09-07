@@ -132,5 +132,10 @@ package weave.utils
 			// clear the graphics
 			destination.fillRect(destination.rect, 0x00000000); // transparent
 		}
+		
+		public static function alphaSliderFormatFunction(value:Number):String
+		{
+			return lang("{0}% Opaque", int(value * 100)) + "\n" + lang("{0}% Transparent", int(100 - value * 100));
+		}
 	}
 }

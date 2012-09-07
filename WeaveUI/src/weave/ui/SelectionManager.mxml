@@ -43,7 +43,7 @@
 	</mx:HBox>
 	<mx:ControlBar height="33" paddingBottom="3" paddingLeft="3" paddingRight="3" paddingTop="3">
 		<mx:Spacer width="100%"/>
-		<mx:Button label="{lang('close')}" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
+		<mx:Button label="{lang('Close')}" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
 	</mx:ControlBar>
 	
 	<mx:Script>
@@ -70,7 +70,7 @@
 			{
 				// The label will be the name of the item followed by the record count
 				var label:String = _hashMap.getName(item as KeySet);
-				return label + " (" + (item as KeySet).keys.length + "{lang(' records')}" + ")";
+				return lang("{0} ({1} records)", label, (item as KeySet).keys.length);
 			}
 			
 			/**

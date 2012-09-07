@@ -37,7 +37,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.PieChartHistogramPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, PieChartHistogramTool, "Pie Chart Histogram");
+			WeaveAPI.registerImplementation(IVisTool, PieChartHistogramTool, lang("Pie Chart Histogram"));
 			
 			public var _plotter:PieChartHistogramPlotter = null;
 			
@@ -104,7 +104,7 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return lang("[Pie Chart Histogram] of ") + ColumnUtils.getTitle(_plotter.unfilteredData);
+				return lang("[Pie Chart Histogram] of {0}", ColumnUtils.getTitle(_plotter.unfilteredData));
 			}
 			
 			

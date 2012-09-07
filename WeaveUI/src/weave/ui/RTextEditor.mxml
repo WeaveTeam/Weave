@@ -414,7 +414,7 @@ RTextEditor
 				var date:Date = new Date();
 				var dateString:String = date.fullYear +"."+ date.month +"."+ date.day +" "+ date.time;
 				
-				_sessionFileSaver.save(rScriptSessionState, lang("R-Script Session state ") + dateString + ".xml");
+				_sessionFileSaver.save(rScriptSessionState, lang("R-Script Session State {0}", dateString) + ".xml");
 			}
 			
 			private var _defaultsFilename:String = null;

@@ -39,7 +39,7 @@
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.plotters.PieChartPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, PieChartTool, "Pie Chart");
+			WeaveAPI.registerImplementation(IVisTool, PieChartTool, lang("Pie Chart"));
 			
 			public var _plotter:PieChartPlotter = null;
 			
@@ -117,7 +117,7 @@
 
 			override protected function get defaultPanelTitle():String
 			{
-				return lang("Pie Chart of ") + ColumnUtils.getTitle(_plotter.data);
+				return lang("Pie Chart of {0}", ColumnUtils.getTitle(_plotter.data));
 			}
 		]]>
 	</mx:Script>
@@ -133,7 +133,7 @@
 				<mx:Label text="{lang('Label angle')}" fontWeight="bold"/>
 				<mx:HSlider id="labelAngleSlider"
 						snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
-						dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
+						dataTipFormatFunction="{function(v:Number):String { return lang('{0}%', Math.round(100 * v)); }}"
 						creationComplete="linkBindableProperty(_plotter.labelAngleRatio, event.target, 'value')"/>
 			</mx:HBox>
 		</mx:VBox>

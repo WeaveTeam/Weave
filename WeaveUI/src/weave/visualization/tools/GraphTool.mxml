@@ -228,10 +228,6 @@
 			public function get edgeTargetColumn():DynamicColumn { return _plotter.edgeTargetColumn; }
 			public function get edgeColorColumn():AlwaysDefinedColumn { return _plotter.edgeColorColumn; }
 			
-			private function alphaSliderFormatFunction(item:Number):String {
-				return int((item * 100)) + lang("% Opaque") + "\n" + int(100 - (item * 100)) + lang("% Transparent");
-			}
-			
 			[Bindable] private var algorithmRunning:Boolean = false;
 			[Bindable] private var shouldStop:Boolean = false; 
 			private function handleStartComputation():void 
