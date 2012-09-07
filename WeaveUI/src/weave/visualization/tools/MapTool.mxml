@@ -678,7 +678,7 @@
 					</mx:HBox>
 				</mx:VBox>
 			</mx:HBox>
-			<mx:HBox verticalAlign="center" horizontalAlign="center">
+			<mx:HBox verticalAlign="middle" horizontalAlign="center">
 				<mx:Label text="Projection"/> 
 				<ui:CustomComboBox id="projComboBox"
 								   dataProvider="{_projComboBoxData}"
