@@ -160,10 +160,13 @@
 				}
 			}
 			
-			private function changeRevertButton():void
+			private function toggleRevertSaveButtons():void
 			{
-				controlPanelControls.revertBtn.visible = Weave.properties.showRevertButton.value;
-				controlPanelControls.revertBtn.includeInLayout = Weave.properties.showRevertButton.value;
+				var show:Boolean = Weave.properties.showRevertButton.value
+				controlPanelControls.revertBtn.visible = show;
+				controlPanelControls.revertBtn.includeInLayout = show;
+				controlPanelControls.saveBtn.visible = show;
+				controlPanelControls.saveBtn.includeInLayout = show;
 			}
 			
 			/**
@@ -262,7 +265,7 @@
 					controlPanelControls.tabNavigator.addChild(children[i]);
 				}
 				
-				Weave.properties.showRevertButton.addImmediateCallback(this, changeRevertButton, true);
+				Weave.properties.showRevertButton.addImmediateCallback(this, toggleRevertSaveButtons, true);
 			}
 			
 			private function handleControlsCreated(e:FlexEvent):void
