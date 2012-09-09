@@ -11,7 +11,7 @@ Info to provide a tooltip describing the node (like number of documents found)
 -->
 <mx:VBox implements="weave.api.core.ILinkableObject" xmlns:mx="http://www.adobe.com/2006/mxml" horizontalScrollPolicy="off" verticalScrollPolicy="off"
 width="200" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
-	<mx:List mouseMove="handleMouseMove(event)" toolTip="" dragEnabled="true" id="docList" width="100%">
+	<mx:List doubleClickEnabled="true" mouseMove="handleMouseMove(event)" toolTip="" dragEnabled="true" id="docList" width="100%">
 		<mx:itemRenderer>
 			<mx:Component>
 				<!--Setting the tool tip to empty so that you can only see the Document Summary Component on mouse over.

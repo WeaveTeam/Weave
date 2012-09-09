@@ -176,7 +176,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				stage.addEventListener(MouseEvent.MOUSE_UP,handleMouseUp);
 				
-				selectionKeywords.addGroupedCallback(this,handleRecordsSelection,false);
+//				selectionKeywords.addGroupedCallback(this,handleRecordsSelection,false);
 				
 				_entityKeySet.addGroupedCallback(this,parseRecordsSelectionQueryResponse,false);
 				
@@ -456,25 +456,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var w:Number = localPoint.x - dragStartX;
 				var h:Number = localPoint.y - dragStartY;
 				
-				var startCorner:int;
-				// if height < 0, then the box is dragged upward
-				// if width < 0, then the box is dragged leftward
-				if (h < 0)
-				{
-					if (w < 0)
-						startCorner = DashedLine.BOTTOM_RIGHT;
-					else
-						startCorner = DashedLine.BOTTOM_LEFT;
-				}
-				else 
-				{
-					if (w < 0)
-						startCorner = DashedLine.TOP_RIGHT;
-					else
-						startCorner = DashedLine.TOP_LEFT;
-				}
-				
-				_dashedLine.drawRect(dragStartX, dragStartY, Math.abs(w), Math.abs(h),startCorner);
+				_dashedLine.drawRect(dragStartX, dragStartY, w, h);
 				
 				var selectionRect:Rectangle = sprite.getRect(map);
 				
@@ -635,29 +617,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				var className:String = getQualifiedClassName(NodeHandler).split("::")[1];
 				var nodeName:String = nodes.generateUniqueName(className);
-				var nodeHandler:NodeHandler= new NodeHandler();
-				nodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
+				var nodeHandler:NodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
 				
 				nodeHandler.nodeBase.width = 200;//starting off with wide text area
 				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
-				nodeHandler.nodeBase.keywordTextArea.setStyle("borderColor",nodeHandler.thumbnailsDefaultColor.value);
 
 				if(query)
 				{
 					nodeHandler.applyKeywords(query);
 				}
-				
-//				nodeHandler.query.keywords.value = query;
-//				if(op ==null)
-//				{
-//					//TODO: should take value from RadioButton. Value was null when last tried.
-//					nodeHandler.query.operator.value = "AND";	
-//				}
-//				else{
-//					
-//					nodeHandler.query.operator.value = op;
-//				}
-				
 			}
 			
 			private var loader:URLLoader = null;

@@ -145,12 +145,16 @@ so that it can be moved, selected, handle filters.
 				linkBindableProperty(imageAlpha,img,"alpha");
 				
 				
-				selectedBorderColor.addGroupedCallback(this,setSelection);
-				defaultBorderColor.addGroupedCallback(this,setSelection);
+				selectedBorderColor.addGroupedCallback(this,setMode);
+				defaultBorderColor.addGroupedCallback(this,setMode);
 				
 				hasBeenMoved.addGroupedCallback(this,handleMode,true);
 				
 				point.addChild(titleLabel);
+				
+				setStyle("borderThickness", 1.5);
+				setStyle("borderColor",defaultBorderColor.value);
+				
 				
 			}
 			
@@ -487,34 +491,31 @@ so that it can be moved, selected, handle filters.
 			private var shadow:DropShadowFilter 	= new DropShadowFilter(2, 45, 0, 0.5, 4, 4, 2);
 			private var selectionBlur:BlurFilter = new BlurFilter(Weave.properties.selectionBlurringAmount.value,Weave.properties.selectionBlurringAmount.value,3);
 			
+			public static const DEFAULT_MODE:String = "default";
+			public static const SELECTED_MODE:String = "selected";
+			public static const UNSELECTED_MODE:String = "unselected";
+			
 			private var _selected:Boolean = false;
-			public function setSelection(selected:Boolean = false):void
+			public function setMode(mode:String="default"):void
 			{
-				if(selected)
-					_selected = selected;
 				
-				if(selected)
+				if(mode=="selected")
 				{
-					imageAlpha.value = 1.0;
-					setStyle("borderThickness", 1.5);
-					setStyle("borderColor",selectedBorderColor.value);
-//					point.filters = [shadow];
-				}
-				else
+					_selected = true;
+					filters = [shadow];
+				}else if(mode=="unselected")
 				{
-					imageAlpha.value = 1.0;
-					setStyle("borderThickness", 1.5);
-					setStyle("borderColor",defaultBorderColor.value);
-//					point.filters = [];
+					filters = [selectionBlur];
+				}else if(mode=="default")
+				{
+					filters=[];
 				}
+				
+							
 				//this will force a call to the updateDisplayList which will draw a border around this image
 				this.invalidateDisplayList();
 			}
 			
-			public function setSelectionBlur():void
-			{
-//				point.filters = [selectionBlur];
-			}
 			private var glowFilter:GlowFilter = new GlowFilter(glowColor.value);
 			private var timer:Timer = new Timer(125);
 			private function startGlow():void

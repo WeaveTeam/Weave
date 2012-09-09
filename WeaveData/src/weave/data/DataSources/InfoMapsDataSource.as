@@ -41,7 +41,7 @@ package weave.data.DataSources
 	{
 		public function InfoMapsDataSource()
 		{
-			solrURL.value = "http://129.63.8.219:8080/solr/select/?version=2.2";
+			solrURL.value = "http://129.63.8.219:8080/solr/research_core/select/?version=2.2";
 			csvDataString.value = "url,title,description,imgURL,date_published,date_added";
 			keyColName.value = "url";
 			keyType.value = "infoMapsDoc";
@@ -140,11 +140,23 @@ package weave.data.DataSources
 		public function getDocumentsForQuery(docKeySet:KeySet,wordCount:Array,query:String,operator:String='AND',sources:Array=null,
 													dateFilter:DateRangeFilter=null,numberOfDocuments:int=2000,partialMatch:Boolean=false):void
 		{
-			
-			var queryTerms:String = parseBasicQuery(query,operator,partialMatch);
-			
-			createAndSendQuery(docKeySet,wordCount,queryTerms,null,operator,sources,
-				dateFilter,numberOfDocuments);
+			if(query)
+			{
+				var mendeleyQuery:String = query.replace(/"/g,'');//replacing quotes
+//				mendeleyQuery = mendeleyQuery.replace(/ /g,'+');//replacing space with +
+//				InfoMapAdminInterface.instance.queryMendeley(mendeleyQuery);
+				
+				var mendeleyQueryArray:Array = mendeleyQuery.split(' ');
+//				trace("CALLING DATA SOURCES");
+//				InfoMapAdminInterface.instance.queryMendeley(mendeleyQueryArray);
+//				InfoMapAdminInterface.instance.queryArxiv(mendeleyQueryArray);
+				
+				
+				trace("CALLING SOLR");
+				var queryTerms:Array = query.replace(/"/g,'').split(' ');//removing quotes completely for now
+				createAndSendQuery(docKeySet,wordCount,queryTerms,null,operator,sources,
+					dateFilter,numberOfDocuments);
+			}
 			
 		}
 		/**
@@ -190,42 +202,9 @@ package weave.data.DataSources
 			//removing the last AND
 			filteredQuery = filteredQuery.substr(0,filteredQuery.length-(5));
 			
-			var queryTerms:String = parseBasicQuery(query,operator,partialMatch);
+			var queryTerms:Array = query.split(" ");
 			
 			createAndSendQuery(docKeySet,null,queryTerms,filteredQuery,operator,sources,dateFilter,numberOfDocuments);
-		}
-		
-		private static function parseBasicQuery(query:String,operator:String,partialMatch:Boolean):String
-		{
-			if(!query)
-				return "";
-			var temp:Array = removeEmptyStringElementsFromArray(query.split(" "));	
-			
-			if(partialMatch)
-			{
-				for(var k:int = 0; k<temp.length; k++)
-				{
-					temp[k] = temp[k] + '*';
-				}
-			}
-			
-			//force all queries to check for values in title and description
-			
-			//after removing the empty strings we check to see if it is a single or empty word.
-			//if it is not a single word we add the operator between each keyword
-			//spliting the keywords at the spaces. 
-			if(temp.length > 1)
-				query = temp.join(" "+operator+" ");
-			else
-			{
-				if(partialMatch)
-					query = query + '*';
-			}
-			//we need to search in both the title and the description fields.
-			//the solr syntax for searching multiple words in a single field is "field_name:(query words)"
-			var queryTerms:String = "title:(" + query + ") OR description:(" + query + ")";
-			
-			return queryTerms;
 		}
 		
 		public static function getNumberOfMatchedDocuments(query:String,operator:String="AND",sources:Array=null,
@@ -234,16 +213,16 @@ package weave.data.DataSources
 		
 			var numOfDocs:int;
 			
-			query = parseBasicQuery(query,operator,false);
+			var queryTerms:Array = query.split(" ");
 			
 			var filterQuery:String = parseFilterQuery(filterQuery,dateFilter,sources);
 			
-			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getNumberOfMatchedDocuments(query,filterQuery);
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getNumberOfMatchedDocuments(queryTerms,filterQuery);
 			
 			return q;			
 		}
 			
-		private function createAndSendQuery(docKeySet:KeySet,wordCount:Array,query:String,filterQuery:String=null,operator:String='AND',sources:Array=null,
+		private function createAndSendQuery(docKeySet:KeySet,wordCount:Array,query:Array,filterQuery:String=null,operator:String='AND',sources:Array=null,
 											dateFilter:DateRangeFilter=null,numberOfDocuments:int=2000,sortField:String="date_added"):void
 		{
 			

@@ -30,7 +30,10 @@ Info to provide a tooltip describing the node (like number of documents found)
 			<mx:Label text="Boolean Operator: " fontWeight="bold" width="{_leftAlignWidth}"/>					
 			<mx:ComboBox id="operator"/>
 		</mx:HBox>
-		
+		<mx:HBox>
+			<mx:Label text="Number of words in word cloud" fontWeight="bold" width="{_leftAlignWidth}"/>					
+			<mx:TextInput toolTip="not more than 100" id="numOfWords" width="50"/>
+		</mx:HBox>
 		<!--<mx:HBox>
 			<mx:Label text="Search in Node: " fontWeight="bold"  width="{_leftAlignWidth}"/>					
 			<mx:TextInput id="searchTextInput" keyUp="handleEnterKeyOnSearch(event)"/>
@@ -121,6 +124,19 @@ Info to provide a tooltip describing the node (like number of documents found)
 				 [Inspectable]
 				 public var query:QueryObject= null;
 				 
+				 
+				 private var _nodeHandler:NodeHandler = null;
+				 
+				 public function set nodeHandler(value:Object):void
+				 {
+					 if(value is NodeHandler)
+					 {
+						 _nodeHandler = value as NodeHandler;
+						 
+					 }
+				 }
+				 
+				 
 				 [Bindable]
 				 private var _leftAlignWidth:Number = 100;
 				 
@@ -153,7 +169,8 @@ Info to provide a tooltip describing the node (like number of documents found)
 					startDateStr.addGroupedCallback(this,handleDateChange);
 					endDateStr.addGroupedCallback(this,handleDateChange);
 					
-					
+					if(_nodeHandler != null)
+						linkBindableProperty(_nodeHandler.numOfWordsInCloud,numOfWords,"text",1000);
 					
 //					nodeHandler.layout.addImmediateCallback(this,handleLayoutObjectChange,true);
 					

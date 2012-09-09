@@ -163,15 +163,27 @@ package weave.services
 				}
 			}
 			
-			public function getQueryResults(queryURL:String,filterQuery:String,sortField:String,rows:int):DelayedAsyncInvocation
+//			public function queryMendeley(queryTerms:Array):DelayedAsyncInvocation
+//			{
+//				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("queryMendeley",[queryTerms]);
+//				return query;
+//			}
+//			
+//			public function queryArxiv(queryTerms:Array):DelayedAsyncInvocation
+//			{
+//				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("queryArxiv",[queryTerms]);
+//				return query;
+//			}
+			
+			public function getQueryResults(queryTerms:Array,filterQuery:String,sortField:String,rows:int):DelayedAsyncInvocation
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getQueryResults",[queryURL,filterQuery,sortField,rows]);
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getQueryResults",[queryTerms,filterQuery,sortField,rows]);
 				return query;
 			}
 			
-			public function getNumberOfMatchedDocuments(queryURL:String,filterQuery:String):DelayedAsyncInvocation
+			public function getNumberOfMatchedDocuments(queryTerms:Array,filterQuery:String):DelayedAsyncInvocation
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getNumberOfMatchedDocuments",[queryURL,filterQuery]);
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getNumberOfMatchedDocuments",[queryTerms,filterQuery]);
 				return query;
 			}
 			

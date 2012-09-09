@@ -14,7 +14,7 @@ It has 4 icons to:
 	  mouseOut="handleMouseOut()"
 	  autoLayout="false" 
 	  width="100%" minWidth="200">
-	<mx:HBox width="{this.width}" horizontalAlign="left">
+	<mx:HBox id="controlBox" width="{this.width}" horizontalAlign="left">
 		<!--<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>-->
 		<!--<mx:Image id="searchImg" source="@Embed(source='/weave/resources/images/sphere.png')"/>-->
 		<mx:Image id="listImg" source="@Embed(source='/weave/resources/images/list.png')"/>

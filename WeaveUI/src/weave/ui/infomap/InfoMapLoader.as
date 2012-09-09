@@ -76,13 +76,12 @@ package weave.ui.infomap
 		{
 			var panel:InfoMapPanel = Weave.root.requestObject("InfoMapPanel",InfoMapPanel,false);
 			
+			panel.restorePanel();
+			Weave.root.setNameOrder(["InfoMapPanel"]);
 			var keywords:Array = extractKeywordsFromSelection();
 			
 			panel.addInfoMapNode(keywords.join(" "));
 			
-			//show infomap panel
-			panel.restorePanel();
-			Weave.root.setNameOrder(["InfoMapPanel"]);
 		}
 		
 		/**

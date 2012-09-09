@@ -8,11 +8,12 @@
 		   dragEnter="dragEnterHandler(event)"
 		   >
 	<!--Show this status box only when list is visible-->
+	<mx:Label id="status" x="{nodeBase.keywordTextArea.width}" y="{nodeBase.keywordTextArea.height}" width="150"/>
 	<mx:HBox horizontalAlign="left" id="statusBox" y="{nodeBase.height}" width="400" includeInLayout="false">
-		<mx:Label id="status" />
+		<mx:Label id="filterStatus"/>
 		<mx:Button focusAlpha="0" id="clearFiltersButton" label="Clear" visible="false" click="handleClearFiltersButton()"/>
 		<!--HTML encoding is requried when writing code in binding tag-->
-		<mx:Button enabled="false" label="Mark All as Read" visible="false" id="clearNewDocuments" height="100%" click="clearAllNewDocuments()"/>
+		<!--<mx:Button enabled="false" label="Mark All as Read" visible="false" id="clearNewDocuments" height="100%" click="clearAllNewDocuments()"/>-->
 	</mx:HBox>
 	<mx:Canvas id="pointsCanvas" enabled="false" visible="false" clipContent="false" width="400" height="300"/>
 	<mx:Canvas id="listCanvas" visible="false" clipContent="false" width="400" height="300"/>
@@ -55,6 +56,7 @@
 			import mx.events.DragEvent;
 			import mx.events.EffectEvent;
 			import mx.events.FlexEvent;
+			import mx.events.SandboxMouseEvent;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
 			import mx.managers.DragManager;
@@ -140,6 +142,12 @@
 			
 			public const comments:LinkableString = newLinkableChild(this,LinkableString);
 			
+			public const numOfWordsInCloud:LinkableNumber = registerLinkableChild(this,new LinkableNumber(50,function(value:*):Boolean{
+																if(value > 100)
+																	return false;
+																else 
+																	return true;},false));
+			
 			private const listWidth:LinkableNumber = new LinkableNumber();
 			
 			private var loader:URLLoader = null;
@@ -185,7 +193,9 @@
 				
 				super.childrenCreated();
 				
-				getCallbackCollection(query).addGroupedCallback(this,createAndSendQuery);
+				nodeBase.controlBox.visible = false;
+				
+				getCallbackCollection(query).addGroupedCallback(this,createAndSendQuery,true);
 				getCallbackCollection(previousQuery).addGroupedCallback(this,updateTextArea,true);
 				
 				//if node is selected we highlight the nodeBase
@@ -209,7 +219,7 @@
 				nodeBase.listImg.addEventListener(MouseEvent.CLICK,toggleList);
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
-				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_UP,canvas1_mouseUpHandler);
+				stage.addEventListener(MouseEvent.MOUSE_UP,canvas1_mouseUpHandler);
 				nodeBase.keywordTextArea.addEventListener(KeyboardEvent.KEY_DOWN,keywordTextAreaKeyDownHandler);
 				
 				//drawing the base which is the node with keywords and icons
@@ -270,6 +280,8 @@
 				
 				clickedWordKeySet.addImmediateCallback(this,handleClickedWordKeySetChange);
 				prevNewDocsCount.addGroupedCallback(this,updateTextArea);
+				
+				numOfWordsInCloud.addGroupedCallback(this,redrawWordCloud,false);
 				
 				refreshTimer.start();
 				//call event for each tick of refreshTimer
@@ -347,9 +359,7 @@
 					nodeBase.keywordTextArea.setSelection(0,0);
 					nodeBase.keywordTextArea.htmlText = "";
 					newDocumentHighlight.stop();//in case node is blinking
-					glowTimer.stop();
-					nodeBase.keywordTextArea.filters = [];
-					nodeBase.keywordTextArea.alpha = 1;//restore alpha value to 1 incase timer stops at lesser alpha value
+					stopGlow()
 					if(listCanvas.contains(d))
 					{
 						d.docKeys = [];//clearing items in list
@@ -383,13 +393,6 @@
 			{
 				if((prevNewDocsCount.value>0) || (highlightNewDocuments && currentNewDocsCount>0 && currentNewDocsCount != prevNewDocsCount.value))
 				{
-//					prevNewDocsCount.value = currentNewDocsCount;
-					//if the New documents text already exists just update the value
-//					if(nodeBase.keywordTextArea.htmlText.indexOf("New Documents") >-1)
-//						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/New Documents: <\/B> [0-9]*/g,"New Documents: <\/B> " + currentNewDocsCount);
-//					else
-//						nodeBase.keywordTextArea.htmlText +="<br/><b>New Documents: </b> " +  prevNewDocsCount.value;
-					
 					if(nodeBase.keywordTextArea.htmlText.indexOf("/") >-1)
 						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\([0-9]*\//g,"(" + currentNewDocsCount + "/");
 					else
@@ -398,15 +401,14 @@
 					
 					nodeBase.tickImg.enabled = true;
 					nodeBase.tickImg.visible = true;
-					glowTimer.addEventListener(TimerEvent.TIMER,changeGlow);
-					glowTimer.reset();
-					glowTimer.start();
+					if(currentNewDocsCount != prevNewDocsCount.value || !_wasClicked)
+					{
+						startGlow();
+					}
 				}else{
-					clearNewDocuments.visible = false;
 					nodeBase.tickImg.enabled = false;
 					nodeBase.tickImg.visible = false;
-					glowTimer.stop();
-					nodeBase.keywordTextArea.filters = [];
+					stopGlow();
 				}
 				
 				positionThumbnails();
@@ -517,6 +519,7 @@
 			{
 				trace("in handleThumbnails");
 				status.text = "";
+				nodeBase.controlBox.visible = true;
 				var response:Array = docKeySet.keys;
 				
 				//				if(d.docList != null)
@@ -595,28 +598,20 @@
 				{
 					t.highlighted.value = false;
 				}
-				glowTimer.stop();
-				nodeBase.keywordTextArea.filters = [];
+				stopGlow();
 				prevNewDocsCount.value = 0;
 				currentNewDocsCount = 0;
 				nodeBase.tickImg.visible = false;
 //				updateTextArea();
 			}
 			
-			private function blinkNode(event:TimerEvent):void
-			{
-//				newDocumentHighlight.play();
-				startGlow();
-			}
-			
-			
 			private var glowFilter:GlowFilter = new GlowFilter();
 			private var glowTimer:Timer = new Timer(125);
 			private function startGlow():void
 			{
-				nodeBase.keywordTextArea.filters = [glowFilter];
-				glowTimer.addEventListener(TimerEvent.TIMER,changeGlow);
-				glowTimer.start();
+					nodeBase.keywordTextArea.filters = [glowFilter];
+					glowTimer.addEventListener(TimerEvent.TIMER,changeGlow);
+					glowTimer.start();
 			}
 			
 			private function changeGlow(event:TimerEvent):void
@@ -626,6 +621,12 @@
 				nodeBase.keywordTextArea.filters=[glowFilter];
 			}
 			
+			private function stopGlow():void
+			{
+				glowTimer.stop();
+				nodeBase.keywordTextArea.filters = [];
+				nodeBase.keywordTextArea.alpha = 1;//restore alpha value to 1 incase timer stops at lesser alpha value
+			}
 			
 			private function adjustNodeBase():void
 			{
@@ -776,7 +777,7 @@
 					for each(var doc1:String in docs)
 					{
 						var t1:DocThumbnailComponent = thumbnails.getObject(doc1) as DocThumbnailComponent;
-						t1.setSelection(false);
+						t1.setMode(DocThumbnailComponent.DEFAULT_MODE);
 					}
 					return;
 				}
@@ -787,9 +788,9 @@
 					var t:DocThumbnailComponent = thumbnails.getObject(doc) as DocThumbnailComponent;
 					var selected:Boolean =_selection.containsKey(qKey) 
 					if(selected)
-						t.setSelection(selected);
+						t.setMode(DocThumbnailComponent.SELECTED_MODE);
 					else
-						t.setSelectionBlur();
+						t.setMode(DocThumbnailComponent.UNSELECTED_MODE);
 				}
 			}
 			
@@ -933,12 +934,15 @@
 				return result;
 			}
 			
+			
+			private var _wasClicked:Boolean = false;
 			//toggle node selection on click
 			private function handleClick(event:Event):void
 			{
 				//if running to blink node.
-				glowTimer.stop();
-				nodeBase.keywordTextArea.filters = [];
+				stopGlow();
+				
+				_wasClicked = true;
 				
 				if(wasDragged)
 				{
@@ -965,13 +969,20 @@
 			
 			//this variable will be  used to avoid selection/unselection when the node is dragged
 			private var wasDragged:Boolean = false;
+			private var _lastX:Number = 0;
+			private var _lastY:Number = 0;
+			private var sbroot:DisplayObject = Application.application.systemManager.getSandboxRoot();
 			protected function canvas1_mouseDownHandler(event:MouseEvent):void
 			{
 				event.stopImmediatePropagation();
 				nodeBase.keywordTextArea.setStyle("fontWeight","bold");
 				CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
-				this.startDrag();
+				_lastX = x;
+				_lastY = y;
 				this.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+				// solution for handling mous_up outside of stage : http://stackoverflow.com/questions/2944122/flash-correctly-handling-click-and-drag-outside-the-browser
+				sbroot.addEventListener(SandboxMouseEvent.MOUSE_UP_SOMEWHERE, handleMouseUpSomewhere);
+				this.startDrag();
 			}
 			
 			private function handleMouseMove(event:Event):void
@@ -979,12 +990,21 @@
 				wasDragged = true;
 			}
 			
-			protected function canvas1_mouseUpHandler(event:MouseEvent):void
+			private var stageUtils:StageUtils = new StageUtils();
+			protected function canvas1_mouseUpHandler(event:Event):void
 			{
 				nodeBase.keywordTextArea.setStyle("fontWeight","normal");
 				CustomCursorManager.removeCurrentCursor();
-				this.stopDrag();
 				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
+				sbroot.removeEventListener(SandboxMouseEvent.MOUSE_UP_SOMEWHERE, canvas1_mouseUpHandler);
+				this.stopDrag();
+			}
+			
+			private function handleMouseUpSomewhere(event:Event):void
+			{
+				this.x = _lastX;
+				this.y = _lastY;
+				canvas1_mouseUpHandler(event);
 			}
 			
 			private function keywordTextAreaKeyDownHandler(event:KeyboardEvent):void
@@ -1015,6 +1035,7 @@
 				{
 					_instance = new NodeSettingsComponent();
 					_instance.query = this.query;
+					_instance.nodeHandler = this;
 					PopUpManager.addPopUp(_instance,this);
 				}
 			}
@@ -1047,9 +1068,9 @@
 				if(!VectorUtils.compare(tagCanvas.dataProvider,wordCount))
 				{
 					tagCanvas.dataProvider = wordCount;
-					tagCanvas.draw();
+					tagCanvas.draw(numOfWordsInCloud.value);
 				}
-				fadeOut.play([pointsCanvas,listCanvas,clearNewDocuments]);
+				fadeOut.play([pointsCanvas,listCanvas]);
 				if(forceShow)
 				{
 					fadeIn.play([tagCanvas]);
@@ -1068,6 +1089,17 @@
 				else
 					fadeOut.play([tagCanvas]);
 				
+			}
+			
+			private function redrawWordCloud():void
+			{
+				if(tagCanvas != null)
+				{
+					tagCanvas.dataProvider = [];//clearing word cloud
+					removeChild(tagCanvas);
+					tagCanvas = null;
+					showTagCloud();
+				}
 			}
 			
 			public function showTagCloud():void
@@ -1095,7 +1127,7 @@
 					if(forceHide)
 						return;
 					
-					fadeIn.play([listCanvas,clearNewDocuments]);
+					fadeIn.play([listCanvas]);
 					//hide other canvases 
 					if(tagCanvas)
 						fadeOut.play([tagCanvas,pointsCanvas]);
@@ -1115,25 +1147,25 @@
 				
 				if(forceShow)
 				{
-					fadeIn.play([listCanvas,clearNewDocuments]);
+					fadeIn.play([listCanvas]);
 					return;
 				}
 				
 				if(forceHide)
 				{
-					fadeOut.play([listCanvas,clearNewDocuments]);
+					fadeOut.play([listCanvas]);
 					return;
 				}	
 				
 				//toggle list
 				if(listCanvas.alpha == 0)
 				{
-					fadeIn.play([listCanvas,clearNewDocuments]);
+					fadeIn.play([listCanvas]);
 				}
 					
 				else
 				{
-					fadeOut.play([listCanvas,clearNewDocuments]);
+					fadeOut.play([listCanvas]);
 				}
 			}
 			
@@ -1202,7 +1234,8 @@
 				
 				//				_subset.replaceKeys(false,true,includeKeys);
 				_tagWordSubset.replaceKeys(false,true,includeKeys);
-				status.htmlText= "<b>Filtered by: </b>" + filteredWords.value;
+				status.text = "";
+				filterStatus.htmlText= "<b>Filtered by: </b>" + filteredWords.value;
 				clearFiltersButton.visible = true;
 				
 			}
@@ -1210,26 +1243,13 @@
 			private function handleClearFiltersButton():void
 			{
 				_tagWordSubset.replaceKeys(true,true);
-				status.text = "";
+				filterStatus.text = "";
 				clearFiltersButton.visible = false;
 				filteredWords.value = "";
 			}
 			
 			private function handleFadeInEffectsStart(event:EffectEvent):void
 			{
-				//if it is the clearNewDocumentsButton, test to see if need to show it 
-				if(event.effectInstance.target is Button)
-				{
-					if(prevNewDocsCount.value>0)
-					{
-						clearNewDocuments.visible = true;
-					}
-					else
-					{
-						clearNewDocuments.visible = false;
-					}
-					return;
-				}
 				(event.effectInstance.target as DisplayObject).visible = true;
 			}
 			

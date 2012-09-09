@@ -82,22 +82,15 @@
 			private var shadow:DropShadowFilter 	= new DropShadowFilter(2, 45, 0, 0.5, 4, 4, 2);
 			
 			private var boundsIndex:Bounds2DIndex = new Bounds2DIndex();
-			public function draw():void
+			public function draw(wordLimit:int=50):void
 			{
 				if(dataProvider.length == 0)
 					return;
-				
-//				if(tagCanvas)
-//					this.removeChild(tagCanvas);
-//				tagCanvas = this.addChild(new TagCloud()) as Canvas;
 				
 				//rendering the tagCanvas to a BitMapData
 				var tagCanvasBitmapData:BitmapData = new BitmapData(width,height,true,0x00000000);
 				tagCanvasBitmapData.draw(this);
 				var tagCanvasLoc:Point = new Point(0,0);
-				
-//				x = 0;
-//				y = nodeBase.height;
 				
 				var minWordCount:int = dataProvider[dataProvider.length-1][1];
 				var maxWordCount:int = dataProvider[0][1];
@@ -112,9 +105,8 @@
 				
 				var minX:Number = Infinity;
 				var minY:Number = Infinity;				
-//				trace("number of words is " + dataProvider.length);
 				
-				for (var i:int=0; i<dataProvider.length; i++)
+				for (var i:int=0; i<wordLimit; i++)
 				{
 					
 					validateNow();
@@ -127,10 +119,9 @@
 					
 					var currWordHeight:Number = Math.floor((StandardLib.normalize(dataProvider[i][1],minWordCount,maxWordCount))*maxWordHeight) + minWordHeight;
 					
-//					trace("word height is " + currWordHeight);
 					
 					currWordLabel.labelText.setStyle("fontSize",currWordHeight);
-					currWordLabel.labelText.setStyle("color",colorRamp.getColorFromNorm(StandardLib.normalize(i, 0, dataProvider.length)));
+					currWordLabel.labelText.setStyle("color",colorRamp.getColorFromNorm(StandardLib.normalize(i, 0, wordLimit)));
 					currWordLabel.labelText.text = dataProvider[i][0];
 					currWordLabel.labelText.validateNow();
 					
