@@ -56,6 +56,7 @@
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.PlotterUtils;
 			import weave.visualization.layers.LayerSettings;
+			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.RegressionLinePlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 
@@ -131,34 +132,36 @@
 			
 			/*BEGIN UNDEFINED LAYER CODE*/
 					
-			private var _undefinedXSettings:LayerSettings;
-			private var _undefinedYSettings:LayerSettings;
-			private var _undefinedXYSettings:LayerSettings;
-			
-			private var _undefinedXPlotter:ScatterPlotPlotter;
-			private var _undefinedYPlotter:ScatterPlotPlotter;
-			private var _undefinedXYPlotter:ScatterPlotPlotter;
+			private var vis_undef_x:SimpleInteractiveVisualization;
+			private var vis_undef_y:SimpleInteractiveVisualization;
+			private var vis_undef_xy:SimpleInteractiveVisualization;
 			
 			private const UNDEFINED_X_NAME:String = "undefinedX";
 			private const UNDEFINED_Y_NAME:String = "undefinedY";
 			private const UNDEFINED_XY_NAME:String = "undefinedXY";
 			
-			private var _tempPoint:Point = new Point();
 			private const _tempBounds:Bounds2D = new Bounds2D();
-			private const dataBounds:Bounds2D = new Bounds2D();
-			private const _screenBounds:Bounds2D = new Bounds2D();						
+			
 			
 			private function initializeUndefinedLayers():void
 			{
-				_undefinedXPlotter = visualization.plotManager.plotters.requestObject(UNDEFINED_X_NAME, ScatterPlotPlotter, true);
-				_undefinedYPlotter = visualization.plotManager.plotters.requestObject(UNDEFINED_Y_NAME, ScatterPlotPlotter, true);
-				_undefinedXYPlotter = visualization.plotManager.plotters.requestObject(UNDEFINED_XY_NAME, ScatterPlotPlotter, true);
-				_undefinedXSettings = visualization.plotManager.getLayerSettings(UNDEFINED_X_NAME);
-				_undefinedYSettings = visualization.plotManager.getLayerSettings(UNDEFINED_Y_NAME);
-				_undefinedXYSettings = visualization.plotManager.getLayerSettings(UNDEFINED_XY_NAME);
+				vis_undef_x = children.requestObject(UNDEFINED_X_NAME, SimpleInteractiveVisualization, true);
+				vis_undef_y = children.requestObject(UNDEFINED_Y_NAME, SimpleInteractiveVisualization, true);
+				vis_undef_xy = children.requestObject(UNDEFINED_XY_NAME, SimpleInteractiveVisualization, true);
 				
-				for each(var _plotter:ScatterPlotPlotter in [_undefinedXPlotter, _undefinedYPlotter, _undefinedXYPlotter])
+				vis_undef_x.toolTip = lang("Undefined X");
+				vis_undef_y.toolTip = lang("Undefined Y");
+				vis_undef_xy.toolTip = lang("Undefined X and Y");
+				
+				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, resizeUndefinedLayers, true);
+				
+				for each (var vis:SimpleInteractiveVisualization in [vis_undef_x, vis_undef_y, vis_undef_xy])
 				{
+					vis.initializePlotters(ScatterPlotPlotter, false);
+					vis.enableAutoZoomXToNiceNumbers.value = true;
+					vis.enableAutoZoomYToNiceNumbers.value = true;
+					
+					var _plotter:ScatterPlotPlotter = vis.getMainPlotter() as ScatterPlotPlotter;
 					linkSessionState(plotter.colorColumn, _plotter.colorColumn);
 					linkSessionState(plotter.alphaColumn, _plotter.alphaColumn);
 					linkSessionState(plotter.radiusColumn, _plotter.radiusColumn);					
@@ -166,10 +169,16 @@
 					linkSessionState(plotter.enabledSizeBy, _plotter.enabledSizeBy);
 					linkSessionState(plotter.maxScreenRadius, _plotter.maxScreenRadius);
 					linkSessionState(plotter.minScreenRadius, _plotter.minScreenRadius);
-				} 	
+					
+					var undefSettings:LayerSettings = vis.getMainLayerSettings();
+					
+					undefSettings.hack_includeMissingRecordBounds = true;
+					linkSessionState(visualization.getMainLayerSettings(), undefSettings);
+					linkSessionState(visualization.plotManager.zoomBounds, vis.plotManager.zoomBounds);
+				}
 				
-				linkSessionState(plotter.xColumn, _undefinedYPlotter.xColumn);
-				linkSessionState(plotter.yColumn, _undefinedXPlotter.yColumn);
+				linkSessionState(plotter.xColumn, (vis_undef_y.getMainPlotter() as ScatterPlotPlotter).xColumn);
+				linkSessionState(plotter.yColumn, (vis_undef_x.getMainPlotter() as ScatterPlotPlotter).yColumn);
 				
 				for each(var column:IAttributeColumn in getSelectableAttributes())
 				{
@@ -187,16 +196,51 @@
 				visualization.gridLineColor.addImmediateCallback(this, invalidateDisplayList);
 				visualization.gridLineThickness.addImmediateCallback(this, invalidateDisplayList);
 				
-				for each (var settings:LayerSettings in [_undefinedXSettings, _undefinedYSettings, _undefinedXYSettings])
+//				addEventListener(MouseEvent.MOUSE_MOVE, displayToolTip);
+//				addEventListener(MouseEvent.MOUSE_OUT, destroyToolTip);
+			}
+			private function resizeUndefinedLayers():void
+			{
+				var b:IBounds2D = _tempBounds;
+				var marginRight:Number = visualization.plotManager.marginRightNumber.value;
+				
+				// right margin undefined x
+				visualization.plotManager.zoomBounds.getScreenBounds(b);
+				if (b.isEmpty())
 				{
-					settings.hack_includeMissingRecordBounds = true;
-					settings.hack_lockScreenBounds = new Bounds2D();
+					callLater(resizeUndefinedLayers);
+					return;
 				}
+				_tempBounds.setXMin(b.getXMax() + marginRight);
+				_tempBounds.setWidth(b.getWidth() * 0.66);
+				setDisplayObjectBounds(vis_undef_x, b);
+				vis_undef_x.graphics.clear();
+				vis_undef_x.graphics.lineStyle(visualization.gridLineThickness.value, visualization.gridLineColor.value, visualization.gridLineAlpha.value);
+				vis_undef_x.graphics.moveTo(vis_undef_x.width / 2, 0);
+				vis_undef_x.graphics.lineTo(vis_undef_x.width / 2, vis_undef_x.height);
 				
-				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, updateUndefinedPlotterBounds);
+				// top margin undefined y
+				visualization.plotManager.zoomBounds.getScreenBounds(b);
+				_tempBounds.setYMin(0);
+				_tempBounds.setHeight(b.getHeight() * 0.66);
+				setDisplayObjectBounds(vis_undef_y, b);
+				vis_undef_y.graphics.clear();
+				vis_undef_y.graphics.lineStyle(visualization.gridLineThickness.value, visualization.gridLineColor.value, visualization.gridLineAlpha.value);
+				vis_undef_y.graphics.moveTo(0, vis_undef_y.height / 2);
+				vis_undef_y.graphics.lineTo(vis_undef_y.width, vis_undef_y.height / 2);
 				
-				addEventListener(MouseEvent.MOUSE_MOVE, displayToolTip);
-				addEventListener(MouseEvent.MOUSE_OUT, destroyToolTip);
+				// top-right corner undefined xy
+				visualization.plotManager.zoomBounds.getScreenBounds(b);
+				_tempBounds.setMinCoords(b.getXNumericMax() + marginRight, 0);
+				_tempBounds.centeredResize(b.getWidth() / 2, b.getHeight() / 2);
+				setDisplayObjectBounds(vis_undef_xy, b);
+			}
+			private function setDisplayObjectBounds(displayObject:DisplayObject, bounds:IBounds2D):void
+			{
+				displayObject.x = bounds.getXNumericMin();
+				displayObject.y = bounds.getYNumericMin();
+				displayObject.width = bounds.getXCoverage();
+				displayObject.height = bounds.getYCoverage();
 			}
 			
 			private function setUndefinedPlotterKeySource():void
@@ -213,106 +257,70 @@
 					missingX = !plotter.xColumn.containsKey(key);
 					missingY = !plotter.yColumn.containsKey(key);
 					
-					if(missingX)
+					if (missingX)
 					{
-						if(missingY)
+						if (missingY)
 							missingXYkeys.push(key);
 						else 
 							missingXkeys.push(key);
 					}
-					else if(missingY)
+					else if (missingY)
 					{
 						missingYkeys.push(key);
 					}
 				}
-				_undefinedXPlotter.setCustomKeySource(missingXkeys);
-				_undefinedYPlotter.setCustomKeySource(missingYkeys);
-				_undefinedXYPlotter.setCustomKeySource(missingXYkeys);
-			}
-			
-			private function updateUndefinedPlotterBounds():void
-			{
-				var b:IBounds2D = _tempBounds;
-				visualization.plotManager.zoomBounds.getScreenBounds(b);
-				if (b.isEmpty())
-				{
-					callLater(updateUndefinedPlotterBounds);
-					return;
-				}
-				
-				var graphics:Graphics = visualization.graphics;
-				graphics.clear();
-				graphics.lineStyle(visualization.gridLineThickness.value, visualization.gridLineColor.value, visualization.gridLineAlpha.value);
-				
-				var marginRight:Number = visualization.plotManager.marginRightNumber.value;
-				
-				// right margin; undefined x
-				b = _undefinedXSettings.hack_lockScreenBounds;
-				visualization.plotManager.zoomBounds.getScreenBounds(b);
-				graphics.moveTo(b.getXMax() + marginRight / 2, b.getYMin());
-				graphics.lineTo(b.getXMax() + marginRight / 2, b.getYMax());
-				b.setXRange(b.getXMax() + marginRight * 1 / 4, b.getXMax() + marginRight * 3 / 4);
-				
-				// top margin; undefined y
-				b = _undefinedYSettings.hack_lockScreenBounds;
-				visualization.plotManager.zoomBounds.getScreenBounds(b);
-				graphics.moveTo(b.getXMin(), b.getYMax() / 2);
-				graphics.lineTo(b.getXMax(), b.getYMax() / 2);
-				b.setYRange(b.getYMax() * 1 / 4, b.getYMax() * 3 / 4);
-				
-				// top-right corner; undefined x and y
-				b = _undefinedXYSettings.hack_lockScreenBounds;
-				visualization.plotManager.zoomBounds.getScreenBounds(b);
-				b.setMinCoords(b.getXMax() + marginRight, 0);
+				(vis_undef_x.getMainPlotter() as ScatterPlotPlotter).setCustomKeySource(missingXkeys);
+				(vis_undef_y.getMainPlotter() as ScatterPlotPlotter).setCustomKeySource(missingYkeys);
+				(vis_undef_xy.getMainPlotter() as ScatterPlotPlotter).setCustomKeySource(missingXYkeys);
 			}
 			
 			
-			private var _toolTip:IToolTip = null;
-			private function displayToolTip(event:MouseEvent):void
-			{
-				destroyToolTip(event);
-				_tempPoint = this.globalToContent(new Point(event.stageX, event.stageY));
-								
-				var probeExists:Boolean = mainLayerSettings.probeFilter.internalObject is IKeySet &&
-					(mainLayerSettings.probeFilter.internalObject as IKeySet).keys.length > 0;
-
-				var selectionExists:Boolean = mainLayerSettings.selectionFilter.internalObject is IKeySet &&
-					(mainLayerSettings.selectionFilter.internalObject as IKeySet).keys.length > 0;
-				
-				if (probeExists || selectionExists)
-					return;
-				
-				if (_undefinedXSettings.hack_lockScreenBounds.containsPoint(_tempPoint))
-				{
-					_tempPoint = this.contentToGlobal(_tempPoint);
-					_toolTip = ToolTipManager.createToolTip(lang("undefined x"),_tempPoint.x, _tempPoint.y);	
-					visualization.constrainToolTipsToStage(_toolTip);
-					return;
-				}
-				if (_undefinedYSettings.hack_lockScreenBounds.containsPoint(_tempPoint))
-				{
-					_tempPoint = this.contentToGlobal(_tempPoint);
-					_toolTip = ToolTipManager.createToolTip(lang("undefined y"),_tempPoint.x, _tempPoint.y);
-					visualization.constrainToolTipsToStage(_toolTip);
-					return;
-				}
-				if (_undefinedXYSettings.hack_lockScreenBounds.containsPoint(_tempPoint))
-				{
-					_tempPoint = this.contentToGlobal(_tempPoint);
-					_toolTip = ToolTipManager.createToolTip(lang("undefined x,y"),_tempPoint.x, _tempPoint.y);
-					visualization.constrainToolTipsToStage(_toolTip);
-					return;
-				}   
-			}
+//			private var _toolTip:IToolTip = null;
+//			private function displayToolTip(event:MouseEvent):void
+//			{
+//				destroyToolTip(event);
+//				_tempPoint = this.globalToContent(new Point(event.stageX, event.stageY));
+//								
+//				var probeExists:Boolean = mainLayerSettings.probeFilter.internalObject is IKeySet &&
+//					(mainLayerSettings.probeFilter.internalObject as IKeySet).keys.length > 0;
+//
+//				var selectionExists:Boolean = mainLayerSettings.selectionFilter.internalObject is IKeySet &&
+//					(mainLayerSettings.selectionFilter.internalObject as IKeySet).keys.length > 0;
+//				
+//				if (probeExists || selectionExists)
+//					return;
+//				
+//				if (_undefinedXSettings.hack_lockScreenBounds.containsPoint(_tempPoint))
+//				{
+//					_tempPoint = this.contentToGlobal(_tempPoint);
+//					_toolTip = ToolTipManager.createToolTip(lang("undefined x"),_tempPoint.x, _tempPoint.y);	
+//					visualization.constrainToolTipsToStage(_toolTip);
+//					return;
+//				}
+//				if (_undefinedYSettings.hack_lockScreenBounds.containsPoint(_tempPoint))
+//				{
+//					_tempPoint = this.contentToGlobal(_tempPoint);
+//					_toolTip = ToolTipManager.createToolTip(lang("undefined y"),_tempPoint.x, _tempPoint.y);
+//					visualization.constrainToolTipsToStage(_toolTip);
+//					return;
+//				}
+//				if (_undefinedXYSettings.hack_lockScreenBounds.containsPoint(_tempPoint))
+//				{
+//					_tempPoint = this.contentToGlobal(_tempPoint);
+//					_toolTip = ToolTipManager.createToolTip(lang("undefined x,y"),_tempPoint.x, _tempPoint.y);
+//					visualization.constrainToolTipsToStage(_toolTip);
+//					return;
+//				}   
+//			}
 			
-			private function destroyToolTip(event:MouseEvent):void
-			{
-				if(_toolTip != null) 
-				{
-					ToolTipManager.destroyToolTip(_toolTip);
-					_toolTip = null;
-				}
-			}
+//			private function destroyToolTip(event:MouseEvent):void
+//			{
+//				if(_toolTip != null) 
+//				{
+//					ToolTipManager.destroyToolTip(_toolTip);
+//					_toolTip = null;
+//				}
+//			}
 			/*END UNDEFINED LAYER CODE*/
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);

@@ -112,7 +112,7 @@ package weave.visualization.layers
 		private const tempPoint:Point = new Point(); // reusable temp object
 		private const tempBounds:Bounds2D = new Bounds2D();
 		
-		public function getMainLayerSettings():LayerSettings { return plotManager.getLayerSettings(PROBE_LINE_LAYER_NAME); }
+		public function getMainLayerSettings():LayerSettings { return plotManager.getLayerSettings(MAIN_PLOT_LAYER_NAME); }
 		public function getMainPlotter():IPlotter { return plotManager.getPlotter(MAIN_PLOT_LAYER_NAME); }
 		public function getXAxisPlotter():SimpleAxisPlotter { return plotManager.getPlotter(X_AXIS_LAYER_NAME) as SimpleAxisPlotter; }
 		public function getYAxisPlotter():SimpleAxisPlotter { return plotManager.getPlotter(Y_AXIS_LAYER_NAME) as SimpleAxisPlotter; }

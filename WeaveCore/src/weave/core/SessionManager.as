@@ -217,7 +217,7 @@ package weave.core
 		{
 			if (parent == null || child == null)
 			{
-				reportError("SessionManager.removeLinkableChildrenFromSessionState(): Parameters to this function cannot be null.");
+				reportError("SessionManager.excludeLinkableChildFromSessionState(): Parameters to this function cannot be null.");
 				return;
 			}
 			if (childToParentDictionaryMap[child] !== undefined && childToParentDictionaryMap[child][parent])
@@ -1113,7 +1113,7 @@ package weave.core
 		{
 			if (primary == null || secondary == null)
 			{
-				reportError("SessionManager.linkObjects(): Parameters to this function cannot be null.");
+				reportError("SessionManager.linkSessionState(): Parameters to this function cannot be null.");
 				return;
 			}
 			if (primary == secondary)
@@ -1144,7 +1144,7 @@ package weave.core
 		{
 			if (first == null || second == null)
 			{
-				reportError("SessionManager.unlinkObjects(): Parameters to this function cannot be null.");
+				reportError("SessionManager.unlinkSessionState(): Parameters to this function cannot be null.");
 				return;
 			}
 			

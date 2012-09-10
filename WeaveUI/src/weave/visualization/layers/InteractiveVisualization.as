@@ -824,7 +824,7 @@ package weave.visualization.layers
 					lastActiveLayer = name;
 					
 					// get data coords from screen coords
-					var bufferSize:Number = 10; 
+					var bufferSize:Number = 16; 
 					
 					queryBounds.setCenteredRectangle(mouseX, mouseY, bufferSize, bufferSize);
 					tempScreenBounds.projectCoordsTo(queryBounds, tempDataBounds);

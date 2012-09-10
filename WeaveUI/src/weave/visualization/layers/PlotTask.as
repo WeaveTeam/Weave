@@ -402,7 +402,7 @@ package weave.visualization.layers
 		 */
 		public function get screenBounds():IBounds2D
 		{
-			return _layerSettings.hack_lockScreenBounds || _screenBounds;
+			return _screenBounds;
 		}
 		
 		/**

@@ -80,7 +80,6 @@ package weave.visualization.layers
 		// hacks
 		public var hack_includeMissingRecordBounds:Boolean = false; // hack to include records with undefined bounds
 		public var hack_useTextBitmapFilters:Boolean = false; // hack to use text bitmap filters (for labels, legends)
-		public var hack_lockScreenBounds:IBounds2D = null; // hack to lock screen bounds
 		
 		// backwards compatibility
 		[Exclude] [Deprecated] public function set useTextBitmapFilters(value:Boolean):void { hack_useTextBitmapFilters = value; }
