@@ -168,7 +168,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
-			
+			//returns two columns with common keys
 			private function joinColumns(columns:Array):Array
 			{
 				var selection:KeySet = Weave.defaultSelectionKeySet;
