@@ -21,6 +21,7 @@ package weave.visualization.layers
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.utils.getTimer;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
@@ -115,7 +116,7 @@ package weave.visualization.layers
 			_spatialIndex = null;
 			_zoomBounds = null;
 			_layerSettings = null;
-			disposeObjects(completedBitmap.bitmapData, _buffer.bitmapData);
+			disposeObjects(completedBitmap.bitmapData, bufferBitmap.bitmapData);
 		}
 		
 		public function get taskType():int { return _taskType; }
@@ -145,7 +146,7 @@ package weave.visualization.layers
 		private var _zoomBounds:ZoomBounds;
 		private var _layerSettings:LayerSettings;
 		
-		private var _buffer:Bitmap = new Bitmap();
+		public const bufferBitmap:Bitmap = new Bitmap(null, 'auto', true);
 		private var _dataBounds:Bounds2D = new Bounds2D();
 		private var _screenBounds:Bounds2D = new Bounds2D();
 		private var _iteration:uint = 0;
@@ -205,8 +206,8 @@ package weave.visualization.layers
 			{
 				WeaveAPI.SessionManager.unassignBusyTask(_dependencies);
 				
-				disposeObjects(_buffer.bitmapData);
-				_buffer.bitmapData = null;
+				disposeObjects(bufferBitmap.bitmapData);
+				bufferBitmap.bitmapData = null;
 				disposeObjects(completedBitmap.bitmapData);
 				completedBitmap.bitmapData = null;
 				completedDataBounds.reset();
@@ -268,10 +269,10 @@ package weave.visualization.layers
 					return 1;
 				
 				// clear bitmap and resize if necessary
-				PlotterUtils.setBitmapDataSize(_buffer, _unscaledWidth, _unscaledHeight);
+				PlotterUtils.setBitmapDataSize(bufferBitmap, _unscaledWidth, _unscaledHeight);
 
 				// stop immediately if the bitmap is invalid
-				if (PlotterUtils.bitmapDataIsEmpty(_buffer))
+				if (PlotterUtils.bitmapDataIsEmpty(bufferBitmap))
 				{
 					debugTrace('bitmap is empty');
 					return 1;
@@ -282,7 +283,7 @@ package weave.visualization.layers
 				
 				// hack - draw background on subset layer
 				if (_taskType == TASK_TYPE_SUBSET)
-					_plotter.drawBackground(_dataBounds, _screenBounds, _buffer.bitmapData);
+					_plotter.drawBackground(_dataBounds, _screenBounds, bufferBitmap.bitmapData);
 			}
 			
 			/***** prepare keys *****/
@@ -290,7 +291,7 @@ package weave.visualization.layers
 			// if keys aren't ready yet, prepare keys
 			if (_pendingKeys)
 			{
-				if (_iPendingKey < _pendingKeys.length)
+				while (_iPendingKey < _pendingKeys.length)
 				{
 					// next key iteration - add key if included in filter and on screen
 					var key:IQualifiedKey = _pendingKeys[_iPendingKey] as IQualifiedKey;
@@ -301,8 +302,10 @@ package weave.visualization.layers
 							if (keyBounds.overlaps(_dataBounds))
 							{
 								if (!keyBounds.isUndefined() || _layerSettings.hack_includeMissingRecordBounds)
+								{
 									_recordKeys.push(key);
-								break;
+									break;
+								}
 							}
 						}
 					}
@@ -339,8 +342,8 @@ package weave.visualization.layers
 
 				// BitmapData has been completely rendered, so update completedBitmap and completedDataBounds
 				var oldBitmapData:BitmapData = completedBitmap.bitmapData;
-				completedBitmap.bitmapData = _buffer.bitmapData;
-				_buffer.bitmapData = oldBitmapData;
+				completedBitmap.bitmapData = bufferBitmap.bitmapData;
+				bufferBitmap.bitmapData = oldBitmapData;
 				completedDataBounds.copyFrom(_dataBounds);
 				completedScreenBounds.copyFrom(_screenBounds);
 				
@@ -386,7 +389,7 @@ package weave.visualization.layers
 		 */
 		public function get buffer():BitmapData
 		{
-			return _buffer.bitmapData;
+			return bufferBitmap.bitmapData;
 		}
 		
 		/**

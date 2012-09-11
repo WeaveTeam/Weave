@@ -29,6 +29,7 @@ package weave.visualization.layers
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
@@ -469,30 +470,38 @@ package weave.visualization.layers
 					if (Weave.properties.enableBitmapFilters.value)
 					{
 						subsetTask.completedBitmap.filters = [Weave.properties.filter_selectionBlur];
+						subsetTask.bufferBitmap.filters = [Weave.properties.filter_selectionBlur];
 					}
 					else
 					{
 						subsetTask.completedBitmap.filters = null;
+						subsetTask.bufferBitmap.filters = null;
 					}
 				}
 				else // no selection
 				{
 					subsetTask.completedBitmap.alpha = 1.0;
+					subsetTask.bufferBitmap.alpha = 1.0;
 					subsetTask.completedBitmap.filters = null;
+					subsetTask.bufferBitmap.filters = null;
 				}
 				
 				if (Weave.properties.enableBitmapFilters.value)
 				{
 					selectionTask.completedBitmap.filters = [Weave.properties.filter_selectionShadow];
+					selectionTask.bufferBitmap.filters = [Weave.properties.filter_selectionShadow];
 					var inner:GlowFilter = plotter is ITextPlotter
 						? Weave.properties.filter_probeGlowInnerText
 						: Weave.properties.filter_probeGlowInner;
 					probeTask.completedBitmap.filters = [inner, Weave.properties.filter_probeGlowOuter];
+					probeTask.bufferBitmap.filters = [inner, Weave.properties.filter_probeGlowOuter];
 				}
 				else
 				{
 					selectionTask.completedBitmap.filters = null;
+					selectionTask.bufferBitmap.filters = null;
 					probeTask.completedBitmap.filters = [Weave.properties.filter_selectionShadow];
+					probeTask.bufferBitmap.filters = [Weave.properties.filter_selectionShadow];
 				}
 			};
 			settings.selectable.addImmediateCallback(plotter, updateFilters);
@@ -564,6 +573,7 @@ package weave.visualization.layers
 				shouldRender = true;
 				return;
 			}
+			
 			shouldRender = false;
 			
 			zoomBounds.getDataBounds(tempDataBounds);
@@ -573,8 +583,6 @@ package weave.visualization.layers
 			PlotterUtils.setBitmapDataSize(bitmap, _unscaledWidth, _unscaledHeight);
 			if (_unscaledWidth && _unscaledHeight)
 			{
-				var origin:Point = new Point(0,0);
-				var rect:Rectangle = bitmap.bitmapData.rect;
 				for each (var name:String in plotters.getNames(IPlotter))
 				{
 					if (linkableObjectIsBusy(hack_getSpatialIndex(name)))
@@ -603,6 +611,18 @@ package weave.visualization.layers
 							{
 								debugTrace(String(task),'undefined',name);
 							}
+							
+//							if (linkableObjectIsBusy(task))
+//							{
+//								//TODO: this doesn't look good with transparency and overlapping completedBitmap and bufferBitmap
+//								//TODO: this is incorrect if the PlotTask hasn't cleared the previous bitmap yet.
+//								
+//								shouldRender = true;
+//								copyScaledPlotGraphics(
+//									task.bufferBitmap, task.dataBounds, task.screenBounds,
+//									bitmap.bitmapData, tempDataBounds, tempScreenBounds
+//								);
+//							}
 						}
 					}
 					else
