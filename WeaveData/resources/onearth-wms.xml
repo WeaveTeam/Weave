@@ -1,0 +1,1675 @@
+<WMS_Tile_Service version="0.1.0">
+<Service>
+  <Name>OnEarth:WMS:Tile</Name>
+  <Title>WMS Tile service</Title>
+  <Abstract>
+    DRAFT VERSION, the exact format of this configuration file is subject to changes.
+    Optimized tiled WMS service for high volume applications.
+    This document exposes the available tiled datasets and the patterns to access them. Applications that need fast access to tiled data should only use patterns
+    documented here.
+    A TiledGroup refers to the same exact image. TiledGroups tags are used to group together different images that have something in common, similar to folders containing folders and/or files.
+    Within a TilePattern, multiple access patterns could be present, representing the same tileset.
+    The patterns contain the exact case, parameter order and parameter content to be used for accessing a 
+    given tileset. The bbox argument values are the ones for the top-left tile in each tileset.
+  </Abstract>
+  <KeywordList>
+    <Keyword>WMS</Keyword> <Keyword>Tile</Keyword> <Keyword>Optimized</Keyword> <Keyword>Cache</Keyword>
+    <Keyword>WorldWind</Keyword> <Keyword>WorldKit</Keyword> <Keyword>ArcGlobe</Keyword>
+  </KeywordList>
+  <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://OnEarth.jpl.nasa.gov/index.html"/>
+  <ContactInformation>
+   <ContactPersonPrimary>
+     <ContactPerson>Lucian Plesea</ContactPerson>
+     <ContactOrganization>JPL</ContactOrganization>
+   </ContactPersonPrimary>
+   <ContactElectronicMailAddress>lucian.plesea@jpl.nasa.gov</ContactElectronicMailAddress>
+  </ContactInformation>
+  <Fees>none</Fees>
+  <AccessConstraints>none</AccessConstraints>
+</Service>
+<TiledPatterns>
+  <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://wms.jpl.nasa.gov/wms.cgi?"/>
+  <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+
+  <TiledGroup>
+    <Name>Global Mosaic, pan sharpened visual</Name>
+    <Title>Global Mosaic, pan sharpened visual</Title>
+    <Abstract>
+      Jpeg tiles as used by NASA WorldWind and WorldKit. Due to alignment, WorldWind can only use levels with 4 degrees or less per tile.
+      While the coverage is global, real data is only present between 60S and 83N.
+      Configuration file for WorldWind avalaible at "http://OnEarth.jpl.nasa.gov/OnEarth.xml".
+      WorldKit sample configuration for this layer at "http://OnEarth.jpl.nasa.gov/WK/visual".
+      Pansharpened Data has a native resolution of 0.5 arc-seconds per pixel (15m per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>3</Bands>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,-166,76,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,-38,-52,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,26,-116,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,58,-148,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,74,-164,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,82,-172,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,86,-176,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,88,-178,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,89,-179,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,89.5,-179.5,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.5,-179.5,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,89.75,-179.75,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.75,-179.75,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,89.875,-179.875,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.875,-179.875,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,89.9375,-179.9375,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.9375,-179.9375,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>Global Mosaic, pan sharpened, pseudocolor</Name>
+    <Title>Global Mosaic, pan sharpened, pseudocolor</Title>
+    <Abstract>
+      Jpeg tiles as used by NASA WorldWind and WorldKit. Due to alignment, WorldWind can only use levels with 4 degrees or less per tile.
+      While the coverage is global, real data is only present between 60S and 83N.
+      Configuration file for WorldWind avalaible at "http://OnEarth.jpl.nasa.gov/OnEarth.xml".
+      WorldKit sample configuration for this layer at "http://OnEarth.jpl.nasa.gov/WK".
+      Pansharpened Data has a native resolution of 0.5 arc-seconds per pixel (15m per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>3</Bands>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-166,76,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-38,-52,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,26,-116,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,58,-148,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,74,-164,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,82,-172,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,86,-176,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,88,-178,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89,-179,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89.5,-179.5,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.5,-179.5,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.5,-179.5,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.5,-179.5,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89.75,-179.75,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.75,-179.75,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.75,-179.75,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.75,-179.75,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89.875,-179.875,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.875,-179.875,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.875,-179.875,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.875,-179.875,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89.9375,-179.9375,90
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.9375,-179.9375,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.9375,-179.9375,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic&srs=EPSG:4326&width=512&height=512&bbox=-180,89.9375,-179.9375,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>Global Mosaic, visual</Name>
+    <Title>Global Mosaic, visual</Title>
+    <Abstract>
+      Jpeg tiles as used by NASA WorldWind and WorldKit. Due to alignment issues, WorldWind can only use levels with 4 degrees or less per tile.
+      While the coverage is global, real data is only present between 60S and 83N.
+      Configuration file for WorldWind avalaible at "http://OnEarth.jpl.nasa.gov/OnEarth.xml".
+      WorldKit sample configuration for this layer at "http://OnEarth.jpl.nasa.gov/WK/visual_base".
+      This layer is the visual (321) non pan sharpened, it has a native resolution of 1 arc-second (30m per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>3</Bands>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,-166,76,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,-38,-52,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,26,-116,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,58,-148,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,74,-164,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,82,-172,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,86,-176,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,88,-178,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,89,-179,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,89.5,-179.5,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89.5,-179.5,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,89.75,-179.75,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89.75,-179.75,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=visual&width=512&height=512&bbox=-180,89.875,-179.875,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89.875,-179.875,90&format=image/jpeg&version=1.1.1&styles=visual
+      ]]>
+    </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>Global Mosaic, pseudocolor</Name>
+    <Title>Global Mosaic, pseudocolor</Title>
+    <Abstract>
+      Jpeg tiles as used by NASA WorldWind and WorldKit. Due to alignment issues, WorldWind can only use levels with 4 degrees or less per tile.
+      While the coverage is global, real data is only present between 60S and 83N.
+      Configuration file for WorldWind avalaible at "http://OnEarth.jpl.nasa.gov/OnEarth.xml".
+      WorldKit sample configuration for this layer at "http://OnEarth.jpl.nasa.gov/WK/base".
+      This layer is the pseudocolor (742) non pan sharpened, it has a native resolution of 1 arc-second (30m per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>3</Bands>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-166,76,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-38,-52,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,26,-116,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,58,-148,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,74,-164,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,82,-172,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,86,-176,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,88,-178,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89,-179,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89.5,-179.5,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89.5,-179.5,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89.5,-179.5,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89.5,-179.5,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89.75,-179.75,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89.75,-179.75,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89.75,-179.75,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89.75,-179.75,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89.875,-179.875,90
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89.875,-179.875,90&format=image/jpeg&version=1.1.1&styles=
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89.875,-179.875,90&format=image/jpeg&version=1.1.1&styles=default
+      request=GetMap&layers=global_mosaic_base&srs=EPSG:4326&width=512&height=512&bbox=-180,89.875,-179.875,90&format=image/jpeg&styles=default
+      ]]>
+    </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>Daily Planet</Name>
+    <Title>Continuously updating earth image, from MODIS TERRA</Title>
+    <Abstract>
+      Jpeg tiles as used by Google Earth, NASA WorldWind and WorldKit. Due to alignment issues, WorldWind can only use levels with 4 degrees or less per tile.
+      Configuration file for WorldWind avalaible at "http://OnEarth.jpl.nasa.gov/OnEarth.xml"
+      Google Earth KML file "http://OnEarth.jpl.nasa.gov/OnEarth_DailyPlanet.kml"
+      WorldKit sample configuration for this layer at "http://OnEarth.jpl.nasa.gov/WK/daily_planet"
+      This cache set is the native dataset, with a maximum resolution of 1/512 degrees per pixel (7.03125 arc-seconds per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>3</Bands>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-166,76,90
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,-166,76,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-38,-52,90
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,-38,-52,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,26,-116,90
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,26,-116,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,58,-148,90
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,58,-148,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,74,-164,90
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,74,-164,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,82,-172,90
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,82,-172,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,86,-176,90
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,86,-176,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,88,-178,90
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,88,-178,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89,-179,90
+      request=GetMap&layers=daily_planet&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,89,-179,90
+      ]]>
+    </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>Daily Afternoon</Name>
+    <Title>Continuously updating earth image, from MODIS AQUA</Title>
+    <Abstract>
+      Jpeg tiles as used by Google Earth, NASA WorldWind and WorldKit. Due to alignment issues, WorldWind can only use levels at 4 degrees or less per tile.
+      Configuration file for WorldWind avalaible at "http://OnEarth.jpl.nasa.gov/OnEarth.xml"
+      Google Earth KML file "http://OnEarth.jpl.nasa.gov/OnEarth_DailyAfternoon.kml"
+      WorldKit sample configuration for this layer at "http://OnEarth.jpl.nasa.gov/WK/daily_afternoon"
+      This cache set is the native dataset, with a maximum resolution of 1/512 degrees per pixel (7.03125 arc-seconds per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>3</Bands>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-166,76,90
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,-166,76,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-38,-52,90
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,-38,-52,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,26,-116,90
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,26,-116,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,58,-148,90
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,58,-148,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,74,-164,90
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,74,-164,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,82,-172,90
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,82,-172,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,86,-176,90
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,86,-176,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,88,-178,90
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,88,-178,90
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89,-179,90
+      request=GetMap&layers=daily_afternoon&srs=EPSG:4326&format=image/jpeg&styles=&time=${time}&width=512&height=512&bbox=-180,89,-179,90
+      ]]>
+    </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>MODIS TERRA visual</Name>
+    <Title>Composite of MODIS TERRA subsets from yesterday</Title>
+    <Abstract>
+      Jpeg tiles as used by NASA WorldWind and WorldKit. Due to alignment issues, WorldWind can only use levels with 4 degrees or less per tile.
+      Configuration file for WorldWind avalaible at "http://OnEarth.jpl.nasa.gov/OnEarth.xml".
+      WorldKit sample configuration for this layer at "http://OnEarth.jpl.nasa.gov/WK/daily_terra".
+      This layer is built daily from the visual TERRA subsets available at "http://rapidfire.sci.gsfc.nasa.gov/subsets".
+      The native resolution is 1/512 degrees per pixel (7.03125 arc-seconds per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>3</Bands>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-166,76,90
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-38,-52,90
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,26,-116,90
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,58,-148,90
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,74,-164,90
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,82,-172,90
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,86,-176,90
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,88,-178,90
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89,-179,90
+      request=GetMap&layers=daily_terra&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>MODIS AQUA visual</Name>
+    <Title>Composite of MODIS AQUA subsets from yesterday</Title>
+    <Abstract>
+      Jpeg tiles as used by NASA WorldWind and WorldKit. Due to alignment issues, WorldWind can only use levels with 4 degrees or less per tile.
+      Configuration file for WorldWind avalaible at "http://OnEarth.jpl.nasa.gov/OnEarth.xml".
+      WorldKit sample configuration for this layer at "http://OnEarth.jpl.nasa.gov/WK/daily_aqua".
+      This layer is built daily from the visual AQUA subsets available at "http://rapidfire.sci.gsfc.nasa.gov/subsets".
+      The native resolution is 1/512 degrees per pixel (7.03125 arc-seconds per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>3</Bands>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-166,76,90
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-38,-52,90
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,26,-116,90
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,58,-148,90
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,74,-164,90
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,82,-172,90
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,86,-176,90
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,88,-178,90
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89,-179,90
+      request=GetMap&layers=daily_aqua&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>MODIS TERRA 721 pseudocolor</Name>
+    <Title>Composite of MODIS TERRA subsets from yesterday</Title>
+    <Abstract>
+      Jpeg tiles as used by NASA WorldWind and WorldKit. Due to alignment issues, WorldWind can only use levels with 4 degrees or less per tile.
+      Configuration file for WorldWind avalaible at "http://OnEarth.jpl.nasa.gov/OnEarth.xml".
+      WorldKit sample configuration for this layer at "http://OnEarth.jpl.nasa.gov/WK/daily_terra/721".
+      This layer is built daily from the 721 TERRA subsets available at "http://rapidfire.sci.gsfc.nasa.gov/subsets".
+      The native resolution is 1/512 degrees per pixel (7.03125 arc-seconds per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>3</Bands>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-166,76,90
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-38,-52,90
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,26,-116,90
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,58,-148,90
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,74,-164,90
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,82,-172,90
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,86,-176,90
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,88,-178,90
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89,-179,90
+      request=GetMap&layers=daily_terra_721&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>MODIS AQUA 721 pseudocolor</Name>
+    <Title>Composite of MODIS TERRA subsets from yesterday</Title>
+    <Abstract>
+      Jpeg tiles as used by NASA WorldWind and WorldKit. Due to alignment issues, WorldWind can only use levels with 4 degrees or less per tile.
+      Configuration file for WorldWind avalaible at "http://OnEarth.jpl.nasa.gov/OnEarth.xml".
+      WorldKit sample configuration for this layer at "http://OnEarth.jpl.nasa.gov/WK/daily_aqua/721".
+      This layer is built daily from the 721 TERRA subsets available at "http://rapidfire.sci.gsfc.nasa.gov/subsets".
+      The native resolution is 1/512 degrees per pixel (7.03125 arc-seconds per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>3</Bands>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-166,76,90
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-38,-52,90
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,26,-116,90
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,58,-148,90
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,74,-164,90
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,82,-172,90
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,86,-176,90
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,88,-178,90
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89,-179,90
+      request=GetMap&layers=daily_aqua_721&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>MODIS TERRA NDVI</Name>
+    <Title>Composite of MODIS TERRA NDVI subsets from yesterday</Title>
+    <Abstract>
+      Jpeg tiles as used by NASA WorldWind and WorldKit. Due to alignment issues, WorldWind can only use levels with 4 degrees or less per tile.
+      Configuration file for WorldWind avalaible at "http://OnEarth.jpl.nasa.gov/OnEarth.xml".
+      WorldKit sample configuration for this layer at "http://OnEarth.jpl.nasa.gov/WK/daily_terra/ndvi".
+      This layer is built daily from the NDVI TERRA subsets available at "http://rapidfire.sci.gsfc.nasa.gov/subsets".
+      The native resolution is 1/512 degrees per pixel (7.03125 arc-seconds per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>3</Bands>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-166,76,90
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-38,-52,90
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,26,-116,90
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,58,-148,90
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,74,-164,90
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,82,-172,90
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,86,-176,90
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,88,-178,90
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89,-179,90
+      request=GetMap&layers=daily_terra_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>MODIS AQUA NDVI</Name>
+    <Title>Composite of MODIS AQUA NDVI subsets from yesterday</Title>
+    <Abstract>
+      Jpeg tiles as used by NASA WorldWind and WorldKit. Due to alignment issues, WorldWind can only use levels with 4 degrees or less per tile.
+      Configuration file for WorldWind avalaible at "http://OnEarth.jpl.nasa.gov/OnEarth.xml".
+      WorldKit sample configuration for this layer at "http://OnEarth.jpl.nasa.gov/WK/daily_aqua/ndvi".
+      This layer is built daily from the NDVI AQUA subsets available at "http://rapidfire.sci.gsfc.nasa.gov/subsets".
+      The native resolution is 1/512 degrees per pixel (7.03125 arc-seconds per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>3</Bands>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-166,76,90
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,-166,76,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,-38,-52,90
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,-38,-52,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,26,-116,90
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,26,-116,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,58,-148,90
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,58,-148,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,74,-164,90
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,74,-164,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,82,-172,90
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,82,-172,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,86,-176,90
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,86,-176,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,88,-178,90
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,88,-178,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+    <TilePattern>
+      <![CDATA[
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&format=image/jpeg&styles=&width=512&height=512&bbox=-180,89,-179,90
+      request=GetMap&layers=daily_aqua_ndvi&srs=EPSG:4326&width=512&height=512&bbox=-180,89,-179,90&format=image/jpeg&version=1.1.1&styles=
+      ]]>
+    </TilePattern>
+  </TiledGroup>
+
+  <TiledGroups>
+    <Name>NASA BMNG</Name>
+    <Title>Full resolution NASA BMNG</Title>
+    <Abstract>NASA BMNG is a MODIS based image of the world. There are three versions, each with one image for every month of a year.
+    The most common version is hillshaded to increase the three dimensional look based on land and ocean elevation. This version is available
+    as tiles 480x480, which preserves the raw resolution of the source data.
+    A second version, has uniformly dark blue oceans, without bathymetry shading while the third version does not have any elevation based shading, neither ocean nor land.
+    </Abstract>
+  <TiledGroups>
+    <Name>BMNG with bathymetry, hillshaded</Name>
+    <Title>The full resolution BMNG in jpeg tiled format</Title>
+    <Abstract> There are twelve styles of this dataset, each one corresponding to a given month of the year.
+    Tiles are 480x480 pixels</Abstract>
+
+    <TiledGroup>
+      <Name>BMNG January</Name>
+      <Title>BMNG with bathymetry, hillshaded, January </Title>
+      <Abstract> Jpeg tiles as used by WorldKit.  The native resolution is 2/480 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG February</Name>
+      <Title>BMNG with bathymetry, hillshaded, February </Title>
+      <Abstract>Jpeg tiles as used by WorldKit.  The native resolution is 2/480 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG March</Name>
+      <Title>BMNG with bathymetry, hillshaded, March </Title>
+      <Abstract> Jpeg tiles as used by WorldKit.  The native resolution is 2/480 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG April</Name>
+      <Title>BMNG with bathymetry, hillshaded, April </Title>
+      <Abstract> Jpeg tiles as used by WorldKit.  The native resolution is 2/480 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG May</Name>
+      <Title>BMNG with bathymetry, hillshaded, May </Title>
+      <Abstract> Jpeg tiles as used by WorldKit.  The native resolution is 2/480 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG June</Name>
+      <Title>BMNG with bathymetry, hillshaded, June </Title>
+      <Abstract> Jpeg tiles as used by WorldKit.  The native resolution is 2/480 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG July</Name>
+      <Title>BMNG with bathymetry, hillshaded, July </Title>
+      <Abstract> Jpeg tiles as used by WorldKit.  The native resolution is 2/480 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG August</Name>
+      <Title>BMNG with bathymetry, hillshaded, August </Title>
+      <Abstract> Jpeg tiles as used by WorldKit.  The native resolution is 2/480 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG September</Name>
+      <Title>BMNG with bathymetry, hillshaded, September </Title>
+      <Abstract> Jpeg tiles as used by WorldKit.  The native resolution is 2/480 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG October</Name>
+      <Title>BMNG with bathymetry, hillshaded, October </Title>
+      <Abstract> Jpeg tiles as used by WorldKit.  The native resolution is 2/480 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG November</Name>
+      <Title>BMNG with bathymetry, hillshaded, November </Title>
+      <Abstract> Jpeg tiles as used by WorldKit.  The native resolution is 2/480 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG December</Name>
+      <Title>BMNG with bathymetry, hillshaded, December </Title>
+      <Abstract> Jpeg tiles as used by WorldKit.  The native resolution is 2/480 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+
+  </TiledGroups>
+
+  <TiledGroups>
+    <Name>BMNG without bathymetry, dark oceans</Name> <Title>The full resolution BMNG in jpeg tiled format</Title>
+    <Abstract> There are twelve styles of this dataset, each one corresponding to a given month of the year, with 960x960 pixel tiles</Abstract>
+
+    <TiledGroup>
+      <Name>BMNG_nb January</Name> <Title>BMNG without bathymetry hillshade, January</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_nb&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_nb&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_nb&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_nb&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_nb&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_nb&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_nb&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_nb&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_nb February</Name> <Title>BMNG without bathymetry hillshade, February</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_nb&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_nb&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_nb&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_nb&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_nb&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_nb&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_nb&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_nb&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_nb March</Name> <Title>BMNG without bathymetry hillshade, March</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_nb&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_nb&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_nb&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_nb&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_nb&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_nb&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_nb&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_nb&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_nb April</Name> <Title>BMNG without bathymetry hillshade, April</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_nb&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_nb&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_nb&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_nb&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_nb&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_nb&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_nb&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_nb&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_nb May</Name> <Title>BMNG without bathymetry hillshade, May</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_nb&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_nb&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_nb&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_nb&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_nb&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_nb&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_nb&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_nb&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_nb Jun</Name> <Title>BMNG without bathymetry hillshade, June</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_nb&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_nb&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_nb&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_nb&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_nb&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_nb&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_nb&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_nb&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_nb July</Name> <Title>BMNG without bathymetry hillshade, July</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_nb&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_nb&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_nb&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_nb&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_nb&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_nb&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_nb&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_nb&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_nb August</Name> <Title>BMNG without bathymetry hillshade, August</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_nb&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_nb&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_nb&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_nb&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_nb&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_nb&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_nb&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_nb&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_nb September</Name> <Title>BMNG without bathymetry hillshade, September</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_nb&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_nb&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_nb&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_nb&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_nb&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_nb&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_nb&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_nb&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_nb October</Name> <Title>BMNG without bathymetry hillshade, October</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_nb&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_nb&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_nb&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_nb&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_nb&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_nb&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_nb&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_nb&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_nb November</Name> <Title>BMNG without bathymetry hillshade, November</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_nb&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_nb&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_nb&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_nb&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_nb&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_nb&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_nb&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_nb&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_nb December</Name> <Title>BMNG without bathymetry hillshade, December</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_nb&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_nb&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_nb&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_nb&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_nb&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_nb&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_nb&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_nb&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+  </TiledGroups>
+
+  <TiledGroups>
+    <Name>BMNG without hillshading</Name> <Title>The full resolution BMNG in jpeg tiled format</Title>
+    <Abstract> There are twelve styles of this dataset, each one corresponding to a given month of the year, with 960x960 pixel tiles</Abstract>
+
+    <TiledGroup>
+      <Name>BMNG_ns January</Name> <Title>BMNG without hillshade, January</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad> <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_ns&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_ns&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_ns&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_ns&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_ns&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_ns&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_ns&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jan_ns&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_ns February</Name> <Title>BMNG without hillshade, February</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_ns&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_ns&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_ns&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_ns&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_ns&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_ns&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_ns&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Feb_ns&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_ns March</Name> <Title>BMNG without hillshade, March</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_ns&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_ns&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_ns&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_ns&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_ns&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_ns&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_ns&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Mar_ns&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_ns April</Name> <Title>BMNG without hillshade, April</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_ns&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_ns&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_ns&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_ns&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_ns&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_ns&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_ns&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Apr_ns&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_ns May</Name> <Title>BMNG without hillshade, May</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_ns&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_ns&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_ns&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_ns&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_ns&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_ns&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_ns&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=May_ns&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_ns Jun</Name> <Title>BMNG without hillshade, June</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_ns&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_ns&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_ns&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_ns&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_ns&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_ns&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_ns&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jun_ns&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_ns July</Name> <Title>BMNG without hillshade, July</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_ns&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_ns&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_ns&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_ns&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_ns&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_ns&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_ns&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Jul_ns&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_ns August</Name> <Title>BMNG without hillshade, August</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_ns&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_ns&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_ns&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_ns&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_ns&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_ns&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_ns&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Aug_ns&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_ns September</Name> <Title>BMNG without hillshade, September</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_ns&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_ns&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_ns&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_ns&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_ns&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_ns&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_ns&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Sep_ns&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_ns October</Name> <Title>BMNG without hillshade, October</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_ns&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_ns&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_ns&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_ns&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_ns&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_ns&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_ns&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Oct_ns&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_ns November</Name> <Title>BMNG without hillshade, November</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_ns&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_ns&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_ns&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_ns&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_ns&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_ns&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_ns&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Nov_ns&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+    <TiledGroup>
+      <Name>BMNG_ns December</Name> <Title>BMNG without hillshade, December</Title>
+      <Abstract>Jpeg tiles.  The native resolution is 1/240 degrees per pixel (15 arc-seconds per pixel).</Abstract>
+      <Pad>0</Pad>
+      <Bands>3</Bands>
+      <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_ns&width=480&height=480&bbox=-180,-166,76,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_ns&width=480&height=480&bbox=-180,-38,-52,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_ns&width=480&height=480&bbox=-180,26,-116,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_ns&width=480&height=480&bbox=-180,58,-148,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_ns&width=480&height=480&bbox=-180,74,-164,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_ns&width=480&height=480&bbox=-180,82,-172,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_ns&width=480&height=480&bbox=-180,86,-176,90]]> </TilePattern>
+      <TilePattern> <![CDATA[request=GetMap&layers=BMNG&srs=EPSG:4326&format=image/jpeg&styles=Dec_ns&width=480&height=480&bbox=-180,88,-178,90]]> </TilePattern>
+    </TiledGroup>
+  </TiledGroups>
+  </TiledGroups>
+
+  <TiledGroup>
+    <Name>MODIS TERRA, BMNG background</Name>
+    <Title>Composite of MODIS TERRA subsets from yesterday on Blue Marble Next Generation background</Title>
+    <Abstract>
+      Preblended JPEG tiles using two separate layers. The BMNG background uses the current month, the daily_terra is the latest available. This tile set updates daily, after daily_terra itself is updated.
+      The native resolution is 1.40625/512 degrees per pixel (9.8876953125 arc-seconds per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>3</Bands>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern> <![CDATA[request=GetMap&width=512&height=512&layers=BMNG,daily_terra&styles=&srs=EPSG:4326&format=image/jpeg&bbox=-180,88.59375,-178.59375,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&width=512&height=512&layers=BMNG,daily_terra&styles=&srs=EPSG:4326&format=image/jpeg&bbox=-180,87.1875,-177.1875,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&width=512&height=512&layers=BMNG,daily_terra&styles=&srs=EPSG:4326&format=image/jpeg&bbox=-180,84.375,-174.375,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&width=512&height=512&layers=BMNG,daily_terra&styles=&srs=EPSG:4326&format=image/jpeg&bbox=-180,78.75,-168.75,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&width=512&height=512&layers=BMNG,daily_terra&styles=&srs=EPSG:4326&format=image/jpeg&bbox=-180,67.5,-157.5,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&width=512&height=512&layers=BMNG,daily_terra&styles=&srs=EPSG:4326&format=image/jpeg&bbox=-180,45,-135,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&width=512&height=512&layers=BMNG,daily_terra&styles=&srs=EPSG:4326&format=image/jpeg&bbox=-180,0,-90,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&width=512&height=512&layers=BMNG,daily_terra&styles=&srs=EPSG:4326&format=image/jpeg&bbox=-180,-90,0,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&width=512&height=512&layers=BMNG,daily_terra&styles=&srs=EPSG:4326&format=image/jpeg&bbox=-180,-270,180,90]]> </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>Global SRTM Elevation</Name>
+    <Title>3 arc-second (90m) SRTM elevation, with the holes filled, packed as signed short int image/png tiles</Title>
+    <Abstract>
+      This dataset is derived from the public global 90m SRTM elevation, packed as 300x300 pixel, 16bit per pixel png files.
+      The data was prepared by NASA Learning Technologies for use by the NASA WorldWind application.
+      The 16 bit short integers contained in the PNG tiles should be interpreted as signed short.
+      The highest resolution is 1/1200 degrees per pixel (3 arc-seconds per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>1</Bands>
+    <DataType>Int16</DataType>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern> <![CDATA[request=GetMap&layers=worldwind_dem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,89.75,-179.75,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=worldwind_dem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,89.50,-179.50,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=worldwind_dem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,89,-179,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=worldwind_dem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,88,-178,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=worldwind_dem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,86,-176,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=worldwind_dem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,82,-172,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=worldwind_dem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,74,-164,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=worldwind_dem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,58,-148,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=worldwind_dem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,26,-116,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=worldwind_dem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,-38,-52,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=worldwind_dem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,-166,76,90]]> </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>ASTER DEM</Name>
+    <Title>1.5 arc-second (45m) GDEM elevation</Title>
+    <Abstract>
+      Subsampled version of the ASTER Global Digital Elevation Map (GDEM).  More details can be found at http://asterweb.jpl.nasa.gov/gdem.asp
+      Redistribution of the full resolution original data is not allowed.
+      The 16 bit short integers contained in the PNG tiles should be interpreted as signed short.
+      The highest resolution is 1/2400 degrees per pixel (1.5 arc-seconds per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>1</Bands>
+    <DataType>Int16</DataType>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90"/>
+    <TilePattern> <![CDATA[request=GetMap&layers=gdem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,89.875,-179.875,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=gdem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,89.75,-179.75,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=gdem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,89.50,-179.50,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=gdem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,89,-179,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=gdem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,88,-178,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=gdem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,86,-176,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=gdem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,82,-172,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=gdem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,74,-164,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=gdem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,58,-148,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=gdem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,26,-116,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=gdem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,-38,-52,90]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=gdem&srs=EPSG:4326&width=300&height=300&format=image/png&styles=short_int&bbox=-180,-166,76,90]]> </TilePattern>
+  </TiledGroup>
+
+  <TiledGroup>
+    <Name>Continental US Elevation</Name>
+    <Title>NED derived elevation, 1 arc-second (30m) elevation dataset, 16 bit PNG</Title>
+    <Abstract>
+      This dataset is derived from the continental US NED data, served as 300x300 pixel, 16bit per pixel PNG.
+The 16 bit short integers should be interpreted as signed short, representing the elevation in feet (0.3084m).
+  The highest resolution is 1/3600 degrees per pixel (1 arc-seconds per pixel).
+    </Abstract>
+    <Pad>0</Pad>
+    <Bands>1</Bands>
+    <DataType>Int16</DataType>
+    <LatLonBoundingBox minx="-125" miny="24" maxx="-64" maxy="50"/>
+    <TilePattern> <![CDATA[request=GetMap&layers=us_ned&srs=EPSG:4326&width=300&height=300&format=image/png&styles=feet_short_int&bbox=-125,49.91666667,-124.91666667,50]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=us_ned&srs=EPSG:4326&width=300&height=300&format=image/png&styles=feet_short_int&bbox=-125,49.83333333,-124.83333333,50]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=us_ned&srs=EPSG:4326&width=300&height=300&format=image/png&styles=feet_short_int&bbox=-125,49.66666667,-124.66666667,50]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=us_ned&srs=EPSG:4326&width=300&height=300&format=image/png&styles=feet_short_int&bbox=-125,49.33333333,-124.33333333,50]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=us_ned&srs=EPSG:4326&width=300&height=300&format=image/png&styles=feet_short_int&bbox=-125,48.66666667,-123.66666667,50]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=us_ned&srs=EPSG:4326&width=300&height=300&format=image/png&styles=feet_short_int&bbox=-125,47.33333333,-122.33333333,50]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=us_ned&srs=EPSG:4326&width=300&height=300&format=image/png&styles=feet_short_int&bbox=-125,44.66666667,-119.66666667,50]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=us_ned&srs=EPSG:4326&width=300&height=300&format=image/png&styles=feet_short_int&bbox=-125,39.33333333,-114.33333333,50]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=us_ned&srs=EPSG:4326&width=300&height=300&format=image/png&styles=feet_short_int&bbox=-125,28.66666667,-103.66666667,50]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=us_ned&srs=EPSG:4326&width=300&height=300&format=image/png&styles=feet_short_int&bbox=-125,7.33333333,-82.33333333,50]]> </TilePattern>
+    <TilePattern> <![CDATA[request=GetMap&layers=us_ned&srs=EPSG:4326&width=300&height=300&format=image/png&styles=feet_short_int&bbox=-125,-35.3333333,-39.66666667,50]]> </TilePattern>
+  </TiledGroup>
+ </TiledPatterns>
+</WMS_Tile_Service>
