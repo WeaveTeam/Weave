@@ -2,6 +2,13 @@
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="weave.services.WeaveGeneExpressionServlet"/>
+    <classEntry path="weave.services.beans.GXA.Gene"/>
+    <classEntry path="weave.services.beans.GXA.GeneExpression"/>
+    <classEntry path="weave.services.beans.GXA.Expression"/>
+    <classEntry path="weave.services.beans.GXA.Experiment"/>
+    <classEntry path="weave.services.beans.GXA.GXAgeneListResult"/>
+    <classEntry path="weave.data.DataSources.GXADataSource"/>
+    <classEntry path="weave.services.beans.GXA.GXAconditionsListResult"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
