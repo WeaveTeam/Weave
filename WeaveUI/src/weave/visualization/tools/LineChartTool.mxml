@@ -309,7 +309,7 @@
 			private function addLabelLayer():void
 			{
 				var name:String = "label";
-				var labelPlotter:TextGlyphPlotter = visualization.plotManager.plotters.requestObject(name, TextGlyphPlotter, true);
+				labelPlotter = visualization.plotManager.plotters.requestObject(name, TextGlyphPlotter, true);
 				var settings:LayerSettings = visualization.plotManager.getLayerSettings(name);
 				settings.selectable.value = false;
 				settings.selectable.lock();

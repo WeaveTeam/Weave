@@ -308,6 +308,14 @@ package weave.core
 			_lastMousePoint.x = _stage.mouseX;
 			_lastMousePoint.y = _stage.mouseY;
 			
+			handleCallLater();
+		}
+		
+		/**
+		 * This function gets called during ENTER_FRAME and RENDER events.
+		 */
+		private function handleCallLater():void
+		{
 			var args:Array;
 			var stackTrace:String;
 			var i:int;
@@ -627,6 +635,7 @@ package weave.core
 				
 				// add these callbacks now so they will execute before any others
 				addEventCallback(Event.ENTER_FRAME, null, handleEnterFrame);
+				addEventCallback(Event.RENDER, null, handleCallLater);
 				addEventCallback(MouseEvent.MOUSE_DOWN, null, handleMouseDown);
 				addEventCallback(MouseEvent.CLICK, null, handleMouseClick);
 			}
