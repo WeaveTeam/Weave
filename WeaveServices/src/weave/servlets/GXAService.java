@@ -23,18 +23,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 
-
-
-
 import org.apache.commons.io.IOUtils;
+
+import weave.beans.GXA.GXAResult;
+import weave.beans.GXA.GXAconditionsListResult;
+import weave.beans.GXA.GXAgeneListResult;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import weave.beans.GXA.GXAResult;
 
 
 public class GXAService extends GenericServlet
@@ -63,17 +62,36 @@ public class GXAService extends GenericServlet
 		return gxaResult;
 	}
 	//object name is built on dynamic object name - queryValue
-	// so didn't used the new Gson().fromJson method
-	public JsonArray getGeneList(String queryValue) throws IOException{
+	// so didn't used the new Gson().fromJson method to serialize
+	public GXAgeneListResult[] getGeneList(String queryValue) throws IOException{
 		String queryURL = "http://www.ebi.ac.uk/gxa/fval?q=" + queryValue+ "&factor=&type=gene&limit=15";
 		String jsonString = stringOfUrl(queryURL);
 		JsonElement jElement = new JsonParser().parse(jsonString);
 		JsonObject  jobject = jElement.getAsJsonObject();
 		JsonObject completionsJObj = jobject.getAsJsonObject("completions");
 		JsonArray jsonArray = completionsJObj.getAsJsonArray(queryValue);
-//		jobject = jarray.get(1).getAsJsonObject();
-//		JsonArray jarrayExpressions = jobject.getAsJsonArray("expressions");
-		return jsonArray;
+		int arraySize = jsonArray.size();
+		GXAgeneListResult[] gxaGeneListResult = new GXAgeneListResult[arraySize];
+		for( int i = 0 ; i < arraySize;i++)
+			gxaGeneListResult[i] = new Gson().fromJson(jsonArray.get(1),GXAgeneListResult.class);
+		
+		return gxaGeneListResult;
+	}
+	
+	
+	public GXAconditionsListResult[] getConditionsList(String queryValue) throws IOException{
+		String queryURL = "http://www.ebi.ac.uk/gxa/fval?q=" + queryValue+ "&factor=&type=efoefv&limit=15";
+		String jsonString = stringOfUrl(queryURL);
+		JsonElement jElement = new JsonParser().parse(jsonString);
+		JsonObject  jobject = jElement.getAsJsonObject();
+		JsonObject completionsJObj = jobject.getAsJsonObject("completions");
+		JsonArray jsonArray = completionsJObj.getAsJsonArray(queryValue);
+		int arraySize = jsonArray.size();
+		GXAconditionsListResult[] gxaConditionsListResult = new GXAconditionsListResult[arraySize];
+		for( int i = 0 ; i < arraySize;i++)
+			gxaConditionsListResult[i] = new Gson().fromJson(jsonArray.get(1),GXAconditionsListResult.class);
+		
+		return gxaConditionsListResult;
 	}
 	
 	public static String stringOfUrl(String addr) throws IOException {

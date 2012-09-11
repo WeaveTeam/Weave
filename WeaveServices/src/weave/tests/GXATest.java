@@ -18,8 +18,9 @@ public class GXATest {
 			//ser.extractGeneExpressionData(queryUrl);
 			
 			
-			String query = "ha";
-			ser.getGeneList(query);
+			String query = "li";
+			//ser.getGeneList(query);
+			ser.getConditionsList(query);
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

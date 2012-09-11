@@ -22,7 +22,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				title="Gene Expression UI"
-				x="15%" width="70%" y="15%" height="70%"
+				x="15%" width="70%" y="15%" height="20%"
 				backgroundColor="#EFF4BC" 
 				layout="horizontal"
 				autoLayout="true"
@@ -32,15 +32,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:HBox width="100%">
 		<mx:VBox>
 			<mx:Label text="EnsemblID"/>
-			<mx:TextInput id="geneID"/>
+			<mx:Text id="selectedGeneID"/>
+			<mx:TextInput id="geneID" change="geneID_changeHandler(event)"/>
+			
 		</mx:VBox>	
 		<mx:VBox>
 			<mx:Label text="Expressions"/>
 			<mx:ComboBox id="expressions">
 				<mx:ArrayCollection>
-					<mx:Object state="up/down in" value="updownIn"/>
-					<mx:Object state="up in" capital="upIn"/>
-					<mx:Object state="down in" capital="downIn"/>
+					<mx:Object label="up/down in" value="updownIn"/>
+					<mx:Object label="up in" value="upIn"/>
+					<mx:Object label="down in" value="downIn"/>
 				</mx:ArrayCollection>
 			</mx:ComboBox>
 		</mx:VBox>		
@@ -48,48 +50,50 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:Label text="Organism"/>
 			<mx:ComboBox id="organism">
 				<mx:ArrayCollection>
-					<mx:Object state="anopheles gambiae" value="anopheles+gambiae"/>
-					<mx:Object state="arabidopsis thaliana" value="arabidopsis+thaliana"/>
-					<mx:Object state="bacillus subtilis" value="bacillus+subtilis"/>
-					<mx:Object state="bos taurus" value="bos+taurus"/>
-					<mx:Object state="caenorhabditis elegans" value="caenorhabditis+elegans"/>
-					<!--<mx:Object state="canis familiaris" value=""/>
-					<mx:Object state="ciona intestinalis" value=""/>
-					<mx:Object state="ciona savignyi" value=""/>
-					<mx:Object state="danio rerio" value=""/>
-					<mx:Object state="dasypus novemcinctus" value=""/>
-					<mx:Object state="drosophila melanogaster" value=""/>
-					<mx:Object state="epstein barr virus" value=""/>
-					<mx:Object state="equus caballus" value=""/>
-					<mx:Object state="gallus gallus" value=""/>-->
-					<mx:Object state="homo sapiens" value="homo+sapiens"/>
-					<!--<mx:Object state="human cytomegalovirus" value=""/>
-					<mx:Object state="human immunodeficiency virus" value=""/>
-					<mx:Object state="kaposi sarcoma-associated herpesvirus" value=""/>
-					<mx:Object state="macaca mulatta" value=""/>
-					<mx:Object state="mus musculus" value=""/>
-					<mx:Object state="oryza sativa" value=""/>
-					<mx:Object state="populus trichocarpa" value=""/>
-					<mx:Object state="rattus norvegicus" value=""/>
-					<mx:Object state="saccharomyces cerevisiae" value=""/>
-					<mx:Object state="schizosaccharomyces pombe" value=""/>
-					<mx:Object state="sus scrofa" value=""/>
-					<mx:Object state="unknown" value=""/>
-					<mx:Object state="vitis vinifera" value=""/>
-					<mx:Object state="xenopus laevis" value=""/>
-					<mx:Object state="xenopus tropicalis" value=""/>-->
+					<mx:Object label="anopheles gambiae" value="anopheles+gambiae"/>
+					<mx:Object label="arabidopsis thaliana" value="arabidopsis+thaliana"/>
+					<mx:Object label="bacillus subtilis" value="bacillus+subtilis"/>
+					<mx:Object label="bos taurus" value="bos+taurus"/>
+					<mx:Object label="caenorhabditis elegans" value="caenorhabditis+elegans"/>
+					<mx:Object label="canis familiaris" value="canis+familiaris"/>
+					<mx:Object label="ciona intestinalis" value="ciona+intestinalis"/>
+					<mx:Object label="ciona savignyi" value="ciona+savignyi"/>
+					<mx:Object label="danio rerio" value="danio+rerio"/>
+					<mx:Object label="dasypus novemcinctus" value="dasypus+novemcinctus"/>
+					<mx:Object label="drosophila melanogaster" value="drosophila+melanogaster"/>
+					<mx:Object label="epstein barr virus" value="epstein+barr+virus"/>
+					<mx:Object label="equus caballus" value="equus+caballus"/>
+					<mx:Object label="gallus gallus" value="gallus+gallus"/>
+					<mx:Object label="homo sapiens" value="homo+sapiens"/>
+					<mx:Object label="human cytomegalovirus" value="human+cytomegalovirus"/>
+					<mx:Object label="human immunodeficiency virus" value="human+immunodeficiency+virus"/>
+					<mx:Object label="kaposi sarcoma-associated herpesvirus" value="kaposi+sarcoma-associated+herpesvirus"/>
+					<mx:Object label="macaca mulatta" value="macaca+mulatta"/>
+					<mx:Object label="mus musculus" value="mus+musculus"/>
+					<mx:Object label="oryza sativa" value="oryza+sativa"/>
+					<mx:Object label="populus trichocarpa" value="populus+trichocarpa"/>
+					<mx:Object label="rattus norvegicus" value="rattus+norvegicus"/>
+					<mx:Object label="saccharomyces cerevisiae" value="saccharomyces+cerevisiae"/>
+					<mx:Object label="schizosaccharomyces pombe" value="schizosaccharomyces+pombe"/>
+					<mx:Object label="sus scrofa" value="sus+scrofa"/>
+					<mx:Object label="vitis vinifera" value="vitis+vinifera"/>
+					<mx:Object label="xenopus laevis" value="xenopus+laevis"/>
+					<mx:Object label="xenopus tropicalis" value="xenopus+tropicalis"/>
 				</mx:ArrayCollection>
 			</mx:ComboBox>
 		</mx:VBox>
 		<mx:VBox>
 			<mx:Label text="Conditions"/>
-			<mx:TextInput id="conditions"/>
+			<mx:Text id="selectedConditionID"/>
+			<mx:TextInput id="conditions" change="conditions_changeHandler(event)"/>
 		</mx:VBox>
 		<mx:Button id="search" label="Search" click="search_clickHandler(event)"/>
 		
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.events.MenuEvent;
+			import mx.managers.PopUpManager;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
@@ -98,24 +102,175 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.WeaveAPI;
 			import weave.api.newLinkableChild;
 			import weave.core.LinkableString;
+			import weave.core.SessionManager;
+			import weave.data.DataSources.CSVDataSource;
+			import weave.data.DataSources.GXADataSource;
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveGeneExpressionServlet;
+			import weave.services.beans.GXA.Expression;
+			import weave.services.beans.GXA.GXAResult;
+			import weave.services.beans.GXA.GXAconditionsListResult;
+			import weave.services.beans.GXA.GXAgeneListResult;
+			import weave.services.beans.GXA.Gene;
+			import weave.services.beans.GXA.GeneExpression;
+			import weave.utils.ResultUtils;
 			
 			
 			WeaveAPI.registerImplementation(IVisTool, GeneExpressionTool, "Gene Expression UI");
 			
-			private var geneExpService:WeaveGeneExpressionServlet = new WeaveGeneExpressionServlet(Weave.properties.geneExpressionServiceURL.value);			
-			public const queryString:LinkableString = newLinkableChild(this,LinkableString);
 			
+			
+			private var geneExpService:WeaveGeneExpressionServlet = new WeaveGeneExpressionServlet("/WeaveServices/GXAService");			
+					
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				queryString.addImmediateCallback(this,callAtlasServer);
+				autosuggestGene = new SubMenu(geneID);
+				autosuggestCondition = new SubMenu(conditions);
+				geneID.addEventListener(KeyboardEvent.KEY_DOWN,handleUpDown);
+				conditions.addEventListener(KeyboardEvent.KEY_DOWN,handleUpDown);
+				autosuggestGene.addEventListener(MenuEvent.ITEM_CLICK,close);
+				autosuggestCondition.addEventListener(MenuEvent.ITEM_CLICK,close);
+				geneIDSring.addImmediateCallback(this,callAtlasServerForGeneList);
+				conditionsQuery.addImmediateCallback(this,callAtlasServerForConditionsList);
 			}
 			
-			private function callAtlasServer():void{
-				var query:AsyncToken = geneExpService.getGeneExpressionData(queryString.value);
-				DelayedAsyncResponder.addResponder(query, handleQueryResult, handleQueryFault);
+			public const geneIDSring:LinkableString =  newLinkableChild(this,LinkableString);
+			
+			//change to linkbindableproperty as we need to set two link when done through session state
+			protected function geneID_changeHandler(event:Event):void
+			{
+				if(geneID.text.length >1){
+					geneIDSring.value =  geneID.text;
+				}
+			}
+			
+			public const conditionsQuery:LinkableString = newLinkableChild(this,LinkableString);
+			protected function conditions_changeHandler(event:Event):void
+			{
+				if(conditions.text.length >1){
+					conditionsQuery.value =  conditions.text;
+				}
+				
+			}
+			
+			
+			private function handleUpDown(event:KeyboardEvent):void
+			{
+				var autoSuggestMenu:SubMenu;
+				if(event.target == geneID){
+					autoSuggestMenu = autosuggestGene;
+				}
+				else{
+					autoSuggestMenu = autosuggestCondition;
+				}
+				if(event.keyCode == Keyboard.DOWN)
+				{
+					autoSuggestMenu.setFocus();
+					autoSuggestMenu.selectedIndex = 0;
+				}else if(event.keyCode == Keyboard.ESCAPE)
+				{
+					close(event);
+				}
+			}
+			
+			private function close(event:Event=null):void
+			{
+				var autoSuggestMenu:SubMenu;
+				if(event.target == geneID){
+					autoSuggestMenu = autosuggestGene;
+				}
+				else{
+					autoSuggestMenu = autosuggestCondition;
+				}
+				autoSuggestMenu.hide();
+			}
+			
+			
+			private var isGeneServerCallRunning:Boolean = false;
+			private function callAtlasServerForGeneList():void{
+				if(!isGeneServerCallRunning){
+					var query:AsyncToken = geneExpService.getGeneList(geneIDSring.value);
+					DelayedAsyncResponder.addResponder(query, handleQueryResult, handleQueryFault,"gene");
+				}
+				else{
+					callLater(callAtlasServerForGeneList);
+					return;
+				}
+				
+				isGeneServerCallRunning = true;
+			}
+			
+			private var isConditionServerCallRunning:Boolean = false;
+			private function callAtlasServerForConditionsList():void{
+				if(!isConditionServerCallRunning){
+					var query:AsyncToken = geneExpService.getConditionsList(conditionsQuery.value);
+					DelayedAsyncResponder.addResponder(query, handleQueryResult, handleQueryFault,"conditions");
+				}
+				else{
+					callLater(callAtlasServerForGeneList);
+					return;
+				}				
+				isConditionServerCallRunning = true; 
+			} 
+			
+			
+			private var autosuggestGene:SubMenu;
+			private var autosuggestCondition:SubMenu;
+			
+			
+			private function handleQueryResult(event:ResultEvent, token:Object = null):void
+			{
+				var objectList:Array = event.result as Array;	
+				var objectListAsStringArray:Array = new Array();
+				autosuggestGene.removeAllSubMenuItems();
+				if(token == "conditions"){
+					for(var i:int = 0 ; i < objectList.length; i++){
+						var conListAsString:String = convertGXAconditionListresultToString(new GXAconditionsListResult(objectList[i]));
+						objectListAsStringArray.push(conListAsString);
+						autosuggestCondition.addSubMenuItem(conListAsString,fillSelectedConditionID,[conditionListDictionary[conListAsString]]);
+						autosuggestCondition.showSubMenu();
+						conditions.setFocus();
+					}
+				}
+				else{
+					for(var j:int = 0 ; j < objectList.length; j++){
+						var geneListAsString:String = convertGXAgeneListresultToString(new GXAgeneListResult(objectList[j]));
+						objectListAsStringArray.push(geneListAsString);
+						autosuggestGene.addSubMenuItem(geneListAsString,fillSelectedGeneID,[geneListDictionary[geneListAsString]]);
+						autosuggestGene.showSubMenu();
+						geneID.setFocus();
+					}
+				}
+				
+				
+				
+				
+				isGeneServerCallRunning = false;
+				
+				
+			}
+			private function fillSelectedGeneID(ensemblID:String):void{
+				selectedGeneID.text = selectedGeneID.text + "\n"+ensemblID;
+				geneID.text = "";
+			}
+			
+			private function fillSelectedConditionID(ensemblID:String):void{
+				selectedConditionID.text = selectedConditionID.text + "\n"+ensemblID;
+				conditions.text = "";
+			}
+			private var geneListDictionary:Dictionary = new Dictionary();
+			private function convertGXAgeneListresultToString(geneObject:GXAgeneListResult):String{
+				var geneListAsString:String = geneObject.property+":"+geneObject.value+"("+geneObject.otherNames.join(",")+")"+geneObject.species+"("+geneObject.count+")";
+				geneListDictionary[geneListAsString] = geneObject.id;
+				return geneListAsString;
+			}
+			
+			private var conditionListDictionary:Dictionary = new Dictionary();
+			private function convertGXAconditionListresultToString(conditionObj:GXAconditionsListResult):String{
+				var conditionListAsString:String = conditionObj.value+"["+conditionObj.count+" genes]";
+				conditionListDictionary[conditionListAsString] = conditionObj.id;
+				return conditionListAsString;
 			}
 			
 			protected function search_clickHandler(event:MouseEvent):void
@@ -123,21 +278,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// TODO Auto-generated method stub
 				
 				//queryString.value = "http://www.ebi.ac.uk/gxa/api/vx?geneGeneIs="+geneID.text+"&species="+(organism.selectedItem).value+"&"+(expressions.selectedItem).value+"="+conditions.text+"&format=json";
-				queryString.value = "http://www.ebi.ac.uk/gxa/api/vx?geneGeneIs=ENSG00000066279&species=&updownIn=EFO_0000815&rows=50&start=0&format=json"
-				
+				//queryString.value = "http://www.ebi.ac.uk/gxa/api/vx?geneGeneIs=ENSG00000066279&species=&updownIn=EFO_0000815&rows=50&start=0&format=json";
+				//queryString.value =	"http://www.ebi.ac.uk:80/gxa/api/vx?geneGeneIs=ENSG00000066279+ENSG00000100401+ENSG00000197265&species=homo+sapiens&updownIn=EFO_0000815+EFO_0000887&rows=50&start=0&format=json";
+				var gxaSource:GXADataSource = Weave.root.requestObject("GXA",GXADataSource, false);
+				gxaSource.queryString.value =	"geneGeneIs=ENSG00000066279+ENSG00000100401+ENSG00000197265&species=homo+sapiens&updownIn=EFO_0000815+EFO_0000887&rows=50&start=0&format=json";
 				
 			}
 			
-			private function handleQueryResult(event:ResultEvent, token:Object = null):void
-			{
-			
-			}
 			
 			
-			private function handleQueryFault(event:FaultEvent, token:Object = null):void
+			
+			
+			
+			 private function handleQueryFault(event:FaultEvent, token:Object = null):void
 			{
 				trace("fault on "+token, event.message);
-			}
+			} 
+			
+			
+			
+			
+			
 			
 		]]>
 	</mx:Script>

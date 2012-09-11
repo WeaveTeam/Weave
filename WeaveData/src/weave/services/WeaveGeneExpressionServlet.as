@@ -13,10 +13,21 @@ package weave.services
 		
 		protected var servlet:AMF3Servlet;
 		
-		// async result will be of type KMeansClusteringResult
+		
 		public function getGeneExpressionData(queryStr:String):AsyncToken
 		{			
 			return servlet.invokeAsyncMethod("extractGeneExpressionData", arguments);
 		}
+		
+		public function getGeneList(queryStr:String):AsyncToken
+		{			
+			return servlet.invokeAsyncMethod("getGeneList", arguments);
+		}
+		
+		public function getConditionsList(queryStr:String):AsyncToken
+		{			
+			return servlet.invokeAsyncMethod("getConditionsList", arguments);
+		}
+		
 	}
 }

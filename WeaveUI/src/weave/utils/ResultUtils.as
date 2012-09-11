@@ -27,8 +27,10 @@ package weave.utils
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
+	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.CSVColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.data.DataSources.CSVDataSource;
 	import weave.data.KeySets.KeySet;
 	
 	public class ResultUtils
@@ -45,7 +47,7 @@ package weave.utils
 			return objPropertyArray;
 		}
 		
-		public static function resultAsColorCol(colName:String,keys:Array,column:Object):void{
+		public static function resultAsColorCol(colName:String,keys:Array,column:Array):void{
 			var table:Array = [];
 			for (var k:int = 0; k < keys.length; k++)
 				table.push([(keys[k] as IQualifiedKey).localName, column[k]]);
@@ -93,6 +95,21 @@ package weave.utils
 				}
 			}
 			return arrayColl;			
+		}
+		
+		public static function convertToCSVDataSource(rowCollection:ArrayCollection,uniqueName:String,excludeCSVdataInSessionState:Boolean = true):CSVDataSource{
+			var rows:Array = rowCollection.source;
+			var headers:Array = WeaveAPI.CSVParser.getRecordFieldNames(rows);
+			var datas:Array = WeaveAPI.CSVParser.convertRecordsToRows(rows);
+			var csvDataString:String = WeaveAPI.CSVParser.createCSV(datas);			
+			
+			var csvDataSource:CSVDataSource = Weave.root.requestObject(uniqueName,CSVDataSource, false);
+			if(excludeCSVdataInSessionState){
+				(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(csvDataSource,csvDataSource.csvDataString);
+			}			
+			
+			csvDataSource.csvDataString.value = csvDataString;
+			return csvDataSource;
 		}
 		
 	}
