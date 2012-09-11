@@ -88,6 +88,8 @@ package weave.visualization.layers
 			{
 				if (dynamicState is String)
 					continue;
+				if (deprecatedLayerNames.indexOf(dynamicState.objectName) >= 0)
+					continue;
 				
 				var layerState:Object = dynamicState.sessionState;
 				var plotterState:Object = null;
@@ -111,6 +113,8 @@ package weave.visualization.layers
 			plotManager.plotters.resumeCallbacks();
 			plotManager.layerSettings.resumeCallbacks();
 		}
+		
+		private static const deprecatedLayerNames:Array = ["undefinedX", "undefinedY", "undefinedXY"];
 		
 		[Exclude] [Deprecated] public function set zoomBounds(value:Object):void { plotManager.zoomBounds.setSessionState(value); }
 		

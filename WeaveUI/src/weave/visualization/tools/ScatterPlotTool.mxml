@@ -103,10 +103,27 @@
 				visualization.plotManager.marginLeft.value   = "80";
 				visualization.plotManager.marginRight.value  = "30";
 				
-				getCallbackCollection(plotter.circlePlotter).addGroupedCallback(this, handlePlotterChange, true);
-				
 				initializeUndefinedLayers();				
 				initRegressionLayer();
+				
+				children.childListCallbacks.addGroupedCallback(this, handleChildrenChildList);
+			}
+			
+			private function handleChildrenChildList():void
+			{
+				// this will make sure the undefined x,y visualizations are on top of the main vis.
+				// get existing order
+				var order:Array = children.getNames();
+				var args:Array = [UNDEFINED_X_NAME, UNDEFINED_Y_NAME, UNDEFINED_XY_NAME];
+				// remove vis_undef_* names
+				for each (var name:String in args)
+					order.splice(order.indexOf(name), 1);
+				// replace the main vis name with the list of vis names
+				var visName:String = children.getName(visualization);
+				args.unshift(order.indexOf(visName), 1, visName);
+				order.splice.apply(null, args);
+				// save new order
+				children.setNameOrder(order);
 			}
 			
 			override public function getSelectableAttributeNames():Array
@@ -361,6 +378,7 @@
 				overrideColor.addGroupedCallback(this, updateColorPicker);
 				
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateEquationStyle, true);
+				getCallbackCollection(plotter.circlePlotter).addGroupedCallback(this, handlePlotterChange, true);
 			}
 			
 			private function updateEquationStyle():void
