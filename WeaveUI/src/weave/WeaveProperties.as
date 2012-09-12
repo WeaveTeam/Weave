@@ -273,7 +273,6 @@ package weave
 		// END TEMPORARY SOLUTION
 		
 		public const enableAddAttributeMenuTool:LinkableBoolean = new LinkableBoolean(true); // Add Attribute Menu Tool option tools menu
-
 		public const enableAddBarChart:LinkableBoolean = new LinkableBoolean(true); // Add Bar Chart option tools menu
 //		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
 		public const enableAddColorLegend:LinkableBoolean = new LinkableBoolean(true); // Add Color legend Tool option tools menu		

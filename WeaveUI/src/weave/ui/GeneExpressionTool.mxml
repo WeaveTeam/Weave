@@ -223,40 +223,61 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				var objectList:Array = event.result as Array;	
 				var objectListAsStringArray:Array = new Array();
-				autosuggestGene.removeAllSubMenuItems();
+				
 				if(token == "conditions"){
+					autosuggestCondition.removeAllSubMenuItems();
 					for(var i:int = 0 ; i < objectList.length; i++){
+						
 						var conListAsString:String = convertGXAconditionListresultToString(new GXAconditionsListResult(objectList[i]));
 						objectListAsStringArray.push(conListAsString);
 						autosuggestCondition.addSubMenuItem(conListAsString,fillSelectedConditionID,[conditionListDictionary[conListAsString]]);
 						autosuggestCondition.showSubMenu();
 						conditions.setFocus();
+						isConditionServerCallRunning = false;
+
 					}
 				}
 				else{
+					autosuggestGene.removeAllSubMenuItems();
 					for(var j:int = 0 ; j < objectList.length; j++){
+						
 						var geneListAsString:String = convertGXAgeneListresultToString(new GXAgeneListResult(objectList[j]));
 						objectListAsStringArray.push(geneListAsString);
 						autosuggestGene.addSubMenuItem(geneListAsString,fillSelectedGeneID,[geneListDictionary[geneListAsString]]);
 						autosuggestGene.showSubMenu();
 						geneID.setFocus();
+						isGeneServerCallRunning = false;
+
 					}
 				}
 				
 				
 				
 				
-				isGeneServerCallRunning = false;
-				
+								
 				
 			}
+			private var selectedGeneIDs:String = "";
 			private function fillSelectedGeneID(ensemblID:String):void{
 				selectedGeneID.text = selectedGeneID.text + "\n"+ensemblID;
+				if(selectedGeneIDs.length > 0){
+					selectedGeneIDs = selectedGeneIDs +"+" +ensemblID;
+				}
+				else{
+					selectedGeneIDs = ensemblID;
+				}
+				
 				geneID.text = "";
 			}
-			
+			private var selectedConditionIDs:String = "";
 			private function fillSelectedConditionID(ensemblID:String):void{
 				selectedConditionID.text = selectedConditionID.text + "\n"+ensemblID;
+				if(selectedConditionIDs.length > 0){
+					selectedConditionIDs = selectedConditionIDs +"+" +ensemblID;
+				}
+				else{
+					selectedConditionIDs = ensemblID;
+				}
 				conditions.text = "";
 			}
 			private var geneListDictionary:Dictionary = new Dictionary();
@@ -280,8 +301,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//queryString.value = "http://www.ebi.ac.uk/gxa/api/vx?geneGeneIs="+geneID.text+"&species="+(organism.selectedItem).value+"&"+(expressions.selectedItem).value+"="+conditions.text+"&format=json";
 				//queryString.value = "http://www.ebi.ac.uk/gxa/api/vx?geneGeneIs=ENSG00000066279&species=&updownIn=EFO_0000815&rows=50&start=0&format=json";
 				//queryString.value =	"http://www.ebi.ac.uk:80/gxa/api/vx?geneGeneIs=ENSG00000066279+ENSG00000100401+ENSG00000197265&species=homo+sapiens&updownIn=EFO_0000815+EFO_0000887&rows=50&start=0&format=json";
+				
 				var gxaSource:GXADataSource = Weave.root.requestObject("GXA",GXADataSource, false);
-				gxaSource.queryString.value =	"geneGeneIs=ENSG00000066279+ENSG00000100401+ENSG00000197265&species=homo+sapiens&updownIn=EFO_0000815+EFO_0000887&rows=50&start=0&format=json";
+				//gxaSource.queryString.value =	"geneGeneIs=ENSG00000066279+ENSG00000100401+ENSG00000197265&species=homo+sapiens&updownIn=EFO_0000815+EFO_0000887&rows=50&start=0&format=json";
+				gxaSource.queryString.value =	"geneGeneIs="+selectedGeneIDs+"&species=s&updownIn="+selectedConditionIDs+"&rows=50&start=0&format=json";
 				
 			}
 			
