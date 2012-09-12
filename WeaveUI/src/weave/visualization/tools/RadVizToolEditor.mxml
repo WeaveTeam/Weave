@@ -229,10 +229,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				_target.cdLayout.actualAlgo(_target._plotter.columns.getNames(),_target.cdLayout.ClassToColumnMap,layoutMeasure,thrValue);
+				_target._anchorPlotter.doClassColoring = true;
 				_target._plotter.doCDLayout = true;
 				_target._plotter.LayoutClasses = _target.cdLayout.tAndpMapping; 
 				//_target._plotter.setAnchorLocations();
-				_target._plotter.setClassDiscriminationAnchors();//cd layout
+				_target._plotter.setClassDiscriminationAnchorsLocations();//cd layout
 			}
 			
 			protected function useThresholdCB_clickHandler(event:MouseEvent):void
@@ -242,7 +243,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
-			//simply identifies which measure (pvalue or t-statistic) has been selected by the user for the CD algorithm 
+			// identifies which measure (pvalue or t-statistic) has been selected by the user for the CD algorithm 
 			protected function measureCheck():String
 			{
 				var layoutMeasure:String = new String();

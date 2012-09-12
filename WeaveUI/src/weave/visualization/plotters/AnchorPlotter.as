@@ -53,7 +53,7 @@ package weave.visualization.plotters
 		private const _bitmapText:BitmapText = new BitmapText();
 		private var coordinate:Point = new Point();//reusable object
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
-		public const colorForClassDiscrimination:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillClassColor); 
+		public var doClassColoring:Boolean = false;
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
 		public var anchorColorMap:Dictionary;
 		
@@ -91,10 +91,6 @@ package weave.visualization.plotters
 			}
 		}
 		
-		private function fillClassColor():void
-		{
-			
-		}
 		
 		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
@@ -132,6 +128,12 @@ package weave.visualization.plotters
 					graphics.beginFill(anchorColorMap[key.localName]);				
 				graphics.drawCircle(tempPoint.x, tempPoint.y, 5);				
 				graphics.endFill();
+				
+				//color the dimensional anchors according to the class hey belong to
+				if(doClassColoring)
+				{
+					
+				}
 				
 				_bitmapText.trim = false;
 				_bitmapText.text = " " + anchor.title.value + " ";

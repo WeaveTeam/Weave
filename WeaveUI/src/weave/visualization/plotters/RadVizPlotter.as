@@ -128,6 +128,10 @@ package weave.visualization.plotters
 		public const fillStyle:SolidFillStyle = newLinkableChild(this,SolidFillStyle,handleColorColumnChange);		
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))) ;		
+		
+		public var doCDLayout:Boolean = false;
+		public var LayoutClasses:Dictionary = null;
+		
 
 		/**
 		 * This is the radius of the circle, in screen coordinates.
@@ -229,10 +233,7 @@ package weave.visualization.plotters
 				keyColorMap[key] = fillStyle.color.internalDynamicColumn.getValueFromKey(key, Number);
 			}
 		}
-		
-		public var doCDLayout:Boolean = false;
-		public var LayoutClasses:Dictionary = null;
-		
+	
 		/*public function setAnchorLocations( ):void
 		{	
 			var _columns:Array = columns.getObjects();
@@ -329,7 +330,7 @@ package weave.visualization.plotters
 			anchors.resumeCallbacks();
 		}
 		
-		public function setClassDiscriminationAnchors():void
+		public function setClassDiscriminationAnchorsLocations():void
 		{
 			var numOfClasses:int = 0;
 			for ( var type:Object in LayoutClasses)

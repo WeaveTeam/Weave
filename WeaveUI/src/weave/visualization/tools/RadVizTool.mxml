@@ -65,8 +65,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.Bounds2D;
 			import weave.primitives.ColorRamp;
-			import weave.radviz.ClassDiscriminationLayoutAlgorithm;
+			
 			import weave.services.DelayedAsyncResponder;
+			import weave.radviz.ClassDiscriminationLayoutAlgorithm;
 			import weave.services.WeaveRServlet;
 			import weave.services.beans.RResult;
 			import weave.ui.DraggablePanel;
@@ -89,7 +90,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var normalizedColumns:Array = new Array();//normalized columns returned from R
 			private var normalizedColumnsGroup:ICallbackCollection; // linkable object used to group norm columns and check busy status
 			public const classDiscriminatorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);//column used as the Class Discriminator
-			public var cdLayout:ClassDiscriminationLayoutAlgorithm= new ClassDiscriminationLayoutAlgorithm();
+			public var cdLayout:ClassDiscriminationLayoutAlgorithm = new ClassDiscriminationLayoutAlgorithm();
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			
 			public var latestjoinedColumnKeys:Array = new Array();
