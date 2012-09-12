@@ -597,6 +597,18 @@ package weave.visualization.layers
 //							if (linkableObjectIsBusy(task))
 //								continue;
 							
+							/* if (linkableObjectIsBusy(task))
+							{
+								//TODO: this doesn't look good with transparency and overlapping completedBitmap and bufferBitmap
+								//TODO: this is incorrect if the PlotTask hasn't cleared the previous bitmap yet.
+								
+								shouldRender = true;
+								copyScaledPlotGraphics(
+									task.bufferBitmap, task.dataBounds, task.screenBounds,
+									bitmap.bitmapData, tempDataBounds, tempScreenBounds
+								);
+							}
+							else */
 							if (!task.completedDataBounds.isUndefined())
 							{
 								debugTrace(String(task),'completed','\n\tdata',String(task.completedDataBounds),'\n\tscreen',String(task.completedScreenBounds));
@@ -612,17 +624,6 @@ package weave.visualization.layers
 								debugTrace(String(task),'undefined',name);
 							}
 							
-//							if (linkableObjectIsBusy(task))
-//							{
-//								//TODO: this doesn't look good with transparency and overlapping completedBitmap and bufferBitmap
-//								//TODO: this is incorrect if the PlotTask hasn't cleared the previous bitmap yet.
-//								
-//								shouldRender = true;
-//								copyScaledPlotGraphics(
-//									task.bufferBitmap, task.dataBounds, task.screenBounds,
-//									bitmap.bitmapData, tempDataBounds, tempScreenBounds
-//								);
-//							}
 						}
 					}
 					else

@@ -23,7 +23,8 @@ package
 	 */
 	public function debugId(object:Object):String
 	{
-		if (object == null || typeof(object) != 'object')
+		var type:String = typeof(object);
+		if (object == null || type != 'object' && type != 'function')
 			return String(object);
 		return $.lookup[object]
 			|| ($.lookup[object] = getQualifiedClassName(object).split(':').pop() + $.i++);

@@ -57,11 +57,13 @@ package weave.utils
 		/**
 		 * format debug info from stack trace
 		 */
-		public static function getCompactStackTrace(e:Error):Array
+		public static function getCompactStackTrace(error_or_stack_trace:Object):Array
 		{
 			if (!Capabilities.isDebugger)
 				return null;
-			var lines:Array = e.getStackTrace().split(STACK_TRACE_DELIM);
+			if (error_or_stack_trace is Error)
+				error_or_stack_trace = (error_or_stack_trace as Error).getStackTrace();
+			var lines:Array = String(error_or_stack_trace).split(STACK_TRACE_DELIM);
 			lines.shift(); // remove the first line which is not part of the stack trace
 			for (var i:int = 0; i < lines.length; i++)
 			{

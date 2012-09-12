@@ -39,6 +39,7 @@ package weave.visualization.layers
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.core.CallbackCollection;
+	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ZoomBounds;
@@ -291,8 +292,13 @@ package weave.visualization.layers
 			// if keys aren't ready yet, prepare keys
 			if (_pendingKeys)
 			{
+				var stopTime:int = getTimer() + 50;
 				while (_iPendingKey < _pendingKeys.length)
 				{
+					// avoid doing too little or too much work per iteration 
+					if (getTimer() > stopTime)
+						return 0; // not done yet
+					
 					// next key iteration - add key if included in filter and on screen
 					var key:IQualifiedKey = _pendingKeys[_iPendingKey] as IQualifiedKey;
 					if (!_keyFilter || _keyFilter.containsKey(key)) // accept all keys if _keyFilter is null
@@ -312,9 +318,6 @@ package weave.visualization.layers
 					
 					// prepare for next iteration
 					_iPendingKey++;
-					
-					// not done yet
-					return 0;
 				}
 				// done with keys
 				_pendingKeys = null;

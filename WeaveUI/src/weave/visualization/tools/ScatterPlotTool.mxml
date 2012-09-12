@@ -583,8 +583,7 @@
 		</mx:VBox>
 		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
 			<mx:VBox>
-				<mx:CheckBox id="regressionLineCheckBox" label="{lang('Enable regression line')}"
-							 toolTip="{lang('Check this box to draw a regression line on the scatterplot')}"
+				<mx:CheckBox id="regressionLineCheckBox" label="{lang('Enable regression line (Requires Rserve on the server)')}"
 							 creationComplete="linkBindableProperty(_regressionPlotter.drawLine,event.target,'selected')"/>
 				<ui:Indent>
 					<mx:VBox>

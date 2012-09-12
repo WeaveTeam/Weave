@@ -39,6 +39,7 @@ package weave.core
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.utils.DebugTimer;
+	import weave.utils.DebugUtils;
 	
 	use namespace mx_internal;
 	
@@ -64,6 +65,8 @@ package weave.core
 		public var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
 		public var debug_callLater:Boolean = false; // set this to true to delay async tasks
 		private const _stackTraceMap:Dictionary = new Dictionary(true); // used by callLater to remember stack traces
+		private const _taskElapsedTime:Dictionary = new Dictionary(true);
+		private const _taskStartTime:Dictionary = new Dictionary(true);
 		
 		private var _event:Event = null; // returned by get event()
 		private var _shiftKey:Boolean = false; // returned by get shiftKey()
@@ -399,6 +402,9 @@ package weave.core
 					continue;
 				}
 				
+				if (debug_async_stack)
+					trace('priority',_activePriority);
+				
 //				trace('p',_activePriority,pElapsed,'/',pAlloc);
 				_currentTaskStopTime = pStop; // make sure _iterateTask knows when to stop
 				
@@ -517,7 +523,11 @@ package weave.core
 			}
 			
 			if (debug_async_stack)
-				_stackTraceMap[iterativeTask] = new Error("Stack trace").getStackTrace();
+			{
+				_stackTraceMap[iterativeTask] = debugId(iterativeTask) + ' ' + DebugUtils.getCompactStackTrace(new Error("Stack trace"));
+				_taskStartTime[iterativeTask] = getTimer();
+				_taskElapsedTime[iterativeTask] = 0;
+			}
 			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
 			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
@@ -537,6 +547,9 @@ package weave.core
 				WeaveAPI.ProgressIndicator.removeTask(task);
 				return;
 			}
+
+			var debug_time:int = debug_async_stack ? getTimer() : -1;
+			var stackTrace:String = debug_async_stack ? _stackTraceMap[task] : null;
 			
 			var progress:* = undefined;
 			// iterate on the task until _currentTaskStopTime is reached
@@ -544,7 +557,7 @@ package weave.core
 			while ((time = getTimer()) <= _currentTaskStopTime)
 			{
 				// perform the next iteration of the task
-				progress = task() as Number;
+				progress = task.apply() as Number;
 				if (progress === null || isNaN(progress) || progress < 0 || progress > 1)
 				{
 					reportError("Received unexpected result from iterative task (" + progress + ").  Expecting a number between 0 and 1.  Task cancelled.");
@@ -552,8 +565,8 @@ package weave.core
 				}
 				if (debug_async_stack && currentFrameElapsedTime > 3000)
 				{
-					trace(getTimer() - time, _stackTraceMap[task]);
-					task();
+					trace(getTimer() - time, stackTrace);
+					task.apply(); // this is incorrect behavior, but we can put a breakpoint here
 				}
 				if (progress == 1)
 				{
@@ -567,6 +580,14 @@ package weave.core
 				if (debug_delayTasks)
 					break;
 			}
+			if (debug_async_stack)
+			{
+				var start:int = int(_taskStartTime[task]);
+				var elapsed:int = int(_taskElapsedTime[task]) + (time - debug_time);
+				_taskElapsedTime[task] = elapsed;
+				trace(elapsed,'/',(time-start),'=',StandardLib.roundSignificant(elapsed / (time - start), 2),stackTrace);
+			}
+			
 			// max computation time reached without finishing the task, so update the progress indicator and continue the task later
 			if (progress !== undefined)
 				WeaveAPI.ProgressIndicator.updateTask(task, progress);

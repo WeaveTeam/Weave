@@ -27,6 +27,7 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
 	import weave.Weave;
 	import weave.api.core.ILinkableHashMap;
@@ -277,19 +278,27 @@ package weave.visualization.plotters
 		
 		private const _singleGeom:Array = []; // reusable array for holding one item
 		
+		private const RECORD_INDEX:String = 'recordIndex';
 		private const MIN_IMPORTANCE:String = 'minImportance';
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
 			if (task.iteration == 0)
 			{
+				task.asyncState[RECORD_INDEX] = 0; 
 				task.asyncState[MIN_IMPORTANCE] = getDataAreaPerPixel(task.dataBounds, task.screenBounds) * pixellation.value;
 			}
 			
+			var recordIndex:Number = task.asyncState[RECORD_INDEX];
 			var minImportance:Number = task.asyncState[MIN_IMPORTANCE];
 			var progress:Number = 1;
-			if (task.iteration < task.recordKeys.length)
+			var stopTime:int = getTimer() + 50;
+			while (recordIndex < task.recordKeys.length)
 			{
-				var recordKey:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
+				// avoid doing too little or too much work per iteration 
+				if (getTimer() > stopTime)
+					break; // not done yet
+				
+				var recordKey:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
 				var geoms:Array = null;
 				var value:* = geometryColumn.getValueFromKey(recordKey);
 				if (value is Array)
@@ -340,7 +349,8 @@ package weave.visualization.plotters
 				}
 				
 				// this progress value will be less than 1
-				progress = task.iteration / task.recordKeys.length;
+				progress = recordIndex++ / task.recordKeys.length;
+				task.asyncState[RECORD_INDEX] = recordIndex;
 			}
 			
 			// hack for symbol plotters
