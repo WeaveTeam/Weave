@@ -3,36 +3,36 @@
 				 xmlns:ui="weave.ui.*"
 				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				 layout="absolute"
-				 title="Edit Marker"
+				 title="{lang('Edit Marker')}"
 				 width="40%"
 				 height="40%"
 				
 				 >
 	
-	<mx:VBox id="singleImagePlotterControls" width="100%" paddingTop="3" horizontalAlign="left" label="Marker Settings">
+	<mx:VBox id="singleImagePlotterControls" width="100%" paddingTop="3" horizontalAlign="left" label="{lang('Marker Settings')}">
 		<mx:HBox>
-			<mx:Label width="100" fontWeight="bold" text="Image URL:"/>
+			<mx:Label width="100" fontWeight="bold" text="{lang('Image URL:')}"/>
 			<mx:TextInput id="imageURLText" borderStyle="solid" cornerRadius="5" width="200"/>
 			<ui:HelpComponent>Enter a URL to an image. If the URL empty it defaults to a red circle.</ui:HelpComponent>
 		</mx:HBox>
 		<mx:HBox>
-			<mx:Label width="100" fontWeight="bold" text="X Coordinate: "/>
+			<mx:Label width="100" fontWeight="bold" text="{lang('X Coordinate: ')}"/>
 			<mx:TextInput id="dataXText" borderStyle="solid" cornerRadius="5" width="100"/>
-			<mx:Label width="120" fontWeight="bold" text="Y Coordinate: "/>
+			<mx:Label width="120" fontWeight="bold" text="{lang('Y Coordinate: ')}"/>
 			<mx:TextInput id="dataYText" borderStyle="solid" cornerRadius="5"  width="100"/>
 		</mx:HBox>
 		
 		<mx:HBox>
-			<mx:Label width="100" fontWeight="bold" text="Vertical Align :" />
+			<mx:Label width="100" fontWeight="bold" text="{lang('Vertical Align :')}" />
 			<mx:ComboBox id="verticalAlignComboBox" width="100"/>
-			<mx:Label width="120" fontWeight="bold" text="Horizontal Align :" />
+			<mx:Label width="120" fontWeight="bold" text="{lang('Horizontal Align :')}" />
 			<mx:ComboBox id="horizonatalAlignComboBox" width="100"/>
 		</mx:HBox>
 		
 		<mx:HBox>
-			<mx:Label width="100" fontWeight="bold" text="Data Width:"/>
+			<mx:Label width="100" fontWeight="bold" text="{lang('Data Width:')}"/>
 			<mx:TextInput id="dataWidthText" borderStyle="solid" cornerRadius="5"  width="100"/>
-			<mx:Label width="120" fontWeight="bold" text="Data Height:"/>
+			<mx:Label width="120" fontWeight="bold" text="{lang('Data Height:')}"/>
 			<mx:TextInput id="dataHeightText" borderStyle="solid" cornerRadius="5"  width="100"/>
 			<ui:HelpComponent>Enter the width and height in data coordinates. The image will adjust to the width and height of the data coordinates.</ui:HelpComponent>
 		</mx:HBox>		
@@ -60,9 +60,9 @@
 			
 			private static var _editContextMenuItem:ContextMenuItem 	= null;
 			private static var _addRemoveContextMenuItem:ContextMenuItem = null;
-			private static const ADD_CAPTION:String           = "Add Marker"
-//			private static const REMOVE_CAPTION:String        = "Remove Remove Marker"
-//			private static const EDIT_TEXT_CAPTION:String     = "Edit Marker"
+			private static const ADD_CAPTION:String           = lang("Add Marker")
+//			private static const REMOVE_CAPTION:String        = lang("Remove Remove Marker")
+//			private static const EDIT_TEXT_CAPTION:String     = lang("Edit Marker")
 				
 			public static function createContextMenuItems(destination:DisplayObject):Boolean
 			{
@@ -141,7 +141,7 @@
 				
 				var owner:ILinkableObject = WeaveAPI.SessionManager.getLinkableOwner(plotter);
 			
-				settingsPanel.title = "Edit " + markerName;
+				settingsPanel.title = lang("Edit {0}", markerName);
 				
 				linkBindableProperty(settingsPanel.plotter.imageURL, settingsPanel.imageURLText, "text", 1000);
 				

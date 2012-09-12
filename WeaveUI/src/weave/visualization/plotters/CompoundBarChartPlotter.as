@@ -42,6 +42,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -89,15 +90,11 @@ package weave.visualization.plotters
 		}
 		private function handleColumnsListChange():void
 		{
-			// when a column is removed, remove callback trigger
-			var oldColumn:IAttributeColumn = heightColumns.childListCallbacks.lastObjectRemoved as IAttributeColumn;
-			if (oldColumn)
-				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(oldColumn)).removeCallback(spatialCallbacks.triggerCallbacks);
-			
-			// make callbacks trigger when statistics change for the column
+			// When a new column is created, register the stats to trigger callbacks and affect busy status.
+			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = heightColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn)).addImmediateCallback(this, spatialCallbacks.triggerCallbacks);
+				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
 		}
 		
 		/**
@@ -183,10 +180,12 @@ package weave.visualization.plotters
 		
 		private function heightColumnsGroupCallback():void
 		{
-			var columns:Array = heightColumns.getObjects();
-			
-			if (sortColumn.getInternalColumn() == null && columns.length > 0)
-				sortColumn.requestLocalObjectCopy(columns[0]);
+			if (!sortColumn.getInternalColumn())
+			{
+				var columns:Array = heightColumns.getObjects();
+				if (columns.length)
+					sortColumn.requestLocalObjectCopy(columns[0]);
+			}
 		}
 		
 		// this is a way to get the number of keys (bars or groups of bars) shown

@@ -264,7 +264,7 @@
 						WeaveAPI.LocaleManager.removeEntry(originalText);
 						refresh();
 					};
-					PopUpUtils.confirm(this, "Remove entry", "Are you sure you want to remove this entry from all locales?", yes, null, lang("Remove"), lang("Cancel"));
+					PopUpUtils.confirm(this, lang("Remove entry"), lang("Are you sure you want to remove this entry from all locales?"), yes, null, lang("Remove"), lang("Cancel"));
 				}
 			}
 		]]>

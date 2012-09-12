@@ -29,27 +29,27 @@
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{_dbfDataSource ? 'Edit' : 'Add'} DBF Data Source"/>
 	<mx:HBox>
-		<mx:Label text="Source Name *" width="120"/>
+		<mx:Label text="{lang('Source Name *')}" width="120"/>
 		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
 	</mx:HBox>
 	<mx:HBox>
-		<mx:Label text="DBF Source URL *" width="120"/>
-		<mx:TextInput id="dbfURL" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your DBF Source file e.g. : http://www.example.com/st99_d00.dbf"/>
+		<mx:Label text="{lang('DBF Source URL *')}" width="120"/>
+		<mx:TextInput id="dbfURL" width="300" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the url of your DBF Source file e.g. : http://www.example.com/st99_d00.dbf')}"/>
 	</mx:HBox>
 	<mx:HBox>
-		<mx:Label text="Shape Source URL" width="120"/>
-		<mx:TextInput id="shpURL" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your CSV Source file e.g. : http://www.example.com/st99_d00.shp"/>
+		<mx:Label text="{lang('Shape Source URL')}" width="120"/>
+		<mx:TextInput id="shpURL" width="300" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the url of your CSV Source file e.g. : http://www.example.com/st99_d00.shp')}"/>
 	</mx:HBox>
 	<mx:HBox>
-		<mx:Label text="Key Column" width="120"/>
-		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter the column name that uniquely identifies each row in the data set"/>
+		<mx:Label text="{lang('Key Column')}" width="120"/>
+		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</mx:HBox>
 	<mx:HBox>
-		<mx:Label text="Key Type *" width="120"/>
-		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter key type like US State Fips Code,etc. "/>
+		<mx:Label text="{lang('Key Type *')}" width="120"/>
+		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter key type like US State Fips Code,etc. ')}"/>
 	</mx:HBox>
 	<mx:Spacer height="20"/>
-	<mx:Label text="* = required"/>
+	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -84,7 +84,7 @@
 					keyColumnName.text = _dbfDataSource.keyColName.value;
 					keyType.text = _dbfDataSource.keyType.value;
 					sourceName.editable = false;
-					sourceName.toolTip = "Source name is not editable once added to the session. If needed, delete the source and add it again with the new name."
+					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
 				}
 
 			}
@@ -96,11 +96,11 @@
 					_dbfDataSource.shpUrl.value = shpURL.text;
 					_dbfDataSource.keyColName.value = keyColumnName.text;
 					_dbfDataSource.keyType.value = keyType.text;
-					Alert.show("Changes saved.")
+					Alert.show(lang("Changes saved."));
 				}
 				catch (e:Error)
 				{
-					Alert.show("Changes could not be saved. " + e.message,"Error");
+					Alert.show(lang("Changes could not be saved. ") + e.message,lang("Error"));
 				}
 			}
 			

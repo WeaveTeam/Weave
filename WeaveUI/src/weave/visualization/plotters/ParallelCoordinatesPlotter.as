@@ -41,6 +41,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
@@ -74,15 +75,11 @@ package weave.visualization.plotters
 		}
 		private function handleColumnsListChange():void
 		{
-			// when a column is removed, remove callback trigger
-			var oldColumn:IAttributeColumn = columns.childListCallbacks.lastObjectRemoved as IAttributeColumn;
-			if (oldColumn)
-				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(oldColumn)).removeCallback(getCallbackCollection(this).triggerCallbacks);
-			
-			// make callbacks trigger when statistics change for the column
+			// When a new column is created, register the stats to trigger callbacks and affect busy status.
+			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn)).addImmediateCallback(this, getCallbackCollection(this).triggerCallbacks);
+				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
 		}
 
 		/*
@@ -277,7 +274,7 @@ package weave.visualization.plotters
 				
 				// Disable geometry probing when we're in parallel coordinates (normalize) mode
 				// because line segment intersection means nothing in parallel coordinates.
-				if (Weave.properties.shouldEnableGeometryProbing() && !_normalize)
+				if (Weave.properties.enableGeometryProbing.value && !_normalize)
 				{
 					if (i < _columns.length - 1)
 					{

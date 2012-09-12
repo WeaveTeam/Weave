@@ -107,17 +107,17 @@
 					copySessionState(scatterPlot.plotter.maxScreenRadius, _sizeBinLegendPlotter.maxScreenRadius);
 				}
 				
-				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
-				{
-					// show global color ramp legend
-					_colorLegendLayer.layerIsVisible.value = true;
-					plotLayer.layerIsVisible.value = false;
-				}
-				else
+				if (scatterPlot && scatterPlot.plotter.enabledSizeBy.value)
 				{
 					// show size bin legend
 					_colorLegendLayer.layerIsVisible.value = false;
 					plotLayer.layerIsVisible.value = true;
+				}
+				else
+				{
+					// show global color ramp legend
+					_colorLegendLayer.layerIsVisible.value = true;
+					plotLayer.layerIsVisible.value = false;
 				}
 				
 				updateMarginLabel();
@@ -174,7 +174,7 @@
 
 	<ui:ControlPanel>
 			<mx:Panel id="attributesPanel" 
-					  label="Display Preferences"
+					  label="{lang('Display Preferences')}"
 					  headerHeight="2"
 					  borderColor="0x000000" 
 					  backgroundColor="0xCCCCCC" 
@@ -184,7 +184,7 @@
 					  width="100%" 
 					  borderAlpha="0.2" 
 					  borderStyle="none">
-				<mx:CheckBox id="marginLabelCheckBox" label="Show legend attribute name" change="visualization.marginTopNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0;" toolTip="Click to hide the title of the Legend."/>
+				<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show legend attribute name')}" change="visualization.marginTopNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0;" toolTip="{lang('Click to hide the title of the Legend.')}"/>
 			</mx:Panel>
 	</ui:ControlPanel>
 </SimpleVisTool>

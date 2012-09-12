@@ -56,7 +56,7 @@ package weave.utils
 		 * @param unscaledHeight
 		 * @return true if the width and height of bitmap.bitmapData equal the unscaledWidth and unscaledHeight parameters. 
 		 */		
-		public static function bitmapDataSizeCompare(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number):Boolean
+		public static function bitmapDataSizeEquals(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number):Boolean
 		{
 			var bd:BitmapData = bitmap.bitmapData;
 			return bd && bd.width == Math.round(unscaledWidth) && bd.height == Math.round(unscaledHeight);
@@ -131,6 +131,11 @@ package weave.utils
 				return;
 			// clear the graphics
 			destination.fillRect(destination.rect, 0x00000000); // transparent
+		}
+		
+		public static function alphaSliderFormatFunction(value:Number):String
+		{
+			return lang("{0}% Opaque", int(value * 100)) + "\n" + lang("{0}% Transparent", int(100 - value * 100));
 		}
 	}
 }

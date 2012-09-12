@@ -60,6 +60,14 @@ package weave.visualization.layers
 		public static const ZOOM_OUT:String = "zoomOut";
 		public static const ZOOM_TO_EXTENT:String = "zoomToExtent";
 		
+		public static const SELECTION_MODE_RECTANGLE:String = "rectangle";
+		public static const SELECTION_MODE_CIRCLE:String = "circle";
+		public static const SELECTION_MODE_LASSO:String = "lasso";
+		public static function enumSelectionMode():Array
+		{
+			return [SELECTION_MODE_RECTANGLE, SELECTION_MODE_CIRCLE, SELECTION_MODE_LASSO];
+		}
+		
 		/**
 		 * This is a list of what are considered "modes" that affect what moving the mouse does.
 		 * This does not include one-time actions not affected by mouse movements.

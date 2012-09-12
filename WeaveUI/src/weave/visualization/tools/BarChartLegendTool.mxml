@@ -157,15 +157,15 @@
 				}
 				else
 				{
-					visualization.topMarginToolTip = "Click to select the attribute(s) used for the bars.";
+					visualization.topMarginToolTip = lang("Click to select the attribute(s) used for the bars.");
 					try
 					{
 						var newTitle:String = _barLegendPlotter.legendTitleFunction.apply();
-						marginLabel.text = newTitle ? newTitle : "Bar Segment Colors";						
+						marginLabel.text = newTitle ? newTitle : lang("Bar Segment Colors");						
 					}
 					catch (e:Error)
 					{
-						marginLabel.text = "Bar Segment Colors";
+						marginLabel.text = lang("Bar Segment Colors");
 					}
 					visualization.additionalProbeColumns = null;
 				}
@@ -174,7 +174,7 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Bar Chart Legend";
+				return lang("Bar Chart Legend");
 			}
 			
 			private static const DEFAULT_MARGIN_TOP:int = 25;

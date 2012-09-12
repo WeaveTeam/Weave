@@ -136,7 +136,7 @@
 
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Color data"];
+				return [lang("Color data")];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -171,7 +171,7 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Color Legend";
+				return lang("Color Legend");
 			}
 			
 			private static const DEFAULT_MARGIN_TOP:int = 25;
@@ -201,14 +201,14 @@
 				 wordWrap="true" selectable="false" editable="false"
 				 borderThickness="0" backgroundAlpha="0"/>
 	<ui:ControlPanel>
-		<mx:VBox label="Binning">
-			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data" showLinkControl="false"/>
+		<mx:VBox label="{lang('Binning')}">
+			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="{lang('Color data')}" showLinkControl="false"/>
 			<ui:BinningDefinitionEditor id="binEditor" width="100%"/>
 		</mx:VBox>
-		<mx:VBox label="Appearance">
+		<mx:VBox label="{lang('Appearance')}">
 			<ui:LegendControls id="legendControls"/>
 			<mx:HBox>
-				<mx:Label text="Max bubble size"/>
+				<mx:Label text="{lang('Max bubble size')}"/>
 				<mx:HSlider liveDragging="true" minimum="10" maximum="60" tickInterval="10" snapInterval="5" creationComplete="linkBindableProperty(_plotter.shapeSize, event.target, 'value')"/>
 			</mx:HBox>
 			<ui:ColorRampEditor id="cRampEditor"/>

@@ -408,6 +408,15 @@ package weave
 				{
 					if (visDesktop != _selectionIndicatorText.parent)
 						visDesktop.addChild(_selectionIndicatorText);
+						
+					if( Weave.properties.recordsTooltipLocation.value == WeaveProperties.RECORDS_TOOLTIP_LOWER_LEFT ){
+						_selectionIndicatorText.setStyle( "left", 0 ) ;
+						_selectionIndicatorText.setStyle( "right", null ) ;
+					}
+					else if( Weave.properties.recordsTooltipLocation.value == WeaveProperties.RECORDS_TOOLTIP_LOWER_RIGHT ){
+						_selectionIndicatorText.setStyle( "right", 0 ) ;
+						_selectionIndicatorText.setStyle( "left", null ) ;
+					}	
 				}
 				else
 				{
@@ -440,10 +449,12 @@ package weave
 			// Code for selection indicator
 			getCallbackCollection(selectionKeySet).addGroupedCallback(this, handleSelectionChange, true);
 			Weave.properties.showSelectedRecordsText.addGroupedCallback(this, handleSelectionChange, true);
+			Weave.properties.recordsTooltipLocation.addGroupedCallback(this, handleSelectionChange, true);
+			
 			_selectionIndicatorText.setStyle("color", 0xFFFFFF);
 			_selectionIndicatorText.opaqueBackground = 0x000000;
 			_selectionIndicatorText.setStyle("bottom", 0);
-			_selectionIndicatorText.setStyle("right", 0);
+			_selectionIndicatorText.setStyle("left", 0);
 			
 			PopUpManager.createPopUp(this, WeaveProgressBar);
 
@@ -1345,9 +1356,6 @@ package weave
 				
 				if (Weave.properties.enablePenTool.value)
 					PenTool.createContextMenuItems(this);
-					
-				if (Weave.properties.dataInfoURL.value)
-					addLinkContextMenuItem(lang("Show Information About This Dataset..."), Weave.properties.dataInfoURL.value);
 				
 				if (Weave.properties.enableExportToolImage.value)
 				{
@@ -1387,6 +1395,9 @@ package weave
 				// Add context menu items for handling search queries
 				if (Weave.properties.enableSearchForRecord.value)
 					SearchEngineUtils.createContextMenuItems(this);
+				
+				if (Weave.properties.dataInfoURL.value)
+					addLinkContextMenuItem(lang("Show Information About This Dataset..."), Weave.properties.dataInfoURL.value);
 			}
 		}
 
@@ -1528,7 +1539,7 @@ package weave
 			CustomContextMenuManager.createAndAddMenuItemToDestination(text, 
 															  this, 
                                                               function(e:Event):void { navigateToURL(new URLRequest(url), "_blank"); },
-                                                              "linkMenuItems");	
+                                                              "4 linkMenuItems");	
 		}
 
 		/**

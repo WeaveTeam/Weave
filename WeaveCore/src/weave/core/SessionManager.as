@@ -57,6 +57,8 @@ package weave.core
 	 */
 	public class SessionManager implements ISessionManager
 	{
+		public static var debugBusyTasks:Boolean = false;
+		
 		/**
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
 		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed of.
@@ -643,10 +645,17 @@ package weave.core
 			}
 		}
 		
-		private const _d2dOwnerTask:Dictionary2D = new Dictionary2D(true, true);
-		private const _d2dTaskOwner:Dictionary2D = new Dictionary2D(true, true);
+		private const _dTaskStackTrace:Dictionary = new Dictionary(false);
+		private const _d2dOwnerTask:Dictionary2D = new Dictionary2D(true, false); // task cannot use weak pointer because it may be a function
+		private const _d2dTaskOwner:Dictionary2D = new Dictionary2D(false, true); // task cannot use weak pointer because it may be a function
 		private const _dBusyTraversal:Dictionary = new Dictionary(true); // ILinkableObject -> Boolean
 		private const _aBusyTraversal:Array = [];
+		
+		private function disposeBusyTaskPointers(disposedObject:ILinkableObject):void
+		{
+			_d2dOwnerTask.removeAllPrimary(disposedObject);
+			_d2dTaskOwner.removeAllSecondary(disposedObject);
+		}
 		
 		/**
 		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>
@@ -656,6 +665,9 @@ package weave.core
 		 */
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
+			if (debugBusyTasks)
+				_dTaskStackTrace[taskToken] = new Error("Stack trace").getStackTrace();
+			
 			if (taskToken is AsyncToken)
 				(taskToken as AsyncToken).addResponder(new AsyncResponder(unassignAsyncToken, unassignAsyncToken, taskToken));
 			
@@ -699,6 +711,11 @@ package weave.core
 				// if the object is assigned a task, it's busy
 				for (var task:Object in _d2dOwnerTask.dictionary[linkableObject])
 				{
+					if (debugBusyTasks)
+					{
+						var stackTrace:String = _dTaskStackTrace[task];
+						trace(stackTrace);
+					}
 					busy = true;
 					break outerLoop;
 				}
@@ -845,6 +862,9 @@ package weave.core
 			if (object != null && !_disposedObjectsMap[object])
 			{
 				_disposedObjectsMap[object] = true;
+				
+				// clean up pointers to busy tasks
+				disposeBusyTaskPointers(object as ILinkableObject);
 				
 				try
 				{
@@ -1383,7 +1403,7 @@ package weave.core
 		 *******************/
 		
 		
-		internal static const DIFF_DELETE:String = 'delete';
+		public static const DIFF_DELETE:String = 'delete';
 		
 		/**
 		 * This function computes the diff of two session states.
@@ -1437,7 +1457,7 @@ package weave.core
 				{
 					typedState = oldState[i];
 					
-					// if we see a string, assume both are String Arrays.
+					// if we see a string in oldState, assume both oldState and newState are String Arrays.
 					if (typedState is String || typedState is Array)
 					{
 						if (StandardLib.arrayCompare(oldState as Array, newState as Array) == 0)
@@ -1467,6 +1487,7 @@ package weave.core
 						return newState; // TODO: same object pointer.. potential problem?
 					}
 					
+					// assume everthing is typed session state
 					//note: there is no error checking here for typedState
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					className = typedState[DynamicState.CLASS_NAME];
@@ -1553,15 +1574,11 @@ package weave.core
 		 */
 		public function combineDiff(baseDiff:Object, diffToAdd:Object):Object
 		{
-			// special case for no change
-			if (diffToAdd === null)
-				return baseDiff;
-			
 			var baseType:String = typeof(baseDiff); // the type of null is 'object'
 			var diffType:String = typeof(diffToAdd);
 
 			// special cases
-			if (baseDiff == null || baseType != diffType || baseType != 'object')
+			if (baseDiff == null || diffToAdd == null || baseType != diffType || baseType != 'object')
 			{
 				if (diffType == 'object') // not a primitive, so make a copy
 					baseDiff = ObjectUtil.copy(diffToAdd);
@@ -1675,6 +1692,39 @@ package weave.core
 			}
 			
 			return baseDiff;
+		}
+		
+		public function testDiff():void
+		{
+			var states:Array = [
+				[
+					{objectName: 'a', className: 'aClass', sessionState: 'aVal'},
+					{objectName: 'b', className: 'bClass', sessionState: 'bVal1'}
+				],
+				[
+					{objectName: 'b', className: 'bClass', sessionState: 'bVal2'},
+					{objectName: 'a', className: 'aClass', sessionState: 'aVal'}
+				],
+				[
+					{objectName: 'a', className: 'aNewClass', sessionState: 'aVal'},
+					{objectName: 'b', className: 'bClass', sessionState: null}
+				],
+				[
+					{objectName: 'b', className: 'bClass', sessionState: null}
+				]
+			];
+			var diffs:Array = [];
+			var combined:Array = [];
+			var baseDiff:* = null;
+			for (var i:int = 1; i < states.length; i++)
+			{
+				var diff:* = computeDiff(states[i - 1], states[i]);
+				diffs.push(diff);
+				baseDiff = combineDiff(baseDiff, diff);
+				combined.push(ObjectUtil.copy(baseDiff));
+			}
+			trace('diffs',ObjectUtil.toString(diffs));
+			trace('combined',ObjectUtil.toString(combined));
 		}
 	}
 }

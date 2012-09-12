@@ -29,7 +29,7 @@
 		 width="100%" height="30"
 		 verticalAlign="middle" implements="weave.api.core.ILinkableObject"
 		 horizontalGap="4">
-	<mx:Label text="{label}" fontWeight="bold" minWidth="64"/>
+	<mx:Label text="{label}" fontWeight="bold" minWidth="64" visible="{showLabel}" includeInLayout="{showLabel}"/>
 	<LinkableObjectList id="internalList" 
 						variableRowHeight="false"
 			 			dynamicObject="{_dynamicObject}"
@@ -37,11 +37,11 @@
 		 				doubleClick="openAttributeSelector()"
 		 				width="100%" rowCount="1" height="24"/>
 	<CenteredImage source="@Embed(source='/weave/resources/images/folder.png')" buttonMode="true" height="24"
-		       toolTip="Click here to select the column used for this property."
+		       toolTip="{lang('Click here to select the column used for this property.')}"
 			   click="openAttributeSelector()"/>
 	<CenteredImage source="@Embed(source='/weave/resources/images/trashCan.png')" buttonMode="true" height="24"
 			   click="clearAttribute()"
-			   toolTip="Click here to remove the column used for this property."/>
+			   toolTip="{lang('Click here to remove the column used for this property.')}"/>
 	<CenteredImage id="linkImage" buttonMode="true" height="24" visible="{showLinkControl}" includeInLayout="{showLinkControl}"
 				 mouseDown="toggleLinkDropDown(!linkDropDown.parent);"/>
 	
@@ -58,10 +58,10 @@
 					close="toggleLinkDropDown();">
 		<mx:HBox horizontalGap="{linkControlsPadding}">
 			<HelpComponent>You can link two or more attributes together so that changing one will change the rest.  Click on the name of an existing linked group or type the name of a new one.</HelpComponent>
-			<TextInputWithPrompt id="linkName" prompt="Enter a new group name"
+			<TextInputWithPrompt id="linkName" prompt="{lang('Enter a new group name')}"
 								 enter="linkTo(StringUtil.trim(linkName.text));"/>
-			<mx:Button label="Link" enabled="{linkName.text ? true : false}" click="linkTo(StringUtil.trim(linkName.text));"/>
-			<mx:Button id="unlinkButton" label="Unlink" click="linkTo(null);"/>
+			<mx:Button label="{lang('Link')}" enabled="{linkName.text ? true : false}" click="linkTo(StringUtil.trim(linkName.text));"/>
+			<mx:Button id="unlinkButton" label="{lang('Unlink')}" click="linkTo(null);"/>
 		</mx:HBox>
 		<mx:List id="linkList" width="100%"
 				 change="if (linkDropDown.parent) linkTo(linkList.selectedItem as String);"/>
@@ -78,6 +78,7 @@
 			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.data.AttributeColumns.DynamicColumn;
 			
+			[Bindable] public var showLabel:Boolean = true;
 			[Bindable] public var showLinkControl:Boolean = true;
 			
 			[Embed(source='/weave/resources/images/plug-connected.png')]
@@ -139,13 +140,13 @@
 				{
 					linkImage.source = icon_connected;
 					unlinkButton.enabled = true;
-					linkImage.toolTip = "Linked to " + globalName;
+					linkImage.toolTip = lang("Linked to {0}", globalName);
 				}
 				else
 				{
 					linkImage.source = icon_disconnected;
 					unlinkButton.enabled = false;
-					linkImage.toolTip = "Open linking controls";
+					linkImage.toolTip = lang("Open linking controls");
 				}
 				
 				if (show)

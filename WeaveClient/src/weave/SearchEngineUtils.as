@@ -96,10 +96,10 @@ package weave
 
 			
 			var sq:ContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(
-					"Search for Record" + (includeData ? " and Data" : "") + " online" + serviceName, 
+					"Search for record" + (includeData ? " and data" : "") + " online" + serviceName, 
 					destination, 
 					handleSearchQueryContextMenuItemSelect,
-					"3 searchMenuItems"
+					"2 searchMenuItems"
 				);
 			_searchQueryContextMenuItems.push( {contextMenu:sq, description:description} );
 		}
@@ -137,12 +137,12 @@ package weave
 						detailsButton.toggle = true;
 						detailsButton.label = "Show Details";
 						detailsButton.toolTip = "Click to display the URL used for this service"
-						urlAlert.removeChild(urlAlert.textBox);
+						urlAlert.removeChild(urlAlert.inputCanvas);
 						detailsButton.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void {																	
 							if(detailsButton.selected) 
-								urlAlert.addChildAt(urlAlert.textBox,2);
+								urlAlert.addChildAt(urlAlert.inputCanvas,2);
 							else 								
-								urlAlert.removeChild(urlAlert.textBox);							
+								urlAlert.removeChild(urlAlert.inputCanvas);							
 						});
 						
 						hbox.toolTip = "Please select a service from the dropdown menu";

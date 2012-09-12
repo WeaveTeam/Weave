@@ -24,6 +24,8 @@ package weave.ui
 	
 	import mx.core.UIComponent;
 	
+	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.compiler.StandardLib;
 
 	/**
@@ -35,13 +37,19 @@ package weave.ui
 	 */
 	public class BusyIndicator extends UIComponent
 	{
-		public function BusyIndicator()
+		public function BusyIndicator(target:ILinkableObject = null)
 		{
 			super();
+			this.target = target;
 			includeInLayout = false;
 			mouseChildren = false;
 			addEventListener(Event.RENDER, render);
 		}
+		
+		/**
+		 * This is the object whose busy status should be monitored.
+		 */		
+		public var target:ILinkableObject;
 		
 		public var fps:Number = 12;//24;
 		public var bgColor:uint = 0x000000
@@ -55,10 +63,51 @@ package weave.ui
 		public var circleRatio:Number = 0.2;
 		public var numCircles:uint = 12;
 		private var prevFrame:int = -1;
+		private var timeBecameBusy:int = 0;
+		public var autoVisibleDelay:int = 500;
 		
-		private function render(e:Event):void
+		/**
+		 * This will update the graphics immediately when set.
+		 */
+		override public function set visible(value:Boolean):void
 		{
-			if (!stage || !visible)
+			super.visible = value;
+			render();
+		}
+		
+		/**
+		 * This will automatically toggle visibility based the target's busy status.
+		 */
+		private function toggleVisible():void
+		{
+			var busy:Boolean = WeaveAPI.SessionManager.linkableObjectIsBusy(target);
+			if (visible != busy)
+			{
+				if (busy)
+				{
+					if (timeBecameBusy == -1)
+						timeBecameBusy = getTimer();
+					if (getTimer() - timeBecameBusy < autoVisibleDelay)
+						return;
+				}
+				
+				visible = busy;
+			}
+			timeBecameBusy = -1;
+		}
+		
+		/**
+		 * This will update the graphics.
+		 */
+		private function render(e:Event=null):void
+		{
+			if (!stage)
+				return;
+			
+			if (target)
+				toggleVisible();
+			
+			if (!visible)
 				return;
 			
 			var frame:Number = (fps * getTimer() / 1000);

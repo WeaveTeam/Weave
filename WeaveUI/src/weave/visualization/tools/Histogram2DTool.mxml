@@ -161,7 +161,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "2D Histogram of " + ColumnUtils.getTitle(plotter.xColumn) + " vs " + ColumnUtils.getTitle(plotter.yColumn) ;
+				return lang("2D Histogram of {0} vs {1}", ColumnUtils.getTitle(plotter.xColumn), ColumnUtils.getTitle(plotter.yColumn));
 			}
 			
 			private function updateAxisLabels():void
@@ -192,28 +192,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:Script>
 	
 	<ui:ControlPanel>
-		<mx:VBox label="Visualization Controls">
-			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-						 toolTip="Checking this box makes the tool's binned attribute visible in this tool's probe tooltip"
+		<mx:VBox label="{lang('Visualization Controls')}">
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="xColumnComponent" label="X Column"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="yColumnComponent" label="Y Column"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="xColumnComponent" label="{lang('X Column')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="yColumnComponent" label="{lang('Y Column')}"/>
 		</mx:VBox>
-		<mx:VBox label="Binning Controls">
+		<mx:VBox label="{lang('Binning Controls')}">
 				<mx:HBox>
-					<mx:Label text="Select Column:"/>
+					<mx:Label text="{lang('Select Column:')}"/>
 					<mx:RadioButtonGroup id="binColGroup" change="handleBinColRadioButtonChange()"/>
-					<mx:RadioButton groupName="binColGroup" label="X Column" value="xBinCol" id="xBinColRadioButton" selected="true"/>
-					<mx:RadioButton groupName="binColGroup" label="Y Column" value="yBinCol" id="yBinColRadioButton"/>
+					<mx:RadioButton groupName="binColGroup" label="{lang('X Column')}" value="xBinCol" id="xBinColRadioButton" selected="true"/>
+					<mx:RadioButton groupName="binColGroup" label="{lang('Y Column')}" value="yBinCol" id="yBinColRadioButton"/>
 				</mx:HBox>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
-		<mx:VBox label="Advanced">
-			<mx:CheckBox id="showAverageColorData" label="Color by average data value instead of record count"
+		<mx:VBox label="{lang('Advanced')}">
+			<mx:CheckBox id="showAverageColorData" label="{lang('Color by average data value instead of record count')}"
 						 creationComplete="linkBindableProperty(plotter.showAverageColorData, event.currentTarget, 'selected');"/>
 			<mx:HBox width="100%" verticalAlign="middle" enabled="{showAverageColorData.selected}">
-				<ui:DynamicColumnComponent id="colorColumnComponent" visTool="{this}" label="Color data"/>
-				<mx:Button label="Edit colors..." click="DraggablePanel.openStaticInstance(ColorController);"/>
+				<ui:DynamicColumnComponent id="colorColumnComponent" visTool="{this}" label="{lang('Color data')}"/>
+				<mx:Button label="{lang('Edit colors...')}" click="DraggablePanel.openStaticInstance(ColorController);"/>
 			</mx:HBox>
 			<ui:ColorRampEditor id="cRampEditor" enabled="{!showAverageColorData.selected}"/>
 		</mx:VBox>

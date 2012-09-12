@@ -29,7 +29,7 @@ package weave.visualization.plotters
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
-	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableNumber;
@@ -40,7 +40,6 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.StringLookupColumn;
 	import weave.primitives.ColorRamp;
 	import weave.utils.BitmapText;
-	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
@@ -83,7 +82,7 @@ package weave.visualization.plotters
 		{
 			(fillStyle.internalObject as SolidFillStyle).color.defaultValue.setSessionState(0x808080);
 			
-			_beginRadians = newDisposableChild(this, EquationColumn);
+			_beginRadians = newLinkableChild(this, EquationColumn);
 			_beginRadians.equation.value = "0.5 * PI + getRunningTotal(spanRadians) - getNumber(spanRadians)";
 			_spanRadians = _beginRadians.requestVariable("spanRadians", EquationColumn, true);
 			_spanRadians.equation.value = "getNumber(binSize) / getSum(binSize) * 2 * PI";

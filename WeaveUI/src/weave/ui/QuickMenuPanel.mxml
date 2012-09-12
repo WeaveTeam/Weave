@@ -20,7 +20,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <mx:TitleWindow xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				title="Quick Menu"
+				title="{lang('Quick Menu')}"
 				width="300" height="300"
 				layout="vertical"
 				horizontalAlign="center"
@@ -29,7 +29,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				close="close();">
 	
 	<mx:HBox paddingTop="20" width="100%">
-		<mx:Label text="Type command:" fontWeight="bold" />
+		<mx:Label text="{lang('Type command:')}" fontWeight="bold" />
 		<mx:TextInput id="keyword" width="150" change="filter()"/>
 	</mx:HBox>
 	<mx:Script>

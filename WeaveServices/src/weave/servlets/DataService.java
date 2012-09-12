@@ -40,6 +40,7 @@ import weave.beans.GeometryStreamMetadata;
 import weave.beans.WeaveRecordList;
 import weave.config.DublinCoreUtils;
 import weave.config.ISQLConfig;
+import weave.config.SQLConfigXML;
 import weave.config.ISQLConfig.AttributeColumnInfo;
 import weave.config.ISQLConfig.AttributeColumnInfo.DataType;
 import weave.config.ISQLConfig.AttributeColumnInfo.Metadata;
@@ -97,17 +98,11 @@ public class DataService extends GenericServlet
 		for (int i = 0; i < geomNames.length; i++)
 			geomKeyTypes[i] = config.getGeometryCollectionInfo(geomNames[i]).keyType;
 		
-		@SuppressWarnings("unchecked")
-		Map<String,String>[] tableMetadata = new Map[tableNames.length];
 		// get dublin core metadata
 		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
 		ConnectionInfo connInfo = config.getConnectionInfo(configInfo.connection);
 		Connection conn = connInfo.getStaticReadOnlyConnection();
-		for (int i = 0; i < tableNames.length; i++)
-		{
-			tableMetadata[i] = DublinCoreUtils.listDCElements(conn, configInfo.schema, tableNames[i]);
-			tableMetadata[i].put(ISQLConfig.AttributeColumnInfo.Metadata.NAME.toString(), tableNames[i]);
-		}
+		Map<String,String>[] tableMetadata = DublinCoreUtils.listDCElements(conn, configInfo.schema, tableNames);
 		
 		return new DataServiceMetadata(config.getServerName(), tableMetadata, geomNames, geomKeyTypes);
 	}
@@ -134,7 +129,7 @@ public class DataService extends GenericServlet
 		// prepare result object
 		DataTableMetadata result = new DataTableMetadata();
 		
-		result.setGeometryCollectionExists(geometryCollectionExists);
+		result.setGeometryCollectionExists(geometryCollectionExists && (SQLConfigXML.includeGeometryInTable || infoList.size() == 0));
 		if (geometryCollectionExists)
 		{
 			GeometryCollectionInfo info = config.getGeometryCollectionInfo(dataTableName);

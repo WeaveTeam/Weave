@@ -18,6 +18,7 @@
 */
 
 package weave
+
 {
 	import flash.display.Stage;
 	import flash.events.Event;
@@ -84,6 +85,8 @@ package weave
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
+
+
 
 	/**
 	 * A list of global settings for a Weave instance.
@@ -233,6 +236,7 @@ package weave
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
 
+
 		// BEGIN TEMPORARY SOLUTION
 		public const _toggleMap:Dictionary = new Dictionary();
 		private function _initToggleMap():void
@@ -269,15 +273,18 @@ package weave
 		// END TEMPORARY SOLUTION
 		
 		public const enableAddAttributeMenuTool:LinkableBoolean = new LinkableBoolean(true); // Add Attribute Menu Tool option tools menu
+
 		public const enableAddBarChart:LinkableBoolean = new LinkableBoolean(true); // Add Bar Chart option tools menu
 //		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
 		public const enableAddColorLegend:LinkableBoolean = new LinkableBoolean(true); // Add Color legend Tool option tools menu		
 		public const enableAddColormapHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Colormap Histogram option tools menu
 		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
 		public const enableAddCustomTool:LinkableBoolean = new LinkableBoolean(true);
+
 		public const enableAddDataTable:LinkableBoolean = new LinkableBoolean(true); // Add Data Table option tools menu
 		public const enableAddGaugeTool:LinkableBoolean = new LinkableBoolean(true); // Add Gauge Tool option tools menu
 		public const enableAddGeneExpTool:LinkableBoolean = new LinkableBoolean(true); // Add Gauge Tool option tools menu
+
 		public const enableAddHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Histogram option tools menu
 		public const enableAdd2DHistogram:LinkableBoolean = new LinkableBoolean(true); // Add 2D Histogram option tools menu
 		public const enableAddGraphTool:LinkableBoolean = new LinkableBoolean(true); // Add Graph Tool option tools menu
@@ -299,6 +306,7 @@ package weave
 		public const enableToolSelection:LinkableBoolean = new LinkableBoolean(true); // enable/disable the selection tool
 		public const enableToolProbe:LinkableBoolean = new LinkableBoolean(true);
 		public const enableRightClick:LinkableBoolean = new LinkableBoolean(true);
+		public const showRevertButton:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableProbeAnimation:LinkableBoolean = new LinkableBoolean(true);
 		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(1, verifyMaxTooltipRecordsShown); // maximum number of records shown in the probe toolTips
@@ -307,13 +315,6 @@ package weave
 		public const enableGeometryProbing:LinkableBoolean = new LinkableBoolean(true); // use the geometry probing (default to on even though it may be slow for mapping)
 		public function get geometryMetadataRequestMode():LinkableString { return StreamedGeometryColumn.metadataRequestMode; }
 		public function get geometryMinimumScreenArea():LinkableNumber { return StreamedGeometryColumn.geometryMinimumScreenArea; }
-		
-		public function shouldEnableGeometryProbing():Boolean
-		{
-			// disable detailed geometry probing while there are background tasks
-			return enableGeometryProbing.value
-				&& WeaveAPI.ProgressIndicator.getTaskCount() == 0;
-		}
 		
 		public const enableSessionMenu:LinkableBoolean = new LinkableBoolean(true); // all sessioning
 		public const showSessionHistoryControls:LinkableBoolean = new LinkableBoolean(true); // show session history controls inside Weave interface
@@ -354,6 +355,9 @@ package weave
 		public const enableClearCurrentSelection:LinkableBoolean = new LinkableBoolean(true);// enable/disable Clear Current Selection option
 		public const enableManageSavedSelections:LinkableBoolean = new LinkableBoolean(true);// enable/disable Manage Saved Selections option
 		public const enableSelectionSelectorBox:LinkableBoolean = new LinkableBoolean(true); //enable/disable SelectionSelector option
+		public const selectionMode:LinkableString = new LinkableString(InteractionController.SELECTION_MODE_RECTANGLE, verifySelectionMode);
+		
+		private function verifySelectionMode(value:String):Boolean { return InteractionController.enumSelectionMode().indexOf(value) >= 0; }
 		
 		public const enableSubsetsMenu:LinkableBoolean = new LinkableBoolean(true);// enable/disable Subsets Menu
 		public const enableCreateSubsets:LinkableBoolean = new LinkableBoolean(true);// enable/disable Create subset from selected records option
@@ -370,6 +374,7 @@ package weave
 		
 		public const dashboardMode:LinkableBoolean = new LinkableBoolean(false);	 // enable/disable borders/titleBar on windows
 		public const enableToolControls:LinkableBoolean = new LinkableBoolean(true); // enable tool controls (which enables attribute selector too)
+		public const enableAxisToolTips:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableAboutMenu:LinkableBoolean = new LinkableBoolean(true); //enable/disable About Menu
 		
@@ -382,6 +387,21 @@ package weave
 		// probing and selection
 		public const selectionBlurringAmount:LinkableNumber = new LinkableNumber(4);
 		public const selectionAlphaAmount:LinkableNumber    = new LinkableNumber(0.5, verifyAlpha);
+		
+		//selection location information
+		public const recordsTooltipLocation:LinkableString = new LinkableString(RECORDS_TOOLTIP_LOWER_LEFT, verifyLocationMode);
+		
+		public static const RECORDS_TOOLTIP_LOWER_LEFT:String = 'Lower left';
+		public static const RECORDS_TOOLTIP_LOWER_RIGHT:String = 'Lower right';
+		public function get recordsTooltipEnum():Array
+		{
+			return [RECORDS_TOOLTIP_LOWER_LEFT, RECORDS_TOOLTIP_LOWER_RIGHT];
+		}
+		
+		private function verifyLocationMode(value:String):Boolean
+		{
+			return recordsTooltipEnum.indexOf(value) >= 0;
+		}
 		
 		/**
 		 * This is an array of LinkableEventListeners which specify a function to run on an event.
@@ -463,6 +483,7 @@ package weave
 		
 		// temporary?
 		public const rServiceURL:LinkableString = registerLinkableChild(this, new LinkableString("/WeaveServices/RService"), handleRServiceURLChange);// url of Weave R service using Rserve
+
 		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
 		public const geneExpressionServiceURL:LinkableString = new LinkableString("/WeaveServices/GXAService");
 		
@@ -475,6 +496,7 @@ package weave
 		
 		//default URL
 		public const searchServiceURLs:LinkableString = new LinkableString([WIKIPEDIA_URL, GOOGLE_URL, GOOGLE_IMAGES_URL, GOOGLE_MAPS_URL].join('\n'));
+
 		
 		// when this is true, a rectangle will be drawn around the screen bounds with the background
 		public const debugScreenBounds:LinkableBoolean = new LinkableBoolean(false);

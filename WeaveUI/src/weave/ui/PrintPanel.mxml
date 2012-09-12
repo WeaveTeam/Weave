@@ -28,7 +28,7 @@
     xmlns:ui ="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
 	layout="vertical" 
-    title="Print / Export Image"
+    title="{lang('Print / Export Image')}"
     showCloseButton="true"
     close="handleClose(event)"
     borderAlpha="0.95"
@@ -68,7 +68,7 @@
 			}
 			catch (se:SecurityError)
 			{
-				reportError(se, "Unable to create screenshot due to lack of permissive policy file for embedded image. " + se.message);
+				reportError(se, lang("Unable to create screenshot due to lack of permissive policy file for embedded image. ") + se.message);
 			}
 			catch (e:Error)
 			{
@@ -173,7 +173,7 @@
 			
    		   	
 			var img:ImageSnapshot = ImageSnapshot.captureImage(printVbox);
-   			_fileSaver.save(img.data, "weave screenshot " + dateString + ".png");
+   			_fileSaver.save(img.data, lang("Weave Screenshot {0}", dateString) + ".png");
    			
    			//close popup after image is saved
    			PopUpManager.removePopUp(this);	
@@ -220,11 +220,11 @@
 	</mx:VBox>
 	
 	<mx:ControlBar horizontalAlign="center">
-		<mx:CheckBox id="showTitle" label="Title" selected="true"/>
-		<mx:CheckBox id="showCopyright" label="Copyright" creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
-		<!--<mx:CheckBox id="showBackground" label="Background" selected="true" change="handleBackground();"/>-->
-		<mx:Button id="printButton" label="Print" click="handlePrintClick(event)"/>
-		<mx:Button id="saveButton" label="Save Image" click="handleSaveAsImageClick(event)"/>
-		<mx:Button id="cancelButton" label="Cancel" click="PopUpManager.removePopUp(this)"/>
+		<mx:CheckBox id="showTitle" label="{lang('Title')}" selected="true"/>
+		<mx:CheckBox id="showCopyright" label="{lang('Copyright')}" creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
+		<!--<mx:CheckBox id="showBackground" label="{lang('Background')}" selected="true" change="handleBackground();"/>-->
+		<mx:Button id="printButton" label="{lang('Print')}" click="handlePrintClick(event)"/>
+		<mx:Button id="saveButton" label="{lang('Save as Image')}" click="handleSaveAsImageClick(event)"/>
+		<mx:Button id="cancelButton" label="{lang('Cancel')}" click="PopUpManager.removePopUp(this)"/>
 	</mx:ControlBar>
 </mx:TitleWindow> 

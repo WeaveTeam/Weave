@@ -27,37 +27,37 @@
 	creationPolicy="all"
 	implements="weave.api.ui.ILinkableObjectEditor"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{_xlsDataSource ? 'Edit' : 'Add'} XLS Data Source"/>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{lang( (_xlsDataSource ? 'Edit' : 'Add') + ' XLS Data Source' )}"/>
 	<mx:HBox>
-		<mx:Label text="Source Name *" width="120"/>
+		<mx:Label text="{lang('Source Name *')}" width="120"/>
 		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
 	</mx:HBox>
 	<mx:HBox>
-		<mx:Label text="Source URL *" width="120"/>
-		<mx:TextInput change="handleURLTextChange()" id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv"/>
+		<mx:Label text="{lang('Source URL *')}" width="120"/>
+		<mx:TextInput change="handleURLTextChange()" id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
 	</mx:HBox>
 	
 	<mx:VBox id="uploadSection">
 		<mx:HBox horizontalAlign="center" width="100%">
-			<mx:Label fontWeight="bold" text="OR"/>
+			<mx:Label fontWeight="bold" text="{lang('OR')}"/>
 		</mx:HBox>
 		<mx:HBox>
-			<mx:Label text="Open local XLS file*" width="120"/>
-			<mx:Button label="Browse" click="browseForFiles()"/>
-			<mx:Label id="uploadMessg" color="0xFF0000" text="loaded" visible="false"/>
+			<mx:Label text="{lang('Open local XLS file *')}" width="120"/>
+			<mx:Button label="{lang('Browse')}" click="browseForFiles()"/>
+			<mx:Label id="uploadMessg" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
 		</mx:HBox>
 	</mx:VBox>
 	
 	<mx:HBox>
-		<mx:Label text="Key Type *" width="120"/>
-		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter key type like US State Fips Code,etc. "/>
+		<mx:Label text="{lang('Key Type *')}" width="120"/>
+		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter key type like US State Fips Code,etc. ')}"/>
 	</mx:HBox>
 	<mx:HBox>
-		<mx:Label text="Key Column" width="120"/>
-		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter the column name that uniquely identifies each row in the data set"/>
+		<mx:Label text="{lang('Key Column')}" width="120"/>
+		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</mx:HBox>
-	<mx:Label text="* = required"/>
-	<mx:Button enabled="false" label="View data in Grid" id="showGridButton" click="showGrid()"/>
+	<mx:Label text="{lang('* = required')}"/>
+	<mx:Button enabled="false" label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()"/>
 	<mx:Script>
 		<![CDATA[
 			import com.as3xls.xls.Cell;
@@ -100,7 +100,7 @@
 					uploadSection.visible = false;
 					showGridButton.visible = false;
 					sourceName.editable = false;
-					sourceName.toolTip = "Source name is not editable once added to the session. If needed, delete the source and add it again with the new name."
+					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
 				}
 			}
 			
@@ -111,11 +111,11 @@
 					_xlsDataSource.url.value = url.text;
 					_xlsDataSource.keyColName.value = keyColumnName.text;
 					_xlsDataSource.keyType.value = keyType.text;
-					Alert.show("Changes saved.")
+					Alert.show(lang("Changes saved."));
 				}
 				catch(e:Error)
 				{
-					Alert.show("Changes could not be saved. " + e.message,"Error");
+					Alert.show(lang("Changes could not be saved. ") + e.message,lang("Error"));
 				}
 			}
 			
@@ -180,7 +180,7 @@
 				}
 				catch (e:Error)
 				{
-					Alert.show("Error uploading file",e.message.toString());
+					Alert.show(lang("Error uploading file"),e.message.toString());
 				}
 				
 				
@@ -190,7 +190,7 @@
 			{
 				if (xlsFile.sheets.length == 0)
 				{
-					Alert.show("No data found");
+					Alert.show(lang("No data found"));
 					return;
 				}
 				var grid:EditDataGridPanel = PopUpManager.createPopUp(this, EditDataGridPanel) as EditDataGridPanel;

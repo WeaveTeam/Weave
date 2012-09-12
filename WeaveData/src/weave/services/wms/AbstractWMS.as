@@ -23,6 +23,9 @@ package weave.services.wms
 	import flash.utils.Dictionary;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.IDisposableObject;
+	import weave.api.getCallbackCollection;
+	import weave.api.objectWasDisposed;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
@@ -35,7 +38,7 @@ package weave.services.wms
 	 * 
 	 * @author kmonico
 	 */
-	public class AbstractWMS extends CallbackCollection implements IWMSService
+	public class AbstractWMS implements IWMSService, IDisposableObject
 	{
 		public function AbstractWMS() 
 		{
@@ -107,7 +110,7 @@ package weave.services.wms
 		 */
 		protected function handleTileDownload(tile:WMSTile):void
 		{
-			if(wasDisposed)
+			if (objectWasDisposed(this))
 				return;
 			
 			_currentTileIndex.addTile(tile);
@@ -117,7 +120,7 @@ package weave.services.wms
 			if (index >= 0)
 				_pendingTiles.splice(index, 1);
 			
-			WeaveAPI.StageUtils.callLater(this, triggerCallbacks);
+			WeaveAPI.StageUtils.callLater(this, getCallbackCollection(this).triggerCallbacks);
 		}
 		
 		/**
@@ -175,9 +178,8 @@ package weave.services.wms
 		/**
 		 * This will cancel pending requests when this object is disposed.
 		 */		
-		override public function dispose():void
+		public function dispose():void
 		{
-			super.dispose();
 			cancelPendingRequests();
 		}
 		

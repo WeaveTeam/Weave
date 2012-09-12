@@ -33,8 +33,8 @@ LinkableObjectGrid
 		 itemEditEnd="variableNameChangeHandler(event)"
 		 >
 	<mx:columns>		
-		<mx:DataGridColumn id="nameCol" headerText="Edit variable name:" labelFunction="nameFunction" editable="true"/>
-		<mx:DataGridColumn headerText="Variable value" labelFunction="setLabel" editable="false"/>
+		<mx:DataGridColumn id="nameCol" headerText="{lang('Edit variable name:')}" labelFunction="nameFunction" editable="true"/>
+		<mx:DataGridColumn headerText="{lang('Variable value')}" labelFunction="setLabel" editable="false"/>
 	</mx:columns>
 	
 	

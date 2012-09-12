@@ -76,9 +76,9 @@
 			 enabled="{colormapLinkingEnabled}"
 			 toolTip="{colormapLinkingEnabled ? '' : 'Colormap linking is not enabled for this tool because it allows different colormaps for each layer.  Please edit the layers for this given tool to modify which colormap each layer uses.'}">
 			 
-		<mx:Label text="Colormap Linkage" fontSize="14" fontWeight="bold"/>
+		<mx:Label text="{lang('Colormap Linkage')}" fontSize="14" fontWeight="bold"/>
 		<mx:HBox horizontalGap="5">
-			<mx:CheckBox id="linkColorCheck" label="Link colormap to:" toolTip="Check this box to enable linking to the group specified in the combobox to the right." width="125"/>
+			<mx:CheckBox id="linkColorCheck" label="{lang('Link colormap to:')}" toolTip="{lang('Check this box to enable linking to the group specified in the combobox to the right.')}" width="125"/>
 			<ui:CustomComboBox id="linkColorCombo" 
 						 enabled="{linkColorCheck.selected}" 
 						 dataProvider="{['default', 'one', 'two', 'three']}" width="160"/>
@@ -86,9 +86,9 @@
 	</mx:VBox>
 	
 	<mx:VBox styleName="link-box-style" width="100%" horizontalAlign="center">
-		<mx:Label text="Probing Linkage" fontWeight="bold" fontSize="14"/>
+		<mx:Label text="{lang('Probing Linkage')}" fontWeight="bold" fontSize="14"/>
 		<mx:HBox horizontalGap="5">
-			<mx:CheckBox id="linkProbingCheck" label="Link probing to:" toolTip="Check this box to enable linking to the group specified in the combobox to the right." width="125"/>
+			<mx:CheckBox id="linkProbingCheck" label="{lang('Link probing to:')}" toolTip="{lang('Check this box to enable linking to the group specified in the combobox to the right.')}" width="125"/>
 			<ui:CustomComboBox id="linkProbingCombo" 
 						 enabled="{linkProbingCheck.selected}" 
 						 dataProvider="{['default', 'one', 'two', 'three']}" width="160"/>
@@ -96,9 +96,9 @@
 	</mx:VBox>
 	
 	<mx:VBox styleName="link-box-style" width="100%" horizontalAlign="center">
-		<mx:Label text="Selection Linkage" fontWeight="bold" fontSize="14"/>
+		<mx:Label text="{lang('Selection Linkage')}" fontWeight="bold" fontSize="14"/>
 		<mx:HBox horizontalGap="5">
-			<mx:CheckBox id="linkSelectionCheck" label="Link selection to:" toolTip="Check this box to enable linking to the group specified in the combobox to the right." width="125"/>
+			<mx:CheckBox id="linkSelectionCheck" label="{lang('Link selection to:')}" toolTip="{lang('Check this box to enable linking to the group specified in the combobox to the right.')}" width="125"/>
 			<ui:CustomComboBox id="linkSelectionCombo" 
 						 enabled="{linkSelectionCheck.selected}" 
 						 dataProvider="{['default', 'one', 'two', 'three']}" width="160"/>
@@ -106,9 +106,9 @@
 	</mx:VBox>
 	
 	<mx:VBox styleName="link-box-style" width="100%" horizontalAlign="center">
-		<mx:Label text="Subset Linkage" fontWeight="bold" fontSize="14"/>
+		<mx:Label text="{lang('Subset Linkage')}" fontWeight="bold" fontSize="14"/>
 		<mx:HBox horizontalGap="5">
-			<mx:CheckBox id="linkSubsetCheck" label="Link subset to:" toolTip="Check this box to enable linking to the group specified in the combobox to the right." width="125"/>
+			<mx:CheckBox id="linkSubsetCheck" label="{lang('Link subset to:'" toolTip="{lang('Check this box to enable linking to the group specified in the combobox to the right.')}" width="125"/>
 			<ui:CustomComboBox id="linkSubsetCombo" 
 						 enabled="{linkSubsetCheck.selected}" 
 						 dataProvider="{['default', 'one', 'two', 'three']}" width="160"/>

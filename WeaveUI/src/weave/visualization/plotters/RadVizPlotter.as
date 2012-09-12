@@ -78,15 +78,11 @@ package weave.visualization.plotters
 		}
 		private function handleColumnsListChange():void
 		{
-			// when a column is removed, remove callback trigger
-			var oldColumn:IAttributeColumn = columns.childListCallbacks.lastObjectRemoved as IAttributeColumn;
-			if (oldColumn)
-				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(oldColumn)).removeCallback(handleColumnsChange);
-			
-			// make callbacks trigger when statistics change for the column
+			// When a new column is created, register the stats to trigger callbacks and affect busy status.
+			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn)).addImmediateCallback(this, handleColumnsChange);
+				registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);

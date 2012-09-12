@@ -341,7 +341,42 @@ package weave.utils
 			return keySet;
 		}
 		
-		public static function getRunningTotal(column:IAttributeColumn, key:IQualifiedKey = null):Number
+		[Deprecated] public static function getSum(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getSum();
+		}
+		
+		[Deprecated] public static function getMean(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getMean();
+		}
+		
+		[Deprecated] public static function getVariance(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getVariance();
+		}
+		
+		[Deprecated] public static function getStandardDeviation(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getStandardDeviation();
+		}
+		
+		[Deprecated] public static function getMin(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getMin();
+		}
+		
+		[Deprecated] public static function getMax(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getMax();
+		}
+		
+		[Deprecated] public static function getCount(column:IAttributeColumn):Number
+		{
+			return WeaveAPI.StatisticsCache.getColumnStatistics(column).getCount();
+		}
+		
+		[Deprecated] public static function getRunningTotal(column:IAttributeColumn, key:IQualifiedKey = null):Number
 		{
 			// remember current key
 			var previousKey:IQualifiedKey = currentRecordKey;

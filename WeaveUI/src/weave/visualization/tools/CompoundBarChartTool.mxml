@@ -136,12 +136,12 @@
 			override public function getSelectableAttributeNames():Array
 			{
 				return [
-					"Color",
-					"Label",
-					"Sort",
-					"Height",
-					"Positive Error",
-					"Negative Error"
+					lang("Color"),
+					lang("Label"),
+					lang("Sort"),
+					lang("Height"),
+					lang("Positive Error"),
+					lang("Negative Error")
 				];
 			}
 			override public function getSelectableAttributes():Array
@@ -205,7 +205,7 @@
 				var columns:Array = _plotter.heightColumns.getObjects(IAttributeColumn);
 				for (var i:int = 0; i < columns.length; i++)
 					columns[i] = ColumnUtils.getTitle(columns[i] as IAttributeColumn);
-				return "Bar Chart of " + columns.join(', ');
+				return lang("Bar Chart of {0}", columns.join(lang(', ')));
 			}
 			
 			public function get colorColumn():DynamicColumn
@@ -217,17 +217,17 @@
 			{
 				handlePanelTitleChange();
 				
-				var sortAxisTitle:String = "Sorted by " + ColumnUtils.getTitle(_plotter.sortColumn);
+				var sortAxisTitle:String = lang("Sorted by {0}", ColumnUtils.getTitle(_plotter.sortColumn));
 				var heightAxisTitle:String = '';
 				var heightColumns:Array = _plotter.heightColumns.getObjects();
 				for (var i:int = 0; i < heightColumns.length; i++)
 				{
 					if (i > 0)
-						heightAxisTitle += ', ';
+						heightAxisTitle += lang(', ');
 					heightAxisTitle += ColumnUtils.getTitle(heightColumns[i] as IAttributeColumn);
 				}
 				if (heightAxisTitle == '')
-					heightAxisTitle = "Click to select...";
+					heightAxisTitle = lang("Click to select...");
 
 				var sortAxisToolTipColumn:IAttributeColumn = _plotter.sortColumn;
 				var heightAxisToolTipColumn:IAttributeColumn = heightColumns.length > 0 ? heightColumns[0] : null;
@@ -301,11 +301,6 @@
 				return null;
 			}
 			
-			private function alphaSliderFormatFunction(item:Number):String {
-				//return int(100 - (item * 100)) + "% Transparent";
-				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
-			}
-			
 			private function handleSortColumnChange():void
 			{
 				if (!_plotter.sortColumn.getInternalColumn())
@@ -360,8 +355,8 @@
 				}
 			}
 			
-			private const groupCheckDisabledToolTip:String = 'There is only one attribute chosen for this bar chart, therefore it is a standard (not grouped or stacked) and this feature is disabled.';
-			private const groupCheckEnabledToolTip:String = 'Check this box to group rather than stack the bars.  \n\nIn stacked mode each segment representing a single record at a given attribute are placed together along a single bar, each segment representing a proportion of the entire bar length.  \n\nIn grouped mode, each bar representing a single record at a given attribute are placed side-by-side.';
+			private const groupCheckDisabledToolTip:String = lang('There is only one attribute chosen for this bar chart, therefore it is a standard (not grouped or stacked) and this feature is disabled.');
+			private const groupCheckEnabledToolTip:String = lang('Check this box to group rather than stack the bars.  \n\nIn stacked mode each segment representing a single record at a given attribute are placed together along a single bar, each segment representing a proportion of the entire bar length.  \n\nIn grouped mode, each bar representing a single record at a given attribute are placed side-by-side.');
 			
 			public function createLegend():void
 			{
@@ -379,9 +374,9 @@
 				if (showValueLabelsCheckBox.selected)
 				{
 					if ((stackedRadioButton.enabled && stackedRadioButton.selected)|| (percentStackedRadioButton.enabled && percentStackedRadioButton.selected))
-						_plotter.valueLabelHorizontalAlign.value = "center";
+						_plotter.valueLabelHorizontalAlign.value = lang("center");
 					else
-						_plotter.valueLabelHorizontalAlign.value = "left";
+						_plotter.valueLabelHorizontalAlign.value = lang("left");
 				}
 			}
 			
@@ -416,65 +411,65 @@
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="Basic">
-			<ui:DynamicColumnComponent visTool="{this}" id="colorColumnInput" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"
-									   toolTip="Color column selection is enabled when only a single column is in the list below." showLinkControl="false"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Label" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.labelColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Sort" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
-			<mx:CheckBox id="groupBySortColumnCheckBox" label="Group bars by the sort column" creationComplete="linkBindableProperty(_plotter.groupBySortColumn, event.target, 'selected');"/>
-			<mx:CheckBox label="Link Height and Sort Column" creationComplete="linkBindableProperty(linkHeightAndSortColumns, event.target, 'selected');"/>
+		<mx:VBox id="attributesPanel" label="{lang('Basic')}">
+			<ui:DynamicColumnComponent visTool="{this}" id="colorColumnInput" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"
+									   toolTip="{lang('Color column selection is enabled when only a single column is in the list below.')}" showLinkControl="false"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Label')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.labelColumn"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Sort')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.sortColumn"/>
+			<mx:CheckBox id="groupBySortColumnCheckBox" label="{lang('Group bars by the sort column')}" creationComplete="linkBindableProperty(_plotter.groupBySortColumn, event.target, 'selected');"/>
+			<mx:CheckBox label="{lang('Link Height and Sort Column')}" creationComplete="linkBindableProperty(linkHeightAndSortColumns, event.target, 'selected');"/>
 			<mx:HBox>
-				<mx:CheckBox id="horizontalCheckBox" label="Horizontal bars"
-							 toolTip="Check this box to display the bars horizontally, with values setting the length of the bar (from left to right) rather than the height (from bottom to top)."/>
+				<mx:CheckBox id="horizontalCheckBox" label="{lang('Horizontal bars')}"
+							 toolTip="{lang('Check this box to display the bars horizontally, with values setting the length of the bar (from left to right) rather than the height (from bottom to top).')}"/>
 				<mx:RadioButtonGroup id="groupMode"/>
-				<mx:RadioButton id="groupedRadioButton" groupName="groupMode" label="Grouped bars" value="{CompoundBarChartPlotter.GROUP}"/>
-				<mx:RadioButton id="stackedRadioButton" groupName="groupMode" label="Stacked bars" value="{CompoundBarChartPlotter.STACK}"/>
-				<mx:RadioButton id="percentStackedRadioButton" groupName="groupMode" label="100% Stacked bars" value="{CompoundBarChartPlotter.PERCENT_STACK}"/>
+				<mx:RadioButton id="groupedRadioButton" groupName="groupMode" label="{lang('Grouped bars')}" value="{CompoundBarChartPlotter.GROUP}"/>
+				<mx:RadioButton id="stackedRadioButton" groupName="groupMode" label="{lang('Stacked bars')}" value="{CompoundBarChartPlotter.STACK}"/>
+				<mx:RadioButton id="percentStackedRadioButton" groupName="groupMode" label="{lang('100% Stacked bars')}" value="{CompoundBarChartPlotter.PERCENT_STACK}"/>
 			</mx:HBox>
 			<mx:TabNavigator width="100%" height="100%">
-				<ui:ColumnListComponent visTool="{this}" label="Height attributes" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
-				<ui:ColumnListComponent visTool="{this}" label="Positive error" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
-				<ui:ColumnListComponent visTool="{this}" label="Negative error" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
+				<ui:ColumnListComponent visTool="{this}" label="{lang('Height attributes')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
+				<ui:ColumnListComponent visTool="{this}" label="{lang('Positive error')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.positiveErrorColumns"/>
+				<ui:ColumnListComponent visTool="{this}" label="{lang('Negative error')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.negativeErrorColumns"/>
 			</mx:TabNavigator>
 		</mx:VBox>
 		
-		<mx:VBox label="Labeling">
-			<mx:Button label="Show legend" click="createLegend()"/>
-			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-						 toolTip="Checking this box makes all of the following attributes visible in this tool's probe tooltip"
+		<mx:VBox label="{lang('Labeling')}">
+			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			<mx:CheckBox label="Show all axis labels" creationComplete="linkBindableProperty(showAllLabels, event.target, 'selected');"/>
+			<mx:CheckBox label="{lang('Show all axis labels')}" creationComplete="linkBindableProperty(showAllLabels, event.target, 'selected');"/>
 			<mx:HBox width="100%">
 				<mx:VBox width="100%">
-					<mx:CheckBox label="Show bar labels" id="labelsChkBx"
+					<mx:CheckBox label="{lang('Show bar labels')}" id="labelsChkBx"
 								 creationComplete="linkBindableProperty(_plotter.showLabels, event.target, 'selected')"/>
 					<mx:VBox paddingLeft="24" enabled="{labelsChkBx.selected}" width="100%">
 						<mx:HBox>
-							<mx:CheckBox id="colorRecordLabelsChk" label="Color by record"
+							<mx:CheckBox id="colorRecordLabelsChk" label="{lang('Color by record')}"
 										 creationComplete="linkBindableProperty(_plotter.recordLabelColoring, event.target, 'selected')"/>
 							<ui:HelpComponent>This specifies if each label should have the same color as its corresponding record.</ui:HelpComponent>
 							<mx:Spacer width="100%"/>
 							<mx:HBox id="colorRecordLabelsBox" enabled="{!colorRecordLabelsChk.selected}">
-								<mx:Label text="Color"/>
+								<mx:Label text="{lang('Color')}"/>
 								<mx:ColorPicker creationComplete="linkBindableProperty(_plotter.labelColor, event.target, 'selectedColor');"/>
 								<ui:HelpComponent>This specifies the color to use for every label.</ui:HelpComponent>
 							</mx:HBox>
 						</mx:HBox>
 						<mx:HBox>
 							<mx:VBox>
-								<ui:IndentTextInput inputWidth="64" label="Position" creationComplete="linkBindableProperty(_plotter.labelDataCoordinate, event.target, 'text')"/>
-								<ui:Indent label="Angle">
+								<ui:IndentTextInput inputWidth="64" label="{lang('Position')}" creationComplete="linkBindableProperty(_plotter.labelDataCoordinate, event.target, 'text')"/>
+								<ui:Indent label="{lang('Angle')}">
 									<mx:NumericStepper minimum="-180" maximum="180" stepSize="15" width="64"
 											creationComplete="linkBindableProperty(_plotter.labelRelativeAngle, event.target, 'value')"/>
 								</ui:Indent>
-								<ui:Indent label="Max width">
+								<ui:Indent label="{lang('Max width')}">
 									<mx:NumericStepper minimum="5" maximum="1000" stepSize="5" width="64"
 											creationComplete="linkBindableProperty(_plotter.labelMaxWidth, event.target, 'value')"/>
 								</ui:Indent>
 							</mx:VBox>
 							<ui:AlignmentControl creationComplete="linkBindableProperty(_plotter.labelVerticalAlign, event.target, 'verticalAlign'); linkBindableProperty(_plotter.labelHorizontalAlign, event.target, 'horizontalAlign');"/>
 						</mx:HBox>
-						<mx:Label text="Label formatter:"/>
+						<mx:Label text="{lang('Label formatter:')}"/>
 						<mx:Box paddingLeft="24">
 							<mx:TextArea width="100%" height="100%" creationComplete="linkBindableProperty(_plotter.labelFormatter, event.target, 'text');"/>
 						</mx:Box>
@@ -482,27 +477,27 @@
 				</mx:VBox>
 				<mx:Spacer width="100%"/>
 				<mx:VBox width="100%">
-					<mx:CheckBox id="showValueLabelsCheckBox" label="Show value labels" change="showValueLabelsCheckBox_changeHandler()"/>
+					<mx:CheckBox id="showValueLabelsCheckBox" label="{lang('Show value labels')}" change="showValueLabelsCheckBox_changeHandler()"/>
 					<mx:VBox paddingLeft="24" enabled="{showValueLabelsCheckBox.selected}" width="100%">
 						<mx:HBox>
-							<mx:CheckBox id="colorValueLabelsChk" label="Color by record"
+							<mx:CheckBox id="colorValueLabelsChk" label="{lang('Color by record')}"
 										 creationComplete="linkBindableProperty(_plotter.recordValueLabelColoring, event.target, 'selected')"/>
 							<ui:HelpComponent>This specifies if each label should have the same color as its corresponding record.</ui:HelpComponent>
 							<mx:Spacer width="100%"/>
 							<mx:HBox id="colorValueLabelColorBox" enabled="{!colorValueLabelsChk.selected}">
-								<mx:Label text="Color"/>
+								<mx:Label text="{lang('Color')}"/>
 								<mx:ColorPicker id="valueLabelColorPicker" creationComplete="linkBindableProperty(_plotter.valueLabelColor, event.target, 'selectedColor');"/>
 								<ui:HelpComponent>This specifies the color to use for every label.</ui:HelpComponent>
 							</mx:HBox>
 						</mx:HBox>
 						<mx:HBox>
 							<mx:VBox>
-								<ui:IndentTextInput inputWidth="64" label="Position" creationComplete="linkBindableProperty(_plotter.valueLabelDataCoordinate, event.target, 'text')"/>
-								<ui:Indent label="Angle">
+								<ui:IndentTextInput inputWidth="64" label="{lang('Position')}" creationComplete="linkBindableProperty(_plotter.valueLabelDataCoordinate, event.target, 'text')"/>
+								<ui:Indent label="{lang('Angle')}">
 									<mx:NumericStepper minimum="-180" maximum="180" stepSize="15" width="64"
 											creationComplete="linkBindableProperty(_plotter.valueLabelRelativeAngle, event.target, 'value')"/>
 								</ui:Indent>
-								<ui:Indent label="Max width">
+								<ui:Indent label="{lang('Max width')}">
 									<mx:NumericStepper minimum="5" maximum="1000" stepSize="5" width="64"
 											creationComplete="linkBindableProperty(_plotter.valueLabelMaxWidth, event.target, 'value')"/>
 								</ui:Indent>
@@ -514,21 +509,21 @@
 			</mx:HBox>
 		</mx:VBox>
 		
-		<mx:VBox id="advControlsPanel" label="Advanced">
-			<mx:CheckBox label="In stacked mode, use gaps for missing data" creationComplete="linkBindableProperty(_plotter.stackedMissingDataGap, event.target, 'selected');"/>
-			<ui:Indent label="Bar spacing:">
-				<mx:HSlider id="barSpacingSlider" value="0" minimum="0" maximum="1" labels="['No gap', '1:3', '1:1']" tickInterval="0.25"
-							toolTip="Move this slider to change the gap between bars.  All the way to the left means no gap.  The highest value is a 1:1 ratio, meaning equal bar width to gap width." showDataTip="false"
+		<mx:VBox id="advControlsPanel" label="{lang('Advanced')}">
+			<mx:CheckBox label="{lang('In stacked mode, use gaps for missing data')}" creationComplete="linkBindableProperty(_plotter.stackedMissingDataGap, event.target, 'selected');"/>
+			<ui:Indent label="{lang('Bar spacing:')}">
+				<mx:HSlider id="barSpacingSlider" value="0" minimum="0" maximum="1" labels="{[lang('No gap'), lang('1:3'), lang('1:1')]}" tickInterval="0.25"
+							toolTip="{lang('Move this slider to change the gap between bars.  All the way to the left means no gap.  The highest value is a 1:1 ratio, meaning equal bar width to gap width.')}" showDataTip="false"
 							liveDragging="true"/>
 			</ui:Indent>
 			
-			<mx:CheckBox label="Zoom to subset (height)"
-						 toolTip="Enables automatic zooming to the subset of height data currently displayed"
+			<mx:CheckBox label="{lang('Zoom to subset (height)')}"
+						 toolTip="{lang('Enables automatic zooming to the subset of height data currently displayed')}"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>
-			<mx:CheckBox label="Zoom to subset (bars)"
-						 toolTip="Enables automatic zooming to the subset of bars currently displayed"
+			<mx:CheckBox label="{lang('Zoom to subset (bars)')}"
+						 toolTip="{lang('Enables automatic zooming to the subset of bars currently displayed')}"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubsetBars, event.target, 'selected')"/>
-			<ui:ColorRampEditor id="cRampEditor" toolTip="The color ramp can only be set when more than one height column is specified."/>
+			<ui:ColorRampEditor id="cRampEditor" toolTip="{lang('The color ramp can only be set when more than one height column is specified.')}"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

@@ -22,7 +22,7 @@
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				xmlns:ui="weave.ui.*" 
-				title="R Script Tool"
+				title="{lang('R Script Tool')}"
 				>
 	<mx:Panel id="userControlPanel"
 			  borderColor="0x000000" 
@@ -40,13 +40,13 @@
 					  borderThickness="5.0" 
 					  borderStyle="outset"  borderColor="0xFFFFFF"
 					  creationPolicy="all">
-			<mx:Panel id="RscriptPanel" label="KMeans Clustering">
-				<ui:DynamicColumnComponent label="R-Script Xcolumn" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = xRcolumn"/>
-				<ui:DynamicColumnComponent label="R-Script ycolumn" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = yRcolumn"/>
+			<mx:Panel id="RscriptPanel" label="{lang('KMeans Clustering')}">
+				<ui:DynamicColumnComponent label="{lang('R-Script Xcolumn')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = xRcolumn"/>
+				<ui:DynamicColumnComponent label="{lang('R-Script ycolumn')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = yRcolumn"/>
 				<mx:HBox>
 					<mx:VBox>
-						<mx:Label text="Number of Clusters:"/>
-						<mx:Label text="Number of Iterations:"/>
+						<mx:Label text="{lang('Number of Clusters:')}"/>
+						<mx:Label text="{lang('Number of Iterations:')}"/>
 					</mx:VBox>
 					<mx:VBox>
 						<mx:TextInput id="clusterNum" text="{clusterNumValue}"/>							
@@ -55,9 +55,9 @@
 					
 				</mx:HBox>
 				
-				<mx:Button id="rScriptButton" label="Run Script" click="Kmeans_clickHandler(event)"/>						
+				<mx:Button id="rScriptButton" label="{lang('Run Script')}" click="Kmeans_clickHandler(event)"/>						
 			</mx:Panel>	
-			<mx:Panel id="UserScript" label="User Script">
+			<mx:Panel id="UserScript" label="{lang('User Script')}">
 				
 			</mx:Panel>
 		</mx:Accordion>		

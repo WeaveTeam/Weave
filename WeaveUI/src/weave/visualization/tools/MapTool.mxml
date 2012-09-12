@@ -55,6 +55,7 @@
 			import weave.ui.ColorController;
 			import weave.ui.DraggablePanel;
 			import weave.ui.DynamicColumnComponent;
+			import weave.ui.SubMenu;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.InteractionController;
@@ -86,8 +87,11 @@
 				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
 				
 				visualization.layers.addGroupedCallback(this,handleLayersChange,true);
-				colorColumn.addGroupedCallback(this,updateProbeColumns, true);				
+				colorColumn.addGroupedCallback(this,updateProbeColumns, true);
+				
 			}
+			
+			private var selectionSubMenu:SubMenu;
 			
 			override public function getSelectableAttributeNames():Array
 			{
@@ -226,6 +230,22 @@
 				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, handleBoundsChange, true);
 			}
 			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				selectionSubMenu= new SubMenu(selectModeButton,[MouseEvent.MOUSE_DOWN],[MouseEvent.MOUSE_UP]);
+				
+				selectionSubMenu.addSubMenuItem(lang("Rectangular Selection"),function():void{
+					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_RECTANGLE;});
+				
+				selectionSubMenu.addSubMenuItem(lang("Circular Selection"),function():void{
+					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_CIRCLE;});
+				
+				selectionSubMenu.addSubMenuItem(lang("Lasso Selection"),function():void{
+					Weave.properties.selectionMode.value = InteractionController.SELECTION_MODE_LASSO;});
+			}
+			
 			private function handleMouseModeChange(event:Event = null):void
 			{
 				var defaultMode:String;
@@ -301,14 +321,20 @@
 			private function handleZoomInClick():void
 			{
 				visualization.zoomBounds.getDataBounds(_tempBounds);
-				_tempBounds.centeredResize(_tempBounds.getWidth() / 2, _tempBounds.getHeight() / 2);
+				_tempBounds.centeredResize(
+					_tempBounds.getWidth() / visualization.zoomFactor.value,
+					_tempBounds.getHeight() / visualization.zoomFactor.value
+				);
 				visualization.zoomBounds.setDataBounds(_tempBounds);
 			}
 			
 			private function handleZoomOutClick():void
 			{
 				visualization.zoomBounds.getDataBounds(_tempBounds);
-				_tempBounds.centeredResize(_tempBounds.getWidth() * 2, _tempBounds.getHeight() * 2);
+				_tempBounds.centeredResize(
+					_tempBounds.getWidth() * visualization.zoomFactor.value,
+					_tempBounds.getHeight() * visualization.zoomFactor.value
+				);
 				visualization.zoomBounds.setDataBounds(_tempBounds);
 			}
 			
@@ -705,7 +731,7 @@
 						 toolTip="This option enables the mouse mode buttons"
 						 creationComplete="linkBindableProperty(showMouseModeControls,event.target,'selected')"/>
 			<mx:HBox>
-				<mx:Label text="Mouse wheel scroll factor:" />
+				<mx:Label text="Zoom factor for mouse wheel and zoom buttons:" />
 				<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(this.visualization.zoomFactor, event.target, 'value')"/>
 			</mx:HBox>
 		</mx:VBox>

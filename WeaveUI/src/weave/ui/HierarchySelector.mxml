@@ -47,6 +47,7 @@ Displays catoegories in a tree view and the attributes in a list.
 			import weave.api.core.ILinkableObject;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.core.LinkableString;
 			import weave.core.LinkableXML;
 			import weave.primitives.AttributeHierarchy;
@@ -275,11 +276,15 @@ Displays catoegories in a tree view and the attributes in a list.
 			 **/
 			private function handleAttributeClick(event:Event):void
 			{
+				if (!parent)
+				{
+					//reportError("handleAttributeClick() called when parent == null");
+					return;
+				}
 				var node:XML = attributesView.selectedItem as XML;
 				if (node != null)
 					selectedPath.value = HierarchyUtils.getPathFromNode(attributeHierarchy.value, node);
 			}
-			
 			
 			private function getObjFromNode(node:XML,subtree:Object=null):Object
 			{

@@ -37,7 +37,7 @@ RTextEditor
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				title="R Script Editor"
+				title="{lang('R Script Editor')}"
 				x="15%" width="70%" y="15%" height="70%"
 				backgroundColor="#EFF4BC" 
 				layout="horizontal"
@@ -46,47 +46,47 @@ RTextEditor
 				>
 	<mx:HBox width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
 		<mx:VBox width="20%" height="100%" verticalGap="0">
-			<mx:Label text="(1) Select data to use in your script"/>
-			<ColumnListComponent id="inputColumnList" label="Input columns" hashMap="{variables}" width="100%" height="100%"   />			
+			<mx:Label text="{lang('(1) Select data to use in your script')}"/>
+			<ColumnListComponent id="inputColumnList" label="{lang('Input columns')}" hashMap="{variables}" width="100%" height="100%"   />			
 		</mx:VBox>
 		<mx:VBox width="55%" height="100%" verticalGap="0">
-			<LabelWithWordWrap text="(2) Assign variables to your data (Separate by commas)"/>
+			<LabelWithWordWrap text="{lang('(2) Assign variables to your data (Separate by commas)')}"/>
 			<mx:TextArea id = "assignTA" width="100%" height="100%" wordWrap="false"/>
 
 			<mx:Spacer height="{padding}"/>
 
-			<LabelWithWordWrap text="(3) Enter a script (type or paste in)"/>			
+			<LabelWithWordWrap text="{lang('(3) Enter a script (type or paste in)')}"/>			
 			<mx:TextArea id = "inputTA" width="100%" height="100%" text=""/>						
 
 			<mx:Spacer height="{padding}"/>
 
-			<LabelWithWordWrap text="(4) Input a plot script (Optional)"/>
+			<LabelWithWordWrap text="{lang('(4) Input a plot script (Optional)')}"/>
 			<mx:TextArea id = "plotTA" width="100%" height="100%" text=""/>
 
 			<mx:Spacer height="{padding}"/>
 
-			<LabelWithWordWrap text="(5) Specify script outputs to display, separated by commas"/>
+			<LabelWithWordWrap text="{lang('(5) Specify script outputs to display, separated by commas')}"/>
 			<mx:TextArea id = "outputTA" width="100%" height="100%" wordWrap="false"/>
 
 			<mx:Spacer height="{padding}"/>
 
-			<LabelWithWordWrap text="(6) Run your script on the server"/>
+			<LabelWithWordWrap text="{lang('(6) Run your script on the server')}"/>
 			<mx:HBox>
-				<mx:Button id="B2" label="Run script"  click="viewAndSendbuttonClickHandler()"/>
-				<mx:CheckBox id="intermediateResultCB" label="Verbose" toolTip="Show intermediate results from R"/>
-				<mx:CheckBox id="warningCB" label="Warnings" toolTip="Show warnings from R"/>
+				<mx:Button id="B2" label="{lang('Run script')}"  click="viewAndSendbuttonClickHandler()"/>
+				<mx:CheckBox id="intermediateResultCB" label="{lang('Verbose')}" toolTip="{lang('Show intermediate results from R')}"/>
+				<mx:CheckBox id="warningCB" label="{lang('Warnings')}" toolTip="{lang('Show warnings from R')}"/>
 			</mx:HBox>
 
 			<mx:Spacer height="{padding}"/>
 
-			<LabelWithWordWrap text="(7) Export your script for later use"/>
+			<LabelWithWordWrap text="{lang('(7) Export your script for later use')}"/>
 			<mx:HBox>
-				<mx:Button id="exportBtn" label="Export" click="export_clickHandler(event)"/>
-				<mx:Button id="importBtn" label="Import" click="import_clickHandler(event)"/>	
+				<mx:Button id="exportBtn" label="{lang('Export')}" click="export_clickHandler(event)"/>
+				<mx:Button id="importBtn" label="{lang('Import')}" click="import_clickHandler(event)"/>	
 			</mx:HBox>						
 		</mx:VBox>
 		<mx:VBox width="25%" height="100%" verticalGap="0">
-			<mx:Label text="Result"/>
+			<mx:Label text="{lang('Result')}"/>
 			<mx:TextArea id="ResultTA" width="100%" height="100%" editable="false"/>
 		</mx:VBox>
 	</mx:HBox>
@@ -120,7 +120,7 @@ RTextEditor
 			import weave.utils.VectorUtils;
 			import weave.visualization.tools.SimpleVisTool;
 			
-			WeaveAPI.registerImplementation(IVisTool, RTextEditor, "R Script Editor");
+			WeaveAPI.registerImplementation(IVisTool, RTextEditor, lang("R Script Editor"));
 			
 			private const padding:int = 5;
 			
@@ -262,7 +262,7 @@ RTextEditor
 				trace('Robj:',ObjectUtil.toString(Robj));
 				if (Robj == null)
 				{
-					reportError("R Servlet did not return an Array of results as expected.");
+					reportError(lang("R Servlet did not return an Array of results as expected."));
 					return;
 				}
 				
@@ -414,7 +414,7 @@ RTextEditor
 				var date:Date = new Date();
 				var dateString:String = date.fullYear +"."+ date.month +"."+ date.day +" "+ date.time;
 				
-				_sessionFileSaver.save(rScriptSessionState, "R-Script Session state " + dateString + ".xml");
+				_sessionFileSaver.save(rScriptSessionState, lang("R-Script Session State {0}", dateString) + ".xml");
 			}
 			
 			private var _defaultsFilename:String = null;

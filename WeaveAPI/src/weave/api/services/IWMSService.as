@@ -16,6 +16,7 @@
 package weave.api.services
 {
 	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ILinkableObject;
 	import weave.api.primitives.IBounds2D;
 
 	/**
@@ -25,7 +26,7 @@ package weave.api.services
 	 * 
 	 * @author kmonico
 	 */
-	public interface IWMSService extends ICallbackCollection
+	public interface IWMSService extends ILinkableObject
 	{
 		/**
 		 * This function will cancel all the pending requests.
