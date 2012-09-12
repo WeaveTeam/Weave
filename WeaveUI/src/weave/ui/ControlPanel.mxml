@@ -162,7 +162,7 @@
 			
 			private function toggleRevertSaveButtons():void
 			{
-				var show:Boolean = Weave.properties.showRevertButton.value
+				var show:Boolean = Weave.properties.showRevertButton.value;
 				controlPanelControls.revertBtn.visible = show;
 				controlPanelControls.revertBtn.includeInLayout = show;
 				controlPanelControls.saveBtn.visible = show;
