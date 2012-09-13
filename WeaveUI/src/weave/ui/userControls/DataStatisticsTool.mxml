@@ -88,6 +88,7 @@
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnStatistics;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
@@ -154,6 +155,19 @@
 				var joinedColumnResult: Array = joinColumns(attributeColumns);
 				joinedColumnsKeys = joinedColumnResult[0];
 			    joinedColumns = joinedColumnResult[1];
+				
+				for (var k:int = 0; k < joinedColumns.length; k++)
+				{
+					var colStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics((joinedColumns[k] as IAttributeColumn));
+					finalGridDisplayArray[k].push(colStats.getCount());
+					finalGridDisplayArray[k].push(colStats.getMax());
+					finalGridDisplayArray[k].push(colStats.getMean());
+					finalGridDisplayArray[k].push(colStats.getMin());
+					finalGridDisplayArray[k].push(colStats.getSquareSum());
+					finalGridDisplayArray[k].push(colStats.getStandardDeviation());
+					finalGridDisplayArray[k].push(colStats.getSum());
+					finalGridDisplayArray[k].push(colStats.getVariance());
+				}
 			}
 			
 			/* Different Commands to be sent to R */
@@ -242,10 +256,12 @@
 			
 			protected function doStatistics_clickHandler(event:MouseEvent):void
 			{				
-				for (var u:int = 0 ; u < outputNames.length; u++)
+				for (var u:int = 0 ; u < 10; u++)
 				{
 					finalGridDisplayArray[u] = new Array();
 				}
+				
+				columnProcessing();
 				sendingInfoToR(script);
 				
 			}
