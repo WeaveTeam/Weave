@@ -120,7 +120,6 @@
 				}
 			}
 			
-			[Inspectable]
 			/**
 			 * setter for _targetObjects
 			 * @param Array an array of ILinkableObjects 
@@ -128,6 +127,9 @@
 			public function set targets(array:Array):void
 			{
 				_targetObjects = array;
+				
+				controlPanelControls.busyIndicator.targets = array;
+				
 				save();
 				
 				adjustControls();
@@ -198,6 +200,11 @@
 			 */
 			public function save():void
 			{
+				if (_targetObjects == null && parent is ILinkableObject)
+				{
+					targets = [parent]; // this calls save() again
+					return;
+				}
 				if (tabNavigator)
 					for each (var child:Object in tabNavigator.getChildren())
 						if (child is ILinkableObjectEditor)
@@ -206,10 +213,6 @@
 				_savedGlobalNames = {};
 				_savedGlobalSessionStates = [];
 				_savedTargetSessionStates = [];
-				if (_targetObjects == null && parent is ILinkableObject)
-				{
-					_targetObjects = [parent];
-				}
 				for each(var object:ILinkableObject in _targetObjects)
 				{
 					if (object)
@@ -298,12 +301,12 @@
 				var editor:ILinkableObjectEditor = EditorManager.getNewEditor(linkableObject);
 				if (editor)
 				{
-					var controls:ControlPanel = newDisposableChild(linkableObject, ControlPanel);
-					PopUpManager.addPopUp(controls, WeaveAPI.topLevelApplication as DisplayObject);
-					PopUpManager.centerPopUp(controls);
-					controls.targets = [linkableObject];
+					var controlPanel:ControlPanel = newDisposableChild(linkableObject, ControlPanel);
+					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
+					PopUpManager.centerPopUp(controlPanel);
+					controlPanel.targets = [linkableObject];
 					
-					controls.tabNavigator.addChild(editor as DisplayObject);
+					controlPanel.tabNavigator.addChild(editor as DisplayObject);
 				}
 				return editor;
 			}

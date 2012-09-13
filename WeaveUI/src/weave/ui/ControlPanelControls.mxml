@@ -30,6 +30,8 @@
 		<mx:Button id="revertBtn" label="{lang('Revert')}"  toolTip="{lang('Revert to last saved state')}"/>
 		<mx:Button id="cancelBtn" label="{lang('Cancel')}" toolTip="{lang('Revert to last saved state and close this window')}"/>
 		<mx:Spacer width="100%" minWidth="0"/>
+		<BusyIndicator id="busyIndicator" visible="true" includeInLayout="true" diameterRatio=".75"/>
+		<mx:Spacer width="100%" minWidth="0"/>
 		<mx:Button id="saveBtn" label="{lang('Save')}"  toolTip="{lang('Create a save point you can revert to')}"/>
 		<mx:Button id="saveCloseBtn" label="{lang('Save &amp; Close')}"  toolTip="{lang('Commit all changes and close this window')}"/>
 	</mx:HBox>

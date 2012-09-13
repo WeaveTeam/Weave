@@ -37,19 +37,20 @@ package weave.ui
 	 */
 	public class BusyIndicator extends UIComponent
 	{
-		public function BusyIndicator(target:ILinkableObject = null)
+		public function BusyIndicator(target:ILinkableObject = null, ...moreTargets)
 		{
 			super();
-			this.target = target;
+			moreTargets.unshift(target);
+			this.targets = moreTargets;
 			includeInLayout = false;
 			mouseChildren = false;
-			addEventListener(Event.RENDER, render);
+			addEventListener(Event.FRAME_CONSTRUCTED, render);
 		}
 		
 		/**
-		 * This is the object whose busy status should be monitored.
+		 * This is an Array of ILinkableObjects whose busy status should be monitored.
 		 */		
-		public var target:ILinkableObject;
+		public var targets:Array; /* of ILinkableObject */
 		
 		public var fps:Number = 12;//24;
 		public var bgColor:uint = 0x000000
@@ -80,7 +81,15 @@ package weave.ui
 		 */
 		private function toggleVisible():void
 		{
-			var busy:Boolean = WeaveAPI.SessionManager.linkableObjectIsBusy(target);
+			var busy:Boolean = false;
+			for each (var target:ILinkableObject in targets)
+			{
+				if (WeaveAPI.SessionManager.linkableObjectIsBusy(target))
+				{
+					busy = true;
+					break;
+				}
+			}
 			if (visible != busy)
 			{
 				if (busy)
@@ -104,7 +113,7 @@ package weave.ui
 			if (!stage)
 				return;
 			
-			if (target)
+			if (targets)
 				toggleVisible();
 			
 			if (!visible)
@@ -117,8 +126,8 @@ package weave.ui
 			
 			prevFrame = int(frame);
 			
-			var cx:Number = parent.width / 2;
-			var cy:Number = parent.height / 2;
+			var cx:Number = parent.width / 2 - this.x;
+			var cy:Number = parent.height / 2 - this.y;
 			var radius:Number = Math.min(parent.width, parent.height) * diameterRatio / 2;
 			var revolution:Number = frame / numCircles;
 			var colorIndexNorm:Number = revolution % (colorStartList.length - 1) / (colorStartList.length - 1);
