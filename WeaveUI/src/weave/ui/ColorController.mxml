@@ -26,14 +26,14 @@
 				  title="{lang('Color Controller')}"
 				  backgroundColor="#EFF4BC"
 				  >
-	<mx:VBox id="VizControlsPanel" label="Binning">
-		<ui:DynamicColumnComponent id="dataColumnComponent" label="Color data" showLinkControl="false"/>
+	<mx:VBox id="VizControlsPanel" label="{lang('Binning')}">
+		<ui:DynamicColumnComponent id="dataColumnComponent" label="{lang('Color data')}" showLinkControl="false"/>
 		<ui:BinningDefinitionEditor id="binEditor"/>
 	</mx:VBox>
-	<mx:VBox id="advControlsPanel" label="Color scale">
+	<mx:VBox id="advControlsPanel" label="{lang('Color scale')}">
 		<ui:ColorRampEditor id="cRampEditor"/>
 	</mx:VBox>
-	<ui:ColorOverrideEditor id="colorOverrideEditor" label="Color specific records"/>
+	<ui:ColorOverrideEditor id="colorOverrideEditor" label="{lang('Color specific records')}"/>
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;

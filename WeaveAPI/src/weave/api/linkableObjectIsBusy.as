@@ -13,28 +13,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package
+package weave.api
 {
-	import flash.utils.getQualifiedClassName;
-
+	import weave.api.core.ILinkableObject;
+	
 	/**
-	 * This function generates or returns a previously generated identifier for an object.
-	 * @author adufilie
+	 * @see weave.api.core.ISessionManager
 	 */
-	public function debugId(object:Object):String
+	public function linkableObjectIsBusy(object:ILinkableObject):Boolean
 	{
-		var type:String = typeof(object);
-		if (object == null || type != 'object' && type != 'function')
-			return String(object);
-		return $.lookup[object]
-			|| ($.lookup[object] = getQualifiedClassName(object).split(':').pop() + $.i++);
+		return WeaveAPI.SessionManager.linkableObjectIsBusy(object);
 	}
-}
-
-import flash.utils.Dictionary;
-
-internal class $
-{
-	public static var i:uint = 0;
-	public static var lookup:Dictionary = new Dictionary(true);
 }

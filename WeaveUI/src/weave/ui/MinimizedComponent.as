@@ -54,8 +54,6 @@ package weave.ui
 			this.toolTip = '';
 			if(_mainComponent.hasOwnProperty("title") )
 				this.toolTip = _mainComponent["title"] || '';
-			if (minimizedComponents > 1)
-				this.toolTip += "\n (" + minimizedComponents + "items minimized)";
 		}	
 
 		public function updateMinimizedIcon(desiredWidth:int, desiredHeight:int):void

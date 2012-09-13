@@ -29,17 +29,17 @@
 		 click="handleAnyClick();"
 		 width="100%" horizontalGap="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
 		 implements="weave.api.ui.ILinkableObjectEditor">
-	<mx:Button width="24" toolTip="Load session history from a file" icon="@Embed(source='/weave/resources/images/folder.png')" click="load()"/> 
-	<mx:Button width="24" toolTip="Save session history to a file" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
+	<mx:Button width="24" toolTip="{lang('Load session history from a file')}" icon="@Embed(source='/weave/resources/images/folder.png')" click="load()"/> 
+	<mx:Button width="24" toolTip="{lang('Save session history to a file')}" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
 	<mx:Button width="44" id="recordButton" toggle="true" icon="{recordButton.selected ? icon_historyRecordOn : icon_historyRecordOff}"
 			   visible="false" includeInLayout="false"
 			   click="_stateLog.enableLogging.value = recordButton.selected;"
 			   toolTip="Session history recording is {recordButton.selected ? 'enabled' : 'disabled'}."/>
-	<mx:Button id="playButton" label="Replay{ _playSpeed == 1 ? '' : ' (' + _playSpeed + 'x)' }" toggle="true" toolTip="Replay session history" click="if (playButton.selected) play();"/>
-	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="Undo" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
-	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="Redo" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
+	<mx:Button id="playButton" label="{ _playSpeed == 1 ? lang('Replay') : lang('Replay ({0}x)', _playSpeed) }" toggle="true" toolTip="{lang('Replay session history')}" click="if (playButton.selected) play();"/>
+	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="{lang('Undo')}" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
+	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
 	<mx:HSlider id="slider" width="100%" showDataTip="false" liveDragging="true" tickInterval="1" snapInterval="1" minimum="0" change="handleSlider();" mouseDown="slider.getThumbAt(0).setFocus()"/>
-	<mx:Button id="clearButton" label="Clear" click="_stateLog.clearHistory();" toolTip="Clear session history" styleName="clearButtonStyle"/>
+	<mx:Button id="clearButton" label="{lang('Clear')}" click="_stateLog.clearHistory();" toolTip="{lang('Clear session history')}" styleName="clearButtonStyle"/>
 	<mx:Style>
 		.clearButtonStyle {
 			paddingLeft: 4;
@@ -53,6 +53,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.reportError;
 			import weave.core.CallbackJuggler;
 			import weave.core.SessionStateLog;
 			import weave.ui.ExportSessionStatePanel;
@@ -73,8 +74,8 @@
 				super.childrenCreated();
 				
 				_clearMenu = new SubMenu(clearButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
-				_clearMenu.addSubMenuItem("Clear all undos", _stateLog.clearHistory, [-1]);
-				_clearMenu.addSubMenuItem("Clear all redos", _stateLog.clearHistory, [1]);
+				_clearMenu.addSubMenuItem(lang("Clear all undos"), _stateLog.clearHistory, [-1]);
+				_clearMenu.addSubMenuItem(lang("Clear all redos"), _stateLog.clearHistory, [1]);
 				
 				_playMenu = new SubMenu(playButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
 				for each (var speed:int in [1,2,4,8,16])
@@ -190,11 +191,22 @@
 				if (!_weaveFileRef)
 				{
 					_weaveFileRef = new FileReference();
-					_weaveFileRef.addEventListener(Event.SELECT,   function (e:Event):void { _weaveFileRef.load(); } );
-					_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void {
-						// TEMPORARY SOLUTION
-						WeaveAPI.topLevelApplication.visApp.loadSessionState(e.target.data, _weaveFileRef.name);
-					} );
+					_weaveFileRef.addEventListener(IOErrorEvent.IO_ERROR, reportError);
+					_weaveFileRef.addEventListener(
+						Event.SELECT,
+						function (e:Event):void
+						{
+							_weaveFileRef.load();
+						}
+					);
+					_weaveFileRef.addEventListener(
+						Event.COMPLETE,
+						function (e:Event):void
+						{
+							// TEMPORARY SOLUTION
+							WeaveAPI.topLevelApplication.visApp.loadSessionState(e.target.data, _weaveFileRef.name);
+						}
+					);
 				}
 				_weaveFileRef.browse([
 					new FileFilter("Weave file", "*.weave"),

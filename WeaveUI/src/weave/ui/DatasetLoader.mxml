@@ -22,19 +22,19 @@
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				width="672" height="410"
 	            horizontalScrollPolicy="off" verticalScrollPolicy="off"
-	            visible="true" title="Load a new dataset">
+	            visible="true" title="{lang('Load a new dataset')}">
 	<mx:VBox width="100%" height="100%">
 		<mx:HBox verticalAlign="middle">
-			<mx:Label text="Unique Record Identifier Column:"/>
+			<mx:Label text="{lang('Unique Record Identifier Column:')}"/>
 			<CustomComboBox id="columnsCombo" dataProvider="{columnNames}" valueCommit="showUniquenessWarning()"/>
 		</mx:HBox>
 		<mx:HBox verticalAlign="middle">
-			<mx:Label text="Select or Enter Key Type:"/>
+			<mx:Label text="{lang('Select or Enter Key Type:')}"/>
 			<CustomComboBox id="keyTypeCombo" editable="true" change="showUniquenessWarning()"/>
 		</mx:HBox>
 
 		<mx:Label color="red" id="errorMessage" text="" visible="false"/>
-		<mx:Button label="Load Data into Weave" id="commitButton" click="handleLoadDataIntoWeave(event)"/>
+		<mx:Button label="{lang('Load Data into Weave')}" id="commitButton" click="handleLoadDataIntoWeave(event)"/>
 		<mx:DataGrid id="dataGrid"
 					 width="100%" height="100%"
 					 dataProvider="{dataRows}" 
@@ -42,7 +42,7 @@
 	</mx:VBox>
 
 	<mx:ControlBar>
-		<mx:Label text="Data Downloaded:" color="0xffffff"/>
+		<mx:Label text="{lang('Data Downloaded:')}" color="0xffffff"/>
 		<mx:Canvas width="110" height="20" alpha="1.0" borderColor="#000000" backgroundColor="#FFFFFF" borderStyle="solid" horizontalScrollPolicy="off">
 			<mx:TextArea id="downloadProgress" width="1%" height="100%" backgroundColor="#FF0000" minWidth="0" minHeight="0"/>
 			<mx:TextArea id="downloadProgressText" text="0%" width="100%" height="100%"  minWidth="0" minHeight="0" textAlign="center" backgroundAlpha="0.0"/>
@@ -143,7 +143,7 @@
 						parseXLSToDataGrid(xls.sheets);
 						}else
 						{
-							Alert.show("No data was imported from the XLS file. Either the file is empty or the file format is corrupted or not supported.", "Import failed");
+							Alert.show(lang('No data was imported from the XLS file. Either the file is empty or the file format is corrupted or not supported.'), lang('Import failed'));
 							return;
 						}
 					}
@@ -264,7 +264,7 @@
 				}
 				if ( errorMessage.visible)
 				{
-					errorMessage.text = "Selected column's values are not unique!";
+					errorMessage.text = lang("Selected column's values are not unique!");
 					commitButton.enabled = false;
 					return true;
 				}

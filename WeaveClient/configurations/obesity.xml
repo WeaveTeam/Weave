@@ -1227,7 +1227,7 @@ wheel</zoom>
           </SelectablePlotLayer>
           <SelectablePlotLayer name="label">
             <backgroundIsVisible>true</backgroundIsVisible>
-            <layerIsSelectable>false</layerIsSelectable>
+            <layerIsSelectable>true</layerIsSelectable>
             <layerIsVisible>true</layerIsVisible>
             <maxVisibleScale>23301.68888888889</maxVisibleScale>
             <minVisibleScale>0.35555555555555557</minVisibleScale>

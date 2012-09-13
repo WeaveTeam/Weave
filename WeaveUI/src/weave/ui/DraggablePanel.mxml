@@ -35,7 +35,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				creationComplete="handleCreationComplete()"
 				layout="absolute"
 				close="handleCloseButtonClick()"
-				render="busyIndicator.visible = WeaveAPI.SessionManager.linkableObjectIsBusy(this);"
 				
 				closeButtonUpSkin="@Embed(source='/weave/resources/images/cancel.png')"
 				closeButtonOverSkin="@Embed(source='/weave/resources/images/cancel.png')"
@@ -48,6 +47,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				>
 	<mx:Script>
 		<![CDATA[
+			import flash.utils.getTimer;
+			
 			import mx.containers.Canvas;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
@@ -145,6 +146,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private const _dragCanvas:Canvas = new Canvas();
 			
+			private var busyIndicator:BusyIndicator = new BusyIndicator(this as ILinkableObject);
+			
+			[Embed(source="/weave/resources/images/panMode.png")]
+			private var MoveIcon:Class; 
+			private var _moveImage:Image = new Image();
+			
 			/**
 			 *  This method is called when a UIComponent is constructed,
 			 *  and again whenever the ResourceManager dispatches
@@ -197,10 +204,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// nothing here, just a placeholder
 			}
 			
-			[Embed(source="/weave/resources/images/panMode.png")]
-			private var MoveIcon:Class; 
-			
-			private var _moveImage:Image = new Image();
 			override protected function createChildren():void
 			{
 				super.createChildren();
@@ -288,7 +291,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				panelNeedsUpdate();
 				
 			}
-			public var busyIndicator:BusyIndicator = new BusyIndicator();
 			
 			private function handleCreationComplete():void
 			{

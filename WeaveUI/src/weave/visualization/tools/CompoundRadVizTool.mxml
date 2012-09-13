@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
@@ -39,23 +39,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.linkSessionState;
 			import weave.api.ui.IVisTool;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
 			import weave.ui.DraggablePanel;
 			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
-			import weave.utils.SpatialIndex;
-			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.utils.PlotterUtils;
 			import weave.visualization.plotters.AnchorPlotter;
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.CompoundRadVizPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, CompoundRadVizTool, "Compound RadViz");
+			WeaveAPI.registerImplementation(IVisTool, CompoundRadVizTool, lang("Compound RadViz"));
+			
+			private static const ANCHOR_LAYER:String = "anchorLayer";
 			
 			[Bindable]
 			private var _plotter:CompoundRadVizPlotter ;
 			private var _anchorPlotter:AnchorPlotter ;
-			private var _anchorLayer:SelectablePlotLayer ;
 			
 			override protected function constructor():void
 			{
@@ -65,8 +64,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_plotter = initializePlotters(CompoundRadVizPlotter, false);
 				getCallbackCollection(_plotter).addGroupedCallback(this, handlePanelTitleChange);
 				
-				visualization.enableAutoZoomToExtent.value = true;
-				visualization.enableFixedAspectRatio.value = true;
+				visualization.plotManager.enableAutoZoomToExtent.value = true;
+				visualization.plotManager.enableFixedAspectRatio.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
 				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
@@ -80,18 +79,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					(initColumnDefaults as Function).apply(null, columnsToInit);
 				
 				_plotter.setAnchorLocations();
-				_anchorLayer = visualization.layers.requestObject("anchorLayer", SelectablePlotLayer, false );
-				_anchorPlotter = _anchorLayer.getDynamicPlotter().requestLocalObject(AnchorPlotter, false) ;
-				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);	
+				_anchorPlotter = visualization.plotManager.plotters.requestObject(ANCHOR_LAYER, AnchorPlotter, true);
+				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);
 				linkSessionState(_plotter.colorMap, _anchorPlotter.colorMap);
 				linkSessionState(_plotter.enableWedgeColoring, _anchorPlotter.enableWedgeColoring);
 				
-				_anchorLayer.useTextBitmapFilters.value = true;
+				getCallbackCollection(mainLayerSettings.probeFilter).addImmediateCallback(this,drawProbeLines);
 				
-				getCallbackCollection(plotLayer.probeFilter).addImmediateCallback(this,drawProbeLines);
-				
-				visualization.marginTop.value =	visualization.marginBottom.value = "20";
-				visualization.marginLeft.value = visualization.marginRight.value = "20";				
+				visualization.plotManager.marginTop.value =	visualization.plotManager.marginBottom.value = "20";
+				visualization.plotManager.marginLeft.value = visualization.plotManager.marginRight.value = "20";				
 			}
 			
 			override protected function childrenCreated():void
@@ -107,7 +103,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.jitterLevel, jitterSlider, "value" );	
 				
-				plotLayer.rawChildren.addChild(probeSprite);
+				visualization.rawChildren.addChild(probeSprite);
 			}
 			
 			private var tempBounds:Bounds2D = new Bounds2D();
@@ -118,7 +114,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _probedAnchor:AnchorPoint;
 			private var dataBounds:Bounds2D = new Bounds2D();
 			private var isDragging:Boolean = false;			
-			private var enableAutoZoom:Boolean;
+			private var _prevEnableAutoZoom:Boolean;
 			
 			private var probeSprite:Sprite = new Sprite() ;			
 			
@@ -126,11 +122,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{ 
 				if(!Weave.properties.enableProbeLines.value) return;
 				
-				var probeKeySet:IKeySet = (plotLayer.probeFilter.internalObject) as IKeySet;
+				var probeKeySet:IKeySet = (mainLayerSettings.probeFilter.internalObject) as IKeySet;
 				if(!probeKeySet) return;
 				
-				visualization.zoomBounds.getDataBounds(dataBounds);
-				visualization.zoomBounds.getScreenBounds(screenBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
+				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
 				
 				_plotter.probedKeys = probeKeySet.keys ;
 				_plotter.drawProbe = (this as DraggablePanel) == DraggablePanel.activePanel;
@@ -142,23 +138,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function handleMouseDown(event:MouseEvent):void
 			{
 				tempPoint = visualization.globalToLocal(new Point(event.stageX,event.stageY));
-				tempBounds.reset();
-				tempBounds.setCenter(tempPoint.x, tempPoint.y);
-				tempBounds.centeredResize(10,10);
+				tempBounds.setCenteredRectangle(tempPoint.x, tempPoint.y, 10, 10);
 				
-				visualization.zoomBounds.getDataBounds(dataBounds);
-				visualization.zoomBounds.getScreenBounds(screenBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
+				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
 				screenBounds.projectCoordsTo(tempBounds, dataBounds);
 				
-				_probedKeys = (_anchorLayer.spatialIndex as SpatialIndex).getKeysBoundingBoxOverlap(tempBounds);
+				_probedKeys = visualization.plotManager.hack_getSpatialIndex(ANCHOR_LAYER).getKeysBoundingBoxOverlap(tempBounds);
 				if( !_probedKeys.length ) return;
 				
 				var key:IQualifiedKey = _probedKeys[0];
-				_probedAnchor = _plotter.anchors.getObject(key.localName) as AnchorPoint;													
+				_probedAnchor = _plotter.anchors.getObject(key.localName) as AnchorPoint;			
 				
 				visualization.enableSelection.value = false;
-				enableAutoZoom = visualization.enableAutoZoomToExtent.value;
-				visualization.enableAutoZoomToExtent.value = false;
+				_prevEnableAutoZoom = visualization.plotManager.enableAutoZoomToExtent.value;
+				visualization.plotManager.enableAutoZoomToExtent.value = false;
 				isDragging = true;
 			}
 			
@@ -169,7 +163,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_probedAnchor = null;
 				isDragging = false;							
 				visualization.enableSelection.value = true;
-				visualization.enableAutoZoomToExtent.value = enableAutoZoom;
+				visualization.plotManager.enableAutoZoomToExtent.value = _prevEnableAutoZoom;
 			}
 			
 			private function handleMouseMove(event:MouseEvent):void
@@ -196,7 +190,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Size","Color","Anchor Dimensions"];
+				return [lang("Size"),lang("Color"),lang("Anchor Dimensions")];
 			}
 			
 			override public function getSelectableAttributes():Array
@@ -204,62 +198,56 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return [_plotter.radiusColumn,colorColumn,_plotter.columns];
 			}
 			
-			private function updateTitle():void
+			override protected function get defaultPanelTitle():String
 			{
-				if (!panelTitle.value)
+				// try to get unique attribute names separated by commas					
+				var newTitle:String = lang("RadViz of ");
+				
+				var uniqueColumns:Dictionary = new Dictionary();
+				
+				for each(var column:IAttributeColumn in _plotter.columns.getObjects(IAttributeColumn) )
 				{
-					// try to get unique attribute names separated by commas					
-					var newTitle:String = "Compound RadViz of ";
-					
-					var uniqueColumns:Dictionary = new Dictionary();
-					
-					for each(var column:IAttributeColumn in _plotter.columns.getObjects(IAttributeColumn) )
-					{
-						uniqueColumns[ColumnUtils.getTitle(column)] = column;
-					}
-					
-					for (var uniqueTitle:String in uniqueColumns)
-					{
-						newTitle += uniqueTitle + ", ";
-					}
-					
-					if(newTitle.charAt(newTitle.length-1) == ",")
-						newTitle = newTitle.substr(0, newTitle.length-2);
-					
-					title = newTitle;
+					uniqueColumns[ColumnUtils.getTitle(column)] = column;
 				}
-			}
-			
-			private function alphaSliderFormatFunction(item:Number):String 
-			{
-				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
+				
+				var comma:Boolean = false;
+				for (var uniqueTitle:String in uniqueColumns)
+				{
+					newTitle += uniqueTitle;
+					if (comma)
+						newTitle += lang(", ");
+					else
+						comma = true;
+				}
+				
+				return newTitle;
 			}
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="Attributes">
-			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="Color" />
-			<ui:DynamicColumnComponent visTool="{this}" id="size" label="Size" />
-			<ui:ColumnListComponent visTool="{this}" id="columnList" label="Anchor Dimensions"/>
+		<mx:VBox id="attributesPanel" label="{lang('Attributes')}">
+			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="{lang('Color')}" />
+			<ui:DynamicColumnComponent visTool="{this}" id="size" label="{lang('Size')}" />
+			<ui:ColumnListComponent visTool="{this}" id="columnList" label="{lang('Anchor Dimensions')}"/>
 		</mx:VBox>		
 		
-		<mx:VBox id="VizControlsPanel" label="Appearance">
-			<ui:Indent label="Point opacity"
+		<mx:VBox id="VizControlsPanel" label="{lang('Appearance')}">
+			<ui:Indent label="{lang('Point opacity')}"
 					   width="100%"
-					   toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).">
+					   toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}">
 				<mx:HSlider id="alphaSlider"
 							width="100%"
 							alpha="1.0"
 							snapInterval="0.1"
 							tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
-							dataTipFormatFunction="alphaSliderFormatFunction"
+							dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"/>
 			</ui:Indent>
 			<mx:Spacer/>
-			<ui:Indent label="Point radius"
+			<ui:Indent label="{lang('Point radius')}"
 					   width="100%"
-					   toolTip="Use this control to adjust point radius">
+					   toolTip="{lang('Use this control to adjust point radius')}">
 				<mx:HSlider id="sizeSlider"
 							width="100%"
 							alpha="1.0"
@@ -268,7 +256,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							liveDragging="true"/>
 			</ui:Indent>
 			<mx:Spacer/>
-			<ui:Indent label="Label angle" width="100%">
+			<ui:Indent label="{lang('Label angle')}" width="100%">
 				<mx:HSlider id="labelAngleSlider" width="100%"
 							snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 							dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
@@ -276,47 +264,47 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</ui:Indent>
 		</mx:VBox>
 		
-		<mx:VBox id="advancedPanel" label="Advanced">			
+		<mx:VBox id="advancedPanel" label="{lang('Advanced')}">			
 			<mx:VBox>
 				<mx:HBox
 					creationComplete="linkBindableProperty(_plotter.localNormalization,normalizationType,'selectedValue')">
-					<mx:Label text="Normalization method:"
+					<mx:Label text="{lang('Normalization method:')}"
 							  color="0x000000" fontSize="12"
-							  toolTip="Select the type of normalization used to calculate record coordinates"/>
+							  toolTip="{lang('Select the type of normalization used to calculate record coordinates')}"/>
 					<mx:RadioButtonGroup id="normalizationType"/>
 					<mx:RadioButton groupName="normalizationType"
 									id="localNorm"
 									value="true"
-									label="Local"
+									label="{lang('Local')}"
 									/>
 					<mx:RadioButton groupName="normalizationType"
 									id="globalNorm"
 									value="false"
-									label="Global"
+									label="{lang('Global')}"
 									/>
 				</mx:HBox>
 			</mx:VBox>
 			<mx:VBox>
 				
 				<mx:CheckBox id="enableWedgeColoringCkbx"
-							 label="Enable Wedge Coloring"
-							 toolTip="Enable different wedge colors for the pi-chart glyphs"
+							 label="{lang('Enable Wedge Coloring')}"
+							 toolTip="{lang('Enable different wedge colors for the pi-chart glyphs')}"
 							 creationComplete="linkBindableProperty(_plotter.enableWedgeColoring, event.target, 'selected')"/>
-				<mx:Label text="Color scale used in pie-chart glyphs:" enabled="{enableWedgeColoringCkbx.selected}"/>
+				<mx:Label text="{lang('Color scale used in pie-chart glyphs:')}" enabled="{enableWedgeColoringCkbx.selected}"/>
 				<ui:ColorRampList id="colormapGrid" colorRamp="{_plotter.colorMap}"/>
 			</mx:VBox>
 			<mx:Spacer height="10"/>
 			<mx:VBox>
 				<mx:HBox>
-					<mx:CheckBox id="jitterckbx" label="Apply Jitter" 
-							  toolTip="Use this control to change record coordinates by a random number"/>					
+					<mx:CheckBox id="jitterckbx" label="{lang('Apply Jitter')}" 
+							  toolTip="{lang('Use this control to change record coordinates by a random number')}"/>					
 					<mx:Button click="_plotter.setNewRandomJitterColumn();" 
-								   toolTip="Use this control to reseed jitter with new random values"
-								   label="Randomize Jitter"/>
-					<mx:Label text="Jitter Level:" 
+								   toolTip="{lang('Use this control to reseed jitter with new random values')}"
+								   label="{lang('Randomize Jitter')}"/>
+					<mx:Label text="{lang('Jitter Level:')}" 
 							  color="0x000000" fontSize="12" 
 							  enabled="{jitterckbx.selected}"
-							  toolTip="Use slider to adjust the jitter level"/>					
+							  toolTip="{lang('Use slider to adjust the jitter level')}"/>					
 					<mx:HSlider id="jitterSlider"
 								enabled="{jitterckbx.selected}"
 								width="100%"
@@ -331,14 +319,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</mx:VBox>
 			<mx:Spacer height="10"/>
 			<mx:VBox>
-				<mx:Label text="Dimensional Anchor Reordering Algorithm:" 
+				<mx:Label text="{lang('Dimensional Anchor Reordering Algorithm:')}" 
 						  color="0x000000" fontSize="12" 
-						  toolTip="Use this control to reorder the dimensional anchors"/>					
+						  toolTip="{lang('Use this control to reorder the dimensional anchors')}"/>					
 				<mx:HBox>
 					<mx:ComboBox id="algorithmComboBox" dataProvider="{_plotter.algorithms}"
 								 creationComplete="linkBindableProperty(_plotter.currentAlgorithm,event.target,'selectedItem')"/>
 					<mx:HBox enabled="{algorithmComboBox.selectedIndex == 0}">
-						<mx:Label text="Number of Iterations"/>
+						<mx:Label text="{lang('Number of Iterations')}"/>
 						<mx:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
 									  creationComplete="linkBindableProperty(_plotter.iterations, event.target, 'text')"/>
 					</mx:HBox>

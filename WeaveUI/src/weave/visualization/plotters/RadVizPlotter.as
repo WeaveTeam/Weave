@@ -25,19 +25,17 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
-	import mx.utils.ObjectUtil;
-	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.getSessionState;
+	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -70,7 +68,6 @@ package weave.visualization.plotters
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			setNewRandomJitterColumn();		
 			iterations.value = 50;
-			recordsPerDraw = 1;
 			algorithms[RANDOM_LAYOUT] = RandomLayoutAlgorithm;
 			algorithms[GREEDY_LAYOUT] = GreedyLayoutAlgorithm;
 			algorithms[NEAREST_NEIGHBOR] = NearestNeighborLayoutAlgorithm;
@@ -91,15 +88,15 @@ package weave.visualization.plotters
 		}
 		private function handleColumnsListChange():void
 		{
-			// When a new column is created, register the stats to trigger callbacks and affect busy status.
-			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			var newColumnName:String = columns.childListCallbacks.lastNameAdded;
 			if(newColumn != null)
 			{
 				// invariant: same number of anchors and columns
-				anchors.requestObject(newColumnName, AnchorPoint, false) ;								
-				registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
+				anchors.requestObject(newColumnName, AnchorPoint, false);
+				// When a new column is created, register the stats to trigger callbacks and affect busy status.
+				// This will be cleaned up automatically when the column is disposed.
+				registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
 			}
 			var oldColumnName:String = columns.childListCallbacks.lastNameRemoved;
 			if(oldColumnName != null)
@@ -379,7 +376,6 @@ package weave.visualization.plotters
 			var numeratorY:Number = 0;
 			var denominator:Number = 0;
 			
-			trace(debugId(this),debugId(anchors));
 			var anchorArray:Array = anchors.getObjects();			
 			
 			var sum:Number = 0;			
@@ -409,6 +405,7 @@ package weave.visualization.plotters
 			}
 			coordinate.x = (numeratorX/denominator);
 			coordinate.y = (numeratorY/denominator);
+			//trace(recordKey.localName,coordinate);
 			if( enableJitter.value )
 				jitterRecords(recordKey);			
 			return sum;
@@ -449,6 +446,19 @@ package weave.visualization.plotters
 					randomValueArray.push( -(Math.random() % 10)) ;
 				}
 			spatialCallbacks.triggerCallbacks();
+		}
+		
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			if (task.iteration == 0)
+			{
+				if (!keyNumberMap || keyNumberMap[task.recordKeys[0]] == null)
+					return 1;
+				if (columns.getObjects().length != anchors.getObjects().length)
+					return 1;
+				task.recordKeys.sort(sortKeys, Array.DESCENDING);
+			}
+			return super.drawPlotAsyncIteration(task);
 		}
 		
 		/**
@@ -528,27 +538,6 @@ package weave.visualization.plotters
 		}			
 		
 		/**
-		 * This function must be defined with override by classes that extend AbstractPlotter.
-		 * 
-		 * Draws the graphics for a list of records onto a sprite.
-		 * @param recordKeys The list of keys that identify which records should be used to generate the graphics.
-		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
-		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
-		 * @param destination The sprite to draw the graphics onto.
-		 */
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			//timer1.start();
-			if(!keyNumberMap) return;
-			if(keyNumberMap[recordKeys[0]] == null) return;
-			if(columns.getObjects().length != anchors.getObjects().length) return;
-			recordKeys.sort(sortKeys, Array.DESCENDING);			
-			super.drawPlot(recordKeys, dataBounds, screenBounds, destination );
-			/*timer1.debug("endplot");
-			timer1.stop();*/
-		}
-		
-		/**
 		 * This function must be implemented by classes that extend AbstractPlotter.
 		 * 
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.
@@ -617,6 +606,8 @@ package weave.visualization.plotters
 			var newAlgorithm:Class = algorithms[currentAlgorithm.value];
 			if (newAlgorithm == null) 
 				return;
+			
+			disposeObjects(_algorithm); // clean up previous algorithm
 			
 			_algorithm = newSpatialProperty(newAlgorithm);
 			var array:Array = _algorithm.run(columns.getObjects(IAttributeColumn), keyNumberMap);

@@ -51,6 +51,8 @@ package weave.utils
 	 */
 	public class SpatialIndex extends CallbackCollection implements ISpatialIndex
 	{
+		private function debugTrace(..._):void { } // comment this line to enable debugging
+		
 		public function SpatialIndex()
 		{
 		}
@@ -83,7 +85,6 @@ package weave.utils
 		private const maxKDKey:Array = [NaN, NaN, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
 		
 		// reusable temporary objects
-		private const _tempBounds:IBounds2D = new Bounds2D();
 		private const _tempBoundsPolygon:Array = [new Point(), new Point(), new Point(), new Point(), new Point()]; // used by setTempBounds and getKeysGeometryOverlap
 
 		/**
@@ -129,27 +130,27 @@ package weave.utils
 		 */
 		public function createIndex(plotter:IPlotter, queryMissingBounds:Boolean = false):void
 		{
+			debugTrace(plotter,this,'createIndex');
+			
 			_queryMissingBounds = queryMissingBounds;
 			
 			var key:IQualifiedKey;
 			var bounds:IBounds2D;
 			var i:int;
 			
-			if (plotter is DynamicPlotter)
-			{
-				if ((plotter as DynamicPlotter).internalObject is IPlotterWithGeometries)
-					_keyToGeometriesMap = new Dictionary();
-				else 
-					_keyToGeometriesMap = null;
-			}
+			while (plotter is DynamicPlotter)
+				plotter = (plotter as DynamicPlotter).internalObject as IPlotter;
 			
-			_tempBounds.copyFrom(collectiveBounds);
+			if (plotter is IPlotterWithGeometries)
+				_keyToGeometriesMap = new Dictionary();
+			else 
+				_keyToGeometriesMap = null;
 			
 			_keysArray.length = 0; // hack to prevent callbacks
 			clear();
 			_plotter = plotter;
 
-			if (plotter != null)
+			if (plotter)
 			{
 				collectiveBounds.copyFrom(plotter.getBackgroundDataBounds());
 				
@@ -164,6 +165,7 @@ package weave.utils
 				// KDTree structure due to the given ordering of the records
 				VectorUtils.randomSort(_keysArray);
 			}
+			debugTrace(_plotter,this,'keys',_keysArray.length);
 			
 			// insert bounds-to-key mappings in the kdtree
 			_prevTriggerCounter = triggerCounter; // used to detect change during iterations
@@ -183,13 +185,16 @@ package weave.utils
 			
 			if (_keyToGeometriesMap != null)
 			{
-				var geoms:Array = ((_plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
+				var geoms:Array = (_plotter as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
 				_keyToGeometriesMap[key] = geoms;
 			}
 			
 			// stop if callbacks were triggered since the iterations started
 			if (triggerCounter != _prevTriggerCounter)
+			{
+				debugTrace(_plotter,this,'trigger counter changed');
 				return 0;
+			}
 			
 			_keysIndex++;
 			
@@ -240,6 +245,7 @@ package weave.utils
 		public function clear():void
 		{
 			delayCallbacks();
+			debugTrace(_plotter,this,'clear');
 			
 			if (_keysArray.length > 0)
 				triggerCallbacks();

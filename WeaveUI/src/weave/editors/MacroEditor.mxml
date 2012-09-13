@@ -24,12 +24,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 @author jfallon
 -->
 <ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute"
-				   width="400" height="300" title="Macro Editor" backgroundColor="#EFF4BC">
+				   width="400" height="300" title="{lang('Macro Editor')}" backgroundColor="#EFF4BC">
 	<mx:VBox height="100%" width="100%" paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
 		<mx:HBox>
-			<mx:Button label="Add" height="100%" width="33%" click="newMacroEntry(event)"/>
-			<mx:Button label="Delete" height="100%" width="33%" click="deleteEntry(event)" enabled="{buttonsEnabled}"/>
-			<mx:Button label="Rename" height="100%" width="33%" click="renameMacroEntry(event)" enabled="{buttonsEnabled}"/>
+			<mx:Button label="{lang('Add')}" height="100%" width="33%" click="newMacroEntry(event)"/>
+			<mx:Button label="{lang('Delete')}" height="100%" width="33%" click="deleteEntry(event)" enabled="{buttonsEnabled}"/>
+			<mx:Button label="{lang('Rename')}" height="100%" width="33%" click="renameMacroEntry(event)" enabled="{buttonsEnabled}"/>
 		</mx:HBox>
 		<mx:HDividedBox height="100%" width="100%">
 			<mx:VBox height="100%" width="100%" >
@@ -38,7 +38,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</mx:VBox>
 			<mx:VBox height="100%" width="100%">
 				<mx:TextArea id="funcValues" height="100%" width="100%" change="funcValues_changeHandler(event)"/>
-				<mx:Text text="Macro Result:" />
+				<mx:Text text="{lang('Macro Result:')}" />
 				<mx:TextArea id="macroResult" editable="false" width="100%" height="20%" />
 			</mx:VBox>
 		</mx:HDividedBox>
@@ -94,7 +94,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			protected function newMacroEntry(event:MouseEvent):void
 			{
-				var box:AlertTextBox = AlertTextBox.show("Macro Naming Window", "Enter a name for the new macro:");
+				var box:AlertTextBox = AlertTextBox.show(lang("Macro Naming Window"), lang("Enter a name for the new macro:"));
 				box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkInput);
 			}
 			
@@ -107,7 +107,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						if( event.textInput == macroNames[i])
 						{
-							var box:AlertTextBox = AlertTextBox.show("Macro Naming Window", "The name you entered is already being used. Please enter a new name:");
+							var box:AlertTextBox = AlertTextBox.show(lang("Macro Naming Window"), lang("The name you entered is already being used. Please enter a new name:"));
 							box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkInput);
 							return;
 						}
@@ -152,11 +152,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						funcToSave.value = funcValues.text;
 						macroResult.text = LinkableFunction.evaluateMacro(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction));
 						if( macroResult.text == "" )
-							macroResult.text = "Error.";
+							macroResult.text = lang("Error.");
 					}
 					catch(e:Error)
 					{
-						macroResult.text = "Error.";
+						macroResult.text = lang("Error.");
 					}
 				}
 			}
@@ -172,7 +172,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					renaming = true;
 					lastSelectedIndex = macroList.selectedIndex;
-					var box:AlertTextBox = AlertTextBox.show("Macro Renaming Window", "Enter a new name for the macro:");
+					var box:AlertTextBox = AlertTextBox.show(lang("Macro Renaming Window"), lang("Enter a new name for the macro:"));
 					box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkInput);
 				}
 			}

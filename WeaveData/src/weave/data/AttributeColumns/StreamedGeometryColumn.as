@@ -59,6 +59,16 @@ package weave.data.AttributeColumns
 			// request a list of tiles for this geometry collection
 			var query:AsyncToken = _tileService.getTileDescriptors();
 			query.addAsyncResponder(handleGetTileDescriptors, handleGetTileDescriptorsFault, metadata);
+			
+			var self:Object = this;
+			boundingBoxCallbacks.addImmediateCallback(this, function():void{
+				if (_debug)
+					debugTrace(self,'boundingBoxCallbacks',boundingBoxCallbacks,'keys',keys.length);
+			});
+			addImmediateCallback(this, function():void{
+				if (_debug)
+					debugTrace(self,'keys',keys.length);
+			});
 		}
 		
 		public function get boundingBoxCallbacks():ICallbackCollection
@@ -172,9 +182,9 @@ package weave.data.AttributeColumns
 			if (_debug)
 			{
 				if (metadataTileIDs.length > 0)
-					trace("requesting metadata tiles: " + metadataTileIDs);
+					debugTrace(this, "requesting metadata tiles: " + metadataTileIDs);
 				if (geometryTileIDs.length > 0)
-					trace("requesting geometry tiles: " + geometryTileIDs);
+					debugTrace(this, "requesting geometry tiles: " + geometryTileIDs);
 			}
 			
 			var query:AsyncToken;

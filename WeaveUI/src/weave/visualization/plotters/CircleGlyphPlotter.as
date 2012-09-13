@@ -19,14 +19,12 @@
 
 package weave.visualization.plotters
 {
-	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.Point;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -39,7 +37,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -89,13 +86,6 @@ package weave.visualization.plotters
 		}
 		
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
-
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			tempPoint.x = NaN;
-			tempPoint.y = NaN;
-			super.drawPlot(recordKeys, dataBounds, screenBounds, destination);
-		}
 
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().

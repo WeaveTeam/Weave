@@ -64,13 +64,7 @@ package weave.services.wms
 		 */
 		public static function getSRS(provider:String):String
 		{
-			var temp:String = _providersToSRS[provider] as String;
-			
-			// should not occur
-			if (temp == null)
-				return '';
-						
-			return temp;
+			return _providersToSRS[provider] || '';
 		}
 
 		public static const NASA:String = 'NASA OnEarth';

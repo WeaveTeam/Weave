@@ -36,10 +36,10 @@
 				// lock dynamic objects into place
 				plotter = initializePlotters(WeaveWordlePlotter, false);
 				
-				visualization.marginBottom.value = "80";
-				visualization.marginTop.value    = "80";
-				visualization.marginLeft.value   = "80";
-				visualization.marginRight.value  = "80";
+				visualization.plotManager.marginBottom.value = "80";
+				visualization.plotManager.marginTop.value    = "80";
+				visualization.plotManager.marginLeft.value   = "80";
+				visualization.plotManager.marginRight.value  = "80";
 				visualization.enableZoomAndPan.value = false;
 				
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(plotter.wordColumn); });
@@ -49,14 +49,14 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Wordle visualization";
+				return lang("Wordle visualization");
 			}
 		]]>
 	</mx:Script>
 	
 	<ui:ControlPanel>
 			<mx:Panel id="VizControlsPanel" 
-					  label="Visualization Controls" 
+					  label="{lang('Visualization Controls')}" 
 					  headerHeight="2"
 					  borderColor="0x000000" 
 					  backgroundColor="0xCCCCCC" 

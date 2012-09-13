@@ -19,6 +19,7 @@
 
 package weave.primitives
 {
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
@@ -251,6 +252,24 @@ package weave.primitives
 				output.height = getHeight();
 			}
 			return output;
+		}
+		
+		/**
+		 * This will apply transformations to an existing Matrix for projecting coordinates from this bounds to another.
+		 * @param destinationBounds The destination bounds used to calculate the transformation.
+		 * @param outputMatrix The Matrix used to store the transformation.
+		 * @param startWithIdentity If this is true, then outputMatrix.identity() will be applied first.
+		 */
+		public function transformMatrix(destinationBounds:IBounds2D, outputMatrix:Matrix, startWithIdentity:Boolean):void
+		{
+			if (startWithIdentity)
+				outputMatrix.identity();
+			outputMatrix.translate(-xMin, -yMin);
+			outputMatrix.scale(
+				destinationBounds.getWidth() / getWidth(),
+				destinationBounds.getHeight() / getHeight()
+			);
+			outputMatrix.translate(destinationBounds.getXMin(), destinationBounds.getYMin());
 		}
 
 		/**

@@ -66,9 +66,10 @@ package weave.api.core
 		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
 		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed of, the task will no longer be iterated.
 		 * @param iterativeTask A function that performs a single iteration of the asynchronous task.
-		 *   This function must take no parameters and return a number from 0.0 to 1.0 indicating the overall progress of the task.
+		 *   This function must take zero or one parameter and return a number from 0.0 to 1.0 indicating the overall progress of the task.
 		 *   A number below 1.0 indicates that the function should be called again to continue the task.
 		 *   When the task is completed, iterativeTask() should return 1.0.
+		 *   The optional parameter specifies the time when the function should return.
 		 *   Example:
 		 *       var array:Array = ['a','b','c','d'];
 		 *       var index:int = 0;
@@ -81,6 +82,20 @@ package weave.api.core
 		 * 
 		 *           index++;
 		 *           return index / array.length;  // this will return 1.0 on the last iteration.
+		 *       }
+		 *   Example 2:
+		 *       var array:Array = ['a','b','c','d'];
+		 *       var index:int = 0;
+		 *       function iterativeTaskWithTimer(returnTime:int):Number
+		 *       {
+		 *           for (; index < array.length; index++)
+		 *           {
+		 *               if (getTimer() > returnTime)
+		 *                   return index / array.length; // progress so far
+		 * 
+		 *               trace(array[index]);
+		 *           }
+		 *           return 1;
 		 *       }
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 * @param finalCallback A function that should be called after the task is completed.

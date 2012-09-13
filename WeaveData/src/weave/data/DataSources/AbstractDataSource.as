@@ -30,19 +30,14 @@ package weave.data.DataSources
 	import weave.api.data.IAttributeHierarchy;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
-	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.core.ClassUtils;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
-	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.primitives.AttributeHierarchy;
-	import weave.utils.DebugUtils;
-	import weave.utils.debug_trace;
 	
 	/**
 	 * This is a base class to make it easier to develope a new class that implements IDataSource.
@@ -74,8 +69,8 @@ package weave.data.DataSources
 		{
 			if (enableDebug)
 			{
-				debug_trace(this, traceArgs);
-				//trace.apply(null, traceArgs);
+				traceArgs.unshift(this);
+				debugTrace.apply(null, traceArgs);
 			}
 		}
 		
@@ -162,7 +157,7 @@ package weave.data.DataSources
 			// set initialized to true so other parts of the code know if this function has been called.
 			_initializeCalled = true;
 
-			debug("initialize()");
+			debug("initialize");
 
 			// TODO: check each column previously provided by getAttributeColumn()
 
@@ -178,7 +173,7 @@ package weave.data.DataSources
 			
 			handleAllPendingColumnRequests();
 
-			debug("initialize() completed "+this);
+			debug("initialize completed");
 		}
 		
 		/**
@@ -256,7 +251,7 @@ package weave.data.DataSources
 			}
 			else
 			{
-				debug("already initialized",pathString);
+				debug("already initialized", pathString);
 			}
 		}
 
@@ -332,7 +327,7 @@ package weave.data.DataSources
 		 */
 		private function delayColumnRequest(request:DelayedColumnRequest):void
 		{
-			debug('delayColumnRequest',request.columnReference.getHashCode());
+			debug('delayColumnRequest', request.columnReference.getHashCode());
 			
 			_pendingColumnRequests.push(request);
 		}
@@ -392,8 +387,8 @@ package weave.data.DataSources
 	}
 }
 
-import weave.data.AttributeColumns.ProxyColumn;
 import weave.api.data.IColumnReference;
+import weave.data.AttributeColumns.ProxyColumn;
 
 /**
  * @private

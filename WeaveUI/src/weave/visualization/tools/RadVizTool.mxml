@@ -32,10 +32,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   mouseUp="handleMouseUp(event)">
 	<mx:Script>
 		<![CDATA[
-			import mx.core.UIComponent;
-			
-			import weave.api.core.ILinkableHashMap;
-			
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
@@ -48,49 +44,42 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.data.IQualifiedKey;
 			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
-			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.core.CallbackCollection;
-			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
-			import weave.core.LinkableVariable;
-			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.NumberColumn;
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.Bounds2D;
 			import weave.primitives.ColorRamp;
-			
-			import weave.services.DelayedAsyncResponder;
 			import weave.radviz.ClassDiscriminationLayoutAlgorithm;
+			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
 			import weave.services.beans.RResult;
 			import weave.ui.DraggablePanel;
-			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
-			import weave.utils.EditorManager;
 			import weave.utils.ResultUtils;
 			import weave.utils.SpatialIndex;
-			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.plotters.AnchorPlotter;
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.RadVizPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, RadVizTool, "RadViz");
+			WeaveAPI.registerImplementation(IVisTool, RadVizTool, lang("RadViz"));
 			
 			[Bindable]
 			public var _plotter:RadVizPlotter ;
 			public var _anchorPlotter:AnchorPlotter ;
-			private var _anchorLayer:PlotLayer ;
+
+			private static const ANCHOR_LAYER:String = "anchorLayer";
+
 			public var normalizedColumns:Array = new Array();//normalized columns returned from R
 			private var normalizedColumnsGroup:ICallbackCollection; // linkable object used to group norm columns and check busy status
 			public const classDiscriminatorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);//column used as the Class Discriminator
-			public var cdLayout:ClassDiscriminationLayoutAlgorithm = new ClassDiscriminationLayoutAlgorithm();
+			public var cdLayout:ClassDiscriminationLayoutAlgorithm= new ClassDiscriminationLayoutAlgorithm();
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			
 			public var latestjoinedColumnKeys:Array = new Array();
@@ -104,8 +93,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_plotter = initializePlotters(RadVizPlotter, false);
 				getCallbackCollection(_plotter).addGroupedCallback(this, handlePanelTitleChange);
 				
-				visualization.enableAutoZoomToExtent.value = true;
-				visualization.enableFixedAspectRatio.value = true;
+				visualization.plotManager.enableAutoZoomToExtent.value = true;
+				visualization.plotManager.enableFixedAspectRatio.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
 				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
@@ -120,24 +109,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				
 				_plotter.setAnchorLocations();//normal layout
-				_anchorLayer = visualization.layers.requestObject("anchorLayer", PlotLayer, true );
-				_anchorPlotter = _anchorLayer.getDynamicPlotter().requestLocalObject(AnchorPlotter, true) ;
+				_anchorPlotter = visualization.plotManager.plotters.requestObject(ANCHOR_LAYER, AnchorPlotter, true) ;
 				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);	
 				
-				getCallbackCollection(plotLayer.probeFilter).addImmediateCallback(this,drawProbeLines);
+				getCallbackCollection(mainLayerSettings.probeFilter).addImmediateCallback(this,drawProbeLines);
 				
-				visualization.marginTop.value =	visualization.marginBottom.value = "20";
-				visualization.marginLeft.value = visualization.marginRight.value = "20";				
+				visualization.plotManager.marginTop.value =	visualization.plotManager.marginBottom.value = "20";
+				visualization.plotManager.marginLeft.value = visualization.plotManager.marginRight.value = "20";				
 			}
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				plotLayer.rawChildren.addChild(probeSprite);
 				_plotter.columns.addGroupedCallback(this, normalizationInR);
 				classDiscriminatorColumn.addImmediateCallback(this, classDiscriminatorColumnUpdate);
 				
+				visualization.rawChildren.addChild(probeSprite);
 			}
 			
 			private var tempBounds:Bounds2D = new Bounds2D();
@@ -269,11 +257,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{ 
 				if(!Weave.properties.enableProbeLines.value) return;
 				
-				var probeKeySet:IKeySet = (plotLayer.probeFilter.internalObject) as IKeySet;
+				var probeKeySet:IKeySet = (mainLayerSettings.probeFilter.internalObject) as IKeySet;
 				if(!probeKeySet) return;
 				
-				visualization.zoomBounds.getDataBounds(dataBounds);
-				visualization.zoomBounds.getScreenBounds(screenBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
+				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
 				
 				_plotter.probedKeys = probeKeySet.keys ;
 				_plotter.drawProbe = (this as DraggablePanel) == DraggablePanel.activePanel;
@@ -289,19 +277,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				tempBounds.setCenter(tempPoint.x, tempPoint.y);
 				tempBounds.centeredResize(10,10);
 				
-				visualization.zoomBounds.getDataBounds(dataBounds);
-				visualization.zoomBounds.getScreenBounds(screenBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
+				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
 				screenBounds.projectCoordsTo(tempBounds, dataBounds);
 				
-				_probedKeys = (_anchorLayer.spatialIndex as SpatialIndex).getKeysBoundingBoxOverlap(tempBounds);
+				_probedKeys = visualization.plotManager.hack_getSpatialIndex(ANCHOR_LAYER).getKeysBoundingBoxOverlap(tempBounds);
 				if( !_probedKeys.length ) return;
 				
 				var key:IQualifiedKey = _probedKeys[0];
 				_probedAnchor = _plotter.anchors.getObject(key.localName) as AnchorPoint;													
 				
 				visualization.enableSelection.value = false;
-				enableAutoZoom = visualization.enableAutoZoomToExtent.value;
-				visualization.enableAutoZoomToExtent.value = false;
+				enableAutoZoom = visualization.plotManager.enableAutoZoomToExtent.value;
+				visualization.plotManager.enableAutoZoomToExtent.value = false;
 				isDragging = true;
 			}
 			
@@ -310,9 +298,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(!isDragging) return;				
 				handleMouseMove(event);
 				_probedAnchor = null;
-				isDragging = false;							
+				isDragging = false;
 				visualization.enableSelection.value = true;
-				visualization.enableAutoZoomToExtent.value = enableAutoZoom;
+				visualization.plotManager.enableAutoZoomToExtent.value = enableAutoZoom;
 			}
 			
 			private function handleMouseMove(event:MouseEvent):void
@@ -338,7 +326,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Size","Color","Anchor Dimensions"];
+				return [lang("Size"),lang("Color"),lang("Anchor Dimensions")];
 			}
 			
 			override public function getSelectableAttributes():Array
@@ -349,7 +337,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function get defaultPanelTitle():String
 			{
 				// try to get unique attribute names separated by commas					
-				var newTitle:String = "RadViz of ";
+				var newTitle:String = lang("RadViz of ");
 				
 				var uniqueColumns:Dictionary = new Dictionary();
 				
@@ -358,13 +346,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					uniqueColumns[ColumnUtils.getTitle(column)] = column;
 				}
 				
+				var comma:Boolean = false;
 				for (var uniqueTitle:String in uniqueColumns)
 				{
-					newTitle += uniqueTitle + ", ";
+					newTitle += uniqueTitle;
+					if (comma)
+						newTitle += lang(", ");
+					else
+						comma = true;
 				}
-				
-				if(newTitle.charAt(newTitle.length-1) == ",")
-					newTitle = newTitle.substr(0, newTitle.length-2);
 				
 				return newTitle;
 			}

@@ -19,6 +19,8 @@
 
 package weave.primitives
 {
+	import flash.geom.Point;
+	
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
@@ -168,6 +170,24 @@ package weave.primitives
 		}
 		
 		/**
+		 * This will project a Point from data coordinates to screen coordinates.
+		 * @param inputAndOutput The Point object containing output coordinates.  Reprojected coordinates will be stored in this same Point object.
+		 */
+		public function projectDataToScreen(inputAndOutput:Point):void
+		{
+			_dataBounds.projectPointTo(inputAndOutput, _screenBounds);
+		}
+		
+		/**
+		 * This will project a Point from screen coordinates to data coordinates.
+		 * @param inputAndOutput The Point object containing output coordinates.  Reprojected coordinates will be stored in this same Point object.
+		 */
+		public function projectScreenToData(inputAndOutput:Point):void
+		{
+			_screenBounds.projectPointTo(inputAndOutput, _dataBounds);
+		}
+		
+		/**
 		 * This function will set all the information required to define the session state of the ZoomBounds.
 		 * @param dataBounds The data range of a visualization.
 		 * @param screenBounds The pixel range of a visualization.
@@ -175,18 +195,15 @@ package weave.primitives
 		 */		
 		public function setBounds(dataBounds:IBounds2D, screenBounds:IBounds2D, useFixedAspectRatio:Boolean):void
 		{
-			var cc:ICallbackCollection = getCallbackCollection(this);
-			cc.delayCallbacks();
-			
-			if (_useFixedAspectRatio != useFixedAspectRatio || !_dataBounds.equals(dataBounds) || (useFixedAspectRatio && !_screenBounds.equals(screenBounds)))
-				cc.triggerCallbacks();
+			if (_dataBounds.equals(dataBounds) && _screenBounds.equals(screenBounds) && _useFixedAspectRatio == useFixedAspectRatio)
+				return;
 			
 			_dataBounds.copyFrom(dataBounds);
 			_screenBounds.copyFrom(screenBounds);
 			_useFixedAspectRatio = useFixedAspectRatio;
 			_fixAspectRatio();
 			
-			cc.resumeCallbacks();
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
@@ -226,11 +243,11 @@ package weave.primitives
 		{
 			if (_useFixedAspectRatio)
 			{
-				var xScale:Number = _dataBounds.getXCoverage() / _screenBounds.getXCoverage();
-				var yScale:Number = _dataBounds.getYCoverage() / _screenBounds.getYCoverage();
-				if (xScale != yScale)
+				var xInvScale:Number = _dataBounds.getXCoverage() / _screenBounds.getXCoverage();
+				var yInvScale:Number = _dataBounds.getYCoverage() / _screenBounds.getYCoverage();
+				if (xInvScale != yInvScale)
 				{
-					var scale:Number = zoomOutIfNecessary ? Math.max(xScale, yScale) : Math.sqrt(xScale * yScale);
+					var scale:Number = zoomOutIfNecessary ? Math.max(xInvScale, yInvScale) : Math.sqrt(xInvScale * yInvScale);
 					_dataBounds.centeredResize(_screenBounds.getXCoverage() * scale, _screenBounds.getYCoverage() * scale);
 				}
 			}

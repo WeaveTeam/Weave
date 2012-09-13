@@ -22,7 +22,7 @@
 <ui:WizardViewStack
 	xmlns:mx="http://www.adobe.com/2006/mxml"
 	xmlns:ui="weave.ui.*"
-	label="Import Data to Weave"
+	label="{lang('Import Data to Weave')}"
 	width="440" height="460"
 	finishEnabled="false"
 	creationComplete="handleCreationComplete()" xmlns:editors="weave.ui.editors.*" xmlns:tools="weave.visualization.tools.*"
@@ -31,7 +31,7 @@
 	
 		<!--Image from http://www.iconeden.com/icon/milky-a-free-vector-iconset.html-->
 		<mx:HBox>
-		<mx:Label text="Load local file"/>
+		<mx:Label text="{lang('Load local file')}"/>
 		<ui:HelpComponent>
 			Accepts XLS,CSV or Text file. Data should be delimited (by commas or tabs, etc.). You can check if the data has been parsed correctly in the next step.
 		</ui:HelpComponent>			
@@ -41,14 +41,14 @@
 			<mx:Label color="0xFF0000" id="uploadMessage"/>
 		</mx:HBox>
 		<!--<mx:Label text="OR" fontWeight="bold" />
-		<mx:Label text="Enter File URL"/>
+		<mx:Label text="{lang('Enter File URL')}"/>
 		<mx:HBox>
 		<mx:TextInput width="200" borderStyle="solid" toolTip="enter URL" cornerRadius="5"/>
 		<mx:Label id="urlMessage"/>
 		</mx:HBox>-->
-		<mx:Label text="OR" fontWeight="bold" />
+		<mx:Label text="{lang('OR')}" fontWeight="bold" />
 		<mx:HBox>
-			<mx:Label text="Paste your data below"/>
+			<mx:Label text="{lang('Paste your data below')}"/>
 			<ui:HelpComponent>
 				Paste a delimited data set (delimited by commas or tabs, etc.). You can check if the data has been parsed correctly in the next step.
 			</ui:HelpComponent>
@@ -57,7 +57,7 @@
 	</mx:VBox>
 	<mx:VBox id="gridBox" width="100%" height="100%">
 		<mx:HBox width="100%">
-			<mx:Text text="Check your data!"/>
+			<mx:Text text="{lang('Check your data!')}"/>
 			<ui:HelpComponent>
 				<ui:htmlText>
 					<![CDATA[
@@ -72,22 +72,22 @@
 			</ui:HelpComponent>
 		</mx:HBox>
 		<mx:HBox visible="{(keyColumnSelector.dataProvider as ICollectionView).length != 0}">
-			<mx:Label text="Unique Identifier Column" />
-			<ui:CustomComboBox toolTip="This is the column which uniquely identifies each row in your dataset. If you prefer you can change it to a different column." selectedIndex="0" id="keyColumnSelector"/>
+			<mx:Label text="{lang('Unique Identifier Column')}" />
+			<ui:CustomComboBox toolTip="{lang('This is the column which uniquely identifies each row in your dataset. If you prefer you can change it to a different column.')}" selectedIndex="0" id="keyColumnSelector"/>
 		</mx:HBox>
 		<mx:HBox id="delimiterBox">
-			<mx:Label text="Delimiter: "/>
-			<ui:CustomComboBox id="delimiterSelector" toolTip="If there is a problem, try changing the delimiter (you can also type a different delimiter)." editable="true" dataProvider="['Comma','Space','Tab','Semi Colon']" keyUp="handleDelimiterChange(event)" change="handleDelimiterChange(event)"/>
+			<mx:Label text="{lang('Delimiter: ')}"/>
+			<ui:CustomComboBox id="delimiterSelector" toolTip="{lang('If there is a problem, try changing the delimiter (you can also type a different delimiter).')}" editable="true" dataProvider="['Comma','Space','Tab','Semi Colon']" keyUp="handleDelimiterChange(event)" change="handleDelimiterChange(event)"/>
 		</mx:HBox>
 		<mx:DataGrid id="grid" height="100%"/>
 		
 	</mx:VBox>
 	<mx:VBox id="visTools" width="100%">
-		<mx:Text text="Your data is now ready to be visualized!"/>
-		<mx:Text text="* Click the image below to add a visual tool or"/>
-		<mx:HBox><mx:Text text="* Use the"/><mx:Text fontWeight="bold" text="'Tools'"/><mx:Text text=" menu to add more visual tools"/></mx:HBox>		
-		<mx:HBox><mx:Text text="* Click the"/><mx:Image source="@Embed(source= '/weave/resources/images/tinyWrench.png')"/><mx:Text text=" image in the visual tools to edit the dimensions."/></mx:HBox>
-		<mx:HBox><mx:Text text="* Add as many different tools and start"/><mx:Text fontWeight="bold" text="Weave" paddingRight="-5"/><mx:Text paddingLeft="-5" text="-ing!"/></mx:HBox>
+		<mx:Text text="{lang('Your data is now ready to be visualized!')}"/>
+		<mx:Text text="{lang('* Click the image below to add a visual tool or')}"/>
+		<mx:HBox><mx:Text text="{lang('* Use the')}"/><mx:Text fontWeight="bold" text="'Tools'"/><mx:Text text="{lang(' menu to add more visual tools')}"/></mx:HBox>		
+		<mx:HBox><mx:Text text="{lang('* Click the')}"/><mx:Image source="@Embed(source= '/weave/resources/images/tinyWrench.png')"/><mx:Text text="{lang(' image in the visual tools to edit the dimensions.')}"/></mx:HBox>
+		<mx:HBox><mx:Text text="{lang('* Add as many different tools and start')}"/><mx:Text fontWeight="bold" text="Weave" paddingRight="-5"/><mx:Text paddingLeft="-5" text="-ing!"/></mx:HBox>
 		
 		<!--<mx:Text leading="-3" width="100%" >
 			<mx:htmlText>
@@ -106,30 +106,30 @@
 		<mx:HBox>
 			<mx:VBox>
 				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(CompoundBarChartTool)" id="barChartImage" source="@Embed(source= '/weave/resources/images/bar_chart_weave.png')"/>
-				<mx:Label text="Bar Chart" fontWeight="bold"/>
+				<mx:Label text="{lang('Bar Chart')}" fontWeight="bold"/>
 			</mx:VBox>
 			<mx:VBox>
 				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(LineChartTool)" id="lineChartImage" source="@Embed(source= '/weave/resources/images/line_chart_weave_new.png')"/>
-				<mx:Label text="Line Chart" fontWeight="bold"/>
+				<mx:Label text="{lang('Line Chart')}" fontWeight="bold"/>
 			</mx:VBox>
 			<mx:VBox>
 				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(ScatterPlotTool)" id="scatterplotImage" source="@Embed(source= '/weave/resources/images/scatter_plot_weave_new.png')"/>
-				<mx:Label text="Scatterplot" fontWeight="bold"/>
+				<mx:Label text="{lang('Scatterplot')}" fontWeight="bold"/>
 			</mx:VBox>
 			
 		</mx:HBox>
 		<mx:HBox>
 			<mx:VBox>
 				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(PieChartTool)" id="pieChartImage" source="@Embed(source= '/weave/resources/images/pie_chart_weave.png')"/>
-				<mx:Label text="Pie Chart" fontWeight="bold"/>
+				<mx:Label text="{lang('Pie Chart')}" fontWeight="bold"/>
 			</mx:VBox>
 			<mx:VBox>
 				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(GaugeTool)" id="gaugeImage" source="@Embed(source= '/weave/resources/images/gauge_meter_weave.png')"/>
-				<mx:Label text="Gauge Meter" fontWeight="bold"/>
+				<mx:Label text="{lang('Gauge Meter')}" fontWeight="bold"/>
 			</mx:VBox>
 			<mx:VBox>
 				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(HistogramTool)" id="histogramImage" source="@Embed(source= '/weave/resources/images/histogram_weave.png')"/>
-				<mx:Label text="Histogram" fontWeight="bold"/>
+				<mx:Label text="{lang('Histogram')}" fontWeight="bold"/>
 			</mx:VBox>
 			
 		</mx:HBox>
@@ -328,7 +328,7 @@
 			
 			private function handleDatasetSelected(event:Event):void
 			{
-				uploadMessage.text = "loading...";
+				uploadMessage.text = lang("loading...");
 				_fileLoader.load();
 			}
 
@@ -359,7 +359,7 @@
 						
 						if(xlsFile.sheets.length == 0)
 						{
-							Alert.show("No data found");
+							Alert.show(lang("No data found"));
 							return;
 						}
 
@@ -404,11 +404,11 @@
 						updateCSVDataStringFromArray(fileDataArray);
 					}
 					keyColumnSelector.dataProvider = uniqueColumns;
-					uploadMessage.text = "Loaded!";
+					uploadMessage.text = lang("Loaded!");
 					this.next();
 				}
 					catch(e:Error){
-					uploadMessage.text = "Error uploading file: "+e.message.toString();
+					uploadMessage.text = lang("Error uploading file: ")+e.message.toString();
 				}
 				
 				

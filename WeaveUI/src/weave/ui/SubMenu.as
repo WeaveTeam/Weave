@@ -52,17 +52,18 @@ package weave.ui
 		 */
 		public function SubMenu(uiParent:UIComponent, openMenuEventTypes:Array = null, closeMenuEventTypes:Array = null)
 		{
-			if(uiParent == null)
+			if (uiParent == null)
 				throw new Error("uiParent cannot be null");
 			
 			_uiParent = uiParent;
 			
 			var type:String;
 			for each (type in openMenuEventTypes)
-			_uiParent.addEventListener(type, openSubMenu);
+				_uiParent.addEventListener(type, openSubMenu);
 			for each (type in closeMenuEventTypes)
-			_uiParent.addEventListener(type, closeSubMenu);
+				_uiParent.addEventListener(type, closeSubMenu);
 			
+			includeInLayout = false;
 			tabEnabled = false;
 			owner = DisplayObjectContainer(WeaveAPI.topLevelApplication);
 			showRoot = false; //test this
@@ -145,18 +146,13 @@ package weave.ui
 			hide();
 		}
 		
-		//		public function hideSubMenu():void
-		//		{
-		//			hide();
-		//		}
-		
 		public function showSubMenu():void
 		{
-			var menuLocation:Point = _uiParent.contentToGlobal(new Point(0,_uiParent.height));
+			var menuLocation:Point = _uiParent.localToGlobal(new Point(0,_uiParent.height));
 			
 			var stage:Stage = WeaveAPI.topLevelApplication.stage;
 			var tempBounds:Bounds2D = new Bounds2D();
-			tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
+			tempBounds.setBounds(0, 0, stage.stageWidth, stage.stageHeight);
 			
 			var xMin:Number = tempBounds.getXNumericMin();
 			var yMin:Number = tempBounds.getYNumericMin();
@@ -165,7 +161,7 @@ package weave.ui
 			
 			setStyle("openDuration",0);
 			popUpMenu(this, _uiParent, subMenuDataProvider);
-			show(menuLocation.x,menuLocation.y);
+			show(menuLocation.x, menuLocation.y);
 			
 			if (menuLocation.x < xMin)
 				menuLocation.x = xMin;
@@ -174,8 +170,8 @@ package weave.ui
 			
 			if (menuLocation.y < yMin)
 				menuLocation.y = yMin + _uiParent.height;
-			else if (menuLocation.y > yMax)
-				menuLocation.y = yMax - height - _uiParent.height;
+			else if (menuLocation.y + height > yMax)
+				menuLocation.y -= height + _uiParent.height;
 			
 			move(menuLocation.x,menuLocation.y);
 		}

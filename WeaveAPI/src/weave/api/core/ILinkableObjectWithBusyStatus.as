@@ -13,28 +13,21 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package
+package weave.api.core
 {
-	import flash.utils.getQualifiedClassName;
-
 	/**
-	 * This function generates or returns a previously generated identifier for an object.
+	 * This is an interface for an ILinkableObject which provides a way to determine if it is busy or not,
+	 * for use with ISessionManager.linkableObjectIsBusy().
+	 * 
+	 * @see weave.api.core.ISessionManager#linkableObjectIsBusy
 	 * @author adufilie
 	 */
-	public function debugId(object:Object):String
+	public interface ILinkableObjectWithBusyStatus extends ILinkableObject
 	{
-		var type:String = typeof(object);
-		if (object == null || type != 'object' && type != 'function')
-			return String(object);
-		return $.lookup[object]
-			|| ($.lookup[object] = getQualifiedClassName(object).split(':').pop() + $.i++);
+		/**
+		 * This function will override the behavior of ISessionManager.linkableObjectIsBusy().
+		 * @return A value of true if this object is busy with asynchronous tasks.
+		 */
+		function isBusy():Boolean;
 	}
-}
-
-import flash.utils.Dictionary;
-
-internal class $
-{
-	public static var i:uint = 0;
-	public static var lookup:Dictionary = new Dictionary(true);
 }
