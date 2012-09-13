@@ -53,6 +53,12 @@ package weave.api.ui
 		function get iteration():uint;
 		
 		/**
+		 * This is the time at which the current iteration should be stopped, if possible.  This value can be compared to getTimer().
+		 * Ignore this value if an iteration cannot be ended prematurely.
+		 */
+		function get iterationStopTime():int;
+		
+		/**
 		 * This object can be used to optionally store additional state variables for resuming an asynchronous task where it previously left off.
 		 * Setting this will not reset the iteration counter.
 		 */

@@ -151,6 +151,7 @@ package weave.visualization.layers
 		private var _dataBounds:Bounds2D = new Bounds2D();
 		private var _screenBounds:Bounds2D = new Bounds2D();
 		private var _iteration:uint = 0;
+		private var _iterationStopTime:int;
 		private var _keyFilter:IKeyFilter;
 		private var _recordKeys:Array;
 		private var _asyncState:Object = {};
@@ -233,7 +234,7 @@ package weave.visualization.layers
 			}
 		}
 		
-		private function asyncIterate():Number
+		private function asyncIterate(stopTime:int):Number
 		{
 			if (debugMouseDownPause && WeaveAPI.StageUtils.mouseButtonDown)
 				return 0;
@@ -292,8 +293,7 @@ package weave.visualization.layers
 			// if keys aren't ready yet, prepare keys
 			if (_pendingKeys)
 			{
-				var stopTime:int = getTimer() + 50;
-				while (_iPendingKey < _pendingKeys.length)
+				for (; _iPendingKey < _pendingKeys.length; _iPendingKey++)
 				{
 					// avoid doing too little or too much work per iteration 
 					if (getTimer() > stopTime)
@@ -315,9 +315,6 @@ package weave.visualization.layers
 							}
 						}
 					}
-					
-					// prepare for next iteration
-					_iPendingKey++;
 				}
 				// done with keys
 				_pendingKeys = null;
@@ -326,10 +323,14 @@ package weave.visualization.layers
 			/***** draw *****/
 			
 			// next draw iteration
-			var progress:Number = _plotter.drawPlotAsyncIteration(this);
+			_iterationStopTime = stopTime;
 			
-			// prepare for next iteration
-			_iteration++;
+			var progress:Number = 0;
+			while (progress < 1 && getTimer() < stopTime)
+			{
+				progress = _plotter.drawPlotAsyncIteration(this);
+				_iteration++; // prepare for next iteration
+			}
 			
 			return progress;
 		}
@@ -425,6 +426,14 @@ package weave.visualization.layers
 		public function get iteration():uint
 		{
 			return _iteration;
+		}
+		
+		/**
+		 * This is the time at which the current iteration should be stopped.  Compare this value with getTimer().
+		 */		
+		public function get iterationStopTime():int
+		{
+			return _iterationStopTime;
 		}
 		
 		/**

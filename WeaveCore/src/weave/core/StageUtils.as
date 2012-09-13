@@ -464,9 +464,9 @@ package weave.core
 		public static function generateCompoundIterativeTask(iterativeTasks:Array):Function
 		{
 			var iTask:int = 0;
-			return function(restart:Boolean = false):Number
+			return function(param:* = undefined):Number
 			{
-				if (restart)
+				if (param === true) // restart
 				{
 					iTask = 0;
 					return 0;
@@ -476,7 +476,7 @@ package weave.core
 					return 1;
 				
 				var iterate:Function = iterativeTasks[iTask] as Function;
-				var progress:Number = iterate();
+				var progress:Number = iterate.length ? iterate(param) : iterate();
 				var totalProgress:Number = (iTask + progress) / iterativeTasks.length;
 				if (progress == 1)
 					iTask++;
@@ -488,9 +488,10 @@ package weave.core
 		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
 		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed of, the task will no longer be iterated.
 		 * @param iterativeTask A function that performs a single iteration of the asynchronous task.
-		 *   This function must take no parameters and return a number from 0.0 to 1.0 indicating the overall progress of the task.
+		 *   This function must take zero or one parameter and return a number from 0.0 to 1.0 indicating the overall progress of the task.
 		 *   A number below 1.0 indicates that the function should be called again to continue the task.
 		 *   When the task is completed, iterativeTask() should return 1.0.
+		 *   The optional parameter specifies the time when the function should return.
 		 *   Example:
 		 *       var array:Array = ['a','b','c','d'];
 		 *       var index:int = 0;
@@ -503,6 +504,20 @@ package weave.core
 		 * 
 		 *           index++;
 		 *           return index / array.length;  // this will return 1.0 on the last iteration.
+		 *       }
+		 *   Example 2:
+		 *       var array:Array = ['a','b','c','d'];
+		 *       var index:int = 0;
+		 *       function iterativeTaskWithTimer(returnTime:int):Number
+		 *       {
+		 *           for (; index < array.length; index++)
+		 *           {
+		 *               if (getTimer() > returnTime)
+		 *                   return index / array.length; // progress so far
+		 * 
+		 *               trace(array[index]);
+		 *           }
+		 *           return 1;
 		 *       }
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 * @param finalCallback A function that should be called after the task is completed.
@@ -530,16 +545,18 @@ package weave.core
 			}
 			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
 			
+			var useTimeParameter:Boolean = iterativeTask.length > 0;
+			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
 			// This makes sure that the task is removed when the actual context is disposed of.
-			callLater(null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback], priority);
+			callLater(null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback, useTimeParameter], priority);
 			//_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
 		}
 		
 		/**
 		 * @private
 		 */
-		private function _iterateTask(context:Object, task:Function, priority:int, finalCallback:Function):void
+		private function _iterateTask(context:Object, task:Function, priority:int, finalCallback:Function, useTimeParameter:Boolean):void
 		{
 			// remove the task if the context was disposed of
 			if (WeaveAPI.SessionManager.objectWasDisposed(context))
@@ -557,7 +574,11 @@ package weave.core
 			while ((time = getTimer()) <= _currentTaskStopTime)
 			{
 				// perform the next iteration of the task
-				progress = task.apply() as Number;
+				if (useTimeParameter)
+					progress = task.call(null, _currentTaskStopTime) as Number;
+				else
+					progress = task.apply() as Number;
+				
 				if (progress === null || isNaN(progress) || progress < 0 || progress > 1)
 				{
 					reportError("Received unexpected result from iterative task (" + progress + ").  Expecting a number between 0 and 1.  Task cancelled.");

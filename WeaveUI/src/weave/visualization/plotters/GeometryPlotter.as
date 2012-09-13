@@ -291,11 +291,10 @@ package weave.visualization.plotters
 			var recordIndex:Number = task.asyncState[RECORD_INDEX];
 			var minImportance:Number = task.asyncState[MIN_IMPORTANCE];
 			var progress:Number = 1;
-			var stopTime:int = getTimer() + 50;
 			while (recordIndex < task.recordKeys.length)
 			{
 				// avoid doing too little or too much work per iteration 
-				if (getTimer() > stopTime)
+				if (getTimer() > task.iterationStopTime)
 					break; // not done yet
 				
 				var recordKey:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
