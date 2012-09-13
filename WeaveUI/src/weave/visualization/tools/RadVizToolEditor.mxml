@@ -63,6 +63,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.services.WeaveRServlet;
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
+			import weave.utils.DebugTimer;
+			import weave.utils.DebugUtils;
 			import weave.utils.ResultUtils;
 			
 			
@@ -73,6 +75,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable] 
 			public var columnNames:Array  = new Array();
 			public var selectedColumnName:String;
+			public var selectedAlgoOption:String;
+			private var thrValue:Number; private var layoutMeasure:String = new String();
 			// var editorCdLayout:ClassDiscriminationLayoutAlgorithm = new ClassDiscriminationLayoutAlgorithm(); 
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			
@@ -107,13 +111,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			
-			private var runScriptCounter:int = 0;
-			private var tickMax:int = 0;
+			//these two counters keep track of the asynchronos calls made to R and the results returned
+			private var sentToRCounter:Number;
+			private var receivedFromRCounter:int = 0;
+			private var RCallGroupNumber:int = 0;
 			
 			/**this function handles the results returned from R (the t-statistic and the p-values)*/
 			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
 			{
 				
+				/*  if (delay)
+				{
+					DebugUtils.callLater(10000, handleRunScriptResult, [event, token, false]);
+					return;
+				}  */
+				
+				 //handles two ansynchronous calls made to R
+				 //This results in the most recent R call being processed
+				// if(token[2] != RCallGroupNumber) {return};
+				 
+				receivedFromRCounter++;
 					//Object to stored returned result - Which is array of object{name: , value: }
 					var Robj:Array = event.result as Array;				
 				
@@ -146,6 +163,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					(token[0] as ClassInfoObject).tStatisticArray[colIndex] = ((RresultArray[0] as RResult).value);
 					(token[0] as ClassInfoObject).pValuesArray[colIndex] =((RresultArray[1] as RResult).value);
 					trace("handlescript successful!");
+					trace("receivedFromRCounter :" + receivedFromRCounter);
+					trace("sentToRCounter :" + sentToRCounter);
+					
+					//to be done after the last call to R has been returned
+					/* if(receivedFromRCounter == sentToRCounter)
+					{
+						trace("last call");
+						_target.cdLayout.actualAlgo(_target._plotter.columns.getNames(),_target.cdLayout.ClassToColumnMap,layoutMeasure,thrValue);
+						_target._anchorPlotter.doClassColoring = true;//cd coloring
+						_target._plotter.doCDLayout = true;//cd layout
+						_target._anchorPlotter.anchorClasses = _target.cdLayout.tAndpMapping;//we need this to be able to color the anchors accorsing to the class they belong to
+						_target._plotter.LayoutClasses = _target.cdLayout.tAndpMapping; 
+						_target._plotter.setClassDiscriminationAnchorsLocations();//cd layout
+						
+					} */
 			
 			}
 			
@@ -155,86 +187,91 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					trace(["fault", token, event.message].join('\n'));
 					reportError(event);
 			}
+		
 			
-			private var scriptCallCounter:int = 0;
-			/**this function sends columns to R for calculation of the t-statistic and p-value*/
+			//reports which algorithm with which to compute the t-statistic
 			protected function layoutAlgoCB_changeHandler(event:ListEvent):void
 			{
 				/*  var script:String = "";
 				var flag:Boolean;  */
-					if(UIUtils.hasFocus(layoutAlgoCB)){
-						var selectedOptionName:String= layoutAlgoCB.selectedLabel;
-					}
-					
-					/*  if (selectedOptionName == "t-statistic = variance"){flag = true;}
-					
-					if (selectedOptionName == "t-statistic != variance"){flag = false;}  */
-					
-					/* Call to R
-					FOr a type(example "American") sends one column at a time and a two-sample t-test is performed in R
-					For each column the t-statistic and p-value are returned from R
-					*/
-					
-					var colObjects:Array = _target._plotter.columns.getObjects();//user selected columns
-					
-					/*  if(flag){script = "cdoutput <- t.test(x,y, var.equal = TRUE)"; trace(script);}
-					if(!flag){script = "cdoutput <- t.test(x,y, var.equal = FALSE)"; trace(script);}  */
-					
-					for (var type:Object in _target.cdLayout.ClassToColumnMap)
-					{						
-						for(var l:int = 0; l < colObjects.length; l++)
+				if(UIUtils.hasFocus(layoutAlgoCB)){
+					var selectedOptionName:String= layoutAlgoCB.selectedLabel;
+				}
+				
+				/*  if (selectedOptionName == "t-statistic = variance"){flag = true;}
+				
+				if (selectedOptionName == "t-statistic != variance"){flag = false;}  */
+				
+				/* Call to R
+				FOr a type(example "American") sends one column at a time and a two-sample t-test is performed in R
+				For each column the t-statistic and p-value are returned from R
+				*/
+				
+				var colObjects:Array = _target._plotter.columns.getObjects();//user selected columns
+				
+				/*  if(flag){script = "cdoutput <- t.test(x,y, var.equal = TRUE)"; trace(script);}
+				if(!flag){script = "cdoutput <- t.test(x,y, var.equal = FALSE)"; trace(script);}  */
+				
+				for (var type:Object in _target.cdLayout.ClassToColumnMap)
+				{						
+					for(var l:int = 0; l < colObjects.length; l++)
+					{
+						var inputValues:Array = new Array();//sending two vectors to R
+						var inputNames:Array;
+						inputValues.push((_target.cdLayout.ClassToColumnMap[type] as ClassInfoObject).columnMapping[_target._plotter.columns.getNames()[l]]);//pushing col belonging to type
+						var temArray:Array = new Array();
+						var temArray2:Array = new Array();
+						for(var comparetype:Object in _target.cdLayout.ClassToColumnMap)
 						{
-							var inputValues:Array = new Array();//sending two vectors to R
-							var inputNames:Array;
-							inputValues.push((_target.cdLayout.ClassToColumnMap[type] as ClassInfoObject).columnMapping[_target._plotter.columns.getNames()[l]]);//pushing col belonging to type
-							var temArray:Array = new Array();
-							var temArray2:Array = new Array();
-							for(var comparetype:Object in _target.cdLayout.ClassToColumnMap)
+							if(type!= comparetype)//collecting the values of the same column for other types
 							{
-								if(type!= comparetype)//collecting the values of the same column for other types
-								{
-									temArray = temArray.concat((_target.cdLayout.ClassToColumnMap[comparetype]as ClassInfoObject).columnMapping[_target._plotter.columns.getNames()[l]]);
-								}
+								temArray = temArray.concat((_target.cdLayout.ClassToColumnMap[comparetype]as ClassInfoObject).columnMapping[_target._plotter.columns.getNames()[l]]);
 							}
-							
-							inputValues.push(temArray);
-							inputNames = ["x", "y"];
-							
-							//var idString:String = _target._plotter.columns.getNames()[l]+"_"+type+"_";
-							var script:String = "cdoutput <- t.test(x,y)";
-							var outputNames:Array = ["cdoutput$statistic","cdoutput$p.value"];//(tstatistic, pvalue) values to be obtained from R
-							
-							//send one column to R at a time
-							var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
-							DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,[_target.cdLayout.ClassToColumnMap[type],_target._plotter.columns.getNames()[l]]);
-							//DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,[cdLayout.ClassToColumnMap[type],l]);
 						}
 						
+						inputValues.push(temArray);
+						inputNames = ["x", "y"];
+						
+						//var idString:String = _target._plotter.columns.getNames()[l]+"_"+type+"_";
+						var script:String = "cdoutput <- t.test(x,y)";
+						var outputNames:Array = ["cdoutput$statistic","cdoutput$p.value"];//(tstatistic, pvalue) values to be obtained from R
+						
+						//send one column to R at a time
+						var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
+						DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,[_target.cdLayout.ClassToColumnMap[type],_target._plotter.columns.getNames()[l]]);
+						//DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,[cdLayout.ClassToColumnMap[type],l]);
 					}
 					
 				}
+				
+			}
+	
+					
 			
 			
 			/**
 			 * This function runs the Class discrimination algorithm on the current columns. Every time a column is aded or removed
 			 * this algortihm must be redrawn 
 			 * */
-			protected function OKButton_clickHandler(event:MouseEvent):void
+			/**this function sends columns to R for calculation of the t-statistic and p-value*/
+			protected function DOcdButton_clickHandler(event:MouseEvent):void
 			{
 				var thrValue:Number = Number(thresholdValue.text);
-			    var layoutMeasure:String = new String();
+				var layoutMeasure:String = new String();
 				if(useThresholdCB.selected){layoutMeasure = measureCheck();} 
 				else{
 					layoutMeasure = "Tstat";
 				}
 				
 				_target.cdLayout.actualAlgo(_target._plotter.columns.getNames(),_target.cdLayout.ClassToColumnMap,layoutMeasure,thrValue);
-				_target._anchorPlotter.doClassColoring = true;
-				_target._plotter.doCDLayout = true;
+				_target._anchorPlotter.doClassColoring = true;//cd coloring
+				_target._plotter.doCDLayout = true;//cd layout
+				_target._anchorPlotter.anchorClasses = _target.cdLayout.tAndpMapping;//we need this to be able to color the anchors accorsing to the class they belong to
 				_target._plotter.LayoutClasses = _target.cdLayout.tAndpMapping; 
 				//_target._plotter.setAnchorLocations();
 				_target._plotter.setClassDiscriminationAnchorsLocations();//cd layout
 			}
+				
 			
 			protected function useThresholdCB_clickHandler(event:MouseEvent):void
 			{
@@ -262,6 +299,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			protected function defaultDAs_clickHandler(event:MouseEvent):void
 			{
 				_target._plotter.doCDLayout = false;
+				_target._anchorPlotter.doClassColoring = false;
 				_target._plotter.setAnchorLocations();//normal layout
 				
 			}
@@ -369,7 +407,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 		
 		<mx:VBox width="45%">
-					<ui:Indent label="Class Discriminator">
+					<ui:Indent  width="10%" label="Class Discriminator">
 						<ui:DynamicColumnComponent  visTool="{_target}" id="classDis" />	
 					</ui:Indent>
 			
@@ -399,8 +437,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			</ui:Indent>
 			<mx:HBox>
 				<mx:Label  id="thrValLabel" text="Threshold Value" enabled="false"/>
-				<mx:TextInput id="thresholdValue" enabled="false"/>
-				<mx:Button id="Button" label="OK" click="OKButton_clickHandler(event)"/>
+				<mx:TextInput  width="20%" id="thresholdValue" enabled="false"/>
+				<mx:Button id="DOcd" label="Run Algorithm" click="DOcdButton_clickHandler(event)"/>
 			</mx:HBox>
 			
 			<mx:CheckBox label="Use Bonferroni Correction" id="useBonferroniCB" />

@@ -53,6 +53,54 @@ package weave.radviz
 																 ColumnName3		       Column3  
 		 */
 		
+		
+		
+		/** This function determines the classes and  populates the Dictionary called ClassToColumnMap which is used for the Class Discrimination Layout Algorithm
+		 can be used when the discriminator class is of a categorical nature  */
+		public function fillingClassToColumnMap(selectedColumn:DynamicColumn,colObjects:Array, columnNames:Array, normalizedColumns:Array):void
+		{
+			ClassToColumnMap = new Dictionary();//create a new one for every different column selected
+			
+			var attrType:String = ColumnUtils.getDataType(selectedColumn);// check if column has numercial or categorical values 
+			if(attrType == "string")
+			{ 
+				//Step 2 Looping thru the keys in the found column and populating the type dictionary
+				for(var g:int = 0; g < selectedColumn.keys.length; g++)
+				{
+					var mkey:IQualifiedKey = selectedColumn.keys[g] as IQualifiedKey;
+					//var type:Object = selectedColumn.getValueFromKey(mkey,String);//"japanese", "american" etc
+					var type:Object = selectedColumn.getValueFromKey(mkey,String);
+					
+					
+					if(!ClassToColumnMap.hasOwnProperty(type))// && !tAndpMapping.hasOwnProperty(type))
+					{
+						ClassToColumnMap[type] = new ClassInfoObject();
+						//tAndpMapping[type] = new Array();
+						
+					}
+					
+					var infoObject:ClassInfoObject = ClassToColumnMap[type];
+					for (var f:int = 0; f < colObjects.length; f ++)//filling in the type columnMapping with arrays
+					{
+						if(!infoObject.columnMapping.hasOwnProperty(columnNames[f]))							 
+							
+							infoObject.columnMapping[columnNames[f]] = new Array();
+					}
+					
+					for(var b:int = 0; b < normalizedColumns.length; b++)
+					{
+						var tempEntry:Number = (normalizedColumns[b] as IAttributeColumn).getValueFromKey(mkey,Number);
+						var zz:Array = infoObject.columnMapping[columnNames[b]] as Array ;
+						zz.push(tempEntry);
+					}
+					
+				}//ClassToColumnMap gets filled 
+				
+			}
+			
+		}
+		
+		
 		public function ClassDiscriminationLayoutAlgorithm()
 		{
 			super();
@@ -74,7 +122,7 @@ package weave.radviz
 			{
 				
 				
-				var tempType:Object = new Object();
+				var tempType:Object;
 				var isColumnLoopBegin:Boolean = true;
 				var compareNum:Number;
 				
@@ -138,72 +186,6 @@ package weave.radviz
 			}
 			
 			return tAndpMapping;
-		}
-		
-		
-		
-		/** This function determines the classes and  populates the Dictionary called ClassToColumnMap which is used for the Class Discrimination Layout Algorithm
-		 can be used when the discriminator class is of a categorical nature  */
-		public function fillingClassToColumnMap(selectedColumn:DynamicColumn,colObjects:Array, columnNames:Array, normalizedColumns:Array):void
-		{
-				ClassToColumnMap = new Dictionary();//create a new one for every different column selected
-		
-				var attrType:String = ColumnUtils.getDataType(selectedColumn);// check if column has numercial or categorical values 
-				if(attrType == "string")
-				{ 
-					//Step 2 Looping thru the keys in the found column and populating the type dictionary
-					for(var g:int = 0; g < selectedColumn.keys.length; g++)
-					{
-						var mkey:IQualifiedKey = selectedColumn.keys[g] as IQualifiedKey;
-						//var type:Object = selectedColumn.getValueFromKey(mkey,String);//"japanese", "american" etc
-						var type:Object = selectedColumn.getValueFromKey(mkey,String);
-						
-						
-						if(!ClassToColumnMap.hasOwnProperty(type))// && !tAndpMapping.hasOwnProperty(type))
-						{
-							ClassToColumnMap[type] = new ClassInfoObject();
-							//tAndpMapping[type] = new Array();
-							
-						}
-						
-						var infoObject:ClassInfoObject = ClassToColumnMap[type];
-						for (var f:int = 0; f < colObjects.length; f ++)//filling in the type columnMapping with arrays
-						{
-							if(!infoObject.columnMapping.hasOwnProperty(columnNames[f]))							 
-								
-								infoObject.columnMapping[columnNames[f]] = new Array();
-						}
-						
-						for(var b:int = 0; b < normalizedColumns.length; b++)
-						{
-							var tempEntry:Number = (normalizedColumns[b] as IAttributeColumn).getValueFromKey(mkey,Number);
-							var zz:Array = infoObject.columnMapping[columnNames[b]] as Array ;
-							zz.push(tempEntry);
-						}
-						
-					}//ClassToColumnMap gets filled 
-					
-				}
-				
-				/*if(selectedOptionName == attrName && attrType == "number")//handles numerical class discriminators
-				{
-					var bins:Number = 10;
-					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(attr);
-					var attrMax:Number = stats.getMax(); var attrMin:Number = stats.getMin();
-					var binSize:Number = attrMax/bins ;
-					for( var g1:int = 0; g1 < attr.keys.length; g1++)
-					{
-						var mnKey:IQualifiedKey = attr.keys[g1] as IQualifiedKey;
-						
-						var numType:Object = 
-
-					}
-				}*/
-				
-			//}
-			
-		}
-		
-				
+		}		
 	}
 }

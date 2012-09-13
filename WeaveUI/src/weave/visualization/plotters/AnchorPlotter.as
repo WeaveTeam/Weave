@@ -54,6 +54,7 @@ package weave.visualization.plotters
 		private var coordinate:Point = new Point();//reusable object
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
 		public var doClassColoring:Boolean = false;
+		public var anchorClasses:Dictionary = null;//this tells us the classes to which dimensional anchors belong to
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
 		public var anchorColorMap:Dictionary;
 		
@@ -106,7 +107,7 @@ package weave.visualization.plotters
 			graphics.clear();
 						
 			graphics.lineStyle(1);
-			// loop through anchors hash map and draw dimensional anchors and labels	
+			
 			for each(var key:IQualifiedKey in recordKeys)
 			{
 				anchor = anchors.getObject(key.localName) as AnchorPoint;
@@ -122,18 +123,16 @@ package weave.visualization.plotters
 				tempPoint.x = radius * cos;
 				tempPoint.y = radius * sin;
 				dataBounds.projectPointTo(tempPoint, screenBounds);
-
+				
 				// draw circle
 				if(enableWedgeColoring.value)
-					graphics.beginFill(anchorColorMap[key.localName]);				
+					graphics.beginFill(anchorColorMap[key.localName]);		
+				//color the dimensional anchors according to the class hey belong to
+				//graphics.beginFill(Math.random() * uint.MAX_VALUE);				
 				graphics.drawCircle(tempPoint.x, tempPoint.y, 5);				
 				graphics.endFill();
 				
-				//color the dimensional anchors according to the class hey belong to
-				if(doClassColoring)
-				{
-					
-				}
+				
 				
 				_bitmapText.trim = false;
 				_bitmapText.text = " " + anchor.title.value + " ";
@@ -167,6 +166,8 @@ package weave.visualization.plotters
 				// draw bitmap text
 				_bitmapText.draw(destination);								
 			}
+			
+			
 			destination.draw(tempShape);							
 			
 			_currentScreenBounds.copyFrom(screenBounds);
