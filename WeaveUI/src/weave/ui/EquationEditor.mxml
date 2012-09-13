@@ -28,7 +28,7 @@
 				backgroundColor="#EFF4BC"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
-				title="Equation Editor"
+				title="{lang('Equation Editor')}"
 				>
 	
 	<mx:HDividedBox id="equationContainer" width="100%" height="100%"
@@ -37,31 +37,31 @@
 		<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:Label text="Active equation"/>
-				<CustomComboBox id="activeEquationCombo" prompt="Select an equation" labelFunction="{getActiveEquationLabel}" change="handleActiveEquationSelect()" width="100%"/>
+				<CustomComboBox id="activeEquationCombo" prompt="{lang('Select an equation')}" labelFunction="{getActiveEquationLabel}" change="handleActiveEquationSelect()" width="100%"/>
 			</mx:HBox>
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:Label text="Title"/>
-				<mx:TextInput id="titleInput" toolTip="Enter a title for this column." width="100%"/>
+				<mx:TextInput id="titleInput" toolTip="{lang('Enter a title for this column.')}" width="100%"/>
 			</mx:HBox>
 			<mx:TabNavigator width="100%" height="100%"
 							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
-				<mx:Canvas label="Equation Text">
+				<mx:Canvas label="{lang('Equation Text')}">
 					<mx:TextArea id="textEditor" width="100%" height="100%" errorString="{baseEquationUIComp.errorString}"/>
 				</mx:Canvas>
-				<mx:Canvas label="Equation Tree" id="equationBox" width="100%" backgroundColor="#F2F2F2" borderThickness="1" height="100%" borderStyle="solid" dragEnter="handleDragEnter(event)" dragDrop="handleDragDrop(event)">
+				<mx:Canvas label="{lang('Equation Tree')}" id="equationBox" width="100%" backgroundColor="#F2F2F2" borderThickness="1" height="100%" borderStyle="solid" dragEnter="handleDragEnter(event)" dragDrop="handleDragDrop(event)">
 					<EquationUIComponent id="baseEquationUIComp"/>
 				</mx:Canvas>
 			</mx:TabNavigator>
 			<mx:TabNavigator width="100%" height="100%"
 							 paddingBottom="{padding}" paddingTop="{padding}" paddingRight="{padding}" paddingLeft="{padding}">
-				<ColumnListComponent label="Edit Variables" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
-				<mx:Canvas label="Edit Variable Names" width="100%" height="100%">
+				<ColumnListComponent label="{lang('Edit Variables')}" hashMap="{equationColumn.variables}" width="100%" height="100%"/>
+				<mx:Canvas label="{lang('Edit Variable Names')}" width="100%" height="100%">
 					<LinkableObjectGrid hashMap="{equationColumn.variables}" width="100%" height="100%"/>
 				</mx:Canvas>
 			</mx:TabNavigator>
 		</mx:VBox>
 		<mx:VBox height="100%" horizontalScrollPolicy="off" verticalScrollPolicy="off">
-			<mx:Label text="Available functions"/>
+			<mx:Label text="{lang('Available functions')}"/>
 			<mx:Accordion id="functionLists" height="100%" minHeight="300" width="100%"/>
 		</mx:VBox>
 	</mx:HDividedBox>
@@ -106,7 +106,7 @@
 				var constantVBox:VBox = new VBox();
 				constantVBox.percentWidth = 100;
 				constantVBox.percentHeight = 100;
-				constantVBox.label = "Constants";
+				constantVBox.label = lang('Constants');
 				var constants:Array = new Array();
 				
 				var libraries:Array = EquationColumn.compiler.getAllLibraries();
@@ -187,8 +187,8 @@
 			private function getActiveEquationLabel(eqCol:EquationColumn):String
 			{
 				if (eqCol == equationColumn)
-					return 'Create New Equation...';
-				return eqCol.getMetadata(AttributeColumnMetadata.TITLE) || 'Untitled';
+					return lang('Create New Equation...');
+				return eqCol.getMetadata(AttributeColumnMetadata.TITLE) || lang('Untitled');
 			}
 			private function handleActiveEquationSelect():void
 			{

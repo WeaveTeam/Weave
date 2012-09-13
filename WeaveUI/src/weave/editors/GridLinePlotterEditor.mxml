@@ -26,35 +26,35 @@ Editor for custom layers using GridLinePlotters
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 implements="weave.api.ui.ILinkableObjectEditor"
 		 xmlns="weave.editors.*"
-		 label="Grid Line Settings" xmlns:ui="weave.ui.*">
+		 label="{lang('Grid Line Settings')}" xmlns:ui="weave.ui.*">
 	<mx:HBox>
 		<mx:RadioButtonGroup id="hv"/>
 		<mx:RadioButton group="{hv}" label="Vertical lines" selected="{!horizontalCheckBox.selected}"/>
 		<mx:RadioButton id="horizontalCheckBox" group="{hv}"
-					 label="Horizontal lines"
+					 label="{lang('Horizontal lines')}"
 					 creationComplete="linkBindableProperty(_plotter.horizontal, event.target, 'selected')"/>
 	</mx:HBox>
 	
-	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="Start:"
+	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('Start:')}"
 				creationComplete="linkBindableProperty(_plotter.start, event.target, 'text')"/>
-	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="End:"
+	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('End:')}"
 				creationComplete="linkBindableProperty(_plotter.end, event.target, 'text')"/>
-	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="Interval:"
+	<ui:IndentTextInput indent="{indent}" inputWidth="{inputWidth}" label="{lang('Interval:')}"
 				creationComplete="linkBindableProperty(_plotter.interval, event.target, 'text')"/>
 	<mx:Spacer/>
-	<ui:Indent indent="{indent}" label="Thickness:">
+	<ui:Indent indent="{indent}" label="{lang('Thickness:')}">
 		<mx:NumericStepper id="gridLineThicknessStepper" minimum="1" maximum="10"
 						   creationComplete="linkBindableProperty(_plotter.lineStyle.weight.defaultValue, event.target, 'value')"/>
 	</ui:Indent>
-	<ui:Indent indent="{indent}" label="Color:">
-		<mx:ColorPicker toolTip="Select a color for the grid lines of this visualization" id="gridColorPicker" 
+	<ui:Indent indent="{indent}" label="{lang('Color:')}">
+		<mx:ColorPicker toolTip="{lang('Select a color for the grid lines of this visualization')}" id="gridColorPicker" 
 						creationComplete="linkBindableProperty(_plotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"/>
 	</ui:Indent>
-	<ui:Indent indent="{indent}" label="Opacity:">
+	<ui:Indent indent="{indent}" label="{lang('Opacity:')}">
 		<mx:HSlider id="gridLineAlphaSlider" 
 					snapInterval="0.1"
 					tickInterval="0.5" labels="{['0%','50%','100%']}" 
-					dataTipFormatFunction="alphaSliderFormatFunction"
+					dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 					minimum="0.0" maximum="1.0" 
 					liveDragging="true"
 					creationComplete="linkBindableProperty(_plotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
@@ -65,6 +65,7 @@ Editor for custom layers using GridLinePlotters
 			import weave.api.linkBindableProperty;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.utils.EditorManager;
+			import weave.utils.PlotterUtils;
 			import weave.visualization.plotters.GridLinePlotter;
 			import weave.visualization.tools.SimpleVisTool;
 			
@@ -86,11 +87,6 @@ Editor for custom layers using GridLinePlotters
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-			}
-			
-			private function alphaSliderFormatFunction(value:Number):String {
-				//return int(100 - (value * 100)) + "% Transparent";
-				return int((value * 100)) + "% Opaque" + "\n" + int(100 - (value * 100)) + "% Transparent";
 			}
 			
 		]]>

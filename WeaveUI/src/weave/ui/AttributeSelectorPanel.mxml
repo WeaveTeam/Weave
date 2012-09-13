@@ -41,7 +41,7 @@
 			<editors:DynamicColumnEditor id="editor" width="100%" height="100%"/>
 			<mx:HBox id="addColumnControls" width="100%">
 				<mx:Spacer width="100%"/>
-				<mx:Button label="Add all" click="addAll()" toolTip="Add all attributes from the selected category"/>
+				<mx:Button id="addAllButton" label="Add all" click="addAll()" toolTip="Add all attributes from the selected category"/>
 				<mx:Button label="Add selected" click="addSelected()"/>
 			</mx:HBox>
 			<ColumnListComponent id="columnList" width="100%" height="100%"/>
@@ -51,6 +51,7 @@
 		<![CDATA[
 			import mx.collections.ListCollectionView;
 			import mx.controls.Label;
+			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
@@ -89,6 +90,8 @@
 				super.createChildren();
 
 				columnList.titleHBox.addChild(addColumnControls);
+				
+				Weave.properties.showAddAllButton.addImmediateCallback(this, changeAddAllButton, true);
 			}
 			
 			override public function dispose():void
@@ -107,13 +110,16 @@
 				
 				getCallbackCollection(columnList.hashMap).delayCallbacks();
 				var root:XML = editor.hierarchySelector.attributeHierarchy.value;
-				var attrs:Array = (editor.hierarchySelector.attributesView.dataProvider as ListCollectionView).toArray();
-				for (var i:int = 0; i < attrs.length; i++)
+				if( editor.hierarchySelector.attributesView.dataProvider != null )
 				{
-					var attr:XML = attrs[i];
-					var col:ReferencedColumn = columnList.hashMap.requestObject(null, ReferencedColumn, false);
-					var ref:HierarchyColumnReference = col.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
-					editor.copyPathToRef(HierarchyUtils.getPathFromNode(root, attr), ref);
+					var attrs:Array = (editor.hierarchySelector.attributesView.dataProvider as ListCollectionView).toArray();
+					for (var i:int = 0; i < attrs.length; i++)
+					{
+						var attr:XML = attrs[i];
+						var col:ReferencedColumn = columnList.hashMap.requestObject(null, ReferencedColumn, false);
+						var ref:HierarchyColumnReference = col.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
+						editor.copyPathToRef(HierarchyUtils.getPathFromNode(root, attr), ref);
+					}
 				}
 				getCallbackCollection(columnList.hashMap).resumeCallbacks();
 			}
@@ -169,15 +175,16 @@
 				if (index >= 0)
 				{
 					objectTitle = selectableAttributeNames[index];
-					title = "Attribute selector for " + objectTitle;
+					title = lang("Attribute selector for {0}", objectTitle);
 					dimensionTypeLinks.selectedIndex = index;
 					showOrHideParamSelector(true);
 				}
 				else
 				{
-					title = "Attribute selector";
 					if (objectTitle)
-						title += ' for ' + objectTitle;
+						title = lang("Attribute selector for {0}", objectTitle);
+					else
+						title = lang("Attribute selector");
 					showOrHideParamSelector(false);
 				}
 				
@@ -203,7 +210,7 @@
 					if (child.parent)
 						child.parent.removeChild(child);
 					columnList.hashMap = columnOrHashMap as ILinkableHashMap;
-					columnList.label = objectTitle ? objectTitle : 'Selected attributes';
+					columnList.label = objectTitle ? objectTitle : lang('Selected attributes');
 					verticalDividedBox.addChild(columnList);
 				}
 				else if (verticalDividedBox == columnList.parent)
@@ -251,6 +258,13 @@
 				
 				defaultSelector.restorePanel();
 			}
+			
+			private function changeAddAllButton():void
+			{
+				var show:Boolean = Weave.properties.showAddAllButton.value;
+				addAllButton.visible = show;
+			}
+			
 		]]>
 	</mx:Script>
 </ControlPanel>

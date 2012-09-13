@@ -30,9 +30,9 @@
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off">
 	
 	<mx:Spacer width="100%" />
-	<mx:Button id="button_connect"  label="Connect"  icon="{iCon}" cornerRadius="0" height="100%" />
-	<mx:Button id="button_settings" label="Settings" icon="{iSet}" cornerRadius="0" height="100%" />
-	<mx:Button id="button_chat"     label="Chat" 	 icon="{iChat}" cornerRadius="0" width="{this.width/2}" height="100%" />
+	<mx:Button id="button_connect"  label="{lang('Connect')}"  icon="{iCon}" cornerRadius="0" height="100%" />
+	<mx:Button id="button_settings" label="{lang('Settings')}" icon="{iSet}" cornerRadius="0" height="100%" />
+	<mx:Button id="button_chat"     label="{lang('Chat')}" 	 icon="{iChat}" cornerRadius="0" width="{this.width/2}" height="100%" />
 	
 	<mx:Script>
 		<![CDATA[
@@ -126,7 +126,7 @@
 			}
 			private function connect(e:MouseEvent = null):void
 			{
-				button_connect.label = "Connecting...";
+				button_connect.label = lang("Connecting...");
 				collabService.connect(Weave.properties.collabServerIP.value, 
 									  Weave.properties.collabServerName.value, 
 									  int(Weave.properties.collabServerPort.value), 
@@ -244,7 +244,7 @@
 				{
 					CHAT.visible = ( CHAT.visible ) ? false : true;
 					if( CHAT.visible ) {
-						button_chat.label = "Chat";
+						button_chat.label = lang("Chat");
 						CHAT.unreadMessages = 0;
 					}
 				}
@@ -302,9 +302,9 @@
 			{
 				CHAT.logText(e.getText());
 				if( !CHAT.visible && collabService.isConnected ) {
-					button_chat.label = "Chat [" + CHAT.unreadMessages + "]";
+					button_chat.label = lang("Chat [{0}]", CHAT.unreadMessages);
 				} else {
-					button_chat.label = "Chat";
+					button_chat.label = lang("Chat");
 					CHAT.unreadMessages = 0;
 				}
 			}
@@ -312,13 +312,13 @@
 			{
 				stopConTimer();
 				if( !SETTINGS.visible ) toggleSettings();
-				SETTINGS.showConnectionWarning("Server is locked");
+				SETTINGS.showConnectionWarning(lang("Server is locked"));
 			}
 			private function nickConflictError(e:Event):void
 			{
 				stopConTimer();
 				if( !SETTINGS.visible ) toggleSettings();
-				SETTINGS.showConnectionWarning("Username already exists");
+				SETTINGS.showConnectionWarning(lang("Username already exists"));
 				updateEnabledSettings();
 				
 				disconnectionFromRTMPServer();
@@ -329,7 +329,7 @@
 				updateEnabledSettings();
 				
 				if( !SETTINGS.visible ) toggleSettings();
-				SETTINGS.showConnectionWarning("Server not responding");
+				SETTINGS.showConnectionWarning(lang("Server not responding"));
 				
 				disconnectionFromRTMPServer();
 			}
@@ -342,7 +342,7 @@
 				if( !disConButtonPushed ) {
 					resetUserMice();
 					disconnectionFromRTMPServer();
-					Alert.show("Would you like to reconnect to the room?", "Disconnection Alert", Alert.YES | Alert.NO, null, disconnectHandler);
+					Alert.show(lang("Would you like to reconnect to the room?"), lang("Disconnection Alert"), Alert.YES | Alert.NO, null, disconnectHandler);
 				}
 			}
 			private function disconnectHandler( e:CloseEvent ):void
@@ -362,12 +362,12 @@
 			private function updateEnabledSettings():void
 			{
 				if( collabService.isConnected ) {
-					button_connect.label = "Disconnect";
+					button_connect.label = lang("Disconnect");
 					button_connect.removeEventListener(MouseEvent.CLICK, connect);
 					button_connect.addEventListener(MouseEvent.CLICK, disconnect);
 					button_chat.enabled = true;
 				} else {
-					button_connect.label = "Connect";
+					button_connect.label = lang("Connect");
 					button_connect.removeEventListener(MouseEvent.CLICK, disconnect);
 					button_connect.addEventListener(MouseEvent.CLICK, connect);
 					button_chat.enabled = false;
@@ -441,7 +441,7 @@
 						{
 							rtmpTimer.start();
 							rtmpUserClosed 			= false;
-							CHAT.showRTMPWarning("Lost connection to media server. Retrying...");
+							CHAT.showRTMPWarning(lang("Lost connection to media server. Retrying..."));
 						}
 						connectedToRTMPService 		= false;
 						CHAT.connectedToRTMPService = false;
@@ -459,7 +459,7 @@
 						CHAT.hideAddonControls();
 						if( !rtmpPollingServer )
 						{
-							CHAT.showRTMPWarning("Cannot connect to media server.", 10000);
+							CHAT.showRTMPWarning(lang("Cannot connect to media server."), 10000);
 							rtmpPollingTimer.start();
 						}
 						break;
@@ -527,7 +527,7 @@
 				for each( var person:RoomOccupant in collabService.room ) 
 				{
 					if( person.displayName == collabService.nickname ) continue;
-					trace("asking " + person.displayName + " for mouse pos");
+					trace("asking " + person.displayName + lang(" for mouse pos"));
 					collabService.requestMouseMessage(person.displayName);
 				}
 			}
@@ -546,11 +546,11 @@
 			}
 			private function handleRemoveUserElements(e:CollaborationEvent):void
 			{
-				trace( "Removing " + e.getText() + "\'s cursor" );
+				trace( "Removing " + e.getText() + "\'s" + lang(" cursor") );
 				var cm:CollabMouseCursor = userMice[e.getText()];
 				if( cm == null ) 
 				{
-					reportError(e.getText() + "\'s mouse does not exist.");
+					reportError(e.getText() + "\'s" + lang(" mouse does not exist."));
 					return;
 				}
 				

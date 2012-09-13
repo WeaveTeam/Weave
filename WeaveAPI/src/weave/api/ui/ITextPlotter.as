@@ -15,19 +15,10 @@
 
 package weave.api.ui
 {
-	import weave.api.primitives.IBounds2D;
-
 	/**
-	 * This is an interface for setting the data bounds and screen bounds of a plot.
+	 * A class implementing this interface is an IPlotter that renders text graphics.
 	 * 
 	 * @author adufilie
 	 */
-	public interface IZoomView
-	{
-		function getDataBounds(destination:IBounds2D):void;
-		function getScreenBounds(destination:IBounds2D):void;
-
-		function setDataBounds(source:IBounds2D):void;
-		function setScreenBounds(source:IBounds2D):void;
-	}
+	public interface ITextPlotter extends IPlotter { }
 }

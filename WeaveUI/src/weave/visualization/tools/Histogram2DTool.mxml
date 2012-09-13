@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
@@ -37,7 +37,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.unlinkSessionState;
 			import weave.core.LinkableBoolean;
 			import weave.data.AttributeColumns.BinnedColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColorController;
 			import weave.ui.DraggablePanel;
@@ -45,36 +44,34 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.Histogram2DPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, Histogram2DTool, "Histogram 2D");
+			WeaveAPI.registerImplementation(IVisTool, Histogram2DTool, lang("Histogram 2D"));
 			
-			public var plotter:Histogram2DPlotter = null;
-			
-			public function get histogramPlotter():Histogram2DPlotter
+			private function get plotter():Histogram2DPlotter
 			{
-				return plotter;
+				return mainPlotter as Histogram2DPlotter;
 			}
 			override protected function constructor():void
 			{
 				super.constructor();
 				
 				// lock dynamic objects into place
-				plotter = initializePlotters(Histogram2DPlotter, true);
+				initializePlotters(Histogram2DPlotter, true);
 				visualization.enableProbeLine(false, true);
 				
-				xAxisLayer.axisPlotter.forceTickCount.value = true;
+				xAxisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
 				visualization.enableProbeLine(true, true);
 				
-				visualization.marginBottom.value = "80";
-				visualization.marginTop.value    = "10";
-				visualization.marginLeft.value   = "80";
-				visualization.marginRight.value  = "10";
+				visualization.plotManager.marginBottom.value = "80";
+				visualization.plotManager.marginTop.value    = "10";
+				visualization.plotManager.marginLeft.value   = "80";
+				visualization.plotManager.marginRight.value  = "10";
 				
-				visualization.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
-				visualization.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
-				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxisLabels);
-				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
+				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
+				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
+				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, updateAxisLabels);
+				getCallbackCollection(mainPlotter).addGroupedCallback(this, updateAxisLabels, true);
 				
 				var self:* = this;
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.xColumn); })
@@ -161,7 +158,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "2D Histogram of " + ColumnUtils.getTitle(plotter.xColumn) + " vs " + ColumnUtils.getTitle(plotter.yColumn) ;
+				return lang("2D Histogram of {0} vs {1}", ColumnUtils.getTitle(plotter.xColumn), ColumnUtils.getTitle(plotter.yColumn));
 			}
 			
 			private function updateAxisLabels():void
@@ -172,48 +169,48 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				var xBinCol:BinnedColumn = plotter.xBinnedColumn;
 				
-				xAxisLayer.axisPlotter.tickCountRequested.value = xBinCol.numberOfBins;
-				xAxisLayer.axisPlotter.tickMinValue.value = 0;
-				xAxisLayer.axisPlotter.tickMaxValue.value = xBinCol.numberOfBins - 1;	
-				xAxisLayer.axisPlotter.setLabelFunction(xBinCol.deriveStringFromNumber);
+				xAxisPlotter.tickCountRequested.value = xBinCol.numberOfBins;
+				xAxisPlotter.tickMinValue.value = 0;
+				xAxisPlotter.tickMaxValue.value = xBinCol.numberOfBins - 1;	
+				xAxisPlotter.setLabelFunction(xBinCol.deriveStringFromNumber);
 				
 				var yBinCol:BinnedColumn = plotter.yBinnedColumn;
 				
-				yAxisLayer.axisPlotter.tickCountRequested.value = yBinCol.numberOfBins;
-				yAxisLayer.axisPlotter.tickMinValue.value = 0;
-				yAxisLayer.axisPlotter.tickMaxValue.value = yBinCol.numberOfBins - 1;	
-				yAxisLayer.axisPlotter.setLabelFunction(yBinCol.deriveStringFromNumber);
+				yAxisPlotter.tickCountRequested.value = yBinCol.numberOfBins;
+				yAxisPlotter.tickMinValue.value = 0;
+				yAxisPlotter.tickMaxValue.value = yBinCol.numberOfBins - 1;	
+				yAxisPlotter.setLabelFunction(yBinCol.deriveStringFromNumber);
 				
 				
-				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.xColumn), 0, 0, visualization.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
-				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.yColumn), -90, -visualization.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				xAxisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.xColumn), 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				yAxisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.yColumn), -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 		]]>
 	</mx:Script>
 	
 	<ui:ControlPanel>
-		<mx:VBox label="Visualization Controls">
-			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-						 toolTip="Checking this box makes the tool's binned attribute visible in this tool's probe tooltip"
+		<mx:VBox label="{lang('Visualization Controls')}">
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="xColumnComponent" label="X Column"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="yColumnComponent" label="Y Column"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="xColumnComponent" label="{lang('X Column')}"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="yColumnComponent" label="{lang('Y Column')}"/>
 		</mx:VBox>
-		<mx:VBox label="Binning Controls">
+		<mx:VBox label="{lang('Binning Controls')}">
 				<mx:HBox>
-					<mx:Label text="Select Column:"/>
+					<mx:Label text="{lang('Select Column:')}"/>
 					<mx:RadioButtonGroup id="binColGroup" change="handleBinColRadioButtonChange()"/>
-					<mx:RadioButton groupName="binColGroup" label="X Column" value="xBinCol" id="xBinColRadioButton" selected="true"/>
-					<mx:RadioButton groupName="binColGroup" label="Y Column" value="yBinCol" id="yBinColRadioButton"/>
+					<mx:RadioButton groupName="binColGroup" label="{lang('X Column')}" value="xBinCol" id="xBinColRadioButton" selected="true"/>
+					<mx:RadioButton groupName="binColGroup" label="{lang('Y Column')}" value="yBinCol" id="yBinColRadioButton"/>
 				</mx:HBox>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
-		<mx:VBox label="Advanced">
-			<mx:CheckBox id="showAverageColorData" label="Color by average data value instead of record count"
+		<mx:VBox label="{lang('Advanced')}">
+			<mx:CheckBox id="showAverageColorData" label="{lang('Color by average data value instead of record count')}"
 						 creationComplete="linkBindableProperty(plotter.showAverageColorData, event.currentTarget, 'selected');"/>
 			<mx:HBox width="100%" verticalAlign="middle" enabled="{showAverageColorData.selected}">
-				<ui:DynamicColumnComponent id="colorColumnComponent" visTool="{this}" label="Color data"/>
-				<mx:Button label="Edit colors..." click="DraggablePanel.openStaticInstance(ColorController);"/>
+				<ui:DynamicColumnComponent id="colorColumnComponent" visTool="{this}" label="{lang('Color data')}"/>
+				<mx:Button label="{lang('Edit colors...')}" click="DraggablePanel.openStaticInstance(ColorController);"/>
 			</mx:HBox>
 			<ui:ColorRampEditor id="cRampEditor" enabled="{!showAverageColorData.selected}"/>
 		</mx:VBox>

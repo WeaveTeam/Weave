@@ -30,9 +30,9 @@
 					   textDecoration="none"
 					   fontStyle="normal"
 					   fontWeight="normal"/>
-	<mx:Button id="boldButton" toggle="true" label="B" width="30" fontFamily="_serif" fontWeight="bold" toolTip="Bold"/>
-	<mx:Button id="italicButton" toggle="true" label="I" width="30" fontFamily="_serif" fontStyle="italic" toolTip="Italic"/>
-	<mx:Button id="underlineButton" toggle="true" label="U" width="30" fontFamily="_serif" textDecoration="underline" toolTip="Underline"/>
+	<mx:Button id="boldButton" toggle="true" label="B" width="30" fontFamily="_serif" fontWeight="bold" toolTip="{lang('Bold')}"/>
+	<mx:Button id="italicButton" toggle="true" label="I" width="30" fontFamily="_serif" fontStyle="italic" toolTip="{lang('Italic')}"/>
+	<mx:Button id="underlineButton" toggle="true" label="U" width="30" fontFamily="_serif" textDecoration="underline" toolTip="{lang('Underline')}"/>
 
 	<mx:Script>
 		<![CDATA[

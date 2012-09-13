@@ -24,6 +24,8 @@ package weave.ui
 	
 	import mx.core.UIComponent;
 	
+	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.compiler.StandardLib;
 
 	/**
@@ -35,13 +37,20 @@ package weave.ui
 	 */
 	public class BusyIndicator extends UIComponent
 	{
-		public function BusyIndicator()
+		public function BusyIndicator(target:ILinkableObject = null, ...moreTargets)
 		{
 			super();
+			moreTargets.unshift(target);
+			this.targets = moreTargets;
 			includeInLayout = false;
 			mouseChildren = false;
-			addEventListener(Event.RENDER, render);
+			addEventListener(Event.FRAME_CONSTRUCTED, render);
 		}
+		
+		/**
+		 * This is an Array of ILinkableObjects whose busy status should be monitored.
+		 */		
+		public var targets:Array; /* of ILinkableObject */
 		
 		public var fps:Number = 12;//24;
 		public var bgColor:uint = 0x000000
@@ -55,10 +64,59 @@ package weave.ui
 		public var circleRatio:Number = 0.2;
 		public var numCircles:uint = 12;
 		private var prevFrame:int = -1;
+		private var timeBecameBusy:int = 0;
+		public var autoVisibleDelay:int = 2500;
 		
-		private function render(e:Event):void
+		/**
+		 * This will update the graphics immediately when set.
+		 */
+		override public function set visible(value:Boolean):void
 		{
-			if (!stage || !visible)
+			super.visible = value;
+			render();
+		}
+		
+		/**
+		 * This will automatically toggle visibility based the target's busy status.
+		 */
+		private function toggleVisible():void
+		{
+			var busy:Boolean = false;
+			for each (var target:ILinkableObject in targets)
+			{
+				if (WeaveAPI.SessionManager.linkableObjectIsBusy(target))
+				{
+					busy = true;
+					break;
+				}
+			}
+			if (visible != busy)
+			{
+				if (busy)
+				{
+					if (timeBecameBusy == -1)
+						timeBecameBusy = getTimer();
+					if (getTimer() - timeBecameBusy < autoVisibleDelay)
+						return;
+				}
+				
+				visible = busy;
+			}
+			timeBecameBusy = -1;
+		}
+		
+		/**
+		 * This will update the graphics.
+		 */
+		private function render(e:Event=null):void
+		{
+			if (!stage)
+				return;
+			
+			if (targets)
+				toggleVisible();
+			
+			if (!visible)
 				return;
 			
 			var frame:Number = (fps * getTimer() / 1000);
@@ -68,8 +126,8 @@ package weave.ui
 			
 			prevFrame = int(frame);
 			
-			var cx:Number = parent.width / 2;
-			var cy:Number = parent.height / 2;
+			var cx:Number = parent.width / 2 - this.x;
+			var cy:Number = parent.height / 2 - this.y;
 			var radius:Number = Math.min(parent.width, parent.height) * diameterRatio / 2;
 			var revolution:Number = frame / numCircles;
 			var colorIndexNorm:Number = revolution % (colorStartList.length - 1) / (colorStartList.length - 1);

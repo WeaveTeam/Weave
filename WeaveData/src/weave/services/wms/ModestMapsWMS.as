@@ -46,7 +46,9 @@ package weave.services.wms
 	import org.openscales.proj4as.proj.ProjMerc;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
 	import weave.core.ErrorManager;
@@ -113,7 +115,7 @@ package weave.services.wms
 			_imageWidth = _mapProvider.tileWidth;
 			_imageHeight = _mapProvider.tileHeight;
 			_currentTileIndex = new WMSTileIndex();
-			triggerCallbacks();
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		public function get provider():IMapProvider
@@ -223,7 +225,7 @@ package weave.services.wms
 					
 					var urlRequest:URLRequest = new URLRequest(requestString);
 					// note that thisTileMercator is still in Mercator coords
-					var newTile:WMSTile = new WMSTile(thisTileMercator, _imageWidth, _imageHeight, urlRequest);
+					var newTile:WMSTile = registerLinkableChild(this, new WMSTile(thisTileMercator, _imageWidth, _imageHeight, urlRequest));
 					newTile.zoomLevel = _tempCoord.zoom; // need to manually set it so tileIndex queries work
 					_urlToTile[requestString] = newTile;
 					_pendingTiles.push(newTile);

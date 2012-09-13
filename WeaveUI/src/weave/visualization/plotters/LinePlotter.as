@@ -29,7 +29,6 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.primitives.Bounds2D;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 

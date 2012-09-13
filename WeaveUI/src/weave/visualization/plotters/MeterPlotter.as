@@ -19,22 +19,12 @@
 
 package weave.visualization.plotters
 {
-	import flash.display.BitmapData;
-	import flash.display.CapsStyle;
-	import flash.display.Graphics;
-	import flash.display.Shape;
-	import flash.geom.Point;
-	
-	import mx.controls.Alert;
-	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.KeySets.KeySet;
-	import weave.primitives.Bounds2D;
 	
 	/**
 	 * This abstract class contains functionality common to any "meter tool" such as the thermometer and the gauge.
@@ -49,7 +39,7 @@ package weave.visualization.plotters
 		public const COLUMN_AVERAGE_MODE:Number = 1;
 		
 		//the sessioned number controlling the input mode
-		private const inputMode:LinkableNumber = newLinkableChild(this, LinkableNumber, updateMode); 
+		private const inputMode:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		
 		//the column whose value drives this meter 
 		public const meterColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
@@ -60,17 +50,6 @@ package weave.visualization.plotters
 		{
 			//this line causes only the currently probed records to be drawn.			
 			setKeySource(Weave.defaultProbeKeySet);
-		}
-		
-		private function updateMode():void{
-			Alert.show("in updateMode"); 
-		}
-		
-		/**
-		 * Returns true when there exists a valid value for the meter to display, false if not. 
-		 */
-		protected function meterValueExists(recordKeys:Array):Boolean{
-			return recordKeys.length>0;
 		}
 	}
 }

@@ -50,6 +50,19 @@ package weave.utils
 		}
 		
 		/**
+		 * This will dispose of any existing BitmapData inside a Bitmap and set it to null.
+		 * @param bitmap The Bitmap to empty.
+		 */
+		public static function emptyBitmapData(bitmap:Bitmap):void
+		{
+			if (bitmap.bitmapData)
+			{
+				disposeObjects(bitmap.bitmapData);
+				bitmap.bitmapData = null;
+			}
+		}
+		
+		/**
 		 * This will compare width and height values with the width and height of a BitmapData object inside a Bitmap.
 		 * @param bitmap
 		 * @param unscaledWidth
@@ -131,6 +144,11 @@ package weave.utils
 				return;
 			// clear the graphics
 			destination.fillRect(destination.rect, 0x00000000); // transparent
+		}
+		
+		public static function alphaSliderFormatFunction(value:Number):String
+		{
+			return lang("{0}% Opaque", int(value * 100)) + "\n" + lang("{0}% Transparent", int(100 - value * 100));
 		}
 	}
 }

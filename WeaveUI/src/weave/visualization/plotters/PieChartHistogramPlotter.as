@@ -32,6 +32,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -102,20 +103,21 @@ package weave.visualization.plotters
 		/**
 		 * This draws the histogram bins that a list of record keys fall into.
 		 */
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			// convert record keys to bin keys
-			// save a mapping of each bin key found to a value of true
-			var binKeyMap:Dictionary = new Dictionary();
-			for (var i:int = 0; i < recordKeys.length; i++)
-				binKeyMap[ _binLookup.getStringLookupKeyFromInternalColumnKey(recordKeys[i]) ] = true;
-			
-			var binKeys:Array = [];
-			for (var binQKey:* in binKeyMap)
-				binKeys.push(binQKey);
-			
-			// draw the bins
-			super.drawPlot(binKeys, dataBounds, screenBounds, destination);
+			if (task.iteration == 0)
+			{
+				// convert record keys to bin keys
+				// save a mapping of each bin key found to a value of true
+				var binKeyMap:Dictionary = new Dictionary();
+				for (var i:int = 0; i < task.recordKeys.length; i++)
+					binKeyMap[ _binLookup.getStringLookupKeyFromInternalColumnKey(task.recordKeys[i]) ] = true;
+				
+				var binKeys:Array = [];
+				for (var binQKey:* in binKeyMap)
+					binKeys.push(binQKey);
+			}
+			return super.drawPlotAsyncIteration(task);
 		}
 		
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void

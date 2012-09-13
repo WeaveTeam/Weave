@@ -4,36 +4,36 @@
 		<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="left">
 			<mx:CheckBox id="wmsPreferLowerQuality"
 						 selected="false"
-						 label="Prefer Lower Quality"
+						 label="{lang('Prefer Lower Quality')}"
 						 labelPlacement="right" 
 						 toolTip="{'Check this box to download lower quality images from the WMS service. This option may be '
 						 + 'preferred when using the OpenStreetMap service.'}"
 						 creationComplete="linkBindableProperty(_plotter.preferLowerQuality,event.target,'selected')"/>
 			<mx:CheckBox id="wmsDisplayMissing"
 						 selected="true"
-						 label="Show Failed Downloads"
+						 label="{lang('Show Failed Downloads')}"
 						 labelPlacement="right" 
 						 toolTip="{'Check this box to enable drawing of the missing image for failed requests. If this is unchecked, '
 						 + 'the plotter will fill missing images with lower quality images which cover the same area.'}"
 						 creationComplete="linkBindableProperty(_plotter.displayMissingImage,event.target,'selected')"/>
 			<mx:HBox width="100%" horizontalAlign="center" verticalAlign="middle">
-				<mx:Label text="Service:"/>
+				<mx:Label text="{lang('Service:')}"/>
 				<!-- for each provider's name, append '(SRS_CODE)' to the end -->
 				<ui:CustomComboBox editable="false" id="wmsLayerService"
-								prompt="Select a service"
+								prompt="{lang('Select a service')}"
 								dataProvider="{WMSProviders.providers}"
 								width="200"
-								toolTip="Select the WMS provider to use." 
+								toolTip="{lang('Select the WMS provider to use.')}" 
 								creationComplete="linkBindableProperty(_plotter.serviceName,event.target,'selectedItem')"/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="center" verticalAlign="middle">
 			<mx:HBox width="100%" horizontalAlign="center">
-				<mx:Label text="Month:"/>
+				<mx:Label text="{lang('Month:')}"/>
 				<ui:CustomComboBox enabled="{(wmsLayerService.selectedItem as String) == WMSProviders.NASA}" visible="{enabled == true}" editable="false" 
 								dataProvider="{['Dec ','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan ']}" 
 								change="handleStyleInputChange()" id="requestStyles" width="80" 
-								toolTip="Enter the month of the NASA images."/>
+								toolTip="{lang('Enter the month of the NASA images.')}"/>
 			</mx:HBox>
 		</mx:VBox>
 	</mx:HBox>

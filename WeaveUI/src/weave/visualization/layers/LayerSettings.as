@@ -22,7 +22,8 @@ package weave.visualization.layers
 	import weave.Weave;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDynamicKeyFilter;
-	import weave.api.newLinkableChild;
+	import weave.api.newDisposableChild;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -72,12 +73,17 @@ package weave.visualization.layers
 		
 		// temporary solution
 		// TODO: use VisToolGroup
-		public const subsetFilter:IDynamicKeyFilter = newLinkableChild(this, DynamicKeyFilter);
-		public const selectionFilter:IDynamicKeyFilter = newLinkableChild(this, DynamicKeyFilter);
-		public const probeFilter:IDynamicKeyFilter = newLinkableChild(this, DynamicKeyFilter);
+		public const subsetFilter:IDynamicKeyFilter = newDisposableChild(this, DynamicKeyFilter);
+		public const selectionFilter:IDynamicKeyFilter = newDisposableChild(this, DynamicKeyFilter);
+		public const probeFilter:IDynamicKeyFilter = newDisposableChild(this, DynamicKeyFilter);
 		
 		// hacks
 		public var hack_includeMissingRecordBounds:Boolean = false; // hack to include records with undefined bounds
 		public var hack_useTextBitmapFilters:Boolean = false; // hack to use text bitmap filters (for labels, legends)
+		
+		// backwards compatibility
+		[Exclude] [Deprecated] public function set useTextBitmapFilters(value:Boolean):void { hack_useTextBitmapFilters = value; }
+		[Exclude] [Deprecated] public function set layerIsSelectable(value:Boolean):void { selectable.value = value; }
+		[Exclude] [Deprecated] public function set layerIsVisible(value:Boolean):void { visible.value = value; }
 	}
 }

@@ -33,6 +33,7 @@ package weave.visualization.plotters
 	import org.openscales.proj4as.ProjConstants;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
 	import weave.api.disposeObjects;
@@ -57,7 +58,7 @@ package weave.visualization.plotters
 	 * @author kmonico
 	 * @author skolman
 	 */
-	public class WMSPlotter extends AbstractPlotter
+	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus
 	{
 		// TODO: move the image reprojection code elsewhere
 		
@@ -249,17 +250,7 @@ package weave.visualization.plotters
 			// expand the data bounds so some surrounding tiles are downloaded to improve panning
 			var allTiles:Array = _service.requestImages(_tempDataBounds, _tempScreenBounds, preferLowerQuality.value);
 			
-			// constants used many times inside the drawing loop
-			var xMinData:Number = dataBounds.getXMin();
-			var yMinData:Number = dataBounds.getYMin();
-			var scaleWidth:Number = screenBounds.getWidth() / dataBounds.getWidth();
-			var scaleHeight:Number = screenBounds.getHeight() / dataBounds.getHeight();
-			var xMinScreen:Number = screenBounds.getXMin();
-			var yMinScreen:Number = screenBounds.getYMin();
-			_tempMatrix.identity();
-			_tempMatrix.translate(-xMinData, -yMinData);
-			_tempMatrix.scale(scaleWidth, scaleHeight);
-			_tempMatrix.translate(xMinScreen, yMinScreen);
+			dataBounds.transformMatrix(screenBounds, _tempMatrix, true);
 
 			// draw each tile's reprojected shape
 			for (var i:int = 0; i < allTiles.length; i++)
@@ -313,20 +304,25 @@ package weave.visualization.plotters
 				var imageBitmap:BitmapData = tile.bitmapData;
 				
 				// get screen coords from image data coords
-				_tempDataBounds.copyFrom(imageBounds);
-				dataBounds.projectCoordsTo(_tempDataBounds, screenBounds);
-				_tempDataBounds.makeSizePositive();
+				_tempBounds.copyFrom(imageBounds); // data
+				dataBounds.projectCoordsTo(_tempBounds, screenBounds); // data to screen
+				_tempBounds.makeSizePositive(); // positive screen direction
 
-				_tempMatrix.identity();
-				
 				// when scaling, we need to use the ceiling of the values to cover the seam lines
-				_tempMatrix.scale(Math.ceil(_tempDataBounds.getWidth())/ imageBitmap.width, Math.ceil(_tempDataBounds.getHeight()) / imageBitmap.height);
-				_tempMatrix.translate(Math.round(_tempDataBounds.getXMin()), Math.round(_tempDataBounds.getYMin()));
+				_tempMatrix.identity();
+				_tempMatrix.scale(
+					Math.ceil(_tempBounds.getWidth()) / imageBitmap.width,
+					Math.ceil(_tempBounds.getHeight()) / imageBitmap.height
+				);
+				_tempMatrix.translate(
+					Math.round(_tempBounds.getXMin()),
+					Math.round(_tempBounds.getYMin())
+				);
 
 				// calculate clip rectangle for nasa service because tiles go outside the lat/long bounds
-				_tempScreenBounds.copyFrom(_service.getAllowedBounds());
-				dataBounds.projectCoordsTo(_tempScreenBounds, screenBounds);
-				_tempScreenBounds.getRectangle(_clipRectangle);
+				_tempBounds.copyFrom(_service.getAllowedBounds()); // data
+				dataBounds.projectCoordsTo(_tempBounds, screenBounds); // data to screen
+				_tempBounds.getRectangle(_clipRectangle); // get screen rect
 				_clipRectangle.x = Math.floor(_clipRectangle.x);
 				_clipRectangle.y = Math.floor(_clipRectangle.y);
 				_clipRectangle.width = Math.floor(_clipRectangle.width - 0.5);
@@ -378,11 +374,6 @@ package weave.visualization.plotters
 			spatialCallbacks.triggerCallbacks();
 		}
 		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-		 	; // there are no selectable layers in this plotter
-		}
-		
 		override public function getBackgroundDataBounds():IBounds2D
 		{
 			var bounds:IBounds2D = getReusableBounds();
@@ -431,6 +422,11 @@ package weave.visualization.plotters
 				return false;
 			
 			return WMSProviders.providers.indexOf(s) >= 0;
+		}
+		
+		public function isBusy():Boolean
+		{
+			return false;
 		}
 	}
 }

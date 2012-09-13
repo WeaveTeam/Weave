@@ -22,6 +22,9 @@ package weave
 	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.external.ExternalInterface;
+	import flash.filters.BlurFilter;
+	import flash.filters.DropShadowFilter;
+	import flash.filters.GlowFilter;
 	import flash.net.URLRequest;
 	import flash.text.Font;
 	import flash.utils.ByteArray;
@@ -36,12 +39,15 @@ package weave
 	import ru.etcs.utils.FontLoader;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
+	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
@@ -119,7 +125,6 @@ package weave
 			
 			_initToggleMap();
 			
-			linkBindableProperty(enableThreadPriorities, WeaveAPI.StageUtils, 'enableThreadPriorities');
 			linkBindableProperty(maxComputationTimePerFrame, WeaveAPI.StageUtils, 'maxComputationTimePerFrame');
 			
 			showCollaborationMenuItem.addGroupedCallback(this, function():void {
@@ -142,6 +147,7 @@ package weave
 			};
 			enableCollaborationBar.addGroupedCallback(this, handleCollabBar);
 			showCollaborationEditor.addGroupedCallback(this, handleCollabBar);
+			initBitmapFilterCallbacks();
 		}
 		
 		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
@@ -299,6 +305,8 @@ package weave
 		public const enableToolSelection:LinkableBoolean = new LinkableBoolean(true); // enable/disable the selection tool
 		public const enableToolProbe:LinkableBoolean = new LinkableBoolean(true);
 		public const enableRightClick:LinkableBoolean = new LinkableBoolean(true);
+		public const showRevertButton:LinkableBoolean = new LinkableBoolean(true);
+		public const showAddAllButton:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableProbeAnimation:LinkableBoolean = new LinkableBoolean(true);
 		public const maxTooltipRecordsShown:LinkableNumber = new LinkableNumber(1, verifyMaxTooltipRecordsShown); // maximum number of records shown in the probe toolTips
@@ -547,8 +555,43 @@ package weave
 		}
 		
 		public function get SecondaryKeyNumColumn_useGlobalMinMaxValues():LinkableBoolean { return SecondaryKeyNumColumn.useGlobalMinMaxValues; }
-		public const enableThreadPriorities:LinkableBoolean = new LinkableBoolean(false);
 		public const maxComputationTimePerFrame:LinkableNumber = new LinkableNumber(100);
+		
+		
+		public const filter_callbacks:ICallbackCollection = new CallbackCollection();
+		public const filter_selectionBlur:BlurFilter = new BlurFilter();
+		public const filter_probeGlowInnerText:GlowFilter = new GlowFilter(0, 0.9, 2, 2, 255);
+		public const filter_probeGlowInner:GlowFilter = new GlowFilter(0, 0.9, 5, 5, 10);
+		public const filter_probeGlowOuter:GlowFilter = new GlowFilter(0, 0.7, 3, 3, 10);
+		public const filter_selectionShadow:DropShadowFilter = new DropShadowFilter(1, 45, 0, 0.5, 4, 4, 2);
+		private function updateFilters():void
+		{
+			filter_selectionBlur.blurX = selectionBlurringAmount.value;
+			filter_selectionBlur.blurY = selectionBlurringAmount.value;
+			
+			probeInnerGlow.copyTo(filter_probeGlowInnerText);
+			filter_probeGlowInnerText.blurX = 2;
+			filter_probeGlowInnerText.blurY = 2;
+			filter_probeGlowInnerText.strength = 255;
+			
+			probeInnerGlow.copyTo(filter_probeGlowInner);
+			probeOuterGlow.copyTo(filter_probeGlowOuter);
+			selectionDropShadow.copyTo(filter_selectionShadow);
+		}
+		private function initBitmapFilterCallbacks():void
+		{
+			var objects:Array = [
+				enableBitmapFilters,
+				selectionAlphaAmount,
+				selectionBlurringAmount,
+				probeInnerGlow,
+				probeOuterGlow,
+				selectionDropShadow
+			];
+			for each (var object:ILinkableObject in objects)
+				registerLinkableChild(filter_callbacks, object);
+			filter_callbacks.addImmediateCallback(this, updateFilters, true);
+		}
 
 		//--------------------------------------------
 		// BACKWARDS COMPATIBILITY

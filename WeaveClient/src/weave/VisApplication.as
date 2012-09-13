@@ -107,7 +107,6 @@ package weave
 	import weave.utils.DebugTimer;
 	import weave.utils.EditorManager;
 	import weave.utils.VectorUtils;
-	import weave.visualization.layers.SelectablePlotLayer;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.MapTool;
 
@@ -391,7 +390,7 @@ package weave
 		private var _usingDeprecatedFlashVar:Boolean = false;
 		private const DEPRECATED_FLASH_VAR_MESSAGE:String = lang("The 'defaults=' URL parameter is deprecated.  Use 'file=' instead.");
 
-		private var _selectionIndicatorText:Text = new Text;
+		private var _selectionIndicatorText:Text = new Text();
 		private var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
 		private function handleSelectionChange():void
 		{
@@ -1020,9 +1019,12 @@ package weave
 			if (object is MapTool)
 			{
 				//(object as MapTool).toggleControlPanel();
-				var layer:SelectablePlotLayer = (object as MapTool).visualization.layers.getObjects()[0] as SelectablePlotLayer;
-				var geom:DynamicColumn = (layer.getDynamicPlotter().internalObject as GeometryPlotter).geometryColumn.internalDynamicColumn;
-				AttributeSelectorPanel.openDefaultSelector(geom, lang("Geometry"));
+				var plotters:Array = (object as MapTool).visualization.plotManager.plotters.getObjects(GeometryPlotter);
+				if (plotters.length)
+				{
+					var geom:DynamicColumn = (plotters[0] as GeometryPlotter).geometryColumn.internalDynamicColumn;
+					AttributeSelectorPanel.openDefaultSelector(geom, lang("Geometry"));
+				}
 			}
 
 			return object;

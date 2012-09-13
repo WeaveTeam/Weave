@@ -22,7 +22,7 @@
 <ui:DraggablePanel xmlns="weave.editors.managers.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				width="672" height="410"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				visible="true" title="View/Edit Data" xmlns:ui="weave.ui.*">
+				visible="true" title="{lang('View/Edit Data')}" xmlns:ui="weave.ui.*">
 	<mx:VBox width="100%" height="100%">
 		<mx:DataGrid id="tableEditor"
 					 width="100%" height="100%"
@@ -34,8 +34,8 @@
 	
 	<mx:ControlBar>
 		<mx:Spacer width="100%"/>
-		<mx:Button id="saveButton" click="removePanel();" label="Save &amp; Close"/>
-		<mx:Button id="cancelButton" label="Cancel" click="removePanel();"/>
+		<mx:Button id="saveButton" click="removePanel();" label="{lang('Save &amp; Close')}"/>
+		<mx:Button id="cancelButton" label="{lang('Cancel')}" click="removePanel();"/>
 	</mx:ControlBar>
 	
 	<mx:Script>
@@ -94,7 +94,7 @@
 				
 				saveButton.visible = false;
 				cancelButton.visible = false;
-				this.title ="View Data";
+				this.title = lang("View Data");
 				
 				
 				

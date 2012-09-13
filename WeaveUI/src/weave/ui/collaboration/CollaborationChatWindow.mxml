@@ -105,7 +105,7 @@
 				</mx:HDividedBox>
 				<mx:HBox width="100%">
 					<mx:TextInput id="input" width="100%" enter="dispatchMessageEvent()" />
-					<mx:Button id="button_send" label="Send" click="dispatchMessageEvent()" />
+					<mx:Button id="button_send" label="{lang('Send')}" click="dispatchMessageEvent()" />
 				</mx:HBox>
 			</mx:VBox>
 		</mx:VBox>
@@ -258,7 +258,7 @@
 				switch( e.info.code )
 				{
 					case "NetStream.Publish.BadName":
-						showRTMPWarning("Error publishing stream: Bad Name", 10000);
+						showRTMPWarning(lang("Error publishing stream: Bad Name"), 10000);
 						break;
 					default:
 						trace("Unhandled netstatus event: "+e.info.code);

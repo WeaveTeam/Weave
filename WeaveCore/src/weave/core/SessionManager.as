@@ -44,6 +44,7 @@ package weave.core
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.core.ISessionManager;
 	import weave.api.reportError;
@@ -216,7 +217,7 @@ package weave.core
 		{
 			if (parent == null || child == null)
 			{
-				reportError("SessionManager.removeLinkableChildrenFromSessionState(): Parameters to this function cannot be null.");
+				reportError("SessionManager.excludeLinkableChildFromSessionState(): Parameters to this function cannot be null.");
 				return;
 			}
 			if (childToParentDictionaryMap[child] !== undefined && childToParentDictionaryMap[child][parent])
@@ -708,6 +709,17 @@ package weave.core
 			{
 				linkableObject = _aBusyTraversal[i] as ILinkableObject;
 				
+				if (linkableObject is ILinkableObjectWithBusyStatus)
+				{
+					if ((linkableObject as ILinkableObjectWithBusyStatus).isBusy())
+					{
+						busy = true;
+						break;
+					}
+					// do not check children
+					continue;
+				}
+				
 				// if the object is assigned a task, it's busy
 				for (var task:Object in _d2dOwnerTask.dictionary[linkableObject])
 				{
@@ -1101,7 +1113,7 @@ package weave.core
 		{
 			if (primary == null || secondary == null)
 			{
-				reportError("SessionManager.linkObjects(): Parameters to this function cannot be null.");
+				reportError("SessionManager.linkSessionState(): Parameters to this function cannot be null.");
 				return;
 			}
 			if (primary == secondary)
@@ -1132,7 +1144,7 @@ package weave.core
 		{
 			if (first == null || second == null)
 			{
-				reportError("SessionManager.unlinkObjects(): Parameters to this function cannot be null.");
+				reportError("SessionManager.unlinkSessionState(): Parameters to this function cannot be null.");
 				return;
 			}
 			
@@ -1403,7 +1415,7 @@ package weave.core
 		 *******************/
 		
 		
-		internal static const DIFF_DELETE:String = 'delete';
+		public static const DIFF_DELETE:String = 'delete';
 		
 		/**
 		 * This function computes the diff of two session states.

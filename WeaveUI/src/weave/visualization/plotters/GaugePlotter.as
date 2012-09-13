@@ -23,15 +23,13 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
-	import weave.Weave;
-	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.core.SessionManager;
+	import weave.api.ui.IPlotTask;
+	import weave.compiler.StandardLib;
 	import weave.data.BinClassifiers.BinClassifierCollection;
 	import weave.data.BinningDefinitions.DynamicBinningDefinition;
 	import weave.data.BinningDefinitions.SimpleBinningDefinition;
@@ -146,43 +144,36 @@ package weave.visualization.plotters
 			}
 		}
 		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			if(meterValueExists(recordKeys)){
-				//clear the graphics
+			if (task.recordKeys.length > 0)
+			{
+				//project center point
+				p1.x = p1.y = 0;
+				task.dataBounds.projectPointTo(p1, task.screenBounds);
+				
+				//project tip point (angle driven by data value)
+				var meterValue:Number = getMeterValue(task.recordKeys);
+				var meterValueMax:Number = meterColumnStats.getMax();
+				var meterValueMin:Number = meterColumnStats.getMin();
+				var norm:Number = StandardLib.normalize(meterValue, meterValueMin, meterValueMax);
+	
+				//compute the angle and project to screen coordinates
+				var angle:Number = theta+(1-norm)*(Math.PI-2*theta)
+				p2.x = Math.cos(angle)*outerRadius;
+				p2.y = Math.sin(angle)*outerRadius;
+				task.dataBounds.projectPointTo(p2, task.screenBounds);
+				
+				//draw the needle line (from center to tip)
 				var g:Graphics = tempShape.graphics;
 				g.clear();
-				
-				//draw the needle
-				drawNeedle(recordKeys,dataBounds, screenBounds,g);
-				
+				g.lineStyle(needleThickness,needleColor,1.0);
+				g.moveTo(p1.x, p1.y+outerRadius);
+				g.lineTo(p2.x, p2.y);
 				//flush the graphics buffer
-				destination.draw(tempShape);
+				task.buffer.draw(tempShape);
 			}
-		}
-		
-		private function drawNeedle(recordKeys:Array,dataBounds:IBounds2D, screenBounds:IBounds2D,g:Graphics):void{
-			//project center point
-			p1.x = p1.y = 0;
-			dataBounds.projectPointTo(p1, screenBounds);
-			
-			//project tip point (angle driven by data value)
-			//TODO: use a normalization abstraction here
-			var meterValue:Number = getMeterValue(recordKeys);
-			var meterValueMax:Number = meterColumnStats.getMax();
-			var meterValueMin:Number = meterColumnStats.getMin();
-			var norm:Number = (meterValue - meterValueMin)/(meterValueMax - meterValueMin);
-
-			//compute the angle and project to screen coordinates
-			var angle:Number = theta+(1-norm)*(Math.PI-2*theta)
-			p2.x = Math.cos(angle)*outerRadius;
-			p2.y = Math.sin(angle)*outerRadius;
-			dataBounds.projectPointTo(p2, screenBounds);
-			
-			//draw the needle line (from center to tip)
-			g.lineStyle(needleThickness,needleColor,1.0);
-			g.moveTo(p1.x, p1.y+outerRadius);
-			g.lineTo(p2.x, p2.y);
+			return 1;
 		}
 		
 		/**
