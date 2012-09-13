@@ -128,7 +128,7 @@
 			{
 				_targetObjects = array;
 				
-				controlPanelControls.busyIndicator.targets = array;
+				controlPanelControls.busyIndicatorTargets = array;
 				
 				save();
 				
