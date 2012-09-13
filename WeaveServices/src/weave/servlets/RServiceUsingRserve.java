@@ -28,17 +28,17 @@ import javax.script.ScriptException;
 
 import org.rosuda.REngine.REXP;
 import org.rosuda.REngine.REXPDouble;
-import org.rosuda.REngine.REXPList;
+import org.rosuda.REngine.REXPInteger;
 import org.rosuda.REngine.REXPLogical;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REXPString;
 import org.rosuda.REngine.REXPUnknown;
+import org.rosuda.REngine.REngineException;
 import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
 import weave.beans.HierarchicalClusteringResult;
-import weave.beans.KMeansClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
 import weave.utils.ListUtils;
@@ -143,7 +143,14 @@ public class RServiceUsingRserve
 				RList rList = new RList();
 				for (Object item : array)
 					rList.add(getREXP(item));
-				return new REXPList(rList);
+
+				try {
+					return REXP.createDataFrame(rList);
+				} catch (REXPMismatchException e) {
+					throw new RemoteException("Failed to Create Dataframe",e);
+				}
+
+		
 			}
 			else if (array[0] instanceof String)
 			{
@@ -221,10 +228,12 @@ public class RServiceUsingRserve
 		}
 		catch (Exception e)	{
 			e.printStackTrace();
+			System.out.println("printing error");
+			System.out.println(e.getMessage());
 			String errorStatement = e.getMessage();
 			// to send error from R to As3 side results is created with one
 			// object			
-			resultVector.add(new RResult("Error Statement", errorStatement));
+			resultVector.add(new RResult("Error Statement state", errorStatement));
 		}
 		finally
 		{
@@ -333,73 +342,151 @@ public class RServiceUsingRserve
 		return result;
 	}
 
-	public static KMeansClusteringResult kMeansClustering(String docrootPath,double[] dataX, double[] dataY, int numberOfClusters) throws RemoteException
+	
+	public static RResult[] kMeansClustering( String[] inputNames, Object[][] inputValues, 
+													      boolean showWarnings,
+													     	int numberOfClusters, int iterations)throws RemoteException
 	{
-		RConnection rConnection = getRConnection();
-		int[] clusterNumber = new int[1];
-		clusterNumber[0] = numberOfClusters;
-		int[] iterations = new int[1];
-		iterations[0] = 2;
+		RConnection rConnection = getRConnection();	
 
-		if (dataX.length == 0 || dataY.length == 0)
+		int []noOfClusters = new int [1];
+		noOfClusters[0] = numberOfClusters;
+		
+		int[]iterationNumber = new int[1];
+		iterationNumber[0] = iterations;
+		
+		
+		try {
+			rConnection.assign("clusternumber", noOfClusters);
+		} catch (REngineException e1) {
+			throw new RemoteException ("",e1);
+			
+		}
+		
+		
+		//storing column length
+		int columnLength = inputValues[0].length; 
+		
+		//to check if columns are not empty and if all columns are of the same length
+	for (int j = 1; j < inputValues.length; j++)
+		{
+			if (columnLength == 0 || inputValues[j].length == 0)
 			throw new RemoteException("Unable to run computation on zero-length arrays.");
-		if (dataX.length != dataY.length)
-			throw new RemoteException("Unable to run computation on two arrays with different lengths (" + dataX.length
-					+ " != " + dataY.length + ").");
-
-		KMeansClusteringResult kclresult = new KMeansClusteringResult();
-
+			if (inputValues[j].length != columnLength)
+			throw new RemoteException("Unable to run computation on two arrays with different lengths (" + columnLength
+				+ " != " + inputValues[j].length + ").");
+			
+		}
+		
+		
+	
+	
+		String output = "";
+		REXP evalValue;	
+		RResult [] kClusteringResult;
+		String dataframeInput = new String();
+		String names = "";
+		
 		try
 		{
+//			We have to send columns to R and receive them back to be sent once again to R
+			//enables 'n' number of columns to be sent
+			for (int i = 0; i < inputNames.length; i++)
+			{
+				String name = inputNames[i];
+				if(names.length() != 0){
+					names = names + "," + name;}
+				else{
+					names = name;
+				}
+				double[] value = ListUtils.copyDoubleArray(inputValues[i], new double[inputValues[i].length]);
+				rConnection.assign(name, value);	
+		
+				dataframeInput = "data.frame(" + names + ")";
+			}
+			evalValue = rConnection.eval(dataframeInput);
+		
+			rConnection.assign("frame",evalValue);
+			rConnection.assign("clusternumber", noOfClusters);
+			rConnection.assign("iterations",iterationNumber);
 
-			// Push the data to R
-			rConnection.assign("x", dataX);
-			rConnection.assign("y", dataY);
-			rConnection.assign("clusternumber", clusterNumber);
-			rConnection.assign("iter.max", iterations);
-
-			// Performing the calculation
-			rConnection.eval("dataframe1 <- data.frame(x,y)");
-			// Each run of the algorithm gives a different result, thus continue
-			// till results are constant
-			rConnection
-					.eval("Clustering <- function(clusternumber, iter.max)\n{result1 <- kmeans(dataframe1, clusternumber, iter.max)\n result2 <- kmeans(dataframe1, clusternumber, (iter.max-1))\n while(result1$centers != result2$centers){ iter.max <- iter.max + 1 \n result1 <- kmeans(dataframe1, clusternumber, iter.max) \n result2 <- kmeans(dataframe1, clusternumber, (iter.max-1))} \n print(result1) \n print(result2)}");
-			rConnection.eval("Cluster <- Clustering(clusternumber, iter.max)");
-
-			// option for drawing a graph, shows centroids
-
-			// Get the data from R
-			// Returns a vector indicating which cluster each data point belongs
-			// to
-			kclresult.setClusterGroup(rConnection.eval("Cluster$cluster").asDoubles());
-			// Returns the means of each of the clusters
-			kclresult.setClusterMeans(rConnection.eval("Cluster$centers").asDoubleMatrix());
-			// Returns the size of each cluster
-			kclresult.setClusterSize(rConnection.eval("Cluster$size").asDoubles());
-			// Returns the sum of squares within each cluster
-			kclresult.setWithinSumOfSquares(rConnection.eval("Cluster$withinss").asDoubles());
-			// Returns the image from R
-			// option for storing the image of the graphic output from R
-			String str = String.format("jpeg(\"%s\")", docrootPath + rFolderName + "/Kmeans_Clustering.jpg");
-//			System.out.println(str);
-			evalScript(rConnection, str,false);
-			rConnection
-					.eval("plot(dataframe1,xlab= \"x\", ylab= \"y\", main = \"Kmeans Clustering\", col = Cluster$cluster) \n points(Cluster$centers, col = 1:5, pch = 10)");
-			rConnection.eval("dev.off()");
-			kclresult.setRImageFilePath("Kmeans_Clustering.jpg");
-
+			
+			//String script = "Clus <- kmeans(frame, "+numberOfClusters+","+iterations+")";
+			
+//		String clusteringScript = "Clustering <- function(dframe, clusternumber, iterations)\n" +
+//									  "{result1 <- kmeans(dframe, clusternumber, iterations)\n " +
+//									  "result2 <- kmeans(dframe, clusternumber, (iterations - 1))\n " +
+//									  "while(result1$totss != result2$totss)\n"+
+//									  "{iterations <- iterations + 1 \n " +
+//									  "result1 <- kmeans(dframe, clusternumber, iterations)\n " +
+//									  "result2 <- kmeans(dframe, clusternumber, (iterations - 1))\n }" +
+//									  "print(result1)" +
+//									  "print(result2)" +
+//									  "}" +
+//									  "KCluResult <- Clustering(frame,clusternumber, iterations)";
+	
+		    String clusteringScript = "KClusResult <- kmeans(frame, clusternumber,iterations)";
+									  
+			
+			 int i = 0;
+			String[] outputNames = {"KClusResult$cluster", "KClusResult$centers"};
+			evalScript(rConnection, clusteringScript, showWarnings);
+			
+			int iterationTimes = outputNames.length;
+		
+			kClusteringResult = new RResult[outputNames.length];
+			for (; i < iterationTimes; i++)
+			{
+				String name;
+				// Boolean addedTolist = false;
+				if (iterationTimes == outputNames.length + 1){
+					name = outputNames[i - 1];
+				}
+				else{
+					name = outputNames[i];
+				}
+				// Script to get R - output
+				evalValue = evalScript(rConnection, name, showWarnings);				
+//				System.out.println(evalValue);
+				if (evalValue.isVector()){
+					if (evalValue instanceof REXPString)
+						kClusteringResult[i] = new RResult(name, evalValue.asStrings());
+					else if (evalValue instanceof REXPInteger)
+						kClusteringResult[i] = new RResult(name, evalValue.asIntegers());
+					else if (evalValue instanceof REXPDouble){
+						if (evalValue.dim() == null)
+							kClusteringResult[i] = new RResult(name, evalValue.asDoubles());
+						else
+							kClusteringResult[i] = new RResult(name, evalValue.asDoubleMatrix());
+					}
+					else{
+						// if no previous cases were true, return debug String
+						kClusteringResult[i] = new RResult(name, evalValue.toDebugString());
+					}
+				}
+				else{
+					kClusteringResult[i] = new RResult(name, evalValue.toDebugString());
+				}
+			}
 		}
-		catch (Exception e)
-		{
+		catch (Exception e)	{
 			e.printStackTrace();
-			throw new RemoteException(e.getMessage());
+			output += e.getMessage();
+			// to send error from R to As3 side results is created with one
+			// object
+			kClusteringResult = new RResult[1];
+			kClusteringResult[0] = new RResult("Error Statement", output);
 		}
+	
 		finally
 		{
 			rConnection.close();
 		}
-		return kclresult;
+		
+		return kClusteringResult;
 	}
+	
+
 
 	public static HierarchicalClusteringResult hierarchicalClustering(String docrootPath,double[] dataX, double[] dataY) throws RemoteException
 	{
@@ -465,4 +552,106 @@ public class RServiceUsingRserve
 		return hclresult;
 	}
 
+
+	//this function does not take in a script from the as3 side for imputation, but the script is built in
+	public static RResult[] handlingMissingData(String[] inputNames, Object[][] inputValues, String[] outputNames, boolean showIntermediateResults, boolean showWarnings, boolean completeProcess) throws Exception
+	{
+		RConnection rConnection = getRConnection();
+		
+		String output = "";
+		String script= "";
+		REXP evalValue;
+		RResult[] mdResult ;
+		String bindingInput = new String();
+		String names = "";
+		
+		try
+		{
+//			We have to send columns to R and receive them back to be sent once again to R
+			for (int i = 0; i < inputNames.length; i++)
+			{
+				String name = inputNames[i];
+				if(names.length() != 0){
+					names = names + "," + name;}
+				else{
+					names = name;
+				}
+				double[] value = ListUtils.copyDoubleArray(inputValues[i], new double[inputValues[i].length]);
+				rConnection.assign(name, value);	
+		
+				bindingInput = "cbind(" + names + ")";
+			}
+			
+			evalValue = rConnection.eval(bindingInput);
+			rConnection.assign("Bind",evalValue);
+			
+			//Built in script
+			if(completeProcess = false)
+			{
+				script = "library(norm) \n pre <- prelim.norm(Bind)";
+				
+			}
+			else
+			{
+				script = "library(norm) \n pre <- prelim.norm(Bind) \n eeo <- em.norm(pre) \n rngseed(12345) \n" +
+				"imputed <- imp.norm(pre, eeo,Bind)";
+			}
+			
+			
+					
+			evalScript(rConnection, script, showWarnings);
+		
+			int i = 0;
+			int iterationTimes = outputNames.length;
+		
+			mdResult = new RResult[outputNames.length];
+			for (; i < iterationTimes; i++)
+			{
+				String name;
+				// Boolean addedTolist = false;
+				if (iterationTimes == outputNames.length + 1){
+					name = outputNames[i - 1];
+				}
+				else{
+					name = outputNames[i];
+				}
+				// Script to get R - output
+				evalValue = evalScript(rConnection, name, showWarnings);				
+//				System.out.println(evalValue);
+				if (evalValue.isVector()){
+					if (evalValue instanceof REXPString)
+						mdResult[i] = new RResult(name, evalValue.asStrings());
+					else if (evalValue instanceof REXPInteger)
+						mdResult[i] = new RResult(name, evalValue.asIntegers());
+					else if (evalValue instanceof REXPDouble){
+						if (evalValue.dim() == null)
+							mdResult[i] = new RResult(name, evalValue.asDoubles());
+						else
+							mdResult[i] = new RResult(name, evalValue.asDoubleMatrix());
+					}
+					else{
+						// if no previous cases were true, return debug String
+						mdResult[i] = new RResult(name, evalValue.toDebugString());
+					}
+				}
+				else{
+					mdResult[i] = new RResult(name, evalValue.toDebugString());
+				}
+			}
+		}
+		catch (Exception e)	{
+			e.printStackTrace();
+			output += e.getMessage();
+			// to send error from R to As3 side results is created with one
+			// object
+			mdResult = new RResult[1];
+			mdResult[0] = new RResult("Error Statement", output);
+		}
+		finally
+		{
+			rConnection.close();
+		}
+		return mdResult;
+	}
 }
+

@@ -104,6 +104,11 @@ package weave
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
+
+	import weave.ui.userControls.SchafersMissingDataTool;
+	import weave.utils.ColumnUtils;
+
+
 	import weave.utils.DebugTimer;
 	import weave.utils.EditorManager;
 	import weave.utils.VectorUtils;
@@ -766,7 +771,7 @@ package weave
 					createToolMenuItem(Weave.properties.showDisabilityOptions, "Disability Options", DraggablePanel.openStaticInstance, [DisabilityOptions]);
 
 	
-				
+
 				var _this:VisApplication = this;
 
 				if (!Weave.properties.dashboardMode.value)
@@ -788,6 +793,7 @@ package weave
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(
 					function():String { return lang((Weave.properties.dashboardMode.value ? "Disable" : "Enable") + " dashboard mode"); },
 					function():void { Weave.properties.dashboardMode.value = !Weave.properties.dashboardMode.value; }
+
 				));
 			}
 			

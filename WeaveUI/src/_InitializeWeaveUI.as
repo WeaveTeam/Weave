@@ -76,6 +76,8 @@ package
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.ImageGlyphPlotter;
 	import weave.visualization.plotters.WMSPlotter;
+	import weave.visualization.tools.RadVizTool;
+	import weave.visualization.tools.RadVizToolEditor;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -123,6 +125,7 @@ package
 		
 		EditorManager.registerEditor(ColorRamp, ColorRampEditor);
 //		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
+        EditorManager.registerEditor(RadVizTool, RadVizToolEditor);
 		
 		EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
 		

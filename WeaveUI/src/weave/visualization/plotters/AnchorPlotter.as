@@ -31,7 +31,6 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
-	import weave.api.ui.ITextPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -45,7 +44,7 @@ package weave.visualization.plotters
 	 * AnchorPlotter
 	 * @author kmanohar
 	 */	
-	public class AnchorPlotter extends AbstractPlotter implements ITextPlotter
+	public class AnchorPlotter extends AbstractPlotter
 	{
 		public var anchors:LinkableHashMap = newSpatialProperty(LinkableHashMap,handleAnchorsChange);
 		public const labelAngleRatio:LinkableNumber = registerSpatialProperty(new LinkableNumber(0, verifyLabelAngleRatio));
@@ -53,7 +52,10 @@ package weave.visualization.plotters
 		private var _keySet:KeySet;
 		private const tempPoint:Point = new Point();
 		private const _bitmapText:BitmapText = new BitmapText();
+		private var coordinate:Point = new Point();//reusable object
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
+		public var doClassColoring:Boolean = false;
+		public var anchorClasses:Dictionary = null;//this tells us the classes to which dimensional anchors belong to
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
 		public var anchorColorMap:Dictionary;
 		
@@ -110,7 +112,7 @@ package weave.visualization.plotters
 			graphics.clear();
 						
 			graphics.lineStyle(1);
-			// loop through anchors hash map and draw dimensional anchors and labels	
+			
 			for each(var key:IQualifiedKey in recordKeys)
 			{
 				anchor = anchors.getObject(key.localName) as AnchorPoint;
@@ -126,12 +128,16 @@ package weave.visualization.plotters
 				tempPoint.x = radius * cos;
 				tempPoint.y = radius * sin;
 				dataBounds.projectPointTo(tempPoint, screenBounds);
-
+				
 				// draw circle
 				if(enableWedgeColoring.value)
-					graphics.beginFill(anchorColorMap[key.localName]);				
+					graphics.beginFill(anchorColorMap[key.localName]);		
+				//color the dimensional anchors according to the class hey belong to
+				//graphics.beginFill(Math.random() * uint.MAX_VALUE);				
 				graphics.drawCircle(tempPoint.x, tempPoint.y, 5);				
 				graphics.endFill();
+				
+				
 				
 				_bitmapText.trim = false;
 				_bitmapText.text = " " + anchor.title.value + " ";
@@ -165,15 +171,46 @@ package weave.visualization.plotters
 				// draw bitmap text
 				_bitmapText.draw(destination);								
 			}
+			
+			
 			destination.draw(tempShape);							
 			
 			_currentScreenBounds.copyFrom(screenBounds);
 			_currentDataBounds.copyFrom(dataBounds);
 		}
 		
+		
+		/**
+		 * This function draws the background graphics for this plotter, if applicable.
+		 * An example background would be the origin lines of an axis.
+		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
+		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
+		 * @param destination The sprite to draw the graphics onto.
+		 */
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			super.drawBackground(dataBounds,screenBounds,destination);
+			var g:Graphics = tempShape.graphics;
+			g.clear();
+			
+			coordinate.x = -1;
+			coordinate.y = -1;
+			
+			
+			dataBounds.projectPointTo(coordinate, screenBounds);
+			var x:Number = coordinate.x;
+			var y:Number = coordinate.y;
+			coordinate.x = 1;
+			coordinate.y = 1;
+			dataBounds.projectPointTo(coordinate, screenBounds);
+			
+			// draw RadViz circle
+			try {
+				g.lineStyle(2, 0, .2);
+				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);
+			} catch (e:Error) { }
+			
+			destination.draw(tempShape);
 			
 			_currentScreenBounds.copyFrom(screenBounds);
 			_currentDataBounds.copyFrom(dataBounds);

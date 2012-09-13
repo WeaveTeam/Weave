@@ -30,6 +30,7 @@ package weave.visualization.plotters
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
@@ -74,14 +75,35 @@ package weave.visualization.plotters
 			algorithms[BRUTE_FORCE] = BruteForceLayoutAlgorithm;
 			handleColumnsChange();
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
+			anchors.childListCallbacks.addImmediateCallback(this, handleAnchorsListChange);
+		}
+		private function handleAnchorsListChange():void
+		{
+			// invariant: same number of anchors and columns
+			var oldAnchor:String = anchors.childListCallbacks.lastNameRemoved;
+			if(oldAnchor != null)
+			{
+				columns.removeObject(oldAnchor);
+			}
 		}
 		private function handleColumnsListChange():void
 		{
-			// When a new column is created, register the stats to trigger callbacks and affect busy status.
-			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
-			if (newColumn)
-				registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
+			var newColumnName:String = columns.childListCallbacks.lastNameAdded;
+			if(newColumn != null)
+			{
+				// invariant: same number of anchors and columns
+				anchors.requestObject(newColumnName, AnchorPoint, false);
+				// When a new column is created, register the stats to trigger callbacks and affect busy status.
+				// This will be cleaned up automatically when the column is disposed.
+				registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
+			}
+			var oldColumnName:String = columns.childListCallbacks.lastNameRemoved;
+			if(oldColumnName != null)
+			{
+				// invariant: same number of anchors and columns
+				anchors.removeObject(oldColumnName);
+			}
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
@@ -103,6 +125,10 @@ package weave.visualization.plotters
 		public const fillStyle:SolidFillStyle = newLinkableChild(this,SolidFillStyle,handleColorColumnChange);		
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))) ;		
+		
+		public var doCDLayout:Boolean = false;
+		public var LayoutClasses:Dictionary = null;
+		
 
 		/**
 		 * This is the radius of the circle, in screen coordinates.
@@ -128,7 +154,6 @@ package weave.visualization.plotters
 			var columnNormArray:Array;
 			var columnNumberMap:Dictionary;
 			var columnNumberArray:Array;
-			_columns = columns.getObjects(IAttributeColumn);
 			var sum:Number = 0;
 			
 			randomArrayIndexMap = 	new Dictionary(true);				
@@ -139,9 +164,13 @@ package weave.visualization.plotters
 			keyNumberMap = 			new Dictionary(true);
 			columnTitleMap = 		new Dictionary(true);
 			
-			if (_columns.length > 0) 
+			
+			setAnchorLocations();//normal layout
+			
+			
+			if (columns.getObjects().length > 0) 
 			{
-				setKeySource(_columns[0]);
+				setKeySource(columns.getObjects()[0]);
 			
 				for each( var key:IQualifiedKey in keySet.keys)
 				{					
@@ -151,7 +180,7 @@ package weave.visualization.plotters
 					columnNumberArray = [];
 					columnNumberMap = new Dictionary(true);
 					sum = 0;
-					for each( var column:IAttributeColumn in _columns)
+					for each( var column:IAttributeColumn in columns.getObjects())
 					{
 						if(i == 0)
 							columnTitleMap[column] = columns.getName(column);
@@ -176,19 +205,22 @@ package weave.visualization.plotters
 				{
 					keyNormArray = [];
 					i = 0;
-					for each( var col:IAttributeColumn in _columns)
+					for each( var col:IAttributeColumn in columns.getObjects())
 					{
 						keyNormArray.push((keyNumberMap[k][col] - keyMinMap[k])/(keyMaxMap[k] - keyMinMap[k]));
 						i++;
 					}					
 					keyGlobalNormMap[k] = keyNormArray;
+					
 				}
 			}
 			else
 				setKeySource(null);
-			
-			setAnchorLocations();
 		}
+		
+		/*private function debugAnchors():void{
+			trace (ObjectUtil.toString(getSessionState(anchors)));
+		}*/
 		
 		private function handleColorColumnChange():void
 		{			
@@ -198,24 +230,142 @@ package weave.visualization.plotters
 				keyColorMap[key] = fillStyle.color.internalDynamicColumn.getValueFromKey(key, Number);
 			}
 		}
+	
+		/*public function setAnchorLocations( ):void
+		{	
+			var _columns:Array = columns.getObjects();
+			
+			if(!doCDLayout)
+			{
+				
+				var theta:Number = (2*Math.PI)/_columns.length;
+				var anchor:AnchorPoint;
+				anchors.delayCallbacks();
+				//anchors.removeAllObjects();
+				for( var i:int = 0; i < _columns.length; i++ )
+				{
+					anchor = anchors.getObject(columns.getName(_columns[i])) as AnchorPoint ;								
+					anchor.x.value = Math.cos(theta*i);
+					trace(anchor.x.value);
+					anchor.y.value = Math.sin(theta*i);	
+					trace(anchor.y.value);
+					anchor.title.value = ColumnUtils.getTitle(_columns[i]);
+				}
+				anchors.resumeCallbacks();
+			}
+			//if true do CdLayout algorithm
+			else
+			{
+				var numOfClasses:int = 0;
+				for ( var type:Object in LayoutClasses)
+				{
+					numOfClasses++;
+				}
+				anchors.delayCallbacks();
+				//anchors.removeAllObjects();
+				var classTheta:Number = (2*Math.PI)/(numOfClasses);
+				
+				var classIncrementor:Number = 0;
+				for( var cdtype:Object in LayoutClasses)
+				{
+					var cdAnchor:AnchorPoint;
+					
+					var colNames:Array = (LayoutClasses[cdtype] as Array);
+					var numOfDivs:int = colNames.length + 1;
+					var columnTheta:Number = classTheta /numOfDivs;//needed for equidistant spacing of columns
+					var currentClassPos:Number = classTheta * classIncrementor;
+					var columnIncrementor:int = 1;//change
+					//for drawing on the first division and not the 0th, we begin the loop with 1
+					for( var columnIncrementor :int = 1; columnIncrementor < numOfDivs; columnIncrementor++)
+					{
+						cdAnchor = anchors.requestObject(colNames[columnIncrementor], AnchorPoint, false) as AnchorPoint;
+						cdAnchor.x.value  = Math.cos(currentClassPos + (columnTheta * columnIncrementor));
+						cdAnchor.y.value = Math.sin(currentClassPos + (columnTheta * columnIncrementor));*/
+						/*var check1:Array =columns.getObjects(IAttributeColumn);
+						var check2:IAttributeColumn = (check1[0] as IAttributeColumn);
+						var check3 : String = ColumnUtils.getTitle(check2);*/
+						//var colObject:IAttributeColumn = columns.getObject(colNames[columnIncrementor]) as IAttributeColumn;
+						//cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[columnIncrementor]) as IAttributeColumn);
+					//}
+					
+					/*
+					for( var g :int = 0; g < colNames.length; g++)//change
+					{
+						cdAnchor = anchors.getObject(colNames[g]) as AnchorPoint;
+						cdAnchor.x.value  = Math.cos(currentClassPos + (columnTheta * columnIncrementor));
+						cdAnchor.y.value = Math.sin(currentClassPos + (columnTheta * columnIncrementor));
+						cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[g]) as IAttributeColumn);
+					    columnIncrementor++;//change
+					}
+					
+					classIncrementor++;
+				}
+				
+				anchors.resumeCallbacks();
+			
+			}
+		}			*/
+				
 		
-		public function setAnchorLocations():void
-		{			
-			_columns = columns.getObjects(IAttributeColumn);
+		public function setAnchorLocations( ):void
+		{	
+			var _columns:Array = columns.getObjects();
+		
 			var theta:Number = (2*Math.PI)/_columns.length;
 			var anchor:AnchorPoint;
 			anchors.delayCallbacks();
-			anchors.removeAllObjects();
+			//anchors.removeAllObjects();
 			for( var i:int = 0; i < _columns.length; i++ )
 			{
-				anchor = anchors.requestObject(columns.getName(_columns[i]), AnchorPoint, false) as AnchorPoint ;								
+				anchor = anchors.getObject(columns.getName(_columns[i])) as AnchorPoint ;								
 				anchor.x.value = Math.cos(theta*i);
+				trace(anchor.x.value);
 				anchor.y.value = Math.sin(theta*i);	
+				trace(anchor.y.value);
 				anchor.title.value = ColumnUtils.getTitle(_columns[i]);
 			}
 			anchors.resumeCallbacks();
-		}			
+		}
+		
+		public function setClassDiscriminationAnchorsLocations():void
+		{
+			var numOfClasses:int = 0;
+			for ( var type:Object in LayoutClasses)
+			{
+				numOfClasses++;
+			}
+			anchors.delayCallbacks();
+			//anchors.removeAllObjects();
+			var classTheta:Number = (2*Math.PI)/(numOfClasses);
+			
+			var classIncrementor:Number = 0;
+			for( var cdtype:Object in LayoutClasses)
+			{
+				var cdAnchor:AnchorPoint;
 				
+				var colNames:Array = (LayoutClasses[cdtype] as Array);
+				var numOfDivs:int = colNames.length + 1;
+				var columnTheta:Number = classTheta /numOfDivs;//needed for equidistant spacing of columns
+				var currentClassPos:Number = classTheta * classIncrementor;
+				var columnIncrementor:int = 1;//change
+				
+				for( var g :int = 0; g < colNames.length; g++)//change
+				{
+					cdAnchor = anchors.getObject(colNames[g]) as AnchorPoint;
+					cdAnchor.x.value  = Math.cos(currentClassPos + (columnTheta * columnIncrementor));
+					cdAnchor.y.value = Math.sin(currentClassPos + (columnTheta * columnIncrementor));
+					cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[g]) as IAttributeColumn);
+					columnIncrementor++;//change
+				}
+				
+				classIncrementor++;
+			}
+				
+			anchors.resumeCallbacks();
+				
+		}
+		
+		
 		/**
 		 * Applies the RadViz algorithm to a record specified by a recordKey
 		 */
@@ -237,7 +387,7 @@ package weave.visualization.plotters
 			if(!array) keyMapExists = false;
 			var array2:Dictionary = keyNumberMap[recordKey];
 			var i:int = 0;
-			for each( var column:IAttributeColumn in _columns)
+			for each( var column:IAttributeColumn in columns.getObjects())
 			{
 				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
 				value = (keyMapExists) ? array[i] : stats.getNorm(recordKey);
@@ -255,6 +405,7 @@ package weave.visualization.plotters
 			}
 			coordinate.x = (numeratorX/denominator);
 			coordinate.y = (numeratorY/denominator);
+			//trace(recordKey.localName,coordinate);
 			if( enableJitter.value )
 				jitterRecords(recordKey);			
 			return sum;
@@ -303,7 +454,7 @@ package weave.visualization.plotters
 			{
 				if (!keyNumberMap || keyNumberMap[task.recordKeys[0]] == null)
 					return 1;
-				if (_columns.length != anchors.getObjects().length)
+				if (columns.getObjects().length != anchors.getObjects().length)
 					return 1;
 				task.recordKeys.sort(sortKeys, Array.DESCENDING);
 			}
@@ -355,39 +506,6 @@ package weave.visualization.plotters
 		}
 		
 		/**
-		 * This function draws the background graphics for this plotter, if applicable.
-		 * An example background would be the origin lines of an axis.
-		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
-		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
-		 * @param destination The sprite to draw the graphics onto.
-		 */
-		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			var g:Graphics = tempShape.graphics;
-			g.clear();
-
-			coordinate.x = -1;
-			coordinate.y = -1;
-			dataBounds.projectPointTo(coordinate, screenBounds);
-			var x:Number = coordinate.x;
-			var y:Number = coordinate.y;
-			coordinate.x = 1;
-			coordinate.y = 1;
-			dataBounds.projectPointTo(coordinate, screenBounds);
-			
-			// draw RadViz circle
-			try {
-				g.lineStyle(2, 0, .2);
-				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);
-			} catch (e:Error) { }
-			
-			destination.draw(tempShape);
-			_destination = destination;
-			
-			_currentScreenBounds.copyFrom(screenBounds);
-		}
-			
-		/**
 		 * This function sorts record keys based on their radiusColumn values, then by their colorColumn values
 		 * @param key1 First record key (a)
 		 * @param key2 Second record key (b)
@@ -429,7 +547,7 @@ package weave.visualization.plotters
 		 */
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			_columns = columns.getObjects(IAttributeColumn);
+			//_columns = columns.getObjects(IAttributeColumn);
 			//if(!unorderedColumns.length) handleColumnsChange();
 			getXYcoordinates(recordKey);
 			
@@ -480,7 +598,6 @@ package weave.visualization.plotters
 			}
 		}
 						
-		private var _columns:Array = null;		
 	
 		private function changeAlgorithm():void
 		{
@@ -489,6 +606,8 @@ package weave.visualization.plotters
 			var newAlgorithm:Class = algorithms[currentAlgorithm.value];
 			if (newAlgorithm == null) 
 				return;
+			
+			disposeObjects(_algorithm); // clean up previous algorithm
 			
 			_algorithm = newSpatialProperty(newAlgorithm);
 			var array:Array = _algorithm.run(columns.getObjects(IAttributeColumn), keyNumberMap);

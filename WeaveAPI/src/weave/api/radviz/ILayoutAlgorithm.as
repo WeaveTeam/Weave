@@ -22,6 +22,7 @@ package weave.api.radviz
 	 * An interface for dimensional layout algorithms
 	 * 
 	 * @author kmanohar
+	 * 
 	 */	
 	public interface ILayoutAlgorithm extends ICallbackCollection
 	{
@@ -38,5 +39,6 @@ package weave.api.radviz
 		 * @param columns an array of IAttributeColumns
 		 */		
 		function performLayout(columns:Array):void;		
+	
 	}
 }

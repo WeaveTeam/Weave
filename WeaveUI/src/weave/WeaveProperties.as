@@ -42,9 +42,7 @@ package weave
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
-	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -61,6 +59,7 @@ package weave
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.JRITextEditor;
 	import weave.ui.RTextEditor;
+	import weave.ui.userControls.DataStatisticsTool;
 	import weave.utils.CSSUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.NumberUtils;
@@ -89,6 +88,7 @@ package weave
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
 	import weave.visualization.tools.TransposedTableTool;
+
 
 	/**
 	 * A list of global settings for a Weave instance.
@@ -255,6 +255,7 @@ package weave
 				[enableAdd2DHistogram, Histogram2DTool],
 				[enableAddRScriptEditor, JRITextEditor],
 				[enableAddLineChart, LineChartTool],
+				[enableAddDataStatisticsTool, DataStatisticsTool],
 				[enableAddMap, MapTool],
 				[enableAddPieChart, PieChartTool],
 				[enableAddPieChartHistogram, PieChartHistogramTool],
@@ -273,13 +274,20 @@ package weave
 		// END TEMPORARY SOLUTION
 		
 		public const enableAddAttributeMenuTool:LinkableBoolean = new LinkableBoolean(true); // Add Attribute Menu Tool option tools menu
+
 		public const enableAddBarChart:LinkableBoolean = new LinkableBoolean(true); // Add Bar Chart option tools menu
 //		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
 		public const enableAddColorLegend:LinkableBoolean = new LinkableBoolean(true); // Add Color legend Tool option tools menu		
 		public const enableAddColormapHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Colormap Histogram option tools menu
+
+
 		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
 		public const enableAddCustomTool:LinkableBoolean = new LinkableBoolean(true);
+		public const enableAddSchafersMissingDataTool:LinkableBoolean = new LinkableBoolean(true);
+		public const enableAddDataStatisticsTool:LinkableBoolean = new LinkableBoolean(true);
 		public const enableAddDataTable:LinkableBoolean = new LinkableBoolean(true); // Add Data Table option tools menu
+
+
 		public const enableAddGaugeTool:LinkableBoolean = new LinkableBoolean(true); // Add Gauge Tool option tools menu
 		public const enableAddHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Histogram option tools menu
 		public const enableAdd2DHistogram:LinkableBoolean = new LinkableBoolean(true); // Add 2D Histogram option tools menu
@@ -295,7 +303,6 @@ package weave
 		public const enableAddScatterplot:LinkableBoolean = new LinkableBoolean(true); // Add Scatterplot option tools menu
 		public const enableAddThermometerTool:LinkableBoolean = new LinkableBoolean(true); // Add Thermometer Tool option tools menu
 		public const enableAddTimeSliderTool:LinkableBoolean = new LinkableBoolean(true); // Add Time Slider Tool option tools menu
-		
 		public const enablePanelCoordsPercentageMode:LinkableBoolean = new LinkableBoolean(true); // resize/position tools when window gets resized (percentage based rather than absolute)
 		public const enableToolAttributeEditing:LinkableBoolean = new LinkableBoolean(true); // edit the bindings of tool vis attributes
 		public const showVisToolCloseDialog:LinkableBoolean = new LinkableBoolean(false); // show "close this window?" yes/no box

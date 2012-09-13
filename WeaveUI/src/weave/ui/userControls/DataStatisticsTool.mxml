@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---
+	This exhibits all important statistics about a column in a datagrid
+    It also allows for viewing different correlation coefficients between columns
+
+	@author spurushe
+-->
+<DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				horizontalScrollPolicy="off" verticalScrollPolicy="off"
+				title="Data Statistics"
+				x="15%" width="70%" y="15%" height="70%"
+				backgroundColor="#EFF4BC" 
+				layout="horizontal"
+				autoLayout="true"
+				implements="weave.api.ui.IVisTool"
+				>
+	
+	<mx:HBox width="100%" height="100%" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
+		<mx:VBox width="30%" height="100%" verticalGap="0">
+			<mx:Label text="(1) Select data to view statistics"/>
+			<ColumnListComponent id="inputColumnList" label="Input columns" hashMap="{variables}" width="100%" height="100%"/>			
+		</mx:VBox>
+		
+		<mx:VBox width="30%" height="100%" verticalGap="0">
+			<mx:Label text="(2) Select column statistics"/>
+			
+			<mx:CheckBox id="ColumnMax" label="Column Maximum" paddingBottom="5" selected="false" click="scriptHandler(event)"/>
+			<mx:CheckBox id="ColumnMin" label="Column Minimum" paddingBottom="5" selected="false" click="scriptHandler(event)"/>
+			<mx:CheckBox id="ColumnStdv" label="Standard Deviation" paddingBottom="5" selected="false" click="scriptHandler(event)"/>
+			<mx:CheckBox id="ColumnVariance" label="Variance" paddingBottom="5" selected="false" click="scriptHandler(event)"/>
+			<mx:CheckBox id="ColumnAverage" label="Average" paddingBottom="5" selected="false" click="scriptHandler(event)"/>
+			<mx:CheckBox id="ColumnStdErr" label="Standard Error" paddingBottom="5" selected="false" click="scriptHandler(event)"/>
+			<mx:HBox>
+				<mx:Button width="45%" id="doStatistics" label="Compute Statistics" paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"
+						   click="doStatistics_clickHandler(event)"/>
+				<mx:Button  horizontalGap="10" width="45%" id="DisplayResults" label="Display Results" paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"
+						 click="DisplayResults_clickHandler(event)"/>
+			</mx:HBox>
+			
+		</mx:VBox>
+		
+	    
+		<mx:VBox width="30%" height="100%">
+			<mx:Label text="(3) Calculate Correlation Coefficients"/>
+			<mx:Button paddingTop="5" paddingBottom="5" paddingLeft="5" id="PearsonsCorr" label="Pearson's Coefficient" click="Corr_clickHandler(event)"/>
+			<mx:Button paddingTop="5" paddingBottom="5" paddingLeft="5" id="KendallCorr" label="Kendall's Coefficient" click="Corr_clickHandler(event)"/>
+			<mx:Button paddingTop="5" paddingBottom="5" paddingLeft="5" id="SpearmanCorr" label="Spearman's Coefficient" click="Corr_clickHandler(event)"/>
+		</mx:VBox>
+		
+		</mx:HBox>
+	<mx:Script>
+		<![CDATA[
+			import flash.sampler.Sample;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.TitleWindow;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import org.igniterealtime.xiff.collections.ArrayCollection;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
+			import weave.api.ui.IVisTool;
+			import weave.core.LinkableHashMap;
+			import weave.data.KeySets.KeySet;
+			import weave.services.DelayedAsyncResponder;
+			import weave.services.WeaveRServlet;
+			import weave.services.beans.RResult;
+			import weave.ui.userControls.DatagridDisplay;
+			import weave.utils.ColumnUtils;
+			import weave.visualization.tools.SimpleVisTool;
+			WeaveAPI.registerImplementation(IVisTool, DataStatisticsTool, "Data Statistics Tool");
+			
+			
+			
+			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
+			public var script:String = ""; var joinedColumnsKeys:Array ; var joinedColumns:Array ;
+			public var outputNames:Array = new Array();
+			public var finalGridDisplayArray:Array = new Array();
+			
+			override protected function constructor():void
+			{
+				super.constructor();				
+				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				for (var i:int = 0; i < columns.length; i++)
+					variables.requestObjectCopy(null, columns[i]);
+				
+				
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				variables.addImmediateCallback(this, columnProcessing);
+			}
+			
+			private static function get selection():KeySet
+			{
+				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			}
+			
+			private function joinColumns(columns:Array):Array
+			{
+				var selection:KeySet = Weave.defaultSelectionKeySet;
+				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
+				var result:Array = ColumnUtils.joinColumns(columns, Number, false, keys);
+				return [result.shift(), result];
+			}
+			
+			/*This function prepares the columns[joining and conversion) before sending them to R  */
+			private function columnProcessing( ):void
+			{
+				var selectedColumns:Array = variables.getObjects(); //Columns from ColumnListComponent 
+				var attributeColumns:Array = new Array();
+				for (var f:int = 0; f < selectedColumns.length; f++)
+				{
+					attributeColumns[f] = selectedColumns[f] as IAttributeColumn;
+				}
+				
+				var joinedColumnResult: Array = joinColumns(attributeColumns);
+				joinedColumnsKeys = joinedColumnResult[0];
+			    joinedColumns = joinedColumnResult[1];
+			}
+			
+			/* Different Commands to be sent to R */
+			protected function scriptHandler(event:MouseEvent):void
+			{
+				if (script.length == 0)
+				{
+					if(event.target == ColumnMax && ColumnMax.selected == true)
+					{
+						script = "ColumnMax <- max(myColumn)";
+						outputNames.push("ColumnMax");
+					}
+					if(event.target == ColumnMin && ColumnMin.selected == true)
+					{
+						script = "ColumnMin <- min(myColumn)";
+						outputNames.push("ColumnMin");
+					}	
+					
+					if(event.target == ColumnVariance && ColumnVariance.selected == true)
+					{
+						script = "ColumnVariance <- var(myColumn)";
+						outputNames.push("ColumnVariance");
+					}	
+					if(event.target == ColumnStdv && ColumnStdv.selected == true)
+					{
+						script = "ColumnStdv <- sd(myColumn)";
+						outputNames.push("ColumnStdv");
+					}
+					if(event.target == ColumnAverage && ColumnAverage.selected == true)
+					{
+						script = "ColumnAverage <- mean(myColumn)";
+						outputNames.push("ColumnAverage");
+					}
+					
+					if(event.target == ColumnStdErr && ColumnStdErr.selected == true)
+					{
+						script = "stderr <- function(myColumn)\n" +
+							"{ m <- sqrt(var(myColumn)/length(myColumn))\n" +
+							"m}\n" +
+							"ColumnStdError <- stderr(myColumn)";
+						outputNames.push("ColumnStdError");
+					}
+				}
+				
+				else{
+					if(event.target == ColumnMax && ColumnMax.selected == true)
+					{
+						script = script + "\nColumnMax <- max(myColumn)";
+						outputNames.push("ColumnMax");
+					}
+					if(event.target == ColumnMin && ColumnMin.selected == true)
+					{
+						script =  script + "\nColumnMin <- min(myColumn)";
+						outputNames.push("ColumnMin");
+					}	
+					
+					if(event.target == ColumnVariance && ColumnVariance.selected == true)
+					{
+						script = script + "\nColumnVariance <- var(myColumn)";
+						outputNames.push("ColumnVariance");
+					}
+					
+					if(event.target == ColumnStdv && ColumnStdv.selected == true)
+					{
+						script = script + "\nColumnStdv <- sd(myColumn)";
+						outputNames.push("ColumnStdv");
+					}
+					if(event.target == ColumnAverage && ColumnAverage.selected == true)
+					{
+						script = script + "\nColumnAverage <- mean(myColumn)";
+						outputNames.push("ColumnAverage");
+					}
+					
+					if(event.target == ColumnStdErr && ColumnStdErr.selected == true)
+					{
+						script = "\nstderr <- function(myColumn)\n" +
+							"{ m <- sqrt(var(myColumn)/length(myColumn))\n" +
+							"m}\n" +
+							"\nColumnStdError <- stderr(myColumn)";
+						outputNames.push("ColumnStdError");
+					}
+					
+				}
+				
+			}
+			
+			protected function doStatistics_clickHandler(event:MouseEvent):void
+			{				
+				for (var u:int = 0 ; u < outputNames.length; u++)
+				{
+					finalGridDisplayArray[u] = new Array();
+				}
+				sendingInfoToR(script);
+				
+			}
+			
+			
+			private function sendingInfoToR(script:String): void
+			{
+				var temArray:Array = variables.getObjects();//acts as a counter in the following loop
+				for( var c:int = 0; c < temArray.length ; c++)
+				{
+					var inputValues:Array = new Array();//array of columns
+					inputValues.push(joinedColumns[c]);//each column sent one at a time
+					var inputNames: Array = new Array();
+					inputNames = ["myColumn"];//default name for every column sent one at a time
+					var query:AsyncToken = Rservice.runScript(joinedColumnsKeys,inputNames,inputValues,outputNames,script,"",false,false,false);
+					DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,joinedColumnsKeys);
+				}
+				trace("hello");
+			}
+			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
+			{
+				//Object to stored returned result - Which is array of object{name: , value: }
+				var Robj:Array = event.result as Array;				
+				
+				if (Robj == null)
+				{
+					reportError("R Servlet did not return an Array of results as expected.");
+					return;
+				}
+				
+				//Collecting all RResult Objects into an Array 
+				var RresultArray:Array = new Array();
+				
+				//collecting Objects of type RResult(Should Match result object from Java side)
+				for (var i:int = 0; i < (event.result).length; i++)
+				{
+					if (Robj[i] == null)
+					{
+						trace("WARNING! R Service returned null in results array at index "+i);
+						continue;
+					}
+					var rResult:RResult = new RResult(Robj[i]);
+					//RresultArray.push(rResult.value);	
+					finalGridDisplayArray[i].push( rResult.value);
+				
+				}	
+				//finalGridDisplayArray.push(RresultArray);
+				
+			}
+			
+			//This function handles the matrices returned by the correlation scripts
+			private function handleCorrRunScriptResult(event:ResultEvent, token:Object = null):void
+			{
+				var Robj:Array = event.result as Array;				
+				
+				if (Robj == null)
+				{
+					reportError("R Servlet did not return an Array of results as expected.");
+					return;
+				}
+				
+				for (var i:int = 0; i < (event.result).length; i++)
+				{
+					if (Robj[i] == null)
+					{
+						trace("WARNING! R Service returned null in results array at index "+i);
+						continue;
+					}
+					var rResult:RResult = new RResult(Robj[i]);
+				}	
+				
+				var dg:DatagridDisplay = new DatagridDisplay();dg.initialize();
+				dg.title = (token[0] as String);
+				dg.actualDG.dataProvider = rResult.value;
+				mx.managers.PopUpManager.addPopUp(dg, this,false);
+			}
+			
+			private function handleRunScriptFault(event:FaultEvent, token:Object = null):void
+			{
+				trace(["fault", token, event.message].join('\n'));
+				reportError(event);
+			}
+			protected function DisplayResults_clickHandler(event:MouseEvent):void
+			{
+  				var dg:DatagridDisplay = new DatagridDisplay();dg.initialize();
+				dg.actualDG.dataProvider = finalGridDisplayArray;
+				mx.managers.PopUpManager.addPopUp(dg, this,false);
+			}
+			
+			protected function Corr_clickHandler(event:MouseEvent):void
+			{
+				var outputNames:Array = new Array();
+				var corScript:String = "";
+				if(event.target == PearsonsCorr)
+				{	 corScript = "Pearsons_Correlation_Coefficient <- cor(myMatrix, use = \"everything\", method = \"pearson\")"
+					 outputNames.push("Pearsons_Correlation_Coefficient");
+				}
+				if(event.target == SpearmanCorr)
+				{	corScript = "Spearmans_Correlation_Coefficient <- cor(myMatrix, use = \"everything\", method = \"spearman\")"
+					outputNames.push("Spearmans_Correlation_Coefficient")};
+				if(event.target == KendallCorr)
+				{	corScript= "Kendalls_Correlation_Coefficient <- cor(myMatrix, use = \"everything\", method = \"kendall\")"
+					outputNames.push("Kendalls_Correlation_Coefficient")};
+				
+				var inputNames:Array = ["myMatrix"];
+			
+				var inputValues:Array = new Array();
+				inputValues.push(joinedColumns);
+				var query:AsyncToken = Rservice.runScript(joinedColumnsKeys,inputNames,inputValues,outputNames,corScript,"",false,false,false);
+				DelayedAsyncResponder.addResponder(query, handleCorrRunScriptResult, handleRunScriptFault,outputNames);
+			}
+			
+		]]>
+	</mx:Script>
+</DraggablePanel>
