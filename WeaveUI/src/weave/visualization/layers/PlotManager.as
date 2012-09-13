@@ -466,6 +466,7 @@ package weave.visualization.layers
 				if (settings.selectable.value && keySet && keySet.keys.length) // selection
 				{
 					subsetTask.completedBitmap.alpha = Weave.properties.selectionAlphaAmount.value;
+					subsetTask.bufferBitmap.alpha = Weave.properties.selectionAlphaAmount.value;
 					
 					if (Weave.properties.enableBitmapFilters.value)
 					{
@@ -563,6 +564,8 @@ package weave.visualization.layers
 		
 		private var shouldRender:Boolean = false;
 		
+		public static var fade:Boolean = true; // Class('weave.visualization.layers.PlotManager').fade
+		
 		/**
 		 * This gets called when a PlotTask triggers its callbacks.
 		 */
@@ -585,38 +588,25 @@ package weave.visualization.layers
 			{
 				for each (var name:String in plotters.getNames(IPlotter))
 				{
-					if (linkableObjectIsBusy(hack_getSpatialIndex(name)))
-						continue;
+//					if (linkableObjectIsBusy(hack_getSpatialIndex(name)))
+//						continue;
 					
 					if (layerShouldBeRendered(name))
 					{
 						debugTrace('render',name,getPlotter(name));
 						for each (var task:PlotTask in _name_to_PlotTask_Array[name])
 						{
-							// don't render if plot task is busy
-//							if (linkableObjectIsBusy(task))
-//								continue;
+							var busy:Boolean = linkableObjectIsBusy(task);
+							var completedReady:Boolean = !task.completedDataBounds.isUndefined();
 							
-							/* if (linkableObjectIsBusy(task))
-							{
-								//TODO: this doesn't look good with transparency and overlapping completedBitmap and bufferBitmap
-								//TODO: this is incorrect if the PlotTask hasn't cleared the previous bitmap yet.
-								
-								shouldRender = true;
-								copyScaledPlotGraphics(
-									task.bufferBitmap, task.dataBounds, task.screenBounds,
-									bitmap.bitmapData, tempDataBounds, tempScreenBounds
-								);
-							}
-							else */
-							if (!task.completedDataBounds.isUndefined())
+							if (completedReady)
 							{
 								debugTrace(String(task),'completed','\n\tdata',String(task.completedDataBounds),'\n\tscreen',String(task.completedScreenBounds));
 								
-//								bitmap.bitmapData.copyPixels(task.completedBitmap.bitmapData, rect, origin, null, null, true);
 								copyScaledPlotGraphics(
 									task.completedBitmap, task.completedDataBounds, task.completedScreenBounds,
-									bitmap.bitmapData, tempDataBounds, tempScreenBounds
+									bitmap.bitmapData, tempDataBounds, tempScreenBounds,
+									fade && busy ? 1 - task.progress : 1
 								);
 							}
 							else
@@ -624,6 +614,18 @@ package weave.visualization.layers
 								debugTrace(String(task),'undefined',name);
 							}
 							
+							if (fade && busy)
+							{
+								//TODO: this doesn't look good with transparency and overlapping completedBitmap and bufferBitmap
+								//TODO: this is incorrect if the PlotTask hasn't cleared the previous bitmap yet.
+								
+								shouldRender = true;
+								copyScaledPlotGraphics(
+									task.bufferBitmap, task.dataBounds, task.screenBounds,
+									bitmap.bitmapData, tempDataBounds, tempScreenBounds,
+									completedReady || task.progress == 0 ? .25 + .75 * task.progress : 1
+								);
+							}
 						}
 					}
 					else
@@ -636,7 +638,7 @@ package weave.visualization.layers
 		private const _colorTransform:ColorTransform = new ColorTransform();
 		private const _clipRect:Rectangle = new Rectangle();
 		private const _matrix:Matrix = new Matrix();
-		private function copyScaledPlotGraphics(source:DisplayObject, sourceDataBounds:IBounds2D, sourceScreenBounds:IBounds2D, destination:BitmapData, destinationDataBounds:IBounds2D, destinationScreenBounds:IBounds2D):void
+		private function copyScaledPlotGraphics(source:DisplayObject, sourceDataBounds:IBounds2D, sourceScreenBounds:IBounds2D, destination:BitmapData, destinationDataBounds:IBounds2D, destinationScreenBounds:IBounds2D, alphaMultiplier:Number):void
 		{
 			// don't draw if offscreen
 			if (!sourceDataBounds.overlaps(destinationDataBounds))
@@ -662,10 +664,10 @@ package weave.visualization.layers
 			}
 			
 			var colorTransform:ColorTransform = null;
-			if (source.alpha != 1)
+			if (source.alpha != 1 || alphaMultiplier != 1)
 			{
 				colorTransform = _colorTransform;
-				colorTransform.alphaMultiplier = source.alpha;
+				colorTransform.alphaMultiplier = source.alpha * alphaMultiplier;
 			}
 
 			// smoothing does not seem to make a difference.

@@ -402,9 +402,6 @@ package weave.core
 					continue;
 				}
 				
-				if (debug_async_stack)
-					trace('priority',_activePriority);
-				
 //				trace('p',_activePriority,pElapsed,'/',pAlloc);
 				_currentTaskStopTime = pStop; // make sure _iterateTask knows when to stop
 				
@@ -582,12 +579,25 @@ package weave.core
 				if (progress === null || isNaN(progress) || progress < 0 || progress > 1)
 				{
 					reportError("Received unexpected result from iterative task (" + progress + ").  Expecting a number between 0 and 1.  Task cancelled.");
+					if (debug_async_stack)
+					{
+						trace(stackTrace);
+						// this is incorrect behavior, but we can put a breakpoint here
+						if (useTimeParameter)
+							progress = task.call(null, _currentTaskStopTime) as Number;
+						else
+							progress = task.apply() as Number;
+					}
 					progress = 1;
 				}
 				if (debug_async_stack && currentFrameElapsedTime > 3000)
 				{
 					trace(getTimer() - time, stackTrace);
-					task.apply(); // this is incorrect behavior, but we can put a breakpoint here
+					// this is incorrect behavior, but we can put a breakpoint here
+					if (useTimeParameter)
+						progress = task.call(null, _currentTaskStopTime) as Number;
+					else
+						progress = task.apply() as Number;
 				}
 				if (progress == 1)
 				{
@@ -601,7 +611,7 @@ package weave.core
 				if (debug_delayTasks)
 					break;
 			}
-			if (debug_async_stack)
+			if (false && debug_async_stack)
 			{
 				var start:int = int(_taskStartTime[task]);
 				var elapsed:int = int(_taskElapsedTime[task]) + (time - debug_time);

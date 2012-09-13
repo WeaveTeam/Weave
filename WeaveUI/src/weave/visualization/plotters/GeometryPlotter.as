@@ -290,13 +290,9 @@ package weave.visualization.plotters
 			
 			var recordIndex:Number = task.asyncState[RECORD_INDEX];
 			var minImportance:Number = task.asyncState[MIN_IMPORTANCE];
-			var progress:Number = 1;
+			var progress:Number = 1; // set to 1 in case loop is not entered
 			while (recordIndex < task.recordKeys.length)
 			{
-				// avoid doing too little or too much work per iteration 
-				if (getTimer() > task.iterationStopTime)
-					break; // not done yet
-				
 				var recordKey:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
 				var geoms:Array = null;
 				var value:* = geometryColumn.getValueFromKey(recordKey);
@@ -332,28 +328,23 @@ package weave.visualization.plotters
 							drawMultiPartShape(recordKey, geom.getSimplifiedGeometry(minImportance, task.dataBounds), geom.geomType, task.dataBounds, task.screenBounds, graphics, task.buffer);
 						}
 					}
-					try
+					if (styleSet)
 					{
-						if (styleSet)
-						{
-							graphics.endFill();
-							task.buffer.draw(tempShape);
-						}
-					}
-					catch (e:Error)
-					{
-						// bitmap was disposed of.
-						disposeObjects(task.buffer);
+						graphics.endFill();
+						task.buffer.draw(tempShape);
 					}
 				}
 				
 				// this progress value will be less than 1
 				progress = recordIndex++ / task.recordKeys.length;
 				task.asyncState[RECORD_INDEX] = recordIndex;
+				
+				// avoid doing too little or too much work per iteration 
+				if (getTimer() > task.iterationStopTime)
+					break; // not done yet
 			}
 			
 			// hack for symbol plotters
-			var totalProgress:Number = 0;
 			var symbolPlottersArray:Array = symbolPlotters.getObjects();
 			var ourAsyncState:Object = task.asyncState;
 			for each (var plotter:IPlotter in symbolPlottersArray)

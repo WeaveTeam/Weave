@@ -65,7 +65,7 @@ package weave.ui
 		public var numCircles:uint = 12;
 		private var prevFrame:int = -1;
 		private var timeBecameBusy:int = 0;
-		public var autoVisibleDelay:int = 500;
+		public var autoVisibleDelay:int = 2500;
 		
 		/**
 		 * This will update the graphics immediately when set.

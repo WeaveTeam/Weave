@@ -50,6 +50,19 @@ package weave.utils
 		}
 		
 		/**
+		 * This will dispose of any existing BitmapData inside a Bitmap and set it to null.
+		 * @param bitmap The Bitmap to empty.
+		 */
+		public static function emptyBitmapData(bitmap:Bitmap):void
+		{
+			if (bitmap.bitmapData)
+			{
+				disposeObjects(bitmap.bitmapData);
+				bitmap.bitmapData = null;
+			}
+		}
+		
+		/**
 		 * This will compare width and height values with the width and height of a BitmapData object inside a Bitmap.
 		 * @param bitmap
 		 * @param unscaledWidth

@@ -70,6 +70,7 @@ package weave.visualization.layers
 			plotManager.hack_updateZoom = this.hack_updateZoom;
 			registerLinkableChild(plotManager.zoomBounds, enableAutoZoomXToNiceNumbers);
 			registerLinkableChild(plotManager.zoomBounds, enableAutoZoomYToNiceNumbers);
+			getCallbackCollection(plotManager.zoomBounds).addGroupedCallback(this, hack_defineZoomIfUndefined, true);
 		}
 
 		public const enableAutoZoomXToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
@@ -216,32 +217,43 @@ package weave.visualization.layers
 			if (getXAxisPlotter() && enableAutoZoomXToNiceNumbers.value)
 			{
 				var xMinMax:Array = StandardLib.getNiceNumbersInRange(fullDataBounds.getXMin(), fullDataBounds.getXMax(), getXAxisPlotter().tickCountRequested.value);
-				tempBounds.setXRange(xMinMax.shift(), xMinMax.pop()); // first & last ticks
+				tempBounds.setXRange(xMinMax[0], xMinMax[xMinMax.length - 1]); // first & last ticks
 			}
 			if (getYAxisPlotter() && enableAutoZoomYToNiceNumbers.value)
 			{
 				var yMinMax:Array = StandardLib.getNiceNumbersInRange(fullDataBounds.getYMin(), fullDataBounds.getYMax(), getYAxisPlotter().tickCountRequested.value);
-				tempBounds.setYRange(yMinMax.shift(), yMinMax.pop()); // first & last ticks
+				tempBounds.setYRange(yMinMax[0], yMinMax[yMinMax.length - 1]); // first & last ticks
 			}
+			// if axes are enabled, make sure width and height are not zero
 			if ((getXAxisPlotter() || getYAxisPlotter()) && plotManager.enableAutoZoomToExtent.value)
 			{
-				// if axes are enabled and dataBounds is undefined, set dataBounds to default size
-				// if bounds is empty, make it not empty
 				if (tempBounds.isEmpty())
 				{
 					if (tempBounds.getWidth() == 0)
 						tempBounds.setWidth(1);
-					if (tempBounds.getWidth() == 0)
-						tempBounds.setXRange(0, 1);
 					if (tempBounds.getHeight() == 0)
 						tempBounds.setHeight(1);
-					if (tempBounds.getHeight() == 0)
-						tempBounds.setYRange(0, 1);
 				}
 			}
 			fullDataBounds.copyFrom(tempBounds);
 		}
 
+		private function hack_defineZoomIfUndefined():void
+		{
+			if ((getXAxisPlotter() || getYAxisPlotter()) && plotManager.enableAutoZoomToExtent.value)
+			{
+				plotManager.zoomBounds.getDataBounds(tempBounds);
+				if (tempBounds.isUndefined())
+				{
+					if (tempBounds.getWidth() == 0)
+						tempBounds.setXRange(0, 10);
+					if (tempBounds.getHeight() == 0)
+						tempBounds.setYRange(0, 10);
+					plotManager.zoomBounds.setDataBounds(tempBounds);
+				}
+			}
+		}
+		
 		private function hack_updateZoom():void
 		{
 			// when the data bounds change, we need to update the min,max values for axes

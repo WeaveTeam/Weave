@@ -122,6 +122,8 @@ package weave.visualization.layers
 		
 		public function get taskType():int { return _taskType; }
 		
+		public function get progress():Number { return _progress; }
+		
 		/**
 		 * This Bitmap contains the BitmapData that was last generated completely by the plotter.
 		 */		
@@ -157,6 +159,9 @@ package weave.visualization.layers
 		private var _asyncState:Object = {};
 		private var _pendingKeys:Array;
 		private var _iPendingKey:uint;
+		private var _progress:Number = 0;
+		private var _delayInit:Boolean = false;
+		private var _pendingInit:Boolean = false;
 		
 		/**
 		 * This function must be called to set the size of the BitmapData buffer.
@@ -222,6 +227,7 @@ package weave.visualization.layers
 		{
 			if (shouldBeRendered())
 			{
+				asyncInit();
 				debugTrace('begin async rendering');
 				WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_RENDERING, asyncComplete);
 				
@@ -231,6 +237,44 @@ package weave.visualization.layers
 			else
 			{
 				debugTrace('should not be rendered');
+			}
+		}
+		
+		private function asyncInit():void
+		{
+			if (_delayInit)
+			{
+				_pendingInit = true;
+				return;
+			}
+			_pendingInit = false;
+			
+			_progress = 0;
+			_iteration = 0;
+			_iPendingKey = 0;
+			_pendingKeys = _plotter.keySet.keys;
+			_recordKeys = [];
+			_zoomBounds.getDataBounds(_dataBounds);
+			_zoomBounds.getScreenBounds(_screenBounds);
+			if (_taskType == TASK_TYPE_SUBSET)
+				_keyFilter = _layerSettings.subsetFilter.getInternalKeyFilter();
+			else if (_taskType == TASK_TYPE_SELECTION)
+				_keyFilter = _layerSettings.selectionFilter.getInternalKeyFilter();
+			else if (_taskType == TASK_TYPE_PROBE)
+				_keyFilter = _layerSettings.probeFilter.getInternalKeyFilter();
+			
+			// stop immediately if we shouldn't be rendering
+			if (shouldBeRendered())
+			{
+				// clear bitmap and resize if necessary
+				PlotterUtils.setBitmapDataSize(bufferBitmap, _unscaledWidth, _unscaledHeight);
+			}
+			else
+			{
+				PlotterUtils.emptyBitmapData(bufferBitmap);
+				PlotterUtils.emptyBitmapData(completedBitmap);
+				completedDataBounds.reset();
+				completedScreenBounds.reset();
 			}
 		}
 		
@@ -253,26 +297,12 @@ package weave.visualization.layers
 			{
 				_prevBusyGroupTriggerCounter = _dependencies.triggerCounter;
 				
-				_iteration = 0;
-				_iPendingKey = 0;
-				_pendingKeys = _plotter.keySet.keys;
-				_recordKeys = [];
-				_zoomBounds.getDataBounds(_dataBounds);
-				_zoomBounds.getScreenBounds(_screenBounds);
-				if (_taskType == TASK_TYPE_SUBSET)
-					_keyFilter = _layerSettings.subsetFilter.getInternalKeyFilter();
-				else if (_taskType == TASK_TYPE_SELECTION)
-					_keyFilter = _layerSettings.selectionFilter.getInternalKeyFilter();
-				else if (_taskType == TASK_TYPE_PROBE)
-					_keyFilter = _layerSettings.probeFilter.getInternalKeyFilter();
-
+				asyncInit();
+				
 				// stop immediately if we shouldn't be rendering
 				if (!shouldBeRendered())
 					return 1;
 				
-				// clear bitmap and resize if necessary
-				PlotterUtils.setBitmapDataSize(bufferBitmap, _unscaledWidth, _unscaledHeight);
-
 				// stop immediately if the bitmap is invalid
 				if (PlotterUtils.bitmapDataIsEmpty(bufferBitmap))
 				{
@@ -325,19 +355,28 @@ package weave.visualization.layers
 			// next draw iteration
 			_iterationStopTime = stopTime;
 			
-			var progress:Number = 0;
-			while (progress < 1 && getTimer() < stopTime)
+			while (_progress < 1 && getTimer() < stopTime)
 			{
-				progress = _plotter.drawPlotAsyncIteration(this);
-				_iteration++; // prepare for next iteration
+				// delay asyncInit() while calling plotter function in case it triggers callbacks
+				_delayInit = true;
+				
+				_progress = _plotter.drawPlotAsyncIteration(this);
+				
+				_delayInit = false;
+				
+				if (_pendingInit)
+					asyncInit(); // restart from first iteration
+				else
+					_iteration++; // prepare for next iteration
 			}
 			
-			return progress;
+			return _progress;
 		}
 		
 		private function asyncComplete():void
 		{
 			debugTrace('rendering completed');
+			_progress = 0;
 			// if visible is false or the plotter is busy, the graphics aren't ready, so don't trigger callbacks
 			if (shouldBeRendered() && !WeaveAPI.SessionManager.linkableObjectIsBusy(_dependencies))
 			{
@@ -348,6 +387,7 @@ package weave.visualization.layers
 				var oldBitmapData:BitmapData = completedBitmap.bitmapData;
 				completedBitmap.bitmapData = bufferBitmap.bitmapData;
 				bufferBitmap.bitmapData = oldBitmapData;
+				PlotterUtils.clear(oldBitmapData);
 				completedDataBounds.copyFrom(_dataBounds);
 				completedScreenBounds.copyFrom(_screenBounds);
 				
