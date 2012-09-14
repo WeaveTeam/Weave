@@ -44,7 +44,7 @@ public class GXAService extends GenericServlet
 	{
 	}
 	
-   // public void extractGeneExpressionData(String geneIsValue, String speciesValue , String rowsValue, String startValue)throws IOException{
+	//queries the GXA 
 	public GXAResult extractGeneExpressionData(String queryUrl)throws IOException{
 		//queryUrl = "http://www.ebi.ac.uk/gxa/api/vx?geneGeneIs=ENSG00000066279+ENSG00000109956&updownIn=EFO_0000815+EFO_0000887&rows=50&start=0&format=json";
 
@@ -61,6 +61,8 @@ public class GXAService extends GenericServlet
 		System.out.println(gxaResult);
 		return gxaResult;
 	}
+	
+	//queries Gene List for autoSuggest option on UI side
 	//object name is built on dynamic object name - queryValue
 	// so didn't used the new Gson().fromJson method to serialize
 	public GXAgeneListResult[] getGeneList(String queryValue) throws IOException{
