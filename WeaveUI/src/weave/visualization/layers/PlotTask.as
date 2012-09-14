@@ -93,7 +93,6 @@ package weave.visualization.layers
 		 */		
 		public function PlotTask(taskType:int, plotter:IPlotter, spatialIndex:SpatialIndex, zoomBounds:ZoomBounds, layerSettings:LayerSettings)
 		{
-			// _dependencies is used as the parent so we can check its busy status with a single function call.
 			_taskType = taskType;
 			_plotter = plotter;
 			_spatialIndex = spatialIndex;
@@ -102,6 +101,8 @@ package weave.visualization.layers
 			
 			var keyFilters:Array = [_layerSettings.subsetFilter, _layerSettings.selectionFilter, _layerSettings.probeFilter];
 			var keyFilter:ILinkableObject = keyFilters[_taskType];
+			
+			// _dependencies is used as the parent so we can check its busy status with a single function call.
 			var list:Array = [_plotter, _spatialIndex, _zoomBounds, _layerSettings, keyFilter];
 			for each (var dependency:ILinkableObject in list)
 				registerLinkableChild(_dependencies, dependency);
