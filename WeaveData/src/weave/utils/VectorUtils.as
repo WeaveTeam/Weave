@@ -85,17 +85,6 @@ package weave.utils
 			return vector;
 		}
 		
-		/*public static function quickSort(list:*, left:int, right:int, compareFunction:Function):void
-		{
-			if (left < right)
-			{
-				var pivotIndex:int = (left + right) / 2;
-				var pivotNewIndex:int = partition(list, left, right, pivotIndex, compareFunction);
-				quickSort(list, left, pivotNewIndex - 1, compareFunction);
-				quickSort(list, pivotNewIndex + 1, right, compareFunction);
-			}
-		}*/
-
 		/**
 		 * See http://en.wikipedia.org/wiki/Quick_select#Partition-based_general_selection_algorithm
 		 * @param list An Array or Vector to be re-organized
