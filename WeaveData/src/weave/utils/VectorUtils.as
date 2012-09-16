@@ -85,11 +85,22 @@ package weave.utils
 			return vector;
 		}
 		
+		/*public static function quickSort(list:*, left:int, right:int, compareFunction:Function):void
+		{
+			if (left < right)
+			{
+				var pivotIndex:int = (left + right) / 2;
+				var pivotNewIndex:int = partition(list, left, right, pivotIndex, compareFunction);
+				quickSort(list, left, pivotNewIndex - 1, compareFunction);
+				quickSort(list, pivotNewIndex + 1, right, compareFunction);
+			}
+		}*/
+
 		/**
 		 * See http://en.wikipedia.org/wiki/Quick_select#Partition-based_general_selection_algorithm
 		 * @param list An Array or Vector to be re-organized
 		 * @param firstIndex The index of the first element in the list to partition.
-		 * @param lastIndex The index of the first element in the list to partition.
+		 * @param lastIndex The index of the last element in the list to partition.
 		 * @param pivotIndex The index of an element to use as a pivot when partitioning.
 		 * @param compareFunction A function that takes two array elements a,b and returns -1 if a<b, 1 if a>b, or 0 if a==b.
 		 * @return The index the pivot element was moved to during the execution of the function.
