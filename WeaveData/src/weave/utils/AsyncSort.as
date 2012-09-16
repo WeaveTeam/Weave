@@ -151,27 +151,38 @@ package weave.utils
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
-		//WeaveAPI.StageUtils.callLater(null, test);
-		private static function test():void
+		private static var testSorter:AsyncSort;
+		//test(); // Class('weave.utils.AsyncSort').test()
+		public static function test(n:uint = 100000):void
 		{
-			var sorter:AsyncSort = new AsyncSort();
+			var start:int;
+			testSorter = new AsyncSort();
 			function handleSort():void
 			{
+				trace(getTimer() - start, 'ms async');
 				trace('VERIFYING ASYNC SORT');
-				var list:Array = sorter.result;
-				for (var i:int = 0; i < array.length - 1; i++)
+				var result:Array = testSorter.result;
+				for (var i:int = 0; i < result.length - 1; i++)
 				{
-					if (list[i] > list[i+1])
-						throw new Error("ASSERTION FAIL "+list[i]+','+list[i+1]);
+					if (result[i] > result[i+1])
+						throw new Error("ASSERTION FAIL "+result[i]+','+result[i+1]);
 				}
+				trace('SUCCESS');
 			}
-			getCallbackCollection(sorter).addImmediateCallback(null, handleSort);
+			getCallbackCollection(testSorter).addImmediateCallback(null, handleSort);
 			
 			var array:Array = [];
-			for (var i:int = 0; i < 500000; i++)
+			for (var i:int = 0; i < n; i++)
 				array.push(uint(Math.random()*100));
+			var array2:Array = ObjectUtil.copy(array) as Array;
 			
-			sorter.beginSort(array);
+			trace('sorting',n,'numbers...');
+			start = getTimer();
+			array.sort();
+			trace(getTimer() - start, 'ms immediate');
+			
+			start = getTimer();
+			testSorter.beginSort(array2);
 		}
 	}
 }
