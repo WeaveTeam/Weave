@@ -27,7 +27,7 @@
 	xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
 	verticalScrollPolicy="off"
 	width="400" 
-	title="Time Slider Tool"
+	title="{lang('Time Slider Tool')}"
 	height="40">
 
 <mx:Script>

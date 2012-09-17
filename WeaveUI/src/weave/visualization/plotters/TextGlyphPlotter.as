@@ -19,7 +19,6 @@
 
 package weave.visualization.plotters
 {
-	import flash.display.BitmapData;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
@@ -32,6 +31,8 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ITextPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
@@ -42,11 +43,9 @@ package weave.visualization.plotters
 	import weave.utils.ObjectPool;
 	
 	/**
-	 * TextGlyphPlotter
-	 * 
 	 * @author adufilie
 	 */
-	public class TextGlyphPlotter extends AbstractGlyphPlotter
+	public class TextGlyphPlotter extends AbstractGlyphPlotter implements ITextPlotter
 	{
 		public function TextGlyphPlotter()
 		{
@@ -108,94 +107,112 @@ package weave.visualization.plotters
 		/**
 		 * Draws the graphics onto BitmapData.
 		 */
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			if (sortColumn.getInternalColumn() != null)
-				recordKeys.sort(compareRecords);
-
-			var textWasDrawn:Array = [];
-			var reusableBoundsObjects:Array = [];
-			var bounds:IBounds2D;
-			for (var i:int = 0; i < recordKeys.length; i++)
+			if (!(task.asyncState is Function))
 			{
-				var recordKey:IQualifiedKey = recordKeys[i] as IQualifiedKey;
+				// these variables are used to save state between function calls
+				const textWasDrawn:Array = [];
+				const reusableBoundsObjects:Array = [];
 				
-				// project data coordinates to screen coordinates and draw graphics onto tempShape
-				tempPoint.x = getCoordFromRecordKey(recordKey, true);
-				tempPoint.y = getCoordFromRecordKey(recordKey, false);
-				dataBounds.projectPointTo(tempPoint, screenBounds);
-
-				// round to nearest pixel to get clearer text
-				bitmapText.x = Math.round(tempPoint.x + xScreenOffset.value);
-				bitmapText.y = Math.round(tempPoint.y + yScreenOffset.value);
-				bitmapText.text = text.getValueFromKey(recordKey, String) as String;
-				bitmapText.verticalAlign = vAlign.getValueFromKey(recordKey, String) as String;
-				bitmapText.horizontalAlign = hAlign.getValueFromKey(recordKey, String) as String;
-				bitmapText.angle = angle.getValueFromKey(recordKey, Number);
-				bitmapText.maxWidth = maxWidth.value - xScreenOffset.value;
-				
-				// init text format			
-				var f:TextFormat = bitmapText.textFormat;
-				f.font = font.getValueFromKey(recordKey, String) as String;
-				f.size = size.getValueFromKey(recordKey, Number);
-				f.color = color.getValueFromKey(recordKey, Number);
-				f.bold = bold.getValueFromKey(recordKey, Boolean) as Boolean;
-				f.italic = italic.getValueFromKey(recordKey, Boolean) as Boolean;
-				f.underline = underline.getValueFromKey(recordKey, Boolean) as Boolean;
-
-				if (hideOverlappingText.value)
+				task.asyncState = function():Number
 				{
-					// grab a bounds object to store the screen size of the bitmap text
-					bounds = reusableBoundsObjects[i] = ObjectPool.borrowObject(Bounds2D);
-					bitmapText.getUnrotatedBounds(bounds);
+					var bounds:IBounds2D;
 					
-					// brute force check to see if this bounds overlaps with any previous bounds
-					var overlaps:Boolean = false;
-					for (var j:int = 0; j < i; j++)
+					if (task.iteration == 0)
 					{
-						if (textWasDrawn[j] && bounds.overlaps(reusableBoundsObjects[j] as IBounds2D))
+						if (sortColumn.getInternalColumn() != null)
+							task.recordKeys.sort(compareRecords);
+			
+						reusableBoundsObjects.length = 0;
+					}
+					
+					if (task.iteration < task.recordKeys.length)
+					{
+						var recordKey:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
+						
+						// project data coordinates to screen coordinates and draw graphics onto tempShape
+						tempPoint.x = getCoordFromRecordKey(recordKey, true);
+						tempPoint.y = getCoordFromRecordKey(recordKey, false);
+						task.dataBounds.projectPointTo(tempPoint, task.screenBounds);
+		
+						// round to nearest pixel to get clearer text
+						bitmapText.x = Math.round(tempPoint.x + xScreenOffset.value);
+						bitmapText.y = Math.round(tempPoint.y + yScreenOffset.value);
+						bitmapText.text = text.getValueFromKey(recordKey, String) as String;
+						bitmapText.verticalAlign = vAlign.getValueFromKey(recordKey, String) as String;
+						bitmapText.horizontalAlign = hAlign.getValueFromKey(recordKey, String) as String;
+						bitmapText.angle = angle.getValueFromKey(recordKey, Number);
+						bitmapText.maxWidth = maxWidth.value - xScreenOffset.value;
+						
+						// init text format			
+						var f:TextFormat = bitmapText.textFormat;
+						f.font = font.getValueFromKey(recordKey, String) as String;
+						f.size = size.getValueFromKey(recordKey, Number);
+						f.color = color.getValueFromKey(recordKey, Number);
+						f.bold = bold.getValueFromKey(recordKey, Boolean) as Boolean;
+						f.italic = italic.getValueFromKey(recordKey, Boolean) as Boolean;
+						f.underline = underline.getValueFromKey(recordKey, Boolean) as Boolean;
+		
+						var shouldRender:Boolean = true;
+						
+						if (hideOverlappingText.value)
 						{
-							overlaps = true;
-							break;
+							// grab a bounds object to store the screen size of the bitmap text
+							bounds = reusableBoundsObjects[task.iteration] = ObjectPool.borrowObject(Bounds2D);
+							bitmapText.getUnrotatedBounds(bounds);
+							
+							// brute force check to see if this bounds overlaps with any previous bounds
+							for (var j:int = 0; j < task.iteration; j++)
+							{
+								if (textWasDrawn[j] && bounds.overlaps(reusableBoundsObjects[j] as IBounds2D))
+								{
+									shouldRender = false;
+									break;
+								}
+							}
 						}
+							
+						textWasDrawn[task.iteration] = shouldRender;
+						
+						if (shouldRender)
+						{
+							if (bitmapText.angle == 0)
+							{
+								// draw almost-invisible rectangle behind text
+								bitmapText.getUnrotatedBounds(tempBounds);
+								tempBounds.getRectangle(tempRectangle);
+								// HACK -- check the pixel at (x,y) to decide how to draw the rectangular halo
+								var pixel:uint = task.buffer.getPixel(bitmapText.x, bitmapText.y);
+								var haloColor:uint = pixel ? 0x20FFFFFF : 0x02808080; // alpha 0.125 vs 0.008
+								// Check all the pixels and only set the ones that aren't set yet.
+								var pixels:Vector.<uint> = task.buffer.getVector(tempRectangle);
+								for (var p:int = 0; p < pixels.length; p++)
+								{
+									pixel = pixels[p] as uint;
+									if (!pixel)
+										pixels[p] = haloColor;
+								}
+								task.buffer.setVector(tempRectangle, pixels);
+								
+								//destination.fillRect(tempRectangle, 0x02808080); // alpha 0.008, invisible
+							}
+							
+							bitmapText.draw(task.buffer);
+						}
+						
+						return task.iteration / task.recordKeys.length;
 					}
 					
-					if (overlaps)
-					{
-						textWasDrawn[i] = false;
-						continue;
-					}
-					else
-					{
-						textWasDrawn[i] = true;
-					}
-				}
-				
-				if (bitmapText.angle == 0)
-				{
-					// draw almost-invisible rectangle behind text
-					bitmapText.getUnrotatedBounds(tempBounds);
-					tempBounds.getRectangle(tempRectangle);
-					// HACK -- check the pixel at (x,y) to decide how to draw the rectangular halo
-					var pixel:uint = destination.getPixel(bitmapText.x, bitmapText.y);
-					var haloColor:uint = pixel ? 0x20FFFFFF : 0x02808080; // alpha 0.125 vs 0.008
-					// Check all the pixels and only set the ones that aren't set yet.
-					var pixels:Vector.<uint> = destination.getVector(tempRectangle);
-					for (var p:int = 0; p < pixels.length; p++)
-					{
-						pixel = pixels[p] as uint;
-						if (!pixel)
-							pixels[p] = haloColor;
-					}
-					destination.setVector(tempRectangle, pixels);
+					// cleanup
+					for each (bounds in reusableBoundsObjects)
+						ObjectPool.returnObject(bounds);
 					
-					//destination.fillRect(tempRectangle, 0x02808080); // alpha 0.008, invisible
-				}
-				
-				bitmapText.draw(destination);
-			}
-			for each (bounds in reusableBoundsObjects)
-				ObjectPool.returnObject(bounds);
+					return 1; // avoids divide-by-zero when there are no record keys
+				}; // end task function
+			} // end if
+			
+			return (task.asyncState as Function).apply(this, arguments);
 		}
 
 		private static const tempRectangle:Rectangle = new Rectangle(); // reusable temporary object

@@ -28,6 +28,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ITextPlotter;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
@@ -40,7 +41,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author yluo
 	 */
-	public class SizeBinLegendPlotter extends AbstractPlotter
+	public class SizeBinLegendPlotter extends AbstractPlotter implements ITextPlotter
 	{
 		public function SizeBinLegendPlotter()
 		{
@@ -68,11 +69,6 @@ package weave.visualization.plotters
 		 * This is the line style used to draw the outline of the shape.
 		 */
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
-		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			// draw nothing -- everything is in the background layer
-		}
 		
 		private const tempPoint:Point = new Point(); // reusable temporary object
 		private var XMIN:Number = 0, YMIN:Number = 0, XMAX:Number = 1, YMAX:Number = 1;		

@@ -21,7 +21,6 @@ package weave.visualization.plotters
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
-	import flash.events.Event;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.net.URLRequest;
@@ -29,18 +28,14 @@ package weave.visualization.plotters
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
-	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
-	import weave.api.services.IURLRequestUtils;
+	import weave.api.ui.IPlotTask;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.utils.ImageLoaderUtils;
 	
 	/**
 	 * ImagePlotter
@@ -74,18 +69,18 @@ package weave.visualization.plotters
 		/**
 		 * Draws the graphics onto BitmapData.
 		 */
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			for (var i:int = 0; i < recordKeys.length; i++)
+			if (task.iteration < task.recordKeys.length)
 			{
-				var recordKey:IQualifiedKey = recordKeys[i] as IQualifiedKey;
+				var recordKey:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
 				var _imageURL:String = imageURL.getValueFromKey(recordKey, String) as String;
 				var _imageSize:Number = imageSize.getValueFromKey(recordKey, Number);
 				if (isNaN(_imageSize))
 					_imageSize = 32;
 				tempPoint.x = dataX.getValueFromKey(recordKey, Number);
 				tempPoint.y = dataY.getValueFromKey(recordKey, Number);
-				dataBounds.projectPointTo(tempPoint, screenBounds);
+				task.dataBounds.projectPointTo(tempPoint, task.screenBounds);
 				
 				var image:BitmapData = _urlToImageMap[_imageURL] as BitmapData;
 				if (image != null)
@@ -100,7 +95,7 @@ package weave.visualization.plotters
 							Math.round(tempPoint.y - _imageSize / 2)
 						);
 					// draw image
-					destination.draw(image, tempMatrix);
+					task.buffer.draw(image, tempMatrix);
 				}
 				else if (_urlToImageMap[_imageURL] == undefined) // if the url hasn't started downloading yet...
 				{
@@ -113,7 +108,10 @@ package weave.visualization.plotters
 					// get all images hack
 					WeaveAPI.URLRequestUtils.getImage(this, new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
 				}
+				
+				return task.iteration / task.recordKeys.length;
 			}
+			return 1;
 		}
 		
 		/**

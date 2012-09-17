@@ -1065,7 +1065,7 @@
 					addChild(tagCanvas);
 				}
 				tagCanvas.y= nodeBase.height;
-				if(!VectorUtils.compare(tagCanvas.dataProvider,wordCount))
+				if(StandardLib.arrayCompare(tagCanvas.dataProvider,wordCount) != 0)
 				{
 					tagCanvas.dataProvider = wordCount;
 					tagCanvas.draw(numOfWordsInCloud.value);

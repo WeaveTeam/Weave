@@ -30,14 +30,14 @@
 		 xmlns:mx="http://www.adobe.com/2006/mxml"
 		 creationPolicy="all" clipContent="false"
 		 horizontalScrollPolicy="off" verticalScrollPolicy="off"
-		 label="Legend settings" width="100%">
+		 label="{lang('Legend settings')}" width="100%">
 
-		<mx:CheckBox id="chkShowLegendAttrName" label="Show legend attribute name"/>
-	<IndentTextInput id="txtLegendAttrNameFunc" label="Title label function:" inputWidth="100%" enabled="{chkShowLegendAttrName.selected}"/>
+		<mx:CheckBox id="chkShowLegendAttrName" label="{lang('Show legend attribute name')}"/>
+	<IndentTextInput id="txtLegendAttrNameFunc" label="{lang('Title label function:')}" inputWidth="100%" enabled="{chkShowLegendAttrName.selected}"/>
 	
-	<mx:CheckBox id="ascendingOrderCheck" label="Ascending item order"/>
-	<Indent id="columnsBox" label="Number of columns">
+	<mx:CheckBox id="ascendingOrderCheck" label="{lang('Ascending item order')}"/>
+	<Indent id="columnsBox" label="{lang('Number of columns')}">
 		<mx:NumericStepper id="numColumns" minimum="1"/>
 	</Indent>
-	<IndentTextInput id="txtLegendValuesFunction" label="Item label function:" inputWidth="100%"/>
+	<IndentTextInput id="txtLegendValuesFunction" label="{lang('Item label function:')}" inputWidth="100%"/>
 </mx:VBox>

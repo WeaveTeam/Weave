@@ -33,30 +33,30 @@
 		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
 	</mx:HBox>
 	<mx:HBox>
-		<mx:Label text="Source URL" width="140"/>
-		<mx:TextInput change="handleURLTextChange()" id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv"/>
+		<mx:Label text="{lang('Source URL')}" width="140"/>
+		<mx:TextInput change="handleURLTextChange()" id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
 	</mx:HBox>
 	<mx:VBox width="100%" enabled="{url.text?false:true}">
 		<mx:Label width="100%" textAlign="center" text="OR" fontWeight="bold"/>
 		<mx:HBox>
-			<mx:Label text="Open local CSV file" width="140"/>
-			<mx:Button label="Browse" click="browseForFiles()"/>
-			<mx:Label id="uploadMessage" color="0xFF0000" text="loaded" visible="false"/>
+			<mx:Label text="{lang('Open local CSV file')}" width="140"/>
+			<mx:Button label="{lang('Browse')}" click="browseForFiles()"/>
+			<mx:Label id="uploadMessage" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
 		</mx:HBox>
-		<mx:Label width="100%" textAlign="center" text="OR" fontWeight="bold"/>
+		<mx:Label width="100%" textAlign="center" text="{lang('OR')}" fontWeight="bold"/>
 		<mx:HBox>
-			<mx:Label text="Paste/Edit CSV Data" width="140"/>
+			<mx:Label text="{lang('Paste/Edit CSV Data')}" width="140"/>
 			<mx:TextArea id="csvTextArea" change="updateCSVDataString(csvTextArea.text)" width="300" height="100" cornerRadius="5" borderStyle="solid"/>
 		</mx:HBox>
-		<mx:Button enabled="false" label="View data in Grid" id="showGridButton" click="showGrid()"/>
+		<mx:Button enabled="false" label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()"/>
 	</mx:VBox>
 	<mx:HBox>
 		<mx:Label text="Key Type *" width="140"/>
-		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter key type like US State Fips Code,etc. "/>
+		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter key type like US State Fips Code,etc. ')}"/>
 	</mx:HBox>
 	<mx:HBox>
-		<mx:Label text="Key Column" width="140"/>
-		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="enter the column name that uniquely identifies each row in the data set"/>
+		<mx:Label text="{lang('Key Column')}" width="140"/>
+		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</mx:HBox>
 	<mx:Spacer/>
 	<mx:Label text="* = required"/>
@@ -97,7 +97,7 @@
 					csvTextArea.text = _csvDataSource.csvDataString.value;
 					updateCSVDataString(_csvDataSource.csvDataString.value);
 					sourceName.editable = false;
-					sourceName.toolTip = "Source name is not editable once added to the session. If needed, delete the source and add it again with the new name."
+					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
 					showGridButton.enabled = true;
 				}
 			}
@@ -110,11 +110,11 @@
 					_csvDataSource.keyColName.value = keyColumnName.text;
 					_csvDataSource.keyType.value = keyType.text;
 					_csvDataSource.csvDataString.value = csvDataString;
-					Alert.show("Changes saved.")
+					Alert.show(lang("Changes saved."))
 				}
 				catch(e:Error)
 				{
-					Alert.show("Changes could not be saved. " + e.message,"Error");
+					Alert.show(lang("Changes could not be saved. ") + e.message,lang("Error"));
 				}
 			}
 			
@@ -194,7 +194,7 @@
 				}
 				catch(e:Error)
 				{
-					Alert.show("Error uploading file",e.message.toString());
+					Alert.show(lang("Error uploading file"),e.message.toString());
 				}
 				
 				
@@ -204,7 +204,7 @@
 			{
 				if (csvDataString == "")
 				{
-					Alert.show("No data found");
+					Alert.show(lang("No data found"));
 					return;
 				}
 				var grid:EditDataGridPanel = PopUpManager.createPopUp(this, EditDataGridPanel) as EditDataGridPanel;

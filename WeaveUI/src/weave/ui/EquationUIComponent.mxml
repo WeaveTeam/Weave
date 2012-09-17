@@ -36,8 +36,8 @@ EquationUIComponent
 	<mx:TextInput id="compiledObjectParams" text=""/>
 	-->
 	<mx:VBox verticalGap="0">
-		<mx:Image click="handleCloseButtonClick(event)" id="closeButton" source="@Embed(source='/weave/resources/images/cancel_small.png')" alpha="0.5" toolTip="Erase this part of the equation."/>
-		<mx:Image mouseDown="handleEditButtonClick(event)" id="editButton" source="@Embed(source='/weave/resources/images/pencil.png')" alpha="0.5" toolTip="Expand or collapse this part of the equation."/>
+		<mx:Image click="handleCloseButtonClick(event)" id="closeButton" source="@Embed(source='/weave/resources/images/cancel_small.png')" alpha="0.5" toolTip="{lang('Erase this part of the equation.')}"/>
+		<mx:Image mouseDown="handleEditButtonClick(event)" id="editButton" source="@Embed(source='/weave/resources/images/pencil.png')" alpha="0.5" toolTip="{lang('Expand or collapse this part of the equation.')}"/>
 	</mx:VBox>
 	<mx:VBox id="equationStringContainer"/>
 	

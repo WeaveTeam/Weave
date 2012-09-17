@@ -51,7 +51,6 @@ package weave.visualization.layers
 	import weave.utils.ColumnUtils;
 	import weave.utils.CustomCursorManager;
 	import weave.utils.ProbeTextUtils;
-	import weave.utils.SpatialIndex;
 	import weave.visualization.plotters.ProbeLinePlotter;
 	import weave.visualization.plotters.SimpleAxisPlotter;
 
@@ -65,10 +64,17 @@ package weave.visualization.layers
 		public function SimpleInteractiveVisualization()
 		{
 			super();
+			
+			// hacks
+			plotManager.hack_adjustFullDataBounds = this.hack_adjustFullDataBounds;
+			plotManager.hack_updateZoom = this.hack_updateZoom;
+			registerLinkableChild(plotManager.zoomBounds, enableAutoZoomXToNiceNumbers);
+			registerLinkableChild(plotManager.zoomBounds, enableAutoZoomYToNiceNumbers);
+			getCallbackCollection(plotManager.zoomBounds).addGroupedCallback(this, hack_defineZoomIfUndefined, true);
 		}
 
-		public const enableAutoZoomXToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
-		public const enableAutoZoomYToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateZoom);
+		public const enableAutoZoomXToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const enableAutoZoomYToNiceNumbers:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const gridLineThickness:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const gridLineColor:LinkableNumber = newLinkableChild(this, LinkableNumber);
@@ -86,7 +92,7 @@ package weave.visualization.layers
 		public static const PROBE_LINE_LAYER_NAME:String = "probeLine";
 		public static const X_AXIS_LAYER_NAME:String = "xAxis";
 		public static const Y_AXIS_LAYER_NAME:String = "yAxis";
-		public static const PLOT_LAYER_NAME:String = "plot";
+		public static const MAIN_PLOT_LAYER_NAME:String = "plot";
 		
 		public var topMarginToolTip:String = null;
 		public var bottomMarginToolTip:String = null;
@@ -98,11 +104,6 @@ package weave.visualization.layers
 		public var leftMarginColumn:IAttributeColumn = null;
 		public var rightMarginColumn:IAttributeColumn = null;
 		
-		private var _probeLineLayer:PlotLayer ;
-		private var _plotLayer:SelectablePlotLayer;
-		private var _xAxisLayer:AxisLayer;
-		private var _yAxisLayer:AxisLayer;
-		private var _probePlotter:ProbeLinePlotter = null ;
 		private var _axisToolTip:IToolTip = null;
 		private var xToolTipEnabled:Boolean;
 		private var yToolTipEnabled:Boolean;
@@ -112,11 +113,11 @@ package weave.visualization.layers
 		private const tempPoint:Point = new Point(); // reusable temp object
 		private const tempBounds:Bounds2D = new Bounds2D();
 		
-		public function getProbeLineLayer():PlotLayer { return _probeLineLayer; }
-		public function getPlotLayer():SelectablePlotLayer { return _plotLayer; }
-		public function getXAxisLayer():AxisLayer { return _xAxisLayer; }
-		public function getYAxisLayer():AxisLayer { return _yAxisLayer; }
-		public function getDefaultPlotter():IPlotter { return _plotLayer ? _plotLayer.getDynamicPlotter().internalObject as IPlotter : null; }
+		public function getMainLayerSettings():LayerSettings { return plotManager.getLayerSettings(MAIN_PLOT_LAYER_NAME); }
+		public function getMainPlotter():IPlotter { return plotManager.getPlotter(MAIN_PLOT_LAYER_NAME); }
+		public function getXAxisPlotter():SimpleAxisPlotter { return plotManager.getPlotter(X_AXIS_LAYER_NAME) as SimpleAxisPlotter; }
+		public function getYAxisPlotter():SimpleAxisPlotter { return plotManager.getPlotter(Y_AXIS_LAYER_NAME) as SimpleAxisPlotter; }
+		public function getProbeLinePlotter():ProbeLinePlotter { return plotManager.getPlotter(PROBE_LINE_LAYER_NAME) as ProbeLinePlotter; }
 		
 		/**
 		 * @param mainPlotterClass The main plotter class definition.
@@ -125,38 +126,44 @@ package weave.visualization.layers
 		 */		
 		public function initializePlotters(mainPlotterClass:Class, showAxes:Boolean):*
 		{
-			if (mainPlotterClass && !_plotLayer)
+			if (mainPlotterClass && !getMainPlotter())
 			{
-				_plotLayer = layers.requestObject(PLOT_LAYER_NAME, SelectablePlotLayer, true);
-				_plotLayer.getDynamicPlotter().requestLocalObject(mainPlotterClass, true);
+				plotManager.plotters.requestObject(MAIN_PLOT_LAYER_NAME, mainPlotterClass, true);
 			}
 			if (showAxes)
 			{
 				// x
-				_xAxisLayer = layers.requestObject(X_AXIS_LAYER_NAME, AxisLayer, true);
-				_xAxisLayer.axisPlotter.axisLabelRelativeAngle.value = -45;
-				_xAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
+				var xAxis:SimpleAxisPlotter = plotManager.plotters.requestObject(X_AXIS_LAYER_NAME, SimpleAxisPlotter, true);
+				xAxis.axisLabelRelativeAngle.value = -45;
+				xAxis.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
+				var xSettings:LayerSettings = plotManager.getLayerSettings(X_AXIS_LAYER_NAME);
+				xSettings.selectable.value = false;
+				xSettings.selectable.lock();
 				
-				linkToAxisProperties(_xAxisLayer);
+				linkToAxisProperties(X_AXIS_LAYER_NAME);
 				
 				// y
-				_yAxisLayer = layers.requestObject(Y_AXIS_LAYER_NAME, AxisLayer, true);
-				_yAxisLayer.axisPlotter.axisLabelRelativeAngle.value = 45;
-				_yAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_BOTTOM;
+				var yAxis:SimpleAxisPlotter = plotManager.plotters.requestObject(Y_AXIS_LAYER_NAME, SimpleAxisPlotter, true);
+				yAxis.axisLabelRelativeAngle.value = 45;
+				yAxis.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_BOTTOM;
+				var ySettings:LayerSettings = plotManager.getLayerSettings(Y_AXIS_LAYER_NAME);
+				ySettings.selectable.value = false;
+				ySettings.selectable.lock();
 				
-				linkToAxisProperties(_yAxisLayer);
+				linkToAxisProperties(Y_AXIS_LAYER_NAME);
 				
-				updateZoom();
+				// todo: is this really necessary?
+				getCallbackCollection(plotManager.zoomBounds).triggerCallbacks();
 			}
 			putAxesOnBottom();
-			return getDefaultPlotter();
+			return getMainPlotter();
 		}
 		
-		public function linkToAxisProperties(axisLayer:AxisLayer):void
+		private function linkToAxisProperties(axisName:String):void
 		{
-			if (layers.getName(axisLayer) == null)
-				throw new Error("linkToAxisProperties(): given axisLayer is not one of this visualization's layers");
-			var p:SimpleAxisPlotter = axisLayer.axisPlotter;
+			var p:SimpleAxisPlotter = plotManager.plotters.getObject(axisName) as SimpleAxisPlotter;
+			if (!p)
+				throw new Error('"' + axisName + '" is not an axis');
 			var list:Array = [
 				[gridLineThickness,  p.axisGridLineThickness],
 				[gridLineColor,      p.axisGridLineColor],
@@ -184,7 +191,7 @@ package weave.visualization.layers
 		 */		
 		public function putAxesOnBottom():void
 		{
-			var names:Array = layers.getNames();
+			var names:Array = plotManager.plotters.getNames();
 			
 			// remove axis layer names so they can be put in front.
 			var i:int;
@@ -199,84 +206,79 @@ package weave.visualization.layers
 			names.unshift(Y_AXIS_LAYER_NAME); // default axes first
 			names.push(PROBE_LINE_LAYER_NAME); // probe line layer last
 			
-			layers.setNameOrder(names);
+			plotManager.plotters.setNameOrder(names);
 		}
 		
-		override protected function updateFullDataBounds():void
+		private function hack_adjustFullDataBounds():void
 		{
-			getCallbackCollection(this).delayCallbacks();
-			
-			super.updateFullDataBounds();
-			
 			// adjust fullDataBounds based on auto zoom settings
-			
+			var fullDataBounds:IBounds2D = plotManager.fullDataBounds;
 			tempBounds.copyFrom(fullDataBounds);
-			if(_xAxisLayer && enableAutoZoomXToNiceNumbers.value)
+			if (getXAxisPlotter() && enableAutoZoomXToNiceNumbers.value)
 			{
-				var xMinMax:Array = StandardLib.getNiceNumbersInRange(fullDataBounds.getXMin(), fullDataBounds.getXMax(), _xAxisLayer.axisPlotter.tickCountRequested.value);
-				tempBounds.setXRange(xMinMax.shift(), xMinMax.pop()); // first & last ticks
+				var xMinMax:Array = StandardLib.getNiceNumbersInRange(fullDataBounds.getXMin(), fullDataBounds.getXMax(), getXAxisPlotter().tickCountRequested.value);
+				tempBounds.setXRange(xMinMax[0], xMinMax[xMinMax.length - 1]); // first & last ticks
 			}
-			if(_yAxisLayer && enableAutoZoomYToNiceNumbers.value)
+			if (getYAxisPlotter() && enableAutoZoomYToNiceNumbers.value)
 			{
-				var yMinMax:Array = StandardLib.getNiceNumbersInRange(fullDataBounds.getYMin(), fullDataBounds.getYMax(), _yAxisLayer.axisPlotter.tickCountRequested.value);
-				tempBounds.setYRange(yMinMax.shift(), yMinMax.pop()); // first & last ticks
+				var yMinMax:Array = StandardLib.getNiceNumbersInRange(fullDataBounds.getYMin(), fullDataBounds.getYMax(), getYAxisPlotter().tickCountRequested.value);
+				tempBounds.setYRange(yMinMax[0], yMinMax[yMinMax.length - 1]); // first & last ticks
 			}
-			if ((_xAxisLayer || _yAxisLayer) && enableAutoZoomToExtent.value)
+			// if axes are enabled, make sure width and height are not zero
+			if ((getXAxisPlotter() || getYAxisPlotter()) && plotManager.enableAutoZoomToExtent.value)
 			{
-				// if axes are enabled and dataBounds is undefined, set dataBounds to default size
-				// if bounds is empty, make it not empty
 				if (tempBounds.isEmpty())
 				{
 					if (tempBounds.getWidth() == 0)
 						tempBounds.setWidth(1);
-					if (tempBounds.getWidth() == 0)
-						tempBounds.setXRange(0, 1);
 					if (tempBounds.getHeight() == 0)
 						tempBounds.setHeight(1);
-					if (tempBounds.getHeight() == 0)
-						tempBounds.setYRange(0, 1);
 				}
 			}
-			if (!fullDataBounds.equals(tempBounds))
-			{
-				fullDataBounds.copyFrom(tempBounds);
-				getCallbackCollection(this).triggerCallbacks();
-			}
-			
-			getCallbackCollection(this).resumeCallbacks();
+			fullDataBounds.copyFrom(tempBounds);
 		}
 
-		override protected function updateZoom():void
+		private function hack_defineZoomIfUndefined():void
 		{
-			getCallbackCollection(this).delayCallbacks();
-			getCallbackCollection(zoomBounds).delayCallbacks();
-			
-			super.updateZoom();
-			
+			if ((getXAxisPlotter() || getYAxisPlotter()) && plotManager.enableAutoZoomToExtent.value)
+			{
+				plotManager.zoomBounds.getDataBounds(tempBounds);
+				if (tempBounds.isUndefined())
+				{
+					if (tempBounds.getWidth() == 0)
+						tempBounds.setXRange(0, 10);
+					if (tempBounds.getHeight() == 0)
+						tempBounds.setYRange(0, 10);
+					plotManager.zoomBounds.setDataBounds(tempBounds);
+				}
+			}
+		}
+		
+		private function hack_updateZoom():void
+		{
 			// when the data bounds change, we need to update the min,max values for axes
-			if (_xAxisLayer)
+			var xAxis:SimpleAxisPlotter = getXAxisPlotter();
+			if (xAxis)
 			{
-				getCallbackCollection(_xAxisLayer).delayCallbacks(); // avoid recursive updateZoom() call until done setting session state
-				zoomBounds.getDataBounds(tempBounds);
+				getCallbackCollection(xAxis).delayCallbacks(); // avoid recursive updateZoom() call until done setting session state
+				plotManager.zoomBounds.getDataBounds(tempBounds);
 				tempBounds.yMax = tempBounds.yMin;
-				_xAxisLayer.axisPlotter.axisLineDataBounds.copyFrom(tempBounds);
-				_xAxisLayer.axisPlotter.axisLineMinValue.value = tempBounds.xMin;
-				_xAxisLayer.axisPlotter.axisLineMaxValue.value = tempBounds.xMax;
-				getCallbackCollection(_xAxisLayer).resumeCallbacks();
+				xAxis.axisLineDataBounds.copyFrom(tempBounds);
+				xAxis.axisLineMinValue.value = tempBounds.xMin;
+				xAxis.axisLineMaxValue.value = tempBounds.xMax;
+				getCallbackCollection(xAxis).resumeCallbacks();
 			}
-			if (_yAxisLayer)
+			var yAxis:SimpleAxisPlotter = getYAxisPlotter();
+			if (yAxis)
 			{
-				getCallbackCollection(_yAxisLayer).delayCallbacks(); // avoid recursive updateZoom() call until done setting session state
-				zoomBounds.getDataBounds(tempBounds);
+				getCallbackCollection(yAxis).delayCallbacks(); // avoid recursive updateZoom() call until done setting session state
+				plotManager.zoomBounds.getDataBounds(tempBounds);
 				tempBounds.xMax = tempBounds.xMin;
-				_yAxisLayer.axisPlotter.axisLineDataBounds.copyFrom(tempBounds);
-				_yAxisLayer.axisPlotter.axisLineMinValue.value = tempBounds.yMin;
-				_yAxisLayer.axisPlotter.axisLineMaxValue.value = tempBounds.yMax;
-				getCallbackCollection(_yAxisLayer).resumeCallbacks();
+				yAxis.axisLineDataBounds.copyFrom(tempBounds);
+				yAxis.axisLineMinValue.value = tempBounds.yMin;
+				yAxis.axisLineMaxValue.value = tempBounds.yMax;
+				getCallbackCollection(yAxis).resumeCallbacks();
 			}
-
-			getCallbackCollection(zoomBounds).resumeCallbacks();
-			getCallbackCollection(this).resumeCallbacks();
 		}
 		
 		override protected function handleRollOut(event:MouseEvent):void
@@ -295,7 +297,7 @@ package weave.visualization.layers
 			if (mouseIsRolledOver)
 			{
 				var theMargin:LinkableString = getMarginAndSetQueryBounds(event.localX, event.localY, false);
-				var index:int = [marginTop, marginBottom, marginLeft, marginRight].indexOf(theMargin);
+				var index:int = [plotManager.marginTop, plotManager.marginBottom, plotManager.marginLeft, plotManager.marginRight].indexOf(theMargin);
 				if (index >= 0)
 				{
 					var ccs:Array = [topMarginClickCallbacks, bottomMarginClickCallbacks, leftMarginClickCallbacks, rightMarginClickCallbacks];
@@ -317,7 +319,7 @@ package weave.visualization.layers
 		{
 			var sb:IBounds2D = tempScreenBounds;
 			var qb:IBounds2D = queryBounds;
-			zoomBounds.getScreenBounds(sb);
+			plotManager.zoomBounds.getScreenBounds(sb);
 			sb.makeSizePositive();
 			
 			// TOP MARGIN
@@ -326,7 +328,7 @@ package weave.visualization.layers
 			if (outerHalf)
 				qb.setYMin(qb.getYCenter());
 			if (qb.contains(x, y))
-				return marginTop;
+				return plotManager.marginTop;
 
 			// BOTTOM MARGIN
 			qb.copyFrom(sb);
@@ -334,7 +336,7 @@ package weave.visualization.layers
 			if (outerHalf)
 				qb.setYMax(qb.getYCenter());
 			if (qb.contains(x, y))
-				return marginBottom;
+				return plotManager.marginBottom;
 
 			// LEFT MARGIN
 			qb.copyFrom(sb);
@@ -342,7 +344,7 @@ package weave.visualization.layers
 			if (outerHalf)
 				qb.setXMin(qb.getXCenter());
 			if (qb.contains(x, y))
-				return marginLeft;
+				return plotManager.marginLeft;
 
 			// RIGHT MARGIN
 			qb.copyFrom(sb);
@@ -350,7 +352,7 @@ package weave.visualization.layers
 			if (outerHalf)
 				qb.setXMax(qb.getXCenter());
 			if (qb.contains(x, y))
-				return marginRight;
+				return plotManager.marginRight;
 			
 			return null;
 		}
@@ -368,7 +370,7 @@ package weave.visualization.layers
 				if (!WeaveAPI.StageUtils.mouseButtonDown)
 				{
 					var theMargin:LinkableString = getMarginAndSetQueryBounds(mouseX, mouseY, true);
-					var index:int = [marginTop, marginBottom, marginLeft, marginRight].indexOf(theMargin);
+					var index:int = [plotManager.marginTop, plotManager.marginBottom, plotManager.marginLeft, plotManager.marginRight].indexOf(theMargin);
 					var axisColumn:IAttributeColumn = null;
 					var marginToolTip:String;
 					if (index >= 0)
@@ -430,18 +432,16 @@ package weave.visualization.layers
 		public function enableProbeLine(xToolTipEnabled:Boolean, yToolTipEnabled:Boolean):void
 		{
 			if (!xToolTipEnabled && !yToolTipEnabled)
-			{
-				getCallbackCollection(_plotLayer.probeFilter).removeCallback(updateProbeLines);
 				return;
-			}
-			if (!_probeLineLayer)
-			{
-				_probeLineLayer = layers.requestObject(PROBE_LINE_LAYER_NAME, PlotLayer, true);
-				_probePlotter = _probeLineLayer.getDynamicPlotter().requestLocalObject(ProbeLinePlotter, true);
-			}
+			
 			this.xToolTipEnabled = xToolTipEnabled;
 			this.yToolTipEnabled = yToolTipEnabled;
-			getCallbackCollection(_plotLayer.probeFilter).addImmediateCallback(this, updateProbeLines, false);
+			
+			plotManager.plotters.requestObject(PROBE_LINE_LAYER_NAME, ProbeLinePlotter, true);
+			var probeLayerSettings:LayerSettings = plotManager.getLayerSettings(PROBE_LINE_LAYER_NAME);
+			probeLayerSettings.selectable.value = false;
+			probeLayerSettings.selectable.lock();
+			getCallbackCollection(getMainLayerSettings().probeFilter).addImmediateCallback(this, updateProbeLines, false);
 		}
 		
 		/**
@@ -455,7 +455,7 @@ package weave.visualization.layers
 			destroyProbeLineTooltips();
 			if (!Weave.properties.enableProbeLines.value)
 				return;
-			var keySet:IKeySet = _plotLayer.probeFilter.internalObject as IKeySet;
+			var keySet:IKeySet = getMainLayerSettings().probeFilter.internalObject as IKeySet;
 			if (keySet == null)
 			{
 				reportError('keySet is null');
@@ -465,7 +465,7 @@ package weave.visualization.layers
 			
 			if (recordKeys.length == 0 || !this.mouseIsRolledOver)
 			{
-				_probePlotter.clearCoordinates();
+				getProbeLinePlotter().clearCoordinates();
 				return;
 			}
 			var xPlot:Number;
@@ -474,7 +474,7 @@ package weave.visualization.layers
 			var y_yAxis:Number;
 			var x_xAxis:Number;
 			var y_xAxis:Number;
-			var bounds:IBounds2D = (_plotLayer.spatialIndex as SpatialIndex).getBoundsFromKey(recordKeys[0])[0];
+			var bounds:IBounds2D = plotManager.hack_getSpatialIndex(MAIN_PLOT_LAYER_NAME).getBoundsFromKey(recordKeys[0])[0];
 			
 			// if there is a visualization with one set of data and the user drag selects over to it, the 
 			// spatial index will return an empty array for the key, which means bounds will be null. 
@@ -486,23 +486,23 @@ package weave.visualization.layers
 			
 			if( yToolTipEnabled && !xToolTipEnabled && xExists && yExists) // bar charts, histograms
 			{
-				x_yAxis = _xAxisLayer.axisPlotter.axisLineMinValue.value;
+				x_yAxis = getXAxisPlotter().axisLineMinValue.value;
 				y_yAxis = bounds.getYMax();
 							
 				xPlot = bounds.getXCenter();
 				yPlot = bounds.getYMax();
 				
-				 showProbeTooltips(y_yAxis, bounds, _yAxisLayer.axisPlotter.getLabel);
-				_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, yToolTipEnabled, xToolTipEnabled);
+				showProbeTooltips(y_yAxis, bounds, getYAxisPlotter().getLabel);
+				getProbeLinePlotter().setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, yToolTipEnabled, xToolTipEnabled);
 				
 			}
 			else if (yToolTipEnabled && xToolTipEnabled) //scatterplot
 			{
-				var xAxisMin:Number = _xAxisLayer.axisPlotter.axisLineMinValue.value;
-				var yAxisMin:Number = _yAxisLayer.axisPlotter.axisLineMinValue.value;
+				var xAxisMin:Number = getXAxisPlotter().axisLineMinValue.value;
+				var yAxisMin:Number = getYAxisPlotter().axisLineMinValue.value;
 				
-				var xAxisMax:Number = _xAxisLayer.axisPlotter.axisLineMaxValue.value;
-				var yAxisMax:Number = _yAxisLayer.axisPlotter.axisLineMaxValue.value;
+				var xAxisMax:Number = getXAxisPlotter().axisLineMaxValue.value;
+				var yAxisMax:Number = getYAxisPlotter().axisLineMaxValue.value;
 				
 				if (yExists || xExists)
 				{
@@ -516,10 +516,10 @@ package weave.visualization.layers
 					y_xAxis = yAxisMin;
 
 					if (yExists)
-						showProbeTooltips(y_yAxis, bounds, _yAxisLayer.axisPlotter.getLabel);
+						showProbeTooltips(y_yAxis, bounds, getYAxisPlotter().getLabel);
 					if (xExists)
-						showProbeTooltips(x_xAxis, bounds, _xAxisLayer.axisPlotter.getLabel, true);
-					_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, yExists, xExists);
+						showProbeTooltips(x_xAxis, bounds, getXAxisPlotter().getLabel, true);
+					getProbeLinePlotter().setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, yExists, xExists);
 				}
 			}
 			else if (!yToolTipEnabled && xToolTipEnabled) // special case for horizontal bar chart
@@ -528,11 +528,11 @@ package weave.visualization.layers
 				yPlot = bounds.getYCenter();
 				
 				x_xAxis = xPlot;
-				y_xAxis = _yAxisLayer.axisPlotter.axisLineMinValue.value;
+				y_xAxis = getYAxisPlotter().axisLineMinValue.value;
 				
-				showProbeTooltips(xPlot, bounds, _xAxisLayer.axisPlotter.getLabel, false, true);
+				showProbeTooltips(xPlot, bounds, getXAxisPlotter().getLabel, false, true);
 				
-				_probePlotter.setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, false, true);
+				getProbeLinePlotter().setCoordinates(x_yAxis, y_yAxis, xPlot, yPlot, x_xAxis, y_xAxis, false, true);
 			}
 		}
 		
@@ -557,15 +557,15 @@ package weave.visualization.layers
 			if (xAxis || useXMax)
 			{
 				yPoint.x = (xAxis) ? bounds.getXCenter() : bounds.getXMax();
-				yPoint.y = _yAxisLayer.axisPlotter.axisLineMinValue.value;					
+				yPoint.y = getYAxisPlotter().axisLineMinValue.value;					
 			}
 			else
 			{
-				yPoint.x = _xAxisLayer.axisPlotter.axisLineMinValue.value;
+				yPoint.x = getXAxisPlotter().axisLineMinValue.value;
 				yPoint.y = bounds.getYMax() ;
 			}
-			zoomBounds.getDataBounds(tempDataBounds);
-			zoomBounds.getScreenBounds(tempScreenBounds);
+			plotManager.zoomBounds.getDataBounds(tempDataBounds);
+			plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
 			tempDataBounds.projectPointTo(yPoint, tempScreenBounds);
 			yPoint = localToGlobal(yPoint);
 			

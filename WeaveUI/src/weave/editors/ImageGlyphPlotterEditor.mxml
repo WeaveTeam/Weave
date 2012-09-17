@@ -2,15 +2,15 @@
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.editors.*"
 		 implements="weave.api.ui.ILinkableObjectEditor"
-		 label="Image Settings" xmlns:ui="weave.ui.*">	
-	<ui:DynamicColumnComponent id="xCol" label="X Column"/> 	
-	<ui:DynamicColumnComponent id="yCol" label="Y Column"/> 	
+		 label="{lang('Image Settings')}" xmlns:ui="weave.ui.*">	
+	<ui:DynamicColumnComponent id="xCol" label="{lang('X Column')}"/> 	
+	<ui:DynamicColumnComponent id="yCol" label="{lang('Y Column')}"/> 	
 	<mx:HBox>
-		<mx:Label text="Picture URL:" />
+		<mx:Label text="{lang('Picture URL:')}" />
 		<mx:TextInput creationComplete="linkBindableProperty(_plotter.imageURL.defaultValue, event.target, 'text')" />
 	</mx:HBox>
 	<mx:HBox>
-		<mx:Label text="Picture Size:" />
+		<mx:Label text="{lang('Picture Size:')}" />
 		<mx:NumericStepper maximum="200" creationComplete="linkBindableProperty(_plotter.imageSize.defaultValue, event.target, 'value')" />		
 	</mx:HBox>
 	<mx:Script>

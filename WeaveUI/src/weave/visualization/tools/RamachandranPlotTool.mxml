@@ -48,7 +48,6 @@
 			import weave.api.ui.IVisTool;
 			import weave.api.unlinkBindableProperty;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.BinningDefinitions.SimpleBinningDefinition;
@@ -65,45 +64,43 @@
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.utils.HierarchyUtils;
+			import weave.utils.PlotterUtils;
 			import weave.utils.ProbeTextUtils;
-			import weave.utils.VectorUtils;
-			import weave.visualization.layers.PlotLayer;
 			import weave.visualization.plotters.RamachandranBackgroundPlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, RamachandranPlotTool, "Ramachandran Plot");
+			WeaveAPI.registerImplementation(IVisTool, RamachandranPlotTool, lang("Ramachandran Plot"));
 			
 			public var _plotter:ScatterPlotPlotter = null;
 			override protected function constructor():void
 			{
 				super.constructor();
 				// add background layer
-				var bg:PlotLayer = visualization.layers.requestObject("background", PlotLayer, true);
-				bg.getDynamicPlotter().requestLocalObject(RamachandranBackgroundPlotter, true);
+				visualization.plotManager.plotters.requestObject("background", RamachandranBackgroundPlotter, true);
 				
 				// lock dynamic objects into place
 				_plotter = initializePlotters(ScatterPlotPlotter, true);
 				
-				xAxisLayer.axisPlotter.forceTickCount.value = true;
-				yAxisLayer.axisPlotter.forceTickCount.value = true;
-				xAxisLayer.axisPlotter.forceTickCount.lock();
-				yAxisLayer.axisPlotter.forceTickCount.lock();
-				xAxisLayer.axisPlotter.tickCountRequested.value = 9;
-				yAxisLayer.axisPlotter.tickCountRequested.value = 9;
-				xAxisLayer.axisPlotter.tickCountRequested.lock();
-				yAxisLayer.axisPlotter.tickCountRequested.lock();
+				xAxisPlotter.forceTickCount.value = true;
+				yAxisPlotter.forceTickCount.value = true;
+				xAxisPlotter.forceTickCount.lock();
+				yAxisPlotter.forceTickCount.lock();
+				xAxisPlotter.tickCountRequested.value = 9;
+				yAxisPlotter.tickCountRequested.value = 9;
+				xAxisPlotter.tickCountRequested.lock();
+				yAxisPlotter.tickCountRequested.lock();
 				
 				//BEGIN TEMPORARY SOLUTION
-				visualization.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
-				visualization.marginBottomNumber.addImmediateCallback(this, updateAxisLabels);
+				visualization.plotManager.marginLeftNumber.addImmediateCallback(this, updateAxisLabels);
+				visualization.plotManager.marginBottomNumber.addImmediateCallback(this, updateAxisLabels);
 				getCallbackCollection(_plotter).addImmediateCallback(this, updateAxisLabels, true);
 				// END TEMPORARY SOLUTION
 				
-				visualization.includeNonSelectableLayersInAutoZoom.value = true;
+				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = true;
 				visualization.enableZoomAndPan.value = false;
-				visualization.enableAutoZoomToExtent.value = false;
-				visualization.enableAutoZoomToExtent.lock();
-				visualization.zoomBounds.setDataBounds(new Bounds2D(-180,-180,180,180));
+				visualization.plotManager.enableAutoZoomToExtent.value = false;
+				visualization.plotManager.enableAutoZoomToExtent.lock();
+				visualization.plotManager.zoomBounds.setDataBounds(new Bounds2D(-180,-180,180,180));
 				
 				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(_plotter.xColumn); })
 				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(_plotter.yColumn); })
@@ -111,7 +108,7 @@
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
 				
-				getCallbackCollection(visualization.zoomBounds).addImmediateCallback(this, invalidateAxes);
+				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, invalidateAxes);
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				
@@ -125,10 +122,10 @@
 				
 				_plotter.enabledSizeBy.value = true;
 				
-				visualization.marginBottom.value = "80";
-				visualization.marginTop.value    = "10";
-				visualization.marginLeft.value   = "80";
-				visualization.marginRight.value  = "10";
+				visualization.plotManager.marginBottom.value = "80";
+				visualization.plotManager.marginTop.value    = "10";
+				visualization.plotManager.marginLeft.value   = "80";
+				visualization.plotManager.marginRight.value  = "10";
 				
 				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
@@ -138,7 +135,7 @@
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["X","Y","Color","Size","Histogram Column"];
+				return [lang("X"),lang("Y"),lang("Color"),lang("Size"),lang("Histogram Column")];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -154,7 +151,7 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Ramachandran Plot " + rpToolTitle;
+				return lang("Ramachandran Plot {0}", rpToolTitle);
 			}
 			
 			private function updateAxisLabels():void
@@ -163,18 +160,15 @@
 				visualization.leftMarginColumn = _plotter.yColumn;
 				
 				if (_plotter == null)
-					title = "Ramachandran Plot";
-				/*			else
-				title = "Ramachandran Plot of " + _plotter.xColumn.title + " -vs- " + _plotter.yColumn.title;
-				*/			
-				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.xColumn), 
+					title = lang("Ramachandran Plot");
+				xAxisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.xColumn),
 					0,   
-					0, visualization.marginBottomNumber.value - 3, 
+					0, visualization.plotManager.marginBottomNumber.value - 3, 
 					BitmapText.VERTICAL_ALIGN_BOTTOM);
 				
-				yAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.yColumn), 
+				yAxisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.yColumn), 
 					-90, 
-					-visualization.marginLeftNumber.value, 0, 
+					-visualization.plotManager.marginLeftNumber.value, 0, 
 					BitmapText.VERTICAL_ALIGN_TOP);
 			}
 			
@@ -187,11 +181,11 @@
 			{
 				var histo:HistogramTool = Weave.root.requestObject(null, HistogramTool, false);
 				histo.width = 300;
-				histo.title = histo.title + "(SubSelection)";
+				histo.title = lang("{0}(SubSelection)", histo.title);
 				copySessionState(histogramColumn, histo.internalDataColumn);
 				var sbd:SimpleBinningDefinition = histo.plotter.internalBinnedColumn.binningDefinition.internalBinningDefinition as SimpleBinningDefinition;
 				sbd.numberOfBins.value = 20;
-				var keySet:KeySet = histo.visualization.getPlotLayer().subsetFilter.requestLocalObject(KeySet, false)
+				var keySet:KeySet = histo.visualization.getMainLayerSettings().subsetFilter.requestLocalObject(KeySet, false)
 				copySessionState(Weave.defaultSelectionKeySet, keySet);
 			}
 			public const histogramColumn:DynamicColumn = new DynamicColumn();
@@ -333,29 +327,23 @@
 			{
 				if (sizeByCheck.selected)
 				{ 
-					sizeByCheck.label = "Size by: " + ColumnUtils.getTitle(_plotter.radiusColumn);
+					sizeByCheck.label = lang("Size by: {0}", ColumnUtils.getTitle(_plotter.radiusColumn));
 					sizeByCheck.setStyle("textRollOverColor", "0x339900");
 					sizeByCheck.setStyle("textSelectedColor", "0x339900");
-					sizeByCheck.setStyle("Color", "0x339900");
+					sizeByCheck.setStyle("color", "0x339900");
 					sizeBySlider.enabled = true;
 					
 				}
 				else{
-					sizeByCheck.label = "Size by: DISABLED";
+					sizeByCheck.label = lang("Size by: DISABLED");
 					sizeByCheck.setStyle("textRollOverColor", "0xCC3300");
 					sizeByCheck.setStyle("textSelectedColor", "0xCC3300");
-					sizeByCheck.setStyle("Color", "0xCC3300");
+					sizeByCheck.setStyle("color", "0xCC3300");
 					
 					sizeBySlider.enabled = false;
 				}
 				
 			}
-			
-			private function alphaSliderFormatFunction(item:Number):String {
-				//return int(100 - (item * 100)) + "% Transparent";
-				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
-			}
-			
 			
 			private var pdbService:WeavePDBServlet = new WeavePDBServlet(Weave.properties.pdbServiceURL.value);
 			
@@ -377,7 +365,7 @@
 				var residueObj:ArrayCollection = event.result as ArrayCollection;
 				//temp solution for wrong PDB entry (need to pass the same error)
 				if(!residueObj){
-					Alert.show(PDBid.text.toUpperCase() + " doesn't exist.","PDB ID Error");
+					Alert.show(lang("{0} doesn't exist.", PDBid.text.toUpperCase()),lang("PDB ID Error"));
 					return;
 				}
 				//var sequenceArray:Array = residueObj["resName"];				
@@ -512,11 +500,11 @@
 		]]>
 	</mx:Script>
 	
-	<mx:Button  label="Histogram" click="popupHistogram()" bottom="10" right="5"/>
+	<mx:Button  label="{lang('Histogram')}" click="popupHistogram()" bottom="10" right="5"/>
 	
 	<ui:ControlPanel>
 		<mx:Panel id="RamachandranControls" 
-				  label="Ramachandran Plot Controls" 
+				  label="{lang('Ramachandran Plot Controls')}" 
 				  headerHeight="2"
 				  borderColor="0x000000" 
 				  backgroundColor="0xCCCCCC" 
@@ -527,7 +515,7 @@
 				  borderStyle="none">
 			<mx:HBox right="35" bottom="5">
 				<mx:TextInput id="PDBid"/>
-				<mx:Button id="sendPDBidBtn" label="Send" click="sendPDBidBtn_clickHandler(event)"/>
+				<mx:Button id="sendPDBidBtn" label="{lang('Send')}" click="sendPDBidBtn_clickHandler(event)"/>
 				
 			</mx:HBox>
 			<mx:TextArea editable="false" id="sequenceTA" text="{sequence}" width="100%" height="80%" mouseUp="sequenceTA_mouseUpHandler(event)"/>
@@ -539,7 +527,7 @@
 			
 		</mx:Panel>
 		<mx:Panel id="VizControlsPanel" 
-				  label="Visualization Controls" 
+				  label="{lang('Visualization Controls')}" 
 				  headerHeight="2"
 				  borderColor="0x000000" 
 				  backgroundColor="0xCCCCCC" 
@@ -556,14 +544,14 @@
 							 borderStyle="inset" 
 							 backgroundColor="0xFFFFFF" 
 							 backgroundAlpha="0.7">
-						<mx:Label text="Point Opacity:" 
+						<mx:Label text="{lang('Point Opacity:')}" 
 								  color="0x000000" fontSize="12" 
-								  toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
+								  toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}"/>
 						
 						<mx:HSlider id="alphaSlider" 
 									width="100%" 
 									alpha="1.0"
-									dataTipFormatFunction="alphaSliderFormatFunction"
+									dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 									minimum="0.3" maximum="1.0" value="1.0"
 									liveDragging="true"/>
 					</mx:HBox>
@@ -574,7 +562,7 @@
 						<mx:HBox width="100%"> 
 							<mx:CheckBox id="sizeByCheck" 
 										 fontSize="12" 
-										 label="Size by: ENABLED" 
+										 label="{lang('Size by: ENABLED')}" 
 										 color="{sizeByCheck.selected? 0x339900 : 0xCC3300}"
 										 textRollOverColor="0x339900"
 										 selected="true" 
@@ -583,7 +571,7 @@
 						</mx:HBox>
 						
 						<mx:HBox width="100%"> 
-							<mx:Label text="Point Size:" 
+							<mx:Label text="{lang('Point Size:')}" 
 									  color="0x000000" 
 									  fontSize="12"/>
 							<mx:HSlider id="sizeBySlider"
@@ -596,11 +584,11 @@
 										change="handleSizeSliderChange(event)"
 										mouseDown="event.stopImmediatePropagation();"/>
 						</mx:HBox>
-						<ui:DynamicColumnComponent label="x column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
-						<ui:DynamicColumnComponent label="y column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
-						<ui:DynamicColumnComponent label="color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-						<ui:DynamicColumnComponent label="size" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn"/>
-						<ui:DynamicColumnComponent label="Histogram Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = histogramColumn"/>
+						<ui:DynamicColumnComponent label="{lang('x column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
+						<ui:DynamicColumnComponent label="{lang('y column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
+						<ui:DynamicColumnComponent label="{lang('color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
+						<ui:DynamicColumnComponent label="{lang('size')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn"/>
+						<ui:DynamicColumnComponent label="{lang('Histogram Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = histogramColumn"/>
 					</mx:VBox>
 				</mx:VBox>
 				<mx:HBox width="100%">

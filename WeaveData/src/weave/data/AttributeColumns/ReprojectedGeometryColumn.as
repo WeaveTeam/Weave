@@ -19,8 +19,11 @@
 
 package weave.data.AttributeColumns
 {
+	import flash.utils.getQualifiedClassName;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
@@ -40,11 +43,16 @@ package weave.data.AttributeColumns
 	 */
 	public class ReprojectedGeometryColumn extends ExtendedDynamicColumn
 	{
+		private function debugTrace(..._):void { } // comment this line to enable debugging
+		
 		public function ReprojectedGeometryColumn()
 		{
 			// force the internal column to always be a ReferencedColumn
 			internalDynamicColumn.requestLocalObject(ReferencedColumn, true);
 			addImmediateCallback(this, updateReprojectedColumn);
+			
+			var self:Object = this;
+			boundingBoxCallbacks.addImmediateCallback(this, function():void{ debugTrace(self, 'boundingBoxCallbacks', boundingBoxCallbacks); });
 		}
 		
 		/**
@@ -110,7 +118,12 @@ package weave.data.AttributeColumns
 			var _unprojectedColumn:StreamedGeometryColumn = ColumnUtils.hack_findNonWrapperColumn(_reprojectedColumn) as StreamedGeometryColumn;
 			
 			// get the callback target that should trigger boundingBoxCallbacks
-			boundingBoxCallbacksTriggerJuggler.target = _unprojectedColumn ? _unprojectedColumn.boundingBoxCallbacks : _reprojectedColumn;
+			var newTarget:ILinkableObject = _unprojectedColumn ? _unprojectedColumn.boundingBoxCallbacks : _reprojectedColumn;
+			
+			debugTrace(this, '_unprojectedColumn =', _unprojectedColumn);
+			debugTrace(this, 'target =', newTarget);
+			
+			boundingBoxCallbacksTriggerJuggler.target = newTarget;
 		}
 		
 		private const boundingBoxCallbacksTriggerJuggler:CallbackJuggler = new CallbackJuggler(this, boundingBoxCallbacks.triggerCallbacks, false);

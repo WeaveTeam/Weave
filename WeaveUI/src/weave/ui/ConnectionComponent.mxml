@@ -213,9 +213,9 @@ ConnectionComponent
 		private function toggleToolTip():void
 		{
 			if(this.source == _connected)
-				this.toolTip = "connected";
+				this.toolTip = lang('connected');
 			else
-				this.toolTip = "not connected";
+				this.toolTip = lang('not connected');
 		}
 		
 		

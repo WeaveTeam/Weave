@@ -235,10 +235,10 @@
 
 				if(_tool is SimpleVisTool)
 				{
-					linkBindableProperty((_tool as SimpleVisTool).visualization.marginLeft, toolMarginLeft, 'value');
-					linkBindableProperty((_tool as SimpleVisTool).visualization.marginTop, toolMarginTop, 'value');
-					linkBindableProperty((_tool as SimpleVisTool).visualization.marginBottom, toolMarginBottom, 'value');
-					linkBindableProperty((_tool as SimpleVisTool).visualization.marginRight, toolMarginRight, 'value');
+					linkBindableProperty((_tool as SimpleVisTool).visualization.plotManager.marginLeft, toolMarginLeft, 'value');
+					linkBindableProperty((_tool as SimpleVisTool).visualization.plotManager.marginTop, toolMarginTop, 'value');
+					linkBindableProperty((_tool as SimpleVisTool).visualization.plotManager.marginBottom, toolMarginBottom, 'value');
+					linkBindableProperty((_tool as SimpleVisTool).visualization.plotManager.marginRight, toolMarginRight, 'value');
 					linkBindableProperty((_tool as SimpleVisTool).enableTitle, windowTitleToggle, 'selected');
 				}
 				_tool.panelBorderColor.addGroupedCallback(this, borderColorCallback, true);

@@ -23,7 +23,7 @@
 				xmlns:mx="http://www.adobe.com/2006/mxml" 
 				xmlns:ui="weave.ui.*"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				title="Data Filter"
+				title="{lang('Data Filter')}"
 				>
 	
 	<mx:Canvas  width="100%" height="100%" >

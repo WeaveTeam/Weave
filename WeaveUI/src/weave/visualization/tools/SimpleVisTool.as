@@ -38,7 +38,7 @@ package weave.visualization.tools
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.IPlotLayer;
+	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.IVisToolWithSelectableAttributes;
 	import weave.core.LinkableBoolean;
@@ -55,10 +55,9 @@ package weave.visualization.tools
 	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.ProbeTextUtils;
-	import weave.visualization.layers.AxisLayer;
-	import weave.visualization.layers.SelectablePlotLayer;
+	import weave.visualization.layers.LayerSettings;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
-	import weave.visualization.plotters.DynamicPlotter;
+	import weave.visualization.plotters.SimpleAxisPlotter;
 
 	/**
 	 * A simple visualization is one with a single SelectablePlotLayer
@@ -141,8 +140,7 @@ package weave.visualization.tools
 			this.addChild(toolVBox);
 			
 			layerListComponent = new LayerListComponent();
-			layerListComponent.visTool = this;
-			layerListComponent.hashMap = visualization.layers;
+			layerListComponent.visualization = visualization;
 			
 			//TODO: hide axis controls when axis isn't enabled
 
@@ -330,16 +328,8 @@ package weave.visualization.tools
 				return penTool.getOverlappingKeys();
 			}
 			
-			// Otherwise, it's an IPlotLayer and go through it
-			var layer:IPlotLayer = visualization.layers.getObject(layerName) as IPlotLayer;
-			if (!layer)
-				return [];
-			
-			var polygonPlotter:IPlotterWithGeometries = layer.plotter as IPlotterWithGeometries;
-			if (!polygonPlotter && layer.plotter is DynamicPlotter)
-			{
-				polygonPlotter = (layer.plotter as DynamicPlotter).internalObject as IPlotterWithGeometries;
-			}
+			var plotter:IPlotter = visualization.plotManager.getPlotter(layerName);
+			var polygonPlotter:IPlotterWithGeometries = plotter as IPlotterWithGeometries;
 			if (!polygonPlotter)
 				return [];
 			
@@ -392,17 +382,21 @@ package weave.visualization.tools
 			return visualization.initializePlotters(mainPlotterClass, showAxes);
 		}
 
-		protected function get plotLayer():SelectablePlotLayer
+		protected function get mainLayerSettings():LayerSettings
 		{
-			return visualization.getPlotLayer();
+			return visualization.getMainLayerSettings();
 		}
-		protected function get xAxisLayer():AxisLayer
+		protected function get mainPlotter():IPlotter
 		{
-			return visualization.getXAxisLayer();
+			return visualization.getMainPlotter();
 		}
-		protected function get yAxisLayer():AxisLayer
+		protected function get xAxisPlotter():SimpleAxisPlotter
 		{
-			return visualization.getYAxisLayer();
+			return visualization.getXAxisPlotter();
+		}
+		protected function get yAxisPlotter():SimpleAxisPlotter
+		{
+			return visualization.getYAxisPlotter();
 		}
 		
 		// returns the interactive visualization

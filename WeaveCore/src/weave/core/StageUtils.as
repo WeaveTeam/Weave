@@ -39,6 +39,7 @@ package weave.core
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.utils.DebugTimer;
+	import weave.utils.DebugUtils;
 	
 	use namespace mx_internal;
 	
@@ -57,8 +58,6 @@ package weave.core
 			initialize();
 		}
 		
-		[Bindable] public var enableThreadPriorities:Boolean = false;
-		
 		private const frameTimes:Array = [];
 		public var debug_async_stack:Boolean = false;
 		public var debug_fps:Boolean = false; // set to true to trace the frames per second
@@ -66,6 +65,8 @@ package weave.core
 		public var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
 		public var debug_callLater:Boolean = false; // set this to true to delay async tasks
 		private const _stackTraceMap:Dictionary = new Dictionary(true); // used by callLater to remember stack traces
+		private const _taskElapsedTime:Dictionary = new Dictionary(true);
+		private const _taskStartTime:Dictionary = new Dictionary(true);
 		
 		private var _event:Event = null; // returned by get event()
 		private var _shiftKey:Boolean = false; // returned by get shiftKey()
@@ -310,6 +311,14 @@ package weave.core
 			_lastMousePoint.x = _stage.mouseX;
 			_lastMousePoint.y = _stage.mouseY;
 			
+			handleCallLater();
+		}
+		
+		/**
+		 * This function gets called during ENTER_FRAME and RENDER events.
+		 */
+		private function handleCallLater():void
+		{
 			var args:Array;
 			var stackTrace:String;
 			var i:int;
@@ -452,9 +461,9 @@ package weave.core
 		public static function generateCompoundIterativeTask(iterativeTasks:Array):Function
 		{
 			var iTask:int = 0;
-			return function(restart:Boolean = false):Number
+			return function(param:* = undefined):Number
 			{
-				if (restart)
+				if (param === true) // restart
 				{
 					iTask = 0;
 					return 0;
@@ -464,7 +473,7 @@ package weave.core
 					return 1;
 				
 				var iterate:Function = iterativeTasks[iTask] as Function;
-				var progress:Number = iterate();
+				var progress:Number = iterate.length ? iterate(param) : iterate();
 				var totalProgress:Number = (iTask + progress) / iterativeTasks.length;
 				if (progress == 1)
 					iTask++;
@@ -476,9 +485,10 @@ package weave.core
 		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
 		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed of, the task will no longer be iterated.
 		 * @param iterativeTask A function that performs a single iteration of the asynchronous task.
-		 *   This function must take no parameters and return a number from 0.0 to 1.0 indicating the overall progress of the task.
+		 *   This function must take zero or one parameter and return a number from 0.0 to 1.0 indicating the overall progress of the task.
 		 *   A number below 1.0 indicates that the function should be called again to continue the task.
 		 *   When the task is completed, iterativeTask() should return 1.0.
+		 *   The optional parameter specifies the time when the function should return.
 		 *   Example:
 		 *       var array:Array = ['a','b','c','d'];
 		 *       var index:int = 0;
@@ -492,6 +502,20 @@ package weave.core
 		 *           index++;
 		 *           return index / array.length;  // this will return 1.0 on the last iteration.
 		 *       }
+		 *   Example 2:
+		 *       var array:Array = ['a','b','c','d'];
+		 *       var index:int = 0;
+		 *       function iterativeTaskWithTimer(returnTime:int):Number
+		 *       {
+		 *           for (; index < array.length; index++)
+		 *           {
+		 *               if (getTimer() > returnTime)
+		 *                   return index / array.length; // progress so far
+		 * 
+		 *               trace(array[index]);
+		 *           }
+		 *           return 1;
+		 *       }
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 * @param finalCallback A function that should be called after the task is completed.
 		 * @see weave.api.WeaveAPI
@@ -504,18 +528,6 @@ package weave.core
 			
 			WeaveAPI.SessionManager.assignBusyTask(iterativeTask, relevantContext as ILinkableObject);
 			
-			// begin temporary hack
-			if (priority == WeaveAPI.TASK_PRIORITY_RENDERING && !enableThreadPriorities)
-			{
-				while (iterativeTask() < 1) { }
-				WeaveAPI.SessionManager.unassignBusyTask(iterativeTask);
-				// run final callback after task completes
-				if (finalCallback != null)
-					finalCallback();
-				return;
-			}
-			// end temporary hack
-			
 			if (priority <= 0)
 			{
 				reportError("Task priority " + priority + " is not supported.");
@@ -523,19 +535,25 @@ package weave.core
 			}
 			
 			if (debug_async_stack)
-				_stackTraceMap[iterativeTask] = new Error("Stack trace").getStackTrace();
+			{
+				_stackTraceMap[iterativeTask] = debugId(iterativeTask) + ' ' + DebugUtils.getCompactStackTrace(new Error("Stack trace"));
+				_taskStartTime[iterativeTask] = getTimer();
+				_taskElapsedTime[iterativeTask] = 0;
+			}
 			WeaveAPI.ProgressIndicator.addTask(iterativeTask);
+			
+			var useTimeParameter:Boolean = iterativeTask.length > 0;
 			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
 			// This makes sure that the task is removed when the actual context is disposed of.
-			callLater(null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback], priority);
+			callLater(null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback, useTimeParameter], priority);
 			//_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
 		}
 		
 		/**
 		 * @private
 		 */
-		private function _iterateTask(context:Object, task:Function, priority:int, finalCallback:Function):void
+		private function _iterateTask(context:Object, task:Function, priority:int, finalCallback:Function, useTimeParameter:Boolean):void
 		{
 			// remove the task if the context was disposed of
 			if (WeaveAPI.SessionManager.objectWasDisposed(context))
@@ -543,6 +561,9 @@ package weave.core
 				WeaveAPI.ProgressIndicator.removeTask(task);
 				return;
 			}
+
+			var debug_time:int = debug_async_stack ? getTimer() : -1;
+			var stackTrace:String = debug_async_stack ? _stackTraceMap[task] : null;
 			
 			var progress:* = undefined;
 			// iterate on the task until _currentTaskStopTime is reached
@@ -550,16 +571,33 @@ package weave.core
 			while ((time = getTimer()) <= _currentTaskStopTime)
 			{
 				// perform the next iteration of the task
-				progress = task() as Number;
+				if (useTimeParameter)
+					progress = task.call(null, _currentTaskStopTime) as Number;
+				else
+					progress = task.apply() as Number;
+				
 				if (progress === null || isNaN(progress) || progress < 0 || progress > 1)
 				{
 					reportError("Received unexpected result from iterative task (" + progress + ").  Expecting a number between 0 and 1.  Task cancelled.");
+					if (debug_async_stack)
+					{
+						trace(stackTrace);
+						// this is incorrect behavior, but we can put a breakpoint here
+						if (useTimeParameter)
+							progress = task.call(null, _currentTaskStopTime) as Number;
+						else
+							progress = task.apply() as Number;
+					}
 					progress = 1;
 				}
 				if (debug_async_stack && currentFrameElapsedTime > 3000)
 				{
-					trace(getTimer() - time, _stackTraceMap[task]);
-					task();
+					trace(getTimer() - time, stackTrace);
+					// this is incorrect behavior, but we can put a breakpoint here
+					if (useTimeParameter)
+						progress = task.call(null, _currentTaskStopTime) as Number;
+					else
+						progress = task.apply() as Number;
 				}
 				if (progress == 1)
 				{
@@ -573,6 +611,14 @@ package weave.core
 				if (debug_delayTasks)
 					break;
 			}
+			if (false && debug_async_stack)
+			{
+				var start:int = int(_taskStartTime[task]);
+				var elapsed:int = int(_taskElapsedTime[task]) + (time - debug_time);
+				_taskElapsedTime[task] = elapsed;
+				trace(elapsed,'/',(time-start),'=',StandardLib.roundSignificant(elapsed / (time - start), 2),stackTrace);
+			}
+			
 			// max computation time reached without finishing the task, so update the progress indicator and continue the task later
 			if (progress !== undefined)
 				WeaveAPI.ProgressIndicator.updateTask(task, progress);
@@ -641,6 +687,7 @@ package weave.core
 				
 				// add these callbacks now so they will execute before any others
 				addEventCallback(Event.ENTER_FRAME, null, handleEnterFrame);
+				addEventCallback(Event.RENDER, null, handleCallLater);
 				addEventCallback(MouseEvent.MOUSE_DOWN, null, handleMouseDown);
 				addEventCallback(MouseEvent.CLICK, null, handleMouseClick);
 			}

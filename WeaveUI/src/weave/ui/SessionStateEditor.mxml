@@ -29,17 +29,17 @@ A text editor to change the Session State on the fly.
     xmlns:ui ="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
     width="800" height="600"
-    title="Session State Editor"
+    title="{lang('Session State Editor')}"
 	backgroundColor="#EFF4BC"
     >
 	<mx:VDividedBox id="vDividedBox" width="100%" height="100%" liveDragging="true">
 	    <mx:VBox horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" height="100%"
 				 paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
 			<mx:HBox width="100%">
-				<mx:Button label="Reload" toolTip="Reloads to previous save state" click="refresh()" paddingLeft="5" paddingRight="5"/>
-				<mx:Button label="Apply" click="handleApplyClick()" paddingLeft="5" paddingRight="5"/>
-				<mx:Button label="Save &amp; Close" click="saveAndClosePanel()" paddingLeft="5" paddingRight="5"/>
-				<mx:Button label="Cancel" click="removePanel()" paddingLeft="5" paddingRight="5"/>
+				<mx:Button label="{lang('Reload')}" toolTip="{lang('Reloads to previous save state')}" click="refresh()" paddingLeft="5" paddingRight="5"/>
+				<mx:Button label="{lang('Apply')}" click="handleApplyClick()" paddingLeft="5" paddingRight="5"/>
+				<mx:Button label="{lang('Save &amp; Close')}" click="saveAndClosePanel()" paddingLeft="5" paddingRight="5"/>
+				<mx:Button label="{lang('Cancel')}" click="removePanel()" paddingLeft="5" paddingRight="5"/>
 			</mx:HBox>
 			<mx:HDividedBox width="100%" height="100%">
 				<mx:VBox id="listVBox" width="100%" height="100%">
@@ -49,14 +49,14 @@ A text editor to change the Session State on the fly.
 										 focusIn="checkObjectWasDisposed()"/>
 					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off" backgroundAlpha="0">
 	 					<mx:TextInput id="linkNameInput" width="100%"/>
-	 					<mx:Button label="Link to global object" click="linkSelectedObject();"/>
-	 					<mx:Button label="Unlink" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 					<mx:Button label="{lang('Link to global object')}" click="linkSelectedObject();"/>
+	 					<mx:Button label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
 	 				</mx:HBox>
 				</mx:VBox>
 				<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
 					<mx:HBox width="100%" horizontalAlign="right">
-						<ui:TextInputWithPrompt id="search" prompt="Enter search text" enter="highlightSearchText(false)" change="searchTermChanged()" width="100%" minWidth="100"/>
-						<mx:Button label="Search" click="highlightSearchText(true)" repeatDelay="1"/>
+						<ui:TextInputWithPrompt id="search" prompt="{lang('Enter search text')}" enter="highlightSearchText(false)" change="searchTermChanged()" width="100%" minWidth="100"/>
+						<mx:Button label="{lang('Search')}" click="highlightSearchText(true)" repeatDelay="1"/>
 					</mx:HBox>
 					<mx:Canvas id="editorBox" width="100%" height="100%">
 						<mx:TextArea id="sessionStateTextArea" wordWrap="false" enabled="false" focusIn="handleEditorFocusIn()" fontAntiAliasType="normal" fontSize="11"
@@ -67,10 +67,10 @@ A text editor to change the Session State on the fly.
 						</mx:DataGrid>
 					</mx:Canvas>
 					<mx:HBox width="100%">
-						<mx:CheckBox id="preferDataGrid" label="Prefer Grid View" click="handlePreferDGChange()" toolTip="Check this box to prefer the grid view when possible."
+						<mx:CheckBox id="preferDataGrid" label="{lang('Prefer Grid View')}" click="handlePreferDGChange()" toolTip="{lang('Check this box to prefer the grid view when possible.')}"
 									 selected="true"/>
 						<mx:Spacer width="100%"/>
-						<mx:Button id="showConsole" label="Show console" toggle="true" selected="{console.height > 0}" click="toggleShowConsole()"/>
+						<mx:Button id="showConsole" label="{lang('Show console')}" toggle="true" selected="{console.height > 0}" click="toggleShowConsole()"/>
 					</mx:HBox>
 				</mx:VBox>
 			</mx:HDividedBox>
@@ -228,10 +228,10 @@ A text editor to change the Session State on the fly.
 			{
 				PopUpUtils.confirm(
 					this,
-					"Save?",
-					"Session state has been changed.  Save Changes?",
+					lang("Save?"),
+					lang("Session state has been changed.  Save Changes?"),
 					save, discard,
-					'Save', 'Discard'
+					lang('Save'), lang('Discard')
 				);
 			}
 
@@ -379,7 +379,7 @@ A text editor to change the Session State on the fly.
 					}
 				}
 				
-				Alert.show("Not found: "+searchTerm, "Search");
+				Alert.show(lang("Not found: ")+searchTerm, lang("Search"));
 				return false;
 			}
 			
@@ -416,7 +416,7 @@ A text editor to change the Session State on the fly.
 					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 					var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
 					if (hashMap || dynamicObject)
-						Alert.show("Delete Selected Item?","Confirm Delete",mx.controls.Alert.YES| mx.controls.Alert.NO,this,deleteSelectedItem)
+						Alert.show(lang("Delete Selected Item?"),lang("Confirm Delete"),mx.controls.Alert.YES| mx.controls.Alert.NO,this,deleteSelectedItem)
 				}
 			}
 			
@@ -439,7 +439,7 @@ A text editor to change the Session State on the fly.
 					if ((WeaveAPI.SessionManager as SessionManager).objectWasDisposed(oldObject))
 						refresh();
 					else
-						Alert.show("Object is locked and cannot be deleted.", "Delete Failed");
+						Alert.show(lang("Object is locked and cannot be deleted."), lang("Delete Failed"));
 				}
 			}
 

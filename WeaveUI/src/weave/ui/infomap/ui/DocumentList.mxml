@@ -135,6 +135,7 @@ width="200" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.compiler.StandardLib;
 			import mx.collections.ArrayCollection;
 			import weave.ui.infomap.layout.NodeHandler;
 			import weave.data.DataSources.InfoMapsDataSource;
@@ -234,7 +235,7 @@ width="200" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 					temp.push(includedKeys[j]);
 				}
 				
-				if(docList.dataProvider == null || !VectorUtils.compare(temp,(docList.dataProvider as ArrayCollection).source))
+				if(docList.dataProvider == null || (StandardLib.arrayCompare(temp,(docList.dataProvider as ArrayCollection).source) != 0))
 					docList.dataProvider = temp;
 				
 				//disable nextButton if showing the last set of documents

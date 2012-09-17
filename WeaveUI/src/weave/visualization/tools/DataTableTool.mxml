@@ -30,13 +30,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   xmlns:ui="weave.ui.*" 
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
 				   layout="absolute" implements="weave.api.ui.IVisTool,weave.api.data.ICSVExportable"
-				   title="Data Table" xmlns:editors="weave.editors.*"
+				   title="{lang('Data Table')}" xmlns:editors="weave.editors.*"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
 		<mx:HBox id="topControls" horizontalAlign="left" width="100%">
-			<mx:Label text="Key type:"/>
-			<ui:CustomComboBox id="keyTypeCombo" change="filterColumnsByKeyType.value = keyTypeCombo.selectedItem as String;" toolTip="Only columns of the selected key type will be shown."/>
-			<mx:Button label="Edit columns..." click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
+			<mx:Label text="{lang('Key type:')}"/>
+			<ui:CustomComboBox id="keyTypeCombo" change="filterColumnsByKeyType.value = keyTypeCombo.selectedItem as String;" toolTip="{lang('Only columns of the selected key type will be shown.')}"/>
+			<mx:Button label="{lang('Edit columns...')}" click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
 		</mx:HBox>
 		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid"  id="filterControls" width="100%"  verticalAlign="middle" horizontalScrollPolicy="off">
 			<mx:Spacer width="{dataGrid.width}"/>
@@ -63,9 +63,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									   />
 		
 		<mx:HBox id="bottomControls" width="100%" paddingTop="3" paddingLeft="3" paddingBottom="3" paddingRight="3">
-			<mx:Button label="Export Data..." click="saveToFileAsCSV()" />
-			<mx:Button click="moveSelectedToTop()" label="Move Selected Items to top"/>
-			<mx:Button click="_selection.clearKeys()" label="Clear Selection"/>
+			<mx:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
+			<mx:Button click="moveSelectedToTop()" label="{lang('Move Selected Items to top')}"/>
+			<mx:Button click="_selection.clearKeys()" label="{lang('Clear Selection')}"/>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -915,45 +915,45 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
-		<mx:VBox label="Columns">
-			<mx:CheckBox id="showKeyColumnCheckBox" label="Show Key Column" change="handleKeyColumnCheckBox()"/>
+		<mx:VBox label="{lang('Columns')}">
+			<mx:CheckBox id="showKeyColumnCheckBox" label="{lang('Show Key Column')}" change="handleKeyColumnCheckBox()"/>
 			<mx:HBox>
-				<mx:Label text="Number of Locked Columns"/>
+				<mx:Label text="{lang('Number of Locked Columns')}"/>
 				<mx:NumericStepper id="numLockedColumns" minimum="0" 
 								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value');"/>	
 			</mx:HBox>
-			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="Columns"/>
+			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="{lang('Columns')}"/>
 			<mx:HBox>
-				<mx:Button label="Add Image Column" click="addImageColumn()"/>
+				<mx:Button label="{lang('Add Image Column')}" click="addImageColumn()"/>
 				<ui:HelpComponent>Select a column that contains image URLs. The images will be displayed in the data table.</ui:HelpComponent>
 			</mx:HBox>
 
-			<mx:Button label="Reset column widths" click="columnWidths.removeAllObjects()"/>
+			<mx:Button label="{lang('Reset column widths')}" click="columnWidths.removeAllObjects()"/>
 
 		</mx:VBox>
-		<mx:VBox label="Advanced">
+		<mx:VBox label="{lang('Advanced')}">
 			<mx:HBox>
-				<mx:Button label="Export Data..." click="saveToFileAsCSV()" />
-				<mx:CheckBox label="Export keys with data" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
+				<mx:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
+				<mx:CheckBox label="{lang('Export keys with data')}" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
 			</mx:HBox>
-			<mx:CheckBox id="showControlsCheckBox" label="Show advanced controls on panel"/>
+			<mx:CheckBox id="showControlsCheckBox" label="{lang('Show advanced controls on panel')}"/>
 			<mx:HBox>
-				<mx:CheckBox id="showFiltersCheckBox" label="Show filter controls on panel"/>
+				<mx:CheckBox id="showFiltersCheckBox" label="{lang('Show filter controls on panel')}"/>
 				<ui:HelpComponent>
 					This allows data to be filtered based on the data values. Filtered records are highlighted by selection in the other tools.
 					If a column contains text data, a search box will be displayed which supports wildcards ('?' = any Character; '*' = any String).
 					If a column contains numeric data, a slider will be displayed that allows selection of Min and Max values.
 				</ui:HelpComponent>
 			</mx:HBox>
-			<ui:Indent label="Background colors">
+			<ui:Indent label="{lang('Background colors')}">
 				<mx:ColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
 				<mx:ColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
-				<mx:Button label="Reset" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
+				<mx:Button label="{lang('Reset')}" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
 			</ui:Indent>
 			<mx:HBox verticalAlign="top" width="100%" height="100%">
 				<mx:VBox horizontalAlign="right">
 					<mx:HBox verticalAlign="middle">
-						<mx:CheckBox id="showColorsCheckBox" label="Enable cell coloring"/>
+						<mx:CheckBox id="showColorsCheckBox" label="{lang('Enable cell coloring')}"/>
 						<ui:HelpComponent>
 							<ui:htmlText>
 								<![CDATA[
@@ -963,7 +963,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							</ui:htmlText>
 						</ui:HelpComponent>
 					</mx:HBox>
-					<mx:Button label="Reset" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
+					<mx:Button label="{lang('Reset')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
 				</mx:VBox>
 				<mx:TextArea id="cellColorFunctionEditor" width="100%" height="100%" minHeight="48"
 							 creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>
