@@ -34,21 +34,18 @@ package weave.utils
 	 */
 	public class AsyncSort implements ILinkableObject
 	{
-		/**
-		 * @param compareFunction A function that compares two items and returns -1, 0, or 1.
-		 * @see mx.utils.ObjectUtil#compare
-		 */
-		public function AsyncSort(compareFunction:Function = null):void
+		public function AsyncSort():void
 		{
-			compare = compareFunction;
 		}
 		
+		private static var _immediateSorter:AsyncSort;
+		
 		/**
-		 * This function will sort an Array immediately and return the result.
-		 * @param array An Array to sort.
-		 * @return The sorted Array, which may or may not be the original array.
+		 * This function will sort an Array (or Vector) immediately.
+		 * @param array An Array (or Vector) to sort in place.
+		 * @param compareFunction The function used to compare items in the array.
 		 */		
-		public static function sortImmediately(array:Array, compareFunction:Function = null):Array
+		public static function sortImmediately(array:*, compareFunction:Function = null):void
 		{
 			if (!_immediateSorter)
 				_immediateSorter = new AsyncSort();
@@ -56,21 +53,26 @@ package weave.utils
 			_immediateSorter._immediately = true;
 			_immediateSorter.beginSort(array, compareFunction);
 			_immediateSorter._immediately = false;
-			return _immediateSorter.result;
 		}
 		
-		private static var _immediateSorter:AsyncSort;
+		/**
+		 * This function is a wrapper for ObjectUtil.stringCompare(a, b, true) (case-insensitive String compare).
+		 */		
+		public static function compareCaseInsensitive(a:String, b:String):int
+		{
+			return ObjectUtil.stringCompare(a, b, true);
+		}
 		
 		/**
-		 * This is the sorted Array, or null if the sort operation has not completed yet.
+		 * This is the sorted Array (or Vector), or null if the sort operation has not completed yet.
 		 */
-		public function get result():Array
+		public function get result():*
 		{
 			return size >= length ? array : null;
 		}
 		
 		private var compare:Function;
-		private var array:Array;
+		private var array:*;
 		private var length:uint;
 		private var size:uint;
 		private var start:uint;
@@ -79,29 +81,39 @@ package weave.utils
 		private var iLeft:uint;
 		private var iRight:uint;
 		private var iBuffer:uint;
-		private var buffer:Array = [];
+		private var buffer:*;
 		private var merging:Boolean;
+		private var swapped:Boolean;
 		private var elapsed:int;
 		private var _immediately:Boolean = false;
 		
 		/**
-		 * This will begin an asynchronous sorting operation on the specified Array.
+		 * This will begin an asynchronous sorting operation on the specified Array (or Vector).
 		 * Only one sort operation can be carried out at a time.
 		 * Callbacks will be triggered when the sorting operation completes.
-		 * The given Array will be modified in-place, but there is no guarantee that the result will be the same Array.
-		 * @param arrayToSort The Array to sort.
+		 * The given Array (or Vector) will be modified in-place.
+		 * @param arrayToSort The Array (or Vector) to sort.
+		 * @param compareFunction A function that compares two items and returns -1, 0, or 1.
+		 * @see mx.utils.ObjectUtil#compare
 		 */
 		public function beginSort(arrayToSort:*, compareFunction:Function = null):void
 		{
 			// initialize
-			compare = compareFunction || compare || ObjectUtil.compare;
+			compare = compareFunction || ObjectUtil.compare;
 			array = arrayToSort;
 			length = array.length;
+			
+			// make a buffer of the same type and length
+			var Type:Class = (array as Object).constructor;
+			buffer = new Type();
 			buffer.length = length;
+			
 			size = 1;
+			middle = 0;
 			end = 0;
 			merging = false;
 			elapsed = 0;
+			swapped = false;
 			
 			if (_immediately)
 			{
@@ -117,33 +129,50 @@ package weave.utils
 		private function iterate(stopTime:int):Number
 		{
 			var time:int = getTimer();
-			breakReturn: while (true)
+			
+			while (getTimer() < stopTime)
 			{
-				if (!merging)
+				if (iLeft < middle)
 				{
-					if (getTimer() > stopTime)
-						break breakReturn;
+					// copy smallest value to buffer
+					if (iRight < end && compare(array[iRight], array[iLeft]) < 0)
+						buffer[iBuffer++] = array[iRight++];
+					else
+						buffer[iBuffer++] = array[iLeft++];
+				}
+				else if (iRight < end)
+				{
+					buffer[iBuffer++] = array[iRight++];
+				}
+				else if (end >= length) // done merging all pairs of sub-arrays of current size
+				{
+					// swap sorted and unsorted arrays
+					var sorted:* = buffer;
+					buffer = array;
+					array = sorted;
+					swapped = !swapped; // keep track of whether or not this is the original array
 					
-					if (end >= length)
+					// start again from beginning of array
+					size *= 2;
+					end = 0;
+					
+					if (size >= length)
 					{
-						// swap sorted and unsorted arrays
-						var sorted:Array = buffer;
-						buffer = array;
-						array = sorted;
-						
-						// start again from beginning of array
-						size *= 2;
-						end = 0;
-						
-						if (size >= length)
+						// we are done sorting.
+						elapsed += getTimer() - time;
+						if (swapped)
 						{
-							elapsed += getTimer() - time;
-							return 1; // done
+							// buffer is the original, so copy the sorted values over from sorted array
+							for (var i:int = length - 1; i >= 0; i--)
+								buffer[i] = array[i];
+							array = buffer;
 						}
-						
-						continue;
+						buffer = null;
+						return 1;
 					}
-					
+				}
+				else
+				{
 					// prepare for next merge
 					start = end;
 					middle = Math.min(start + size, length);
@@ -153,31 +182,13 @@ package weave.utils
 					iBuffer = start;
 					merging = true;
 				}
-				
-				// merge
-				while (true)
-				{
-					if (getTimer() > stopTime)
-						break breakReturn;
-	
-					// copy smallest value to buffer
-					if (iLeft < middle)
-					{
-						if (iRight < end && compare(array[iRight], array[iLeft]) < 0)
-							buffer[iBuffer++] = array[iRight++];
-						else
-							buffer[iBuffer++] = array[iLeft++];
-					}
-					else if (iRight < end)
-						buffer[iBuffer++] = array[iRight++];
-					else
-						break;
-				}
-				
-				merging = false;
 			}
 			
 			elapsed += getTimer() - time;
+			
+			if (length == 0)
+				return 1;
+			
 			//TODO: improve progress calculation
 			return size / length; // not exactly accurate, but returns a number < 1
 		}
@@ -192,43 +203,44 @@ package weave.utils
 		 *************/		
 		
 		//test(); // Class('weave.utils.AsyncSort').test()
-		public static function test(n:uint = 50000):void
+		public static function test():void
 		{
-			
-			var array:Array = [];
-			for (var i:int = 0; i < n; i++)
-				array.push(uint(Math.random()*100));
-			var array2:Array = ObjectUtil.copy(array) as Array;
-			var array3:Array = ObjectUtil.copy(array) as Array;
-			
-			trace('Sorting',n,'numbers...');
-			var start:int = getTimer();
-			_debugCompareCount = 0;
-			array.sort(_debugCompare);
-			trace('built-in sort',(getTimer() - start) / 1000, 'seconds;',_debugCompareCount,'comparisons');
-			
-			_debugCompareCount = 0;
-			_testSorter = new AsyncSort(_debugCompare);
-			getCallbackCollection(_testSorter).addImmediateCallback(null, handleTestSort);
-			_testSorter.beginSort(array3);
+			for each (var n:uint in [50,3000,6000,12000,25000,50000])
+			{
+				var array:Array = [];
+				for (var i:int = 0; i < n; i++)
+					array.push(uint(Math.random()*100));
+				var array2:Array = array.concat();
+				
+				var start:int = getTimer();
+				_debugCompareCount = 0;
+				array.sort(_debugCompare);
+				trace('Array.sort', n, 'numbers;', (getTimer() - start) / 1000, 'seconds;',_debugCompareCount,'comparisons');
+				
+				_debugCompareCount = 0;
+				start = getTimer();
+				sortImmediately(array2, _debugCompare);
+				//trace('Merge Sort', n, 'numbers;', _immediateSorter.elapsed / 1000, 'seconds;',_debugCompareCount,'comparisons');
+				trace('Merge Sort', n, 'numbers;', (getTimer() - start) / 1000, 'seconds;',_debugCompareCount,'comparisons');
+				
+				verifySorted(array2);
+			}
 		}
-		private static var _testSorter:AsyncSort;
+		private static function verifySorted(array:Array):void
+		{
+			for (var i:int = 1; i < array.length; i++)
+			{
+				if (array[i - 1] > array[i])
+				{
+					throw new Error("ASSERTION FAIL " + array[i - 1] + ' > ' + array[i]);
+				}
+			}
+		}
 		private static var _debugCompareCount:int = 0;
 		private static function _debugCompare(a:Object, b:Object):int
 		{
 			_debugCompareCount++;
 			return ObjectUtil.compare(a, b);
-		}
-		private static function handleTestSort():void
-		{
-			trace('async merge sort',_testSorter.elapsed/1000, 'seconds;',_debugCompareCount,'comparisons');
-			trace('VERIFYING ASYNC SORT');
-			for (var i:int = 0; i < _testSorter.result.length - 1; i++)
-			{
-				if (_testSorter.result[i] > _testSorter.result[i+1])
-					throw new Error("ASSERTION FAIL "+_testSorter.result[i]+','+_testSorter.result[i+1]);
-			}
-			trace('SUCCESS');
 		}
 	}
 }

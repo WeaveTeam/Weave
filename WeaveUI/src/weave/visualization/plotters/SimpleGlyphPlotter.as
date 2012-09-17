@@ -28,6 +28,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.IPlotterWithKeyCompare;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
@@ -40,11 +41,12 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class SimpleGlyphPlotter extends AbstractGlyphPlotter
+	public class SimpleGlyphPlotter extends AbstractGlyphPlotter implements IPlotterWithKeyCompare
 	{
 		public function SimpleGlyphPlotter()
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
+			_keyCompare = ColumnUtils.generateCompareFunction([screenSize], [true]);
 		}
 		
 		private static const LEFT:String = 'left', CENTER:String = 'center', RIGHT:String = 'right';
@@ -79,17 +81,11 @@ package weave.visualization.plotters
 		 */		
 		public const verticalPosition:LinkableString = registerLinkableChild(this, new LinkableString(MIDDLE, verifyVertical));
 		
-		private var sortBySize:Function;
+		private var _keyCompare:Function;
 		
-		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{
-			if (task.iteration == 0)
-			{
-				if (sortBySize == null)
-					sortBySize = ColumnUtils.generateSortFunction([screenSize], [true]);
-				task.recordKeys.sort(sortBySize);
-			}
-			return super.drawPlotAsyncIteration(task);
+			return _keyCompare(key1, key2);
 		}
 		
 		/**

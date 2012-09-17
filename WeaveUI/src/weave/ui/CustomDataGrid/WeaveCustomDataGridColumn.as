@@ -36,7 +36,7 @@ package weave.ui.CustomDataGrid
 		{
 			_attrColumn = attrColumn;
 			labelFunction = extractDataFunction;
-			sortCompareFunction = ColumnUtils.generateSortFunction([_attrColumn]);
+			sortCompareFunction = ColumnUtils.generateCompareFunction([_attrColumn]);
 			headerWordWrap = true;
 			
 			var factory:ClassFactory = new ClassFactory(DataGridCellRenderer);

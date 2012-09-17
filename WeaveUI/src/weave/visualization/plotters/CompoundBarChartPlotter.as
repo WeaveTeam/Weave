@@ -30,7 +30,6 @@ package weave.visualization.plotters
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
-	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
@@ -53,6 +52,7 @@ package weave.visualization.plotters
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.primitives.Range;
+	import weave.utils.AsyncSort;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
@@ -217,13 +217,13 @@ package weave.visualization.plotters
 					if (column is IColumnWrapper)
 						column = (column as IColumnWrapper).getInternalColumn();
 				}
-				_sortByColor = ColumnUtils.generateSortFunction([column]);
+				_sortByColor = ColumnUtils.generateCompareFunction([column]);
 			}
 			
 			if (colorChanged || binsChanged)
 			{
 				for (var i:int = 0; i < _binnedSortColumn.numberOfBins; i++)
-					_binnedSortColumn.getKeysFromBinIndex(i).sort(_sortByColor);
+					AsyncSort.sortImmediately(_binnedSortColumn.getKeysFromBinIndex(i), _sortByColor);
 			}
 		}
 				

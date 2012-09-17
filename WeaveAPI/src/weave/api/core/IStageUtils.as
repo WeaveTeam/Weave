@@ -67,13 +67,14 @@ package weave.api.core
 		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed of, the task will no longer be iterated.
 		 * @param iterativeTask A function that performs a single iteration of the asynchronous task.
 		 *   This function must take zero or one parameter and return a number from 0.0 to 1.0 indicating the overall progress of the task.
-		 *   A number below 1.0 indicates that the function should be called again to continue the task.
+		 *   A return value below 1.0 indicates that the function should be called again to continue the task.
 		 *   When the task is completed, iterativeTask() should return 1.0.
-		 *   The optional parameter specifies the time when the function should return.
+		 *   The optional parameter specifies the time when the function should return. If the function accepts the returnTime
+		 *   parameter, it will not be called repeatedly within the same frame even if it returns before the returnTime.
 		 *   Example:
 		 *       var array:Array = ['a','b','c','d'];
 		 *       var index:int = 0;
-		 *       function iterativeTask():Number
+		 *       function iterativeTask():Number // this may be called repeatedly in succession
 		 *       {
 		 *           if (index >= array.length) // in case the length is zero
 		 *               return 1;
@@ -86,7 +87,7 @@ package weave.api.core
 		 *   Example 2:
 		 *       var array:Array = ['a','b','c','d'];
 		 *       var index:int = 0;
-		 *       function iterativeTaskWithTimer(returnTime:int):Number
+		 *       function iterativeTaskWithTimer(returnTime:int):Number // this will be called only once in succession
 		 *       {
 		 *           for (; index < array.length; index++)
 		 *           {

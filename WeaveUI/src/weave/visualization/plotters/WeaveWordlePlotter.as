@@ -23,6 +23,8 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.text.TextFormat;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -30,8 +32,10 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.IPlotterWithKeyCompare;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
+	import weave.utils.AsyncSort;
 	import weave.utils.BitmapText;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -41,7 +45,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author jfallon
 	 */
-	public class WeaveWordlePlotter extends AbstractPlotter
+	public class WeaveWordlePlotter extends AbstractPlotter implements IPlotterWithKeyCompare
 	{
 		
 		public function WeaveWordlePlotter()
@@ -123,7 +127,6 @@ package weave.visualization.plotters
 			var normalized:Number;
 			var j:int;
 			var maxDisplay:uint;
-			orderKeys( recordKeys );
 			screenBoundaries = screenBounds;
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(wordColumn);
 			var lowest:Number = stats.getMin();
@@ -368,26 +371,14 @@ package weave.visualization.plotters
 	
 			flag = true;						
 		}
-	
-		/**
-		 * This function will put keys in descending order based on the count contained within each.
-		 */
-		private function orderKeys( recordKeys:Array ):void
+		
+		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{
-			recordKeys.sort();
-			
-			var i:int;
-			var j:int;
-			var temp:String;
-			
-			for( i = 0; i < recordKeys.length; i++ )
-				for( j = 0; j < ( recordKeys.length - 1 ); j++ ){
-					if( wordColumn.getValueFromKey( recordKeys[j+1] ) > wordColumn.getValueFromKey( recordKeys[j] ) ){
-						temp = recordKeys[j];
-						recordKeys[j] = recordKeys[j+1];
-						recordKeys[j+1] = temp;
-					}  		
-				}		
+			// descending
+			return - ObjectUtil.numericCompare(
+				wordColumn.getValueFromKey(key1, Number),
+				wordColumn.getValueFromKey(key2, Number)
+			);
 		}
 		
 		private var count:Number = 1;

@@ -29,6 +29,7 @@ package weave.data.BinningDefinitions
 	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IQualifiedKey;
 	import weave.data.BinClassifiers.SingleValueClassifier;
+	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 
 	/**
@@ -40,6 +41,7 @@ package weave.data.BinningDefinitions
 	{
 		public function CategoryBinningDefinition()
 		{
+			overrideBinNames.lock(); // no bin names allowed
 		}
 		
 		/**
@@ -76,7 +78,7 @@ package weave.data.BinningDefinitions
 				}
 			}
 			strArray.length = i; // truncate
-			strArray.sort(_sortFunc); // sort strings by corresponding numeric values
+			AsyncSort.sortImmediately(strArray, _sortFunc); // sort strings by corresponding numeric values
 			var n:int = strArray.length;
 			for (i = 0; i < n; i++)
 			{

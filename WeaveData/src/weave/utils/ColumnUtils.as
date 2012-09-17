@@ -451,12 +451,12 @@ package weave.utils
 		}
 		
 		/**
-		 * This funciton generates an Array sort function that will sort IQualifiedKeys.
-		 * @param columns An Array of IAttributeColumns to use for sorting IQualifiedKeys.
+		 * This funciton generates a compare function that will compare IQualifiedKeys based on the corresponding values in the specified columns.
+		 * @param columns An Array of IAttributeColumns to use for comparing IQualifiedKeys.
 		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
-		 * @return A new Function that will compare two IQualifiedKeys using numeric values from the specified columns. 
-		 */		
-		public static function generateSortFunction(columns:Array, descendingFlags:Array = null):Function
+		 * @return A new Function that will compare two IQualifiedKeys using numeric values from the specified columns.
+		 */
+		public static function generateCompareFunction(columns:Array, descendingFlags:Array = null):Function
 		{
 			var i:int;
 			var column:IAttributeColumn;
@@ -471,7 +471,10 @@ package weave.utils
 					column = columns[i] as IAttributeColumn;
 					if (!column)
 						continue;
-					result = ObjectUtil.compare(column.getValueFromKey(key1, Number), column.getValueFromKey(key2, Number));
+					result = ObjectUtil.numericCompare(
+						column.getValueFromKey(key1, Number),
+						column.getValueFromKey(key2, Number)
+					);
 					if (result != 0)
 					{
 						if (descendingFlags && descendingFlags[i])

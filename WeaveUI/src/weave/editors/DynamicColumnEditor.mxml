@@ -92,6 +92,7 @@
 			import weave.data.KeySets.StringDataFilter;
 			import weave.primitives.AttributeHierarchy;
 			import weave.ui.ControlPanel;
+			import weave.utils.AsyncSort;
 			import weave.utils.ColumnUtils;
 			import weave.utils.HierarchyUtils;
 			import weave.utils.VectorUtils;
@@ -299,7 +300,7 @@
 					for (var string:String in valueMap)
 						valueList.push(string);
 					
-					valueList.sort(Array.CASEINSENSITIVE);
+					AsyncSort.sortImmediately(valueList, AsyncSort.compareCaseInsensitive);
 					
 					filterValue.dataProvider = valueList;
 				}
@@ -341,7 +342,7 @@
 					keyType = node.attribute(AttributeColumnMetadata.KEY_TYPE);
 					compatibleTypes = WeaveAPI.QKeyManager.getCompatibleKeyTypes(keyType);
 					compatibleTypes.push(keyType);
-					compatibleTypes.sort(Array.CASEINSENSITIVE);
+					AsyncSort.sortImmediately(compatibleTypes, AsyncSort.compareCaseInsensitive);
 					VectorUtils.removeDuplicatesFromSortedArray(compatibleTypes);
 				}
 				else
