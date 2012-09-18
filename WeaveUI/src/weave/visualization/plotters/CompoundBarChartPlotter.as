@@ -94,7 +94,7 @@ package weave.visualization.plotters
 			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = heightColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
+				registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
 		}
 		
 		/**
