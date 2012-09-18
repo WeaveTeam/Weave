@@ -70,7 +70,7 @@
 		<ui:NormalizedColumnComponent enabled="{lineEnabled.selected}" id="normalizedWeightComponent" label="Border Thickness"/>
 	</mx:VBox>
 	
-	<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0" enabled="{!useImagesCheck.selected || fixedImageSizeCheck.selected}"
+	<mx:VBox borderStyle="solid" horizontalAlign="center" verticalGap="0" enabled="{!useImagesCheck.selected || fixedImageSizeCheck.selected}"
 			 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1" width="100%">
 		<mx:Label text="{lang('Icon size:')}"/>
 		<mx:NumericStepper 	id="iconSize" 
@@ -79,7 +79,7 @@
 							width="50"
 							creationComplete="linkBindableProperty(_plotter.iconSize, event.target, 'value')"/>
 	</mx:VBox>
-	<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
+	<mx:VBox borderStyle="solid" horizontalAlign="center" verticalGap="0"
 			 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1" width="100%">
 		<mx:CheckBox id="useImagesCheck" label="{lang('Enable images for point data')}" click="handleGeomPlotterImageToggle()"/>
 		<ui:IndentTextInput id="imageURL" label="{lang('Default image URL')}" creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>

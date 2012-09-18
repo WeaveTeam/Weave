@@ -22,15 +22,14 @@ package weave.utils
 	import mx.utils.ObjectUtil;
 	
 	/**
-	 * This class contains static functions that manipulate Vector objects.
+	 * This class contains static functions that manipulate Vectors and Arrays.
+	 * Functions with <code>*</code> as parameter types support both Vector and Array.
+	 * Vector.<*> is not used because it causes compiler errors.
 	 * 
 	 * @author adufilie
-	 * @author abaumann
 	 */
 	public class VectorUtils
 	{
-		// Vector.<*> causes compiler errors, so use *
-		
 		/**
 		 * This function copies the contents of the source to the destination.
 		 * Either parameter may be either an Array or a Vector.
@@ -44,72 +43,10 @@ package weave.utils
 			return destination;
 		}
 		/**
-		 * appends the contents of the additionalValuesVector to the destionationVector
-		 * returns a pointer to the destinationVector
-		 */
-		public static function append(destinationVector:*, additionalValuesVector:*):*
-		{
-			destinationVector.length += additionalValuesVector.length;
-			var destinationIndex:int = destinationVector.length - 1;
-			var additionalValueIndex:int = additionalValuesVector.length - 1;
-			while (additionalValueIndex >= 0)
-				destinationVector[destinationIndex--] = additionalValuesVector[additionalValueIndex--];
-			return destinationVector;
-		}
-		
-		/**
-		 * compares two vectors to see if their contents are equal.
-		 */
-		public static function compare(vector1:*, vector2:*):Boolean
-		{
-			try
-			{
-				if (vector1.length != vector2.length)
-					return false;	
-			
-				for (var i:int = 0; i < vector1.length; i++)
-				{
-					if (vector1[i] !== vector2[i])
-						return false;	
-				}
-				
-				return true;
-			}
-			catch (error:Error)
-			{
-				return false;
-			}
-			
-			return false;
-		}
-		/**
-		 * copies the contents of the XMLList to the Vector
-		 * returns a pointer to the same Vector
-		 */
-		public static function copyXMLListToVector(xmlList:*, vector:*=null):*
-		{
-			if (vector == null)
-				vector = new Vector.<String>();
-			
-			if (xmlList == null)
-			{
-				vector.length = 0;
-			}
-			else
-			{
-				vector.length = (xmlList is XMLList ? xmlList.length() : xmlList.length);
-				
-				for (var i:int = vector.length - 1; i >= 0; i--)
-					vector[i] = xmlList[i];
-			}
-			return vector;
-		}
-		/**
 		 * Efficiently removes duplicate adjacent items in a pre-sorted Array (or Vector).
 		 * @param vector The sorted Array (or Vector)
-		 * @return A pointer to the same Array (or Vector)
 		 */
-		public static function removeDuplicatesFromSortedArray(vector:*):*
+		public static function removeDuplicatesFromSortedArray(vector:*):void
 		{
 			var iEnd:int = vector.length;
 			var iPrevWrite:int = 0; // always keep first item 
@@ -122,25 +59,12 @@ package weave.utils
 			}
 			if (iEnd > 0)
 				vector.length = iPrevWrite + 1;
-			return vector;
-		}
-		/**
-		 * standard '<' and '>' comparing objects, can be used for Vector sorting
-		 */
-		public static function standardCompare(x:*, y:*):Number
-		{
-			if (x < y)
-				return -1;
-			if (x > y)
-				return 1;
-			return 0;
 		}
 		/**
 		 * randomizes the order of the elements in the vector in O(n) time by modifying the given array.
 		 * @param the vector to randomize
-		 * @return the input vector
 		 */
-		public static function randomSort(vector:*):*
+		public static function randomSort(vector:*):void
 		{
 			var ptr:*;
 			var j:int;
@@ -155,14 +79,13 @@ package weave.utils
 				vector[i] = vector[j];
 				vector[j] = ptr;
 			}
-			return vector;
 		}
-
+		
 		/**
 		 * See http://en.wikipedia.org/wiki/Quick_select#Partition-based_general_selection_algorithm
 		 * @param list An Array or Vector to be re-organized
 		 * @param firstIndex The index of the first element in the list to partition.
-		 * @param lastIndex The index of the first element in the list to partition.
+		 * @param lastIndex The index of the last element in the list to partition.
 		 * @param pivotIndex The index of an element to use as a pivot when partitioning.
 		 * @param compareFunction A function that takes two array elements a,b and returns -1 if a<b, 1 if a>b, or 0 if a==b.
 		 * @return The index the pivot element was moved to during the execution of the function.
@@ -275,7 +198,7 @@ package weave.utils
 		/**
 		 * This will flatten an Array of Arrays into a flat Array.
 		 * Items will be appended to the destination Array.
-		 * @param source An Array to flatten.
+		 * @param source A multi-dimensional Array to flatten.
 		 * @param destination An Array or Vector to append items to.  If none specified, a new one will be created.
 		 * @return The destination Array with all the nested items in the source appended to it.
 		 */

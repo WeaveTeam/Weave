@@ -165,7 +165,6 @@ package weave.visualization.layers
 				var spatialIndex:SpatialIndex = _name_to_SpatialIndex[name] as SpatialIndex;
 				fullDataBounds.includeBounds(spatialIndex.collectiveBounds);
 			}
-			
 			// ----------------- hack --------------------
 			if (hack_adjustFullDataBounds != null)
 				hack_adjustFullDataBounds();
@@ -184,7 +183,7 @@ package weave.visualization.layers
 		public var hack_adjustFullDataBounds:Function = null;
 		/**
 		 * This can be set to a function that will be called whenever updateZoom is called.
-		 */		
+		 */
 		public var hack_updateZoom:Function = null;
 		
 		/**

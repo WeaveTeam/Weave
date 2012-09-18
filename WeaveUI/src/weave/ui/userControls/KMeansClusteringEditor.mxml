@@ -109,8 +109,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			private var columnNames:Array = new Array();//stores the names of the columns (an array of strings)
-			var assignNames: Array = new Array();
-			private var clusterInputValues = new Array();
+			private var assignNames: Array = new Array();
+			private var clusterInputValues:Array = new Array();
 			
 			
 			/**

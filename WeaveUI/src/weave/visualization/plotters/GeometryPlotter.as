@@ -336,8 +336,8 @@ package weave.visualization.plotters
 				}
 				
 				// this progress value will be less than 1
-				progress = recordIndex++ / task.recordKeys.length;
-				task.asyncState[RECORD_INDEX] = recordIndex;
+				progress = recordIndex / task.recordKeys.length;
+				task.asyncState[RECORD_INDEX] = ++recordIndex;
 				
 				// avoid doing too little or too much work per iteration 
 				if (getTimer() > task.iterationStopTime)

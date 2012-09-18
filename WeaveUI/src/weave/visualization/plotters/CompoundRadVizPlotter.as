@@ -36,6 +36,7 @@ package weave.visualization.plotters
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.IPlotterWithKeyCompare;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -61,7 +62,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author kmanohar
 	 */
-	public class CompoundRadVizPlotter extends AbstractPlotter
+	public class CompoundRadVizPlotter extends AbstractPlotter implements IPlotterWithKeyCompare
 	{
 		public function CompoundRadVizPlotter()
 		{
@@ -85,7 +86,7 @@ package weave.visualization.plotters
 			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-				registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
+				registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
@@ -325,7 +326,6 @@ package weave.visualization.plotters
 			{
 				if (!keyNumberMap || keyNumberMap[task.recordKeys[0]] == null)
 					return 1;
-				task.recordKeys.sort(sortKeys, Array.DESCENDING);
 			}
 			return super.drawPlotAsyncIteration(task);
 		}
@@ -428,25 +428,25 @@ package weave.visualization.plotters
 		}
 			
 		/**
-		 * This function sorts record keys based on their radiusColumn values, then by their colorColumn values
+		 * This function compares record keys based on their radiusColumn values, then by their colorColumn values
 		 * @param key1 First record key (a)
 		 * @param key2 Second record key (b)
-		 * @return Sort value: 0: (a == b), -1: (a < b), 1: (a > b)
+		 * @return Compare value: 0: (a == b), -1: (a < b), 1: (a > b)
 		 * 
 		 */			
-		private function sortKeys(key1:IQualifiedKey, key2:IQualifiedKey):int
+		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{			
-			// sort descending (high radius values drawn first)
 			if (radiusColumn.getInternalColumn())
 			{				
 				// compare size
 				var a:Number = radiusColumn.getValueFromKey(key1, Number);
 				var b:Number = radiusColumn.getValueFromKey(key2, Number);
 				
+				// sort descending (high radius values drawn first)
 				if (isNaN(a) || a < b)
-					return -1;
-				else if (isNaN(b) || a > b)
 					return 1;
+				else if (isNaN(b) || a > b)
+					return -1;
 			}
 			// size equal.. compare color (if global colorColumn is used)
 			if (!enableWedgeColoring.value)
@@ -454,8 +454,10 @@ package weave.visualization.plotters
 				a = keyColorMap[key1];
 				b = keyColorMap[key2];
 				// sort ascending (high values drawn last)
-				if( a < b ) return 1;
-				else if (a > b) return -1 ;
+				if ( a < b )
+					return -1;
+				else if (a > b)
+					return 1;
 			}
 			
 			return 0 ;

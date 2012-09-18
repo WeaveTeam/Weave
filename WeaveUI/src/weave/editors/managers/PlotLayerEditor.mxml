@@ -272,7 +272,7 @@
 								</mx:HBox>
 							</mx:VBox>
 							
-							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0" enabled="{!useImagesCheck.selected || fixedImageSizeCheck.selected}"
+							<mx:VBox borderStyle="solid" horizontalAlign="center" verticalGap="0" enabled="{!useImagesCheck.selected || fixedImageSizeCheck.selected}"
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
 								<mx:Label text="{lang('Icon size:')}"/>
 								<mx:NumericStepper 	id="iconSize" 
@@ -280,7 +280,7 @@
 													minimum="0.2" maximum="60"
 													width="50"/>
 							</mx:VBox>
-							<mx:VBox borderStyle="solid" horizontalAlign="middle" verticalGap="0"
+							<mx:VBox borderStyle="solid" horizontalAlign="center" verticalGap="0"
 									 paddingLeft="1" paddingBottom="1" paddingRight="1" paddingTop="1">
 								<mx:CheckBox id="useImagesCheck" label="{lang('Enable Images')}" click="handleGeomPlotterImageToggle()"/>
 								<mx:TextInput id="imageURL" creationComplete="EventUtils.addDelayedEventCallback(event.target, Event.CHANGE, handleGeomPlotterImageInput)" enabled="{useImagesCheck.selected}"/>

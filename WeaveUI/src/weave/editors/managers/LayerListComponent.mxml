@@ -49,6 +49,7 @@ LayerListComponent
 							
 							import weave.api.linkBindableProperty;
 							import weave.api.newDisposableChild;
+							import weave.api.objectWasDisposed;
 							import weave.api.ui.ILinkableObjectEditor;
 							import weave.api.ui.IPlotter;
 							import weave.api.unlinkBindableProperty;
@@ -91,6 +92,10 @@ LayerListComponent
 							[Bindable] public var layerIsSelectable:Boolean = true;
 							override public function set data(newPlotter:Object):void
 							{
+								// filter out bogus data
+								if (objectWasDisposed(newPlotter))
+									newPlotter = null;
+								
 								newPlotter = newPlotter as IPlotter;
 								if (plotter == newPlotter)
 									return;

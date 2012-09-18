@@ -391,6 +391,7 @@ package weave.core
 
 			// set session state
 			var name:String;
+			
 			for each (name in getLinkablePropertyNames(linkableObject))
 			{
 				if (!newState.hasOwnProperty(name))
@@ -418,7 +419,7 @@ package weave.core
 			
 			// pass deprecated session state to deprecated setters
 			for each (name in getDeprecatedSetterNames(linkableObject))
-				if (newState.hasOwnProperty(name))
+				if (newState.hasOwnProperty(name) && newState[name] !== null)
 					linkableObject[name] = newState[name];
 			
 			// resume callbacks after setting session state

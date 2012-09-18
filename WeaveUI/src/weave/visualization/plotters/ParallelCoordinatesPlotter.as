@@ -47,6 +47,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.SimpleGeometry;
+	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
 	import weave.utils.VectorUtils;
@@ -156,8 +157,8 @@ package weave.visualization.plotters
 				var values:Array = [];
 				for each (var key:IQualifiedKey in xData.keys)
 					values.push(xData.getValueFromKey(key, String));
-				values.sort();
-				values = VectorUtils.removeDuplicatesFromSortedArray(values);
+				AsyncSort.sortImmediately(values);
+				VectorUtils.removeDuplicatesFromSortedArray(values);
 				return values;
 			}
 		}

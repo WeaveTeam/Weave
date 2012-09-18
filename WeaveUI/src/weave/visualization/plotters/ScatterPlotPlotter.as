@@ -28,6 +28,7 @@ package weave.visualization.plotters
 	import weave.api.newDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.IPlotterWithKeyCompare;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
@@ -40,7 +41,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class ScatterPlotPlotter extends AbstractSimplifiedPlotter
+	public class ScatterPlotPlotter extends AbstractSimplifiedPlotter implements IPlotterWithKeyCompare
 	{
 		public function ScatterPlotPlotter()
 		{
@@ -52,6 +53,7 @@ package weave.visualization.plotters
 				registerSpatialProperty(spatialProperty);
 			for each (var child:ILinkableObject in [colorColumn, radiusColumn, minScreenRadius, maxScreenRadius, defaultScreenRadius, alphaColumn, enabledSizeBy])
 				registerLinkableChild(this, child);
+			_keyCompare = ColumnUtils.generateCompareFunction([radiusColumn, colorColumn, xColumn, yColumn], [true, false, false, false]);
 		}
 		
 		private var _keySet:KeySet = newDisposableChild(this,KeySet);
@@ -63,24 +65,17 @@ package weave.visualization.plotters
 			setKeySource(_keySet);
 		}
 		
-		override public function drawPlotAsyncIteration(task:IPlotTask):Number
-		{
-			if (task.iteration == 0)
-			{
-				if (sortKeys == null)
-					sortKeys = ColumnUtils.generateSortFunction([radiusColumn, colorColumn, xColumn, yColumn], [true, false, false, false]);
-				task.recordKeys.sort(sortKeys);
-			}
-			return super.drawPlotAsyncIteration(task);
-		}
-		
+		private var _keyCompare:Function = null;
 		/**
-		 * This function sorts record keys based on their radiusColumn values, then by their colorColumn values
+		 * This function compares record keys based on their radiusColumn values, then by their colorColumn values
 		 * @param key1 First record key (a)
 		 * @param key2 Second record key (b)
-		 * @return Sort value: 0: (a == b), -1: (a < b), 1: (a > b)
-		 */			
-		private var sortKeys:Function = null;
+		 * @return Compare value: 0: (a == b), -1: (a < b), 1: (a > b)
+		 */
+		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
+		{
+			return _keyCompare(key1, key2);
+		}
 		
 		public function get circlePlotter():CircleGlyphPlotter { return internalPlotter as CircleGlyphPlotter; }
 		

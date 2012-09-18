@@ -32,6 +32,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.IPlotterWithKeyCompare;
 	import weave.api.ui.ITextPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -45,7 +46,7 @@ package weave.visualization.plotters
 	/**
 	 * @author adufilie
 	 */
-	public class TextGlyphPlotter extends AbstractGlyphPlotter implements ITextPlotter
+	public class TextGlyphPlotter extends AbstractGlyphPlotter implements ITextPlotter, IPlotterWithKeyCompare
 	{
 		public function TextGlyphPlotter()
 		{
@@ -93,11 +94,11 @@ package weave.visualization.plotters
 		public const yScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const maxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100));
 
-		/**
-		 * This function is used with Array.sort to sort a list of record keys by the sortColumn values.
-		 */
-		private function compareRecords(key1:IQualifiedKey, key2:IQualifiedKey):int
+		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{
+			if (!sortColumn.getInternalColumn())
+				return ObjectUtil.compare(key1, key2);
+			
 			var value1:Number = sortColumn.getValueFromKey(key1, Number);
 			var value2:Number = sortColumn.getValueFromKey(key2, Number);
 			return ObjectUtil.numericCompare(value1, value2)
@@ -121,9 +122,9 @@ package weave.visualization.plotters
 					
 					if (task.iteration == 0)
 					{
-						if (sortColumn.getInternalColumn() != null)
-							task.recordKeys.sort(compareRecords);
-			
+						// cleanup
+						for each (bounds in reusableBoundsObjects)
+							ObjectPool.returnObject(bounds);
 						reusableBoundsObjects.length = 0;
 					}
 					

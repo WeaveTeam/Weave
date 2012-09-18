@@ -38,11 +38,13 @@ package weave.visualization.layers
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
+	import weave.api.ui.IPlotterWithKeyCompare;
 	import weave.core.CallbackCollection;
 	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ZoomBounds;
+	import weave.utils.AsyncSort;
 	import weave.utils.PlotterUtils;
 	import weave.utils.SpatialIndex;
 
@@ -93,7 +95,6 @@ package weave.visualization.layers
 		 */		
 		public function PlotTask(taskType:int, plotter:IPlotter, spatialIndex:SpatialIndex, zoomBounds:ZoomBounds, layerSettings:LayerSettings)
 		{
-			// _dependencies is used as the parent so we can check its busy status with a single function call.
 			_taskType = taskType;
 			_plotter = plotter;
 			_spatialIndex = spatialIndex;
@@ -102,6 +103,8 @@ package weave.visualization.layers
 			
 			var keyFilters:Array = [_layerSettings.subsetFilter, _layerSettings.selectionFilter, _layerSettings.probeFilter];
 			var keyFilter:ILinkableObject = keyFilters[_taskType];
+			
+			// _dependencies is used as the parent so we can check its busy status with a single function call.
 			var list:Array = [_plotter, _spatialIndex, _zoomBounds, _layerSettings, keyFilter];
 			for each (var dependency:ILinkableObject in list)
 				registerLinkableChild(_dependencies, dependency);
@@ -159,6 +162,7 @@ package weave.visualization.layers
 		private var _asyncState:Object = {};
 		private var _pendingKeys:Array;
 		private var _iPendingKey:uint;
+		private const _asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);
 		private var _progress:Number = 0;
 		private var _delayInit:Boolean = false;
 		private var _pendingInit:Boolean = false;
@@ -346,6 +350,21 @@ package weave.visualization.layers
 						}
 					}
 				}
+				if (_plotter is IPlotterWithKeyCompare)
+				{
+					if (_iPendingKey == _pendingKeys.length) // should we start sorting?
+					{
+						_asyncSort.beginSort(_recordKeys, (_plotter as IPlotterWithKeyCompare).keyCompare);
+						_iPendingKey = int.MAX_VALUE; // remember that sorting has already started
+					}
+					
+					if (_asyncSort.result == null)
+						return 0; // not done yet
+					
+					// use the sorted array
+					_recordKeys = _asyncSort.result;
+				}
+				
 				// done with keys
 				_pendingKeys = null;
 			}

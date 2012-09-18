@@ -104,11 +104,6 @@ package weave
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
 	import weave.ui.controlBars.WeaveMenuItem;
-
-	import weave.ui.userControls.SchafersMissingDataTool;
-	import weave.utils.ColumnUtils;
-
-
 	import weave.utils.DebugTimer;
 	import weave.utils.EditorManager;
 	import weave.utils.VectorUtils;

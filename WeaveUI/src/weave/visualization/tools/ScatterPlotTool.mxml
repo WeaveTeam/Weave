@@ -267,7 +267,8 @@
 				var missingX:Boolean;
 				var missingY:Boolean;
 				
-				for each(var key:IQualifiedKey in recordKeys)	
+				//TODO: make this asynchronous
+				for each(var key:IQualifiedKey in recordKeys)
 				{
 					missingX = !plotter.xColumn.containsKey(key);
 					missingY = !plotter.yColumn.containsKey(key);
