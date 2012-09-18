@@ -80,7 +80,8 @@ package weave.utils
 			var columns:Array = headers.concat(probedColumns.getObjects(IAttributeColumn));
 			if (additionalColumns != null)
 				columns = columns.concat(additionalColumns);
-			var keys:Array = keys.concat().sort(ObjectUtil.compare);
+			var keys:Array = keys.concat();
+			AsyncSort.sortImmediately(keys);
 			var key:IQualifiedKey;
 			var recordCount:int = 0;
 			var maxRecordsShown:Number = Weave.properties.maxTooltipRecordsShown.value;

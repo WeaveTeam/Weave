@@ -388,9 +388,9 @@ SchafersMissingDataImputation
 			}
 			
 			private var assignToBeValues:Array = new Array();
-			var assignNames: Array = new Array();
+			private var assignNames: Array = new Array();
 			private var columnNames:Array = new Array();//stores the names of the columns (an array of strings)
-			var missingCountInEachRecord:Array = new Array();//need to display in a column in the final datatable
+			private var missingCountInEachRecord:Array = new Array();//need to display in a column in the final datatable
 			
 		
 			protected function imputing_buttonDownHandler(event:FlexEvent):void
@@ -498,7 +498,7 @@ SchafersMissingDataImputation
 		
 			private var focusedTA:TextArea = null; 
 			private var outputNames:Array = new Array();
-			private var clusterInputValues = new Array();
+			private var clusterInputValues:Array = new Array();
 			
 			
 /* 		

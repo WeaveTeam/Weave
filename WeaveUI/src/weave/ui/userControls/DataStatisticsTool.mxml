@@ -108,7 +108,9 @@
 			
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
-			public var script:String = ""; var joinedColumnsKeys:Array ; var joinedColumns:Array ;
+			public var script:String = "";
+			private var joinedColumnsKeys:Array ;
+			private var joinedColumns:Array ;
 			public var outputNames:Array = new Array();
 			public var finalGridDisplayArray:Array = new Array();
 			

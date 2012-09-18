@@ -214,7 +214,7 @@ package weave.utils
 			}	
 			// sort by increasing similarity values 
 			// we want the least similar dimensions at index 0
-			similarityMatrix.sort(sortEntries);
+			AsyncSort.sortImmediately(similarityMatrix, sortEntries);
 			
 			return similarityMatrix;
 		}

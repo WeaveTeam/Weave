@@ -126,7 +126,7 @@
 			private function handleColorRampSelected():void
 			{
 				if (selectedItem is XML && colorRamp)
-					colorRamp.value = ColorRamp.getColorRampXMLByName(selectedItem.@name);
+					colorRamp.value = selectedItem.copy();
 			}
 						
 		]]>

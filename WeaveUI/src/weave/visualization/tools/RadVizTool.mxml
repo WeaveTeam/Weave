@@ -1,26 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-@ kmanohar
-@ spurushe
+-->
+<!---
+@author kmanohar
+@author spurushe
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
@@ -63,7 +64,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
-			import weave.utils.SpatialIndex;
 			import weave.visualization.plotters.AnchorPlotter;
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.RadVizPlotter;
@@ -258,7 +258,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(!Weave.properties.enableProbeLines.value) return;
 				
 				var probeKeySet:IKeySet = (mainLayerSettings.probeFilter.internalObject) as IKeySet;
-				if(!probeKeySet) return;
+				if (!probeKeySet)
+					return;
 				
 				visualization.plotManager.zoomBounds.getDataBounds(dataBounds);
 				visualization.plotManager.zoomBounds.getScreenBounds(screenBounds);
@@ -336,27 +337,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override protected function get defaultPanelTitle():String
 			{
-				// try to get unique attribute names separated by commas					
-				var newTitle:String = lang("RadViz of ");
-				
-				var uniqueColumns:Dictionary = new Dictionary();
-				
-				for each(var column:IAttributeColumn in _plotter.columns.getObjects(IAttributeColumn) )
-				{
-					uniqueColumns[ColumnUtils.getTitle(column)] = column;
-				}
-				
-				var comma:Boolean = false;
-				for (var uniqueTitle:String in uniqueColumns)
-				{
-					newTitle += uniqueTitle;
-					if (comma)
-						newTitle += lang(", ");
-					else
-						comma = true;
-				}
-				
-				return newTitle;
+				var columns:Array = _plotter.columns.getObjects(IAttributeColumn);
+				for (var i:int = 0; i < columns.length; i++)
+					columns[i] = ColumnUtils.getTitle(columns[i] as IAttributeColumn);
+				return lang("RadViz of {0}", columns.join(lang(', ')));
 			}
 			
 			private const colorRampName:LinkableString = newLinkableChild(this, LinkableString,handleColorRampName);
@@ -367,15 +351,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return callLater(handleColorRampName);
 				_plotter.colorMap.value = ColorRamp.getColorRampXMLByName(colorRampName.value);				
 			}
-			
-			private function alphaSliderFormatFunction(item:Number):String 
-			{
-				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
-			}
-			
-			
-			
 		]]>
 	</mx:Script>
-
 </SimpleVisTool>

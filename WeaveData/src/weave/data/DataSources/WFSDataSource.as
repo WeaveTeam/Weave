@@ -421,12 +421,12 @@ package weave.data.DataSources
 				else if (ObjectUtil.stringCompare(dataType, DataTypes.NUMBER, true) == 0)
 				{
 					newColumn = new NumberColumn(hierarchyNode);
-					(newColumn as NumberColumn).setRecords(keysVector, VectorUtils.copyXMLListToVector(dataList, new Vector.<Number>()));
+					(newColumn as NumberColumn).setRecords(keysVector, xmlToVector(dataList, new Vector.<Number>()));
 				}
 				else
 				{
 					newColumn = new StringColumn(hierarchyNode);
-					(newColumn as StringColumn).setRecords(keysVector, VectorUtils.copyXMLListToVector(dataList, new Vector.<String>()));
+					(newColumn as StringColumn).setRecords(keysVector, xmlToVector(dataList, new Vector.<String>()));
 				}
 				// save pointer to new column inside the matching proxy column
 				proxyColumn.setInternalColumn(newColumn);
@@ -436,7 +436,20 @@ package weave.data.DataSources
 				//var detail:String = ObjectUtil.toString(request.request) + '\n\nResult: ' + (result && result.toXMLString());
 				reportError(e);
 			}
-
+		}
+		
+		/**
+		 * Copies elements from XMLList to Vector
+		 * @param xmlList source
+		 * @param vector destination
+		 * @return vector 
+		 */
+		private function xmlToVector(xmlList:XMLList, vector:Vector):*
+		{
+			vector.length = xmlList.length();
+			for (var i:int = vector.length - 1; i >= 0; i--)
+				vector[i] = xmlList[i];
+			return vector;
 		}
 		
 		/**

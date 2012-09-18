@@ -69,6 +69,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.KeySet;
+			import weave.utils.AsyncSort;
 			import weave.utils.ColumnUtils;
 			import weave.utils.NumberUtils;
 			
@@ -164,7 +165,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(col)
 				{
 					//sort the keys in the header column
-					var sortFn:Function = ColumnUtils.generateSortFunction([col]);
+					var sortFn:Function = ColumnUtils.generateCompareFunction([col]);
 					
 					var keys:Array = [];
 					
@@ -174,7 +175,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					else
 						keys = col.keys.concat(); // make a copy so we don't modify the original
 					
-					keys.sort(sortFn);
+					AsyncSort.sortImmediately(keys, sortFn);
 					
 					
 					var columnsToAdd:Array = [];

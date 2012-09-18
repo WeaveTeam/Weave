@@ -41,6 +41,7 @@ package weave.services.wms
 	import weave.core.StageUtils;
 	import weave.primitives.Bounds2D;
 	import weave.services.URLRequestUtils;
+	import weave.utils.AsyncSort;
 
 	/**
 	 * This class handles the requests for tiles from NASA's OnEarth WMS.
@@ -369,7 +370,7 @@ package weave.services.wms
 				}
 			}
 			
-			lowerQualTiles = lowerQualTiles.sort(tileSortingComparison);
+			AsyncSort.sortImmediately(lowerQualTiles, tileSortingComparison);
 			return lowerQualTiles.concat(completedTiles);
 		}
 		
