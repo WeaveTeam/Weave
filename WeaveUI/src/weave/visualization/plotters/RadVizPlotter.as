@@ -82,7 +82,7 @@ package weave.visualization.plotters
 			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-				registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
+				registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
