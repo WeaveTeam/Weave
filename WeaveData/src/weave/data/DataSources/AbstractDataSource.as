@@ -309,8 +309,8 @@ package weave.data.DataSources
 			{
 				debug('requestColumnFromSource', request.columnReference.getHashCode());
 				
-				WeaveAPI.SessionManager.unassignBusyTask(request);
 				WeaveAPI.StageUtils.callLater(request.proxyColumn, requestColumnFromSource, [request.columnReference, request.proxyColumn]);
+				WeaveAPI.StageUtils.callLater(request.proxyColumn, WeaveAPI.SessionManager.unassignBusyTask, [request]);
 				//requestColumnFromSource(request.columnReference, request.proxyColumn);
 			}
 			else
