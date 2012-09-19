@@ -19,26 +19,19 @@
 
 package weave.visualization.plotters
 {
-	import flash.utils.Dictionary;
-	
 	import weave.api.core.ILinkableObject;
-	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.newDisposableChild;
+	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotterWithKeyCompare;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.KeySets.KeySet;
+	import weave.data.KeySets.KeySetUnion;
 	import weave.utils.ColumnUtils;
 	
 	/**
-	 * ScatterPlotPlotter
-	 * 
 	 * @author adufilie
 	 */
 	public class ScatterPlotPlotter extends AbstractSimplifiedPlotter implements IPlotterWithKeyCompare
@@ -47,25 +40,29 @@ package weave.visualization.plotters
 		{
 			super(CircleGlyphPlotter);
 			//circlePlotter.fillStyle.lock();
-			setKeySource(_keySet);
-			getCallbackCollection(this).addImmediateCallback(this, updateKeys);
 			for each (var spatialProperty:ILinkableObject in [xColumn, yColumn, zoomToSubset])
 				registerSpatialProperty(spatialProperty);
 			for each (var child:ILinkableObject in [colorColumn, radiusColumn, minScreenRadius, maxScreenRadius, defaultScreenRadius, alphaColumn, enabledSizeBy])
 				registerLinkableChild(this, child);
+				
+			_keySetUnion.addKeySetDependency(xColumn);
+			_keySetUnion.addKeySetDependency(yColumn);
+			_keySetUnion.addKeySetDependency(radiusColumn);
+			_keySetUnion.addKeySetDependency(colorColumn);
+			setKeySource(_keySetUnion);
+			
 			_keyCompare = ColumnUtils.generateCompareFunction([radiusColumn, colorColumn, xColumn, yColumn], [true, false, false, false]);
 		}
 		
-		private var _keySet:KeySet = newDisposableChild(this,KeySet);
+		private var _keySetUnion:KeySetUnion = registerDisposableChild(this, new KeySetUnion(keyInclusionLogic));
 		
-		public function setCustomKeySource(keys:Array):void
-		{			
-			getCallbackCollection(this).removeCallback(updateKeys);
-			_keySet.replaceKeys(keys);
-			setKeySource(_keySet);
+		public var hack_keyInclusionLogic:Function = null;
+		private function keyInclusionLogic(key:IQualifiedKey):Boolean
+		{
+			return hack_keyInclusionLogic == null ? true : hack_keyInclusionLogic(key);
 		}
 		
-		private var _keyCompare:Function = null;
+		private var _keyCompare:Function;
 		/**
 		 * This function compares record keys based on their radiusColumn values, then by their colorColumn values
 		 * @param key1 First record key (a)
@@ -77,6 +74,9 @@ package weave.visualization.plotters
 			return _keyCompare(key1, key2);
 		}
 		
+		/**
+		 * @TODO This is not supposed to be public. Replace ScatterPlotPlotter with CircleGlyphPlotter and add the necessary backwards compatibility code.
+		 */		
 		public function get circlePlotter():CircleGlyphPlotter { return internalPlotter as CircleGlyphPlotter; }
 		
 		// the private plotter being simplified
@@ -92,31 +92,6 @@ package weave.visualization.plotters
 		public function get colorColumn():AlwaysDefinedColumn { return _internalCirclePlotter.fill.color; }
 		public function get radiusColumn():DynamicColumn { return _internalCirclePlotter.screenRadius; }
 		public function get zoomToSubset():LinkableBoolean { return _internalCirclePlotter.zoomToSubset; }
-		
-		private function getAllKeys(...inputKeySets):Array
-		{
-			var lookup:Dictionary = new Dictionary(true);
-			var result:Array = [];
-			for (var i:int = 0; i < inputKeySets.length; i++)
-			{
-				var keys:Array = (inputKeySets[i] as IKeySet).keys;
-				for (var j:int = 0; j < keys.length; j++)
-				{
-					var key:IQualifiedKey = keys[j] as IQualifiedKey;
-					if (lookup[key] === undefined)
-					{
-						lookup[key] = true;
-						result.push(key);
-					}
-				}
-			}
-			return result;
-		}
-		
-		private function updateKeys():void
-		{
-			_keySet.replaceKeys(getAllKeys(xColumn, yColumn, radiusColumn, colorColumn));
-		}
 	}
 }
 

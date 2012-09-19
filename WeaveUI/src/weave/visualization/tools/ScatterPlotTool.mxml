@@ -33,14 +33,12 @@
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
 			import weave.api.primitives.IBounds2D;
 			import weave.api.registerLinkableChild;
-			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
@@ -157,13 +155,12 @@
 			
 			private const _tempBounds:Bounds2D = new Bounds2D();
 			
-			
 			private function initializeUndefinedLayers():void
 			{
 				vis_undef_x = children.requestObject(UNDEFINED_X_NAME, SimpleInteractiveVisualization, true);
 				vis_undef_y = children.requestObject(UNDEFINED_Y_NAME, SimpleInteractiveVisualization, true);
 				vis_undef_xy = children.requestObject(UNDEFINED_XY_NAME, SimpleInteractiveVisualization, true);
-				
+
 				vis_undef_x.toolTip = lang("Undefined X");
 				vis_undef_y.toolTip = lang("Undefined Y");
 				vis_undef_xy.toolTip = lang("Undefined X and Y");
@@ -186,19 +183,36 @@
 					linkSessionState(plotter.minScreenRadius, _plotter.minScreenRadius);
 					
 					var undefSettings:LayerSettings = vis.getMainLayerSettings();
-					
 					undefSettings.hack_includeMissingRecordBounds = true;
 					linkSessionState(visualization.getMainLayerSettings(), undefSettings);
 					linkSessionState(visualization.plotManager.zoomBounds, vis.plotManager.zoomBounds);
 				}
 				
-				linkSessionState(plotter.xColumn, (vis_undef_y.getMainPlotter() as ScatterPlotPlotter).xColumn);
-				linkSessionState(plotter.yColumn, (vis_undef_x.getMainPlotter() as ScatterPlotPlotter).yColumn);
+				var plotter_undef_x:ScatterPlotPlotter = vis_undef_x.getMainPlotter() as ScatterPlotPlotter;
+				var plotter_undef_y:ScatterPlotPlotter = vis_undef_y.getMainPlotter() as ScatterPlotPlotter;
+				var plotter_undef_xy:ScatterPlotPlotter = vis_undef_xy.getMainPlotter() as ScatterPlotPlotter;
 				
-				for each(var column:IAttributeColumn in getSelectableAttributes())
+				plotter_undef_x.hack_keyInclusionLogic = function(key:IQualifiedKey):Boolean
 				{
-					column.addGroupedCallback(this, setUndefinedPlotterKeySource, true);
-				}
+					var x:Boolean = plotter.xColumn.containsKey(key);
+					var y:Boolean = plotter.yColumn.containsKey(key);
+					return !x && y;
+				};
+				plotter_undef_y.hack_keyInclusionLogic = function(key:IQualifiedKey):Boolean
+				{
+					var x:Boolean = plotter.xColumn.containsKey(key);
+					var y:Boolean = plotter.yColumn.containsKey(key);
+					return x && !y;
+				};
+				plotter_undef_xy.hack_keyInclusionLogic = function(key:IQualifiedKey):Boolean
+				{
+					var x:Boolean = plotter.xColumn.containsKey(key);
+					var y:Boolean = plotter.yColumn.containsKey(key);
+					return !x && !y;
+				};
+				
+				linkSessionState(plotter.xColumn, plotter_undef_y.xColumn);
+				linkSessionState(plotter.yColumn, plotter_undef_x.yColumn);
 				
 				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, invalidateDisplayList);
 				
@@ -210,9 +224,6 @@
 				visualization.gridLineAlpha.addImmediateCallback(this, invalidateDisplayList);
 				visualization.gridLineColor.addImmediateCallback(this, invalidateDisplayList);
 				visualization.gridLineThickness.addImmediateCallback(this, invalidateDisplayList);
-				
-//				addEventListener(MouseEvent.MOUSE_MOVE, displayToolTip);
-//				addEventListener(MouseEvent.MOUSE_OUT, destroyToolTip);
 			}
 			private function resizeUndefinedLayers():void
 			{
@@ -257,86 +268,6 @@
 				displayObject.width = bounds.getXCoverage();
 				displayObject.height = bounds.getYCoverage();
 			}
-			
-			private function setUndefinedPlotterKeySource():void
-			{
-				var recordKeys:Array = plotter.keySet.keys;
-				var missingXkeys:Array = [];
-				var missingYkeys:Array = [];
-				var missingXYkeys:Array = [];
-				var missingX:Boolean;
-				var missingY:Boolean;
-				
-				//TODO: make this asynchronous
-				for each(var key:IQualifiedKey in recordKeys)
-				{
-					missingX = !plotter.xColumn.containsKey(key);
-					missingY = !plotter.yColumn.containsKey(key);
-					
-					if (missingX)
-					{
-						if (missingY)
-							missingXYkeys.push(key);
-						else 
-							missingXkeys.push(key);
-					}
-					else if (missingY)
-					{
-						missingYkeys.push(key);
-					}
-				}
-				(vis_undef_x.getMainPlotter() as ScatterPlotPlotter).setCustomKeySource(missingXkeys);
-				(vis_undef_y.getMainPlotter() as ScatterPlotPlotter).setCustomKeySource(missingYkeys);
-				(vis_undef_xy.getMainPlotter() as ScatterPlotPlotter).setCustomKeySource(missingXYkeys);
-			}
-			
-			
-//			private var _toolTip:IToolTip = null;
-//			private function displayToolTip(event:MouseEvent):void
-//			{
-//				destroyToolTip(event);
-//				_tempPoint = this.globalToContent(new Point(event.stageX, event.stageY));
-//								
-//				var probeExists:Boolean = mainLayerSettings.probeFilter.internalObject is IKeySet &&
-//					(mainLayerSettings.probeFilter.internalObject as IKeySet).keys.length > 0;
-//
-//				var selectionExists:Boolean = mainLayerSettings.selectionFilter.internalObject is IKeySet &&
-//					(mainLayerSettings.selectionFilter.internalObject as IKeySet).keys.length > 0;
-//				
-//				if (probeExists || selectionExists)
-//					return;
-//				
-//				if (_undefinedXSettings.hack_lockScreenBounds.containsPoint(_tempPoint))
-//				{
-//					_tempPoint = this.contentToGlobal(_tempPoint);
-//					_toolTip = ToolTipManager.createToolTip(lang("undefined x"),_tempPoint.x, _tempPoint.y);	
-//					visualization.constrainToolTipsToStage(_toolTip);
-//					return;
-//				}
-//				if (_undefinedYSettings.hack_lockScreenBounds.containsPoint(_tempPoint))
-//				{
-//					_tempPoint = this.contentToGlobal(_tempPoint);
-//					_toolTip = ToolTipManager.createToolTip(lang("undefined y"),_tempPoint.x, _tempPoint.y);
-//					visualization.constrainToolTipsToStage(_toolTip);
-//					return;
-//				}
-//				if (_undefinedXYSettings.hack_lockScreenBounds.containsPoint(_tempPoint))
-//				{
-//					_tempPoint = this.contentToGlobal(_tempPoint);
-//					_toolTip = ToolTipManager.createToolTip(lang("undefined x,y"),_tempPoint.x, _tempPoint.y);
-//					visualization.constrainToolTipsToStage(_toolTip);
-//					return;
-//				}   
-//			}
-			
-//			private function destroyToolTip(event:MouseEvent):void
-//			{
-//				if(_toolTip != null) 
-//				{
-//					ToolTipManager.destroyToolTip(_toolTip);
-//					_toolTip = null;
-//				}
-//			}
 			/*END UNDEFINED LAYER CODE*/
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);

@@ -39,9 +39,18 @@ package weave.data.KeySets
 	 */
 	public class KeySetUnion implements IKeySet, IDisposableObject
 	{
-		public function KeySetUnion()
+		/**
+		 * @param keyInclusionLogic A function that accepts an IQualifiedKey and returns true or false.
+		 */		
+		public function KeySetUnion(keyInclusionLogic:Function = null)
 		{
+			_keyInclusionLogic = keyInclusionLogic;
 		}
+		
+		/**
+		 * This will be used to determine whether or not to include a key.
+		 */		
+		private var _keyInclusionLogic:Function = null;
 		
 		/**
 		 * This will add an IKeySet as a dependency and include its keys in the union.
@@ -49,9 +58,13 @@ package weave.data.KeySets
 		 */
 		public function addKeySetDependency(keySet:IKeySet):void
 		{
-			registerLinkableChild(_dependencies, keySet);
-			getCallbackCollection(keySet).addDisposeCallback(this, _dependencies.triggerCallbacks);
-			_dependencies.triggerCallbacks();
+			if (_keySets.indexOf(keySet) < 0)
+			{
+				_keySets.push(keySet);
+				registerLinkableChild(this, keySet);
+				getCallbackCollection(keySet).addDisposeCallback(this, getCallbackCollection(this).triggerCallbacks);
+				getCallbackCollection(this).triggerCallbacks();
+			}
 		}
 		
 		/**
@@ -62,7 +75,6 @@ package weave.data.KeySets
 			_validate();
 			return _allKeys;
 		}
-		
 
 		/**
 		 * @param key A IQualifiedKey object to check.
@@ -71,20 +83,19 @@ package weave.data.KeySets
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
 			_validate();
-			return _keyLookup[key] !== undefined;
+			return _keyLookup[key] === true;
 		}
-
-		private const _dependencies:ICallbackCollection = newLinkableChild(this, CallbackCollection);
+		
+		private var _keySets:Array = [];
 		private var _allKeys:Array;
 		private var _keyLookup:Dictionary;
 		
 		private function _validate():void
 		{
-			if (detectLinkableObjectChange(_validate, _dependencies))
+			if (detectLinkableObjectChange(_validate, this))
 			{
 				_allKeys = [];
 				_keyLookup = new Dictionary(true);
-				var _keySets:Array = getLinkableDescendants(_dependencies, IKeySet);
 				for (var i:int = 0; i < _keySets.length; i++)
 				{
 					var keys:Array = (_keySets[i] as IKeySet).keys;
@@ -93,8 +104,10 @@ package weave.data.KeySets
 						var key:IQualifiedKey = keys[j] as IQualifiedKey;
 						if (_keyLookup[key] === undefined)
 						{
-							_keyLookup[key] = true;
-							_allKeys.push(key);
+							var includeKey:Boolean = (_keyInclusionLogic == null) ? true : _keyInclusionLogic(key);
+							_keyLookup[key] = includeKey;
+							if (includeKey)
+								_allKeys.push(key);
 						}
 					}
 				}
