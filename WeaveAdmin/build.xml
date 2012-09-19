@@ -39,7 +39,7 @@
 		<mkdir dir="${OUTPUT_DIR}"/>
 		<mxmlc 
 			file="${SOURCE_DIR}/AdminConsole.mxml"
-			target-player="10.0.0"
+			target-player="10.2.0"
 			output="${OUTPUT_DIR}/WeaveAdmin.swf"
 			locale="${LOCALE}"
 			static-rsls="false"
@@ -48,9 +48,9 @@
 			debug="${DEBUG}"
 		>
 			<load-config filename="${FLEX_HOME}/frameworks/flex-config.xml"/>
+                        <theme file="${FLEX_HOME}/frameworks/themes/Halo/halo.swc"/>
 
 			<source-path path-element="${SOURCE_DIR}"/>
-
 			<library-path file="${FLEX_HOME}/frameworks/libs/automation.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/automation_agent.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/automation_dmv.swc" append="true"/>
@@ -60,7 +60,7 @@
 			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
 			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*.swc" append="true"/>
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10/playerglobal.swc" append="true"/>
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10.2/playerglobal.swc" append="true"/>
 			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/framework.swc">
 				<url rsl-url="framework.swf" policy-file-url=""/>
 			</runtime-shared-library-path>

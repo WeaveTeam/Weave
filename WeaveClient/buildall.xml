@@ -30,8 +30,8 @@
 	<!-- This property's value is defined as an environment variable -->
 	<property name="FLEX_HOME" value="${env.FLEX_HOME}"/>
 	<property name="FLEX_LIBS" value="${FLEX_HOME}/frameworks/libs"/>
-	<property name="FRAMEWORK_SWF" value="framework_3.6.0.21751.swf"/>
-	<property name="RPC_SWF" value="rpc_3.6.0.16995.swf"/>
+	<property name="FRAMEWORK_SWF" value="framework_4.5.1.21489.swf"/>
+	<property name="RPC_SWF" value="rpc_4.5.1.21328.swf"/>
 
     <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
@@ -134,12 +134,12 @@
 			swf="AdminConsole"
 			history="false"
 			version-major="10"
-			version-minor="0"
+			version-minor="2"
 			version-revision="0"
 			height="100%"
 			width="100%"
 			title="AdminConsole"
-			template="express-installation"
+			express-install="true"
 			bgcolor="#7B96B6"
 		/>
 	</target>
@@ -151,12 +151,12 @@
 			swf="weave"
 			history="false"
 			version-major="10"
-			version-minor="0"
+			version-minor="2"
 			version-revision="0"
 			height="100%"
 			width="100%"
 			title="weave"
-			template="express-installation"
+			express-install="true"
 			bgcolor="#7B96B6"
 		/>
 	</target>
