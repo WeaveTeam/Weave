@@ -19,8 +19,11 @@
 
 package weave.visualization.plotters
 {
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotterWithKeyCompare;
@@ -51,7 +54,23 @@ package weave.visualization.plotters
 			_keySetUnion.addKeySetDependency(colorColumn);
 			setKeySource(_keySetUnion);
 			
+//			function debugKeySets():void {
+//				debugTrace(_keySetUnion,getKeyLocalNames(_keySetUnion.keys));
+//				debugTrace(keySet,getKeyLocalNames(keySet.keys));
+//				trace();
+//			}
+//			getCallbackCollection(_keySetUnion).addImmediateCallback(this, debugKeySets);
+//			getCallbackCollection(keySet).addImmediateCallback(this, debugKeySets);
+			
 			_keyCompare = ColumnUtils.generateCompareFunction([radiusColumn, colorColumn, xColumn, yColumn], [true, false, false, false]);
+		}
+		
+		private function getKeyLocalNames(keys:Array):String
+		{
+			keys = keys.concat();
+			for (var i:int = 0; i < keys.length; i++)
+				keys[i] = keys[i].localName;
+			return keys.toString();
 		}
 		
 		private var _keySetUnion:KeySetUnion = registerDisposableChild(this, new KeySetUnion(keyInclusionLogic));
