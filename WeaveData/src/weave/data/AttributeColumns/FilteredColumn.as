@@ -72,7 +72,7 @@ package weave.data.AttributeColumns
 		{
 			var column:IAttributeColumn = getInternalColumn();
 			var keyFilter:IKeyFilter = filter.getInternalKeyFilter();
-			if (column && keyFilter && keyFilter.containsKey(key))
+			if (column && (!keyFilter || keyFilter.containsKey(key)))
 				return column.getValueFromKey(key, dataType);
 			
 			if (dataType)
