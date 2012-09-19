@@ -287,17 +287,6 @@ package weave.services
 			}
 			return query;
 		}
-
-
-
-
-
-
-
-
-		
-			
-		
 		// functions for managing DataTable entries
                 public function addDataTable(metadata:Object, handler:Function):void
                 {

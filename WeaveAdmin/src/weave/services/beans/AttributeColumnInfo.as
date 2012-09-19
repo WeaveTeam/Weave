@@ -39,7 +39,6 @@ package weave.services.beans
 		public var entity_type:int;
 		public var privateMetadata:Object;
 		public var publicMetadata:Object;
-		
 		public function AttributeColumnInfo(o:Object = null)
 		{
                         if (o == null) return;
@@ -74,5 +73,17 @@ package weave.services.beans
 		{
                     return mergeObjects(privateMetadata, publicMetadata);
 		}
+                public function isFolder():Boolean
+                {
+                    return this.entity_type == TAG;
+                }
+                public function isColumn():Boolean
+                {
+                    return this.entity_type == COLUMN;
+                }
+                public function isDataTable():Boolean
+                {
+                    return this.entity_type == TABLE;
+                }
 	}
 }

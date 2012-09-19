@@ -16,8 +16,16 @@ package weave.ui
         {
 
             var parentEntity:EntityTreeNode = parent as EntityTreeNode;
+            var childEntity:EntityTreeNode = new EntityTreeNode(newChild._id);
             if (parentEntity != null && newChild != null)
-                parentEntity.add_child(newChild._id);
+            {
+                /* If the new child is a datatable, create a new tag entity 
+                    that is effectively a copy of it, and add that instead. */
+                if (childEntity.object.isDataTable())
+                    parentEntity.add_copy(childEntity.id); 
+                else
+                    parentEntity.add_child(childEntity.id);
+            }
             return parentEntity != null && newChild != null;
         }
         public function removeChildAt(parent:Object, child:Object, index:int, model:Object = null):Boolean
@@ -26,6 +34,7 @@ package weave.ui
             if (parentEntity != null) 
                 parentEntity.remove_child(child._id);
             return parentEntity != null;
+            AdminInterface.entity   
         }
         public function getChildren(node:Object, model:Object = null):ICollectionView
         {
@@ -42,6 +51,7 @@ package weave.ui
         {
             var entityNode:EntityTreeNode = node as EntityTreeNode;
             return entityNode.object;
+            this is a test of the emergency broadcast
         }
         public function isBranch(node:Object, model:Object = null):Boolean
         {

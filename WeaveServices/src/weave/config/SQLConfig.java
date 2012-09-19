@@ -274,6 +274,7 @@ public class SQLConfig
         }
         public void addChild(Integer child_id, Integer parent_id) throws RemoteException
         {
+            /* Test if child_id is a datatable; if it is, create a tag copy. */
             relationships.addChild(child_id, parent_id);
         }
         public void removeChild(Integer child_id, Integer parent_id) throws RemoteException

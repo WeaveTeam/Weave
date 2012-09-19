@@ -111,9 +111,16 @@ package weave.services
             {
                 fetch_metadata(id, onComplete);
             }
-            delete entity_metacache[id];;
+            delete entity_metacache[id];
             AdminInterface.instance.updateEntity(id, {"public":pubMeta, "private":privMeta}, afterUpdate);
             /* Do stuff, and things. */ 
+        }
+        public function copy_parent(id:int, onComplete):int
+        {
+            if (meta == null)
+            {
+                 
+            }
         }
         public function add_tag(label:String, onComplete:Function = null):void
         {

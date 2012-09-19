@@ -48,11 +48,17 @@
     }
     public function deleteTable():void
     {
-        var item:EntityTreeNode = tagTree.selectedItem as EntityTreeNode;
+        var item:EntityTreeNode = tableTree.selectedItem as EntityTreeNode;
         PopUpUtils.confirm(this, "Delete Table", "Delete selected table? All data columns in this table will also be deleted from all associated tags.", deleteTableFunction, null, "Delete", "Keep")
         function deleteTableFunction():void
         {
-            tableTree.validateNow();
+            item.remove_self();
+            /* A table deletion will also incur a deletion of all of its data columns, which could reside in any tag. Therefore, we should invalidate the entire metadata cache. */
+            AdminInterface.instance.meta_cache.invalidate();
+            tableTree.reload();
+            tagTree.reload();
+            tagTree.invalidateList();
+            tagTree.validateNow();
             return;
         }
         /* Pop up confirmation, then delete table. */ 
