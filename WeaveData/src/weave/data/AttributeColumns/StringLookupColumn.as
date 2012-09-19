@@ -28,6 +28,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.DataTypes;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
+	import weave.data.QKeyManager;
 	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	
@@ -165,7 +166,7 @@ package weave.data.AttributeColumns
 		private function compareStringKeys(stringKey1:IQualifiedKey, stringKey2:IQualifiedKey):int
 		{
 			return ObjectUtil.numericCompare(_numberLookup[stringKey1], _numberLookup[stringKey2])
-				|| ObjectUtil.compare(stringKey1, stringKey2);
+				|| QKeyManager.keyCompare(stringKey1, stringKey2);
 		}
 
 		/**

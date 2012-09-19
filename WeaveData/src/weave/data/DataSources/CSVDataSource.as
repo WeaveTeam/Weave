@@ -47,6 +47,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
+	import weave.data.QKeyManager;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
@@ -273,11 +274,9 @@ package weave.data.DataSources
 			var keyColIndex:int = (csvDataArray[0] as Array).indexOf(keyColName.value); // it is ok if this is -1 because getColumnValues supports -1
 
 			var i:int;
-			var csvDataColumn:Vector.<String> = getColumnValues(colIndex);
-			var keyStringsArray:Array = VectorUtils.copy(getColumnValues(keyColIndex), []);
-			var keysArray:Array = WeaveAPI.QKeyManager.getQKeys(keyType.value, keyStringsArray);
-			var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keysArray);
-
+			var csvDataColumn:Vector.<String> = new Vector.<String>();
+			getColumnValues(colIndex, csvDataColumn);
+			
 			// loop through values, determine column type
 			var nullValue:String;
 			var dataType:String = ColumnUtils.getDataType(proxyColumn);
@@ -305,49 +304,54 @@ package weave.data.DataSources
 				}
 			}
 
-			// fill in initializedProxyColumn.internalAttributeColumn based on column type (numeric or string)
-			var newColumn:IAttributeColumn;
-			if (isNumericColumn)
+			var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
+			function setRecords():void
 			{
-				var numericVector:Vector.<Number> = new Vector.<Number>();
-				for (i = 0; i < csvDataColumn.length; i++)
-					numericVector[i] = getNumberFromString(csvDataColumn[i]);
-
-				newColumn = new NumberColumn(leafNode);
-				(newColumn as NumberColumn).setRecords(keysVector, numericVector);
+				// fill in initializedProxyColumn.internalAttributeColumn based on column type (numeric or string)
+				var newColumn:IAttributeColumn;
+				if (isNumericColumn)
+				{
+					var numericVector:Vector.<Number> = new Vector.<Number>();
+					for (i = 0; i < csvDataColumn.length; i++)
+						numericVector[i] = getNumberFromString(csvDataColumn[i]);
+	
+					newColumn = new NumberColumn(leafNode);
+					(newColumn as NumberColumn).setRecords(keysVector, numericVector);
+				}
+				else
+				{
+					var stringVector:Vector.<String> = Vector.<String>(csvDataColumn);
+	
+					newColumn = new StringColumn(leafNode);
+					(newColumn as StringColumn).setRecords(keysVector, stringVector);
+				}
+				proxyColumn.setInternalColumn(newColumn);
+				_columnToReferenceMap[proxyColumn] = columnReference;
+				
+				debug("initialized column",proxyColumn);
 			}
-			else
-			{
-				var stringVector:Vector.<String> = Vector.<String>(csvDataColumn);
-
-				newColumn = new StringColumn(leafNode);
-				(newColumn as StringColumn).setRecords(keysVector, stringVector);
-			}
-			proxyColumn.setInternalColumn(newColumn);
-			_columnToReferenceMap[proxyColumn] = columnReference;
-			
-			debug("initialized column",proxyColumn);
+			var keyStrings:Array = [];
+			getColumnValues(keyColIndex, keyStrings);
+			(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keyType.value, keyStrings, proxyColumn, setRecords, keysVector);
 		}
 
 		/**
 		 * @param columnIndex If this is -1, record index values will be returned.  Otherwise, this specifies which column to get values from.
 		 * @return A list of values from the specified column, excluding the first row, which is the header.
 		 */		
-		private function getColumnValues(columnIndex:int):Vector.<String>
+		private function getColumnValues(columnIndex:int, outputArrayOrVector:*):void
 		{
-			var values:Vector.<String> = new Vector.<String>();
 			var i:int;
 			if (columnIndex < 0)
 			{
 				for (i = 1; i < csvDataArray.length; i++)
-					values[i-1] = String(i);
+					outputArrayOrVector[i-1] = String(i);
 			}
 			else
 			{
 				for (i = 1; i < csvDataArray.length; i++)
-					values[i-1] = csvDataArray[i][columnIndex];
+					outputArrayOrVector[i-1] = csvDataArray[i][columnIndex];
 			}
-			return values;
 		}
 		
 		private function getNumberFromString(value:String):Number

@@ -131,7 +131,7 @@ package weave.utils
 		private static function testPartition():void
 		{
 			var list:Array = [3,7,5,8,2];
-			var pivotIndex:int = partition(list, 0, list.length - 1, list.length/2, ObjectUtil.compare);
+			var pivotIndex:int = partition(list, 0, list.length - 1, list.length/2, AsyncSort.defaultCompare);
 			
 			for (var i:int = 0; i < list.length; i++)
 				if (i < pivotIndex != list[i] < list[pivotIndex])

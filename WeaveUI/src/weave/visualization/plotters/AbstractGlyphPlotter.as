@@ -27,12 +27,14 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.FilteredKeySet;
+	import weave.data.KeySets.KeySetUnion;
 	import weave.primitives.GeneralizedGeometry;
 	
 	/**
@@ -45,7 +47,10 @@ package weave.visualization.plotters
 		public function AbstractGlyphPlotter()
 		{
 			clipDrawing = false;
-			setKeySource(dataX);
+			
+			_keySetUnion.addKeySetDependency(dataX);
+			_keySetUnion.addKeySetDependency(dataY);
+			setKeySource(_keySetUnion);
 			
 			// filter x and y columns so background data bounds will be correct
 			filteredDataX.filter.requestLocalObject(FilteredKeySet, true);
@@ -57,6 +62,8 @@ package weave.visualization.plotters
 			linkSessionState(_filteredKeySet.keyFilter, filteredDataX.filter);
 			linkSessionState(_filteredKeySet.keyFilter, filteredDataY.filter);
 		}
+		
+		private var _keySetUnion:KeySetUnion = newDisposableChild(this, KeySetUnion);
 		
 		protected const filteredDataX:FilteredColumn = newDisposableChild(this, FilteredColumn);
 		protected const filteredDataY:FilteredColumn = newDisposableChild(this, FilteredColumn);

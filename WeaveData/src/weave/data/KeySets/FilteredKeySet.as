@@ -73,13 +73,13 @@ package weave.data.KeySets
 			
 			// unlink from the old key set
 			if (_baseKeySet != null)
-				getCallbackCollection(_baseKeySet as ILinkableObject).removeCallback(triggerCallbacks);
+				getCallbackCollection(_baseKeySet).removeCallback(triggerCallbacks);
 			
 			_baseKeySet = newBaseKeySet; // save pointer to new base key set
 
 			// link to new key set
 			if (_baseKeySet != null)
-				getCallbackCollection(_baseKeySet as ILinkableObject).addImmediateCallback(this, triggerCallbacks);
+				getCallbackCollection(_baseKeySet).addImmediateCallback(this, triggerCallbacks);
 			
 			triggerCallbacks();
 		}

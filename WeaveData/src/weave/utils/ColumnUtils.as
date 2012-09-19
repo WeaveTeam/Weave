@@ -41,6 +41,7 @@ package weave.utils
 	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
+	import weave.data.QKeyManager;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
 	
@@ -464,7 +465,7 @@ package weave.utils
 			var n:int = columns.length;
 			if (descendingFlags)
 				descendingFlags.length = n;
-			return function arrayCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
+			return function(key1:IQualifiedKey, key2:IQualifiedKey):int
 			{
 				for (i = 0; i < n; i++)
 				{
@@ -482,7 +483,7 @@ package weave.utils
 						return result;
 					}
 				}
-				return ObjectUtil.compare(key1, key2);
+				return QKeyManager.keyCompare(key1, key2);
 			}
 		}
 		

@@ -67,7 +67,7 @@ package weave.utils
 		 * This is a basic compare function similar to the default compare used by Array.sort().
 		 * This function is faster than ObjectUtil.compare(), but does not do deep object compare.
 		 */
-		private static function defaultCompare(a:*, b:*):int
+		public static function defaultCompare(a:*, b:*):int
 		{
 			if (a === b)
 				return 0;
@@ -87,7 +87,7 @@ package weave.utils
 				return ObjectUtil.stringCompare(a as String, b as String);
 			if (a is Date && b is Date)
 				return ObjectUtil.dateCompare(a as Date, b as Date);
-			return 0;
+			return 1; // not equal
 		}
 		
 		/**

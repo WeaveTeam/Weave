@@ -58,7 +58,7 @@
 			import weave.visualization.plotters.RegressionLinePlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, ScatterPlotTool, "Scatterplot");
+			WeaveAPI.registerImplementation(IVisTool, ScatterPlotTool, lang("Scatterplot"));
 
 			public var plotter:ScatterPlotPlotter = null;
 			

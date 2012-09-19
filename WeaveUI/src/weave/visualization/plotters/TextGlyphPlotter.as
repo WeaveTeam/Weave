@@ -38,6 +38,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.QKeyManager;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
@@ -97,12 +98,12 @@ package weave.visualization.plotters
 		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{
 			if (!sortColumn.getInternalColumn())
-				return ObjectUtil.compare(key1, key2);
+				return QKeyManager.keyCompare(key1, key2);
 			
 			var value1:Number = sortColumn.getValueFromKey(key1, Number);
 			var value2:Number = sortColumn.getValueFromKey(key2, Number);
 			return ObjectUtil.numericCompare(value1, value2)
-				|| ObjectUtil.compare(key1, key2);
+				|| QKeyManager.keyCompare(key1, key2);
 		}
 
 		/**

@@ -22,6 +22,8 @@ package weave.compiler
 	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
 	import mx.utils.ObjectUtil;
+	
+	import weave.utils.AsyncSort;
 
 	/**
 	 * This provides a set of useful static functions.
@@ -462,7 +464,7 @@ package weave.compiler
 		public static function arrayCompare(a:Array, b:Array):int
 		{
 			if (!a || !b)
-				return ObjectUtil.compare(a, b);
+				return AsyncSort.defaultCompare(a, b);
 			var an:int = a.length;
 			var bn:int = b.length;
 			if (an < bn)
@@ -477,7 +479,7 @@ package weave.compiler
 				if (ai is Array && bi is Array)
 					result = arrayCompare(ai as Array, bi as Array);
 				else
-					result = ObjectUtil.compare(a[i], b[i]);
+					result = AsyncSort.defaultCompare(a[i], b[i]);
 				if (result != 0)
 					return result;
 			}
