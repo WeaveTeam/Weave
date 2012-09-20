@@ -34,6 +34,8 @@ package weave.utils
 	 */
 	public class AsyncSort implements ILinkableObject
 	{
+		public static var debug:Boolean = false;
+		
 		public function AsyncSort():void
 		{
 		}
@@ -221,6 +223,13 @@ package weave.utils
 		
 		private function done():void
 		{
+			if (debug)
+			{
+				var sec:Number = elapsed/1000;
+				if (sec > 1)
+					trace('sort',result.length,'in',sec,'seconds');
+			}
+			
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
