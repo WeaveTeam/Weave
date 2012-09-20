@@ -19,11 +19,14 @@
 
 package weave.visualization.plotters
 {
+	import flash.display.BitmapData;
+	
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotterWithKeyCompare;
@@ -79,6 +82,29 @@ package weave.visualization.plotters
 		private function keyInclusionLogic(key:IQualifiedKey):Boolean
 		{
 			return hack_keyInclusionLogic == null ? true : hack_keyInclusionLogic(key);
+		}
+		
+		public var hack_horizontalBackgroundLineStyle:Array;
+		public var hack_verticalBackgroundLineStyle:Array;
+		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			if (!keySet.keys.length)
+				return;
+			if (hack_horizontalBackgroundLineStyle)
+			{
+				tempShape.graphics.clear();
+				tempShape.graphics.lineStyle.apply(null, hack_horizontalBackgroundLineStyle);
+				tempShape.graphics.moveTo(screenBounds.getXMin(), screenBounds.getYCenter());
+				tempShape.graphics.lineTo(screenBounds.getXMax(), screenBounds.getYCenter());
+			}
+			if (hack_verticalBackgroundLineStyle)
+			{
+				tempShape.graphics.clear();
+				tempShape.graphics.lineStyle.apply(null, hack_verticalBackgroundLineStyle);
+				tempShape.graphics.moveTo(screenBounds.getXCenter(), screenBounds.getYMin());
+				tempShape.graphics.lineTo(screenBounds.getXCenter(), screenBounds.getYMax());
+			}
+			destination.draw(tempShape);
 		}
 		
 		private var _keyCompare:Function;

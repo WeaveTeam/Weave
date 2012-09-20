@@ -245,7 +245,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						_controlPanel = registerDisposableChild(this, getChildAt(i) as ControlPanel);
 						removeChild(_controlPanel);
-						_controlPanel.title = "Settings for " + getQualifiedClassName(this).split("::")[1];
 						break;
 					}
 				}
@@ -253,14 +252,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (!_controlPanel && EditorManager.getEditorClass(this))
 				{
 					_controlPanel = newDisposableChild(this, ControlPanel);
-					_controlPanel.title = "Settings for " + getQualifiedClassName(this).split("::")[1];
-					
 					var editor:UIComponent = EditorManager.getNewEditor(this) as UIComponent;
-					
 					addChild(_controlPanel);
 					removeChild(_controlPanel);
 					_controlPanel.tabNavigator.addChild(editor);
 				}
+				
+				if (_controlPanel)
+					_controlPanel.title = "Settings for " + getQualifiedClassName(this).split("::")[1];
 				
 				var icon:Bitmap = new MoveIcon() as Bitmap;
 				_moveImage.source = icon;

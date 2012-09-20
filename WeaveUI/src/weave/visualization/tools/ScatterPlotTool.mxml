@@ -221,9 +221,17 @@
 				visualization.plotManager.marginRightNumber.addImmediateCallback(this, invalidateDisplayList);
 				visualization.plotManager.marginLeftNumber.addImmediateCallback(this, invalidateDisplayList);
 				
-				visualization.gridLineAlpha.addImmediateCallback(this, invalidateDisplayList);
-				visualization.gridLineColor.addImmediateCallback(this, invalidateDisplayList);
-				visualization.gridLineThickness.addImmediateCallback(this, invalidateDisplayList);
+				visualization.gridLineAlpha.addImmediateCallback(this, updateUndefLayerLines);
+				visualization.gridLineColor.addImmediateCallback(this, updateUndefLayerLines);
+				visualization.gridLineThickness.addImmediateCallback(this, updateUndefLayerLines, true);
+			}
+			private function updateUndefLayerLines():void
+			{
+				var args:Array = [visualization.gridLineThickness.value, visualization.gridLineColor.value, visualization.gridLineAlpha.value];
+				(vis_undef_x.getMainPlotter() as ScatterPlotPlotter).hack_verticalBackgroundLineStyle = args;
+				(vis_undef_y.getMainPlotter() as ScatterPlotPlotter).hack_horizontalBackgroundLineStyle = args;
+				getCallbackCollection(vis_undef_x.getMainPlotter()).triggerCallbacks();
+				getCallbackCollection(vis_undef_y.getMainPlotter()).triggerCallbacks();
 			}
 			private function resizeUndefinedLayers():void
 			{
@@ -240,20 +248,12 @@
 				_tempBounds.setXMin(b.getXMax() + marginRight);
 				_tempBounds.setWidth(b.getWidth() * 0.66);
 				setDisplayObjectBounds(vis_undef_x, b);
-				vis_undef_x.graphics.clear();
-				vis_undef_x.graphics.lineStyle(visualization.gridLineThickness.value, visualization.gridLineColor.value, visualization.gridLineAlpha.value);
-				vis_undef_x.graphics.moveTo(vis_undef_x.width / 2, 0);
-				vis_undef_x.graphics.lineTo(vis_undef_x.width / 2, vis_undef_x.height);
 				
 				// top margin undefined y
 				visualization.plotManager.zoomBounds.getScreenBounds(b);
 				_tempBounds.setYMin(0);
 				_tempBounds.setHeight(b.getHeight() * 0.66);
 				setDisplayObjectBounds(vis_undef_y, b);
-				vis_undef_y.graphics.clear();
-				vis_undef_y.graphics.lineStyle(visualization.gridLineThickness.value, visualization.gridLineColor.value, visualization.gridLineAlpha.value);
-				vis_undef_y.graphics.moveTo(0, vis_undef_y.height / 2);
-				vis_undef_y.graphics.lineTo(vis_undef_y.width, vis_undef_y.height / 2);
 				
 				// top-right corner undefined xy
 				visualization.plotManager.zoomBounds.getScreenBounds(b);

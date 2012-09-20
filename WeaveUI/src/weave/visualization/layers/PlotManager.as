@@ -33,6 +33,7 @@ package weave.visualization.layers
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.copySessionState;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
@@ -427,6 +428,14 @@ package weave.visualization.layers
 			{
 				var newPlotter:IPlotter = plotters.childListCallbacks.lastObjectAdded as IPlotter;
 				var settings:LayerSettings = layerSettings.requestObject(newName, LayerSettings, false);
+				copySessionState(settings.subsetFilter, newPlotter.keySet.keyFilter);
+				
+				// hack for fixing messed up session state
+				WeaveAPI.StageUtils.callLater(newPlotter, function():void {
+					if (!newPlotter.keySet.keyFilter.internalObject)
+						copySessionState(settings.subsetFilter, newPlotter.keySet.keyFilter);
+				}, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				
 				var spatialIndex:SpatialIndex = _name_to_SpatialIndex[newName] = newDisposableChild(newPlotter, SpatialIndex);
 				var tasks:Array = _name_to_PlotTask_Array[newName] = [];
 				for each (var taskType:int in [PlotTask.TASK_TYPE_SUBSET, PlotTask.TASK_TYPE_SELECTION, PlotTask.TASK_TYPE_PROBE])

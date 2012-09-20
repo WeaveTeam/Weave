@@ -82,8 +82,8 @@ package weave.visualization.layers
 		public var hack_useTextBitmapFilters:Boolean = false; // hack to use text bitmap filters (for labels, legends)
 		
 		// backwards compatibility
-		[Exclude] [Deprecated] public function set useTextBitmapFilters(value:Boolean):void { hack_useTextBitmapFilters = value; }
-		[Exclude] [Deprecated] public function set layerIsSelectable(value:Boolean):void { selectable.value = value; }
-		[Exclude] [Deprecated] public function set layerIsVisible(value:Boolean):void { visible.value = value; }
+		[Deprecated] public function set useTextBitmapFilters(value:Boolean):void { hack_useTextBitmapFilters = value; }
+		[Deprecated] public function set layerIsSelectable(value:Boolean):void { selectable.value = value; }
+		[Deprecated] public function set layerIsVisible(value:Boolean):void { visible.value = value; }
 	}
 }
