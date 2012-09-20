@@ -22,6 +22,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 <!---
 @author mervetuccar
+@author hgranz
 -->
 
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"		 
@@ -30,12 +31,40 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		 label="Disability"
 		 implements="weave.api.core.ILinkableObject"
 		 enabled="{_panel != null}"	>
-	<mx:Label text="longdesc text:"
+	
+	<mx:Label text="User generated visualization description text:"
 			  textAlign="left"/>
-	<mx:TextArea id="longDescTextBox" width="100%" height="100%" minWidth="5" minHeight="5"
-				 borderStyle="solid" editable="true"  keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');" 
-				 toolTip="Text entered here will be used to set the longdesc text (under disability options) for this instance of Weave when it is embedded in a web page. This input field is restricted to 125 characters. The alt attribute is used by standard screen reading tools to give information about graphics elements for to blind or visually impaired individuals."
-				 creationComplete="handleCreationComplete(event);"/>
+	
+	<mx:TextArea id="manualToolDescTextBox" 
+				 width="100%" 
+				 height="40%" 
+				 minWidth="5" 
+				 minHeight="5"
+				 borderStyle="solid" 
+				 editable="true"  
+				 keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');"
+				 toolTip="changeme"
+				 creationComplete="handleCreationComplete(event);" 
+				 wordWrap="true"/>
+	
+	<mx:Label text="System generated visualization description text:"
+			  textAlign="left"/>
+	
+	<mx:TextArea id="automaticToolDescTextBox" 
+				 width="100%" 
+				 height="40%" 
+				 minWidth="5" 
+				 minHeight="5"
+				 borderStyle="solid" 
+				 editable="false"  
+				 keyFocusChange="event.preventDefault(); event.target.replaceSelectedText('\t');"
+				 toolTip="changeme"
+				 wordWrap="true" text="before button clicked"/>
+	
+	<mx:Button label="Refresh Description"
+			   id="automaticDescRefreshButton" 
+			   toolTip="changeme" click="automaticDescRefreshButton_clickHandler(event)"/>
+	
 	
 	<mx:Script>
 		<![CDATA[
@@ -88,8 +117,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.childrenCreated();
 				
 			}
-			
-			
+		
 			private function handleCreationComplete(event:Event) : void
 			{
 				
@@ -102,6 +130,39 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					linkBindableProperty(HashDisabilityText, event.target, "text");
 				
 			}
+			
+			protected function automaticDescRefreshButton_clickHandler(event:MouseEvent):void
+			{
+				automaticToolDescTextBox.text = "after button clicked";
+				var dictionaryType:String;
+				var vizType:String;
+				var rResult:Array;
+				rResult = rCall(/*columns???*/)
+				vizType = "lineChart";
+				dictionaryType = determineDictionaryType(vizType);
+		
+				determineMessageCategory(dictionaryType, rResult) 
+				
+			}
+			
+			protected function determineDictionaryType(vizType:String):String
+			{
+				return ("lineChartDictionary");
+			}
+			
+			protected function determineMessageCategory(dictionaryType:String, rResult:Array):String
+			{
+				return ("increasingTrend");
+			}
+			
+			protected function rCall(/*columns??*/):Array
+			{
+				var sillyArray:Array =[];
+				sillyArray = [1, 2, 3];
+				return sillyArray;
+				
+			}
+			
 		]]>
 	</mx:Script>
 </mx:VBox>
