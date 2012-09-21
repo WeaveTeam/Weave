@@ -45,8 +45,10 @@
 			static-rsls="false"
 			incremental="true"
 			accessible="false"
+                        verify-digests="false"
 			debug="${DEBUG}"
 		>
+                        <theme file="${FLEX_HOME}/frameworks/themes/Halo/halo.swc"/>
 			<load-config filename="${FLEX_HOME}/frameworks/flex-config.xml"/>
 
 			<source-path path-element="${SOURCE_DIR}"/>

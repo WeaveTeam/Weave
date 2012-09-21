@@ -46,6 +46,7 @@
 			incremental="true"
 			accessible="false"
 			debug="${DEBUG}"
+                        verify-digests="false"
 		>
 			<load-config filename="${FLEX_HOME}/frameworks/flex-config.xml"/>
                         <theme file="${FLEX_HOME}/frameworks/themes/Halo/halo.swc"/>
