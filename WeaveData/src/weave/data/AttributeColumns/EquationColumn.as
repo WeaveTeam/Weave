@@ -53,6 +53,8 @@ package weave.data.AttributeColumns
 	 */
 	public class EquationColumn extends AbstractAttributeColumn
 	{
+		public static var debug:Boolean = false;
+		
 		public static const compiler:Compiler = new Compiler();
 		{ /** begin static code block **/
 			compiler.includeLibraries(
@@ -344,7 +346,8 @@ package weave.data.AttributeColumns
 					try
 					{
 						value = compiledEquation.apply(this, arguments);
-						trace(this,key.localName,value);
+						if (debug)
+							trace(this,key.localName,value);
 					}
 					catch (e:Error)
 					{

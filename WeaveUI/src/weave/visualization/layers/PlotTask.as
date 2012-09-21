@@ -21,7 +21,10 @@ package weave.visualization.layers
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
+	
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
@@ -109,6 +112,9 @@ package weave.visualization.layers
 			for each (var dependency:ILinkableObject in list)
 				registerLinkableChild(_dependencies, dependency);
 			
+			getCallbackCollection(_plotter.keySet).addImmediateCallback(this, handleKeySetChange, true);
+			getCallbackCollection(_allKeysSort).addImmediateCallback(this, handleAllKeysSort);
+			
 			_dependencies.addImmediateCallback(this, asyncStart, true);
 			
 			linkBindableProperty(_layerSettings.visible, completedBitmap, 'visible');
@@ -167,6 +173,10 @@ package weave.visualization.layers
 		private var _delayInit:Boolean = false;
 		private var _pendingInit:Boolean = false;
 		
+		private var _allKeysSort:AsyncSort = newDisposableChild(this, AsyncSort);
+		private var _allKeys:Array;
+		private var _keyToSortIndex:Dictionary;
+		
 		/**
 		 * This function must be called to set the size of the BitmapData buffer.
 		 * @param width New width of the buffer, in pixels
@@ -180,6 +190,29 @@ package weave.visualization.layers
 				_unscaledHeight = height;
 				_dependencies.triggerCallbacks();
 			}
+		}
+		
+		private function handleKeySetChange():void
+		{
+			if (_plotter is IPlotterWithKeyCompare)
+			{
+				_allKeys = _plotter.keySet.keys.concat();
+				_keyToSortIndex = null;
+				_allKeysSort.beginSort(_allKeys, (_plotter as IPlotterWithKeyCompare).keyCompare);
+			}
+		}
+		private function handleAllKeysSort():void
+		{
+			// save a lookup from key to sorted index
+			// this is very fast
+			_keyToSortIndex = new Dictionary(true);
+			var sorted:Array = _allKeysSort.result;
+			for (var i:int = sorted.length - 1; i >= 0; i--)
+				_keyToSortIndex[sorted[i]] = i;
+		}
+		private function cachedKeyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
+		{
+			return ObjectUtil.numericCompare(_keyToSortIndex[key1], _keyToSortIndex[key2]);
 		}
 		
 		/**
@@ -354,7 +387,9 @@ package weave.visualization.layers
 				{
 					if (_iPendingKey == _pendingKeys.length) // should we start sorting?
 					{
-						_asyncSort.beginSort(_recordKeys, (_plotter as IPlotterWithKeyCompare).keyCompare);
+						if (_keyToSortIndex == null)
+							return 0; // cached sort indices are not ready yet
+						_asyncSort.beginSort(_recordKeys, cachedKeyCompare);
 						_iPendingKey = int.MAX_VALUE; // remember that sorting has already started
 					}
 					
