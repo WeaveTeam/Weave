@@ -23,6 +23,9 @@ package weave.visualization.layers
 	
 	import mx.containers.Canvas;
 	
+	import spark.components.Group;
+	import spark.core.SpriteVisualElement;
+	
 	import weave.api.core.ILinkableObject;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -36,14 +39,14 @@ package weave.visualization.layers
 	 * 
 	 * @author adufilie
 	 */
-	public class Visualization extends Canvas implements ILinkableObject
+	public class Visualization extends Group implements ILinkableObject
 	{
 		public function Visualization()
 		{
 			super();
 			
-			this.horizontalScrollPolicy = "off";
-			this.verticalScrollPolicy = "off";
+			/*this.horizontalScrollPolicy = "off";
+			this.verticalScrollPolicy = "off";*/
 
 			autoLayout = true;
 			percentHeight = 100;
@@ -53,8 +56,10 @@ package weave.visualization.layers
 		override protected function createChildren():void
 		{
 			super.createChildren();
-			
-			rawChildren.addChild(plotManager.bitmap);
+			var sprCont:SpriteVisualElement = new SpriteVisualElement();
+			sprCont.addChild(plotManager.bitmap);
+			addElement(sprCont);
+			//rawChildren.addChild(plotManager.bitmap);
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void

@@ -33,6 +33,8 @@ package weave.visualization.layers
 	
 	import mx.containers.Canvas;
 	
+	import spark.components.Group;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
@@ -82,7 +84,7 @@ package weave.visualization.layers
 		{
 			super.createChildren();
 			
-			addChild(selectionCanvas);
+			addElement(selectionCanvas);
 		}
 		
 		private function addContextMenuEventListener():void
@@ -109,7 +111,7 @@ package weave.visualization.layers
 		
 		private var activeKeyType:String = null;
 		private var mouseDragActive:Boolean = false;
-		private const selectionCanvas:Canvas = new Canvas();
+		private const selectionCanvas:Group = new Group();
 		
 		private const mouseDragStageCoords:IBounds2D = new Bounds2D();
 		
