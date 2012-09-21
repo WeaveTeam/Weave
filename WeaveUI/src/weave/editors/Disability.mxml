@@ -155,13 +155,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return ("increasingTrend");
 			}
 			
-			protected function rCall(/*columns??*/):Array
+			protected function getInfoForR():Array
 			{
+				//use this function to gather the appropriate information that will be sent to R 
 				var sillyArray:Array =[];
 				sillyArray = [1, 2, 3];
 				return sillyArray;
 				
 			}
+			
+			protected function sendStuffToR()
+			{
+				//send the columns and variables returned from getInfoForR to R using this function
+			}
+			
+			
 			
 		]]>
 	</mx:Script>
