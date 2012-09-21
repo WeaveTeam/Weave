@@ -25,7 +25,7 @@
 
 	<!-- This property must be defined here. Note the use of forward slashes '/' and
 		the slash required at the end -->
-	<property name="WEAVE_DOCROOT" value="/home/pkovac/pub/weave"/>
+	<property name="WEAVE_DOCROOT" value="/var/lib/tomcat6/webapps/ROOT"/>
 	<property name="WEAVE_DESTROOT" value="${basedir}/ROOT"/>
 	<!-- This property's value is defined as an environment variable -->
 	<property name="FLEX_HOME" value="${env.FLEX_HOME}"/>
@@ -41,6 +41,7 @@
 	<property name="CORE" value="WeaveCore"/>
 	<property name="DATA" value="WeaveData"/>
 	<property name="UI" value="WeaveUI"/>
+        <property name="FONTS" value="WeaveFonts"/>
 	<property name="CLIENT" value="WeaveClient"/>
 	<property name="ADMIN" value="WeaveAdmin"/>
 	<property name="SERVICES" value="WeaveServices"/>
@@ -78,7 +79,7 @@
 		<extract_swc swc="${basedir}/${CORE}/bin/${CORE}.swc" rsl="${CORE}.swf"/>
 		<extract_swc swc="${basedir}/${DATA}/bin/${DATA}.swc" rsl="${DATA}.swf"/>
 		<extract_swc swc="${basedir}/${UI}/bin/${UI}.swc" rsl="${UI}.swf"/>
-
+                <copy file="${basedir}/${CLIENT}/swf/${FONTS}.swf" tofile="${WEAVE_DESTROOT}/${FONTS}.swf"/>
 		<copy file="${basedir}/${CLIENT}/bin/${CLIENT}.swf" tofile="${WEAVE_DESTROOT}/weave.swf"/>
 		<copy file="${basedir}/${ADMIN}/bin/${ADMIN}.swf" tofile="${WEAVE_DESTROOT}/AdminConsole.swf"/>
 		<copy file="${basedir}/${SERVICES}/build/jar/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war"/>
