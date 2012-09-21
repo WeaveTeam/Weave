@@ -25,13 +25,13 @@
 
 	<!-- This property must be defined here. Note the use of forward slashes '/' and
 		the slash required at the end -->
-	<property name="WEAVE_DOCROOT" value="/home/pkovac/pub/weave"/>
+	<property name="WEAVE_DOCROOT" value="/var/lib/tomcat6/webapps/ROOT"/>
 	<property name="WEAVE_DESTROOT" value="${basedir}/ROOT"/>
 	<!-- This property's value is defined as an environment variable -->
 	<property name="FLEX_HOME" value="${env.FLEX_HOME}"/>
 	<property name="FLEX_LIBS" value="${FLEX_HOME}/frameworks/libs"/>
-	<property name="FRAMEWORK_SWF" value="framework_3.6.0.21751.swf"/>
-	<property name="RPC_SWF" value="rpc_3.6.0.16995.swf"/>
+	<property name="FRAMEWORK_SWF" value="framework_4.5.1.21489.swf"/>
+	<property name="RPC_SWF" value="rpc_4.5.1.21328.swf"/>
 
     <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
@@ -41,6 +41,7 @@
 	<property name="CORE" value="WeaveCore"/>
 	<property name="DATA" value="WeaveData"/>
 	<property name="UI" value="WeaveUI"/>
+        <property name="FONTS" value="WeaveFonts"/>
 	<property name="CLIENT" value="WeaveClient"/>
 	<property name="ADMIN" value="WeaveAdmin"/>
 	<property name="SERVICES" value="WeaveServices"/>
@@ -78,7 +79,7 @@
 		<extract_swc swc="${basedir}/${CORE}/bin/${CORE}.swc" rsl="${CORE}.swf"/>
 		<extract_swc swc="${basedir}/${DATA}/bin/${DATA}.swc" rsl="${DATA}.swf"/>
 		<extract_swc swc="${basedir}/${UI}/bin/${UI}.swc" rsl="${UI}.swf"/>
-
+                <copy file="${basedir}/${CLIENT}/swf/${FONTS}.swf" tofile="${WEAVE_DESTROOT}/${FONTS}.swf"/>
 		<copy file="${basedir}/${CLIENT}/bin/${CLIENT}.swf" tofile="${WEAVE_DESTROOT}/weave.swf"/>
 		<copy file="${basedir}/${ADMIN}/bin/${ADMIN}.swf" tofile="${WEAVE_DESTROOT}/AdminConsole.swf"/>
 		<copy file="${basedir}/${SERVICES}/build/jar/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war"/>
@@ -134,12 +135,12 @@
 			swf="AdminConsole"
 			history="false"
 			version-major="10"
-			version-minor="0"
+			version-minor="2"
 			version-revision="0"
 			height="100%"
 			width="100%"
 			title="AdminConsole"
-			template="express-installation"
+			express-install="true"
 			bgcolor="#7B96B6"
 		/>
 	</target>
@@ -151,12 +152,12 @@
 			swf="weave"
 			history="false"
 			version-major="10"
-			version-minor="0"
+			version-minor="2"
 			version-revision="0"
 			height="100%"
 			width="100%"
 			title="weave"
-			template="express-installation"
+			express-install="true"
 			bgcolor="#7B96B6"
 		/>
 	</target>
