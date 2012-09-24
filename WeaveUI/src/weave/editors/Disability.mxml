@@ -77,10 +77,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.DragEvent;
 			import mx.events.FlexEvent;
 			import mx.managers.DragManager;
+			import mx.rpc.AsyncToken;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IAttributeColumn;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -89,20 +91,31 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.unlinkBindableProperty;
 			import weave.api.unlinkSessionState;
+			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
+			import weave.data.KeySets.KeySet;
+			import weave.services.DelayedAsyncInvocation;
+			import weave.services.DelayedAsyncResponder;
+			import weave.services.WeaveRServlet;
 			import weave.ui.ControlPanel;
 			import weave.ui.DisabilityOptions;
 			import weave.ui.DraggablePanel;
+			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
+			import weave.visualization.tools.LineChartTool;
 			
 			
 			
-			[Bindable]
-			private var _panel:DraggablePanel = null;
+			[Bindable] private var _panel:DraggablePanel = null;
+			[Bindable] public var _target:LineChartTool = new LineChartTool();
+			//create a new map which belongs to the line chart tool which contains only iAttribute columns
+			public var _columnObjects:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServicesURL.value);
 			
+			public var joinedColsforRArrayUnsplit:Array = new Array();
 			public const disabilityText:LinkableString = newLinkableChild(this, LinkableString);
-			
-			
+			public var joinKeysRArray:Array = new Array();
+			public var joinColsRArray:Array = new Array();
 			
 			public function set target(panel:DraggablePanel):void
 			{
@@ -137,7 +150,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var dictionaryType:String;
 				var vizType:String;
 				var rResult:Array;
-				rResult = rCall(/*columns???*/)
+		//		rResult = getInfoForR(/*columns???*/);
 				vizType = "lineChart";
 				dictionaryType = determineDictionaryType(vizType);
 		
@@ -155,21 +168,59 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return ("increasingTrend");
 			}
 			
-			protected function getInfoForR():Array
+			protected function getInfoForR():void
 			{
 				//use this function to gather the appropriate information that will be sent to R 
-				var sillyArray:Array =[];
-				sillyArray = [1, 2, 3];
-				return sillyArray;
+				//we have the columns in columnObjects
+				var colsSentToRArray = new Array();
+				//below whatever cols are plotted it picks them up as individual objects
+				colsSentToRArray = _columnObjects.getObjects(IAttributeColumn)
+				//joining columns returns columns only complete records (no incomplete records)
+				joinedColsforRArrayUnsplit = joinColumns(colsSentToRArray);
+				
+				joinKeysRArray = joinedColsforRArrayUnsplit[0]; 
+				joinColsRArray = joinedColsforRArrayUnsplit[1];
+			
+				//todo: getting axis, title, color, scale, etc
+				sendStuffToR();
+				
+			
 				
 			}
-			
-			protected function sendStuffToR()
+			private function joinColumns(columns:Array):Array
+			{
+				var selection:KeySet = Weave.defaultSelectionKeySet;
+				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
+				//make dataype Null, so that columns will be sent as exact dataype to R
+				//if mentioned as String or NUmber ,will convert all columns to String or Number .
+				var result:Array = ColumnUtils.joinColumns(columns,null, false, keys);
+				return [result.shift(), result];
+			}
+
+			protected function sendStuffToR():void
 			{
 				//send the columns and variables returned from getInfoForR to R using this function
+
+				var computeScript:String = "";
+				//inputValues is a matrix of all of the columns that are to be sent to R
+				var inputValues:Array = new Array();
+				var outputNames:Array = null;
+				inputValues = joinColsRArray;
+				//default name to be used in R
+				var inputName:Array = ["myColumns"];
+				
+				var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
+				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);		
+				
 			}
-			
-			
+			private function handleRunScriptResult():void
+			{
+				
+			}
+			private function handleRunScriptFault():void
+			{
+				
+			}
 			
 		]]>
 	</mx:Script>
