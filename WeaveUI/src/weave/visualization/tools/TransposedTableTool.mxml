@@ -49,14 +49,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		
 	</mx:VBox>
 	
-	<mx:Number id="columnWidthScale">1</mx:Number>
-	
 	<mx:Script>
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.events.DataGridEvent;
 			
+			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
@@ -68,16 +67,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.KeySets.FilteredKeySet;
 			import weave.data.KeySets.KeySet;
 			import weave.utils.AsyncSort;
 			import weave.utils.ColumnUtils;
 			import weave.utils.NumberUtils;
 			
-			WeaveAPI.registerImplementation(IVisTool, TransposedTableTool, "Transposed Data Table");
+			WeaveAPI.registerImplementation(IVisTool, TransposedTableTool, lang("Transposed Data Table"));
 			
 			public const columns:LinkableHashMap = newLinkableChild(this,LinkableHashMap,handleColumnsListChange,true);
-			public const headerAttributeColumn:DynamicColumn = newLinkableChild(this,DynamicColumn,handleHeaderColumnChange,true);
-			public const filterKeySet:KeySet = newLinkableChild(this,KeySet,handleHeaderColumnChange,true);
+			public const headerAttributeColumn:DynamicColumn = newLinkableChild(this,DynamicColumn,createHeaderColumns,true);
+			public const keySet:FilteredKeySet = newLinkableChild(this, FilteredKeySet, createHeaderColumns, true);
 			public const fontSize:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10, isFinite),updateFontSize);
 			public const headerText:LinkableString = registerLinkableChild(this,new LinkableString(""),updateHeaderText);
 			public const headerColumnWidth:LinkableString = registerLinkableChild(this,new LinkableString("10%", NumberUtils.verifyNumberOrPercentage),handleColumnWidthChange,true);
@@ -86,6 +86,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable]
 			private var sourceArrayCollection:ArrayCollection = new ArrayCollection();
 
+			override protected function constructor():void
+			{
+				super.constructor();
+				keySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+			}
+			
 			override protected function childrenCreated():void
 			{
 				columnsList.hashMap = columns;
@@ -109,29 +115,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				table.setStyle("fontSize",fontSize.value);
 			}
 			
-			/**
-			 * @private handleHeaderColumnChange
-			 * This function is called when the Header Column is changed
-			 * If the Header Attribute Column is not set or is deleted then we use the first Attribute Column from the columns list
-			 * and use an empty string as the header text.
-			 * */
-			private function handleHeaderColumnChange():void
-			{
-				
-				if(headerAttributeColumn.getInternalColumn())
-					createHeaderColumns(headerAttributeColumn,false);
-				else
-					createHeaderColumns(columns.getObjects()[0]);
-			}
  			private function handleColumnsListChange():void
 			{
 				var columnObjects:Array = columns.getObjects();
 				sourceArrayCollection.removeAll();
 				
 				//if header column is not set, then assign the first column from columnObjects as header column
-				if(columnObjects.length !=0 && !headerAttributeColumn.internalObject)
-					createHeaderColumns(columnObjects[0]);
-				for (var i:int = 0; i<columnObjects.length; i++)
+				if (columnObjects.length != 0 && !headerAttributeColumn.internalObject)
+					createHeaderColumns();
+				for (var i:int = 0; i < columnObjects.length; i++)
 				{
 					var rowObject:Object = new Object();
 					
@@ -139,8 +131,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					//We create an object with the first item as _name_ mapped to the Attribute Column name
 					//and then we create a mapping of the key to value 
-					rowObject["_name_"] =ColumnUtils.getTitle(columnObjects[i]);
-					for(var k:int=0; k<keys.length; k++ )
+					rowObject["_name_"] = ColumnUtils.getTitle(columnObjects[i]);
+					for (var k:int = 0; k < keys.length; k++ )
 					{
 						var keyName:String = (keys[k] as IQualifiedKey).localName;
 						rowObject[keyName] = columnObjects[i].getValueFromKey((keys[k] as IQualifiedKey),String);
@@ -159,21 +151,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * @param emptyHeader If false use the values in the Attribute Column as the header text
 			 * else leaves it empty.
 			 * */
-			private function createHeaderColumns(col:IAttributeColumn,emtpyHeader:Boolean=true):void
+			private function createHeaderColumns():void
 			{
+				var hasHeader:Boolean = headerAttributeColumn.getInternalColumn() != null;
+				var col:IAttributeColumn = hasHeader ? headerAttributeColumn : columns.getObjects()[0];
 				
 				if(col)
 				{
+					keySet.setBaseKeySet(col);
 					//sort the keys in the header column
 					var sortFn:Function = ColumnUtils.generateCompareFunction([col]);
 					
 					var keys:Array = [];
 					
 					//filter the keys if filterKeySet is used
-					if(filterKeySet.keys.length != 0)
-						keys = filterKeySet.keys.concat(); // make a copy so we don't modify the original
-					else
-						keys = col.keys.concat(); // make a copy so we don't modify the original
+					keys = keySet.keys.concat(); // make a copy so we don't modify the original
 					
 					AsyncSort.sortImmediately(keys, sortFn);
 					
@@ -183,7 +175,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					for(var i:int=0; i<keys.length; i++ )
 					{
 						var colName:String = " ";
-						if(!emtpyHeader)
+						if (hasHeader)
 							colName = col.getValueFromKey((keys[i] as IQualifiedKey),String);							
 						var gridColumn:DataGridColumn = new DataGridColumn(colName);
 						
@@ -211,7 +203,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					handleColumnWidthChange();
 					
-				}else{
+				}
+				else
+				{
 					//if headerAttribute Column is not set, remove the header text
 					
 					for each(var headerCol:DataGridColumn in table.columns)
@@ -262,6 +256,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					(table.columns[i] as DataGridColumn).width = dataWidth;
 				}
 				
+				// this avoids a crash when clicking the scrollbar after subset changes.
+				if (table.horizontalScrollPosition >= table.columnCount)
+					table.horizontalScrollPosition = 0;
 			}
 			
 			[Deprecated(replacement="headerColumnWidth")] public function set headerColumnPercentWidth(value:Number):void
@@ -274,8 +271,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				dataColumnWidth.value = String(value) + '%';
 			}
 			
-			
-			
+			[Deprecated] public function set filterKeySet(value:Object):void
+			{
+				var ks:KeySet = keySet.keyFilter.requestLocalObject(KeySet, false);
+				ks.setSessionState(value);
+			}
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
