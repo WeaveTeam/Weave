@@ -145,7 +145,7 @@
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Gauge column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.meterColumn"/>
 		</mx:VBox>
 		<mx:VBox id="advControlsPanel" label="{lang('Advanced')}">
-			<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" change="visualization.plotManager.marginBottomNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0;" toolTip="{lang('Click to hide the title.')}"/>
+			<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" change="visualization.plotManager.marginBottom.value = String(marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0);" toolTip="{lang('Click to hide the title.')}"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 	</ui:ControlPanel>
