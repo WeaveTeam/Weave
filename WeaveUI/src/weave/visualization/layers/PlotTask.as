@@ -41,9 +41,7 @@ package weave.visualization.layers
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
-	import weave.api.ui.IPlotterWithKeyCompare;
 	import weave.core.CallbackCollection;
-	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ZoomBounds;
@@ -113,7 +111,6 @@ package weave.visualization.layers
 				registerLinkableChild(_dependencies, dependency);
 			
 			getCallbackCollection(_plotter.keySet).addImmediateCallback(this, handleKeySetChange, true);
-			getCallbackCollection(_allKeysSort).addImmediateCallback(this, handleAllKeysSort);
 			
 			_dependencies.addImmediateCallback(this, asyncStart, true);
 			
@@ -172,9 +169,6 @@ package weave.visualization.layers
 		private var _progress:Number = 0;
 		private var _delayInit:Boolean = false;
 		private var _pendingInit:Boolean = false;
-		
-		private var _allKeysSort:AsyncSort = newDisposableChild(this, AsyncSort);
-		private var _allKeys:Array;
 		private var _keyToSortIndex:Dictionary;
 		
 		/**
@@ -194,19 +188,10 @@ package weave.visualization.layers
 		
 		private function handleKeySetChange():void
 		{
-			if (_plotter is IPlotterWithKeyCompare)
-			{
-				_allKeys = _plotter.keySet.keys.concat();
-				_keyToSortIndex = null;
-				_allKeysSort.beginSort(_allKeys, (_plotter as IPlotterWithKeyCompare).keyCompare);
-			}
-		}
-		private function handleAllKeysSort():void
-		{
 			// save a lookup from key to sorted index
 			// this is very fast
 			_keyToSortIndex = new Dictionary(true);
-			var sorted:Array = _allKeysSort.result;
+			var sorted:Array = _plotter.keySet.keys;
 			for (var i:int = sorted.length - 1; i >= 0; i--)
 				_keyToSortIndex[sorted[i]] = i;
 		}
@@ -224,12 +209,12 @@ package weave.visualization.layers
 			var visible:Boolean = true;
 			if (!_layerSettings.visible.value)
 			{
-				debugTrace('visible=false');
+				//debugTrace('visible=false');
 				visible = false;
 			}
 			else if (!_layerSettings.selectable.value && _taskType != TASK_TYPE_SUBSET)
 			{
-				debugTrace('selection disabled');
+				//debugTrace('selection disabled');
 				visible = false;
 			}
 			else
@@ -273,7 +258,7 @@ package weave.visualization.layers
 			}
 			else
 			{
-				debugTrace('should not be rendered');
+				//debugTrace('should not be rendered');
 			}
 		}
 		
@@ -303,6 +288,7 @@ package weave.visualization.layers
 			// stop immediately if we shouldn't be rendering
 			if (shouldBeRendered())
 			{
+				debugTrace(this.toString(),'clear');
 				// clear bitmap and resize if necessary
 				PlotterUtils.setBitmapDataSize(bufferBitmap, _unscaledWidth, _unscaledHeight);
 			}
@@ -383,22 +369,7 @@ package weave.visualization.layers
 						}
 					}
 				}
-				if (_plotter is IPlotterWithKeyCompare)
-				{
-					if (_iPendingKey == _pendingKeys.length) // should we start sorting?
-					{
-						if (_keyToSortIndex == null)
-							return 0; // cached sort indices are not ready yet
-						_asyncSort.beginSort(_recordKeys, cachedKeyCompare);
-						_iPendingKey = int.MAX_VALUE; // remember that sorting has already started
-					}
-					
-					if (_asyncSort.result == null)
-						return 0; // not done yet
-					
-					// use the sorted array
-					_recordKeys = _asyncSort.result;
-				}
+				debugTrace(this.toString(),'recordKeys',_recordKeys.length);
 				
 				// done with keys
 				_pendingKeys = null;
@@ -415,6 +386,7 @@ package weave.visualization.layers
 				_delayInit = true;
 				
 				_progress = _plotter.drawPlotAsyncIteration(this);
+				debugTrace(this.toString(),'iteration',_iteration,'progress',_progress);
 				
 				_delayInit = false;
 				

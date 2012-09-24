@@ -22,8 +22,6 @@ package weave.utils
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
-	import mx.collections.Sort;
-	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
@@ -39,7 +37,6 @@ package weave.utils
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.KDTree;
 	import weave.primitives.SimpleGeometry;
-	import weave.visualization.plotters.DynamicPlotter;
 	
 	/**
 	 * This class provides an interface to a collection of spatially indexed IShape objects.
@@ -137,9 +134,6 @@ package weave.utils
 			var key:IQualifiedKey;
 			var bounds:IBounds2D;
 			var i:int;
-			
-			while (plotter is DynamicPlotter)
-				plotter = (plotter as DynamicPlotter).internalObject as IPlotter;
 			
 			if (plotter is IPlotterWithGeometries)
 				_keyToGeometriesMap = new Dictionary();

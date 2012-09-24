@@ -64,7 +64,7 @@ package weave.visualization.plotters
 		{
 			dynamicColorColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
-			setKeySource(dynamicColorColumn);
+			setSingleKeySource(dynamicColorColumn);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
 		

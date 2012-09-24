@@ -37,7 +37,7 @@ package weave.data.AttributeColumns
 	{
 		public function FilteredColumn()
 		{
-			_filteredKeySet.setBaseKeySet(internalDynamicColumn);
+			_filteredKeySet.setSingleKeySource(internalDynamicColumn);
 		}
 		
 		/**

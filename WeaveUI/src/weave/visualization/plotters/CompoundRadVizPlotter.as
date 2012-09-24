@@ -30,13 +30,11 @@ package weave.visualization.plotters
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
-	import weave.api.ui.IPlotterWithKeyCompare;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -62,7 +60,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author kmanohar
 	 */
-	public class CompoundRadVizPlotter extends AbstractPlotter implements IPlotterWithKeyCompare
+	public class CompoundRadVizPlotter extends AbstractPlotter
 	{
 		public function CompoundRadVizPlotter()
 		{
@@ -100,13 +98,13 @@ package weave.visualization.plotters
 		private var coordinate:Point = new Point();//reusable object
 		private const tempPoint:Point = new Point();//reusable object
 				
-		public const jitterLevel:LinkableNumber = 			registerSpatialProperty(new LinkableNumber(-19));	
-		public const enableWedgeColoring:LinkableBoolean = 	registerLinkableChild(this, new LinkableBoolean(false));
-		public const enableJitter:LinkableBoolean = 		registerSpatialProperty(new LinkableBoolean(false));
-		public const iterations:LinkableNumber = 			newLinkableChild(this,LinkableNumber);
+		public const jitterLevel:LinkableNumber = registerSpatialProperty(new LinkableNumber(-19));
+		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const enableJitter:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const iterations:LinkableNumber = newLinkableChild(this,LinkableNumber);
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
-		public const fillStyle:SolidFillStyle = newLinkableChild(this,SolidFillStyle,handleColorColumnChange);		
+		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
 		public var anchorColorMap:Dictionary;
@@ -120,8 +118,7 @@ package weave.visualization.plotters
 		
 		private static var randomValueArray:Array = new Array();		
 		private static var randomArrayIndexMap:Dictionary;
-		private var keyNumberMap:Dictionary;		
-		private var keyColorMap:Dictionary;
+		private var keyNumberMap:Dictionary;
 		private var keyNormMap:Dictionary;
 		private var keyGlobalNormMap:Dictionary;
 		private var keyMaxMap:Dictionary;
@@ -150,7 +147,9 @@ package weave.visualization.plotters
 			
 			if (_columns.length > 0) 
 			{
-				setKeySource(_columns[0]);
+				var keySources:Array = _columns.concat();
+				keySources.unshift(radiusColumn);
+				setColumnKeySources(keySources, [true]);
 			
 				for each( var key:IQualifiedKey in keySet.keys)
 				{					
@@ -194,19 +193,12 @@ package weave.visualization.plotters
 				}
 			}
 			else
-				setKeySource(null);
+			{
+				setSingleKeySource(null);
+			}
 			
 			setAnchorLocations();
 			fillColorMap();
-		}
-		
-		private function handleColorColumnChange():void
-		{			
-			keyColorMap = 			new Dictionary(true);
-			for each(var key:IQualifiedKey in keySet.keys)
-			{
-				keyColorMap[key] = fillStyle.color.internalDynamicColumn.getValueFromKey(key, Number);
-			}
 		}
 		
 		public function setAnchorLocations():void
@@ -427,42 +419,6 @@ package weave.visualization.plotters
 			_currentScreenBounds.copyFrom(screenBounds);
 		}
 			
-		/**
-		 * This function compares record keys based on their radiusColumn values, then by their colorColumn values
-		 * @param key1 First record key (a)
-		 * @param key2 Second record key (b)
-		 * @return Compare value: 0: (a == b), -1: (a < b), 1: (a > b)
-		 * 
-		 */			
-		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{			
-			if (radiusColumn.getInternalColumn())
-			{				
-				// compare size
-				var a:Number = radiusColumn.getValueFromKey(key1, Number);
-				var b:Number = radiusColumn.getValueFromKey(key2, Number);
-				
-				// sort descending (high radius values drawn first)
-				if (isNaN(a) || a < b)
-					return 1;
-				else if (isNaN(b) || a > b)
-					return -1;
-			}
-			// size equal.. compare color (if global colorColumn is used)
-			if (!enableWedgeColoring.value)
-			{
-				a = keyColorMap[key1];
-				b = keyColorMap[key2];
-				// sort ascending (high values drawn last)
-				if ( a < b )
-					return -1;
-				else if (a > b)
-					return 1;
-			}
-			
-			return 0 ;
-		}			
-		
 		/**
 		 * This function must be implemented by classes that extend AbstractPlotter.
 		 * 

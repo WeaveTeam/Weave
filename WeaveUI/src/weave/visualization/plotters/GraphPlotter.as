@@ -64,7 +64,7 @@ package weave.visualization.plotters
 
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
-			setKeySource(nodesColumn);
+			setSingleKeySource(nodesColumn);
 
 			layoutAlgorithm.requestLocalObject(ForceDirectedLayout, true);
 
@@ -411,7 +411,7 @@ package weave.visualization.plotters
 			if (!nodesColumn.internalObject || !edgeSourceColumn.internalObject || !edgeTargetColumn.internalObject)
 				return;
 			// set the keys
-			setKeySource(nodesColumn);
+			setSingleKeySource(nodesColumn);
 			
 			// if we don't have the required keys, do nothing
 			if ((nodesColumn).keys.length == 0 || 

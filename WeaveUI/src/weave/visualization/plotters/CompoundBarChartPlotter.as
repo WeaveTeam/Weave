@@ -49,6 +49,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.SortedIndexColumn;
 	import weave.data.BinningDefinitions.CategoryBinningDefinition;
+	import weave.data.KeySets.SortedKeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.primitives.Range;
@@ -73,7 +74,7 @@ package weave.visualization.plotters
 			colorColumn.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 
 			// get the keys from the sort column
-			setKeySource(sortColumn);
+			setColumnKeySources([sortColumn]);
 			
 			// Link the subset key filter to the filter of the private _filteredSortColumn.
 			// This is so the records will be filtered before they are sorted in the _sortColumn.
@@ -217,7 +218,7 @@ package weave.visualization.plotters
 					if (column is IColumnWrapper)
 						column = (column as IColumnWrapper).getInternalColumn();
 				}
-				_sortByColor = ColumnUtils.generateCompareFunction([column]);
+				_sortByColor = SortedKeySet.generateCompareFunction([column]);
 			}
 			
 			if (colorChanged || binsChanged)

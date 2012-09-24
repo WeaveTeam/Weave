@@ -58,7 +58,7 @@ package weave.visualization.plotters
 			axisLineMinValue.value = -1;
 			axisLineMaxValue.value = 1;
 			
-			setKeySource(_keySet);
+			setSingleKeySource(_keySet);
 		}
 		
 		//TODO: put this huge list of properties into a separate object instead

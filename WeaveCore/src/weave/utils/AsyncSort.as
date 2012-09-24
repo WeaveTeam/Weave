@@ -224,7 +224,7 @@ package weave.utils
 		private function done():void
 		{
 			if (debug && elapsed > 0)
-				trace(debugId(this),result.length,'in',elapsed/1000,'seconds');
+				debugTrace(this,result.length,'in',elapsed/1000,'seconds');
 			
 			getCallbackCollection(this).triggerCallbacks();
 		}

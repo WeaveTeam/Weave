@@ -57,7 +57,7 @@ package weave.visualization.plotters
 			spatialCallbacks.addImmediateCallback(this, updateLabels);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat);
 			
-			setKeySource(_keySet);
+			setSingleKeySource(_keySet);
 		}
 		
 		public const axisLabelDistance:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-10, isFinite));

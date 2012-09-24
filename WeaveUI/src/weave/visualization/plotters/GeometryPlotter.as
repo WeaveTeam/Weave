@@ -71,7 +71,7 @@ package weave.visualization.plotters
 			
 			linkSessionState(StreamedGeometryColumn.geometryMinimumScreenArea, pixellation);
 
-			setKeySource(geometryColumn);
+			setSingleKeySource(geometryColumn);
 			
 			// not every change to the geometries changes the keys
 			geometryColumn.removeCallback(_filteredKeySet.triggerCallbacks);

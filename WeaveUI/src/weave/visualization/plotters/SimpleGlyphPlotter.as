@@ -27,12 +27,9 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.IPlotTask;
-	import weave.api.ui.IPlotterWithKeyCompare;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
-	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 
@@ -41,12 +38,12 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class SimpleGlyphPlotter extends AbstractGlyphPlotter implements IPlotterWithKeyCompare
+	public class SimpleGlyphPlotter extends AbstractGlyphPlotter
 	{
 		public function SimpleGlyphPlotter()
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
-			_keyCompare = ColumnUtils.generateCompareFunction([screenSize], [true]);
+			setColumnKeySources([screenSize, dataX, dataY], [true, false, false]);
 		}
 		
 		private static const LEFT:String = 'left', CENTER:String = 'center', RIGHT:String = 'right';
@@ -80,13 +77,6 @@ package weave.visualization.plotters
 		 * This determines how the glyphs are aligned vertically to the data coordinates.
 		 */		
 		public const verticalPosition:LinkableString = registerLinkableChild(this, new LinkableString(MIDDLE, verifyVertical));
-		
-		private var _keyCompare:Function;
-		
-		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{
-			return _keyCompare(key1, key2);
-		}
 		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().

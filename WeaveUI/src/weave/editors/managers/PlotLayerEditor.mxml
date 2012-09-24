@@ -332,7 +332,6 @@
 						import weave.visualization.layers.LayerSettings;
 						import weave.visualization.layers.PlotManager;
 						import weave.visualization.plotters.CirclePlotter;
-						import weave.visualization.plotters.DynamicPlotter;
 						import weave.visualization.plotters.GeometryLabelPlotter;
 						import weave.visualization.plotters.GeometryPlotter;
 						import weave.visualization.plotters.SingleImagePlotter;

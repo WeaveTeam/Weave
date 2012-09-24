@@ -620,13 +620,14 @@ package weave.visualization.layers
 							}
 							else
 							{
-								debugTrace(String(task),'undefined',name);
+								//debugTrace(String(task),'undefined',name);
 							}
 							
 							if (fade && busy)
 							{
 								//TODO: this doesn't look good with transparency and overlapping completedBitmap and bufferBitmap
 								//TODO: this is incorrect if the PlotTask hasn't cleared the previous bitmap yet.
+								debugTrace(String(task),'fade',task.progress,'\n\tdata',String(task.dataBounds),'\n\tscreen',String(task.screenBounds));
 								
 								shouldRender = true;
 								copyScaledPlotGraphics(
@@ -639,7 +640,7 @@ package weave.visualization.layers
 					}
 					else
 					{
-						debugTrace('do not render',name);
+						//debugTrace('do not render',name);
 					}
 				}
 			}

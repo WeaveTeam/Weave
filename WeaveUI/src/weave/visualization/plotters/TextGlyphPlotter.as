@@ -24,21 +24,16 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	import flash.text.TextFormat;
 	
-	import mx.utils.ObjectUtil;
-	
-	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
-	import weave.api.ui.IPlotterWithKeyCompare;
 	import weave.api.ui.ITextPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.QKeyManager;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
@@ -47,19 +42,14 @@ package weave.visualization.plotters
 	/**
 	 * @author adufilie
 	 */
-	public class TextGlyphPlotter extends AbstractGlyphPlotter implements ITextPlotter, IPlotterWithKeyCompare
+	public class TextGlyphPlotter extends AbstractGlyphPlotter implements ITextPlotter
 	{
 		public function TextGlyphPlotter()
 		{
 			hideOverlappingText.value = false;
 			xScreenOffset.value = 0;
 			yScreenOffset.value = 0;
-			setKeySource(text);
-		}
-		
-		public function setBaseKeySource(source:IKeySet):void
-		{
-			setKeySource(source);
+			setColumnKeySources([sortColumn, text]);
 		}
 		
 		private const bitmapText:BitmapText = new BitmapText();
@@ -94,17 +84,6 @@ package weave.visualization.plotters
 		public const xScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const yScreenOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const maxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100));
-
-		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{
-			if (!sortColumn.getInternalColumn())
-				return QKeyManager.keyCompare(key1, key2);
-			
-			var value1:Number = sortColumn.getValueFromKey(key1, Number);
-			var value2:Number = sortColumn.getValueFromKey(key2, Number);
-			return ObjectUtil.numericCompare(value1, value2)
-				|| QKeyManager.keyCompare(key1, key2);
-		}
 
 		/**
 		 * Draws the graphics onto BitmapData.

@@ -99,7 +99,7 @@ package weave.visualization.plotters
 			_filteredData = binnedData.internalDynamicColumn.requestLocalObject(FilteredColumn, true);
 			linkSessionState(keySet.keyFilter, _filteredData.filter);
 			registerLinkableChild(this, _binnedData);
-			setKeySource(_filteredData);
+			setSingleKeySource(_filteredData);
 			
 			var ecArray:Array = [_beginRadians, _spanRadians, binSize];
 			var nameArray:Array = ["beginRadians", "spanRadians", "binSize"];

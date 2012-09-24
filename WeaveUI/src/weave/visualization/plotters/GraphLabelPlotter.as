@@ -52,7 +52,7 @@ package weave.visualization.plotters
 		public function GraphLabelPlotter()
 		{
 			super();
-			setKeySource(nodesColumn);
+			setSingleKeySource(nodesColumn);
 			//nodesColumn.addImmediateCallback(this, setKeySource, [nodesColumn], true);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
@@ -152,11 +152,6 @@ package weave.visualization.plotters
 			} // end if
 			
 			return (task.asyncState as Function).apply(this, arguments);
-		}
-		
-		public function setBaseKeySource(source:IKeySet):void
-		{
-			setKeySource(source);
 		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array

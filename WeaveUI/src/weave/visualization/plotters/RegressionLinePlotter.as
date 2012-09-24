@@ -53,7 +53,6 @@ package weave.visualization.plotters
 			Weave.properties.rServiceURL.addImmediateCallback(this, resetRService, true);
 			spatialCallbacks.addImmediateCallback(this, resetRegressionLine );
 			spatialCallbacks.addGroupedCallback(this, calculateRRegression );
-			setKeySource(xColumn);
 			
 			// hack to fix old session states
 			_filteredKeySet.addImmediateCallback(this, function():void {

@@ -52,7 +52,7 @@
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.plotters.TextGlyphPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, LineChartTool, "Line Chart");
+			WeaveAPI.registerImplementation(IVisTool, LineChartTool, lang("Line Chart"));
 			
 			[Bindable]
 			private var _plotter:ParallelCoordinatesPlotter = null;
@@ -320,7 +320,7 @@
 				labelPlotter.hAlign.defaultValue.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
 				labelPlotter.hideOverlappingText.value = true;
 				linkSessionState(labelPlotter.dataY, labelPlotter.sortColumn);
-				labelPlotter.setBaseKeySource(_plotter.keySet);
+				labelPlotter.hack_setSingleKeySource(_plotter.keySet);
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateLabel, true);
 			}
 			private function updateLabel():void

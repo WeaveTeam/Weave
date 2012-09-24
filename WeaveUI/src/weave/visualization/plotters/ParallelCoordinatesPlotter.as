@@ -81,14 +81,14 @@ package weave.visualization.plotters
 			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-			{
-				_keySet_union.addKeySetDependency(newColumn);
 				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
-			}
+			
 			_columns = columns.getObjects();
 			// if there is only one column, push a copy of it so lines will be drawn
 			if (_columns.length == 1)
 				_columns.push(_columns[0]);
+			
+			updateFilterEquationColumns();
 		}
 
 		/*
@@ -107,7 +107,6 @@ package weave.visualization.plotters
 		public const xValues:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
 		
 		private const _keySet_groupBy:KeySet = newDisposableChild(this, KeySet);
-		private const _keySet_union:KeySetUnion = newDisposableChild(this, KeySetUnion);
 		
 		private var _columns:Array = [];
 		
@@ -134,11 +133,13 @@ package weave.visualization.plotters
 		{
 			if (enableGroupBy.value)
 			{
-				setKeySource(_keySet_groupBy);
+				setColumnKeySources([_keySet_groupBy]);
 			}
 			else
 			{
-				setKeySource(_keySet_union);
+				var list:Array = _columns.concat();
+				list.unshift(lineStyle.color);
+				setColumnKeySources(list);
 				return;
 			}
 			

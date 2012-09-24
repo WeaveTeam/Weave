@@ -48,7 +48,7 @@ package weave.visualization.plotters
 		public function AxisLabelPlotter()
 		{
 			hideOverlappingText.value = false;
-			setKeySource(text);
+			setSingleKeySource(text);
 			horizontal.value = true;
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}

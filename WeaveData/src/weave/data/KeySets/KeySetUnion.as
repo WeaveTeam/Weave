@@ -21,15 +21,14 @@ package weave.data.KeySets
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.core.ICallbackCollection;
+	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
-	import weave.api.getLinkableDescendants;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
+	import weave.api.newDisposableChild;
+	import weave.api.objectWasDisposed;
 	import weave.core.CallbackCollection;
 	
 	/**
@@ -39,13 +38,20 @@ package weave.data.KeySets
 	 */
 	public class KeySetUnion implements IKeySet, IDisposableObject
 	{
+		public static var debug:Boolean = false;
+		
 		/**
 		 * @param keyInclusionLogic A function that accepts an IQualifiedKey and returns true or false.
 		 */		
 		public function KeySetUnion(keyInclusionLogic:Function = null)
 		{
 			_keyInclusionLogic = keyInclusionLogic;
+			
+			if (debug)
+				getCallbackCollection(this).addImmediateCallback(this, _firstCallback);
 		}
+		
+		private function _firstCallback():void { debugTrace(this,'trigger',keys.length,'keys'); }
 		
 		/**
 		 * This will be used to determine whether or not to include a key.
@@ -61,9 +67,8 @@ package weave.data.KeySets
 			if (_keySets.indexOf(keySet) < 0)
 			{
 				_keySets.push(keySet);
-				registerLinkableChild(this, keySet);
-				getCallbackCollection(keySet).addDisposeCallback(this, getCallbackCollection(this).triggerCallbacks);
-				getCallbackCollection(this).triggerCallbacks();
+				getCallbackCollection(keySet).addDisposeCallback(this, asyncStart);
+				getCallbackCollection(keySet).addImmediateCallback(this, asyncStart, true);
 			}
 		}
 		
@@ -72,7 +77,6 @@ package weave.data.KeySets
 		 */
 		public function get keys():Array
 		{
-			_validate();
 			return _allKeys;
 		}
 
@@ -82,42 +86,96 @@ package weave.data.KeySets
 		 */
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
-			_validate();
 			return _keyLookup[key] === true;
 		}
 		
-		private var _keySets:Array = [];
-		private var _allKeys:Array;
-		private var _keyLookup:Dictionary;
+		private var _keySets:Array = []; // Array of IKeySet
+		private var _allKeys:Array = []; // Array of IQualifiedKey
+		private var _keyLookup:Dictionary = new Dictionary(true); // IQualifiedKey -> Boolean
 		
-		private function _validate():void
+		private var _asyncOwner:ILinkableObject = newDisposableChild(this, CallbackCollection); // separate owner for the async task to avoid affecting our busy status
+		private var _asyncKeys:Array; // keys from current key set
+		private var _asyncKeySetIndex:int; // index of current key set
+		private var _asyncKeyIndex:int; // index of current key
+		private var _prevCompareCounter:int; // keeps track of how many new keys are found in the old keys list
+		private var _newKeyLookup:Dictionary; // for comparing to new keys lookup
+		private var _newKeys:Array; // new allKeys array in progress
+		
+		private function asyncStart():void
 		{
-			if (detectLinkableObjectChange(_validate, this))
+			// remove disposed key sets
+			for (var i:int = _keySets.length - 1; i >= 0; i--)
+				if (objectWasDisposed(_keySets[i]))
+					_keySets.splice(i, 1);
+			
+			// restart async task
+			_prevCompareCounter = 0;
+			_newKeys = [];
+			_newKeyLookup = new Dictionary(true);
+			_asyncKeys = null;
+			_asyncKeySetIndex = 0;
+			_asyncKeyIndex = 0;
+			WeaveAPI.StageUtils.startTask(_asyncOwner, asyncIterate, WeaveAPI.TASK_PRIORITY_BUILDING, asyncComplete);
+		}
+		
+		private function asyncIterate():Number
+		{
+			if (_asyncKeySetIndex < _keySets.length)
 			{
-				_allKeys = [];
-				_keyLookup = new Dictionary(true);
-				for (var i:int = 0; i < _keySets.length; i++)
+				if (_asyncKeys == null)
+					_asyncKeys = (_keySets[_asyncKeySetIndex] as IKeySet).keys;
+				
+				if (_asyncKeyIndex < _asyncKeys.length)
 				{
-					var keys:Array = (_keySets[i] as IKeySet).keys;
-					for (var j:int = 0; j < keys.length; j++)
+					var key:IQualifiedKey = _asyncKeys[_asyncKeyIndex] as IQualifiedKey;
+					if (_newKeyLookup[key] === undefined) // if we haven't seen this key yet
 					{
-						var key:IQualifiedKey = keys[j] as IQualifiedKey;
-						if (_keyLookup[key] === undefined)
+						var includeKey:Boolean = (_keyInclusionLogic == null) ? true : _keyInclusionLogic(key);
+						_newKeyLookup[key] = includeKey;
+						
+						if (includeKey)
 						{
-							var includeKey:Boolean = (_keyInclusionLogic == null) ? true : _keyInclusionLogic(key);
-							_keyLookup[key] = includeKey;
-							if (includeKey)
-								_allKeys.push(key);
+							_newKeys.push(key);
+							
+							// keep track of how many keys we saw both previously and currently
+							if (_keyLookup[key] === true)
+								_prevCompareCounter++;
 						}
 					}
+					
+					_asyncKeyIndex++;
+					
+					return (_asyncKeySetIndex + _asyncKeyIndex / _asyncKeys.length) / _keySets.length;
 				}
+				else
+				{
+					_asyncKeyIndex = 0;
+					_asyncKeySetIndex++;
+					_asyncKeys = null;
+					
+					return _asyncKeySetIndex / _keySets.length;
+				}
+			}
+			return 1; // avoids division by zero
+		}
+		
+		private function asyncComplete():void
+		{
+			// detect change
+			if (_allKeys.length != _newKeys.length || _allKeys.length != _prevCompareCounter)
+			{
+				_allKeys = _newKeys;
+				_keyLookup = _newKeyLookup;
+				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
 		
 		public function dispose():void
 		{
+			_keySets = null;
 			_allKeys = null;
 			_keyLookup = null;
+			_newKeyLookup = null;
 		}
 	}
 }

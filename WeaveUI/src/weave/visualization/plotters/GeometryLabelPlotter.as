@@ -26,10 +26,10 @@ package weave.visualization.plotters
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.setSessionState;
-	import weave.api.ui.IPlotTask;
-	import weave.api.ui.IPlotterWithKeyCompare;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
+	import weave.data.KeySets.SortedKeySet;
+	import weave.data.QKeyManager;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 
@@ -38,7 +38,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class GeometryLabelPlotter extends TextGlyphPlotter implements IPlotterWithKeyCompare
+	public class GeometryLabelPlotter extends TextGlyphPlotter
 	{
 		public function GeometryLabelPlotter()
 		{
@@ -52,9 +52,13 @@ package weave.visualization.plotters
 			// set up x,y columns to be derived from the geometry column
 			linkSessionState(geometryColumn, dataX.requestLocalObject(ReprojectedGeometryColumn, true));
 			linkSessionState(geometryColumn, dataY.requestLocalObject(ReprojectedGeometryColumn, true));
+			
+			_filteredKeySet.setColumnKeySources([geometryColumn], null, keyCompare);
 		}
 		
 		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
+		
+		private var _sortColumnCompare:Function = SortedKeySet.generateCompareFunction([sortColumn, text]);
 		
 		/**
 		 * This function compares geometry record keys according to geometry bounding box area
@@ -62,7 +66,7 @@ package weave.visualization.plotters
 		 * @param key2 Second record key ("b")
 		 * @return Compare value: 0: (a == b), -1: (a < b), 1: (a > b)
 		 */		
-		override public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
+		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{
 			try
 			{
@@ -71,14 +75,17 @@ package weave.visualization.plotters
 				var geom2:GeneralizedGeometry = (geometryColumn.getValueFromKey(key2) as Array)[0] as GeneralizedGeometry;
 				
 				// sort descending by bounding box area
-				return -ObjectUtil.numericCompare(geom1.bounds.getArea(), geom2.bounds.getArea())
-					|| super.keyCompare(key1, key2);
+				var result:int = -ObjectUtil.numericCompare(geom1.bounds.getArea(), geom2.bounds.getArea());
+				if (result != 0)
+					return result;
 			}
 			catch (e:Error)
 			{
 				// we don't care if this fails
 			}
-			return super.keyCompare(key1, key2);
+			
+			// revert to default compare
+			return _sortColumnCompare(key1, key2);
 		}
 		
 		// reusable temporary objects

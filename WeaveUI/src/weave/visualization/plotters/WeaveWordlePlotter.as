@@ -23,8 +23,6 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.text.TextFormat;
 	
-	import mx.utils.ObjectUtil;
-	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -32,10 +30,8 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
-	import weave.api.ui.IPlotterWithKeyCompare;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
-	import weave.utils.AsyncSort;
 	import weave.utils.BitmapText;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -45,7 +41,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author jfallon
 	 */
-	public class WeaveWordlePlotter extends AbstractPlotter implements IPlotterWithKeyCompare
+	public class WeaveWordlePlotter extends AbstractPlotter
 	{
 		
 		public function WeaveWordlePlotter()
@@ -55,7 +51,7 @@ package weave.visualization.plotters
 			fillStyle.color.defaultValue.setSessionState(0x808080);
 			
 			// set up session state
-			setKeySource(wordColumn);
+			setColumnKeySources([wordColumn], [true]);
 			
 			registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(wordColumn));
 		}	
@@ -370,15 +366,6 @@ package weave.visualization.plotters
 				}
 	
 			flag = true;						
-		}
-		
-		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{
-			// descending
-			return - ObjectUtil.numericCompare(
-				wordColumn.getValueFromKey(key1, Number),
-				wordColumn.getValueFromKey(key2, Number)
-			);
 		}
 		
 		private var count:Number = 1;

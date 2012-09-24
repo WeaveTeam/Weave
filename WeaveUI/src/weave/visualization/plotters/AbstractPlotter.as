@@ -158,13 +158,22 @@ package weave.visualization.plotters
 		}
 
 		/**
-		 * This function can be used by classes that extend AbstractPlotter to control the results of the get keySet() function.
-		 * Since all IAttributeColumns implement IKeySet, a column can be set as the source of an AbstractPlotter's keys.
-		 * @param source An object that implements IKeySet (Note: IAttributeColumn implements this)
+		 * This will set up the keySet so it provides keys in sorted order based on the values in a list of columns.
+		 * @param columns An Array of IAttributeColumns to use for comparing IQualifiedKeys.
+		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
 		 */
-		protected function setKeySource(source:IKeySet):void
+		protected function setColumnKeySources(columns:Array, descendingFlags:Array = null):void
 		{
-			_filteredKeySet.setBaseKeySet(source);
+			_filteredKeySet.setColumnKeySources(columns, descendingFlags);
+		}
+		
+		/**
+		 * This function sets the base IKeySet that is being filtered.
+		 * @param newBaseKeySet A new IKeySet to use as the base for this FilteredKeySet.
+		 */
+		protected function setSingleKeySource(keySet:IKeySet):void
+		{
+			_filteredKeySet.setSingleKeySource(keySet);
 		}
 		
 		/** 

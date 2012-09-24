@@ -24,10 +24,10 @@ package weave.visualization.plotters
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
+	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
@@ -48,9 +48,7 @@ package weave.visualization.plotters
 		{
 			clipDrawing = false;
 			
-			_keySetUnion.addKeySetDependency(dataX);
-			_keySetUnion.addKeySetDependency(dataY);
-			setKeySource(_keySetUnion);
+			setColumnKeySources([dataX, dataY]);
 			
 			// filter x and y columns so background data bounds will be correct
 			filteredDataX.filter.requestLocalObject(FilteredKeySet, true);
@@ -71,6 +69,11 @@ package weave.visualization.plotters
 		
 		protected const statsX:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(filteredDataX));
 		protected const statsY:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(filteredDataY));
+		
+		public function hack_setSingleKeySource(keySet:IKeySet):void
+		{
+			setSingleKeySource(keySet);
+		}
 		
 		public function get dataX():DynamicColumn
 		{

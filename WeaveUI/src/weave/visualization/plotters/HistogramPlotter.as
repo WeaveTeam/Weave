@@ -67,7 +67,7 @@ package weave.visualization.plotters
 			// make the colors spatial properties because the binned column is inside
 			registerSpatialProperty(dynamicColorColumn);
 
-			setKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
+			setSingleKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
 		}
 		
 		/**

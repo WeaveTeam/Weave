@@ -452,42 +452,6 @@ package weave.utils
 		}
 		
 		/**
-		 * This funciton generates a compare function that will compare IQualifiedKeys based on the corresponding values in the specified columns.
-		 * @param columns An Array of IAttributeColumns to use for comparing IQualifiedKeys.
-		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
-		 * @return A new Function that will compare two IQualifiedKeys using numeric values from the specified columns.
-		 */
-		public static function generateCompareFunction(columns:Array, descendingFlags:Array = null):Function
-		{
-			var i:int;
-			var column:IAttributeColumn;
-			var result:int;
-			var n:int = columns.length;
-			if (descendingFlags)
-				descendingFlags.length = n;
-			return function(key1:IQualifiedKey, key2:IQualifiedKey):int
-			{
-				for (i = 0; i < n; i++)
-				{
-					column = columns[i] as IAttributeColumn;
-					if (!column)
-						continue;
-					result = ObjectUtil.numericCompare(
-						column.getValueFromKey(key1, Number),
-						column.getValueFromKey(key2, Number)
-					);
-					if (result != 0)
-					{
-						if (descendingFlags && descendingFlags[i])
-							return -result;
-						return result;
-					}
-				}
-				return QKeyManager.keyCompare(key1, key2);
-			}
-		}
-		
-		/**
 		 * This function will make sure the first IAttributeColumn in a linkable hash map is a DynamicColumn.
 		 */		
 		public static function forceFirstColumnDynamic(columnHashMap:ILinkableHashMap):void
