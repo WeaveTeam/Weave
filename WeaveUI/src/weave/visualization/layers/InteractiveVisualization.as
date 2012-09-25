@@ -31,8 +31,6 @@ package weave.visualization.layers
 	import flash.ui.ContextMenu;
 	import flash.ui.Keyboard;
 	
-	import mx.containers.Canvas;
-	
 	import spark.components.Group;
 	
 	import weave.Weave;

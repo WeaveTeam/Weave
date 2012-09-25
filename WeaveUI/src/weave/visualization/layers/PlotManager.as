@@ -259,6 +259,7 @@ package weave.visualization.layers
 					// Enforce pan restrictions on tempDataBounds.
 					// Center of visible dataBounds should be a point inside fullDataBounds.
 					fullDataBounds.constrainBoundsCenterPoint(tempDataBounds);
+					//fullDataBounds.constrainBounds(tempDataBounds);
 				}
 			}
 			

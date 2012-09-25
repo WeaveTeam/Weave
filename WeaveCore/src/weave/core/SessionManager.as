@@ -975,10 +975,11 @@ package weave.core
 					{
 						// Removing all children fixes errors that may occur in the next
 						// frame related to callLaterDispatcher and validateDisplayList.
-						while (parentContainer.numChildren > 0)
+						var n:int = parentContainer.numChildren;
+						while (n > 0)
 						{
 							try {
-								parentContainer.removeChildAt(parentContainer.numChildren - 1);
+								parentContainer.removeChildAt(n--);
 							} catch (e:Error) { }
 						}
 					}

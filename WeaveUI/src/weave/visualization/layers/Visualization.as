@@ -75,7 +75,7 @@ package weave.visualization.layers
 		 **  backwards compatibility  **
 		 *******************************/
 		
-		[Exclude] [Deprecated] public function set layers(array:Array):void
+		[Deprecated] public function set layers(array:Array):void
 		{
 			plotManager.plotters.delayCallbacks();
 			plotManager.layerSettings.delayCallbacks();
@@ -121,31 +121,31 @@ package weave.visualization.layers
 		
 		private static const deprecatedLayerNames:Array = ["undefinedX", "undefinedY", "undefinedXY"];
 		
-		[Exclude] [Deprecated] public function set zoomBounds(value:Object):void { plotManager.zoomBounds.setSessionState(value); }
+		[Deprecated] public function set zoomBounds(value:Object):void { plotManager.zoomBounds.setSessionState(value); }
 		
-		[Exclude] [Deprecated] public function set marginRight(value:String):void { plotManager.marginRight.value = value; }
-		[Exclude] [Deprecated] public function set marginLeft(value:String):void { plotManager.marginLeft.value = value; }
-		[Exclude] [Deprecated] public function set marginTop(value:String):void { plotManager.marginTop.value = value; }
-		[Exclude] [Deprecated] public function set marginBottom(value:String):void { plotManager.marginBottom.value = value; }
+		[Deprecated] public function set marginRight(value:String):void { plotManager.marginRight.value = value; }
+		[Deprecated] public function set marginLeft(value:String):void { plotManager.marginLeft.value = value; }
+		[Deprecated] public function set marginTop(value:String):void { plotManager.marginTop.value = value; }
+		[Deprecated] public function set marginBottom(value:String):void { plotManager.marginBottom.value = value; }
 		
-		[Exclude] [Deprecated] public function set minScreenSize(value:Number):void { plotManager.minScreenSize.value = value; }
-		[Exclude] [Deprecated] public function set minZoomLevel(value:Number):void { plotManager.minZoomLevel.value = value; }
-		[Exclude] [Deprecated] public function set maxZoomLevel(value:Number):void { plotManager.maxZoomLevel.value = value; }
-		[Exclude] [Deprecated] public function set enableFixedAspectRatio(value:Boolean):void { plotManager.enableFixedAspectRatio.value = value; }
-		[Exclude] [Deprecated] public function set enableAutoZoomToExtent(value:Boolean):void { plotManager.enableAutoZoomToExtent.value = value; }
-		[Exclude] [Deprecated] public function set enableAutoZoomToSelection(value:Boolean):void { plotManager.enableAutoZoomToSelection.value = value; }
-		[Exclude] [Deprecated] public function set includeNonSelectableLayersInAutoZoom(value:Boolean):void { plotManager.includeNonSelectableLayersInAutoZoom.value = value; }
-		[Exclude] [Deprecated] public function set overrideXMin(value:Number):void { plotManager.overrideXMin.value = value; }
-		[Exclude] [Deprecated] public function set overrideYMin(value:Number):void { plotManager.overrideYMin.value = value; }
-		[Exclude] [Deprecated] public function set overrideXMax(value:Number):void { plotManager.overrideXMax.value = value; }
-		[Exclude] [Deprecated] public function set overrideYMax(value:Number):void { plotManager.overrideYMax.value = value; }
+		[Deprecated] public function set minScreenSize(value:Number):void { plotManager.minScreenSize.value = value; }
+		[Deprecated] public function set minZoomLevel(value:Number):void { plotManager.minZoomLevel.value = value; }
+		[Deprecated] public function set maxZoomLevel(value:Number):void { plotManager.maxZoomLevel.value = value; }
+		[Deprecated] public function set enableFixedAspectRatio(value:Boolean):void { plotManager.enableFixedAspectRatio.value = value; }
+		[Deprecated] public function set enableAutoZoomToExtent(value:Boolean):void { plotManager.enableAutoZoomToExtent.value = value; }
+		[Deprecated] public function set enableAutoZoomToSelection(value:Boolean):void { plotManager.enableAutoZoomToSelection.value = value; }
+		[Deprecated] public function set includeNonSelectableLayersInAutoZoom(value:Boolean):void { plotManager.includeNonSelectableLayersInAutoZoom.value = value; }
+		[Deprecated] public function set overrideXMin(value:Number):void { plotManager.overrideXMin.value = value; }
+		[Deprecated] public function set overrideYMin(value:Number):void { plotManager.overrideYMin.value = value; }
+		[Deprecated] public function set overrideXMax(value:Number):void { plotManager.overrideXMax.value = value; }
+		[Deprecated] public function set overrideYMax(value:Number):void { plotManager.overrideYMax.value = value; }
 		
-		[Exclude] [Deprecated] public function get fullDataBounds():IBounds2D { return plotManager.fullDataBounds; }
-		[Exclude] [Deprecated] public function get zoomToSelection():Function { return plotManager.zoomToSelection; }
-		[Exclude] [Deprecated] public function get getZoomLevel():Function { return plotManager.getZoomLevel; }
-		[Exclude] [Deprecated] public function get setZoomLevel():Function { return plotManager.setZoomLevel; }
-		[Exclude] [Deprecated] public function get getKeysOverlappingGeometry():Function { return plotManager.getKeysOverlappingGeometry; }
+		[Deprecated] public function get fullDataBounds():IBounds2D { return plotManager.fullDataBounds; }
+		[Deprecated] public function get zoomToSelection():Function { return plotManager.zoomToSelection; }
+		[Deprecated] public function get getZoomLevel():Function { return plotManager.getZoomLevel; }
+		[Deprecated] public function get setZoomLevel():Function { return plotManager.setZoomLevel; }
+		[Deprecated] public function get getKeysOverlappingGeometry():Function { return plotManager.getKeysOverlappingGeometry; }
 		
-		[Exclude] [Deprecated] public function set dataBounds(value:Object):void { plotManager.zoomBounds.setSessionState(value); }
+		[Deprecated] public function set dataBounds(value:Object):void { plotManager.zoomBounds.setSessionState(value); }
 	}
 }
