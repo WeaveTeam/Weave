@@ -32,7 +32,9 @@
 	<property name="FLEX_LIBS" value="${FLEX_HOME}/frameworks/libs"/>
 	<property name="FRAMEWORK_SWF" value="framework_4.5.1.21489.swf"/>
 	<property name="RPC_SWF" value="rpc_4.5.1.21328.swf"/>
-
+	<property name="SPARK_SWF" value="spark_4.5.1.21489.swf"/>
+        <property name="MX_SWF" value="mx_4.5.1.21489.swf"/>
+        <property name="TEXTLAYOUT_SWF" value="textLayout_2.0.0.232.swf"/>
     <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar"/>
 	<taskdef name="html-wrapper" classname="flex.ant.HtmlWrapperTask" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
 
@@ -85,6 +87,9 @@
 		<copy file="${basedir}/${SERVICES}/build/jar/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${FRAMEWORK_SWF}" tofile="${WEAVE_DESTROOT}/framework.swf"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${RPC_SWF}" tofile="${WEAVE_DESTROOT}/rpc.swf"/>
+                <copy file="${FLEX_HOME}/frameworks/rsls/${SPARK_SWF}" tofile="${WEAVE_DESTROOT}/spark.swf"/>
+                <copy file="${FLEX_HOME}/frameworks/rsls/${MX_SWF}" tofile="${WEAVE_DESTROOT}/mx.swf"/>
+                <copy file="${FLEX_HOME}/frameworks/rsls/${TEXTLAYOUT_SWF}" tofile="${WEAVE_DESTROOT}/textLayout.swf"/>
 		<antcall target="admin_wrapper"/>
 		<antcall target="client_wrapper"/>
 	</target>

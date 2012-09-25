@@ -41,9 +41,8 @@
 			target-player="10.2.0"
 			debug="${DEBUG}"
 			incremental="true"
-                        
 		>
-                        <theme file="${FLEX_HOME}/frameworks/themes/Halo/halo.swc"/>
+                        <theme file="${FLEX_HOME}/frameworks/themes/Halo/halo.swc"/>  
 			<include-sources dir="${SOURCE_DIR}" includes="**/*.as"/>			
 			<include-sources dir="${SOURCE_DIR}" includes="**/*.mxml"/>
 			<source-path path-element="${SOURCE_DIR}"/>
@@ -56,10 +55,12 @@
 			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
 			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*.swc" append="true"/>
+                        <external-library-path file="${FLEX_HOME}/frameworks/libs/textLayout.swc" append="true"/> 
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10.2/playerglobal.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/framework.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/rpc.swc" append="true"/>
-
+                        <external-library-path file="${FLEX_HOME}/frameworks/libs/mx/mx.swc" append="true"/> 
+                        <external-library-path file="${FLEX_HOME}/frameworks/libs/spark.swc" append="true"/> 
 			<external-library-path file="../${API}/bin/${API}.swc" append="true"/>
 			<external-library-path file="../${CORE}/bin/${CORE}.swc" append="true"/>
 			<external-library-path file="../${DATA}/bin/${DATA}.swc" append="true"/>
