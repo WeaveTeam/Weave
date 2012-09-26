@@ -19,6 +19,8 @@
 
 package weave.utils
 {
+	import avmplus.getQualifiedClassName;
+	
 	import flash.utils.Dictionary;
 
 	/**
@@ -55,7 +57,7 @@ package weave.utils
 					https://bugs.adobe.com/jira/browse/FP-5860
 					Until this bug is fixed, Functions must have strong references.
 				*/
-				if (value is Function)
+				if (value is Function && getQualifiedClassName(value) != 'Function')
 					dictionary[value] = value; // change to null when flash player bug is fixed
 				else
 					dictionary[value] = null;

@@ -1004,7 +1004,7 @@ package weave.core
 			var sessionState:Object = getSessionState(disposedObject);
 
 			// ADD A BREAKPOINT HERE TO DIAGNOSE THE PROBLEM
-			var msg:String = "WARNING: An object triggered callbacks after previously being disposed. " + getQualifiedClassName(disposedObject);
+			var msg:String = "WARNING: An object triggered callbacks after previously being disposed. " + debugId(disposedObject);
 			if (disposedObject is ILinkableVariable)
 				msg += ' (value = ' + (disposedObject as ILinkableVariable).getSessionState() + ')';
 			reportError(disposedError);
