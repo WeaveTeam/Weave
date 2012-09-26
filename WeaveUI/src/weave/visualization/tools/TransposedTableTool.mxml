@@ -26,7 +26,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
 				   layout="absolute"
 				   title="{lang('Transposed Data Table')}" xmlns:editors="weave.editors.*"
-				   implements="weave.api.ui.IVisTool"
+				   implements="weave.api.ui.IVisToolWithSelectableAttributes"
 				   >
 	
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0">
@@ -57,8 +57,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.detectLinkableObjectChange;
+			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -69,17 +70,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.FilteredKeySet;
 			import weave.data.KeySets.KeySet;
-			import weave.data.KeySets.SortedKeySet;
-			import weave.utils.AsyncSort;
 			import weave.utils.ColumnUtils;
+			import weave.utils.LinkableTextFormat;
 			import weave.utils.NumberUtils;
 			
 			WeaveAPI.registerImplementation(IVisTool, TransposedTableTool, lang("Transposed Data Table"));
 			
 			public const columns:LinkableHashMap = newLinkableChild(this,LinkableHashMap,handleColumnsListChange,true);
 			public const headerAttributeColumn:DynamicColumn = newLinkableChild(this,DynamicColumn,createHeaderColumns,true);
-			public const keySet:FilteredKeySet = newLinkableChild(this, FilteredKeySet, createHeaderColumns, true);
-			public const fontSize:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10, isFinite),updateFontSize);
+			public const keySet:FilteredKeySet = newLinkableChild(this, FilteredKeySet, handleKeysChange, true);
 			public const headerText:LinkableString = registerLinkableChild(this,new LinkableString(""),updateHeaderText);
 			public const headerColumnWidth:LinkableString = registerLinkableChild(this,new LinkableString("10%", NumberUtils.verifyNumberOrPercentage),handleColumnWidthChange,true);
 			public const dataColumnWidth:LinkableString = registerLinkableChild(this,new LinkableString("10%", NumberUtils.verifyNumberOrPercentage),handleColumnWidthChange,true);
@@ -96,24 +95,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function childrenCreated():void
 			{
 				columnsList.hashMap = columns;
-				linkBindableProperty(fontSize,fontSizeInput,"text");
 				linkBindableProperty(headerText,headerTextInput,"text");
+				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addImmediateCallback(this,invalidateDisplayList);
 			}
-			
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
+				if (detectLinkableObjectChange(updateDisplayList, LinkableTextFormat.defaultTextFormat))
+				{
+					LinkableTextFormat.defaultTextFormat.copyToStyle(table);
+				}
 				handleColumnWidthChange();
 				super.updateDisplayList(unscaledWidth,unscaledHeight);
 			}
-			/**
-			 * @private updateFontSize
-			 * This function is called when the value of the fontSize linkable is changed.
-			 * It updates the font size of the text in the grid cells.
-			 **/
-			private function updateFontSize():void
+			
+			public function getSelectableAttributeNames():Array
 			{
-				table.setStyle("fontSize",fontSize.value);
+				return [lang("Header row"), lang("Data rows")];
+			}
+			public function getSelectableAttributes():Array
+			{
+				return [headerAttributeColumn,columns];
 			}
 			
  			private function handleColumnsListChange():void
@@ -121,9 +123,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var columnObjects:Array = columns.getObjects();
 				sourceArrayCollection.removeAll();
 				
-				//if header column is not set, then assign the first column from columnObjects as header column
-				if (columnObjects.length != 0 && !headerAttributeColumn.internalObject)
-					createHeaderColumns();
+				createHeaderColumns();
 				for (var i:int = 0; i < columnObjects.length; i++)
 				{
 					var rowObject:Object = new Object();
@@ -154,82 +154,64 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * */
 			private function createHeaderColumns():void
 			{
-				var hasHeader:Boolean = headerAttributeColumn.getInternalColumn() != null;
-				var col:IAttributeColumn = hasHeader ? headerAttributeColumn : columns.getObjects()[0];
+				var cols:Array = columns.getObjects();
+				cols.unshift(headerAttributeColumn);
 				
-				if(col)
+				keySet.setColumnKeySources(cols);
+			}
+			
+			private function handleKeysChange():void
+			{
+				var hasHeader:Boolean = headerAttributeColumn.getInternalColumn() != null;
+				var keys:Array = keySet.keys;
+				
+				var columnsToAdd:Array = [];
+				table.columns = [];
+				for (var i:int=0; i<keys.length; i++ )
 				{
-					keySet.setBaseKeySet(col);
-					//sort the keys in the header column
-					var sortFn:Function = SortedKeySet.generateCompareFunction([col]);
+					var colName:String = " ";
+					if (hasHeader)
+						colName = headerAttributeColumn.getValueFromKey((keys[i] as IQualifiedKey),String);
+					var gridColumn:DataGridColumn = new DataGridColumn(colName);
 					
-					var keys:Array = [];
-					
-					//filter the keys if filterKeySet is used
-					keys = keySet.keys.concat(); // make a copy so we don't modify the original
-					
-					AsyncSort.sortImmediately(keys, sortFn);
-					
-					
-					var columnsToAdd:Array = [];
-					table.columns = [];
-					for(var i:int=0; i<keys.length; i++ )
-					{
-						var colName:String = " ";
-						if (hasHeader)
-							colName = col.getValueFromKey((keys[i] as IQualifiedKey),String);							
-						var gridColumn:DataGridColumn = new DataGridColumn(colName);
-						
-						gridColumn.dataField = (keys[i] as IQualifiedKey).localName;
-						columnsToAdd.push(gridColumn);
-					}
-					
-					//the first column is the list of the attribute column names
-					var headerColName:String = headerText.value
-					//if headerText is an empty string we set the header text of the first column to a string a single whitespace
-					//because if we set it to empty string it defaults to the dataField value which is "_name_"
-					if(!headerColName)
-						headerColName = " ";
-					var nameGridColumn:DataGridColumn = new DataGridColumn(headerColName);
-					nameGridColumn.dataField = "_name_";
-					
-					columnsToAdd.unshift(nameGridColumn);
-					
-					//if you need to add header columns you need to add all the columns to an Array and then 
-					//assign the array to grid.columns. You cannot do grid.columns.push
-					//more here: http://flexoop.com/2008/07/using-actionscript-to-set-datagrid-columns/
-					table.columns = columnsToAdd;
-					if(table.columns.length != 0)
-						table.lockedColumnCount= 1;
-					
-					handleColumnWidthChange();
-					
+					gridColumn.dataField = (keys[i] as IQualifiedKey).localName;
+					columnsToAdd.push(gridColumn);
 				}
-				else
-				{
-					//if headerAttribute Column is not set, remove the header text
-					
-					for each(var headerCol:DataGridColumn in table.columns)
-					{
-						headerCol.headerText = " ";
-						headerText.value = " ";
-					}
-				}
+				
+				//the first column is the list of the attribute column names
+				var headerColName:String = headerText.value
+				//if headerText is an empty string we set the header text of the first column to a string a single whitespace
+				//because if we set it to empty string it defaults to the dataField value which is "_name_"
+				if (!headerColName)
+					headerColName = " ";
+				var nameGridColumn:DataGridColumn = new DataGridColumn(headerColName);
+				nameGridColumn.dataField = "_name_";
+				
+				columnsToAdd.unshift(nameGridColumn);
+				
+				//if you need to add header columns you need to add all the columns to an Array and then 
+				//assign the array to grid.columns. You cannot do grid.columns.push
+				//more here: http://flexoop.com/2008/07/using-actionscript-to-set-datagrid-columns/
+				table.columns = columnsToAdd;
+				if(table.columns.length != 0)
+					table.lockedColumnCount= 1;
+				
+				handleColumnWidthChange();
 			}
 			
 			private function updateHeaderText():void
 			{
-				var col:Array = table.columns;
+				var cols:Array = table.columns;
 				
-				if(col.length <1)
+				if(cols.length <1)
 					return;
 				
 				//if headerText is an empty string we set the header text of the first column to a string a single whitespace
 				//because if we set it to empty string it defaults to the dataField value which is "_name_"
 				if(headerText.value)
-					(col[0] as DataGridColumn).headerText = headerText.value;
+					(cols[0] as DataGridColumn).headerText = headerText.value;
 				else
-					(col[0] as DataGridColumn).headerText = " ";
+					(cols[0] as DataGridColumn).headerText = " ";
 			}
 			
 			
@@ -280,17 +262,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="{lang('Attributes for Data Table')}">
+		<mx:VBox id="attributesPanel" label="{lang('Data')}">
 			<mx:HBox>
-				<mx:Label text="{lang('Font Size: ')}" fontWeight="bold"/>
-				<mx:TextInput id="fontSizeInput" width="35" cornerRadius="5" borderStyle="solid"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label text="{lang('Header Text: ')}" fontWeight="bold"/>
+				<mx:Label text="{lang('Corner header:')}" fontWeight="bold"/>
 				<mx:TextInput id="headerTextInput" width="300"/>
 			</mx:HBox>
-			<ui:DynamicColumnComponent id="headerColumn" label="{lang('Header Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = headerAttributeColumn" />
-			<ui:ColumnListComponent id="columnsList"  backgroundAlpha="0.7" height="100%" width="100%" label="{lang('Columns')}"/>
+			<ui:DynamicColumnComponent id="headerColumn" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = headerAttributeColumn" />
+			<ui:ColumnListComponent id="columnsList" visTool="{this}" backgroundAlpha="0.7" height="100%" width="100%"/>
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ui:ControlPanel>
