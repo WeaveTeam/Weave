@@ -78,6 +78,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.FlexEvent;
 			import mx.managers.DragManager;
 			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -97,6 +99,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
+			import weave.services.beans.RResult;
 			import weave.ui.ControlPanel;
 			import weave.ui.DisabilityOptions;
 			import weave.ui.DraggablePanel;
@@ -110,7 +113,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable] public var _target:LineChartTool = Weave.root.requestObject(null, LineChartTool, false);
 			//create a new map which belongs to the line chart tool which contains only iAttribute columns
 			public var _columnObjects:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
-			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServicesURL.value);
+			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			
 			public var joinedColsforRArrayUnsplit:Array = new Array();
 			public const disabilityText:LinkableString = newLinkableChild(this, LinkableString);
@@ -172,7 +175,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				//use this function to gather the appropriate information that will be sent to R 
 				//we have the columns in columnObjects
-				var colsSentToRArray = new Array();
+				var colsSentToRArray:Array = new Array();
 				//below whatever cols are plotted it picks them up as individual objects
 				colsSentToRArray = _columnObjects.getObjects(IAttributeColumn)
 				//joining columns returns columns only complete records (no incomplete records)
@@ -213,13 +216,33 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);		
 				
 			}
-			private function handleRunScriptResult():void
+			private function handleRunScriptResult(event:ResultEvent, token:Object):void
 			{
+				var rObject:Array = new Array();
+				rObject = event.result as Array;
+
 				
+				if (rObject == null){ 
+					reportError("R Server did not return an array");
+				}
+				
+				var finalRObject:Array = new Array();
+				for (var i:int=0; i < rObject.length; i++){
+					
+					if (rObject[i] == null){
+						reportError("R server returned an array with null element " + i);
+					}
+					
+					var rResult:RResult = new RResult(rObject[i]);
+					finalRObject[i] = rResult;
+			
+				}
+			
 			}
-			private function handleRunScriptFault():void
+			private function handleRunScriptFault(event:FaultEvent, token:Object):void
 			{
-				
+				trace(["fault", token, event.message].join("\n"));
+				reportError(event);
 			}
 			
 		]]>
