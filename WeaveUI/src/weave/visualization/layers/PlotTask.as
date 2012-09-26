@@ -311,6 +311,9 @@ package weave.visualization.layers
 			{
 				debugTrace('dependencies are busy');
 				return 1;
+				
+				// only spend half the time rendering when dependencies are busy
+				stopTime = (getTimer() + stopTime) / 2;
 			}
 			
 			/***** initialize *****/

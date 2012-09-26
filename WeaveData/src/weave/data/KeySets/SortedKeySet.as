@@ -125,8 +125,8 @@ package weave.data.KeySets
 			var column:IAttributeColumn;
 			var result:int;
 			var n:int = columns.length;
-			if (descendingFlags)
-				descendingFlags.length = n;
+			var desc:Array = descendingFlags ? descendingFlags.concat() : [];
+			desc.length = n;
 			return function(key1:IQualifiedKey, key2:IQualifiedKey):int
 			{
 				for (i = 0; i < n; i++)
@@ -140,7 +140,7 @@ package weave.data.KeySets
 					);
 					if (result != 0)
 					{
-						if (descendingFlags && descendingFlags[i])
+						if (desc[i])
 							return -result;
 						return result;
 					}

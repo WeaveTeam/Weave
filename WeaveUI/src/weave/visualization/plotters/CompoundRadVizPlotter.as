@@ -30,6 +30,7 @@ package weave.visualization.plotters
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
@@ -74,9 +75,9 @@ package weave.visualization.plotters
 			algorithms[INCREMENTAL_LAYOUT] = IncrementalLayoutAlgorithm;
 			algorithms[BRUTE_FORCE] = BruteForceLayoutAlgorithm;
 			
-			handleColumnsChange();
-			
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
+			getCallbackCollection(keySet).addImmediateCallback(this, handleColumnsChange, true);
+			getCallbackCollection(this).addImmediateCallback(this, clearCoordCache);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -231,11 +232,25 @@ package weave.visualization.plotters
 			}
 		}
 		
+		private var coordCache:Dictionary = new Dictionary(true);
+		private function clearCoordCache():void
+		{
+			coordCache = new Dictionary(true);
+		}
+		
 		/**
 		 * Applies the RadViz algorithm to a record specified by a recordKey
 		 */
 		private function getXYcoordinates(recordKey:IQualifiedKey):Number
 		{
+			var cached:Array = coordCache[recordKey] as Array;
+			if (cached)
+			{
+				coordinate.x = cached[0];
+				coordinate.y = cached[1];
+				return cached[2];
+			}
+			
 			//implements RadViz algorithm for x and y coordinates of a record
 			var numeratorX:Number = 0;
 			var numeratorY:Number = 0;
@@ -272,6 +287,9 @@ package weave.visualization.plotters
 			coordinate.y = (numeratorY/denominator);
 			if( enableJitter.value )
 				jitterRecords(recordKey);			
+			
+			coordCache[recordKey] = [coordinate.x, coordinate.y, sum];
+			
 			return sum;
 		}
 		

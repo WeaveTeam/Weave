@@ -25,11 +25,14 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
@@ -72,8 +75,9 @@ package weave.visualization.plotters
 			algorithms[NEAREST_NEIGHBOR] = NearestNeighborLayoutAlgorithm;
 			algorithms[INCREMENTAL_LAYOUT] = IncrementalLayoutAlgorithm;
 			algorithms[BRUTE_FORCE] = BruteForceLayoutAlgorithm;
-			handleColumnsChange();
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
+			getCallbackCollection(keySet).addImmediateCallback(this, handleColumnsChange, true);
+			getCallbackCollection(this).addImmediateCallback(this, clearCoordCache);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -208,13 +212,27 @@ package weave.visualization.plotters
 				anchor.title.value = ColumnUtils.getTitle(_columns[i]);
 			}
 			anchors.resumeCallbacks();
-		}			
-				
+		}
+		
+		private var coordCache:Dictionary = new Dictionary(true);
+		private function clearCoordCache():void
+		{
+			coordCache = new Dictionary(true);
+		}
+		
 		/**
 		 * Applies the RadViz algorithm to a record specified by a recordKey
 		 */
 		private function getXYcoordinates(recordKey:IQualifiedKey):Number
 		{
+			var cached:Array = coordCache[recordKey] as Array;
+			if (cached)
+			{
+				coordinate.x = cached[0];
+				coordinate.y = cached[1];
+				return cached[2];
+			}
+			
 			//implements RadViz algorithm for x and y coordinates of a record
 			var numeratorX:Number = 0;
 			var numeratorY:Number = 0;
@@ -250,7 +268,10 @@ package weave.visualization.plotters
 			coordinate.x = (numeratorX/denominator);
 			coordinate.y = (numeratorY/denominator);
 			if( enableJitter.value )
-				jitterRecords(recordKey);			
+				jitterRecords(recordKey);
+			
+			coordCache[recordKey] = [coordinate.x, coordinate.y, sum];
+			
 			return sum;
 		}
 		
@@ -264,16 +285,6 @@ package weave.visualization.plotters
 			if(randomValueArray[index+3])yJitter *= -1;
 			if(!isNaN(xJitter))coordinate.x += xJitter ;
 			if(!isNaN(yJitter))coordinate.y += yJitter ;
-		}
-		
-		public function drawWedge(destination:Graphics, beginRadians:Number, spanRadians:Number, projectedPoint:Point, radius:Number = 1):void
-		{
-			// move to center point
-			destination.moveTo(projectedPoint.x, projectedPoint.y);
-			// line to beginning of arc, draw arc
-			DrawUtils.arcTo(destination, true, projectedPoint.x, projectedPoint.y, beginRadians, beginRadians + spanRadians, radius);
-			// line back to center point
-			destination.lineTo(projectedPoint.x, projectedPoint.y);
 		}
 		
 		/**
@@ -305,7 +316,7 @@ package weave.visualization.plotters
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
-		{						
+		{
 			var graphics:Graphics = tempShape.graphics;
 			var radius:Number = radiusColumnStats.getNorm(recordKey);
 			
