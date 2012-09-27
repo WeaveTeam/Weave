@@ -19,7 +19,9 @@
       <size>11</size>
       <underline>false</underline>
     </defaultTextFormat>
-    <disabilityAltText>I like lemons</disabilityAltText>
+    <disabilityAltText>Flash Object: empty instance of Weave</disabilityAltText>
+    <disabilityHashMap encoding="dynamic"/>
+    <disabilityLongAltText/>
     <enableAboutMenu>true</enableAboutMenu>
     <enableAdd2DHistogram>true</enableAdd2DHistogram>
     <enableAddAttributeMenuTool>true</enableAddAttributeMenuTool>
@@ -28,7 +30,6 @@
     <enableAddColormapHistogram>true</enableAddColormapHistogram>
     <enableAddCompoundRadViz>true</enableAddCompoundRadViz>
     <enableAddCustomTool>true</enableAddCustomTool>
-    <enableAddDataFilter>true</enableAddDataFilter>
     <enableAddDataSource>true</enableAddDataSource>
     <enableAddDataTable>true</enableAddDataTable>
     <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
@@ -48,6 +49,7 @@
     <enableAddTimeSliderTool>true</enableAddTimeSliderTool>
     <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
     <enableAnnotation>true</enableAnnotation>
+    <enableAxisToolTips>true</enableAxisToolTips>
     <enableBitmapFilters>true</enableBitmapFilters>
     <enableBrowseData>true</enableBrowseData>
     <enableCascadeAllWindows>true</enableCascadeAllWindows>
@@ -93,7 +95,6 @@
     <enableSubsetControls>true</enableSubsetControls>
     <enableSubsetSelectionBox>true</enableSubsetSelectionBox>
     <enableSubsetsMenu>true</enableSubsetsMenu>
-    <enableThreadPriorities>false</enableThreadPriorities>
     <enableTileAllWindows>true</enableTileAllWindows>
     <enableToolAttributeEditing>true</enableToolAttributeEditing>
     <enableToolControls>true</enableToolControls>
@@ -118,20 +119,27 @@
       <underline>false</underline>
     </panelTitleTextFormat>
     <pdbServiceURL>/WeavePDBService/PDBService</pdbServiceURL>
-    <probeInnerGlowAlpha>1</probeInnerGlowAlpha>
-    <probeInnerGlowBlur>5</probeInnerGlowBlur>
-    <probeInnerGlowColor>16777215</probeInnerGlowColor>
-    <probeInnerGlowStrength>10</probeInnerGlowStrength>
+    <probeInnerGlow>
+      <alpha>1</alpha>
+      <blurX>5</blurX>
+      <blurY>5</blurY>
+      <color>16777215</color>
+      <strength>10</strength>
+    </probeInnerGlow>
     <probeLineFormatter>str = replace(lpad(string, 8, "\t"), "\t", "  ");
 str + " (" + title + ")"</probeLineFormatter>
-    <probeOuterGlowAlpha>1</probeOuterGlowAlpha>
-    <probeOuterGlowBlur>3</probeOuterGlowBlur>
-    <probeOuterGlowColor>0</probeOuterGlowColor>
-    <probeOuterGlowStrength>3</probeOuterGlowStrength>
+    <probeOuterGlow>
+      <alpha>1</alpha>
+      <blurX>3</blurX>
+      <blurY>3</blurY>
+      <color>0</color>
+      <strength>3</strength>
+    </probeOuterGlow>
     <probeToolTipBackgroundAlpha>1</probeToolTipBackgroundAlpha>
     <probeToolTipBackgroundColor>NaN</probeToolTipBackgroundColor>
     <probeToolTipFontColor>0</probeToolTipFontColor>
     <probeToolTipMaxWidth>400</probeToolTipMaxWidth>
+    <recordsTooltipLocation>Lower left</recordsTooltipLocation>
     <rServiceURL>/WeaveServices/RService</rServiceURL>
     <searchServiceURLs>Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=
 Google|http://www.google.com/search?q=
@@ -140,11 +148,17 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <SecondaryKeyNumColumn_useGlobalMinMaxValues>true</SecondaryKeyNumColumn_useGlobalMinMaxValues>
     <selectionAlphaAmount>0.5</selectionAlphaAmount>
     <selectionBlurringAmount>4</selectionBlurringAmount>
-    <shadowAlpha>0.5</shadowAlpha>
-    <shadowAngle>45</shadowAngle>
-    <shadowBlur>4</shadowBlur>
-    <shadowColor>0</shadowColor>
-    <shadowDistance>2</shadowDistance>
+    <selectionDropShadow>
+      <alpha>0.5</alpha>
+      <angle>45</angle>
+      <blurX>4</blurX>
+      <blurY>4</blurY>
+      <color>0</color>
+      <distance>2</distance>
+      <strength>1</strength>
+    </selectionDropShadow>
+    <selectionMode>rectangle</selectionMode>
+    <showAddAllButton>true</showAddAllButton>
     <showCollaborationEditor>false</showCollaborationEditor>
     <showCollaborationMenuItem>true</showCollaborationMenuItem>
     <showColorController>true</showColorController>
@@ -154,12 +168,12 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
     <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
     <showProbeToolTipEditor>true</showProbeToolTipEditor>
     <showProbeWindow>true</showProbeWindow>
+    <showRevertButton>true</showRevertButton>
     <showSelectedRecordsText>true</showSelectedRecordsText>
     <showSessionHistoryControls>true</showSessionHistoryControls>
     <showVisToolCloseDialog>false</showVisToolCloseDialog>
     <startupJavaScript/>
     <toolInteractions>
-      <defaultDragMode/>
       <pan>alt,drag</pan>
       <probe>move</probe>
       <select>drag</select>
@@ -206,7 +220,18 @@ wheel</zoom>
     <filter encoding="dynamic">
       <GlobalObjectReference name="defaultSubsetKeyFilter"/>
     </filter>
-    <internalDynamicColumn encoding="dynamic"/>
+    <internalDynamicColumn encoding="dynamic">
+      <ReferencedColumn>
+        <dynamicColumnReference encoding="dynamic">
+          <HierarchyColumnReference>
+            <dataSourceName>CSVDataSource</dataSourceName>
+            <hierarchyPath encoding="xml">
+              <attribute csvColumn="Country" title="Country"/>
+            </hierarchyPath>
+          </HierarchyColumnReference>
+        </dynamicColumnReference>
+      </ReferencedColumn>
+    </internalDynamicColumn>
   </FilteredColumn>
   <KeyFilter name="defaultSubsetKeyFilter">
     <excluded/>
@@ -217,6 +242,43 @@ wheel</zoom>
   <KeySet name="defaultSelectionKeySet"/>
   <KeySet name="defaultProbeKeySet"/>
   <KeySet name="alwaysHighlightKeySet"/>
-  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
-  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
+  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
+  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
+  <CSVDataSource name="CSVDataSource">
+    <attributeHierarchy encoding="xml">
+      <hierarchy>
+        <attribute keyType="CSVDataSource" csvColumn="Country" title="Country"/>
+        <attribute keyType="CSVDataSource" csvColumn="%Religious" title="%Religious"/>
+        <attribute keyType="CSVDataSource" csvColumn="%Communist" title="%Communist"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <csvDataString>Country,%Religious,%Communist
+USA,80,10
+China,20,90</csvDataString>
+    <keyColName>Country</keyColName>
+    <keyType>CSVDataSource</keyType>
+    <url/>
+  </CSVDataSource>
+  <LinkableHashMap name="Probed Columns" encoding="dynamic">
+    <ReferencedColumn name="ReferencedColumn">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute csvColumn="Country" title="Country"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn2">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute csvColumn="%Communist" title="%Communist"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+  </LinkableHashMap>
 </Weave>
