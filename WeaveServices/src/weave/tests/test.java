@@ -19,6 +19,7 @@
 package weave.tests;
 
 import java.rmi.RemoteException;
+import java.util.Arrays;
 
 import weave.beans.RResult;
 import weave.servlets.RService;
@@ -40,6 +41,7 @@ public class test
 				
 				Object [] allResults = new Object[3];
 				
+				System.out.println(System.getProperty("user.dir"));
 			try {
 				//scriptResult =	ws.kMeansClustering(inputNames, inputValues, showWarnings,clusterNo, iterations);
 				//scriptResult = ws.handlingMissingData(inputNames, inputValues, outputNames, false, false, false);
@@ -51,7 +53,7 @@ public class test
 				}
 				finally
 				{
-					System.out.println(scriptResult);
+					System.out.println(Arrays.asList(scriptResult));
 				}
 				allResults[i] = scriptResult;
 	    }
@@ -60,7 +62,6 @@ public class test
 	@SuppressWarnings("unused")
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		System.out.println("hi");		
 		ws = new RService();
 	
 		
@@ -75,20 +76,22 @@ public class test
 		Object[] array1 = {0,10,20,30,22,50,60,55,89,33,44,54,21};
 		Object[] array2 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
 		Object[] array3 = {10,20,44,52,34,87,45,65,76,87,23,12,34};
+		Object[] array4 = {"ji", "hello"};
+		Object [] array5 = {0,1,2,3,4};
 		//String[] keys = {"a","b","c","d","e","f"};
 //		//Object[] array3 = {"aa","bb","cc","dd","ee","ff"};
 		
 
 		//String docrootPath  = "";
-		//inputNames = new String []{"mymatrix"};//for operations on matrices
-		inputNames =  new String []{"Vec1", "Vec2","Vec3" };//for operations on vectors
+		inputNames = new String []{"mymatrix"};//for operations on matrices
+		//inputNames =  new String []{"myVector"};//for operations on vectors
 	//inputValues = new Object[][]{array1,array2};
 		//Object[][] myMatrix = new Object[][]{array1, array2, array3};
-	inputValues1 = new Object[]{ array1, array2, array3 };
+	inputValues1 = new Object[]{ array3 };
 		//inputValues1 = new Object[]{myMatrix};
 	parameters = new Object []{"less",false, false};
 //		keys = new String []{"a","b","c","d","e","f"};
-//		//plotscript = "plot(x,y)";
+		//plotscript = "hist(Vec1)";
 //		
 		
 		
@@ -109,7 +112,7 @@ public class test
 //		script = "  library(norm) \n pre<-prelim.norm(Bind) \n eeo <- em.norm(pre) \n rngseed(34215) \n " +
 //				 " imputed <- imp.norm(pre, eeo, Bind) ";
 	
-	script = "cdoutput<- t.test(mtVec1,myVector, var.equal = FALSE)";//test for vectors
+	//script = "cdoutput<- t.test(mtVec1,myVector, var.equal = FALSE)";//test for vectors
 		//script = "frame";
 		//resultNames = new String[]{"frame"};
 	
@@ -133,9 +136,20 @@ public class test
 	
 	//script = "answer <- cor(mymatrix, use = \"everything\", method = \"pearson\")";
 		//resultNames =  new String []{"answer"};//test for matrix
-	resultNames = new String[]{"cdoutput$statistic", "cdoutput$p.value"};
-		
+	resultNames = new String[]{"d"};
+//	
+//	plotscript = "for(i in 1:3)\n" +
+//			"{" +
+//			"hist(myVector)\n" +
+//			"}";
+//	plotscript =  "for(i in 1:l)\n" +
+//	"{\n" +
+//	"hist(myVector, xlab = shweta)\n" +
+//	"}\n";
+	//script = "s <- data.frame(Vec1)";
+		//script = "Vec1 <- as.matrix(Vec1)\n";
 		//resultNames = new String[]{"CluResult$cluster", "CluResult$centers", "CluResult$size", "CluResult$withinss"};
+	script = "d <- is.vector(mymatrix)";
 		call(null,inputNames, inputValues1,resultNames,script,plotscript, false,false,false);
 		
 	}

@@ -76,6 +76,8 @@
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.controls.DataGrid;
+			import mx.controls.Image;
+			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.IFlexDisplayObject;
 			import mx.managers.PopUpManager;
 			import mx.rpc.AsyncToken;
@@ -91,6 +93,7 @@
 			import weave.api.data.IColumnStatistics;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
+			import weave.api.linkableObjectIsBusy;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
@@ -106,7 +109,6 @@
 			WeaveAPI.registerImplementation(IVisTool, DataStatisticsTool, "Data Statistics Tool");
 			
 			
-			
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			public var script:String = "";
@@ -114,6 +116,65 @@
 			private var joinedColumns:Array ;
 			public var outputNames:Array = new Array();
 			public var finalGridDisplayArray:Array = new Array();
+			public var colNames:Array = new Array();
+			
+			//this function draws the histograms in R, and returns the image: gives an idea about the distribution of each column
+			private function drawDistributionsFromR():void
+			{
+				if (WeaveAPI.SessionManager.linkableObjectIsBusy(variables))return;
+				//-------------WORKS---------------------------------
+				 var colObjects:Array = variables.getObjects(IAttributeColumn);
+				var plotScript:String;
+				var inputNames:Array = new Array(); var inputColTitles:Array = new Array();
+				var inputValues:Array = new Array();
+				
+				 for(var d:int = 0; d < colObjects.length; d++)
+				{
+					 inputColTitles[d] = (ColumnUtils.getTitle(colObjects[d] as IAttributeColumn));
+				}
+				
+				inputNames = ["ColumnValues" , "colTitles","numColumns"];  
+				inputValues[0] = joinedColumns;//matrix of columns  
+			    inputValues[1] = inputColTitles; //array of string names
+				inputValues[2] = d;//number of columns being sent
+	
+					 plotScript ="myMatrix <- as.matrix(ColumnValues)\n"  +
+						"par(mfrow = c(numColumns,2))\n" +
+						"for(i in 1:numColumns)\n" +
+						"{\n" +
+						"hist(myMatrix[,i],main = NULL, xlab = colTitles[i])\n" +
+						"}\n";  
+					trace(inputNames);
+					trace(inputValues);
+					var query:AsyncToken = Rservice.runScript(joinedColumnsKeys,inputNames,inputValues,outputNames,"",plotScript,false,false,false);
+					DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,joinedColumnsKeys); 
+
+				//--------------------Testing-------------------------
+				/* if (WeaveAPI.SessionManager.linkableObjectIsBusy(variables))return;
+				var colObjects:Array = variables.getObjects(IAttributeColumn);
+				var inputColTitles:Array = new Array(); 
+				for(var d:int = 0; d < colObjects.length; d++)
+				{
+					inputColTitles[d] = (ColumnUtils.getTitle(colObjects[d] as IAttributeColumn));
+				}
+			
+			var inputValues:Array = new Array();
+			for( var k :int = 0; k < colObjects.length; k++)
+			{
+				var inputNames:Array = new Array(); 
+				inputValues = joinedColumns;
+				//inputNames[k] = inputColTitles[k]
+				inputNames = ["myColumn"];
+				var script:String = "";
+				trace(inputNames);
+				trace(inputValues);
+				var plotScript:String = "hist(myColumn)\n";
+				var query:AsyncToken = Rservice.runScript(joinedColumnsKeys,inputNames,inputValues,outputNames,script,plotScript,false,false,false);
+				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,joinedColumnsKeys); 
+			} */
+			
+			
+			}
 			
 			override protected function constructor():void
 			{
@@ -128,7 +189,8 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				variables.addImmediateCallback(this, columnProcessing);
+				//variables.addImmediateCallback(this, columnProcessing);
+				//variables.addGroupedCallback(this, drawDistributionsFromR);
 			}
 			
 			private static function get selection():KeySet
@@ -152,13 +214,16 @@
 				for (var f:int = 0; f < selectedColumns.length; f++)
 				{
 					attributeColumns[f] = selectedColumns[f] as IAttributeColumn;
+					colNames[f] = ColumnUtils.getTitle(attributeColumns[f]);
 				}
 				
 				var joinedColumnResult: Array = joinColumns(attributeColumns);
 				joinedColumnsKeys = joinedColumnResult[0];
 			    joinedColumns = joinedColumnResult[1];
 				
-				for (var k:int = 0; k < joinedColumns.length; k++)
+				//makes a call for drawing the distribution of each column
+				//drawDistributionsFromR();
+				/* for (var k:int = 0; k < joinedColumns.length; k++)
 				{
 					var colStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics((joinedColumns[k] as IAttributeColumn));
 					finalGridDisplayArray[k].push(colStats.getCount());
@@ -169,7 +234,7 @@
 					finalGridDisplayArray[k].push(colStats.getStandardDeviation());
 					finalGridDisplayArray[k].push(colStats.getSum());
 					finalGridDisplayArray[k].push(colStats.getVariance());
-				}
+				} */
 			}
 			
 			/* Different Commands to be sent to R */
@@ -258,12 +323,14 @@
 			
 			protected function doStatistics_clickHandler(event:MouseEvent):void
 			{				
-				for (var u:int = 0 ; u < 10; u++)
+				 for (var u:int = 0 ; u < outputNames.length; u++)
 				{
 					finalGridDisplayArray[u] = new Array();
-				}
+					(finalGridDisplayArray[u] as Array).push(outputNames[u]);
+				} 
 				
 				columnProcessing();
+				
 				sendingInfoToR(script);
 				
 			}
@@ -307,12 +374,28 @@
 					}
 					var rResult:RResult = new RResult(Robj[i]);
 					//RresultArray.push(rResult.value);	
+					//variables.ge
+						//var obj = new obj
+						//obj[""] = 
+					RresultArray.push(rResult);
+					if(RresultArray[i].name == "Plot Results")
+					{
+						var imagePanel:DraggablePanel = Weave.root.requestObject(null, DraggablePanel, false);
+						imagePanel.title = "Histogram plots(distributions) of Columns";
+						var image:Image = new Image();
+						image.source = RresultArray[i].value;
+						imagePanel.addChild(image);
+						//image.percentWidth = 100; image.percentHeight = 100;
+						imagePanel.panelWidth.value = "500";
+						imagePanel.panelHeight.value = "500";
+					}
+					
 					finalGridDisplayArray[i].push( rResult.value);
 				
 				}	
-				//finalGridDisplayArray.push(RresultArray);
 				
 			}
+			
 			
 			//This function handles the matrices returned by the correlation scripts
 			private function handleCorrRunScriptResult(event:ResultEvent, token:Object = null):void
@@ -348,7 +431,22 @@
 			}
 			protected function DisplayResults_clickHandler(event:MouseEvent):void
 			{
+				drawDistributionsFromR();
+				colNames.unshift("Statistics");
+				finalGridDisplayArray.unshift(colNames);
   				var dg:DatagridDisplay = new DatagridDisplay();dg.initialize();
+				/* var dgCol:Array = new Array();
+				for(var g:int = 0; g < colNames.length; g++)
+				{
+					dgCol[g] = new DataGridColumn();
+					(dgCol[g] as DataGridColumn).headerText = (colNames[g] as String);
+				}
+				
+				
+				var arr:mx.collections.ArrayCollection = new mx.collections.ArrayCollection();
+				arr.source = finalGridDisplayArray;
+				dg.actualDG.columns = dgCol;
+				dg.actualDG.dataProvider = arr; */
 				dg.actualDG.dataProvider = finalGridDisplayArray;
 				mx.managers.PopUpManager.addPopUp(dg, this,false);
 			}

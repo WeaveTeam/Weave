@@ -41,6 +41,10 @@
 	<mx:Script>
 		<![CDATA[
 			
+			//this is the array of DataGridColumns
+			//public var dgColumns:Array = new Array();
+			
+			
 		]]>
 	</mx:Script>
 </DraggablePanel>

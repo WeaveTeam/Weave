@@ -166,19 +166,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					trace("receivedFromRCounter :" + receivedFromRCounter);
 					trace("sentToRCounter :" + sentToRCounter);
 					
-					//to be done after the last call to R has been returned
-					/* if(receivedFromRCounter == sentToRCounter)
-					{
-						trace("last call");
-						_target.cdLayout.actualAlgo(_target._plotter.columns.getNames(),_target.cdLayout.ClassToColumnMap,layoutMeasure,thrValue);
-						_target._anchorPlotter.doClassColoring = true;//cd coloring
-						_target._plotter.doCDLayout = true;//cd layout
-						_target._anchorPlotter.anchorClasses = _target.cdLayout.tAndpMapping;//we need this to be able to color the anchors accorsing to the class they belong to
-						_target._plotter.LayoutClasses = _target.cdLayout.tAndpMapping; 
-						_target._plotter.setClassDiscriminationAnchorsLocations();//cd layout
-						
-					} */
-			
+					
 			}
 			
 	
@@ -264,14 +252,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				
 				_target.cdLayout.actualAlgo(_target._plotter.columns.getNames(),_target.cdLayout.ClassToColumnMap,layoutMeasure,thrValue);
-				_target._anchorPlotter.doClassColoring = true;//cd coloring
+				_target._anchorPlotter.drawingClassLines = true;//cd coloring
 				_target._plotter.doCDLayout = true;//cd layout
 				_target._anchorPlotter.anchorClasses = _target.cdLayout.tAndpMapping;//we need this to be able to color the anchors accorsing to the class they belong to
 				_target._plotter.LayoutClasses = _target.cdLayout.tAndpMapping; 
 				//_target._plotter.setAnchorLocations();
 				_target._plotter.setClassDiscriminationAnchorsLocations();//cd layout
+				//draws the class discriminating lines i.e. divides the Radviz circle into slices which equal the number of classes obtained				
 			}
 				
+			//restoring the default ordering
+			protected function defaultDAs_clickHandler(event:MouseEvent):void
+			{
+				_target._plotter.doCDLayout = false;
+				_target._anchorPlotter.drawingClassLines = false;
+				_target._plotter.setAnchorLocations();//normal layout
+				
+			}
 			
 			protected function useThresholdCB_clickHandler(event:MouseEvent):void
 			{
@@ -294,15 +291,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return layoutMeasure;
 			}
 				
-			
-			
-			protected function defaultDAs_clickHandler(event:MouseEvent):void
-			{
-				_target._plotter.doCDLayout = false;
-				_target._anchorPlotter.doClassColoring = false;
-				_target._plotter.setAnchorLocations();//normal layout
-				
-			}
 			
 		]]>
 	</mx:Script>

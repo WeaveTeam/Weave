@@ -267,7 +267,7 @@
 				_plotter.probedKeys = probeKeySet.keys ;
 				_plotter.drawProbe = (this as DraggablePanel) == DraggablePanel.activePanel;
 				
-				_plotter.drawProbeLines(dataBounds, screenBounds, probeSprite.graphics);		 		
+				_plotter.drawProbeLines(dataBounds, screenBounds, probeSprite.graphics);	
 				
 			}
 			

@@ -26,6 +26,8 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
+	import mx.preloaders.DownloadProgressBar;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
@@ -54,7 +56,7 @@ package weave.visualization.plotters
 		private const _bitmapText:BitmapText = new BitmapText();
 		private var coordinate:Point = new Point();//reusable object
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
-		public var doClassColoring:Boolean = false;
+		public var drawingClassLines:Boolean = false;
 		public var anchorClasses:Dictionary = null;//this tells us the classes to which dimensional anchors belong to
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
 		public var anchorColorMap:Dictionary;
@@ -210,10 +212,54 @@ package weave.visualization.plotters
 				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);
 			} catch (e:Error) { }
 			
+			if(drawingClassLines)
+			{
+				drawClassLines(dataBounds, screenBounds, g);
+			}
+			
 			destination.draw(tempShape);
 			
 			_currentScreenBounds.copyFrom(screenBounds);
 			_currentDataBounds.copyFrom(dataBounds);
+		}
+		
+		public function drawClassLines(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:Graphics):void
+		{
+			var graphics:Graphics = destination;
+			var numOfClasses:int = 0;
+			for ( var type:Object in anchorClasses)
+			{
+				numOfClasses++;
+			}
+			
+			var classTheta:Number = (2 * Math.PI)/ numOfClasses;
+			var classIncrementor:Number = 0; 
+			var centre:Point = new Point();
+			centre.x = 0; centre.y = 0;
+			dataBounds.projectPointTo(centre, screenBounds);//projecting the centre of the Radviz circle
+			
+			for(var cdClass:Object in anchorClasses)
+			{
+				var previousClassAnchor:Point = new Point();
+				var currentClassPos:Number = classTheta * classIncrementor;
+				previousClassAnchor.x = Math.cos(currentClassPos);
+				previousClassAnchor.y = Math.sin(currentClassPos);
+				dataBounds.projectPointTo(previousClassAnchor,screenBounds);
+				
+				var nextClassAnchor:Point = new Point();
+				var nextClassPos:Number = (classTheta - 0.01)  * (classIncrementor + 1);
+				nextClassAnchor.x = Math.cos(nextClassPos);
+				nextClassAnchor.y = Math.sin(nextClassPos);
+				dataBounds.projectPointTo(nextClassAnchor, screenBounds);
+				
+				graphics.lineStyle(1, 0x00ff00);
+				graphics.lineStyle(0.5,Math.random() * uint.MAX_VALUE);
+				classIncrementor ++;
+				graphics.moveTo(previousClassAnchor.x, previousClassAnchor.y);
+				graphics.lineTo(centre.x, centre.y);
+				graphics.lineTo(nextClassAnchor.x, nextClassAnchor.y);
+				
+			}
 		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array

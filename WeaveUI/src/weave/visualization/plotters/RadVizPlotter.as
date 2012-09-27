@@ -232,82 +232,7 @@ package weave.visualization.plotters
 			}
 		}
 	
-		/*public function setAnchorLocations( ):void
-		{	
-			var _columns:Array = columns.getObjects();
-			
-			if(!doCDLayout)
-			{
-				
-				var theta:Number = (2*Math.PI)/_columns.length;
-				var anchor:AnchorPoint;
-				anchors.delayCallbacks();
-				//anchors.removeAllObjects();
-				for( var i:int = 0; i < _columns.length; i++ )
-				{
-					anchor = anchors.getObject(columns.getName(_columns[i])) as AnchorPoint ;								
-					anchor.x.value = Math.cos(theta*i);
-					trace(anchor.x.value);
-					anchor.y.value = Math.sin(theta*i);	
-					trace(anchor.y.value);
-					anchor.title.value = ColumnUtils.getTitle(_columns[i]);
-				}
-				anchors.resumeCallbacks();
-			}
-			//if true do CdLayout algorithm
-			else
-			{
-				var numOfClasses:int = 0;
-				for ( var type:Object in LayoutClasses)
-				{
-					numOfClasses++;
-				}
-				anchors.delayCallbacks();
-				//anchors.removeAllObjects();
-				var classTheta:Number = (2*Math.PI)/(numOfClasses);
-				
-				var classIncrementor:Number = 0;
-				for( var cdtype:Object in LayoutClasses)
-				{
-					var cdAnchor:AnchorPoint;
-					
-					var colNames:Array = (LayoutClasses[cdtype] as Array);
-					var numOfDivs:int = colNames.length + 1;
-					var columnTheta:Number = classTheta /numOfDivs;//needed for equidistant spacing of columns
-					var currentClassPos:Number = classTheta * classIncrementor;
-					var columnIncrementor:int = 1;//change
-					//for drawing on the first division and not the 0th, we begin the loop with 1
-					for( var columnIncrementor :int = 1; columnIncrementor < numOfDivs; columnIncrementor++)
-					{
-						cdAnchor = anchors.requestObject(colNames[columnIncrementor], AnchorPoint, false) as AnchorPoint;
-						cdAnchor.x.value  = Math.cos(currentClassPos + (columnTheta * columnIncrementor));
-						cdAnchor.y.value = Math.sin(currentClassPos + (columnTheta * columnIncrementor));*/
-						/*var check1:Array =columns.getObjects(IAttributeColumn);
-						var check2:IAttributeColumn = (check1[0] as IAttributeColumn);
-						var check3 : String = ColumnUtils.getTitle(check2);*/
-						//var colObject:IAttributeColumn = columns.getObject(colNames[columnIncrementor]) as IAttributeColumn;
-						//cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[columnIncrementor]) as IAttributeColumn);
-					//}
-					
-					/*
-					for( var g :int = 0; g < colNames.length; g++)//change
-					{
-						cdAnchor = anchors.getObject(colNames[g]) as AnchorPoint;
-						cdAnchor.x.value  = Math.cos(currentClassPos + (columnTheta * columnIncrementor));
-						cdAnchor.y.value = Math.sin(currentClassPos + (columnTheta * columnIncrementor));
-						cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[g]) as IAttributeColumn);
-					    columnIncrementor++;//change
-					}
-					
-					classIncrementor++;
-				}
-				
-				anchors.resumeCallbacks();
-			
-			}
-		}			*/
-				
-		
+	
 		public function setAnchorLocations( ):void
 		{	
 			var _columns:Array = columns.getObjects();
@@ -328,6 +253,7 @@ package weave.visualization.plotters
 			anchors.resumeCallbacks();
 		}
 		
+		//this function sets the anchor locations for the Class Discrimination Layout algorithm and marks the Class locations
 		public function setClassDiscriminationAnchorsLocations():void
 		{
 			var numOfClasses:int = 0;
@@ -343,12 +269,12 @@ package weave.visualization.plotters
 			for( var cdtype:Object in LayoutClasses)
 			{
 				var cdAnchor:AnchorPoint;
-				
 				var colNames:Array = (LayoutClasses[cdtype] as Array);
 				var numOfDivs:int = colNames.length + 1;
 				var columnTheta:Number = classTheta /numOfDivs;//needed for equidistant spacing of columns
 				var currentClassPos:Number = classTheta * classIncrementor;
 				var columnIncrementor:int = 1;//change
+				
 				
 				for( var g :int = 0; g < colNames.length; g++)//change
 				{
@@ -358,6 +284,7 @@ package weave.visualization.plotters
 					cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[g]) as IAttributeColumn);
 					columnIncrementor++;//change
 				}
+				
 				
 				classIncrementor++;
 			}
@@ -600,8 +527,8 @@ package weave.visualization.plotters
 				}
 			}
 		}
-						
-	
+		
+		
 		private function changeAlgorithm():void
 		{
 			if(_currentScreenBounds.isEmpty()) return;
