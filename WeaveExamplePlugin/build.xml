@@ -19,9 +19,9 @@
 	<property name="OUTPUT_DIR" value="${PROJECT_DIR}/bin"/>
 	<property name="LOCALE" value="en_US"/>
 	<property name="API" value="WeaveAPI"/>
-        <property name="CORE" value="WeaveCore"/>
-        <property name="DATA" value="WeaveData"/>
-        <property name="UI" value="WeaveUI"/>
+	<property name="CORE" value="WeaveCore"/>
+	<property name="DATA" value="WeaveData"/>
+	<property name="UI" value="WeaveUI"/>
 
 	<target name="build">
 		<antcall target="clean"/>
@@ -43,6 +43,7 @@
 			debug="${DEBUG}"
 			incremental="true"
 		>
+			<theme file="${FLEX_HOME}/frameworks/themes/Halo/halo.swc"/>  
 			<include-sources dir="${SOURCE_DIR}" includes="**/*.as"/>			
 			<include-sources dir="${SOURCE_DIR}" includes="**/*.mxml"/>			
 			<source-path path-element="${SOURCE_DIR}"/>
@@ -55,22 +56,20 @@
 			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
 			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*.swc" append="true"/>
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10/playerglobal.swc" append="true"/>
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/textLayout.swc" append="true"/> 
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10.2/playerglobal.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/framework.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/rpc.swc" append="true"/>
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/mx/mx.swc" append="true"/> 
+            <external-library-path file="${FLEX_HOME}/frameworks/libs/spark.swc" append="true"/> 
 
 			<external-library-path file="../${API}/bin/${API}.swc" append="true"/>
-                        <external-library-path file="../${CORE}/bin/${CORE}.swc" append="true"/>
-                        <external-library-path file="../${DATA}/bin/${DATA}.swc" append="true"/>
-                        <external-library-path file="../${UI}/bin/${UI}.swc" append="true"/>
-
-                        <runtime-shared-libraries url="${API}.swf"/>
-                        <runtime-shared-libraries url="${CORE}.swf"/>
-                        <runtime-shared-libraries url="${DATA}.swf"/>
-                        <runtime-shared-libraries url="${UI}.swf"/>
+			<external-library-path file="../${CORE}/bin/${CORE}.swc" append="true"/>
+			<external-library-path file="../${DATA}/bin/${DATA}.swc" append="true"/>
+			<external-library-path file="../${UI}/bin/${UI}.swc" append="true"/>
 			
 			<library-path dir="${PROJECT_DIR}/libs" includes="*.swc" append="true"/>
-
+			<arg value="-compatibility-version=3.6"/>
 		</compc>
 	</target>
 

@@ -40,16 +40,16 @@
 		<mxmlc 
 			file="${SOURCE_DIR}/weave.mxml"
 			target-player="10.2.0"
-			output="${OUTPUT_DIR}/WeaveClient.swf"
+			output="${OUTPUT_DIR}/${ant.project.name}.swf"
 			locale="${LOCALE}"
 			static-rsls="false"
 			incremental="true"
 			accessible="false"
-                        verify-digests="false"
-                        remove-unused-rsls="false"
+			verify-digests="false"
+			remove-unused-rsls="false"
 			debug="${DEBUG}"
 		>
-                        <theme file="${FLEX_HOME}/frameworks/themes/Halo/halo.swc"/>
+			<theme file="${FLEX_HOME}/frameworks/themes/Halo/halo.swc"/>
 			<load-config filename="${FLEX_HOME}/frameworks/flex-config.xml"/>
 
 			<source-path path-element="${SOURCE_DIR}"/>
