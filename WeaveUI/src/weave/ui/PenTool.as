@@ -229,7 +229,7 @@ package weave.ui
 			
 			_drawing = false;
 			if (value)
-				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
+				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR);
 			else
 				CustomCursorManager.removeAllCursors();
 			invalidateDisplayList();
@@ -427,7 +427,7 @@ package weave.ui
 			if (!_editMode)
 				return;
 			
-			CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
+			CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR);
 		}
 		
 		/**
@@ -669,7 +669,7 @@ package weave.ui
 					
 					_removeDrawingsMenuItem.enabled = true;
 				}
-				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
+				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR);
 			}
 		}
 		
@@ -736,7 +736,7 @@ package weave.ui
 				_penToolMenuItem.caption = DISABLE_PEN;
 				_removeDrawingsMenuItem.enabled = true;
 				_changeDrawingMode.enabled = true;
-				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
+				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR);
 			}
 			else
 			{

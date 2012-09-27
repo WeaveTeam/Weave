@@ -82,6 +82,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableString;
 			import weave.primitives.ImageFactory;
 			import weave.ui.controlBars.VisTaskbar;
+			import weave.utils.CustomCursorManager;
 			import weave.utils.EditorManager;
 			import weave.utils.NumberUtils;
 
@@ -979,7 +980,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				DraggablePanel.activePanel = null;
 				
 				if (_enableMoveResize && !_resizing)
-					CursorManager.removeCursor(draggablePanelCursorID);
+					CustomCursorManager.removeCursor(draggablePanelCursorID);
 				
 				if (_resizing)
 					event.stopImmediatePropagation();
@@ -1100,28 +1101,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (parent && !_resizing && !minimized.value && !maximized.value)
 				{
 					var status:Object = getResizeStatus(stage.mouseX, stage.mouseY);
-					var bitmap:BitmapAsset = null;
-					
+					var resizeCursorName:String = null;
 					// check to see if the mouse is in the top left (TL) or bottom right (BR) corner
 					if (status.TL || status.BR)
-						bitmap = _resizeTLBRBitmap;
+						resizeCursorName = CustomCursorManager.RESIZE_TOPLEFT_BOTTOMRIGHT;
 						// check to see if the mouse is in the top right (TR) or bottom left (BL) corner
 					else if (status.TR || status.BL)
-						bitmap = _resizeTRBLBitmap;
+						resizeCursorName = CustomCursorManager.RESIZE_TOPRIGHT_BOTTOMLEFT;
 						// check to see if the mouse is on the left or right side (LR)
 					else if (status.L || status.R)
-						bitmap = _resizeLRBitmap;
+						resizeCursorName = CustomCursorManager.RESIZE_LEFT_RIGHT;
 						// check to see if the mouse is on the top or bottom side
 					else if (status.T || status.B)
-						bitmap = _resizeTBBitmap;
+						resizeCursorName = CustomCursorManager.RESIZE_TOP_BOTTOM;
 					
-					CursorManager.removeCursor(draggablePanelCursorID);
-					if (bitmap != null && !event.buttonDown && _enableMoveResize)
+					CustomCursorManager.removeCursor(draggablePanelCursorID);
+					if ( resizeCursorName!= null && !event.buttonDown && _enableMoveResize)
 					{
-						var classDef:Class = ImageFactory.getImageClass(bitmap.bitmapData);
 						try
 						{
-							draggablePanelCursorID = CursorManager.setCursor(classDef, CursorManagerPriority.HIGH, -bitmap.width / 2, -bitmap.height / 2);
+							draggablePanelCursorID = CustomCursorManager.showCursor(resizeCursorName);
 						}
 						catch (e:Error)
 						{

@@ -165,15 +165,15 @@ package weave.visualization.layers
 				}
 				else if (_mouseMode == InteractionController.SELECT_ADD)
 				{
-					CustomCursorManager.showCursor(CustomCursorManager.SELECT_ADD_CURSOR, 2, _selectModeCursorOffsetX, _selectModeCursorOffsetY);
+					CustomCursorManager.showCursor(CustomCursorManager.SELECT_ADD_CURSOR);
 				}
 				else if (_mouseMode == InteractionController.SELECT || _mouseMode == InteractionController.PROBE)
 				{
-					CustomCursorManager.showCursor(CustomCursorManager.SELECT_REPLACE_CURSOR, 2, _selectModeCursorOffsetX, _selectModeCursorOffsetY);
+					CustomCursorManager.showCursor(CustomCursorManager.SELECT_REPLACE_CURSOR);
 				}	
 				else if (_mouseMode == InteractionController.SELECT_REMOVE)
 				{
-					CustomCursorManager.showCursor(CustomCursorManager.SELECT_SUBTRACT_CURSOR, 2, _selectModeCursorOffsetX, _selectModeCursorOffsetY);
+					CustomCursorManager.showCursor(CustomCursorManager.SELECT_SUBTRACT_CURSOR);
 				}
 				else if (_mouseMode == InteractionController.ZOOM)
 				{
