@@ -40,7 +40,7 @@
 		<mxmlc 
 			file="${SOURCE_DIR}/weave.mxml"
 			target-player="10.2.0"
-			output="${OUTPUT_DIR}/${ant.project.name}.swf"
+			output="${OUTPUT_DIR}/weave.swf"
 			locale="${LOCALE}"
 			static-rsls="false"
 			incremental="true"

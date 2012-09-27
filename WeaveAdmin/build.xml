@@ -38,9 +38,9 @@
 		<echo message="Compiling ${ant.project.name}..."/>
 		<mkdir dir="${OUTPUT_DIR}"/>
 		<mxmlc 
-			file="${SOURCE_DIR}/${ant.project.name}.mxml"
+			file="${SOURCE_DIR}/AdminConsole.mxml"
 			target-player="10.2.0"
-			output="${OUTPUT_DIR}/${ant.project.name}.swf"
+			output="${OUTPUT_DIR}/AdminConsole.swf"
 			locale="${LOCALE}"
 			static-rsls="false"
 			incremental="true"
