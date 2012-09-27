@@ -39,7 +39,7 @@
 		<mkdir dir="${OUTPUT_DIR}"/>
 		<compc 
 			output="${OUTPUT_DIR}/${ant.project.name}.swc"
-			target-player="10.0.0"
+			target-player="10.2.0"
 			debug="${DEBUG}"
 			incremental="true"
 		>
