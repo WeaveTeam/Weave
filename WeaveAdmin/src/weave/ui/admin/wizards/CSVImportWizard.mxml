@@ -113,16 +113,13 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.core.UIComponent;
 			import mx.managers.PopUpManager;
-			import mx.managers.ToolTipManager;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Strings;
 			import weave.api.WeaveAPI;
 			import weave.api.reportError;
-			import weave.data.AttributeColumns.CSVColumn;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
@@ -403,7 +400,7 @@
 			
 			private function handleKeyColumnCheckFault(e:FaultEvent,token:Object=null):void
 			{
-				WeaveAPI.ErrorManager.reportError("Error checking Key Column");
+				reportError("Error checking Key Column");
 			}
 			
 			/**

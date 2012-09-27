@@ -139,7 +139,7 @@ package weave.visualization.plotters
 				return;
 			}
 			
-			reportError(event, null, token);
+			reportError(event);
 			intercept = NaN;
 			slope = NaN;
 			getCallbackCollection(this).triggerCallbacks();

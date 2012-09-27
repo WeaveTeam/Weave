@@ -58,6 +58,7 @@ package weave.visualization.layers
 	public class PlotTask implements IPlotTask, ILinkableObject, IDisposableObject
 	{
 		public static var debugMouseDownPause:Boolean = false;
+		public static var debugIgnoreSpatialIndex:Boolean = false;
 		
 		private static const $debugTrace:Function = debugTrace;
 		
@@ -310,7 +311,8 @@ package weave.visualization.layers
 			if (WeaveAPI.SessionManager.linkableObjectIsBusy(_dependencies))
 			{
 				debugTrace('dependencies are busy');
-				return 1;
+				if (!debugIgnoreSpatialIndex)
+					return 1;
 				
 				// only spend half the time rendering when dependencies are busy
 				stopTime = (getTimer() + stopTime) / 2;
