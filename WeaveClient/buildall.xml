@@ -82,8 +82,8 @@
 		<extract_swc swc="${basedir}/${DATA}/bin/${DATA}.swc" rsl="${DATA}.swf"/>
 		<extract_swc swc="${basedir}/${UI}/bin/${UI}.swc" rsl="${UI}.swf"/>
                 <copy file="${basedir}/${CLIENT}/swf/${FONTS}.swf" tofile="${WEAVE_DESTROOT}/${FONTS}.swf"/>
-		<copy file="${basedir}/${CLIENT}/bin/${CLIENT}.swf" tofile="${WEAVE_DESTROOT}/weave.swf"/>
-		<copy file="${basedir}/${ADMIN}/bin/${ADMIN}.swf" tofile="${WEAVE_DESTROOT}/AdminConsole.swf"/>
+		<copy file="${basedir}/${CLIENT}/bin/weave.swf" tofile="${WEAVE_DESTROOT}/weave.swf"/>
+		<copy file="${basedir}/${ADMIN}/bin/AdminConsole.swf" tofile="${WEAVE_DESTROOT}/AdminConsole.swf"/>
 		<copy file="${basedir}/${SERVICES}/build/jar/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${FRAMEWORK_SWF}" tofile="${WEAVE_DESTROOT}/framework.swf"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${RPC_SWF}" tofile="${WEAVE_DESTROOT}/rpc.swf"/>
