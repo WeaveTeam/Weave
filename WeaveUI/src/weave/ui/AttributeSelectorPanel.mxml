@@ -41,7 +41,7 @@
 			<editors:DynamicColumnEditor id="editor" width="100%" height="100%"/>
 			<mx:HBox id="addColumnControls" width="100%">
 				<mx:Spacer width="100%"/>
-				<mx:Button label="Add all" click="addAll()" toolTip="Add all attributes from the selected category"/>
+				<mx:Button id="addAllButton" label="Add all" click="addAll()" toolTip="Add all attributes from the selected category"/>
 				<mx:Button label="Add selected" click="addSelected()"/>
 			</mx:HBox>
 			<ColumnListComponent id="columnList" width="100%" height="100%"/>
@@ -51,22 +51,24 @@
 		<![CDATA[
 			import mx.collections.ListCollectionView;
 			import mx.controls.Label;
-			import mx.core.Application;
+			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnWrapper;
 			import weave.api.disposeObjects;
+			import weave.api.getCallbackCollection;
+			import weave.api.ui.IVisToolWithSelectableAttributes;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.utils.HierarchyUtils;
-			import weave.visualization.tools.SimpleVisTool;
 
 			override protected function constructor():void
 			{
@@ -88,6 +90,8 @@
 				super.createChildren();
 
 				columnList.titleHBox.addChild(addColumnControls);
+				
+				Weave.properties.showAddAllButton.addImmediateCallback(this, changeAddAllButton, true);
 			}
 			
 			override public function dispose():void
@@ -104,15 +108,20 @@
 					return;
 				}
 				
+				getCallbackCollection(columnList.hashMap).delayCallbacks();
 				var root:XML = editor.hierarchySelector.attributeHierarchy.value;
-				var attrs:Array = (editor.hierarchySelector.attributesView.dataProvider as ListCollectionView).toArray();
-				for (var i:int = 0; i < attrs.length; i++)
+				if( editor.hierarchySelector.attributesView.dataProvider != null )
 				{
-					var attr:XML = attrs[i];
-					var col:ReferencedColumn = columnList.hashMap.requestObject(null, ReferencedColumn, false);
-					var ref:HierarchyColumnReference = col.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
-					editor.copyPathToRef(HierarchyUtils.getPathFromNode(root, attr), ref);
+					var attrs:Array = (editor.hierarchySelector.attributesView.dataProvider as ListCollectionView).toArray();
+					for (var i:int = 0; i < attrs.length; i++)
+					{
+						var attr:XML = attrs[i];
+						var col:ReferencedColumn = columnList.hashMap.requestObject(null, ReferencedColumn, false);
+						var ref:HierarchyColumnReference = col.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
+						editor.copyPathToRef(HierarchyUtils.getPathFromNode(root, attr), ref);
+					}
 				}
+				getCallbackCollection(columnList.hashMap).resumeCallbacks();
 			}
 			
 			private function addSelected():void
@@ -147,10 +156,10 @@
 					// temporary solution - find internal dynamic column
 					while (true)
 					{
-						if (columnWrapper.internalColumn is DynamicColumn)
-							columnWrapper = columnWrapper.internalColumn as IColumnWrapper;
-						else if (columnWrapper.internalColumn is ExtendedDynamicColumn)
-							columnWrapper = (columnWrapper.internalColumn as ExtendedDynamicColumn).internalDynamicColumn;
+						if (columnWrapper.getInternalColumn() is DynamicColumn)
+							columnWrapper = columnWrapper.getInternalColumn() as IColumnWrapper;
+						else if (columnWrapper.getInternalColumn() is ExtendedDynamicColumn)
+							columnWrapper = (columnWrapper.getInternalColumn() as ExtendedDynamicColumn).internalDynamicColumn;
 						else
 							break;
 					}
@@ -166,15 +175,16 @@
 				if (index >= 0)
 				{
 					objectTitle = selectableAttributeNames[index];
-					title = "Attribute selector for " + objectTitle;
+					title = lang("Attribute selector for {0}", objectTitle);
 					dimensionTypeLinks.selectedIndex = index;
 					showOrHideParamSelector(true);
 				}
 				else
 				{
-					title = "Attribute selector";
 					if (objectTitle)
-						title += ' for ' + objectTitle;
+						title = lang("Attribute selector for {0}", objectTitle);
+					else
+						title = lang("Attribute selector");
 					showOrHideParamSelector(false);
 				}
 				
@@ -200,7 +210,7 @@
 					if (child.parent)
 						child.parent.removeChild(child);
 					columnList.hashMap = columnOrHashMap as ILinkableHashMap;
-					columnList.label = objectTitle ? objectTitle : 'Selected attributes';
+					columnList.label = objectTitle ? objectTitle : lang('Selected attributes');
 					verticalDividedBox.addChild(columnList);
 				}
 				else if (verticalDividedBox == columnList.parent)
@@ -220,7 +230,7 @@
 				return _defaultSelector;
 			}
 			public static var _defaultSelector:AttributeSelectorPanel;
-			public static function openToolSelector(tool:SimpleVisTool, attributeToLinkTo:ILinkableObject):void
+			public static function openToolSelector(tool:IVisToolWithSelectableAttributes, attributeToLinkTo:ILinkableObject):void
 			{
 				if (!Weave.properties.enableToolControls.value)
 					return;
@@ -239,7 +249,7 @@
 					return;
 				
 				if (!defaultSelector.parent)
-					PopUpManager.addPopUp(defaultSelector, Application.application as Application);
+					PopUpManager.addPopUp(defaultSelector, WeaveAPI.topLevelApplication as DisplayObject);
 
 				defaultSelector.editor.clearSearch();
 				
@@ -248,6 +258,13 @@
 				
 				defaultSelector.restorePanel();
 			}
+			
+			private function changeAddAllButton():void
+			{
+				var show:Boolean = Weave.properties.showAddAllButton.value;
+				addAllButton.visible = show;
+			}
+			
 		]]>
 	</mx:Script>
 </ControlPanel>

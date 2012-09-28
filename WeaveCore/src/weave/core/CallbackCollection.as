@@ -25,6 +25,7 @@ package weave.core
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableObject;
 	
 	/**
 	 * This class manages a list of callback functions.
@@ -37,6 +38,8 @@ package weave.core
 		 * Set this to true to enable stack traces for debugging.
 		 */
 		public static var debug:Boolean = false;
+		internal var _linkableObject:ILinkableObject; // for debugging only... will be set when debug==true
+		private var _lastTriggerStackTrace:String; // for debugging only... will be set when debug==true
 
 		/**
 		 * If specified, the preCallback function will be called immediately before running each callback.
@@ -58,11 +61,6 @@ package weave.core
 		private var _callbackEntries:Array = new Array();
 
 		/**
-		 * If this is set to true, delayCallbacks() behaves as described.  Otherwise, delayCallbacks() has no effect.
-		 */
-		protected var allowDelayCallbacks:Boolean = true;
-
-		/**
 		 * This is the function that gets called immediately before every callback.
 		 */
 		private var _preCallback:Function = null;
@@ -80,7 +78,8 @@ package weave.core
 		
 		/**
 		 * This is the default value of triggerCounter.
-		 */		
+		 * The default value is 1 to avoid being equal to a newly initialized uint=0.
+		 */
 		protected const DEFAULT_TRIGGER_COUNT:uint = 1;
 		
 		/**
@@ -91,10 +90,9 @@ package weave.core
 		 */
 		private var _triggerCounter:uint = DEFAULT_TRIGGER_COUNT;
 		
-		/**
-		 * If this is true, it means _runCallbacksImmediately() is currently executing.
-		 */
-		private var _callbacksAreRunning:Boolean = false;
+		private static const STACK_TRACE_TRIGGER:String = "This is the stack trace from when the callbacks were last triggered.";
+		private static const STACK_TRACE_ADD:String = "This is the stack trace from when the callback was added.";
+		private static const STACK_TRACE_REMOVE:String = "This is the stack trace from when the callback was removed.";
 		
 		/**
 		 * This adds the given function as a callback.  The function must not require any parameters.
@@ -121,14 +119,14 @@ package weave.core
 				entry.schedule = 1;
 			
 			if (debug)
-				entry.addCallback_stackTrace = new Error("Stack trace").getStackTrace();
+				entry.addCallback_stackTrace = new Error(STACK_TRACE_ADD).getStackTrace();
 
 			// run callback now if requested
 			if (runCallbackNow)
 			{
 				// increase the recursion count while the function is running
 				entry.recursionCount++;
-				callback();
+				callback.apply();
 				entry.recursionCount--;
 			}
 		}
@@ -139,8 +137,11 @@ package weave.core
 		 */
 		public final function triggerCallbacks():void
 		{
+			if (debug)
+				_lastTriggerStackTrace = new Error(STACK_TRACE_TRIGGER).getStackTrace();
 			if (_delayCount > 0)
 			{
+				// we still want to increase the counter even if callbacks are delayed
 				_triggerCounter++;
 				_runCallbacksIsPending = true;
 				return;
@@ -160,12 +161,9 @@ package weave.core
 		 */		
 		protected final function _runCallbacksImmediately(...preCallbackParams):void
 		{
+			// increase counter immediately
 			_triggerCounter++;
 			_runCallbacksIsPending = false;
-			
-			// save current value of this variable to prevent recursive calls from making it incorrect.
-			var previouslyRunningCallbacks:Boolean = _callbacksAreRunning;
-			_callbacksAreRunning = true;
 			
 			// This flag is set to false before running the callbacks.  When it becomes true, the loop exits.
 			_runCallbacksCompleted = false;
@@ -196,7 +194,7 @@ package weave.core
 					if (shouldRemoveEntry)
 					{
 						if (debug && entry.callback != null)
-							entry.removeCallback_stackTrace = new Error("context disposed").getStackTrace();
+							entry.removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
 						// help the garbage-collector a bit
 						entry.context = null;
 						entry.callback = null;
@@ -211,7 +209,7 @@ package weave.core
 						if (_preCallback != null)
 							_preCallback.apply(null, preCallbackParams);
 						
-						entry.callback();
+						entry.callback.apply();
 						
 						entry.recursionCount--; // decrease count because the callback finished.
 					}
@@ -220,8 +218,6 @@ package weave.core
 
 			// This flag is now set to true in case this function was called recursively.  This causes the outer call to exit its loop.
 			_runCallbacksCompleted = true;
-			
-			_callbacksAreRunning = previouslyRunningCallbacks;
 		}
 		
 		/**
@@ -235,19 +231,21 @@ package weave.core
 				removeCallback(triggerCallbackEntry.callback);
 			
 			// find the matching CallbackEntry, if any
-			for (var index:int = 0; index < _callbackEntries.length; index++)
+			for (var outerLoop:int = 0; outerLoop < 2; outerLoop++)
 			{
-				var entry:CallbackEntry = _callbackEntries[index] as CallbackEntry;
-				if (entry != null && callback === entry.callback)
+				var entries:Array = outerLoop == 0 ? _callbackEntries : _disposeCallbackEntries;
+				for (var index:int = 0; index < entries.length; index++)
 				{
-					// Remove the callback by setting the function pointer to null.
-					// This is done instead of removing the entry because we may be looping over the _callbackEntries Array right now.
-					entry.context = null;
-					entry.callback = null;
-					if (debug)
-						entry.removeCallback_stackTrace = new Error("removeCallback called").getStackTrace();
-					// done removing the callback
-					return;
+					var entry:CallbackEntry = entries[index] as CallbackEntry;
+					if (entry != null && callback === entry.callback)
+					{
+						// Remove the callback by setting the function pointer to null.
+						// This is done instead of removing the entry because we may be looping over the _callbackEntries Array right now.
+						entry.context = null;
+						entry.callback = null;
+						if (debug)
+							entry.removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
+					}
 				}
 			}
 		}
@@ -276,8 +274,7 @@ package weave.core
 		 */
 		public final function delayCallbacks():void
 		{
-			if (allowDelayCallbacks)
-				_delayCount++;
+			_delayCount++;
 		}
 
 		/**
@@ -295,6 +292,34 @@ package weave.core
 			if (_delayCount == 0 && _runCallbacksIsPending)
 				triggerCallbacks();
 		}
+		
+		/**
+		 * This will add a callback that will only be called once, when this callback collection is disposed.
+		 * @param relevantContext If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
+		 * @param callback The function to call when this callback collection is disposed.
+		 */
+		public function addDisposeCallback(relevantContext:Object, callback:Function):void
+		{
+			var entry:CallbackEntry;
+			
+			// don't do anything if the dispose callback was already added
+			for each (entry in _disposeCallbackEntries)
+				if (entry.callback === callback)
+					return;
+			
+			entry = new CallbackEntry();
+			_disposeCallbackEntries.push(entry);
+			entry.context = relevantContext;
+			entry.callback = callback;
+			
+			if (debug)
+				entry.addCallback_stackTrace = new Error(STACK_TRACE_ADD).getStackTrace();
+		}
+		
+		/**
+		 * A list of CallbackEntry objects for when dispose() is called.
+		 */		
+		private var _disposeCallbackEntries:Array = [];
 
 		/**
 		 * This will remove all callbacks.
@@ -305,6 +330,14 @@ package weave.core
 			// remove all callbacks
 			_callbackEntries.length = 0;
 			_wasDisposed = true;
+			
+			// run & remove dispose callbacks
+			while (_disposeCallbackEntries.length)
+			{
+				var entry:CallbackEntry = _disposeCallbackEntries.shift() as CallbackEntry;
+				if (entry.callback != null && !WeaveAPI.SessionManager.objectWasDisposed(entry.context))
+					entry.callback.apply();
+			}
 		}
 		
 		/**
@@ -359,7 +392,7 @@ package weave.core
 			{
 				// run grouped callbacks in the order they were triggered
 				var triggerEntry:CallbackEntry = _triggeredGroupedCallbackEntryOrderedList.shift() as CallbackEntry;
-				(triggerEntry as CallbackEntry).callback();
+				(triggerEntry as CallbackEntry).callback.apply();
 				delete _triggeredGroupedCallbackEntryMap[triggerEntry];
 			}
 
@@ -403,7 +436,7 @@ package weave.core
 				triggerEntry.recursionLimit = recursionLimit;
 				triggerEntry.context = [relevantContext]; // the context in this entry will be an array of contexts
 				if (debug)
-					triggerEntry.addCallback_stackTrace = new Error("Stack trace").getStackTrace();
+					triggerEntry.addCallback_stackTrace = new Error(STACK_TRACE_ADD).getStackTrace();
 				triggerEntry.callback = function():void
 				{
 					if (_runningGroupedCallbacksNow)
@@ -423,7 +456,7 @@ package weave.core
 						{
 							triggerEntry.callback = null; // help the garbage-collector a bit
 							if (debug)
-								triggerEntry.removeCallback_stackTrace = new Error("All contexts disposed").getStackTrace();
+								triggerEntry.removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
 							delete _groupedCallbackToTriggerEntryMap[groupedCallback];
 							return;
 						}
@@ -435,7 +468,7 @@ package weave.core
 							// increase recursion count while the function is running.
 							triggerEntry.recursionCount++;
 							
-							groupedCallback();
+							groupedCallback.apply();
 							
 							triggerEntry.recursionCount--;
 						}

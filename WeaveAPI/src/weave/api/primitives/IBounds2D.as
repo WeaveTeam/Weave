@@ -15,6 +15,7 @@
 
 package weave.api.primitives
 {
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
@@ -110,6 +111,14 @@ package weave.api.primitives
 		function getRectangle(output:Rectangle = null, makeSizePositive:Boolean = true):Rectangle;
 
 		/**
+		 * This will apply transformations to an existing Matrix for projecting coordinates from this bounds to another.
+		 * @param destinationBounds The destination bounds used to calculate the transformation.
+		 * @param outputMatrix The Matrix used to store the transformation.
+		 * @param startWithIdentity If this is true, then outputMatrix.identity() will be applied first.
+		 */
+		function transformMatrix(destinationBounds:IBounds2D, outputMatrix:Matrix, startWithIdentity:Boolean):void;
+		
+		/**
 		 * This function will expand this IBounds2D to include a point.
 		 * @param newPoint A point to include in this IBounds2D.
 		 */
@@ -166,7 +175,7 @@ package weave.api.primitives
 		
 		/**
 		 * This function projects the coordinates of a Point object from this bounds to a
-		 * destination bounds.
+		 * destination bounds.  The specified point object will be modified to contain the result.
 		 * @param point The Point object containing coordinates to project.
 		 * @param toBounds The destination bounds.
 		 */
@@ -174,23 +183,21 @@ package weave.api.primitives
 		
 		/**
 		 * This function projects all four coordinates of a IBounds2D object from this bounds
-		 * to a destination bounds.
+		 * to a destination bounds.  The specified coords object will be modified to contain the result.
 		 * @param inputAndOutput A IBounds2D object containing coordinates to project.
 		 * @param toBounds The destination bounds.
 		 */		
 		function projectCoordsTo(coords:IBounds2D, toBounds:IBounds2D):void;
 
 		/**
-		 * This constrains a point to be within this IBounds2D.
+		 * This constrains a point to be within this IBounds2D.  The specified point object will be modified to contain the result.
 		 * @param point The point to constrain.
-		 * @param preserveSlope A boolean indicating whether a point outside of the bounds
-		 * should be constrained inside the bounds at a position which lies on a line from 
-		 * the bounds center to the original point's location.
 		 */
-		function constrainPoint(point:Point, preserveSlope:Boolean = false):void;
+		function constrainPoint(point:Point):void;
 
 		/**
 		 * This constrains the center point of another IBounds2D to be overlapping the center of this IBounds2D.
+		 * The specified boundsToConstrain object will be modified to contain the result.
 		 * @param boundsToConstrain The IBounds2D objects to constrain.
 		 */
 		function constrainBoundsCenterPoint(boundsToConstrain:IBounds2D):void;
@@ -198,6 +205,7 @@ package weave.api.primitives
 		/**
 		 * This function will reposition a bounds such that for the x and y dimensions of this
 		 * bounds and another bounds, at least one bounds will completely contain the other bounds.
+		 * The specified boundsToConstrain object will be modified to contain the result.
 		 * @param boundsToConstrain the bounds we want to constrain to be within this bounds
 		 * @param preserveSize if set to true, width,height of boundsToConstrain will remain the same
 		 */

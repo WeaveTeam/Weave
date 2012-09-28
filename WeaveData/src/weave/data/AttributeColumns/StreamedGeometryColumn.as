@@ -24,6 +24,7 @@ package weave.data.AttributeColumns
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
@@ -31,13 +32,13 @@ package weave.data.AttributeColumns
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.services.DelayedAsyncResponder;
 	import weave.services.beans.GeometryStreamMetadata;
-	import weave.utils.ColumnUtils;
 	import weave.utils.GeometryStreamDecoder;
 	
 	/**
@@ -53,11 +54,21 @@ package weave.data.AttributeColumns
 		{
 			super(metadata);
 			
-			_tileService = tileService;
+			_tileService = registerLinkableChild(this, tileService);
 			
 			// request a list of tiles for this geometry collection
 			var query:AsyncToken = _tileService.getTileDescriptors();
 			query.addAsyncResponder(handleGetTileDescriptors, handleGetTileDescriptorsFault, metadata);
+			
+			var self:Object = this;
+			boundingBoxCallbacks.addImmediateCallback(this, function():void{
+				if (_debug)
+					debugTrace(self,'boundingBoxCallbacks',boundingBoxCallbacks,'keys',keys.length);
+			});
+			addImmediateCallback(this, function():void{
+				if (_debug)
+					debugTrace(self,'keys',keys.length);
+			});
 		}
 		
 		public function get boundingBoxCallbacks():ICallbackCollection
@@ -130,8 +141,9 @@ package weave.data.AttributeColumns
 		private var _geometryStreamDownloadCounter:int = 0;
 		private var _metadataStreamDownloadCounter:int = 0;
 		
-		public var metadataTilesPerQuery:int = 10; //10;
-		public var geometryTilesPerQuery:int = 10; //30;
+		
+		public var metadataTilesPerQuery:int = 200; //10;
+		public var geometryTilesPerQuery:int = 200; //30;
 		
 		public function requestGeometryDetail(dataBounds:IBounds2D, lowestImportance:Number):void
 		{
@@ -170,9 +182,9 @@ package weave.data.AttributeColumns
 			if (_debug)
 			{
 				if (metadataTileIDs.length > 0)
-					trace("requesting metadata tiles: " + metadataTileIDs);
+					debugTrace(this, "requesting metadata tiles: " + metadataTileIDs);
 				if (geometryTileIDs.length > 0)
-					trace("requesting geometry tiles: " + geometryTileIDs);
+					debugTrace(this, "requesting geometry tiles: " + geometryTileIDs);
 			}
 			
 			var query:AsyncToken;
@@ -215,7 +227,7 @@ package weave.data.AttributeColumns
 		{
 			if (event.result == null)
 			{
-				reportNullResult();
+				reportNullResult(ObjectUtil.toString(token));
 				return;
 			}
 			try
@@ -242,9 +254,9 @@ package weave.data.AttributeColumns
 		}
 		
 
-		private function reportNullResult():void
+		private function reportNullResult(token:Object):void
 		{
-			reportError("Did not receive any data from service for geometry column: " + ColumnUtils.getTitle(this));
+			reportError("Did not receive any data from service for geometry column. " + token);
 		}
 		
 		private var _totalDownloadedSize:int = 0;
@@ -255,7 +267,7 @@ package weave.data.AttributeColumns
 			
 			if (event.result == null)
 			{
-				reportNullResult();
+				reportNullResult(token);
 				return;
 			}
 			
@@ -273,7 +285,7 @@ package weave.data.AttributeColumns
 
 			if (event.result == null)
 			{
-				reportNullResult();
+				reportNullResult(token);
 				return;
 			}
 

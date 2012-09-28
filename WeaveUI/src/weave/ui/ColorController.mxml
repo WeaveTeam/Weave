@@ -23,17 +23,17 @@
 				  xmlns:mx="http://www.adobe.com/2006/mxml"
 				  xmlns:ui="weave.ui.*" 
 				  layout="absolute"
-				  title="Color Controller"
+				  title="{lang('Color Controller')}"
 				  backgroundColor="#EFF4BC"
 				  >
-	<mx:VBox id="VizControlsPanel" label="Binning">
-		<ui:DynamicColumnComponent id="dataColumnComponent" label="Color data" showLinkControl="false"/>
+	<mx:VBox id="VizControlsPanel" label="{lang('Binning')}">
+		<ui:DynamicColumnComponent id="dataColumnComponent" label="{lang('Color data')}" showLinkControl="false"/>
 		<ui:BinningDefinitionEditor id="binEditor"/>
 	</mx:VBox>
-	<mx:VBox id="advControlsPanel" label="Color scale">
+	<mx:VBox id="advControlsPanel" label="{lang('Color scale')}">
 		<ui:ColorRampEditor id="cRampEditor"/>
 	</mx:VBox>
-	<ui:ColorOverrideEditor id="colorOverrideEditor" label="Color specific records"/>
+	<ui:ColorOverrideEditor id="colorOverrideEditor" label="{lang('Color specific records')}"/>
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
@@ -46,9 +46,9 @@
 			{
 				super.childrenCreated();
 				
-				var colorCol:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
-				var binCol:BinnedColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_BIN_COLUMN) as BinnedColumn;
-				var dataCol:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
+				var colorCol:ColorColumn = Weave.defaultColorColumn;
+				var binCol:BinnedColumn = Weave.defaultColorBinColumn;
+				var dataCol:FilteredColumn = Weave.defaultColorDataColumn;
 				dataColumnComponent.dynamicObject = dataCol.internalDynamicColumn;
 				cRampEditor.colorRamp = colorCol.ramp;
 				linkSessionState(binCol, binEditor.binnedColumn);

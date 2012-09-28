@@ -19,20 +19,18 @@
 
 package weave.data.BinningDefinitions
 {
-	import weave.api.WeaveAPI;
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.weave_internal;
 	import weave.data.BinClassifiers.NumberClassifier;
-	import weave.utils.VectorUtils;
+	import weave.utils.AsyncSort;
 	
 	/**
 	 * Divides a data range into a number of bins based on range entered by user.
@@ -68,7 +66,7 @@ package weave.data.BinningDefinitions
 			
 			var nonWrapperColumn:IAttributeColumn = column;
 			while (nonWrapperColumn is IColumnWrapper)
-				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).internalColumn;
+				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).getInternalColumn();
 			
 			var i:int;
 			var values:Array = splitValues.value.split(',');
@@ -82,7 +80,7 @@ package weave.data.BinningDefinitions
 					values[i] = number;
 			}
 			// sort numerically
-			values.sort(Array.NUMERIC);
+			AsyncSort.sortImmediately(values, ObjectUtil.numericCompare);
 			
 			for (i = 0; i < values.length - 1; i++)
 			{
@@ -92,7 +90,7 @@ package weave.data.BinningDefinitions
 				tempNumberClassifier.maxInclusive.value = (i == values.length - 2);
 				
 				//first get name from overrideBinNames
-				name = getNameFromOverrideString(i);
+				name = getOverrideNames()[i];
 				//if it is empty string set it from generateBinLabel
 				if(!name)
 					name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);

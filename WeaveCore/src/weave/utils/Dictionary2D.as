@@ -71,9 +71,19 @@ package weave.utils
 		 * This removes all values associated with the given primary key.
 		 * @param key1 The first dictionary key.
 		 */		
-		public function removeAll(key1:Object):void
+		public function removeAllPrimary(key1:Object):void
 		{
 			delete dictionary[key1];
+		}
+		
+		/**
+		 * This removes all values associated with the given secondary key.
+		 * @param key2 The second dictionary key.
+		 */		
+		public function removeAllSecondary(key2:Object):void
+		{
+			for (var key1:* in dictionary)
+				delete dictionary[key1][key2];
 		}
 		
 		/**
@@ -91,6 +101,14 @@ package weave.utils
 				value = d2[key2];
 				delete d2[key2];
 			}
+			
+			// if entries remain in d2, keep it
+			for (var v2:* in d2)
+				return value;
+			
+			// otherwise, remove it
+			delete dictionary[key1];
+			
 			return value;
 		}
 	}

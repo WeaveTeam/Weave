@@ -24,18 +24,16 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
-	import mx.utils.ObjectUtil;
-	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.data.IStatisticsCache;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.compiler.StandardLib;
+	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
@@ -57,13 +55,10 @@ package weave.visualization.plotters
 		public function Histogram2DPlotter()
 		{
 			// hack, only supports default color column
-			var cc:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
+			var cc:ColorColumn = Weave.defaultColorColumn;
 			registerLinkableChild(this, cc);
 			
-			xColumn.addImmediateCallback(this, updateKeys);
-			yColumn.addImmediateCallback(this, updateKeys);
-			
-			setKeySource(_keySet);
+			setColumnKeySources([xColumn, yColumn]);
 		}
 		
 		private var _keySet:KeySet = newDisposableChild(this, KeySet);
@@ -74,7 +69,9 @@ package weave.visualization.plotters
 		
 		public const xBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn, handleColumnChange);
 		public const yBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn, handleColumnChange);
-		
+		private const xInternalStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(xBinnedColumn.internalDynamicColumn);
+		private const yInternalStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(yBinnedColumn.internalDynamicColumn);
+
 		public const showAverageColorData:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public function get xColumn():DynamicColumn { return xBinnedColumn.internalDynamicColumn; }
@@ -91,11 +88,6 @@ package weave.visualization.plotters
 		private const tempPoint:Point = new Point();
 		private const tempBounds:IBounds2D = new Bounds2D();
 
-		private function updateKeys():void
-		{
-			_keySet.replaceKeys(ColumnUtils.getAllKeys([xBinnedColumn,yBinnedColumn]));
-		}
-		
 		private function handleColumnChange():void
 		{
 			cellToKeysMap = {};
@@ -118,27 +110,27 @@ package weave.visualization.plotters
 				maxBinSize = Math.max(maxBinSize, keys.length);
 			}
 			
-			var xCol:IAttributeColumn = xBinnedColumn.internalColumn;
-			var yCol:IAttributeColumn = yBinnedColumn.internalColumn;
-			var sc:IStatisticsCache = WeaveAPI.StatisticsCache;
-			xBinWidth = (sc.getMax(xCol) - sc.getMin(xCol)) / xBinnedColumn.numberOfBins;
-			yBinWidth = (sc.getMax(yCol) - sc.getMin(yCol)) / yBinnedColumn.numberOfBins;
+			xBinWidth = (xInternalStats.getMax() - xInternalStats.getMin()) / xBinnedColumn.numberOfBins;
+			yBinWidth = (yInternalStats.getMax() - yInternalStats.getMin()) / yBinnedColumn.numberOfBins;
 		}
 		
 		/**
 		 * This draws the 2D histogram bins that a list of record keys fall into.
 		 */
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
+			return 1;
+		}
+		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			if (isNaN(xBinWidth) || isNaN(yBinWidth))
 				return;
 			
 			// hack, only supports default color column
-			var colorCol:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
-			var binCol:BinnedColumn = colorCol.internalColumn as BinnedColumn;
+			var colorCol:ColorColumn = Weave.defaultColorColumn;
+			var binCol:BinnedColumn = colorCol.getInternalColumn() as BinnedColumn;
 			var dataCol:IAttributeColumn = binCol ? binCol.internalDynamicColumn : null;
-			var dataMin:Number = WeaveAPI.StatisticsCache.getMin(dataCol);
-			var dataMax:Number = WeaveAPI.StatisticsCache.getMax(dataCol);
 			var ramp:ColorRamp = showAverageColorData.value ? colorCol.ramp : this.binColors;
 			
 			var graphics:Graphics = tempShape.graphics;
@@ -204,7 +196,7 @@ package weave.visualization.plotters
 		 */
 		override public function getBackgroundDataBounds():IBounds2D
 		{
-			if (xBinnedColumn.internalColumn != null && yBinnedColumn.internalColumn != null)
+			if (xBinnedColumn.getInternalColumn() != null && yBinnedColumn.getInternalColumn() != null)
 				return getReusableBounds(-0.5, -0.5, xBinnedColumn.numberOfBins - 0.5, yBinnedColumn.numberOfBins -0.5);
 			return getReusableBounds();
 		}
@@ -215,7 +207,7 @@ package weave.visualization.plotters
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
 			
-			if(xBinnedColumn.internalColumn == null || yBinnedColumn.internalColumn == null)
+			if(xBinnedColumn.getInternalColumn() == null || yBinnedColumn.getInternalColumn() == null)
 				return [getReusableBounds()];
 			
 			var shapeKey:String = keyToCellMap[recordKey];

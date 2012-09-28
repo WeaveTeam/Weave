@@ -26,8 +26,6 @@
 		 xmlns:settings="weave.ui.settings.*" layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import mx.utils.StringUtil;
-			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
@@ -42,20 +40,19 @@
 			import weave.data.AttributeColumns.AlwaysDefinedColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColumnListComponent;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
+			import weave.utils.PlotterUtils;
 			import weave.utils.ProbeTextUtils;
-			import weave.visualization.layers.AxisLayer;
-			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.layers.LayerSettings;
 			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.plotters.TextGlyphPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, LineChartTool, "Line Chart");
+			WeaveAPI.registerImplementation(IVisTool, LineChartTool, lang("Line Chart"));
 			
 			[Bindable]
 			private var _plotter:ParallelCoordinatesPlotter = null;
@@ -63,22 +60,19 @@
 			{
 				super.constructor();
 				
-				visualization.marginBottom.value = "80";
-				visualization.marginTop.value    = "10";
-				visualization.marginLeft.value   = "80";
-				visualization.marginRight.value  = "80";
+				visualization.plotManager.marginBottom.value = "80";
+				visualization.plotManager.marginTop.value    = "10";
+				visualization.plotManager.marginLeft.value   = "80";
+				visualization.plotManager.marginRight.value  = "80";
 				
 				// lock dynamic objects into place
 				_plotter = initializePlotters(ParallelCoordinatesPlotter, true);
 				
 				// default axis values
-				yAxisLayer.axisPlotter.tickCountRequested.value = 5;
-				xAxisLayer.axisPlotter.forceTickCount.value = true;
+				yAxisPlotter.tickCountRequested.value = 5;
+				xAxisPlotter.forceTickCount.value = true;
 
-				// add this callback first because it needs to be called for each column that is removed
-				_plotter.columns.childListCallbacks.addImmediateCallback(this, handleColumnAddRemoveReorder);
-				
-				visualization.includeNonSelectableLayersInAutoZoom.lock();
+				visualization.plotManager.includeNonSelectableLayersInAutoZoom.lock();
 				visualization.enableZoomAndPan.value = false;
 
 				//This variable represents whether or not the tool is a 
@@ -90,13 +84,13 @@
 				
 				linkSessionState(labelPlotter.zoomToSubset, _plotter.zoomToSubset);
 
-				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxes);
+				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, updateAxes);
 			
 				// BEGIN TEMPORARY SOLUTION
-				visualization.marginLeftNumber.addGroupedCallback(this, updateAxes);
-				visualization.marginBottomNumber.addGroupedCallback(this, updateAxes);
-				visualization.marginTopNumber.addGroupedCallback(this, updateAxes);
-				visualization.marginRightNumber.addGroupedCallback(this, updateAxes);
+				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateAxes);
+				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateAxes);
+				visualization.plotManager.marginTopNumber.addGroupedCallback(this, updateAxes);
+				visualization.plotManager.marginRightNumber.addGroupedCallback(this, updateAxes);
 
 				getCallbackCollection(_plotter).addGroupedCallback(this, updateAxes, true);
 				// END TEMPORARY SOLUTION
@@ -114,7 +108,7 @@
 				_plotter.xData.addGroupedCallback(this, updateFilterText);
 				_plotter.xValues.addGroupedCallback(this, updateFilterText, true);
 				
-				linkSessionState(visualization.marginRightNumber, labelPlotter.maxWidth);
+				linkSessionState(visualization.plotManager.marginRightNumber, labelPlotter.maxWidth);
 			}
 
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -138,11 +132,11 @@
 			{
 				if(!_plotter.enableGroupBy.value) 
 					return;
-				if(!labelPlotter.text.internalColumn)
+				if(!labelPlotter.text.getInternalColumn())
 					return;
 				if(ColumnUtils.getKeyType(labelPlotter.text) != ColumnUtils.getKeyType(_plotter.xData))
 					return;
-				if(labelPlotter.text.internalColumn is EquationColumn)
+				if(labelPlotter.text.getInternalColumn() is EquationColumn)
 					return;
 				
 				var labelColumn:DynamicColumn = new DynamicColumn();
@@ -152,7 +146,7 @@
 				labelEquation.delayCallbacks();
 				labelEquation.variables.requestObjectCopy("labelColumn",labelColumn);
 				labelEquation.variables.requestObjectCopy("keyColumn", _plotter.groupBy);
-				labelEquation.setMetadata(AttributeColumnMetadata.TITLE, ColumnUtils.getTitle(labelColumn) + "Equation");
+				labelEquation.setMetadata(AttributeColumnMetadata.TITLE, ColumnUtils.getTitle(labelColumn) + lang("Equation"));
 				labelEquation.equation.value = 'key = getAssociatedKeys(keyColumn, getKey())[0], getValueFromKey(labelColumn, key, String)';
 				labelEquation.resumeCallbacks();
 				/* 
@@ -182,19 +176,15 @@
 			{
 				super.childrenCreated();
 				
-				// fix session state from old versions
-				for each (var name:String in visualization.layers.getNames(AxisLayer))
-					visualization.layers.removeObject(name);
+				xAxisPlotter.setLabelFunction(getColumnTitle);
+				xAxisPlotter.axisLabelRelativeAngle.value = -45;
+				xAxisPlotter.labelHorizontalAlign.value = BitmapText.HORIZONTAL_ALIGN_RIGHT;
+				xAxisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
+				xAxisPlotter.labelDistanceIsVertical.value = false;
 				
-				xAxisLayer.axisPlotter.setLabelFunction(getColumnTitle);
-				xAxisLayer.axisPlotter.axisLabelRelativeAngle.value = -45;
-				xAxisLayer.axisPlotter.labelHorizontalAlign.value = BitmapText.HORIZONTAL_ALIGN_RIGHT;
-				xAxisLayer.axisPlotter.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
-				xAxisLayer.axisPlotter.labelDistanceIsVertical.value = false;
+				yAxisPlotter.setLabelFunction(yAxisLabelFunction);
 				
-				yAxisLayer.axisPlotter.setLabelFunction(yAxisLabelFunction);
-				
-				visualization.includeNonSelectableLayersInAutoZoom.value = false;
+				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = false;
 				
 				(labelComponent as DynamicColumnComponent).dynamicObject = labelPlotter.text;
 				
@@ -212,13 +202,11 @@
 				{
 					curveCheckBox.selected = _plotter.curveType.value == ParallelCoordinatesPlotter.CURVE_DOUBLE;
 				}
-				
-				visualization.getPlotLayer().backgroundIsVisible.addImmediateCallback(this, updateSelectionAndProbeOnlyCheckBox, true);
 			}
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Color","Label","Columns"];
+				return [lang("Color"),lang("Label"),lang("Columns")];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -227,8 +215,7 @@
 			
 			public function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			private function getColumnTitle( index:Number ):String
@@ -238,17 +225,6 @@
 					return ColumnUtils.getTitle(columns[index]);
 				} catch(e:Error) {}
 				return "";
-			}
-			
-			private var axisPrefix:String =  "Axis for: ";
-			private function handleColumnAddRemoveReorder():void
-			{
-				var removedName:String = _plotter.columns.childListCallbacks.lastNameRemoved;
-				if (removedName != null)
-				{
-					//trace("removed:",removedName)
-					visualization.layers.removeObject(axisPrefix + removedName);
-				}
 			}
 			
 			private static const tempBounds:Bounds2D = new Bounds2D(); // reusable temporary object
@@ -267,16 +243,16 @@
 				
 				var columns:Array = _plotter.columns.getObjects();
 				
-				xAxisLayer.axisPlotter.tickCountRequested.value = Math.max(2, columns.length);
+				xAxisPlotter.tickCountRequested.value = Math.max(2, columns.length);
 				
 				// get bounds for y axis
-				visualization.zoomBounds.getDataBounds(tempBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(tempBounds);
 				tempBounds.xMax = tempBounds.xMin;
 				
-				yAxisLayer.axisPlotter.axisLineMinValue.value = tempBounds.yMin;
-				yAxisLayer.axisPlotter.axisLineMaxValue.value = tempBounds.yMax;
+				yAxisPlotter.axisLineMinValue.value = tempBounds.yMin;
+				yAxisPlotter.axisLineMaxValue.value = tempBounds.yMax;
 			
-				yAxisLayer.axisPlotter.axisLineDataBounds.copyFrom(tempBounds);
+				yAxisPlotter.axisLineDataBounds.copyFrom(tempBounds);
 				
 				var xAxisName:String = '';
 				var yAxisName:String = '';
@@ -285,41 +261,37 @@
 					xAxisName = ColumnUtils.getTitle(_plotter.xData);
 					yAxisName = ColumnUtils.getTitle(_plotter.yData);
 				}
-				xAxisLayer.axisPlotter.setSideAxisName(
+				xAxisPlotter.setSideAxisName(
 					xAxisName,
 					0,
-					0, visualization.marginBottomNumber.value - 3,
+					0, visualization.plotManager.marginBottomNumber.value - 3,
 					BitmapText.VERTICAL_ALIGN_BOTTOM
 				);
-				yAxisLayer.axisPlotter.setSideAxisName(
+				yAxisPlotter.setSideAxisName(
 					yAxisName,
 					-90,
-					-visualization.marginLeftNumber.value, 0,
+					-visualization.plotManager.marginLeftNumber.value, 0,
 					BitmapText.VERTICAL_ALIGN_TOP
 				);
 
-				xAxisLayer.axisPlotter.updateLabels();
-				yAxisLayer.axisPlotter.updateLabels();			
+				xAxisPlotter.updateLabels();
+				yAxisPlotter.updateLabels();			
 			}
 			
 			override protected function get defaultPanelTitle():String
 			{
 				var columns:Array = _plotter.columns.getObjects();
 				if (columns.length == 0)
-					return 'Line Chart';
+					return lang('Line Chart');
 				
 				if (_plotter.enableGroupBy.value)
-					return StringUtil.substitute(
-						"Line Chart of {0} by {1}",
-						ColumnUtils.getTitle(_plotter.yData),
-						ColumnUtils.getTitle(_plotter.xData)
-					);
+					return lang("Line Chart of {0} by {1}", ColumnUtils.getTitle(_plotter.yData), ColumnUtils.getTitle(_plotter.xData));
 				
-				var newTitle:String = "Line Chart of ";
+				var newTitle:String = lang("Line Chart of ");
 				for (var i:int = 0; i < columns.length; i++)
 				{
 					if (i > 0)
-						newTitle += ', ';
+						newTitle += lang(', ');
 					newTitle += ColumnUtils.getTitle(columns[i]);
 				}
 				return newTitle;
@@ -333,36 +305,22 @@
 					_plotter.curveType.value = ParallelCoordinatesPlotter.CURVE_NONE;
 			}
 			
-			private function alphaSliderFormatFunction(value:Number):String {
-            	//return int(100 - (value * 100)) + "% Transparent";
-            	return int((value * 100)) + "% Opaque" + "\n" + int(100 - (value * 100)) + "% Transparent";
-            }
-			
-			private function updateSelectionAndProbeOnlyCheckBox():void
-			{
-				selectionAndProbeOnlyCheckBox.selected = !visualization.getPlotLayer().backgroundIsVisible.value;
-			}
-			private function handleSelectionAndProbeOnlyCheckBox():void
-			{
-				visualization.getPlotLayer().backgroundIsVisible.value = !selectionAndProbeOnlyCheckBox.selected;
-			}
-			
 			private var labelPlotter:TextGlyphPlotter = null ;
 			private function addLabelLayer():void
 			{
-				var layer:SelectablePlotLayer = visualization.layers.requestObject("label", SelectablePlotLayer, true);
-				layer.layerIsSelectable.value = false;
-				layer.layerIsSelectable.lock();
-				linkSessionState(visualization.getPlotLayer().backgroundIsVisible, layer.backgroundIsVisible);
-				labelPlotter = layer.getDynamicPlotter().requestLocalObject(TextGlyphPlotter, true);
+				var name:String = "label";
+				labelPlotter = visualization.plotManager.plotters.requestObject(name, TextGlyphPlotter, true);
+				var settings:LayerSettings = visualization.plotManager.getLayerSettings(name);
+				settings.selectable.value = false;
+				settings.selectable.lock();
 				
 				_plotter.columns.addImmediateCallback(this, updateColumns, true);
 
-				labelPlotter.xScreenOffset.value=5;
+				labelPlotter.xScreenOffset.value = 5;
 				labelPlotter.hAlign.defaultValue.value = BitmapText.HORIZONTAL_ALIGN_LEFT;
 				labelPlotter.hideOverlappingText.value = true;
 				linkSessionState(labelPlotter.dataY, labelPlotter.sortColumn);
-				labelPlotter.setBaseKeySource(_plotter.keySet);
+				labelPlotter.hack_setSingleKeySource(_plotter.keySet);
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateLabel, true);
 			}
 			private function updateLabel():void
@@ -374,18 +332,28 @@
 			{
 				var _columns:Array = _plotter.columns.getObjects();
 				var x:AlwaysDefinedColumn = labelPlotter.dataX.requestLocalObject(AlwaysDefinedColumn, false);
-				x.defaultValue.value = _columns.length - 1;
+				x.defaultValue.value = _columns.length;
 				
 				if (_columns.length == 0)
 				{
 					labelPlotter.dataY.removeObject();
 					return;
 				}
-			
-				var lastColumn:IAttributeColumn = _columns.pop();
-				labelPlotter.dataY.requestLocalObjectCopy(lastColumn as ILinkableObject);
+				var lastColumn:IAttributeColumn;
+				var repeat:Boolean = false;
+				do
+				{
+					repeat = false;
+					if( _columns.length == 0 )
+						break;
+					x.defaultValue.value = (x.defaultValue.value as Number) - 1;
+					lastColumn= _columns.pop();
+					labelPlotter.dataY.requestLocalObjectCopy(lastColumn as ILinkableObject);
+					if( labelPlotter.dataY.keys[0] != undefined )
+						repeat = isNaN(lastColumn.getValueFromKey(labelPlotter.dataY.keys[0], Number));
+				} while (labelPlotter.dataY.keys[0] == undefined || repeat );
 
-				if (labelPlotter.text.internalColumn == null)
+				if (labelPlotter.text.getInternalColumn() == null)
 				{
 					var headers:Array = ProbeTextUtils.probeHeaderColumns.getObjects();
 					for (var i:int = 0; i < headers.length; i++)
@@ -403,25 +371,25 @@
 	</mx:Script>
 	<mx:Number id="controlsFontSize">10</mx:Number>
 	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="Data">
-			<ui:DynamicColumnComponent visTool="{this}" label="Color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="Label" id="labelComponent"/>
-			<ui:ColumnListComponent visTool="{this}" label="Attributes along X axis" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
+		<mx:VBox id="attributesPanel" label="{lang('Data')}">
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Label')}" id="labelComponent"/>
+			<ui:ColumnListComponent visTool="{this}" label="{lang('Attributes along X axis')}" creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.columns"/>
 			<mx:HBox>
-				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-							 toolTip="Checking this box makes all of the tool's attributes visible in this tool's probe tooltip"
+				<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+							 toolTip="{lang('Checking this box makes all of the tool\'s attributes visible in this tool\'s probe tooltip')}"
 							 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
 			</mx:HBox>
 		</mx:VBox>
-		<mx:VBox id="VizControlsPanel" label="Appearance">
+		<mx:VBox id="VizControlsPanel" label="{lang('Appearance')}">
 			<mx:HBox verticalAlign="middle">
-				<mx:Label text="Shape:" color="0x000000" fontSize="{controlsFontSize}" 
-						  toolTip="This controls what shape is used to indicate the data points on the axes."/>
+				<mx:Label text="{lang('Shape:')}" color="0x000000" fontSize="{controlsFontSize}" 
+						  toolTip="{lang('This controls what shape is used to indicate the data points on the axes.')}"/>
 				<ui:CustomComboBox id="shapeCombo" dataProvider="{ParallelCoordinatesPlotter.shapesAvailable}"/>
 				<mx:HBox enabled="{shapeCombo.selectedItem != ParallelCoordinatesPlotter.NO_SHAPE}" verticalAlign="middle">
-					<mx:Label text="Size:"
+					<mx:Label text="{lang('Size:')}"
 							  color="0x000000" fontSize="{controlsFontSize}" 
-							  toolTip="This controls the size of the shapes indicating the data points on the axes."/>
+							  toolTip="{lang('This controls the size of the shapes indicating the data points on the axes.')}"/>
 					<mx:HSlider id="shapeSizeSlider"
 								width="100%" 
 								snapInterval="1"
@@ -438,15 +406,15 @@
 						shapeCombo.selectedItem == ParallelCoordinatesPlotter.EMPTY_CIRCLE ||
 						shapeCombo.selectedItem == ParallelCoordinatesPlotter.EMPTY_SQUARE ||
 						shapeBorderSizeSlider.value == 0) }">
-					<mx:Label text="Shape border color:" color="0x000000" fontSize="{controlsFontSize}"/>
+					<mx:Label text="{lang('Shape border color:')}" color="0x000000" fontSize="{controlsFontSize}"/>
 					<mx:ColorPicker id="shapeBorderColorPicker"
-									toolTip="This controls color of the border around the shape at each point."/>
+									toolTip="{lang('This controls color of the border around the shape at each point.')}"/>
 				</mx:HBox>
 				
 				<mx:HBox width="100%" verticalAlign="middle"
 						enabled="{shapeCombo.selectedItem != ParallelCoordinatesPlotter.NO_SHAPE}">
 					<mx:Label text="Thickness:" color="0x000000" fontSize="{controlsFontSize}" 
-							  toolTip="This controls the border size of the shapes indicating the data points on the axes."/>
+							  toolTip="{lang('This controls the border size of the shapes indicating the data points on the axes.')}"/>
 					<mx:HSlider id="shapeBorderSizeSlider" 
 								width="100%" 
 								snapInterval="1"
@@ -458,23 +426,23 @@
 			</mx:HBox>
 			
 			<mx:HBox verticalAlign="middle">
-				<mx:Label text="Line Opacity:" toolTip="Use this control to see how transparent lines are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
+				<mx:Label text="{lang('Line Opacity:')}" toolTip="{lang('Use this control to see how transparent lines are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}"/>
 				<mx:HSlider id="alphaSlider" 
 							width="100%" 
 							snapInterval="0.1"
 							tickInterval="0.5" labels="{['0%', '50%', '100%']}"
-							dataTipFormatFunction="alphaSliderFormatFunction"
+							dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 							minimum="0.0" maximum="1.0" 
 							liveDragging="true"/>
-				<mx:Label text="Thickness:"/>
+				<mx:Label text="{lang('Thickness:')}"/>
 				<mx:HSlider id="thicknessSlider" minimum="1" maximum="4" labels="{['1','2','3','4']}" snapInterval="1" liveDragging="true" tickInterval="1"/>
 				
 			</mx:HBox>
-			<mx:CheckBox id="curveCheckBox" label="Curved lines"
+			<mx:CheckBox id="curveCheckBox" label="{lang('Curved lines')}"
 						 change="_plotter.curveType.value = curveCheckBox.selected ? ParallelCoordinatesPlotter.CURVE_DOUBLE : ParallelCoordinatesPlotter.CURVE_NONE"/>
 			
 			<mx:HBox verticalAlign="middle">
-				<mx:Label text="Label Text Size: "/>
+				<mx:Label text="{lang('Label Text Size: ')}"/>
 				<mx:HSlider id="labelSizeSlider"
 							width="100%"
 							alpha="1.0"
@@ -482,39 +450,37 @@
 							tickInterval="5" labels="{['5','10','15','20']}"
 							minimum="5" maximum="20" 
 							liveDragging="true"/>
-				<mx:Label text="Color:"/>
+				<mx:Label text="{lang('Color:')}"/>
 				<mx:ColorPicker id="colorPicker" width="22" height="22"/>
 			</mx:HBox>
 
-			<mx:CheckBox id="selectionAndProbeOnlyCheckBox" label="Show selection &amp; probe only" 
-						 toolTip="" change="handleSelectionAndProbeOnlyCheckBox();"/>
-			<mx:CheckBox id="zoomToSubsetCheckBox" label="Zoom to Subset" 
+			<mx:CheckBox id="zoomToSubsetCheckBox" label="{lang('Zoom to Subset')}" 
 						 toolTip="Enables automatic zooming to the subset of data currently displayed"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>
 		</mx:VBox>
-		<mx:VBox label="Grouping">
+		<mx:VBox label="{lang('Grouping')}">
 			<mx:CheckBox id="enableGroupByCheckBox" creationComplete="linkBindableProperty(_plotter.enableGroupBy, event.target, 'selected')"
-						 label="Group records by column values"
-						 toolTip="Enable/disable grouping data by category value"/>
+						 label="{lang('Group records by column values')}"
+						 toolTip="{lang('Enable/disable grouping data by category value')}"/>
 			<mx:VBox enabled="{enableGroupByCheckBox.selected}">
 				
 				<mx:VBox paddingLeft="20" borderStyle="solid">
-					<ui:DynamicColumnComponent visTool="{this}" label="X Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xData"
-											   toolTip="Attribute to appear on the x axis. All columns must have the same keyType."/>
-					<ui:DynamicColumnComponent visTool="{this}" label="Y Column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
-											   toolTip="Attribute to appear on the y axis. All columns must have the same keyType."/>
-					<ui:DynamicColumnComponent visTool="{this}" label="Group by" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.groupBy"
-											   toolTip="Specify column to get keys from. All columns must have the same keyType."/>
-					<ui:DynamicColumnComponent visTool="{this}" label="Label" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
-											   toolTip="Attribute used for record label text. All columns must have the same keyType."/>
+					<ui:DynamicColumnComponent visTool="{this}" label="{lang('X Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xData"
+											   toolTip="{lang('Attribute to appear on the x axis. All columns must have the same keyType.')}"/>
+					<ui:DynamicColumnComponent visTool="{this}" label="{lang('Y Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yData"
+											   toolTip="{lang('Attribute to appear on the y axis. All columns must have the same keyType.')}"/>
+					<ui:DynamicColumnComponent visTool="{this}" label="{lang('Group by')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.groupBy"
+											   toolTip="{lang('Specify column to get keys from. All columns must have the same keyType.')}"/>
+					<ui:DynamicColumnComponent visTool="{this}" label="{lang('Label')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = labelPlotter.text"
+											   toolTip="{lang('Attribute used for record label text. All columns must have the same keyType.')}"/>
 				</mx:VBox>
-				<mx:Button label="Generate label Equation" toolTip="Generates label equation from current Label column if its keyType matches the group-by keyType"
+				<mx:Button label="{lang('Generate label Equation')}" toolTip="{lang('Generates label equation from current Label column if its keyType matches the group-by keyType')}"
 						   click="updateLabelColumn()"/>
 				<mx:HBox width="100%">
-					<mx:Label text="Customize X values:"/>
-					<mx:TextInput id="xValuesInput" toolTip="These values will appear on the x axis" width="100%"/>
-					<mx:Button label="Apply" click="_plotter.xValues.value = xValuesInput.text;"/>
-					<mx:Button label="Reset" click="_plotter.xValues.value = ''; updateFilterText();"/>
+					<mx:Label text="{lang('Customize X values:')}"/>
+					<mx:TextInput id="xValuesInput" toolTip="{lang('These values will appear on the x axis')}" width="100%"/>
+					<mx:Button label="{lang('Apply')}" click="_plotter.xValues.value = xValuesInput.text;"/>
+					<mx:Button label="{lang('Reset')}" click="_plotter.xValues.value = ''; updateFilterText();"/>
 				</mx:HBox>
 			</mx:VBox>
 		</mx:VBox>

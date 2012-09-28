@@ -24,12 +24,14 @@ package weave.data.ColumnReferences
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.IChildListCallbackInterface;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
-	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableString;
@@ -51,9 +53,32 @@ package weave.data.ColumnReferences
 			// Whenever any property of the column reference changes, the hash value needs to be updated.
 			getCallbackCollection(this).addImmediateCallback(this, invalidateHash, true);
 			getCallbackCollection(this).addGroupedCallback(this, registerThisRef);
+			WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, handleGlobalObjectListChange);
+			dynamicDataSource.addImmediateCallback(this, handleDataSourceChange, true);
 		}
 		
-		private const dynamicDataSource:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IDataSource));
+		private function handleGlobalObjectListChange():void
+		{
+			// If there is no data source name, trigger callbacks when the list of global objects changes.
+			// This is so global column objects can be detected.
+			if (!dataSourceName.value)
+			{
+				var clc:IChildListCallbackInterface = WeaveAPI.globalHashMap.childListCallbacks;
+				if (clc.lastObjectAdded is IAttributeColumn || clc.lastObjectRemoved is IAttributeColumn)
+					getCallbackCollection(this).triggerCallbacks();
+			}
+		}
+		
+		private const dynamicDataSource:LinkableDynamicObject = registerDisposableChild(this, new LinkableDynamicObject(IDataSource));
+		private var _dataSource:IDataSource = null;
+		private function handleDataSourceChange():void
+		{
+			if (_dataSource != getDataSource())
+			{
+				_dataSource = getDataSource();
+				getCallbackCollection(this).triggerCallbacks();
+			}
+		}
 		
 		private function registerThisRef():void
 		{
@@ -78,7 +103,10 @@ package weave.data.ColumnReferences
 		
 		private function updateGlobalName():void
 		{
-			dynamicDataSource.globalName = dataSourceName.value;
+			if (dataSourceName.value)
+				dynamicDataSource.globalName = dataSourceName.value;
+			else
+				dynamicDataSource.removeObject();
 		}
 
 		/**

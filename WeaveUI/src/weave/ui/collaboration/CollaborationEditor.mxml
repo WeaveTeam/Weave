@@ -22,16 +22,16 @@
 				  xmlns:ui="weave.ui.*" 
 				  layout="absolute"
 				  width="338" height="210"
-				  title="Collaboration Settings"
+				  title="{lang('Collaboration Settings')}"
 				  backgroundColor="#EFF4BC"
 				  creationComplete="creationComplete()">
-	<mx:VBox label="Server Settings" width="100%" height="100%">
+	<mx:VBox label="{lang('Server Settings')}" width="100%" height="100%">
 		<mx:HBox width="100%">
 			<mx:Label text="IP:" width="{labelWidth}" />
 			<mx:TextInput id="serverIP" width="{textAreaWidth}" change="trimInput(event);"/>
 		</mx:HBox>
 		<mx:HBox width="100%">
-			<mx:Label text="ServerName:" width="{labelWidth}" />
+			<mx:Label text="{lang('ServerName:')}" width="{labelWidth}" />
 			<mx:TextInput id="serverName" width="{textAreaWidth}" change="trimInput(event);"/>
 		</mx:HBox>
 		<mx:HBox width="100%">
@@ -39,12 +39,12 @@
 			<mx:TextInput id="port" width="{textAreaWidth}" change="trimInput(event);"/>
 		</mx:HBox>
 		<mx:HBox width="100%">
-			<mx:Label text="Room Name:" width="{labelWidth}" />
+			<mx:Label text="{lang('Room Name:')}" width="{labelWidth}" />
 			<mx:TextInput id="roomToJoin" width="{textAreaWidth}" change="trimInput(event);"/>
 		</mx:HBox>
-		<mx:CheckBox toolTip="Toggle access to Collaboration Toolbar"
+		<mx:CheckBox toolTip="{lang('Toggle access to Collaboration Toolbar')}"
 					 id="collabBar"
-					 label="Show Collaboration Menu Bar"/>
+					 label="{lang('Show Collaboration Menu Bar')}"/>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
@@ -66,13 +66,13 @@
 				linkBindableProperty(Weave.properties.collabServerIP, serverIP, 'text');
 				linkBindableProperty(Weave.properties.collabServerName, serverName, 'text');
 				linkBindableProperty(Weave.properties.collabServerPort, port, 'text');
-				linkBindableProperty(Weave.properties.collabServerRoomToJoin, roomToJoin, 'text');
+				linkBindableProperty(Weave.properties.collabServerRoom, roomToJoin, 'text');
 				linkBindableProperty(Weave.properties.enableCollaborationBar, collabBar, 'selected');
 				
 				this.targets = [Weave.properties.collabServerIP, 
 								Weave.properties.collabServerName, 
 								Weave.properties.collabServerPort, 
-								Weave.properties.collabServerRoomToJoin,
+								Weave.properties.collabServerRoom,
 								Weave.properties.enableCollaborationBar];
 			}
 			

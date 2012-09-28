@@ -20,8 +20,6 @@
 package weave.visualization.tools
 {
 	import flash.events.Event;
-	import flash.net.FileReference;
-	import flash.utils.getQualifiedClassName;
 	
 	import mx.binding.utils.BindingUtils;
 	import mx.containers.Canvas;
@@ -40,16 +38,14 @@ package weave.visualization.tools
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
-	import weave.api.ui.IPlotLayer;
+	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
-	import weave.api.ui.IVisTool;
+	import weave.api.ui.IVisToolWithSelectableAttributes;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.UIUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
-	import weave.data.KeySets.KeySet;
 	import weave.editors.SimpleAxisEditor;
 	import weave.editors.WindowSettingsEditor;
 	import weave.editors.managers.LayerListComponent;
@@ -59,17 +55,16 @@ package weave.visualization.tools
 	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.ProbeTextUtils;
-	import weave.visualization.layers.AxisLayer;
-	import weave.visualization.layers.SelectablePlotLayer;
+	import weave.visualization.layers.LayerSettings;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
-	import weave.visualization.plotters.DynamicPlotter;
+	import weave.visualization.plotters.SimpleAxisPlotter;
 
 	/**
 	 * A simple visualization is one with a single SelectablePlotLayer
 	 * 
 	 * @author adufilie
 	 */
-	public class SimpleVisTool extends DraggablePanel implements IVisTool, ILinkableContainer,ICSVExportable
+	public class SimpleVisTool extends DraggablePanel implements IVisToolWithSelectableAttributes, ILinkableContainer,ICSVExportable
 	{
 		public function SimpleVisTool()
 		{
@@ -145,8 +140,7 @@ package weave.visualization.tools
 			this.addChild(toolVBox);
 			
 			layerListComponent = new LayerListComponent();
-			layerListComponent.visTool = this;
-			layerListComponent.hashMap = visualization.layers;
+			layerListComponent.visualization = visualization;
 			
 			//TODO: hide axis controls when axis isn't enabled
 
@@ -307,9 +301,9 @@ package weave.visualization.tools
 			
 			if (probedColumns.length == 0)
 			{
-				var filteredColumn:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				if (filteredColumn.internalColumn)
-					probedColumns.push(filteredColumn.internalColumn);
+				var filteredColumn:FilteredColumn = Weave.defaultColorDataColumn;
+				if (filteredColumn.getInternalColumn())
+					probedColumns.push(filteredColumn.getInternalColumn());
 			}
 			
 			return probedColumns;
@@ -334,16 +328,8 @@ package weave.visualization.tools
 				return penTool.getOverlappingKeys();
 			}
 			
-			// Otherwise, it's an IPlotLayer and go through it
-			var layer:IPlotLayer = visualization.layers.getObject(layerName) as IPlotLayer;
-			if (!layer)
-				return [];
-			
-			var polygonPlotter:IPlotterWithGeometries = layer.plotter as IPlotterWithGeometries;
-			if (!polygonPlotter && layer.plotter is DynamicPlotter)
-			{
-				polygonPlotter = (layer.plotter as DynamicPlotter).internalObject as IPlotterWithGeometries;
-			}
+			var plotter:IPlotter = visualization.plotManager.getPlotter(layerName);
+			var polygonPlotter:IPlotterWithGeometries = plotter as IPlotterWithGeometries;
 			if (!polygonPlotter)
 				return [];
 			
@@ -359,10 +345,7 @@ package weave.visualization.tools
 		public function selectRecords(layerName:String):void
 		{
 			var keys:Array = getOverlappingQKeys(layerName);
-			
-			// set the selection keyset
-			var selectionKeySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			selectionKeySet.replaceKeys(keys);
+			Weave.defaultSelectionKeySet.replaceKeys(keys);
 		}
 		
 		
@@ -379,7 +362,7 @@ package weave.visualization.tools
 			{
 				var selectedColumn:ILinkableObject = probedColumns[i % probedColumns.length] as ILinkableObject;
 				var columnToInit:DynamicColumn = moreDynamicColumns[i] as DynamicColumn;
-				if (columnToInit.internalColumn == null)
+				if (columnToInit.getInternalColumn() == null)
 				{
 					if (selectedColumn is DynamicColumn)
 						copySessionState(selectedColumn, columnToInit);
@@ -399,17 +382,21 @@ package weave.visualization.tools
 			return visualization.initializePlotters(mainPlotterClass, showAxes);
 		}
 
-		protected function get plotLayer():SelectablePlotLayer
+		protected function get mainLayerSettings():LayerSettings
 		{
-			return visualization.getPlotLayer();
+			return visualization.getMainLayerSettings();
 		}
-		protected function get xAxisLayer():AxisLayer
+		protected function get mainPlotter():IPlotter
 		{
-			return visualization.getXAxisLayer();
+			return visualization.getMainPlotter();
 		}
-		protected function get yAxisLayer():AxisLayer
+		protected function get xAxisPlotter():SimpleAxisPlotter
 		{
-			return visualization.getYAxisLayer();
+			return visualization.getXAxisPlotter();
+		}
+		protected function get yAxisPlotter():SimpleAxisPlotter
+		{
+			return visualization.getYAxisPlotter();
 		}
 		
 		// returns the interactive visualization

@@ -40,6 +40,7 @@ package weave.core
 	public class SessionStateLog implements ILinkableVariable, IDisposableObject
 	{
 		public static var debug:Boolean = false;
+		public static var enableHistoryRewrite:Boolean = true; // should be set to true except for debugging
 		
 		public function SessionStateLog(subject:ILinkableObject, syncDelay:uint = 0)
 		{
@@ -175,7 +176,7 @@ package weave.core
 			if (!immediately && getTimer() < _saveTime)
 			{
 				// we have to wait until the next frame to save the diff because grouped callbacks haven't finished.
-				WeaveAPI.StageUtils.callLater(this, saveDiff, null, false);
+				WeaveAPI.StageUtils.callLater(this, saveDiff, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 				return;
 			}
 			
@@ -196,7 +197,14 @@ package weave.core
 					// Keep existing delay/duration.
 					oldEntry = _redoHistory[0] as LogEntry;
 					newEntry = new LogEntry(_nextId++, backwardDiff, forwardDiff, oldEntry.triggerDelay, oldEntry.diffDuration);
-					_redoHistory[0] = newEntry;
+					if (enableHistoryRewrite)
+					{
+						_redoHistory[0] = newEntry;
+					}
+					else if (ObjectUtil.compare(oldEntry.forward, newEntry.forward) != 0)
+					{
+						_redoHistory.unshift(newEntry);
+					}
 				}
 				else
 				{
@@ -208,6 +216,9 @@ package weave.core
 						oldEntry = _undoHistory.pop() as LogEntry;
 						newEntry.triggerDelay = oldEntry.triggerDelay;
 						newEntry.diffDuration = oldEntry.diffDuration;
+						
+						if (!enableHistoryRewrite && ObjectUtil.compare(oldEntry.forward, newEntry.forward) == 0)
+							newEntry = oldEntry; // keep old entry
 					}
 					// save new undo entry
 					_undoHistory.push(newEntry);

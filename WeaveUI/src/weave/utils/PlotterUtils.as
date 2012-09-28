@@ -21,9 +21,9 @@ package weave.utils
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.geom.Rectangle;
 	
-	import weave.primitives.Bounds2D;
-	import weave.api.ui.IPlotter;
+	import weave.api.disposeObjects;
 
 	/**
 	 * PlotterUtils
@@ -50,30 +50,67 @@ package weave.utils
 		}
 		
 		/**
+		 * This will dispose of any existing BitmapData inside a Bitmap and set it to null.
+		 * @param bitmap The Bitmap to empty.
+		 */
+		public static function emptyBitmapData(bitmap:Bitmap):void
+		{
+			if (bitmap.bitmapData)
+			{
+				disposeObjects(bitmap.bitmapData);
+				bitmap.bitmapData = null;
+			}
+		}
+		
+		/**
+		 * This will compare width and height values with the width and height of a BitmapData object inside a Bitmap.
+		 * @param bitmap
+		 * @param unscaledWidth
+		 * @param unscaledHeight
+		 * @return true if the width and height of bitmap.bitmapData equal the unscaledWidth and unscaledHeight parameters. 
+		 */		
+		public static function bitmapDataSizeEquals(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number):Boolean
+		{
+			var bd:BitmapData = bitmap.bitmapData;
+			return bd && bd.width == Math.round(unscaledWidth) && bd.height == Math.round(unscaledHeight);
+		}
+		
+		/**
 		 * This function updates the size of the BitmapData inside a Bitmap.
-		 * If the BitmapData inside the Bitmap is already the right size, this function has no effect.
+		 * The new or existing BitmapData will be filled with the specified fill color.
 		 * @param bitmap A Bitmap object to alter.
 		 * @param unscaledWidth The desired width of the BitmapData.
 		 * @param unscaledHeight The desired height of the BitmapData.
+		 * @param fillColor The BitmapData will be filled with this color.
 		 * @return true if the BitmapData was replaced with a new one having the new size, false if the size was not changed.
 		 */
-		public static function setBitmapDataSize(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number):Boolean
+		public static function setBitmapDataSize(bitmap:Bitmap, unscaledWidth:Number, unscaledHeight:Number, fillColor:uint = 0x00000000):Boolean
 		{
 			unscaledWidth = Math.round(unscaledWidth);
 			unscaledHeight = Math.round(unscaledHeight);
 			
 			var result:Boolean = false;
 			var oldBitmapData:BitmapData = bitmap.bitmapData;
+			var sizeChanged:Boolean = true;
+			try
+			{
+				// this may crash if the BitmapData is invalid.
+				sizeChanged = (oldBitmapData == null || oldBitmapData.width != unscaledWidth || oldBitmapData.height != unscaledHeight);
+			}
+			catch (e:Error)
+			{
+				// invalid BitmapData, ignore error
+			}
 			// update size of internal BitmapData if necessary
-			if (oldBitmapData == null || oldBitmapData.width != unscaledWidth || oldBitmapData.height != unscaledHeight)
+			if (sizeChanged)
 			{
 				try
 				{
-					var newBitmapData:BitmapData = new BitmapData(unscaledWidth, unscaledHeight, true, 0x00000000);
+					var newBitmapData:BitmapData = new BitmapData(unscaledWidth, unscaledHeight, true, fillColor);
 					//trace("new BitmapData(",[unscaledWidth, unscaledHeight, true, 0x00000000],");");
 					// dispose of oldBitmapData, if any exists
 					if (oldBitmapData != null)
-						oldBitmapData.dispose();
+						disposeObjects(oldBitmapData);
 					// connect Bitmap to newBitmapData
 					bitmap.bitmapData = newBitmapData;
 					result = true;
@@ -84,8 +121,18 @@ package weave.utils
 						trace("PlotterUtils: Warning! Unscaled area too large to store in a Bitmap: "+[unscaledWidth, unscaledHeight]);
 				}
 			}
+			else
+			{
+				_tempRect.x = 0;
+				_tempRect.y = 0;
+				_tempRect.width = unscaledWidth;
+				_tempRect.height = unscaledHeight;
+				bitmap.bitmapData.fillRect(_tempRect, fillColor);
+			}
 			return result;
 		}
+		
+		private static const _tempRect:Rectangle = new Rectangle();
 		
 		/**
 		 * This function will make reset all the pixels in a BitmapData object to be transparent.
@@ -97,6 +144,11 @@ package weave.utils
 				return;
 			// clear the graphics
 			destination.fillRect(destination.rect, 0x00000000); // transparent
+		}
+		
+		public static function alphaSliderFormatFunction(value:Number):String
+		{
+			return lang("{0}% Opaque", int(value * 100)) + "\n" + lang("{0}% Transparent", int(100 - value * 100));
 		}
 	}
 }

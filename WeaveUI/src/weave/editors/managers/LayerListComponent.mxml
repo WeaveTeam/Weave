@@ -24,33 +24,33 @@
 LayerListComponent
 
 
-@kmanohar
+@author kmanohar
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.editors.managers.*"
 		 verticalGap="0"
 		 width="100%" height="100%"
-		 label="Layers (Beta)" xmlns:ui="weave.ui.*">
+		 label="{lang('Layers (Beta)')}" xmlns:ui="weave.ui.*">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
-		<mx:Label text="{label}" fontWeight="bold"/>
+		<mx:Label text="{lang('Layers, background to foreground')}" fontWeight="bold"/>
 		<mx:HBox width="100%" id="selectorControls">
 			<mx:Spacer width="100%"/>
-			<mx:Button label="Add layer..." click="addLayer()"/>
-			<!--<mx:Button label="Open editor..." click="openSelector()"/>-->
+			<mx:Button label="{lang('Add layer...')}" click="addLayer()"/>
+			<!--<mx:Button label="{lang('Open editor...')}" click="openSelector()"/>-->
 		</mx:HBox>
 	</mx:HBox>
 	<ui:LinkableObjectList id="internalList" width="100%" height="100%" hashMap="{_hashMap}">
 		<ui:itemRenderer>
 			<mx:Component>
-				<mx:HBox width="100%">
+				<mx:HBox width="100%" horizontalScrollPolicy="off">
 					<mx:Script>
 						<![CDATA[
 							import mx.managers.PopUpManager;
 							
 							import weave.api.linkBindableProperty;
 							import weave.api.newDisposableChild;
+							import weave.api.objectWasDisposed;
 							import weave.api.ui.ILinkableObjectEditor;
-							import weave.api.ui.IPlotLayer;
 							import weave.api.ui.IPlotter;
 							import weave.api.unlinkBindableProperty;
 							import weave.ui.AlertTextBox;
@@ -58,16 +58,19 @@ LayerListComponent
 							import weave.ui.ControlPanel;
 							import weave.ui.SessionStateEditor;
 							import weave.utils.EditorManager;
-							import weave.visualization.layers.PlotLayer;
-							import weave.visualization.layers.SelectablePlotLayer;
-							import weave.visualization.plotters.DynamicPlotter;
+							import weave.visualization.layers.LayerSettings;
+							import weave.visualization.layers.PlotManager;
+							import weave.visualization.layers.Visualization;
 							
-							private function openSettingsPanel(layer:IPlotLayer):void
+							private function get visualization():Visualization
 							{
-								var plotter:IPlotter = null;
-								if (layer)
-									plotter = (layer.plotter as DynamicPlotter).internalObject as IPlotter;
-								
+								return outerDocument.visualization;
+							}
+							private var plotter:IPlotter;
+							private var layerSettings:LayerSettings;
+							
+							private function openSettingsPanel(plotter:IPlotter):void
+							{
 								// add editor component to layercontrols
 								var editor:ILinkableObjectEditor = EditorManager.getNewEditor(plotter);
 								if (editor)
@@ -75,7 +78,7 @@ LayerListComponent
 									var controls:ControlPanel = newDisposableChild(plotter, ControlPanel);
 									PopUpManager.addPopUp(controls, this);
 									PopUpManager.centerPopUp(controls);
-									controls.targets = [outerDocument.visTool];
+									controls.targets = [visualization];
 
 									controls.tabNavigator.addChild(editor as DisplayObject);
 								}
@@ -87,47 +90,43 @@ LayerListComponent
 							
 							[Bindable] public var layerIsVisible:Boolean = true;
 							[Bindable] public var layerIsSelectable:Boolean = true;
-							override public function set data(value:Object):void
+							override public function set data(newPlotter:Object):void
 							{
-								if (value == data)
+								// filter out bogus data
+								if (objectWasDisposed(newPlotter))
+									newPlotter = null;
+								
+								newPlotter = newPlotter as IPlotter;
+								if (plotter == newPlotter)
 									return;
 								
-								// unlink checkbox from old layer
-								if (data is PlotLayer)
+								// unlink checkboxes
+								if (plotter)
 								{
-									unlinkBindableProperty((data as PlotLayer).layerIsVisible, this, "layerIsVisible");
-								}
-								if (data is SelectablePlotLayer)
-								{
-									unlinkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
-									unlinkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
+									unlinkBindableProperty(layerSettings.visible, this, "layerIsVisible");
+									unlinkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
 								}
 								
-								// save pointer to new layer
-								super.data = value;
+								// save pointers
+								super.data = newPlotter;
+								plotter = data as IPlotter;
+								var pm:PlotManager = outerDocument.visualization.plotManager;
+								var name:String = pm.plotters.getName(plotter);
+								layerSettings = pm.getLayerSettings(name);
 								
-								// link checkbox to new layer
-								if (data is PlotLayer)
+								// link checkboxes
+								if (plotter)
 								{
-									linkBindableProperty((data as PlotLayer).layerIsVisible, this, "layerIsVisible");
-									layerIsSelectable = false;
+									linkBindableProperty(layerSettings.visible, this, "layerIsVisible");
+									linkBindableProperty(layerSettings.selectable, this, "layerIsSelectable");
+									selectedCheckbox.visible = true;
 								}
-								if (data is SelectablePlotLayer)
-								{
-									linkBindableProperty((data as SelectablePlotLayer).layerIsVisible, this, "layerIsVisible");
-									linkBindableProperty((data as SelectablePlotLayer).layerIsSelectable, this, "layerIsSelectable");
-								}
-								else
-								{
-									selectedCheckbox.visible = false;
-								}
-								
 							}
 							
 							protected function onLayerRenameButtonClick(event:MouseEvent,data:Object):void
 							{
 								var defaultInputString:String = outerDocument.internalList.getItemLabel(data);
-								var alertBox:AlertTextBox = AlertTextBox.show("Rename Layer","Please enter a new layer name:",defaultInputString);
+								var alertBox:AlertTextBox = AlertTextBox.show(lang("Rename Layer"), lang("Please enter a new layer name:"), defaultInputString);
 								
 								alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
 									function (e:AlertTextBoxEvent):void 
@@ -137,7 +136,7 @@ LayerListComponent
 										
 										//Alert.show("Input was " + e.textInput);
 										
-										outerDocument.hashMap.renameObject(defaultInputString,e.textInput);
+										outerDocument.internalList.hashMap.renameObject(defaultInputString,e.textInput);
 									}
 								);
 							}
@@ -146,8 +145,9 @@ LayerListComponent
 					</mx:Script>
 					<mx:CheckBox id="visibleCheckbox" label="visible" selected="{layerIsVisible}" change="layerIsVisible = event.target.selected"/>
 					<mx:CheckBox id="selectedCheckbox" label="selectable" selected="{layerIsSelectable}" change="layerIsSelectable = event.target.selected"/>
-					<mx:Button textAlign="center" width="100%" label="{outerDocument.internalList.getItemLabel(data)}" toolTip="Click to rename the layer." click="onLayerRenameButtonClick(event,data)"/>
-					<mx:Button label="settings" click="openSettingsPanel(data as IPlotLayer)"/>
+					<mx:Label textAlign="center" width="100%" text="{outerDocument.internalList.getItemLabel(data)}"/>
+					<mx:Button label="{lang('Rename...')}" toolTip="{lang('Click to rename the layer.')}" click="onLayerRenameButtonClick(event,data)"/>
+					<mx:Button label="{lang('Settings...')}" click="openSettingsPanel(data as IPlotter)"/>
 				</mx:HBox>
 			</mx:Component>
 		</ui:itemRenderer>
@@ -155,19 +155,19 @@ LayerListComponent
 	<mx:HBox width="100%">
 		<mx:Spacer width="100%"/>
 		<mx:Button
-			label="Remove selected"
-			toolTip="Click here to remove one or more selected layers in the list above."
+			label="{lang('Remove selected')}"
+			toolTip="{lang('Click here to remove one or more selected layers in the list above.')}"
 			click="internalList.removeSelectedItem()"
 			enabled="{internalList.selectedIndex >= 0}"/>
 	</mx:HBox>
 	<!--
-	<mx:CheckBox id="enableAutoZoom" label="Enable auto zoom to extent"
+	<mx:CheckBox id="enableAutoZoom" label="{lang('Enable auto zoom to extent')}"
 				 creationComplete="linkBindableProperty(_visTool.visualization.enableAutoZoomToExtent, event.target, 'selected');"/>
-	<mx:CheckBox label="Enable zoom and pan"
+	<mx:CheckBox label="{lang('Enable zoom and pan')}"
 				 creationComplete="linkBindableProperty(_visTool.visualization.enableZoomAndPan, event.target, 'selected');"/>
 	-->
 	<mx:HBox width="100%" id="boundsProperties" verticalAlign="middle">
-		<mx:Label text="Override auto zoom:"/>
+		<mx:Label text="{lang('Override auto zoom:')}"/>
 		<ui:TextInputWithPrompt id="overrideXMin" prompt="xMin" width="{boundsInputWidth}"/>
 		<mx:VBox>
 			<ui:TextInputWithPrompt id="overrideYMax" prompt="yMax" width="{boundsInputWidth}"/>
@@ -177,76 +177,55 @@ LayerListComponent
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.visualization.layers.Visualization;
 			import mx.managers.PopUpManager;
 			import weave.api.core.ILinkableHashMap;
 			import weave.ui.SessionStateEditor;
-			import weave.visualization.tools.SimpleVisTool;
 			import weave.api.linkBindableProperty;
 
 			private static const boundsInputWidth:int = 64;
 			
-			[Bindable] private var _visTool:SimpleVisTool = null;
+			[Bindable] private var _visualization:Visualization = null;
+			[Bindable] private var _hashMap:ILinkableHashMap = null;
 			
 			[Inspectable]
-			public function set visTool(value:SimpleVisTool):void
+			public function set visualization(value:Visualization):void
 			{
-				_visTool = value;
+				_visualization = value;
+				_hashMap = _visualization.plotManager.plotters;
 			}
-			public function get visTool():SimpleVisTool
+			public function get visualization():Visualization
 			{
-				return _visTool;
+				return _visualization;
 			}
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				if (_visTool)
+				if (_visualization)
 				{
-					linkBindableProperty(_visTool.visualization.overrideXMin, overrideXMin, 'text');
-					linkBindableProperty(_visTool.visualization.overrideYMin, overrideYMin, 'text');
-					linkBindableProperty(_visTool.visualization.overrideXMax, overrideXMax, 'text');
-					linkBindableProperty(_visTool.visualization.overrideYMax, overrideYMax, 'text');
-					_visTool.visualization.enableAutoZoomToExtent.addGroupedCallback(this, handleAutoZoomToggle, true);
+					linkBindableProperty(_visualization.plotManager.overrideXMin, overrideXMin, 'text');
+					linkBindableProperty(_visualization.plotManager.overrideYMin, overrideYMin, 'text');
+					linkBindableProperty(_visualization.plotManager.overrideXMax, overrideXMax, 'text');
+					linkBindableProperty(_visualization.plotManager.overrideYMax, overrideYMax, 'text');
+					_visualization.plotManager.enableAutoZoomToExtent.addGroupedCallback(this, handleAutoZoomToggle, true);
 				}
 			}
 			
 			private function handleAutoZoomToggle():void
 			{
-				var enabled:Boolean = _visTool.visualization.enableAutoZoomToExtent.value;
+				var enabled:Boolean = _visualization.plotManager.enableAutoZoomToExtent.value;
 				boundsProperties.visible = enabled;
 				boundsProperties.includeInLayout = enabled;
 			}
 			
 			private function openSelector():void
 			{
-				if (_visTool)
+				if (_visualization)
 					SessionStateEditor.openDefaultEditor(internalList.hashMap);
 				else
 					SessionStateEditor.openDefaultEditor(internalList.hashMap);
-			}
-			
-			[Bindable] private var _hashMap:ILinkableHashMap = null;
-			
-			[Inspectable]
-			public function set hashMap(value:ILinkableHashMap):void
-			{
-				_hashMap = value;
-			}
-			public function get hashMap():ILinkableHashMap
-			{
-				return internalList.hashMap;
-			}
-			
-			[Bindable]
-			public function get length():int
-			{
-				return hashMap.getNames().length;
-			}
-			public function set length(value:int):void
-			{
-				// untested
-				hashMap.getNames().length = value;
 			}
 			
 			[Bindable]
@@ -267,7 +246,7 @@ LayerListComponent
 			private function addLayer():void
 			{
 				var popup:* = PopUpManager.createPopUp(this, CustomLayerWindow);
-				(popup as CustomLayerWindow).targetTool = _visTool;
+				(popup as CustomLayerWindow).targetVisualization = _visualization;
 				PopUpManager.centerPopUp(popup);
 			}
 		]]>

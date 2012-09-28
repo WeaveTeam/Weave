@@ -37,7 +37,7 @@ package weave.data.AttributeColumns
 	{
 		public function FilteredColumn()
 		{
-			_filteredKeySet.setBaseKeySet(internalDynamicColumn);
+			_filteredKeySet.setSingleKeySource(internalDynamicColumn);
 		}
 		
 		/**
@@ -70,9 +70,9 @@ package weave.data.AttributeColumns
 
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			var column:IAttributeColumn = internalColumn;
+			var column:IAttributeColumn = getInternalColumn();
 			var keyFilter:IKeyFilter = filter.getInternalKeyFilter();
-			if (column && keyFilter && keyFilter.containsKey(key))
+			if (column && (!keyFilter || keyFilter.containsKey(key)))
 				return column.getValueFromKey(key, dataType);
 			
 			if (dataType)

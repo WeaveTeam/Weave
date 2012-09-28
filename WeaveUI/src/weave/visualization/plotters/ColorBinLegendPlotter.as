@@ -28,11 +28,16 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
+	import weave.core.CallbackJuggler;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
@@ -53,13 +58,13 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class ColorBinLegendPlotter extends AbstractPlotter
+	public class ColorBinLegendPlotter extends AbstractPlotter implements ITextPlotter
 	{
 		public function ColorBinLegendPlotter()
 		{
 			dynamicColorColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
-			setKeySource(dynamicColorColumn);
+			setSingleKeySource(dynamicColorColumn);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
 		
@@ -75,7 +80,7 @@ package weave.visualization.plotters
 		 */
 		public function getInternalColorColumn():ColorColumn
 		{
-			return dynamicColorColumn.internalColumn as ColorColumn;
+			return dynamicColorColumn.getInternalColumn() as ColorColumn;
 		}
 		
 		/**
@@ -127,7 +132,7 @@ package weave.visualization.plotters
 			if (!internalColorColumn)
 				return;
 			
-			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
+			var binnedColumn:BinnedColumn = internalColorColumn.getInternalColumn() as BinnedColumn;
 			if (binnedColumn == null)
 			{
 				numBins = 0;
@@ -177,12 +182,17 @@ package weave.visualization.plotters
 			_drawBackground = false;
 		}
 
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
+			return 1;
+		}
+		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var internalColorColumn:ColorColumn = getInternalColorColumn();
 			if (internalColorColumn == null)
 				return; // draw nothing
-			if (internalColorColumn.internalColumn is BinnedColumn)
+			if (internalColorColumn.getInternalColumn() is BinnedColumn)
 				drawBinnedPlot(recordKeys, dataBounds, screenBounds, destination);
 			else
 				drawContinuousPlot(recordKeys, dataBounds, screenBounds, destination);
@@ -193,13 +203,19 @@ package weave.visualization.plotters
 			//todo
 		}
 		
+		private var statsJuggler:CallbackJuggler = new CallbackJuggler(this, handleStatsChange, false);
+		private function handleStatsChange():void
+		{
+			getCallbackCollection(this).triggerCallbacks();
+		}
+		
 		protected function drawBinnedPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var internalColorColumn:ColorColumn = getInternalColorColumn();
 			if (!internalColorColumn)
 				return;
 			
-			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
+			var binnedColumn:BinnedColumn = internalColorColumn.getInternalColumn() as BinnedColumn;
 			if (binnedColumn == null)
 				return;
 			
@@ -216,11 +232,13 @@ package weave.visualization.plotters
 			
 			var margin:int = 4;
 			var height:Number = screenBounds.getYCoverage() / dataBounds.getYCoverage();			
-			var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value, height - margin));
+			var actualShapeSize:int = Math.max(7, Math.min(shapeSize.value,(height - margin)/numBins));
 			var iconGap:Number = actualShapeSize + margin * 2;
 			var circleCenterOffset:Number = margin + actualShapeSize / 2; 
-			var internalMin:Number = WeaveAPI.StatisticsCache.getMin(getInternalColorColumn().internalDynamicColumn);
-			var internalMax:Number = WeaveAPI.StatisticsCache.getMax(getInternalColorColumn().internalDynamicColumn);
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(getInternalColorColumn().internalDynamicColumn);
+			statsJuggler.target = stats;
+			var internalMin:Number = stats.getMin();
+			var internalMax:Number = stats.getMax();
 			var internalColorRamp:ColorRamp = getInternalColorColumn().ramp;
 			var binCount:int = binnedColumn.getDerivedBins().getObjects().length;
 			for (var iBin:int = 0; iBin < binCount; ++iBin)
@@ -272,7 +290,7 @@ package weave.visualization.plotters
 			if (!internalColorColumn)
 				return [ getReusableBounds() ];
 			
-			var binnedColumn:BinnedColumn = internalColorColumn.internalColumn as BinnedColumn;
+			var binnedColumn:BinnedColumn = internalColorColumn.getInternalColumn() as BinnedColumn;
 			if (binnedColumn)
 			{
 				var index:Number = binnedColumn.getValueFromKey(recordKey, Number);

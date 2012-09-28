@@ -27,18 +27,16 @@
 	xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
 	verticalScrollPolicy="off"
 	width="400" 
-	title="Dimension Slider Tool"
+	title="{lang('Dimension Slider Tool')}"
 	height="40">
 
 <mx:Script>
 		<![CDATA[
 			import weave.api.WeaveAPI;
 			import weave.api.ui.IVisTool;
-			import weave.core.weave_internal;
 			import weave.data.AttributeColumns.ProxyColumn;
 			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
-            use namespace weave_internal;
 
 			WeaveAPI.registerImplementation(IVisTool, DimensionSliderTool, "Dimension Slider Tool");
 			
@@ -70,9 +68,11 @@
 	{
 		super.childrenCreated();
 		if (dimsLabel != null)
-			dimsLabel.text = "Replace labels with values from a dimension with a secondary key:";
+			dimsLabel.text = lang("Replace labels with values from a dimension with a secondary key:");
 		
 		SecondaryKeyNumColumn.secondaryKeyFilter.addGroupedCallback(this, handleSliderChange, true);
+		checkBox_useGlobalMinMax.visible = true;
+		checkBox_useGlobalMinMax.includeInLayout = true;
 	}
 
 	/**
@@ -85,11 +85,11 @@
 	override protected function getValuesFromColHier(ref:HierarchyColumnReference):Array
 	{
 		var dimensionColumn:ProxyColumn = WeaveAPI.AttributeColumnCache.getColumn(ref) as ProxyColumn;
-		if (dimensionColumn && dimensionColumn.internalColumn)
+		if (dimensionColumn && dimensionColumn.getInternalColumn())
 			addToListOfDims(ref);
 		return SecondaryKeyNumColumn.secondaryKeys;
 	}
-	 
+
 	/**
 	 * handleLabelChange
 	 * This method is called every time there is a change in labels,
@@ -106,13 +106,13 @@
 			return callLater(handleLabelChange);
 		var labelsString:String = labelsLinkableString.value;
 		values = labelsString.split(',');
-		if (values.length < MAX_LABEL_COUNT)
+		if (values.length <= maxLabelCount.value)
 			dimensionSlider.labels = values;
 		else
 		{
 			dimensionSlider.labels = new Array();
 			
-			var interval:int = Math.ceil(values.length / MAX_LABEL_COUNT);
+			var interval:int = Math.ceil(values.length / maxLabelCount.value);
 			for (var i:int = 0; i < values.length; ++i)
 			{
 				if (i % interval == 0)

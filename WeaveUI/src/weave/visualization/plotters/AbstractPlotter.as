@@ -20,7 +20,6 @@
 package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
-	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.Rectangle;
 	
@@ -34,6 +33,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.core.CallbackCollection;
 	import weave.data.KeySets.FilteredKeySet;
@@ -47,12 +47,18 @@ package weave.visualization.plotters
 	 */
 	public class AbstractPlotter implements IPlotter, IDisposableObject
 	{
+		private function debugTrace(..._):void { } // comment this line to enable debugging
+		
 		/**
 		 * @param columnToGetKeysFrom The column that the IKeySet object uses to get keys from.
 		 */
 		public function AbstractPlotter()
 		{
 			spatialCallbacks.addImmediateCallback(this, returnPooledObjects);
+
+			var self:Object = this;
+			spatialCallbacks.addImmediateCallback(this, function():void{ debugTrace(self, 'spatialCallbacks', spatialCallbacks); });
+			getCallbackCollection(keySet).addImmediateCallback(this, function():void{ debugTrace(self,'keys',keySet.keys.length); });
 		}
 		
 		/**
@@ -152,13 +158,22 @@ package weave.visualization.plotters
 		}
 
 		/**
-		 * This function can be used by classes that extend AbstractPlotter to control the results of the get keySet() function.
-		 * Since all IAttributeColumns implement IKeySet, a column can be set as the source of an AbstractPlotter's keys.
-		 * @param source An object that implements IKeySet (Note: IAttributeColumn implements this)
+		 * This will set up the keySet so it provides keys in sorted order based on the values in a list of columns.
+		 * @param columns An Array of IAttributeColumns to use for comparing IQualifiedKeys.
+		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
 		 */
-		protected function setKeySource(source:IKeySet):void
+		protected function setColumnKeySources(columns:Array, descendingFlags:Array = null):void
 		{
-			_filteredKeySet.setBaseKeySet(source);
+			_filteredKeySet.setColumnKeySources(columns, descendingFlags);
+		}
+		
+		/**
+		 * This function sets the base IKeySet that is being filtered.
+		 * @param newBaseKeySet A new IKeySet to use as the base for this FilteredKeySet.
+		 */
+		protected function setSingleKeySource(keySet:IKeySet):void
+		{
+			_filteredKeySet.setSingleKeySource(keySet);
 		}
 		
 		/** 
@@ -187,60 +202,54 @@ package weave.visualization.plotters
 			return [];
 		}
 		
-		protected var recordsPerDraw:int = 100; // for use with the template drawPlot code
-		
 		/**
-		 * This function must be defined with override by classes that extend AbstractPlotter.
-		 * 
-		 * Draws the graphics for a list of records onto a sprite.
-		 * @param recordKeys The list of keys that identify which records should be used to generate the graphics.
-		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
-		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
-		 * @param destination The sprite to draw the graphics onto.
-		 */
-		public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			// BEGIN template code for defining a drawPlot() function.
-			//---------------------------------------------------------
-			
-			var graphics:Graphics = tempShape.graphics;
-			var count:int = 0;
-			graphics.clear();
-			screenBounds.getRectangle(clipRectangle);
-			clipRectangle.width++; // avoid clipping lines
-			clipRectangle.height++; // avoid clipping lines
-			for (var i:int = 0; i < recordKeys.length; i++)
-			{
-				var recordKey:IQualifiedKey = recordKeys[i] as IQualifiedKey;
-
-				// project data coordinates to screen coordinates and draw graphics onto tempShape
-				addRecordGraphicsToTempShape(recordKey, dataBounds, screenBounds, tempShape);
-				
-				// If the recordsPerDraw count has been reached, flush the tempShape "buffer" onto the destination BitmapData.
-				if (++count > recordsPerDraw)
-				{
-					destination.draw(tempShape, null, null, null, (clipDrawing == true) ? clipRectangle : null);
-					graphics.clear();
-					count = 0;
-				}
-			}
-
-			// flush the tempShape buffer
-			if (count > 0)
-				destination.draw(tempShape, null, null, null, (clipDrawing == true) ? clipRectangle : null);
-			
-			//---------------------------------------------------------
-			// END template code
-		}
+		 * variables for template code
+		 */		
 		protected const clipRectangle:Rectangle = new Rectangle();
 		protected var clipDrawing:Boolean = true;
 		protected const tempShape:Shape = new Shape(); // reusable temporary object
+		
+		/**
+		 * This function will perform one iteration of an asynchronous rendering task.
+		 * This function will be called multiple times across several frames until its return value is 1.0.
+		 * This function may be defined with override by classes that extend AbstractPlotter.
+		 * @param task An object containing the rendering parameters.
+		 * @return A number between 0 and 1 indicating the progress that has been made so far in the asynchronous rendering.
+		 */
+		public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			// this template will draw one record per iteration
+			if (task.iteration < task.recordKeys.length)
+			{
+				//------------------------
+				// draw one record
+				var key:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
+				tempShape.graphics.clear();
+				addRecordGraphicsToTempShape(key, task.dataBounds, task.screenBounds, tempShape);
+				if (clipDrawing)
+				{
+					// get clipRectangle
+					task.screenBounds.getRectangle(clipRectangle);
+					// increase width and height by 1 to avoid clipping rectangle borders drawn with vector graphics.
+					clipRectangle.width++;
+					clipRectangle.height++;
+				}
+				task.buffer.draw(tempShape, null, null, null, clipDrawing ? clipRectangle : null);
+				//------------------------
+				
+				// report progress
+				return task.iteration / task.recordKeys.length;
+			}
+			
+			// report progress
+			return 1; // avoids division by zero in case task.recordKeys.length == 0
+		}
+		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
-		protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
+		protected /* abstract */ function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
-			// to be implemented by an extending class
 		}
 		
 		/**

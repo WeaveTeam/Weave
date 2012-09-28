@@ -71,7 +71,7 @@
 				</mx:HBox>
 			</mx:VBox>
 		</mx:Canvas>
-		<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%" enabled="{AdminInterface.instance.connectionNames.length > 0}">
+		<mx:Canvas id="migrateTab" label="Configuration storage location" width="100%" height="100%">
 			<mx:VBox  height="100%" paddingBottom="5" paddingTop="5" paddingLeft="5" paddingRight="5" horizontalGap="0" verticalAlign="top">
 				<mx:Label fontWeight="bold" text="Set the location of the SQL tables where Weave will store configuration data:"/>
 				<ui:Indent label="Connection to use">
@@ -91,18 +91,15 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
-			import mx.collections.ArrayCollection;
-			import mx.controls.Alert;
 			import mx.events.ListEvent;
 			import mx.rpc.events.ResultEvent;
 			
+			import weave.api.WeaveAPI;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.beans.ConnectionInfo;
-			import weave.ui.Center;
 			import weave.ui.Indent;
 			import weave.ui.IndentTextInput;
-			import weave.utils.EventUtils;
 			import weave.utils.PopUpUtils;
 			
 			[Bindable]
@@ -131,6 +128,7 @@
 					if (!AdminInterface.instance.sqlConfigExists)
 						tabNavigator.selectedChild = migrateTab;
 				}
+				migrateTab.enabled = names.length > 0;
 			}
 			
 			private function handleItemClick(event:ListEvent):void
@@ -190,7 +188,7 @@
 			
 			private function get hostUrl():String
 			{
-				var result:Array = mx.core.Application.application.url.split("http://");
+				var result:Array = WeaveAPI.topLevelApplication.url.split("http://");
 				var index:int = (result.length > 1) ? 1 : 0;
 				result = (result[index] as String).split("/");
 				return result[0] as String;

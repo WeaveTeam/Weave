@@ -1254,13 +1254,13 @@ public class AdminService extends GenericServlet
 			int i = 0;
 			int j = 0;
 			int num = 1;
-			String outputNullValue = SQLUtils.getCSVNullValue(conn);
+			
 			boolean ignoreKeyColumnQueries = false;
 			
 			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile),"ISO-8859-1");
 			
 			String[][] rows = CSVParser.defaultParser.parseCSV(csvData);
-
+			
 			if (rows.length == 0)
 				throw new RemoteException("CSV file is empty: " + csvFile);
 
@@ -1361,18 +1361,19 @@ public class AdminService extends GenericServlet
 					
 					// Change missing data into NULL, later add more cases to deal with missing data.
 					String[] nullValuesStandard = new String[]{"", ".", "..", " ", "-", "\"NULL\"", "NULL", "NaN"};
-					for(String[] values : new String[][] {nullValuesStandard, nullValues })
+					ALL_NULL_VALUES: for(String[] values : new String[][] {nullValuesStandard, nullValues })
 					{			
 						for (String nullValue : values)
 						{
-							if (nextLine[i].equalsIgnoreCase(nullValue))
+							if (nextLine[i] != null && nextLine[i].equalsIgnoreCase(nullValue))
 							{
-								nextLine[i] = outputNullValue;
-								break;
+								nextLine[i] = null;
+								
+								break ALL_NULL_VALUES;
 							}
 						}
 					}
-					if (nextLine[i].equals(outputNullValue))
+					if (nextLine[i]== null)
 						continue;
 
 					// 04 is a string (but Integer.parseInt would not throw an exception)
@@ -1423,6 +1424,8 @@ public class AdminService extends GenericServlet
 				// Format each line
 				for (i = 0; i < columnNames.length && i < nextLine.length; i++)
 				{
+					if(nextLine[i] == null)
+						continue;
 					String value = nextLine[i];
 					if (types[i] == IntType || types[i] == DoubleType)
 					{
@@ -1435,8 +1438,8 @@ public class AdminService extends GenericServlet
 			// save modified CSV
 //			BufferedWriter out = new BufferedWriter(new FileWriter(formatted_CSV_path));
 			File out = new File(formatted_CSV_path);
-			boolean quoteEmptyStrings = outputNullValue.length() > 0;
-			String temp = CSVParser.defaultParser.createCSV(rows, quoteEmptyStrings);
+			
+			String temp = SQLUtils.generateCSV(conn, rows);
 			org.apache.commons.io.FileUtils.writeStringToFile(out, temp, "ISO-8859-1");
 
 			// Import the CSV file into SQL.
@@ -1620,7 +1623,7 @@ public class AdminService extends GenericServlet
 					SQLUtils.quoteSchemaTable(conn, sqlSchema, sqlTable),
 					columnList
 				);
-				filteredValues = SQLUtils.getRowSetFromQuery(conn, query);
+				filteredValues = SQLUtils.getRowSetFromQuery(conn, query, true);
 //				System.out.println(query);
 //				System.out.println(filteredValues);
 			}
@@ -1787,7 +1790,7 @@ public class AdminService extends GenericServlet
 		{
 			if (j > 0)
 				query += " and ";
-			query += String.format("%s=?", SQLUtils.quoteSymbol(conn, columnNames[j]));
+			query += SQLUtils.caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, columnNames[j]), "?");
 		}
 		return query;
 	}

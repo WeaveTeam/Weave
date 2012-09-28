@@ -26,6 +26,7 @@ package weave.ui.CustomDataGrid
 	import mx.controls.DataGrid;
 	import mx.controls.Image;
 	import mx.controls.Label;
+	import mx.core.UIComponent;
 	
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
@@ -39,18 +40,19 @@ package weave.ui.CustomDataGrid
 	{
 		public function DataGridCellRenderer()
 		{
-			addChild(img);
-			addChild(lbl);
-			lbl.percentWidth = 100;
-			
-			horizontalScrollPolicy = "off";
-			
-			img.x = 1; // because there is a vertical grid line on the left that overlaps the item renderer
-			img.source = new Bitmap(null, 'auto', true);
 		}
 		
-		private var img:Image = new Image();
-		private var lbl:Label = new Label();
+		override protected function createChildren():void
+		{
+			super.createChildren();
+			
+			addChild(lbl);
+			lbl.percentWidth = 100;
+			horizontalScrollPolicy = "off";
+		}
+		
+		private var img:Image;
+		public const lbl:Label = new Label();
 		
 		public var attrColumn:IAttributeColumn = null;
 		public var showColors:LinkableBoolean = null;
@@ -71,14 +73,32 @@ package weave.ui.CustomDataGrid
 			{
 				lbl.visible = false;
 				lbl.text = toolTip = '';
+				if (!img)
+				{
+					img = new Image();
+					img.x = 1; // because there is a vertical grid line on the left that overlaps the item renderer
+					img.source = new Bitmap(null, 'auto', true);
+					addChild(img);
+				}
+				img.visible = true;
 				(img.source as Bitmap).bitmapData = attrColumn.getValueFromKey(key) as BitmapData;
 			}
 			else
 			{
 				lbl.visible = true;
 				lbl.text = toolTip = attrColumn.getValueFromKey(key, String);
-				img.source = null;
+				if (img)
+				{
+					img.visible = false;
+					img.source.bitmapData = null;
+				}
 			}
+		}
+		
+		private static function _setStyle(target:UIComponent, styleProp:String, newValue:*):void
+		{
+			if (target.getStyle(styleProp) != newValue)
+				target.setStyle(styleProp, newValue);
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -96,35 +116,39 @@ package weave.ui.CustomDataGrid
 			{
 				if (grid.isItemSelected(data) || grid.isItemHighlighted(data))
 				{
-					lbl.setStyle("fontWeight", "bold");
+					_setStyle(lbl, "fontWeight", "bold");
 					alpha = 1.0;
 				}				
 				else
 				{
-					lbl.setStyle("fontWeight", "normal");
+					_setStyle(lbl, "fontWeight", "normal");
 					alpha = 0.3;
 				}
 			}
 			else
 			{
-				lbl.setStyle("fontWeight", "normal");
+				_setStyle(lbl, "fontWeight", "normal");
 				alpha = 1.0;	
 			}
 			
 			// right-align numbers
 			if (attrColumn.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.NUMBER)
-				lbl.setStyle('textAlign', 'right');
+			{
+				_setStyle(lbl, 'textAlign', 'right');
+			}
 			else
-				lbl.setStyle('textAlign', 'left');
+			{
+				_setStyle(lbl, 'textAlign', 'left');
+			}
 			
 			if (showColors.value)
 			{
 				var colorValue:Number = colorFunction(attrColumn, data as IQualifiedKey, this);
-				setStyle('backgroundColor', colorValue);
+				_setStyle(this, 'backgroundColor', colorValue);
 			}
 			else
 			{
-				setStyle('backgroundColor', null);
+				_setStyle(this, 'backgroundColor', null);
 			}
 		}
 	}

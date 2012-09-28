@@ -23,7 +23,7 @@
 *  @author skolman
 *  
 -->
-<mx:Tree xmlns:mx="http://www.adobe.com/2006/mxml"  
+<ui:CustomTree xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
 		 width="100%" height="100%" 
 		 disclosureOpenIcon="@Embed(source='Assets.swf',symbol='TreeDisclosureOpen')" 
 		 disclosureClosedIcon="@Embed(source='Assets.swf',symbol='TreeDisclosureClosed')"
@@ -37,35 +37,17 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.describeType;
-			import flash.utils.getQualifiedClassName;
-			
-			import mx.collections.ArrayCollection;
-			import mx.controls.Label;
-			import mx.controls.Tree;
 			import mx.events.ListEvent;
-			import mx.events.TreeEvent;
 			import mx.managers.PopUpManager;
-			import mx.messaging.management.ObjectName;
-			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableDynamicObject;
-			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.IColumnReference;
 			import weave.api.newDisposableChild;
 			import weave.api.ui.ILinkableObjectEditor;
-			import weave.core.LinkableDynamicObject;
-			import weave.core.LinkableHashMap;
 			import weave.core.SessionManager;
-			import weave.core.weave_internal;
-			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.ColumnReferences.HierarchyColumnReference;
-			import weave.utils.DebugUtils;
 			import weave.utils.EditorManager;
-			use namespace weave_internal;
+			import weave.utils.PopUpUtils;
 
 			private var _rootObject:ILinkableObject = null;
 			public function set rootObject(value:ILinkableObject):void
@@ -124,78 +106,6 @@
 				refresh(rootObject);
 			}
 			
-			private function getTree(object:ILinkableObject, objectName:String, objectTypeFilter:*=null):Object
-			{
-				var result:Object = {label: objectName, object: object, children: []};
-				
-				var names:Array = [];
-				var childObject:ILinkableObject;
-				var tempObject:Object;
-				var ignoreList:Dictionary = new Dictionary(true);
-				if (object is ILinkableHashMap)
-				{
-					names = (object as ILinkableHashMap).getNames();
-					
-					var sessionObjects:Array = (object as ILinkableHashMap).getObjects();
-					
-					for (var i:int = 0; i < names.length; i++)
-					{
-						childObject = sessionObjects[i];
-						if ((WeaveAPI.SessionManager as SessionManager).isChildInSessionState(object, childObject))
-						{
-							// don't include duplicate siblings
-							if (ignoreList[childObject] != undefined)
-								continue;
-							ignoreList[childObject] = true;
-
-							// get subtree
-							tempObject = getTree(childObject,names[i],objectTypeFilter);
-							if (tempObject != null)
-								result.children.push(tempObject);
-						}
-					}
-				}
-				else
-				{
-					if (object is ILinkableDynamicObject)
-					{
-						// do not show static object in tree
-						names = (object as ILinkableDynamicObject).globalName ? [] : ["internalObject"];
-					}
-					else if (object)
-					{
-						names = (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
-					}
-					for (var j:int = 0; j < names.length; j++)
-					{
-						childObject = object[names[j]];
-						if (!childObject)
-							continue;
-						if (/* object is ILinkableDynamicObject ||  */(WeaveAPI.SessionManager as SessionManager).isChildInSessionState(object, childObject))
-						{
-							// don't include duplicate siblings
-							if (ignoreList[childObject] != undefined)
-								continue;
-							ignoreList[childObject] = true;
-
-							// get subtree
-							tempObject = getTree(childObject,names[j],objectTypeFilter);
-							if (tempObject != null)
-								result.children.push(tempObject);
-						}
-					}
-				}
-				
-				if (result.children.length == 0)
-					result.children = null;
-				if (objectTypeFilter == null)
-					return result;
-				if (result.children == null && !(object is objectTypeFilter))
-					return null;
-				return result;
-			}
-			
-			
 			private function handleItemSelect(event:ListEvent):void
 			{
 				//trace(event.currentTarget);
@@ -207,24 +117,15 @@
 				//expandItem(selectedItem, !isItemOpen(selectedItem))
 				refresh();
 				
-				var linkableObject:ILinkableObject = getSelectedLinkableObject();
-				var editor:ILinkableObjectEditor = EditorManager.getNewEditor(linkableObject);
-				if (editor)
-				{
-					var controls:ControlPanel = newDisposableChild(linkableObject, ControlPanel);
-					PopUpManager.addPopUp(controls, this);
-					PopUpManager.centerPopUp(controls);
-					controls.targets = [linkableObject];
-					
-					controls.tabNavigator.addChild(editor as DisplayObject);
-				}
+				ControlPanel.openEditor(getSelectedLinkableObject());
 			}
+			
 			private var _sessionObjectTypeFilter:Class = null;
 			public function set sessionObjectTypeFilter(className:Class):void
 			{
 				_sessionObjectTypeFilter = className;
 			
-				var tree:Object = getTree(rootObject,_linkableObjectName,_sessionObjectTypeFilter);
+				var tree:Object = (WeaveAPI.SessionManager as SessionManager).getSessionStateTree(rootObject,_linkableObjectName,_sessionObjectTypeFilter);
 				dataProvider = tree;
 				dataProvider.refresh();
 				
@@ -255,7 +156,7 @@
 				
 				var prevExpandedItems:Array = openItems.concat();
 				
-				var rootItem:Object = getTree(rootObject, _linkableObjectName, _sessionObjectTypeFilter);
+				var rootItem:Object = (WeaveAPI.SessionManager as SessionManager).getSessionStateTree(rootObject, _linkableObjectName, _sessionObjectTypeFilter);
 				this.dataProvider = rootItem
 				this.dataProvider.refresh();
 				validateNow();
@@ -321,4 +222,4 @@
 		]]>
 	</mx:Script>
 
-</mx:Tree>
+</ui:CustomTree>

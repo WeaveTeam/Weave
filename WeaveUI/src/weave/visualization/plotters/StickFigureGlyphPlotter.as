@@ -23,6 +23,8 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	
+	import weave.api.WeaveAPI;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -30,9 +32,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
-	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	/**
@@ -53,6 +53,11 @@ package weave.visualization.plotters
 		public const theta2:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const theta3:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const theta4:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		
+		private const theta1stats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(theta1));
+		private const theta2stats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(theta2));
+		private const theta3stats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(theta3));
+		private const theta4stats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(theta4));
 		/**
 		 * This is the limb length.
 		 */
@@ -70,10 +75,10 @@ package weave.visualization.plotters
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
 			// project data coordinates to screen coordinates and draw graphics
-			var theta1:Number = Math.PI*ColumnUtils.getNorm(this.theta1, recordKey);
-			var theta2:Number = Math.PI*ColumnUtils.getNorm(this.theta2, recordKey);
-			var theta3:Number = Math.PI*ColumnUtils.getNorm(this.theta3, recordKey);
-			var theta4:Number = Math.PI*ColumnUtils.getNorm(this.theta4, recordKey);
+			var theta1:Number = Math.PI*theta1stats.getNorm(recordKey);
+			var theta2:Number = Math.PI*theta2stats.getNorm(recordKey);
+			var theta3:Number = Math.PI*theta3stats.getNorm(recordKey);
+			var theta4:Number = Math.PI*theta4stats.getNorm(recordKey);
 			var limbLength:Number = this.limbLength.getValueFromKey(recordKey, Number);
 			tempPoint.x = dataX.getValueFromKey(recordKey, Number);
 			tempPoint.y = dataY.getValueFromKey(recordKey, Number);

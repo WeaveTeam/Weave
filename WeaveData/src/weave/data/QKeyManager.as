@@ -20,25 +20,20 @@
 package weave.data
 {
 	import flash.utils.Dictionary;
-	import flash.utils.getQualifiedClassName;
 	
-	import mx.core.Singleton;
-	import mx.utils.object_proxy;
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.getCallbackCollection;
+	import weave.api.objectWasDisposed;
 	import weave.core.SessionManager;
-	import weave.core.weave_internal;
-	import weave.primitives.AttributeHierarchy;
-	import weave.primitives.WeakReference;
 	
 	/**
 	 * This class manages a global list of IQualifiedKey objects.
@@ -119,6 +114,30 @@ package weave.data
 		}
 
 		/**
+		 * Get a list of QKey objects, all with the same key type.
+		 * 
+		 * @return An array of QKeys that will be filled in asynchronously.
+		 */
+		public function getQKeysAsync(keyType:String, keyStrings:Array, relevantContext:Object, asyncCallback:Function, outputKeys:Vector.<IQualifiedKey>):void
+		{
+			outputKeys.length = keyStrings.length;
+			var i:int = 0;
+			var iterate:Function = function():Number
+			{
+				if (i >= keyStrings.length)
+					return 1;
+				
+				outputKeys[i] = getQKey(keyType, keyStrings[i]);
+				
+				i++;
+				
+				return i / keyStrings.length;
+			};
+			
+			WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_PARSING, asyncCallback);
+		}
+
+		/**
 		 * Get a list of all previoused key types.
 		 *
 		 * @return An array of QKeys.
@@ -147,6 +166,17 @@ package weave.data
 		// maps keyType to Object, which maps key String to QKey weak reference
 		private const _keyTypeMap:Object = new Object();
 
+		/**
+		 * This will compare two keys.
+		 * @param key1
+		 * @param key2
+		 * @return -1, 0, or 1
+		 */		
+		public static function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
+		{
+			return ObjectUtil.stringCompare(key1.keyType, key2.keyType)
+				|| ObjectUtil.stringCompare(key1.localName, key2.localName);
+		}
 		
 		/**
 		 * This object maps a keyType to an Array of related IColumnReference objects for key mapping purposes.

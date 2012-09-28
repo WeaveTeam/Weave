@@ -48,29 +48,29 @@ JRITextEditor
 	<mx:HBox width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
 		<mx:HBox width="100%" height="100%">
 			<mx:VBox width="20%" height="100%" verticalGap="0">
-				<mx:Label text="(1) Select data to use in your script"/>
-				<mx:CheckBox id="columnAsList" label="Use Columns as R-List(HashMap)"/>
-				<ColumnListComponent id="inputColumnList" label="Input columns" hashMap="{variables}" width="100%" height="100%"   />			
+				<mx:Label text="{lang('(1) Select data to use in your script')}"/>
+				<mx:CheckBox id="columnAsList" label="{lang('Use Columns as R-List(HashMap)')}"/>
+				<ColumnListComponent id="inputColumnList" label="{lang('Input columns')}" hashMap="{variables}" width="100%" height="100%"   />			
 			</mx:VBox>
 			<mx:VBox width="45%" height="100%">
 				<mx:TabNavigator id="tn"  width="100%" height="100%">
-					<mx:VBox label="User Script" width="100%" height="100%" verticalGap="0">
-						<LabelWithWordWrap text="(2) Assign variables to your data (Separate by commas)"/>
+					<mx:VBox label="{lang('User Script')}" width="100%" height="100%" verticalGap="0">
+						<LabelWithWordWrap text="{lang('(2) Assign variables to your data (Separate by commas)')}"/>
 						<mx:TextArea id = "assignTA" width="100%" height="100%" wordWrap="false"/>
 						
 						<mx:Spacer height="{padding}"/>
 						
-						<LabelWithWordWrap text="(3) Enter a script (type or paste in)"/>			
+						<LabelWithWordWrap text="{lang('(3) Enter a script (type or paste in)')}"/>			
 						<mx:TextArea id = "inputTA" width="100%" height="100%" text=""/>						
 						
 						<mx:Spacer height="{padding}"/>
 						
-						<LabelWithWordWrap text="(4) Input a plot script (Optional)"/>
+						<LabelWithWordWrap text="{lang('(4) Input a plot script (Optional)')}"/>
 						<mx:TextArea id = "plotTA" width="100%" height="100%" text=""/>
 						
 						<mx:Spacer height="{padding}"/>
 						
-						<LabelWithWordWrap text="(5) Specify script outputs to display, separated by commas"/>
+						<LabelWithWordWrap text="{lang('(5) Specify script outputs to display, separated by commas')}"/>
 						<mx:TextArea id = "outputTA" width="100%" height="100%" wordWrap="false"/>
 						
 						<mx:Spacer height="{padding}"/>
@@ -79,14 +79,14 @@ JRITextEditor
 						
 						<mx:Spacer height="{padding}"/>
 						
-						<LabelWithWordWrap text="(7) Export your script for later use"/>
+						<LabelWithWordWrap text="{lang('(7) Export your script for later use')}"/>
 						<mx:HBox>
-							<mx:Button id="exportBtn" label="Export" buttonDown="export_buttonDownHandler(event)"/>
-							<mx:Button id="importBtn" label="Import" buttonDown="import_buttonDownHandler(event)"/>	
+							<mx:Button id="exportBtn" label="{lang('Export')}" buttonDown="export_buttonDownHandler(event)"/>
+							<mx:Button id="importBtn" label="{lang('Import')}" buttonDown="import_buttonDownHandler(event)"/>	
 						</mx:HBox>						
 					</mx:VBox>
 					
-					<mx:VBox label="Built-in Script" width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}" >
+					<mx:VBox label="{lang('Built-in Script')}" width="100%" height="100%" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}" >
 						
 						<mx:HDividedBox width="100%" height="100%">
 							<mx:Box backgroundColor="#000000" height="100%">
@@ -101,19 +101,19 @@ JRITextEditor
 							</mx:Box>
 							<mx:Canvas width="100%" height="100%">
 								<mx:ViewStack  paddingTop="20" paddingLeft="20" paddingRight="20" id="scripSection" resizeToContent="true" backgroundColor="white" barColor="black">			
-									<mx:Form label="Clusters" width="100%" height="100%">
-										<mx:FormItem label="Number of Clusters">
+									<mx:Form label="{lang('Clusters')}" width="100%" height="100%">
+										<mx:FormItem label="{lang('Number of Clusters')}">
 											<mx:TextInput id="clusterNumber"/>
 										</mx:FormItem>				
-										<mx:FormItem label="Number of Iteration">
+										<mx:FormItem label="{lang('Number of Iteration')}">
 											<mx:TextInput id="iterationNumber"/>
 										</mx:FormItem>											
 									</mx:Form>
-									<mx:Form label="Correlation" width="100%" height="100%">
-										<mx:FormItem label="Use">
+									<mx:Form label="{lang('Correlation')}" width="100%" height="100%">
+										<mx:FormItem label="{lang('Use')}">
 											<mx:ComboBox id="corParameterUse" dataProvider="{corUseArray}"/>
 										</mx:FormItem>				
-										<mx:FormItem label="Method">
+										<mx:FormItem label="{lang('Method')}">
 											<mx:ComboBox id="corParameterMethod" dataProvider="{corMethodArray}"/>
 										</mx:FormItem>	
 										
@@ -126,16 +126,16 @@ JRITextEditor
 						
 					</mx:VBox>
 				</mx:TabNavigator>
-				<LabelWithWordWrap text="(6) Run your script on the server"/>
+				<LabelWithWordWrap text="{lang('(6) Run your script on the server')}"/>
 				<mx:HBox>
-					<mx:Button id="B2" label="Run script"  click="viewAndSendbuttonClickHandler(event)"/>
-					<mx:CheckBox id="intermediateResultCB" label="Verbose" toolTip="Show intermediate results from R"/>
-					<mx:CheckBox id="warningCB" label="Warnings" toolTip="Show warnings from R"/>
+					<mx:Button id="B2" label="{lang('Run script')}"  click="viewAndSendbuttonClickHandler(event)"/>
+					<mx:CheckBox id="intermediateResultCB" label="{lang('Verbose')}" toolTip="{lang('Show intermediate results from R')}"/>
+					<mx:CheckBox id="warningCB" label="{lang('Warnings')}" toolTip="{lang('Show warnings from R')}"/>
 				</mx:HBox>
 			</mx:VBox>
 			<mx:VBox width="35%" height="100%" verticalGap="0">
 				<mx:VBox width="100%" height="50%" verticalGap="0">
-					<mx:Label text="Result"/>
+					<mx:Label text="{lang('Result')}"/>
 					<mx:TextArea id="ResultTA" width="100%" height="100%" editable="false"/>
 				</mx:VBox>
 				<mx:VBox width="100%" height="50%" verticalGap="0" id="resultDataGrid">
@@ -151,61 +151,31 @@ JRITextEditor
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
-			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.controls.DataGrid;
 			import mx.controls.Image;
-			import mx.controls.List;
 			import mx.events.FlexEvent;
-			import mx.events.IndexChangedEvent;
 			import mx.events.ItemClickEvent;
-			import mx.managers.FocusManager;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
-			import mx.utils.ArrayUtil;
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableObject;
-			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
-			import weave.core.DynamicState;
-			import weave.core.ErrorManager;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
-			import weave.core.SessionManager;
-			import weave.core.WeaveXMLDecoder;
-			import weave.core.WeaveXMLEncoder;
-			import weave.core.weave_internal;
-			import weave.data.AttributeColumns.CSVColumn;
-			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
-			import weave.data.AttributeColumns.ReferencedColumn;
-			import weave.data.AttributeColumns.StringColumn;
-			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
-			import weave.services.DelayedAsyncInvocation;
 			import weave.services.DelayedAsyncResponder;
-			import weave.services.WeaveJRIServlet;
 			import weave.services.WeaveRServlet;
-			import weave.services.beans.HierarchicalClusteringResult;
-			import weave.services.beans.KMeansClusteringResult;
-			import weave.services.beans.LinearRegressionResult;
 			import weave.services.beans.RResult;
 			import weave.utils.ColumnUtils;
-			import weave.utils.DebugTimer;
-			import weave.utils.ObjectPool;
-			import weave.utils.ProbeTextUtils;
 			import weave.utils.ResultUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.tools.SimpleVisTool;
@@ -221,7 +191,7 @@ JRITextEditor
 			
 			
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
-			private var JRIservice:WeaveJRIServlet = new WeaveJRIServlet(Weave.properties.jriServiceURL.value);
+			private var rService:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			public const inputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			public const plotTALinkable:LinkableString = newLinkableChild(this, LinkableString);
 			public const outputTALinkable:LinkableString = newLinkableChild(this, LinkableString);
@@ -283,7 +253,7 @@ JRITextEditor
 						if (keyType && keyType != qkey.keyType)// sanity check
 						{
 							// there are multiple key types in the list of keys..
-							Alert.show("This feature only works with keys having a common keyType.  Key types do not match: " + [keyType, qkey.keyType]);
+							Alert.show(lang("This feature only works with keys having a common keyType.  Key types do not match: ") + [keyType, qkey.keyType]);
 							return;
 						}
 						keyType = qkey.keyType;
@@ -295,7 +265,7 @@ JRITextEditor
 				assignValues = joinedColumns;
 			}
 			private static function get selection():KeySet{
-				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+				return Weave.defaultSelectionKeySet;
 			}
 			
 			/**
@@ -365,9 +335,12 @@ JRITextEditor
 				}
 				while(script.search("\r") > 0){// "\r" - replaced by "/n" in all occurance
 					script = script.replace("\r","\n");
-				}				
+				}
+				if(token == null){
+					token = "";
+				}
 				//Query is created from runScript with same signature from Jave side				
-				var query:AsyncToken = JRIservice.runScript(joinedColumnKeys,assignNames, assignValues, outputNames, script,plotScript, showIntermediateResults,showWarnings,useColumnAsList);
+				var query:AsyncToken = rService.runScript(joinedColumnKeys,assignNames, assignValues, outputNames, script,plotScript, showIntermediateResults,showWarnings,useColumnAsList);
 				DelayedAsyncResponder.addResponder(query, handleScriptResult, handleScriptFault, token);
 			}
 			
@@ -376,7 +349,7 @@ JRITextEditor
 				var Robj:Array = event.result as Array;
 				var RresultArray:Array = new Array();
 				if (Robj == null){
-					var error:Error = new Error("R Servlet did not return an Array of results as expected.");
+					var error:Error = new Error(lang("R Servlet did not return an Array of results as expected."));
 					WeaveAPI.ErrorManager.reportError(error);
 					return;
 				}
@@ -504,7 +477,7 @@ JRITextEditor
 				// Create a date that we can append to the end of each file to make them unique
 				var date:Date = new Date();
 				var dateString:String = date.fullYear +"."+ date.month +"."+ date.day +" "+ date.time;				
-				_sessionFileSaver.save(rScriptSessionState, "R-Script Session state " + dateString + ".xml");
+				_sessionFileSaver.save(rScriptSessionState, lang("R-Script Session state ") + dateString + ".xml");
 			}
 			
 			private var _defaultsFilename:String = null;

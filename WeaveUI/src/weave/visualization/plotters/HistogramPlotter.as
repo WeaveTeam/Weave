@@ -24,16 +24,14 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
+	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableBoolean;
-	import weave.core.SessionManager;
-	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -57,10 +55,7 @@ package weave.visualization.plotters
 		{
 			// don't lock the ColorColumn, so linking to global ColorColumn is possible
 			var _colorColumn:ColorColumn = fillStyle.color.internalDynamicColumn.requestLocalObject(ColorColumn, false);
-			_colorColumn.ramp.value = <colorRamp name="Gray">
-					<node color="0x808080" position="0.0"/>
-					<node color="0x808080" position="1.0"/>
-				</colorRamp>;
+			_colorColumn.ramp.value = "0x808080";
 
 			var _binnedColumn:BinnedColumn = _colorColumn.internalDynamicColumn.requestLocalObject(BinnedColumn, true);
 			
@@ -72,7 +67,7 @@ package weave.visualization.plotters
 			// make the colors spatial properties because the binned column is inside
 			registerSpatialProperty(dynamicColorColumn);
 
-			setKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
+			setSingleKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
 		}
 		
 		/**
@@ -83,7 +78,7 @@ package weave.visualization.plotters
 		{
 			var cc:ColorColumn = internalColorColumn;
 			if (cc)
-				return cc.internalColumn as BinnedColumn
+				return cc.getInternalColumn() as BinnedColumn
 			return null;
 		}
 		/**
@@ -92,7 +87,7 @@ package weave.visualization.plotters
 		 */
 		public function get internalColorColumn():ColorColumn
 		{
-			return fillStyle.color.internalColumn as ColorColumn;
+			return fillStyle.color.getInternalColumn() as ColorColumn;
 		}
 		/**
 		 * This column object will always remain for the life of the plotter.
@@ -136,7 +131,13 @@ package weave.visualization.plotters
 		/**
 		 * This draws the histogram bins that a list of record keys fall into.
 		 */
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
+			return 1;
+		}
+		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+
 		{
 			var i:int;
 			var binCol:BinnedColumn = internalBinnedColumn;
@@ -166,8 +167,6 @@ package weave.visualization.plotters
 			//---------------------------------------------------------
 			
 			var graphics:Graphics = tempShape.graphics;
-			var count:int = 0;
-			graphics.clear();
 			for (i = 0; i < binNames.length; i++)
 			{
 				binName = binNames[i];
@@ -186,22 +185,14 @@ package weave.visualization.plotters
 				tempBounds.setMaxPoint(tempPoint);
 	
 				// draw rectangle for bin
+				graphics.clear();
 				lineStyle.beginLineStyle(keys[0], graphics);
 				fillStyle.beginFillStyle(keys[0], graphics);
 				graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
 				graphics.endFill();
-				
-				// If the recordsPerDraw count has been reached, flush the tempShape "buffer" onto the destination BitmapData.
-				if (++count > recordsPerDraw)
-				{
-					destination.draw(tempShape);
-					graphics.clear();
-					count = 0;
-				}
-			}
-			// flush the tempShape buffer
-			if (count > 0)
+				// flush the tempShape "buffer" onto the destination BitmapData.
 				destination.draw(tempShape);
+			}
 			
 			//---------------------------------------------------------
 			// END template code

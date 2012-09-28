@@ -23,10 +23,12 @@ package weave.data.AttributeColumns
 	
 	import mx.utils.NameUtil;
 	
+	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.core.CallbackCollection;
 	import weave.utils.ColumnUtils;
 	
@@ -40,14 +42,15 @@ package weave.data.AttributeColumns
 	{
 		public function ExtendedDynamicColumn()
 		{
+			registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(internalDynamicColumn));
 		}
 		
 		/**
 		 * This is for the IColumnWrapper interface.
 		 */
-		public function get internalColumn():IAttributeColumn
+		public function getInternalColumn():IAttributeColumn
 		{
-			return internalDynamicColumn.internalColumn;
+			return internalDynamicColumn.getInternalColumn();
 		}
 		
 		/**
@@ -99,7 +102,7 @@ package weave.data.AttributeColumns
 		
 		public function toString():String
 		{
-			return getQualifiedClassName(this).split("::")[1] + ColumnUtils.getTitle(this);
+			return debugId(this) + '(' + ColumnUtils.getTitle(this) + ')';
 		}
 	}
 }

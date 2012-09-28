@@ -34,6 +34,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
@@ -56,7 +57,7 @@ package weave.visualization.plotters
 			spatialCallbacks.addImmediateCallback(this, updateLabels);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat);
 			
-			setKeySource(_keySet);
+			setSingleKeySource(_keySet);
 		}
 		
 		public const axisLabelDistance:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-10, isFinite));
@@ -197,99 +198,119 @@ package weave.visualization.plotters
 		
 		/**
 		 * draws the grid lines (tick marks) 
-		 * @param recordKeys
-		 * @param dataBounds
-		 * @param screenBounds
-		 * @param destination
-		 * 
 		 */		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-//			if (recordKeys.length == 0)
-//				trace(this,'drawPlot',arguments);
-			initPrivateAxisLineBoundsVariables(dataBounds, screenBounds);
-			// everything below is in screen coordinates
-
-			// get the angle of the axis line (relative to real screen coordinates, positive Y in downward direction)
-			var axisAngle:Number = Math.atan2(_axisLineScreenBounds.getHeight(), _axisLineScreenBounds.getWidth());			
-			// ticks are perpendicular to axis line
-			var tickAngle:Number = axisAngle + Math.PI / 2;
-			// label angle is relative to axis angle
-			var labelAngle:Number = axisAngle + axisLabelRelativeAngle.value * Math.PI / 180; // convert from degrees to radians
-
-			// calculate tick line offset from angle
-			var xTickOffset:Number = Math.cos(tickAngle) * 10 / 2;
-			var yTickOffset:Number = Math.sin(tickAngle) * 10 / 2;
-			
-			// calculate label offset from angle
-			var _labelDistance:Number = axisLabelDistance.value;
-			var labelAngleOffset:Number = labelDistanceIsVertical.value ? Math.PI / 2: 0;
-			var xLabelOffset:Number = Math.cos(labelAngle + labelAngleOffset) * axisLabelDistance.value;
-			var yLabelOffset:Number = Math.sin(labelAngle + labelAngleOffset) * axisLabelDistance.value;
-			
-			setupBitmapText();
-			_bitmapText.maxWidth = labelWordWrapSize.value;
-			
-			// calculate the distance between tick marks to use as _bitmapText.maxHeight
-			var lineLength:Number = Math.sqrt(Math.pow(_axisLineScreenBounds.getWidth(), 2) + Math.pow(_axisLineScreenBounds.getHeight(), 2));
-			var tickScreenDelta:Number = lineLength / (_axisDescription.numberOfTicks - 1);
-			tickScreenDelta /= Math.SQRT2; // TEMPORARY SOLUTION -- assumes text is always at 45 degree angle
-			_bitmapText.maxHeight = tickScreenDelta;
-
-			_bitmapText.angle = labelAngle * 180 / Math.PI; // convert from radians to degrees
-			
-			// init number formatter for beginning & end tick marks
-			labelNumberFormatter.copyTo(_numberFormatter);
-			
-			var graphics:Graphics = tempShape.graphics;
-			for (var i:int = 0; i < recordKeys.length; i++)
+			if (!(task.asyncState is Function))
 			{
-				var key:IQualifiedKey = recordKeys[i] as IQualifiedKey;
-
-				// get screen coordinates of tick mark
-				var tickValue:Number = getTickValueAndDataCoords(key, tempPoint);
-								
-				_axisLineDataBounds.projectPointTo(tempPoint, _axisLineScreenBounds);
-				var xTick:Number = tempPoint.x;
-				var yTick:Number = tempPoint.y;
+				// these variables are used to save state between function calls
+				var axisAngle:Number;			
+				var tickAngle:Number;
+				var labelAngle:Number;
+				var xTickOffset:Number;
+				var yTickOffset:Number;
+				var _labelDistance:Number;
+				var labelAngleOffset:Number;
+				var xLabelOffset:Number;
+				var yLabelOffset:Number;
+				var lineLength:Number;
+				var tickScreenDelta:Number;
 				
-				// draw tick mark line and grid lines
-				graphics.clear();
-				graphics.lineStyle(axisGridLineThickness.value, axisGridLineColor.value, axisGridLineAlpha.value, false, LineScaleMode.NORMAL, CapsStyle.NONE);
-				
-				if (key == MIN_LABEL_KEY || key == MAX_LABEL_KEY)
+				task.asyncState = function():Number
 				{
-					graphics.moveTo(xTick - xTickOffset*2, yTick - yTickOffset*2);
-					graphics.lineTo(xTick + xTickOffset*2, yTick + yTickOffset*2);
-				}
-				else if (axisAngle != 0)
-				{
-					graphics.moveTo(xTick-axesThickness.value, yTick);
-					graphics.lineTo(xTick, yTick);
-					graphics.moveTo(xTick, yTick);
-					graphics.lineTo(screenBounds.getXMax(), yTick);
+					if (task.iteration == 0)
+					{
+						initPrivateAxisLineBoundsVariables(task.dataBounds, task.screenBounds);
+						// everything below is in screen coordinates
+			
+						// get the angle of the axis line (relative to real screen coordinates, positive Y in downward direction)
+						axisAngle = Math.atan2(_axisLineScreenBounds.getHeight(), _axisLineScreenBounds.getWidth());			
+						// ticks are perpendicular to axis line
+						tickAngle = axisAngle + Math.PI / 2;
+						// label angle is relative to axis angle
+						labelAngle = axisAngle + axisLabelRelativeAngle.value * Math.PI / 180; // convert from degrees to radians
+			
+						// calculate tick line offset from angle
+						xTickOffset = Math.cos(tickAngle) * 10 / 2;
+						yTickOffset = Math.sin(tickAngle) * 10 / 2;
+						
+						// calculate label offset from angle
+						_labelDistance = axisLabelDistance.value;
+						labelAngleOffset = labelDistanceIsVertical.value ? Math.PI / 2: 0;
+						xLabelOffset = Math.cos(labelAngle + labelAngleOffset) * axisLabelDistance.value;
+						yLabelOffset = Math.sin(labelAngle + labelAngleOffset) * axisLabelDistance.value;
+						
+						setupBitmapText();
+						_bitmapText.maxWidth = labelWordWrapSize.value;
+						
+						// calculate the distance between tick marks to use as _bitmapText.maxHeight
+						lineLength = Math.sqrt(Math.pow(_axisLineScreenBounds.getWidth(), 2) + Math.pow(_axisLineScreenBounds.getHeight(), 2));
+						tickScreenDelta = lineLength / (_axisDescription.numberOfTicks - 1);
+						tickScreenDelta /= Math.SQRT2; // TEMPORARY SOLUTION -- assumes text is always at 45 degree angle
+						_bitmapText.maxHeight = tickScreenDelta;
+			
+						_bitmapText.angle = labelAngle * 180 / Math.PI; // convert from radians to degrees
+						
+						// init number formatter for beginning & end tick marks
+						labelNumberFormatter.copyTo(_numberFormatter);
+					}
 					
-				}
-				else if (axisAngle == 0)
-				{
-					var offset:Number = 1;
-					graphics.moveTo(xTick, yTick + offset);
-					graphics.lineTo(xTick, yTick+axesThickness.value + offset);
-					graphics.moveTo(xTick, yTick);
-					graphics.lineTo(xTick, screenBounds.getYMax());
+					if (task.iteration < task.recordKeys.length)
+					{
+						var graphics:Graphics = tempShape.graphics;
+						var key:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
+		
+						// get screen coordinates of tick mark
+						var tickValue:Number = getTickValueAndDataCoords(key, tempPoint);
+										
+						_axisLineDataBounds.projectPointTo(tempPoint, _axisLineScreenBounds);
+						var xTick:Number = tempPoint.x;
+						var yTick:Number = tempPoint.y;
+						
+						// draw tick mark line and grid lines
+						graphics.clear();
+						graphics.lineStyle(axisGridLineThickness.value, axisGridLineColor.value, axisGridLineAlpha.value, false, LineScaleMode.NORMAL, CapsStyle.NONE);
+						
+						if (key == MIN_LABEL_KEY || key == MAX_LABEL_KEY)
+						{
+							graphics.moveTo(xTick - xTickOffset*2, yTick - yTickOffset*2);
+							graphics.lineTo(xTick + xTickOffset*2, yTick + yTickOffset*2);
+						}
+						else if (axisAngle != 0)
+						{
+							graphics.moveTo(xTick-axesThickness.value, yTick);
+							graphics.lineTo(xTick, yTick);
+							graphics.moveTo(xTick, yTick);
+							graphics.lineTo(task.screenBounds.getXMax(), yTick);
+							
+						}
+						else if (axisAngle == 0)
+						{
+							var offset:Number = 1;
+							graphics.moveTo(xTick, yTick + offset);
+							graphics.lineTo(xTick, yTick+axesThickness.value + offset);
+							graphics.moveTo(xTick, yTick);
+							graphics.lineTo(xTick, task.screenBounds.getYMax());
+							
+						}
+						task.buffer.draw(tempShape);
+						
+						// draw tick mark label
+						if (showLabels.value)
+						{
+							_bitmapText.text = getLabel(tickValue);
+							_bitmapText.x = xTick + xLabelOffset;
+							_bitmapText.y = yTick + yLabelOffset;
+							_bitmapText.draw(task.buffer);
+						}
+						return task.iteration / task.recordKeys.length;
+					}
 					
-				}
-				destination.draw(tempShape);
-				
-				// draw tick mark label
-				if (showLabels.value)
-				{
-					_bitmapText.text = getLabel(tickValue);
-					_bitmapText.x = xTick + xLabelOffset;
-					_bitmapText.y = yTick + yLabelOffset;
-					_bitmapText.draw(destination);					
-				}
-			}
+					return 1; // avoids divide-by-zero when there are no record keys
+				}; // end task function
+			} // end if
+			
+			return (task.asyncState as Function).apply(this, arguments);
 		}
 		
 		private var _titleBounds:IBounds2D = null;

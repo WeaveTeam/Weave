@@ -74,14 +74,9 @@ package weave.data.AttributeColumns
 			return false;
 		}
 
-/*		protected function trace(...args):void
-		{
-			DebugUtils.debug_trace(this, args);
-		}
-*/		
 		public function toString():String
 		{
-			return getQualifiedClassName(this).split("::")[1] + ' "' + ColumnUtils.getTitle(this) + '"';
+			return debugId(this) + '(' + ColumnUtils.getTitle(this) + ')';
 		}
 	}
 }

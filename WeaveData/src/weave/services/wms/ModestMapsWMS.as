@@ -46,11 +46,14 @@ package weave.services.wms
 	import org.openscales.proj4as.proj.ProjMerc;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
 	import weave.core.ErrorManager;
 	import weave.primitives.Bounds2D;
+	import weave.utils.AsyncSort;
 
 	/**
 	 * This class is a wrapper around the ModestMaps library for both Microsoft and Yahoo
@@ -95,6 +98,15 @@ package weave.services.wms
 				case WMSProviders.MAPQUEST_AERIAL:
 					_mapProvider = new OpenMapQuestAerialProvider();
 					break;
+				case WMSProviders.STAMEN_TONER:
+					_mapProvider = new StamenProvider(StamenProvider.STYLE_TONER);
+					break;
+				case WMSProviders.STAMEN_TERRAIN:
+					_mapProvider = new StamenProvider(StamenProvider.STYLE_TERRAIN);
+					break;
+				case WMSProviders.STAMEN_WATERCOLOR:
+					_mapProvider = new StamenProvider(StamenProvider.STYLE_WATERCOLOR);
+					break;
 				default:
 					reportError("Attempt to set invalid map provider.");
 					return;
@@ -104,7 +116,7 @@ package weave.services.wms
 			_imageWidth = _mapProvider.tileWidth;
 			_imageHeight = _mapProvider.tileHeight;
 			_currentTileIndex = new WMSTileIndex();
-			triggerCallbacks();
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		public function get provider():IMapProvider
@@ -214,7 +226,7 @@ package weave.services.wms
 					
 					var urlRequest:URLRequest = new URLRequest(requestString);
 					// note that thisTileMercator is still in Mercator coords
-					var newTile:WMSTile = new WMSTile(thisTileMercator, _imageWidth, _imageHeight, urlRequest);
+					var newTile:WMSTile = registerLinkableChild(this, new WMSTile(thisTileMercator, _imageWidth, _imageHeight, urlRequest));
 					newTile.zoomLevel = _tempCoord.zoom; // need to manually set it so tileIndex queries work
 					_urlToTile[requestString] = newTile;
 					_pendingTiles.push(newTile);
@@ -223,7 +235,7 @@ package weave.services.wms
 			}
 
 			lowerQualTiles = lowerQualTiles.concat(completedTiles);
-			lowerQualTiles = lowerQualTiles.sort(tileSortingComparison);
+			AsyncSort.sortImmediately(lowerQualTiles, tileSortingComparison);
 			return lowerQualTiles;
 		}
 		
@@ -282,7 +294,7 @@ package weave.services.wms
 			// not all providers allow the same zoom range
 			if (_mapProvider is BlueMarbleMapProvider)
 				maxZoom = 9;
-			else if (_mapProvider is OpenStreetMapProvider)
+			else if (_mapProvider is OpenStreetMapProvider || _mapProvider is StamenProvider)
 				maxZoom = 18;
 			else if (_mapProvider is MicrosoftProvider)
 				maxZoom = 20;
@@ -462,6 +474,8 @@ package weave.services.wms
 				return 'Tiles Courtesy of MapQuest and (c) OpenStreetMap contributors, CC-BY-SA';
 			else if (_mapProvider is OpenMapQuestAerialProvider)
 				return 'Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency';
+			else if (_mapProvider is StamenProvider)
+				return 'Map tiles by Stamen Design, under CC BY 3.0. Data by OpenStreetMap, under CC BY SA.';
 			
 			return '';
 		}

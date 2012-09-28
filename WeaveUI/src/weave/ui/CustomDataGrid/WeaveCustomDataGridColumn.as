@@ -19,7 +19,6 @@
 
 package weave.ui.CustomDataGrid
 {
-	import mx.controls.Label;
 	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.core.ClassFactory;
 	
@@ -27,7 +26,7 @@ package weave.ui.CustomDataGrid
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.core.LinkableBoolean;
-	import weave.data.AttributeColumns.ImageColumn;
+	import weave.data.KeySets.SortedKeySet;
 	import weave.utils.ColumnUtils;
 	
 	public class WeaveCustomDataGridColumn extends DataGridColumn
@@ -36,7 +35,7 @@ package weave.ui.CustomDataGrid
 		{
 			_attrColumn = attrColumn;
 			labelFunction = extractDataFunction;
-			sortCompareFunction = ColumnUtils.generateSortFunction([_attrColumn]);
+			sortCompareFunction = SortedKeySet.generateCompareFunction([_attrColumn]);
 			headerWordWrap = true;
 			
 			var factory:ClassFactory = new ClassFactory(DataGridCellRenderer);
@@ -44,7 +43,7 @@ package weave.ui.CustomDataGrid
 				attrColumn: attrColumn,
 				showColors: showColors,
 				colorFunction: colorFunction,
-				keySet: Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET)
+				keySet: Weave.defaultSelectionKeySet
 			};
 			this.itemRenderer = factory;
 			
@@ -52,6 +51,7 @@ package weave.ui.CustomDataGrid
 			//this.width = 20;
 			this.minWidth = 0;	
 			
+			// TODO: this callback still runs after this DataGridColumn goes away?
 			_attrColumn.addImmediateCallback(this, handleColumnChange, true);						
 		}
 		

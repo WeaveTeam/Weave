@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300" label="Geometry Labels" 
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300" label="{lang('Geometry Labels')}" 
 		 implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*" xmlns="weave.editors.*">
 	<mx:VBox width="100%">
-		<ui:DynamicColumnComponent id="labelComponent" label="Label"/> 
-		<ui:DynamicColumnComponent id="geometryComponent" label="Geometry"/> 
+		<ui:DynamicColumnComponent id="labelComponent" label="{lang('Label')}"/> 
+		<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}"/> 
 	</mx:VBox>
 	<mx:HBox width="100%">
-		<mx:Label text="Label Text Size: " fontWeight="bold"/>
+		<mx:Label text="{lang('Label Text Size:')}" fontWeight="bold"/>
 		<mx:HSlider id="labelSizeSlider"
 					width="100%"
 					alpha="1.0"
@@ -17,7 +17,7 @@
 					creationComplete="linkBindableProperty(_plotter.size.defaultValue,event.target,'value')"/>
 	</mx:HBox>
 	<mx:HBox width="100%">
-		<mx:Label text="Label Text Color:" fontWeight="bold"/>
+		<mx:Label text="{lang('Label Text Color:')}" fontWeight="bold"/>
 		<mx:ColorPicker id="colorPicker" width="22" height="22"
 						creationComplete="linkBindableProperty(_plotter.color.defaultValue, event.target, 'selectedColor')"/>
 	</mx:HBox>
@@ -26,8 +26,6 @@
 		<![CDATA[
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
-			import weave.api.unlinkBindableProperty;
-			import weave.visualization.layers.SelectablePlotLayer;
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			
 			private var _plotter:GeometryLabelPlotter = null;

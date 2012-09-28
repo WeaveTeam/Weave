@@ -29,7 +29,7 @@
 		layout="absolute"
 		title="{viewStack.label}"
 		borderAlpha="1"
-		borderColor="#C5C3A8"
+		borderColor="#939178"
 		borderThicknessBottom="0" borderThicknessLeft="5" borderThicknessRight="5" borderThicknessTop="0"
 		verticalScrollPolicy="off"
 		horizontalScrollPolicy="off"
@@ -45,10 +45,10 @@
 	<mx:ControlBar paddingTop="5" paddingBottom="5">
 		<mx:Label text="Step {viewStack.selectedIndex + 1} of {viewStackNumChildren}"/>
 		<mx:Spacer width="100%"/>
-		<mx:Button id="backButton" label="Back" enabled="{viewStack.backEnabled &amp;&amp; (viewStack.selectedIndex &gt; 0)}" click="viewStack.back()"/>
-		<mx:Button id="nextButton" label="Next" enabled="{viewStack.nextEnabled &amp;&amp; (viewStack.selectedIndex &lt; viewStackNumChildren - 1)}" click="viewStack.next()"/>
-		<mx:Button id="finishButton" label="Finish" visible="{viewStack.finishEnabled}" enabled="{viewStack.finishEnabled}" click="viewStack.finish()" emphasized="true"/>
-		<mx:Button id="cancelButton" label="Close" click="viewStack.cancel();"/>
+		<mx:Button id="backButton" label="{lang('Back')}" enabled="{viewStack.backEnabled &amp;&amp; (viewStack.selectedIndex &gt; 0)}" click="viewStack.back()"/>
+		<mx:Button id="nextButton" label="{lang('Next')}" enabled="{viewStack.nextEnabled &amp;&amp; (viewStack.selectedIndex &lt; viewStackNumChildren - 1)}" click="viewStack.next()"/>
+		<mx:Button id="finishButton" label="{lang('Finish')}" visible="{viewStack.finishEnabled}" enabled="{viewStack.finishEnabled}" click="viewStack.finish()" emphasized="true"/>
+		<mx:Button id="cancelButton" label="{lang('Close')}" click="viewStack.cancel();"/>
 	</mx:ControlBar>
 	
 	<mx:Script>
@@ -68,7 +68,6 @@
 			override protected function constructor():void
 			{
 				super.constructor();
-				resizeable.value = false;
 				minimizable.value = false;
 				maximizable.value = false;
 			}

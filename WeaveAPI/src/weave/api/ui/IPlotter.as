@@ -55,16 +55,15 @@ package weave.api.ui
 		 */
 		function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array;
 
-		
 		/**
-		 * Draws the graphics for a list of records onto a sprite.
-		 * @param recordKeys The list of keys that identify which records should be used to generate the graphics.
-		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
-		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
-		 * @param destination The sprite to draw the graphics onto.
+		 * This function will perform one iteration of an asynchronous rendering task.
+		 * This function will be called multiple times across several frames until its return value is 1.0.
+		 * This function may be defined with override by classes that extend AbstractPlotter.
+		 * @param task An object containing the rendering parameters.
+		 * @return A number between 0 and 1 indicating the progress that has been made so far in the asynchronous rendering.
 		 */
-		function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void;
-
+		function drawPlotAsyncIteration(task:IPlotTask):Number;
+		
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the background.
 		 * @return The data bounds associated with the background of the plotter.

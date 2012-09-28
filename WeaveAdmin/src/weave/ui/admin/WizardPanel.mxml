@@ -29,9 +29,9 @@
 		layout="absolute"
 		title="{viewStack.label}"
 		borderAlpha="1"
-		borderColor="#C5C3A8"
+		borderColor="#939178"
 		borderThicknessBottom="0" borderThicknessLeft="8" borderThicknessRight="8" borderThicknessTop="0"
-		backgroundColor="#C5C3A8"
+		backgroundColor="#939178"
 		verticalScrollPolicy="off"
 		horizontalScrollPolicy="off"
 		roundedBottomCorners="true">

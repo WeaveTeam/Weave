@@ -1,47 +1,203 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute"
-				   width="400" height="300" title="Macro Editor">			
-	<ui:LinkableObjectList id="macroList" height="100%" width="100%"
-						   hashMap="{LinkableFunction.macros}"/>
-		<mx:ControlBar>
-			<mx:Button label="Edit" height="100%" width="33%" click="editEntry(event)"/>
-			<mx:Button label="Delete" height="100%" width="33%" click="deleteEntry(event)"/>
-			<mx:Button label="Add" height="100%" width="33%" click="newMacroEntry(event)"/>
-		</mx:ControlBar>
-		<mx:Script>
-			<![CDATA[
-				import mx.core.Application;
-				import mx.managers.PopUpManager;
-				
-				import weave.api.core.ILinkableHashMap;
-				import weave.core.LinkableFunction;
-				
-				protected function editEntry(event:MouseEvent):void
-				{
-					if(macroList.selectedIndex > -1)
-					{
-						var macroEditorWindow:MacroEditWindow = new MacroEditWindow();
-						PopUpManager.addPopUp(macroEditorWindow, Application.application as Application);
-						macroEditorWindow.restorePanel();
-						macroEditorWindow.macroName = macroList.hashMap.getName(macroList.selectedItem as LinkableFunction);	
-					}
-					
-				}
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-				protected function deleteEntry(event:MouseEvent):void
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+
+<!---
+@author jfallon
+-->
+<ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute"
+				   width="400" height="300" title="{lang('Macro Editor')}" backgroundColor="#EFF4BC">
+	<mx:VBox height="100%" width="100%" paddingBottom="5" paddingTop="5" paddingRight="5" paddingLeft="5">
+		<mx:HBox>
+			<mx:Button label="{lang('Add')}" height="100%" width="33%" click="newMacroEntry(event)"/>
+			<mx:Button label="{lang('Delete')}" height="100%" width="33%" click="deleteEntry(event)" enabled="{buttonsEnabled}"/>
+			<mx:Button label="{lang('Rename')}" height="100%" width="33%" click="renameMacroEntry(event)" enabled="{buttonsEnabled}"/>
+		</mx:HBox>
+		<mx:HDividedBox height="100%" width="100%">
+			<mx:VBox height="100%" width="100%" >
+				<ui:LinkableObjectList id="macroList" height="100%" width="100%"
+									   hashMap="{LinkableFunction.macros}" itemClick="macroList_itemClickHandler(event)"/>
+			</mx:VBox>
+			<mx:VBox height="100%" width="100%">
+				<mx:TextArea id="funcValues" height="100%" width="100%" change="funcValues_changeHandler(event)"/>
+				<mx:Text text="{lang('Macro Result:')}" />
+				<mx:TextArea id="macroResult" editable="false" width="100%" height="20%" />
+			</mx:VBox>
+		</mx:HDividedBox>
+	</mx:VBox>
+	<mx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import weave.core.LinkableHashMap;
+			
+			import mx.events.ListEvent;
+			
+			import weave.core.LinkableFunction;
+			import weave.ui.AlertTextBox;
+			import weave.ui.AlertTextBoxEvent;
+			
+			//Used for enabling/disabling the delete and rename button based on whether this macroList has at least one item.
+			[Bindable]
+			private var buttonsEnabled:Boolean = false;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				if( macroList.hashMap.getNames().length > 0 )
 				{
-					if( macroList.selectedIndex > -1)
+					buttonsEnabled = true;
+					macroList.selectedIndex = 0;
+					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+					funcValues_changeHandler(null);
+				}
+				this.targets = macroList.hashMap.getObjects(LinkableFunction);
+				(macroList.hashMap as LinkableHashMap).addImmediateCallback(this, enableButtonsCheck, true);
+			}
+			
+			protected function deleteEntry(event:MouseEvent):void
+			{
+				if( macroList.selectedIndex > -1)
+				{
+					LinkableFunction.macros.removeObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction));
+				}
+				if( macroList.hashMap.getNames().length > 0 )
+				{
+					macroList.selectedIndex = 0;
+					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+				}
+				else
+				{
+					funcValues.text = "";
+				}
+				if( macroList.hashMap.getNames().length == 0 )
+					funcValues.editable = false;
+			}
+			
+			protected function newMacroEntry(event:MouseEvent):void
+			{
+				var box:AlertTextBox = AlertTextBox.show(lang("Macro Naming Window"), lang("Enter a name for the new macro:"));
+				box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkInput);
+			}
+			
+			private function checkInput(event:AlertTextBoxEvent):void
+			{
+				if( event.confirm == true )
+				{
+					var macroNames:Array = LinkableFunction.macros.getNames();
+					for( var i:int = 0; i < macroNames.length; i++)
 					{
-						LinkableFunction.macros.removeObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction));
+						if( event.textInput == macroNames[i])
+						{
+							var box:AlertTextBox = AlertTextBox.show(lang("Macro Naming Window"), lang("The name you entered is already being used. Please enter a new name:"));
+							box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkInput);
+							return;
+						}
+					}
+					if( renaming )
+					{
+						macroList.hashMap.renameObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction), event.textInput);
+						macroList.selectedIndex = lastSelectedIndex;
+						renaming = false;
+						return;
+					}
+					var funcToSave:LinkableFunction = LinkableFunction.macros.requestObject(event.textInput, LinkableFunction, false);
+					macroList.selectedIndex = macroList.hashMap.getNames().length - 1;
+					funcValues.text = "";
+					if( macroList.hashMap.getNames().length == 1 )
+					{
+						macroList.selectedIndex = 0;
+						funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+					}
+					if( macroList.hashMap.getNames().length > 0 )
+						funcValues.editable = true;
+				}
+			}
+			
+			protected function macroList_itemClickHandler(event:ListEvent):void
+			{
+				if( macroList.selectedIndex > -1 )
+				{
+					funcValues.editable = true;
+					macroResult.text = "";
+					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;	
+					funcValues_changeHandler(null);
+				}
+			}
+			
+			protected function funcValues_changeHandler(event:Event):void
+			{
+				if(macroList.selectedIndex > -1)
+				{
+					try{
+						var funcToSave:LinkableFunction = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction);	
+						funcToSave.value = funcValues.text;
+						macroResult.text = LinkableFunction.evaluateMacro(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction));
+						if( macroResult.text == "" )
+							macroResult.text = lang("Error.");
+					}
+					catch(e:Error)
+					{
+						macroResult.text = lang("Error.");
 					}
 				}
-				
-				protected function newMacroEntry(event:MouseEvent):void
+			}
+			
+			//Used to flag that there is a renaming going on.
+			private var renaming:Boolean = false;
+			//Use to set the selectedIndex back to where it should be once renaming is completed.
+			private var lastSelectedIndex:int = 0;
+			
+			protected function renameMacroEntry(event:MouseEvent):void
+			{
+				if( macroList.selectedIndex > -1 )
 				{
-					var macroAddWindow:MacroAddWindow = new MacroAddWindow();
-					PopUpManager.addPopUp(macroAddWindow, Application.application as Application);
-					macroAddWindow.restorePanel();
+					renaming = true;
+					lastSelectedIndex = macroList.selectedIndex;
+					var box:AlertTextBox = AlertTextBox.show(lang("Macro Renaming Window"), lang("Enter a new name for the macro:"));
+					box.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED,checkInput);
 				}
-			]]>
-		</mx:Script>
-</ui:DraggablePanel>
+			}
+			
+			override public function revert():void
+			{
+				super.revert();
+				if( macroList.hashMap.getNames(LinkableFunction).length > 0 )
+					funcValues.text = (macroList.hashMap.getObject(macroList.hashMap.getName(macroList.selectedItem as LinkableFunction)) as LinkableFunction).value;
+			}
+			
+			protected function enableButtonsCheck():void
+			{
+				if( macroList.hashMap.getNames(LinkableFunction).length > 0 )
+				{
+					buttonsEnabled = true;
+					funcValues.editable = true;
+				}
+				else
+				{
+					buttonsEnabled = false;	
+					funcValues.editable = false;
+				}
+			}
+			
+		]]>
+	</mx:Script>
+</ui:ControlPanel>

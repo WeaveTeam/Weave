@@ -24,6 +24,7 @@ package weave.core
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.reportError;
+	import weave.utils.AsyncSort;
 	
 	/**
 	 * LinkableVariable allows callbacks to be added that will be called when the value changes.
@@ -65,7 +66,7 @@ package weave.core
 				// If callbacks were triggered, make sure callbacks are triggered again one frame later when
 				// it is possible for other classes to have a pointer to this object and retrieve the value.
 				if (defaultValueTriggersCallbacks && triggerCounter > DEFAULT_TRIGGER_COUNT)
-					WeaveAPI.StageUtils.callLater(this, _defaultValueTrigger, null, false);
+					WeaveAPI.StageUtils.callLater(this, _defaultValueTrigger, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 			}
 		}
 		
@@ -86,14 +87,7 @@ package weave.core
 		protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
 			if (_sessionStateType == null) // if no type restriction...
-			{
-				var type:String = typeof(otherSessionState);
-				if (type != typeof(_sessionState))
-					return false; // types differ, so not equal
-				if (type == 'object')
-					return false; // do not attempt an object compare.. assume not equal
-				return ObjectUtil.compare(_sessionState, otherSessionState) == 0; // compare primitive value
-			}
+				return AsyncSort.defaultCompare(_sessionState, otherSessionState) == 0;
 			return _sessionState == otherSessionState;
 		}
 		

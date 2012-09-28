@@ -26,13 +26,13 @@ package weave.services.beans
 			this.metadata = result.metadata;
 			this.keys = result.keys;
 			this.data = result.data;
-			this.secKeys = result.secKeys;
+			this.thirdColumn = result.thirdColumn;
 		}
 		
 		public var metadata:Object;
 		public var keys:Array;
 		public var data:Array;
-		public var secKeys:Array;
+		public var thirdColumn:Array;
 	}
 
 }

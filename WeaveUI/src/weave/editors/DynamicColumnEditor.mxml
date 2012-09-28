@@ -32,20 +32,26 @@
 			 borderColor="#000000" 
 			 horizontalScrollPolicy="off" verticalScrollPolicy="off">
 		<ui:TextInputWithPrompt id="searchCategoryTerms"
-					  prompt="Search categories"
+					  prompt="{lang('Search categories')}"
 					  keyUp="loadFilteredCategories();"
 					  clear="loadFilteredCategories();"
 					  width="100%"/>
 		<ui:TextInputWithPrompt id="searchAttrTerms"
-					  prompt="Search attribute columns"
+					  prompt="{lang('Search attribute columns')}"
 					  keyUp="loadFilteredAttributes();"
 					  clear="loadFilteredAttributes();"
 					  width="100%"/>
 		<mx:HBox id="keyTypeControls" width="100%">
 			<!--  toolTip="Select a desired key type.  Use this feature when you want to match up this data to a key type other than its own." -->
-			<mx:Label text="Key type:"/>
+			<mx:Label text="{lang('Key type:')}"/>
 			<ui:CustomComboBox id="keyTypeCombo" width="100%" change="handleKeyTypeComboChange();"/>
 		</mx:HBox>
+	</mx:HBox>
+	<mx:HBox verticalAlign="middle" visible="false" includeInLayout="false">
+		<mx:CheckBox label="{lang('Filter by')}" id="filterEnable" click="toggleFilterColumn()"/>
+		<mx:Label id="filterTitle"/>
+		<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="toggleFilterColumn();"/>
+		<mx:ComboBox enabled="{filterEnable.selected}" id="filterValue" prompt="Select filter value..." toolTip="{lang('Select a value used to filter the data.')}" change="initFilteredColumn();"/>
 	</mx:HBox>
 	
 	<mx:Script>
@@ -59,22 +65,34 @@
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.copySessionState;
 			import weave.api.core.ICallbackCollection;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.AttributeColumnMetadata;
 			import weave.api.data.IDataSource;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
+			import weave.api.getLinkableDescendants;
+			import weave.api.getSessionState;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
+			import weave.api.objectWasDisposed;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
+			import weave.api.setSessionState;
 			import weave.api.unlinkSessionState;
 			import weave.core.LinkableXML;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.EquationColumn;
+			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
 			import weave.data.DataSources.MultiDataSource;
+			import weave.data.KeySets.StringDataFilter;
 			import weave.primitives.AttributeHierarchy;
+			import weave.ui.ControlPanel;
+			import weave.utils.AsyncSort;
 			import weave.utils.ColumnUtils;
 			import weave.utils.HierarchyUtils;
 			import weave.utils.VectorUtils;
@@ -128,10 +146,25 @@
 				var attribute:XMLList = selectedPath.value.descendants("attribute");
 				if (attribute.length() > 0)
 				{
-					// if the internal column is not a ReferencedColumn, initialize it now
-					var refCol:ReferencedColumn = dynamicColumn.internalColumn as ReferencedColumn;
+					var dc:DynamicColumn = dynamicColumn;
+					
+					// if filtered column exists, we want to update the internal DynamicColumn instead.
+					var fc:FilteredColumn = dc.getInternalColumn() as FilteredColumn;
+					if (fc)
+						dc = fc.internalDynamicColumn;
+
+					// if the internal column is not a ReferencedColumn, attempt to initialize it now
+					if (!(dc.getInternalColumn() is ReferencedColumn))
+						dc.requestLocalObject(ReferencedColumn, false);
+					
+					var refCol:ReferencedColumn = dc.getInternalColumn() as ReferencedColumn;
+					// if the dynamicColumn does not allow changing the internal object, stop now
 					if (refCol == null)
-						refCol = dynamicColumn.requestLocalObject(ReferencedColumn, false);
+					{
+						reportError("This DynamicColumn is locked.");
+						setTarget(null);
+						return;
+					}
 					// if the internal column reference is not a HierarchyColumnReference, initialize it now, then return it
 					var ref:HierarchyColumnReference = refCol.internalColumnReference as HierarchyColumnReference;
 					if (ref == null)
@@ -140,6 +173,50 @@
 					if (ref != null)
 						copyPathToRef(selectedPath.value, ref);
 				}
+			}
+			
+			private function toggleFilterColumn():void
+			{
+				var fc:FilteredColumn = initFilteredColumn();
+				if (fc)
+				{
+					var sdf:StringDataFilter = fc.filter.requestLocalObject(StringDataFilter, false);
+					var editor:DynamicColumnEditor = ControlPanel.openEditor(sdf.column) as DynamicColumnEditor;
+					if (editor)
+						copySessionState(selectedPath, editor.selectedPath);
+				}
+			}
+			
+			private function initFilteredColumn():FilteredColumn
+			{
+				dynamicColumn.delayCallbacks();
+				
+				var fc:FilteredColumn = dynamicColumn.internalObject as FilteredColumn;
+				if (filterEnable.selected)
+				{
+					if (!fc)
+					{
+						var state:Object = getSessionState(dynamicColumn);
+						fc = dynamicColumn.requestLocalObject(FilteredColumn, false);
+						if (fc)
+							setSessionState(fc.internalDynamicColumn, state);
+					}
+					if (fc)
+					{
+						var sdf:StringDataFilter = fc.filter.requestLocalObject(StringDataFilter, false);
+						if (sdf)
+							sdf.stringValue.value = filterValue.text;
+					}
+				}
+				else if (fc)
+				{
+					copySessionState(fc.internalDynamicColumn, dynamicColumn);
+				}
+				
+				dynamicColumn.resumeCallbacks();
+				
+				// call getInternalColumn() again because callbacks may have removed it.
+				return dynamicColumn.getInternalColumn() as FilteredColumn;
 			}
 			
 			public function copyPathToRef(path:XML, ref:HierarchyColumnReference):void
@@ -198,11 +275,46 @@
 			 */
 			private function handleDynamicColumnChange():void
 			{
+				var dc:DynamicColumn = dynamicColumn;
+				
+				// begin filter code
+				var fc:FilteredColumn = dc.getInternalColumn() as FilteredColumn;
+				var sdf:StringDataFilter = null;
+				if (fc)
+				{
+					filterEnable.selected = true;
+					dc = fc.internalDynamicColumn;
+					sdf = fc.filter.requestLocalObject(StringDataFilter, false);
+				}
+				filterEnable.selected = sdf != null;
+				filterTitle.text = sdf ? ColumnUtils.getTitle(sdf.column) : '';
+				filterValue.selectedItem = sdf ? sdf.stringValue.value : '';
+				if (sdf && detectLinkableObjectChange(handleDynamicColumnChange, sdf.column))
+				{
+					//TODO - make this asynchronous
+					var valueMap:Object = {};
+					for each (var key:IQualifiedKey in sdf.column.keys)
+						valueMap[sdf.column.getValueFromKey(key, String)] = true;
+
+					var valueList:Array = [];
+					for (var string:String in valueMap)
+						valueList.push(string);
+					
+					AsyncSort.sortImmediately(valueList, AsyncSort.compareCaseInsensitive);
+					
+					filterValue.dataProvider = valueList;
+				}
+				else if (!sdf)
+				{
+					filterValue.dataProvider = [];
+				}
+				// end filter code
+				
 				var ref:HierarchyColumnReference = null;
-				if (dynamicColumn.internalColumn is ReferencedColumn)
-					ref = (dynamicColumn.internalColumn as ReferencedColumn).internalColumnReference as HierarchyColumnReference;
-				if (dynamicColumn.internalColumn is EquationColumn)
-					ref = (dynamicColumn.internalColumn as EquationColumn).variables.getObject(DATA_VARIABLE) as HierarchyColumnReference;
+				if (dc.getInternalColumn() is ReferencedColumn)
+					ref = (dc.getInternalColumn() as ReferencedColumn).internalColumnReference as HierarchyColumnReference;
+				if (dc.getInternalColumn() is EquationColumn)
+					ref = (dc.getInternalColumn() as EquationColumn).variables.getObject(DATA_VARIABLE) as HierarchyColumnReference;
 				if (ref && ref.hierarchyPath.value)
 				{
 					// convert the column reference path to a path in the multiDataSource.
@@ -230,7 +342,7 @@
 					keyType = node.attribute(AttributeColumnMetadata.KEY_TYPE);
 					compatibleTypes = WeaveAPI.QKeyManager.getCompatibleKeyTypes(keyType);
 					compatibleTypes.push(keyType);
-					compatibleTypes.sort(Array.CASEINSENSITIVE);
+					AsyncSort.sortImmediately(compatibleTypes, AsyncSort.compareCaseInsensitive);
 					VectorUtils.removeDuplicatesFromSortedArray(compatibleTypes);
 				}
 				else
@@ -278,7 +390,7 @@
 				//trace("handleAttributeDrag",event.target, event.currentTarget);
 				
 				var itemsArray:Array = new Array();
-				itemsArray.push(dynamicColumn.internalColumn);
+				itemsArray.push(dynamicColumn.getInternalColumn());
 				
 				var ds:DragSource = new DragSource();
 				ds.addData(itemsArray,"items");
@@ -313,7 +425,7 @@
 					
 					// if newly linked object doesn't have an internal column,
 					// keep the currently selected path except for the leaf node
-					if (_currentTarget.internalColumn == null)
+					if (_currentTarget.getInternalColumn() == null)
 					{
 						var path:LinkableXML = hierarchySelector.selectedPath;
 						if (!path.value)

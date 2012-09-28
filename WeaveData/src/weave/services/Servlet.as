@@ -38,7 +38,6 @@ package weave.services
 	import weave.api.services.IURLRequestUtils;
 	
 	/**
-	 * Servlet
 	 * This is an IAsyncService interface for a servlet that takes its parameters from URL variables.
 	 * 
 	 * @author adufilie
@@ -86,11 +85,6 @@ package weave.services
 		protected var _urlRequestDataFormat:String;
 		
 		/**
-		 * Set this to false to disable automatic progress reporting to WeaveAPI.ProgressIndicator.
-		 */		
-		internal var reportProgress:Boolean = true;
-
-		/**
 		 * This function makes a remote procedure call.
 		 * @param methodName The name of the method to call.
 		 * @param methodParameters The parameters to use when calling the method.
@@ -98,7 +92,40 @@ package weave.services
 		 */
 		public function invokeAsyncMethod(methodName:String, methodParameters:Object = null):AsyncToken
 		{
-			var request:URLRequest = new URLRequest(_servletURL);
+			var token:AsyncToken = new AsyncToken();
+			
+			_asyncTokenData[token] = arguments;
+			
+			if (!_invokeLater)
+				invokeNow(token);
+			
+			return token;
+		}
+		
+		/**
+		 * This function may be overrided to give different servlet URLs for different methods.
+		 * @param methodName The method.
+		 * @return The servlet url for the method.
+		 */
+		protected function getServletURLForMethod(methodName:String):String
+		{
+			return _servletURL;
+		}
+		
+		/**
+		 * This will make a url request that was previously delayed.
+		 * @param invokeToken An AsyncToken generated from a previous call to invokeAsyncMethod().
+		 */
+		protected function invokeNow(invokeToken:AsyncToken):void
+		{
+			var args:Array = _asyncTokenData[invokeToken] as Array;
+			if (!args)
+				return;
+			
+			var methodName:String = args[0];
+			var methodParameters:Object = args[1];
+			
+			var request:URLRequest = new URLRequest(getServletURLForMethod(methodName));
 			
 			if (_urlRequestDataFormat == REQUEST_FORMAT_VARIABLES)
 			{
@@ -157,12 +184,29 @@ package weave.services
 				request.data = byteArray;
 			}
 			
-			var token:AsyncToken = new AsyncToken();
-			
 			// the last argument is BINARY instead of _dataFormat because the stream should not be parsed
-			_asyncTokenToLoader[token] = WeaveAPI.URLRequestUtils.getURL(request, resultHandler, faultHandler, token, URLLoaderDataFormat.BINARY, reportProgress);
-			return token;
+			_asyncTokenData[invokeToken] = WeaveAPI.URLRequestUtils.getURL(this, request, resultHandler, faultHandler, invokeToken, URLLoaderDataFormat.BINARY);
 		}
+		
+		/**
+		 * Set this to true to prevent url requests from being made right away.
+		 * When this is set to true, invokeNow() must be called to make delayed url requests.
+		 * Setting this to false will immediately resume all delayed url requests.
+		 */
+		protected function set invokeLater(value:Boolean):void
+		{
+			_invokeLater = value;
+			if (!_invokeLater)
+				for (var token:Object in _asyncTokenData)
+					invokeNow(token as AsyncToken);
+		}
+		
+		protected function get invokeLater():Boolean
+		{
+			return _invokeLater;
+		}
+		
+		private var _invokeLater:Boolean = false;
 		
 		/**
 		 * Cancel a URLLoader request from a given AsyncToken.
@@ -173,26 +217,30 @@ package weave.services
 		 */		
 		public function cancelLoaderFromToken(asyncToken:AsyncToken):void
 		{
-			var loader:URLLoader = _asyncTokenToLoader[asyncToken];
+			var loader:URLLoader = _asyncTokenData[asyncToken] as URLLoader;
 			
 			if (loader)
 				loader.close();
+			
+			delete _asyncTokenData[asyncToken];
 		}
 		
 		/**
 		 * This is a mapping of AsyncToken objects to URLLoader objects. 
 		 * This mapping is necessary so a client with an AsyncToken can cancel the loader. 
 		 */		
-		private const _asyncTokenToLoader:Dictionary = new Dictionary();
+		private const _asyncTokenData:Dictionary = new Dictionary();
 				
 		private function resultHandler(event:ResultEvent, token:Object = null):void
 		{
 			(token as AsyncToken).mx_internal::applyResult(event);
+			delete _asyncTokenData[token];
 		}
 		
 		private function faultHandler(event:FaultEvent, token:Object = null):void
 		{
 			(token as AsyncToken).mx_internal::applyFault(event);
+			delete _asyncTokenData[token];
 		}
 	}
 }

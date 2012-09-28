@@ -75,6 +75,8 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 	public static final String XML_FILENAME = "sqlconfig.xml";
 	public static final String DTD_FILENAME = "sqlconfig.dtd";
 	public static final URL DTD_EMBEDDED = SQLConfigXML.class.getResource("/weave/config/" + DTD_FILENAME);
+	
+	public static boolean includeGeometryInTable = true;
 
 	private static final String ENTRYTYPE_CONNECTION = "connection";
 	private static final String ENTRYTYPE_DATATABLE = "dataTable";
@@ -134,6 +136,7 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 			accessLogConnectionName = XMLUtils.getStringFromXPath(doc, xpath, "/sqlConfig/accessLog/@connection");
 			accessLogSchema = XMLUtils.getStringFromXPath(doc, xpath, "/sqlConfig/accessLog/@schema");
 			accessLogTable = XMLUtils.getStringFromXPath(doc, xpath, "/sqlConfig/accessLog/@table");
+			includeGeometryInTable = XMLUtils.getStringFromXPath(doc, xpath, "/sqlConfig/@includeGeometryInTable").equalsIgnoreCase("true");
 
 			removeDuplicateEntries();
 		}

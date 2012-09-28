@@ -25,11 +25,17 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getLinkableOwner;
 	import weave.api.linkSessionState;
-	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -38,7 +44,6 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.StringLookupColumn;
 	import weave.primitives.ColorRamp;
 	import weave.utils.BitmapText;
-	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
@@ -57,11 +62,13 @@ package weave.visualization.plotters
 			init();
 		}
 		
-		private var _beginRadians:EquationColumn;
-		private var _spanRadians:EquationColumn;
-		private var _binLookup:StringLookupColumn;
-		private var _binnedData:BinnedColumn;
-		private var _filteredData:FilteredColumn;
+		public var _beginRadians:EquationColumn;
+		public var _spanRadians:EquationColumn;
+		public var _binLookup:StringLookupColumn;
+		public var _binLookupStats:IColumnStatistics;
+		public var _binnedData:BinnedColumn;
+		public var _filteredData:FilteredColumn;
+		
 		public const chartColors:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))); // bars get their color from here
 		
 		public function get binnedData():BinnedColumn { return _binnedData; }
@@ -80,18 +87,28 @@ package weave.visualization.plotters
 		{
 			(fillStyle.internalObject as SolidFillStyle).color.defaultValue.setSessionState(0x808080);
 			
-			_beginRadians = newDisposableChild(this, EquationColumn);
+			_beginRadians = newSpatialProperty(EquationColumn);
 			_beginRadians.equation.value = "0.5 * PI + getRunningTotal(spanRadians) - getNumber(spanRadians)";
 			_spanRadians = _beginRadians.requestVariable("spanRadians", EquationColumn, true);
 			_spanRadians.equation.value = "getNumber(binSize) / getSum(binSize) * 2 * PI";
 			var binSize:EquationColumn = _spanRadians.requestVariable("binSize", EquationColumn, true);
 			binSize.equation.value = "getValue(binLookup).length";
 			_binLookup = binSize.requestVariable("binLookup", StringLookupColumn, true);
+			_binLookupStats = WeaveAPI.StatisticsCache.getColumnStatistics(_binLookup);
 			_binnedData = _binLookup.requestLocalObject(BinnedColumn, true);
 			_filteredData = binnedData.internalDynamicColumn.requestLocalObject(FilteredColumn, true);
 			linkSessionState(keySet.keyFilter, _filteredData.filter);
-			registerSpatialProperty(_binnedData);
-			setKeySource(_filteredData);
+			registerLinkableChild(this, _binnedData);
+			setSingleKeySource(_filteredData);
+			
+			var ecArray:Array = [_beginRadians, _spanRadians, binSize];
+			var nameArray:Array = ["beginRadians", "spanRadians", "binSize"];
+			while (ecArray.length)
+			{
+				var metadata:Object = {};
+				metadata[AttributeColumnMetadata.TITLE] = nameArray.pop();
+				(ecArray.pop() as EquationColumn).metadata.value = metadata;
+			}
 			
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}
@@ -99,39 +116,74 @@ package weave.visualization.plotters
 		/**
 		 * This draws the histogram bins that a list of record keys fall into.
 		 */
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			// convert record keys to bin keys
-			// save a mapping of each bin key found to a value of true
-			var binKeyMap:Dictionary = new Dictionary();
-			for (var i:int = 0; i < recordKeys.length; i++)
-				binKeyMap[ _binLookup.getStringLookupKeyFromInternalColumnKey(recordKeys[i]) ] = true;
+			var binKeys:Array;
+			var binKeyMap:Dictionary;
+			if (task.iteration == 0)
+			{
+				// convert record keys to bin keys
+				// save a mapping of each bin key found to a record key in that bin
+				binKeyMap = new Dictionary();
+				for each (var recordKey:IQualifiedKey in task.recordKeys)
+					binKeyMap[ _binLookup.getStringLookupKeyFromInternalColumnKey(recordKey) ] = recordKey;
+				
+				binKeys = [];
+				for (var binQKey:* in binKeyMap)
+					binKeys.push(binQKey);
+				
+				task.asyncState.binKeys = binKeys;
+				task.asyncState.binKeyMap = binKeyMap;
+			}
 			
-			var binKeys:Array = [];
-			for (var binQKey:* in binKeyMap)
-				binKeys.push(binQKey);
+			binKeyMap = task.asyncState.binKeyMap;
+			binKeys = task.asyncState.binKeys;
 			
-			// draw the bins
-			super.drawPlot(binKeys, dataBounds, screenBounds, destination);
+			if (task.iteration < binKeys.length)
+			{
+				//------------------------
+				// draw one record
+				var binKey:IQualifiedKey = binKeys[task.iteration] as IQualifiedKey;
+				tempShape.graphics.clear();
+				
+				drawBin(task, binKey);
+				
+				if (clipDrawing)
+				{
+					// get clipRectangle
+					task.screenBounds.getRectangle(clipRectangle);
+					// increase width and height by 1 to avoid clipping rectangle borders drawn with vector graphics.
+					clipRectangle.width++;
+					clipRectangle.height++;
+				}
+				task.buffer.draw(tempShape, null, null, null, clipDrawing ? clipRectangle : null);
+				//------------------------
+				
+				// report progress
+				return task.iteration / binKeys.length;
+			}
+			
+			// report progress
+			return 1;
 		}
 		
-		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
+		protected function drawBin(task:IPlotTask, binKey:IQualifiedKey):void
 		{
 			// project data coordinates to screen coordinates and draw graphics
-			var beginRadians:Number = _beginRadians.getValueFromKey(recordKey, Number);
-			var spanRadians:Number = _spanRadians.getValueFromKey(recordKey, Number);
+			var beginRadians:Number = _beginRadians.getValueFromKey(binKey, Number);
+			var spanRadians:Number = _spanRadians.getValueFromKey(binKey, Number);
 			
 			var graphics:Graphics = tempShape.graphics;
 			// begin line & fill
-			lineStyle.beginLineStyle(recordKey, graphics);				
+			lineStyle.beginLineStyle(binKey, graphics);
 			//fillStyle.beginFillStyle(recordKey, graphics);
 			
 			// draw graphics
-			var color:Number = chartColors.getColorFromNorm( ColumnUtils.getNorm(_binLookup, recordKey) );
+			var color:Number = chartColors.getColorFromNorm( _binLookupStats.getNorm(binKey) );
 			graphics.beginFill(color, 1);
 			
 			// move to center point
-			WedgePlotter.drawProjectedWedge(graphics, dataBounds, screenBounds, beginRadians, spanRadians);
+			WedgePlotter.drawProjectedWedge(graphics, task.dataBounds, task.screenBounds, beginRadians, spanRadians);
 			// end fill
 			graphics.endFill();
 		}

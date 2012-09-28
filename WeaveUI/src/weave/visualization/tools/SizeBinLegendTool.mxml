@@ -32,42 +32,39 @@
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableDynamicObject;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.LinkableTextFormat;
-			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.layers.InteractiveVisualization;
+			import weave.visualization.layers.LayerSettings;
+			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
 			import weave.visualization.plotters.SizeBinLegendPlotter;
 			
+			private const COLOR_LEGEND_LAYER_NAME:String = "color legend";
 			private var _sizeBinLegendPlotter:SizeBinLegendPlotter;
-			private var _sizeBinLegendLayerName:String;
-			private const _colorLegendLayerName:String = "color legend";
-			private var _colorLegendLayer:SelectablePlotLayer;
+			private var _sizeBinLegendLayerSettings:LayerSettings;
+			private var _colorLegendLayerSettings:LayerSettings;
 			
 			override protected function constructor():void
 			{
 				super.constructor();
 				// lock dynamic objects into place
 				
-				// create size bin legend
 				_sizeBinLegendPlotter = initializePlotters(SizeBinLegendPlotter, false);
-				_sizeBinLegendLayerName = visualization.layers.getName(plotLayer);
-				plotLayer.useTextBitmapFilters.value = true;
+				visualization.plotManager.plotters.requestObject(COLOR_LEGEND_LAYER_NAME, ColorBinLegendPlotter, true);
 				
-				// create global color ramp legend
-				_colorLegendLayer = visualization.layers.requestObject(_colorLegendLayerName, SelectablePlotLayer, true);
-				_colorLegendLayer.getDynamicPlotter().requestLocalObject(ColorBinLegendPlotter, true);
-				_colorLegendLayer.useTextBitmapFilters.value = true;
+				_sizeBinLegendLayerSettings = visualization.plotManager.getLayerSettings(SimpleInteractiveVisualization.MAIN_PLOT_LAYER_NAME);
+				_colorLegendLayerSettings = visualization.plotManager.getLayerSettings(COLOR_LEGEND_LAYER_NAME);
 				
-				visualization.enableAutoZoomToExtent.value = true;
+				visualization.plotManager.enableAutoZoomToExtent.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
-				visualization.marginBottom.value = "5";
-				visualization.marginTop.value    = DEFAULT_MARGIN_TOP.toString();
-				visualization.marginLeft.value   = "5";
-				visualization.marginRight.value  = "5";
+				visualization.plotManager.marginBottom.value = "5";
+				visualization.plotManager.marginTop.value    = DEFAULT_MARGIN_TOP.toString();
+				visualization.plotManager.marginLeft.value   = "5";
+				visualization.plotManager.marginRight.value  = "5";
 
 				visualization.topMarginClickCallbacks.addImmediateCallback(this, handleMarginLabelClick);
 				colorColumn.addImmediateCallback(this, updateMarginLabel, true);
@@ -81,13 +78,13 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				visualization.marginTopNumber.addGroupedCallback(this, handleMarginChange);
-				linkBindableProperty(visualization.marginTopNumber, marginLabel, "height");
+				visualization.plotManager.marginTopNumber.addGroupedCallback(this, handleMarginChange);
+				linkBindableProperty(visualization.plotManager.marginTopNumber, marginLabel, "height");
 			}
 			private static const DEFAULT_MARGIN_TOP:int = 25;
 			private function handleMarginChange():void
 			{
-				marginLabelCheckBox.selected = visualization.marginTopNumber.value != 0;
+				marginLabelCheckBox.selected = visualization.plotManager.marginTopNumber.value != 0;
 			}
 			
 			public const dynamicScatterPlotTool:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ScatterPlotTool), handleScatterPlotChange, true);
@@ -102,22 +99,22 @@
 				
 				if (scatterPlot != null)
 				{
-					copySessionState(scatterPlot.plotter.radiusColumn, _sizeBinLegendPlotter.radiusColumn);
+					copySessionState(scatterPlot.plotter.screenRadius, _sizeBinLegendPlotter.radiusColumn);
 					copySessionState(scatterPlot.plotter.minScreenRadius, _sizeBinLegendPlotter.minScreenRadius);
 					copySessionState(scatterPlot.plotter.maxScreenRadius, _sizeBinLegendPlotter.maxScreenRadius);
 				}
 				
-				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
+				if (scatterPlot && scatterPlot.plotter.enabledSizeBy.value)
 				{
-					// show global color ramp legend
-					_colorLegendLayer.layerIsVisible.value = true;
-					plotLayer.layerIsVisible.value = false;
+					// show size bin legend
+					_colorLegendLayerSettings.visible.value = false;
+					_sizeBinLegendLayerSettings.visible.value = true;
 				}
 				else
 				{
-					// show size bin legend
-					_colorLegendLayer.layerIsVisible.value = false;
-					plotLayer.layerIsVisible.value = true;
+					// show global color ramp legend
+					_colorLegendLayerSettings.visible.value = true;
+					_sizeBinLegendLayerSettings.visible.value = false;
 				}
 				
 				updateMarginLabel();
@@ -128,11 +125,13 @@
 				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
 					AttributeSelectorPanel.openDefaultSelector(colorColumn);
 				else
-					AttributeSelectorPanel.openDefaultSelector(scatterPlot.plotter.radiusColumn);
+					AttributeSelectorPanel.openDefaultSelector(scatterPlot.plotter.screenRadius);
 			}
 			
 			[Bindable] private var marginLabelText:String = "";
 			[Bindable] private var marginLabelMode:String = "";
+			private static const MARGIN_LABEL_MODE_COLOR:String = lang('color');
+			private static const MARGIN_LABEL_MODE_SIZE:String = lang('size');
 			
 			private function updateMarginLabel():void
 			{
@@ -142,12 +141,12 @@
 				if (_sizeBinLegendPlotter.radiusColumn.keys.length == 0 || scatterPlot == null)
 				{
 					marginLabelText = ColumnUtils.getTitle(colorColumn);
-					marginLabelMode = "color";
+					marginLabelMode = MARGIN_LABEL_MODE_COLOR;
 				}
 				else
 				{
 					marginLabelText = ColumnUtils.getTitle(_sizeBinLegendPlotter.radiusColumn);
-					marginLabelMode = "size";
+					marginLabelMode = MARGIN_LABEL_MODE_SIZE;
 				}
 
 				LinkableTextFormat.defaultTextFormat.copyToStyle(marginLabel);
@@ -155,26 +154,26 @@
 			
 			private function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 		]]>
 	</mx:Script>
 	
 	<mx:TextArea id="marginLabel"
+				 visible="{marginLabel.height > 0}"
 				 fontWeight="bold" click="handleMarginLabelClick()" 
 				 x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5"
 				 text="{marginLabelText}" width="100%"
-				 mouseOver="CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR)"
+				 mouseOver="CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK)"
 				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				 mouseOut="CustomCursorManager.removeCurrentCursor()"
+				 mouseOut="CustomCursorManager.hack_removeCurrentCursor()"
 				 wordWrap="true" selectable="false" editable="false"
 				 borderThickness="0" backgroundAlpha="0"
-				 toolTip="{marginLabelText} &#13;&#09;Click here to select the attribute used for {marginLabelMode}."/>
+				 toolTip="{lang('{0}\r\tClick here to select the attribute used for {1}.', marginLabelText, marginLabelMode)}"/>
 
 	<ui:ControlPanel>
 			<mx:Panel id="attributesPanel" 
-					  label="Display Preferences"
+					  label="{lang('Display Preferences')}"
 					  headerHeight="2"
 					  borderColor="0x000000" 
 					  backgroundColor="0xCCCCCC" 
@@ -184,7 +183,7 @@
 					  width="100%" 
 					  borderAlpha="0.2" 
 					  borderStyle="none">
-				<mx:CheckBox id="marginLabelCheckBox" label="Show legend attribute name" change="visualization.marginTopNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0;" toolTip="Click to hide the title of the Legend."/>
+				<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show legend attribute name')}" change="visualization.plotManager.marginTopNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_TOP : 0;" toolTip="{lang('Click to hide the title of the Legend.')}"/>
 			</mx:Panel>
 	</ui:ControlPanel>
 </SimpleVisTool>

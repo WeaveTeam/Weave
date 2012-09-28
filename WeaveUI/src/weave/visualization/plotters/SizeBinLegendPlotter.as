@@ -24,9 +24,11 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ITextPlotter;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
@@ -39,7 +41,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author yluo
 	 */
-	public class SizeBinLegendPlotter extends AbstractPlotter
+	public class SizeBinLegendPlotter extends AbstractPlotter implements ITextPlotter
 	{
 		public function SizeBinLegendPlotter()
 		{
@@ -55,6 +57,7 @@ package weave.visualization.plotters
 		}
 		
 		public const radiusColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
+		private const radiusColumnStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(radiusColumn));
 		public const minScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const maxScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const defaultScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
@@ -66,11 +69,6 @@ package weave.visualization.plotters
 		 * This is the line style used to draw the outline of the shape.
 		 */
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
-		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			// draw nothing -- everything is in the background layer
-		}
 		
 		private const tempPoint:Point = new Point(); // reusable temporary object
 		private var XMIN:Number = 0, YMIN:Number = 0, XMAX:Number = 1, YMAX:Number = 1;		
@@ -90,8 +88,8 @@ package weave.visualization.plotters
 			numberOfTick = Math.floor(screenBounds.getYCoverage() / (maxScreenRadius.value * 2.5));
 			
 			// calculate how many circles should be drawn
-			valueMax = WeaveAPI.StatisticsCache.getMax(radiusColumn);
-			valueMin = WeaveAPI.StatisticsCache.getMin(radiusColumn);
+			valueMax = radiusColumnStats.getMax();
+			valueMin = radiusColumnStats.getMin();
 			var tempNumberOfTick:Number = numberOfTick;
 			var numberOfTickReturned:Number = 0;
 			

@@ -24,6 +24,8 @@ package weave.services.wms
 	import flash.net.URLRequest;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableObject;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IURLRequestUtils;
@@ -35,7 +37,7 @@ package weave.services.wms
 	 * 
 	 * @author kmonico
 	 */
-	public class WMSTile 
+	public class WMSTile implements ILinkableObject, IDisposableObject
 	{
 		/**
 		 * @param newBounds The bounding box of the tile.
@@ -181,7 +183,12 @@ package weave.services.wms
 		public function downloadImage(resultFunction:Function, faultFunction:Function, token:Object = null):void
 		{
 			cancelDownload();
-			_urlRequestToken = WeaveAPI.URLRequestUtils.getContent(_urlRequest, resultFunction, faultFunction, token);
+			_urlRequestToken = WeaveAPI.URLRequestUtils.getContent(this, _urlRequest, resultFunction, faultFunction, token);
+		}
+		
+		public function dispose():void
+		{
+			cancelDownload();
 		}
 	}
 }

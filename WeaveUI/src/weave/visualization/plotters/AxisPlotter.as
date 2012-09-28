@@ -32,6 +32,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
@@ -57,7 +58,7 @@ package weave.visualization.plotters
 			axisLineMinValue.value = -1;
 			axisLineMaxValue.value = 1;
 			
-			setKeySource(_keySet);
+			setSingleKeySource(_keySet);
 		}
 		
 		//TODO: put this huge list of properties into a separate object instead
@@ -197,7 +198,12 @@ package weave.visualization.plotters
 		}
 		
 		// draws the tick marks
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
+			return 1;
+		}
+		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 //			if (recordKeys.length == 0)
 //				trace(this,'drawPlot',arguments);

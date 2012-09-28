@@ -43,7 +43,6 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.containers.VBox;
-			import mx.core.Application;
 			import mx.core.mx_internal;
 			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
@@ -56,8 +55,7 @@
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
 			import weave.core.ExternalSessionStateInterface;
-			import weave.core.weave_internal;
-			use namespace weave_internal;
+			import weave.utils.DebugUtils;
 			use namespace mx_internal;
 			
 			[Bindable] public var padding:int = 5;
@@ -90,8 +88,13 @@
 				return ILinkableObject(target);
 			}
 			private const watchLookup:Dictionary = new Dictionary(true);
-			private function consoleWatch(target:Object, debugString:String):void
+			private function consoleWatch(target:Object = null, debugString:String = null):void
 			{
+				if (!target || !debugString)
+				{
+					consoleTrace('Usage: consoleWatch( target , "{ <CODE> }" )');
+					return;
+				}
 				var linkableTarget:ILinkableObject = getObject(target);
 				consoleUnwatch(linkableTarget);
 				var callback:Function = function():void { consoleTraceEval(linkableTarget, debugString); };
@@ -118,7 +121,7 @@
 					consoleTrace(script, e);
 				}
 			}
-			private function consoleTrace(...args):void
+			public function consoleTrace(...args):void
 			{
 				log.text += '\r\r' + args.join('\r');
 				log.validateNow();
@@ -130,27 +133,33 @@
 			}
 			
 			private const symbolTable:Object = {
-				'javaScript': function(...args):*
+				'call': function(...args):*
 				{
 					var prev:Boolean = ExternalInterface.marshallExceptions;
+					var result:*;
 					try
 					{
 						ExternalInterface.marshallExceptions = true;
-						ExternalInterface.call.apply(this, args);
+						result = ExternalInterface.call.apply(this, args);
 					}
 					finally
 					{
 						ExternalInterface.marshallExceptions = prev;
 					}
+					return result;
 				},
-				'application': Application.application,
-				'visApp': Application.application.visApp,
+				'application': WeaveAPI.topLevelApplication,
+				'visApp': WeaveAPI.topLevelApplication.visApp,
 				'print': ObjectUtil.toString as Function,
 				'getObject': getObject,
 				'clear': consoleClear,
 				'watch': consoleWatch,
 				'unwatch': consoleUnwatch,
-				'trace': consoleTrace
+				'trace': consoleTrace,
+				'debugId': debugId,
+				'debugLookup': debugLookup,
+				'debugTrace': debugTrace,
+				'debugDisplayList': DebugUtils.debugDisplayList
 			};
 			private function runCommand():void
 			{

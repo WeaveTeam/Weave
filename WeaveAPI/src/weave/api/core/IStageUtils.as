@@ -58,20 +58,23 @@ package weave.api.core
 		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed of, the specified method will not be called.
 		 * @param method The function to call later.
 		 * @param parameters The parameters to pass to the function.
+		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 */
-		function callLater(relevantContext:Object, method:Function, parameters:Array = null, allowMultipleFrameDelay:Boolean = true):void;
+		function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void;
 		
 		/**
 		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed of.
 		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed of, the task will no longer be iterated.
 		 * @param iterativeTask A function that performs a single iteration of the asynchronous task.
-		 *   This function must take no parameters and return a number from 0.0 to 1.0 indicating the overall progress of the task.
-		 *   A number below 1.0 indicates that the function should be called again to continue the task.
+		 *   This function must take zero or one parameter and return a number from 0.0 to 1.0 indicating the overall progress of the task.
+		 *   A return value below 1.0 indicates that the function should be called again to continue the task.
 		 *   When the task is completed, iterativeTask() should return 1.0.
+		 *   The optional parameter specifies the time when the function should return. If the function accepts the returnTime
+		 *   parameter, it will not be called repeatedly within the same frame even if it returns before the returnTime.
 		 *   Example:
 		 *       var array:Array = ['a','b','c','d'];
 		 *       var index:int = 0;
-		 *       function iterativeTask():Number
+		 *       function iterativeTask():Number // this may be called repeatedly in succession
 		 *       {
 		 *           if (index >= array.length) // in case the length is zero
 		 *               return 1;
@@ -81,8 +84,25 @@ package weave.api.core
 		 *           index++;
 		 *           return index / array.length;  // this will return 1.0 on the last iteration.
 		 *       }
+		 *   Example 2:
+		 *       var array:Array = ['a','b','c','d'];
+		 *       var index:int = 0;
+		 *       function iterativeTaskWithTimer(returnTime:int):Number // this will be called only once in succession
+		 *       {
+		 *           for (; index < array.length; index++)
+		 *           {
+		 *               if (getTimer() > returnTime)
+		 *                   return index / array.length; // progress so far
+		 * 
+		 *               trace(array[index]);
+		 *           }
+		 *           return 1;
+		 *       }
+		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
+		 * @param finalCallback A function that should be called after the task is completed.
+		 * @see weave.api.WeaveAPI
 		 */
-		function startTask(relevantContext:Object, iterativeTask:Function):void;
+		function startTask(relevantContext:Object, iterativeTask:Function, priority:int, finalCallback:Function = null):void;
 		
 		/**
 		 * This is the last event that occurred on the stage.
@@ -121,6 +141,11 @@ package weave.api.core
 		 * @return The current pressed state of the mouse button.
 		 */
 		function get mouseButtonDown():Boolean;
+		
+		/**
+		 * @return true if the mouse was clicked without moving
+		 */
+		function get pointClicked():Boolean;
 		
 		/**
 		 * @return true if the mouse moved since the last frame.

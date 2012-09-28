@@ -23,11 +23,13 @@ package weave.data.BinningDefinitions
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.data.AttributeColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IQualifiedKey;
 	import weave.data.BinClassifiers.SingleValueClassifier;
+	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 
 	/**
@@ -39,6 +41,7 @@ package weave.data.BinningDefinitions
 	{
 		public function CategoryBinningDefinition()
 		{
+			overrideBinNames.lock(); // no bin names allowed
 		}
 		
 		/**
@@ -68,22 +71,22 @@ package weave.data.BinningDefinitions
 			for each (var key:IQualifiedKey in column.keys)
 			{
 				str = column.getValueFromKey(key, String) as String;
-				if (!_sortMap.hasOwnProperty(str))
+				if (str && !_sortMap.hasOwnProperty(str))
 				{
 					strArray[int(i++)] = str;
 					_sortMap[str] = column.getValueFromKey(key, Number);
 				}
 			}
 			strArray.length = i; // truncate
-			strArray.sort(_sortFunc); // sort strings by corresponding numeric values
+			AsyncSort.sortImmediately(strArray, _sortFunc); // sort strings by corresponding numeric values
 			var n:int = strArray.length;
 			for (i = 0; i < n; i++)
 			{
 				//first get name from overrideBinNames
-				str = getNameFromOverrideString(i);
-				//if it is empty string set it from generateBinLabel
-				if(!str)
-					str = strArray[i] as String;
+				str = strArray[i] as String;
+				
+				//TODO: look up replacement name once we store original + modified names together rather than a simple Array of replacement names.
+				
 				var svc:SingleValueClassifier = output.requestObject(str, SingleValueClassifier, false);
 				svc.value = strArray[i];
 			}

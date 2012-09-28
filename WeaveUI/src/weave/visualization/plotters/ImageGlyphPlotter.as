@@ -32,9 +32,8 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.services.IURLRequestUtils;
+	import weave.api.ui.IPlotTask;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	
@@ -70,18 +69,18 @@ package weave.visualization.plotters
 		/**
 		 * Draws the graphics onto BitmapData.
 		 */
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			for (var i:int = 0; i < recordKeys.length; i++)
+			if (task.iteration < task.recordKeys.length)
 			{
-				var recordKey:IQualifiedKey = recordKeys[i] as IQualifiedKey;
+				var recordKey:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
 				var _imageURL:String = imageURL.getValueFromKey(recordKey, String) as String;
 				var _imageSize:Number = imageSize.getValueFromKey(recordKey, Number);
 				if (isNaN(_imageSize))
 					_imageSize = 32;
 				tempPoint.x = dataX.getValueFromKey(recordKey, Number);
 				tempPoint.y = dataY.getValueFromKey(recordKey, Number);
-				dataBounds.projectPointTo(tempPoint, screenBounds);
+				task.dataBounds.projectPointTo(tempPoint, task.screenBounds);
 				
 				var image:BitmapData = _urlToImageMap[_imageURL] as BitmapData;
 				if (image != null)
@@ -96,16 +95,23 @@ package weave.visualization.plotters
 							Math.round(tempPoint.y - _imageSize / 2)
 						);
 					// draw image
-					destination.draw(image, tempMatrix);
+					task.buffer.draw(image, tempMatrix);
 				}
 				else if (_urlToImageMap[_imageURL] == undefined) // if the url hasn't started downloading yet...
 				{
 					// set a placeholder so it doesn't get downloaded again
 					_urlToImageMap[_imageURL] = _missingImage;
+					
 					// download the image
-					WeaveAPI.URLRequestUtils.getContent(new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
+//					WeaveAPI.URLRequestUtils.getContent(this, new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
+					
+					// get all images hack
+					WeaveAPI.URLRequestUtils.getImage(this, new URLRequest(_imageURL), handleImageDownload, handleFault, _imageURL);
 				}
+				
+				return task.iteration / task.recordKeys.length;
 			}
+			return 1;
 		}
 		
 		/**
@@ -121,12 +127,14 @@ package weave.visualization.plotters
 			_urlToImageMap[token] = bitmap.bitmapData;
 			getCallbackCollection(this).triggerCallbacks();
 		}
+		
 		/**
 		 * This function is called when there is an error downloading an image.
 		 */
 		private function handleFault(event:FaultEvent, token:Object=null):void
 		{
 			trace("Error downloading image:", ObjectUtil.toString(event.message), token);
+			
 			_urlToImageMap[token] = _missingImage;
 			getCallbackCollection(this).triggerCallbacks();
 		}

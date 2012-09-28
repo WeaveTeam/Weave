@@ -22,7 +22,7 @@
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				width="312" height="300" 
 				initialize="init()" 
-				title="Saved Subsets"
+				title="{lang('Saved Subsets')}"
 				layout="vertical">
 
 	
@@ -36,47 +36,34 @@
 	-->
 	<mx:List id="savedSubsetsList"
 			 width="100%" height="100%"
-			 dataProvider="{savedSubsetsMap.getObjects()}"
+			 dataProvider="{Weave.savedSubsetsKeyFilters.getObjects()}"
 			 labelFunction="subsetsListLabelFunction"
 			 allowMultipleSelection="false" />
 	
 	<mx:HBox>
-		<mx:Button label="Delete" 
+		<mx:Button label="{lang('Delete')}" 
 				   enabled="{savedSubsetsList.selectedIndex >= 0}" 
 				   click="deleteSubset()"/>
-		<mx:Button label="Rename" 
+		<mx:Button label="{lang('Rename')}" 
 				   enabled="{savedSubsetsList.selectedIndex >= 0}" 
 				   click="renameSubset()"/>
 	</mx:HBox>
 	<mx:ControlBar height="33" paddingBottom="3" paddingLeft="3" paddingRight="3" paddingTop="3">
 		<mx:Spacer width="100%"/>
-		<mx:Button label="close" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
+		<mx:Button label="{lang('close')}" click="PopUpManager.removePopUp(_popupManager);" fillAlphas="[1,1]"/>
 	</mx:ControlBar>
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.collections.ArrayCollection;
-			import mx.controls.Alert;
-			import mx.core.Application;
-			import mx.events.CollectionEvent;
-			import mx.events.CollectionEventKind;
 			import mx.managers.PopUpManager;
-			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
+			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.IKeyFilter;
-			import weave.core.LinkableHashMap;
-			import weave.core.SessionManager;
-			import weave.core.weave_internal;
 			import weave.data.KeySets.KeyFilter;
-			import weave.data.KeySets.KeySet;
 			import weave.ui.controlBars.WeaveMenuBar;
 			import weave.ui.controlBars.WeaveMenuItem;
-			
-			[Bindable]
-			private var _hashMap:LinkableHashMap = savedSubsetsMap;
 			
 			private static var _popupManager:SubsetManager = null;
 			
@@ -86,7 +73,7 @@
 			private static function subsetsListLabelFunction(item:Object):String
 			{
 				// the label will be the name of the item followed by the included/excluded records count
-				var label:String = savedSubsetsMap.getName(item as ILinkableObject);
+				var label:String = Weave.savedSubsetsKeyFilters.getName(item as ILinkableObject);
 				return label + " (" + getKeyFilterRecordsText(label) + ")";
 			}
 			
@@ -96,7 +83,7 @@
 			private static function getKeyFilterRecordsText(keyFilterName:String):String
 			{
 				// get the subset by its name
-				var keyFilter:KeyFilter = (savedSubsetsMap.getObject(keyFilterName) as KeyFilter);
+				var keyFilter:KeyFilter = (Weave.savedSubsetsKeyFilters.getObject(keyFilterName) as KeyFilter);
 				
 				// create a string for the number of included keys followed by " records"
 				// if the excluded keys are used instead, the string will be excluded keys followed by " excluded records"
@@ -122,11 +109,11 @@
 				var subsetActive:Function = function():Boolean
 				{
 					// a subset is available when the included or excluded keys are of length 1 or more
-					return globalSubset.included.keys.length > 0 || globalSubset.excluded.keys.length > 0;
+					return Weave.defaultSubsetKeyFilter.included.keys.length > 0 || Weave.defaultSubsetKeyFilter.excluded.keys.length > 0;
 				};
 				var selectionActive:Function = function():Boolean
 				{
-					return globalSelection.keys.length > 0;
+					return Weave.defaultSelectionKeySet.keys.length > 0;
 				};
 				
 				// menu item to create subset from selected
@@ -134,21 +121,21 @@
 				{
 					clickFunction = function():void 
 					{
-						globalSubset.replaceKeys(false, true, globalSelection.keys);
-						globalSelection.clearKeys();
+						Weave.defaultSubsetKeyFilter.replaceKeys(false, true, Weave.defaultSelectionKeySet.keys);
+						Weave.defaultSelectionKeySet.clearKeys();
 					};
-					menuItem = new WeaveMenuItem("Create subset from selected records", clickFunction, null, selectionActive);
+					menuItem = new WeaveMenuItem(lang("Create subset from selected records"), clickFunction, null, selectionActive);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				if( Weave.properties.enableCreateSubsets.value && Weave.properties.enableSaveCurrentSubset)
 				{
 					clickFunction = function():void
 					{
-						globalSubset.replaceKeys(false, true, globalSelection.keys);
-						globalSelection.clearKeys();
+						Weave.defaultSubsetKeyFilter.replaceKeys(false, true, Weave.defaultSelectionKeySet.keys);
+						Weave.defaultSelectionKeySet.clearKeys();
 						saveSubset();
 					};
-					menuItem = new WeaveMenuItem("Create and save subset from selected records", clickFunction, null, (subsetActive && selectionActive));
+					menuItem = new WeaveMenuItem(lang("Create and save subset from selected records"), clickFunction, null, (subsetActive && selectionActive));
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				// menu item to remove selected records
@@ -157,10 +144,10 @@
 					clickFunction = function():void
 					{
 						// we will use the selected records as excluded keys and clear the current selection which is no longer valid
-						globalSubset.excludeKeys(globalSelection.keys);
-						globalSelection.clearKeys();
+						Weave.defaultSubsetKeyFilter.excludeKeys(Weave.defaultSelectionKeySet.keys);
+						Weave.defaultSelectionKeySet.clearKeys();
 					};
-					menuItem = new WeaveMenuItem("Remove selected records from subset", clickFunction, null, selectionActive);
+					menuItem = new WeaveMenuItem(lang("Remove selected records from subset"), clickFunction, null, selectionActive);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
@@ -169,10 +156,10 @@
 				{
 					clickFunction = function():void
 					{
-						globalSubset.replaceKeys(true, true);
-						globalSelection.clearKeys();
+						Weave.defaultSubsetKeyFilter.replaceKeys(true, true);
+						Weave.defaultSelectionKeySet.clearKeys();
 					};
-					menuItem = new WeaveMenuItem("Show all records", clickFunction, null, subsetActive);
+					menuItem = new WeaveMenuItem(lang("Show all records"), clickFunction, null, subsetActive);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
@@ -180,7 +167,7 @@
 				if (Weave.properties.enableSaveCurrentSubset.value)
 				{
 					parentMenu.addSeparatorToMenu(destinationMenu);
-					menuItem = new WeaveMenuItem("Save current subset...", saveSubset, null, subsetActive);
+					menuItem = new WeaveMenuItem(lang("Save current subset..."), saveSubset, null, subsetActive);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
@@ -189,7 +176,7 @@
 					clickFunction = function():void
 					{
 						// when a user clicks this option we will create the SelectionManager as a popup 
-						_popupManager = PopUpManager.createPopUp(Application.application as DisplayObject, SubsetManager) as SubsetManager;
+						_popupManager = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject, SubsetManager) as SubsetManager;
 						
 						// this makes it so the popup is not draggable
 						//_popupManager.isPopUp = false;
@@ -199,9 +186,9 @@
 					var enableFunction:Function = function():Boolean
 					{
 						// we can manage subsets when there is at least one saved subset
-						return savedSubsetsMap.getNames().length > 0;
+						return Weave.savedSubsetsKeyFilters.getNames().length > 0;
 					};
-					menuItem = new WeaveMenuItem("Manage saved subsets...", clickFunction, null, enableFunction);
+					menuItem = new WeaveMenuItem(lang("Manage saved subsets..."), clickFunction, null, enableFunction);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
@@ -211,12 +198,12 @@
 					{
 						Weave.root.requestObject("SubsetSelector", SubsetSelector, false);
 					};
-					menuItem = new WeaveMenuItem("Subset Selector Tool", clickFunction);
+					menuItem = new WeaveMenuItem(lang("Subset Selector Tool"), clickFunction);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
 				
 				// get the saved subsets map and get the names of the saved subsets
-				var subsets:Array = savedSubsetsMap.getObjects();
+				var subsets:Array = Weave.savedSubsetsKeyFilters.getObjects();
 				
 				// if we have at least one saved subset, we will add a separator before them
 				if (subsets.length > 0)
@@ -225,22 +212,9 @@
 				for (var i:int = 0; i < subsets.length; i++)
 				{
 					var label:String = subsetsListLabelFunction(subsets[i]);
-					menuItem = new WeaveMenuItem(label, copySessionState, [subsets[i], globalSubset]);
+					menuItem = new WeaveMenuItem(label, copySessionState, [subsets[i], Weave.defaultSubsetKeyFilter]);
 					parentMenu.addMenuItemToMenu(destinationMenu, menuItem);
 				}
-			}
-			
-			private static function get savedSubsetsMap():LinkableHashMap
-			{
-				return Weave.root.getObject(Weave.SAVED_SUBSETS_KEYFILTERS) as LinkableHashMap;
-			}
-			private static function get globalSelection():KeySet
-			{
-				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			}
-			private static function get globalSubset():KeyFilter
-			{
-				return Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
 			}
 			
 			private function init():void
@@ -248,7 +222,7 @@
 				// Disable certain features on this manager so that it is purely modal and has to be closed manually
 				// before doing anything else
 				minimizable.value = false;
-				draggable.value = false;
+				enableMoveResize.value = false;
 				maximizable.value = false;
 				closeable.value = false;
 			}
@@ -258,7 +232,7 @@
 			 **/
 			private function deleteSubset():void
 			{
-				savedSubsetsMap.removeObject(savedSubsetsMap.getName(savedSubsetsList.selectedItem as KeyFilter));
+				Weave.savedSubsetsKeyFilters.removeObject(Weave.savedSubsetsKeyFilters.getName(savedSubsetsList.selectedItem as KeyFilter));
 			}
 			
 			/**
@@ -266,23 +240,23 @@
 			 **/
 			private function renameSubset():void
 			{
-				var alertBox:AlertTextBox = AlertTextBox.show("Subset Name", "Please enter a name for the subset: ");
+				var alertBox:AlertTextBox = AlertTextBox.show(lang("Subset Name"), lang("Please enter a name for the subset: "));
 				
 				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
 					if( !e.confirm )
 						return;
 						
 					var oldSubset:KeyFilter = savedSubsetsList.selectedItem as KeyFilter;
-					var oldName:String = savedSubsetsMap.getName(oldSubset);
+					var oldName:String = Weave.savedSubsetsKeyFilters.getName(oldSubset);
 					var newName:String = e.textInput;
 
 					// we want to put the new subset in the same position the old subset was
-					var nameOrder:Array = savedSubsetsMap.getNames();
+					var nameOrder:Array = Weave.savedSubsetsKeyFilters.getNames();
 					nameOrder[nameOrder.indexOf(oldName)] = newName;
 					
-					savedSubsetsMap.requestObjectCopy(newName, oldSubset);
-					savedSubsetsMap.removeObject(oldName);
-					savedSubsetsMap.setNameOrder(nameOrder);
+					Weave.savedSubsetsKeyFilters.requestObjectCopy(newName, oldSubset);
+					Weave.savedSubsetsKeyFilters.removeObject(oldName);
+					Weave.savedSubsetsKeyFilters.setNameOrder(nameOrder);
 
 					// invalidate the list so we see it update
 					savedSubsetsList.invalidateList();
@@ -294,7 +268,7 @@
 			 **/
 			public static function saveSubset():void
 			{
-				var alertBox:AlertTextBox = AlertTextBox.show("Subset Name", "Please enter a name for the subset: ");
+				var alertBox:AlertTextBox = AlertTextBox.show(lang("Subset Name"), lang("Please enter a name for the subset: "));
 				
 				alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
 					function (e:AlertTextBoxEvent):void 
@@ -302,10 +276,11 @@
 						// if the user clicked cancel, then we will just return from here and save nothing
 						if( !e.confirm ) return;
 						
-						savedSubsetsMap.requestObjectCopy(e.textInput, globalSubset);
+						var name:String = e.textInput;
+						Weave.savedSubsetsKeyFilters.requestObjectCopy(name, Weave.defaultSubsetKeyFilter);
 						var _subsetSelector:SubsetSelector = Weave.root.getObject("SubsetSelector") as SubsetSelector;
 						if( _subsetSelector )
-							_subsetSelector.setSubsetSelectorIndex(e.textInput); // once saved, auto select the subset in the tool
+							_subsetSelector.selectItem(name); // once saved, auto select the subset in the tool
 					}
 				);
 			}

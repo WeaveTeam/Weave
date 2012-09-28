@@ -53,6 +53,8 @@ package weave.data.AttributeColumns
 	 */
 	public class EquationColumn extends AbstractAttributeColumn
 	{
+		public static var debug:Boolean = false;
+		
 		public static const compiler:Compiler = new Compiler();
 		{ /** begin static code block **/
 			compiler.includeLibraries(
@@ -75,6 +77,16 @@ package weave.data.AttributeColumns
 			setMetadata(AttributeColumnMetadata.TITLE, "Untitled Equation");
 			//setMetadata(AttributeColumnMetadata.DATA_TYPE, DataTypes.NUMBER);
 			equation.value = 'undefined';
+			
+			variables.childListCallbacks.addImmediateCallback(this, handleVariableListChange);
+		}
+		
+		private function handleVariableListChange():void
+		{
+			// make callbacks trigger when statistics change for listed variables
+			var newColumn:IAttributeColumn = variables.childListCallbacks.lastObjectAdded as IAttributeColumn;
+			if (newColumn)
+				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn)).addImmediateCallback(this, triggerCallbacks);
 		}
 		
 		/**
@@ -246,10 +258,12 @@ package weave.data.AttributeColumns
 			// return all the keys of all columns in the variables list
 			if (_allKeysTriggerCount != variables.triggerCounter)
 			{
+				_allKeys = null;
+				_allKeysTriggerCount = variables.triggerCounter; // prevent infinite recursion
+				
 				_allKeys = ColumnUtils.getAllKeys(variables.getObjects(IAttributeColumn));
-				_allKeysTriggerCount = variables.triggerCounter;
 			}
-			return _allKeys;
+			return _allKeys || [];
 		}
 
 		/**
@@ -332,6 +346,8 @@ package weave.data.AttributeColumns
 					try
 					{
 						value = compiledEquation.apply(this, arguments);
+						if (debug)
+							trace(this,key.localName,value);
 					}
 					catch (e:Error)
 					{
@@ -374,6 +390,10 @@ package weave.data.AttributeColumns
 			return value;
 		}
 
+		override public function toString():String
+		{
+			return StringUtil.substitute('{0};"{1}";({2})', debugId(this), getMetadata(AttributeColumnMetadata.TITLE), equation.value);
+		}
 		
 		//---------------------------------
 		// backwards compatibility

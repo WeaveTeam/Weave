@@ -45,38 +45,37 @@
 		
 			WeaveAPI.registerImplementation(IVisTool, HistogramTool, "Histogram");
 			
-			private var _plotter:HistogramPlotter = null;
-			public function get plotter():HistogramPlotter { return _plotter; }
+			internal function get plotter():HistogramPlotter { return mainPlotter as HistogramPlotter; }
 			
 			override protected function constructor():void
 			{
 				super.constructor();
 				
 				// lock dynamic objects into place
-				_plotter = initializePlotters(HistogramPlotter, true);
+				initializePlotters(HistogramPlotter, true);
 				visualization.enableProbeLine(false, true);
 				
-				xAxisLayer.axisPlotter.forceTickCount.value = true;
+				xAxisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;
 
-				visualization.marginBottom.value = "80";
-				visualization.marginTop.value    = "10";
-				visualization.marginLeft.value   = "80";
-				visualization.marginRight.value  = "10";
+				visualization.plotManager.marginBottom.value = "80";
+				visualization.plotManager.marginTop.value    = "10";
+				visualization.plotManager.marginLeft.value   = "80";
+				visualization.plotManager.marginRight.value  = "10";
 				
-				_plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
+				plotter.dynamicColorColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
 
-				visualization.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
-				visualization.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
-				getCallbackCollection(visualization.zoomBounds).addGroupedCallback(this, updateAxisLabels);
-				getCallbackCollection(_plotter).addGroupedCallback(this, updateAxisLabels, true);
+				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
+				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
+				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, updateAxisLabels);
+				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				
 				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, openAttributeSelector);
 				
-				var fc:FilteredColumn = _plotter.internalBinnedColumn.internalColumn as FilteredColumn;
+				var fc:FilteredColumn = plotter.internalBinnedColumn.getInternalColumn() as FilteredColumn;
 				initColumnDefaults(fc.internalDynamicColumn);
 				
-				_plotter.dynamicColorColumn.addGroupedCallback(this, updateProbeColumns);
+				plotter.dynamicColorColumn.addGroupedCallback(this, updateProbeColumns);
 			}
 			
 			override protected function childrenCreated():void
@@ -105,14 +104,14 @@
 				visualization.additionalProbeColumns = [];
 				if (includeToolAttributesInProbe.value)
 				{
-					if (_plotter.internalBinnedColumn && _plotter.internalBinnedColumn.internalColumn)
-						visualization.additionalProbeColumns.push(_plotter.internalBinnedColumn.internalColumn);
+					if (plotter.internalBinnedColumn && plotter.internalBinnedColumn.getInternalColumn())
+						visualization.additionalProbeColumns.push(plotter.internalBinnedColumn.getInternalColumn());
 				}
 			}
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Histogram of " + ColumnUtils.getTitle(_plotter.dynamicColorColumn);
+				return lang("Histogram of {0}", ColumnUtils.getTitle(plotter.dynamicColorColumn));
 			}
 
 			private var _prevBinnedColumn:BinnedColumn = null;
@@ -121,19 +120,19 @@
 				if (!parent)
 					return callLater(handleDynamicColorColumnChange);
 				
-				if (_plotter.internalColorColumn)
-					cRampEditor.colorRamp = _plotter.internalColorColumn.ramp;
+				if (plotter.internalColorColumn)
+					cRampEditor.colorRamp = plotter.internalColorColumn.ramp;
 				else
 					cRampEditor.colorRamp = null;
 				
 				if (_prevBinnedColumn)
 					unlinkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
 				
-				if (_plotter.internalBinnedColumn)
-					linkSessionState(_plotter.internalBinnedColumn, binEditor.binnedColumn);
+				if (plotter.internalBinnedColumn)
+					linkSessionState(plotter.internalBinnedColumn, binEditor.binnedColumn);
 				
 				
-				_prevBinnedColumn = _plotter.internalBinnedColumn;
+				_prevBinnedColumn = plotter.internalBinnedColumn;
 				dataColumnComponent.dynamicObject = internalDataColumn;
 			}
 			
@@ -141,7 +140,7 @@
 			{
 				try
 				{
-					return (_plotter.internalBinnedColumn.internalColumn as FilteredColumn).internalDynamicColumn;
+					return (plotter.internalBinnedColumn.getInternalColumn() as FilteredColumn).internalDynamicColumn;
 				}
 				catch (e:Error) { } // do nothing if there is no data column
 				return null;
@@ -151,39 +150,39 @@
 			{
 				handlePanelTitleChange();
 				
-				visualization.bottomMarginColumn = _plotter.dynamicColorColumn;
+				visualization.bottomMarginColumn = plotter.dynamicColorColumn;
 				
-				var binnedColumn:BinnedColumn = _plotter.internalBinnedColumn;
+				var binnedColumn:BinnedColumn = plotter.internalBinnedColumn;
 				if (binnedColumn)
 				{
-					xAxisLayer.axisPlotter.tickCountRequested.value = binnedColumn.numberOfBins;
-					xAxisLayer.axisPlotter.tickMinValue.value = 0;
-					xAxisLayer.axisPlotter.tickMaxValue.value = binnedColumn.numberOfBins - 1;	
-					xAxisLayer.axisPlotter.setLabelFunction(binnedColumn.deriveStringFromNumber);
+					xAxisPlotter.tickCountRequested.value = binnedColumn.numberOfBins;
+					xAxisPlotter.tickMinValue.value = 0;
+					xAxisPlotter.tickMaxValue.value = binnedColumn.numberOfBins - 1;	
+					xAxisPlotter.setLabelFunction(binnedColumn.deriveStringFromNumber);
 				}
 				else
 				{
-					xAxisLayer.axisPlotter.setLabelFunction(null);
+					xAxisPlotter.setLabelFunction(null);
 				}
 				
-				xAxisLayer.axisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.dynamicColorColumn), 0, 0, visualization.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
-				yAxisLayer.axisPlotter.setSideAxisName("Number of Records", -90, -visualization.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
+				xAxisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.dynamicColorColumn), 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
+				yAxisPlotter.setSideAxisName(lang("Number of Records"), -90, -visualization.plotManager.marginLeftNumber.value, 0, BitmapText.VERTICAL_ALIGN_TOP);
 			}
 		]]>
 	</mx:Script>
 
 	<ui:ControlPanel>
-		<mx:VBox label="Visualization Controls">
-			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-						 toolTip="Checking this box makes the tool's binned attribute visible in this tool's probe tooltip"
+		<mx:VBox label="{lang('Visualization Controls')}">
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="bin data"/>
+			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="{lang('bin data')}"/>
 			<ui:BinningDefinitionEditor id="binEditor"/>
 		</mx:VBox>
-		<mx:VBox label="Advanced">
+		<mx:VBox label="{lang('Advanced')}">
 			<mx:CheckBox id="drawPartialCheckBox"
-						 label="Draw partial histogram bars for selection and probe"
-						 creationComplete="linkBindableProperty(_plotter.drawPartialBins, event.target, 'selected');"/>
+						 label="{lang('Draw partial histogram bars for selection and probe')}"
+						 creationComplete="linkBindableProperty(plotter.drawPartialBins, event.target, 'selected');"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 	</ui:ControlPanel>

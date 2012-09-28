@@ -34,7 +34,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				resize="handleResize(event)"
 				creationComplete="handleCreationComplete()"
 				layout="absolute"
-				
 				close="handleCloseButtonClick()"
 				
 				closeButtonUpSkin="@Embed(source='/weave/resources/images/cancel.png')"
@@ -52,16 +51,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.controls.Button;
-			import mx.controls.Menu;
-			import mx.core.Application;
+			import mx.controls.Image;
 			import mx.core.BitmapAsset;
 			import mx.core.SpriteAsset;
+			import mx.core.UIComponent;
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
-			import mx.events.MenuEvent;
 			import mx.events.ResizeEvent;
-			import mx.managers.CursorManager;
-			import mx.managers.CursorManagerPriority;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
@@ -70,6 +66,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
+			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
@@ -79,17 +76,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
-			import weave.primitives.ImageFactory;
 			import weave.ui.controlBars.VisTaskbar;
+			import weave.utils.CustomCursorManager;
+			import weave.utils.EditorManager;
 			import weave.utils.NumberUtils;
-			
+
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				panelNeedsUpdate();
 			}
 			
-			public static var showRollOverBorders:Boolean = false;
+			public static var adminMode:Boolean = false;
 			public static var activePanel:DraggablePanel = null;
 			public static function get activePanelName():String
 			{
@@ -117,17 +115,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const panelTitle:LinkableString = newLinkableChild(this, LinkableString, handlePanelTitleChange);
 			
-			public const draggable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true));
-			public const enableSubMenu:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(false));
-			public const resizeable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const minimizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const maximizable:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const pinnable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const pinnableToBack:LinkableBoolean 		= registerLinkableChild(this, new LinkableBoolean(false), panelNeedsUpdate, true);
-			public const closeable:LinkableBoolean 				= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const enableBorders:LinkableBoolean 			= registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const panelBorderColor:LinkableNumber 		= registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
-			public const panelBackgroundColor:LinkableNumber 	= registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
+			public const enableMoveResize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const enableSubMenu:LinkableBoolean    = registerLinkableChild(this, new LinkableBoolean(false));
+			public const minimizable:LinkableBoolean      = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const maximizable:LinkableBoolean      = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const pinnable:LinkableBoolean         = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const pinnableToBack:LinkableBoolean   = registerLinkableChild(this, new LinkableBoolean(false), panelNeedsUpdate, true);
+			public const closeable:LinkableBoolean        = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			public const enableBorders:LinkableBoolean    = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
+			
+			public const panelBorderColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
+			public const panelBackgroundColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
 			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3), panelNeedsUpdate, true);
 			public const panelStyleList:LinkableString = newLinkableChild(this, LinkableString, handlePanelStyleListChange);
 			
@@ -141,10 +139,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			protected const closePanelButton:Button = new Button();
 			protected const pinButton:Button = new Button();
 			protected const pinToBackButton:Button = new Button();
-			// this is used to temporarily show the borders when in dashboard admin mode.
-			protected const forceEnableBorders:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), panelNeedsUpdate);
 			
 			private const _dragCanvas:Canvas = new Canvas();
+			
+			private var busyIndicator:BusyIndicator = new BusyIndicator(this as ILinkableObject);
+			
+			[Embed(source="/weave/resources/images/panMode.png")]
+			private var MoveIcon:Class; 
+			private var _moveImage:Image = new Image();
 			
 			/**
 			 *  This method is called when a UIComponent is constructed,
@@ -218,7 +220,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				setupControlButton(minimizeButton, _minimizeIcon, handleMinimizeButtonClick, "Click here to minimize this component.");
 				setupControlButton(maximizeButton, _maximizeIcon, toggleMaximized, "Click here to maximize or restore this component.");
 				setupControlButton(closePanelButton, null, handleCloseButtonClick, "Click here to close this component.");
-				
+
 				closePanelButton.label = "X";
 				closePanelButton.setStyle("textRollOverColor", 0xFFFFFF);
 				closePanelButton.setStyle("textSelectedColor", 0xFFFFFF);
@@ -239,10 +241,36 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						_controlPanel = registerDisposableChild(this, getChildAt(i) as ControlPanel);
 						removeChild(_controlPanel);
-						_controlPanel.title = "Settings for " + getQualifiedClassName(this).split("::")[1];
 						break;
 					}
 				}
+				
+				if (!_controlPanel && EditorManager.getEditorClass(this))
+				{
+					_controlPanel = newDisposableChild(this, ControlPanel);
+					var editor:UIComponent = EditorManager.getNewEditor(this) as UIComponent;
+					addChild(_controlPanel);
+					removeChild(_controlPanel);
+					_controlPanel.tabNavigator.addChild(editor);
+				}
+				
+				if (_controlPanel)
+					_controlPanel.title = "Settings for " + getQualifiedClassName(this).split("::")[1];
+				
+				var icon:Bitmap = new MoveIcon() as Bitmap;
+				_moveImage.source = icon;
+				_moveImage.x = resizeBorderThickness;
+				_moveImage.y = resizeBorderThickness;
+				_moveImage.width = icon.width;
+				_moveImage.height = icon.height;
+//				_moveImage.toolTip = "Drag this icon to move the panel.";
+//				if (_controlPanel)
+//					_moveImage.toolTip += "  Double-click to open the control panel.";
+				_moveImage.scaleContent = false;
+				_moveImage.alpha = 0.25;
+				_moveImage.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
+				_moveImage.doubleClickEnabled = true;
+				_moveImage.addEventListener(MouseEvent.DOUBLE_CLICK, function(e:Event):void { toggleControlPanel(); });
 				
 				titleBar.doubleClickEnabled = true;
 				titleBar.addEventListener(MouseEvent.MOUSE_DOWN, handleTitleBarMouseDown);
@@ -256,6 +284,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				titleBar.setStyle("color", Weave.properties.panelTitleTextFormat.color.value);
 				
 				panelNeedsUpdate();
+				
 			}
 			
 			private function handleCreationComplete():void
@@ -263,6 +292,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//_dragCanvas.percentWidth = 100;
 				//_dragCanvas.percentHeight = 100;
 				rawChildren.addChild(_dragCanvas);
+				rawChildren.addChild(_moveImage);
+				rawChildren.addChild(busyIndicator);
 			}
 			
 			/**
@@ -317,18 +348,29 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			[Bindable] public var sessionPanelCoordsAsPercentages:Boolean = true;
 			
-			// this allows you to specify a percentage value like x="25%" in MXML.
+			// this metadata tag allows you to specify a percentage value like x="25%" in MXML.
 			[PercentProxy("percentX")]
 			override public function set x(value:Number):void
 			{
 				super.x = Math.round(value);
 			}
-			// this allows you to specify a percentage value like y="25%" in MXML.
+			// this metadata tag allows you to specify a percentage value like y="25%" in MXML.
 			[PercentProxy("percentY")]
 			override public function set y(value:Number):void
 			{
 				super.y = Math.round(value);
 			}
+			
+//			[PercentProxy("percentWidth")]
+//			override public function set width(value:Number):void
+//			{
+//				super.width = Math.round(value);
+//			}
+//			[PercentProxy("percentHeight")]
+//			override public function set height(value:Number):void
+//			{
+//				super.height = Math.round(value);
+//			}
 			
 			[Inspectable(environment="none")]
 			public function set percentX(value:Number):void
@@ -350,7 +392,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				panelHeight.value = "" + value + "%";
 			}
 			
-			private var _styleNeedsUpdate:Boolean = false;
 			private function handlePanelStyleListChange():void
 			{
 				_overriddenStyles = new Object();
@@ -379,11 +420,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				// notify style change, just a random style chosen here so we only call it once instead of in the loop above
 				// this causes the style changes above to take effect
-				//styleChanged("headerHeight");
-				//notifyStyleChangeInChildren("headerHeight", true);
-				_styleNeedsUpdate = true;
-				
-				
 				styleChanged("headerHeight");
 				notifyStyleChangeInChildren("headerHeight", true);
 			}
@@ -420,7 +456,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					copyCoordinateFromLinkableString(panelWidth, parent.width, "width", minWidth);
 				if (!singleProperty || singleProperty == panelHeight)
 					copyCoordinateFromLinkableString(panelHeight, parent.height, "height", minHeight);
+				callLater(fixHeight);
 			}
+			private function fixHeight():void
+			{
+				if (!parent)
+					return;
+				if (y + height > parent.height) // rounding error, reproduceable when parent height is 625
+					height = parent.height - y;
+			}
+			// watch(this,"{ [panelX.value,panelY.value,panelWidth.value,panelHeight.value] }\r{ [x,y,width,height] }")
 			
 			private static const _maximizedCoordinates:Object = {x: "0%", y: "0%", width: "100%", height: "100%"};
 			
@@ -453,20 +498,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
-			protected function updateForceEnableBorders():void
-			{
-				if (_dragging || _resizing || WeaveAPI.StageUtils.mouseButtonDown)
-					return;
-				
-				// if this is a popup (parent == systemManager), ignore global borders setting
-				var globalEnableBorders:Boolean = !Weave.properties.dashboardMode.value || parent == systemManager;
-				var forceBorderMargin:int = forceEnableBorders.value ? 22 : 12;
-				var enableBordersFlag:Boolean = globalEnableBorders && enableBorders.value;
-				var enableRollOverBorders:Boolean = showRollOverBorders && _mouseRolledOver && mouseY < forceBorderMargin;
-				// setting forceEnableBorders may trigger panelNeedsUpdate()
-				forceEnableBorders.value = enableBordersFlag || enableRollOverBorders;
-			}
-			
 			private function panelNeedsUpdate():void
 			{
 				if (!parent)
@@ -475,8 +506,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// disable highlight when borders are disabled (avoids display bug when corners are rounded)
 				setStyle('highlightAlphas', enableBorders.value ? undefined : [0,0]);
 				
-				updateForceEnableBorders();
-				_resizeable = (!Weave.properties.dashboardMode.value && resizeable.value) || forceEnableBorders.value || showRollOverBorders;
+				_enableMoveResize = (!Weave.properties.dashboardMode.value && enableMoveResize.value) || adminMode;
+				if (!enableMoveResize.value && _enableMoveResize)
+					_moveImage.alpha = 0.1;
+				else
+					_moveImage.alpha = 0.25;
 				
 				if (!maximizable.value)
 					maximized.value = false;
@@ -501,7 +535,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 * This function constrains x,y,width,height so that this DraggablePanel is contained in its parent,
 			 * then it saves the coordinates (absolute or percentage) to the sessioned properties.
 			 */
-			private function constrainAndSaveCoordinates():void
+			protected function constrainAndSaveCoordinates():void
 			{
 				// don't copy coordinates while tool is minimized or maximized
 				if (!parent || minimized.value || maximized.value)
@@ -590,11 +624,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function updateBorders():void
 			{
 				if (!parent)
-					return callLater(updateBorders);
+					return;
 				
 				styleChanged("headerHeight");
 				notifyStyleChangeInChildren("headerHeight", true);
+				updateMoveIcon();
 				invalidateDisplayList();
+			}
+			
+			private function updateMoveIcon():void
+			{
+				//the moveImage will be enabled if the enableMoveIcon is enabled and the panel is moveable and headerHeight is zero.
+				_moveImage.visible = _enableMoveResize && !borderIsVisible && (adminMode || !Weave.properties.dashboardMode.value);
+			}
+			
+			protected function get borderIsVisible():Boolean
+			{
+				return enableBorders.value && !Weave.properties.dashboardMode.value;
 			}
 			
 			private var _overriddenStyles:Object = new Object();
@@ -605,15 +651,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				// if we override the borders before the window has been intialized, tools display nothing
 				if (initialized && getLinkableOwner(this))
 				{
-					// update temporary admin dashboard border mode
-					var enableBordersFlag:Boolean = !Weave.properties.dashboardMode.value && enableBorders.value;
-					
 					// if we are hiding the borders, return style bogus values that cause the borders to hide
-					if (enableBordersFlag || forceEnableBorders.value)
-					{
-						// do not override border styles
-					}
-					else
+					if (!borderIsVisible)
 					{
 						// override border styles to hide the borders
 						
@@ -814,14 +853,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var _resizing:Boolean = false;
 			private var _dragging:Boolean = false;
 			
-			private var _resizeable:Boolean = false; // used internally to remember whether or not the panel is actually resizable
+			private var _enableMoveResize:Boolean = false; // used internally to remember whether or not the panel is actually moveable
 			
 			private var _rightSideBeforeLeftResize:int = 0;
 			private var _bottomSideBeforeTopResize:int = 0;
 			
 			private function handleMouseDown(event:MouseEvent):void
 			{
-				if (!_resizeable)
+				if (!_enableMoveResize)
 					return;
 				
 				if (!parent)
@@ -926,9 +965,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				DraggablePanel.activePanel = this;
 				_mouseRolledOver = true;
-				
-				updateForceEnableBorders();
-				invalidateDisplayList();
 			}
 			private function handleMouseRollOut(event:MouseEvent):void
 			{
@@ -938,19 +974,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				DraggablePanel.activePanel = null;
 				
-				if (_resizeable && !_resizing)
-					CursorManager.removeCursor(draggablePanelCursorID);
+				if (_enableMoveResize && !_resizing)
+					CustomCursorManager.removeCursor(draggablePanelCursorID);
 				
 				if (_resizing)
 					event.stopImmediatePropagation();
-				
-				updateForceEnableBorders();
-				invalidateDisplayList();
 			}
 			
 			public function sendWindowToForeground():void
 			{
-				if (draggable.value)
+				if (_enableMoveResize)
 				{
 					// put the name of this panel at the end of the hash map names so it appears in front
 					var hashMap:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
@@ -964,7 +997,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function sendWindowToBackground():void
 			{
-				if (draggable.value)
+				if (_enableMoveResize)
 				{
 					// put the name of this panel at the beginning of the hash map names so it appears in back
 					var hashMap:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
@@ -1018,7 +1051,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private function handleTitleBarMouseDown(event:MouseEvent):void
 			{
-				if (!draggable.value || maximized.value)
+				if (!_enableMoveResize || maximized.value)
 					return;
 				
 				if (!parent)
@@ -1034,7 +1067,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				/*for each(var child:* in this.getChildren())
 				child.cacheAsBitmap = true;*/
 				
-				if ( getResizeStatus(stage.mouseX, stage.mouseY).resizing )
+				if (getResizeStatus(stage.mouseX, stage.mouseY).resizing)
 					_dragging = false;
 				else
 					_dragging = true;
@@ -1047,13 +1080,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					_resizing = false;
 				}
 			}
+			
 			private function handleStageMouseUp(event:MouseEvent):void
 			{
-				if (!draggable.value && !_resizeable)
-					return;
-				
 				_dragging = false;
-				
 				_resizing = false;
 				_leftSideResize = false;
 				_rightSideResize = false;
@@ -1062,35 +1092,30 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			private function handleStageMouseMove(event:MouseEvent):void
 			{
-				// update temporary admin dashboard border mode
-				updateForceEnableBorders();
-				
 				// make sure cursors dont keep changing while resizing:  !_resizing
 				if (parent && !_resizing && !minimized.value && !maximized.value)
 				{
 					var status:Object = getResizeStatus(stage.mouseX, stage.mouseY);
-					var bitmap:BitmapAsset = null;
-					
+					var resizeCursorName:String = null;
 					// check to see if the mouse is in the top left (TL) or bottom right (BR) corner
 					if (status.TL || status.BR)
-						bitmap = _resizeTLBRBitmap;
+						resizeCursorName = CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT;
 						// check to see if the mouse is in the top right (TR) or bottom left (BL) corner
 					else if (status.TR || status.BL)
-						bitmap = _resizeTRBLBitmap;
+						resizeCursorName = CURSOR_RESIZE_TOPRIGHT_BOTTOMLEFT;
 						// check to see if the mouse is on the left or right side (LR)
 					else if (status.L || status.R)
-						bitmap = _resizeLRBitmap;
+						resizeCursorName = CURSOR_RESIZE_LEFT_RIGHT;
 						// check to see if the mouse is on the top or bottom side
 					else if (status.T || status.B)
-						bitmap = _resizeTBBitmap;
+						resizeCursorName = CURSOR_RESIZE_TOP_BOTTOM;
 					
-					CursorManager.removeCursor(draggablePanelCursorID);
-					if (bitmap != null && !event.buttonDown && _resizeable)
+					CustomCursorManager.removeCursor(draggablePanelCursorID);
+					if ( resizeCursorName!= null && !event.buttonDown && _enableMoveResize)
 					{
-						var classDef:Class = ImageFactory.getImageClass(bitmap.bitmapData);
 						try
 						{
-							draggablePanelCursorID = CursorManager.setCursor(classDef, CursorManagerPriority.HIGH, -bitmap.width / 2, -bitmap.height / 2);
+							draggablePanelCursorID = CustomCursorManager.showCursor(resizeCursorName);
 						}
 						catch (e:Error)
 						{
@@ -1119,7 +1144,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return;
 				}
 				
-				if (!draggable.value && !_resizeable)
+				if (!_enableMoveResize)
 					return;
 				
 				var parentMousePoint:Point = new Point(parent.mouseX, parent.mouseY);
@@ -1137,12 +1162,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				{
 					if (_rightSideResize)
 					{
-						this.width  = StandardLib.constrain( (parentMousePoint.x - this.x), minWidth, (parent.width - this.x) );
+						this.width = StandardLib.constrain( (parentMousePoint.x - this.x), minWidth, (parent.width - this.x) );
 					}
 					else if (_leftSideResize)
 					{
-						this.x 		= StandardLib.constrain( (parentMousePoint.x), 0, _rightSideBeforeLeftResize - minWidth );
-						this.width  = (_rightSideBeforeLeftResize - this.x);
+						this.x = StandardLib.constrain( (parentMousePoint.x), 0, _rightSideBeforeLeftResize - minWidth );
+						this.width = (_rightSideBeforeLeftResize - this.x);
 					}
 					if (_bottomResize)
 					{
@@ -1150,7 +1175,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 					else if (_topSideResize)
 					{
-						this.y 		= StandardLib.constrain( (parentMousePoint.y), 0, _bottomSideBeforeTopResize - minHeight );
+						this.y = StandardLib.constrain( (parentMousePoint.y), 0, _bottomSideBeforeTopResize - minHeight );
 						this.height = (_bottomSideBeforeTopResize - this.y);
 					}		
 				}
@@ -1164,7 +1189,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (_controlPanel)
 				{
 					if (!_controlPanel.parent)
-						PopUpManager.addPopUp(_controlPanel, Application.application as Application);
+						PopUpManager.addPopUp(_controlPanel, WeaveAPI.topLevelApplication as UIComponent);
 					_controlPanel.sendWindowToForeground();
 				}
 				else
@@ -1273,7 +1298,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var leftButtonX:int = getButtonOffsetFromSide();
 				var rightButtonX:int = unscaledWidth - buttonSize - getButtonOffsetFromSide();
 				
-				// we only need to utdate title, buttons if the height is > 0, otherwise do not show the buttons
+				// we only need to update title, buttons if the height is > 0, otherwise do not show the buttons
 				if (getStyle("headerHeight") <= 0)
 				{
 					userControlButton.visible = false;
@@ -1572,21 +1597,49 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				var instance:DraggablePanel = _instances[draggablePanelClass];
 				if (!instance)
+				{
 					_instances[draggablePanelClass] = instance = new draggablePanelClass() as DraggablePanel;
+					instance.pinnable.value = false;
+					instance.pinnableToBack.value = false;
+				}
 				if (!instance.parent)
-					PopUpManager.addPopUp(instance, Application.application as Application);
+					PopUpManager.addPopUp(instance, WeaveAPI.topLevelApplication as UIComponent);
 				instance.restorePanel();
 				
 				return instance;
 			}
 			private static const _instances:Dictionary = new Dictionary();
 			
-			private var subMenu:SubMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
+			protected const subMenu:SubMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
 			
+			/**
+			 * Embedded cursors
+			 */
+			public static const CURSOR_RESIZE_TOP_BOTTOM:String = "resizeTopBottom";
+			[Embed(source="/weave/resources/images/resize_TB.png")]
+			private static var resizeTBCursor:Class;
+			CustomCursorManager.registerEmbeddedCursor(CURSOR_RESIZE_TOP_BOTTOM, resizeTBCursor, NaN, NaN);
+			
+			public static const CURSOR_RESIZE_LEFT_RIGHT:String = "resizeLeftRight";
+			[Embed(source="/weave/resources/images/resize_LR.png")]
+			private static var resizeLRCursor:Class;
+			CustomCursorManager.registerEmbeddedCursor(CURSOR_RESIZE_LEFT_RIGHT, resizeLRCursor, NaN, NaN);
+			
+			public static const CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT:String = "resizeTLBR";
+			[Embed(source="/weave/resources/images/resize_TL-BR.png")]
+			private static var resizeTLBRCursor:Class;
+			CustomCursorManager.registerEmbeddedCursor(CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT, resizeTLBRCursor, NaN, NaN);
+			
+			public static const CURSOR_RESIZE_TOPRIGHT_BOTTOMLEFT:String = "resizeTRBL";
+			[Embed(source="/weave/resources/images/resize_TR-BL.png")]
+			private static var resizeTRBLCursor:Class;
+			CustomCursorManager.registerEmbeddedCursor(CURSOR_RESIZE_TOPRIGHT_BOTTOMLEFT, resizeTRBLCursor, NaN, NaN);
 			
 			// backwards compatibility
 			[Deprecated(replacement="panelTitle")] public function set toolTitle(value:String):void { panelTitle.value = value; }
 			[Deprecated(replacement="enableBorders")] public function set hideBorders(value:Boolean):void { enableBorders.value = !value; }
+			[Deprecated(replacement="enableMoveResize")] public function set draggable(value:Boolean):void { enableMoveResize.value = value; }
+			[Deprecated(replacement="enableMoveResize")] public function set resizeable(value:Boolean):void { enableMoveResize.value = value; }
 		]]>
 	</mx:Script>
 </mx:TitleWindow>

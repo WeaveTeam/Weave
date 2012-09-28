@@ -29,14 +29,10 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.TextArea;
-			import mx.core.IToolTip;
 			import mx.events.SliderEvent;
-			import mx.managers.ToolTipManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
@@ -49,19 +45,18 @@
 			import weave.core.LinkableNumber;
 			import weave.data.AttributeColumns.ColorColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
-			import weave.visualization.layers.PlotLayer;
-			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.utils.PlotterUtils;
+			import weave.visualization.layers.LayerSettings;
+			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.RegressionLinePlotter;
 			import weave.visualization.plotters.ScatterPlotPlotter;
-			import weave.visualization.plotters.styles.SolidFillStyle;
 
-			WeaveAPI.registerImplementation(IVisTool, ScatterPlotTool, "Scatterplot");
+			WeaveAPI.registerImplementation(IVisTool, ScatterPlotTool, lang("Scatterplot"));
 
 			public var plotter:ScatterPlotPlotter = null;
 			
@@ -74,259 +69,213 @@
 				visualization.enableProbeLine(true, true);
 				
 				//BEGIN TEMPORARY SOLUTION
-				visualization.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
-				visualization.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
+				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateAxisLabels);
+				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(plotter).addGroupedCallback(this, updateAxisLabels, true);
 				// END TEMPORARY SOLUTION
 				
 				visualization.enableZoomAndPan.value = false;
 				
-				xAxisLayer.axisPlotter.setLabelFunction(labelFunctionX);
-				yAxisLayer.axisPlotter.setLabelFunction(labelFunctionY);
+				xAxisPlotter.setLabelFunction(labelFunctionX);
+				yAxisPlotter.setLabelFunction(labelFunctionY);
 				
 				var self:* = this;
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.xColumn); })
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.yColumn); })
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.dataX); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.dataY); })
 				
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
 				
 				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange, true);
 				
-				initColumnDefaults(plotter.xColumn, plotter.yColumn, colorColumn);
+				initColumnDefaults(plotter.dataX, plotter.dataY, colorColumn);
 				
-				plotter.xColumn.addGroupedCallback(this, updateProbeColumns);
-				plotter.yColumn.addGroupedCallback(this, updateProbeColumns);
+				plotter.dataX.addGroupedCallback(this, updateProbeColumns);
+				plotter.dataY.addGroupedCallback(this, updateProbeColumns);
 				colorColumn.addGroupedCallback(this, updateProbeColumns);
 				
-				plotter.enabledSizeBy.value = true;
-				visualization.marginBottom.value = "80";
-				visualization.marginTop.value    = "30";
-				visualization.marginLeft.value   = "80";
-				visualization.marginRight.value  = "30";
+				visualization.plotManager.marginBottom.value = "80";
+				visualization.plotManager.marginTop.value    = "30";
+				visualization.plotManager.marginLeft.value   = "80";
+				visualization.plotManager.marginRight.value  = "30";
 				
 				initializeUndefinedLayers();				
 				initRegressionLayer();
+				
+				children.childListCallbacks.addGroupedCallback(this, handleChildrenChildList);
+			}
+			
+			private function handleChildrenChildList():void
+			{
+				// this will make sure the undefined x,y visualizations are on top of the main vis.
+				// get existing order
+				var order:Array = children.getNames();
+				var args:Array = [UNDEFINED_X_NAME, UNDEFINED_Y_NAME, UNDEFINED_XY_NAME];
+				// remove vis_undef_* names
+				for each (var name:String in args)
+					order.splice(order.indexOf(name), 1);
+				// replace the main vis name with the list of vis names
+				var visName:String = children.getName(visualization);
+				args.unshift(order.indexOf(visName), 1, visName);
+				order.splice.apply(null, args);
+				// save new order
+				children.setNameOrder(order);
 			}
 			
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["X", "Y", "Color", "Size"];
+				return [lang("X"), lang("Y"), lang("Color"), lang("Size")];
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [plotter.xColumn, plotter.yColumn, colorColumn, plotter.radiusColumn];
+				return [plotter.dataX, plotter.dataY, colorColumn, plotter.screenRadius];
 			}
 			
-			private var _regressionLineLayer:PlotLayer ;
 			private const REGRESSION_LAYER_NAME:String = "regressionLine";
 			private var _regressionPlotter:RegressionLinePlotter = null;
 			
 			private function initRegressionLayer():void
 			{
-				_regressionLineLayer = visualization.layers.requestObject(REGRESSION_LAYER_NAME, PlotLayer, true);
-				_regressionPlotter = _regressionLineLayer.getDynamicPlotter().requestLocalObject(RegressionLinePlotter,true);
-				linkSessionState(plotter.xColumn, _regressionPlotter.xColumn);
-				linkSessionState(plotter.yColumn, _regressionPlotter.yColumn);
+				_regressionPlotter = visualization.plotManager.plotters.requestObject(REGRESSION_LAYER_NAME, RegressionLinePlotter, true);
+				linkSessionState(plotter.dataX, _regressionPlotter.xColumn);
+				linkSessionState(plotter.dataY, _regressionPlotter.yColumn);
 				_regressionPlotter.drawLine.value = false;				
 			}
 			
 			
 			/*BEGIN UNDEFINED LAYER CODE*/
 					
-			private var _undefinedXLayer:SelectablePlotLayer;
-			private var _undefinedYLayer:SelectablePlotLayer;
-			private var _undefinedXYLayer:SelectablePlotLayer;
+			private var vis_undef_x:SimpleInteractiveVisualization;
+			private var vis_undef_y:SimpleInteractiveVisualization;
+			private var vis_undef_xy:SimpleInteractiveVisualization;
 			
-			private var _undefinedXPlotter:ScatterPlotPlotter;
-			private var _undefinedYPlotter:ScatterPlotPlotter;
-			private var _undefinedXYPlotter:ScatterPlotPlotter;
-									
 			private const UNDEFINED_X_NAME:String = "undefinedX";
 			private const UNDEFINED_Y_NAME:String = "undefinedY";
 			private const UNDEFINED_XY_NAME:String = "undefinedXY";
 			
-			private var _tempPoint:Point = new Point();
 			private const _tempBounds:Bounds2D = new Bounds2D();
-			private const dataBounds:Bounds2D = new Bounds2D();
-			private const _screenBounds:Bounds2D = new Bounds2D();						
 			
 			private function initializeUndefinedLayers():void
 			{
-				_undefinedXLayer = visualization.layers.requestObject(UNDEFINED_X_NAME,SelectablePlotLayer, true);
-				_undefinedYLayer = visualization.layers.requestObject(UNDEFINED_Y_NAME, SelectablePlotLayer, true);
-				_undefinedXYLayer = visualization.layers.requestObject(UNDEFINED_XY_NAME,SelectablePlotLayer, true);
+				vis_undef_x = children.requestObject(UNDEFINED_X_NAME, SimpleInteractiveVisualization, true);
+				vis_undef_y = children.requestObject(UNDEFINED_Y_NAME, SimpleInteractiveVisualization, true);
+				vis_undef_xy = children.requestObject(UNDEFINED_XY_NAME, SimpleInteractiveVisualization, true);
+
+				vis_undef_x.toolTip = lang("Undefined X");
+				vis_undef_y.toolTip = lang("Undefined Y");
+				vis_undef_xy.toolTip = lang("Undefined X and Y");
 				
-				_undefinedXPlotter = _undefinedXLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
-				_undefinedYPlotter = _undefinedYLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
-				_undefinedXYPlotter = _undefinedXYLayer.getDynamicPlotter().requestLocalObject(ScatterPlotPlotter, true);
+				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, resizeUndefinedLayers, true);
 				
-				for each(var _plotter:ScatterPlotPlotter in [_undefinedXPlotter, _undefinedYPlotter, _undefinedXYPlotter])
+				for each (var vis:SimpleInteractiveVisualization in [vis_undef_x, vis_undef_y, vis_undef_xy])
 				{
-					linkSessionState(plotter.colorColumn, _plotter.colorColumn);
-					linkSessionState(plotter.alphaColumn, _plotter.alphaColumn);
-					linkSessionState(plotter.radiusColumn, _plotter.radiusColumn);					
+					vis.initializePlotters(ScatterPlotPlotter, false);
+					vis.enableAutoZoomXToNiceNumbers.value = true;
+					vis.enableAutoZoomYToNiceNumbers.value = true;
+					
+					var _plotter:ScatterPlotPlotter = vis.getMainPlotter() as ScatterPlotPlotter;
+					linkSessionState(plotter.fill.color, _plotter.fill.color);
+					linkSessionState(plotter.fill.alpha, _plotter.fill.alpha);
+					linkSessionState(plotter.screenRadius, _plotter.screenRadius);					
 					linkSessionState(plotter.defaultScreenRadius, _plotter.defaultScreenRadius);
 					linkSessionState(plotter.enabledSizeBy, _plotter.enabledSizeBy);
 					linkSessionState(plotter.maxScreenRadius, _plotter.maxScreenRadius);
 					linkSessionState(plotter.minScreenRadius, _plotter.minScreenRadius);
-				} 	
-				
-				linkSessionState(plotter.xColumn, _undefinedYPlotter.xColumn);
-				linkSessionState(plotter.yColumn, _undefinedXPlotter.yColumn);
-				
-				for each(var column:IAttributeColumn in getSelectableAttributes())
-				{
-					column.addGroupedCallback(this, setUndefinedPlotterKeySource, true);
+					
+					var undefSettings:LayerSettings = vis.getMainLayerSettings();
+					undefSettings.hack_includeMissingRecordBounds = true;
+					linkSessionState(visualization.getMainLayerSettings(), undefSettings);
+					linkSessionState(visualization.plotManager.zoomBounds, vis.plotManager.zoomBounds);
 				}
 				
-				getCallbackCollection(visualization.zoomBounds).addImmediateCallback(this, invalidateDisplayList);
+				var plotter_undef_x:ScatterPlotPlotter = vis_undef_x.getMainPlotter() as ScatterPlotPlotter;
+				var plotter_undef_y:ScatterPlotPlotter = vis_undef_y.getMainPlotter() as ScatterPlotPlotter;
+				var plotter_undef_xy:ScatterPlotPlotter = vis_undef_xy.getMainPlotter() as ScatterPlotPlotter;
 				
-				visualization.marginTopNumber.addImmediateCallback(this, invalidateDisplayList);
-				visualization.marginBottomNumber.addImmediateCallback(this, invalidateDisplayList);
-				visualization.marginRightNumber.addImmediateCallback(this, invalidateDisplayList);
-				visualization.marginLeftNumber.addImmediateCallback(this, invalidateDisplayList);
-				
-				visualization.gridLineAlpha.addImmediateCallback(this, invalidateDisplayList);
-				visualization.gridLineColor.addImmediateCallback(this, invalidateDisplayList);
-				visualization.gridLineThickness.addImmediateCallback(this, invalidateDisplayList);
-				
-				for each (var layer:SelectablePlotLayer in [_undefinedXLayer, _undefinedYLayer, _undefinedXYLayer])
-				{					
-					layer.showMissingRecords(true);
-					
-					linkSessionState(plotLayer.backgroundIsVisible, layer.backgroundIsVisible);
-					linkSessionState(plotLayer.layerIsVisible, layer.layerIsVisible);
-					linkSessionState(plotLayer.layerIsSelectable, layer.layerIsSelectable);					
-				} 																		
-				
-				addEventListener(MouseEvent.MOUSE_MOVE, displayToolTip);
-				addEventListener(MouseEvent.MOUSE_OUT, destroyToolTip);
-			}						
-			
-			private function setUndefinedPlotterKeySource():void
-			{
-				var recordKeys:Array = plotter.keySet.keys;
-				var missingXkeys:Array = [];
-				var missingYkeys:Array = [];
-				var missingXYkeys:Array = [];
-				var missingX:Boolean;
-				var missingY:Boolean;
-				
-				for each(var key:IQualifiedKey in recordKeys)	
-				{
-					missingX = !plotter.xColumn.containsKey(key);
-					missingY = !plotter.yColumn.containsKey(key);
-					
-					if(missingX)
+				plotter_undef_x.hack_setKeyInclusionLogic(
+					function(key:IQualifiedKey):Boolean
 					{
-						if(missingY)
-							missingXYkeys.push(key);
-						else 
-							missingXkeys.push(key);
-					}
-					else if(missingY)
+						var x:Boolean = plotter.dataX.containsKey(key);
+						var y:Boolean = plotter.dataY.containsKey(key);
+						return !x && y;
+					},
+					[plotter.dataX, plotter.dataY]
+				);
+				plotter_undef_y.hack_setKeyInclusionLogic(
+					function(key:IQualifiedKey):Boolean
 					{
-						missingYkeys.push(key);
-					}
-				}
-				_undefinedXPlotter.setCustomKeySource(missingXkeys);
-				_undefinedYPlotter.setCustomKeySource(missingYkeys);
-				_undefinedXYPlotter.setCustomKeySource(missingXYkeys);
+						var x:Boolean = plotter.dataX.containsKey(key);
+						var y:Boolean = plotter.dataY.containsKey(key);
+						return x && !y;
+					},
+					[plotter.dataX, plotter.dataY]
+				);
+				plotter_undef_xy.hack_setKeyInclusionLogic(
+					function(key:IQualifiedKey):Boolean
+					{
+						var x:Boolean = plotter.dataX.containsKey(key);
+						var y:Boolean = plotter.dataY.containsKey(key);
+						return !x && !y;
+					},
+					[plotter.dataX, plotter.dataY]
+				);
+				
+				linkSessionState(plotter.dataX, plotter_undef_y.dataX);
+				linkSessionState(plotter.dataY, plotter_undef_x.dataY);
+				
+				getCallbackCollection(visualization.plotManager.zoomBounds).addImmediateCallback(this, invalidateDisplayList);
+				
+				visualization.plotManager.marginTopNumber.addImmediateCallback(this, invalidateDisplayList);
+				visualization.plotManager.marginBottomNumber.addImmediateCallback(this, invalidateDisplayList);
+				visualization.plotManager.marginRightNumber.addImmediateCallback(this, invalidateDisplayList);
+				visualization.plotManager.marginLeftNumber.addImmediateCallback(this, invalidateDisplayList);
+				
+				visualization.gridLineAlpha.addImmediateCallback(this, updateUndefLayerLines);
+				visualization.gridLineColor.addImmediateCallback(this, updateUndefLayerLines);
+				visualization.gridLineThickness.addImmediateCallback(this, updateUndefLayerLines, true);
 			}
-			
-			
-			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			private function updateUndefLayerLines():void
 			{
-				super.updateDisplayList(unscaledWidth, unscaledHeight);
-				updateUndefinedPlotterBounds();
+				var args:Array = [visualization.gridLineThickness.value, visualization.gridLineColor.value, visualization.gridLineAlpha.value];
+				(vis_undef_x.getMainPlotter() as ScatterPlotPlotter).hack_verticalBackgroundLineStyle = args;
+				(vis_undef_y.getMainPlotter() as ScatterPlotPlotter).hack_horizontalBackgroundLineStyle = args;
+				getCallbackCollection(vis_undef_x.getMainPlotter()).triggerCallbacks();
+				getCallbackCollection(vis_undef_y.getMainPlotter()).triggerCallbacks();
 			}
-			
-			
-			private function updateUndefinedPlotterBounds():void
+			private function resizeUndefinedLayers():void
 			{
 				var b:IBounds2D = _tempBounds;
-				plotLayer.getScreenBounds(b);
+				var marginRight:Number = visualization.plotManager.marginRightNumber.value;
+				
+				// right margin undefined x
+				visualization.plotManager.zoomBounds.getScreenBounds(b);
 				if (b.isEmpty())
 				{
-					callLater(updateUndefinedPlotterBounds);
+					callLater(resizeUndefinedLayers);
 					return;
 				}
+				_tempBounds.setXMin(b.getXMax() + marginRight);
+				_tempBounds.setWidth(b.getWidth() * 0.66);
+				setDisplayObjectBounds(vis_undef_x, b);
 				
-				var graphics:Graphics = visualization.graphics;
-				graphics.clear();
-				graphics.lineStyle(visualization.gridLineThickness.value, visualization.gridLineColor.value, visualization.gridLineAlpha.value);
+				// top margin undefined y
+				visualization.plotManager.zoomBounds.getScreenBounds(b);
+				_tempBounds.setYMin(0);
+				_tempBounds.setHeight(b.getHeight() * 0.66);
+				setDisplayObjectBounds(vis_undef_y, b);
 				
-				var marginRight:Number = visualization.marginRightNumber.value;
-				
-				// right margin; undefined x
-				plotLayer.getScreenBounds(b);
-				graphics.moveTo(b.getXMax() + marginRight / 2, b.getYMin());
-				graphics.lineTo(b.getXMax() + marginRight / 2, b.getYMax());
-				b.setXMin(b.getXMax() + marginRight);
-				_undefinedXLayer.hack_lockScreenBounds(b);
-				
-				// top margin; undefined y
-				plotLayer.getScreenBounds(b);
-				graphics.moveTo(b.getXMin(), b.getYMax() / 2);
-				graphics.lineTo(b.getXMax(), b.getYMax() / 2);
-				b.setYMin(0);
-				_undefinedYLayer.hack_lockScreenBounds(b);
-				
-				// top-right corner; undefined x and y
-				plotLayer.getScreenBounds(b);
-				b.setMinCoords(b.getXMax() + marginRight, 0);
-				_undefinedXYLayer.hack_lockScreenBounds(b);
+				// top-right corner undefined xy
+				visualization.plotManager.zoomBounds.getScreenBounds(b);
+				_tempBounds.setMinCoords(b.getXNumericMax() + marginRight, 0);
+				_tempBounds.centeredResize(b.getWidth() / 2, b.getHeight() / 2);
+				setDisplayObjectBounds(vis_undef_xy, b);
 			}
-			
-			
-			private var _toolTip:IToolTip = null;
-			private function displayToolTip(event:MouseEvent):void
+			private function setDisplayObjectBounds(displayObject:DisplayObject, bounds:IBounds2D):void
 			{
-				destroyToolTip(event);
-				_tempPoint = this.globalToContent(new Point(event.stageX, event.stageY));
-								
-				var probeExists:Boolean = plotLayer.probeFilter.internalObject is IKeySet &&
-					(plotLayer.probeFilter.internalObject as IKeySet).keys.length > 0;
-
-				var selectionExists:Boolean = plotLayer.selectionFilter.internalObject is IKeySet &&
-					(plotLayer.selectionFilter.internalObject as IKeySet).keys.length > 0;
-				
-				if(probeExists || selectionExists) return;
-				
-				_undefinedXLayer.getScreenBounds(_tempBounds);				
-				if(_tempBounds.containsPoint(_tempPoint))
-				{
-					_tempPoint = this.contentToGlobal(_tempPoint);
-					_toolTip = ToolTipManager.createToolTip("undefined x",_tempPoint.x, _tempPoint.y);	
-					visualization.constrainToolTipsToStage(_toolTip);
-					return;
-				}
-				_undefinedYLayer.getScreenBounds(_tempBounds);
-				if(_tempBounds.containsPoint(_tempPoint))
-				{
-					_tempPoint = this.contentToGlobal(_tempPoint);
-					_toolTip = ToolTipManager.createToolTip("undefined y",_tempPoint.x, _tempPoint.y);
-					visualization.constrainToolTipsToStage(_toolTip);
-					return;
-				}
-				_undefinedXYLayer.getScreenBounds(_tempBounds);
-				if(_tempBounds.containsPoint(_tempPoint))
-				{
-					_tempPoint = this.contentToGlobal(_tempPoint);
-					_toolTip = ToolTipManager.createToolTip("undefined x,y",_tempPoint.x, _tempPoint.y);
-					visualization.constrainToolTipsToStage(_toolTip);
-					return;
-				}   
-			}
-			
-			private function destroyToolTip(event:MouseEvent):void
-			{
-				if(_toolTip != null) 
-				{
-					ToolTipManager.destroyToolTip(_toolTip);
-					_toolTip = null;
-				}
+				displayObject.x = bounds.getXNumericMin();
+				displayObject.y = bounds.getYNumericMin();
+				displayObject.width = bounds.getXCoverage();
+				displayObject.height = bounds.getYCoverage();
 			}
 			/*END UNDEFINED LAYER CODE*/
 			
@@ -337,12 +286,12 @@
 				if(includeToolAttributesInProbe.value)
 				{
 					visualization.additionalProbeColumns = [];
-					if (plotter.xColumn.internalColumn)
-						visualization.additionalProbeColumns.push(plotter.xColumn.internalColumn);
-					if (plotter.yColumn.internalColumn)
-						visualization.additionalProbeColumns.push(plotter.yColumn.internalColumn);
-					if (colorColumn.internalColumn)
-						visualization.additionalProbeColumns.push(colorColumn.internalColumn);
+					if (plotter.dataX.getInternalColumn())
+						visualization.additionalProbeColumns.push(plotter.dataX.getInternalColumn());
+					if (plotter.dataY.getInternalColumn())
+						visualization.additionalProbeColumns.push(plotter.dataY.getInternalColumn());
+					if (colorColumn.getInternalColumn())
+						visualization.additionalProbeColumns.push(colorColumn.getInternalColumn());
 					if (visualization.additionalProbeColumns.length == 0)
 						visualization.additionalProbeColumns = null ;
 				}
@@ -351,25 +300,24 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Scatter Plot of " + ColumnUtils.getTitle(plotter.xColumn) + " -vs- " + ColumnUtils.getTitle(plotter.yColumn);
+				return lang("Scatter Plot of {0} -vs- {1}", ColumnUtils.getTitle(plotter.dataX), ColumnUtils.getTitle(plotter.dataY));
 			}
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 
-				plotter.colorColumn.addImmediateCallback(this, handleColorColumnChange, true);
-				linkBindableProperty(plotter.alphaColumn.defaultValue, alphaSlider, "value");
+				plotter.fill.color.addImmediateCallback(this, handleColorColumnChange, true);
+				linkBindableProperty(plotter.fill.alpha.defaultValue, alphaSlider, "value");
 				linkBindableProperty(plotter.enabledSizeBy, sizeByCheck, "selected");
-				plotter.minScreenRadius.addGroupedCallback(this, updateSizeSlider);
-				plotter.maxScreenRadius.addGroupedCallback(this, updateSizeSlider, true);
-				visualization.marginLeftNumber.addGroupedCallback(this, updateEquation);
-				visualization.marginBottomNumber.addGroupedCallback(this, updateEquation);
+				visualization.plotManager.marginLeftNumber.addGroupedCallback(this, updateEquation);
+				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, updateEquation);
 				getCallbackCollection(_regressionPlotter).addGroupedCallback(this, updateEquation, true);
 				showColorPicker.addGroupedCallback(this, updateColorPicker);
 				overrideColor.addGroupedCallback(this, updateColorPicker);
 				
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateEquationStyle, true);
+				getCallbackCollection(plotter).addGroupedCallback(this, handlePlotterChange, true);
 			}
 			
 			private function updateEquationStyle():void
@@ -385,76 +333,52 @@
 						visCanvas.addChild(equationText);
 					var slope:Number = StandardLib.roundSignificant(_regressionPlotter.getSlope(), 4);
 					var intercept:Number = StandardLib.roundSignificant(_regressionPlotter.getIntercept(), 4);
-					lineEquation.text = "Equation: y = " + slope + "x"+ " + " + intercept;
-					equationText.text = "slope = " + slope + "\nintercept = " + intercept;
+					lineEquation.text = lang("Equation: y = {0}x + {1}", slope, intercept);
+					equationText.text = lang("slope = {0}\nintercept = {0}", slope, intercept);
 					equationText.validateNow();
 					// severely hacked
-					equationText.width = visualization.marginLeftNumber.value * 2;
-					equationText.height = Math.min(equationText.textHeight + 10, visualization.marginBottomNumber.value);
+					equationText.width = visualization.plotManager.marginLeftNumber.value * 2;
+					equationText.height = Math.min(equationText.textHeight + 10, visualization.plotManager.marginBottomNumber.value);
 				}
 				else
 				{ 
 					if (equationText.parent)
 						equationText.parent.removeChild(equationText);
-					lineEquation.text = "Equation: y = mx + b";
+					lineEquation.text = lang("Equation: y = mx + b");
 				}
 			}
 			private function updateAxisLabels():void
 			{
-				visualization.bottomMarginColumn = plotter.xColumn;
-				visualization.leftMarginColumn = plotter.yColumn;
+				visualization.bottomMarginColumn = plotter.dataX;
+				visualization.leftMarginColumn = plotter.dataY;
 				
-				xAxisLayer.axisPlotter.setSideAxisName(
-					ColumnUtils.getTitle(plotter.xColumn), 
+				xAxisPlotter.setSideAxisName(
+					ColumnUtils.getTitle(plotter.dataX), 
 					0,   
-					0, visualization.marginBottomNumber.value - 3, 
+					0, visualization.plotManager.marginBottomNumber.value - 3, 
 					BitmapText.VERTICAL_ALIGN_BOTTOM
 				);
 				
-				yAxisLayer.axisPlotter.setSideAxisName(
-					ColumnUtils.getTitle(plotter.yColumn), 
+				yAxisPlotter.setSideAxisName(
+					ColumnUtils.getTitle(plotter.dataY), 
 					-90, 
-					-visualization.marginLeftNumber.value, 0, 
+					-visualization.plotManager.marginLeftNumber.value, 0, 
 					BitmapText.VERTICAL_ALIGN_TOP
 				);
 			}
 			
 			public function labelFunctionX(value:Number):String
 			{
-				return ColumnUtils.deriveStringFromNumber(plotter.xColumn, value);
+				return ColumnUtils.deriveStringFromNumber(plotter.dataX, value);
 			}
 			public function labelFunctionY(value:Number):String
 			{
-				return ColumnUtils.deriveStringFromNumber(plotter.yColumn, value);
+				return ColumnUtils.deriveStringFromNumber(plotter.dataY, value);
 			}
 			
 			public function get colorColumn():DynamicColumn
 			{
-				var fc:FilteredColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_DATA_COLUMN) as FilteredColumn;
-				return fc.internalDynamicColumn;
-			}
-			
-			private function updateSizeSlider():void
-			{
-				sizeBySlider.values = [plotter.minScreenRadius.value, plotter.maxScreenRadius.value];
-			}
-			
-			private function alphaSliderFormatFunction(item:Number):String {
-				//return int(100 - (item * 100)) + "% Transparent";
-				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
-			}
-			
-			
-			private function handleSizeSliderChange(event:SliderEvent):void
-			{
-				if(event.thumbIndex == 0)
-				{
-					plotter.minScreenRadius.value = event.value;
-				}
-				else
-				{
-					plotter.maxScreenRadius.value = event.value;
-				}
+				return Weave.defaultColorDataColumn.internalDynamicColumn;
 			}
 			
 			protected function createLegend():void
@@ -473,13 +397,13 @@
 				
 				if ( showColorPicker.value )
 				{
-					plotter.colorColumn.defaultValue.value = overrideColor.value;
-					plotter.colorColumn.internalDynamicColumn.removeObject();
+					plotter.fill.color.defaultValue.value = overrideColor.value;
+					plotter.fill.color.internalDynamicColumn.removeObject();
 				}
 				else
 				{
-					plotter.colorColumn.defaultValue.value = NaN;
-					plotter.colorColumn.internalDynamicColumn.requestGlobalObject(_prevGlobalColorColumnName, ColorColumn, false);
+					plotter.fill.color.defaultValue.value = NaN;
+					plotter.fill.color.internalDynamicColumn.requestGlobalObject(_prevGlobalColorColumnName, ColorColumn, false);
 				}
 				scatterplotColorOverride.enabled = showColorPicker.value;
 			}
@@ -487,7 +411,7 @@
 			private var _prevGlobalColorColumnName:String = null;
 			private function handleColorColumnChange():void
 			{
-				var newName:String = plotter.colorColumn.internalDynamicColumn.globalName;
+				var newName:String = plotter.fill.color.internalDynamicColumn.globalName;
 				if (newName)
 					_prevGlobalColorColumnName = newName;
 			}
@@ -495,6 +419,59 @@
 			public const showColorPicker:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const overrideColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
 				
+			private function enableAbsHandler(event:Event):void
+			{
+				if( colorOverrideCheckbox.selected ) colorOverrideCheckbox.selected = false;
+			}
+			
+			private function enableOverrideHandler(event:Event):void
+			{
+				if( absoluteValueColorEnabledCheckbox.selected ) absoluteValueColorEnabledCheckbox.selected = false;
+			}
+			
+			
+			private function handlePlotterChange():void
+			{
+				// when the plotter settings change, update the slider interface
+				if (plotter.absoluteValueColorEnabled.value)
+				{
+					sizeBySlider.thumbCount = 1;
+					sizeBySlider.value = plotter.maxScreenRadius.value;
+				}
+				else if (plotter.enabledSizeBy.value)
+				{
+					sizeBySlider.thumbCount = 2;
+					sizeBySlider.values = [plotter.minScreenRadius.value, plotter.maxScreenRadius.value];
+				}
+				else
+				{
+					sizeBySlider.thumbCount = 1;
+					sizeBySlider.value = plotter.defaultScreenRadius.value;
+				}
+			}
+			private function handleSizeSliderChange(event:SliderEvent):void
+			{
+				// when user interacts with slider, update session state
+				if (plotter.absoluteValueColorEnabled.value)
+				{
+					plotter.maxScreenRadius.value = event.value;
+				}
+				else if (plotter.enabledSizeBy.value)
+				{
+					if(event.thumbIndex == 0)
+					{
+						plotter.minScreenRadius.value = event.value;
+					}
+					else
+					{
+						plotter.maxScreenRadius.value = event.value;
+					}
+				}
+				else
+				{
+					plotter.defaultScreenRadius.value = event.value;
+				}
+			}
 		]]>
 	</mx:Script>
 	<mx:TextArea id="equationText"
@@ -507,20 +484,19 @@
 		bottom="0"
 		left="0"/>
 	<ui:ControlPanel>
-		<mx:VBox id="VizControlsPanel" label="Visualization Controls">
-			<ui:DynamicColumnComponent visTool="{this}" label="x column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.xColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="y column" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.yColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="color" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="size" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.radiusColumn"/>
+		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('X')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataX"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Y')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.dataY"/>
+			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn" showLinkControl="false"/>
+			<mx:CheckBox id="sizeByCheck" label="{lang('Size')}" fontWeight="bold" width="64" creationComplete="sizeSelector.addChildAt(sizeByCheck, 0);"/>
+			<ui:DynamicColumnComponent id="sizeSelector" visTool="{this}" showLabel="false" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.screenRadius"/>
 			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:CheckBox id="sizeByCheck" label="Size by: {sizeByCheck.selected ? 'ENABLED' : 'DISABLED'}"/>
 				
-				<mx:Label text="Point Size:"/>
+				<mx:Label text="{lang('Point Size:')}"/>
 				<mx:HSlider id="sizeBySlider"
-							enabled="{sizeByCheck.selected}"
 							liveDragging="true"
 							width="100%"
-							thumbCount="2" 
+							thumbCount="2"
 							snapInterval="1"
 							minimum="1" 
 							maximum="60"
@@ -529,37 +505,36 @@
 							mouseDown="event.stopImmediatePropagation();"/>
 			</mx:HBox>
 			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:Label text="Point Opacity:" 
-						  toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency)."/>
+				<mx:Label text="{lang('Point Opacity:')}" 
+						  toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}"/>
 				
 				<mx:HSlider id="alphaSlider" 
 							width="100%" 
 							alpha="1.0"
-							dataTipFormatFunction="alphaSliderFormatFunction"
+							dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"/>
 			</mx:HBox>
-			<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
-						 toolTip="Checking this box makes the x, y, color and size attributes visible in this tool's probe tooltip"
+			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
+						 toolTip="{lang('Checking this box makes the x, y, color and size attributes visible in this tool\'s probe tooltip')}"
 						 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-			<mx:Button label="Show legend" click="createLegend()"/>
+			<mx:Button label="{lang('Show legend')}" click="createLegend()"/>
 		</mx:VBox>
-		<mx:VBox id="AdvancedPanel" label="Advanced">
+		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
 			<mx:VBox>
-				<mx:CheckBox id="regressionLineCheckBox" label="Enable regression line"
-							 toolTip="Check this box to draw a regression line on the scatterplot"
+				<mx:CheckBox id="regressionLineCheckBox" label="{lang('Enable regression line (Requires Rserve on the server)')}"
 							 creationComplete="linkBindableProperty(_regressionPlotter.drawLine,event.target,'selected')"/>
 				<ui:Indent>
 					<mx:VBox>
-						<mx:Label id="lineEquation" text="Equation: y = mx + b"/>
+						<mx:Label id="lineEquation" text="{lang('Equation: y = mx + b')}"/>
 						<mx:HBox>
-							<mx:Label text="Line Color" />
+							<mx:Label text="{lang('Line Color')}" />
 							<mx:ColorPicker id="regressionColorPicker" 
 											creationComplete="linkBindableProperty(_regressionPlotter.lineStyle.color.defaultValue, event.target, 'selectedColor')"
 											enabled="{regressionLineCheckBox.selected}"/>
 						</mx:HBox>
 						<mx:HBox>
-							<mx:Label text="Line Thickness" />
+							<mx:Label text="{lang('Line Thickness')}" />
 							<mx:HSlider id="regressionThicknessSlider"
 										creationComplete="linkBindableProperty(_regressionPlotter.lineStyle.weight.defaultValue, event.target, 'value')"
 										enabled="{regressionLineCheckBox.selected}"
@@ -567,7 +542,7 @@
 										tickInterval="1"/>
 						</mx:HBox>
 						<mx:HBox>
-							<mx:Label text="Line Opacity" />
+							<mx:Label text="{lang('Line Opacity')}" />
 							<mx:HSlider id="regressionAlphaSlider"
 										enabled="{regressionLineCheckBox.selected}"
 										minimum="0.1" maximum="1" snapInterval=".1" liveDragging="true"
@@ -578,9 +553,41 @@
 				</ui:Indent>
 			</mx:VBox>
 			<mx:HBox>
-				<mx:CheckBox id="colorOverrideCheckbox" label="Override Global Color" creationComplete="linkBindableProperty(showColorPicker,event.target,'selected')"/>
+				<mx:CheckBox id="colorOverrideCheckbox" label="{lang('Override Global Color')}" creationComplete="linkBindableProperty(showColorPicker,event.target,'selected')"
+							 change="enableOverrideHandler(event)"/>
 				<mx:ColorPicker id="scatterplotColorOverride" creationComplete="linkBindableProperty(overrideColor,event.target,'selectedColor')"/>
 			</mx:HBox>
+			<mx:VBox>
+				<mx:HBox>
+					<mx:CheckBox id="absoluteValueColorEnabledCheckbox" label="{lang('Color by positive or negative \'size\' column values')}"
+								 creationComplete="linkBindableProperty(plotter.absoluteValueColorEnabled, event.target, 'selected')"
+								 change="enableAbsHandler(event)"/>
+					<ui:HelpComponent>
+						Select this option to highlight the differences in your 'size' column.
+						* All values greater than 0 radius will be one color.
+						* All values less than 0 radius will be another color.
+						* If you have a size of 0 radius the circle will not be drawn.
+						
+						** If a size column is not specified, nothing will be drawn in this mode.
+					</ui:HelpComponent>
+				</mx:HBox>
+				<ui:Indent>
+					<mx:VBox>
+						<mx:HBox>
+							<mx:Label text="{lang('Color for values &lt; 0')}" />
+							<mx:ColorPicker id="absoluteValueMinColorPicker" 
+											creationComplete="linkBindableProperty(plotter.absoluteValueColorMin, event.target, 'selectedColor')"
+											enabled="{absoluteValueColorEnabledCheckbox.selected}" />
+						</mx:HBox>
+						<mx:HBox>
+							<mx:Label text="{lang('Color for values &gt; 0')}" />
+							<mx:ColorPicker id="absoluteValueMaxColorPicker" 
+											creationComplete="linkBindableProperty(plotter.absoluteValueColorMax, event.target, 'selectedColor')"
+											enabled="{absoluteValueColorEnabledCheckbox.selected}" />
+						</mx:HBox>
+					</mx:VBox>
+				</ui:Indent>
+			</mx:VBox>
 		</mx:VBox>
 	</ui:ControlPanel>
 </SimpleVisTool>

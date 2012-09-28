@@ -19,24 +19,14 @@
 
 package weave.visualization.plotters
 {
-//	import weave.data.AttributeColumns.DynamicColumn;
-//	import weave.data.StatisticsCache;
-//	import weave.primitives.Bounds2D;
-//	import weave.data.KeySets.KeySet;
-//	import flash.display.BitmapData;
-//	import flash.display.Graphics;
-//	import flash.display.Shape;
-//	import flash.geom.Point;	
-//    import flash.display.CapsStyle;
-//  import weave.Weave;
 	import flash.display.BitmapData;
 	import flash.display.CapsStyle;
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.ui.IPlotTask;
 	
 	public class ThermometerPlotter extends MeterPlotter
 	{
@@ -59,33 +49,31 @@ package weave.visualization.plotters
 		//the x offset (in pixels) used when drawing all shapes (so axis line is fully visible) 
 		private const xOffset:Number = backgroundCenterLineThickness/2+1;
 		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
 			//compute the meter value by averaging all record values
-			var meterValue:Number = 0, n:Number = recordKeys.length;
+			var meterValue:Number = 0;
+			var n:Number = task.recordKeys.length;
 			
-			if(n > 0){
-				if(n == 1)
-					meterValue = meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number)
-				else{
-					for (var i:int = 0; i < n; i++)//TODO handle missing values
-						meterValue += meterColumn.getValueFromKey(recordKeys[i] as IQualifiedKey, Number);
-					meterValue /= n;
-				}
-				
+			for (var i:int = 0; i < n; i++)//TODO handle missing values
+				meterValue += meterColumn.getValueFromKey(task.recordKeys[i] as IQualifiedKey, Number);
+			meterValue /= n;
+					
+			if (isFinite(meterValue))
+			{
 				//clear the graphics
 				var graphics:Graphics = tempShape.graphics;
 				graphics.clear();
-					
+				
 				//project bottom point
 				bottom.x = bottom.y = 0;
-				dataBounds.projectPointTo(bottom, screenBounds);
+				task.dataBounds.projectPointTo(bottom, task.screenBounds);
 				bottom.x += xOffset;
 				
 				//project top point (data value)
 				top.x = 0;
 				top.y = meterValue;
-				dataBounds.projectPointTo(top, screenBounds);
+				task.dataBounds.projectPointTo(top, task.screenBounds);
 				top.x += xOffset;
 				
 				//draw the center line (from zero to data value)
@@ -93,9 +81,9 @@ package weave.visualization.plotters
 				graphics.moveTo(bottom.x, bottom.y+bulbRadius);
 				graphics.lineTo(top.x, top.y);
 				
-				destination.draw(tempShape);
+				task.buffer.draw(tempShape);
 			}
-			
+			return 1;
 		}
 		
 		/**
@@ -117,7 +105,7 @@ package weave.visualization.plotters
 			
 			//project data max top point
 			top.x = 0;
-			top.y = WeaveAPI.StatisticsCache.getMax(meterColumn);
+			top.y = meterColumnStats.getMax();
 			dataBounds.projectPointTo(top, screenBounds);
 			top.x += xOffset;
 			
@@ -126,9 +114,9 @@ package weave.visualization.plotters
 			graphics.moveTo(bottom.x, bottom.y+bulbRadius);
 			graphics.lineTo(top.x, top.y);
 				
-			//draw background red circle
+			//draw background circle
 			graphics.lineStyle(5,backgroundCenterLineColor);
-			graphics.beginFill(0xff0000);
+			graphics.beginFill(0xFF0000);
 			graphics.drawCircle(bottom.x,bottom.y+bulbRadius,bulbRadius);
 			graphics.endFill();
 			
@@ -142,12 +130,12 @@ package weave.visualization.plotters
 		 */
 		override public function getBackgroundDataBounds():IBounds2D
 		{
-			return getReusableBounds(0, 0, 1, WeaveAPI.StatisticsCache.getMax(meterColumn));
+			return getReusableBounds(0, 0, 1, meterColumnStats.getMax());
 		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			return [getReusableBounds(0, 0, 1, WeaveAPI.StatisticsCache.getMax(meterColumn))];
+			return [getReusableBounds(0, 0, 1, meterColumnStats.getMax())];
 		}
 	}
 }

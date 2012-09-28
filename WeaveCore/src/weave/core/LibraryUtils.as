@@ -124,6 +124,7 @@ import flash.net.URLRequest;
 import flash.system.ApplicationDomain;
 import flash.system.LoaderContext;
 import flash.utils.ByteArray;
+import flash.utils.describeType;
 
 import mx.controls.SWFLoader;
 import mx.core.mx_internal;
@@ -150,7 +151,7 @@ internal class Library implements IDisposableObject
 	public function Library(url:String)
 	{
 		_url = url;
-		WeaveAPI.URLRequestUtils.getURL(new URLRequest(url), handleSWCResult, handleSWCFault);
+		WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(url), handleSWCResult, handleSWCFault);
 	}
 	
 	private var _url:String;
@@ -193,7 +194,7 @@ internal class Library implements IDisposableObject
 		{
 			_asyncToken = new AsyncToken();
 			// notify the responder one frame later
-			WeaveAPI.StageUtils.callLater(this, _notifyResponders, null, false);
+			WeaveAPI.StageUtils.callLater(this, _notifyResponders, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 		}
 		
 		_asyncToken.addResponder(new AsyncResponder(asyncResultHandler, asyncFaultHandler, token));
@@ -300,39 +301,36 @@ internal class Library implements IDisposableObject
 		var index:int = 0;
 		function loadingTask():Number
 		{
-			var progress:Number;
-			if (index < _classQNames.length) // in case the length is zero
+			if (index >= _classQNames.length) // in case the length is zero
+				return 1;
+
+			var classQName:String = _classQNames[index] as String;
+			try
 			{
-				var classQName:String = _classQNames[index] as String;
-				try
-				{
-					// initialize the class
-					var classDef:Class = ClassUtils.getClassDefinition(classQName);
-				}
-				catch (e:Error)
-				{
-					var fault:Fault = new Fault(String(e.errorID), e.name, e.message);
-					_notifyResponders(fault);
-					return 1;
-				}
+				// initialize the class
+				var classDef:Class = ClassUtils.getClassDefinition(classQName);
 				
-				index++;
-				progress = index / _classQNames.length;  // this will be 1.0 on the last iteration.
+				// register this class as an implementation of every interface it implements.
+				var type:XML = describeType(classDef);
+				for each (var i:XML in type.factory.implementsInterface)
+				{
+					var interfaceQName:String = i.attribute("type").toString();
+					var interfaceDef:Class = ClassUtils.getClassDefinition(interfaceQName);
+					WeaveAPI.registerImplementation(interfaceDef, classDef);
+				}
 			}
-			else
+			catch (e:Error)
 			{
-				progress = 1;
+				var fault:Fault = new Fault(String(e.errorID), e.name, e.message);
+				_notifyResponders(fault);
+				return 1;
 			}
 			
-			if (progress == 1)
-			{
-				// done
-				_notifyResponders();
-			}
+			index++;
 			
-			return progress;
+			return index / _classQNames.length;  // this will be 1.0 after the last iteration.
 		}
-		WeaveAPI.StageUtils.startTask(this, loadingTask);
+		WeaveAPI.StageUtils.startTask(this, loadingTask, WeaveAPI.TASK_PRIORITY_PARSING, _notifyResponders);
 	}
 	
 	/**
@@ -346,6 +344,7 @@ internal class Library implements IDisposableObject
 			{
 				var resultEvent:ResultEvent = ResultEvent.createEvent(_classQNames.concat(), _asyncToken);
 				_asyncToken.mx_internal::applyResult(resultEvent);
+				_asyncToken = null; // prevent responders from being called again
 			}
 			else
 			{
@@ -354,10 +353,10 @@ internal class Library implements IDisposableObject
 					fault = new Fault('Error', "Unable to load plugin " + _url);
 				var faultEvent:FaultEvent = FaultEvent.createEvent(fault, _asyncToken);
 				_asyncToken.mx_internal::applyFault(faultEvent);
+				_asyncToken = null; // prevent responders from being called again
 				
 				WeaveAPI.SessionManager.disposeObjects(this);
 			}
-			_asyncToken = null;
 		}
 	}
 }

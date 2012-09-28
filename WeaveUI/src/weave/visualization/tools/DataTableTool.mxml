@@ -30,13 +30,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   xmlns:ui="weave.ui.*" 
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
 				   layout="absolute" implements="weave.api.ui.IVisTool,weave.api.data.ICSVExportable"
-				   title="Data Table" xmlns:editors="weave.editors.*"
+				   title="{lang('Data Table')}" xmlns:editors="weave.editors.*"
 				   >
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
 		<mx:HBox id="topControls" horizontalAlign="left" width="100%">
-			<mx:Label text="Key type:"/>
-			<ui:CustomComboBox id="keyTypeCombo" change="filterColumnsByKeyType.value = keyTypeCombo.selectedItem as String;" toolTip="Only columns of the selected key type will be shown."/>
-			<mx:Button label="Edit columns..." click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
+			<mx:Label text="{lang('Key type:')}"/>
+			<ui:CustomComboBox id="keyTypeCombo" change="filterColumnsByKeyType.value = keyTypeCombo.selectedItem as String;" toolTip="{lang('Only columns of the selected key type will be shown.')}"/>
+			<mx:Button label="{lang('Edit columns...')}" click="AttributeSelectorPanel.openDefaultSelector(columns)"/>
 		</mx:HBox>
 		<mx:HBox minWidth="0" horizontalGap="0" borderStyle="solid"  id="filterControls" width="100%"  verticalAlign="middle" horizontalScrollPolicy="off">
 			<mx:Spacer width="{dataGrid.width}"/>
@@ -58,11 +58,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 									   alternatingItemColors="{[0xffffff, 0xEEF6FF]}"
 									   rollOverColor="0xDADAFF"
 									   selectionColor="0xFFAAAA"
+									   mouseDown="handleMouseDown()"
+									   click="handleMouseClick()"
 									   />
 		
 		<mx:HBox id="bottomControls" width="100%" paddingTop="3" paddingLeft="3" paddingBottom="3" paddingRight="3">
-			<mx:Button label="Export Data..." click="saveToFileAsCSV()" />
-			<mx:Button click="moveSelectedToTop()" label="Move Selected Items to top"/>
+			<mx:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
+			<mx:Button click="moveSelectedToTop()" label="{lang('Move Selected Items to top')}"/>
+			<mx:Button click="_selection.clearKeys()" label="{lang('Clear Selection')}"/>
 		</mx:HBox>
 	</mx:VBox>
 	
@@ -75,6 +78,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.UIComponent;
 			import mx.core.mx_internal;
@@ -94,6 +99,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
+			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -135,18 +141,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const dataGridHorizontalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const dataGridVerticalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
-			private var _subset:KeyFilter = Weave.root.getObject(Weave.DEFAULT_SUBSET_KEYFILTER) as KeyFilter;
-			private var _selection:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			private var colorColumn:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
+			private var _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
+			private var _selection:KeySet = Weave.defaultSelectionKeySet;
+			private var colorColumn:ColorColumn = Weave.defaultColorColumn;
 			
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			
 			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);	
 			public const exportKeys:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-			
-			
-			
 			
 			override protected function constructor():void
 			{
@@ -181,6 +184,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(dataGridHorizontalScrollPosition, dataGrid, 'horizontalScrollPosition', 0, true);
 				linkBindableProperty(dataGridVerticalScrollPosition, dataGrid, 'verticalScrollPosition', 0, true);
 				
+				
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleColumnStretch);
 				dataGrid.addEventListener(ResizeEvent.RESIZE, handleToolResize);
 				
@@ -192,7 +196,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			/**
-			 * This function(event Listener) gets called during dataGrid Resize event
+			 * This function(event ListeSner) gets called during dataGrid Resize event
 			 * handleDataGridHorizontalScroll calls updateColumnWidths, when the dataGridHorizontalScrollPosition.value is Maximum
 			 * handleDataGridHorizontalScroll is called to update FilterComponents Position
 			 */			
@@ -204,8 +208,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				if (dataGridHorizontalScrollPosition.value > 0 && showFilters.value)
 				{
-					handleDataGridHorizontalScroll();
+					handleDataGridHorizontalScroll();					
 				}
+				
+				// Set max header height to 50
+				dataGrid.headerHeight = NaN;
+				dataGrid._explicitHeaderHeight = false;
+				if (dataGrid.calculateHeaderHeight() > 50)
+				{
+					dataGrid.headerHeight = 50;
+				}
+
 			}
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void{
@@ -328,7 +341,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				// There is a bug in flex: column.sortDescending will always return false				
 				if(UIUtils.hasFocus(dataGrid)){//need to update sessionState when called by User Interaction
-					sortInDescendingOrder.value = isSortedDescending();
+					sortInDescendingOrder.value = !isSortedDescending(); // each time will toggle ascending/descending
 					sortFieldIndex.value = event.columnIndex;
 				}
 				
@@ -354,22 +367,25 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			 */							
 			private function sortCallback():void
 			{
-				if(isNaN(sortFieldIndex.value))
+				if (isNaN(sortFieldIndex.value))
 					return;
 				
 				var c:DataGridColumn = dataGrid.columns[sortFieldIndex.value];
-				if(c == null)
+				if (c == null)
 					return;
 				
 				// sort by the column specified in the session state , flip the sorting order if it is wrong
 				// each time we dispatch a header event, the sort order gets flipped, so we may have to flip it again
-				for(var i:int = 0 ; i<2; i++)
-				{
-					if (dataGrid.sortIndex != sortFieldIndex.value || isSortedDescending() != sortInDescendingOrder.value)
-					{
-						dataGrid.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, sortFieldIndex.value, null, 0, null, null, 0));
-					}
-				}
+				var changeDir:Boolean = isSortedDescending() != sortInDescendingOrder.value;
+				var changeIndex:Boolean = dataGrid.sortIndex != sortFieldIndex.value;
+				var times:int = 0;
+				if (changeDir)
+					times = 1; // change direction only requires one event
+				else if (changeIndex)
+					times = 2; // (change index and keep direction) requires two events
+				
+				for (var i:int = 0 ; i < times; i++)
+					dataGrid.dispatchEvent(new DataGridEvent(DataGridEvent.HEADER_RELEASE, false, true, sortFieldIndex.value, null, 0, null, null, 0));
 			}
 			
 			/**
@@ -388,6 +404,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_selection.replaceKeys(selectedKeys);
 			}
 			
+//			private function clearSelection():void
+//			{
+//				_selection.clearKeys();
+//			}
+			
 			private function updateGlobalSelectionChange():void
 			{
 				if (!parent)
@@ -396,13 +417,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if(dataGrid.visibleLockedColumns && lockedColumns.value == 0 && dataGrid.visibleLockedColumns.length != 0)
 					validateNow();
 				
+				var item:Object;
+				var isSelected:Dictionary = new Dictionary(true);
+				for each (item in dataGrid.selectedItems)
+					isSelected[item] = true;
+				
+				var changeDetected:Boolean = false;
 				var selectedItems:Array = [];
-				for each (var item:Object in dataGrid.dataProvider)
+				for each (item in dataGrid.dataProvider)
 				{
 					if (_selection.containsKey(item as IQualifiedKey))
+					{
+						if (!isSelected[item])
+							changeDetected = true;
 						selectedItems.push(item);
-				}	
-				dataGrid.selectedItems = selectedItems;				
+					}
+				}
+				if (selectedItems.length != dataGrid.selectedItems.length)
+					changeDetected = true;
+				
+				if (changeDetected)
+					dataGrid.selectedItems = selectedItems;				
 			}
 			
 			
@@ -417,6 +452,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					return false;
 			}
 			
+			/**
+			 * @TODO This should be a mode, not a one-time action.
+			 *       Use AdvancedDataGrid and lockedRowCount.
+			 *       The locked rows should also be sorted by the active sort column.
+			 *       We shouldn't be resetting the sort.
+			 */
 			private function moveSelectedToTop():void
 			{
 				//push selected Objects into an Array
@@ -494,7 +535,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for each (var column:IAttributeColumn in columns.getObjects())
 				{
 					while (!(column is IPrimitiveColumn) && column is IColumnWrapper)
-						column = (column as IColumnWrapper).internalColumn;
+						column = (column as IColumnWrapper).getInternalColumn();
 					
 					if (column is SecondaryKeyNumColumn)
 					{
@@ -565,6 +606,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						
 					}  
 					dataGrid.columns = _currentDataGridColumns;
+					numLockedColumns.maximum = attrColumns.length;
 				}
 				catch (error:Error)
 				{
@@ -612,18 +654,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				for (var i:int = 0; i < _currentDataGridColumns.length; ++i)
 				{
 					var dgc:WeaveCustomDataGridColumn = _currentDataGridColumns[i];
-					var width:Number = dgc.width;					
+					if (dgc.filterComponent)
+						dgc.filterComponent.width = dgc.width;
+					
+					var colWidth:Number = dgc.width;
 					
 					var column:IAttributeColumn = dgc.attrColumn;
 					var columnName:String = columns.getName(column);
 					var sessionedWidth:LinkableString = columnWidths.requestObject(columnName, LinkableString, false);
 					
-					if (isNaN(width) || width <= 5) // this happens when a column is stretched all the way to the right
-						width = _minSuggestedColumnSize;	
+					if (isNaN(colWidth) || width <= 5) // this happens when a column is stretched all the way to the right
+						colWidth = _minSuggestedColumnSize;	
 					
-					sessionedWidth.value = int(100 * width / dataGridColumnsWidth) + "%";
-					if (dgc.filterComponent)
-						dgc.filterComponent.width = dgc.width;
+					sessionedWidth.value = (100 * colWidth / dataGridColumnsWidth) + "%";
 				}
 			}
 			
@@ -658,7 +701,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						 }
 						 else{
 							 tempWidth = defaultValue;					
-							 sessionedWidth.value = int(100 * tempWidth/allotedDisplayWidth) + "%";
+							 sessionedWidth.value = (100 * tempWidth/allotedDisplayWidth) + "%";
 						 } 
 					 }
 					
@@ -829,7 +872,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			// default cell color function just gets color from global color column
 			public function defaultCellColorFunction(column:IAttributeColumn, key:IQualifiedKey, cell:UIComponent = null):Number
 			{
-				var cc:ColorColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as ColorColumn;
+				var cc:ColorColumn = Weave.defaultColorColumn;
 				return cc.getValueFromKey(key, Number);
 			}
 			
@@ -859,51 +902,67 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				filterControls.setStyle("paddingRight", dataGrid.viewMetrics.right);
 			}
 			
+			private var _previousSelection:Object ;
+			
+			private function handleMouseDown():void
+			{
+				detectLinkableObjectChange( handleMouseClick, _selection )
+			}
+			
+			private function handleMouseClick():void
+			{
+				if(!detectLinkableObjectChange( handleMouseClick, _selection ))
+					if( dataGrid.mouseY > dataGrid.headerHeight )
+						if( dataGrid.mouseX < dataGrid.width - 16 )
+							if( WeaveAPI.StageUtils.pointClicked )
+								_selection.clearKeys() ;
+			}
+			
 			private static const DEFAULT_BACKGROUND_COLORS:Array = [0xffffff, 0xEEF6FF];
 			public const backgroundColor1:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[0]));
 			public const backgroundColor2:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[1]));
 		]]>
 	</mx:Script>
 	<ui:ControlPanel>
-		<mx:VBox label="Columns">
-			<mx:CheckBox id="showKeyColumnCheckBox" label="Show Key Column" change="handleKeyColumnCheckBox()"/>
+		<mx:VBox label="{lang('Columns')}">
+			<mx:CheckBox id="showKeyColumnCheckBox" label="{lang('Show Key Column')}" change="handleKeyColumnCheckBox()"/>
 			<mx:HBox>
-				<mx:Label text="Number of Locked Columns"/>
-				<mx:NumericStepper id="numLockedColumns" minimum="0" maximum="{dataGrid.columns.length}" 
+				<mx:Label text="{lang('Number of Locked Columns')}"/>
+				<mx:NumericStepper id="numLockedColumns" minimum="0" 
 								   creationComplete="linkBindableProperty(lockedColumns, event.target, 'value');"/>	
 			</mx:HBox>
-			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="Columns"/>
+			<ui:ColumnListComponent id="dimensionsList"  backgroundAlpha="0.7" height="100%" width="100%" label="{lang('Columns')}"/>
 			<mx:HBox>
-				<mx:Button label="Add Image Column" click="addImageColumn()"/>
+				<mx:Button label="{lang('Add Image Column')}" click="addImageColumn()"/>
 				<ui:HelpComponent>Select a column that contains image URLs. The images will be displayed in the data table.</ui:HelpComponent>
 			</mx:HBox>
 
-			<mx:Button label="Reset column widths" click="columnWidths.removeAllObjects()"/>
+			<mx:Button label="{lang('Reset column widths')}" click="columnWidths.removeAllObjects()"/>
 
 		</mx:VBox>
-		<mx:VBox label="Advanced">
+		<mx:VBox label="{lang('Advanced')}">
 			<mx:HBox>
-				<mx:Button label="Export Data..." click="saveToFileAsCSV()" />
-				<mx:CheckBox label="Export keys with data" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
+				<mx:Button label="{lang('Export Data...')}" click="saveToFileAsCSV()" />
+				<mx:CheckBox label="{lang('Export keys with data')}" creationComplete="linkBindableProperty(exportKeys, event.target, 'selected');"/>
 			</mx:HBox>
-			<mx:CheckBox id="showControlsCheckBox" label="Show advanced controls on panel"/>
+			<mx:CheckBox id="showControlsCheckBox" label="{lang('Show advanced controls on panel')}"/>
 			<mx:HBox>
-				<mx:CheckBox id="showFiltersCheckBox" label="Show filter controls on panel"/>
+				<mx:CheckBox id="showFiltersCheckBox" label="{lang('Show filter controls on panel')}"/>
 				<ui:HelpComponent>
 					This allows data to be filtered based on the data values. Filtered records are highlighted by selection in the other tools.
 					If a column contains text data, a search box will be displayed which supports wildcards ('?' = any Character; '*' = any String).
 					If a column contains numeric data, a slider will be displayed that allows selection of Min and Max values.
 				</ui:HelpComponent>
 			</mx:HBox>
-			<ui:Indent label="Background colors">
+			<ui:Indent label="{lang('Background colors')}">
 				<mx:ColorPicker creationComplete="linkBindableProperty(backgroundColor1, event.target, 'selectedColor');"/>
 				<mx:ColorPicker creationComplete="linkBindableProperty(backgroundColor2, event.target, 'selectedColor');"/>
-				<mx:Button label="Reset" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
+				<mx:Button label="{lang('Reset')}" click="backgroundColor1.value = DEFAULT_BACKGROUND_COLORS[0]; backgroundColor2.value = DEFAULT_BACKGROUND_COLORS[1];"/>
 			</ui:Indent>
 			<mx:HBox verticalAlign="top" width="100%" height="100%">
 				<mx:VBox horizontalAlign="right">
 					<mx:HBox verticalAlign="middle">
-						<mx:CheckBox id="showColorsCheckBox" label="Enable cell coloring"/>
+						<mx:CheckBox id="showColorsCheckBox" label="{lang('Enable cell coloring')}"/>
 						<ui:HelpComponent>
 							<ui:htmlText>
 								<![CDATA[
@@ -913,7 +972,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							</ui:htmlText>
 						</ui:HelpComponent>
 					</mx:HBox>
-					<mx:Button label="Reset" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
+					<mx:Button label="{lang('Reset')}" click="cellColorFunction.value = DEFAULT_CELL_COLOR_FUNCTION_SCRIPT;"/>
 				</mx:VBox>
 				<mx:TextArea id="cellColorFunctionEditor" width="100%" height="100%" minHeight="48"
 							 creationComplete="linkBindableProperty(cellColorFunction, event.target, 'text', 500);"/>

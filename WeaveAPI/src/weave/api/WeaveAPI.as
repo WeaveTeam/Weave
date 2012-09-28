@@ -16,15 +16,23 @@
 package weave.api
 {
 	import flash.external.ExternalInterface;
+	import flash.net.SharedObject;
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.Singleton;
+	import mx.managers.ISystemManager;
+	import mx.resources.Locale;
+	import mx.resources.ResourceManager;
+	import mx.utils.ObjectUtil;
+	import mx.utils.StringUtil;
 	
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILocaleManager;
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.core.IStageUtils;
@@ -42,7 +50,23 @@ package weave.api
 	 */
 	public class WeaveAPI
 	{
-		MXClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
+		/**
+		 * For use with StageUtils.startTask(); this priority is used for things that must be done before anything else.
+		 * Tasks having this priority will take over the scheduler and prevent any other asynchronous task from running until it is completed.
+		 */
+		public static const TASK_PRIORITY_IMMEDIATE:uint = 0;
+		/**
+		 * For use with StageUtils.startTask(); this priority is associated with rendering.
+		 */
+		public static const TASK_PRIORITY_RENDERING:uint = 1;
+		/**
+		 * For use with StageUtils.startTask(); this priority is associated with data manipulation tasks such as building an index.
+		 */
+		public static const TASK_PRIORITY_BUILDING:uint = 2;
+		/**
+		 * For use with StageUtils.startTask(); this priority is associated with parsing raw data.
+		 */
+		public static const TASK_PRIORITY_PARSING:uint = 3;
 		
 		/**
 		 * This is the singleton instance of the registered ISessionManager implementation.
@@ -121,22 +145,43 @@ package weave.api
 		{
 			return getSingletonInstance(IURLRequestUtils);
 		}
+		/**
+		 * This is the singleton instance of the registered ILocaleManager implementation.
+		 */
+		public static function get LocaleManager():ILocaleManager
+		{
+			return getSingletonInstance(ILocaleManager);
+		}
+		/**
+		 * This is the top-level object in Weave.
+		 */		
+		public static function get globalHashMap():ILinkableHashMap
+		{
+			return getSingletonInstance(ILinkableHashMap);
+		}
 		/**************************************/
 
 		
 		/**
 		 * This returns the top level application as defined by FlexGlobals.topLevelApplication
-		 * or Application.application if FlexGlobals isn't defined.
+		 * or WeaveAPI.topLevelApplication if FlexGlobals isn't defined.
 		 */
 		public static function get topLevelApplication():Object
 		{
-			//TODO: Application.application is deprecated
-			/*try {
-			return FlexGlobals.topLevelApplication;
-			} catch (e:Error) { }*/
-			
-			return getDefinitionByName('mx.core.Application').application;
+			if (!_topLevelApplication)
+			{
+				try
+				{
+					_topLevelApplication = getDefinitionByName('mx.core.FlexGlobals').topLevelApplication;
+				}
+				catch (e:Error)
+				{
+					_topLevelApplication = getDefinitionByName('mx.core.Application').application;
+				}
+			}
+			return _topLevelApplication;
 		}
+		private static var _topLevelApplication:Object;
 		
 		
 		/**
@@ -146,31 +191,41 @@ package weave.api
 		 */
 		public static function initializeExternalInterface():void
 		{
-			var interfaces:Array = [IExternalSessionStateInterface]; // add more interfaces here if necessary
-			for each (var theInterface:Class in interfaces)
+			try
 			{
-				var classInfo:XML = describeType(theInterface);
-				// add a callback for each external interface function
-				for each (var methodName:String in classInfo.factory.method.@name)
+				var interfaces:Array = [IExternalSessionStateInterface]; // add more interfaces here if necessary
+				for each (var theInterface:Class in interfaces)
 				{
-					ExternalInterface.addCallback(methodName, generateExternalInterfaceCallback(methodName, theInterface));
+					var classInfo:XML = describeType(theInterface);
+					// add a callback for each external interface function
+					for each (var methodName:String in classInfo.factory.method.@name)
+					{
+						ExternalInterface.addCallback(methodName, generateExternalInterfaceCallback(methodName, theInterface));
+					}
 				}
+				var prev:Boolean = ExternalInterface.marshallExceptions;
+				ExternalInterface.marshallExceptions = false;
+				ExternalInterface.call(
+					'function(objectID) {' +
+					'  var weave = document.getElementById(objectID);' +
+					'  if (window && window.weaveReady) {' +
+					'    window.weaveReady(weave);' +
+					'  }' +
+					'  else if (weaveReady) {' +
+					'    weaveReady(weave);' +
+					'  }' +
+					'}',
+					[ExternalInterface.objectID]
+				);
+				ExternalInterface.marshallExceptions = prev;
 			}
-			var prev:Boolean = ExternalInterface.marshallExceptions;
-			ExternalInterface.marshallExceptions = false;
-			ExternalInterface.call(
-				'function(objectID) {' +
-				'  var weave = document.getElementById(objectID);' +
-				'  if (window && window.weaveReady) {' +
-				'    window.weaveReady(weave);' +
-				'  }' +
-				'  else if (weaveReady) {' +
-				'    weaveReady(weave);' +
-				'  }' +
-				'}',
-				[ExternalInterface.objectID]
-			);
-			ExternalInterface.marshallExceptions = prev;
+			catch (e:Error)
+			{
+				if (e.errorID == 2060)
+					ErrorManager.reportError(e, "In the HTML embedded object tag, make sure that the parameter 'allowScriptAccess' is set to 'always'. " + e.message);
+				else
+					ErrorManager.reportError(e);
+			}
 		}
 		
 		/**
@@ -201,10 +256,14 @@ package weave.api
 			if (!array)
 				_implementations[theInterface] = array = [];
 			
-			_implementationDisplayNames[theImplementation] = displayName || getQualifiedClassName(theImplementation).split(':').pop();
+			// overwrite existing displayName if specified
+			if (displayName || !_implementationDisplayNames[theImplementation])
+				_implementationDisplayNames[theImplementation] = displayName || getQualifiedClassName(theImplementation).split(':').pop();
+
 			if (array.indexOf(theImplementation) < 0)
 			{
 				array.push(theImplementation);
+				// sort by displayName
 				array.sort(_sortImplementations);
 			}
 		}
@@ -232,6 +291,7 @@ package weave.api
 		
 		/**
 		 * @private
+		 * sort by displayName
 		 */
 		private static function _sortImplementations(impl1:Class, impl2:Class):int
 		{
@@ -281,9 +341,26 @@ package weave.api
 		 * 
 		 * @param singletonInterface An interface to a singleton class.
 		 * @return The singleton instance that implements the specified interface.
-		 */		
+		 */
 		public static function getSingletonInstance(singletonInterface:Class):*
 		{
+			// TEMPORARY SOLUTION until everything is a plug-in.
+			if (!_initialized)
+			{
+				_initialized = true;
+				// run static initialization code to register weave implementations
+				try
+				{
+					getDefinitionByName("_InitializeWeaveCore");
+					getDefinitionByName("_InitializeWeaveData"); 
+					getDefinitionByName("_InitializeWeaveUI");
+				}
+				catch (e:Error)
+				{
+					trace(e.getStackTrace());
+				}
+			}
+			
 			var result:* = _singletonDictionary[singletonInterface];
 			// If no instance has been created yet, create one now.
 			if (!result)
@@ -293,7 +370,7 @@ package weave.api
 				{
 					// This may fail if there is no registered class,
 					// or the class doesn't have a getInstance() method.
-					return Singleton.getInstance(interfaceName);
+					result = Singleton.getInstance(interfaceName);
 				}
 				catch (e:Error)
 				{
@@ -316,8 +393,19 @@ package weave.api
 		}
 		
 		/**
+		 * Used by getSingletonInstance.
+		 */		
+		private static var _initialized:Boolean = false;
+		
+		/**
 		 * This is used to save a mapping from an interface to its singleton implementation instance.
 		 */
 		private static const _singletonDictionary:Dictionary = new Dictionary();
+		
+		public static function externalTrace(...params):void
+		{
+			params.unshift('console.log');
+			ExternalInterface.call.apply(null, params);
+		}
 	}
 }

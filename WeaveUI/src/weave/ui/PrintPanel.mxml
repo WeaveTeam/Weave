@@ -27,8 +27,8 @@
 <mx:TitleWindow 
     xmlns:ui ="weave.ui.*"
     xmlns:mx="http://www.adobe.com/2006/mxml"
-	layout="absolute" 
-    title="Print / Export Image"
+	layout="vertical" 
+    title="{lang('Print / Export Image')}"
     showCloseButton="true"
     close="handleClose(event)"
     borderAlpha="0.95"
@@ -46,6 +46,8 @@
 		import mx.printing.FlexPrintJobScaleType;
 		
 		import weave.Weave;
+		import weave.api.linkBindableProperty;
+		import weave.api.reportError;
 		import weave.utils.BitmapUtils;
 		
 		//Snapshot of the Application/Tool to be printed
@@ -63,6 +65,10 @@
 			{
 				// the following will crash when component is the application.
 				_imageSource = ImageSnapshot.captureImage(component).data;
+			}
+			catch (se:SecurityError)
+			{
+				reportError(se, lang("Unable to create screenshot due to lack of permissive policy file for embedded image. ") + se.message);
 			}
 			catch (e:Error)
 			{
@@ -83,7 +89,16 @@
 			super.childrenCreated();
 			
 			exportTitle.text = Weave.properties.pageTitle.value;
+			//Weave.properties.backgroundColor.addImmediateCallback(this, handleBackground, true);
 		}
+		
+		/* private function handleBackground():void
+		{
+			exportTitle.setStyle(
+				'backgroundColor',
+				showBackground.selected ? Weave.properties.backgroundColor.value : 0x00000000
+			);
+		} */
 		
 		//handle when "Print" is clicked
 		private var _fileSaver:FileReference = null;
@@ -158,7 +173,7 @@
 			
    		   	
 			var img:ImageSnapshot = ImageSnapshot.captureImage(printVbox);
-   			_fileSaver.save(img.data, "weave screenshot " + dateString + ".png");
+   			_fileSaver.save(img.data, lang("Weave Screenshot {0}", dateString) + ".png");
    			
    			//close popup after image is saved
    			PopUpManager.removePopUp(this);	
@@ -192,15 +207,24 @@
 		
    		]]>
 	</mx:Script>
-	<mx:VBox id="printVbox" width="100%" height="100%" backgroundColor="0xFFFFFF" horizontalAlign="center" initialize="scalePrintVbox()" clipContent="true" mouseEnabled="false">
-		<mx:Label id="exportTitle" textAlign="center" fontSize="18" fontWeight="bold" horizontalCenter="0" width="100%"/>
-		<mx:Image id="exportImage" source="{_imageSource}"/>
-		<ui:OICLogoPane width="100%"/>
+	<mx:VBox id="printVbox"
+			 horizontalAlign="center"
+			 initialize="scalePrintVbox()"
+			 clipContent="true"
+			 mouseEnabled="false"
+			 backgroundColor="0xFFFFFF">
+		<mx:Label id="exportTitle" textAlign="center" fontSize="18" fontWeight="bold" horizontalCenter="0" width="100%"
+				  visible="{showTitle.selected}" includeInLayout="{showTitle.selected}"/>
+		<mx:Image id="exportImage" source="{_imageSource}" />
+		<ui:OICLogoPane width="100%" visible="{showCopyright.selected}" includeInLayout="{showCopyright.selected}"/>
 	</mx:VBox>
 	
 	<mx:ControlBar horizontalAlign="center">
-		<mx:Button id="printButton" label="Print" click="handlePrintClick(event)"/>
-		<mx:Button id="saveButton" label="Save as Image" click="handleSaveAsImageClick(event)"/>
-		<mx:Button id="cancelButton" label="Cancel" click="PopUpManager.removePopUp(this)"/>
+		<mx:CheckBox id="showTitle" label="{lang('Title')}" selected="true"/>
+		<mx:CheckBox id="showCopyright" label="{lang('Copyright')}" creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
+		<!--<mx:CheckBox id="showBackground" label="{lang('Background')}" selected="true" change="handleBackground();"/>-->
+		<mx:Button id="printButton" label="{lang('Print')}" click="handlePrintClick(event)"/>
+		<mx:Button id="saveButton" label="{lang('Save as Image')}" click="handleSaveAsImageClick(event)"/>
+		<mx:Button id="cancelButton" label="{lang('Cancel')}" click="PopUpManager.removePopUp(this)"/>
 	</mx:ControlBar>
 </mx:TitleWindow> 

@@ -19,8 +19,11 @@
 
 package weave.compiler
 {
+	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
 	import mx.utils.ObjectUtil;
+	
+	import weave.utils.AsyncSort;
 
 	/**
 	 * This provides a set of useful static functions.
@@ -320,14 +323,33 @@ package weave.compiler
 
 		/**
 		 * @param normValue A Number between 0 and 1.
-		 * @param minColor A color associated with a value of 0.
-		 * @param maxColor A color associated with a value of 1.
+		 * @param colors An Array or list of colors to interpolate between.  Normalized values of 0 and 1 will be mapped to the first and last colors.
 		 * @return An interpolated color associated with the given normValue based on the min,max color values.
 		 */
-		public static function interpolateColor(normValue:Number, minColor:int, maxColor:int):Number
+		public static function interpolateColor(normValue:Number, ...colors):Number
 		{
-			if (normValue < 0 || normValue > 1)
+			// handle an array of colors as the second parameter
+			if (colors.length == 1 && colors[0] is Array)
+				colors = colors[0];
+			
+			// handle invalid parameters
+			if (normValue < 0 || normValue > 1 || colors.length == 0)
 				return NaN;
+			
+			// find the min and max colors we want to interpolate between
+			
+			var maxIndex:int = colors.length - 1;
+			var leftIndex:int = maxIndex * normValue;
+			var rightIndex:int = leftIndex + 1;
+			
+			// handle boundary condition
+			if (rightIndex == colors.length)
+				return colors[leftIndex];
+			
+			var minColor:Number = colors[leftIndex];
+			var maxColor:Number = colors[rightIndex];
+			// normalize the norm value between the two norm values associated with the surrounding colors
+			normValue = normValue * maxIndex - leftIndex;
 			
 			var percentLeft:Number = 1 - normValue; // relevance of minColor
 			var percentRight:Number = normValue; // relevance of maxColor
@@ -441,6 +463,8 @@ package weave.compiler
 		 */
 		public static function arrayCompare(a:Array, b:Array):int
 		{
+			if (!a || !b)
+				return AsyncSort.defaultCompare(a, b);
 			var an:int = a.length;
 			var bn:int = b.length;
 			if (an < bn)
@@ -449,13 +473,13 @@ package weave.compiler
 				return 1;
 			for (var i:int = 0; i < an; i++)
 			{
-				var ai:Object = a[i];
-				var bi:Object = b[i];
+				var ai:* = a[i];
+				var bi:* = b[i];
 				var result:int;
 				if (ai is Array && bi is Array)
 					result = arrayCompare(ai as Array, bi as Array);
 				else
-					result = ObjectUtil.compare(a[i], b[i]);
+					result = AsyncSort.defaultCompare(ai, bi);
 				if (result != 0)
 					return result;
 			}
@@ -472,5 +496,83 @@ package weave.compiler
 		{
 			return Math.log(1 + normValue * factor) / Math.log(1 + factor);
 		}
+		
+		/**
+		 * This will parse a date string into a Date object.
+		 * @param dateString The date string to parse.
+		 * @param formatString The format of the date string.
+		 * @param parseAsUniversalTime If set to true, the date string will be parsed as universal time.
+		 *        If set to false, the timezone of the user's computer will be used.
+		 * @return The resulting Date object.
+		 * 
+		 * @see mx.formatters::DateFormatter#formatString
+		 * @see Date
+		 */		
+		public static function parseDate(dateString:String, formatString:String = null, parseAsUniversalTime:Boolean = true):Date
+		{
+			var formattedDateString:String = dateString;
+			if (formatString)
+			{
+				// work around bug in DateFormatter that requires Year, Month, and Day to be in the formatString
+				var separator:String = "//";
+				var appendFormat:String = "";
+				var appendDate:String = "";
+				for (var i:int = 0; i < 3; i++)
+				{
+					var char:String = "YMD".charAt(i);
+					if (formatString.indexOf(char) < 0)
+					{
+						appendFormat += separator + char;
+						appendDate += separator + (char == 'Y' ? '1970' : '1');
+					}
+				}
+				if (appendFormat)
+				{
+					formatString += " " + appendFormat;
+					dateString += " " + appendDate;
+				}
+				
+				_dateFormatter.formatString = formatString;
+				formattedDateString = _dateFormatter.format(dateString);
+				if (_dateFormatter.error)
+					throw new Error(_dateFormatter.error);
+			}
+			var date:Date = DateFormatter.parseDateString(formattedDateString);
+			if (parseAsUniversalTime)
+				date.setTime( date.getTime() - date.getTimezoneOffset() * _timezoneMultiplier );
+			return date;
+		}
+		
+		/**
+		 * This will generate a date string from a Number or a Date object using the specified date format.
+		 * @param value The Date object or date string to format.
+		 * @param formatString The format of the date string to be generated.
+		 * @param formatAsUniversalTime If set to true, the date string will be generated using universal time.
+		 *        If set to false, the timezone of the user's computer will be used.
+		 * @return The resulting formatted date string.
+		 * 
+		 * @see mx.formatters::DateFormatter#formatString
+		 * @see Date
+		 */
+		public static function formatDate(value:Object, formatString:String = null, formatAsUniversalTime:Boolean = true):String
+		{
+			var date:Date = value as Date;
+			if (!date || formatAsUniversalTime)
+				date = new Date(value);
+			if (formatAsUniversalTime)
+				date.setTime( date.getTime() + date.getTimezoneOffset() * _timezoneMultiplier );
+			
+			_dateFormatter.formatString = formatString;
+			return _dateFormatter.format(date);
+		}
+		
+		/**
+		 * This is the DateFormatter used by parseDate() and formatDate().
+		 */
+		private static const _dateFormatter:DateFormatter = new DateFormatter();
+		/**
+		 * The number of milliseconds in one minute.
+		 */		
+		private static const _timezoneMultiplier:Number = 60000;
 	}
 }

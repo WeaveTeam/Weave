@@ -19,7 +19,6 @@
 
 package weave.visualization.plotters
 {
-	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.Point;
@@ -31,10 +30,6 @@ package weave.visualization.plotters
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
-	import weave.data.AttributeColumns.ColorColumn;
-	import weave.utils.ColumnUtils;
-	import weave.visualization.plotters.styles.ExtendedFillStyle;
-	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 
@@ -47,7 +42,8 @@ package weave.visualization.plotters
 	{
 		public function SimpleGlyphPlotter()
 		{
-			fillStyle.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
+			setColumnKeySources([screenSize, dataX, dataY], [true, false, false]);
 		}
 		
 		private static const LEFT:String = 'left', CENTER:String = 'center', RIGHT:String = 'right';
@@ -81,16 +77,6 @@ package weave.visualization.plotters
 		 * This determines how the glyphs are aligned vertically to the data coordinates.
 		 */		
 		public const verticalPosition:LinkableString = registerLinkableChild(this, new LinkableString(MIDDLE, verifyVertical));
-		
-		private var sortBySize:Function;
-		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			if (sortBySize == null)
-				sortBySize = ColumnUtils.generateSortFunction([screenSize], [true]);
-			recordKeys.sort(sortBySize);
-			super.drawPlot(recordKeys, dataBounds, screenBounds, destination);
-		}
 		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().

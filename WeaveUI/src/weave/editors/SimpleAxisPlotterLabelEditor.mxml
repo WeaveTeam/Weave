@@ -22,24 +22,24 @@
 <mx:Box xmlns:mx="http://www.adobe.com/2006/mxml"
 		 xmlns="weave.editors.*"
 		 xmlns:ui="weave.ui.*" implements="weave.api.ui.ILinkableObjectEditor"
-		 label="Axis labeling"
+		 label="{lang('Axis labeling')}"
 		 direction="horizontal"
 		 creationPolicy="all" >
 	<mx:VBox width="100%">
-		<ui:IndentTextInput label="Label function:" id="labelFunction" inputWidth="100%"/>
-		<ui:IndentTextInput label="Title:" id="overrideAxisName" inputWidth="100%"/>
+		<ui:IndentTextInput label="{lang('Label function:')}" id="labelFunction" inputWidth="100%"/>
+		<ui:IndentTextInput label="{lang('Title:')}" id="overrideAxisName" inputWidth="100%"/>
 	</mx:VBox>
 	<mx:VBox>
-		<ui:IndentTextInput label="Label wrap size:" id="labelWordWrapSize" inputWidth="50"/>
-		<ui:Indent label="Label angle:">
+		<ui:IndentTextInput label="{lang('Label wrap size:')}" id="labelWordWrapSize" inputWidth="50"/>
+		<ui:Indent label="{lang('Label angle:')}">
 			<mx:NumericStepper id="axisLabelRelativeAngle" minimum="-180" maximum="180" stepSize="15" width="50"/>
 		</ui:Indent>
-		<ui:Indent label="Label offset:">
+		<ui:Indent label="{lang('Label offset:')}">
 			<mx:NumericStepper id="axisLabelDistance" minimum="-50" maximum="50" stepSize="5" width="50"/>
 		</ui:Indent>
-		<mx:CheckBox id="labelDistanceIsVertical" label="Label offset is vertical"/>
+		<mx:CheckBox id="labelDistanceIsVertical" label="{lang('Label offset is vertical')}"/>
 	</mx:VBox>
-	<ui:AlignmentControl id="labelAlign" toolTip="Axis label alignment"/>
+	<ui:AlignmentControl id="labelAlign" toolTip="{lang('Axis label alignment')}"/>
 
 	<mx:Script>
 		<![CDATA[

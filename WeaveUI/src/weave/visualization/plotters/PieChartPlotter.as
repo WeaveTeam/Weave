@@ -51,15 +51,10 @@ package weave.visualization.plotters
 	{
 		public function PieChartPlotter()
 		{
-			init();
-		}
-		
-		private function init():void
-		{
 			var fill:SolidFillStyle = fillStyle.internalObject as SolidFillStyle;
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
-			_beginRadians = new EquationColumn();
+			_beginRadians = newLinkableChild(this, EquationColumn);
 			_beginRadians.equation.value = "0.5 * PI + getRunningTotal(spanRadians) - getNumber(spanRadians)";
 			_spanRadians = _beginRadians.requestVariable("spanRadians", EquationColumn, true);
 			_spanRadians.equation.value = "getNumber(sortedData) / getSum(sortedData) * 2 * PI";
@@ -68,7 +63,7 @@ package weave.visualization.plotters
 			linkSessionState(keySet.keyFilter, _filteredData.filter);
 			
 			registerSpatialProperty(data);
-			setKeySource(_filteredData);
+			setColumnKeySources([_filteredData]);
 			
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}

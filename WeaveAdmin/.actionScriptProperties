@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <actionScriptProperties analytics="false" mainApplicationPath="AdminConsole.mxml" projectUUID="437aa0e1-2583-4e07-99c6-bd1b7362124f" version="10">
-  <compiler additionalCompilerArguments="-locale en_US -as3=true -default-script-limits 1000 60 -optimize=true -target-player=10.0.0 -compiler.debug=true" autoRSLOrdering="false" copyDependentFiles="true" flexSDK="Flex 3.6A" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="true" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderLocation="WEAVE_DOCROOT" outputFolderPath="bin-debug" removeUnusedRSL="true" rootURL="http://localhost:8080/" sourceFolderPath="src" strict="true" targetPlayerVersion="10.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
+  <compiler additionalCompilerArguments="-locale en_US" autoRSLOrdering="false" copyDependentFiles="true" flex3CompatMode="false" flexSDK="Flex 4.5.1A" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="true" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderLocation="WEAVE_DOCROOT" outputFolderPath="bin-debug" removeUnusedRSL="true" rootURL="http://localhost:8080/" sourceFolderPath="src" strict="true" targetPlayerVersion="10.2.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
     <compilerSourcePath/>
     <libraryPath defaultLinkType="3">
-      <libraryPathEntry kind="4" path="">
-        <modifiedEntries>
-          <libraryPathEntry applicationDomain="default" forceLoad="false" kind="3" linkType="4" path="${PROJECT_FRAMEWORKS}/libs/rpc.swc" useDefaultLinkType="true">
-            <crossDomainRsls>
-              <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="rpc.swf"/>
-            </crossDomainRsls>
-          </libraryPathEntry>
-        </modifiedEntries>
-      </libraryPathEntry>
+      <libraryPathEntry kind="4" path=""/>
       <libraryPathEntry applicationDomain="default" forceLoad="false" kind="3" linkType="4" path="/WeaveAPI/bin/WeaveAPI.swc" useDefaultLinkType="false">
         <crossDomainRsls>
           <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="WeaveAPI.swf"/>
@@ -35,6 +27,7 @@
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>
+  <theme themeIsDefault="false" themeIsSDK="true" themeLocation="${SDK_THEMES_DIR}/frameworks/themes/Halo"/>
   <applications>
     <application path="AdminConsole.mxml"/>
   </applications>

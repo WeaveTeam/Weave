@@ -19,6 +19,7 @@
 
 package weave.primitives
 {
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
@@ -252,6 +253,24 @@ package weave.primitives
 			}
 			return output;
 		}
+		
+		/**
+		 * This will apply transformations to an existing Matrix for projecting coordinates from this bounds to another.
+		 * @param destinationBounds The destination bounds used to calculate the transformation.
+		 * @param outputMatrix The Matrix used to store the transformation.
+		 * @param startWithIdentity If this is true, then outputMatrix.identity() will be applied first.
+		 */
+		public function transformMatrix(destinationBounds:IBounds2D, outputMatrix:Matrix, startWithIdentity:Boolean):void
+		{
+			if (startWithIdentity)
+				outputMatrix.identity();
+			outputMatrix.translate(-xMin, -yMin);
+			outputMatrix.scale(
+				destinationBounds.getWidth() / getWidth(),
+				destinationBounds.getHeight() / getHeight()
+			);
+			outputMatrix.translate(destinationBounds.getXMin(), destinationBounds.getYMin());
+		}
 
 		/**
 		 * This function will expand this Bounds2D to include a point.
@@ -445,7 +464,7 @@ package weave.primitives
 		
 		/**
 		 * This function projects the coordinates of a Point object from this bounds to a
-		 * destination bounds.
+		 * destination bounds. The specified point object will be modified to contain the result.
 		 * @param point The Point object containing coordinates to project.
 		 * @param toBounds The destination bounds.
 		 */
@@ -491,7 +510,7 @@ package weave.primitives
 		
 		/**
 		 * This function projects all four coordinates of a Bounds2D object from this bounds
-		 * to a destination bounds.
+		 * to a destination bounds. The specified coords object will be modified to contain the result.
 		 * @param inputAndOutput A Bounds2D object containing coordinates to project.
 		 * @param toBounds The destination bounds.
 		 */		
@@ -508,31 +527,18 @@ package weave.primitives
 		}
 
 		/**
-		 * This constrains a point to be within this Bounds2D.
+		 * This constrains a point to be within this Bounds2D. The specified point object will be modified to contain the result.
 		 * @param point The point to constrain.
 		 */
-		public function constrainPoint(point:Point, preserveSlope:Boolean = false):void
+		public function constrainPoint(point:Point):void
 		{
-			// if the point should just be brought into the bounds
-			if (preserveSlope == false)
-			{
-				// find numerical min,max x values and constrain x coordinate
-				if (!isNaN(xMin) && !isNaN(xMax)) // do not constrain point if bounds is undefined
-					point.x = Math.max(Math.min(xMin, xMax), Math.min(point.x, Math.max(xMin, xMax)));
-				
-				// find numerical min,max y values and constrain y coordinate
-				if (!isNaN(yMin) && !isNaN(yMax)) // do not constrain point if bounds is undefined
-					point.y = Math.max(Math.min(yMin, yMax), Math.min(point.y, Math.max(yMin, yMax)));
-			}
-			else
-			{
-				// the bounds must be defined for this constraining to make any sense
-				if (isNaN(xMin) || isNaN(xMax) || isNaN(yMin) || isNaN(yMax))
-					return;
-				
-				point.x = Math.min(xMax, Math.max(xMin, point.x));
-				point.y = Math.min(yMax, Math.max(yMin, point.y));
-			}
+			// find numerical min,max x values and constrain x coordinate
+			if (!isNaN(xMin) && !isNaN(xMax)) // do not constrain point if bounds is undefined
+				point.x = Math.max(Math.min(xMin, xMax), Math.min(point.x, Math.max(xMin, xMax)));
+			
+			// find numerical min,max y values and constrain y coordinate
+			if (!isNaN(yMin) && !isNaN(yMax)) // do not constrain point if bounds is undefined
+				point.y = Math.max(Math.min(yMin, yMax), Math.min(point.y, Math.max(yMin, yMax)));
 		}
 
 		// reusable temporary objects
@@ -542,6 +548,7 @@ package weave.primitives
 		
 		/**
 		 * This constrains the center point of another Bounds2D to be overlapping the center of this Bounds2D.
+		 * The specified boundsToConstrain object will be modified to contain the result.
 		 * @param boundsToConstrain The Bounds2D objects to constrain.
 		 */
 		public function constrainBoundsCenterPoint(boundsToConstrain:IBounds2D):void
@@ -558,6 +565,7 @@ package weave.primitives
 		/**
 		 * This function will reposition a bounds such that for the x and y dimensions of this
 		 * bounds and another bounds, at least one bounds will completely contain the other bounds.
+		 * The specified boundsToConstrain object will be modified to contain the result.
 		 * @param boundsToConstrain the bounds we want to constrain to be within this bounds
 		 * @param preserveSize if set to true, width,height of boundsToConstrain will remain the same
 		 */

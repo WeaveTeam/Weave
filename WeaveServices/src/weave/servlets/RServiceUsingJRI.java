@@ -67,24 +67,41 @@ public class RServiceUsingJRI
 		try
 		{
 			String extension = "R";
-			ScriptEngineManager manager = new ScriptEngineManager();			
+			ScriptEngineManager manager = new ScriptEngineManager();
 			ScriptEngine engine = manager.getEngineByExtension(extension);
+			//Happens when JRI native Library not found - engine will be null
+			// as We set System.setProperty("jri.ignore.ule", "yes");
+			// in getScriptEngine method of RScriptFactory class 
+			if(engine == null){
+				throw  new RemoteException( "Native Library not found");
+			}
 			return engine;
+		}
+		catch(UnsatisfiedLinkError linkError){
+			throw new JRIConnectionException(linkError);
+		}
+		catch (NullPointerException e)	{
+			throw new JRIConnectionException( e);
+		}
+		catch(RuntimeException runtimeEx){
+			throw new JRIConnectionException(runtimeEx);
+		}
+		catch (Error error){
+			throw new JRIConnectionException(error);
 		}
 		catch (Exception e)
 		{
 			throw new JRIConnectionException( e);
 		}
-		catch (NoClassDefFoundError ncdfe) // not caught by default
-		{
-			throw new JRIConnectionException( ncdfe);
-		}
-		catch (Error error){
-			throw new JRIConnectionException(error);
-		}
+		
+		
+		
+		
+		
+		
 		
 	}
-	public static RResult[] runScript(String docrootPath, String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings ,boolean useColumnAsList) throws RemoteException
+	public static RResult[] runScript(String docrootPath, String[] keys,String[] inputNames, Object[] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings ,boolean useColumnAsList) throws RemoteException
 	{	
 		engine = null;
 		engine = getREngine();
@@ -108,8 +125,17 @@ public class RServiceUsingJRI
 				// to clear R objects
 				evalScript(engine, "rm(list=ls())", false);
 			}
-			catch (Exception e)	{
+			//Happens when JRI native Library not found - engine will be null
+			// as We set System.setProperty("jri.ignore.ule", "yes");
+			// in getScriptEngine method of RScriptFactory class 
+			catch (NullPointerException e)	{
 				throw new RemoteException("Unable to run R script", e);
+			}
+			catch (Exception e)	{
+				e.printStackTrace();
+				String errorStatement = e.getMessage();
+				resultVector.add(new RResult("Error Statement", errorStatement));
+				//throw new RemoteException("Unable to run R script", e);
 			}
 			finally{
 				results = new RResult[resultVector.size()];
@@ -122,15 +148,20 @@ public class RServiceUsingJRI
 	
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private  static void assignNamesToVector(String[] inputNames,Object[][] inputValues,String[] keys,boolean useColumnAsList){
+	private  static void assignNamesToVector(String[] inputNames,Object[] inputValues,String[] keys,boolean useColumnAsList){
 		// ASSIGNS inputNames to respective Vector in R "like x<-c(1,2,3,4)"
 		Bindings bindedVectors = engine.createBindings();//engine needs to be static , otherwise throws null point error
 		for (int i = 0; i < inputNames.length; i++){
 			String name = inputNames[i];
-			if(useColumnAsList){//if column to consider as list in R
+			if (useColumnAsList) //if column to consider as list in R
+			{
 				HashMap hm = new HashMap();
+				
+				//TODO: support more than just vectors
+				Object[] array = (Object[])inputValues[i];
+				
 				for(int keyID = 0; keyID < keys.length ;keyID++)
-					hm.put(keys[keyID], inputValues[i][keyID]);
+					hm.put(keys[keyID], array[keyID]);
 				bindedVectors.put(name, hm);
 			}
 			else				
@@ -169,19 +200,26 @@ public class RServiceUsingJRI
 		
 	}
 	
-	private static String plotEvalScript(ScriptEngine engine,String docrootPath,String script, boolean showWarnings) {
+	private static String plotEvalScript(ScriptEngine engine,String docrootPath,String script, boolean showWarnings) throws ScriptException {
 		String file = String.format("user_script_%s.jpg", UUID.randomUUID());
 		String dir = docrootPath + rFolderName + "/";
 		(new File(dir)).mkdirs();
-		String str = String.format("jpeg(\"%s\")", dir + file);
-		try {
+		
+		String str = null;
+		try
+		{
+			str = String.format("jpeg(\"%s\")", dir + file);
 			evalScript(engine, str, showWarnings);
-			engine.eval(script);
-			engine.eval("dev.off()");
-		} catch (ScriptException e) {
-			e.printStackTrace();
+			
+			engine.eval(str = script);
+			engine.eval(str = "dev.off()");
 		}
-				
+		catch (ScriptException e)
+		{
+			System.out.println(str);
+			throw e;
+		}
+		
 		return rFolderName + "/" + file;
 	}
 	

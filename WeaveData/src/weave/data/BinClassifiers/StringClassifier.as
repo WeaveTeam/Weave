@@ -25,7 +25,6 @@ package weave.data.BinClassifiers
 	import weave.utils.VectorUtils;
 
 	/**
-	 * StringClassifier
 	 * A classifier that accepts a list of String values.
 	 * 
 	 * @author adufilie

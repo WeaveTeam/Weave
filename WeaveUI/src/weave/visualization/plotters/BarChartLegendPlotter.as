@@ -163,11 +163,6 @@ package weave.visualization.plotters
 			destination.draw(tempShape, null, null, null, clipRectangle);
 		}
 		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			// draw nothing -- everything is in the background layer
-		}
-		
 		// backwards compatibility
 		[Deprecated(replacement="ascendingOrder")] public function set reverseOrder(value:Boolean):void { ascendingOrder.value = value; }
 	}

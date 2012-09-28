@@ -29,7 +29,6 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
-	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.visualization.plotters.styles.DynamicFillStyle;
@@ -54,9 +53,9 @@ package weave.visualization.plotters
 			// initialize default line & fill styles
 			lineStyle.requestLocalObject(SolidLineStyle, false);
 			var fill:SolidFillStyle = fillStyle.requestLocalObject(SolidFillStyle, false);
-			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
-			setKeySource(xMinData); // not the best solution... need the union of x,y,x,y
+			setColumnKeySources([xMinData, yMinData, xMaxData, yMaxData]);
 		}
 
 		// spatial properties

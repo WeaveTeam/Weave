@@ -39,12 +39,10 @@ package weave.data.DataSources
 	import weave.api.data.IQualifiedKey;
 	import weave.api.disposeObjects;
 	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
-	import weave.api.services.IURLRequestUtils;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
-	import weave.core.weave_internal;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
@@ -54,9 +52,6 @@ package weave.data.DataSources
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.ShpFileReader;
-	import weave.utils.VectorUtils;
-
-	use namespace weave_internal;
 
 	/**
 	 * DBFDataSource
@@ -85,7 +80,7 @@ package weave.data.DataSources
 			if (dbfUrl.value != null)
 			{
 				dbfData = null;
-				WeaveAPI.URLRequestUtils.getURL(new URLRequest(dbfUrl.value), handleDBFDownload, handleDBFDownloadError, null, URLLoaderDataFormat.BINARY);
+				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(dbfUrl.value), handleDBFDownload, handleDBFDownloadError, null, URLLoaderDataFormat.BINARY);
 			}
 		}
 		private function handleShpUrlChange():void
@@ -95,7 +90,7 @@ package weave.data.DataSources
 				if (shpfile)
 					disposeObjects(shpfile)
 				shpfile = null;
-				WeaveAPI.URLRequestUtils.getURL(new URLRequest(shpUrl.value), handleShpDownload, handleDBFDownloadError, shpUrl.value, URLLoaderDataFormat.BINARY);
+				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(shpUrl.value), handleShpDownload, handleDBFDownloadError, shpUrl.value, URLLoaderDataFormat.BINARY);
 			}
 		}
 		
@@ -111,6 +106,8 @@ package weave.data.DataSources
 		 */
 		private function handleDBFDownload(event:ResultEvent, token:Object = null):void
 		{
+			if (objectWasDisposed(this))
+				return;
 			dbfData = ByteArray(event.result);
 			if (dbfData.length == 0)
 			{
@@ -141,6 +138,8 @@ package weave.data.DataSources
 		 */
 		private function handleShpDownload(event:ResultEvent, token:Object = null):void
 		{
+			if (objectWasDisposed(this))
+				return;
 			// ignore outdated results
 			if (token != shpUrl.value)
 				return;
@@ -162,6 +161,9 @@ package weave.data.DataSources
 		 */
 		private function handleDBFDownloadError(event:FaultEvent, token:Object = null):void
 		{
+			if (objectWasDisposed(this))
+				return;
+			
 			// ignore outdated results
 			if (token != shpUrl.value)
 				return;
@@ -238,7 +240,7 @@ package weave.data.DataSources
 				}
 			}
 
-			proxyColumn.internalColumn = newColumn;
+			proxyColumn.setInternalColumn(newColumn);
 		}
 
 		private function getColumnValues(columnName:String):Array

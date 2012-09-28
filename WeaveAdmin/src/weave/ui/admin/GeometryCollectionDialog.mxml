@@ -36,7 +36,7 @@
 	<mx:HBox>
 		<mx:RadioButton id="keyTypeRadio" group="{shapeOrKey}" selected="true" label="{Strings.key_type}" textAlign="left" width="{_indent}" toolTip="{Strings.tip_key_type_radiobutton}"/>
 		<mx:HBox enabled="{keyTypeRadio.selected &amp;&amp; !refreshingKeyTypes}">
-			<ui:CustomComboBox id="keyTypeCombo" editable="true" text="{keyType}" enabled="{keyTypeCombo.dataProvider.length > 0}" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.tip_key_type_dropdown}" valueCommit="keyType = keyTypeCombo.text"/>
+			<ui:CustomComboBox id="keyTypeCombo" editable="true" text="{_defaultKeyType}" enabled="{keyTypeCombo.dataProvider.length > 0}" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.tip_key_type_dropdown}" valueCommit="if (UIUtils.hasFocus(keyTypeCombo)) keyTypeIsSet = true;"/>
 			<mx:Button id="keyTypeRefresh" label="Refresh" click="getKeyTypes()" toolTip="{Strings.tip_refresh_key_types}"/>
 		</mx:HBox>
 		<!--mx:Button label="?" click="showHelpForKeyType()"/-->
@@ -46,6 +46,7 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Strings;
+			import weave.core.UIUtils;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			
@@ -80,12 +81,18 @@
 			{
 				if (keyTypeRadio.selected)
 					return keyTypeCombo.text;
-				else
-					return '';
+				
+				return '';
 			}
 			
-			[Bindable] public var keyType:String = "";
+			public function set defaultKeyType(value:String):void
+			{
+				if (!keyTypeIsSet)
+					_defaultKeyType = value;
+			}
+			[Bindable] private var _defaultKeyType:String = '';
 			
+			private var keyTypeIsSet:Boolean = false;
 			[Bindable] private var refreshingGeoms:Boolean = false;
 			[Bindable] private var refreshingKeyTypes:Boolean = false;
 			

@@ -19,22 +19,24 @@
 
 package weave.visualization.plotters
 {
-	import flash.display.CapsStyle;
 	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.Point;
 	
 	import weave.Weave;
+	import weave.api.WeaveAPI;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
+	import weave.api.setSessionState;
+	import weave.compiler.StandardLib;
+	import weave.core.DynamicState;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
-	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.utils.ColumnUtils;
-	import weave.visualization.plotters.styles.DynamicFillStyle;
 	import weave.visualization.plotters.styles.DynamicLineStyle;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -48,73 +50,119 @@ package weave.visualization.plotters
 	{
 		public function CircleGlyphPlotter()
 		{
-			init();
-		}
-		private function init():void
-		{
 			// initialize default line & fill styles
 			lineStyle.requestLocalObject(SolidLineStyle, false);
-			var fill:SolidFillStyle = fillStyle.requestLocalObject(SolidFillStyle, false);
-			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 		}
 
 		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));
 		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(12, isFinite));
 		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, isFinite));
 		public const enabledSizeBy:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+
+		public const absoluteValueColorEnabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const absoluteValueColorMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
+		public const absoluteValueColorMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
 		
 		/**
 		 * This is the radius of the circle, in screen coordinates.
 		 */
 		public const screenRadius:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		/**
-		 * This is the line style used to draw the outline of the rectangle.
-		 */
+		// delare dependency on statistics (for norm values)
+		private const _screenRadiusStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(screenRadius));
 		public const lineStyle:DynamicLineStyle = newLinkableChild(this, DynamicLineStyle);
-		/**
-		 * This is the fill style used to fill the rectangle.
-		 */
-		public const fillStyle:DynamicFillStyle = newLinkableChild(this, DynamicFillStyle);
+		
+		// backwards compatibility
+		[Deprecated] public function set fillStyle(value:Object):void
+		{
+			try
+			{
+				setSessionState(fill, value[0][DynamicState.SESSION_STATE]);
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
+		}
+		
+		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void			
-		{			
+		{
+//			var hasPrevPoint:Boolean = (isFinite(tempPoint.x) && isFinite(tempPoint.y));
 			var graphics:Graphics = tempShape.graphics;
 			
-			// project data coordinates to screen coordinates and draw graphics			
-			var radius:Number = ColumnUtils.getNorm(screenRadius, recordKey);
-			
+			// project data coordinates to screen coordinates and draw graphics
 			tempPoint.x = getCoordFromRecordKey(recordKey, true);
 			tempPoint.y = getCoordFromRecordKey(recordKey, false);
 			
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
-			lineStyle.beginLineStyle(recordKey, graphics);			
-			fillStyle.beginFillStyle(recordKey, graphics);			
-			if (enabledSizeBy.value == true)			
-			{				
-				radius = minScreenRadius.value + (radius *(maxScreenRadius.value - minScreenRadius.value));
+			lineStyle.beginLineStyle(recordKey, graphics);
+			fill.beginFillStyle(recordKey, graphics);
+			
+			var radius:Number;
+			if (absoluteValueColorEnabled.value)
+			{
+				var sizeData:Number = screenRadius.getValueFromKey(recordKey);
+				var alpha:Number = fill.alpha.getValueFromKey(recordKey);
+				if( sizeData < 0 )
+					graphics.beginFill(absoluteValueColorMin.value, alpha);
+				else if( sizeData > 0 )
+					graphics.beginFill(absoluteValueColorMax.value, alpha);
+				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(screenRadius);
+				var min:Number = stats.getMin();
+				var max:Number = stats.getMax();
+				var absMax:Number = Math.max(Math.abs(min), Math.abs(max));
+				var normRadius:Number = StandardLib.normalize(Math.abs(sizeData), 0, absMax);
+				radius = normRadius * maxScreenRadius.value;
 			}
-			else				
-			{				
-				radius = defaultScreenRadius.value;				
-			}			
-			if (screenRadius.internalColumn != null && isNaN(radius)) // missing screenRadius value			
-			{				
-				radius = defaultScreenRadius.value;				
-				//draw a square for missing values
-				graphics.drawRect(tempPoint.x - radius, tempPoint.y - radius, radius * 2, radius * 2);				
-			} 				
-			else if(isNaN(radius)) // no screenRadius column				
-			{				
-				graphics.drawCircle(tempPoint.x, tempPoint.y, defaultScreenRadius.value );				
-			}				
-			else {				
-				graphics.drawCircle(tempPoint.x, tempPoint.y, radius);			
-			}			
-			graphics.endFill();			
+			else if (enabledSizeBy.value)
+			{
+				radius = minScreenRadius.value + (_screenRadiusStats.getNorm(recordKey) *(maxScreenRadius.value - minScreenRadius.value));
+			}
+			else
+			{
+				radius = defaultScreenRadius.value;
+			}
+			
+//			if (hasPrevPoint)
+//				graphics.lineTo(tempPoint.x, tempPoint.y);
+			if (!isFinite(radius))
+			{
+				// handle undefined radius
+				if (absoluteValueColorEnabled.value)
+				{
+					// draw nothing
+				}
+				else if (enabledSizeBy.value)
+				{
+					// draw square
+					radius = defaultScreenRadius.value;
+					graphics.drawRect(tempPoint.x - radius, tempPoint.y - radius, radius * 2, radius * 2);
+				}
+				else
+				{
+					// draw default circle
+					graphics.drawCircle(tempPoint.x, tempPoint.y, defaultScreenRadius.value );
+				}
+			}
+			else
+			{
+				if (absoluteValueColorEnabled.value && radius == 0)
+				{
+					// draw nothing
+				}
+				else
+				{
+					graphics.drawCircle(tempPoint.x, tempPoint.y, radius);
+				}
+			}
+			graphics.endFill();
+//			graphics.moveTo(tempPoint.x, tempPoint.y);
 		}
 		private static const tempPoint:Point = new Point(); // reusable object
 	}

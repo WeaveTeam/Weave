@@ -25,6 +25,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -95,26 +96,11 @@ public class DataService extends GenericServlet
 		for (int i = 0; i < geomNames.length; i++)
 			geomKeyTypes[i] = config.getGeometryCollectionInfo(geomNames[i]).keyType;
 		
-		@SuppressWarnings("unchecked")
-		Map<String,String>[] tableMetadata = new Map[tableNames.length];
 		// get dublin core metadata
-		for (int i = 0; i < tableNames.length; i++)
-		{
-			// get dublin core metadata
-			try
-			{
-				DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-				String configConnectionName = configInfo.connection;
-				String schema = configInfo.schema;
-				Connection conn = SQLConfigUtils.getConnection(config, configConnectionName);
-				tableMetadata[i] = DublinCoreUtils.listDCElements(conn, schema, tableNames[i]);
-				tableMetadata[i].put(PublicMetadata.NAME, tableNames[i]);
-			}
-			catch (SQLException e)
-			{
-				throw new RemoteException("Unable to connect to database", e);
-			}
-		}
+		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
+		ConnectionInfo connInfo = config.getConnectionInfo(configInfo.connection);
+		Connection conn = connInfo.getStaticReadOnlyConnection();
+		Map<String,String>[] tableMetadata = DublinCoreUtils.listDCElements(conn, configInfo.schema, tableNames);
 		
 		return new DataServiceMetadata(config.getServerName(), tableMetadata, geomNames, geomKeyTypes);
 		*/
@@ -144,7 +130,7 @@ public class DataService extends GenericServlet
 		// prepare result object
 		DataTableMetadata result = new DataTableMetadata();
 		
-		result.setGeometryCollectionExists(geometryCollectionExists);
+		result.setGeometryCollectionExists(geometryCollectionExists && (SQLConfigXML.includeGeometryInTable || infoList.size() == 0));
 		if (geometryCollectionExists)
 		{
 			GeometryCollectionInfo info = config.getGeometryCollectionInfo(dataTableName);
@@ -166,7 +152,7 @@ public class DataService extends GenericServlet
 		HashMap<String,String> params = new HashMap<String,String>();
 		params.put(PublicMetadata.KEYTYPE,keyType);
 		HashMap<String,Integer> keyMap = new HashMap<String,Integer>();
-		for (int keyIndex = 0; keyIndex < keysArray.length; keyIndex ++ )
+		for (int keyIndex = 0; keyIndex < keysArray.length; keyIndex++)
 			keyMap.put( keysArray[keyIndex],keyIndex);
 		
 		int rowIndex =0;
@@ -196,7 +182,6 @@ public class DataService extends GenericServlet
 			List<String> stringData = null;
 			List<String> secKeys = new ArrayList<String>();
 			String dataType = info.publicMetadata.get(PublicMetadata.DATATYPE);
-			boolean hasSecondaryKey = true;
 			
 			// use config min,max or param min,max to filter the data
 			String infoMinStr = info.publicMetadata.get(PublicMetadata.MIN);
@@ -245,10 +230,11 @@ public class DataService extends GenericServlet
 				Object keyObj, dataObj;
 				double value;
 				
-				for( int i = 0; i < result.rows.length; i++)
+				for (int i = 0; i < result.rows.length; i++)
 				{
 					keyObj = result.rows[i][0];
-					if(keyMap.get(keyObj)!= null){
+					if (keyMap.get(keyObj) != null)
+					{
 						rowIndex = keyMap.get(keyObj);
 						if (keyObj == null)
 							continue;
@@ -281,24 +267,20 @@ public class DataService extends GenericServlet
 								continue;
 							
 							stringData.add(dataObj.toString());
-							recordData[rowIndex][colIndex] =  dataObj;
+							recordData[rowIndex][colIndex] = dataObj;
 						}
-						if (hasSecondaryKey)
-							hasSecondaryKey = getSecKeys(result, secKeys, i);
 					}
 				}
 			}
 			catch (SQLException e)
 			{
 				e.printStackTrace();
-				
 			}
 			catch (NullPointerException e)
 			{
 				e.printStackTrace();
-				throw(new RemoteException(e.getMessage()));
+				throw new RemoteException(e.getMessage());
 			}
-			
 		}
 		
 		WeaveRecordList result = new WeaveRecordList();
@@ -357,9 +339,8 @@ public class DataService extends GenericServlet
 		List<String> keys = new ArrayList<String>();
 		List<Double> numericData = null;
 		List<String> stringData = null;
-		List<String> secKeys = new ArrayList<String>();
+		List<Object> thirdColumn = null;
 		String dataType = info.publicMetadata.get(PublicMetadata.DATATYPE);
-		boolean hasSecondaryKey = true;
 		
 		// use config min,max or param min,max to filter the data
 		double minValue = Double.NEGATIVE_INFINITY;
@@ -412,9 +393,13 @@ public class DataService extends GenericServlet
 			else // for every other dataType, use String
 				stringData = new ArrayList<String>();
 			
+			// hack for dimension slider
+			if (result.columnTypes.length == 3)
+				thirdColumn = new LinkedList<Object>();
+			
 			Object keyObj, dataObj;
 			double value;
-			for( int i = 0; i < result.rows.length; i++)
+			for (int i = 0; i < result.rows.length; i++)
 			{
 				keyObj = result.rows[i][0];
 				if (keyObj == null)
@@ -423,11 +408,13 @@ public class DataService extends GenericServlet
 				dataObj = result.rows[i][1];
 				if (dataObj == null)
 					continue;
-	
+				
 				if (numericData != null)
 				{
 					try
 					{
+						if (dataObj instanceof String)
+							dataObj = Double.parseDouble((String)dataObj);
 						value = ((Number)dataObj).doubleValue();
 					}
 					catch (Exception e)
@@ -446,8 +433,9 @@ public class DataService extends GenericServlet
 					stringData.add(dataObj.toString());
 				}
 				keys.add(keyObj.toString());
-				if (hasSecondaryKey)
-					hasSecondaryKey = getSecKeys(result, secKeys, i);
+				
+				if (thirdColumn != null)
+					thirdColumn.add(result.rows[i][2]);
 			}
 		}
 		catch (SQLException e)
@@ -470,25 +458,10 @@ public class DataService extends GenericServlet
 				info.publicMetadata,
 				keys.toArray(new String[0]),
 				numericData != null ? numericData.toArray(new Double[0]) : stringData.toArray(new String[0]),
-				hasSecondaryKey ? secKeys.toArray(new String[0]) : null
+				thirdColumn != null ? thirdColumn.toArray(new Object[0]) : null
 			);
 		
 		return result;
-	}
-	
-	private boolean getSecKeys(SQLResult rowset, List<String> secKeys, int rownum)
-	{
-		try
-		{
-			Object secKeyValueObject = rowset.rows[rownum][2];
-			if (! secKeyValueObject.equals(null))
-				secKeys.add(secKeyValueObject.toString());	
-		}
-		catch (Exception e)
-		{
-			return false;
-		}
-		return true;
 	}
 	
 	public SQLResult getRowSetFromAttributeColumn(Map<String, String> params)

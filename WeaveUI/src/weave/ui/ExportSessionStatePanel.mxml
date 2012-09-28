@@ -25,34 +25,32 @@
 				   sessionPanelCoordsAsPercentages="false"
 				   minWidth="300"
 				   percentWidth="NaN" percentHeight="NaN"
-				   title="Export Session State"
+				   title="{lang('Export Session State')}"
 				   >
 	<mx:VBox paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}">
-		<mx:Label text="Choose Options"/>
-		<mx:CheckBox label="Dashboard mode" toolTip="Check this box to show all windows in 'dashboard' mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel."
+		<mx:Label text="{lang('Choose Options')}"/>
+		<mx:CheckBox label="{lang('Dashboard mode')}" toolTip="{lang('Check this box to show all windows in dashboard mode. Enabling this will hide borders around the tool, hide the bar on the top of the tool, and not allow the tool to be dragged, minimized, maximized, closed, or any other function accessed from the top of the panel.')}"
 					 creationComplete="linkBindableProperty(Weave.properties.dashboardMode, event.target, 'selected');"/>
-		<mx:CheckBox label="Show menubar" toolTip="Check this box to show the top menu bar."
+		<mx:CheckBox label="{lang('Enable control panels and attribute selection')}"
+					 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
+		<mx:CheckBox label="{lang('Show menubar')}" toolTip="{lang('Check this box to show the top menu bar.')}"
 					 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
-		<mx:CheckBox label="Show copyright"
+		<mx:CheckBox label="{lang('Show copyright')}"
 					 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
 		<mx:CheckBox id="saveHistoryCheckBox"
-					 label="Save history"
+					 label="{lang('Save history')}"
 					 selected="false"
 					 enabled="{!saveXMLCheckBox.selected}"
 					 visible="false"/>
 		<mx:CheckBox id="saveXMLCheckBox"
-					 label="Save as XML"
+					 label="{lang('Save as XML')}"
 					 selected="false"
 					 change="saveHistoryCheckBox.selected = !saveXMLCheckBox.selected;"
 					 />
 	</mx:VBox>
 	<mx:ControlBar>
-		<mx:Button label="Export" 
-				   click="export()" 
-				   toolTip="Export session with these options"/>
-		<mx:Button label="Cancel" 
-				   click="removePanel()"
-				   toolTip="Cancel"/>
+		<mx:Button label="{lang('Export')}" click="export()" toolTip="{lang('Export session with these options')}"/>
+		<mx:Button label="{lang('Cancel')}" click="removePanel()"/>
 	</mx:ControlBar>
 	<mx:Script>
 		<![CDATA[

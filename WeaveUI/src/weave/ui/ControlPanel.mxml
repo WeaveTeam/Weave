@@ -21,7 +21,6 @@
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				title="Control Panel"
 				backgroundColor="0xCCCCCC"
 				addedToStage="handleAddedToStage();"
 				width="640"
@@ -42,17 +41,20 @@
 			import mx.core.Container;
 			import mx.core.UIComponent;
 			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getSessionState;
+			import weave.api.newDisposableChild;
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.core.ClassUtils;
 			import weave.core.DynamicState;
 			import weave.core.SessionManager;
+			import weave.utils.EditorManager;
 			
 
 			private var _targetObjects:Array = null;
@@ -61,16 +63,23 @@
 			private var _savedGlobalNames:Object;
 			private var createdChildren:Boolean = false;
 			
+			override protected function get borderIsVisible():Boolean
+			{
+				return true;
+			}
+			
 			override public function set width(value:Number):void
 			{
 				super.width = value;
-				panelWidth.value = String(value);
+				if (!initialized)
+					panelWidth.value = String(value);
 			}
 			
 			override public function set height(value:Number):void
 			{
 				super.height = value;
-				panelHeight.value = String(value);
+				if (!initialized)
+					panelHeight.value = String(value);
 			}
 			
 			/**
@@ -96,6 +105,10 @@
 				pinnable.value = false;
 				minimizable.value = false;
 				maximizable.value = false;
+				
+				// title is set here instead of in the mxml because otherwise it would
+				// overwrite any other value set in mxml components based on this class.
+				title = lang('Control Panel');
 			}
 			
 			public function set children(array:Array):void
@@ -107,7 +120,6 @@
 				}
 			}
 			
-			[Inspectable]
 			/**
 			 * setter for _targetObjects
 			 * @param Array an array of ILinkableObjects 
@@ -115,6 +127,9 @@
 			public function set targets(array:Array):void
 			{
 				_targetObjects = array;
+				
+				controlPanelControls.busyIndicatorTargets = array;
+				
 				save();
 				
 				adjustControls();
@@ -147,6 +162,15 @@
 				}
 			}
 			
+			private function toggleRevertSaveButtons():void
+			{
+				var show:Boolean = Weave.properties.showRevertButton.value;
+				controlPanelControls.revertBtn.visible = show;
+				controlPanelControls.revertBtn.includeInLayout = show;
+				controlPanelControls.saveBtn.visible = show;
+				controlPanelControls.saveBtn.includeInLayout = show;
+			}
+			
 			/**
 			 * This function reverts session state(s) in targets to the previous state(s) set in save() 
 			 */
@@ -176,6 +200,11 @@
 			 */
 			public function save():void
 			{
+				if (_targetObjects == null && parent is ILinkableObject)
+				{
+					targets = [parent]; // this calls save() again
+					return;
+				}
 				if (tabNavigator)
 					for each (var child:Object in tabNavigator.getChildren())
 						if (child is ILinkableObjectEditor)
@@ -184,10 +213,6 @@
 				_savedGlobalNames = {};
 				_savedGlobalSessionStates = [];
 				_savedTargetSessionStates = [];
-				if (_targetObjects == null && parent is ILinkableObject)
-				{
-					_targetObjects = [parent];
-				}
 				for each(var object:ILinkableObject in _targetObjects)
 				{
 					if (object)
@@ -242,6 +267,8 @@
 				{
 					controlPanelControls.tabNavigator.addChild(children[i]);
 				}
+				
+				Weave.properties.showRevertButton.addImmediateCallback(this, toggleRevertSaveButtons, true);
 			}
 			
 			private function handleControlsCreated(e:FlexEvent):void
@@ -263,7 +290,25 @@
 				if (y < 0 || y > yMargin)
 					panelY.value = String((yMargin - yRange)/2 + Math.random() * yRange);
 				
+				if(xMargin < 0 || yMargin < 0)
+					constrainAndSaveCoordinates();
+				
 				save();
+			}
+			
+			public static function openEditor(linkableObject:ILinkableObject):ILinkableObjectEditor
+			{
+				var editor:ILinkableObjectEditor = EditorManager.getNewEditor(linkableObject);
+				if (editor)
+				{
+					var controlPanel:ControlPanel = newDisposableChild(linkableObject, ControlPanel);
+					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
+					PopUpManager.centerPopUp(controlPanel);
+					controlPanel.targets = [linkableObject];
+					
+					controlPanel.tabNavigator.addChild(editor as DisplayObject);
+				}
+				return editor;
 			}
 		]]>
 	</mx:Script>

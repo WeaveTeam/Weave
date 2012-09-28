@@ -20,13 +20,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				title="Saved Selections"
+				title="{lang('Saved Selections')}"
 				width="25%" height="10%"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
 	<mx:Canvas width="100%" height="100%">
 		
-		<CustomComboBox id="selectionSelectorBox" prompt="Select a selection..."
+		<CustomComboBox id="selectionSelectorBox" prompt="{lang('Select a selection...')}"
 						width="100%" height="100%"
 						labelFunction="selectionsListLabelFunction"
 						valueCommit="itemSelected()"
@@ -34,37 +34,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	</mx:Canvas>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			import mx.events.DropdownEvent;
-			import mx.events.FlexEvent;
-			import mx.utils.ObjectUtil;
-			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.core.ILinkableObject;
-			import weave.api.getCallbackCollection;
-			import weave.api.getSessionState;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableBoolean;
-			import weave.core.LinkableHashMap;
-			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
 			
 			
 			public const includeAllRecordsOption:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateSubsets);
 			private var setToIndex:int = -1;
 			
-			private static function get savedSelectionsMap():LinkableHashMap
-			{
-				return Weave.root.getObject(Weave.SAVED_SELECTION_KEYSETS) as LinkableHashMap;
-			}
-			private static function get globalSelection():KeySet
-			{
-				return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-			}
-
 			override protected function constructor():void
 			{
 				super.constructor();
@@ -76,17 +56,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				savedSelectionsMap.addGroupedCallback(this, updateSubsets, true);
-				getCallbackCollection(globalSelection).addGroupedCallback(this, handleGlobalSubsetChange);
+				Weave.savedSelectionKeySets.addGroupedCallback(this, updateSubsets, true);
+				Weave.defaultSelectionKeySet.addGroupedCallback(this, handleGlobalSubsetChange);
 			}
 			private function handleGlobalSubsetChange():void
 			{
-				if( !globalSelection.keys.length ) // IF SHOWING ALL RECORDS
+				if( !Weave.defaultSelectionKeySet.keys.length ) // IF SHOWING ALL RECORDS
 					selectionSelectorBox.selectedIndex = -1;
 			}
 			private function updateSubsets():void
 			{
-				var list:Array = savedSelectionsMap.getObjects();
+				var list:Array = Weave.savedSelectionKeySets.getObjects();
 				if (includeAllRecordsOption.value)
 					list.unshift(false);
 				selectionSelectorBox.dataProvider = list;
@@ -96,17 +76,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					setToIndex = -1;
 				}
 			}
-			public function setSelectionsSelectorIndex(subsetName:String):void
+			
+			public function selectItem(name:String):void
 			{
-				var list:Array = savedSelectionsMap.getObjects();
-				var label:String = "";
-				var i:int = 0;
-				for( i; i < list.length; i++ ) {
-					label = savedSelectionsMap.getName(list[i]);
-					if( label == subsetName )
-						break;
-				}
-				setToIndex = i;
+				setToIndex = Weave.savedSelectionKeySets.getNames().indexOf(name);
 			}
 			
 			/**
@@ -115,11 +88,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private static function selectionsListLabelFunction(item:Object):String
 			{
 				if (!item)
-					return "No selection";
+					return lang("No selection");
 				
 				// The label will be the name of the item followed by the record count
-				var label:String = savedSelectionsMap.getName(item as KeySet);
-				return label + " (" + (item as KeySet).keys.length + " records)";
+				var label:String = Weave.savedSelectionKeySets.getName(item as KeySet);
+				return lang("{0} ({1} records)", label, (item as KeySet).keys.length);
 			}
 			
 			protected function itemSelected():void
@@ -129,9 +102,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				var selection:KeySet = selectionSelectorBox.selectedItem as KeySet;
 				if (selection)
-					copySessionState(selection, globalSelection);
+					copySessionState(selection, Weave.defaultSelectionKeySet);
 				else
-					globalSelection.clearKeys(); // all records
+					Weave.defaultSelectionKeySet.clearKeys(); // all records
 				
 				// reset the selected item to what it was before we set the global subset
 				selectionSelectorBox.selectedItem = selection;
@@ -140,8 +113,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		]]>
 	</mx:Script>
 	<ControlPanel>
-		<mx:VBox label="Settings">
-			<mx:CheckBox label="Include &quot;No selection&quot; option" creationComplete="linkBindableProperty(includeAllRecordsOption, event.target, 'selected')"/>
+		<mx:VBox label="{lang('Settings')}">
+			<mx:CheckBox label='{lang("Include \"No selection\" option")}' creationComplete="linkBindableProperty(includeAllRecordsOption, event.target, 'selected')"/>
 		</mx:VBox>
 		<editors:WindowSettingsEditor target="{this}"/>
 	</ControlPanel>

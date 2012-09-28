@@ -72,13 +72,11 @@ package weave.services
 			//trace("performQuery (timeout = "+query.webService.requestTimeout+")",query.toString());
 			query.addAsyncResponder(handleQueryResultOrFault, handleQueryResultOrFault, query);
 			
-			if (query.service is Servlet)
-				(query.service as Servlet).reportProgress = false;
+			//URLRequestUtils.reportProgress = false;
 			
 			query.invoke();
 			
-			if (query.service is Servlet)
-				(query.service as Servlet).reportProgress = true;
+			//URLRequestUtils.reportProgress = true;
 		}
 		
 		// This function gets called when a query has been downloaded.  It will download the next query if available

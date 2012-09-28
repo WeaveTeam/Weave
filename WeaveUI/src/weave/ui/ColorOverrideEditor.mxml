@@ -29,7 +29,7 @@
 	implements="weave.api.core.ILinkableObject"
 	width="{NaN}" height="{NaN}"
 	>
-		<mx:Label text="Override colors for specific records" fontWeight="bold"/>
+		<mx:Label text="{lang('Override colors for specific records')}" fontWeight="bold"/>
 		<mx:List id="colorOverrideList" allowMultipleSelection="true" width="100%" height="100%" change="handleSelectedItems()" horizontalScrollPolicy="auto">
 			<mx:itemRenderer>
 				<mx:Component>
@@ -57,7 +57,7 @@
 										var probeText:String = ProbeTextUtils.getProbeText([key]);
 										if (!probeText)
 											probeText = key.keyType + '#' + key.localName;
-										else if (probeText.indexOf("Record Identifier:") == 0)
+										else if (probeText.indexOf(lang('Record Identifier:')) == 0)
 											probeText = probeText.split('\n').join('');
 										
 										toolTip = probeText;
@@ -78,12 +78,12 @@
 			</mx:itemRenderer>
 		</mx:List>
 		<mx:HBox width="100%">
-			<ui:Indent label="Change color for selected records:">
+			<ui:Indent label="{lang('Change color for selected records:')}">
 				<ui:CustomColorPicker id="colorPicker" change="overrideColor(getGlobalSelection().keys, colorPicker.selectedColor);"/>
 				<ui:HelpComponent>Make a selection on a visualization tool and then use this color picker to override the color for the selected records.</ui:HelpComponent>
 			</ui:Indent>
 			<mx:Spacer width="100%"/>
-			<mx:Button label="Reset selected" click="removeSelectedColors()"/>
+			<mx:Button label="{lang('Reset selected')}" click="removeSelectedColors()"/>
 		</mx:HBox>
 	<mx:Script>
 		<![CDATA[
@@ -101,8 +101,7 @@
 			
 			private function getGlobalSelection():KeySet
 			{
-				var keySet:KeySet = Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
-				return keySet;
+				return Weave.defaultSelectionKeySet;
 			}
 			
 			override protected function childrenCreated():void

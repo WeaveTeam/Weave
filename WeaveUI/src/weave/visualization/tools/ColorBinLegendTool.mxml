@@ -42,18 +42,17 @@
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
 
-			WeaveAPI.registerImplementation(IVisTool, ColorBinLegendTool, "Color Legend");
+			WeaveAPI.registerImplementation(IVisTool, ColorBinLegendTool, lang("Color Legend"));
 			
 			private var _plotter:ColorBinLegendPlotter = null;
+			
 			override protected function constructor():void
 			{
 				super.constructor();
 				// lock dynamic objects into place
 				_plotter = initializePlotters(ColorBinLegendPlotter, false);
 
-				plotLayer.useTextBitmapFilters.value = true;
-				
-				visualization.enableAutoZoomToExtent.value = true;
+				visualization.plotManager.enableAutoZoomToExtent.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
 				visualization.topMarginClickCallbacks.addGroupedCallback(this, handleMarginLabelClick);
@@ -64,10 +63,10 @@
 				panelWidth.value = "20%";
 				panelHeight.value = "50%";
 				
-				visualization.marginBottom.value = "5";
-				visualization.marginTop.value    = DEFAULT_MARGIN_TOP.toString();
-				visualization.marginLeft.value   = "5";
-				visualization.marginRight.value  = "5";
+				visualization.plotManager.marginBottom.value = "5";
+				visualization.plotManager.marginTop.value    = DEFAULT_MARGIN_TOP.toString();
+				visualization.plotManager.marginLeft.value   = "5";
+				visualization.plotManager.marginRight.value  = "5";
 			}
 			
 			override protected function childrenCreated():void
@@ -75,8 +74,8 @@
 				super.childrenCreated();
 				dataColumnComponent.dynamicObject = _plotter.dynamicColorColumn;
 				_plotter.dynamicColorColumn.addImmediateCallback(this, colorColumnCallback, true);
-				visualization.marginTopNumber.addImmediateCallback(this, handleMarginChange);
-				linkBindableProperty(visualization.marginTopNumber, marginLabel, "height");
+				visualization.plotManager.marginTopNumber.addImmediateCallback(this, handleMarginChange);
+				linkBindableProperty(visualization.plotManager.marginTopNumber, marginLabel, "height");
 				
 				linkBindableProperty(_plotter.maxColumns, legendControls.numColumns, 'value');
 				linkBindableProperty(_plotter.ascendingOrder, legendControls.ascendingOrderCheck, 'selected');
@@ -119,7 +118,7 @@
 			{
 				var cc:ColorColumn = _plotter.getInternalColorColumn();
 				if (cc)
-					return cc.internalColumn as BinnedColumn
+					return cc.getInternalColumn() as BinnedColumn
 				return null;
 			}
 
@@ -127,7 +126,7 @@
 			{
 				try
 				{
-					return (internalBinnedColumn.internalColumn as FilteredColumn).internalDynamicColumn;
+					return (internalBinnedColumn.getInternalColumn() as FilteredColumn).internalDynamicColumn;
 				}
 				catch (e:Error) { } // do nothing if there is no data column
 				return null;
@@ -135,7 +134,7 @@
 
 			override public function getSelectableAttributeNames():Array
 			{
-				return ["Color data"];
+				return [lang("Color data")];
 			}
 			override public function getSelectableAttributes():Array
 			{
@@ -170,16 +169,16 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				return "Color Legend";
+				return lang("Color Legend");
 			}
 			
 			private static const DEFAULT_MARGIN_TOP:int = 25;
 			private var _prevMarginTop:String = String(DEFAULT_MARGIN_TOP); // this stores the previous nonzero top margin setting
 			private function handleMarginChange():void
 			{
-				if (visualization.marginTopNumber.value != 0)
+				if (visualization.plotManager.marginTopNumber.value != 0)
 				{
-					_prevMarginTop = visualization.marginTop.value;
+					_prevMarginTop = visualization.plotManager.marginTop.value;
 					legendControls.chkShowLegendAttrName.selected = true;
 				}
 				else
@@ -187,26 +186,27 @@
 			}
 			private function toggleShowAttributeName(e:Event):void
 			{
-				visualization.marginTop.value = legendControls.chkShowLegendAttrName.selected ? _prevMarginTop : '0';
+				visualization.plotManager.marginTop.value = legendControls.chkShowLegendAttrName.selected ? _prevMarginTop : '0';
 			}
 		]]>
 	</mx:Script>
 	
 	<mx:TextArea id="marginLabel"
+				 visible="{marginLabel.height > 0}"
 				 mouseChildren="false" mouseEnabled="false"
 				 x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5" width="100%"
 				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				 wordWrap="true" selectable="false" editable="false"
 				 borderThickness="0" backgroundAlpha="0"/>
 	<ui:ControlPanel>
-		<mx:VBox label="Binning">
-			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="Color data" showLinkControl="false"/>
+		<mx:VBox label="{lang('Binning')}">
+			<ui:DynamicColumnComponent visTool="{this}" id="dataColumnComponent" label="{lang('Color data')}" showLinkControl="false"/>
 			<ui:BinningDefinitionEditor id="binEditor" width="100%"/>
 		</mx:VBox>
-		<mx:VBox label="Appearance">
+		<mx:VBox label="{lang('Appearance')}">
 			<ui:LegendControls id="legendControls"/>
 			<mx:HBox>
-				<mx:Label text="Max bubble size"/>
+				<mx:Label text="{lang('Max bubble size')}"/>
 				<mx:HSlider liveDragging="true" minimum="10" maximum="60" tickInterval="10" snapInterval="5" creationComplete="linkBindableProperty(_plotter.shapeSize, event.target, 'value')"/>
 			</mx:HBox>
 			<ui:ColorRampEditor id="cRampEditor"/>

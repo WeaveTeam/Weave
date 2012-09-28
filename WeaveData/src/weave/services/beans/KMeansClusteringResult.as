@@ -46,8 +46,8 @@ package weave.services.beans
 			
 			
 //			// convert arrays to vectors and store the residual values			
-//			var keys:Vector.<String> = VectorUtils.copy(kresult.keys, new Vector.<String>());
-//			var data:Vector.<Number> = VectorUtils.copy(kresult.residual, new Vector.<Number>());
+//			var keys:Vector.<String> = Vector.<String>(kresult.keys);
+//			var data:Vector.<Number> = Vector.<Number>(kresult.residual);
 //			//TODO: need residual.keyType
 //			this.residual.updateRecords(keys, data, true);
 		}

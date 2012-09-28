@@ -25,22 +25,18 @@ package weave
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	
-	import mx.core.Application;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AsyncToken;
 	
-	import weave.Weave;
+	import weave.api.WeaveAPI;
 	import weave.api.copySessionState;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDataRowSource;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.services.DelayedAsyncResponder;
-	import weave.services.WeaveDataServlet;
 	import weave.ui.CustomContextMenuManager;
 	import weave.ui.RecordDataTable;
-	import weave.utils.ProbeTextUtils;
 	
 	/**
 	 * TODO: this code should be moved into the multiVisLayer class
@@ -65,12 +61,12 @@ package weave
 		private static var   _globalProbeKeySet:KeySet = null;        // pointer to global probe key set
 		private static const _localProbeKeySet:KeySet = new KeySet(); // local object to store last non-empty probe set
 		
-		private static const groupName:String = "2 subsetMenuItems";
+		private static const groupName:String = "1 subsetMenuItems";
 		
-		private static const SUBSET_CREATE_SELECTION_CAPTION:String = "subset from selected record(s)";
-		private static const SUBSET_CREATE_PROBE_CAPTION:String     = "subset from probed record(s)";
-		private static const SUBSET_REMOVE_SELECTION_CAPTION:String = "selected record(s) from subset";
-		private static const SUBSET_REMOVE_PROBE_CAPTION:String     = "probed record(s) from subset";
+		private static const SUBSET_CREATE_SELECTION_CAPTION:String = lang("Create subset from selected record(s)");
+		private static const SUBSET_CREATE_PROBE_CAPTION:String     = lang("Create subset from probed record(s)");
+		private static const SUBSET_REMOVE_SELECTION_CAPTION:String = lang("Remove selected record(s) from subset");
+		private static const SUBSET_REMOVE_PROBE_CAPTION:String     = lang("Remove probed record(s) from subset");
 		
 		/**
 		 * @param context Any object created as a descendant of a Weave instance.
@@ -106,16 +102,16 @@ package weave
 						// first check to see if there is a selection - if so make subset from selection
 						if(selection.keys.length > 0)
 						{
-							_removeFromSubsetCMI.caption = "Remove " + SUBSET_REMOVE_SELECTION_CAPTION;
-							_createSubsetCMI.caption     = "Create " + SUBSET_CREATE_SELECTION_CAPTION;
+							_removeFromSubsetCMI.caption = SUBSET_REMOVE_SELECTION_CAPTION;
+							_createSubsetCMI.caption     = SUBSET_CREATE_SELECTION_CAPTION;
 						}
 						// if there is not a selection and something is probed, then use it for the subset 
 						else if(_localProbeKeySet.keys.length > 0)
 						{
 							_viewRecordCMI.enabled = true;
-							_viewRecordCMI.caption = "Show data for probed record" + ((_localProbeKeySet.keys.length > 1)? "s" : "" );
-							_removeFromSubsetCMI.caption = "Remove " + SUBSET_REMOVE_PROBE_CAPTION;
-							_createSubsetCMI.caption     = "Create " + SUBSET_CREATE_PROBE_CAPTION;
+							_viewRecordCMI.caption = lang("Show data for probed record" + ((_localProbeKeySet.keys.length > 1)? "s" : "" ));
+							_removeFromSubsetCMI.caption = SUBSET_REMOVE_PROBE_CAPTION;
+							_createSubsetCMI.caption     = SUBSET_CREATE_PROBE_CAPTION;
 						}
 						if(_localProbeKeySet.keys.length <= 0 ) _viewRecordCMI.enabled = false;
 						
@@ -130,7 +126,7 @@ package weave
 
 			// create and add the create subset context menu item
 			_createSubsetCMI = CustomContextMenuManager.createAndAddMenuItemToDestination(
-					"Create " + SUBSET_CREATE_SELECTION_CAPTION, 
+					SUBSET_CREATE_SELECTION_CAPTION, 
 					destination,
 					function (e:Event):void
 					{
@@ -168,7 +164,7 @@ package weave
 
 			// create and add the create remove from subset context menu item
 			_removeFromSubsetCMI = CustomContextMenuManager.createAndAddMenuItemToDestination(
-					"Remove " + SUBSET_REMOVE_SELECTION_CAPTION, 
+					SUBSET_REMOVE_SELECTION_CAPTION, 
 					destination,
 					function (e:Event):void
 					{
@@ -189,7 +185,7 @@ package weave
 
 			// create and add the show all records context menu item														   
 			_showAllRecordsCMI = CustomContextMenuManager.createAndAddMenuItemToDestination(
-					"Show All Records", 
+					lang("Show All Records"), 
 					destination,
 					function (e:Event):void
 					{
@@ -200,7 +196,7 @@ package weave
 
 			// create and add the view record(s) context menu item
 			_viewRecordCMI = CustomContextMenuManager.createAndAddMenuItemToDestination(
-				"Show data for probed record",
+				lang("Show data for probed record"),
 				destination,
 				function (e:Event):void
 				{
@@ -217,7 +213,7 @@ package weave
 						{
 							(e.target as RecordDataTable).setProbedKeySet(_localProbeKeySet);
 						});
-					PopUpManager.addPopUp(recordTable, Application.application as DisplayObject);
+					PopUpManager.addPopUp(recordTable, WeaveAPI.topLevelApplication as DisplayObject);
 				},
 				groupName
 				);

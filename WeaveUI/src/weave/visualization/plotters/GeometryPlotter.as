@@ -27,23 +27,25 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.disposeObjects;
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
+	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
-	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
@@ -63,15 +65,18 @@ package weave.visualization.plotters
 		{
 			// initialize default line & fill styles
 			line.scaleMode.defaultValue.setSessionState(LineScaleMode.NONE);
-			fill.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 
 			line.weight.addImmediateCallback(this, disposeCachedBitmaps);
 			
 			linkSessionState(StreamedGeometryColumn.geometryMinimumScreenArea, pixellation);
 
-			setKeySource(geometryColumn);
+			setSingleKeySource(geometryColumn);
 			
-			_filteredKeySet.removeCallback(spatialCallbacks.triggerCallbacks); // not every change to the geometries changes the bounding boxes
+			// not every change to the geometries changes the keys
+			geometryColumn.removeCallback(_filteredKeySet.triggerCallbacks);
+			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, _filteredKeySet.triggerCallbacks);
+			
 			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks); // bounding box should trigger spatial
 			registerSpatialProperty(_filteredKeySet.keyFilter); // subset should trigger spatial callbacks
 		}
@@ -87,6 +92,7 @@ package weave.visualization.plotters
 		 *  This is the default URL path for images, when using images in place of points.
 		 */
 		public const pointDataImageColumn:ImageColumn = newLinkableChild(this, ImageColumn);
+		public const useFixedImageSize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		[Embed(source="/weave/resources/images/missing.png")]
 		private static var _missingImageClass:Class;
@@ -104,8 +110,8 @@ package weave.visualization.plotters
 		/**
 		 * This is the size of the points drawn when the geometry represents point data.
 		 **/
-		public const pointShapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, validatePointShapeSize), disposeCachedBitmaps);
-		private function validatePointShapeSize(value:Number):Boolean { return 0.2 <= value && value <= 1024; };
+		public const iconSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, validateIconSize), disposeCachedBitmaps);
+		private function validateIconSize(value:Number):Boolean { return 0.2 <= value && value <= 1024; };
 
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
@@ -158,7 +164,7 @@ package weave.visualization.plotters
 			// try to find an internal StreamedGeometryColumn
 			var column:IAttributeColumn = geometryColumn;
 			while (!(column is StreamedGeometryColumn) && column is IColumnWrapper)
-				column = (column as IColumnWrapper).internalColumn;
+				column = (column as IColumnWrapper).getInternalColumn();
 			
 			// if the internal geometry column is a streamed column, request the required detail
 			var streamedColumn:StreamedGeometryColumn = column as StreamedGeometryColumn;
@@ -199,7 +205,7 @@ package weave.visualization.plotters
 			invalidateCachedBitmaps();
 			
 			var weight:Number = line.weight.getValueFromKey(null, Number);
-			pointOffset = Math.ceil(pointShapeSize.value) + weight / 2;
+			pointOffset = (Math.ceil(iconSize.value) + weight) / 2;
 			circleBitmapSize = Math.ceil(pointOffset * 2 + 1);
 			circleBitmapDataRectangle.width = circleBitmapSize;
 			circleBitmapDataRectangle.height = circleBitmapSize;
@@ -252,7 +258,7 @@ package weave.visualization.plotters
 					g.beginFill(color, fill.alpha.getValueFromKey(null, Number));
 				}
 				line.beginLineStyle(null, g);
-				g.drawCircle(pointOffset, pointOffset, pointShapeSize.value);
+				g.drawCircle(pointOffset, pointOffset, iconSize.value / 2);
 				g.endFill();
 				PlotterUtils.clear(bitmapData);
 				bitmapData.draw(tempShape);
@@ -268,69 +274,95 @@ package weave.visualization.plotters
 		
 		public const pixellation:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		private const _destinationToPlotTaskMap:Dictionary = new Dictionary(true);
+		
+		private const _singleGeom:Array = []; // reusable array for holding one item
+		
+		private const RECORD_INDEX:String = 'recordIndex';
+		private const MIN_IMPORTANCE:String = 'minImportance';
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			var minImportance:Number = getDataAreaPerPixel(dataBounds, screenBounds) * pixellation.value;
-			
-			// find nested StreamedGeometryColumn objects
-			var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(geometryColumn, StreamedGeometryColumn);
-			// request the required detail
-			for each (var streamedColumn:StreamedGeometryColumn in descendants)
+			if (task.iteration == 0)
 			{
-				var requestedDataBounds:IBounds2D = dataBounds;
-				var requestedMinImportance:Number = minImportance;
-				if (requestedDataBounds.isUndefined())// if data bounds is empty
-				{
-					// use the collective bounds from the geometry column and re-calculate the min importance
-					requestedDataBounds = streamedColumn.collectiveBounds;
-					requestedMinImportance = getDataAreaPerPixel(requestedDataBounds, screenBounds);
-				}
-				// only request more detail if requestedDataBounds is defined
-				if (!requestedDataBounds.isUndefined())
-					streamedColumn.requestGeometryDetail(requestedDataBounds, requestedMinImportance);
+				task.asyncState[RECORD_INDEX] = 0; 
+				task.asyncState[MIN_IMPORTANCE] = getDataAreaPerPixel(task.dataBounds, task.screenBounds) * pixellation.value;
 			}
 			
-			var graphics:Graphics = tempShape.graphics;
-			graphics.clear();
-			// loop through the records and draw the geometries
-			for (var recIndex:int = 0; recIndex < recordKeys.length; recIndex++)
+			var recordIndex:Number = task.asyncState[RECORD_INDEX];
+			var minImportance:Number = task.asyncState[MIN_IMPORTANCE];
+			var progress:Number = 1; // set to 1 in case loop is not entered
+			while (recordIndex < task.recordKeys.length)
 			{
-				var recordKey:IQualifiedKey = recordKeys[recIndex] as IQualifiedKey;
-				var geoms:Array;
-				
+				var recordKey:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
+				var geoms:Array = null;
 				var value:* = geometryColumn.getValueFromKey(recordKey);
 				if (value is Array)
 					geoms = value;
 				else if (value is GeneralizedGeometry)
-					geoms = [value as GeneralizedGeometry];
-				else	
-					continue;
-				if (geoms.length == 0)
-					continue;
-				
-				fill.beginFillStyle(recordKey, graphics);
-				line.beginLineStyle(recordKey, graphics);
-	
-				// draw the geom
-				for (var i:int = 0; i < geoms.length; i++)
 				{
-					var geom:GeneralizedGeometry = geoms[i] as GeneralizedGeometry;
-					if (geom)
+					geoms = _singleGeom;
+					_singleGeom[0] = value;
+				}
+				
+				if (geoms && geoms.length > 0)
+				{
+					var graphics:Graphics = tempShape.graphics;
+					var styleSet:Boolean = false;
+					
+					// draw the geom
+					for (var i:int = 0; i < geoms.length; i++)
 					{
-						// skip shapes that are considered unimportant at this zoom level
-						if (geom.geomType == GeneralizedGeometry.GEOM_TYPE_POLYGON && geom.bounds.getArea() < minImportance)
-							continue;
-						drawMultiPartShape(recordKey, geom.getSimplifiedGeometry(minImportance, dataBounds), geom.geomType, dataBounds, screenBounds, graphics, destination);
+						var geom:GeneralizedGeometry = geoms[i] as GeneralizedGeometry;
+						if (geom)
+						{
+							// skip shapes that are considered unimportant at this zoom level
+							if (geom.geomType == GeneralizedGeometry.GEOM_TYPE_POLYGON && geom.bounds.getArea() < minImportance)
+								continue;
+							if (!styleSet)
+							{
+								graphics.clear();
+								fill.beginFillStyle(recordKey, graphics);
+								line.beginLineStyle(recordKey, graphics);
+								styleSet = true;
+							}
+							drawMultiPartShape(recordKey, geom.getSimplifiedGeometry(minImportance, task.dataBounds), geom.geomType, task.dataBounds, task.screenBounds, graphics, task.buffer);
+						}
+					}
+					if (styleSet)
+					{
+						graphics.endFill();
+						task.buffer.draw(tempShape);
 					}
 				}
-				graphics.endFill();
+				
+				// this progress value will be less than 1
+				progress = recordIndex / task.recordKeys.length;
+				task.asyncState[RECORD_INDEX] = ++recordIndex;
+				
+				// avoid doing too little or too much work per iteration 
+				if (getTimer() > task.iterationStopTime)
+					break; // not done yet
 			}
 			
-			destination.draw(tempShape);
+			// hack for symbol plotters
+			var symbolPlottersArray:Array = symbolPlotters.getObjects();
+			var ourAsyncState:Object = task.asyncState;
+			for each (var plotter:IPlotter in symbolPlottersArray)
+			{
+				if (task.iteration == 0)
+					_asyncState[plotter] = {};
+				task.asyncState = _asyncState[plotter];
+				if (_asyncProgress[plotter] != 1)
+					_asyncProgress[plotter] = plotter.drawPlotAsyncIteration(task);
+				progress += _asyncProgress[plotter];
+			}
+			task.asyncState = ourAsyncState;
 			
-			for each (var plotter:IPlotter in symbolPlotters.getObjects())
-				plotter.drawPlot(recordKeys, dataBounds, screenBounds, destination);
+			return progress / (1 + symbolPlottersArray.length);
 		}
+		
+		private const _asyncState:Dictionary = new Dictionary(true); // IPlotter -> Object
+		private const _asyncProgress:Dictionary = new Dictionary(true); // IPlotter -> Number
 		
 		private static const tempPoint:Point = new Point(); // reusable object
 		private static const tempMatrix:Matrix = new Matrix(); // reusable object
@@ -362,12 +394,19 @@ package weave.visualization.plotters
 					tempPoint.x = currentNode.x;
 					tempPoint.y = currentNode.y;
 					dataBounds.projectPointTo(tempPoint, screenBounds);
-					if (pointDataImageColumn.internalColumn)
+					// round coordinates for faster & more consistent rendering
+					tempPoint.x = Math.round(tempPoint.x);
+					tempPoint.y = Math.round(tempPoint.y);
+					if (pointDataImageColumn.getInternalColumn())
 					{
 						var bitmapData:BitmapData = pointDataImageColumn.getValueFromKey(key) || _missingImage;
+						var imgWidth:Number = useFixedImageSize.value ? iconSize.value : bitmapData.width;
+						var imgHeight:Number = useFixedImageSize.value ? iconSize.value : bitmapData.height;
 						tempMatrix.identity();
-						tempMatrix.translate(tempPoint.x - bitmapData.width / 2, tempPoint.y - bitmapData.height / 2);
-						outputBitmapData.draw(bitmapData, tempMatrix);
+						if (useFixedImageSize.value)
+							tempMatrix.scale(iconSize.value / bitmapData.width, iconSize.value / bitmapData.height);
+						tempMatrix.translate(tempPoint.x - imgWidth / 2, tempPoint.y - imgHeight / 2);
+						outputBitmapData.draw(bitmapData, tempMatrix, null, null, null, true);
 					}
 					else
 					{
@@ -427,5 +466,7 @@ package weave.visualization.plotters
 		{
 			setSessionState(geometryColumn.internalDynamicColumn, value);
 		}
+		// backwards compatibility May 2012
+		[Deprecated(replacement="iconSize")] public function set pointShapeSize(value:Number):void { iconSize.value = value * 2; }
 	}
 }

@@ -20,11 +20,9 @@
 package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
-	import flash.display.Graphics;
 	import flash.display.LineScaleMode;
 	import flash.display.Shape;
 	import flash.geom.Point;
-	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
@@ -35,12 +33,12 @@ package weave.visualization.plotters
 	import weave.api.graphs.IGraphNode;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
-	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.graphs.ForceDirectedLayout;
 	import weave.graphs.GridForceDirectedLayout;
@@ -60,13 +58,13 @@ package weave.visualization.plotters
 	{
 		public function GraphPlotter()
 		{
-			lineStyle.color.internalDynamicColumn.requestLocalObjectCopy(Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN));
+			lineStyle.color.internalDynamicColumn.requestLocalObjectCopy(Weave.defaultColorColumn);
 			lineStyle.scaleMode.defaultValue.value = LineScaleMode.NORMAL;
 			lineStyle.weight.defaultValue.value = 1.5;
 
-			fillStyle.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
-			setKeySource(nodesColumn);
+			setSingleKeySource(nodesColumn);
 
 			layoutAlgorithm.requestLocalObject(ForceDirectedLayout, true);
 
@@ -265,17 +263,13 @@ package weave.visualization.plotters
 //		public var draggedLayerDrawn:Boolean = false;
 //		private var _isDragging:Boolean = false;
 		
-		// clipping rectangle
-		private const _clipRectangle:Rectangle = new Rectangle();
-
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			var nodesGraphics:Graphics = tempShape.graphics;
-			var edgesGraphics:Graphics = edgesShape.graphics;
-			screenBounds.getRectangle(_clipRectangle);
-			nodesGraphics.clear();
-			edgesGraphics.clear();
-			
+			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
+			return 1;
+		}
+		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
 			if (recordKeys.length == 0)
 				return;
 			
@@ -283,8 +277,6 @@ package weave.visualization.plotters
 			var key:IQualifiedKey;
 			var x:Number;
 			var y:Number;
-			var nodesCount:int = 0;
-			var edgesCount:int = 0;
 			var fullyDrawnNodes:Dictionary = new Dictionary();
 			var recordKeyMap:Dictionary = new Dictionary();
 			
@@ -305,11 +297,10 @@ package weave.visualization.plotters
 					continue;
 				var connections:Vector.<IGraphNode> = node.connections;
 				
-				lineStyle.beginLineStyle(key, nodesGraphics);
-				nodesGraphics.beginFill(fillStyle.color.getValueFromKey(key));
-				lineStyle.beginLineStyle(key, edgesGraphics);				
-				
 				// first draw the node
+				tempShape.graphics.clear();
+				lineStyle.beginLineStyle(key, tempShape.graphics);
+				tempShape.graphics.beginFill(fillStyle.color.getValueFromKey(key));
 				x = node.position.x;
 				y = node.position.y;
 				screenPoint.x = x;     
@@ -317,9 +308,13 @@ package weave.visualization.plotters
 				dataBounds.projectPointTo(screenPoint, screenBounds);
 				var xNode:Number = screenPoint.x;
 				var yNode:Number = screenPoint.y;
-				nodesGraphics.drawCircle(xNode, yNode, radius.value);
-				++nodesCount;
+				tempShape.graphics.drawCircle(xNode, yNode, radius.value);
+				tempShape.graphics.endFill();
+				destination.draw(tempShape, null, null, null, null, true);
 				
+				// now draw the edges
+				edgesShape.graphics.clear();
+				lineStyle.beginLineStyle(key, edgesShape.graphics);				
 				for (var j:int = connections.length - 1; j >= 0; --j)
 				{
 					var connectedNode:IGraphNode = connections[j];
@@ -329,7 +324,7 @@ package weave.visualization.plotters
 					if (recordKeyMap[key] == undefined && recordKeyMap[connectedNodeKey] == undefined)
 						continue;
 					
-					edgesGraphics.moveTo(xNode, yNode);
+					edgesShape.graphics.moveTo(xNode, yNode);
 					x = connectedNode.position.x;
 					y = connectedNode.position.y;
 					screenPoint.x = x;     
@@ -338,7 +333,7 @@ package weave.visualization.plotters
 					
 					if (!connectedNode.hasConnection(node)) // single connection
 					{
-						edgesGraphics.lineTo(screenPoint.x, screenPoint.y);
+						edgesShape.graphics.lineTo(screenPoint.x, screenPoint.y);
 					}
 					else // double connection
 					{
@@ -362,26 +357,16 @@ package weave.visualization.plotters
 							angle -= Math.PI / 2; // i forget why...
 							xAnchor = xMid + anchorRadius * Math.cos(angle);
 							yAnchor = yMid + anchorRadius * Math.sin(angle);
-							edgesGraphics.curveTo(xAnchor, yAnchor, screenPoint.x, screenPoint.y);
+							edgesShape.graphics.curveTo(xAnchor, yAnchor, screenPoint.x, screenPoint.y);
 						}
 						else // otherwise draw halfway
 						{
-							edgesGraphics.lineTo(xMid, yMid);
+							edgesShape.graphics.lineTo(xMid, yMid);
 						}
 					}
-					++edgesCount;
 				} // end connections for loop
-				if (edgesCount > recordsPerDraw)
-				{
-					destination.draw(edgesShape, null, null, null, null, true);
-					edgesGraphics.clear();
-					edgesCount = 0;
-				}
-				nodesGraphics.endFill();
-			} // end key for loop
-			if (edgesCount != 0)
 				destination.draw(edgesShape, null, null, null, null, true);
-			destination.draw(tempShape, null, null, null, null, true);
+			} // end key for loop
 		}
 
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
@@ -426,7 +411,7 @@ package weave.visualization.plotters
 			if (!nodesColumn.internalObject || !edgeSourceColumn.internalObject || !edgeTargetColumn.internalObject)
 				return;
 			// set the keys
-			setKeySource(nodesColumn);
+			setSingleKeySource(nodesColumn);
 			
 			// if we don't have the required keys, do nothing
 			if ((nodesColumn).keys.length == 0 || 
@@ -452,7 +437,7 @@ package weave.visualization.plotters
 			
 			// if there isn't a specified color column or if the color column's keytype differs from node column, request default
 			if (fillStyle.color.keys.length == 0 || (fillStyle.color.keys[0] as IQualifiedKey).keyType != sourceKey.keyType)
-				fillStyle.color.internalDynamicColumn.requestGlobalObject(Weave.DEFAULT_COLOR_COLUMN, ColorColumn, false);
+				fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 		}
 
 		public function resetIterations(newMaxValue:int):void

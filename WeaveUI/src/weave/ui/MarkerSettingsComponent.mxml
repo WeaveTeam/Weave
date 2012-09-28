@@ -3,57 +3,48 @@
 				 xmlns:ui="weave.ui.*"
 				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				 layout="absolute"
-				 title="Edit Marker"
+				 title="{lang('Edit Marker')}"
 				 width="40%"
 				 height="40%"
 				
 				 >
 	
-	<mx:VBox id="singleImagePlotterControls" width="100%" paddingTop="3" horizontalAlign="left" label="Marker Settings">
+	<mx:VBox id="singleImagePlotterControls" width="100%" paddingTop="3" horizontalAlign="left" label="{lang('Marker Settings')}">
 		<mx:HBox>
-			<mx:Label width="100" fontWeight="bold" text="Image URL:"/>
+			<mx:Label width="100" fontWeight="bold" text="{lang('Image URL:')}"/>
 			<mx:TextInput id="imageURLText" borderStyle="solid" cornerRadius="5" width="200"/>
 			<ui:HelpComponent>Enter a URL to an image. If the URL empty it defaults to a red circle.</ui:HelpComponent>
 		</mx:HBox>
 		<mx:HBox>
-			<mx:Label width="100" fontWeight="bold" text="X Coordinate: "/>
+			<mx:Label width="100" fontWeight="bold" text="{lang('X Coordinate: ')}"/>
 			<mx:TextInput id="dataXText" borderStyle="solid" cornerRadius="5" width="100"/>
-			<mx:Label width="120" fontWeight="bold" text="Y Coordinate: "/>
+			<mx:Label width="120" fontWeight="bold" text="{lang('Y Coordinate: ')}"/>
 			<mx:TextInput id="dataYText" borderStyle="solid" cornerRadius="5"  width="100"/>
 		</mx:HBox>
 		
 		<mx:HBox>
-			<mx:Label width="100" fontWeight="bold" text="Vertical Align :" />
+			<mx:Label width="100" fontWeight="bold" text="{lang('Vertical Align :')}" />
 			<mx:ComboBox id="verticalAlignComboBox" width="100"/>
-			<mx:Label width="120" fontWeight="bold" text="Horizontal Align :" />
+			<mx:Label width="120" fontWeight="bold" text="{lang('Horizontal Align :')}" />
 			<mx:ComboBox id="horizonatalAlignComboBox" width="100"/>
 		</mx:HBox>
 		
 		<mx:HBox>
-			<mx:Label width="100" fontWeight="bold" text="Data Width:"/>
+			<mx:Label width="100" fontWeight="bold" text="{lang('Data Width:')}"/>
 			<mx:TextInput id="dataWidthText" borderStyle="solid" cornerRadius="5"  width="100"/>
-			<mx:Label width="120" fontWeight="bold" text="Data Height:"/>
+			<mx:Label width="120" fontWeight="bold" text="{lang('Data Height:')}"/>
 			<mx:TextInput id="dataHeightText" borderStyle="solid" cornerRadius="5"  width="100"/>
 			<ui:HelpComponent>Enter the width and height in data coordinates. The image will adjust to the width and height of the data coordinates.</ui:HelpComponent>
 		</mx:HBox>		
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			import mx.core.Application;
 			import mx.managers.PopUpManager;
 			
-			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.ILinkableContainer;
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
-			import weave.core.LinkableHashMap;
-			import weave.core.StageUtils;
-			import weave.primitives.Bounds2D;
-			import weave.primitives.ZoomBounds;
-			import weave.utils.EventUtils;
-			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.layers.PlotManager;
 			import weave.visualization.plotters.SingleImagePlotter;
 			import weave.visualization.tools.MapTool;
 			
@@ -91,30 +82,19 @@
 			
 			private static function handleAddMarker(e:ContextMenuEvent):void
 			{
-				if(panel)
+				if (panel)
 				{
-					var name:String = (panel as MapTool).visualization.layers.generateUniqueName("marker");
-					var plotLayer:SelectablePlotLayer = (panel as MapTool).visualization.layers.requestObject(name,SelectablePlotLayer,false);
-					var plotter:SingleImagePlotter = plotLayer.getDynamicPlotter().requestLocalObject(SingleImagePlotter,false);
-					
-					var tempScreenBounds:Bounds2D = new Bounds2D();
-					var tempDataBounds:Bounds2D = new Bounds2D();
-					
-					(panel as MapTool).visualization.zoomBounds.getScreenBounds(tempScreenBounds);
-					(panel as MapTool).visualization.zoomBounds.getDataBounds(tempDataBounds);
+					var pm:PlotManager = (panel as MapTool).visualization.plotManager;
+					var name:String = pm.plotters.generateUniqueName("marker");
+					var plotter:SingleImagePlotter = pm.plotters.requestObject(name, SingleImagePlotter, false);
 					
 					var localAnchorPoint:Point = (panel as MapTool).visualization.globalToLocal(anchorPoint);
-					
-					tempScreenBounds.projectPointTo(localAnchorPoint,tempDataBounds);
+					pm.zoomBounds.projectScreenToData(localAnchorPoint);
 					
 					plotter.dataX.value = localAnchorPoint.x;
 					plotter.dataY.value = localAnchorPoint.y;
-					
-					
 				}
 			}
-			
-			
 			
 			private static var panel:DraggablePanel = null;
 			private static var anchorPoint:Point = new Point();
@@ -141,7 +121,7 @@
 			
 			public static function openInstance(plotter:SingleImagePlotter,markerName:String):void
 			{
-				var settingsPanel:MarkerSettingsComponent = PopUpManager.createPopUp(Application.application as Application,MarkerSettingsComponent) as MarkerSettingsComponent;
+				var settingsPanel:MarkerSettingsComponent = PopUpManager.createPopUp(WeaveAPI.topLevelApplication as DisplayObject,MarkerSettingsComponent) as MarkerSettingsComponent;
 				PopUpManager.bringToFront(settingsPanel);
 				
 				settingsPanel.plotter = plotter;
@@ -149,7 +129,7 @@
 				
 				var owner:ILinkableObject = WeaveAPI.SessionManager.getLinkableOwner(plotter);
 			
-				settingsPanel.title = "Edit " + markerName;
+				settingsPanel.title = lang("Edit {0}", markerName);
 				
 				linkBindableProperty(settingsPanel.plotter.imageURL, settingsPanel.imageURLText, "text", 1000);
 				

@@ -31,15 +31,15 @@
 				   backgroundAlpha="1" backgroundColor="#CCCCCC">
 			<mx:TabNavigator id="nav" width="100%" height="100%" change="onTabChange(event)"
 							 backgroundAlpha="0" backgroundColor="#DDDDDD">
-				<mx:VBox width="100%" height="100%" label="Connection"
+				<mx:VBox width="100%" height="100%" label="{lang('Connection')}"
 						 paddingBottom="{padding}" paddingLeft="{padding}"
 						 paddingRight="{padding}" paddingTop="{padding}">
 					<mx:HBox width="100%">
-						<mx:Label text="Username:" width="{labelWidth}" />
+						<mx:Label text="{lang('Username:')}" width="{labelWidth}" />
 						<mx:TextInput id="nickname" width="{textAreaWidth}" change="trimInput(event);"/>	
 					</mx:HBox>
 					<mx:HBox width="100%">
-						<mx:Label text="User Color:" width="{labelWidth}" />
+						<mx:Label text="{lang('User Color:')}" width="{labelWidth}" />
 						<mx:ColorPicker id="picker" selectedColor="{generateRandomColor()}" />
 					</mx:HBox>
 					<mx:Spacer height="10" />
@@ -48,14 +48,14 @@
 					</ui:Center>
 					<mx:Spacer height="100%" />
 					<ui:Center>
-						<mx:Button id="saveConnectionButton" label="Save" click="saveSettings(event)" />
+						<mx:Button id="saveConnectionButton" label="{lang('Save')}" click="saveSettings(event)" />
 					</ui:Center>
 				</mx:VBox>
-				<mx:VBox width="100%" height="100%" label="Add-ons" enabled="false"
+				<mx:VBox width="100%" height="100%" label="{lang('Add-ons')}" enabled="false"
 						 paddingBottom="{padding}" paddingLeft="{padding}"
 						 paddingRight="{padding}" paddingTop="{padding}">
 					<mx:HBox width="100%">
-						<mx:Label text="Microphone:" width="{labelWidth}" />
+						<mx:Label text="{lang('Microphone:')}" width="{labelWidth}" />
 						<mx:ComboBox id="micList" width="{textAreaWidth}" change="startMicActivityMonitor()" />
 					</mx:HBox>
 					<mx:HBox width="100%">
@@ -66,7 +66,7 @@
 						</mx:Canvas>
 					</mx:HBox>
 					<mx:HBox width="100%">
-						<mx:Label text="Camera:" width="{labelWidth}" />
+						<mx:Label text="{lang('Camera:')}" width="{labelWidth}" />
 						<mx:ComboBox id="camList" width="{textAreaWidth}" change="startCamActivityMonitor()" />
 					</mx:HBox>
 					<mx:HBox width="100%">
@@ -78,7 +78,7 @@
 					</mx:HBox>
 					<mx:Spacer height="100%" />
 					<ui:Center>
-						<mx:Button id="saveAddonsButton" label="Save" click="saveAddons(event)" />
+						<mx:Button id="saveAddonsButton" label="{lang('Save')}" click="saveAddons(event)" />
 					</ui:Center>
 				</mx:VBox>
 			</mx:TabNavigator>
@@ -120,15 +120,15 @@
 			{
 				if( nickname.text == "" )
 				{
-					Alert.show("Please enter a username.","Error");
+					Alert.show(lang("Please enter a username."),lang("Error"));
 					return;
 				}
 				if( Weave.properties.collabServerIP.value == "" || 
 					Weave.properties.collabServerName.value == "" || 
-					Weave.properties.collabServerRoomToJoin.value == "" || 
+					Weave.properties.collabServerRoom.value == "" || 
 					Weave.properties.collabServerPort.value ==  "" )
 				{
-					Alert.show("There is an error with the server properties.", "Error");
+					Alert.show(lang("There is an error with the server properties."), lang("Error"));
 				}
 				collab_NICKNAME 	= nickname.text;
 				collab_COLOR 		= picker.selectedColor;
@@ -136,7 +136,7 @@
 				dispatchEvent(new Event(CollaborationEvent.CONN_SETTINGS_SAVED));
 				
 				// Slow down the fadeout to read
-				saveConnectionButton.label = "Settings Saved";
+				saveConnectionButton.label = lang("Settings Saved");
 				fadeOut.duration = 1500;
 				hide();
 			}
@@ -152,8 +152,8 @@
 			public function show():void
 			{
 				this.visible = true;
-				saveConnectionButton.label = "Save";
-				saveAddonsButton.label = "Save";
+				saveConnectionButton.label = lang("Save");
+				saveAddonsButton.label = lang("Save");
 				fadeOut.duration = 500;
 				
 				if( nav.selectedIndex == 1 ) {

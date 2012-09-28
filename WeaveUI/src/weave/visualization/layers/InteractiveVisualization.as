@@ -1,20 +1,20 @@
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.visualization.layers
@@ -22,6 +22,7 @@ package weave.visualization.layers
 	import com.cartogrammar.drawing.DashedLine;
 	
 	import flash.display.Graphics;
+	import flash.display.InteractiveObject;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
@@ -30,22 +31,23 @@ package weave.visualization.layers
 	import flash.ui.ContextMenu;
 	import flash.ui.Keyboard;
 	
-	import mx.containers.Canvas;
-	import mx.core.Application;
+	import spark.components.Group;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newLinkableChild;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.ui.IPlotLayer;
+	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.SimpleGeometry;
 	import weave.utils.CustomCursorManager;
 	import weave.utils.ProbeTextUtils;
-	import weave.utils.SpatialIndex;
 	import weave.utils.ZoomUtils;
 	
 	/**
@@ -53,18 +55,11 @@ package weave.visualization.layers
 	 * 
 	 * @author adufilie
 	 */
-	public class InteractiveVisualization extends PlotLayerContainer
+	public class InteractiveVisualization extends Visualization
 	{
 		public function InteractiveVisualization()
 		{
 			doubleClickEnabled = true;
-			
-			enableZoomAndPan.value = true;
-			enableSelection.value = true;
-			enableProbe.value = true;
-			enableAutoZoomToExtent.value = true;
-			// adding a canvas as child gets the selection rectangle on top of the vis
-			addChild(selectionRectangleCanvas);
 			
 			addContextMenuEventListener();
 			
@@ -79,36 +74,45 @@ package weave.visualization.layers
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_UP, this, handleKeyboardEvent);
 			WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, this, _handlePointClick);
 			
-			//			addEventListener(KeyboardEvent.KEY_DOWN, handleKeyboardEvent);
-			//			addEventListener(KeyboardEvent.KEY_UP, handleKeyboardEvent);
-			
 			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, true);
+			
+		}
+		
+		override protected function createChildren():void
+		{
+			super.createChildren();
+			
+			addElement(selectionCanvas);
 		}
 		
 		private function addContextMenuEventListener():void
 		{
-			var contextMenu:ContextMenu = (Application.application as Application).contextMenu;
+			var contextMenu:ContextMenu = (WeaveAPI.topLevelApplication as InteractiveObject).contextMenu;
 			if (!contextMenu)
 				return callLater(addContextMenuEventListener);
 			contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, removeCursor);
 		}
 		private function removeCursor(e:Event):void
 		{
-			CustomCursorManager.removeCurrentCursor();
+			CustomCursorManager.hack_removeCurrentCursor();
 		}
 		
-		public const enableZoomAndPan:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		public const enableSelection:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		public const enableProbe:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+		public const enableZoomAndPan:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const enableSelection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const enableProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const zoomFactor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2, verifyZoomFactor));
 		
+		private function verifyZoomFactor(value:Number):Boolean
+		{
+			return value >= 1;
+		}
 		
 		private var activeKeyType:String = null;
 		private var mouseDragActive:Boolean = false;
-		private const selectionRectangleCanvas:Canvas = new Canvas();
+		private const selectionCanvas:Group = new Group();
 		
 		private const mouseDragStageCoords:IBounds2D = new Bounds2D();
 		
-
 		private var _mouseMode:String = null;
 		
 		private function isModeSelection(mode:String):Boolean
@@ -130,9 +134,9 @@ package weave.visualization.layers
 		private function updateMouseMode(mouseEventType:String = null):void
 		{
 			if (mouseEventType)
-				_mouseMode = Weave.properties.toolInteractions.determineMouseAction(mouseEventType);
+				_mouseMode = Weave.properties.toolInteractions.determineInteraction(mouseEventType);
 			else
-				_mouseMode = Weave.properties.toolInteractions.determineMouseMode();
+				_mouseMode = Weave.properties.toolInteractions.determineInteractionMode();
 			
 			if (!enableZoomAndPan.value && (isModeZoom(_mouseMode) || _mouseMode == InteractionController.PAN))
 			{
@@ -155,25 +159,25 @@ package weave.visualization.layers
 				if (_mouseMode == InteractionController.PAN)
 				{
 					if (WeaveAPI.StageUtils.mouseButtonDown)
-						CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
+						CustomCursorManager.showCursor(CURSOR_HAND_GRAB);
 					else
-						CustomCursorManager.showCursor(CustomCursorManager.HAND_CURSOR);
+						CustomCursorManager.showCursor(CURSOR_HAND);
 				}
 				else if (_mouseMode == InteractionController.SELECT_ADD)
 				{
-					CustomCursorManager.showCursor(CustomCursorManager.SELECT_ADD_CURSOR, 2, _selectModeCursorOffsetX, _selectModeCursorOffsetY);
+					CustomCursorManager.showCursor(CURSOR_SELECT_ADD);
 				}
 				else if (_mouseMode == InteractionController.SELECT || _mouseMode == InteractionController.PROBE)
 				{
-					CustomCursorManager.showCursor(CustomCursorManager.SELECT_REPLACE_CURSOR, 2, _selectModeCursorOffsetX, _selectModeCursorOffsetY);
+					CustomCursorManager.showCursor(CURSOR_SELECT_REPLACE);
 				}	
 				else if (_mouseMode == InteractionController.SELECT_REMOVE)
 				{
-					CustomCursorManager.showCursor(CustomCursorManager.SELECT_SUBTRACT_CURSOR, 2, _selectModeCursorOffsetX, _selectModeCursorOffsetY);
+					CustomCursorManager.showCursor(CURSOR_SELECT_SUBTRACT);
 				}
 				else if (_mouseMode == InteractionController.ZOOM)
 				{
-					CustomCursorManager.showCursor(CustomCursorManager.ZOOM_CURSOR);
+					CustomCursorManager.showCursor(CURSOR_ZOOM);
 				}
 			}
 		}
@@ -205,7 +209,6 @@ package weave.visualization.layers
 		// this function can be defined with override by extending classes and call super.handleMouseClick(event);
 		protected function handleMouseClick(event:MouseEvent):void
 		{
-			clearSelection();
 			handleMouseEvent(event);
 		}
 		
@@ -219,12 +222,17 @@ package weave.visualization.layers
 		{			
 			updateMouseMode(InteractionController.DRAG); // modifier keys may have changed just prior to pressing mouse button, so update mode now
 			
+			//for detecting change between drag start and drag end
+			// TEMPORARY HACK - Weave.defaultSelectionKeySet
+			detectLinkableObjectChange( handleMouseDown, Weave.defaultSelectionKeySet );
+			
 			mouseDragActive = true;
 			// clear probe when drag starts
 			clearProbe();
 			// start the selection rectangle from the mouse down point
 			// for accuracy, use the stage coordinates from the event, not the current coordinates from the stage
-			mouseDragStageCoords.setCenteredRectangle(event.stageX, event.stageY, 0, 0);
+			mouseDragStageCoords.setRectangle(event.stageX, event.stageY, 0, 0);
+			updateSelectionCoords(true);
 			
 			handleMouseEvent(event);
 		}
@@ -243,7 +251,7 @@ package weave.visualization.layers
 		{
 			if (mouseIsRolledOver)
 			{
-				CustomCursorManager.removeAllCursors();
+				CustomCursorManager.hack_removeAllCursors();
 				mouseIsRolledOver = false;
 				
 				// when rolled over goes from true to false, clear the probe
@@ -322,6 +330,8 @@ package weave.visualization.layers
 					// IMPORTANT: for speed, use the current mouse coordinates instead of the event coordinates
 					mouseDragStageCoords.setMaxCoords(stage.mouseX, stage.mouseY);
 				}
+				if (isModeSelection(_mouseMode))
+					updateSelectionCoords();
 			}
 			else // not dragging -- ok to update mouse mode
 			{
@@ -339,7 +349,7 @@ package weave.visualization.layers
 				}
 				case InteractionController.SELECT:
 				{
-					if (mouseDragActive)
+				   	if (mouseDragActive)
 						handleSelection(event, _mouseMode);
 					break;
 				}
@@ -349,15 +359,21 @@ package weave.visualization.layers
 						handleSelection(event, _mouseMode);
 					break;
 				}
+				case InteractionController.SELECT_ALL:
+				{
+					if (mouseIsRolledOver)
+						selectAllVisibleRecords();
+					break;
+				}
 				case InteractionController.PAN:
 				{
 					if (enableZoomAndPan.value && mouseDragActive)
 					{
 						// pan the dragged distance
-						projectDragBoundsToDataQueryBounds(null, false);
-						zoomBounds.getDataBounds(tempDataBounds);
+						projectDragBoundsToDataQueryBounds(false);
+						plotManager.zoomBounds.getDataBounds(tempDataBounds);
 						tempDataBounds.setCenter(tempDataBounds.getXCenter() - queryBounds.getWidth(), tempDataBounds.getYCenter() - queryBounds.getHeight());
-						zoomBounds.setDataBounds(tempDataBounds);
+						plotManager.zoomBounds.setDataBounds(tempDataBounds);
 						// set begin point for next pan
 						mouseDragStageCoords.getMaxPoint(tempPoint);
 						mouseDragStageCoords.setMinPoint(tempPoint);
@@ -370,20 +386,20 @@ package weave.visualization.layers
 					{
 						if (eventType == InteractionController.WHEEL)
 						{
-							zoomBounds.getDataBounds(_tempBounds);
-							zoomBounds.getScreenBounds(_screenBounds);
+							plotManager.zoomBounds.getDataBounds(_tempBounds);
+							plotManager.zoomBounds.getScreenBounds(_screenBounds);
 							if (event.delta > 0)
-								ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,2,false);
+								ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,zoomFactor.value,false);
 							else if (event.delta < 0)
-								ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,0.5,false);
-							zoomBounds.setDataBounds(_tempBounds);
+								ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,1/zoomFactor.value,false);
+							plotManager.zoomBounds.setDataBounds(_tempBounds);
 						}
 						else if (dragReleased)
 						{
 							// zoom to selected data bounds if area > 0
-							projectDragBoundsToDataQueryBounds(null, true); // data bounds in same direction when zooming
+							projectDragBoundsToDataQueryBounds(true); // data bounds in same direction when zooming
 							if (queryBounds.getArea() > 0)
-								zoomBounds.setDataBounds(queryBounds);
+								plotManager.zoomBounds.setDataBounds(queryBounds);
 						}
 					}
 					break;
@@ -401,7 +417,7 @@ package weave.visualization.layers
 				case InteractionController.ZOOM_TO_EXTENT:
 				{
 					if (enableZoomAndPan.value)
-						zoomBounds.setDataBounds(fullDataBounds, true); // zoom to full extent
+						plotManager.zoomBounds.setDataBounds(plotManager.fullDataBounds, true); // zoom to full extent
 					break;
 				}
 				case InteractionController.ZOOM_IN:
@@ -411,17 +427,17 @@ package weave.visualization.layers
 					{
 						var multiplier:Number = 1;
 						if (_mouseMode == InteractionController.ZOOM_IN)
-							multiplier = 0.5; // zoom in 2x
+							multiplier = 1 / zoomFactor.value;
 						else
-							multiplier = 2; // zoom out 2x
+							multiplier = zoomFactor.value;
 						
-						projectDragBoundsToDataQueryBounds(null, false);
-						zoomBounds.getDataBounds(_tempBounds);
+						projectDragBoundsToDataQueryBounds(false);
+						plotManager.zoomBounds.getDataBounds(_tempBounds);
 						_tempBounds.setCenter(queryBounds.getXCenter(), queryBounds.getYCenter());
 						
 						_tempBounds.centeredResize(_tempBounds.getWidth() * multiplier, _tempBounds.getHeight() * multiplier);
 						
-						zoomBounds.setDataBounds(_tempBounds);
+						plotManager.zoomBounds.setDataBounds(_tempBounds);
 					}
 					break;
 				}
@@ -433,25 +449,13 @@ package weave.visualization.layers
 				mouseDragActive = false;
 			}
 			
-//			if (_mouseMode == InteractionController.DCLICK
-//				&& mouseIsRolledOver
-//				&& !(	enableZoomAndPan.value
-//						&& _mouseMode != InteractionController.SELECT_ADD
-//						&& _mouseMode != InteractionController.SELECT_REMOVE	))
-//			{
-//				selectAllVisibleRecords();
-//			}
-			
 			updateSelectionRectangleGraphics();
 		}
 		
-		//TODO - use this
 		private function selectAllVisibleRecords():void
 		{
-			// clear selection or select all
-			
 			// set up mouse drag rectangle to select or deselect visible area
-			zoomBounds.getScreenBounds(_screenBounds);
+			plotManager.zoomBounds.getScreenBounds(_screenBounds);
 			_screenBounds.getMinPoint(tempPoint);
 			mouseDragStageCoords.setMinPoint(localToGlobal(tempPoint));
 			_screenBounds.getMaxPoint(tempPoint);
@@ -460,29 +464,51 @@ package weave.visualization.layers
 			immediateHandleSelection();
 		}
 		
-		private var _selectionRectangleGraphicsCleared:Boolean = true;
+		private var _selectionGraphicsCleared:Boolean = true;
+		private const _selectionGeometry:SimpleGeometry = new SimpleGeometry();
+		private var _lassoScreenPoints:Array = [];
+		private var _lastLassoPoint:Point = null;
+		
+		protected function updateSelectionCoords(reset:Boolean = false):void
+		{
+			if (!isModeSelection(_mouseMode))
+				return;
+			
+			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
+			var localMaxPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+			
+			if (reset || _lassoScreenPoints.length == 0)
+			{
+				mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
+				var localMinPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+				
+				_lassoScreenPoints = [localMinPoint, localMaxPoint];
+				_lastLassoPoint = localMaxPoint;
+			}
+			else if (Math.abs(localMaxPoint.x - _lastLassoPoint.x) >= 5 || Math.abs(localMaxPoint.y - _lastLassoPoint.y) >= 5 )
+			{
+				// if the new point is far enough away from the previous point, add it to the coords
+				_lassoScreenPoints.push(localMaxPoint);
+				_lastLassoPoint = localMaxPoint;
+			}
+		}
+		
 		protected function updateSelectionRectangleGraphics():void 
 		{
-			if (!Weave.properties.enableToolSelection.value || !enableSelection.value) return;
-			var g:Graphics = selectionRectangleCanvas.graphics;
-			if (!_selectionRectangleGraphicsCleared)
-				g.clear(); 
+			if (!Weave.properties.enableToolSelection.value || !enableSelection.value)
+				return;
+			
+			var g:Graphics = selectionCanvas.graphics;
+			if (!_selectionGraphicsCleared)
+				g.clear();
 			
 			if (!mouseDragActive || _mouseMode == InteractionController.PAN)
 			{
-				_selectionRectangleGraphicsCleared = true;
+				_selectionGraphicsCleared = true;
 				return;
 			}
 			
-			_selectionRectangleGraphicsCleared = false; 
-			
-			mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
-			var localMinPoint:Point = selectionRectangleCanvas.globalToLocal(tempPoint); // local screen coords
-			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
-			var localMaxPoint:Point = selectionRectangleCanvas.globalToLocal(tempPoint); // local screen coords
-			
-			tempScreenBounds.setMinPoint(localMinPoint);
-			tempScreenBounds.setMaxPoint(localMaxPoint);
+			_selectionGraphicsCleared = false; 
 			
 			// use a blue rectangle for zoom mode, green for selection
 			_dashedLine.graphics = g; 
@@ -495,31 +521,99 @@ package weave.visualization.layers
 				_dashedLine.lineStyle(2, 0x00ff00, .75);
 			}
 			
+			mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
+			var localMinPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
+			var localMaxPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
 			
-			var startCorner:int;
-			// if height < 0, then the box is dragged upward
-			// if width < 0, then the box is dragged leftward
-			if (tempScreenBounds.getHeight() < 0)
+			var dragX:Number = localMinPoint.x;
+			var dragY:Number = localMinPoint.y;
+			var dragWidth:Number = localMaxPoint.x - localMinPoint.x;
+			var dragHeight:Number = localMaxPoint.y - localMinPoint.y;
+			
+			// init temp bounds for reprojecting coordinates
+			plotManager.zoomBounds.getDataBounds(tempDataBounds);
+			plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
+			
+			if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
 			{
-				if (tempScreenBounds.getWidth() < 0)
-					startCorner = DashedLine.BOTTOM_RIGHT;
-				else
-					startCorner = DashedLine.BOTTOM_LEFT;
+				_dashedLine.drawRect(dragX, dragY, dragWidth, dragHeight);
 			}
-			else 
+			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
 			{
-				if (tempScreenBounds.getWidth() < 0)
-					startCorner = DashedLine.TOP_RIGHT;
-				else
-					startCorner = DashedLine.TOP_LEFT;
+				var coords:Array = getCircleLocalScreenCoords();
+				for (var i:int = 0; i <= coords.length; i++)
+				{
+					var point:Point = coords[i % coords.length];
+					if (i == 0)
+						_dashedLine.moveTo(point.x, point.y);
+					else
+						_dashedLine.lineTo(point.x, point.y);
+				}
 			}
+			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_LASSO)
+			{
+				fillPolygon(g, _dashedLine.lineColor, 0.05, _lassoScreenPoints);
+				
+				for (var k:int = 0; k <= _lassoScreenPoints.length; k++)
+				{
+					var kp:Point = _lassoScreenPoints[k % _lassoScreenPoints.length];
+					if (k == 0)
+						_dashedLine.moveTo(kp.x, kp.y);
+					else
+						_dashedLine.lineTo(kp.x, kp.y);
+				}
+			}
+		}
+		
+		private function getCircleLocalScreenCoords():Array
+		{
+			mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
+			var localMinPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
+			var localMaxPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
 			
-			var xStart:Number = tempScreenBounds.getXMin();
-			var yStart:Number = tempScreenBounds.getYMin();
-			var width:Number = tempScreenBounds.getXCoverage();
-			var height:Number = tempScreenBounds.getYCoverage();
+			var dragWidth:Number = localMaxPoint.x - localMinPoint.x;
+			var dragHeight:Number = localMaxPoint.y - localMinPoint.y;
+
+			var direction:Number = -mouseDragStageCoords.getXDirection() || 1;
+			var thetaOffset:Number = Math.atan2(dragHeight, dragWidth);
+			var radius:Number = Math.sqrt(dragWidth*dragWidth + dragHeight*dragHeight);
 			
-			_dashedLine.drawRect(xStart, yStart, width, height, startCorner); // this draws onto the _selectionRectangleCanvas.graphics
+			const segmentLength:Number = 8; // pixels
+			var segmentSpan:Number = segmentLength / radius; // radians
+			segmentSpan = Math.min(Math.PI / 4, segmentSpan); // maximum 45 degrees per segment
+			// draw the segments
+			var segmentCount:Number = Math.ceil(Math.PI * 2 / segmentSpan);
+			segmentCount = Math.min(64, segmentCount);
+			
+			var result:Array = [];
+			for (var i:int = 0; i < segmentCount + 1; i++)
+			{
+				var theta:Number = direction * i * 2 * Math.PI / segmentCount + thetaOffset;
+				var _x:Number = localMinPoint.x + radius * Math.cos(theta); // center a + radius x * cos(theta)
+				var _y:Number = localMinPoint.y + radius * Math.sin(theta); // center b + radius y * sin(theta)
+				result.push(new Point(_x, _y));
+			}
+			return result;
+		}
+		
+		private function fillPolygon(graphics:Graphics, color:uint, alpha:Number, points:Array):void
+		{
+			graphics.lineStyle(0,0,0);
+			var n:int = points.length;
+			for (var i:int = 0; i <= n; i++)
+			{
+				var point:Point = points[i % n];
+				if (i == 0)
+				{
+					graphics.moveTo(point.x, point.y);
+					graphics.beginFill(color, alpha);
+				}
+				else
+					graphics.lineTo(point.x, point.y);
+			}
+			graphics.endFill();
 		}
 		
 		private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
@@ -528,12 +622,8 @@ package weave.visualization.layers
 			_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
 		}
 		
-		private function handleSelection(event:MouseEvent,mode:String):void
+		private function handleSelection(event:MouseEvent, mode:String):void
 		{
-			var _layers:Array;
-			var i:int;
-			var layer:SelectablePlotLayer;
-			
 			// update end coordinates of selection rectangle
 			if (event.type == MouseEvent.MOUSE_UP)
 			{
@@ -542,7 +632,8 @@ package weave.visualization.layers
 			}
 			else
 			{
-				// IMPORTANT: for speed, use the current mouse coordinates instead of the event coordinates
+				// IMPORTANT: for interaction speed, use the current mouse coordinates instead of the event coordinates.
+				// otherwise, queued mouse events will be handled individually and it will feel sluggish
 				mouseDragStageCoords.setMaxCoords(stage.mouseX, stage.mouseY);
 			}
 			
@@ -550,47 +641,23 @@ package weave.visualization.layers
 			{
 				// only if selection is enabled
 				if (enableSelection.value)
-				{
-					// handle selection
-					if (mode == InteractionController.SELECT && mouseDragStageCoords.getWidth() == 0 && mouseDragStageCoords.getHeight() == 0)
-					{
-						// clear selection when drag area is empty
-						clearSelection();
-					}
-					else
-					{
-						delayedHandleSelection();
-					}
-				}
+					delayedHandleSelection();
 			}
 		}
-		
 		private function clearSelection():void
 		{
-			var _layers:Array = layers.getObjects(SelectablePlotLayer);
-			for (var i:int = 0; i < _layers.length; i++)
-			{
-				setSelectionKeys(_layers[i], []);
-			}
+			for each (var name:String in plotManager.plotters.getNames())
+				setSelectionKeys(name, []);
 		}
 		
 		/**
 		 * This function projects drag start,stop screen coordinates into data coordinates and stores the result in queryBounds.
-		 * @param layer If layer is null, InteractiveVisualization's screen/data bounds will be used.  Otherwise, uses IPlotLayer's bounds.
 		 * @param zooming Specify true when computing zoom coordinates.
 		 */		
-		protected function projectDragBoundsToDataQueryBounds(layer:IPlotLayer, zooming:Boolean):void
+		protected function projectDragBoundsToDataQueryBounds(zooming:Boolean):void
 		{
-			if (layer)
-			{
-				layer.getDataBounds(tempDataBounds);
-				layer.getScreenBounds(tempScreenBounds);
-			}
-			else
-			{
-				zoomBounds.getDataBounds(tempDataBounds);
-				zoomBounds.getScreenBounds(tempScreenBounds);
-			}
+			plotManager.zoomBounds.getDataBounds(tempDataBounds);
+			plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
 			
 			// project stage coords to local layer coords
 			mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
@@ -647,26 +714,26 @@ package weave.visualization.layers
 			if (!enableSelection.value)
 				return;
 			
-			var _layers:Array = layers.getObjects(SelectablePlotLayer); // bottom to top
+			plotManager.zoomBounds.getDataBounds(tempDataBounds);
+			plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
+
 			// loop from bottom layer to top layer
-			for (var index:int = 0; index < _layers.length; index++)
+			for each (var name:String in plotManager.plotters.getNames())
 			{
-				var layer:SelectablePlotLayer = _layers[index] as SelectablePlotLayer;
+				var plotter:IPlotter = plotManager.plotters.getObject(name) as IPlotter;
+				var settings:LayerSettings = plotManager.getLayerSettings(name);
 				// skip this layer if it is disabled
-				if (!layer.shouldBeRendered() || !layer.layerIsSelectable.value)
+				if (!plotManager.layerShouldBeRendered(name) || !settings.selectable.value)
 					continue;
 				// skip this layer if it does not contain lastProbedQKey
-				if (_lastProbedQKey && !layer.plotter.keySet.containsKey(_lastProbedQKey))
+				if (_lastProbedQKey && !plotter.keySet.containsKey(_lastProbedQKey))
 					continue;
 				
 				// when using the selection layer, clear the probe
-				setProbeKeys(layer, []);
-				projectDragBoundsToDataQueryBounds(layer, false);
-				
+				setProbeKeys(name, []);
+				projectDragBoundsToDataQueryBounds(false);
 				
 				// calculate minImportance
-				layer.getDataBounds(tempDataBounds);
-				layer.getScreenBounds(tempScreenBounds);
 				var minImportance:Number = tempDataBounds.getArea() / tempScreenBounds.getArea();
 				
 				// don't query outside visible data bounds
@@ -674,11 +741,51 @@ package weave.visualization.layers
 					continue;
 				tempDataBounds.constrainBounds(queryBounds, false);
 				
-				var keys:Array = (layer.spatialIndex as SpatialIndex).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
-				setSelectionKeys(layer, keys, true);
+				var keys:Array = [];
+				if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
+				{
+					keys = plotManager.hack_getSpatialIndex(name).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
+				}
+				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
+				{
+					// reproject circle screen coords to data coords
+					var coords:Array = getCircleLocalScreenCoords();
+					for each (var point:Point in coords)
+						tempScreenBounds.projectPointTo(point, tempDataBounds);
+					_selectionGeometry.setVertices(coords);
+					
+					keys = plotManager.hack_getSpatialIndex(name).getKeysGeometryOverlapGeometry(_selectionGeometry, minImportance, false);
+				}
+				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_LASSO)
+				{
+					// reproject lasso screen coords to data coords
+					var lassoDataPoints:Array = [];
+					for each (var screenPoint:Point in _lassoScreenPoints)
+					{
+						var tempDataPoint:Point = screenPoint.clone();
+						tempScreenBounds.projectPointTo(tempDataPoint, tempDataBounds);
+						lassoDataPoints.push(tempDataPoint);
+					}
+					_selectionGeometry.setVertices(lassoDataPoints);
+					
+					keys = plotManager.hack_getSpatialIndex(name).getKeysGeometryOverlapGeometry(_selectionGeometry, minImportance, false);
+				}
+				
+				
+				setSelectionKeys(name, keys, true);
 				
 				break; // select only one layer at a time
 			}
+			
+			
+			// if mouse is released and selection hasn't changed since mouse down, clear selection
+			if (_mouseMode == InteractionController.SELECT &&
+				!WeaveAPI.StageUtils.mouseButtonDown &&
+				!detectLinkableObjectChange(handleMouseDown, /*HACK*/Weave.defaultSelectionKeySet/*HACK*/))
+			{
+				clearSelection();
+			}
+
 		}
 		
 		/**
@@ -702,33 +809,25 @@ package weave.visualization.layers
 			}
 			else if (mouseIsRolledOver)
 			{
+				plotManager.zoomBounds.getDataBounds(tempDataBounds);
+				plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
+				
 				// handle probe when mouse hasn't moved since last frame.
-				var _layers:Array = layers.getObjects(SelectablePlotLayer).reverse(); // top to bottom
-				var lastActiveLayer:SelectablePlotLayer = null;
-				for (var i:int = 0; i < _layers.length; i++)
+				var names:Array = plotManager.plotters.getNames().reverse(); // top to bottom
+				var lastActiveLayer:String = null;
+				for each (var name:String in names)
 				{
-					var layer:SelectablePlotLayer = _layers[i];
-					if (!layer.shouldBeRendered() || !layer.layerIsSelectable.value)
+					var settings:LayerSettings = plotManager.getLayerSettings(name);
+					if (!plotManager.layerShouldBeRendered(name) || !settings.selectable.value)
 						continue;
 					
-					lastActiveLayer = layer;
-					
-					layer.getDataBounds(tempDataBounds);
-					layer.getScreenBounds(tempScreenBounds);
-					//trace(layers.getName(layer),tempDataBounds,tempScreenBounds);
+					lastActiveLayer = name;
 					
 					// get data coords from screen coords
-					var buffer:Number = 10; 
+					var bufferSize:Number = 16; 
 					
-					tempPoint.x = mouseX - buffer;
-					tempPoint.y = mouseY - buffer;
-					tempScreenBounds.projectPointTo(tempPoint, tempDataBounds);
-					queryBounds.setMinPoint(tempPoint);
-					
-					tempPoint.x = mouseX + buffer;
-					tempPoint.y = mouseY + buffer;
-					tempScreenBounds.projectPointTo(tempPoint, tempDataBounds);
-					queryBounds.setMaxPoint(tempPoint);
+					queryBounds.setCenteredRectangle(mouseX, mouseY, bufferSize, bufferSize);
+					tempScreenBounds.projectCoordsTo(queryBounds, tempDataBounds);
 					
 					var xPrecision:Number = tempDataBounds.getXCoverage() / tempScreenBounds.getXCoverage();
 					var yPrecision:Number = tempDataBounds.getYCoverage() / tempScreenBounds.getYCoverage();
@@ -740,13 +839,13 @@ package weave.visualization.layers
 					if (!tempDataBounds.overlaps(queryBounds))
 						continue;
 					tempDataBounds.constrainBounds(queryBounds, false);
-					var keys:Array = (layer.spatialIndex as SpatialIndex).getClosestOverlappingKeys(queryBounds, xPrecision, yPrecision, tempDataBounds);
+					var keys:Array = plotManager.hack_getSpatialIndex(name).getClosestOverlappingKeys(queryBounds, xPrecision, yPrecision, tempDataBounds);
 					//trace(layers.getName(layer),keys);
 					
 					// stop when we find keys
 					if (keys.length > 0)
 					{
-						setProbeKeys(layer, keys);
+						setProbeKeys(name, keys);
 						_lastProbedQKey = keys[0] as IQualifiedKey;
 						
 						return;
@@ -761,15 +860,16 @@ package weave.visualization.layers
 			_lastProbedQKey = null;
 		}
 		
-		protected function setSelectionKeys(layer:SelectablePlotLayer, keys:Array, useMouseMode:Boolean = false):void
-		{
+		protected function setSelectionKeys(layerName:String, keys:Array, useMouseMode:Boolean = false):void
+		{	
 			if (!Weave.properties.enableToolSelection.value || !enableSelection.value)
 				return;
 			
 			// set the probe filter to a new set of keys
-			var keySet:KeySet = layer.selectionFilter.internalObject as KeySet;
+			var settings:LayerSettings = plotManager.getLayerSettings(layerName);
+			var keySet:KeySet = settings.selectionFilter.internalObject as KeySet;
 			if (keySet != null)
-			{
+			{	
 				if (useMouseMode && _mouseMode == InteractionController.SELECT_ADD)
 					keySet.addKeys(keys);
 				else if (useMouseMode && _mouseMode == InteractionController.SELECT_REMOVE)
@@ -779,11 +879,12 @@ package weave.visualization.layers
 			}
 		}
 		
-		protected function setProbeKeys(layer:SelectablePlotLayer, keys:Array):void
+		protected function setProbeKeys(layerName:String, keys:Array):void
 		{
 			//trace("setProbeKeys()",keys);
 			// set the probe filter to a new set of keys
-			var keySet:KeySet = layer.probeFilter.internalObject as KeySet;
+			var settings:LayerSettings = plotManager.getLayerSettings(layerName);
+			var keySet:KeySet = settings.probeFilter.internalObject as KeySet;
 			
 			if (keySet != null)
 			{
@@ -800,7 +901,7 @@ package weave.visualization.layers
 				}
 			}
 		}
-		
+
 		/**
 		 * An array of additional columns to be displayed in the probe tooltip for this visualization instance 
 		 */		
@@ -812,28 +913,83 @@ package weave.visualization.layers
 			if (!enableSelection.value)
 				return;
 			
-			var spls:Array = layers.getObjects(SelectablePlotLayer);
-			for (var i:int = 0; i < spls.length; i++)
-				setProbeKeys(spls[i], emptyArray);
+			for each (var name:String in plotManager.layerSettings.getNames())
+				setProbeKeys(name, emptyArray);
 		}
 		private const emptyArray:Array = [];
 		protected const queryBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 		protected const tempDataBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 		protected const tempScreenBounds:IBounds2D = new Bounds2D(); // reusable temporary object
 		private const tempPoint:Point = new Point(); // reusable temporary object
+
 		
-		//-----------------------------------------------
-		// backwards compatibility
-		[Deprecated(replacement="InteractionController.defaultDragMode")] public function set defaultMouseMode(value:String):void
+		/**
+		 * This function projects data coordinates to stage coordinates.
+		 * @return The point containing the stageX and stageY.
+		 */		
+		public function getStageCoordinates(dataX:Number, dataY:Number):Point
 		{
-			var backwardsCompatibility:Object = {
-				"InteractiveVisualization.SELECT_MODE_REPLACE": InteractionController.SELECT,
-				"InteractiveVisualization.SELECT_MODE_SUBTRACT": InteractionController.SELECT_REMOVE,
-				"InteractiveVisualization.SELECT_MODE_ADD": InteractionController.SELECT_ADD,
-				"InteractiveVisualization.PAN_MODE": InteractionController.PAN,
-				"InteractiveVisualization.ZOOM_MODE": InteractionController.ZOOM
-			};
-			Weave.properties.toolInteractions.defaultDragMode.value = backwardsCompatibility[value];
+			tempPoint.x = dataX;
+			tempPoint.y = dataY;
+			plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
+			plotManager.zoomBounds.getDataBounds(tempDataBounds);
+			tempDataBounds.projectPointTo(tempPoint, tempScreenBounds);
+			
+			return localToGlobal(tempPoint);
 		}
+		
+		/**
+		 * Get the <code>mouseX</code> and <code>mouseY</code> properties of the container
+		 * projected into data coordinates for the container. 
+		 * @return The point containing the projected mouseX and mouseY.
+		 */
+		public function getMouseDataCoordinates():Point
+		{
+			tempPoint.x = mouseX;
+			tempPoint.y = mouseY;
+			plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
+			plotManager.zoomBounds.getDataBounds(tempDataBounds);
+			tempScreenBounds.projectPointTo(tempPoint, tempDataBounds);
+			
+			return tempPoint;
+		}
+		
+		/**
+		 * Embedded cursors
+		 */
+		public static const CURSOR_LINK:String = "linkCursor";
+		[Embed(source="/weave/resources/images/axisLinkCursor.png")]
+		private static var linkCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_LINK, linkCursor, 0, 0);
+		
+		public static const CURSOR_HAND:String = "handCursor";
+		[Embed(source="/weave/resources/images/cursor_hand.png")]
+		public static var handCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_HAND, handCursor, 1, 2);
+		
+		public static const CURSOR_HAND_GRAB:String = "handGrabCursor";
+		[Embed(source="/weave/resources/images/cursor_grab.png")]
+		private static var handGrabCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_HAND_GRAB, handGrabCursor,  1,  2);
+		
+		public static const CURSOR_SELECT_REPLACE:String = "selectReplaceCursor";
+		[Embed(source="/weave/resources/images/cursor_select_replace.png")]
+		private static var selectReplaceCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_SELECT_REPLACE,  selectReplaceCursor,  1, 2);
+		
+		public static const CURSOR_SELECT_ADD:String = "selectAddCursor";
+		[Embed(source="/weave/resources/images/cursor_select_add.png")]
+		private static var selectAddCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_SELECT_ADD, selectAddCursor, 1, 2);
+		
+		public static const CURSOR_SELECT_SUBTRACT:String = "selectSubtractCursor";
+		[Embed(source="/weave/resources/images/cursor_select_subtract.png")]
+		private static var selectSubtractCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_SELECT_SUBTRACT, selectSubtractCursor, 1, 2);
+		
+		public static const CURSOR_ZOOM:String = "zoomCursor";
+		[Embed(source="/weave/resources/images/cursor_zoom.png")]
+		private static var zoomCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_ZOOM, zoomCursor, 0, 0);
 	}
 }

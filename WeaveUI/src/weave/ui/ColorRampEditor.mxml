@@ -28,19 +28,19 @@
 <mx:VBox xmlns:ui ="weave.ui.*"
 	xmlns:mx="http://www.adobe.com/2006/mxml" 
 	xmlns="weave.ui.*"
-	implements="weave.api.core.ILinkableObject"
+	implements="weave.api.ui.ILinkableObjectEditor"
 	width="100%" height="100%"
 	enabled="{colorRamp != null}"
 	>
 	<mx:HBox height="100%" width="100%">
 		<mx:VBox width="100%" height="100%" id="listVBox">
 			<ui:ColorRampList id="colorRampList" colorRamp="{colorRamp}"/>
-			<ui:Indent label="Filter:">
+			<ui:Indent label="{lang('Filter:')}">
 				<ui:CustomComboBox id="filterCombo" change="(colorRampList.dataProvider as ICollectionView).refresh();"/>
 			</ui:Indent>
 		</mx:VBox>
 		<mx:VBox height="100%">
-			<mx:Label text="Customize" fontWeight="bold"/>
+			<mx:Label text="{lang('Customize')}" fontWeight="bold"/>
 			<mx:HBox height="100%" horizontalGap="0">
 				<mx:Canvas id="colorRampCanvas" resize="if (colorRamp) colorRamp.draw(colorRampCanvas, true)"
 						   borderStyle="solid" borderColor="0x000000"
@@ -113,10 +113,10 @@
 				</mx:List>
 			</mx:HBox>
 			<mx:HBox>
-				<mx:Button label="Reverse"
-						 toolTip="Click to reverse the colors in the color scale."
+				<mx:Button label="{lang('Reverse')}"
+						 toolTip="{lang('Click to reverse the colors in the color scale.')}"
 						 click="colorRamp.reverse();"/>
-				<mx:Button label="Add color" click="(colorsList.dataProvider as ArrayCollection).addItem({color:'0xFFFFFF'}); updateNewColorScale();"/>
+				<mx:Button label="{lang('Add color')}" click="(colorsList.dataProvider as ArrayCollection).addItem({color:'0xFFFFFF'}); updateNewColorScale();"/>
 			</mx:HBox>
 		</mx:VBox>
 	</mx:HBox>
@@ -166,7 +166,7 @@
 				colorRampList.dataProvider.filterFunction = filterColormaps;
 			}
 			
-			private const ALL:String = 'All';
+			private const ALL:String = lang('All');
 			
 			private function filterColormaps(item:Object):Boolean
 			{
@@ -219,6 +219,15 @@
 				
 				_colorRamp.value = rampStringValue;
 			}
+			public function setTarget(object:ILinkableObject):void
+			{
+				colorRamp = object as ColorRamp;
+			}
+			public function applyChanges():void
+			{
+				
+			}
+			
 		]]>
 	</mx:Script>
 </mx:VBox>

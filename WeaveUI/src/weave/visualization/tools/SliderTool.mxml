@@ -27,24 +27,25 @@
 	xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
 	verticalScrollPolicy="off"
 	width="400" 
-	title="Slider Tool"
+	title="{lang('Slider Tool')"
 	height="40">
 
 <mx:Script>
-		<![CDATA[
-			import mx.collections.ArrayCollection;
-			
-			import weave.Weave;
-			import weave.api.WeaveAPI;
-			import weave.api.getCallbackCollection;
-			import weave.api.linkBindableProperty;
-			import weave.api.newLinkableChild;
-			import weave.api.registerLinkableChild;
-			import weave.core.LinkableNumber;
-			import weave.core.LinkableString;
-			import weave.data.ColumnReferences.HierarchyColumnReference;
-			import weave.utils.HierarchyUtils;
-			import weave.utils.LinkableTextFormat;
+<![CDATA[
+	import mx.collections.ArrayCollection;
+	
+	import weave.Weave;
+	import weave.api.WeaveAPI;
+	import weave.api.getCallbackCollection;
+	import weave.api.linkBindableProperty;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
+	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
+	import weave.data.ColumnReferences.HierarchyColumnReference;
+	import weave.utils.HierarchyUtils;
+	import weave.utils.LinkableTextFormat;
 
 	//constructor
 	
@@ -54,16 +55,14 @@
 		super.constructor();
 		this.height = 40;
 		// wait 1 frame before initializing labels because other tools may not be initialized yet
-		WeaveAPI.StageUtils.callLater(this, initializeLabels, null, false);
-		WeaveAPI.StageUtils.callLater(this, addCallbacks, null, false);
+		WeaveAPI.StageUtils.callLater(this, initializeLabels, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+		WeaveAPI.StageUtils.callLater(this, addCallbacks, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 
 		getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateLabelProperties, true);
 	}
 
 	//class data
 
-	//@TODO session this so that the admin can specify a different maximum tick count
-	protected static const MAX_LABEL_COUNT:int = 10;
 	//@TODO session this so that the admin can specify a different maximum delay
 	private static const MAX_TIMER_DELAY:Number = 2500;
 	public const timerDelay:LinkableNumber = newLinkableChild(this, LinkableNumber);
@@ -72,6 +71,7 @@
 	public static const dimensionsRefs:ArrayCollection = new ArrayCollection();
 	public const labelsLinkableString:LinkableString = newLinkableChild(this, LinkableString, handleLabelChange, true);
 	public const currentSliderPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0), handleSliderChange, true);
+	public const maxLabelCount:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, isFinite), handleLabelChange);
 	private var _timer:Timer;
 	
 	////abstract functions that must be overridden by subclasses of this class
@@ -160,21 +160,21 @@
 			timerDelay.value = MAX_TIMER_DELAY;
 		speedSlider.minimum = 0;
 		speedSlider.maximum = 2000;
-		speedSlider.toolTip = "Change the speed of the slider.";
+		speedSlider.toolTip = lang("Change the speed of the slider");
 		speedSlider.value = MAX_TIMER_DELAY - timerDelay.value;
 		//is there a timer that is still running? 
 		if ((playButton != null) && (_timer != null))
 		{
-			playButton.toolTip = "Automatically cycle through the times.";
+			playButton.toolTip = lang("Automatically cycle through the times.");
 			if (_timer.running)
 			{
 				playButton.label = "||";
-				playButton.toolTip = "Stop";
+				playButton.toolTip = lang("Stop");
 			}
 			else
 			{
 				playButton.label = ">";
-				playButton.toolTip = "Play"
+				playButton.toolTip = lang("Play")
 			}
 		}
 		
@@ -237,7 +237,7 @@
 	/**
 	 * This event is triggered when the user changes the dimension in the attrListCombo box
 	 * */
-	private function dimensionChange(event:Event):void
+	private function dimensionChange():void
 	{
 		var index:int = attrListCombo.selectedIndex;
 		if (index >= dimensionsRefs.length)
@@ -260,6 +260,8 @@
 		{
 			dimensionsList.addItem(strToAdd);
 			dimensionsRefs.addItem(ref);
+			if (!labelsLinkableString.value)
+				dimensionChange();
 		}
 	}
 	
@@ -281,7 +283,7 @@
 			if (playButton != null) 
 			{
 				playButton.label = ">";
-				playButton.toolTip = "Play";				
+				playButton.toolTip = lang("Play");				
 			}
 			_timer.stop();
 		}
@@ -290,14 +292,14 @@
 			if (playButton != null) 
 			{
 				playButton.label = "||";
-				playButton.toolTip = "Stop";				
+				playButton.toolTip = lang("Stop");				
 			}
 			_timer.start();
 		}
 	}
 	private function getDelay():String
 	{
-		var delayDescription:String = (MAX_TIMER_DELAY - speedSlider.value).toFixed(0) + " millisecond delay"; 
+		var delayDescription:String = lang("{0} millisecond delay", (MAX_TIMER_DELAY - speedSlider.value).toFixed(0)); 
 		return delayDescription;
 	}
 	
@@ -323,7 +325,7 @@
 			currentSliderPosition.value = dimensionSlider.minimum;
 		if (_timer.currentCount == (_timer.repeatCount - 1))
 		{
-			playButton.label = "Play";
+			playButton.label = lang("Play");
 			_timer.reset();
 		}
 	}
@@ -334,78 +336,59 @@
 		var delayDescription:String = getDelay();
 		if (item < speedSlider.value)
 		{
-			return "slower: " + delayDescription;
+			return lang("slower: {0}", delayDescription);
 		}
 		else
 		{
-			return "faster: " + delayDescription;
+			return lang("faster: {0}", delayDescription);
 		}
 	}
 			
-		]]>
-	</mx:Script>
-<mx:HBox width="100%">
-	<mx:VBox width="5%">
-		<mx:Button
-			width="5%" id="playButton" label=">" alpha="1.0" 
-			fillAlphas="[1.0, 1.0, 1.0, 1.0]" 
-			click="playButtonPushed()"/>
-	<mx:HSlider
-		height="90%"
-		id="speedSlider"
-		width="50"
-		liveDragging="true"
-		dataTipFormatFunction="formatSpeedDataTip"
-		change="speedSliderChange();"/>
-	</mx:VBox>
-	<mx:HSlider 
-			height="90%"
-			id="dimensionSlider"
-			width="100%"
-			dataTipFormatFunction="formatDataTip"
-			snapInterval="1"
-			tickInterval="1"
-			liveDragging="true"
-			name="Time Slider Tool"
-			> 				
-	</mx:HSlider>
-</mx:HBox>
-	<ui:ControlPanel>
-			<mx:Panel id="VizControlsPanel" 
-					  label="Visualization Controls" 
-					  headerHeight="2"
-					  borderColor="0x000000" 
-					  backgroundColor="0xCCCCCC" 
-					  backgroundAlpha="0.0" 
-					  borderThickness="0.0" 
-					  width="100%" 
-					  borderAlpha="0.2" 
-					  addedToStage="onUserControlsAddedToStage(event)"
-					  borderStyle="none">
-				<mx:VBox width="100%" 
-						 verticalGap="0">
-					<mx:VBox width="100%" 
-							 id="timesliderControls">
+]]>
+</mx:Script>
 	<mx:HBox width="100%">
-		<mx:Label text="Time slider labels:"/>
-		<mx:TextInput id="labelsInput" 
-					  width="90%"
-					  toolTip="Entering a title here will override the automatic title generated by the tool."
-					  />
+		<mx:VBox width="5%">
+			<mx:Button
+				width="5%" id="playButton" label=">" alpha="1.0" 
+				fillAlphas="[1.0, 1.0, 1.0, 1.0]" 
+				click="playButtonPushed()"/>
+		<mx:HSlider
+			height="90%"
+			id="speedSlider"
+			width="50"
+			liveDragging="true"
+			dataTipFormatFunction="formatSpeedDataTip"
+			change="speedSliderChange();"/>
+		</mx:VBox>
+		<mx:HSlider 
+				height="90%"
+				id="dimensionSlider"
+				width="100%"
+				dataTipFormatFunction="formatDataTip"
+				snapInterval="1"
+				tickInterval="1"
+				liveDragging="true"
+				name="{lang('Time Slider Tool')}"
+				> 				
+		</mx:HSlider>
 	</mx:HBox>
-	<mx:HBox width="100%" height="100%">
-	</mx:HBox>
-	<mx:HBox width="100%" height="100%">
-		<mx:Label id="dimsLabel" text="Replace slider labels with values from a dimension with year values:" />
-	</mx:HBox>
-	<mx:HBox>
-		<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsList}" change="dimensionChange(event)"/>
-	</mx:HBox>
-					</mx:VBox>
-					<mx:HBox width="100%">
-					</mx:HBox>
-				</mx:VBox>
-			</mx:Panel>
+	<ui:ControlPanel>
+		<mx:VBox width="100%" id="timesliderControls"
+				label="{lang('Slider controls')}"
+				addedToStage="onUserControlsAddedToStage(event)">
+			<ui:Indent label="{lang('Time slider labels:')}">
+				<mx:TextInput id="labelsInput" 
+							  width="90%"
+							  toolTip="{lang('Entering a title here will override the automatic title generated by the tool.')}"
+							  />
+			</ui:Indent>
+			<mx:Label id="dimsLabel" text="{lang('Replace slider labels with values from a dimension with year values:')}" />
+			<ui:CustomComboBox id="attrListCombo" dataProvider="{dimensionsList}" change="dimensionChange()"/>
+			<ui:Indent label="{lang('Max labels shown')}">
+				<mx:NumericStepper minimum="0" maximum="100" stepSize="1" creationComplete="linkBindableProperty(maxLabelCount, event.target, 'value');"/>
+			</ui:Indent>
+			<mx:CheckBox id="checkBox_useGlobalMinMax" visible="false" includeInLayout="false" label="{lang('Use global min,max values')}" creationComplete="linkBindableProperty(SecondaryKeyNumColumn.useGlobalMinMaxValues, event.target, 'selected');"/>
+		</mx:VBox>
 	</ui:ControlPanel>
 
 </SimpleVisTool>

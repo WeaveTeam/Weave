@@ -21,7 +21,7 @@
 -->
 <DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
 		xmlns="weave.ui.*" 
-		borderColor="#C5C3A8"
+		borderColor="#939178"
 		title="Error Log"
 		>
 	<Console id="console" context="{WeaveAPI.ErrorManager}" padding="0"/>
@@ -49,7 +49,7 @@
 -->
 	<mx:Script>
 		<![CDATA[
-			import mx.core.Application;
+			import mx.core.UIComponent;
 			import mx.managers.PopUpManager;
 			import mx.rpc.Fault;
 			
@@ -121,7 +121,7 @@
 				var instance:ErrorLogPanel = getInstance();
 				if (!instance.parent)
 				{
-					var app:Application = Application.application as Application;
+					var app:UIComponent = WeaveAPI.topLevelApplication as UIComponent;
 					var desiredHeight:Number = 150;
 					var percentHeight:Number = Math.round(desiredHeight / app.stage.stageHeight * 100);
 					
@@ -131,7 +131,7 @@
 					instance.panelX.value = "0%";
 					instance.panelWidth.value = "100%";
 					
-					PopUpManager.addPopUp(instance, Application.application as Application);
+					PopUpManager.addPopUp(instance, app);
 				}
 				instance.restorePanel();
 			}

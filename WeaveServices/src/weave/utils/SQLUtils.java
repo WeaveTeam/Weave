@@ -59,10 +59,6 @@ import org.postgresql.PGConnection;
  * @author Yen-Fu Luo
  * @author Philip Kovac
  */
-/**
- * @author Administrator
- *
- */
 public class SQLUtils
 {
 	public static String MYSQL = "MySQL";
@@ -383,16 +379,43 @@ public class SQLUtils
 	}
 
 	/**
+	 * This will build a case sensitive compare expression out of two sql query expressions.
 	 * @param conn An SQL Connection.
-	 * @return The case-sensitive compare operator for the given connection.
+	 * @param expr1 The first SQL expression to be used in the comparison.
+	 * @param expr2 The second SQL expression to be used in the comparison.
+	 * @return A SQL expression comparing the two expressions using case-sensitive string comparison.
 	 */
-	public static String caseSensitiveCompareOperator(Connection conn) throws SQLException
+	public static String caseSensitiveCompare(Connection conn, String expr1, String expr2) throws SQLException
+	{
+		String operator;
+		if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
+			operator = "= BINARY";
+		else
+			operator = "=";
+		
+		return String.format(
+				"%s %s %s",
+				stringCast(conn, expr1),
+				operator,
+				stringCast(conn, expr2)
+			);
+	}
+	
+	/**
+	 * This will wrap a query expression in a string cast.
+	 * @param conn An SQL Connection.
+	 * @param queryExpression An expression to be used in a SQL Query.
+	 * @return The query expression wrapped in a string cast.
+	 */
+	private static String stringCast(Connection conn, String queryExpression) throws SQLException
 	{
 		if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(MYSQL))
-		{
-			return "= BINARY";
-		}
-		return "=";
+			return String.format("cast(%s as char)", queryExpression);
+		if (conn.getMetaData().getDatabaseProductName().equalsIgnoreCase(POSTGRESQL))
+			return String.format("cast(%s as varchar)", queryExpression);
+		
+		// dbms type not supported by this function yet
+		return queryExpression;
 	}
 	
 	/**
@@ -450,7 +473,19 @@ public class SQLUtils
 	 * @throws SQLException
 	 */
 	public static SQLResult getRowSetFromQuery(Connection connection, String query)
-		throws SQLException
+	throws SQLException
+	{
+		return getRowSetFromQuery(connection, query, false);
+	}
+	
+	/**
+	 * @param connection An SQL Connection
+	 * @param query An SQL query
+	 * @param convertToStrings Set this to true to convert all result values to Strings.
+	 * @return A SQLResult object containing the result of the query
+	 * @throws SQLException
+	 */
+	public static SQLResult getRowSetFromQuery(Connection connection, String query, boolean convertToStrings) throws SQLException
 	{
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -461,7 +496,7 @@ public class SQLUtils
 			rs = stmt.executeQuery(query);
 			
 			// make a copy of the query result
-			result = new SQLResult(rs);
+			result = new SQLResult(rs, convertToStrings);
 		}
 		catch (SQLException e)
 		{
@@ -691,8 +726,6 @@ public class SQLUtils
 			
 			// build WHERE clause
 			String whereQuery = buildGenericWhereClause(conn, whereParams);
-			
-			
 			
 			// build complete query
 			query = String.format(
@@ -1691,7 +1724,7 @@ public class SQLUtils
 			{
 				if (i > 0)
 					query += " AND ";
-				query += SQLUtils.quoteSymbol(conn, params[i].getKey()) + " " + SQLUtils.caseSensitiveCompareOperator(conn) + " ?";
+				query += caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, params[i].getKey()), "?");
 			}
 			
 			cstmt = conn.prepareCall(query);
@@ -1891,9 +1924,9 @@ public class SQLUtils
 
 				// sql server expects the actual EOL character '\n', and not the textual representation '\\n'
 				stmt.executeUpdate(String.format(
-						"BULK INSERT %s FROM '%s' WITH ( FIRSTROW = 2, FIELDTERMINATOR = ',', ROWTERMINATOR = '\n', KEEPNULLS )", 
-						quotedTable, formatted_CSV_path
-						));
+						"BULK INSERT %s FROM '%s' WITH ( FIRSTROW = 2, FIELDTERMINATOR = '%s', ROWTERMINATOR = '\n', KEEPNULLS )",
+						quotedTable, formatted_CSV_path, SQL_SERVER_DELIMETER
+					));
 			}
 		}
 		finally 
@@ -1915,7 +1948,7 @@ public class SQLUtils
 		return "SERIAL PRIMARY KEY";
 	}
 
-	public static String getCSVNullValue(Connection conn)
+	private static String getCSVNullValue(Connection conn)
 	{
 		try
 		{
@@ -1933,5 +1966,35 @@ public class SQLUtils
 			// this should never happen
 			throw new RuntimeException(e);
 		}
+	}
+	
+	private static final char SQL_SERVER_DELIMETER = (char)8;
+	
+	public static String generateCSV(Connection conn, String[][] csvData) throws SQLException
+	{
+		String outputNullValue = SQLUtils.getCSVNullValue(conn);
+		for (int i = 0; i < csvData.length; i++)
+		{
+			for (int j = 0; j < csvData[i].length; j++)
+			{
+				if (csvData[i][j] == null)
+					csvData[i][j] = outputNullValue;
+			}
+		}
+		
+		String dbms = conn.getMetaData().getDatabaseProductName();
+		if (SQLSERVER.equalsIgnoreCase(dbms))
+		{
+			// special case for Microsoft SQL Server because it does not support quotes.
+			CSVParser parser = new CSVParser(SQL_SERVER_DELIMETER);
+			return parser.createCSV(csvData, false);
+		}
+		else
+		{
+			boolean quoteEmptyStrings = outputNullValue.length() > 0;
+			return CSVParser.defaultParser.createCSV(csvData, quoteEmptyStrings);
+		}
+		
+		
 	}
 }

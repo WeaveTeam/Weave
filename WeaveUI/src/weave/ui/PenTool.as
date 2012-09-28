@@ -1,20 +1,20 @@
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave. If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave. If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.ui
@@ -28,12 +28,10 @@ package weave.ui
 	import flash.ui.ContextMenuItem;
 	import flash.utils.Dictionary;
 	
-	import mx.core.Application;
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
 	import mx.events.FlexEvent;
 	import mx.events.ResizeEvent;
-	import mx.managers.CursorManagerPriority;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
@@ -49,8 +47,7 @@ package weave.ui
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.CustomCursorManager;
 	import weave.utils.SpatialIndex;
-	import weave.visualization.layers.PlotLayerContainer;
-	import weave.visualization.layers.SelectablePlotLayer;
+	import weave.visualization.layers.Visualization;
 	import weave.visualization.tools.SimpleVisTool;
 
 	use namespace mx_internal;
@@ -127,7 +124,7 @@ package weave.ui
 		private function handleCreationComplete(event:FlexEvent):void
 		{
 			// when the visualization changes, the dataBounds may have changed
-			var visualization:PlotLayerContainer = getPlotLayerContainer(parent);
+			var visualization:Visualization = getVisualization(parent);
 			if (visualization)
 			{
 				var handleContainerChange:Function = function ():void
@@ -231,9 +228,9 @@ package weave.ui
 			
 			_drawing = false;
 			if (value)
-				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
+				CustomCursorManager.showCursor(PEN_CURSOR);
 			else
-				CustomCursorManager.removeAllCursors();
+				CustomCursorManager.hack_removeAllCursors();
 			invalidateDisplayList();
 		}
 
@@ -245,11 +242,11 @@ package weave.ui
 		 */		
 		private function handleScreenCoordinate(x:Number, y:Number, output:Point):void
 		{
-			var visualization:PlotLayerContainer = getPlotLayerContainer(parent);
+			var visualization:Visualization = getVisualization(parent);
 			if (visualization)
 			{
-				visualization.zoomBounds.getScreenBounds(_tempScreenBounds);				
-				visualization.zoomBounds.getDataBounds(_tempDataBounds);
+				visualization.plotManager.zoomBounds.getScreenBounds(_tempScreenBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(_tempDataBounds);
 				
 				output.x = x;
 				output.y = y;
@@ -266,11 +263,11 @@ package weave.ui
 		private function projectCoordToScreenBounds(x1:Number, y1:Number, output:Point):void
 		{
 			var linkableContainer:ILinkableContainer = getLinkableContainer(parent);
-			var visualization:PlotLayerContainer = (linkableContainer as SimpleVisTool).visualization as PlotLayerContainer;
+			var visualization:Visualization = (linkableContainer as SimpleVisTool).visualization as Visualization;
 			if (visualization)
 			{
-				visualization.zoomBounds.getScreenBounds(_tempScreenBounds);				
-				visualization.zoomBounds.getDataBounds(_tempDataBounds);
+				visualization.plotManager.zoomBounds.getScreenBounds(_tempScreenBounds);
+				visualization.plotManager.zoomBounds.getDataBounds(_tempDataBounds);
 				
 				// project the point to screen bounds
 				output.x = x1;
@@ -429,7 +426,7 @@ package weave.ui
 			if (!_editMode)
 				return;
 			
-			CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
+			CustomCursorManager.showCursor(PEN_CURSOR);
 		}
 		
 		/**
@@ -441,14 +438,14 @@ package weave.ui
 			if (!_editMode)
 				return;
 			
-			CustomCursorManager.removeAllCursors();
+			CustomCursorManager.hack_removeAllCursors();
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 			
-			var visualization:PlotLayerContainer = getPlotLayerContainer(parent); 
+			var visualization:Visualization = getVisualization(parent); 
 			if (visualization) 
 			{
 				var lastShape:Array;
@@ -537,13 +534,13 @@ package weave.ui
 			if (drawingMode.value == FREE_DRAW_MODE)
 				return [];
 			
-			var visualization:PlotLayerContainer = getPlotLayerContainer(parent);
+			var visualization:Visualization = getVisualization(parent);
 			if (!visualization)
 				return [];
 			
 			var key:IQualifiedKey;
 			var keys:Dictionary = new Dictionary();
-			var layers:Array = visualization.layers.getObjects(SelectablePlotLayer);
+			var plotterNames:Array = visualization.plotManager.plotters.getObjects();
 			var shapes:Array = WeaveAPI.CSVParser.parseCSV(coords.value);
 			for each (var shape:Array in shapes)
 			{
@@ -557,9 +554,9 @@ package weave.ui
 				}
 				_simpleGeom.setVertices(_tempArray);
 				
-				for each (var layer:SelectablePlotLayer in layers)
+				for each (var plotterName:String in plotterNames)
 				{
-					var spatialIndex:SpatialIndex = layer.spatialIndex as SpatialIndex;
+					var spatialIndex:SpatialIndex = visualization.plotManager.hack_getSpatialIndex(plotterName);
 					var overlappingKeys:Array = spatialIndex.getKeysGeometryOverlapGeometry(_simpleGeom);
 					for each (key in overlappingKeys)
 					{
@@ -611,15 +608,15 @@ package weave.ui
 		private static var _removeDrawingsMenuItem:ContextMenuItem = null;
 		private static var _changeDrawingMode:ContextMenuItem = null;
 		private static var _selectRecordsMenuItem:ContextMenuItem = null;
-		private static const ENABLE_PEN:String = "Enable Pen Tool";
-		private static const DISABLE_PEN:String = "Disable Pen Tool";
-		private static const REMOVE_DRAWINGS:String = "Remove All Drawings";
-		private static const CHANGE_DRAWING_MODE:String = "Change Drawing Mode";
+		private static const ENABLE_PEN:String = lang("Enable Pen Tool");
+		private static const DISABLE_PEN:String = lang("Disable Pen Tool");
+		private static const REMOVE_DRAWINGS:String = lang("Remove All Drawings");
+		private static const CHANGE_DRAWING_MODE:String = lang("Change Drawing Mode");
 		private static const PEN_OBJECT_NAME:String = "penTool";
-		public static const FREE_DRAW_MODE:String = "Free Draw Mode";
-		public static const POLYGON_DRAW_MODE:String = "Polygon Draw Mode";
-		private static const SELECT_RECORDS:String = "Select Records in Polygon";
-		private static const _menuGroupName:String = "5 drawingMenuitems";
+		public static const FREE_DRAW_MODE:String = lang("Free Draw Mode");
+		public static const POLYGON_DRAW_MODE:String = lang("Polygon Draw Mode");
+		private static const SELECT_RECORDS:String = lang("Select Records in Polygon");
+		private static const _menuGroupName:String = "9 drawingMenuitems";
 		public static function createContextMenuItems(destination:DisplayObject):Boolean
 		{
 			if (!destination.hasOwnProperty("contextMenu"))
@@ -643,7 +640,7 @@ package weave.ui
 		
 		private static function handleChangeMode(e:ContextMenuEvent):void
 		{
-			var contextMenu:ContextMenu = (Application.application as Application).contextMenu;
+			var contextMenu:ContextMenu = (WeaveAPI.topLevelApplication as UIComponent).contextMenu;
 			if (!contextMenu)
 				return;
 			
@@ -671,7 +668,7 @@ package weave.ui
 					
 					_removeDrawingsMenuItem.enabled = true;
 				}
-				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
+				CustomCursorManager.showCursor(PEN_CURSOR);
 			}
 		}
 		
@@ -682,11 +679,11 @@ package weave.ui
 		 */
 		private static function handleContextMenuOpened(e:ContextMenuEvent):void
 		{
-			var contextMenu:ContextMenu = (Application.application as Application).contextMenu;
+			var contextMenu:ContextMenu = (WeaveAPI.topLevelApplication as UIComponent).contextMenu;
 			if (!contextMenu)
 				return;
 
-			CustomCursorManager.removeCurrentCursor();
+			CustomCursorManager.hack_removeCurrentCursor();
 
 			//Reset Context Menu as if no PenMouse Object is there and let following code adjust as necessary.
 			_penToolMenuItem.caption = ENABLE_PEN;
@@ -726,7 +723,7 @@ package weave.ui
 			if (!linkableContainer)
 				return;
 
-			var visualization:PlotLayerContainer = getPlotLayerContainer(e.mouseTarget);
+			var visualization:Visualization = getVisualization(e.mouseTarget);
 			if (!visualization)
 				return;
 			
@@ -738,7 +735,7 @@ package weave.ui
 				_penToolMenuItem.caption = DISABLE_PEN;
 				_removeDrawingsMenuItem.enabled = true;
 				_changeDrawingMode.enabled = true;
-				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR, CursorManagerPriority.HIGH, -3, -22);
+				CustomCursorManager.showCursor(PEN_CURSOR);
 			}
 			else
 			{
@@ -772,15 +769,13 @@ package weave.ui
 		 * @param target The UIComponent for which to get its PlotLayerContainer.
 		 * @return The PlotLayerContainer visualization for the target if it has one. 
 		 */		
-		private static function getPlotLayerContainer(target:*):PlotLayerContainer
+		private static function getVisualization(mouseTarget:Object):Visualization
 		{
-			var linkableContainer:ILinkableContainer = getLinkableContainer(target);
-			if (!linkableContainer || !(linkableContainer is SimpleVisTool))
+			var linkableContainer:ILinkableContainer = getLinkableContainer(mouseTarget);
+			if (!linkableContainer)
 				return null;
 			
-			var visualization:PlotLayerContainer = (linkableContainer as SimpleVisTool).visualization as PlotLayerContainer;
-			
-			return visualization;
+			return linkableContainer.getLinkableChildren().getObjects(Visualization)[0] as Visualization;
 		}
 		/**
 		 * This function occurs when Remove All Drawings is pressed.
@@ -812,5 +807,13 @@ package weave.ui
 //			var penTool:PenTool = linkableContainer.getLinkableChildren().requestObject(PEN_OBJECT_NAME, PenTool, false);
 //			penTool.selectRecords();
 //		}		
+		
+		/**
+		 * Embedded cursors
+		 */
+		public static const PEN_CURSOR:String = "penCursor";
+		[Embed(source="/weave/resources/images/penpointer.png")]
+		private static var penCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(PEN_CURSOR, penCursor, 3, 22);
 	}
 }

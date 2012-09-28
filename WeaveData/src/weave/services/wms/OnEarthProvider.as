@@ -31,7 +31,9 @@ package weave.services.wms
 	import org.openscales.proj4as.ProjConstants;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
 	import weave.core.ErrorManager;
@@ -39,6 +41,7 @@ package weave.services.wms
 	import weave.core.StageUtils;
 	import weave.primitives.Bounds2D;
 	import weave.services.URLRequestUtils;
+	import weave.utils.AsyncSort;
 
 	/**
 	 * This class handles the requests for tiles from NASA's OnEarth WMS.
@@ -162,7 +165,7 @@ package weave.services.wms
 			}
 			
 			_currentTileIndex = newIndex;
-			triggerCallbacks();
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		private function parseXML():void
@@ -359,7 +362,7 @@ package weave.services.wms
 					
 					//trace(fullRequestString);
 					var urlRequest:URLRequest = new URLRequest(fullRequestString);
-					var newTile:WMSTile = new WMSTile(_tempBounds, _imageWidth, _imageHeight, urlRequest);
+					var newTile:WMSTile = registerLinkableChild(this, new WMSTile(_tempBounds, _imageWidth, _imageHeight, urlRequest));
 					_urlToTile[fullRequestString] = newTile; // save in dictionary
 					
 					_pendingTiles.push(newTile); // remember that we requested this image
@@ -367,7 +370,7 @@ package weave.services.wms
 				}
 			}
 			
-			lowerQualTiles = lowerQualTiles.sort(tileSortingComparison);
+			AsyncSort.sortImmediately(lowerQualTiles, tileSortingComparison);
 			return lowerQualTiles.concat(completedTiles);
 		}
 		

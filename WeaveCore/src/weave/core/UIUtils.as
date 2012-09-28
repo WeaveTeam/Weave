@@ -22,9 +22,9 @@ package weave.core
 	import flash.display.DisplayObject;
 	import flash.events.Event;
 	import flash.utils.Dictionary;
-        import flash.utils.Timer;
-        import flash.events.TimerEvent;
 	
+	import mx.core.IVisualElement;
+	import mx.core.IVisualElementContainer;
 	import mx.core.UIComponent;
 	import mx.events.IndexChangedEvent;
 	
@@ -32,7 +32,9 @@ package weave.core
 	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
+	import weave.api.objectWasDisposed;
 	import weave.api.reportError;
 	import weave.utils.Dictionary2D;
 
@@ -40,7 +42,6 @@ package weave.core
 	 * This is an all-static class containing functions related to UI and ILinkableObjects.
 	 * 
 	 * @author adufilie
-         * @author pkovac
 	 */
 	public class UIUtils
 	{
@@ -54,29 +55,30 @@ package weave.core
 			var focus:DisplayObject = component.getFocus();
 			return focus && component.contains(focus);
 		}
-                public static function componentPulse(component:UIComponent, steps:Number = 15, interval:Number = 30):void
-                {
-                        var anim:Timer = new Timer(interval, steps);
-                        /* TODO: Find out what class actually has the "focusAlpha" style */
-                        function clearPulseHandler(e:TimerEvent):void
-                        {
-                            if (!hasFocus(component))
-                                component.drawFocus(false); /* Don't turn off the focus style 
-                                                               if somehow it was acquired during the pulse */
-                            component.setStyle("focusAlpha", 0.4); /* reset focusAlpha to default */
-                        }
-                        function pulsingHandler(e:TimerEvent):void
-                        {
-                            var step:Number = (e.target as Timer).currentCount;
-                            if (step > (steps/2)) step = steps - step;
-                            component.setStyle("focusAlpha", step/(steps/2));
-                            component.drawFocus(true); /* is this really needed? */
-                        }
-                        anim.addEventListener(TimerEvent.TIMER, pulsingHandler);
-                        anim.addEventListener(TimerEvent.TIMER_COMPLETE, clearPulseHandler);
-                        anim.start();
-                        return;
-                }
+		
+		/**
+		 * This will add a callback to a linkable variable that will set a style property of a UIComponent.
+		 * @param linkableVariable
+		 * @param uiComponent
+		 * @param stylePropertyName
+		 */		
+		public static function bindStyle(linkableVariable:ILinkableVariable, uiComponent:UIComponent, stylePropertyName:String, groupedCallback:Boolean = true):void
+		{
+			var callback:Function = function():void
+			{
+				if (!uiComponent.parent)
+				{
+					uiComponent.callLater(callback);
+					return;
+				}
+				uiComponent.setStyle(stylePropertyName, linkableVariable.getSessionState());
+			};
+			
+			if (groupedCallback)
+				getCallbackCollection(linkableVariable).addGroupedCallback(null, callback, true);
+			else
+				getCallbackCollection(linkableVariable).addImmediateCallback(null, callback, true);
+		}
 		
 		private static const linkFunctionCache:Dictionary2D = new Dictionary2D(true, true);
 		
@@ -220,15 +222,26 @@ package weave.core
 
 			// When the child is added to the parent, the child order should be updated.
 			// When the child is removed from the parent with removeChild() or removeChildAt(), it should be disposed of.
-			var listener:Function = function (event:Event):void
+			var listenLater:Function = function(event:Event):void
 			{
-				if (event.target == uiChild)
+				if (event.target == uiChild && !objectWasDisposed(uiChild))
 				{
 					if (event.type == Event.ADDED)
-						updateChildOrder(uiParent, hashMap, keepLinkableChildrenOnTop);
+					{
+						if (uiChild.parent == uiParent)
+							updateChildOrder(uiParent, hashMap, keepLinkableChildrenOnTop);
+					}
 					else if (event.type == Event.REMOVED && !(childObject is ILinkableDisplayObject))
-						hashMap.removeObject(childName);
+					{
+						if (uiChild.parent != uiParent)
+							hashMap.removeObject(childName);
+					}
 				}
+			};
+			var listener:Function = function (event:Event):void
+			{
+				// need to call later because Spark components use removeChild and addChildAt inside the setElementIndex function.
+				uiParent.callLater(listenLater, arguments);
 			};
 			uiChild.addEventListener(Event.ADDED, listener);
 			uiChild.addEventListener(Event.REMOVED, listener);
@@ -237,7 +250,33 @@ package weave.core
 			if (uiParent == uiChild.parent)
 				updateChildOrder(uiParent, hashMap, keepLinkableChildrenOnTop);
 			else
-				uiParent.addChild(uiChild);
+				spark_addChild(uiParent, uiChild);
+		}
+		
+		public static function spark_addChild(parent:UIComponent, child:DisplayObject):DisplayObject
+		{
+			if (parent is IVisualElementContainer)
+			{
+				if (child is IVisualElement)
+					return (parent as IVisualElementContainer).addElement(child as IVisualElement) as DisplayObject;
+				else
+					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
+			}
+			else
+				return parent.addChild(child);
+		}
+		
+		public static function spark_setChildIndex(parent:UIComponent, child:DisplayObject, index:int):void
+		{
+			if (parent is IVisualElementContainer && child is IVisualElement)
+			{
+				if (child is IVisualElement)
+					return (parent as IVisualElementContainer).setElementIndex(child as IVisualElement, index);
+				else
+					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
+			}
+			else
+				parent.setChildIndex(child, index);
 		}
 		
 		/**
@@ -312,7 +351,7 @@ package weave.core
 				{
 					uiChild = uiChildren[i] as DisplayObject;
 					if (uiChild && uiParent == uiChild.parent && uiParent.getChildIndex(uiChild) != indexOffset + i)
-						uiParent.setChildIndex(uiChild, indexOffset + i);
+						spark_setChildIndex(uiParent, uiChild, indexOffset + i);
 				}
 			}
 			else
@@ -321,7 +360,7 @@ package weave.core
 				{
 					uiChild = uiChildren[i] as DisplayObject;
 					if (uiChild && uiParent == uiChild.parent && uiParent.getChildIndex(uiChild) != i)
-						uiParent.setChildIndex(uiChild, i);
+						spark_setChildIndex(uiParent, uiChild, i);
 				}
 			}
 			delete parentToBusyFlagMap[uiParent];

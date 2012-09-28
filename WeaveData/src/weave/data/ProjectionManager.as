@@ -28,10 +28,12 @@ package weave.data
 	import org.openscales.proj4as.ProjProjection;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
+	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.primitives.Bounds2D;
@@ -59,6 +61,11 @@ package weave.data
 		 */
 		private static function initializeProjections():void
 		{
+			// http://mathworld.wolfram.com/AlbersEqual-AreaConicProjection.html
+			ProjProjection.defs['EPSG:9822'] = '+title=Albers Equal-Area Conic +proj=aea +lat_1=0 +lat_2=60 +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs';
+
+			//ProjProjection.defs['aeac-us'] = '+title=Albers Equal-Area Conic +proj=aea +lat_1=37.25 +lat_2=40.25 +lat_0=36 +lon_0=-72 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs';
+			
 			ProjProjection.defs['EPSG:26986'] = "+title=NAD83 / Massachusetts Mainland +proj=lcc +lat_1=42.68333333333333 +lat_2=41.71666666666667 +lat_0=41 +lon_0=-71.5 +x_0=200000 +y_0=750000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs";
 			ProjProjection.defs["EPSG:3638"] = "+title=NAD83(NSRS2007) / Ohio South +proj=lcc +lat_1=40.03333333333333 +lat_2=38.73333333333333 +lat_0=38 +lon_0=-82.5 +x_0=600000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
 			ProjProjection.defs['VANDG'] = "+title=Van Der Grinten +proj=vandg +x_0=0 +y_0=0 +lon_0=0";
@@ -109,7 +116,7 @@ package weave.data
 				return proxyColumn;
 
 			// otherwise, create a proxy that will provide the reprojected shapes and save it in the cache
-			proxyColumn = new ProxyColumn();
+			proxyColumn = newDisposableChild(this, ProxyColumn);
 			srsCache[destinationProjectionSRS] = proxyColumn;
 			
 			// create a WorkerThread that will reproject the geometries
@@ -324,7 +331,14 @@ internal class WorkerThread
 		this.destinationProjSRS = destinationProjectionSRS;
 
 		// start reprojecting now and each time the unprojected column changes
-		unprojectedColumn.addImmediateCallback(this, function():void { WeaveAPI.StageUtils.startTask(unprojectedColumn, iterate); }, true);
+		unprojectedColumn.addImmediateCallback(
+			this,
+			function():void
+			{
+				WeaveAPI.StageUtils.startTask(unprojectedColumn, iterate, WeaveAPI.TASK_PRIORITY_PARSING);
+			},
+			true
+		);
 	}
 	
 	// values passed to the constructor -- these will not change.
@@ -336,6 +350,8 @@ internal class WorkerThread
 	// these values may change as the geometries are processed.
 	private var prevTriggerCounter:uint = 0; // the ID of the current task, prevents old tasks from continuing
 	private var keys:Array; // the keys in the unprojectedColumn
+	private var values:Array; // the values in the unprojectedColumn
+	private var numGeoms:int; // the total number of geometries to process
 	private var keyIndex:int; // the index of the IQualifiedKey in the keys Array that needs to be processed
 	private var coordsVectorIndex:int; // the index of the Array in coordsVector that should be passed to GeneralizedGeometry.setCoordinates()
 	private var keysVector:Vector.<IQualifiedKey>; // vector to pass to GeometryColumn.setGeometries()
@@ -367,16 +383,16 @@ internal class WorkerThread
 				!projectionManager.projectionExists(destinationProjSRS))
 			{
 				proxyColumn.setMetadata(null);
-				proxyColumn.internalColumn = unprojectedColumn;
+				proxyColumn.setInternalColumn(unprojectedColumn);
 				return 1; // done
 			}
 			
 			// we need to reproject
 			
 			// if the internal column is the original column, create a new internal column because we don't want to overwrite the original
-			if (proxyColumn.internalColumn == null || proxyColumn.internalColumn == unprojectedColumn)
+			if (proxyColumn.getInternalColumn() == null || proxyColumn.getInternalColumn() == unprojectedColumn)
 			{
-				proxyColumn.internalColumn = new GeometryColumn();
+				proxyColumn.setInternalColumn(new GeometryColumn());
 			}
 	
 			// set metadata on proxy column
@@ -393,7 +409,7 @@ internal class WorkerThread
 			// try to find an internal StreamedGeometryColumn
 			var internalColumn:IAttributeColumn = unprojectedColumn;
 			while (!(internalColumn is StreamedGeometryColumn) && internalColumn is IColumnWrapper)
-				internalColumn = (internalColumn as IColumnWrapper).internalColumn;
+				internalColumn = (internalColumn as IColumnWrapper).getInternalColumn();
 			var streamedGeomColumn:StreamedGeometryColumn = internalColumn as StreamedGeometryColumn;
 			if (streamedGeomColumn)
 			{
@@ -406,7 +422,15 @@ internal class WorkerThread
 			}
 	
 			// initialize variables before calling processGeometries()
-			keys = unprojectedColumn.keys;
+			keys = unprojectedColumn.keys; // all keys
+			values = []; // all values
+			numGeoms = 0;
+			for (var i:int = 0; i < keys.length; i++)
+			{
+				var value:Array = unprojectedColumn.getValueFromKey(keys[i]) as Array;
+				numGeoms += value.length;
+				values.push(value);
+			}
 			keyIndex = 0;
 			coordsVectorIndex = 0;
 			keysVector = new Vector.<IQualifiedKey>();
@@ -421,7 +445,7 @@ internal class WorkerThread
 		{
 			// step 1: generate GeneralizedGeometry objects and project coordinates
 			var key:IQualifiedKey = keys[keyIndex] as IQualifiedKey;
-			var geomArray:Array = unprojectedColumn.getValueFromKey(key) as Array;
+			var geomArray:Array = values[keyIndex] as Array;
 			for (var geometryIndex:int = 0; geomArray && geometryIndex < geomArray.length; ++geometryIndex)
 			{
 				var oldGeometry:GeneralizedGeometry = geomArray[geometryIndex] as GeneralizedGeometry;
@@ -478,11 +502,11 @@ internal class WorkerThread
 			coordsVectorIndex++;
 		}
 		
-		var progress:Number = (keyIndex + coordsVectorIndex) / (keys.length + coordsVector.length);
+		var progress:Number = (coordsVector.length + coordsVectorIndex) / (numGeoms + numGeoms);
 		if (progress == 1 || isNaN(progress)) // (0/0) is NaN
 		{
 			// after all geometries have been reprojected, update the reprojected column
-			var reprojectedColumn:GeometryColumn = proxyColumn.internalColumn as GeometryColumn;
+			var reprojectedColumn:GeometryColumn = proxyColumn.getInternalColumn() as GeometryColumn;
 			reprojectedColumn.setGeometries(keysVector, geomVector);
 			return 1;
 		}

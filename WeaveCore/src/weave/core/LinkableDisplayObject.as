@@ -46,6 +46,7 @@ package weave.core
 	 * 
 	 * @author adufilie
 	 */	
+	[ExcludeClass]
 	public class LinkableDisplayObject implements ILinkableDisplayObject, ILinkableContainer, IDisposableObject
 	{
 		public function LinkableDisplayObject()

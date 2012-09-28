@@ -28,8 +28,11 @@ package weave.visualization.plotters
 	
 	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ITextPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -43,12 +46,19 @@ package weave.visualization.plotters
 	 * AnchorPlotter
 	 * @author kmanohar
 	 */	
-	public class AnchorPlotter extends AbstractPlotter
+	public class AnchorPlotter extends AbstractPlotter implements ITextPlotter
 	{
+		public function AnchorPlotter()	
+		{
+			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // this causes a redraw when text format changes
+			
+			setSingleKeySource(_keySet);
+		}
+		
 		public var anchors:LinkableHashMap = newSpatialProperty(LinkableHashMap,handleAnchorsChange);
 		public const labelAngleRatio:LinkableNumber = registerSpatialProperty(new LinkableNumber(0, verifyLabelAngleRatio));
 		
-		private var _keySet:KeySet;
+		private var _keySet:KeySet = newDisposableChild(this, KeySet);
 		private const tempPoint:Point = new Point();
 		private const _bitmapText:BitmapText = new BitmapText();
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
@@ -60,19 +70,12 @@ package weave.visualization.plotters
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
 		private const _currentDataBounds:Bounds2D = new Bounds2D();
 		
-		public function AnchorPlotter()	
-		{
-			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
-		}
-		
 		public function handleAnchorsChange():void
 		{		
 			var keys:Array = anchors.getNames(AnchorPoint);
 			var keyArray:Array = WeaveAPI.QKeyManager.getQKeys('dimensionAnchors',keys);
 
-			_keySet = new KeySet();
 			_keySet.replaceKeys(keyArray);
-			setKeySource(_keySet);				
 			fillColorMap();
 		}			
 		
@@ -89,7 +92,12 @@ package weave.visualization.plotters
 			}
 		}
 		
-		override public function drawPlot(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
+			return 1;
+		}
+		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var array:Array = anchors.getObjects(AnchorPoint);
 			var x:Number; 

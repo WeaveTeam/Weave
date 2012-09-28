@@ -38,69 +38,66 @@
 		<mx:List id="layerSelector" width="100%" height="100%" minWidth="250">
 			<!-- For now, add new plotter editors here. later, there will be a way of listing them automatically. -->
 			
-			<!--<mx:Object label="Bars" plotterClass="{CompoundBarChartPlotter}" layerClass="{SelectablePlotLayer}"/>-->
-			<mx:Object label="Geometry Labels" plotterClass="{GeometryLabelPlotter}" layerClass="{SelectablePlotLayer}"/>
-			<mx:Object label="Geometry Plotter" plotterClass="{GeometryPlotter}" layerClass="{SelectablePlotLayer}"/>
-			<mx:Object label="WMS Plotter" plotterClass="{WMSPlotter}" layerClass="{SelectablePlotLayer}"/>
-			<mx:Object label="Grid lines" plotterClass="{GridLinePlotter}" layerClass="{PlotLayer}"/>
-			<mx:Object label="Labels" plotterClass="{AxisLabelPlotter}" layerClass="{PlotLayer}"/>
-			<mx:Object label="Rectangle Plotter" plotterClass="{RectanglePlotter}" layerClass="{SelectablePlotLayer}"/>
+			<!--<mx:Object label="{lang('Bars')}" plotterClass="{CompoundBarChartPlotter}" selectable="true"/>-->
+			<mx:Object label="{lang('Geometry Labels')}" plotterClass="{GeometryLabelPlotter}" selectable="true"/>
+			<mx:Object label="{lang('Geometry Plotter')}" plotterClass="{GeometryPlotter}" selectable="true"/>
+			<mx:Object label="{lang('WMS Plotter')}" plotterClass="{WMSPlotter}" selectable="true"/>
+			<mx:Object label="{lang('Grid lines')}" plotterClass="{GridLinePlotter}" selectable="false"/>
+			<mx:Object label="{lang('Labels')}" plotterClass="{AxisLabelPlotter}" selectable="false"/>
+			<mx:Object label="{lang('Rectangle Plotter')}" plotterClass="{RectanglePlotter}" selectable="true"/>
+			<mx:Object label="{lang('Image Plotter')}" plotterClass="{ImageGlyphPlotter}" selectable="true"/>
 		</mx:List>
 	
-		<mx:Button label="Add new layer" right="0" click="openControls()" enabled="{layerSelector.selectedItem != null}"/>
+		<mx:Button label="{lang('Add new layer')}" right="0" click="openControls()" enabled="{layerSelector.selectedItem != null}"/>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
 			import mx.managers.PopUpManager;
 			
+			import weave.api.core.ILinkableHashMap;
 			import weave.api.disposeObjects;
 			import weave.api.registerDisposableChild;
 			import weave.api.ui.ILinkableObjectEditor;
-			import weave.api.ui.IPlotLayer;
 			import weave.api.ui.IPlotter;
 			import weave.ui.ControlPanel;
 			import weave.utils.EditorManager;
-			import weave.visualization.layers.PlotLayer;
-			import weave.visualization.layers.SelectablePlotLayer;
+			import weave.visualization.layers.Visualization;
 			import weave.visualization.plotters.AxisLabelPlotter;
-			import weave.visualization.plotters.DynamicPlotter;
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			import weave.visualization.plotters.GeometryPlotter;
 			import weave.visualization.plotters.GridLinePlotter;
+			import weave.visualization.plotters.ImageGlyphPlotter;
 			import weave.visualization.plotters.RectanglePlotter;
 			import weave.visualization.plotters.WMSPlotter;
-			import weave.visualization.tools.SimpleVisTool;
 			
-			private var _tool:SimpleVisTool = null;
+			private var _visualization:Visualization = null;
 			
 			override protected function constructor():void
 			{
 				super.constructor();
 			}
 			
-			public function set targetTool(value:SimpleVisTool):void
+			public function set targetVisualization(value:Visualization):void
 			{
-				if (_tool != value && _tool != null)
+				if (_visualization != value && _visualization != null)
 					throw new Error("targetTool should not be set more than once");
 				
-				_tool = value;
+				_visualization = value;
 			}
 			
 			private function openControls():void
 			{
 				var label:String = layerSelector.selectedItem.label;
 				var Plotter:Class = layerSelector.selectedItem.plotterClass;
-				var Layer:Class = layerSelector.selectedItem.layerClass;
 				
 				var controls:ControlPanel = new ControlPanel();
 				PopUpManager.addPopUp(controls, this);
 				PopUpManager.centerPopUp(controls);
-				controls.targets = [_tool];
+				controls.targets = [_visualization];
 
-				var layer:IPlotLayer = _tool.visualization.layers.requestObject(_tool.visualization.layers.generateUniqueName(label), Layer, false) as IPlotLayer;
-				var plotter:IPlotter = null;
-				if (layer)
-					plotter = (layer.plotter as DynamicPlotter).requestLocalObject(Plotter, true) as IPlotter;
+				var hm:ILinkableHashMap = _visualization.plotManager.plotters;
+				var name:String = hm.generateUniqueName(label);
+				var plotter:IPlotter = hm.requestObject(name, Plotter, false) as IPlotter;
 				if (!plotter)
 				{
 					controls.revert();

@@ -25,7 +25,8 @@ public class AttributeColumnDataWithKeys {
 	private Map<String,String> metadata;
 	private String[] keys;
 	private Object[] data;
-	private String[] secKeys;
+	
+	private Object[] thirdColumn; // hack for dimension slider
 	
 	public AttributeColumnDataWithKeys(){}
 	
@@ -33,12 +34,12 @@ public class AttributeColumnDataWithKeys {
 			Map<String,String> metadata,
 			String[] keys, 
 			Object[] data,
-			String[] secKeys) 
+			Object[] thirdColumn) 
 	{
 		this.metadata = metadata;
 		this.keys = keys;
 		this.data = data;
-		this.secKeys = secKeys;
+		this.thirdColumn = thirdColumn;
 	}
 	
 	public Map<String,String> getMetadata() {
@@ -53,11 +54,11 @@ public class AttributeColumnDataWithKeys {
 	public void setKeys(String[] keys) {
 		this.keys = keys;
 	}
-	public String[] getSecKeys() {
-		return secKeys;
+	public Object[] getThirdColumn() {
+		return thirdColumn;
 	}
-	public void setSecKeys(String[] secKeys){
-		this.secKeys = secKeys;
+	public void setThirdColumn(Object[] thirdColumn){
+		this.thirdColumn = thirdColumn;
 	}
 	public Object[] getData() {
 		return data;

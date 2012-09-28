@@ -31,12 +31,12 @@ package weave.utils
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.api.ui.ISpatialIndex;
 	import weave.core.CallbackCollection;
+	import weave.core.StageUtils;
 	import weave.primitives.BLGNode;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.KDTree;
 	import weave.primitives.SimpleGeometry;
-	import weave.visualization.plotters.DynamicPlotter;
 	
 	/**
 	 * This class provides an interface to a collection of spatially indexed IShape objects.
@@ -48,21 +48,24 @@ package weave.utils
 	 */
 	public class SpatialIndex extends CallbackCollection implements ISpatialIndex
 	{
+		private function debugTrace(..._):void { } // comment this line to enable debugging
+		
 		public function SpatialIndex()
 		{
 		}
 		
 		private var _kdTree:KDTree = new KDTree(5);
+		private var _prevTriggerCounter:uint = 0; // used by iterative tasks & clear()
 		private const _keysArray:Array = []; // of IQualifiedKey
 		private var _keyToBoundsMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of IBounds2D
 		private var _keyToGeometriesMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of GeneralizedGeometry or ISimpleGeometry
 		
-		private var _queryMissingBounds:Boolean; // used by _insertNext
-		private var _keysArrayIndex:int; // used by _insertNext
-		private var _keysIndex:int; // used by _insertNext
-		private var _plotter:IPlotter;//used by _insertNext
-		private var _boundsArrayIndex:int; // used by _insertNext
-		private var _boundsArray:Array; // used by _insertNext
+		private var _queryMissingBounds:Boolean; // used by async code
+		private var _keysArrayIndex:int; // used by async code
+		private var _keysIndex:int; // used by async code
+		private var _plotter:IPlotter;//used by async code
+		private var _boundsArrayIndex:int; // used by async code
+		private var _boundsArray:Array; // used by async code
 		
 		/**
 		 * These constants define indices in a KDKey corresponding to xmin,ymin,xmax,ymax,importance values.
@@ -79,7 +82,6 @@ package weave.utils
 		private const maxKDKey:Array = [NaN, NaN, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
 		
 		// reusable temporary objects
-		private const _tempBounds:IBounds2D = new Bounds2D();
 		private const _tempBoundsPolygon:Array = [new Point(), new Point(), new Point(), new Point(), new Point()]; // used by setTempBounds and getKeysGeometryOverlap
 
 		/**
@@ -125,27 +127,24 @@ package weave.utils
 		 */
 		public function createIndex(plotter:IPlotter, queryMissingBounds:Boolean = false):void
 		{
+			debugTrace(plotter,this,'createIndex');
+			
 			_queryMissingBounds = queryMissingBounds;
 			
 			var key:IQualifiedKey;
 			var bounds:IBounds2D;
 			var i:int;
 			
-			if (plotter is DynamicPlotter)
-			{
-				if ((plotter as DynamicPlotter).internalObject is IPlotterWithGeometries)
-					_keyToGeometriesMap = new Dictionary();
-				else 
-					_keyToGeometriesMap = null;
-			}
-			
-			_tempBounds.copyFrom(collectiveBounds);
+			if (plotter is IPlotterWithGeometries)
+				_keyToGeometriesMap = new Dictionary();
+			else 
+				_keyToGeometriesMap = null;
 			
 			_keysArray.length = 0; // hack to prevent callbacks
 			clear();
 			_plotter = plotter;
 
-			if (plotter != null)
+			if (plotter)
 			{
 				collectiveBounds.copyFrom(plotter.getBackgroundDataBounds());
 				
@@ -160,39 +159,52 @@ package weave.utils
 				// KDTree structure due to the given ordering of the records
 				VectorUtils.randomSort(_keysArray);
 			}
+			debugTrace(_plotter,this,'keys',_keysArray.length);
 			
 			// insert bounds-to-key mappings in the kdtree
-			WeaveAPI.StageUtils.startTask(this, _insertNext);
+			_prevTriggerCounter = triggerCounter; // used to detect change during iterations
+			_iterateAll(true); // restart from first task
+			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_BUILDING, triggerCallbacks);
 		}
 		
-		private function _insertNext():Number
+		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask([_iterate1, _iterate2]);
+		
+		private function _iterate1():Number
 		{
-			if (_keysArrayIndex  >= _keysArray.length && _keysIndex >= _keysArray.length) // in case length is zero
+			if (_keysIndex >= _keysArray.length)
+				return 1;
+			
+			var key:IQualifiedKey = _keysArray[_keysIndex] as IQualifiedKey;
+			_keyToBoundsMap[key] = _plotter.getDataBoundsFromRecordKey(key);
+			
+			if (_keyToGeometriesMap != null)
 			{
-				triggerCallbacks();
-				return 1; // done
+				var geoms:Array = (_plotter as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
+				_keyToGeometriesMap[key] = geoms;
 			}
 			
-			var key:IQualifiedKey;
-		
-			if (_keysIndex < _keysArray.length)
+			// stop if callbacks were triggered since the iterations started
+			if (triggerCounter != _prevTriggerCounter)
 			{
-				key = _keysArray[_keysIndex] as IQualifiedKey;
-				_keyToBoundsMap[key] = _plotter.getDataBoundsFromRecordKey(key);
-				
-				if (_keyToGeometriesMap != null)
-				{
-					var geoms:Array = ((_plotter as DynamicPlotter).internalObject as IPlotterWithGeometries).getGeometriesFromRecordKey(key);
-					_keyToGeometriesMap[key] = geoms;
-				}
-				_keysIndex++;					
+				debugTrace(_plotter,this,'trigger counter changed');
 				return 0;
 			}
 			
-			key = _keysArray[_keysArrayIndex] as IQualifiedKey;
+			_keysIndex++;
+			
+			return _keysIndex / _keysArray.length;
+		}
+			
+		private function _iterate2():Number
+		{
+			if (_keysArrayIndex >= _keysArray.length)
+				return 1;
+			
+			var key:IQualifiedKey = _keysArray[_keysArrayIndex] as IQualifiedKey;
 			if (!_boundsArray) // is there an existing nested array?
 			{
 				//trace(key.keyType,key.localName,'(',_keysArrayIndex,'/',_keysArray.length,')');
+				// begin outer loop iteration
 				_boundsArray = getBoundsFromKey(key);
 				_boundsArrayIndex = 0;
 			}
@@ -204,10 +216,9 @@ package weave.utils
 				//TODO: index shapes with missing bounds values into a different index
 				// TEMPORARY SOLUTION: store missing bounds if queryMissingBounds == true
 				if (!bounds.isUndefined() || _queryMissingBounds)
-				{
 					_kdTree.insert([bounds.getXNumericMin(), bounds.getYNumericMin(), bounds.getXNumericMax(), bounds.getYNumericMax(), bounds.getArea()], key);
-					collectiveBounds.includeBounds(bounds);
-				}
+				// always include bounds because it may have some coords defined while others aren't
+				collectiveBounds.includeBounds(bounds);
 				// increment inner index
 				_boundsArrayIndex++;
 			}
@@ -219,10 +230,7 @@ package weave.utils
 				_keysArrayIndex++;
 			}
 			
-			var progress:Number = _keysArrayIndex / _keysArray.length;
-			if (progress == 1) // done?
-				triggerCallbacks();
-			return progress;
+			return _keysArrayIndex / _keysArray.length;
 		}
 		
 		/**
@@ -231,6 +239,7 @@ package weave.utils
 		public function clear():void
 		{
 			delayCallbacks();
+			debugTrace(_plotter,this,'clear');
 			
 			if (_keysArray.length > 0)
 				triggerCallbacks();
@@ -245,11 +254,11 @@ package weave.utils
 			resumeCallbacks();
 		}
 		
-		private function polygonOverlapsPolyLine(polygon:Array, line:Object):Boolean
+		private static function polygonOverlapsPolyLine(polygon:Array, line:Object):Boolean
 		{
 			for (var i:int = 0; i < line.length - 1; ++i)
 			{
-				if (ComputationalGeometryUtils.polygonOverlapsLine(_tempBoundsPolygon, line[i].x, line[i].y, line[i + 1].x, line[i + 1].y))
+				if (ComputationalGeometryUtils.polygonOverlapsLine(polygon, line[i].x, line[i].y, line[i + 1].x, line[i + 1].y))
 				{
 					return true;
 				}
@@ -257,17 +266,17 @@ package weave.utils
 			
 			return false;		
 		}
-		private function polygonOverlapsPolyPoint(polygon:Array, point:Object):Boolean
+		private static function polygonOverlapsPolyPoint(polygon:Array, point:Object):Boolean
 		{
 			for (var i:int = 0; i < point.length; ++i)
 			{
-				if (ComputationalGeometryUtils.polygonOverlapsPoint(_tempBoundsPolygon, point[i].x, point[i].y))
+				if (ComputationalGeometryUtils.polygonOverlapsPoint(polygon, point[i].x, point[i].y))
 					return true;
 			}
 			
 			return false;
 		}
-		private function getMinimumUnscaledDistanceFromPolyLine(line:Object, x:Number, y:Number):Number
+		private static function getMinimumUnscaledDistanceFromPolyLine(line:Object, x:Number, y:Number):Number
 		{
 			var min:Number = Number.POSITIVE_INFINITY;
 			for (var i:int = 0; i < line.length - 1; ++i)
@@ -277,7 +286,7 @@ package weave.utils
 			}			
 			return min;
 		}
-		private function getMinimumUnscaledDistanceFromPolyPoint(line:Object, x:Number, y:Number):Number
+		private static function getMinimumUnscaledDistanceFromPolyPoint(line:Object, x:Number, y:Number):Number
 		{
 			var min:Number = Number.POSITIVE_INFINITY;
 			for (var i:int = 0; i < line.length; ++i)
@@ -307,6 +316,7 @@ package weave.utils
 			maxKDKey[XMIN_INDEX] = bounds.getXNumericMax(); // enforce result.XMIN <= query.xNumericMax
 			maxKDKey[YMIN_INDEX] = bounds.getYNumericMax(); // enforce result.YMIN <= query.yNumericMax
 			
+			//return _kdTree.queryRange(minKDKey, maxKDKey, true, IMPORTANCE_INDEX, KDTree.DESCENDING);
 			return _kdTree.queryRange(minKDKey, maxKDKey);
 		}
 		
@@ -340,7 +350,7 @@ package weave.utils
 			var keys:Array = getKeysBoundingBoxOverlap(queryBounds, filterBoundingBoxesByImportance ? minImportance : 0);
 			
 			// if this index isn't for an IPlotterWithGeometries OR the user wants legacy probing
-			if (_keyToGeometriesMap == null || !Weave.properties.shouldEnableGeometryProbing())
+			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value)
 				return keys;
 			
 			// if there are 0 keys
@@ -358,7 +368,7 @@ package weave.utils
 				var key:IQualifiedKey = keys[i];
 				var geoms:Array = _keyToGeometriesMap[key];
 				
-				if (geoms.length == 0)
+				if (!geoms || geoms.length == 0) // geoms may be null if async task hasn't completed yet
 				{
 					result.push(key);
 					continue keyLoop;
@@ -493,51 +503,12 @@ package weave.utils
 			{
 				var key:IQualifiedKey = keys[iKey];
 				var overlapsQueryCenter:Boolean = false;
+				var geoms:Array = null;
+				if (_keyToGeometriesMap && Weave.properties.enableGeometryProbing.value)
+					geoms = _keyToGeometriesMap[key] as Array; // may be null if async task hasn't completed
 				
-				// if the plotter wasn't an IPlotterWithGeometries or if the user wants the old probing
-				if (_keyToGeometriesMap == null || !Weave.properties.shouldEnableGeometryProbing())
+				if (geoms) // the plotter is an IPlotterWithGeometries and the user wants geometry probing
 				{
-					for each (recordBounds in _keyToBoundsMap[key])
-					{
-						// find the distance squared from the query point to the center of the shape
-						xDistance = recordBounds.getXCenter() - xQueryCenter;
-						yDistance = recordBounds.getYCenter() - yQueryCenter;
-						if (!isNaN(xPrecision) && xPrecision != 0)
-							xDistance = int(xDistance / xPrecision);
-						if (!isNaN(yPrecision) && yPrecision != 0)
-							yDistance = int(yDistance / yPrecision);
-						distanceSq = xDistance * xDistance + yDistance * yDistance;
-						
-						overlapsQueryCenter = recordBounds.contains(xQueryCenter, yQueryCenter);
-						
-						// Consider all keys until we have found one that overlaps the query center.
-						// After that, only consider keys that overlap query center.
-						if (!foundQueryCenterOverlap || overlapsQueryCenter)
-						{
-							// if this is the first record that overlaps the query center, reset the list of keys
-							if (!foundQueryCenterOverlap && overlapsQueryCenter)
-							{
-								resultCount = 0;
-								closestDistanceSq = Infinity;
-								foundQueryCenterOverlap = true;
-							}
-							// if this distance is closer than any previous distance, clear all previous keys
-							if (distanceSq < closestDistanceSq)
-							{
-								// clear previous result and update closest distance
-								resultCount = 0;
-								closestDistanceSq = distanceSq;
-							}
-							// add keys to the result if they are the closest so far
-							if (distanceSq == closestDistanceSq && (resultCount == 0 || result[resultCount - 1] != key))
-								result[resultCount++] = key;
-						}
-					}
-				}
-				else // the plotter is an IPlotterWithGeometries and the user wants geometry probing
-				{
-					var geoms:Array = _keyToGeometriesMap[key];
-					
 					for (var iGeom:int = 0; iGeom < geoms.length; ++iGeom)
 					{
 						var geom:Object = geoms[iGeom];
@@ -686,6 +657,45 @@ package weave.utils
 							}
 						}
 					} // geomLoop
+				}
+				else // if the plotter wasn't an IPlotterWithGeometries or if the user wants the old probing
+				{
+					for each (recordBounds in _keyToBoundsMap[key])
+					{
+						// find the distance squared from the query point to the center of the shape
+						xDistance = recordBounds.getXCenter() - xQueryCenter;
+						yDistance = recordBounds.getYCenter() - yQueryCenter;
+						if (!isNaN(xPrecision) && xPrecision != 0)
+							xDistance = int(xDistance / xPrecision);
+						if (!isNaN(yPrecision) && yPrecision != 0)
+							yDistance = int(yDistance / yPrecision);
+						distanceSq = xDistance * xDistance + yDistance * yDistance;
+						
+						overlapsQueryCenter = recordBounds.contains(xQueryCenter, yQueryCenter);
+						
+						// Consider all keys until we have found one that overlaps the query center.
+						// After that, only consider keys that overlap query center.
+						if (!foundQueryCenterOverlap || overlapsQueryCenter)
+						{
+							// if this is the first record that overlaps the query center, reset the list of keys
+							if (!foundQueryCenterOverlap && overlapsQueryCenter)
+							{
+								resultCount = 0;
+								closestDistanceSq = Infinity;
+								foundQueryCenterOverlap = true;
+							}
+							// if this distance is closer than any previous distance, clear all previous keys
+							if (distanceSq < closestDistanceSq)
+							{
+								// clear previous result and update closest distance
+								resultCount = 0;
+								closestDistanceSq = distanceSq;
+							}
+							// add keys to the result if they are the closest so far
+							if (distanceSq == closestDistanceSq && (resultCount == 0 || result[resultCount - 1] != key))
+								result[resultCount++] = key;
+						}
+					}
 				} // if else
 			} // keyLoop
 			
@@ -708,7 +718,7 @@ package weave.utils
 			var queryGeomVertices:Array = geometry.getVertices();
 			var keys:Array = getKeysBoundingBoxOverlap((geometry as SimpleGeometry).bounds, filterBoundingBoxesByImportance ? minImportance : 0);
 			
-			if (_keyToGeometriesMap == null || !Weave.properties.shouldEnableGeometryProbing())
+			if (_keyToGeometriesMap == null || !Weave.properties.enableGeometryProbing.value)
 				return keys;
 			
 			var result:Array = [];

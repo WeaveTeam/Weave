@@ -273,15 +273,6 @@ package weave.primitives
 			}
 			return _allColorRamps;
 		}
-
-		private static var _allColorRampNames:Array = [];
-		public static function get allColorRampNames():Array
-		{
-			if (_allColorRampNames.length == 0)
-				VectorUtils.copyXMLListToVector(allColorRamps.colorRamp.@name, _allColorRampNames);
-			return _allColorRampNames;
-		}
-		
 		public static function getColorRampXMLByName(rampName:String):XML
 		{
 			return (allColorRamps.colorRamp.(@name == rampName)[0] as XML).copy();
