@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Vector;
 
 import org.w3c.dom.Document;
 
@@ -474,7 +473,6 @@ public class SQLConfig
                 try
                 {
                     Connection conn = this.conn.getConnection();
-                    Set<Integer> ids;
                     List<Map<String,String>> crossRowArgs = new LinkedList<Map<String,String>>();
 
                     for (Entry<String,String> keyValPair : constraints.entrySet())

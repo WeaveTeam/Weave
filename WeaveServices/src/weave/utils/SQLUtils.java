@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -524,15 +523,13 @@ public class SQLUtils
 	public static SQLResult getRowSetFromQuery(Connection connection, String query, String[] params)
 	throws SQLException
 	{
-		CallableStatement stmt = null;
+		CallableStatement cstmt = null;
 		ResultSet rs = null;
 		SQLResult result = null;
 		try
 		{
-			stmt = connection.prepareCall(query);
-			for (int i = 0; i < params.length; i++)
-				stmt.setString(i + 1, params[i]);
-			rs = stmt.executeQuery();
+			cstmt = prepareCall(connection, query, params);
+			rs = cstmt.executeQuery();
 			
 			// make a copy of the query result
 			result = new SQLResult(rs);
@@ -546,7 +543,7 @@ public class SQLUtils
 		{
 			// close everything in reverse order
 			SQLUtils.cleanup(rs);
-			SQLUtils.cleanup(stmt);
+			SQLUtils.cleanup(cstmt);
 		}
 		
 		// return the copy of the query result
@@ -652,8 +649,8 @@ public class SQLUtils
 				columnQuery = "*"; // select all columns
 			
 			// build WHERE clause
-			String whereQuery;
-			whereQuery = buildPreparedWhereClause(conn, whereParams.keySet());
+			List<Entry<String,VALUE_TYPE>> whereEntries = imposeMapOrdering(whereParams);
+			String whereQuery = buildWhereClause(conn, getEntryKeys(whereEntries));
 			
 			// build complete query
 			query = String.format(
@@ -662,17 +659,7 @@ public class SQLUtils
 					quoteSchemaTable(conn, fromSchema, fromTable),
 					whereQuery
 				);
-			cstmt = conn.prepareCall(query);
-			
-			// set query parameters
-			int i = 1;
-			for (Entry<String,VALUE_TYPE> entry : whereParams.entrySet())
-			{
-				Object value = entry.getValue();
-				cstmt.setObject( i, value );
-				i++;
-			}
-			
+			cstmt = prepareCall(conn, query, getEntryValues(whereEntries));
 			rs = cstmt.executeQuery();
 			
 			return getRecordsFromResultSet(rs);
@@ -706,7 +693,6 @@ public class SQLUtils
 			Map<String,Object> whereParams
 		) throws SQLException
 	{
-		DebugTimer t = new DebugTimer();
 		CallableStatement cstmt = null;
 		ResultSet rs = null;
 		SQLResult result = null;
@@ -725,7 +711,8 @@ public class SQLUtils
 				columnQuery = "*"; // select all columns
 			
 			// build WHERE clause
-			String whereQuery = buildGenericWhereClause(conn, whereParams);
+			List<Entry<String,Object>> whereEntries = imposeMapOrdering(whereParams);
+			String whereQuery = buildWhereClause(conn, getEntryKeys(whereEntries));
 			
 			// build complete query
 			query = String.format(
@@ -734,26 +721,11 @@ public class SQLUtils
 					quoteSchemaTable(conn, fromSchema, fromTable),
 					whereQuery
 				);
-			cstmt = conn.prepareCall(query);
-			
-			// set query parameters
-			int i = 1;
-			Iterator<Entry<String, Object>> paramsIter = whereParams.entrySet().iterator();
-			while (paramsIter.hasNext())
-			{
-				Map.Entry<String, Object> pairs = (Map.Entry<String, Object>)paramsIter.next();
-				Object value = pairs.getValue();
-				cstmt.setObject( i, value );
-				i++;
-			}
-			
-			t.lap("prepare query");
+			cstmt = prepareCall(conn, query, getEntryValues(whereEntries));
 			rs = cstmt.executeQuery();
-			t.lap(query);
 			
 			// make a copy of the query result
 			result = new SQLResult(rs);
-			t.lap("cache row set");
 		}
 		catch (SQLException e)
 		{
@@ -767,7 +739,6 @@ public class SQLUtils
 			SQLUtils.cleanup(cstmt);
 		}
 		
-		t.report();
 		// return the copy of the query result
 		return result;
 	}
@@ -1081,43 +1052,43 @@ public class SQLUtils
 			SQLUtils.cleanup(stmt);
 		}
 	}
-    private static String buildPreparedWhereClause(Connection conn, Collection<String> columns) /* Only for prepared case */ throws IllegalArgumentException, SQLException
-    {
-        Map<String,String> whereClauses = new HashMap<String,String>();
-        for (String key : columns)
-        {
-            whereClauses.put(key, "");
-        }
-        return buildWhereClause(conn, whereClauses);
-    }
-    private static String buildWhereClause(Connection conn, Map<String,String> whereClauses) throws IllegalArgumentException, SQLException
-    {
-        return buildWhereClause(conn, whereClauses, false);
-    }
-	private static <T> String buildGenericWhereClause(Connection conn, Map<String,T> whereClauses /* boolean preQuoted = false */) throws IllegalArgumentException, SQLException
+	private static String buildWhereClause(Connection conn, List<String> whereFields) throws IllegalArgumentException, SQLException
 	{
-		return buildPreparedWhereClause(conn, whereClauses.keySet());
-	}
-	private static String buildWhereClause(Connection conn, Map<String,String> whereClauses, boolean preQuoted) throws IllegalArgumentException, SQLException
-	{ 
-		String whereQuery = "";
-		int i = 0;
-		Iterator<Entry<String, String>> paramsIter = whereClauses.entrySet().iterator();
-		while (paramsIter.hasNext())
+		if (whereFields.size() == 0)
+			return "";
+		
+		String whereQuery = "WHERE ";
+		for (String field : whereFields)
 		{
-			Entry<String, String> pair = paramsIter.next();
-			String key = pair.getKey();
-			String value = pair.getValue();
-			if( i > 0 ) whereQuery += " AND ";
-			if (!preQuoted) key = quoteSymbol(conn, key);
-			value = " ?";
-			whereQuery += key + caseSensitiveCompareOperator(conn) + value; // case-sensitive
-			
-			i++;
+			if (whereQuery.length() > 0)
+				whereQuery += " AND ";
+			whereQuery += caseSensitiveCompare(conn, quoteSymbol(conn, field), "?");
 		}
-		if (whereQuery.length() > 0)
-			whereQuery = "WHERE " + whereQuery;
 		return whereQuery;
+	}
+	private static <TYPE> CallableStatement prepareCall(Connection conn, String query, List<TYPE> params) throws SQLException
+	{
+		CallableStatement cstmt = conn.prepareCall(query);
+		setCallableStatementParams(cstmt, params);
+		return cstmt;
+	}
+	private static <TYPE> CallableStatement prepareCall(Connection conn, String query, TYPE[] params) throws SQLException
+	{
+		CallableStatement cstmt = conn.prepareCall(query);
+		setCallableStatementParams(cstmt, params);
+		return cstmt;
+	}
+	private static <TYPE> void setCallableStatementParams(CallableStatement cstmt, List<TYPE> params) throws SQLException
+	{
+		int i = 1;
+		for (TYPE param : params)
+			cstmt.setObject(i++, param);
+	}
+	private static <TYPE> void setCallableStatementParams(CallableStatement cstmt, TYPE[] params) throws SQLException
+	{
+		int i = 1;
+		for (TYPE param : params)
+			cstmt.setObject(i++, param);
 	}
 /* Service methods for maintaining my sanity and saving me keystrokes. -pkovac */
         private static String stringJoin(String separator, Collection<String> items)
@@ -1144,11 +1115,7 @@ public class SQLUtils
         }
         private static String buildPredicate(Connection conn, Entry<String, String> pair) throws SQLException
         {
-            return buildPredicate(conn, pair.getKey(), pair.getValue());
-        }
-        private static String buildPredicate(Connection conn, String field, String value) throws SQLException
-        {
-            return "(" + field + caseSensitiveCompareOperator(conn) + value + ")";
+            return "(" + caseSensitiveCompare(conn, pair.getKey(), pair.getValue()) + ")";
         }
         private static String buildDisjunctiveNormalForm(Connection conn, List<List<Entry<String,String>>> arguments) throws SQLException
         {
@@ -1165,43 +1132,59 @@ public class SQLUtils
             }
             return stringJoin(" OR ", conjunctions);
         }
-        private static List<Entry<String,String>> imposeMapOrdering(Map<String,String> inputMap)
+        private static <KEY,VALUE> List<Entry<KEY,VALUE>> imposeMapOrdering(Map<KEY,VALUE> inputMap)
         {
-            List<Entry<String,String>> orderedEntries = new LinkedList<Entry<String,String>>();
-            for (Entry<String,String> pair : inputMap.entrySet())
+            List<Entry<KEY,VALUE>> orderedEntries = new LinkedList<Entry<KEY,VALUE>>();
+            for (Entry<KEY,VALUE> pair : inputMap.entrySet())
             {
                 orderedEntries.add(pair);
             }
             return orderedEntries;
         }
-
-	public static int updateRows(Connection conn, String fromSchema, String fromTable, Map<String,Object> whereParams, Map<String,Object> dataUpdate) throws SQLException
+        private static <KEY,VALUE> List<KEY> getEntryKeys(List<Entry<KEY,VALUE>> orderedEntries)
         {
-                String query, updateBlock, whereBlock;
-                /* Build the update block */
-                List<String> updateBlockList = new LinkedList<String>();
-                List<Object> argList = new LinkedList<Object>();
-                for (Entry<String,Object> data : dataUpdate.entrySet())
-                {
-                    updateBlockList.add(String.format("%s=?", data.getKey()));
-                    argList.add(data.getValue());
-                }
-                for (Entry<String,Object> where : whereParams.entrySet())
-                {
-                    argList.add(where.getValue());
-                }
-                whereBlock = buildGenericWhereClause(conn, whereParams);
-                updateBlock = stringJoin(",", updateBlockList);
-                query = String.format("UPDATE %s SET %s WHERE %s", fromTable, updateBlock, whereBlock);
-                PreparedStatement stmt = conn.prepareStatement(query);
-                int i = 1;
-                for (Object o : argList)
-                {
-                    stmt.setObject(i++, o);
-                }
-                i = stmt.executeUpdate();
-                return i;
+        	List<KEY> result = new LinkedList<KEY>();
+        	for (Entry<KEY,VALUE> entry : orderedEntries)
+        		result.add(entry.getKey());
+        	return result;
         }
+        private static <KEY,VALUE> List<VALUE> getEntryValues(List<Entry<KEY,VALUE>> orderedEntries)
+        {
+        	List<VALUE> result = new LinkedList<VALUE>();
+        	for (Entry<KEY,VALUE> entry : orderedEntries)
+        		result.add(entry.getValue());
+        	return result;
+        }
+
+        public static int updateRows(Connection conn, String fromSchema, String fromTable, Map<String,Object> whereParams, Map<String,Object> dataUpdate) throws SQLException
+		{
+			String query, updateBlock, whereBlock;
+			/* Build the update block */
+			List<String> updateBlockList = new LinkedList<String>();
+			List<Object> argList = new LinkedList<Object>();
+			for (Entry<String,Object> data : dataUpdate.entrySet())
+			{
+		        updateBlockList.add(String.format("%s=?", data.getKey()));
+		        argList.add(data.getValue());
+		    }
+		    List<String> whereFields = new LinkedList<String>();
+		    for (Entry<String,Object> where : whereParams.entrySet())
+		    {
+		        argList.add(where.getValue());
+		        whereFields.add(where.getKey());
+		    }
+		    whereBlock = buildWhereClause(conn, whereFields);
+		    updateBlock = stringJoin(",", updateBlockList);
+		    query = String.format("UPDATE %s SET %s WHERE %s", fromTable, updateBlock, whereBlock);
+		    PreparedStatement stmt = conn.prepareStatement(query);
+		    int i = 1;
+		    for (Object o : argList)
+		    {
+		        stmt.setObject(i++, o);
+		    }
+		    i = stmt.executeUpdate();
+		    return i;
+		}
         public static Map<Integer,Map<String,String>> idInSelect(Connection conn, String schemaName, String table, String idColumn, String propColumn, String dataColumn, Collection<Integer> ids, Collection<String> props) throws SQLException
         {
         	String query = "";
@@ -1602,7 +1585,7 @@ public class SQLUtils
 	public static void insertRow( Connection conn, String schemaName, String tableName, Map<String,Object> newColumnValues)
 		throws SQLException
 	{
-		CallableStatement pstmt = null;
+		CallableStatement cstmt = null;
 		String query = "";
 		int i = 0;
 		try
@@ -1639,11 +1622,8 @@ public class SQLUtils
 			);
 			
 			// prepare call and set string parameters
-			pstmt = conn.prepareCall(query);
-			for (i = 0; i < values.length; i++)
-				pstmt.setObject(i+1, values[i]);
-
-			pstmt.execute();
+			cstmt = prepareCall(conn, query, values);
+			cstmt.executeUpdate();
 		}
 		catch (SQLException e)
 		{
@@ -1653,7 +1633,7 @@ public class SQLUtils
 		}
 		finally
 		{
-			SQLUtils.cleanup(pstmt);
+			SQLUtils.cleanup(cstmt);
 		}
 	}
 
@@ -1708,7 +1688,6 @@ public class SQLUtils
 	 * @param whereParams The set of key-value pairs that will be used in the WHERE clause of the query
 	 * @throws SQLException If the query fails.
 	 */
-	@SuppressWarnings("unchecked")
 	public static void deleteRows(Connection conn, String schemaName, String tableName, Map<String,Object> whereParams) throws SQLException
 	{
 		CallableStatement cstmt = null;
@@ -1718,21 +1697,11 @@ public class SQLUtils
 		{
 			query = "DELETE FROM " + SQLUtils.quoteSchemaTable(conn, schemaName, tableName) + " WHERE ";
 			
-			Entry<String,Object>[] params = whereParams.entrySet().toArray(new Entry[0]);
-
-			for (int i = 0; i < params.length; i++)
-			{
-				if (i > 0)
-					query += " AND ";
-				query += caseSensitiveCompare(conn, SQLUtils.quoteSymbol(conn, params[i].getKey()), "?");
-			}
+			List<Entry<String,Object>> whereEntries = imposeMapOrdering(whereParams);
+			query += buildWhereClause(conn, getEntryKeys(whereEntries));
 			
-			cstmt = conn.prepareCall(query);
-			
-			for (int i = 0; i < params.length; i++)
-				cstmt.setObject(i + 1, params[i].getValue());
-			
-			cstmt.execute();
+			cstmt = prepareCall(conn, query, getEntryValues(whereEntries));
+			cstmt.executeUpdate();
 		}
 		finally
 		{
@@ -1892,14 +1861,10 @@ public class SQLUtils
 				CallableStatement cstmt = null;
 				try
 				{
-					cstmt = conn.prepareCall(query);;
-
+					cstmt = conn.prepareCall(query);
 					for (int row = 1; row < rows.length; row++) //Skip header line
 					{
-						for (int column = 0; column < rows[row].length; column++)
-						{
-							cstmt.setString(column+1, rows[row][column]);
-						}
+						setCallableStatementParams(cstmt, rows[row]);
 						cstmt.execute();
 					}
 				}

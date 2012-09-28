@@ -69,7 +69,9 @@
         {
             metaChanged();
             if (isChanged)
-                /* Spit out error */ ;
+			{
+                /* Spit out error */
+			}
             else
                 setEditors();
         }
