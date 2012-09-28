@@ -46,7 +46,7 @@ package weave.utils
 		 * @param cursorName A name for the cursor.
 		 * @param bitmapAsset The Class containing the embedded cursor image.
 		 * @param xHotSpot The X coordinate of the hot spot.  Set to NaN to use the center X coordinate.
-		 * @param yHotSpot The X coordinate of the hot spot.  Set to NaN to use the center Y coordinate.
+		 * @param yHotSpot The Y coordinate of the hot spot.  Set to NaN to use the center Y coordinate.
 		 */		
         public static function registerEmbeddedCursor(name:String, bitmapAssetClass:Class, xHotSpot:Number, yHotSpot:Number):void
 		{
@@ -124,9 +124,9 @@ package weave.utils
 		///////////
 		
 		/**
+		 * @private
 		 * @TODO Stop using this function and remove it.
 		 */
-		[Exclude]
 		public static function hack_removeCurrentCursor():void
 		{
 			if (cursorStack.length == 0)
@@ -137,9 +137,9 @@ package weave.utils
 		}
 		
 		/**
+		 * @private
 		 * @TODO Stop using this function and remove it.
 		 */
-		[Exclude]
 		public static function hack_removeAllCursors():void
 		{
 			cursorStack.length = 0;
