@@ -1057,14 +1057,14 @@ public class SQLUtils
 		if (whereFields.size() == 0)
 			return "";
 		
-		String whereQuery = "WHERE ";
+		String whereQuery = "";
 		for (String field : whereFields)
 		{
 			if (whereQuery.length() > 0)
 				whereQuery += " AND ";
 			whereQuery += caseSensitiveCompare(conn, quoteSymbol(conn, field), "?");
 		}
-		return whereQuery;
+		return "WHERE " + whereQuery;
 	}
 	private static <TYPE> CallableStatement prepareCall(Connection conn, String query, List<TYPE> params) throws SQLException
 	{
