@@ -590,15 +590,14 @@ public class AdminService extends GenericServlet
 	// /////////////////////////////////////////////////
 	// functions for managing DataTable entries
 	// /////////////////////////////////////////////////
-
-        synchronized public void addChild(String connectionName, String password, int child, int parent) throws RemoteException
+        synchronized public void addChildToParent(String connectionName, String password, int child, int parent) throws RemoteException
         {
                 ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
                 ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
                 if (cInfo.is_superuser)
                     config.addChild(child, parent);
         }
-        synchronized public void removeChild(String connectionName, String password, int child, int parent) throws RemoteException
+        synchronized public void removeChildFromParent(String connectionName, String password, int child, int parent) throws RemoteException
         {
                 ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
                 ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
@@ -612,6 +611,14 @@ public class AdminService extends GenericServlet
                 ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
                 if (cInfo.is_superuser)
                     return config.addEntity(entity_type, newmeta);
+                return -1;
+        }
+        synchronized public int copyEntity(String connectionName, String password, int id) throws RemoteException
+        {
+                ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+                ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
+                if (cInfo.is_superuser)
+                    return config.copyEntity(id);
                 return -1;
         }
         synchronized private DataEntity[] getEntitiesByType(String connectionName, String password, int entity_type) throws RemoteException

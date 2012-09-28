@@ -288,21 +288,29 @@ package weave.services
 			return query;
 		}
 		// functions for managing DataTable entries
+                public function addAttributeColumn(metadata:Object, handler:Function):void
+                {
+                    service.addAttributeColumn(activeConnectionName, activePassword, metadata).addAsyncResponder(handler);
+                }
                 public function addDataTable(metadata:Object, handler:Function):void
                 {
-                    service.addTag(activeConnectionName, activePassword, metadata).addAsyncResponder(handler);
+                    service.addDataTable(activeConnectionName, activePassword, metadata).addAsyncResponder(handler);
                 }
                 public function addTag(metadata:Object, handler:Function):void
                 {
                     service.addTag(activeConnectionName, activePassword, metadata).addAsyncResponder(handler); 
                 }
-                public function addChild(child_id:int, parent_id:int, handler:Function):void
+                public function copyEntity(id:int, handler:Function):void
                 {
-                    service.addChild(activeConnectionName, activePassword, child_id, parent_id).addAsyncResponder(handler);
+                    service.copyEntity(activeConnectionName, activePassword, id).addAsyncResponder(handler); 
                 }
-                public function removeChild(child_id:int, parent_id:int, handler:Function):void
+                public function addChildToParent(child_id:int, parent_id:int, handler:Function):void
                 {
-                    service.removeChild(activeConnectionName, activePassword, child_id, parent_id).addAsyncResponder(handler);
+                    service.addChildToParent(activeConnectionName, activePassword, child_id, parent_id).addAsyncResponder(handler);
+                }
+                public function removeChildFromParent(child_id:int, parent_id:int, handler:Function):void
+                {
+                    service.removeChildFromParent(activeConnectionName, activePassword, child_id, parent_id).addAsyncResponder(handler);
                 }
                 public function removeEntity(id:int, handler:Function):void
                 {

@@ -79,10 +79,6 @@ package weave.ui
             AdminInterface.instance.meta_cache.add_child(child_id, this.id, childrenChanged);
             
         }
-        public function add_copy(child_id:int):void
-        {
-            return; 
-        }
         public function remove_self():void
         {
             AdminInterface.instance.meta_cache.delete_entity(this.id);

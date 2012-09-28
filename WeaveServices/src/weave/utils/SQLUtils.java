@@ -65,80 +65,6 @@ import org.postgresql.PGConnection;
  */
 public class SQLUtils
 {
-/* Wrapper class around SQLUtils. Eventually we should fold SQLUtils entirely into this class. */
-/* Actually, we should probably skip this and use JOOQ instead. */
-
-/*
-        public class AbstractSQLTable 
-        {
-            private ImmortalConnection conn;
-            private String schemaName;
-            private String tableName;
-            private Map<String,String> columns;
-            public AbstractSQLTable(ImmortalConnection iconn, 
-                    String schema_name,
-                    String table_name, 
-                    Map<String,String> newColumns,
-                    List<List<String>> indices,
-                    Map<String,Entry<String,String>> keyMappings) throws SQLException
-            {
-                this.conn = conn;
-                schemaName = schema_name;
-                tableName = table_name;
-                columns = newColumns;
-                initTable();
-                initIndices(indices);
-                initForeignKeys(keyMappings);
-            }
-
-            private void initTable() throws SQLException
-            {
-                Connection conn = this.conn.getConnection();
-                if (tableExists(conn, schema, name))
-                    return;
-                List<String> columnNames = new LinkedList<String>();
-                List<String> columnTypes = new LinkedList<String>();
-                for (Entry<String,String> column : columns)
-                {
-                    columnNames.add(column.getKey());
-                    columnTypes.add(column.getValue());
-                }
-                createTable(conn, schema, name, columnNames, columnTypes);
-
-                return;
-            }
-
-            private void initIndices(List<List<String>> indices)
-            {
-                Connection conn = this.conn.getConnection();
-                for (List<String> index : indices)
-                {
-                    List<Integer> sizes = new LinkedList<Integer>();
-                    List<String> col_names = new LinkedList<String>();
-                    for (String column : index)
-                    {
-                        String type = columns.get(column);
-                        if (type.equals("TEXT"))
-                            sizes.add(255); 
-                        else
-                            sizes.add(0);
-                        col_names.add(column);
-                    }
-                    createIndex(conn, schema, stringJoin("", col_names), col_names, sizes);
-                }
-                return;
-            }
-            private void initForeignKeys(Map<String,Entry<String,String>> keyMappings) throws SQLException
-            {
-                Connection conn = this.conn.getConnection();
-                for (Map<String,Entry<String,String>> col : keyMappings)
-                {
-                    addForeignKey(conn, schema, name, col.getKey(), col.getValue());
-                }
-                return;
-            }
-        } */
-
 	public static String MYSQL = "MySQL";
 	public static String POSTGRESQL = "PostgreSQL";
 	public static String SQLSERVER = "Microsoft SQL Server";
@@ -1129,17 +1055,17 @@ public class SQLUtils
         {
             whereClauses.put(key, "");
         }
-        return buildWhereClause(conn, whereClauses, false, true);
+        return buildWhereClause(conn, whereClauses);
     }
     private static String buildWhereClause(Connection conn, Map<String,String> whereClauses) throws IllegalArgumentException, SQLException
     {
-        return buildWhereClause(conn, whereClauses, false, false);
+        return buildWhereClause(conn, whereClauses, false);
     }
 	private static <T> String buildGenericWhereClause(Connection conn, Map<String,T> whereClauses /* boolean preQuoted = false */) throws IllegalArgumentException, SQLException
 	{
 		return buildPreparedWhereClause(conn, whereClauses.keySet());
 	}
-	private static String buildWhereClause(Connection conn, Map<String,String> whereClauses, boolean preQuoted, boolean preparedStatement) throws IllegalArgumentException, SQLException
+	private static String buildWhereClause(Connection conn, Map<String,String> whereClauses, boolean preQuoted) throws IllegalArgumentException, SQLException
 	{ 
 		String whereQuery = "";
 		int i = 0;
@@ -1151,8 +1077,7 @@ public class SQLUtils
 			String value = pair.getValue();
 			if( i > 0 ) whereQuery += " AND ";
 			if (!preQuoted) key = quoteSymbol(conn, key);
-			if (preparedStatement) value = " ?";
-			else value = " \"" + value + "\""; // TODO: Clean up and secure this.
+			value = " ?";
 			whereQuery += key + caseSensitiveCompareOperator(conn) + value; // case-sensitive
 			
 			i++;
@@ -1472,25 +1397,6 @@ public class SQLUtils
 		return false;
 	}
         /**
-         * @param conn An existing SQL connection
-         * @param schemaName A schema name accessible through the given connection
-         * @param tableName The name of an existing table
-         * @param columnNames The names of the columns to use
-         * @throws SQLException If the query fails.
-         */
-        public static boolean hasIndex(Connection conn, String schemaName, String tableName, String indexName) throws SQLException
-        {
-            boolean res;
-            Map<String,String> whereParams = new HashMap<String,String>();
-            whereParams.put("Key_name", indexName);
-            String query = String.format("SHOW INDEX FROM %s %s",
-                            SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
-                            buildWhereClause(conn, whereParams, false, false));
-            Statement stmt = conn.createStatement();
-            res = stmt.execute(query);
-            return res;
-        }
-        /**
 	 * @param conn An existing SQL Connection
 	 * @param SchemaName A schema name accessible through the given connection
 	 * @param tableName The name of an existing table
@@ -1524,7 +1430,6 @@ public class SQLUtils
                             columnNamesStr += (i > 0 ? ", " : "") + quoteSymbol(conn, columnNames[i]);
                         }
                 }
-                if (hasIndex(conn, schemaName, tableName, indexName)) return;
 		String query = String.format(
 				"CREATE INDEX %s ON %s (%s)",
 				SQLUtils.quoteSymbol(conn, indexName),

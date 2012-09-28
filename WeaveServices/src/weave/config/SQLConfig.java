@@ -272,13 +272,39 @@ public class SQLConfig
             }
             return results;
         }
+        public Integer copyEntity(Integer id) throws RemoteException
+        {
+            /* Do a recursive copy of an entity. */
+            Integer new_id;
+            DataEntity old_data = getEntity(id);
+            Map<String,Map<String,String>> props = new HashMap<String,Map<String,String>>();
+            props.put("public", old_data.publicMetadata);
+            props.put("private", old_data.privateMetadata);
+            new_id = addEntity(old_data.type, props);
+
+            Collection<DataEntity> old_children = getChildren(id);
+            for (DataEntity child : old_children)
+            {
+                Integer child_id = child.id;
+                if (child.type != ISQLConfig.DataEntity.MAN_TYPE_COLUMN)
+                {
+                    child_id = copyEntity(child.id);
+                }
+                addChild(child_id, new_id);
+            }
+            return new_id;
+        }
         public void addChild(Integer child_id, Integer parent_id) throws RemoteException
         {
-            /* Test if child_id is a datatable; if it is, create a tag copy. */
             relationships.addChild(child_id, parent_id);
         }
         public void removeChild(Integer child_id, Integer parent_id) throws RemoteException
         {
+            /* If we're trying to remove a child from a datatable, throw a wobbly. */
+            if (manifest.getEntryType(parent_id) == ISQLConfig.DataEntity.MAN_TYPE_DATATABLE)
+            {
+                throw new RemoteException("Can't remove children from a datatable. Ever.", null);
+            }
             relationships.removeChild(child_id, parent_id);
         }
         public Collection<DataEntity> getChildren(Integer id) throws RemoteException
@@ -315,10 +341,21 @@ public class SQLConfig
                 this.conn = conn;
                 this.tableName = tableName;
                 this.schemaName = schemaName;
-                initTable();
+                if (!tableExists()) initTable();
             }
             protected abstract void initTable() throws RemoteException;
-//            private abstract boolean tableExists() throws RemoteException;
+            private boolean tableExists() throws RemoteException
+            {
+                try
+                {
+                    Connection conn = this.conn.getConnection();
+                    return SQLUtils.tableExists(conn, schemaName, tableName);
+                }
+                catch (SQLException e)
+                {
+                    throw new RemoteException("Unable to determine whether table exists.", e);
+                }
+            }
         }
         private class AttributeValueTable extends AbstractTable
         {
@@ -335,21 +372,29 @@ public class SQLConfig
                     Arrays.asList(META_ID, META_PROPERTY, META_VALUE),
                     Arrays.asList("BIGINT UNSIGNED", "TEXT", "TEXT"));
 
-                /* Index of (ID, Property) */
-                SQLUtils.createIndex(conn, schemaName, tableName,
-                    tableName+META_ID+META_PROPERTY,
-                    new String[]{META_ID, META_PROPERTY},
-                    new Integer[]{0, 255});
-
-                /* Index of (Property, Value) */
-                SQLUtils.createIndex(conn, schemaName, tableName,
-                    tableName+META_PROPERTY+META_VALUE,
-                    new String[]{META_PROPERTY, META_VALUE},
-                    new Integer[]{255,255});
                 } 
                 catch (SQLException e)
                 {
                     throw new RemoteException("Unable to initialize attribute-value-table.", e);
+                }
+                try
+                {
+                    Connection conn = this.conn.getConnection();
+                    /* Index of (ID, Property) */
+                    SQLUtils.createIndex(conn, schemaName, tableName,
+                            tableName+META_ID+META_PROPERTY,
+                            new String[]{META_ID, META_PROPERTY},
+                            new Integer[]{0, 255});
+
+                    /* Index of (Property, Value) */
+                    SQLUtils.createIndex(conn, schemaName, tableName,
+                            tableName+META_PROPERTY+META_VALUE,
+                            new String[]{META_PROPERTY, META_VALUE},
+                            new Integer[]{255,255});
+                }
+                catch (SQLException e)
+                {
+                    System.out.println("WARNING: Failed to create index. This may happen if the table already exists.");
                 }
             }
             /* TODO: Add optimized methods for adding/removing multiple entries. */
@@ -599,6 +644,17 @@ public class SQLConfig
                 {
                     throw new RemoteException("Unable to remove entry from manifest table.", e);
                 }
+            }
+            public Integer getEntryType(Integer id) throws RemoteException
+            {
+                List<Integer> list = new LinkedList<Integer>();
+                Map<Integer,Integer> resmap;
+                Integer resid;
+                list.add(id);
+                resmap = getEntryTypes(list);
+                for (Integer idx : resmap.values())
+                    return idx;
+                throw new RemoteException("No entry exists for this id.", null);
             }
             public Map<Integer,Integer> getEntryTypes(Collection<Integer> ids) throws RemoteException
             {

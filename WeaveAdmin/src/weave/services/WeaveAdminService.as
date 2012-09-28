@@ -254,12 +254,15 @@ package weave.services
                 {
                     return invokeAdminService("testAllQueries", arguments, false);
                 }
-                public function addChild(connectionName:String, password:String, child:int, parent:int):DelayedAsyncInvocation
+                public function addChildToParent(connectionName:String, password:String, child:int, parent:int):DelayedAsyncInvocation
                 {
-                        return invokeAdminService("addChild", arguments);
+                        return invokeAdminService("addChildToParent", arguments);
                 }
-                public function removeChild(connectionName:String, password:String, child:int, parent:int):DelayedAsyncInvocation{
-                        return invokeAdminService("removeChild", arguments);
+                public function removeChildFromParent(connectionName:String, password:String, child:int, parent:int):DelayedAsyncInvocation{
+                        return invokeAdminService("removeChildFromParent", arguments);
+                }
+                public function copyEntity(connectionName:String, password:String, id:int):DelayedAsyncInvocation{
+                        return invokeAdminService("copyEntity", arguments);
                 }
                 public function addTag(connectionName:String, password:String, metadata:Object):DelayedAsyncInvocation{
                         return invokeAdminService("addTag", arguments);

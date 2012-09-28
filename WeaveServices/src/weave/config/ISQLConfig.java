@@ -99,6 +99,7 @@ public abstract class ISQLConfig
         public abstract boolean isConnectedToDatabase();
 	public abstract DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException;
         public abstract Integer addEntity(Integer type_id, Map<String,Map<String,String>> properties) throws RemoteException;
+        public abstract Integer copyEntity(Integer id) throws RemoteException;
         public abstract void removeEntity(Integer id) throws RemoteException;
         public abstract void updateEntity(Integer id, Map<String,Map<String,String>> properties) throws RemoteException;
         public Collection<DataEntity> findEntities(Map<String,Map<String,String>> properties) throws RemoteException

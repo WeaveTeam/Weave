@@ -115,13 +115,6 @@ package weave.services
             AdminInterface.instance.updateEntity(id, {"public":pubMeta, "private":privMeta}, afterUpdate);
             /* Do stuff, and things. */ 
         }
-        public function copy_parent(id:int, onComplete):int
-        {
-            if (meta == null)
-            {
-                 
-            }
-        }
         public function add_tag(label:String, onComplete:Function = null):void
         {
             /* Entity creation should usually impact root, so we'll invalidate root's cache entry and refetch. */
@@ -154,7 +147,7 @@ package weave.services
                 fetch_children(parent_id, onComplete);
             }
             delete entity_childcache[parent_id];
-            AdminInterface.instance.addChild(child_id, parent_id, afterUpdate);
+            AdminInterface.instance.addChildToParent(child_id, parent_id, afterUpdate);
         }
         public function remove_child(child_id:int, parent_id:int, onComplete:Function = null):void
         {
@@ -163,7 +156,7 @@ package weave.services
                 fetch_children(parent_id, onComplete);
             }
             delete entity_childcache[parent_id];
-            AdminInterface.instance.removeChild(child_id, parent_id, afterUpdate);
+            AdminInterface.instance.removeChildFromParent(child_id, parent_id, afterUpdate);
         }
     }
 }

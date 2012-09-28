@@ -19,12 +19,7 @@ package weave.ui
             var childEntity:EntityTreeNode = new EntityTreeNode(newChild._id);
             if (parentEntity != null && newChild != null)
             {
-                /* If the new child is a datatable, create a new tag entity 
-                    that is effectively a copy of it, and add that instead. */
-                if (childEntity.object.isDataTable())
-                    parentEntity.add_copy(childEntity.id); 
-                else
-                    parentEntity.add_child(childEntity.id);
+                parentEntity.add_child(childEntity.id);
             }
             return parentEntity != null && newChild != null;
         }
@@ -51,7 +46,6 @@ package weave.ui
         {
             var entityNode:EntityTreeNode = node as EntityTreeNode;
             return entityNode.object;
-            this is a test of the emergency broadcast
         }
         public function isBranch(node:Object, model:Object = null):Boolean
         {
