@@ -183,7 +183,7 @@ package weave.data.DataSources
 			{
 				if (hierarchyURL.value != "" && hierarchyURL.value != null)
 				{
-					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(hierarchyURL.value), handleHierarchyURLDownload, handleHierarchyURLDownloadError);
+					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(hierarchyURL.value), handleHierarchyURLDownload, handleHierarchyURLDownloadError, hierarchyURL.value);
 					trace("hierarchy url "+hierarchyURL.value);
 					return;
 				}
@@ -225,7 +225,7 @@ package weave.data.DataSources
 		 */
 		private function handleHierarchyURLDownloadError(event:FaultEvent, token:Object = null):void
 		{
-			reportError(event);
+			reportError(event, null, token);
 		}
 		
 		private function handleGetDataServiceMetadata(event:ResultEvent, token:Object = null):void
@@ -383,8 +383,9 @@ package weave.data.DataSources
 			if (request.proxyColumn.wasDisposed)
 				return;
 			
+			reportError(event, null, request);
+			
 			request.proxyColumn.setInternalColumn(ProxyColumn.undefinedColumn);
-			reportError(event, null, token);
 		}
 //		private function handleGetAttributeColumn(event:ResultEvent, token:Object = null):void
 //		{
@@ -482,7 +483,7 @@ package weave.data.DataSources
 		public function getReport(name:String, keyStrings:Array):void	
 		{
 			var query:AsyncToken = dataService.createReport(name, keyStrings);
-			DelayedAsyncResponder.addResponder(query, handleReportResult, handleCreateReportFault);
+			DelayedAsyncResponder.addResponder(query, handleReportResult, handleCreateReportFault, name);
 		}
 		
 		public function handleReportResult(event:ResultEvent, token:Object = null):void 
@@ -492,7 +493,7 @@ package weave.data.DataSources
 		
 		public function handleCreateReportFault(event:FaultEvent, token:Object = null):void
 		{
-			reportError(event, "Fault creating report: " + event.fault.name, event.message);
+			reportError(event, 'Error creating report "' + token + '"');
 		}
 	}
 }

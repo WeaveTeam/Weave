@@ -51,7 +51,7 @@ package weave.visualization.plotters
 			fillStyle.color.defaultValue.setSessionState(0x808080);
 			
 			// set up session state
-			setKeySource(wordColumn);
+			setColumnKeySources([wordColumn], [true]);
 			
 			registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(wordColumn));
 		}	
@@ -123,7 +123,6 @@ package weave.visualization.plotters
 			var normalized:Number;
 			var j:int;
 			var maxDisplay:uint;
-			orderKeys( recordKeys );
 			screenBoundaries = screenBounds;
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(wordColumn);
 			var lowest:Number = stats.getMin();
@@ -367,27 +366,6 @@ package weave.visualization.plotters
 				}
 	
 			flag = true;						
-		}
-	
-		/**
-		 * This function will put keys in descending order based on the count contained within each.
-		 */
-		private function orderKeys( recordKeys:Array ):void
-		{
-			recordKeys.sort();
-			
-			var i:int;
-			var j:int;
-			var temp:String;
-			
-			for( i = 0; i < recordKeys.length; i++ )
-				for( j = 0; j < ( recordKeys.length - 1 ); j++ ){
-					if( wordColumn.getValueFromKey( recordKeys[j+1] ) > wordColumn.getValueFromKey( recordKeys[j] ) ){
-						temp = recordKeys[j];
-						recordKeys[j] = recordKeys[j+1];
-						recordKeys[j+1] = temp;
-					}  		
-				}		
 		}
 		
 		private var count:Number = 1;

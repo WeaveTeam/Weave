@@ -46,7 +46,7 @@ function getWeave() { return document.getElementById('weave'); }
 function recCheckBusy() {
 	try
 	{
-		var isBusy = getWeave().evaluateExpression(["MapTool"], "visualization.isBusy()", {}, []);
+		var isBusy = getWeave().evaluateExpression(["MapTool"], "WeaveAPI.SessionManager.linkableObjectIsBusy(visualization)", {}, ['weave.api.WeaveAPI']);
 		if (isBusy != prevBusy)
 		{
 			getWeave().evaluateExpression(["MapTool"], "visualization.zoomToSelection(null, 0.3)", {}, []);

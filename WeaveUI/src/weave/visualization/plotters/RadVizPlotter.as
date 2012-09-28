@@ -25,11 +25,14 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
@@ -72,8 +75,9 @@ package weave.visualization.plotters
 			algorithms[NEAREST_NEIGHBOR] = NearestNeighborLayoutAlgorithm;
 			algorithms[INCREMENTAL_LAYOUT] = IncrementalLayoutAlgorithm;
 			algorithms[BRUTE_FORCE] = BruteForceLayoutAlgorithm;
-			handleColumnsChange();
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
+			getCallbackCollection(keySet).addImmediateCallback(this, handleColumnsChange, true);
+			getCallbackCollection(this).addImmediateCallback(this, clearCoordCache);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -81,7 +85,7 @@ package weave.visualization.plotters
 			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-				registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
+				registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
 		}
 		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
@@ -100,7 +104,7 @@ package weave.visualization.plotters
 		public const iterations:LinkableNumber = 			newLinkableChild(this,LinkableNumber);
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
-		public const fillStyle:SolidFillStyle = newLinkableChild(this,SolidFillStyle,handleColorColumnChange);		
+		public const fillStyle:SolidFillStyle = newLinkableChild(this,SolidFillStyle);
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))) ;		
 
@@ -114,7 +118,6 @@ package weave.visualization.plotters
 		private static var randomValueArray:Array = new Array();		
 		private static var randomArrayIndexMap:Dictionary;
 		private var keyNumberMap:Dictionary;		
-		private var keyColorMap:Dictionary;
 		private var keyNormMap:Dictionary;
 		private var keyGlobalNormMap:Dictionary;
 		private var columnTitleMap:Dictionary;
@@ -141,7 +144,9 @@ package weave.visualization.plotters
 			
 			if (_columns.length > 0) 
 			{
-				setKeySource(_columns[0]);
+				var keySources:Array = _columns.concat();
+				keySources.unshift(radiusColumn);
+				setColumnKeySources(keySources, [true]);
 			
 				for each( var key:IQualifiedKey in keySet.keys)
 				{					
@@ -185,18 +190,11 @@ package weave.visualization.plotters
 				}
 			}
 			else
-				setKeySource(null);
+			{
+				setSingleKeySource(null);
+			}
 			
 			setAnchorLocations();
-		}
-		
-		private function handleColorColumnChange():void
-		{			
-			keyColorMap = 			new Dictionary(true);
-			for each(var key:IQualifiedKey in keySet.keys)
-			{
-				keyColorMap[key] = fillStyle.color.internalDynamicColumn.getValueFromKey(key, Number);
-			}
 		}
 		
 		public function setAnchorLocations():void
@@ -214,13 +212,27 @@ package weave.visualization.plotters
 				anchor.title.value = ColumnUtils.getTitle(_columns[i]);
 			}
 			anchors.resumeCallbacks();
-		}			
-				
+		}
+		
+		private var coordCache:Dictionary = new Dictionary(true);
+		private function clearCoordCache():void
+		{
+			coordCache = new Dictionary(true);
+		}
+		
 		/**
 		 * Applies the RadViz algorithm to a record specified by a recordKey
 		 */
 		private function getXYcoordinates(recordKey:IQualifiedKey):Number
 		{
+			var cached:Array = coordCache[recordKey] as Array;
+			if (cached)
+			{
+				coordinate.x = cached[0];
+				coordinate.y = cached[1];
+				return cached[2];
+			}
+			
 			//implements RadViz algorithm for x and y coordinates of a record
 			var numeratorX:Number = 0;
 			var numeratorY:Number = 0;
@@ -256,7 +268,10 @@ package weave.visualization.plotters
 			coordinate.x = (numeratorX/denominator);
 			coordinate.y = (numeratorY/denominator);
 			if( enableJitter.value )
-				jitterRecords(recordKey);			
+				jitterRecords(recordKey);
+			
+			coordCache[recordKey] = [coordinate.x, coordinate.y, sum];
+			
 			return sum;
 		}
 		
@@ -270,16 +285,6 @@ package weave.visualization.plotters
 			if(randomValueArray[index+3])yJitter *= -1;
 			if(!isNaN(xJitter))coordinate.x += xJitter ;
 			if(!isNaN(yJitter))coordinate.y += yJitter ;
-		}
-		
-		public function drawWedge(destination:Graphics, beginRadians:Number, spanRadians:Number, projectedPoint:Point, radius:Number = 1):void
-		{
-			// move to center point
-			destination.moveTo(projectedPoint.x, projectedPoint.y);
-			// line to beginning of arc, draw arc
-			DrawUtils.arcTo(destination, true, projectedPoint.x, projectedPoint.y, beginRadians, beginRadians + spanRadians, radius);
-			// line back to center point
-			destination.lineTo(projectedPoint.x, projectedPoint.y);
 		}
 		
 		/**
@@ -301,11 +306,8 @@ package weave.visualization.plotters
 		{
 			if (task.iteration == 0)
 			{
-				if (!keyNumberMap || keyNumberMap[task.recordKeys[0]] == null)
+				if (!keyNumberMap || keyNumberMap[task.recordKeys[0]] == null || _columns.length != anchors.getObjects().length)
 					return 1;
-				if (_columns.length != anchors.getObjects().length)
-					return 1;
-				task.recordKeys.sort(sortKeys, Array.DESCENDING);
 			}
 			return super.drawPlotAsyncIteration(task);
 		}
@@ -314,7 +316,7 @@ package weave.visualization.plotters
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
-		{						
+		{
 			var graphics:Graphics = tempShape.graphics;
 			var radius:Number = radiusColumnStats.getNorm(recordKey);
 			
@@ -387,38 +389,6 @@ package weave.visualization.plotters
 			_currentScreenBounds.copyFrom(screenBounds);
 		}
 			
-		/**
-		 * This function sorts record keys based on their radiusColumn values, then by their colorColumn values
-		 * @param key1 First record key (a)
-		 * @param key2 Second record key (b)
-		 * @return Sort value: 0: (a == b), -1: (a < b), 1: (a > b)
-		 * 
-		 */			
-		private function sortKeys(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{			
-			// sort descending (high radius values drawn first)
-			if (radiusColumn.getInternalColumn())
-			{
-				// compare size
-				var a:Number = radiusColumn.getValueFromKey(key1, Number);
-				var b:Number = radiusColumn.getValueFromKey(key2, Number);
-				
-				if( isNaN(a) || (a < b) )	return -1;
-				else if( isNaN(b) || (a > b) ) return 1;
-			}
-			// size equal.. compare color (if global colorColumn is used)
-			if (fillStyle.color.getInternalColumn())
-			{
-				a = keyColorMap[key1];
-				b = keyColorMap[key2];
-				// sort ascending (high values drawn last)
-				if( a < b ) return 1;
-				else if (a > b) return -1 ;
-			}
-			
-			return 0 ;
-		}			
-		
 		/**
 		 * This function must be implemented by classes that extend AbstractPlotter.
 		 * 

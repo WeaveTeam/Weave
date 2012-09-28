@@ -21,7 +21,10 @@ package weave.visualization.layers
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
+	
+	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
@@ -39,10 +42,10 @@ package weave.visualization.layers
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.core.CallbackCollection;
-	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ZoomBounds;
+	import weave.utils.AsyncSort;
 	import weave.utils.PlotterUtils;
 	import weave.utils.SpatialIndex;
 
@@ -55,6 +58,7 @@ package weave.visualization.layers
 	public class PlotTask implements IPlotTask, ILinkableObject, IDisposableObject
 	{
 		public static var debugMouseDownPause:Boolean = false;
+		public static var debugIgnoreSpatialIndex:Boolean = false;
 		
 		private static const $debugTrace:Function = debugTrace;
 		
@@ -106,6 +110,8 @@ package weave.visualization.layers
 			var list:Array = [_plotter, _spatialIndex, _zoomBounds, _layerSettings, keyFilter];
 			for each (var dependency:ILinkableObject in list)
 				registerLinkableChild(_dependencies, dependency);
+			
+			getCallbackCollection(_plotter.keySet).addImmediateCallback(this, handleKeySetChange, true);
 			
 			_dependencies.addImmediateCallback(this, asyncStart, true);
 			
@@ -160,9 +166,11 @@ package weave.visualization.layers
 		private var _asyncState:Object = {};
 		private var _pendingKeys:Array;
 		private var _iPendingKey:uint;
+		private const _asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);
 		private var _progress:Number = 0;
 		private var _delayInit:Boolean = false;
 		private var _pendingInit:Boolean = false;
+		private var _keyToSortIndex:Dictionary;
 		
 		/**
 		 * This function must be called to set the size of the BitmapData buffer.
@@ -179,6 +187,20 @@ package weave.visualization.layers
 			}
 		}
 		
+		private function handleKeySetChange():void
+		{
+			// save a lookup from key to sorted index
+			// this is very fast
+			_keyToSortIndex = new Dictionary(true);
+			var sorted:Array = _plotter.keySet.keys;
+			for (var i:int = sorted.length - 1; i >= 0; i--)
+				_keyToSortIndex[sorted[i]] = i;
+		}
+		private function cachedKeyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
+		{
+			return ObjectUtil.numericCompare(_keyToSortIndex[key1], _keyToSortIndex[key2]);
+		}
+		
 		/**
 		 * This returns true if the layer should be rendered and selectable/probeable
 		 * @return true if the layer should be rendered and selectable/probeable
@@ -188,12 +210,12 @@ package weave.visualization.layers
 			var visible:Boolean = true;
 			if (!_layerSettings.visible.value)
 			{
-				debugTrace('visible=false');
+				//debugTrace('visible=false');
 				visible = false;
 			}
 			else if (!_layerSettings.selectable.value && _taskType != TASK_TYPE_SUBSET)
 			{
-				debugTrace('selection disabled');
+				//debugTrace('selection disabled');
 				visible = false;
 			}
 			else
@@ -237,7 +259,7 @@ package weave.visualization.layers
 			}
 			else
 			{
-				debugTrace('should not be rendered');
+				//debugTrace('should not be rendered');
 			}
 		}
 		
@@ -267,6 +289,7 @@ package weave.visualization.layers
 			// stop immediately if we shouldn't be rendering
 			if (shouldBeRendered())
 			{
+				debugTrace(this.toString(),'clear');
 				// clear bitmap and resize if necessary
 				PlotterUtils.setBitmapDataSize(bufferBitmap, _unscaledWidth, _unscaledHeight);
 			}
@@ -288,7 +311,11 @@ package weave.visualization.layers
 			if (WeaveAPI.SessionManager.linkableObjectIsBusy(_dependencies))
 			{
 				debugTrace('dependencies are busy');
-				return 1;
+				if (!debugIgnoreSpatialIndex)
+					return 1;
+				
+				// only spend half the time rendering when dependencies are busy
+				stopTime = (getTimer() + stopTime) / 2;
 			}
 			
 			/***** initialize *****/
@@ -347,6 +374,8 @@ package weave.visualization.layers
 						}
 					}
 				}
+				debugTrace(this.toString(),'recordKeys',_recordKeys.length);
+				
 				// done with keys
 				_pendingKeys = null;
 			}
@@ -362,6 +391,7 @@ package weave.visualization.layers
 				_delayInit = true;
 				
 				_progress = _plotter.drawPlotAsyncIteration(this);
+				debugTrace(this.toString(),'iteration',_iteration,'progress',_progress);
 				
 				_delayInit = false;
 				

@@ -68,7 +68,7 @@ package weave.ui
 			}
 			catch (e:Error)
 			{
-				var msg:String = StringUtil.substitute("Unable to update minimized icon for component ({0} x {1})", _mainComponent.width, _mainComponent.height);
+				var msg:String = StringUtil.substitute("Unable to update minimized icon for component {0} ({1} x {2})", debugId(_mainComponent), _mainComponent.width, _mainComponent.height);
 				reportError(e, msg, _mainComponent);
 			}
 		}

@@ -30,7 +30,6 @@ package weave.visualization.plotters
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
-	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
@@ -50,9 +49,11 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.SortedIndexColumn;
 	import weave.data.BinningDefinitions.CategoryBinningDefinition;
+	import weave.data.KeySets.SortedKeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
 	import weave.primitives.Range;
+	import weave.utils.AsyncSort;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
 	import weave.utils.LinkableTextFormat;
@@ -73,7 +74,7 @@ package weave.visualization.plotters
 			colorColumn.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 
 			// get the keys from the sort column
-			setKeySource(sortColumn);
+			setColumnKeySources([sortColumn]);
 			
 			// Link the subset key filter to the filter of the private _filteredSortColumn.
 			// This is so the records will be filtered before they are sorted in the _sortColumn.
@@ -94,7 +95,7 @@ package weave.visualization.plotters
 			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = heightColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
+				registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
 		}
 		
 		/**
@@ -217,13 +218,13 @@ package weave.visualization.plotters
 					if (column is IColumnWrapper)
 						column = (column as IColumnWrapper).getInternalColumn();
 				}
-				_sortByColor = ColumnUtils.generateSortFunction([column]);
+				_sortByColor = SortedKeySet.generateCompareFunction([column]);
 			}
 			
 			if (colorChanged || binsChanged)
 			{
 				for (var i:int = 0; i < _binnedSortColumn.numberOfBins; i++)
-					_binnedSortColumn.getKeysFromBinIndex(i).sort(_sortByColor);
+					AsyncSort.sortImmediately(_binnedSortColumn.getKeysFromBinIndex(i), _sortByColor);
 			}
 		}
 				

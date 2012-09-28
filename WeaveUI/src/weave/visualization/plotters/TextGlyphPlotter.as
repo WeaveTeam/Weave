@@ -24,9 +24,6 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	import flash.text.TextFormat;
 	
-	import mx.utils.ObjectUtil;
-	
-	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -52,12 +49,7 @@ package weave.visualization.plotters
 			hideOverlappingText.value = false;
 			xScreenOffset.value = 0;
 			yScreenOffset.value = 0;
-			setKeySource(text);
-		}
-		
-		public function setBaseKeySource(source:IKeySet):void
-		{
-			setKeySource(source);
+			setColumnKeySources([sortColumn, text]);
 		}
 		
 		private const bitmapText:BitmapText = new BitmapText();
@@ -94,17 +86,6 @@ package weave.visualization.plotters
 		public const maxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(100));
 
 		/**
-		 * This function is used with Array.sort to sort a list of record keys by the sortColumn values.
-		 */
-		private function compareRecords(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{
-			var value1:Number = sortColumn.getValueFromKey(key1, Number);
-			var value2:Number = sortColumn.getValueFromKey(key2, Number);
-			return ObjectUtil.numericCompare(value1, value2)
-				|| ObjectUtil.compare(key1, key2);
-		}
-
-		/**
 		 * Draws the graphics onto BitmapData.
 		 */
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
@@ -121,9 +102,9 @@ package weave.visualization.plotters
 					
 					if (task.iteration == 0)
 					{
-						if (sortColumn.getInternalColumn() != null)
-							task.recordKeys.sort(compareRecords);
-			
+						// cleanup
+						for each (bounds in reusableBoundsObjects)
+							ObjectPool.returnObject(bounds);
 						reusableBoundsObjects.length = 0;
 					}
 					

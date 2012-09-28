@@ -53,6 +53,7 @@ package weave.services.wms
 	import weave.api.services.IWMSService;
 	import weave.core.ErrorManager;
 	import weave.primitives.Bounds2D;
+	import weave.utils.AsyncSort;
 
 	/**
 	 * This class is a wrapper around the ModestMaps library for both Microsoft and Yahoo
@@ -234,7 +235,7 @@ package weave.services.wms
 			}
 
 			lowerQualTiles = lowerQualTiles.concat(completedTiles);
-			lowerQualTiles = lowerQualTiles.sort(tileSortingComparison);
+			AsyncSort.sortImmediately(lowerQualTiles, tileSortingComparison);
 			return lowerQualTiles;
 		}
 		

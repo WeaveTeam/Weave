@@ -57,51 +57,44 @@ package weave.visualization.plotters
 			var fill:SolidFillStyle = fillStyle.requestLocalObject(SolidFillStyle, false);
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
-			setKeySource(_combinedKeySet);
-		}
-		
-		private const _combinedKeySet:KeySet = newLinkableChild(this, KeySet);
-
-		private function updateKeys():void
-		{
-			_combinedKeySet.replaceKeys(ColumnUtils.getAllKeys([xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset]));
+			setColumnKeySources([xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset]);
 		}
 		
 		// spatial properties
 		/**
 		 * This is the minimum X data value associated with the rectangle.
 		 */
-		public const xData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn(), updateKeys);
+		public const xData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn());
 		/**
 		 * This is the minimum Y data value associated with the rectangle.
 		 */
-		public const yData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn(), updateKeys);
+		public const yData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn());
 		/**
 		 * This is the maximum X data value associated with the rectangle.
 		 */
-		public const widthData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn(0), updateKeys);
+		public const widthData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn(0));
 		/**
 		 * This is the maximum Y data value associated with the rectangle.
 		 */
-		public const heightData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn(0), updateKeys);
+		public const heightData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn(0));
 
 		// visual properties
 		/**
 		 * This is an offset in screen coordinates when projecting the data rectangle onto the screen.
 		 */
-		public const xMinScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
+		public const xMinScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is an offset in screen coordinates when projecting the data rectangle onto the screen.
 		 */
-		public const yMinScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
+		public const yMinScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is an offset in screen coordinates when projecting the data rectangle onto the screen.
 		 */
-		public const xMaxScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
+		public const xMaxScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is an offset in screen coordinates when projecting the data rectangle onto the screen.
 		 */
-		public const yMaxScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0), updateKeys);
+		public const yMaxScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is the line style used to draw the outline of the rectangle.
 		 */

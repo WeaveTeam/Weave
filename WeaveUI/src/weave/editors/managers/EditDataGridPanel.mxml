@@ -101,30 +101,6 @@
 				loadData(param,header);
 			}
 			
-			/**
-			 * This function compares two DataGridColumn objects by comparing the dataField property.
-			 * If Strings are given as parameters, it compares them directly.
-			 * This compare function will put "name" in front of any other String.
-			 * @param a The first value to compare, either a DataGridColumn or a String.
-			 * @param b The second value to compare, either a DataGridColumn or a String.
-			 * @return A value of -1, 0, or 1, which is used by Array.sort().
-			 */
-			private function columnSort(a:Object, b:Object):int
-			{
-				if (a is DataGridColumn)	
-					a = (a as DataGridColumn).dataField;
-				if (b is DataGridColumn)
-					b = (b as DataGridColumn).dataField;
-				
-//				// we want the 'name' column to appear first in the list.
-//				if (a == "name")
-//					return -1;
-//				if (b == "name")
-//					return 1;
-				return ObjectUtil.stringCompare(a as String, b as String, true);
-			}
-			
-			
 			private function removeLeadingAndTrailingQuotes(element:*, index:int, arr:Array):void
 			{
 				var string:String = String(element);

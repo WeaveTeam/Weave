@@ -55,7 +55,7 @@ package weave.visualization.plotters
 			var fill:SolidFillStyle = fillStyle.requestLocalObject(SolidFillStyle, false);
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
-			setKeySource(xMinData); // not the best solution... need the union of x,y,x,y
+			setColumnKeySources([xMinData, yMinData, xMaxData, yMaxData]);
 		}
 
 		// spatial properties

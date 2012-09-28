@@ -39,14 +39,17 @@
 		<mkdir dir="${OUTPUT_DIR}"/>
 		<mxmlc 
 			file="${SOURCE_DIR}/weave.mxml"
-			target-player="10.0.0"
-			output="${OUTPUT_DIR}/WeaveClient.swf"
+			target-player="10.2.0"
+			output="${OUTPUT_DIR}/weave.swf"
 			locale="${LOCALE}"
 			static-rsls="false"
 			incremental="true"
 			accessible="false"
+			verify-digests="false"
+			remove-unused-rsls="false"
 			debug="${DEBUG}"
 		>
+			<theme file="${FLEX_HOME}/frameworks/themes/Halo/halo.swc"/>
 			<load-config filename="${FLEX_HOME}/frameworks/flex-config.xml"/>
 
 			<source-path path-element="${SOURCE_DIR}"/>
@@ -60,19 +63,28 @@
 			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
 			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*.swc" append="true"/>
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10/playerglobal.swc" append="true"/>
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10.2/playerglobal.swc" append="true"/>
 			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/framework.swc">
 				<url rsl-url="framework.swf" policy-file-url=""/>
 			</runtime-shared-library-path>
+			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/textLayout.swc">
+				<url rsl-url="textLayout.swf" policy-file-url=""/>
+			</runtime-shared-library-path>
+		        <runtime-shared-libraries url="textLayout.swf"/>	
 			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/rpc.swc">
 				<url rsl-url="rpc.swf" policy-file-url=""/>
+			</runtime-shared-library-path>
+			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/mx/mx.swc">
+				<url rsl-url="mx.swf" policy-file-url=""/>
+			</runtime-shared-library-path>
+			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/spark.swc">
+				<url rsl-url="spark.swf" policy-file-url=""/>
 			</runtime-shared-library-path>
 
 			<external-library-path file="../${API}/bin/${API}.swc" append="true"/>
 			<external-library-path file="../${CORE}/bin/${CORE}.swc" append="true"/>
 			<external-library-path file="../${DATA}/bin/${DATA}.swc" append="true"/>
 			<external-library-path file="../${UI}/bin/${UI}.swc" append="true"/>
-			
 			<runtime-shared-libraries url="${API}.swf"/>
 			<runtime-shared-libraries url="${CORE}.swf"/>
 			<runtime-shared-libraries url="${DATA}.swf"/>

@@ -47,7 +47,7 @@ package weave.visualization.plotters
 			// initialize default line & fill styles
 			lineStyle.requestLocalObject(SolidLineStyle, false);
 			fillStyle.requestLocalObject(SolidFillStyle, false);
-			setKeySource(beginRadians);
+			setColumnKeySources([beginRadians]);
 		}
 		
 		public const beginRadians:DynamicColumn = newSpatialProperty(DynamicColumn);

@@ -39,18 +39,20 @@
 		<mkdir dir="${OUTPUT_DIR}"/>
 		<mxmlc 
 			file="${SOURCE_DIR}/AdminConsole.mxml"
-			target-player="10.0.0"
-			output="${OUTPUT_DIR}/WeaveAdmin.swf"
+			target-player="10.2.0"
+			output="${OUTPUT_DIR}/AdminConsole.swf"
 			locale="${LOCALE}"
 			static-rsls="false"
 			incremental="true"
 			accessible="false"
 			debug="${DEBUG}"
+			verify-digests="false"
+			remove-unused-rsls="false"                        
 		>
 			<load-config filename="${FLEX_HOME}/frameworks/flex-config.xml"/>
+                        <theme file="${FLEX_HOME}/frameworks/themes/Halo/halo.swc"/>
 
 			<source-path path-element="${SOURCE_DIR}"/>
-
 			<library-path file="${FLEX_HOME}/frameworks/libs/automation.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/automation_agent.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/automation_dmv.swc" append="true"/>
@@ -60,12 +62,22 @@
 			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
 			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*.swc" append="true"/>
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10/playerglobal.swc" append="true"/>
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10.2/playerglobal.swc" append="true"/>
 			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/framework.swc">
 				<url rsl-url="framework.swf" policy-file-url=""/>
 			</runtime-shared-library-path>
+			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/textLayout.swc">
+				<url rsl-url="textLayout.swf" policy-file-url=""/>
+			</runtime-shared-library-path>
+		        <runtime-shared-libraries url="textLayout.swf"/>	
 			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/rpc.swc">
 				<url rsl-url="rpc.swf" policy-file-url=""/>
+			</runtime-shared-library-path>
+			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/mx/mx.swc">
+				<url rsl-url="mx.swf" policy-file-url=""/>
+			</runtime-shared-library-path>
+			<runtime-shared-library-path path-element="${FLEX_HOME}/frameworks/libs/spark.swc">
+				<url rsl-url="spark.swf" policy-file-url=""/>
 			</runtime-shared-library-path>
 			
 			<external-library-path file="../${API}/bin/${API}.swc" append="true"/>

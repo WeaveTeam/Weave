@@ -51,11 +51,6 @@ package weave.visualization.plotters
 	{
 		public function PieChartPlotter()
 		{
-			init();
-		}
-		
-		private function init():void
-		{
 			var fill:SolidFillStyle = fillStyle.internalObject as SolidFillStyle;
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
@@ -68,7 +63,7 @@ package weave.visualization.plotters
 			linkSessionState(keySet.keyFilter, _filteredData.filter);
 			
 			registerSpatialProperty(data);
-			setKeySource(_filteredData);
+			setColumnKeySources([_filteredData]);
 			
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 		}

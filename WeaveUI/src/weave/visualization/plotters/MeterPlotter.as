@@ -49,7 +49,7 @@ package weave.visualization.plotters
 		public function MeterPlotter()
 		{
 			//this line causes only the currently probed records to be drawn.			
-			setKeySource(Weave.defaultProbeKeySet);
+			setSingleKeySource(Weave.defaultProbeKeySet);
 		}
 	}
 }

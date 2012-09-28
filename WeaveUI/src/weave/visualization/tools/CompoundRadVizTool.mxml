@@ -29,6 +29,8 @@
 			   mouseUp="handleMouseUp(event)">
 	<mx:Script>
 		<![CDATA[
+			import spark.core.SpriteVisualElement;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
@@ -103,7 +105,11 @@
 				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.jitterLevel, jitterSlider, "value" );	
 				
-				visualization.rawChildren.addChild(probeSprite);
+				//visualization.rawChildren.addChild(probeSprite);
+				var sprCont:SpriteVisualElement = new SpriteVisualElement();
+				sprCont.addChild(probeSprite)
+				visualization.addElement(sprCont);
+				
 			}
 			
 			private var tempBounds:Bounds2D = new Bounds2D();
@@ -200,27 +206,10 @@
 			
 			override protected function get defaultPanelTitle():String
 			{
-				// try to get unique attribute names separated by commas					
-				var newTitle:String = lang("RadViz of ");
-				
-				var uniqueColumns:Dictionary = new Dictionary();
-				
-				for each(var column:IAttributeColumn in _plotter.columns.getObjects(IAttributeColumn) )
-				{
-					uniqueColumns[ColumnUtils.getTitle(column)] = column;
-				}
-				
-				var comma:Boolean = false;
-				for (var uniqueTitle:String in uniqueColumns)
-				{
-					newTitle += uniqueTitle;
-					if (comma)
-						newTitle += lang(", ");
-					else
-						comma = true;
-				}
-				
-				return newTitle;
+				var columns:Array = _plotter.columns.getObjects(IAttributeColumn);
+				for (var i:int = 0; i < columns.length; i++)
+					columns[i] = ColumnUtils.getTitle(columns[i] as IAttributeColumn);
+				return lang("Compound RadViz of {0}", columns.join(lang(', ')));
 			}
 		]]>
 	</mx:Script>

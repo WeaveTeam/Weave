@@ -58,10 +58,7 @@ package weave.visualization.plotters
 			var cc:ColorColumn = Weave.defaultColorColumn;
 			registerLinkableChild(this, cc);
 			
-			xColumn.addImmediateCallback(this, updateKeys);
-			yColumn.addImmediateCallback(this, updateKeys);
-			
-			setKeySource(_keySet);
+			setColumnKeySources([xColumn, yColumn]);
 		}
 		
 		private var _keySet:KeySet = newDisposableChild(this, KeySet);
@@ -91,11 +88,6 @@ package weave.visualization.plotters
 		private const tempPoint:Point = new Point();
 		private const tempBounds:IBounds2D = new Bounds2D();
 
-		private function updateKeys():void
-		{
-			_keySet.replaceKeys(ColumnUtils.getAllKeys([xBinnedColumn,yBinnedColumn]));
-		}
-		
 		private function handleColumnChange():void
 		{
 			cellToKeysMap = {};

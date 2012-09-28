@@ -31,7 +31,7 @@ package weave.visualization.plotters
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
-	import weave.api.getCallbackCollection;
+	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -41,12 +41,13 @@ package weave.visualization.plotters
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.KeySets.KeySet;
+	import weave.data.KeySets.KeySetUnion;
 	import weave.primitives.SimpleGeometry;
+	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	import weave.utils.DrawUtils;
 	import weave.utils.VectorUtils;
@@ -64,7 +65,6 @@ package weave.visualization.plotters
 			lineStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			lineStyle.weight.defaultValue.value = 1;
 			lineStyle.alpha.defaultValue.value = 1.0;
-			setKeySource(_combinedKeySet);
 			
 			zoomToSubset.value = true;
 			clipDrawing = false;
@@ -72,6 +72,8 @@ package weave.visualization.plotters
 			// bounds need to be re-indexed when this option changes
 			registerSpatialProperty(Weave.properties.enableGeometryProbing);
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
+			
+			updateFilterEquationColumns(); // sets key source
 		}
 		private function handleColumnsListChange():void
 		{
@@ -80,6 +82,13 @@ package weave.visualization.plotters
 			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
 				registerLinkableChild(spatialCallbacks, WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
+			
+			_columns = columns.getObjects();
+			// if there is only one column, push a copy of it so lines will be drawn
+			if (_columns.length == 1)
+				_columns.push(_columns[0]);
+			
+			updateFilterEquationColumns();
 		}
 
 		/*
@@ -89,7 +98,7 @@ package weave.visualization.plotters
 		
 		public function get alphaColumn():AlwaysDefinedColumn { return lineStyle.alpha; }
 		
-		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
+		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		
 		public const enableGroupBy:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), updateFilterEquationColumns);
 		public const groupBy:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
@@ -97,51 +106,9 @@ package weave.visualization.plotters
 		public const yData:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
 		public const xValues:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
 		
-		private const _combinedKeySet:KeySet = newLinkableChild(this, KeySet);
+		private const _keySet_groupBy:KeySet = newDisposableChild(this, KeySet);
 		
 		private var _columns:Array = [];
-		private function handleColumnsChange():void
-		{
-			_columns = columns.getObjects();
-
-			_combinedKeySet.delayCallbacks();
-			
-			if (enableGroupBy.value)
-			{
-				var reverseKeys:Array = []; // a list of the keys returned as values from keyColumn
-				var lookup:Dictionary = new Dictionary(); // keeps track of what keys were already seen
-				for each (var key:IQualifiedKey in groupBy.keys)
-				{
-					var filterKey:IQualifiedKey = groupBy.getValueFromKey(key, IQualifiedKey) as IQualifiedKey;
-					if (filterKey && !lookup[filterKey])
-					{
-						lookup[filterKey] = true;
-						reverseKeys.push(filterKey);
-					}
-				}
-				_combinedKeySet.replaceKeys(reverseKeys);
-			}
-			else
-			{
-				// get list of all keys in all columns
-				if (_columns.length > 0)
-				{
-					_combinedKeySet.replaceKeys((_columns[0] as IAttributeColumn).keys);
-					for (var i:int = 1; i < _columns.length; i++)
-					{
-						_combinedKeySet.addKeys((_columns[i] as IAttributeColumn).keys);
-					}
-				}
-				else
-					_combinedKeySet.clearKeys();
-			}					
-			
-			// if there is only one column, push a copy of it so lines will be drawn
-			if (_columns.length == 1)
-				_columns.push(_columns[0]);
-			
-			_combinedKeySet.resumeCallbacks();
-		}
 		
 		public function getXValues():Array
 		{
@@ -156,20 +123,42 @@ package weave.visualization.plotters
 				var values:Array = [];
 				for each (var key:IQualifiedKey in xData.keys)
 					values.push(xData.getValueFromKey(key, String));
-				values.sort();
-				values = VectorUtils.removeDuplicatesFromSortedArray(values);
+				AsyncSort.sortImmediately(values);
+				VectorUtils.removeDuplicatesFromSortedArray(values);
 				return values;
 			}
 		}
 		
 		private function updateFilterEquationColumns():void
 		{
-			// check that values list string exists
-			if (!enableGroupBy.value)
+			if (enableGroupBy.value)
 			{
+				setColumnKeySources([_keySet_groupBy]);
+			}
+			else
+			{
+				var list:Array = _columns.concat();
+				list.unshift(lineStyle.color);
+				setColumnKeySources(list);
 				return;
-			}					
+			}
 			
+			// update keys
+			_keySet_groupBy.delayCallbacks();
+			var reverseKeys:Array = []; // a list of the keys returned as values from keyColumn
+			var lookup:Dictionary = new Dictionary(); // keeps track of what keys were already seen
+			for each (var key:IQualifiedKey in groupBy.keys)
+			{
+				var filterKey:IQualifiedKey = groupBy.getValueFromKey(key, IQualifiedKey) as IQualifiedKey;
+				if (filterKey && !lookup[filterKey])
+				{
+					lookup[filterKey] = true;
+					reverseKeys.push(filterKey);
+				}
+			}
+			_keySet_groupBy.replaceKeys(reverseKeys);
+			_keySet_groupBy.resumeCallbacks();
+
 			// check for missing columns
 			if (!(xData.getInternalColumn() && yData.getInternalColumn() && groupBy.getInternalColumn()))
 			{
@@ -185,8 +174,8 @@ package weave.visualization.plotters
 				return;
 			}
 			
-			columns.removeAllObjects();
 			columns.delayCallbacks();
+			columns.removeAllObjects();
 
 			var keyCol:DynamicColumn;
 			var filterCol:DynamicColumn;
@@ -211,7 +200,6 @@ package weave.visualization.plotters
 			}				
 			
 			columns.resumeCallbacks();
-			
 		}
 		
 		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));

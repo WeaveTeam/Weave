@@ -27,11 +27,9 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
-	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 
@@ -45,6 +43,7 @@ package weave.visualization.plotters
 		public function SimpleGlyphPlotter()
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
+			setColumnKeySources([screenSize, dataX, dataY], [true, false, false]);
 		}
 		
 		private static const LEFT:String = 'left', CENTER:String = 'center', RIGHT:String = 'right';
@@ -78,19 +77,6 @@ package weave.visualization.plotters
 		 * This determines how the glyphs are aligned vertically to the data coordinates.
 		 */		
 		public const verticalPosition:LinkableString = registerLinkableChild(this, new LinkableString(MIDDLE, verifyVertical));
-		
-		private var sortBySize:Function;
-		
-		override public function drawPlotAsyncIteration(task:IPlotTask):Number
-		{
-			if (task.iteration == 0)
-			{
-				if (sortBySize == null)
-					sortBySize = ColumnUtils.generateSortFunction([screenSize], [true]);
-				task.recordKeys.sort(sortBySize);
-			}
-			return super.drawPlotAsyncIteration(task);
-		}
 		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().

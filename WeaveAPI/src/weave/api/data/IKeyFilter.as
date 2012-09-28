@@ -15,12 +15,14 @@
 
 package weave.api.data
 {
+	import weave.api.core.ILinkableObject;
+
 	/**
 	 * This is an interface to an object that decides which IQualifiedKey objects are included in a set or not.
 	 * 
 	 * @author adufilie
 	 */
-	public interface IKeyFilter
+	public interface IKeyFilter extends ILinkableObject
 	{
 		/**
 		 * This function tests if a IQualifiedKey object is contained in this IKeySet.

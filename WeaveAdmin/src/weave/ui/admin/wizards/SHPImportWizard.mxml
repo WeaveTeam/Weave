@@ -27,7 +27,6 @@
 			label="Import shape data"
 			creationComplete="handleCreationComplete()"
 			>
-	<ui:IndentGroup id="indentGroup"/>
 	<mx:VBox width="100%" height="100%">
 		<ui:Indent width="100%" label="Load Shape files" group="{indentGroup}">
 			<mx:TextInput id="shpFileNameInput" enabled="true"/>
@@ -87,9 +86,11 @@
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
+			import weave.ui.IndentGroup;
 			import weave.ui.admin.ServerFileViewer;
 			
 			private static const paddingIndent:int = 20;
+			private const indentGroup:IndentGroup = new IndentGroup();
 			
 			private function handleCreationComplete():void
 			{

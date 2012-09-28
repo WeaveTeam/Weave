@@ -55,10 +55,7 @@ package weave.visualization.plotters
 		{
 			// don't lock the ColorColumn, so linking to global ColorColumn is possible
 			var _colorColumn:ColorColumn = fillStyle.color.internalDynamicColumn.requestLocalObject(ColorColumn, false);
-			_colorColumn.ramp.value = <colorRamp name="Gray">
-					<node color="0x808080" position="0.0"/>
-					<node color="0x808080" position="1.0"/>
-				</colorRamp>;
+			_colorColumn.ramp.value = "0x808080";
 
 			var _binnedColumn:BinnedColumn = _colorColumn.internalDynamicColumn.requestLocalObject(BinnedColumn, true);
 			
@@ -70,7 +67,7 @@ package weave.visualization.plotters
 			// make the colors spatial properties because the binned column is inside
 			registerSpatialProperty(dynamicColorColumn);
 
-			setKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
+			setSingleKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
 		}
 		
 		/**

@@ -26,9 +26,10 @@ package weave.visualization.plotters
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.setSessionState;
-	import weave.api.ui.IPlotTask;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
+	import weave.data.KeySets.SortedKeySet;
+	import weave.data.QKeyManager;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 
@@ -51,25 +52,21 @@ package weave.visualization.plotters
 			// set up x,y columns to be derived from the geometry column
 			linkSessionState(geometryColumn, dataX.requestLocalObject(ReprojectedGeometryColumn, true));
 			linkSessionState(geometryColumn, dataY.requestLocalObject(ReprojectedGeometryColumn, true));
+			
+			_filteredKeySet.setColumnKeySources([geometryColumn], null, keyCompare);
 		}
 		
 		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
 		
-		override public function drawPlotAsyncIteration(task:IPlotTask):Number
-		{
-			// sort records by geometry bounds area before drawing them in the TextGlyphPlotter
-			if (task.iteration == 0)
-				task.recordKeys.sort(sortBySize, Array.DESCENDING);
-			return super.drawPlotAsyncIteration(task);
-		}
+		private var _sortColumnCompare:Function = SortedKeySet.generateCompareFunction([sortColumn, text]);
 		
 		/**
-		 * This function sorts geometry record keys according to geometry bounding box size
+		 * This function compares geometry record keys according to geometry bounding box area
 		 * @param key1 First record key ("a")
 		 * @param key2 Second record key ("b")
-		 * @return Sort value: 0: (a == b), -1: (a < b), 1: (a > b)
+		 * @return Compare value: 0: (a == b), -1: (a < b), 1: (a > b)
 		 */		
-		private function sortBySize(key1:IQualifiedKey, key2:IQualifiedKey):int
+		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{
 			try
 			{
@@ -77,14 +74,18 @@ package weave.visualization.plotters
 				var geom1:GeneralizedGeometry = (geometryColumn.getValueFromKey(key1) as Array)[0] as GeneralizedGeometry;
 				var geom2:GeneralizedGeometry = (geometryColumn.getValueFromKey(key2) as Array)[0] as GeneralizedGeometry;
 				
-				return ObjectUtil.numericCompare(geom1.bounds.getArea(), geom2.bounds.getArea())
-					|| ObjectUtil.compare(key1, key2);
+				// sort descending by bounding box area
+				var result:int = -ObjectUtil.numericCompare(geom1.bounds.getArea(), geom2.bounds.getArea());
+				if (result != 0)
+					return result;
 			}
 			catch (e:Error)
 			{
 				// we don't care if this fails
 			}
-			return ObjectUtil.compare(key1, key2);
+			
+			// revert to default compare
+			return _sortColumnCompare(key1, key2);
 		}
 		
 		// reusable temporary objects

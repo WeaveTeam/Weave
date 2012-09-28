@@ -24,6 +24,7 @@ package weave.visualization.plotters
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
+	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
@@ -33,6 +34,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.FilteredKeySet;
+	import weave.data.KeySets.KeySetUnion;
 	import weave.primitives.GeneralizedGeometry;
 	
 	/**
@@ -45,7 +47,8 @@ package weave.visualization.plotters
 		public function AbstractGlyphPlotter()
 		{
 			clipDrawing = false;
-			setKeySource(dataX);
+			
+			setColumnKeySources([dataX, dataY]);
 			
 			// filter x and y columns so background data bounds will be correct
 			filteredDataX.filter.requestLocalObject(FilteredKeySet, true);
@@ -58,12 +61,19 @@ package weave.visualization.plotters
 			linkSessionState(_filteredKeySet.keyFilter, filteredDataY.filter);
 		}
 		
+		private var _keySetUnion:KeySetUnion = newDisposableChild(this, KeySetUnion);
+		
 		protected const filteredDataX:FilteredColumn = newDisposableChild(this, FilteredColumn);
 		protected const filteredDataY:FilteredColumn = newDisposableChild(this, FilteredColumn);
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
 		protected const statsX:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(filteredDataX));
 		protected const statsY:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(filteredDataY));
+		
+		public function hack_setSingleKeySource(keySet:IKeySet):void
+		{
+			setSingleKeySource(keySet);
+		}
 		
 		public function get dataX():DynamicColumn
 		{

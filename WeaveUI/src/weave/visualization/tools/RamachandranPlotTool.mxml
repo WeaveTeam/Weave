@@ -102,8 +102,8 @@
 				visualization.plotManager.enableAutoZoomToExtent.lock();
 				visualization.plotManager.zoomBounds.setDataBounds(new Bounds2D(-180,-180,180,180));
 				
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(_plotter.xColumn); })
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(_plotter.yColumn); })
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(_plotter.dataX); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openDefaultSelector(_plotter.dataY); })
 				
 				visualization.enableAutoZoomXToNiceNumbers.value = true;
 				visualization.enableAutoZoomYToNiceNumbers.value = true;
@@ -112,7 +112,7 @@
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				
-				initColumnDefaults(_plotter.xColumn, _plotter.yColumn, colorColumn);
+				initColumnDefaults(_plotter.dataX, _plotter.dataY, colorColumn);
 				registerLinkableChild(this,histogramColumn);
 				
 			}
@@ -127,7 +127,7 @@
 				visualization.plotManager.marginLeft.value   = "80";
 				visualization.plotManager.marginRight.value  = "10";
 				
-				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
+				linkBindableProperty(_plotter.fill.alpha.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
 				_plotter.minScreenRadius.addImmediateCallback(this, updateSizeSlider);
 				_plotter.maxScreenRadius.addImmediateCallback(this, updateSizeSlider, true);
@@ -139,7 +139,7 @@
 			}
 			override public function getSelectableAttributes():Array
 			{
-				return [_plotter.xColumn,_plotter.yColumn,colorColumn,_plotter.radiusColumn,histogramColumn];
+				return [_plotter.dataX,_plotter.dataY,_plotter.fill.color,_plotter.screenRadius,histogramColumn];
 			}
 			private function invalidateAxes():void
 			{
@@ -156,17 +156,17 @@
 			
 			private function updateAxisLabels():void
 			{
-				visualization.bottomMarginColumn = _plotter.xColumn;
-				visualization.leftMarginColumn = _plotter.yColumn;
+				visualization.bottomMarginColumn = _plotter.dataX;
+				visualization.leftMarginColumn = _plotter.dataY;
 				
 				if (_plotter == null)
 					title = lang("Ramachandran Plot");
-				xAxisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.xColumn),
+				xAxisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.dataX),
 					0,   
 					0, visualization.plotManager.marginBottomNumber.value - 3, 
 					BitmapText.VERTICAL_ALIGN_BOTTOM);
 				
-				yAxisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.yColumn), 
+				yAxisPlotter.setSideAxisName(ColumnUtils.getTitle(_plotter.dataY), 
 					-90, 
 					-visualization.plotManager.marginLeftNumber.value, 0, 
 					BitmapText.VERTICAL_ALIGN_TOP);
@@ -301,7 +301,7 @@
 			
 			override public function dispose():void
 			{
-				unlinkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
+				unlinkBindableProperty(_plotter.fill.alpha.defaultValue, alphaSlider, "value");
 				unlinkBindableProperty(_plotter.enabledSizeBy, sizeByCheck, "selected");
 			}
 			
@@ -327,7 +327,7 @@
 			{
 				if (sizeByCheck.selected)
 				{ 
-					sizeByCheck.label = lang("Size by: {0}", ColumnUtils.getTitle(_plotter.radiusColumn));
+					sizeByCheck.label = lang("Size by: {0}", ColumnUtils.getTitle(_plotter.screenRadius));
 					sizeByCheck.setStyle("textRollOverColor", "0x339900");
 					sizeByCheck.setStyle("textSelectedColor", "0x339900");
 					sizeByCheck.setStyle("color", "0x339900");
@@ -403,13 +403,13 @@
 					
 					//adding phi and psi column to plotter x and y columns
 					var column1:XML = HierarchyUtils.getPathFromNode(xml,columnNodes[5]);
-					var refCol1:ReferencedColumn = _plotter.xColumn.requestLocalObject(ReferencedColumn, false);
+					var refCol1:ReferencedColumn = _plotter.dataX.requestLocalObject(ReferencedColumn, false);
 					var hierarchyColRef1:HierarchyColumnReference =  refCol1.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
 					hierarchyColRef1.hierarchyPath.value = column1;
 					hierarchyColRef1.dataSourceName.value = sourceName;
 					
 					var column2:XML = HierarchyUtils.getPathFromNode(xml,columnNodes[6]);
-					var refCol2:ReferencedColumn = _plotter.yColumn.requestLocalObject(ReferencedColumn, false);
+					var refCol2:ReferencedColumn = _plotter.dataY.requestLocalObject(ReferencedColumn, false);
 					var hierarchyColRef2:HierarchyColumnReference =  refCol2.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
 					hierarchyColRef2.dataSourceName.value = sourceName;
 					hierarchyColRef2.hierarchyPath.value = column2;
@@ -584,10 +584,10 @@
 										change="handleSizeSliderChange(event)"
 										mouseDown="event.stopImmediatePropagation();"/>
 						</mx:HBox>
-						<ui:DynamicColumnComponent label="{lang('x column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.xColumn"/>
-						<ui:DynamicColumnComponent label="{lang('y column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.yColumn"/>
+						<ui:DynamicColumnComponent label="{lang('x column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataX"/>
+						<ui:DynamicColumnComponent label="{lang('y column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataY"/>
 						<ui:DynamicColumnComponent label="{lang('color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-						<ui:DynamicColumnComponent label="{lang('size')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn"/>
+						<ui:DynamicColumnComponent label="{lang('size')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.screenRadius"/>
 						<ui:DynamicColumnComponent label="{lang('Histogram Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = histogramColumn"/>
 					</mx:VBox>
 				</mx:VBox>

@@ -45,9 +45,8 @@ package weave.utils
 		/**
 		 * Efficiently removes duplicate adjacent items in a pre-sorted Array (or Vector).
 		 * @param vector The sorted Array (or Vector)
-		 * @return A pointer to the same Array (or Vector)
 		 */
-		public static function removeDuplicatesFromSortedArray(vector:*):*
+		public static function removeDuplicatesFromSortedArray(vector:*):void
 		{
 			var iEnd:int = vector.length;
 			var iPrevWrite:int = 0; // always keep first item 
@@ -60,14 +59,12 @@ package weave.utils
 			}
 			if (iEnd > 0)
 				vector.length = iPrevWrite + 1;
-			return vector;
 		}
 		/**
 		 * randomizes the order of the elements in the vector in O(n) time by modifying the given array.
 		 * @param the vector to randomize
-		 * @return the input vector
 		 */
-		public static function randomSort(vector:*):*
+		public static function randomSort(vector:*):void
 		{
 			var ptr:*;
 			var j:int;
@@ -82,7 +79,6 @@ package weave.utils
 				vector[i] = vector[j];
 				vector[j] = ptr;
 			}
-			return vector;
 		}
 		
 		/**
@@ -135,7 +131,7 @@ package weave.utils
 		private static function testPartition():void
 		{
 			var list:Array = [3,7,5,8,2];
-			var pivotIndex:int = partition(list, 0, list.length - 1, list.length/2, ObjectUtil.compare);
+			var pivotIndex:int = partition(list, 0, list.length - 1, list.length/2, AsyncSort.defaultCompare);
 			
 			for (var i:int = 0; i < list.length; i++)
 				if (i < pivotIndex != list[i] < list[pivotIndex])

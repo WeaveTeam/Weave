@@ -33,6 +33,7 @@ package weave.visualization.layers
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
+	import weave.api.copySessionState;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
@@ -165,7 +166,6 @@ package weave.visualization.layers
 				var spatialIndex:SpatialIndex = _name_to_SpatialIndex[name] as SpatialIndex;
 				fullDataBounds.includeBounds(spatialIndex.collectiveBounds);
 			}
-			
 			// ----------------- hack --------------------
 			if (hack_adjustFullDataBounds != null)
 				hack_adjustFullDataBounds();
@@ -184,7 +184,7 @@ package weave.visualization.layers
 		public var hack_adjustFullDataBounds:Function = null;
 		/**
 		 * This can be set to a function that will be called whenever updateZoom is called.
-		 */		
+		 */
 		public var hack_updateZoom:Function = null;
 		
 		/**
@@ -259,6 +259,7 @@ package weave.visualization.layers
 					// Enforce pan restrictions on tempDataBounds.
 					// Center of visible dataBounds should be a point inside fullDataBounds.
 					fullDataBounds.constrainBoundsCenterPoint(tempDataBounds);
+					//fullDataBounds.constrainBounds(tempDataBounds);
 				}
 			}
 			
@@ -428,6 +429,14 @@ package weave.visualization.layers
 			{
 				var newPlotter:IPlotter = plotters.childListCallbacks.lastObjectAdded as IPlotter;
 				var settings:LayerSettings = layerSettings.requestObject(newName, LayerSettings, false);
+				copySessionState(settings.subsetFilter, newPlotter.keySet.keyFilter);
+				
+				// hack for fixing messed up session state
+				WeaveAPI.StageUtils.callLater(newPlotter, function():void {
+					if (!newPlotter.keySet.keyFilter.internalObject)
+						copySessionState(settings.subsetFilter, newPlotter.keySet.keyFilter);
+				}, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				
 				var spatialIndex:SpatialIndex = _name_to_SpatialIndex[newName] = newDisposableChild(newPlotter, SpatialIndex);
 				var tasks:Array = _name_to_PlotTask_Array[newName] = [];
 				for each (var taskType:int in [PlotTask.TASK_TYPE_SUBSET, PlotTask.TASK_TYPE_SELECTION, PlotTask.TASK_TYPE_PROBE])
@@ -611,13 +620,14 @@ package weave.visualization.layers
 							}
 							else
 							{
-								debugTrace(String(task),'undefined',name);
+								//debugTrace(String(task),'undefined',name);
 							}
 							
 							if (fade && busy)
 							{
 								//TODO: this doesn't look good with transparency and overlapping completedBitmap and bufferBitmap
 								//TODO: this is incorrect if the PlotTask hasn't cleared the previous bitmap yet.
+								debugTrace(String(task),'fade',task.progress,'\n\tdata',String(task.dataBounds),'\n\tscreen',String(task.screenBounds));
 								
 								shouldRender = true;
 								copyScaledPlotGraphics(
@@ -630,7 +640,7 @@ package weave.visualization.layers
 					}
 					else
 					{
-						debugTrace('do not render',name);
+						//debugTrace('do not render',name);
 					}
 				}
 			}

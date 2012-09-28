@@ -55,6 +55,7 @@
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
 			import weave.core.ExternalSessionStateInterface;
+			import weave.utils.DebugUtils;
 			use namespace mx_internal;
 			
 			[Bindable] public var padding:int = 5;
@@ -154,7 +155,11 @@
 				'clear': consoleClear,
 				'watch': consoleWatch,
 				'unwatch': consoleUnwatch,
-				'trace': consoleTrace
+				'trace': consoleTrace,
+				'debugId': debugId,
+				'debugLookup': debugLookup,
+				'debugTrace': debugTrace,
+				'debugDisplayList': DebugUtils.debugDisplayList
 			};
 			private function runCommand():void
 			{

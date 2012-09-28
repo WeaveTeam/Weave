@@ -26,6 +26,8 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.data.QKeyManager;
+	import weave.utils.AsyncSort;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -56,7 +58,7 @@ package weave.data.AttributeColumns
 		/**
 		 * This is used to store the sorted list of keys.
 		 */
-		private const _keys:Array = new Array();
+		private var _keys:Array = new Array();
 
 		/**
 		 * This function returns the unique strings of the internal column.
@@ -89,7 +91,7 @@ package weave.data.AttributeColumns
 			// make a copy of the list of keys
 			VectorUtils.copy(keys, _keys);
 			// sort the keys based on the numeric values associated with them
-			_keys.sort(sortByNumericValue);
+			AsyncSort.sortImmediately(_keys, sortByNumericValue);
 			// update the lookup table
 			_keyToIndexMap = new Dictionary();
 			var i:int = _keys.length;
@@ -113,7 +115,8 @@ package weave.data.AttributeColumns
 			var val1:Number = getInternalColumn().getValueFromKey(key1, Number);
 			var val2:Number = getInternalColumn().getValueFromKey(key2, Number);
 			// if numeric values are equal, compare the keys
-			return ObjectUtil.numericCompare(val1, val2) || ObjectUtil.compare(key1, key2);
+			return ObjectUtil.numericCompare(val1, val2)
+				|| QKeyManager.keyCompare(key1, key2);
 		}
 		
 		/**
