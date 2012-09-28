@@ -36,6 +36,8 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.LinkableTextFormat;
+			import weave.visualization.layers.InteractiveVisualization;
+			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.GaugePlotter;
 		
 			WeaveAPI.registerImplementation(IVisTool, GaugeTool, lang("Gauge Tool"));
@@ -106,7 +108,7 @@
 			private function showLinkCursor():void
 			{
 				if (Weave.properties.enableToolControls.value)
-					CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
+					CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK);
 			}
 			
 			private function updateMarginLabel():void

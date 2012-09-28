@@ -37,7 +37,7 @@
 		</ui:HelpComponent>			
 		</mx:HBox>
 		<mx:HBox>
-			<mx:Image click="browseForFiles()" id="uploadImage" source="@Embed(source= '/weave/resources/images/add_file_large.png')"/>
+			<mx:Image click="browseForFiles()" id="uploadImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/add_file_large.png')"/>
 			<mx:Label color="0xFF0000" id="uploadMessage"/>
 		</mx:HBox>
 		<!--<mx:Label text="OR" fontWeight="bold" />
@@ -105,30 +105,30 @@
 		<!--Images from http://www.webresourcesdepot.com/free-vector-chart-icons/-->
 		<mx:HBox>
 			<mx:VBox>
-				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(CompoundBarChartTool)" id="barChartImage" source="@Embed(source= '/weave/resources/images/bar_chart_weave.png')"/>
+				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(CompoundBarChartTool)" id="barChartImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/bar_chart_weave.png')"/>
 				<mx:Label text="{lang('Bar Chart')}" fontWeight="bold"/>
 			</mx:VBox>
 			<mx:VBox>
-				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(LineChartTool)" id="lineChartImage" source="@Embed(source= '/weave/resources/images/line_chart_weave_new.png')"/>
+				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(LineChartTool)" id="lineChartImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/line_chart_weave_new.png')"/>
 				<mx:Label text="{lang('Line Chart')}" fontWeight="bold"/>
 			</mx:VBox>
 			<mx:VBox>
-				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(ScatterPlotTool)" id="scatterplotImage" source="@Embed(source= '/weave/resources/images/scatter_plot_weave_new.png')"/>
+				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(ScatterPlotTool)" id="scatterplotImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/scatter_plot_weave_new.png')"/>
 				<mx:Label text="{lang('Scatterplot')}" fontWeight="bold"/>
 			</mx:VBox>
 			
 		</mx:HBox>
 		<mx:HBox>
 			<mx:VBox>
-				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(PieChartTool)" id="pieChartImage" source="@Embed(source= '/weave/resources/images/pie_chart_weave.png')"/>
+				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(PieChartTool)" id="pieChartImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/pie_chart_weave.png')"/>
 				<mx:Label text="{lang('Pie Chart')}" fontWeight="bold"/>
 			</mx:VBox>
 			<mx:VBox>
-				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(GaugeTool)" id="gaugeImage" source="@Embed(source= '/weave/resources/images/gauge_meter_weave.png')"/>
+				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(GaugeTool)" id="gaugeImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/gauge_meter_weave.png')"/>
 				<mx:Label text="{lang('Gauge Meter')}" fontWeight="bold"/>
 			</mx:VBox>
 			<mx:VBox>
-				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(HistogramTool)" id="histogramImage" source="@Embed(source= '/weave/resources/images/histogram_weave.png')"/>
+				<mx:Image width="{thumbnailWidth}" height="{thumbnailHeight}" click="createGlobalObject(HistogramTool)" id="histogramImage" buttonMode="true" useHandCursor="true" source="@Embed(source= '/weave/resources/images/histogram_weave.png')"/>
 				<mx:Label text="{lang('Histogram')}" fontWeight="bold"/>
 			</mx:VBox>
 			
@@ -154,6 +154,7 @@
 			import weave.data.DataSources.CSVDataSource;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.ProbeTextUtils;
+			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.tools.CompoundBarChartTool;
 			import weave.visualization.tools.GaugeTool;
 			import weave.visualization.tools.HistogramTool;
@@ -171,27 +172,6 @@
 			
 			private function handleCreationComplete():void
 			{
-				uploadImage.addEventListener(MouseEvent.MOUSE_OVER,handleMouseOverImage);	
-				uploadImage.addEventListener(MouseEvent.MOUSE_OUT,handleMouseOutImage);	
-				
-				barChartImage.addEventListener(MouseEvent.MOUSE_OVER,handleMouseOverImage);	
-				barChartImage.addEventListener(MouseEvent.MOUSE_OUT,handleMouseOutImage);	
-				
-				pieChartImage.addEventListener(MouseEvent.MOUSE_OVER,handleMouseOverImage);	
-				pieChartImage.addEventListener(MouseEvent.MOUSE_OUT,handleMouseOutImage);	
-				
-				lineChartImage.addEventListener(MouseEvent.MOUSE_OVER,handleMouseOverImage);	
-				lineChartImage.addEventListener(MouseEvent.MOUSE_OUT,handleMouseOutImage);	
-				
-				gaugeImage.addEventListener(MouseEvent.MOUSE_OVER,handleMouseOverImage);	
-				gaugeImage.addEventListener(MouseEvent.MOUSE_OUT,handleMouseOutImage);	
-				
-				scatterplotImage.addEventListener(MouseEvent.MOUSE_OVER,handleMouseOverImage);	
-				scatterplotImage.addEventListener(MouseEvent.MOUSE_OUT,handleMouseOutImage);	
-				
-				histogramImage.addEventListener(MouseEvent.MOUSE_OVER,handleMouseOverImage);	
-				histogramImage.addEventListener(MouseEvent.MOUSE_OUT,handleMouseOutImage);	
-				
 				//Creating pre-defined delimiter objects Comma, Tab , Semi Colon and Space. 
 				//The count field helps to quickly identify the object that probably applies to the data entered.				
 				delimiters.comma = new Object();
@@ -296,16 +276,6 @@
 				}
 				return appliedDemiliter;
 	
-			}
-			
-			private function handleMouseOverImage(event:MouseEvent):void
-			{
-				CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
-			}
-			
-			private function handleMouseOutImage(event:MouseEvent):void
-			{
-				CustomCursorManager.removeCurrentCursor();
 			}
 			
 			private var _fileLoader:FileReference = null;

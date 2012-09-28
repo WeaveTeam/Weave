@@ -25,197 +25,137 @@ package weave.utils
 	import flash.ui.MouseCursorData;
 	
 	import mx.core.BitmapAsset;
-	import mx.managers.CursorManager;
-	
-	import weave.api.reportError;
 
+	/**
+	 * Easy interface for using native cursors.
+	 * 
+	 * @author skolman
+	 * @author adufilie
+	 */	
 	public class CustomCursorManager
 	{
-		public function CustomCursorManager()
+		/**
+		 * This will register an embedded cursor.
+		 * To embed a cursor in your own class, follow this example:
+		 * <code>
+		 *    public static const MY_CURSOR:String = "myCursor";
+		 *    [Embed(source="/weave/resources/images/myCursor.png")]
+		 *    private static var myCursor:Class;
+		 *    CustomCursorManager.registerEmbeddedCursor(MY_CURSOR, myCursor, 0, 0);
+		 * </code>
+		 * @param cursorName A name for the cursor.
+		 * @param bitmapAsset The Class containing the embedded cursor image.
+		 * @param xHotSpot The X coordinate of the hot spot.  Set to NaN to use the center X coordinate.
+		 * @param yHotSpot The X coordinate of the hot spot.  Set to NaN to use the center Y coordinate.
+		 */		
+        public static function registerEmbeddedCursor(name:String, bitmapAssetClass:Class, xHotSpot:Number, yHotSpot:Number):void
 		{
-			super();
+			var asset:BitmapAsset = new bitmapAssetClass() as BitmapAsset;
+			if (isNaN(xHotSpot))
+				xHotSpot = asset.width / 2;
+			if (isNaN(yHotSpot))
+				yHotSpot = asset.height / 2;
+			registerCursor(name, asset.bitmapData, xHotSpot, yHotSpot);
 		}
-		
-		public static const LINK_CURSOR:String = "linkCursor";
-		[Embed(source="/weave/resources/images/axisLinkCursor.png")]
-		private static var linkCursor:Class;
-		
-		
-		public static const HAND_CURSOR:String = "handCursor";
-        [Embed(source="/weave/resources/images/cursor_hand.png")]
-        private static var handCursor:Class;
-		
-		
-        public static const HAND_GRAB_CURSOR:String = "handGrabCursor";
-        [Embed(source="/weave/resources/images/cursor_grab.png")]
-        private static var handGrabCursor:Class;
-		
-
-		public static const SELECT_REPLACE_CURSOR:String = "selectReplaceCursor";
-        [Embed(source="/weave/resources/images/cursor_select_replace.png")]
-        private static var selectReplaceCursor:Class;
-
-
-		public static const SELECT_ADD_CURSOR:String = "selectAddCursor";
-        [Embed(source="/weave/resources/images/cursor_select_add.png")]
-        private static var selectAddCursor:Class;
-		
-
-		public static const SELECT_SUBTRACT_CURSOR:String = "selectSubtractCursor";
-        [Embed(source="/weave/resources/images/cursor_select_subtract.png")]
-        private static var selectSubtractCursor:Class;
-		
-
-		public static const ZOOM_CURSOR:String = "zoomCursor";
-        [Embed(source="/weave/resources/images/cursor_zoom.png")]
-        private static var zoomCursor:Class;
-		
-
-		public static const PEN_CURSOR:String = "penCursor";
-		[Embed(source="/weave/resources/images/penpointer.png")]
-		private static var penCursor:Class;
-		
-		public static const RESIZE_TOP_BOTTOM:String = "resizeTopBottom";
-		[Embed(source="/weave/resources/images/resize_TB.png")]
-		private static var _resizeTBCursor:Class;
-		
-		
-		
-		public static const RESIZE_LEFT_RIGHT:String = "resizeLeftRight";
-		[Embed(source="/weave/resources/images/resize_LR.png")]
-		private static var _resizeLRCursor:Class;
-		
-		public static const RESIZE_TOPLEFT_BOTTOMRIGHT:String = "resizeTLBR";
-		[Embed(source="/weave/resources/images/resize_TL-BR.png")]
-		private static var _resizeTLBRCursor:Class;
-		
-		public static const RESIZE_TOPRIGHT_BOTTOMLEFT:String = "resizeTRBL";
-		[Embed(source="/weave/resources/images/resize_TR-BL.png")]
-		private static var _resizeTRBLCursor:Class;
-		
-		
-		//registering standard cursors
-		//Static block start
-		zInitiailizeCursors();
-		//Static block end
 		
 		/**
-		 * This function registers all the standard Weave cursors/
-		 * 
-		 **/
-		private static function zInitiailizeCursors():void
-		{
-			
-			//NOTE: the cursor name should not contain a dot. Mouse class gives errors if you use names like 'CustomCursorManager.PEN_CURSOR'
-			var linkCursorBitmap:BitmapAsset = new linkCursor() as BitmapAsset;
-			registerCursor(LINK_CURSOR,linkCursorBitmap.bitmapData);
-			
-			var handCursorBitmap:BitmapAsset = new handCursor() as BitmapAsset;
-			registerCursor(HAND_CURSOR,handCursorBitmap.bitmapData);
-			
-			var handGrabCursorBitmap:BitmapAsset = new handGrabCursor() as BitmapAsset;
-			registerCursor(HAND_GRAB_CURSOR,handGrabCursorBitmap.bitmapData);
-			
-			var selectReplaceCursorBitmap:BitmapAsset = new selectReplaceCursor() as BitmapAsset;
-			registerCursor(SELECT_REPLACE_CURSOR,selectReplaceCursorBitmap.bitmapData,2,2);
-			
-			var selectAddCursorBitmap:BitmapAsset = new selectAddCursor() as BitmapAsset;
-			registerCursor(SELECT_ADD_CURSOR,selectAddCursorBitmap.bitmapData,2,2);
-			
-			var selectSubtractCursorBitmap:BitmapAsset = new selectSubtractCursor() as BitmapAsset;
-			registerCursor(SELECT_SUBTRACT_CURSOR,selectSubtractCursorBitmap.bitmapData,2,2);
-			
-			var zoomCursorBitmap:BitmapAsset = new zoomCursor() as BitmapAsset;
-			registerCursor(ZOOM_CURSOR,zoomCursorBitmap.bitmapData);
-			
-			var penCursorBitmap:BitmapAsset = new penCursor() as BitmapAsset;
-			registerCursor(PEN_CURSOR,penCursorBitmap.bitmapData,3,22);
-			
-			var resizeTBBitmap:BitmapAsset = new _resizeTBCursor() as BitmapAsset;
-			registerCursor(RESIZE_TOP_BOTTOM,resizeTBBitmap.bitmapData,resizeTBBitmap.width/2,resizeTBBitmap.height/2);
-			
-			var resizeLRBitmap:BitmapAsset = new _resizeLRCursor() as BitmapAsset;
-			registerCursor(RESIZE_LEFT_RIGHT,resizeLRBitmap.bitmapData,resizeLRBitmap.width/2,resizeLRBitmap.height/2);
-			
-			var resizeTLBRBitmap:BitmapAsset = new _resizeTLBRCursor() as BitmapAsset;
-			registerCursor(RESIZE_TOPLEFT_BOTTOMRIGHT,resizeTLBRBitmap.bitmapData,resizeTLBRBitmap.width/2,resizeTLBRBitmap.height/2);
-			
-			var resizeTRBLBitmap:BitmapAsset = new _resizeTRBLCursor() as BitmapAsset;
-			registerCursor(RESIZE_TOPRIGHT_BOTTOMLEFT,resizeTRBLBitmap.bitmapData,resizeTRBLBitmap.width/2,resizeTRBLBitmap.height/2);
-		}
-		
-        private static function registerCursor(name:String, bitmapData:BitmapData,xOffset:int=0,yOffset:int=0):void
+		 * This will register a BitmapData object as a cursor.
+		 * @param cursorName A reasonably unique name for the cursor.
+		 * @param bitmapData The cursor image.
+		 * @param xHotSpot The X coordinate for the hot spot.
+		 * @param yHotSpot The Y coordinate for the hot spot.
+		 */
+        public static function registerCursor(cursorName:String, bitmapData:BitmapData, xHotSpot:int = 0, yHotSpot:int = 0):void
 		{
 			var cursorData:MouseCursorData = new MouseCursorData();
-			var bitmapDataVectors:Vector.<BitmapData> = new Vector.<BitmapData>(1,true); 
-			
-			bitmapDataVectors[0] = bitmapData;
-			
-			cursorData.data = bitmapDataVectors;
-			cursorData.hotSpot = new Point(xOffset,yOffset);
-			Mouse.registerCursor(name,cursorData);
-			trace("registered " + name);
+			cursorData.data = Vector.<BitmapData>([bitmapData]);
+			cursorData.hotSpot = new Point(xHotSpot, yHotSpot);
+			Mouse.registerCursor(cursorName, cursorData);
 		}
 		
+        private static var idCounter:int = 0; // used to generate unique IDs for cursors
+		private static const cursorStack:Array = []; // keeps track of previously shown cursors
 		
-        private static var idCounter:int = 0;
-		
-		private static var idCursorMap:Array = new Array();
 		/**
 		 * This function is to set the cursor to standard cursor types like hand cursor, link cursor, etc.
 		 * Look at the static String constants to get all the types of available cursors.
-		 * @param type A string name. Use one of the string constants
-		 * @param xOffset the x-coordinate on the bitmap where you want the click to register. (0,0) is the upper left corner of the bitmap image. 
-		 * @param yOffset the y-coordinate on the bitmap where you want the click to register. (0,0) is the upper left corner of the bitmap image.
-		 * @return An integer mapped to the cursorname.
+		 * @param name The name of a registered cursor.
+		 * @return An id mapped to the cursor that can be passed to removeCursor() later.
 		 * */
-		public static function showCursor(type:String):int
+		public static function showCursor(name:String):int
 		{
-			Mouse.cursor = type;
-			idCounter++;
-			idCursorMap.push([idCounter,type]);
-			return idCounter;	
+			cursorStack.push(new CursorEntry(idCounter, name));
+			updateCursor();
+			return idCounter++; // increment for next time
 		}
 		
-		
+		/**
+		 * Removes a cursor previously shown.
+		 * @param id The id of the cursor that was returned by a previous call to showCursor().
+		 */
 		public static function removeCursor(id:int):void
 		{
-			for(var i:int; i<idCursorMap.length; i++)
+			for (var i:int; i < cursorStack.length; i++)
 			{
-				if(idCursorMap[i][0] == id)
+				if (CursorEntry(cursorStack[i]).id == id)
 				{
-					idCursorMap.splice(i,1);
-					setToLastCursor();
+					cursorStack.splice(i,1);
+					updateCursor();
 					return;
 				}
 			}
-			
 		}
 		
-		public static function removeCurrentCursor():void
+		/**
+		 * This function should always be called after modifying the cursor stack.
+		 */		
+		private static function updateCursor():void
 		{
-			if(idCursorMap.length ==0)
-				return;
-
-			var currentCursor:Array = idCursorMap.pop();
-			
-			setToLastCursor();
-			
-		}
-		
-		private static function setToLastCursor():void
-		{
-			//set to last cursor
-			if(idCursorMap.length !=0)
-				Mouse.cursor = idCursorMap[idCursorMap.length-1][1];
+			if (cursorStack.length > 0)
+				Mouse.cursor = CursorEntry(cursorStack[cursorStack.length - 1]).name;
 			else
 				Mouse.cursor = MouseCursor.AUTO;
 		}
 		
-		public static function removeAllCursors():void
+		
+		
+		///////////
+		// hacks //
+		///////////
+		
+		/**
+		 * @TODO Stop using this function and remove it.
+		 */
+		[Exclude]
+		public static function hack_removeCurrentCursor():void
 		{
-			idCursorMap = [];
-			setToLastCursor();
+			if (cursorStack.length == 0)
+				return;
+
+			cursorStack.pop();
+			updateCursor();
+		}
+		
+		/**
+		 * @TODO Stop using this function and remove it.
+		 */
+		[Exclude]
+		public static function hack_removeAllCursors():void
+		{
+			cursorStack.length = 0;
+			updateCursor();
 		}
 	}
+}
+
+internal class CursorEntry
+{
+	public function CursorEntry(id:int, name:String)
+	{
+		this.id = id;
+		this.name = name;
+	}
+	
+	public var id:Number;
+	public var name:String;
 }

@@ -1,20 +1,20 @@
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave. If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave. If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.ui
@@ -32,7 +32,6 @@ package weave.ui
 	import mx.core.mx_internal;
 	import mx.events.FlexEvent;
 	import mx.events.ResizeEvent;
-	import mx.managers.CursorManagerPriority;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
@@ -229,9 +228,9 @@ package weave.ui
 			
 			_drawing = false;
 			if (value)
-				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR);
+				CustomCursorManager.showCursor(PEN_CURSOR);
 			else
-				CustomCursorManager.removeAllCursors();
+				CustomCursorManager.hack_removeAllCursors();
 			invalidateDisplayList();
 		}
 
@@ -427,7 +426,7 @@ package weave.ui
 			if (!_editMode)
 				return;
 			
-			CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR);
+			CustomCursorManager.showCursor(PEN_CURSOR);
 		}
 		
 		/**
@@ -439,7 +438,7 @@ package weave.ui
 			if (!_editMode)
 				return;
 			
-			CustomCursorManager.removeAllCursors();
+			CustomCursorManager.hack_removeAllCursors();
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -669,7 +668,7 @@ package weave.ui
 					
 					_removeDrawingsMenuItem.enabled = true;
 				}
-				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR);
+				CustomCursorManager.showCursor(PEN_CURSOR);
 			}
 		}
 		
@@ -684,7 +683,7 @@ package weave.ui
 			if (!contextMenu)
 				return;
 
-			CustomCursorManager.removeCurrentCursor();
+			CustomCursorManager.hack_removeCurrentCursor();
 
 			//Reset Context Menu as if no PenMouse Object is there and let following code adjust as necessary.
 			_penToolMenuItem.caption = ENABLE_PEN;
@@ -736,7 +735,7 @@ package weave.ui
 				_penToolMenuItem.caption = DISABLE_PEN;
 				_removeDrawingsMenuItem.enabled = true;
 				_changeDrawingMode.enabled = true;
-				CustomCursorManager.showCursor(CustomCursorManager.PEN_CURSOR);
+				CustomCursorManager.showCursor(PEN_CURSOR);
 			}
 			else
 			{
@@ -808,5 +807,13 @@ package weave.ui
 //			var penTool:PenTool = linkableContainer.getLinkableChildren().requestObject(PEN_OBJECT_NAME, PenTool, false);
 //			penTool.selectRecords();
 //		}		
+		
+		/**
+		 * Embedded cursors
+		 */
+		public static const PEN_CURSOR:String = "penCursor";
+		[Embed(source="/weave/resources/images/penpointer.png")]
+		private static var penCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(PEN_CURSOR, penCursor, 3, 22);
 	}
 }

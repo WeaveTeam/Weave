@@ -36,6 +36,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.LinkableTextFormat;
+			import weave.visualization.layers.InteractiveVisualization;
 			import weave.visualization.layers.LayerSettings;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
@@ -163,9 +164,9 @@
 				 fontWeight="bold" click="handleMarginLabelClick()" 
 				 x="0" y="0" paddingLeft="5" paddingTop="5" paddingRight="5"
 				 text="{marginLabelText}" width="100%"
-				 mouseOver="CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR)"
+				 mouseOver="CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK)"
 				 horizontalScrollPolicy="off" verticalScrollPolicy="off"
-				 mouseOut="CustomCursorManager.removeCurrentCursor()"
+				 mouseOut="CustomCursorManager.hack_removeCurrentCursor()"
 				 wordWrap="true" selectable="false" editable="false"
 				 borderThickness="0" backgroundAlpha="0"
 				 toolTip="{lang('{0}\r\tClick here to select the attribute used for {1}.', marginLabelText, marginLabelMode)}"/>

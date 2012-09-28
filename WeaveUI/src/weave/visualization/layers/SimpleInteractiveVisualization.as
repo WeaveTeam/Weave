@@ -387,7 +387,7 @@ package weave.visualization.layers
 					var stageHeight:int = stage.stageHeight; //stage.height returns incorrect values
 					
 					if (theMargin && Weave.properties.enableToolControls.value)
-						CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
+						CustomCursorManager.showCursor(CURSOR_LINK);
 					// if we should be creating a tooltip
 					if (axisColumn && Weave.properties.enableAxisToolTips.value)
 					{

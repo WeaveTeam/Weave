@@ -94,7 +94,7 @@ package weave.visualization.layers
 		}
 		private function removeCursor(e:Event):void
 		{
-			CustomCursorManager.removeCurrentCursor();
+			CustomCursorManager.hack_removeCurrentCursor();
 		}
 		
 		public const enableZoomAndPan:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
@@ -159,25 +159,25 @@ package weave.visualization.layers
 				if (_mouseMode == InteractionController.PAN)
 				{
 					if (WeaveAPI.StageUtils.mouseButtonDown)
-						CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
+						CustomCursorManager.showCursor(CURSOR_HAND_GRAB);
 					else
-						CustomCursorManager.showCursor(CustomCursorManager.HAND_CURSOR);
+						CustomCursorManager.showCursor(CURSOR_HAND);
 				}
 				else if (_mouseMode == InteractionController.SELECT_ADD)
 				{
-					CustomCursorManager.showCursor(CustomCursorManager.SELECT_ADD_CURSOR);
+					CustomCursorManager.showCursor(CURSOR_SELECT_ADD);
 				}
 				else if (_mouseMode == InteractionController.SELECT || _mouseMode == InteractionController.PROBE)
 				{
-					CustomCursorManager.showCursor(CustomCursorManager.SELECT_REPLACE_CURSOR);
+					CustomCursorManager.showCursor(CURSOR_SELECT_REPLACE);
 				}	
 				else if (_mouseMode == InteractionController.SELECT_REMOVE)
 				{
-					CustomCursorManager.showCursor(CustomCursorManager.SELECT_SUBTRACT_CURSOR);
+					CustomCursorManager.showCursor(CURSOR_SELECT_SUBTRACT);
 				}
 				else if (_mouseMode == InteractionController.ZOOM)
 				{
-					CustomCursorManager.showCursor(CustomCursorManager.ZOOM_CURSOR);
+					CustomCursorManager.showCursor(CURSOR_ZOOM);
 				}
 			}
 		}
@@ -251,7 +251,7 @@ package weave.visualization.layers
 		{
 			if (mouseIsRolledOver)
 			{
-				CustomCursorManager.removeAllCursors();
+				CustomCursorManager.hack_removeAllCursors();
 				mouseIsRolledOver = false;
 				
 				// when rolled over goes from true to false, clear the probe
@@ -953,5 +953,43 @@ package weave.visualization.layers
 			
 			return tempPoint;
 		}
+		
+		/**
+		 * Embedded cursors
+		 */
+		public static const CURSOR_LINK:String = "linkCursor";
+		[Embed(source="/weave/resources/images/axisLinkCursor.png")]
+		private static var linkCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_LINK, linkCursor, 0, 0);
+		
+		public static const CURSOR_HAND:String = "handCursor";
+		[Embed(source="/weave/resources/images/cursor_hand.png")]
+		public static var handCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_HAND, handCursor, 1, 2);
+		
+		public static const CURSOR_HAND_GRAB:String = "handGrabCursor";
+		[Embed(source="/weave/resources/images/cursor_grab.png")]
+		private static var handGrabCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_HAND_GRAB, handGrabCursor,  1,  2);
+		
+		public static const CURSOR_SELECT_REPLACE:String = "selectReplaceCursor";
+		[Embed(source="/weave/resources/images/cursor_select_replace.png")]
+		private static var selectReplaceCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_SELECT_REPLACE,  selectReplaceCursor,  1, 2);
+		
+		public static const CURSOR_SELECT_ADD:String = "selectAddCursor";
+		[Embed(source="/weave/resources/images/cursor_select_add.png")]
+		private static var selectAddCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_SELECT_ADD, selectAddCursor, 1, 2);
+		
+		public static const CURSOR_SELECT_SUBTRACT:String = "selectSubtractCursor";
+		[Embed(source="/weave/resources/images/cursor_select_subtract.png")]
+		private static var selectSubtractCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_SELECT_SUBTRACT, selectSubtractCursor, 1, 2);
+		
+		public static const CURSOR_ZOOM:String = "zoomCursor";
+		[Embed(source="/weave/resources/images/cursor_zoom.png")]
+		private static var zoomCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_ZOOM, zoomCursor, 0, 0);
 	}
 }
