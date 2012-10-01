@@ -344,7 +344,8 @@ package weave.api
 		 */
 		public static function getSingletonInstance(singletonInterface:Class):*
 		{
-			// TEMPORARY SOLUTION until everything is a plug-in.
+			///////////////////////
+			// TEMPORARY SOLUTION (until everything is a plug-in.)
 			if (!_initialized)
 			{
 				_initialized = true;
@@ -357,9 +358,11 @@ package weave.api
 				}
 				catch (e:Error)
 				{
-					trace(e.getStackTrace());
+					trace(e.message);
 				}
 			}
+			// END TEMPORARY SOLUTION
+			///////////////////////////
 			
 			var result:* = _singletonDictionary[singletonInterface];
 			// If no instance has been created yet, create one now.
