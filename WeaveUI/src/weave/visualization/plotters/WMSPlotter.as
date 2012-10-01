@@ -75,7 +75,7 @@ package weave.visualization.plotters
 		// the service and its parameters
 		private var _service:IWMSService = null;
 		public const preferLowerQuality:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public const serviceName:LinkableString = registerSpatialProperty(new LinkableString(WMSProviders.NASA, verifyServiceName), setProvider);
+		public const serviceName:LinkableString = registerSpatialProperty(new LinkableString(WMSProviders.BLUE_MARBLE_MAP, verifyServiceName), setProvider);
 		public const srs:LinkableString = newSpatialProperty(LinkableString); // needed for linking MapTool settings
 		public const styles:LinkableString = newLinkableChild(this, LinkableString, setStyle); // needed for changing seasons
 		public const displayMissingImage:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
