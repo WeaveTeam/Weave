@@ -29,12 +29,13 @@
 			import weave.ui.TranslationPanel;
 		]]>
 	</mx:Script>
+	<!--  cornerRadius="0" -->
 	<mx:Panel
 		headerHeight="25"
 		title="Administration Console for Weave {version}"
 		width="100%"
 		height="100%"
-		borderAlpha="0.5" backgroundColor="#DBDBDB" cornerRadius="0"
+		borderAlpha="0.5" backgroundColor="#DBDBDB"
 		bottom="10" top="10" right="10" left="10"
 		paddingLeft="8" paddingRight="8" paddingTop="8" paddingBottom="8">
 		<mx:ViewStack width="100%" height="100%" selectedIndex="{AdminInterface.instance.userHasAuthenticated ? 0 : (AdminInterface.instance.sqlConfigExists ? 1 : 2)}">

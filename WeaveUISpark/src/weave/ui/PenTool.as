@@ -48,7 +48,6 @@ package weave.ui
 	import weave.utils.CustomCursorManager;
 	import weave.utils.SpatialIndex;
 	import weave.visualization.layers.Visualization;
-	import weave.visualization.tools.SimpleVisTool;
 
 	use namespace mx_internal;
 	
@@ -263,9 +262,11 @@ package weave.ui
 		private function projectCoordToScreenBounds(x1:Number, y1:Number, output:Point):void
 		{
 			var linkableContainer:ILinkableContainer = getLinkableContainer(parent);
-			var visualization:Visualization = (linkableContainer as SimpleVisTool).visualization as Visualization;
-			if (visualization)
+			var children:Array = linkableContainer.getLinkableChildren().getObjects(Visualization);
+			if (children.length > 0)
 			{
+				var visualization:Visualization = children[0] as Visualization;
+				
 				visualization.plotManager.zoomBounds.getScreenBounds(_tempScreenBounds);
 				visualization.plotManager.zoomBounds.getDataBounds(_tempDataBounds);
 				

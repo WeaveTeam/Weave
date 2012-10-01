@@ -24,6 +24,7 @@
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
+			import weave.compiler.ProxyObject;
 			import weave.core.ExternalSessionStateInterface;
 			
 			[Bindable] public var padding:int = 5;
@@ -42,7 +43,7 @@
 			{
 				super.childrenCreated();
 				
-				compiler.includeLibraries(GlobalLib, WeaveAPI, ObjectUtil, WeaveAPI.SessionManager);
+				compiler.includeLibraries(GlobalLib, WeaveAPI, ObjectUtil, WeaveAPI.SessionManager, FlexGlobals);
 			}
 			
 			private const compiler:Compiler = new Compiler();
@@ -95,28 +96,34 @@
 				return log.text = '';
 			}
 			
-			private const symbolTable:Object = {
-				'javaScript': function(...args):*
+			private const symbolTable:Object = new ProxyObject(_hasProperty, _getProperty, null);
+			private function _hasProperty(name:*):Boolean { return _getProperty(name) !== undefined; }
+			private function _getProperty(name:*):*
+			{
+				switch (String(name))
 				{
-					var prev:Boolean = ExternalInterface.marshallExceptions;
-					try
+					case 'javaScript': return function(...args):*
 					{
-						ExternalInterface.marshallExceptions = true;
-						ExternalInterface.call.apply(this, args);
-					}
-					finally
-					{
-						ExternalInterface.marshallExceptions = prev;
-					}
-				},
-				'application': FlexGlobals.topLevelApplication,
-				'print': ObjectUtil.toString as Function,
-				'getObject': getObject,
-				'clear': consoleClear,
-				'watch': consoleWatch,
-				'unwatch': consoleUnwatch,
-				'trace': consoleTrace
-			};
+						var prev:Boolean = ExternalInterface.marshallExceptions;
+						try
+						{
+							ExternalInterface.marshallExceptions = true;
+							ExternalInterface.call.apply(this, args);
+						}
+						finally
+						{
+							ExternalInterface.marshallExceptions = prev;
+						}
+					};
+					case 'application': return FlexGlobals.topLevelApplication;
+					case 'print': return ObjectUtil.toString as Function;
+					case 'getObject': return getObject as Function;
+					case 'clear': return consoleClear as Function;
+					case 'watch': return consoleWatch as Function;
+					case 'unwatch': return consoleUnwatch as Function;
+					case 'trace': return consoleTrace as Function;
+				}
+			}
 			private function runCommand():void
 			{
 				if (!input.text)

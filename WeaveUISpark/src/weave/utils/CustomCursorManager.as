@@ -34,6 +34,8 @@ package weave.utils
 	 */	
 	public class CustomCursorManager
 	{
+		public static var debug:Boolean = false;
+		
 		/**
 		 * This will register an embedded cursor.
 		 * To embed a cursor in your own class, follow this example:
@@ -84,6 +86,8 @@ package weave.utils
 		 * */
 		public static function showCursor(name:String):int
 		{
+			if (!name)
+				throw new Error("cursor name cannot be null");
 			cursorStack.push(new CursorEntry(idCounter, name));
 			updateCursor();
 			return idCounter++; // increment for next time
@@ -112,12 +116,23 @@ package weave.utils
 		private static function updateCursor():void
 		{
 			if (cursorStack.length > 0)
-				Mouse.cursor = CursorEntry(cursorStack[cursorStack.length - 1]).name;
+			{
+				var entry:CursorEntry = CursorEntry(cursorStack[cursorStack.length - 1]);
+				try
+				{
+					Mouse.cursor = entry.name;
+				}
+				catch (e:Error)
+				{
+					if (debug)
+						trace('Unable to set cursor to "' + entry.name + '"');
+				}
+			}
 			else
 				Mouse.cursor = MouseCursor.AUTO;
 		}
 		
-		
+		//  FlexGlobals.topLevelApplication.addElement(new('weave.visualization.layers.SimpleInteractiveVisualization'))
 		
 		///////////
 		// hacks //

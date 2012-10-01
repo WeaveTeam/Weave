@@ -256,7 +256,7 @@ package weave.primitives
 		 * begin static section *
 		 ************************/
 		
-		[Embed("/weave/resources/ColorRampPresets.xml", mimeType="application/octet-stream")]
+		[Embed(source="/weave/resources/ColorRampPresets.xml", mimeType="application/octet-stream")]
 		private static const ColorRampPresetsXML:Class;
 		private static var _allColorRamps:XML = null;
 		public static function get allColorRamps():XML

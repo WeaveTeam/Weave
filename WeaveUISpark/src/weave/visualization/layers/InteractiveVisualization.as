@@ -87,6 +87,11 @@ package weave.visualization.layers
 		
 		private function addContextMenuEventListener():void
 		{
+			if (WeaveAPI.topLevelApplication == null)
+			{
+				callLater(addContextMenuEventListener);
+				return;
+			}
 			var contextMenu:ContextMenu = (WeaveAPI.topLevelApplication as InteractiveObject).contextMenu;
 			if (!contextMenu)
 				return callLater(addContextMenuEventListener);

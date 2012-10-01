@@ -19,10 +19,6 @@
 
 package weave.visualization.layers
 {
-	import flash.utils.getDefinitionByName;
-	
-	import mx.containers.Canvas;
-	
 	import spark.components.Group;
 	import spark.core.SpriteVisualElement;
 	
@@ -30,7 +26,6 @@ package weave.visualization.layers
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.setSessionState;
-	import weave.api.ui.IPlotter;
 	import weave.core.ClassUtils;
 	import weave.core.SessionManager;
 

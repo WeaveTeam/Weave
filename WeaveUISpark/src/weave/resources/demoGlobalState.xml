@@ -1,0 +1,331 @@
+<weave encoding="dynamic">
+	<WeaveProperties name="WeaveProperties">
+	  <backgroundColor>13421772</backgroundColor>
+	  <collabServerIP>demo.oicweave.org</collabServerIP>
+	  <collabServerName>ivpr-vm</collabServerName>
+	  <collabServerPort>5222</collabServerPort>
+	  <collabServerRoom/>
+	  <collabSpectating>false</collabSpectating>
+	  <cssStyleSheetName>weaveStyle.css</cssStyleSheetName>
+	  <dashboardMode>false</dashboardMode>
+	  <dashedSelectionBox>5,5</dashedSelectionBox>
+	  <dataInfoURL/>
+	  <debugScreenBounds>false</debugScreenBounds>
+	  <defaultTextFormat>
+	    <bold>false</bold>
+	    <color>0</color>
+	    <font>Sophia Nubian</font>
+	    <italic>false</italic>
+	    <size>11</size>
+	    <underline>false</underline>
+	  </defaultTextFormat>
+	  <enableAboutMenu>true</enableAboutMenu>
+	  <enableAdd2DHistogram>true</enableAdd2DHistogram>
+	  <enableAddAttributeMenuTool>true</enableAddAttributeMenuTool>
+	  <enableAddBarChart>true</enableAddBarChart>
+	  <enableAddColorLegend>true</enableAddColorLegend>
+	  <enableAddColormapHistogram>true</enableAddColormapHistogram>
+	  <enableAddCompoundRadViz>true</enableAddCompoundRadViz>
+	  <enableAddCustomTool>true</enableAddCustomTool>
+	  <enableAddDataSource>true</enableAddDataSource>
+	  <enableAddDataTable>true</enableAddDataTable>
+	  <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
+	  <enableAddGaugeTool>true</enableAddGaugeTool>
+	  <enableAddGraphTool>true</enableAddGraphTool>
+	  <enableAddHistogram>true</enableAddHistogram>
+	  <enableAddLineChart>true</enableAddLineChart>
+	  <enableAddMap>true</enableAddMap>
+	  <enableAddNewDatasource>true</enableAddNewDatasource>
+	  <enableAddPieChart>true</enableAddPieChart>
+	  <enableAddPieChartHistogram>true</enableAddPieChartHistogram>
+	  <enableAddRadViz>true</enableAddRadViz>
+	  <enableAddRamachandranPlot>false</enableAddRamachandranPlot>
+	  <enableAddRScriptEditor>true</enableAddRScriptEditor>
+	  <enableAddScatterplot>true</enableAddScatterplot>
+	  <enableAddThermometerTool>true</enableAddThermometerTool>
+	  <enableAddTimeSliderTool>true</enableAddTimeSliderTool>
+	  <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
+	  <enableAnnotation>true</enableAnnotation>
+	  <enableAxisToolTips>true</enableAxisToolTips>
+	  <enableBitmapFilters>true</enableBitmapFilters>
+	  <enableBrowseData>true</enableBrowseData>
+	  <enableCascadeAllWindows>true</enableCascadeAllWindows>
+	  <enableClearCurrentSelection>true</enableClearCurrentSelection>
+	  <enableCloseAllWindows>true</enableCloseAllWindows>
+	  <enableCollaborationBar>false</enableCollaborationBar>
+	  <enableCreateSubsets>true</enableCreateSubsets>
+	  <enableDataMenu>true</enableDataMenu>
+	  <enableDrawCircle>true</enableDrawCircle>
+	  <enableDynamicTools>true</enableDynamicTools>
+	  <enableEditDataSource>true</enableEditDataSource>
+	  <enableEditDatasources>true</enableEditDatasources>
+	  <enableExportApplicationScreenshot>true</enableExportApplicationScreenshot>
+	  <enableExportCSV>true</enableExportCSV>
+	  <enableExportToolImage>true</enableExportToolImage>
+	  <enableFullScreen>false</enableFullScreen>
+	  <enableGeometryProbing>true</enableGeometryProbing>
+	  <enableLoadMyData>true</enableLoadMyData>
+	  <enableManageSavedSelections>true</enableManageSavedSelections>
+	  <enableManageSavedSubsets>true</enableManageSavedSubsets>
+	  <enableMarker>true</enableMarker>
+	  <enableMenuBar>true</enableMenuBar>
+	  <enableMinimizeAllWindows>true</enableMinimizeAllWindows>
+	  <enableMouseWheel>true</enableMouseWheel>
+	  <enableNewDataset>true</enableNewDataset>
+	  <enableNewUserWizard>true</enableNewUserWizard>
+	  <enablePanelCoordsPercentageMode>true</enablePanelCoordsPercentageMode>
+	  <enablePenTool>true</enablePenTool>
+	  <enableProbeAnimation>true</enableProbeAnimation>
+	  <enableProbeLines>true</enableProbeLines>
+	  <enableProbeToolTip>true</enableProbeToolTip>
+	  <enableRefreshHierarchies>true</enableRefreshHierarchies>
+	  <enableRemoveSubsets>true</enableRemoveSubsets>
+	  <enableRestoreAllMinimizedWindows>true</enableRestoreAllMinimizedWindows>
+	  <enableRightClick>true</enableRightClick>
+	  <enableSaveCurrentSelection>true</enableSaveCurrentSelection>
+	  <enableSaveCurrentSubset>true</enableSaveCurrentSubset>
+	  <enableSearchForRecord>true</enableSearchForRecord>
+	  <enableSelectionSelectorBox>true</enableSelectionSelectorBox>
+	  <enableSelectionsMenu>true</enableSelectionsMenu>
+	  <enableSessionMenu>true</enableSessionMenu>
+	  <enableShowAllRecords>true</enableShowAllRecords>
+	  <enableSubsetControls>true</enableSubsetControls>
+	  <enableSubsetSelectionBox>true</enableSubsetSelectionBox>
+	  <enableSubsetsMenu>true</enableSubsetsMenu>
+	  <enableTileAllWindows>true</enableTileAllWindows>
+	  <enableToolAttributeEditing>true</enableToolAttributeEditing>
+	  <enableToolControls>true</enableToolControls>
+	  <enableToolProbe>true</enableToolProbe>
+	  <enableToolSelection>true</enableToolSelection>
+	  <enableUserPreferences>true</enableUserPreferences>
+	  <enableWindowMenu>true</enableWindowMenu>
+	  <eventListeners encoding="dynamic"/>
+	  <geometryMetadataRequestMode>xyz</geometryMetadataRequestMode>
+	  <geometryMinimumScreenArea>1</geometryMinimumScreenArea>
+	  <macroLibraries>weave.api::WeaveAPI</macroLibraries>
+	  <macros encoding="dynamic"/>
+	  <maxComputationTimePerFrame>100</maxComputationTimePerFrame>
+	  <maxTooltipRecordsShown>1</maxTooltipRecordsShown>
+	  <pageTitle>Open Indicators Weave</pageTitle>
+	  <panelTitleTextFormat>
+	    <bold>false</bold>
+	    <color>16777215</color>
+	    <font>Verdana</font>
+	    <italic>false</italic>
+	    <size>10</size>
+	    <underline>false</underline>
+	  </panelTitleTextFormat>
+	  <pdbServiceURL>/WeavePDBService/PDBService</pdbServiceURL>
+	  <probeInnerGlow>
+	    <alpha>1</alpha>
+	    <blurX>5</blurX>
+	    <blurY>5</blurY>
+	    <color>16777215</color>
+	    <strength>10</strength>
+	  </probeInnerGlow>
+	  <probeLineFormatter>str = replace(lpad(string, 8, "\t"), "\t", "  ");
+	str + " (" + title + ")"</probeLineFormatter>
+	  <probeOuterGlow>
+	    <alpha>1</alpha>
+	    <blurX>3</blurX>
+	    <blurY>3</blurY>
+	    <color>0</color>
+	    <strength>3</strength>
+	  </probeOuterGlow>
+	  <probeToolTipBackgroundAlpha>1</probeToolTipBackgroundAlpha>
+	  <probeToolTipBackgroundColor>NaN</probeToolTipBackgroundColor>
+	  <probeToolTipFontColor>0</probeToolTipFontColor>
+	  <probeToolTipMaxWidth>400</probeToolTipMaxWidth>
+	  <recordsTooltipLocation>Lower left</recordsTooltipLocation>
+	  <rServiceURL>/WeaveServices/RService</rServiceURL>
+	  <searchServiceURLs>Wikipedia|http://en.wikipedia.org/wiki/Special:Search?search=
+	Google|http://www.google.com/search?q=
+	Google Images|http://images.google.com/images?q=
+	Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
+	  <SecondaryKeyNumColumn_useGlobalMinMaxValues>true</SecondaryKeyNumColumn_useGlobalMinMaxValues>
+	  <selectionAlphaAmount>0.5</selectionAlphaAmount>
+	  <selectionBlurringAmount>4</selectionBlurringAmount>
+	  <selectionDropShadow>
+	    <alpha>0.5</alpha>
+	    <angle>45</angle>
+	    <blurX>4</blurX>
+	    <blurY>4</blurY>
+	    <color>0</color>
+	    <distance>2</distance>
+	    <strength>1</strength>
+	  </selectionDropShadow>
+	  <selectionMode>rectangle</selectionMode>
+	  <showAddAllButton>true</showAddAllButton>
+	  <showCollaborationEditor>false</showCollaborationEditor>
+	  <showCollaborationMenuItem>true</showCollaborationMenuItem>
+	  <showColorController>true</showColorController>
+	  <showCopyright>true</showCopyright>
+	  <showDisabilityOptions>true</showDisabilityOptions>
+	  <showEquationEditor>true</showEquationEditor>
+	  <showKeyTypeInColumnTitle>false</showKeyTypeInColumnTitle>
+	  <showProbeToolTipEditor>true</showProbeToolTipEditor>
+	  <showProbeWindow>true</showProbeWindow>
+	  <showRevertButton>true</showRevertButton>
+	  <showSelectedRecordsText>true</showSelectedRecordsText>
+	  <showSessionHistoryControls>true</showSessionHistoryControls>
+	  <showVisToolCloseDialog>false</showVisToolCloseDialog>
+	  <startupJavaScript/>
+	  <toolInteractions>
+	    <pan>alt,drag</pan>
+	    <probe>move</probe>
+	    <select>drag</select>
+	    <selectAdd>ctrl,drag</selectAdd>
+	    <selectAll>ctrl,dclick</selectAll>
+	    <selectRemove>ctrl,shift,drag</selectRemove>
+	    <zoom>shift,drag
+	wheel</zoom>
+	    <zoomIn>dclick</zoomIn>
+	    <zoomOut>shift,dclick</zoomOut>
+	    <zoomToExtent>ctrl,alt,shift,dclick</zoomToExtent>
+	  </toolInteractions>
+	  <version>1.0 Beta (Thu Sep 27 19:02:18 EDT 2012)</version>
+	  <windowSnapGridSize>1%</windowSnapGridSize>
+	  <workspaceHeight>NaN</workspaceHeight>
+	  <workspaceMultiplier>1</workspaceMultiplier>
+	  <workspaceWidth>NaN</workspaceWidth>
+	</WeaveProperties>
+	<ColorColumn name="defaultColorColumn">
+	  <internalDynamicColumn encoding="dynamic">
+	    <GlobalObjectReference name="defaultColorBinColumn"/>
+	  </internalDynamicColumn>
+	  <ramp>0x0571B0,0x92C5DE,0xF7F7F7,0xF4A582,0xCA0020</ramp>
+	  <recordColors/>
+	</ColorColumn>
+	<BinnedColumn name="defaultColorBinColumn">
+	  <binningDefinition encoding="dynamic">
+	    <CustomSplitBinningDefinition>
+	      <overrideBinNames/>
+	      <splitValues>0,5,10,15,20,25,30,35,40</splitValues>
+	    </CustomSplitBinningDefinition>
+	  </binningDefinition>
+	  <internalDynamicColumn encoding="dynamic">
+	    <GlobalObjectReference name="defaultColorDataColumn"/>
+	  </internalDynamicColumn>
+	</BinnedColumn>
+	<FilteredColumn name="defaultColorDataColumn">
+	  <filter encoding="dynamic">
+	    <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+	  </filter>
+	  <internalDynamicColumn encoding="dynamic">
+	    <ReferencedColumn>
+	      <dynamicColumnReference encoding="dynamic">
+	        <HierarchyColumnReference>
+	          <dataSourceName>WeaveDataSource</dataSourceName>
+	          <hierarchyPath encoding="xml">
+	            <hierarchy>
+	              <category name="Data Tables" title="Data Tables">
+	                <category name="obesity-2010" title="obesity-2010">
+	                  <attribute geometryCollection="States" dataType="number" title="Percent Obese (BMI >= 30) (1995)" id="667700" name="Percent Obese (BMI >= 30) (1995)" dataTable="obesity-2010" keyType="US State FIPS Code"/>
+	                </category>
+	              </category>
+	            </hierarchy>
+	          </hierarchyPath>
+	        </HierarchyColumnReference>
+	      </dynamicColumnReference>
+	    </ReferencedColumn>
+	  </internalDynamicColumn>
+	</FilteredColumn>
+	<KeyFilter name="defaultSubsetKeyFilter">
+	  <excluded/>
+	  <included/>
+	  <includeMissingKeys>true</includeMissingKeys>
+	  <includeMissingKeyTypes>true</includeMissingKeyTypes>
+	</KeyFilter>
+	<KeySet name="defaultSelectionKeySet" encoding="dynamic"/>
+	<KeySet name="defaultProbeKeySet" encoding="dynamic"/>
+	<KeySet name="alwaysHighlightKeySet"/>
+	<LinkableHashMap name="savedSelections" encoding="dynamic"/>
+	<LinkableHashMap name="savedSubsets" encoding="dynamic"/>
+	<LinkableHashMap name="Probe Header Columns" encoding="dynamic">
+	  <ReferencedColumn name="ReferencedColumn2">
+	    <dynamicColumnReference encoding="dynamic">
+	      <HierarchyColumnReference>
+	        <dataSourceName>WeaveDataSource</dataSourceName>
+	        <hierarchyPath encoding="xml">
+	          <hierarchy>
+	            <category name="Data Tables" title="Data Tables">
+	              <category name="Obesity" title="Obesity">
+	                <attribute geometryCollection="States" title="State" id="174804" name="State" dataTable="Obesity" keyType="US State FIPS Code"/>
+	              </category>
+	            </category>
+	          </hierarchy>
+	        </hierarchyPath>
+	      </HierarchyColumnReference>
+	    </dynamicColumnReference>
+	  </ReferencedColumn>
+	</LinkableHashMap>
+	<LinkableHashMap name="Probed Columns" encoding="dynamic">
+	  <ReferencedColumn name="ReferencedColumn15">
+	    <dynamicColumnReference encoding="dynamic">
+	      <HierarchyColumnReference>
+	        <dataSourceName>WeaveDataSource</dataSourceName>
+	        <hierarchyPath encoding="xml">
+	          <hierarchy>
+	            <category name="Data Tables" title="Data Tables">
+	              <category name="obesity-2010" title="obesity-2010">
+	                <attribute geometryCollection="States" dataType="number" title="Percent Obese (BMI >= 30) (1995)" id="667700" name="Percent Obese (BMI >= 30) (1995)" dataTable="obesity-2010" keyType="US State FIPS Code"/>
+	              </category>
+	            </category>
+	          </hierarchy>
+	        </hierarchyPath>
+	      </HierarchyColumnReference>
+	    </dynamicColumnReference>
+	  </ReferencedColumn>
+	  <ReferencedColumn name="ReferencedColumn">
+	    <dynamicColumnReference encoding="dynamic">
+	      <HierarchyColumnReference>
+	        <dataSourceName>WeaveDataSource</dataSourceName>
+	        <hierarchyPath encoding="xml">
+	          <hierarchy>
+	            <category name="Data Tables" title="Data Tables">
+	              <category name="obesity-2010" title="obesity-2010">
+	                <attribute geometryCollection="States" dataType="number" title="Percent Obese (BMI >= 30) (2000)" id="667705" name="Percent Obese (BMI >= 30) (2000)" dataTable="obesity-2010" keyType="US State FIPS Code"/>
+	              </category>
+	            </category>
+	          </hierarchy>
+	        </hierarchyPath>
+	      </HierarchyColumnReference>
+	    </dynamicColumnReference>
+	  </ReferencedColumn>
+	  <ReferencedColumn name="ReferencedColumn2">
+	    <dynamicColumnReference encoding="dynamic">
+	      <HierarchyColumnReference>
+	        <dataSourceName>WeaveDataSource</dataSourceName>
+	        <hierarchyPath encoding="xml">
+	          <hierarchy>
+	            <category name="Data Tables" title="Data Tables">
+	              <category name="obesity-2010" title="obesity-2010">
+	                <attribute geometryCollection="States" dataType="number" title="Percent Obese (BMI >= 30) (2005)" id="667710" name="Percent Obese (BMI >= 30) (2005)" dataTable="obesity-2010" keyType="US State FIPS Code"/>
+	              </category>
+	            </category>
+	          </hierarchy>
+	        </hierarchyPath>
+	      </HierarchyColumnReference>
+	    </dynamicColumnReference>
+	  </ReferencedColumn>
+	  <ReferencedColumn name="ReferencedColumn30">
+	    <dynamicColumnReference encoding="dynamic">
+	      <HierarchyColumnReference>
+	        <dataSourceName>WeaveDataSource</dataSourceName>
+	        <hierarchyPath encoding="xml">
+	          <hierarchy>
+	            <category name="Data Tables" title="Data Tables">
+	              <category name="obesity-2010" title="obesity-2010">
+	                <attribute geometryCollection="States" dataType="number" title="Percent Obese (BMI >= 30) (2010)" id="667715" name="Percent Obese (BMI >= 30) (2010)" dataTable="obesity-2010" keyType="US State FIPS Code"/>
+	              </category>
+	            </category>
+	          </hierarchy>
+	        </hierarchyPath>
+	      </HierarchyColumnReference>
+	    </dynamicColumnReference>
+	  </ReferencedColumn>
+	</LinkableHashMap>
+	<WeaveDataSource name="WeaveDataSource">
+	  <url>http://demo.oicweave.org/WeaveServices/DataService</url>
+	</WeaveDataSource>
+</weave>
