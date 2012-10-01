@@ -19,10 +19,8 @@
 
 package weave.services.collaboration
 {	
-	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
-	import flash.media.Sound;
 	import flash.net.registerClassAlias;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
@@ -30,10 +28,7 @@ package weave.services.collaboration
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.Sort;
-	import mx.containers.Canvas;
-	import mx.containers.HBox;
 	import mx.controls.Alert;
-	import mx.core.Application;
 	import mx.events.CloseEvent;
 	import mx.utils.Base64Decoder;
 	import mx.utils.Base64Encoder;
@@ -45,8 +40,6 @@ package weave.services.collaboration
 	import org.igniterealtime.xiff.conference.*;
 	import org.igniterealtime.xiff.core.*;
 	import org.igniterealtime.xiff.data.*;
-	import org.igniterealtime.xiff.data.register.RegisterExtension;
-	import org.igniterealtime.xiff.data.search.SearchExtension;
 	import org.igniterealtime.xiff.events.*;
 	import org.igniterealtime.xiff.exception.*;
 	import org.igniterealtime.xiff.filter.*;
@@ -57,18 +50,14 @@ package weave.services.collaboration
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
 	import weave.api.registerDisposableChild;
-	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
-	import weave.core.ErrorManager;
 	import weave.core.SessionStateLog;
-	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	
 	public class CollaborationService extends EventDispatcher implements IDisposableObject
 	{

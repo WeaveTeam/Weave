@@ -54,11 +54,6 @@
           <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="WeaveData.swf"/>
         </crossDomainRsls>
       </libraryPathEntry>
-      <libraryPathEntry applicationDomain="default" forceLoad="false" kind="3" linkType="4" path="/WeaveUI/bin/WeaveUI.swc" useDefaultLinkType="true">
-        <crossDomainRsls>
-          <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="WeaveUI.swf"/>
-        </crossDomainRsls>
-      </libraryPathEntry>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>
@@ -78,7 +73,7 @@
       <multiPlatformSettings enabled="false" includePlatformLibs="false" platformID="com.adobe.flexide.multiplatform.ios.platform" version="2"/>
       <actionScriptSettings version="1"/>
     </buildTarget>
-    <buildTarget buildTargetName="com.qnx.flexide.multiplatform.qnx.platform">
+    <buildTarget buildTargetName="com.qnx.flexide.multiplatform.qnx.platform" signBarFile="false">
       <airSettings airCertificatePath="" airTimestamp="true" version="1">
         <airExcludes/>
       </airSettings>

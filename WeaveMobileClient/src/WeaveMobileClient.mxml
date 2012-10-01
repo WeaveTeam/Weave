@@ -66,8 +66,12 @@
 				
 				
 				addElement(new MobileConsole());
+//				addElement(new SimpleInteractiveVisualization());
+//				addElement(new InteractiveVisualization());
+//				addElement(new Visualization());
+//				addElement(abc);
 			}
-			
+//			public var abc:* = new BusyIndicator();
 		]]>
 	</fx:Script>
 </s:Application>

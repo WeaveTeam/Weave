@@ -20,16 +20,12 @@
 package weave.primitives
 {
 	import flash.display.Graphics;
-	import flash.geom.Rectangle;
+	import flash.display.Sprite;
 	import flash.utils.ByteArray;
 	
-	import mx.containers.Canvas;
-	
 	import weave.api.WeaveAPI;
-	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
-	import weave.core.LinkableXML;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -229,7 +225,7 @@ package weave.primitives
 		 * @param canvas
 		 * @param vertical
 		 */
-		public function draw(canvas:Canvas, vertical:Boolean):void
+		public function draw(canvas:Sprite, vertical:Boolean):void
 		{
 			validate();
 			

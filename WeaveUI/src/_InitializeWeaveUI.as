@@ -84,22 +84,6 @@ package
 	 */
 	public class _InitializeWeaveUI
 	{
-		/**
-		 * Register singleton implementations for WeaveAPI framework classes
-		 */
-		WeaveAPI.registerSingleton(ISessionManager, SessionManager);
-		WeaveAPI.registerSingleton(IStageUtils, StageUtils);
-		WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
-		WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
-		WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
-		WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
-		WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
-		WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
-		WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
-		WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
-		WeaveAPI.registerSingleton(ICSVParser, CSVParser);
-		WeaveAPI.registerSingleton(ILocaleManager, LocaleManager);
-		WeaveAPI.registerSingleton(ILinkableHashMap, LinkableHashMap);
 		
 		/**
 		 * Register all ILinkableObjectEditor implementations.
@@ -130,19 +114,7 @@ package
 		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
 		 */
 		WeaveXMLDecoder.includePackages(
-			"weave",
-			"weave.core",
-			"weave.data",
-			"weave.data.AttributeColumns",
-			"weave.data.BinClassifiers",
-			"weave.data.BinningDefinitions",
-			"weave.data.ColumnReferences",
-			"weave.data.DataSources",
-			"weave.data.KeySets",
 			"weave.editors",
-			"weave.primitives",
-			"weave.Reports",
-			"weave.test",
 			"weave.ui",
 			"weave.utils",
 			"weave.visualization",
