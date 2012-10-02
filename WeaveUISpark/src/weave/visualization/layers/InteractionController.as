@@ -39,9 +39,14 @@ package weave.visualization.layers
 		public static const DRAG:String = "drag";
 		public static const CLICK:String = "click";
 		public static const DCLICK:String = "dclick";
-		public static const WHEEL:String = "wheel";
+		public static const WHEEL:String = "wheel";		
+		// gesture events
+		public static const GESTURE_PAN:String = "gesturePan";
+		public static const GESTURE_ZOOM:String = "gestureZoom";
 		
-		private static const MOUSE_EVENTS:Array = [MOVE, DRAG, CLICK, DCLICK, WHEEL];
+		private static const MOUSE_EVENTS:Array = [MOVE, DRAG, CLICK, DCLICK, WHEEL, GESTURE_PAN, GESTURE_ZOOM];
+		
+		
 		
 		// modifier keys
 		public static const CTRL:String = "ctrl";
@@ -85,8 +90,8 @@ package weave.visualization.layers
 			selectRemove.value = [CTRL, SHIFT, DRAG].join(DELIM);
 			selectAll.value = [CTRL, DCLICK].join(DELIM);
 			
-			pan.value = [ALT, DRAG].join(DELIM);
-			zoom.value = WeaveAPI.CSVParser.createCSV([[SHIFT, DRAG], [WHEEL]]);
+			pan.value = [ALT, DRAG,GESTURE_PAN].join(DELIM);
+			zoom.value = WeaveAPI.CSVParser.createCSV([[SHIFT, DRAG], [WHEEL],[GESTURE_ZOOM]]);
 			zoomIn.value = DCLICK;
 			zoomOut.value = [SHIFT, DCLICK].join(DELIM);
 			zoomToExtent.value = [CTRL, ALT, SHIFT, DCLICK].join(DELIM);

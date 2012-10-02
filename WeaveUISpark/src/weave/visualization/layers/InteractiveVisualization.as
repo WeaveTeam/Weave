@@ -25,11 +25,16 @@ package weave.visualization.layers
 	import flash.display.InteractiveObject;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
+	import flash.events.GestureEvent;
+	import flash.events.GesturePhase;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
+	import flash.events.TransformGestureEvent;
 	import flash.geom.Point;
 	import flash.ui.ContextMenu;
 	import flash.ui.Keyboard;
+	import flash.ui.Multitouch;
+	import flash.ui.MultitouchInputMode;
 	
 	import spark.components.Group;
 	
@@ -63,11 +68,21 @@ package weave.visualization.layers
 			
 			addContextMenuEventListener();
 			
+			//gesture  - sets for More than one finger [TransformGestureEvent,PressAndTapGestureEvent,GestureEvent]
+			//Touch_point - sets for one finger [basic Touch events]
+			//none - sets to handle user handle as Mouse events	
+			//to-do may require a flag to set the mode
+			Multitouch.inputMode = MultitouchInputMode.GESTURE;
+		
+			addEventListener(TransformGestureEvent.GESTURE_PAN, handleMouseEvent);
+			addEventListener(TransformGestureEvent.GESTURE_ZOOM, handleMouseEvent);
+			
 			addEventListener(MouseEvent.DOUBLE_CLICK, handleDoubleClick);
 			addEventListener(MouseEvent.MOUSE_DOWN, handleMouseDown);
 			addEventListener(MouseEvent.ROLL_OUT, handleRollOut);
 			addEventListener(MouseEvent.ROLL_OVER, handleRollOver);
 			addEventListener(MouseEvent.MOUSE_WHEEL,handleMouseWheel);
+			
 			WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, this, handleMouseMove);
 			WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_UP, this, handleMouseUp);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, this, handleKeyboardEvent);
@@ -282,12 +297,26 @@ package weave.visualization.layers
 		{
 			if (Weave.properties.enableMouseWheel.value)
 				handleMouseEvent(event);
-		}		
+		}
 		
-		protected function handleMouseEvent(event:MouseEvent):void
+		
+		
+		//set as event to support Both MouseEvent and transformGestureEvent
+		protected function handleMouseEvent(event:Event):void
 		{
 			// determine proper event type
 			var eventType:String = null;
+			var mouseEvent:MouseEvent = null;
+			
+			var transformGestureEvent:TransformGestureEvent = null;
+			if(event is MouseEvent){
+				mouseEvent = event as MouseEvent;
+			}
+			else if (event is TransformGestureEvent){
+				transformGestureEvent = event as TransformGestureEvent;
+			}
+				
+			
 			switch (event.type)
 			{
 				case MouseEvent.CLICK:
@@ -307,7 +336,7 @@ package weave.visualization.layers
 				case MouseEvent.ROLL_OVER:
 				case MouseEvent.ROLL_OUT:
 				{
-					if (event.buttonDown)
+					if (mouseEvent.buttonDown)
 						eventType = InteractionController.DRAG;
 					else
 						eventType = InteractionController.MOVE;
@@ -319,16 +348,26 @@ package weave.visualization.layers
 					eventType = InteractionController.WHEEL;
 					break;
 				}
+				case TransformGestureEvent.GESTURE_PAN:
+				{
+					eventType = InteractionController.GESTURE_PAN;
+					break;
+				}
+				case TransformGestureEvent.GESTURE_ZOOM:
+				{
+					eventType = InteractionController.GESTURE_ZOOM;
+					break;
+				}
 			}
 			
 			// if currently dragging, update drag coords and don't change mouse mode
 			if (mouseDragActive)
 			{
-				// update end coordinates of selection rectangle
+				// update end coordinates of selection rectangle				
 				if (event.type == MouseEvent.MOUSE_UP)
 				{
 					// on a mouse up event, we want accuracy, so use the mouse up event coordinates
-					mouseDragStageCoords.setMaxCoords(event.stageX, event.stageY);
+					mouseDragStageCoords.setMaxCoords(mouseEvent.stageX, mouseEvent.stageY);
 				}
 				else
 				{
@@ -343,25 +382,25 @@ package weave.visualization.layers
 				updateMouseMode(eventType);
 			}
 			
-			var dragReleased:Boolean = mouseDragActive && !event.buttonDown;
+			var dragReleased:Boolean = mouseDragActive && !mouseEvent.buttonDown;
 			switch (_mouseMode)
 			{
 				case InteractionController.SELECT_ADD:
 				{
 					if (mouseDragActive)
-						handleSelection(event, _mouseMode);
+						handleSelection(mouseEvent, _mouseMode);
 					break;
 				}
 				case InteractionController.SELECT:
 				{
 				   	if (mouseDragActive)
-						handleSelection(event, _mouseMode);
+						handleSelection(mouseEvent, _mouseMode);
 					break;
 				}
 				case InteractionController.SELECT_REMOVE:
 				{
 					if (mouseDragActive)
-						handleSelection(event, _mouseMode);
+						handleSelection(mouseEvent, _mouseMode);
 					break;
 				}
 				case InteractionController.SELECT_ALL:
@@ -389,23 +428,40 @@ package weave.visualization.layers
 				{
 					if (enableZoomAndPan.value)
 					{
-						if (eventType == InteractionController.WHEEL)
+						var delta:Number;
+						if(mouseEvent){
+							delta = mouseEvent.delta;
+							if (eventType == InteractionController.WHEEL)
+							{
+								plotManager.zoomBounds.getDataBounds(_tempBounds);
+								plotManager.zoomBounds.getScreenBounds(_screenBounds);
+								if (delta > 0)
+									ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,zoomFactor.value,false);
+								else if (delta < 0)
+									ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,1/zoomFactor.value,false);
+								plotManager.zoomBounds.setDataBounds(_tempBounds);
+							}						
+							else if (dragReleased)
+							{
+								// zoom to selected data bounds if area > 0
+								projectDragBoundsToDataQueryBounds(true); // data bounds in same direction when zooming
+								if (queryBounds.getArea() > 0)
+									plotManager.zoomBounds.setDataBounds(queryBounds);
+							}	
+						}
+						if (transformGestureEvent)
 						{
 							plotManager.zoomBounds.getDataBounds(_tempBounds);
-							plotManager.zoomBounds.getScreenBounds(_screenBounds);
-							if (event.delta > 0)
-								ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,zoomFactor.value,false);
-							else if (event.delta < 0)
-								ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,1/zoomFactor.value,false);
+							plotManager.zoomBounds.getScreenBounds(_screenBounds);	
+							var scaleX:Number = transformGestureEvent.scaleX;
+							var scaleY:Number = transformGestureEvent.scaleY;
+							var zoomValue:Number = Math.sqrt( (scaleX * scaleX) + (scaleY * scaleY) );
+							//to-do test he value sent by mouseX and mouseY;
+							ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempBounds,_screenBounds,mouseX,mouseY,zoomValue,false);
 							plotManager.zoomBounds.setDataBounds(_tempBounds);
-						}
-						else if (dragReleased)
-						{
-							// zoom to selected data bounds if area > 0
-							projectDragBoundsToDataQueryBounds(true); // data bounds in same direction when zooming
-							if (queryBounds.getArea() > 0)
-								plotManager.zoomBounds.setDataBounds(queryBounds);
-						}
+							
+						}						
+						
 					}
 					break;
 				}
