@@ -99,8 +99,6 @@ package weave
 			panelTitleTextFormat.size.value = 10;
 			panelTitleTextFormat.color.value = 0xFFFFFF;
 			
-			_initToggleMap();
-			
 			linkBindableProperty(maxComputationTimePerFrame, WeaveAPI.StageUtils, 'maxComputationTimePerFrame');
 			
 			showCollaborationMenuItem.addGroupedCallback(this, function():void {
@@ -213,42 +211,6 @@ package weave
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
 		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
 
-		// BEGIN TEMPORARY SOLUTION
-		public const _toggleMap:Dictionary = new Dictionary();
-		private function _initToggleMap():void
-		{
-			/*
-			var toggles:Array = [
-				[enableAddAttributeMenuTool, AttributeMenuTool],
-				[enableAddBarChart, CompoundBarChartTool],
-				[enableAddColormapHistogram, ColormapHistogramTool],
-				[enableAddColorLegend, ColorBinLegendTool],
-				[enableAddCompoundRadViz, CompoundRadVizTool],
-				[enableAddDataTable, DataTableTool],
-				[enableAddDimensionSliderTool, DimensionSliderTool],
-				[enableAddGaugeTool, GaugeTool],
-				[enableAddHistogram, HistogramTool],
-				[enableAdd2DHistogram, Histogram2DTool],
-				[enableAddRScriptEditor, JRITextEditor],
-				[enableAddLineChart, LineChartTool],
-				[enableAddMap, MapTool],
-				[enableAddPieChart, PieChartTool],
-				[enableAddPieChartHistogram, PieChartHistogramTool],
-				[enableAddRScriptEditor, RTextEditor],
-				[enableAddRadViz, RadVizTool],
-				[enableAddRamachandranPlot, RamachandranPlotTool],
-				[enableAddScatterplot, ScatterPlotTool],
-				[enableAddThermometerTool, ThermometerTool],
-				[enableAddTimeSliderTool, TimeSliderTool],
-				[enableAddDataTable, TransposedTableTool],
-				[enableAddCustomTool, CustomTool]
-			];
-			for each (var pair:Array in toggles)
-				_toggleMap[pair[1]] = pair[0];
-			*/
-		}
-		// END TEMPORARY SOLUTION
-		
 		public const enableAddAttributeMenuTool:LinkableBoolean = new LinkableBoolean(true); // Add Attribute Menu Tool option tools menu
 		public const enableAddBarChart:LinkableBoolean = new LinkableBoolean(true); // Add Bar Chart option tools menu
 //		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
