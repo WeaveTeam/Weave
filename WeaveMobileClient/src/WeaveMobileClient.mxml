@@ -43,12 +43,17 @@
 				layout = new VerticalLayout();
 				addElement(console = new MobileConsole());
 //				addElement(main = new MobileDemoInterface());
+				
+				// begin tile layout demo
 				addElement(main = new BasicLinkableLayoutManager());
 				tileLayout = new TileLayout();
 				tileLayout.orientation = TileOrientation.ROWS;
 				tileLayout.columnWidth = 220;
 				tileLayout.rowHeight = 220;
 				main.layout = tileLayout;
+				// end tile layout demo
+	
+//				addElement(main = new LinkablePodLayoutManager());
 				
 				UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
 				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.full);
