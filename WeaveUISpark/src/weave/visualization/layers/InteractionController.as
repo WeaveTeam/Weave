@@ -87,7 +87,7 @@ package weave.visualization.layers
 			selectRemove.value = [CTRL, SHIFT, INPUT_DRAG].join(DELIM);
 			selectAll.value = [CTRL, INPUT_DCLICK].join(DELIM);
 			
-			pan.value = [ALT, INPUT_DRAG, INPUT_PAN].join(DELIM);
+			pan.value = WeaveAPI.CSVParser.createCSV([[ALT, INPUT_DRAG], [INPUT_PAN]]);
 			zoom.value = WeaveAPI.CSVParser.createCSV([[SHIFT, INPUT_DRAG], [INPUT_WHEEL], [INPUT_ZOOM]]);
 			zoomIn.value = INPUT_DCLICK;
 			zoomOut.value = [SHIFT, INPUT_DCLICK].join(DELIM);
@@ -190,50 +190,41 @@ package weave.visualization.layers
 		}
 		
 		/**
-		 * Determine current mouse action from values in internal list of mouse events
-		 * @param mouseEventType A mouse event type such as move, drag, click, or dclick
-		 * @return returns a string representing current mouse action to execute such as pan, zoom, or select
+		 * Determine current mouse action from modifier keys and input type.
+		 * @param mouseEventType A mouse event type such as move, drag, click, or dclick.
+		 * @return A string representing current mouse action to execute such as pan, zoom, or select.
 		 */
-		public function determineInteraction(eventType:String):String
+		public function determineInteraction(inputType:String = null):String
 		{
 			if (!_interactionLookup)
 				validate();
 			
 			var array:Array = getModifierSequence();
 			
-			// if no modifier keys are pressed, default mode is specified, and this is a drag event... use default drag mode
-			if (array.length == 0 && defaultDragMode.value && eventType == INPUT_DRAG)
+			// if no modifier keys are pressed, default mode is specified, and this is a drag input or no input... use default drag mode
+			if (array.length == 0 && defaultDragMode.value && (!inputType || inputType == INPUT_DRAG))
 				return defaultDragMode.value;
 			
-			array.push(eventType);
+			var str:String;
+			if (inputType)
+			{
+				array.push(inputType);
+				str = array.sort().join(DELIM);
+				var action:String = _interactionLookup[str];
+				
+				//trace(defaultDragMode.value,'determineMouseAction',mouseEventType,'['+str+'] =>',action);
+				return action;
+			}
+			else
+			{
+				str = array.sort().join(DELIM);
+				var mode:String = _interactionModeLookup[str];
+				
+				//trace(defaultDragMode.value,'determineMouseMode','['+str+'] =>',mode);
+				return mode;
+			}
 			
-			var str:String = array.sort().join(DELIM);
-			var action:String = _interactionLookup[str];
-			
-			//trace(defaultDragMode.value,'determineMouseAction',mouseEventType,'['+str+'] =>',action);
 			return action;
-		}
-		
-		/**
-		 * Determine current mouse cursor mode from values in internal list of keyboard events
-		 * @return returns a string representing which mouse cursor to use
-		 */
-		public function determineInteractionMode():String
-		{
-			if (!_interactionModeLookup)
-				validate();
-			
-			var array:Array = getModifierSequence();
-			
-			// if no modifier keys are pressed and default mode is specified, use default mode
-			if (array.length == 0 && defaultDragMode.value)
-				return defaultDragMode.value;
-			
-			var str:String = array.sort().join(DELIM);
-			var mode:String = _interactionModeLookup[str];
-			
-			//trace(defaultDragMode.value,'determineMouseMode','['+str+'] =>',mode);
-			return mode;
 		}
 	}
 }

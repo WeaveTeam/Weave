@@ -37,6 +37,7 @@ package weave.visualization.layers
 	import flash.ui.MultitouchInputMode;
 	
 	import mx.utils.ObjectUtil;
+	import mx.utils.StringUtil;
 	
 	import spark.components.Group;
 	
@@ -155,27 +156,25 @@ package weave.visualization.layers
 		}
 		
 		
-		private function updateMouseMode(mouseEventType:String = null):void
+		private function updateMouseMode(inputType:String = null):void
 		{
-			if (mouseEventType)
-				_mouseMode = Weave.properties.toolInteractions.determineInteraction(mouseEventType);
-			else
-				_mouseMode = Weave.properties.toolInteractions.determineInteractionMode();
+			_mouseMode = Weave.properties.toolInteractions.determineInteraction(inputType);
+			weaveTrace('inputType '+inputType+' -> mode ' + _mouseMode);
 			
 			if (!enableZoomAndPan.value && (isModeZoom(_mouseMode) || _mouseMode == InteractionController.PAN))
 			{
+				weaveTrace('override to select');
 				_mouseMode = InteractionController.SELECT;
 			}
 			if (!enableSelection.value && isModeSelection(_mouseMode))
 			{
+				weaveTrace('clear mouse mode');
 				_mouseMode = null;//Weave.properties.toolInteractions.defaultDragMode.value;
 			}
 			
 			updateMouseCursor();
 		}
 		
-		private var _selectModeCursorOffsetX:int = -2;
-		private var _selectModeCursorOffsetY:int = -2;
 		private function updateMouseCursor():void
 		{
 			if (mouseIsRolledOver)
@@ -310,6 +309,11 @@ package weave.visualization.layers
 			var inputType:String = null;
 			var mouseEvent:MouseEvent = event as MouseEvent;
 			var gestureEvent:TransformGestureEvent = event as TransformGestureEvent;
+			
+			if (gestureEvent)
+			{
+				//weaveTrace(StringUtil.substitute("gesture local({0}) offset({1}) scale({2})", [gestureEvent.localX, gestureEvent.localY], [gestureEvent.offsetX, gestureEvent.offsetY], [gestureEvent.scaleX, gestureEvent.scaleY]));
+			}
 			
 			switch (event.type)
 			{
