@@ -17,7 +17,7 @@ package weave.api.ui
 {
 	import mx.core.IUIComponent;
 	
-	import weave.api.core.ILinkableContainer;
+	import weave.api.ui.ILinkableContainer;
 	import weave.api.core.ILinkableObject;
 
 	/**

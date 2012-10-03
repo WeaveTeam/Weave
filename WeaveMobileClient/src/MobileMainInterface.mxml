@@ -112,8 +112,6 @@
 			{
 				_MobileDemo.setXMLState(vis, visAsset);
 			}
-			
-			AllClasses;
 		]]>
 	</fx:Script>
 </s:VGroup>

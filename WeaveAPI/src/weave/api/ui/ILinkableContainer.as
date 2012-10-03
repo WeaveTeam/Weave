@@ -13,8 +13,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api.core
+package weave.api.ui
 {
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
+
 	/**
 	 * This is an interface to an ILinkableObject that has dynamic children.
 	 * This interface is intended to be used for a UIComponent that has sessioned UI children.

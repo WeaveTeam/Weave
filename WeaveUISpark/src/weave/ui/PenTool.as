@@ -35,7 +35,7 @@ package weave.ui
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableContainer;
+	import weave.api.ui.ILinkableContainer;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
