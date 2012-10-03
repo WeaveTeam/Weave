@@ -1,0 +1,257 @@
+      <SimpleInteractiveVisualization name="visualization">
+
+
+<axesAlpha>NaN</axesAlpha>
+<axesColor>0</axesColor>
+<axesThickness>NaN</axesThickness>
+<enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+<enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+<enableProbe>true</enableProbe>
+<enableSelection>true</enableSelection>
+<enableZoomAndPan>true</enableZoomAndPan>
+<gridLineAlpha>NaN</gridLineAlpha>
+<gridLineColor>0</gridLineColor>
+<gridLineThickness>NaN</gridLineThickness>
+<plotManager>
+  <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+  <enableAutoZoomToSelection>false</enableAutoZoomToSelection>
+  <enableFixedAspectRatio>true</enableFixedAspectRatio>
+  <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
+  <layerSettings encoding="dynamic">
+    <LayerSettings name="wms">
+      <maxVisibleScale>Infinity</maxVisibleScale>
+      <minVisibleScale>0</minVisibleScale>
+      <selectable>false</selectable>
+      <visible>true</visible>
+    </LayerSettings>
+    <LayerSettings name="plot">
+      <maxVisibleScale>Infinity</maxVisibleScale>
+      <minVisibleScale>0</minVisibleScale>
+      <selectable>true</selectable>
+      <visible>true</visible>
+    </LayerSettings>
+    <LayerSettings name="label">
+      <maxVisibleScale>Infinity</maxVisibleScale>
+      <minVisibleScale>0</minVisibleScale>
+      <selectable>true</selectable>
+      <visible>true</visible>
+    </LayerSettings>
+  </layerSettings>
+  <marginBottom>0</marginBottom>
+  <marginLeft>0</marginLeft>
+  <marginRight>0</marginRight>
+  <marginTop>0</marginTop>
+  <maxZoomLevel>16</maxZoomLevel>
+  <minScreenSize>128</minScreenSize>
+  <minZoomLevel>0</minZoomLevel>
+  <overrideXMax>NaN</overrideXMax>
+  <overrideXMin>NaN</overrideXMin>
+  <overrideYMax>NaN</overrideYMax>
+  <overrideYMin>NaN</overrideYMin>
+  <plotters encoding="dynamic">
+    <WMSPlotter name="wms">
+      <displayMissingImage>false</displayMissingImage>
+      <gridSpacing>12</gridSpacing>
+      <keySet>
+        <keyFilter encoding="dynamic">
+          <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+        </keyFilter>
+      </keySet>
+      <preferLowerQuality>false</preferLowerQuality>
+      <serviceName>NASA OnEarth</serviceName>
+      <srs>EPSG:4326</srs>
+      <styles/>
+    </WMSPlotter>
+    <GeometryPlotter name="plot">
+      <fill>
+        <alpha>
+          <defaultValue>1</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </alpha>
+        <color>
+          <defaultValue>NaN</defaultValue>
+          <internalDynamicColumn encoding="dynamic">
+            <GlobalObjectReference name="defaultColorColumn"/>
+          </internalDynamicColumn>
+        </color>
+        <enabled>
+          <defaultValue>true</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </enabled>
+        <enableMissingDataGradient>false</enableMissingDataGradient>
+        <imageURL>
+          <defaultValue/>
+          <internalDynamicColumn encoding="dynamic"/>
+        </imageURL>
+      </fill>
+      <geometryColumn>
+        <internalDynamicColumn encoding="dynamic">
+          <ReferencedColumn>
+            <dynamicColumnReference encoding="dynamic">
+              <HierarchyColumnReference>
+                <dataSourceName>WeaveDataSource</dataSourceName>
+                <hierarchyPath encoding="xml">
+                  <hierarchy>
+                    <category title="Geometry Collections" name="Geometry Collections">
+                      <attribute dataType="geometry" name="States" keyType="US State FIPS Code" title="States"/>
+                    </category>
+                  </hierarchy>
+                </hierarchyPath>
+              </HierarchyColumnReference>
+            </dynamicColumnReference>
+          </ReferencedColumn>
+        </internalDynamicColumn>
+        <projectionSRS>EPSG:4326</projectionSRS>
+      </geometryColumn>
+      <iconSize>10</iconSize>
+      <keySet>
+        <keyFilter encoding="dynamic">
+          <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+        </keyFilter>
+      </keySet>
+      <line>
+        <alpha>
+          <defaultValue>0.5</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </alpha>
+        <caps>
+          <defaultValue/>
+          <internalDynamicColumn encoding="dynamic"/>
+        </caps>
+        <color>
+          <defaultValue>0</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </color>
+        <enabled>
+          <defaultValue>true</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </enabled>
+        <joints>
+          <defaultValue/>
+          <internalDynamicColumn encoding="dynamic"/>
+        </joints>
+        <miterLimit>
+          <defaultValue>3</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </miterLimit>
+        <pixelHinting>
+          <defaultValue>false</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </pixelHinting>
+        <scaleMode>
+          <defaultValue>none</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </scaleMode>
+        <weight>
+          <defaultValue>1</defaultValue>
+          <internalDynamicColumn encoding="dynamic">
+            <NormalizedColumn>
+              <internalDynamicColumn encoding="dynamic"/>
+              <max>5</max>
+              <min>1</min>
+            </NormalizedColumn>
+          </internalDynamicColumn>
+        </weight>
+      </line>
+      <pixellation>1</pixellation>
+      <pointDataImageColumn encoding="dynamic"/>
+      <symbolPlotters encoding="dynamic"/>
+      <useFixedImageSize>false</useFixedImageSize>
+    </GeometryPlotter>
+    <GeometryLabelPlotter name="label">
+      <angle>
+        <defaultValue>0</defaultValue>
+        <internalDynamicColumn encoding="dynamic"/>
+      </angle>
+      <bold>
+        <defaultValue>false</defaultValue>
+        <internalDynamicColumn encoding="dynamic"/>
+      </bold>
+      <color>
+        <defaultValue>0</defaultValue>
+        <internalDynamicColumn encoding="dynamic"/>
+      </color>
+      <font>
+        <defaultValue>Sophia Nubian</defaultValue>
+        <internalDynamicColumn encoding="dynamic"/>
+      </font>
+      <geometryColumn>
+        <internalDynamicColumn encoding="dynamic">
+          <ReferencedColumn>
+            <dynamicColumnReference encoding="dynamic">
+              <HierarchyColumnReference>
+                <dataSourceName>WeaveDataSource</dataSourceName>
+                <hierarchyPath encoding="xml">
+                  <hierarchy>
+                    <category title="Geometry Collections" name="Geometry Collections">
+                      <attribute dataType="geometry" name="States" keyType="US State FIPS Code" title="States"/>
+                    </category>
+                  </hierarchy>
+                </hierarchyPath>
+              </HierarchyColumnReference>
+            </dynamicColumnReference>
+          </ReferencedColumn>
+        </internalDynamicColumn>
+        <projectionSRS>EPSG:4326</projectionSRS>
+      </geometryColumn>
+      <hAlign>
+        <defaultValue>center</defaultValue>
+        <internalDynamicColumn encoding="dynamic"/>
+      </hAlign>
+      <hideOverlappingText>true</hideOverlappingText>
+      <italic>
+        <defaultValue>false</defaultValue>
+        <internalDynamicColumn encoding="dynamic"/>
+      </italic>
+      <keySet>
+        <keyFilter encoding="dynamic">
+          <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+        </keyFilter>
+      </keySet>
+      <maxWidth>80</maxWidth>
+      <size>
+        <defaultValue>11</defaultValue>
+        <internalDynamicColumn encoding="dynamic"/>
+      </size>
+      <sortColumn encoding="dynamic"/>
+      <text encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>WeaveDataSource</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy>
+                  <category title="Data Tables" name="Data Tables">
+                    <category title="Obesity" name="Obesity">
+                      <attribute id="174804" title="State" geometryCollection="States" name="State" keyType="US State FIPS Code" dataTable="Obesity"/>
+                    </category>
+                  </category>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </text>
+      <underline>
+        <defaultValue>false</defaultValue>
+        <internalDynamicColumn encoding="dynamic"/>
+      </underline>
+      <vAlign>
+        <defaultValue>middle</defaultValue>
+        <internalDynamicColumn encoding="dynamic"/>
+      </vAlign>
+      <xScreenOffset>0</xScreenOffset>
+      <yScreenOffset>0</yScreenOffset>
+      <zoomToSubset>false</zoomToSubset>
+    </GeometryLabelPlotter>
+  </plotters>
+  <zoomBounds>
+    <area>2664.3321990916</area>
+    <xCenter>-93.599832055536</xCenter>
+    <yCenter>37.096407180564</yCenter>
+  </zoomBounds>
+</plotManager>
+<zoomFactor>2</zoomFactor>
+
+
+</SimpleInteractiveVisualization>

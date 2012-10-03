@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:weave="weave.*" xmlns:ui="weave.ui.*"
+		  xmlns:layers="weave.visualization.layers.*" xmlns:local="*"
+		  width="100%" height="100%">
+	<s:HGroup id="buttonGroup" width="100%">
+		<s:Button label="S" click="init(vis, _MobileDemo.visScatter);"/>
+		<s:Button label="B" click="init(vis, _MobileDemo.visBar);"/>
+		<s:Button label="H" click="init(vis, _MobileDemo.visHist);"/>
+		<s:Button label="M" click="init(vis, _MobileDemo.visMap);"/>
+		<s:Button label=" " click="reset();"/>
+		<s:Button label="S" click="init(vis2, _MobileDemo.visScatter);"/>
+		<s:Button label="B" click="init(vis2, _MobileDemo.visBar);"/>
+		<s:Button label="H" click="init(vis2, _MobileDemo.visHist);"/>
+		<s:Button label="M" click="init(vis2, _MobileDemo.visMap);"/>
+	</s:HGroup>
+	<local:MobileConsole id="console" width="100%" height="100%"/>
+	<layers:SimpleInteractiveVisualization id="vis" width="100%" height="100%"/>
+	<layers:SimpleInteractiveVisualization id="vis2" width="100%" height="100%"/>
+	<fx:Script>
+		<![CDATA[
+			import weave.api.WeaveAPI;
+			import weave.api.core.IErrorManager;
+			import weave.api.core.IExternalSessionStateInterface;
+			import weave.api.core.IProgressIndicator;
+			import weave.api.core.ISessionManager;
+			import weave.api.core.IStageUtils;
+			import weave.api.data.IAttributeColumnCache;
+			import weave.api.data.ICSVParser;
+			import weave.api.data.IProjectionManager;
+			import weave.api.data.IQualifiedKeyManager;
+			import weave.api.data.IStatisticsCache;
+			import weave.api.services.IURLRequestUtils;
+			import weave.core.ErrorManager;
+			import weave.core.ExternalSessionStateInterface;
+			import weave.core.ProgressIndicator;
+			import weave.core.SessionManager;
+			import weave.core.StageUtils;
+			import weave.data.AttributeColumnCache;
+			import weave.data.CSVParser;
+			import weave.data.ProjectionManager;
+			import weave.data.QKeyManager;
+			import weave.data.StatisticsCache;
+			import weave.resources._MobileDemo;
+			import weave.services.URLRequestUtils;
+			import weave.ui.BusyIndicator;
+			import weave.visualization.layers.SimpleInteractiveVisualization;
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				// register singleton implementations for framework classes
+				WeaveAPI.registerSingleton(ISessionManager, SessionManager);
+				WeaveAPI.registerSingleton(IStageUtils, StageUtils);
+				WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
+				WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
+				WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
+				WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
+				WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
+				WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
+				WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
+				WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
+				WeaveAPI.registerSingleton(ICSVParser, CSVParser);
+				
+				vis.addElement(new BusyIndicator(vis));
+				vis2.addElement(new BusyIndicator(vis2));
+				
+				var n:int = buttonGroup.numElements;
+				for (var i:int = 0; i < n; i++)
+				{
+					var b:Button = buttonGroup.getElementAt(i) as Button;
+					if (b)
+					{
+						b.minWidth = 0;
+						b.minHeight = 0;
+						b.setStyle('fontSize',18);
+						b.height = Capabilities.screenDPI * 0.33;
+						b.percentWidth = 100;
+					}
+				}
+				reset();
+			}
+			
+			private function reset():void
+			{
+				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.globals);
+				vis.plotManager.plotters.removeAllObjects();
+				vis2.plotManager.plotters.removeAllObjects();
+			}
+			
+			private function init(vis:SimpleInteractiveVisualization, visAsset:Class):void
+			{
+				_MobileDemo.setXMLState(vis, visAsset);
+			}
+			
+			AllClasses;
+		]]>
+	</fx:Script>
+</s:VGroup>

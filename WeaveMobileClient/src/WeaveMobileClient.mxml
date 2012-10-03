@@ -19,107 +19,19 @@
 -->
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
 			   xmlns:s="library://ns.adobe.com/flex/spark"
-			   xmlns:weave="weave.*" xmlns:ui="weave.ui.*"
-			   xmlns:layers="weave.visualization.layers.*" xmlns:local="*"
 			   interactionMode="touch"
+			   creationComplete="handleCreationComplete()"
 			   >
 	<fx:Script>
 		<![CDATA[
-			import flash.utils.getQualifiedClassName;
-			
-			import weave.api.WeaveAPI;
-			import weave.core.LinkableHashMap;
-			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.visualization.layers.Visualization;
-		]]>
-	</fx:Script>
-	<fx:Declarations>
-		<!-- Place non-visual elements (e.g., services, value objects) here -->
-	</fx:Declarations>
-	<s:TextArea text="HELLO{'\r'}{getQualifiedClassName(WeaveAPI)}{'\r'}{getQualifiedClassName(LinkableHashMap)}{'\r'}{getQualifiedClassName(DynamicColumn)}{'\r'}{getQualifiedClassName(Visualization)}"/>
-	<s:VGroup id='vgroup' width='100%' height='100%'>
-	</s:VGroup>
-	<fx:Script>
-		<![CDATA[
-			import weave.visualization.plotters.GeometryPlotter;
 			import flash.utils.setTimeout;
 			
-			import weave.api.WeaveAPI;
-			import weave.api.core.IErrorManager;
-			import weave.api.core.IExternalSessionStateInterface;
-			import weave.api.core.ILinkableObject;
-			import weave.api.core.IProgressIndicator;
-			import weave.api.core.ISessionManager;
-			import weave.api.core.IStageUtils;
-			import weave.api.data.IAttributeColumnCache;
-			import weave.api.data.ICSVParser;
-			import weave.api.data.IProjectionManager;
-			import weave.api.data.IQualifiedKeyManager;
-			import weave.api.data.IStatisticsCache;
-			import weave.api.services.IURLRequestUtils;
-			import weave.api.setSessionState;
-			import weave.core.ErrorManager;
-			import weave.core.ExternalSessionStateInterface;
-			import weave.core.ProgressIndicator;
-			import weave.core.SessionManager;
-			import weave.core.StageUtils;
-			import weave.core.WeaveXMLDecoder;
-			import weave.data.AttributeColumnCache;
-			import weave.data.CSVParser;
-			import weave.data.DataSources.WeaveDataSource;
-			import weave.data.ProjectionManager;
-			import weave.data.QKeyManager;
-			import weave.data.StatisticsCache;
-			import weave.resources._MobileDemo;
-			import weave.services.URLRequestUtils;
-			import weave.visualization.layers.SimpleInteractiveVisualization;
-
-			override protected function createChildren():void
+			private function handleCreationComplete():void
 			{
-				super.createChildren();
-				
-				// register singleton implementations for framework classes
-				WeaveAPI.registerSingleton(ISessionManager, SessionManager);
-				WeaveAPI.registerSingleton(IStageUtils, StageUtils);
-				WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
-				WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
-				WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
-				WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
-				WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
-				WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
-				WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
-				WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
-				WeaveAPI.registerSingleton(ICSVParser, CSVParser);
-				
-				
-				setTimeout(init, 1000);
+				addElement(main = new MobileMainInterface());
 			}
 			
-			private var initDone:Boolean = false;
-			
-			private function init():void
-			{
-				if (initDone)
-					return;
-				initDone = true;
-				
-				vgroup.addElement(console = new MobileConsole());
-				console.percentWidth = 100;
-				console.percentHeight = 100;
-				vgroup.addElement(vis = new SimpleInteractiveVisualization());
-				vis.percentWidth = 100;
-				vis.percentHeight = 100;
-				
-				var state:Object;
-				
-				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.globalStateXML);
-				_MobileDemo.setXMLState(vis, _MobileDemo.visStateXML);
-			}
-			
-			public var console:MobileConsole;
-			public var vis:SimpleInteractiveVisualization;
-			
-			AllClasses;
+			public var main:MobileMainInterface;
 		]]>
 	</fx:Script>
 </s:Application>

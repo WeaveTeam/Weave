@@ -25,8 +25,6 @@ package weave.visualization.layers
 	import flash.display.InteractiveObject;
 	import flash.events.ContextMenuEvent;
 	import flash.events.Event;
-	import flash.events.GestureEvent;
-	import flash.events.GesturePhase;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TransformGestureEvent;
@@ -36,7 +34,6 @@ package weave.visualization.layers
 	import flash.ui.Multitouch;
 	import flash.ui.MultitouchInputMode;
 	
-	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
 	import spark.components.Group;
@@ -48,7 +45,6 @@ package weave.visualization.layers
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotter;
-	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
@@ -66,6 +62,8 @@ package weave.visualization.layers
 	 */
 	public class InteractiveVisualization extends Visualization
 	{
+		public static var debug:Boolean = false;
+		
 		public function InteractiveVisualization()
 		{
 			doubleClickEnabled = true;
@@ -159,16 +157,15 @@ package weave.visualization.layers
 		private function updateMouseMode(inputType:String = null):void
 		{
 			_mouseMode = Weave.properties.toolInteractions.determineInteraction(inputType);
-			weaveTrace('inputType '+inputType+' -> mode ' + _mouseMode);
+			
+			//weaveTrace('inputType '+inputType+' -> mode ' + _mouseMode);
 			
 			if (!enableZoomAndPan.value && (isModeZoom(_mouseMode) || _mouseMode == InteractionController.PAN))
 			{
-				weaveTrace('override to select');
 				_mouseMode = InteractionController.SELECT;
 			}
 			if (!enableSelection.value && isModeSelection(_mouseMode))
 			{
-				weaveTrace('clear mouse mode');
 				_mouseMode = null;//Weave.properties.toolInteractions.defaultDragMode.value;
 			}
 			
@@ -310,9 +307,9 @@ package weave.visualization.layers
 			var mouseEvent:MouseEvent = event as MouseEvent;
 			var gestureEvent:TransformGestureEvent = event as TransformGestureEvent;
 			
-			if (gestureEvent)
+			if (debug && gestureEvent)
 			{
-				//weaveTrace(StringUtil.substitute("gesture local({0}) offset({1}) scale({2})", [gestureEvent.localX, gestureEvent.localY], [gestureEvent.offsetX, gestureEvent.offsetY], [gestureEvent.scaleX, gestureEvent.scaleY]));
+				weaveTrace(StringUtil.substitute("gesture local({0}) offset({1}) scale({2})", [gestureEvent.localX, gestureEvent.localY], [gestureEvent.offsetX, gestureEvent.offsetY], [gestureEvent.scaleX, gestureEvent.scaleY]));
 			}
 			
 			switch (event.type)
@@ -425,7 +422,8 @@ package weave.visualization.layers
 							if (gestureEvent)
 								mouseDragStageCoords.setRectangle(stage.mouseX, stage.mouseY, gestureEvent.offsetX, gestureEvent.offsetY);
 							
-							//weaveTrace('pan '+[mouseDragStageCoords.getWidth(), mouseDragStageCoords.getHeight()]);
+							if (debug)
+								weaveTrace('pan '+[mouseDragStageCoords.getWidth(), mouseDragStageCoords.getHeight()]);
 							
 							// pan the dragged distance
 							projectDragBoundsToDataQueryBounds(false);
@@ -455,13 +453,14 @@ package weave.visualization.layers
 						}
 						else if (inputType == InteractionController.INPUT_ZOOM)
 						{
-							//TODO: support separate scaleX and scaleY values.
+							//TODO: support separate scaleX and scaleY values (though we haven't witnessed them to be different yet).
 							zoomValue = (gestureEvent.scaleX + gestureEvent.scaleY) / 2;
 						}
 						
 						if (zoomValue != 1)
 						{
-							//weaveTrace('zoom '+zoomValue);
+							if (debug)
+								weaveTrace('zoom '+zoomValue);
 							
 							plotManager.zoomBounds.getDataBounds(_tempBounds);
 							plotManager.zoomBounds.getScreenBounds(_screenBounds);

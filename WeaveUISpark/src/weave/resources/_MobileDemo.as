@@ -63,9 +63,15 @@ package weave.resources
 			setSessionState(target, state);
 		}
 		
-		[Embed(source="/weave/resources/demoGlobalState.xml", mimeType="application/octet-stream")]
-		public static const globalStateXML:Class;
-		[Embed(source="/weave/resources/demoVisState.xml", mimeType="application/octet-stream")]
-		public static const visStateXML:Class;
+		[Embed(source="/weave/resources/demoGlobals.xml", mimeType="application/octet-stream")]
+		public static const globals:Class;
+		[Embed(source="/weave/resources/demoVisMap.xml", mimeType="application/octet-stream")]
+		public static const visMap:Class;
+		[Embed(source="/weave/resources/demoVisScatter.xml", mimeType="application/octet-stream")]
+		public static const visScatter:Class;
+		[Embed(source="/weave/resources/demoVisBar.xml", mimeType="application/octet-stream")]
+		public static const visBar:Class;
+		[Embed(source="/weave/resources/demoVisHist.xml", mimeType="application/octet-stream")]
+		public static const visHist:Class;
 	}
 }
