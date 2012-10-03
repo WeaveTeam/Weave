@@ -52,7 +52,7 @@ package weave.core
 		 * @param objectAdded This is the object that was just added to the hash map.
 		 * @param objectRemoved This is the object that was just removed from the hash map.
 		 */
-		public function setCallbackVariables(name:String = null, objectAdded:ILinkableObject = null, objectRemoved:ILinkableObject = null):void
+		private function setCallbackVariables(name:String = null, objectAdded:ILinkableObject = null, objectRemoved:ILinkableObject = null):void
 		{
 			_lastNameAdded = objectAdded ? name : null;
 			_lastObjectAdded = objectAdded;
