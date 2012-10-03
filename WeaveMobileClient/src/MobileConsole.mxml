@@ -4,7 +4,7 @@
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
-	<s:TextArea id="log"
+	<s:TextArea id="log" fontSize="11"
 				click="handleConsoleLogClick()"
 				mouseDown="handleConsoleLogClick()"
 				width="100%" height="100%" editable="false"/>
@@ -27,6 +27,16 @@
 			import weave.compiler.ProxyObject;
 			import weave.core.ExternalSessionStateInterface;
 			
+			private static var _weaveTraceImpl:Function = weaveTraceImpl;
+			private static var _instance:MobileConsole;
+			public static function mobileTrace(...args):void
+			{
+				if (!_instance)
+					return;
+				
+				_instance.consoleTrace.apply(null, args);
+			}
+			
 			[Bindable] public var padding:int = 5;
 			[Bindable] public var innerBorderStyle:String = 'inset';
 			
@@ -42,6 +52,8 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				
+				_instance = this;
 				
 				compiler.includeLibraries(GlobalLib, WeaveAPI, ObjectUtil, WeaveAPI.SessionManager, FlexGlobals);
 			}

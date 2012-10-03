@@ -56,7 +56,7 @@ package weave.utils
 			for (var i:int = 0; i < args.length; i++)
 				args[i] = debugId(args[i]);
 			
-			trace.apply(null, args);
+			weaveTrace.apply(null, args);
 		}
 		
 		/**

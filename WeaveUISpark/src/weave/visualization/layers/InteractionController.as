@@ -34,19 +34,16 @@ package weave.visualization.layers
 	 */
 	public class InteractionController implements ILinkableObject
 	{
-		// mouse events
-		public static const MOVE:String = "move";
-		public static const DRAG:String = "drag";
-		public static const CLICK:String = "click";
-		public static const DCLICK:String = "dclick";
-		public static const WHEEL:String = "wheel";		
-		// gesture events
-		public static const GESTURE_PAN:String = "gesturePan";
-		public static const GESTURE_ZOOM:String = "gestureZoom";
+		// input types
+		public static const INPUT_MOVE:String = "move";
+		public static const INPUT_DRAG:String = "drag";
+		public static const INPUT_CLICK:String = "click";
+		public static const INPUT_DCLICK:String = "dclick";
+		public static const INPUT_WHEEL:String = "wheel";
+		public static const INPUT_PAN:String = "pan"; // gesture
+		public static const INPUT_ZOOM:String = "zoom"; // gesture
 		
-		private static const MOUSE_EVENTS:Array = [MOVE, DRAG, CLICK, DCLICK, WHEEL, GESTURE_PAN, GESTURE_ZOOM];
-		
-		
+		private static const ALL_INPUT_TYPES:Array = [INPUT_MOVE, INPUT_DRAG, INPUT_CLICK, INPUT_DCLICK, INPUT_WHEEL, INPUT_PAN, INPUT_ZOOM];
 		
 		// modifier keys
 		public static const CTRL:String = "ctrl";
@@ -84,17 +81,17 @@ package weave.visualization.layers
 			super();
 			
 			// default session state
-			probe.value = MOVE;
-			select.value = [DRAG].join(DELIM);
-			selectAdd.value = [CTRL, DRAG].join(DELIM);
-			selectRemove.value = [CTRL, SHIFT, DRAG].join(DELIM);
-			selectAll.value = [CTRL, DCLICK].join(DELIM);
+			probe.value = INPUT_MOVE;
+			select.value = [INPUT_DRAG].join(DELIM);
+			selectAdd.value = [CTRL, INPUT_DRAG].join(DELIM);
+			selectRemove.value = [CTRL, SHIFT, INPUT_DRAG].join(DELIM);
+			selectAll.value = [CTRL, INPUT_DCLICK].join(DELIM);
 			
-			pan.value = [ALT, DRAG,GESTURE_PAN].join(DELIM);
-			zoom.value = WeaveAPI.CSVParser.createCSV([[SHIFT, DRAG], [WHEEL],[GESTURE_ZOOM]]);
-			zoomIn.value = DCLICK;
-			zoomOut.value = [SHIFT, DCLICK].join(DELIM);
-			zoomToExtent.value = [CTRL, ALT, SHIFT, DCLICK].join(DELIM);
+			pan.value = [ALT, INPUT_DRAG, INPUT_PAN].join(DELIM);
+			zoom.value = WeaveAPI.CSVParser.createCSV([[SHIFT, INPUT_DRAG], [INPUT_WHEEL], [INPUT_ZOOM]]);
+			zoomIn.value = INPUT_DCLICK;
+			zoomOut.value = [SHIFT, INPUT_DCLICK].join(DELIM);
+			zoomToExtent.value = [CTRL, ALT, SHIFT, INPUT_DCLICK].join(DELIM);
 			
 			getCallbackCollection(this).addImmediateCallback(this, invalidate);
 		}
@@ -109,16 +106,16 @@ package weave.visualization.layers
 			return !value || [PROBE, SELECT, PAN, ZOOM].indexOf(value) >= 0;
 		}
 		
-		public const probe:LinkableString 				= newLinkableChild(this, LinkableString);
-		public const select:LinkableString 				= newLinkableChild(this, LinkableString);
-		public const selectRemove:LinkableString 		= newLinkableChild(this, LinkableString);
-		public const selectAdd:LinkableString 			= newLinkableChild(this, LinkableString);
-		public const selectAll:LinkableString 			= newLinkableChild(this, LinkableString);
-		public const pan:LinkableString 				= newLinkableChild(this, LinkableString);
-		public const zoom:LinkableString 				= newLinkableChild(this, LinkableString);
-		public const zoomIn:LinkableString 				= newLinkableChild(this, LinkableString);
-		public const zoomOut:LinkableString 			= newLinkableChild(this, LinkableString);
-		public const zoomToExtent:LinkableString 		= newLinkableChild(this, LinkableString);
+		public const probe:LinkableString = newLinkableChild(this, LinkableString);
+		public const select:LinkableString = newLinkableChild(this, LinkableString);
+		public const selectRemove:LinkableString = newLinkableChild(this, LinkableString);
+		public const selectAdd:LinkableString = newLinkableChild(this, LinkableString);
+		public const selectAll:LinkableString = newLinkableChild(this, LinkableString);
+		public const pan:LinkableString = newLinkableChild(this, LinkableString);
+		public const zoom:LinkableString = newLinkableChild(this, LinkableString);
+		public const zoomIn:LinkableString = newLinkableChild(this, LinkableString);
+		public const zoomOut:LinkableString = newLinkableChild(this, LinkableString);
+		public const zoomToExtent:LinkableString = newLinkableChild(this, LinkableString);
 		
 		//private const whitespace:RegExp = new RegExp("\s") ;
 		private const DELIM:String = ',';
@@ -162,9 +159,9 @@ package weave.visualization.layers
 						_interactionLookup[actionStr] = mouseMode;
 					
 					// remove event tokens, then save lookup from (modifier keys) to mouseMode
-					for each (var eventType:String in MOUSE_EVENTS)
+					for each (var inputType:String in ALL_INPUT_TYPES)
 					{
-						var index:int = row.indexOf(eventType);
+						var index:int = row.indexOf(inputType);
 						if (index >= 0)
 							row.splice(index, 1);
 					}
@@ -197,7 +194,7 @@ package weave.visualization.layers
 		 * @param mouseEventType A mouse event type such as move, drag, click, or dclick
 		 * @return returns a string representing current mouse action to execute such as pan, zoom, or select
 		 */
-		public function determineInteraction(mouseEventType:String):String
+		public function determineInteraction(eventType:String):String
 		{
 			if (!_interactionLookup)
 				validate();
@@ -205,10 +202,10 @@ package weave.visualization.layers
 			var array:Array = getModifierSequence();
 			
 			// if no modifier keys are pressed, default mode is specified, and this is a drag event... use default drag mode
-			if (array.length == 0 && defaultDragMode.value && mouseEventType == DRAG)
+			if (array.length == 0 && defaultDragMode.value && eventType == INPUT_DRAG)
 				return defaultDragMode.value;
 			
-			array.push(mouseEventType);
+			array.push(eventType);
 			
 			var str:String = array.sort().join(DELIM);
 			var action:String = _interactionLookup[str];

@@ -170,20 +170,6 @@
 	  <showSessionHistoryControls>true</showSessionHistoryControls>
 	  <showVisToolCloseDialog>false</showVisToolCloseDialog>
 	  <startupJavaScript/>
-	  <toolInteractions>
-	    <pan>alt,drag</pan>
-	    <probe>move</probe>
-	    <select>drag</select>
-	    <selectAdd>ctrl,drag</selectAdd>
-	    <selectAll>ctrl,dclick</selectAll>
-	    <selectRemove>ctrl,shift,drag</selectRemove>
-	    <zoom>shift,drag
-	wheel</zoom>
-	    <zoomIn>dclick</zoomIn>
-	    <zoomOut>shift,dclick</zoomOut>
-	    <zoomToExtent>ctrl,alt,shift,dclick</zoomToExtent>
-	  </toolInteractions>
-	  <version>1.0 Beta (Thu Sep 27 19:02:18 EDT 2012)</version>
 	  <windowSnapGridSize>1%</windowSnapGridSize>
 	  <workspaceHeight>NaN</workspaceHeight>
 	  <workspaceMultiplier>1</workspaceMultiplier>
