@@ -24,14 +24,35 @@
 			   >
 	<fx:Script>
 		<![CDATA[
-			import flash.utils.setTimeout;
+			import spark.layouts.TileLayout;
+			import spark.layouts.TileOrientation;
+			import spark.layouts.VerticalLayout;
+			
+			import weave.api.WeaveAPI;
+			import weave.core.UIUtils;
+			import weave.resources._MobileDemo;
+			import weave.ui.BasicLinkableLayoutManager;
+			
+			public var console:MobileConsole;
+//			public var main:MobileDemoInterface;
+			public var main:BasicLinkableLayoutManager;
+			public var tileLayout:TileLayout;
 			
 			private function handleCreationComplete():void
 			{
-				addElement(main = new MobileMainInterface());
+				layout = new VerticalLayout();
+				addElement(console = new MobileConsole());
+//				addElement(main = new MobileDemoInterface());
+				addElement(main = new BasicLinkableLayoutManager());
+				tileLayout = new TileLayout();
+				tileLayout.orientation = TileOrientation.ROWS;
+				tileLayout.columnWidth = 220;
+				tileLayout.rowHeight = 220;
+				main.layout = tileLayout;
+				
+				UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
+				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.full);
 			}
-			
-			public var main:MobileMainInterface;
 		]]>
 	</fx:Script>
 </s:Application>

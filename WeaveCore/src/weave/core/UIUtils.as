@@ -23,19 +23,20 @@ package weave.core
 	import flash.events.Event;
 	import flash.utils.Dictionary;
 	
+	import mx.core.IUIComponent;
 	import mx.core.IVisualElement;
 	import mx.core.IVisualElementContainer;
 	import mx.core.UIComponent;
 	import mx.events.IndexChangedEvent;
 	
-	import weave.api.core.ICallbackCollection;
+	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
-	import weave.api.reportError;
+	import weave.api.ui.ILinkableLayoutManager;
 	import weave.utils.Dictionary2D;
 
 	/**
@@ -81,6 +82,67 @@ package weave.core
 		}
 		
 		private static const linkFunctionCache:Dictionary2D = new Dictionary2D(true, true);
+		
+		/**
+		 * This will set up a callback on a components hash map so they get added to an ILinkableLayoutManager. 
+		 * @param layoutManager
+		 * @param components
+		 */
+		public static function linkLayoutManager(layoutManager:ILinkableLayoutManager, components:ILinkableHashMap):void
+		{
+			// when the components list changes, we need to notify the layoutManager
+			var clc:IChildListCallbackInterface = components.childListCallbacks;
+			function componentListCallback():void
+			{
+				// add
+				var newComponent:IVisualElement = clc.lastObjectAdded as IVisualElement;
+				if (newComponent)
+					layoutManager.addComponent(clc.lastNameAdded, newComponent);
+				
+				// remove
+				var oldComponent:IVisualElement = clc.lastObjectRemoved as IVisualElement;
+				if (oldComponent)
+					layoutManager.removeComponent(clc.lastNameRemoved);
+				
+				// reorder
+				if (!clc.lastObjectAdded && !clc.lastObjectRemoved)
+					layoutManager.setComponentOrder(components.getNames());
+			}
+			components.childListCallbacks.addImmediateCallback(layoutManager, componentListCallback);
+			
+			// when layoutManager triggers callbacks, we need to synchronize the components list
+			function layoutManagerCallback():void
+			{
+				getCallbackCollection(components).delayCallbacks();
+				
+				// for each component in the components list, if the layoutManager doesn't have that component, remove it from components list
+				var names:Array = components.getNames(IUIComponent);
+				for each (var name:String in names)
+					if (!layoutManager.hasComponent(name))
+						components.removeObject(name);
+				// update order if necessary
+				components.setNameOrder(layoutManager.getComponentOrder());
+				
+				getCallbackCollection(components).resumeCallbacks();
+			}
+			getCallbackCollection(layoutManager).addImmediateCallback(components, layoutManagerCallback);
+			
+			// add existing components
+			var names:Array = components.getNames(IUIComponent);
+			var objects:Array = components.getObjects(IUIComponent);
+			for (var i:int = 0; i < names.length; i++)
+				layoutManager.addComponent(names[i] as String, objects[i] as IVisualElement);
+		}
+		
+		/**
+		 * This will set up a callback on a components hash map so they get added to an ILinkableLayoutManager. 
+		 * @param layoutManager
+		 * @param components
+		 */
+		public static function unlinkLayoutManager(layoutManager:ILinkableLayoutManager, components:ILinkableHashMap):void
+		{
+			//TODO
+		}
 		
 		/**
 		 * This function adds a callback to a LinkableHashMap to monitor any DisplayObjects contained in it.

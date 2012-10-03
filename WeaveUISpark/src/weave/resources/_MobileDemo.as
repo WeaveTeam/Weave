@@ -63,6 +63,8 @@ package weave.resources
 			setSessionState(target, state);
 		}
 		
+		[Embed(source="/weave/resources/demoFull.xml", mimeType="application/octet-stream")]
+		public static const full:Class;
 		[Embed(source="/weave/resources/demoGlobals.xml", mimeType="application/octet-stream")]
 		public static const globals:Class;
 		[Embed(source="/weave/resources/demoVisMap.xml", mimeType="application/octet-stream")]

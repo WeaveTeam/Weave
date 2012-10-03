@@ -69,19 +69,6 @@
 			{
 				super.createChildren();
 				
-				// register singleton implementations for framework classes
-				WeaveAPI.registerSingleton(ISessionManager, SessionManager);
-				WeaveAPI.registerSingleton(IStageUtils, StageUtils);
-				WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
-				WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
-				WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
-				WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
-				WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
-				WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
-				WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
-				WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
-				WeaveAPI.registerSingleton(ICSVParser, CSVParser);
-				
 				vis.addElement(new BusyIndicator(vis));
 				vis2.addElement(new BusyIndicator(vis2));
 				
