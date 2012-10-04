@@ -35,6 +35,8 @@
 			import weave.resources._MobileDemo;
 			import weave.ui.BasicLinkableLayoutManager;
 			
+			WeaveFonts; // this ensures the fonts get embedded.
+			
 			public var console:MobileConsole;
 //			public var main:MobileDemoInterface;
 			public var main:BasicLinkableLayoutManager;
@@ -43,11 +45,12 @@
 			private function handleCreationComplete():void
 			{
 				layout = new VerticalLayout();
-				addElement(console = new MobileConsole());
-//				addElement(main = new MobileDemoInterface());
+				this.addElement(console = new MobileConsole());
+				console.height = 220;
+//				this.addElement(main = new MobileDemoInterface());
 				
 				// begin tile layout demo
-				addElement(main = new BasicLinkableLayoutManager());
+				this.addElement(main = new BasicLinkableLayoutManager());
 				tileLayout = new TileLayout();
 				tileLayout.orientation = TileOrientation.ROWS;
 				tileLayout.columnWidth = 220;
@@ -55,13 +58,13 @@
 				main.layout = tileLayout;
 				// end tile layout demo
 	
-//				addElement(main = new LinkablePodLayoutManager());
+//				this.addElement(main = new LinkablePodLayoutManager());
 				
 				UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
 				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.full);
 			}
 			
-			WeaveFonts;
+			public function set scale(value:Number):void { main.scaleX = main.scaleY = value; }
 		]]>
 	</fx:Script>
 </s:Application>

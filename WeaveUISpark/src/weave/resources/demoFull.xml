@@ -316,7 +316,262 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
       <attributeHierarchy encoding="xml"><hierarchy><category name="empty"/></hierarchy></attributeHierarchy>
     <url>http://demo.oicweave.org/WeaveServices/DataService</url>
   </WeaveDataSource>
-      <SimpleInteractiveVisualization name="CompoundBarChartTool">
+
+        <SimpleInteractiveVisualization name="MapTool">
+        <axesAlpha>NaN</axesAlpha>
+        <axesColor>0</axesColor>
+        <axesThickness>NaN</axesThickness>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>true</enableZoomAndPan>
+        <gridLineAlpha>NaN</gridLineAlpha>
+        <gridLineColor>0</gridLineColor>
+        <gridLineThickness>NaN</gridLineThickness>
+        <plotManager>
+          <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
+          <enableAutoZoomToSelection>false</enableAutoZoomToSelection>
+          <enableFixedAspectRatio>true</enableFixedAspectRatio>
+          <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
+          <layerSettings encoding="dynamic">
+            <LayerSettings name="wms2">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>false</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="plot">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>true</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="label">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>true</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+          </layerSettings>
+          <marginBottom>0</marginBottom>
+          <marginLeft>0</marginLeft>
+          <marginRight>0</marginRight>
+          <marginTop>0</marginTop>
+          <maxZoomLevel>16</maxZoomLevel>
+          <minScreenSize>128</minScreenSize>
+          <minZoomLevel>0</minZoomLevel>
+          <overrideXMax>NaN</overrideXMax>
+          <overrideXMin>NaN</overrideXMin>
+          <overrideYMax>NaN</overrideYMax>
+          <overrideYMin>NaN</overrideYMin>
+          <plotters encoding="dynamic">
+            <WMSPlotter name="wms2">
+              <displayMissingImage>false</displayMissingImage>
+              <gridSpacing>12</gridSpacing>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <preferLowerQuality>false</preferLowerQuality>
+              <serviceName>NASA OnEarth</serviceName>
+              <srs>EPSG:4326</srs>
+              <styles/>
+            </WMSPlotter>
+            <GeometryPlotter name="plot">
+              <fill>
+                <alpha>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alpha>
+                <color>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </color>
+                <enabled>
+                  <defaultValue>true</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </enabled>
+                <enableMissingDataGradient>false</enableMissingDataGradient>
+                <imageURL>
+                  <defaultValue/>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </imageURL>
+              </fill>
+              <geometryColumn>
+                <internalDynamicColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Geometry Collections" name="Geometry Collections">
+                              <attribute name="States" keyType="US State FIPS Code" title="States" dataType="geometry"/>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </internalDynamicColumn>
+                <projectionSRS>EPSG:4326</projectionSRS>
+              </geometryColumn>
+              <iconSize>10</iconSize>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <line>
+                <alpha>
+                  <defaultValue>0.5</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alpha>
+                <caps>
+                  <defaultValue/>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </caps>
+                <color>
+                  <defaultValue>0</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </color>
+                <enabled>
+                  <defaultValue>true</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </enabled>
+                <joints>
+                  <defaultValue/>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </joints>
+                <miterLimit>
+                  <defaultValue>3</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </miterLimit>
+                <pixelHinting>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </pixelHinting>
+                <scaleMode>
+                  <defaultValue>none</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </scaleMode>
+                <weight>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <NormalizedColumn>
+                      <internalDynamicColumn encoding="dynamic"/>
+                      <max>5</max>
+                      <min>1</min>
+                    </NormalizedColumn>
+                  </internalDynamicColumn>
+                </weight>
+              </line>
+              <pixellation>1</pixellation>
+              <pointDataImageColumn encoding="dynamic"/>
+              <symbolPlotters encoding="dynamic"/>
+              <useFixedImageSize>false</useFixedImageSize>
+            </GeometryPlotter>
+            <GeometryLabelPlotter name="label">
+              <angle>
+                <defaultValue>0</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </angle>
+              <bold>
+                <defaultValue>false</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </bold>
+              <color>
+                <defaultValue>0</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </color>
+              <font>
+                <defaultValue>Sophia Nubian</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </font>
+              <geometryColumn>
+                <internalDynamicColumn encoding="dynamic">
+                  <ReferencedColumn>
+                    <dynamicColumnReference encoding="dynamic">
+                      <HierarchyColumnReference>
+                        <dataSourceName>WeaveDataSource</dataSourceName>
+                        <hierarchyPath encoding="xml">
+                          <hierarchy>
+                            <category title="Geometry Collections" name="Geometry Collections">
+                              <attribute name="States" keyType="US State FIPS Code" title="States" dataType="geometry"/>
+                            </category>
+                          </hierarchy>
+                        </hierarchyPath>
+                      </HierarchyColumnReference>
+                    </dynamicColumnReference>
+                  </ReferencedColumn>
+                </internalDynamicColumn>
+                <projectionSRS>EPSG:4326</projectionSRS>
+              </geometryColumn>
+              <hAlign>
+                <defaultValue>center</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </hAlign>
+              <hideOverlappingText>true</hideOverlappingText>
+              <italic>
+                <defaultValue>false</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </italic>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <maxWidth>80</maxWidth>
+              <size>
+                <defaultValue>11</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </size>
+              <sortColumn encoding="dynamic"/>
+              <text encoding="dynamic">
+                <ReferencedColumn>
+                  <dynamicColumnReference encoding="dynamic">
+                    <HierarchyColumnReference>
+                      <dataSourceName>WeaveDataSource</dataSourceName>
+                      <hierarchyPath encoding="xml">
+                        <hierarchy>
+                          <category title="Data Tables" name="Data Tables">
+                            <category title="Obesity" name="Obesity">
+                              <attribute keyType="US State FIPS Code" geometryCollection="States" name="State" id="174804" dataTable="Obesity" title="State"/>
+                            </category>
+                          </category>
+                        </hierarchy>
+                      </hierarchyPath>
+                    </HierarchyColumnReference>
+                  </dynamicColumnReference>
+                </ReferencedColumn>
+              </text>
+              <underline>
+                <defaultValue>false</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </underline>
+              <vAlign>
+                <defaultValue>middle</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </vAlign>
+              <xScreenOffset>0</xScreenOffset>
+              <yScreenOffset>0</yScreenOffset>
+              <zoomToSubset>false</zoomToSubset>
+            </GeometryLabelPlotter>
+          </plotters>
+          <zoomBounds>
+            <area>2675.0587550669</area>
+            <xCenter>-99.455944898079</xCenter>
+            <yCenter>36.237626557226</yCenter>
+          </zoomBounds>
+        </plotManager>
+        <zoomFactor>2</zoomFactor>
+      </SimpleInteractiveVisualization>
+  
+  <SimpleInteractiveVisualization name="CompoundBarChartTool">
         <axesAlpha>1</axesAlpha>
         <axesColor>11579568</axesColor>
         <axesThickness>6</axesThickness>
@@ -651,528 +906,6 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <xMin>-0.5</xMin>
             <yMax>40</yMax>
             <yMin>0</yMin>
-          </zoomBounds>
-        </plotManager>
-        <zoomFactor>2</zoomFactor>
-      </SimpleInteractiveVisualization>
-      <SimpleInteractiveVisualization name="ColorHistogramTool">
-        <axesAlpha>1</axesAlpha>
-        <axesColor>11579568</axesColor>
-        <axesThickness>6</axesThickness>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableProbe>true</enableProbe>
-        <enableSelection>true</enableSelection>
-        <enableZoomAndPan>false</enableZoomAndPan>
-        <gridLineAlpha>1</gridLineAlpha>
-        <gridLineColor>14540253</gridLineColor>
-        <gridLineThickness>1</gridLineThickness>
-        <plotManager>
-          <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
-          <enableAutoZoomToSelection>false</enableAutoZoomToSelection>
-          <enableFixedAspectRatio>false</enableFixedAspectRatio>
-          <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
-          <layerSettings encoding="dynamic">
-            <LayerSettings name="yAxis">
-              <maxVisibleScale>Infinity</maxVisibleScale>
-              <minVisibleScale>0</minVisibleScale>
-              <selectable>false</selectable>
-              <visible>true</visible>
-            </LayerSettings>
-            <LayerSettings name="xAxis">
-              <maxVisibleScale>Infinity</maxVisibleScale>
-              <minVisibleScale>0</minVisibleScale>
-              <selectable>false</selectable>
-              <visible>true</visible>
-            </LayerSettings>
-            <LayerSettings name="plot">
-              <maxVisibleScale>Infinity</maxVisibleScale>
-              <minVisibleScale>0</minVisibleScale>
-              <selectable>true</selectable>
-              <visible>true</visible>
-            </LayerSettings>
-            <LayerSettings name="probeLine">
-              <maxVisibleScale>Infinity</maxVisibleScale>
-              <minVisibleScale>0</minVisibleScale>
-              <selectable>false</selectable>
-              <visible>true</visible>
-            </LayerSettings>
-          </layerSettings>
-          <marginBottom>110</marginBottom>
-          <marginLeft>80</marginLeft>
-          <marginRight>10</marginRight>
-          <marginTop>10</marginTop>
-          <maxZoomLevel>16</maxZoomLevel>
-          <minScreenSize>128</minScreenSize>
-          <minZoomLevel>0</minZoomLevel>
-          <overrideXMax>NaN</overrideXMax>
-          <overrideXMin>NaN</overrideXMin>
-          <overrideYMax>35</overrideYMax>
-          <overrideYMin>NaN</overrideYMin>
-          <plotters encoding="dynamic">
-            <SimpleAxisPlotter name="yAxis">
-              <axisLabelDistance>-10</axisLabelDistance>
-              <axisLabelRelativeAngle>90</axisLabelRelativeAngle>
-              <axisLineDataBounds>
-                <xMax>-0.5</xMax>
-                <xMin>-0.5</xMin>
-                <yMax>35</yMax>
-                <yMin>0</yMin>
-              </axisLineDataBounds>
-              <axisLineMaxValue>35</axisLineMaxValue>
-              <axisLineMinValue>0</axisLineMinValue>
-              <forceTickCount>false</forceTickCount>
-              <keySet>
-                <keyFilter encoding="dynamic">
-                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                </keyFilter>
-              </keySet>
-              <labelDistanceIsVertical>false</labelDistanceIsVertical>
-              <labelFunction>string</labelFunction>
-              <labelHorizontalAlign>right</labelHorizontalAlign>
-              <labelNumberFormatter>
-                <decimalSeparatorFrom>.</decimalSeparatorFrom>
-                <decimalSeparatorTo>.</decimalSeparatorTo>
-                <precision>0</precision>
-                <rounding>none</rounding>
-                <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
-                <thousandsSeparatorTo>,</thousandsSeparatorTo>
-                <useNegativeSign>true</useNegativeSign>
-                <useThousandsSeparator>true</useThousandsSeparator>
-              </labelNumberFormatter>
-              <labelTextAlignment>left</labelTextAlignment>
-              <labelVerticalAlign>middle</labelVerticalAlign>
-              <labelWordWrapSize>80</labelWordWrapSize>
-              <overrideAxisName/>
-              <showAxisName>true</showAxisName>
-              <showLabels>true</showLabels>
-              <tickCountRequested>10</tickCountRequested>
-              <tickMaxValue>NaN</tickMaxValue>
-              <tickMinValue>NaN</tickMinValue>
-            </SimpleAxisPlotter>
-            <SimpleAxisPlotter name="xAxis">
-              <axisLabelDistance>-10</axisLabelDistance>
-              <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
-              <axisLineDataBounds>
-                <xMax>7.5</xMax>
-                <xMin>-0.5</xMin>
-                <yMax>0</yMax>
-                <yMin>0</yMin>
-              </axisLineDataBounds>
-              <axisLineMaxValue>7.5</axisLineMaxValue>
-              <axisLineMinValue>-0.5</axisLineMinValue>
-              <forceTickCount>true</forceTickCount>
-              <keySet>
-                <keyFilter encoding="dynamic">
-                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                </keyFilter>
-              </keySet>
-              <labelDistanceIsVertical>false</labelDistanceIsVertical>
-              <labelFunction>string</labelFunction>
-              <labelHorizontalAlign>right</labelHorizontalAlign>
-              <labelNumberFormatter>
-                <decimalSeparatorFrom>.</decimalSeparatorFrom>
-                <decimalSeparatorTo>.</decimalSeparatorTo>
-                <precision>0</precision>
-                <rounding>none</rounding>
-                <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
-                <thousandsSeparatorTo>,</thousandsSeparatorTo>
-                <useNegativeSign>true</useNegativeSign>
-                <useThousandsSeparator>true</useThousandsSeparator>
-              </labelNumberFormatter>
-              <labelTextAlignment>left</labelTextAlignment>
-              <labelVerticalAlign>top</labelVerticalAlign>
-              <labelWordWrapSize>110</labelWordWrapSize>
-              <overrideAxisName/>
-              <showAxisName>true</showAxisName>
-              <showLabels>true</showLabels>
-              <tickCountRequested>8</tickCountRequested>
-              <tickMaxValue>7</tickMaxValue>
-              <tickMinValue>0</tickMinValue>
-            </SimpleAxisPlotter>
-            <HistogramPlotter name="plot">
-              <drawPartialBins>true</drawPartialBins>
-              <dynamicColorColumn encoding="dynamic">
-                <GlobalObjectReference name="defaultColorColumn"/>
-              </dynamicColorColumn>
-              <fillStyle>
-                <alpha>
-                  <defaultValue>1</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </alpha>
-                <color>
-                  <defaultValue>NaN</defaultValue>
-                  <internalDynamicColumn encoding="dynamic">
-                    <GlobalObjectReference name="defaultColorColumn"/>
-                  </internalDynamicColumn>
-                </color>
-                <enabled>
-                  <defaultValue>true</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </enabled>
-              </fillStyle>
-              <keySet>
-                <keyFilter encoding="dynamic">
-                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                </keyFilter>
-              </keySet>
-              <lineStyle>
-                <alpha>
-                  <defaultValue>0.5</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </alpha>
-                <caps>
-                  <defaultValue/>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </caps>
-                <color>
-                  <defaultValue>0</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </color>
-                <enabled>
-                  <defaultValue>true</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </enabled>
-                <joints>
-                  <defaultValue/>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </joints>
-                <miterLimit>
-                  <defaultValue>3</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </miterLimit>
-                <pixelHinting>
-                  <defaultValue>false</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </pixelHinting>
-                <scaleMode>
-                  <defaultValue>normal</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </scaleMode>
-                <weight>
-                  <defaultValue>1</defaultValue>
-                  <internalDynamicColumn encoding="dynamic">
-                    <NormalizedColumn>
-                      <internalDynamicColumn encoding="dynamic"/>
-                      <max>5</max>
-                      <min>1</min>
-                    </NormalizedColumn>
-                  </internalDynamicColumn>
-                </weight>
-              </lineStyle>
-            </HistogramPlotter>
-            <ProbeLinePlotter name="probeLine">
-              <keySet>
-                <keyFilter encoding="dynamic">
-                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                </keyFilter>
-              </keySet>
-              <lineStyle encoding="dynamic">
-                <SolidLineStyle>
-                  <alpha>
-                    <defaultValue>0.5</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </alpha>
-                  <caps>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </caps>
-                  <color>
-                    <defaultValue>0</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </color>
-                  <enabled>
-                    <defaultValue>true</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </enabled>
-                  <joints>
-                    <defaultValue/>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </joints>
-                  <miterLimit>
-                    <defaultValue>3</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </miterLimit>
-                  <pixelHinting>
-                    <defaultValue>false</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </pixelHinting>
-                  <scaleMode>
-                    <defaultValue>normal</defaultValue>
-                    <internalDynamicColumn encoding="dynamic"/>
-                  </scaleMode>
-                  <weight>
-                    <defaultValue>1</defaultValue>
-                    <internalDynamicColumn encoding="dynamic">
-                      <NormalizedColumn>
-                        <internalDynamicColumn encoding="dynamic"/>
-                        <max>5</max>
-                        <min>1</min>
-                      </NormalizedColumn>
-                    </internalDynamicColumn>
-                  </weight>
-                </SolidLineStyle>
-              </lineStyle>
-            </ProbeLinePlotter>
-          </plotters>
-          <zoomBounds>
-            <xMax>7.5</xMax>
-            <xMin>-0.5</xMin>
-            <yMax>35</yMax>
-            <yMin>0</yMin>
-          </zoomBounds>
-        </plotManager>
-        <zoomFactor>2</zoomFactor>
-      </SimpleInteractiveVisualization>
-      <SimpleInteractiveVisualization name="MapTool">
-        <axesAlpha>NaN</axesAlpha>
-        <axesColor>0</axesColor>
-        <axesThickness>NaN</axesThickness>
-        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
-        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
-        <enableProbe>true</enableProbe>
-        <enableSelection>true</enableSelection>
-        <enableZoomAndPan>true</enableZoomAndPan>
-        <gridLineAlpha>NaN</gridLineAlpha>
-        <gridLineColor>0</gridLineColor>
-        <gridLineThickness>NaN</gridLineThickness>
-        <plotManager>
-          <enableAutoZoomToExtent>false</enableAutoZoomToExtent>
-          <enableAutoZoomToSelection>false</enableAutoZoomToSelection>
-          <enableFixedAspectRatio>true</enableFixedAspectRatio>
-          <includeNonSelectableLayersInAutoZoom>true</includeNonSelectableLayersInAutoZoom>
-          <layerSettings encoding="dynamic">
-            <LayerSettings name="wms2">
-              <maxVisibleScale>Infinity</maxVisibleScale>
-              <minVisibleScale>0</minVisibleScale>
-              <selectable>false</selectable>
-              <visible>true</visible>
-            </LayerSettings>
-            <LayerSettings name="plot">
-              <maxVisibleScale>Infinity</maxVisibleScale>
-              <minVisibleScale>0</minVisibleScale>
-              <selectable>true</selectable>
-              <visible>true</visible>
-            </LayerSettings>
-            <LayerSettings name="label">
-              <maxVisibleScale>Infinity</maxVisibleScale>
-              <minVisibleScale>0</minVisibleScale>
-              <selectable>true</selectable>
-              <visible>true</visible>
-            </LayerSettings>
-          </layerSettings>
-          <marginBottom>0</marginBottom>
-          <marginLeft>0</marginLeft>
-          <marginRight>0</marginRight>
-          <marginTop>0</marginTop>
-          <maxZoomLevel>16</maxZoomLevel>
-          <minScreenSize>128</minScreenSize>
-          <minZoomLevel>0</minZoomLevel>
-          <overrideXMax>NaN</overrideXMax>
-          <overrideXMin>NaN</overrideXMin>
-          <overrideYMax>NaN</overrideYMax>
-          <overrideYMin>NaN</overrideYMin>
-          <plotters encoding="dynamic">
-            <WMSPlotter name="wms2">
-              <displayMissingImage>false</displayMissingImage>
-              <gridSpacing>12</gridSpacing>
-              <keySet>
-                <keyFilter encoding="dynamic">
-                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                </keyFilter>
-              </keySet>
-              <preferLowerQuality>false</preferLowerQuality>
-              <serviceName>NASA OnEarth</serviceName>
-              <srs>EPSG:4326</srs>
-              <styles/>
-            </WMSPlotter>
-            <GeometryPlotter name="plot">
-              <fill>
-                <alpha>
-                  <defaultValue>1</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </alpha>
-                <color>
-                  <defaultValue>NaN</defaultValue>
-                  <internalDynamicColumn encoding="dynamic">
-                    <GlobalObjectReference name="defaultColorColumn"/>
-                  </internalDynamicColumn>
-                </color>
-                <enabled>
-                  <defaultValue>true</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </enabled>
-                <enableMissingDataGradient>false</enableMissingDataGradient>
-                <imageURL>
-                  <defaultValue/>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </imageURL>
-              </fill>
-              <geometryColumn>
-                <internalDynamicColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>WeaveDataSource</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <category title="Geometry Collections" name="Geometry Collections">
-                              <attribute name="States" keyType="US State FIPS Code" title="States" dataType="geometry"/>
-                            </category>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </internalDynamicColumn>
-                <projectionSRS>EPSG:4326</projectionSRS>
-              </geometryColumn>
-              <iconSize>10</iconSize>
-              <keySet>
-                <keyFilter encoding="dynamic">
-                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                </keyFilter>
-              </keySet>
-              <line>
-                <alpha>
-                  <defaultValue>0.5</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </alpha>
-                <caps>
-                  <defaultValue/>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </caps>
-                <color>
-                  <defaultValue>0</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </color>
-                <enabled>
-                  <defaultValue>true</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </enabled>
-                <joints>
-                  <defaultValue/>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </joints>
-                <miterLimit>
-                  <defaultValue>3</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </miterLimit>
-                <pixelHinting>
-                  <defaultValue>false</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </pixelHinting>
-                <scaleMode>
-                  <defaultValue>none</defaultValue>
-                  <internalDynamicColumn encoding="dynamic"/>
-                </scaleMode>
-                <weight>
-                  <defaultValue>1</defaultValue>
-                  <internalDynamicColumn encoding="dynamic">
-                    <NormalizedColumn>
-                      <internalDynamicColumn encoding="dynamic"/>
-                      <max>5</max>
-                      <min>1</min>
-                    </NormalizedColumn>
-                  </internalDynamicColumn>
-                </weight>
-              </line>
-              <pixellation>1</pixellation>
-              <pointDataImageColumn encoding="dynamic"/>
-              <symbolPlotters encoding="dynamic"/>
-              <useFixedImageSize>false</useFixedImageSize>
-            </GeometryPlotter>
-            <GeometryLabelPlotter name="label">
-              <angle>
-                <defaultValue>0</defaultValue>
-                <internalDynamicColumn encoding="dynamic"/>
-              </angle>
-              <bold>
-                <defaultValue>false</defaultValue>
-                <internalDynamicColumn encoding="dynamic"/>
-              </bold>
-              <color>
-                <defaultValue>0</defaultValue>
-                <internalDynamicColumn encoding="dynamic"/>
-              </color>
-              <font>
-                <defaultValue>Sophia Nubian</defaultValue>
-                <internalDynamicColumn encoding="dynamic"/>
-              </font>
-              <geometryColumn>
-                <internalDynamicColumn encoding="dynamic">
-                  <ReferencedColumn>
-                    <dynamicColumnReference encoding="dynamic">
-                      <HierarchyColumnReference>
-                        <dataSourceName>WeaveDataSource</dataSourceName>
-                        <hierarchyPath encoding="xml">
-                          <hierarchy>
-                            <category title="Geometry Collections" name="Geometry Collections">
-                              <attribute name="States" keyType="US State FIPS Code" title="States" dataType="geometry"/>
-                            </category>
-                          </hierarchy>
-                        </hierarchyPath>
-                      </HierarchyColumnReference>
-                    </dynamicColumnReference>
-                  </ReferencedColumn>
-                </internalDynamicColumn>
-                <projectionSRS>EPSG:4326</projectionSRS>
-              </geometryColumn>
-              <hAlign>
-                <defaultValue>center</defaultValue>
-                <internalDynamicColumn encoding="dynamic"/>
-              </hAlign>
-              <hideOverlappingText>true</hideOverlappingText>
-              <italic>
-                <defaultValue>false</defaultValue>
-                <internalDynamicColumn encoding="dynamic"/>
-              </italic>
-              <keySet>
-                <keyFilter encoding="dynamic">
-                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
-                </keyFilter>
-              </keySet>
-              <maxWidth>80</maxWidth>
-              <size>
-                <defaultValue>11</defaultValue>
-                <internalDynamicColumn encoding="dynamic"/>
-              </size>
-              <sortColumn encoding="dynamic"/>
-              <text encoding="dynamic">
-                <ReferencedColumn>
-                  <dynamicColumnReference encoding="dynamic">
-                    <HierarchyColumnReference>
-                      <dataSourceName>WeaveDataSource</dataSourceName>
-                      <hierarchyPath encoding="xml">
-                        <hierarchy>
-                          <category title="Data Tables" name="Data Tables">
-                            <category title="Obesity" name="Obesity">
-                              <attribute keyType="US State FIPS Code" geometryCollection="States" name="State" id="174804" dataTable="Obesity" title="State"/>
-                            </category>
-                          </category>
-                        </hierarchy>
-                      </hierarchyPath>
-                    </HierarchyColumnReference>
-                  </dynamicColumnReference>
-                </ReferencedColumn>
-              </text>
-              <underline>
-                <defaultValue>false</defaultValue>
-                <internalDynamicColumn encoding="dynamic"/>
-              </underline>
-              <vAlign>
-                <defaultValue>middle</defaultValue>
-                <internalDynamicColumn encoding="dynamic"/>
-              </vAlign>
-              <xScreenOffset>0</xScreenOffset>
-              <yScreenOffset>0</yScreenOffset>
-              <zoomToSubset>false</zoomToSubset>
-            </GeometryLabelPlotter>
-          </plotters>
-          <zoomBounds>
-            <area>2675.0587550669</area>
-            <xCenter>-99.455944898079</xCenter>
-            <yCenter>36.237626557226</yCenter>
           </zoomBounds>
         </plotManager>
         <zoomFactor>2</zoomFactor>
@@ -1585,6 +1318,275 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
 		<zoomFactor>2</zoomFactor>
       </SimpleInteractiveVisualization>
       
+      <SimpleInteractiveVisualization name="ColorHistogramTool">
+        <axesAlpha>1</axesAlpha>
+        <axesColor>11579568</axesColor>
+        <axesThickness>6</axesThickness>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>1</gridLineAlpha>
+        <gridLineColor>14540253</gridLineColor>
+        <gridLineThickness>1</gridLineThickness>
+        <plotManager>
+          <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+          <enableAutoZoomToSelection>false</enableAutoZoomToSelection>
+          <enableFixedAspectRatio>false</enableFixedAspectRatio>
+          <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+          <layerSettings encoding="dynamic">
+            <LayerSettings name="yAxis">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>false</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="xAxis">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>false</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="plot">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>true</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="probeLine">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>false</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+          </layerSettings>
+          <marginBottom>110</marginBottom>
+          <marginLeft>80</marginLeft>
+          <marginRight>10</marginRight>
+          <marginTop>10</marginTop>
+          <maxZoomLevel>16</maxZoomLevel>
+          <minScreenSize>128</minScreenSize>
+          <minZoomLevel>0</minZoomLevel>
+          <overrideXMax>NaN</overrideXMax>
+          <overrideXMin>NaN</overrideXMin>
+          <overrideYMax>35</overrideYMax>
+          <overrideYMin>NaN</overrideYMin>
+          <plotters encoding="dynamic">
+            <SimpleAxisPlotter name="yAxis">
+              <axisLabelDistance>-10</axisLabelDistance>
+              <axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+              <axisLineDataBounds>
+                <xMax>-0.5</xMax>
+                <xMin>-0.5</xMin>
+                <yMax>35</yMax>
+                <yMin>0</yMin>
+              </axisLineDataBounds>
+              <axisLineMaxValue>35</axisLineMaxValue>
+              <axisLineMinValue>0</axisLineMinValue>
+              <forceTickCount>false</forceTickCount>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <labelDistanceIsVertical>false</labelDistanceIsVertical>
+              <labelFunction>string</labelFunction>
+              <labelHorizontalAlign>right</labelHorizontalAlign>
+              <labelNumberFormatter>
+                <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                <decimalSeparatorTo>.</decimalSeparatorTo>
+                <precision>0</precision>
+                <rounding>none</rounding>
+                <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                <useNegativeSign>true</useNegativeSign>
+                <useThousandsSeparator>true</useThousandsSeparator>
+              </labelNumberFormatter>
+              <labelTextAlignment>left</labelTextAlignment>
+              <labelVerticalAlign>middle</labelVerticalAlign>
+              <labelWordWrapSize>80</labelWordWrapSize>
+              <overrideAxisName/>
+              <showAxisName>true</showAxisName>
+              <showLabels>true</showLabels>
+              <tickCountRequested>10</tickCountRequested>
+              <tickMaxValue>NaN</tickMaxValue>
+              <tickMinValue>NaN</tickMinValue>
+            </SimpleAxisPlotter>
+            <SimpleAxisPlotter name="xAxis">
+              <axisLabelDistance>-10</axisLabelDistance>
+              <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+              <axisLineDataBounds>
+                <xMax>7.5</xMax>
+                <xMin>-0.5</xMin>
+                <yMax>0</yMax>
+                <yMin>0</yMin>
+              </axisLineDataBounds>
+              <axisLineMaxValue>7.5</axisLineMaxValue>
+              <axisLineMinValue>-0.5</axisLineMinValue>
+              <forceTickCount>true</forceTickCount>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <labelDistanceIsVertical>false</labelDistanceIsVertical>
+              <labelFunction>string</labelFunction>
+              <labelHorizontalAlign>right</labelHorizontalAlign>
+              <labelNumberFormatter>
+                <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                <decimalSeparatorTo>.</decimalSeparatorTo>
+                <precision>0</precision>
+                <rounding>none</rounding>
+                <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                <useNegativeSign>true</useNegativeSign>
+                <useThousandsSeparator>true</useThousandsSeparator>
+              </labelNumberFormatter>
+              <labelTextAlignment>left</labelTextAlignment>
+              <labelVerticalAlign>top</labelVerticalAlign>
+              <labelWordWrapSize>110</labelWordWrapSize>
+              <overrideAxisName/>
+              <showAxisName>true</showAxisName>
+              <showLabels>true</showLabels>
+              <tickCountRequested>8</tickCountRequested>
+              <tickMaxValue>7</tickMaxValue>
+              <tickMinValue>0</tickMinValue>
+            </SimpleAxisPlotter>
+            <HistogramPlotter name="plot">
+              <drawPartialBins>true</drawPartialBins>
+              <dynamicColorColumn encoding="dynamic">
+                <GlobalObjectReference name="defaultColorColumn"/>
+              </dynamicColorColumn>
+              <fillStyle>
+                <alpha>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alpha>
+                <color>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </color>
+                <enabled>
+                  <defaultValue>true</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </enabled>
+              </fillStyle>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <lineStyle>
+                <alpha>
+                  <defaultValue>0.5</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alpha>
+                <caps>
+                  <defaultValue/>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </caps>
+                <color>
+                  <defaultValue>0</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </color>
+                <enabled>
+                  <defaultValue>true</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </enabled>
+                <joints>
+                  <defaultValue/>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </joints>
+                <miterLimit>
+                  <defaultValue>3</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </miterLimit>
+                <pixelHinting>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </pixelHinting>
+                <scaleMode>
+                  <defaultValue>normal</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </scaleMode>
+                <weight>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <NormalizedColumn>
+                      <internalDynamicColumn encoding="dynamic"/>
+                      <max>5</max>
+                      <min>1</min>
+                    </NormalizedColumn>
+                  </internalDynamicColumn>
+                </weight>
+              </lineStyle>
+            </HistogramPlotter>
+            <ProbeLinePlotter name="probeLine">
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <lineStyle encoding="dynamic">
+                <SolidLineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic">
+                      <NormalizedColumn>
+                        <internalDynamicColumn encoding="dynamic"/>
+                        <max>5</max>
+                        <min>1</min>
+                      </NormalizedColumn>
+                    </internalDynamicColumn>
+                  </weight>
+                </SolidLineStyle>
+              </lineStyle>
+            </ProbeLinePlotter>
+          </plotters>
+          <zoomBounds>
+            <xMax>7.5</xMax>
+            <xMin>-0.5</xMin>
+            <yMax>35</yMax>
+            <yMin>0</yMin>
+          </zoomBounds>
+        </plotManager>
+        <zoomFactor>2</zoomFactor>
+      </SimpleInteractiveVisualization>
       <SimpleInteractiveVisualization name="ColorBinLegendTool">
         <axesAlpha>NaN</axesAlpha>
         <axesColor>0</axesColor>
@@ -1686,6 +1688,275 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
             <xMax>1</xMax>
             <xMin>0</xMin>
             <yMax>1</yMax>
+            <yMin>0</yMin>
+          </zoomBounds>
+        </plotManager>
+        <zoomFactor>2</zoomFactor>
+      </SimpleInteractiveVisualization>
+      <SimpleInteractiveVisualization name="ColorHistogramTool">
+        <axesAlpha>1</axesAlpha>
+        <axesColor>11579568</axesColor>
+        <axesThickness>6</axesThickness>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>1</gridLineAlpha>
+        <gridLineColor>14540253</gridLineColor>
+        <gridLineThickness>1</gridLineThickness>
+        <plotManager>
+          <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+          <enableAutoZoomToSelection>false</enableAutoZoomToSelection>
+          <enableFixedAspectRatio>false</enableFixedAspectRatio>
+          <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+          <layerSettings encoding="dynamic">
+            <LayerSettings name="yAxis">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>false</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="xAxis">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>false</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="plot">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>true</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="probeLine">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>false</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+          </layerSettings>
+          <marginBottom>110</marginBottom>
+          <marginLeft>80</marginLeft>
+          <marginRight>10</marginRight>
+          <marginTop>10</marginTop>
+          <maxZoomLevel>16</maxZoomLevel>
+          <minScreenSize>128</minScreenSize>
+          <minZoomLevel>0</minZoomLevel>
+          <overrideXMax>NaN</overrideXMax>
+          <overrideXMin>NaN</overrideXMin>
+          <overrideYMax>35</overrideYMax>
+          <overrideYMin>NaN</overrideYMin>
+          <plotters encoding="dynamic">
+            <SimpleAxisPlotter name="yAxis">
+              <axisLabelDistance>-10</axisLabelDistance>
+              <axisLabelRelativeAngle>90</axisLabelRelativeAngle>
+              <axisLineDataBounds>
+                <xMax>-0.5</xMax>
+                <xMin>-0.5</xMin>
+                <yMax>35</yMax>
+                <yMin>0</yMin>
+              </axisLineDataBounds>
+              <axisLineMaxValue>35</axisLineMaxValue>
+              <axisLineMinValue>0</axisLineMinValue>
+              <forceTickCount>false</forceTickCount>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <labelDistanceIsVertical>false</labelDistanceIsVertical>
+              <labelFunction>string</labelFunction>
+              <labelHorizontalAlign>right</labelHorizontalAlign>
+              <labelNumberFormatter>
+                <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                <decimalSeparatorTo>.</decimalSeparatorTo>
+                <precision>0</precision>
+                <rounding>none</rounding>
+                <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                <useNegativeSign>true</useNegativeSign>
+                <useThousandsSeparator>true</useThousandsSeparator>
+              </labelNumberFormatter>
+              <labelTextAlignment>left</labelTextAlignment>
+              <labelVerticalAlign>middle</labelVerticalAlign>
+              <labelWordWrapSize>80</labelWordWrapSize>
+              <overrideAxisName/>
+              <showAxisName>true</showAxisName>
+              <showLabels>true</showLabels>
+              <tickCountRequested>10</tickCountRequested>
+              <tickMaxValue>NaN</tickMaxValue>
+              <tickMinValue>NaN</tickMinValue>
+            </SimpleAxisPlotter>
+            <SimpleAxisPlotter name="xAxis">
+              <axisLabelDistance>-10</axisLabelDistance>
+              <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+              <axisLineDataBounds>
+                <xMax>7.5</xMax>
+                <xMin>-0.5</xMin>
+                <yMax>0</yMax>
+                <yMin>0</yMin>
+              </axisLineDataBounds>
+              <axisLineMaxValue>7.5</axisLineMaxValue>
+              <axisLineMinValue>-0.5</axisLineMinValue>
+              <forceTickCount>true</forceTickCount>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <labelDistanceIsVertical>false</labelDistanceIsVertical>
+              <labelFunction>string</labelFunction>
+              <labelHorizontalAlign>right</labelHorizontalAlign>
+              <labelNumberFormatter>
+                <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                <decimalSeparatorTo>.</decimalSeparatorTo>
+                <precision>0</precision>
+                <rounding>none</rounding>
+                <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                <useNegativeSign>true</useNegativeSign>
+                <useThousandsSeparator>true</useThousandsSeparator>
+              </labelNumberFormatter>
+              <labelTextAlignment>left</labelTextAlignment>
+              <labelVerticalAlign>top</labelVerticalAlign>
+              <labelWordWrapSize>110</labelWordWrapSize>
+              <overrideAxisName/>
+              <showAxisName>true</showAxisName>
+              <showLabels>true</showLabels>
+              <tickCountRequested>8</tickCountRequested>
+              <tickMaxValue>7</tickMaxValue>
+              <tickMinValue>0</tickMinValue>
+            </SimpleAxisPlotter>
+            <HistogramPlotter name="plot">
+              <drawPartialBins>true</drawPartialBins>
+              <dynamicColorColumn encoding="dynamic">
+                <GlobalObjectReference name="defaultColorColumn"/>
+              </dynamicColorColumn>
+              <fillStyle>
+                <alpha>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alpha>
+                <color>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </color>
+                <enabled>
+                  <defaultValue>true</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </enabled>
+              </fillStyle>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <lineStyle>
+                <alpha>
+                  <defaultValue>0.5</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alpha>
+                <caps>
+                  <defaultValue/>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </caps>
+                <color>
+                  <defaultValue>0</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </color>
+                <enabled>
+                  <defaultValue>true</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </enabled>
+                <joints>
+                  <defaultValue/>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </joints>
+                <miterLimit>
+                  <defaultValue>3</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </miterLimit>
+                <pixelHinting>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </pixelHinting>
+                <scaleMode>
+                  <defaultValue>normal</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </scaleMode>
+                <weight>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <NormalizedColumn>
+                      <internalDynamicColumn encoding="dynamic"/>
+                      <max>5</max>
+                      <min>1</min>
+                    </NormalizedColumn>
+                  </internalDynamicColumn>
+                </weight>
+              </lineStyle>
+            </HistogramPlotter>
+            <ProbeLinePlotter name="probeLine">
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <lineStyle encoding="dynamic">
+                <SolidLineStyle>
+                  <alpha>
+                    <defaultValue>0.5</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </alpha>
+                  <caps>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </caps>
+                  <color>
+                    <defaultValue>0</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </color>
+                  <enabled>
+                    <defaultValue>true</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </enabled>
+                  <joints>
+                    <defaultValue/>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </joints>
+                  <miterLimit>
+                    <defaultValue>3</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </miterLimit>
+                  <pixelHinting>
+                    <defaultValue>false</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </pixelHinting>
+                  <scaleMode>
+                    <defaultValue>normal</defaultValue>
+                    <internalDynamicColumn encoding="dynamic"/>
+                  </scaleMode>
+                  <weight>
+                    <defaultValue>1</defaultValue>
+                    <internalDynamicColumn encoding="dynamic">
+                      <NormalizedColumn>
+                        <internalDynamicColumn encoding="dynamic"/>
+                        <max>5</max>
+                        <min>1</min>
+                      </NormalizedColumn>
+                    </internalDynamicColumn>
+                  </weight>
+                </SolidLineStyle>
+              </lineStyle>
+            </ProbeLinePlotter>
+          </plotters>
+          <zoomBounds>
+            <xMax>7.5</xMax>
+            <xMin>-0.5</xMin>
+            <yMax>35</yMax>
             <yMin>0</yMin>
           </zoomBounds>
         </plotManager>
