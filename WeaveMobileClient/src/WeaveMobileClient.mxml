@@ -24,6 +24,8 @@
 			   >
 	<fx:Script>
 		<![CDATA[
+			import flash.utils.setTimeout;
+			
 			import spark.layouts.TileLayout;
 			import spark.layouts.TileOrientation;
 			import spark.layouts.VerticalLayout;

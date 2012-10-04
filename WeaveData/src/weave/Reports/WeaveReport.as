@@ -22,16 +22,14 @@ package weave.Reports
 	import flash.net.URLRequest;
 	import flash.net.navigateToURL;
 	
-	import mx.controls.Alert;
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.api.services.IWeaveDataService;
-	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableXML;
 	import weave.data.DataSources.*;
 	import weave.data.KeySets.KeyFilter;
@@ -111,7 +109,7 @@ package weave.Reports
 			//@TODO this upper limit may be different for different types of reports
 			if ((qkeys == null) || (qkeys.length <= 0))
 			{
-				Alert.show("Weave reports must have at least 1 record.  Please create a subset and try again.");
+				reportError("Weave reports must have at least 1 record.  Please create a subset and try again.");
 				return;
 			}
 
@@ -127,7 +125,7 @@ package weave.Reports
 			//  only supporting WeaveDataSource reports for now
 			var oiDataSource:WeaveDataSource = WeaveAPI.globalHashMap.getObject(dataSource) as WeaveDataSource;
 			if (oiDataSource == null)
-				Alert.show("Data source " + dataSource + " not found");
+				reportError("Data source " + dataSource + " not found");
 			else 
 				oiDataSource.getReport(reportDefinitionFileName, keyStrings);  
 		}
@@ -149,7 +147,7 @@ package weave.Reports
 			else
 			{
 				var msg:String = "Error creating report: " + result;
-				Alert.show(msg);
+				reportError(msg);
 			}			
 		}
 		

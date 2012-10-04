@@ -98,16 +98,12 @@
 				
 				updateEnabledSettings();
 				serverSettings.addEventListener(KeyboardEvent.KEY_DOWN, handleSettingsKeyDown, true);
+				serverSettings.addEventListener(Event.CHANGE, handleChange);
 			}
 			
-			//Sends a message from the text box(input) to the server as a TEXT message
-			private function handleInputKeyUp(e:KeyboardEvent):void
+			private function handleChange(e:Event):void
 			{
-				if( e.keyCode != Keyboard.ENTER || input.text=="")
-					return;
-				if( collabService.isConnected )
-					collabService.sendTextMessage( input.text );
-				input.text = "";	//clear the input
+				updateEnabledSettings();
 			}
 			
 			private function sendToRoomButton():void

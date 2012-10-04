@@ -24,11 +24,11 @@ package weave.services.collaboration
 	import flash.net.registerClassAlias;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
+	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.collections.ArrayCollection;
 	import mx.collections.Sort;
-	import mx.controls.Alert;
 	import mx.events.CloseEvent;
 	import mx.utils.Base64Decoder;
 	import mx.utils.Base64Encoder;
@@ -61,6 +61,11 @@ package weave.services.collaboration
 	
 	public class CollaborationService extends EventDispatcher implements IDisposableObject
 	{
+		/**
+		 * @TODO stop using Alert
+		 */		
+		private static const Alert:Object = getDefinitionByName('mx.controls.Alert');
+		
 		private var root:ILinkableObject;
 		private var connection:XMPPConnection;
 		private var selfJID:String;
