@@ -42,6 +42,7 @@
 	<property name="API" value="WeaveAPI"/>
 	<property name="CORE" value="WeaveCore"/>
 	<property name="DATA" value="WeaveData"/>
+	<property name="UISPARK" value="WeaveUISpark"/>
 	<property name="UI" value="WeaveUI"/>
         <property name="FONTS" value="WeaveFonts"/>
 	<property name="CLIENT" value="WeaveClient"/>
@@ -75,11 +76,12 @@
 	</target>
 	<!-- This target will extract the swf files from the swc archives
 		and extract them to the WEAVE_DESTROOT -->
-	<target name="build" depends="client, admin, ui, data, core, api, services">
+	<target name="build" depends="client, admin, uispark, ui, data, core, api, services">
 		<mkdir dir="${WEAVE_DESTROOT}"/>
 		<extract_swc swc="${basedir}/${API}/bin/${API}.swc" rsl="${API}.swf"/>
 		<extract_swc swc="${basedir}/${CORE}/bin/${CORE}.swc" rsl="${CORE}.swf"/>
 		<extract_swc swc="${basedir}/${DATA}/bin/${DATA}.swc" rsl="${DATA}.swf"/>
+		<extract_swc swc="${basedir}/${UISPARK}/bin/${UISPARK}.swc" rsl="${UISPARK}.swf"/>
 		<extract_swc swc="${basedir}/${UI}/bin/${UI}.swc" rsl="${UI}.swf"/>
                 <copy file="${basedir}/${CLIENT}/swf/${FONTS}.swf" tofile="${WEAVE_DESTROOT}/${FONTS}.swf"/>
 		<copy file="${basedir}/${CLIENT}/bin/weave.swf" tofile="${WEAVE_DESTROOT}/weave.swf"/>
@@ -104,7 +106,10 @@
 	<target name="data" depends="core">
 		<buildproject targetproject="${DATA}" targetfileext="swc"/>
 	</target>
-	<target name="ui" depends="data">
+	<target name="uispark" depends="data">
+		<buildproject targetproject="${UISPARK}" targetfileext="swc"/>
+	</target>
+	<target name="ui" depends="uispark">
 		<buildproject targetproject="${UI}" targetfileext="swc"/>
 	</target>
 	<target name="client" depends="ui">
@@ -129,6 +134,7 @@
 		<ant dir="${basedir}/${API}" target="clean" />
 		<ant dir="${basedir}/${CORE}" target="clean" />
 		<ant dir="${basedir}/${DATA}" target="clean" />
+		<ant dir="${basedir}/${UISPARK}" target="clean" />
 		<ant dir="${basedir}/${UI}" target="clean" />
 		<ant dir="${basedir}/${SERVICES}" target="clean" />
 	</target>

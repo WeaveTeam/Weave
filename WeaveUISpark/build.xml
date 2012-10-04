@@ -3,7 +3,7 @@
      and build settings inside Flash Builder, but it is not an exact copy.  
      Please customize this file as necessary. -->
 <!-- Generated from project settings as of 4/14/11 8:55 PM -->
-<project name="WeaveUI" default="build" basedir=".">
+<project name="WeaveUISpark" default="build" basedir=".">
 
 	<property environment="env"/>
 	<property name="FLEX_HOME" value="${env.FLEX_HOME}"/>
@@ -59,15 +59,12 @@
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10.2/playerglobal.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/framework.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/rpc.swc" append="true"/>
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/mx/mx.swc" append="true"/> 
-            <external-library-path file="${FLEX_HOME}/frameworks/libs/spark.swc" append="true"/> 
-
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/spark.swc" append="true"/> 
 			<external-library-path file="../${API}/bin/${API}.swc" append="true"/>
 			<external-library-path file="../${CORE}/bin/${CORE}.swc" append="true"/>
 			<external-library-path file="../${DATA}/bin/${DATA}.swc" append="true"/>
 
 			<library-path dir="${PROJECT_DIR}/libs" includes="*.swc" append="true"/>
-			<arg value="-compatibility-version=3.6"/>
 		</compc>
 	</target>
 
