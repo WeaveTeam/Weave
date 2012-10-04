@@ -60,6 +60,8 @@
 				UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
 				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.full);
 			}
+			
+			WeaveFonts;
 		]]>
 	</fx:Script>
 </s:Application>

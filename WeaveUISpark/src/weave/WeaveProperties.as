@@ -29,6 +29,7 @@ package weave
 	import flash.text.Font;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
+	import flash.utils.getDefinitionByName;
 	
 	import mx.collections.ArrayCollection;
 	import mx.controls.ToolTip;
@@ -125,44 +126,65 @@ package weave
 		}
 		
 		public static const embeddedFonts:ArrayCollection = new ArrayCollection();
-		private function loadWeaveFontsSWF():void
+		private function loadWeaveFontsSWF(bytes:ByteArray = null):void
 		{
-			WeaveAPI.URLRequestUtils.getURL(
-				null,
-				new URLRequest('WeaveFonts.swf'),
-				function(event:ResultEvent, token:Object = null):void
+			if (!bytes)
+			{
+				try
 				{
-					var fontLoader:FontLoader = new FontLoader();
-					fontLoader.addEventListener(
-						Event.COMPLETE,
-						function(event:Event):void
+					// attempt to load from embedded file
+					var WF:Class = getDefinitionByName('WeaveFonts') as Class;
+					bytes = (new WF()) as ByteArray;
+				}
+				catch (e:Error) { }
+			}
+			if (bytes)
+			{
+				var fontLoader:FontLoader = new FontLoader();
+				fontLoader.addEventListener(
+					Event.COMPLETE,
+					function(event:Event):void
+					{
+						try
 						{
-							try
+							var fonts:Array = fontLoader.fonts;
+							for each (var font:Font in fonts)
 							{
-								var fonts:Array = fontLoader.fonts;
-								for each (var font:Font in fonts)
-								{
-									var fontClass:Class = Object(font).constructor;
-									Font.registerFont(fontClass);
-									if (!embeddedFonts.contains(font.fontName))
-										embeddedFonts.addItem(font.fontName);
-								}
-							}
-							catch (e:Error)
-							{
-								var app:Object = WeaveAPI.topLevelApplication;
-								if (app.parent && app.parent.parent is Stage) // don't report error if loaded as a nested app
-									reportError(e);
+								var fontClass:Class = Object(font).constructor;
+								Font.registerFont(fontClass);
+								if (!embeddedFonts.contains(font.fontName))
+									embeddedFonts.addItem(font.fontName);
 							}
 						}
-					);
-					fontLoader.loadBytes(ByteArray(event.result), false);
-				},
-				function(event:FaultEvent, token:Object = null):void
-				{
-					reportError(event.fault);
-				}
-			);
+						catch (e:Error)
+						{
+							var app:Object = WeaveAPI.topLevelApplication;
+							if (app.parent && app.parent.parent is Stage) // don't report error if loaded as a nested app
+								reportError(e);
+						}
+					}
+				);
+				fontLoader.loadBytes(bytes, false);
+			}
+			else
+			{
+				WeaveAPI.URLRequestUtils.getURL(
+					null,
+					new URLRequest('WeaveFonts.swf'),
+					function(event:ResultEvent, token:Object = null):void
+					{
+						var bytes:ByteArray = ByteArray(event.result);
+						if (bytes)
+							loadWeaveFontsSWF(bytes);
+						else
+							reportError("Unable to get WeaveFonts.swf");
+					},
+					function(event:FaultEvent, token:Object = null):void
+					{
+						reportError(event.fault);
+					}
+				);
+			}
 		}
 		
 		public static const DEFAULT_BACKGROUND_COLOR:Number = 0xCCCCCC;
