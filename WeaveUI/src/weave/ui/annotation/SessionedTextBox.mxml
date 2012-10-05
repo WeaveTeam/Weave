@@ -122,7 +122,7 @@
 			import mx.events.StateChangeEvent;
 			
 			import weave.Weave;
-			import weave.api.core.ILinkableContainer;
+			import weave.api.ui.ILinkableContainer;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;

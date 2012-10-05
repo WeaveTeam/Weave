@@ -1,0 +1,409 @@
+      <SimpleInteractiveVisualization name="visualization">
+
+
+<axesAlpha>1</axesAlpha>
+<axesColor>11579568</axesColor>
+<axesThickness>10</axesThickness>
+<enableAutoZoomXToNiceNumbers>true</enableAutoZoomXToNiceNumbers>
+<enableAutoZoomYToNiceNumbers>true</enableAutoZoomYToNiceNumbers>
+<enableProbe>true</enableProbe>
+<enableSelection>true</enableSelection>
+<enableZoomAndPan>false</enableZoomAndPan>
+<gridLineAlpha>1</gridLineAlpha>
+<gridLineColor>14540253</gridLineColor>
+<gridLineThickness>1</gridLineThickness>
+<plotManager>
+  <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+  <enableAutoZoomToSelection>false</enableAutoZoomToSelection>
+  <enableFixedAspectRatio>false</enableFixedAspectRatio>
+  <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+  <layerSettings encoding="dynamic">
+    <LayerSettings name="yAxis">
+      <maxVisibleScale>Infinity</maxVisibleScale>
+      <minVisibleScale>0</minVisibleScale>
+      <selectable>false</selectable>
+      <visible>true</visible>
+    </LayerSettings>
+    <LayerSettings name="xAxis">
+      <maxVisibleScale>Infinity</maxVisibleScale>
+      <minVisibleScale>0</minVisibleScale>
+      <selectable>false</selectable>
+      <visible>true</visible>
+    </LayerSettings>
+    <LayerSettings name="plot">
+      <maxVisibleScale>Infinity</maxVisibleScale>
+      <minVisibleScale>0</minVisibleScale>
+      <selectable>true</selectable>
+      <visible>true</visible>
+    </LayerSettings>
+    <LayerSettings name="probeLine">
+      <maxVisibleScale>Infinity</maxVisibleScale>
+      <minVisibleScale>0</minVisibleScale>
+      <selectable>false</selectable>
+      <visible>true</visible>
+    </LayerSettings>
+    <LayerSettings name="regressionLine">
+      <maxVisibleScale>Infinity</maxVisibleScale>
+      <minVisibleScale>0</minVisibleScale>
+      <selectable>true</selectable>
+      <visible>true</visible>
+    </LayerSettings>
+  </layerSettings>
+  <marginBottom>80</marginBottom>
+  <marginLeft>80</marginLeft>
+  <marginRight>30</marginRight>
+  <marginTop>30</marginTop>
+  <maxZoomLevel>16</maxZoomLevel>
+  <minScreenSize>128</minScreenSize>
+  <minZoomLevel>0</minZoomLevel>
+  <overrideXMax>NaN</overrideXMax>
+  <overrideXMin>NaN</overrideXMin>
+  <overrideYMax>NaN</overrideYMax>
+  <overrideYMin>NaN</overrideYMin>
+  <plotters encoding="dynamic">
+    <SimpleAxisPlotter name="yAxis">
+      <axisLabelDistance>-10</axisLabelDistance>
+      <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+      <axisLineDataBounds>
+        <xMax>10</xMax>
+        <xMin>10</xMin>
+        <yMax>26</yMax>
+        <yMin>14</yMin>
+      </axisLineDataBounds>
+      <axisLineMaxValue>26</axisLineMaxValue>
+      <axisLineMinValue>14</axisLineMinValue>
+      <forceTickCount>false</forceTickCount>
+      <keySet>
+        <keyFilter encoding="dynamic">
+          <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+        </keyFilter>
+      </keySet>
+      <labelDistanceIsVertical>false</labelDistanceIsVertical>
+      <labelFunction>string</labelFunction>
+      <labelHorizontalAlign>right</labelHorizontalAlign>
+      <labelNumberFormatter>
+        <decimalSeparatorFrom>.</decimalSeparatorFrom>
+        <decimalSeparatorTo>.</decimalSeparatorTo>
+        <precision>0</precision>
+        <rounding>none</rounding>
+        <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+        <thousandsSeparatorTo>,</thousandsSeparatorTo>
+        <useNegativeSign>true</useNegativeSign>
+        <useThousandsSeparator>true</useThousandsSeparator>
+      </labelNumberFormatter>
+      <labelTextAlignment>left</labelTextAlignment>
+      <labelVerticalAlign>bottom</labelVerticalAlign>
+      <labelWordWrapSize>80</labelWordWrapSize>
+      <overrideAxisName/>
+      <showAxisName>true</showAxisName>
+      <showLabels>true</showLabels>
+      <tickCountRequested>10</tickCountRequested>
+      <tickMaxValue>NaN</tickMaxValue>
+      <tickMinValue>NaN</tickMinValue>
+    </SimpleAxisPlotter>
+    <SimpleAxisPlotter name="xAxis">
+      <axisLabelDistance>-10</axisLabelDistance>
+      <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+      <axisLineDataBounds>
+        <xMax>22</xMax>
+        <xMin>10</xMin>
+        <yMax>14</yMax>
+        <yMin>14</yMin>
+      </axisLineDataBounds>
+      <axisLineMaxValue>22</axisLineMaxValue>
+      <axisLineMinValue>10</axisLineMinValue>
+      <forceTickCount>false</forceTickCount>
+      <keySet>
+        <keyFilter encoding="dynamic">
+          <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+        </keyFilter>
+      </keySet>
+      <labelDistanceIsVertical>false</labelDistanceIsVertical>
+      <labelFunction>string</labelFunction>
+      <labelHorizontalAlign>right</labelHorizontalAlign>
+      <labelNumberFormatter>
+        <decimalSeparatorFrom>.</decimalSeparatorFrom>
+        <decimalSeparatorTo>.</decimalSeparatorTo>
+        <precision>0</precision>
+        <rounding>none</rounding>
+        <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+        <thousandsSeparatorTo>,</thousandsSeparatorTo>
+        <useNegativeSign>true</useNegativeSign>
+        <useThousandsSeparator>true</useThousandsSeparator>
+      </labelNumberFormatter>
+      <labelTextAlignment>left</labelTextAlignment>
+      <labelVerticalAlign>top</labelVerticalAlign>
+      <labelWordWrapSize>80</labelWordWrapSize>
+      <overrideAxisName/>
+      <showAxisName>true</showAxisName>
+      <showLabels>true</showLabels>
+      <tickCountRequested>10</tickCountRequested>
+      <tickMaxValue>NaN</tickMaxValue>
+      <tickMinValue>NaN</tickMinValue>
+    </SimpleAxisPlotter>
+    <ScatterPlotPlotter name="plot">
+      <absoluteValueColorEnabled>false</absoluteValueColorEnabled>
+      <absoluteValueColorMax>0</absoluteValueColorMax>
+      <absoluteValueColorMin>0</absoluteValueColorMin>
+      <dataX encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>WeaveDataSource</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy>
+                  <category title="Data Tables" name="Data Tables">
+                    <category title="obesity-2010" name="obesity-2010">
+                      <attribute dataType="number" id="667700" title="Percent Obese (BMI >= 30) (1995)" geometryCollection="States" name="Percent Obese (BMI >= 30) (1995)" keyType="US State FIPS Code" dataTable="obesity-2010"/>
+                    </category>
+                  </category>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </dataX>
+      <dataY encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>WeaveDataSource</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy>
+                  <category title="Data Tables" name="Data Tables">
+                    <category title="obesity-2010" name="obesity-2010">
+                      <attribute dataType="number" id="667705" title="Percent Obese (BMI >= 30) (2000)" geometryCollection="States" name="Percent Obese (BMI >= 30) (2000)" keyType="US State FIPS Code" dataTable="obesity-2010"/>
+                    </category>
+                  </category>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </dataY>
+      <defaultScreenRadius>5</defaultScreenRadius>
+      <enabledSizeBy>false</enabledSizeBy>
+      <fill>
+        <alpha>
+          <defaultValue>1</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </alpha>
+        <color>
+          <defaultValue>NaN</defaultValue>
+          <internalDynamicColumn encoding="dynamic">
+            <GlobalObjectReference name="defaultColorColumn"/>
+          </internalDynamicColumn>
+        </color>
+        <enabled>
+          <defaultValue>true</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </enabled>
+      </fill>
+      <keySet>
+        <keyFilter encoding="dynamic">
+          <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+        </keyFilter>
+      </keySet>
+      <lineStyle encoding="dynamic">
+        <SolidLineStyle>
+          <alpha>
+            <defaultValue>0.5</defaultValue>
+            <internalDynamicColumn encoding="dynamic"/>
+          </alpha>
+          <caps>
+            <defaultValue/>
+            <internalDynamicColumn encoding="dynamic"/>
+          </caps>
+          <color>
+            <defaultValue>0</defaultValue>
+            <internalDynamicColumn encoding="dynamic"/>
+          </color>
+          <enabled>
+            <defaultValue>true</defaultValue>
+            <internalDynamicColumn encoding="dynamic"/>
+          </enabled>
+          <joints>
+            <defaultValue/>
+            <internalDynamicColumn encoding="dynamic"/>
+          </joints>
+          <miterLimit>
+            <defaultValue>3</defaultValue>
+            <internalDynamicColumn encoding="dynamic"/>
+          </miterLimit>
+          <pixelHinting>
+            <defaultValue>false</defaultValue>
+            <internalDynamicColumn encoding="dynamic"/>
+          </pixelHinting>
+          <scaleMode>
+            <defaultValue>normal</defaultValue>
+            <internalDynamicColumn encoding="dynamic"/>
+          </scaleMode>
+          <weight>
+            <defaultValue>1</defaultValue>
+            <internalDynamicColumn encoding="dynamic">
+              <NormalizedColumn>
+                <internalDynamicColumn encoding="dynamic"/>
+                <max>5</max>
+                <min>1</min>
+              </NormalizedColumn>
+            </internalDynamicColumn>
+          </weight>
+        </SolidLineStyle>
+      </lineStyle>
+      <maxScreenRadius>12</maxScreenRadius>
+      <minScreenRadius>3</minScreenRadius>
+      <screenRadius encoding="dynamic"/>
+      <zoomToSubset>false</zoomToSubset>
+    </ScatterPlotPlotter>
+    <ProbeLinePlotter name="probeLine">
+      <keySet>
+        <keyFilter encoding="dynamic">
+          <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+        </keyFilter>
+      </keySet>
+      <lineStyle encoding="dynamic">
+        <SolidLineStyle>
+          <alpha>
+            <defaultValue>0.5</defaultValue>
+            <internalDynamicColumn encoding="dynamic"/>
+          </alpha>
+          <caps>
+            <defaultValue/>
+            <internalDynamicColumn encoding="dynamic"/>
+          </caps>
+          <color>
+            <defaultValue>0</defaultValue>
+            <internalDynamicColumn encoding="dynamic"/>
+          </color>
+          <enabled>
+            <defaultValue>true</defaultValue>
+            <internalDynamicColumn encoding="dynamic"/>
+          </enabled>
+          <joints>
+            <defaultValue/>
+            <internalDynamicColumn encoding="dynamic"/>
+          </joints>
+          <miterLimit>
+            <defaultValue>3</defaultValue>
+            <internalDynamicColumn encoding="dynamic"/>
+          </miterLimit>
+          <pixelHinting>
+            <defaultValue>false</defaultValue>
+            <internalDynamicColumn encoding="dynamic"/>
+          </pixelHinting>
+          <scaleMode>
+            <defaultValue>normal</defaultValue>
+            <internalDynamicColumn encoding="dynamic"/>
+          </scaleMode>
+          <weight>
+            <defaultValue>1</defaultValue>
+            <internalDynamicColumn encoding="dynamic">
+              <NormalizedColumn>
+                <internalDynamicColumn encoding="dynamic"/>
+                <max>5</max>
+                <min>1</min>
+              </NormalizedColumn>
+            </internalDynamicColumn>
+          </weight>
+        </SolidLineStyle>
+      </lineStyle>
+    </ProbeLinePlotter>
+    <RegressionLinePlotter name="regressionLine">
+      <drawLine>false</drawLine>
+      <keySet>
+        <keyFilter encoding="dynamic">
+          <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+        </keyFilter>
+      </keySet>
+      <lineStyle>
+        <alpha>
+          <defaultValue>0.5</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </alpha>
+        <caps>
+          <defaultValue/>
+          <internalDynamicColumn encoding="dynamic"/>
+        </caps>
+        <color>
+          <defaultValue>0</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </color>
+        <enabled>
+          <defaultValue>true</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </enabled>
+        <joints>
+          <defaultValue/>
+          <internalDynamicColumn encoding="dynamic"/>
+        </joints>
+        <miterLimit>
+          <defaultValue>3</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </miterLimit>
+        <pixelHinting>
+          <defaultValue>false</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </pixelHinting>
+        <scaleMode>
+          <defaultValue>normal</defaultValue>
+          <internalDynamicColumn encoding="dynamic"/>
+        </scaleMode>
+        <weight>
+          <defaultValue>1</defaultValue>
+          <internalDynamicColumn encoding="dynamic">
+            <NormalizedColumn>
+              <internalDynamicColumn encoding="dynamic"/>
+              <max>5</max>
+              <min>1</min>
+            </NormalizedColumn>
+          </internalDynamicColumn>
+        </weight>
+      </lineStyle>
+      <xColumn encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>WeaveDataSource</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy>
+                  <category title="Data Tables" name="Data Tables">
+                    <category title="obesity-2010" name="obesity-2010">
+                      <attribute dataType="number" id="667700" title="Percent Obese (BMI >= 30) (1995)" geometryCollection="States" name="Percent Obese (BMI >= 30) (1995)" keyType="US State FIPS Code" dataTable="obesity-2010"/>
+                    </category>
+                  </category>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </xColumn>
+      <yColumn encoding="dynamic">
+        <ReferencedColumn>
+          <dynamicColumnReference encoding="dynamic">
+            <HierarchyColumnReference>
+              <dataSourceName>WeaveDataSource</dataSourceName>
+              <hierarchyPath encoding="xml">
+                <hierarchy>
+                  <category title="Data Tables" name="Data Tables">
+                    <category title="obesity-2010" name="obesity-2010">
+                      <attribute dataType="number" id="667705" title="Percent Obese (BMI >= 30) (2000)" geometryCollection="States" name="Percent Obese (BMI >= 30) (2000)" keyType="US State FIPS Code" dataTable="obesity-2010"/>
+                    </category>
+                  </category>
+                </hierarchy>
+              </hierarchyPath>
+            </HierarchyColumnReference>
+          </dynamicColumnReference>
+        </ReferencedColumn>
+      </yColumn>
+    </RegressionLinePlotter>
+  </plotters>
+  <zoomBounds>
+    <xMax>22</xMax>
+    <xMin>10</xMin>
+    <yMax>26</yMax>
+    <yMin>14</yMin>
+  </zoomBounds>
+</plotManager>
+<zoomFactor>2</zoomFactor>
+
+</SimpleInteractiveVisualization>

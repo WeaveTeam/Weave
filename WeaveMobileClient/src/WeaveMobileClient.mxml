@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   interactionMode="touch"
+			   resizeForSoftKeyboard="false"
+			   creationComplete="handleCreationComplete()"
+			   >
+	<fx:Script>
+		<![CDATA[
+			import flash.utils.setTimeout;
+			
+			import spark.layouts.TileLayout;
+			import spark.layouts.TileOrientation;
+			import spark.layouts.VerticalLayout;
+			
+			import weave.api.WeaveAPI;
+			import weave.core.UIUtils;
+			import weave.resources._MobileDemo;
+			import weave.ui.BasicLinkableLayoutManager;
+			import weave.ui.WeavePodLayoutManager;
+			
+			WeaveFonts; // this ensures the fonts get embedded.
+			MobileConsole;
+			//public var console:MobileConsole;
+//			public var main:MobileDemoInterface;
+			//public var main:BasicLinkableLayoutManager;
+			public var main:WeavePodLayoutManager;
+			public var tileLayout:TileLayout;
+			
+			private function handleCreationComplete():void
+			{
+				layout = new VerticalLayout();
+				/* this.addElement(console = new MobileConsole());
+				 console.height = 220;*/
+//				this.addElement(main = new MobileDemoInterface());
+				
+				// begin tile layout demo
+				this.addElement(main = new WeavePodLayoutManager());
+				/* tileLayout = new TileLayout();
+				tileLayout.orientation = TileOrientation.ROWS;
+				tileLayout.columnWidth = 220;
+				tileLayout.rowHeight = 220;
+				main.layout = tileLayout; */
+				// end tile layout demo
+	
+//				this.addElement(main = new LinkablePodLayoutManager());
+				
+				UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
+				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.full);
+			}
+			
+			public function set scale(value:Number):void { main.scaleX = main.scaleY = value; }
+		]]>
+	</fx:Script>
+</s:Application>

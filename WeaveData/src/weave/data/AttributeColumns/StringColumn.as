@@ -34,6 +34,7 @@ package weave.data.AttributeColumns
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.StageUtils;
+	import weave.utils.AsyncSort;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -223,7 +224,7 @@ package weave.data.AttributeColumns
 		private function _iterate2():Number
 		{
 			// sort unique strings previously listed
-			_uniqueStrings.sort(Array.CASEINSENSITIVE);
+			AsyncSort.sortImmediately(_uniqueStrings, AsyncSort.compareCaseInsensitive);
 			return 1;
 		}
 		private function _iterate3():Number
@@ -317,7 +318,7 @@ package weave.data.AttributeColumns
 
 		override public function toString():String
 		{
-			return getQualifiedClassName(this).split("::")[1] + '{recordCount: '+keys.length+', keyType: "'+getMetadata('keyType')+'", title: "'+getMetadata('title')+'"}';
+			return debugId(this) + '{recordCount: '+keys.length+', keyType: "'+getMetadata('keyType')+'", title: "'+getMetadata('title')+'"}';
 		}
 	}
 }

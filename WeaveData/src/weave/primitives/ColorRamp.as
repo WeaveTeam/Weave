@@ -20,16 +20,12 @@
 package weave.primitives
 {
 	import flash.display.Graphics;
-	import flash.geom.Rectangle;
+	import flash.display.Sprite;
 	import flash.utils.ByteArray;
 	
-	import mx.containers.Canvas;
-	
 	import weave.api.WeaveAPI;
-	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
-	import weave.core.LinkableXML;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -229,7 +225,7 @@ package weave.primitives
 		 * @param canvas
 		 * @param vertical
 		 */
-		public function draw(canvas:Canvas, vertical:Boolean):void
+		public function draw(canvas:Sprite, vertical:Boolean):void
 		{
 			validate();
 			
@@ -260,7 +256,7 @@ package weave.primitives
 		 * begin static section *
 		 ************************/
 		
-		[Embed("/weave/resources/ColorRampPresets.xml", mimeType="application/octet-stream")]
+		[Embed(source="/weave/resources/ColorRampPresets.xml", mimeType="application/octet-stream")]
 		private static const ColorRampPresetsXML:Class;
 		private static var _allColorRamps:XML = null;
 		public static function get allColorRamps():XML
@@ -273,15 +269,6 @@ package weave.primitives
 			}
 			return _allColorRamps;
 		}
-
-		private static var _allColorRampNames:Array = [];
-		public static function get allColorRampNames():Array
-		{
-			if (_allColorRampNames.length == 0)
-				VectorUtils.copyXMLListToVector(allColorRamps.colorRamp.@name, _allColorRampNames);
-			return _allColorRampNames;
-		}
-		
 		public static function getColorRampXMLByName(rampName:String):XML
 		{
 			return (allColorRamps.colorRamp.(@name == rampName)[0] as XML).copy();

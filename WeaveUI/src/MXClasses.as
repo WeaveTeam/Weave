@@ -91,7 +91,6 @@ package
 		import mx.collections.ListCollectionView; ListCollectionView;
 		import mx.effects.MaskEffect; MaskEffect;
 		import mx.controls.MenuBar; MenuBar;
-		import mx.logging.targets.MiniDebugTarget; MiniDebugTarget;
 		import mx.modules.Module; Module;
 		import mx.modules.ModuleLoader; ModuleLoader;
 		import mx.effects.Move; Move;
@@ -132,7 +131,7 @@ package
 		import mx.controls.Spacer; Spacer;
 		import mx.states.State; State;
 		import mx.validators.StringValidator; StringValidator;
-		import mx.graphics.Stroke; Stroke;
+		import mx.graphics.SolidColorStroke; SolidColorStroke;
 		import mx.controls.SWFLoader; SWFLoader;
 		import mx.controls.TabBar; TabBar;
 		import mx.containers.TabNavigator; TabNavigator;

@@ -21,14 +21,18 @@ package weave.data.KeySets
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.core.ILinkableObject;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IFilteredKeySet;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.registerDisposableChild;
+	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableBoolean;
 	
@@ -40,14 +44,20 @@ package weave.data.KeySets
 	 */
 	public class FilteredKeySet extends CallbackCollection implements IFilteredKeySet
 	{
+		public static var debug:Boolean = false;
+		
 		public function FilteredKeySet()
 		{
+			if (debug)
+				addImmediateCallback(this, _firstCallback);
 		}
+		
+		private function _firstCallback():void { debugTrace(this,'trigger',keys.length,'keys'); }
 
 		override public function dispose():void
 		{
 			super.dispose();
-			setBaseKeySet(null);
+			setColumnKeySources(null);
 		}
 		
 		private var _baseKeySet:IKeySet = null; // stores the base IKeySet
@@ -55,6 +65,9 @@ package weave.data.KeySets
 		private const _dynamicKeyFilter:DynamicKeyFilter = newLinkableChild(this, DynamicKeyFilter);
 		private var _filteredKeys:Array; // stores the filtered list of keys
 		private var _filteredKeysMap:Dictionary; // this maps a key to a value of true if the key is included in this key set
+		private var _generatedKeySets:Array;
+		private var _sortColumns:Array;
+		private var _descendingFlags:Array;
 		
 		/**
 		 * When this is set to true, the inverse of the filter will be used to filter the keys.
@@ -63,23 +76,76 @@ package weave.data.KeySets
 		private const inverseFilter:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
 		/**
+		 * This sets up the FilteredKeySet to get its base set of keys from a list of columns and provide them in sorted order.
+		 * @param columns An Array of IAttributeColumns to use for comparing IQualifiedKeys.
+		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
+		 * @param keyCompare If specified, descendingFlags will be ignored and this compare function will be used instead.
+		 * @param keyInclusionLogic Passed to KeySetUnion constructor.
+		 */
+		public function setColumnKeySources(sortColumns:Array, descendingFlags:Array = null, keyCompare:Function = null, keyInclusionLogic:Function = null):void
+		{
+			if (StandardLib.arrayCompare(_sortColumns, sortColumns) == 0 &&
+				StandardLib.arrayCompare(_descendingFlags, descendingFlags) == 0)
+			{
+				return;
+			}
+			
+			// unlink from the old key set
+			if (_generatedKeySets)
+			{
+				disposeObjects.apply(null, _generatedKeySets);
+				_generatedKeySets = null;
+			}
+			else
+			{
+				setSingleKeySource(null);
+			}
+			
+			_sortColumns = sortColumns;
+			_descendingFlags = descendingFlags;
+			
+			if (sortColumns)
+			{
+				// KeySetUnion should not trigger callbacks
+				var union:KeySetUnion = registerDisposableChild(this, new KeySetUnion(keyInclusionLogic));
+				for each (var column:IAttributeColumn in sortColumns)
+					union.addKeySetDependency(column);
+				// SortedKeySet should trigger callbacks
+				var compare:Function = keyCompare || SortedKeySet.generateCompareFunction(sortColumns, descendingFlags);
+				var sorted:SortedKeySet = registerLinkableChild(this, new SortedKeySet(union, compare, sortColumns));
+				_generatedKeySets = [union, sorted];
+				
+				_baseKeySet = sorted;
+			}
+			else
+			{
+				_baseKeySet = null;
+			}
+			
+			triggerCallbacks();
+		}
+		
+		/**
 		 * This function sets the base IKeySet that is being filtered.
 		 * @param newBaseKeySet A new IKeySet to use as the base for this FilteredKeySet.
 		 */
-		public function setBaseKeySet(newBaseKeySet:IKeySet):void
+		public function setSingleKeySource(keySet:IKeySet):void
 		{
-			if (_baseKeySet == newBaseKeySet)
+			if (_generatedKeySets)
+				setColumnKeySources(null);
+			
+			if (_baseKeySet == keySet)
 				return;
 			
 			// unlink from the old key set
 			if (_baseKeySet != null)
-				getCallbackCollection(_baseKeySet as ILinkableObject).removeCallback(triggerCallbacks);
+				getCallbackCollection(_baseKeySet).removeCallback(triggerCallbacks);
 			
-			_baseKeySet = newBaseKeySet; // save pointer to new base key set
-
+			_baseKeySet = keySet; // save pointer to new base key set
+			
 			// link to new key set
 			if (_baseKeySet != null)
-				getCallbackCollection(_baseKeySet as ILinkableObject).addImmediateCallback(this, triggerCallbacks);
+				getCallbackCollection(_baseKeySet).addImmediateCallback(this, triggerCallbacks);
 			
 			triggerCallbacks();
 		}
@@ -121,6 +187,7 @@ package weave.data.KeySets
 			
 			// TODO: key type conversion here?
 			
+			var i:int;
 			var inverse:Boolean = inverseFilter.value;
 			var key:IQualifiedKey;
 			var keyFilter:IKeyFilter = _dynamicKeyFilter.getInternalKeyFilter();
@@ -136,7 +203,7 @@ package weave.data.KeySets
 				if (_baseKeySet != null)
 				{
 					var baseKeys:Array = _baseKeySet.keys;
-					for (var i:int = 0; i < baseKeys.length; i++)
+					for (i = 0; i < baseKeys.length; i++)
 					{
 						key = baseKeys[i] as IQualifiedKey;
 						var contains:Boolean = keyFilter.containsKey(key);
@@ -151,9 +218,9 @@ package weave.data.KeySets
 				_filteredKeys = _baseKeySet.keys;
 			}
 			
-			_filteredKeysMap = new Dictionary();
-			for each (key in _filteredKeys)
-				_filteredKeysMap[key] = true;
+			_filteredKeysMap = new Dictionary(true);
+			for (i = _filteredKeys.length - 1; i >= 0; i--)
+				_filteredKeysMap[_filteredKeys[i]] = i;
 		}
 	}
 }

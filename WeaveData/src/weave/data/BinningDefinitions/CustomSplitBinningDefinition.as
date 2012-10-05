@@ -19,6 +19,8 @@
 
 package weave.data.BinningDefinitions
 {
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
@@ -28,6 +30,7 @@ package weave.data.BinningDefinitions
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.data.BinClassifiers.NumberClassifier;
+	import weave.utils.AsyncSort;
 	
 	/**
 	 * Divides a data range into a number of bins based on range entered by user.
@@ -77,7 +80,7 @@ package weave.data.BinningDefinitions
 					values[i] = number;
 			}
 			// sort numerically
-			values.sort(Array.NUMERIC);
+			AsyncSort.sortImmediately(values, ObjectUtil.numericCompare);
 			
 			for (i = 0; i < values.length - 1; i++)
 			{

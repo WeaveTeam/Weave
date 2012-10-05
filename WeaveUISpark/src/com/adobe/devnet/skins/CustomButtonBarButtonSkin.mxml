@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+
+ADOBE SYSTEMS INCORPORATED
+Copyright 2008 Adobe Systems Incorporated
+All Rights Reserved.
+
+NOTICE: Adobe permits you to use, modify, and distribute this file
+in accordance with the terms of the license agreement accompanying it.
+
+-->
+
+<!--- 
+The default skin class for Spark TabBar buttons.  
+
+@see spark.components.TabBar
+@see spark.skins.spark.TabBarSkin
+
+@langversion 3.0
+@playerversion Flash 10
+@playerversion AIR 1.5
+@productversion Flex 4
+-->
+
+<s:SparkSkin 
+    xmlns:fx="http://ns.adobe.com/mxml/2009" 
+    xmlns:s="library://ns.adobe.com/flex/spark" 
+    xmlns:fb="http://ns.adobe.com/flashbuilder/2009" 
+    minWidth="21" minHeight="21" alpha.disabledStates="0.5">
+    
+    <!-- host component -->
+    <fx:Metadata>
+        <![CDATA[ 
+        /** 
+         * @copy spark.skins.spark.ApplicationSkin#hostComponent
+         */
+        [HostComponent("spark.components.ButtonBarButton")]
+        ]]>
+    </fx:Metadata>
+    
+    <fx:Script fb:purpose="styling" >
+        [Bindable] private var labelDisplayWidth:Number = 0;
+      
+        private function setTabWidth():void{
+            labelDisplayWidth = labelDisplay.width + labelDisplay.left 
+              + labelDisplay.right + 3;
+        }      
+        
+        static private const exclusions:Array = ["labelDisplay"];
+        
+        /** 
+         * @private
+         */     
+        override public function get colorizeExclusions():Array {return exclusions;}
+        
+        /**
+         * @private
+         */
+        override protected function initializationComplete():void
+        {
+            useChromeColor = true;
+            super.initializationComplete();
+        }
+    </fx:Script>
+    
+    <!-- states -->
+    <s:states>
+      <s:State name="up" stateGroups="nonSelected"/>
+      <s:State name="over" stateGroups="nonSelected" />
+      <s:State name="down"  stateGroups="nonSelected" />
+      <s:State name="disabled"  stateGroups="nonSelected, disabledStates" />
+      <s:State name="upAndSelected" stateGroups="selectedStates" />
+      <s:State name="overAndSelected" stateGroups="selectedStates" />
+      <s:State name="downAndSelected" stateGroups="selectedStates" />
+      <s:State name="disabledAndSelected" stateGroups="selectedStates, disabledStates" />
+    </s:states>
+
+  <s:BitmapImage source="@Embed('/com/adobe/devnet/assets/tab_up.png', scaleGridTop='11', 
+                 scaleGridBottom='30', scaleGridLeft='10', scaleGridRight='92')"
+                 includeIn="up, over, down" width="{labelDisplayWidth}"/>
+  
+  <s:BitmapImage source="@Embed('/com/adobe/devnet/assets/tab_selected.png', scaleGridTop='13', 
+                 scaleGridBottom='31', scaleGridLeft='9', scaleGridRight='91')"
+                 includeIn="upAndSelected, overAndSelected, downAndSelected"
+                 width="{labelDisplayWidth}"/>
+
+    <!-- layer 8: text -->
+    <!--- @copy spark.components.supportClasses.ButtonBase#labelDisplay -->
+    <s:Label id="labelDisplay"
+             textAlign="left"
+             verticalAlign="middle"
+             maxDisplayedLines="1"
+             left="12" right="20" top.selectedStates="0" top.nonSelected="-2" 
+             bottom="2"
+             color="#333333" fontSize="12" fontFamily="arial"
+             fontWeight="bold"
+             color.upAndSelected="#003399" 
+             color.overAndSelected="#003399"
+             color.over="#858585"
+             creationComplete="setTabWidth();">
+    </s:Label>
+    
+</s:SparkSkin>

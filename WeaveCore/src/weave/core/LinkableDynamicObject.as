@@ -121,7 +121,7 @@ package weave.core
 		 */
 		public function set globalName(newGlobalName:String):void
 		{
-			if (_globalName == newGlobalName)
+			if (_globalName == newGlobalName || _locked)
 				return;
 			
 			if (newGlobalName == null)

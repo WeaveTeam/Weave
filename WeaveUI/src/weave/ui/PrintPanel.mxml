@@ -209,13 +209,12 @@
 	</mx:Script>
 	<mx:VBox id="printVbox"
 			 horizontalAlign="center"
-			 initialize="scalePrintVbox()"
 			 clipContent="true"
 			 mouseEnabled="false"
 			 backgroundColor="0xFFFFFF">
 		<mx:Label id="exportTitle" textAlign="center" fontSize="18" fontWeight="bold" horizontalCenter="0" width="100%"
 				  visible="{showTitle.selected}" includeInLayout="{showTitle.selected}"/>
-		<mx:Image id="exportImage" source="{_imageSource}" />
+		<mx:Image id="exportImage" source="{_imageSource}" updateComplete="setTimeout(scalePrintVbox,2000)"/>
 		<ui:OICLogoPane width="100%" visible="{showCopyright.selected}" includeInLayout="{showCopyright.selected}"/>
 	</mx:VBox>
 	

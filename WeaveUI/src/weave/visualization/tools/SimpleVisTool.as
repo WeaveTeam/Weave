@@ -28,7 +28,7 @@ package weave.visualization.tools
 	
 	import weave.Weave;
 	import weave.api.copySessionState;
-	import weave.api.core.ILinkableContainer;
+	import weave.api.ui.ILinkableContainer;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;

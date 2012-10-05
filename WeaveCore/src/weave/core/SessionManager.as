@@ -391,6 +391,7 @@ package weave.core
 
 			// set session state
 			var name:String;
+			
 			for each (name in getLinkablePropertyNames(linkableObject))
 			{
 				if (!newState.hasOwnProperty(name))
@@ -418,7 +419,7 @@ package weave.core
 			
 			// pass deprecated session state to deprecated setters
 			for each (name in getDeprecatedSetterNames(linkableObject))
-				if (newState.hasOwnProperty(name))
+				if (newState.hasOwnProperty(name) && newState[name] !== null)
 					linkableObject[name] = newState[name];
 			
 			// resume callbacks after setting session state
@@ -974,10 +975,11 @@ package weave.core
 					{
 						// Removing all children fixes errors that may occur in the next
 						// frame related to callLaterDispatcher and validateDisplayList.
-						while (parentContainer.numChildren > 0)
+						var n:int = parentContainer.numChildren;
+						while (n > 0)
 						{
 							try {
-								parentContainer.removeChildAt(parentContainer.numChildren - 1);
+								parentContainer.removeChildAt(n--);
 							} catch (e:Error) { }
 						}
 					}
@@ -1002,7 +1004,7 @@ package weave.core
 			var sessionState:Object = getSessionState(disposedObject);
 
 			// ADD A BREAKPOINT HERE TO DIAGNOSE THE PROBLEM
-			var msg:String = "WARNING: An object triggered callbacks after previously being disposed. " + getQualifiedClassName(disposedObject);
+			var msg:String = "WARNING: An object triggered callbacks after previously being disposed. " + debugId(disposedObject);
 			if (disposedObject is ILinkableVariable)
 				msg += ' (value = ' + (disposedObject as ILinkableVariable).getSessionState() + ')';
 			reportError(disposedError);

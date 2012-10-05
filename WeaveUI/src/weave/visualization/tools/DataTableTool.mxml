@@ -74,13 +74,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import flash.desktop.Clipboard;
-			
-			import mx.controls.DataGrid;
-			
 			import flash.desktop.ClipboardFormats;
 			
 			import mx.collections.ArrayCollection;
 			import mx.collections.ICollectionView;
+			import mx.controls.Alert;
+			import mx.controls.DataGrid;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.UIComponent;
 			import mx.core.mx_internal;
@@ -185,6 +184,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				linkBindableProperty(dataGridHorizontalScrollPosition, dataGrid, 'horizontalScrollPosition', 0, true);
 				linkBindableProperty(dataGridVerticalScrollPosition, dataGrid, 'verticalScrollPosition', 0, true);
 				
+				
 				dataGrid.addEventListener(DataGridEvent.COLUMN_STRETCH, handleColumnStretch);
 				dataGrid.addEventListener(ResizeEvent.RESIZE, handleToolResize);
 				
@@ -196,7 +196,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 			
 			/**
-			 * This function(event Listener) gets called during dataGrid Resize event
+			 * This function(event ListeSner) gets called during dataGrid Resize event
 			 * handleDataGridHorizontalScroll calls updateColumnWidths, when the dataGridHorizontalScrollPosition.value is Maximum
 			 * handleDataGridHorizontalScroll is called to update FilterComponents Position
 			 */			
@@ -208,8 +208,17 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 				if (dataGridHorizontalScrollPosition.value > 0 && showFilters.value)
 				{
-					handleDataGridHorizontalScroll();
+					handleDataGridHorizontalScroll();					
 				}
+				
+				// Set max header height to 50
+				dataGrid.headerHeight = NaN;
+				dataGrid._explicitHeaderHeight = false;
+				if (dataGrid.calculateHeaderHeight() > 50)
+				{
+					dataGrid.headerHeight = 50;
+				}
+
 			}
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void{

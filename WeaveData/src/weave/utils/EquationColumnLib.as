@@ -43,6 +43,8 @@ package weave.utils
 	 */
 	public class EquationColumnLib
 	{
+		public static var debug:Boolean = false;
+		
 		/**
 		 * This value should be set before calling any of the functions below that get values from IAttributeColumns.
 		 */
@@ -104,6 +106,8 @@ package weave.utils
 			
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
 			currentRecordKey = key;
+			if (debug)
+				debugTrace('getValue',object,key.localName,String(value));
 			return value;
 		}
 		/**
@@ -123,6 +127,8 @@ package weave.utils
 			// revert to key that was set when entering the function
 			currentRecordKey = previousKey;
 
+			if (debug)
+				debugTrace('getValueFromKey',column,key.localName,String(value));
 			return value;
 		}
 		
@@ -226,6 +232,8 @@ package weave.utils
 			
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
 			currentRecordKey = previousKey;
+			if (debug)
+				debugTrace('getNumber',column,key.localName,String(result));
 			return result;
 		}
 		/**
@@ -257,6 +265,8 @@ package weave.utils
 
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
 			currentRecordKey = previousKey;
+			if (debug)
+				debugTrace('getString',column,key.localName,String(result));
 			return result;
 		}
 		/**
@@ -286,6 +296,8 @@ package weave.utils
 
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
 			currentRecordKey = previousKey;
+			if (debug)
+				debugTrace('getBoolean',column,key.localName,String(result));
 			return result;
 		}
 		/**
@@ -309,6 +321,8 @@ package weave.utils
 
 			// revert to key that was set when entering the function (in case nested calls modified the static variables)
 			currentRecordKey = previousKey;
+			if (debug)
+				debugTrace('getNorm',column,key.localName,String(result));
 			return result;
 		}
 		

@@ -19,7 +19,46 @@
 
 package
 {
+	import weave.api.WeaveAPI;
+	import weave.api.data.IAttributeColumnCache;
+	import weave.api.data.ICSVParser;
+	import weave.api.data.IProjectionManager;
+	import weave.api.data.IQualifiedKeyManager;
+	import weave.api.data.IStatisticsCache;
+	import weave.api.services.IURLRequestUtils;
+	import weave.core.WeaveXMLDecoder;
+	import weave.data.AttributeColumnCache;
+	import weave.data.CSVParser;
+	import weave.data.ProjectionManager;
+	import weave.data.QKeyManager;
+	import weave.data.StatisticsCache;
+	import weave.services.URLRequestUtils;
+
 	public class _InitializeWeaveData
 	{
+		/**
+		 * Register singleton implementations for WeaveAPI framework classes
+		 */
+		WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
+		WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
+		WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
+		WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
+		WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
+		WeaveAPI.registerSingleton(ICSVParser, CSVParser);
+		
+		/**
+		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
+		 */
+		WeaveXMLDecoder.includePackages(
+			"weave.data",
+			"weave.data.AttributeColumns",
+			"weave.data.BinClassifiers",
+			"weave.data.BinningDefinitions",
+			"weave.data.ColumnReferences",
+			"weave.data.DataSources",
+			"weave.data.KeySets",
+			"weave.primitives",
+			"weave.Reports"
+		);
 	}
 }

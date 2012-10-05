@@ -26,7 +26,6 @@ package weave.data.AttributeColumns
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.SessionManager;
-	import weave.utils.DebugUtils;
 
 	/**
 	 * ProxyColumn
@@ -83,12 +82,6 @@ package weave.data.AttributeColumns
 				return _internalColumn.getMetadata(propertyName);
 			return overrideValue;
 		}
-		
-		/**
-		 * proxyID
-		 * This is a globally unique ID for this ProxyColumn object.
-		 */
-		private const proxyID:String = 'Proxy'+DebugUtils.generateID();
 		
 		/**
 		 * internalNonProxyColumn
@@ -167,7 +160,7 @@ package weave.data.AttributeColumns
 
 		override public function toString():String
 		{
-			return proxyID + '( ' + (getInternalColumn() ? getInternalColumn() : super.toString()) + ' )';
+			return debugId(this) + '( ' + (getInternalColumn() ? getInternalColumn() : super.toString()) + ' )';
 		}
 		
 		/**

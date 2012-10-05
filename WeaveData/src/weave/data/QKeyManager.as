@@ -21,6 +21,8 @@ package weave.data
 {
 	import flash.utils.Dictionary;
 	
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
@@ -164,6 +166,17 @@ package weave.data
 		// maps keyType to Object, which maps key String to QKey weak reference
 		private const _keyTypeMap:Object = new Object();
 
+		/**
+		 * This will compare two keys.
+		 * @param key1
+		 * @param key2
+		 * @return -1, 0, or 1
+		 */		
+		public static function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
+		{
+			return ObjectUtil.stringCompare(key1.keyType, key2.keyType)
+				|| ObjectUtil.stringCompare(key1.localName, key2.localName);
+		}
 		
 		/**
 		 * This object maps a keyType to an Array of related IColumnReference objects for key mapping purposes.

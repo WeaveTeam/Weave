@@ -23,16 +23,20 @@ package weave.core
 	import flash.events.Event;
 	import flash.utils.Dictionary;
 	
+	import mx.core.IUIComponent;
+	import mx.core.IVisualElement;
+	import mx.core.IVisualElementContainer;
 	import mx.core.UIComponent;
 	import mx.events.IndexChangedEvent;
 	
-	import weave.api.core.ICallbackCollection;
+	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
-	import weave.api.reportError;
+	import weave.api.objectWasDisposed;
+	import weave.api.ui.ILinkableLayoutManager;
 	import weave.utils.Dictionary2D;
 
 	/**
@@ -78,6 +82,67 @@ package weave.core
 		}
 		
 		private static const linkFunctionCache:Dictionary2D = new Dictionary2D(true, true);
+		
+		/**
+		 * This will set up a callback on a components hash map so they get added to an ILinkableLayoutManager. 
+		 * @param layoutManager
+		 * @param components
+		 */
+		public static function linkLayoutManager(layoutManager:ILinkableLayoutManager, components:ILinkableHashMap):void
+		{
+			// when the components list changes, we need to notify the layoutManager
+			var clc:IChildListCallbackInterface = components.childListCallbacks;
+			function componentListCallback():void
+			{
+				// add
+				var newComponent:IVisualElement = clc.lastObjectAdded as IVisualElement;
+				if (newComponent)
+					layoutManager.addComponent(clc.lastNameAdded, newComponent);
+				
+				// remove
+				var oldComponent:IVisualElement = clc.lastObjectRemoved as IVisualElement;
+				if (oldComponent)
+					layoutManager.removeComponent(clc.lastNameRemoved);
+				
+				// reorder
+				if (!clc.lastObjectAdded && !clc.lastObjectRemoved)
+					layoutManager.setComponentOrder(components.getNames());
+			}
+			components.childListCallbacks.addImmediateCallback(layoutManager, componentListCallback);
+			
+			// when layoutManager triggers callbacks, we need to synchronize the components list
+			function layoutManagerCallback():void
+			{
+				getCallbackCollection(components).delayCallbacks();
+				
+				// for each component in the components list, if the layoutManager doesn't have that component, remove it from components list
+				var names:Array = components.getNames(IUIComponent);
+				for each (var name:String in names)
+					if (!layoutManager.hasComponent(name))
+						components.removeObject(name);
+				// update order if necessary
+				components.setNameOrder(layoutManager.getComponentOrder());
+				
+				getCallbackCollection(components).resumeCallbacks();
+			}
+			getCallbackCollection(layoutManager).addImmediateCallback(components, layoutManagerCallback);
+			
+			// add existing components
+			var names:Array = components.getNames(IUIComponent);
+			var objects:Array = components.getObjects(IUIComponent);
+			for (var i:int = 0; i < names.length; i++)
+				layoutManager.addComponent(names[i] as String, objects[i] as IVisualElement);
+		}
+		
+		/**
+		 * This will set up a callback on a components hash map so they get added to an ILinkableLayoutManager. 
+		 * @param layoutManager
+		 * @param components
+		 */
+		public static function unlinkLayoutManager(layoutManager:ILinkableLayoutManager, components:ILinkableHashMap):void
+		{
+			//TODO
+		}
 		
 		/**
 		 * This function adds a callback to a LinkableHashMap to monitor any DisplayObjects contained in it.
@@ -219,15 +284,26 @@ package weave.core
 
 			// When the child is added to the parent, the child order should be updated.
 			// When the child is removed from the parent with removeChild() or removeChildAt(), it should be disposed of.
-			var listener:Function = function (event:Event):void
+			var listenLater:Function = function(event:Event):void
 			{
-				if (event.target == uiChild)
+				if (event.target == uiChild && !objectWasDisposed(uiChild))
 				{
 					if (event.type == Event.ADDED)
-						updateChildOrder(uiParent, hashMap, keepLinkableChildrenOnTop);
+					{
+						if (uiChild.parent == uiParent)
+							updateChildOrder(uiParent, hashMap, keepLinkableChildrenOnTop);
+					}
 					else if (event.type == Event.REMOVED && !(childObject is ILinkableDisplayObject))
-						hashMap.removeObject(childName);
+					{
+						if (uiChild.parent != uiParent)
+							hashMap.removeObject(childName);
+					}
 				}
+			};
+			var listener:Function = function (event:Event):void
+			{
+				// need to call later because Spark components use removeChild and addChildAt inside the setElementIndex function.
+				uiParent.callLater(listenLater, arguments);
 			};
 			uiChild.addEventListener(Event.ADDED, listener);
 			uiChild.addEventListener(Event.REMOVED, listener);
@@ -236,7 +312,33 @@ package weave.core
 			if (uiParent == uiChild.parent)
 				updateChildOrder(uiParent, hashMap, keepLinkableChildrenOnTop);
 			else
-				uiParent.addChild(uiChild);
+				spark_addChild(uiParent, uiChild);
+		}
+		
+		public static function spark_addChild(parent:UIComponent, child:DisplayObject):DisplayObject
+		{
+			if (parent is IVisualElementContainer)
+			{
+				if (child is IVisualElement)
+					return (parent as IVisualElementContainer).addElement(child as IVisualElement) as DisplayObject;
+				else
+					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
+			}
+			else
+				return parent.addChild(child);
+		}
+		
+		public static function spark_setChildIndex(parent:UIComponent, child:DisplayObject, index:int):void
+		{
+			if (parent is IVisualElementContainer && child is IVisualElement)
+			{
+				if (child is IVisualElement)
+					return (parent as IVisualElementContainer).setElementIndex(child as IVisualElement, index);
+				else
+					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
+			}
+			else
+				parent.setChildIndex(child, index);
 		}
 		
 		/**
@@ -311,7 +413,7 @@ package weave.core
 				{
 					uiChild = uiChildren[i] as DisplayObject;
 					if (uiChild && uiParent == uiChild.parent && uiParent.getChildIndex(uiChild) != indexOffset + i)
-						uiParent.setChildIndex(uiChild, indexOffset + i);
+						spark_setChildIndex(uiParent, uiChild, indexOffset + i);
 				}
 			}
 			else
@@ -320,7 +422,7 @@ package weave.core
 				{
 					uiChild = uiChildren[i] as DisplayObject;
 					if (uiChild && uiParent == uiChild.parent && uiParent.getChildIndex(uiChild) != i)
-						uiParent.setChildIndex(uiChild, i);
+						spark_setChildIndex(uiParent, uiChild, i);
 				}
 			}
 			delete parentToBusyFlagMap[uiParent];

@@ -53,6 +53,8 @@ package weave.data.AttributeColumns
 	 */
 	public class EquationColumn extends AbstractAttributeColumn
 	{
+		public static var debug:Boolean = false;
+		
 		public static const compiler:Compiler = new Compiler();
 		{ /** begin static code block **/
 			compiler.includeLibraries(
@@ -81,11 +83,6 @@ package weave.data.AttributeColumns
 		
 		private function handleVariableListChange():void
 		{
-			// when a column is removed, remove callback trigger
-			var oldColumn:IAttributeColumn = variables.childListCallbacks.lastObjectRemoved as IAttributeColumn;
-			if (oldColumn)
-				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(oldColumn)).removeCallback(triggerCallbacks);
-			
 			// make callbacks trigger when statistics change for listed variables
 			var newColumn:IAttributeColumn = variables.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
@@ -349,6 +346,8 @@ package weave.data.AttributeColumns
 					try
 					{
 						value = compiledEquation.apply(this, arguments);
+						if (debug)
+							trace(this,key.localName,value);
 					}
 					catch (e:Error)
 					{
@@ -391,6 +390,10 @@ package weave.data.AttributeColumns
 			return value;
 		}
 
+		override public function toString():String
+		{
+			return StringUtil.substitute('{0};"{1}";({2})', debugId(this), getMetadata(AttributeColumnMetadata.TITLE), equation.value);
+		}
 		
 		//---------------------------------
 		// backwards compatibility

@@ -47,8 +47,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				>
 	<mx:Script>
 		<![CDATA[
-			import flash.utils.getTimer;
-			
 			import mx.containers.Canvas;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
@@ -60,8 +58,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.CloseEvent;
 			import mx.events.DragEvent;
 			import mx.events.ResizeEvent;
-			import mx.managers.CursorManager;
-			import mx.managers.CursorManagerPriority;
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
@@ -80,8 +76,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
-			import weave.primitives.ImageFactory;
 			import weave.ui.controlBars.VisTaskbar;
+			import weave.utils.CustomCursorManager;
 			import weave.utils.EditorManager;
 			import weave.utils.NumberUtils;
 
@@ -245,7 +241,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						_controlPanel = registerDisposableChild(this, getChildAt(i) as ControlPanel);
 						removeChild(_controlPanel);
-						_controlPanel.title = "Settings for " + getQualifiedClassName(this).split("::")[1];
 						break;
 					}
 				}
@@ -253,14 +248,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (!_controlPanel && EditorManager.getEditorClass(this))
 				{
 					_controlPanel = newDisposableChild(this, ControlPanel);
-					_controlPanel.title = "Settings for " + getQualifiedClassName(this).split("::")[1];
-					
 					var editor:UIComponent = EditorManager.getNewEditor(this) as UIComponent;
-					
 					addChild(_controlPanel);
 					removeChild(_controlPanel);
 					_controlPanel.tabNavigator.addChild(editor);
 				}
+				
+				if (_controlPanel)
+					_controlPanel.title = "Settings for " + getQualifiedClassName(this).split("::")[1];
 				
 				var icon:Bitmap = new MoveIcon() as Bitmap;
 				_moveImage.source = icon;
@@ -980,7 +975,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				DraggablePanel.activePanel = null;
 				
 				if (_enableMoveResize && !_resizing)
-					CursorManager.removeCursor(draggablePanelCursorID);
+					CustomCursorManager.removeCursor(draggablePanelCursorID);
 				
 				if (_resizing)
 					event.stopImmediatePropagation();
@@ -1101,28 +1096,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if (parent && !_resizing && !minimized.value && !maximized.value)
 				{
 					var status:Object = getResizeStatus(stage.mouseX, stage.mouseY);
-					var bitmap:BitmapAsset = null;
-					
+					var resizeCursorName:String = null;
 					// check to see if the mouse is in the top left (TL) or bottom right (BR) corner
 					if (status.TL || status.BR)
-						bitmap = _resizeTLBRBitmap;
+						resizeCursorName = CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT;
 						// check to see if the mouse is in the top right (TR) or bottom left (BL) corner
 					else if (status.TR || status.BL)
-						bitmap = _resizeTRBLBitmap;
+						resizeCursorName = CURSOR_RESIZE_TOPRIGHT_BOTTOMLEFT;
 						// check to see if the mouse is on the left or right side (LR)
 					else if (status.L || status.R)
-						bitmap = _resizeLRBitmap;
+						resizeCursorName = CURSOR_RESIZE_LEFT_RIGHT;
 						// check to see if the mouse is on the top or bottom side
 					else if (status.T || status.B)
-						bitmap = _resizeTBBitmap;
+						resizeCursorName = CURSOR_RESIZE_TOP_BOTTOM;
 					
-					CursorManager.removeCursor(draggablePanelCursorID);
-					if (bitmap != null && !event.buttonDown && _enableMoveResize)
+					CustomCursorManager.removeCursor(draggablePanelCursorID);
+					if ( resizeCursorName!= null && !event.buttonDown && _enableMoveResize)
 					{
-						var classDef:Class = ImageFactory.getImageClass(bitmap.bitmapData);
 						try
 						{
-							draggablePanelCursorID = CursorManager.setCursor(classDef, CursorManagerPriority.HIGH, -bitmap.width / 2, -bitmap.height / 2);
+							draggablePanelCursorID = CustomCursorManager.showCursor(resizeCursorName);
 						}
 						catch (e:Error)
 						{
@@ -1619,6 +1612,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			protected const subMenu:SubMenu = new SubMenu(subMenuButton,[MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK]);
 			
+			/**
+			 * Embedded cursors
+			 */
+			public static const CURSOR_RESIZE_TOP_BOTTOM:String = "resizeTopBottom";
+			[Embed(source="/weave/resources/images/resize_TB.png")]
+			private static var resizeTBCursor:Class;
+			CustomCursorManager.registerEmbeddedCursor(CURSOR_RESIZE_TOP_BOTTOM, resizeTBCursor, NaN, NaN);
+			
+			public static const CURSOR_RESIZE_LEFT_RIGHT:String = "resizeLeftRight";
+			[Embed(source="/weave/resources/images/resize_LR.png")]
+			private static var resizeLRCursor:Class;
+			CustomCursorManager.registerEmbeddedCursor(CURSOR_RESIZE_LEFT_RIGHT, resizeLRCursor, NaN, NaN);
+			
+			public static const CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT:String = "resizeTLBR";
+			[Embed(source="/weave/resources/images/resize_TL-BR.png")]
+			private static var resizeTLBRCursor:Class;
+			CustomCursorManager.registerEmbeddedCursor(CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT, resizeTLBRCursor, NaN, NaN);
+			
+			public static const CURSOR_RESIZE_TOPRIGHT_BOTTOMLEFT:String = "resizeTRBL";
+			[Embed(source="/weave/resources/images/resize_TR-BL.png")]
+			private static var resizeTRBLCursor:Class;
+			CustomCursorManager.registerEmbeddedCursor(CURSOR_RESIZE_TOPRIGHT_BOTTOMLEFT, resizeTRBLCursor, NaN, NaN);
 			
 			// backwards compatibility
 			[Deprecated(replacement="panelTitle")] public function set toolTitle(value:String):void { panelTitle.value = value; }

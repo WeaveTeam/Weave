@@ -41,6 +41,7 @@ package weave.utils
 	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
+	import weave.data.QKeyManager;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
 	
@@ -448,39 +449,6 @@ package weave.utils
 				}
 			}
 			return result;
-		}
-		
-		/**
-		 * This funciton generates an Array sort function that will sort IQualifiedKeys.
-		 * @param columns An Array of IAttributeColumns to use for sorting IQualifiedKeys.
-		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
-		 * @return A new Function that will compare two IQualifiedKeys using numeric values from the specified columns. 
-		 */		
-		public static function generateSortFunction(columns:Array, descendingFlags:Array = null):Function
-		{
-			var i:int;
-			var column:IAttributeColumn;
-			var result:int;
-			var n:int = columns.length;
-			if (descendingFlags)
-				descendingFlags.length = n;
-			return function arrayCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
-			{
-				for (i = 0; i < n; i++)
-				{
-					column = columns[i] as IAttributeColumn;
-					if (!column)
-						continue;
-					result = ObjectUtil.compare(column.getValueFromKey(key1, Number), column.getValueFromKey(key2, Number));
-					if (result != 0)
-					{
-						if (descendingFlags && descendingFlags[i])
-							return -result;
-						return result;
-					}
-				}
-				return ObjectUtil.compare(key1, key2);
-			}
 		}
 		
 		/**

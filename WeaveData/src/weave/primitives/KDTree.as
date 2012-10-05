@@ -23,6 +23,7 @@ package weave.primitives
 	
 	import mx.utils.ObjectUtil;
 	
+	import weave.utils.AsyncSort;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -370,8 +371,8 @@ package weave.primitives
 			if (sortDimension >= 0)
 			{
 				KDTree.compareNodesSortDimension = sortDimension;
-				var sortOptions:int = (sortDirection == DESCENDING ? Array.DESCENDING : 0);
-				queryResult.sort(KDTree.compareNodes, sortOptions);
+				KDTree.compareNodesDescending = sortDirection == DESCENDING;
+				AsyncSort.sortImmediately(queryResult, KDTree.compareNodes);
 				
 				// replace nodes with objects in queryResult
 				for (i = queryResult.length - 1; i >= 0; i--)
@@ -385,12 +386,14 @@ package weave.primitives
 		 */
 		private static function compareNodes(node1:KDNode, node2:KDNode):int
 		{
-			return ObjectUtil.numericCompare(
+			var result:int = ObjectUtil.numericCompare(
 					node1.key[compareNodesSortDimension],
 					node2.key[compareNodesSortDimension]
 				);
+			return compareNodesDescending ? -result : result;
 		}
 		private static var compareNodesSortDimension:int = 0;
+		private static var compareNodesDescending:Boolean = false;
 		
 		
 		/**

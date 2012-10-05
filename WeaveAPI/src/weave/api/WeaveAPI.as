@@ -22,6 +22,7 @@ package weave.api
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.core.FlexGlobals;
 	import mx.core.Singleton;
 	import mx.managers.ISystemManager;
 	import mx.resources.Locale;
@@ -168,20 +169,8 @@ package weave.api
 		 */
 		public static function get topLevelApplication():Object
 		{
-			if (!_topLevelApplication)
-			{
-				try
-				{
-					_topLevelApplication = getDefinitionByName('mx.core.FlexGlobals').topLevelApplication;
-				}
-				catch (e:Error)
-				{
-					_topLevelApplication = getDefinitionByName('mx.core.Application').application;
-				}
-			}
-			return _topLevelApplication;
+			return FlexGlobals.topLevelApplication;
 		}
-		private static var _topLevelApplication:Object;
 		
 		
 		/**
@@ -344,7 +333,8 @@ package weave.api
 		 */
 		public static function getSingletonInstance(singletonInterface:Class):*
 		{
-			// TEMPORARY SOLUTION until everything is a plug-in.
+			///////////////////////
+			// TEMPORARY SOLUTION (until everything is a plug-in.)
 			if (!_initialized)
 			{
 				_initialized = true;
@@ -353,13 +343,16 @@ package weave.api
 				{
 					getDefinitionByName("_InitializeWeaveCore");
 					getDefinitionByName("_InitializeWeaveData"); 
+					getDefinitionByName("_InitializeWeaveUISpark");
 					getDefinitionByName("_InitializeWeaveUI");
 				}
 				catch (e:Error)
 				{
-					trace(e.getStackTrace());
+					trace(e.message);
 				}
 			}
+			// END TEMPORARY SOLUTION
+			///////////////////////////
 			
 			var result:* = _singletonDictionary[singletonInterface];
 			// If no instance has been created yet, create one now.

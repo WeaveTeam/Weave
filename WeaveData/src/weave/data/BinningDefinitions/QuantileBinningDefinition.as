@@ -19,6 +19,8 @@
 
 package weave.data.BinningDefinitions
 {
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
@@ -28,6 +30,7 @@ package weave.data.BinningDefinitions
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableNumber;
 	import weave.data.BinClassifiers.NumberClassifier;
+	import weave.utils.AsyncSort;
 	
 	/**
 	 * QuantileBinningDefinition
@@ -118,7 +121,7 @@ package weave.data.BinningDefinitions
 				_sortedColumn[i] = column.getValueFromKey(key,Number);
 				i = i+1;
 			}
-			_sortedColumn.sort(Array.NUMERIC);				
+			AsyncSort.sortImmediately(_sortedColumn, ObjectUtil.numericCompare);
 			return _sortedColumn;
 		}
 
