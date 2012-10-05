@@ -34,28 +34,30 @@
 			import weave.core.UIUtils;
 			import weave.resources._MobileDemo;
 			import weave.ui.BasicLinkableLayoutManager;
+			import weave.ui.WeavePodLayoutManager;
 			
 			WeaveFonts; // this ensures the fonts get embedded.
-			
-			public var console:MobileConsole;
+			MobileConsole;
+			//public var console:MobileConsole;
 //			public var main:MobileDemoInterface;
-			public var main:BasicLinkableLayoutManager;
+			//public var main:BasicLinkableLayoutManager;
+			public var main:WeavePodLayoutManager;
 			public var tileLayout:TileLayout;
 			
 			private function handleCreationComplete():void
 			{
 				layout = new VerticalLayout();
-				this.addElement(console = new MobileConsole());
-				console.height = 220;
+				/* this.addElement(console = new MobileConsole());
+				 console.height = 220;*/
 //				this.addElement(main = new MobileDemoInterface());
 				
 				// begin tile layout demo
-				this.addElement(main = new BasicLinkableLayoutManager());
-				tileLayout = new TileLayout();
+				this.addElement(main = new WeavePodLayoutManager());
+				/* tileLayout = new TileLayout();
 				tileLayout.orientation = TileOrientation.ROWS;
 				tileLayout.columnWidth = 220;
 				tileLayout.rowHeight = 220;
-				main.layout = tileLayout;
+				main.layout = tileLayout; */
 				// end tile layout demo
 	
 //				this.addElement(main = new LinkablePodLayoutManager());
