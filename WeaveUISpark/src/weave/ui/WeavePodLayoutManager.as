@@ -30,7 +30,11 @@ package weave.ui
 	
 	import weave.api.core.IDisposableObject;
 	import weave.api.getCallbackCollection;
+	import weave.api.linkBindableProperty;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.ILinkableLayoutManager;
+	import weave.core.LinkableNumber;
 	
 	/**
 	 * @author sanbalag
@@ -42,7 +46,11 @@ package weave.ui
 			percentWidth = 100;
 			percentHeight = 100;
 			manager.container = this;
+			linkBindableProperty(scale, this, 'scaleX');
+			linkBindableProperty(scale, this, 'scaleY');
 		}
+		
+		public const scale:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		
 		private var _idToComponent:Object = {}; // String -> IVisualElement
 		private var _componentToId:Dictionary = new Dictionary(true); // IVisualElement -> String

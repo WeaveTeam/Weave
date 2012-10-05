@@ -31,17 +31,19 @@
 			import spark.layouts.TileOrientation;
 			import spark.layouts.VerticalLayout;
 			
+			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.ui.ILinkableLayoutManager;
 			import weave.core.UIUtils;
 			import weave.resources._MobileDemo;
 			import weave.ui.BasicLinkableLayoutManager;
 			import weave.ui.WeavePodLayoutManager;
 			
-			WeaveFonts; // this ensures the fonts get embedded.
+			// reference classes here so they get included in the app build
+			WeaveFonts;
 			MobileConsole;
-			//public var console:MobileConsole;
+			
 //			public var main:MobileDemoInterface;
-			//public var main:BasicLinkableLayoutManager;
 			public var main:WeavePodLayoutManager;
 			public var tileLayout:TileLayout;
 			
@@ -53,21 +55,23 @@
 //				this.addElement(main = new MobileDemoInterface());
 				
 				// begin tile layout demo
-				this.addElement(main = new WeavePodLayoutManager());
 				/* tileLayout = new TileLayout();
+				this.addElement(main = new BasicLinkableLayoutManager());
 				tileLayout.orientation = TileOrientation.ROWS;
 				tileLayout.columnWidth = 220;
 				tileLayout.rowHeight = 220;
 				main.layout = tileLayout; */
 				// end tile layout demo
 	
-//				this.addElement(main = new LinkablePodLayoutManager());
+				this.addElement(main = new WeavePodLayoutManager());
+				main.scale.value = 2;
 				
 				UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
-				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.full);
+//				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.fullXML);
+				Weave.loadWeaveFileContent((new _MobileDemo.fullWeave()) as ByteArray);
 			}
 			
-			public function set scale(value:Number):void { main.scaleX = main.scaleY = value; }
+			public function set scale(value:Number):void { main.scale.value = value; }
 		]]>
 	</fx:Script>
 </s:Application>
