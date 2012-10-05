@@ -86,6 +86,7 @@
 				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
 				
 				visualization.plotManager.plotters.addGroupedCallback(this,handlePlottersChange,true);
+				visualization.plotManager.plotters.addGroupedCallback(this,handleLayerSettingsChange,true);
 				colorColumn.addGroupedCallback(this,updateProbeColumns, true);
 				
 			}
@@ -126,6 +127,8 @@
 			
 			// the keys in this Dictionary are LinkableStrings that have been linked to projectionSRS.
 			private var _linkedProjectionVariablesLookup:Dictionary = new Dictionary(true);
+			[Bindable] private var _projComboBoxData:Array = [];
+			
 			/**
 			 * This function links the MapTool.projectionSRS variable with another LinkableString.
 			 */
@@ -142,7 +145,16 @@
 					linkSessionState(otherVariable, projectionSRS);
 			}
 			
-			[Bindable] private var _projComboBoxData:Array = [];
+			private function handleLayerSettingsChange():void
+			{
+				visualization.plotManager.layerSettings.delayCallbacks();
+				
+				// prevent WMS layers from being selectable
+				for each (var name:String in visualization.plotManager.plotters.getNames(WMSPlotter))
+					visualization.plotManager.getLayerSettings(name).selectable.value = false;
+				
+				visualization.plotManager.layerSettings.resumeCallbacks();
+			}
 			private function handlePlottersChange():void
 			{
 				_projComboBoxData.length = 0;
@@ -409,6 +421,7 @@
 				
 				var name:String = visualization.plotManager.plotters.generateUniqueName("wms");
 				visualization.plotManager.plotters.requestObject(name, WMSPlotter, false);
+				visualization.plotManager.getLayerSettings(name).selectable.value = false;
 				
 				// put old layers on top
 				visualization.plotManager.plotters.setNameOrder(oldLayerNames);
