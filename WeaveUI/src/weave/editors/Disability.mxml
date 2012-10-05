@@ -110,7 +110,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			
 			[Bindable] private var _panel:DraggablePanel = null;
-			public var _target:LineChartTool = Weave.root.requestObject(null, LineChartTool, false);
+			public var _target:LineChartTool;// = Weave.root.requestObject(null, LineChartTool, false);
 			//create a new map which belongs to the line chart tool which contains only iAttribute columns
 			public var _columnObjects:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
