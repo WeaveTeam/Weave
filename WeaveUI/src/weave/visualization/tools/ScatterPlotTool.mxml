@@ -137,6 +137,7 @@
 			private function initRegressionLayer():void
 			{
 				_regressionPlotter = visualization.plotManager.plotters.requestObject(REGRESSION_LAYER_NAME, RegressionLinePlotter, true);
+				visualization.plotManager.getLayerSettings(REGRESSION_LAYER_NAME).selectable.value = false;
 				linkSessionState(plotter.dataX, _regressionPlotter.xColumn);
 				linkSessionState(plotter.dataY, _regressionPlotter.yColumn);
 				_regressionPlotter.drawLine.value = false;				
@@ -334,7 +335,7 @@
 					var slope:Number = StandardLib.roundSignificant(_regressionPlotter.getSlope(), 4);
 					var intercept:Number = StandardLib.roundSignificant(_regressionPlotter.getIntercept(), 4);
 					lineEquation.text = lang("Equation: y = {0}x + {1}", slope, intercept);
-					equationText.text = lang("slope = {0}\nintercept = {0}", slope, intercept);
+					equationText.text = lang("slope = {0}\nintercept = {1}", slope, intercept);
 					equationText.validateNow();
 					// severely hacked
 					equationText.width = visualization.plotManager.marginLeftNumber.value * 2;
