@@ -33,9 +33,7 @@ package weave.ui
 	import weave.api.ui.ILinkableLayoutManager;
 	
 	/**
-	 * This is a basic implementation for ILinkableLayoutManager.
-	 * 
-	 * @author adufilie
+	 * @author sanbalag
 	 */
 	public class WeavePodLayoutManager extends Group implements ILinkableLayoutManager, IDisposableObject
 	{

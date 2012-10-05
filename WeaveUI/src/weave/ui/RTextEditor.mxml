@@ -31,9 +31,10 @@ RTextEditor
 6. These columns become the input to the R script on the server, the server runs the script and returns the results.
 7. On the client side, any returned Arrays are matched up with the original keys using the same row order to become columns.
 8. Any other results are just printed out to the text area.
-
-@spurushe
-@sanbalag
+-->
+<!---
+@author spurushe
+@author sanbalag
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"

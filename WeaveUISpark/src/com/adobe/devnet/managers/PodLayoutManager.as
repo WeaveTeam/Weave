@@ -58,11 +58,11 @@ public class PodLayoutManager extends EventDispatcher
 	private var itemHeight:Number;							// Pod height.
 	
 	private static const POD_GAP:Number = 4;				// The vertical and horizontal gap between pods.
-	private static const TASKBAR_HEIGHT:Number = 25;		// The height of the area for minimized pods.
-	private static const TASKBAR_HORIZONTAL_GAP:Number = 5; // The horizontal gap between minimized pods.
+	private static const TASKBAR_HEIGHT:Number = 24;		// The height of the area for minimized pods.
+	private static const TASKBAR_HORIZONTAL_GAP:Number = 4; // The horizontal gap between minimized pods.
 	private static const TASKBAR_ITEM_WIDTH:Number = 150;	// The preferred minimized pod width if there is available space.
-	private static const TASKBAR_PADDING_TOP:Number = 10;	// The gap between the taskbar and the bottom of the last row of pods.
-	private static const PADDING_RIGHT:Number = 5;			// The right padding within the container when laying out pods.
+	private static const TASKBAR_PADDING_TOP:Number = 4;	// The gap between the taskbar and the bottom of the last row of pods.
+	private static const PADDING_RIGHT:Number = 0;			// The right padding within the container when laying out pods.
 	
 	// Removes null items from the items array.
 	// This should be called only once after all of the items have been added.
@@ -80,6 +80,7 @@ public class PodLayoutManager extends EventDispatcher
 		
 		items = a;
 		
+		// Weave: resize listener now in "set container"
 		//_container.addEventListener(ResizeEvent.RESIZE, updateLayout);
 	}
 	
@@ -87,16 +88,13 @@ public class PodLayoutManager extends EventDispatcher
 	public function set container(canvas:Group):void
 	{
 		_container = canvas;
+		// Weave: added this
 		_container.addEventListener(ResizeEvent.RESIZE, reSizeListener);
 	}
+	// Weave: this fixes slow update bug when container resizes 
 	private function reSizeListener(event:ResizeEvent):void{
-		trace(container.width , container.height);
-		if (parallel != null && !parallel.isPlaying){
-			updateLayout();
-		}
-			
-		/*if(!parallel || !parallel.isPlaying)
-			updateLayout();*/
+		updateLayout(false);
+		updateLayout(true);
 	}
 	
 	public function get container():Group
