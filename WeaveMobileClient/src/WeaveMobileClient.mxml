@@ -21,8 +21,10 @@
 			   xmlns:s="library://ns.adobe.com/flex/spark"
 			   interactionMode="touch"
 			   resizeForSoftKeyboard="false"
-			   creationComplete="handleCreationComplete()"
+			   applicationComplete="init(event)"
+			   backgroundColor="0x000000"
 			   >
+	<s:Label id="logo" text="Weave" color="0x808080" width="100%" height="100%" textAlign="center" verticalAlign="middle" fontSize="64"/>
 	<fx:Script>
 		<![CDATA[
 			import flash.utils.setTimeout;
@@ -30,6 +32,7 @@
 			import spark.layouts.TileLayout;
 			import spark.layouts.TileOrientation;
 			import spark.layouts.VerticalLayout;
+			import spark.layouts.supportClasses.LayoutBase;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -41,15 +44,27 @@
 			
 			// reference classes here so they get included in the app build
 			WeaveFonts;
-			MobileConsole;
 			
 //			public var main:MobileDemoInterface;
 			public var main:WeavePodLayoutManager;
 			public var tileLayout:TileLayout;
 			
-			private function handleCreationComplete():void
+			private function init(event:Event):void
 			{
+				if (event.type != Event.ENTER_FRAME)
+				{
+					addEventListener(Event.ENTER_FRAME, init);
+					return;
+				}
+				else
+				{
+					removeEventListener(Event.ENTER_FRAME, init);
+				}
+				
+				removeElement(logo)
+				logo = null;
 				layout = new VerticalLayout();
+				
 				/* this.addElement(console = new MobileConsole());
 				 console.height = 220;*/
 //				this.addElement(main = new MobileDemoInterface());
@@ -69,6 +84,7 @@
 				UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
 //				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.fullXML);
 				Weave.loadWeaveFileContent((new _MobileDemo.fullWeave()) as ByteArray);
+				Weave.root.requestObject('console', MobileConsole, false);
 			}
 			
 			public function set scale(value:Number):void { main.scale.value = value; }

@@ -29,6 +29,7 @@ package weave.ui
 	import spark.components.Group;
 	
 	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
 	import weave.api.newLinkableChild;
@@ -69,8 +70,15 @@ package weave.ui
 				_idToComponent[id] = component;
 				_componentToId[component] = id;
 				if (component.parent != this){
-					var pod:Pod = new Pod();						
+					var pod:Pod = new Pod();
 					pod.addElement(component);
+					
+					var busyIndicator:IVisualElement = new BusyIndicator(component as ILinkableObject) as IVisualElement;
+					pod.addElement(busyIndicator);
+					busyIndicator.includeInLayout = false;
+					busyIndicator.x = 0;
+					busyIndicator.y = 0;
+					
 					manager.addItem(pod, false);
 					callLater(manager.updateLayout);
 				}

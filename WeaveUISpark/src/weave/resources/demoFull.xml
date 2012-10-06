@@ -1962,5 +1962,5 @@ Google Maps|http://maps.google.com/maps?t=h&amp;q=</searchServiceURLs>
         </plotManager>
         <zoomFactor>2</zoomFactor>
       </SimpleInteractiveVisualization>
-      <MobileConsole name = "testConsole"/>
+      <MobileConsole name="console"/>
 </Weave>
