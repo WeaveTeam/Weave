@@ -19,6 +19,10 @@
 
 package weave.core
 {
+	import avmplus.getQualifiedClassName;
+	
+	import flash.utils.getDefinitionByName;
+	
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
@@ -48,7 +52,7 @@ package weave.core
 		public function LinkableVariable(sessionStateType:Class = null, verifier:Function = null, defaultValue:* = undefined, defaultValueTriggersCallbacks:Boolean = true)
 		{
 			// not supporting XML directly
-			if (sessionStateType == XML)
+			if (sessionStateType == _XML_CLASS)
 			{
 				reportError("XML is not supported directly as a session state primitive type. Using String instead.");
 				_sessionStateType = String;
@@ -69,6 +73,8 @@ package weave.core
 					WeaveAPI.StageUtils.callLater(this, _defaultValueTrigger, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 			}
 		}
+		
+		private static const _XML_CLASS:Class = getDefinitionByName('XML') as Class; // this avoids a weird asdoc build error
 		
 		/**
 		 * @private
@@ -155,12 +161,13 @@ package weave.core
 			if (value !== null)
 			{
 				// not supporting XML directly
-				if (value is XML)
+				var type:String = typeof(value);
+				if (type == 'xml')
 				{
 					reportError("XML is not supported directly as a session state primitive type. Using String instead.");
-					value = (value as XML).toXMLString();
+					value = XML(value).toXMLString();
 				}
-				else if (typeof(value) == 'object')
+				else if (type == 'object')
 					value = ObjectUtil.copy(value);
 			}
 			

@@ -19,12 +19,8 @@
 
 package weave.ui
 {
-	import flash.events.Event;
-	import flash.system.Capabilities;
-	
 	import mx.collections.CursorBookmark;
 	import mx.controls.ComboBox;
-	import mx.events.FlexEvent;
 
 	/**
 	 * Added functionality: set selectedLabel()
@@ -33,48 +29,6 @@ package weave.ui
 	 */
 	public class CustomComboBox extends ComboBox
 	{
-		public function CustomComboBox()
-		{
-			super();
-		}
-		
-//		/**
-//		 * This function fixes the notorious combo box bug where the
-//		 * drop-down list is out of sync with the dataProvider.
-//		 * @param value The new dataProvider.
-//		 */		
-//		private function fixDropDown():void
-//		{
-//			// The dropdown will not be properly reset unless it is currently shown.
-//			if (Capabilities.isDebugger)
-//			{
-//				// when running debug player, allow the code to crash so developers take notice.
-//				// If this ever crashes, please send the stack trace to andy.dufilie@gmail.com
-//				validateNow();
-//				downArrowButton_buttonDownHandler(null);
-//			}
-//			else
-//			{
-//				// when not running debug player, ignore error
-//				try
-//				{
-//					validateNow();
-//					downArrowButton_buttonDownHandler(null);
-//				}
-//				catch (e:Error)
-//				{
-//				}
-//			}
-//		}
-		
-		/**
-		 * @inheritDoc
-		 */
-		override public function set dataProvider(value:Object):void
-		{
-			super.dataProvider = value;
-		}
-		
 		/**
 		 * This function will set the selectedItem corresponding to the given label.
 		 * @param value The label of the item to select.

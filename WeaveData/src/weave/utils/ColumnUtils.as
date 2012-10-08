@@ -153,7 +153,7 @@ package weave.utils
 
 		/**
 		 * Gets an array of QKey objects from <code>column</code> which meet the criteria
-		 * <code>min <= getNumber(column, key) <= max</code>, where key is a <code>QKey</code> 
+		 * <code>min &lt;= getNumber(column, key) &lt;= max</code>, where key is a <code>QKey</code> 
 		 * in <code>column</code>.
 		 * @param min The minimum value for the keys
 		 * @param max The maximum value for the keys
