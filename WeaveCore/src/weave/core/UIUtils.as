@@ -261,7 +261,10 @@ package weave.core
 		{
 			// Children will not be displayed properly unless the parent is on the stage when the children are added.
 			if (!uiParent.initialized || !uiParent.stage)
-				return uiParent.callLater(addChild, arguments);
+			{
+				uiParent.callLater(addChild, arguments);
+				return;
+			}
 			
 			var childObject:ILinkableObject = hashMap.getObject(childName);
 			
@@ -333,7 +336,7 @@ package weave.core
 			if (parent is IVisualElementContainer && child is IVisualElement)
 			{
 				if (child is IVisualElement)
-					return (parent as IVisualElementContainer).setElementIndex(child as IVisualElement, index);
+					(parent as IVisualElementContainer).setElementIndex(child as IVisualElement, index);
 				else
 					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
 			}
@@ -385,7 +388,10 @@ package weave.core
 		private static function updateChildOrder(uiParent:UIComponent, hashMap:ILinkableHashMap, keepLinkableChildrenOnTop:Boolean):void
 		{
 			if (!uiParent.initialized)
-				return uiParent.callLater(updateChildOrder, arguments);
+			{
+				uiParent.callLater(updateChildOrder, arguments);
+				return;
+			}
 			
 			var i:int;
 			var uiChild:DisplayObject;
