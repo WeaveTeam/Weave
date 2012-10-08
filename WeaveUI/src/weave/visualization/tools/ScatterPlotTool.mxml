@@ -28,6 +28,8 @@
 			   layout="absolute">
 	<mx:Script>
 		<![CDATA[
+			import mx.events.SliderEvent;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.data.IQualifiedKey;
