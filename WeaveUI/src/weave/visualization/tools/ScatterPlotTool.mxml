@@ -249,11 +249,6 @@
 				
 				// right margin undefined x
 				visualization.plotManager.zoomBounds.getScreenBounds(b);
-				if (b.isEmpty())
-				{
-					callLater(resizeUndefinedLayers);
-					return;
-				}
 				_tempBounds.setXMin(b.getXMax() + marginRight);
 				_tempBounds.setWidth(b.getWidth() * 0.66);
 				setDisplayObjectBounds(vis_undef_x, b);
