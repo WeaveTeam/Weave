@@ -49,10 +49,8 @@ package weave.visualization.plotters
 	{
 		public function HistogramPlotter()
 		{
-			init();
-		}
-		private function init():void
-		{
+			clipDrawing = true;
+			
 			// don't lock the ColorColumn, so linking to global ColorColumn is possible
 			var _colorColumn:ColorColumn = fillStyle.color.internalDynamicColumn.requestLocalObject(ColorColumn, false);
 			_colorColumn.ramp.value = "0x808080";

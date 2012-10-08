@@ -219,7 +219,6 @@ package weave.visualization.plotters
 			if (binnedColumn == null)
 				return;
 			
-			screenBounds.getRectangle(_clipRectangle);
 			var g:Graphics = tempShape.graphics;
 			g.clear();
 			lineStyle.beginLineStyle(null, g);
@@ -257,9 +256,7 @@ package weave.visualization.plotters
 				destination.fillRect(tempRectangle, 0x02808080);
 				
 				// draw the text
-				LegendUtils.renderLegendItemText(
-					destination, _binToString[iBin], tempBounds, iconGap, _clipRectangle
-				);
+				LegendUtils.renderLegendItemText(destination, _binToString[iBin], tempBounds, iconGap);
 
 				// draw circle
 				var iColorIndex:int = ascendingOrder.value ? iBin : (binCount - 1 - iBin);
@@ -274,7 +271,6 @@ package weave.visualization.plotters
 			}
 			destination.draw(tempShape);
 		}
-		private const _clipRectangle:Rectangle = new Rectangle();
 		
 		
 		// reusable temporary objects

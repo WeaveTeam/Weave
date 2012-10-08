@@ -71,6 +71,8 @@ package weave.visualization.plotters
 	{
 		public function CompoundBarChartPlotter()
 		{
+			clipDrawing = true;
+			
 			colorColumn.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 
 			// get the keys from the sort column
