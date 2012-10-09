@@ -143,36 +143,38 @@
 	
 	<!-- Whether the application can be launched when the user clicks a link in a web browser.
 	Optional. Default false. -->
-	<!-- <allowBrowserInvocation></allowBrowserInvocation> -->
+	<allowBrowserInvocation>true</allowBrowserInvocation>
 
 	<!-- Listing of file types for which the application can register. Optional. -->
-	<!-- <fileTypes> -->
+<!-- 	<fileTypes> -->
 
 		<!-- Defines one file type. Optional. -->
-		<!-- <fileType> -->
+<!-- 		<fileType> -->
 
 			<!-- The name that the system displays for the registered file type. Required. -->
-			<!-- <name></name> -->
+<!-- 			<name>weave.WeaveFile</name> -->
 
 			<!-- The extension to register. Required. -->
-			<!-- <extension></extension> -->
+<!-- 			<extension>weave</extension> -->
 			
 			<!-- The description of the file type. Optional. -->
-			<!-- <description></description> -->
+<!-- 			<description>Weave File</description> -->
 			
 			<!-- The MIME content type. -->
-			<!-- <contentType></contentType> -->
+<!-- 			<contentType>application/octet-stream</contentType> -->
 			
 			<!-- The icon to display for the file type. Optional. -->
-			<!-- <icon>
+			<!-- 
+			<icon>
 				<image16x16></image16x16>
 				<image32x32></image32x32>
 				<image48x48></image48x48>
 				<image128x128></image128x128>
-			</icon> -->
+			</icon>
+			 -->
 			
-		<!-- </fileType> -->
-	<!-- </fileTypes> -->
+<!-- 		</fileType> -->
+<!-- 	</fileTypes> -->
 
     <!-- iOS specific capabilities -->
 	<!-- <iPhone> -->
@@ -222,22 +224,132 @@
         <manifestAdditions><![CDATA[
 			<manifest android:installLocation="auto">
 			    <!--See the Adobe AIR documentation for more information about setting Google Android permissions-->
-			    <!--Removing the permission android.permission.INTERNET will have the side effect
-		of preventing you from debugging your application on your device-->
+			    <!--Removing the permission android.permission.INTERNET will have the side effect of preventing you from debugging your application on your device-->
 			    <uses-permission android:name="android.permission.INTERNET"/>
-			    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+			    <!--<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>-->
 			    <!--<uses-permission android:name="android.permission.READ_PHONE_STATE"/>-->
-			    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-			    <!--The DISABLE_KEYGUARD and WAKE_LOCK permissions should be toggled together
-		in order to access AIR's SystemIdleMode APIs-->
-			    <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
-			    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+			    <!--<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>-->
+			    
+			    <!--The DISABLE_KEYGUARD and WAKE_LOCK permissions should be toggled together in order to access AIR's SystemIdleMode APIs-->
+			    <!--<uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>-->
+			    <!--<uses-permission android:name="android.permission.WAKE_LOCK"/>-->
 			    <!--<uses-permission android:name="android.permission.CAMERA"/>-->
-			    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-			    <!--The ACCESS_NETWORK_STATE and ACCESS_WIFI_STATE permissions should be toggled
-		together in order to use AIR's NetworkInfo APIs-->
-			    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-			    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+			    <!--<uses-permission android:name="android.permission.RECORD_AUDIO"/>-->
+			    
+			    <!--The ACCESS_NETWORK_STATE and ACCESS_WIFI_STATE permissions should be toggled together in order to use AIR's NetworkInfo APIs-->
+			    <!--<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>-->
+			    <!--<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>-->
+
+
+				<!--
+					http://help.adobe.com/en_US/air/build/WSfffb011ac560372f-5d0f4f25128cc9cd0cb-7ffc.html#WS2d929364fa0b81373f2c6cba12a3522f10c-8000
+					http://stackoverflow.com/questions/8903443/android-file-associations
+				-->
+                <application> 
+                    <activity> 
+                        <intent-filter> 
+                            <action android:name="android.intent.action.MAIN"/> 
+                            <category android:name="android.intent.category.LAUNCHER"/> 
+                        </intent-filter> 
+						
+						<intent-filter>
+						    <action android:name="android.intent.action.VIEW" />
+						    <action android:name="android.intent.action.EDIT" /> 
+						    <action android:name="android.intent.action.PICK" />
+						    <category android:name="android.intent.category.DEFAULT" />
+						    <category android:name="android.intent.category.BROWSABLE" />
+ 							<data android:scheme="file" />
+ 							<data android:scheme="http" />
+ 							<data android:scheme="https" />
+ 							<data android:host="*" />
+ 							<data android:pathPattern=".*\.weave" />
+						</intent-filter>
+						
+						<!--
+						<intent-filter>
+						    <action android:name="android.intent.action.VIEW" />
+						    <action android:name="android.intent.action.EDIT" /> 
+						    <action android:name="android.intent.action.PICK" />
+						    <category android:name="android.intent.category.DEFAULT" />
+						    <category android:name="android.intent.category.BROWSABLE" />
+						    <data android:mimeType="application/*" />
+						    <data android:pathPattern=".*\.weave" />
+						</intent-filter>
+						-->
+
+						<!--
+						<intent-filter>
+						    <action android:name="android.intent.action.VIEW" />
+						    <action android:name="android.intent.action.EDIT" /> 
+						    <action android:name="android.intent.action.PICK" />
+						    <category android:name="android.intent.category.DEFAULT" />
+						    <category android:name="android.intent.category.BROWSABLE" />
+						    <data android:mimeType="*/*" />
+						    <data android:pathPattern="*.weave" />
+						</intent-filter>
+						
+						<intent-filter>
+						    <action android:name="android.intent.action.VIEW" />
+						    <category android:name="android.intent.category.DEFAULT" />
+						    <category android:name="android.intent.category.BROWSABLE" />
+						    <data android:mimeType="message/rfc822" android:scheme="http" />
+						    <data android:mimeType="multipart/related" android:scheme="http" />
+						    <data android:mimeType="message/rfc822" android:scheme="https" />
+						    <data android:mimeType="multipart/related" android:scheme="https" />
+						</intent-filter>
+						-->
+						
+						<!-- handle http requests without mimetypes -->
+<!-- 						<intent-filter> -->
+<!-- 						    <action android:name="android.intent.action.VIEW" /> -->
+<!-- 						    <category android:name="android.intent.category.DEFAULT" /> -->
+<!-- 						    <category android:name="android.intent.category.BROWSABLE" /> -->
+<!-- 						    <data android:scheme="http" android:host="*" android:pathPattern=".*\\.weave" /> -->
+<!-- 						    <data android:scheme="https" android:host="*" android:pathPattern=".*\\.weave" /> -->
+<!-- 						</intent-filter> -->
+						
+						<!-- Handle intent from a file browser app -->
+<!-- 						<intent-filter> -->
+<!-- 						    <action android:name="android.intent.action.VIEW" /> -->
+<!-- 						    <category android:name="android.intent.category.DEFAULT" /> -->
+<!-- 						    <category android:name="android.intent.category.BROWSABLE" /> -->
+<!-- 						    <data android:scheme="file" android:host="*" android:pathPattern=".*\\.weave" /> -->
+<!-- 						</intent-filter> -->
+						
+                    </activity> 
+                </application> 
+                
+				<!--
+				<intent-filter
+				    android:icon='@drawable/ic_launcher'
+				    android:label='Weave File'
+				    android:priority='1'>
+				    <action android:name="android.intent.action.VIEW" />
+				    <action android:name="android.intent.action.EDIT" /> 
+				    <action android:name="android.intent.action.PICK" />
+				    <category android:name="android.intent.category.DEFAULT" />
+				    <category android:name="android.intent.category.BROWSABLE" />
+				    <data android:mimeType="*/*" />
+				    <data android:pathPattern="*.weave" />
+				</intent-filter>
+				<intent-filter>
+				    <action android:name="android.intent.action.VIEW" />
+				    <category android:name="android.intent.category.DEFAULT" />
+				    <category android:name="android.intent.category.BROWSABLE" />
+				    <data android:scheme="http" android:host="*" android:pathPattern=".*\\.weave" />
+				    <data android:scheme="https" android:host="*" android:pathPattern=".*\\.weave" />
+				</intent-filter>
+				<intent-filter>
+				    <action android:name="android.intent.action.VIEW" />
+				    <category android:name="android.intent.category.DEFAULT" />
+				    <category android:name="android.intent.category.BROWSABLE" />
+				    <data android:mimeType="message/rfc822" android:scheme="http" />
+				    <data android:mimeType="multipart/related" android:scheme="http" />
+				    <data android:mimeType="message/rfc822" android:scheme="https" />
+				    <data android:mimeType="multipart/related" android:scheme="https" />
+				</intent-filter>
+				-->
+			    
 			</manifest>
 			
 		]]></manifestAdditions>

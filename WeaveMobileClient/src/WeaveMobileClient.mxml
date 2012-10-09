@@ -27,21 +27,15 @@
 	<s:Label id="logo" text="Weave" color="0x808080" width="100%" height="100%" textAlign="center" verticalAlign="middle" fontSize="64"/>
 	<fx:Script>
 		<![CDATA[
-			import flash.utils.setTimeout;
-			
-			import mx.events.ResizeEvent;
+			import mx.utils.ObjectUtil;
 			
 			import spark.layouts.TileLayout;
-			import spark.layouts.TileOrientation;
 			import spark.layouts.VerticalLayout;
-			import spark.layouts.supportClasses.LayoutBase;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.ui.ILinkableLayoutManager;
 			import weave.core.UIUtils;
 			import weave.resources._MobileDemo;
-			import weave.ui.BasicLinkableLayoutManager;
 			import weave.ui.WeavePodLayoutManager;
 			
 			// reference classes here so they get included in the app build
@@ -55,6 +49,9 @@
 			{
 				if (event.type != Event.ENTER_FRAME)
 				{
+					var na:NativeApplication = NativeApplication.nativeApplication;
+					if (na)
+						na.addEventListener(InvokeEvent.INVOKE, handleInvoke);
 					
 					addEventListener(Event.ENTER_FRAME, init);
 					return;
@@ -90,6 +87,16 @@
 				Weave.loadWeaveFileContent((new _MobileDemo.fullWeave()) as ByteArray);
 				Weave.root.requestObject('console', MobileConsole, false);
 			}
+			
+			private function handleInvoke(event:InvokeEvent):void
+			{
+				weaveTrace(ObjectUtil.toString(event));
+				if (event.arguments.length > 0)
+				{
+					weaveTrace('URL is: ' + event.arguments[0]);
+				}
+			}
+			public var event:Event;
 			
 			public function set scale(value:Number):void { main.scale.value = value; }
 			
