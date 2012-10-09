@@ -39,6 +39,9 @@ public class Pod extends SkinnableContainer
 	public static const WINDOW_STATE_MINIMIZED:Number = 0;
 	public static const WINDOW_STATE_MAXIMIZED:Number = 1;
 	
+	public var button_width:Number = 18;
+	public var button_height:Number = 18;
+	
 	public var windowState:Number; // Corresponds to one of the WINDOW_STATE variables.
 	public var index:Number;	   // Index within the layout.
 	

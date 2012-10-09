@@ -22,13 +22,20 @@ in accordance with the terms of the license agreement accompanying it.
 -->
 <s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" 
     xmlns:fb="http://ns.adobe.com/flashbuilder/2009" blendMode="normal" mouseEnabled="false" 
-    minWidth="131" minHeight="127" alpha.disabled="0.5" alpha.disabledWithControlBar="0.5">
-    <fx:Metadata>[HostComponent("com.adobe.devnet.view.Pod")]</fx:Metadata>
+    minWidth="131" minHeight="127" alpha.disabled="0.5" alpha.disabledWithControlBar="0.5" >
+    <fx:Metadata>
+		[HostComponent("com.adobe.devnet.view.Pod")]
+	</fx:Metadata>
     
     <fx:Script fb:purpose="styling">
+		//Modified for Weave 10/9/2012
+		// url for the original code = http://www.adobe.com/devnet/flex/articles/migrating-flex-apps-part4.html
+		
         /* Define the skin elements that should not be colorized. 
         For panel, border and title background are skinned, but the content area and title text are not. */
         static private const exclusions:Array = ["background", "titleDisplay", "contentGroup", "controlBarGroup"];
+		
+		
         
         /**
          * @private
@@ -234,9 +241,10 @@ in accordance with the terms of the license agreement accompanying it.
               
                 <s:HGroup id="controlsHolder" right="9" top="4"
                     horizontalAlign="right" verticalAlign="middle" gap="3">
-                    <s:Button id="minimizeButton" 
+					<!-- Weave: Width and height takes its value set in Pod -->
+                    <s:Button id="minimizeButton" width="{this.hostComponent.button_width}" height="{this.hostComponent.button_height}"
                         skinClass="com.adobe.devnet.skins.CustomMinimizeButtonSkin"/>
-                    <s:ToggleButton id="maximizeRestoreButton"
+                    <s:ToggleButton id="maximizeRestoreButton" width="{this.hostComponent.button_width}" height="{this.hostComponent.button_height}"
                         skinClass="com.adobe.devnet.skins.CustomMaximizeButtonSkin"/>
                 </s:HGroup>                      
             </s:Group>

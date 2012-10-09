@@ -34,7 +34,7 @@ import spark.effects.Resize;
 
 public class PodLayoutManager extends EventDispatcher
 {
-	public var effectDuration:int = 1000; // added for Weave
+	public var effectDuration:int = 10; // added for Weave
 	
 	public var id:String;
 	public var items:Array = new Array();					// Stores the pods which are not minimized.
@@ -156,7 +156,9 @@ public class PodLayoutManager extends EventDispatcher
 	{
 		var pod:Pod = Pod(e.currentTarget);
 		maximizeParallel = new Parallel();
+
 		maximizeParallel.duration = effectDuration;
+
 		addResizeAndMoveToParallel(pod, maximizeParallel, availablePodWidth, availableMaximizedPodHeight, 0, 0);
 		maximizeParallel.play();
 		
@@ -195,6 +197,8 @@ public class PodLayoutManager extends EventDispatcher
 			
 			maximizedPod = null;
 			maximizeParallel = new Parallel();
+			//Weave: Added for Weave to speed up the restore
+			maximizeParallel.duration = effectDuration;
 			var point:Point = Point(gridPoints[pod.index]);
 			addResizeAndMoveToParallel(pod, maximizeParallel, itemWidth, itemHeight, point.x, point.y);
 			maximizeParallel.play();

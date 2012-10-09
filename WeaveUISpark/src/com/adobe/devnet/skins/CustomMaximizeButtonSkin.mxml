@@ -10,6 +10,8 @@
     in accordance with the terms of the license agreement accompanying it.
 
 -->
+<!--Modified for Weave 10/9/2012
+url for the original code = http://www.adobe.com/devnet/flex/articles/migrating-flex-apps-part4.html-->
 
 <!--- The default skin class for a Spark ToggleButton component.  
 
@@ -44,16 +46,16 @@
         <s:State name="downAndSelected" stateGroups="downStates, selectedStates" />
         <s:State name="disabledAndSelected" stateGroups="selectedUpStates, disabledStates, selectedStates" />
     </s:states>
-
-    <s:BitmapImage includeIn="up, down" width="14" height="14"  
+	<!-- Weave: Width and height takes its value set in Pod -->
+    <s:BitmapImage includeIn="up, down"  width="100%" height="100%"   
                  source="@Embed(source='/com/adobe/devnet/assets/maximize_up.png')"/>
   
-    <s:BitmapImage includeIn="over" width="14" height="14"  
+    <s:BitmapImage includeIn="over"  width="100%" height="100%" 
                  source="@Embed(source='/com/adobe/devnet/assets/maximize_over.png')"/>
   
-    <s:BitmapImage includeIn="upAndSelected, downAndSelected" width="14"
-                 height="14" source="@Embed(source='/com/adobe/devnet/assets/restore_up.png')"/>
+    <s:BitmapImage includeIn="upAndSelected, downAndSelected"  width="100%" height="100%" 
+                 source="@Embed(source='/com/adobe/devnet/assets/restore_up.png')"/>
   
-    <s:BitmapImage includeIn="overAndSelected" width="14" height="14"  
+    <s:BitmapImage includeIn="overAndSelected"  width="100%" height="100%"   
                  source="@Embed(source='/com/adobe/devnet/assets/restore_over.png')"/>
 </s:SparkSkin>
