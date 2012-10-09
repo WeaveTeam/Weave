@@ -22,12 +22,14 @@
 			   interactionMode="touch"
 			   resizeForSoftKeyboard="false"
 			   applicationComplete="init(event)"
-			   backgroundColor="0x000000"
+			   backgroundColor="0x000000" 
 			   >
 	<s:Label id="logo" text="Weave" color="0x808080" width="100%" height="100%" textAlign="center" verticalAlign="middle" fontSize="64"/>
 	<fx:Script>
 		<![CDATA[
 			import flash.utils.setTimeout;
+			
+			import mx.events.ResizeEvent;
 			
 			import spark.layouts.TileLayout;
 			import spark.layouts.TileOrientation;
@@ -53,6 +55,7 @@
 			{
 				if (event.type != Event.ENTER_FRAME)
 				{
+					
 					addEventListener(Event.ENTER_FRAME, init);
 					return;
 				}
@@ -79,7 +82,8 @@
 				// end tile layout demo
 	
 				this.addElement(main = new WeavePodLayoutManager());
-				main.scale.value = 2;
+				stage.addEventListener(Event.RESIZE,stage_resizeHandler);
+				main.scale.value = 1;
 				
 				UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
 //				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.fullXML);
@@ -88,6 +92,15 @@
 			}
 			
 			public function set scale(value:Number):void { main.scale.value = value; }
+			
+			protected function stage_resizeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				main.width = stage.stageWidth;
+				main.height = stage.stageHeight;
+				
+			}
+			
 		]]>
 	</fx:Script>
 </s:Application>
