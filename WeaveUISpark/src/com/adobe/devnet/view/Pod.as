@@ -5,6 +5,7 @@
 package com.adobe.devnet.view
 {
 import com.adobe.devnet.events.PodStateChangeEvent;
+import com.adobe.devnet.skins.CustomSkinnableContainer;
 
 import flash.display.Graphics;
 import flash.display.Sprite;
@@ -12,8 +13,6 @@ import flash.events.Event;
 import flash.events.MouseEvent;
 
 import mx.events.DragEvent;
-
-import com.adobe.devnet.skins.CustomPanelSkin;
 
 import spark.components.Button;
 import spark.components.Group;
@@ -39,8 +38,10 @@ public class Pod extends SkinnableContainer
 	public static const WINDOW_STATE_MINIMIZED:Number = 0;
 	public static const WINDOW_STATE_MAXIMIZED:Number = 1;
 	
-	public var button_width:Number = 18;
-	public var button_height:Number = 18;
+	[Bindable]public var button_width:Number = 18;
+	[Bindable]public var button_height:Number = 18;
+	
+	[Bindable]public var title:String = "";
 	
 	public var windowState:Number; // Corresponds to one of the WINDOW_STATE variables.
 	public var index:Number;	   // Index within the layout.
@@ -78,7 +79,7 @@ public class Pod extends SkinnableContainer
 		super();
 		doubleClickEnabled = true;
 		windowState = WINDOW_STATE_DEFAULT;
-    setStyle("skinClass", Class(CustomPanelSkin));
+    setStyle("skinClass", Class(CustomSkinnableContainer));
 	}
 	
 	override protected function createChildren():void

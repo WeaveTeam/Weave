@@ -72,6 +72,7 @@ package weave.ui
 				if (component.parent != this){
 					var pod:Pod = new Pod();
 					pod.addElement(component);
+					pod.title = id;
 					
 					var busyIndicator:IVisualElement = new BusyIndicator(component as ILinkableObject) as IVisualElement;
 					pod.addElement(busyIndicator);
