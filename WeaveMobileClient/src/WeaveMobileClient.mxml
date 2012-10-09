@@ -79,8 +79,8 @@
 				// end tile layout demo
 	
 				this.addElement(main = new WeavePodLayoutManager());
-				stage.addEventListener(Event.RESIZE,stage_resizeHandler);
-				main.scale.value = 1;
+				this.addEventListener(Event.RESIZE,stage_resizeHandler);
+				main.scale.value = 2;
 				
 				UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
 //				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.fullXML);
@@ -103,8 +103,8 @@
 			protected function stage_resizeHandler(event:Event):void
 			{
 				// TODO Auto-generated method stub
-				main.width = stage.stageWidth;
-				main.height = stage.stageHeight;
+				main.width = int(this.width / main.scaleX);
+				main.height = int(this.height / main.scaleY);
 				
 			}
 			
