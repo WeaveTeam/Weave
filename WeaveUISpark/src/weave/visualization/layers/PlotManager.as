@@ -460,8 +460,6 @@ package weave.visualization.layers
 			}
 			
 			layerSettings.setNameOrder(plotters.getNames());
-			// make sure new plot task gets the correct size
-			setBitmapDataSize(_unscaledWidth, _unscaledHeight);
 			
 			plotters.resumeCallbacks();
 			layerSettings.resumeCallbacks();
@@ -530,12 +528,15 @@ package weave.visualization.layers
 				_unscaledWidth = unscaledWidth;
 				_unscaledHeight = unscaledHeight;
 				
+				_frameCountSinceResize = 0;
+				
 				updateZoom();
 			
 				for each (var name:String in plotters.getNames(IPlotter))
 				{
 					for each (var plotTask:PlotTask in _name_to_PlotTask_Array[name])
 					{
+						plotTask.delayAsyncTask = true;
 						plotTask.setBitmapDataSize(_unscaledWidth, _unscaledHeight);
 					}
 				}
@@ -565,8 +566,21 @@ package weave.visualization.layers
 			return _name_to_SpatialIndex[layerName] as SpatialIndex;
 		}
 		
+		private var _frameCountSinceResize:int = 0;
+		
 		private function handleFrameConstructed():void
 		{
+			if (++_frameCountSinceResize == 2)
+			{
+				for each (var name:String in plotters.getNames(IPlotter))
+				{
+					for each (var plotTask:PlotTask in _name_to_PlotTask_Array[name])
+					{
+						plotTask.delayAsyncTask = false;
+					}
+				}
+			}
+			
 			if (shouldRender)
 				refreshLayers(true);
 		}

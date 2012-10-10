@@ -136,14 +136,15 @@ package weave.utils
 		
 		/**
 		 * This function will make reset all the pixels in a BitmapData object to be transparent.
-		 * @param destination A BitmapData object to clear.
+		 * @param bitmapOrBitmapData A Bitmap or BitmapData object to clear.
 		 */
-		public static function clear(destination:BitmapData):void
+		public static function clearBitmapData(bitmapOrBitmapData:Object):void
 		{
-			if (destination == null || destination.width == 0 || destination.height == 0)
+			var bd:BitmapData = (bitmapOrBitmapData is Bitmap) ? (bitmapOrBitmapData as Bitmap).bitmapData : (bitmapOrBitmapData as BitmapData);
+			if (bd == null || bd.width == 0 || bd.height == 0)
 				return;
 			// clear the graphics
-			destination.fillRect(destination.rect, 0x00000000); // transparent
+			bd.fillRect(bd.rect, 0x00000000); // transparent
 		}
 		
 		public static function alphaSliderFormatFunction(value:Number):String

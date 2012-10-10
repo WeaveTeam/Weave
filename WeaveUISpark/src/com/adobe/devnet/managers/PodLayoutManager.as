@@ -34,7 +34,7 @@ import spark.effects.Resize;
 
 public class PodLayoutManager extends EventDispatcher
 {
-	public var effectDuration:int = 10; // added for Weave
+	public var effectDuration:int = 1000; // added for Weave
 	
 	public var id:String;
 	public var items:Array = new Array();					// Stores the pods which are not minimized.

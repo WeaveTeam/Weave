@@ -78,7 +78,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				try
 				{
 					if (!PlotterUtils.setBitmapDataSize(bitmap, unscaledWidth, unscaledHeight))
-						PlotterUtils.clear(bitmap.bitmapData);
+						PlotterUtils.clearBitmapData(bitmap);
 					
 					if (detectLinkableObjectChange(updateDisplayList, vars))
 						_keys = ColumnUtils.getAllKeys(vars.getObjects(IKeySet));

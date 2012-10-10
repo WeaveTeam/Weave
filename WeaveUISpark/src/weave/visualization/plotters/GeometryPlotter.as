@@ -260,7 +260,7 @@ package weave.visualization.plotters
 				line.beginLineStyle(null, g);
 				g.drawCircle(pointOffset, pointOffset, iconSize.value / 2);
 				g.endFill();
-				PlotterUtils.clear(bitmapData);
+				PlotterUtils.clearBitmapData(bitmapData);
 				bitmapData.draw(tempShape);
 				g.clear(); // clear tempShape now so these graphics don't get used anywhere else by mistake
 				

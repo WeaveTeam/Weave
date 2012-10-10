@@ -144,6 +144,11 @@ package weave.visualization.layers
 		 */
 		public const completedScreenBounds:IBounds2D = new Bounds2D();
 		
+		/**
+		 * When this is set to true, the async task will be paused.
+		 */
+		internal var delayAsyncTask:Boolean = false;
+		
 		private var _dependencies:CallbackCollection = newDisposableChild(this, CallbackCollection);
 		private var _prevBusyGroupTriggerCounter:uint = 0;
 		
@@ -307,6 +312,9 @@ package weave.visualization.layers
 			if (debugMouseDownPause && WeaveAPI.StageUtils.mouseButtonDown)
 				return 0;
 			
+			if (delayAsyncTask)
+				return 0;
+			
 			// if plotter is busy, stop immediately
 			if (WeaveAPI.SessionManager.linkableObjectIsBusy(_dependencies))
 			{
@@ -418,7 +426,7 @@ package weave.visualization.layers
 				var oldBitmapData:BitmapData = completedBitmap.bitmapData;
 				completedBitmap.bitmapData = bufferBitmap.bitmapData;
 				bufferBitmap.bitmapData = oldBitmapData;
-				PlotterUtils.clear(oldBitmapData);
+				PlotterUtils.clearBitmapData(bufferBitmap);
 				completedDataBounds.copyFrom(_dataBounds);
 				completedScreenBounds.copyFrom(_screenBounds);
 				
