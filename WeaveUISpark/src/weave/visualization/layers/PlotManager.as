@@ -531,7 +531,7 @@ package weave.visualization.layers
 				_frameCountSinceResize = 0;
 				
 				updateZoom();
-			
+				
 				for each (var name:String in plotters.getNames(IPlotter))
 				{
 					for each (var plotTask:PlotTask in _name_to_PlotTask_Array[name])

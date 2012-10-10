@@ -19,6 +19,10 @@
 
 package weave.visualization.layers
 {
+	import flash.events.Event;
+	
+	import mx.events.ResizeEvent;
+	
 	import spark.components.Group;
 	import spark.core.SpriteVisualElement;
 	
@@ -55,8 +59,13 @@ package weave.visualization.layers
 			sprCont.addChild(plotManager.bitmap);
 			addElement(sprCont);
 			//rawChildren.addChild(plotManager.bitmap);
+			addEventListener(ResizeEvent.RESIZE, handleResize);
 		}
 		
+		private function handleResize(e:Event):void
+		{
+			plotManager.setBitmapDataSize(unscaledWidth, unscaledHeight);
+		}
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			super.updateDisplayList.apply(this, arguments);
