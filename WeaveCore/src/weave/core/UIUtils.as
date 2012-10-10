@@ -20,6 +20,7 @@
 package weave.core
 {
 	import flash.display.DisplayObject;
+	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
 	import flash.utils.Dictionary;
 	
@@ -323,7 +324,7 @@ package weave.core
 				spark_addChild(uiParent, uiChild);
 		}
 		
-		public static function spark_addChild(parent:UIComponent, child:DisplayObject):DisplayObject
+		public static function spark_addChild(parent:DisplayObjectContainer, child:DisplayObject):DisplayObject
 		{
 			if (parent is IVisualElementContainer)
 			{
@@ -336,7 +337,7 @@ package weave.core
 				return parent.addChild(child);
 		}
 		
-		public static function spark_setChildIndex(parent:UIComponent, child:DisplayObject, index:int):void
+		public static function spark_setChildIndex(parent:DisplayObjectContainer, child:DisplayObject, index:int):void
 		{
 			if (parent is IVisualElementContainer && child is IVisualElement)
 			{

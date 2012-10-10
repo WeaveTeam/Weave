@@ -69,11 +69,8 @@
 			{
 				while (errorIndex < WeaveAPI.ErrorManager.errors.length)
 				{
-					if (errorIndex > 0)
-					{
-						var error:Error = WeaveAPI.ErrorManager.errors[errorIndex++];
-						console.log.text += '\r\r' + ErrorManager.errorToString(error);
-					}
+					var error:Error = WeaveAPI.ErrorManager.errors[errorIndex++];
+					console.log.text += '\r\r' + ErrorManager.errorToString(error);
 				}
 				console.log.validateProperties();
 				console.log.verticalScrollPosition = console.log.maxVerticalScrollPosition;

@@ -43,6 +43,7 @@
 			import weave.data.DataSources.WeaveDataSource;
 			import weave.resources._MobileDemo;
 			import weave.ui.WeavePodLayoutManager;
+			import weave.ui.WeaveProgressBar;
 			import weave.visualization.tools.SimpleVisTool;
 			
 			// reference classes here so they get included in the app build
@@ -87,6 +88,7 @@
 				// end tile layout demo
 	
 				this.addElement(main = new WeavePodLayoutManager());
+				this.addElement(new WeaveProgressBar());
 				this.addEventListener(Event.RESIZE,stage_resizeHandler);
 				main.scale.value = 2;
 				
@@ -127,8 +129,8 @@
 				}
 				else
 				{
-					weaveTrace('Loading default URL');
-					load('http://demo.oicweave.org/obesity.weave');
+					weaveTrace('No URL');
+					load('http://demo.oicweave.org/mobile0.weave');
 				}
 			}
 			
