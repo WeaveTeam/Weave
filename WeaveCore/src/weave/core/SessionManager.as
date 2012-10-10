@@ -816,15 +816,13 @@ package weave.core
 		 * DisplayObjectContainer/ILinkableObject if it has no linkable owner yet.  This makes sure that the
 		 * component is disposed of when its ancestor is disposed of.
 		 * @param linkableComponent A UIComponent that implements ILinkableObject.
-		 * @return true if the component has a linkable owner, either before or after this function is called.
+		 * @return true if the component has a linkable owner, either before or after this function is called, or if the object was disposed.
 		 */
 		private function _registerUIComponent(linkableComponent:UIComponent):Boolean
 		{
 			if (objectWasDisposed(linkableComponent))
-			{
-				reportError('UIComponent running _registerUIComponent after being disposed');
 				return true; // so the event listener will be removed
-			}
+			
 			var owner:ILinkableObject = childToOwnerMap[linkableComponent] as ILinkableObject;
 			if (owner == null)
 			{

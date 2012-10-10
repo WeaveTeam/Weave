@@ -27,6 +27,8 @@
 	<s:Label id="logo" text="Weave" color="0x808080" width="100%" height="100%" textAlign="center" verticalAlign="middle" fontSize="64"/>
 	<fx:Script>
 		<![CDATA[
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
 			
 			import spark.layouts.TileLayout;
@@ -34,12 +36,18 @@
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.getCallbackCollection;
+			import weave.api.reportError;
+			import weave.core.ErrorManager;
 			import weave.core.UIUtils;
+			import weave.data.DataSources.WeaveDataSource;
 			import weave.resources._MobileDemo;
 			import weave.ui.WeavePodLayoutManager;
+			import weave.visualization.tools.SimpleVisTool;
 			
 			// reference classes here so they get included in the app build
 			WeaveFonts;
+			SimpleVisTool;
 			
 //			public var main:MobileDemoInterface;
 			public var main:WeavePodLayoutManager;
@@ -84,19 +92,20 @@
 				
 				UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
 //				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.fullXML);
-				Weave.loadWeaveFileContent((new _MobileDemo.fullWeave()) as ByteArray);
-				Weave.root.requestObject('console', MobileConsole, false);
+//				Weave.loadWeaveFileContent((new _MobileDemo.fullWeave()) as ByteArray);
+				
+				getCallbackCollection(WeaveAPI.ErrorManager).addImmediateCallback(null, handleError, true);
 			}
 			
-			private function handleInvoke(event:InvokeEvent):void
+			private function handleError():void
 			{
-				weaveTrace(ObjectUtil.toString(event));
-				if (event.arguments.length > 0)
+				var errors:Array = WeaveAPI.ErrorManager.errors;
+				if (errors.length)
 				{
-					weaveTrace('URL is: ' + event.arguments[0]);
+					var error:Error = errors[errors.length - 1] as Error;
+					SparkAlert.show(ErrorManager.errorToString(error), 'Error ('+errors.length+')');
 				}
 			}
-			public var event:Event;
 			
 			public function set scale(value:Number):void { main.scale.value = value; }
 			
@@ -106,6 +115,39 @@
 				main.width = int(this.width / main.scaleX);
 				main.height = int(this.height / main.scaleY);
 				
+				//SparkAlert.show(this.width + 'x' + this.height, 'RESIZE');
+			}
+			
+			private function handleInvoke(event:InvokeEvent):void
+			{
+				//weaveTrace(ObjectUtil.toString(event));
+				if (event.arguments.length > 0)
+				{
+					load(event.arguments[0] as String);
+				}
+				else
+				{
+					weaveTrace('Loading default URL');
+					load('http://demo.oicweave.org/obesity.weave');
+				}
+			}
+			
+			public function load(url:String):void
+			{
+				weaveTrace('Loading URL: ' + url);
+				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(url), handleConfigFileDownloaded, handleConfigFileFault, url);
+			}
+			private function handleConfigFileDownloaded(event:ResultEvent, url:String = null):void
+			{
+				weaveTrace('Received: ' + url);
+				Weave.loadWeaveFileContent(event.result as ByteArray);
+			}
+			private function handleConfigFileFault(event:FaultEvent, url:String = null):void
+			{
+				reportError(event);
+				weaveTrace('Error loading URL, showing demo');
+				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.fullXML);
+				Weave.root.requestObject('console', MobileConsole, false);
 			}
 			
 		]]>

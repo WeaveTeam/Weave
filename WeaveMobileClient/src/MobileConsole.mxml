@@ -64,6 +64,8 @@
 			}
 			public static function mobileTrace(...args):void
 			{
+				trace.apply(null, args);
+				
 				if (!_instance)
 				{
 					_queuedTraceArgs.push(args);

@@ -130,8 +130,13 @@ package weave.core
 			// add existing components
 			var names:Array = components.getNames(IUIComponent);
 			var objects:Array = components.getObjects(IUIComponent);
+			
+			getCallbackCollection(layoutManager).delayCallbacks();
+			
 			for (var i:int = 0; i < names.length; i++)
 				layoutManager.addComponent(names[i] as String, objects[i] as IVisualElement);
+			
+			getCallbackCollection(layoutManager).resumeCallbacks();
 		}
 		
 		/**

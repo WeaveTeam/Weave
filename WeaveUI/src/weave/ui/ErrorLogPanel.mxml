@@ -51,11 +51,10 @@
 		<![CDATA[
 			import mx.core.UIComponent;
 			import mx.managers.PopUpManager;
-			import mx.rpc.Fault;
 			
 			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
-			import weave.utils.DebugUtils;
+			import weave.core.ErrorManager;
 			
 			override protected function childrenCreated():void
 			{
@@ -71,38 +70,9 @@
 				while (errorIndex < WeaveAPI.ErrorManager.errors.length)
 				{
 					if (errorIndex > 0)
-						console.log.text += '\r\r';
-					
-					var error:Error = WeaveAPI.ErrorManager.errors[errorIndex++];
-					if (error is Fault)
 					{
-						var f:Fault = error as Fault;
-						var errorString:String = '';
-						if (f.faultDetail && [IOErrorEvent.IO_ERROR, SecurityErrorEvent.SECURITY_ERROR].indexOf(f.faultCode) >= 0)
-						{
-							errorString = f.faultDetail;
-						}
-						else
-						{
-							errorString = f.faultCode;
-							if (f.faultString)
-								errorString += ': ' + f.faultString;
-							if (f.faultDetail)
-								errorString += ': ' + f.faultDetail;
-							if (errorString == 'Error')
-								errorString = "Communication error";
-						}
-						
-						console.log.text += errorString;
-					}
-					else if (Capabilities.isDebugger)
-					{
-						// get partial stack trace
-						console.log.text += error.message + '\rStack trace: ' + DebugUtils.getCompactStackTrace(error).join('; ');
-					}
-					else
-					{
-						console.log.text += error.toString();
+						var error:Error = WeaveAPI.ErrorManager.errors[errorIndex++];
+						console.log.text += '\r\r' + ErrorManager.errorToString(error);
 					}
 				}
 				console.log.validateProperties();
