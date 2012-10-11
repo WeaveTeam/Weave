@@ -34,9 +34,9 @@ import spark.primitives.Rect;
 public class Pod extends SkinnableContainer
 {
 	public static const MINIMIZED_HEIGHT:Number = 22;
-	public static const WINDOW_STATE_DEFAULT:Number = -1;
-	public static const WINDOW_STATE_MINIMIZED:Number = 0;
-	public static const WINDOW_STATE_MAXIMIZED:Number = 1;
+	public static const WINDOW_STATE_DEFAULT:Number = 0;
+	public static const WINDOW_STATE_MINIMIZED:Number = 1;
+	public static const WINDOW_STATE_MAXIMIZED:Number = 2;
 	
 	[Bindable]public var button_width:Number = 18;
 	[Bindable]public var button_height:Number = 18;
@@ -53,6 +53,9 @@ public class Pod extends SkinnableContainer
   public var minimizeButton:Button;
   [SkinPart(required="false")]
   public var maximizeRestoreButton:ToggleButton;
+  
+  [SkinPart(required="false")]
+  public var closeButton:Button;
 	
   [SkinPart(required="false")]
   public var headerDivider:Rect;
@@ -79,7 +82,7 @@ public class Pod extends SkinnableContainer
 		super();
 		doubleClickEnabled = true;
 		windowState = WINDOW_STATE_DEFAULT;
-    setStyle("skinClass", Class(CustomSkinnableContainer));
+    	setStyle("skinClass", Class(CustomSkinnableContainer));
 	}
 	
 	override protected function createChildren():void
@@ -96,6 +99,7 @@ public class Pod extends SkinnableContainer
 		
 		minimizeButton.addEventListener(MouseEvent.CLICK, onClickMinimizeButton);
 		maximizeRestoreButton.addEventListener(MouseEvent.CLICK, onClickMaximizeRestoreButton);
+		closeButton.addEventListener(MouseEvent.CLICK, onClickCloseButton);
 		
 		addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
 	}
@@ -111,6 +115,12 @@ public class Pod extends SkinnableContainer
 		dispatchEvent(new PodStateChangeEvent(PodStateChangeEvent.MINIMIZE));
 		// Set the state after the event is dispatched so the old state is still available.
 		minimize();
+	}
+	
+	private function onClickCloseButton(event:MouseEvent):void
+	{
+		dispatchEvent(new PodStateChangeEvent(PodStateChangeEvent.CLOSE));
+		
 	}
 	
 	public function minimize():void

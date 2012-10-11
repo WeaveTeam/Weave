@@ -2,6 +2,7 @@
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="com.adobe.devnet.skins.CustomSkinnableContainer"/>
+    <classEntry path="com.adobe.devnet.skins.CustomCloseButtonSkin"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

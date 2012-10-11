@@ -9,6 +9,7 @@ import com.adobe.devnet.events.PodStateChangeEvent;
 import com.adobe.devnet.view.DragHighlight;
 import com.adobe.devnet.view.Pod;
 
+import flash.display.DisplayObjectContainer;
 import flash.events.EventDispatcher;
 import flash.events.MouseEvent;
 import flash.geom.Point;
@@ -39,6 +40,7 @@ public class PodLayoutManager extends EventDispatcher
 	public var id:String;
 	public var items:Array = new Array();					// Stores the pods which are not minimized.
 	public var minimizedItems:Array = new Array();			// Stores the minimized pods.
+	public var removedItems:Array = new Array();			// Stores the removed pods.
 	public var maximizedPod:Pod;
 	
 	private var dragHighlightItems:Array = new Array();		// Stores the highlight items used to designate a drop area.
@@ -121,6 +123,15 @@ public class PodLayoutManager extends EventDispatcher
 		addItemAt(pod,items.length,maximized);
 	}
 	
+	//Weave: Added this function to support Pod removals
+	// will call - on closepod
+	public function removeItem(pod:Pod):void
+	{
+		dispatchEvent(new PodStateChangeEvent(PodStateChangeEvent.CLOSE));
+	}
+	
+	
+	
 	public function addItemAt(pod:Pod, index:Number, maximized:Boolean):void
 	{	
 		if (maximized)
@@ -135,20 +146,20 @@ public class PodLayoutManager extends EventDispatcher
 	
 	private function initItem(pod:Pod):void
 	{
-    container.addElement(pod);
-		
+    	container.addElement(pod);		
 		pod.addEventListener(DragEvent.DRAG_START, onDragStartPod);
 		pod.addEventListener(DragEvent.DRAG_COMPLETE, onDragCompletePod);
 		pod.addEventListener(PodStateChangeEvent.MAXIMIZE, onMaximizePod);
 		pod.addEventListener(PodStateChangeEvent.MINIMIZE, onMinimizePod);
 		pod.addEventListener(PodStateChangeEvent.RESTORE, onRestorePod);
+		pod.addEventListener(PodStateChangeEvent.CLOSE, onClosePod);
 		
 		// Add a highlight for each pod. Used to show a drop target box.
 		var dragHighlight:DragHighlight = new DragHighlight();
 		dragHighlight.visible = false;
 		dragHighlightItems.push(dragHighlight);
-    container.addElement(dragHighlight);
-	updateLayout(true);
+    	container.addElement(dragHighlight);
+		updateLayout(true);
 	}
 	
 	// Pod has been maximized.
@@ -180,6 +191,30 @@ public class PodLayoutManager extends EventDispatcher
 			maximizedPod = null;
 				
 		minimizedItems.push(pod);
+		
+		updateLayout(true);
+		
+		//dispatchEvent(new LayoutChangeEvent(LayoutChangeEvent.UPDATE));
+	}
+	
+	//Weave: Added this function to support close event
+	private function onClosePod(e:PodStateChangeEvent):void
+	{
+		if (maximizeParallel != null && maximizeParallel.isPlaying)
+			maximizeParallel.pause();
+		
+		var pod:Pod = Pod(e.currentTarget);
+		items.splice(pod.index, 1);
+		
+		// Pod was previously maximized so there isn't a minimized pod anymore.
+		if (pod.windowState == Pod.WINDOW_STATE_MAXIMIZED)
+			maximizedPod = null;
+		
+		if(pod.parent){
+			var podParent:Group = pod.parent as Group;
+			podParent.removeElement(pod);
+		}
+		removedItems.push(pod);
 		
 		updateLayout(true);
 		
@@ -502,6 +537,17 @@ public class PodLayoutManager extends EventDispatcher
         container.setElementIndex(dragHighlight, i); // Move the hightlights to the bottom of the z-index.
 			}
 		}
+		
+		// index the closed items.
+		len = removedItems.length;
+		if(len>0){
+			for (i = 0; i < len; i++)
+			{
+				pod = Pod(removedItems[i]);
+				pod.index = i;
+			}
+		}
+			
 	}
 	
 	// Creates a resize and move event and adds them to a parallel effect.

@@ -99,8 +99,14 @@ package weave.ui
 			{
 				delete _idToComponent[id];
 				delete _componentToId[component];
-				if (component.parent == this)
-					this.addElement(component);
+				if (component.parent  is Pod){
+					var pod:Pod = component.parent as Pod;
+					pod.removeElement(component);
+					manager.removeItem(pod);
+					this.removeElement(pod);
+				}
+					
+					
 				getCallbackCollection(this).triggerCallbacks();
 			}
 		}

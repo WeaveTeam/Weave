@@ -87,6 +87,7 @@ package weave.ui
 		{
 			getCallbackCollection(this).delayCallbacks();
 			
+			var i:int = 0;
 			for (var index:int = 0; index < orderedIds.length; index++)
 			{
 				var id:String = orderedIds[index] as String;
@@ -94,7 +95,7 @@ package weave.ui
 				if (component)
 				{
 					if (component.parent == this)
-						this.setElementIndex(component, index);
+						this.setElementIndex(component, i++);
 					getCallbackCollection(this).triggerCallbacks();
 				}
 			}
