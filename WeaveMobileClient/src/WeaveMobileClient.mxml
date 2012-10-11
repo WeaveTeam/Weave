@@ -29,7 +29,6 @@
 		<![CDATA[
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
-			import mx.utils.ObjectUtil;
 			
 			import spark.layouts.TileLayout;
 			import spark.layouts.VerticalLayout;
@@ -40,15 +39,13 @@
 			import weave.api.reportError;
 			import weave.core.ErrorManager;
 			import weave.core.UIUtils;
-			import weave.data.DataSources.WeaveDataSource;
-			import weave.resources._MobileDemo;
 			import weave.ui.WeavePodLayoutManager;
 			import weave.ui.WeaveProgressBar;
 			import weave.visualization.tools.SimpleVisTool;
 			
 			// reference classes here so they get included in the app build
 			WeaveFonts;
-			SimpleVisTool;
+			new SimpleVisTool();
 			
 //			public var main:MobileDemoInterface;
 			public var main:WeavePodLayoutManager;
@@ -93,8 +90,6 @@
 				main.scale.value = 2;
 				
 				UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
-//				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.fullXML);
-//				Weave.loadWeaveFileContent((new _MobileDemo.fullWeave()) as ByteArray);
 				
 				getCallbackCollection(WeaveAPI.ErrorManager).addImmediateCallback(null, handleError, true);
 			}
@@ -130,28 +125,39 @@
 				else
 				{
 					weaveTrace('No URL');
-					load('http://demo.oicweave.org/mobile0.weave');
+//					load('http://demo.oicweave.org/reprojection-demo.weave');
+					load(demoURL);
 				}
 			}
 			
-			public function load(url:String):void
+			public function load(configURL:String):void
 			{
-				weaveTrace('Loading URL: ' + url);
-				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(url), handleConfigFileDownloaded, handleConfigFileFault, url);
+				this.configURL = configURL;
+				WeaveAPI.URLRequestUtils.setBaseURL(configURL);
+				weaveTrace('Loading URL: ' + configURL);
+				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(configURL), handleConfigFileDownloaded, handleConfigFileFault, configURL);
 			}
-			private function handleConfigFileDownloaded(event:ResultEvent, url:String = null):void
+			private function handleConfigFileDownloaded(event:ResultEvent, configURL:String = null):void
 			{
-				weaveTrace('Received: ' + url);
+				if (this.configURL != configURL)
+					return;
+				weaveTrace('Received: ' + configURL);
 				Weave.loadWeaveFileContent(event.result as ByteArray);
+				
+				if (url == demoURL)
+					Weave.root.requestObject('console', MobileConsole, false);
 			}
-			private function handleConfigFileFault(event:FaultEvent, url:String = null):void
+			private function handleConfigFileFault(event:FaultEvent, configURL:String = null):void
 			{
+				if (this.configURL != configURL)
+					return;
 				reportError(event);
 				weaveTrace('Error loading URL, showing demo');
-				_MobileDemo.setXMLState(WeaveAPI.globalHashMap, _MobileDemo.fullXML);
-				Weave.root.requestObject('console', MobileConsole, false);
+				load(demoURL);
 			}
 			
+			public var configURL:String;
+			public const demoURL:String = 'app:/demoFull.weave';
 		]]>
 	</fx:Script>
 </s:Application>
