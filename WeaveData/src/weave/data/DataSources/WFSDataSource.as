@@ -444,7 +444,7 @@ package weave.data.DataSources
 		 * @param vector destination
 		 * @return vector 
 		 */
-		private function xmlToVector(xmlList:XMLList, vector:Vector):*
+		private function xmlToVector(xmlList:XMLList, vector:*):*
 		{
 			vector.length = xmlList.length();
 			for (var i:int = vector.length - 1; i >= 0; i--)
