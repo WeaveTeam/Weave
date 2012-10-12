@@ -31,7 +31,6 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import spark.layouts.TileLayout;
-			import spark.layouts.VerticalLayout;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
@@ -44,36 +43,43 @@
 			import weave.visualization.tools.SimpleVisTool;
 			
 			// reference classes here so they get included in the app build
-			WeaveFonts;
-			new SimpleVisTool();
+			private static const _classes:Array = [
+				WeaveFonts,
+				SimpleVisTool
+			];
 			
-//			public var main:MobileDemoInterface;
 			public var main:WeavePodLayoutManager;
+			public var console:MobileConsole;
 			public var tileLayout:TileLayout;
 			
 			private function init(event:Event):void
 			{
-				if (event.type != Event.ENTER_FRAME)
+				if (event.type != Event.ENTER_FRAME) // first frame
 				{
+					//layout = new VerticalLayout();
+					
+					this.addElement(console = new MobileConsole());
+					this.addElement(main = new WeavePodLayoutManager());
+					this.addElement(new WeaveProgressBar());
+					this.addEventListener(Event.RESIZE,stage_resizeHandler);
+					main.scale.value = 2;
+					
+					UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
+					
+					getCallbackCollection(WeaveAPI.ErrorManager).addImmediateCallback(null, handleError, true);
+					
 					var na:NativeApplication = NativeApplication.nativeApplication;
 					if (na)
 						na.addEventListener(InvokeEvent.INVOKE, handleInvoke);
 					
 					addEventListener(Event.ENTER_FRAME, init);
-					return;
 				}
-				else
+				else // one frame later
 				{
 					removeEventListener(Event.ENTER_FRAME, init);
+					removeElement(logo)
+					logo = null;
 				}
-				
-				removeElement(logo)
-				logo = null;
-				layout = new VerticalLayout();
-				
-				/* this.addElement(console = new MobileConsole());
-				 console.height = 220;*/
-//				this.addElement(main = new MobileDemoInterface());
 				
 				// begin tile layout demo
 				/* tileLayout = new TileLayout();
@@ -83,15 +89,6 @@
 				tileLayout.rowHeight = 220;
 				main.layout = tileLayout; */
 				// end tile layout demo
-	
-				this.addElement(main = new WeavePodLayoutManager());
-				this.addElement(new WeaveProgressBar());
-				this.addEventListener(Event.RESIZE,stage_resizeHandler);
-				main.scale.value = 2;
-				
-				UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
-				
-				getCallbackCollection(WeaveAPI.ErrorManager).addImmediateCallback(null, handleError, true);
 			}
 			
 			private function handleError():void
@@ -117,6 +114,8 @@
 			
 			private function handleInvoke(event:InvokeEvent):void
 			{
+				console.visible = true;
+				
 				//weaveTrace(ObjectUtil.toString(event));
 				if (event.arguments.length > 0)
 				{
@@ -126,13 +125,14 @@
 				{
 					weaveTrace('No URL');
 //					load('http://demo.oicweave.org/reprojection-demo.weave');
-					load(demoURL);
+//					load(demoURL);
 				}
 			}
 			
 			public function load(configURL:String):void
 			{
 				this.configURL = configURL;
+				
 				WeaveAPI.URLRequestUtils.setBaseURL(configURL);
 				weaveTrace('Loading URL: ' + configURL);
 				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(configURL), handleConfigFileDownloaded, handleConfigFileFault, configURL);
@@ -141,23 +141,23 @@
 			{
 				if (this.configURL != configURL)
 					return;
+				
 				weaveTrace('Received: ' + configURL);
 				Weave.loadWeaveFileContent(event.result as ByteArray);
-				
-				if (url == demoURL)
-					Weave.root.requestObject('console', MobileConsole, false);
+				console.visible = false;
 			}
 			private function handleConfigFileFault(event:FaultEvent, configURL:String = null):void
 			{
 				if (this.configURL != configURL)
 					return;
+				
 				reportError(event);
 				weaveTrace('Error loading URL, showing demo');
 				load(demoURL);
 			}
 			
 			public var configURL:String;
-			public const demoURL:String = 'app:/demoFull.weave';
+			public const demoURL:String = 'app:/demo.weave';
 		]]>
 	</fx:Script>
 </s:Application>

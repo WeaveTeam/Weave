@@ -251,7 +251,7 @@ package weave.visualization.layers
 			return visible;
 		}
 		
-		private function asyncStart(..._):void
+		private function asyncStart():void
 		{
 			if (shouldBeRendered())
 			{
@@ -416,12 +416,15 @@ package weave.visualization.layers
 		{
 			debugTrace('rendering completed');
 			_progress = 0;
-			// if visible is false or the plotter is busy, the graphics aren't ready, so don't trigger callbacks
-			if (shouldBeRendered() && !WeaveAPI.SessionManager.linkableObjectIsBusy(_dependencies))
-			{
-				// busy task gets unassigned when the render completed successfully
-				WeaveAPI.SessionManager.unassignBusyTask(_dependencies);
+			// don't do anything else if dependencies are busy
+			if (WeaveAPI.SessionManager.linkableObjectIsBusy(_dependencies))
+				return;
+			
+			// busy task gets unassigned when the render completed successfully
+			WeaveAPI.SessionManager.unassignBusyTask(_dependencies);
 
+			if (shouldBeRendered())
+			{
 				// BitmapData has been completely rendered, so update completedBitmap and completedDataBounds
 				var oldBitmapData:BitmapData = completedBitmap.bitmapData;
 				completedBitmap.bitmapData = bufferBitmap.bitmapData;

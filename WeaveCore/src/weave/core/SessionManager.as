@@ -668,7 +668,7 @@ package weave.core
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
 			if (debugBusyTasks)
-				_dTaskStackTrace[taskToken] = new Error("Stack trace").getStackTrace();
+				_dTaskStackTrace[taskToken] = new Error("Stack trace when task was last assigned").getStackTrace();
 			
 			if (taskToken is AsyncToken)
 				(taskToken as AsyncToken).addResponder(new AsyncResponder(unassignAsyncToken, unassignAsyncToken, taskToken));
@@ -688,10 +688,42 @@ package weave.core
 		 */
 		public function unassignBusyTask(taskToken:Object):void
 		{
+			var owner:*;
 			var dOwner:Dictionary = _d2dTaskOwner.dictionary[taskToken];
 			delete _d2dTaskOwner.dictionary[taskToken];
-			for (var owner:Object in dOwner)
+			for (owner in dOwner)
 				delete _d2dOwnerTask.dictionary[owner][taskToken];
+			
+			if (debugBusyTasks)
+			{
+				for (owner in dOwner)
+					dOwner[owner] = getCallbackCollection(owner).triggerCounter;
+				
+				WeaveAPI.StageUtils.callLater(null, debugBusyTasksCallLater, [taskToken, dOwner]);
+			}
+		}
+		
+		private function debugBusyTasksCallLater(taskToken:Object, ownerLookup:Dictionary):void
+		{
+			if (linkableObjectIsBusy(WeaveAPI.globalHashMap))
+			{
+				WeaveAPI.StageUtils.callLater(null, debugBusyTasksCallLater, arguments);
+				return;
+			}
+			for (var owner:* in ownerLookup)
+			{
+				if (linkableObjectIsBusy(owner))
+					continue;
+				// if owner is no longer busy but has not triggered callbacks, there may be a problem.
+				var prevCounter:int = ownerLookup[owner];
+				var cc:ICallbackCollection = getCallbackCollection(owner);
+				if (prevCounter == cc.triggerCounter)
+				{
+					var stackTrace:String = _dTaskStackTrace[taskToken];
+					trace('object is no longer busy, but has not triggered callbacks:', debugId(owner));
+					trace(stackTrace);
+				}
+			}
 		}
 		
 		/**
@@ -727,7 +759,7 @@ package weave.core
 					if (debugBusyTasks)
 					{
 						var stackTrace:String = _dTaskStackTrace[task];
-						trace(stackTrace);
+						//trace(stackTrace);
 					}
 					busy = true;
 					break outerLoop;

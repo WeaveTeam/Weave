@@ -250,7 +250,7 @@
                         skinClass="com.adobe.devnet.skins.CustomMinimizeButtonSkin"/>
                     <s:ToggleButton id="maximizeRestoreButton" width="{this.hostComponent.button_width}" height="{this.hostComponent.button_height}"
                         skinClass="com.adobe.devnet.skins.CustomMaximizeButtonSkin"/>
-					<s:Button id="closeButton" label="Hi" width="{this.hostComponent.button_width}" height="{this.hostComponent.button_height}"
+					<s:Button id="closeButton" width="{this.hostComponent.button_width}" height="{this.hostComponent.button_height}"
 							  skinClass="com.adobe.devnet.skins.CustomCloseButtonSkin"/>
                 </s:HGroup>                      
             </s:Group>

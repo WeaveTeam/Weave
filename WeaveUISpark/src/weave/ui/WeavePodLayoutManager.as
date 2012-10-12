@@ -35,6 +35,7 @@ package weave.ui
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.ILinkableLayoutManager;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	
 	/**
@@ -51,6 +52,7 @@ package weave.ui
 			linkBindableProperty(scale, this, 'scaleY');
 		}
 		
+		//public const allowClose:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const scale:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		
 		private var _idToComponent:Object = {}; // String -> IVisualElement

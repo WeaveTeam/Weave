@@ -12,9 +12,8 @@ package weave.visualization.tools
 		{
 			//trace(debugId(this));
 		}
-		
-		staticInit();
-		private static function staticInit():void
+		hack_init();
+		private static function hack_init():void
 		{
 			var oldToolNames:Array = [
 				'BarChartLegendTool',
