@@ -15,14 +15,42 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 package disabilityDictionary
 {
-	public class DisabilityMessageCategoryDictionary
+	import flash.events.Event;
+	import flash.utils.Dictionary;
+	
+	import mx.rpc.events.ResultEvent;
+	
+	import weave.editors.Disability;
+
+	public class DisabilityMessageCategoryDictionary 
 	{
-		public function lineChartDictionary()
+		
+		public var messageCategoryMap : Dictionary = new Dictionary();
+		public var messageCategoryID : String = "IT";
+		public var message : String = "increasing trend";
+		
+		
+		
+		public function lineChartDictionary():void
 		{
-			var key : DictionaryKey = new DictionaryKey();
-			var slope : Object = new Object();
 			
-			//key.keySlope = slope;
+			
+			messageCategoryMap[messageCategoryID] = message; // eg : IT = "increasing trend"
+		   
+			
+		}
+
+		
+		public function setMessageCategoryID(_propertyNames:Array):Array
+		{
+			
+			var messageCategoryIDs : Array = new Array();
+			
+			if (_propertyNames[0]>1)  // propertyNames[0] -> slope
+				messageCategoryIDs.push("IT");
+				
+			
+			return messageCategoryIDs;
 		}
 	}
 }

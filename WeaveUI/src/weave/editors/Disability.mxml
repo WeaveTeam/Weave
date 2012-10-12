@@ -68,6 +68,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	
 	<mx:Script>
 		<![CDATA[
+			import disabilityDictionary.DisabilityMessageCategoryDictionary;
+			import disabilityDictionary.DisabilityObject;
+			
 			import mx.accessibility.CheckBoxAccImpl;
 			import mx.binding.utils.BindingUtils;
 			import mx.controls.Menu;
@@ -131,6 +134,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				
 				
 			}
 		
@@ -212,11 +216,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//default name to be used in R
 				var inputName:Array = ["myColumns"];
 				
-				var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);		
+				//testing
+				mockRResult();
+				
+				/* var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
+				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);	 */	
 				
 			}
-			private function handleRunScriptResult(event:ResultEvent, token:Object):void
+			public function handleRunScriptResult(event:ResultEvent, token:Object):void
 			{
 				var rObject:Array = new Array();
 				rObject = event.result as Array;
@@ -245,6 +252,35 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				reportError(event);
 			}
 			
+			public var mockLookUpDict:DisabilityMessageCategoryDictionary = new DisabilityMessageCategoryDictionary();
+			
+			public function mockRResult():void
+			{
+				var mockproperties:Array = new Array();
+				var mockSlope : Number = 1;
+			    var mockDisabilityObject :DisabilityObject = new DisabilityObject();
+				mockDisabilityObject.slope = mockSlope;
+				mockproperties.push(mockSlope);
+				
+				//testing this first
+				var mockMessageID:Array = new Array();
+				mockMessageID[0] = mockLookUpDict.setMessageCategoryID(mockproperties);
+				trace(mockLookUpDict[mockMessageID[0]]);
+				//testing this second
+				//setMessageCategoryID(mockproperties);
+				
+			}
+			
+			public function setMessageCategoryID(_propertyNames:Array):Array
+			{
+				
+				var messageCategoryIDs : Array = new Array();
+				if (_propertyNames[0]>1)  // propertyNames[0] -> slope
+					messageCategoryIDs.push("IT");
+				
+				
+				return messageCategoryIDs;
+			}
 		]]>
 	</mx:Script>
 </mx:VBox>

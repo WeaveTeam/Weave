@@ -25,55 +25,32 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 @author hbyrne
 -->
 
-<ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" implements="weave.api.core.ILinkableObject"
-			  backgroundColor="#EFF4BC"
-			  horizontalScrollPolicy="off" verticalScrollPolicy="off"
+<ControlPanel xmlns="weave.ui.*"
+			  xmlns:mx="http://www.adobe.com/2006/mxml"
 			  xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
-			  title="Disability Options"
-			  sessionPanelCoordsAsPercentages="false"
-			  width="400"
-			  height="400">
-	<mx:HDividedBox id="disabilityOptions" width="100%"
-					height="100%"
-					paddingBottom="{padding}"
-					paddingTop="{padding}"
-					paddingRight="{padding}"
-					paddingLeft="{padding}">
-		<mx:TabNavigator borderStyle="inset" height="100%">
-			<mx:VBox label="Basic"
-					 width="100%"
-					 height = "100%"
-					 verticalAlign="top"
-					 horizontalAlign="left">
-				<mx:Label text="HTML Alt Text:"
-						  textAlign="left"/>
-				<mx:TextInput
-					id="altTextInputBox"
-					horizontalCenter="true"
-					toolTip="Text entered here will be used to set the html alt attribute for this instance of Weave when it is embedded in a web page. This input field is restricted to 125 characters. The alt attribute is used by standard screen reading tools to give information about graphics elements for to blind or visually impaired individuals."
-					width="100%"
-					height = "30%"
-					backgroundColor="#EEEEEE"
-					editable = "true"   />
+			  width="400" height="400" backgroundColor="#EFF4BC" horizontalScrollPolicy="off"
+			  implements="weave.api.core.ILinkableObject" sessionPanelCoordsAsPercentages="false"
+			  title="Disability Options" verticalScrollPolicy="off">
+	<mx:HDividedBox id="disabilityOptions" width="100%" height="100%" paddingBottom="{padding}"
+					paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}">
+		<mx:TabNavigator height="100%" borderStyle="inset">
+			<mx:VBox width="100%" height="100%" label="Basic" horizontalAlign="left"
+					 verticalAlign="top">
+				<mx:Label text="HTML Alt Text:" textAlign="left"/>
+				<mx:TextInput id="altTextInputBox" width="100%" height="30%"
+							  backgroundColor="#EEEEEE" editable="true" horizontalCenter="true"
+							  toolTip="Text entered here will be used to set the html alt attribute for this instance of Weave when it is embedded in a web page. This input field is restricted to 125 characters. The alt attribute is used by standard screen reading tools to give information about graphics elements for to blind or visually impaired individuals."/>
 			</mx:VBox>
-			<mx:VBox label="Advanced"
-					 width="100%"
-					 height = "100%"
-					 verticalAlign="top"
-					 horizontalAlign="left">
-				<mx:Label text="longdesc text"
-						  textAlign="left"/>
-				<mx:TextInput
-					id="longDescTextInputBox"
-					horizontalCenter="true"
-					toolTip="Text entered here will be used to set the html longdesc attribute for this instance of Weave when it is embedded in a web page. This input size is not restricted but it is not recommended that it be any longer than necessary."
-					width="100%"
-					height = "30%"
-					backgroundColor="#EEEEEE"
-					enabled="true"/>
-				<mx:Button label="Refresh" toolTip="Refresh the list of visualizations" click="updateCheckBoxes()" paddingLeft="5" paddingRight="5"/>
-				<mx:CheckBox label="Short Description" id="shortDescriptionCheckbox" />
-				<mx:VBox verticalScrollPolicy="on" id="menuToggleVBox">
+			<mx:VBox width="100%" height="100%" label="Advanced" horizontalAlign="left"
+					 verticalAlign="top">
+				<mx:Label text="longdesc text" textAlign="left"/>
+				<mx:TextInput id="longDescTextInputBox" width="100%" height="30%"
+							  backgroundColor="#EEEEEE" enabled="true" horizontalCenter="true"
+							  toolTip="Text entered here will be used to set the html longdesc attribute for this instance of Weave when it is embedded in a web page. This input size is not restricted but it is not recommended that it be any longer than necessary."/>
+				<mx:Button label="Refresh" click="updateCheckBoxes()" paddingLeft="5"
+						   paddingRight="5" toolTip="Refresh the list of visualizations"/>
+				<mx:CheckBox id="shortDescriptionCheckbox" label="Short Description"/>
+				<mx:VBox id="menuToggleVBox" verticalScrollPolicy="on">
 					
 					<mx:Script>
 						<![CDATA[
@@ -94,6 +71,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							import weave.Weave;
 							import weave.api.WeaveAPI;
 							import weave.api.core.ILinkableObject;
+							import weave.api.core.IDisposableObject;
 							import weave.api.detectLinkableObjectChange;
 							import weave.api.linkBindableProperty;
 							import weave.api.linkSessionState;
@@ -109,6 +87,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 							import weave.editors.Disability;
 							import weave.ui.ControlPanel;
 							import weave.ui.SessionStateEditor;
+							
 							
 							
 							private const padding:int = 5;
@@ -148,6 +127,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								updateCheckBoxes();	
 								addEventListener(FlexEvent.SHOW, panelRemovedEventHandler);	
 								shortDescriptionCheckbox.addEventListener(MouseEvent.CLICK, shortDescriptioncCheckBoxClickHandler);
+								Weave.properties.disabilityHashMap.addDisposeCallback(label,updateCheckBoxes );
+								
 								
 							}
 							protected function handleDisabilityAltTextChange() : void
