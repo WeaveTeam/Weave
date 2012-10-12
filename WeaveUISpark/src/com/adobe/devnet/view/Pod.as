@@ -117,10 +117,14 @@ public class Pod extends SkinnableContainer
 		minimize();
 	}
 	
+	// close functionality added for Weave
 	private function onClickCloseButton(event:MouseEvent):void
 	{
+		close();
+	}
+	public function close():void
+	{
 		dispatchEvent(new PodStateChangeEvent(PodStateChangeEvent.CLOSE));
-		
 	}
 	
 	public function minimize():void

@@ -19,9 +19,11 @@ along with Weave. If not, see <http://www.gnu.org/licenses/>.
 
 package weave.ui
 {
+	import com.adobe.devnet.events.PodStateChangeEvent;
 	import com.adobe.devnet.managers.PodLayoutManager;
 	import com.adobe.devnet.view.Pod;
 	
+	import flash.events.Event;
 	import flash.utils.Dictionary;
 	
 	import mx.core.IVisualElement;
@@ -50,15 +52,22 @@ package weave.ui
 			manager.container = this;
 			linkBindableProperty(scale, this, 'scaleX');
 			linkBindableProperty(scale, this, 'scaleY');
+			manager.addEventListener(PodStateChangeEvent.CLOSE, handlePodClose);
 		}
 		
 		//public const allowClose:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const scale:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		
+		private var _idToPod:Object = {}; // String -> Pod
 		private var _idToComponent:Object = {}; // String -> IVisualElement
 		private var _componentToId:Dictionary = new Dictionary(true); // IVisualElement -> String
 		
-		public var manager:PodLayoutManager = new PodLayoutManager();
+		public const manager:PodLayoutManager = new PodLayoutManager();
+		
+		private function handlePodClose(event:Event):void
+		{
+			removeComponent(manager.closedPod.id);
+		}
 		
 		/**
 		 * Adds a component to the layout.
@@ -67,24 +76,27 @@ package weave.ui
 		 */		
 		public function addComponent(id:String, component:IVisualElement):void
 		{
+			weaveTrace('addComponent ' + id);
 			if (_idToComponent[id] != component)
 			{
+				var pod:Pod = new Pod();
+				pod.id = id;
+				
 				_idToComponent[id] = component;
 				_componentToId[component] = id;
-				if (component.parent != this){
-					var pod:Pod = new Pod();
-					pod.addElement(component);
-					pod.title = id;
-					
-					var busyIndicator:IVisualElement = new BusyIndicator(component as ILinkableObject) as IVisualElement;
-					pod.addElement(busyIndicator);
-					busyIndicator.includeInLayout = false;
-					busyIndicator.x = 0;
-					busyIndicator.y = 0;
-					
-					manager.addItem(pod, false);
-					callLater(manager.updateLayout);
-				}
+				_idToPod[id] = pod;
+				
+				pod.addElement(component);
+				pod.title = id;
+				
+				var busyIndicator:IVisualElement = new BusyIndicator(component as ILinkableObject) as IVisualElement;
+				pod.addElement(busyIndicator);
+				busyIndicator.includeInLayout = false;
+				busyIndicator.x = 0;
+				busyIndicator.y = 0;
+				
+				manager.addItem(pod, false);
+				callLater(manager.updateLayout);
 					
 				getCallbackCollection(this).triggerCallbacks();
 			}
@@ -96,18 +108,18 @@ package weave.ui
 		 */
 		public function removeComponent(id:String):void
 		{
+			weaveTrace('removeComponent ' + id);
 			var component:IVisualElement = _idToComponent[id] as IVisualElement;
 			if (component)
 			{
+				var pod:Pod = _idToPod[id];
+				
+				delete _idToPod[id];
 				delete _idToComponent[id];
 				delete _componentToId[component];
-				if (component.parent  is Pod){
-					var pod:Pod = component.parent as Pod;
-					pod.removeElement(component);
-					manager.removeItem(pod);
-					this.removeElement(pod);
-				}
-					
+				
+				if (pod.parent)
+					pod.close();
 					
 				getCallbackCollection(this).triggerCallbacks();
 			}

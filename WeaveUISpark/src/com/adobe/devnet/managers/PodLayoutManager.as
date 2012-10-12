@@ -40,7 +40,6 @@ public class PodLayoutManager extends EventDispatcher
 	public var id:String;
 	public var items:Array = new Array();					// Stores the pods which are not minimized.
 	public var minimizedItems:Array = new Array();			// Stores the minimized pods.
-	public var removedItems:Array = new Array();			// Stores the removed pods.
 	public var maximizedPod:Pod;
 	
 	private var dragHighlightItems:Array = new Array();		// Stores the highlight items used to designate a drop area.
@@ -123,13 +122,6 @@ public class PodLayoutManager extends EventDispatcher
 		addItemAt(pod,items.length,maximized);
 	}
 	
-	//Weave: Added this function to support Pod removals
-	// will call - on closepod
-	public function removeItem(pod:Pod):void
-	{
-		dispatchEvent(new PodStateChangeEvent(PodStateChangeEvent.CLOSE));
-	}
-	
 	
 	
 	public function addItemAt(pod:Pod, index:Number, maximized:Boolean):void
@@ -200,26 +192,27 @@ public class PodLayoutManager extends EventDispatcher
 	//Weave: Added this function to support close event
 	private function onClosePod(e:PodStateChangeEvent):void
 	{
+		var pod:Pod = e.target as Pod;
+		
 		if (maximizeParallel != null && maximizeParallel.isPlaying)
 			maximizeParallel.pause();
 		
-		var pod:Pod = Pod(e.currentTarget);
 		items.splice(pod.index, 1);
 		
 		// Pod was previously maximized so there isn't a minimized pod anymore.
 		if (pod.windowState == Pod.WINDOW_STATE_MAXIMIZED)
 			maximizedPod = null;
 		
-		if(pod.parent){
-			var podParent:Group = pod.parent as Group;
-			podParent.removeElement(pod);
-		}
-		removedItems.push(pod);
+		if (container == pod.parent)
+			container.removeElement(pod);
+		
+		closedPod = pod;
+		dispatchEvent(e);
+		closedPod = null;
 		
 		updateLayout(true);
-		
-		//dispatchEvent(new LayoutChangeEvent(LayoutChangeEvent.UPDATE));
 	}
+	public var closedPod:Pod = null;
 	
 	// Pod has been restored.
 	private function onRestorePod(e:PodStateChangeEvent):void
@@ -537,17 +530,6 @@ public class PodLayoutManager extends EventDispatcher
         container.setElementIndex(dragHighlight, i); // Move the hightlights to the bottom of the z-index.
 			}
 		}
-		
-		// index the closed items.
-		len = removedItems.length;
-		if(len>0){
-			for (i = 0; i < len; i++)
-			{
-				pod = Pod(removedItems[i]);
-				pod.index = i;
-			}
-		}
-			
 	}
 	
 	// Creates a resize and move event and adds them to a parallel effect.
