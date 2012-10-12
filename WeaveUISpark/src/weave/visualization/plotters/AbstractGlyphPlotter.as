@@ -30,6 +30,7 @@ package weave.visualization.plotters
 	import weave.api.data.IKeySet;
 	import weave.api.data.IProjector;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
@@ -60,8 +61,8 @@ package weave.visualization.plotters
 			filteredDataX.filter.requestLocalObject(FilteredKeySet, true);
 			filteredDataY.filter.requestLocalObject(FilteredKeySet, true);
 			
-			registerSpatialProperty(dataX, updateProjector);
-			registerSpatialProperty(dataY, updateProjector);
+			registerSpatialProperty(dataX);
+			registerSpatialProperty(dataY);
 			
 			linkSessionState(_filteredKeySet.keyFilter, filteredDataX.filter);
 			linkSessionState(_filteredKeySet.keyFilter, filteredDataY.filter);
@@ -90,8 +91,8 @@ package weave.visualization.plotters
 			return filteredDataY.internalDynamicColumn;
 		}
 		
-		public const sourceProjection:LinkableString = newSpatialProperty(LinkableString, updateProjector);
-		public const destinationProjection:LinkableString = newSpatialProperty(LinkableString, updateProjector);
+		public const sourceProjection:LinkableString = newSpatialProperty(LinkableString);
+		public const destinationProjection:LinkableString = newSpatialProperty(LinkableString);
 		
 		protected const tempPoint:Point = new Point();
 		private var _projector:IProjector;
@@ -103,8 +104,8 @@ package weave.visualization.plotters
 		 */		
 		private function updateProjector():void
 		{
-			_xCoordCache = null;
-			_yCoordCache = null;
+			_xCoordCache = new Dictionary(true);
+			_yCoordCache = new Dictionary(true);
 			
 			var sourceSRS:String = sourceProjection.value;
 			var destinationSRS:String = destinationProjection.value;
@@ -129,17 +130,15 @@ package weave.visualization.plotters
 		
 		protected function getCoordsFromRecordKey(recordKey:IQualifiedKey, output:Point):void
 		{
-			if (_xCoordCache && _xCoordCache[recordKey] !== undefined)
+			if (detectLinkableObjectChange(updateProjector, dataX, dataY, sourceProjection, destinationProjection))
+				updateProjector();
+			
+			if (_xCoordCache[recordKey] !== undefined)
 			{
 				output.x = _xCoordCache[recordKey];
 				output.y = _yCoordCache[recordKey];
 				return;
 			}
-			
-			if (!_xCoordCache)
-				_xCoordCache = new Dictionary(true);
-			if (!_yCoordCache)
-				_yCoordCache = new Dictionary(true);
 			
 			for (var i:int = 0; i < 2; i++)
 			{
@@ -176,7 +175,11 @@ package weave.visualization.plotters
 				}
 			}
 			if (_projector)
+			{
 				_projector.reproject(output);
+				_xCoordCache[recordKey] = output.x;
+				_yCoordCache[recordKey] = output.y;
+			}
 		}
 		
 		/**

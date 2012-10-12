@@ -199,16 +199,19 @@
 				switch (event.keyCode)
 				{
 					case Keyboard.MENU:
-						console.visible = !console.visible
+						// menu button supports holding down for key repeat
+						historyNav(1);
 						break;
 					
 					case Keyboard.BACK:
 						event.preventDefault();
+						// back button supports holding down for key repeat
 						historyNav(-1);
 						break;
 					
 					case Keyboard.SEARCH:
-						historyNav(1);
+						// search doesn't support holding down for key repeat
+						console.visible = !console.visible
 						break;
 				}
 			}
