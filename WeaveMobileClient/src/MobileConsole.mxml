@@ -20,16 +20,18 @@
 <s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		  xmlns:s="library://ns.adobe.com/flex/spark"
 		  implements="weave.api.core.ILinkableObject"
-		  width="100%" height="100%"
+		  width="100%" height="100%" gap="0"
 		  creationComplete="setInstance(this);">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
 	<s:TextInput id="input" width="100%" fontSize="18"
 				 enter="runCommand()"
+				 softKeyboardActivate="percentHeight = 50;"
+				 softKeyboardDeactivate="percentHeight = 100;"
 				 keyDown="handleConsoleKeyDown(event)"
 				 />
-	<s:TextArea id="log" fontSize="12"
+	<s:TextArea id="log" fontSize="18"
 				change="if (log.text.length > LOG_MAX_LENGTH) log.text = log.text.substr(-LOG_MAX_LENGTH);"
 				click="handleConsoleLogClick()"
 				mouseDown="handleConsoleLogClick()"
@@ -64,13 +66,13 @@
 			}
 			public static function mobileTrace(...args):void
 			{
-				trace.apply(null, args);
-				
 				if (!_instance)
 				{
 					_queuedTraceArgs.push(args);
 					return;
 				}
+				
+				trace.apply(null, args);
 				
 				_instance.consoleTrace.apply(null, args);
 			}

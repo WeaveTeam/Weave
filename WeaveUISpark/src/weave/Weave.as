@@ -61,16 +61,6 @@ package weave
 	 */
 	public class Weave
 	{
-		// REMOVE THIS LATER
-		public static function mobile():void
-		{
-			var globals:ILinkableHashMap = WeaveAPI.globalHashMap;
-			for each (var svt:* in globals.getObjects(getDefinitionByName('weave.visualization.tools.SimpleVisTool') as Class))
-				globals.requestObjectCopy(globals.getName(svt), svt.visualization);
-			for each (var wds:WeaveDataSource in WeaveAPI.globalHashMap.getObjects(WeaveDataSource))
-				wds.url.value = 'http://demo.oicweave.org/WeaveServices/DataService';
-		}
-		
 		SparkClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 		
 		public static var ALLOW_PLUGINS:Boolean = false; // TEMPORARY
