@@ -65,6 +65,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   id="automaticDescRefreshButton" 
 			   toolTip="changeme" click="automaticDescRefreshButton_clickHandler(event)"/>
 	
+
+	
 	
 	<mx:Script>
 		<![CDATA[
@@ -162,6 +164,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				dictionaryType = determineDictionaryType(vizType);
 		
 				determineMessageCategory(dictionaryType, rResult) 
+				mockRResult();
 				
 			}
 			
@@ -216,9 +219,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//default name to be used in R
 				var inputName:Array = ["myColumns"];
 				
-				//testing
-				mockRResult();
-				
 				/* var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
 				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);	 */	
 				
@@ -265,7 +265,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//testing this first
 				var mockMessageID:Array = new Array();
 				mockMessageID[0] = mockLookUpDict.setMessageCategoryID(mockproperties);
-				trace(mockLookUpDict[mockMessageID[0]]);
+				trace(mockMessageID[0]);
 				//testing this second
 				//setMessageCategoryID(mockproperties);
 				
