@@ -60,6 +60,7 @@
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.InteractionController;
 			import weave.visualization.layers.LayerSettings;
+			import weave.visualization.plotters.AbstractGlyphPlotter;
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			import weave.visualization.plotters.GeometryPlotter;
 			import weave.visualization.plotters.SingleImagePlotter;
@@ -167,6 +168,16 @@
 				}
 				
 				var projString:String;
+				
+				// make sure glyph layer projections are identical
+				var glyphPlotters:Array = WeaveAPI.SessionManager.getLinkableDescendants(visualization.plotManager.plotters, AbstractGlyphPlotter);
+				for each (var glyphPlotter:AbstractGlyphPlotter in glyphPlotters)
+				{
+					linkProjection(glyphPlotter.destinationProjection);
+					projString = glyphPlotter.sourceProjection.value;
+					if (projString && _projComboBoxData.indexOf(projString) < 0)
+						_projComboBoxData.push(projString);
+				}
 				
 				// make sure wms layer projections are identical
 				var wmsPlotters:Array = WeaveAPI.SessionManager.getLinkableDescendants(visualization.plotManager.plotters, WMSPlotter);

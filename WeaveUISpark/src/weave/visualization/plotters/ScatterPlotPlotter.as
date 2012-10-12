@@ -135,8 +135,7 @@ package weave.visualization.plotters
 			graphics.clear();
 			
 			// project data coordinates to screen coordinates and draw graphics
-			tempPoint.x = getCoordFromRecordKey(recordKey, true);
-			tempPoint.y = getCoordFromRecordKey(recordKey, false);
+			getCoordsFromRecordKey(recordKey, tempPoint);
 			
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			

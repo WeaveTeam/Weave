@@ -59,7 +59,6 @@ package weave.visualization.plotters
 		
 		public const imageURL:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn( "arrowRight.png" ));
 		public const imageSize:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn( 32 ));
-		private const tempPoint:Point = new Point(); // reusable object
 		private const tempMatrix:Matrix = new Matrix(); // reusable object
 
 		[Embed(source="/weave/resources/images/missing.png")]

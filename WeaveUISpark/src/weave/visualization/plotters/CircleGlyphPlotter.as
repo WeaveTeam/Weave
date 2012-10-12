@@ -90,14 +90,13 @@ package weave.visualization.plotters
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
-		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void			
+		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
 //			var hasPrevPoint:Boolean = (isFinite(tempPoint.x) && isFinite(tempPoint.y));
 			var graphics:Graphics = tempShape.graphics;
 			
 			// project data coordinates to screen coordinates and draw graphics
-			tempPoint.x = getCoordFromRecordKey(recordKey, true);
-			tempPoint.y = getCoordFromRecordKey(recordKey, false);
+			getCoordsFromRecordKey(recordKey, tempPoint);
 			
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
@@ -164,6 +163,5 @@ package weave.visualization.plotters
 			graphics.endFill();
 //			graphics.moveTo(tempPoint.x, tempPoint.y);
 		}
-		private static const tempPoint:Point = new Point(); // reusable object
 	}
 }

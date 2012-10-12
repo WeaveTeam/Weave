@@ -113,8 +113,7 @@ package weave.visualization.plotters
 						var recordKey:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
 						
 						// project data coordinates to screen coordinates and draw graphics onto tempShape
-						tempPoint.x = getCoordFromRecordKey(recordKey, true);
-						tempPoint.y = getCoordFromRecordKey(recordKey, false);
+						getCoordsFromRecordKey(recordKey, tempPoint);
 						task.dataBounds.projectPointTo(tempPoint, task.screenBounds);
 		
 						// round to nearest pixel to get clearer text
