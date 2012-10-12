@@ -73,7 +73,7 @@ package weave.services
 			// remove '?' and everything after
 			baseURL = baseURL.split('?')[0];
 			// remove last '/' and everything after
-			_baseURL = baseURL.substr(0, baseURL.lastIndexOf('/') + 1);
+			_baseURL = baseURL.substr(0, baseURL.lastIndexOf('/'));
 		}
 		
 		private var _baseURL:String;
