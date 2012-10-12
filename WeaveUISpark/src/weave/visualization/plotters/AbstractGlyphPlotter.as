@@ -110,12 +110,9 @@ package weave.visualization.plotters
 			var sourceSRS:String = sourceProjection.value;
 			var destinationSRS:String = destinationProjection.value;
 			
-			// if sourceSRS is missing and both are geom columns...
-			if (!sourceSRS &&
-				dataX.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY &&
-				dataY.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
+			// if sourceSRS is missing and both X and Y projections are the same, use that.
+			if (!sourceSRS)
 			{
-				// if both X and Y projections are the same...
 				var projX:String = dataX.getMetadata(ColumnMetadata.PROJECTION);
 				var projY:String = dataY.getMetadata(ColumnMetadata.PROJECTION);
 				if (projX == projY)
