@@ -55,6 +55,7 @@
 			public var main:WeavePodLayoutManager;
 			public var console:MobileConsole;
 			public var tileLayout:TileLayout;
+			public var alert:Boolean = false;
 			
 			private function init(event:Event):void
 			{
@@ -105,7 +106,11 @@
 				if (errors.length)
 				{
 					var error:Error = errors[errors.length - 1] as Error;
-					SparkAlert.show(ErrorManager.errorToString(error), 'Error ('+errors.length+')');
+					var str:String = ErrorManager.errorToString(error);
+					if (alert)
+						SparkAlert.show(str, 'Error ('+errors.length+')');
+					else
+						weaveTrace(str);
 				}
 			}
 			
@@ -150,16 +155,21 @@
 					return;
 				
 				weaveTrace('Received: ' + configURL);
-				Weave.loadWeaveFileContent(event.result as ByteArray);
+				try
+				{
+					Weave.loadWeaveFileContent(event.result as ByteArray);
 				
-				// temporary hack to make sure gestures are enabled
-				Weave.properties.toolInteractions.pan.value = WeaveAPI.CSVParser.createCSV([[InteractionController.ALT, InteractionController.INPUT_DRAG], [InteractionController.INPUT_PAN]]);
-				Weave.properties.toolInteractions.zoom.value = WeaveAPI.CSVParser.createCSV([[InteractionController.SHIFT, InteractionController.INPUT_DRAG], [InteractionController.INPUT_WHEEL], [InteractionController.INPUT_ZOOM]]);
-				
-				
-				
-				weaveTrace(ObjectUtil.toString(WeaveAPI.globalHashMap.getNames()));
-				console.visible = false;
+					// temporary hack to make sure gestures are enabled
+					Weave.properties.toolInteractions.pan.value = WeaveAPI.CSVParser.createCSV([[InteractionController.ALT, InteractionController.INPUT_DRAG], [InteractionController.INPUT_PAN]]);
+					Weave.properties.toolInteractions.zoom.value = WeaveAPI.CSVParser.createCSV([[InteractionController.SHIFT, InteractionController.INPUT_DRAG], [InteractionController.INPUT_WHEEL], [InteractionController.INPUT_ZOOM]]);
+					
+					weaveTrace(ObjectUtil.toString(WeaveAPI.globalHashMap.getNames()));
+					console.visible = false;
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			private function handleConfigFileFault(event:FaultEvent, configURL:String = null):void
 			{
