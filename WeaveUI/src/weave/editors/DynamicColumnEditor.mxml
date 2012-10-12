@@ -140,7 +140,7 @@
 				{
 					var hierarchy:XML = (multiDataSource.attributeHierarchy as AttributeHierarchy).value;
 					var node:XML = HierarchyUtils.getNodeFromPath(hierarchy, selectedPath.value, i);
-					if (node != null && node.localName().toString() != 'attribute')
+					if (node != null && String(node.localName()) != 'attribute')
 						multiDataSource.initializeHierarchySubtree(node);
 				}
 				var attribute:XMLList = selectedPath.value.descendants("attribute");

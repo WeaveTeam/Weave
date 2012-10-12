@@ -150,7 +150,7 @@ Displays catoegories in a tree view and the attributes in a list.
 					for (var i:int = 0; i < children.length(); i++)
 					{
 						var child:XML = children[i];
-						if (child != null && child.localName().toString() != "attribute")
+						if (child != null && String(child.localName()) != "attribute")
 						{
 							// get subtree
 							var subtree:Object = getTree(child);
