@@ -65,7 +65,35 @@
 			<mx:Button paddingTop="5" paddingBottom="5" paddingLeft="5" id="PearsonsCorr" label="Pearson's Coefficient" click="Corr_clickHandler(event)"/>
 			<mx:Button paddingTop="5" paddingBottom="5" paddingLeft="5" id="KendallCorr" label="Kendall's Coefficient" click="Corr_clickHandler(event)"/>
 			<mx:Button paddingTop="5" paddingBottom="5" paddingLeft="5" id="SpearmanCorr" label="Spearman's Coefficient" click="Corr_clickHandler(event)"/>
+			
+			<mx:Label text="Distribution of column data"/>
+			<mx:List rowHeight="100" width="100%" height="100%" id="distrList" dataProvider = "{distributionObjCanvasArray}">
+				<mx:itemRenderer>
+					<mx:Component>
+						<mx:HBox height="50%" verticalScrollPolicy="off">
+							<mx:Label id="lb"  fontWeight="bold"/>
+							<mx:Image  id="img"  />
+								<mx:Script>
+									<![CDATA[
+										override public function set data(value:Object):void{
+						
+											//super.data = value;
+											if(value != null)
+											{
+												lb.text = value.label;
+												img.source = value.icon;
+											}
+										}
+									]]>
+								</mx:Script>
+							
+						</mx:HBox>
+					</mx:Component>
+				</mx:itemRenderer>
+			</mx:List>
 		</mx:VBox>
+		
+		
 		
 		</mx:HBox>
 	<mx:Script>
@@ -73,11 +101,17 @@
 			import flash.sampler.Sample;
 			
 			import mx.collections.ArrayCollection;
+			import mx.collections.Sort;
+			import mx.containers.Canvas;
+			import mx.containers.Panel;
 			import mx.containers.TitleWindow;
 			import mx.controls.Alert;
 			import mx.controls.DataGrid;
 			import mx.controls.Image;
+			import mx.controls.List;
+			import mx.controls.TileList;
 			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.core.Application;
 			import mx.core.IFlexDisplayObject;
 			import mx.managers.PopUpManager;
 			import mx.rpc.AsyncToken;
@@ -88,23 +122,29 @@
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.core.ICallbackCollection;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IColumnStatistics;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.disposeObjects;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkableObjectIsBusy;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
+			import weave.core.CallbackCollection;
 			import weave.core.LinkableHashMap;
+			import weave.data.AttributeColumns.NumberColumn;
 			import weave.data.KeySets.KeySet;
+			import weave.primitives.Bounds2D;
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
 			import weave.services.beans.RResult;
 			import weave.ui.userControls.DatagridDisplay;
 			import weave.utils.ColumnUtils;
+			import weave.utils.ResultUtils;
 			import weave.visualization.tools.SimpleVisTool;
 			WeaveAPI.registerImplementation(IVisTool, DataStatisticsTool, "Data Statistics Tool");
 			
@@ -112,69 +152,13 @@
 			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			public var script:String = "";
-			private var joinedColumnsKeys:Array ;
 			private var joinedColumns:Array ;
 			public var outputNames:Array = new Array();
 			public var finalGridDisplayArray:Array = new Array();
 			public var colNames:Array = new Array();
-			
-			//this function draws the histograms in R, and returns the image: gives an idea about the distribution of each column
-			private function drawDistributionsFromR():void
-			{
-				if (WeaveAPI.SessionManager.linkableObjectIsBusy(variables))return;
-				//-------------WORKS---------------------------------
-				 var colObjects:Array = variables.getObjects(IAttributeColumn);
-				var plotScript:String;
-				var inputNames:Array = new Array(); var inputColTitles:Array = new Array();
-				var inputValues:Array = new Array();
-				
-				 for(var d:int = 0; d < colObjects.length; d++)
-				{
-					 inputColTitles[d] = (ColumnUtils.getTitle(colObjects[d] as IAttributeColumn));
-				}
-				
-				inputNames = ["ColumnValues" , "colTitles","numColumns"];  
-				inputValues[0] = joinedColumns;//matrix of columns  
-			    inputValues[1] = inputColTitles; //array of string names
-				inputValues[2] = d;//number of columns being sent
-	
-					 plotScript ="myMatrix <- as.matrix(ColumnValues)\n"  +
-						"par(mfrow = c(numColumns,2))\n" +
-						"for(i in 1:numColumns)\n" +
-						"{\n" +
-						"hist(myMatrix[,i],main = NULL, xlab = colTitles[i])\n" +
-						"}\n";  
-					trace(inputNames);
-					trace(inputValues);
-					var query:AsyncToken = Rservice.runScript(joinedColumnsKeys,inputNames,inputValues,outputNames,"",plotScript,false,false,false);
-					DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,joinedColumnsKeys); 
-
-				//--------------------Testing-------------------------
-				/* if (WeaveAPI.SessionManager.linkableObjectIsBusy(variables))return;
-				var colObjects:Array = variables.getObjects(IAttributeColumn);
-				var inputColTitles:Array = new Array(); 
-				for(var d:int = 0; d < colObjects.length; d++)
-				{
-					inputColTitles[d] = (ColumnUtils.getTitle(colObjects[d] as IAttributeColumn));
-				}
-			
-			var inputValues:Array = new Array();
-			for( var k :int = 0; k < colObjects.length; k++)
-			{
-				var inputNames:Array = new Array(); 
-				inputValues = joinedColumns;
-				//inputNames[k] = inputColTitles[k]
-				inputNames = ["myColumn"];
-				var script:String = "";
-				trace(inputNames);
-				trace(inputValues);
-				var plotScript:String = "hist(myColumn)\n";
-				var query:AsyncToken = Rservice.runScript(joinedColumnsKeys,inputNames,inputValues,outputNames,script,plotScript,false,false,false);
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,joinedColumnsKeys); 
-			} */
-			
-			
-			}
+			public var latestjoinedColumnKeys:Array = new Array();
+			public var sentToRcounter:int = 0; public var receivedFromRcounter:int = 0;
+			public var binnedColumns:Array = new Array();//columns containing binning information which are to be drawn
 			
 			override protected function constructor():void
 			{
@@ -182,16 +166,126 @@
 				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);
-				
-				
 			}
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				//variables.addImmediateCallback(this, columnProcessing);
-				//variables.addGroupedCallback(this, drawDistributionsFromR);
+				variables.addGroupedCallback(this, normalizationinR);
 			}
+			
+			private function normalizationinR():void 
+			{
+				if (WeaveAPI.SessionManager.linkableObjectIsBusy(variables))//do the next chunk of code only after _plotter.columns is filled
+					return;
+				
+				var selectedColumns:Array = variables.getObjects(); //Columns from ColumnListComponent 
+				var attributeColumns:Array = new Array();
+				for (var f:int = 0; f < selectedColumns.length; f++)
+				{
+					var _col:IAttributeColumn = selectedColumns[f];
+					var dataType:String = ColumnUtils.getDataType(_col);
+					
+					
+					if(dataType == "number")//screening only numeric columns for normalization
+					{
+						colNames.push(ColumnUtils.getTitle(_col  as IAttributeColumn));
+						attributeColumns.push( _col as IAttributeColumn);
+					}
+					
+				}
+				//columns sent as a matric, all at one time
+				var inputValues:Array = new Array(); var inputNames:Array;
+				inputNames = ["mymatrix"];
+				var outputNames:Array = ["normOutput"];
+				var script:String = "frame <- data.frame(mymatrix)\n" +
+					"donorm <- function(frame){\n" +
+					"RR <- nrow(frame)\n"+
+					"CC <- ncol(frame)\n"+
+					"for (z in 1:CC){\n"+
+					"maxr <- max(frame[z])\n"+
+					"minr <- min(frame[z])\n"+
+					"for(i in 1:RR){\n"+
+					" frame[i,z] <- (frame[i,z] - minr) / (maxr - minr)\n"+
+					" }\n"+
+					"}\n"+
+					"frame\n"+
+					"}\n"+
+					"normOutput <- donorm(frame)\n";
+				
+				var result:Array = joinColumns(attributeColumns);
+				latestjoinedColumnKeys = result[0];
+				joinedColumns = result[1];
+				//Ten stat details eg. max, min, mean etc etc
+				for (var u:int = 0 ; u < 10; u++)
+				{
+					finalGridDisplayArray[u] = new Array();
+					//(finalGridDisplayArray[u] as Array).push(outputNames[u]);
+				} 
+				
+				if ( latestjoinedColumnKeys.length != 0)
+				{
+					inputValues.push(joinedColumns); 
+					var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
+					DelayedAsyncResponder.addResponder(query, handleNormScriptResult, handleRunScriptFault,latestjoinedColumnKeys);
+				}
+			}
+			
+			/** Returns the normalized dataset */
+			private function handleNormScriptResult(event:ResultEvent, token:Object = null):void
+			{
+				if (token != latestjoinedColumnKeys){return;}//handles two asynchronous calls made one after the other
+				
+				var temRObjects:Array = new Array();
+				//Object to stored returned result - Which is array of object{name: , value: }
+				var Robj:Array = event.result as Array;				
+				
+				if (Robj == null)
+				{
+					reportError("R Servlet did not return an Array of results as expected.");
+					return;
+				}
+				
+				//collecting Objects of type RResult(Should Match result object from Java side)
+				for (var i:int = 0; i < (event.result).length; i++)
+				{
+					if (Robj[i] == null)
+					{
+						trace("WARNING! R Service returned null in results array at index "+i);
+						continue;
+					}
+					var rResult:RResult = new RResult(Robj[i]);
+					temRObjects = (rResult.value) as Array;
+					
+				}	
+				
+				//Once normalized Columns are returned from R, send them into R for binning
+				binningDataFromR(temRObjects);
+				
+			}
+			
+			
+			//this function returns a histogram object from R for plotting in Weave
+			private function binningDataFromR(_normColumns:Array):void
+			{
+				//columns sent as vectors, one at a time
+					for(var i:int = 0; i < _normColumns.length; i++)
+					{
+						var inputValues:Array = new Array(); var inputNames:Array = new Array();
+						inputValues.push(_normColumns[i]);
+						inputNames = ["myColumn"];
+						var binningScript:String = "answer <- hist(myColumn, plot = FALSE)";
+						var resultNames: Array = new Array(); resultNames = ["answer$counts","answer$breaks"];
+						
+						var query:AsyncToken = Rservice.runScript(latestjoinedColumnKeys, inputNames, inputValues, resultNames, binningScript,"", false, false, false);
+						DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, latestjoinedColumnKeys);
+						sentToRcounter++;
+					}
+						
+			
+			}
+			
 			
 			private static function get selection():KeySet
 			{
@@ -206,36 +300,6 @@
 				return [result.shift(), result];
 			}
 			
-			/*This function prepares the columns[joining and conversion) before sending them to R  */
-			private function columnProcessing( ):void
-			{
-				var selectedColumns:Array = variables.getObjects(); //Columns from ColumnListComponent 
-				var attributeColumns:Array = new Array();
-				for (var f:int = 0; f < selectedColumns.length; f++)
-				{
-					attributeColumns[f] = selectedColumns[f] as IAttributeColumn;
-					colNames[f] = ColumnUtils.getTitle(attributeColumns[f]);
-				}
-				
-				var joinedColumnResult: Array = joinColumns(attributeColumns);
-				joinedColumnsKeys = joinedColumnResult[0];
-			    joinedColumns = joinedColumnResult[1];
-				
-				//makes a call for drawing the distribution of each column
-				//drawDistributionsFromR();
-				/* for (var k:int = 0; k < joinedColumns.length; k++)
-				{
-					var colStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics((joinedColumns[k] as IAttributeColumn));
-					finalGridDisplayArray[k].push(colStats.getCount());
-					finalGridDisplayArray[k].push(colStats.getMax());
-					finalGridDisplayArray[k].push(colStats.getMean());
-					finalGridDisplayArray[k].push(colStats.getMin());
-					finalGridDisplayArray[k].push(colStats.getSquareSum());
-					finalGridDisplayArray[k].push(colStats.getStandardDeviation());
-					finalGridDisplayArray[k].push(colStats.getSum());
-					finalGridDisplayArray[k].push(colStats.getVariance());
-				} */
-			}
 			
 			/* Different Commands to be sent to R */
 			protected function scriptHandler(event:MouseEvent):void
@@ -323,46 +387,22 @@
 			
 			protected function doStatistics_clickHandler(event:MouseEvent):void
 			{				
-				 for (var u:int = 0 ; u < outputNames.length; u++)
-				{
-					finalGridDisplayArray[u] = new Array();
-					(finalGridDisplayArray[u] as Array).push(outputNames[u]);
-				} 
 				
-				columnProcessing();
-				
-				sendingInfoToR(script);
 				
 			}
 			
-			
-			private function sendingInfoToR(script:String): void
-			{
-				var temArray:Array = variables.getObjects();//acts as a counter in the following loop
-				for( var c:int = 0; c < temArray.length ; c++)
-				{
-					var inputValues:Array = new Array();//array of columns
-					inputValues.push(joinedColumns[c]);//each column sent one at a time
-					var inputNames: Array = new Array();
-					inputNames = ["myColumn"];//default name for every column sent one at a time
-					var query:AsyncToken = Rservice.runScript(joinedColumnsKeys,inputNames,inputValues,outputNames,script,"",false,false,false);
-					DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,joinedColumnsKeys);
-				}
-				trace("hello");
-			}
 			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
 			{
+				receivedFromRcounter++;
 				//Object to stored returned result - Which is array of object{name: , value: }
-				var Robj:Array = event.result as Array;				
+				var Robj:Array = event.result as Array;		
+				var columnResult:Array = new Array();//collects results for one column
 				
 				if (Robj == null)
 				{
 					reportError("R Servlet did not return an Array of results as expected.");
 					return;
 				}
-				
-				//Collecting all RResult Objects into an Array 
-				var RresultArray:Array = new Array();
 				
 				//collecting Objects of type RResult(Should Match result object from Java side)
 				for (var i:int = 0; i < (event.result).length; i++)
@@ -373,27 +413,96 @@
 						continue;
 					}
 					var rResult:RResult = new RResult(Robj[i]);
-					//RresultArray.push(rResult.value);	
-					//variables.ge
-						//var obj = new obj
-						//obj[""] = 
-					RresultArray.push(rResult);
-					if(RresultArray[i].name == "Plot Results")
-					{
-						var imagePanel:DraggablePanel = Weave.root.requestObject(null, DraggablePanel, false);
-						imagePanel.title = "Histogram plots(distributions) of Columns";
-						var image:Image = new Image();
-						image.source = RresultArray[i].value;
-						imagePanel.addChild(image);
-						//image.percentWidth = 100; image.percentHeight = 100;
-						imagePanel.panelWidth.value = "500";
-						imagePanel.panelHeight.value = "500";
-					}
-					
+					// now plot the bins 
+					columnResult.push(rResult);
 					finalGridDisplayArray[i].push( rResult.value);
 				
 				}	
 				
+				
+				binnedColumns.push(columnResult);//collects results of all columns
+				
+				//draw the distributions once all the binning data has been returned
+				if(sentToRcounter == receivedFromRcounter)
+				{
+					drawingColumnDistribution(binnedColumns);
+				}
+				
+			}
+			
+		//	private  var showDistrList:DraggablePanel = Weave.root.requestObject(null, DraggablePanel, false);
+			//drawing binned Columns obtained from R
+			
+			[Bindable]
+			public var distributionObjCanvasArray:Array = new Array();//collects all the canvases for all the columns (one canvas per column)
+			private function drawingColumnDistribution(_binnedColumns:Array):void
+			{
+				//x axis values are normalized between 0 and 1 (are multipled by factor to fit canvas size)
+				//bar heights are normalized using the tallest bar
+				
+				distrList.labelField = "label"; distrList.iconField = "icon";
+				
+				// looping over columns
+				for(var k:int = 0; k < _binnedColumns.length; k++)
+				{
+					var distributionObj:Object = new Object();
+					
+					distributionObj["label"] = colNames[k];
+					var can:Canvas = new Canvas();
+					can.width= 100; 
+					can.height = 100;
+					can.graphics.clear();
+					
+					can.graphics.lineStyle(1,0x000000,0.75);
+					
+					var margin:Number = 20;
+					var columnData:Array = _binnedColumns[k];
+					var colFreq:Array = ((columnData[0] as RResult).value as Array);//first element is the frequencies, hence hard coded
+					var colBreaks:Array = ((columnData[1] as RResult).value as Array);//second elemet is the range split
+					
+					//drawing x- axis
+					can.graphics.moveTo(margin, (can.height - margin));
+					can.graphics.lineTo((can.width - margin), (can.height - margin));
+					
+					//ratio
+					var scaleFactor:Number = can.height - (margin*2); //margin on the left and right hand side
+					
+					var maxColHeight:Number = Math.max.apply(null,colFreq);//getting the maximum height of the bars and normalizing the bar height
+					
+					
+					var startPoint:Point = new Point(); startPoint.x = 20; startPoint.y = (can.height - margin);
+					
+					//drawing the distribution
+					can.graphics.moveTo(startPoint.x, startPoint.y);
+					//looping over the bins in each column
+					for(var i :int = 0; i < colFreq.length; i++)
+					{
+						var endP:Point = new Point();
+						var middleP:Point = new Point();
+						var middleP2:Point = new Point();
+						
+						var normBarHeight:Number = colFreq[i]/maxColHeight;//gives a value between 0 and 1
+						//range between two succesiive bins
+						var range: Number = colBreaks[i+1] - colBreaks[i];
+						middleP.x = startPoint.x ; middleP.y =  startPoint.y - (normBarHeight * scaleFactor);
+						middleP2.x = middleP.x + (range * scaleFactor); middleP2.y = middleP.y;
+						endP.x = middleP2.x; endP.y = startPoint.y ;
+						
+						
+						can.graphics.lineTo(middleP.x,  middleP.y);
+						can.graphics.lineTo(middleP2.x, middleP2.y);
+						can.graphics.lineTo(endP.x, endP.y);
+						
+						startPoint = endP;
+						can.graphics.moveTo(startPoint.x, startPoint.y);
+						
+					} 
+					
+				
+					distributionObj["icon"] = can;
+					distributionObjCanvasArray[k] = distributionObj;//pushing the respective distribution of the column
+				}
+				 
 			}
 			
 			
@@ -429,9 +538,13 @@
 				trace(["fault", token, event.message].join('\n'));
 				reportError(event);
 			}
+			
+			
+			
+			//--------------------Button Clicks-------------------------------------
 			protected function DisplayResults_clickHandler(event:MouseEvent):void
 			{
-				drawDistributionsFromR();
+				//drawDistributionsFromR();
 				colNames.unshift("Statistics");
 				finalGridDisplayArray.unshift(colNames);
   				var dg:DatagridDisplay = new DatagridDisplay();dg.initialize();
@@ -453,6 +566,7 @@
 			
 			protected function Corr_clickHandler(event:MouseEvent):void
 			{
+				//columns sent as a mtrix, all at the same time
 				var outputNames:Array = new Array();
 				var corScript:String = "";
 				if(event.target == PearsonsCorr)
@@ -470,7 +584,7 @@
 			
 				var inputValues:Array = new Array();
 				inputValues.push(joinedColumns);
-				var query:AsyncToken = Rservice.runScript(joinedColumnsKeys,inputNames,inputValues,outputNames,corScript,"",false,false,false);
+				var query:AsyncToken = Rservice.runScript(latestjoinedColumnKeys,inputNames,inputValues,outputNames,corScript,"",false,false,false);
 				DelayedAsyncResponder.addResponder(query, handleCorrRunScriptResult, handleRunScriptFault,outputNames);
 			}
 			

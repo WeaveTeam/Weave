@@ -59,7 +59,6 @@ package weave
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.JRITextEditor;
 	import weave.ui.RTextEditor;
-	import weave.ui.userControls.DataStatisticsTool;
 	import weave.utils.CSSUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.NumberUtils;
@@ -74,6 +73,7 @@ package weave
 	import weave.visualization.tools.CompoundRadVizTool;
 	import weave.visualization.tools.CustomTool;
 	import weave.visualization.tools.DataTableTool;
+	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DimensionSliderTool;
 	import weave.visualization.tools.GaugeTool;
 	import weave.visualization.tools.Histogram2DTool;

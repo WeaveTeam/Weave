@@ -56,10 +56,11 @@ package weave.visualization.plotters
 		private const _bitmapText:BitmapText = new BitmapText();
 		private var coordinate:Point = new Point();//reusable object
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
-		public var drawingClassLines:Boolean = false;
-		public var anchorClasses:Dictionary = null;//this tells us the classes to which dimensional anchors belong to
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
 		public var anchorColorMap:Dictionary;
+		public var drawingClassLines:Boolean = false;//this divides the circle into sectors which represent classes (number of sectors = number of classes)
+		public var displayClassNames:Boolean = false;//this displays the names of the classes 
+		public var anchorClasses:Dictionary = null;//this tells us the classes to which dimensional anchors belong to
 		
 		//Fill this hash map with bounds of every record key for efficient look up in getDataBoundsFromRecordKey
 		private var keyBoundsMap:Dictionary = new Dictionary();

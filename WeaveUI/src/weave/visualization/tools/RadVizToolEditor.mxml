@@ -77,7 +77,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public var selectedColumnName:String;
 			public var selectedAlgoOption:String;
 			private var thrValue:Number; private var layoutMeasure:String = new String();
-			// var editorCdLayout:ClassDiscriminationLayoutAlgorithm = new ClassDiscriminationLayoutAlgorithm(); 
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			
 			 override protected function childrenCreated():void
@@ -234,7 +233,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 	
-					
+			// identifies which measure (pvalue or t-statistic) has been selected by the user for the CD algorithm 
+			protected function measureCheck():String
+			{
+				var layoutMeasure:String = new String();
+				if(useThresholdCB.selected)
+				{
+					if(tStatCB.selected){ layoutMeasure = "Tstat";}
+					if(pValCB.selected) { layoutMeasure = "PVal";}
+					if(tStatCB.selected && pValCB.selected){ Alert.show("Please select only one option","Alert Box",Alert.OK);}
+				}
+				
+				return layoutMeasure;
+			}
+			
+			/*-----------------------------------------BUTTON CLICK HANDLERS----------------------------------------------------------*/		
 			
 			
 			/**
@@ -258,7 +271,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_target._plotter.LayoutClasses = _target.cdLayout.tAndpMapping; 
 				//_target._plotter.setAnchorLocations();
 				_target._plotter.setClassDiscriminationAnchorsLocations();//cd layout
-				//draws the class discriminating lines i.e. divides the Radviz circle into slices which equal the number of classes obtained				
 			}
 				
 			//restoring the default ordering
@@ -277,20 +289,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
-			// identifies which measure (pvalue or t-statistic) has been selected by the user for the CD algorithm 
-			protected function measureCheck():String
-			{
-				var layoutMeasure:String = new String();
-				if(useThresholdCB.selected)
-				{
-					if(tStatCB.selected){ layoutMeasure = "Tstat";}
-					if(pValCB.selected) { layoutMeasure = "PVal";}
-					if(tStatCB.selected && pValCB.selected){ Alert.show("Please select only one option","Alert Box",Alert.OK);}
-				}
-				
-				return layoutMeasure;
-			}
-				
 			
 		]]>
 	</mx:Script>
