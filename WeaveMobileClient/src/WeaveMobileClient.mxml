@@ -46,6 +46,7 @@
 			import weave.core.UIUtils;
 			import weave.ui.WeavePodLayoutManager;
 			import weave.ui.WeaveProgressBar;
+			import weave.visualization.layers.InteractionController;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
 			
 			// reference classes here so they get included in the app build
@@ -150,6 +151,13 @@
 				
 				weaveTrace('Received: ' + configURL);
 				Weave.loadWeaveFileContent(event.result as ByteArray);
+				
+				// temporary hack to make sure gestures are enabled
+				Weave.properties.toolInteractions.pan.value = WeaveAPI.CSVParser.createCSV([[InteractionController.ALT, InteractionController.INPUT_DRAG], [InteractionController.INPUT_PAN]]);
+				Weave.properties.toolInteractions.zoom.value = WeaveAPI.CSVParser.createCSV([[InteractionController.SHIFT, InteractionController.INPUT_DRAG], [InteractionController.INPUT_WHEEL], [InteractionController.INPUT_ZOOM]]);
+				
+				
+				
 				weaveTrace(ObjectUtil.toString(WeaveAPI.globalHashMap.getNames()));
 				console.visible = false;
 			}
@@ -185,6 +193,7 @@
 						break;
 					
 					case Keyboard.BACK:
+						event.preventDefault();
 						historyNav(-1);
 						break;
 					

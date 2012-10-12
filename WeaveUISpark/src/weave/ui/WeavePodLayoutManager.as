@@ -76,9 +76,13 @@ package weave.ui
 		 */		
 		public function addComponent(id:String, component:IVisualElement):void
 		{
-			weaveTrace('addComponent ' + id);
-			if (_idToComponent[id] != component)
+			var existingComponent:IVisualElement = _idToComponent[id] as IVisualElement;
+			if (existingComponent != component)
 			{
+				if (existingComponent)
+					removeComponent(id);
+				
+				weaveTrace('addComponent ' + id);
 				var pod:Pod = new Pod();
 				pod.id = id;
 				
@@ -108,10 +112,10 @@ package weave.ui
 		 */
 		public function removeComponent(id:String):void
 		{
-			weaveTrace('removeComponent ' + id);
 			var component:IVisualElement = _idToComponent[id] as IVisualElement;
 			if (component)
 			{
+				weaveTrace('removeComponent ' + id);
 				var pod:Pod = _idToPod[id];
 				
 				delete _idToPod[id];
