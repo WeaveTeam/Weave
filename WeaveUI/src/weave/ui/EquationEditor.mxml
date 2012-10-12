@@ -78,7 +78,7 @@
 			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.AttributeColumnMetadata;
+			import weave.api.data.ColumnMetadata;
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
@@ -165,7 +165,7 @@
 //				linkBindableProperty(equationColumn.equation, textEditor, "text");
 //				linkBindableProperty(equationColumn.columnTitle, titleInput, "text");
 				
-				titleInput.text = equationColumn.getMetadata(AttributeColumnMetadata.TITLE);
+				titleInput.text = equationColumn.getMetadata(ColumnMetadata.TITLE);
 				EventUtils.addDelayedEventCallback(titleInput, Event.CHANGE, handleTitleTextEntry);
 				equationColumn.addImmediateCallback(this,handleTitleSessionStateChange);
 				
@@ -188,14 +188,14 @@
 			{
 				if (eqCol == equationColumn)
 					return lang('Create New Equation...');
-				return eqCol.getMetadata(AttributeColumnMetadata.TITLE) || lang('Untitled');
+				return eqCol.getMetadata(ColumnMetadata.TITLE) || lang('Untitled');
 			}
 			private function handleActiveEquationSelect():void
 			{
 				if (activeEquationCombo.selectedItem == equationColumn)
 				{
 					var newEquation:EquationColumn = Weave.root.requestObject(null, EquationColumn, false);
-					newEquation.setMetadata(AttributeColumnMetadata.TITLE, Weave.root.getName(newEquation));
+					newEquation.setMetadata(ColumnMetadata.TITLE, Weave.root.getName(newEquation));
 					activeEquationCombo.selectedItem = newEquation;
 				}
 				dynamicColumn.globalName = Weave.root.getName(activeEquationCombo.selectedItem as EquationColumn);
@@ -273,13 +273,13 @@
 			
 			private function handleTitleTextEntry():void
 			{
-				equationColumn.setMetadata(AttributeColumnMetadata.TITLE, titleInput.text);
+				equationColumn.setMetadata(ColumnMetadata.TITLE, titleInput.text);
 			}
 			private function handleTitleSessionStateChange():void
 			{
 				// get the actual metadata string instead of the result of applying the title function
 				if (equationColumn.metadata.value)
-					titleInput.text = equationColumn.metadata.value[AttributeColumnMetadata.TITLE];
+					titleInput.text = equationColumn.metadata.value[ColumnMetadata.TITLE];
 			}
 			
 			

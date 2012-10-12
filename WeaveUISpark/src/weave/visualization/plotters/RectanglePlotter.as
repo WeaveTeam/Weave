@@ -24,7 +24,7 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
@@ -111,7 +111,7 @@ package weave.visualization.plotters
 		protected function getCoordFromRecordKey(recordKey:IQualifiedKey, trueXfalseY:Boolean):Number
 		{
 			var dataCol:IAttributeColumn = trueXfalseY ? xData : yData;
-			if (dataCol.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
+			if (dataCol.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
 			{
 				var geoms:Array = dataCol.getValueFromKey(recordKey) as Array;
 				var geom:GeneralizedGeometry;

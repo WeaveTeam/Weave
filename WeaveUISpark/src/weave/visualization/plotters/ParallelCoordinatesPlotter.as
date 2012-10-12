@@ -26,7 +26,7 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -191,9 +191,9 @@ package weave.visualization.plotters
 				col.variables.requestObjectCopy("filterCol", xData);
 				col.variables.requestObjectCopy("dataCol", yData);
 				
-				col.setMetadata(AttributeColumnMetadata.TITLE, value);
-				col.setMetadata(AttributeColumnMetadata.MIN, '{ getMin(dataCol) }');
-				col.setMetadata(AttributeColumnMetadata.MAX, '{ getMax(dataCol) }');
+				col.setMetadata(ColumnMetadata.TITLE, value);
+				col.setMetadata(ColumnMetadata.MIN, '{ getMin(dataCol) }');
+				col.setMetadata(ColumnMetadata.MAX, '{ getMax(dataCol) }');
 				
 				col.equation.value = 'getValueFromFilterColumn(keyCol, filterCol, dataCol, "'+value+'", Number)';
 				col.resumeCallbacks();

@@ -28,7 +28,7 @@ package weave.data.DataSources
 	
 	import weave.Reports.WeaveReport;
 	import weave.api.WeaveAPI;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
@@ -124,7 +124,7 @@ package weave.data.DataSources
 				attributeColumnName: "name",
 				dataTableName: "dataTable",
 				dataType: _convertOldDataType,
-				projectionSRS: AttributeColumnMetadata.PROJECTION
+				projectionSRS: ColumnMetadata.PROJECTION
 			});
 			for each (var node:XML in root.descendants())
 			{
@@ -441,8 +441,8 @@ package weave.data.DataSources
 						hierarchyNode.@title += ' (' + year + ')';
 				}
 				
-				var keyType:String = hierarchyNode['@' + AttributeColumnMetadata.KEY_TYPE];
-				var dataType:String = hierarchyNode['@' + AttributeColumnMetadata.DATA_TYPE];
+				var keyType:String = hierarchyNode['@' + ColumnMetadata.KEY_TYPE];
+				var dataType:String = hierarchyNode['@' + ColumnMetadata.DATA_TYPE];
 				
 				var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 				var setRecords:Function = function():void

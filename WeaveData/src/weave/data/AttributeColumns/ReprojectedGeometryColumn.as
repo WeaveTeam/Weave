@@ -24,7 +24,7 @@ package weave.data.AttributeColumns
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IQualifiedKey;
@@ -62,7 +62,7 @@ package weave.data.AttributeColumns
 		
 		override public function getMetadata(propertyName:String):String
 		{
-			if (propertyName == AttributeColumnMetadata.PROJECTION)
+			if (propertyName == ColumnMetadata.PROJECTION)
 			{
 				var srs:String = projectionSRS.value;
 				if (srs != null && srs != '')

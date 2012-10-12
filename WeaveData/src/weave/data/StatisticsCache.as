@@ -214,7 +214,7 @@ internal class ColumnStatisticsWrapper implements IColumnStatistics
 import flash.utils.Dictionary;
 
 import weave.api.WeaveAPI;
-import weave.api.data.AttributeColumnMetadata;
+import weave.api.data.ColumnMetadata;
 import weave.api.data.IAttributeColumn;
 import weave.api.data.IColumnStatistics;
 import weave.api.data.IQualifiedKey;
@@ -425,12 +425,12 @@ internal class ColumnStatistics implements IColumnStatistics
 		// BEGIN code to get custom min,max
 		var tempNumber:Number;
 		try {
-			tempNumber = StandardLib.asNumber(column.getMetadata(AttributeColumnMetadata.MIN));
+			tempNumber = StandardLib.asNumber(column.getMetadata(ColumnMetadata.MIN));
 			if (!isNaN(tempNumber))
 				min = tempNumber;
 		} catch (e:Error) { }
 		try {
-			tempNumber = StandardLib.asNumber(column.getMetadata(AttributeColumnMetadata.MAX));
+			tempNumber = StandardLib.asNumber(column.getMetadata(ColumnMetadata.MAX));
 			if (!isNaN(tempNumber))
 				max = tempNumber;
 		} catch (e:Error) { }

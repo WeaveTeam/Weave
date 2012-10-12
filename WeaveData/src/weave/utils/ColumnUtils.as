@@ -26,7 +26,7 @@ package weave.utils
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
@@ -59,12 +59,12 @@ package weave.utils
 		 */		
 		public static function getTitle(column:IAttributeColumn):String
 		{
-			var title:String = column.getMetadata(AttributeColumnMetadata.TITLE) || 'Undefined';
+			var title:String = column.getMetadata(ColumnMetadata.TITLE) || 'Undefined';
 			
 			// debug code
 			if (false)
 			{
-				var keyType:String = column.getMetadata(AttributeColumnMetadata.KEY_TYPE);
+				var keyType:String = column.getMetadata(ColumnMetadata.KEY_TYPE);
 				if (keyType)
 					title += " (Key type: " + keyType + ")";
 				else
@@ -108,7 +108,7 @@ package weave.utils
 		public static function getKeyType(column:IAttributeColumn):String
 		{
 			// first try getting the keyType from the metadata.
-			var keyType:String = column.getMetadata(AttributeColumnMetadata.KEY_TYPE);
+			var keyType:String = column.getMetadata(ColumnMetadata.KEY_TYPE);
 			if (keyType == null)
 			{
 				// if metadata does not specify keyType, get it from the first key in the list of keys.
@@ -126,7 +126,7 @@ package weave.utils
 		 */
 		public static function getDataType(column:IAttributeColumn):String
 		{
-			return column.getMetadata(AttributeColumnMetadata.DATA_TYPE);
+			return column.getMetadata(ColumnMetadata.DATA_TYPE);
 		}
 		
 		/**

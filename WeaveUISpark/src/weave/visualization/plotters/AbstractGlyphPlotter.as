@@ -23,7 +23,7 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
@@ -112,12 +112,12 @@ package weave.visualization.plotters
 			
 			// if sourceSRS is missing and both are geom columns...
 			if (!sourceSRS &&
-				dataX.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY &&
-				dataY.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
+				dataX.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY &&
+				dataY.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
 			{
 				// if both X and Y projections are the same...
-				var projX:String = dataX.getMetadata(AttributeColumnMetadata.PROJECTION);
-				var projY:String = dataY.getMetadata(AttributeColumnMetadata.PROJECTION);
+				var projX:String = dataX.getMetadata(ColumnMetadata.PROJECTION);
+				var projY:String = dataY.getMetadata(ColumnMetadata.PROJECTION);
 				if (projX == projY)
 					sourceSRS = projX;
 			}
@@ -144,7 +144,7 @@ package weave.visualization.plotters
 			{
 				var result:Number = NaN;
 				var dataCol:IAttributeColumn = i == 0 ? dataX : dataY;
-				if (dataCol.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
+				if (dataCol.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
 				{
 					var geoms:Array = dataCol.getValueFromKey(recordKey) as Array;
 					var geom:GeneralizedGeometry;

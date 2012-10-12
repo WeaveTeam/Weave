@@ -33,7 +33,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.data.AttributeColumnMetadata;
+			import weave.api.data.ColumnMetadata;
 			import weave.api.data.DataTypes;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
@@ -194,7 +194,7 @@
 				for each (var column:ReprojectedGeometryColumn in reprojectedColumns)
 				{
 					linkProjection(column.projectionSRS);
-					projString = column.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION);
+					projString = column.internalDynamicColumn.getMetadata(ColumnMetadata.PROJECTION);
 					if (projString && _projComboBoxData.indexOf(projString) < 0)
 						_projComboBoxData.push(projString);					
 				}

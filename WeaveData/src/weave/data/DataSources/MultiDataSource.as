@@ -23,7 +23,7 @@ package weave.data.DataSources
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IAttributeHierarchy;
 	import weave.api.data.IColumnReference;
@@ -126,7 +126,7 @@ package weave.data.DataSources
 				var globalCategory:XML = <category title="Equations"/>;
 				for each(var col:IAttributeColumn in eqCols)
 				{
-					globalCategory.appendChild(<attribute name={ _root.getName(col) } title={ col.getMetadata(AttributeColumnMetadata.TITLE) }/>);
+					globalCategory.appendChild(<attribute name={ _root.getName(col) } title={ col.getMetadata(ColumnMetadata.TITLE) }/>);
 				}
 				rootNode.appendChild(globalCategory);
 			}

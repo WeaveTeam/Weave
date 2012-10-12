@@ -307,7 +307,7 @@ import org.openscales.proj4as.ProjPoint;
 import org.openscales.proj4as.ProjProjection;
 
 import weave.api.WeaveAPI;
-import weave.api.data.AttributeColumnMetadata;
+import weave.api.data.ColumnMetadata;
 import weave.api.data.DataTypes;
 import weave.api.data.IAttributeColumn;
 import weave.api.data.IColumnWrapper;
@@ -360,7 +360,7 @@ internal class WorkerThread
 		// if the source and destination projection are the same, we don't need to reproject.
 		// if we don't know the projection of the original column, we can't reproject.
 		// if there is no destination projection, don't reproject.
-		var sourceProjSRS:String = unprojectedColumn.getMetadata(AttributeColumnMetadata.PROJECTION);
+		var sourceProjSRS:String = unprojectedColumn.getMetadata(ColumnMetadata.PROJECTION);
 		if (sourceProjSRS == destinationProjSRS ||
 			!projectionManager.projectionExists(sourceProjSRS) ||
 			!projectionManager.projectionExists(destinationProjSRS))

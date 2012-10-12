@@ -20,7 +20,7 @@ package weave.api.data
 	 * 
 	 * @author adufilie
 	 */
-	public class AttributeColumnMetadata
+	public class ColumnMetadata
 	{
 		public static const TITLE:String = "title";
 		public static const NUMBER:String = "number";
