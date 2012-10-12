@@ -19,8 +19,6 @@
 
 package weave.core
 {
-	import avmplus.getQualifiedClassName;
-	
 	import flash.utils.getDefinitionByName;
 	
 	import mx.utils.ObjectUtil;

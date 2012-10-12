@@ -19,9 +19,8 @@
 
 package weave.utils
 {
-	import avmplus.getQualifiedClassName;
-	
 	import flash.utils.Dictionary;
+	import flash.utils.getQualifiedClassName;
 
 	/**
 	 * This class is a wrapper for a weak reference to an object.
