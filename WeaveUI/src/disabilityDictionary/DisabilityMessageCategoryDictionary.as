@@ -26,8 +26,8 @@ package disabilityDictionary
 	{
 		
 		public var messageCategoryMap : Dictionary = new Dictionary();
-		public var messageCategoryID : String = "IT";
-		public var message : String = "increasing trend";
+		//public var messageCategoryID : String = "IT";
+		//public var message : String = "increasing trend";
 		
 		
 		
@@ -35,22 +35,31 @@ package disabilityDictionary
 		{
 			
 			
-			messageCategoryMap[messageCategoryID] = message; // eg : IT = "increasing trend"
+		//	messageCategoryMap[messageCategoryID] = message; // eg : IT = "increasing trend"
 		   
 			
 		}
 
+		public function setMessage(messageID:Array):String
 		
-		public function setMessageCategoryID(_propertyNames:Array):Array
+		{
+			var message : String = "increasing trend";
+			messageCategoryMap[messageID[0]] = message;
+			
+			return message;
+		}
+		
+		public function setMessageCategoryID(_propertyNames:Array):String
 		{
 			
 			var messageCategoryIDs : Array = new Array();
 			
-			if (_propertyNames[0]>1)  // propertyNames[0] -> slope
+			if (_propertyNames[0]==1)  // propertyNames[0] -> slope
 				messageCategoryIDs.push("IT");
 				
+			var  completeMessage:String = setMessage(messageCategoryIDs);
 			
-			return messageCategoryIDs;
+			return completeMessage;
 		}
 	}
 }
