@@ -23,12 +23,10 @@ package weave.core
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.copySessionState;
 	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
-	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	

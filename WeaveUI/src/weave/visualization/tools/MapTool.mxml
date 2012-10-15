@@ -459,7 +459,7 @@
 					(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(children, overviewPanel);
 					linkSessionState(visualization.plotManager.layerSettings, overviewPanel.visualization.plotManager.layerSettings);
 					linkSessionState(visualization.plotManager.plotters, overviewPanel.visualization.plotManager.plotters);
-					linkSessionState(visualization.plotManager.zoomBounds, overviewPanel.parentZoomBounds);
+					overviewPanel.parentZoomBounds = visualization.plotManager.zoomBounds;
 					children.addGroupedCallback(this, bringOverviewToTop);
 				}
 				else

@@ -29,7 +29,6 @@ package weave.visualization.layers
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
-	import flash.utils.getTimer;
 	
 	import weave.Weave;
 	import weave.api.WeaveAPI;
