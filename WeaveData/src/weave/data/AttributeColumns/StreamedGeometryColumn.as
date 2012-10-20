@@ -115,7 +115,7 @@ package weave.data.AttributeColumns
 			else if (dataType == Number)
 				value = value ? (value as Array).length : NaN;
 			else if (dataType == String)
-				value = key.keyType + '#' + key.localName;
+				value = value ? 'Geometry(' + key.keyType + '#' + key.localName + ')' : undefined;
 			
 			return value;
 		}
