@@ -457,6 +457,12 @@ internal class WorkerThread
 					// fill newCoords array with reprojected coordinates
 					for (var iPart:int = 0; iPart < geomParts.length; ++iPart)
 					{
+						if (iPart > 0)
+						{
+							// append part marker
+							newCoords.push(NaN, NaN);
+						}
+						
 						var part:Vector.<BLGNode> = geomParts[iPart];
 						for (var iNode:int = 0; iNode < part.length; ++iNode)
 						{
@@ -481,9 +487,6 @@ internal class WorkerThread
 							// save reproj coords
 							newCoords.push(x, y);
 						}
-						
-						// append part marker
-						newCoords.push(NaN, NaN);
 					}
 					// indices in all vectors must match up
 					keysVector.push(key);
