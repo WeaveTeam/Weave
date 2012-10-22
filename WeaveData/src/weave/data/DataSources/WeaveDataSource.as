@@ -480,8 +480,17 @@ package weave.data.DataSources
 //			}
 		}
 		
-		public function getReport(name:String, keyStrings:Array):void	
+		public function getReport(name:String, keys:Array):void	
 		{
+			//convert vector of IQualifiedKeys into an array of key Strings
+			var keyStrings:Array = keys.concat();
+			for (var i:int = 0; i < keys.length; i++)
+			{
+				var qkey:IQualifiedKey = keys[i] as IQualifiedKey;
+				if (qkey)
+					keys[i] = qkey.localName;
+			}
+
 			var query:AsyncToken = dataService.createReport(name, keyStrings);
 			DelayedAsyncResponder.addResponder(query, handleReportResult, handleCreateReportFault, name);
 		}

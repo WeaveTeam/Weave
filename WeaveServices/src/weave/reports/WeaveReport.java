@@ -19,6 +19,7 @@
 
 package weave.reports;
 
+import java.rmi.RemoteException;
 import java.util.List;
 
 import weave.config.ISQLConfig;
@@ -47,24 +48,17 @@ public class WeaveReport
 
     private String _publishPath = null;  
 
-    public String createReport(ISQLConfig config, DataService dataSource, String reportDefinitionFileName, List<String>keys)
+    public String createReport(ISQLConfig config, DataService dataSource, String reportDefinitionFileName, List<String>keys) throws RemoteException
 	{
 		String result = "";
-		try 
+		//read the report definition
+		ReportDefinition def = new ReportDefinition(_publishPath, reportDefinitionFileName);
+		result = def.readDefinition();
+		if (result.startsWith(WeaveReport.REPORT_SUCCESS))
 		{
-			//read the report definition
-			ReportDefinition def = new ReportDefinition(_publishPath, reportDefinitionFileName);
-			result = def.readDefinition();
-			if (result.startsWith(WeaveReport.REPORT_SUCCESS))
-			{
-				//create the report result
-				ReportResult report = ReportFactory.createReportInstance(config, def.reportType, _publishPath);
-				result = report.createReport(dataSource, def, keys);
-			}
-		} 
-		catch (Exception e) 
-		{
-			result = WeaveReport.REPORT_FAIL + ": " + e.getMessage();
+			//create the report result
+			ReportResult report = ReportFactory.createReportInstance(config, _publishPath, def.reportType);
+			result = report.createReport(dataSource, def, keys);
 		}
 		return result;
 	}
