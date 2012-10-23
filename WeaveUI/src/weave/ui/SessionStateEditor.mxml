@@ -336,6 +336,7 @@ A text editor to change the Session State on the fly.
 						col = col.getInternalColumn() as IColumnWrapper;
 					}
 				}
+				refresh();
 			}
 
 		    private function linkSelectedObject():void
