@@ -151,9 +151,17 @@
 				finishEnabled = false;
 			}
 			
+			private function showBusy():void
+			{
+				busyIndicator.visible = true;
+			}
+			private function hideBusy(..._):void
+			{
+				busyIndicator.visible = false;
+			}
+			
 			private function handleProgress(event:ProgressEvent):void
 			{
-				trace(event.bytesLoaded / event.bytesTotal);
 				WeaveAPI.ProgressIndicator.updateTask(_csvFileReference, event.bytesLoaded / event.bytesTotal);
 			}
 			
@@ -161,20 +169,19 @@
 			{
 				_csvFileReference.load();
 				WeaveAPI.ProgressIndicator.addTask(_csvFileReference);
-				busyIndicator.visible = true;
+				showBusy();
 			}
 			
 			private function csvFileLoadCompleteHandler(event:Event):void
 			{
 				WeaveAPI.ProgressIndicator.removeTask(_csvFileReference);
 				if (_csvFileReference.data == null)
+				{
+					hideBusy();
 					return;
+				}
 				
 				AdminInterface.instance.uploadFile(_csvFileReference).addAsyncResponder(hideBusy, hideBusy);
-				function hideBusy():void
-				{
-					busyIndicator.visible = false;
-				}
 				
 				csvFileNameInput.text = _csvFileReference.name;
 				
@@ -183,6 +190,7 @@
 			
 			private function fileErrorHandler(event:IOErrorEvent):void
 			{
+				hideBusy();
 				var fileRef:FileReference = event.target as FileReference;
 				WeaveAdminService.messageDisplay(
 					"File upload failed",
