@@ -15,20 +15,15 @@
 
 package weave.api
 {
+	import avmplus.DescribeType;
+	
 	import flash.external.ExternalInterface;
-	import flash.net.SharedObject;
 	import flash.utils.Dictionary;
-	import flash.utils.describeType;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.FlexGlobals;
 	import mx.core.Singleton;
-	import mx.managers.ISystemManager;
-	import mx.resources.Locale;
-	import mx.resources.ResourceManager;
-	import mx.utils.ObjectUtil;
-	import mx.utils.StringUtil;
 	
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
@@ -172,6 +167,10 @@ package weave.api
 			return FlexGlobals.topLevelApplication;
 		}
 		
+		/**
+		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
+		 */
+		private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
 		
 		/**
 		 * This function will initialize the external interfaces so calls can be made from JavaScript to Weave.
@@ -185,11 +184,13 @@ package weave.api
 				var interfaces:Array = [IExternalSessionStateInterface]; // add more interfaces here if necessary
 				for each (var theInterface:Class in interfaces)
 				{
-					var classInfo:XML = describeType(theInterface);
+					var classInfo:Object = describeTypeJSON(theInterface, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_METHODS | DescribeType.HIDE_NSURI_METHODS | DescribeType.USE_ITRAITS);
 					// add a callback for each external interface function
-					for each (var methodName:String in classInfo.factory.method.@name)
+					for each (var method:Object in classInfo.traits.methods)
 					{
-						ExternalInterface.addCallback(methodName, generateExternalInterfaceCallback(methodName, theInterface));
+						var methodName:String = method.name;
+						var callback:Function = generateExternalInterfaceCallback(methodName, theInterface);
+						ExternalInterface.addCallback(methodName, callback);
 					}
 				}
 				var prev:Boolean = ExternalInterface.marshallExceptions;
@@ -302,9 +303,9 @@ package weave.api
 		private static function _verifyImplementation(theInterface:Class, theImplementation:Class):void
 		{
 			var interfaceName:String = getQualifiedClassName(theInterface);
-			var classInfo:XML = describeType(theImplementation);
-			if (classInfo.factory.implementsInterface.(@type == interfaceName).length() == 0)
-				throw new Error(getQualifiedClassName(theImplementation) + ' does not implement ' + theInterface);
+			var classInfo:Object = describeTypeJSON(theImplementation, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
+			if (classInfo.traits.interfaces.indexOf(interfaceName) < 0)
+				throw new Error(getQualifiedClassName(theImplementation) + ' does not implement ' + interfaceName);
 		}
 		
 		/**

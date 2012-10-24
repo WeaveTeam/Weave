@@ -20,10 +20,11 @@
 */
 
 
-@author skolman
-@author adufilie
 -->
-
+<!---
+	@author skolman
+	@author adufilie
+-->
 <ControlPanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
 				backgroundColor="#EFF4BC"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
@@ -70,6 +71,8 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import avmplus.DescribeType;
+			
 			import mx.controls.List;
 			import mx.controls.TextInput;
 			import mx.core.IUIComponent;
@@ -99,6 +102,11 @@
 				panelY.value = "15%";
 			}
 			
+			/**
+			 * avmplus.describeTypeJSON(o:*, flags:uint):Object
+			 */
+			private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -114,19 +122,31 @@
 				{
 					var functions:Array = new Array();
 					
-					var classInfo:XML = describeType(library);
-					for each (var constantTag:XML in classInfo.child("constant"))
-						if (constantTag.@name.toString() != 'VERSION')
-							constants.push(constantTag);
-					for each (var functionTag:XML in classInfo.child("method"))
-						functions.push(functionTag);
+					var classInfo:Object = describeTypeJSON(
+						library,
+						DescribeType.INCLUDE_TRAITS |
+						DescribeType.INCLUDE_VARIABLES |
+						DescribeType.INCLUDE_METHODS |
+						DescribeType.INCLUDE_METADATA |
+						DescribeType.HIDE_NSURI_METHODS
+					);
+					var item:Object;
+					for each (item in classInfo.traits.variables)
+					{
+						if (item.access == 'readonly' && item.name != 'VERSION')
+							constants.push(item);
+					}
+					for each (item in classInfo.traits.methods)
+					{
+						functions.push(item);
+					}
 					
-					functions.sortOn("@name",Array.CASEINSENSITIVE);
+					functions.sortOn("name",Array.CASEINSENSITIVE);
 					
 					var listVBox:VBox = new VBox();
 					listVBox.percentWidth = 100;
 					listVBox.percentHeight = 100;
-					listVBox.label = classInfo.@name;
+					listVBox.label = classInfo.name;
 					var lastIndex:int = listVBox.label.lastIndexOf(":");
 					if(lastIndex != -1)
 						listVBox.label = listVBox.label.substring(lastIndex+1,listVBox.label.length);
@@ -145,7 +165,7 @@
 					functionLists.addChild(listVBox);
 				}
 			
-				constants.sortOn("@name",Array.CASEINSENSITIVE);
+				constants.sortOn("name",Array.CASEINSENSITIVE);
 				
 				var constantsList:List = new List();
 				constantsList.dataProvider = constants; 
@@ -227,7 +247,7 @@
 			
 			private function handleListItemDoubleClick(event:MouseEvent):void
 			{
-				baseEquationUIComp.replaceEquation(((event.currentTarget as List).selectedItem) as XML);
+				baseEquationUIComp.replaceEquation(((event.currentTarget as List).selectedItem));
 					
 			}
 			private function handleDragEnter(event:DragEvent):void
@@ -238,7 +258,7 @@
 			
 			private function handleDragDrop(event:DragEvent):void
 			{
-				baseEquationUIComp.replaceEquation(((event.dragInitiator as List).selectedItem) as XML);
+				baseEquationUIComp.replaceEquation(((event.dragInitiator as List).selectedItem));
 			}
 			
 			private function captureDragDrop(event:DragEvent):void
@@ -257,15 +277,15 @@
 			
 			private function getLabel(item:Object):String
 			{
-				if ((item as XML).localName() == "constant")
-					return item.@name;
-				var label:String = (item as XML).@name + "(";
-				var params:XMLList = item.parameter;
-				for (var i:int = 0; i < params.length(); i++)
+				if (item.access == 'readonly')
+					return item.name;
+				var label:String = item.name + "(";
+				var params:Array = item.parameters;
+				for (var i:int = 0; i < params.length; i++)
 				{
 					if (i > 0)
 						label += ',';
-					label += String(params[i].@type).split("::").pop();
+					label += String(params[i].type).split("::").pop();
 				}
 				label += ")";
 				return label;

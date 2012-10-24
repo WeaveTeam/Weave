@@ -19,8 +19,9 @@
 
 package weave.core
 {
+	import avmplus.DescribeType;
+	
 	import flash.system.ApplicationDomain;
-	import flash.utils.describeType;
 
 	/**
 	 * This is an all-static class containing functions related to qualified class names.
@@ -127,6 +128,11 @@ package weave.core
 		private static const classExtendsMap:Object = new Object();
 		
 		/**
+		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
+		 */
+		private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
+		
+		/**
 		 * This function will populate the classImplementsMap and classExtendsMap for the given qualified class name.
 		 * @param classQName A qualified class name.
 		 * @return true if the class info has been cached.
@@ -139,16 +145,17 @@ package weave.core
 			var classDef:Class = getClassDefinition(classQName);
 			if (classDef == null)
 				return false;
-			var type:XML = describeType(classDef);
+
+			var type:Object = describeTypeJSON(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_BASES | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
 
 			var iMap:Object = new Object();
-			for each (var i:XML in type.factory.implementsInterface)
-				iMap[i.attribute("type").toString()] = true;
+			for each (var _implements:String in type.traits.interfaces)
+				iMap[_implements] = true;
 			classImplementsMap[classQName] = iMap;
 
 			var eMap:Object = new Object();
-			for each (var e:XML in type.factory.extendsClass)
-				eMap[e.attribute("type").toString()] = true;
+			for each (var _extends:String in type.traits.bases)
+				eMap[_extends] = true;
 			classExtendsMap[classQName] = eMap;
 			
 			return true; // successfully cached

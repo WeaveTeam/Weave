@@ -24,7 +24,6 @@ package weave
 	import flash.external.ExternalInterface;
 	import flash.net.SharedObject;
 	import flash.utils.ByteArray;
-	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.UIComponent;
@@ -50,7 +49,6 @@ package weave
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
-	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
 	import weave.utils.BitmapUtils;

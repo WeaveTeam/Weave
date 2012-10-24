@@ -27,7 +27,6 @@ package weave.core
 	import flash.events.EventPhase;
 	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
-	import flash.utils.describeType;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
 	
@@ -535,32 +534,43 @@ package weave.core
 		{
 			// linkable property names
 			var propertyNames:Array = [];
+			var deprecatedSetters:Array = [];
 			// iterate over the public properties, saving the names of the ones that implement ILinkableObject
-			var xml:XML = describeType(linkableObject);
-			var tag:XML;
-			//trace(xml.toXMLString());
-			for each (var tags:XMLList in [xml.constant, xml.variable, xml.accessor.(@access != "writeonly")])
+			var type:Object = describeTypeJSON(linkableObject, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_ACCESSORS | DescribeType.INCLUDE_VARIABLES | DescribeType.INCLUDE_METADATA);
+			var traits:Object = type.traits;
+			for (var i:int = 0; i < 2; i++)
 			{
-				for each (tag in tags)
+				var variables:Array = i == 0 ? traits.accessors : traits.variables;
+				for each (var variable:Object in variables)
 				{
-					// Only include this property name if it implements ILinkableObject.
-					if (ClassUtils.classImplements(tag.attribute("type"), ILinkableObjectQualifiedClassName))
+					var deprecated:Boolean = false;
+					for each (var metadata:Object in variable.metadata)
 					{
-						var propName:String = tag.attribute("name").toString();
-						propertyNames.push(propName);
+						if (metadata.name == 'Deprecated')
+						{
+							deprecated = true;
+							break;
+						}
+					}
+					
+					if (deprecated)
+					{
+						if (variables === traits.accessors && variable.access != 'readonly')
+							deprecatedSetters.push(variable.name);
+					}
+					else if (variable.access != 'writeonly' && ClassUtils.classImplements(variable.type, ILinkableObjectQualifiedClassName))
+					{
+						// not deprecated and implements ILinkableObject
+						propertyNames.push(variable.name);
 					}
 				}
 			}
+			
 			propertyNames.sort();
 			classNameToSessionedPropertyNamesMap[classQName] = propertyNames;
 			
-			// deprecated setters
-			var names:Array = [];
-			for each (tag in xml.accessor.(@access != "readonly"))
-				if (tag.metadata.(@name == "Deprecated").length() > 0)
-					names.push(tag.attribute("name"));
-			names.sort();
-			classNameToDeprecatedSetterNamesMap[classQName] = names;
+			deprecatedSetters.sort();
+			classNameToDeprecatedSetterNamesMap[classQName] = deprecatedSetters;
 		}
 		
 		/**
