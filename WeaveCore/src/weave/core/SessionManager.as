@@ -19,6 +19,8 @@
 
 package weave.core
 {
+	import avmplus.DescribeType;
+	
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
@@ -525,6 +527,43 @@ package weave.core
 		private const classNameToDeprecatedSetterNamesMap:Object = new Object();
 		
 		/**
+		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
+		 */		
+		private const describeTypeJSON:Function = DescribeType.getJSONFunction();
+		
+		private function cacheClassInfo(linkableObject:ILinkableObject, classQName:String):void
+		{
+			// linkable property names
+			var propertyNames:Array = [];
+			// iterate over the public properties, saving the names of the ones that implement ILinkableObject
+			var xml:XML = describeType(linkableObject);
+			var tag:XML;
+			//trace(xml.toXMLString());
+			for each (var tags:XMLList in [xml.constant, xml.variable, xml.accessor.(@access != "writeonly")])
+			{
+				for each (tag in tags)
+				{
+					// Only include this property name if it implements ILinkableObject.
+					if (ClassUtils.classImplements(tag.attribute("type"), ILinkableObjectQualifiedClassName))
+					{
+						var propName:String = tag.attribute("name").toString();
+						propertyNames.push(propName);
+					}
+				}
+			}
+			propertyNames.sort();
+			classNameToSessionedPropertyNamesMap[classQName] = propertyNames;
+			
+			// deprecated setters
+			var names:Array = [];
+			for each (tag in xml.accessor.(@access != "readonly"))
+				if (tag.metadata.(@name == "Deprecated").length() > 0)
+					names.push(tag.attribute("name"));
+			names.sort();
+			classNameToDeprecatedSetterNamesMap[classQName] = names;
+		}
+		
+		/**
 		 * @private
 		 */
 		private function getDeprecatedSetterNames(linkableObject:ILinkableObject):Array
@@ -539,12 +578,8 @@ package weave.core
 			var names:Array = classNameToDeprecatedSetterNamesMap[className] as Array;
 			if (names == null)
 			{
-				names = [];
-				for each (var tag:XML in describeType(linkableObject).accessor.(@access != "readonly"))
-					if (tag.metadata.(@name == "Deprecated").length() > 0)
-						names.push(tag.attribute("name"));
-				names.sort();
-				classNameToDeprecatedSetterNamesMap[className] = names;
+				cacheClassInfo(linkableObject, className);
+				names = classNameToDeprecatedSetterNamesMap[className] as Array;
 			}
 			return names;
 		}
@@ -566,24 +601,8 @@ package weave.core
 			var propertyNames:Array = classNameToSessionedPropertyNamesMap[className] as Array;
 			if (propertyNames == null)
 			{
-				propertyNames = [];
-				// iterate over the public properties, saving the names of the ones that implement ILinkableObject
-				var xml:XML = describeType(linkableObject);
-				//trace(xml.toXMLString());
-				for each (var tags:XMLList in [xml.constant, xml.variable, xml.accessor.(@access != "writeonly")])
-				{
-					for each (var tag:XML in tags)
-					{
-						// Only include this property name if it implements ILinkableObject.
-						if (ClassUtils.classImplements(tag.attribute("type"), ILinkableObjectQualifiedClassName))
-						{
-							var propName:String = tag.attribute("name").toString();
-							propertyNames.push(propName);
-						}
-					}
-				}
-				propertyNames.sort();
-				classNameToSessionedPropertyNamesMap[className] = propertyNames;
+				cacheClassInfo(linkableObject, className);
+				propertyNames = classNameToSessionedPropertyNamesMap[className] as Array;
 			}
 			return propertyNames;
 		}
