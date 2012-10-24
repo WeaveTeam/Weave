@@ -1,9 +1,8 @@
 package weave.services
 {
-    import weave.services.beans.AttributeColumnInfo;
-    import weave.services.AdminInterface;
-    import weave.services.WeaveAdminService;
     import mx.rpc.events.ResultEvent;
+    
+    import weave.services.beans.AttributeColumnInfo;
     public class MetadataCache
     {
         private var entity_metacache:Object = {}; /* Of AttributeColumnInfo's */
@@ -12,8 +11,6 @@ package weave.services
         private var childquery_queues:Object = {}; /* Of arrays of functions */
         public function MetadataCache()
         {
-            /* Nothing really needs to be done. */
-            return; 
         }
         public function get_children(id:int, onComplete:Function = null):Array
         {
@@ -51,7 +48,7 @@ package weave.services
             if (queue.length == 1)
                 AdminInterface.instance.getEntityChildren(id, getChildrenHandler);
 
-            function getChildrenHandler(event:ResultEvent, token:Object = null):void
+            function getChildrenHandler(event:ResultEvent):void
             {
                 var obj_children:Array = event.result as Array || [];
                 var children:Array = [];
@@ -81,7 +78,7 @@ package weave.services
             if (queue.length == 1)
                 AdminInterface.instance.getEntity(id, getEntityHandler);
 
-            function getEntityHandler(event:ResultEvent, token:Object = null):void
+            function getEntityHandler(event:ResultEvent):void
             {
                 var entity:AttributeColumnInfo = new AttributeColumnInfo(event.result);
                 entity_metacache[id] = entity;
@@ -151,9 +148,9 @@ package weave.services
         }
         public function copy_and_add(child_id:int, parent_id:int, onComplete:Function = null):void
         {
-            function afterCopy(response:Object):void
+            function afterCopy(event:ResultEvent):void
             {
-                var new_child_id:int = response as int;
+                var new_child_id:int = int(event.result);
                 add_child(new_child_id, parent_id, onComplete);
             }
             AdminInterface.instance.copyEntity(child_id, afterCopy);

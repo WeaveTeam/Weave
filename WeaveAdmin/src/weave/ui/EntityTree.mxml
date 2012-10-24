@@ -73,7 +73,7 @@ private function filterByType(item:EntityTreeNode, index:int, arr:Array):Boolean
         return false;
     }
     if (etn.object != null)
-        return (etn.object.entity_type == entityType || etn.object.entity_type == AttributeColumnInfo.COLUMN); 
+        return (etn.object.entity_type == entityType || etn.object.entity_type == AttributeColumnInfo.ENTITY_COLUMN); 
     else
         return false;
 }

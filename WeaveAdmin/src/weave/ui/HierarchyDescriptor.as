@@ -1,10 +1,10 @@
 package weave.ui
 {
-    import mx.controls.treeClasses.ITreeDataDescriptor;
+    import mx.collections.ArrayList;
     import mx.collections.ICollectionView;
     import mx.collections.ListCollectionView;
-    import mx.collections.ArrayList;
-    import weave.services.MetadataCache;
+    import mx.controls.treeClasses.ITreeDataDescriptor;
+    
     import weave.services.beans.AttributeColumnInfo;
     
     public class HierarchyDescriptor implements ITreeDataDescriptor
@@ -14,7 +14,11 @@ package weave.ui
         }
         public function addChildAt(parent:Object, newChild:Object, index:int, model:Object = null):Boolean
         {
-			
+			if (!parent)
+			{
+				weaveTrace('HierarchyDescriptor.addChildAt(): parent is null, so using root');
+				parent = (model as ListCollectionView).getItemAt(0);
+			}
 
             var parentEntity:EntityTreeNode = new EntityTreeNode(parent._id);
             var childEntity:EntityTreeNode = new EntityTreeNode(newChild._id);
@@ -50,7 +54,7 @@ package weave.ui
         public function isBranch(node:Object, model:Object = null):Boolean
         {
             var entityNode:EntityTreeNode = node as EntityTreeNode;
-            return entityNode.object != null && entityNode.object.entity_type != AttributeColumnInfo.COLUMN;
+            return entityNode.object != null && entityNode.object.entity_type != AttributeColumnInfo.ENTITY_COLUMN;
         }
     }
 }

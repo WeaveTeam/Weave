@@ -7,16 +7,16 @@
                 creationComplete="handleCreated()">
     <mx:VBox height="100%" width="40%">
         <mx:Label text="Tables"/>
-        <ui:EntityTree id="tableTree" entityType="{AttributeColumnInfo.TABLE}"
+        <ui:EntityTree id="tableTree" entityType="{AttributeColumnInfo.ENTITY_TABLE}"
             width="100%" height="100%" dragEnabled="true" dragMoveEnabled="false" dropEnabled="false"/>
         <mx:HBox width="100%">
             <mx:Button label="Import Table..." click="importTable()"/>
-            <mx:Button label="Delete Table" click="deleteTable()" enabled="{tableTree.selectedType == AttributeColumnInfo.TABLE}"/>
+            <mx:Button label="Delete Table" click="deleteTable()" enabled="{tableTree.selectedType == AttributeColumnInfo.ENTITY_TABLE}"/>
         </mx:HBox>
     </mx:VBox>
     <mx:VBox height="100%" width="60%">
         <mx:Label text="Tags"/>
-        <ui:EntityTree id="tagTree" entityType="{AttributeColumnInfo.TAG}" 
+        <ui:EntityTree id="tagTree" entityType="{AttributeColumnInfo.ENTITY_CATEGORY}" 
             width="100%" height="100%" 
             dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
         <mx:HBox>
@@ -111,7 +111,7 @@
         }
         else 
         {
-            if (entity_type == AttributeColumnInfo.TAG)
+            if (entity_type == AttributeColumnInfo.ENTITY_CATEGORY)
             {
                 PopUpUtils.confirm(this, "Delete Tag", "Delete tag \"" + item.label + "\"?", deleteTagFunction, null, "Delete", "Keep")
                 // TODO: Add confirmation dialog

@@ -339,7 +339,7 @@ package weave.services
                 public function getDataTableInfo(title:String):DelayedAsyncInvocation
                 {
                     var params:Object = {"title": title};
-                    return service.getEntitiesWithType(activeConnectionName, activePassword, AttributeColumnInfo.COLUMN, params);
+                    return service.getEntitiesWithType(activeConnectionName, activePassword, AttributeColumnInfo.ENTITY_COLUMN, params);
                 }
 		public function getDataTables():void
 		{

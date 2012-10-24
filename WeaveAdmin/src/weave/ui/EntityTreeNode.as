@@ -53,7 +53,7 @@ package weave.ui
         }
         protected function get_children():Array
         {
-            if (this.object.entity_type == AttributeColumnInfo.COLUMN) return null;
+            if (this.object.entity_type == AttributeColumnInfo.ENTITY_COLUMN) return null;
             var fresh_children_ids:Array = AdminInterface.instance.meta_cache.get_children(id, childrenChanged);
             if (children_ids == fresh_children_ids)
                 return _children;
@@ -77,8 +77,7 @@ package weave.ui
         public function add_child(child_id:int):void
         {
             var child_obj:Object = AdminInterface.instance.meta_cache.get_metadata(child_id);
-            if (child_obj && 
-                    (child_obj.entity_type == AttributeColumnInfo.TABLE))
+            if (child_obj && (child_obj.entity_type == AttributeColumnInfo.ENTITY_TABLE))
             {
                 AdminInterface.instance.meta_cache.copy_and_add(child_id, id, childrenChanged);
             }
