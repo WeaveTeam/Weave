@@ -123,17 +123,21 @@
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
+			import weave.ui.BusyIndicator;
 			import weave.ui.admin.ServerFileViewer;
 
 			
 			private static const paddingIndent:int = 20;
+			private var busyIndicator:BusyIndicator = new BusyIndicator();
 			
 			private var _csvFileReference:FileReference = new FileReference();
 			private var _serverFileBrowser:ServerFileViewer = null;
 			
 			private function handleCreationComplete():void
 			{
+				addChild(busyIndicator);
 				_csvFileReference.addEventListener(Event.SELECT, csvFileSelectedHandler);
+				_csvFileReference.addEventListener(ProgressEvent.PROGRESS, handleProgress);
 				_csvFileReference.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
 				_csvFileReference.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
 				
@@ -148,17 +152,37 @@
 				finishEnabled = false;
 			}
 			
+			private function showBusy():void
+			{
+				busyIndicator.visible = true;
+			}
+			private function hideBusy(..._):void
+			{
+				busyIndicator.visible = false;
+			}
+			
+			private function handleProgress(event:ProgressEvent):void
+			{
+				WeaveAPI.ProgressIndicator.updateTask(_csvFileReference, event.bytesLoaded / event.bytesTotal);
+			}
+			
 			private function csvFileSelectedHandler(event:Event):void
 			{
 				_csvFileReference.load();
+				WeaveAPI.ProgressIndicator.addTask(_csvFileReference);
+				showBusy();
 			}
 			
 			private function csvFileLoadCompleteHandler(event:Event):void
 			{
+				WeaveAPI.ProgressIndicator.removeTask(_csvFileReference);
 				if (_csvFileReference.data == null)
+				{
+					hideBusy();
 					return;
+				}
 				
-				AdminInterface.instance.uploadFile(_csvFileReference);
+				AdminInterface.instance.uploadFile(_csvFileReference).addAsyncResponder(hideBusy, hideBusy);
 				
 				csvFileNameInput.text = _csvFileReference.name;
 				
@@ -167,6 +191,7 @@
 			
 			private function fileErrorHandler(event:IOErrorEvent):void
 			{
+				hideBusy();
 				var fileRef:FileReference = event.target as FileReference;
 				WeaveAdminService.messageDisplay(
 					"File upload failed",
