@@ -123,16 +123,20 @@
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
+			import weave.ui.BusyIndicator;
 			import weave.ui.admin.ServerFileViewer;
 			
 			private static const paddingIndent:int = 20;
+			private var busyIndicator:BusyIndicator = new BusyIndicator();
 			
 			private var _csvFileReference:FileReference = new FileReference();
 			private var _serverFileBrowser:ServerFileViewer = null;
 			
 			private function handleCreationComplete():void
 			{
+				addChild(busyIndicator);
 				_csvFileReference.addEventListener(Event.SELECT, csvFileSelectedHandler);
+				_csvFileReference.addEventListener(ProgressEvent.PROGRESS, handleProgress);
 				_csvFileReference.addEventListener(Event.COMPLETE, csvFileLoadCompleteHandler);
 				_csvFileReference.addEventListener(IOErrorEvent.IO_ERROR, fileErrorHandler);
 				
@@ -147,17 +151,30 @@
 				finishEnabled = false;
 			}
 			
+			private function handleProgress(event:ProgressEvent):void
+			{
+				trace(event.bytesLoaded / event.bytesTotal);
+				WeaveAPI.ProgressIndicator.updateTask(_csvFileReference, event.bytesLoaded / event.bytesTotal);
+			}
+			
 			private function csvFileSelectedHandler(event:Event):void
 			{
 				_csvFileReference.load();
+				WeaveAPI.ProgressIndicator.addTask(_csvFileReference);
+				busyIndicator.visible = true;
 			}
 			
 			private function csvFileLoadCompleteHandler(event:Event):void
 			{
+				WeaveAPI.ProgressIndicator.removeTask(_csvFileReference);
 				if (_csvFileReference.data == null)
 					return;
 				
-				AdminInterface.instance.uploadFile(_csvFileReference);
+				AdminInterface.instance.uploadFile(_csvFileReference).addAsyncResponder(hideBusy, hideBusy);
+				function hideBusy():void
+				{
+					busyIndicator.visible = false;
+				}
 				
 				csvFileNameInput.text = _csvFileReference.name;
 				
