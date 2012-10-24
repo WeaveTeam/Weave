@@ -1064,7 +1064,7 @@ public class SQLUtils
 				whereQuery += " AND ";
 			whereQuery += caseSensitiveCompare(conn, quoteSymbol(conn, field), "?");
 		}
-		return "WHERE " + whereQuery;
+		return whereQuery;
 	}
 	private static <TYPE> CallableStatement prepareCall(Connection conn, String query, List<TYPE> params) throws SQLException
 	{
@@ -1695,7 +1695,7 @@ public class SQLUtils
 
 		try 
 		{
-			query = "DELETE FROM " + SQLUtils.quoteSchemaTable(conn, schemaName, tableName) + " WHERE ";
+			query = "DELETE FROM " + SQLUtils.quoteSchemaTable(conn, schemaName, tableName);
 			
 			List<Entry<String,Object>> whereEntries = imposeMapOrdering(whereParams);
 			query += buildWhereClause(conn, getEntryKeys(whereEntries));
