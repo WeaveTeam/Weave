@@ -151,6 +151,12 @@ package weave.services
         }
         public function copy_and_add(child_id:int, parent_id:int, onComplete:Function = null):void
         {
+            function afterCopy(response:Object):void
+            {
+                var new_child_id:int = response as int;
+                add_child(new_child_id, parent_id, onComplete);
+            }
+            AdminInterface.instance.copyEntity(child_id, afterCopy);
             return;
         }
         public function remove_child(child_id:int, parent_id:int, onComplete:Function = null):void

@@ -77,7 +77,8 @@ package weave.ui
         public function add_child(child_id:int):void
         {
             var child_obj:Object = AdminInterface.instance.meta_cache.get_metadata(child_id);
-            if (child_obj && child_obj.entity_type == AttributeColumnInfo.TABLE)
+            if (child_obj && 
+                    (child_obj.entity_type == AttributeColumnInfo.TABLE))
             {
                 AdminInterface.instance.meta_cache.copy_and_add(child_id, id, childrenChanged);
             }
