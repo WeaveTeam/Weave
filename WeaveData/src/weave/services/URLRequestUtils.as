@@ -321,7 +321,7 @@ internal class CustomURLLoader extends URLLoader
 		
 		if (loadNow)
 		{
-			if (URLRequestUtils.delayed)
+			if (URLRequestUtils.delayResults)
 			{
 				label = request.url;
 				try
@@ -331,7 +331,7 @@ internal class CustomURLLoader extends URLLoader
 					label += ' ' + ObjectUtil.toString(bytes.readObject()).split('\n').join(' ');
 				}
 				catch (e:Error) { }
-				//WeaveAPI.externalTrace('requested ' + label);
+				weaveTrace('requested ' + label);
 				URLRequestUtils.delayed.push({"label": label, "resume": resume});
 			}
 			
