@@ -24,7 +24,7 @@
 				xmlns="weave.ui.admin.managers.*" 
 				width="100%" height="100%"
 				verticalAlign="middle"
-				label="Client configurations"
+				label="Visualizations"
 				creationComplete="handleCreationComplete()" xmlns:admin="weave.ui.admin.*">
 	<mx:TabNavigator height="100%" paddingLeft="8" paddingRight="8" paddingBottom="8" paddingTop="8">
 		<mx:VBox label="My files">
