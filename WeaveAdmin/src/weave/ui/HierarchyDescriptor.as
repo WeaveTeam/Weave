@@ -15,7 +15,7 @@ package weave.ui
         public function addChildAt(parent:Object, newChild:Object, index:int, model:Object = null):Boolean
         {
 
-            var parentEntity:EntityTreeNode = parent as EntityTreeNode;
+            var parentEntity:EntityTreeNode = new EntityTreeNode(parent._id);
             var childEntity:EntityTreeNode = new EntityTreeNode(newChild._id);
             if (parentEntity != null && newChild != null)
             {

@@ -76,8 +76,15 @@ package weave.ui
         }
         public function add_child(child_id:int):void
         {
-            AdminInterface.instance.meta_cache.add_child(child_id, this.id, childrenChanged);
-            
+            var child_obj:Object = AdminInterface.instance.meta_cache.get_metadata(child_id);
+            if (child_obj && child_obj.entity_type == AttributeColumnInfo.TABLE)
+            {
+                AdminInterface.instance.meta_cache.copy_and_add(child_id, id, childrenChanged);
+            }
+            else
+            {
+                AdminInterface.instance.meta_cache.add_child(child_id, this.id, childrenChanged);
+            }
         }
         public function remove_self():void
         {

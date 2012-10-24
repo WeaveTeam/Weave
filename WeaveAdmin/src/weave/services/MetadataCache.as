@@ -149,6 +149,10 @@ package weave.services
             delete entity_childcache[parent_id];
             AdminInterface.instance.addChildToParent(child_id, parent_id, afterUpdate);
         }
+        public function copy_and_add(child_id:int, parent_id:int, onComplete:Function = null):void
+        {
+            return;
+        }
         public function remove_child(child_id:int, parent_id:int, onComplete:Function = null):void
         {
             function afterUpdate():void
