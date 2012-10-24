@@ -19,10 +19,12 @@
 
 package weave.servlets;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -84,6 +86,7 @@ public class AdminService extends GenericServlet
 	
 	public AdminService()
 	{
+		System.out.println("AdminService()");
 	}
 	
 	/**
@@ -908,8 +911,7 @@ public class AdminService extends GenericServlet
 	/**
 	 * Read a list of csv files and return common header columns.
 	 * 
-	 * @param A
-	 *            list of csv file names.
+	 * @param A list of csv file names.
 	 * @return A list of common header files or null if none exist encoded using
 	 * 
 	 */
@@ -919,14 +921,8 @@ public class AdminService extends GenericServlet
 
 		try
 		{
-			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
-			// Read first line only (header line).
-			int index = csvData.indexOf("\r");
-			int index2 = csvData.indexOf("\n");
-			if (index2 < index && index2 >= 0)
-				index = index2;
-			String header = index < 0 ? csvData : csvData.substring(0, index);
-			csvData = null; // don't need this in memory anymore
+			BufferedReader in = new BufferedReader(new FileReader(new File(uploadPath, csvFile)));
+			String header = in.readLine();
 			String[][] rows = CSVParser.defaultParser.parseCSV(header);
 			headerLine = rows[0];
 		}
@@ -938,6 +934,32 @@ public class AdminService extends GenericServlet
 		{
 			throw new RemoteException(e.getMessage());
 		}
+		
+		/*
+		 * Old code
+		 * 
+			try
+			{
+				String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
+				// Read first line only (header line).
+				int index = csvData.indexOf("\r");
+				int index2 = csvData.indexOf("\n");
+				if (index2 < index && index2 >= 0)
+					index = index2;
+				String header = index < 0 ? csvData : csvData.substring(0, index);
+				csvData = null; // don't need this in memory anymore
+				String[][] rows = CSVParser.defaultParser.parseCSV(header);
+				headerLine = rows[0];
+			}
+			catch (FileNotFoundException e)
+			{
+				throw new RemoteException(e.getMessage());
+			}
+			catch (Exception e)
+			{
+				throw new RemoteException(e.getMessage());
+			}
+		*/
 
 		return headerLine;
 	}

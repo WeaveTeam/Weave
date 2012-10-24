@@ -23,7 +23,7 @@ package weave
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableContainer;
+	import weave.api.ui.ILinkableContainer;
 	import weave.api.core.ILinkableHashMap;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.UIUtils;

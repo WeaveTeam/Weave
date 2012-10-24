@@ -68,7 +68,7 @@
 			import weave.api.copySessionState;
 			import weave.api.core.ICallbackCollection;
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.AttributeColumnMetadata;
+			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IDataSource;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
@@ -140,7 +140,7 @@
 				{
 					var hierarchy:XML = (multiDataSource.attributeHierarchy as AttributeHierarchy).value;
 					var node:XML = HierarchyUtils.getNodeFromPath(hierarchy, selectedPath.value, i);
-					if (node != null && node.localName().toString() != 'attribute')
+					if (node != null && String(node.localName()) != 'attribute')
 						multiDataSource.initializeHierarchySubtree(node);
 				}
 				var attribute:XMLList = selectedPath.value.descendants("attribute");
@@ -253,7 +253,7 @@
 				var dataCol:ReferencedColumn = equationColumn.requestVariable(DATA_VARIABLE, ReferencedColumn);
 				var dataRef:HierarchyColumnReference = dataCol.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
 				copyPathToRef(selectedPath.value, dataRef);
-				var actualKeyType:String = dataRef.getMetadata(AttributeColumnMetadata.KEY_TYPE);
+				var actualKeyType:String = dataRef.getMetadata(ColumnMetadata.KEY_TYPE);
 				var desiredKeyType:String = keyTypeCombo.selectedItem as String;
 				var mappings:Array = WeaveAPI.QKeyManager.getKeyMappings(desiredKeyType, actualKeyType);
 				var lookupCol:ReferencedColumn = equationColumn.requestVariable(LOOKUP_VARIABLE, ReferencedColumn);
@@ -261,11 +261,11 @@
 					lookupCol.dynamicColumnReference.requestLocalObjectCopy(mappings[0]);
 				else
 					lookupCol.dynamicColumnReference.removeObject();
-				var title:String = "{ this.variables.getObject('"+DATA_VARIABLE+"').getMetadata('"+AttributeColumnMetadata.TITLE+"') }";
+				var title:String = "{ this.variables.getObject('"+DATA_VARIABLE+"').getMetadata('"+ColumnMetadata.TITLE+"') }";
 //				var title:String = dataRef.getMetadata(AttributeColumnMetadata.TITLE);
-				equationColumn.setMetadata(AttributeColumnMetadata.TITLE, title);
-				equationColumn.setMetadata(AttributeColumnMetadata.KEY_TYPE, desiredKeyType);
-				equationColumn.setMetadata(AttributeColumnMetadata.DATA_TYPE, dataRef.getMetadata(AttributeColumnMetadata.DATA_TYPE));
+				equationColumn.setMetadata(ColumnMetadata.TITLE, title);
+				equationColumn.setMetadata(ColumnMetadata.KEY_TYPE, desiredKeyType);
+				equationColumn.setMetadata(ColumnMetadata.DATA_TYPE, dataRef.getMetadata(ColumnMetadata.DATA_TYPE));
 				
 				dynamicColumn.resumeCallbacks();
 			}
@@ -339,7 +339,7 @@
 				var node:XML = HierarchyUtils.getLeafNodeFromPath(selectedPath.value);
 				if (node)
 				{
-					keyType = node.attribute(AttributeColumnMetadata.KEY_TYPE);
+					keyType = node.attribute(ColumnMetadata.KEY_TYPE);
 					compatibleTypes = WeaveAPI.QKeyManager.getCompatibleKeyTypes(keyType);
 					compatibleTypes.push(keyType);
 					AsyncSort.sortImmediately(compatibleTypes, AsyncSort.compareCaseInsensitive);

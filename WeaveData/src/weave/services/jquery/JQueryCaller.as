@@ -34,9 +34,9 @@ package weave.services.jquery
 
 	public class JQueryCaller
 	{
-		[Embed("jquery-caller.js", mimeType="application/octet-stream")]
+		[Embed(source="jquery-caller.js", mimeType="application/octet-stream")]
 		private static const JQCaller:Class;
-		[Embed("jquery-1.7.1.min.js", mimeType="application/octet-stream")]
+		[Embed(source="jquery-1.7.1.min.js", mimeType="application/octet-stream")]
 		private static const JQ:Class;
 		
 		/**

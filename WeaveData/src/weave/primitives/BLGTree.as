@@ -228,7 +228,7 @@ package weave.primitives
 		}
 
 		/**
-		 * operationStack & nodeStack
+		 * operationStack and nodeStack
 		 * used internally in getPointVector() to keep track of the current traversal operation
 		 */
 		private var operationStack:Vector.<int> = new Vector.<int>();
@@ -238,7 +238,7 @@ package weave.primitives
 		
 		/**
 		 * This function performs an in-order traversal of nodes, skipping those
-		 * with importance < minImportance.  The visit operation is to append the
+		 * with importance &lt; minImportance.  The visit operation is to append the
 		 * current node to the traversalVector.
 		 * @param minImportance No points with importance less than this value will be returned.
 		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.

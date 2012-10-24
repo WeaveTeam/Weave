@@ -21,6 +21,8 @@ package weave.core
 {
 	import flash.debugger.enterDebugger;
 	import flash.events.ErrorEvent;
+	import flash.events.IOErrorEvent;
+	import flash.events.SecurityErrorEvent;
 	import flash.system.Capabilities;
 	
 	import mx.events.DynamicEvent;
@@ -31,6 +33,7 @@ package weave.core
 	import weave.api.core.IErrorManager;
 	import weave.api.getCallbackCollection;
 	import weave.compiler.StandardLib;
+	import weave.utils.DebugUtils;
 	
 	/**
 	 * This class is a central location for reporting and detecting errors.
@@ -100,6 +103,40 @@ package weave.core
 			
 			errors.push(_error);
 			getCallbackCollection(this).triggerCallbacks();
+		}
+		
+		public static function errorToString(error:Error):String
+		{
+			if (error is Fault)
+			{
+				var f:Fault = error as Fault;
+				var errorString:String = '';
+				if (f.faultDetail && (f.faultCode == IOErrorEvent.IO_ERROR || f.faultCode == SecurityErrorEvent.SECURITY_ERROR))
+				{
+					errorString = f.faultDetail;
+				}
+				else
+				{
+					errorString = f.faultCode;
+					if (f.faultString)
+						errorString += ': ' + f.faultString;
+					if (f.faultDetail)
+						errorString += ': ' + f.faultDetail;
+					if (errorString == 'Error')
+						errorString = "Communication error";
+				}
+				
+				return errorString;
+			}
+			else if (Capabilities.isDebugger)
+			{
+				// get partial stack trace
+				return error.message + '\rStack trace: ' + DebugUtils.getCompactStackTrace(error).join('; ');
+			}
+			else
+			{
+				return error.toString();
+			}
 		}
 	}
 }

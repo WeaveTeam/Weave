@@ -163,8 +163,6 @@
 				csvFileNameInput.text = _csvFileReference.name;
 				
 				AdminInterface.instance.service.getCSVColumnNames(_csvFileReference.name).addAsyncResponder(handleGetCSVColumnNames,handleCSVFault,_csvFileReference.name);
-				
-				
 			}
 			
 			private function fileErrorHandler(event:IOErrorEvent):void
@@ -206,8 +204,6 @@
 				AdminInterface.instance.service.getCSVColumnNames(tableName).addAsyncResponder(handleGetCSVColumnNames,handleCSVFault,tableName);
 //				AdminInterface.instance.service.getCSVStringData(tableName).addAsyncResponder(handleGetCSVStringData,handleCSVFault);
 				
-				
-				
 				csvFileNameInput.text = tableName;
 				tableName = tableName.substring(0,tableName.lastIndexOf("."));
 				tableSelector.activeTable = tableName; 
@@ -218,6 +214,7 @@
 			
 			private function handleGetCSVColumnNames(e:ResultEvent, token:Object = null):void
 			{
+//				trace("handleGetCSVColumnNames: success - " + e.result);
 				csvKeyColumnCombo.dataProvider = e.result;
 				csvSecondaryKeyColumnCombo.dataProvider = e.result;
 				
@@ -236,6 +233,7 @@
 			}
 			private function handleCSVFault(e:FaultEvent,token:Object=null):void
 			{
+//				trace("handleGetCSVColumnNames: failed");
 				finishEnabled = true;
 			}
 			

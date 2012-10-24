@@ -29,7 +29,7 @@ package weave.data.AttributeColumns
 	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
@@ -52,7 +52,7 @@ package weave.data.AttributeColumns
 		
 		override public function getMetadata(propertyName:String):String
 		{
-			if (propertyName == AttributeColumnMetadata.DATA_TYPE)
+			if (propertyName == ColumnMetadata.DATA_TYPE)
 				return DataTypes.NUMBER;
 			return super.getMetadata(propertyName);
 		}
@@ -103,12 +103,12 @@ package weave.data.AttributeColumns
 
 			numberToStringFunction = StandardLib.formatNumber;
 			// compile the string format function from the metadata
-			var stringFormat:String = getMetadata(AttributeColumnMetadata.STRING);
+			var stringFormat:String = getMetadata(ColumnMetadata.STRING);
 			if (stringFormat)
 			{
 				try
 				{
-					numberToStringFunction = compiler.compileToFunction(stringFormat, null, true, false, [AttributeColumnMetadata.NUMBER]);
+					numberToStringFunction = compiler.compileToFunction(stringFormat, null, true, false, [ColumnMetadata.NUMBER]);
 				}
 				catch (e:Error)
 				{

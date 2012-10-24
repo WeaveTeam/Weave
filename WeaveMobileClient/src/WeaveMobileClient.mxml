@@ -18,56 +18,247 @@
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
-			   xmlns:mx="library://ns.adobe.com/flex/mx" 
 			   xmlns:s="library://ns.adobe.com/flex/spark"
-			   xmlns:weave="weave.*" xmlns:ui="weave.ui.*">
+			   interactionMode="touch"
+			   resizeForSoftKeyboard="false"
+			   applicationComplete="init(event)"
+			   backgroundColor="0x000000" 
+			   >
+	<s:Label id="logo" text="Weave" color="0x808080" width="100%" height="100%" textAlign="center" verticalAlign="middle" fontSize="64"/>
+<!--	<s:Button id="consoleButton"
+			  right="0" bottom="0" width="48" height="48"
+			  label="..." fontFamily="_typewriter" fontSize="12" alpha="0.2"
+			  click="console.visible = !console.visible;"/> -->
 	<fx:Script>
 		<![CDATA[
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.utils.ObjectUtil;
+			
+			import spark.layouts.TileLayout;
+			
+			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.IErrorManager;
-			import weave.api.core.IExternalSessionStateInterface;
-			import weave.api.core.IProgressIndicator;
-			import weave.api.core.ISessionManager;
-			import weave.api.core.IStageUtils;
-			import weave.api.data.IAttributeColumnCache;
-			import weave.api.data.ICSVParser;
-			import weave.api.data.IProjectionManager;
-			import weave.api.data.IQualifiedKeyManager;
-			import weave.api.data.IStatisticsCache;
-			import weave.api.services.IURLRequestUtils;
+			import weave.api.getCallbackCollection;
+			import weave.api.reportError;
 			import weave.core.ErrorManager;
-			import weave.core.ExternalSessionStateInterface;
-			import weave.core.ProgressIndicator;
-			import weave.core.SessionManager;
-			import weave.core.StageUtils;
-			import weave.data.AttributeColumnCache;
-			import weave.data.CSVParser;
-			import weave.data.ProjectionManager;
-			import weave.data.QKeyManager;
-			import weave.data.StatisticsCache;
-			import weave.services.URLRequestUtils;
-
-			override protected function createChildren():void
+			import weave.core.LinkableHashMap;
+			import weave.core.UIUtils;
+			import weave.ui.WeavePodLayoutManager;
+			import weave.ui.WeaveProgressBar;
+			import weave.visualization.layers.InteractionController;
+			import weave.visualization.layers.SimpleInteractiveVisualization;
+			
+			// reference classes here so they get included in the app build
+			WeaveFonts;
+			
+			public var main:WeavePodLayoutManager;
+			public var console:MobileConsole;
+			public var tileLayout:TileLayout;
+			public var alert:Boolean = false;
+			
+			private function init(event:Event):void
 			{
-				super.createChildren();
+				if (event.type != Event.ENTER_FRAME) // first frame
+				{
+					//layout = new VerticalLayout();
+					
+					this.addElement(main = new WeavePodLayoutManager());
+					this.addElement(console = new MobileConsole());
+					this.addElement(new WeaveProgressBar());
+					//this.setElementIndex(consoleButton, this.numElements - 1);
+					this.addEventListener(Event.RESIZE,stage_resizeHandler);
+					main.scale.value = 2;
+					
+					UIUtils.linkLayoutManager(main, WeaveAPI.globalHashMap);
+					
+					getCallbackCollection(WeaveAPI.ErrorManager).addImmediateCallback(null, handleError, true);
+					
+					var na:NativeApplication = NativeApplication.nativeApplication;
+					if (na)
+					{
+						na.addEventListener(InvokeEvent.INVOKE, handleInvoke);
+						na.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyDown);
+					}
+					
+					addEventListener(Event.ENTER_FRAME, init);
+				}
+				else // one frame later
+				{
+					removeEventListener(Event.ENTER_FRAME, init);
+					removeElement(logo)
+					logo = null;
+				}
 				
-				// register singleton implementations for framework classes
-				WeaveAPI.registerSingleton(ISessionManager, SessionManager);
-				WeaveAPI.registerSingleton(IStageUtils, StageUtils);
-				WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
-				WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
-				WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
-				WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
-				WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
-				WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
-				WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
-				WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
-				WeaveAPI.registerSingleton(ICSVParser, CSVParser);
-				
-				
-				addElement(new MobileConsole());
+				// begin tile layout demo
+				/* tileLayout = new TileLayout();
+				this.addElement(main = new BasicLinkableLayoutManager());
+				tileLayout.orientation = TileOrientation.ROWS;
+				tileLayout.columnWidth = 220;
+				tileLayout.rowHeight = 220;
+				main.layout = tileLayout; */
+				// end tile layout demo
 			}
 			
+			private function handleError():void
+			{
+				var errors:Array = WeaveAPI.ErrorManager.errors;
+				if (errors.length)
+				{
+					var error:Error = errors[errors.length - 1] as Error;
+					var str:String = ErrorManager.errorToString(error);
+					if (alert)
+						SparkAlert.show(str, 'Error ('+errors.length+')');
+					else
+						weaveTrace(str);
+				}
+			}
+			
+			public function set scale(value:Number):void { main.scale.value = value; }
+			
+			protected function stage_resizeHandler(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				main.width = int(this.width / main.scaleX);
+				main.height = int(this.height / main.scaleY);
+				
+				//SparkAlert.show(this.width + 'x' + this.height, 'RESIZE');
+			}
+			
+			private function handleInvoke(event:InvokeEvent):void
+			{
+				console.visible = true;
+				
+				//weaveTrace(ObjectUtil.toString(event));
+				if (event.arguments.length > 0)
+				{
+					load(event.arguments[0] as String);
+				}
+				else
+				{
+					weaveTrace('No URL');
+					demo();
+				}
+			}
+			
+			public function load(configURL:String):void
+			{
+				this.configURL = configURL;
+				
+				WeaveAPI.URLRequestUtils.setBaseURL(configURL);
+				weaveTrace('Loading URL: ' + configURL);
+				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(configURL), handleConfigFileDownloaded, handleConfigFileFault, configURL);
+			}
+			private function handleConfigFileDownloaded(event:ResultEvent, configURL:String = null):void
+			{
+				if (this.configURL != configURL)
+					return;
+				
+				weaveTrace('Received: ' + configURL);
+				try
+				{
+					Weave.loadWeaveFileContent(event.result as ByteArray);
+				
+					// temporary hack to make sure gestures are enabled
+					Weave.properties.toolInteractions.pan.value = WeaveAPI.CSVParser.createCSV([[InteractionController.ALT, InteractionController.INPUT_DRAG], [InteractionController.INPUT_PAN]]);
+					Weave.properties.toolInteractions.zoom.value = WeaveAPI.CSVParser.createCSV([[InteractionController.SHIFT, InteractionController.INPUT_DRAG], [InteractionController.INPUT_WHEEL], [InteractionController.INPUT_ZOOM]]);
+					
+					weaveTrace(ObjectUtil.toString(WeaveAPI.globalHashMap.getNames()));
+					console.visible = false;
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
+			}
+			private function handleConfigFileFault(event:FaultEvent, configURL:String = null):void
+			{
+				if (this.configURL != configURL)
+					return;
+				
+				reportError(event);
+				weaveTrace('Error loading URL, showing demo');
+				demo();
+			}
+			
+			public var configURL:String;
+			public function demo(id:int = 0):void
+			{
+				if (id == 0)
+					load('app:/demoLocal.weave');
+				if (id == 1)
+					load('app:/demoRemote.weave');
+				if (id == 2)
+					load('http://demo.oicweave.org/obesity.weave');
+				if (id == 3)
+					load('http://demo.oicweave.org/reprojection-demo.weave');
+			}
+			
+			private function handleKeyDown(event:KeyboardEvent):void
+			{
+				switch (event.keyCode)
+				{
+					case Keyboard.MENU:
+						// menu button supports holding down for key repeat
+						historyNav(1);
+						break;
+					
+					case Keyboard.BACK:
+						event.preventDefault();
+						// back button supports holding down for key repeat
+						historyNav(-1);
+						break;
+					
+					case Keyboard.SEARCH:
+						// search doesn't support holding down for key repeat
+						console.visible = !console.visible
+						break;
+				}
+			}
+			
+			private function historyNav(steps:int):void
+			{
+				if (steps < 0)
+					Weave.history.undo(-steps);
+				else
+					Weave.history.redo(steps);
+				
+				var undos:Array = Weave.history.undoHistory;
+				var redos:Array = Weave.history.redoHistory;
+				weaveTrace('Session History ' + undos.length + '/' + (undos.length + redos.length));
+			}
+
+			hack_init();
+			private static function hack_init():void
+			{
+				var oldToolNames:Array = [
+					'BarChartLegendTool',
+					'ColorBinLegendTool',
+					'ColormapHistogramTool',
+					'CompoundBarChartTool',
+					'CompoundRadVizTool',
+					'CustomTool',
+					'GaugeTool',
+					'GraphTool',
+					'Histogram2DTool',
+					'HistogramTool',
+					'MapTool',
+					'PieChartHistogramTool',
+					'PieChartTool',
+					'RadVizTool',
+					'RamachandranPlotTool',
+					'ScatterPlotTool',
+					'SizeBinLegendTool',
+					'SliderTool',
+					'StickFigureGlyphTool',
+					'ThermometerTool'
+				];
+				for each (var oldToolName:String in oldToolNames)
+					LinkableHashMap.registerDeprecatedClassReplacement(
+						'weave.visualization.tools::' + oldToolName,
+						getQualifiedClassName(SimpleInteractiveVisualization)
+					);
+			}
 		]]>
 	</fx:Script>
 </s:Application>

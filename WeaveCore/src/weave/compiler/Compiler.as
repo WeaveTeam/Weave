@@ -19,8 +19,9 @@
 
 package weave.compiler
 {
+	import avmplus.DescribeType;
+	
 	import flash.utils.Dictionary;
-	import flash.utils.describeType;
 	import flash.utils.flash_proxy;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
@@ -110,6 +111,11 @@ package weave.compiler
 		// TODO: includeLibrary(sourceSymbolTable, destinationSymbolTable) where it copies all the properties of source to destination
 		
 		/**
+		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
+		 */
+		private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
+		
+		/**
 		 * This function will include additional libraries to be supported by the compiler when compiling functions.
 		 * @param classesOrObjects An Array of Class definitions or objects containing functions to be supported by the compiler.
 		 */
@@ -142,19 +148,22 @@ package weave.compiler
 						continue;
 					
 					// save mappings to all constants and methods in the library
-					var classInfo:XML = describeType(library);
-					for each (var tag:XML in classInfo.children())
+					var classInfo:Object = describeTypeJSON(
+						library,
+						DescribeType.INCLUDE_TRAITS |
+						DescribeType.INCLUDE_VARIABLES |
+						DescribeType.INCLUDE_METHODS |
+						DescribeType.HIDE_NSURI_METHODS
+					);
+					var item:Object;
+					for each (item in classInfo.traits.variables)
 					{
-						var localName:String = tag.localName();
-						if (localName != 'method' && localName != 'constant')
-							continue;
-						
-						var uri:String = tag.attribute("uri");
-						if (uri != '')
-							continue;
-						
-						var name:String = tag.attribute("name");
-						constants[name] = library[name];
+						if (item.access == 'readonly')
+							constants[item.name] = library[item.name];
+					}
+					for each (item in classInfo.traits.methods)
+					{
+						constants[item.name] = library[item.name];
 					}
 					
 					libraries.push(library);

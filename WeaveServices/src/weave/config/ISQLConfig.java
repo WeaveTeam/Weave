@@ -205,17 +205,22 @@ public abstract class ISQLConfig
 		public static final String PASS = "pass";
 		public static final String IS_SUPERUSER = "is_superuser";		
 		public static final String FOLDERNAME = "folderName"; 
+		public static final String CONNECTSTRING = "connectString"; 
 
 		public ConnectionInfo()
 		{
 		}
 
 		public String name = "", dbms = "", ip = "", port = "", database = "", user = "", pass = "", folderName = "";
+		public String connectString = "";
 		public boolean is_superuser = false;
 
 		public String getConnectString()
 		{
-			return SQLUtils.getConnectString(dbms, ip, port, database, user, pass);
+			if (connectString.length() > 0)
+				return connectString;
+			else
+				return SQLUtils.getConnectString(dbms, ip, port, database, user, pass);
 		}
 
 		public Connection getStaticReadOnlyConnection() throws RemoteException

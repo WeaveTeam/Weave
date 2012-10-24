@@ -126,7 +126,17 @@ package weave.data.AttributeColumns
 		
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class=null):*
 		{
-			return _keyToGeometryArrayMapping[key];
+			var value:* = _keyToGeometryArrayMapping[key];
+			
+			// cast to different types
+			if (dataType == Boolean)
+				value = (value is Array);
+			else if (dataType == Number)
+				value = value ? (value as Array).length : NaN;
+			else if (dataType == String)
+				value = value ? 'Geometry(' + key.keyType + '#' + key.localName + ')' : undefined;
+			
+			return value;
 		}
 	}
 }

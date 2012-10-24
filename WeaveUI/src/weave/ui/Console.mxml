@@ -42,6 +42,8 @@
 				  />
 	<mx:Script>
 		<![CDATA[
+			import avmplus.DescribeType;
+			
 			import mx.containers.VBox;
 			import mx.core.mx_internal;
 			import mx.utils.ObjectUtil;
@@ -74,7 +76,7 @@
 			{
 				super.childrenCreated();
 				
-				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil, WeaveAPI.SessionManager);
+				compiler.includeLibraries(GlobalLib, WeaveAPI, Weave, ObjectUtil, WeaveAPI.SessionManager, DescribeType);
 				input.getTextField().alwaysShowSelection = true;
 		    }
 			

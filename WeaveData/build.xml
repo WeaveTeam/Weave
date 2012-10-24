@@ -56,7 +56,6 @@
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10.2/playerglobal.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/framework.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/rpc.swc" append="true"/>
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/mx/mx.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/spark.swc" append="true"/>
 
 			<external-library-path file="../${API}/bin/${API}.swc" append="true"/>
