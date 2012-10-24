@@ -114,7 +114,7 @@ package weave.ui
 			if (!stage)
 				return;
 			
-			if (targets.length)
+			if (targets && targets.length)
 				toggleVisible();
 			
 			if (!visible)
