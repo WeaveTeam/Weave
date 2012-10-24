@@ -31,7 +31,7 @@ package weave.ui
         }
         private function childrenChanged(obj:Object = null):void
         {
-            yell("Children changed @ " + this.label);
+			weaveTrace("Children changed @ " + this.label);
             dispatchEvent(new Event("childrenChanged"));
         }
         [Bindable(event="objectChanged")] public function get label():String
@@ -98,13 +98,9 @@ package weave.ui
         {
             AdminInterface.instance.meta_cache.update_metadata(id, pubDiff, privDiff, onComplete);
         }
-        public static function yell(str:String):void
-        {
-            WeaveAdminService.messageDisplay(null, str, false);
-        }
         public static function printobj(o:Object):void
         {
-            yell(ObjectUtil.toString(o));
+            weaveTrace(ObjectUtil.toString(o));
         }
         static public function mergeObjects(a:Object, b:Object):Object
         {

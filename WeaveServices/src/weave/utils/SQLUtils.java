@@ -1064,7 +1064,7 @@ public class SQLUtils
 				whereQuery += " AND ";
 			whereQuery += caseSensitiveCompare(conn, quoteSymbol(conn, field), "?");
 		}
-		return whereQuery;
+		return "WHERE " + whereQuery;
 	}
 	private static <TYPE> CallableStatement prepareCall(Connection conn, String query, List<TYPE> params) throws SQLException
 	{

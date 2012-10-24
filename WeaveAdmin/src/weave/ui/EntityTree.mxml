@@ -69,7 +69,7 @@ private function filterByType(item:EntityTreeNode, index:int, arr:Array):Boolean
     var etn:EntityTreeNode = item as EntityTreeNode;
     if (etn == null)
     {
-        EntityTreeNode.yell("Something has gone horribly wrong in EntityTree.");
+		weaveTrace("Something has gone horribly wrong in EntityTree.");
         return false;
     }
     if (etn.object != null)
@@ -109,7 +109,7 @@ private function connectionReady(event:PropertyChangeEvent, tree:Tree):void
         function emptyValidate(obj:Object):void
         { 
             /* Twiddle the dataProvider */
-            EntityTreeNode.yell("Validating!");
+			weaveTrace("Validating!");
             tree.dataProvider.refresh()
             tree.invalidateList();
             tree.validateNow();

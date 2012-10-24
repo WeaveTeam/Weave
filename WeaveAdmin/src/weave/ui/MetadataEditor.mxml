@@ -80,11 +80,7 @@
     private static function printobj(o:Object):void
     {
         for (var prop:String in o)
-            yell(prop + ":" + o[prop]);
-    }
-    public static function yell(str:String):void
-    {
-        WeaveAdminService.messageDisplay(null, str, false);
+			weaveTrace(prop + ":" + o[prop]);
     }
     private function printpubMeta():void
     {

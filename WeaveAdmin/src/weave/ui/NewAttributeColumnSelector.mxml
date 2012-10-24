@@ -64,7 +64,7 @@
             var entities:Array = event.result as Array || [];
             for each (var obj:Object in entities)
             {
-                yell(ObjectUtil.toString(obj));
+				weaveTrace(ObjectUtil.toString(obj));
                 var entity:AttributeColumnInfo = new AttributeColumnInfo(obj);
                 if (entity == null) continue;
                 if (entity.entity_type == 2)
@@ -89,13 +89,9 @@
         columnList.dataProvider = null;
         columnList.dataProvider = old;
     }
-    private function yell(str:String):void
-    {
-        WeaveAdminService.messageDisplay(null, str, false);
-    }
     private function onComboSelect(event:ListEvent):void
     {
-        yell("Combo selected.");
+		weaveTrace("Combo selected.");
         if (modeCombo.selectedItem == "Tags")
         {
             tagtableTree.dataProvider = tagTree;
@@ -114,7 +110,7 @@
     private function onGroupExpand(event:TreeEvent):void
     {
         event.item.populate();
-        yell("Expanded item."); 
+		weaveTrace("Expanded item."); 
     }
     private function setListProvider(etn:EntityTreeNode):void
     {
@@ -128,11 +124,11 @@
         setListProvider(etn);
         selectedItem = etn;
         columnList.selectedItem = null;
-        yell("Group Selected.");
+		weaveTrace("Group Selected.");
     }
     private function onColumnSelect(event:ListEvent):void
     {
-        yell("Selected column.");
+		weaveTrace("Selected column.");
         var etn:EntityTreeNode = columnList.selectedItem as EntityTreeNode;
         if (etn != null)
             selectedItem = etn;

@@ -94,7 +94,7 @@
 
         var parent:EntityTreeNode = event.currentTarget.getParentItem(item);
         if (parent)
-            EntityTreeNode.yell("Parent: " + parent.label); 
+			weaveTrace("Parent: " + parent.label); 
     }
     public function remove():void
     {

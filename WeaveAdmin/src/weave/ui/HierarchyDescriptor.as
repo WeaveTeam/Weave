@@ -14,6 +14,7 @@ package weave.ui
         }
         public function addChildAt(parent:Object, newChild:Object, index:int, model:Object = null):Boolean
         {
+			
 
             var parentEntity:EntityTreeNode = new EntityTreeNode(parent._id);
             var childEntity:EntityTreeNode = new EntityTreeNode(newChild._id);
@@ -29,7 +30,6 @@ package weave.ui
             if (parentEntity != null) 
                 parentEntity.remove_child(child._id);
             return parentEntity != null;
-            AdminInterface.entity   
         }
         public function getChildren(node:Object, model:Object = null):ICollectionView
         {
