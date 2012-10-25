@@ -20,11 +20,9 @@
 */
 -->
 
-<!--
-EquationUIComponent
-
-
-@skolman
+<!---
+	@author skolman
+	@author adufilie
 -->
 
 <mx:Box cornerRadius="5"
@@ -43,27 +41,20 @@ EquationUIComponent
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
 			import mx.controls.Label;
 			import mx.controls.List;
 			import mx.controls.TextInput;
-			import mx.core.IUIComponent;
 			import mx.core.UIComponent;
-			import mx.core.UITextField;
 			import mx.events.DragEvent;
 			import mx.managers.DragManager;
 			
 			import weave.api.core.ILinkableObject;
 			import weave.api.disposeObjects;
 			import weave.api.newLinkableChild;
-			import weave.compiler.CompiledConstant;
 			import weave.compiler.CompiledFunctionCall;
-			import weave.compiler.Compiler;
 			import weave.compiler.ICompiledObject;
 			import weave.core.LinkableString;
-			import weave.core.SessionManager;
 			import weave.data.AttributeColumns.EquationColumn;
-			import weave.utils.DebugUtils;
 
 			private static const UNDEFINED:String = 'undefined';
 			
@@ -267,9 +258,13 @@ EquationUIComponent
 			public function replaceEquation(draggedItem:*):void
 			{
 				var currentEquationString:String = equation.value;
-				if (draggedItem is XML)
+				if (draggedItem is String)
 				{
-					var draggedCompiledEquation:ICompiledObject = getEquationFromXML(draggedItem);
+					equation.value = draggedItem; 
+				}
+				else if (draggedItem.hasOwnProperty('name'))
+				{
+					var draggedCompiledEquation:ICompiledObject = getEquationFromItem(draggedItem);
 					try
 					{
 						var compiledCurrentEquation:ICompiledObject = EquationColumn.compiler.compileToObject(currentEquationString);	
@@ -283,10 +278,6 @@ EquationUIComponent
 						
 					}
 					equation.value = (EquationColumn.compiler.decompileObject(draggedCompiledEquation));
-				}
-				else if (draggedItem is String)
-				{
-					equation.value = draggedItem; 
 				}
 			}
 			
@@ -307,19 +298,19 @@ EquationUIComponent
 				removeHighlight();
 			}
 			
-			private function getEquationFromXML(functionInfo:XML):ICompiledObject
+			private function getEquationFromItem(item:Object):ICompiledObject
 			{
-				var functionStringFormat:String = functionInfo.@name;
-				if(functionInfo.localName() == "method")
+				var functionStringFormat:String = item.name;
+				if (item.hasOwnProperty('parameters')) // is method?
 				{
 					functionStringFormat += "(";
 					
 					var i:int = 0;
-					for each(var parameterNode:XML in functionInfo.parameter)
+					for each(var parameterNode:Object in item.parameters)
 					{
 						//functionStringFormat += "param" + i.toString();
 						if (i > 0)
-							functionStringFormat += ",";
+							functionStringFormat += ", ";
 						functionStringFormat += UNDEFINED;
 						i++;
 					}

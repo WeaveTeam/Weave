@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  implements="weave.api.core.ILinkableObject"
+		  width="100%" height="100%" gap="0"
+		  creationComplete="setInstance(this);">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:TextInput id="input" width="100%" fontSize="18"
+				 enter="runCommand()"
+				 softKeyboardActivate="percentHeight = 50;"
+				 softKeyboardDeactivate="percentHeight = 100;"
+				 keyDown="handleConsoleKeyDown(event)"
+				 />
+	<s:TextArea id="log" fontSize="18"
+				change="if (log.text.length > LOG_MAX_LENGTH) log.text = log.text.substr(-LOG_MAX_LENGTH);"
+				click="handleConsoleLogClick()"
+				mouseDown="handleConsoleLogClick()"
+				width="100%" height="100%" editable="false"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.utils.ObjectUtil;
+			import mx.utils.StringUtil;
+			
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableObject;
+			import weave.api.getCallbackCollection;
+			import weave.compiler.Compiler;
+			import weave.compiler.GlobalLib;
+			import weave.compiler.ICompiledObject;
+			import weave.compiler.ProxyObject;
+			import weave.core.ErrorManager;
+			import weave.core.ExternalSessionStateInterface;
+			
+			private var LOG_MAX_LENGTH:int = 10000;
+			
+			private static var _weaveTraceImpl:Function = weaveTraceImpl;
+			private static var _instance:MobileConsole;
+			private static var _queuedTraceArgs:Array = [];
+			private static function setInstance(instance:MobileConsole):void
+			{
+				_instance = instance;
+				for each (var args:Array in _queuedTraceArgs)
+					mobileTrace.apply(null, args);
+			}
+			public static function mobileTrace(...args):void
+			{
+				if (!_instance)
+				{
+					_queuedTraceArgs.push(args);
+					return;
+				}
+				
+				trace.apply(null, args);
+				
+				_instance.consoleTrace.apply(null, args);
+			}
+			
+			[Bindable] public var padding:int = 5;
+			[Bindable] public var innerBorderStyle:String = 'inset';
+			
+			/**
+			 * This is the context in which expressions will be evaluated (The "this" argument passed to Function.apply).
+			 */
+			public function set context(value:Object):void
+			{
+				_context = value;
+			}
+			private var _context:Object = null;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				compiler.includeLibraries(GlobalLib, WeaveAPI, ObjectUtil, WeaveAPI.SessionManager, FlexGlobals);
+				
+				getCallbackCollection(WeaveAPI.ErrorManager).addImmediateCallback(this, handleError);
+			}
+			
+			private function handleError():void
+			{
+				var errors:Array = WeaveAPI.ErrorManager.errors;
+				var lastError:Error = errors[errors.length - 1] as Error;
+				consoleTrace(lastError.message);
+			}
+			
+			private const compiler:Compiler = new Compiler();
+			private function getObject(target:Object):ILinkableObject
+			{
+				if (target is String)
+					target = WeaveAPI.CSVParser.parseCSV(target as String)[0];
+				if (target is Array)
+					target = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(target as Array);
+				return ILinkableObject(target);
+			}
+			private const watchLookup:Dictionary = new Dictionary(true);
+			private function consoleWatch(target:Object, debugString:String):void
+			{
+				var linkableTarget:ILinkableObject = getObject(target);
+				consoleUnwatch(linkableTarget);
+				var callback:Function = function():void { consoleTraceEval(linkableTarget, debugString); };
+				watchLookup[linkableTarget] = callback;
+				getCallbackCollection(linkableTarget).addImmediateCallback(null, callback);
+			}
+			private function consoleUnwatch(target:Object):void
+			{
+				var linkableTarget:ILinkableObject = getObject(target);
+				var callback:Function = watchLookup[linkableTarget];
+				delete watchLookup[linkableTarget];
+				getCallbackCollection(linkableTarget).removeCallback(callback);
+			}
+			private function consoleTraceEval(thisArg:Object, script:String):void
+			{
+				try
+				{
+					var script:String = '`' + script.split('`').join('\\`') + '`';
+					var result:String = compiler.compileToFunction(script, symbolTable, false, true).apply(thisArg);
+					consoleTrace(result);
+				}
+				catch (e:Error)
+				{
+					consoleTrace(script, e);
+				}
+			}
+			private function consoleTrace(...args):void
+			{
+				log.text += '\r\r' + args.join('\r');
+				log.validateNow();
+				log.scroller.verticalScrollBar.value = log.scroller.verticalScrollBar.maximum - log.height;
+				log.scroller.verticalScrollBar.validateNow();
+			}
+			private function consoleClear():String
+			{
+				return log.text = '';
+			}
+			
+			private const symbolTable:Object = new ProxyObject(_hasProperty, _getProperty, null);
+			private function _hasProperty(name:*):Boolean { return _getProperty(name) !== undefined; }
+			private function _getProperty(name:*):*
+			{
+				switch (String(name))
+				{
+					case 'javaScript': return function(...args):*
+					{
+						var prev:Boolean = ExternalInterface.marshallExceptions;
+						try
+						{
+							ExternalInterface.marshallExceptions = true;
+							ExternalInterface.call.apply(this, args);
+						}
+						finally
+						{
+							ExternalInterface.marshallExceptions = prev;
+						}
+					};
+					case 'application': return FlexGlobals.topLevelApplication;
+					case 'print': return ObjectUtil.toString as Function;
+					case 'getObject': return getObject as Function;
+					case 'clear': return consoleClear as Function;
+					case 'watch': return consoleWatch as Function;
+					case 'unwatch': return consoleUnwatch as Function;
+					case 'trace': return consoleTrace as Function;
+					case '$e': return WeaveAPI.ErrorManager.errors;
+					case '$a': return FlexGlobals.topLevelApplication;
+				}
+			}
+			private function runCommand():void
+			{
+				if (!input.text)
+					return;
+				
+				// append command text to log
+				log.text += '\r\r' + input.text;
+				// remove duplicate history items
+				var index:int;
+				while ((index = history.indexOf(input.text)) >= 0)
+					history.splice(index, 1);
+				// add command to end of history, and point historyIndex to that command
+				historyIndex = history.push(input.text) - 1;
+				
+				// run the command
+				var result:*;
+				var decompiled:String;
+				try
+				{
+					var obj:ICompiledObject = compiler.compileToObject(input.text);
+					//decompiled = compiler.decompileObject(obj);
+					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, false, true);
+					result = func.apply(_context);
+					try
+					{
+						if (typeof result == 'object' && !(result is DisplayObject))
+						{
+							result = ObjectUtil.toString(result);
+							var max:int = 1024;
+							var text:String = result;
+							if (text.length > max)
+								text = text.substr(0, max) + '...';
+							result = StringUtil.trim(text);
+						}
+						else
+							result = String(result);
+					}
+					catch (e:Error)
+					{
+						result = String(result)
+					}
+					// if the command runs successfully, clear the input area
+					input.text = '';
+					historyIndex = history.length;
+				}
+				catch (e:Error)
+				{
+					result = e;
+				}
+				
+				// append result to log
+				log.text += '\r' + result;
+				log.validateNow();
+				log.scroller.verticalScrollBar.value = log.scroller.verticalScrollBar.maximum - log.height;
+				log.scroller.verticalScrollBar.validateNow();
+			}
+			private function handleConsoleLogClick():void
+			{
+//				if (input.selectionBeginIndex == 0 && (input.selectionEndIndex == input.text.length || input.selectionEndIndex == 0))
+//				{
+//					var clickedIndex:int = log.selectionEndIndex;
+//					if (clickedIndex == log.selectionBeginIndex && clickedIndex < log.text.length)
+//					{
+//						var beginIndex:int = log.text.lastIndexOf('\r', clickedIndex) + 1; // find the last \r BEFORE the clicked position
+//						var endIndex:int = log.text.indexOf('\r', clickedIndex); // find the first \r AFTER the clicked position
+//						log.selectionBeginIndex = beginIndex;
+//						log.selectionEndIndex = endIndex < 0 ? log.text.length : endIndex;
+//						log.validateNow();
+//					}
+//					input.text = StringUtil.trim(log.text.substring(log.selectionBeginIndex, log.selectionEndIndex)).split('\r').join('; ');
+//					input.setSelection(0, input.text.length);
+//				}
+			}
+			
+			private var history:Array = [];
+			private var historyIndex:int = 0;
+			private function handleConsoleKeyDown(event:KeyboardEvent):void
+			{
+				if (event.keyCode == Keyboard.UP)
+				{
+					historyIndex = Math.max(0, historyIndex - 1);
+				}
+				else if (event.keyCode == Keyboard.DOWN)
+				{
+					historyIndex = Math.min(history.length, historyIndex + 1);
+				}
+				else
+				{
+					// do not modify input text
+					return;
+				}
+				
+				if (historyIndex < history.length)
+					input.text = history[historyIndex];
+				else
+					input.text = '';
+				
+//				input.setSelection(int.MAX_VALUE, int.MAX_VALUE);
+			}
+		]]>
+	</fx:Script>
+</s:VGroup>

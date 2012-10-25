@@ -37,6 +37,8 @@
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
+			import spark.core.SpriteVisualElement;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ICallbackCollection;
@@ -46,6 +48,7 @@
 			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkSessionState;
+			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
@@ -125,7 +128,10 @@
 				_plotter.columns.addGroupedCallback(this, normalizationInR);
 				classDiscriminatorColumn.addImmediateCallback(this, classDiscriminatorColumnUpdate);
 				
-				visualization.rawChildren.addChild(probeSprite);
+				//visualization.rawChildren.addChild(probeSprite);
+				var sprCont:SpriteVisualElement = new SpriteVisualElement();
+				sprCont.addChild(probeSprite)
+				visualization.addElement(sprCont);
 			}
 			
 			private var tempBounds:Bounds2D = new Bounds2D();
@@ -236,7 +242,7 @@
 				}	
 				
 				disposeObjects(normalizedColumnsGroup);
-				normalizedColumnsGroup = new CallbackCollection();
+				normalizedColumnsGroup = newDisposableChild(this, CallbackCollection);
 				for (var j:int = 0 ; j < temRObjects.length; j++)
 				{
 					var col:NumberColumn = ResultUtils.resultAsNumberColumn(token,temRObjects[j],_plotter.columns.getNames()[j]+"norm");

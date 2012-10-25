@@ -27,7 +27,7 @@ package weave.data.AttributeColumns
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	
 	/**
 	 * This column is defined by two columns of CSV data: keys and values.
@@ -45,8 +45,8 @@ package weave.data.AttributeColumns
 		{
 			switch (propertyName)
 			{
-				case AttributeColumnMetadata.TITLE: return title.value;
-				case AttributeColumnMetadata.KEY_TYPE: return keyType.value;
+				case ColumnMetadata.TITLE: return title.value;
+				case ColumnMetadata.KEY_TYPE: return keyType.value;
 			}
 			return super.getMetadata(propertyName);
 		}

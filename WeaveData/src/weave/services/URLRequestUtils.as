@@ -66,6 +66,44 @@ package weave.services
 		public static const DATA_FORMAT_VARIABLES:String = URLLoaderDataFormat.VARIABLES;
 		
 		/**
+		 * This will set the base URL for use with relative URL requests.
+		 */
+		public function setBaseURL(baseURL:String):void
+		{
+			// remove '?' and everything after
+			baseURL = baseURL.split('?')[0];
+			// remove last '/' and everything after
+			_baseURL = baseURL.substr(0, baseURL.lastIndexOf('/'));
+		}
+		
+		private var _baseURL:String;
+		
+		/**
+		 * This will update a URLRequest to use the base URL specified via setBaseURL().
+		 */
+		private function addBaseURL(request:URLRequest):void
+		{
+			if (!_baseURL)
+				return;
+			
+			if (request.url.substr(0, 1) == '/')
+			{
+				// url begins with '/'
+				request.url = _baseURL + request.url;
+			}
+			else
+			{
+				// get everything before first '/'
+				var beforeSlash:String = request.url.split('/')[0];
+				if (beforeSlash.indexOf(':') < 0)
+				{
+					// relative url, so prepend base url
+					request.url = _baseURL + '/' + request.url;
+				}
+			}
+		}
+		
+		/**
 		 * This function performs an HTTP GET request and calls result or fault handlers when the request succeeds or fails.
 		 * @param relevantContext Specifies an object that the async handlers are relevant to.  If the object is disposed via WeaveAPI.SessionManager.dispose() before the download finishes, the async handler functions will not be called.  This parameter may be null.
 		 * @param request The URL to get.
@@ -77,6 +115,8 @@ package weave.services
 		 */
 		public function getURL(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary"):URLLoader
 		{
+			addBaseURL(request);
+			
 			var urlLoader:CustomURLLoader;
 			try
 			{
@@ -113,6 +153,8 @@ package weave.services
 		 */
 		public function getContent(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):IURLRequestToken
 		{
+			addBaseURL(request);
+			
 			if (useCache)
 			{
 				var content:Object = _contentCache[request.url]; 
@@ -279,7 +321,7 @@ internal class CustomURLLoader extends URLLoader
 		
 		if (loadNow)
 		{
-			if (URLRequestUtils.delayed)
+			if (URLRequestUtils.delayResults)
 			{
 				label = request.url;
 				try
@@ -289,7 +331,7 @@ internal class CustomURLLoader extends URLLoader
 					label += ' ' + ObjectUtil.toString(bytes.readObject()).split('\n').join(' ');
 				}
 				catch (e:Error) { }
-				//WeaveAPI.externalTrace('requested ' + label);
+				weaveTrace('requested ' + label);
 				URLRequestUtils.delayed.push({"label": label, "resume": resume});
 			}
 			

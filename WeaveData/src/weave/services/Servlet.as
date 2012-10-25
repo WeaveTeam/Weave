@@ -35,7 +35,6 @@ package weave.services
 	
 	import weave.api.WeaveAPI;
 	import weave.api.services.IAsyncService;
-	import weave.api.services.IURLRequestUtils;
 	
 	/**
 	 * This is an IAsyncService interface for a servlet that takes its parameters from URL variables.
@@ -173,13 +172,12 @@ package weave.services
 					}
 				}
 				
-				// serialize into compressed AMF3
+				// serialize into AMF3
 				var byteArray:ByteArray = new ByteArray(); 
 				byteArray.writeObject(obj);
 				// if stream content exists, append after the AMF3-serialized object
 				if (streamContent)
 					byteArray.writeBytes(streamContent);
-				byteArray.compress();
 				
 				request.data = byteArray;
 			}

@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:Box  xmlns:mx="http://www.adobe.com/2006/mxml"  implements="weave.ui.CustomDataGrid.IFilterComponent"
+<mx:Box  xmlns:mx="http://www.adobe.com/2006/mxml"  implements="weave.ui.CustomDataGrid.IFilterComponent, weave.api.core.IDisposableObject"
 		 verticalScrollPolicy="off" horizontalScrollPolicy="off"  creationPolicy="all" >
 	
 	<mx:Script>
@@ -30,17 +30,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
 			import weave.api.registerLinkableChild;
+			import weave.core.CallbackJuggler;
 			import weave.core.LinkableNumber;
 			import weave.utils.EventUtils;
 			
+			public function dispose():void
+			{
+				disposeObjects(_statsCallbackJuggler, _columnCallbackJuggler);
+			}
+				
+			
 			public var column:WeaveCustomDataGridColumn;
 			
-			
 			public function mapColumnToFilter(column:WeaveCustomDataGridColumn):void{				
-				 this.column =column;				
-			 }
+				 this.column = column;
+				 _columnCallbackJuggler.target = column ? column.attrColumn : null;
+				 _statsCallbackJuggler.target = column ? WeaveAPI.StatisticsCache.getColumnStatistics(column.attrColumn) : null;
+			}
+			private var _statsCallbackJuggler:CallbackJuggler = new CallbackJuggler(this, initRangeSlider, true);
+			private var _columnCallbackJuggler:CallbackJuggler = new CallbackJuggler(this, initRangeSlider, true);
 			
 			override protected function childrenCreated():void{
 				super.childrenCreated();
@@ -48,10 +59,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				rangeSlider.validateProperties();
 			}
 			
-			protected function rangeSlider_initializeHandler(event:FlexEvent):void
+			protected function initRangeSlider():void
 			{
-				if(!column){
-					return callLater(rangeSlider_initializeHandler,[event]);
+				if(!column || !rangeSlider){
+					callLater(initRangeSlider);
+					return;
 				}
 				dataMinimum = WeaveAPI.StatisticsCache.getColumnStatistics(column.attrColumn).getMin();
 				dataMaximum = WeaveAPI.StatisticsCache.getColumnStatistics(column.attrColumn).getMax();
@@ -106,7 +118,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:HSlider id="rangeSlider" thumbCount="2" liveDragging="true" width="100%" height="100%" minWidth="0"
 				minimum="{dataMinimum}" maximum="{dataMaximum}"
 				labels="{[dataMinimum, dataMaximum]}"
-				initialize="rangeSlider_initializeHandler(event)"
+				initialize="initRangeSlider()"
 				showTrackHighlight="true" />
 	
 </mx:Box >

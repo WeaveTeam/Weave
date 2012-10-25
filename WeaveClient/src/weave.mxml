@@ -32,7 +32,7 @@
 		<![CDATA[
 			import mx.core.UIComponent;
 			
-			import weave.api.core.ILinkableContainer;
+			import weave.api.ui.ILinkableContainer;
 			
 			// for backwards compatibility with old JavaScript evaluateExpression() code
 			[Deprecated] public function get visDesktop():ILinkableContainer { return visApp.visDesktop; }

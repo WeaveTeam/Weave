@@ -83,7 +83,7 @@
 			}
 			
 			/**
-			 * container for the Save, Revert, Cancel and Save & Close buttons 
+			 * container for the Save, Revert, Cancel and Save &amp; Close buttons 
 			 */
 			protected var controlPanelControls:ControlPanelControls = new ControlPanelControls();
 			

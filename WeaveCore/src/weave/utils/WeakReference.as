@@ -20,6 +20,7 @@
 package weave.utils
 {
 	import flash.utils.Dictionary;
+	import flash.utils.getQualifiedClassName;
 
 	/**
 	 * This class is a wrapper for a weak reference to an object.
@@ -55,7 +56,7 @@ package weave.utils
 					https://bugs.adobe.com/jira/browse/FP-5860
 					Until this bug is fixed, Functions must have strong references.
 				*/
-				if (value is Function)
+				if (value is Function && getQualifiedClassName(value) != 'Function')
 					dictionary[value] = value; // change to null when flash player bug is fixed
 				else
 					dictionary[value] = null;

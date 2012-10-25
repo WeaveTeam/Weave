@@ -30,7 +30,7 @@ package weave.core
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableContainer;
+	import weave.api.ui.ILinkableContainer;
 	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
@@ -71,7 +71,7 @@ package weave.core
 			setParentContainer(null);
 		}
 		/**
-		 * @see weave.api.core.ILinkableContainer
+		 * @see weave.api.ui.ILinkableContainer
 		 */
 		public function getLinkableChildren():ILinkableHashMap
 		{

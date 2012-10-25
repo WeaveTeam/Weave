@@ -26,7 +26,7 @@ package weave.utils
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
@@ -41,6 +41,7 @@ package weave.utils
 	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
+	import weave.data.QKeyManager;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
 	
@@ -58,12 +59,12 @@ package weave.utils
 		 */		
 		public static function getTitle(column:IAttributeColumn):String
 		{
-			var title:String = column.getMetadata(AttributeColumnMetadata.TITLE) || 'Undefined';
+			var title:String = column.getMetadata(ColumnMetadata.TITLE) || 'Undefined';
 			
 			// debug code
 			if (false)
 			{
-				var keyType:String = column.getMetadata(AttributeColumnMetadata.KEY_TYPE);
+				var keyType:String = column.getMetadata(ColumnMetadata.KEY_TYPE);
 				if (keyType)
 					title += " (Key type: " + keyType + ")";
 				else
@@ -107,7 +108,7 @@ package weave.utils
 		public static function getKeyType(column:IAttributeColumn):String
 		{
 			// first try getting the keyType from the metadata.
-			var keyType:String = column.getMetadata(AttributeColumnMetadata.KEY_TYPE);
+			var keyType:String = column.getMetadata(ColumnMetadata.KEY_TYPE);
 			if (keyType == null)
 			{
 				// if metadata does not specify keyType, get it from the first key in the list of keys.
@@ -125,7 +126,7 @@ package weave.utils
 		 */
 		public static function getDataType(column:IAttributeColumn):String
 		{
-			return column.getMetadata(AttributeColumnMetadata.DATA_TYPE);
+			return column.getMetadata(ColumnMetadata.DATA_TYPE);
 		}
 		
 		/**
@@ -152,7 +153,7 @@ package weave.utils
 
 		/**
 		 * Gets an array of QKey objects from <code>column</code> which meet the criteria
-		 * <code>min <= getNumber(column, key) <= max</code>, where key is a <code>QKey</code> 
+		 * <code>min &lt;= getNumber(column, key) &lt;= max</code>, where key is a <code>QKey</code> 
 		 * in <code>column</code>.
 		 * @param min The minimum value for the keys
 		 * @param max The maximum value for the keys
@@ -449,42 +450,6 @@ package weave.utils
 				}
 			}
 			return result;
-		}
-		
-		/**
-		 * This funciton generates a compare function that will compare IQualifiedKeys based on the corresponding values in the specified columns.
-		 * @param columns An Array of IAttributeColumns to use for comparing IQualifiedKeys.
-		 * @param descendingFlags An Array of Boolean values to denote whether the corresponding columns should be used to sort descending or not.
-		 * @return A new Function that will compare two IQualifiedKeys using numeric values from the specified columns.
-		 */
-		public static function generateCompareFunction(columns:Array, descendingFlags:Array = null):Function
-		{
-			var i:int;
-			var column:IAttributeColumn;
-			var result:int;
-			var n:int = columns.length;
-			if (descendingFlags)
-				descendingFlags.length = n;
-			return function arrayCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
-			{
-				for (i = 0; i < n; i++)
-				{
-					column = columns[i] as IAttributeColumn;
-					if (!column)
-						continue;
-					result = ObjectUtil.numericCompare(
-						column.getValueFromKey(key1, Number),
-						column.getValueFromKey(key2, Number)
-					);
-					if (result != 0)
-					{
-						if (descendingFlags && descendingFlags[i])
-							return -result;
-						return result;
-					}
-				}
-				return ObjectUtil.compare(key1, key2);
-			}
 		}
 		
 		/**

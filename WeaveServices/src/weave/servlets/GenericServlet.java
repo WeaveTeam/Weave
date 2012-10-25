@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.zip.DeflaterOutputStream;
-import java.util.zip.InflaterInputStream;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -297,11 +296,11 @@ public class GenericServlet extends HttpServlet
     		{
 	    		try
 	    		{
-	    			// this stream decompresses the post data
-	    	    	InflaterInputStream inflaterInputStream = new InflaterInputStream(request.getInputStream());
-	    	    	// read the compressed AMF3 object
-	    			Object obj = deseriaizeAmf3(inflaterInputStream);
-	    			
+	    			//InputStream inputStream = new InflaterInputStream(request.getInputStream()); // read compressed data
+	    			InputStream inputStream = request.getInputStream(); // read uncompressed data
+
+	    			// read AMF3-encoded object
+	    			Object obj = deseriaizeAmf3(inputStream);
 		    		String methodName = (String) ((ASObject)obj).get(METHOD_NAME);
 		    		Object methodParameters = ((ASObject)obj).get(METHOD_PARAMETERS);
 		    		Number streamParameterIndex = (Number) ((ASObject)obj).get(STREAM_PARAMETER_INDEX);
@@ -311,7 +310,7 @@ public class GenericServlet extends HttpServlet
 		    			// if there is a stream index, 
 		    			int index = streamParameterIndex.intValue();
 		    			if (index >= 0)
-		    				((Object[])methodParameters)[index] = inflaterInputStream;
+		    				((Object[])methodParameters)[index] = inputStream;
 		    			invokeMethod(methodName, (Object[])methodParameters);
 		    		}
 		    		else // Map of parameters
@@ -319,6 +318,11 @@ public class GenericServlet extends HttpServlet
 		    			invokeMethod(methodName, (Map)methodParameters);
 		    		}
 		    	}
+	    		catch (IOException e)
+	    		{
+	    			e.printStackTrace();
+	    			sendError(response, e);
+	    		}
 		    	catch (Exception e)
 		    	{
 		    		e.printStackTrace();

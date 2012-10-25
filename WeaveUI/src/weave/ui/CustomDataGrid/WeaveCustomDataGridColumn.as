@@ -19,7 +19,6 @@
 
 package weave.ui.CustomDataGrid
 {
-	import mx.controls.Label;
 	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.core.ClassFactory;
 	
@@ -27,7 +26,7 @@ package weave.ui.CustomDataGrid
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.core.LinkableBoolean;
-	import weave.data.AttributeColumns.ImageColumn;
+	import weave.data.KeySets.SortedKeySet;
 	import weave.utils.ColumnUtils;
 	
 	public class WeaveCustomDataGridColumn extends DataGridColumn
@@ -36,7 +35,7 @@ package weave.ui.CustomDataGrid
 		{
 			_attrColumn = attrColumn;
 			labelFunction = extractDataFunction;
-			sortCompareFunction = ColumnUtils.generateCompareFunction([_attrColumn]);
+			sortCompareFunction = SortedKeySet.generateCompareFunction([_attrColumn]);
 			headerWordWrap = true;
 			
 			var factory:ClassFactory = new ClassFactory(DataGridCellRenderer);

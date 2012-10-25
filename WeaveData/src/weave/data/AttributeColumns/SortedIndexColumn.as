@@ -26,6 +26,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.data.QKeyManager;
 	import weave.utils.AsyncSort;
 	import weave.utils.VectorUtils;
 	
@@ -114,7 +115,8 @@ package weave.data.AttributeColumns
 			var val1:Number = getInternalColumn().getValueFromKey(key1, Number);
 			var val2:Number = getInternalColumn().getValueFromKey(key2, Number);
 			// if numeric values are equal, compare the keys
-			return ObjectUtil.numericCompare(val1, val2) || ObjectUtil.compare(key1, key2);
+			return ObjectUtil.numericCompare(val1, val2)
+				|| QKeyManager.keyCompare(key1, key2);
 		}
 		
 		/**

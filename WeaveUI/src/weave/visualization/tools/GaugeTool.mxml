@@ -36,6 +36,8 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.LinkableTextFormat;
+			import weave.visualization.layers.InteractiveVisualization;
+			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.GaugePlotter;
 		
 			WeaveAPI.registerImplementation(IVisTool, GaugeTool, lang("Gauge Tool"));
@@ -106,7 +108,7 @@
 			private function showLinkCursor():void
 			{
 				if (Weave.properties.enableToolControls.value)
-					CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
+					CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK);
 			}
 			
 			private function updateMarginLabel():void
@@ -145,7 +147,7 @@
 			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Gauge column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.meterColumn"/>
 		</mx:VBox>
 		<mx:VBox id="advControlsPanel" label="{lang('Advanced')}">
-			<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" change="visualization.plotManager.marginBottomNumber.value = marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0;" toolTip="{lang('Click to hide the title.')}"/>
+			<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" change="visualization.plotManager.marginBottom.value = String(marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0);" toolTip="{lang('Click to hide the title.')}"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 	</ui:ControlPanel>

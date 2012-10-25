@@ -19,40 +19,17 @@
 
 package
 {
-	import weave.api.WeaveAPI;
-	import weave.api.core.IErrorManager;
-	import weave.api.core.IExternalSessionStateInterface;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILocaleManager;
-	import weave.api.core.IProgressIndicator;
-	import weave.api.core.ISessionManager;
-	import weave.api.core.IStageUtils;
-	import weave.api.data.IAttributeColumnCache;
-	import weave.api.data.ICSVParser;
-	import weave.api.data.IProjectionManager;
-	import weave.api.data.IQualifiedKeyManager;
-	import weave.api.data.IStatisticsCache;
-	import weave.api.services.IURLRequestUtils;
-	import weave.core.ErrorManager;
-	import weave.core.ExternalSessionStateInterface;
-	import weave.core.LinkableHashMap;
-	import weave.core.LocaleManager;
-	import weave.core.ProgressIndicator;
-	import weave.core.SessionManager;
+	import flash.utils.Dictionary;
+	
+	import weave.Weave;
 	import weave.core.SessionStateLog;
-	import weave.core.StageUtils;
 	import weave.core.WeaveXMLDecoder;
-	import weave.data.AttributeColumnCache;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.CSVParser;
 	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.DBFDataSource;
 	import weave.data.DataSources.WFSDataSource;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.DataSources.XLSDataSource;
-	import weave.data.ProjectionManager;
-	import weave.data.QKeyManager;
-	import weave.data.StatisticsCache;
 	import weave.editors.AxisLabelPlotterEditor;
 	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.DBFDataSourceEditor;
@@ -67,8 +44,10 @@ package
 	import weave.editors.WeaveDataSourceEditor;
 	import weave.editors.XLSDataSourceEditor;
 	import weave.primitives.ColorRamp;
-	import weave.services.URLRequestUtils;
+	import weave.ui.AttributeMenuTool;
 	import weave.ui.ColorRampEditor;
+	import weave.ui.JRITextEditor;
+	import weave.ui.RTextEditor;
 	import weave.utils.EditorManager;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
@@ -76,10 +55,29 @@ package
 	import weave.visualization.plotters.GridLinePlotter;
 	import weave.visualization.plotters.ImageGlyphPlotter;
 	import weave.visualization.plotters.WMSPlotter;
+	import weave.visualization.tools.ColorBinLegendTool;
+	import weave.visualization.tools.ColormapHistogramTool;
+	import weave.visualization.tools.CompoundBarChartTool;
+	import weave.visualization.tools.CompoundRadVizTool;
+	import weave.visualization.tools.CustomTool;
 	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DataStatisticsToolEditor;
+	import weave.visualization.tools.DataTableTool;
+	import weave.visualization.tools.DimensionSliderTool;
+	import weave.visualization.tools.GaugeTool;
+	import weave.visualization.tools.Histogram2DTool;
+	import weave.visualization.tools.HistogramTool;
+	import weave.visualization.tools.LineChartTool;
+	import weave.visualization.tools.MapTool;
+	import weave.visualization.tools.PieChartHistogramTool;
+	import weave.visualization.tools.PieChartTool;
 	import weave.visualization.tools.RadVizTool;
 	import weave.visualization.tools.RadVizToolEditor;
+	import weave.visualization.tools.RamachandranPlotTool;
+	import weave.visualization.tools.ScatterPlotTool;
+	import weave.visualization.tools.ThermometerTool;
+	import weave.visualization.tools.TimeSliderTool;
+	import weave.visualization.tools.TransposedTableTool;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -88,22 +86,6 @@ package
 	 */
 	public class _InitializeWeaveUI
 	{
-		/**
-		 * Register singleton implementations for WeaveAPI framework classes
-		 */
-		WeaveAPI.registerSingleton(ISessionManager, SessionManager);
-		WeaveAPI.registerSingleton(IStageUtils, StageUtils);
-		WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
-		WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
-		WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
-		WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
-		WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
-		WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
-		WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
-		WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
-		WeaveAPI.registerSingleton(ICSVParser, CSVParser);
-		WeaveAPI.registerSingleton(ILocaleManager, LocaleManager);
-		WeaveAPI.registerSingleton(ILinkableHashMap, LinkableHashMap);
 		
 		/**
 		 * Register all ILinkableObjectEditor implementations.
@@ -136,19 +118,7 @@ package
 		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
 		 */
 		WeaveXMLDecoder.includePackages(
-			"weave",
-			"weave.core",
-			"weave.data",
-			"weave.data.AttributeColumns",
-			"weave.data.BinClassifiers",
-			"weave.data.BinningDefinitions",
-			"weave.data.ColumnReferences",
-			"weave.data.DataSources",
-			"weave.data.KeySets",
 			"weave.editors",
-			"weave.primitives",
-			"weave.Reports",
-			"weave.test",
 			"weave.ui",
 			"weave.utils",
 			"weave.visualization",
@@ -157,5 +127,40 @@ package
 			"weave.visualization.plotters",
 			"weave.visualization.plotters.styles"
 		);
+
+		// BEGIN TEMPORARY SOLUTION
+		public static const toggleMap:Dictionary = new Dictionary();
+		_initToggleMap();
+		private static function _initToggleMap():void
+		{
+			var toggles:Array = [
+				[Weave.properties.enableAddAttributeMenuTool, AttributeMenuTool],
+				[Weave.properties.enableAddBarChart, CompoundBarChartTool],
+				[Weave.properties.enableAddColormapHistogram, ColormapHistogramTool],
+				[Weave.properties.enableAddColorLegend, ColorBinLegendTool],
+				[Weave.properties.enableAddCompoundRadViz, CompoundRadVizTool],
+				[Weave.properties.enableAddDataTable, DataTableTool],
+				[Weave.properties.enableAddDimensionSliderTool, DimensionSliderTool],
+				[Weave.properties.enableAddGaugeTool, GaugeTool],
+				[Weave.properties.enableAddHistogram, HistogramTool],
+				[Weave.properties.enableAdd2DHistogram, Histogram2DTool],
+				[Weave.properties.enableAddRScriptEditor, JRITextEditor],
+				[Weave.properties.enableAddLineChart, LineChartTool],
+				[Weave.properties.enableAddMap, MapTool],
+				[Weave.properties.enableAddPieChart, PieChartTool],
+				[Weave.properties.enableAddPieChartHistogram, PieChartHistogramTool],
+				[Weave.properties.enableAddRScriptEditor, RTextEditor],
+				[Weave.properties.enableAddRadViz, RadVizTool],
+				[Weave.properties.enableAddRamachandranPlot, RamachandranPlotTool],
+				[Weave.properties.enableAddScatterplot, ScatterPlotTool],
+				[Weave.properties.enableAddThermometerTool, ThermometerTool],
+				[Weave.properties.enableAddTimeSliderTool, TimeSliderTool],
+				[Weave.properties.enableAddDataTable, TransposedTableTool],
+				[Weave.properties.enableAddCustomTool, CustomTool]
+			];
+			for each (var pair:Array in toggles)
+				toggleMap[pair[1]] = pair[0];
+		}
+		// END TEMPORARY SOLUTION
 	}
 }

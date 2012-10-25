@@ -19,11 +19,14 @@
 
 package weave.core
 {
+	import flash.utils.getDefinitionByName;
+	
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.reportError;
+	import weave.utils.AsyncSort;
 	
 	/**
 	 * LinkableVariable allows callbacks to be added that will be called when the value changes.
@@ -47,7 +50,7 @@ package weave.core
 		public function LinkableVariable(sessionStateType:Class = null, verifier:Function = null, defaultValue:* = undefined, defaultValueTriggersCallbacks:Boolean = true)
 		{
 			// not supporting XML directly
-			if (sessionStateType == XML)
+			if (sessionStateType == _XML_CLASS)
 			{
 				reportError("XML is not supported directly as a session state primitive type. Using String instead.");
 				_sessionStateType = String;
@@ -69,6 +72,8 @@ package weave.core
 			}
 		}
 		
+		private static const _XML_CLASS:Class = getDefinitionByName('XML') as Class; // this avoids a weird asdoc build error
+		
 		/**
 		 * @private
 		 */		
@@ -86,14 +91,7 @@ package weave.core
 		protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
 			if (_sessionStateType == null) // if no type restriction...
-			{
-				var type:String = typeof(otherSessionState);
-				if (type != typeof(_sessionState))
-					return false; // types differ, so not equal
-				if (type == 'object' && otherSessionState != null) // typeof(null) == 'object'
-					return false; // do not attempt an object compare.. assume not equal
-				return ObjectUtil.compare(_sessionState, otherSessionState) == 0; // compare primitive value
-			}
+				return AsyncSort.defaultCompare(_sessionState, otherSessionState) == 0;
 			return _sessionState == otherSessionState;
 		}
 		
@@ -161,12 +159,13 @@ package weave.core
 			if (value !== null)
 			{
 				// not supporting XML directly
-				if (value is XML)
+				var type:String = typeof(value);
+				if (type == 'xml')
 				{
 					reportError("XML is not supported directly as a session state primitive type. Using String instead.");
-					value = (value as XML).toXMLString();
+					value = XML(value).toXMLString();
 				}
-				else if (typeof(value) == 'object')
+				else if (type == 'object')
 					value = ObjectUtil.copy(value);
 			}
 			

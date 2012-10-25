@@ -26,7 +26,7 @@
 -->
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.ui.*"
-		 width="100%" height="30"
+		 width="100%" height="30" creationPolicy="all"
 		 verticalAlign="middle" implements="weave.api.core.ILinkableObject"
 		 horizontalGap="4">
 	<mx:Label text="{label}" fontWeight="bold" minWidth="64" visible="{showLabel}" includeInLayout="{showLabel}"/>
@@ -96,6 +96,9 @@
 			
 			public function set dynamicObject(value:ILinkableDynamicObject):void
 			{
+				if (_dynamicObject == value)
+					return;
+				
 				if (_dynamicObject)
 					getCallbackCollection(_dynamicObject).removeCallback(toggleLinkDropDown);
 				
@@ -103,12 +106,26 @@
 				
 				if (value)
 					getCallbackCollection(value).addImmediateCallback(this, toggleLinkDropDown, true);
+				
+				updateLabel();
 			}
 			[Bindable] private var _dynamicObject:ILinkableDynamicObject
 			private var _visTool:IVisToolWithSelectableAttributes = null;
 			public function set visTool(value:IVisToolWithSelectableAttributes):void
 			{
 				_visTool = value;
+				updateLabel();
+			}
+			
+			private function updateLabel():void
+			{
+				if (!_visTool)
+					return;
+				var names:Array = _visTool.getSelectableAttributeNames();
+				var attrs:Array = _visTool.getSelectableAttributes();
+				var index:int = attrs.indexOf(_dynamicObject);
+				if (index >= 0)
+					label = names[index];
 			}
 			
 			private function openAttributeSelector():void

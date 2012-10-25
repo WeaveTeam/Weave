@@ -231,19 +231,21 @@ package weave.core
 				removeCallback(triggerCallbackEntry.callback);
 			
 			// find the matching CallbackEntry, if any
-			for (var index:int = 0; index < _callbackEntries.length; index++)
+			for (var outerLoop:int = 0; outerLoop < 2; outerLoop++)
 			{
-				var entry:CallbackEntry = _callbackEntries[index] as CallbackEntry;
-				if (entry != null && callback === entry.callback)
+				var entries:Array = outerLoop == 0 ? _callbackEntries : _disposeCallbackEntries;
+				for (var index:int = 0; index < entries.length; index++)
 				{
-					// Remove the callback by setting the function pointer to null.
-					// This is done instead of removing the entry because we may be looping over the _callbackEntries Array right now.
-					entry.context = null;
-					entry.callback = null;
-					if (debug)
-						entry.removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
-					// done removing the callback
-					return;
+					var entry:CallbackEntry = entries[index] as CallbackEntry;
+					if (entry != null && callback === entry.callback)
+					{
+						// Remove the callback by setting the function pointer to null.
+						// This is done instead of removing the entry because we may be looping over the _callbackEntries Array right now.
+						entry.context = null;
+						entry.callback = null;
+						if (debug)
+							entry.removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
+					}
 				}
 			}
 		}
@@ -290,6 +292,34 @@ package weave.core
 			if (_delayCount == 0 && _runCallbacksIsPending)
 				triggerCallbacks();
 		}
+		
+		/**
+		 * This will add a callback that will only be called once, when this callback collection is disposed.
+		 * @param relevantContext If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
+		 * @param callback The function to call when this callback collection is disposed.
+		 */
+		public function addDisposeCallback(relevantContext:Object, callback:Function):void
+		{
+			var entry:CallbackEntry;
+			
+			// don't do anything if the dispose callback was already added
+			for each (entry in _disposeCallbackEntries)
+				if (entry.callback === callback)
+					return;
+			
+			entry = new CallbackEntry();
+			_disposeCallbackEntries.push(entry);
+			entry.context = relevantContext;
+			entry.callback = callback;
+			
+			if (debug)
+				entry.addCallback_stackTrace = new Error(STACK_TRACE_ADD).getStackTrace();
+		}
+		
+		/**
+		 * A list of CallbackEntry objects for when dispose() is called.
+		 */		
+		private var _disposeCallbackEntries:Array = [];
 
 		/**
 		 * This will remove all callbacks.
@@ -300,6 +330,14 @@ package weave.core
 			// remove all callbacks
 			_callbackEntries.length = 0;
 			_wasDisposed = true;
+			
+			// run & remove dispose callbacks
+			while (_disposeCallbackEntries.length)
+			{
+				var entry:CallbackEntry = _disposeCallbackEntries.shift() as CallbackEntry;
+				if (entry.callback != null && !WeaveAPI.SessionManager.objectWasDisposed(entry.context))
+					entry.callback.apply();
+			}
 		}
 		
 		/**

@@ -26,6 +26,11 @@ package weave.api.services
 	public interface IURLRequestUtils
 	{
 		/**
+		 * This will set the base URL for use with relative URL requests.
+		 */
+		function setBaseURL(baseURL:String):void;
+		
+		/**
 		 * This function performs an HTTP GET request and calls result or fault handlers when the request succeeds or fails.
 		 * @param relevantContext Specifies an object that the async handlers are relevant to.  If the object is disposed via WeaveAPI.SessionManager.dispose() before the download finishes, the async handler functions will not be called.  This parameter may be null.
 		 * @param request The URL to get.

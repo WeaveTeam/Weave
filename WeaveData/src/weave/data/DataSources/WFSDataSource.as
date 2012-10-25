@@ -28,7 +28,7 @@ package weave.data.DataSources
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
@@ -90,7 +90,7 @@ package weave.data.DataSources
 						tag.@dataType = _convertOldDataType(tag.@dataType);
 					}
 				}
-				super.convertOldHierarchyFormat(_attributeHierarchy.value, 'attribute', {'projectionSRS': AttributeColumnMetadata.PROJECTION});
+				super.convertOldHierarchyFormat(_attributeHierarchy.value, 'attribute', {'projectionSRS': ColumnMetadata.PROJECTION});
 			}
 			
 			super.initialize();
@@ -253,7 +253,7 @@ package weave.data.DataSources
 						altProj += ':' + array[1];
 					if (!WeaveAPI.ProjectionManager.projectionExists(proj) && WeaveAPI.ProjectionManager.projectionExists(altProj))
 						proj = altProj;
-					attrNode['@'+AttributeColumnMetadata.PROJECTION] = proj;
+					attrNode['@'+ColumnMetadata.PROJECTION] = proj;
 				}
 				node.appendChild(attrNode);
 			}
@@ -444,7 +444,7 @@ package weave.data.DataSources
 		 * @param vector destination
 		 * @return vector 
 		 */
-		private function xmlToVector(xmlList:XMLList, vector:Vector):*
+		private function xmlToVector(xmlList:XMLList, vector:*):*
 		{
 			vector.length = xmlList.length();
 			for (var i:int = vector.length - 1; i >= 0; i--)

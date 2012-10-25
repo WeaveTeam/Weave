@@ -26,7 +26,7 @@ package weave.data.AttributeColumns
 	import mx.utils.StringUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
@@ -53,6 +53,8 @@ package weave.data.AttributeColumns
 	 */
 	public class EquationColumn extends AbstractAttributeColumn
 	{
+		public static var debug:Boolean = false;
+		
 		public static const compiler:Compiler = new Compiler();
 		{ /** begin static code block **/
 			compiler.includeLibraries(
@@ -72,7 +74,7 @@ package weave.data.AttributeColumns
 			getCallbackCollection(LinkableFunction.macroLibraries).addImmediateCallback(this, equation.triggerCallbacks, false, true);
 			getCallbackCollection(LinkableFunction.macros).addImmediateCallback(this, equation.triggerCallbacks, false, true);
 			
-			setMetadata(AttributeColumnMetadata.TITLE, "Untitled Equation");
+			setMetadata(ColumnMetadata.TITLE, "Untitled Equation");
 			//setMetadata(AttributeColumnMetadata.DATA_TYPE, DataTypes.NUMBER);
 			equation.value = 'undefined';
 			
@@ -81,11 +83,6 @@ package weave.data.AttributeColumns
 		
 		private function handleVariableListChange():void
 		{
-			// when a column is removed, remove callback trigger
-			var oldColumn:IAttributeColumn = variables.childListCallbacks.lastObjectRemoved as IAttributeColumn;
-			if (oldColumn)
-				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(oldColumn)).removeCallback(triggerCallbacks);
-			
 			// make callbacks trigger when statistics change for listed variables
 			var newColumn:IAttributeColumn = variables.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
@@ -216,7 +213,7 @@ package weave.data.AttributeColumns
 		 */
 		private function handleDataTypeChange():void
 		{
-			var _dataType:String = getMetadata(AttributeColumnMetadata.DATA_TYPE);
+			var _dataType:String = getMetadata(ColumnMetadata.DATA_TYPE);
 			if (ObjectUtil.stringCompare(_dataType, DataTypes.GEOMETRY, true) == 0) // treat values as geometries
 			{
 				// we don't have code to cast as a geometry yet, so don't attempt it
@@ -349,6 +346,8 @@ package weave.data.AttributeColumns
 					try
 					{
 						value = compiledEquation.apply(this, arguments);
+						if (debug)
+							trace(this,key.localName,value);
 					}
 					catch (e:Error)
 					{
@@ -380,7 +379,7 @@ package weave.data.AttributeColumns
 				{
 					if (!(value is String))
 						value = StandardLib.asString(value);
-					value = WeaveAPI.QKeyManager.getQKey(getMetadata(AttributeColumnMetadata.DATA_TYPE), value);
+					value = WeaveAPI.QKeyManager.getQKey(getMetadata(ColumnMetadata.DATA_TYPE), value);
 				}
 			}
 			else if (dataType != null)
@@ -391,9 +390,13 @@ package weave.data.AttributeColumns
 			return value;
 		}
 
+		override public function toString():String
+		{
+			return StringUtil.substitute('{0};"{1}";({2})', debugId(this), getMetadata(ColumnMetadata.TITLE), equation.value);
+		}
 		
 		//---------------------------------
 		// backwards compatibility
-		[Deprecated(replacement="metadata")] public function set columnTitle(value:String):void { setMetadata(AttributeColumnMetadata.TITLE, value); }
+		[Deprecated(replacement="metadata")] public function set columnTitle(value:String):void { setMetadata(ColumnMetadata.TITLE, value); }
 	}
 }

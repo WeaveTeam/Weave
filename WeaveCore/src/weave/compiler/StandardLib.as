@@ -22,6 +22,8 @@ package weave.compiler
 	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
 	import mx.utils.ObjectUtil;
+	
+	import weave.utils.AsyncSort;
 
 	/**
 	 * This provides a set of useful static functions.
@@ -115,7 +117,7 @@ package weave.compiler
 		}
 		
 		/**
-		 * This function performs find & replace operations on a String.
+		 * This function performs find and replace operations on a String.
 		 * @param string A String to perform replacements on.
 		 * @param findStr A String to find.
 		 * @param replaceStr A String to replace occurrances of the 'findStr' String with.
@@ -181,7 +183,7 @@ package weave.compiler
 		/**
 		 * This function returns -1 if the given value is negative, and 1 otherwise.
 		 * @param value A value to test.
-		 * @return -1 if value < 0, 1 otherwise
+		 * @return -1 if value &lt; 0, 1 otherwise
 		 */
 		public static function sign(value:Number):Number
 		{
@@ -195,7 +197,7 @@ package weave.compiler
 		 * @param value A value to constrain between a min and max.
 		 * @param min The minimum value.
 		 * @param max The maximum value.
-		 * @return If value < min, returns min.  If value > max, returns max.  Otherwise, returns value.
+		 * @return If value &lt; min, returns min.  If value &gt; max, returns max.  Otherwise, returns value.
 		 */
 		public static function constrain(value:Number, min:Number, max:Number):Number
 		{
@@ -462,7 +464,7 @@ package weave.compiler
 		public static function arrayCompare(a:Array, b:Array):int
 		{
 			if (!a || !b)
-				return ObjectUtil.compare(a, b);
+				return AsyncSort.defaultCompare(a, b);
 			var an:int = a.length;
 			var bn:int = b.length;
 			if (an < bn)
@@ -471,13 +473,13 @@ package weave.compiler
 				return 1;
 			for (var i:int = 0; i < an; i++)
 			{
-				var ai:Object = a[i];
-				var bi:Object = b[i];
+				var ai:* = a[i];
+				var bi:* = b[i];
 				var result:int;
 				if (ai is Array && bi is Array)
 					result = arrayCompare(ai as Array, bi as Array);
 				else
-					result = ObjectUtil.compare(a[i], b[i]);
+					result = AsyncSort.defaultCompare(ai, bi);
 				if (result != 0)
 					return result;
 			}

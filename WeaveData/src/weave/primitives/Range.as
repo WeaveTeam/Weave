@@ -21,7 +21,7 @@ package weave.primitives
 {
 	/**
 	 * Range
-	 * This class defines a 1-dimensional continuous range of values by begin & end values.
+	 * This class defines a 1-dimensional continuous range of values by begin and end values.
 	 * The difference between the begin and end values can be either positive or negative.
 	 * 
 	 * @author adufilie
@@ -35,15 +35,13 @@ package weave.primitives
 		}
 
 		/**
-		 * begin & end
-		 * These values define the range of values covered by this Range object.
-		 * The difference between begin & end can be either positive or negative.
+		 * The begin and end values define the range of values covered by this Range object.
+		 * The difference between begin and end can be either positive or negative.
 		 */
 		public var begin:Number;
 		public var end:Number;
 
 		/**
-		 * normalize
 		 * @param value A number within this Range
 		 * @return A number in the range [0,1]
 		 */
@@ -54,7 +52,6 @@ package weave.primitives
 			return (value - begin) / (end - begin);
 		}
 		/**
-		 * denormalize
 		 * @param A number in the range [0,1]
 		 * @return A number within this Range
 		 */
@@ -64,20 +61,21 @@ package weave.primitives
 		}
 		
 		/**
-		 * min & max
-		 * These are the numeric min,max values of the range.
+		 * This is the minimum value of the range.
 		 */
 		public function get min():Number
 		{
 			return Math.min(begin, end);
 		}
+		/**
+		 * This is the maximum value of the range.
+		 */
 		public function get max():Number
 		{
 			return Math.max(begin, end);
 		}
 		
 		/**
-		 * coverage:
 		 * The coverage of a Range is defined by the positive distance
 		 * from the min numeric value to the max numeric value.
 		 */
@@ -87,7 +85,6 @@ package weave.primitives
 		}
 
 		/**
-		 * setRange:
 		 * @param begin The new begin value.
 		 * @param end The new end value.
 		 */
@@ -98,7 +95,6 @@ package weave.primitives
 		}
 
 		/**
-		 * offset:
 		 * This will shift the begin and end values by a delta value.
 		 */
 		public function offset(delta:Number):void
@@ -108,7 +104,6 @@ package weave.primitives
 		}		
 
 		/**
-		 * constrain:
 		 * This function will constrain a value to be within this Range.
 		 * @return A number contained in this Range.
 		 */
@@ -120,7 +115,6 @@ package weave.primitives
 		}
 
 		/**
-		 * contains
 		 * @param value A number to check
 		 * @return true if the given value is within this Range
 		 */
@@ -132,9 +126,8 @@ package weave.primitives
 		}
 
 		/**
-		 * compare
 		 * @param value A number to check
-		 * @return -1 if value < min, 1 if value > max, 0 if min <= value <= max, or NaN otherwise
+		 * @return -1 if value &lt; min, 1 if value &gt; max, 0 if min &lt;= value &lt;= max, or NaN otherwise
 		 */
 		public function compare(value:Number):Number
 		{
@@ -150,7 +143,6 @@ package weave.primitives
 		}
 
 		/**
-		 * constrainRange:
 		 * This function will reposition another Range object
 		 * such that one range will completely contain the other.
 		 * @param rangeToConstrain The range to be repositioned.

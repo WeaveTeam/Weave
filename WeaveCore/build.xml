@@ -35,11 +35,12 @@
 		<echo message="Compiling ${ant.project.name}..."/>
 		<mkdir dir="${OUTPUT_DIR}"/>
 		<compc 
-			output="${OUTPUT_DIR}/WeaveCore.swc"
-			target-player="10.0.0"
+			output="${OUTPUT_DIR}/${ant.project.name}.swc"
+			target-player="10.2.0"
 			debug="${DEBUG}"
 			incremental="true"
 		>
+			<theme file="${FLEX_HOME}/frameworks/themes/Halo/halo.swc"/>
 			<include-sources dir="${SOURCE_DIR}" includes="**/*.as"/>			
 			<source-path path-element="${SOURCE_DIR}"/>
 
@@ -51,7 +52,7 @@
 			<library-path file="${FLEX_HOME}/frameworks/libs/qtp.swc" append="true"/>
 			<library-path file="${FLEX_HOME}/frameworks/libs/utilities.swc" append="true"/>
 			<library-path dir="${FLEX_HOME}/frameworks/locale/${LOCALE}" includes="*.swc" append="true"/>
-			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10/playerglobal.swc" append="true"/>
+			<external-library-path file="${FLEX_HOME}/frameworks/libs/player/10.2/playerglobal.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/framework.swc" append="true"/>
 			<external-library-path file="${FLEX_HOME}/frameworks/libs/rpc.swc" append="true"/>
 

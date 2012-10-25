@@ -21,13 +21,11 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.getQualifiedClassName;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.reportError;
 	import weave.core.ClassUtils;
-	import weave.core.ErrorManager;
 	import weave.core.LinkableDynamicObject;
 	import weave.utils.ColumnUtils;
 	
@@ -110,7 +108,7 @@ package weave.data.AttributeColumns
 		
 		public function toString():String
 		{
-			return getQualifiedClassName(this).split("::")[1] + '(' + ColumnUtils.getTitle(this) + ')';
+			return debugId(this) + '(' + ColumnUtils.getTitle(this) + ')';
 		}
 	}
 }

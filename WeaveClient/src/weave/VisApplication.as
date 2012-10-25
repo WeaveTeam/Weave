@@ -776,7 +776,7 @@ package weave
 					for each (var impl:Class in WeaveAPI.getRegisteredImplementations(IVisTool))
 					{
 						// TEMPORARY SOLUTION
-						if (Weave.properties._toggleMap[impl] && !(Weave.properties._toggleMap[impl] as LinkableBoolean).value)
+						if (_InitializeWeaveUI.toggleMap[impl] && !(_InitializeWeaveUI.toggleMap[impl] as LinkableBoolean).value)
 							continue;
 						
 						var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(impl);

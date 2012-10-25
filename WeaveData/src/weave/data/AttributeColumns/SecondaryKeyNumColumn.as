@@ -26,7 +26,7 @@ package weave.data.AttributeColumns
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
@@ -55,9 +55,9 @@ package weave.data.AttributeColumns
 		{
 			if (useGlobalMinMaxValues.value)
 			{
-				if (propertyName == AttributeColumnMetadata.MIN)
+				if (propertyName == ColumnMetadata.MIN)
 					return String(_minNumber);
-				if (propertyName == AttributeColumnMetadata.MAX)
+				if (propertyName == ColumnMetadata.MAX)
 					return String(_maxNumber);
 			}
 			
@@ -65,11 +65,11 @@ package weave.data.AttributeColumns
 			
 			switch (propertyName)
 			{
-				case AttributeColumnMetadata.TITLE:
+				case ColumnMetadata.TITLE:
 					if (value != null && secondaryKeyFilter.value && !allKeysHack)
 						return value + ' (' + secondaryKeyFilter.value + ')';
 					break;
-				case AttributeColumnMetadata.KEY_TYPE:
+				case ColumnMetadata.KEY_TYPE:
 					if (secondaryKeyFilter.value == null)
 						return value + TYPE_SUFFIX
 					break;
@@ -154,7 +154,7 @@ package weave.data.AttributeColumns
 			_keyToNumericDataMapping = new Dictionary();
 			
 			//if it's string data - create list of unique strings
-			var dataType:String = _metadata.attribute(AttributeColumnMetadata.DATA_TYPE);
+			var dataType:String = _metadata.attribute(ColumnMetadata.DATA_TYPE);
 			if (data[0] is String || (dataType && dataType != DataTypes.NUMBER))
 			{
 				if (!dataType)
@@ -177,7 +177,7 @@ package weave.data.AttributeColumns
 				_minNumber = NaN;
 				_maxNumber = NaN;
 			}
-			_metadata.attribute(AttributeColumnMetadata.DATA_TYPE).setChildren(dataType);
+			_metadata.attribute(ColumnMetadata.DATA_TYPE).setChildren(dataType);
 			
 			// save a mapping from keys to data
 			for (index = 0; index < keysA.length; index++)
@@ -278,7 +278,7 @@ package weave.data.AttributeColumns
 			{
 				if (_qkeyCache[qkey] === undefined)
 				{
-					var type:String = _metadata.attribute(AttributeColumnMetadata.DATA_TYPE);
+					var type:String = _metadata.attribute(ColumnMetadata.DATA_TYPE);
 					if (type == DataTypes.NUMBER)
 						return null;
 					if (type == '')
@@ -296,7 +296,7 @@ package weave.data.AttributeColumns
 
 		override public function toString():String
 		{
-			return getQualifiedClassName(this).split("::")[1] + '{recordCount: '+keys.length+', keyType: "'+getMetadata('keyType')+'", title: "'+getMetadata('title')+'"}';
+			return debugId(this) + '{recordCount: '+keys.length+', keyType: "'+getMetadata('keyType')+'", title: "'+getMetadata('title')+'"}';
 		}
 
 	}

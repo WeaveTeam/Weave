@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- containers\spark\myComponents\MyAlertPopUp.mxml -->
+<s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						   xmlns:s="library://ns.adobe.com/flex/spark" 
+						   xmlns:mx="library://ns.adobe.com/flex/mx"
+						   backgroundAlpha="0"
+						   >
+	
+	<s:Panel title="{title}">
+		<s:VGroup width="100%" horizontalAlign="center"
+				  paddingTop="{padding}"
+				  paddingBottom="{padding}"
+				  paddingLeft="{padding}"
+				  paddingRight="{padding}"
+				  gap="{spacing}">
+			<s:TextArea text="{text}" editable="false" width="100%" height="100%" />
+			<s:Button label="OK" click="close();"/>
+		</s:VGroup>
+	</s:Panel>
+	<fx:Script>
+		<![CDATA[
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			
+			[Bindable] public var spacing:int = 20;
+			[Bindable] public var padding:int = 10;
+			[Bindable] public var title:String;
+			[Bindable] public var text:String;
+			
+			public static function show(text:String = "", title:String = ""):void
+			{
+				weaveTrace('alert',title,text);
+				
+				var alert:SparkAlert = new SparkAlert();
+				alert.title = title;
+				alert.text = text;
+				alert.open(FlexGlobals.topLevelApplication as DisplayObjectContainer);
+				alert.x = (alert.parent.width - alert.width) / 2;
+				alert.y = (alert.parent.height - alert.height) / 2;
+			}
+		]]>
+	</fx:Script>
+</s:SkinnablePopUpContainer>

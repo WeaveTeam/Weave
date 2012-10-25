@@ -29,6 +29,8 @@
 			   mouseUp="handleMouseUp(event)">
 	<mx:Script>
 		<![CDATA[
+			import spark.core.SpriteVisualElement;
+			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
@@ -103,7 +105,11 @@
 				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_plotter.jitterLevel, jitterSlider, "value" );	
 				
-				visualization.rawChildren.addChild(probeSprite);
+				//visualization.rawChildren.addChild(probeSprite);
+				var sprCont:SpriteVisualElement = new SpriteVisualElement();
+				sprCont.addChild(probeSprite)
+				visualization.addElement(sprCont);
+				
 			}
 			
 			private var tempBounds:Bounds2D = new Bounds2D();
