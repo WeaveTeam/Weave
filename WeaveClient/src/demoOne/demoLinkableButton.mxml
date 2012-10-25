@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*" layout="absolute" width="400" height="300">
+	<mx:Script>
+		<![CDATA[
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableHashMap;
+			import weave.core.StageUtils;
+			import weave.core.UIUtils;
+			import weave.utils.NumberUtils;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				//				this.addEventListener(KeyboardEvent.KEY_DOWN, handleKeyboardEvent);
+				StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, this, handleKeyboardEvent);
+				
+				UIUtils.linkDisplayObjects(this, linkableChildren);
+			}
+			
+			//			public const linkableChildren:ILinkableHashMap = newLinkableChild(this, LinkableHashMap);
+			
+			public const linkableChildren:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableButton));
+			
+			private function handleKeyboardEvent(event:KeyboardEvent = null):void
+			{
+				// get the key character that was pressed
+				var theChar:String = String.fromCharCode(StageUtils.keyboardEvent.charCode);
+				
+				// if user presses the space bar, create a new label
+				if (theChar == ' ')
+				{
+					var lbl:LinkableButton = linkableChildren.requestObject(null, LinkableButton, false);
+					// set initial values
+					lbl.x = Math.random() * (width - 100);
+					//lbl.yWrapper.value = Math.random() * (height - 50);
+					//lbl.colorWrapper.value = StandardLib.interpolateColor(Math.random(), 0xFF0000, 0x0000FF);
+					
+					return;
+				}
+				
+				
+				var objects:Array = linkableChildren.getObjects(); // all objects
+				//				var objects:Array = linkableChildren.getObjects(LinkableLabel); // only LinkableLabel objects
+				
+				// stop if there are no labels
+				if (objects.length == 0)
+					return;
+				
+				// get the last label object
+				var lastLabel:LinkableButton = objects.pop() as LinkableButton; // pop the last one off the array
+				
+				if (StageUtils.keyboardEvent.keyCode == Keyboard.BACKSPACE)
+				{
+					// if the user pressed backspace, remove the label
+					var name:String = linkableChildren.getName(lastLabel);
+					linkableChildren.removeObject(name);
+				}
+				else
+				{
+					// otherwise, append a character to the last label
+					//lastLabel.textWrapper.value += theChar;
+				}
+			}
+		]]>
+	</mx:Script>
+</ui:DraggablePanel>

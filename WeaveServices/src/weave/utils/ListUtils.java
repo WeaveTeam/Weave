@@ -46,10 +46,10 @@ public class ListUtils
 		{
 			try
 			{
-				if (input[i] instanceof Integer)
-					output[i] = ((Integer)input[i]).doubleValue();
-				else
-					output[i] = (Double)input[i];
+				if (input[i] instanceof Number)
+                    output[i] = ((Number)input[i]).doubleValue();
+            else
+                    output[i] = Double.NaN;
 			}
 			catch (ClassCastException e)
 			{

@@ -71,6 +71,10 @@ package weave.data.DataSources
 		// contains the parsed csv data
 		private var csvDataArray:Array = null;
 		
+		public function setCSVData(rows:Array):void
+		{
+			csvDataString.value = WeaveAPI.CSVParser.createCSV(rows);
+		}
 		
 		/**
 		 * This will get a list of column names in the CSV data.

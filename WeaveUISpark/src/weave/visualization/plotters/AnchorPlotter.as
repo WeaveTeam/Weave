@@ -54,16 +54,20 @@ package weave.visualization.plotters
 			
 			setSingleKeySource(_keySet);
 		}
-		
+
 		public var anchors:LinkableHashMap = newSpatialProperty(LinkableHashMap,handleAnchorsChange);
 		public const labelAngleRatio:LinkableNumber = registerSpatialProperty(new LinkableNumber(0, verifyLabelAngleRatio));
 		
-		private var _keySet:KeySet = newDisposableChild(this, KeySet);
+		private const _keySet:KeySet = newDisposableChild(this, KeySet);
 		private const tempPoint:Point = new Point();
 		private const _bitmapText:BitmapText = new BitmapText();
+		private var coordinate:Point = new Point();//reusable object
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
 		public var anchorColorMap:Dictionary;
+		public var drawingClassLines:Boolean = false;//this divides the circle into sectors which represent classes (number of sectors = number of classes)
+		public var displayClassNames:Boolean = false;//this displays the names of the classes 
+		public var anchorClasses:Dictionary = null;//this tells us the classes to which dimensional anchors belong to
 		
 		//Fill this hash map with bounds of every record key for efficient look up in getDataBoundsFromRecordKey
 		private var keyBoundsMap:Dictionary = new Dictionary();
@@ -111,6 +115,7 @@ package weave.visualization.plotters
 			graphics.clear();
 						
 			graphics.lineStyle(1);
+
 			// loop through anchors hash map and draw dimensional anchors and labels	
 			for each(var key:IQualifiedKey in recordKeys)
 			{
@@ -127,12 +132,16 @@ package weave.visualization.plotters
 				tempPoint.x = radius * cos;
 				tempPoint.y = radius * sin;
 				dataBounds.projectPointTo(tempPoint, screenBounds);
-
+				
 				// draw circle
 				if(enableWedgeColoring.value)
-					graphics.beginFill(anchorColorMap[key.localName]);				
+					graphics.beginFill(anchorColorMap[key.localName]);		
+				//color the dimensional anchors according to the class hey belong to
+				//graphics.beginFill(Math.random() * uint.MAX_VALUE);				
 				graphics.drawCircle(tempPoint.x, tempPoint.y, 5);				
 				graphics.endFill();
+				
+				
 				
 				_bitmapText.trim = false;
 				_bitmapText.text = " " + anchor.title.value + " ";
@@ -166,18 +175,93 @@ package weave.visualization.plotters
 				// draw bitmap text
 				_bitmapText.draw(destination);								
 			}
+			
+			
 			destination.draw(tempShape);							
 			
 			_currentScreenBounds.copyFrom(screenBounds);
 			_currentDataBounds.copyFrom(dataBounds);
 		}
 		
+		
+		/**
+		 * This function draws the background graphics for this plotter, if applicable.
+		 * An example background would be the origin lines of an axis.
+		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
+		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
+		 * @param destination The sprite to draw the graphics onto.
+		 */
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			super.drawBackground(dataBounds,screenBounds,destination);
+			var g:Graphics = tempShape.graphics;
+			g.clear();
+			
+			coordinate.x = -1;
+			coordinate.y = -1;
+			
+			
+			dataBounds.projectPointTo(coordinate, screenBounds);
+			var x:Number = coordinate.x;
+			var y:Number = coordinate.y;
+			coordinate.x = 1;
+			coordinate.y = 1;
+			dataBounds.projectPointTo(coordinate, screenBounds);
+			
+			// draw RadViz circle
+			try {
+				g.lineStyle(2, 0, .2);
+				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);
+			} catch (e:Error) { }
+			
+			if(drawingClassLines)
+			{
+				drawClassLines(dataBounds, screenBounds, g);
+			}
+			
+			destination.draw(tempShape);
 			
 			_currentScreenBounds.copyFrom(screenBounds);
 			_currentDataBounds.copyFrom(dataBounds);
+		}
+		
+		public function drawClassLines(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:Graphics):void
+		{
+			var graphics:Graphics = destination;
+			var numOfClasses:int = 0;
+			for ( var type:Object in anchorClasses)
+			{
+				numOfClasses++;
+			}
+			
+			var classTheta:Number = (2 * Math.PI)/ numOfClasses;
+			var classIncrementor:Number = 0; 
+			var centre:Point = new Point();
+			centre.x = 0; centre.y = 0;
+			dataBounds.projectPointTo(centre, screenBounds);//projecting the centre of the Radviz circle
+			
+			for(var cdClass:Object in anchorClasses)
+			{
+				var previousClassAnchor:Point = new Point();
+				var currentClassPos:Number = classTheta * classIncrementor;
+				previousClassAnchor.x = Math.cos(currentClassPos);
+				previousClassAnchor.y = Math.sin(currentClassPos);
+				dataBounds.projectPointTo(previousClassAnchor,screenBounds);
+				
+				var nextClassAnchor:Point = new Point();
+				var nextClassPos:Number = (classTheta - 0.01)  * (classIncrementor + 1);
+				nextClassAnchor.x = Math.cos(nextClassPos);
+				nextClassAnchor.y = Math.sin(nextClassPos);
+				dataBounds.projectPointTo(nextClassAnchor, screenBounds);
+				
+				graphics.lineStyle(1, 0x00ff00);
+				graphics.lineStyle(0.5,Math.random() * uint.MAX_VALUE);
+				classIncrementor ++;
+				graphics.moveTo(previousClassAnchor.x, previousClassAnchor.y);
+				graphics.lineTo(centre.x, centre.y);
+				graphics.lineTo(nextClassAnchor.x, nextClassAnchor.y);
+				
+			}
 		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array

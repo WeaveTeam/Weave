@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+-->
+<!---
+
+@author spurushe
+-->
+<mx:TabNavigator xmlns="weave.visualization.tools.*" 
+			   xmlns:mx="http://www.adobe.com/2006/mxml"
+			   xmlns:ui="weave.ui.*" 
+			   xmlns:userControls="weave.ui.userControls.*"		 
+			   implements="weave.api.ui.ILinkableObjectEditor"
+			   >
+	
+	<mx:Script>
+		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
+			import mx.controls.Alert;
+			import mx.events.ListEvent;
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
+			import weave.core.LinkableHashMap;
+			import weave.core.UIUtils;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.KeySets.KeySet;
+			import weave.data.QKeyManager;
+			import weave.radviz.ClassDiscriminationLayoutAlgorithm;
+			import weave.radviz.ClassInfoObject;
+			import weave.services.DelayedAsyncResponder;
+			import weave.services.WeaveRServlet;
+			import weave.services.beans.RResult;
+			import weave.utils.ColumnUtils;
+			import weave.utils.DebugTimer;
+			import weave.utils.DebugUtils;
+			import weave.utils.ResultUtils;
+			
+			
+			
+			[Bindable] public var _target:RadVizTool = null;
+				
+			
+			[Bindable] 
+			public var columnNames:Array  = new Array();
+			public var selectedColumnName:String;
+			public var selectedAlgoOption:String;
+			private var thrValue:Number; private var layoutMeasure:String = new String();
+			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
+			
+			 override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				(size as DynamicColumnComponent).dynamicObject = _target._plotter.radiusColumn ;
+				(colorComponent as DynamicColumnComponent).dynamicObject = _target.colorColumn;
+				columnList.hashMap = _target._plotter.columns;
+				(classDis as DynamicColumnComponent).dynamicObject = _target.classDiscriminatorColumn;
+				linkBindableProperty(_target._plotter.enableJitter,jitterckbx,'selected');
+				linkBindableProperty(_target._plotter.radiusConstant,sizeSlider,'value');				
+				linkBindableProperty(_target._plotter.alphaColumn.defaultValue, alphaSlider, "value");
+				linkBindableProperty(_target._plotter.jitterLevel, jitterSlider, "value" );	
+								
+			} 
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				_target = object as RadVizTool;
+			}
+			public function applyChanges():void
+			{
+				
+			}
+	
+			
+			private function alphaSliderFormatFunction(item:Number):String 
+			{
+				return int((item * 100)) + "% Opaque" + "\n" + int(100 - (item * 100)) + "% Transparent";
+			}
+			
+			
+			//these two counters keep track of the asynchronos calls made to R and the results returned
+			private var sentToRCounter:Number;
+			private var receivedFromRCounter:int = 0;
+			private var RCallGroupNumber:int = 0;
+			
+			/**this function handles the results returned from R (the t-statistic and the p-values)*/
+			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
+			{
+				
+				/*  if (delay)
+				{
+					DebugUtils.callLater(10000, handleRunScriptResult, [event, token, false]);
+					return;
+				}  */
+				
+				 //handles two ansynchronous calls made to R
+				 //This results in the most recent R call being processed
+				// if(token[2] != RCallGroupNumber) {return};
+				 
+				receivedFromRCounter++;
+					//Object to stored returned result - Which is array of object{name: , value: }
+					var Robj:Array = event.result as Array;				
+				
+					if (Robj == null)
+					{
+						reportError("R Servlet did not return an Array of results as expected.");
+						return;
+					}
+					
+					//Collecting all RResult Objects into an Array 
+					var RresultArray:Array = new Array();
+					
+					//collecting Objects of type RResult(Should Match result object from Java side)
+					for (var i:int = 0; i < (event.result).length; i++)
+					{
+						if (Robj[i] == null)
+						{
+							trace("WARNING! R Service returned null in results array at index "+i);
+							continue;
+						}
+						var rResult:RResult = new RResult(Robj[i]);
+						RresultArray.push(rResult);	
+						
+						
+					}	
+					
+					//var colIndex:int = token[1];
+				     var colIndex: int = _target._plotter.columns.getNames().indexOf(token[1]);
+					//Fills in the t-statistic and pValues(hard coded since we will be receiving only two values from R)
+					(token[0] as ClassInfoObject).tStatisticArray[colIndex] = ((RresultArray[0] as RResult).value);
+					(token[0] as ClassInfoObject).pValuesArray[colIndex] =((RresultArray[1] as RResult).value);
+					trace("handlescript successful!");
+					trace("receivedFromRCounter :" + receivedFromRCounter);
+					trace("sentToRCounter :" + sentToRCounter);
+					
+					
+			}
+			
+	
+			private function handleRunScriptFault(event:FaultEvent, token:Object = null):void
+			{
+					trace(["fault", token, event.message].join('\n'));
+					reportError(event);
+			}
+		
+			
+			//reports which algorithm with which to compute the t-statistic
+			protected function layoutAlgoCB_changeHandler(event:ListEvent):void
+			{
+				/*  var script:String = "";
+				var flag:Boolean;  */
+				if(UIUtils.hasFocus(layoutAlgoCB)){
+					var selectedOptionName:String= layoutAlgoCB.selectedLabel;
+				}
+				
+				/*  if (selectedOptionName == "t-statistic = variance"){flag = true;}
+				
+				if (selectedOptionName == "t-statistic != variance"){flag = false;}  */
+				
+				/* Call to R
+				FOr a type(example "American") sends one column at a time and a two-sample t-test is performed in R
+				For each column the t-statistic and p-value are returned from R
+				*/
+				
+				var colObjects:Array = _target._plotter.columns.getObjects();//user selected columns
+				
+				/*  if(flag){script = "cdoutput <- t.test(x,y, var.equal = TRUE)"; trace(script);}
+				if(!flag){script = "cdoutput <- t.test(x,y, var.equal = FALSE)"; trace(script);}  */
+				
+				for (var type:Object in _target.cdLayout.ClassToColumnMap)
+				{						
+					for(var l:int = 0; l < colObjects.length; l++)
+					{
+						var inputValues:Array = new Array();//sending two vectors to R
+						var inputNames:Array;
+						inputValues.push((_target.cdLayout.ClassToColumnMap[type] as ClassInfoObject).columnMapping[_target._plotter.columns.getNames()[l]]);//pushing col belonging to type
+						var temArray:Array = new Array();
+						var temArray2:Array = new Array();
+						for(var comparetype:Object in _target.cdLayout.ClassToColumnMap)
+						{
+							if(type!= comparetype)//collecting the values of the same column for other types
+							{
+								temArray = temArray.concat((_target.cdLayout.ClassToColumnMap[comparetype]as ClassInfoObject).columnMapping[_target._plotter.columns.getNames()[l]]);
+							}
+						}
+						
+						inputValues.push(temArray);
+						inputNames = ["x", "y"];
+						
+						//var idString:String = _target._plotter.columns.getNames()[l]+"_"+type+"_";
+						var script:String = "cdoutput <- t.test(x,y)";
+						var outputNames:Array = ["cdoutput$statistic","cdoutput$p.value"];//(tstatistic, pvalue) values to be obtained from R
+						
+						//send one column to R at a time
+						var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
+						DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,[_target.cdLayout.ClassToColumnMap[type],_target._plotter.columns.getNames()[l]]);
+						//DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault,[cdLayout.ClassToColumnMap[type],l]);
+					}
+					
+				}
+				
+			}
+	
+			// identifies which measure (pvalue or t-statistic) has been selected by the user for the CD algorithm 
+			protected function measureCheck():String
+			{
+				var layoutMeasure:String = new String();
+				if(useThresholdCB.selected)
+				{
+					if(tStatCB.selected){ layoutMeasure = "Tstat";}
+					if(pValCB.selected) { layoutMeasure = "PVal";}
+					if(tStatCB.selected && pValCB.selected){ Alert.show("Please select only one option","Alert Box",Alert.OK);}
+				}
+				
+				return layoutMeasure;
+			}
+			
+			/*-----------------------------------------BUTTON CLICK HANDLERS----------------------------------------------------------*/		
+			
+			
+			/**
+			 * This function runs the Class discrimination algorithm on the current columns. Every time a column is aded or removed
+			 * this algortihm must be redrawn 
+			 * */
+			/**this function sends columns to R for calculation of the t-statistic and p-value*/
+			protected function DOcdButton_clickHandler(event:MouseEvent):void
+			{
+				var thrValue:Number = Number(thresholdValue.text);
+				var layoutMeasure:String = new String();
+				if(useThresholdCB.selected){layoutMeasure = measureCheck();} 
+				else{
+					layoutMeasure = "Tstat";
+				}
+				
+				_target.cdLayout.actualAlgo(_target._plotter.columns.getNames(),_target.cdLayout.ClassToColumnMap,layoutMeasure,thrValue);
+				_target._anchorPlotter.drawingClassLines = true;//cd coloring
+				_target._plotter.doCDLayout = true;//cd layout
+				_target._anchorPlotter.anchorClasses = _target.cdLayout.tAndpMapping;//we need this to be able to color the anchors accorsing to the class they belong to
+				_target._plotter.LayoutClasses = _target.cdLayout.tAndpMapping; 
+				//_target._plotter.setAnchorLocations();
+				_target._plotter.setClassDiscriminationAnchorsLocations();//cd layout
+			}
+				
+			//restoring the default ordering
+			protected function defaultDAs_clickHandler(event:MouseEvent):void
+			{
+				_target._plotter.doCDLayout = false;
+				_target._anchorPlotter.drawingClassLines = false;
+				_target._plotter.setAnchorLocations();//normal layout
+				
+			}
+			
+			protected function useThresholdCB_clickHandler(event:MouseEvent):void
+			{
+				if(useThresholdCB.selected){ pValCB.enabled = true; tStatCB.enabled = true; thresholdValue.enabled = true; thrValLabel.enabled = true;}
+				if(!useThresholdCB.selected){ pValCB.enabled = false; tStatCB.enabled = false; thresholdValue.enabled = false; thrValLabel.enabled = false;}
+				
+			}
+			
+			
+		]]>
+	</mx:Script>
+	
+	
+		<mx:VBox id="attributesPanel" label="Attributes">
+			<ui:DynamicColumnComponent  visTool="{_target}" id="colorComponent" label="Color" />
+			<ui:DynamicColumnComponent visTool="{_target}" id="size" label="Size" />
+			<ui:ColumnListComponent visTool="{_target}" id="columnList" label="Anchor Dimensions"/>
+		</mx:VBox>		
+		
+		<mx:VBox id="VizControlsPanel" label="Appearance">
+			<ui:Indent label="Point opacity"
+					   width="100%"
+					   toolTip="Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).">
+				<mx:HSlider id="alphaSlider"
+							width="100%"
+							alpha="1.0"
+							snapInterval="0.1"
+							tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
+							dataTipFormatFunction="alphaSliderFormatFunction"
+							minimum="0.1" maximum="1.0" value="1.0"
+							liveDragging="true"/>
+			</ui:Indent>
+			<mx:Spacer/>
+			<ui:Indent label="Point radius"
+					   width="100%"
+					   toolTip="Use this control to adjust point radius">
+				<mx:HSlider id="sizeSlider"
+							width="100%"
+							alpha="1.0"
+							tickInterval="1" 
+							minimum="1" maximum="10" 
+							liveDragging="true"/>
+			</ui:Indent>
+			<mx:Spacer/>
+			<ui:Indent label="Label angle" width="100%">
+				<mx:HSlider id="labelAngleSlider" width="100%"
+					snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
+					dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
+					creationComplete="linkBindableProperty(_target._anchorPlotter.labelAngleRatio, event.target, 'value')"/>
+			</ui:Indent>
+		</mx:VBox>
+		
+		<mx:VBox id="advancedPanel" label="Advanced">			
+			<mx:VBox>
+				<mx:HBox
+					creationComplete="linkBindableProperty(_target._plotter.localNormalization,normalizationType,'selectedValue')">
+					<mx:Label text="Normalization method:"
+							  toolTip="Select the type of normalization used to calculate record coordinates"/>
+					<mx:RadioButtonGroup id="normalizationType"/>
+					<mx:RadioButton groupName="normalizationType"
+									id="localNorm"
+									value="true"
+									label="Local"
+									/>
+					<mx:RadioButton groupName="normalizationType"
+									id="globalNorm"
+									value="false"
+									label="Global"
+									/>
+				</mx:HBox>
+			</mx:VBox>
+			<mx:Spacer height="10"/>
+			<mx:VBox>
+				<mx:HBox>
+					<mx:CheckBox id="jitterckbx" label="Apply Jitter:" 
+							  toolTip="Use this control to change record coordinates by a random number"/>
+					<mx:Button label="Randomize Jitter"
+							   toolTip="Use this control to reseed jitter with new random values"
+							   click="_target._plotter.setNewRandomJitterColumn();"/>
+					<mx:Label text="Jitter Level:" 
+							  enabled="{jitterckbx.selected}"
+							  toolTip="Use slider to adjust the jitter level"/>					
+					<mx:HSlider id="jitterSlider"
+								enabled="{jitterckbx.selected}"
+								width="100%"
+								alpha="1.0"
+								snapInterval="1"
+								tickInterval="1"
+								labels="{['1','2','3','4','5','6','7','8','9','10']}"
+								showDataTip="false"
+								minimum="-19" maximum="-10"
+								liveDragging="true"/>
+				</mx:HBox>
+			</mx:VBox>
+			<mx:Spacer height="10"/>
+			<mx:VBox>
+				<mx:Label text="Dimensional Anchor Reordering Algorithm:"
+						  toolTip="Use this control to reorder the dimensional anchors"/>					
+				<mx:ComboBox id="algorithmComboBox" dataProvider="{_target._plotter.algorithms}"
+							 creationComplete="linkBindableProperty(_target._plotter.currentAlgorithm,event.target,'selectedItem')"/>
+				<mx:HBox enabled="{algorithmComboBox.selectedIndex == 0}">
+					<mx:Label text="Number of Iterations"/>
+					<mx:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
+								  creationComplete="linkBindableProperty(_target._plotter.iterations, event.target, 'text')"/>
+				</mx:HBox>
+			</mx:VBox>
+		</mx:VBox>
+	<mx:VBox id="cdlayout" label="CDLayout" horizontalScrollPolicy="off" verticalScrollPolicy="off">
+		<mx:HBox>
+			
+		
+		<mx:VBox width="45%">
+					<ui:Indent  width="10%" label="Class Discriminator">
+						<ui:DynamicColumnComponent  visTool="{_target}" id="classDis" />	
+					</ui:Indent>
+			
+			
+				<ui:Indent label="Layout Algorithm">
+					
+					<mx:ComboBox id="layoutAlgoCB" change="layoutAlgoCB_changeHandler(event)">
+						<mx:ArrayCollection>
+							<mx:String>Select an option</mx:String>
+							<mx:String>t-statistic = variance</mx:String>
+							<mx:String>t-statistic != variance</mx:String>
+							<mx:String>Class Distinction</mx:String>
+						</mx:ArrayCollection>
+					</mx:ComboBox>
+					</ui:Indent>
+			
+			<mx:Spacer height="10"/>
+		
+				<mx:CheckBox label="Use Threshold" id="useThresholdCB"  click="useThresholdCB_clickHandler(event)" />
+			<ui:Indent>
+				<mx:VBox>
+					<mx:CheckBox id = "tStatCB" label="t-statistic" enabled="false"/>
+					<mx:CheckBox id="pValCB" label="p-value" enabled="false"/>
+					
+				</mx:VBox>
+				
+			</ui:Indent>
+			<mx:HBox>
+				<mx:Label  id="thrValLabel" text="Threshold Value" enabled="false"/>
+				<mx:TextInput  width="20%" id="thresholdValue" enabled="false"/>
+				<mx:Button id="DOcd" label="Run Algorithm" click="DOcdButton_clickHandler(event)"/>
+			</mx:HBox>
+			
+			<mx:CheckBox label="Use Bonferroni Correction" id="useBonferroniCB" />
+			<ui:Indent>
+				<mx:VBox>
+					<mx:CheckBox label="Use the number of active columns"/>
+					<mx:CheckBox label="Custom Value"/>
+					<mx:TextInput id="customValue"/>
+					
+					<mx:Button id="defaultDAs" label="Restore default ordering" click="defaultDAs_clickHandler(event)"/>
+				</mx:VBox>
+				
+			</ui:Indent>
+		</mx:VBox>
+	
+		<mx:VBox >
+			<ui:Indent label="Class Column">
+				<mx:ComboBox>
+					<mx:ArrayCollection>
+						<mx:String>Positive Influences only</mx:String>
+						<mx:String>Negative Influences only</mx:String>
+						<mx:String>Both influences</mx:String>
+					</mx:ArrayCollection>
+				</mx:ComboBox>
+			</ui:Indent>
+			
+			<mx:CheckBox label="Limit Number of Columns Assigned"/>
+			<mx:HBox>
+				<mx:Label text= "Columns per class"/>
+				<mx:TextInput id="columninClassTI"/>
+			</mx:HBox>
+			
+			<mx:Spacer height="20"/>
+			
+			<mx:CheckBox id="tInTableCB" label="Show t-statistic in table"/>
+			<mx:CheckBox  id="pInTableCB" label="Show p values in table"/>
+			
+			<mx:Spacer height="20"/>
+			<mx:Label text="Display with Axis Names"/>
+			<ui:Indent>
+				<mx:CheckBox id="tInRadvizCB" label="t-statistic"/>
+				<mx:CheckBox id="pInRadvizCB" label="p-value"/>	
+				
+			</ui:Indent>
+			
+			
+		</mx:VBox>
+		</mx:HBox>
+	</mx:VBox>
+		
+	
+</mx:TabNavigator>

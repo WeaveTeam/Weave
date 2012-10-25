@@ -22,40 +22,14 @@ package
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
-	import weave.api.core.IErrorManager;
-	import weave.api.core.IExternalSessionStateInterface;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILocaleManager;
-	import weave.api.core.IProgressIndicator;
-	import weave.api.core.ISessionManager;
-	import weave.api.core.IStageUtils;
-	import weave.api.data.IAttributeColumnCache;
-	import weave.api.data.ICSVParser;
-	import weave.api.data.IProjectionManager;
-	import weave.api.data.IQualifiedKeyManager;
-	import weave.api.data.IStatisticsCache;
-	import weave.api.services.IURLRequestUtils;
-	import weave.core.ErrorManager;
-	import weave.core.ExternalSessionStateInterface;
-	import weave.core.LinkableHashMap;
-	import weave.core.LocaleManager;
-	import weave.core.ProgressIndicator;
-	import weave.core.SessionManager;
 	import weave.core.SessionStateLog;
-	import weave.core.StageUtils;
 	import weave.core.WeaveXMLDecoder;
-	import weave.data.AttributeColumnCache;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.CSVParser;
 	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.DBFDataSource;
 	import weave.data.DataSources.WFSDataSource;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.DataSources.XLSDataSource;
-	import weave.data.ProjectionManager;
-	import weave.data.QKeyManager;
-	import weave.data.StatisticsCache;
 	import weave.editors.AxisLabelPlotterEditor;
 	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.DBFDataSourceEditor;
@@ -70,7 +44,6 @@ package
 	import weave.editors.WeaveDataSourceEditor;
 	import weave.editors.XLSDataSourceEditor;
 	import weave.primitives.ColorRamp;
-	import weave.services.URLRequestUtils;
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.ColorRampEditor;
 	import weave.ui.JRITextEditor;
@@ -87,6 +60,8 @@ package
 	import weave.visualization.tools.CompoundBarChartTool;
 	import weave.visualization.tools.CompoundRadVizTool;
 	import weave.visualization.tools.CustomTool;
+	import weave.visualization.tools.DataStatisticsTool;
+	import weave.visualization.tools.DataStatisticsToolEditor;
 	import weave.visualization.tools.DataTableTool;
 	import weave.visualization.tools.DimensionSliderTool;
 	import weave.visualization.tools.GaugeTool;
@@ -97,6 +72,7 @@ package
 	import weave.visualization.tools.PieChartHistogramTool;
 	import weave.visualization.tools.PieChartTool;
 	import weave.visualization.tools.RadVizTool;
+	import weave.visualization.tools.RadVizToolEditor;
 	import weave.visualization.tools.RamachandranPlotTool;
 	import weave.visualization.tools.ScatterPlotTool;
 	import weave.visualization.tools.ThermometerTool;
@@ -133,6 +109,8 @@ package
 		
 		EditorManager.registerEditor(ColorRamp, ColorRampEditor);
 //		EditorManager.registerEditor(HistogramTool, HistogramToolEditor);
+        EditorManager.registerEditor(RadVizTool, RadVizToolEditor);
+		EditorManager.registerEditor(DataStatisticsTool, DataStatisticsToolEditor);
 		
 		EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
 		

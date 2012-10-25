@@ -19,6 +19,10 @@
 	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
+<!---
+@author kmanohar
+@author spurushe
+-->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" 
@@ -29,26 +33,40 @@
 			   mouseUp="handleMouseUp(event)">
 	<mx:Script>
 		<![CDATA[
+			import mx.rpc.AsyncToken;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
 			import spark.core.SpriteVisualElement;
 			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
+			import weave.api.core.ICallbackCollection;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
-			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
+			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
+			import weave.core.CallbackCollection;
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.NumberColumn;
+			import weave.data.KeySets.KeySet;
 			import weave.primitives.Bounds2D;
 			import weave.primitives.ColorRamp;
+			import weave.radviz.ClassDiscriminationLayoutAlgorithm;
+			import weave.services.DelayedAsyncResponder;
+			import weave.services.WeaveRServlet;
+			import weave.services.beans.RResult;
 			import weave.ui.DraggablePanel;
-			import weave.ui.DynamicColumnComponent;
 			import weave.utils.ColumnUtils;
-			import weave.utils.PlotterUtils;
+			import weave.utils.ResultUtils;
 			import weave.visualization.plotters.AnchorPlotter;
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.RadVizPlotter;
@@ -56,10 +74,19 @@
 			WeaveAPI.registerImplementation(IVisTool, RadVizTool, lang("RadViz"));
 			
 			[Bindable]
-			private var _plotter:RadVizPlotter ;
-			private var _anchorPlotter:AnchorPlotter ;
-			
+			public var _plotter:RadVizPlotter ;
+			public var _anchorPlotter:AnchorPlotter ;
+
 			private static const ANCHOR_LAYER:String = "anchorLayer";
+
+			public var normalizedColumns:Array = new Array();//normalized columns returned from R
+			private var normalizedColumnsGroup:ICallbackCollection; // linkable object used to group norm columns and check busy status
+			public const classDiscriminatorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);//column used as the Class Discriminator
+			public var cdLayout:ClassDiscriminationLayoutAlgorithm= new ClassDiscriminationLayoutAlgorithm();
+			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
+			
+			public var latestjoinedColumnKeys:Array = new Array();
+			
 			
 			override protected function constructor():void
 			{
@@ -83,7 +110,8 @@
 				if(columnsToInit.length > 0)
 					(initColumnDefaults as Function).apply(null, columnsToInit);
 				
-				_plotter.setAnchorLocations();
+				
+				_plotter.setAnchorLocations();//normal layout
 				_anchorPlotter = visualization.plotManager.plotters.requestObject(ANCHOR_LAYER, AnchorPlotter, true) ;
 				linkSessionState(_plotter.anchors,_anchorPlotter.anchors);	
 				
@@ -97,14 +125,8 @@
 			{
 				super.childrenCreated();
 				
-				(size as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn ;
-				(colorComponent as DynamicColumnComponent).dynamicObject = colorColumn;
-				columnList.hashMap = _plotter.columns;
-				
-				linkBindableProperty(_plotter.enableJitter,jitterckbx,'selected');
-				linkBindableProperty(_plotter.radiusConstant,sizeSlider,'value');				
-				linkBindableProperty(_plotter.alphaColumn.defaultValue, alphaSlider, "value");
-				linkBindableProperty(_plotter.jitterLevel, jitterSlider, "value" );	
+				_plotter.columns.addGroupedCallback(this, normalizationInR);
+				classDiscriminatorColumn.addImmediateCallback(this, classDiscriminatorColumnUpdate);
 				
 				//visualization.rawChildren.addChild(probeSprite);
 				var sprCont:SpriteVisualElement = new SpriteVisualElement();
@@ -124,6 +146,119 @@
 			
 			private var probeSprite:Sprite = new Sprite() ;			
 			
+			//this function is called whenver a column is selected to do the class discrimination
+			private function classDiscriminatorColumnUpdate():void
+			{
+				
+				var colObjects:Array = _plotter.columns.getObjects();//user selected columns
+				//the class discriminator column needs to be selected and the columns need to be normalized
+				if(classDiscriminatorColumn.keys.length == 0 ||
+					WeaveAPI.SessionManager.linkableObjectIsBusy(normalizedColumnsGroup) ||
+					!normalizedColumnsGroup)//incase user selects discriminator before columns
+				{return;}
+				
+				//populates the data structure on which the CD algorithm is then run
+				cdLayout.fillingClassToColumnMap(classDiscriminatorColumn,colObjects,_plotter.columns.getNames(),normalizedColumns);
+				
+				
+			}
+			
+			//returns two columns with common keys
+			private function joinColumns(columns:Array):Array
+			{
+				var selection:KeySet = Weave.defaultSelectionKeySet;
+				var keys:Array = selection.keys.length > 0 ? selection.keys : null;
+				var result:Array = ColumnUtils.joinColumns(columns, Number, false, keys);
+				return [result.shift(), result];
+			}
+			
+			/**this function sends the data in the form of a matrix for normalization in R*
+			 * Used for Class discrimination Layout algorithm*/
+			private function normalizationInR():void
+			{
+				if (WeaveAPI.SessionManager.linkableObjectIsBusy(_plotter.columns))//do the next chunk of code only after _plotter.columns is filled
+					return;
+				
+				var columns:Array = _plotter.columns.getObjects();
+				var inputValues:Array = new Array(); var inputNames:Array;
+				inputNames = ["mymatrix"];
+				var outputNames:Array = ["normOutput"];
+				var script:String = "frame <- data.frame(mymatrix)\n" +
+					"donorm <- function(frame){\n" +
+					"RR <- nrow(frame)\n"+
+					"CC <- ncol(frame)\n"+
+					"for (z in 1:CC){\n"+
+					"maxr <- max(frame[z])\n"+
+					"minr <- min(frame[z])\n"+
+					"for(i in 1:RR){\n"+
+					" frame[i,z] <- (frame[i,z] - minr) / (maxr - minr)\n"+
+					" }\n"+
+					"}\n"+
+					"frame\n"+
+					"}\n"+
+					"normOutput <- donorm(frame)\n";
+				
+				var result:Array = joinColumns(columns);
+				latestjoinedColumnKeys = result[0];
+				var joinedColumns:Array = result[1];
+				
+				if ( latestjoinedColumnKeys.length != 0)
+				{
+					inputValues.push(joinedColumns); 
+					var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
+					DelayedAsyncResponder.addResponder(query, handleNormScriptResult, handleRunScriptFault,latestjoinedColumnKeys);
+				}
+			} 
+			
+			
+			
+			/** Returns the normalized dataset */
+			private function handleNormScriptResult(event:ResultEvent, token:Object = null):void
+			{
+				 normalizedColumns = [];
+                 if (token != latestjoinedColumnKeys){return;}//handles two asynchronous calls made one after the other
+				
+				var temRObjects:Array = new Array();
+				//Object to stored returned result - Which is array of object{name: , value: }
+				var Robj:Array = event.result as Array;				
+				
+				if (Robj == null)
+				{
+					reportError("R Servlet did not return an Array of results as expected.");
+					return;
+				}
+				
+				//collecting Objects of type RResult(Should Match result object from Java side)
+				for (var i:int = 0; i < (event.result).length; i++)
+				{
+					if (Robj[i] == null)
+					{
+						trace("WARNING! R Service returned null in results array at index "+i);
+						continue;
+					}
+					var rResult:RResult = new RResult(Robj[i]);
+					temRObjects = (rResult.value) as Array;
+					
+				}	
+				
+				disposeObjects(normalizedColumnsGroup);
+				normalizedColumnsGroup = newDisposableChild(this, CallbackCollection);
+				for (var j:int = 0 ; j < temRObjects.length; j++)
+				{
+					var col:NumberColumn = ResultUtils.resultAsNumberColumn(token,temRObjects[j],_plotter.columns.getNames()[j]+"norm");
+					normalizedColumns.push(col);
+					registerLinkableChild(normalizedColumnsGroup, col);
+				}
+				//normalizedColumnsGroup.addImmediateCallback(this, classDiscriminatorColumnUpdate);
+				
+			}
+			
+			private function handleRunScriptFault(event:FaultEvent, token:Object = null):void
+			{
+				trace(["fault", token, event.message].join('\n'));
+				reportError(event);
+			}
+			
 			private function drawProbeLines():void
 			{ 
 				if(!Weave.properties.enableProbeLines.value) return;
@@ -138,7 +273,7 @@
 				_plotter.probedKeys = probeKeySet.keys ;
 				_plotter.drawProbe = (this as DraggablePanel) == DraggablePanel.activePanel;
 				
-				_plotter.drawProbeLines(dataBounds, screenBounds, probeSprite.graphics);		 		
+				_plotter.drawProbeLines(dataBounds, screenBounds, probeSprite.graphics);	
 				
 			}
 			
@@ -170,7 +305,7 @@
 				if(!isDragging) return;				
 				handleMouseMove(event);
 				_probedAnchor = null;
-				isDragging = false;							
+				isDragging = false;
 				visualization.enableSelection.value = true;
 				visualization.plotManager.enableAutoZoomToExtent.value = enableAutoZoom;
 			}
@@ -224,100 +359,4 @@
 			}
 		]]>
 	</mx:Script>
-	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="{lang('Attributes')}">
-			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="{lang('Color')}" />
-			<ui:DynamicColumnComponent visTool="{this}" id="size" label="{lang('Size')}" />
-			<ui:ColumnListComponent visTool="{this}" id="columnList" label="{lang('Anchor Dimensions')}"/>
-		</mx:VBox>		
-		
-		<mx:VBox id="VizControlsPanel" label="{lang('Appearance')}">
-			<ui:Indent label="{lang('Point opacity')}"
-					   width="100%"
-					   toolTip="{lang('Use this control to see how transparent points are.  Moving left increases transparency (decreased opacity), moving to the right decreases transparency (increased opacity) up to fully opaque (no transparency).')}">
-				<mx:HSlider id="alphaSlider"
-							width="100%"
-							alpha="1.0"
-							snapInterval="0.1"
-							tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
-							dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
-							minimum="0.1" maximum="1.0" value="1.0"
-							liveDragging="true"/>
-			</ui:Indent>
-			<mx:Spacer/>
-			<ui:Indent label="{lang('Point radius')}"
-					   width="100%"
-					   toolTip="{lang('Use this control to adjust point radius')}">
-				<mx:HSlider id="sizeSlider"
-							width="100%"
-							alpha="1.0"
-							tickInterval="1" 
-							minimum="1" maximum="10" 
-							liveDragging="true"/>
-			</ui:Indent>
-			<mx:Spacer/>
-			<ui:Indent label="{lang('Label angle')}" width="100%">
-				<mx:HSlider id="labelAngleSlider" width="100%"
-					snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
-					dataTipFormatFunction="{function(v:Number):String { return String(Math.round(100*v))+'%' }}"
-					creationComplete="linkBindableProperty(_anchorPlotter.labelAngleRatio, event.target, 'value')"/>
-			</ui:Indent>
-		</mx:VBox>
-		
-		<mx:VBox id="advancedPanel" label="{lang('Advanced')}">			
-			<mx:VBox>
-				<mx:HBox
-					creationComplete="linkBindableProperty(_plotter.localNormalization,normalizationType,'selectedValue')">
-					<mx:Label text="{lang('Normalization method:')}"
-							  toolTip="{lang('Select the type of normalization used to calculate record coordinates')}"/>
-					<mx:RadioButtonGroup id="normalizationType"/>
-					<mx:RadioButton groupName="normalizationType"
-									id="localNorm"
-									value="true"
-									label="{lang('Local')}"
-									/>
-					<mx:RadioButton groupName="normalizationType"
-									id="globalNorm"
-									value="false"
-									label="{lang('Global')}"
-									/>
-				</mx:HBox>
-			</mx:VBox>
-			<mx:Spacer height="10"/>
-			<mx:VBox>
-				<mx:HBox>
-					<mx:CheckBox id="jitterckbx" label="{lang('Apply Jitter:')}" 
-							  toolTip="{lang('Use this control to change record coordinates by a random number')}"/>
-					<mx:Button label="{lang('Randomize Jitter')}"
-							   toolTip="{lang('Use this control to reseed jitter with new random values')}"
-							   click="_plotter.setNewRandomJitterColumn();"/>
-					<mx:Label text="{lang('Jitter Level:')}" 
-							  enabled="{jitterckbx.selected}"
-							  toolTip="{lang('Use slider to adjust the jitter level')}"/>					
-					<mx:HSlider id="jitterSlider"
-								enabled="{jitterckbx.selected}"
-								width="100%"
-								alpha="1.0"
-								snapInterval="1"
-								tickInterval="1"
-								labels="{['1','2','3','4','5','6','7','8','9','10']}"
-								showDataTip="false"
-								minimum="-19" maximum="-10"
-								liveDragging="true"/>
-				</mx:HBox>
-			</mx:VBox>
-			<mx:Spacer height="10"/>
-			<mx:VBox>
-				<mx:Label text="{lang('Dimensional Anchor Reordering Algorithm:')}"
-						  toolTip="{lang('Use this control to reorder the dimensional anchors')}"/>					
-				<mx:ComboBox id="algorithmComboBox" dataProvider="{_plotter.algorithms}"
-							 creationComplete="linkBindableProperty(_plotter.currentAlgorithm,event.target,'selectedItem')"/>
-				<mx:HBox enabled="{algorithmComboBox.selectedIndex == 0}">
-					<mx:Label text="{lang('Number of Iterations')}"/>
-					<mx:TextInput id="iterationsTextInput" enabled="{algorithmComboBox.selectedIndex == 0}"
-								  creationComplete="linkBindableProperty(_plotter.iterations, event.target, 'text')"/>
-				</mx:HBox>
-			</mx:VBox>
-		</mx:VBox>
-	</ui:ControlPanel>
 </SimpleVisTool>

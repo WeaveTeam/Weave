@@ -766,7 +766,7 @@ package weave
 					createToolMenuItem(Weave.properties.showDisabilityOptions, "Disability Options", DraggablePanel.openStaticInstance, [DisabilityOptions]);
 
 	
-				
+
 				var _this:VisApplication = this;
 
 				if (!Weave.properties.dashboardMode.value)
@@ -788,6 +788,7 @@ package weave
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(
 					function():String { return lang((Weave.properties.dashboardMode.value ? "Disable" : "Enable") + " dashboard mode"); },
 					function():void { Weave.properties.dashboardMode.value = !Weave.properties.dashboardMode.value; }
+
 				));
 			}
 			

@@ -30,6 +30,8 @@ public class RResult
 		this.value = value;
 	}
 	
+	public String toString() { return "name :" + name + "  value:" + value ;}
+	
 	private String name;
 	public String getName() { return name; }
 	public void setName(String name) { this.name = name; }
