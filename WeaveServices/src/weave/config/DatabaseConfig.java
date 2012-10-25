@@ -14,7 +14,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -25,7 +24,6 @@ import java.util.Vector;
 
 import org.w3c.dom.Document;
 
-import weave.utils.DebugTimer;
 import weave.utils.ListUtils;
 import weave.utils.SQLUtils;
 
@@ -394,7 +392,6 @@ public class DatabaseConfig
 	}
 	
 	// shortcut for calling the Map<String,String> version of this function
-	@SuppressWarnings("unchecked")
 	public List<DataEntity> getDataEntity(String dataTableName) throws RemoteException
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>(1);

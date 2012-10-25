@@ -43,11 +43,10 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.primitives.GeneralizedGeometry;
-	import weave.services.DelayedAsyncResponder;
 	import weave.services.WFSServlet;
+	import weave.services.addAsyncResponder;
 	import weave.utils.BLGTreeUtils;
 	import weave.utils.HierarchyUtils;
-	import weave.utils.VectorUtils;
 	
 	/**
 	 * 
@@ -130,7 +129,7 @@ package weave.data.DataSources
 			{
 				query = wfsDataService.getCapabilties();
 
-				DelayedAsyncResponder.addResponder(query, handleGetCapabilities, handleGetCapabilitiesError);
+				addAsyncResponder(query, handleGetCapabilities, handleGetCapabilitiesError);
 			}
 			else // download a list of properties for a given featureTypeName
 			{
@@ -138,7 +137,7 @@ package weave.data.DataSources
 				
 				query = wfsDataService.describeFeatureType(dataTableName);
 				
-				DelayedAsyncResponder.addResponder(query, handleDescribeFeature, handleDescribeFeatureError, subtreeNode);
+				addAsyncResponder(query, handleDescribeFeature, handleDescribeFeatureError, subtreeNode);
 			}
 		}
 		
@@ -291,7 +290,7 @@ package weave.data.DataSources
 			propertyNamesArray.push(propertyName);
 			query = wfsDataService.getFeature(featureTypeName, propertyNamesArray);
 			var token:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
-			DelayedAsyncResponder.addResponder(query, handleColumnDownload, handleColumnDownloadFail, token);
+			addAsyncResponder(query, handleColumnDownload, handleColumnDownloadFail, token);
 		}
 		
 		private function getQName(xmlContainingNamespaceInfo:XML, qname:String):QName

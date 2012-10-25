@@ -19,16 +19,13 @@
 package weave.reports;
 
 import java.rmi.RemoteException;
-import java.sql.SQLException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-//import junit.framework.Assert;
 
 import weave.config.ISQLConfig;
 import weave.config.ISQLConfig.DataEntity;
@@ -56,7 +53,6 @@ public class AttributeColumnData
 	
 	
 	//only get data for the subset of keys
-	@SuppressWarnings("unchecked")
 	public int getData(String dataTableName, String attributeColumnName, String year, List<String> reportKeys)
 		throws RemoteException		
 	{

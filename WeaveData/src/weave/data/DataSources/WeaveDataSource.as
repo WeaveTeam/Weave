@@ -48,8 +48,8 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ColumnReferences.HierarchyColumnReference;
 	import weave.data.QKeyManager;
-	import weave.services.DelayedAsyncResponder;
 	import weave.services.WeaveDataServlet;
+	import weave.services.addAsyncResponder;
 	import weave.services.beans.AttributeColumnDataWithKeys;
 	import weave.services.beans.DataServiceMetadata;
 	import weave.services.beans.DataTableMetadata;
@@ -195,7 +195,7 @@ package weave.data.DataSources
 				//trace("getDataServiceMetadata()");
 
 				query = dataService.getDataServiceMetadata();
-				DelayedAsyncResponder.addResponder(query, handleGetDataServiceMetadata, handleGetDataServiceMetadataFault);
+				addAsyncResponder(query, handleGetDataServiceMetadata, handleGetDataServiceMetadataFault);
 			}
 			else
 			{
@@ -204,7 +204,7 @@ package weave.data.DataSources
 				var dataTableName:String = subtreeNode.attribute("name");
 				//trace("getDataTableMetadata("+dataTableName+")");
 				query = dataService.getDataTableMetadata(dataTableName);
-				DelayedAsyncResponder.addResponder(query, handleGetDataTableMetadata, handleGetDataTableMetadataFault, subtreeNode);
+				addAsyncResponder(query, handleGetDataTableMetadata, handleGetDataTableMetadataFault, subtreeNode);
 			}
 		}
 
@@ -372,7 +372,7 @@ package weave.data.DataSources
 				// request attribute column
 				var query:AsyncToken = dataService.getAttributeColumn(pathInHierarchy);
 				var token:ColumnRequestToken = new ColumnRequestToken(pathInHierarchy, proxyColumn);
-				DelayedAsyncResponder.addResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, token);
+				addAsyncResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, token);
 				WeaveAPI.SessionManager.assignBusyTask(query, proxyColumn);
 			}
 		}
@@ -492,7 +492,7 @@ package weave.data.DataSources
 			}
 
 			var query:AsyncToken = dataService.createReport(name, keyStrings);
-			DelayedAsyncResponder.addResponder(query, handleReportResult, handleCreateReportFault, name);
+			addAsyncResponder(query, handleReportResult, handleCreateReportFault, name);
 		}
 		
 		public function handleReportResult(event:ResultEvent, token:Object = null):void 

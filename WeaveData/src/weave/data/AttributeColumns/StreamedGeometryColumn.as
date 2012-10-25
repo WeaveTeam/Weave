@@ -37,7 +37,7 @@ package weave.data.AttributeColumns
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.services.DelayedAsyncResponder;
+	import weave.services.addAsyncResponder;
 	import weave.services.beans.GeometryStreamMetadata;
 	import weave.utils.GeometryStreamDecoder;
 	
@@ -192,7 +192,7 @@ package weave.data.AttributeColumns
 			while (metadataTileIDs.length > 0)
 			{
 				query = _tileService.getMetadataTiles(metadataTileIDs.splice(0, metadataTilesPerQuery));
-				DelayedAsyncResponder.addResponder(query, handleMetadataStreamDownload, handleMetadataDownloadFault, query);
+				addAsyncResponder(query, handleMetadataStreamDownload, handleMetadataDownloadFault, query);
 				
 				_metadataStreamDownloadCounter++;
 			}
@@ -200,7 +200,7 @@ package weave.data.AttributeColumns
 			while (geometryTileIDs.length > 0)
 			{
 				query = _tileService.getGeometryTiles(geometryTileIDs.splice(0, geometryTilesPerQuery));
-				DelayedAsyncResponder.addResponder(query, handleGeometryStreamDownload, handleGeometryDownloadFault, query);
+				addAsyncResponder(query, handleGeometryStreamDownload, handleGeometryDownloadFault, query);
 				_geometryStreamDownloadCounter++;
 			} 
 		}

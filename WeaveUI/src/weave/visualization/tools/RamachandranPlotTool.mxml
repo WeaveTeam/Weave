@@ -56,9 +56,9 @@
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.AttributeHierarchy;
 			import weave.primitives.Bounds2D;
-			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeavePDBServlet;
 			import weave.services.WeaveRServlet;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.utils.BitmapText;
@@ -244,7 +244,7 @@
 				//Query is created from runScript with same signature from Jave side
 				var query:AsyncToken = Rservice.runScript(null,inputNames, inputValues, outputNames, script,"",false,false,false);
 				//Keys are passed as token 
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, [joinedColumnKeys,query.operation]);  
+				addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault, [joinedColumnKeys,query.operation]);  
 			}
 			
 			private function handleRunScriptResult(event:ResultEvent, token:Object = null):void
@@ -351,7 +351,7 @@
 			{
 				var pdbID:String =  PDBid.text;
 				var query:AsyncToken = pdbService.getPhiPsiValues(pdbID);				
-				DelayedAsyncResponder.addResponder(query, handleGetPhiPsiValuesResult, handleGetPhiPsiValuesFault);	
+				addAsyncResponder(query, handleGetPhiPsiValuesResult, handleGetPhiPsiValuesFault);	
 				//sendPDBidBtn.enabled = false;
 				//PDBid.enabled = false;
 			}

@@ -20,11 +20,9 @@
 package weave.config;
 
 import java.rmi.RemoteException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Collections;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * ISQLConfig An interface to retrieve strings from a configuration file. TODO:

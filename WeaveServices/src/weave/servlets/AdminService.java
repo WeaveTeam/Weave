@@ -44,7 +44,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
@@ -57,8 +56,8 @@ import weave.beans.UploadedFile;
 import weave.beans.WeaveFileInfo;
 import weave.config.DublinCoreUtils;
 import weave.config.ISQLConfig;
-import weave.config.ISQLConfig.DataEntity;
 import weave.config.ISQLConfig.ConnectionInfo;
+import weave.config.ISQLConfig.DataEntity;
 import weave.config.ISQLConfig.DataType;
 import weave.config.ISQLConfig.DatabaseConfigInfo;
 import weave.config.ISQLConfig.PrivateMetadata;
@@ -86,7 +85,6 @@ public class AdminService extends GenericServlet
 	
 	public AdminService()
 	{
-		System.out.println("AdminService()");
 	}
 	
 	/**
@@ -702,21 +700,21 @@ public class AdminService extends GenericServlet
 	/**
 	 * Returns the results of testing attribute column sql queries.
 	 */
-        public DataEntity[] testAllQueries(String connectionName, String password, String tableName) throws RemoteException
-        {
-            ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-            Map<String,Map<String,String>> params = new HashMap<String,Map<String,String>>();
-            Map<String,String> publicParams = new HashMap<String,String>();
-            publicParams.put(PublicMetadata.TITLE, tableName);
-            params.put("public", publicParams);
-            Collection<DataEntity> ids = config.findEntities(params);
-            for (DataEntity e : ids)
-            {
-                if (e.type == ISQLConfig.DataEntity.MAN_TYPE_DATATABLE)
-                    return testAllQueries(connectionName, password, e.id);
-            }
-            return null;
-        }
+	public DataEntity[] testAllQueries(String connectionName, String password, String tableName) throws RemoteException
+	{
+	    ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+	    Map<String,Map<String,String>> params = new HashMap<String,Map<String,String>>();
+	    Map<String,String> publicParams = new HashMap<String,String>();
+	    publicParams.put(PublicMetadata.TITLE, tableName);
+	    params.put("public", publicParams);
+	    Collection<DataEntity> ids = config.findEntities(params);
+	    for (DataEntity e : ids)
+	    {
+	        if (e.type == ISQLConfig.DataEntity.MAN_TYPE_DATATABLE)
+	            return testAllQueries(connectionName, password, e.id);
+	    }
+	    return null;
+	}
 	public DataEntity[] testAllQueries(String connectionName, String password, Integer table_id) throws RemoteException
 	{
                 ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
@@ -752,14 +750,6 @@ public class AdminService extends GenericServlet
 		return columns;
 	}
 	
-	@SuppressWarnings("unchecked")
-	private Map<String,String> createStringStringMap(Object hashMap)
-	{
-		Map<String, String> output = new HashMap<String, String>();
-		for (Entry<String, Object> entry : ((Map<String, Object>) hashMap).entrySet())
-			output.put(entry.getKey(), (String) entry.getValue());
-		return output;
-	}
 	// ///////////////////////////////////////////
 	// functions for getting SQL info
 	// ///////////////////////////////////////////
@@ -935,32 +925,6 @@ public class AdminService extends GenericServlet
 			throw new RemoteException(e.getMessage());
 		}
 		
-		/*
-		 * Old code
-		 * 
-			try
-			{
-				String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
-				// Read first line only (header line).
-				int index = csvData.indexOf("\r");
-				int index2 = csvData.indexOf("\n");
-				if (index2 < index && index2 >= 0)
-					index = index2;
-				String header = index < 0 ? csvData : csvData.substring(0, index);
-				csvData = null; // don't need this in memory anymore
-				String[][] rows = CSVParser.defaultParser.parseCSV(header);
-				headerLine = rows[0];
-			}
-			catch (FileNotFoundException e)
-			{
-				throw new RemoteException(e.getMessage());
-			}
-			catch (Exception e)
-			{
-				throw new RemoteException(e.getMessage());
-			}
-		*/
-
 		return headerLine;
 	}
 	
@@ -1697,22 +1661,21 @@ public class AdminService extends GenericServlet
 //			}
 			
 			int numberSqlColumns = titles.size();
-                        int col_id;
-                        int tag_id;
-                        int table_id;
-
-
-                        Map<String,Map<String,String>> tableProperties = new HashMap<String,Map<String,String>>();
-                        Map<String,String> publicTableProperties = new HashMap<String,String>();
-                        publicTableProperties.put(PublicMetadata.TITLE, configDataTableName);
-                        tableProperties.put("public", publicTableProperties);
-                        table_id = config.addEntity(DataEntity.MAN_TYPE_DATATABLE, tableProperties);
+			int col_id;
+			int table_id;
+			
+			
+			Map<String,Map<String,String>> tableProperties = new HashMap<String,Map<String,String>>();
+			Map<String,String> publicTableProperties = new HashMap<String,String>();
+			publicTableProperties.put(PublicMetadata.TITLE, configDataTableName);
+			tableProperties.put("public", publicTableProperties);
+			table_id = config.addEntity(DataEntity.MAN_TYPE_DATATABLE, tableProperties);
 
 			for (int i = 0; i < numberSqlColumns; i++)
 			{
-                                Map<String,String> publicMeta = new HashMap<String,String>();
-                                Map<String,String> privateMeta = new HashMap<String,String>();
-                                Map<String,Map<String,String>> newMeta = new HashMap<String,Map<String,String>>();
+				Map<String,String> publicMeta = new HashMap<String,String>();
+				Map<String,String> privateMeta = new HashMap<String,String>();
+				Map<String,Map<String,String>> newMeta = new HashMap<String,Map<String,String>>();
 				privateMeta.put(PrivateMetadata.CONNECTION, connectionName);
 				privateMeta.put(PrivateMetadata.SQLQUERY, queries.get(i));
 				if (filteredValues != null)
@@ -1724,8 +1687,8 @@ public class AdminService extends GenericServlet
 				publicMeta.put(PublicMetadata.NAME, titles.get(i));
 				publicMeta.put(PublicMetadata.DATATYPE, dataTypes.get(i));
                                 
-                                newMeta.put("public", publicMeta);
-                                newMeta.put("private", privateMeta);
+				newMeta.put("public", publicMeta);
+				newMeta.put("private", privateMeta);
 
 				col_id = config.addEntity(DataEntity.MAN_TYPE_COLUMN, newMeta);
 				config.addChild(col_id, table_id);

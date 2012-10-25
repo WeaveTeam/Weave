@@ -180,7 +180,6 @@ public class DataService extends GenericServlet
 			
 			List<Double> numericData = null;
 			List<String> stringData = null;
-			List<String> secKeys = new ArrayList<String>();
 			String dataType = info.publicMetadata.get(PublicMetadata.DATATYPE);
 			
 			// use config min,max or param min,max to filter the data

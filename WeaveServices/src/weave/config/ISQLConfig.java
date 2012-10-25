@@ -22,14 +22,12 @@ package weave.config;
 import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.Types;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Arrays;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -37,15 +35,11 @@ import org.w3c.dom.Document;
 
 import weave.utils.ListUtils;
 import weave.utils.SQLUtils;
-import java.sql.SQLException;
+
 /**
  * ISQLConfig An interface to retrieve strings from a configuration file.
  * 
  * @author Andy Dufilie
- */
-/**
- * @author user
- *
  */
 public abstract class ISQLConfig
 {
@@ -85,44 +79,44 @@ public abstract class ISQLConfig
 	 * @throws RemoteException
 	 *             if the info could not be retrieved.
 	 */
-        public static Map<String,Map<String,String>> siftMeta(Map<String,String> mergedMeta)
-        {
-            Map<String,Map<String,String>> result = new HashMap<String,Map<String,String>>();
-            Map<String,String> pubMeta = new HashMap<String,String>(); 
-            Map<String,String> privMeta = new HashMap<String,String>(); 
-            result.put("private", privMeta);
-            result.put("public", pubMeta);
-            return result;
-        }
+	public static Map<String,Map<String,String>> siftMeta(Map<String,String> mergedMeta)
+	{
+	    Map<String,Map<String,String>> result = new HashMap<String,Map<String,String>>();
+	    Map<String,String> pubMeta = new HashMap<String,String>(); 
+	    Map<String,String> privMeta = new HashMap<String,String>(); 
+	    result.put("private", privMeta);
+	    result.put("public", pubMeta);
+	    return result;
+	}
 	public abstract ConnectionInfo getConnectionInfo(String connectionName) throws RemoteException;
 
-        public abstract boolean isConnectedToDatabase();
+	public abstract boolean isConnectedToDatabase();
 	public abstract DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException;
-        public abstract Integer addEntity(Integer type_id, Map<String,Map<String,String>> properties) throws RemoteException;
-        public Integer copyEntity(Integer id) throws RemoteException
-        {
-            return id; /* May not be meaningful on all backends. */
-        }
-        public abstract void removeEntity(Integer id) throws RemoteException;
-        public abstract void updateEntity(Integer id, Map<String,Map<String,String>> properties) throws RemoteException;
-        public Collection<DataEntity> findEntities(Map<String,Map<String,String>> properties) throws RemoteException
-        {
-            return findEntities(properties, -1);
-        }
-        public abstract Collection<DataEntity> findEntities(Map<String,Map<String,String>> properties, Integer type_id) throws RemoteException;
-        public abstract Collection<DataEntity> getEntities(Collection<Integer> ids) throws RemoteException;
-        public abstract Collection<DataEntity> getEntitiesByType(Integer id) throws RemoteException;
-        public abstract void addChild(Integer child_id, Integer parent_id) throws RemoteException;
-        public abstract void removeChild(Integer child_id, Integer parent_id) throws RemoteException;
-        public abstract Collection<DataEntity> getChildren(Integer parent_id) throws RemoteException;
-        public abstract Collection<String> getUniqueValues(String property) throws RemoteException;
-
-        public DataEntity getEntity(Integer id) throws RemoteException
-        {
-            for (DataEntity de : getEntities(Arrays.asList(id)))
-                return de; /* Return the first hit. Should be the only hit. If not we're in trouble. */
-            return null;
-        }
+	public abstract Integer addEntity(Integer type_id, Map<String,Map<String,String>> properties) throws RemoteException;
+	public Integer copyEntity(Integer id) throws RemoteException
+	{
+	    return id; /* May not be meaningful on all backends. */
+	}
+	public abstract void removeEntity(Integer id) throws RemoteException;
+	public abstract void updateEntity(Integer id, Map<String,Map<String,String>> properties) throws RemoteException;
+	public Collection<DataEntity> findEntities(Map<String,Map<String,String>> properties) throws RemoteException
+	{
+	    return findEntities(properties, -1);
+	}
+	public abstract Collection<DataEntity> findEntities(Map<String,Map<String,String>> properties, Integer type_id) throws RemoteException;
+	public abstract Collection<DataEntity> getEntities(Collection<Integer> ids) throws RemoteException;
+	public abstract Collection<DataEntity> getEntitiesByType(Integer id) throws RemoteException;
+	public abstract void addChild(Integer child_id, Integer parent_id) throws RemoteException;
+	public abstract void removeChild(Integer child_id, Integer parent_id) throws RemoteException;
+	public abstract Collection<DataEntity> getChildren(Integer parent_id) throws RemoteException;
+	public abstract Collection<String> getUniqueValues(String property) throws RemoteException;
+	
+	public DataEntity getEntity(Integer id) throws RemoteException
+	{
+	    for (DataEntity de : getEntities(Arrays.asList(id)))
+	        return de; /* Return the first hit. Should be the only hit. If not we're in trouble. */
+	    return null;
+	}
     /**
      * Methods for the category system
      */
@@ -137,8 +131,7 @@ public abstract class ISQLConfig
         DataEntity attrInfo = getEntity(id);
         return (attrInfo == null) || (attrInfo.privateMetadata.get(PrivateMetadata.CONNECTION) == connectionName);
     }
-    @SuppressWarnings("unchecked")
-	@Deprecated public boolean userCanModifyDataTable(String connectionName, String dataTableName) throws RemoteException
+    @Deprecated public boolean userCanModifyDataTable(String connectionName, String dataTableName) throws RemoteException
     {
         Map<String,Map<String,String>> metadataFilter = new HashMap<String,Map<String,String>>();
         Map<String,String> publicMetadataFilter = new HashMap<String,String>();
@@ -250,7 +243,7 @@ public abstract class ISQLConfig
 			return ListUtils.findString(propertyName, names) >= 0;
 		}
 	}
-        /*  */
+	
 	static public class PublicMetadata
 	{
 		static public final String NAME = "name";
@@ -265,7 +258,7 @@ public abstract class ISQLConfig
 		static public final String TITLE = "title";
 		static public final String NUMBER = "number";
 		static public final String STRING = "string";
-                static public final String DATATABLE_ID = "dataTableID";
+		static public final String DATATABLE_ID = "dataTableID";
 	}
 	
 	static public class DataType
@@ -306,14 +299,13 @@ public abstract class ISQLConfig
 	@SuppressWarnings("unchecked")
 	static public class DataEntity
 	{
-                public static final Integer MAN_TYPE_DATATABLE = 0;
-                public static final Integer MAN_TYPE_COLUMN = 1;
-                public static final Integer MAN_TYPE_TAG = 2;
+		public static final Integer MAN_TYPE_DATATABLE = 0;
+		public static final Integer MAN_TYPE_COLUMN = 1;
+		public static final Integer MAN_TYPE_TAG = 2;
 		public int id = -1;
-                public int type;
+		public int type;
 		public Map<String,String> privateMetadata = Collections.EMPTY_MAP;
 		public Map<String,String> publicMetadata = Collections.EMPTY_MAP;
-	        private ISQLConfig sourceCfg = null;
         /* For cases where the config API isn't sufficient. TODO */
         public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params)
         {
@@ -383,21 +375,21 @@ public abstract class ISQLConfig
 			return result;
 		}
 	}
-        public class ImmortalConnection
-        {
-            private Connection _lastConnection = null;
-            private ISQLConfig cfg = null;
-            private DatabaseConfigInfo dbInfo = null;
-            public ImmortalConnection(ISQLConfig newcfg)  throws RemoteException
-            {
-                cfg = newcfg; 
-                dbInfo = cfg.getDatabaseConfigInfo();
-            }
-            public Connection getConnection() throws RemoteException
-            {
-                if (SQLUtils.connectionIsValid(_lastConnection))
-                    return _lastConnection;
-                return _lastConnection = cfg.getNamedConnection(dbInfo.connection);
-            }
-        }
+	public class ImmortalConnection
+	{
+	    private Connection _lastConnection = null;
+	    private ISQLConfig cfg = null;
+	    private DatabaseConfigInfo dbInfo = null;
+	    public ImmortalConnection(ISQLConfig newcfg)  throws RemoteException
+	    {
+	        cfg = newcfg; 
+	        dbInfo = cfg.getDatabaseConfigInfo();
+	    }
+	    public Connection getConnection() throws RemoteException
+	    {
+	        if (SQLUtils.connectionIsValid(_lastConnection))
+	            return _lastConnection;
+	        return _lastConnection = cfg.getNamedConnection(dbInfo.connection);
+	    }
+}
 }

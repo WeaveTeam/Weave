@@ -21,9 +21,6 @@ package weave.tests;
 import java.rmi.RemoteException;
 
 import weave.beans.RResult;
-import weave.config.SQLConfig;
-import weave.config.SQLConfigXML;
-//import weave.servlets.RService;
 import weave.servlets.RService;
 
 public class test
@@ -46,7 +43,7 @@ public class test
 	public static void main(String[] args) throws Exception {
 //		Connection conn = SQLUtils.getConnection(SQLUtils.getDriver(SQLUtils.MYSQL), "jdbc:mysql://localhost/weave?user=root&password=boolpup");
 //		SQLConfig sqlcfg = new SQLConfig(new SQLConfigXML("C:\\Program Files (x86)\\Apache Software Foundation\\Tomcat 6.0\\webapps\\weave-config\\sqlconfig.xml"));
-		SQLConfig sqlcfg = new SQLConfig(new SQLConfigXML("sqlconfig.xml"));
+//		SQLConfig sqlcfg = new SQLConfig(new SQLConfigXML("sqlconfig.xml"));
 //		System.out.println(sqlcfg.addEntry("Hello", null));
 		// TODO Auto-generated method stub
 		System.out.println("hi");		

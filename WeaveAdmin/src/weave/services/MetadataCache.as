@@ -46,7 +46,7 @@ package weave.services
                 queue.push(onComplete);
 
             if (queue.length == 1)
-                AdminInterface.instance.getEntityChildren(id, getChildrenHandler);
+				addAsyncResponder(AdminInterface.instance.getEntityChildren(id), getChildrenHandler);
 
             function getChildrenHandler(event:ResultEvent):void
             {
@@ -76,7 +76,7 @@ package weave.services
                 queue.push(onComplete);
 
             if (queue.length == 1)
-                AdminInterface.instance.getEntity(id, getEntityHandler);
+				addAsyncResponder(AdminInterface.instance.getEntity(id), getEntityHandler);
 
             function getEntityHandler(event:ResultEvent):void
             {
@@ -109,7 +109,7 @@ package weave.services
                 fetch_metadata(id, onComplete);
             }
             delete entity_metacache[id];
-            AdminInterface.instance.updateEntity(id, {"public":pubMeta, "private":privMeta}, afterUpdate);
+			addAsyncResponder(AdminInterface.instance.updateEntity(id, {"public":pubMeta, "private":privMeta}), afterUpdate);
             /* Do stuff, and things. */ 
         }
         public function add_tag(label:String, onComplete:Function = null):void
@@ -122,7 +122,7 @@ package weave.services
             }
             var meta:Object = {};
             meta["public"] = {title: label};
-            AdminInterface.instance.addTag(meta, afterUpdate);
+			addAsyncResponder(AdminInterface.instance.addTag(meta), afterUpdate);
         }
         public function delete_entity(id:int, onComplete:Function = null):void
         {
@@ -135,7 +135,7 @@ package weave.services
             delete entity_metacache[id]; 
             /* Invalidate the root. */
             delete entity_childcache[-1];
-            AdminInterface.instance.removeEntity(id, afterUpdate);
+			addAsyncResponder(AdminInterface.instance.removeEntity(id), afterUpdate);
         }
         public function add_child(child_id:int, parent_id:int, onComplete:Function = null):void
         {
@@ -144,7 +144,7 @@ package weave.services
                 fetch_children(parent_id, onComplete);
             }
             delete entity_childcache[parent_id];
-            AdminInterface.instance.addChildToParent(child_id, parent_id, afterUpdate);
+			addAsyncResponder(AdminInterface.instance.addChildToParent(child_id, parent_id), afterUpdate);
         }
         public function copy_and_add(child_id:int, parent_id:int, onComplete:Function = null):void
         {
@@ -153,7 +153,7 @@ package weave.services
                 var new_child_id:int = int(event.result);
                 add_child(new_child_id, parent_id, onComplete);
             }
-            AdminInterface.instance.copyEntity(child_id, afterCopy);
+			addAsyncResponder(AdminInterface.instance.copyEntity(child_id), afterCopy);
             return;
         }
         public function remove_child(child_id:int, parent_id:int, onComplete:Function = null):void
@@ -163,7 +163,7 @@ package weave.services
                 fetch_children(parent_id, onComplete);
             }
             delete entity_childcache[parent_id];
-            AdminInterface.instance.removeChildFromParent(child_id, parent_id, afterUpdate);
+			addAsyncResponder(AdminInterface.instance.removeChildFromParent(child_id, parent_id), afterUpdate);
         }
     }
 }

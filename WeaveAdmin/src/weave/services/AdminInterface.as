@@ -27,17 +27,18 @@ package weave.services
 	
 	import mx.controls.Alert;
 	import mx.controls.Button;
+	import mx.rpc.AsyncToken;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
 	import mx.utils.UIDUtil;
 	
 	import weave.Strings;
 	import weave.Weave;
-        import weave.services.MetadataCache;
+	import weave.services.MetadataCache;
+	import weave.services.beans.AttributeColumnInfo;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
 	import weave.services.beans.GeometryCollectionInfo;
-	import weave.services.beans.AttributeColumnInfo;
 
 	public class AdminInterface
 	{
@@ -81,9 +82,9 @@ package weave.services
 		
 		// values returned by the server
 		[Bindable] public var connectionNames:Array = [];
-                [Bindable] public var columnTree:Array = [];
-                [Bindable] public var columnIds:Object = {};
-                [Bindable] public var dataTableNames:Array = [];
+		[Bindable] public var columnTree:Array = [];
+		[Bindable] public var columnIds:Object = {};
+		[Bindable] public var dataTableNames:Array = [];
 		[Bindable] public var geometryCollectionNames:Array = [];
 		[Bindable] public var weaveFileNames:Array = [];
 		[Bindable] public var privateWeaveFileNames:Array = [];
@@ -103,7 +104,7 @@ package weave.services
 		
 		
 		
-                [Bindable] public var meta_cache:MetadataCache = new MetadataCache();
+		[Bindable] public var meta_cache:MetadataCache = new MetadataCache();
 		// functions for managing static settings
 		public function getConnectionNames():void
 		{
@@ -175,7 +176,7 @@ package weave.services
 						currentUserIsSuperuser = cInfo.is_superuser;
 					}
 					
-                                        /* Do we really want to do this on auth? */
+					/* Do we really want to do this on auth? */
 					getWeaveFileNames();
 					getPrivateWeaveFileNames();
 					getConnectionNames();
@@ -280,7 +281,7 @@ package weave.services
 			function handler(event:ResultEvent, token:Object=null):void
 			{
 				sqlConfigExists = Boolean(event.result);
-                                //TODO: Should we really do this cosmetic thing here?
+				//TODO: Should we really do this cosmetic thing here?
 				//getDataTableNames();
 				//getGeometryCollectionNames();
 				getKeyTypes();
@@ -288,59 +289,59 @@ package weave.services
 			return query;
 		}
 		// functions for managing DataTable entries
-                public function addAttributeColumn(metadata:Object, handler:Function):void
-                {
-                    service.addAttributeColumn(activeConnectionName, activePassword, metadata).addAsyncResponder(handler);
-                }
-                public function addDataTable(metadata:Object, handler:Function):void
-                {
-                    service.addDataTable(activeConnectionName, activePassword, metadata).addAsyncResponder(handler);
-                }
-                public function addTag(metadata:Object, handler:Function):void
-                {
-                    service.addTag(activeConnectionName, activePassword, metadata).addAsyncResponder(handler); 
-                }
-                public function copyEntity(id:int, handler:Function):void
-                {
-                    service.copyEntity(activeConnectionName, activePassword, id).addAsyncResponder(handler); 
-                }
-                public function addChildToParent(child_id:int, parent_id:int, handler:Function):void
-                {
-                    service.addChildToParent(activeConnectionName, activePassword, child_id, parent_id).addAsyncResponder(handler);
-                }
-                public function removeChildFromParent(child_id:int, parent_id:int, handler:Function):void
-                {
-                    service.removeChildFromParent(activeConnectionName, activePassword, child_id, parent_id).addAsyncResponder(handler);
-                }
-                public function removeEntity(id:int, handler:Function):void
-                {
-                    service.removeEntity(activeConnectionName, activePassword, id).addAsyncResponder(handler);
-                }
-                public function updateEntity(id:int, meta:Object, handler:Function):void
-                {
-                    service.updateEntity(activeConnectionName, activePassword, id, meta).addAsyncResponder(handler);
-                }
-                public function getEntity(id:int, handler:Function):void
-                {
-                    service.getEntity(activeConnectionName, activePassword, id).addAsyncResponder(handler);
-                }
-                public function getEntityChildren(id:int, handler:Function):void
-                {
-                    service.getEntityChildren(activeConnectionName, activePassword, id).addAsyncResponder(handler);
-                }
-                public function getEntities(meta:Object, handler:Function):void
-                {
-                    service.getEntities(activeConnectionName, activePassword, meta).addAsyncResponder(handler);
-                }
-                public function getEntitiesWithType(type_id:int, meta:Object, handler:Function):void
-                {
-                    service.getEntitiesWithType(activeConnectionName, activePassword, type_id, meta).addAsyncResponder(handler);
-                }
-                public function getDataTableInfo(title:String):DelayedAsyncInvocation
-                {
-                    var params:Object = {"title": title};
-                    return service.getEntitiesWithType(activeConnectionName, activePassword, AttributeColumnInfo.ENTITY_COLUMN, params);
-                }
+		public function addAttributeColumn(metadata:Object):AsyncToken
+		{
+			return service.addAttributeColumn(activeConnectionName, activePassword, metadata);
+		}
+		public function addDataTable(metadata:Object):AsyncToken
+		{
+			return service.addDataTable(activeConnectionName, activePassword, metadata);
+		}
+		public function addTag(metadata:Object):AsyncToken
+		{
+			return service.addTag(activeConnectionName, activePassword, metadata); 
+		}
+		public function copyEntity(id:int):AsyncToken
+		{
+			return service.copyEntity(activeConnectionName, activePassword, id); 
+		}
+		public function addChildToParent(child_id:int, parent_id:int):AsyncToken
+		{
+			return service.addChildToParent(activeConnectionName, activePassword, child_id, parent_id);
+		}
+		public function removeChildFromParent(child_id:int, parent_id:int):AsyncToken
+		{
+			return service.removeChildFromParent(activeConnectionName, activePassword, child_id, parent_id);
+		}
+		public function removeEntity(id:int):AsyncToken
+		{
+			return service.removeEntity(activeConnectionName, activePassword, id);
+		}
+		public function updateEntity(id:int, meta:Object):AsyncToken
+		{
+			return service.updateEntity(activeConnectionName, activePassword, id, meta);
+		}
+		public function getEntity(id:int):AsyncToken
+		{
+			return service.getEntity(activeConnectionName, activePassword, id);
+		}
+		public function getEntityChildren(id:int):AsyncToken
+		{
+		    return service.getEntityChildren(activeConnectionName, activePassword, id);
+		}
+		public function getEntities(meta:Object):AsyncToken
+		{
+			return service.getEntities(activeConnectionName, activePassword, meta);
+		}
+		public function getEntitiesWithType(type_id:int, meta:Object):AsyncToken
+		{
+			return service.getEntitiesWithType(activeConnectionName, activePassword, type_id, meta);
+		}
+		public function getDataTableInfo(title:String):DelayedAsyncInvocation
+		{
+		    var params:Object = {"title": title};
+		    return service.getEntitiesWithType(activeConnectionName, activePassword, AttributeColumnInfo.ENTITY_COLUMN, params);
+		}
 		public function getDataTables():void
 		{
 			dataTableNames = [];
@@ -653,7 +654,7 @@ package weave.services
 			{
 				// Attempt close the popup window of the last service that was created.
 				//					var token:AsyncToken = weaveService.invokeAsyncMethod('closeWeavePopup');
-				//					DelayedAsyncResponder.addResponder(token, handleCloseWeavePopup, null, weaveService);
+				//					addAsyncResponder(token, handleCloseWeavePopup, null, weaveService);
 				// Keep the service in oldWeaveServices Dictionary because this invocation may fail if the popup window is still loading.
 				// This may result in zombie service objects, but it won't matter much.
 				// It is important to make sure any existing popup windows can still communicate back to the Admin Console.

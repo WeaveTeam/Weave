@@ -219,13 +219,6 @@ public class SQLConfig
             Set<Integer> publicmatches = null;
             Set<Integer> privatematches = null;
             Set<Integer> matches = null;
-            Set<Integer> type_matches = null;
-
-            Map<Integer, Map<String,String>> publicresults = null;
-            Map<Integer, Map<String,String>> privateresults = null;
-            Map<Integer,Integer> typeresults = null;
-            
-            List<DataEntity> finalresults = new LinkedList<DataEntity>();
 
             if (publicprops != null && publicprops.size() > 0)
                 publicmatches = public_attributes.filter(publicprops);
@@ -322,11 +315,11 @@ public class SQLConfig
         {
             if (ISQLConfig.PrivateMetadata.isPrivate(property)) 
             {
-                return new HashSet(private_attributes.getProperty(property).values());
+                return new HashSet<String>(private_attributes.getProperty(property).values());
             }
             else
             {
-                return new HashSet(public_attributes.getProperty(property).values());
+                return new HashSet<String>(public_attributes.getProperty(property).values());
             }
         }
 /* Abstractions to tidy up the config code. */
@@ -632,7 +625,6 @@ public class SQLConfig
             {
                 try
                 {
-                    Integer uniq_id = null;
                     Connection conn = this.conn.getConnection();
                     Map<String,Object> whereParams = new HashMap<String,Object>();
                     whereParams.put(MAN_ID, id);
@@ -647,7 +639,6 @@ public class SQLConfig
             {
                 List<Integer> list = new LinkedList<Integer>();
                 Map<Integer,Integer> resmap;
-                Integer resid;
                 list.add(id);
                 resmap = getEntryTypes(list);
                 for (Integer idx : resmap.values())
@@ -709,7 +700,6 @@ public class SQLConfig
                 try
                 {
                     Connection conn = this.conn.getConnection();
-                    Collection<Integer> ids = new LinkedList<Integer>();
                     return new HashSet<Integer>(SQLUtils.getIntColumn(conn, schemaName, tableName, MAN_ID));
                 }
                 catch (Exception e)
