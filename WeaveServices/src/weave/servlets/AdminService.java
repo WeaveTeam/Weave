@@ -1317,7 +1317,7 @@ public class AdminService extends GenericServlet
 	 * @param fileName The name of the file.
 	 * @param content The file content.
 	 */
-	public void uploadFile(String fileName, InputStream content) throws RemoteException
+	public void uploadFile(String fileName, InputStream content, boolean append) throws RemoteException
 	{
 		// make sure the upload folder exists
 		(new File(uploadPath)).mkdirs();
@@ -1325,7 +1325,7 @@ public class AdminService extends GenericServlet
 		String filePath = uploadPath + fileName;
 		try
 		{
-			FileUtils.copy(content, new FileOutputStream(filePath));
+			FileUtils.copy(content, new FileOutputStream(filePath, append));
 		}
 		catch (Exception e)
 		{
