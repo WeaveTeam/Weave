@@ -269,6 +269,8 @@
 			//this function returns a histogram object from R for plotting in Weave
 			private function binningDataFromR(_normColumns:Array):void
 			{
+					sentToRcounter = 0;
+					receivedFromRcounter = 0;
 				//columns sent as vectors, one at a time
 					for(var i:int = 0; i < _normColumns.length; i++)
 					{
@@ -439,7 +441,7 @@
 			{
 				//x axis values are normalized between 0 and 1 (are multipled by factor to fit canvas size)
 				//bar heights are normalized using the tallest bar
-				
+				distributionObjCanvasArray = [];
 				distrList.labelField = "label"; distrList.iconField = "icon";
 				
 				// looping over columns
