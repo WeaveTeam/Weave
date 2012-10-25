@@ -106,6 +106,7 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.ui.SessionStateEditor;
 			import weave.api.reportError;
 			import weave.api.WeaveAPI;
 			import weave.data.CSVParser;
@@ -125,6 +126,8 @@
 			import weave.ui.admin.wizards.CSVImportWizard;
 			import weave.ui.admin.wizards.SHPImportWizard;
 			import weave.ui.admin.wizards.SQLImportWizard;
+			
+			SessionStateEditor.getInstance(); // adds keyboard shortcut f8 to open console
 			
 			private static const version:String = Weave.properties.version.value;
 			private var loginPopup:LoginPopup;
