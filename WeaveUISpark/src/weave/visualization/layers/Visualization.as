@@ -19,19 +19,23 @@
 
 package weave.visualization.layers
 {
+	import flash.events.Event;
+	
+	import mx.events.ResizeEvent;
+	
 	import spark.components.Group;
 	import spark.core.SpriteVisualElement;
 	
+	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.setSessionState;
 	import weave.core.ClassUtils;
 	import weave.core.SessionManager;
 
 	/**
-	 * This is a container for a list of PlotLayers
-	 * 
 	 * @author adufilie
 	 */
 	public class Visualization extends Group implements ILinkableObject
@@ -55,11 +59,23 @@ package weave.visualization.layers
 			sprCont.addChild(plotManager.bitmap);
 			addElement(sprCont);
 			//rawChildren.addChild(plotManager.bitmap);
+			addEventListener(ResizeEvent.RESIZE, handleResize);
 		}
 		
+		private function handleResize(e:Event):void
+		{
+			if (objectWasDisposed(this))
+				return;
+			
+			plotManager.setBitmapDataSize(unscaledWidth, unscaledHeight);
+		}
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			super.updateDisplayList.apply(this, arguments);
+			
+			if (objectWasDisposed(this))
+				return;
+			
 			plotManager.setBitmapDataSize.apply(null, arguments);
 		}
 		

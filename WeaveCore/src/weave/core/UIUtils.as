@@ -20,6 +20,7 @@
 package weave.core
 {
 	import flash.display.DisplayObject;
+	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
 	import flash.utils.Dictionary;
 	
@@ -130,8 +131,13 @@ package weave.core
 			// add existing components
 			var names:Array = components.getNames(IUIComponent);
 			var objects:Array = components.getObjects(IUIComponent);
+			
+			getCallbackCollection(layoutManager).delayCallbacks();
+			
 			for (var i:int = 0; i < names.length; i++)
 				layoutManager.addComponent(names[i] as String, objects[i] as IVisualElement);
+			
+			getCallbackCollection(layoutManager).resumeCallbacks();
 		}
 		
 		/**
@@ -261,7 +267,10 @@ package weave.core
 		{
 			// Children will not be displayed properly unless the parent is on the stage when the children are added.
 			if (!uiParent.initialized || !uiParent.stage)
-				return uiParent.callLater(addChild, arguments);
+			{
+				uiParent.callLater(addChild, arguments);
+				return;
+			}
 			
 			var childObject:ILinkableObject = hashMap.getObject(childName);
 			
@@ -315,7 +324,7 @@ package weave.core
 				spark_addChild(uiParent, uiChild);
 		}
 		
-		public static function spark_addChild(parent:UIComponent, child:DisplayObject):DisplayObject
+		public static function spark_addChild(parent:DisplayObjectContainer, child:DisplayObject):DisplayObject
 		{
 			if (parent is IVisualElementContainer)
 			{
@@ -328,12 +337,12 @@ package weave.core
 				return parent.addChild(child);
 		}
 		
-		public static function spark_setChildIndex(parent:UIComponent, child:DisplayObject, index:int):void
+		public static function spark_setChildIndex(parent:DisplayObjectContainer, child:DisplayObject, index:int):void
 		{
 			if (parent is IVisualElementContainer && child is IVisualElement)
 			{
 				if (child is IVisualElement)
-					return (parent as IVisualElementContainer).setElementIndex(child as IVisualElement, index);
+					(parent as IVisualElementContainer).setElementIndex(child as IVisualElement, index);
 				else
 					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
 			}
@@ -385,7 +394,10 @@ package weave.core
 		private static function updateChildOrder(uiParent:UIComponent, hashMap:ILinkableHashMap, keepLinkableChildrenOnTop:Boolean):void
 		{
 			if (!uiParent.initialized)
-				return uiParent.callLater(updateChildOrder, arguments);
+			{
+				uiParent.callLater(updateChildOrder, arguments);
+				return;
+			}
 			
 			var i:int;
 			var uiChild:DisplayObject;

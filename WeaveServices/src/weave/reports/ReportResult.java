@@ -59,7 +59,7 @@ public abstract class ReportResult
 	
 
 	public String createReport(DataService dataSource, ReportDefinition reportDefinition, List<String> keys)
-		throws Exception
+		throws RemoteException
 	{
 		_publishPath = reportDefinition._path;
 		_reportDefinition = reportDefinition; 
@@ -69,10 +69,10 @@ public abstract class ReportResult
 			createReportFile();
 			result = fillInReportContents(reportDefinition);
 		}
-//		catch (Exception e)
-//		{
-//			throw new RemoteException(WeaveReport.REPORT_FAIL, e);
-//		}
+		catch (Exception e)
+		{
+			throw new RemoteException(WeaveReport.REPORT_FAIL, e);
+		}
 		finally
 		{
 			try

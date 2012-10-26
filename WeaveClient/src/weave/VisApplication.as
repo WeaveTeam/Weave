@@ -766,7 +766,7 @@ package weave
 					createToolMenuItem(Weave.properties.showDisabilityOptions, "Disability Options", DraggablePanel.openStaticInstance, [DisabilityOptions]);
 
 	
-				
+
 				var _this:VisApplication = this;
 
 				if (!Weave.properties.dashboardMode.value)
@@ -775,12 +775,11 @@ package weave
 					
 					for each (var impl:Class in WeaveAPI.getRegisteredImplementations(IVisTool))
 					{
-						// TEMPORARY SOLUTION
-						if (_InitializeWeaveUI.toggleMap[impl] && !(_InitializeWeaveUI.toggleMap[impl] as LinkableBoolean).value)
-							continue;
-						
-						var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(impl);
-						_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(lang("Add {0}", displayName), createGlobalObject, [impl]));
+						if (Weave.properties.getToolToggle(impl).value)
+						{
+							var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(impl);
+							_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(lang("Add {0}", displayName), createGlobalObject, [impl]));
+						}
 					}
 				}
 				
@@ -788,6 +787,7 @@ package weave
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(
 					function():String { return lang((Weave.properties.dashboardMode.value ? "Disable" : "Enable") + " dashboard mode"); },
 					function():void { Weave.properties.dashboardMode.value = !Weave.properties.dashboardMode.value; }
+
 				));
 			}
 			

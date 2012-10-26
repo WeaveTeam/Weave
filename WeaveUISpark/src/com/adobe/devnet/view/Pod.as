@@ -5,6 +5,7 @@
 package com.adobe.devnet.view
 {
 import com.adobe.devnet.events.PodStateChangeEvent;
+import com.adobe.devnet.skins.CustomSkinnableContainer;
 
 import flash.display.Graphics;
 import flash.display.Sprite;
@@ -12,8 +13,6 @@ import flash.events.Event;
 import flash.events.MouseEvent;
 
 import mx.events.DragEvent;
-
-import com.adobe.devnet.skins.CustomPanelSkin;
 
 import spark.components.Button;
 import spark.components.Group;
@@ -35,9 +34,14 @@ import spark.primitives.Rect;
 public class Pod extends SkinnableContainer
 {
 	public static const MINIMIZED_HEIGHT:Number = 22;
-	public static const WINDOW_STATE_DEFAULT:Number = -1;
-	public static const WINDOW_STATE_MINIMIZED:Number = 0;
-	public static const WINDOW_STATE_MAXIMIZED:Number = 1;
+	public static const WINDOW_STATE_DEFAULT:Number = 0;
+	public static const WINDOW_STATE_MINIMIZED:Number = 1;
+	public static const WINDOW_STATE_MAXIMIZED:Number = 2;
+	
+	[Bindable]public var button_width:Number = 18;
+	[Bindable]public var button_height:Number = 18;
+	
+	[Bindable]public var title:String = "";
 	
 	public var windowState:Number; // Corresponds to one of the WINDOW_STATE variables.
 	public var index:Number;	   // Index within the layout.
@@ -49,6 +53,9 @@ public class Pod extends SkinnableContainer
   public var minimizeButton:Button;
   [SkinPart(required="false")]
   public var maximizeRestoreButton:ToggleButton;
+  
+  [SkinPart(required="false")]
+  public var closeButton:Button;
 	
   [SkinPart(required="false")]
   public var headerDivider:Rect;
@@ -75,7 +82,7 @@ public class Pod extends SkinnableContainer
 		super();
 		doubleClickEnabled = true;
 		windowState = WINDOW_STATE_DEFAULT;
-    setStyle("skinClass", Class(CustomPanelSkin));
+    	setStyle("skinClass", Class(CustomSkinnableContainer));
 	}
 	
 	override protected function createChildren():void
@@ -92,6 +99,7 @@ public class Pod extends SkinnableContainer
 		
 		minimizeButton.addEventListener(MouseEvent.CLICK, onClickMinimizeButton);
 		maximizeRestoreButton.addEventListener(MouseEvent.CLICK, onClickMaximizeRestoreButton);
+		closeButton.addEventListener(MouseEvent.CLICK, onClickCloseButton);
 		
 		addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
 	}
@@ -107,6 +115,16 @@ public class Pod extends SkinnableContainer
 		dispatchEvent(new PodStateChangeEvent(PodStateChangeEvent.MINIMIZE));
 		// Set the state after the event is dispatched so the old state is still available.
 		minimize();
+	}
+	
+	// close functionality added for Weave
+	private function onClickCloseButton(event:MouseEvent):void
+	{
+		close();
+	}
+	public function close():void
+	{
+		dispatchEvent(new PodStateChangeEvent(PodStateChangeEvent.CLOSE));
 	}
 	
 	public function minimize():void

@@ -93,6 +93,13 @@ package weave.data.KeySets
 		private var _allKeys:Array = []; // Array of IQualifiedKey
 		private var _keyLookup:Dictionary = new Dictionary(true); // IQualifiedKey -> Boolean
 		
+		/*
+		* Catch-22:
+		*     We want to report busy status when computing union, but we don't want to trigger
+		*     union callbacks if nothing changes as a result of the async task.  However,
+		*     if we report busy status, we should be triggering callbacks when the task completes.
+		*     For now, we don't report busy status.
+		*/
 		private var _asyncOwner:ILinkableObject = newDisposableChild(this, CallbackCollection); // separate owner for the async task to avoid affecting our busy status
 		private var _asyncKeys:Array; // keys from current key set
 		private var _asyncKeySetIndex:int; // index of current key set
@@ -168,6 +175,8 @@ package weave.data.KeySets
 				_keyLookup = _newKeyLookup;
 				getCallbackCollection(this).triggerCallbacks();
 			}
+			
+			getCallbackCollection(_asyncOwner).triggerCallbacks();
 		}
 		
 		public function dispose():void

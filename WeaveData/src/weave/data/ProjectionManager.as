@@ -88,8 +88,8 @@ package weave.data
 		
 		/**
 		 * This function will return the projected column if a reprojection should be performed or the original column if there is no projection.
-		 * @param column The column containing the geometry information.
-		 * @param destinationProjStr The string corresponding to a projection destination.
+		 * @param columnReference A reference to a column containing geometry data.
+		 * @param destinationProjectionSRS The string corresponding to a projection destination.
 		 * @return The projected column or the original column.
 		 */
 		public function getProjectedGeometryColumn(columnReference:IColumnReference, destinationProjectionSRS:String):IAttributeColumn
@@ -109,20 +109,20 @@ package weave.data
 				srsCache = new Object(); // destinationSRS -> ProxyColumn
 				_reprojectedColumnCache[unprojectedColumn] = srsCache;
 			}
-			var proxyColumn:ProxyColumn = srsCache[destinationProjectionSRS] as ProxyColumn;
+			var reprojectedColumn:ProxyColumn = srsCache[destinationProjectionSRS] as ProxyColumn;
 
 			// if reprojected column is cached, return it
-			if (proxyColumn)
-				return proxyColumn;
+			if (reprojectedColumn)
+				return reprojectedColumn;
 
 			// otherwise, create a proxy that will provide the reprojected shapes and save it in the cache
-			proxyColumn = newDisposableChild(this, ProxyColumn);
-			srsCache[destinationProjectionSRS] = proxyColumn;
+			reprojectedColumn = newDisposableChild(this, ProxyColumn);
+			srsCache[destinationProjectionSRS] = reprojectedColumn;
 			
 			// create a WorkerThread that will reproject the geometries
-			new WorkerThread(this, unprojectedColumn, proxyColumn, destinationProjectionSRS);
+			new WorkerThread(this, unprojectedColumn, reprojectedColumn, destinationProjectionSRS);
 			
-			return proxyColumn;
+			return reprojectedColumn;
 		}
 		
 		/**
@@ -300,13 +300,14 @@ package weave.data
 }
 
 import flash.geom.Point;
+import flash.utils.getTimer;
 
 import org.openscales.proj4as.Proj4as;
 import org.openscales.proj4as.ProjPoint;
 import org.openscales.proj4as.ProjProjection;
 
 import weave.api.WeaveAPI;
-import weave.api.data.AttributeColumnMetadata;
+import weave.api.data.ColumnMetadata;
 import weave.api.data.DataTypes;
 import weave.api.data.IAttributeColumn;
 import weave.api.data.IColumnWrapper;
@@ -323,28 +324,19 @@ import weave.utils.ColumnUtils;
 	
 internal class WorkerThread
 {
-	public function WorkerThread(projectionManager:ProjectionManager, unprojectedColumn:IAttributeColumn, proxyColumn:ProxyColumn, destinationProjectionSRS:String)
+	public function WorkerThread(projectionManager:ProjectionManager, unprojectedColumn:IAttributeColumn, reprojectedColumn:ProxyColumn, destinationProjectionSRS:String)
 	{
 		this.projectionManager = projectionManager;
 		this.unprojectedColumn = unprojectedColumn;
-		this.proxyColumn = proxyColumn;
+		this.reprojectedColumn = reprojectedColumn;
 		this.destinationProjSRS = destinationProjectionSRS;
-
-		// start reprojecting now and each time the unprojected column changes
-		unprojectedColumn.addImmediateCallback(
-			this,
-			function():void
-			{
-				WeaveAPI.StageUtils.startTask(unprojectedColumn, iterate, WeaveAPI.TASK_PRIORITY_PARSING);
-			},
-			true
-		);
+		unprojectedColumn.addImmediateCallback(this, asyncStart, true);
 	}
 	
 	// values passed to the constructor -- these will not change.
 	private var projectionManager:ProjectionManager;
 	private var unprojectedColumn:IAttributeColumn;
-	private var proxyColumn:ProxyColumn;
+	private var reprojectedColumn:ProxyColumn;
 	private var destinationProjSRS:String;
 	
 	// these values may change as the geometries are processed.
@@ -363,155 +355,175 @@ internal class WorkerThread
 	// reusable temporary object
 	private static const _tempProjPoint:ProjPoint = new ProjPoint();
 	
+	private function asyncStart():void
+	{
+		// if the source and destination projection are the same, we don't need to reproject.
+		// if we don't know the projection of the original column, we can't reproject.
+		// if there is no destination projection, don't reproject.
+		var sourceProjSRS:String = unprojectedColumn.getMetadata(ColumnMetadata.PROJECTION);
+		if (sourceProjSRS == destinationProjSRS ||
+			!projectionManager.projectionExists(sourceProjSRS) ||
+			!projectionManager.projectionExists(destinationProjSRS))
+		{
+			reprojectedColumn.delayCallbacks();
+			reprojectedColumn.setMetadata(null);
+			reprojectedColumn.setInternalColumn(unprojectedColumn);
+			reprojectedColumn.resumeCallbacks();
+			return; // done
+		}
+		
+		// we need to reproject
+		
+		// if the internal column is the original column, create a new internal column because we don't want to overwrite the original
+		if (reprojectedColumn.getInternalColumn() == null || reprojectedColumn.getInternalColumn() == unprojectedColumn)
+		{
+			reprojectedColumn.setInternalColumn(new GeometryColumn());
+		}
+		
+		// set metadata on proxy column
+		//TODO: this metadata may not be sufficient... IAttributeColumn may need a way to list available metadata property names
+		// or provide another column to get metadata from
+		var metadata:XML = <attribute
+				title={ ColumnUtils.getTitle(unprojectedColumn) }
+		keyType={ ColumnUtils.getKeyType(unprojectedColumn) }
+		dataType={ DataTypes.GEOMETRY }
+		projection={ destinationProjSRS }
+		/>;
+		reprojectedColumn.setMetadata(metadata);
+		
+		// try to find an internal StreamedGeometryColumn
+		var internalColumn:IAttributeColumn = unprojectedColumn;
+		while (!(internalColumn is StreamedGeometryColumn) && internalColumn is IColumnWrapper)
+			internalColumn = (internalColumn as IColumnWrapper).getInternalColumn();
+		var streamedGeomColumn:StreamedGeometryColumn = internalColumn as StreamedGeometryColumn;
+		if (streamedGeomColumn)
+		{
+			// Request the full unprojected detail because we don't know how much unprojected
+			// detail we need to display the appropriate amount of reprojected detail. 
+			streamedGeomColumn.requestGeometryDetail(streamedGeomColumn.collectiveBounds, 0);
+			// if still downloading the tiles, do not reproject
+			if (streamedGeomColumn.isStillDownloading())
+				return; // done
+		}
+		
+		// initialize variables before calling processGeometries()
+		keys = unprojectedColumn.keys; // all keys
+		values = []; // all values
+		numGeoms = 0;
+		for (var i:int = 0; i < keys.length; i++)
+		{
+			var value:Array = unprojectedColumn.getValueFromKey(keys[i]) as Array;
+			numGeoms += value.length;
+			values.push(value);
+		}
+		keyIndex = 0;
+		coordsVectorIndex = 0;
+		keysVector = new Vector.<IQualifiedKey>();
+		geomVector = new Vector.<GeneralizedGeometry>();
+		coordsVector.length = 0;
+		sourceProj = projectionManager.getProjection(sourceProjSRS);
+		destinationProj = projectionManager.getProjection(destinationProjSRS);
+		
+		// ready to start iterating
+		if (numGeoms == 0)
+			asyncComplete();
+		else
+			WeaveAPI.StageUtils.startTask(reprojectedColumn, asyncIterate, WeaveAPI.TASK_PRIORITY_PARSING, asyncComplete);
+	}
+	
 	/**
 	 * This function will reproject the geometries in a column.
 	 * @return A number between 0 and 1 indicating the progress.
 	 */
-	private function iterate():Number
+	private function asyncIterate(stopTime:int):Number
 	{
-		// reset if something changed
-		if (prevTriggerCounter != unprojectedColumn.triggerCounter)
+		while (getTimer() < stopTime)
 		{
-			prevTriggerCounter = unprojectedColumn.triggerCounter;
-			
-			// if the source and destination projection are the same, we don't need to reproject.
-			// if we don't know the projection of the original column, we can't reproject.
-			// if there is no destination projection, don't reproject.
-			var sourceProjSRS:String = unprojectedColumn.getMetadata(AttributeColumnMetadata.PROJECTION);
-			if (sourceProjSRS == destinationProjSRS ||
-				!projectionManager.projectionExists(sourceProjSRS) ||
-				!projectionManager.projectionExists(destinationProjSRS))
+			// begin iteration
+			if (keyIndex < keys.length)
 			{
-				proxyColumn.setMetadata(null);
-				proxyColumn.setInternalColumn(unprojectedColumn);
-				return 1; // done
-			}
-			
-			// we need to reproject
-			
-			// if the internal column is the original column, create a new internal column because we don't want to overwrite the original
-			if (proxyColumn.getInternalColumn() == null || proxyColumn.getInternalColumn() == unprojectedColumn)
-			{
-				proxyColumn.setInternalColumn(new GeometryColumn());
-			}
-	
-			// set metadata on proxy column
-			//TODO: this metadata may not be sufficient... IAttributeColumn may need a way to list available metadata property names
-			// or provide another column to get metadata from
-			var metadata:XML = <attribute
-					title={ ColumnUtils.getTitle(unprojectedColumn) }
-					keyType={ ColumnUtils.getKeyType(unprojectedColumn) }
-					dataType={ DataTypes.GEOMETRY }
-					projection={ destinationProjSRS }
-				/>;
-			proxyColumn.setMetadata(metadata);
-	
-			// try to find an internal StreamedGeometryColumn
-			var internalColumn:IAttributeColumn = unprojectedColumn;
-			while (!(internalColumn is StreamedGeometryColumn) && internalColumn is IColumnWrapper)
-				internalColumn = (internalColumn as IColumnWrapper).getInternalColumn();
-			var streamedGeomColumn:StreamedGeometryColumn = internalColumn as StreamedGeometryColumn;
-			if (streamedGeomColumn)
-			{
-				// Request the full unprojected detail because we don't know how much unprojected
-				// detail we need to display the appropriate amount of reprojected detail. 
-				streamedGeomColumn.requestGeometryDetail(streamedGeomColumn.collectiveBounds, 0);
-				// if still downloading the tiles, do not reproject
-				if (streamedGeomColumn.isStillDownloading())
-					return 1; // done
-			}
-	
-			// initialize variables before calling processGeometries()
-			keys = unprojectedColumn.keys; // all keys
-			values = []; // all values
-			numGeoms = 0;
-			for (var i:int = 0; i < keys.length; i++)
-			{
-				var value:Array = unprojectedColumn.getValueFromKey(keys[i]) as Array;
-				numGeoms += value.length;
-				values.push(value);
-			}
-			keyIndex = 0;
-			coordsVectorIndex = 0;
-			keysVector = new Vector.<IQualifiedKey>();
-			geomVector = new Vector.<GeneralizedGeometry>();
-			coordsVector.length = 0;
-			sourceProj = projectionManager.getProjection(sourceProjSRS);
-			destinationProj = projectionManager.getProjection(destinationProjSRS);
-		}
-		
-		// begin iteration
-		if (keyIndex < keys.length)
-		{
-			// step 1: generate GeneralizedGeometry objects and project coordinates
-			var key:IQualifiedKey = keys[keyIndex] as IQualifiedKey;
-			var geomArray:Array = values[keyIndex] as Array;
-			for (var geometryIndex:int = 0; geomArray && geometryIndex < geomArray.length; ++geometryIndex)
-			{
-				var oldGeometry:GeneralizedGeometry = geomArray[geometryIndex] as GeneralizedGeometry;
-				var geomParts:Vector.<Vector.<BLGNode>> = oldGeometry.getSimplifiedGeometry(); // no parameters = full list of vertices
-				var geomIsPolygon:Boolean = oldGeometry.geomType == GeneralizedGeometry.GEOM_TYPE_POLYGON;
-
-				var newCoords:Array = [];
-				var newGeometry:GeneralizedGeometry = new GeneralizedGeometry(oldGeometry.geomType);
-				
-				// fill newCoords array with reprojected coordinates
-				for (var iPart:int = 0; iPart < geomParts.length; ++iPart)
+				// step 1: generate GeneralizedGeometry objects and project coordinates
+				var key:IQualifiedKey = keys[keyIndex] as IQualifiedKey;
+				var geomArray:Array = values[keyIndex] as Array;
+				for (var geometryIndex:int = 0; geomArray && geometryIndex < geomArray.length; ++geometryIndex)
 				{
-					var part:Vector.<BLGNode> = geomParts[iPart];
-					for (var iNode:int = 0; iNode < part.length; ++iNode)
-					{
-						var currentNode:BLGNode = part[iNode];
-						
-						_tempProjPoint.x = currentNode.x;
-						_tempProjPoint.y = currentNode.y;
-						_tempProjPoint.z = NaN; // this is important in case the projection reads the z value.
-						if (Proj4as.transform(sourceProj, destinationProj, _tempProjPoint) == null)
-							continue;
-						
-						var x:Number = _tempProjPoint.x;
-						var y:Number = _tempProjPoint.y;
-						// sometimes the reprojection may map a point to NaN.
-						// if this occurs, we ignore the reprojected point because NaN is reserved as a marker for end of the part
-						if (isNaN(x) || isNaN(y))
-							continue;
-						
-						//if (!isFinite(_tempProjPoint.x) || !isFinite(_tempProjPoint.y))
-						//	trace("point mapped to infinity");
-						
-						// save reproj coords
-						newCoords.push(x, y);
-					}
+					var oldGeometry:GeneralizedGeometry = geomArray[geometryIndex] as GeneralizedGeometry;
+					var geomParts:Vector.<Vector.<BLGNode>> = oldGeometry.getSimplifiedGeometry(); // no parameters = full list of vertices
+					var geomIsPolygon:Boolean = oldGeometry.geomType == GeneralizedGeometry.GEOM_TYPE_POLYGON;
+	
+					var newCoords:Array = [];
+					var newGeometry:GeneralizedGeometry = new GeneralizedGeometry(oldGeometry.geomType);
 					
-					// append part marker
-					newCoords.push(NaN, NaN);
+					// fill newCoords array with reprojected coordinates
+					for (var iPart:int = 0; iPart < geomParts.length; ++iPart)
+					{
+						if (iPart > 0)
+						{
+							// append part marker
+							newCoords.push(NaN, NaN);
+						}
+						
+						var part:Vector.<BLGNode> = geomParts[iPart];
+						for (var iNode:int = 0; iNode < part.length; ++iNode)
+						{
+							var currentNode:BLGNode = part[iNode];
+							
+							_tempProjPoint.x = currentNode.x;
+							_tempProjPoint.y = currentNode.y;
+							_tempProjPoint.z = NaN; // this is important in case the projection reads the z value.
+							if (Proj4as.transform(sourceProj, destinationProj, _tempProjPoint) == null)
+								continue;
+							
+							var x:Number = _tempProjPoint.x;
+							var y:Number = _tempProjPoint.y;
+							// sometimes the reprojection may map a point to NaN.
+							// if this occurs, we ignore the reprojected point because NaN is reserved as a marker for end of the part
+							if (isNaN(x) || isNaN(y))
+								continue;
+							
+							//if (!isFinite(_tempProjPoint.x) || !isFinite(_tempProjPoint.y))
+							//	trace("point mapped to infinity");
+							
+							// save reproj coords
+							newCoords.push(x, y);
+						}
+					}
+					// indices in all vectors must match up
+					keysVector.push(key);
+					geomVector.push(newGeometry);
+					// save coordinates for later processing
+					coordsVector.push(newCoords);
 				}
-				// indices in all vectors must match up
-				keysVector.push(key);
-				geomVector.push(newGeometry);
-				// save coordinates for later processing
-				coordsVector.push(newCoords);
+				keyIndex++;
 			}
-			keyIndex++;
-		}
-		else if (coordsVectorIndex < coordsVector.length)
-		{
-			// step 2: generate BLGTrees
-			newGeometry = geomVector[coordsVectorIndex];
-			newGeometry.setCoordinates(coordsVector[coordsVectorIndex], BLGTreeUtils.METHOD_SAMPLE);
-			coordsVectorIndex++;
+			else if (coordsVectorIndex < coordsVector.length)
+			{
+				// step 2: generate BLGTrees
+				newGeometry = geomVector[coordsVectorIndex];
+				newGeometry.setCoordinates(coordsVector[coordsVectorIndex], BLGTreeUtils.METHOD_SAMPLE);
+				coordsVectorIndex++;
+			}
+			else
+			{
+				break;
+			}
 		}
 		
 		var progress:Number = (coordsVector.length + coordsVectorIndex) / (numGeoms + numGeoms);
-		if (progress == 1 || isNaN(progress)) // (0/0) is NaN
-		{
-			// after all geometries have been reprojected, update the reprojected column
-			var reprojectedColumn:GeometryColumn = proxyColumn.getInternalColumn() as GeometryColumn;
-			reprojectedColumn.setGeometries(keysVector, geomVector);
-			return 1;
-		}
 		//trace('(',keyIndex,'+',coordsVectorIndex,') / (',keys.length,'+',coordsVector.length,') =',StandardLib.roundSignificant(progress, 2));
 		return progress;
+	}
+	
+	private function asyncComplete():void
+	{
+		reprojectedColumn.delayCallbacks()
+		
+		// after all geometries have been reprojected, update the reprojected column
+		var geomColumn:GeometryColumn = reprojectedColumn.getInternalColumn() as GeometryColumn;
+		geomColumn.setGeometries(keysVector, geomVector);
+		
+		reprojectedColumn.triggerCallbacks();
+		reprojectedColumn.resumeCallbacks();
 	}
 }
 

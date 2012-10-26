@@ -40,7 +40,8 @@ package weave.ui
 		public function BusyIndicator(target:ILinkableObject = null, ...moreTargets)
 		{
 			super();
-			moreTargets.unshift(target);
+			if (target)
+				moreTargets.unshift(target);
 			this.targets = moreTargets;
 			includeInLayout = false;
 			mouseChildren = false;
@@ -113,7 +114,7 @@ package weave.ui
 			if (!stage)
 				return;
 			
-			if (targets)
+			if (targets && targets.length)
 				toggleVisible();
 			
 			if (!visible)

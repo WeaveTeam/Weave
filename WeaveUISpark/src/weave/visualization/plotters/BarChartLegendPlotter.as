@@ -124,7 +124,6 @@ package weave.visualization.plotters
 		private const _itemBounds:IBounds2D = new Bounds2D();
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			screenBounds.getRectangle(clipRectangle);
 			var g:Graphics = tempShape.graphics;
 			g.clear();
 			lineStyle.beginLineStyle(null, g);
@@ -136,7 +135,7 @@ package weave.visualization.plotters
 				var column:IAttributeColumn = _columnOrdering[iColumn];
 				var title:String = _columnToTitle[column];
 				LegendUtils.getBoundsFromItemID(screenBounds, iColumn, _itemBounds, numColumns, maxCols);
-				LegendUtils.renderLegendItemText(destination, title, _itemBounds, actualShapeSize + margin, clipRectangle);
+				LegendUtils.renderLegendItemText(destination, title, _itemBounds, actualShapeSize + margin);
 
 				// draw the rectangle
 				// if we have reversed the order of the columns, iColumn should match the colors (this has always been backwards?)
@@ -160,7 +159,7 @@ package weave.visualization.plotters
 					yMax - yMin
 				);
 			}
-			destination.draw(tempShape, null, null, null, clipRectangle);
+			destination.draw(tempShape);
 		}
 		
 		// backwards compatibility

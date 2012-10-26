@@ -23,6 +23,7 @@ package weave.visualization.plotters
 	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
 	
@@ -43,7 +44,7 @@ package weave.visualization.plotters
 		
 		//the column whose value drives this meter 
 		public const meterColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
-		protected const meterColumnStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(meterColumn);
+		protected const meterColumnStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(meterColumn));
 		
 //		private var mode:Number = PROBE_MODE;
 		public function MeterPlotter()

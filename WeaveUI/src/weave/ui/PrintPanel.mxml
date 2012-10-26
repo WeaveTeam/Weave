@@ -39,6 +39,8 @@
     
     <mx:Script>
 	<![CDATA[
+		import flash.utils.setTimeout;
+		
 		import mx.core.UIComponent;
 		import mx.graphics.ImageSnapshot;
 		import mx.managers.PopUpManager;
@@ -199,11 +201,18 @@
 			}
 		}
 		
-		private function scalePrintVbox():void
+		private function scalePrintVbox(later:Boolean = true):void
 		{
 			var multiplier:Number = Weave.properties.workspaceMultiplier.value;
+			if (later)
+			{
+				setTimeout(scalePrintVbox, delay, false);
+				delay = 0;
+				multiplier = 0;
+			}
 			printVbox.scaleY = printVbox.scaleX = 1 / (multiplier+1);
 		}
+		private var delay:int = 2000;
 		
    		]]>
 	</mx:Script>
@@ -214,13 +223,13 @@
 			 backgroundColor="0xFFFFFF">
 		<mx:Label id="exportTitle" textAlign="center" fontSize="18" fontWeight="bold" horizontalCenter="0" width="100%"
 				  visible="{showTitle.selected}" includeInLayout="{showTitle.selected}"/>
-		<mx:Image id="exportImage" source="{_imageSource}" updateComplete="setTimeout(scalePrintVbox,2000)"/>
+		<mx:Image id="exportImage" source="{_imageSource}" complete="scalePrintVbox();"/>
 		<ui:OICLogoPane width="100%" visible="{showCopyright.selected}" includeInLayout="{showCopyright.selected}"/>
 	</mx:VBox>
 	
 	<mx:ControlBar horizontalAlign="center">
-		<mx:CheckBox id="showTitle" label="{lang('Title')}" selected="true"/>
-		<mx:CheckBox id="showCopyright" label="{lang('Copyright')}" creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
+		<mx:CheckBox id="showTitle" label="{lang('Title')}" selected="true" change="scalePrintVbox()"/>
+		<mx:CheckBox id="showCopyright" label="{lang('Copyright')}" creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');" change="scalePrintVbox()"/>
 		<!--<mx:CheckBox id="showBackground" label="{lang('Background')}" selected="true" change="handleBackground();"/>-->
 		<mx:Button id="printButton" label="{lang('Print')}" click="handlePrintClick(event)"/>
 		<mx:Button id="saveButton" label="{lang('Save as Image')}" click="handleSaveAsImageClick(event)"/>

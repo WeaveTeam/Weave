@@ -19,13 +19,14 @@
 
 package weave.core
 {
+	import avmplus.DescribeType;
+	
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
 	import flash.events.EventPhase;
 	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
-	import flash.utils.describeType;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
 	
@@ -525,6 +526,54 @@ package weave.core
 		private const classNameToDeprecatedSetterNamesMap:Object = new Object();
 		
 		/**
+		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
+		 */		
+		private const describeTypeJSON:Function = DescribeType.getJSONFunction();
+		
+		private function cacheClassInfo(linkableObject:ILinkableObject, classQName:String):void
+		{
+			// linkable property names
+			var propertyNames:Array = [];
+			var deprecatedSetters:Array = [];
+			// iterate over the public properties, saving the names of the ones that implement ILinkableObject
+			var type:Object = describeTypeJSON(linkableObject, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_ACCESSORS | DescribeType.INCLUDE_VARIABLES | DescribeType.INCLUDE_METADATA);
+			var traits:Object = type.traits;
+			for (var i:int = 0; i < 2; i++)
+			{
+				var variables:Array = i == 0 ? traits.accessors : traits.variables;
+				for each (var variable:Object in variables)
+				{
+					var deprecated:Boolean = false;
+					for each (var metadata:Object in variable.metadata)
+					{
+						if (metadata.name == 'Deprecated')
+						{
+							deprecated = true;
+							break;
+						}
+					}
+					
+					if (deprecated)
+					{
+						if (variables === traits.accessors && variable.access != 'readonly')
+							deprecatedSetters.push(variable.name);
+					}
+					else if (variable.access != 'writeonly' && ClassUtils.classImplements(variable.type, ILinkableObjectQualifiedClassName))
+					{
+						// not deprecated and implements ILinkableObject
+						propertyNames.push(variable.name);
+					}
+				}
+			}
+			
+			propertyNames.sort();
+			classNameToSessionedPropertyNamesMap[classQName] = propertyNames;
+			
+			deprecatedSetters.sort();
+			classNameToDeprecatedSetterNamesMap[classQName] = deprecatedSetters;
+		}
+		
+		/**
 		 * @private
 		 */
 		private function getDeprecatedSetterNames(linkableObject:ILinkableObject):Array
@@ -539,12 +588,8 @@ package weave.core
 			var names:Array = classNameToDeprecatedSetterNamesMap[className] as Array;
 			if (names == null)
 			{
-				names = [];
-				for each (var tag:XML in describeType(linkableObject).accessor.(@access != "readonly"))
-					if (tag.metadata.(@name == "Deprecated").length() > 0)
-						names.push(tag.attribute("name"));
-				names.sort();
-				classNameToDeprecatedSetterNamesMap[className] = names;
+				cacheClassInfo(linkableObject, className);
+				names = classNameToDeprecatedSetterNamesMap[className] as Array;
 			}
 			return names;
 		}
@@ -566,24 +611,8 @@ package weave.core
 			var propertyNames:Array = classNameToSessionedPropertyNamesMap[className] as Array;
 			if (propertyNames == null)
 			{
-				propertyNames = [];
-				// iterate over the public properties, saving the names of the ones that implement ILinkableObject
-				var xml:XML = describeType(linkableObject);
-				//trace(xml.toXMLString());
-				for each (var tags:XMLList in [xml.constant, xml.variable, xml.accessor.(@access != "writeonly")])
-				{
-					for each (var tag:XML in tags)
-					{
-						// Only include this property name if it implements ILinkableObject.
-						if (ClassUtils.classImplements(tag.attribute("type"), ILinkableObjectQualifiedClassName))
-						{
-							var propName:String = tag.attribute("name").toString();
-							propertyNames.push(propName);
-						}
-					}
-				}
-				propertyNames.sort();
-				classNameToSessionedPropertyNamesMap[className] = propertyNames;
+				cacheClassInfo(linkableObject, className);
+				propertyNames = classNameToSessionedPropertyNamesMap[className] as Array;
 			}
 			return propertyNames;
 		}
@@ -668,7 +697,7 @@ package weave.core
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
 			if (debugBusyTasks)
-				_dTaskStackTrace[taskToken] = new Error("Stack trace").getStackTrace();
+				_dTaskStackTrace[taskToken] = new Error("Stack trace when task was last assigned").getStackTrace();
 			
 			if (taskToken is AsyncToken)
 				(taskToken as AsyncToken).addResponder(new AsyncResponder(unassignAsyncToken, unassignAsyncToken, taskToken));
@@ -688,10 +717,42 @@ package weave.core
 		 */
 		public function unassignBusyTask(taskToken:Object):void
 		{
+			var owner:*;
 			var dOwner:Dictionary = _d2dTaskOwner.dictionary[taskToken];
 			delete _d2dTaskOwner.dictionary[taskToken];
-			for (var owner:Object in dOwner)
+			for (owner in dOwner)
 				delete _d2dOwnerTask.dictionary[owner][taskToken];
+			
+			if (debugBusyTasks)
+			{
+				for (owner in dOwner)
+					dOwner[owner] = getCallbackCollection(owner).triggerCounter;
+				
+				WeaveAPI.StageUtils.callLater(null, debugBusyTasksCallLater, [taskToken, dOwner]);
+			}
+		}
+		
+		private function debugBusyTasksCallLater(taskToken:Object, ownerLookup:Dictionary):void
+		{
+			if (linkableObjectIsBusy(WeaveAPI.globalHashMap))
+			{
+				WeaveAPI.StageUtils.callLater(null, debugBusyTasksCallLater, arguments);
+				return;
+			}
+			for (var owner:* in ownerLookup)
+			{
+				if (linkableObjectIsBusy(owner))
+					continue;
+				// if owner is no longer busy but has not triggered callbacks, there may be a problem.
+				var prevCounter:int = ownerLookup[owner];
+				var cc:ICallbackCollection = getCallbackCollection(owner);
+				if (prevCounter == cc.triggerCounter)
+				{
+					var stackTrace:String = _dTaskStackTrace[taskToken];
+					trace('object is no longer busy, but has not triggered callbacks:', debugId(owner));
+					trace(stackTrace);
+				}
+			}
 		}
 		
 		/**
@@ -727,7 +788,7 @@ package weave.core
 					if (debugBusyTasks)
 					{
 						var stackTrace:String = _dTaskStackTrace[task];
-						trace(stackTrace);
+						//trace(stackTrace);
 					}
 					busy = true;
 					break outerLoop;
@@ -816,15 +877,13 @@ package weave.core
 		 * DisplayObjectContainer/ILinkableObject if it has no linkable owner yet.  This makes sure that the
 		 * component is disposed of when its ancestor is disposed of.
 		 * @param linkableComponent A UIComponent that implements ILinkableObject.
-		 * @return true if the component has a linkable owner, either before or after this function is called.
+		 * @return true if the component has a linkable owner, either before or after this function is called, or if the object was disposed.
 		 */
 		private function _registerUIComponent(linkableComponent:UIComponent):Boolean
 		{
 			if (objectWasDisposed(linkableComponent))
-			{
-				reportError('UIComponent running _registerUIComponent after being disposed');
 				return true; // so the event listener will be removed
-			}
+			
 			var owner:ILinkableObject = childToOwnerMap[linkableComponent] as ILinkableObject;
 			if (owner == null)
 			{

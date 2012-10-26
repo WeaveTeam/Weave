@@ -19,13 +19,13 @@
 
 package weave.servlets;
 
+import java.io.IOException;
 import java.rmi.RemoteException;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import weave.beans.HierarchicalClusteringResult;
-import weave.beans.KMeansClusteringResult;
 import weave.beans.LinearRegressionResult;
 import weave.beans.RResult;
 import weave.config.WeaveContextParams;
@@ -40,10 +40,30 @@ public class RService extends GenericServlet
 	{
 	}
 
+	private static Process rProcess = null;
+	
 	public void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
 		docrootPath = WeaveContextParams.getInstance(config.getServletContext()).getDocrootPath();
+		
+	    try {
+	    	String rServePath = WeaveContextParams.getInstance(config.getServletContext()).getRServePath();
+	    	if (rServePath != null && rServePath.length() > 0)
+	    		rProcess = Runtime.getRuntime().exec(rServePath);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void destroy()
+	{
+		try {
+			if (rProcess != null)
+				rProcess.destroy();
+		} finally {
+			super.destroy();
+		}
 	}
 
 	private String docrootPath = "";
@@ -99,12 +119,6 @@ public class RService extends GenericServlet
 	}
 	
 	
-	
-	
-	
-	
-	
-	
 
 	public LinearRegressionResult linearRegression(double[] dataX, double[] dataY) throws RemoteException
 	{
@@ -112,10 +126,11 @@ public class RService extends GenericServlet
 		return RServiceUsingRserve.linearRegression( docrootPath, dataX, dataY);
 	}
 
-	public KMeansClusteringResult kMeansClustering(double[] dataX, double[] dataY, int numberOfClusters) throws RemoteException
+	public RResult[] kMeansClustering(String[] inputNames, Object[][] inputValues, boolean showWarnings,int numberOfClusters, int iterations) throws Exception
 	{
 		
-		return RServiceUsingRserve.kMeansClustering( docrootPath, dataX, dataY, numberOfClusters);
+		//return RServiceUsingRserve.kMeansClustering( docrootPath, dataX, dataY, numberOfClusters);
+		return RServiceUsingRserve.kMeansClustering(inputNames, inputValues, showWarnings,numberOfClusters, iterations);
 	}
 
 	public HierarchicalClusteringResult hierarchicalClustering(double[] dataX, double[] dataY) throws RemoteException
@@ -123,4 +138,10 @@ public class RService extends GenericServlet
 		return RServiceUsingRserve.hierarchicalClustering( docrootPath, dataX, dataY);
 	}
 
+	public RResult[] handlingMissingData(String[] inputNames, Object[][] inputValues, String[] outputNames, boolean showIntermediateResults, boolean showWarnings, boolean completeProcess) throws Exception
+	{
+		return RServiceUsingRserve.handlingMissingData(inputNames, inputValues, outputNames,showIntermediateResults, showWarnings, completeProcess);
+	}
+	
+	
 }

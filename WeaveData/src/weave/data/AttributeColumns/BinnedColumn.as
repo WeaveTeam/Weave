@@ -22,7 +22,7 @@ package weave.data.AttributeColumns
 	import flash.utils.Dictionary;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinningDefinition;
 	import weave.api.data.IPrimitiveColumn;
@@ -55,9 +55,9 @@ package weave.data.AttributeColumns
 		{
 			switch (propertyName)
 			{
-				case AttributeColumnMetadata.MIN:
+				case ColumnMetadata.MIN:
 					return numberOfBins > 0 ? "0" : null;
-				case AttributeColumnMetadata.MAX:
+				case ColumnMetadata.MAX:
 					var binCount:int = numberOfBins;
 					return binCount > 0 ? String(binCount - 1) : null;
 			}

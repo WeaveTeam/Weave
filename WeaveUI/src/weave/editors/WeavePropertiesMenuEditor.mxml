@@ -178,29 +178,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.linkBindableProperty;
-			import weave.ui.AttributeMenuTool;
-			import weave.ui.JRITextEditor;
-			import weave.ui.RTextEditor;
-			import weave.visualization.tools.ColorBinLegendTool;
-			import weave.visualization.tools.ColormapHistogramTool;
-			import weave.visualization.tools.CompoundBarChartTool;
-			import weave.visualization.tools.CompoundRadVizTool;
-			import weave.visualization.tools.CustomTool;
-			import weave.visualization.tools.DataTableTool;
-			import weave.visualization.tools.DimensionSliderTool;
-			import weave.visualization.tools.GaugeTool;
-			import weave.visualization.tools.Histogram2DTool;
-			import weave.visualization.tools.HistogramTool;
-			import weave.visualization.tools.LineChartTool;
-			import weave.visualization.tools.MapTool;
-			import weave.visualization.tools.PieChartHistogramTool;
-			import weave.visualization.tools.PieChartTool;
-			import weave.visualization.tools.RadVizTool;
-			import weave.visualization.tools.RamachandranPlotTool;
-			import weave.visualization.tools.ScatterPlotTool;
-			import weave.visualization.tools.ThermometerTool;
-			import weave.visualization.tools.TimeSliderTool;
-			import weave.visualization.tools.TransposedTableTool;
+			import weave.api.ui.IVisTool;
 			
 			override protected function createChildren():void
 			{
@@ -211,11 +189,11 @@
 				
 				var cbArray:Array = [];
 				var cb:CheckBox;
-				for (var _class:Object in _InitializeWeaveUI.toggleMap)
+				for each (var _class:Class in WeaveAPI.getRegisteredImplementations(IVisTool))
 				{
 					cb = new CheckBox();
-					cb.label = WeaveAPI.getRegisteredImplementationDisplayName(_class as Class) || getQualifiedClassName(_class).split(':').pop();
-					linkBindableProperty(_InitializeWeaveUI.toggleMap[_class], cb, 'selected');
+					cb.label = WeaveAPI.getRegisteredImplementationDisplayName(_class) || getQualifiedClassName(_class).split(':').pop();
+					linkBindableProperty(Weave.properties.getToolToggle(_class), cb, 'selected');
 					cbArray.push(cb);
 				}
 				cbArray.sortOn('label');

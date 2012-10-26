@@ -115,6 +115,8 @@ package weave.core
 	}
 }
 
+import avmplus.DescribeType;
+
 import flash.events.ErrorEvent;
 import flash.events.Event;
 import flash.events.IOErrorEvent;
@@ -124,7 +126,6 @@ import flash.net.URLRequest;
 import flash.system.ApplicationDomain;
 import flash.system.LoaderContext;
 import flash.utils.ByteArray;
-import flash.utils.describeType;
 
 import mx.controls.SWFLoader;
 import mx.core.mx_internal;
@@ -278,6 +279,11 @@ internal class Library implements IDisposableObject
 	}
 	
 	/**
+	 * avmplus.describeTypeJSON(o:*, flags:uint):Object
+	 */
+	private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
+	
+	/**
 	 * @private
 	 *
 	 * This is called when the SWFLoader finishes loading.
@@ -311,12 +317,12 @@ internal class Library implements IDisposableObject
 				var classDef:Class = ClassUtils.getClassDefinition(classQName);
 				
 				// register this class as an implementation of every interface it implements.
-				var type:XML = describeType(classDef);
-				for each (var i:XML in type.factory.implementsInterface)
+				var classInfo:Object = describeTypeJSON(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
+				for each (var interfaceQName:String in classInfo.traits.interfaces)
 				{
-					var interfaceQName:String = i.attribute("type").toString();
 					var interfaceDef:Class = ClassUtils.getClassDefinition(interfaceQName);
-					WeaveAPI.registerImplementation(interfaceDef, classDef);
+					if (interfaceDef)
+						WeaveAPI.registerImplementation(interfaceDef, classDef);
 				}
 			}
 			catch (e:Error)

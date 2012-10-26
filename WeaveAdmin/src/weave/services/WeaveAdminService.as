@@ -323,7 +323,26 @@ package weave.services
 		// read uploaded files
 		public function uploadFile(fileName:String, content:ByteArray):DelayedAsyncInvocation
 		{
-			return invokeAdminService('uploadFile', arguments);
+			// queue up requests for uploading chunks at a time, then return the token of the last chunk
+			
+			var MB:int = ( 1024 * 1024 );
+			var maxChunkSize:int = 20 * MB;
+			var chunkSize:int = (content.length > (5*MB)) ? Math.min((content.length / 10 ), maxChunkSize) : ( MB );
+			content.position = 0;
+			
+			var append:Boolean = false;
+			var token:DelayedAsyncInvocation;
+			do
+			{
+				var chunk:ByteArray = new ByteArray();
+				content.readBytes(chunk, 0, Math.min(content.bytesAvailable, chunkSize));
+				
+				token = invokeAdminService('uploadFile', [fileName, chunk, append], true); // queued
+				append = true;
+			}
+			while (content.bytesAvailable > 0);
+			
+			return token;
 		}
 		public function getServerFiles():DelayedAsyncInvocation
 		{

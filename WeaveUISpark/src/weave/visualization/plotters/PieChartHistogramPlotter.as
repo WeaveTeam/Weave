@@ -27,7 +27,7 @@ package weave.visualization.plotters
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getLinkableOwner;
@@ -106,7 +106,7 @@ package weave.visualization.plotters
 			while (ecArray.length)
 			{
 				var metadata:Object = {};
-				metadata[AttributeColumnMetadata.TITLE] = nameArray.pop();
+				metadata[ColumnMetadata.TITLE] = nameArray.pop();
 				(ecArray.pop() as EquationColumn).metadata.value = metadata;
 			}
 			

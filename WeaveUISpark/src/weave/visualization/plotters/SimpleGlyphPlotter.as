@@ -83,16 +83,13 @@ package weave.visualization.plotters
 		 */
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
-			var x:Number = getCoordFromRecordKey(recordKey, true);
-			var y:Number = getCoordFromRecordKey(recordKey, false);
+			getCoordsFromRecordKey(recordKey, tempPoint);
 			var size:Number = screenSize.getValueFromKey(recordKey, Number);
 			
-			if (isNaN(x) || isNaN(y) || isNaN(size))
+			if (isNaN(tempPoint.x) || isNaN(tempPoint.y) || isNaN(size))
 				return;
 			
 			// project x,y data coordinates to screen coordinates
-			tempPoint.x = x;
-			tempPoint.y = y;
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
 			// add screen offsets

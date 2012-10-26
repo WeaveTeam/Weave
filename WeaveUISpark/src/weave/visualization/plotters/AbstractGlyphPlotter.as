@@ -19,23 +19,30 @@
 
 package weave.visualization.plotters
 {
+	import flash.geom.Point;
+	import flash.utils.Dictionary;
+	
 	import weave.api.WeaveAPI;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IKeySet;
+	import weave.api.data.IProjector;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.data.KeySets.KeySetUnion;
 	import weave.primitives.GeneralizedGeometry;
+	import weave.utils.ColumnUtils;
 	
 	/**
 	 * A glyph represents a point of data at an X and Y coordinate.
@@ -84,19 +91,92 @@ package weave.visualization.plotters
 			return filteredDataY.internalDynamicColumn;
 		}
 		
-		protected function getCoordFromRecordKey(recordKey:IQualifiedKey, trueXfalseY:Boolean):Number
+		public const sourceProjection:LinkableString = newSpatialProperty(LinkableString);
+		public const destinationProjection:LinkableString = newSpatialProperty(LinkableString);
+		
+		protected const tempPoint:Point = new Point();
+		private var _projector:IProjector;
+		private var _xCoordCache:Dictionary;
+		private var _yCoordCache:Dictionary;
+		
+		/**
+		 * This gets called whenever any of the following change: dataX, dataY, sourceProjection, destinationProjection
+		 */		
+		private function updateProjector():void
 		{
-			var dataCol:IAttributeColumn = trueXfalseY ? dataX : dataY;
-			if (dataCol.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
+			_xCoordCache = new Dictionary(true);
+			_yCoordCache = new Dictionary(true);
+			
+			var sourceSRS:String = sourceProjection.value;
+			var destinationSRS:String = destinationProjection.value;
+			
+			// if sourceSRS is missing and both X and Y projections are the same, use that.
+			if (!sourceSRS)
 			{
-				var geoms:Array = dataCol.getValueFromKey(recordKey) as Array;
-				var geom:GeneralizedGeometry;
-				if (geoms && geoms.length)
-					geom = geoms[0] as GeneralizedGeometry;
-				if (geom)
-					return trueXfalseY ? geom.bounds.getXCenter() : geom.bounds.getYCenter();
+				var projX:String = dataX.getMetadata(ColumnMetadata.PROJECTION);
+				var projY:String = dataY.getMetadata(ColumnMetadata.PROJECTION);
+				if (projX == projY)
+					sourceSRS = projX;
 			}
-			return dataCol.getValueFromKey(recordKey, Number);
+			
+			if (sourceSRS && destinationSRS)
+				_projector = WeaveAPI.ProjectionManager.getProjector(sourceSRS, destinationSRS);
+			else
+				_projector = null;
+		}
+		
+		protected function getCoordsFromRecordKey(recordKey:IQualifiedKey, output:Point):void
+		{
+			if (detectLinkableObjectChange(updateProjector, dataX, dataY, sourceProjection, destinationProjection))
+				updateProjector();
+			
+			if (_xCoordCache[recordKey] !== undefined)
+			{
+				output.x = _xCoordCache[recordKey];
+				output.y = _yCoordCache[recordKey];
+				return;
+			}
+			
+			for (var i:int = 0; i < 2; i++)
+			{
+				var result:Number = NaN;
+				var dataCol:IAttributeColumn = i == 0 ? dataX : dataY;
+				if (dataCol.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
+				{
+					var geoms:Array = dataCol.getValueFromKey(recordKey) as Array;
+					var geom:GeneralizedGeometry;
+					if (geoms && geoms.length)
+						geom = geoms[0] as GeneralizedGeometry;
+					if (geom)
+					{
+						if (i == 0)
+							result = geom.bounds.getXCenter();
+						else
+							result = geom.bounds.getYCenter();
+					}
+				}
+				else
+				{
+					result = dataCol.getValueFromKey(recordKey, Number);
+				}
+				
+				if (i == 0)
+				{
+					output.x = result;
+					_xCoordCache[recordKey] = result;
+				}
+				else
+				{
+					output.y = result;
+					_yCoordCache[recordKey] = result;
+				}
+			}
+			if (_projector)
+			{
+				_projector.reproject(output);
+				_xCoordCache[recordKey] = output.x;
+				_yCoordCache[recordKey] = output.y;
+			}
 		}
 		
 		/**
@@ -107,14 +187,13 @@ package weave.visualization.plotters
 		 */
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey):Array
 		{
-			var x:Number = getCoordFromRecordKey(recordKey, true);
-			var y:Number = getCoordFromRecordKey(recordKey, false);
+			getCoordsFromRecordKey(recordKey, tempPoint);
 			
 			var bounds:IBounds2D = getReusableBounds();
-			bounds.setCenteredRectangle(x, y, 0, 0);
-			if (isNaN(x))
+			bounds.setCenteredRectangle(tempPoint.x, tempPoint.y, 0, 0);
+			if (isNaN(tempPoint.x))
 				bounds.setXRange(-Infinity, Infinity);
-			if (isNaN(y))
+			if (isNaN(tempPoint.y))
 				bounds.setYRange(-Infinity, Infinity);
 			return [bounds];
 		}

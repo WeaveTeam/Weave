@@ -50,7 +50,7 @@ A text editor to change the Session State on the fly.
 					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off" backgroundAlpha="0">
 	 					<mx:TextInput id="linkNameInput" width="100%"/>
 	 					<mx:Button label="{lang('Link to global object')}" click="linkSelectedObject();"/>
-	 					<mx:Button label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 					<mx:Button id="unlinkButton" label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
 	 				</mx:HBox>
 				</mx:VBox>
 				<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
@@ -96,7 +96,10 @@ A text editor to change the Session State on the fly.
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.core.ILinkableVariable;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnWrapper;
 			import weave.api.getCallbackCollection;
+			import weave.api.getLinkableDescendants;
 			import weave.api.getLinkableOwner;
 			import weave.api.getSessionState;
 			import weave.api.objectWasDisposed;
@@ -107,6 +110,8 @@ A text editor to change the Session State on the fly.
 			import weave.core.SessionManager;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.utils.DebugUtils;
 			import weave.utils.PopUpUtils;
 			use namespace mx_internal;
@@ -120,6 +125,13 @@ A text editor to change the Session State on the fly.
 				panelHeight.value = "75%";
 				panelX.value = "12.5%";
 				panelY.value = "12.5%";
+			}
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				var subMenu:SubMenu = new SubMenu(unlinkButton, [MouseEvent.MOUSE_DOWN], [MouseEvent.MOUSE_UP]);
+				subMenu.addSubMenuItem('Unlink all nested dynamic columns', unlinkNestedColumns);
 			}
 			
 			override protected function childrenCreated():void
@@ -282,6 +294,49 @@ A text editor to change the Session State on the fly.
 
 				loadSessionStateInView();
 				_textModified = false;
+			}
+			
+			private function unlinkNestedColumns():void
+			{
+				var selected:IColumnWrapper = sessionNav.getSelectedLinkableObject() as IColumnWrapper;
+		    	if (!selected)
+				{
+					reportError('Please select a DynamicColumn.');
+					return;
+				}
+				
+				var col:IColumnWrapper = selected;
+				while (col)
+				{
+					var dc:DynamicColumn = col as DynamicColumn;
+					var edc:ExtendedDynamicColumn = col as ExtendedDynamicColumn;
+					if (dc && dc.globalName) // if linked
+					{
+						// unlink
+						dc.globalName = null;
+						// prevent infinite loop
+						if (dc.globalName)
+							break;
+						// restart from selected
+						col = selected;
+					}
+					else if (edc && edc.internalDynamicColumn.globalName) // if linked
+					{
+						// unlink
+						edc.internalDynamicColumn.globalName = null;
+						// prevent infinite loop
+						if (edc.internalDynamicColumn.globalName)
+							break;
+						// restart from selected
+						col = selected;
+					}
+					else
+					{
+						// get nested column
+						col = col.getInternalColumn() as IColumnWrapper;
+					}
+				}
+				refresh();
 			}
 
 		    private function linkSelectedObject():void

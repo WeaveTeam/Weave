@@ -416,6 +416,7 @@ public class SQLConfigXML implements ISQLConfig
 		info.pass = getNonNullValue(map, ConnectionInfo.PASS);
 		info.is_superuser = Boolean.parseBoolean(getNonNullValue(map, ConnectionInfo.IS_SUPERUSER));
 		info.folderName = getNonNullValue(map, ConnectionInfo.FOLDERNAME);
+		info.connectString = getNonNullValue(map, ConnectionInfo.CONNECTSTRING);
 		return info;
 	}
 

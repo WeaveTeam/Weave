@@ -19,8 +19,6 @@
 
 package weave.utils
 {
-	import avmplus.getQualifiedClassName;
-	
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.TimerEvent;
@@ -28,6 +26,7 @@ package weave.utils
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
+	import flash.utils.getQualifiedClassName;
 	
 	import mx.utils.StringUtil;
 	

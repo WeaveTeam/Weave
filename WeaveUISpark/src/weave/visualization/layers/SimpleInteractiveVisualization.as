@@ -29,6 +29,7 @@ package weave.visualization.layers
 	import weave.Weave;
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IKeySet;
 	import weave.api.getCallbackCollection;
@@ -395,6 +396,7 @@ package weave.visualization.layers
 						{
 							marginToolTip = ColumnUtils.getTitle(axisColumn);
 							marginToolTip += "\n Key type: "   + ColumnUtils.getKeyType(axisColumn);
+							marginToolTip += "\n Data type: "   + ColumnUtils.getDataType(axisColumn);
 							marginToolTip += "\n # of records: " + WeaveAPI.StatisticsCache.getColumnStatistics(axisColumn).getCount();
 							marginToolTip += "\n Data source: " + ColumnUtils.getDataSource(axisColumn);
 							if (Weave.properties.enableToolControls.value)
@@ -645,6 +647,12 @@ package weave.visualization.layers
 				ToolTipManager.destroyToolTip(xAxisTooltip);
 				ProbeTextUtils.xAxisToolTip = xAxisTooltip = null;
 			}
+		}
+		
+		// temporary hack for mobile
+		[Deprecated] public function set children(state:Array):void
+		{
+			WeaveAPI.SessionManager.setSessionState(this, state[0].sessionState);
 		}
 	}
 }

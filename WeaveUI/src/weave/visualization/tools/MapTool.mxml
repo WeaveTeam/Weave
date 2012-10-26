@@ -33,7 +33,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
-			import weave.api.data.AttributeColumnMetadata;
+			import weave.api.data.ColumnMetadata;
 			import weave.api.data.DataTypes;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
@@ -60,6 +60,7 @@
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.InteractionController;
 			import weave.visualization.layers.LayerSettings;
+			import weave.visualization.plotters.AbstractGlyphPlotter;
 			import weave.visualization.plotters.GeometryLabelPlotter;
 			import weave.visualization.plotters.GeometryPlotter;
 			import weave.visualization.plotters.SingleImagePlotter;
@@ -168,6 +169,16 @@
 				
 				var projString:String;
 				
+				// make sure glyph layer projections are identical
+				var glyphPlotters:Array = WeaveAPI.SessionManager.getLinkableDescendants(visualization.plotManager.plotters, AbstractGlyphPlotter);
+				for each (var glyphPlotter:AbstractGlyphPlotter in glyphPlotters)
+				{
+					linkProjection(glyphPlotter.destinationProjection);
+					projString = glyphPlotter.sourceProjection.value;
+					if (projString && _projComboBoxData.indexOf(projString) < 0)
+						_projComboBoxData.push(projString);
+				}
+				
 				// make sure wms layer projections are identical
 				var wmsPlotters:Array = WeaveAPI.SessionManager.getLinkableDescendants(visualization.plotManager.plotters, WMSPlotter);
 				for each (var wmsPlotter:WMSPlotter in wmsPlotters)
@@ -183,7 +194,7 @@
 				for each (var column:ReprojectedGeometryColumn in reprojectedColumns)
 				{
 					linkProjection(column.projectionSRS);
-					projString = column.internalDynamicColumn.getMetadata(AttributeColumnMetadata.PROJECTION);
+					projString = column.internalDynamicColumn.getMetadata(ColumnMetadata.PROJECTION);
 					if (projString && _projComboBoxData.indexOf(projString) < 0)
 						_projComboBoxData.push(projString);					
 				}
@@ -448,7 +459,7 @@
 					(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(children, overviewPanel);
 					linkSessionState(visualization.plotManager.layerSettings, overviewPanel.visualization.plotManager.layerSettings);
 					linkSessionState(visualization.plotManager.plotters, overviewPanel.visualization.plotManager.plotters);
-					linkSessionState(visualization.plotManager.zoomBounds, overviewPanel.parentZoomBounds);
+					overviewPanel.parentZoomBounds = visualization.plotManager.zoomBounds;
 					children.addGroupedCallback(this, bringOverviewToTop);
 				}
 				else

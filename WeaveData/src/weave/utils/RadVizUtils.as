@@ -261,6 +261,7 @@ package weave.utils
 				if( col == column ) return col;
 			}
 			return null;
-		}		
+		}	
+		
 	}
 }

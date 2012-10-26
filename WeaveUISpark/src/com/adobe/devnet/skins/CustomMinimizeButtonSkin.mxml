@@ -11,6 +11,9 @@
 
 -->
 
+<!--Modified for Weave 10/9/2012
+url for the original code = http://www.adobe.com/devnet/flex/articles/migrating-flex-apps-part4.html-->
+
 <!--- The default skin class for the Spark Button component.  
 
        @see spark.components.Button
@@ -32,6 +35,7 @@
         [HostComponent("spark.components.Button")]
         ]]>
     </fx:Metadata>
+	
     
     <!-- states -->
     <s:states>
@@ -40,10 +44,10 @@
         <s:State name="down" />
         <s:State name="disabled" />
     </s:states>
-    
-    <s:BitmapImage includeIn="up, down" width="14" height="14"  
+	<!-- Weave: Width and height takes its value set in Pod -->
+    <s:BitmapImage includeIn="up, down" width="100%" height="100%"  
                  source="@Embed(source='/com/adobe/devnet/assets/minimize_up.png')"/>
-  
-    <s:BitmapImage includeIn="over" width="14" height="14"
+	<!-- Weave: Width and height takes its value set in Pod -->
+    <s:BitmapImage includeIn="over"  width="100%" height="100%" 
                  source="@Embed(source='/com/adobe/devnet/assets/minimize_over.png')"/>    
 </s:SparkSkin>

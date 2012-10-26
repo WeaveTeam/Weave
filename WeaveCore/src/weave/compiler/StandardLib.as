@@ -117,7 +117,7 @@ package weave.compiler
 		}
 		
 		/**
-		 * This function performs find & replace operations on a String.
+		 * This function performs find and replace operations on a String.
 		 * @param string A String to perform replacements on.
 		 * @param findStr A String to find.
 		 * @param replaceStr A String to replace occurrances of the 'findStr' String with.
@@ -183,7 +183,7 @@ package weave.compiler
 		/**
 		 * This function returns -1 if the given value is negative, and 1 otherwise.
 		 * @param value A value to test.
-		 * @return -1 if value < 0, 1 otherwise
+		 * @return -1 if value &lt; 0, 1 otherwise
 		 */
 		public static function sign(value:Number):Number
 		{
@@ -197,7 +197,7 @@ package weave.compiler
 		 * @param value A value to constrain between a min and max.
 		 * @param min The minimum value.
 		 * @param max The maximum value.
-		 * @return If value < min, returns min.  If value > max, returns max.  Otherwise, returns value.
+		 * @return If value &lt; min, returns min.  If value &gt; max, returns max.  Otherwise, returns value.
 		 */
 		public static function constrain(value:Number, min:Number, max:Number):Number
 		{

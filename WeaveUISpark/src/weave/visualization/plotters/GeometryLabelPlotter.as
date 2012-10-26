@@ -64,7 +64,7 @@ package weave.visualization.plotters
 		 * This function compares geometry record keys according to geometry bounding box area
 		 * @param key1 First record key ("a")
 		 * @param key2 Second record key ("b")
-		 * @return Compare value: 0: (a == b), -1: (a < b), 1: (a > b)
+		 * @return Compare value: 0: (a == b), -1: (a &lt; b), 1: (a &gt; b)
 		 */		
 		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
 		{

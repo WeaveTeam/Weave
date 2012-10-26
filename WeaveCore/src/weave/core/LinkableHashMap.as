@@ -23,12 +23,10 @@ package weave.core
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.copySessionState;
 	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObjects;
-	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	
@@ -192,8 +190,8 @@ package weave.core
 				return null;
 			
 			delayCallbacks(); // make sure callbacks only trigger once
-			var className:String = getQualifiedClassName(objectToCopy);
-			var classDef:Class = ClassUtils.getClassDefinition(className);
+			//var className:String = getQualifiedClassName(objectToCopy);
+			var classDef:Class = Object(objectToCopy).constructor; //ClassUtils.getClassDefinition(className);
 			var sessionState:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
 			var object:ILinkableObject = requestObject(name, classDef, false);
 			if (object != null)
@@ -243,6 +241,8 @@ package weave.core
 			// do nothing if locked or className is null
 			if (!_hashMapIsLocked && className != null)
 			{
+				className = _deprecatedClassReplacements[className] || className;
+				
 				// if no name is specified, generate a unique one now.
 				if (name == null)
 				{
@@ -258,7 +258,7 @@ package weave.core
 //					{
 						// If this name is not associated with an object of the specified type,
 						// associate the name with a new object of the specified type.
-						var classDef:Class = ClassUtils.getClassDefinition(className) as Class;
+						var classDef:Class = ClassUtils.getClassDefinition(className);
 						if (!(_nameToObjectMap[name] is classDef))
 							createAndSaveNewObject(name, classDef);
 						if (lockObject)
@@ -492,6 +492,15 @@ package weave.core
 			setNameOrder(newNameOrder);
 			
 			resumeCallbacks();
+		}
+		
+		private static const _deprecatedClassReplacements:Object = {};
+		/**
+		 * For backwards compatibility, registers a deprecated class with its replacement.
+		 */
+		public static function registerDeprecatedClassReplacement(deprecatedClassName:String, replacementClassName:String):void
+		{
+			_deprecatedClassReplacements[deprecatedClassName] = replacementClassName;
 		}
 	}
 }

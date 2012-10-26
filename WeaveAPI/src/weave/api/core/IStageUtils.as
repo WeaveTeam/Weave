@@ -76,7 +76,7 @@ package weave.api.core
 		 *       var index:int = 0;
 		 *       function iterativeTask():Number // this may be called repeatedly in succession
 		 *       {
-		 *           if (index >= array.length) // in case the length is zero
+		 *           if (index &gt;= array.length) // in case the length is zero
 		 *               return 1;
 		 * 
 		 *           trace(array[index]);
@@ -89,9 +89,9 @@ package weave.api.core
 		 *       var index:int = 0;
 		 *       function iterativeTaskWithTimer(returnTime:int):Number // this will be called only once in succession
 		 *       {
-		 *           for (; index < array.length; index++)
+		 *           for (; index &lt; array.length; index++)
 		 *           {
-		 *               if (getTimer() > returnTime)
+		 *               if (getTimer() &gt; returnTime)
 		 *                   return index / array.length; // progress so far
 		 * 
 		 *               trace(array[index]);

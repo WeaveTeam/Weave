@@ -30,7 +30,7 @@ package weave.data.DataSources
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
@@ -71,6 +71,10 @@ package weave.data.DataSources
 		// contains the parsed csv data
 		private var csvDataArray:Array = null;
 		
+		public function setCSVData(rows:Array):void
+		{
+			csvDataString.value = WeaveAPI.CSVParser.createCSV(rows);
+		}
 		
 		/**
 		 * This will get a list of column names in the CSV data.
@@ -267,7 +271,7 @@ package weave.data.DataSources
 			// backwards compatibility
 			if (colName == '')
 				colName = proxyColumn.getMetadata("name");
-			if (proxyColumn.getMetadata(AttributeColumnMetadata.TITLE))
+			if (proxyColumn.getMetadata(ColumnMetadata.TITLE))
 				
 			
 			var colIndex:int = (csvDataArray[0] as Array).indexOf(colName);

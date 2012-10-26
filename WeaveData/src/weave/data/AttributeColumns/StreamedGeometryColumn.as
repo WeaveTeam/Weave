@@ -28,7 +28,7 @@ package weave.data.AttributeColumns
 	
 	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -78,7 +78,7 @@ package weave.data.AttributeColumns
 		
 		override public function getMetadata(propertyName:String):String
 		{
-			if (propertyName == AttributeColumnMetadata.PROJECTION)
+			if (propertyName == ColumnMetadata.PROJECTION)
 				return projectionSrsCode;
 			return super.getMetadata(propertyName);
 		}
@@ -115,7 +115,7 @@ package weave.data.AttributeColumns
 			else if (dataType == Number)
 				value = value ? (value as Array).length : NaN;
 			else if (dataType == String)
-				value = key.keyType + '#' + key.localName;
+				value = value ? 'Geometry(' + key.keyType + '#' + key.localName + ')' : undefined;
 			
 			return value;
 		}

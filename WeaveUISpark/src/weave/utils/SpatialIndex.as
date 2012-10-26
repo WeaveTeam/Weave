@@ -286,14 +286,14 @@ package weave.utils
 			}			
 			return min;
 		}
-		private static function getMinimumUnscaledDistanceFromPolyPoint(line:Object, x:Number, y:Number):Number
+		private static function getMinimumUnscaledDistanceFromPolyPoint(points:Object, x:Number, y:Number):Number
 		{
 			var min:Number = Number.POSITIVE_INFINITY;
-			for (var i:int = 0; i < line.length; ++i)
+			for (var i:int = 0; i < points.length; ++i)
 			{
-				var distance:Number = ComputationalGeometryUtils.getDistanceFromPointSq(line[i].x, line[i].y, x, y);
+				var distance:Number = ComputationalGeometryUtils.getDistanceFromPointSq(points[i].x, points[i].y, x, y);
 				min = Math.min(distance, min);
-			}			
+			}
 			return min;
 		}
 		/**
