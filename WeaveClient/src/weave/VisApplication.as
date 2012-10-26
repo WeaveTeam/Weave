@@ -775,12 +775,11 @@ package weave
 					
 					for each (var impl:Class in WeaveAPI.getRegisteredImplementations(IVisTool))
 					{
-						// TEMPORARY SOLUTION
-						if (_InitializeWeaveUI.toggleMap[impl] && !(_InitializeWeaveUI.toggleMap[impl] as LinkableBoolean).value)
-							continue;
-						
-						var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(impl);
-						_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(lang("Add {0}", displayName), createGlobalObject, [impl]));
+						if (Weave.properties.getToolToggle(impl).value)
+						{
+							var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(impl);
+							_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(lang("Add {0}", displayName), createGlobalObject, [impl]));
+						}
 					}
 				}
 				

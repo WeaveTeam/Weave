@@ -19,9 +19,6 @@
 
 package
 {
-	import flash.utils.Dictionary;
-	
-	import weave.Weave;
 	import weave.core.SessionStateLog;
 	import weave.core.WeaveXMLDecoder;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -46,8 +43,8 @@ package
 	import weave.primitives.ColorRamp;
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.ColorRampEditor;
-	import weave.ui.JRITextEditor;
 	import weave.ui.RTextEditor;
+	import weave.ui.userControls.SchafersMissingDataTool;
 	import weave.utils.EditorManager;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
@@ -65,6 +62,7 @@ package
 	import weave.visualization.tools.DataTableTool;
 	import weave.visualization.tools.DimensionSliderTool;
 	import weave.visualization.tools.GaugeTool;
+	import weave.visualization.tools.GraphTool;
 	import weave.visualization.tools.Histogram2DTool;
 	import weave.visualization.tools.HistogramTool;
 	import weave.visualization.tools.LineChartTool;
@@ -77,7 +75,6 @@ package
 	import weave.visualization.tools.ScatterPlotTool;
 	import weave.visualization.tools.ThermometerTool;
 	import weave.visualization.tools.TimeSliderTool;
-	import weave.visualization.tools.TransposedTableTool;
 
 	/**
 	 * Referencing this class will register WeaveAPI singleton implementations.
@@ -114,6 +111,34 @@ package
 		
 		EditorManager.registerEditor(SessionStateLog, SessionHistorySlider);
 		
+		// reference these tools so they will run their static initialization code
+		([
+			AttributeMenuTool,
+			CompoundBarChartTool,
+			ColorBinLegendTool,
+			ColormapHistogramTool,
+			CompoundRadVizTool,
+			CustomTool,
+			SchafersMissingDataTool,
+			DataTableTool,
+			GaugeTool,
+			HistogramTool,
+			Histogram2DTool,
+			GraphTool,
+			LineChartTool,
+			DimensionSliderTool,
+			MapTool,
+			PieChartTool,
+			PieChartHistogramTool,
+			RadVizTool,
+			RTextEditor,
+			ScatterPlotTool,
+			ThermometerTool,
+			TimeSliderTool,
+			RamachandranPlotTool,
+			DataStatisticsTool
+		]).toString();
+		
 		/**
 		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
 		 */
@@ -127,40 +152,5 @@ package
 			"weave.visualization.plotters",
 			"weave.visualization.plotters.styles"
 		);
-
-		// BEGIN TEMPORARY SOLUTION
-		public static const toggleMap:Dictionary = new Dictionary();
-		_initToggleMap();
-		private static function _initToggleMap():void
-		{
-			var toggles:Array = [
-				[Weave.properties.enableAddAttributeMenuTool, AttributeMenuTool],
-				[Weave.properties.enableAddBarChart, CompoundBarChartTool],
-				[Weave.properties.enableAddColormapHistogram, ColormapHistogramTool],
-				[Weave.properties.enableAddColorLegend, ColorBinLegendTool],
-				[Weave.properties.enableAddCompoundRadViz, CompoundRadVizTool],
-				[Weave.properties.enableAddDataTable, DataTableTool],
-				[Weave.properties.enableAddDimensionSliderTool, DimensionSliderTool],
-				[Weave.properties.enableAddGaugeTool, GaugeTool],
-				[Weave.properties.enableAddHistogram, HistogramTool],
-				[Weave.properties.enableAdd2DHistogram, Histogram2DTool],
-				[Weave.properties.enableAddRScriptEditor, JRITextEditor],
-				[Weave.properties.enableAddLineChart, LineChartTool],
-				[Weave.properties.enableAddMap, MapTool],
-				[Weave.properties.enableAddPieChart, PieChartTool],
-				[Weave.properties.enableAddPieChartHistogram, PieChartHistogramTool],
-				[Weave.properties.enableAddRScriptEditor, RTextEditor],
-				[Weave.properties.enableAddRadViz, RadVizTool],
-				[Weave.properties.enableAddRamachandranPlot, RamachandranPlotTool],
-				[Weave.properties.enableAddScatterplot, ScatterPlotTool],
-				[Weave.properties.enableAddThermometerTool, ThermometerTool],
-				[Weave.properties.enableAddTimeSliderTool, TimeSliderTool],
-				[Weave.properties.enableAddDataTable, TransposedTableTool],
-				[Weave.properties.enableAddCustomTool, CustomTool]
-			];
-			for each (var pair:Array in toggles)
-				toggleMap[pair[1]] = pair[0];
-		}
-		// END TEMPORARY SOLUTION
 	}
 }

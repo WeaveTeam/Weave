@@ -29,6 +29,7 @@ package weave
 	import flash.text.Font;
 	import flash.utils.ByteArray;
 	import flash.utils.getDefinitionByName;
+	import flash.utils.getQualifiedClassName;
 	
 	import mx.collections.ArrayCollection;
 	import mx.controls.ToolTip;
@@ -43,6 +44,7 @@ package weave
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.linkBindableProperty;
+	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -96,6 +98,7 @@ package weave
 				}
 			);
 
+			_toggleToolsMenuItem("RamachandranPlotTool", false);
 			panelTitleTextFormat.font.value = "Verdana";
 			panelTitleTextFormat.size.value = 10;
 			panelTitleTextFormat.color.value = 0xFFFFFF;
@@ -231,43 +234,27 @@ package weave
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
 		public const showProbeWindow:LinkableBoolean = new LinkableBoolean(true); // Show Probe Tool Tip Window in tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
-		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu		
+		public const enableNewUserWizard:LinkableBoolean = new LinkableBoolean(true); // Add New User Wizard option tools menu
+		
+		public const toolToggles:ILinkableHashMap = new LinkableHashMap(LinkableBoolean); // className -> LinkableBoolean
+		public function getToolToggle(classDef:Class):LinkableBoolean
+		{
+			var className:String = getQualifiedClassName(classDef).split('::').pop();
+			var toggle:LinkableBoolean = toolToggles.getObject(className) as LinkableBoolean;
+			if (!toggle)
+			{
+				toggle = toolToggles.requestObject(className, LinkableBoolean, true);
+				toggle.value = true; // default value
+			}
+			return toggle;
+		}
 
-		public const enableAddAttributeMenuTool:LinkableBoolean = new LinkableBoolean(true); // Add Attribute Menu Tool option tools menu
-
-		public const enableAddBarChart:LinkableBoolean = new LinkableBoolean(true); // Add Bar Chart option tools menu
-//		public const enableAddCollaborationTool:LinkableBoolean = new LinkableBoolean(false);
-		public const enableAddColorLegend:LinkableBoolean = new LinkableBoolean(true); // Add Color legend Tool option tools menu		
-		public const enableAddColormapHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Colormap Histogram option tools menu
-
-
-		public const enableAddCompoundRadViz:LinkableBoolean = new LinkableBoolean(true); // Add CompoundRadViz option tools menu
-		public const enableAddCustomTool:LinkableBoolean = new LinkableBoolean(true);
-		public const enableAddSchafersMissingDataTool:LinkableBoolean = new LinkableBoolean(true);
-		public const enableAddDataStatisticsTool:LinkableBoolean = new LinkableBoolean(true);
-		public const enableAddDataTable:LinkableBoolean = new LinkableBoolean(true); // Add Data Table option tools menu
-
-
-		public const enableAddGaugeTool:LinkableBoolean = new LinkableBoolean(true); // Add Gauge Tool option tools menu
-		public const enableAddHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Histogram option tools menu
-		public const enableAdd2DHistogram:LinkableBoolean = new LinkableBoolean(true); // Add 2D Histogram option tools menu
-		public const enableAddGraphTool:LinkableBoolean = new LinkableBoolean(true); // Add Graph Tool option tools menu
-		public const enableAddLineChart:LinkableBoolean = new LinkableBoolean(true); // Add Line Chart option tools menu
-		public const enableAddDimensionSliderTool:LinkableBoolean = new LinkableBoolean(true); // Add Dimension Slider Tool option tools menu		
-		public const enableAddMap:LinkableBoolean = new LinkableBoolean(true); // Add Map option tools menu
-		public const enableAddPieChart:LinkableBoolean = new LinkableBoolean(true); // Add Pie Chart option tools menu
-		public const enableAddPieChartHistogram:LinkableBoolean = new LinkableBoolean(true); // Add Pie Chart option tools menu
-		public const enableAddRadViz:LinkableBoolean = new LinkableBoolean(true); // Add RadViz option tools menu		
-		public const enableAddRamachandranPlot:LinkableBoolean = new LinkableBoolean(false); // Add RamachandranPlot option tools menu		
-		public const enableAddRScriptEditor:LinkableBoolean = new LinkableBoolean(true); // Add R Script Editor option tools menu		
-		public const enableAddScatterplot:LinkableBoolean = new LinkableBoolean(true); // Add Scatterplot option tools menu
-		public const enableAddThermometerTool:LinkableBoolean = new LinkableBoolean(true); // Add Thermometer Tool option tools menu
-		public const enableAddTimeSliderTool:LinkableBoolean = new LinkableBoolean(true); // Add Time Slider Tool option tools menu
-		public const enablePanelCoordsPercentageMode:LinkableBoolean = new LinkableBoolean(true); // resize/position tools when window gets resized (percentage based rather than absolute)
-		public const enableToolAttributeEditing:LinkableBoolean = new LinkableBoolean(true); // edit the bindings of tool vis attributes
-		public const showVisToolCloseDialog:LinkableBoolean = new LinkableBoolean(false); // show "close this window?" yes/no box
-		public const enableToolSelection:LinkableBoolean = new LinkableBoolean(true); // enable/disable the selection tool
+		public const enablePanelCoordsPercentageMode:LinkableBoolean = new LinkableBoolean(true);
+		public const enableToolAttributeEditing:LinkableBoolean = new LinkableBoolean(true);
+		public const enableToolSelection:LinkableBoolean = new LinkableBoolean(true);
 		public const enableToolProbe:LinkableBoolean = new LinkableBoolean(true);
+		public const showVisToolCloseDialog:LinkableBoolean = new LinkableBoolean(false);
+		
 		public const enableRightClick:LinkableBoolean = new LinkableBoolean(true);
 		public const showRevertButton:LinkableBoolean = new LinkableBoolean(true);
 		public const showAddAllButton:LinkableBoolean = new LinkableBoolean(true);
@@ -584,6 +571,36 @@ package weave
 			if (value != '/OpenIndicatorsRServices')
 				rServiceURL.value = value + '/RService';
 		}
+		
+		private function _toggleToolsMenuItem(className:String, value:Boolean):void
+		{
+			var lb:LinkableBoolean = toolToggles.requestObject(className, LinkableBoolean, false);
+			lb.value = value;
+		}
+		[Deprecated(replacement="getToolToggle")] public function set enableAddAttributeMenuTool(value:Boolean):void { _toggleToolsMenuItem("AttributeMenuTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddBarChart(value:Boolean):void { _toggleToolsMenuItem("CompoundBarChartTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddColorLegend(value:Boolean):void { _toggleToolsMenuItem("ColorBinLegendTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddColormapHistogram(value:Boolean):void { _toggleToolsMenuItem("ColormapHistogramTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddCompoundRadViz(value:Boolean):void { _toggleToolsMenuItem("CompoundRadVizTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddCustomTool(value:Boolean):void { _toggleToolsMenuItem("CustomTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddSchafersMissingDataTool(value:Boolean):void { _toggleToolsMenuItem("SchafersMissingDataTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddDataTable(value:Boolean):void { _toggleToolsMenuItem("DataTableTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddGaugeTool(value:Boolean):void { _toggleToolsMenuItem("GaugeTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddHistogram(value:Boolean):void { _toggleToolsMenuItem("HistogramTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAdd2DHistogram(value:Boolean):void { _toggleToolsMenuItem("Histogram2DTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddGraphTool(value:Boolean):void { _toggleToolsMenuItem("GraphTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddLineChart(value:Boolean):void { _toggleToolsMenuItem("LineChartTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddDimensionSliderTool(value:Boolean):void { _toggleToolsMenuItem("DimensionSliderTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddMap(value:Boolean):void { _toggleToolsMenuItem("MapTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddPieChart(value:Boolean):void { _toggleToolsMenuItem("PieChartTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddPieChartHistogram(value:Boolean):void { _toggleToolsMenuItem("PieChartHistogramTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddRadViz(value:Boolean):void { _toggleToolsMenuItem("RadVizTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddRScriptEditor(value:Boolean):void { _toggleToolsMenuItem("RTextEditor", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddScatterplot(value:Boolean):void { _toggleToolsMenuItem("ScatterPlotTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddThermometerTool(value:Boolean):void { _toggleToolsMenuItem("ThermometerTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddTimeSliderTool(value:Boolean):void { _toggleToolsMenuItem("TimeSliderTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddRamachandranPlot(value:Boolean):void { _toggleToolsMenuItem("RamachandranPlotTool", value); }
+		[Deprecated(replacement="getToolToggle")] public function set enableAddDataStatisticsTool(value:Boolean):void { _toggleToolsMenuItem("DataStatisticsTool", value); }
 		//--------------------------------------------
 	}
 }

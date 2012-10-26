@@ -29,6 +29,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			   xmlns:ui="weave.ui.*" 
 			   xmlns:userControls="weave.ui.userControls.*"		 
 			   implements="weave.api.ui.ILinkableObjectEditor"
+			   label="RadViz settings"
 			   >
 	
 	<mx:Script>
