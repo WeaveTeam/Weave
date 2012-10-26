@@ -268,7 +268,9 @@ package weave.compiler
 			for each (var _const:* in [null, true, false, undefined, NaN, Infinity])
 				constants[String(_const)] = _const;
 			// global classes
-			for each (var _class:Class in [Array, Boolean, Class, Date, Error, Function, int, Namespace, Number, Object, QName, String, uint, XML])
+			var _QName:* = getDefinitionByName('QName'); // workaround to avoid asdoc error
+			var _XML:* = getDefinitionByName('XML'); // workaround to avoid asdoc error
+			for each (var _class:Class in [Array, Boolean, Class, Date, Error, Function, int, Namespace, Number, Object, _QName, String, uint, _XML])
 				constants[getQualifiedClassName(_class)] = _class;
 
 			/** operators **/
@@ -284,10 +286,8 @@ package weave.compiler
 				return object;
 			};
 			operators[".."] = function(object:*, propertyName:*):* {
-				if (object is XML)
-					return (object as XML).descendants(propertyName);
-				if (object is XMLList)
-					return (object as XMLList).descendants(propertyName);
+				if (typeof(object) == 'xml')
+					return object.descendants(propertyName);
 				return object.flash_proxy::getDescendants(propertyName);
 			};
 			// array creation
