@@ -372,7 +372,7 @@ package weave
 			{
 				var urlParams:URLVariables = new URLVariables(ExternalInterface.call("window.location.search.substring", 1)); // text after '?'
 				for (var key:String in urlParams)
-					if (!_flashVars.hasOwnProperty(key))
+					if (!_flashVars.hasOwnProperty(key)) // flashvars take precedence over url params
 						_flashVars[key] = urlParams[key];
 				
 				// backwards compatibility with old param name
@@ -822,6 +822,8 @@ package weave
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Manage plugins..."), managePlugins));
 				}
+				_weaveMenu.addSeparatorToMenu(_sessionMenu);
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang('Restart Weave'), Weave.externalReload));
 				if (Weave.properties.showCollaborationMenuItem.value)
 				{
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
