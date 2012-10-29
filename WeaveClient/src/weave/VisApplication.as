@@ -515,11 +515,6 @@ package weave
 			return cookie.data[RECOVER_SHARED_OBJECT] as ByteArray;
 		}
 		
-		private function copySessionStateToClipboard():void
-		{
-			System.setClipboard(Weave.getSessionStateXML().toXMLString());
-		}
-		
 		private var _useWeaveExtensionWhenSavingToServer:Boolean;
 		private function saveSessionStateToServer(useWeaveExtension:Boolean):void
 		{
@@ -808,7 +803,6 @@ package weave
 			{
 				_sessionMenu = _weaveMenu.addMenuToMenuBar(lang("Session"), false);
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Edit session state"), SessionStateEditor.openDefaultEditor));
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Copy session state XML to clipboard"), copySessionStateToClipboard));
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Import session history..."), handleImportSessionState));
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Export session history..."), handleExportSessionState));
