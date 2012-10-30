@@ -24,8 +24,20 @@
 								dataProvider="{WMSProviders.providers}"
 								width="200"
 								toolTip="{lang('Select the WMS provider to use.')}" 
-								creationComplete="linkBindableProperty(_plotter.serviceName,event.target,'selectedItem')"/>
+								creationComplete="setWMSLayerServiceOnPlotterChange()"
+								change="handleWMSProviderChange()"/>
 			</mx:HBox>
+			<mx:Box id="customWMSSettings" visible="false" width="100%" height="100%" includeInLayout="false">
+				<ui:Indent label="URL: ">
+					<mx:TextInput id="wmsURLText" width="200"/>
+				</ui:Indent>
+				<ui:Indent label="Projection SRS: ">
+					<mx:TextInput id="projSRSText" width="75"/>
+				</ui:Indent>
+				<ui:Indent label="Maximum Zoom: ">
+					<mx:TextInput id="maxZoomText" width="50"/>					
+				</ui:Indent>
+			</mx:Box>
 		</mx:VBox>
 		<mx:VBox borderStyle="solid" width="100%" paddingTop="3" horizontalAlign="center" verticalAlign="middle">
 			<mx:HBox width="100%" horizontalAlign="center">
@@ -40,8 +52,22 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import com.modestmaps.mapproviders.BlueMarbleMapProvider;
+			import com.modestmaps.mapproviders.IMapProvider;
+			import com.modestmaps.mapproviders.OpenStreetMapProvider;
+			
 			import weave.api.core.ILinkableObject;
+			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
+			import weave.api.registerLinkableChild;
+			import weave.api.services.IWMSService;
+			import weave.api.unlinkBindableProperty;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.services.wms.CustomWMS;
+			import weave.services.wms.OpenMapQuestAerialProvider;
+			import weave.services.wms.OpenMapQuestProvider;
+			import weave.services.wms.StamenProvider;
 			import weave.services.wms.WMSProviders;
 			import weave.visualization.plotters.WMSPlotter;
 			
@@ -50,6 +76,7 @@
 			public function setTarget(object:ILinkableObject):void
 			{
 				_plotter = object as WMSPlotter;
+				getCallbackCollection(_plotter).addImmediateCallback(this,setWMSLayerServiceOnPlotterChange,true);
 			}
 			
 			public function applyChanges():void
@@ -60,6 +87,8 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				handleWMSProviderChange();
+				wmsURLText.toolTip =  "Enclose x,y,z in curly braces as shown in this sample URL: http://tile.openstreetmap.org/{z}/{x}/{y}.png";
 			}
 			
 			private function handleStyleInputChange():void
@@ -79,6 +108,43 @@
 				requestStyles.text = requestStyles.text.replace(' ','');
 				
 				_plotter.styles.value = requestStyles.text;
+			}
+			
+			private function setWMSLayerServiceOnPlotterChange():void
+			{
+				if(!_plotter.providerName || !wmsLayerService)
+					return;
+				wmsLayerService.selectedItem = _plotter.providerName;
+
+			}
+			
+			private var _customWMS:CustomWMS = null;
+			private function handleWMSProviderChange():void
+			{
+				_plotter.setProvider(wmsLayerService.selectedItem as String);
+				
+				if(_plotter.service.internalObject is CustomWMS)
+				{
+					if(_customWMS != null)
+					{
+						unlinkBindableProperty(_customWMS.wmsURL,wmsURLText,"text");
+						unlinkBindableProperty(_customWMS.tileProjectionSRS,projSRSText,"text");
+						unlinkBindableProperty(_customWMS.maxZoom,maxZoomText,"text");
+					}
+					customWMSSettings.includeInLayout = true;								
+					customWMSSettings.visible = true;
+					
+					_customWMS = _plotter.service.internalObject as CustomWMS;
+					
+					linkBindableProperty(_customWMS.wmsURL,wmsURLText,"text");
+					linkBindableProperty(_customWMS.tileProjectionSRS,projSRSText,"text");
+					linkBindableProperty(_customWMS.maxZoom,maxZoomText,"text");
+
+				}else
+				{
+					customWMSSettings.includeInLayout = false;								
+					customWMSSettings.visible = false;
+				}
 			}
 		]]>
 	</mx:Script>
