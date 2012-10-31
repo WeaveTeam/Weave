@@ -86,6 +86,9 @@ Use the static functions to show this as a popup.
 					WeaveAPI.URLRequestUtils.getContent(instance,new URLRequest(imgURL),handleImage,null,_docURL.value);
 					instance.move(xPos,yPos);
 					PopUpManager.addPopUp(instance,parent);
+					instance.nodeTitle.text= source.getTitleForURL(_docURL.value);
+					instance.nodeDescription.htmlText = source.getDescriptionForURL(_docURL.value);
+					instance.nodeTimeStamp.text = source.getDatePublishedForURL(_docURL.value);
 					instance.fadeIn.play();
 				}
 				
@@ -116,11 +119,11 @@ Use the static functions to show this as a popup.
 				
 			]]>
 		</mx:Script>
-		<mx:Text id="nodeTitle" text="{source.getTitleForURL(_docURL.value)}" fontWeight="bold" width="100%"/>
+		<mx:Text id="nodeTitle" fontWeight="bold" width="100%"/>
 		<!--<mx:HRule width="100%"/>-->
-		<mx:HBox width="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:HBox width="100%" height="100%" verticalScrollPolicy="off" horizontalScrollPolicy="off">
 			<mx:Image id="nodeThumbnail" source="{_bitmap}" maintainAspectRatio="false" maxWidth="140" maxHeight="140"/>
-			<mx:Text  htmlText="{source.getDescriptionForURL(_docURL.value)}" id="nodeDescription" width="100%" height="100%">
+			<mx:Text  id="nodeDescription" width="100%" height="100%">
 			</mx:Text>
 		</mx:HBox>
 		

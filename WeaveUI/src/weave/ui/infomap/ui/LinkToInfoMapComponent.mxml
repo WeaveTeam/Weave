@@ -37,6 +37,8 @@
 			import weave.core.LinkableString;
 			import weave.ui.infomap.InfoMapLoader;
 			import weave.utils.CustomCursorManager;
+			import weave.visualization.layers.InteractionController;
+			import weave.visualization.layers.InteractiveVisualization;
 			
 			//we override the x,y value because we are binding the values to LinkableNumber 
 			//which could be NaN when component loads for the first time
@@ -95,22 +97,26 @@
 				infoImg.toolTip= "Link to Infomap : " + mapName.value;
 			}
 			
+			private var linkCursorID:int = -1;
+			private var handCursorID:int = -1;
 			private function handleMouseOver():void
 			{
-				CustomCursorManager.removeAllCursors();
-				CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
+				CustomCursorManager.removeCursor(linkCursorID);
+				CustomCursorManager.removeCursor(handCursorID);
+				linkCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK);
 			}
 			
 			
 			private function handleMouseOut():void
 			{
-				CustomCursorManager.removeCurrentCursor();
+				CustomCursorManager.removeCursor(linkCursorID);
+				CustomCursorManager.removeCursor(handCursorID);
 			}
 			private var _wasDragged:Boolean = false;
 			private function handleMouseDown(event:MouseEvent):void
 			{
 				event.stopImmediatePropagation();
-				CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
+				handCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND_GRAB);
 				mapNameTextArea.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
 				this.startDrag();
 			}
@@ -123,7 +129,7 @@
 			
 			private function handleMouseUp():void
 			{
-				CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
+				linkCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK);
 				this.stopDrag();
 				if(!_wasDragged)
 				{

@@ -82,7 +82,7 @@
 			private var shadow:DropShadowFilter 	= new DropShadowFilter(2, 45, 0, 0.5, 4, 4, 2);
 			
 			private var boundsIndex:Bounds2DIndex = new Bounds2DIndex();
-			public function draw(wordLimit:int=50):void
+			public function draw(wordLimit:int=75):void
 			{
 				if(dataProvider.length == 0)
 					return;
@@ -106,7 +106,7 @@
 				var minX:Number = Infinity;
 				var minY:Number = Infinity;				
 				
-				for (var i:int=0; i<wordLimit; i++)
+				for (var i:int=1; i<wordLimit; i++)
 				{
 					
 					validateNow();

@@ -41,7 +41,7 @@ package weave.data.DataSources
 	{
 		public function InfoMapsDataSource()
 		{
-			solrURL.value = "http://129.63.8.219:8080/solr/research_core/select/?version=2.2";
+			solrURL.value = "http://129.63.8.219:8080/solr/research_core/";
 			csvDataString.value = "url,title,description,imgURL,date_published,date_added";
 			keyColName.value = "url";
 			keyType.value = "infoMapsDoc";
@@ -143,13 +143,9 @@ package weave.data.DataSources
 			if(query)
 			{
 				var mendeleyQuery:String = query.replace(/"/g,'');//replacing quotes
-//				mendeleyQuery = mendeleyQuery.replace(/ /g,'+');//replacing space with +
-//				InfoMapAdminInterface.instance.queryMendeley(mendeleyQuery);
 				
 				var mendeleyQueryArray:Array = mendeleyQuery.split(' ');
 //				trace("CALLING DATA SOURCES");
-//				InfoMapAdminInterface.instance.queryMendeley(mendeleyQueryArray);
-//				InfoMapAdminInterface.instance.queryArxiv(mendeleyQueryArray);
 				
 				
 				trace("CALLING SOLR");
@@ -207,7 +203,7 @@ package weave.data.DataSources
 			createAndSendQuery(docKeySet,null,queryTerms,filteredQuery,operator,sources,dateFilter,numberOfDocuments);
 		}
 		
-		public static function getNumberOfMatchedDocuments(query:String,operator:String="AND",sources:Array=null,
+		public function getNumberOfMatchedDocuments(query:String,operator:String="AND",sources:Array=null,
 													dateFilter:DateRangeFilter=null):DelayedAsyncInvocation 
 		{
 		
@@ -217,7 +213,7 @@ package weave.data.DataSources
 			
 			var filterQuery:String = parseFilterQuery(filterQuery,dateFilter,sources);
 			
-			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getNumberOfMatchedDocuments(queryTerms,filterQuery);
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getNumberOfMatchedDocuments(queryTerms,filterQuery,solrURL.value);
 			
 			return q;			
 		}
@@ -229,7 +225,7 @@ package weave.data.DataSources
 			filterQuery = parseFilterQuery(filterQuery,dateFilter,sources);
 				
 			
-			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getQueryResults(query,filterQuery,sortField,numberOfDocuments);
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getQueryResults(query,filterQuery,sortField,numberOfDocuments,solrURL.value);
 			q.addAsyncResponder(handleQueryResults,handleQueryFault,{docKeySet:docKeySet,wordCount:wordCount});
 		}
 		
@@ -345,7 +341,7 @@ package weave.data.DataSources
 		}
 		public function startIndexing():void
 		{
-			WeaveAPI.URLRequestUtils.getURL(this,new URLRequest(solrURL.value + "&clean=false&commit=true&qt=%2Fdataimport&command=full-import"));
+			WeaveAPI.URLRequestUtils.getURL(this,new URLRequest(solrURL.value + "select?&clean=false&commit=true&qt=%2Fdataimport&command=full-import"));
 		}
 		
 		private function handleSolrResponseError(event:FaultEvent,token:Object):void

@@ -2,7 +2,7 @@
 <!--This is a Flex Image component modified to adjust to act as a thumbnail for infomap
 so that it can be moved, selected, handle filters.
 -->
-<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+<mx:Box xmlns:mx="http://www.adobe.com/2006/mxml"
 	   			paddingBottom="2"
 				paddingLeft="2"
 				paddingRight="2"
@@ -543,6 +543,6 @@ so that it can be moved, selected, handle filters.
 	</mx:Script>
 	
 	<!--<mx:Image id="img"/>-->
-</mx:Canvas>
+</mx:Box>
 
 				

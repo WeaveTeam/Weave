@@ -116,7 +116,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const panelTitle:LinkableString = newLinkableChild(this, LinkableString, handlePanelTitleChange);
 			
 			public const enableMoveResize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
-			public const enableSubMenu:LinkableBoolean    = registerLinkableChild(this, new LinkableBoolean(false));
+			public const enableSubMenu:LinkableBoolean    = registerLinkableChild(this, new LinkableBoolean(true));
 			public const minimizable:LinkableBoolean      = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const maximizable:LinkableBoolean      = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const pinnable:LinkableBoolean         = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);

@@ -32,6 +32,7 @@ width="200" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 							import weave.data.DataSources.InfoMapsDataSource;
 							import weave.ui.infomap.layout.NodeHandler;
 							import weave.utils.CustomCursorManager;
+							import weave.visualization.layers.InteractiveVisualization;
 							
 							private var infomapDataSource:InfoMapsDataSource = WeaveAPI.globalHashMap.getObject(InfoMapsDataSource.SOURCE_NAME) as InfoMapsDataSource;
 							
@@ -41,7 +42,7 @@ width="200" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 								
 								//Hide DocumentSummaryComponent on mouse out and hide link cursor
 								this.addEventListener(MouseEvent.MOUSE_OUT, function(event:MouseEvent):void {
-									CustomCursorManager.removeCurrentCursor();
+									CustomCursorManager.removeCursor(cursorID);
 									DocumentSummaryComponent.hide();
 								});
 							}
@@ -49,6 +50,8 @@ width="200" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 							private var _mouseDown:Boolean = false;
 							
 							private var stageUtils:StageUtils = new StageUtils();
+							
+							private var cursorID:int = -1;
 							
 							override public function set data(value:Object):void
 							{
@@ -68,7 +71,7 @@ width="200" xmlns:ui="weave.ui.infomap.ui.*" clipContent="false">
 								
 								//Show DocumentSummaryComponent on mouse over and show link cursor
 								this.addEventListener(MouseEvent.MOUSE_OVER, function(event:MouseEvent):void {
-									CustomCursorManager.showCursor(CustomCursorManager.LINK_CURSOR);
+									cursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_LINK);
 //									trace("in MOUSE OVER" + _mouseDown + name);
 									if(!stageUtils.mouseButtonDown)
 										DocumentSummaryComponent.show(event.stageX,event.stageY,t.docURL.value,event.target as DisplayObject);

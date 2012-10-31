@@ -13,6 +13,7 @@ package weave.ui.infomap
 	import weave.api.getLinkableDescendants;
 	import weave.data.KeySets.KeySet;
 	import weave.ui.CustomContextMenuManager;
+	import weave.ui.DraggablePanel;
 	import weave.ui.infomap.ui.InfoMapPanel;
 	import weave.utils.ColumnUtils;
 	import weave.utils.ProbeTextUtils;
@@ -74,11 +75,18 @@ package weave.ui.infomap
 		
 		private static function handleMenutItemClick(event:ContextMenuEvent):void
 		{
+			var titleOfClickedPanel:String = DraggablePanel.getTopPanel().title;
+			
+			var titleTerms:Array = titleOfClickedPanel.split(' ');
+			
 			var panel:InfoMapPanel = Weave.root.requestObject("InfoMapPanel",InfoMapPanel,false);
 			
 			panel.restorePanel();
 			Weave.root.setNameOrder(["InfoMapPanel"]);
 			var keywords:Array = extractKeywordsFromSelection();
+			
+			if(titleTerms.indexOf('Obese')>-1)
+				keywords = keywords.concat('Obese');
 			
 			panel.addInfoMapNode(keywords.join(" "));
 			
@@ -129,6 +137,13 @@ package weave.ui.infomap
 					if(value)
 					{
 						temp.push('"'+value+'"');
+					}
+					
+					var subject:String = col.getMetadata('subject');
+					
+					if(subject)
+					{
+						temp.push(subject);
 					}
 				}
 			}

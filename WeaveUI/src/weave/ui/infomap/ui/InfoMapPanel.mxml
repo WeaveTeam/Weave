@@ -205,7 +205,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				_fileReference.addEventListener(Event.SELECT, folderSelectHanlder);
 //				_fileReference.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
-				_fileReference.addEventListener(IOErrorEvent.IO_ERROR, folderErrorHandler)
+				_fileReference.addEventListener(IOErrorEvent.IO_ERROR, folderErrorHandler);
+				
 			}
 			
 			private function handleGlobalKeyInput(event:KeyboardEvent):void
@@ -864,6 +865,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				fileUploadCount++; //TODO Check for file index status.
 			}
 			
+			private function handleSolrServerURLChange():void
+			{
+				var l:String = solrServerComboBox.text;
+				
+				if(l=="Research_Core")
+					infoMapsDataSource.solrURL.value = "http://129.63.8.219:8080/solr/research_core/";
+				else if (l == "Summarize_Core")
+					infoMapsDataSource.solrURL.value = "http://129.63.8.219:8080/solr/summarize_core/";
+				else
+					infoMapsDataSource.solrURL.value = l;
+			}
+			
 			
 		]]>
 	</mx:Script>
@@ -903,6 +916,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</mx:Canvas>
 	<ui:ControlPanel id="ctrlPanel">
 		<mx:VBox label="Basic Settings">
+			<mx:HBox>
+				<mx:Label text="Solr Server URL"/>
+				<mx:ComboBox id="solrServerComboBox" editable="true" dataProvider="{['Research_Core','Summarize_Core']}" change="handleSolrServerURLChange()"/>
+			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Set Background Image: "/>
 				<mx:TextInput editable="false" id="imageURL"/>

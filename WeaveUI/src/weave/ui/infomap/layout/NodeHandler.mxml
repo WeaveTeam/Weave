@@ -122,6 +122,7 @@
 			import weave.utils.DateUtils;
 			import weave.utils.EventUtils;
 			import weave.utils.VectorUtils;
+			import weave.visualization.layers.InteractiveVisualization;
 			
 			public const node:FilterableInfoMapNode = newLinkableChild(this,FilterableInfoMapNode);
 			
@@ -142,7 +143,7 @@
 			
 			public const comments:LinkableString = newLinkableChild(this,LinkableString);
 			
-			public const numOfWordsInCloud:LinkableNumber = registerLinkableChild(this,new LinkableNumber(50,function(value:*):Boolean{
+			public const numOfWordsInCloud:LinkableNumber = registerLinkableChild(this,new LinkableNumber(75,function(value:*):Boolean{
 																if(value > 100)
 																	return false;
 																else 
@@ -972,11 +973,12 @@
 			private var _lastX:Number = 0;
 			private var _lastY:Number = 0;
 			private var sbroot:DisplayObject = Application.application.systemManager.getSandboxRoot();
+			private var handCursorID:int = -1;
 			protected function canvas1_mouseDownHandler(event:MouseEvent):void
 			{
 				event.stopImmediatePropagation();
 				nodeBase.keywordTextArea.setStyle("fontWeight","bold");
-				CustomCursorManager.showCursor(CustomCursorManager.HAND_GRAB_CURSOR);
+				handCursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND_GRAB);
 				_lastX = x;
 				_lastY = y;
 				this.addEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
@@ -994,9 +996,9 @@
 			protected function canvas1_mouseUpHandler(event:Event):void
 			{
 				nodeBase.keywordTextArea.setStyle("fontWeight","normal");
-				CustomCursorManager.removeCurrentCursor();
+				CustomCursorManager.removeCursor(handCursorID);
 				this.removeEventListener(MouseEvent.MOUSE_MOVE,handleMouseMove);
-				sbroot.removeEventListener(SandboxMouseEvent.MOUSE_UP_SOMEWHERE, canvas1_mouseUpHandler);
+				sbroot.removeEventListener(SandboxMouseEvent.MOUSE_UP_SOMEWHERE, handleMouseUpSomewhere);
 				this.stopDrag();
 			}
 			
@@ -1062,6 +1064,7 @@
 					tagCanvas = new TagCloud();
 					tagCanvas.addEventListener(MouseEvent.CLICK,handleTagCloudClick);
 					tagCanvas.alpha = 0;
+					tagCanvas.includeInLayout = false;
 					addChild(tagCanvas);
 				}
 				tagCanvas.y= nodeBase.height;

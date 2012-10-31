@@ -175,15 +175,15 @@ package weave.services
 //				return query;
 //			}
 			
-			public function getQueryResults(queryTerms:Array,filterQuery:String,sortField:String,rows:int):DelayedAsyncInvocation
+			public function getQueryResults(queryTerms:Array,filterQuery:String,sortField:String,rows:int,solrURL:String=null):DelayedAsyncInvocation
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getQueryResults",[queryTerms,filterQuery,sortField,rows]);
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getQueryResults",[queryTerms,filterQuery,sortField,rows,solrURL]);
 				return query;
 			}
 			
-			public function getNumberOfMatchedDocuments(queryTerms:Array,filterQuery:String):DelayedAsyncInvocation
+			public function getNumberOfMatchedDocuments(queryTerms:Array,filterQuery:String,solrURL:String=null):DelayedAsyncInvocation
 			{
-				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getNumberOfMatchedDocuments",[queryTerms,filterQuery]);
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getNumberOfMatchedDocuments",[queryTerms,filterQuery,solrURL]);
 				return query;
 			}
 			
