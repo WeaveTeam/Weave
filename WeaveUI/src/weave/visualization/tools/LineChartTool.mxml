@@ -29,7 +29,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.AttributeColumnMetadata;
+			import weave.api.data.ColumnMetadata;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
@@ -146,7 +146,7 @@
 				labelEquation.delayCallbacks();
 				labelEquation.variables.requestObjectCopy("labelColumn",labelColumn);
 				labelEquation.variables.requestObjectCopy("keyColumn", _plotter.groupBy);
-				labelEquation.setMetadata(AttributeColumnMetadata.TITLE, ColumnUtils.getTitle(labelColumn) + lang("Equation"));
+				labelEquation.setMetadata(ColumnMetadata.TITLE, ColumnUtils.getTitle(labelColumn) + lang("Equation"));
 				labelEquation.equation.value = 'key = getAssociatedKeys(keyColumn, getKey())[0], getValueFromKey(labelColumn, key, String)';
 				labelEquation.resumeCallbacks();
 				/* 

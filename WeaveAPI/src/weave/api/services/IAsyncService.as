@@ -22,6 +22,7 @@ package weave.api.services
 	/**
 	 * This is an interface for an asynchronous service.
 	 * The invokeAsyncMethod() function invokes an asynchronous method and returns an AsyncToken which you can add IResponder objects to.
+	 * This is an ILinkableObject so its busy status can be checked and its URL requests will be cancelled when it is disposed.
 	 */
 	public interface IAsyncService extends ILinkableObject
 	{

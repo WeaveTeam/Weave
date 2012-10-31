@@ -28,6 +28,11 @@
           <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="WeaveUI.swf"/>
         </crossDomainRsls>
       </libraryPathEntry>
+      <libraryPathEntry applicationDomain="default" forceLoad="false" kind="3" linkType="4" path="/WeaveUISpark/bin/WeaveUISpark.swc" useDefaultLinkType="false">
+        <crossDomainRsls>
+          <crossDomainRslEntry autoExtract="true" policyFileUrl="" rslUrl="WeaveUISpark.swf"/>
+        </crossDomainRsls>
+      </libraryPathEntry>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>

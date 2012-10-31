@@ -24,7 +24,6 @@ package weave.services
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 	
-	import mx.controls.Alert;
 	import mx.messaging.messages.ErrorMessage;
 	import mx.rpc.AbstractOperation;
 	import mx.rpc.AsyncToken;
@@ -35,6 +34,7 @@ package weave.services
 	import mx.rpc.soap.SOAPFault;
 	import mx.rpc.soap.WebService;
 	
+	import weave.api.reportError;
 	import weave.api.services.IAsyncService;
 	
 	/**
@@ -280,15 +280,14 @@ package weave.services
 			//trace("###################### Web service fault:", query, event.toString());
 			if (alertEnabled)
 			{
-				Alert.show(
-						getFaultDetail(event) + "\n"
-						+ "\n"
-						+ "WebService: " + webService.wsdl + "\n"
-						+ "\n"
-						+ "WebMethod: " + query
-						,
-						getFaultTitle(event)
-					);
+				reportError(
+					getFaultTitle(event) + ": "
+					+ getFaultDetail(event) + "\n"
+					+ "\n"
+					+ "WebService: " + webService.wsdl + "\n"
+					+ "\n"
+					+ "WebMethod: " + query
+				);
 				if (alertOnlyOnce)
 					alertEnabled = false;
 			}
@@ -301,7 +300,7 @@ package weave.services
 		protected function handleWebServiceFault(event:FaultEvent):void
 		{
 			if (alertEnabled)
-				Alert.show(webService.wsdl + "\n\n" + getFaultDetail(event), getFaultTitle(event));
+				reportError(getFaultTitle(event) + ": " + webService.wsdl + "\n\n" + getFaultDetail(event));
 			if (alertOnlyOnce)
 				alertEnabled = false;
 		}

@@ -19,10 +19,12 @@
 
 package weave.servlets;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -86,6 +88,7 @@ public class AdminService extends GenericServlet
 	
 	public AdminService()
 	{
+		System.out.println("AdminService()");
 	}
 	
 	/**
@@ -700,7 +703,7 @@ public class AdminService extends GenericServlet
 				
 				if (sqlParams != null && sqlParams.length() > 0)
 				{
-					String[] sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams)[0];
+					String[] sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
 					result = SQLConfigUtils.getRowSetFromQuery(config, attributeColumnInfo.connection, query, sqlParamsArray);
 				}
 				else
@@ -1061,8 +1064,7 @@ public class AdminService extends GenericServlet
 	/**
 	 * Read a list of csv files and return common header columns.
 	 * 
-	 * @param A
-	 *            list of csv file names.
+	 * @param A list of csv file names.
 	 * @return A list of common header files or null if none exist encoded using
 	 * 
 	 */
@@ -1072,15 +1074,9 @@ public class AdminService extends GenericServlet
 
 		try
 		{
-			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
-			// Read first line only (header line).
-			int index = csvData.indexOf("\r");
-			int index2 = csvData.indexOf("\n");
-			if (index2 < index && index2 >= 0)
-				index = index2;
-			String header = index < 0 ? csvData : csvData.substring(0, index);
-			csvData = null; // don't need this in memory anymore
-			String[][] rows = CSVParser.defaultParser.parseCSV(header);
+			BufferedReader in = new BufferedReader(new FileReader(new File(uploadPath, csvFile)));
+			String header = in.readLine();
+			String[][] rows = CSVParser.defaultParser.parseCSV(header, true);
 			headerLine = rows[0];
 		}
 		catch (FileNotFoundException e)
@@ -1091,7 +1087,7 @@ public class AdminService extends GenericServlet
 		{
 			throw new RemoteException(e.getMessage());
 		}
-
+		
 		return headerLine;
 	}
 	
@@ -1125,9 +1121,7 @@ public class AdminService extends GenericServlet
 				}
 			}
 			
-			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
-			
-			String[][] rows = CSVParser.defaultParser.parseCSV(csvData);
+			String[][] rows = CSVParser.defaultParser.parseCSV(new File(uploadPath, csvFile), true);
 			
 			HashMap<String, Boolean> map = new HashMap<String, Boolean>();
 			
@@ -1185,35 +1179,6 @@ public class AdminService extends GenericServlet
 		}
 
 		return isUnique;
-	}
-	
-	
-	/**
-	 * Read a csv file and return the csv data string .
-	 * 
-	 * @param A csv file name
-	 *            
-	 * @return the csv data string 
-	 * 
-	 */
-	public String getCSVStringData(String csvFile) throws RemoteException
-	{
-		String csvString = null;
-
-		try
-		{
-			csvString = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile));
-		}
-		catch (FileNotFoundException e)
-		{
-			throw new RemoteException(e.getMessage());
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException(e.getMessage());
-		}
-
-		return csvString;
 	}
 
 	public String[] listDBFFileColumns(String dbfFileName) throws RemoteException
@@ -1295,7 +1260,7 @@ public class AdminService extends GenericServlet
 	 * @param fileName The name of the file.
 	 * @param content The file content.
 	 */
-	public void uploadFile(String fileName, InputStream content) throws RemoteException
+	public void uploadFile(String fileName, InputStream content, boolean append) throws RemoteException
 	{
 		// make sure the upload folder exists
 		(new File(uploadPath)).mkdirs();
@@ -1303,7 +1268,7 @@ public class AdminService extends GenericServlet
 		String filePath = uploadPath + fileName;
 		try
 		{
-			FileUtils.copy(content, new FileOutputStream(filePath));
+			FileUtils.copy(content, new FileOutputStream(filePath, append));
 		}
 		catch (Exception e)
 		{
@@ -1409,9 +1374,7 @@ public class AdminService extends GenericServlet
 			
 			boolean ignoreKeyColumnQueries = false;
 			
-			String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(uploadPath, csvFile),"ISO-8859-1");
-			
-			String[][] rows = CSVParser.defaultParser.parseCSV(csvData);
+			String[][] rows = CSVParser.defaultParser.parseCSV(new File(uploadPath, csvFile), true);
 			
 			if (rows.length == 0)
 				throw new RemoteException("CSV file is empty: " + csvFile);
@@ -1589,10 +1552,7 @@ public class AdminService extends GenericServlet
 			}
 			// save modified CSV
 //			BufferedWriter out = new BufferedWriter(new FileWriter(formatted_CSV_path));
-			File out = new File(formatted_CSV_path);
-			
-			String temp = SQLUtils.generateCSV(conn, rows);
-			org.apache.commons.io.FileUtils.writeStringToFile(out, temp, "ISO-8859-1");
+			SQLUtils.generateCSV(conn, rows, new File(formatted_CSV_path));
 
 			// Import the CSV file into SQL.
 			// Drop the table if it exists.
@@ -1703,6 +1663,7 @@ public class AdminService extends GenericServlet
 			String[] filterColumnNames
 		) throws RemoteException
 	{
+		String failMessage = String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName);
 		if (sqlColumnNames == null || sqlColumnNames.length == 0)
 			throw new RemoteException("No columns were found.");
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
@@ -1833,11 +1794,15 @@ public class AdminService extends GenericServlet
 		}
 		catch (SQLException e)
 		{
-			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
+			throw new RemoteException(failMessage, e);
 		}
 		catch (RemoteException e)
 		{
-			throw new RemoteException(String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName), e);
+			throw new RemoteException(failMessage, e);
+		}
+		catch (IOException e)
+		{
+			throw new RemoteException(failMessage, e);
 		}
 		
 		return String.format("DataTable \"%s\" was added to the configuration with %s generated attribute column queries.\n", configDataTableName, titles.size());

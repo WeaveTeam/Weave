@@ -207,7 +207,7 @@ public class DataService extends GenericServlet
 				SQLResult result;
 				if (sqlParams != null && sqlParams.length() > 0)
 				{
-					String[] sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams)[0];
+					String[] sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
 					result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, sqlQuery, sqlParamsArray);
 				}
 				else
@@ -364,7 +364,7 @@ public class DataService extends GenericServlet
 			
 			if (sqlParams != null && sqlParams.length() > 0)
 			{
-				String[] args = CSVParser.defaultParser.parseCSV(sqlParams)[0];
+				String[] args = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
 				result = SQLConfigUtils.getRowSetFromQuery(config, info.connection, dataWithKeysQuery, args);
 			}
 			else
@@ -412,7 +412,6 @@ public class DataService extends GenericServlet
 					{
 						continue;
 					}
-
 					// filter the data based on the min,max values
 					if (minValue <= value && value <= maxValue)
 						numericData.add(value);

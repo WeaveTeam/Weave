@@ -24,7 +24,7 @@ package weave.data.AttributeColumns
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.WeaveAPI;
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
@@ -50,9 +50,9 @@ package weave.data.AttributeColumns
 		{
 			switch (propertyName)
 			{
-				case AttributeColumnMetadata.KEY_TYPE:
+				case ColumnMetadata.KEY_TYPE:
 					return _keyType;
-				case AttributeColumnMetadata.DATA_TYPE:
+				case ColumnMetadata.DATA_TYPE:
 					return getInternalColumn() ? ColumnUtils.getKeyType(getInternalColumn()) : null;
 			}
 			return super.getMetadata(propertyName);
@@ -66,7 +66,7 @@ package weave.data.AttributeColumns
 			// update unit
 			if (getInternalColumn() != null)
 			{
-				_keyType = getInternalColumn().getMetadata(AttributeColumnMetadata.DATA_TYPE);
+				_keyType = getInternalColumn().getMetadata(ColumnMetadata.DATA_TYPE);
 				if (!_keyType)
 					_keyType = DataTypes.STRING;
 			}

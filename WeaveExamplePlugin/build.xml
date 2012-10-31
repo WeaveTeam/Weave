@@ -21,6 +21,7 @@
 	<property name="API" value="WeaveAPI"/>
 	<property name="CORE" value="WeaveCore"/>
 	<property name="DATA" value="WeaveData"/>
+	<property name="UISPARK" value="WeaveUISPARK"/>
 	<property name="UI" value="WeaveUI"/>
 
 	<target name="build">
@@ -66,6 +67,7 @@
 			<external-library-path file="../${API}/bin/${API}.swc" append="true"/>
 			<external-library-path file="../${CORE}/bin/${CORE}.swc" append="true"/>
 			<external-library-path file="../${DATA}/bin/${DATA}.swc" append="true"/>
+			<external-library-path file="../${UISPARK}/bin/${UISPARK}.swc" append="true"/>
 			<external-library-path file="../${UI}/bin/${UI}.swc" append="true"/>
 			
 			<library-path dir="${PROJECT_DIR}/libs" includes="*.swc" append="true"/>

@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<ui:DraggablePanel xmlns="weave.example.*" xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
+				   implements="weave.api.ui.IVisTool">
+	<!--margins of canvas decided using left, right-->
+	<mx:Canvas  id="can" width="100%" height="100%" left="20" right="20" top="20" bottom="20"/> 
+	<mx:Script>
+		<![CDATA[
+			import weave.Weave;
+			import weave.api.data.IColumnStatistics;
+			import weave.api.WeaveAPI;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.KeySets.NumericDataFilter;
+			import weave.primitives.Bounds2D;
+			import weave.primitives.LinkableNumberFormatter;
+			import weave.utils.ColumnUtils;
+			import weave.visualization.tools.SimpleVisTool;
+			
+			WeaveAPI.registerImplementation(IVisTool, ShwetaScatterplot);
+			
+		
+			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			
+			//can change it at run time, session state defines what 
+			//the internal column is
+			public const xData:DynamicColumn = newLinkableChild(this,DynamicColumn);
+			public const yData:DynamicColumn = newLinkableChild(this,DynamicColumn);
+			public const colColumn:IAttributeColumn = Weave.root.getObject(Weave.DEFAULT_COLOR_COLUMN) as IAttributeColumn;
+		   // public const radius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
+			
+			public var myKeys:Array;
+			
+			override protected function constructor():void
+			{
+				super.constructor();				
+				
+			}
+			
+
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				//creates a corresponding CallbackCollection for a ILinkableObject
+				//calls invalidateDisplaylist whenever session state changes
+				getCallbackCollection(this).addImmediateCallback(this, invalidateDisplayList);
+
+			}
+			
+			/* this function is called by validate display list after the render event */
+			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+			{
+				//'arguments' parameter takes the arguments of the ovverided function(it is an array)
+				super.updateDisplayList.apply(this,arguments);//.apply is a short cut
+				
+				
+				// all keys whether included in columns or not, necessary for missing data handling
+				var keys:Array = ColumnUtils.getAllKeys([xData,yData,colColumn]);
+				
+				var drawingPt:Point = new Point();
+				var r:Number = 5;
+				
+				var minX:Number = WeaveAPI.StatisticsCache.getColumnStatistics(xData).getMin();
+				var maxX:Number = WeaveAPI.StatisticsCache.getColumnStatistics(xData).getMax();
+				var minY:Number = WeaveAPI.StatisticsCache.getColumnStatistics(yData).getMin();
+				var maxY:Number = WeaveAPI.StatisticsCache.getColumnStatistics(yData).getMax();
+				can.graphics.clear();
+				
+				var dataBounds:Bounds2D = new Bounds2D(minX, minY, maxX, maxY);
+				var screenBounds:Bounds2D = new Bounds2D(0, can.height, can.width, 0);
+				screenBounds.xMin =  can.getStyle("left");
+				screenBounds.yMin = can.height -  can.getStyle("top");
+				screenBounds.xMax = can.width - can.getStyle("right");
+				screenBounds.yMax =  can.getStyle("bottom");
+				
+				//drawing margins
+				can.graphics.lineStyle(1, 0, 0.5);
+				can.graphics.moveTo(screenBounds.xMin,screenBounds.yMin);
+				can.graphics.lineTo(screenBounds.xMax,screenBounds.yMin);
+				can.graphics.lineTo(screenBounds.xMax,screenBounds.yMax);
+				can.graphics.lineTo(screenBounds.xMin, screenBounds.yMax);
+				can.graphics.lineTo(screenBounds.xMin, screenBounds.yMin);
+				
+				
+				//for each we iterate over items and not indices(for loop)
+				for each(var key:IQualifiedKey in keys)
+				{
+					var x:Number = xData.getValueFromKey(key, Number);
+					var y:Number = yData.getValueFromKey(key, Number);
+					var c:Number = colColumn.getValueFromKey(key, Number);
+					
+					//project x, y data coordinates from above two lines to screen coordinates
+					drawingPt.x = x;
+					drawingPt.y = y;//after projectPointTo is called drawingPt x and y values change to screen coordinates
+					dataBounds.projectPointTo(drawingPt,screenBounds);
+					
+					can.graphics.beginFill(c,1.0);
+					can.graphics.drawCircle(drawingPt.x, drawingPt.y, r);
+					can.graphics.endFill();
+					
+				}
+				
+				drawingTicks(screenBounds);
+			}
+			
+			protected function drawingTicks(screenBounds:Bounds2D):void{
+				
+				can.graphics.drawCircle(0,0,5)
+				 var xspan:Number = screenBounds.getXCoverage();
+				 var yspan:Number = screenBounds.getYCoverage();
+				 var tickNumber:Number = 3;
+				 var xinterval:Number = xspan/tickNumber;
+				 var yinterval:Number = yspan/tickNumber;
+				 var xStartPoint:Number = screenBounds.xMin;
+				 var yStartPoint:Number = screenBounds.yMin;
+				 
+				 for(var d:int = 0; d <= tickNumber; d++ )
+				 {
+					 can.graphics.drawCircle(xStartPoint,screenBounds.yMin,10);
+					 xStartPoint = xStartPoint + xinterval;
+					 
+				 }
+				 
+				 for(var g:int = 0; g <= tickNumber; g++ )
+				 {
+					 can.graphics.drawCircle(screenBounds.xMin,yStartPoint,10);
+					 yStartPoint = yStartPoint - yinterval;
+					 
+				 }
+				
+			}
+			
+		]]>
+	</mx:Script>
+	
+</ui:DraggablePanel>

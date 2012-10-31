@@ -178,6 +178,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.linkBindableProperty;
+			import weave.api.ui.IVisTool;
 			
 			override protected function createChildren():void
 			{
@@ -188,11 +189,11 @@
 				
 				var cbArray:Array = [];
 				var cb:CheckBox;
-				for (var _class:Object in Weave.properties._toggleMap)
+				for each (var _class:Class in WeaveAPI.getRegisteredImplementations(IVisTool))
 				{
 					cb = new CheckBox();
-					cb.label = WeaveAPI.getRegisteredImplementationDisplayName(_class as Class) || getQualifiedClassName(_class).split(':').pop();
-					linkBindableProperty(Weave.properties._toggleMap[_class], cb, 'selected');
+					cb.label = WeaveAPI.getRegisteredImplementationDisplayName(_class) || getQualifiedClassName(_class).split(':').pop();
+					linkBindableProperty(Weave.properties.getToolToggle(_class), cb, 'selected');
 					cbArray.push(cb);
 				}
 				cbArray.sortOn('label');

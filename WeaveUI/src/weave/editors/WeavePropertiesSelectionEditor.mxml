@@ -64,6 +64,35 @@
 							   creationComplete="linkBindableProperty(Weave.properties.selectionDropShadow.alpha, event.target, 'value' );"
 							   />
 		</mx:HBox>
+		
+		<mx:HBox>
+			<mx:Label text="Unselected Records"
+					  width = "200"
+					  textAlign="right"
+					  toolTip = "Set the opacity of the unselected points"/>
+			<mx:RadioButton groupName="unselected"
+							buttonMode="true"
+							id="graySelect"
+							label="Gray"
+							width="50"
+							creationComplete="linkBindableProperty(Weave.properties.selectionAlphaAmount,event.target,'selected')"/>
+							
+			<mx:NumericStepper id="unselectedAlpha"
+							   maximum="1"
+							   stepSize="0.1"
+							   creationComplete="linkBindableProperty(Weave.properties.selectionAlphaAmount, event.target, 'value' );"
+							   />
+			<mx:RadioButton groupName="unselected"
+							buttonMode="true"
+							id="noDisplySelect"
+							label="Not displayed"
+							width="100"
+							/>
+		
+			
+		</mx:HBox>
+		
+		
 	</mx:VBox>
 	<mx:HBox>
 		<mx:Label text="{lang('Selection background alpha')}"

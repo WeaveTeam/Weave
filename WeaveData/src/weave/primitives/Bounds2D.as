@@ -29,7 +29,7 @@ package weave.primitives
 	 * Bounds2D provides a flexible interface to a Rectangle-like object.
 	 * The bounds values are stored as xMin,yMin,xMax,yMax instead of x,y,width,height
 	 * because information is lost when storing as width,height and it causes rounding
-	 * errors when using includeBounds() & includePoint(), depending on the order you
+	 * errors when using includeBounds() and includePoint(), depending on the order you
 	 * include multiple points.
 	 * 
 	 * @author adufilie
@@ -386,7 +386,7 @@ package weave.primitives
 
 
 		/**
-		 * This function supports a Bounds2D object having negative width & height, unlike the Rectangle object
+		 * This function supports a Bounds2D object having negative width and height, unlike the Rectangle object
 		 * @param point A point to test.
 		 * @return A value of true if the point is contained within this Bounds2D.
 		 */
@@ -396,7 +396,7 @@ package weave.primitives
 		}
 		
 		/**
-		 * This function supports a Bounds2D object having negative width & height, unlike the Rectangle object
+		 * This function supports a Bounds2D object having negative width and height, unlike the Rectangle object
 		 * @param x An X coordinate for a point.
 		 * @param y A Y coordinate for a point.
 		 * @return A value of true if the point is contained within this Bounds2D.
@@ -408,7 +408,7 @@ package weave.primitives
 		}
 		
 		/**
-		 * This function supports a Bounds2D object having negative width & height, unlike the Rectangle object
+		 * This function supports a Bounds2D object having negative width and height, unlike the Rectangle object
 		 * @param other Another Bounds2D object to check.
 		 * @return A value of true if the other Bounds2D is contained within this Bounds2D.
 		 */
@@ -433,7 +433,7 @@ package weave.primitives
 		/**
 		 * This function is used to determine which vertices of a polygon can be skipped when rendering within the bounds of this Bounds2D.
 		 * While iterating over vertices, test each one with this function.
-		 * If (firstGridTest & secondGridTest & thirdGridTest) is non-zero, then the second vertex can be skipped.
+		 * If (firstGridTest &amp; secondGridTest &amp; thirdGridTest) is non-zero, then the second vertex can be skipped.
 		 * @param x The x-coordinate to test.
 		 * @param y The y-coordinate to test.
 		 * @return A value to be ANDed with other results of getGridTest().

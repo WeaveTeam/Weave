@@ -20,6 +20,7 @@
 package weave.utils
 {
 	import flash.utils.ByteArray;
+	import flash.utils.getTimer;
 	
 	import org.vanrijkom.shp.ShpHeader;
 	import org.vanrijkom.shp.ShpPoint;
@@ -45,7 +46,7 @@ package weave.utils
 		private var shp: ShpHeader;
 		
 		private var records:Array;
-		private var irecord:int;
+		private var irecord:int = 0;
 		public var geoms:Array = [];
 		
 		private var _processingIsDone:Boolean = false;
@@ -55,58 +56,64 @@ package weave.utils
 		{
 			shp	= new ShpHeader(shpData);
 			records = ShpTools.readRecords(shpData);
-			WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_PARSING);
+			WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_PARSING, asyncComplete);
 		}
 		
-		private function iterate():Number
+		private function iterate(stopTime:int):Number
 		{
-			if (irecord >= records.length) // in case length is zero
-				return 1;
-
-			var iring:int
-			var ipoint:int;
-			var point:ShpPoint;
-			var ring:Array;
-			
-			//trace( irecord, records.length );
-			var geom:GeneralizedGeometry = new GeneralizedGeometry();
-			var points:Array = [];
-			var record:ShpRecord = records[irecord] as ShpRecord;
-
-			if( record.shape is ShpPolygon )
+			while (true)
 			{
-				geom.geomType = GeneralizedGeometry.GEOM_TYPE_POLYGON;
-				var poly:ShpPolygon = record.shape as ShpPolygon;
-				for(iring = 0; iring < poly.rings.length; iring++ )
+				if (irecord >= records.length) // in case length is zero
+					return 1;
+				
+				if (getTimer() < stopTime)
+					break;
+	
+				var iring:int
+				var ipoint:int;
+				var point:ShpPoint;
+				var ring:Array;
+				
+				//trace( irecord, records.length );
+				var geom:GeneralizedGeometry = new GeneralizedGeometry();
+				var points:Array = [];
+				var record:ShpRecord = records[irecord] as ShpRecord;
+	
+				if( record.shape is ShpPolygon )
 				{
-					ring = poly.rings[iring] as Array;
-					for(ipoint = 0; ipoint < ring.length; ipoint++ )
+					geom.geomType = GeneralizedGeometry.GEOM_TYPE_POLYGON;
+					var poly:ShpPolygon = record.shape as ShpPolygon;
+					for(iring = 0; iring < poly.rings.length; iring++ )
 					{
-						point = ring[ipoint] as ShpPoint;
-						points.push( point.x, point.y );
+						ring = poly.rings[iring] as Array;
+						for(ipoint = 0; ipoint < ring.length; ipoint++ )
+						{
+							point = ring[ipoint] as ShpPoint;
+							points.push( point.x, point.y );
+						}
 					}
 				}
+				if( record.shape is ShpPolyline )
+					geom.geomType = GeneralizedGeometry.GEOM_TYPE_LINE;
+				if( record.shape is ShpPoint )
+				{
+					geom.geomType = GeneralizedGeometry.GEOM_TYPE_POINT;
+					point = record.shape as ShpPoint;
+					points.push( point.x, point.y );
+				}
+				geom.setCoordinates( points, BLGTreeUtils.METHOD_SAMPLE );
+				geoms.push(geom);
+				
+				irecord++
 			}
-			if( record.shape is ShpPolyline )
-				geom.geomType = GeneralizedGeometry.GEOM_TYPE_LINE;
-			if( record.shape is ShpPoint )
-			{
-				geom.geomType = GeneralizedGeometry.GEOM_TYPE_POINT;
-				point = record.shape as ShpPoint;
-				points.push( point.x, point.y );
-			}
-			geom.setCoordinates( points, BLGTreeUtils.METHOD_SAMPLE );
-			geoms.push(geom);
 			
-			irecord++
-			
-			var progress:Number = irecord / records.length;
-			if (progress == 1)
-			{
-				_processingIsDone = true;
-				getCallbackCollection(this).triggerCallbacks();
-			}
-			return progress;
+			return irecord / records.length;
+		}
+		
+		private function asyncComplete():void
+		{
+			_processingIsDone = true;
+			getCallbackCollection(this).triggerCallbacks();
 		}
 	}
 }

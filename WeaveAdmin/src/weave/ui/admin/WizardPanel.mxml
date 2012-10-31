@@ -157,7 +157,6 @@
 			borderThicknessRight: 2;
 			
 			roundedBottomCorners: false;
-			cornerRadius: 0;
 		}
 		.weave-system-style, .weave-system-title-style {
 			fontFamily: Verdana;

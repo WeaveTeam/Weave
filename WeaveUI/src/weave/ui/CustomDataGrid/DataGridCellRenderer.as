@@ -28,7 +28,7 @@ package weave.ui.CustomDataGrid
 	import mx.controls.Label;
 	import mx.core.UIComponent;
 	
-	import weave.api.data.AttributeColumnMetadata;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataTypes;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
@@ -132,7 +132,7 @@ package weave.ui.CustomDataGrid
 			}
 			
 			// right-align numbers
-			if (attrColumn.getMetadata(AttributeColumnMetadata.DATA_TYPE) == DataTypes.NUMBER)
+			if (attrColumn.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.NUMBER)
 			{
 				_setStyle(lbl, 'textAlign', 'right');
 			}

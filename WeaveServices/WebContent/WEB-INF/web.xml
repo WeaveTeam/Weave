@@ -32,7 +32,13 @@
     <param-name>docrootPath</param-name>
     <param-value>../ROOT|../../docroot|../../../docroot</param-value>
   </context-param>
-
+  
+  <!-- This is the path of RServe.  Example value: C:/Program Files/R/R-2.15.1/library/Rserve/Rserve.exe -->
+  <context-param>
+  	<param-name>RServePath</param-name>
+  	<param-value></param-value>
+  </context-param>
+  
   <servlet>
     <servlet-name>DataService</servlet-name>
     <servlet-class>weave.servlets.DataService</servlet-class>

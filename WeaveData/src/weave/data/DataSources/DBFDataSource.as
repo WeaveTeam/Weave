@@ -22,6 +22,7 @@ package weave.data.DataSources
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
+	import flash.utils.getTimer;
 	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
@@ -80,7 +81,9 @@ package weave.data.DataSources
 			if (dbfUrl.value != null)
 			{
 				dbfData = null;
-				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(dbfUrl.value), handleDBFDownload, handleDBFDownloadError, null, URLLoaderDataFormat.BINARY);
+				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(dbfUrl.value), handleDBFDownload, handleDBFDownloadError, dbfUrl.value, URLLoaderDataFormat.BINARY);
+				
+				debug('dbf start downloading',dbfUrl.value);
 			}
 		}
 		private function handleShpUrlChange():void
@@ -91,6 +94,8 @@ package weave.data.DataSources
 					disposeObjects(shpfile)
 				shpfile = null;
 				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(shpUrl.value), handleShpDownload, handleDBFDownloadError, shpUrl.value, URLLoaderDataFormat.BINARY);
+				
+				debug('shp start downloading',shpUrl.value);
 			}
 		}
 		
@@ -108,6 +113,13 @@ package weave.data.DataSources
 		{
 			if (objectWasDisposed(this))
 				return;
+			
+			// ignore outdated results
+			if (token != dbfUrl.value)
+				return;
+			
+			debug('dbf download complete',dbfUrl.value);
+			
 			dbfData = ByteArray(event.result);
 			if (dbfData.length == 0)
 			{
@@ -140,9 +152,12 @@ package weave.data.DataSources
 		{
 			if (objectWasDisposed(this))
 				return;
+			
 			// ignore outdated results
 			if (token != shpUrl.value)
 				return;
+			
+			debug('shp download complete',shpUrl.value);
 			
 			if (shpfile)
 				disposeObjects(shpfile);

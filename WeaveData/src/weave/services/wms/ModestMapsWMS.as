@@ -61,7 +61,7 @@ package weave.services.wms
 	 * 
 	 * @author kmonico
 	 */
-	public class ModestMapsWMS extends AbstractWMS implements IWMSService
+	public class ModestMapsWMS extends AbstractWMS
 	{
 		public function ModestMapsWMS()
 		{

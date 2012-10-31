@@ -12,6 +12,7 @@
       <libraryPathEntry kind="3" linkType="2" path="/WeaveAPI/bin/WeaveAPI.swc" useDefaultLinkType="true"/>
       <libraryPathEntry kind="3" linkType="2" path="/WeaveCore/bin/WeaveCore.swc" useDefaultLinkType="true"/>
       <libraryPathEntry kind="3" linkType="2" path="/WeaveData/bin/WeaveData.swc" useDefaultLinkType="true"/>
+      <libraryPathEntry kind="3" linkType="1" path="/WeaveUISpark/bin/WeaveUISpark.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="3" linkType="2" path="/WeaveUI/bin/WeaveUI.swc" useDefaultLinkType="true"/>
     </libraryPath>
     <sourceAttachmentPath/>

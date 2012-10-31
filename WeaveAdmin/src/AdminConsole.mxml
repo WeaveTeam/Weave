@@ -20,21 +20,13 @@
 */
 -->
 <mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" backgroundColor="#7B96B6" creationComplete="handleCreationComplete()" creationPolicy="all" xmlns:managers="weave.ui.admin.managers.*" xmlns:admin="weave.ui.admin.*" xmlns:ui="weave.ui.*">
-	<mx:Script>
-		<![CDATA[
-			import flash.desktop.Clipboard;
-			import flash.desktop.ClipboardFormats;
-			
-			import weave.ui.DraggablePanel;
-			import weave.ui.TranslationPanel;
-		]]>
-	</mx:Script>
+	<!--  cornerRadius="0" -->
 	<mx:Panel
 		headerHeight="25"
 		title="Administration Console for Weave {version}"
 		width="100%"
 		height="100%"
-		borderAlpha="0.5" backgroundColor="#DBDBDB" cornerRadius="0"
+		borderAlpha="0.5" backgroundColor="#DBDBDB"
 		bottom="10" top="10" right="10" left="10"
 		paddingLeft="8" paddingRight="8" paddingTop="8" paddingBottom="8">
 		<mx:ViewStack width="100%" height="100%" selectedIndex="{AdminInterface.instance.userHasAuthenticated ? 0 : (AdminInterface.instance.sqlConfigExists ? 1 : 2)}">
@@ -105,10 +97,9 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.api.reportError;
-			import weave.api.WeaveAPI;
-			import weave.data.CSVParser;
-			import weave.utils.VectorUtils;
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
+			
 			import mx.binding.utils.BindingUtils;
 			import mx.controls.Alert;
 			import mx.controls.TextArea;
@@ -116,14 +107,22 @@
 			
 			import weave.Strings;
 			import weave.Weave;
+			import weave.api.WeaveAPI;
+			import weave.api.reportError;
 			import weave.services.AdminInterface;
 			import weave.services.WeaveAdminService;
+			import weave.ui.DraggablePanel;
+			import weave.ui.SessionStateEditor;
+			import weave.ui.TranslationPanel;
 			import weave.ui.WeaveProgressBar;
 			import weave.ui.admin.LoginPopup;
 			import weave.ui.admin.WizardPanel;
 			import weave.ui.admin.wizards.CSVImportWizard;
 			import weave.ui.admin.wizards.SHPImportWizard;
 			import weave.ui.admin.wizards.SQLImportWizard;
+			import weave.utils.VectorUtils;
+			
+			SessionStateEditor.getInstance(); // adds keyboard shortcut f8 to open console
 			
 			private static const version:String = Weave.properties.version.value;
 			private var loginPopup:LoginPopup;

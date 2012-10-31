@@ -1,17 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
-		  xmlns:s="library://ns.adobe.com/flex/spark" width="400" height="300">
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  implements="weave.api.core.ILinkableObject"
+		  width="100%" height="100%" gap="0"
+		  creationComplete="setInstance(this);">
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
-	<s:TextArea id="log"
+	<s:TextInput id="input" width="100%" fontSize="18"
+				 enter="runCommand()"
+				 softKeyboardActivate="percentHeight = 50;"
+				 softKeyboardDeactivate="percentHeight = 100;"
+				 keyDown="handleConsoleKeyDown(event)"
+				 />
+	<s:TextArea id="log" fontSize="18"
+				change="if (log.text.length > LOG_MAX_LENGTH) log.text = log.text.substr(-LOG_MAX_LENGTH);"
 				click="handleConsoleLogClick()"
 				mouseDown="handleConsoleLogClick()"
 				width="100%" height="100%" editable="false"/>
-	<s:TextInput id="input" width="100%"
-				  enter="runCommand()"
-				  keyDown="handleConsoleKeyDown(event)"
-				  />
+	
 	<fx:Script>
 		<![CDATA[
 			import mx.core.FlexGlobals;
@@ -24,7 +49,33 @@
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
+			import weave.compiler.ProxyObject;
+			import weave.core.ErrorManager;
 			import weave.core.ExternalSessionStateInterface;
+			
+			private var LOG_MAX_LENGTH:int = 10000;
+			
+			private static var _weaveTraceImpl:Function = weaveTraceImpl;
+			private static var _instance:MobileConsole;
+			private static var _queuedTraceArgs:Array = [];
+			private static function setInstance(instance:MobileConsole):void
+			{
+				_instance = instance;
+				for each (var args:Array in _queuedTraceArgs)
+					mobileTrace.apply(null, args);
+			}
+			public static function mobileTrace(...args):void
+			{
+				if (!_instance)
+				{
+					_queuedTraceArgs.push(args);
+					return;
+				}
+				
+				trace.apply(null, args);
+				
+				_instance.consoleTrace.apply(null, args);
+			}
 			
 			[Bindable] public var padding:int = 5;
 			[Bindable] public var innerBorderStyle:String = 'inset';
@@ -42,7 +93,16 @@
 			{
 				super.childrenCreated();
 				
-				compiler.includeLibraries(GlobalLib, WeaveAPI, ObjectUtil, WeaveAPI.SessionManager);
+				compiler.includeLibraries(GlobalLib, WeaveAPI, ObjectUtil, WeaveAPI.SessionManager, FlexGlobals);
+				
+				getCallbackCollection(WeaveAPI.ErrorManager).addImmediateCallback(this, handleError);
+			}
+			
+			private function handleError():void
+			{
+				var errors:Array = WeaveAPI.ErrorManager.errors;
+				var lastError:Error = errors[errors.length - 1] as Error;
+				consoleTrace(lastError.message);
 			}
 			
 			private const compiler:Compiler = new Compiler();
@@ -95,28 +155,36 @@
 				return log.text = '';
 			}
 			
-			private const symbolTable:Object = {
-				'javaScript': function(...args):*
+			private const symbolTable:Object = new ProxyObject(_hasProperty, _getProperty, null);
+			private function _hasProperty(name:*):Boolean { return _getProperty(name) !== undefined; }
+			private function _getProperty(name:*):*
+			{
+				switch (String(name))
 				{
-					var prev:Boolean = ExternalInterface.marshallExceptions;
-					try
+					case 'javaScript': return function(...args):*
 					{
-						ExternalInterface.marshallExceptions = true;
-						ExternalInterface.call.apply(this, args);
-					}
-					finally
-					{
-						ExternalInterface.marshallExceptions = prev;
-					}
-				},
-				'application': FlexGlobals.topLevelApplication,
-				'print': ObjectUtil.toString as Function,
-				'getObject': getObject,
-				'clear': consoleClear,
-				'watch': consoleWatch,
-				'unwatch': consoleUnwatch,
-				'trace': consoleTrace
-			};
+						var prev:Boolean = ExternalInterface.marshallExceptions;
+						try
+						{
+							ExternalInterface.marshallExceptions = true;
+							ExternalInterface.call.apply(this, args);
+						}
+						finally
+						{
+							ExternalInterface.marshallExceptions = prev;
+						}
+					};
+					case 'application': return FlexGlobals.topLevelApplication;
+					case 'print': return ObjectUtil.toString as Function;
+					case 'getObject': return getObject as Function;
+					case 'clear': return consoleClear as Function;
+					case 'watch': return consoleWatch as Function;
+					case 'unwatch': return consoleUnwatch as Function;
+					case 'trace': return consoleTrace as Function;
+					case '$e': return WeaveAPI.ErrorManager.errors;
+					case '$a': return FlexGlobals.topLevelApplication;
+				}
+			}
 			private function runCommand():void
 			{
 				if (!input.text)

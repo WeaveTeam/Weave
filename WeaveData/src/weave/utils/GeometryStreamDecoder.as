@@ -46,10 +46,10 @@ package weave.utils
 	 * 
 	 * Throughout the code, an ID refers to an integer value, while a Key is a string value.
 	 * Binary format:
-	 *   tile descriptor format: <float minImportance, float maxImportance, double xMin, double yMin, double xMax, double yMax>
-	 *       stream tile format: <int negativeTileID, binary stream object beginning with positive int, ...>
-	 *   metadata stream object: <int geometryID, String geometryKey, '\0', double xMin, double yMin, double xMax, double yMax, int vertexID1, ..., int vertexID(n), int -1>
-	 *   geometry stream object: <int geometryID1, int vertexID1, int geometryID2, int vertexID2, ..., int geometryID(n-1), int vertexID(n-1), int geometryID(n), int negativeVertexID(n), double x, double y, float importance>
+	 *   tile descriptor format: [float minImportance, float maxImportance, double xMin, double yMin, double xMax, double yMax]
+	 *       stream tile format: [int negativeTileID, binary stream object beginning with positive int, ...]
+	 *   metadata stream object: [int geometryID, String geometryKey, '\0', double xMin, double yMin, double xMax, double yMax, int vertexID1, ..., int vertexID(n), int -1]
+	 *   geometry stream object: [int geometryID1, int vertexID1, int geometryID2, int vertexID2, ..., int geometryID(n-1), int vertexID(n-1), int geometryID(n), int negativeVertexID(n), double x, double y, float importance]
 	 * 
 	 * @author adufilie
 	 */
