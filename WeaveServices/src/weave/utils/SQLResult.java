@@ -19,6 +19,7 @@
 
 package weave.utils;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -91,8 +92,15 @@ public class SQLResult
 	 */
 	public String toString()
 	{
-		String header = CSVParser.defaultParser.createCSV(new String[][]{ columnNames }, true);
-		String data = CSVParser.defaultParser.createCSV(rows, true);
-		return header + CSVParser.LF + data;
+		try
+		{
+			String header = CSVParser.defaultParser.createCSV(new String[][]{ columnNames }, true);
+			String data = CSVParser.defaultParser.createCSV(rows, true);
+			return header + CSVParser.LF + data;
+		}
+		catch (IOException e)
+		{
+			return null;
+		}
 	}
 }
