@@ -23,6 +23,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 <!---
 @author mervetuccar
 @author hgranz
+@spurushe
 -->
 
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"		 
@@ -30,7 +31,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		 xmlns:ui="weave.ui.*"
 		 label="Disability"
 		 implements="weave.api.core.ILinkableObject"
-		 enabled="{_panel != null}"	>
+		 enabled="{_panel != null}" xmlns:s="library://ns.adobe.com/flex/spark"	>
 	
 	<mx:Label text="User generated visualization description text:"
 			  textAlign="left"/>
@@ -64,17 +65,18 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Button label="Refresh Description"
 			   id="automaticDescRefreshButton" 
 			   toolTip="changeme" click="automaticDescRefreshButton_clickHandler(event)"/>
-	
 
 	
 	
 	<mx:Script>
 		<![CDATA[
+			import disabilityDictionary.ButtonExt;
 			import disabilityDictionary.DisabilityMessageCategoryDictionary;
 			import disabilityDictionary.DisabilityObject;
 			
 			import mx.accessibility.CheckBoxAccImpl;
 			import mx.binding.utils.BindingUtils;
+			import mx.controls.Alert;
 			import mx.controls.Menu;
 			import mx.controls.TextArea;
 			import mx.core.IUIComponent;
@@ -110,20 +112,29 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
+			import weave.visualization.plotters.ParallelCoordinatesPlotter;
 			import weave.visualization.tools.LineChartTool;
 			
 			
 			
 			[Bindable] private var _panel:DraggablePanel = null;
-			public var _target:LineChartTool;// = Weave.root.requestObject(null, LineChartTool, false);
-			//create a new map which belongs to the line chart tool which contains only iAttribute columns
-			public var _columnObjects:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+
+			
+			public var vizEntities:Array = WeaveAPI.globalHashMap.getObjects(LineChartTool);//collect all the visualization tools
+			public var _target:LineChartTool = vizEntities[0] as LineChartTool;;// = Weave.root.requestObject(null, LineChartTool, false);
+		
+			public var lineChartPlotter:ParallelCoordinatesPlotter = (vizEntities[0] as LineChartTool).getPlotter();
+			
+
+			public var variables:LinkableHashMap; 
+
 			public var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
 			
-			public var joinedColsforRArrayUnsplit:Array = new Array();
+			//public var joinedColsforRArrayUnsplit:Array = new Array();
 			public const disabilityText:LinkableString = newLinkableChild(this, LinkableString);
 			public var joinKeysRArray:Array = new Array();
 			public var joinColsRArray:Array = new Array();
+			public var columnNames:Array = new Array();
 			
 			public function set target(panel:DraggablePanel):void
 			{
@@ -142,7 +153,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		
 			private function handleCreationComplete(event:Event) : void
 			{
-				
+				variables = lineChartPlotter.columns;
+				checkingPlotterObjects();
+				variables.childListCallbacks.addImmediateCallback(this,checkingPlotterObjects);
 				Weave.properties.disabilityHashMap.requestObject('text', LinkableString, false);
 				var HashDisabilityText : LinkableString = (Weave.properties.disabilityHashMap.renameObject('text', _panel.title) as LinkableString);
 				
@@ -161,38 +174,48 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var rResult:Array;
 		//		rResult = getInfoForR(/*columns???*/);
 				vizType = "lineChart";
-				dictionaryType = determineDictionaryType(vizType);
-		
-				determineMessageCategory(dictionaryType, rResult) 
-				mockRResult();
+
+			}
+			
+			//this function checks if the hashmap of the plotter is filled, if filled pick columns and send them to R
+			public function checkingPlotterObjects():void{
 				
+				if(WeaveAPI.SessionManager.linkableObjectIsBusy(variables)) return;
+				columnPreprocessing();
 			}
 			
-			protected function determineDictionaryType(vizType:String):String
-			{
-				return ("lineChartDictionary");
-			}
-			
-			protected function determineMessageCategory(dictionaryType:String, rResult:Array):String
-			{
-				return ("increasingTrend");
-			}
-			
-			protected function getInfoForR():void
+			//getting the columns ready for R
+			protected function columnPreprocessing():void
 			{
 				//use this function to gather the appropriate information that will be sent to R 
 				//we have the columns in columnObjects
-				var colsSentToRArray:Array = new Array();
+				var numericCols:Array = new Array();
 				//below whatever cols are plotted it picks them up as individual objects
-				colsSentToRArray = _columnObjects.getObjects(IAttributeColumn)
+
+				var colObjects:Array = variables.getObjects(IAttributeColumn)
+					
+					//pick only numeric columns to be sent to R
+					for(var i:int =0 ; i < colObjects.length; i++)
+					{
+						var col:IAttributeColumn = (colObjects[i] as IAttributeColumn);
+						var dataType:String = ColumnUtils.getDataType(col);
+						
+						if (dataType == "number")
+						{
+							numericCols.push(col);
+							columnNames.push(ColumnUtils.getTitle(col));
+						}
+					}
+					
+					
 				//joining columns returns columns only complete records (no incomplete records)
-				joinedColsforRArrayUnsplit = joinColumns(colsSentToRArray);
+			    var joinedColumns:Array = joinColumns(numericCols);
 				
-				joinKeysRArray = joinedColsforRArrayUnsplit[0]; 
-				joinColsRArray = joinedColsforRArrayUnsplit[1];
+				joinKeysRArray = joinedColumns[0]; 
+				joinColsRArray = joinedColumns[1];
 			
 				//todo: getting axis, title, color, scale, etc
-				sendStuffToR();
+				sendColumnsToR();
 				
 			
 				
@@ -207,43 +230,51 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				return [result.shift(), result];
 			}
 
-			protected function sendStuffToR():void
+			protected function sendColumnsToR():void
 			{
 				//send the columns and variables returned from getInfoForR to R using this function
-
+				
 				var computeScript:String = "";
 				//inputValues is a matrix of all of the columns that are to be sent to R
-				var inputValues:Array = new Array();
-				var outputNames:Array = null;
-				inputValues = joinColsRArray;
+				var testArray:Array = [1]; var inputValues:Array = new Array();
+				inputValues.push(testArray); 
+				// var inputValues:Array = joinColsRArray; use this
+				var outputNames:Array = ["myColumns"];
 				//default name to be used in R
 				var inputName:Array = ["myColumns"];
 				
-				/* var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
-				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);	 */	
+				 var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
+				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);	 
 				
 			}
 			public function handleRunScriptResult(event:ResultEvent, token:Object):void
 			{
+				//if (token != latestjoinedColumnKeys){return;}//handles two asynchronous calls made one after the other
+				// to do handle multiple asynchronous calls
 				var rObject:Array = new Array();
 				rObject = event.result as Array;
-
+				var finalRObject:Array = new Array();//collects all the RResult objects after being returned from R
 				
 				if (rObject == null){ 
-					reportError("R Server did not return an array");
+					reportError("R Servlet did not return an Array of results as expected.");
+					return;
 				}
 				
-				var finalRObject:Array = new Array();
-				for (var i:int=0; i < rObject.length; i++){
+				for (var i:int=0; i < rObject.length; i++)
+				{
 					
-					if (rObject[i] == null){
-						reportError("R server returned an array with null element " + i);
+					if (rObject[i] == null)
+					{
+						trace("WARNING! R Service returned null in results array at index "+i);
+						continue;
 					}
 					
 					var rResult:RResult = new RResult(rObject[i]);
-					finalRObject[i] = rResult;
+					finalRObject[i] = rResult.value;
 			
 				}
+				
+				mockRResult(finalRObject);
 			
 			}
 			private function handleRunScriptFault(event:FaultEvent, token:Object):void
@@ -254,32 +285,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public var mockLookUpDict:DisabilityMessageCategoryDictionary = new DisabilityMessageCategoryDictionary();
 			
-			public function mockRResult():void
+			public function mockRResult(_mockpropertiesValues:Array):void
 			{
-				var mockproperties:Array = new Array();
 				var mockSlope : Number = 1;
+				var mockProperties:Array = new Array();
+				//var mockpropertiesValues:Array = new Array();//array of values of properties returned from R
+				//mockpropertiesValues.push(mockSlope);//returned from R
+				
+				//one DisabilityObject is made for every tool is one Weave instance
 			    var mockDisabilityObject :DisabilityObject = new DisabilityObject();
-				mockDisabilityObject.slope = mockSlope;
-				mockproperties.push(mockSlope);
+				mockDisabilityObject.properties = _mockpropertiesValues;
+				/* structure for vizDetails                 title
+														   Attributes */
+				mockDisabilityObject.vizDetails.push(_target.title);
+				mockDisabilityObject.vizDetails.push(columnNames);
 				
-				//testing this first
-				var mockMessageID:Array = new Array();
-				mockMessageID[0] = mockLookUpDict.setMessageCategoryID(mockproperties);
-				trace(mockMessageID[0]);
-				//testing this second
-				//setMessageCategoryID(mockproperties);
-				
-			}
-			
-			public function setMessageCategoryID(_propertyNames:Array):Array
-			{
-				
-				var messageCategoryIDs : Array = new Array();
-				if (_propertyNames[0]>1)  // propertyNames[0] -> slope
-					messageCategoryIDs.push("IT");
-				
-				
-				return messageCategoryIDs;
+				//this gives us the final array of text messages
+				var finalTextMessages:Array = mockLookUpDict.collectMessageCategoryID(mockDisabilityObject);
+				Alert.show(finalTextMessages[0],"Result");
 			}
 		]]>
 	</mx:Script>

@@ -25,41 +25,47 @@ package disabilityDictionary
 	public class DisabilityMessageCategoryDictionary 
 	{
 		
-		public var messageCategoryMap : Dictionary = new Dictionary();
-		//public var messageCategoryID : String = "IT";
-		//public var message : String = "increasing trend";
+		public var messageCategoryMap:Dictionary;
 		
-		
-		
-		public function lineChartDictionary():void
+		public function DisabilityMessageCategoryDictionary():void
 		{
-			
-			
-		//	messageCategoryMap[messageCategoryID] = message; // eg : IT = "increasing trend"
-		   
-			
+			messageCategoryMap = DisabilityMessageProperties.getMessageCategoryMap();
 		}
 
-		public function setMessage(messageID:Array):String
+		
+		public function setMessage(messageID:Array):Array//returns an array of strings(messages)
 		
 		{
-			var message : String = "increasing trend";
-			messageCategoryMap[messageID[0]] = message;
+			var messageCollections:Array = new Array();//collects all the messages together
+			for (var i:int =0; i < messageID.length; i++)//picking up as many nessages as there are IDs
+			{
+				messageCollections[i] = messageCategoryMap[messageID[i]];
+			}
 			
-			return message;
+			return messageCollections;
 		}
 		
-		public function setMessageCategoryID(_propertyNames:Array):String
+		
+		
+		//this function will take an object as a parameter, it will loop over its properties and collect the respective IDs after passing the if else checks
+		public function collectMessageCategoryID(inputObject:DisabilityObject):Array//returns an array of actual text messages
 		{
 			
+			var finalMessages:Array;
 			var messageCategoryIDs : Array = new Array();
+			var objProperties:Array = inputObject.properties;
 			
-			if (_propertyNames[0]==1)  // propertyNames[0] -> slope
-				messageCategoryIDs.push("IT");
-				
-			var  completeMessage:String = setMessage(messageCategoryIDs);
+			for(var i:int = 0; i < objProperties.length; i++)
+			{
+				//flesh out these if else checks to make the decision for the message category
+				if (objProperties[0] == 1)  // propertyNames[0] -> slope hard coded
+					messageCategoryIDs.push(DisabilityMessageProperties.INCREASING_TREND_ID);
+			}
 			
-			return completeMessage;
+			
+			finalMessages = setMessage(messageCategoryIDs);
+			
+			return finalMessages;
 		}
 	}
 }

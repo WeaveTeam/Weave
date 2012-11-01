@@ -113,6 +113,11 @@
 
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
 			
+			public function getPlotter():ParallelCoordinatesPlotter
+			{
+				return _plotter;
+			}
+			
 			private function updateProbeColumns():void
 			{
 				if (includeToolAttributesInProbe.value)

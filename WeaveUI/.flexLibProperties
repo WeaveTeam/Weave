@@ -2,8 +2,9 @@
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="disabilityDictionary.DisabilityMessageCategoryDictionary"/>
-    <classEntry path="disabilityDictionary.IDisabilityObject"/>
     <classEntry path="disabilityDictionary.DisabilityObject"/>
+    <classEntry path="disabilityDictionary.ButtonExt"/>
+    <classEntry path="disabilityDictionary.DisabilityMessageProperties"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>
