@@ -151,7 +151,7 @@
 					return result;
 				},
 				'application': WeaveAPI.topLevelApplication,
-				'visApp': WeaveAPI.topLevelApplication.visApp,
+				'visApp': getVisApp(),
 				'print': ObjectUtil.toString as Function,
 				'getObject': getObject,
 				'clear': consoleClear,
@@ -163,6 +163,14 @@
 				'debugTrace': debugTrace,
 				'debugDisplayList': DebugUtils.debugDisplayList
 			};
+			private function getVisApp():Object
+			{
+				var app:Object = WeaveAPI.topLevelApplication;
+				if (app.hasOwnProperty('visApp'))
+					return app.visApp
+				return null;
+			}
+			
 			private function runCommand():void
 			{
 				if (!input.text)

@@ -184,7 +184,7 @@
 				for each (var wmsPlotter:WMSPlotter in wmsPlotters)
 				{
 					linkProjection(wmsPlotter.srs);
-					projString = WMSProviders.getSRS(wmsPlotter.serviceName.value);
+					projString = WMSProviders.getSRS(wmsPlotter.providerName);
 					if (projString && _projComboBoxData.indexOf(projString) < 0)
 						_projComboBoxData.push(projString);
 				}

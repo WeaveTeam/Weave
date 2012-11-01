@@ -45,7 +45,7 @@ package weave.services
 		}
 		
 		// async result will be of type KMeansClusteringResult
-		public function KMeansClustering(dataX:Array, dataY:Array, numberOfClusters:int):AsyncToken
+		public function KMeansClustering( inputNames:Array, inputValues:Array,showWarnings:Boolean,numberOfClusters:int,iterations:int):AsyncToken
 		{			
 			return servlet.invokeAsyncMethod("kMeansClustering", arguments);
 		}
@@ -68,7 +68,15 @@ package weave.services
 			return servlet.invokeAsyncMethod("linearRegression", arguments);
 		}
 
+		public function handlingMissingData(inputNames:Array, inputValues:Array, outputNames:Array,showIntermediateResults:Boolean, showWarningMessages:Boolean, completeProcess:Boolean ):AsyncToken
+		{
+			return servlet.invokeAsyncMethod("handlingMissingData", arguments);
+			
+		}
 		
+		
+		
+
 		
 
 		

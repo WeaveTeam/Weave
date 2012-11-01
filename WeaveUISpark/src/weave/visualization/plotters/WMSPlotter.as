@@ -19,6 +19,10 @@
 
 package weave.visualization.plotters
 {
+	import com.modestmaps.mapproviders.BlueMarbleMapProvider;
+	import com.modestmaps.mapproviders.IMapProvider;
+	import com.modestmaps.mapproviders.OpenStreetMapProvider;
+	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Shape;
@@ -42,11 +46,17 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.services.IWMSService;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.SessionManager;
 	import weave.primitives.Bounds2D;
+	import weave.services.wms.CustomWMS;
 	import weave.services.wms.ModestMapsWMS;
 	import weave.services.wms.OnEarthProvider;
+	import weave.services.wms.OpenMapQuestAerialProvider;
+	import weave.services.wms.OpenMapQuestProvider;
+	import weave.services.wms.StamenProvider;
 	import weave.services.wms.WMSProviders;
 	import weave.services.wms.WMSTile;
 	import weave.utils.Dictionary2D;
@@ -70,12 +80,59 @@ package weave.visualization.plotters
 			_textField.background = true;
 			_textField.backgroundColor = 0x000000;
 			_textField.alpha = 0.2;
+			
+			//setting default WMS Map to Blue Marble
+			setProvider(WMSProviders.BLUE_MARBLE_MAP);
 		}
 
 		// the service and its parameters
-		private var _service:IWMSService = null;
+		private function get _service():IWMSService
+		{
+			return service.internalObject as IWMSService;
+		}
+		
+		public function get providerName():String
+		{
+			if(service.internalObject == null)
+				return null;
+			var provider:* = (service.internalObject as IWMSService).getProvider();
+			
+			if(provider is String)
+			{
+				return provider as String;
+			}else
+			{
+				if(provider is BlueMarbleMapProvider)
+					return WMSProviders.BLUE_MARBLE_MAP;
+				else if(provider is OnEarthProvider)
+					return WMSProviders.NASA;
+				else if(provider is OpenStreetMapProvider)
+					return WMSProviders.OPEN_STREET_MAP;
+				else if(provider is OpenMapQuestProvider)
+					return WMSProviders.MAPQUEST;
+				else if(provider is OpenMapQuestAerialProvider)
+					return WMSProviders.MAPQUEST_AERIAL;
+				else if(provider is StamenProvider)
+				{
+					var stamenProvider:StamenProvider = provider as StamenProvider;
+					if(stamenProvider.style == StamenProvider.STYLE_TERRAIN)
+						return WMSProviders.STAMEN_TERRAIN;
+					if(stamenProvider.style == StamenProvider.STYLE_TONER)
+						return WMSProviders.STAMEN_TONER;
+					if(stamenProvider.style == StamenProvider.STYLE_WATERCOLOR)
+						return WMSProviders.STAMEN_WATERCOLOR;
+				}
+				else if(provider is CustomWMS)
+					return WMSProviders.CUSTOM_MAP;
+			}
+			
+			return null;
+		}
+		
+		public const service:LinkableDynamicObject = registerSpatialProperty(new LinkableDynamicObject(IWMSService));
+		
 		public const preferLowerQuality:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public const serviceName:LinkableString = registerSpatialProperty(new LinkableString(WMSProviders.BLUE_MARBLE_MAP, verifyServiceName), setProvider);
+//		public const serviceName:LinkableString = registerSpatialProperty(new LinkableString(WMSProviders.BLUE_MARBLE_MAP, verifyServiceName), setProvider);
 		public const srs:LinkableString = newSpatialProperty(LinkableString); // needed for linking MapTool settings
 		public const styles:LinkableString = newLinkableChild(this, LinkableString, setStyle); // needed for changing seasons
 		public const displayMissingImage:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
@@ -338,6 +395,8 @@ package weave.visualization.plotters
 		private const _textField:TextField = new TextField(); // reusable object
 		private function drawCreditText(destination:BitmapData):void
 		{
+			if(_providerCredit == null)
+				return;
 			_textField.text = _providerCredit;
 			_tempMatrix.identity();
 			_tempMatrix.translate(0, destination.height - _textField.height);
@@ -347,22 +406,23 @@ package weave.visualization.plotters
 		/**
 		 * Set the provider for the plotter.
 		 */
-		private function setProvider():void
+		public function setProvider(provider:String):void
 		{
-			var provider:String = serviceName.value;
-			
-			if (_service != null)
-			{
-				disposeObjects(_service);
-			}
+			if(!verifyServiceName(provider))
+				return;
 			
 			if (provider == WMSProviders.NASA)
 			{
-				_service = newSpatialProperty(OnEarthProvider);
-			}			
+				service.requestLocalObject(OnEarthProvider,false);
+				
+			}
+			else if(provider == WMSProviders.CUSTOM_MAP)
+			{
+				service.requestLocalObject(CustomWMS,false);
+			}
 			else
 			{
-				_service = newSpatialProperty(ModestMapsWMS);
+				service.requestLocalObject(ModestMapsWMS,false);
 				_service.setProvider(provider);
 			}
 			
@@ -397,8 +457,11 @@ package weave.visualization.plotters
 		override public function dispose():void
 		{
 			if (_service != null)
+			{
 				_service.cancelPendingRequests(); // cancel everything to prevent any callbacks from running
-			
+				
+			}
+			WeaveAPI.SessionManager.disposeObjects(_service);
 			super.dispose();
 		}
 
@@ -428,6 +491,7 @@ package weave.visualization.plotters
 		{
 			return false;
 		}
+		[Deprecated(replacement="service")] public function set serviceName(value:String):void { setProvider(value); }
 	}
 }
 

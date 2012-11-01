@@ -39,8 +39,6 @@
     
     <mx:Script>
 	<![CDATA[
-		import flash.utils.setTimeout;
-		
 		import mx.core.UIComponent;
 		import mx.graphics.ImageSnapshot;
 		import mx.managers.PopUpManager;
@@ -53,8 +51,7 @@
 		import weave.utils.BitmapUtils;
 		
 		//Snapshot of the Application/Tool to be printed
-		[Bindable]
-		private var _imageSource:Object = null;
+		[Bindable] private var _imageSource:Object = null;
 		private var _componentToScreenshot:UIComponent = null;
 		public function get componentToScreenshot():UIComponent
 		{
@@ -206,9 +203,14 @@
 			var multiplier:Number = Weave.properties.workspaceMultiplier.value;
 			if (later)
 			{
+				alpha = 0;
 				setTimeout(scalePrintVbox, delay, false);
 				delay = 0;
 				multiplier = 0;
+			}
+			else
+			{
+				alpha = 1;
 			}
 			printVbox.scaleY = printVbox.scaleX = 1 / (multiplier+1);
 		}

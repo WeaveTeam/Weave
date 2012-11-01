@@ -100,6 +100,7 @@
 			import weave.services.AdminInterface;
 			import weave.services.WeaveAdminService;
 			import weave.ui.DraggablePanel;
+			import weave.ui.SessionStateEditor;
 			import weave.ui.TranslationPanel;
 			import weave.ui.WeaveProgressBar;
 			import weave.ui.admin.LoginPopup;
@@ -107,6 +108,9 @@
 			import weave.ui.admin.wizards.CSVImportWizard;
 			import weave.ui.admin.wizards.SHPImportWizard;
 			import weave.ui.admin.wizards.SQLImportWizard;
+
+			
+			SessionStateEditor.getInstance(); // adds keyboard shortcut f8 to open console
 			
 			private var _weaveTrace:Function = weaveTraceImpl; // reference this here so it gets compiled
 			

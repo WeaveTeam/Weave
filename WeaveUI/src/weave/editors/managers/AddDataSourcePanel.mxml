@@ -136,7 +136,7 @@
 					if (csvDataSource != null)
 						Alert.show(lang("Data Source added successfully"));
 					csvDataSource.url.value = csvDataSourceEditor.url.text;
-					csvDataSource.csvDataString.value = csvDataSourceEditor.csvDataString;
+					csvDataSource.setCSVDataString(csvDataSourceEditor.csvDataString);
 					csvDataSource.keyColName.value = csvDataSourceEditor.keyColumnName.text;
 					csvDataSource.keyType.value = csvDataSourceEditor.keyType.text;
 				}
@@ -185,7 +185,7 @@
 						if (csvSource != null)
 							Alert.show(lang("Data Source added successfully"));
 						csvSource.url.value = xlsDataSourceEditor.url.text;
-						csvSource.csvDataString.value = WeaveAPI.CSVParser.createCSV(xlsDataSourceEditor.xlsDataArray);
+						csvSource.setCSVDataString(WeaveAPI.CSVParser.createCSV(xlsDataSourceEditor.xlsDataArray));
 						csvSource.keyColName.value = xlsDataSourceEditor.keyColumnName.text;
 						csvSource.keyType.value = xlsDataSourceEditor.keyType.text;
 						return;

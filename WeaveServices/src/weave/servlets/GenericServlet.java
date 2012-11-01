@@ -446,7 +446,7 @@ public class GenericServlet extends HttpServlet
 					}
 					else if (expectedArgTypes[index] == String[].class || expectedArgTypes[index] == List.class)
 					{
-						String[][] table = CSVParser.defaultParser.parseCSV((String)value);
+						String[][] table = CSVParser.defaultParser.parseCSV((String)value, true);
 						if (table.length == 0)
 							value = new String[0]; // empty
 						else

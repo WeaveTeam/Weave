@@ -22,12 +22,13 @@ package weave.data.AttributeColumns
 	import flash.utils.Dictionary;
 	
 	import weave.api.WeaveAPI;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
-	import weave.api.data.ColumnMetadata;
+	import weave.core.LinkableVariable;
 	
 	/**
 	 * This column is defined by two columns of CSV data: keys and values.
@@ -56,7 +57,12 @@ package weave.data.AttributeColumns
 		/**
 		 * This should contain a two-column CSV with the first column containing the keys and the second column containing the values.
 		 */
-		public const csvData:LinkableString = newLinkableChild(this, LinkableString, invalidate);
+		public const data:LinkableVariable = newLinkableChild(this, LinkableString, invalidate);
+		
+		[Deprecated] public function set csvData(value:String):void
+		{
+			data.setSessionState(WeaveAPI.CSVParser.parseCSV(value));
+		}
 		
 		/**
 		 * This is the key type of the first column in the csvData.
@@ -100,7 +106,7 @@ package weave.data.AttributeColumns
 			
 			var key:IQualifiedKey;
 			var value:String;
-			var table:Array = WeaveAPI.CSVParser.parseCSV(csvData.value, true);
+			var table:Array = data.getSessionState() as Array || [];
 			for (var i:int = 0; i < table.length; i++)
 			{
 				var row:Array = table[i] as Array;

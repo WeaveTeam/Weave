@@ -20,7 +20,6 @@ package weave.tests;
 
 import java.io.File;
 
-import org.apache.commons.io.FileUtils;
 import weave.utils.CSVParser;
 
 public class TestCSV
@@ -33,13 +32,9 @@ public class TestCSV
 	{
 		File file = new File("src/weave/tests/test.csv");
 		System.out.println(file.getAbsolutePath());
-		String csvData = FileUtils.readFileToString(file);
-		
-		System.out.println(csvData);
-		System.out.println();
 		
 		System.out.println("parseCSV(csvData)");
-		String[][] parsedRows = CSVParser.defaultParser.parseCSV(csvData);
+		String[][] parsedRows = CSVParser.defaultParser.parseCSV(file, true);
 		for (int i = 0; i < parsedRows.length; i++)
 		{
 			for (int j = 0; j < parsedRows[i].length; j++)
@@ -48,7 +43,7 @@ public class TestCSV
 		System.out.println("Compare these results with Microsoft Excel\n");
 		
 		System.out.println("parseCSV(csvData, false), parseCSVToken, createCSVToken, parseCSVToken");
-		String[][] rows = CSVParser.defaultParser.parseCSV(csvData, true); // assuming this isn't sql server
+		String[][] rows = CSVParser.defaultParser.parseCSV(file, true); // assuming this isn't sql server
 		for (int i = 0; i < rows.length; i++)
 		{
 			for (int j = 0; j < rows[i].length; j++)

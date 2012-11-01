@@ -19,6 +19,13 @@
 
 package weave.utils;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -156,35 +163,59 @@ public class CSVParser
 	/**
 	 * This function parses a String as a CSV-encoded table.
 	 * @param csvData The CSV string to parse.
-	 * @return The result of parsing the CSV string.
-	 */
-	public String[][] parseCSV(String csvData)
-	{
-		return parseCSV(csvData, true);
-	}
-	/**
-	 * This function parses a String as a CSV-encoded table.
-	 * @param csvData The CSV string to parse.
 	 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
 	 * @return The result of parsing the CSV string.
 	 */
 	public String[][] parseCSV(String csvData, boolean parseTokens)
 	{
+		try {
+			return parseCSV(new ByteArrayInputStream(csvData.getBytes()), parseTokens);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			return null;
+		}
+	}
+	/**
+	 * This function parses a String as a CSV-encoded table.
+	 * @param csvData The CSV file to parse.
+	 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
+	 * @return The result of parsing the CSV string.
+	 */
+	public String[][] parseCSV(File csvFile, boolean parseTokens) throws IOException
+	{
+		return parseCSV(new FileInputStream(csvFile), parseTokens);
+	}
+	/**
+	 * This function parses a String as a CSV-encoded table.
+	 * @param csvData The CSV input to parse.
+	 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
+	 * @return The result of parsing the CSV string.
+	 */
+	public String[][] parseCSV(InputStream csvInput, boolean parseTokens) throws IOException
+	{
+		InputStreamReader csvReader = new InputStreamReader(csvInput, "ISO-8859-1");
+		
 		Vector<Vector<StringBuilder>> rows = new Vector<Vector<StringBuilder>>();
 
-		// special case -- if csvData is null or empty string, return an empty array (a set of zero rows)
-		if (csvData == null || csvData.length() == 0)
+		// special case -- if csv is empty, return an empty array (a set of zero rows)
+		if (csvInput.available() == 0)
 			return new String[0][];
 		
 		StringBuilder token = newToken(rows, true); // new row
 
 		boolean escaped = false;
 		
-		int fileSize = csvData == null ? 0 : csvData.length();
-		
+		int fileSize = csvInput.available();
+		char next = (char) csvReader.read();
 		for (int i = 0; i < fileSize; i++)
 		{
-			char chr = csvData.charAt(i);
+			char chr = next;
+			if (i < fileSize - 1)
+				next = (char) csvReader.read();
+			else
+				next = LF;
 			if (escaped)
 			{
 				if (chr == quote)
@@ -192,7 +223,7 @@ public class CSVParser
 					// append quote if not parsing tokens
 					if (!parseTokens)
 						token.append(quote);
-					if (i < fileSize - 1 && csvData.charAt(i + 1) == quote) // escaped quote
+					if (next == quote) // escaped quote
 					{
 						// always append second quote
 						token.append(quote);
@@ -231,7 +262,7 @@ public class CSVParser
 				else if (chr == CR)
 				{
 					// handle CRLF
-					if (i < fileSize - 1 && csvData.charAt(i + 1) == LF)
+					if (next == LF)
 						i++; // skip line feed
 					// start new token on new row
 					token = newToken(rows, true);
@@ -284,14 +315,26 @@ public class CSVParser
 	 * @param rows An array of rows.  If the row values are not Strings, toString() will be called on each value.
 	 * @return The rows encoded as a CSV String.
 	 */
-	public String createCSV(Object[][] rows, boolean quoteEmptyStrings)
+	public String createCSV(Object[][] rows, boolean quoteEmptyStrings) throws IOException
+	{
+		StringWriter out = new StringWriter();
+		createCSV(rows, quoteEmptyStrings, out);
+		return out.toString();
+	}
+	
+	/**
+	 * This function converts a table of Strings (or Objects) and encodes them as a single CSV String.
+	 * @param rows An array of rows.  If the row values are not Strings, toString() will be called on each value.
+	 * @param output Where the result will be directed.
+	 * @throws IOException 
+	 */
+	public void createCSV(Object[][] rows, boolean quoteEmptyStrings, Appendable output) throws IOException
 	{
 		String nullToken = quoteEmptyStrings ? "" : null;
-		StringBuilder result = new StringBuilder();
 		for (int iRow = 0; iRow < rows.length; iRow++)
 		{
 			if (iRow > 0)
-				result.append(LF);
+				output.append(LF);
 			
 			Object[] row = rows[iRow];
 			int lastCol = row.length - 1;
@@ -299,12 +342,11 @@ public class CSVParser
 			{
 				Object value = row[iCol];
 				String token = value == null ? nullToken : createCSVToken(value.toString(), quoteEmptyStrings);
-				result.append(token);
+				output.append(token);
 				if (iCol < lastCol)
-					result.append(delimiter);
+					output.append(delimiter);
 			}
 		}
-		return result.toString();
 	}
 	
 	/**

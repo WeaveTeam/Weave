@@ -372,7 +372,7 @@ package weave
 			{
 				var urlParams:URLVariables = new URLVariables(ExternalInterface.call("window.location.search.substring", 1)); // text after '?'
 				for (var key:String in urlParams)
-					if (!_flashVars.hasOwnProperty(key))
+					if (!_flashVars.hasOwnProperty(key)) // flashvars take precedence over url params
 						_flashVars[key] = urlParams[key];
 				
 				// backwards compatibility with old param name
@@ -513,11 +513,6 @@ package weave
 		{
 			var cookie:SharedObject = SharedObject.getLocal(RECOVER_SHARED_OBJECT);
 			return cookie.data[RECOVER_SHARED_OBJECT] as ByteArray;
-		}
-		
-		private function copySessionStateToClipboard():void
-		{
-			System.setClipboard(Weave.getSessionStateXML().toXMLString());
 		}
 		
 		private var _useWeaveExtensionWhenSavingToServer:Boolean;
@@ -766,7 +761,7 @@ package weave
 					createToolMenuItem(Weave.properties.showDisabilityOptions, "Disability Options", DraggablePanel.openStaticInstance, [DisabilityOptions]);
 
 	
-				
+
 				var _this:VisApplication = this;
 
 				if (!Weave.properties.dashboardMode.value)
@@ -775,12 +770,11 @@ package weave
 					
 					for each (var impl:Class in WeaveAPI.getRegisteredImplementations(IVisTool))
 					{
-						// TEMPORARY SOLUTION
-						if (_InitializeWeaveUI.toggleMap[impl] && !(_InitializeWeaveUI.toggleMap[impl] as LinkableBoolean).value)
-							continue;
-						
-						var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(impl);
-						_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(lang("Add {0}", displayName), createGlobalObject, [impl]));
+						if (Weave.properties.getToolToggle(impl).value)
+						{
+							var displayName:String = WeaveAPI.getRegisteredImplementationDisplayName(impl);
+							_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(lang("Add {0}", displayName), createGlobalObject, [impl]));
+						}
 					}
 				}
 				
@@ -788,6 +782,7 @@ package weave
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(
 					function():String { return lang((Weave.properties.dashboardMode.value ? "Disable" : "Enable") + " dashboard mode"); },
 					function():void { Weave.properties.dashboardMode.value = !Weave.properties.dashboardMode.value; }
+
 				));
 			}
 			
@@ -808,7 +803,6 @@ package weave
 			{
 				_sessionMenu = _weaveMenu.addMenuToMenuBar(lang("Session"), false);
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Edit session state"), SessionStateEditor.openDefaultEditor));
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Copy session state XML to clipboard"), copySessionStateToClipboard));
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Import session history..."), handleImportSessionState));
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Export session history..."), handleExportSessionState));
@@ -822,6 +816,8 @@ package weave
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Manage plugins..."), managePlugins));
 				}
+				_weaveMenu.addSeparatorToMenu(_sessionMenu);
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang('Restart Weave'), Weave.externalReload));
 				if (Weave.properties.showCollaborationMenuItem.value)
 				{
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
@@ -1340,9 +1336,6 @@ package weave
 			
 			if (Weave.properties.enableRightClick.value)
 			{
-				// Add item for the DatasetLoader
-				//DatasetLoader.createContextMenuItems(this);
-				
 				// Add context menu item for selection related items (subset creation, etc)	
 				if (Weave.properties.enableSubsetControls.value)
 					KeySetContextMenuItems.createContextMenuItems(this);
