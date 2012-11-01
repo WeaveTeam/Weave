@@ -10,8 +10,6 @@ package weave.services
     {
         private var entity_metacache:Object = {}; /* Of AttributeColumnInfo's */
         private var entity_childcache:Object = {}; /* Of arrays of AttributeColumnInfo's */
-        private var metaquery_queries:Object = {}; /* Of arrays of functions */
-        private var childquery_queries:Object = {}; /* Of arrays of functions */
         public function MetadataCache()
         {
         }
@@ -26,41 +24,30 @@ package weave.services
         public function fetch_children(id:int):AsyncToken
         {
 			// if no request is active, make the request
-			var token:AsyncToken = childquery_queries[id];
-            if (!token)
-			{
-				token = AdminInterface.instance.getEntityChildren(id);
-				addAsyncResponder(token, getChildrenHandler);
-	            function getChildrenHandler(event:ResultEvent, token:Object):void
-	            {
-	                var obj_children:Array = event.result as Array || [];
-	                var children:Array = [];
-	                for each (var obj:Object in obj_children)
-	                {
-	                    var entity:AttributeColumnInfo = AttributeColumnInfo.fromResult(obj);
-	                    entity_metacache[entity.id] = entity; /* Update the entries while we're here. */
-	                    children.push(entity.id);
-	                }
-	                entity_childcache[id] = children;
-	            }
-				childquery_queries[id] = token;
-			}
-			
+			var token:AsyncToken = AdminInterface.instance.getEntityChildEntities(id);
+			addAsyncResponder(token, getChildrenHandler);
+            function getChildrenHandler(event:ResultEvent, token:Object):void
+            {
+                var obj_children:Array = event.result as Array || [];
+                var children:Array = [];
+                for each (var obj:Object in obj_children)
+                {
+                    var entity:AttributeColumnInfo = AttributeColumnInfo.fromResult(obj);
+                    entity_metacache[entity.id] = entity; /* Update the entries while we're here. */
+                    children.push(entity.id);
+                }
+                entity_childcache[id] = children;
+            }
 			return token;
         }
         public function fetch_metadata(id:int):AsyncToken
         {
-			var token:AsyncToken = metaquery_queries[id];
-            if (!token)
-			{
-				token = AdminInterface.instance.getEntity(id);
-				addAsyncResponder(token, getEntityHandler);
-	            function getEntityHandler(event:ResultEvent, token:Object):void
-	            {
-	                entity_metacache[id] = event.result ? AttributeColumnInfo.fromResult(event.result) : null;
-	            }
-				metaquery_queries[id] = token;
-			}
+			var token:AsyncToken = AdminInterface.instance.getEntity(id);
+			addAsyncResponder(token, getEntityHandler);
+            function getEntityHandler(event:ResultEvent, token:Object):void
+            {
+                entity_metacache[id] = event.result ? AttributeColumnInfo.fromResult(event.result) : null;
+            }
 			return token;
         }
         public function invalidateRoot():void

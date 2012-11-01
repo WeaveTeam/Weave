@@ -287,9 +287,13 @@ package weave.services
                 {
                         return invokeAdminService("updateEntity", arguments);
                 }
-                public function getEntityChildren(connectionName:String, password:String, id:int):DelayedAsyncInvocation
+                public function getEntityChildIds(connectionName:String, password:String, id:int):DelayedAsyncInvocation
                 {
-                        return invokeAdminService("getEntityChildren", arguments);
+                        return invokeAdminService("getEntityChildIds", arguments);
+                }
+                public function getEntityChildEntities(connectionName:String, password:String, id:int):DelayedAsyncInvocation
+                {
+                        return invokeAdminService("getEntityChildEntities", arguments);
                 }
                 public function getEntity(connectionName:String, password:String, id:int):DelayedAsyncInvocation
                 {

@@ -131,7 +131,7 @@ public abstract class DeprecatedSQLConfig extends ISQLConfig
     {
         throw new RemoteException("Not implemented");
     }
-    public Collection<String> getUniqueValues(String property) throws RemoteException
+    public Collection<String> getUniquePublicValues(String property) throws RemoteException
     {
         throw new RemoteException("Not implemented");
     }
@@ -156,9 +156,13 @@ public abstract class DeprecatedSQLConfig extends ISQLConfig
     {
         throw new RemoteException("Not implemented");
     }
-    public Collection<DataEntity> getChildren(Integer parent_id) throws RemoteException
+    public Collection<Integer> getChildIds(Integer parent_id) throws RemoteException
     {
         throw new RemoteException("Not implemented");
+    }
+    public Collection<DataEntity> getChildEntities(Integer parent_id) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
     }
     public int getEntityType(int id) throws RemoteException
     {

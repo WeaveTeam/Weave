@@ -88,8 +88,9 @@ public abstract class ISQLConfig
 	public abstract Collection<DataEntity> getEntitiesByType(Integer id) throws RemoteException;
 	public abstract void addChild(Integer child_id, Integer parent_id) throws RemoteException;
 	public abstract void removeChild(Integer child_id, Integer parent_id) throws RemoteException;
-	public abstract Collection<DataEntity> getChildren(Integer parent_id) throws RemoteException;
-	public abstract Collection<String> getUniqueValues(String property) throws RemoteException;
+	public abstract Collection<Integer> getChildIds(Integer parent_id) throws RemoteException;
+	public abstract Collection<DataEntity> getChildEntities(Integer parent_id) throws RemoteException;
+	public abstract Collection<String> getUniquePublicValues(String property) throws RemoteException;
 	
 	public DataEntity getEntity(Integer id) throws RemoteException
 	{

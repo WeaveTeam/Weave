@@ -326,9 +326,13 @@ package weave.services
 		{
 			return service.getEntity(activeConnectionName, activePassword, id);
 		}
-		public function getEntityChildren(id:int):AsyncToken
+		public function getEntityChildIds(id:int):AsyncToken
 		{
-		    return service.getEntityChildren(activeConnectionName, activePassword, id);
+		    return service.getEntityChildIds(activeConnectionName, activePassword, id);
+		}
+		public function getEntityChildEntities(id:int):AsyncToken
+		{
+		    return service.getEntityChildEntities(activeConnectionName, activePassword, id);
 		}
 		public function getEntities(meta:Object):AsyncToken
 		{

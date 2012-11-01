@@ -60,7 +60,7 @@ package weave.ui
 					var typeInts:Array = [AttributeColumnInfo.ENTITY_TABLE, AttributeColumnInfo.ENTITY_COLUMN, AttributeColumnInfo.ENTITY_CATEGORY];
 					var typeStr:String = typeStrs[typeInts.indexOf(object.entity_type)];
 					var childrenStr:String = _children ? '; ' + _children.length + ' children' : '';
-					var idStr:String = ' (' + typeStr + object.id + childrenStr + ')';
+					var idStr:String = ' (' + typeStr + object.id + childrenStr + ') ' + debugId(this);
 					label += idStr;
 				}
 				

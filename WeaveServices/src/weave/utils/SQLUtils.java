@@ -555,7 +555,7 @@ public class SQLUtils
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
 	 * @param fromTable The table to perform the SELECT statement on.
 	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
-	 * @param valueType Either String.class or Object.class
+	 * @param valueType Either String.class or Object.class to denote the VALUE_TYPE class.
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */
@@ -606,6 +606,7 @@ public class SQLUtils
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
 	 * @param fromTable The table to perform the SELECT statement on.
 	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
+	 * @param valueType Either String.class or Object.class to denote the VALUE_TYPE class.
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */

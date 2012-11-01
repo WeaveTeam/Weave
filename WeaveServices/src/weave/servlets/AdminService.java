@@ -672,13 +672,17 @@ public class AdminService extends GenericServlet
                 else
                     throw new RemoteException("User cannot modify entity.", null);
         }
-        synchronized public DataEntity[] getEntityChildren(String connectionName, String password, int parent_id) throws RemoteException
+        synchronized public Integer[] getEntityChildIds(String connectionName, String password, int parent_id) throws RemoteException
         {
-                ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-                Collection<DataEntity> children = config.getChildren(parent_id);
-                System.out.println(String.format("getEntityChildren called; returned %d results.", children.size()));
-                /* Maybe I should fold this out into a hashMap of types to hashmaps of ids to hashmaps of properties to strings? */
-                return children.toArray(new DataEntity[0]);
+        	ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+        	Collection<Integer> children = config.getChildIds(parent_id);
+        	return children.toArray(new Integer[0]);
+        }
+        synchronized public DataEntity[] getEntityChildEntities(String connectionName, String password, int parent_id) throws RemoteException
+        {
+			ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+			Collection<DataEntity> children = config.getChildEntities(parent_id);
+			return children.toArray(new DataEntity[0]);
         }
         synchronized public DataEntity getEntity(String connectionName, String password, int id) throws RemoteException
         {
@@ -716,8 +720,8 @@ public class AdminService extends GenericServlet
 	}
 	public DataEntity[] testAllQueries(String connectionName, String password, Integer table_id) throws RemoteException
 	{
-                ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-                DataEntity[] columns = getEntityChildren(connectionName, password, table_id);
+		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+		DataEntity[] columns = getEntityChildEntities(connectionName, password, table_id);
 		for (DataEntity attributeColumnInfo : columns)
 		{
 			try
@@ -835,7 +839,7 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		
-		return config.getUniqueValues(ISQLConfig.PublicMetadata.KEYTYPE).toArray(new String[0]);
+		return config.getUniquePublicValues(ISQLConfig.PublicMetadata.KEYTYPE).toArray(new String[0]);
 	}
 
 	public UploadedFile[] getUploadedCSVFiles() throws RemoteException
