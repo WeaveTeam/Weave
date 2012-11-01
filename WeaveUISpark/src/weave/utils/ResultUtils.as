@@ -55,7 +55,7 @@ package weave.utils
 			var testColumn:CSVColumn = Weave.root.requestObject(colName, CSVColumn, false);
 			testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
 			testColumn.numericMode.value = true;
-			testColumn.csvData.value = WeaveAPI.CSVParser.createCSV(table);
+			testColumn.data.setSessionState(table);
 			testColumn.title.value =colName;
 			Weave.defaultColorDataColumn.internalDynamicColumn.globalName = Weave.root.getName(testColumn);
 			

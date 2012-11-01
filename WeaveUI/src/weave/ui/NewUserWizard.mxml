@@ -222,7 +222,7 @@
 							return;
 						var uniqueName:String = Weave.root.generateUniqueName("CSVDataSource");
 						var csvDataSource:CSVDataSource = Weave.root.requestObject(uniqueName,CSVDataSource, false);
-						csvDataSource.csvDataString.value = csvDataString;
+						csvDataSource.setCSVDataString(csvDataString);
 						csvDataSource.keyType.value = uniqueName;
 						if(uniqueColumns.length !=0)
 						{

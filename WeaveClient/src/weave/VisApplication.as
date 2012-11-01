@@ -1336,9 +1336,6 @@ package weave
 			
 			if (Weave.properties.enableRightClick.value)
 			{
-				// Add item for the DatasetLoader
-				//DatasetLoader.createContextMenuItems(this);
-				
 				// Add context menu item for selection related items (subset creation, etc)	
 				if (Weave.properties.enableSubsetControls.value)
 					KeySetContextMenuItems.createContextMenuItems(this);
