@@ -1,20 +1,15 @@
 package disabilityDictionary
 {
-	public class DisabilityObject implements IDisabilityObject
+	public class DisabilityObject 
 	{
+		//One disability object is made for every visualization tool
 		public function DisabilityObject()
 		{
 		}
 		
-		public var slope:Number;
-		
-		
-		public function getProperties(propertyName:Object):Array
-		{
-			var propertyNames:Array = new Array();
-			propertyNames.push(slope);
-			
-			return propertyNames;
-		}
+		//these are statistical calculations done in R
+		public var properties:Array = new Array();//array of properties for one object eg slope, periodicty, frequency
+		//this array contains all the characteristics of one visualization eg title, color
+		public var vizDetails:Array = new Array(); 
 	}
 }
