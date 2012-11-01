@@ -6,6 +6,7 @@ package
 
 	public function weaveTraceImpl(...args):void
 	{
-		WeaveAdminService.messageDisplay(null, args.join('\n'), false);
+		trace.apply(null, args);
+		WeaveAdminService.messageDisplay(null, args.join(' '), false);
 	}
 }

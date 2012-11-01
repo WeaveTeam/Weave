@@ -17,13 +17,16 @@
     </mx:HBox>
 <mx:Script>
 <![CDATA[
-    import weave.services.AdminInterface;
-    import weave.services.beans.AttributeColumnInfo;
-    import weave.core.UIUtils;
-    import mx.binding.utils.ChangeWatcher;
-    import weave.services.WeaveAdminService;
-    import weave.ui.EntityTreeNode;
-    import mx.controls.Alert;
+	import mx.binding.utils.ChangeWatcher;
+	import mx.controls.Alert;
+	
+	import weave.core.UIUtils;
+	import weave.services.AdminInterface;
+	import weave.services.WeaveAdminService;
+	import weave.services.addAsyncResponder;
+	import weave.services.beans.AttributeColumnInfo;
+	import weave.services.beans.EntityMetadata;
+	import weave.ui.EntityTreeNode;
     [Bindable] public var targetItem:EntityTreeNode = null;
     [Bindable] public var isChanged:Boolean = false;
 
@@ -65,7 +68,7 @@
     {
         var pubDiff:Object = EntityTreeNode.diffObjects(targetItem.object.publicMetadata, publicMetaGrid.metadata);
         var privDiff:Object = EntityTreeNode.diffObjects(targetItem.object.privateMetadata, privateMetaGrid.metadata);
-        function validateCommit(o:Object = null):void
+        function validateCommit(..._):void
         {
             metaChanged();
             if (isChanged)
@@ -75,7 +78,10 @@
             else
                 setEditors();
         }
-        targetItem.commit(pubDiff, privDiff, validateCommit);
+		var diff:EntityMetadata = new EntityMetadata();
+		diff.publicMetadata = pubDiff;
+		diff.privateMetadata = privDiff;
+        addAsyncResponder(targetItem.commit(diff), validateCommit);
     }
     private static function printobj(o:Object):void
     {

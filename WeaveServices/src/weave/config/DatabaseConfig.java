@@ -35,7 +35,7 @@ import weave.utils.SQLUtils;
  */
 
 public class DatabaseConfig
-		extends IDeprecatedSQLConfig
+		extends DeprecatedSQLConfig
 {
 	private DeprecatedDatabaseConfigInfo dbInfo = null;
 
@@ -64,7 +64,7 @@ public class DatabaseConfig
 	 * @throws SQLException
 	 * @throws InvalidParameterException
 	 */
-	public DatabaseConfig(IDeprecatedSQLConfig connectionConfig)
+	public DatabaseConfig(DeprecatedSQLConfig connectionConfig)
 			throws RemoteException, SQLException, InvalidParameterException
 	{
 		// save original db config info
@@ -157,7 +157,7 @@ public class DatabaseConfig
 	{
 		// list column names
 		List<String> columnNames = new Vector<String>();
-		for (String value : IDeprecatedSQLConfig.PUBLIC_METADATA_NAMES)
+		for (String value : DeprecatedSQLConfig.PUBLIC_METADATA_NAMES)
 			columnNames.add(value);
 		columnNames.add(PrivateMetadata.CONNECTION);
 		// list corresponding column types
@@ -207,7 +207,7 @@ public class DatabaseConfig
 
 	// This private ISQLConfig is for managing connections because
 	// the connection info shouldn't be stored in the database.
-	private IDeprecatedSQLConfig connectionConfig = null;
+	private DeprecatedSQLConfig connectionConfig = null;
 
 	// these functions are just passed to the private connectionConfig
 	public Document getDocument() throws RemoteException
@@ -241,7 +241,12 @@ public class DatabaseConfig
 
 				List<String> selectColumns = Arrays.asList(PublicMetadata.NAME);
 				List<Map<String, String>> columnRecords = SQLUtils.getRecordsFromQuery(
-					getConnection(), selectColumns, dbInfo.schema, dbInfo.geometryConfigTable, whereParams
+					getConnection(),
+					selectColumns,
+					dbInfo.schema,
+					dbInfo.geometryConfigTable,
+					whereParams,
+					String.class
 				);
 
 				HashSet<String> hashSet = new HashSet<String>();
@@ -281,7 +286,12 @@ public class DatabaseConfig
 				List<String> selectColumns = new LinkedList<String>();
 				selectColumns.add(PublicMetadata.DATATABLE);
 				List<Map<String, String>> columnRecords = SQLUtils.getRecordsFromQuery(
-					getConnection(), selectColumns, dbInfo.schema, dbInfo.dataConfigTable, whereParams
+					getConnection(),
+					selectColumns,
+					dbInfo.schema,
+					dbInfo.dataConfigTable,
+					whereParams,
+					String.class
 				);
 
 				HashSet<String> hashSet = new HashSet<String>();
@@ -359,7 +369,7 @@ public class DatabaseConfig
 		params.put(PublicMetadata.NAME, geometryCollectionName);
 		try
 		{
-			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, dbInfo.geometryConfigTable, params);
+			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), null, dbInfo.schema, dbInfo.geometryConfigTable, params, String.class);
 			if (records.size() > 0)
 			{
 				Map<String, String> record = records.get(0);
@@ -409,7 +419,7 @@ public class DatabaseConfig
 	{
 		throw new RemoteException("Not implemented");
 	}
-	synchronized public List<DataEntity> findDataEntity(DataEntity filterinfo) throws RemoteException
+	synchronized public List<DataEntity> findDataEntity(DataEntityMetadata filterinfo) throws RemoteException
 	{
 		Map<String, String> metadataQueryParams = new HashMap<String, String>();
 		metadataQueryParams.putAll(filterinfo.privateMetadata);
@@ -419,13 +429,13 @@ public class DatabaseConfig
 		try
 		{
 			// get rows matching given parameters
-			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), dbInfo.schema, dbInfo.dataConfigTable, metadataQueryParams);
+			List<Map<String, String>> records = SQLUtils.getRecordsFromQuery(getConnection(), null, dbInfo.schema, dbInfo.dataConfigTable, metadataQueryParams, String.class);
 			for (int i = 0; i < records.size(); i++)
 			{
 				Map<String, String> metadata = records.get(i);
-				String geomName = metadata.remove(IDeprecatedSQLConfig.GEOMETRYCOLLECTION); // remove deprecated property from metadata
+				String geomName = metadata.remove(DeprecatedSQLConfig.GEOMETRYCOLLECTION); // remove deprecated property from metadata
 				// special case -- derive keyType from geometryCollection if keyType is missing
-				if (metadata.get(PublicMetadata.KEYTYPE).length() == 0)
+				if (((String)metadata.get(PublicMetadata.KEYTYPE)).length() == 0)
 				{
 					GeometryCollectionInfo geomInfo = null;
 					// we don't care if the following line fails because we
@@ -443,9 +453,9 @@ public class DatabaseConfig
 				}
 				
 				Map<String, String> privateMetadata = new HashMap<String,String>();
-				privateMetadata.put(PrivateMetadata.CONNECTION, metadata.remove(PrivateMetadata.CONNECTION));
-				privateMetadata.put(PrivateMetadata.SQLQUERY, metadata.remove(PrivateMetadata.SQLQUERY));
-				privateMetadata.put(PrivateMetadata.SQLPARAMS, metadata.remove(PrivateMetadata.SQLPARAMS));
+				privateMetadata.put(PrivateMetadata.CONNECTION, (String)metadata.remove(PrivateMetadata.CONNECTION));
+				privateMetadata.put(PrivateMetadata.SQLQUERY, (String)metadata.remove(PrivateMetadata.SQLQUERY));
+				privateMetadata.put(PrivateMetadata.SQLPARAMS, (String)metadata.remove(PrivateMetadata.SQLPARAMS));
 
 				DataEntity info = new DataEntity();
 				info.privateMetadata = privateMetadata;

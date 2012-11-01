@@ -1,169 +1,110 @@
 package weave.services
 {
+    import mx.rpc.AsyncToken;
     import mx.rpc.events.ResultEvent;
     
     import weave.services.beans.AttributeColumnInfo;
+    import weave.services.beans.EntityMetadata;
+
     public class MetadataCache
     {
         private var entity_metacache:Object = {}; /* Of AttributeColumnInfo's */
         private var entity_childcache:Object = {}; /* Of arrays of AttributeColumnInfo's */
-        private var metaquery_queues:Object = {}; /* Of arrays of functions */
-        private var childquery_queues:Object = {}; /* Of arrays of functions */
+        private var metaquery_queries:Object = {}; /* Of arrays of functions */
+        private var childquery_queries:Object = {}; /* Of arrays of functions */
         public function MetadataCache()
         {
         }
-        public function get_children(id:int, onComplete:Function = null):Array
+        public function get_children(id:int):Array
         {
-            if (entity_childcache[id] != null)
-            {
-                return entity_childcache[id];
-            }
-            else
-            {
-                fetch_children(id, onComplete);
-                return null; 
-            }
+            return entity_childcache[id];
         }
-        public function get_metadata(id:int, onComplete:Function = null):AttributeColumnInfo
+        public function get_metadata(id:int):AttributeColumnInfo
         {
-            if (entity_metacache[id] != null)
-            {
-                return entity_metacache[id];
-            }
-            else
-            {
-                fetch_metadata(id, onComplete);
-                return null;
-            }
+            return entity_metacache[id];
         }
-        public function fetch_children(id:int, onComplete:Function = null):void
+        public function fetch_children(id:int):AsyncToken
         {
-            if (childquery_queues[id] == null) childquery_queues[id] = [];
-
-            var queue:Array = childquery_queues[id];
-
-            if (onComplete != null)
-                queue.push(onComplete);
-
-            if (queue.length == 1)
-				addAsyncResponder(AdminInterface.instance.getEntityChildren(id), getChildrenHandler);
-
-            function getChildrenHandler(event:ResultEvent):void
-            {
-                var obj_children:Array = event.result as Array || [];
-                var children:Array = [];
-                for each (var obj:Object in obj_children)
-                {
-                    var entity:AttributeColumnInfo = new AttributeColumnInfo(obj);
-                    entity_metacache[entity.id] = entity; /* Update the entries while we're here. */
-                    children.push(entity.id);
-                }
-                entity_childcache[id] = children;
-                /* Call all the queued requesters, if any */
-                while (queue.length > 0)
-                {
-                    var f:Function = queue.shift();
-                    f(children);
-                }
-            }
+			// if no request is active, make the request
+			var token:AsyncToken = childquery_queries[id];
+            if (!token)
+			{
+				token = AdminInterface.instance.getEntityChildren(id);
+				addAsyncResponder(token, getChildrenHandler);
+	            function getChildrenHandler(event:ResultEvent, token:Object):void
+	            {
+	                var obj_children:Array = event.result as Array || [];
+	                var children:Array = [];
+	                for each (var obj:Object in obj_children)
+	                {
+	                    var entity:AttributeColumnInfo = AttributeColumnInfo.fromResult(obj);
+	                    entity_metacache[entity.id] = entity; /* Update the entries while we're here. */
+	                    children.push(entity.id);
+	                }
+	                entity_childcache[id] = children;
+	            }
+				childquery_queries[id] = token;
+			}
+			
+			return token;
         }
-        public function fetch_metadata(id:int, onComplete:Function = null):void
+        public function fetch_metadata(id:int):AsyncToken
         {
-            if (metaquery_queues[id] == null) metaquery_queues[id] = [];
-            var queue:Array = metaquery_queues[id];
-
-            if (onComplete != null)
-                queue.push(onComplete);
-
-            if (queue.length == 1)
-				addAsyncResponder(AdminInterface.instance.getEntity(id), getEntityHandler);
-
-            function getEntityHandler(event:ResultEvent):void
-            {
-                var entity:AttributeColumnInfo = new AttributeColumnInfo(event.result);
-                entity_metacache[id] = entity;
-                while (queue.length > 0)
-                {
-                    var f:Function = queue.shift();
-                    f(entity);
-                }
-            }
+			var token:AsyncToken = metaquery_queries[id];
+            if (!token)
+			{
+				token = AdminInterface.instance.getEntity(id);
+				addAsyncResponder(token, getEntityHandler);
+	            function getEntityHandler(event:ResultEvent, token:Object):void
+	            {
+	                entity_metacache[id] = event.result ? AttributeColumnInfo.fromResult(event.result) : null;
+	            }
+				metaquery_queries[id] = token;
+			}
+			return token;
         }
-        public function invalidate(id:int = -2):void
+        public function invalidateRoot():void
         {
-            if (id == -2)
-            {
-                entity_metacache = {};
-                entity_childcache = {};
-            }
-            else 
-            {
-                delete entity_metacache[id];
-                delete entity_childcache[id];
-            }
+            entity_metacache = {};
+            entity_childcache = {};
         }
-        public function update_metadata(id:int, pubMeta:Object, privMeta:Object, onComplete:Function = null):void
+        public function update_metadata_and_fetch(id:int, metadata:EntityMetadata):AsyncToken
         {
-            function afterUpdate():void
-            {
-                fetch_metadata(id, onComplete);
-            }
             delete entity_metacache[id];
-			addAsyncResponder(AdminInterface.instance.updateEntity(id, {"public":pubMeta, "private":privMeta}), afterUpdate);
-            /* Do stuff, and things. */ 
+			
+			AdminInterface.instance.updateEntity(id, metadata);
+            return fetch_metadata(id);
         }
-        public function add_tag(label:String, onComplete:Function = null):void
+        public function add_tag_and_fetch(label:String):AsyncToken
         {
             /* Entity creation should usually impact root, so we'll invalidate root's cache entry and refetch. */
-            function afterUpdate():void
-            {
-                delete entity_childcache[-1];  /* Invalidate the root. */
-                fetch_children(-1, onComplete);
-            }
-            var meta:Object = {};
-            meta["public"] = {title: label};
-			addAsyncResponder(AdminInterface.instance.addTag(meta), afterUpdate);
+            var em:EntityMetadata = new EntityMetadata();
+			em.publicMetadata = {title: label};
+            delete entity_childcache[-1];  /* Invalidate the root. */
+			AdminInterface.instance.addTag(em);
+			return fetch_children(-1);
         }
-        public function delete_entity(id:int, onComplete:Function = null):void
+        public function delete_entity_and_fetch(id:int):AsyncToken
         {
             /* Entity deletion should usually impact root, so we'll invalidate root's cache entry and refetch. */
-            function afterUpdate():void
-            {
-                fetch_children(-1, onComplete);
-            }
             delete entity_childcache[id];
             delete entity_metacache[id]; 
             /* Invalidate the root. */
             delete entity_childcache[-1];
-			addAsyncResponder(AdminInterface.instance.removeEntity(id), afterUpdate);
+			AdminInterface.instance.removeEntity(id);
+			return fetch_children(-1);
         }
-        public function add_child(child_id:int, parent_id:int, onComplete:Function = null):void
+        public function add_child_and_fetch(child_id:int, parent_id:int):AsyncToken
         {
-            function afterUpdate():void
-            {
-                fetch_children(parent_id, onComplete);
-            }
             delete entity_childcache[parent_id];
-			addAsyncResponder(AdminInterface.instance.addChildToParent(child_id, parent_id), afterUpdate);
+			AdminInterface.instance.addChildToParent(child_id, parent_id);
+			return fetch_children(parent_id);
         }
-        public function copy_and_add(child_id:int, parent_id:int, onComplete:Function = null):void
+        public function remove_child_and_fetch(child_id:int, parent_id:int):AsyncToken
         {
-            function afterCopy(event:ResultEvent):void
-            {
-                var new_child_id:int = int(event.result);
-                add_child(new_child_id, parent_id, onComplete);
-            }
-			addAsyncResponder(AdminInterface.instance.copyEntity(child_id), afterCopy);
-            return;
-        }
-        public function remove_child(child_id:int, parent_id:int, onComplete:Function = null):void
-        {
-            function afterUpdate():void
-            {
-                fetch_children(parent_id, onComplete);
-            }
             delete entity_childcache[parent_id];
-			addAsyncResponder(AdminInterface.instance.removeChildFromParent(child_id, parent_id), afterUpdate);
+			AdminInterface.instance.removeChildFromParent(child_id, parent_id);
+            return fetch_children(parent_id);
         }
     }
 }

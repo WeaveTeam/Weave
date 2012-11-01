@@ -28,6 +28,7 @@ package weave.services
 	
 	import weave.core.CallbackCollection;
 	import weave.services.beans.ConnectionInfo;
+	import weave.services.beans.EntityMetadata;
 	import weave.services.beans.GeometryCollectionInfo;
 	
 	/**
@@ -113,11 +114,7 @@ package weave.services
 			// we want to use a queue so the admin functions will execute in the correct order.
 			queue.addToQueue(query);
 			// automatically display FaultEvent error messages as alert boxes
-                        function outputToConsole(event:ResultEvent, token:Object = null):void
-                        {
-                               messageDisplay("Query sent:", String(token), false);
-                        }
-			query.addAsyncResponder(outputToConsole, alertFault, query);
+			query.addAsyncResponder(null, alertFault, query);
 			return query;
 		}
 		
@@ -286,7 +283,7 @@ package weave.services
                 public function removeEntity(connectionName:String, password:String, id:int):DelayedAsyncInvocation{
                         return invokeAdminService("removeEntity", arguments);
                 }
-                public function updateEntity(connectionName:String, password:String, id:int, metadata:Object):DelayedAsyncInvocation
+                public function updateEntity(connectionName:String, password:String, id:int, metadata:EntityMetadata):DelayedAsyncInvocation
                 {
                         return invokeAdminService("updateEntity", arguments);
                 }

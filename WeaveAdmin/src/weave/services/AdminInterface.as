@@ -38,6 +38,7 @@ package weave.services
 	import weave.services.beans.AttributeColumnInfo;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
+	import weave.services.beans.EntityMetadata;
 	import weave.services.beans.GeometryCollectionInfo;
 
 	public class AdminInterface
@@ -225,7 +226,7 @@ package weave.services
 					fileName
 				);
 			query.addAsyncResponder(handler);
-			function handler(event:ResultEvent, token:Object=null):void
+			function handler(..._):void
 			{
 				getWeaveFileNames();
 				getPrivateWeaveFileNames(); //temporary solution instead of adding another function remove private weave files
@@ -252,7 +253,7 @@ package weave.services
 		{
 			var query:DelayedAsyncInvocation = service.saveConnectionInfo(activeConnectionName, activePassword, connectionInfo, configOverwrite);
 			query.addAsyncResponder(handler);
-			function handler(event:ResultEvent, token:Object=null):void
+			function handler(..._):void
 			{
 				getConnectionNames();
 			}
@@ -263,7 +264,7 @@ package weave.services
 		{
 			var query:DelayedAsyncInvocation = service.removeConnectionInfo(activeConnectionName, activePassword, connectionName);
 			query.addAsyncResponder(handler);
-			function handler(event:ResultEvent, token:Object=null):void
+			function handler(..._):void
 			{
 				getConnectionNames();
 			}
@@ -289,15 +290,15 @@ package weave.services
 			return query;
 		}
 		// functions for managing DataTable entries
-		public function addAttributeColumn(metadata:Object):AsyncToken
+		public function addAttributeColumn(metadata:EntityMetadata):AsyncToken
 		{
 			return service.addAttributeColumn(activeConnectionName, activePassword, metadata);
 		}
-		public function addDataTable(metadata:Object):AsyncToken
+		public function addDataTable(metadata:EntityMetadata):AsyncToken
 		{
 			return service.addDataTable(activeConnectionName, activePassword, metadata);
 		}
-		public function addTag(metadata:Object):AsyncToken
+		public function addTag(metadata:EntityMetadata):AsyncToken
 		{
 			return service.addTag(activeConnectionName, activePassword, metadata); 
 		}
@@ -317,9 +318,9 @@ package weave.services
 		{
 			return service.removeEntity(activeConnectionName, activePassword, id);
 		}
-		public function updateEntity(id:int, meta:Object):AsyncToken
+		public function updateEntity(id:int, metadata:EntityMetadata):AsyncToken
 		{
-			return service.updateEntity(activeConnectionName, activePassword, id, meta);
+			return service.updateEntity(activeConnectionName, activePassword, id, metadata);
 		}
 		public function getEntity(id:int):AsyncToken
 		{
@@ -540,7 +541,7 @@ package weave.services
 			);
 			
 			query.addAsyncResponder(handler);
-			function handler(event:ResultEvent, token:Object=null):void
+			function handler(..._):void
 			{
 				getDataTables();
 				getKeyTypes();
@@ -565,7 +566,7 @@ package weave.services
 				filterColumns
 			);
 			query.addAsyncResponder(handler);
-			function handler(event:ResultEvent, token:Object=null):void
+			function handler(..._):void
 			{
 				getDataTables();
 				getKeyTypes();

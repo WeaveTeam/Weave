@@ -36,7 +36,7 @@
 	<mx:HBox>
 		<mx:RadioButton id="keyTypeRadio" group="{shapeOrKey}" selected="true" label="{Strings.key_type}" textAlign="left" width="{_indent}" toolTip="{Strings.tip_key_type_radiobutton}"/>
 		<mx:HBox enabled="{keyTypeRadio.selected &amp;&amp; !refreshingKeyTypes}">
-			<ui:CustomComboBox id="keyTypeCombo" editable="true" text="{_defaultKeyType}" enabled="{keyTypeCombo.dataProvider.length > 0}" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.tip_key_type_dropdown}" valueCommit="if (UIUtils.hasFocus(keyTypeCombo)) keyTypeIsSet = true;"/>
+			<ui:CustomComboBox id="keyTypeCombo" editable="true" text="{_defaultKeyType}" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.tip_key_type_dropdown}" valueCommit="if (UIUtils.hasFocus(keyTypeCombo)) keyTypeIsSet = true;"/>
 			<mx:Button id="keyTypeRefresh" label="Refresh" click="getKeyTypes()" toolTip="{Strings.tip_refresh_key_types}"/>
 		</mx:HBox>
 		<!--mx:Button label="?" click="showHelpForKeyType()"/-->

@@ -15,7 +15,7 @@
         </mx:HBox>
     </mx:VBox>
     <mx:VBox height="100%" width="60%">
-        <mx:Label text="Tags"/>
+        <mx:Label text="Custom Hierarchy"/>
         <ui:EntityTree id="tagTree" entityType="{AttributeColumnInfo.ENTITY_CATEGORY}" 
             width="100%" height="100%" 
             dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
@@ -27,14 +27,15 @@
     </mx:VBox>
 <mx:Script>
 <![CDATA[
-    import weave.services.beans.AttributeColumnInfo;
-    import weave.services.AdminInterface;
-    import weave.core.UIUtils;
-    import weave.utils.PopUpUtils;
-
-    import mx.events.PropertyChangeEvent;
-    import mx.events.ListEvent;
-    import mx.binding.utils.ChangeWatcher;
+	import mx.binding.utils.ChangeWatcher;
+	import mx.events.ListEvent;
+	import mx.events.PropertyChangeEvent;
+	
+	import weave.core.UIUtils;
+	import weave.services.AdminInterface;
+	import weave.services.addAsyncResponder;
+	import weave.services.beans.AttributeColumnInfo;
+	import weave.utils.PopUpUtils;
 
     [Bindable] public var selectedItem:EntityTreeNode;
     public function handleCreated():void
@@ -49,12 +50,14 @@
     public function deleteTable():void
     {
         var item:EntityTreeNode = tableTree.selectedItem as EntityTreeNode;
+		if (item == null)
+			return;
         PopUpUtils.confirm(this, "Delete Table", "Delete selected table? All data columns in this table will also be deleted from all associated tags.", deleteTableFunction, null, "Delete", "Keep")
         function deleteTableFunction():void
         {
             item.remove_self();
             /* A table deletion will also incur a deletion of all of its data columns, which could reside in any tag. Therefore, we should invalidate the entire metadata cache. */
-            AdminInterface.instance.meta_cache.invalidate();
+            AdminInterface.instance.meta_cache.invalidateRoot();
             tableTree.reload();
             tagTree.reload();
             tagTree.invalidateList();
@@ -74,18 +77,19 @@
         var meta:Object = {};
         meta["public"] = {title: name};
         */
-        function finish_add_tag(obj:Object=null):void
+        function finish_add_tag(..._):void
         {
             tagNameInput.text = "";
             tagTree.reload();
         };
-        AdminInterface.instance.meta_cache.add_tag(name, finish_add_tag);
+        addAsyncResponder(AdminInterface.instance.meta_cache.add_tag_and_fetch(name), finish_add_tag);
         
     }
     public function selectionsChanged(event:ListEvent):void
     {
         var item:EntityTreeNode = event.currentTarget.selectedItem as EntityTreeNode;
-        if (item == null) return;
+        if (item == null)
+			return;
         this.selectedItem = item;
         if (event.currentTarget == tagTree) 
             tableTree.selectedItem = null;
@@ -100,7 +104,8 @@
     {
         /* These behaviours kinda suck, just using these til someone comes up with something better. */
         var item:EntityTreeNode = tagTree.selectedItem as EntityTreeNode;
-        if (item == null) return;
+        if (item == null)
+			return;
         var entity_type:int = item.object.entity_type;
         var parent:EntityTreeNode = tagTree.getParentItem(item);
         if (parent)
@@ -109,24 +114,22 @@
 
             tagTree.validateNow();
         }
-        else 
+        else if (entity_type == AttributeColumnInfo.ENTITY_CATEGORY)
         {
-            if (entity_type == AttributeColumnInfo.ENTITY_CATEGORY)
+            PopUpUtils.confirm(this, "Delete Tag", 'Delete tag "' + item.label + '"?', deleteTagFunction, null, "Delete", "Keep")
+            // TODO: Add confirmation dialog
+            function deleteTagFunction():void
             {
-                PopUpUtils.confirm(this, "Delete Tag", "Delete tag \"" + item.label + "\"?", deleteTagFunction, null, "Delete", "Keep")
-                // TODO: Add confirmation dialog
-                function deleteTagFunction():void
-                {
-                    // TODO: Regenerate the list.
-                    tagTree.etn_root.remove_child(item.id);
-                    item.remove_self();
-                    tagTree.reload();
-                }
+                // TODO: Regenerate the list.
+                tagTree.etn_root.remove_child(item.id);
+                item.remove_self();
+                tagTree.reload();
             }
-            else
-            {
-                // TODO: Add error, as this should never happen.
-            }
+        }
+        else
+        {
+			// this occurs when Root is selected
+			weaveTrace("Entity is not a category");
         }
     }
 ]]>

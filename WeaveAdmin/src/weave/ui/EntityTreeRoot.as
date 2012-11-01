@@ -11,7 +11,7 @@ package weave.ui
             super(-1);
             aci = new AttributeColumnInfo();
             aci.id = -1;
-            aci.entity_type = AttributeColumnInfo.ENTITY_TABLE;
+            aci.entity_type = AttributeColumnInfo.ENTITY_CATEGORY;
             aci.privateMetadata = {};
             aci.publicMetadata = {};
             this.filterFunc = filterFunc;

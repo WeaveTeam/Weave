@@ -67,7 +67,7 @@
 				<mx:HBox>
 					<mx:Button label="Save this database connection" click="saveConnectionInfo()"/>
 					<mx:Button label="Clear fields" click="clearConnectionFields()" />
-					<mx:Button label="Remove selected connection" click="handleRemoveConnection()" enabled="{AdminInterface.instance.userHasAuthenticated}"/>
+					<mx:Button label="Remove selected connection" click="handleRemoveConnection()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
 				</mx:HBox>
 			</mx:VBox>
 		</mx:Canvas>
@@ -99,6 +99,7 @@
 			import weave.api.WeaveAPI;
 			import weave.services.AdminInterface;
 			import weave.services.DelayedAsyncInvocation;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.ConnectionInfo;
 			import weave.ui.Indent;
 			import weave.ui.IndentTextInput;
@@ -156,16 +157,18 @@
 			
 			private function loadDatabaseInfo():void
 			{
+				if (treeWithSearch.tree.selectedItem == null)
+					return;
+				
 				tabNavigator.selectedChild = simpleSetting;
 				
-				var query:DelayedAsyncInvocation = AdminInterface.instance.getConnectionInfo(treeWithSearch.tree.selectedItem.label);
-				query.addAsyncResponder(handleResult);
+				var name:String = treeWithSearch.tree.selectedItem.label;
+				addAsyncResponder(AdminInterface.instance.getConnectionInfo(name), handleResult);
 
 				function handleResult(event:ResultEvent, token:Object = null):void
 				{
 					var info:ConnectionInfo = new ConnectionInfo(event.result);
 					//Connection name
-					//connectionNameInput.text = tree.tree.selectedItem.label;
 					connectionNameInput.text = info.name;
 					//SQL Server Type
 					connectionDBMSCombo.selectedIndex = ConnectionInfo.dbmsList.indexOf(info.dbms);

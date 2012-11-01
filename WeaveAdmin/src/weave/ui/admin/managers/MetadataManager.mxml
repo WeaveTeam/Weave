@@ -23,7 +23,7 @@
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" 
 				width="100%" height="100%" 
-				label="Data{metadataEditor.isChanged?'*':''}" 
+				label="Data Hierarchies{metadataEditor.isChanged?'*':''}" 
                                 >
         <ui:HierarchyEditor width="50%" height="100%" id="columnSelector" enabled="{!metadataEditor.isChanged}"/>
         <ui:MetadataEditor width="50%" height="100%" id="metadataEditor" targetItem="{columnSelector.selectedItem}"/>

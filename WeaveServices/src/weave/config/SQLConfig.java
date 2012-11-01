@@ -121,19 +121,18 @@ public class SQLConfig
 	}
 	private void initSQLTables() throws RemoteException, SQLException
 	{
-	        public_attributes = new AttributeValueTable(connection, dbInfo.schema, table_meta_public);
-                private_attributes = new AttributeValueTable(connection, dbInfo.schema, table_meta_private);	
-                relationships = new ParentChildTable(connection, dbInfo.schema, table_tags);
-                manifest = new ManifestTable(connection, dbInfo.schema, table_manifest);
-	/* TODO: Figure out nice way to do this from within the classes. */	
+		public_attributes = new AttributeValueTable(connection, dbInfo.schema, table_meta_public);
+		private_attributes = new AttributeValueTable(connection, dbInfo.schema, table_meta_private);	
+		relationships = new ParentChildTable(connection, dbInfo.schema, table_tags);
+		manifest = new ManifestTable(connection, dbInfo.schema, table_manifest);
+		/* TODO: Figure out nice way to do this from within the classes. */	
         /*	SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, META_ID, table_manifest, MAN_ID);
 		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, META_ID, table_manifest, MAN_ID);*/
-	        
 	}
-        public boolean isConnectedToDatabase()
-        {
-                return true;
-        }
+	public boolean isConnectedToDatabase()
+	{
+		return true;
+	}
 	synchronized public DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException
 	{
 		return connectionConfig.getDatabaseConfigInfo();
@@ -165,7 +164,7 @@ public class SQLConfig
 	}
 
 
-        public Integer addEntity(Integer type_id, Map<String,Map<String,String>> properties) throws RemoteException
+        public Integer addEntity(Integer type_id, DataEntityMetadata properties) throws RemoteException
         {
             Integer id = manifest.addEntry(type_id);
             if (properties != null)
@@ -189,19 +188,15 @@ public class SQLConfig
             public_attributes.clearId(id);
             private_attributes.clearId(id);
         }
-        public void updateEntity(Integer id, Map<String,Map<String,String>> properties) throws RemoteException
+        public void updateEntity(Integer id, DataEntityMetadata properties) throws RemoteException
         {
-            Map<String,String> pubMeta = properties.get("public");
-            Map<String,String> privMeta = properties.get("private");
-            if (pubMeta != null)
-            for (Entry<String,String> propval : pubMeta.entrySet())
+            for (Entry<String,String> propval : properties.publicMetadata.entrySet())
             {
                 String key = propval.getKey();
                 String value = propval.getValue();
                 public_attributes.setProperty(id, key, value);
             }
-            if (privMeta != null)
-            for (Entry<String,String> propval : privMeta.entrySet())
+            for (Entry<String,String> propval : properties.privateMetadata.entrySet())
             {
                 String key = propval.getKey();
                 String value = propval.getValue();
@@ -212,21 +207,19 @@ public class SQLConfig
         {
             return getEntities(manifest.getByType(type_id));
         }
-        public Collection<DataEntity> findEntities(Map<String,Map<String,String>> properties, Integer type_id) throws RemoteException
+        public Collection<DataEntity> findEntities(DataEntityMetadata properties, Integer type_id) throws RemoteException
         {
-            Map<String,String> publicprops = properties.get("public");
-            Map<String,String> privateprops = properties.get("private");
             Set<Integer> publicmatches = null;
             Set<Integer> privatematches = null;
             Set<Integer> matches = null;
 
-            if (publicprops != null && publicprops.size() > 0)
-                publicmatches = public_attributes.filter(publicprops);
-            if (privateprops != null && privateprops.size() > 0)
-                privatematches = private_attributes.filter(privateprops);
-            /* Ick */
+            if (properties.publicMetadata != null && properties.publicMetadata.size() > 0)
+                publicmatches = public_attributes.filter(properties.publicMetadata);
+            if (properties.privateMetadata != null && properties.privateMetadata.size() > 0)
+                privatematches = private_attributes.filter(properties.privateMetadata);
             if ((publicmatches != null) && (privatematches != null))
             {
+            	// intersection
                 publicmatches.retainAll(privatematches);
                 matches = publicmatches;
             }
@@ -250,11 +243,13 @@ public class SQLConfig
             Map<Integer,Integer> typeresults = manifest.getEntryTypes(ids);
             Map<Integer,Map<String,String>> publicresults = public_attributes.getProperties(ids);
             Map<Integer,Map<String,String>> privateresults = private_attributes.getProperties(ids);
-            if (typeresults == null) return results;
+            if (typeresults == null)
+            	return results;
             for (Integer id : ids)
             {
                 Integer type = typeresults.get(id);
-                if (type == null) continue;
+                if (type == null)
+                	continue;
                 DataEntity tmp = new DataEntity();
                 tmp.id = id; 
                 tmp.type = type;
@@ -269,10 +264,11 @@ public class SQLConfig
             /* Do a recursive copy of an entity. */
             Integer new_id;
             DataEntity old_data = getEntity(id);
-            Map<String,Map<String,String>> props = new HashMap<String,Map<String,String>>();
-            props.put("public", old_data.publicMetadata);
-            props.put("private", old_data.privateMetadata);
-            new_id = addEntity(old_data.type, props);
+            Integer new_type = old_data.type;
+            // copy table as tag
+            if (new_type == DataEntity.MAN_TYPE_DATATABLE)
+            	new_type = DataEntity.MAN_TYPE_TAG;
+            new_id = addEntity(new_type, old_data);
 
             Collection<DataEntity> old_children = getChildren(id);
             for (DataEntity child : old_children)
@@ -301,7 +297,8 @@ public class SQLConfig
         }
         public Collection<DataEntity> getChildren(Integer id) throws RemoteException
         {
-            if (id == -1) id = null;
+            if (id == -1)
+            	id = null;
             Collection<Integer> children_ids = relationships.getChildren(id);
             if (id == null)
             {
@@ -333,7 +330,8 @@ public class SQLConfig
                 this.conn = conn;
                 this.tableName = tableName;
                 this.schemaName = schemaName;
-                if (!tableExists()) initTable();
+                if (!tableExists())
+                	initTable();
             }
             protected abstract void initTable() throws RemoteException;
             private boolean tableExists() throws RemoteException
@@ -357,12 +355,14 @@ public class SQLConfig
             }
             protected void initTable() throws RemoteException
             {
-                try 
-                {
-                Connection conn = this.conn.getConnection();
-                SQLUtils.createTable(conn, schemaName, tableName, 
-                    Arrays.asList(META_ID, META_PROPERTY, META_VALUE),
-                    Arrays.asList("BIGINT UNSIGNED", "TEXT", "TEXT"));
+				try 
+				{
+					Connection conn = this.conn.getConnection();
+					SQLUtils.createTable(
+						conn, schemaName, tableName,
+						Arrays.asList(META_ID, META_PROPERTY, META_VALUE),
+						Arrays.asList("BIGINT UNSIGNED", "TEXT", "TEXT")
+					);
 
                 } 
                 catch (SQLException e)
@@ -373,16 +373,20 @@ public class SQLConfig
                 {
                     Connection conn = this.conn.getConnection();
                     /* Index of (ID, Property) */
-                    SQLUtils.createIndex(conn, schemaName, tableName,
+                    SQLUtils.createIndex(
+                    		conn, schemaName, tableName,
                             tableName+META_ID+META_PROPERTY,
                             new String[]{META_ID, META_PROPERTY},
-                            new Integer[]{0, 255});
+                            new Integer[]{0, 255}
+                    );
 
                     /* Index of (Property, Value) */
-                    SQLUtils.createIndex(conn, schemaName, tableName,
+                    SQLUtils.createIndex(
+                    		conn, schemaName, tableName,
                             tableName+META_PROPERTY+META_VALUE,
                             new String[]{META_PROPERTY, META_VALUE},
-                            new Integer[]{255,255});
+                            new Integer[]{255,255}
+                    );
                 }
                 catch (SQLException e)
                 {
@@ -434,13 +438,15 @@ public class SQLConfig
                 try
                 {
                     Connection conn = this.conn.getConnection();
-                    Map<String,String> params = new HashMap<String,String>();
+                    Map<String,Object> params = new HashMap<String,Object>();
                     Map<Integer,String> result = new HashMap<Integer,String>();
                     params.put(META_PROPERTY, property);
-                    List<Map<String,String>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(META_ID, META_VALUE), schemaName,tableName, params);
-                    for (Map<String,String> row : rows)
+                    List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(META_ID, META_VALUE), schemaName, tableName, params, Object.class);
+                    for (Map<String,Object> row : rows)
                     {
-                        result.put(Integer.parseInt(row.get(META_ID)), row.get(META_VALUE));
+                    	Number id = (Number)row.get(META_ID);
+                    	String value = (String)row.get(META_VALUE);
+                        result.put(id.intValue(), value);
                     }
                     return result;
                 }
@@ -470,7 +476,8 @@ public class SQLConfig
 
                     for (Entry<String,String> keyValPair : constraints.entrySet())
                     {
-                        if (keyValPair.getKey() == null || keyValPair.getValue() == null) continue;
+                        if (keyValPair.getKey() == null || keyValPair.getValue() == null)
+                        	continue;
                         Map<String,String> colValPair = new HashMap<String,String>();
                         colValPair.put(META_PROPERTY, keyValPair.getKey());
                         colValPair.put(META_VALUE, keyValPair.getValue());
@@ -494,11 +501,13 @@ public class SQLConfig
             {
                 try 
                 {
-                    Connection conn = this.conn.getConnection();
-                    SQLUtils.createTable(conn, schemaName, tableName,
-                        Arrays.asList(TAG_CHILD, TAG_PARENT),
-                        Arrays.asList("BIGINT UNSIGNED", "BIGINT UNSIGNED"));
-                /* No indices needed. */
+					Connection conn = this.conn.getConnection();
+					SQLUtils.createTable(
+							conn, schemaName, tableName,
+							Arrays.asList(TAG_CHILD, TAG_PARENT),
+							Arrays.asList("BIGINT UNSIGNED", "BIGINT UNSIGNED")
+					);
+					/* No indices needed. */
                 }
                 catch (SQLException e)
                 {
@@ -533,14 +542,13 @@ public class SQLConfig
                     }
                     else 
                     {
-                        List<String> columns = new LinkedList<String>();
                         Map<String,Object> query = new HashMap<String,Object>();
-                        Set<Integer> children = new HashSet<Integer>();
                         query.put(TAG_PARENT, parent_id);
-                        /* Ew. Need to add properly generic select. Or use JOOQ. */
-                        for (Map<String,String> row : SQLUtils.getRecordsFromQuery(conn, columns, schemaName, tableName, query))
+                        Set<Integer> children = new HashSet<Integer>();
+                        for (Map<String,Object> row : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class))
                         {
-                            children.add(Integer.parseInt(row.get(TAG_CHILD)));
+                        	Number child = (Number)row.get(TAG_CHILD);
+                            children.add(child.intValue());
                         }
                         return children;
                     }
@@ -652,15 +660,15 @@ public class SQLConfig
                 try
                 {
                     Connection conn = this.conn.getConnection();
-                    Map<String,Integer> whereParams = new HashMap<String,Integer>();
-                    List<Map<String,String>> sqlres;
+                    Map<String,Object> whereParams = new HashMap<String,Object>();
+                    List<Map<String,Object>> sqlres;
                     for (Integer id : ids)
                     {
-                        whereParams.clear();
                         whereParams.put(MAN_ID, id);
-                        sqlres = SQLUtils.getRecordsFromQuery(
-                            conn, Arrays.asList(MAN_ID, MAN_TYPE), schemaName, tableName, whereParams);
-                        result.put(id, new Integer(sqlres.get(0).get(MAN_TYPE)));
+                        sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(MAN_ID, MAN_TYPE), schemaName, tableName, whereParams, Object.class);
+                        // sqlres has one row
+                        Number type = (Number) sqlres.get(0).get(MAN_TYPE);
+                        result.put(id, type.intValue());
                     }
                     return result;
                 }
@@ -678,15 +686,15 @@ public class SQLConfig
                 try
                 {
                     Collection<Integer> ids = new LinkedList<Integer>();
-                    Map<String,Integer> whereParams = new HashMap<String,Integer>();
-                    List<Map<String,String>> sqlres;
+                    Map<String,Object> whereParams = new HashMap<String,Object>();
+                    List<Map<String,Object>> sqlres;
                     Connection conn = this.conn.getConnection();
                     whereParams.put(MAN_TYPE, type_id);
-                    sqlres = SQLUtils.getRecordsFromQuery(
-                        conn, Arrays.asList(MAN_ID, MAN_TYPE), schemaName, tableName, whereParams);
-                    for (Map<String,String> row : sqlres)
+                    sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(MAN_ID, MAN_TYPE), schemaName, tableName, whereParams, Object.class);
+                    for (Map<String,Object> row : sqlres)
                     {
-                        ids.add(Integer.parseInt(row.get(MAN_ID)));
+                    	Number id = (Number) row.get(MAN_ID);
+                        ids.add(id.intValue());
                     }
                     return ids;
                 }

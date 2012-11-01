@@ -56,7 +56,7 @@ import weave.utils.XMLUtils;
  * @author Andy Dufilie
  */
 
-public class SQLConfigXML extends IDeprecatedSQLConfig
+public class SQLConfigXML extends DeprecatedSQLConfig
 {
 	public static void copyEmbeddedDTD(String configPath)
 	{
@@ -547,7 +547,7 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 			
 			info.publicMetadata = new HashMap<String, String>();
 			info.publicMetadata.put(PublicMetadata.DATATABLE, tableName);
-			for (String property : IDeprecatedSQLConfig.PUBLIC_METADATA_NAMES)
+			for (String property : DeprecatedSQLConfig.PUBLIC_METADATA_NAMES)
 			{
 				if (property == PublicMetadata.DATATABLE)
 					continue;
@@ -560,7 +560,7 @@ public class SQLConfigXML extends IDeprecatedSQLConfig
 					// if keyType still missing, grab keyType from the geometryCollection.
 					if (value.length() == 0)
 					{
-						String geomAttr = IDeprecatedSQLConfig.GEOMETRYCOLLECTION;
+						String geomAttr = DeprecatedSQLConfig.GEOMETRYCOLLECTION;
 						String geomName = getCascadedAttribute(columnNodeProperties, geomAttr, tableProperties, geomAttr);
 						if (geometryCollectionCache.containsKey(geomName))
 							value = geometryCollectionCache.get(geomName).get(PublicMetadata.KEYTYPE);

@@ -40,6 +40,7 @@ import weave.beans.GeometryStreamMetadata;
 import weave.beans.WeaveRecordList;
 import weave.config.ISQLConfig;
 import weave.config.ISQLConfig.DataEntity;
+import weave.config.ISQLConfig.DataEntityMetadata;
 import weave.config.ISQLConfig.DataType;
 import weave.config.ISQLConfig.PrivateMetadata;
 import weave.config.ISQLConfig.PublicMetadata;
@@ -149,8 +150,8 @@ public class DataService extends GenericServlet
 	{
 		List<String> keys = new ArrayList<String>();
 		keys = ListUtils.copyArrayToList(keysArray, keys);
-		HashMap<String,String> params = new HashMap<String,String>();
-		params.put(PublicMetadata.KEYTYPE,keyType);
+		DataEntityMetadata params = new DataEntityMetadata();
+		params.publicMetadata.put(PublicMetadata.KEYTYPE,keyType);
 		HashMap<String,Integer> keyMap = new HashMap<String,Integer>();
 		for (int keyIndex = 0; keyIndex < keysArray.length; keyIndex++)
 			keyMap.put( keysArray[keyIndex],keyIndex);
@@ -158,7 +159,7 @@ public class DataService extends GenericServlet
 		int rowIndex =0;
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(ISQLConfig.siftMeta(params)));
+		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(params));
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		if (infoList.size() > 100)
@@ -293,38 +294,40 @@ public class DataService extends GenericServlet
 	/**
 	 * should return two columns -- keys and data
 	 */
-	public AttributeColumnDataWithKeys getAttributeColumn(Map<String, String> params)
+	public AttributeColumnDataWithKeys getAttributeColumn(Map<String, String> publicParams)
 		throws RemoteException
 	{
-		String attributeColumnName = params.get(PublicMetadata.NAME);
+		DataEntityMetadata params = new DataEntityMetadata();
+		params.publicMetadata = publicParams;
+		String attributeColumnName = params.publicMetadata.get(PublicMetadata.NAME);
 
 		// remove min,max,sqlParams -- do not use them to query the config
-		String paramMinStr = params.remove(PublicMetadata.MIN);
-		String paramMaxStr = params.remove(PublicMetadata.MAX);
-		String sqlParams = params.remove(PrivateMetadata.SQLPARAMS);
-		String dataTableName = params.get(PublicMetadata.DATATABLE); /* We don't rely on this field anymore. */
+		String paramMinStr = params.publicMetadata.remove(PublicMetadata.MIN);
+		String paramMaxStr = params.publicMetadata.remove(PublicMetadata.MAX);
+		String sqlParams = params.publicMetadata.remove(PrivateMetadata.SQLPARAMS);
+		String dataTableName = params.publicMetadata.get(PublicMetadata.DATATABLE); /* We don't rely on this field anymore. */
 
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
 
 		/* Find what DataTable ID we're looking for. */
-                String tableId = null;
-                Map<String,String> tableParams = new HashMap<String,String>();
-                tableParams.put(PublicMetadata.TITLE, dataTableName);
-                List<DataEntity> tableList = new ArrayList<DataEntity>(config.findEntities(ISQLConfig.siftMeta(params), DataEntity.MAN_TYPE_DATATABLE));
-                if (tableList.size() > 1)
-                    throw new RemoteException(String.format("Multiple datatable matches for \"%s\"", dataTableName));
-                else if (tableList.size() == 0)
-                    throw new RemoteException(String.format("Could not find datatable \"%s\"", dataTableName));
-                else
-                    tableId = String.format("%d", tableList.get(0).id);
-                params.put(PublicMetadata.DATATABLE_ID, tableId); 
-		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(ISQLConfig.siftMeta(params)));
+		String tableId = null;
+		DataEntityMetadata tableParams = new DataEntityMetadata();
+		tableParams.publicMetadata.put(PublicMetadata.NAME, dataTableName);
+		List<DataEntity> tableList = new ArrayList<DataEntity>(config.findEntities(tableParams, DataEntity.MAN_TYPE_DATATABLE));
+		if (tableList.size() > 1)
+		    throw new RemoteException(String.format("Multiple datatable matches for \"%s\"", dataTableName));
+		else if (tableList.size() == 0)
+		    throw new RemoteException(String.format("Could not find datatable \"%s\"", dataTableName));
+		else
+		    tableId = String.format("%d", tableList.get(0).id);
+		params.publicMetadata.put(PublicMetadata.DATATABLE_ID, tableId); 
+		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(params));
 		
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		String debug = "";
-		for (Entry<String,String> e : params.entrySet())
+		for (Entry<String,String> e : params.publicMetadata.entrySet())
 			debug += "; " + e;
 		if (infoList.size() > 1)
 			throw new RemoteException("More than one matching column found. "+params+debug);
@@ -463,12 +466,15 @@ public class DataService extends GenericServlet
 		return result;
 	}
 	
-	public SQLResult getRowSetFromAttributeColumn(Map<String, String> params)
+	public SQLResult getRowSetFromAttributeColumn(Map<String, String> publicParams)
 		throws RemoteException
 	{
+		DataEntityMetadata params = new DataEntityMetadata();
+		params.publicMetadata = publicParams;
+		
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(ISQLConfig.siftMeta(params)));
+		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(params));
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
 		if (infoList.size() > 1)
@@ -494,10 +500,10 @@ public class DataService extends GenericServlet
 	{
 		configManager.detectConfigChanges();
 		ISQLConfig config = configManager.getConfig();
-		Map<String,String> publicMetadataFilter = new HashMap<String,String>();
-		publicMetadataFilter.put(PublicMetadata.NAME, geometryCollectionName);
-
-		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(ISQLConfig.siftMeta(publicMetadataFilter)));
+		
+		DataEntityMetadata params = new DataEntityMetadata();
+		params.publicMetadata.put(PublicMetadata.NAME, geometryCollectionName);
+		List<DataEntity> infoList = new ArrayList<DataEntity>(config.findEntities(params));
 		if (infoList.size() == 1)
 			return getGeometryStreamTileDescriptors(infoList.get(0).id);
 		throw new RemoteException(String.format("%s matches for geometry collection \"%s\"", infoList.size(), geometryCollectionName));

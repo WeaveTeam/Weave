@@ -24,7 +24,6 @@ import java.sql.Connection;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -69,41 +68,22 @@ public abstract class ISQLConfig
 	 */
 	public abstract void addConnection(ConnectionInfo connectionInfo) throws RemoteException;
 
-	/**
-	 * Looks up a connection in this configuration by name.
-	 * 
-	 * @param connectionName
-	 *            The name of a connection configuration entry.
-	 * @return An object containing the configuration for the specified
-	 *         connection.
-	 * @throws RemoteException
-	 *             if the info could not be retrieved.
-	 */
-	public static Map<String,Map<String,String>> siftMeta(Map<String,String> mergedMeta)
-	{
-	    Map<String,Map<String,String>> result = new HashMap<String,Map<String,String>>();
-	    Map<String,String> pubMeta = new HashMap<String,String>(); 
-	    Map<String,String> privMeta = new HashMap<String,String>(); 
-	    result.put("private", privMeta);
-	    result.put("public", pubMeta);
-	    return result;
-	}
 	public abstract ConnectionInfo getConnectionInfo(String connectionName) throws RemoteException;
 
 	public abstract boolean isConnectedToDatabase();
 	public abstract DatabaseConfigInfo getDatabaseConfigInfo() throws RemoteException;
-	public abstract Integer addEntity(Integer type_id, Map<String,Map<String,String>> properties) throws RemoteException;
+	public abstract Integer addEntity(Integer type_id, DataEntityMetadata properties) throws RemoteException;
 	public Integer copyEntity(Integer id) throws RemoteException
 	{
-	    return id; /* May not be meaningful on all backends. */
+		throw new RemoteException("copyEntity() not implemented");
 	}
 	public abstract void removeEntity(Integer id) throws RemoteException;
-	public abstract void updateEntity(Integer id, Map<String,Map<String,String>> properties) throws RemoteException;
-	public Collection<DataEntity> findEntities(Map<String,Map<String,String>> properties) throws RemoteException
+	public abstract void updateEntity(Integer id, DataEntityMetadata properties) throws RemoteException;
+	public Collection<DataEntity> findEntities(DataEntityMetadata properties) throws RemoteException
 	{
 	    return findEntities(properties, -1);
 	}
-	public abstract Collection<DataEntity> findEntities(Map<String,Map<String,String>> properties, Integer type_id) throws RemoteException;
+	public abstract Collection<DataEntity> findEntities(DataEntityMetadata properties, Integer manifestType) throws RemoteException;
 	public abstract Collection<DataEntity> getEntities(Collection<Integer> ids) throws RemoteException;
 	public abstract Collection<DataEntity> getEntitiesByType(Integer id) throws RemoteException;
 	public abstract void addChild(Integer child_id, Integer parent_id) throws RemoteException;
@@ -133,11 +113,10 @@ public abstract class ISQLConfig
     }
     @Deprecated public boolean userCanModifyDataTable(String connectionName, String dataTableName) throws RemoteException
     {
-        Map<String,Map<String,String>> metadataFilter = new HashMap<String,Map<String,String>>();
+        DataEntityMetadata metadataFilter = new DataEntityMetadata();
         Map<String,String> publicMetadataFilter = new HashMap<String,String>();
         publicMetadataFilter.put(PublicMetadata.DATATABLE, dataTableName);
-        metadataFilter.put("public", publicMetadataFilter);
-        metadataFilter.put("private", null);
+        metadataFilter.publicMetadata = publicMetadataFilter;
         Collection<DataEntity> entries = findEntities(metadataFilter);
         
         for (DataEntity result : entries)
@@ -292,31 +271,54 @@ public abstract class ISQLConfig
 			}
 		}
 	}
+	
+	
+	/**
+	 * This class contains public and private metadata for an entity.
+	 */
+	static public class DataEntityMetadata
+	{
+	    private static final String PUBLIC_METADATA = "publicMetadata";
+	    private static final String PRIVATE_METADATA = "privateMetadata";
+	    
+		public static DataEntityMetadata fromMap(Map<String,Map<String,String>> object)
+		{
+        	DataEntityMetadata dem = new DataEntityMetadata();
+        	
+        	if (object.get(PRIVATE_METADATA) != null)
+        		dem.privateMetadata = object.get(PRIVATE_METADATA);
+        	
+        	if (object.get(PUBLIC_METADATA) != null)
+        		dem.publicMetadata = object.get(PUBLIC_METADATA);
+        	
+        	return dem;
+		}
+		
+		public Map<String,String> privateMetadata = new HashMap<String, String>();
+		public Map<String,String> publicMetadata = new HashMap<String, String>();
+	}
 
 	/**
 	 * This class contains metadata for an attributeColumn entry.
 	 */
-	@SuppressWarnings("unchecked")
-	static public class DataEntity
+	static public class DataEntity extends DataEntityMetadata
 	{
 		public static final Integer MAN_TYPE_DATATABLE = 0;
 		public static final Integer MAN_TYPE_COLUMN = 1;
 		public static final Integer MAN_TYPE_TAG = 2;
 		public int id = -1;
 		public int type;
-		public Map<String,String> privateMetadata = Collections.EMPTY_MAP;
-		public Map<String,String> publicMetadata = Collections.EMPTY_MAP;
         /* For cases where the config API isn't sufficient. TODO */
         public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params)
         {
             return filterEntities(entities, params, -1);
         }
-        public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params, Integer type_id)
+        public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params, Integer manifestType)
         {
             List<DataEntity> result = new LinkedList<DataEntity>();
             for (DataEntity entity : entities)
             {
-                if (type_id != -1 && type_id != entity.type)
+                if (manifestType != -1 && manifestType != entity.type)
                     continue;
                 boolean match = true;
                 for (Entry<String,String> entry : params.entrySet())
@@ -334,22 +336,6 @@ public abstract class ISQLConfig
         }
         public DataEntity()
         {
-        }
-        private DataEntity(String... propvals)
-        {
-            if (propvals.length % 2 == 1)
-                throw new IllegalArgumentException("DataEntity constructor's argument list length must be divisible by 2, ie, key,value,key,value...");
-            privateMetadata = new HashMap<String,String>();
-            publicMetadata = new HashMap<String,String>();
-            for (int i = 0; i < propvals.length; i+=2)
-            {
-                String key = propvals[i];
-                String value = propvals[i+1];
-                if (PrivateMetadata.isPrivate(key))
-                    privateMetadata.put(key, value);
-                else
-                    publicMetadata.put(key,value);
-            }
         }
 		public String getConnectionName()
 		{

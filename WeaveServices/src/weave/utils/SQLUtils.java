@@ -555,43 +555,28 @@ public class SQLUtils
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
 	 * @param fromTable The table to perform the SELECT statement on.
 	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
+	 * @param valueType Either String.class or Object.class
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */
-	public static <VALUE_TYPE> List<Map<String,String>> getRecordsFromQuery(
-			Connection conn,
-			String fromSchema,
-			String fromTable,
-			Map<String,VALUE_TYPE> whereParams
-		) throws SQLException
-	{
-		return getRecordsFromQuery(conn, null, fromSchema, fromTable, whereParams);
-	}
-	
-	/**
-	 * @param conn An existing SQL Connection
-	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
-	 * @param fromTable The table to perform the SELECT statement on.
-	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
-	 * @return The resulting rows returned by the query.
-	 * @throws SQLException If the query fails.
-	 */
-	public static List<Map<String,String>> getRecordsFromResultSet(ResultSet rs) throws SQLException
+	@SuppressWarnings("unchecked")
+	public static <VALUE_TYPE> List<Map<String,VALUE_TYPE>> getRecordsFromResultSet(ResultSet rs, Class<VALUE_TYPE> valueType) throws SQLException
 	{
 		// list the column names in the result
 		String[] columnNames = new String[rs.getMetaData().getColumnCount()];
 		for (int i = 0; i < columnNames.length; i++)
 			columnNames[i] = rs.getMetaData().getColumnName(i + 1);
 		// create a Map from each row
-		List<Map<String,String>> records = new Vector<Map<String,String>>();
+		List<Map<String,VALUE_TYPE>> records = new Vector<Map<String,VALUE_TYPE>>();
 		while (rs.next())
 		{
-			Map<String,String> record = new HashMap<String,String>(columnNames.length);
+			Map<String,VALUE_TYPE> record = new HashMap<String,VALUE_TYPE>(columnNames.length);
 			for (int i = 0; i < columnNames.length; i++)
 			{
 				String columnName = columnNames[i];
-				String columnValue = rs.getString(columnName);
-				record.put(columnName, columnValue);
+				Object columnValue = (valueType == String.class) ? rs.getString(columnName) : rs.getObject(columnName);
+				
+				record.put(columnName, (VALUE_TYPE)columnValue);
 			}
 			records.add(record);
 		}
@@ -617,19 +602,20 @@ public class SQLUtils
 	
 	/**
 	 * @param conn An existing SQL Connection
-	 * @param selectColumns The list of column names 
+	 * @param selectColumns The list of column names, or null for all columns 
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
 	 * @param fromTable The table to perform the SELECT statement on.
 	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */
-	public static <VALUE_TYPE> List<Map<String,String>> getRecordsFromQuery(
+	public static <VALUE_TYPE> List<Map<String,VALUE_TYPE>> getRecordsFromQuery(
 			Connection conn,
 			List<String> selectColumns,
 			String fromSchema,
 			String fromTable,
-			Map<String,VALUE_TYPE> whereParams
+			Map<String,VALUE_TYPE> whereParams,
+			Class<VALUE_TYPE> valueType
 		) throws SQLException
 	{
 		CallableStatement cstmt = null;
@@ -662,7 +648,7 @@ public class SQLUtils
 			cstmt = prepareCall(conn, query, getEntryValues(whereEntries));
 			rs = cstmt.executeQuery();
 			
-			return getRecordsFromResultSet(rs);
+			return getRecordsFromResultSet(rs, valueType);
 		}
 		catch (SQLException e)
 		{

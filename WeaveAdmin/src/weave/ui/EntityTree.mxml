@@ -7,24 +7,26 @@
     showRoot="false">
 <mx:Script>
 <![CDATA[
-import weave.services.AdminInterface;
-import weave.services.beans.AttributeColumnInfo;
-import weave.services.WeaveAdminService;
-import weave.ui.EntityTreeNode;
-import weave.ui.EntityTreeRoot;
-import weave.ui.HierarchyDescriptor;
-
-import mx.collections.ArrayCollection;
-import mx.events.ListEvent;
-import mx.events.TreeEvent;
-import mx.events.DragEvent;
-import mx.managers.DragManager;
-import mx.events.PropertyChangeEvent;
-import mx.rpc.events.ResultEvent;
-import mx.binding.utils.ChangeWatcher;
-import mx.utils.ObjectUtil;
-
-import flash.utils.getQualifiedClassName;
+	import flash.utils.getQualifiedClassName;
+	
+	import mx.binding.utils.BindingUtils;
+	import mx.binding.utils.ChangeWatcher;
+	import mx.collections.ArrayCollection;
+	import mx.events.DragEvent;
+	import mx.events.ListEvent;
+	import mx.events.PropertyChangeEvent;
+	import mx.events.TreeEvent;
+	import mx.managers.DragManager;
+	import mx.rpc.events.ResultEvent;
+	import mx.utils.ObjectUtil;
+	
+	import weave.services.AdminInterface;
+	import weave.services.WeaveAdminService;
+	import weave.services.addAsyncResponder;
+	import weave.services.beans.AttributeColumnInfo;
+	import weave.ui.EntityTreeNode;
+	import weave.ui.EntityTreeRoot;
+	import weave.ui.HierarchyDescriptor;
 
 public var entityType:int;
 private var connWatcher:ChangeWatcher;
@@ -79,12 +81,7 @@ private function filterByType(item:EntityTreeNode, index:int, arr:Array):Boolean
 }
 public function handleCreated():void
 {
-    var tree:EntityTree = this as EntityTree;
-    function connectionReady(event:PropertyChangeEvent):void
-    {
-       tree.connectionReady(event, tree); 
-    }
-    connWatcher = ChangeWatcher.watch(AdminInterface.instance, "userHasAuthenticated", connectionReady);
+	BindingUtils.bindSetter(connectionReady, AdminInterface.instance, "userHasAuthenticated");
 }
 public function reload(obj:Object = null):void
 {
@@ -102,28 +99,30 @@ public function reload(obj:Object = null):void
         selectedItem = oldSelectedItem;
     
 }
-private function connectionReady(event:PropertyChangeEvent, tree:Tree):void
+private function connectionReady(userHasAuthenticated:Boolean):void
 {
-    if (event.newValue == true)
+    if (userHasAuthenticated == true)
     {
-        function emptyValidate(obj:Object):void
+		var tree:EntityTree = this;
+        function emptyValidate(..._):void
         { 
             /* Twiddle the dataProvider */
 			weaveTrace("Validating!");
-            tree.dataProvider.refresh()
-            tree.invalidateList();
-            tree.validateNow();
+			tree.dataProvider.refresh()
+			tree.invalidateList();
+			tree.validateNow();
         }
-        function setProvider(event:Object):void
+        function setProvider(..._):void
         { 
             etn_root = new EntityTreeRoot(filterByType);
             dataDescriptor = new HierarchyDescriptor();
-            tree.dataProvider = etn_root;
-            tree.dataProvider.enableAutoUpdate();
+			tree.dataProvider = etn_root;
+			tree.dataProvider.enableAutoUpdate();
             etn_root.addEventListener("childrenChanged", emptyValidate);
-            tree.validateNow();
+			tree.validateNow();
         }
-        AdminInterface.instance.meta_cache.get_children(-1, setProvider);
+        if (AdminInterface.instance.meta_cache.get_children(-1) == null)
+			addAsyncResponder(AdminInterface.instance.meta_cache.fetch_children(-1), setProvider);
     }
 }
 ]]>

@@ -43,7 +43,7 @@
 		</mx:VBox>
 		<mx:VBox label="All files">
 			<mx:HBox>
-				<mx:Button label="Open selected file" click="openSelectedFile(sharedTreeWithSearch)" enabled="{sharedTreeWithSearch.tree.selectedItem != null}"/>				
+				<mx:Button label="Open selected file" click="openSelectedFile(sharedTreeWithSearch)" enabled="{sharedTreeWithSearch.tree.selectedItem != null}"/>
 			</mx:HBox>
 			<ui:TreeWithSearch id="sharedTreeWithSearch" prompt="Search"
 							   doubleClickEnabled="true" doubleClick="if (sharedTreeWithSearch.tree.contains(event.target as DisplayObject)) openSelectedFile(sharedTreeWithSearch)"

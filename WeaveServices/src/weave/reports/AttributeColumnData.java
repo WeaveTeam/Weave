@@ -23,12 +23,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import weave.config.ISQLConfig;
 import weave.config.ISQLConfig.DataEntity;
+import weave.config.ISQLConfig.DataEntityMetadata;
 import weave.config.ISQLConfig.PublicMetadata;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
@@ -64,12 +63,12 @@ public class AttributeColumnData
 		keys.clear();
 		
 		//get query
-		Map<String, String>params = new HashMap<String, String>();
-		params.put(PublicMetadata.DATATABLE, dataTableName);
-		params.put(PublicMetadata.NAME, attributeColumnName);
+		DataEntityMetadata params = new DataEntityMetadata();
+		params.publicMetadata.put(PublicMetadata.DATATABLE, dataTableName);
+		params.publicMetadata.put(PublicMetadata.NAME, attributeColumnName);
 		if ((year != null) && (year.length() > 0))
-			params.put(PublicMetadata.YEAR, year);
-		Collection<DataEntity> infoList = config.findEntities(ISQLConfig.siftMeta(params), DataEntity.MAN_TYPE_DATATABLE);
+			params.publicMetadata.put(PublicMetadata.YEAR, year);
+		Collection<DataEntity> infoList = config.findEntities(params, DataEntity.MAN_TYPE_DATATABLE);
                 DataEntity info = null;
                 for (DataEntity i : infoList)
                 {

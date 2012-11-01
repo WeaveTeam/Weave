@@ -32,6 +32,8 @@ package weave.services
 	 */
 	public class AsyncInvocationQueue
 	{
+		public static var debug:Boolean = true;
+		
 		public function AsyncInvocationQueue()
 		{
 		}
@@ -49,6 +51,16 @@ package weave.services
 			}
 			
 			WeaveAPI.ProgressIndicator.addTask(query);
+			
+			if (debug)
+			{
+				addAsyncResponder(
+					query,
+					function(..._):void { weaveTrace('Query returned: ' + query); },
+					function(..._):void { weaveTrace('Query failed: ' + query); }
+				);
+			}
+
 			
 			_downloadQueue.push(query);
 			
@@ -73,6 +85,9 @@ package weave.services
 			query.addAsyncResponder(handleQueryResultOrFault, handleQueryResultOrFault, query);
 			
 			//URLRequestUtils.reportProgress = false;
+			
+			if (debug)
+				weaveTrace('Query sent: ' + query);
 			
 			query.invoke();
 			
