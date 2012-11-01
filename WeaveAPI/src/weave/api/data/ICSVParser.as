@@ -26,9 +26,8 @@ package weave.api.data
 		 * This will parse a CSV String into a two-dimensional Array of String values.
 		 * @param csvData The CSV String to parse.
 		 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
-		 * @return The destination Array, or a new Array if none was specified.  The result of parsing the CSV string will be stored here.
 		 */
-		function parseCSV(csvData:String, parseTokens:Boolean = true, destination:Array = null):Array;
+		function parseCSV(csvData:String, parseTokens:Boolean = true):Array;
 		
 		/**
 		 * This will generate a CSV String from an Array of rows in a table.

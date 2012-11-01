@@ -379,11 +379,10 @@
 					seq = seq + res;
 				}
 				sequence = seq;
-				var csvDataString:String = WeaveAPI.CSVParser.createCSV(residueData);
 				var uniquePDBname:String = "PDBDataSource-" +PDBid.text;
 				var uniqueName:String = Weave.root.generateUniqueName(uniquePDBname);
 				var csvDataSource:CSVDataSource = Weave.root.requestObject(uniqueName,CSVDataSource, false);
-				csvDataSource.csvDataString.value = csvDataString;
+				csvDataSource.csvData.setSessionState(residueData);
 				csvDataSource.keyType.value = uniqueName;
 				pdbDataSourceKeyType = uniqueName;
 				assignXYColumnsFromSource(csvDataSource,uniqueName);	

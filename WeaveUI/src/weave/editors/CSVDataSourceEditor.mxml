@@ -94,8 +94,9 @@
 					url.text = _csvDataSource.url.value;
 					keyColumnName.text = _csvDataSource.keyColName.value;
 					keyType.text = _csvDataSource.keyType.value;
-					csvTextArea.text = _csvDataSource.csvDataString.value;
-					updateCSVDataString(_csvDataSource.csvDataString.value);
+					var rows:Array = _csvDataSource.csvData.getSessionState() as Array;
+					csvTextArea.text = WeaveAPI.CSVParser.createCSV(rows);
+					updateCSVDataString(csvTextArea.text);
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
 					showGridButton.enabled = true;
@@ -109,7 +110,7 @@
 					_csvDataSource.url.value = url.text;
 					_csvDataSource.keyColName.value = keyColumnName.text;
 					_csvDataSource.keyType.value = keyType.text;
-					_csvDataSource.csvDataString.value = csvDataString;
+					_csvDataSource.setCSVDataString(csvDataString);
 					Alert.show(lang("Changes saved."))
 				}
 				catch(e:Error)
