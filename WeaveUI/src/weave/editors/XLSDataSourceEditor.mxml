@@ -25,37 +25,30 @@
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
 	creationPolicy="all"
-	implements="weave.api.ui.ILinkableObjectEditor"
+	implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*"
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{lang( (_xlsDataSource ? 'Edit' : 'Add') + ' XLS Data Source' )}"/>
-	<mx:HBox>
-		<mx:Label text="{lang('Source Name *')}" width="120"/>
-		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="{lang('Source URL *')}" width="120"/>
-		<mx:TextInput change="handleURLTextChange()" id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
-	</mx:HBox>
+	<ui:Indent label="{lang('Source Name *')}">
+		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Source URL *')}">
+		<mx:TextInput change="handleURLTextChange()" id="url" width="300" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
+	</ui:Indent>
 	
-	<mx:VBox id="uploadSection">
-		<mx:HBox horizontalAlign="center" width="100%">
-			<mx:Label fontWeight="bold" text="{lang('OR')}"/>
-		</mx:HBox>
-		<mx:HBox>
-			<mx:Label text="{lang('Open local XLS file *')}" width="120"/>
-			<mx:Button label="{lang('Browse')}" click="browseForFiles()"/>
-			<mx:Label id="uploadMessg" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
-		</mx:HBox>
-	</mx:VBox>
+	<mx:HBox visible="{uploadSection.visible}" horizontalAlign="center" width="100%">
+		<mx:Label fontWeight="bold" text="{lang('OR')}"/>
+	</mx:HBox>
+	<ui:Indent id="uploadSection" label="{lang('Open local XLS file *')}">
+		<mx:Button label="{lang('Browse')}" click="browseForFiles()"/>
+		<mx:Label id="uploadMessg" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
+	</ui:Indent>
 	
-	<mx:HBox>
-		<mx:Label text="{lang('Key Type *')}" width="120"/>
-		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter key type like US State Fips Code,etc. ')}"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="{lang('Key Column')}" width="120"/>
-		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
-	</mx:HBox>
+	<ui:Indent label="{lang('Key Type *')}">
+		<mx:TextInput id="keyType" width="200" toolTip="{lang('enter key type like US State Fips Code,etc. ')}"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Key Column')}">
+		<mx:TextInput id="keyColumnName" width="200" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
+	</ui:Indent>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Button enabled="false" label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()"/>
 	<mx:Script>

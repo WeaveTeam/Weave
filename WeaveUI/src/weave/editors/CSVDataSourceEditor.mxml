@@ -25,41 +25,35 @@
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
 	creationPolicy="all"
-	implements="weave.api.ui.ILinkableObjectEditor"
+	implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{_csvDataSource ? 'Edit' : 'Add'} CSV Data Source"/>
-	<mx:HBox>
-		<mx:Label text="Source Name *" width="140"/>
-		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="{lang('Source URL')}" width="140"/>
-		<mx:TextInput change="handleURLTextChange()" id="url" width="300" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
-	</mx:HBox>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{lang((_csvDataSource ? 'Edit' : 'Add') + ' CSV Data Source')}"/>
+	<ui:Indent group="{indentGroup}" label="{lang('Source Name *')}">
+		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="100%"/>
+	</ui:Indent>
+	<ui:Indent group="{indentGroup}" label="{lang('Source URL')}">
+		<mx:TextInput change="handleURLTextChange()" id="url" width="100%" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
+	</ui:Indent>
 	<mx:VBox width="100%" enabled="{url.text?false:true}">
 		<mx:Label width="100%" textAlign="center" text="OR" fontWeight="bold"/>
-		<mx:HBox>
-			<mx:Label text="{lang('Open local CSV file')}" width="140"/>
+		<ui:Indent group="{indentGroup}" label="{lang('Open local CSV file')}">
 			<mx:Button label="{lang('Browse')}" click="browseForFiles()"/>
 			<mx:Label id="uploadMessage" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
-		</mx:HBox>
+		</ui:Indent>
 		<mx:Label width="100%" textAlign="center" text="{lang('OR')}" fontWeight="bold"/>
-		<mx:HBox>
-			<mx:Label text="{lang('Paste/Edit CSV Data')}" width="140"/>
-			<mx:TextArea id="csvTextArea" change="updateCSVDataString(csvTextArea.text)" width="300" height="100" cornerRadius="5" borderStyle="solid"/>
-		</mx:HBox>
+		<ui:Indent group="{indentGroup}" label="{lang('Paste/Edit CSV Data')}">
+			<mx:TextArea id="csvTextArea" change="updateCSVDataString(csvTextArea.text)" width="100%" height="100"/>
+		</ui:Indent>
 		<mx:Button enabled="false" label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()"/>
 	</mx:VBox>
-	<mx:HBox>
-		<mx:Label text="Key Type *" width="140"/>
-		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter key type like US State Fips Code,etc. ')}"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="{lang('Key Column')}" width="140"/>
-		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
-	</mx:HBox>
+	<ui:Indent group="{indentGroup}" label="{lang('Key Type *')}">
+		<mx:TextInput id="keyType" width="100%" toolTip="{lang('enter key type like US State Fips Code,etc. ')}"/>
+	</ui:Indent>
+	<ui:Indent group="{indentGroup}" label="{lang('Key Column')}">
+		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
+	</ui:Indent>
 	<mx:Spacer/>
-	<mx:Label text="* = required"/>
+	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
@@ -70,6 +64,9 @@
 			import weave.api.core.ILinkableObject;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.editors.managers.EditDataGridPanel;
+			import weave.ui.IndentGroup;
+			
+			private const indentGroup:IndentGroup = new IndentGroup();
 			
 			override protected function createChildren():void
 			{
