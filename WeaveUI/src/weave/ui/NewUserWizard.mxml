@@ -43,7 +43,7 @@
 		<!--<mx:Label text="OR" fontWeight="bold" />
 		<mx:Label text="{lang('Enter File URL')}"/>
 		<mx:HBox>
-		<mx:TextInput width="200" borderStyle="solid" toolTip="enter URL" cornerRadius="5"/>
+		<mx:TextInput width="200" borderStyle="solid" toolTip="enter URL"/>
 		<mx:Label id="urlMessage"/>
 		</mx:HBox>-->
 		<mx:Label text="{lang('OR')}" fontWeight="bold" />
@@ -53,7 +53,7 @@
 				Paste a delimited data set (delimited by commas or tabs, etc.). You can check if the data has been parsed correctly in the next step.
 			</ui:HelpComponent>
 		</mx:HBox>
-		<mx:TextArea id="dataTextArea" change="handleTextAreaChange()" width="400" height="250" borderStyle="solid" cornerRadius="5"/>
+		<mx:TextArea id="dataTextArea" change="handleTextAreaChange()" width="400" height="250"/>
 	</mx:VBox>
 	<mx:VBox id="gridBox" width="100%" height="100%">
 		<mx:HBox width="100%">

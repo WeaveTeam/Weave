@@ -33,8 +33,8 @@
 	height="564"
 	width="184"
 	creationComplete="handleDataSelect()" xmlns:ui="weave.ui.*">
-	<mx:HBox height="100%">
-		<mx:VBox borderThickness="5" borderStyle="solid" borderColor="#939178" borderSides="right" paddingLeft="5" paddingTop="5" height="100%">
+	<mx:HBox height="100%" width="100%" horizontalGap="0">
+		<mx:VBox paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5" height="100%">
 			<mx:RadioButtonGroup id="dataSourceType" itemClick="handleDataSelect(event)"/>
 			<mx:RadioButton selected="true" groupName="dataSourceType" id="wfsSource" value="{WFSDataSource}" label="WFS Data Source"/>
 			<mx:RadioButton groupName="dataSourceType" id="csvSource" value="{CSVDataSource}" label="{lang('CSV Data Source')}"/>
@@ -42,9 +42,8 @@
 			<mx:RadioButton groupName="dataSourceType" id="dbfSource" value="{DBFDataSource}" label="{lang('DBF Data Source')}"/>
 			<mx:RadioButton groupName="dataSourceType" id="weaveSource" value="{WeaveDataSource}" label="{lang('Weave Data Source')}"/>
 		</mx:VBox>
-		<mx:Box width="100%" height="100%" id="container" cornerRadius="5">
-			
-		</mx:Box>
+		<mx:Canvas backgroundColor="#939178" width="5" height="100%"/>
+		<mx:Box width="100%" height="100%" id="container" paddingLeft="5" paddingTop="5" paddingRight="5" paddingBottom="5"/>
 	</mx:HBox>
 	<mx:ControlBar paddingTop="5" paddingBottom="5">
 		<mx:Button id="addButton" label="{lang('Add this data source')}" click="addSource()"/>
@@ -54,7 +53,6 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
-			import mx.core.Application;
 			import mx.events.ItemClickEvent;
 			import mx.managers.PopUpManager;
 			
@@ -90,6 +88,8 @@
 				var Editor:Class = EditorManager.getEditorClass(dataSourceType.selectedValue);
 				_editor = new Editor();
 				container.addChild(_editor as DisplayObject);
+				_editor.percentWidth = 100;
+				_editor.percentHeight = 100;
 			}
 			
 			//TODO Check for emtpy data source,switching between sources needs to be tested,
