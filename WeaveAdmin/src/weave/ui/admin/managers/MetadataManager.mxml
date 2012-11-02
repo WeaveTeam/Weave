@@ -23,8 +23,27 @@
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" 
 				width="100%" height="100%" 
-				label="Data Hierarchies{metadataEditor.isChanged?'*':''}" 
-                                >
-        <ui:HierarchyEditor width="50%" height="100%" id="columnSelector" enabled="{!metadataEditor.isChanged}"/>
-        <ui:MetadataEditor width="50%" height="100%" id="metadataEditor" targetItem="{columnSelector.selectedItem}"/>
+				label="Data Hierarchies{metadataEditor.isChanged?'*':''}">
+	<mx:Script>
+		<![CDATA[
+			import weave.api.getCallbackCollection;
+			import weave.services.AdminInterface;
+			import weave.ui.EntityNode;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				getCallbackCollection(AdminInterface.instance.meta_cache).addImmediateCallback(this, tree.invalidateList);
+			}
+		]]>
+	</mx:Script>
+	<ui:HierarchyEditor width="50%" height="100%" id="columnSelector" enabled="{!metadataEditor.isChanged}"/>
+	<mx:VBox width="100%" height="100%">
+		<mx:Label text="{debugId(tree)}"/> 
+		<mx:Tree width="100%" height="100%" id="tree" dataProvider="{new EntityNode()}" showRoot="false"/>
+		<mx:Button label="clearCache()" click="AdminInterface.instance.meta_cache.clearCache();"/>
+		<mx:Button label="set dataProvider" click="tree.dataProvider = tree.dataProvider;"/>
+		<mx:Button label="tree.invalidateList()" click="tree.invalidateList();"/>
+	</mx:VBox>
+	<ui:MetadataEditor width="50%" height="100%" id="metadataEditor" targetItem="{columnSelector.selectedItem}"/>
 </mx:HDividedBox>

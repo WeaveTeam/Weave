@@ -3,10 +3,12 @@ package weave.services
     import mx.rpc.AsyncToken;
     import mx.rpc.events.ResultEvent;
     
+    import weave.api.core.ILinkableObject;
+    import weave.api.getCallbackCollection;
     import weave.services.beans.AttributeColumnInfo;
     import weave.services.beans.EntityMetadata;
 
-    public class MetadataCache
+    public class MetadataCache implements ILinkableObject
     {
         private var entity_metacache:Object = {}; /* Of AttributeColumnInfo's */
         private var entity_childcache:Object = {}; /* Of arrays of AttributeColumnInfo's */
@@ -23,34 +25,42 @@ package weave.services
         }
         public function fetch_children(id:int):AsyncToken
         {
-			// if no request is active, make the request
+			entity_childcache[id] = [];
+			
 			var token:AsyncToken = AdminInterface.instance.getEntityChildEntities(id);
-			addAsyncResponder(token, getChildrenHandler);
-            function getChildrenHandler(event:ResultEvent, token:Object):void
-            {
-                var obj_children:Array = event.result as Array || [];
-                var children:Array = [];
-                for each (var obj:Object in obj_children)
-                {
-                    var entity:AttributeColumnInfo = AttributeColumnInfo.fromResult(obj);
-                    entity_metacache[entity.id] = entity; /* Update the entries while we're here. */
-                    children.push(entity.id);
-                }
-                entity_childcache[id] = children;
-            }
+			addAsyncResponder(token, getChildrenHandler, null, id);
 			return token;
+        }
+        private function getChildrenHandler(event:ResultEvent, token:Object):void
+        {
+			var id:int = int(token);
+            var obj_children:Array = event.result as Array || [];
+            var childIds:Array = [];
+            for each (var obj:Object in obj_children)
+            {
+                var entity:AttributeColumnInfo = AttributeColumnInfo.fromResult(obj);
+                entity_metacache[entity.id] = entity; /* Update the entries while we're here. */
+                childIds.push(entity.id);
+            }
+            entity_childcache[id] = childIds;
+			getCallbackCollection(this).triggerCallbacks();
         }
         public function fetch_metadata(id:int):AsyncToken
         {
+			var info:AttributeColumnInfo = new AttributeColumnInfo();
+			info.id = id;
+			entity_metacache[id] = info;
 			var token:AsyncToken = AdminInterface.instance.getEntity(id);
-			addAsyncResponder(token, getEntityHandler);
-            function getEntityHandler(event:ResultEvent, token:Object):void
-            {
-                entity_metacache[id] = event.result ? AttributeColumnInfo.fromResult(event.result) : null;
-            }
+			addAsyncResponder(token, getEntityHandler, null, id);
 			return token;
         }
-        public function invalidateRoot():void
+        private function getEntityHandler(event:ResultEvent, token:Object):void
+        {
+			var id:int = int(token);
+            entity_metacache[id] = event.result ? AttributeColumnInfo.fromResult(event.result) : null;
+			getCallbackCollection(this).triggerCallbacks();
+        }
+        public function clearCache():void
         {
             entity_metacache = {};
             entity_childcache = {};

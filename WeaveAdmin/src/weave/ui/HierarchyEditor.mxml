@@ -57,7 +57,7 @@
         {
             item.remove_self();
             /* A table deletion will also incur a deletion of all of its data columns, which could reside in any tag. Therefore, we should invalidate the entire metadata cache. */
-            AdminInterface.instance.meta_cache.invalidateRoot();
+            AdminInterface.instance.meta_cache.clearCache();
             tableTree.reload();
             tagTree.reload();
             tagTree.invalidateList();
