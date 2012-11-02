@@ -25,32 +25,41 @@
 		 creationComplete="creationComplete()"
 		 xmlns:ui="weave.ui.*">
 
-	<mx:RadioButtonGroup id="shapeOrKey"/>
 	<mx:HBox>
-		<mx:RadioButton id="geometryCollectionRadio" group="{shapeOrKey}" label="{Strings.geometry_collection}" textAlign="left" width="{_indent}"/>
-		<mx:HBox enabled="{geometryCollectionRadio.selected &amp;&amp; !refreshingGeoms}">
-			<ui:CustomComboBox id="geometryCollectionCombo" enabled="{geometryCollectionCombo.dataProvider.length > 0}" prompt="Select a geometry collection..." dataProvider="{AdminInterface.instance.geometryCollectionNames}" toolTip="{Strings.tip_geometry_collection_dropdown}"/>
-			<mx:Button id="geomRefresh" label="Refresh" click="getGeometryCollectionNames()" toolTip="{Strings.tip_refresh_geometry_collections}"/>
-		</mx:HBox>
+		<mx:Label text="{lang('What do these keys correspond to?')}"/>
+		<ui:HelpComponent>
+			If two tables have compatible keys, you should give them the same key type.
+			If two tables have incompatible keys, they should not have the same key type.
+			Weave only allows two columns to be compared if they have the same key type.
+		</ui:HelpComponent>
 	</mx:HBox>
-	<mx:HBox>
-		<mx:RadioButton id="keyTypeRadio" group="{shapeOrKey}" selected="true" label="{Strings.key_type}" textAlign="left" width="{_indent}" toolTip="{Strings.tip_key_type_radiobutton}"/>
-		<mx:HBox enabled="{keyTypeRadio.selected &amp;&amp; !refreshingKeyTypes}">
-			<ui:CustomComboBox id="keyTypeCombo" editable="true" text="{_defaultKeyType}" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.tip_key_type_dropdown}" valueCommit="if (UIUtils.hasFocus(keyTypeCombo)) keyTypeIsSet = true;"/>
-			<mx:Button id="keyTypeRefresh" label="Refresh" click="getKeyTypes()" toolTip="{Strings.tip_refresh_key_types}"/>
+	<mx:VBox paddingLeft="{paddingIndent}">
+		<mx:RadioButtonGroup id="shapeOrKey"/>
+		<mx:HBox>
+			<mx:RadioButton id="geometryCollectionRadio" group="{shapeOrKey}" label="{lang('Geometry collection')}" textAlign="left" width="{_indent}"/>
+			<mx:HBox enabled="{geometryCollectionRadio.selected &amp;&amp; !refreshingGeoms}">
+				<ui:CustomComboBox id="geometryCollectionCombo" enabled="{geometryCollectionCombo.dataProvider.length > 0}" prompt="Select a geometry collection..." dataProvider="{AdminInterface.instance.geometryCollectionNames}" toolTip="{lang('Select the geometry collection whose shapes correspond to the rows in the table you are using.')}"/>
+				<mx:Button id="geomRefresh" label="Refresh" click="getGeometryCollectionNames()" toolTip="{lang('This button updates the list of geometry collections - use it if you think the list of geometry collections may have changed since you first opened the admin console.')}"/>
+			</mx:HBox>
 		</mx:HBox>
-		<!--mx:Button label="?" click="showHelpForKeyType()"/-->
-	</mx:HBox>
+		<mx:HBox>
+			<mx:RadioButton id="keyTypeRadio" group="{shapeOrKey}" selected="true" label="{lang('Key type')}" textAlign="left" width="{_indent}"/>
+			<mx:HBox enabled="{keyTypeRadio.selected &amp;&amp; !refreshingKeyTypes}">
+				<ui:CustomComboBox id="keyTypeCombo" editable="true" text="{_defaultKeyType}" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{lang('Choose a key type that describes the identifiers in the key column.')}" valueCommit="if (UIUtils.hasFocus(keyTypeCombo)) keyTypeIsSet = true;"/>
+				<mx:Button id="keyTypeRefresh" label="Refresh" click="getKeyTypes()" toolTip="{lang('This button updates the list of key types - use it if you think the list of key types may have changed since you first opened the admin console.')}"/>
+			</mx:HBox>
+		</mx:HBox>
+	</mx:VBox>
 	
-	<!-- Choose between Assgning a Geometry Collection Name or a Key Type-->
 	<mx:Script>
 		<![CDATA[
-			import weave.Strings;
+			import mx.rpc.AsyncToken;
+			
 			import weave.core.UIUtils;
 			import weave.services.AdminInterface;
-			import weave.services.DelayedAsyncInvocation;
+			import weave.services.addAsyncResponder;
 			
-			
+			[Bindable] public var paddingIndent:int = 20;
 			[Bindable] private var _indent:Number = NaN;
 			
 			private function creationComplete():void
@@ -58,16 +67,6 @@
 				getGeometryCollectionNames();
 				getKeyTypes();
 			}
-			
-//			private function showHelpForKeyType():void
-//			{
-//				Alert.show(
-//					'If two tables have compatible keys, you should give them the same key type.  ' +
-//					'If two tables have incompatible keys, they should not have the same key type.  ' +
-//					'Weave only allows two columns to be compared if they have the same key type.',
-//					'Admin Console Help'
-//				);
-//			}
 			
 			public function get selectedGeometryCollection():String
 			{
@@ -99,23 +98,23 @@
 			private function getGeometryCollectionNames():void
 			{
                             /*
-				var query:DelayedAsyncInvocation = AdminInterface.instance.getGeometryCollectionNames();
+				var query:AsyncToken = AdminInterface.instance.getGeometryCollectionNames();
 				if (query)
 				{
 					refreshingGeoms = true;
 					var handler:Function = function(..._):void { refreshingGeoms = false; };
-					query.addAsyncResponder(handler, handler);
+					addAsyncResponder(query, handler, handler);
 				}
                             */
 			}
 			private function getKeyTypes():void
 			{
-				var query:DelayedAsyncInvocation = AdminInterface.instance.getKeyTypes();
+				var query:AsyncToken = AdminInterface.instance.getKeyTypes();
 				if (query)
 				{
 					refreshingKeyTypes = true;
 					var handler:Function = function(..._):void { refreshingKeyTypes = false; };
-					query.addAsyncResponder(handler, handler);
+					addAsyncResponder(query, handler, handler);
 				}
 			}
 		]]>

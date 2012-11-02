@@ -31,18 +31,17 @@
 		<!--<mx:Label fontWeight="bold" text="Add existing SQL data to a DataTable entry in SQLConfig.xml"/>-->
 		<admin:SQLTableSelectorDialog id="tableSelector" showTableCombo="true" tableOverwriteCheckVisible="false"/>
 		<mx:VBox visible="{Boolean(tableSelector.activeTable)}">
-			<ui:Indent group="{tableSelector.indentGroup}" label="{Strings.table_display_name}">
-				<mx:TextInput id="tableNameInput" text="{tableSelector.activeTable}" toolTip="{Strings.tip_table_display_name}"/>
-				<mx:CheckBox label="Overwrite" id="tableNameOverwriteCheck" selected="false"/>
+			<ui:Indent group="{tableSelector.indentGroup}" label="{lang('Table display name')}">
+				<mx:TextInput id="tableNameInput" text="{tableSelector.activeTable}" toolTip="{lang('Type in a name for the table that is chosen above. This is the name that will be visible in Weave and will be visible to users.')}"/>
+				<mx:CheckBox label="{lang('Overwrite')}" id="tableNameOverwriteCheck" selected="false"/>
 			</ui:Indent>
-			<ui:Indent group="{tableSelector.indentGroup}" label="{Strings.key_column_name}">
-				<ui:CustomComboBox id="keyColumnComboBox" prompt="Select a column..." dataProvider="{tableSelector.columns}" toolTip="{Strings.tip_key_column_dropdown}" change="handleKeyColumnChange()"/>
+			<ui:Indent group="{tableSelector.indentGroup}" label="{lang('Key column name')}">
+				<ui:CustomComboBox id="keyColumnComboBox" prompt="{lang('Select a column...')}" dataProvider="{tableSelector.columns}" toolTip="{lang('Select the column whose values uniquely identify the rows in the table.')}" change="handleKeyColumnChange()"/>
 			</ui:Indent>
 			<mx:VBox visible="{keyColumnComboBox.selectedItem}">
-				<mx:Label text="What do these keys correspond to?"/>
-				<admin:GeometryCollectionDialog paddingLeft="{paddingIndent}" id="geometrySelector" defaultKeyType="{tableSelector.activeTable}"/>
+				<admin:GeometryCollectionDialog paddingIndent="{paddingIndent}" id="geometrySelector" defaultKeyType="{tableSelector.activeTable}"/>
 				
-				<mx:CheckBox change="handleKeyColumnChange()" id="secondaryKeyColumnCheckBox" label="Format data for Dimension Slider" selected="false"/>
+				<mx:CheckBox change="handleKeyColumnChange()" id="secondaryKeyColumnCheckBox" label="{lang('Format data for Dimension Slider')}" selected="false"/>
 				<ui:Indent paddingLeft="{paddingIndent}"
 						   grouped="false"
 						   visible="{secondaryKeyColumnCheckBox.selected}"
@@ -51,11 +50,11 @@
 					<ui:CustomComboBox change="handleKeyColumnChange()" id="sqlSecondaryKeyColumnCombo" dataProvider="{tableSelector.columns}" toolTip="Select a secondary key column for use with the Dimension Slider"/>
 				</ui:Indent>
 				
-				<mx:CheckBox id="generateFilterColumnsCheckBox" label="Generate filtered column queries" selected="false" change="handleKeyColumnChange();"/>
+				<mx:CheckBox id="generateFilterColumnsCheckBox" label="{lang('Generate filtered column queries')}" selected="false" change="handleKeyColumnChange();"/>
 				<ui:IndentTextInput visible="{generateFilterColumnsCheckBox.selected}"
 							paddingLeft="{paddingIndent}"
 							grouped="false"
-							label="Columns to use as filters"
+							label="{lang('Columns to use as filters')}"
 							id="filterColumnsInput"
 							text="{WeaveAPI.CSVParser.createCSV([tableSelector.columns])}"/>
 			</mx:VBox>
@@ -63,19 +62,13 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.binding.utils.BindingUtils;
-			import mx.containers.ControlBar;
-			import mx.controls.ComboBox;
-			import mx.events.CollectionEvent;
-			import mx.events.FlexEvent;
+			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
-			import weave.Strings;
 			import weave.api.WeaveAPI;
-			import weave.data.CSVParser;
 			import weave.services.AdminInterface;
-			import weave.services.DelayedAsyncInvocation;
+			import weave.services.addAsyncResponder;
 			
 			private static const paddingIndent:int = 20;
 			
@@ -100,14 +93,14 @@
 				}
 				
 				finishEnabled = false;
-				var query:DelayedAsyncInvocation = AdminInterface.instance.checkKeyColumnForSQLImport(
+				var query:AsyncToken = AdminInterface.instance.checkKeyColumnForSQLImport(
 					tableSelector.activeSchema,
 					tableSelector.activeTable,
 					keyColumnComboBox.selectedLabel,
 					secondaryKeyColumnCheckBox.selected ? sqlSecondaryKeyColumnCombo.selectedLabel : null
 				);
 				
-				query.addAsyncResponder(handleCheckResult,handleFaultCheck);
+				addAsyncResponder(query, handleCheckResult, handleFaultCheck);
 				
 				function handleCheckResult(event:ResultEvent,token:Object=null):void
 				{
@@ -139,7 +132,7 @@
 				var filterColumns:Array = null;
 				if (generateFilterColumnsCheckBox.selected && filterColumnsInput.text)
 					filterColumns = WeaveAPI.CSVParser.parseCSV(filterColumnsInput.text)[0];
-				var query:DelayedAsyncInvocation = AdminInterface.instance.addConfigDataTableFromDatabase(
+				var query:AsyncToken = AdminInterface.instance.addConfigDataTableFromDatabase(
 						tableSelector.activeSchema,
 						tableSelector.activeTable,
 						keyColumnComboBox.selectedLabel,
@@ -152,7 +145,7 @@
 					);
 				
 				controlBarEnabled = false;
-				query.addAsyncResponder(handleResult, handleFault);
+				addAsyncResponder(query, handleResult, handleFault);
 				function handleResult(event:ResultEvent, token:Object = null):void
 				{
 					controlBarEnabled = true;

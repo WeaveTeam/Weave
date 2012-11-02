@@ -42,6 +42,7 @@
 			
 			import weave.compiler.StandardLib;
 			import weave.services.AdminInterface;
+			import weave.services.addAsyncResponder;
 			import weave.utils.FileUtils;
 			
 			[Bindable] private var _title:String = "";
@@ -61,7 +62,7 @@
 			}
 			public function updatePreview(fileName:String):void
 			{
-				AdminInterface.instance.getWeaveFileInfo(fileName).addAsyncResponder(handleInfo);
+				addAsyncResponder(AdminInterface.instance.getWeaveFileInfo(fileName), handleInfo);
 			}
 			private function handleInfo(event:ResultEvent, token:Object = null):void
 			{

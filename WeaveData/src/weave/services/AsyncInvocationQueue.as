@@ -82,7 +82,7 @@ package weave.services
 		protected function performQuery(query:DelayedAsyncInvocation):void
 		{
 			//trace("performQuery (timeout = "+query.webService.requestTimeout+")",query.toString());
-			query.addAsyncResponder(handleQueryResultOrFault, handleQueryResultOrFault, query);
+			addAsyncResponder(query, handleQueryResultOrFault, handleQueryResultOrFault, query);
 			
 			//URLRequestUtils.reportProgress = false;
 			

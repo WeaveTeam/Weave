@@ -98,54 +98,27 @@
 		</mx:HBox>
 	<mx:Script>
 		<![CDATA[
-			import flash.sampler.Sample;
-			
-			import mx.collections.ArrayCollection;
-			import mx.collections.Sort;
 			import mx.containers.Canvas;
-			import mx.containers.Panel;
-			import mx.containers.TitleWindow;
-			import mx.controls.Alert;
-			import mx.controls.DataGrid;
 			import mx.controls.Image;
 			import mx.controls.List;
-			import mx.controls.TileList;
-			import mx.controls.dataGridClasses.DataGridColumn;
-			import mx.core.Application;
-			import mx.core.IFlexDisplayObject;
 			import mx.managers.PopUpManager;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
-			import org.igniterealtime.xiff.collections.ArrayCollection;
-			
 			import weave.Weave;
 			import weave.api.WeaveAPI;
-			import weave.api.core.ICallbackCollection;
-			import weave.api.core.ILinkableHashMap;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IColumnStatistics;
-			import weave.api.data.IQualifiedKey;
-			import weave.api.disposeObjects;
-			import weave.api.linkBindableProperty;
-			import weave.api.linkableObjectIsBusy;
-			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
-			import weave.core.CallbackCollection;
 			import weave.core.LinkableHashMap;
-			import weave.data.AttributeColumns.NumberColumn;
 			import weave.data.KeySets.KeySet;
-			import weave.primitives.Bounds2D;
-			import weave.services.DelayedAsyncResponder;
 			import weave.services.WeaveRServlet;
+			import weave.services.addAsyncResponder;
 			import weave.services.beans.RResult;
 			import weave.ui.userControls.DatagridDisplay;
 			import weave.utils.ColumnUtils;
-			import weave.utils.ResultUtils;
-			import weave.visualization.tools.SimpleVisTool;
 			WeaveAPI.registerImplementation(IVisTool, DataStatisticsTool, "Data Statistics Tool");
 			
 			
@@ -228,7 +201,7 @@
 				{
 					inputValues.push(joinedColumns); 
 					var query:AsyncToken = Rservice.runScript(null,inputNames,inputValues,outputNames,script,"",false,false,false);
-					DelayedAsyncResponder.addResponder(query, handleNormScriptResult, handleRunScriptFault,latestjoinedColumnKeys);
+					addAsyncResponder(query, handleNormScriptResult, handleRunScriptFault,latestjoinedColumnKeys);
 				}
 			}
 			
@@ -279,7 +252,7 @@
 						var resultNames: Array = new Array(); resultNames = ["answer$counts","answer$breaks"];
 						
 						var query:AsyncToken = Rservice.runScript(latestjoinedColumnKeys, inputNames, inputValues, resultNames, binningScript,"", false, false, false);
-						DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, latestjoinedColumnKeys);
+						addAsyncResponder(query, handleRunScriptResult, handleRunScriptFault, latestjoinedColumnKeys);
 						sentToRcounter++;
 					}
 						
@@ -585,7 +558,7 @@
 				var inputValues:Array = new Array();
 				inputValues.push(joinedColumns);
 				var query:AsyncToken = Rservice.runScript(latestjoinedColumnKeys,inputNames,inputValues,outputNames,corScript,"",false,false,false);
-				DelayedAsyncResponder.addResponder(query, handleCorrRunScriptResult, handleRunScriptFault,outputNames);
+				addAsyncResponder(query, handleCorrRunScriptResult, handleRunScriptFault,outputNames);
 			}
 			
 		]]>

@@ -112,7 +112,7 @@
 					);
 					
 					controlBarEnabled = false;
-					query.addAsyncResponder(handleResult, handleFault);
+					addAsyncResponder(query, handleResult, handleFault);
 					function handleResult(event:ResultEvent, token:Object = null):void
 					{
 						controlBarEnabled = true;

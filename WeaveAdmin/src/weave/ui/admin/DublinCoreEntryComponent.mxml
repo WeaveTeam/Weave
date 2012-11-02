@@ -82,7 +82,7 @@
 				
 				var elements:Object = new Object();
 				elements[elementName] = textArea.text;
-				AdminInterface.instance.addDCElements(datasetName, elements).addAsyncResponder(handleAdd);
+				addAsyncResponder(AdminInterface.instance.addDCElements(datasetName, elements), handleAdd);
 			}
 			private function handleAdd(event:ResultEvent, token:Object = null):void
 			{

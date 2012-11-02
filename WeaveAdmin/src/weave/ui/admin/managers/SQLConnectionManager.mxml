@@ -94,11 +94,11 @@
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.events.ListEvent;
+			import mx.rpc.AsyncToken;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.WeaveAPI;
 			import weave.services.AdminInterface;
-			import weave.services.DelayedAsyncInvocation;
 			import weave.services.addAsyncResponder;
 			import weave.services.beans.ConnectionInfo;
 			import weave.ui.Indent;
@@ -228,7 +228,7 @@
 				info.is_superuser = superuserCheckbox.selected;
 				info.folderName = folderNameInput.text;
 				
-				AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected).addAsyncResponder(handleSave);
+				addAsyncResponder(AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected), handleSave);
 				function handleSave(..._):void
 				{
 					if (info.name == AdminInterface.instance.activeConnectionName)
@@ -243,12 +243,12 @@
 			private function migrateToDatabase():void
 			{
 				migrateButton.enabled = false;
-				var query:DelayedAsyncInvocation = AdminInterface.instance.setDatabaseConfigInfo(
+				var query:AsyncToken = AdminInterface.instance.setDatabaseConfigInfo(
 					   migrateConnectionCombo.text,
 					   migratePasswordInput.text,
 					   migrateSchemaInput.text
 					);
-				query.addAsyncResponder(enableMigrateButton, enableMigrateButton);
+				addAsyncResponder(query, enableMigrateButton, enableMigrateButton);
 				function enableMigrateButton(..._):void
 				{
 					migrateButton.enabled = true;

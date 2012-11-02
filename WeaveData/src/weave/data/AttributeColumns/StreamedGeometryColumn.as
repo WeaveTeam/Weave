@@ -58,7 +58,7 @@ package weave.data.AttributeColumns
 			
 			// request a list of tiles for this geometry collection
 			var query:AsyncToken = _tileService.getTileDescriptors();
-			query.addAsyncResponder(handleGetTileDescriptors, handleGetTileDescriptorsFault, metadata);
+			addAsyncResponder(query, handleGetTileDescriptors, handleGetTileDescriptorsFault, metadata);
 			
 			var self:Object = this;
 			boundingBoxCallbacks.addImmediateCallback(this, function():void{

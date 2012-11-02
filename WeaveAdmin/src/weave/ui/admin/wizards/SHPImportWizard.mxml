@@ -59,7 +59,7 @@
 			</mx:HBox>
 		</mx:HBox>
 		<ui:Indent id="keyType" enabled="false" label="Key type" group="{indentGroup}">
-			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{Strings.tip_shp_key_type_dropdown}"/>
+			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{lang('Choose a key type that corresponds to the type of the column that was chosen for the DBF key column name(s).  For example US State Fips codes or US State Abbreviations.')}"/>
 			<mx:Button label="Refresh" click="AdminInterface.instance.getKeyTypes()"/>
 			<ui:HelpComponent>
 				If two tables have compatible keys, you should give them the same key type. <!--
@@ -77,15 +77,15 @@
 			import mx.collections.ArrayCollection;
 			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
+			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.StringUtil;
 			
-			import weave.Strings;
 			import weave.api.WeaveAPI;
 			import weave.services.AdminInterface;
-			import weave.services.DelayedAsyncInvocation;
 			import weave.services.WeaveAdminService;
+			import weave.services.addAsyncResponder;
 			import weave.ui.IndentGroup;
 			import weave.ui.admin.ServerFileViewer;
 			
@@ -159,8 +159,8 @@
 				var fileRef:FileReference = event.target as FileReference;
 				if (shapeFileReferenceList.fileList.indexOf(fileRef) >= 0)
 				{
-					var query:DelayedAsyncInvocation = AdminInterface.instance.uploadFile(fileRef);
-					query.addAsyncResponder(handleFileUploadComplete, null, fileRef);
+					var query:AsyncToken = AdminInterface.instance.uploadFile(fileRef);
+					addAsyncResponder(query, handleFileUploadComplete, null, fileRef);
 				}
 			}
 			
@@ -183,9 +183,9 @@
 			
 			private function getDBFDataFromFile(file:String):void
 			{
-				var dbfDataQuery:DelayedAsyncInvocation = AdminInterface.instance.getDBFData(file);
+				var dbfDataQuery:AsyncToken = AdminInterface.instance.getDBFData(file);
 				
-				dbfDataQuery.addAsyncResponder(handleDBFDataResult,handleDBFDataFault);
+				addAsyncResponder(dbfDataQuery, handleDBFDataResult,handleDBFDataFault);
 				
 				function handleDBFDataResult(event:ResultEvent, token:Object = null):void
 				{
@@ -238,7 +238,7 @@
 					var trimmedKeyCols:String = StringUtil.trimArrayElements(dbfKeyColumnsCombo.text,",");
 					var keyCols:Array = trimmedKeyCols.split(","); 
 					
-					var query:DelayedAsyncInvocation = AdminInterface.instance.convertShapefileToSQLStream(
+					var query:AsyncToken = AdminInterface.instance.convertShapefileToSQLStream(
 							shpFileNameInput.text,
 							keyCols,
 							tableSelector.activeSchema,
@@ -253,7 +253,7 @@
 						);
 					
 					controlBarEnabled = false;
-					query.addAsyncResponder(handleResult, handleFault);
+					addAsyncResponder(query, handleResult, handleFault);
 					function handleResult(event:ResultEvent, token:Object = null):void
 					{
 						controlBarEnabled = true;

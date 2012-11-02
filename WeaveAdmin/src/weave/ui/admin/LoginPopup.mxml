@@ -41,11 +41,8 @@ Author: skolman
 	
 	<mx:Script>
 		<![CDATA[
-			import mx.binding.utils.BindingUtils;
-			import mx.managers.PopUpManager;
-			import mx.rpc.events.ResultEvent;
-			
 			import weave.services.AdminInterface;
+			import weave.services.addAsyncResponder;
 
 			/**
 			 * This function gets called when this panel is shown.
@@ -66,7 +63,7 @@ Author: skolman
 				enabled = false;
 				
 				// authenticate with server
-				AdminInterface.instance.authenticate(connectionInput.text, passwordInput.text).addAsyncResponder(handleResult, handleFault);
+				addAsyncResponder(AdminInterface.instance.authenticate(connectionInput.text, passwordInput.text), handleResult, handleFault);
 				function handleResult(..._):void
 				{
 					enabled = true;

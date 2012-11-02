@@ -18,28 +18,21 @@
 */
 package weave.services
 {
-	import flash.events.Event;
 	import flash.external.ExternalInterface;
 	import flash.net.FileReference;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
-	import flash.utils.setTimeout;
 	
 	import mx.controls.Alert;
-	import mx.controls.Button;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
 	import mx.utils.UIDUtil;
 	
-	import weave.Strings;
-	import weave.Weave;
-	import weave.services.MetadataCache;
 	import weave.services.beans.AttributeColumnInfo;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
 	import weave.services.beans.EntityMetadata;
-	import weave.services.beans.GeometryCollectionInfo;
 
 	public class AdminInterface
 	{
@@ -60,7 +53,7 @@ package weave.services
 		
 		private function checkSQLConfigExists():void
 		{
-			service.checkSQLConfigExists().addAsyncResponder(handleCheckSQLConfigExists);
+			addAsyncResponder(service.checkSQLConfigExists(), handleCheckSQLConfigExists);
 			function handleCheckSQLConfigExists(event:ResultEvent, token:Object = null):void
 			{
 				if (event.result.status as Boolean == false)
@@ -113,14 +106,14 @@ package weave.services
 			connectionNames = [];
 			databaseConfigInfo = new DatabaseConfigInfo(null);
 			
-			service.getConnectionNames(activeConnectionName, activePassword).addAsyncResponder(handleGetConnectionNames);
+			addAsyncResponder(service.getConnectionNames(activeConnectionName, activePassword), handleGetConnectionNames);
 			function handleGetConnectionNames(event:ResultEvent, token:Object = null):void
 			{
 				//trace("handleGetConnectionNames");
 				connectionNames = event.result as Array || [];
 			}
 
-			service.getDatabaseConfigInfo(activeConnectionName, activePassword).addAsyncResponder(handleGetDatabaseConfigInfo);
+			addAsyncResponder(service.getDatabaseConfigInfo(activeConnectionName, activePassword), handleGetDatabaseConfigInfo);
 			function handleGetDatabaseConfigInfo(event:ResultEvent, token:Object = null):void
 			{
 				databaseConfigInfo = new DatabaseConfigInfo(event.result);
@@ -150,15 +143,15 @@ package weave.services
 			databaseConfigInfo = new DatabaseConfigInfo(null);
 		}
 		
-		public function authenticate(connectionName:String, password:String):DelayedAsyncInvocation
+		public function authenticate(connectionName:String, password:String):AsyncToken
 		{
 			if (userHasAuthenticated)
 				userHasAuthenticated = false;
 			activeConnectionName = connectionName;
 			activePassword = password;
 
-			var query:DelayedAsyncInvocation = service.authenticate(activeConnectionName, activePassword);
-			query.addAsyncResponder(handleAuthenticate);
+			var query:AsyncToken = service.authenticate(activeConnectionName, activePassword);
+			addAsyncResponder(query, handleAuthenticate);
 			function handleAuthenticate(event:ResultEvent, token:Object = null):void
 			{
 				if (userHasAuthenticated != event.result as Boolean)
@@ -170,7 +163,7 @@ package weave.services
 				}
 				else
 				{
-					getConnectionInfo(activeConnectionName).addAsyncResponder(handleConnectionInfo);
+					addAsyncResponder(getConnectionInfo(activeConnectionName), handleConnectionInfo);
 					function handleConnectionInfo(event:ResultEvent, token:Object = null):void
 					{
 						var cInfo:ConnectionInfo = new ConnectionInfo(event.result);
@@ -201,7 +194,7 @@ package weave.services
 		public function getWeaveFileNames():void
 		{
 			weaveFileNames = [];
-			service.getWeaveFileNames(activeConnectionName, activePassword, true).addAsyncResponder(handleGetWeaveFileNames);
+			addAsyncResponder(service.getWeaveFileNames(activeConnectionName, activePassword, true), handleGetWeaveFileNames);
 			function handleGetWeaveFileNames(event:ResultEvent, token:Object = null):void
 			{
 				weaveFileNames = event.result as Array || [];
@@ -211,21 +204,21 @@ package weave.services
 		public function getPrivateWeaveFileNames():void
 		{
 			privateWeaveFileNames = [];
-			service.getWeaveFileNames(activeConnectionName, activePassword, false).addAsyncResponder(handleGetWeaveFileNames);
+			addAsyncResponder(service.getWeaveFileNames(activeConnectionName, activePassword, false), handleGetWeaveFileNames);
 			function handleGetWeaveFileNames(event:ResultEvent, token:Object = null):void
 			{
 				privateWeaveFileNames = event.result as Array || [];
 			}
 		}
 		
-		public function removeWeaveFile(fileName:String):DelayedAsyncInvocation
+		public function removeWeaveFile(fileName:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = service.removeWeaveFile(
+			var query:AsyncToken = service.removeWeaveFile(
 					activeConnectionName,
 					activePassword,
 					fileName
 				);
-			query.addAsyncResponder(handler);
+			addAsyncResponder(query, handler);
 			function handler(..._):void
 			{
 				getWeaveFileNames();
@@ -244,15 +237,15 @@ package weave.services
 		
 		
 		// functions for managing SQL connection entries
-		public function getConnectionInfo(connectionName:String):DelayedAsyncInvocation
+		public function getConnectionInfo(connectionName:String):AsyncToken
 		{
 			return service.getConnectionInfo(activeConnectionName, activePassword, connectionName);
 		}
 		
-		public function saveConnectionInfo(connectionInfo:ConnectionInfo, configOverwrite:Boolean):DelayedAsyncInvocation
+		public function saveConnectionInfo(connectionInfo:ConnectionInfo, configOverwrite:Boolean):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = service.saveConnectionInfo(activeConnectionName, activePassword, connectionInfo, configOverwrite);
-			query.addAsyncResponder(handler);
+			var query:AsyncToken = service.saveConnectionInfo(activeConnectionName, activePassword, connectionInfo, configOverwrite);
+			addAsyncResponder(query, handler);
 			function handler(..._):void
 			{
 				getConnectionNames();
@@ -260,10 +253,10 @@ package weave.services
 			return query;
 		}
 
-		public function removeConnectionInfo(connectionName:String):DelayedAsyncInvocation
+		public function removeConnectionInfo(connectionName:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = service.removeConnectionInfo(activeConnectionName, activePassword, connectionName);
-			query.addAsyncResponder(handler);
+			var query:AsyncToken = service.removeConnectionInfo(activeConnectionName, activePassword, connectionName);
+			addAsyncResponder(query, handler);
 			function handler(..._):void
 			{
 				getConnectionNames();
@@ -271,14 +264,14 @@ package weave.services
 			return query;
 		}
 		
-		public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String):DelayedAsyncInvocation
+		public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = service.setDatabaseConfigInfo(
+			var query:AsyncToken = service.setDatabaseConfigInfo(
 				connectionName,
 				password,
 				schema
 			);
-			query.addAsyncResponder(handler);
+			addAsyncResponder(query, handler);
 			function handler(event:ResultEvent, token:Object=null):void
 			{
 				sqlConfigExists = Boolean(event.result);
@@ -342,7 +335,7 @@ package weave.services
 		{
 			return service.getEntitiesWithType(activeConnectionName, activePassword, type_id, meta);
 		}
-		public function getDataTableInfo(title:String):DelayedAsyncInvocation
+		public function getDataTableInfo(title:String):AsyncToken
 		{
 		    var params:Object = {"title": title};
 		    return service.getEntitiesWithType(activeConnectionName, activePassword, AttributeColumnInfo.ENTITY_COLUMN, params);
@@ -353,7 +346,7 @@ package weave.services
 			
 			if (userHasAuthenticated)
 			{
-				service.getDataTables(activeConnectionName, activePassword).addAsyncResponder(handlegetDataTableNames);
+				addAsyncResponder(service.getDataTables(activeConnectionName, activePassword), handlegetDataTableNames);
 				function handlegetDataTableNames(event:ResultEvent, token:Object = null):void
 				{
 					if (userHasAuthenticated)
@@ -365,7 +358,7 @@ package weave.services
 
 		// code for viewing a weave file archive thumbnail
 		
-		public function getWeaveFileInfo(fileName:String):DelayedAsyncInvocation
+		public function getWeaveFileInfo(fileName:String):AsyncToken
 		{
 			return service.getWeaveFileInfo(activeConnectionName, activePassword, fileName);
 		}
@@ -378,27 +371,27 @@ package weave.services
 		 * This function uploads a file whose content has been loaded into a FileReference object.
 		 * @param fileRef The FileReference object on which load() has completed.
 		 */		
-		public function uploadFile(fileRef:FileReference):DelayedAsyncInvocation
+		public function uploadFile(fileRef:FileReference):AsyncToken
 		{
 			return service.uploadFile(fileRef.name, fileRef.data);
 		}
 
-		public function getUploadedCSVFiles():DelayedAsyncInvocation
+		public function getUploadedCSVFiles():AsyncToken
 		{
 			uploadedCSVFiles = [];
-			var query:DelayedAsyncInvocation = service.getUploadedCSVFiles();
-			query.addAsyncResponder(handleUploadedCSVFiles);
+			var query:AsyncToken = service.getUploadedCSVFiles();
+			addAsyncResponder(query, handleUploadedCSVFiles);
 			function handleUploadedCSVFiles(event:ResultEvent, token:Object = null):void
 			{
 				uploadedCSVFiles = event.result as Array || [];
 			}
 			return query;
 		}
-		public function getUploadedShapeFiles():DelayedAsyncInvocation
+		public function getUploadedShapeFiles():AsyncToken
 		{
 			uploadedShapeFiles = [];
-			var query:DelayedAsyncInvocation = service.getUploadedShapeFiles();
-			query.addAsyncResponder(handleUploadedShapeFiles);
+			var query:AsyncToken = service.getUploadedShapeFiles();
+			addAsyncResponder(query, handleUploadedShapeFiles);
 			function handleUploadedShapeFiles(event:ResultEvent, token:Object = null):void
 			{
 				uploadedShapeFiles = event.result as Array || [];
@@ -414,15 +407,15 @@ package weave.services
 
 
 		/**
-		 * @return Either a DelayedAsyncInvocation, or null if the user has not authenticated yet.
+		 * @return Either an AsyncToken, or null if the user has not authenticated yet.
 		 */
-		public function getKeyTypes():DelayedAsyncInvocation
+		public function getKeyTypes():AsyncToken
 		{
 			keyTypes = [];
 			if (userHasAuthenticated)
 			{
-				var query:DelayedAsyncInvocation = service.getKeyTypes(activeConnectionName, activePassword);
-				query.addAsyncResponder(handleGetKeyTypes);
+				var query:AsyncToken = service.getKeyTypes(activeConnectionName, activePassword);
+				addAsyncResponder(query, handleGetKeyTypes);
 				function handleGetKeyTypes(event:ResultEvent, token:Object = null):void
 				{
 					if (userHasAuthenticated)
@@ -442,9 +435,9 @@ package weave.services
 
 		// functions for importing data
 		
-		public function storeDBFDataToDatabase(fileName:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, nullValues:String):DelayedAsyncInvocation
+		public function storeDBFDataToDatabase(fileName:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, nullValues:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = service.storeDBFDataToDatabase(
+			var query:AsyncToken = service.storeDBFDataToDatabase(
 				activeConnectionName,
 				activePassword,
 				fileName,
@@ -453,7 +446,7 @@ package weave.services
 				sqlOverwrite,
 				nullValues
 			);
-			query.addAsyncResponder(handler);
+			addAsyncResponder(query, handler);
 			function handler(..._):void
 			{
 				getDataTables();
@@ -461,20 +454,20 @@ package weave.services
 			}
 			return query;
 		}
-		public function listDBFFileColumns(dbfFileName:String):DelayedAsyncInvocation
+		public function listDBFFileColumns(dbfFileName:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = service.listDBFFileColumns(dbfFileName);
-			query.addAsyncResponder(handleListDBFFileColumns);
+			var query:AsyncToken = service.listDBFFileColumns(dbfFileName);
+			addAsyncResponder(query, handleListDBFFileColumns);
 			function handleListDBFFileColumns(event:ResultEvent, token:Object = null):void
 			{
 				dbfKeyColumns = event.result as Array || [];
 			}
 			return query;
 		}
-		public function getDBFData(dbfFileName:String):DelayedAsyncInvocation
+		public function getDBFData(dbfFileName:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = service.getDBFData(dbfFileName);
-			query.addAsyncResponder(handleGetDBFData);
+			var query:AsyncToken = service.getDBFData(dbfFileName);
+			addAsyncResponder(query, handleGetDBFData);
 			function handleGetDBFData(event:ResultEvent, token:Object = null):void
 			{
 				dbfData = event.result as Array || [];
@@ -484,9 +477,9 @@ package weave.services
 		
 		public function convertShapefileToSQLStream(fileName:String, keyColumns:Array, sqlSchema:String, sqlTable:String, 
 													tableOverwriteCheck:Boolean, geometryCollection:String, configOverwriteCheck:Boolean, 
-													keyType:String, srsCode:String, nullValues:String,importDBFAsDataTable:Boolean):DelayedAsyncInvocation
+													keyType:String, srsCode:String, nullValues:String,importDBFAsDataTable:Boolean):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = service.convertShapefileToSQLStream(
+			var query:AsyncToken = service.convertShapefileToSQLStream(
 				activeConnectionName,
 				activePassword,
 				fileName,
@@ -501,7 +494,7 @@ package weave.services
 				nullValues,
 				importDBFAsDataTable
 			);
-			query.addAsyncResponder(handler);
+			addAsyncResponder(query, handler);
 			function handler(..._):void
 			{
 				//getDataTableNames();
@@ -525,9 +518,9 @@ package weave.services
 								  geometryCollectionName:String,
 								  keyType:String,
 								  nullValues:String, 
-								  filterColumnNames:Array):DelayedAsyncInvocation
+								  filterColumnNames:Array):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = service.importCSV(
+			var query:AsyncToken = service.importCSV(
 				activeConnectionName,
 				activePassword,
 				csvFileName,
@@ -544,7 +537,7 @@ package weave.services
 				filterColumnNames
 			);
 			
-			query.addAsyncResponder(handler);
+			addAsyncResponder(query, handler);
 			function handler(..._):void
 			{
 				getDataTables();
@@ -554,9 +547,9 @@ package weave.services
 			return query;
 		}
 		
-		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String, filterColumns:Array):DelayedAsyncInvocation
+		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String, filterColumns:Array):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = service.addConfigDataTableFromDatabase(
+			var query:AsyncToken = service.addConfigDataTableFromDatabase(
 				activeConnectionName,
 				activePassword,
 				sqlSchema,
@@ -569,7 +562,7 @@ package weave.services
 				keyType,
 				filterColumns
 			);
-			query.addAsyncResponder(handler);
+			addAsyncResponder(query, handler);
 			function handler(..._):void
 			{
 				getDataTables();
@@ -579,9 +572,9 @@ package weave.services
 		}
 		
 		
-		public function checkKeyColumnForSQLImport(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String):DelayedAsyncInvocation
+		public function checkKeyColumnForSQLImport(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = service.checkKeyColumnForSQLImport(
+			var query:AsyncToken = service.checkKeyColumnForSQLImport(
 				activeConnectionName,
 				activePassword,
 				sqlSchema,
@@ -592,9 +585,9 @@ package weave.services
 			return query;
 		}
 		
-		public function checkKeyColumnForCSVImport(csvFileName:String, keyColumn:String, secondaryKeyColumn:String=null):DelayedAsyncInvocation
+		public function checkKeyColumnForCSVImport(csvFileName:String, keyColumn:String, secondaryKeyColumn:String=null):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = service.checkKeyColumnForCSVImport(
+			var query:AsyncToken = service.checkKeyColumnForCSVImport(
 				csvFileName,
 				keyColumn,
 				secondaryKeyColumn
@@ -632,16 +625,16 @@ package weave.services
 			ExternalInterface.call(script);
 		}
 		
-		public function saveWeaveFile(fileContent:ByteArray, clientConfigFileName:String, fileOverwrite:Boolean):DelayedAsyncInvocation
+		public function saveWeaveFile(fileContent:ByteArray, clientConfigFileName:String, fileOverwrite:Boolean):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = service.saveWeaveFile(
+			var query:AsyncToken = service.saveWeaveFile(
 				activeConnectionName,
 				activePassword,
 				fileContent,
 				clientConfigFileName,
 				fileOverwrite
 			);
-			query.addAsyncResponder(displayFileSaveStatus);
+			addAsyncResponder(query, displayFileSaveStatus);
 			function displayFileSaveStatus(event:ResultEvent, token:Object = null):void
 			{
 				WeaveAdminService.messageDisplay(null, event.result as String, false);
@@ -709,7 +702,7 @@ package weave.services
 		 * and whose values are the (String) values for those elements, applied to the dataset with the given name.
 		 * @param callback (optional) a function called when the server returns (of signature function(e:Event, token:Object = null):void)
 		 */ 
-		public function addDCElements(datasetName:String,elements:Object):DelayedAsyncInvocation
+		public function addDCElements(datasetName:String,elements:Object):AsyncToken
 		{
 			return service.addDCElements(activeConnectionName, activePassword, datasetName, elements);
 		}
@@ -717,7 +710,7 @@ package weave.services
 		/**
 		 * Requests from the server a list of Dublin Core metadata elements for the data table with the given name.
 		 */
-		public function listDCElements(dataTableName:String):DelayedAsyncInvocation
+		public function listDCElements(dataTableName:String):AsyncToken
 		{
 			return service.listDCElements(activeConnectionName, activePassword, dataTableName);
 		}
@@ -725,14 +718,14 @@ package weave.services
 		/**
 		 * Deletes the specified Dublin Core element entries.
 		 */
-		public function deleteDCElements(dataTableName:String,elements:Array):DelayedAsyncInvocation
+		public function deleteDCElements(dataTableName:String,elements:Array):AsyncToken
 		{
 			return service.deleteDCElements(activeConnectionName, activePassword, dataTableName, elements);
 		}
 		/**
 		 * Updates the edited Dublin Core element entry.
 		 */
-		public function updateEditedDCElement(dataTableName:String, object:Object):DelayedAsyncInvocation
+		public function updateEditedDCElement(dataTableName:String, object:Object):AsyncToken
 		{
 			return service.updateEditedDCElement(activeConnectionName, activePassword, dataTableName, object);
 		}

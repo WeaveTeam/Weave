@@ -22,6 +22,7 @@ package weave.services
 	import flash.utils.ByteArray;
 	
 	import mx.controls.Alert;
+	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
@@ -114,7 +115,7 @@ package weave.services
 			// we want to use a queue so the admin functions will execute in the correct order.
 			queue.addToQueue(query);
 			// automatically display FaultEvent error messages as alert boxes
-			query.addAsyncResponder(null, alertFault, query);
+			addAsyncResponder(query, null, alertFault, query);
 			return query;
 		}
 		
@@ -127,7 +128,7 @@ package weave.services
 		// this function displays an error message from a FaultEvent in an Alert box.
 		public function alertFault(event:FaultEvent, token:Object = null):void
 		{
-			var query:DelayedAsyncInvocation = token as DelayedAsyncInvocation;
+			var query:AsyncToken = token as AsyncToken;
 			
 			var paramDebugStr:String = '';
 			if (query.parameters.length > 0)
@@ -146,164 +147,164 @@ package weave.services
 			messageDisplay(event.fault.name, msg, true);
 		}
 
-		public function checkSQLConfigExists():DelayedAsyncInvocation
+		public function checkSQLConfigExists():AsyncToken
 		{
 			return invokeAdminService("checkSQLConfigExists", arguments);
 		}
 		
-		public function authenticate(connectionName:String, password:String):DelayedAsyncInvocation
+		public function authenticate(connectionName:String, password:String):AsyncToken
 		{
 			return invokeAdminService("authenticate", arguments);
 		}
 
-                public function getConnectionInfo(loginConnectionName:String, loginPassword:String, connectionNameToGet:String):DelayedAsyncInvocation
-                {
-                        return invokeAdminService("getConnectionInfo", arguments, false);
-                }
-                //public String setDatabaseConfigInfo(String connectionName, String password, String schema) 
-                public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String):DelayedAsyncInvocation
-                {
-                    var query:DelayedAsyncInvocation = invokeAdminService("setDatabaseConfigInfo", arguments);
-                    query.addAsyncResponder(alertResult);
-                    return query;
-                }
+		public function getConnectionInfo(loginConnectionName:String, loginPassword:String, connectionNameToGet:String):AsyncToken
+		{
+			return invokeAdminService("getConnectionInfo", arguments, false);
+		}
+		//public String setDatabaseConfigInfo(String connectionName, String password, String schema) 
+		public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String):AsyncToken
+		{
+			var query:AsyncToken = invokeAdminService("setDatabaseConfigInfo", arguments);
+			addAsyncResponder(query, alertResult);
+			return query;
+		}
 		//public String migrateConfigToDatabase(String connectionName, String password, String schema)
-//		public function migrateConfigToDatabase(connectionName:String, password:String, schema:String):DelayedAsyncInvocation
+//		public function migrateConfigToDatabase(connectionName:String, password:String, schema:String):AsyncToken
 //		{
-//		    var query:DelayedAsyncInvocation = invokeAdminService("migrateConfigToDatabase", arguments);
-//		    query.addAsyncResponder(alertResult);
+//		    var query:AsyncToken = invokeAdminService("migrateConfigToDatabase", arguments);
+//		    addAsyncResponder(query, alertResult);
 //		    return query;
 //		}
 
 		// list entry names
-		public function getConnectionNames(connectionName:String, password:String):DelayedAsyncInvocation
+		public function getConnectionNames(connectionName:String, password:String):AsyncToken
 		{
 			return invokeAdminService("getConnectionNames", arguments);
 		}
-		public function getWeaveFileNames(connectionName:String, password:String, sharedFiles:Boolean):DelayedAsyncInvocation
+		public function getWeaveFileNames(connectionName:String, password:String, sharedFiles:Boolean):AsyncToken
 		{
 			return invokeAdminService("getWeaveFileNames", arguments);
 		}
-		public function getKeyTypes(connectionName:String, password:String):DelayedAsyncInvocation
+		public function getKeyTypes(connectionName:String, password:String):AsyncToken
 		{
 			return invokeAdminService("getKeyTypes", arguments);
 		}	
 		// get info
-		public function getDatabaseConfigInfo(connectionName:String, password:String):DelayedAsyncInvocation
+		public function getDatabaseConfigInfo(connectionName:String, password:String):AsyncToken
 		{
 			return invokeAdminService("getDatabaseConfigInfo", arguments, false);
 		}
                 
 		
 		// save info
-		public function saveConnectionInfo(activeConnectionName:String, activePassword:String, info:ConnectionInfo, configOverwrite:Boolean):DelayedAsyncInvocation
+		public function saveConnectionInfo(activeConnectionName:String, activePassword:String, info:ConnectionInfo, configOverwrite:Boolean):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("saveConnectionInfo", [activeConnectionName, activePassword, info.name, info.dbms, info.ip, info.port, info.database, info.user, info.pass, info.folderName, info.is_superuser, configOverwrite]);
-		    query.addAsyncResponder(alertResult);
+			var query:AsyncToken = invokeAdminService("saveConnectionInfo", [activeConnectionName, activePassword, info.name, info.dbms, info.ip, info.port, info.database, info.user, info.pass, info.folderName, info.is_superuser, configOverwrite]);
+			addAsyncResponder(query, alertResult);
 		    return query;
 		}
-		public function saveWeaveFile(connectionName:String, password:String, fileContent:ByteArray, fileName:String, overwriteFile:Boolean):DelayedAsyncInvocation
+		public function saveWeaveFile(connectionName:String, password:String, fileContent:ByteArray, fileName:String, overwriteFile:Boolean):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("saveWeaveFile", arguments);
-			//query.addAsyncResponder(alertResult);
+			var query:AsyncToken = invokeAdminService("saveWeaveFile", arguments);
+			//addAsyncResponder(query, alertResult);
 			return query;
 		}
 
 	        	
 		// remove info
-		public function removeConnectionInfo(loginConnectionName:String, loginPassword:String, connectionNameToRemove:String):DelayedAsyncInvocation
+		public function removeConnectionInfo(loginConnectionName:String, loginPassword:String, connectionNameToRemove:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("removeConnectionInfo", arguments);
-			query.addAsyncResponder(alertResult);
+			var query:AsyncToken = invokeAdminService("removeConnectionInfo", arguments);
+			addAsyncResponder(query, alertResult);
 			return query;
 		}
-		public function removeDataTableInfo(connectionName:String, password:String, tableName:String):DelayedAsyncInvocation
+		public function removeDataTableInfo(connectionName:String, password:String, tableName:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("removeDataTableInfo", arguments);
-			query.addAsyncResponder(alertResult);
+			var query:AsyncToken = invokeAdminService("removeDataTableInfo", arguments);
+			addAsyncResponder(query, alertResult);
 			return query;
 		}
-		public function removeGeometryCollectionInfo(connectionName:String, password:String, geometryCollectionName:String):DelayedAsyncInvocation
+		public function removeGeometryCollectionInfo(connectionName:String, password:String, geometryCollectionName:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("removeGeometryCollectionInfo", arguments);
-			query.addAsyncResponder(alertResult);
+			var query:AsyncToken = invokeAdminService("removeGeometryCollectionInfo", arguments);
+			addAsyncResponder(query, alertResult);
 			return query;
 		}
-		public function removeWeaveFile(connectionName:String, password:String, fileName:String):DelayedAsyncInvocation
+		public function removeWeaveFile(connectionName:String, password:String, fileName:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("removeWeaveFile", arguments);
-			query.addAsyncResponder(alertResult);
+			var query:AsyncToken = invokeAdminService("removeWeaveFile", arguments);
+			addAsyncResponder(query, alertResult);
 			return query;
 		}
 		
-		public function removeAttributeColumnInfo(connectionName:String, password:String, columnMetadata:Array):DelayedAsyncInvocation
+		public function removeAttributeColumnInfo(connectionName:String, password:String, columnMetadata:Array):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("removeAttributeColumnInfo", arguments);
-			query.addAsyncResponder(alertResult);
+			var query:AsyncToken = invokeAdminService("removeAttributeColumnInfo", arguments);
+			addAsyncResponder(query, alertResult);
 			return query;
 		}
 
-		public function getWeaveFileInfo(connectionName:String, password:String, fileName:String):DelayedAsyncInvocation
+		public function getWeaveFileInfo(connectionName:String, password:String, fileName:String):AsyncToken
 		{
 			return invokeAdminService("getWeaveFileInfo", arguments, false); // bypass queue
 		}
-	        public function testAllQueries(connectionName:String, password:String, dataTableName:String):DelayedAsyncInvocation
+	        public function testAllQueries(connectionName:String, password:String, dataTableName:String):AsyncToken
                 {
                     return invokeAdminService("testAllQueries", arguments, false);
                 }
-                public function addChildToParent(connectionName:String, password:String, child:int, parent:int):DelayedAsyncInvocation
+                public function addChildToParent(connectionName:String, password:String, child:int, parent:int):AsyncToken
                 {
                         return invokeAdminService("addChildToParent", arguments);
                 }
-                public function removeChildFromParent(connectionName:String, password:String, child:int, parent:int):DelayedAsyncInvocation{
+                public function removeChildFromParent(connectionName:String, password:String, child:int, parent:int):AsyncToken{
                         return invokeAdminService("removeChildFromParent", arguments);
                 }
-                public function copyEntity(connectionName:String, password:String, id:int):DelayedAsyncInvocation{
+                public function copyEntity(connectionName:String, password:String, id:int):AsyncToken{
                         return invokeAdminService("copyEntity", arguments);
                 }
-                public function addTag(connectionName:String, password:String, metadata:Object):DelayedAsyncInvocation{
+                public function addTag(connectionName:String, password:String, metadata:Object):AsyncToken{
                         return invokeAdminService("addTag", arguments);
                 }
-                public function addDataTable(connectionName:String, password:String, metadata:Object):DelayedAsyncInvocation{
+                public function addDataTable(connectionName:String, password:String, metadata:Object):AsyncToken{
                         return invokeAdminService("addDataTable", arguments);
                 }
-                public function addAttributeColumn(connectionName:String, password:String, metadata:Object):DelayedAsyncInvocation{
+                public function addAttributeColumn(connectionName:String, password:String, metadata:Object):AsyncToken{
                         return invokeAdminService("addAttributeColumn", arguments);
                 }
-                public function getTags(connectionName:String, password:String):DelayedAsyncInvocation{
+                public function getTags(connectionName:String, password:String):AsyncToken{
                         return invokeAdminService("getTags", arguments);
                 }
-                public function getDataTables(connectionName:String, password:String):DelayedAsyncInvocation{
+                public function getDataTables(connectionName:String, password:String):AsyncToken{
                         return invokeAdminService("getDataTables", arguments);
                 }
-                public function getAttributeColumns(connectionName:String, password:String):DelayedAsyncInvocation{
+                public function getAttributeColumns(connectionName:String, password:String):AsyncToken{
                         return invokeAdminService("getAttributeColumns", arguments);
                 }
 
-                public function removeEntity(connectionName:String, password:String, id:int):DelayedAsyncInvocation{
+                public function removeEntity(connectionName:String, password:String, id:int):AsyncToken{
                         return invokeAdminService("removeEntity", arguments);
                 }
-                public function updateEntity(connectionName:String, password:String, id:int, metadata:EntityMetadata):DelayedAsyncInvocation
+                public function updateEntity(connectionName:String, password:String, id:int, metadata:EntityMetadata):AsyncToken
                 {
                         return invokeAdminService("updateEntity", arguments);
                 }
-                public function getEntityChildIds(connectionName:String, password:String, id:int):DelayedAsyncInvocation
+                public function getEntityChildIds(connectionName:String, password:String, id:int):AsyncToken
                 {
                         return invokeAdminService("getEntityChildIds", arguments);
                 }
-                public function getEntityChildEntities(connectionName:String, password:String, id:int):DelayedAsyncInvocation
+                public function getEntityChildEntities(connectionName:String, password:String, id:int):AsyncToken
                 {
                         return invokeAdminService("getEntityChildEntities", arguments);
                 }
-                public function getEntity(connectionName:String, password:String, id:int):DelayedAsyncInvocation
+                public function getEntity(connectionName:String, password:String, id:int):AsyncToken
                 {
                         return invokeAdminService("getEntity", arguments);
                 }
-                public function getEntities(connectionName:String, password:String, metadata:Object):DelayedAsyncInvocation
+                public function getEntities(connectionName:String, password:String, metadata:Object):AsyncToken
                 {
                         return invokeAdminService("getEntities", arguments);
                 }
-                public function getEntitiesWithType(connectionName:String, password:String, type_id:int, metadata:Object):DelayedAsyncInvocation
+                public function getEntitiesWithType(connectionName:String, password:String, type_id:int, metadata:Object):AsyncToken
                 {
                         return invokeAdminService("getEntitiesWithType", arguments);
                 }
@@ -316,7 +317,7 @@ package weave.services
 		 * @param elements an Object (map) whose keys are strings such as "dc:title", "dc:description", etc.
 		 * and whose values are the (String) values for those elements, applied to the dataset with the given name.
 		 */ 
-		public function addDCElements(connectionName:String, password:String, datasetName:String,elements:Object):DelayedAsyncInvocation{
+		public function addDCElements(connectionName:String, password:String, datasetName:String,elements:Object):AsyncToken{
 			return invokeAdminService("addDCElements", arguments);
 		}
 		
@@ -329,7 +330,7 @@ package weave.services
 		 * @param elements an Object (map) whose keys are strings such as "dc:title", "dc:description", etc.
 		 * and whose values are the (String) values for those elements, applied to the dataset with the given name.
 		 */ 
-		public function listDCElements(connectionName:String, password:String, datasetName:String):DelayedAsyncInvocation{
+		public function listDCElements(connectionName:String, password:String, datasetName:String):AsyncToken{
 			return invokeAdminService("listDCElements", arguments);
 		}
 			
@@ -342,18 +343,18 @@ package weave.services
 		 * @param elements an Object (map) whose keys are strings such as "dc:title", "dc:description", etc.
 		 * and whose values are the (String) values for those elements, applied to the dataset with the given name. These will be deleted.
 		 */ 
-		public function deleteDCElements(connectionName:String, password:String, dataTableName:String, elements:Array):DelayedAsyncInvocation{
+		public function deleteDCElements(connectionName:String, password:String, dataTableName:String, elements:Array):AsyncToken{
 			return invokeAdminService("deleteDCElements", arguments);
 		}
 
-		public function updateEditedDCElement(connectionName:String, password:String, dataTableName:String, object:Object):DelayedAsyncInvocation
+		public function updateEditedDCElement(connectionName:String, password:String, dataTableName:String, object:Object):AsyncToken
 		{
 			return invokeAdminService("updateEditedDCElement", arguments);
 		}
 		
 		
 		// read uploaded files
-		public function uploadFile(fileName:String, content:ByteArray):DelayedAsyncInvocation
+		public function uploadFile(fileName:String, content:ByteArray):AsyncToken
 		{
 			// queue up requests for uploading chunks at a time, then return the token of the last chunk
 			
@@ -363,7 +364,7 @@ package weave.services
 			content.position = 0;
 			
 			var append:Boolean = false;
-			var token:DelayedAsyncInvocation;
+			var token:AsyncToken;
 			do
 			{
 				var chunk:ByteArray = new ByteArray();
@@ -376,79 +377,79 @@ package weave.services
 			
 			return token;
 		}
-		public function getServerFiles():DelayedAsyncInvocation
+		public function getServerFiles():AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("getServerFiles", arguments);
+			var query:AsyncToken = invokeAdminService("getServerFiles", arguments);
 			return query;
 		}
-		public function getUploadedCSVFiles():DelayedAsyncInvocation
+		public function getUploadedCSVFiles():AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("getUploadedCSVFiles", arguments, false);
+			var query:AsyncToken = invokeAdminService("getUploadedCSVFiles", arguments, false);
 			return query;
 		}
-		public function getUploadedShapeFiles():DelayedAsyncInvocation
+		public function getUploadedShapeFiles():AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("getUploadedShapeFiles", arguments, false);
+			var query:AsyncToken = invokeAdminService("getUploadedShapeFiles", arguments, false);
 			return query;
 		}
-		public function getCSVColumnNames(csvFiles:String):DelayedAsyncInvocation
+		public function getCSVColumnNames(csvFiles:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("getCSVColumnNames", arguments);
-			//query.addAsyncResponder(alertResult);
+			var query:AsyncToken = invokeAdminService("getCSVColumnNames", arguments);
+			//addAsyncResponder(query, alertResult);
 			return query;
 		}
-		public function listDBFFileColumns(dbfFileName:String):DelayedAsyncInvocation
+		public function listDBFFileColumns(dbfFileName:String):AsyncToken
 		{
-		    var query:DelayedAsyncInvocation = invokeAdminService("listDBFFileColumns", arguments);
+		    var query:AsyncToken = invokeAdminService("listDBFFileColumns", arguments);
 		    return query;
 		}
-		public function getDBFData(dbfFileName:String):DelayedAsyncInvocation
+		public function getDBFData(dbfFileName:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("getDBFData", arguments);
+			var query:AsyncToken = invokeAdminService("getDBFData", arguments);
 			return query;
 		}
 		
 		
 		// import data
-		public function importCSV(connectionName:String, password:String, csvFile:String, csvKeyColumn:String, csvSecondaryKeyColumn:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String, configOverwrite:Boolean, configGeometryCollectionName:String, configKeyType:String, nullValues:String, filterColumnNames:Array):DelayedAsyncInvocation
+		public function importCSV(connectionName:String, password:String, csvFile:String, csvKeyColumn:String, csvSecondaryKeyColumn:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String, configOverwrite:Boolean, configGeometryCollectionName:String, configKeyType:String, nullValues:String, filterColumnNames:Array):AsyncToken
 		{
-		    var query:DelayedAsyncInvocation = invokeAdminService("importCSV", arguments);
-		    query.addAsyncResponder(alertResult);
+		    var query:AsyncToken = invokeAdminService("importCSV", arguments);
+			addAsyncResponder(query, alertResult);
 		    return query;
 		}
-		public function addConfigDataTableFromDatabase(connectionName:String, password:String, schemaName:String, tableName:String, keyColumnName:String, secondaryKeyColumnName:String, configDataTableName:String, configOverwrite:Boolean, geometryCollectionName:String, keyType:String, filterColumns:Array):DelayedAsyncInvocation
+		public function addConfigDataTableFromDatabase(connectionName:String, password:String, schemaName:String, tableName:String, keyColumnName:String, secondaryKeyColumnName:String, configDataTableName:String, configOverwrite:Boolean, geometryCollectionName:String, keyType:String, filterColumns:Array):AsyncToken
 		{
-		    var query:DelayedAsyncInvocation = invokeAdminService("addConfigDataTableFromDatabase", arguments);
-		    query.addAsyncResponder(alertResult);
+		    var query:AsyncToken = invokeAdminService("addConfigDataTableFromDatabase", arguments);
+			addAsyncResponder(query, alertResult);
 		    return query;
 		}
-		public function checkKeyColumnForSQLImport(connectionName:String, password:String, schemaName:String, tableName:String, keyColumnName:String, secondaryKeyColumnName:String):DelayedAsyncInvocation
+		public function checkKeyColumnForSQLImport(connectionName:String, password:String, schemaName:String, tableName:String, keyColumnName:String, secondaryKeyColumnName:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("checkKeyColumnForSQLImport", arguments);
+			var query:AsyncToken = invokeAdminService("checkKeyColumnForSQLImport", arguments);
 			return query;
 		}
-		public function checkKeyColumnForCSVImport(csvFileName:String, keyColumnName:String, secondaryKeyColumnName:String):DelayedAsyncInvocation
+		public function checkKeyColumnForCSVImport(csvFileName:String, keyColumnName:String, secondaryKeyColumnName:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("checkKeyColumnForCSVImport",arguments);
+			var query:AsyncToken = invokeAdminService("checkKeyColumnForCSVImport",arguments);
 			return query;
 		}
-		public function convertShapefileToSQLStream(configConnectionName:String, password:String, fileNameWithoutExtension:String, keyColumns:Array, sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configGeometryCollectionName:String, configOverwrite:Boolean, configKeyType:String, srsCode:String, nullValues:String, importDBFAsDataTable:Boolean):DelayedAsyncInvocation
+		public function convertShapefileToSQLStream(configConnectionName:String, password:String, fileNameWithoutExtension:String, keyColumns:Array, sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configGeometryCollectionName:String, configOverwrite:Boolean, configKeyType:String, srsCode:String, nullValues:String, importDBFAsDataTable:Boolean):AsyncToken
 		{
-		    var query:DelayedAsyncInvocation = invokeAdminService("convertShapefileToSQLStream", arguments);
-		    query.addAsyncResponder(alertResult);
+		    var query:AsyncToken = invokeAdminService("convertShapefileToSQLStream", arguments);
+			addAsyncResponder(query, alertResult);
 		    return query;
 		}
 		
-		public function storeDBFDataToDatabase(configConnectionName:String, password:String, fileNameWithoutExtension:String, sqlSchema:String, sqlTableName:String, sqlOverwrite:Boolean, nullValues:String):DelayedAsyncInvocation
+		public function storeDBFDataToDatabase(configConnectionName:String, password:String, fileNameWithoutExtension:String, sqlSchema:String, sqlTableName:String, sqlOverwrite:Boolean, nullValues:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("storeDBFDataToDatabase", arguments);
-			query.addAsyncResponder(alertResult);
+			var query:AsyncToken = invokeAdminService("storeDBFDataToDatabase", arguments);
+			addAsyncResponder(query, alertResult);
 			return query;
 		}
-		public function saveReportDefinitionFile(filename:String, fileContents:String):DelayedAsyncInvocation
+		public function saveReportDefinitionFile(filename:String, fileContents:String):AsyncToken
 		{
-			var query:DelayedAsyncInvocation = invokeAdminService("saveReportDefinitionFile", arguments);
-			query.addAsyncResponder(alertResult);
+			var query:AsyncToken = invokeAdminService("saveReportDefinitionFile", arguments);
+			addAsyncResponder(query, alertResult);
 			return query;
 		}
 
@@ -456,15 +457,15 @@ package weave.services
 		/**
 		 * The following functions get information about the database associated with a given connection name.
 		 */
-		public function getSchemas(configConnectionName:String, password:String):DelayedAsyncInvocation
+		public function getSchemas(configConnectionName:String, password:String):AsyncToken
 		{
 		    return invokeAdminService("getSchemas", arguments, false);
 		}
-		public function getTables(configConnectionName:String, password:String, schemaName:String):DelayedAsyncInvocation
+		public function getTables(configConnectionName:String, password:String, schemaName:String):AsyncToken
 		{
 		    return invokeAdminService("getTables", arguments, false);
 		}
-		public function getColumns(configConnectionName:String, password:String, schemaName:String, tableName:String):DelayedAsyncInvocation
+		public function getColumns(configConnectionName:String, password:String, schemaName:String, tableName:String):AsyncToken
 		{
 		    return invokeAdminService("getColumns", arguments, false);
 		}
@@ -472,7 +473,7 @@ package weave.services
 		
 		// data servlet functions
 		
-		public function getAttributeColumn(metadata:Object):DelayedAsyncInvocation
+		public function getAttributeColumn(metadata:Object):AsyncToken
 		{
 			return invokeDataService("getAttributeColumn", arguments, false);
 		}
