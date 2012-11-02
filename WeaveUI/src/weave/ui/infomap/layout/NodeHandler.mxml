@@ -120,6 +120,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.DateUtils;
+			import weave.utils.DebugTimer;
 			import weave.utils.EventUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.layers.InteractiveVisualization;
@@ -148,6 +149,8 @@
 																	return false;
 																else 
 																	return true;},false));
+			
+			public const numOfMatchedDocuments:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
 			private const listWidth:LinkableNumber = new LinkableNumber();
 			
@@ -260,7 +263,7 @@
 				
 				//the set of keys matching the query is stored in docKeyset. 
 				//when the results are stored in this keySet a callback is triggered for parsing the results
-				docKeySet.addGroupedCallback(this,handleThumbnails,false);
+				docKeySet.addGroupedCallback(this,handleDocKeySetChange,false);
 				
 				//this keySet stores the keys matching the search query.
 				//when the results are stored in this keySet a callback is triggered for setting the thumbnails' visible to true/false
@@ -345,7 +348,7 @@
 				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
 				wordCount = [];
 				status.text = "Searching...";
-				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
+				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
 			}
 			
 			
@@ -485,20 +488,7 @@
 				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
 				wordCount = [];
 				
-				
-				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
-				
-				//				var numOfDocsQuery:DelayedAsyncInvocation = InfoMapsDataSource.getNumberOfMatchedDocuments(
-				//											query.keywords.value,query.operator.value,sourceNames,query.dateFilter);
-				
-				//				numOfDocsQuery.addAsyncResponder(function(event:ResultEvent,token:Object=null):void{
-				//					nodeBase.keywordTextArea.htmlText +="<b>Total Documents Found:</b> " +  event.result.toString();
-				//					adjustNodeBase();
-				//					status.text = "";
-				//				},function(event:FaultEvent,token:Object=null):void{
-				//					nodeBase.keywordTextArea.htmlText +="<br/>No documents found" ;
-				//				});
-				
+				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,query.keywords.value,query.operator.value,sourceNames,query.dateFilter,5000);
 				
 			}
 			
@@ -516,24 +506,14 @@
 			 * for each of the corresponding links.
 			 * If the thumbnail object is already there then we use the replace its doc object with the latest doc object. 
 			 **/
-			private function handleThumbnails():void
+			private function handleDocKeySetChange():void
 			{
-				trace("in handleThumbnails");
+				trace("in handleDocKeySetChange");
 				status.text = "";
 				nodeBase.controlBox.visible = true;
 				var response:Array = docKeySet.keys;
 				
-				//				if(d.docList != null)
-				//					d.docList.dataProvider = docKeySet.keys;
-				
 				var nameOrder:Array = [];
-				
-				//				if(response.length == 0)
-				//				{
-				//					thumbnails.resumeCallbacks();
-				//					getCallbackCollection(node).resumeCallbacks();
-				//					return;
-				//				}
 				
 				var diff:* = WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(previousQuery),WeaveAPI.SessionManager.getSessionState(query));
 				if(diff)
@@ -550,6 +530,7 @@
 				}
 				
 				
+				DebugTimer.begin();
 				for(var i:int; i<response.length ;i++)
 				{
 					
@@ -572,18 +553,11 @@
 					
 					thumbnail.docURL.value = link;
 					
-					//					linkSessionState(_parentPanel.defaultThumbnailBorderColor,thumbnail.defaultBorderColor);
 					linkSessionState(_parentPanel.selectedThumbnailBorderColor,thumbnail.selectedBorderColor);
 					linkSessionState(_parentPanel.newThumbnailGlowColor,thumbnail.glowColor);
 					
 				}
-				
-				
-//				if(!highlightNewDocuments)
-//				{
-//					currentNewDocsCount = 0;
-//				}
-				
+				trace(DebugTimer.lap("handleDocKeySetChange finished in "));
 				thumbnails.setNameOrder(nameOrder);
 				WeaveAPI.SessionManager.copySessionState(query,previousQuery);
 				thumbnails.resumeCallbacks();
@@ -669,12 +643,12 @@
 //					nodeBase.keywordTextArea.htmlText +="<br/><b>Total Documents Found:</b> " +  tNails.length;
 				
 				if(nodeBase.keywordTextArea.htmlText.indexOf("/") >-1)
-					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\/[0-9]*/g,"/" + tNails.length);
+					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\/[0-9]*/g,"/" + numOfMatchedDocuments.value);
 				else
-					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\([0-9]*/g,"(" + tNails.length);
+					nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\([0-9]*/g,"(" + numOfMatchedDocuments.value);
 				
 				adjustNodeBase();	
-				
+				thumbnails.delayCallbacks();
 				for (var i:int = 0; i<tNails.length; i++)
 				{
 					var t:DocThumbnailComponent = tNails[i];
@@ -731,6 +705,7 @@
 					}
 					
 				}
+				thumbnails.resumeCallbacks();
 				//				(layout.internalObject as IInfoMapNodeLayout).plotThumbnails(thumbnailsToPlotArray);
 				d.docKeys = thumbnailsToPlotArray;
 				handleSelectionKeySetChange();
@@ -1215,7 +1190,7 @@
 					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
 				}
 				
-				_parentPanel.infoMapsDataSource.getDocumentsForQuery(clickedWordKeySet,[],query.keywords.value + " " + filteredWords.value,"AND",sourceNames,query.dateFilter);
+				_parentPanel.infoMapsDataSource.getDocumentsForQuery(clickedWordKeySet,[],null,query.keywords.value + " " + filteredWords.value,"AND",sourceNames,query.dateFilter);
 				status.htmlText= "Filtering list...";
 				clearFiltersButton.visible = false;
 				//				statusBox.width = 200;

@@ -31,6 +31,7 @@ Use the static functions to show this as a popup.
 				import weave.Weave;
 				import weave.api.WeaveAPI;
 				import weave.api.linkBindableProperty;
+				import weave.api.services.IURLRequestToken;
 				import weave.core.LinkableString;
 				import weave.data.DataSources.InfoMapsDataSource;
 				import weave.ui.infomap.core.IInfoMapDocument;
@@ -59,6 +60,7 @@ Use the static functions to show this as a popup.
 				}
 				
 				private static var instance:DocumentSummaryComponent = null;
+				private static var requestToken:IURLRequestToken = null;
 				/**
 				 * Call this function to show a Summary Component as a Popup
 				 * 
@@ -83,7 +85,11 @@ Use the static functions to show this as a popup.
 					
 					var imgURL:String = source.getImageURLForURL(_docURL.value);
 					
-					WeaveAPI.URLRequestUtils.getContent(instance,new URLRequest(imgURL),handleImage,null,_docURL.value);
+					if(imgURL && !(imgURL=="ERROR"))
+					{
+						trace("requesting image from " + imgURL);						
+						requestToken = WeaveAPI.URLRequestUtils.getContent(instance,new URLRequest(imgURL),handleImage,null,_docURL.value);
+					}
 					instance.move(xPos,yPos);
 					PopUpManager.addPopUp(instance,parent);
 					instance.nodeTitle.text= source.getTitleForURL(_docURL.value);
@@ -96,6 +102,11 @@ Use the static functions to show this as a popup.
 				{
 					if(instance)
 					{
+						if(requestToken)
+						{
+							trace("cancelling request from " + _docURL.value);														
+							requestToken.cancelRequest(); 
+						}
 						instance.fadeOut.play();
 						PopUpManager.removePopUp(instance);
 					}

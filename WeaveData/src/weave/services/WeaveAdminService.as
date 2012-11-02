@@ -20,8 +20,8 @@
 package weave.services
 {
 	import flash.utils.ByteArray;
+	import flash.utils.getDefinitionByName;
 	
-	import mx.controls.Alert;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
@@ -41,6 +41,7 @@ package weave.services
 	{
 		public static const messageLog:Array = new Array();
 		public static const messageLogCallbacks:CallbackCollection = new CallbackCollection();
+		private static function get Alert():Object { return getDefinitionByName('mx.controls.Alert'); }
 		public static function messageDisplay(messageTitle:String, message:String, showPopup:Boolean):void 
 		{
 			// for errors, both a popupbox and addition in the Log takes place

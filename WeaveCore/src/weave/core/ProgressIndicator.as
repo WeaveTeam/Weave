@@ -123,7 +123,8 @@ package weave.core
 		{
 			for(var i:Object in _taskToProgressMap)
 			{
-				trace(i);
+				var stackTrace:String = _taskToStackTraceMap[i]; // check this when debugging
+				trace(stackTrace);
 			}
 		}
 	}

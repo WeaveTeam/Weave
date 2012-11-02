@@ -3,8 +3,8 @@ package weave.services
 		import flash.net.FileReference;
 		import flash.utils.ByteArray;
 		import flash.utils.Dictionary;
+		import flash.utils.getDefinitionByName;
 		
-		import mx.controls.Alert;
 		import mx.rpc.Fault;
 		import mx.rpc.events.FaultEvent;
 		import mx.rpc.events.ResultEvent;
@@ -19,7 +19,7 @@ package weave.services
 		
 		public class InfoMapAdminInterface
 		{
-			
+			private static function get Alert():Object { return getDefinitionByName('mx.controls.Alert'); }
 			private static var _thisInstance:InfoMapAdminInterface = null;
 			public static function get instance():InfoMapAdminInterface
 			{

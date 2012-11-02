@@ -27,7 +27,9 @@ package weave.data.DataSources
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.services.IURLRequestToken;
+	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
 	import weave.core.SessionManager;
 	import weave.data.CSVParser;
 	import weave.data.KeySets.KeySet;
@@ -42,11 +44,11 @@ package weave.data.DataSources
 		public function InfoMapsDataSource()
 		{
 			solrURL.value = "http://129.63.8.219:8080/solr/research_core/";
-			csvDataString.value = "url,title,description,imgURL,date_published,date_added";
+			setCSVDataString("url,title,description,imgURL,date_published,date_added");
 			keyColName.value = "url";
 			keyType.value = "infoMapsDoc";
 			
-			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this,csvDataString);
+			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this,csvData);
 			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this,keyColName);
 			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this,keyType);
 		}
@@ -137,8 +139,8 @@ package weave.data.DataSources
 		}
 		
 		
-		public function getDocumentsForQuery(docKeySet:KeySet,wordCount:Array,query:String,operator:String='AND',sources:Array=null,
-													dateFilter:DateRangeFilter=null,numberOfDocuments:int=2000,partialMatch:Boolean=false):void
+		public function getDocumentsForQuery(docKeySet:KeySet,wordCount:Array,numberOfMatchedDocuments:LinkableNumber,query:String,operator:String='AND',sources:Array=null,
+													dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000,partialMatch:Boolean=false):void
 		{
 			if(query)
 			{
@@ -150,8 +152,8 @@ package weave.data.DataSources
 				
 				trace("CALLING SOLR");
 				var queryTerms:Array = query.replace(/"/g,'').split(' ');//removing quotes completely for now
-				createAndSendQuery(docKeySet,wordCount,queryTerms,null,operator,sources,
-					dateFilter,numberOfDocuments);
+				createAndSendQuery(docKeySet,wordCount,numberOfMatchedDocuments,queryTerms,null,operator,sources,
+					dateFilter,numberOfRequestedDocuments);
 			}
 			
 		}
@@ -165,43 +167,43 @@ package weave.data.DataSources
 		 * @param numberOfDocuments
 		 * 
 		 */		
-		public function getDocumentsForQueryWithFieldValues(docKeySet:KeySet,query:String,fieldsNames:Array,fieldValues:Array,sources:Array,operator:String='AND',dateFilter:DateRangeFilter=null,numberOfDocuments:int=2000,partialMatch:Boolean=false):void
-		{
-			if(fieldsNames.length == 0)
-				return;
-			
-			var filteredQuery:String = "";
-			
-			for (var i:int=0; i< fieldsNames.length; i++)
-			{
-				filteredQuery += fieldsNames[i] + ":(";
-				for(var j:int=0; j <fieldValues[i].length; j++)
-				{
-					//replacing $amp; with &
-//					var val:String = (fieldValues[i][j] as String).replace( /\&amp\;/g,'&');
-					
-//					var val:String = (fieldValues[i][j] as String).replace( /\&amp\;/g,'%26');
-//					val = val.replace( /\:/g,'\:');
-					
-					//encoding the fieldValues in case it is a link
-					//TODO: need to test how this might affect non-link text
-					//val = escape(val);
-					
-					
-					
-					filteredQuery += '"' + fieldValues[i][j] + '" ' + "OR" + ' ';
-				}
-				filteredQuery = filteredQuery.substr(0,filteredQuery.length-(4));
-				filteredQuery += ") AND ";
-			}
-			
-			//removing the last AND
-			filteredQuery = filteredQuery.substr(0,filteredQuery.length-(5));
-			
-			var queryTerms:Array = query.split(" ");
-			
-			createAndSendQuery(docKeySet,null,queryTerms,filteredQuery,operator,sources,dateFilter,numberOfDocuments);
-		}
+//		public function getDocumentsForQueryWithFieldValues(docKeySet:KeySet,query:String,fieldsNames:Array,fieldValues:Array,sources:Array,operator:String='AND',dateFilter:DateRangeFilter=null,numberOfDocuments:int=2000,partialMatch:Boolean=false):void
+//		{
+//			if(fieldsNames.length == 0)
+//				return;
+//			
+//			var filteredQuery:String = "";
+//			
+//			for (var i:int=0; i< fieldsNames.length; i++)
+//			{
+//				filteredQuery += fieldsNames[i] + ":(";
+//				for(var j:int=0; j <fieldValues[i].length; j++)
+//				{
+//					//replacing $amp; with &
+////					var val:String = (fieldValues[i][j] as String).replace( /\&amp\;/g,'&');
+//					
+////					var val:String = (fieldValues[i][j] as String).replace( /\&amp\;/g,'%26');
+////					val = val.replace( /\:/g,'\:');
+//					
+//					//encoding the fieldValues in case it is a link
+//					//TODO: need to test how this might affect non-link text
+//					//val = escape(val);
+//					
+//					
+//					
+//					filteredQuery += '"' + fieldValues[i][j] + '" ' + "OR" + ' ';
+//				}
+//				filteredQuery = filteredQuery.substr(0,filteredQuery.length-(4));
+//				filteredQuery += ") AND ";
+//			}
+//			
+//			//removing the last AND
+//			filteredQuery = filteredQuery.substr(0,filteredQuery.length-(5));
+//			
+//			var queryTerms:Array = query.split(" ");
+//			
+//			createAndSendQuery(docKeySet,null,queryTerms,filteredQuery,operator,sources,dateFilter,numberOfDocuments);
+//		}
 		
 		public function getNumberOfMatchedDocuments(query:String,operator:String="AND",sources:Array=null,
 													dateFilter:DateRangeFilter=null):DelayedAsyncInvocation 
@@ -218,15 +220,15 @@ package weave.data.DataSources
 			return q;			
 		}
 			
-		private function createAndSendQuery(docKeySet:KeySet,wordCount:Array,query:Array,filterQuery:String=null,operator:String='AND',sources:Array=null,
-											dateFilter:DateRangeFilter=null,numberOfDocuments:int=2000,sortField:String="date_added"):void
+		private function createAndSendQuery(docKeySet:KeySet,wordCount:Array,numberOfMatchedDocuments:LinkableNumber,query:Array,filterQuery:String=null,operator:String='AND',sources:Array=null,
+											dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000,sortField:String="date_added"):void
 		{
 			
 			filterQuery = parseFilterQuery(filterQuery,dateFilter,sources);
 				
 			
-			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getQueryResults(query,filterQuery,sortField,numberOfDocuments,solrURL.value);
-			q.addAsyncResponder(handleQueryResults,handleQueryFault,{docKeySet:docKeySet,wordCount:wordCount});
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getQueryResults(query,filterQuery,sortField,numberOfRequestedDocuments,solrURL.value);
+			q.addAsyncResponder(handleQueryResults,handleQueryFault,{docKeySet:docKeySet,wordCount:wordCount,numberOfMatchedDocuments:numberOfMatchedDocuments});
 		}
 		
 		private static function parseFilterQuery(filterQuery:String,dateFilter:DateRangeFilter=null,sources:Array=null):String
@@ -317,10 +319,7 @@ package weave.data.DataSources
 				keys.push(link);
 			}
 			
-			var dataString:String = parser.createCSV(docsToAdd);
-			dataString = csvDataString.value + '\n' + dataString;
-			
-			csvDataString.value = dataString;
+			csvData.setSessionState((csvData.getSessionState() as Array).concat(docsToAdd));			
 			
 			if(!event.result.wordCount || !token)
 				return;
@@ -332,6 +331,8 @@ package weave.data.DataSources
 			(token.docKeySet as KeySet).replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
 			// we force to trigger callbacks so that if a empty keyset is replaced with empty keys the callbacks are still called
 			(token.docKeySet as KeySet).triggerCallbacks(); 
+			if(token.numberOfMatchedDocuments)
+				(token.numberOfMatchedDocuments as LinkableNumber).value = event.result.totalNumberOfDocuments;  
 		}
 		
 		
