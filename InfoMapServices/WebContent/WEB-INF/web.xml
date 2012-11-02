@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
+  <display-name>InfoMapServices</display-name>
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.htm</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+  </welcome-file-list>
+  <listener>
+      <listener-class>infomap.scheduler.SolrSchedulerShutdown</listener-class>
+</listener>
+  
+  <servlet>
+    <servlet-name>GenerateThumbnail</servlet-name>
+    <servlet-class>infomap.thumbnailr.GenerateThumbnail</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>GenerateThumbnail</servlet-name>
+    <url-pattern>/GenerateThumbnail</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>SolrScheduler</servlet-name>
+    <servlet-class>infomap.scheduler.SolrScheduler</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+
+  <servlet>
+    <servlet-name>AdminService</servlet-name>
+    <servlet-class>infomap.admin.AdminService</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>AdminService</servlet-name>
+    <url-pattern>/AdminService</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+    <servlet-name>SaveThumbnailFromURL</servlet-name>
+    <servlet-class>infomap.thumbnailr.SaveThumbnailFromURL</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SaveThumbnailFromURL</servlet-name>
+    <url-pattern>/SaveThumbnailFromURL</url-pattern>
+  </servlet-mapping>
+  
+    <servlet>
+    <servlet-name>FileUploader</servlet-name>
+    <servlet-class>infomap.admin.FileUploader</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>FileUploader</servlet-name>
+    <url-pattern>/FileUploader</url-pattern>
+  </servlet-mapping>
+</web-app>
