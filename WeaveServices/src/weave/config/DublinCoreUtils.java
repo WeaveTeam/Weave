@@ -212,7 +212,6 @@ public class DublinCoreUtils
 				result[i] = metadata;
 			}
 			
-			ensureMetadataTableExists(conn, schema);
 			if (SQLUtils.tableExists(conn, schema, TABLE_NAME))
 			{
 				String query = String.format(

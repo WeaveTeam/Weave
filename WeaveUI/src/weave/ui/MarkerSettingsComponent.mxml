@@ -12,14 +12,14 @@
 	<mx:VBox id="singleImagePlotterControls" width="100%" paddingTop="3" horizontalAlign="left" label="{lang('Marker Settings')}">
 		<mx:HBox>
 			<mx:Label width="100" fontWeight="bold" text="{lang('Image URL:')}"/>
-			<mx:TextInput id="imageURLText" borderStyle="solid" cornerRadius="5" width="200"/>
+			<mx:TextInput id="imageURLText" width="200"/>
 			<ui:HelpComponent>Enter a URL to an image. If the URL empty it defaults to a red circle.</ui:HelpComponent>
 		</mx:HBox>
 		<mx:HBox>
 			<mx:Label width="100" fontWeight="bold" text="{lang('X Coordinate: ')}"/>
-			<mx:TextInput id="dataXText" borderStyle="solid" cornerRadius="5" width="100"/>
+			<mx:TextInput id="dataXText" width="100"/>
 			<mx:Label width="120" fontWeight="bold" text="{lang('Y Coordinate: ')}"/>
-			<mx:TextInput id="dataYText" borderStyle="solid" cornerRadius="5"  width="100"/>
+			<mx:TextInput id="dataYText"  width="100"/>
 		</mx:HBox>
 		
 		<mx:HBox>
@@ -31,9 +31,9 @@
 		
 		<mx:HBox>
 			<mx:Label width="100" fontWeight="bold" text="{lang('Data Width:')}"/>
-			<mx:TextInput id="dataWidthText" borderStyle="solid" cornerRadius="5"  width="100"/>
+			<mx:TextInput id="dataWidthText"  width="100"/>
 			<mx:Label width="120" fontWeight="bold" text="{lang('Data Height:')}"/>
-			<mx:TextInput id="dataHeightText" borderStyle="solid" cornerRadius="5"  width="100"/>
+			<mx:TextInput id="dataHeightText"  width="100"/>
 			<ui:HelpComponent>Enter the width and height in data coordinates. The image will adjust to the width and height of the data coordinates.</ui:HelpComponent>
 		</mx:HBox>		
 	</mx:VBox>
