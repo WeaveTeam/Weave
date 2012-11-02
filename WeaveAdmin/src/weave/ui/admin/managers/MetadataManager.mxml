@@ -35,12 +35,14 @@
 				super.childrenCreated();
 				getCallbackCollection(AdminInterface.instance.meta_cache).addImmediateCallback(this, tree.invalidateList);
 			}
+			
+			private const rootNode:EntityNode = new EntityNode();
 		]]>
 	</mx:Script>
 	<ui:HierarchyEditor width="50%" height="100%" id="columnSelector" enabled="{!metadataEditor.isChanged}"/>
 	<mx:VBox width="100%" height="100%">
 		<mx:Label text="{debugId(tree)}"/> 
-		<mx:Tree width="100%" height="100%" id="tree" dataProvider="{new EntityNode()}" showRoot="false"/>
+		<mx:Tree width="100%" height="100%" id="tree" dataProvider="{rootNode}" showRoot="false"/>
 		<mx:Button label="clearCache()" click="AdminInterface.instance.meta_cache.clearCache();"/>
 		<mx:Button label="set dataProvider" click="tree.dataProvider = tree.dataProvider;"/>
 		<mx:Button label="tree.invalidateList()" click="tree.invalidateList();"/>

@@ -5,27 +5,31 @@ package weave.services
     
     import weave.api.core.ILinkableObject;
     import weave.api.getCallbackCollection;
+    import weave.api.reportError;
     import weave.services.beans.AttributeColumnInfo;
     import weave.services.beans.EntityMetadata;
 
     public class MetadataCache implements ILinkableObject
     {
-        private var entity_metacache:Object = {}; /* Of AttributeColumnInfo's */
-        private var entity_childcache:Object = {}; /* Of arrays of AttributeColumnInfo's */
+        private var cache_entities:Object = {};
+        private var cache_childIds:Object = {};
         public function MetadataCache()
         {
         }
         public function get_children(id:int):Array
         {
-            return entity_childcache[id];
+            return cache_childIds[id];
         }
         public function get_metadata(id:int):AttributeColumnInfo
         {
-            return entity_metacache[id];
+            return cache_entities[id];
         }
+		
         public function fetch_children(id:int):AsyncToken
         {
-			entity_childcache[id] = [];
+			// make sure cached value is not null to avoid excess fetch commands
+			if (!cache_childIds[id])
+				cache_childIds[id] = [];
 			
 			var token:AsyncToken = AdminInterface.instance.getEntityChildEntities(id);
 			addAsyncResponder(token, getChildrenHandler, null, id);
@@ -34,22 +38,36 @@ package weave.services
         private function getChildrenHandler(event:ResultEvent, token:Object):void
         {
 			var id:int = int(token);
-            var obj_children:Array = event.result as Array || [];
+            var results:Array = event.result as Array || [];
             var childIds:Array = [];
-            for each (var obj:Object in obj_children)
+            for each (var result:Object in results)
             {
-                var entity:AttributeColumnInfo = AttributeColumnInfo.fromResult(obj);
-                entity_metacache[entity.id] = entity; /* Update the entries while we're here. */
-                childIds.push(entity.id);
+				// save list of child ids
+				var childId:int = AttributeColumnInfo.getEntityIdFromResult(result);
+                childIds.push(childId);
+				
+				// cache child entity info
+				var child:AttributeColumnInfo = cache_entities[childId] || new AttributeColumnInfo();
+                child.copyFromResult(result);
+                cache_entities[childId] = child;
             }
-            entity_childcache[id] = childIds;
+			
+			// temporary solution until the server provides correct ordering
+			childIds.sort(Array.NUMERIC);
+			
+            cache_childIds[id] = childIds;
 			getCallbackCollection(this).triggerCallbacks();
         }
-        public function fetch_metadata(id:int):AsyncToken
+        
+		public function fetch_metadata(id:int):AsyncToken
         {
-			var info:AttributeColumnInfo = new AttributeColumnInfo();
-			info.id = id;
-			entity_metacache[id] = info;
+			// make sure cached value is not null to avoid excess fetch commands
+			if (!cache_entities[id])
+			{
+				var info:AttributeColumnInfo = new AttributeColumnInfo();
+				info.id = id;
+				cache_entities[id] = info;
+			}
 			var token:AsyncToken = AdminInterface.instance.getEntity(id);
 			addAsyncResponder(token, getEntityHandler, null, id);
 			return token;
@@ -57,18 +75,27 @@ package weave.services
         private function getEntityHandler(event:ResultEvent, token:Object):void
         {
 			var id:int = int(token);
-            entity_metacache[id] = event.result ? AttributeColumnInfo.fromResult(event.result) : null;
-			getCallbackCollection(this).triggerCallbacks();
+			if (event.result)
+			{
+				var info:AttributeColumnInfo = cache_entities[id] || new AttributeColumnInfo();
+				info.copyFromResult(event.result);
+				if (id != info.id)
+					reportError("Requested ID does not match result ID");
+	            cache_entities[id] = info;
+				getCallbackCollection(this).triggerCallbacks();
+			}
+			else
+				weaveTrace('getEntity(',id,') returned null');
         }
-        public function clearCache():void
+        
+		public function clearCache():void
         {
-            entity_metacache = {};
-            entity_childcache = {};
+            cache_entities = {};
+            cache_childIds = {};
         }
-        public function update_metadata_and_fetch(id:int, metadata:EntityMetadata):AsyncToken
+        
+		public function update_metadata_and_fetch(id:int, metadata:EntityMetadata):AsyncToken
         {
-            delete entity_metacache[id];
-			
 			AdminInterface.instance.updateEntity(id, metadata);
             return fetch_metadata(id);
         }
@@ -77,29 +104,26 @@ package weave.services
             /* Entity creation should usually impact root, so we'll invalidate root's cache entry and refetch. */
             var em:EntityMetadata = new EntityMetadata();
 			em.publicMetadata = {title: label};
-            delete entity_childcache[-1];  /* Invalidate the root. */
 			AdminInterface.instance.addTag(em);
+			// refresh root
 			return fetch_children(-1);
         }
         public function delete_entity_and_fetch(id:int):AsyncToken
         {
             /* Entity deletion should usually impact root, so we'll invalidate root's cache entry and refetch. */
-            delete entity_childcache[id];
-            delete entity_metacache[id]; 
-            /* Invalidate the root. */
-            delete entity_childcache[-1];
+            delete cache_childIds[id];
+            delete cache_entities[id]; 
 			AdminInterface.instance.removeEntity(id);
+			// refresh root
 			return fetch_children(-1);
         }
         public function add_child_and_fetch(child_id:int, parent_id:int):AsyncToken
         {
-            delete entity_childcache[parent_id];
 			AdminInterface.instance.addChildToParent(child_id, parent_id);
 			return fetch_children(parent_id);
         }
         public function remove_child_and_fetch(child_id:int, parent_id:int):AsyncToken
         {
-            delete entity_childcache[parent_id];
 			AdminInterface.instance.removeChildFromParent(child_id, parent_id);
             return fetch_children(parent_id);
         }

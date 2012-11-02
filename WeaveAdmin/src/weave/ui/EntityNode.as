@@ -22,10 +22,19 @@ package weave.ui
 		
 		public var id:int = -1;
 		
+		public var icon:Object = null;
+		
+		// the node can re-use the same children array
+		private const _childNodes:Array = [];
+		
+		// We cache child nodes to avoid creating unnecessary objects.
+		// Each node must have its own child cache (not static) because we can't have the same node in two places in a Tree.
+		private const _childNodeCache:Object = {}; // id -> EntityNode
+		
 		public function get label():String
 		{
 			if (!AdminInterface.instance.userHasAuthenticated)
-				return 'please log in';
+				return 'Not logged in';
 			
 			var info:AttributeColumnInfo = AdminInterface.instance.meta_cache.get_metadata(id);
 			if (!info)
@@ -66,26 +75,22 @@ package weave.ui
 				return null;
 			}
 			
-			_children.length = childIds.length;
+			_childNodes.length = childIds.length;
 			for (var i:int = 0; i < childIds.length; i++)
 			{
 				var childId:int = childIds[i];
-				var child:EntityNode = childCache[childId];
+				var child:EntityNode = _childNodeCache[childId];
 				
 				if (!child)
-					childCache[childId] = child = new EntityNode();
+					_childNodeCache[childId] = child = new EntityNode();
 				
 				// set id whether or not it's a new child
 				child.id = childId;
 				
-				_children[i] = child;
+				_childNodes[i] = child;
 			}
 			
-			return _children.length ? _children : null;
+			return _childNodes.length ? _childNodes : null;
 		}
-		
-		private var _children:Array = [];
-		
-		private const childCache:Object = {};
     }
 }

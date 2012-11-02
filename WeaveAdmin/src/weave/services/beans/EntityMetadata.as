@@ -21,8 +21,8 @@ package weave.services.beans
 {
 	public class EntityMetadata
 	{
-		public var privateMetadata:Object;
-		public var publicMetadata:Object;
+		public var privateMetadata:Object = {};
+		public var publicMetadata:Object = {};
 		
 		private function objToStr(obj:Object):String
 		{

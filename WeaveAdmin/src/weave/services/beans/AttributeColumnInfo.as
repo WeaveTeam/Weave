@@ -19,6 +19,8 @@
 
 package weave.services.beans
 {
+	import mx.rpc.events.ResultEvent;
+
 	public class AttributeColumnInfo extends EntityMetadata
 	{
 		public var id:int;
@@ -62,22 +64,26 @@ package weave.services.beans
 		public static const ENTITY_COLUMN:int = 1;
 		public static const ENTITY_CATEGORY:int = 2;
 		
-		public static function fromResult(result:Object):AttributeColumnInfo
+		public static function getEntityIdFromResult(result:Object):int
 		{
-			var aci:AttributeColumnInfo = new AttributeColumnInfo();
-			
-			aci.id = result.id;
-			aci.entity_type = result.type;
-			aci.privateMetadata = result.privateMetadata;
-			aci.publicMetadata = result.publicMetadata;
+			return result.id;
+		}
+		
+		public function copyFromResult(result:Object):void
+		{
+			this.id = getEntityIdFromResult(result);
+			this.entity_type = result.type;
+			this.privateMetadata = result.privateMetadata || {};
+			this.publicMetadata = result.publicMetadata || {};
 	
 			// replace nulls with empty strings
-			for each (var metadata:Object in [aci.privateMetadata, aci.publicMetadata])
-				for (var name:String in metadata)
-					if (metadata[name] == null)
-						metadata[name] = '';
-			
-			return aci;
+			var name:String;
+			for (name in this.privateMetadata)
+				if (this.privateMetadata[name] == null)
+					this.privateMetadata[name] = '';
+			for (name in this.publicMetadata)
+				if (this.publicMetadata[name] == null)
+					this.publicMetadata[name] = '';
 		}
 		
 		public static function mergeObjects(a:Object, b:Object):Object
