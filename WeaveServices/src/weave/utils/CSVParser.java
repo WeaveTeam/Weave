@@ -209,6 +209,7 @@ public class CSVParser
 		
 		int fileSize = csvInput.available();
 		char next = (char) csvReader.read();
+		boolean skipNext = false;
 		for (int i = 0; i < fileSize; i++)
 		{
 			char chr = next;
@@ -216,6 +217,13 @@ public class CSVParser
 				next = (char) csvReader.read();
 			else
 				next = LF;
+			
+			if (skipNext)
+			{
+				skipNext = false;
+				continue;
+			}
+			
 			if (escaped)
 			{
 				if (chr == quote)
@@ -228,7 +236,7 @@ public class CSVParser
 						// always append second quote
 						token.append(quote);
 						// skip second quote mark
-						i++;
+						skipNext = true;
 					}
 					else // end of escaped text
 					{
@@ -263,7 +271,7 @@ public class CSVParser
 				{
 					// handle CRLF
 					if (next == LF)
-						i++; // skip line feed
+						skipNext = true; // skip line feed
 					// start new token on new row
 					token = newToken(rows, true);
 				}
