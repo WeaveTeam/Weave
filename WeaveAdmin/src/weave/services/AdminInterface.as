@@ -311,13 +311,17 @@ package weave.services
 		{
 			return service.removeEntity(activeConnectionName, activePassword, id);
 		}
-		public function updateEntity(id:int, metadata:EntityMetadata):AsyncToken
+		public function updateEntity(id:int, diff:EntityMetadata):AsyncToken
 		{
-			return service.updateEntity(activeConnectionName, activePassword, id, metadata);
+			return service.updateEntity(activeConnectionName, activePassword, id, diff);
 		}
 		public function getEntity(id:int):AsyncToken
 		{
 			return service.getEntity(activeConnectionName, activePassword, id);
+		}
+		public function getEntityParentIds(id:int):AsyncToken
+		{
+		    return service.getEntityParentIds(activeConnectionName, activePassword, id);
 		}
 		public function getEntityChildIds(id:int):AsyncToken
 		{

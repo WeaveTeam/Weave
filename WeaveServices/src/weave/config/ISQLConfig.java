@@ -88,6 +88,7 @@ public abstract class ISQLConfig
 	public abstract Collection<DataEntity> getEntitiesByType(Integer id) throws RemoteException;
 	public abstract void addChild(Integer child_id, Integer parent_id) throws RemoteException;
 	public abstract void removeChild(Integer child_id, Integer parent_id) throws RemoteException;
+    public abstract Collection<Integer> getParentIds(Integer id) throws RemoteException;
 	public abstract Collection<Integer> getChildIds(Integer parent_id) throws RemoteException;
 	public abstract Collection<DataEntity> getChildEntities(Integer parent_id) throws RemoteException;
 	public abstract Collection<String> getUniquePublicValues(String property) throws RemoteException;
@@ -297,6 +298,23 @@ public abstract class ISQLConfig
 		
 		public Map<String,String> privateMetadata = new HashMap<String, String>();
 		public Map<String,String> publicMetadata = new HashMap<String, String>();
+	}
+	
+	static public class DataEntityWithChildren extends DataEntity
+	{
+		public Integer[] childIds;
+		
+		public DataEntityWithChildren(DataEntity base, Integer[] childIds)
+		{
+			if (base != null)
+			{
+				this.id = base.id;
+				this.type = base.type;
+				this.publicMetadata = base.publicMetadata;
+				this.privateMetadata = base.privateMetadata;
+			}
+			this.childIds = childIds;
+		}
 	}
 
 	/**

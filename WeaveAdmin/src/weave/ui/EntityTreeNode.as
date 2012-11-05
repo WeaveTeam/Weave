@@ -71,9 +71,7 @@ package weave.ui
         }
         [Bindable(event="objectChanged")] public function get object():AttributeColumnInfo
         {
-            var info:AttributeColumnInfo = AdminInterface.instance.meta_cache.get_metadata(id);
-			if (!info)
-				addAsyncResponder(AdminInterface.instance.meta_cache.fetch_metadata(id), objectChanged);
+            var info:AttributeColumnInfo = AdminInterface.instance.meta_cache.getEntity(id);
 			return info;
         }
         [Bindable(event="childrenChanged")] public function get children():Array
@@ -83,11 +81,8 @@ package weave.ui
         protected function get_children():Array
         {
             if (this.object.entity_type == AttributeColumnInfo.ENTITY_COLUMN) return null;
-            var fresh_children_ids:Array = AdminInterface.instance.meta_cache.get_children(id);
+            var fresh_children_ids:Array = AdminInterface.instance.meta_cache.getEntity(id).childIds;
 			
-			if (!fresh_children_ids)
-				addAsyncResponder(AdminInterface.instance.meta_cache.fetch_children(id), childrenChanged);
-            
 			if (children_ids == fresh_children_ids)
                 return _children;
             else
@@ -109,54 +104,38 @@ package weave.ui
         }
         public function add_child(child_id:int):void
         {
-            var child_obj:Object = AdminInterface.instance.meta_cache.get_metadata(child_id);
+            var child_obj:AttributeColumnInfo = AdminInterface.instance.meta_cache.getEntity(child_id);
             if (child_obj && (child_obj.entity_type == AttributeColumnInfo.ENTITY_TABLE))
             {
 				function afterCopy(event:ResultEvent, token:Object):void
 				{
 					var new_child_id:int = int(event.result);
-					addAsyncResponder(AdminInterface.instance.meta_cache.add_child_and_fetch(new_child_id, id), childrenChanged);
+					addAsyncResponder(AdminInterface.instance.meta_cache.add_child(new_child_id, id), childrenChanged);
 				}
                 addAsyncResponder(AdminInterface.instance.copyEntity(child_id), afterCopy);
             }
             else
             {
-				var token:AsyncToken = AdminInterface.instance.meta_cache.add_child_and_fetch(child_id, this.id);
+				var token:AsyncToken = AdminInterface.instance.meta_cache.add_child(child_id, this.id);
 				addAsyncResponder(token, childrenChanged);
             }
         }
         public function remove_self():void
         {
-            AdminInterface.instance.meta_cache.delete_entity_and_fetch(this.id);
+            AdminInterface.instance.meta_cache.delete_entity(this.id);
         }
         public function remove_child(child_id:int):void
         {
-            var token:AsyncToken = AdminInterface.instance.meta_cache.remove_child_and_fetch(child_id, this.id);
+            var token:AsyncToken = AdminInterface.instance.meta_cache.remove_child(child_id, this.id);
 			addAsyncResponder(token, childrenChanged);
         }
         public function commit(diff:EntityMetadata):AsyncToken
         {
-            return AdminInterface.instance.meta_cache.update_metadata_and_fetch(id, diff);
+            return AdminInterface.instance.meta_cache.update_metadata(id, diff);
         }
         public static function printobj(o:Object):void
         {
             weaveTrace(ObjectUtil.toString(o));
-        }
-        static public function mergeObjects(a:Object, b:Object):Object
-        {
-            var result:Object = {};
-            for each (var obj:Object in [a, b])
-                for (var property:Object in obj)
-                    result[property] = obj[property];
-            return result;
-        }
-        static public function diffObjects(old:Object, fresh:Object):Object
-        {
-            var diff:Object = {};
-            for (var property:String in mergeObjects(old, fresh))
-                if (old[property] != fresh[property])
-                    diff[property] = fresh[property];
-            return diff;
         }
     }
 }

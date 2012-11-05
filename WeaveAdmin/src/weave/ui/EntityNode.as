@@ -20,9 +20,22 @@ package weave.ui
     {
 		public static var debug:Boolean = true;
 		
+		/**
+		 * @param filterType To be used by root node only.
+		 */
+		public function EntityNode(rootFilterType:int = -1)
+		{
+			_rootFilterType = rootFilterType;
+		}
+		
+		private var _rootFilterType:int = -1;
+		
 		public var id:int = -1;
 		
-		public var icon:Object = null;
+		public function getEntity():AttributeColumnInfo
+		{
+			return AdminInterface.instance.meta_cache.getEntity(id);
+		}
 		
 		// the node can re-use the same children array
 		private const _childNodes:Array = [];
@@ -36,12 +49,7 @@ package weave.ui
 			if (!AdminInterface.instance.userHasAuthenticated)
 				return 'Not logged in';
 			
-			var info:AttributeColumnInfo = AdminInterface.instance.meta_cache.get_metadata(id);
-			if (!info)
-			{
-				AdminInterface.instance.meta_cache.fetch_metadata(id);
-				return lang('<Fetching...>');
-			}
+			var info:AttributeColumnInfo = getEntity();
 			
 			var title:String = info.publicMetadata[ColumnMetadata.TITLE];
 			if (!title)
@@ -51,11 +59,10 @@ package weave.ui
 				
 			if (debug)
 			{
-				var _children:Array = children;
 				var typeStrs:Array = ['table','column','category'];
 				var typeInts:Array = [AttributeColumnInfo.ENTITY_TABLE, AttributeColumnInfo.ENTITY_COLUMN, AttributeColumnInfo.ENTITY_CATEGORY];
 				var typeStr:String = typeStrs[typeInts.indexOf(info.entity_type)];
-				var childrenStr:String = _children ? '; ' + _children.length + ' children' : '';
+				var childrenStr:String = _childNodes ? '; ' + _childNodes.length + ' children' : '';
 				var idStr:String = '(' + typeStr + id + childrenStr + ') ' + debugId(this);
 				title = idStr + ' ' + title;
 			}
@@ -68,17 +75,26 @@ package weave.ui
 			if (!AdminInterface.instance.userHasAuthenticated)
 				return null;
 				
-			var childIds:Array = AdminInterface.instance.meta_cache.get_children(id);
+			var childIds:Array = AdminInterface.instance.meta_cache.getEntity(id).childIds;
 			if (!childIds)
-			{
-				AdminInterface.instance.meta_cache.fetch_children(id);
 				return null;
-			}
 			
-			_childNodes.length = childIds.length;
+			var outputIndex:int = 0;
 			for (var i:int = 0; i < childIds.length; i++)
 			{
 				var childId:int = childIds[i];
+				
+				// if there is a filter type, filter out non-column entities that do not have that type
+				if (_rootFilterType >= 0)
+				{
+					var childEntity:AttributeColumnInfo = AdminInterface.instance.meta_cache.getEntity(childId);
+					if (childEntity.entity_type != _rootFilterType && childEntity.entity_type != AttributeColumnInfo.ENTITY_COLUMN)
+					{
+						//trace('filter',_rootFilterType,'removed',childEntity.id,'(type',childEntity.entity_type,')');
+						continue;
+					}
+				}
+				
 				var child:EntityNode = _childNodeCache[childId];
 				
 				if (!child)
@@ -87,8 +103,10 @@ package weave.ui
 				// set id whether or not it's a new child
 				child.id = childId;
 				
-				_childNodes[i] = child;
+				_childNodes[outputIndex] = child;
+				outputIndex++;
 			}
+			_childNodes.length = outputIndex;
 			
 			return _childNodes.length ? _childNodes : null;
 		}

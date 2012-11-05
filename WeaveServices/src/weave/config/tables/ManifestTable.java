@@ -28,8 +28,8 @@ import weave.utils.SQLUtils;
  */
 public class ManifestTable extends AbstractTable
 {
-	private final String MAN_ID = "unique_id";
-	private final String MAN_TYPE = "type_id";
+	private final String FIELD_ID = "unique_id";
+	private final String FIELD_TYPE = "type_id";
 	
     public ManifestTable(ImmortalConnection conn, String schemaName, String tableName) throws RemoteException
     {
@@ -41,7 +41,7 @@ public class ManifestTable extends AbstractTable
         {
             Connection conn = this.conn.getConnection();
             SQLUtils.createTable(conn, schemaName, tableName,
-                Arrays.asList(MAN_ID, MAN_TYPE),
+                Arrays.asList(FIELD_ID, FIELD_TYPE),
                 Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TINYINT UNSIGNED"));
             /* TODO: Add necessary foreign keys. */
         }
@@ -56,7 +56,7 @@ public class ManifestTable extends AbstractTable
         {
             Connection conn = this.conn.getConnection();
             Map<String,Object> record = new HashMap<String,Object>();
-            record.put(MAN_TYPE, type_id);
+            record.put(FIELD_TYPE, type_id);
             return SQLUtils.insertRowReturnID(conn, schemaName, tableName, record);
         }
         catch (SQLException e)
@@ -70,7 +70,7 @@ public class ManifestTable extends AbstractTable
         {
             Connection conn = this.conn.getConnection();
             Map<String,Object> whereParams = new HashMap<String,Object>();
-            whereParams.put(MAN_ID, id);
+            whereParams.put(FIELD_ID, id);
             SQLUtils.deleteRows(conn, schemaName, tableName, whereParams);
         }
         catch (Exception e)
@@ -99,10 +99,10 @@ public class ManifestTable extends AbstractTable
             List<Map<String,Object>> sqlres;
             for (Integer id : ids)
             {
-                whereParams.put(MAN_ID, id);
-                sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(MAN_ID, MAN_TYPE), schemaName, tableName, whereParams, Object.class);
+                whereParams.put(FIELD_ID, id);
+                sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class);
                 // sqlres has one row
-                Number type = (Number) sqlres.get(0).get(MAN_TYPE);
+                Number type = (Number) sqlres.get(0).get(FIELD_TYPE);
                 result.put(id, type.intValue());
             }
             return result;
@@ -124,11 +124,11 @@ public class ManifestTable extends AbstractTable
             Map<String,Object> whereParams = new HashMap<String,Object>();
             List<Map<String,Object>> sqlres;
             Connection conn = this.conn.getConnection();
-            whereParams.put(MAN_TYPE, type_id);
-            sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(MAN_ID, MAN_TYPE), schemaName, tableName, whereParams, Object.class);
+            whereParams.put(FIELD_TYPE, type_id);
+            sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class);
             for (Map<String,Object> row : sqlres)
             {
-            	Number id = (Number) row.get(MAN_ID);
+            	Number id = (Number) row.get(FIELD_ID);
                 ids.add(id.intValue());
             }
             return ids;
@@ -143,7 +143,7 @@ public class ManifestTable extends AbstractTable
         try
         {
             Connection conn = this.conn.getConnection();
-            return new HashSet<Integer>(SQLUtils.getIntColumn(conn, schemaName, tableName, MAN_ID));
+            return new HashSet<Integer>(SQLUtils.getIntColumn(conn, schemaName, tableName, FIELD_ID));
         }
         catch (Exception e)
         {

@@ -40,15 +40,15 @@ public class SQLConfig
 	/* Table name parts */
 	private final String SUFFIX_META_PRIVATE = "meta_private";
 	private final String SUFFIX_META_PUBLIC = "meta_public";
-        private final String SUFFIX_MANIFEST = "manifest";
-        private final String SUFFIX_TAGS = "entity_tags";
+	private final String SUFFIX_MANIFEST = "manifest";
+	private final String SUFFIX_TAGS = "entity_tags";
 	private final String WEAVE_TABLE_PREFIX = "weave_";
 
         /* Complete Table Names */	
 	private String table_meta_private = WEAVE_TABLE_PREFIX + SUFFIX_META_PRIVATE;
 	private String table_meta_public = WEAVE_TABLE_PREFIX + SUFFIX_META_PUBLIC;
-        private String table_manifest = WEAVE_TABLE_PREFIX + SUFFIX_MANIFEST;
-        private String table_tags = WEAVE_TABLE_PREFIX + SUFFIX_TAGS;
+	private String table_manifest = WEAVE_TABLE_PREFIX + SUFFIX_MANIFEST;
+	private String table_tags = WEAVE_TABLE_PREFIX + SUFFIX_TAGS;
 
 	/* Constants for type_id */
 
@@ -56,11 +56,11 @@ public class SQLConfig
 	private ISQLConfig connectionConfig = null;
 	private Connection _lastConnection = null; // do not use this variable directly -- use getConnection() instead.
         
-        protected AttributeValueTable public_attributes;
-        protected AttributeValueTable private_attributes;
-        protected ManifestTable manifest;
-        protected ParentChildTable relationships;
-        protected ImmortalConnection connection = null;
+		protected AttributeValueTable public_attributes;
+		protected AttributeValueTable private_attributes;
+		protected ManifestTable manifest;
+		protected ParentChildTable relationships;
+		protected ImmortalConnection connection = null;
 
 	/**
 	 * This function gets a connection to the database containing the configuration information. This function will reuse a previously created
@@ -279,13 +279,18 @@ public class SQLConfig
         /* If we're trying to remove a child from a datatable, throw a wobbly. */
         if (manifest.getEntryType(parent_id) == ISQLConfig.DataEntity.MAN_TYPE_DATATABLE)
         {
-            throw new RemoteException("Can't remove children from a datatable. Ever.", null);
+            throw new RemoteException("Can't remove children from a datatable.", null);
         }
         relationships.removeChild(child_id, parent_id);
     }
     public Collection<DataEntity> getChildEntities(Integer id) throws RemoteException
     {
     	return getEntities(getChildIds(id));
+    }
+    
+    public Collection<Integer> getParentIds(Integer id) throws RemoteException
+    {
+    	return relationships.getParents(id);
     }
     
     public Collection<Integer> getChildIds(Integer id) throws RemoteException

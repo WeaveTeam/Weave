@@ -156,9 +156,13 @@ public abstract class DeprecatedSQLConfig extends ISQLConfig
     {
         throw new RemoteException("Not implemented");
     }
-    public Collection<Integer> getChildIds(Integer parent_id) throws RemoteException
+    public Collection<Integer> getParentIds(Integer child_id) throws RemoteException
     {
         throw new RemoteException("Not implemented");
+    }
+    public Collection<Integer> getChildIds(Integer parent_id) throws RemoteException
+    {
+    	throw new RemoteException("Not implemented");
     }
     public Collection<DataEntity> getChildEntities(Integer parent_id) throws RemoteException
     {

@@ -27,8 +27,8 @@ import weave.utils.SQLUtils;
  */
 public class ParentChildTable extends AbstractTable
 {
-	private final String TAG_CHILD = "child_id";
-	private final String TAG_PARENT = "parent_id";
+	private final String FIELD_CHILD = "child_id";
+	private final String FIELD_PARENT = "parent_id";
 	
     public ParentChildTable(ImmortalConnection conn, String schemaName, String tableName) throws RemoteException
     {
@@ -41,7 +41,7 @@ public class ParentChildTable extends AbstractTable
 			Connection conn = this.conn.getConnection();
 			SQLUtils.createTable(
 					conn, schemaName, tableName,
-					Arrays.asList(TAG_CHILD, TAG_PARENT),
+					Arrays.asList(FIELD_CHILD, FIELD_PARENT),
 					Arrays.asList("BIGINT UNSIGNED", "BIGINT UNSIGNED")
 			);
 			/* No indices needed. */
@@ -58,14 +58,34 @@ public class ParentChildTable extends AbstractTable
             Connection conn = this.conn.getConnection();
             Map<String, Object> sql_args = new HashMap<String,Object>();
             removeChild(child_id, parent_id);
-            sql_args.put(TAG_CHILD, child_id);
-            sql_args.put(TAG_PARENT, parent_id);
+            sql_args.put(FIELD_CHILD, child_id);
+            sql_args.put(FIELD_PARENT, parent_id);
             SQLUtils.insertRow(conn, schemaName, tableName, sql_args);
         }
         catch (SQLException e)
         {
             throw new RemoteException("Unable to add child.",e);
         }
+    }
+    public Collection<Integer> getParents(Integer child_id) throws RemoteException
+    {
+    	try
+    	{
+    		Connection conn = this.conn.getConnection();
+			Map<String,Object> query = new HashMap<String,Object>();
+			query.put(FIELD_CHILD, child_id);
+			Set<Integer> parents = new HashSet<Integer>();
+			for (Map<String,Object> row : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class))
+			{
+				Number parent = (Number)row.get(FIELD_PARENT);
+				parents.add(parent.intValue());
+			}
+			return parents;
+    	}
+    	catch (SQLException e)
+    	{
+    		throw new RemoteException("Unable to retrieve parents.", e);
+    	}
     }
     /* getChildren(null) will return all ids that appear in the 'child' column */
     public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
@@ -75,16 +95,16 @@ public class ParentChildTable extends AbstractTable
             Connection conn = this.conn.getConnection();
             if (parent_id == null)
             {
-                return new HashSet<Integer>(SQLUtils.getIntColumn(conn, schemaName, tableName, TAG_CHILD));
+                return new HashSet<Integer>(SQLUtils.getIntColumn(conn, schemaName, tableName, FIELD_CHILD));
             }
             else 
             {
                 Map<String,Object> query = new HashMap<String,Object>();
-                query.put(TAG_PARENT, parent_id);
+                query.put(FIELD_PARENT, parent_id);
                 Set<Integer> children = new HashSet<Integer>();
                 for (Map<String,Object> row : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class))
                 {
-                	Number child = (Number)row.get(TAG_CHILD);
+                	Number child = (Number)row.get(FIELD_CHILD);
                     children.add(child.intValue());
                 }
                 return children;
@@ -92,7 +112,7 @@ public class ParentChildTable extends AbstractTable
         }
         catch (SQLException e)
         {
-            throw new RemoteException("Unable to retrieve children.");
+            throw new RemoteException("Unable to retrieve children.", e);
         }
     }
     /* passing in a null releases the constraint. */
@@ -105,9 +125,9 @@ public class ParentChildTable extends AbstractTable
             if (child_id == null && parent_id == null)
                 throw new RemoteException("removeChild called with two nulls. This is not what you want.", null);
             if (child_id != null)
-                sql_args.put(TAG_CHILD, child_id);
+                sql_args.put(FIELD_CHILD, child_id);
             if (parent_id != null) 
-                sql_args.put(TAG_PARENT, parent_id);
+                sql_args.put(FIELD_PARENT, parent_id);
             SQLUtils.deleteRows(conn, schemaName, tableName, sql_args);
         }
         catch (SQLException e)

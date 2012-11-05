@@ -22,12 +22,13 @@
 	
 	import weave.core.UIUtils;
 	import weave.services.AdminInterface;
+	import weave.services.MetadataCache;
 	import weave.services.WeaveAdminService;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.AttributeColumnInfo;
 	import weave.services.beans.EntityMetadata;
-	import weave.ui.EntityTreeNode;
-    [Bindable] public var targetItem:EntityTreeNode = null;
+	
+    [Bindable] public var targetItem:EntityNode = null;
     [Bindable] public var isChanged:Boolean = false;
 
     private var pubWatcher:ChangeWatcher;
@@ -38,19 +39,21 @@
         pubWatcher = ChangeWatcher.watch(publicMetaGrid, "metadata", metaChanged);
         privWatcher = ChangeWatcher.watch(privateMetaGrid, "metadata", metaChanged);
     }
-    private function setEditors(o:Object = null):void
+    private function setEditors(..._):void
     {
         if (targetItem == null)
         {
             return;
         }
-        publicMetaGrid.metadata = targetItem.object.publicMetadata;
-        privateMetaGrid.metadata = targetItem.object.privateMetadata;
+		var entity:AttributeColumnInfo = targetItem.getEntity();
+        publicMetaGrid.metadata = entity.publicMetadata;
+        privateMetaGrid.metadata = entity.privateMetadata;
     }
-    private function metaChanged(o:Object = null):void
+    private function metaChanged(..._):void
     {
-        var pubDiff:Object = EntityTreeNode.diffObjects(publicMetaGrid.metadata, targetItem.object.publicMetadata);
-        var privDiff:Object = EntityTreeNode.diffObjects(privateMetaGrid.metadata, targetItem.object.privateMetadata);
+		var entity:AttributeColumnInfo = targetItem.getEntity();
+        var pubDiff:Object = MetadataCache.diffObjects(publicMetaGrid.metadata, entity.publicMetadata);
+        var privDiff:Object = MetadataCache.diffObjects(privateMetaGrid.metadata, entity.privateMetadata);
         var prop:String;
         for (prop in pubDiff)
         {
@@ -66,8 +69,9 @@
     }
     private function saveChanges():void
     {
-        var pubDiff:Object = EntityTreeNode.diffObjects(targetItem.object.publicMetadata, publicMetaGrid.metadata);
-        var privDiff:Object = EntityTreeNode.diffObjects(targetItem.object.privateMetadata, privateMetaGrid.metadata);
+		var entity:AttributeColumnInfo = targetItem.getEntity();
+        var pubDiff:Object = MetadataCache.diffObjects(entity.publicMetadata, publicMetaGrid.metadata);
+        var privDiff:Object = MetadataCache.diffObjects(entity.privateMetadata, privateMetaGrid.metadata);
         function validateCommit(..._):void
         {
             metaChanged();
@@ -81,7 +85,7 @@
 		var diff:EntityMetadata = new EntityMetadata();
 		diff.publicMetadata = pubDiff;
 		diff.privateMetadata = privDiff;
-        addAsyncResponder(targetItem.commit(diff), validateCommit);
+        addAsyncResponder(AdminInterface.instance.meta_cache.update_metadata(entity.id, diff), validateCommit);
     }
     private static function printobj(o:Object):void
     {

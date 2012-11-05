@@ -30,9 +30,9 @@ import weave.utils.SQLUtils;
  */
 public class AttributeValueTable extends AbstractTable
 {
-	private final String META_ID = "id";
-	private final String META_PROPERTY = "property";
-	private final String META_VALUE = "value";
+	private final String FIELD_ID = "id";
+	private final String FIELD_PROPERTY = "property";
+	private final String FIELD_VALUE = "value";
 	
     public AttributeValueTable(ImmortalConnection conn, String schemaName, String tableName) throws RemoteException
     {
@@ -45,7 +45,7 @@ public class AttributeValueTable extends AbstractTable
 			Connection conn = this.conn.getConnection();
 			SQLUtils.createTable(
 				conn, schemaName, tableName,
-				Arrays.asList(META_ID, META_PROPERTY, META_VALUE),
+				Arrays.asList(FIELD_ID, FIELD_PROPERTY, FIELD_VALUE),
 				Arrays.asList("BIGINT UNSIGNED", "TEXT", "TEXT")
 			);
 
@@ -60,16 +60,16 @@ public class AttributeValueTable extends AbstractTable
             /* Index of (ID, Property) */
             SQLUtils.createIndex(
             		conn, schemaName, tableName,
-                    tableName+META_ID+META_PROPERTY,
-                    new String[]{META_ID, META_PROPERTY},
+                    tableName+FIELD_ID+FIELD_PROPERTY,
+                    new String[]{FIELD_ID, FIELD_PROPERTY},
                     new Integer[]{0, 255}
             );
 
             /* Index of (Property, Value) */
             SQLUtils.createIndex(
             		conn, schemaName, tableName,
-                    tableName+META_PROPERTY+META_VALUE,
-                    new String[]{META_PROPERTY, META_VALUE},
+                    tableName+FIELD_PROPERTY+FIELD_VALUE,
+                    new String[]{FIELD_PROPERTY, FIELD_VALUE},
                     new Integer[]{255,255}
             );
         }
@@ -86,15 +86,15 @@ public class AttributeValueTable extends AbstractTable
         {
             Connection conn = this.conn.getConnection();
             Map<String, Object> sql_args = new HashMap<String,Object>();
-            sql_args.put(META_PROPERTY, property);
-            sql_args.put(META_ID, id);
+            sql_args.put(FIELD_PROPERTY, property);
+            sql_args.put(FIELD_ID, id);
             SQLUtils.deleteRows(conn, schemaName, tableName, sql_args);
             if (value != null && value.length() > 0)
             {
                 sql_args.clear();
-                sql_args.put(META_VALUE, value);
-                sql_args.put(META_PROPERTY, property);
-                sql_args.put(META_ID, id);
+                sql_args.put(FIELD_VALUE, value);
+                sql_args.put(FIELD_PROPERTY, property);
+                sql_args.put(FIELD_ID, id);
                 SQLUtils.insertRow(conn, schemaName, tableName, sql_args);
             }
         } 
@@ -110,7 +110,7 @@ public class AttributeValueTable extends AbstractTable
         {
             Connection conn = this.conn.getConnection();
             Map<String, Object> sql_args  = new HashMap<String,Object>();
-            sql_args.put(META_ID, id);
+            sql_args.put(FIELD_ID, id);
             SQLUtils.deleteRows(conn, schemaName, tableName, sql_args);
         }
         catch (SQLException e)
@@ -125,12 +125,12 @@ public class AttributeValueTable extends AbstractTable
             Connection conn = this.conn.getConnection();
             Map<String,Object> params = new HashMap<String,Object>();
             Map<Integer,String> result = new HashMap<Integer,String>();
-            params.put(META_PROPERTY, property);
-            List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(META_ID, META_VALUE), schemaName, tableName, params, Object.class);
+            params.put(FIELD_PROPERTY, property);
+            List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_VALUE), schemaName, tableName, params, Object.class);
             for (Map<String,Object> row : rows)
             {
-            	Number id = (Number)row.get(META_ID);
-            	String value = (String)row.get(META_VALUE);
+            	Number id = (Number)row.get(FIELD_ID);
+            	String value = (String)row.get(FIELD_VALUE);
                 result.put(id.intValue(), value);
             }
             return result;
@@ -145,7 +145,7 @@ public class AttributeValueTable extends AbstractTable
         try 
         {
             Connection conn = this.conn.getConnection();
-            return SQLUtils.idInSelect(conn, schemaName, tableName, META_ID, META_PROPERTY, META_VALUE, ids, null);
+            return SQLUtils.idInSelect(conn, schemaName, tableName, FIELD_ID, FIELD_PROPERTY, FIELD_VALUE, ids, null);
         }   
         catch (SQLException e)
         {
@@ -164,11 +164,11 @@ public class AttributeValueTable extends AbstractTable
                 if (keyValPair.getKey() == null || keyValPair.getValue() == null)
                 	continue;
                 Map<String,String> colValPair = new HashMap<String,String>();
-                colValPair.put(META_PROPERTY, keyValPair.getKey());
-                colValPair.put(META_VALUE, keyValPair.getValue());
+                colValPair.put(FIELD_PROPERTY, keyValPair.getKey());
+                colValPair.put(FIELD_VALUE, keyValPair.getValue());
                 crossRowArgs.add(colValPair);
             }
-            return new HashSet<Integer>(SQLUtils.crossRowSelect(conn, schemaName, tableName, META_ID, crossRowArgs));
+            return new HashSet<Integer>(SQLUtils.crossRowSelect(conn, schemaName, tableName, FIELD_ID, crossRowArgs));
         }
         catch (SQLException e)
         {

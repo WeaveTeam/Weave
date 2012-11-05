@@ -1,130 +1,46 @@
-<mx:Tree xmlns:mx="http://www.adobe.com/2006/mxml"
+<CustomTree xmlns:mx="http://www.adobe.com/2006/mxml"
     xmlns:ui="weave.ui.*"
     xmlns="weave.ui.*"
-    creationComplete="handleCreated()" itemOpening="onExpand(event)"
-    change="onChange(event)"
+    creationComplete="handleCreationComplete()"
     openDuration="0" dragEnabled="true"
+	allowMultipleSelection="true"
     showRoot="false">
-<mx:Script>
-<![CDATA[
-	import flash.utils.getQualifiedClassName;
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.IList;
+			
+			import weave.api.getCallbackCollection;
+			import weave.services.AdminInterface;
+			
+			public function set rootFilterType(type:int):void
+			{
+				dataProvider = _rootNode = new EntityNode(type);
+			}
+			
+			private var _rootNode:EntityNode;
+			
+			private function handleCreationComplete():void
+			{
+				getCallbackCollection(AdminInterface.instance.meta_cache).addImmediateCallback(this, handleMetadataCache);
+				BindingUtils.bindSetter(connectionReady, AdminInterface.instance, 'userHasAuthenticated');
+			}
 	
-	import mx.binding.utils.BindingUtils;
-	import mx.binding.utils.ChangeWatcher;
-	import mx.collections.ArrayCollection;
-	import mx.events.DragEvent;
-	import mx.events.ListEvent;
-	import mx.events.PropertyChangeEvent;
-	import mx.events.TreeEvent;
-	import mx.managers.DragManager;
-	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
-	
-	import weave.services.AdminInterface;
-	import weave.services.WeaveAdminService;
-	import weave.services.addAsyncResponder;
-	import weave.services.beans.AttributeColumnInfo;
-	import weave.ui.EntityTreeNode;
-	import weave.ui.EntityTreeRoot;
-	import weave.ui.HierarchyDescriptor;
-
-public var entityType:int;
-private var connWatcher:ChangeWatcher;
-public var etn_root:EntityTreeRoot;
-[Bindable] public var selectedType:int;
-
-public function onExpand(event:TreeEvent):void
-{
-    if (!event.opening) return; // If we're closing, don't do anything.
-    var item:EntityTreeNode = event.item as EntityTreeNode;
-    var watch_once:ChangeWatcher = null;
-    if (item.children == null)
-    {
-        event.preventDefault();
-        // Setup a oneoff changewatcher. There must be a better way to do this. 
-        watch_once = ChangeWatcher.watch(item, "children", onPopulated);
-    }
-    function onPopulated(o:Object):void
-    {
-        if (watch_once != null)
-            watch_once.unwatch();
-        var tree:Tree = event.target as Tree;
-       // tree.dataProvider.itemUpdated(event.item);
-        tree.expandItem(event.item, true, false);
-        tree.validateNow();
-    }
-} 
-
-public function onChange(event:ListEvent):void
-{
-    var etn:EntityTreeNode = selectedItem as EntityTreeNode;
-    if (etn == null) 
-    {
-        selectedType = -1;
-        return;
-    }
-    selectedType = etn.object.entity_type;
-
-}
-private function filterByType(item:EntityTreeNode, index:int, arr:Array):Boolean
-{
-    var etn:EntityTreeNode = item as EntityTreeNode;
-    if (etn == null)
-    {
-		weaveTrace("Something has gone horribly wrong in EntityTree.");
-        return false;
-    }
-    if (etn.object != null)
-        return (etn.object.entity_type == entityType || etn.object.entity_type == AttributeColumnInfo.ENTITY_COLUMN); 
-    else
-        return false;
-}
-public function handleCreated():void
-{
-	BindingUtils.bindSetter(connectionReady, AdminInterface.instance, "userHasAuthenticated");
-}
-public function reload(obj:Object = null):void
-{
-    var oldFirstVisibleItem:Object = firstVisibleItem;
-    var oldSelectedItem:Object = selectedItem;
-    var oldOpenItems:Array = openItems.concat();
-    dataProvider = null;
-    dataProvider = etn_root;
-    dataProvider.refresh();
-    validateNow();
-    for each (var item:Object in oldOpenItems)
-        expandItem(item, true, false);
-    firstVisibleItem = oldFirstVisibleItem;
-    if (oldSelectedItem != null)
-        selectedItem = oldSelectedItem;
-    
-}
-private function connectionReady(userHasAuthenticated:Boolean):void
-{
-    if (userHasAuthenticated == true)
-    {
-		var tree:EntityTree = this;
-        function emptyValidate(..._):void
-        { 
-            /* Twiddle the dataProvider */
-			weaveTrace("Validating!");
-			tree.dataProvider.refresh()
-			tree.invalidateList();
-			tree.validateNow();
-        }
-        function setProvider(..._):void
-        { 
-            etn_root = new EntityTreeRoot(filterByType);
-            dataDescriptor = new HierarchyDescriptor();
-			tree.dataProvider = etn_root;
-			tree.dataProvider.enableAutoUpdate();
-            etn_root.addEventListener("childrenChanged", emptyValidate);
-			tree.validateNow();
-        }
-        if (AdminInterface.instance.meta_cache.get_children(-1) == null)
-			addAsyncResponder(AdminInterface.instance.meta_cache.fetch_children(-1), setProvider);
-    }
-}
-]]>
-</mx:Script>
-</mx:Tree>
+			private function connectionReady(userHasAuthenticated:Boolean):void
+			{
+			    if (userHasAuthenticated == true)
+					invalidateList();
+			}
+			
+			private function handleMetadataCache():void
+			{
+				// Because we are not rendering the root node, we need to explicitly request the children from
+				// the root so that the children will be fetched.
+				if (_rootNode)
+					_rootNode.children;
+				
+				invalidateList();
+			}
+		]]>
+	</mx:Script>
+</CustomTree>

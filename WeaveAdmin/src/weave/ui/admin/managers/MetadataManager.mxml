@@ -19,33 +19,21 @@
     along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml"
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 				xmlns:ui="weave.ui.*"
 				xmlns="weave.ui.admin.managers.*" 
 				width="100%" height="100%" 
 				label="Data Hierarchies{metadataEditor.isChanged?'*':''}">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.getCallbackCollection;
 			import weave.services.AdminInterface;
-			import weave.ui.EntityNode;
 			
-			override protected function childrenCreated():void
-			{
-				super.childrenCreated();
-				getCallbackCollection(AdminInterface.instance.meta_cache).addImmediateCallback(this, tree.invalidateList);
-			}
-			
-			private const rootNode:EntityNode = new EntityNode();
+			private var debug:* = debugId(this);
 		]]>
 	</mx:Script>
-	<ui:HierarchyEditor width="50%" height="100%" id="columnSelector" enabled="{!metadataEditor.isChanged}"/>
-	<mx:VBox width="100%" height="100%">
-		<mx:Label text="{debugId(tree)}"/> 
-		<mx:Tree width="100%" height="100%" id="tree" dataProvider="{rootNode}" showRoot="false"/>
-		<mx:Button label="clearCache()" click="AdminInterface.instance.meta_cache.clearCache();"/>
-		<mx:Button label="set dataProvider" click="tree.dataProvider = tree.dataProvider;"/>
-		<mx:Button label="tree.invalidateList()" click="tree.invalidateList();"/>
-	</mx:VBox>
-	<ui:MetadataEditor width="50%" height="100%" id="metadataEditor" targetItem="{columnSelector.selectedItem}"/>
-</mx:HDividedBox>
+	<mx:Button label="Refresh" click="AdminInterface.instance.meta_cache.clearCache();"/>
+	<mx:HDividedBox width="100%" height="100%">
+		<ui:HierarchyEditor width="50%" height="100%" id="hierarchyEditor" enabled="{!metadataEditor.isChanged}"/>
+		<ui:MetadataEditor width="50%" height="100%" id="metadataEditor" targetItem="{hierarchyEditor.selectedItem}"/>
+	</mx:HDividedBox>
+</mx:VBox>

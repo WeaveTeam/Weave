@@ -59,6 +59,7 @@ import weave.config.ISQLConfig;
 import weave.config.ISQLConfig.ConnectionInfo;
 import weave.config.ISQLConfig.DataEntity;
 import weave.config.ISQLConfig.DataEntityMetadata;
+import weave.config.ISQLConfig.DataEntityWithChildren;
 import weave.config.ISQLConfig.DataType;
 import weave.config.ISQLConfig.DatabaseConfigInfo;
 import weave.config.ISQLConfig.PrivateMetadata;
@@ -672,6 +673,12 @@ public class AdminService extends GenericServlet
                 else
                     throw new RemoteException("User cannot modify entity.", null);
         }
+        synchronized public Integer[] getEntityParentIds(String connectionName, String password, int child_id) throws RemoteException
+        {
+        	ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+        	Collection<Integer> children = config.getParentIds(child_id);
+        	return children.toArray(new Integer[0]);
+        }
         synchronized public Integer[] getEntityChildIds(String connectionName, String password, int parent_id) throws RemoteException
         {
         	ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
@@ -684,10 +691,11 @@ public class AdminService extends GenericServlet
 			Collection<DataEntity> children = config.getChildEntities(parent_id);
 			return children.toArray(new DataEntity[0]);
         }
-        synchronized public DataEntity getEntity(String connectionName, String password, int id) throws RemoteException
+        synchronized public DataEntityWithChildren getEntity(String connectionName, String password, int id) throws RemoteException
         {
             ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-            return config.getEntity(id);
+            Collection<Integer> children = config.getChildIds(id);
+            return new DataEntityWithChildren(config.getEntity(id), children.toArray(new Integer[0]));
         }
         synchronized public DataEntity[] getEntities(String connectionName, String password, Map<String,Map<String,String>> meta) throws RemoteException
         {
@@ -722,15 +730,15 @@ public class AdminService extends GenericServlet
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		DataEntity[] columns = getEntityChildEntities(connectionName, password, table_id);
-		for (DataEntity attributeColumnInfo : columns)
+		for (DataEntity entity : columns)
 		{
 			try
 			{
-				String query = attributeColumnInfo.getSqlQuery();
-				String sqlParams = attributeColumnInfo.getSqlParams();
+				String query = entity.getSqlQuery();
+				String sqlParams = entity.getSqlParams();
 				System.out.println(query);
 				SQLResult result;
-				Connection conn = config.getNamedConnection(attributeColumnInfo.getConnectionName(), true);
+				Connection conn = config.getNamedConnection(entity.getConnectionName(), true);
 				
 				if (sqlParams != null && sqlParams.length() > 0)
 				{
@@ -742,12 +750,12 @@ public class AdminService extends GenericServlet
 					result = SQLUtils.getRowSetFromQuery(conn, query);
 				}
 				
-				attributeColumnInfo.privateMetadata.put(PrivateMetadata.SQLRESULT, String.format("Returned %s rows", result.rows.length));
+				entity.privateMetadata.put(PrivateMetadata.SQLRESULT, String.format("Returned %s rows", result.rows.length));
 			}
 			catch (Exception e)
 			{
 				e.printStackTrace();
-				attributeColumnInfo.privateMetadata.put(PrivateMetadata.SQLRESULT, e.getMessage());
+				entity.privateMetadata.put(PrivateMetadata.SQLRESULT, e.getMessage());
 			}
 		}
 		return columns;

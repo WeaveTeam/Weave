@@ -25,6 +25,7 @@ package weave.services.beans
 	{
 		public var id:int;
 		public var entity_type:int;
+		public var childIds:Array;
 		
 		public function AttributeColumnInfo()
 		{
@@ -75,6 +76,7 @@ package weave.services.beans
 			this.entity_type = result.type;
 			this.privateMetadata = result.privateMetadata || {};
 			this.publicMetadata = result.publicMetadata || {};
+			this.childIds = result.childIds;
 	
 			// replace nulls with empty strings
 			var name:String;

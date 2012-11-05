@@ -2,9 +2,14 @@
 package weave.ui {
 	import flash.events.Event;
 	
+	import mx.collections.ICollectionView;
+	import mx.collections.IList;
 	import mx.controls.Tree;
+	import mx.controls.listClasses.IListItemRenderer;
 	import mx.core.ScrollPolicy;
 	import mx.core.mx_internal;
+	
+	import spark.components.supportClasses.ItemRenderer;
 	
 	import weave.utils.EventUtils;
 	
@@ -60,6 +65,8 @@ package weave.ui {
 			invalidateDisplayList();
 		}
 		
+		private var _rootItemRenderer:IListItemRenderer;
+		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			if (_scrollInvalid)
@@ -78,6 +85,26 @@ package weave.ui {
 			else
 			{
 				_invalidateScrollLater();
+			}
+			
+			// if showRoot is false and root is showing, refresh data provider to hide root
+			if (!showRoot)
+			{
+				try {
+					var rootItem:Object = (dataProvider as IList).getItemAt(0);
+					
+					// make sure to reset visibility if item render gets re-used.
+					if (_rootItemRenderer && _rootItemRenderer.data != rootItem)
+						_rootItemRenderer.visible = true;
+					
+					_rootItemRenderer = itemToItemRenderer(rootItem);
+					if (_rootItemRenderer)
+					{
+						_rootItemRenderer.visible = false;
+						dataProvider = dataProvider;
+						validateNow();
+					}
+				} catch (e:Error) { }
 			}
 			
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
