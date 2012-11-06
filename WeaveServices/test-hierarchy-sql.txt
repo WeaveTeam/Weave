@@ -1,5 +1,17 @@
 delete from weave_entity_tags;
 insert into weave_entity_tags(parent_id,child_id) values
+(99,2),
+(99,4),
+(99,6),
+(99,7),
+(99,8),
+(99,9),
+(99,12),
+(99,14),
+(99,15),
+(99,17),
+(99,18),
+(99,19),
 (1,2),
 (1,3),
 (1,4),
@@ -18,6 +30,7 @@ insert into weave_entity_tags(parent_id,child_id) values
 (16,19);
 delete from weave_manifest;
 insert into weave_manifest(unique_id,type_id) values
+(99,0),
 (1,2),
 (2,1),
 (3,2),

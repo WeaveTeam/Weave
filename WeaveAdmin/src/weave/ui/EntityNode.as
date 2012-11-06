@@ -4,6 +4,9 @@ package weave.ui
     import flash.events.Event;
     import flash.events.EventDispatcher;
     
+    import mx.collections.ArrayCollection;
+    import mx.collections.ICollectionView;
+    import mx.collections.ListCollectionView;
     import mx.controls.Tree;
     import mx.rpc.AsyncToken;
     import mx.rpc.events.ResultEvent;
@@ -11,11 +14,13 @@ package weave.ui
     
     import weave.api.data.ColumnMetadata;
     import weave.services.AdminInterface;
+    import weave.services.MetadataCache;
     import weave.services.WeaveAdminService;
     import weave.services.addAsyncResponder;
     import weave.services.beans.AttributeColumnInfo;
     import weave.services.beans.EntityMetadata;
 
+	[RemoteClass]
     public class EntityNode
     {
 		public static var debug:Boolean = true;
@@ -39,6 +44,13 @@ package weave.ui
 		
 		// the node can re-use the same children array
 		private const _childNodes:Array = [];
+		private const _childCollectionView:ICollectionView = new ArrayCollection(_childNodes);
+		
+		public function get childCollectionView():ICollectionView
+		{
+			children; // access children so they will be populated.
+			return  _childCollectionView;
+		}
 		
 		// We cache child nodes to avoid creating unnecessary objects.
 		// Each node must have its own child cache (not static) because we can't have the same node in two places in a Tree.
@@ -109,6 +121,16 @@ package weave.ui
 			_childNodes.length = outputIndex;
 			
 			return _childNodes.length ? _childNodes : null;
+		}
+		
+		public static function addChildAt(parent:EntityNode, child:EntityNode, index:int):void
+		{
+			//TODO: handle index
+			AdminInterface.instance.meta_cache.add_child(child.id, parent ? parent.id : MetadataCache.ROOT_ID);
+		}
+		public static function removeChild(parent:EntityNode, child:EntityNode):void
+		{
+			AdminInterface.instance.meta_cache.remove_child(child.id, parent ? parent.id : MetadataCache.ROOT_ID);
 		}
     }
 }

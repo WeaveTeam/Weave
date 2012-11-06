@@ -9,6 +9,7 @@
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.collections.IList;
+			import mx.events.DragEvent;
 			
 			import weave.api.getCallbackCollection;
 			import weave.services.AdminInterface;
@@ -16,6 +17,7 @@
 			public function set rootFilterType(type:int):void
 			{
 				dataProvider = _rootNode = new EntityNode(type);
+				dataDescriptor = new EntityTreeDataDescriptor();
 			}
 			
 			private var _rootNode:EntityNode;
@@ -24,6 +26,15 @@
 			{
 				getCallbackCollection(AdminInterface.instance.meta_cache).addImmediateCallback(this, handleMetadataCache);
 				BindingUtils.bindSetter(connectionReady, AdminInterface.instance, 'userHasAuthenticated');
+				
+				debugTrace(a);
+			}
+			
+			private var a:Array = [];
+			private function debugEvent(e:Event):void
+			{
+				trace(e.type);
+				a.push(e);
 			}
 	
 			private function connectionReady(userHasAuthenticated:Boolean):void

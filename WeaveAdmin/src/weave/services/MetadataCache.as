@@ -25,8 +25,10 @@ package weave.services
         {
         }
 		
-		private function invalidate(id:int, alsoInvalidateParents:Boolean = false):void
+		private function invalidate(id:int, alsoInvalidateParents:Boolean = false):AsyncToken
 		{
+			var token:AsyncToken;
+			
 			callbacks.delayCallbacks();
 			
 			if (!cache_dirty[id])
@@ -40,19 +42,21 @@ package weave.services
 				{
 					// when a child is deleted, invalidate parents
 					for (var parentId:* in parents)
-						invalidate(parentId);
+						token = invalidate(parentId);
 				}
 				else
 				{
 					// invalidate root when child has no parents
-					invalidate(ROOT_ID);
+					token = invalidate(ROOT_ID);
 				}
 			}
 			
 			if (id == ROOT_ID)
-				fetchEntity(id);
+				token = fetchEntity(id);
 			
 			callbacks.resumeCallbacks();
+			
+			return token;
 		}
 		
 		private function get callbacks():ICallbackCollection { return getCallbackCollection(this); }
@@ -137,15 +141,21 @@ package weave.services
         }
         public function add_child(child_id:int, parent_id:int):AsyncToken
         {
-			var token:AsyncToken = AdminInterface.instance.addChildToParent(child_id, parent_id);
-			invalidate(parent_id);
-			return token;
+			var token:AsyncToken;
+			// add to root not supported
+			if (parent_id != ROOT_ID)
+				token = AdminInterface.instance.addChildToParent(child_id, parent_id);
+			var invalidateToken:AsyncToken = invalidate(parent_id);
+			return token || invalidateToken;
         }
         public function remove_child(child_id:int, parent_id:int):AsyncToken
         {
-			var token:AsyncToken = AdminInterface.instance.removeChildFromParent(child_id, parent_id);
-			invalidate(child_id, true);
-            return token;
+			var token:AsyncToken;
+			// remove from root not supported
+			if (parent_id != ROOT_ID)
+				token = AdminInterface.instance.removeChildFromParent(child_id, parent_id);
+			var invalidateToken:AsyncToken = invalidate(child_id, true);
+            return token || invalidateToken;
         }
 		
 		static public function mergeObjects(oldObj:Object, newObj:Object):Object
