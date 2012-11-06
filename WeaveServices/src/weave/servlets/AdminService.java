@@ -624,7 +624,7 @@ public class AdminService extends GenericServlet
 			    return config.copyEntity(id);
 			return -1;
         }
-        synchronized private DataEntity[] getEntitiesByType(String connectionName, String password, int entity_type) throws RemoteException
+        private DataEntity[] getEntitiesByType(String connectionName, String password, int entity_type) throws RemoteException
         {
 			ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 			return config.getEntitiesByType(entity_type).toArray(new DataEntity[0]);
@@ -642,15 +642,15 @@ public class AdminService extends GenericServlet
         {
         	return addEntity(connectionName, password, DataEntity.MAN_TYPE_COLUMN, DataEntityMetadata.fromMap(meta));
         }
-        synchronized public DataEntity[] getTags(String connectionName, String password) throws RemoteException
+        public DataEntity[] getTags(String connectionName, String password) throws RemoteException
         {
             return getEntitiesByType(connectionName, password, DataEntity.MAN_TYPE_TAG);       
         }
-        synchronized public DataEntity[] getAttributeColumns(String connectionName, String password) throws RemoteException
+        public DataEntity[] getAttributeColumns(String connectionName, String password) throws RemoteException
         {
             return getEntitiesByType(connectionName, password, DataEntity.MAN_TYPE_COLUMN);
         }
-        synchronized public DataEntity[] getDataTables(String connectionName, String password) throws RemoteException
+        public DataEntity[] getDataTables(String connectionName, String password) throws RemoteException
         {
             return getEntitiesByType(connectionName, password, DataEntity.MAN_TYPE_DATATABLE);
         }
@@ -673,39 +673,44 @@ public class AdminService extends GenericServlet
                 else
                     throw new RemoteException("User cannot modify entity.", null);
         }
-        synchronized public Integer[] getEntityParentIds(String connectionName, String password, int child_id) throws RemoteException
+        public Integer[] getEntityParentIds(String connectionName, String password, int child_id) throws RemoteException
         {
         	ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
         	Collection<Integer> children = config.getParentIds(child_id);
         	return children.toArray(new Integer[0]);
         }
-        synchronized public Integer[] getEntityChildIds(String connectionName, String password, int parent_id) throws RemoteException
+        public Integer[] getEntityChildIds(String connectionName, String password, int parent_id) throws RemoteException
         {
         	ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
         	Collection<Integer> children = config.getChildIds(parent_id);
         	return children.toArray(new Integer[0]);
         }
-        synchronized public DataEntity[] getEntityChildEntities(String connectionName, String password, int parent_id) throws RemoteException
+        public DataEntity[] getEntityChildEntities(String connectionName, String password, int parent_id) throws RemoteException
         {
 			ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 			Collection<DataEntity> children = config.getChildEntities(parent_id);
 			return children.toArray(new DataEntity[0]);
         }
-        synchronized public DataEntityWithChildren getEntity(String connectionName, String password, int id) throws RemoteException
+        public DataEntityWithChildren getEntity(String connectionName, String password, int id) throws RemoteException
         {
             ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
             Collection<Integer> children = config.getChildIds(id);
             return new DataEntityWithChildren(config.getEntity(id), children.toArray(new Integer[0]));
         }
-        synchronized public DataEntity[] getEntities(String connectionName, String password, Map<String,Map<String,String>> meta) throws RemoteException
+        public DataEntity[] getEntitiesFromMetadata(String connectionName, String password, Map<String,Map<String,String>> meta) throws RemoteException
         {
             ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
             return config.findEntities(DataEntityMetadata.fromMap(meta)).toArray(new DataEntity[0]);
         }
-        synchronized public DataEntity[] getEntitiesWithType(String connectionName, String password, Integer type_id, Map<String,Map<String,String>> meta) throws RemoteException
+        public DataEntity[] getEntitiesWithType(String connectionName, String password, Integer type_id, Map<String,Map<String,String>> meta) throws RemoteException
         {
             ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
             return config.findEntities(DataEntityMetadata.fromMap(meta), type_id).toArray(new DataEntity[0]);
+        }
+        public DataEntity[] getEntitiesById(String connectionName, String password, List<Integer> ids) throws RemoteException
+        {
+            ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
+            return config.getEntities(ids).toArray(new DataEntity[0]);
         }
 
 
