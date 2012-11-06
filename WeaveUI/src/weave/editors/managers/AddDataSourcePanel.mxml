@@ -59,6 +59,7 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.data.DataSources.DBFDataSource;
@@ -121,7 +122,7 @@
 				var csvDataSourceEditor:CSVDataSourceEditor = _editor as CSVDataSourceEditor;
 				if (csvDataSourceEditor)
 				{
-					if (csvDataSourceEditor.sourceName.text == "" || (csvDataSourceEditor.url.text == "" && csvDataSourceEditor.csvDataString == "") || csvDataSourceEditor.keyType.text == "")
+					if (csvDataSourceEditor.sourceName.text == "" || (csvDataSourceEditor.url.text == "" && csvDataSourceEditor.getCSVRows() == null) || csvDataSourceEditor.keyType.text == "")
 					{
 						Alert.show(lang("Please fill all required fields"),lang("Error"));
 						return;
@@ -136,7 +137,7 @@
 					if (csvDataSource != null)
 						Alert.show(lang("Data Source added successfully"));
 					csvDataSource.url.value = csvDataSourceEditor.url.text;
-					csvDataSource.setCSVDataString(csvDataSourceEditor.csvDataString);
+					csvDataSource.csvData.setSessionState(csvDataSourceEditor.getCSVRows());
 					csvDataSource.keyColName.value = csvDataSourceEditor.keyColumnName.text;
 					csvDataSource.keyType.value = csvDataSourceEditor.keyType.text;
 				}

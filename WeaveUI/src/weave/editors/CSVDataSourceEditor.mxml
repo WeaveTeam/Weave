@@ -42,7 +42,7 @@
 		</ui:Indent>
 		<mx:Label width="100%" textAlign="center" text="{lang('OR')}" fontWeight="bold"/>
 		<ui:Indent group="{indentGroup}" label="{lang('Paste/Edit CSV Data')}">
-			<mx:TextArea id="csvTextArea" change="updateCSVDataString(csvTextArea.text)" width="100%" height="100"/>
+			<mx:TextArea id="csvTextArea" change="csvParser.parseCSV(csvTextArea.text)" width="100%" height="100"/>
 		</ui:Indent>
 		<mx:Button enabled="false" label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()"/>
 	</mx:VBox>
@@ -62,6 +62,8 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
+			import weave.api.getCallbackCollection;
+			import weave.data.CSVParser;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.editors.managers.EditDataGridPanel;
 			import weave.ui.IndentGroup;
@@ -73,6 +75,7 @@
 				super.createChildren();
 				
 				keyType.text = sourceName.text = Weave.root.generateUniqueName("CSVDataSource");
+				getCallbackCollection(csvParser).addImmediateCallback(this, handleCSVParser);
 			}
 			
 			[Bindable] private var _csvDataSource:CSVDataSource = null;
@@ -93,7 +96,7 @@
 					keyType.text = _csvDataSource.keyType.value;
 					var rows:Array = _csvDataSource.csvData.getSessionState() as Array;
 					csvTextArea.text = WeaveAPI.CSVParser.createCSV(rows);
-					updateCSVDataString(csvTextArea.text);
+					csvParser.parseCSV(csvTextArea.text);
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
 					showGridButton.enabled = true;
@@ -107,7 +110,7 @@
 					_csvDataSource.url.value = url.text;
 					_csvDataSource.keyColName.value = keyColumnName.text;
 					_csvDataSource.keyType.value = keyType.text;
-					_csvDataSource.setCSVDataString(csvDataString);
+					_csvDataSource.csvData.setSessionState(csvRows);
 					Alert.show(lang("Changes saved."))
 				}
 				catch(e:Error)
@@ -139,32 +142,29 @@
 				_fileLoader.load();
 			}
 			
-			/**
-			 * this variable will be updated only when a file is uploaded or CSV string data is added to the text area.
-			 * 
-			 **/
-			public var csvDataString:String = "";
-			
-			private function updateCSVDataString(dataString:String):void
+			// called when parser finishes
+			private function handleCSVParser():void
 			{
-				csvDataString = dataString;
-				if (dataString)
-				{
-					var tempArray:Array = WeaveAPI.CSVParser.parseCSV(csvDataString);
-					headerArray = tempArray[0];
-					//this is showGridButton is disabled only if a file has been loaded as the source
-					showGridButton.enabled = true;
-					
-					//this is set to false because this function might be called from Text Area change.
-					uploadMessage.visible = false;
-					
-					//clearing the Source URL text input
-					url.text = "";
-				}
+				csvRows = csvParser.parseResult;
+				headerArray = csvRows[0];
+				//this is showGridButton is disabled only if a file has been loaded as the source
+				showGridButton.enabled = true;
+				
+				//this is set to false because this function might be called from Text Area change.
+				uploadMessage.visible = false;
+				
+				//clearing the Source URL text input
+				url.text = "";
 			}
 			
-			private var csvDataArray:Array = [];
-			private var csvByteArray:ByteArray = null;
+			public function getCSVRows():Array
+			{
+				return csvRows;
+			}
+			
+			private const csvParser:CSVParser = new CSVParser(true);
+			private var csvRows:Array = [];
+			private var csvRecords:Array = [];
 			//this will hold the header columns as was loaded when the data is initially loaded.
 			//This is done so that the data gird shows the columns in the same order it was uploaded.
 			private var headerArray:Array = [];
@@ -178,9 +178,7 @@
 				{				
 					if(_fileLoader.name.search(".csv") == extensionPosition || _fileLoader.name.search(".CSV") == extensionPosition )
 					{
-						csvByteArray = _fileLoader.data;
-						
-						updateCSVDataString(csvByteArray.toString());		
+						csvParser.parseCSV(_fileLoader.data.toString());
 						
 						uploadMessage.visible = true;
 						
@@ -192,15 +190,13 @@
 				}
 				catch(e:Error)
 				{
-					Alert.show(lang("Error uploading file"),e.message.toString());
+					Alert.show(lang("Error loading file"),e.message.toString());
 				}
-				
-				
 			}
 			
 			private function showGrid():void
 			{
-				if (csvDataString == "")
+				if (csvRows == null)
 				{
 					Alert.show(lang("No data found"));
 					return;
@@ -214,10 +210,9 @@
 				//Because if data is modified in the gird it is saved to the csvDataArray irrespective of whether the user clicks the Save button or not.
 				//when data is saved in the Grid it is saved to the csvDataString. When the grid is re-opened, csvDataArray is recreated.  
 				//csvDataArray acts as the global object for CSVDataSourceEditor and DataGridEditor to modify the csv data.
-				var tempArray:Array = WeaveAPI.CSVParser.parseCSV(csvDataString);
-				csvDataArray = WeaveAPI.CSVParser.convertRowsToRecords(tempArray);
+				csvRecords = WeaveAPI.CSVParser.convertRowsToRecords(csvRows);
 				
-				grid.loadData(csvDataArray, headerArray);
+				grid.loadData(csvRecords, headerArray);
 				
 				PopUpManager.bringToFront(grid);
 			}
@@ -225,24 +220,21 @@
 			private function handleSaveButtonClick(event:MouseEvent):void
 			{
 				// fix bug that occurs after datagrid validateNow(): it puts in mx_internal_uid values
-				for each (var item:Object in csvDataArray)
+				for each (var item:Object in csvRecords)
 					delete item['mx_internal_uid'];
 				
-				var tempArray:Array = WeaveAPI.CSVParser.convertRecordsToRows(csvDataArray);
-				csvDataString = WeaveAPI.CSVParser.createCSV(tempArray);
+				csvRows = WeaveAPI.CSVParser.convertRecordsToRows(csvRecords);
 				
-				//if the data entered through the text area, update the text area to reflect the changes made.
+				//if the data entered through the text area, clear the text area
 				if (csvTextArea.text != "")
-				{
-					csvTextArea.text = csvDataString;
-				}
+					csvTextArea.text = '';
 			}
 			
 			private function handleURLTextChange():void
 			{
 				uploadMessage.visible = false;
 				showGridButton.enabled = false;
-				csvDataString = '';
+				csvRows = null;
 				csvTextArea.text = '';
 			}
 			
