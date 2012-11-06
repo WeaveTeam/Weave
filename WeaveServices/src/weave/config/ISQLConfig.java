@@ -81,10 +81,10 @@ public abstract class ISQLConfig
 	public abstract void updateEntity(Integer id, DataEntityMetadata properties) throws RemoteException;
 	public Collection<DataEntity> findEntities(DataEntityMetadata properties) throws RemoteException
 	{
-	    return findEntities(properties, -1);
+	    return getEntitiesByMetadata(properties, -1);
 	}
-	public abstract Collection<DataEntity> findEntities(DataEntityMetadata properties, Integer manifestType) throws RemoteException;
-	public abstract Collection<DataEntity> getEntities(Collection<Integer> ids) throws RemoteException;
+	public abstract Collection<DataEntity> getEntitiesByMetadata(DataEntityMetadata properties, Integer manifestType) throws RemoteException;
+	public abstract Collection<DataEntity> getEntitiesById(Collection<Integer> ids) throws RemoteException;
 	public abstract Collection<DataEntity> getEntitiesByType(Integer id) throws RemoteException;
 	public abstract void addChild(Integer child_id, Integer parent_id) throws RemoteException;
 	public abstract void removeChild(Integer child_id, Integer parent_id) throws RemoteException;
@@ -95,7 +95,7 @@ public abstract class ISQLConfig
 	
 	public DataEntity getEntity(Integer id) throws RemoteException
 	{
-	    for (DataEntity de : getEntities(Arrays.asList(id)))
+	    for (DataEntity de : getEntitiesById(Arrays.asList(id)))
 	        return de; /* Return the first hit. Should be the only hit. If not we're in trouble. */
 	    return null;
 	}

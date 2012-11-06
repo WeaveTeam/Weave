@@ -101,14 +101,17 @@ public class ManifestTable extends AbstractTable
             {
                 whereParams.put(FIELD_ID, id);
                 sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class);
-                // sqlres has one row
-                Number type = (Number) sqlres.get(0).get(FIELD_TYPE);
-                result.put(id, type.intValue());
+                // sqlres has one or zero rows
+                if (sqlres.size() == 0)
+                {
+                	result.put(id, -1);
+                }
+                else
+                {
+                	Number type = (Number) sqlres.get(0).get(FIELD_TYPE);
+                	result.put(id, type.intValue());
+                }
             }
-            return result;
-        }
-        catch (ArrayIndexOutOfBoundsException e)
-        {
             return result;
         }
         catch (Exception e)

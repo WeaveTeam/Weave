@@ -46,12 +46,6 @@ package weave.ui
 		private const _childNodes:Array = [];
 		private const _childCollectionView:ICollectionView = new ArrayCollection(_childNodes);
 		
-		public function get childCollectionView():ICollectionView
-		{
-			children; // access children so they will be populated.
-			return  _childCollectionView;
-		}
-		
 		// We cache child nodes to avoid creating unnecessary objects.
 		// Each node must have its own child cache (not static) because we can't have the same node in two places in a Tree.
 		private const _childNodeCache:Object = {}; // id -> EntityNode
@@ -82,12 +76,13 @@ package weave.ui
 			return title;
 		}
 		
-		public function get children():Array
+		public function get children():ICollectionView
 		{
 			if (!AdminInterface.instance.userHasAuthenticated)
 				return null;
-				
-			var childIds:Array = AdminInterface.instance.meta_cache.getEntity(id).childIds;
+			
+			var entity:AttributeColumnInfo = AdminInterface.instance.meta_cache.getEntity(id);
+			var childIds:Array = entity.childIds;
 			if (!childIds)
 				return null;
 			
@@ -120,7 +115,10 @@ package weave.ui
 			}
 			_childNodes.length = outputIndex;
 			
-			return _childNodes.length ? _childNodes : null;
+			if (entity.entity_type == AttributeColumnInfo.ENTITY_COLUMN && _childNodes.length == 0)
+				return null; // leaf node
+			
+			return _childCollectionView;
 		}
 		
 		public static function addChildAt(parent:EntityNode, child:EntityNode, index:int):void

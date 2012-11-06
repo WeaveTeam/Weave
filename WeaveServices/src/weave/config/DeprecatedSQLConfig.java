@@ -135,7 +135,7 @@ public abstract class DeprecatedSQLConfig extends ISQLConfig
     {
         throw new RemoteException("Not implemented");
     }
-    public Collection<DataEntity> findEntities(DataEntityMetadata properties, Integer type_id) throws RemoteException
+    public Collection<DataEntity> getEntitiesByMetadata(DataEntityMetadata properties, Integer type_id) throws RemoteException
     {
         throw new RemoteException("Not implemented");
     }
@@ -148,7 +148,7 @@ public abstract class DeprecatedSQLConfig extends ISQLConfig
         throw new RemoteException("Not implemented");
     }
     
-    public Collection<DataEntity> getEntities(Collection<Integer> entity_ids) throws RemoteException
+    public Collection<DataEntity> getEntitiesById(Collection<Integer> entity_ids) throws RemoteException
     {
         throw new RemoteException("Not implemented");
     }

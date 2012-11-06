@@ -327,22 +327,22 @@ package weave.services
 		{
 		    return service.getEntityChildIds(activeConnectionName, activePassword, id);
 		}
-		public function getEntityChildEntities(id:int):AsyncToken
+		public function getEntitiesById(ids:Array):AsyncToken
 		{
-		    return service.getEntityChildEntities(activeConnectionName, activePassword, id);
+			return service.getEntitiesById(activeConnectionName, activePassword, ids);
 		}
-		public function getEntities(meta:Object):AsyncToken
+		public function getEntitiesByMetadata(meta:Object):AsyncToken
 		{
-			return service.getEntities(activeConnectionName, activePassword, meta);
+			return service.getEntitiesByMetadata(activeConnectionName, activePassword, meta);
 		}
-		public function getEntitiesWithType(type_id:int, meta:Object):AsyncToken
+		public function getEntitiesByType(type_id:int, meta:Object):AsyncToken
 		{
-			return service.getEntitiesWithType(activeConnectionName, activePassword, type_id, meta);
+			return service.getEntitiesByType(activeConnectionName, activePassword, type_id, meta);
 		}
 		public function getDataTableInfo(title:String):AsyncToken
 		{
 		    var params:Object = {"title": title};
-		    return service.getEntitiesWithType(activeConnectionName, activePassword, AttributeColumnInfo.ENTITY_COLUMN, params);
+		    return service.getEntitiesByType(activeConnectionName, activePassword, AttributeColumnInfo.ENTITY_COLUMN, params);
 		}
 		public function getDataTables():void
 		{

@@ -314,7 +314,7 @@ public class DataService extends GenericServlet
 		String tableId = null;
 		DataEntityMetadata tableParams = new DataEntityMetadata();
 		tableParams.publicMetadata.put(PublicMetadata.NAME, dataTableName);
-		List<DataEntity> tableList = new ArrayList<DataEntity>(config.findEntities(tableParams, DataEntity.MAN_TYPE_DATATABLE));
+		List<DataEntity> tableList = new ArrayList<DataEntity>(config.getEntitiesByMetadata(tableParams, DataEntity.MAN_TYPE_DATATABLE));
 		if (tableList.size() > 1)
 		    throw new RemoteException(String.format("Multiple datatable matches for \"%s\"", dataTableName));
 		else if (tableList.size() == 0)

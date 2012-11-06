@@ -296,21 +296,21 @@ package weave.services
                 {
                         return invokeAdminService("getEntityChildIds", arguments);
                 }
-                public function getEntityChildEntities(connectionName:String, password:String, id:int):AsyncToken
-                {
-                        return invokeAdminService("getEntityChildEntities", arguments);
-                }
                 public function getEntity(connectionName:String, password:String, id:int):AsyncToken
                 {
                         return invokeAdminService("getEntity", arguments);
                 }
-                public function getEntities(connectionName:String, password:String, metadata:Object):AsyncToken
+                public function getEntitiesById(connectionName:String, password:String, ids:Array):AsyncToken
                 {
-                        return invokeAdminService("getEntities", arguments);
+                        return invokeAdminService("getEntitiesById", arguments);
                 }
-                public function getEntitiesWithType(connectionName:String, password:String, type_id:int, metadata:Object):AsyncToken
+                public function getEntitiesByMetadata(connectionName:String, password:String, metadata:Object):AsyncToken
                 {
-                        return invokeAdminService("getEntitiesWithType", arguments);
+                        return invokeAdminService("getEntitiesByMetadata", arguments);
+                }
+                public function getEntitiesByType(connectionName:String, password:String, type_id:int, metadata:Object):AsyncToken
+                {
+                        return invokeAdminService("getEntitiesByType", arguments);
                 }
 		/**
 		 * Adds the given Dublin Core key-value pairs to the metadata store for

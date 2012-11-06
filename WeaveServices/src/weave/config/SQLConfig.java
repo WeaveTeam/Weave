@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.w3c.dom.Document;
 
+import weave.config.ISQLConfig.DataEntityWithChildren;
 import weave.config.tables.AttributeValueTable;
 import weave.config.tables.ManifestTable;
 import weave.config.tables.ParentChildTable;
@@ -194,9 +195,9 @@ public class SQLConfig
     }
     public Collection<DataEntity> getEntitiesByType(Integer type_id) throws RemoteException
     {
-        return getEntities(manifest.getByType(type_id));
+        return getEntitiesById(manifest.getByType(type_id));
     }
-    public Collection<DataEntity> findEntities(DataEntityMetadata properties, Integer type_id) throws RemoteException
+    public Collection<DataEntity> getEntitiesByMetadata(DataEntityMetadata properties, Integer type_id) throws RemoteException
     {
         Set<Integer> publicmatches = null;
         Set<Integer> privatematches = null;
@@ -223,13 +224,15 @@ public class SQLConfig
         {
             if (type_id != -1)
                 matches.retainAll(getEntitiesByType(type_id));
-            return getEntities(matches);
+            return getEntitiesById(matches);
         }
     }
-    public Collection<DataEntity> getEntities(Collection<Integer> ids) throws RemoteException
+    public Collection<DataEntity> getEntitiesById(Collection<Integer> ids) throws RemoteException
     {
         List<DataEntity> results = new LinkedList<DataEntity>();
         Map<Integer,Integer> typeresults = manifest.getEntryTypes(ids);
+        System.out.println("ids"+ids);
+        System.out.println("types"+typeresults);
         Map<Integer,Map<String,String>> publicresults = public_attributes.getProperties(ids);
         Map<Integer,Map<String,String>> privateresults = private_attributes.getProperties(ids);
         if (typeresults == null)
@@ -237,11 +240,9 @@ public class SQLConfig
         for (Integer id : ids)
         {
             Integer type = typeresults.get(id);
-            if (type == null)
-            	continue;
             DataEntity tmp = new DataEntity();
             tmp.id = id; 
-            tmp.type = type;
+           	tmp.type = type;
             tmp.publicMetadata = publicresults.get(id);
             tmp.privateMetadata = privateresults.get(id);
             results.add(tmp);
@@ -294,7 +295,7 @@ public class SQLConfig
     }
     public Collection<DataEntity> getChildEntities(Integer id) throws RemoteException
     {
-    	return getEntities(getChildIds(id));
+    	return getEntitiesById(getChildIds(id));
     }
     
     public Collection<Integer> getParentIds(Integer id) throws RemoteException

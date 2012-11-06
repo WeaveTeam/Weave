@@ -68,7 +68,7 @@ public class AttributeColumnData
 		params.publicMetadata.put(PublicMetadata.NAME, attributeColumnName);
 		if ((year != null) && (year.length() > 0))
 			params.publicMetadata.put(PublicMetadata.YEAR, year);
-		Collection<DataEntity> infoList = config.findEntities(params, DataEntity.MAN_TYPE_DATATABLE);
+		Collection<DataEntity> infoList = config.getEntitiesByMetadata(params, DataEntity.MAN_TYPE_DATATABLE);
                 DataEntity info = null;
                 for (DataEntity i : infoList)
                 {

@@ -88,30 +88,42 @@
     }
     public function remove():void
     {
-        /* These behaviours kinda suck, just using these til someone comes up with something better. */
-        var item:EntityNode = tagTree.selectedItem as EntityNode;
-        if (item == null)
-			return;
-        var entity_type:int = item.getEntity().entity_type;
-        var parent:EntityNode = tagTree.getParentItem(item);
-        if (parent)
-        {
-			AdminInterface.instance.meta_cache.remove_child(item.id, parent.id);
-        }
-        else if (entity_type == AttributeColumnInfo.ENTITY_CATEGORY)
-        {
-            PopUpUtils.confirm(this, "Delete Tag", 'Delete tag "' + item.label + '"?', deleteTagFunction, null, "Delete", "Keep")
-            function deleteTagFunction():void
-            {
+		for each (var item:EntityNode in tagTree.selectedItems)
+		{
+			if (tagTree.getParentItem(item) == null && item.getEntity().entity_type == AttributeColumnInfo.ENTITY_CATEGORY)
+			{
+	            PopUpUtils.confirm(this, "Remove hierarchy items", 'You have selected some root categories.  Remove all selected items?', removeImmediately, null, "Remove", "Cancel")
+				return;
+			}
+		}
+		removeImmediately();
+	}
+	private function removeImmediately():void
+	{
+		for each (var item:EntityNode in tagTree.selectedItems)
+		{
+	        var type:int = item.getEntity().entity_type;
+	        var parent:EntityNode = tagTree.getParentItem(item);
+	        if (parent)
+	        {
+				AdminInterface.instance.meta_cache.remove_child(item.id, parent.id);
+	        }
+	        else if (type == AttributeColumnInfo.ENTITY_CATEGORY)
+	        {
 				AdminInterface.instance.meta_cache.delete_entity(item.id);
-            }
-        }
-        else
-        {
-			// this occurs when Root is selected
-			weaveTrace("Entity is not a category");
-        }
+	        }
+	        else
+	        {
+				// this occurs when root item is selected.. should never happen
+				weaveTrace("Entity " + item.id + " is not a category and has no parent");
+	        }
+		}
+		tagTree.selectedItem = null;
     }
+	private function removeItem(item:EntityNode):void
+	{
+		
+	}
 ]]>
 </mx:Script>
 </mx:HDividedBox>

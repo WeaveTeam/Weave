@@ -12,6 +12,7 @@ package weave.services
     import weave.services.beans.AttributeColumnInfo;
     import weave.services.beans.EntityMetadata;
     import weave.utils.Dictionary2D;
+    import weave.utils.EventUtils;
 
     public class MetadataCache implements ILinkableObject
     {
@@ -23,6 +24,7 @@ package weave.services
 		
         public function MetadataCache()
         {
+			callbacks.addGroupedCallback(this, fetchDirtyEntities);
         }
 		
 		private function invalidate(id:int, alsoInvalidateParents:Boolean = false):AsyncToken
@@ -33,7 +35,15 @@ package weave.services
 			
 			if (!cache_dirty[id])
 				callbacks.triggerCallbacks();
+			
 			cache_dirty[id] = true;
+			
+			if (!cache_entity[id])
+			{
+				var info:AttributeColumnInfo = new AttributeColumnInfo();
+				info.id = id;
+				cache_entity[id] = info;
+			}
 			
 			if (alsoInvalidateParents)
 			{
@@ -51,9 +61,6 @@ package weave.services
 				}
 			}
 			
-			if (id == ROOT_ID)
-				token = fetchEntity(id);
-			
 			callbacks.resumeCallbacks();
 			
 			return token;
@@ -63,45 +70,38 @@ package weave.services
 		
 		public function getEntity(id:int):AttributeColumnInfo
 		{
-			// automatically fetch
-			if (cache_dirty[id] || !cache_entity[id])
-				fetchEntity(id);
+			// if there is no cached value, call invalidate() to create a placeholder.
+			if (!cache_entity[id])
+				invalidate(id);
 			
             return cache_entity[id];
 		}
 		
-		public function fetchEntity(id:int):AsyncToken
-        {
-			// avoid excess auto-fetching by clearing the dirty flag and setting a cached value if missing
-			delete cache_dirty[id];
-			if (!cache_entity[id])
+		private function fetchDirtyEntities():void
+		{
+			var ids:Array = [];
+			for (var id:* in cache_dirty)
+				ids.push(int(id));
+			if (ids.length > 0)
 			{
-				var info:AttributeColumnInfo = new AttributeColumnInfo();
-				info.id = id;
-				cache_entity[id] = info;
+				cache_dirty = {};
+				addAsyncResponder(AdminInterface.instance.getEntitiesById(ids), getEntityHandler);
 			}
-			var token:AsyncToken = AdminInterface.instance.getEntity(id);
-			addAsyncResponder(token, getEntityHandler, null, id);
-			return token;
         }
 		
         private function getEntityHandler(event:ResultEvent, token:Object):void
         {
-			var id:int = int(token);
-			if (event.result)
+			for each (var result:Object in event.result)
 			{
+				var id:int = AttributeColumnInfo.getEntityIdFromResult(result);
 				var info:AttributeColumnInfo = cache_entity[id] || new AttributeColumnInfo();
-				info.copyFromResult(event.result);
-				if (id != info.id)
-					reportError("Requested ID does not match result ID");
+				info.copyFromResult(result);
 	            cache_entity[id] = info;
 				
 				// cache child-to-parent mappings
 				for each (var childId:int in info.childIds)
 					d2d_child_parent.set(childId, id, true);
 			}
-			else
-				weaveTrace('getEntity(',id,') returned null');
 			
 			callbacks.triggerCallbacks();
         }
@@ -146,14 +146,28 @@ package weave.services
 			if (parent_id != ROOT_ID)
 				token = AdminInterface.instance.addChildToParent(child_id, parent_id);
 			var invalidateToken:AsyncToken = invalidate(parent_id);
+			
 			return token || invalidateToken;
         }
         public function remove_child(child_id:int, parent_id:int):AsyncToken
         {
 			var token:AsyncToken;
-			// remove from root not supported
-			if (parent_id != ROOT_ID)
+			
+			// remove from root not supported, but invalidate root anyway in case the child is added via add_child later
+			if (parent_id == ROOT_ID)
+			{
+				invalidate(ROOT_ID);
+			}
+			else
+			{
+				var d:Dictionary = d2d_child_parent.dictionary[child_id];
+				var count:int = 0;
+				for (var _id:* in d)
+					count++;
+				if (count == 1)
+					invalidate(ROOT_ID);
 				token = AdminInterface.instance.removeChildFromParent(child_id, parent_id);
+			}
 			var invalidateToken:AsyncToken = invalidate(child_id, true);
             return token || invalidateToken;
         }

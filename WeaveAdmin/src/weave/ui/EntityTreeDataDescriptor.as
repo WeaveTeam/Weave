@@ -25,11 +25,12 @@ package weave.ui
         }
         public function getChildren(node:Object, model:Object = null):ICollectionView
         {
-			return (node as EntityNode).childCollectionView;
+			return (node as EntityNode).children;
         }
         public function hasChildren(node:Object, model:Object = null):Boolean
         {
-			return (node as EntityNode).children != null;
+			var children:ICollectionView = (node as EntityNode).children;
+			return children && children.length;
         }
         public function getData(node:Object, model:Object = null):Object
         {
@@ -37,8 +38,7 @@ package weave.ui
         }
         public function isBranch(node:Object, model:Object = null):Boolean
         {
-			var children:Array = (node as EntityNode).children;
-			return children && children.length > 0;
+			return (node as EntityNode).children != null;
         }
     }
 }
