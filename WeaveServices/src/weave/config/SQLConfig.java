@@ -272,7 +272,16 @@ public class SQLConfig
     }
     public void addChild(Integer child_id, Integer parent_id) throws RemoteException
     {
-        relationships.addChild(child_id, parent_id);
+        DataEntity child = getEntity(child_id);
+        if (child.type == DataEntity.MAN_TYPE_DATATABLE)
+        {
+            Integer new_id = copyEntity(child_id);
+            relationships.addChild(new_id, parent_id);
+        }
+        else
+        {
+            relationships.addChild(child_id, parent_id);
+        }
     }
     public void removeChild(Integer child_id, Integer parent_id) throws RemoteException
     {
