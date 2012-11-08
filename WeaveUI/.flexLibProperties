@@ -9,6 +9,7 @@
     <classEntry path="weave.ui.infomap.layout.RandomLayout"/>
     <classEntry path="weave.ui.infomap.ui.DocumentList"/>
     <classEntry path="weave.ui.infomap.ui.CustomLabelTextField"/>
+    <classEntry path="weave.ui.infomap.ui.RelatedKeywordsListItemObject"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

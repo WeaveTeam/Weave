@@ -663,6 +663,34 @@ package weave.utils
 			"zero" ];
 		
 		
+		private static const infomapsStopWords:Array = ["percent"
+		,"Year",
+		"FIPS",
+		"State",
+		"States",];
+		
+		public static function isStopWord(word:String,includeInfomapsKeywords:Boolean = true):Boolean
+		{
+			for each(var w:String in stopWords)
+			{
+				if(w.toLowerCase() == word.toLowerCase())
+					return true;
+			}
+			
+			if(includeInfomapsKeywords)
+			{
+				for each(var w2:String in infomapsStopWords)
+				{
+					if(w2.toLowerCase() == word.toLowerCase())
+					{
+						return true;
+					}
+				}
+			}
+			
+			return false;
+		}
+		
 		/**
 		 * @param wordData The string to parse.
 		 * @param index is an object that will serve as a mapping for the words and their frequencies.

@@ -139,8 +139,9 @@ package weave.data.DataSources
 		}
 		
 		
-		public function getDocumentsForQuery(docKeySet:KeySet,wordCount:Array,numberOfMatchedDocuments:LinkableNumber,query:String,operator:String='AND',sources:Array=null,
-													dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000,partialMatch:Boolean=false):void
+		public function getDocumentsForQuery(docKeySet:KeySet,wordCount:Array,numberOfMatchedDocuments:LinkableNumber,query:String,
+											 operator:String='AND',sources:Array=null,dateFilter:DateRangeFilter=null,
+											 numberOfRequestedDocuments:int=2000,partialMatch:Boolean=false):void
 		{
 			if(query)
 			{
@@ -157,6 +158,122 @@ package weave.data.DataSources
 			}
 			
 		}
+
+		public function getNumOfDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,
+												  dateFilter:DateRangeFilter=null):DelayedAsyncInvocation
+		{
+			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
+			
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getNumOfDocumentsForQuery(requiredKeywords,relatedKeywords,dateFilterString);
+			
+			return q;
+		}
+		
+		public function getDocumentsForQueryWithRelatedKeywords(docKeySet:KeySet,requiredKeywords:Array,relatedKeywords:Array,
+																dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):void
+		{
+			
+			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
+			
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getResultsForQueryWithRelatedKeywords(requiredKeywords,relatedKeywords,dateFilterString,
+																			numberOfRequestedDocuments);
+			q.addAsyncResponder(handleQueryWithRelatedKeywordsResults,handleQueryWithRelatedKeywordsFault,{docKeySet:docKeySet});
+			
+		}
+		
+		public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, entities:Array,dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):void
+		{
+			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
+			
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getEntityDistributionForQuery(requiredKeywords,relatedKeywords,dateFilterString,entities,
+				numberOfRequestedDocuments);
+			q.addAsyncResponder(handleQueryEntityDistributionForQueryResults,handleEntityDistributionForQueryFault);
+			
+		}
+		
+		
+		private function handleQueryEntityDistributionForQueryResults(event:ResultEvent,token:Object=null):void
+		{
+			return;
+		}
+		
+		private function handleEntityDistributionForQueryFault(event:FaultEvent,token:Object=null):void
+		{
+			return;
+		}
+		
+		private function getDateFilterStringForSolr(dateFilter:DateRangeFilter):String
+		{
+			var dateFilterString:String = null;
+			
+			//applying date filters if set
+			if(dateFilter)
+			{
+				if(dateFilter.startDate.value != '' && dateFilter.endDate.value != '')
+				{
+					
+					var sDate:Date = DateUtils.getDateFromString(dateFilter.startDate.value);
+					var eDate:Date = DateUtils.getDateFromString(dateFilter.endDate.value);
+					
+					
+					//Solr requires the date format to be ISO 8601 Standard Compliant
+					//It should be in the form: 1995-12-31T23:59:59Z 
+					var sStr:String = DateUtils.getDateInStringFormat(sDate,'YYYY-MM-DD');
+					
+					//For start date we append 00:00:00 to set time to start of the day
+					sStr = sStr + 'T00:00:00Z';
+					
+					var eStr:String = DateUtils.getDateInStringFormat(eDate,'YYYY-MM-DD');
+					
+					//For end date we append 23:59:59 to set time to end of day
+					eStr = eStr + 'T23:59:59Z';
+					
+					dateFilterString = "date_added:["+sStr+" TO "+eStr + "]";
+				}
+			}
+			
+			return dateFilterString;
+		}
+		
+		private function handleQueryWithRelatedKeywordsResults(event:ResultEvent,token:Object=null):void
+		{
+			var docsArray:Array = event.result as Array;
+			var docsToAdd:Array = [];
+			var keys:Array = [];
+			
+			var urlCol:IAttributeColumn =getColumnByName('url'); 
+			
+			for (var i:int = 0; i < docsArray.length; i++)
+			{
+				var link:String = docsArray[i][0];
+				
+				var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey("infoMapsDoc",link);
+				
+				//if the key is already present in the column, then we only add it to the keys keyset
+				//we will not add the currentDoc to the docsArray, this way the rows are not repeated in the csvDataString
+				if(urlCol.containsKey(key))
+				{
+					keys.push(link);
+					continue;
+				}
+				
+				docsToAdd.push(docsArray[i]);
+				
+				keys.push(link);
+			}
+			
+			csvData.setSessionState((csvData.getSessionState() as Array).concat(docsToAdd));			
+			
+			(token.docKeySet as KeySet).replaceKeys(WeaveAPI.QKeyManager.getQKeys("infoMapsDoc",keys));
+			// we force to trigger callbacks so that if a empty keyset is replaced with empty keys the callbacks are still called
+			(token.docKeySet as KeySet).triggerCallbacks(); 
+		}
+		
+		private function handleQueryWithRelatedKeywordsFault(event:FaultEvent, token:Object=null):void
+		{
+			
+		}
+		
 		/**
 		 * This function takes a query and adds a filter to restrict by field values 
 		 * @param query The query string

@@ -62,6 +62,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.Base64Encoder;
+			import mx.utils.ObjectProxy;
 			import mx.utils.StringUtil;
 			import mx.utils.XMLUtil;
 			
@@ -74,6 +75,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.getLinkableDescendants;
 			import weave.api.linkBindableProperty;
 			import weave.api.linkSessionState;
+			import weave.api.newDisposableChild;
 			import weave.api.newLinkableChild;
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
@@ -97,6 +99,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.services.DelayedAsyncResponder;
 			import weave.services.InfoMapAdminInterface;
 			import weave.services.jquery.JQueryCaller;
+			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.CustomContextMenuManager;
 			import weave.ui.SubMenu;
 			import weave.ui.infomap.InfoMapLoader;
@@ -109,6 +112,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.DateUtils;
 			import weave.utils.PopUpUtils;
 			import weave.utils.ProbeTextUtils;
+			import weave.utils.WordProcessingUtils;
 			
 			/**
 			 * @public
@@ -128,6 +132,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public const newThumbnailGlowColor:LinkableNumber = registerLinkableChild(this,new LinkableNumber(10092492));
 			
+			public const entityColumnsHashmap:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap());
+			
+			public const relatedColumnsHashmap:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(),handleRelatedColumnsChange);
 			
 			/**
 			 * @public
@@ -207,6 +214,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 //				_fileReference.addEventListener(Event.COMPLETE,fileLoadCompleteHandler);
 				_fileReference.addEventListener(IOErrorEvent.IO_ERROR, folderErrorHandler);
 				
+				relatedKeywordsArrayCollection.addEventListener(CollectionEvent.COLLECTION_CHANGE,handleRelatedKeywordsChange);
+				
+				entityColumnsList.reverseButton.enabled = false;
+				entityColumnsList.reverseButton.visible = false;
 			}
 			
 			private function handleGlobalKeyInput(event:KeyboardEvent):void
@@ -327,26 +338,26 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 				
-				//detect any changes in selectionKeySet and make query for matched entity values
-				if(detectLinkableObjectChange(updateDisplayList,_selectedKeySet))
-				{
-					//selection happened outside of the panel then return
-					if(!(DraggablePanel.getTopPanel() is InfoMapPanel))
-						return;
-					
-					var selectedDocs:Array = getSelectedDocumentURLs();
-					
-					if(selectedDocs.length == 0)
-					{
-						_selectedKeySet.clearKeys();
-						return;
-					}
-					
-					var entities:Array = extractAllEntitiyValues();
-					
-					var query:DelayedAsyncInvocation = InfoMapAdminInterface.instance.searchInDocuments(entities,selectedDocs);
-					query.addAsyncResponder(handleMatchedEntities,handleMatchedEntitiesFault);
-				}
+//				//detect any changes in selectionKeySet and make query for matched entity values
+//				if(detectLinkableObjectChange(updateDisplayList,_selectedKeySet))
+//				{
+//					//selection happened outside of the panel then return
+//					if(!(DraggablePanel.getTopPanel() is InfoMapPanel))
+//						return;
+//					
+//					var selectedDocs:Array = getSelectedDocumentURLs();
+//					
+//					if(selectedDocs.length == 0)
+//					{
+//						_selectedKeySet.clearKeys();
+//						return;
+//					}
+//					
+//					var entities:Array = extractAllEntitiyValues();
+//					
+//					var query:DelayedAsyncInvocation = InfoMapAdminInterface.instance.searchInDocuments(entities,selectedDocs);
+//					query.addAsyncResponder(handleMatchedEntities,handleMatchedEntitiesFault);
+//				}
 			}
 			
 			private function handleMatchedEntities(event:ResultEvent,token:Object=null):void
@@ -493,33 +504,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 			}
 			
-			private function extractAllEntitiyValues():Array
+			
+			
+			
+			private function getUniqueKeywordsFromArray(keywords:Array):Array
 			{
-				//get all entity attribute columns of selected keytype
-				var attrCols:Array = getLinkableDescendants(Weave.root,IAttributeColumn);
-				var temp:Array = [];
-				
-				for each (var attrCol:IAttributeColumn in attrCols)
-				{
-					var entityValue:String = attrCol.getMetadata("isEntity");
-					if(entityValue == "true")
-					{
-						for each (var key:IQualifiedKey in attrCol.keys)
-						{
-							var value:String = ColumnUtils.getString(attrCol,key);
-							if(value)
-							{
-								temp.push(value);
-							}
-						}
-					}
-				}
-				
-				
 				//get unique keywords from extracted values 
 				var dict:Dictionary = new Dictionary();
 				
-				for each(var word:String in temp)
+				for each(var word:String in keywords)
 				{
 					if(dict[word] == undefined)
 						dict[word] = word;
@@ -533,7 +526,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				return uniqueEntityValues;
 			}
-			
 			
 			private var _selectionLoader:URLLoader = null;
 			private var _entityKeySet:KeySet = new KeySet();
@@ -628,6 +620,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					nodeHandler.applyKeywords(query);
 				}
 			}
+			
+			public function addQueryNodeUsingSelectedRecords():void
+			{
+				var className:String = getQualifiedClassName(NodeHandler).split("::")[1];
+				var nodeName:String = nodes.generateUniqueName(className);
+				var nodeHandler:NodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
+				
+				nodeHandler.nodeBase.width = 200;//starting off with wide text area
+				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
+				
+				nodeHandler.applyKeywordsFromSelection();
+			}
+
 			
 			private var loader:URLLoader = null;
 			private function addRssFeed():void
@@ -876,8 +881,52 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				else
 					infoMapsDataSource.solrURL.value = l;
 			}
+			[Bindable]
+			private var relatedKeywordsArrayCollection:ArrayCollection = new ArrayCollection();
+			private function handleRelatedColumnsChange():void
+			{
+				var relatedKeywords:Dictionary = new Dictionary(); 
+				var relatedKeywordsArray:Array = [];
+				var cols:Array = relatedColumnsHashmap.getObjects();
+				for (var i:int=0; i<cols.length; i++)
+				{
+					var words:Array = (cols[i] as IAttributeColumn).getMetadata("title").split(' ');
+					for each(var word:String in words)
+					{
+						word = word.replace(/([()<=%~!\/\\])/g,"");
+						if(relatedKeywords[word] == undefined)
+						{
+							if(!WordProcessingUtils.isStopWord(word) && isNaN(Number(word)))
+							{
+								relatedKeywords[word] = true;
+								var k:RelatedKeywordsListItemObject = new RelatedKeywordsListItemObject();
+								k.label = word;
+								k.selected = true;
+								relatedKeywordsArray.push(k);								
+							}
+						}
+					}
+				}
+				
+				relatedKeywordsArrayCollection.source = relatedKeywordsArray;
+			}
 			
-			
+			public const relatedKeywords:LinkableString = registerLinkableChild(this,new LinkableString(""));
+			private function handleRelatedKeywordsChange(event:Event):void
+			{
+				var keywords:Array = relatedKeywordsArrayCollection.source as Array;
+				
+				var selectedKeywords:Array = [];
+				for each(var w:RelatedKeywordsListItemObject in keywords)
+				{
+					if(w.selected)
+					{
+						selectedKeywords.push(w.label);
+					}
+				}
+				
+				relatedKeywords.value = selectedKeywords.join(",");
+			}
 		]]>
 	</mx:Script>
 	<!--the resize code is required so that the content is clipped by the canvas-->
@@ -957,6 +1006,37 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					</mx:HBox>
 				</mx:VBox>
 			</mx:HBox>
+		</mx:VBox>
+		<mx:VBox label="Entity Selection">
+			<mx:Accordion width="100%" height="100%">
+				<mx:VBox label="Set Entity Columns" paddingLeft="10" paddingTop="10">
+					<ui:ColumnListComponent width="100%" id="entityColumnsList" hashMap="{entityColumnsHashmap}"/>
+				</mx:VBox>
+				<mx:VBox label="Set Keywords">
+					<mx:HBox>
+						<mx:Label fontWeight="bold" text="Current Keywords: "/>
+						<mx:Text creationComplete='{linkBindableProperty(relatedKeywords,event.currentTarget,"text")}'/>
+ 					</mx:HBox>
+					<mx:List borderThickness="0" id="relatedKeywordsList" height="100%" dataProvider="{relatedKeywordsArrayCollection}">
+						<mx:itemRenderer>
+							<mx:Component>
+								<mx:CheckBox selected="{data.selected}" label="{data.label}" change="handleSelectionChange()">
+									
+									<mx:Script>
+										<![CDATA[
+											private function handleSelectionChange():void
+											{
+												data.selected = this.selected;
+											}
+										]]>
+									</mx:Script>
+								</mx:CheckBox>
+							</mx:Component>
+						</mx:itemRenderer>
+					</mx:List>
+					<mx:Button label="Select Related Columns" click='{AttributeSelectorPanel.openDefaultSelector(relatedColumnsHashmap,"Select Related Columns")}'/>
+				</mx:VBox>
+			</mx:Accordion>
 		</mx:VBox>
 		<mx:VBox id="feedsControlPanel" label="Add/Remove Feeds">
 		<mx:Label text="Enter RSS Feed: " />

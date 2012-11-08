@@ -8,7 +8,7 @@
 		   dragEnter="dragEnterHandler(event)"
 		   >
 	<!--Show this status box only when list is visible-->
-	<mx:Label id="status" x="{nodeBase.keywordTextArea.width}" y="{nodeBase.keywordTextArea.height}" width="150"/>
+	<mx:Label id="status" x="{nodeBase.keywordTextArea.width}" y="{nodeBase.keywordTextArea.height}" width="300"/>
 	<mx:HBox horizontalAlign="left" id="statusBox" y="{nodeBase.height}" width="400" includeInLayout="false">
 		<mx:Label id="filterStatus"/>
 		<mx:Button focusAlpha="0" id="clearFiltersButton" label="Clear" visible="false" click="handleClearFiltersButton()"/>
@@ -115,6 +115,7 @@
 			import weave.ui.infomap.ui.InfoMapPanel;
 			import weave.ui.infomap.ui.NodeBaseComponent;
 			import weave.ui.infomap.ui.NodeSettingsComponent;
+			import weave.ui.infomap.ui.RelatedKeywordsListItemObject;
 			import weave.ui.infomap.ui.TagCloud;
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
@@ -124,8 +125,6 @@
 			import weave.utils.EventUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.layers.InteractiveVisualization;
-			
-			public const node:FilterableInfoMapNode = newLinkableChild(this,FilterableInfoMapNode);
 			
 			private const query:QueryObject = newLinkableChild(this,QueryObject);
 			
@@ -236,8 +235,11 @@
 				thumbnailsDefaultColor.addImmediateCallback(this,handleBorderColor,true);
 				
 				//sets a pointer to the node's parent which is an InfoMapPanel
-				var hashmap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableOwner(this) as LinkableHashMap;
-				_parentPanel = WeaveAPI.SessionManager.getLinkableOwner(hashmap) as InfoMapPanel;
+				if(!_parentPanel)
+				{
+					var hashmap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableOwner(this) as LinkableHashMap;
+					_parentPanel = WeaveAPI.SessionManager.getLinkableOwner(hashmap) as InfoMapPanel;
+				}
 				
 				//adding a callback to the Global Search keyword. This will set the visibility of the thumbnails to true or false
 				//based on keyword match
@@ -422,7 +424,21 @@
 			/* Since we use a private query object we define a public function to set variable */
 			public function applyKeywords(keywords:String):void
 			{
-				query.keywords.value = keywords;	
+				query.keywords.value = keywords;
+				relatedKeywords = null;
+			}
+			
+			private var relatedKeywords:Array = null;
+			public function applyKeywordsFromSelection():void
+			{
+				if(!_parentPanel)
+				{
+					var hashmap:LinkableHashMap = WeaveAPI.SessionManager.getLinkableOwner(this) as LinkableHashMap;					
+					_parentPanel = WeaveAPI.SessionManager.getLinkableOwner(hashmap) as InfoMapPanel;
+				}
+				query.keywords.value = getRequiredKeywords().join(',');
+				if(_parentPanel.relatedKeywords.value)
+					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 			}
 			
 			[Bindable]
@@ -473,11 +489,6 @@
 				}
 				
 				
-				if(!query.sources.value == '')
-				{
-					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
-				}
-				
 				for each(var t:DocThumbnailComponent in thumbnails.getObjects())
 				{
 					if(t.highlighted.value)
@@ -488,9 +499,45 @@
 				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
 				wordCount = [];
 				
-				_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,query.keywords.value,query.operator.value,sourceNames,query.dateFilter,5000);
+				var numOfDocsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,null);
+				
+				numOfDocsQuery.addAsyncResponder(handleNumOfDocsQueryResult,handleNumOfDocsQueryFault);
+				
+				
 				
 			}
+			
+			private function handleNumOfDocsQueryResult(event:ResultEvent,token:Object=null):void
+			{
+				var numOfDocs:Number = event.result as Number;
+				
+				//If no documents found, show status and do nothing.
+				if(numOfDocs <= 0)
+				{
+					status.text = "0 documents found.";
+					return;						
+				}
+				
+				status.text = numOfDocs.toString() + " documents found. Fetching documents...";
+				if(relatedKeywords)
+					_parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(docKeySet,query.keywords.value.split(','),
+						relatedKeywords,null,5000);
+				else
+				{
+					if(!query.sources.value == '')
+					{
+						var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+					}					
+					_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,query.keywords.value,query.operator.value,sourceNames,query.dateFilter,5000);	
+				}
+			}
+			
+			
+			private function handleNumOfDocsQueryFault(event:FaultEvent,token:Object=null):void
+			{
+				Alert.show("Error getting number of documents");
+			}
+			
 			
 			private var parser:CSVParser = new CSVParser();
 			private var timer:Timer = new Timer(2000);
@@ -563,6 +610,7 @@
 				thumbnails.resumeCallbacks();
 				prevNewDocsCount.value = currentNewDocsCount;
 				testAndBlinkNode();
+				getEntityDistribution();
 			}
 			
 			private function clearAllNewDocuments(event:Event=null):void
@@ -578,6 +626,37 @@
 				currentNewDocsCount = 0;
 				nodeBase.tickImg.visible = false;
 //				updateTextArea();
+			}
+			
+			private function getRequiredKeywords():Array
+			{
+				var selectedKeys:Array = _selection.keys;
+				
+				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
+				
+				var requriedKeywords:Array = getKeywordsFromEntityColumns(selectedKeys);
+				
+				return requriedKeywords;
+			}
+			
+			private function getUniqueKeywordsFromArray(keywords:Array):Array
+			{
+				//get unique keywords from extracted values 
+				var dict:Dictionary = new Dictionary();
+				
+				for each(var word:String in keywords)
+				{
+					if(dict[word] == undefined)
+						dict[word] = word;
+				}
+				
+				var uniqueEntityValues:Array = []
+				for each(var prop:String in dict)
+				{
+					uniqueEntityValues.push(prop);	
+				}
+				
+				return uniqueEntityValues;
 			}
 			
 			private var glowFilter:GlowFilter = new GlowFilter();
@@ -710,7 +789,51 @@
 				d.docKeys = thumbnailsToPlotArray;
 				handleSelectionKeySetChange();
 				adjustNodeBase();
+				toggleList(null,true);
+				
 //				handleGlobalSearch();
+			}
+			
+			private function getEntityDistribution():void
+			{
+				var entities:Array = getKeywordsFromEntityColumns();
+				
+				var requiredKeywords:Array = getRequiredKeywords();
+				
+				var relatedKeywords:Array = _parentPanel.relatedKeywords.value.split(',');
+				
+				
+				_parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,relatedKeywords,entities,query.dateFilter,5000);
+			}
+			
+			private function getKeywordsFromEntityColumns(keys:Array=null):Array
+			{
+				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
+				
+				var requriedKeywords:Array = [];
+				
+				if(keys==null)
+				{
+					keys = (entityColumns[0] as IAttributeColumn).keys;
+				}
+				
+				for each(var attrCol:IAttributeColumn in entityColumns)
+				{
+					for each(var key:IQualifiedKey in keys)
+					{
+						var value:String = ColumnUtils.getString(attrCol,key);
+						if(value)
+						{
+							requriedKeywords.push(value);
+						}
+					}
+				}
+				
+				requriedKeywords = getUniqueKeywordsFromArray(requriedKeywords);
+				
+				requriedKeywords = getUniqueKeywordsFromArray(requriedKeywords);
+				
+				return requriedKeywords;
 			}
 			
 			//			private function positionMovedthumbNails():void

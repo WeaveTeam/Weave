@@ -111,14 +111,13 @@ public class SummarizationJob implements Job{
 		HashMap<String, Boolean> partialUpdateHasSummary = null;
 		
 		
-//		while (true) {
 			try{
 				response = server.query(query);
 				
 				long totalNumberOfDocs = response.getResults().getNumFound();
 				
 				//We break it into chunk of requests of size 1 documents
-				for (int k = 0; k<=totalNumberOfDocs; k++)
+				for (int k = 0; k<totalNumberOfDocs; k++)
 				{
 					query.setStart(k);
 					query.setRows(1);
@@ -153,8 +152,8 @@ public class SummarizationJob implements Job{
 										description, 1, senModel, tokeModel, stopWords);
 								
 								partialUpdateHasSummary.put("set", true);
-								partialUpdateSummary.put("add", summary);
-								partialUpdateTopicSentence.put("add", topicSentence);
+								partialUpdateSummary.put("set", summary);
+								partialUpdateTopicSentence.put("set", topicSentence);
 								
 								revisedDoc.addField("link", doc.getFieldValue("link"));
 								revisedDoc.addField("attr_text_summary",
@@ -163,6 +162,11 @@ public class SummarizationJob implements Job{
 										partialUpdateTopicSentence);
 								revisedDoc.addField("hasSummary",
 										partialUpdateHasSummary);
+								
+//								System.out.println("ADDING DOC" + revisedDoc.getField("link").getValue() + 
+//										revisedDoc.getField("attr_text_summary").getValue()
+//										+revisedDoc.getField("attr_text_topicSentence").getValue()
+//										+revisedDoc.getField("hasSummary").getValue());
 //								docsInCurrentChunk[count] = revisedDoc;
 //								System.out.println("Summarized " + doc.getFieldValue("link") + "with" + summary);
 								updateServer.add(revisedDoc);
@@ -176,22 +180,17 @@ public class SummarizationJob implements Job{
 							}
 		
 						}
-//						updateServer.commit();
-//						updateServer.add(Arrays.asList(docsInCurrentChunk),10000);
 						
 				}
-				
-				
-				
-				
 			}
 		}catch (Exception e) {
 			System.out.println("Error Summarizing");
 			}
-//		}
-		
+		//TODO: I am not sure if updateServer needs to be shutdown. But calling the shutdown command throws an error of Connection pool shut down
+		//IllegalStateException. Avoiding the shutdown command works, the documents are updated and no errors are thrown. But I don't know 
+		//if this is a clean way of doing it.
+//		updateServer.shutdown(); 
 		server.shutdown();
-		updateServer.shutdown();
 		return;
 	}
 }

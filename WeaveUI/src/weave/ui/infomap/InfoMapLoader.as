@@ -7,6 +7,10 @@ package weave.ui.infomap
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.charts.chartClasses.InstanceCache;
+	import mx.core.IFlexDisplayObject;
+	import mx.managers.PopUpManager;
+	
 	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
@@ -14,6 +18,8 @@ package weave.ui.infomap
 	import weave.data.KeySets.KeySet;
 	import weave.ui.CustomContextMenuManager;
 	import weave.ui.DraggablePanel;
+	import weave.ui.WizardPanel;
+	import weave.ui.infomap.ui.EntitySelectionWizard;
 	import weave.ui.infomap.ui.InfoMapPanel;
 	import weave.utils.ColumnUtils;
 	import weave.utils.ProbeTextUtils;
@@ -75,21 +81,23 @@ package weave.ui.infomap
 		
 		private static function handleMenutItemClick(event:ContextMenuEvent):void
 		{
-			var titleOfClickedPanel:String = DraggablePanel.getTopPanel().title;
-			
-			var titleTerms:Array = titleOfClickedPanel.split(' ');
+//			var titleOfClickedPanel:String = DraggablePanel.getTopPanel().title;
+//			
+//			var titleTerms:Array = titleOfClickedPanel.split(' ');
 			
 			var panel:InfoMapPanel = Weave.root.requestObject("InfoMapPanel",InfoMapPanel,false);
 			
-			panel.restorePanel();
 			Weave.root.setNameOrder(["InfoMapPanel"]);
-			var keywords:Array = extractKeywordsFromSelection();
+			panel.restorePanel();
 			
-			if(titleTerms.indexOf('Obese')>-1)
-				keywords = keywords.concat('Obese');
+			panel.addQueryNodeUsingSelectedRecords();
 			
-			panel.addInfoMapNode(keywords.join(" "));
-			
+//			var keywords:Array = extractKeywordsFromSelection();
+//			
+//			if(titleTerms.indexOf('Obese')>-1)
+//				keywords = keywords.concat('Obese');
+//			
+//			panel.addInfoMapNode(keywords.join(" "));
 		}
 		
 		/**

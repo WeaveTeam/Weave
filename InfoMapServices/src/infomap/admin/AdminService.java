@@ -39,10 +39,15 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
+import org.apache.solr.client.solrj.response.Group;
+import org.apache.solr.client.solrj.response.GroupCommand;
+import org.apache.solr.client.solrj.response.GroupResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.GroupParams;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
@@ -116,40 +121,93 @@ public class AdminService extends GenericServlet{
     	try{
     		setSolrServer("http://129.63.8.219:8080/solr/research_core/");
     		
+    		String queryString = "title:((california OR washington) AND (obesity OR BMI OR overweight)) OR description:((california OR washington) AND (obesity OR BMI OR overweight))";
+    		
+    		SolrQuery query = new SolrQuery();
+    		
     		//query = query + "&wt=json";
        	 QueryResponse response = null;
+       	 Object[][]result = new Object[5][];
        	try{
    			
-       		SolrInputDocument d = new SolrInputDocument();
-       		Map<String, String> mp = new HashMap<String, String>();
-       		mp.put("set", "BIG TITLE SABMAN. 8");
-       		d.addField("link", "http://cardinalscholar.bsu.edu/handle/123456789/194764");
-//       		d.addField("imgName", mp);
+       		query.setQuery(queryString);
+       		
+       		query.setFields("link");
+       		
+       		query.set(GroupParams.GROUP_LIMIT, 5000);
+       		
+       		query.set(GroupParams.GROUP, true);
+       		
+	       	query.set(GroupParams.GROUP_QUERY, "title:(\"new jersey\") OR description:(\"new jersey\")");
+	       	
+	       	query.add(GroupParams.GROUP_QUERY, "title:(\"massachusetts\") OR description:(\"massachusetts\")");
+       		      	
+	       	response = solrInstance.query(query);
+       		GroupResponse gr = response.getGroupResponse();
+     		
+     		List<GroupCommand> gc = gr.getValues();
+     		
+     		Iterator<GroupCommand> gcIter = gc.iterator();
+     		
+     		
+     		int count = 0;
+     		while(gcIter.hasNext())
+     		{
+     			GroupCommand g = gcIter.next();
+     			
+     			List<Group> groups = g.getValues();
+     			
+     			Iterator<Group> groupsIter = groups.iterator();
+     			while(groupsIter.hasNext())
+     			{
+     				Group group = groupsIter.next();
+     				
+     				SolrDocumentList docList = group.getResult();
+     				
+     				Iterator<SolrDocument> docIter = docList.iterator();
+     				ArrayList<String> docs =  new ArrayList<String>();
+     				while(docIter.hasNext())
+     				{
+     					SolrDocument doc = docIter.next();
+     					
+     					docs.add((String)doc.getFieldValue("link"));
+     				}
+     				System.out.println("DOCS ARE + " + docs.toString());
+     				result[count] = docs.toArray(); 
+      			}
+     			count++;
+     		}
+       		
+//       		SolrInputDocument d = new SolrInputDocument();
+//       		Map<String, String> mp = new HashMap<String, String>();
+//       		mp.put("set", "BIG TITLE SABMAN. 8");
+//       		d.addField("link", "http://cardinalscholar.bsu.edu/handle/123456789/194764");
+////       		d.addField("imgName", mp);
 //       		d.addField("description","This is a description");
-//       		d.addField("attr_text_summary","This is a summary.");
-       		d.addField("title",mp);
-//       		UpdateResponse resp = solrInstance.add(d);
-       		
-       		SolrInputDocument d2 = new SolrInputDocument();
-       		Map<String, String> mp2 = new HashMap<String, String>();
-       		mp2.put("set", "BIG TITLE SABMAN 9");
-       		d2.addField("link", "http://cardinalscholar.bsu.edu/handle/123456789/1947640000");
-//       		d2.addField("imgName", mp2);
+////       		d.addField("attr_text_summary","This is a summary.");
+//       		d.addField("title",mp);
+////       		UpdateResponse resp = solrInstance.add(d);
+//       		
+//       		SolrInputDocument d2 = new SolrInputDocument();
+//       		Map<String, String> mp2 = new HashMap<String, String>();
+//       		mp2.put("set", "BIG TITLE SABMAN 9");
+//       		d2.addField("link", "http://cardinalscholar.bsu.edu/handle/123456789/1947640000");
+////       		d2.addField("imgName", mp2);
 //       		d2.addField("description","This is a description");
-//       		d2.addField("attr_text_summary","This is a summary.");
-       		d2.addField("title",mp2);
-//       		UpdateResponse resp2 = solrInstance.add(d2);
-       		
-       		SolrInputDocument[] twoDocsArray = new SolrInputDocument[2];
-       		
-       		twoDocsArray[0] = d;
-       		twoDocsArray[1] = d2;
-       		
-       		List<SolrInputDocument> twoDocs = Arrays.asList(twoDocsArray);
-        	
-       		setStreamingSolrServer("http://129.63.8.219:8080/solr/research_core/");
-       		
-       		streamingSolrserver.add(twoDocs,1000);
+////       		d2.addField("attr_text_summary","This is a summary.");
+//       		d2.addField("title",mp2);
+////       		UpdateResponse resp2 = solrInstance.add(d2);
+//       		
+//       		SolrInputDocument[] twoDocsArray = new SolrInputDocument[2];
+//       		
+//       		twoDocsArray[0] = d;
+//       		twoDocsArray[1] = d2;
+//       		
+//       		List<SolrInputDocument> twoDocs = Arrays.asList(twoDocsArray);
+//        	
+//       		setStreamingSolrServer("http://129.63.8.219:8080/solr/research_core/");
+//       		
+//       		streamingSolrserver.add(twoDocs,1000);
 
        		System.out.println("Updated with ");
        		
@@ -603,6 +661,251 @@ public class AdminService extends GenericServlet{
     private int highlightFragmentSize = 150;
     private ExecutorService executor = Executors.newFixedThreadPool(3);
     private DebugTimer timer = new DebugTimer();
+    
+    public  Object[] getResultsForQueryWithRelatedKeywords(String[] requiredKeywords,String[] relatedKeywords,String dateFilter,int rows) throws NullPointerException
+    {
+    	setSolrServer(solrServerUrl);
+    	
+    	ArrayList<String[]> r = new ArrayList<String[]>();
+    	
+    	//We OR the required keywords and OR the related keywords. Then we AND between the two.
+    	//So this way, we have at least one of the required keywords and one of the related keywords
+    	String requiredQueryString = mergeKeywords(requiredKeywords, "OR");
+		String relatedQueryString = mergeKeywords(relatedKeywords, "OR");
+		String queryString = "(" + requiredQueryString + ")" + " AND " + "(" + relatedQueryString + ")";
+		queryString = "title:(" + queryString + ") OR description:(" + queryString + ")";
+
+		
+		try{
+			
+			//Query Results are always sorted by descending order of relevance
+    		SolrQuery q = new SolrQuery().setQuery(queryString).setSortField("score", SolrQuery.ORDER.desc);
+    		if(dateFilter != null)
+    			if(!dateFilter.isEmpty())
+    				q.setFilterQueries(dateFilter);
+    		
+    		//set number of rows
+    		q.setRows(rows);
+    		
+    		//set fields to title,date and summary only
+    		q.setFields("link,title,attr_text_summary,date_added,date_published,imgName");
+    		
+    		//set highlighting
+    		q.setHighlight(true).setHighlightSnippets(highlightSnippetsCount).setHighlightFragsize(highlightFragmentSize);
+    		
+    		q.setParam("hl.fl", "description");
+    		
+    		q.setParam("hl.simple.pre","<b>");
+    		q.setParam("hl.simple.post","</b>");
+    		
+    		QueryResponse response = solrInstance.query(q);
+    		Iterator<SolrDocument> iter = response.getResults().iterator();
+    		
+    		System.out.println("QUERY IS " + q.toString());
+    		
+    		while (iter.hasNext()){
+    			SolrDocument doc = iter.next();
+    			String[] docArray =new String[5];
+    			
+    			docArray[0] = (String)doc.getFieldValue("link");
+    			docArray[1] = (String)doc.getFieldValue("title");
+    			
+    			
+    			//Show text summary if exists
+    			docArray[2] = "";
+    			String docSummary = (String)doc.getFieldValue("attr_text_summary"); 
+    			if( docSummary !=null)
+    			{
+    				docArray[2] += "<b>Summary: </b>" + docSummary;
+    			}
+    			//Show sentences with containing query words
+    			if(response.getHighlighting().get(docArray[0]).get("description") !=null )
+    			{
+    				List<String> highlightsList = response.getHighlighting().get(docArray[0]).get("description");
+    				
+    				Iterator<String> highlightsIter = highlightsList.iterator();
+    				
+    				docArray[2] += "<br/><br/><b>Matches: </b>";
+    				
+    				while(highlightsIter.hasNext())
+    				{
+    					docArray[2] += " '" + highlightsIter.next() + "'...<br/><br/>";
+    				}
+    				
+    			}
+    			if(doc.getFieldValue("imgName") !=null)
+    				docArray[3] = "http://129.63.8.219:8080/thumbnails/"+  (String)doc.getFieldValue("imgName");
+    			
+    			if(doc.containsKey("date_published"))
+    				docArray[4] = doc.getFieldValue("date_published").toString();
+    			else if(doc.containsKey("date_added"))
+    				docArray[4] = doc.getFieldValue("date_added").toString();
+    			else
+    				docArray[4] = "";
+    			
+    			r.add(docArray);
+    		}
+    		
+    	}catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+    	
+    	
+    	
+    	Object[] queryResult = r.toArray();
+    	return queryResult;
+    	
+    }
+    
+    public long getNumOfDocumentsForQuery(String[] requiredKeywords,String[] relatedKeywords, String dateFilter)
+    {
+    	setSolrServer(solrServerUrl);
+
+    	String requiredQueryString = mergeKeywords(requiredKeywords, "OR");
+ 		String relatedQueryString = mergeKeywords(relatedKeywords, "OR");
+ 		String queryString = "(" + requiredQueryString + ")";
+ 		if(!relatedQueryString.isEmpty())
+ 			queryString  = queryString + " AND " + "(" + relatedQueryString + ")";
+ 		queryString = "title:(" + queryString + ") OR description:(" + queryString + ")";
+    	 
+     	QueryResponse response = null;
+     	try{
+ 			
+     		SolrQuery q = new SolrQuery().setQuery(queryString);
+     		
+     		if(dateFilter != null)
+    			if(!dateFilter.isEmpty())
+    				q.setFilterQueries(dateFilter);
+     		
+     		q.setRows(1);
+     		q.setFields("link");
+     		
+     		response = solrInstance.query(q);
+     		
+     	}catch(Exception e)
+     	{
+     		e.printStackTrace();
+     	}
+     	return response.getResults().getNumFound();
+    }
+    
+    public Object[][] getEntityDistributionForQuery(String[] requiredKeywords,String[] relatedKeywords, String dateFilter,String[] entities,int rows)
+    {
+    	Object [][] result = new Object[entities.length][];
+    	
+    	setSolrServer(solrServerUrl);
+    	
+    	//Setting up the query
+    	String requiredQueryString = mergeKeywords(requiredKeywords, "OR");
+ 		String relatedQueryString = mergeKeywords(relatedKeywords, "OR");
+ 		String queryString = "(" + requiredQueryString + ")";
+ 		if(!relatedQueryString.isEmpty())
+ 			queryString  = queryString + " AND " + "(" + relatedQueryString + ")";
+ 		queryString = "title:(" + queryString + ") OR description:(" + queryString + ")";
+    	 
+     	QueryResponse response = null;
+     	try{
+ 			
+     		SolrQuery q = new SolrQuery().setQuery(queryString);
+     		
+     		if(dateFilter != null)
+    			if(!dateFilter.isEmpty())
+    				q.setFilterQueries(dateFilter);
+     		
+     		
+     		q.setFields("link");
+     		
+     		//Setting up the Group Parameters
+     		//For each value in the entities array, we set up a group by query and search for the entity value in the title or description.
+     		q.set(GroupParams.GROUP, true);
+     		
+     		String groupQuery= "title:(\"" + entities[0] + "\") OR description:(\"" + entities[0] + "\")";
+ 			q.set(GroupParams.GROUP_QUERY, groupQuery);
+     		
+     		for (int i=1; i<entities.length; i++)
+     		{
+     			groupQuery= "title:(\"" + entities[i] + "\") OR description:(\"" + entities[i] + "\")";
+     			q.add(GroupParams.GROUP_QUERY, groupQuery);
+     		}
+     		
+     		q.set(GroupParams.GROUP_LIMIT,rows);
+     		
+     		q.toString();
+     		
+     		response = solrInstance.query(q);
+     		
+     		GroupResponse gr = response.getGroupResponse();
+     		
+     		List<GroupCommand> gc = gr.getValues();
+     		
+     		Iterator<GroupCommand> gcIter = gc.iterator();
+     		
+     		
+     		
+     		int count = 0;
+     		while(gcIter.hasNext())
+     		{
+     			GroupCommand g = gcIter.next();
+     			
+     			List<Group> groups = g.getValues();
+     			
+     			Iterator<Group> groupsIter = groups.iterator();
+     			while(groupsIter.hasNext())
+     			{
+     				Group group = groupsIter.next();
+     				
+     				SolrDocumentList docList = group.getResult();
+     				
+     				Iterator<SolrDocument> docIter = docList.iterator();
+     				ArrayList<String> docs =  new ArrayList<String>();
+     				while(docIter.hasNext())
+     				{
+     					SolrDocument doc = docIter.next();
+     					
+     					docs.add((String)doc.getFieldValue("link"));
+     				}
+     				System.out.println("DOCS ARE + " + docs.toString());
+     				result[count] = docs.toArray(); 
+      			}
+     			count++;
+     		}
+     		
+     	}catch(Exception e)
+     	{
+     		e.printStackTrace();
+     	}
+     	
+     	return result;
+    }
+    
+    private String mergeKeywords(String[] keywords, String operator)
+    {
+    	String result = "";
+    	
+    	if(keywords.length == 0)
+    		return result;
+    	//if it is not a single word we add the operator between each keyword
+		//splitting the keywords at the spaces. 
+		if(keywords.length > 1)
+		{
+			for(int i = 0; i < keywords.length; i++)
+			{
+				result += keywords[i];
+				if(i != keywords.length-1)
+					result += " "+operator+" ";
+			}
+			
+		}
+		else
+		{
+			result = keywords[0];
+		}
+    	
+    	
+    	return result;
+    }
+    
     public QueryResultWithWordCount getQueryResults(String[] queryTerms,String fq,String sortField,int rows, String solrURL) throws NullPointerException
     {
     	 setSolrServer(solrURL);
@@ -625,7 +928,7 @@ public class AdminService extends GenericServlet{
     	 executor.execute(ads);
     	 executor.execute(mds);
     	 executor.execute(bds);
-    	
+    	System.out.println("Finished Calling Sources " + timer.get());
     	String query = parseBasicQuery(queryTerms, "AND");
     	long totalNumberOfDocuments = getNumberOfMatchedDocuments(query, fq, solrURL);
 
@@ -660,15 +963,15 @@ public class AdminService extends GenericServlet{
     		
 //    		.setFilterQueries(fq).setSortField(sortField, SolrQuery.ORDER.desc);
     		
-    		
+    		System.out.println("Making Response " + timer.get());
     		QueryResponse response = solrInstance.query(q);
-    		
+    		System.out.println("Got Response " + timer.get() + response.getElapsedTime() + response.getQTime());
     		Iterator<SolrDocument> iter = response.getResults().iterator();
     		
     		System.out.println("QUERY IS " + q.toString());
     		
 //    		System.out.println("NUM OF DOCUMENTS IS " + response.getResults().getNumFound());
-    		    		
+    		System.out.println("iterating throught documents " + timer.get());
     		while (iter.hasNext()){
     			SolrDocument doc = iter.next();
     			String[] docArray =new String[5];
@@ -786,7 +1089,7 @@ public class AdminService extends GenericServlet{
     {
     	if(docs==null || docs.length == 0){
     		
-    		System.out.println("addDocuments was called but no Documents added");
+//    		System.out.println("addDocuments was called but no Documents added");
     		return;
     	}
     	
@@ -870,7 +1173,13 @@ public class AdminService extends GenericServlet{
 			e.printStackTrace();
 		}
     }
-    
+
+    /**
+     * 
+     * @param query
+     * @param operator
+     * @return
+     */
     private static String parseBasicQuery(String[] query, String operator)
 	{
 		

@@ -175,6 +175,25 @@ package weave.services
 //				return query;
 //			}
 			
+			public function getResultsForQueryWithRelatedKeywords(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int):DelayedAsyncInvocation
+			{
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getResultsForQueryWithRelatedKeywords",[requiredKeywords,relatedKeywords,dateFilter,rows]);
+				return query;
+			}
+			
+			public function getNumOfDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilterString:String):DelayedAsyncInvocation
+			{
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getNumOfDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilterString]);
+				return query;
+			}
+			
+			public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, dateFilter:String,entities:Array,rows:int):DelayedAsyncInvocation
+			{
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getEntityDistributionForQuery",[requiredKeywords,relatedKeywords,dateFilter,entities,rows]);
+				return query;
+			}
+			
+			
 			public function getQueryResults(queryTerms:Array,filterQuery:String,sortField:String,rows:int,solrURL:String=null):DelayedAsyncInvocation
 			{
 				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getQueryResults",[queryTerms,filterQuery,sortField,rows,solrURL]);
@@ -186,6 +205,7 @@ package weave.services
 				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getNumberOfMatchedDocuments",[queryTerms,filterQuery,solrURL]);
 				return query;
 			}
+			
 			
 			public function testDropBox():DelayedAsyncInvocation
 			{
