@@ -373,8 +373,7 @@ package weave
 			if (csv === null) 
 				return false;
 			
-			var parser:CSVParser = new CSVParser();
-			var rows:Array = parser.parseCSV(csv);
+			var rows:Array = WeaveAPI.CSVParser.parseCSV(csv);
 			
 			if (rows.length == 0)
 				return false;
