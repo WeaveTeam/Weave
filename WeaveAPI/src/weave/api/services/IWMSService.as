@@ -84,11 +84,6 @@ package weave.api.services
 		function getProvider():*;
 
 		/**
-		 * Reset the associated tiling index for this service.
-		 */
-		function clearTilingIndex():void;
-			
-		/**
 		 * Get a string which contains copyright information for the
 		 * service.
 		 * 
