@@ -58,7 +58,7 @@ package disabilityDictionary
 			for(var i:int = 0; i < objProperties.length; i++)
 			{
 				//flesh out these if else checks to make the decision for the message category
-				if (objProperties[0] == 1)  // propertyNames[0] -> slope hard coded
+				if (objProperties[0] > 0)  // propertyNames[0] -> slope hard coded
 					messageCategoryIDs.push(DisabilityMessageProperties.INCREASING_TREND_ID);
 			}
 			

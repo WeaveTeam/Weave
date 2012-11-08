@@ -70,7 +70,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	
 	<mx:Script>
 		<![CDATA[
-			import disabilityDictionary.ButtonExt;
 			import disabilityDictionary.DisabilityMessageCategoryDictionary;
 			import disabilityDictionary.DisabilityObject;
 			
@@ -234,14 +233,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				//send the columns and variables returned from getInfoForR to R using this function
 				
-				var computeScript:String = "";
+				var computeScript:String = "mySlope <- y2 -y1";
 				//inputValues is a matrix of all of the columns that are to be sent to R
-				var testArray:Array = [1]; var inputValues:Array = new Array();
-				inputValues.push(testArray); 
+				
+				var inputValues:Array = new Array();var tempArray:Array = new Array();
+				tempArray = joinColsRArray; 
+				 inputValues = tempArray[0].valueOf(); 
 				// var inputValues:Array = joinColsRArray; use this
-				var outputNames:Array = ["myColumns"];
+				var outputNames:Array = ["mySlope"];
 				//default name to be used in R
-				var inputName:Array = ["myColumns"];
+				var inputName:Array = ["y1", "y2"];
 				
 				 var query:AsyncToken = Rservice.runScript(joinKeysRArray, inputName, inputValues, outputNames, computeScript, "", false, false, false);
 				DelayedAsyncResponder.addResponder(query, handleRunScriptResult, handleRunScriptFault, joinKeysRArray);	 
@@ -274,7 +275,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 				}
 				
-				mockRResult(finalRObject);
+				processingRResult(finalRObject);
 			
 			}
 			private function handleRunScriptFault(event:FaultEvent, token:Object):void
@@ -283,27 +284,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				reportError(event);
 			}
 			
-			public var mockLookUpDict:DisabilityMessageCategoryDictionary = new DisabilityMessageCategoryDictionary();
+			public var checkLookUpDict:DisabilityMessageCategoryDictionary = new DisabilityMessageCategoryDictionary();
 			
-			public function mockRResult(_mockpropertiesValues:Array):void
+			public function processingRResult(_sentpropertiesValues:Array):void
 			{
-				var mockSlope : Number = 1;
-				var mockProperties:Array = new Array();
+				//var mockSlope : Number = 1;
+				var tempProperties:Array = new Array();
 				//var mockpropertiesValues:Array = new Array();//array of values of properties returned from R
-				//mockpropertiesValues.push(mockSlope);//returned from R
+				tempProperties.push(_sentpropertiesValues);//returned from R
 				
 				//one DisabilityObject is made for every tool is one Weave instance
-			    var mockDisabilityObject :DisabilityObject = new DisabilityObject();
-				mockDisabilityObject.properties = _mockpropertiesValues;
+			    var tempDisabilityObject :DisabilityObject = new DisabilityObject();
+				tempDisabilityObject.properties = _sentpropertiesValues;
 				/* structure for vizDetails                 title
 														   Attributes */
-				mockDisabilityObject.vizDetails.push(_target.title);
-				mockDisabilityObject.vizDetails.push(columnNames);
+				tempDisabilityObject.vizDetails.push(_target.title);
+				tempDisabilityObject.vizDetails.push(columnNames);
 				
 				//this gives us the final array of text messages
-				var finalTextMessages:Array = mockLookUpDict.collectMessageCategoryID(mockDisabilityObject);
+				var finalTextMessages:Array = checkLookUpDict.collectMessageCategoryID(tempDisabilityObject);
 				Alert.show(finalTextMessages[0],"Result");
 			}
+			
 		]]>
 	</mx:Script>
 </mx:VBox>
