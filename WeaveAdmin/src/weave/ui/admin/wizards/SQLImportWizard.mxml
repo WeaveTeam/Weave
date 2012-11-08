@@ -93,7 +93,7 @@
 				}
 				
 				finishEnabled = false;
-				var query:AsyncToken = AdminInterface.instance.checkKeyColumnForSQLImport(
+				var query:AsyncToken = AdminInterface.service.checkKeyColumnForSQLImport(
 					tableSelector.activeSchema,
 					tableSelector.activeTable,
 					keyColumnComboBox.selectedLabel,

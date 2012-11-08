@@ -19,20 +19,17 @@
 package weave.services
 {
 	import flash.external.ExternalInterface;
-	import flash.net.FileReference;
 	import flash.utils.ByteArray;
 	import flash.utils.Dictionary;
 	
-	import mx.controls.Alert;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
 	import mx.utils.UIDUtil;
 	
-	import weave.services.beans.AttributeColumnInfo;
 	import weave.services.beans.ConnectionInfo;
 	import weave.services.beans.DatabaseConfigInfo;
-	import weave.services.beans.EntityMetadata;
+	import weave.services.beans.Entity;
 
 	public class AdminInterface
 	{
@@ -44,6 +41,10 @@ package weave.services
 			if (_thisInstance == null)
 				_thisInstance = new AdminInterface();
 			return _thisInstance;
+		}
+		public static function get service():WeaveAdminService
+		{
+			return instance.service;
 		}
 		
 		public function AdminInterface()
@@ -98,7 +99,7 @@ package weave.services
 		
 		
 		
-		[Bindable] public var meta_cache:MetadataCache = new MetadataCache();
+		public const entityCache:EntityCache = new EntityCache();
 		// functions for managing static settings
 		public function getConnectionNames():void
 		{
@@ -106,14 +107,14 @@ package weave.services
 			connectionNames = [];
 			databaseConfigInfo = new DatabaseConfigInfo(null);
 			
-			addAsyncResponder(service.getConnectionNames(activeConnectionName, activePassword), handleGetConnectionNames);
+			addAsyncResponder(service.getConnectionNames(), handleGetConnectionNames);
 			function handleGetConnectionNames(event:ResultEvent, token:Object = null):void
 			{
 				//trace("handleGetConnectionNames");
 				connectionNames = event.result as Array || [];
 			}
 
-			addAsyncResponder(service.getDatabaseConfigInfo(activeConnectionName, activePassword), handleGetDatabaseConfigInfo);
+			addAsyncResponder(service.getDatabaseConfigInfo(), handleGetDatabaseConfigInfo);
 			function handleGetDatabaseConfigInfo(event:ResultEvent, token:Object = null):void
 			{
 				databaseConfigInfo = new DatabaseConfigInfo(event.result);
@@ -150,7 +151,7 @@ package weave.services
 			activeConnectionName = connectionName;
 			activePassword = password;
 
-			var query:AsyncToken = service.authenticate(activeConnectionName, activePassword);
+			var query:AsyncToken = service.authenticate();
 			addAsyncResponder(query, handleAuthenticate);
 			function handleAuthenticate(event:ResultEvent, token:Object = null):void
 			{
@@ -163,7 +164,7 @@ package weave.services
 				}
 				else
 				{
-					addAsyncResponder(getConnectionInfo(activeConnectionName), handleConnectionInfo);
+					addAsyncResponder(service.getConnectionInfo(activeConnectionName), handleConnectionInfo);
 					function handleConnectionInfo(event:ResultEvent, token:Object = null):void
 					{
 						var cInfo:ConnectionInfo = new ConnectionInfo(event.result);
@@ -194,7 +195,7 @@ package weave.services
 		public function getWeaveFileNames():void
 		{
 			weaveFileNames = [];
-			addAsyncResponder(service.getWeaveFileNames(activeConnectionName, activePassword, true), handleGetWeaveFileNames);
+			addAsyncResponder(service.getWeaveFileNames(true), handleGetWeaveFileNames);
 			function handleGetWeaveFileNames(event:ResultEvent, token:Object = null):void
 			{
 				weaveFileNames = event.result as Array || [];
@@ -204,7 +205,7 @@ package weave.services
 		public function getPrivateWeaveFileNames():void
 		{
 			privateWeaveFileNames = [];
-			addAsyncResponder(service.getWeaveFileNames(activeConnectionName, activePassword, false), handleGetWeaveFileNames);
+			addAsyncResponder(service.getWeaveFileNames(false), handleGetWeaveFileNames);
 			function handleGetWeaveFileNames(event:ResultEvent, token:Object = null):void
 			{
 				privateWeaveFileNames = event.result as Array || [];
@@ -213,11 +214,7 @@ package weave.services
 		
 		public function removeWeaveFile(fileName:String):AsyncToken
 		{
-			var query:AsyncToken = service.removeWeaveFile(
-					activeConnectionName,
-					activePassword,
-					fileName
-				);
+			var query:AsyncToken = service.removeWeaveFile(fileName);
 			addAsyncResponder(query, handler);
 			function handler(..._):void
 			{
@@ -236,15 +233,9 @@ package weave.services
 		
 		
 		
-		// functions for managing SQL connection entries
-		public function getConnectionInfo(connectionName:String):AsyncToken
-		{
-			return service.getConnectionInfo(activeConnectionName, activePassword, connectionName);
-		}
-		
 		public function saveConnectionInfo(connectionInfo:ConnectionInfo, configOverwrite:Boolean):AsyncToken
 		{
-			var query:AsyncToken = service.saveConnectionInfo(activeConnectionName, activePassword, connectionInfo, configOverwrite);
+			var query:AsyncToken = service.saveConnectionInfo(connectionInfo, configOverwrite);
 			addAsyncResponder(query, handler);
 			function handler(..._):void
 			{
@@ -255,7 +246,7 @@ package weave.services
 
 		public function removeConnectionInfo(connectionName:String):AsyncToken
 		{
-			var query:AsyncToken = service.removeConnectionInfo(activeConnectionName, activePassword, connectionName);
+			var query:AsyncToken = service.removeConnectionInfo(connectionName);
 			addAsyncResponder(query, handler);
 			function handler(..._):void
 			{
@@ -283,66 +274,10 @@ package weave.services
 			return query;
 		}
 		// functions for managing DataTable entries
-		public function addAttributeColumn(metadata:EntityMetadata):AsyncToken
-		{
-			return service.addAttributeColumn(activeConnectionName, activePassword, metadata);
-		}
-		public function addDataTable(metadata:EntityMetadata):AsyncToken
-		{
-			return service.addDataTable(activeConnectionName, activePassword, metadata);
-		}
-		public function addTag(metadata:EntityMetadata):AsyncToken
-		{
-			return service.addTag(activeConnectionName, activePassword, metadata); 
-		}
-		public function copyEntity(id:int):AsyncToken
-		{
-			return service.copyEntity(activeConnectionName, activePassword, id); 
-		}
-		public function addChildToParent(child_id:int, parent_id:int):AsyncToken
-		{
-			return service.addChildToParent(activeConnectionName, activePassword, child_id, parent_id);
-		}
-		public function removeChildFromParent(child_id:int, parent_id:int):AsyncToken
-		{
-			return service.removeChildFromParent(activeConnectionName, activePassword, child_id, parent_id);
-		}
-		public function removeEntity(id:int):AsyncToken
-		{
-			return service.removeEntity(activeConnectionName, activePassword, id);
-		}
-		public function updateEntity(id:int, diff:EntityMetadata):AsyncToken
-		{
-			return service.updateEntity(activeConnectionName, activePassword, id, diff);
-		}
-		public function getEntity(id:int):AsyncToken
-		{
-			return service.getEntity(activeConnectionName, activePassword, id);
-		}
-		public function getEntityParentIds(id:int):AsyncToken
-		{
-		    return service.getEntityParentIds(activeConnectionName, activePassword, id);
-		}
-		public function getEntityChildIds(id:int):AsyncToken
-		{
-		    return service.getEntityChildIds(activeConnectionName, activePassword, id);
-		}
-		public function getEntitiesById(ids:Array):AsyncToken
-		{
-			return service.getEntitiesById(activeConnectionName, activePassword, ids);
-		}
-		public function getEntitiesByMetadata(meta:Object):AsyncToken
-		{
-			return service.getEntitiesByMetadata(activeConnectionName, activePassword, meta);
-		}
-		public function getEntitiesByType(type_id:int, meta:Object):AsyncToken
-		{
-			return service.getEntitiesByType(activeConnectionName, activePassword, type_id, meta);
-		}
 		public function getDataTableInfo(title:String):AsyncToken
 		{
 		    var params:Object = {"title": title};
-		    return service.getEntitiesByType(activeConnectionName, activePassword, AttributeColumnInfo.ENTITY_COLUMN, params);
+		    return service.getEntitiesByType(Entity.TYPE_COLUMN, params);
 		}
 		public function getDataTables():void
 		{
@@ -350,7 +285,7 @@ package weave.services
 			
 			if (userHasAuthenticated)
 			{
-				addAsyncResponder(service.getDataTables(activeConnectionName, activePassword), handlegetDataTableNames);
+				addAsyncResponder(service.getDataTables(), handlegetDataTableNames);
 				function handlegetDataTableNames(event:ResultEvent, token:Object = null):void
 				{
 					if (userHasAuthenticated)
@@ -360,26 +295,9 @@ package weave.services
 		}
 		
 
-		// code for viewing a weave file archive thumbnail
-		
-		public function getWeaveFileInfo(fileName:String):AsyncToken
-		{
-			return service.getWeaveFileInfo(activeConnectionName, activePassword, fileName);
-		}
-		
-		
 		// code for viewing CSV and Shape file on the server
 		
 		
-		/**
-		 * This function uploads a file whose content has been loaded into a FileReference object.
-		 * @param fileRef The FileReference object on which load() has completed.
-		 */		
-		public function uploadFile(fileRef:FileReference):AsyncToken
-		{
-			return service.uploadFile(fileRef.name, fileRef.data);
-		}
-
 		public function getUploadedCSVFiles():AsyncToken
 		{
 			uploadedCSVFiles = [];
@@ -418,7 +336,7 @@ package weave.services
 			keyTypes = [];
 			if (userHasAuthenticated)
 			{
-				var query:AsyncToken = service.getKeyTypes(activeConnectionName, activePassword);
+				var query:AsyncToken = service.getKeyTypes();
 				addAsyncResponder(query, handleGetKeyTypes);
 				function handleGetKeyTypes(event:ResultEvent, token:Object = null):void
 				{
@@ -433,17 +351,11 @@ package weave.services
 
 
 
-
-
-
-
 		// functions for importing data
 		
 		public function storeDBFDataToDatabase(fileName:String, sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, nullValues:String):AsyncToken
 		{
 			var query:AsyncToken = service.storeDBFDataToDatabase(
-				activeConnectionName,
-				activePassword,
 				fileName,
 				sqlSchema,
 				sqlTable,
@@ -484,8 +396,6 @@ package weave.services
 													keyType:String, srsCode:String, nullValues:String,importDBFAsDataTable:Boolean):AsyncToken
 		{
 			var query:AsyncToken = service.convertShapefileToSQLStream(
-				activeConnectionName,
-				activePassword,
 				fileName,
 				keyColumns,
 				sqlSchema,
@@ -525,8 +435,6 @@ package weave.services
 								  filterColumnNames:Array):AsyncToken
 		{
 			var query:AsyncToken = service.importCSV(
-				activeConnectionName,
-				activePassword,
 				csvFileName,
 				keyColumn,
 				secondaryKeyColumn,
@@ -554,8 +462,6 @@ package weave.services
 		public function addConfigDataTableFromDatabase(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String, tableName:String, overwrite:Boolean, geometryCollection:String, keyType:String, filterColumns:Array):AsyncToken
 		{
 			var query:AsyncToken = service.addConfigDataTableFromDatabase(
-				activeConnectionName,
-				activePassword,
 				sqlSchema,
 				sqlTable,
 				keyColumn,
@@ -576,33 +482,6 @@ package weave.services
 		}
 		
 		
-		public function checkKeyColumnForSQLImport(sqlSchema:String, sqlTable:String, keyColumn:String, secondaryKeyColumn:String):AsyncToken
-		{
-			var query:AsyncToken = service.checkKeyColumnForSQLImport(
-				activeConnectionName,
-				activePassword,
-				sqlSchema,
-				sqlTable,
-				keyColumn,
-				secondaryKeyColumn
-			);
-			return query;
-		}
-		
-		public function checkKeyColumnForCSVImport(csvFileName:String, keyColumn:String, secondaryKeyColumn:String=null):AsyncToken
-		{
-			var query:AsyncToken = service.checkKeyColumnForCSVImport(
-				csvFileName,
-				keyColumn,
-				secondaryKeyColumn
-			);
-			return query;
-		}
-
-
-
-
-
 
 
 		//LocalConnection Code
@@ -615,11 +494,10 @@ package weave.services
 			var url:String = 'weave.html?';
 			if (fileName)
 				url += 'file=' + fileName + '&'
-			url += 'adminSession=' + createWeaveService();
+			url += 'adminSession=' + createWeaveSession();
 			
-			if (recover) {
+			if (recover)
 				url += '&recover=true';
-			}
 			
 			var target:String = '_blank';
 			var params:String = 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1';
@@ -632,8 +510,6 @@ package weave.services
 		public function saveWeaveFile(fileContent:ByteArray, clientConfigFileName:String, fileOverwrite:Boolean):AsyncToken
 		{
 			var query:AsyncToken = service.saveWeaveFile(
-				activeConnectionName,
-				activePassword,
 				fileContent,
 				clientConfigFileName,
 				fileOverwrite
@@ -650,7 +526,7 @@ package weave.services
 
 		private var weaveService:LocalAsyncService = null; // the current service object
 		// creates a new LocalAsyncService and returns its corresponding connection name.
-		private function createWeaveService():String
+		private function createWeaveSession():String
 		{
 			if (weaveService)
 			{
@@ -676,62 +552,5 @@ package weave.services
 			delete oldWeaveServices[token];
 		}
 		//End of LocalConnection Code
-		
-		
-		public function showHelpForKeyType():void
-		{
-			Alert.show(
-				'If two tables have compatible keys, you should give them the same key type.  ' +
-				'If two tables have incompatible keys, they should not have the same key type.  ' +
-				'Weave only allows two columns to be compared if they have the same key type.',
-				'Admin Console Help'
-			);
-		}
-
-
-
-
-
-
-
-
-
-		// dublin core functionality
-		
-		/**
-		 * Adds the given Dublin Core key-value pairs to the metadata store for
-		 * the dataset with the given name.
-		 * @param datasetName the name of the dataset to associate the new element values with
-		 * @param elements an Object (map) whose keys are strings such as "dc:title", "dc:description", etc.
-		 * and whose values are the (String) values for those elements, applied to the dataset with the given name.
-		 * @param callback (optional) a function called when the server returns (of signature function(e:Event, token:Object = null):void)
-		 */ 
-		public function addDCElements(datasetName:String,elements:Object):AsyncToken
-		{
-			return service.addDCElements(activeConnectionName, activePassword, datasetName, elements);
-		}
-
-		/**
-		 * Requests from the server a list of Dublin Core metadata elements for the data table with the given name.
-		 */
-		public function listDCElements(dataTableName:String):AsyncToken
-		{
-			return service.listDCElements(activeConnectionName, activePassword, dataTableName);
-		}
-		
-		/**
-		 * Deletes the specified Dublin Core element entries.
-		 */
-		public function deleteDCElements(dataTableName:String,elements:Array):AsyncToken
-		{
-			return service.deleteDCElements(activeConnectionName, activePassword, dataTableName, elements);
-		}
-		/**
-		 * Updates the edited Dublin Core element entry.
-		 */
-		public function updateEditedDCElement(dataTableName:String, object:Object):AsyncToken
-		{
-			return service.updateEditedDCElement(activeConnectionName, activePassword, dataTableName, object);
-		}
 	}
 }

@@ -54,7 +54,6 @@ import weave.beans.AdminServiceResponse;
 import weave.beans.UploadFileFilter;
 import weave.beans.UploadedFile;
 import weave.beans.WeaveFileInfo;
-import weave.config.DublinCoreUtils;
 import weave.config.ISQLConfig;
 import weave.config.ISQLConfig.ConnectionInfo;
 import weave.config.ISQLConfig.DataEntity;
@@ -650,13 +649,13 @@ public class AdminService
 	 * type, and make the generic addEntity private
 	 */
 	synchronized private int addEntity(
-			String connectionName, String password, int entity_type, DataEntityMetadata newmeta)
+			String connectionName, String password, int entity_type, DataEntityMetadata newmeta, int parentId)
 		throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
 		if (cInfo.is_superuser)
-			return config.addEntity(entity_type, newmeta);
+			return config.addEntity(entity_type, newmeta, parentId);
 		return -1;
 	}
 
@@ -670,49 +669,24 @@ public class AdminService
 		return -1;
 	}
 
-	private DataEntity[] getEntitiesByType(String connectionName, String password, int entity_type)
-		throws RemoteException
-	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		return config.getEntitiesByType(entity_type).toArray(new DataEntity[0]);
-	}
-
 	/* Type-specific AdminService methods */
-	synchronized public int addTag(String connectionName, String password, Map<String, Map<String, String>> meta)
+	synchronized public int addCategory(String connectionName, String password, Map<String, Map<String, String>> meta, int parentId)
 		throws RemoteException
 	{
-		return addEntity(connectionName, password, DataEntity.MAN_TYPE_TAG, DataEntityMetadata.fromMap(meta));
+		return addEntity(connectionName, password, DataEntity.TYPE_CATEGORY, DataEntityMetadata.fromMap(meta), parentId);
 	}
 
 	synchronized public int addDataTable(String connectionName, String password, Map<String, Map<String, String>> meta)
 		throws RemoteException
 	{
-		return addEntity(connectionName, password, DataEntity.MAN_TYPE_DATATABLE, DataEntityMetadata.fromMap(meta));
+		return addEntity(connectionName, password, DataEntity.TYPE_DATATABLE, DataEntityMetadata.fromMap(meta), -1);
 	}
 
 	synchronized public int addAttributeColumn(
-			String connectionName, String password, Map<String, Map<String, String>> meta)
+			String connectionName, String password, Map<String, Map<String, String>> meta, int parentId)
 		throws RemoteException
 	{
-		return addEntity(connectionName, password, DataEntity.MAN_TYPE_COLUMN, DataEntityMetadata.fromMap(meta));
-	}
-
-	public DataEntity[] getTags(String connectionName, String password)
-		throws RemoteException
-	{
-		return getEntitiesByType(connectionName, password, DataEntity.MAN_TYPE_TAG);
-	}
-
-	public DataEntity[] getAttributeColumns(String connectionName, String password)
-		throws RemoteException
-	{
-		return getEntitiesByType(connectionName, password, DataEntity.MAN_TYPE_COLUMN);
-	}
-
-	public DataEntity[] getDataTables(String connectionName, String password)
-		throws RemoteException
-	{
-		return getEntitiesByType(connectionName, password, DataEntity.MAN_TYPE_DATATABLE);
+		return addEntity(connectionName, password, DataEntity.TYPE_COLUMN, DataEntityMetadata.fromMap(meta), parentId);
 	}
 
 	/* Common among all entities */
@@ -755,36 +729,12 @@ public class AdminService
 		return children.toArray(new Integer[0]);
 	}
 
-	public DataEntity[] getEntityChildEntities(String connectionName, String password, int parent_id)
-		throws RemoteException
-	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		Collection<DataEntity> children = config.getChildEntities(parent_id);
-		return children.toArray(new DataEntity[0]);
-	}
-
-	public DataEntityWithChildren getEntity(String connectionName, String password, int id)
-		throws RemoteException
-	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		Collection<Integer> children = config.getChildIds(id);
-		return new DataEntityWithChildren(config.getEntity(id), children.toArray(new Integer[0]));
-	}
-
 	public DataEntity[] getEntitiesByMetadata(
-			String connectionName, String password, Map<String, Map<String, String>> meta)
+			String connectionName, String password, Map<String, Map<String, String>> meta, int type_id)
 		throws RemoteException
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		return config.findEntities(DataEntityMetadata.fromMap(meta)).toArray(new DataEntity[0]);
-	}
-
-	public DataEntity[] getEntitiesByType(
-			String connectionName, String password, int type_id, Map<String, Map<String, String>> meta)
-		throws RemoteException
-	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		return config.getEntitiesByMetadata(DataEntityMetadata.fromMap(meta), type_id).toArray(new DataEntity[0]);
+		return config.getEntityIdsByMetadata(DataEntityMetadata.fromMap(meta), type_id).toArray(new DataEntity[0]);
 	}
 
 	public DataEntity[] getEntitiesById(String connectionName, String password, int[] ids)
@@ -803,7 +753,6 @@ public class AdminService
 		return result;
 	}
 
-	/* Generalize this? Maybe this belongs in the data service? :/ */
 	/**
 	 * Returns the results of testing attribute column sql queries.
 	 */
@@ -813,12 +762,10 @@ public class AdminService
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 		DataEntityMetadata params = new DataEntityMetadata();
 		params.publicMetadata.put(PublicMetadata.TITLE, tableName);
-		Collection<DataEntity> ids = config.findEntities(params);
-		for (DataEntity e : ids)
-		{
-			if (e.type == ISQLConfig.DataEntity.MAN_TYPE_DATATABLE)
-				return testAllQueries(connectionName, password, e.id);
-		}
+		Collection<Integer> ids = config.getEntityIdsByMetadata(params, DataEntity.TYPE_DATATABLE);
+		for (Integer id : ids)
+			return testAllQueries(connectionName, password, id);
+		
 		return null;
 	}
 
@@ -952,7 +899,7 @@ public class AdminService
 	{
 		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
 
-		return config.getUniquePublicValues(ISQLConfig.PublicMetadata.KEYTYPE).toArray(new String[0]);
+		return config.getUniquePublicValues(PublicMetadata.KEYTYPE).toArray(new String[0]);
 	}
 
 	public UploadedFile[] getUploadedCSVFiles()
@@ -1340,8 +1287,7 @@ public class AdminService
 		{
 			conn = config.getNamedConnection(connectionName);
 
-			sqlTable = sqlTable.toLowerCase(); // fix for MySQL running under
-												// Linux
+			sqlTable = sqlTable.toLowerCase(); // bug fix for MySQL running under Linux
 
 			String[] columnNames = null;
 			String[] originalColumnNames = null;
@@ -1568,8 +1514,8 @@ public class AdminService
 			{
 				/* Get list of unique values common among datatables only. */
 				List<String> uniqueNames = new LinkedList<String>();
-				for (DataEntity de : config.getEntitiesByType(ISQLConfig.DataEntity.MAN_TYPE_DATATABLE))
-					uniqueNames.add(de.publicMetadata.get(ISQLConfig.PublicMetadata.TITLE));
+				for (DataEntity de : config.getEntitiesById(config.getEntityIdsByMetadata(null, DataEntity.TYPE_DATATABLE)))
+					uniqueNames.add(de.publicMetadata.get(PublicMetadata.TITLE));
 
 				if (ListUtils.findIgnoreCase(configDataTableName, uniqueNames) >= 0)
 					throw new RemoteException(String.format(
@@ -1650,6 +1596,8 @@ public class AdminService
 			boolean ignoreKeyColumnQueries, String[] filterColumnNames)
 		throws RemoteException
 	{
+		//TODO: return table ID
+		
 		String failMessage = String.format(
 				"Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName);
 		if (sqlColumnNames == null || sqlColumnNames.length == 0)
@@ -1686,8 +1634,8 @@ public class AdminService
 		if (!configOverwrite)
 		{
 			List<String> uniqueNames = new LinkedList<String>();
-			for (DataEntity de : config.getEntitiesByType(ISQLConfig.DataEntity.MAN_TYPE_DATATABLE))
-				uniqueNames.add(de.publicMetadata.get(ISQLConfig.PublicMetadata.TITLE));
+			for (DataEntity de : config.getEntitiesById(config.getEntityIdsByMetadata(null, DataEntity.TYPE_DATATABLE)))
+				uniqueNames.add(de.publicMetadata.get(PublicMetadata.TITLE));
 			if (ListUtils.findIgnoreCase(configDataTableName, uniqueNames) >= 0)
 				throw new RemoteException(String.format(
 						"DataTable \"%s\" already exists in the configuration.", configDataTableName));
@@ -1781,12 +1729,11 @@ public class AdminService
 			// }
 
 			int numberSqlColumns = titles.size();
-			int col_id;
 			int table_id;
 
 			DataEntityMetadata tableProperties = new DataEntityMetadata();
 			tableProperties.publicMetadata.put(PublicMetadata.TITLE, configDataTableName);
-			table_id = config.addEntity(DataEntity.MAN_TYPE_DATATABLE, tableProperties);
+			table_id = config.addEntity(DataEntity.TYPE_DATATABLE, tableProperties, -1);
 
 			for (int i = 0; i < numberSqlColumns; i++)
 			{
@@ -1803,8 +1750,7 @@ public class AdminService
 				newMeta.publicMetadata.put(PublicMetadata.NAME, titles.get(i));
 				newMeta.publicMetadata.put(PublicMetadata.DATATYPE, dataTypes.get(i));
 
-				col_id = config.addEntity(DataEntity.MAN_TYPE_COLUMN, newMeta);
-				config.addChild(col_id, table_id);
+				config.addEntity(DataEntity.TYPE_COLUMN, newMeta, table_id);
 			}
 		}
 		catch (SQLException e)
@@ -2024,7 +1970,8 @@ public class AdminService
 		geomInfo.publicMetadata.put(PublicMetadata.KEYTYPE, configKeyType);
 		geomInfo.publicMetadata.put(PublicMetadata.PROJECTION, projectionSRS);
 
-		config.addEntity(DataEntity.MAN_TYPE_COLUMN, geomInfo);
+		// TODO: use table ID from addConfigDataTable()
+		config.addEntity(DataEntity.TYPE_COLUMN, geomInfo, -1);
 
 		return resultAddSQL;
 	}
@@ -2066,128 +2013,6 @@ public class AdminService
 		// fileNameWithoutExtension, keyColumns);
 
 		return "DBF Data stored successfully";
-	}
-
-	// //////////////////////////////////////////////
-	// functions for managing dublin core metadata
-	// //////////////////////////////////////////////
-
-	/**
-	 * Adds Dublin Core Elements to the metadata store in association with the given dataset..
-	 * 
-	 * @param connectionName the name of the connection to use
-	 * @param password the password for the given connection
-	 * @param dataTableName the name of the dataset to associate the given elements with
-	 * @param elements the key-value pairs defining the new Dublin Core elements to add. Keys are expected to be like "dc:title" and "dc:description",
-	 *            values are expected to be Strings.
-	 * @throws RemoteException
-	 */
-	synchronized public void addDCElements(
-			String connectionName, String password, String dataTableName, Map<String, Object> elements)
-		throws RemoteException
-	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-
-		if (!config.userCanModifyDataTable(connectionName, dataTableName))
-			throw new RemoteException(String.format(
-					"User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
-
-		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-		String configConnectionName = configInfo.connection;
-		Connection conn = null;
-		try
-		{
-			conn = config.getNamedConnection(configConnectionName, false);
-			String schema = configInfo.schema;
-			DublinCoreUtils.addDCElements(conn, schema, dataTableName, elements);
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("addDCElements failed", e);
-		}
-		finally
-		{
-			SQLUtils.cleanup(conn);
-		}
-	}
-
-	/**
-	 * Queries the database for the Dublin Core metadata elements associated with the data set with the given name and returns the result. The result
-	 * is returned as a Map whose keys are Dublin Core property names and whose values are the values for those properties (for the given data set)
-	 * stored in the metadata store.
-	 * 
-	 * If an error occurs, a map is returned with a single key-value pair whose key is "error".
-	 */
-	public Map<String, String> listDCElements(String connectionName, String password, String dataTableName)
-		throws RemoteException
-	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-
-		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-		Connection conn = config.getNamedConnection(configInfo.connection, true);
-		return DublinCoreUtils.listDCElements(conn, configInfo.schema, dataTableName);
-	}
-
-	/**
-	 * Deletes the specified metadata entries.
-	 */
-	synchronized public void deleteDCElements(
-			String connectionName, String password, String dataTableName, List<Map<String, String>> elements)
-		throws RemoteException
-	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		if (!config.userCanModifyDataTable(connectionName, dataTableName))
-			throw new RemoteException(String.format(
-					"User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
-
-		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-		String configConnectionName = configInfo.connection;
-		Connection conn = null;
-		try
-		{
-			conn = config.getNamedConnection(configConnectionName, false);
-			String schema = configInfo.schema;
-			DublinCoreUtils.deleteDCElements(conn, schema, dataTableName, elements);
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("deleteDCElements failed", e);
-		}
-		finally
-		{
-			SQLUtils.cleanup(conn);
-		}
-	}
-
-	/**
-	 * Saves an edited metadata row to the server.
-	 */
-	synchronized public void updateEditedDCElement(
-			String connectionName, String password, String dataTableName, Map<String, String> object)
-		throws RemoteException
-	{
-		ISQLConfig config = checkPasswordAndGetConfig(connectionName, password);
-		if (!config.userCanModifyDataTable(connectionName, dataTableName))
-			throw new RemoteException(String.format(
-					"User \"%s\" does not have permission to modify DataTable \"%s\".", connectionName, dataTableName));
-
-		DatabaseConfigInfo configInfo = config.getDatabaseConfigInfo();
-		String configConnectionName = configInfo.connection;
-		Connection conn = null;
-		try
-		{
-			conn = config.getNamedConnection(configConnectionName, false);
-			String schema = configInfo.schema;
-			DublinCoreUtils.updateEditedDCElement(conn, schema, dataTableName, object);
-		}
-		catch (RemoteException e)
-		{
-			throw new RemoteException("updateEditedDCElement failed", e);
-		}
-		finally
-		{
-			SQLUtils.cleanup(conn);
-		}
 	}
 
 	synchronized public String saveReportDefinitionFile(String fileName, String fileContents)

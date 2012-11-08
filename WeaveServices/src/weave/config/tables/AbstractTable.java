@@ -12,7 +12,7 @@ import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import weave.config.ISQLConfig.ImmortalConnection;
+import weave.config.ConnectionConfig.ImmortalConnection;
 import weave.utils.SQLUtils;
 
 

@@ -24,7 +24,7 @@
 			
 			private function handleCreationComplete():void
 			{
-				getCallbackCollection(AdminInterface.instance.meta_cache).addImmediateCallback(this, handleMetadataCache);
+				getCallbackCollection(AdminInterface.instance.entityCache).addImmediateCallback(this, handleMetadataCache);
 				BindingUtils.bindSetter(connectionReady, AdminInterface.instance, 'userHasAuthenticated');
 				
 				debugTrace(a);

@@ -637,6 +637,8 @@ public class SQLUtils
 				columnQuery = "*"; // select all columns
 			
 			// build WHERE clause
+			if (whereParams == null)
+				whereParams = Collections.emptyMap();
 			List<Entry<String,VALUE_TYPE>> whereEntries = imposeMapOrdering(whereParams);
 			String whereQuery = buildWhereClause(conn, getEntryKeys(whereEntries));
 			

@@ -14,10 +14,10 @@ package weave.ui
     
     import weave.api.data.ColumnMetadata;
     import weave.services.AdminInterface;
-    import weave.services.MetadataCache;
+    import weave.services.EntityCache;
     import weave.services.WeaveAdminService;
     import weave.services.addAsyncResponder;
-    import weave.services.beans.AttributeColumnInfo;
+    import weave.services.beans.Entity;
     import weave.services.beans.EntityMetadata;
 
 	[RemoteClass]
@@ -37,9 +37,9 @@ package weave.ui
 		
 		public var id:int = -1;
 		
-		public function getEntity():AttributeColumnInfo
+		public function getEntity():Entity
 		{
-			return AdminInterface.instance.meta_cache.getEntity(id);
+			return AdminInterface.instance.entityCache.getEntity(id);
 		}
 		
 		// the node can re-use the same children array
@@ -55,7 +55,7 @@ package weave.ui
 			if (!AdminInterface.instance.userHasAuthenticated)
 				return 'Not logged in';
 			
-			var info:AttributeColumnInfo = getEntity();
+			var info:Entity = getEntity();
 			
 			var title:String = info.publicMetadata[ColumnMetadata.TITLE];
 			if (!title)
@@ -65,11 +65,14 @@ package weave.ui
 				
 			if (debug)
 			{
-				var typeStrs:Array = ['table','column','category'];
-				var typeInts:Array = [AttributeColumnInfo.ENTITY_TABLE, AttributeColumnInfo.ENTITY_COLUMN, AttributeColumnInfo.ENTITY_CATEGORY];
-				var typeStr:String = typeStrs[typeInts.indexOf(info.entity_type)];
-				var childrenStr:String = _childNodes ? '; ' + _childNodes.length + ' children' : '';
-				var idStr:String = '(' + typeStr + id + childrenStr + ') ' + debugId(this);
+				var typeStrs:Array = ['Table','Column','Category'];
+				var typeInts:Array = [Entity.TYPE_TABLE, Entity.TYPE_COLUMN, Entity.TYPE_CATEGORY];
+				var typeInt:int = info.type;
+				var typeStr:String = typeStrs[typeInts.indexOf(typeInt)];
+				var childrenStr:String = '';
+				if (typeInt != Entity.TYPE_COLUMN)
+					childrenStr = '; ' + _childNodes.length + ' children';
+				var idStr:String = '(' + typeStr + "#" + id + childrenStr + ') ' + debugId(this);
 				title = idStr + ' ' + title;
 			}
 			
@@ -81,7 +84,7 @@ package weave.ui
 			if (!AdminInterface.instance.userHasAuthenticated)
 				return null;
 			
-			var entity:AttributeColumnInfo = AdminInterface.instance.meta_cache.getEntity(id);
+			var entity:Entity = AdminInterface.instance.entityCache.getEntity(id);
 			var childIds:Array = entity.childIds;
 			if (!childIds)
 				return null;
@@ -94,8 +97,8 @@ package weave.ui
 				// if there is a filter type, filter out non-column entities that do not have that type
 				if (_rootFilterType >= 0)
 				{
-					var childEntity:AttributeColumnInfo = AdminInterface.instance.meta_cache.getEntity(childId);
-					if (childEntity.entity_type != _rootFilterType && childEntity.entity_type != AttributeColumnInfo.ENTITY_COLUMN)
+					var childEntity:Entity = AdminInterface.instance.entityCache.getEntity(childId);
+					if (childEntity.type != _rootFilterType && childEntity.type != Entity.TYPE_COLUMN)
 					{
 						//trace('filter',_rootFilterType,'removed',childEntity.id,'(type',childEntity.entity_type,')');
 						continue;
@@ -115,7 +118,7 @@ package weave.ui
 			}
 			_childNodes.length = outputIndex;
 			
-			if (entity.entity_type == AttributeColumnInfo.ENTITY_COLUMN && _childNodes.length == 0)
+			if (entity.type == Entity.TYPE_COLUMN && _childNodes.length == 0)
 				return null; // leaf node
 			
 			return _childCollectionView;
@@ -124,11 +127,11 @@ package weave.ui
 		public static function addChildAt(parent:EntityNode, child:EntityNode, index:int):void
 		{
 			//TODO: handle index
-			AdminInterface.instance.meta_cache.add_child(child.id, parent ? parent.id : MetadataCache.ROOT_ID);
+			AdminInterface.instance.entityCache.add_child(child.id, parent ? parent.id : EntityCache.ROOT_ID);
 		}
 		public static function removeChild(parent:EntityNode, child:EntityNode):void
 		{
-			AdminInterface.instance.meta_cache.remove_child(child.id, parent ? parent.id : MetadataCache.ROOT_ID);
+			AdminInterface.instance.entityCache.remove_child(child.id, parent ? parent.id : EntityCache.ROOT_ID);
 		}
     }
 }

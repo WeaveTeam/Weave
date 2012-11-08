@@ -159,7 +159,7 @@
 				var fileRef:FileReference = event.target as FileReference;
 				if (shapeFileReferenceList.fileList.indexOf(fileRef) >= 0)
 				{
-					var query:AsyncToken = AdminInterface.instance.uploadFile(fileRef);
+					var query:AsyncToken = AdminInterface.service.uploadFile(fileRef.name, fileRef.data);
 					addAsyncResponder(query, handleFileUploadComplete, null, fileRef);
 				}
 			}

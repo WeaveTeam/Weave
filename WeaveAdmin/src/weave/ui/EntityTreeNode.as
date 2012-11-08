@@ -12,7 +12,7 @@ package weave.ui
     import weave.services.AdminInterface;
     import weave.services.WeaveAdminService;
     import weave.services.addAsyncResponder;
-    import weave.services.beans.AttributeColumnInfo;
+    import weave.services.beans.Entity;
     import weave.services.beans.EntityMetadata;
 
     public class EntityTreeNode extends EventDispatcher
@@ -57,8 +57,8 @@ package weave.ui
 				if (debug)
 				{
 					var typeStrs:Array = ['table','column','category'];
-					var typeInts:Array = [AttributeColumnInfo.ENTITY_TABLE, AttributeColumnInfo.ENTITY_COLUMN, AttributeColumnInfo.ENTITY_CATEGORY];
-					var typeStr:String = typeStrs[typeInts.indexOf(object.entity_type)];
+					var typeInts:Array = [Entity.TYPE_TABLE, Entity.TYPE_COLUMN, Entity.TYPE_CATEGORY];
+					var typeStr:String = typeStrs[typeInts.indexOf(object.type)];
 					var childrenStr:String = _children ? '; ' + _children.length + ' children' : '';
 					var idStr:String = ' (' + typeStr + object.id + childrenStr + ') ' + debugId(this);
 					label += idStr;
@@ -69,9 +69,9 @@ package weave.ui
             else
                 return "<Fetching...>";
         }
-        [Bindable(event="objectChanged")] public function get object():AttributeColumnInfo
+        [Bindable(event="objectChanged")] public function get object():Entity
         {
-            var info:AttributeColumnInfo = AdminInterface.instance.meta_cache.getEntity(id);
+            var info:Entity = AdminInterface.instance.entityCache.getEntity(id);
 			return info;
         }
         [Bindable(event="childrenChanged")] public function get children():Array
@@ -80,8 +80,8 @@ package weave.ui
         }
         protected function get_children():Array
         {
-            if (this.object.entity_type == AttributeColumnInfo.ENTITY_COLUMN) return null;
-            var fresh_children_ids:Array = AdminInterface.instance.meta_cache.getEntity(id).childIds;
+            if (this.object.type == Entity.TYPE_COLUMN) return null;
+            var fresh_children_ids:Array = AdminInterface.instance.entityCache.getEntity(id).childIds;
 			
 			if (children_ids == fresh_children_ids)
                 return _children;
@@ -104,34 +104,34 @@ package weave.ui
         }
         public function add_child(child_id:int):void
         {
-            var child_obj:AttributeColumnInfo = AdminInterface.instance.meta_cache.getEntity(child_id);
-            if (child_obj && (child_obj.entity_type == AttributeColumnInfo.ENTITY_TABLE))
+            var child_obj:Entity = AdminInterface.instance.entityCache.getEntity(child_id);
+            if (child_obj && (child_obj.type == Entity.TYPE_TABLE))
             {
 				function afterCopy(event:ResultEvent, token:Object):void
 				{
 					var new_child_id:int = int(event.result);
-					addAsyncResponder(AdminInterface.instance.meta_cache.add_child(new_child_id, id), childrenChanged);
+					addAsyncResponder(AdminInterface.instance.entityCache.add_child(new_child_id, id), childrenChanged);
 				}
                 addAsyncResponder(AdminInterface.instance.copyEntity(child_id), afterCopy);
             }
             else
             {
-				var token:AsyncToken = AdminInterface.instance.meta_cache.add_child(child_id, this.id);
+				var token:AsyncToken = AdminInterface.instance.entityCache.add_child(child_id, this.id);
 				addAsyncResponder(token, childrenChanged);
             }
         }
         public function remove_self():void
         {
-            AdminInterface.instance.meta_cache.delete_entity(this.id);
+            AdminInterface.instance.entityCache.delete_entity(this.id);
         }
         public function remove_child(child_id:int):void
         {
-            var token:AsyncToken = AdminInterface.instance.meta_cache.remove_child(child_id, this.id);
+            var token:AsyncToken = AdminInterface.instance.entityCache.remove_child(child_id, this.id);
 			addAsyncResponder(token, childrenChanged);
         }
         public function commit(diff:EntityMetadata):AsyncToken
         {
-            return AdminInterface.instance.meta_cache.update_metadata(id, diff);
+            return AdminInterface.instance.entityCache.update_metadata(id, diff);
         }
         public static function printobj(o:Object):void
         {

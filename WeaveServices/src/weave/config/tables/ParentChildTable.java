@@ -15,10 +15,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import weave.config.ISQLConfig.ImmortalConnection;
+import weave.config.ConnectionConfig.ImmortalConnection;
 import weave.utils.SQLUtils;
 
 
@@ -88,20 +90,20 @@ public class ParentChildTable extends AbstractTable
     	}
     }
     /* getChildren(null) will return all ids that appear in the 'child' column */
-    public Collection<Integer> getChildren(Integer parent_id) throws RemoteException
+    public List<Integer> getChildren(Integer parent_id) throws RemoteException
     {
         try
         {
             Connection conn = this.conn.getConnection();
             if (parent_id == null)
             {
-                return new HashSet<Integer>(SQLUtils.getIntColumn(conn, schemaName, tableName, FIELD_CHILD));
+                return SQLUtils.getIntColumn(conn, schemaName, tableName, FIELD_CHILD);
             }
             else 
             {
                 Map<String,Object> query = new HashMap<String,Object>();
                 query.put(FIELD_PARENT, parent_id);
-                Set<Integer> children = new HashSet<Integer>();
+                List<Integer> children = new LinkedList<Integer>();
                 for (Map<String,Object> row : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class))
                 {
                 	Number child = (Number)row.get(FIELD_CHILD);

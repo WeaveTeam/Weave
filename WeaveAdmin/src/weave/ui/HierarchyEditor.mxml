@@ -7,8 +7,8 @@
                 creationComplete="handleCreated()">
     <mx:VBox height="100%" width="40%">
         <mx:Label text="Tables"/>
-        <ui:EntityTree id="tableTree" rootFilterType="{AttributeColumnInfo.ENTITY_TABLE}"
-			change="deleteTableButton.enabled = tableTree.selectedItem &amp;&amp; (tableTree.selectedItem as EntityNode).getEntity().entity_type == AttributeColumnInfo.ENTITY_TABLE;"
+        <ui:EntityTree id="tableTree" rootFilterType="{Entity.TYPE_TABLE}"
+			change="deleteTableButton.enabled = tableTree.selectedItem &amp;&amp; (tableTree.selectedItem as EntityNode).getEntity().type == Entity.TYPE_TABLE;"
             width="100%" height="100%" dragEnabled="true" dragMoveEnabled="false" dropEnabled="false"/>
         <mx:HBox width="100%">
             <mx:Button label="Import Table..." click="importTable()"/>
@@ -17,7 +17,7 @@
     </mx:VBox>
     <mx:VBox height="100%" width="60%">
         <mx:Label text="Custom Hierarchy"/>
-        <ui:EntityTree id="tagTree" rootFilterType="{AttributeColumnInfo.ENTITY_CATEGORY}"
+        <ui:EntityTree id="tagTree" rootFilterType="{Entity.TYPE_CATEGORY}"
             width="100%" height="100%" 
             dragEnabled="true" dragMoveEnabled="true" dropEnabled="true"/>
         <mx:HBox>
@@ -28,15 +28,12 @@
     </mx:VBox>
 <mx:Script>
 <![CDATA[
-	import mx.binding.utils.ChangeWatcher;
 	import mx.events.ListEvent;
-	import mx.events.PropertyChangeEvent;
 	
 	import weave.api.getCallbackCollection;
 	import weave.core.UIUtils;
 	import weave.services.AdminInterface;
-	import weave.services.addAsyncResponder;
-	import weave.services.beans.AttributeColumnInfo;
+	import weave.services.beans.Entity;
 	import weave.utils.PopUpUtils;
 
     [Bindable] public var selectedItem:EntityNode;
@@ -45,7 +42,7 @@
     {
         tableTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
         tagTree.addEventListener(ListEvent.CHANGE, selectionsChanged);
-		getCallbackCollection(AdminInterface.instance.meta_cache).addImmediateCallback(this, tagTree.invalidateList);
+		getCallbackCollection(AdminInterface.instance.entityCache).addImmediateCallback(this, tagTree.invalidateList);
     }
     public function importTable():void
     {
@@ -60,7 +57,7 @@
         PopUpUtils.confirm(this, "Delete Table", "Delete selected table? All data columns in this table will also be deleted from all associated categories.", deleteTableFunction, null, "Delete", "Keep")
         function deleteTableFunction():void
         {
-			AdminInterface.instance.meta_cache.delete_entity(item.id);
+			AdminInterface.instance.entityCache.delete_entity(item.id);
         }
     }
     public function addTag():void
@@ -71,7 +68,7 @@
             UIUtils.componentPulse(tagNameInput);
             return;
         }
-        AdminInterface.instance.meta_cache.add_tag(name);
+        AdminInterface.instance.entityCache.add_tag(name);
         tagNameInput.text = "";
     }
     public function selectionsChanged(event:ListEvent):void
@@ -90,7 +87,7 @@
     {
 		for each (var item:EntityNode in tagTree.selectedItems)
 		{
-			if (tagTree.getParentItem(item) == null && item.getEntity().entity_type == AttributeColumnInfo.ENTITY_CATEGORY)
+			if (tagTree.getParentItem(item) == null && item.getEntity().type == Entity.TYPE_CATEGORY)
 			{
 	            PopUpUtils.confirm(this, "Remove hierarchy items", 'You have selected some root categories.  Remove all selected items?', removeImmediately, null, "Remove", "Cancel")
 				return;
@@ -102,15 +99,15 @@
 	{
 		for each (var item:EntityNode in tagTree.selectedItems)
 		{
-	        var type:int = item.getEntity().entity_type;
+	        var type:int = item.getEntity().type;
 	        var parent:EntityNode = tagTree.getParentItem(item);
 	        if (parent)
 	        {
-				AdminInterface.instance.meta_cache.remove_child(item.id, parent.id);
+				AdminInterface.instance.entityCache.remove_child(item.id, parent.id);
 	        }
-	        else if (type == AttributeColumnInfo.ENTITY_CATEGORY)
+	        else if (type == Entity.TYPE_CATEGORY)
 	        {
-				AdminInterface.instance.meta_cache.delete_entity(item.id);
+				AdminInterface.instance.entityCache.delete_entity(item.id);
 	        }
 	        else
 	        {

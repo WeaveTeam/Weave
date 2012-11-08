@@ -5,7 +5,7 @@ package weave.ui
     import mx.collections.ListCollectionView;
     import mx.controls.treeClasses.ITreeDataDescriptor;
     
-    import weave.services.beans.AttributeColumnInfo;
+    import weave.services.beans.Entity;
     
     public class HierarchyDescriptor implements ITreeDataDescriptor
     {
@@ -54,7 +54,7 @@ package weave.ui
         public function isBranch(node:Object, model:Object = null):Boolean
         {
             var entityNode:EntityTreeNode = node as EntityTreeNode;
-            return entityNode.object != null && entityNode.object.entity_type != AttributeColumnInfo.ENTITY_COLUMN;
+            return entityNode.object != null && entityNode.object.type != Entity.TYPE_COLUMN;
         }
     }
 }

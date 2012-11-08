@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import weave.config.ISQLConfig.ImmortalConnection;
+import weave.config.ConnectionConfig.ImmortalConnection;
 import weave.utils.SQLUtils;
 
 

@@ -36,8 +36,13 @@ import weave.utils.SQLUtils;
  * @author Curran Kelleher
  * 
  */
-public class DublinCoreUtils
+@Deprecated public class DublinCoreUtils
 {
+	public static void migrate(Connection conn, Map<String,Integer> dataTableIdLookup, DataConfig dataConfig)
+	{
+		//TODO
+	}
+	
 	/**
 	 * The name of the table which applies elements to datasets with values.
 	 */

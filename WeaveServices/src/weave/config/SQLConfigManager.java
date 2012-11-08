@@ -76,33 +76,8 @@ public final class SQLConfigManager
 	{
 		this.contextParams = contextParams;
 		
-		SQLConfigXML.copyEmbeddedDTD(contextParams.getConfigPath());
-		configFileName = contextParams.getConfigPath() + "/" + SQLConfigXML.XML_FILENAME;
-
-		// if xml file doesn't exist in cfgpath but exists in working path, move file to new location
-		try
-		{
-			File xml = new File(configFileName);
-			if(!xml.isFile()) 
-			{
-				String workingPath = System.getProperty("user.dir").replace('\\', '/');
-				File oldXML = new File(workingPath, SQLConfigXML.XML_FILENAME);
-				if (oldXML.isFile())
-				{
-					System.out.println(String.format("Moving \"%s\" to \"%s\".", oldXML.getAbsolutePath(), xml.getAbsolutePath()));
-					FileUtils.copy(oldXML, xml);
-					oldXML.delete();
-					
-//					File oldDTD = new File(workingPath, SQLConfigXML.DTD_FILENAME);
-//					if (oldDTD.isFile())
-//						oldDTD.delete();
-				}
-			}
-		}
-		catch (IOException e)
-		{
-			//e.printStackTrace();
-		}
+		String configFileName = contextParams.getConfigPath() + "/" + ConnectionConfig.XML_FILENAME;
+		ConnectionConfig connectionConfig = new ConnectionConfig(new File(configFileName));
 	}
 	
 	/**
@@ -114,18 +89,6 @@ public final class SQLConfigManager
 		return configFileName;
 	}
 	
-	/**
-	 * getConfig
-	 * @param configFileName The name of the configuration file to load
-	 * @return The ISQLConfig object for the new file
-	 * @throws RemoteException
-	 */
-//	synchronized public ISQLConfig loadConfig(String configFileName) throws RemoteException
-//	{
-//		config = null;
-//		this.configFileName = configFileName;
-//		return getConfig();
-//	}
 
 	/**
 	 * getConfig

@@ -112,6 +112,7 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
+			import mx.controls.Alert;
 			import mx.managers.PopUpManager;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
@@ -181,7 +182,7 @@
 					return;
 				}
 				
-				addAsyncResponder(AdminInterface.instance.uploadFile(_csvFileReference), hideBusy, hideBusy);
+				addAsyncResponder(AdminInterface.service.uploadFile(_csvFileReference.name, _csvFileReference.data), hideBusy, hideBusy);
 				
 				csvFileNameInput.text = _csvFileReference.name;
 				
@@ -318,11 +319,10 @@
 				if (dcDescriptionTextInput.text)
 					elements["description"] = dcDescriptionTextInput.text;
 				
-				//An assumtion is made that this text (dataTableNameInput.text) will not change,
-				//and still represents the correct dataset name at the time this code is run. -Curran
 				var datasetName:String = dataTableNameInput.text;
 				
-				AdminInterface.instance.addDCElements(datasetName, elements);
+				Alert.show("This feature isn't working yet.");
+				//AdminInterface.instance.addDCElements(datasetName, elements);
 			}
 			
 			private function enableAllWidgets(enable:Boolean = true):void
@@ -380,26 +380,12 @@
 				nextEnabled = false;
 				
 				var keyColName:String = csvKeyColumnCombo.selectedItem as String;
-				var secKeyColName:String = csvSecondaryKeyColumnCombo.selectedItem as String;
-				
-				if(secondaryKeyColumnCheckBox.selected)
-				{
-					addAsyncResponder(
-						AdminInterface.instance.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName,secKeyColName),
-						handleKeyColumnCheck,
-						handleKeyColumnCheckFault
-					);
-				}
-				else
-				{
-					addAsyncResponder(
-						AdminInterface.instance.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName),
-						handleKeyColumnCheck,
-						handleKeyColumnCheckFault
-					);
-				}
-				
-				
+				var secKeyColName:String = secondaryKeyColumnCheckBox.selected ? csvSecondaryKeyColumnCombo.selectedItem as String : null;
+				addAsyncResponder(
+					AdminInterface.service.checkKeyColumnForCSVImport(csvFileNameInput.text,keyColName,secKeyColName),
+					handleKeyColumnCheck,
+					handleKeyColumnCheckFault
+				);
 			}
 			
 			private function handleKeyColumnCheck(e:ResultEvent,token:Object=null):void

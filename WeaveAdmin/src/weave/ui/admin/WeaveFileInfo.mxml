@@ -62,7 +62,7 @@
 			}
 			public function updatePreview(fileName:String):void
 			{
-				addAsyncResponder(AdminInterface.instance.getWeaveFileInfo(fileName), handleInfo);
+				addAsyncResponder(AdminInterface.service.getWeaveFileInfo(fileName), handleInfo);
 			}
 			private function handleInfo(event:ResultEvent, token:Object = null):void
 			{

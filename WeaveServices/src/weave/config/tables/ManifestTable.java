@@ -14,12 +14,11 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import weave.config.ISQLConfig.ImmortalConnection;
+import weave.config.ConnectionConfig.ImmortalConnection;
 import weave.utils.SQLUtils;
 
 
@@ -123,7 +122,7 @@ public class ManifestTable extends AbstractTable
     {
         try
         {
-            Collection<Integer> ids = new LinkedList<Integer>();
+            List<Integer> ids = new LinkedList<Integer>();
             Map<String,Object> whereParams = new HashMap<String,Object>();
             List<Map<String,Object>> sqlres;
             Connection conn = this.conn.getConnection();
@@ -141,12 +140,12 @@ public class ManifestTable extends AbstractTable
             throw new RemoteException("Unable to get by type.", e);
         }
     }
-    public Collection<Integer> getAll() throws RemoteException
+    public List<Integer> getAll() throws RemoteException
     {
         try
         {
             Connection conn = this.conn.getConnection();
-            return new HashSet<Integer>(SQLUtils.getIntColumn(conn, schemaName, tableName, FIELD_ID));
+            return SQLUtils.getIntColumn(conn, schemaName, tableName, FIELD_ID);
         }
         catch (Exception e)
         {

@@ -20,7 +20,7 @@
 <![CDATA[
     import weave.services.WeaveAdminService;
     import weave.services.AdminInterface;
-    import weave.services.beans.AttributeColumnInfo;
+    import weave.services.beans.Entity;
     import weave.ui.EntityTreeNode;
     
     import weave.core.UIUtils;

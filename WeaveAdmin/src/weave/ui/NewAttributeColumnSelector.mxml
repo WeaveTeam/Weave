@@ -37,7 +37,7 @@
     import weave.core.UIUtils;
     import weave.services.AdminInterface;
     import weave.services.WeaveAdminService;
-    import weave.services.beans.AttributeColumnInfo;
+    import weave.services.beans.Entity;
     import weave.ui.EntityTreeNode;
     public var adminService:AdminInterface
     [Bindable] public var selectedItem:EntityTreeNode;
@@ -65,11 +65,11 @@
             for each (var obj:Object in entities)
             {
 				weaveTrace(ObjectUtil.toString(obj));
-                var entity:AttributeColumnInfo = new AttributeColumnInfo(obj);
+                var entity:Entity = new Entity(obj);
                 if (entity == null) continue;
-                if (entity.entity_type == 2)
+                if (entity.type == 2)
                     acs.tagTree.push(new EntityTreeNode(entity));
-                else if (entity.entity_type == 0)
+                else if (entity.type == 0)
                     acs.dataTables.push(new EntityTreeNode(entity));
             }
             if (onFinish != null)
@@ -140,7 +140,7 @@
     }
     private function removeTag():void
     {
-        if (selectedItem.object.entity_type == 2)
+        if (selectedItem.object.type == 2)
         {
               
         }

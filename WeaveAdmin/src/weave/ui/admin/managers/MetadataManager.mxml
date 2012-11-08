@@ -31,7 +31,7 @@
 			private var debug:* = debugId(this);
 		]]>
 	</mx:Script>
-	<mx:Button label="Refresh" click="AdminInterface.instance.meta_cache.clearCache();"/>
+	<mx:Button label="Refresh" click="AdminInterface.instance.entityCache.clearCache();"/>
 	<mx:HDividedBox width="100%" height="100%">
 		<ui:HierarchyEditor width="50%" height="100%" id="hierarchyEditor" enabled="{!metadataEditor.isChanged}"/>
 		<ui:MetadataEditor width="50%" height="100%" id="metadataEditor" targetItem="{hierarchyEditor.selectedItem}"/>

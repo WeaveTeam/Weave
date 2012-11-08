@@ -20,12 +20,14 @@
 	import mx.binding.utils.ChangeWatcher;
 	import mx.controls.Alert;
 	
+	import weave.api.getCallbackCollection;
+	import weave.api.reportError;
 	import weave.core.UIUtils;
 	import weave.services.AdminInterface;
-	import weave.services.MetadataCache;
+	import weave.services.EntityCache;
 	import weave.services.WeaveAdminService;
 	import weave.services.addAsyncResponder;
-	import weave.services.beans.AttributeColumnInfo;
+	import weave.services.beans.Entity;
 	import weave.services.beans.EntityMetadata;
 	
     [Bindable] public var targetItem:EntityNode = null;
@@ -38,6 +40,7 @@
         ChangeWatcher.watch(this, "targetItem", setEditors);
         pubWatcher = ChangeWatcher.watch(publicMetaGrid, "metadata", metaChanged);
         privWatcher = ChangeWatcher.watch(privateMetaGrid, "metadata", metaChanged);
+		getCallbackCollection(AdminInterface.instance.entityCache).addImmediateCallback(this, handleEntityCache);
     }
     private function setEditors(..._):void
     {
@@ -45,15 +48,15 @@
         {
             return;
         }
-		var entity:AttributeColumnInfo = targetItem.getEntity();
+		var entity:Entity = targetItem.getEntity();
         publicMetaGrid.metadata = entity.publicMetadata;
         privateMetaGrid.metadata = entity.privateMetadata;
     }
     private function metaChanged(..._):void
     {
-		var entity:AttributeColumnInfo = targetItem.getEntity();
-        var pubDiff:Object = MetadataCache.diffObjects(publicMetaGrid.metadata, entity.publicMetadata);
-        var privDiff:Object = MetadataCache.diffObjects(privateMetaGrid.metadata, entity.privateMetadata);
+		var entity:Entity = targetItem.getEntity();
+        var pubDiff:Object = EntityCache.diffObjects(publicMetaGrid.metadata, entity.publicMetadata);
+        var privDiff:Object = EntityCache.diffObjects(privateMetaGrid.metadata, entity.privateMetadata);
         var prop:String;
         for (prop in pubDiff)
         {
@@ -69,24 +72,36 @@
     }
     private function saveChanges():void
     {
-		var entity:AttributeColumnInfo = targetItem.getEntity();
-        var pubDiff:Object = MetadataCache.diffObjects(entity.publicMetadata, publicMetaGrid.metadata);
-        var privDiff:Object = MetadataCache.diffObjects(entity.privateMetadata, privateMetaGrid.metadata);
+		var entity:Entity = targetItem.getEntity();
+        var pubDiff:Object = EntityCache.diffObjects(entity.publicMetadata, publicMetaGrid.metadata);
+        var privDiff:Object = EntityCache.diffObjects(entity.privateMetadata, privateMetaGrid.metadata);
         function validateCommit(..._):void
         {
-            metaChanged();
-            if (isChanged)
-			{
-                /* Spit out error */
-			}
-            else
-                setEditors();
         }
 		var diff:EntityMetadata = new EntityMetadata();
 		diff.publicMetadata = pubDiff;
 		diff.privateMetadata = privDiff;
-        addAsyncResponder(AdminInterface.instance.meta_cache.update_metadata(entity.id, diff), validateCommit);
+		
+		checkIsChanged = true;
+        AdminInterface.instance.entityCache.update_metadata(entity.id, diff);
     }
+	private var checkIsChanged:Boolean = false;
+	private function handleEntityCache():void
+	{
+		if (checkIsChanged)
+		{
+			checkIsChanged = false;
+			
+            metaChanged();
+            if (isChanged)
+			{
+                reportError('handleEntityCache(): isChanged is true');
+			}
+            else
+                setEditors();
+		}
+	}
+	
     private static function printobj(o:Object):void
     {
         for (var prop:String in o)

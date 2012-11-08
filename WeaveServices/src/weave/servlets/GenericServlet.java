@@ -408,7 +408,7 @@ public class GenericServlet extends HttpServlet
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Object cast(Object value, Class<?> type)
+	protected Object cast(Object value, Class<?> type)
 	{
 		// if given value is a String, check if the function is expecting a different type
 		if (value instanceof String)

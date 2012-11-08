@@ -219,7 +219,11 @@ public class XMLUtils
 	}
 	public static Document getValidatedXMLFromFile(String xmlFile) throws ParserConfigurationException, SAXException, IOException
 	{
-		String workingPath = System.setProperty("user.dir", new File(xmlFile).getAbsoluteFile().getParent());
+		return getValidatedXMLFromFile(new File(xmlFile));
+	}
+	public static Document getValidatedXMLFromFile(File xmlFile) throws ParserConfigurationException, SAXException, IOException
+	{
+		String workingPath = System.setProperty("user.dir", xmlFile.getAbsoluteFile().getParent());
 		Document doc;
 		try
 		{

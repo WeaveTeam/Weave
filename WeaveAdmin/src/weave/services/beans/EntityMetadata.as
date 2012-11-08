@@ -21,6 +21,14 @@ package weave.services.beans
 {
 	public class EntityMetadata
 	{
+		public static const CONNECTION:String = "connection";
+		public static const SQLQUERY:String = "sqlQuery";
+		public static const SQLPARAMS:String = "sqlParams";
+		public static const SQLRESULT:String = "sqlResult";
+		public static const SCHEMA:String = "schema";
+		public static const TABLEPREFIX:String = "tablePrefix";
+		public static const IMPORTNOTES:String = "importNotes";
+		
 		public var privateMetadata:Object = {};
 		public var publicMetadata:Object = {};
 		
@@ -39,6 +47,32 @@ package weave.services.beans
 		public function toString():String
 		{
 			return objToStr({'publicMetadata': objToStr(publicMetadata), 'privateMetadata': objToStr(privateMetadata)});
+		}
+
+		public static function mergeObjects(a:Object, b:Object):Object
+		{
+			var result:Object = {}
+			for each (var obj:Object in [a, b])
+			for (var property:Object in obj)
+				result[property] = obj[property];
+			return result;
+		}
+		public static function diffObjects(old:Object, fresh:Object):Object
+		{
+			var diff:Object = {};
+			for (var property:String in mergeObjects(old, fresh))
+				if (old[property] != fresh[property])
+					diff[property] = fresh[property];
+			return diff;
+		}
+
+		[Deprecated] public function getAllMetadata():Object
+		{
+			return mergeObjects(privateMetadata, publicMetadata);
+		}
+		[Deprecated] public static function metadataPropertyIsPrivate(prop:String):Boolean
+		{
+			return prop in [CONNECTION, SQLQUERY, SQLPARAMS, SQLRESULT, SCHEMA, TABLEPREFIX, IMPORTNOTES];
 		}
 	}
 }

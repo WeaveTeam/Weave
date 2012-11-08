@@ -163,7 +163,7 @@
 				tabNavigator.selectedChild = simpleSetting;
 				
 				var name:String = treeWithSearch.tree.selectedItem.label;
-				addAsyncResponder(AdminInterface.instance.getConnectionInfo(name), handleResult);
+				addAsyncResponder(AdminInterface.service.getConnectionInfo(name), handleResult);
 
 				function handleResult(event:ResultEvent, token:Object = null):void
 				{

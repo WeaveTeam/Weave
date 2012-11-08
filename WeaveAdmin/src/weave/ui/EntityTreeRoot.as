@@ -1,17 +1,17 @@
 package weave.ui
 {
     import weave.ui.EntityTreeNode;
-    import weave.services.beans.AttributeColumnInfo;
+    import weave.services.beans.Entity;
     public class EntityTreeRoot extends EntityTreeNode
     {
         private var filterFunc:Function;
-        private var aci:AttributeColumnInfo;
+        private var aci:Entity;
         public function EntityTreeRoot(filterFunc:Function)
         {
             super(-1);
-            aci = new AttributeColumnInfo();
+            aci = new Entity();
             aci.id = -1;
-            aci.entity_type = AttributeColumnInfo.ENTITY_CATEGORY;
+            aci.type = Entity.TYPE_CATEGORY;
             aci.privateMetadata = {};
             aci.publicMetadata = {};
             this.filterFunc = filterFunc;
@@ -20,7 +20,7 @@ package weave.ui
         {
             return "Root";
         }
-        override public function get object():AttributeColumnInfo
+        override public function get object():Entity
         {
             return aci;
         }
