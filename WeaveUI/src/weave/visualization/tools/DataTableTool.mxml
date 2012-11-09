@@ -67,6 +67,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			<mx:Button click="moveSelectedToTop()" label="{lang('Move Selected Items to top')}"/>
 			<mx:Button click="_selection.clearKeys()" label="{lang('Clear Selection')}"/>
 		</mx:HBox>
+		<ui:HelpComponent id="tooManyRecordsIndicator" visible="false" >
+			The table is currently hiding some of the records, as the amount has exceeded the table's capability for dealing with it efficiently.
+		</ui:HelpComponent>
 	</mx:VBox>
 	
 	<mx:Number id="columnWidthScale">1</mx:Number>
@@ -150,6 +153,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private const dataRowKeys:ArrayCollection = new ArrayCollection([]);	
 			public const exportKeys:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			
+			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5000));
 			
 			override protected function constructor():void
 			{
@@ -502,6 +507,21 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					}
 				}
 				dataRowKeys.source = ColumnUtils.getAllKeys(includedColumns);
+				var rowLength:int = (dataGrid.dataProvider as ArrayCollection).length;
+				if( rowLength > maxRows.value)
+				{	
+					if(!tooManyRecordsIndicator.parent)
+						tableArea.addChild(tooManyRecordsIndicator);
+					tooManyRecordsIndicator.visible = true;
+					for( var j:int = 0; j < rowLength - maxRows.value; j++)
+						(dataGrid.dataProvider as ArrayCollection).removeItemAt(maxRows.value);
+				}
+				else
+				{
+					tooManyRecordsIndicator.visible = false;
+					if(tooManyRecordsIndicator.parent)
+						tableArea.removeChild(tooManyRecordsIndicator);
+				}
 				updateGlobalSelectionChange();
 			}
 			
