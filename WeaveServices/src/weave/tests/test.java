@@ -18,10 +18,14 @@
 */
 package weave.tests;
 
+import java.io.File;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 
 import weave.beans.RResult;
+import weave.config.ConnectionConfig;
+import weave.config.ConnectionConfig.DatabaseConfigInfo;
+import weave.config.DataConfig;
 import weave.servlets.RService;
 
 public class test
@@ -60,7 +64,26 @@ public class test
 	}
 	
 	@SuppressWarnings("unused")
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception
+	{
+		ConnectionConfig connConfig = new ConnectionConfig(new File("C:/tomcat/webapps/weave-config/sqlconfig.xml"));
+		DataConfig dataConfig = new DataConfig(connConfig, System.out);
+		
+//		ConnectionInfo connInfo = new ConnectionInfo();
+//		connInfo.connectString = "hello";
+//		connInfo.name = "myname";
+//		connInfo.dbms = "what";
+//		connInfo.pass = "PPPASS";
+//		connConfig.addConnectionInfo(connInfo);
+//		
+//		DatabaseConfigInfo dbInfo = new DatabaseConfigInfo();
+//		dbInfo.connection = "myname";
+//		dbInfo.schema = "weave";
+//		connConfig.setDatabaseConfigInfo(dbInfo);
+		
+		if (true)
+			return;
+		
 //		Connection conn = SQLUtils.getConnection(SQLUtils.getDriver(SQLUtils.MYSQL), "jdbc:mysql://localhost/weave?user=root&password=boolpup");
 //		SQLConfig sqlcfg = new SQLConfig(new SQLConfigXML("C:\\Program Files (x86)\\Apache Software Foundation\\Tomcat 6.0\\webapps\\weave-config\\sqlconfig.xml"));
 //		SQLConfig sqlcfg = new SQLConfig(new SQLConfigXML("sqlconfig.xml"));

@@ -19,13 +19,20 @@
 
 package weave.config;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.Writer;
 import java.rmi.RemoteException;
 import java.security.InvalidParameterException;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
+import javax.sql.RowSet;
 
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.DataConfig.DataEntity;
@@ -44,12 +51,16 @@ import weave.utils.SQLUtils;
 
 @Deprecated public class DeprecatedConfig
 {
-	public static void migrate(Connection conn, DatabaseConfigInfo dbInfo, DataConfig dataConfig)
+	public static void migrate(Connection conn, DatabaseConfigInfo dbInfo, DataConfig dataConfig, PrintStream out)
 			throws RemoteException, SQLException, InvalidParameterException
 	{
+		Statement stmt = conn.createStatement();
+		ResultSet resultSet = null;
 		try
 		{
 			conn.setAutoCommit(false);
+			
+			/////////////////////////////
 			
 			// check for problems
 			if (dbInfo == null)
@@ -66,22 +77,40 @@ import weave.utils.SQLUtils;
 			Map<String,Integer> tableIdLookup = new HashMap<String,Integer>();
 			Map<String,DataEntityMetadata> tableMetadataLookup = new HashMap<String,DataEntityMetadata>();
 			
+			String quotedOldMetadataTable = SQLUtils.quoteSchemaTable(conn, dbInfo.schema, OLD_METADATA_TABLE);
+			String quotedDataConfigTable = SQLUtils.quoteSchemaTable(conn, dbInfo.schema, dbInfo.dataConfigTable);
+			String quotedGeometryConfigTable = SQLUtils.quoteSchemaTable(conn, dbInfo.schema, dbInfo.geometryConfigTable);
+			
+			/////////////////////////////
 			// get dublin core metadata for data tables
+			
+			out.println("Step 1 of 4. Retrieving old dataset metadata...");
 			if (SQLUtils.tableExists(conn, dbInfo.schema, OLD_METADATA_TABLE))
 			{
-				for (Map<String,String> record : SQLUtils.getRecordsFromQuery(conn, null, dbInfo.schema, OLD_METADATA_TABLE, null, String.class))
+				resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedOldMetadataTable));
+				while (resultSet.next())
 				{
-					String tableName = record.get(OLD_METADATA_COLUMN_ID);
+					String tableName = resultSet.getString(OLD_METADATA_COLUMN_ID);
+					String property = resultSet.getString(OLD_METADATA_COLUMN_PROPERTY);
+					String value = resultSet.getString(OLD_METADATA_COLUMN_VALUE);
+					
 					if (!tableMetadataLookup.containsKey(tableName))
 						tableMetadataLookup.put(tableName, new DataEntityMetadata());
 					DataEntityMetadata metadata = tableMetadataLookup.get(tableName);
-					metadata.publicMetadata.put(record.get(OLD_METADATA_COLUMN_PROPERTY), record.get(OLD_METADATA_COLUMN_VALUE));
+					metadata.publicMetadata.put(property, value);
 				}
+				SQLUtils.cleanup(resultSet);
 			}
 			
+			/////////////////////////////
 			// get the set of unique dataTable names, create entities for them and remember the corresponding id numbers
-			for (String tableName : new HashSet<String>(SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, PublicMetadata_DATATABLE)))
+			
+			out.println("Step 2 of 4. Generating table entities...");
+			resultSet = stmt.executeQuery(String.format("SELECT DISTINCT %s FROM %s", PublicMetadata_DATATABLE, quotedDataConfigTable));
+			while (resultSet.next())
 			{
+				String tableName = resultSet.getString(PublicMetadata_DATATABLE);
+				
 				// get or create metadata
 				DataEntityMetadata metadata = tableMetadataLookup.get(tableName);
 				if (metadata == null)
@@ -95,10 +124,18 @@ import weave.utils.SQLUtils;
 				int tableId = dataConfig.addEntity(DataEntity.TYPE_DATATABLE, metadata, -1);
 				tableIdLookup.put(tableName, tableId);
 			}
+			SQLUtils.cleanup(resultSet);
 			
+			/////////////////////////////
 			// migrate geometry collections
-			for (Map<String,String> geomRecord : SQLUtils.getRecordsFromQuery(conn, null, dbInfo.schema, dbInfo.geometryConfigTable, null, String.class))
+			
+			out.println("Step 3 of 4. Migrating geometry collections");
+			resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedGeometryConfigTable));
+			String[] columnNames = SQLUtils.getColumnNamesFromResultSet(resultSet);
+			while (resultSet.next())
 			{
+				Map<String,String> geomRecord = getRecord(resultSet, columnNames);
+				
 				// save name-to-keyType mapping for later
 				String name = geomRecord.get(PublicMetadata_NAME);
 				String keyType = geomRecord.get(PublicMetadata.KEYTYPE);
@@ -118,10 +155,18 @@ import weave.utils.SQLUtils;
 				DataEntityMetadata geomMetadata = toDataEntityMetadata(geomRecord);
 				dataConfig.addEntity(DataEntity.TYPE_COLUMN, geomMetadata, parentId);
 			}
+			SQLUtils.cleanup(resultSet);
 			
+			/////////////////////////////
 			// migrate columns
-			for (Map<String,String> columnRecord : SQLUtils.getRecordsFromQuery(conn, null, dbInfo.schema, dbInfo.dataConfigTable, null, String.class))
+			
+			out.println("Step 4 of 4. Migrating attribute columns...");
+			resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedDataConfigTable));
+			columnNames = SQLUtils.getColumnNamesFromResultSet(resultSet);
+			while (resultSet.next())
 			{
+				Map<String,String> columnRecord = getRecord(resultSet, columnNames);
+				
 				// if key type isn't specified but geometryCollection is, use the keyType of the geometry collection.
 				String keyType = columnRecord.get(PublicMetadata.KEYTYPE);
 				String geom = columnRecord.get(PublicMetadata_GEOMETRYCOLLECTION);
@@ -146,11 +191,18 @@ import weave.utils.SQLUtils;
 				DataEntityMetadata columnMetadata = toDataEntityMetadata(columnRecord);
 				dataConfig.addEntity(DataEntity.TYPE_COLUMN, columnMetadata, tableId);
 			}
+			SQLUtils.cleanup(resultSet);
+			
+			/////////////////////////////
 			
 			conn.setAutoCommit(true);
+			
+			out.println("Done.");
 		}
 		catch (Exception e)
 		{
+			SQLUtils.cleanup(resultSet);
+			SQLUtils.cleanup(stmt);
 			SQLUtils.cleanup(conn);
 			throw new RemoteException("Unable to migrate old SQL config data.", e);
 		}
@@ -159,6 +211,14 @@ import weave.utils.SQLUtils;
 	private static boolean isEmpty(String str)
 	{
 		return str == null || str.length() == 0;
+	}
+	
+	private static Map<String,String> getRecord(ResultSet rs, String[] columnNames) throws SQLException
+	{
+		Map<String,String> record = new HashMap<String,String>();
+		for (String name : columnNames)
+			record.put(name, rs.getString(name));
+		return record;
 	}
 	
 	private static DataEntityMetadata toDataEntityMetadata(Map<String,String> record)

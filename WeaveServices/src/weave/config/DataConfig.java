@@ -8,6 +8,7 @@
 
 package weave.config;
 
+import java.io.PrintStream;
 import java.rmi.RemoteException;
 import java.security.InvalidParameterException;
 import java.sql.Connection;
@@ -62,16 +63,7 @@ public class DataConfig
 	private ManifestTable manifest;
 	private ParentChildTable relationships;
 
-	/**
-	 * @param connectionConfig An ISQLConfig instance that contains connection information. This is required because the connection information is not stored in the database.
-	 * @param connection The name of a connection in connectionConfig to use for storing and retrieving the data configuration.
-	 * @param schema The schema that the data configuration is stored in.
-	 * @param geometryConfigTable The table that stores the configuration for geometry collections.
-	 * @param dataConfigTable The table that stores the configuration for data tables.
-	 * @throws SQLException
-	 * @throws InvalidParameterException
-	 */
-	public DataConfig(ConnectionConfig connectionConfig)
+	public DataConfig(ConnectionConfig connectionConfig, PrintStream statusOutput)
 			throws RemoteException, SQLException, InvalidParameterException
 	{
 		this.connectionConfig = connectionConfig;
@@ -92,7 +84,7 @@ public class DataConfig
 		// init SQL tables
 		initSQLTables(dbInfo);
 		
-		connectionConfig.migrateOldVersion(this);
+		connectionConfig.migrateOldVersion(this, statusOutput);
 	}
 	private void initSQLTables(DatabaseConfigInfo dbInfo) throws RemoteException, SQLException
 	{

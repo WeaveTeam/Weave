@@ -21,6 +21,9 @@ package weave.config;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.Writer;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.sql.Connection;
@@ -78,6 +81,8 @@ public class ConnectionConfig
 	 */
 	public Connection getAdminConnection() throws RemoteException, SQLException
 	{
+		_load();
+		
 		// use previous connection if still valid
 		if (SQLUtils.connectionIsValid(_adminConnection))
 			return _adminConnection;
@@ -98,19 +103,24 @@ public class ConnectionConfig
 		return _adminConnection = connInfo.getConnection();
 	}
 	
+	private void resetAdminConnection()
+	{
+		SQLUtils.cleanup(_adminConnection);
+		_adminConnection = null;
+	}
 	
 	/**
 	 * This function must be called before making any modifications to the config.
 	 */
 	@SuppressWarnings("deprecation")
-	public void migrateOldVersion(DataConfig dataConfig) throws RemoteException
+	public void migrateOldVersion(DataConfig dataConfig, PrintStream statusOutput) throws RemoteException
 	{
 		_load();
 		if (_oldVersionDetected)
 		{
 			try
 			{
-				DeprecatedConfig.migrate(getAdminConnection(), getDatabaseConfigInfo(), dataConfig);
+				DeprecatedConfig.migrate(getAdminConnection(), getDatabaseConfigInfo(), dataConfig, statusOutput);
 			}
 			catch (Exception e)
 			{
@@ -175,6 +185,8 @@ public class ConnectionConfig
 				_connectionInfoMap = connectionInfoMap;
 				_databaseConfigInfo = databaseConfigInfo;
 				_lastMod = lastMod;
+				// reset admin connection when config changes
+				resetAdminConnection();
 			}
 			catch (Exception e)
 			{
@@ -191,6 +203,9 @@ public class ConnectionConfig
 		
 		try
 		{
+			// reset admin connection when config changes
+			resetAdminConnection();
+			
 			Document doc = XMLUtils.getXMLFromString("<sqlConfig/>");
 			Node rootNode = doc.getDocumentElement();
 
@@ -244,6 +259,8 @@ public class ConnectionConfig
 	}
 	public void addConnectionInfo(ConnectionInfo connectionInfo) throws RemoteException
 	{
+		connectionInfo.validate();
+		
 		_load();
 		ConnectionInfo copy = new ConnectionInfo();
 		copy.copyFrom(connectionInfo);
@@ -272,10 +289,15 @@ public class ConnectionConfig
 	}
 	public void setDatabaseConfigInfo(DatabaseConfigInfo info) throws RemoteException
 	{
+		if (!_connectionInfoMap.containsKey(info.connection))
+			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", info.connection));
+		if (info.schema == null || info.schema.length() == 0)
+			throw new RemoteException("Schema must be specified.");
+		
 		_load();
+		if (_databaseConfigInfo == null)
+			_databaseConfigInfo = new DatabaseConfigInfo();
 		_databaseConfigInfo.copyFrom(info);
-		SQLUtils.cleanup(_adminConnection);
-		_adminConnection = null;
 		_save();
 	}
     
@@ -300,6 +322,8 @@ public class ConnectionConfig
 		{
 			this.connection = other.connection;
 			this.schema = other.schema;
+			this.geometryConfigTable = other.geometryConfigTable;
+			this.dataConfigTable = other.dataConfigTable;
 		}
 		public Map<String,String> getPropertyMap()
 		{
@@ -329,6 +353,23 @@ public class ConnectionConfig
 	{
 		public ConnectionInfo()
 		{
+		}
+		
+		private boolean isEmpty(String str) { return str == null || str.length() == 0; }
+		
+		public void validate() throws RemoteException
+		{
+			String missingField = null;
+			if (isEmpty(name))
+				missingField = "name";
+			else if (isEmpty(dbms))
+				missingField = "dbms";
+			else if (isEmpty(pass))
+				missingField = "password";
+			else if (isEmpty(connectString))
+				missingField = "connectString";
+			if (missingField != null)
+				throw new RemoteException(String.format("Connection %s must be specified", missingField));
 		}
 
 		public void copyFrom(Map<String,String> other)

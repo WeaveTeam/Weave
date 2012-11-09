@@ -564,9 +564,7 @@ public class SQLUtils
 	public static <VALUE_TYPE> List<Map<String,VALUE_TYPE>> getRecordsFromResultSet(ResultSet rs, Class<VALUE_TYPE> valueType) throws SQLException
 	{
 		// list the column names in the result
-		String[] columnNames = new String[rs.getMetaData().getColumnCount()];
-		for (int i = 0; i < columnNames.length; i++)
-			columnNames[i] = rs.getMetaData().getColumnName(i + 1);
+		String[] columnNames = getColumnNamesFromResultSet(rs);
 		// create a Map from each row
 		List<Map<String,VALUE_TYPE>> records = new Vector<Map<String,VALUE_TYPE>>();
 		while (rs.next())
@@ -583,6 +581,14 @@ public class SQLUtils
 		}
 		return records;
 	}
+	public static String[] getColumnNamesFromResultSet(ResultSet rs) throws SQLException
+	{
+		String[] columnNames = new String[rs.getMetaData().getColumnCount()];
+		for (int i = 0; i < columnNames.length; i++)
+			columnNames[i] = rs.getMetaData().getColumnName(i + 1);
+		return columnNames;
+	}
+	
 	/**
 	 * @param conn An existing SQL Connection
 	 * @param fromSchema The schema containing the table to perform the SELECT statement on.
