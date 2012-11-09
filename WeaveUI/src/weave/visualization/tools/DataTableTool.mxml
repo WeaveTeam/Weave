@@ -506,15 +506,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						col.visible = false;
 					}
 				}
-				dataRowKeys.source = ColumnUtils.getAllKeys(includedColumns);
-				var rowLength:int = (dataGrid.dataProvider as ArrayCollection).length;
-				if( rowLength > maxRows.value)
+				var tempArray:Array = ColumnUtils.getAllKeys(includedColumns);
+				if( tempArray.length > maxRows.value)
 				{	
+					tempArray.length = maxRows.value;
 					if(!tooManyRecordsIndicator.parent)
 						tableArea.addChild(tooManyRecordsIndicator);
 					tooManyRecordsIndicator.visible = true;
-					for( var j:int = 0; j < rowLength - maxRows.value; j++)
-						(dataGrid.dataProvider as ArrayCollection).removeItemAt(maxRows.value);
 				}
 				else
 				{
@@ -522,6 +520,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					if(tooManyRecordsIndicator.parent)
 						tableArea.removeChild(tooManyRecordsIndicator);
 				}
+					
+				dataRowKeys.source = tempArray;
 				updateGlobalSelectionChange();
 			}
 			
