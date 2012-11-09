@@ -8,9 +8,7 @@
 
 package weave.config;
 
-import java.io.PrintStream;
 import java.rmi.RemoteException;
-import java.security.InvalidParameterException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -63,9 +61,12 @@ public class DataConfig
 	private ManifestTable manifest;
 	private ParentChildTable relationships;
 
-	public DataConfig(ConnectionConfig connectionConfig, PrintStream statusOutput)
-			throws RemoteException, SQLException, InvalidParameterException
+	public DataConfig(ConnectionConfig connectionConfig)
+			throws RemoteException, SQLException
 	{
+		if (connectionConfig.detectOldVersion())
+			throw new RemoteException("The Weave server has not been initialized yet.  Please run the Admin Console before continuing.");
+		
 		this.connectionConfig = connectionConfig;
 		// test the connection now so it will throw an exception if there is a problem.
 		Connection conn = connectionConfig.getAdminConnection();
@@ -81,13 +82,8 @@ public class DataConfig
 			// do nothing if schema creation fails -- this is a temporary workaround for postgresql issue
 			// e.printStackTrace();
 		}
-		// init SQL tables
-		initSQLTables(dbInfo);
 		
-		connectionConfig.migrateOldVersion(this, statusOutput);
-	}
-	private void initSQLTables(DatabaseConfigInfo dbInfo) throws RemoteException, SQLException
-	{
+		// init SQL tables
 		public_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_public);
 		private_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_private);	
 		relationships = new ParentChildTable(connectionConfig, dbInfo.schema, table_tags);

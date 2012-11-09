@@ -40,9 +40,11 @@ public class AttributeValueTable extends AbstractTable
     }
     protected void initTable() throws RemoteException
     {
+    	Connection conn;
+    	
 		try
 		{
-			Connection conn = connectionConfig.getAdminConnection();
+			conn = connectionConfig.getAdminConnection();
 			SQLUtils.createTable(
 				conn, schemaName, tableName,
 				Arrays.asList(FIELD_ID, FIELD_PROPERTY, FIELD_VALUE),
@@ -54,9 +56,9 @@ public class AttributeValueTable extends AbstractTable
         {
             throw new RemoteException("Unable to initialize attribute-value-table.", e);
         }
+        
         try
         {
-            Connection conn = connectionConfig.getAdminConnection();
             /* Index of (ID, Property) */
             SQLUtils.createIndex(
             		conn, schemaName, tableName,

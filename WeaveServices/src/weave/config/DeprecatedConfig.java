@@ -19,9 +19,7 @@
 
 package weave.config;
 
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.Writer;
 import java.rmi.RemoteException;
 import java.security.InvalidParameterException;
 import java.sql.Connection;
@@ -29,10 +27,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-
-import javax.sql.RowSet;
 
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.DataConfig.DataEntity;
@@ -51,9 +46,11 @@ import weave.utils.SQLUtils;
 
 @Deprecated public class DeprecatedConfig
 {
-	public static void migrate(Connection conn, DatabaseConfigInfo dbInfo, DataConfig dataConfig, PrintStream out)
+	public static void migrate(ConnectionConfig connConfig, DataConfig dataConfig, PrintStream out)
 			throws RemoteException, SQLException, InvalidParameterException
 	{
+		Connection conn = connConfig.getAdminConnection(); // this will fail if DatabaseConfigInfo is missing
+		DatabaseConfigInfo dbInfo = connConfig.getDatabaseConfigInfo();
 		Statement stmt = conn.createStatement();
 		ResultSet resultSet = null;
 		try

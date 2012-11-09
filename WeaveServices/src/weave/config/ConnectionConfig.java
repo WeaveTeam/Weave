@@ -21,9 +21,7 @@ package weave.config;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.Writer;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.sql.Connection;
@@ -72,6 +70,44 @@ public class ConnectionConfig
 	private DatabaseConfigInfo _databaseConfigInfo;
 	private Map<String,ConnectionInfo> _connectionInfoMap = new HashMap<String,ConnectionInfo>();
 	private Connection _adminConnection = null;
+	
+	/**
+	 * This function must be called before making any modifications to the config.
+	 */
+	@SuppressWarnings("deprecation")
+	public DataConfig initializeNewDataConfig(PrintStream statusOutput) throws RemoteException, SQLException
+	{
+		if (detectOldVersion())
+		{
+			try
+			{
+				// clear the flag to allow the DataConfig to use the ConnectionConfig
+				_oldVersionDetected = false;
+				DataConfig dataConfig = new DataConfig(this);
+				DeprecatedConfig.migrate(this, dataConfig, statusOutput);
+				
+				// after everything has successfully been migrated, save under new connection config format
+				_save();
+				return dataConfig;
+			}
+			catch (Exception e)
+			{
+				// if something bad happens, reset this flag
+				_oldVersionDetected = true;
+				throw new RemoteException("Unable to migrate old SQL config to new format.", e);
+			}
+		}
+		else
+		{
+			return new DataConfig(this);
+		}
+	}
+	
+	public boolean detectOldVersion() throws RemoteException
+	{
+		_load();
+		return _oldVersionDetected;
+	}
 
 	/**
 	 * This function gets a connection to the database containing the configuration information. This function will reuse a previously created
@@ -107,28 +143,6 @@ public class ConnectionConfig
 	{
 		SQLUtils.cleanup(_adminConnection);
 		_adminConnection = null;
-	}
-	
-	/**
-	 * This function must be called before making any modifications to the config.
-	 */
-	@SuppressWarnings("deprecation")
-	public void migrateOldVersion(DataConfig dataConfig, PrintStream statusOutput) throws RemoteException
-	{
-		_load();
-		if (_oldVersionDetected)
-		{
-			try
-			{
-				DeprecatedConfig.migrate(getAdminConnection(), getDatabaseConfigInfo(), dataConfig, statusOutput);
-			}
-			catch (Exception e)
-			{
-				throw new RemoteException("Unable to migrate old SQL config to new format.", e);
-			}
-			_oldVersionDetected = false;
-			_save();
-		}
 	}
 	
 	private void _setXMLAttributes(Element tag, Map<String,String> attrs)
