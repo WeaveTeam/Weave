@@ -51,10 +51,10 @@ public final class SQLConfigManager
 	
 	/**
 	 * config
-	 * This is the ISQLConfig object this class manages.
+	 * This is the DataConfig object this class manages.
 	 * This object may be null.
 	 */
-	private ISQLConfig config = null;
+	private DataConfig config = null;
 	private String configFileName = null;
 	
 	private long _lastModifiedTime = -1L;
@@ -93,10 +93,10 @@ public final class SQLConfigManager
 	/**
 	 * getConfig
 	 * If the configuration file has not been loaded yet, it will be loaded.
-	 * @return The ISQLConfig object this class manages
+	 * @return The DataConfig object this class manages
 	 * @throws RemoteException
 	 */
-	synchronized public ISQLConfig getConfig() throws RemoteException
+	synchronized public DataConfig getConfig() throws RemoteException
 	{
 		// load config file if not loaded already
 		if (config == null)
@@ -200,7 +200,7 @@ public final class SQLConfigManager
 		CallableStatement cstmt = null;
 		try
 		{
-			ISQLConfig config = getConfig();
+			DataConfig config = getConfig();
 			String connectionName = config.getAccessLogConnectionName();
 			ConnectionInfo connInfo = config.getConnectionInfo(connectionName);
 			if (connInfo == null)

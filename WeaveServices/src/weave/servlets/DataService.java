@@ -38,12 +38,12 @@ import weave.beans.DataServiceMetadata;
 import weave.beans.DataTableMetadata;
 import weave.beans.GeometryStreamMetadata;
 import weave.beans.WeaveRecordList;
-import weave.config.ISQLConfig;
-import weave.config.ISQLConfig.DataEntity;
-import weave.config.ISQLConfig.DataEntityMetadata;
-import weave.config.ISQLConfig.DataType;
-import weave.config.ISQLConfig.PrivateMetadata;
-import weave.config.ISQLConfig.PublicMetadata;
+import weave.config.DataConfig;
+import weave.config.DataConfig.DataEntity;
+import weave.config.DataConfig.DataEntityMetadata;
+import weave.config.DataConfig.DataType;
+import weave.config.DataConfig.PrivateMetadata;
+import weave.config.DataConfig.PublicMetadata;
 import weave.config.SQLConfigManager;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.reports.WeaveReport;
@@ -90,7 +90,7 @@ public class DataService extends GenericServlet
 		/*
 		configManager.detectConfigChanges();
 		
-		ISQLConfig config = configManager.getConfig();
+		DataConfig config = configManager.getConfig();
 		String[] tableNames = config.getDataTableNames(null).toArray(new String[0]);
 		String[] geomNames = config.getGeometryCollectionNames(null).toArray(new String[0]);
 		String[] geomKeyTypes = new String[geomNames.length];
@@ -114,7 +114,7 @@ public class DataService extends GenericServlet
 		return null;
 		/*
 		configManager.detectConfigChanges();
-		ISQLConfig config = configManager.getConfig();
+		DataConfig config = configManager.getConfig();
 		
 		if (dataTableName == null || dataTableName.length() == 0)
 			return null;
@@ -158,7 +158,7 @@ public class DataService extends GenericServlet
 		
 		int rowIndex =0;
 		configManager.detectConfigChanges();
-		ISQLConfig config = configManager.getConfig();
+		DataConfig config = configManager.getConfig();
 		List<DataEntity> infoList = new ArrayList<DataEntity>(config.getEntitiesById(config.getEntityIdsByMetadata(params, DataEntity.TYPE_COLUMN)));
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
@@ -308,7 +308,7 @@ public class DataService extends GenericServlet
 		String dataTableName = params.publicMetadata.get(PublicMetadata.DATATABLE); /* We don't rely on this field anymore. */
 
 		configManager.detectConfigChanges();
-		ISQLConfig config = configManager.getConfig();
+		DataConfig config = configManager.getConfig();
 
 		/* Find what DataTable ID we're looking for. */
 		String tableId = null;
@@ -472,7 +472,7 @@ public class DataService extends GenericServlet
 		params.publicMetadata = publicParams;
 		
 		configManager.detectConfigChanges();
-		ISQLConfig config = configManager.getConfig();
+		DataConfig config = configManager.getConfig();
 		List<DataEntity> infoList = new ArrayList<DataEntity>(config.getEntitiesById(config.getEntityIdsByMetadata(params, DataEntity.TYPE_COLUMN)));
 		if (infoList.size() < 1)
 			throw new RemoteException("No matching column found. "+params);
@@ -498,7 +498,7 @@ public class DataService extends GenericServlet
 		throws RemoteException
 	{
 		configManager.detectConfigChanges();
-		ISQLConfig config = configManager.getConfig();
+		DataConfig config = configManager.getConfig();
 		
 		DataEntityMetadata params = new DataEntityMetadata();
 		params.publicMetadata.put(PublicMetadata.NAME, geometryCollectionName);
@@ -511,7 +511,7 @@ public class DataService extends GenericServlet
 		throws RemoteException
 	{
 		configManager.detectConfigChanges();
-		ISQLConfig config = configManager.getConfig();
+		DataConfig config = configManager.getConfig();
 	
 		DataEntity info = config.getEntity(id);
 		if (info == null)
@@ -552,7 +552,7 @@ public class DataService extends GenericServlet
 	public byte[] getGeometryStreamMetadataTiles(int geometryColumnId, List<Integer> tileIDs)
 		throws RemoteException
 	{
-		ISQLConfig config = configManager.getConfig();
+		DataConfig config = configManager.getConfig();
 		DataEntity info = config.getEntity(geometryColumnId);
 		if (info == null)
 			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryColumnId));
@@ -584,7 +584,7 @@ public class DataService extends GenericServlet
 	public byte[] getGeometryStreamGeometryTiles(int geometryColumnId, List<Integer> tileIDs)
 		throws RemoteException
 	{
-		ISQLConfig config = configManager.getConfig();
+		DataConfig config = configManager.getConfig();
 		DataEntity info = config.getEntity(geometryColumnId);
 		if (info == null)
 			throw new RemoteException(String.format("Geometry collection \"%s\" does not exist.", geometryColumnId));
