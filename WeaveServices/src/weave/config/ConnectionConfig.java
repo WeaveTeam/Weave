@@ -68,11 +68,57 @@ public class ConnectionConfig
 	private File _file;
 	private DatabaseConfigInfo _databaseConfigInfo;
 	private Map<String,ConnectionInfo> _connectionInfoMap = new HashMap<String,ConnectionInfo>();
+	private Connection _adminConnection = null;
+
+	/**
+	 * This function gets a connection to the database containing the configuration information. This function will reuse a previously created
+	 * Connection if it is still valid.
+	 * 
+	 * @return A Connection to the SQL database.
+	 */
+	public Connection getAdminConnection() throws RemoteException, SQLException
+	{
+		// use previous connection if still valid
+		if (SQLUtils.connectionIsValid(_adminConnection))
+			return _adminConnection;
+		
+		DatabaseConfigInfo dbInfo = _databaseConfigInfo;
+
+		if (dbInfo == null)
+			throw new RemoteException("databaseConfig has not been specified.");
+		
+		if (dbInfo.schema == null || dbInfo.schema.length() == 0)
+			throw new RemoteException("databaseConfig schema has not been specified.");
+		
+		ConnectionInfo connInfo = getConnectionInfo(dbInfo.connection);
+		
+		if (connInfo == null)
+			throw new RemoteException(String.format("Connection named \"%s\" doead not exist.", dbInfo.connection));
+		
+		return _adminConnection = connInfo.getConnection();
+	}
 	
-	public boolean detectOldVersion() throws RemoteException
+	
+	/**
+	 * This function must be called before making any modifications to the config.
+	 */
+	@SuppressWarnings("deprecation")
+	public void migrateOldVersion(DataConfig dataConfig) throws RemoteException
 	{
 		_load();
-		return _oldVersionDetected;
+		if (_oldVersionDetected)
+		{
+			try
+			{
+				DeprecatedConfig.migrate(getAdminConnection(), getDatabaseConfigInfo(), dataConfig);
+			}
+			catch (Exception e)
+			{
+				throw new RemoteException("Unable to migrate old SQL config to new format.", e);
+			}
+			_oldVersionDetected = false;
+			_save();
+		}
 	}
 	
 	private void _setXMLAttributes(Element tag, Map<String,String> attrs)
@@ -137,17 +183,12 @@ public class ConnectionConfig
 		}
 	}
 	
-	public void save() throws RemoteException
-	{
-		// we only need to save if old version is detected, because the file is otherwise saved automatically when something changes.
-		if (_oldVersionDetected)
-		{
-			_save();
-		}
-	}
-	
 	private void _save() throws RemoteException
 	{
+		// we can't save until the old data has been migrated
+		if (_oldVersionDetected)
+			throw new RemoteException("Unable to save connection config because old data hasn't been migrated yet.");
+		
 		try
 		{
 			Document doc = XMLUtils.getXMLFromString("<sqlConfig/>");
@@ -233,6 +274,8 @@ public class ConnectionConfig
 	{
 		_load();
 		_databaseConfigInfo.copyFrom(info);
+		SQLUtils.cleanup(_adminConnection);
+		_adminConnection = null;
 		_save();
 	}
     
@@ -343,45 +386,6 @@ public class ConnectionConfig
 		public Connection getConnection() throws RemoteException
 		{
 			return SQLUtils.getConnection(SQLUtils.getDriver(dbms), connectString);
-		}
-	}
-	
-	public static class ImmortalConnection
-	{
-		public ImmortalConnection(ConnectionConfig config)
-		{
-			_config = config;
-		}
-		
-		private ConnectionConfig _config = null;
-		private Connection _lastConnection = null;
-
-		/**
-		 * This function gets a connection to the database containing the configuration information. This function will reuse a previously created
-		 * Connection if it is still valid.
-		 * 
-		 * @return A Connection to the SQL database.
-		 */
-		public Connection getConnection() throws RemoteException, SQLException
-		{
-			// use previous connection if still valid
-			if (SQLUtils.connectionIsValid(_lastConnection))
-				return _lastConnection;
-			
-			DatabaseConfigInfo dbInfo = _config.getDatabaseConfigInfo();
-
-			if (dbInfo == null)
-				throw new RemoteException("databaseConfig has not been specified.");
-			
-			if (dbInfo.schema == null || dbInfo.schema.length() == 0)
-				throw new RemoteException("databaseConfig schema has not been specified.");
-			
-			ConnectionInfo connInfo = _config.getConnectionInfo(dbInfo.connection);
-			
-			if (connInfo == null)
-				throw new RemoteException(String.format("Connection named \"%s\" doead not exist.", dbInfo.connection));
-			
-			return _lastConnection = connInfo.getConnection();
 		}
 	}
 }

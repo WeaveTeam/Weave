@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import weave.config.ConnectionConfig.ImmortalConnection;
+import weave.config.ConnectionConfig;
 import weave.utils.SQLUtils;
 
 
@@ -34,15 +34,15 @@ public class AttributeValueTable extends AbstractTable
 	private final String FIELD_PROPERTY = "property";
 	private final String FIELD_VALUE = "value";
 	
-    public AttributeValueTable(ImmortalConnection conn, String schemaName, String tableName) throws RemoteException
+    public AttributeValueTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
     {
-        super(conn, schemaName, tableName);
+        super(connectionConfig, schemaName, tableName);
     }
     protected void initTable() throws RemoteException
     {
-		try 
+		try
 		{
-			Connection conn = this.conn.getConnection();
+			Connection conn = connectionConfig.getAdminConnection();
 			SQLUtils.createTable(
 				conn, schemaName, tableName,
 				Arrays.asList(FIELD_ID, FIELD_PROPERTY, FIELD_VALUE),
@@ -56,7 +56,7 @@ public class AttributeValueTable extends AbstractTable
         }
         try
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             /* Index of (ID, Property) */
             SQLUtils.createIndex(
             		conn, schemaName, tableName,
@@ -84,7 +84,7 @@ public class AttributeValueTable extends AbstractTable
     {
         try 
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             Map<String, Object> sql_args = new HashMap<String,Object>();
             sql_args.put(FIELD_PROPERTY, property);
             sql_args.put(FIELD_ID, id);
@@ -108,7 +108,7 @@ public class AttributeValueTable extends AbstractTable
     {
         try 
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             Map<String, Object> sql_args  = new HashMap<String,Object>();
             sql_args.put(FIELD_ID, id);
             SQLUtils.deleteRows(conn, schemaName, tableName, sql_args);
@@ -122,7 +122,7 @@ public class AttributeValueTable extends AbstractTable
     {
         try
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             Map<String,Object> params = new HashMap<String,Object>();
             Map<Integer,String> result = new HashMap<Integer,String>();
             params.put(FIELD_PROPERTY, property);
@@ -144,7 +144,7 @@ public class AttributeValueTable extends AbstractTable
     {
         try 
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             return SQLUtils.idInSelect(conn, schemaName, tableName, FIELD_ID, FIELD_PROPERTY, FIELD_VALUE, ids, null);
         }   
         catch (SQLException e)
@@ -156,7 +156,7 @@ public class AttributeValueTable extends AbstractTable
     {
         try
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             List<Map<String,String>> crossRowArgs = new LinkedList<Map<String,String>>();
 
             for (Entry<String,String> keyValPair : constraints.entrySet())

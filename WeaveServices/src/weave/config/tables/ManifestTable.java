@@ -18,7 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import weave.config.ConnectionConfig.ImmortalConnection;
+import weave.config.ConnectionConfig;
 import weave.utils.SQLUtils;
 
 
@@ -30,15 +30,15 @@ public class ManifestTable extends AbstractTable
 	private final String FIELD_ID = "unique_id";
 	private final String FIELD_TYPE = "type_id";
 	
-    public ManifestTable(ImmortalConnection conn, String schemaName, String tableName) throws RemoteException
+    public ManifestTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
     {
-        super(conn, schemaName, tableName);
+        super(connectionConfig, schemaName, tableName);
     }
     protected void initTable() throws RemoteException
     {
         try
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             SQLUtils.createTable(conn, schemaName, tableName,
                 Arrays.asList(FIELD_ID, FIELD_TYPE),
                 Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TINYINT UNSIGNED"));
@@ -53,7 +53,7 @@ public class ManifestTable extends AbstractTable
     {
         try
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             Map<String,Object> record = new HashMap<String,Object>();
             record.put(FIELD_TYPE, type_id);
             return SQLUtils.insertRowReturnID(conn, schemaName, tableName, record);
@@ -67,7 +67,7 @@ public class ManifestTable extends AbstractTable
     {
         try
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             Map<String,Object> whereParams = new HashMap<String,Object>();
             whereParams.put(FIELD_ID, id);
             SQLUtils.deleteRows(conn, schemaName, tableName, whereParams);
@@ -93,7 +93,7 @@ public class ManifestTable extends AbstractTable
         Map<Integer,Integer> result = new HashMap<Integer,Integer>();
         try
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             Map<String,Object> whereParams = new HashMap<String,Object>();
             List<Map<String,Object>> sqlres;
             for (Integer id : ids)
@@ -125,7 +125,7 @@ public class ManifestTable extends AbstractTable
             List<Integer> ids = new LinkedList<Integer>();
             Map<String,Object> whereParams = new HashMap<String,Object>();
             List<Map<String,Object>> sqlres;
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             whereParams.put(FIELD_TYPE, type_id);
             sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class);
             for (Map<String,Object> row : sqlres)
@@ -144,7 +144,7 @@ public class ManifestTable extends AbstractTable
     {
         try
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             return SQLUtils.getIntColumn(conn, schemaName, tableName, FIELD_ID);
         }
         catch (Exception e)

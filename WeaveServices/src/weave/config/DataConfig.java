@@ -26,7 +26,6 @@ import java.util.Set;
 
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
-import weave.config.ConnectionConfig.ImmortalConnection;
 import weave.config.tables.AttributeValueTable;
 import weave.config.tables.ManifestTable;
 import weave.config.tables.ParentChildTable;
@@ -56,9 +55,7 @@ public class DataConfig
 
 	/* Constants for type_id */
 
-	private DatabaseConfigInfo dbInfo = null;
 	private ConnectionConfig connectionConfig = null;
-	private ImmortalConnection immortalConnection = null;
 	
 	private AttributeValueTable public_attributes;
 	private AttributeValueTable private_attributes;
@@ -78,11 +75,11 @@ public class DataConfig
 			throws RemoteException, SQLException, InvalidParameterException
 	{
 		this.connectionConfig = connectionConfig;
-		this.immortalConnection = new ImmortalConnection(connectionConfig);
 		// test the connection now so it will throw an exception if there is a problem.
-		Connection conn = immortalConnection.getConnection();
+		Connection conn = connectionConfig.getAdminConnection();
 
 		// attempt to create the schema and tables to store the configuration.
+		DatabaseConfigInfo dbInfo = connectionConfig.getDatabaseConfigInfo();
 		try
 		{
 			SQLUtils.createSchema(conn, dbInfo.schema);
@@ -92,14 +89,17 @@ public class DataConfig
 			// do nothing if schema creation fails -- this is a temporary workaround for postgresql issue
 			// e.printStackTrace();
 		}
-		initSQLTables();
+		// init SQL tables
+		initSQLTables(dbInfo);
+		
+		connectionConfig.migrateOldVersion(this);
 	}
-	private void initSQLTables() throws RemoteException, SQLException
+	private void initSQLTables(DatabaseConfigInfo dbInfo) throws RemoteException, SQLException
 	{
-		public_attributes = new AttributeValueTable(immortalConnection, dbInfo.schema, table_meta_public);
-		private_attributes = new AttributeValueTable(immortalConnection, dbInfo.schema, table_meta_private);	
-		relationships = new ParentChildTable(immortalConnection, dbInfo.schema, table_tags);
-		manifest = new ManifestTable(immortalConnection, dbInfo.schema, table_manifest);
+		public_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_public);
+		private_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_private);	
+		relationships = new ParentChildTable(connectionConfig, dbInfo.schema, table_tags);
+		manifest = new ManifestTable(connectionConfig, dbInfo.schema, table_manifest);
 		/* TODO: Figure out nice way to do this from within the classes. */	
         /*	SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, META_ID, table_manifest, MAN_ID);
 		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, META_ID, table_manifest, MAN_ID);*/

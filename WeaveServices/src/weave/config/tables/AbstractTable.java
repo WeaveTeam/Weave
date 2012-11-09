@@ -12,7 +12,7 @@ import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import weave.config.ConnectionConfig.ImmortalConnection;
+import weave.config.ConnectionConfig;
 import weave.utils.SQLUtils;
 
 
@@ -21,12 +21,12 @@ import weave.utils.SQLUtils;
  */
 public abstract class AbstractTable
 {
-    protected ImmortalConnection conn = null;
+    protected ConnectionConfig connectionConfig = null;
     protected String tableName = null;
     protected String schemaName = null;
-    public AbstractTable(ImmortalConnection conn, String schemaName, String tableName) throws RemoteException
+    public AbstractTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
     {
-        this.conn = conn;
+        this.connectionConfig = connectionConfig;
         this.tableName = tableName;
         this.schemaName = schemaName;
         if (!tableExists())
@@ -37,7 +37,7 @@ public abstract class AbstractTable
     {
         try
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             return SQLUtils.tableExists(conn, schemaName, tableName);
         }
         catch (SQLException e)

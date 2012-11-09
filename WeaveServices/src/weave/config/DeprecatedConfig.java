@@ -25,12 +25,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
-import weave.config.ConnectionConfig.ImmortalConnection;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
 import weave.config.DataConfig.DataType;
@@ -45,16 +42,14 @@ import weave.utils.SQLUtils;
  * @author Andy Dufilie
  */
 
-public class DeprecatedConfig
+@Deprecated public class DeprecatedConfig
 {
-	@SuppressWarnings("deprecation")
-	public static void migrate(ConnectionConfig connectionConfig, DataConfig dataConfig)
+	public static void migrate(Connection conn, DatabaseConfigInfo dbInfo, DataConfig dataConfig)
 			throws RemoteException, SQLException, InvalidParameterException
 	{
-		Connection conn = null;
 		try
 		{
-			DatabaseConfigInfo dbInfo = connectionConfig.getDatabaseConfigInfo();
+			conn.setAutoCommit(false);
 			
 			// check for problems
 			if (dbInfo == null)
@@ -66,41 +61,56 @@ public class DeprecatedConfig
 			if (dbInfo.dataConfigTable == null || dbInfo.dataConfigTable.length() == 0)
 				throw new InvalidParameterException("DatabaseConfig: Column metadata table name not specified.");
 			
-			// open sql connection
-			conn = new ImmortalConnection(connectionConfig).getConnection();
-			
 			// init temporary lookup tables
 			Map<String,String> geomKeyTypeLookup = new HashMap<String,String>();
-			Map<String,Integer> dataTableIdLookup = new HashMap<String,Integer>();
+			Map<String,Integer> tableIdLookup = new HashMap<String,Integer>();
+			Map<String,DataEntityMetadata> tableMetadataLookup = new HashMap<String,DataEntityMetadata>();
+			
+			// get dublin core metadata for data tables
+			if (SQLUtils.tableExists(conn, dbInfo.schema, OLD_METADATA_TABLE))
+			{
+				for (Map<String,String> record : SQLUtils.getRecordsFromQuery(conn, null, dbInfo.schema, OLD_METADATA_TABLE, null, String.class))
+				{
+					String tableName = record.get(OLD_METADATA_COLUMN_ID);
+					if (!tableMetadataLookup.containsKey(tableName))
+						tableMetadataLookup.put(tableName, new DataEntityMetadata());
+					DataEntityMetadata metadata = tableMetadataLookup.get(tableName);
+					metadata.publicMetadata.put(record.get(OLD_METADATA_COLUMN_PROPERTY), record.get(OLD_METADATA_COLUMN_VALUE));
+				}
+			}
 			
 			// get the set of unique dataTable names, create entities for them and remember the corresponding id numbers
-			Set<String> dataTableNames = new HashSet<String>(SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, PublicMetadata_DATATABLE));
-			for (String tableName : dataTableNames)
+			for (String tableName : new HashSet<String>(SQLUtils.getColumn(conn, dbInfo.schema, dbInfo.dataConfigTable, PublicMetadata_DATATABLE)))
 			{
-				DataEntityMetadata tableMetadata = new DataEntityMetadata();
-				tableMetadata.publicMetadata.put(PublicMetadata.TITLE, tableName);
-				int tableId = dataConfig.addEntity(DataEntity.TYPE_DATATABLE, tableMetadata, -1);
-				dataTableIdLookup.put(tableName, tableId);
+				// get or create metadata
+				DataEntityMetadata metadata = tableMetadataLookup.get(tableName);
+				if (metadata == null)
+					metadata = new DataEntityMetadata();
+				
+				// copy tableName to "title" property if missing
+				if (!metadata.publicMetadata.containsKey(PublicMetadata.TITLE))
+					metadata.publicMetadata.put(PublicMetadata.TITLE, tableName);
+				
+				// create the data table entity and remember the new id
+				int tableId = dataConfig.addEntity(DataEntity.TYPE_DATATABLE, metadata, -1);
+				tableIdLookup.put(tableName, tableId);
 			}
-			dataTableNames = null;
 			
 			// migrate geometry collections
-			List<Map<String,String>> geomRecords = SQLUtils.getRecordsFromQuery(conn, null, dbInfo.schema, dbInfo.geometryConfigTable, null, String.class);
-			for (Map<String,String> geomRecord : geomRecords)
+			for (Map<String,String> geomRecord : SQLUtils.getRecordsFromQuery(conn, null, dbInfo.schema, dbInfo.geometryConfigTable, null, String.class))
 			{
-				// change "name" to "title"
-				geomRecord.put(PublicMetadata.TITLE, geomRecord.remove(PublicMetadata_NAME));
-				
-				// save title-to-keyType mapping for later
-				String title = geomRecord.get(PublicMetadata.TITLE);
+				// save name-to-keyType mapping for later
+				String name = geomRecord.get(PublicMetadata_NAME);
 				String keyType = geomRecord.get(PublicMetadata.KEYTYPE);
-				geomKeyTypeLookup.put(title, keyType);
+				geomKeyTypeLookup.put(name, keyType);
 				
+				// copy "name" to "title"
+				geomRecord.put(PublicMetadata.TITLE, name);
 				// set dataType appropriately
 				geomRecord.put(PublicMetadata.DATATYPE, DataType.GEOMETRY);
 				
 				// if there is a dataTable with the same title, add the geometry as a column under that table.
-				Integer parentId = dataTableIdLookup.get(title);
+				Integer parentId = tableIdLookup.get(name);
 				if (parentId == null)
 					parentId = -1;
 				
@@ -108,49 +118,41 @@ public class DeprecatedConfig
 				DataEntityMetadata geomMetadata = toDataEntityMetadata(geomRecord);
 				dataConfig.addEntity(DataEntity.TYPE_COLUMN, geomMetadata, parentId);
 			}
-			geomRecords = null;
 			
 			// migrate columns
-			List<Map<String,String>> columnRecords = SQLUtils.getRecordsFromQuery(conn, null, dbInfo.schema, dbInfo.dataConfigTable, null, String.class);
-			for (Map<String,String> columnRecord : columnRecords)
+			for (Map<String,String> columnRecord : SQLUtils.getRecordsFromQuery(conn, null, dbInfo.schema, dbInfo.dataConfigTable, null, String.class))
 			{
 				// if key type isn't specified but geometryCollection is, use the keyType of the geometry collection.
 				String keyType = columnRecord.get(PublicMetadata.KEYTYPE);
-				String geom = columnRecord.remove(PublicMetadata_GEOMETRYCOLLECTION); // remove it
+				String geom = columnRecord.get(PublicMetadata_GEOMETRYCOLLECTION);
 				if (isEmpty(keyType) && !isEmpty(geom))
 					columnRecord.put(PublicMetadata.KEYTYPE, geomKeyTypeLookup.get(geom));
 				
-				// if title is missing, use "name (year)"
 				String title = columnRecord.get(PublicMetadata.TITLE);
 				String name = columnRecord.get(PublicMetadata_NAME);
 				String year = columnRecord.get(PublicMetadata_YEAR);
+				// make sure title is set
 				if (isEmpty(title))
 				{
-					if (isEmpty(year))
-					{
-						// if no year is specified, remove the "name" property and use it as the title
-						title = columnRecord.remove(PublicMetadata_NAME);
-					}
-					else
-					{
-						title = String.format("%s (%s)", name, year);
-					}
+					title = isEmpty(year) ? name : String.format("%s (%s)", name, year);
 					columnRecord.put(PublicMetadata.TITLE, title);
 				}
 				
-				String dataTableName = columnRecord.remove(PublicMetadata_DATATABLE); // remove it
-				int tableId = dataTableIdLookup.get(dataTableName);
+				// get the id corresponding to the table
+				String dataTableName = columnRecord.get(PublicMetadata_DATATABLE);
+				int tableId = tableIdLookup.get(dataTableName);
+				
+				// create the column entity as a child of the table
 				DataEntityMetadata columnMetadata = toDataEntityMetadata(columnRecord);
 				dataConfig.addEntity(DataEntity.TYPE_COLUMN, columnMetadata, tableId);
 			}
-			columnRecords = null;
 			
-			// migrate metadata
-			DublinCoreUtils.migrate(conn, dataTableIdLookup, dataConfig);
+			conn.setAutoCommit(true);
 		}
-		finally
+		catch (Exception e)
 		{
 			SQLUtils.cleanup(conn);
+			throw new RemoteException("Unable to migrate old SQL config data.", e);
 		}
 	}
 	
@@ -175,10 +177,15 @@ public class DeprecatedConfig
 		return result;
 	}
 
+	private static final String OLD_METADATA_TABLE = "weave_dataset_metadata";
+	private static final String OLD_METADATA_COLUMN_ID = "dataTable";
+	private static final String OLD_METADATA_COLUMN_PROPERTY = "element";
+	private static final String OLD_METADATA_COLUMN_VALUE = "value";
 	private static final String PublicMetadata_NAME = "name";
-	private static final String PublicMetadata_YEAR = "name";
+	private static final String PublicMetadata_YEAR = "year";
 	private static final String PublicMetadata_DATATABLE = "dataTable";
 	private static final String PublicMetadata_GEOMETRYCOLLECTION = "geometryCollection";
+	private static final String PrivateMetadata_IMPORTNOTES = "importNotes";
 	private static boolean fieldIsPrivate(String propertyName)
 	{
 		String[] names = {
@@ -188,7 +195,7 @@ public class DeprecatedConfig
 				PrivateMetadata.SQLRESULT,
 				PrivateMetadata.SCHEMA,
 				PrivateMetadata.TABLEPREFIX,
-				"importNotes"
+				PrivateMetadata_IMPORTNOTES
 		};
 		return ListUtils.findString(propertyName, names) >= 0;
 	}

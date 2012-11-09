@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import weave.config.ConnectionConfig.ImmortalConnection;
+import weave.config.ConnectionConfig;
 import weave.utils.SQLUtils;
 
 
@@ -32,15 +32,15 @@ public class ParentChildTable extends AbstractTable
 	private final String FIELD_CHILD = "child_id";
 	private final String FIELD_PARENT = "parent_id";
 	
-    public ParentChildTable(ImmortalConnection conn, String schemaName, String tableName) throws RemoteException
+    public ParentChildTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
     {
-        super(conn, schemaName, tableName);
+        super(connectionConfig, schemaName, tableName);
     }
     public void initTable() throws RemoteException
     {
         try 
         {
-			Connection conn = this.conn.getConnection();
+			Connection conn = connectionConfig.getAdminConnection();
 			SQLUtils.createTable(
 					conn, schemaName, tableName,
 					Arrays.asList(FIELD_CHILD, FIELD_PARENT),
@@ -57,7 +57,7 @@ public class ParentChildTable extends AbstractTable
     {
         try 
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             Map<String, Object> sql_args = new HashMap<String,Object>();
             removeChild(child_id, parent_id);
             sql_args.put(FIELD_CHILD, child_id);
@@ -73,7 +73,7 @@ public class ParentChildTable extends AbstractTable
     {
     	try
     	{
-    		Connection conn = this.conn.getConnection();
+    		Connection conn = connectionConfig.getAdminConnection();
 			Map<String,Object> query = new HashMap<String,Object>();
 			query.put(FIELD_CHILD, child_id);
 			Set<Integer> parents = new HashSet<Integer>();
@@ -94,7 +94,7 @@ public class ParentChildTable extends AbstractTable
     {
         try
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             if (parent_id == null)
             {
                 return SQLUtils.getIntColumn(conn, schemaName, tableName, FIELD_CHILD);
@@ -122,7 +122,7 @@ public class ParentChildTable extends AbstractTable
     {
         try
         {
-            Connection conn = this.conn.getConnection();
+            Connection conn = connectionConfig.getAdminConnection();
             Map<String,Object> sql_args = new HashMap<String,Object>();
             if (child_id == null && parent_id == null)
                 throw new RemoteException("removeChild called with two nulls. This is not what you want.", null);
