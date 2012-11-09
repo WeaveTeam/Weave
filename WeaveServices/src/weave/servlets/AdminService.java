@@ -29,6 +29,7 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.rmi.RemoteException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -65,6 +66,7 @@ import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
 import weave.config.SQLConfigManager;
 import weave.config.ConnectionConfig;
+import weave.config.WeaveContextParams;
 import weave.geometrystream.GeometryStreamConverter;
 import weave.geometrystream.SHPGeometryStreamUtils;
 import weave.geometrystream.SQLGeometryStreamDestination;
@@ -76,10 +78,6 @@ import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.XMLUtils;
 
-/**
- * @author user
- * 
- */
 public class AdminService
 		extends GenericServlet
 {
@@ -89,54 +87,32 @@ public class AdminService
 	{
 	}
 
-	/**
-	 * This constructor is for testing only.
-	 * 
-	 * @param configManager
-	 */
-	public AdminService(SQLConfigManager configManager)
-	{
-		this.configManager = configManager;
-	}
-
 	public void init(ServletConfig config)
 		throws ServletException
 	{
 		super.init(config);
-		configManager = SQLConfigManager.getInstance(config.getServletContext());
-
-		tempPath = configManager.getContextParams().getTempPath();
-		uploadPath = configManager.getContextParams().getUploadPath();
-		docrootPath = configManager.getContextParams().getDocrootPath();
+		
+		weaveContextParams = WeaveContextParams.getInstance(config.getServletContext());
+	}
+	
+	private WeaveContextParams weaveContextParams;
+	private ConnectionConfig _connConfig;
+	private DataConfig _dataConfig;
+	private PrintStream statusOutput = System.out;
+	
+	private ConnectionConfig getConnectionConfig() throws RemoteException
+	{
+		if (_connConfig == null)
+			_connConfig = new ConnectionConfig(new File(weaveContextParams.getConfigPath() + "/" + ConnectionConfig.XML_FILENAME));
+		return _connConfig;
+	}
+	
+	private DataConfig getDataConfig() throws RemoteException
+	{
+		if (_dataConfig == null)
+			_dataConfig = new DataConfig(getConnectionConfig(), statusOutput);
 	}
 
-	// /**
-	// * ONLY FOR TESTING.
-	// * @throws ServletException
-	// */
-	// public void init2() throws ServletException
-	// {
-	// tempPath = configManager.getContextParams().getTempPath();
-	// uploadPath = configManager.getContextParams().getUploadPath();
-	// docrootPath = configManager.getContextParams().getDocrootPath();
-	// }
-	/**
-	 * @return The path where temp files are stored, ending in "/"
-	 */
-	private String tempPath;
-	/**
-	 * @return The path where uploaded files are stored, ending in "/"
-	 */
-	private String uploadPath;
-	/**
-	 * @return The docroot path, ending in "/"
-	 */
-	private String docrootPath;
-
-	private static int StringType = 0;
-	private static int IntType = 1;
-	private static int DoubleType = 2;
-	private SQLConfigManager configManager;
 
 	public AdminServiceResponse checkSQLConfigExists()
 	{
@@ -1270,6 +1246,10 @@ public class AdminService
 			String[] filterColumnNames)
 		throws RemoteException
 	{
+		final int StringType = 0;
+		final int IntType = 1;
+		final int DoubleType = 2;
+		
 		DataConfig config = checkPasswordAndGetConfig(connectionName, password);
 		ConnectionInfo connInfo = config.getConnectionInfo(connectionName);
 		if (sqlOverwrite && !connInfo.is_superuser)
