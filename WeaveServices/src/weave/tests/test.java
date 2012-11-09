@@ -66,7 +66,7 @@ public class test
 	@SuppressWarnings("unused")
 	public static void main(String[] args) throws Exception
 	{
-		ConnectionConfig connConfig = new ConnectionConfig(new File("C:/tomcat/webapps/weave-config/sqlconfig.xml"));
+		ConnectionConfig connConfig = new ConnectionConfig(new File("/home/pkovac/dload/cfg/sqlconfig.xml"));
 		DataConfig dataConfig = new DataConfig(connConfig, System.out);
 		
 //		ConnectionInfo connInfo = new ConnectionInfo();

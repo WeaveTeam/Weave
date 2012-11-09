@@ -37,6 +37,7 @@ import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
 import weave.utils.ListUtils;
 import weave.utils.SQLUtils;
+import weave.utils.ProgressManager;
 
 /**
  * This class is responsible for migrating from the old SQL config format to a DataConfig object.
@@ -103,11 +104,15 @@ import weave.utils.SQLUtils;
 			// get the set of unique dataTable names, create entities for them and remember the corresponding id numbers
 			
 			out.println("Step 2 of 4. Generating table entities...");
+            int total;
+            resultSet = stmt.executeQuery(String.format("SELECT COUNT(DISTINCT %s) FROM %s", PublicMetadata_DATATABLE, quotedDataConfigTable));
+            resultSet.next();
+            total = resultSet.getInt(1);
+            ProgressManager progress = new ProgressManager(total, out, 10);
 			resultSet = stmt.executeQuery(String.format("SELECT DISTINCT %s FROM %s", PublicMetadata_DATATABLE, quotedDataConfigTable));
 			while (resultSet.next())
 			{
 				String tableName = resultSet.getString(PublicMetadata_DATATABLE);
-				
 				// get or create metadata
 				DataEntityMetadata metadata = tableMetadataLookup.get(tableName);
 				if (metadata == null)
@@ -120,6 +125,7 @@ import weave.utils.SQLUtils;
 				// create the data table entity and remember the new id
 				int tableId = dataConfig.addEntity(DataEntity.TYPE_DATATABLE, metadata, -1);
 				tableIdLookup.put(tableName, tableId);
+                progress.advance(1);
 			}
 			SQLUtils.cleanup(resultSet);
 			
