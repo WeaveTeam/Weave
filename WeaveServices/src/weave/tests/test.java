@@ -67,7 +67,7 @@ public class test
 	public static void main(String[] args) throws Exception
 	{
 		ConnectionConfig connConfig = new ConnectionConfig(new File("/home/pkovac/dload/cfg/sqlconfig.xml"));
-		DataConfig dataConfig = new DataConfig(connConfig, System.out);
+		DataConfig dataConfig = connConfig.initializeNewDataConfig(System.out);
 		
 //		ConnectionInfo connInfo = new ConnectionInfo();
 //		connInfo.connectString = "hello";

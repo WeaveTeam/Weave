@@ -75,7 +75,7 @@ public class ConnectionConfig
 	 * This function must be called before making any modifications to the config.
 	 */
 	@SuppressWarnings("deprecation")
-	public DataConfig initializeNewDataConfig(PrintStream statusOutput) throws RemoteException, SQLException
+	public DataConfig initializeNewDataConfig(PrintStream statusOutput) throws RemoteException
 	{
 		if (detectOldVersion())
 		{

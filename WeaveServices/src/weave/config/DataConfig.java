@@ -62,35 +62,43 @@ public class DataConfig
 	private ParentChildTable relationships;
 
 	public DataConfig(ConnectionConfig connectionConfig)
-			throws RemoteException, SQLException
+			throws RemoteException
 	{
 		if (connectionConfig.detectOldVersion())
 			throw new RemoteException("The Weave server has not been initialized yet.  Please run the Admin Console before continuing.");
 		
 		this.connectionConfig = connectionConfig;
-		// test the connection now so it will throw an exception if there is a problem.
-		Connection conn = connectionConfig.getAdminConnection();
-
-		// attempt to create the schema and tables to store the configuration.
-		DatabaseConfigInfo dbInfo = connectionConfig.getDatabaseConfigInfo();
+		
 		try
 		{
-			SQLUtils.createSchema(conn, dbInfo.schema);
+			// test the connection now so it will throw an exception if there is a problem.
+			Connection conn = connectionConfig.getAdminConnection();
+	
+			// attempt to create the schema and tables to store the configuration.
+			DatabaseConfigInfo dbInfo = connectionConfig.getDatabaseConfigInfo();
+			try
+			{
+				SQLUtils.createSchema(conn, dbInfo.schema);
+			}
+			catch (Exception e)
+			{
+				// do nothing if schema creation fails -- this is a temporary workaround for postgresql issue
+				// e.printStackTrace();
+			}
+			
+			// init SQL tables
+			public_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_public);
+			private_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_private);	
+			relationships = new ParentChildTable(connectionConfig, dbInfo.schema, table_tags);
+			manifest = new ManifestTable(connectionConfig, dbInfo.schema, table_manifest);
+			/* TODO: Figure out nice way to do this from within the classes. */	
+	        /*	SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, META_ID, table_manifest, MAN_ID);
+			SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, META_ID, table_manifest, MAN_ID);*/
 		}
-		catch (Exception e)
+		catch (SQLException e)
 		{
-			// do nothing if schema creation fails -- this is a temporary workaround for postgresql issue
-			// e.printStackTrace();
+			throw new RemoteException("Unable to initialize DataConfig", e);
 		}
-		
-		// init SQL tables
-		public_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_public);
-		private_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_private);	
-		relationships = new ParentChildTable(connectionConfig, dbInfo.schema, table_tags);
-		manifest = new ManifestTable(connectionConfig, dbInfo.schema, table_manifest);
-		/* TODO: Figure out nice way to do this from within the classes. */	
-        /*	SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, META_ID, table_manifest, MAN_ID);
-		SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, META_ID, table_manifest, MAN_ID);*/
 	}
 
     public Integer addEntity(int type_id, DataEntityMetadata properties, int parentId) throws RemoteException
