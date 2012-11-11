@@ -472,8 +472,7 @@ public class SQLUtils
 	 * @return A SQLResult object containing the result of the query
 	 * @throws SQLException
 	 */
-	public static SQLResult getRowSetFromQuery(Connection connection, String query)
-	throws SQLException
+	public static SQLResult getRowSetFromQuery(Connection connection, String query) throws SQLException
 	{
 		return getRowSetFromQuery(connection, query, false);
 	}

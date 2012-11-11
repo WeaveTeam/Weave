@@ -24,7 +24,6 @@ import java.util.Arrays;
 
 import weave.beans.RResult;
 import weave.config.ConnectionConfig;
-import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.DataConfig;
 import weave.servlets.RService;
 

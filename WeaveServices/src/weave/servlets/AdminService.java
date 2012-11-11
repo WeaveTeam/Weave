@@ -91,6 +91,16 @@ public class AdminService
 		WeaveConfig.init(WeaveContextParams.getInstance(config.getServletContext()));
 	}
 	
+	private ConnectionConfig getConnectionConfig() throws RemoteException
+	{
+		return WeaveConfig.getConnectionConfig();
+	}
+	
+	private DataConfig getDataConfig() throws RemoteException
+	{
+		return WeaveConfig.getDataConfig();
+	}
+
 	private String getDocrootPath()
 	{
 		return WeaveConfig.getWeaveContextParams().getDocrootPath();
@@ -106,16 +116,6 @@ public class AdminService
 		return WeaveConfig.getWeaveContextParams().getTempPath();
 	}
 	
-	private ConnectionConfig getConnectionConfig() throws RemoteException
-	{
-		return WeaveConfig.getConnectionConfig();
-	}
-	
-	private DataConfig getDataConfig() throws RemoteException
-	{
-		return WeaveConfig.getDataConfig();
-	}
-
 	/**
 	 * This function should be the first thing called by the Admin Console to initialize the servlet.
 	 * If SQL config data migration is required, it will be done and periodic status updates will be written to the servlet output stream.

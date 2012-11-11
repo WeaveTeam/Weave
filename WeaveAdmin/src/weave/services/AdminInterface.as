@@ -277,7 +277,7 @@ package weave.services
 		public function getDataTableInfo(title:String):AsyncToken
 		{
 		    var params:Object = {"title": title};
-		    return service.getEntitiesByType(Entity.TYPE_COLUMN, params);
+		    return service.getEntitiesByMetadata(params, Entity.TYPE_COLUMN);
 		}
 		public function getDataTables():void
 		{

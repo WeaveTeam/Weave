@@ -21,10 +21,11 @@ package weave.beans;
 
 import java.util.Map;
 
-public class GeometryStreamMetadata
+public class AttributeColumnData
 {
-	public int id;
 	public Map<String,String> metadata;
-	public byte[] metadataTileDescriptors;
-	public byte[] geometryTileDescriptors;
+	public String[] keys;
+	public Object[] data;
+	public Object[] thirdColumn; // hack for dimension slider format
 }
+

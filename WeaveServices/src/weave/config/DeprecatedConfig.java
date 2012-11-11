@@ -50,6 +50,9 @@ import weave.utils.ProgressManager;
 	public static void migrate(ConnectionConfig connConfig, DataConfig dataConfig, PrintStream out)
 			throws RemoteException, SQLException, InvalidParameterException
 	{
+		ProgressManager progress = new ProgressManager(out);
+		int total;
+		int cycle = 10;
 		Connection conn = connConfig.getAdminConnection(); // this will fail if DatabaseConfigInfo is missing
 		DatabaseConfigInfo dbInfo = connConfig.getDatabaseConfigInfo();
 		Statement stmt = conn.createStatement();
@@ -82,7 +85,7 @@ import weave.utils.ProgressManager;
 			/////////////////////////////
 			// get dublin core metadata for data tables
 			
-			out.println("Step 1 of 4. Retrieving old dataset metadata");
+			out.println("Step 1 of 4: Retrieving old dataset metadata");
 			if (SQLUtils.tableExists(conn, dbInfo.schema, OLD_METADATA_TABLE))
 			{
 				resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedOldMetadataTable));
@@ -103,9 +106,9 @@ import weave.utils.ProgressManager;
 			/////////////////////////////
 			// get the set of unique dataTable names, create entities for them and remember the corresponding id numbers
 			
-			out.println("Step 2 of 4. Generating table entities");
-            int total = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(DISTINCT %s) FROM %s", PublicMetadata_DATATABLE, quotedDataConfigTable));
-            ProgressManager progress = new ProgressManager(total, out, 10);
+			out.println("Step 2 of 4: Generating table entities");
+			total = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(DISTINCT %s) FROM %s", PublicMetadata_DATATABLE, quotedDataConfigTable));
+			progress.init(total, cycle);
 			resultSet = stmt.executeQuery(String.format("SELECT DISTINCT %s FROM %s", PublicMetadata_DATATABLE, quotedDataConfigTable));
 			while (resultSet.next())
 			{
@@ -129,7 +132,9 @@ import weave.utils.ProgressManager;
 			/////////////////////////////
 			// migrate geometry collections
 			
-			out.println("Step 3 of 4. Migrating geometry collections");
+			out.println("Step 3 of 4: Migrating geometry collections");
+			total = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(*) FROM %s", quotedGeometryConfigTable));
+			progress.init(total, cycle);
 			resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedGeometryConfigTable));
 			String[] columnNames = SQLUtils.getColumnNamesFromResultSet(resultSet);
 			while (resultSet.next())
@@ -158,13 +163,16 @@ import weave.utils.ProgressManager;
 				// create an entity for the geometry column
 				DataEntityMetadata geomMetadata = toDataEntityMetadata(geomRecord);
 				dataConfig.addEntity(DataEntity.TYPE_COLUMN, geomMetadata, parentId);
+				progress.advance(1);
 			}
 			SQLUtils.cleanup(resultSet);
 			
 			/////////////////////////////
 			// migrate columns
 			
-			out.println("Step 4 of 4. Migrating attribute columns");
+			out.println("Step 4 of 4: Migrating attribute columns");
+			total = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(*) FROM %s", quotedDataConfigTable));
+			progress.init(total, cycle);
 			resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedDataConfigTable));
 			columnNames = SQLUtils.getColumnNamesFromResultSet(resultSet);
 			while (resultSet.next())
@@ -194,6 +202,7 @@ import weave.utils.ProgressManager;
 				// create the column entity as a child of the table
 				DataEntityMetadata columnMetadata = toDataEntityMetadata(columnRecord);
 				dataConfig.addEntity(DataEntity.TYPE_COLUMN, columnMetadata, tableId);
+				progress.advance(1);
 			}
 			SQLUtils.cleanup(resultSet);
 			

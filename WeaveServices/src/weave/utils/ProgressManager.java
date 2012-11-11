@@ -28,10 +28,13 @@ public class ProgressManager
     private long rate_est = 0;
     private long last_tick;
     private int cycle;
-    public ProgressManager(int total_items, PrintStream output, int cycle)
+    public ProgressManager(PrintStream output)
+    {
+    	this.output = output;
+    }
+    public void init(int total_items, int cycle)
     {
         this.total_items = total_items;
-        this.output = output;
         this.cycle = cycle;
         last_tick = System.nanoTime();
     }
