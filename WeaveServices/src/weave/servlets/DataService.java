@@ -44,9 +44,7 @@ import weave.config.DataConfig.DataEntityMetadata;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
-import weave.config.SQLConfigManager;
 import weave.geometrystream.SQLGeometryStreamReader;
-import weave.reports.WeaveReport;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
 import weave.utils.SQLResult;
@@ -61,7 +59,6 @@ import weave.utils.SQLUtils;
 public class DataService extends GenericServlet
 {
 	private static final long serialVersionUID = 1L;
-	private SQLConfigManager configManager;
 	
 	public DataService()
 	{

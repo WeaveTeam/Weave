@@ -1,10 +1,21 @@
 /*
- * Weave (Web-based Analysis and Visualization Environment) Copyright (C) 2008-2011 University of Massachusetts Lowell This file is a part of Weave.
- * Weave is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License, Version 3, as published by the
- * Free Software Foundation. Weave is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the
- * GNU General Public License along with Weave. If not, see <http://www.gnu.org/licenses/>.
- */
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 package weave.config;
 
@@ -314,11 +325,15 @@ public class DataConfig
 	static public class PrivateMetadata
 	{
 		static public final String CONNECTION = "connection"; // required to retrieve data from sql, not visible to client
+		static public final String SQLSCHEMA = "sqlSchema";
+		static public final String SQLTABLE = "sqlTable";
+		static public final String SQLCOLUMN = "sqlColumn";
 		static public final String SQLQUERY = "sqlQuery"; // required to retrieve data from sql, not visible to client
 		static public final String SQLPARAMS = "sqlParams"; // only transmitted from client to server, never stored in the database
 		static public final String SQLRESULT = "sqlResult"; // only transmitted from server to client, never stored in the database
-		static public final String SCHEMA = "schema"; // used for geometry column
-		static public final String TABLEPREFIX = "tablePrefix"; // used for geometry column
+		static public final String SQLTABLEPREFIX = "sqlTablePrefix"; // used for geometry column
+		static public final String FILENAME = "fileName";
+		static public final String KEYCOLUMN = "keyColumn";
 	}
 	
 	static public class PublicMetadata

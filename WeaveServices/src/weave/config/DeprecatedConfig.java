@@ -82,7 +82,7 @@ import weave.utils.ProgressManager;
 			/////////////////////////////
 			// get dublin core metadata for data tables
 			
-			out.println("Step 1 of 4. Retrieving old dataset metadata...");
+			out.println("Step 1 of 4. Retrieving old dataset metadata");
 			if (SQLUtils.tableExists(conn, dbInfo.schema, OLD_METADATA_TABLE))
 			{
 				resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedOldMetadataTable));
@@ -103,11 +103,8 @@ import weave.utils.ProgressManager;
 			/////////////////////////////
 			// get the set of unique dataTable names, create entities for them and remember the corresponding id numbers
 			
-			out.println("Step 2 of 4. Generating table entities...");
-            int total;
-            resultSet = stmt.executeQuery(String.format("SELECT COUNT(DISTINCT %s) FROM %s", PublicMetadata_DATATABLE, quotedDataConfigTable));
-            resultSet.next();
-            total = resultSet.getInt(1);
+			out.println("Step 2 of 4. Generating table entities");
+            int total = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(DISTINCT %s) FROM %s", PublicMetadata_DATATABLE, quotedDataConfigTable));
             ProgressManager progress = new ProgressManager(total, out, 10);
 			resultSet = stmt.executeQuery(String.format("SELECT DISTINCT %s FROM %s", PublicMetadata_DATATABLE, quotedDataConfigTable));
 			while (resultSet.next())
@@ -148,6 +145,10 @@ import weave.utils.ProgressManager;
 				geomRecord.put(PublicMetadata.TITLE, name);
 				// set dataType appropriately
 				geomRecord.put(PublicMetadata.DATATYPE, DataType.GEOMETRY);
+				// rename "schema" to "sqlSchema"
+				geomRecord.put(PrivateMetadata.SQLSCHEMA, geomRecord.remove(PrivateMetadata_SCHEMA));
+				// rename "tablePrefix" to "sqlTablePrefix"
+				geomRecord.put(PrivateMetadata.SQLTABLEPREFIX, geomRecord.remove(PrivateMetadata_TABLEPREFIX));
 				
 				// if there is a dataTable with the same title, add the geometry as a column under that table.
 				Integer parentId = tableIdLookup.get(name);
@@ -163,7 +164,7 @@ import weave.utils.ProgressManager;
 			/////////////////////////////
 			// migrate columns
 			
-			out.println("Step 4 of 4. Migrating attribute columns...");
+			out.println("Step 4 of 4. Migrating attribute columns");
 			resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedDataConfigTable));
 			columnNames = SQLUtils.getColumnNamesFromResultSet(resultSet);
 			while (resultSet.next())
@@ -211,6 +212,21 @@ import weave.utils.ProgressManager;
 		}
 	}
 	
+	private static int getSingleIntFromQuery(Statement stmt, String query) throws SQLException
+	{
+		ResultSet resultSet = null;
+		try
+		{
+			resultSet = stmt.executeQuery(query);
+	        resultSet.next();
+	        return resultSet.getInt(1);
+		}
+		finally
+		{
+			SQLUtils.cleanup(resultSet);
+		}
+	}
+	
 	private static boolean isEmpty(String str)
 	{
 		return str == null || str.length() == 0;
@@ -248,6 +264,8 @@ import weave.utils.ProgressManager;
 	private static final String PublicMetadata_YEAR = "year";
 	private static final String PublicMetadata_DATATABLE = "dataTable";
 	private static final String PublicMetadata_GEOMETRYCOLLECTION = "geometryCollection";
+	private static final String PrivateMetadata_SCHEMA = "schema";
+	private static final String PrivateMetadata_TABLEPREFIX = "tablePrefix";
 	private static final String PrivateMetadata_IMPORTNOTES = "importNotes";
 	private static boolean fieldIsPrivate(String propertyName)
 	{
@@ -255,9 +273,10 @@ import weave.utils.ProgressManager;
 				PrivateMetadata.CONNECTION,
 				PrivateMetadata.SQLQUERY,
 				PrivateMetadata.SQLPARAMS,
-				PrivateMetadata.SQLRESULT,
-				PrivateMetadata.SCHEMA,
-				PrivateMetadata.TABLEPREFIX,
+				PrivateMetadata.SQLSCHEMA,
+				PrivateMetadata.SQLTABLEPREFIX,
+				PrivateMetadata_SCHEMA,
+				PrivateMetadata_TABLEPREFIX,
 				PrivateMetadata_IMPORTNOTES
 		};
 		return ListUtils.findString(propertyName, names) >= 0;

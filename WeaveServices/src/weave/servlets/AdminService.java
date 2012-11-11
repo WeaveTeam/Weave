@@ -29,7 +29,6 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.rmi.RemoteException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -64,6 +63,7 @@ import weave.config.DataConfig.DataEntityWithChildren;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
+import weave.config.WeaveConfig;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.GeometryStreamConverter;
 import weave.geometrystream.SHPGeometryStreamUtils;
@@ -74,13 +74,12 @@ import weave.utils.FileUtils;
 import weave.utils.ListUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
-import weave.utils.XMLUtils;
 
 public class AdminService
 		extends GenericServlet
 {
 	private static final long serialVersionUID = 1L;
-
+	
 	public AdminService()
 	{
 	}
@@ -89,26 +88,32 @@ public class AdminService
 		throws ServletException
 	{
 		super.init(config);
-		
-		weaveContextParams = WeaveContextParams.getInstance(config.getServletContext());
+		WeaveConfig.init(WeaveContextParams.getInstance(config.getServletContext()));
 	}
 	
-	private WeaveContextParams weaveContextParams;
-	private ConnectionConfig _connConfig;
-	private DataConfig _dataConfig;
+	private String getDocrootPath()
+	{
+		return WeaveConfig.getWeaveContextParams().getDocrootPath();
+	}
+	
+	private String getUploadPath()
+	{
+		return WeaveConfig.getWeaveContextParams().getUploadPath();
+	}
+	
+	private String getTempPath()
+	{
+		return WeaveConfig.getWeaveContextParams().getTempPath();
+	}
 	
 	private ConnectionConfig getConnectionConfig() throws RemoteException
 	{
-		if (_connConfig == null)
-			_connConfig = new ConnectionConfig(new File(weaveContextParams.getConfigPath() + "/" + ConnectionConfig.XML_FILENAME));
-		return _connConfig;
+		return WeaveConfig.getConnectionConfig();
 	}
 	
 	private DataConfig getDataConfig() throws RemoteException
 	{
-		if (_dataConfig == null)
-			_dataConfig = new DataConfig(getConnectionConfig());
-		return _dataConfig;
+		return WeaveConfig.getDataConfig();
 	}
 
 	/**
@@ -120,8 +125,7 @@ public class AdminService
 	{
 		try
 		{
-			PrintStream statusOutput = new PrintStream(getServletRequestInfo().response.getOutputStream());
-			getConnectionConfig().initializeNewDataConfig(statusOutput);
+			WeaveConfig.initializeAdminService(getServletRequestInfo().response.getOutputStream());
 		}
 		catch (IOException e)
 		{
@@ -187,7 +191,7 @@ public class AdminService
 		{
 			try
 			{
-				String root = weaveContextParams.getDocrootPath();
+				String root = getDocrootPath();
 				File rootFolder = new File(root);
 				files = rootFolder.listFiles();
 
@@ -208,7 +212,7 @@ public class AdminService
 			}
 		}
 
-		String path = weaveContextParams.getDocrootPath();
+		String path = getDocrootPath();
 		if (!showAllFiles && info.folderName.length() > 0)
 			path = path + info.folderName + "/";
 
@@ -259,7 +263,7 @@ public class AdminService
 			if (!fileName.toLowerCase().endsWith(".weave") && !fileName.toLowerCase().endsWith(".xml"))
 				fileName += ".weave";
 
-			String path = weaveContextParams.getDocrootPath();
+			String path = getDocrootPath();
 			if (info.folderName.length() > 0)
 				path = path + info.folderName + "/";
 
@@ -301,7 +305,7 @@ public class AdminService
 			return String.format(
 					"User \"%s\" does not have permission to remove configuration files.", configConnectionName);
 
-		String path = weaveContextParams.getDocrootPath();
+		String path = getDocrootPath();
 		if (info.folderName.length() > 0)
 			path = path + info.folderName + "/";
 
@@ -337,7 +341,7 @@ public class AdminService
 		throws RemoteException
 	{
 		authenticate(connectionName, password);
-		return new WeaveFileInfo(weaveContextParams.getDocrootPath() + fileName);
+		return new WeaveFileInfo(getDocrootPath() + fileName);
 	}
 
 	// /////////////////////////////////////////////////
@@ -817,7 +821,7 @@ public class AdminService
 	public UploadedFile[] getUploadedCSVFiles()
 		throws RemoteException
 	{
-		File directory = new File(weaveContextParams.getUploadPath());
+		File directory = new File(getUploadPath());
 		List<UploadedFile> list = new ArrayList<UploadedFile>();
 		File[] listOfFiles = null;
 
@@ -848,7 +852,7 @@ public class AdminService
 	public UploadedFile[] getUploadedShapeFiles()
 		throws RemoteException
 	{
-		File directory = new File(weaveContextParams.getUploadPath());
+		File directory = new File(getUploadPath());
 		List<UploadedFile> list = new ArrayList<UploadedFile>();
 		File[] listOfFiles = null;
 
@@ -890,7 +894,7 @@ public class AdminService
 
 		try
 		{
-			BufferedReader in = new BufferedReader(new FileReader(new File(weaveContextParams.getUploadPath(), csvFile)));
+			BufferedReader in = new BufferedReader(new FileReader(new File(getUploadPath(), csvFile)));
 			String header = in.readLine();
 			String[][] rows = CSVParser.defaultParser.parseCSV(header, true);
 			headerLine = rows[0];
@@ -938,7 +942,7 @@ public class AdminService
 				}
 			}
 
-			String[][] rows = CSVParser.defaultParser.parseCSV(new File(weaveContextParams.getUploadPath(), csvFile), true);
+			String[][] rows = CSVParser.defaultParser.parseCSV(new File(getUploadPath(), csvFile), true);
 
 			HashMap<String, Boolean> map = new HashMap<String, Boolean>();
 			
@@ -1009,7 +1013,7 @@ public class AdminService
 	{
 		try
 		{
-			List<String> names = DBFUtils.getAttributeNames(new File(weaveContextParams.getUploadPath(), correctFileNameCase(dbfFileName)));
+			List<String> names = DBFUtils.getAttributeNames(new File(getUploadPath(), correctFileNameCase(dbfFileName)));
 			return ListUtils.toStringArray(names);
 		}
 		catch (IOException e)
@@ -1023,7 +1027,7 @@ public class AdminService
 	{
 		try
 		{
-			Object[][] dataArray = DBFUtils.getDBFData(new File(weaveContextParams.getUploadPath(), correctFileNameCase(dbfFileName)));
+			Object[][] dataArray = DBFUtils.getDBFData(new File(getUploadPath(), correctFileNameCase(dbfFileName)));
 			return dataArray;
 		}
 		catch (IOException e)
@@ -1036,7 +1040,7 @@ public class AdminService
 	{
 		try
 		{
-			File directory = new File(weaveContextParams.getUploadPath());
+			File directory = new File(getUploadPath());
 
 			if (directory.isDirectory())
 			{
@@ -1087,9 +1091,9 @@ public class AdminService
 		throws RemoteException
 	{
 		// make sure the upload folder exists
-		(new File(weaveContextParams.getUploadPath())).mkdirs();
+		(new File(getUploadPath())).mkdirs();
 
-		String filePath = weaveContextParams.getUploadPath() + fileName;
+		String filePath = getUploadPath() + fileName;
 		try
 		{
 			FileUtils.copy(content, new FileOutputStream(filePath, append));
@@ -1108,7 +1112,7 @@ public class AdminService
 	public List<String> getUploadedFileNames()
 		throws RemoteException
 	{
-		File uploadFolder = new File(weaveContextParams.getUploadPath());
+		File uploadFolder = new File(getUploadPath());
 		File[] files = null;
 		List<String> listOfFiles = new ArrayList<String>();
 
@@ -1186,22 +1190,18 @@ public class AdminService
 		final int IntType = 1;
 		final int DoubleType = 2;
 		
-		DataConfig config = checkPasswordAndGetConfig(connectionName, password);
-		ConnectionInfo connInfo = config.getConnectionInfo(connectionName);
+		ConnectionConfig connConfig = getConnectionConfig(connectionName, password);
+		DataConfig dataConfig = getDataConfig();
+		ConnectionInfo connInfo = connConfig.getConnectionInfo(connectionName);
 		if (sqlOverwrite && !connInfo.is_superuser)
 			throw new RemoteException(String.format(
 					"User \"%s\" does not have permission to overwrite SQL tables.", connectionName));
-
-		if (!config.userCanModifyDataTable(connectionName, configDataTableName))
-			throw new RemoteException(String.format(
-					"User \"%s\" does not have permission to overwrite DataTable \"%s\".", connectionName,
-					configDataTableName));
 
 		Connection conn = null;
 		Statement stmt = null;
 		try
 		{
-			conn = config.getNamedConnection(connectionName);
+			conn = connConfig.getConnectionInfo(connectionName).getConnection();
 
 			sqlTable = sqlTable.toLowerCase(); // bug fix for MySQL running under Linux
 
@@ -1210,7 +1210,7 @@ public class AdminService
 			int fieldLengths[] = null;
 
 			// Load the CSV file and reformat it
-			String formatted_CSV_path = tempPath + "temp.csv";
+			String formatted_CSV_path = getTempPath() + "temp.csv";
 			int[] types = null;
 			int i = 0;
 			int j = 0;
@@ -1218,7 +1218,7 @@ public class AdminService
 
 			boolean ignoreKeyColumnQueries = false;
 
-			String[][] rows = CSVParser.defaultParser.parseCSV(new File(weaveContextParams.getUploadPath(), csvFile), true);
+			String[][] rows = CSVParser.defaultParser.parseCSV(new File(getUploadPath(), csvFile), true);
 
 			if (rows.length == 0)
 				throw new RemoteException("CSV file is empty: " + csvFile);
@@ -1422,7 +1422,7 @@ public class AdminService
 			}
 			else
 			{
-				if (ListUtils.findIgnoreCase(sqlTable, getTablesList(connectionName, sqlSchema)) >= 0)
+				if (ListUtils.findIgnoreCase(sqlTable, getTables(connectionName, password, sqlSchema)) >= 0)
 					throw new RemoteException("CSV not imported.\nSQL table already exists.");
 			}
 
@@ -1430,7 +1430,7 @@ public class AdminService
 			{
 				/* Get list of unique values common among datatables only. */
 				List<String> uniqueNames = new LinkedList<String>();
-				for (DataEntity de : config.getEntitiesById(config.getEntityIdsByMetadata(null, DataEntity.TYPE_DATATABLE)))
+				for (DataEntity de : dataConfig.getEntitiesById(dataConfig.getEntityIdsByMetadata(null, DataEntity.TYPE_DATATABLE)))
 					uniqueNames.add(de.publicMetadata.get(PublicMetadata.TITLE));
 
 				if (ListUtils.findIgnoreCase(configDataTableName, uniqueNames) >= 0)
@@ -1457,7 +1457,7 @@ public class AdminService
 			SQLUtils.copyCsvToDatabase(conn, formatted_CSV_path, sqlSchema, sqlTable);
 
 			return addConfigDataTable(
-					config, configOverwrite, configDataTableName, connectionName, configGeometryCollectionName,
+					configDataTableName, connectionName, configGeometryCollectionName,
 					configKeyType, csvKeyColumn, csvSecondaryKeyColumn, originalColumnNames, columnNames, sqlSchema,
 					sqlTable, ignoreKeyColumnQueries, filterColumnNames);
 		}
@@ -1490,23 +1490,20 @@ public class AdminService
 
 	synchronized public String addConfigDataTableFromDatabase(
 			String connectionName, String password, String schemaName, String tableName, String keyColumnName,
-			String secondaryKeyColumnName, String configDataTableName, boolean configOverwrite,
+			String secondaryKeyColumnName, String configDataTableName,
 			String geometryCollectionName, String keyType, String[] filterColumnNames)
 		throws RemoteException
 	{
-		// use lower case sql table names (fix for mysql linux problems)
-		// tableName = tableName.toLowerCase();
-
-		DataConfig config = checkPasswordAndGetConfig(connectionName, password);
-		String[] columnNames = getColumnsList(connectionName, schemaName, tableName).toArray(new String[0]);
+		authenticate(connectionName, password);
+		String[] columnNames = getColumns(connectionName, password, schemaName, tableName);
 		return addConfigDataTable(
-				config, configOverwrite, configDataTableName, connectionName, geometryCollectionName, keyType,
+				configDataTableName, connectionName, geometryCollectionName, keyType,
 				keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false,
 				filterColumnNames);
 	}
 
 	synchronized private String addConfigDataTable(
-			DataConfig config, boolean configOverwrite, String configDataTableName, String connectionName,
+			String configDataTableName, String connectionName,
 			String geometryCollectionName, String keyType, String keyColumnName, String secondarySqlKeyColumn,
 			String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable,
 			boolean ignoreKeyColumnQueries, String[] filterColumnNames)
@@ -1514,11 +1511,14 @@ public class AdminService
 	{
 		//TODO: return table ID
 		
+		DataConfig dataConfig = getDataConfig();
+		ConnectionConfig connConfig = getConnectionConfig();
+		
 		String failMessage = String.format(
 				"Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName);
 		if (sqlColumnNames == null || sqlColumnNames.length == 0)
 			throw new RemoteException("No columns were found.");
-		ConnectionInfo connInfo = config.getConnectionInfo(connectionName);
+		ConnectionInfo connInfo = getConnectionConfig().getConnectionInfo(connectionName);
 		if (connInfo == null)
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
 		String dbms = connInfo.dbms;
@@ -1547,22 +1547,12 @@ public class AdminService
 			secondarySqlKeyColumn = SQLUtils.quoteSymbol(dbms, sqlColumnNames[iSecondaryKey]);
 		// Write SQL statements into sqlconfig.
 
-		if (!configOverwrite)
-		{
-			List<String> uniqueNames = new LinkedList<String>();
-			for (DataEntity de : config.getEntitiesById(config.getEntityIdsByMetadata(null, DataEntity.TYPE_DATATABLE)))
-				uniqueNames.add(de.publicMetadata.get(PublicMetadata.TITLE));
-			if (ListUtils.findIgnoreCase(configDataTableName, uniqueNames) >= 0)
-				throw new RemoteException(String.format(
-						"DataTable \"%s\" already exists in the configuration.", configDataTableName));
-		}
-		else
-		{
-			if (!config.userCanModifyDataTable(connectionName, configDataTableName))
-				throw new RemoteException(String.format(
-						"User \"%s\" does not have permission to overwrite DataTable \"%s\".", connectionName,
-						configDataTableName));
-		}
+		List<String> uniqueNames = new LinkedList<String>();
+		for (DataEntity de : dataConfig.getEntitiesById(dataConfig.getEntityIdsByMetadata(null, DataEntity.TYPE_DATATABLE)))
+			uniqueNames.add(de.publicMetadata.get(PublicMetadata.TITLE));
+		if (ListUtils.findIgnoreCase(configDataTableName, uniqueNames) >= 0)
+			throw new RemoteException(String.format(
+					"DataTable \"%s\" already exists in the configuration.", configDataTableName));
 
 		// connect to database, generate and test each query before modifying
 		// config file
@@ -1571,7 +1561,7 @@ public class AdminService
 		List<Object[]> queryParamsList = new Vector<Object[]>();
 		List<String> dataTypes = new Vector<String>();
 		String query = null;
-		Connection conn = config.getNamedConnection(connectionName, true);
+		Connection conn = connConfig.getConnectionInfo(connectionName).getStaticReadOnlyConnection();
 		try
 		{
 			SQLResult filteredValues = null;
@@ -1649,7 +1639,7 @@ public class AdminService
 
 			DataEntityMetadata tableProperties = new DataEntityMetadata();
 			tableProperties.publicMetadata.put(PublicMetadata.TITLE, configDataTableName);
-			table_id = config.addEntity(DataEntity.TYPE_DATATABLE, tableProperties, -1);
+			table_id = dataConfig.addEntity(DataEntity.TYPE_DATATABLE, tableProperties, -1);
 
 			for (int i = 0; i < numberSqlColumns; i++)
 			{
@@ -1663,10 +1653,10 @@ public class AdminService
 					newMeta.privateMetadata.put(PrivateMetadata.SQLPARAMS, paramsStr);
 				}
 				newMeta.publicMetadata.put(PublicMetadata.KEYTYPE, keyType);
-				newMeta.publicMetadata.put(PublicMetadata.NAME, titles.get(i));
+				newMeta.publicMetadata.put(PublicMetadata.TITLE, titles.get(i));
 				newMeta.publicMetadata.put(PublicMetadata.DATATYPE, dataTypes.get(i));
 
-				config.addEntity(DataEntity.TYPE_COLUMN, newMeta, table_id);
+				dataConfig.addEntity(DataEntity.TYPE_COLUMN, newMeta, table_id);
 			}
 		}
 		catch (SQLException e)
@@ -1773,15 +1763,14 @@ public class AdminService
 	synchronized public String convertShapefileToSQLStream(
 			String configConnectionName, String password, String[] fileNameWithoutExtension, String[] keyColumns,
 			String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName,
-			boolean configOverwrite, String configKeyType, String projectionSRS, String[] nullValues,
-			boolean importDBFData)
+			String configKeyType, String projectionSRS, String[] nullValues, boolean importDBFData)
 		throws RemoteException
 	{
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();
 
-		DataConfig config = checkPasswordAndGetConfig(configConnectionName, password);
-		ConnectionInfo connInfo = config.getConnectionInfo(configConnectionName);
+		ConnectionConfig connConfig = getConnectionConfig(configConnectionName, password);
+		ConnectionInfo connInfo = connConfig.getConnectionInfo(configConnectionName);
 
 		if (sqlOverwrite && !connInfo.is_superuser)
 			throw new RemoteException(String.format(
@@ -1807,7 +1796,7 @@ public class AdminService
 		Connection conn = null;
 		try
 		{
-			conn = config.getNamedConnection(configConnectionName, false);
+			conn = connInfo.getConnection();
 			// store dbf data to database
 			if (importDBFData)
 			{
@@ -1821,7 +1810,7 @@ public class AdminService
 			for (String file : fileNameWithoutExtension)
 			{
 				// convert shape data to streaming sql format
-				String shpfile = weaveContextParams.getUploadPath() + file + ".shp";
+				String shpfile = getUploadPath() + file + ".shp";
 				SHPGeometryStreamUtils.convertShapefile(converter, shpfile, Arrays.asList(keyColumns));
 			}
 			converter.flushAndCommitAll();
@@ -1835,10 +1824,6 @@ public class AdminService
 		{
 			SQLUtils.cleanup(conn);
 		}
-		String fileList = Arrays.asList(fileNameWithoutExtension).toString();
-		if (fileList.length() > 103)
-			fileList = fileList.substring(0, 50) + "..." + fileList.substring(fileList.length() - 50);
-		String importNotes = String.format("file: %s, keyColumns: %s", fileList, Arrays.asList(keyColumns));
 
 		String resultAddSQL = "";
 		if (importDBFData)
@@ -1863,9 +1848,9 @@ public class AdminService
 			}
 
 			// add SQL statements to sqlconfig
-			String[] columnNames = getColumnsList(configConnectionName, sqlSchema, dbfTableName).toArray(new String[0]);
+			String[] columnNames = getColumns(configConnectionName, password, sqlSchema, dbfTableName);
 			resultAddSQL = addConfigDataTable(
-					config, configOverwrite, configGeometryCollectionName, configConnectionName,
+					configGeometryCollectionName, configConnectionName,
 					configGeometryCollectionName, configKeyType, keyColumnsString, null, columnNames, columnNames,
 					sqlSchema, dbfTableName, false, null);
 		}
@@ -1874,20 +1859,28 @@ public class AdminService
 			resultAddSQL = "DBF Import disabled.";
 		}
 
-		// add geometry column
-		DataEntityMetadata geomInfo = new DataEntityMetadata();
-
-		geomInfo.privateMetadata.put(PrivateMetadata.CONNECTION, configConnectionName);
-		geomInfo.privateMetadata.put(PrivateMetadata.SCHEMA, sqlSchema);
-		geomInfo.privateMetadata.put(PrivateMetadata.TABLEPREFIX, sqlTablePrefix);
-		geomInfo.privateMetadata.put(PrivateMetadata.IMPORTNOTES, importNotes);
-
-		geomInfo.publicMetadata.put(PublicMetadata.TITLE, configGeometryCollectionName);
-		geomInfo.publicMetadata.put(PublicMetadata.KEYTYPE, configKeyType);
-		geomInfo.publicMetadata.put(PublicMetadata.PROJECTION, projectionSRS);
-
-		// TODO: use table ID from addConfigDataTable()
-		config.addEntity(DataEntity.TYPE_COLUMN, geomInfo, -1);
+		try
+		{
+			// add geometry column
+			DataEntityMetadata geomInfo = new DataEntityMetadata();
+	
+			geomInfo.privateMetadata.put(PrivateMetadata.CONNECTION, configConnectionName);
+			geomInfo.privateMetadata.put(PrivateMetadata.SQLSCHEMA, sqlSchema);
+			geomInfo.privateMetadata.put(PrivateMetadata.SQLTABLEPREFIX, sqlTablePrefix);
+			geomInfo.privateMetadata.put(PrivateMetadata.FILENAME, CSVParser.defaultParser.createCSV(new String[][]{fileNameWithoutExtension}, true));
+			geomInfo.privateMetadata.put(PrivateMetadata.KEYCOLUMN, CSVParser.defaultParser.createCSV(new String[][]{keyColumns}, true));
+	
+			geomInfo.publicMetadata.put(PublicMetadata.TITLE, configGeometryCollectionName);
+			geomInfo.publicMetadata.put(PublicMetadata.KEYTYPE, configKeyType);
+			geomInfo.publicMetadata.put(PublicMetadata.PROJECTION, projectionSRS);
+	
+			// TODO: use table ID from addConfigDataTable()
+			getDataConfig().addEntity(DataEntity.TYPE_COLUMN, geomInfo, -1);
+		}
+		catch (IOException e)
+		{
+			throw new RemoteException("Unexpected error",e);
+		}
 
 		return resultAddSQL;
 	}
@@ -1900,7 +1893,7 @@ public class AdminService
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTableName = sqlTableName.toLowerCase();
 
-		DataConfig config = checkPasswordAndGetConfig(configConnectionName, password);
+		ConnectionConfig config = getConnectionConfig(configConnectionName, password);
 		ConnectionInfo connInfo = config.getConnectionInfo(configConnectionName);
 		if (sqlOverwrite && !connInfo.is_superuser)
 			throw new RemoteException(String.format(
@@ -1909,10 +1902,10 @@ public class AdminService
 		Connection conn = null;
 		try
 		{
-			conn = config.getNamedConnection(configConnectionName, false);
+			conn = config.getConnectionInfo(configConnectionName).getConnection();
 			File[] files = new File[fileNameWithoutExtension.length];
 			for (int i = 0; i < files.length; i++)
-				files[i] = new File(weaveContextParams.getUploadPath() + fileNameWithoutExtension[i] + ".dbf");
+				files[i] = new File(getUploadPath() + fileNameWithoutExtension[i] + ".dbf");
 
 			DBFUtils.storeAttributes(files, conn, sqlSchema, sqlTableName, sqlOverwrite, nullValues);
 		}
@@ -1937,7 +1930,7 @@ public class AdminService
 		File reportDefFile;
 		try
 		{
-			File docrootDir = new File(weaveContextParams.getDocrootPath());
+			File docrootDir = new File(getDocrootPath());
 			if (!docrootDir.exists())
 				throw new RemoteException("Unable to find docroot directory");
 			File reportsDir = new File(docrootDir, "\\WeaveReports");
@@ -1964,7 +1957,7 @@ public class AdminService
 	{
 		Boolean isUnique = false;
 
-		DataConfig config = checkPasswordAndGetConfig(connectionName, password);
+		ConnectionConfig config = getConnectionConfig(connectionName, password);
 
 		ConnectionInfo info = config.getConnectionInfo(connectionName);
 		if (info == null)
@@ -1972,7 +1965,7 @@ public class AdminService
 
 		String dbms = info.dbms;
 
-		String[] columnNames = getColumnsList(connectionName, schemaName, tableName).toArray(new String[0]);
+		String[] columnNames = getColumns(connectionName, password, schemaName, tableName);
 
 		// if key column is actually the name of a column, put quotes around it.
 		// otherwise, don't.
@@ -1997,7 +1990,7 @@ public class AdminService
 		Connection conn = null;
 		try
 		{
-			conn = config.getNamedConnection(connectionName, false);
+			conn = info.getConnection();
 			if (secondaryKeyColumnName == null || secondaryKeyColumnName.isEmpty())
 			{
 				String totalRowsQuery = String.format(
