@@ -126,9 +126,9 @@
 			private function creationComplete(event:FlexEvent):void
 			{
 				if( inputType == INPUT_CSV )
-					AdminInterface.instance.getUploadedCSVFiles();
+					AdminInterface.service.getUploadedCSVFiles();
 				else if( inputType == INPUT_SHP )
-					AdminInterface.instance.getUploadedShapeFiles();
+					AdminInterface.service.getUploadedSHPFiles();
 				
 				if( inputType == "" )
 				{
@@ -158,9 +158,9 @@
 				
 				var query:AsyncToken;
 				if( inputType == INPUT_CSV )
-					query = AdminInterface.instance.getUploadedCSVFiles();
+					query = AdminInterface.service.getUploadedCSVFiles();
 				else if( inputType == INPUT_SHP )
-					query = AdminInterface.instance.getUploadedShapeFiles();
+					query = AdminInterface.service.getUploadedSHPFiles();
 				
 				addAsyncResponder(query, handleUploadedFiles);
 				function handleUploadedFiles(event:ResultEvent, token:Object = null):void

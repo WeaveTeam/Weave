@@ -109,7 +109,7 @@
 			}
 			private function getKeyTypes():void
 			{
-				var query:AsyncToken = AdminInterface.instance.getKeyTypes();
+				var query:AsyncToken = AdminInterface.service.getKeyTypes();
 				if (query)
 				{
 					refreshingKeyTypes = true;

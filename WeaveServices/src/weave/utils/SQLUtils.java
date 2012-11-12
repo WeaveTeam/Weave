@@ -1437,16 +1437,16 @@ public class SQLUtils
 	{
 		String columnNamesStr = "";
 		for (int i = 0; i < columnNames.length; i++)
-                {
-                        if ((columnLengths != null) && columnLengths[i] != 0)
-                        {
+		{
+			if ((columnLengths != null) && columnLengths[i] != 0)
+			{
 			    columnNamesStr += (i > 0 ? ", " : "") + String.format("%s(%d)", quoteSymbol(conn, columnNames[i]), columnLengths[i]);
-                        }
-                        else
-                        {
-                            columnNamesStr += (i > 0 ? ", " : "") + quoteSymbol(conn, columnNames[i]);
-                        }
-                }
+			}
+			else
+			{
+			    columnNamesStr += (i > 0 ? ", " : "") + quoteSymbol(conn, columnNames[i]);
+			}
+		}
 		String query = String.format(
 				"CREATE INDEX %s ON %s (%s)",
 				SQLUtils.quoteSymbol(conn, indexName),

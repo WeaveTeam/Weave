@@ -38,7 +38,7 @@
 							   toolTip="Double-click a file name to open it with Weave."/>
 			<mx:HBox width="100%">
 				<mx:Spacer width="100%"/>
-				<mx:Button label="Refresh" click="AdminInterface.instance.getPrivateWeaveFileNames()"/>
+				<mx:Button label="Refresh" click="AdminInterface.service.getWeaveFileNames(false)"/>
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox label="All files">
@@ -50,7 +50,7 @@
 							   toolTip="Double-click a file name to open it with Weave."/>
 			<mx:HBox width="100%">
 				<mx:Spacer width="100%"/>
-				<mx:Button label="Refresh" click="AdminInterface.instance.getWeaveFileNames()"/>
+				<mx:Button label="Refresh" click="AdminInterface.service.getWeaveFileNames(true)"/>
 			</mx:HBox>
 		</mx:VBox>
 	</mx:TabNavigator>
@@ -137,7 +137,7 @@
 					
 					function del():void
 					{
-						AdminInterface.instance.removeWeaveFile(fileName);
+						AdminInterface.service.removeWeaveFile(fileName);
 					}
 				}
 				else

@@ -48,7 +48,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
@@ -1878,10 +1877,9 @@ public class AdminService
 	//////////////////
 	// Miscellaneous
 
-	public String[] getKeyTypes(String connectionName, String password)
+	public String[] getKeyTypes()
 		throws RemoteException
 	{
-		authenticate(connectionName, password);
 		return getDataConfig().getUniquePublicValues(PublicMetadata.KEYTYPE).toArray(new String[0]);
 	}
 }

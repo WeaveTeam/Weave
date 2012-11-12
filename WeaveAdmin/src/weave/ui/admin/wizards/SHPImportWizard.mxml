@@ -60,7 +60,7 @@
 		</mx:HBox>
 		<ui:Indent id="keyType" enabled="false" label="Key type" group="{indentGroup}">
 			<ui:CustomComboBox id="shpKeyTypeCombo" minWidth="100" text="{geometryCollectionNameInput.text}" editable="true" dataProvider="{AdminInterface.instance.keyTypes}" toolTip="{lang('Choose a key type that corresponds to the type of the column that was chosen for the DBF key column name(s).  For example US State Fips codes or US State Abbreviations.')}"/>
-			<mx:Button label="Refresh" click="AdminInterface.instance.getKeyTypes()"/>
+			<mx:Button label="Refresh" click="AdminInterface.service.getKeyTypes()"/>
 			<ui:HelpComponent>
 				If two tables have compatible keys, you should give them the same key type. <!--
 				-->If two tables have incompatible keys, they should not have the same key type. <!--
@@ -173,7 +173,7 @@
 					// handle dbf file uploaded
 					if (token == _dbfFileToRequestColumnNamesFrom)
 					{
-						AdminInterface.instance.listDBFFileColumns(_dbfFileToRequestColumnNamesFrom.name);
+						AdminInterface.service.getDBFColumnNames(_dbfFileToRequestColumnNamesFrom.name);
 						
 						getDBFDataFromFile(_dbfFileToRequestColumnNamesFrom.name);
 						enableAllWidgets();
@@ -183,7 +183,7 @@
 			
 			private function getDBFDataFromFile(file:String):void
 			{
-				var dbfDataQuery:AsyncToken = AdminInterface.instance.getDBFData(file);
+				var dbfDataQuery:AsyncToken = AdminInterface.service.getDBFData(file);
 				
 				addAsyncResponder(dbfDataQuery, handleDBFDataResult,handleDBFDataFault);
 				
@@ -212,7 +212,7 @@
 				
 				shpFileNameInput.text = tableName;
 				
-				AdminInterface.instance.listDBFFileColumns(tableName+".dbf");
+				AdminInterface.service.getDBFColumnNames(tableName+".dbf");
 				tableSelector.activeTable = tableName;
 				
 				getDBFDataFromFile(tableName+".dbf");
@@ -238,14 +238,13 @@
 					var trimmedKeyCols:String = StringUtil.trimArrayElements(dbfKeyColumnsCombo.text,",");
 					var keyCols:Array = trimmedKeyCols.split(","); 
 					
-					var query:AsyncToken = AdminInterface.instance.convertShapefileToSQLStream(
+					var query:AsyncToken = AdminInterface.service.importSHP(
 							shpFileNameInput.text,
 							keyCols,
 							tableSelector.activeSchema,
 							tableSelector.activeTable,
 							tableSelector.tableOverwriteCheck.selected,
 							geometryCollectionNameInput.text,
-							configOverwriteCheck.selected,
 							shpKeyTypeCombo.text,
 							srsProjectionTxtInput.text,
 							nullFlagInput.text,

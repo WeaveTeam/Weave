@@ -132,13 +132,12 @@
 				var filterColumns:Array = null;
 				if (generateFilterColumnsCheckBox.selected && filterColumnsInput.text)
 					filterColumns = WeaveAPI.CSVParser.parseCSV(filterColumnsInput.text)[0];
-				var query:AsyncToken = AdminInterface.instance.addConfigDataTableFromDatabase(
+				var query:AsyncToken = AdminInterface.service.importSQL(
 						tableSelector.activeSchema,
 						tableSelector.activeTable,
 						keyColumnComboBox.selectedLabel,
 						secondaryKeyColumnCheckBox.selected ? sqlSecondaryKeyColumnCombo.selectedLabel : null,
 						tableNameInput.text,
-						tableNameOverwriteCheck.selected,
 						geometrySelector.selectedGeometryCollection,
 						geometrySelector.selectedKeyType,
 						filterColumns

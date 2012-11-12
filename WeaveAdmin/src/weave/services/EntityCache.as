@@ -24,7 +24,7 @@ package weave.services
 			callbacks.addGroupedCallback(this, fetchDirtyEntities);
         }
 		
-		private function invalidate(id:int, alsoInvalidateParents:Boolean = false):void
+		public function invalidate(id:int, alsoInvalidateParents:Boolean = false):void
 		{
 			callbacks.delayCallbacks();
 			
@@ -120,7 +120,7 @@ package weave.services
             /* Entity creation should usually impact root, so we'll invalidate root's cache entry and refetch. */
             var em:EntityMetadata = new EntityMetadata();
 			em.publicMetadata = {title: label};
-			AdminInterface.service.addCategory(em);
+			AdminInterface.service.addEntity(Entity.TYPE_CATEGORY, em, -1);
 			invalidate(ROOT_ID); // because the tag will appear under root
         }
         public function delete_entity(id:int):void

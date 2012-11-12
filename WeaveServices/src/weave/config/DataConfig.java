@@ -439,7 +439,7 @@ public class DataConfig
 	 */
 	static public class DataEntity extends DataEntityMetadata
 	{
-		public int id = -1;
+		public int id = TYPE_ANY;
 		public int type;
 		
 		public static final int TYPE_ANY = -1;

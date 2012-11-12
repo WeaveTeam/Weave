@@ -186,7 +186,7 @@
 				
 				csvFileNameInput.text = _csvFileReference.name;
 				
-				addAsyncResponder(AdminInterface.instance.service.getCSVColumnNames(_csvFileReference.name), handleGetCSVColumnNames, handleCSVFault, _csvFileReference.name);
+				addAsyncResponder(AdminInterface.service.getCSVColumnNames(_csvFileReference.name), handleGetCSVColumnNames, handleCSVFault, _csvFileReference.name);
 			}
 			
 			private function fileErrorHandler(event:IOErrorEvent):void
@@ -226,7 +226,7 @@
 				nextEnabled = false;
 				finishEnabled = false;
 				
-				addAsyncResponder(AdminInterface.instance.service.getCSVColumnNames(tableName), handleGetCSVColumnNames,handleCSVFault,tableName);
+				addAsyncResponder(AdminInterface.service.getCSVColumnNames(tableName), handleGetCSVColumnNames,handleCSVFault,tableName);
 				
 				csvFileNameInput.text = tableName;
 				tableName = tableName.substring(0,tableName.lastIndexOf("."));
@@ -279,7 +279,7 @@
 				var configTableName:String = dataTableNameInput.text
 				var geometryCollection:String = generateKeyColumnCheckBox.selected ? '' : geometrySelector.selectedGeometryCollection;
 				var keyType:String = generateKeyColumnCheckBox.selected ? configTableName : geometrySelector.selectedKeyType;
-				var query:AsyncToken = AdminInterface.instance.importCSV(
+				var query:AsyncToken = AdminInterface.service.importCSV(
 						csvFileNameInput.text,
 						keyColumn,
 						secondKeyColumn,

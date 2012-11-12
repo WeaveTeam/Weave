@@ -1,17 +1,20 @@
+// old:              0=table, 1=column, 2=category
+// new: 0=hierarchy, 1=table, 2=category, 3=column
+
 delete from weave_hierarchy;
 insert into weave_hierarchy(parent_id,child_id,order) values
-(99,2,1),
-(99,4,2),
-(99,6,3),
-(99,7,4),
-(99,8,5),
-(99,9,6),
-(99,12,7),
-(99,14,8),
-(99,15,9),
-(99,17,10),
-(99,18,11),
-(99,19,12),
+(100,2,1),
+(100,4,2),
+(100,6,3),
+(100,7,4),
+(100,8,5),
+(100,9,6),
+(100,12,7),
+(100,14,8),
+(100,15,9),
+(100,17,10),
+(100,18,11),
+(100,19,12),
 (1,2,1),
 (1,3,2),
 (1,4,3),
@@ -30,25 +33,25 @@ insert into weave_hierarchy(parent_id,child_id,order) values
 (16,19,2);
 delete from weave_manifest;
 insert into weave_manifest(unique_id,type_id) values
-(99,0),
+(100,1),
 (1,2),
-(2,1),
+(2,3),
 (3,2),
-(4,1),
+(4,3),
 (5,2),
-(6,1),
-(7,1),
-(8,1),
-(9,1),
+(6,3),
+(7,3),
+(8,3),
+(9,3),
 (10,2),
 (11,2),
-(12,1),
+(12,3),
 (13,2),
-(14,1),
-(15,1),
+(14,3),
+(15,3),
 (16,2),
-(17,1),
-(18,1),
-(19,1);
+(17,3),
+(18,3),
+(19,3);
 delete from weave_meta_public;
 delete from weave_meta_private;

@@ -228,7 +228,7 @@
 				info.is_superuser = superuserCheckbox.selected;
 				info.folderName = folderNameInput.text;
 				
-				addAsyncResponder(AdminInterface.instance.saveConnectionInfo(info, configOverwrite.selected), handleSave);
+				addAsyncResponder(AdminInterface.service.saveConnectionInfo(info, configOverwrite.selected), handleSave);
 				function handleSave(..._):void
 				{
 					if (info.name == AdminInterface.instance.activeConnectionName)
@@ -243,7 +243,7 @@
 			private function migrateToDatabase():void
 			{
 				migrateButton.enabled = false;
-				var query:AsyncToken = AdminInterface.instance.setDatabaseConfigInfo(
+				var query:AsyncToken = AdminInterface.service.setDatabaseConfigInfo(
 					   migrateConnectionCombo.text,
 					   migratePasswordInput.text,
 					   migrateSchemaInput.text
@@ -274,7 +274,7 @@
 				);
 				function del():void
 				{
-					AdminInterface.instance.removeConnectionInfo(treeWithSearch.tree.selectedItem.label);
+					AdminInterface.service.removeConnectionInfo(treeWithSearch.tree.selectedItem.label);
 				}
 			}
 			

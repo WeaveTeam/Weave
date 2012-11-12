@@ -34,9 +34,10 @@ package weave.services.beans
 		}
 		
 		public static const TYPE_ANY:int = -1;
-		public static const TYPE_TABLE:int = 0;
-		public static const TYPE_COLUMN:int = 1;
+		public static const TYPE_HIERARCHY:int = 0;
+		public static const TYPE_TABLE:int = 1;
 		public static const TYPE_CATEGORY:int = 2;
+		public static const TYPE_COLUMN:int = 3;
 		
 		public static function getEntityIdFromResult(result:Object):int
 		{
