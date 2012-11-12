@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.tables.AttributeValueTable;
 import weave.config.tables.ManifestTable;
@@ -51,34 +50,20 @@ import weave.utils.SQLUtils;
 public class DataConfig
 {
 	/* Table name parts */
-	private final String SUFFIX_META_PRIVATE = "meta_private";
-	private final String SUFFIX_META_PUBLIC = "meta_public";
-	private final String SUFFIX_MANIFEST = "manifest";
-	private final String SUFFIX_TAGS = "entity_tags";
-	private final String WEAVE_TABLE_PREFIX = "weave_";
+	private final String SUFFIX_META_PRIVATE = "_meta_private";
+	private final String SUFFIX_META_PUBLIC = "_meta_public";
+	private final String SUFFIX_MANIFEST = "_manifest";
+	private final String SUFFIX_HIERARCHY = "_hierarchy";
 
-        /* Complete Table Names */	
-	private String table_meta_private = WEAVE_TABLE_PREFIX + SUFFIX_META_PRIVATE;
-	private String table_meta_public = WEAVE_TABLE_PREFIX + SUFFIX_META_PUBLIC;
-	private String table_manifest = WEAVE_TABLE_PREFIX + SUFFIX_MANIFEST;
-	private String table_tags = WEAVE_TABLE_PREFIX + SUFFIX_TAGS;
-
-	/* Constants for type_id */
-
-	private ConnectionConfig connectionConfig = null;
-	
 	private AttributeValueTable public_attributes;
 	private AttributeValueTable private_attributes;
 	private ManifestTable manifest;
 	private ParentChildTable relationships;
 
-	public DataConfig(ConnectionConfig connectionConfig)
-			throws RemoteException
+	public DataConfig(ConnectionConfig connectionConfig) throws RemoteException
 	{
 		if (connectionConfig.detectOldVersion())
 			throw new RemoteException("The Weave server has not been initialized yet.  Please run the Admin Console before continuing.");
-		
-		this.connectionConfig = connectionConfig;
 		
 		try
 		{
@@ -98,13 +83,20 @@ public class DataConfig
 			}
 			
 			// init SQL tables
+			String tablePrefix = "weave";
+			String table_meta_private = tablePrefix + SUFFIX_META_PRIVATE;
+			String table_meta_public = tablePrefix + SUFFIX_META_PUBLIC;
+			String table_manifest = tablePrefix + SUFFIX_MANIFEST;
+			String table_tags = tablePrefix + SUFFIX_HIERARCHY;
+			
+			private_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_private);
 			public_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_public);
-			private_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_private);	
 			relationships = new ParentChildTable(connectionConfig, dbInfo.schema, table_tags);
 			manifest = new ManifestTable(connectionConfig, dbInfo.schema, table_manifest);
-			/* TODO: Figure out nice way to do this from within the classes. */	
-	        /*	SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, META_ID, table_manifest, MAN_ID);
-			SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, META_ID, table_manifest, MAN_ID);*/
+			
+			/* TODO: Figure out nice way to do this from within the classes. */
+	        SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, AttributeValueTable.FIELD_ID, table_manifest, ManifestTable.FIELD_ID);
+			SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, AttributeValueTable.FIELD_ID, table_manifest, ManifestTable.FIELD_ID);
 		}
 		catch (SQLException e)
 		{
@@ -138,15 +130,15 @@ public class DataConfig
         public_attributes.clearId(id);
         private_attributes.clearId(id);
     }
-    public void updateEntity(Integer id, DataEntityMetadata properties) throws RemoteException
+    public void updateEntity(Integer id, DataEntityMetadata diff) throws RemoteException
     {
-        for (Entry<String,String> propval : properties.publicMetadata.entrySet())
+        for (Entry<String,String> propval : diff.publicMetadata.entrySet())
         {
             String key = propval.getKey();
             String value = propval.getValue();
             public_attributes.setProperty(id, key, value);
         }
-        for (Entry<String,String> propval : properties.privateMetadata.entrySet())
+        for (Entry<String,String> propval : diff.privateMetadata.entrySet())
         {
             String key = propval.getKey();
             String value = propval.getValue();
@@ -311,17 +303,6 @@ public class DataConfig
     
     
     
-    public boolean userCanModifyEntity(String connectionName, int id) throws RemoteException
-    {
-        ConnectionInfo connInfo = connectionConfig.getConnectionInfo(connectionName);
-        if (connInfo == null)
-            return false;
-        if (connInfo.is_superuser)
-            return true;
-        DataEntity attrInfo = getEntity(id);
-        return (attrInfo == null) || (attrInfo.privateMetadata.get(PrivateMetadata.CONNECTION) == connectionName);
-    }
-	
 	static public class PrivateMetadata
 	{
 		static public final String CONNECTION = "connection"; // required to retrieve data from sql, not visible to client
@@ -386,6 +367,9 @@ public class DataConfig
 	 */
 	static public class DataEntityMetadata
 	{
+		public Map<String,String> privateMetadata = new HashMap<String, String>();
+		public Map<String,String> publicMetadata = new HashMap<String, String>();
+		
 	    private static final String PUBLIC_METADATA = "publicMetadata";
 	    private static final String PRIVATE_METADATA = "privateMetadata";
 	    
@@ -401,14 +385,13 @@ public class DataConfig
         	
         	return dem;
 		}
-		
-		public Map<String,String> privateMetadata = new HashMap<String, String>();
-		public Map<String,String> publicMetadata = new HashMap<String, String>();
 	}
 	
 	static public class DataEntityWithChildren extends DataEntity
 	{
 		public Integer[] childIds;
+		
+		public DataEntityWithChildren() { }
 		
 		public DataEntityWithChildren(DataEntity base, Integer[] childIds)
 		{
@@ -428,12 +411,13 @@ public class DataConfig
 	 */
 	static public class DataEntity extends DataEntityMetadata
 	{
+		public int id = -1;
+		public int type;
+		
 		public static final int TYPE_ANY = -1;
 		public static final int TYPE_DATATABLE = 0;
 		public static final int TYPE_COLUMN = 1;
 		public static final int TYPE_CATEGORY = 2;
-		public int id = -1;
-		public int type;
         /* For cases where the config API isn't sufficient. TODO */
         public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params)
         {
@@ -460,31 +444,5 @@ public class DataConfig
             }
             return result;
         }
-        public DataEntity()
-        {
-        }
-		public String getConnectionName()
-		{
-			return privateMetadata.get(PrivateMetadata.CONNECTION);
-		}
-		
-		public String getSqlQuery()
-		{
-			return privateMetadata.get(PrivateMetadata.SQLQUERY);
-		}
-		
-		public String getSqlParams()
-		{
-			return privateMetadata.get(PrivateMetadata.SQLPARAMS);
-		}
-		
-		@Deprecated
-		public Map<String,String> getPrivateAndPublicMetadata()
-		{
-			Map<String,String> result = new HashMap<String, String>();
-			result.putAll(privateMetadata);
-			result.putAll(publicMetadata);
-			return result;
-		}
 	}
 }

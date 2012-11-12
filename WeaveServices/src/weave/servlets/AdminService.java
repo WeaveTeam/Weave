@@ -19,13 +19,18 @@
 
 package weave.servlets;
 
+import static weave.config.WeaveConfig.getConnectionConfig;
+import static weave.config.WeaveConfig.getDataConfig;
+import static weave.config.WeaveConfig.getDocrootPath;
+import static weave.config.WeaveConfig.getTempPath;
+import static weave.config.WeaveConfig.getUploadPath;
+import static weave.config.WeaveConfig.initWeaveConfig;
+
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,32 +93,7 @@ public class AdminService
 		throws ServletException
 	{
 		super.init(config);
-		WeaveConfig.init(WeaveContextParams.getInstance(config.getServletContext()));
-	}
-	
-	private ConnectionConfig getConnectionConfig() throws RemoteException
-	{
-		return WeaveConfig.getConnectionConfig();
-	}
-	
-	private DataConfig getDataConfig() throws RemoteException
-	{
-		return WeaveConfig.getDataConfig();
-	}
-
-	private String getDocrootPath()
-	{
-		return WeaveConfig.getWeaveContextParams().getDocrootPath();
-	}
-	
-	private String getUploadPath()
-	{
-		return WeaveConfig.getWeaveContextParams().getUploadPath();
-	}
-	
-	private String getTempPath()
-	{
-		return WeaveConfig.getWeaveContextParams().getTempPath();
+		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
 	}
 	
 	/**
@@ -138,45 +118,47 @@ public class AdminService
 		return getConnectionConfig().getDatabaseConfigInfo() != null;
 	}
 
-	public void authenticate(String connectionName, String password)
-		throws RemoteException
+	public void authenticate(String user, String password) throws RemoteException
 	{
-		getConnectionConfig(connectionName, password);
+		getConnectionInfo(user, password);
 	}
 	
-	private ConnectionConfig getConnectionConfig(String connectionName, String password) throws RemoteException
+	private ConnectionInfo getConnectionInfo(String user, String password) throws RemoteException
 	{
 		ConnectionConfig connConfig = getConnectionConfig();
-		ConnectionInfo info = connConfig.getConnectionInfo(connectionName);
+		ConnectionInfo info = connConfig.getConnectionInfo(user);
 		if (info == null || !password.equals(info.pass))
 		{
-			System.out.println(String.format("authenticate failed, name=\"%s\" pass=\"%s\"", connectionName, password));
+			System.out.println(String.format("authenticate failed, name=\"%s\" pass=\"%s\"", user, password));
 			throw new RemoteException("Incorrect username or password.");
 		}
-		return connConfig;
+		return info;
 	}
-
-	private DataConfig getDataConfig(String connectionName, String password)
-		throws RemoteException
-	{
-		// authenticate first
-		getConnectionConfig(connectionName, password);
-		return getDataConfig();
-	}
-
-	// /////////////////////////////////////////////////
-	// functions for managing Weave client config files
-	// /////////////////////////////////////////////////
+	
+    public void tryModify(String user, String pass, int entityId) throws RemoteException
+    {
+        // superuser can modify anything
+        if (!getConnectionInfo(user, pass).is_superuser)
+        {
+        	DataEntity entity = getDataConfig().getEntity(entityId);
+	        String owner = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
+	        if (!user.equals(owner))
+	        	throw new RemoteException(String.format("User \"%s\" cannot modify entity %s.", user, entityId));
+        }
+    }
+	
+	//////////////////////////////
+	// Weave client config files
 
 	/**
 	 * Return a list of Client Config files from docroot
 	 * 
 	 * @return A list of (xml) client config files existing in the docroot folder.
 	 */
-	public String[] getWeaveFileNames(String configConnectionName, String password, Boolean showAllFiles)
+	public String[] getWeaveFileNames(String user, String password, Boolean showAllFiles)
 		throws RemoteException
 	{
-		ConnectionInfo info = getConnectionConfig(configConnectionName, password).getConnectionInfo(configConnectionName);
+		ConnectionInfo info = getConnectionInfo(user, password);
 		File[] files = null;
 		List<String> listOfFiles = new ArrayList<String>();
 		FilenameFilter fileFilter = new FilenameFilter()
@@ -241,7 +223,7 @@ public class AdminService
 	}
 
 	/**
-	 * @param connectionName
+	 * @param user
 	 * @param password
 	 * @param fileContent
 	 * @param fileName
@@ -249,11 +231,11 @@ public class AdminService
 	 * @return
 	 * @throws RemoteException
 	 */
-	synchronized public String saveWeaveFile(
-			String connectionName, String password, InputStream fileContent, String fileName, boolean overwriteFile)
+	public String saveWeaveFile(
+			String user, String password, InputStream fileContent, String fileName, boolean overwriteFile)
 		throws RemoteException
 	{
-		ConnectionInfo info = getConnectionConfig(connectionName, password).getConnectionInfo(connectionName);
+		ConnectionInfo info = getConnectionInfo(user, password);
 
 		try
 		{
@@ -276,7 +258,7 @@ public class AdminService
 				if (!info.is_superuser && info.folderName.length() == 0)
 					return String.format(
 							"User \"%s\" does not have permission to overwrite configuration files.  Please save under a new filename.",
-							connectionName);
+							user);
 			}
 
 			FileUtils.copy(fileContent, new FileOutputStream(file));
@@ -295,15 +277,14 @@ public class AdminService
 	 * @return A String message indicating if file was deleted.
 	 * 
 	 */
-	synchronized public String removeWeaveFile(String configConnectionName, String password, String fileName)
+	public String removeWeaveFile(String user, String password, String fileName)
 		throws RemoteException, IllegalArgumentException
 	{
-		ConnectionConfig connConfig = getConnectionConfig(configConnectionName, password);
-		ConnectionInfo info = connConfig.getConnectionInfo(configConnectionName);
+		ConnectionInfo info = getConnectionInfo(user, password);
 
-		if (!connConfig.getConnectionInfo(configConnectionName).is_superuser && info.folderName.length() == 0)
+		if (!info.is_superuser && info.folderName.length() == 0)
 			return String.format(
-					"User \"%s\" does not have permission to remove configuration files.", configConnectionName);
+					"User \"%s\" does not have permission to remove configuration files.", user);
 
 		String path = getDocrootPath();
 		if (info.folderName.length() > 0)
@@ -337,29 +318,34 @@ public class AdminService
 		}
 	}
 
-	public WeaveFileInfo getWeaveFileInfo(String connectionName, String password, String fileName)
+	public WeaveFileInfo getWeaveFileInfo(String user, String password, String fileName)
 		throws RemoteException
 	{
-		authenticate(connectionName, password);
+		authenticate(user, password);
 		return new WeaveFileInfo(getDocrootPath() + fileName);
 	}
 
-	// /////////////////////////////////////////////////
-	// functions for managing SQL connection entries
-	// /////////////////////////////////////////////////
+	//////////////////////////////
+	// ConnectionInfo management
 
-	public String[] getConnectionNames(String connectionName, String password)
+	public String generateConnectString(String dbms, String ip, String port, String database, String user, String pass)
+		throws RemoteException
+	{
+		return SQLUtils.getConnectString(dbms, ip, port, database, user, pass);
+	}
+	
+	public String[] getConnectionNames(String user, String password)
 		throws RemoteException
 	{
 		try
 		{
-			ConnectionConfig config = getConnectionConfig(connectionName, password);
+			ConnectionConfig config = getConnectionConfig();
 			// only check password and superuser privileges if dbInfo is valid
-			if (databaseConfigExists())
+			if (config.getDatabaseConfigInfo() != null)
 			{
 				// non-superusers can't get connection info for other users
-				if (!config.getConnectionInfo(connectionName).is_superuser)
-					return new String[] { connectionName };
+				if (!getConnectionInfo(user, password).is_superuser)
+					return new String[] { user };
 			}
 			// otherwise, return all connection names
 			String[] connectionNames = config.getConnectionInfoNames().toArray(new String[0]);
@@ -372,38 +358,29 @@ public class AdminService
 		}
 	}
 
-	public ConnectionInfo getConnectionInfo(String loginConnectionName, String loginPassword, String connectionNameToGet)
+	public ConnectionInfo getConnectionInfo(String loginUser, String loginPass, String userToGet)
 		throws RemoteException
 	{
-		ConnectionConfig connConfig = getConnectionConfig(loginConnectionName, loginPassword);
 		// non-superusers can't get connection info
-		if (!connConfig.getConnectionInfo(loginConnectionName).is_superuser)
-			return null;
-		return connConfig.getConnectionInfo(connectionNameToGet);
-	}
-
-	synchronized public String saveConnectionInfo(
-			String currentConnectionName, String currentPassword, String newConnectionName, String dbms, String ip,
-			String port, String database, String sqlUser, String password, String folderName, boolean grantSuperuser,
-			boolean configOverwrite)
-		throws RemoteException
-	{
+		if (getConnectionInfo(loginUser, loginPass).is_superuser)
+			return getConnectionConfig().getConnectionInfo(userToGet);
 		return null;
 	}
-	synchronized public String saveConnectionInfo(
-			String currentConnectionName, String currentPassword,
-			String newConnectionName, String dbms, String password,
+
+	public String saveConnectionInfo(
+			String currentUser, String currentPass,
+			String newUser, String dbms, String newPass,
 			String folderName, boolean grantSuperuser, String connectString,
 			boolean configOverwrite)
 		throws RemoteException
 	{
-		if (newConnectionName.equals(""))
+		if (newUser.equals(""))
 			throw new RemoteException("Connection name cannot be empty.");
 
 		ConnectionInfo newConnectionInfo = new ConnectionInfo();
-		newConnectionInfo.name = newConnectionName;
+		newConnectionInfo.name = newUser;
 		newConnectionInfo.dbms = dbms;
-		newConnectionInfo.pass = password;
+		newConnectionInfo.pass = newPass;
 		newConnectionInfo.folderName = folderName;
 		newConnectionInfo.is_superuser = true;
 		newConnectionInfo.connectString = connectString;
@@ -414,12 +391,12 @@ public class AdminService
 		
 		if (config.getConnectionInfoNames().size() > 0 && config.getDatabaseConfigInfo() != null)
 		{
-			authenticate(currentConnectionName, currentPassword);
+			authenticate(currentUser, currentPass);
 
 			// non-superusers can't save connection info
-			if (!config.getConnectionInfo(currentConnectionName).is_superuser)
+			if (!config.getConnectionInfo(currentUser).is_superuser)
 				throw new RemoteException(String.format(
-						"User \"%s\" does not have permission to modify connections.", currentConnectionName));
+						"User \"%s\" does not have permission to modify connections.", currentUser));
 			// is_superuser for the new connection will only be false if there
 			// is an existing superuser connection and grantSuperuser is false.
 			newConnectionInfo.is_superuser = grantSuperuser;
@@ -469,7 +446,7 @@ public class AdminService
 					break;
 			}
 			// sanity check
-			if (currentConnectionName == newConnectionName && numSuperUsers == 1 && !newConnectionInfo.is_superuser)
+			if (currentUser == newUser && numSuperUsers == 1 && !newConnectionInfo.is_superuser)
 				throw new RemoteException("Cannot remove superuser privileges from last remaining superuser.");
 
 			config.removeConnectionInfo(newConnectionInfo.name);
@@ -482,24 +459,23 @@ public class AdminService
 					"Unable to create connection entry named \"%s\": %s", newConnectionInfo.name, e.getMessage()), e);
 		}
 
-		return String.format("The connection named \"%s\" was created successfully.", newConnectionName);
+		return String.format("The connection named \"%s\" was created successfully.", newUser);
 	}
 
-	synchronized public String removeConnectionInfo(
-			String loginConnectionName, String loginPassword, String connectionNameToRemove)
+	public String removeConnectionInfo(
+			String loginUser, String loginPassword, String userToRemove)
 		throws RemoteException
 	{
-		ConnectionConfig config = getConnectionConfig(loginConnectionName, loginPassword);
-
 		// allow only a superuser to remove a connection
-		ConnectionInfo loginConnectionInfo = config.getConnectionInfo(loginConnectionName);
-		if (!loginConnectionInfo.is_superuser)
+		if (!getConnectionInfo(loginUser, loginPassword).is_superuser)
 			throw new RemoteException("Only superusers can remove connections.");
 
 		try
 		{
-			if (config.getConnectionInfoNames().contains(connectionNameToRemove))
-				throw new RemoteException("Connection \"" + connectionNameToRemove + "\" does not exist.");
+			ConnectionConfig config = getConnectionConfig();
+			
+			if (config.getConnectionInfoNames().contains(userToRemove))
+				throw new RemoteException("Connection \"" + userToRemove + "\" does not exist.");
 
 			// check for number of superusers
 			Collection<String> connectionNames = config.getConnectionInfoNames();
@@ -508,11 +484,11 @@ public class AdminService
 				if (config.getConnectionInfo(name).is_superuser)
 					++numSuperUsers;
 			// do not allow removal of last superuser
-			if (numSuperUsers == 1 && loginConnectionName.equals(connectionNameToRemove))
+			if (numSuperUsers == 1 && loginUser.equals(userToRemove))
 				throw new RemoteException("Cannot remove the only superuser.");
 
-			config.removeConnectionInfo(connectionNameToRemove);
-			return "Connection \"" + connectionNameToRemove + "\" was deleted.";
+			config.removeConnectionInfo(userToRemove);
+			return "Connection \"" + userToRemove + "\" was deleted.";
 		}
 		catch (Exception e)
 		{
@@ -521,166 +497,94 @@ public class AdminService
 		}
 	}
 
-	public DatabaseConfigInfo getDatabaseConfigInfo(String connectionName, String password)
+	//////////////////////////////////
+	// DatabaseConfigInfo management
+	
+	public DatabaseConfigInfo getDatabaseConfigInfo(String user, String password)
 		throws RemoteException
 	{
-		try
-		{
-			if (databaseConfigExists())
-				return getConnectionConfig(connectionName, password).getDatabaseConfigInfo();
-		}
-		catch (RemoteException e)
-		{
-			if (e.detail instanceof FileNotFoundException)
-				return null;
-			throw e;
-		}
-		return null;
+		authenticate(user, password);
+		return getConnectionConfig().getDatabaseConfigInfo();
 	}
 
-	synchronized public String setDatabaseConfigInfo(String connectionName, String password, String schema)
+	public String setDatabaseConfigInfo(String user, String password, String schema)
 		throws RemoteException
 	{
-		ConnectionConfig config = getConnectionConfig(connectionName, password);
-
-		if (!config.getConnectionInfo(connectionName).is_superuser)
+		if (!getConnectionInfo(user, password).is_superuser)
 			throw new RemoteException("Unable to store configuration information without superuser privileges.");
 		
 		// create info object
 		DatabaseConfigInfo info = new DatabaseConfigInfo();
 		info.schema = schema;
-		info.connection = connectionName;
-		config.setDatabaseConfigInfo(info);
+		info.connection = user;
+		getConnectionConfig().setDatabaseConfigInfo(info);
 
 		return String.format(
 				"The admin console will now use the \"%s\" connection to store configuration information.",
-				connectionName);
+				user);
 	}
 
-	// /////////////////////////////////////////////////
-	// functions for managing DataTable entries
-	// /////////////////////////////////////////////////
-	synchronized public void addChildToParent(String connectionName, String password, int child, int parent)
-		throws RemoteException
+	//////////////////////////
+	// DataEntity management
+	
+	public void addChildToParent(String user, String password, int childId, int parentId) throws RemoteException
 	{
-		ConnectionConfig config = getConnectionConfig(connectionName, password);
-		DataConfig dataConfig = getDataConfig();
-		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
-		if (cInfo.is_superuser)
-			dataConfig.addChild(child, parent);
+		tryModify(user, password, parentId);
+		getDataConfig().addChild(childId, parentId);
 	}
 
-	synchronized public void removeChildFromParent(String connectionName, String password, int child, int parent)
-		throws RemoteException
+	public void removeChildFromParent(String user, String password, int childId, int parentId) throws RemoteException
 	{
-		ConnectionConfig config = getConnectionConfig(connectionName, password);
-		DataConfig dataConfig = getDataConfig();
-		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
-		if (cInfo.is_superuser)
-			dataConfig.removeChild(child, parent);
+		tryModify(user, password, parentId);
+		getDataConfig().removeChild(childId, parentId);
 	}
 
-	/*
-	 * To avoid risking any mismatch between the frontend and backend's constants for entity types, we'll explicitly make separate methods for each
-	 * type, and make the generic addEntity private
-	 */
-	synchronized private int addEntity(
-			String connectionName, String password, int entity_type, DataEntityMetadata newmeta, int parentId)
-		throws RemoteException
+	public int addEntity(String user, String password, int entityType, DataEntityMetadata meta, int parentId) throws RemoteException
 	{
-		ConnectionConfig config = getConnectionConfig(connectionName, password);
-		DataConfig dataConfig = getDataConfig();
-		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
-		if (cInfo.is_superuser)
-			return dataConfig.addEntity(entity_type, newmeta, parentId);
-		return -1;
+		tryModify(user, password, parentId);
+		return getDataConfig().addEntity(entityType, meta, parentId);
 	}
 
-	synchronized public int copyEntity(String connectionName, String password, int id, int parentId)
-		throws RemoteException
+	public int copyEntity(String user, String password, int entityId, int newParentId) throws RemoteException
 	{
-		ConnectionConfig config = getConnectionConfig(connectionName, password);
-		DataConfig dataConfig = getDataConfig();
-		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
-		if (cInfo.is_superuser)
-			return dataConfig.copyEntity(id, parentId);
-		return -1;
+		tryModify(user, password, newParentId);
+		return getDataConfig().copyEntity(entityId, newParentId);
 	}
 
-	/* Type-specific AdminService methods */
-	synchronized public int addCategory(String connectionName, String password, Map<String, Map<String, String>> meta, int parentId)
-		throws RemoteException
+	public void removeEntity(String user, String password, int entityId) throws RemoteException
 	{
-		return addEntity(connectionName, password, DataEntity.TYPE_CATEGORY, DataEntityMetadata.fromMap(meta), parentId);
+		tryModify(user, password, entityId);
+		getDataConfig().removeEntity(entityId);
 	}
 
-	synchronized public int addDataTable(String connectionName, String password, Map<String, Map<String, String>> meta)
-		throws RemoteException
+	public void updateEntity(String user, String password, int entityId, DataEntityMetadata diff) throws RemoteException
 	{
-		return addEntity(connectionName, password, DataEntity.TYPE_DATATABLE, DataEntityMetadata.fromMap(meta), -1);
+		tryModify(user, password, entityId);
+		getDataConfig().updateEntity(entityId, diff);
 	}
 
-	synchronized public int addAttributeColumn(
-			String connectionName, String password, Map<String, Map<String, String>> meta, int parentId)
-		throws RemoteException
+	public Integer[] getEntityParentIds(String user, String password, int childId) throws RemoteException
 	{
-		return addEntity(connectionName, password, DataEntity.TYPE_COLUMN, DataEntityMetadata.fromMap(meta), parentId);
+		authenticate(user, password);
+		return getDataConfig().getParentIds(childId).toArray(new Integer[0]);
 	}
 
-	/* Common among all entities */
-	synchronized public void removeEntity(String connectionName, String password, int tag_id)
-		throws RemoteException
+	public Integer[] getEntityChildIds(String user, String password, int parentId) throws RemoteException
 	{
-		ConnectionConfig config = getConnectionConfig(connectionName, password);
-		DataConfig dataConfig = getDataConfig();
-		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
-		if (cInfo.is_superuser)
-			dataConfig.removeEntity(tag_id);
-		else
-			throw new RemoteException("User cannot remove entity.", null);
+		authenticate(user, password);
+		return getDataConfig().getChildIds(parentId).toArray(new Integer[0]);
 	}
 
-	synchronized public void updateEntity(
-			String connectionName, String password, int entity_id, Map<String, Map<String, String>> newdata)
-		throws RemoteException
+	public Integer[] getEntityIdsByMetadata(String user, String password, Map<String, Map<String, String>> meta, int entityType) throws RemoteException
 	{
-		ConnectionConfig config = getConnectionConfig(connectionName, password);
-		DataConfig dataConfig = getDataConfig();
-		ConnectionInfo cInfo = config.getConnectionInfo(connectionName);
-		if (cInfo.is_superuser)
-			dataConfig.updateEntity(entity_id, DataEntityMetadata.fromMap(newdata));
-		else
-			throw new RemoteException("User cannot modify entity.", null);
+		authenticate(user, password);
+		return getDataConfig().getEntityIdsByMetadata(DataEntityMetadata.fromMap(meta), entityType).toArray(new Integer[0]);
 	}
 
-	public Integer[] getEntityParentIds(String connectionName, String password, int child_id)
-		throws RemoteException
+	public DataEntity[] getEntitiesById(String user, String password, int[] ids) throws RemoteException
 	{
-		DataConfig config = getDataConfig(connectionName, password);
-		Collection<Integer> children = config.getParentIds(child_id);
-		return children.toArray(new Integer[0]);
-	}
-
-	public Integer[] getEntityChildIds(String connectionName, String password, int parent_id)
-		throws RemoteException
-	{
-		DataConfig config = getDataConfig(connectionName, password);
-		Collection<Integer> children = config.getChildIds(parent_id);
-		return children.toArray(new Integer[0]);
-	}
-
-	public DataEntity[] getEntitiesByMetadata(
-			String connectionName, String password, Map<String, Map<String, String>> meta, int type_id)
-		throws RemoteException
-	{
-		DataConfig config = getDataConfig(connectionName, password);
-		return config.getEntityIdsByMetadata(DataEntityMetadata.fromMap(meta), type_id).toArray(new DataEntity[0]);
-	}
-
-	public DataEntity[] getEntitiesById(String connectionName, String password, int[] ids)
-		throws RemoteException
-	{
-		DataConfig config = getDataConfig(connectionName, password);
+		authenticate(user, password);
+		DataConfig config = getDataConfig();
 		Set<Integer> idSet = new HashSet<Integer>();
 		for (int id : ids)
 			idSet.add(id);
@@ -692,27 +596,30 @@ public class AdminService
 		}
 		return result;
 	}
+	
+	//////////////////////
+	// SQL query testing
 
 	/**
 	 * Returns the results of testing attribute column sql queries.
 	 */
-	public DataEntity[] testAllQueries(String connectionName, String password, String tableName)
+	public DataEntity[] testAllQueries(String user, String password, String tableName)
 		throws RemoteException
 	{
-		DataConfig config = getDataConfig(connectionName, password);
+		authenticate(user, password);
 		DataEntityMetadata params = new DataEntityMetadata();
 		params.publicMetadata.put(PublicMetadata.TITLE, tableName);
-		Collection<Integer> ids = config.getEntityIdsByMetadata(params, DataEntity.TYPE_DATATABLE);
+		Collection<Integer> ids = getDataConfig().getEntityIdsByMetadata(params, DataEntity.TYPE_DATATABLE);
 		for (Integer id : ids)
-			return testAllQueries(connectionName, password, id);
+			return testAllQueries(user, password, id);
 		
 		return null;
 	}
 
-	public DataEntity[] testAllQueries(String connectionName, String password, int table_id)
+	public DataEntity[] testAllQueries(String user, String password, int table_id)
 		throws RemoteException
 	{
-		ConnectionConfig connConfig = getConnectionConfig(connectionName, password);
+		authenticate(user, password);
 		DataConfig config = getDataConfig();
 		Collection<Integer> ids = config.getChildIds(table_id);
 		DataEntity[] columns = config.getEntitiesById(ids).toArray(new DataEntity[0]);
@@ -720,11 +627,12 @@ public class AdminService
 		{
 			try
 			{
-				String query = entity.getSqlQuery();
-				String sqlParams = entity.getSqlParams();
+				String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
+				String query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
+				String sqlParams = entity.privateMetadata.get(PrivateMetadata.SQLPARAMS);
 				System.out.println(query);
 				SQLResult result;
-				Connection conn = connConfig.getConnectionInfo(entity.getConnectionName()).getStaticReadOnlyConnection();
+				Connection conn = getConnectionConfig().getConnectionInfo(connName).getStaticReadOnlyConnection();
 
 				if (sqlParams != null && sqlParams.length() > 0)
 				{
@@ -748,38 +656,35 @@ public class AdminService
 		return columns;
 	}
 
-	// ///////////////////////////////////////////
-	// functions for getting SQL info
-	// ///////////////////////////////////////////
+	///////////////////////
+	// SQL info retrieval
+	
 	/**
 	 * The following functions get information about the database associated with a given connection name.
 	 */
-	public String[] getSchemas(String configConnectionName, String password)
+	public String[] getSQLSchemaNames(String user, String password)
 		throws RemoteException
 	{
-		ConnectionConfig config = getConnectionConfig(configConnectionName, password);
-		List<String> schemas;
-		Connection conn = config.getConnectionInfo(configConnectionName).getStaticReadOnlyConnection();
 		try
 		{
-			schemas = SQLUtils.getSchemas(conn);
+			Connection conn = getConnectionInfo(user, password).getStaticReadOnlyConnection();
+			List<String> schemas = SQLUtils.getSchemas(conn);
+			// don't want to list information_schema.
+			ListUtils.removeIgnoreCase("information_schema", schemas);
+			return ListUtils.toStringArray(getSortedUniqueValues(schemas, false));
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("Unable to get schema list from database.", e);
 		}
-		// don't want to list information_schema.
-		ListUtils.removeIgnoreCase("information_schema", schemas);
-		return ListUtils.toStringArray(getSortedUniqueValues(schemas, false));
 	}
 
-	public String[] getTables(String configConnectionName, String password, String schemaName)
+	public String[] getSQLTableNames(String configConnectionName, String password, String schemaName)
 		throws RemoteException
 	{
-		ConnectionConfig config = getConnectionConfig(configConnectionName, password);
-		Connection conn = config.getConnectionInfo(configConnectionName).getStaticReadOnlyConnection();
 		try
 		{
+			Connection conn = getConnectionInfo(configConnectionName, password).getStaticReadOnlyConnection();
 			List<String> tables = SQLUtils.getTables(conn, schemaName);
 			return ListUtils.toStringArray(getSortedUniqueValues(tables, false));
 		}
@@ -789,33 +694,29 @@ public class AdminService
 		}
 	}
 
-	public String[] getColumns(String configConnectionName, String password, String schemaName, String tableName)
+	public String[] getSQLColumnNames(String configConnectionName, String password, String schemaName, String tableName)
 		throws RemoteException
 	{
-		ConnectionConfig config = getConnectionConfig(configConnectionName, password);
-		List<String> columns;
-		Connection conn = config.getConnectionInfo(configConnectionName).getStaticReadOnlyConnection();
 		try
 		{
-			columns = SQLUtils.getColumns(conn, schemaName, tableName);
+			Connection conn = getConnectionInfo(configConnectionName, password).getStaticReadOnlyConnection();
+			List<String> columns = SQLUtils.getColumns(conn, schemaName, tableName);
+			return ListUtils.toStringArray(columns);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("Unable to get column list from database.", e);
 		}
-		return ListUtils.toStringArray(columns);
 	}
 
-	// ///////////////////////////////////////////
-	// functions for getting miscellaneous info
-	// ///////////////////////////////////////////
+	//////////////////
+	// Miscellaneous
 
 	public String[] getKeyTypes(String connectionName, String password)
 		throws RemoteException
 	{
-		DataConfig config = getDataConfig(connectionName, password);
-
-		return config.getUniquePublicValues(PublicMetadata.KEYTYPE).toArray(new String[0]);
+		authenticate(connectionName, password);
+		return getDataConfig().getUniquePublicValues(PublicMetadata.KEYTYPE).toArray(new String[0]);
 	}
 
 	public UploadedFile[] getUploadedCSVFiles()
@@ -849,7 +750,7 @@ public class AdminService
 		return list.toArray(new UploadedFile[n]);
 	}
 
-	public UploadedFile[] getUploadedShapeFiles()
+	public UploadedFile[] getUploadedSHPFiles()
 		throws RemoteException
 	{
 		File directory = new File(getUploadPath());
@@ -1008,7 +909,7 @@ public class AdminService
 		return isUnique;
 	}
 
-	public String[] listDBFFileColumns(String dbfFileName)
+	public String[] getDBFColumnNames(String dbfFileName)
 		throws RemoteException
 	{
 		try
@@ -1077,15 +978,15 @@ public class AdminService
 		return result;
 	}
 
-	// ///////////////////////////////////////////
-	// functions for importing data
-	// ///////////////////////////////////////////
+	///////////////////
+	// File importing
 
 	/**
 	 * This function accepts an uploaded file.
 	 * 
 	 * @param fileName The name of the file.
 	 * @param content The file content.
+	 * @param append Set to true to append to an existing file.
 	 */
 	public void uploadFile(String fileName, InputStream content, boolean append)
 		throws RemoteException
@@ -1102,38 +1003,6 @@ public class AdminService
 		{
 			throw new RemoteException("File upload failed.", e);
 		}
-	}
-
-	/**
-	 * Return a list of files existing in the csv upload folder on the server.
-	 * 
-	 * @return A list of files existing in the csv upload folder.
-	 */
-	public List<String> getUploadedFileNames()
-		throws RemoteException
-	{
-		File uploadFolder = new File(getUploadPath());
-		File[] files = null;
-		List<String> listOfFiles = new ArrayList<String>();
-
-		try
-		{
-			files = uploadFolder.listFiles();
-			for (File file : files)
-			{
-				if (file.isFile())
-				{
-					// System.out.println(file.getName());
-					listOfFiles.add(file.getName());
-				}
-			}
-		}
-		catch (SecurityException e)
-		{
-			throw new RemoteException("Permission error reading directory.");
-		}
-
-		return listOfFiles;
 	}
 
 	private boolean valueIsInt(String value)
@@ -1179,20 +1048,20 @@ public class AdminService
 		return false;
 	}
 
-	synchronized public String importCSV(
+	public String importCSV(
 			String connectionName, String password, String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn,
 			String sqlSchema, String sqlTable, boolean sqlOverwrite, String configDataTableName,
 			boolean configOverwrite, String configGeometryCollectionName, String configKeyType, String[] nullValues,
 			String[] filterColumnNames)
 		throws RemoteException
 	{
+		ConnectionInfo connInfo = getConnectionInfo(connectionName, password);
+		DataConfig dataConfig = getDataConfig();
+		
 		final int StringType = 0;
 		final int IntType = 1;
 		final int DoubleType = 2;
 		
-		ConnectionConfig connConfig = getConnectionConfig(connectionName, password);
-		DataConfig dataConfig = getDataConfig();
-		ConnectionInfo connInfo = connConfig.getConnectionInfo(connectionName);
 		if (sqlOverwrite && !connInfo.is_superuser)
 			throw new RemoteException(String.format(
 					"User \"%s\" does not have permission to overwrite SQL tables.", connectionName));
@@ -1201,7 +1070,7 @@ public class AdminService
 		Statement stmt = null;
 		try
 		{
-			conn = connConfig.getConnectionInfo(connectionName).getConnection();
+			conn = connInfo.getConnection();
 
 			sqlTable = sqlTable.toLowerCase(); // bug fix for MySQL running under Linux
 
@@ -1422,7 +1291,7 @@ public class AdminService
 			}
 			else
 			{
-				if (ListUtils.findIgnoreCase(sqlTable, getTables(connectionName, password, sqlSchema)) >= 0)
+				if (ListUtils.findIgnoreCase(sqlTable, getSQLTableNames(connectionName, password, sqlSchema)) >= 0)
 					throw new RemoteException("CSV not imported.\nSQL table already exists.");
 			}
 
@@ -1488,21 +1357,21 @@ public class AdminService
 		}
 	}
 
-	synchronized public String addConfigDataTableFromDatabase(
+	public String importSQL(
 			String connectionName, String password, String schemaName, String tableName, String keyColumnName,
 			String secondaryKeyColumnName, String configDataTableName,
 			String geometryCollectionName, String keyType, String[] filterColumnNames)
 		throws RemoteException
 	{
 		authenticate(connectionName, password);
-		String[] columnNames = getColumns(connectionName, password, schemaName, tableName);
+		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
 		return addConfigDataTable(
 				configDataTableName, connectionName, geometryCollectionName, keyType,
 				keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false,
 				filterColumnNames);
 	}
 
-	synchronized private String addConfigDataTable(
+	private String addConfigDataTable(
 			String configDataTableName, String connectionName,
 			String geometryCollectionName, String keyType, String keyColumnName, String secondarySqlKeyColumn,
 			String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable,
@@ -1760,17 +1629,17 @@ public class AdminService
 	 * The following functions involve getting shapes into the database and into the config file.
 	 */
 
-	synchronized public String convertShapefileToSQLStream(
+	public String importSHP(
 			String configConnectionName, String password, String[] fileNameWithoutExtension, String[] keyColumns,
 			String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName,
 			String configKeyType, String projectionSRS, String[] nullValues, boolean importDBFData)
 		throws RemoteException
 	{
+		ConnectionInfo connInfo = getConnectionInfo(configConnectionName, password);
+		
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();
 
-		ConnectionConfig connConfig = getConnectionConfig(configConnectionName, password);
-		ConnectionInfo connInfo = connConfig.getConnectionInfo(configConnectionName);
 
 		if (sqlOverwrite && !connInfo.is_superuser)
 			throw new RemoteException(String.format(
@@ -1800,7 +1669,7 @@ public class AdminService
 			// store dbf data to database
 			if (importDBFData)
 			{
-				storeDBFDataToDatabase(
+				importDBF(
 						configConnectionName, password, fileNameWithoutExtension, sqlSchema, dbfTableName,
 						sqlOverwrite, nullValues);
 			}
@@ -1848,7 +1717,7 @@ public class AdminService
 			}
 
 			// add SQL statements to sqlconfig
-			String[] columnNames = getColumns(configConnectionName, password, sqlSchema, dbfTableName);
+			String[] columnNames = getSQLColumnNames(configConnectionName, password, sqlSchema, dbfTableName);
 			resultAddSQL = addConfigDataTable(
 					configGeometryCollectionName, configConnectionName,
 					configGeometryCollectionName, configKeyType, keyColumnsString, null, columnNames, columnNames,
@@ -1885,24 +1754,24 @@ public class AdminService
 		return resultAddSQL;
 	}
 
-	synchronized public String storeDBFDataToDatabase(
+	public String importDBF(
 			String configConnectionName, String password, String[] fileNameWithoutExtension, String sqlSchema,
 			String sqlTableName, boolean sqlOverwrite, String[] nullValues)
 		throws RemoteException
 	{
+		ConnectionInfo info = getConnectionInfo(configConnectionName, password);
+		
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTableName = sqlTableName.toLowerCase();
 
-		ConnectionConfig config = getConnectionConfig(configConnectionName, password);
-		ConnectionInfo connInfo = config.getConnectionInfo(configConnectionName);
-		if (sqlOverwrite && !connInfo.is_superuser)
+		if (sqlOverwrite && !info.is_superuser)
 			throw new RemoteException(String.format(
 					"User \"%s\" does not have permission to overwrite SQL tables.", configConnectionName));
 
 		Connection conn = null;
 		try
 		{
-			conn = config.getConnectionInfo(configConnectionName).getConnection();
+			conn = info.getConnection();
 			File[] files = new File[fileNameWithoutExtension.length];
 			for (int i = 0; i < files.length; i++)
 				files[i] = new File(getUploadPath() + fileNameWithoutExtension[i] + ".dbf");
@@ -1924,48 +1793,21 @@ public class AdminService
 		return "DBF Data stored successfully";
 	}
 
-	synchronized public String saveReportDefinitionFile(String fileName, String fileContents)
-		throws RemoteException
-	{
-		File reportDefFile;
-		try
-		{
-			File docrootDir = new File(getDocrootPath());
-			if (!docrootDir.exists())
-				throw new RemoteException("Unable to find docroot directory");
-			File reportsDir = new File(docrootDir, "\\WeaveReports");
-			if (!reportsDir.exists())
-				reportsDir.mkdir();
-			if (!reportsDir.exists())
-				throw new RemoteException("Unable to access reports directory");
-			reportDefFile = new File(reportsDir, fileName);
-			BufferedWriter writer = new BufferedWriter(new FileWriter(reportDefFile));
-			writer.write(fileContents);
-			writer.close();
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("Error writing report definition file: " + fileName, e);
-		}
-		return "Successfully wrote the report definition file: " + reportDefFile.getAbsolutePath();
-	}
-
 	public boolean checkKeyColumnForSQLImport(
 			String connectionName, String password, String schemaName, String tableName, String keyColumnName,
 			String secondaryKeyColumnName)
 		throws RemoteException
 	{
+		ConnectionInfo info = getConnectionInfo(connectionName, password);
+		
 		Boolean isUnique = false;
 
-		ConnectionConfig config = getConnectionConfig(connectionName, password);
-
-		ConnectionInfo info = config.getConnectionInfo(connectionName);
 		if (info == null)
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
 
 		String dbms = info.dbms;
 
-		String[] columnNames = getColumns(connectionName, password, schemaName, tableName);
+		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
 
 		// if key column is actually the name of a column, put quotes around it.
 		// otherwise, don't.
@@ -1978,10 +1820,8 @@ public class AdminService
 		}
 		else
 		{
-			keyColumnName = SQLUtils.unquoteSymbol(dbms, keyColumnName); // get
-																			// the
-																			// original
-																			// columnname
+			// get the original column name
+			keyColumnName = SQLUtils.unquoteSymbol(dbms, keyColumnName);
 		}
 
 		if (iSecondaryKey >= 0)

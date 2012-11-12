@@ -44,7 +44,7 @@ import weave.config.DataConfig.DataEntityMetadata;
 import weave.config.DataConfig.DataType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
-import weave.config.WeaveConfig;
+import static weave.config.WeaveConfig.*;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
@@ -69,21 +69,11 @@ public class DataService extends GenericServlet
 	public void init(ServletConfig config) throws ServletException
 	{
 		super.init(config);
-		WeaveConfig.init(WeaveContextParams.getInstance(config.getServletContext()));
+		initWeaveConfig(WeaveContextParams.getInstance(config.getServletContext()));
 	}
 	
 	/////////////////////
 	// helper functions
-	
-	private ConnectionConfig getConnectionConfig() throws RemoteException
-	{
-		return WeaveConfig.getConnectionConfig();
-	}
-	
-	private DataConfig getDataConfig() throws RemoteException
-	{
-		return WeaveConfig.getDataConfig();
-	}
 	
 	private DataEntity getColumnEntity(int columnId) throws RemoteException
 	{

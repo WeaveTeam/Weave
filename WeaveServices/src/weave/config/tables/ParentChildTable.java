@@ -11,6 +11,7 @@ package weave.config.tables;
 import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,8 +30,9 @@ import weave.utils.SQLUtils;
  */
 public class ParentChildTable extends AbstractTable
 {
-	private final String FIELD_CHILD = "child_id";
-	private final String FIELD_PARENT = "parent_id";
+	public static final String FIELD_CHILD = "child_id";
+	public static final String FIELD_PARENT = "parent_id";
+	public static final String FIELD_ORDER = "order";
 	
     public ParentChildTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
     {
@@ -43,8 +45,8 @@ public class ParentChildTable extends AbstractTable
 			Connection conn = connectionConfig.getAdminConnection();
 			SQLUtils.createTable(
 					conn, schemaName, tableName,
-					Arrays.asList(FIELD_CHILD, FIELD_PARENT),
-					Arrays.asList("BIGINT UNSIGNED", "BIGINT UNSIGNED")
+					Arrays.asList(FIELD_CHILD, FIELD_PARENT, FIELD_ORDER),
+					Arrays.asList("BIGINT UNSIGNED", "BIGINT UNSIGNED", "BIGINT UNSIGNED")
 			);
 			/* No indices needed. */
         }
@@ -53,15 +55,27 @@ public class ParentChildTable extends AbstractTable
             throw new RemoteException("Unable to initialize parent/child table.", e);
         }
     }
+    @Deprecated 
     public void addChild(Integer child_id, Integer parent_id) throws RemoteException
+    {
+    	addChildAt(child_id, parent_id, 0);
+    }
+    public void addChildAt(Integer child_id, Integer parent_id, Integer insertAt) throws RemoteException
     {
         try 
         {
-            Connection conn = connectionConfig.getAdminConnection();
+        	Connection conn = connectionConfig.getAdminConnection();
+        	
+        	// shift all existing children prior to insert
+            Statement stmt = conn.createStatement();
+            String updateQuery = String.format("update %s set %s=%s+1 where %s >= %s", tableName, FIELD_ORDER, FIELD_ORDER, FIELD_ORDER, insertAt);
+            stmt.executeUpdate(updateQuery);
+            
             Map<String, Object> sql_args = new HashMap<String,Object>();
             removeChild(child_id, parent_id);
             sql_args.put(FIELD_CHILD, child_id);
             sql_args.put(FIELD_PARENT, parent_id);
+            sql_args.put(FIELD_PARENT, insertAt);
             SQLUtils.insertRow(conn, schemaName, tableName, sql_args);
         }
         catch (SQLException e)
@@ -77,7 +91,7 @@ public class ParentChildTable extends AbstractTable
 			Map<String,Object> query = new HashMap<String,Object>();
 			query.put(FIELD_CHILD, child_id);
 			Set<Integer> parents = new HashSet<Integer>();
-			for (Map<String,Object> row : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class))
+			for (Map<String,Object> row : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class, null))
 			{
 				Number parent = (Number)row.get(FIELD_PARENT);
 				parents.add(parent.intValue());
@@ -104,7 +118,7 @@ public class ParentChildTable extends AbstractTable
                 Map<String,Object> query = new HashMap<String,Object>();
                 query.put(FIELD_PARENT, parent_id);
                 List<Integer> children = new LinkedList<Integer>();
-                for (Map<String,Object> row : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class))
+                for (Map<String,Object> row : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class, FIELD_ORDER))
                 {
                 	Number child = (Number)row.get(FIELD_CHILD);
                     children.add(child.intValue());

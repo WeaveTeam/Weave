@@ -27,8 +27,8 @@ import weave.utils.SQLUtils;
  */
 public class ManifestTable extends AbstractTable
 {
-	private final String FIELD_ID = "unique_id";
-	private final String FIELD_TYPE = "type_id";
+	public static final String FIELD_ID = "id";
+	public static final String FIELD_TYPE = "type";
 	
     public ManifestTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
     {
@@ -99,7 +99,7 @@ public class ManifestTable extends AbstractTable
             for (Integer id : ids)
             {
                 whereParams.put(FIELD_ID, id);
-                sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class);
+                sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class, null);
                 // sqlres has one or zero rows
                 if (sqlres.size() == 0)
                 {
@@ -127,7 +127,7 @@ public class ManifestTable extends AbstractTable
             List<Map<String,Object>> sqlres;
             Connection conn = connectionConfig.getAdminConnection();
             whereParams.put(FIELD_TYPE, type_id);
-            sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class);
+            sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class, null);
             for (Map<String,Object> row : sqlres)
             {
             	Number id = (Number) row.get(FIELD_ID);

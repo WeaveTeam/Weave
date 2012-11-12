@@ -33,7 +33,7 @@ public class WeaveConfig
 	private static ConnectionConfig _connConfig;
 	private static DataConfig _dataConfig;
 	
-	public static void init(WeaveContextParams wcp)
+	public static void initWeaveConfig(WeaveContextParams wcp)
 	{
 		if (weaveContextParams == null)
 			weaveContextParams = wcp;
@@ -53,7 +53,6 @@ public class WeaveConfig
 		}
 		return _connConfig;
 	}
-	
 	
 	public static DataConfig getDataConfig() throws RemoteException
 	{
@@ -80,5 +79,20 @@ public class WeaveConfig
 			if (_dataConfig == null)
 				_dataConfig = cc.initializeNewDataConfig(new PrintStream(out));
 		}
+	}
+	
+	public static String getDocrootPath()
+	{
+		return weaveContextParams.getDocrootPath();
+	}
+	
+	public static String getUploadPath()
+	{
+		return weaveContextParams.getUploadPath();
+	}
+	
+	public static String getTempPath()
+	{
+		return weaveContextParams.getTempPath();
 	}
 }

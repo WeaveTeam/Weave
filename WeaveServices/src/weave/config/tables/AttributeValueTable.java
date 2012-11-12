@@ -30,9 +30,9 @@ import weave.utils.SQLUtils;
  */
 public class AttributeValueTable extends AbstractTable
 {
-	private final String FIELD_ID = "id";
-	private final String FIELD_PROPERTY = "property";
-	private final String FIELD_VALUE = "value";
+	public static final String FIELD_ID = "id";
+	public static final String FIELD_PROPERTY = "property";
+	public static final String FIELD_VALUE = "value";
 	
     public AttributeValueTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
     {
@@ -128,7 +128,7 @@ public class AttributeValueTable extends AbstractTable
             Map<String,Object> params = new HashMap<String,Object>();
             Map<Integer,String> result = new HashMap<Integer,String>();
             params.put(FIELD_PROPERTY, property);
-            List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_VALUE), schemaName, tableName, params, Object.class);
+            List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_VALUE), schemaName, tableName, params, Object.class, null);
             for (Map<String,Object> row : rows)
             {
             	Number id = (Number)row.get(FIELD_ID);

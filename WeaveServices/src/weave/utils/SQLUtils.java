@@ -613,6 +613,7 @@ public class SQLUtils
 	 * @param fromTable The table to perform the SELECT statement on.
 	 * @param whereParams A map of column names to String values used to construct a WHERE clause.
 	 * @param valueType Either String.class or Object.class to denote the VALUE_TYPE class.
+	 * @param orderBy The field to order by.  May be null.
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */
@@ -622,7 +623,8 @@ public class SQLUtils
 			String fromSchema,
 			String fromTable,
 			Map<String,VALUE_TYPE> whereParams,
-			Class<VALUE_TYPE> valueType
+			Class<VALUE_TYPE> valueType,
+			String orderBy
 		) throws SQLException
 	{
 		CallableStatement cstmt = null;
@@ -646,13 +648,17 @@ public class SQLUtils
 				whereParams = Collections.emptyMap();
 			List<Entry<String,VALUE_TYPE>> whereEntries = imposeMapOrdering(whereParams);
 			String whereQuery = buildWhereClause(conn, getEntryKeys(whereEntries));
+			String orderByQuery = "";
+			if (orderBy != null)
+				orderByQuery = String.format("ORDER BY %s", orderBy);
 			
 			// build complete query
 			query = String.format(
-					"SELECT %s FROM %s %s",
+					"SELECT %s FROM %s %s %s",
 					columnQuery,
 					quoteSchemaTable(conn, fromSchema, fromTable),
-					whereQuery
+					whereQuery,
+					orderByQuery
 				);
 			cstmt = prepareCall(conn, query, getEntryValues(whereEntries));
 			rs = cstmt.executeQuery();
