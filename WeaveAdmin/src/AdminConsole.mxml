@@ -29,7 +29,7 @@
 		borderAlpha="0.5" backgroundColor="#DBDBDB"
 		bottom="10" top="10" right="10" left="10"
 		paddingLeft="8" paddingRight="8" paddingTop="8" paddingBottom="8">
-		<mx:ViewStack width="100%" height="100%" selectedIndex="{AdminInterface.instance.userHasAuthenticated ? 0 : (AdminInterface.instance.sqlConfigExists ? 1 : 2)}">
+		<mx:ViewStack width="100%" height="100%" selectedIndex="{AdminInterface.instance.userHasAuthenticated ? MAIN_VIEW : (AdminInterface.instance.databaseConfigExists ? LOGIN_VIEW : SETUP_VIEW)}">
 			<mx:VBox width="100%" height="100%">
 				<mx:HBox width="100%">
 					<!--mx:Button label="Import SQL data..." click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="open dialog with wizard to import data from existing sql"/-->
@@ -45,7 +45,7 @@
 					<mx:VBox>
 						<mx:HBox>
 							<mx:Label text="{'Signed in as: ' + AdminInterface.instance.activeConnectionName}" textAlign="right"/>
-							<mx:Button label="Sign out" enabled="{AdminInterface.instance.sqlConfigExists == true}"
+							<mx:Button label="Sign out" enabled="{AdminInterface.instance.databaseConfigExists == true}"
 									   click="AdminInterface.instance.activeConnectionName = AdminInterface.instance.activePassword = '';"/>
 						</mx:HBox>
 						<mx:HBox id="resdHacks" visible='false' includeInLayout="false">
@@ -108,6 +108,9 @@
 			import weave.ui.admin.wizards.SHPImportWizard;
 			import weave.ui.admin.wizards.SQLImportWizard;
 
+			private const MAIN_VIEW:int = 0;
+			private const LOGIN_VIEW:int = 1;
+			private const SETUP_VIEW:int = 2;
 			
 			SessionStateEditor.getInstance(); // adds keyboard shortcut f8 to open console
 			

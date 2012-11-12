@@ -113,7 +113,7 @@ public class AdminService
 		}
 	}
 	
-	public boolean databaseConfigExists() throws RemoteException
+	public boolean checkDatabaseConfigExists() throws RemoteException
 	{
 		return getConnectionConfig().getDatabaseConfigInfo() != null;
 	}
@@ -135,7 +135,7 @@ public class AdminService
 		return info;
 	}
 	
-    public void tryModify(String user, String pass, int entityId) throws RemoteException
+    private void tryModify(String user, String pass, int entityId) throws RemoteException
     {
         // superuser can modify anything
         if (!getConnectionInfo(user, pass).is_superuser)
@@ -580,10 +580,10 @@ public class AdminService
 		return getDataConfig().getChildIds(parentId).toArray(new Integer[0]);
 	}
 
-	public Integer[] getEntityIdsByMetadata(String user, String password, Map<String, Map<String, String>> meta, int entityType) throws RemoteException
+	public Integer[] getEntityIdsByMetadata(String user, String password, DataEntityMetadata meta, int entityType) throws RemoteException
 	{
 		authenticate(user, password);
-		return getDataConfig().getEntityIdsByMetadata(DataEntityMetadata.fromMap(meta), entityType).toArray(new Integer[0]);
+		return getDataConfig().getEntityIdsByMetadata(meta, entityType).toArray(new Integer[0]);
 	}
 
 	public DataEntity[] getEntitiesById(String user, String password, int[] ids) throws RemoteException
@@ -600,65 +600,6 @@ public class AdminService
 			result[i] = new DataEntityWithChildren(result[i], childIds);
 		}
 		return result;
-	}
-	
-	//////////////////////
-	// SQL query testing
-
-	/**
-	 * Returns the results of testing attribute column sql queries.
-	 */
-	public DataEntity[] testAllQueries(String user, String password, String tableName)
-		throws RemoteException
-	{
-		authenticate(user, password);
-		DataEntityMetadata params = new DataEntityMetadata();
-		params.publicMetadata.put(PublicMetadata.TITLE, tableName);
-		Collection<Integer> ids = getDataConfig().getEntityIdsByMetadata(params, DataEntity.TYPE_DATATABLE);
-		for (Integer id : ids)
-			return testAllQueries(user, password, id);
-		
-		return null;
-	}
-
-	public DataEntity[] testAllQueries(String user, String password, int table_id)
-		throws RemoteException
-	{
-		authenticate(user, password);
-		DataConfig config = getDataConfig();
-		Collection<Integer> ids = config.getChildIds(table_id);
-		DataEntity[] columns = config.getEntitiesById(ids).toArray(new DataEntity[0]);
-		for (DataEntity entity : columns)
-		{
-			try
-			{
-				String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
-				String query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
-				String sqlParams = entity.privateMetadata.get(PrivateMetadata.SQLPARAMS);
-				System.out.println(query);
-				SQLResult result;
-				Connection conn = getConnectionConfig().getConnectionInfo(connName).getStaticReadOnlyConnection();
-
-				if (sqlParams != null && sqlParams.length() > 0)
-				{
-					String[] sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
-					result = SQLUtils.getRowSetFromQuery(conn, query, sqlParamsArray);
-				}
-				else
-				{
-					result = SQLUtils.getRowSetFromQuery(conn, query);
-				}
-
-				entity.privateMetadata.put(PrivateMetadata.SQLRESULT, String.format(
-						"Returned %s rows", result.rows.length));
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-				entity.privateMetadata.put(PrivateMetadata.SQLRESULT, e.getMessage());
-			}
-		}
-		return columns;
 	}
 
 	///////////////////////
@@ -714,14 +655,31 @@ public class AdminService
 		}
 	}
 
-	//////////////////
-	// Miscellaneous
+	/////////////////
+	// File uploads
 
-	public String[] getKeyTypes(String connectionName, String password)
+	/**
+	 * This function accepts an uploaded file.
+	 * 
+	 * @param fileName The name of the file.
+	 * @param content The file content.
+	 * @param append Set to true to append to an existing file.
+	 */
+	public void uploadFile(String fileName, InputStream content, boolean append)
 		throws RemoteException
 	{
-		authenticate(connectionName, password);
-		return getDataConfig().getUniquePublicValues(PublicMetadata.KEYTYPE).toArray(new String[0]);
+		// make sure the upload folder exists
+		(new File(getUploadPath())).mkdirs();
+
+		String filePath = getUploadPath() + fileName;
+		try
+		{
+			FileUtils.copy(content, new FileOutputStream(filePath, append));
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("File upload failed.", e);
+		}
 	}
 
 	public UploadedFile[] getUploadedCSVFiles()
@@ -817,6 +775,171 @@ public class AdminService
 		return headerLine;
 	}
 
+	public String[] getDBFColumnNames(String dbfFileName)
+		throws RemoteException
+	{
+		try
+		{
+			List<String> names = DBFUtils.getAttributeNames(new File(getUploadPath(), correctFileNameCase(dbfFileName)));
+			return ListUtils.toStringArray(names);
+		}
+		catch (IOException e)
+		{
+			throw new RemoteException("IOException", e);
+		}
+	}
+
+	public Object[][] getDBFData(String dbfFileName)
+		throws RemoteException
+	{
+		try
+		{
+			Object[][] dataArray = DBFUtils.getDBFData(new File(getUploadPath(), correctFileNameCase(dbfFileName)));
+			return dataArray;
+		}
+		catch (IOException e)
+		{
+			throw new RemoteException("IOException", e);
+		}
+	}
+
+	private String correctFileNameCase(String fileName)
+	{
+		try
+		{
+			File directory = new File(getUploadPath());
+
+			if (directory.isDirectory())
+			{
+				for (String file : directory.list())
+				{
+					if (file.equalsIgnoreCase(fileName))
+						return file;
+				}
+			}
+		}
+		catch (Exception e)
+		{
+		}
+		return fileName;
+	}
+
+	/////////////////////////////////
+	// Key column uniqueness checks
+
+	/**
+	 * getSortedUniqueValues
+	 * 
+	 * @param values A list of string values which may contain duplicates.
+	 * @param moveEmptyStringToEnd If set to true and "" is at the front of the list, "" is moved to the end.
+	 * @return A sorted list of unique values found in the given list.
+	 */
+	private List<String> getSortedUniqueValues(List<String> values, boolean moveEmptyStringToEnd)
+	{
+		Set<String> uniqueValues = new HashSet<String>();
+		uniqueValues.addAll(values);
+		Vector<String> result = new Vector<String>(uniqueValues);
+		Collections.sort(result, String.CASE_INSENSITIVE_ORDER);
+		// if empty string is at beginning of sorted list, move it to the end of
+		// the list
+		if (moveEmptyStringToEnd && result.size() > 0 && result.get(0).equals(""))
+			result.add(result.remove(0));
+		return result;
+	}
+	
+	public boolean checkKeyColumnForSQLImport(
+			String connectionName, String password, String schemaName, String tableName, String keyColumnName,
+			String secondaryKeyColumnName)
+		throws RemoteException
+	{
+		ConnectionInfo info = getConnectionInfo(connectionName, password);
+		
+		Boolean isUnique = false;
+
+		if (info == null)
+			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
+
+		String dbms = info.dbms;
+
+		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
+
+		// if key column is actually the name of a column, put quotes around it.
+		// otherwise, don't.
+		int iKey = ListUtils.findIgnoreCase(keyColumnName, columnNames);
+		int iSecondaryKey = ListUtils.findIgnoreCase(secondaryKeyColumnName, columnNames);
+
+		if (iKey >= 0)
+		{
+			keyColumnName = SQLUtils.quoteSymbol(dbms, columnNames[iKey]);
+		}
+		else
+		{
+			// get the original column name
+			keyColumnName = SQLUtils.unquoteSymbol(dbms, keyColumnName);
+		}
+
+		if (iSecondaryKey >= 0)
+			secondaryKeyColumnName = SQLUtils.quoteSymbol(dbms, columnNames[iSecondaryKey]);
+
+		Connection conn = null;
+		try
+		{
+			conn = info.getConnection();
+			if (secondaryKeyColumnName == null || secondaryKeyColumnName.isEmpty())
+			{
+				String totalRowsQuery = String.format(
+						"select count(%s) from %s", keyColumnName, SQLUtils.quoteSchemaTable(
+								conn, schemaName, tableName));
+				SQLResult totalRowsResult = SQLUtils.getRowSetFromQuery(conn, totalRowsQuery);
+
+				String distinctRowsQuery = String.format(
+						"select count(distinct %s) from %s", keyColumnName, SQLUtils.quoteSchemaTable(
+								conn, schemaName, tableName));
+				SQLResult distinctRowsResult = SQLUtils.getRowSetFromQuery(conn, distinctRowsQuery);
+
+				isUnique = distinctRowsResult.rows[0][0].toString().equalsIgnoreCase(
+						totalRowsResult.rows[0][0].toString());
+			}
+			else
+			{
+
+				String query = String.format(
+						"select %s,%s from %s", keyColumnName, secondaryKeyColumnName, SQLUtils.quoteSchemaTable(
+								conn, schemaName, tableName));
+
+				SQLResult result = SQLUtils.getRowSetFromQuery(conn, query);
+
+				HashMap<String, Boolean> map = new HashMap<String, Boolean>();
+
+				isUnique = true;
+				for (int i = 0; i < result.rows.length; i++)
+				{
+					if (map.get(result.rows[i][0].toString() + ',' + result.rows[i][1].toString()) == null)
+					{
+						map.put(result.rows[i][0].toString() + ',' + result.rows[i][1].toString(), true);
+					}
+					else
+					{
+						isUnique = false;
+						break;
+					}
+
+				}
+			}
+
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("Error querying key columns", e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(conn);
+		}
+
+		return isUnique;
+	}
+	
 	/**
 	 * Check if selected key column from CSV data has unique values
 	 * 
@@ -913,102 +1036,9 @@ public class AdminService
 
 		return isUnique;
 	}
-
-	public String[] getDBFColumnNames(String dbfFileName)
-		throws RemoteException
-	{
-		try
-		{
-			List<String> names = DBFUtils.getAttributeNames(new File(getUploadPath(), correctFileNameCase(dbfFileName)));
-			return ListUtils.toStringArray(names);
-		}
-		catch (IOException e)
-		{
-			throw new RemoteException("IOException", e);
-		}
-	}
-
-	public Object[][] getDBFData(String dbfFileName)
-		throws RemoteException
-	{
-		try
-		{
-			Object[][] dataArray = DBFUtils.getDBFData(new File(getUploadPath(), correctFileNameCase(dbfFileName)));
-			return dataArray;
-		}
-		catch (IOException e)
-		{
-			throw new RemoteException("IOException", e);
-		}
-	}
-
-	private String correctFileNameCase(String fileName)
-	{
-		try
-		{
-			File directory = new File(getUploadPath());
-
-			if (directory.isDirectory())
-			{
-				for (String file : directory.list())
-				{
-					if (file.equalsIgnoreCase(fileName))
-						return file;
-				}
-			}
-		}
-		catch (Exception e)
-		{
-		}
-		return fileName;
-	}
-
-	/**
-	 * getSortedUniqueValues
-	 * 
-	 * @param values A list of string values which may contain duplicates.
-	 * @param moveEmptyStringToEnd If set to true and "" is at the front of the list, "" is moved to the end.
-	 * @return A sorted list of unique values found in the given list.
-	 */
-	private List<String> getSortedUniqueValues(List<String> values, boolean moveEmptyStringToEnd)
-	{
-		Set<String> uniqueValues = new HashSet<String>();
-		uniqueValues.addAll(values);
-		Vector<String> result = new Vector<String>(uniqueValues);
-		Collections.sort(result, String.CASE_INSENSITIVE_ORDER);
-		// if empty string is at beginning of sorted list, move it to the end of
-		// the list
-		if (moveEmptyStringToEnd && result.size() > 0 && result.get(0).equals(""))
-			result.add(result.remove(0));
-		return result;
-	}
-
-	///////////////////
-	// File importing
-
-	/**
-	 * This function accepts an uploaded file.
-	 * 
-	 * @param fileName The name of the file.
-	 * @param content The file content.
-	 * @param append Set to true to append to an existing file.
-	 */
-	public void uploadFile(String fileName, InputStream content, boolean append)
-		throws RemoteException
-	{
-		// make sure the upload folder exists
-		(new File(getUploadPath())).mkdirs();
-
-		String filePath = getUploadPath() + fileName;
-		try
-		{
-			FileUtils.copy(content, new FileOutputStream(filePath, append));
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("File upload failed.", e);
-		}
-	}
+	
+	////////////////
+	// Data import
 
 	private boolean valueIsInt(String value)
 	{
@@ -1798,97 +1828,60 @@ public class AdminService
 
 		return "DBF Data stored successfully";
 	}
+	
+	//////////////////////
+	// SQL query testing
 
-	public boolean checkKeyColumnForSQLImport(
-			String connectionName, String password, String schemaName, String tableName, String keyColumnName,
-			String secondaryKeyColumnName)
+	/**
+	 * Returns the results of testing attribute column sql queries.
+	 */
+	public DataEntity[] testAllQueries(String user, String password, int table_id)
 		throws RemoteException
 	{
-		ConnectionInfo info = getConnectionInfo(connectionName, password);
-		
-		Boolean isUnique = false;
-
-		if (info == null)
-			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
-
-		String dbms = info.dbms;
-
-		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
-
-		// if key column is actually the name of a column, put quotes around it.
-		// otherwise, don't.
-		int iKey = ListUtils.findIgnoreCase(keyColumnName, columnNames);
-		int iSecondaryKey = ListUtils.findIgnoreCase(secondaryKeyColumnName, columnNames);
-
-		if (iKey >= 0)
+		authenticate(user, password);
+		DataConfig config = getDataConfig();
+		Collection<Integer> ids = config.getChildIds(table_id);
+		DataEntity[] columns = config.getEntitiesById(ids).toArray(new DataEntity[0]);
+		for (DataEntity entity : columns)
 		{
-			keyColumnName = SQLUtils.quoteSymbol(dbms, columnNames[iKey]);
-		}
-		else
-		{
-			// get the original column name
-			keyColumnName = SQLUtils.unquoteSymbol(dbms, keyColumnName);
-		}
-
-		if (iSecondaryKey >= 0)
-			secondaryKeyColumnName = SQLUtils.quoteSymbol(dbms, columnNames[iSecondaryKey]);
-
-		Connection conn = null;
-		try
-		{
-			conn = info.getConnection();
-			if (secondaryKeyColumnName == null || secondaryKeyColumnName.isEmpty())
+			try
 			{
-				String totalRowsQuery = String.format(
-						"select count(%s) from %s", keyColumnName, SQLUtils.quoteSchemaTable(
-								conn, schemaName, tableName));
-				SQLResult totalRowsResult = SQLUtils.getRowSetFromQuery(conn, totalRowsQuery);
+				String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
+				String query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
+				String sqlParams = entity.privateMetadata.get(PrivateMetadata.SQLPARAMS);
+				System.out.println(query);
+				SQLResult result;
+				Connection conn = getConnectionConfig().getConnectionInfo(connName).getStaticReadOnlyConnection();
 
-				String distinctRowsQuery = String.format(
-						"select count(distinct %s) from %s", keyColumnName, SQLUtils.quoteSchemaTable(
-								conn, schemaName, tableName));
-				SQLResult distinctRowsResult = SQLUtils.getRowSetFromQuery(conn, distinctRowsQuery);
-
-				isUnique = distinctRowsResult.rows[0][0].toString().equalsIgnoreCase(
-						totalRowsResult.rows[0][0].toString());
-			}
-			else
-			{
-
-				String query = String.format(
-						"select %s,%s from %s", keyColumnName, secondaryKeyColumnName, SQLUtils.quoteSchemaTable(
-								conn, schemaName, tableName));
-
-				SQLResult result = SQLUtils.getRowSetFromQuery(conn, query);
-
-				HashMap<String, Boolean> map = new HashMap<String, Boolean>();
-
-				isUnique = true;
-				for (int i = 0; i < result.rows.length; i++)
+				if (sqlParams != null && sqlParams.length() > 0)
 				{
-					if (map.get(result.rows[i][0].toString() + ',' + result.rows[i][1].toString()) == null)
-					{
-						map.put(result.rows[i][0].toString() + ',' + result.rows[i][1].toString(), true);
-					}
-					else
-					{
-						isUnique = false;
-						break;
-					}
-
+					String[] sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
+					result = SQLUtils.getRowSetFromQuery(conn, query, sqlParamsArray);
 				}
+				else
+				{
+					result = SQLUtils.getRowSetFromQuery(conn, query);
+				}
+
+				entity.privateMetadata.put(PrivateMetadata.SQLRESULT, String.format(
+						"Returned %s rows", result.rows.length));
 			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+				entity.privateMetadata.put(PrivateMetadata.SQLRESULT, e.getMessage());
+			}
+		}
+		return columns;
+	}
 
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("Error querying key columns", e);
-		}
-		finally
-		{
-			SQLUtils.cleanup(conn);
-		}
+	//////////////////
+	// Miscellaneous
 
-		return isUnique;
+	public String[] getKeyTypes(String connectionName, String password)
+		throws RemoteException
+	{
+		authenticate(connectionName, password);
+		return getDataConfig().getUniquePublicValues(PublicMetadata.KEYTYPE).toArray(new String[0]);
 	}
 }

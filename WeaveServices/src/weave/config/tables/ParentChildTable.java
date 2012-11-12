@@ -38,7 +38,7 @@ public class ParentChildTable extends AbstractTable
     {
         super(connectionConfig, schemaName, tableName);
     }
-    public void initTable() throws RemoteException
+    protected void initTable() throws RemoteException
     {
         try 
         {

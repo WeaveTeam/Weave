@@ -71,6 +71,12 @@ public class ConnectionConfig
 	private Map<String,ConnectionInfo> _connectionInfoMap = new HashMap<String,ConnectionInfo>();
 	private Connection _adminConnection = null;
 	
+	public long getLastModified() throws RemoteException
+	{
+		_load();
+		return _lastMod;
+	}
+	
 	/**
 	 * This function must be called before making any modifications to the config.
 	 */

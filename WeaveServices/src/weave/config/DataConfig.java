@@ -59,53 +59,68 @@ public class DataConfig
 	private AttributeValueTable private_attributes;
 	private ManifestTable manifest;
 	private ParentChildTable relationships;
+	private ConnectionConfig connectionConfig;
+	private long lastModified = 0L;
 
 	public DataConfig(ConnectionConfig connectionConfig) throws RemoteException
 	{
-		if (connectionConfig.detectOldVersion())
-			throw new RemoteException("The Weave server has not been initialized yet.  Please run the Admin Console before continuing.");
-		
-		try
-		{
-			// test the connection now so it will throw an exception if there is a problem.
-			Connection conn = connectionConfig.getAdminConnection();
+		this.connectionConfig = connectionConfig;
+		detectChange();
+	}
 	
-			// attempt to create the schema and tables to store the configuration.
-			DatabaseConfigInfo dbInfo = connectionConfig.getDatabaseConfigInfo();
+	private void detectChange() throws RemoteException
+	{
+		long lastMod = connectionConfig.getLastModified();
+		if (this.lastModified < lastMod)
+		{
+			if (connectionConfig.detectOldVersion())
+				throw new RemoteException("The Weave server has not been initialized yet.  Please run the Admin Console before continuing.");
+			
 			try
 			{
-				SQLUtils.createSchema(conn, dbInfo.schema);
+				// test the connection now so it will throw an exception if there is a problem.
+				Connection conn = connectionConfig.getAdminConnection();
+				
+				// attempt to create the schema and tables to store the configuration.
+				DatabaseConfigInfo dbInfo = connectionConfig.getDatabaseConfigInfo();
+				try
+				{
+					SQLUtils.createSchema(conn, dbInfo.schema);
+				}
+				catch (Exception e)
+				{
+					// do nothing if schema creation fails -- this is a temporary workaround for postgresql issue
+					// e.printStackTrace();
+				}
+				
+				// init SQL tables
+				String tablePrefix = "weave";
+				String table_meta_private = tablePrefix + SUFFIX_META_PRIVATE;
+				String table_meta_public = tablePrefix + SUFFIX_META_PUBLIC;
+				String table_manifest = tablePrefix + SUFFIX_MANIFEST;
+				String table_tags = tablePrefix + SUFFIX_HIERARCHY;
+				
+				private_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_private);
+				public_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_public);
+				relationships = new ParentChildTable(connectionConfig, dbInfo.schema, table_tags);
+				manifest = new ManifestTable(connectionConfig, dbInfo.schema, table_manifest);
+				
+				/* TODO: Figure out nice way to do this from within the classes. */
+				SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, AttributeValueTable.FIELD_ID, table_manifest, ManifestTable.FIELD_ID);
+				SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, AttributeValueTable.FIELD_ID, table_manifest, ManifestTable.FIELD_ID);
 			}
-			catch (Exception e)
+			catch (SQLException e)
 			{
-				// do nothing if schema creation fails -- this is a temporary workaround for postgresql issue
-				// e.printStackTrace();
+				throw new RemoteException("Unable to initialize DataConfig", e);
 			}
 			
-			// init SQL tables
-			String tablePrefix = "weave";
-			String table_meta_private = tablePrefix + SUFFIX_META_PRIVATE;
-			String table_meta_public = tablePrefix + SUFFIX_META_PUBLIC;
-			String table_manifest = tablePrefix + SUFFIX_MANIFEST;
-			String table_tags = tablePrefix + SUFFIX_HIERARCHY;
-			
-			private_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_private);
-			public_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_public);
-			relationships = new ParentChildTable(connectionConfig, dbInfo.schema, table_tags);
-			manifest = new ManifestTable(connectionConfig, dbInfo.schema, table_manifest);
-			
-			/* TODO: Figure out nice way to do this from within the classes. */
-	        SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, AttributeValueTable.FIELD_ID, table_manifest, ManifestTable.FIELD_ID);
-			SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, AttributeValueTable.FIELD_ID, table_manifest, ManifestTable.FIELD_ID);
-		}
-		catch (SQLException e)
-		{
-			throw new RemoteException("Unable to initialize DataConfig", e);
+			this.lastModified = lastMod;
 		}
 	}
 
     public Integer addEntity(int type_id, DataEntityMetadata properties) throws RemoteException
     {
+    	detectChange();
         int id = manifest.addEntry(type_id);
         if (properties != null)
             updateEntity(id, properties);
@@ -113,6 +128,7 @@ public class DataConfig
     }
     private void removeChildren(Integer id) throws RemoteException
     {
+    	detectChange();
         for (Integer child : relationships.getChildren(id))
         {
             removeEntity(child);
@@ -120,6 +136,7 @@ public class DataConfig
     }
     public void removeEntity(Integer id) throws RemoteException
     {
+    	detectChange();
         /* Need to delete all attributeColumns which are children of a table. */
         if (getEntity(id).type == DataEntity.TYPE_DATATABLE)
             removeChildren(id);
@@ -130,6 +147,7 @@ public class DataConfig
     }
     public void updateEntity(Integer id, DataEntityMetadata diff) throws RemoteException
     {
+    	detectChange();
         for (Entry<String,String> propval : diff.publicMetadata.entrySet())
         {
             String key = propval.getKey();
@@ -145,6 +163,7 @@ public class DataConfig
     }
     public Collection<Integer> getEntityIdsByMetadata(DataEntityMetadata properties, Integer type_id) throws RemoteException
     {
+    	detectChange();
         Set<Integer> publicmatches = null;
         Set<Integer> privatematches = null;
         Collection<Integer> matches = null;
@@ -179,12 +198,14 @@ public class DataConfig
     }
     public DataEntity getEntity(Integer id) throws RemoteException
     {
+    	detectChange();
     	for (DataEntity result : getEntitiesById(Arrays.asList(id)))
     		return result;
     	return null;
     }
     public Collection<DataEntity> getEntitiesById(Collection<Integer> ids) throws RemoteException
     {
+    	detectChange();
         List<DataEntity> results = new LinkedList<DataEntity>();
         Map<Integer,Integer> typeresults = manifest.getEntryTypes(ids);
         System.out.println("ids"+ids);
@@ -208,6 +229,7 @@ public class DataConfig
 	/* Do a recursive copy of an entity and add it to a parent. */
     public Integer copyEntity(int id) throws RemoteException
     {
+    	detectChange();
         DataEntity original = getEntity(id);
         Integer copy_id;
         
@@ -235,6 +257,7 @@ public class DataConfig
     }
     public void addChild(Integer child_id, Integer parent_id, Integer order) throws RemoteException
     {
+    	detectChange();
     	int childType = manifest.getEntryType(child_id);
     	
     	// if the child is not a column and has parents, make a copy.
@@ -247,6 +270,7 @@ public class DataConfig
     }
     public void removeChild(Integer child_id, Integer parent_id) throws RemoteException
     {
+    	detectChange();
         /* If we're trying to remove a child from a datatable, throw a wobbly. */
         if (manifest.getEntryType(parent_id) == DataEntity.TYPE_DATATABLE)
         {
@@ -257,11 +281,13 @@ public class DataConfig
     
     public Collection<Integer> getParentIds(Integer id) throws RemoteException
     {
+    	detectChange();
     	return relationships.getParents(id);
     }
     
     public List<Integer> getChildIds(Integer id) throws RemoteException
     {
+    	detectChange();
     	// if id is -1, we want ids of all entities without parents
         if (id == -1)
         	id = null;
@@ -279,6 +305,7 @@ public class DataConfig
     }
     public Collection<String> getUniquePublicValues(String property) throws RemoteException
     {
+    	detectChange();
     	return new HashSet<String>(public_attributes.getProperty(property).values());
     }
     

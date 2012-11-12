@@ -34,7 +34,7 @@ package weave.services
 	public class AdminInterface
 	{
 		private static var _thisInstance:AdminInterface = null;
-		[Bindable] public var sqlConfigExists:Boolean = true;
+		[Bindable] public var databaseConfigExists:Boolean = true;
 		[Bindable] public var currentUserIsSuperuser:Boolean = false;
 		public static function get instance():AdminInterface
 		{
@@ -49,24 +49,24 @@ package weave.services
 		
 		public function AdminInterface()
 		{
-			checkSQLConfigExists();
+			checkDatabaseConfigExists();
 		}
 		
-		private function checkSQLConfigExists():void
+		private function checkDatabaseConfigExists():void
 		{
-			addAsyncResponder(service.checkSQLConfigExists(), handleCheckSQLConfigExists);
-			function handleCheckSQLConfigExists(event:ResultEvent, token:Object = null):void
+			addAsyncResponder(service.checkDatabaseConfigExists(), handleCheck);
+			function handleCheck(event:ResultEvent, token:Object = null):void
 			{
 				if (event.result.status as Boolean == false)
 				{
 					userHasAuthenticated = false;
 					WeaveAdminService.messageDisplay("Configuration problem", String(event.result.comment), false);
 					//Alert.show(event.result.comment, "Configuration problem");
-					sqlConfigExists = false;
+					databaseConfigExists = false;
 				}
 				else 
 				{
-					sqlConfigExists = true;
+					databaseConfigExists = true;
 				}
 			}
 		}
@@ -265,7 +265,7 @@ package weave.services
 			addAsyncResponder(query, handler);
 			function handler(event:ResultEvent, token:Object=null):void
 			{
-				sqlConfigExists = Boolean(event.result);
+				databaseConfigExists = Boolean(event.result);
 				//TODO: Should we really do this cosmetic thing here?
 				//getDataTableNames();
 				//getGeometryCollectionNames();
