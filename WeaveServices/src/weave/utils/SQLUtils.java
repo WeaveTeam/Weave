@@ -1949,6 +1949,7 @@ public class SQLUtils
 			CSVParser.defaultParser.createCSV(csvData, quoteEmptyStrings, writer);
 		}
 		
-		
+		writer.flush();
+		writer.close();
 	}
 }

@@ -712,7 +712,7 @@ package weave
 			if (Weave.properties.enableDataMenu.value)
 			{
 				_dataMenu = _weaveMenu.addMenuToMenuBar(lang("Data"), false);
-				if (Weave.properties.enableNewUserWizard)
+				if (Weave.properties.enableNewUserWizard.value)
 				{
 					_weaveMenu.addMenuItemToMenu(
 						_dataMenu,
@@ -740,10 +740,10 @@ package weave
 				}
 
 				if(Weave.properties.enableAddDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Add New Datasource"), AddDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableAddNewDatasource.value }));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Add New Datasource"), AddDataSourcePanel.showAsPopup));
 				
 				if(Weave.properties.enableEditDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Edit Datasources"), EditDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableEditDatasources.value }));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Edit Datasources"), EditDataSourcePanel.showAsPopup));
 			}
 			
 			

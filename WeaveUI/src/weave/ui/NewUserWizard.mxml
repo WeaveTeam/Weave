@@ -210,7 +210,7 @@
 						delimiterBox.visible = true;
 						var delimiter:Object = getDelimiterObject(dataString);
 						delimiterSelector.selectedItem = delimiter.name;
-						var tempArray:Array = new CSVParser(delimiter.string).parseCSV(dataTextArea.text);
+						var tempArray:Array = new CSVParser(false, delimiter.string).parseCSV(dataTextArea.text);
 						updateCSVDataStringFromArray(tempArray);
 					}
 				}
@@ -370,7 +370,7 @@
 						var fileDataString:String = dataByteArray.toString();
 						var delimiter:Object = getDelimiterObject(fileDataString);
 						delimiterSelector.selectedItem = delimiter.name;
-						var fileDataArray:Array = new CSVParser(delimiter.string).parseCSV(fileDataString);
+						var fileDataArray:Array = new CSVParser(false, delimiter.string).parseCSV(fileDataString);
 						updateCSVDataStringFromArray(fileDataArray);
 					}
 					keyColumnSelector.dataProvider = uniqueColumns;
@@ -472,7 +472,7 @@
 				}
 				
 				var dataString:String = _fileLoader ? _fileLoader.data.toString() : dataTextArea.text;
-				var tempArray:Array = new CSVParser(appliedDemiliter.string).parseCSV(dataString);
+				var tempArray:Array = new CSVParser(false, appliedDemiliter.string).parseCSV(dataString);
 				updateCSVDataStringFromArray(tempArray);
 			}
 			

@@ -970,12 +970,15 @@ public class AdminService extends GenericServlet
 				
 				for (int i = 1; i < rows.length; i++)
 				{
-					if (map.get(rows[i][keyColIndex].toString()) == null)
+					String key = rows[i][keyColIndex].toString();
+					if (map.get(key) == null)
 					{
-						map.put(rows[i][keyColIndex].toString(), true);
+						map.put(key, true);
 					}
 					else
 					{
+						System.out.println(String.format("Duplicate key: \"%s\" in column %s/%s, row %s of %s", key, csvFile, keyColumn, i, rows.length));
+						System.out.println(Arrays.asList(rows[i]));
 						isUnique = false;
 						break;
 					}
@@ -996,12 +999,15 @@ public class AdminService extends GenericServlet
 				
 				for(int i = 0; i < rows.length; i++)
 				{
-					if (map.get(rows[i][keyColIndex].toString()+','+rows[i][secKeyColIndex].toString()) == null)
+					String key = rows[i][keyColIndex].toString() + ',' + rows[i][secKeyColIndex].toString();
+					if (map.get(key) == null)
 					{
-						map.put(rows[i][keyColIndex].toString()+','+rows[i][secKeyColIndex].toString(), true);
+						map.put(key, true);
 					}
 					else
 					{
+						System.out.println(String.format("Duplicate key: \"%s\" in column %s/%s/%s, row %s of %s", key, csvFile, keyColumn, secondaryKeyColumn, i, rows.length));
+						System.out.println(Arrays.asList(rows[i]));
 						isUnique = false;
 						break;
 					}

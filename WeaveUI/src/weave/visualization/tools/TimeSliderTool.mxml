@@ -111,7 +111,7 @@
 		{
 			var ref:HierarchyColumnReference = descendants[i] as HierarchyColumnReference;
 			var path:XML = XML(ref.hierarchyPath.value).copy(); // make a copy so we don't modify the original
-			var search:XML = path..attribute[0];
+			var search:XML = path..attribute[0] || path;
 			if (String(search.@year) && String(search.@year) != newTime)
 			{
 				delete search.@title;
