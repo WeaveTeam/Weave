@@ -443,9 +443,10 @@ public class DataConfig
 		public int type;
 		
 		public static final int TYPE_ANY = -1;
-		public static final int TYPE_DATATABLE = 0;
-		public static final int TYPE_COLUMN = 1;
+        public static final int TYPE_HIERARCHY = 0;
+		public static final int TYPE_DATATABLE = 1;
 		public static final int TYPE_CATEGORY = 2;
+		public static final int TYPE_COLUMN = 3;
         /* For cases where the config API isn't sufficient. TODO */
         public static List<DataEntity> filterEntities(Collection<DataEntity> entities, Map<String,String> params)
         {
