@@ -527,10 +527,10 @@ public class AdminService
 	//////////////////////////
 	// DataEntity management
 	
-	public void addChildToParent(String user, String password, int childId, int parentId) throws RemoteException
+	public void addChildToParent(String user, String password, int childId, int parentId, int order) throws RemoteException
 	{
 		tryModify(user, password, parentId);
-		getDataConfig().addChild(childId, parentId);
+		getDataConfig().addChild(childId, parentId, order);
 	}
 
 	public void removeChildFromParent(String user, String password, int childId, int parentId) throws RemoteException
@@ -539,16 +539,21 @@ public class AdminService
 		getDataConfig().removeChild(childId, parentId);
 	}
 
-	public int addEntity(String user, String password, int entityType, DataEntityMetadata meta, int parentId) throws RemoteException
+	public int addEntity(String user, String password, int entityType, DataEntityMetadata meta, int parentId, int order) throws RemoteException
 	{
 		tryModify(user, password, parentId);
-		return getDataConfig().addEntity(entityType, meta, parentId);
+		int new_id = getDataConfig().addEntity(entityType, meta);
+        getDataConfig().addChild(new_id, parentId, order);
+        return new_id;
+        
 	}
 
-	public int copyEntity(String user, String password, int entityId, int newParentId) throws RemoteException
+	public int copyEntity(String user, String password, int entityId, int newParentId, int order) throws RemoteException
 	{
 		tryModify(user, password, newParentId);
-		return getDataConfig().copyEntity(entityId, newParentId);
+        int new_id = getDataConfig().copyEntity(entityId);
+        getDataConfig().addChild(new_id, newParentId, order);
+		return new_id;
 	}
 
 	public void removeEntity(String user, String password, int entityId) throws RemoteException
@@ -1508,7 +1513,7 @@ public class AdminService
 
 			DataEntityMetadata tableProperties = new DataEntityMetadata();
 			tableProperties.publicMetadata.put(PublicMetadata.TITLE, configDataTableName);
-			table_id = dataConfig.addEntity(DataEntity.TYPE_DATATABLE, tableProperties, -1);
+			table_id = dataConfig.addEntity(DataEntity.TYPE_DATATABLE, tableProperties);
 
 			for (int i = 0; i < numberSqlColumns; i++)
 			{
@@ -1525,7 +1530,8 @@ public class AdminService
 				newMeta.publicMetadata.put(PublicMetadata.TITLE, titles.get(i));
 				newMeta.publicMetadata.put(PublicMetadata.DATATYPE, dataTypes.get(i));
 
-				dataConfig.addEntity(DataEntity.TYPE_COLUMN, newMeta, table_id);
+				int col_id = dataConfig.addEntity(DataEntity.TYPE_COLUMN, newMeta);
+                dataConfig.addChild(col_id, table_id, 0);
 			}
 		}
 		catch (SQLException e)
@@ -1744,7 +1750,7 @@ public class AdminService
 			geomInfo.publicMetadata.put(PublicMetadata.PROJECTION, projectionSRS);
 	
 			// TODO: use table ID from addConfigDataTable()
-			getDataConfig().addEntity(DataEntity.TYPE_COLUMN, geomInfo, -1);
+			getDataConfig().addEntity(DataEntity.TYPE_COLUMN, geomInfo);
 		}
 		catch (IOException e)
 		{

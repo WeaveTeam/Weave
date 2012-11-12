@@ -104,11 +104,9 @@ public class DataConfig
 		}
 	}
 
-    public Integer addEntity(int type_id, DataEntityMetadata properties, int parentId) throws RemoteException
+    public Integer addEntity(int type_id, DataEntityMetadata properties) throws RemoteException
     {
         int id = manifest.addEntry(type_id);
-        if (parentId != -1)
-        	relationships.addChild(id, parentId);
         if (properties != null)
             updateEntity(id, properties);
         return id;
@@ -208,7 +206,7 @@ public class DataConfig
         return results;
     }
 	/* Do a recursive copy of an entity and add it to a parent. */
-    public Integer copyEntity(int id, int new_parent_id) throws RemoteException
+    public Integer copyEntity(int id) throws RemoteException
     {
         DataEntity original = getEntity(id);
         Integer copy_id;
@@ -216,7 +214,6 @@ public class DataConfig
         if (original.type == DataEntity.TYPE_COLUMN)
         {
         	copy_id = id;
-        	relationships.addChild(copy_id, new_parent_id);
         }
         else
         {
@@ -224,25 +221,29 @@ public class DataConfig
         	// copy table as category
 	    	if (copy_type == DataEntity.TYPE_DATATABLE)
 	    		copy_type = DataEntity.TYPE_CATEGORY;
-	    	copy_id = addEntity(copy_type, original, new_parent_id);
-	    	
-	    	for (Integer child_id : getChildIds(id))
-	    		child_id = copyEntity(child_id, copy_id);
+	    	copy_id = addEntity(copy_type, original);
+
+            List<Integer> children = getChildIds(id);
+            for (int i = 0; i < children.size(); i++)
+            {
+                int child_id = copyEntity(children.get(i));
+                relationships.addChildAt(child_id, copy_id, i);
+            }
         }
     	
         return copy_id;
     }
-    public void addChild(Integer child_id, Integer parent_id) throws RemoteException
+    public void addChild(Integer child_id, Integer parent_id, Integer order) throws RemoteException
     {
     	int childType = manifest.getEntryType(child_id);
     	
     	// if the child is not a column and has parents, make a copy.
     	if (childType != DataEntity.TYPE_COLUMN && relationships.getParents(child_id).size() > 0)
     	{
-    		child_id = copyEntity(child_id, parent_id);
+    		child_id = copyEntity(child_id);
     	}
     	
-   		relationships.addChild(child_id, parent_id);
+   		relationships.addChildAt(child_id, parent_id, order);
     }
     public void removeChild(Integer child_id, Integer parent_id) throws RemoteException
     {
