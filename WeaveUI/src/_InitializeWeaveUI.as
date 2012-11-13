@@ -136,7 +136,7 @@ package
 			ThermometerTool,
 			TimeSliderTool,
 			RamachandranPlotTool,
-			DataStatisticsTool
+			DataStatisticsTool,
 		]).toString();
 		
 		/**
