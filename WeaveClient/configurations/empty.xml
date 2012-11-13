@@ -20,33 +20,17 @@
       <underline>false</underline>
     </defaultTextFormat>
     <disabilityAltText>Flash Object: empty instance of Weave</disabilityAltText>
-    <disabilityHashMap encoding="dynamic"/>
+    <disabilityHashMap encoding="dynamic">
+      <LinkableString name="Line Chart of Country, %Communist"/>
+      <LinkableString name="Scatter Plot of US State FIPS Code -vs- Percent Obese (BMI >= 30) (2010)"/>
+      <LinkableString name="Scatter Plot of Percent Obese (BMI >= 30) (2010) -vs- Percent Obese (BMI >= 30) (1995)"/>
+      <LinkableString name="Line Chart of Percent Obese (BMI >= 30) (1995), Percent Obese (BMI >= 30) (2000), Percent Obese (BMI >= 30) (2005)"/>
+      <LinkableString name="Line Chart of Percent Obese (BMI >= 30) (1995), Percent Obese (BMI >= 30) (2010)"/>
+    </disabilityHashMap>
     <disabilityLongAltText/>
     <enableAboutMenu>true</enableAboutMenu>
-    <enableAdd2DHistogram>true</enableAdd2DHistogram>
-    <enableAddAttributeMenuTool>true</enableAddAttributeMenuTool>
-    <enableAddBarChart>true</enableAddBarChart>
-    <enableAddColorLegend>true</enableAddColorLegend>
-    <enableAddColormapHistogram>true</enableAddColormapHistogram>
-    <enableAddCompoundRadViz>true</enableAddCompoundRadViz>
-    <enableAddCustomTool>true</enableAddCustomTool>
     <enableAddDataSource>true</enableAddDataSource>
-    <enableAddDataTable>true</enableAddDataTable>
-    <enableAddDimensionSliderTool>true</enableAddDimensionSliderTool>
-    <enableAddGaugeTool>true</enableAddGaugeTool>
-    <enableAddGraphTool>true</enableAddGraphTool>
-    <enableAddHistogram>true</enableAddHistogram>
-    <enableAddLineChart>true</enableAddLineChart>
-    <enableAddMap>true</enableAddMap>
     <enableAddNewDatasource>true</enableAddNewDatasource>
-    <enableAddPieChart>true</enableAddPieChart>
-    <enableAddPieChartHistogram>true</enableAddPieChartHistogram>
-    <enableAddRadViz>true</enableAddRadViz>
-    <enableAddRamachandranPlot>false</enableAddRamachandranPlot>
-    <enableAddRScriptEditor>true</enableAddRScriptEditor>
-    <enableAddScatterplot>true</enableAddScatterplot>
-    <enableAddThermometerTool>true</enableAddThermometerTool>
-    <enableAddTimeSliderTool>true</enableAddTimeSliderTool>
     <enableAddWeaveDataSource>true</enableAddWeaveDataSource>
     <enableAnnotation>true</enableAnnotation>
     <enableAxisToolTips>true</enableAxisToolTips>
@@ -186,6 +170,32 @@ wheel</zoom>
       <zoomOut>shift,dclick</zoomOut>
       <zoomToExtent>ctrl,alt,shift,dclick</zoomToExtent>
     </toolInteractions>
+    <toolToggles encoding="dynamic">
+      <LinkableBoolean name="RamachandranPlotTool">false</LinkableBoolean>
+      <LinkableBoolean name="Histogram2DTool">true</LinkableBoolean>
+      <LinkableBoolean name="AttributeMenuTool">true</LinkableBoolean>
+      <LinkableBoolean name="CompoundBarChartTool">true</LinkableBoolean>
+      <LinkableBoolean name="ColorBinLegendTool">true</LinkableBoolean>
+      <LinkableBoolean name="ColormapHistogramTool">true</LinkableBoolean>
+      <LinkableBoolean name="CompoundRadVizTool">true</LinkableBoolean>
+      <LinkableBoolean name="CustomTool">true</LinkableBoolean>
+      <LinkableBoolean name="DataTableTool">true</LinkableBoolean>
+      <LinkableBoolean name="DimensionSliderTool">true</LinkableBoolean>
+      <LinkableBoolean name="GaugeTool">true</LinkableBoolean>
+      <LinkableBoolean name="GraphTool">true</LinkableBoolean>
+      <LinkableBoolean name="HistogramTool">true</LinkableBoolean>
+      <LinkableBoolean name="LineChartTool">true</LinkableBoolean>
+      <LinkableBoolean name="MapTool">true</LinkableBoolean>
+      <LinkableBoolean name="PieChartTool">true</LinkableBoolean>
+      <LinkableBoolean name="PieChartHistogramTool">true</LinkableBoolean>
+      <LinkableBoolean name="RTextEditor">true</LinkableBoolean>
+      <LinkableBoolean name="RadVizTool">true</LinkableBoolean>
+      <LinkableBoolean name="ScatterPlotTool">true</LinkableBoolean>
+      <LinkableBoolean name="ThermometerTool">true</LinkableBoolean>
+      <LinkableBoolean name="TimeSliderTool">true</LinkableBoolean>
+      <LinkableBoolean name="DataStatisticsTool">true</LinkableBoolean>
+      <LinkableBoolean name="SchafersMissingDataTool">true</LinkableBoolean>
+    </toolToggles>
     <version>1.0 Beta (DEV)</version>
     <windowSnapGridSize>1%</windowSnapGridSize>
     <workspaceHeight>NaN</workspaceHeight>
@@ -196,13 +206,7 @@ wheel</zoom>
     <internalDynamicColumn encoding="dynamic">
       <GlobalObjectReference name="defaultColorBinColumn"/>
     </internalDynamicColumn>
-    <ramp>&lt;colorRamp name="5-Color" source="OIC" category="basic"&gt;
-  &lt;node color="0xEFF3FF" position="0"/&gt;
-  &lt;node color="0xBDD7E7" position="0.25"/&gt;
-  &lt;node color="0x6BAED6" position="0.5"/&gt;
-  &lt;node color="0x3182BD" position="0.75"/&gt;
-  &lt;node color="0x08519C" position="1"/&gt;
-&lt;/colorRamp&gt;</ramp>
+    <ramp>0x0000ff,0x00ff00,0xff0000</ramp>
     <recordColors/>
   </ColorColumn>
   <BinnedColumn name="defaultColorBinColumn">
@@ -224,9 +228,11 @@ wheel</zoom>
       <ReferencedColumn>
         <dynamicColumnReference encoding="dynamic">
           <HierarchyColumnReference>
-            <dataSourceName>CSVDataSource</dataSourceName>
+            <dataSourceName>CSVDataSource2</dataSourceName>
             <hierarchyPath encoding="xml">
-              <attribute csvColumn="Country" title="Country"/>
+              <hierarchy>
+                <attribute csvColumn="Percent Obese (BMI >= 30) (1995)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (1995)"/>
+              </hierarchy>
             </hierarchyPath>
           </HierarchyColumnReference>
         </dynamicColumnReference>
@@ -235,21 +241,21 @@ wheel</zoom>
   </FilteredColumn>
   <KeyFilter name="defaultSubsetKeyFilter">
     <excluded/>
-    <included/>
-    <includeMissingKeys>true</includeMissingKeys>
+    <included encoding="csv">CSVDataSource2,28</included>
+    <includeMissingKeys>false</includeMissingKeys>
     <includeMissingKeyTypes>true</includeMissingKeyTypes>
   </KeyFilter>
-  <KeySet name="defaultSelectionKeySet"/>
-  <KeySet name="defaultProbeKeySet"/>
+  <KeySet encoding="dynamic" name="defaultSelectionKeySet"/>
+  <KeySet encoding="dynamic" name="defaultProbeKeySet"/>
   <KeySet name="alwaysHighlightKeySet"/>
-  <LinkableHashMap name="savedSelections" encoding="dynamic"/>
-  <LinkableHashMap name="savedSubsets" encoding="dynamic"/>
+  <LinkableHashMap encoding="dynamic" name="savedSelections"/>
+  <LinkableHashMap encoding="dynamic" name="savedSubsets"/>
   <CSVDataSource name="CSVDataSource">
     <attributeHierarchy encoding="xml">
       <hierarchy>
-        <attribute keyType="CSVDataSource" csvColumn="Country" title="Country"/>
-        <attribute keyType="CSVDataSource" csvColumn="%Religious" title="%Religious"/>
-        <attribute keyType="CSVDataSource" csvColumn="%Communist" title="%Communist"/>
+        <attribute csvColumn="Country" keyType="CSVDataSource" title="Country"/>
+        <attribute csvColumn="%Religious" keyType="CSVDataSource" title="%Religious"/>
+        <attribute csvColumn="%Communist" keyType="CSVDataSource" title="%Communist"/>
       </hierarchy>
     </attributeHierarchy>
     <csvDataString>Country,%Religious,%Communist
@@ -259,7 +265,7 @@ China,20,90</csvDataString>
     <keyType>CSVDataSource</keyType>
     <url/>
   </CSVDataSource>
-  <LinkableHashMap name="Probed Columns" encoding="dynamic">
+  <LinkableHashMap encoding="dynamic" name="Probed Columns">
     <ReferencedColumn name="ReferencedColumn">
       <dynamicColumnReference encoding="dynamic">
         <HierarchyColumnReference>
@@ -280,5 +286,452 @@ China,20,90</csvDataString>
         </HierarchyColumnReference>
       </dynamicColumnReference>
     </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn3">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource2</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute csvColumn="US State FIPS Code" title="US State FIPS Code"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
+    <ReferencedColumn name="ReferencedColumn4">
+      <dynamicColumnReference encoding="dynamic">
+        <HierarchyColumnReference>
+          <dataSourceName>CSVDataSource2</dataSourceName>
+          <hierarchyPath encoding="xml">
+            <attribute csvColumn="Percent Obese (BMI >= 30) (2010)" title="Percent Obese (BMI >= 30) (2010)"/>
+          </hierarchyPath>
+        </HierarchyColumnReference>
+      </dynamicColumnReference>
+    </ReferencedColumn>
   </LinkableHashMap>
+  <LinkableHashMap encoding="dynamic" name="Probe Header Columns"/>
+  <CSVDataSource name="CSVDataSource2">
+    <attributeHierarchy encoding="xml">
+      <hierarchy>
+        <attribute csvColumn="US State FIPS Code" keyType="CSVDataSource2" title="US State FIPS Code"/>
+        <attribute csvColumn="State" keyType="CSVDataSource2" title="State"/>
+        <attribute csvColumn="Percent Obese (BMI >= 30) (1995)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (1995)"/>
+        <attribute csvColumn="Percent Obese (BMI >= 30) (2000)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (2000)"/>
+        <attribute csvColumn="Percent Obese (BMI >= 30) (2005)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (2005)"/>
+        <attribute csvColumn="Percent Obese (BMI >= 30) (2010)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (2010)"/>
+      </hierarchy>
+    </attributeHierarchy>
+    <csvDataString>US State FIPS Code,State,Percent Obese (BMI &gt;= 30) (1995),Percent Obese (BMI &gt;= 30) (2000),Percent Obese (BMI &gt;= 30) (2005),Percent Obese (BMI &gt;= 30) (2010)
+01,Alabama,18.7,23.9,28.9,33
+02,Alaska,19.8,21,27.4,25.2
+04,Arizona,13.3,19.2,21.1,24.7
+05,Arkansas,17.5,23.3,28,30.9
+06,California,15.1,19.9,22.7,24.7
+08,Colorado,10.1,14.2,17.8,21.4
+09,Connecticut,12.5,17.4,20.1,23
+10,Delaware,17.1,16.6,23.5,28.7
+12,Florida,17.2,18.7,22.8,27.2
+13,Georgia,13.3,21.5,26.5,30.4
+16,Idaho,14.2,18.9,24.5,26.9
+17,Illinois,16.7,21.7,25.1,28.7
+18,Indiana,20.1,21.8,27.2,30.2
+19,Iowa,17.5,21.5,25.4,29.1
+20,Kansas,15.9,20.8,23.9,30.1
+21,Kentucky,16.9,23,28.6,31.8
+22,Louisiana,17.7,23.6,30.8,31.7
+23,Maine,14.1,20,22.7,27.4
+24,Maryland,16.3,20.2,24.4,27.9
+25,Massachusetts,11.7,16.8,20.7,23.6
+26,Michigan,18.2,22.4,26.2,31.7
+27,Minnesota,15.3,17.4,23.7,25.4
+28,Mississippi,19.5,25,30.9,34.5
+29,Missouri,18.9,22.1,26.9,31.4
+30,Montana,13.4,15.9,21.3,23.5
+31,Nebraska,16.3,21.1,26,27.5
+32,Nevada,13.3,17.9,21.2,23.1
+33,New Hampshire,15.1,18.1,23.1,25.5
+34,New Jersey,14.5,18.5,22.1,24.8
+35,New Mexico,13,19.3,21.7,25.6
+36,New York,13.9,17.7,22.2,24.5
+37,North Carolina,16.9,21.8,25.9,28.6
+38,North Dakota,16.4,20.4,25.4,27.9
+39,Ohio,17.5,21.5,24.3,29.7
+40,Oklahoma,13.5,19.7,26.8,31.3
+41,Oregon,15.2,21.5,23.8,27.6
+42,Pennsylvania,16.4,21.2,25.3,29.2
+44,Rhode Island,13.2,17.1,21,26
+45,South Carolina,16.7,22,29.1,32
+46,South Dakota,13.9,19.8,25.5,27.7
+47,Tennessee,18.4,22.9,27.4,31.7
+48,Texas,15.9,23.1,27,31.7
+49,Utah,"",19.1,21.2,23
+50,Vermont,14.6,18.2,20.2,23.9
+51,Virginia,15.7,18.2,25.1,26.4
+53,Washington,13.9,18.8,23.3,26.2
+54,West Virginia,18.3,23.2,30.6,32.9
+55,Wisconsin,16,20,24.4,26.9
+56,Wyoming,14.3,18,24.2,25.7</csvDataString>
+    <keyColName>US State FIPS Code</keyColName>
+    <keyType>CSVDataSource2</keyType>
+    <url/>
+  </CSVDataSource>
+  <LineChartTool name="LineChartTool">
+    <buttonRadius>3</buttonRadius>
+    <children encoding="dynamic">
+      <SimpleInteractiveVisualization name="visualization">
+        <axesAlpha>1</axesAlpha>
+        <axesColor>11579568</axesColor>
+        <axesThickness>10</axesThickness>
+        <enableAutoZoomXToNiceNumbers>false</enableAutoZoomXToNiceNumbers>
+        <enableAutoZoomYToNiceNumbers>false</enableAutoZoomYToNiceNumbers>
+        <enableProbe>true</enableProbe>
+        <enableSelection>true</enableSelection>
+        <enableZoomAndPan>false</enableZoomAndPan>
+        <gridLineAlpha>1</gridLineAlpha>
+        <gridLineColor>14540253</gridLineColor>
+        <gridLineThickness>1</gridLineThickness>
+        <plotManager>
+          <enableAutoZoomToExtent>true</enableAutoZoomToExtent>
+          <enableAutoZoomToSelection>false</enableAutoZoomToSelection>
+          <enableFixedAspectRatio>false</enableFixedAspectRatio>
+          <includeNonSelectableLayersInAutoZoom>false</includeNonSelectableLayersInAutoZoom>
+          <layerSettings encoding="dynamic">
+            <LayerSettings name="yAxis">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>false</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="xAxis">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>false</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="plot">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>true</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+            <LayerSettings name="label">
+              <maxVisibleScale>Infinity</maxVisibleScale>
+              <minVisibleScale>0</minVisibleScale>
+              <selectable>false</selectable>
+              <visible>true</visible>
+            </LayerSettings>
+          </layerSettings>
+          <marginBottom>100</marginBottom>
+          <marginLeft>60</marginLeft>
+          <marginRight>80</marginRight>
+          <marginTop>20</marginTop>
+          <maxZoomLevel>16</maxZoomLevel>
+          <minScreenSize>128</minScreenSize>
+          <minZoomLevel>0</minZoomLevel>
+          <overrideXMax>NaN</overrideXMax>
+          <overrideXMin>NaN</overrideXMin>
+          <overrideYMax>NaN</overrideYMax>
+          <overrideYMin>NaN</overrideYMin>
+          <plotters encoding="dynamic">
+            <SimpleAxisPlotter name="yAxis">
+              <axisLabelDistance>-10</axisLabelDistance>
+              <axisLabelRelativeAngle>45</axisLabelRelativeAngle>
+              <axisLineDataBounds>
+                <xMax>0</xMax>
+                <xMin>0</xMin>
+                <yMax>34.5</yMax>
+                <yMin>10.1</yMin>
+              </axisLineDataBounds>
+              <axisLineMaxValue>34.5</axisLineMaxValue>
+              <axisLineMinValue>10.1</axisLineMinValue>
+              <forceTickCount>false</forceTickCount>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <labelDistanceIsVertical>false</labelDistanceIsVertical>
+              <labelFunction>string</labelFunction>
+              <labelHorizontalAlign>right</labelHorizontalAlign>
+              <labelNumberFormatter>
+                <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                <decimalSeparatorTo>.</decimalSeparatorTo>
+                <precision>0</precision>
+                <rounding>none</rounding>
+                <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                <useNegativeSign>true</useNegativeSign>
+                <useThousandsSeparator>true</useThousandsSeparator>
+              </labelNumberFormatter>
+              <labelTextAlignment>left</labelTextAlignment>
+              <labelVerticalAlign>bottom</labelVerticalAlign>
+              <labelWordWrapSize>80</labelWordWrapSize>
+              <overrideAxisName/>
+              <showAxisName>true</showAxisName>
+              <showLabels>true</showLabels>
+              <tickCountRequested>5</tickCountRequested>
+              <tickMaxValue>NaN</tickMaxValue>
+              <tickMinValue>NaN</tickMinValue>
+            </SimpleAxisPlotter>
+            <SimpleAxisPlotter name="xAxis">
+              <axisLabelDistance>-10</axisLabelDistance>
+              <axisLabelRelativeAngle>-45</axisLabelRelativeAngle>
+              <axisLineDataBounds>
+                <xMax>1</xMax>
+                <xMin>0</xMin>
+                <yMax>10.1</yMax>
+                <yMin>10.1</yMin>
+              </axisLineDataBounds>
+              <axisLineMaxValue>1</axisLineMaxValue>
+              <axisLineMinValue>0</axisLineMinValue>
+              <forceTickCount>true</forceTickCount>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <labelDistanceIsVertical>false</labelDistanceIsVertical>
+              <labelFunction>string</labelFunction>
+              <labelHorizontalAlign>right</labelHorizontalAlign>
+              <labelNumberFormatter>
+                <decimalSeparatorFrom>.</decimalSeparatorFrom>
+                <decimalSeparatorTo>.</decimalSeparatorTo>
+                <precision>0</precision>
+                <rounding>none</rounding>
+                <thousandsSeparatorFrom>,</thousandsSeparatorFrom>
+                <thousandsSeparatorTo>,</thousandsSeparatorTo>
+                <useNegativeSign>true</useNegativeSign>
+                <useThousandsSeparator>true</useThousandsSeparator>
+              </labelNumberFormatter>
+              <labelTextAlignment>left</labelTextAlignment>
+              <labelVerticalAlign>top</labelVerticalAlign>
+              <labelWordWrapSize>80</labelWordWrapSize>
+              <overrideAxisName/>
+              <showAxisName>true</showAxisName>
+              <showLabels>true</showLabels>
+              <tickCountRequested>2</tickCountRequested>
+              <tickMaxValue>NaN</tickMaxValue>
+              <tickMinValue>NaN</tickMinValue>
+            </SimpleAxisPlotter>
+            <ParallelCoordinatesPlotter name="plot">
+              <columns encoding="dynamic">
+                <ReferencedColumn name="ReferencedColumn">
+                  <dynamicColumnReference encoding="dynamic">
+                    <HierarchyColumnReference>
+                      <dataSourceName>CSVDataSource2</dataSourceName>
+                      <hierarchyPath encoding="xml">
+                        <hierarchy>
+                          <attribute csvColumn="Percent Obese (BMI >= 30) (1995)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (1995)"/>
+                        </hierarchy>
+                      </hierarchyPath>
+                    </HierarchyColumnReference>
+                  </dynamicColumnReference>
+                </ReferencedColumn>
+                <ReferencedColumn name="ReferencedColumn4">
+                  <dynamicColumnReference encoding="dynamic">
+                    <HierarchyColumnReference>
+                      <dataSourceName>CSVDataSource2</dataSourceName>
+                      <hierarchyPath encoding="xml">
+                        <hierarchy>
+                          <attribute csvColumn="Percent Obese (BMI >= 30) (2010)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (2010)"/>
+                        </hierarchy>
+                      </hierarchyPath>
+                    </HierarchyColumnReference>
+                  </dynamicColumnReference>
+                </ReferencedColumn>
+              </columns>
+              <curveType>none</curveType>
+              <enableGroupBy>false</enableGroupBy>
+              <groupBy encoding="dynamic"/>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <lineStyle>
+                <alpha>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </alpha>
+                <caps>
+                  <defaultValue/>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </caps>
+                <color>
+                  <defaultValue>NaN</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <GlobalObjectReference name="defaultColorColumn"/>
+                  </internalDynamicColumn>
+                </color>
+                <enabled>
+                  <defaultValue>true</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </enabled>
+                <joints>
+                  <defaultValue/>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </joints>
+                <miterLimit>
+                  <defaultValue>3</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </miterLimit>
+                <pixelHinting>
+                  <defaultValue>false</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </pixelHinting>
+                <scaleMode>
+                  <defaultValue>normal</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </scaleMode>
+                <weight>
+                  <defaultValue>2</defaultValue>
+                  <internalDynamicColumn encoding="dynamic">
+                    <NormalizedColumn>
+                      <internalDynamicColumn encoding="dynamic"/>
+                      <max>5</max>
+                      <min>1</min>
+                    </NormalizedColumn>
+                  </internalDynamicColumn>
+                </weight>
+              </lineStyle>
+              <normalize>false</normalize>
+              <shapeBorderColor>0</shapeBorderColor>
+              <shapeBorderThickness>1</shapeBorderThickness>
+              <shapeSize>5</shapeSize>
+              <shapeToDraw>Solid Circle</shapeToDraw>
+              <xData encoding="dynamic"/>
+              <xValues/>
+              <yData encoding="dynamic"/>
+              <zoomToSubset>false</zoomToSubset>
+            </ParallelCoordinatesPlotter>
+            <TextGlyphPlotter name="label">
+              <angle>
+                <defaultValue>0</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </angle>
+              <bold>
+                <defaultValue>false</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </bold>
+              <color>
+                <defaultValue>0</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </color>
+              <dataX encoding="dynamic">
+                <AlwaysDefinedColumn>
+                  <defaultValue>1</defaultValue>
+                  <internalDynamicColumn encoding="dynamic"/>
+                </AlwaysDefinedColumn>
+              </dataX>
+              <dataY encoding="dynamic">
+                <ReferencedColumn>
+                  <dynamicColumnReference encoding="dynamic">
+                    <HierarchyColumnReference>
+                      <dataSourceName>CSVDataSource2</dataSourceName>
+                      <hierarchyPath encoding="xml">
+                        <hierarchy>
+                          <attribute csvColumn="Percent Obese (BMI >= 30) (2010)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (2010)"/>
+                        </hierarchy>
+                      </hierarchyPath>
+                    </HierarchyColumnReference>
+                  </dynamicColumnReference>
+                </ReferencedColumn>
+              </dataY>
+              <destinationProjection/>
+              <font>
+                <defaultValue>Sophia Nubian</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </font>
+              <hAlign>
+                <defaultValue>left</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </hAlign>
+              <hideOverlappingText>true</hideOverlappingText>
+              <italic>
+                <defaultValue>false</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </italic>
+              <keySet>
+                <keyFilter encoding="dynamic">
+                  <GlobalObjectReference name="defaultSubsetKeyFilter"/>
+                </keyFilter>
+              </keySet>
+              <maxWidth>80</maxWidth>
+              <size>
+                <defaultValue>11</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </size>
+              <sortColumn encoding="dynamic">
+                <ReferencedColumn>
+                  <dynamicColumnReference encoding="dynamic">
+                    <HierarchyColumnReference>
+                      <dataSourceName>CSVDataSource2</dataSourceName>
+                      <hierarchyPath encoding="xml">
+                        <hierarchy>
+                          <attribute csvColumn="Percent Obese (BMI >= 30) (2010)" keyType="CSVDataSource2" title="Percent Obese (BMI >= 30) (2010)"/>
+                        </hierarchy>
+                      </hierarchyPath>
+                    </HierarchyColumnReference>
+                  </dynamicColumnReference>
+                </ReferencedColumn>
+              </sortColumn>
+              <sourceProjection/>
+              <text encoding="dynamic">
+                <ReferencedColumn>
+                  <dynamicColumnReference encoding="dynamic">
+                    <HierarchyColumnReference>
+                      <dataSourceName>CSVDataSource2</dataSourceName>
+                      <hierarchyPath encoding="xml">
+                        <hierarchy>
+                          <attribute csvColumn="State" keyType="CSVDataSource2" title="State"/>
+                        </hierarchy>
+                      </hierarchyPath>
+                    </HierarchyColumnReference>
+                  </dynamicColumnReference>
+                </ReferencedColumn>
+              </text>
+              <underline>
+                <defaultValue>false</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </underline>
+              <vAlign>
+                <defaultValue>middle</defaultValue>
+                <internalDynamicColumn encoding="dynamic"/>
+              </vAlign>
+              <xScreenOffset>0</xScreenOffset>
+              <yScreenOffset>10</yScreenOffset>
+              <zoomToSubset>false</zoomToSubset>
+            </TextGlyphPlotter>
+          </plotters>
+          <zoomBounds>
+            <xMax>1</xMax>
+            <xMin>0</xMin>
+            <yMax>34.5</yMax>
+            <yMin>10.1</yMin>
+          </zoomBounds>
+        </plotManager>
+        <zoomFactor>2</zoomFactor>
+      </SimpleInteractiveVisualization>
+    </children>
+    <closeable>true</closeable>
+    <enableBorders>true</enableBorders>
+    <enableMoveResize>true</enableMoveResize>
+    <enableSubMenu>false</enableSubMenu>
+    <enableTitle>false</enableTitle>
+    <includeToolAttributesInProbe>true</includeToolAttributesInProbe>
+    <maximizable>true</maximizable>
+    <maximized>false</maximized>
+    <minimizable>true</minimizable>
+    <minimized>false</minimized>
+    <panelBackgroundColor>NaN</panelBackgroundColor>
+    <panelBorderColor>NaN</panelBorderColor>
+    <panelHeight>86%</panelHeight>
+    <panelStyleList/>
+    <panelTitle/>
+    <panelWidth>89%</panelWidth>
+    <panelX>5%</panelX>
+    <panelY>4%</panelY>
+    <pinnable>true</pinnable>
+    <pinnableToBack>false</pinnableToBack>
+    <pinned>false</pinned>
+    <pinnedToBack>false</pinnedToBack>
+  </LineChartTool>
 </Weave>
