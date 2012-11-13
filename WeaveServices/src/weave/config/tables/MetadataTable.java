@@ -26,13 +26,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Vector;
 
 import weave.config.ConnectionConfig;
+import weave.utils.MyEntry;
 import weave.utils.SQLUtils;
 
 
@@ -44,6 +45,8 @@ public class MetadataTable extends AbstractTable
 	public static final String FIELD_ID = "entity_id";
 	public static final String FIELD_PROPERTY = "property";
 	public static final String FIELD_VALUE = "value";
+	
+	private static final Set<String> caseSensitiveFields = new HashSet<String>(Arrays.asList(FIELD_PROPERTY, FIELD_VALUE));
 	
 	public MetadataTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
 	{
@@ -93,24 +96,36 @@ public class MetadataTable extends AbstractTable
 	}
 	/* TODO: Add optimized methods for adding/removing multiple entries. */
 	/* if it is a null or empty string, it will simply unset the property. */
-//	public void setProperties(Integer id, Map<String,String> diff) throws RemoteException
-	public void setProperty(Integer id, String property, String value) throws RemoteException
+	public void setProperties(Integer id, Map<String,String> diff) throws RemoteException
 	{
 		try 
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String, Object> sql_args = new HashMap<String,Object>();
-			sql_args.put(FIELD_PROPERTY, property);
-			sql_args.put(FIELD_ID, id);
-			SQLUtils.deleteRows(conn, schemaName, tableName, sql_args);
-			if (value != null && value.length() > 0)
+			
+			List<Map<String,Object>> records = new Vector<Map<String,Object>>(diff.size());
+			for (String property : diff.keySet())
 			{
-				sql_args.clear();
-				sql_args.put(FIELD_VALUE, value);
-				sql_args.put(FIELD_PROPERTY, property);
-				sql_args.put(FIELD_ID, id);
-				SQLUtils.insertRow(conn, schemaName, tableName, sql_args);
+				Map<String,Object> record = new HashMap<String,Object>();
+				record.put(FIELD_ID, id);
+				record.put(FIELD_PROPERTY, property);
+				records.add(record);
 			}
+			SQLUtils.deleteRows(conn, schemaName, tableName, records, caseSensitiveFields);
+			
+			records.clear();
+			for (Entry<String,String> entry : diff.entrySet())
+			{
+				Map<String,Object> record = new HashMap<String,Object>();
+				String value = entry.getValue();
+				if (value != null && value.length() > 0)
+				{
+					record.put(FIELD_ID, id);
+					record.put(FIELD_PROPERTY, entry.getKey());
+					record.put(FIELD_VALUE, value);
+					records.add(record);
+				}
+			}
+			SQLUtils.insertRows(conn, schemaName, tableName, records);
 		} 
 		catch (SQLException e)
 		{
@@ -123,9 +138,7 @@ public class MetadataTable extends AbstractTable
 		try 
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String, Object> sql_args  = new HashMap<String,Object>();
-			sql_args.put(FIELD_ID, id);
-			SQLUtils.deleteRows(conn, schemaName, tableName, sql_args);
+			SQLUtils.deleteRows(conn, schemaName, tableName, MyEntry.<String,Object>mapFromPairs(FIELD_ID, id), caseSensitiveFields);
 		}
 		catch (SQLException e)
 		{
@@ -140,7 +153,7 @@ public class MetadataTable extends AbstractTable
 			Map<String,Object> params = new HashMap<String,Object>();
 			Map<Integer,String> result = new HashMap<Integer,String>();
 			params.put(FIELD_PROPERTY, property);
-			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_VALUE), schemaName, tableName, params, Object.class, null);
+			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_VALUE), schemaName, tableName, params, Object.class, null, caseSensitiveFields);
 			for (Map<String,Object> row : rows)
 			{
 				Number id = (Number)row.get(FIELD_ID);
@@ -171,7 +184,7 @@ public class MetadataTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			List<Map<String,String>> crossRowArgs = new LinkedList<Map<String,String>>();
+			List<Map<String,String>> crossRowArgs = new Vector<Map<String,String>>(constraints.size());
 
 			for (Entry<String,String> keyValPair : constraints.entrySet())
 			{
@@ -182,7 +195,7 @@ public class MetadataTable extends AbstractTable
 				colValPair.put(FIELD_VALUE, keyValPair.getValue());
 				crossRowArgs.add(colValPair);
 			}
-			return new HashSet<Integer>(SQLUtils.crossRowSelect(conn, schemaName, tableName, FIELD_ID, crossRowArgs));
+			return new HashSet<Integer>(SQLUtils.crossRowSelect(conn, schemaName, tableName, FIELD_ID, crossRowArgs, caseSensitiveFields));
 		}
 		catch (SQLException e)
 		{

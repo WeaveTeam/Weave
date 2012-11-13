@@ -25,12 +25,14 @@ import java.util.Observer;
 
 public class ProgressManager extends Observable
 {
+	private final long ONE_SECOND = 1000000000;
+	
 	private String step_desc;
 	private int current_steps;
 	private int total_steps;
 	
 	LinkedList<Long> ticks = new LinkedList<Long>();
-	private int max_ticks_kept = 10;
+	private long duration_for_estimate = ONE_SECOND * 10;
 	private int current_items;
 	private int total_items;
     
@@ -45,11 +47,12 @@ public class ProgressManager extends Observable
     public int getTickTotal() { return total_items; }
     public long getStepTimeRemaining()
     {
-    	if (ticks.size() <= 1)
+    	long tick_duration = ticks.peekLast() - ticks.peekFirst();
+    	if (ticks.size() <= 1) // || tick_duration < duration_for_estimate)
     		return Long.MAX_VALUE;
-    	long rate_est = (ticks.peekLast() - ticks.peekFirst()) / (ticks.size() - 1);
+    	long rate_est = (tick_duration) / (ticks.size() - 1);
     	long time_rem = (total_items - current_items) * rate_est;
-    	return time_rem / 1000000000;
+    	return time_rem / ONE_SECOND;
     }
     
     public void beginStep(String description, int stepNumber, int stepTotal, int tickTotal)
@@ -72,8 +75,13 @@ public class ProgressManager extends Observable
     public void tick()
     {
     	ticks.add(System.nanoTime());
-    	if (ticks.size() > max_ticks_kept)
-    		ticks.pollFirst();
+    	// drop the ticks that are outside our estimate duration
+    	long firstTick;
+    	do {
+    		firstTick = ticks.pollFirst();
+    	} while (ticks.peekLast() - ticks.peekFirst() > duration_for_estimate);
+    	ticks.addFirst(firstTick); // add back the tick we just removed to make the condition true again
+    	
     	current_items++;
     	
     	setChanged();

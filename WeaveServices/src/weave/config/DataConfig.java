@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Vector;
 
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
 import weave.config.tables.MetadataTable;
@@ -126,7 +127,7 @@ public class DataConfig
             updateEntity(id, properties);
         return id;
     }
-    private void removeChildren(Integer id) throws RemoteException
+    private void removeChildren(int id) throws RemoteException
     {
     	detectChange();
         for (Integer child : hierarchy.getChildren(id))
@@ -134,7 +135,7 @@ public class DataConfig
             removeEntity(child);
         }
     }
-    public void removeEntity(Integer id) throws RemoteException
+    public void removeEntity(int id) throws RemoteException
     {
     	detectChange();
         /* Need to delete all attributeColumns which are children of a table. */
@@ -145,23 +146,13 @@ public class DataConfig
         public_metadata.removeAllProperties(id);
         private_metadata.removeAllProperties(id);
     }
-    public void updateEntity(Integer id, DataEntityMetadata diff) throws RemoteException
+    public void updateEntity(int id, DataEntityMetadata diff) throws RemoteException
     {
     	detectChange();
-        for (Entry<String,String> propval : diff.publicMetadata.entrySet())
-        {
-            String key = propval.getKey();
-            String value = propval.getValue();
-            public_metadata.setProperty(id, key, value);
-        }
-        for (Entry<String,String> propval : diff.privateMetadata.entrySet())
-        {
-            String key = propval.getKey();
-            String value = propval.getValue();
-            private_metadata.setProperty(id, key, value);
-        }
+    	public_metadata.setProperties(id, diff.publicMetadata);
+    	private_metadata.setProperties(id, diff.privateMetadata);
     }
-    public Collection<Integer> getEntityIdsByMetadata(DataEntityMetadata properties, Integer type_id) throws RemoteException
+    public Collection<Integer> getEntityIdsByMetadata(DataEntityMetadata properties, int type_id) throws RemoteException
     {
     	detectChange();
         Set<Integer> publicmatches = null;
@@ -196,7 +187,7 @@ public class DataConfig
             return matches;
         }
     }
-    public DataEntity getEntity(Integer id) throws RemoteException
+    public DataEntity getEntity(int id) throws RemoteException
     {
     	detectChange();
     	for (DataEntity result : getEntitiesById(Arrays.asList(id)))
@@ -208,18 +199,13 @@ public class DataConfig
     	detectChange();
         List<DataEntity> results = new LinkedList<DataEntity>();
         Map<Integer,Integer> typeresults = manifest.getEntryTypes(ids);
-        System.out.println("ids"+ids);
-        System.out.println("types"+typeresults);
         Map<Integer,Map<String,String>> publicresults = public_metadata.getProperties(ids);
         Map<Integer,Map<String,String>> privateresults = private_metadata.getProperties(ids);
-        if (typeresults == null)
-        	return results;
         for (Integer id : ids)
         {
-            Integer type = typeresults.get(id);
             DataEntity entity = new DataEntity();
             entity.id = id; 
-           	entity.type = type;
+           	entity.type = typeresults.get(id);
             entity.publicMetadata = publicresults.get(id);
             entity.privateMetadata = privateresults.get(id);
             results.add(entity);
@@ -255,20 +241,12 @@ public class DataConfig
     	
         return copy_id;
     }
-    public void addChild(Integer child_id, Integer parent_id, Integer order) throws RemoteException
+    public void addChild(int child_id, int parent_id, int order) throws RemoteException
     {
     	detectChange();
-    	int childType = manifest.getEntryType(child_id);
-    	
-    	// if the child is not a column and has parents, make a copy.
-    	if (childType != DataEntity.TYPE_COLUMN && hierarchy.getParents(child_id).size() > 0)
-    	{
-    		child_id = copyEntity(child_id);
-    	}
-    	
    		hierarchy.addChildAt(child_id, parent_id, order);
     }
-    public void removeChild(Integer child_id, Integer parent_id) throws RemoteException
+    public void removeChild(int child_id, int parent_id) throws RemoteException
     {
     	detectChange();
         /* If we're trying to remove a child from a datatable, throw a wobbly. */
@@ -279,29 +257,19 @@ public class DataConfig
         hierarchy.removeChild(child_id, parent_id);
     }
     
-    public Collection<Integer> getParentIds(Integer id) throws RemoteException
+    public Collection<Integer> getParentIds(int id) throws RemoteException
     {
     	detectChange();
     	return hierarchy.getParents(id);
     }
     
-    public List<Integer> getChildIds(Integer id) throws RemoteException
+    public List<Integer> getChildIds(int id) throws RemoteException
     {
     	detectChange();
     	// if id is -1, we want ids of all entities without parents
         if (id == -1)
-        	id = null;
-        // get all children listed in the relationships table
-        List<Integer> children_ids = hierarchy.getChildren(id);
-        if (id == null)
-        {
-        	// get complete list of ids and remove the children appearing in the relationships table
-            List<Integer> completeSet = manifest.getAll();
-            completeSet.removeAll(children_ids);
-            // these are the ids with no parents
-            children_ids = completeSet;
-        }
-        return children_ids;
+        	return new Vector<Integer>(manifest.getByType(DataEntity.TYPE_HIERARCHY));
+        return hierarchy.getChildren(id);
     }
     public Collection<String> getUniquePublicValues(String property) throws RemoteException
     {

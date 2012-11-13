@@ -25,11 +25,12 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import weave.config.ConnectionConfig;
+import weave.config.DataConfig.DataEntity;
 import weave.utils.SQLUtils;
 
 
@@ -50,9 +51,11 @@ public class ManifestTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			SQLUtils.createTable(conn, schemaName, tableName,
+			SQLUtils.createTable(
+				conn, schemaName, tableName,
 				Arrays.asList(FIELD_ID, FIELD_TYPE),
-				Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TINYINT UNSIGNED"));
+				Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TINYINT UNSIGNED")
+			);
 			/* TODO: Add necessary foreign keys. */
 		}
 		catch (SQLException e)
@@ -60,43 +63,46 @@ public class ManifestTable extends AbstractTable
 			throw new RemoteException("Unable to initialize manifest table.", e);
 		}
 	}
-	public Integer addEntry(Integer type_id) throws RemoteException
+	public Integer addEntry(int type_id) throws RemoteException
 	{
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			Map<String,Object> record = new HashMap<String,Object>();
 			record.put(FIELD_TYPE, type_id);
-			return SQLUtils.insertRowReturnID(conn, schemaName, tableName, record);
+			int id = SQLUtils.insertRowReturnID(conn, schemaName, tableName, record);
+			
+	    	System.out.println(String.format("WRITE %s type is %s", id, type_id));
+	    	
+	    	type_id = getEntryType(id);
+	    	
+	    	System.out.println(String.format("READ %s type is %s", id, type_id));
+	    	
+	    	return id;
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("Unable to add entry to manifest table.", e);
 		}
 	}
-	public void removeEntry(Integer id) throws RemoteException
+	public void removeEntry(int id) throws RemoteException
 	{
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			Map<String,Object> whereParams = new HashMap<String,Object>();
 			whereParams.put(FIELD_ID, id);
-			SQLUtils.deleteRows(conn, schemaName, tableName, whereParams);
+			SQLUtils.deleteRows(conn, schemaName, tableName, whereParams, null);
 		}
 		catch (Exception e)
 		{
 			throw new RemoteException("Unable to remove entry from manifest table.", e);
 		}
 	}
-	public Integer getEntryType(Integer id) throws RemoteException
+	public Integer getEntryType(int id) throws RemoteException
 	{
-		List<Integer> list = new LinkedList<Integer>();
-		Map<Integer,Integer> resmap;
-		list.add(id);
-		resmap = getEntryTypes(list);
-		for (Integer idx : resmap.values())
-			return idx;
-		throw new RemoteException("No entry exists for this id.", null);
+		Integer type = getEntryTypes(Arrays.asList(id)).get(id);
+		return type == null ? DataEntity.TYPE_ANY : type;
 	}
 	public Map<Integer,Integer> getEntryTypes(Collection<Integer> ids) throws RemoteException
 	{
@@ -106,19 +112,18 @@ public class ManifestTable extends AbstractTable
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			Map<String,Object> whereParams = new HashMap<String,Object>();
-			List<Map<String,Object>> sqlres;
 			for (Integer id : ids)
 			{
 				whereParams.put(FIELD_ID, id);
-				sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class, null);
-				// sqlres has one or zero rows
-				if (sqlres.size() == 0)
+				List<Map<String,Object>> records = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class, null, null);
+				// either zero or one records
+				if (records.size() == 0)
 				{
-					result.put(id, -1);
+					result.put(id, DataEntity.TYPE_ANY);
 				}
 				else
 				{
-					Number type = (Number) sqlres.get(0).get(FIELD_TYPE);
+					Number type = (Number) records.get(0).get(FIELD_TYPE);
 					result.put(id, type.intValue());
 				}
 			}
@@ -133,13 +138,12 @@ public class ManifestTable extends AbstractTable
 	{
 		try
 		{
-			List<Integer> ids = new LinkedList<Integer>();
 			Map<String,Object> whereParams = new HashMap<String,Object>();
-			List<Map<String,Object>> sqlres;
 			Connection conn = connectionConfig.getAdminConnection();
 			whereParams.put(FIELD_TYPE, type_id);
-			sqlres = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class, null);
-			for (Map<String,Object> row : sqlres)
+			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class, null, null);
+			List<Integer> ids = new Vector<Integer>(rows.size());
+			for (Map<String,Object> row : rows)
 			{
 				Number id = (Number) row.get(FIELD_ID);
 				ids.add(id.intValue());
@@ -151,16 +155,16 @@ public class ManifestTable extends AbstractTable
 			throw new RemoteException("Unable to get by type.", e);
 		}
 	}
-	public List<Integer> getAll() throws RemoteException
-	{
-		try
-		{
-			Connection conn = connectionConfig.getAdminConnection();
-			return SQLUtils.getIntColumn(conn, schemaName, tableName, FIELD_ID);
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("Unable to get complete manifest.", e);
-		} 
-	}
+//	public List<Integer> getAll() throws RemoteException
+//	{
+//		try
+//		{
+//			Connection conn = connectionConfig.getAdminConnection();
+//			return SQLUtils.getIntColumn(conn, schemaName, tableName, FIELD_ID);
+//		}
+//		catch (Exception e)
+//		{
+//			throw new RemoteException("Unable to get complete manifest.", e);
+//		} 
+//	}
 }

@@ -26,35 +26,62 @@ package weave.utils;
  */
 public class DebugTimer
 {
+	private long startTime;
+	private StringBuilder debugText = new StringBuilder();
+	
 	public DebugTimer()
 	{
 		start();
 	}
-	private long startTime;
-	private String debugText = "";
+	
 	public void start()
 	{
 		startTime = System.currentTimeMillis();
 	}
+	
 	public long get()
 	{
 		return System.currentTimeMillis() - startTime;
 	}
+	
 	public void lap(String str)
 	{
 		String time = "" + get();
-		String indent = new String("    ".getBytes(), 0, Math.max(0, 5 - time.length()));
-		debugText += indent + time + " ms: " + str + "\n";
+		int indentLength = Math.max(0, 5 - time.length());
+		debugText.append( "    ", 0, indentLength ).append( time ).append( " ms: " ).append( str ).append( '\n' );
 		start();
 	}
+	
 	public void report(String lapText)
 	{
 		lap(lapText);
 		report();
 	}
+	
 	public void report()
 	{
 		System.out.println(debugText);
-		debugText = "";
+		reset();
+	}
+	
+	public void reset()
+	{
+		debugText.setLength(0);
+	}
+	
+	////////////////////////////////////////
+	// static instance ... not thread safe
+	
+	private static DebugTimer instance = new DebugTimer();
+	public static void go()
+	{
+		instance.start();
+	}
+	public static void stop(String description)
+	{
+		if (instance.get() > 0)
+			instance.report(description);
+		else
+			instance.reset();
 	}
 }
