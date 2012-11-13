@@ -115,6 +115,7 @@ package weave
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.MapTool;
+	import weave.visualization.tools.WeaveAnalyst;
 
 	public class VisApplication extends VBox implements ILinkableObject
 	{
@@ -828,13 +829,24 @@ package weave
 					}
 				}
 				
+				if (!Weave.properties.weaveAnalystMode.value)
+				{
+					var _analyst:WeaveAnalyst = new WeaveAnalyst();
+					this.visDesktop.addChild(_analyst);
+				}
+				
 				_weaveMenu.addSeparatorToMenu(_toolsMenu);
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(
 					function():String { return lang((Weave.properties.dashboardMode.value ? "Disable" : "Enable") + " dashboard mode"); },
 					function():void { Weave.properties.dashboardMode.value = !Weave.properties.dashboardMode.value; }
 
 				));
-
+	
+				_weaveMenu.addMenuItemToMenu(_toolsMenu,new WeaveMenuItem(
+					function():String { return lang((Weave.properties.weaveAnalystMode.value ? "Enable" : "Disable") + " Weave Analsyt"); },
+					function(): void { Weave.properties.weaveAnalystMode.value = !Weave.properties.weaveAnalystMode.value;}
+					
+				));
 			}
 			
 			if (Weave.properties.enableSelectionsMenu.value)

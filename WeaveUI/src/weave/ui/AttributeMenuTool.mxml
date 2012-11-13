@@ -46,7 +46,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		</mx:Canvas>
 		<mx:Canvas label="{lang('Horizontal Slider')}">
 			<mx:HBox verticalAlign="middle" width="100%" height="100%">
-				<mx:VBox visible="{hack_showPlayButton}" includeInLayout="{hack_showPlayButton}" horizontalAlign="center">
+				<mx:VBox visible="{showPlayButtonCheck.selected}" includeInLayout="{showPlayButtonCheck.selected}" horizontalAlign="center">
 					<mx:Button id="playButton" label="&gt;" toggle="true" toolTip="{lang('Play')}" click="lastFrame = getTimer() - 1000 / playSlider.value / 2;"/>
 					<mx:HSlider id="playSlider" width="48" minWidth="0" minimum=".5" maximum="2" tickInterval="0.5" snapInterval="0.25" value=".75" dataTipFormatFunction="{formatPlayTip}" liveDragging="true"/>
 				</mx:VBox>
@@ -76,6 +76,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						<CustomComboBox id="layoutCombo" prompt="{lang('Select a layout...')}" labelFunction="{layoutLabelFunction}"
 										dataProvider="{layouts}"/>
 						<HelpComponent content="{lang('Select the layout for the attribute menu.')}"/>
+						<mx:CheckBox id="showPlayButtonCheck" label="Show play button"
+									 visible="{layoutCombo.selectedItem == 'HSlider'}"
+									 creationComplete="linkBindableProperty(showPlayButton, showPlayButtonCheck, 'selected');"/>
 					</Indent>
 				</mx:VBox>
 			</mx:HBox>
@@ -105,6 +108,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.IVisTool;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
@@ -119,7 +124,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 			private static const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			
-			[Bindable] public var hack_showPlayButton:Boolean = false;
 			private var lastFrame:int = 0;
 			private function enterFrame(event:Event):void
 			{
@@ -149,6 +153,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(layouts[0], verifyLayoutMode));
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['column']), handleChoicesChange);
 			public const selectedAttribute:LinkableString = newLinkableChild(this, LinkableString, handleSelectedAttributeChange);
+			public const showPlayButton:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 			
 			// used to label the choices
 			private function choiceLabelFunction(column:IAttributeColumn):String
@@ -389,6 +394,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				}
 			}
 			
+			[Deprecated] public function set hack_showPlayButton(value:Boolean):void
+			{
+				showPlayButton.value = value;
+				panelTitle.value = StandardLib.replace(panelTitle.value, "{hack_showPlayButton=true;''}", "");
+			}
 		]]>
 	</mx:Script>
 </DraggablePanel>

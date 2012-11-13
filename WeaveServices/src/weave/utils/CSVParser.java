@@ -207,16 +207,13 @@ public class CSVParser
 
 		boolean escaped = false;
 		
-		int fileSize = csvInput.available();
-		char next = (char) csvReader.read();
+		int next = csvReader.read();
 		boolean skipNext = false;
-		for (int i = 0; i < fileSize; i++)
+		
+		while (next != -1)
 		{
-			char chr = next;
-			if (i < fileSize - 1)
-				next = (char) csvReader.read();
-			else
-				next = LF;
+			char chr = (char) next;
+			next = csvReader.read();
 			
 			if (skipNext)
 			{
@@ -345,14 +342,13 @@ public class CSVParser
 				output.append(LF);
 			
 			Object[] row = rows[iRow];
-			int lastCol = row.length - 1;
-			for (int iCol = 0; iCol <= lastCol; iCol++)
+			for (int iCol = 0; iCol < row.length; iCol++)
 			{
 				Object value = row[iCol];
 				String token = value == null ? nullToken : createCSVToken(value.toString(), quoteEmptyStrings);
-				output.append(token);
-				if (iCol < lastCol)
+				if (iCol > 0)
 					output.append(delimiter);
+				output.append(token);
 			}
 		}
 	}
