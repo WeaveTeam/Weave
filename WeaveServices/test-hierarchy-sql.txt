@@ -1,8 +1,5 @@
-// old:              0=table, 1=column, 2=category
-// new: 0=hierarchy, 1=table, 2=category, 3=column
-
 delete from weave_hierarchy;
-insert into weave_hierarchy(parent_id,child_id,order) values
+insert into weave_hierarchy(parent_id,child_id,sort_order) values
 (100,2,1),
 (100,4,2),
 (100,6,3),
@@ -32,7 +29,7 @@ insert into weave_hierarchy(parent_id,child_id,order) values
 (16,18,1),
 (16,19,2);
 delete from weave_manifest;
-insert into weave_manifest(unique_id,type_id) values
+insert into weave_manifest(entity_id,type_id) values
 (100,1),
 (1,2),
 (2,3),

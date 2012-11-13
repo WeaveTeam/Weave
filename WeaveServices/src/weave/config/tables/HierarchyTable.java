@@ -43,7 +43,7 @@ public class HierarchyTable extends AbstractTable
 {
 	public static final String FIELD_CHILD = "child_id";
 	public static final String FIELD_PARENT = "parent_id";
-	public static final String FIELD_ORDER = "order";
+	public static final String FIELD_ORDER = "sort_order";
 	
 	public HierarchyTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
 	{
@@ -79,7 +79,15 @@ public class HierarchyTable extends AbstractTable
 			
 			// shift all existing children prior to insert
 			Statement stmt = conn.createStatement();
-			String updateQuery = String.format("update %s set %s=%s+1 where %s >= %s", tableName, FIELD_ORDER, FIELD_ORDER, FIELD_ORDER, insertAt);
+			String orderField = SQLUtils.quoteSymbol(conn, FIELD_ORDER);
+			String updateQuery = String.format(
+					"update %s set %s=%s+1 where %s >= %s",
+					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
+					orderField,
+					orderField,
+					orderField,
+					insertAt
+				);
 			stmt.executeUpdate(updateQuery);
 			
 			Map<String, Object> sql_args = new HashMap<String,Object>();

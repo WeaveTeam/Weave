@@ -26,6 +26,7 @@ import weave.beans.RResult;
 import weave.config.ConnectionConfig;
 import weave.config.DataConfig;
 import weave.servlets.RService;
+import weave.utils.ProgressManager.ProgressPrinter;
 
 public class test
 {
@@ -65,8 +66,11 @@ public class test
 	@SuppressWarnings("unused")
 	public static void main(String[] args) throws Exception
 	{
-		ConnectionConfig connConfig = new ConnectionConfig(new File("/home/pkovac/dload/cfg/sqlconfig.xml"));
-		DataConfig dataConfig = connConfig.initializeNewDataConfig(System.out);
+		//String sqlconfig_xml = "/home/pkovac/dload/cfg/sqlconfig.xml";
+		String sqlconfig_xml = "d:/tomcat/webapps/weave-config/sqlconfig.xml";
+		ConnectionConfig connConfig = new ConnectionConfig(new File(sqlconfig_xml));
+		ProgressPrinter pp = new ProgressPrinter(System.out);
+		DataConfig dataConfig = connConfig.initializeNewDataConfig(pp.getProgressManager());
 		
 //		ConnectionInfo connInfo = new ConnectionInfo();
 //		connInfo.connectString = "hello";

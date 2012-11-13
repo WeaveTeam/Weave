@@ -41,7 +41,7 @@ import weave.utils.SQLUtils;
  */
 public class MetadataTable extends AbstractTable
 {
-	public static final String FIELD_ID = "id";
+	public static final String FIELD_ID = "entity_id";
 	public static final String FIELD_PROPERTY = "property";
 	public static final String FIELD_VALUE = "value";
 	
@@ -118,7 +118,7 @@ public class MetadataTable extends AbstractTable
 		}
 	}
 	/* Nuke all entries for a given id */
-	public void clearId(Integer id) throws RemoteException
+	public void removeAllProperties(Integer id) throws RemoteException
 	{
 		try 
 		{

@@ -19,7 +19,6 @@
 
 package weave.config;
 
-import java.io.PrintStream;
 import java.rmi.RemoteException;
 import java.security.InvalidParameterException;
 import java.sql.Connection;
@@ -47,18 +46,17 @@ import weave.utils.ProgressManager;
 
 @Deprecated public class DeprecatedConfig
 {
-	public static void migrate(ConnectionConfig connConfig, DataConfig dataConfig, PrintStream out)
-			throws RemoteException, SQLException, InvalidParameterException
+	public static void migrate(ConnectionConfig connConfig, DataConfig dataConfig, ProgressManager progress) throws RemoteException
 	{
-		ProgressManager progress = new ProgressManager(out);
 		int total;
-		int cycle = 10;
-		Connection conn = connConfig.getAdminConnection(); // this will fail if DatabaseConfigInfo is missing
-		DatabaseConfigInfo dbInfo = connConfig.getDatabaseConfigInfo();
-		Statement stmt = conn.createStatement();
+		Connection conn = null;
+		Statement stmt = null;
 		ResultSet resultSet = null;
 		try
 		{
+			conn = connConfig.getAdminConnection(); // this will fail if DatabaseConfigInfo is missing
+			DatabaseConfigInfo dbInfo = connConfig.getDatabaseConfigInfo();
+			stmt = conn.createStatement();
 			conn.setAutoCommit(false);
 			
 			/////////////////////////////
@@ -85,7 +83,7 @@ import weave.utils.ProgressManager;
 			/////////////////////////////
 			// get dublin core metadata for data tables
 			
-			out.println("Step 1 of 4: Retrieving old dataset metadata");
+			progress.beginStep("Retrieving old dataset metadata", 1, 4, 0);
 			if (SQLUtils.tableExists(conn, dbInfo.schema, OLD_METADATA_TABLE))
 			{
 				resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedOldMetadataTable));
@@ -106,10 +104,9 @@ import weave.utils.ProgressManager;
 			/////////////////////////////
 			// get the set of unique dataTable names, create entities for them and remember the corresponding id numbers
 			
-			out.println("Step 2 of 4: Generating table entities");
 			total = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(DISTINCT %s) FROM %s", PublicMetadata_DATATABLE, quotedDataConfigTable));
-			progress.init(total, cycle);
 			resultSet = stmt.executeQuery(String.format("SELECT DISTINCT %s FROM %s", PublicMetadata_DATATABLE, quotedDataConfigTable));
+			progress.beginStep("Generating table entity", 2, 4, total);
 			while (resultSet.next())
 			{
 				String tableName = resultSet.getString(PublicMetadata_DATATABLE);
@@ -125,18 +122,17 @@ import weave.utils.ProgressManager;
 				// create the data table entity and remember the new id
 				int tableId = dataConfig.addEntity(DataEntity.TYPE_DATATABLE, metadata);
 				tableIdLookup.put(tableName, tableId);
-                progress.advance(1);
+                progress.tick();
 			}
 			SQLUtils.cleanup(resultSet);
 			
 			/////////////////////////////
 			// migrate geometry collections
 			
-			out.println("Step 3 of 4: Migrating geometry collections");
 			total = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(*) FROM %s", quotedGeometryConfigTable));
-			progress.init(total, cycle);
 			resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedGeometryConfigTable));
 			String[] columnNames = SQLUtils.getColumnNamesFromResultSet(resultSet);
+			progress.beginStep("Migrating geometry collection", 3, 4, total);
 			while (resultSet.next())
 			{
 				Map<String,String> geomRecord = getRecord(resultSet, columnNames);
@@ -164,18 +160,17 @@ import weave.utils.ProgressManager;
 				DataEntityMetadata geomMetadata = toDataEntityMetadata(geomRecord);
 				int col_id = dataConfig.addEntity(DataEntity.TYPE_COLUMN, geomMetadata);
                 dataConfig.addChild(col_id, parentId, 0);
-				progress.advance(1);
+				progress.tick();
 			}
 			SQLUtils.cleanup(resultSet);
 			
 			/////////////////////////////
 			// migrate columns
 			
-			out.println("Step 4 of 4: Migrating attribute columns");
 			total = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(*) FROM %s", quotedDataConfigTable));
-			progress.init(total, cycle);
 			resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedDataConfigTable));
 			columnNames = SQLUtils.getColumnNamesFromResultSet(resultSet);
+			progress.beginStep("Migrating attribute column", 4, 4, total);
 			while (resultSet.next())
 			{
 				Map<String,String> columnRecord = getRecord(resultSet, columnNames);
@@ -204,22 +199,26 @@ import weave.utils.ProgressManager;
 				DataEntityMetadata columnMetadata = toDataEntityMetadata(columnRecord);
 				int col_id = dataConfig.addEntity(DataEntity.TYPE_COLUMN, columnMetadata);
                 dataConfig.addChild(col_id, tableId, 0);
-				progress.advance(1);
+				progress.tick();
 			}
 			SQLUtils.cleanup(resultSet);
 			
 			/////////////////////////////
 			
 			conn.setAutoCommit(true);
-			
-			out.println("Done.");
+		}
+		catch (RemoteException e)
+		{
+			throw e;
 		}
 		catch (Exception e)
 		{
+			throw new RemoteException("Unable to migrate old SQL config to new format.", e);
+		}
+		finally
+		{
 			SQLUtils.cleanup(resultSet);
 			SQLUtils.cleanup(stmt);
-			SQLUtils.cleanup(conn);
-			throw new RemoteException("Unable to migrate old SQL config data.", e);
 		}
 	}
 	

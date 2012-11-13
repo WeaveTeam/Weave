@@ -34,6 +34,7 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.rmi.RemoteException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -76,6 +77,7 @@ import weave.utils.CSVParser;
 import weave.utils.DBFUtils;
 import weave.utils.FileUtils;
 import weave.utils.ListUtils;
+import weave.utils.ProgressManager.ProgressPrinter;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 
@@ -104,7 +106,9 @@ public class AdminService
 	{
 		try
 		{
-			WeaveConfig.initializeAdminService(getServletRequestInfo().response.getOutputStream());
+			PrintStream ps = new PrintStream(getServletRequestInfo().response.getOutputStream());
+			ProgressPrinter pp = new ProgressPrinter(ps);
+			WeaveConfig.initializeAdminService(pp.getProgressManager());
 		}
 		catch (IOException e)
 		{

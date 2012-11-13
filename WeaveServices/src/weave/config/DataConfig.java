@@ -55,10 +55,10 @@ public class DataConfig
 	private final String SUFFIX_MANIFEST = "_manifest";
 	private final String SUFFIX_HIERARCHY = "_hierarchy";
 
-	private MetadataTable public_attributes;
-	private MetadataTable private_attributes;
+	private MetadataTable public_metadata;
+	private MetadataTable private_metadata;
 	private ManifestTable manifest;
-	private HierarchyTable relationships;
+	private HierarchyTable hierarchy;
 	private ConnectionConfig connectionConfig;
 	private long lastModified = 0L;
 
@@ -100,9 +100,9 @@ public class DataConfig
 				String table_manifest = tablePrefix + SUFFIX_MANIFEST;
 				String table_tags = tablePrefix + SUFFIX_HIERARCHY;
 				
-				private_attributes = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_private);
-				public_attributes = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_public);
-				relationships = new HierarchyTable(connectionConfig, dbInfo.schema, table_tags);
+				private_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_private);
+				public_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_public);
+				hierarchy = new HierarchyTable(connectionConfig, dbInfo.schema, table_tags);
 				manifest = new ManifestTable(connectionConfig, dbInfo.schema, table_manifest);
 				
 				/* TODO: Figure out nice way to do this from within the classes. */
@@ -129,7 +129,7 @@ public class DataConfig
     private void removeChildren(Integer id) throws RemoteException
     {
     	detectChange();
-        for (Integer child : relationships.getChildren(id))
+        for (Integer child : hierarchy.getChildren(id))
         {
             removeEntity(child);
         }
@@ -141,9 +141,9 @@ public class DataConfig
         if (getEntity(id).type == DataEntity.TYPE_DATATABLE)
             removeChildren(id);
         manifest.removeEntry(id);
-        relationships.purge(id);
-        public_attributes.clearId(id);
-        private_attributes.clearId(id);
+        hierarchy.purge(id);
+        public_metadata.removeAllProperties(id);
+        private_metadata.removeAllProperties(id);
     }
     public void updateEntity(Integer id, DataEntityMetadata diff) throws RemoteException
     {
@@ -152,13 +152,13 @@ public class DataConfig
         {
             String key = propval.getKey();
             String value = propval.getValue();
-            public_attributes.setProperty(id, key, value);
+            public_metadata.setProperty(id, key, value);
         }
         for (Entry<String,String> propval : diff.privateMetadata.entrySet())
         {
             String key = propval.getKey();
             String value = propval.getValue();
-            private_attributes.setProperty(id, key, value);
+            private_metadata.setProperty(id, key, value);
         }
     }
     public Collection<Integer> getEntityIdsByMetadata(DataEntityMetadata properties, Integer type_id) throws RemoteException
@@ -169,9 +169,9 @@ public class DataConfig
         Collection<Integer> matches = null;
 
         if (properties != null && properties.publicMetadata != null && properties.publicMetadata.size() > 0)
-            publicmatches = public_attributes.filter(properties.publicMetadata);
+            publicmatches = public_metadata.filter(properties.publicMetadata);
         if (properties != null && properties.privateMetadata != null && properties.privateMetadata.size() > 0)
-            privatematches = private_attributes.filter(properties.privateMetadata);
+            privatematches = private_metadata.filter(properties.privateMetadata);
         if ((publicmatches != null) && (privatematches != null))
         {
         	// intersection
@@ -210,8 +210,8 @@ public class DataConfig
         Map<Integer,Integer> typeresults = manifest.getEntryTypes(ids);
         System.out.println("ids"+ids);
         System.out.println("types"+typeresults);
-        Map<Integer,Map<String,String>> publicresults = public_attributes.getProperties(ids);
-        Map<Integer,Map<String,String>> privateresults = private_attributes.getProperties(ids);
+        Map<Integer,Map<String,String>> publicresults = public_metadata.getProperties(ids);
+        Map<Integer,Map<String,String>> privateresults = private_metadata.getProperties(ids);
         if (typeresults == null)
         	return results;
         for (Integer id : ids)
@@ -249,7 +249,7 @@ public class DataConfig
             for (int i = 0; i < children.size(); i++)
             {
                 int child_id = copyEntity(children.get(i));
-                relationships.addChildAt(child_id, copy_id, i);
+                hierarchy.addChildAt(child_id, copy_id, i);
             }
         }
     	
@@ -261,12 +261,12 @@ public class DataConfig
     	int childType = manifest.getEntryType(child_id);
     	
     	// if the child is not a column and has parents, make a copy.
-    	if (childType != DataEntity.TYPE_COLUMN && relationships.getParents(child_id).size() > 0)
+    	if (childType != DataEntity.TYPE_COLUMN && hierarchy.getParents(child_id).size() > 0)
     	{
     		child_id = copyEntity(child_id);
     	}
     	
-   		relationships.addChildAt(child_id, parent_id, order);
+   		hierarchy.addChildAt(child_id, parent_id, order);
     }
     public void removeChild(Integer child_id, Integer parent_id) throws RemoteException
     {
@@ -276,13 +276,13 @@ public class DataConfig
         {
             throw new RemoteException("Can't remove children from a datatable.", null);
         }
-        relationships.removeChild(child_id, parent_id);
+        hierarchy.removeChild(child_id, parent_id);
     }
     
     public Collection<Integer> getParentIds(Integer id) throws RemoteException
     {
     	detectChange();
-    	return relationships.getParents(id);
+    	return hierarchy.getParents(id);
     }
     
     public List<Integer> getChildIds(Integer id) throws RemoteException
@@ -292,7 +292,7 @@ public class DataConfig
         if (id == -1)
         	id = null;
         // get all children listed in the relationships table
-        List<Integer> children_ids = relationships.getChildren(id);
+        List<Integer> children_ids = hierarchy.getChildren(id);
         if (id == null)
         {
         	// get complete list of ids and remove the children appearing in the relationships table
@@ -306,7 +306,7 @@ public class DataConfig
     public Collection<String> getUniquePublicValues(String property) throws RemoteException
     {
     	detectChange();
-    	return new HashSet<String>(public_attributes.getProperty(property).values());
+    	return new HashSet<String>(public_metadata.getProperty(property).values());
     }
     
     

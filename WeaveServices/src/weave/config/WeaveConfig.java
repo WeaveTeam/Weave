@@ -20,9 +20,9 @@
 package weave.config;
 
 import java.io.File;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.rmi.RemoteException;
+
+import weave.utils.ProgressManager;
 
 /**
  * @author adufilie
@@ -71,13 +71,13 @@ public class WeaveConfig
 	 * @param out A stream used to output SQL config data migration status updates.
 	 * @throws RemoteException Thrown when the DataConfig could not be initialized.
 	 */
-	public static void initializeAdminService(OutputStream out) throws RemoteException
+	public static void initializeAdminService(ProgressManager progress) throws RemoteException
 	{
 		ConnectionConfig cc = getConnectionConfig();
 		synchronized(_dataConfig)
 		{
 			if (_dataConfig == null)
-				_dataConfig = cc.initializeNewDataConfig(new PrintStream(out));
+				_dataConfig = cc.initializeNewDataConfig(progress);
 		}
 	}
 	

@@ -19,45 +19,132 @@
 
 package weave.utils;
 import java.io.PrintStream;
+import java.util.LinkedList;
+import java.util.Observable;
+import java.util.Observer;
 
-public class ProgressManager
+public class ProgressManager extends Observable
 {
-    private int total_items;
-    private int current_items;
-    private PrintStream output;
-    private long rate_est = 0;
-    private long last_tick;
-    private int cycle;
-    public ProgressManager(PrintStream output)
+	private String step_desc;
+	private int current_steps;
+	private int total_steps;
+	
+	LinkedList<Long> ticks = new LinkedList<Long>();
+	private int max_ticks_kept = 10;
+	private int current_items;
+	private int total_items;
+    
+    public ProgressManager()
     {
-    	this.output = output;
     }
-    public void init(int total_items, int cycle)
+    
+    public String getStepDescription() { return step_desc; }
+    public int getStepNumber() { return current_steps; }
+    public int getStepTotal() { return total_steps; }
+    public int getTickNumber() { return current_items; }
+    public int getTickTotal() { return total_items; }
+    public long getStepTimeRemaining()
     {
-        this.total_items = total_items;
-        this.cycle = cycle;
-        last_tick = System.nanoTime();
+    	if (ticks.size() <= 1)
+    		return Long.MAX_VALUE;
+    	long rate_est = (ticks.peekLast() - ticks.peekFirst()) / (ticks.size() - 1);
+    	long time_rem = (total_items - current_items) * rate_est;
+    	return time_rem / 1000000000;
     }
-    public void advance(int items)
+    
+    public void beginStep(String description, int stepNumber, int stepTotal, int tickTotal)
     {
-        long new_tick, tick_diff, tick_rate;
-        long time_rem;
-        new_tick = System.nanoTime();
-        tick_diff = (new_tick - last_tick);
-        last_tick = new_tick;
-        current_items += items;
-        tick_rate = tick_diff / items;
-        if (tick_rate > rate_est) rate_est = tick_rate;
-        if (rate_est == 0) 
-        {
-            time_rem = 0;
-        }
-        else 
-        {
-            time_rem = (total_items - current_items) * rate_est;
-        }
-        time_rem /= 1000000000;
-        if (current_items % cycle == 0)
-            output.printf("%d/%d %d\n", current_items, total_items, time_rem);
+    	this.step_desc = description;
+    	
+    	this.current_steps = stepNumber;
+    	this.total_steps = stepTotal;
+    	
+    	this.current_items = 0;
+    	this.total_items = tickTotal;
+    	
+    	ticks.clear();
+    	ticks.add(System.nanoTime());
+    	
+    	setChanged();
+    	notifyObservers();
+    }
+    
+    public void tick()
+    {
+    	ticks.add(System.nanoTime());
+    	if (ticks.size() > max_ticks_kept)
+    		ticks.pollFirst();
+    	current_items++;
+    	
+    	setChanged();
+    	notifyObservers();
+    }
+    
+    public static class ProgressPrinter implements Observer
+    {
+    	private ProgressManager p;
+    	private PrintStream out;
+    	
+    	public ProgressPrinter(PrintStream out)
+    	{
+    		this.p = new ProgressManager();
+    		this.out = out;
+    		p.addObserver(this);
+    	}
+    	
+    	public ProgressManager getProgressManager()
+    	{
+    		return p;
+    	}
+
+		public void update(Observable o, Object arg)
+		{
+			String step = "";
+			if (p.getStepTotal() > 0)
+			{
+				step = String.format(
+					"Step %s of %s: ",
+					p.getStepNumber(),
+					p.getStepTotal()
+				);
+			}
+			
+			String ticks = "";
+			if (p.getTickTotal() > 0)
+			{
+				ticks = String.format(
+					"%s/%s",
+					p.getTickNumber(),
+					p.getTickTotal(),
+					p.getStepTimeRemaining()
+				);
+			}
+			
+			String remain = "";
+			long time = p.getStepTimeRemaining();
+			if (time != Long.MAX_VALUE)
+			{
+				String unit = "seconds";
+				if (time > 60)
+				{
+					unit = "minutes";
+					time /= 60;
+					if (time > 60)
+					{
+						unit = "hours";
+						time /= 60;
+					}
+				}
+					
+				remain = String.format("; %s %s remaining", time, unit);
+			}
+			
+			String desc = p.getStepDescription();
+			String par = ticks + remain;
+			if (par.length() > 0)
+				par = " (" + par + ")";
+			
+			out.println(step + desc + par);
+    	}
     }
 }

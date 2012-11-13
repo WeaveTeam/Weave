@@ -38,8 +38,8 @@ import weave.utils.SQLUtils;
  */
 public class ManifestTable extends AbstractTable
 {
-	public static final String FIELD_ID = "id";
-	public static final String FIELD_TYPE = "type";
+	public static final String FIELD_ID = "entity_id";
+	public static final String FIELD_TYPE = "type_id";
 	
 	public ManifestTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
 	{

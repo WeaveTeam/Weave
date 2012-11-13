@@ -21,7 +21,6 @@ package weave.config;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.sql.Connection;
@@ -45,6 +44,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import weave.utils.FileUtils;
+import weave.utils.ProgressManager;
 import weave.utils.SQLUtils;
 import weave.utils.XMLUtils;
 
@@ -81,7 +81,7 @@ public class ConnectionConfig
 	 * This function must be called before making any modifications to the config.
 	 */
 	@SuppressWarnings("deprecation")
-	public DataConfig initializeNewDataConfig(PrintStream statusOutput) throws RemoteException
+	public DataConfig initializeNewDataConfig(ProgressManager progress) throws RemoteException
 	{
 		if (detectOldVersion())
 		{
@@ -90,17 +90,17 @@ public class ConnectionConfig
 				// clear the flag to allow the DataConfig to use the ConnectionConfig
 				_oldVersionDetected = false;
 				DataConfig dataConfig = new DataConfig(this);
-				DeprecatedConfig.migrate(this, dataConfig, statusOutput);
+				DeprecatedConfig.migrate(this, dataConfig, progress);
 				
 				// after everything has successfully been migrated, save under new connection config format
 				_save();
 				return dataConfig;
 			}
-			catch (Exception e)
+			catch (RemoteException e)
 			{
 				// if something bad happens, reset this flag
 				_oldVersionDetected = true;
-				throw new RemoteException("Unable to migrate old SQL config to new format.", e);
+				throw e;
 			}
 		}
 		else
