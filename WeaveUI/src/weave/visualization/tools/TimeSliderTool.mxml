@@ -97,14 +97,20 @@
 		var newTime:String = dimensionSlider.labels[dimensionSlider.value] || '';
 		if (!newTime)
 			return;
-		var descendants:Array = [];
+		
+		// get descendants of all global objects except LineChartTool
+		var obj:Object;
+		var dd:Dictionary = new Dictionary(true);
 		for each (var object:ILinkableObject in WeaveAPI.globalHashMap.getObjects())
 		{
 			if (object is LineChartTool)
 				continue;
-			descendants.push(WeaveAPI.SessionManager.getLinkableDescendants(object, HierarchyColumnReference));
+			for each (obj in WeaveAPI.SessionManager.getLinkableDescendants(object, HierarchyColumnReference));
+				dd[obj] = true;
 		}
-		descendants = VectorUtils.flatten(descendants);
+		var descendants:Array = [];
+		for (obj in dd)
+			descendants.push(obj);
 		
 		var len:int = descendants.length;
 		for (var i:int = 0; i < len; i++)
