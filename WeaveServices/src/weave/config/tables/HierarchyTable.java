@@ -28,13 +28,13 @@ import weave.utils.SQLUtils;
 /**
  * @author Philip Kovac
  */
-public class ParentChildTable extends AbstractTable
+public class HierarchyTable extends AbstractTable
 {
 	public static final String FIELD_CHILD = "child_id";
 	public static final String FIELD_PARENT = "parent_id";
 	public static final String FIELD_ORDER = "order";
 	
-    public ParentChildTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
+    public HierarchyTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
     {
         super(connectionConfig, schemaName, tableName);
     }

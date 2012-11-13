@@ -28,13 +28,13 @@ import weave.utils.SQLUtils;
 /**
  * @author Philip Kovac
  */
-public class AttributeValueTable extends AbstractTable
+public class MetadataTable extends AbstractTable
 {
 	public static final String FIELD_ID = "id";
 	public static final String FIELD_PROPERTY = "property";
 	public static final String FIELD_VALUE = "value";
 	
-    public AttributeValueTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
+    public MetadataTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
     {
         super(connectionConfig, schemaName, tableName);
     }

@@ -35,9 +35,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
-import weave.config.tables.AttributeValueTable;
+import weave.config.tables.MetadataTable;
 import weave.config.tables.ManifestTable;
-import weave.config.tables.ParentChildTable;
+import weave.config.tables.HierarchyTable;
 import weave.utils.SQLUtils;
 
 
@@ -55,10 +55,10 @@ public class DataConfig
 	private final String SUFFIX_MANIFEST = "_manifest";
 	private final String SUFFIX_HIERARCHY = "_hierarchy";
 
-	private AttributeValueTable public_attributes;
-	private AttributeValueTable private_attributes;
+	private MetadataTable public_attributes;
+	private MetadataTable private_attributes;
 	private ManifestTable manifest;
-	private ParentChildTable relationships;
+	private HierarchyTable relationships;
 	private ConnectionConfig connectionConfig;
 	private long lastModified = 0L;
 
@@ -100,14 +100,14 @@ public class DataConfig
 				String table_manifest = tablePrefix + SUFFIX_MANIFEST;
 				String table_tags = tablePrefix + SUFFIX_HIERARCHY;
 				
-				private_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_private);
-				public_attributes = new AttributeValueTable(connectionConfig, dbInfo.schema, table_meta_public);
-				relationships = new ParentChildTable(connectionConfig, dbInfo.schema, table_tags);
+				private_attributes = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_private);
+				public_attributes = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_public);
+				relationships = new HierarchyTable(connectionConfig, dbInfo.schema, table_tags);
 				manifest = new ManifestTable(connectionConfig, dbInfo.schema, table_manifest);
 				
 				/* TODO: Figure out nice way to do this from within the classes. */
-				SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, AttributeValueTable.FIELD_ID, table_manifest, ManifestTable.FIELD_ID);
-				SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, AttributeValueTable.FIELD_ID, table_manifest, ManifestTable.FIELD_ID);
+				SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, MetadataTable.FIELD_ID, table_manifest, ManifestTable.FIELD_ID);
+				SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, MetadataTable.FIELD_ID, table_manifest, ManifestTable.FIELD_ID);
 			}
 			catch (SQLException e)
 			{
