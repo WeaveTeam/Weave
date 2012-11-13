@@ -85,7 +85,7 @@
 		dimensionSlider.minimum = 0;
 		dimensionSlider.maximum = dimensionSlider.labels.length - 1;		
 		labelsInput.text = labelsString;
-	}	
+	}
 	
 	/** 
 	 * change - this method is automatically called when the hslider
@@ -105,7 +105,7 @@
 		{
 			if (object is LineChartTool)
 				continue;
-			for each (obj in WeaveAPI.SessionManager.getLinkableDescendants(object, HierarchyColumnReference));
+			for each (obj in WeaveAPI.SessionManager.getLinkableDescendants(object, HierarchyColumnReference))
 				dd[obj] = true;
 		}
 		var descendants:Array = [];
@@ -131,12 +131,12 @@
 						if (String(search.@name))
 							delete search.@title;
 						var hierarchy:AttributeHierarchy = ref.getDataSource().attributeHierarchy as AttributeHierarchy;
-						var list:XMLList = hierarchy.value.descendants('attribute');
-						for (var j:int = 0; j < list.length(); j++)
+						var xmlList:XMLList = hierarchy.value.descendants('attribute');
+						for (var j:int = 0; j < xmlList.length(); j++)
 						{
-							if (HierarchyUtils.nodeContainsAttributes(list[j], search))
+							if (HierarchyUtils.nodeContainsAttributes(xmlList[j], search))
 							{
-								path = hierarchy.getPathFromNode(list[j]);
+								path = hierarchy.getPathFromNode(xmlList[j]);
 								break;
 							}
 						}
