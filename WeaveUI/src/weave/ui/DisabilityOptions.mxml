@@ -121,6 +121,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								
 								linkBindableProperty(Weave.properties.disabilityAltText, altTextInputBox, "text");
 								linkBindableProperty(Weave.properties.disabilityLongAltText, longDescTextInputBox, "text");
+						//		linkBindableProperty(Weave.properties.disabilitySystemText, automaticToolDescTextBox, "text");
 								
 								Weave.properties.disabilityAltText.addImmediateCallback(this, handleDisabilityAltTextChange);
 								
