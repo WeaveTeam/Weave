@@ -71,6 +71,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import disabilityDictionary.DisabilityMessageCategoryDictionary;
+			import disabilityDictionary.DisabilityMessageProperties;
 			import disabilityDictionary.DisabilityObject;
 			
 			import mx.accessibility.CheckBoxAccImpl;
@@ -147,7 +148,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				super.childrenCreated();
 				
-				
+			}
+			
+			public function getSystemGeneratedText():void
+			{
 			}
 		
 			private function handleCreationComplete(event:Event) : void
@@ -303,7 +307,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				//this gives us the final array of text messages
 				var finalTextMessages:Array = checkLookUpDict.collectMessageCategoryID(tempDisabilityObject);
-				Alert.show(finalTextMessages[0],"Result");
+				automaticToolDescTextBox.text = finalTextMessages[0];
 			}
 			
 		]]>

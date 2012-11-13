@@ -27,8 +27,8 @@ package disabilityDictionary
 		public static const PERIODICITY_ID:String = "PD";
 		
 		
-		private static const INCREASING_TREND:String = "This is an increasing trend";
-		private static const PERIODICITY:String = "It has a high periodicty";
+		private static const INCREASING_TREND:String = "This line chart has an increasing trend";
+		private static const PERIODICITY:String = "This line chart hs high periodicity";
 		
 		
 	}
