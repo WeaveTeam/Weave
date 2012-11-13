@@ -158,24 +158,27 @@ public class SQLUtils
 	
 	/**
 	 * This function will test a connection by running a simple test query.
+	 * We cannot rely on Connection.isValid(timeout) because it does not work in some drivers.
+	 * Running a test query is a reliable way to find out if the connection is valid.
 	 * @param conn A SQL Connection.
 	 * @throws SQLException Thrown if the test query fails.
 	 */
 	public static void testConnection(Connection conn) throws SQLException
 	{
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		try
 		{
-			// run test query to see if connection is valid
+			stmt = conn.createStatement();
 			if (SQLUtils.isOracleServer(conn))
-				stmt = conn.prepareStatement("SELECT 0 FROM DUAL");
+				stmt.execute("SELECT 0 FROM DUAL");
 			else
-				stmt = conn.prepareStatement("SELECT 0;");
-			stmt.execute(); // this will throw an exception if the connection is invalid
+				stmt.execute("SELECT 0");
 		}
 		catch (RuntimeException e) // This is important for catching unexpected errors.
 		{
 			/*
+				Example unexpected error when the connection is invalid:
+				
 				java.lang.NullPointerException
 				at com.mysql.jdbc.PreparedStatement.fillSendPacket(PreparedStatement.java:2484)
 				at com.mysql.jdbc.PreparedStatement.fillSendPacket(PreparedStatement.java:2460)
