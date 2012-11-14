@@ -19,6 +19,7 @@
 package weave.utils
 {
 	import flash.display.Graphics;
+	import flash.geom.Point;
 	
 	/**
 	 * 
@@ -39,7 +40,7 @@ package weave.utils
 		 * @param yRadius Optional y radius for an elliptical arc instead of a circular one
 		 * @author adufilie
 		 */		
-		public static function arcTo(graphics:Graphics, continueLine:Boolean, xCenter:Number, yCenter:Number, startAngle:Number, endAngle:Number, radius:Number, yRadius:Number = NaN):void
+		public static function arcTo(graphics:Graphics, continueLine:Boolean, xCenter:Number, yCenter:Number, startAngle:Number, endAngle:Number, radius:Number, yRadius:Number = NaN, outputStartCoords:Point = null):void
 		{
 			if (isNaN(yRadius))
 				yRadius = radius;
@@ -68,6 +69,11 @@ package weave.utils
 				
 				var x:Number = xCenter + Math.cos(startAngle) * radius;
 				var y:Number = yCenter + Math.sin(startAngle) * yRadius;
+				if (i == 0 && outputStartCoords)
+				{
+					outputStartCoords.x = x;
+					outputStartCoords.y = y;
+				}
 				if (i == 0 && !continueLine)
 					graphics.moveTo(x, y);
 				else
