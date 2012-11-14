@@ -1204,7 +1204,7 @@ public class AdminService extends GenericServlet
 	{
 		try
 		{
-			Object[][] dataArray = DBFUtils.getDBFData(new File(uploadPath, correctFileNameCase(dbfFileName)));
+			Object[][] dataArray = DBFUtils.getDBFData(new File(uploadPath, correctFileNameCase(dbfFileName)), null);
 			return dataArray;
 		}
 		catch (IOException e)
