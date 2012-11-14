@@ -92,6 +92,8 @@ public class ProgressManager extends Observable
     {
     	private ProgressManager p;
     	private PrintStream out;
+    	private long lastPrintMillisec;
+    	private long printIntervalMillisec = 1000; 
     	
     	public ProgressPrinter(PrintStream out)
     	{
@@ -107,6 +109,11 @@ public class ProgressManager extends Observable
 
 		public void update(Observable o, Object arg)
 		{
+			long curTime = System.currentTimeMillis();
+			if (curTime - lastPrintMillisec < printIntervalMillisec)
+				return;
+			lastPrintMillisec = curTime;
+			
 			String step = "";
 			if (p.getStepTotal() > 0)
 			{
@@ -132,19 +139,18 @@ public class ProgressManager extends Observable
 			double time = p.getStepTimeRemaining();
 			if (time != Long.MAX_VALUE)
 			{
-				String unit = "seconds";
-				if (time > 60)
-				{
-					unit = "minutes";
-					time /= 60;
-					if (time > 60)
-					{
-						unit = "hours";
-						time /= 60;
-					}
-				}
+				long s = (long)Math.ceil(time % 60);
+				long m = (long)(time/60) % 60;
+				long h = (long)(time/60/60);
+				StringBuilder timeStr = new StringBuilder();
+				if (h > 0)
+					timeStr.append(h).append('h');
+				if (h > 0 || m > 0)
+					timeStr.append(m).append('m');
+				if (h == 0 && s > 0)
+					timeStr.append(s).append('s');
 					
-				remain = String.format("; %s %s remaining", (long)Math.ceil(time), unit);
+				remain = String.format("; %s remaining", timeStr);
 			}
 			
 			String desc = p.getStepDescription();

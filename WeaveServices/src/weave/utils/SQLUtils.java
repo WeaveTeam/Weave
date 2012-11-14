@@ -1518,15 +1518,19 @@ public class SQLUtils
 	public static <V> int insertRows( Connection conn, String schemaName, String tableName, List<Map<String,V>> records)
 		throws SQLException
 	{
+		DebugTimer t = new DebugTimer();
 		PreparedStatement pstmt = null;
 		String query = "";
 		try
 		{
+			
 			// get a list of all the field names in all the records
 			Set<String> fieldSet = new HashSet<String>();
 			for (Map<String,V> record : records)
 				fieldSet.addAll(record.keySet());
 			List<String> fieldNames = new Vector<String>(fieldSet);
+			
+			t.lap("a");
 			
 			// stop if there aren't any records or field names
 			if (records.size() == 0 || fieldNames.size() == 0)
@@ -1540,9 +1544,11 @@ public class SQLUtils
 				for (String fieldName : fieldNames)
 					queryParams[i++] = record.get(fieldName);
 
+			t.lap("b");
 			// quote field names
 			for (i = 0; i < fieldNames.size(); i++)
 				fieldNames.set(i, quoteSymbol(conn, fieldNames.get(i)));
+			t.lap("c");
 			
 			// construct query
 			String recordClause = String.format("(%s)", stringMult(",", "?", fieldNames.size()));
@@ -1553,10 +1559,13 @@ public class SQLUtils
 					stringJoin(",", fieldNames),
 					valuesClause
 			);
+			t.lap("d");
 			
 			// prepare call and set string parameters
 			pstmt = prepareStatement(conn, query, queryParams);
-			return pstmt.executeUpdate();
+			int result = pstmt.executeUpdate();
+			
+			return result;
 		}
 		catch (SQLException e)
 		{
@@ -1566,6 +1575,7 @@ public class SQLUtils
 		}
 		finally
 		{
+			t.report("d");
 			SQLUtils.cleanup(pstmt);
 			DebugTimer.stop(query);
 		}

@@ -26,29 +26,47 @@ package weave.utils;
  */
 public class DebugTimer
 {
+	private final long ONE_MILLISECOND = 1000000;
+
 	private long startTime;
 	private StringBuilder debugText = new StringBuilder();
 	
+	public long threshold = 5;
+	
 	public DebugTimer()
 	{
+		threshold = 5;
+		start();
+	}
+	
+	public DebugTimer(long threshold)
+	{
+		this.threshold = threshold;
 		start();
 	}
 	
 	public void start()
 	{
-		startTime = System.currentTimeMillis();
+		startTime = System.nanoTime();
 	}
 	
+	/**
+	 * @return The timer value in milliseconds
+	 */
 	public long get()
 	{
-		return System.currentTimeMillis() - startTime;
+		return (System.nanoTime() - startTime) / ONE_MILLISECOND;
 	}
 	
 	public void lap(String str)
 	{
-		String time = "" + get();
-		int indentLength = Math.max(0, 5 - time.length());
-		debugText.append( "    ", 0, indentLength ).append( time ).append( " ms: " ).append( str ).append( '\n' );
+		long ms = get();
+		if (ms > threshold)
+		{
+			String time = "" + ms;
+			int indentLength = Math.max(0, 5 - time.length());
+			debugText.append( "    ", 0, indentLength ).append( time ).append( " ms: " ).append( str ).append( '\n' );
+		}
 		start();
 	}
 	
@@ -60,7 +78,8 @@ public class DebugTimer
 	
 	public void report()
 	{
-		System.out.println(debugText);
+		if (debugText.length() > 0)
+			System.out.println(debugText);
 		reset();
 	}
 	
@@ -79,7 +98,7 @@ public class DebugTimer
 	}
 	public static void stop(String description)
 	{
-		if (instance.get() > 0)
+		if (instance.get() > instance.threshold)
 			instance.report(description);
 		else
 			instance.reset();
