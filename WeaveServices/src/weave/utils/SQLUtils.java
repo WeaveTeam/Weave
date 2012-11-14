@@ -1187,7 +1187,7 @@ public class SQLUtils
 	    PreparedStatement stmt = null;
 	    List<Integer> results = new LinkedList<Integer>();
 	    ResultSet rs;
-	    WhereClause<String> where = new WhereClause<String>(conn, queryParams, caseSensitiveFields);
+	    WhereClause<String> where = new WhereClause<String>(conn, queryParams, caseSensitiveFields, false);
 	    // Construct the query with placeholders.
 	    String query;
 	    String qColumn = quoteSymbol(conn, column);
@@ -1637,18 +1637,20 @@ public class SQLUtils
 	{
 		List<Map<String,V>> list = new Vector<Map<String,V>>(1);
 		list.add(whereParams);
-		return deleteRows(conn, schemaName, tableName, list, caseSensitiveFields);
+		return deleteRows(conn, schemaName, tableName, list, caseSensitiveFields, false);
 	}
+
 	/**
 	 * This function will delete from a table the rows that have a specified set of column values.
 	 * @param conn An existing SQL Connection
 	 * @param schemaName A schema name accessible through the given connection
 	 * @param tableName A table name existing in the given schema
 	 * @param whereParams The set of key-value pairs that will be used in the WHERE clause of the query
+     * @param whereConjunctive Use CNF instead of DNF for the where parameters.
 	 * @return The number of rows that were deleted.
 	 * @throws SQLException If the query fails.
 	 */
-	public static <V> int deleteRows(Connection conn, String schemaName, String tableName, List<Map<String,V>> whereParams, Set<String> caseSensitiveFields) throws SQLException
+	public static <V> int deleteRows(Connection conn, String schemaName, String tableName, List<Map<String,V>> whereParams, Set<String> caseSensitiveFields, boolean whereConjunctive) throws SQLException
 	{
 		// VERY IMPORTANT - do not delete if there are no records specified, because that would delete everything.
 		if (whereParams.size() == 0)
@@ -1660,7 +1662,7 @@ public class SQLUtils
 		DebugTimer.go();
 		try 
 		{
-			WhereClause<V> where = new WhereClause<V>(conn, whereParams, caseSensitiveFields);
+			WhereClause<V> where = new WhereClause<V>(conn, whereParams, caseSensitiveFields, whereConjunctive);
 			query = String.format("DELETE FROM %s %s", SQLUtils.quoteSchemaTable(conn, schemaName, tableName), where.clause);
 			pstmt = prepareStatement(conn, query, where.params);
 			return pstmt.executeUpdate();
@@ -1941,14 +1943,14 @@ public class SQLUtils
 		{
 			List<Map<String,V>> list = new Vector<Map<String,V>>(1);
 			list.add(arguments);
-			init(conn, list, caseSensitiveFields);
+			init(conn, list, caseSensitiveFields, false);
 		}
-		public WhereClause(Connection conn, List<Map<String,V>> arguments, Set<String> caseSensitiveFields) throws SQLException
+		public WhereClause(Connection conn, List<Map<String,V>> arguments, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
 		{
-			init(conn, arguments, caseSensitiveFields);
+			init(conn, arguments, caseSensitiveFields, conjunctive);
 		}
 		
-		private void init(Connection conn, List<Map<String,V>> arguments, Set<String> caseSensitiveFields) throws SQLException
+		private void init(Connection conn, List<Map<String,V>> arguments, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
 		{
 			List<List<Entry<String,String>>> symbolicPairs = new LinkedList<List<Entry<String,String>>>();
 			for (Map<String,V> group : arguments)
@@ -1961,31 +1963,53 @@ public class SQLUtils
 				}
 				symbolicPairs.add(symbolicPair);
 			}
-			String dnf = buildDisjunctiveNormalForm(conn, symbolicPairs, caseSensitiveFields);
+			String dnf = buildNormalForm(conn, symbolicPairs, caseSensitiveFields, conjunctive);
 			if (dnf.length() > 0)
 				clause = String.format(" WHERE %s ", dnf);
 		}
 		
-		protected static String buildDisjunctiveNormalForm(
-				Connection conn,
+        protected static String buildDisjunctiveNormalForm(
+                Connection conn,
 				List<List<Entry<String,String>>> symbolicArguments,
 				Set<String> caseSensitiveFields
+            ) throws SQLException
+        {
+            return buildNormalForm(conn, symbolicArguments, caseSensitiveFields, false);
+        }
+		protected static String buildNormalForm(
+				Connection conn,
+				List<List<Entry<String,String>>> symbolicArguments,
+				Set<String> caseSensitiveFields, boolean conjunctive
 			) throws SQLException
 		{
-		    List<String> conjunctions = new LinkedList<String>();
-		    for (List<Entry<String,String>> conjMap : symbolicArguments)
+		    List<String> junctions = new LinkedList<String>();
+		    for (List<Entry<String,String>> juncMap : symbolicArguments)
 		    {
-		        List<String> conjList = new LinkedList<String>();
-		        for (Entry<String,String> entry : conjMap)
+		        List<String> juncList = new LinkedList<String>();
+		        for (Entry<String,String> entry : juncMap)
 		        {
 		        	String field = entry.getKey();
 		        	String value = entry.getValue();
 		            String pred = buildPredicate(conn, field, value, caseSensitiveFields != null && caseSensitiveFields.contains(field));
-		            conjList.add(pred);
+		            juncList.add(pred);
 		        }
-		        conjunctions.add("(" + stringJoin(" AND ", conjList) + ")");
+                if (conjunctive)
+                {
+		            junctions.add("(" + stringJoin(" OR ", juncList) + ")");
+                }
+                else
+                {
+		            junctions.add("(" + stringJoin(" AND ", juncList) + ")");
+                }
 		    }
-		    return stringJoin(" OR ", conjunctions);
+            if (conjunctive)
+            {
+		        return stringJoin(" AND ", junctions);
+            }
+            else
+            {
+		        return stringJoin(" OR ", junctions);
+            }
 		}
 		
 		protected static String buildPredicate(Connection conn, String symbol1, String symbol2, boolean caseSensitive) throws SQLException
