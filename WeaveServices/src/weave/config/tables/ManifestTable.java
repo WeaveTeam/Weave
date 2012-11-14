@@ -72,9 +72,7 @@ public class ManifestTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> record = new HashMap<String,Object>();
-			record.put(FIELD_TYPE, type_id);
-			return SQLUtils.insertRowReturnID(conn, schemaName, tableName, record);
+			return SQLUtils.insertRowReturnID(conn, schemaName, tableName, MyEntry.<String,Object>mapFromPairs(FIELD_TYPE, type_id));
 		}
 		catch (SQLException e)
 		{
@@ -135,9 +133,8 @@ public class ManifestTable extends AbstractTable
 	{
 		try
 		{
-			Map<String,Object> whereParams = new HashMap<String,Object>();
 			Connection conn = connectionConfig.getAdminConnection();
-			whereParams.put(FIELD_TYPE, type_id);
+			Map<String,Object> whereParams = MyEntry.mapFromPairs(FIELD_TYPE, type_id);
 			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class, null, null);
 			List<Integer> ids = new Vector<Integer>(rows.size());
 			for (Map<String,Object> row : rows)

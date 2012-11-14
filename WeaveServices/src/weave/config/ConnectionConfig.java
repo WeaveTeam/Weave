@@ -83,16 +83,27 @@ public class ConnectionConfig
 	@SuppressWarnings("deprecation")
 	public DataConfig initializeNewDataConfig(ProgressManager progress) throws RemoteException
 	{
-		if (detectOldVersion())
+		if (migrationPending())
 		{
 			try
 			{
-				// clear the flag to allow the DataConfig to use the ConnectionConfig
-				_oldVersionDetected = false;
-				DataConfig dataConfig = new DataConfig(this);
+				DataConfig dataConfig;
+				
+				synchronized (this)
+				{
+					// clear the flag temporarily to allow the DataConfig to use the ConnectionConfig
+					_oldVersionDetected = false;
+					
+					dataConfig = new DataConfig(this);
+					
+					// set the flag again temporarily to enable migration optimizations
+					_oldVersionDetected = true;
+				}
+				
 				DeprecatedConfig.migrate(this, dataConfig, progress);
 				
 				// after everything has successfully been migrated, save under new connection config format
+				_oldVersionDetected = false;
 				_save();
 				return dataConfig;
 			}
@@ -109,7 +120,7 @@ public class ConnectionConfig
 		}
 	}
 	
-	public boolean detectOldVersion() throws RemoteException
+	public boolean migrationPending() throws RemoteException
 	{
 		_load();
 		return _oldVersionDetected;

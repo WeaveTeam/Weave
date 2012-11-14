@@ -98,25 +98,29 @@ public class HierarchyTable extends AbstractTable
 	}
 	public void addChild(int parent_id, int child_id, int sortOrder) throws RemoteException
 	{
-		try 
+		Statement stmt = null;
+		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			
-			// shift all existing children prior to insert
-			Statement stmt = conn.createStatement();
-			String orderField = SQLUtils.quoteSymbol(conn, FIELD_ORDER);
-			String updateQuery = String.format(
-					"update %s set %s=%s+1 where %s >= %s",
-					SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
-					orderField,
-					orderField,
-					orderField,
-					sortOrder
-				);
-			stmt.executeUpdate(updateQuery);
+			if (!connectionConfig.migrationPending())
+			{
+				// shift all existing children prior to insert
+				stmt = conn.createStatement();
+				String orderField = SQLUtils.quoteSymbol(conn, FIELD_ORDER);
+				String updateQuery = String.format(
+						"update %s set %s=%s+1 where %s >= %s",
+						SQLUtils.quoteSchemaTable(conn, schemaName, tableName),
+						orderField,
+						orderField,
+						orderField,
+						sortOrder
+					);
+				stmt.executeUpdate(updateQuery);
+				SQLUtils.cleanup(stmt);
+			}
 			
 			Map<String, Object> sql_args = new HashMap<String,Object>();
-			removeChild(parent_id, child_id);
 			sql_args.put(FIELD_PARENT, parent_id);
 			sql_args.put(FIELD_CHILD, child_id);
 			sql_args.put(FIELD_ORDER, sortOrder);
@@ -125,6 +129,10 @@ public class HierarchyTable extends AbstractTable
 		catch (SQLException e)
 		{
 			throw new RemoteException("Unable to add child.",e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
 		}
 	}
 	public Collection<Integer> getParents(int child_id) throws RemoteException
@@ -153,23 +161,16 @@ public class HierarchyTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-//			if (parent_id == NULL)
-//			{
-//				return Collections.emptyList();
-//			}
-//			else 
-//			{
-				Map<String,Object> query = new HashMap<String,Object>();
-				query.put(FIELD_PARENT, parent_id);
-				List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class, FIELD_ORDER, null);
-				List<Integer> children = new Vector<Integer>(rows.size());
-				for (Map<String,Object> row : rows)
-				{
-					Number child = (Number)row.get(FIELD_CHILD);
-					children.add(child.intValue());
-				}
-				return children;
-//			}
+			Map<String,Object> query = new HashMap<String,Object>();
+			query.put(FIELD_PARENT, parent_id);
+			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class, FIELD_ORDER, null);
+			List<Integer> children = new Vector<Integer>(rows.size());
+			for (Map<String,Object> row : rows)
+			{
+				Number child = (Number)row.get(FIELD_CHILD);
+				children.add(child.intValue());
+			}
+			return children;
 		}
 		catch (SQLException e)
 		{

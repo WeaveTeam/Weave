@@ -74,7 +74,7 @@ public class DataConfig
 		long lastMod = connectionConfig.getLastModified();
 		if (this.lastModified < lastMod)
 		{
-			if (connectionConfig.detectOldVersion())
+			if (connectionConfig.migrationPending())
 				throw new RemoteException("The Weave server has not been initialized yet.  Please run the Admin Console before continuing.");
 			
 			try

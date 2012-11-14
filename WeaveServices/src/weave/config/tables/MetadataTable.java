@@ -119,25 +119,28 @@ public class MetadataTable extends AbstractTable
 			Connection conn = connectionConfig.getAdminConnection();
 			
 			List<Map<String,Object>> records = new Vector<Map<String,Object>>(diff.size());
-			for (String property : diff.keySet())
+			
+			if (!connectionConfig.migrationPending())
 			{
-				Map<String,Object> record = new HashMap<String,Object>();
-				record.put(FIELD_ID, id);
-				record.put(FIELD_PROPERTY, property);
-				records.add(record);
+				for (String property : diff.keySet())
+				{
+					Map<String,Object> record = MyEntry.mapFromPairs(FIELD_ID, id, FIELD_PROPERTY, property);
+					records.add(record);
+				}
+				SQLUtils.deleteRows(conn, schemaName, tableName, records, caseSensitiveFields, false);
 			}
-			SQLUtils.deleteRows(conn, schemaName, tableName, records, caseSensitiveFields, false);
 			
 			records.clear();
 			for (Entry<String,String> entry : diff.entrySet())
 			{
-				Map<String,Object> record = new HashMap<String,Object>();
 				String value = entry.getValue();
 				if (value != null && value.length() > 0)
 				{
-					record.put(FIELD_ID, id);
-					record.put(FIELD_PROPERTY, entry.getKey());
-					record.put(FIELD_VALUE, value);
+					Map<String,Object> record = MyEntry.mapFromPairs(
+						FIELD_ID, id,
+						FIELD_PROPERTY, entry.getKey(),
+						FIELD_VALUE, value
+					);
 					records.add(record);
 				}
 			}
