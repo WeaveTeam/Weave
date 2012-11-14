@@ -857,37 +857,35 @@ public class AdminService
 	{
 		ConnectionInfo info = getConnectionInfo(connectionName, password);
 		
-		Boolean isUnique = false;
-
 		if (info == null)
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
 
-		String dbms = info.dbms;
-
-		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
-
-		// if key column is actually the name of a column, put quotes around it.
-		// otherwise, don't.
-		int iKey = ListUtils.findIgnoreCase(keyColumnName, columnNames);
-		int iSecondaryKey = ListUtils.findIgnoreCase(secondaryKeyColumnName, columnNames);
-
-		if (iKey >= 0)
-		{
-			keyColumnName = SQLUtils.quoteSymbol(dbms, columnNames[iKey]);
-		}
-		else
-		{
-			// get the original column name
-			keyColumnName = SQLUtils.unquoteSymbol(dbms, keyColumnName);
-		}
-
-		if (iSecondaryKey >= 0)
-			secondaryKeyColumnName = SQLUtils.quoteSymbol(dbms, columnNames[iSecondaryKey]);
-
+		Boolean isUnique = true;
 		Connection conn = null;
 		try
 		{
 			conn = info.getConnection();
+			
+			List<String> columnNames = SQLUtils.getColumns(conn, schemaName, tableName);
+	
+			// if key column is actually the name of a column, put quotes around it.
+			// otherwise, don't.
+			int iKey = ListUtils.findIgnoreCase(keyColumnName, columnNames);
+			int iSecondaryKey = ListUtils.findIgnoreCase(secondaryKeyColumnName, columnNames);
+	
+			if (iKey >= 0)
+			{
+				keyColumnName = SQLUtils.quoteSymbol(conn, columnNames.get(iKey));
+			}
+			else
+			{
+				// get the original column name
+				keyColumnName = SQLUtils.unquoteSymbol(conn, keyColumnName);
+			}
+	
+			if (iSecondaryKey >= 0)
+				secondaryKeyColumnName = SQLUtils.quoteSymbol(conn, columnNames.get(iSecondaryKey));
+
 			if (secondaryKeyColumnName == null || secondaryKeyColumnName.isEmpty())
 			{
 				String totalRowsQuery = String.format(
@@ -899,34 +897,25 @@ public class AdminService
 						"select count(distinct %s) from %s", keyColumnName, SQLUtils.quoteSchemaTable(
 								conn, schemaName, tableName));
 				SQLResult distinctRowsResult = SQLUtils.getResultFromQuery(conn, distinctRowsQuery, null, false);
-
-				isUnique = distinctRowsResult.rows[0][0].toString().equalsIgnoreCase(
-						totalRowsResult.rows[0][0].toString());
+				isUnique = distinctRowsResult.rows[0][0].equals(totalRowsResult.rows[0][0]);
 			}
 			else
 			{
-
 				String query = String.format(
 						"select %s,%s from %s", keyColumnName, secondaryKeyColumnName, SQLUtils.quoteSchemaTable(
 								conn, schemaName, tableName));
 
 				SQLResult result = SQLUtils.getResultFromQuery(conn, query, null, false);
-
-				HashMap<String, Boolean> map = new HashMap<String, Boolean>();
-
-				isUnique = true;
+				Set<String> keySet = new HashSet<String>();
 				for (int i = 0; i < result.rows.length; i++)
 				{
-					if (map.get(result.rows[i][0].toString() + ',' + result.rows[i][1].toString()) == null)
-					{
-						map.put(result.rows[i][0].toString() + ',' + result.rows[i][1].toString(), true);
-					}
-					else
+					String key = result.rows[i][0].toString() + ',' + result.rows[i][1].toString();
+					if (keySet.contains(key))
 					{
 						isUnique = false;
 						break;
 					}
-
+					keySet.add(key);
 				}
 			}
 

@@ -1952,25 +1952,27 @@ public class SQLUtils
 		
 		private void init(Connection conn, List<Map<String,V>> arguments, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
 		{
-			List<List<Entry<String,String>>> symbolicPairs = new LinkedList<List<Entry<String,String>>>();
+			if (caseSensitiveFields == null)
+				caseSensitiveFields = Collections.emptySet();
+			List<List<Pair>> nestedPairs = new LinkedList<List<Pair>>();
 			for (Map<String,V> group : arguments)
 			{
-				List<Entry<String,String>> symbolicPair = new LinkedList<Entry<String,String>>();
+				List<Pair> pairs = new LinkedList<Pair>();
 				for (Entry<String,V> entry : group.entrySet())
 				{
-					symbolicPair.add(new MyEntry<String,String>(entry.getKey(), "?"));
+					pairs.add(new Pair(entry.getKey(), "?"));
 					params.add(entry.getValue());
 				}
-				symbolicPairs.add(symbolicPair);
+				nestedPairs.add(pairs);
 			}
-			String dnf = buildNormalForm(conn, symbolicPairs, caseSensitiveFields, conjunctive);
+			String dnf = buildNormalForm(conn, nestedPairs, caseSensitiveFields, conjunctive);
 			if (dnf.length() > 0)
 				clause = String.format(" WHERE %s ", dnf);
 		}
 		
         protected static String buildDisjunctiveNormalForm(
                 Connection conn,
-				List<List<Entry<String,String>>> symbolicArguments,
+				List<List<Pair>> symbolicArguments,
 				Set<String> caseSensitiveFields
             ) throws SQLException
         {
@@ -1978,22 +1980,20 @@ public class SQLUtils
         }
 		protected static String buildNormalForm(
 				Connection conn,
-				List<List<Entry<String,String>>> symbolicArguments,
+				List<List<Pair>> nestedPairs,
 				Set<String> caseSensitiveFields, boolean conjunctive
 			) throws SQLException
 		{
 			String outerJunction = conjunctive ? " AND " : " OR ";
 			String innerJunction = conjunctive ? " OR " : " AND ";
 		    List<String> junctions = new LinkedList<String>();
-		    for (List<Entry<String,String>> juncMap : symbolicArguments)
+		    for (List<Pair> juncMap : nestedPairs)
 		    {
 		        List<String> juncList = new LinkedList<String>();
-		        for (Entry<String,String> entry : juncMap)
+		        for (Pair pair : juncMap)
 		        {
-		        	String field = entry.getKey();
-		        	String value = entry.getValue();
-		            String pred = buildPredicate(conn, field, value, caseSensitiveFields != null && caseSensitiveFields.contains(field));
-		            juncList.add(pred);
+		        	boolean caseSensitive = caseSensitiveFields.contains(pair.a) || caseSensitiveFields.contains(pair.b);
+		            juncList.add(buildPredicate(conn, pair.a, pair.b, caseSensitive));
 		        }
 		        junctions.add(String.format("(%s)", stringJoin(innerJunction, juncList)));
 		    }
@@ -2008,6 +2008,18 @@ public class SQLUtils
 				return new StringBuilder().append('(').append(compare).append(')').toString();
 			}
 			return new StringBuilder().append('(').append(symbol1).append('=').append(symbol2).append(')').toString();
+		}
+		
+		protected static class Pair
+		{
+			public String a;
+			public String b;
+			
+			public Pair(String a, String b)
+			{
+				this.a = a;
+				this.b = b;
+			}
 		}
 	}
 }

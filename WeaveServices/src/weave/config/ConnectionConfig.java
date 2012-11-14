@@ -44,6 +44,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import weave.utils.FileUtils;
+import weave.utils.MapUtils;
 import weave.utils.ProgressManager;
 import weave.utils.SQLUtils;
 import weave.utils.XMLUtils;
@@ -358,10 +359,10 @@ public class ConnectionConfig
 		}
 		public Map<String,String> getPropertyMap()
 		{
-			Map<String,String> map = new HashMap<String,String>();
-			map.put("connection", connection);
-			map.put("schema", schema);
-			return map;
+			return MapUtils.fromPairs(
+				"connection", connection,
+				"schema", schema
+			);
 		}
 		
 		/**
@@ -433,14 +434,14 @@ public class ConnectionConfig
 		}
 		public Map<String,String> getPropertyMap()
 		{
-			Map<String,String> map = new HashMap<String,String>();
-			map.put("name", name);
-			map.put("dbms", dbms);
-			map.put("pass", pass);
-			map.put("folderName", folderName);
-			map.put("connectString", connectString);
-			map.put("is_superuser", is_superuser ? "true" : "false");
-			return map;
+			return MapUtils.fromPairs(
+				"name", name,
+				"dbms", dbms,
+				"pass", pass,
+				"folderName", folderName,
+				"connectString", connectString,
+				"is_superuser", is_superuser ? "true" : "false"
+			);
 		}
 		
 		public String name = "";
