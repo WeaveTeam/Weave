@@ -93,6 +93,7 @@ import weave.utils.ProgressManager;
 			if (SQLUtils.tableExists(conn, dbInfo.schema, OLD_METADATA_TABLE))
 			{
 				resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedOldMetadataTable));
+                resultSet.setFetchSize(1024);
 				while (resultSet.next())
 				{
 					String tableName = resultSet.getString(OLD_METADATA_COLUMN_ID);
@@ -112,6 +113,7 @@ import weave.utils.ProgressManager;
 			
 			total = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(DISTINCT %s) FROM %s", PublicMetadata_DATATABLE, quotedDataConfigTable));
 			resultSet = stmt.executeQuery(String.format("SELECT DISTINCT %s FROM %s", PublicMetadata_DATATABLE, quotedDataConfigTable));
+            resultSet.setFetchSize(1024);
 			progress.beginStep("Generating table entities", ++step, TOTAL_STEPS, total);
 			while (resultSet.next())
 			{
@@ -131,12 +133,14 @@ import weave.utils.ProgressManager;
                 progress.tick();
 			}
 			SQLUtils.cleanup(resultSet);
+            dataConfig.flushInserts();
 			
 			/////////////////////////////
 			// 3. migrate geometry collections
 			
 			total = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(*) FROM %s", quotedGeometryConfigTable));
 			resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedGeometryConfigTable));
+            resultSet.setFetchSize(1024);
 			columnNames = SQLUtils.getColumnNamesFromResultSet(resultSet);
 			progress.beginStep("Migrating geometry collections", ++step, TOTAL_STEPS, total);
 			while (resultSet.next())
@@ -159,6 +163,7 @@ import weave.utils.ProgressManager;
 				
 				// create an entity for the geometry column
 				DataEntityMetadata geomMetadata = toDataEntityMetadata(geomRecord);
+
 				int columnId = dataConfig.addEntity(DataEntity.TYPE_COLUMN, geomMetadata);
 				
 				// if there is a dataTable with the same title, add the geometry as a column under that table.
@@ -168,12 +173,13 @@ import weave.utils.ProgressManager;
 				progress.tick();
 			}
 			SQLUtils.cleanup(resultSet);
-			
+			dataConfig.flushInserts();
 			/////////////////////////////
 			// 4. migrate columns
 			
 			total = getSingleIntFromQuery(stmt, String.format("SELECT COUNT(*) FROM %s", quotedDataConfigTable));
 			resultSet = stmt.executeQuery(String.format("SELECT * FROM %s", quotedDataConfigTable));
+            resultSet.setFetchSize(1024);
 			columnNames = SQLUtils.getColumnNamesFromResultSet(resultSet);
 			progress.beginStep("Migrating attribute columns", ++step, TOTAL_STEPS, total);
 			while (resultSet.next())
@@ -198,7 +204,19 @@ import weave.utils.ProgressManager;
 				
 				// get the id corresponding to the table
 				String dataTableName = columnRecord.get(PublicMetadata_DATATABLE);
-				int tableId = tableIdLookup.get(dataTableName);
+                if (dataTableName == null)
+                {
+                    throw new RemoteException("Datatable field missing on column " + columnRecord.toString());
+                }
+                int tableId = 0;
+                try
+                {
+				    tableId = tableIdLookup.get(dataTableName);
+                }
+                catch (Exception e)
+                {
+                    System.out.println(dataTableName);
+                }
 				
 				// create the column entity as a child of the table
 				DataEntityMetadata columnMetadata = toDataEntityMetadata(columnRecord);
@@ -207,7 +225,7 @@ import weave.utils.ProgressManager;
 				progress.tick();
 			}
 			SQLUtils.cleanup(resultSet);
-			
+		    dataConfig.flushInserts();	
 			/////////////////////////////
 			
 			conn.commit();

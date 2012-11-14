@@ -1574,7 +1574,7 @@ public class SQLUtils
 		finally
 		{
 			SQLUtils.cleanup(pstmt);
-			DebugTimer.stop(query.length() > 0 ? query.toString() : "insertRows(), no query");
+			//DebugTimer.stop(query.length() > 0 ? query.toString() : "insertRows(), no query");
 		}
 	}
 

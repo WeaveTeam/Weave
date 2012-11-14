@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -42,11 +43,14 @@ import weave.utils.SQLUtils;
  */
 public class MetadataTable extends AbstractTable
 {
+    public static final int maxQueue = 1024;
 	public static final String FIELD_ID = "entity_id";
 	public static final String FIELD_PROPERTY = "property";
 	public static final String FIELD_VALUE = "value";
 	
 	private static final Set<String> caseSensitiveFields = new HashSet<String>(Arrays.asList(FIELD_PROPERTY, FIELD_VALUE));
+
+    private List<Map<String,Object>> insertQueue;
 	
 	private ManifestTable manifest = null;
 	
@@ -56,7 +60,16 @@ public class MetadataTable extends AbstractTable
 		this.manifest = manifest;
 		if (!tableExists())
 			initTable();
+        insertQueue = new LinkedList<Map<String,Object>>();
 	}
+    public void flushInserts(Connection conn, boolean force) throws RemoteException, SQLException
+    {
+        if (force || !connectionConfig.migrationPending() || (insertQueue.size() > maxQueue)) 
+        {
+            SQLUtils.insertRows(conn, schemaName, tableName, insertQueue);
+            insertQueue.clear();
+        }
+    }
 	protected void initTable() throws RemoteException
 	{
 		if (manifest == null)
@@ -141,10 +154,10 @@ public class MetadataTable extends AbstractTable
 						FIELD_PROPERTY, entry.getKey(),
 						FIELD_VALUE, value
 					);
-					records.add(record);
+					insertQueue.add(record);
 				}
 			}
-			SQLUtils.insertRows(conn, schemaName, tableName, records);
+            flushInserts(conn, false);
 		} 
 		catch (SQLException e)
 		{

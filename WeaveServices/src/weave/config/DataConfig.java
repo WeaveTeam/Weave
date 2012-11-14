@@ -115,6 +115,21 @@ public class DataConfig
 		}
 	}
 
+    public void flushInserts() throws RemoteException
+    {
+        try 
+        {
+            Connection conn = connectionConfig.getAdminConnection();
+            private_metadata.flushInserts(conn, true);
+            public_metadata.flushInserts(conn, true);
+            hierarchy.flushInserts(conn, true);
+        }
+        catch (SQLException e)
+        {
+            throw new RemoteException("Failed flushing inserts.", e);
+        }
+    }
+
     public Integer addEntity(int type_id, DataEntityMetadata properties) throws RemoteException
     {
     	detectChange();

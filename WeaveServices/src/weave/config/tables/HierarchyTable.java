@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -41,6 +42,7 @@ import weave.utils.SQLUtils;
  */
 public class HierarchyTable extends AbstractTable
 {
+    public static final int maxQueue = 1024;
 	public static final String FIELD_PARENT = "parent_id";
 	public static final String FIELD_CHILD = "child_id";
 	public static final String FIELD_ORDER = "sort_order";
@@ -48,6 +50,8 @@ public class HierarchyTable extends AbstractTable
 	private static final int NULL = -1;
 	
 	private ManifestTable manifest = null;
+    
+    private List<Map<String,Object>> insertQueue;
 	
 	public HierarchyTable(ConnectionConfig connectionConfig, String schemaName, String tableName, ManifestTable manifest) throws RemoteException
 	{
@@ -55,7 +59,18 @@ public class HierarchyTable extends AbstractTable
 		this.manifest = manifest;
 		if (!tableExists())
 			initTable();
+        insertQueue = new LinkedList<Map<String,Object>>();
 	}
+
+    public void flushInserts(Connection conn, boolean force) throws RemoteException, SQLException
+    {
+        if (force || !connectionConfig.migrationPending() || (insertQueue.size() > maxQueue)) 
+        {
+            SQLUtils.insertRows(conn, schemaName, tableName, insertQueue);
+            insertQueue.clear();
+        }
+    }
+
 	protected void initTable() throws RemoteException
 	{
 		if (manifest == null)
@@ -124,7 +139,8 @@ public class HierarchyTable extends AbstractTable
 			sql_args.put(FIELD_PARENT, parent_id);
 			sql_args.put(FIELD_CHILD, child_id);
 			sql_args.put(FIELD_ORDER, sortOrder);
-			SQLUtils.insertRow(conn, schemaName, tableName, sql_args);
+            insertQueue.add(sql_args);
+            flushInserts(conn, false);
 		}
 		catch (SQLException e)
 		{
