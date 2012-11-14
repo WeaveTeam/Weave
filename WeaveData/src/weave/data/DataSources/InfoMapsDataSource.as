@@ -138,6 +138,20 @@ package weave.data.DataSources
 			return getColumnValueForURL("date_added",url) as String;
 		}
 		
+		public function queryDataSources(queryTerms:Array):void
+		{
+//			InfoMapAdminInterface.instance.queryDataSources(queryTerms);
+		}
+		
+		public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,
+									 dateFilter:DateRangeFilter=null):DelayedAsyncInvocation
+		{
+			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
+			
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getWordCount(requiredKeywords,relatedKeywords,dateFilterString);
+			
+			return q;
+		}
 		
 		public function getDocumentsForQuery(docKeySet:KeySet,wordCount:Array,numberOfMatchedDocuments:LinkableNumber,query:String,
 											 operator:String='AND',sources:Array=null,dateFilter:DateRangeFilter=null,
@@ -181,25 +195,36 @@ package weave.data.DataSources
 			
 		}
 		
-		public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, entities:Array,dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):void
+		public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,
+												 dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000,numOfTopics:int=5, numOfKeywords:int=5):DelayedAsyncInvocation
+		{
+			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
+			
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.classifyDocumentsForQuery(requiredKeywords,relatedKeywords,
+				dateFilterString,numberOfRequestedDocuments,numOfTopics,numOfKeywords);
+			
+			return q;
+		}
+		
+		public function getLinksForFilteredQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:DateRangeFilter,filterTerms:Array,rows:int):DelayedAsyncInvocation
+		{
+			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
+			
+			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getLinksForFilteredQuery(requiredKeywords,relatedKeywords,dateFilterString,
+				filterTerms,rows);
+			
+			return q;
+		}
+		
+		public function getEntityDistributionForQuery(requiredKeywords:Array,relatedKeywords:Array, entities:Array,dateFilter:DateRangeFilter=null,numberOfRequestedDocuments:int=2000):DelayedAsyncInvocation
 		{
 			var dateFilterString:String = getDateFilterStringForSolr(dateFilter);
 			
 			var q:DelayedAsyncInvocation = InfoMapAdminInterface.instance.getEntityDistributionForQuery(requiredKeywords,relatedKeywords,dateFilterString,entities,
 				numberOfRequestedDocuments);
-			q.addAsyncResponder(handleQueryEntityDistributionForQueryResults,handleEntityDistributionForQueryFault);
 			
-		}
-		
-		
-		private function handleQueryEntityDistributionForQueryResults(event:ResultEvent,token:Object=null):void
-		{
-			return;
-		}
-		
-		private function handleEntityDistributionForQueryFault(event:FaultEvent,token:Object=null):void
-		{
-			return;
+			return q;
+			
 		}
 		
 		private function getDateFilterStringForSolr(dateFilter:DateRangeFilter):String

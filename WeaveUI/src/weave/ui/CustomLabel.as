@@ -42,7 +42,7 @@ package weave.ui {
 		
 		public function renderLabelAndDiscard():void
 		{
-			renderLabel();
+//			renderLabel();
 			graphics.beginBitmapFill(labelBitmap.bitmapData);
 			graphics.drawRect(0, 0, labelBitmap.bitmapData.width, labelBitmap.bitmapData.height);
 			graphics.endFill();

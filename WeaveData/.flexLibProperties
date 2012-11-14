@@ -2,6 +2,8 @@
 <flexLibProperties includeAllClasses="true" useMultiPlatformConfig="false" version="3">
   <includeClasses>
     <classEntry path="weave.services.beans.QueryResultWithWordCount"/>
+    <classEntry path="weave.services.beans.EntityDistributionObject"/>
+    <classEntry path="weave.services.beans.TopicClassificationResults"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

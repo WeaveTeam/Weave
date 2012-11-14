@@ -13,15 +13,16 @@ It has 4 icons to:
 	  mouseOver="handleMouseOver()"		   
 	  mouseOut="handleMouseOut()"
 	  autoLayout="false" 
-	  width="100%" minWidth="200">
+	  width="100%" minWidth="220">
 	<mx:HBox id="controlBox" width="{this.width}" horizontalAlign="left">
 		<!--<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>-->
 		<!--<mx:Image id="searchImg" source="@Embed(source='/weave/resources/images/sphere.png')"/>-->
 		<mx:Image id="listImg" source="@Embed(source='/weave/resources/images/list.png')"/>
 		<mx:Image id="filterImg" source="@Embed(source='/weave/resources/images/cloud.png')"/>
-		<mx:Image id="settingsImg" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
-		<mx:Image id="tickImg" toolTip="mark all as read" source="@Embed(source='/weave/resources/images/tick-icon.png')"/><!--http://icons.iconarchive.com/icons/pixelmixer/basic/16/tick-icon.png-->
-		<mx:Spacer width="60%" />
+		<!--<mx:Image id="settingsImg" source="@Embed(source='/weave/resources/images/tinyWrench.png')"/>
+		<mx:Image id="tickImg" toolTip="mark all as read" source="@Embed(source='/weave/resources/images/tick-icon.png')"/>--><!--http://icons.iconarchive.com/icons/pixelmixer/basic/16/tick-icon.png-->
+		<mx:Image id="distributionImg" source="@Embed(source='/weave/resources/images/bar_chart.png')"/>
+		<mx:Image id="topicsImg" source="@Embed(source='/weave/resources/images/topics.png')"/>
 		<mx:Image id="closeImg" source="@Embed(source='/weave/resources/images/cancel.png')"/>
 	</mx:HBox>	
 	<mx:TextArea id="keywordTextArea" height="100%" editable="false" selectable="false" 
@@ -45,10 +46,10 @@ It has 4 icons to:
 			keywordTextArea.minWidth = 20;
 			keywordTextArea.verticalScrollPolicy = "off";
 			
-			tickImg.width = 12;
-			tickImg.height = 12;
-			tickImg.visible = false;
-			tickImg.buttonMode = true; //you need this for click event to work on an image!
+//			tickImg.width = 12;
+//			tickImg.height = 12;
+//			tickImg.visible = false;
+//			tickImg.buttonMode = true; //you need this for click event to work on an image!
 			
 			closeImg.toolTip = "Remove this node";
 			closeImg.width = 16;
@@ -75,11 +76,23 @@ It has 4 icons to:
 			filterImg.buttonMode = true; //you need this for click event to work on an image!
 			
 			
-			settingsImg.toolTip = "Settings";
-			settingsImg.width = 12;
-			settingsImg.height = 12;
-			settingsImg.visible = true;
-			settingsImg.buttonMode = true; //you need this for click event to work on an image!
+//			settingsImg.toolTip = "Settings";
+//			settingsImg.width = 12;
+//			settingsImg.height = 12;
+//			settingsImg.visible = false;
+//			settingsImg.buttonMode = true; //you need this for click event to work on an image!
+			
+			distributionImg.toolTip = "Show Entity Distribution";
+			distributionImg.width = 12;
+			distributionImg.height = 12;
+			distributionImg.visible = true;
+			distributionImg.buttonMode = true; //you need this for click event to work on an image!
+			
+			topicsImg.toolTip = "Classify Documents";
+			topicsImg.width = 12;
+			topicsImg.height = 12;
+			topicsImg.visible = false;
+			topicsImg.buttonMode = true; //you need this for click event to work on an image!
 			
 			//cloud image : http://www.veryicon.com/icons/system/fresh-addon/weather-cloud.html
 			//list icon : http://www.iconfinder.com/icondetails/52314/48/list_icon

@@ -168,7 +168,7 @@ public class GenerateThumbnailJob implements Job{
 //			e.printStackTrace();
 //		}
 		
-		cores.add("research_core");
+		cores.add("demo_core");
 		
 		Iterator<String> itr = cores.iterator();
 		
@@ -354,6 +354,7 @@ public class GenerateThumbnailJob implements Job{
 					if(!osName.matches("(?i).*windows.*"))
 					{
 						command.add(wkPath.toURI().getPath());
+						command.add("--disable-javascript");
 						command.add("--load-error-handling");
 						command.add("ignore");
 						command.add("--quality");
@@ -541,7 +542,7 @@ public class GenerateThumbnailJob implements Job{
 		public Boolean call() throws Exception {
 			try
 			{
-				System.out.println("RUNNING THREAD FROM GENERATE THUMBNAIL WITH NAME " + Thread.currentThread().getName());
+//				System.out.println("RUNNING THREAD FROM GENERATE THUMBNAIL WITH NAME " + Thread.currentThread().getName());
 				String[] commmandsToExec = new String[0];
 				
 				commmandsToExec = command.toArray(commmandsToExec);

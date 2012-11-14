@@ -181,6 +181,18 @@ package weave.services
 				return query;
 			}
 			
+			public function classifyDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,rows:int,numOfTopics:int=5,numOfKeywords:int=5):DelayedAsyncInvocation
+			{
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("classifyDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilter,rows,numOfTopics,numOfKeywords]);
+				return query;
+			}
+			
+			public function getLinksForFilteredQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String,filterTerms:Array,rows:int):DelayedAsyncInvocation
+			{
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getLinksForFilteredQuery",[requiredKeywords,relatedKeywords,dateFilter,filterTerms,rows]);
+				return query;
+			}			
+			
 			public function getNumOfDocumentsForQuery(requiredKeywords:Array,relatedKeywords:Array,dateFilterString:String):DelayedAsyncInvocation
 			{
 				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getNumOfDocumentsForQuery",[requiredKeywords,relatedKeywords,dateFilterString]);
@@ -203,6 +215,17 @@ package weave.services
 			public function getNumberOfMatchedDocuments(queryTerms:Array,filterQuery:String,solrURL:String=null):DelayedAsyncInvocation
 			{
 				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getNumberOfMatchedDocuments",[queryTerms,filterQuery,solrURL]);
+				return query;
+			}
+			
+			public function queryDataSources(queryTerms:Array):void
+			{
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("queryDataSources",[queryTerms]);
+			}
+			
+			public function getWordCount(requiredKeywords:Array,relatedKeywords:Array,dateFilter:String):DelayedAsyncInvocation
+			{
+				var query:DelayedAsyncInvocation = generateQueryAndAddToQueue("getWordCount",[requiredKeywords,relatedKeywords,dateFilter]);
 				return query;
 			}
 			

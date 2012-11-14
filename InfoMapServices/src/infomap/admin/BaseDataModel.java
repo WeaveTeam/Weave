@@ -45,6 +45,10 @@ public class BaseDataModel {
 			 * Description/Summary of the document
 			 */
 			String dcdescription;
+			/*
+			 *Subjects covered by the document. More like keywords.
+			 */
+			String[] dcsubject;
 			
 		}
 }

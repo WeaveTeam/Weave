@@ -23,6 +23,7 @@ package weave.data.DataSources
 	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
 	
+	import mx.core.DesignLayer;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
@@ -44,6 +45,7 @@ package weave.data.DataSources
 	import weave.core.ErrorManager;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
+	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
@@ -178,7 +180,7 @@ package weave.data.DataSources
 		 */		
 		public function putColumnInHashMap(csvColumnName:String, destinationHashMap:ILinkableHashMap):IAttributeColumn
 		{
-
+			var object:* = getLinkableOwner(this);
 			var sourceOwner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
 			if (!sourceOwner)
 				return null;
@@ -196,6 +198,26 @@ package weave.data.DataSources
 			return refCol;
 		}
 		
+		public function setDynamicColumn(csvColumnName:String, destinationColumn:DynamicColumn):IAttributeColumn
+		{
+			var object:* = getLinkableOwner(this);
+			var sourceOwner:ILinkableHashMap = getLinkableOwner(this) as ILinkableHashMap;
+			if (!sourceOwner)
+				return null;
+			
+			destinationColumn.delayCallbacks();
+			
+			var refCol:ReferencedColumn = destinationColumn.requestLocalObject(ReferencedColumn,false);
+			var hierarchyColRef1:HierarchyColumnReference =  refCol.dynamicColumnReference.requestLocalObject(HierarchyColumnReference, false);
+			getCallbackCollection(hierarchyColRef1).delayCallbacks();
+			hierarchyColRef1.hierarchyPath.value = <attribute title={csvColumnName} csvColumn={ csvColumnName }/>;
+			hierarchyColRef1.dataSourceName.value = sourceOwner.getName(this);
+			getCallbackCollection(hierarchyColRef1).resumeCallbacks();
+			
+			destinationColumn.resumeCallbacks();
+			
+			return refCol;
+		}
 		
 		/**
 		 * The keys in this Dictionary are ProxyColumns that have been filled in with data via requestColumnFromSource().

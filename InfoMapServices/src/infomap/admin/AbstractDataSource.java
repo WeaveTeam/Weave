@@ -40,7 +40,7 @@ public abstract class AbstractDataSource implements Runnable
 	 */
 	void updateSolrServer(SolrInputDocument[] results)
 	{
-		//remove documents already in Solr server
+		System.out.println("adding documents in " + solrServerURL + " for " + getSourceName());
 		HttpSolrServer solrServer = new HttpSolrServer(solrServerURL);
 		ArrayList<SolrInputDocument>updatedResults = new ArrayList<SolrInputDocument>();
 		int count = 0;
@@ -72,7 +72,7 @@ public abstract class AbstractDataSource implements Runnable
 	
 	public void run()
 	{
-		System.out.println("IN RUN");
+		System.out.println("IN RUN for " + getSourceName() );
 		if(query.length>0)
 		{
 			SolrInputDocument[] results = searchForQuery("AND");

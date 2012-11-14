@@ -46,6 +46,7 @@
 			import mx.controls.Alert;
 			import mx.controls.Image;
 			import mx.controls.Label;
+			import mx.controls.List;
 			import mx.controls.Text;
 			import mx.controls.TextArea;
 			import mx.core.Application;
@@ -56,6 +57,7 @@
 			import mx.events.DragEvent;
 			import mx.events.EffectEvent;
 			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
 			import mx.events.SandboxMouseEvent;
 			import mx.managers.CursorManager;
 			import mx.managers.CursorManagerPriority;
@@ -81,6 +83,7 @@
 			import weave.api.linkSessionState;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.api.reportError;
 			import weave.compiler.Compiler;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableDynamicObject;
@@ -95,6 +98,7 @@
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.CSVParser;
 			import weave.data.ColumnReferences.HierarchyColumnReference;
+			import weave.data.DataSources.CSVDataSource;
 			import weave.data.DataSources.InfoMapsDataSource;
 			import weave.data.KeySets.KeyFilter;
 			import weave.data.KeySets.KeySet;
@@ -102,7 +106,9 @@
 			import weave.primitives.ColorRamp;
 			import weave.primitives.DateRangeFilter;
 			import weave.services.DelayedAsyncInvocation;
+			import weave.services.beans.TopicClassificationResults;
 			import weave.ui.CustomLabel;
+			import weave.ui.DraggablePanel;
 			import weave.ui.ResizableBox;
 			import weave.ui.infomap.core.FilterableInfoMapNode;
 			import weave.ui.infomap.core.InfoMapDocument;
@@ -117,14 +123,17 @@
 			import weave.ui.infomap.ui.NodeSettingsComponent;
 			import weave.ui.infomap.ui.RelatedKeywordsListItemObject;
 			import weave.ui.infomap.ui.TagCloud;
+			import weave.ui.infomap.ui.TopicNodeComponent;
 			import weave.utils.BitmapUtils;
 			import weave.utils.ColumnUtils;
+			import weave.utils.ComputationalGeometryUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.DateUtils;
 			import weave.utils.DebugTimer;
 			import weave.utils.EventUtils;
 			import weave.utils.VectorUtils;
 			import weave.visualization.layers.InteractiveVisualization;
+			import weave.visualization.tools.CompoundBarChartTool;
 			
 			private const query:QueryObject = newLinkableChild(this,QueryObject);
 			
@@ -210,16 +219,24 @@
 				(layout.internalObject as IInfoMapNodeLayout).parentNodeHandler = this;
 				
 				//opens the settings panel
-				nodeBase.settingsImg.addEventListener(MouseEvent.CLICK,settings);
+//				nodeBase.settingsImg.addEventListener(MouseEvent.CLICK,settings);
 				
-				nodeBase.tickImg.addEventListener(MouseEvent.CLICK,clearAllNewDocuments);
+//				nodeBase.tickImg.addEventListener(MouseEvent.CLICK,clearAllNewDocuments);
 				
 				//removes the node from the panel after confirmation
 				nodeBase.closeImg.addEventListener(MouseEvent.CLICK,close);
 				
+				nodeBase.filterImg.visible = false;
 				nodeBase.filterImg.addEventListener(MouseEvent.CLICK, toggleTagCloud);
 				//				nodeBase.searchImg.addEventListener(MouseEvent.CLICK,showPointCanvas);
 				nodeBase.listImg.addEventListener(MouseEvent.CLICK,toggleList);
+				
+				nodeBase.distributionImg.visible = false;
+				nodeBase.distributionImg.addEventListener(MouseEvent.CLICK,showDistributionChart);
+				
+				nodeBase.topicsImg.visible = false;
+				nodeBase.topicsImg.addEventListener(MouseEvent.CLICK,showClassificationResults);
+				
 				//drag and drop of the node will be use the text area as the handler/anchor point
 				nodeBase.keywordTextArea.addEventListener(MouseEvent.MOUSE_DOWN,canvas1_mouseDownHandler);
 				stage.addEventListener(MouseEvent.MOUSE_UP,canvas1_mouseUpHandler);
@@ -272,7 +289,7 @@
 				_searchKeySet.addImmediateCallback(this,handleSearchKeySetChange,true);
 				
 				//adding a callback to the selection KeySet to highlight/unhighlight documents
-				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
+//				_selection.addGroupedCallback(this,handleSelectionKeySetChange);
 				
 				filteredWords.addGroupedCallback(this,filterListByKeywords,false);
 				
@@ -284,14 +301,14 @@
 				//				nodeBase.commentTextArea.addEventListener(KeyboardEvent.KEY_UP,delayedCommentKeyUp); 
 				//				nodeBase.commentTextArea.addEventListener(FocusEvent.FOCUS_OUT,updateCommentTextArea);
 				
-				clickedWordKeySet.addImmediateCallback(this,handleClickedWordKeySetChange);
+//				clickedWordKeySet.addImmediateCallback(this,handleClickedWordKeySetChange);
 				prevNewDocsCount.addGroupedCallback(this,updateTextArea);
 				
 				numOfWordsInCloud.addGroupedCallback(this,redrawWordCloud,false);
 				
-				refreshTimer.start();
+//				refreshTimer.start();
 				//call event for each tick of refreshTimer
-				refreshTimer.addEventListener(TimerEvent.TIMER, checkForNewDocuments);
+//				refreshTimer.addEventListener(TimerEvent.TIMER, checkForNewDocuments);
 				
 				//				comments.addImmediateCallback(this,handleCommentsChange,true);
 				
@@ -299,7 +316,13 @@
 				
 				glowFilter.color = thumbnailsDefaultColor.value;
 				
+				var owner:ILinkableObject = getLinkableOwner(this);
+				
+				_nodeName= (owner as ILinkableHashMap).getName(this);
+				
 			}
+			
+			private var _nodeName:String = "";
 			
 			private var delayedCommentKeyUp:Function = null;
 			
@@ -405,15 +428,15 @@
 						nodeBase.keywordTextArea.htmlText = nodeBase.keywordTextArea.htmlText.replace(/\(/g,"(" + currentNewDocsCount + "/");
 						
 					
-					nodeBase.tickImg.enabled = true;
-					nodeBase.tickImg.visible = true;
+//					nodeBase.tickImg.enabled = true;
+//					nodeBase.tickImg.visible = true;
 					if(currentNewDocsCount != prevNewDocsCount.value || !_wasClicked)
 					{
 						startGlow();
 					}
 				}else{
-					nodeBase.tickImg.enabled = false;
-					nodeBase.tickImg.visible = false;
+//					nodeBase.tickImg.enabled = false;
+//					nodeBase.tickImg.visible = false;
 					stopGlow();
 				}
 				
@@ -425,7 +448,8 @@
 			public function applyKeywords(keywords:String):void
 			{
 				query.keywords.value = keywords;
-				relatedKeywords = null;
+				if(_parentPanel.relatedKeywords.value)
+					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 			}
 			
 			private var relatedKeywords:Array = null;
@@ -486,6 +510,12 @@
 					currentNewDocsCount = 0;
 					hideList();
 					hideTagCloud();
+					
+					var queryTerms:Array = query.keywords.value.split(',');
+					if(relatedKeywords!=null && relatedKeywords.length>0)
+						queryTerms = queryTerms.concat(relatedKeywords)
+					_parentPanel.infoMapsDataSource.queryDataSources(queryTerms);
+					
 				}
 				
 				
@@ -498,6 +528,10 @@
 				
 				//emptying wordCount before sending it. I am using concat in the InfoMapDataSource.
 				wordCount = [];
+				
+				//TODO:this should alreayd be set.
+				if(_parentPanel.relatedKeywords.value)
+					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
 				
 				var numOfDocsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getNumOfDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,null);
 				
@@ -519,19 +553,43 @@
 				}
 				
 				status.text = numOfDocs.toString() + " documents found. Fetching documents...";
-				if(relatedKeywords)
-					_parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(docKeySet,query.keywords.value.split(','),
+				numOfMatchedDocuments.value = numOfDocs;
+				updateTextArea();
+				
+				//TODO:this should alreayd be set.
+				if(_parentPanel.relatedKeywords.value)
+					relatedKeywords = _parentPanel.relatedKeywords.value.split(',');
+				
+				_parentPanel.infoMapsDataSource.getDocumentsForQueryWithRelatedKeywords(docKeySet,query.keywords.value.split(','),
 						relatedKeywords,null,5000);
-				else
-				{
-					if(!query.sources.value == '')
-					{
-						var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
-					}					
-					_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,query.keywords.value,query.operator.value,sourceNames,query.dateFilter,5000);	
-				}
+//				else
+//				{
+//					if(!query.sources.value == '')
+//					{
+//						var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+//					}					
+//					_parentPanel.infoMapsDataSource.getDocumentsForQuery(docKeySet,wordCount,numOfMatchedDocuments,query.keywords.value,query.operator.value,sourceNames,query.dateFilter,5000);	
+//				}
+				
+				var wordCountQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getWordCount(
+					query.keywords.value.split(','),relatedKeywords,query.dateFilter);
+				
+				wordCountQuery.addAsyncResponder(handleWordCountResult,handleWordCountFault);
+					
 			}
 			
+			
+			private function handleWordCountResult(event:ResultEvent,token:Object=null):void
+			{
+				wordCount = event.result as Array;
+				nodeBase.filterImg.visible = true;
+			}
+			
+			private function handleWordCountFault(event:FaultEvent,token:Object=null):void
+			{
+				
+			}
+				
 			
 			private function handleNumOfDocsQueryFault(event:FaultEvent,token:Object=null):void
 			{
@@ -611,6 +669,7 @@
 				prevNewDocsCount.value = currentNewDocsCount;
 				testAndBlinkNode();
 				getEntityDistribution();
+				getTopicsClassification();
 			}
 			
 			private function clearAllNewDocuments(event:Event=null):void
@@ -624,7 +683,7 @@
 				stopGlow();
 				prevNewDocsCount.value = 0;
 				currentNewDocsCount = 0;
-				nodeBase.tickImg.visible = false;
+//				nodeBase.tickImg.visible = false;
 //				updateTextArea();
 			}
 			
@@ -794,17 +853,170 @@
 //				handleGlobalSearch();
 			}
 			
+			private var _entitiesToKeysHashMap:Dictionary = new Dictionary();
+			public const entityDistributionDataSource:CSVDataSource = registerLinkableChild(this,
+				Weave.root.requestObject(_nodeName + "entityDistributionDataSource",CSVDataSource,false));
+			
+			private const ENTITY_DISTRIBUTION_ENTITY_COLUMN:String =  "Entities";
+			private const ENTITY_DISTRIBUTION_NUMBER_COLUMN:String =  "Number of Documents";
+			private const ENTITY_DISTRIBUTION_KEYTYPE:String =  "entityDistribution";
+			
 			private function getEntityDistribution():void
 			{
-				var entities:Array = getKeywordsFromEntityColumns();
 				
-				var requiredKeywords:Array = getRequiredKeywords();
+				var entityColumns:Array = _parentPanel.entityColumnsHashmap.getObjects();
+				var keys:Array = (entityColumns[0] as IAttributeColumn).keys;
+				
+				var entities:Array = [];
+				//mapping entities to keys. It maybe possible that each entity is associated with more than one key
+				for each(var attrCol:IAttributeColumn in entityColumns)
+				{
+					for each(var key:IQualifiedKey in keys)
+					{
+						var value:String = ColumnUtils.getString(attrCol,key);
+						if(value)
+						{
+							//if the entity is encountered for the first time, create an array containing the key
+							//else push the key to the already existing array
+							if(_entitiesToKeysHashMap[value] == undefined)
+							{
+								entities.push(value);
+								var a:Array = [key];
+								_entitiesToKeysHashMap[value] = a;
+								
+							}else
+							{
+								(_entitiesToKeysHashMap[value] as Array).push(key);
+							}
+						}
+					}
+				}
+				
+				
+				for (var i:int=0; i<entities.length; i++)
+				{
+					var len:int = (_entitiesToKeysHashMap[entities[i]] as Array).length;
+					
+				
+				}
+				
+				nodeBase.distributionImg.visible = true;
+			
+				var requiredKeywords:Array = query.keywords.value.split(',');
 				
 				var relatedKeywords:Array = _parentPanel.relatedKeywords.value.split(',');
 				
 				
-				_parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,relatedKeywords,entities,query.dateFilter,5000);
+				var entityQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getEntityDistributionForQuery(requiredKeywords,
+															relatedKeywords,entities,query.dateFilter,5000);
+				
+				entityQuery.addAsyncResponder(handleEntityQueryResults,handleEntityQueryFault);
 			}
+			
+			
+			//TODO: clear/invalidate them when the attirbute column changes.
+			private var _entitiesToURLsHashMap:Dictionary = new Dictionary();
+			private var _URLToEntitiesHashMap:Dictionary = new Dictionary();
+			private function handleEntityQueryResults(event:ResultEvent,token:Object=null):void
+			{
+				var entities:Array = event.result.entities;
+				var urls:Array = event.result.urls;
+				
+				var entityCSVData:Array = [];
+				
+				entityCSVData.push([ENTITY_DISTRIBUTION_ENTITY_COLUMN,ENTITY_DISTRIBUTION_NUMBER_COLUMN]);
+				
+				entityDistributionDataSource.keyType.value = ENTITY_DISTRIBUTION_KEYTYPE;
+				
+				for(var i:int = 0; i<entities.length; i++)
+				{
+					_entitiesToURLsHashMap[entities[i]] = urls[i];
+					entityCSVData.push([entities[i],(urls[i] as Array).length]);
+
+				}
+				
+				entityDistributionDataSource.csvData.setSessionState(entityCSVData);
+				
+				
+				for(var j:int =0; j<urls.length; j++)
+				{
+					for(var k:int = 0; k<urls[j].length; k++)
+					{
+						if(_URLToEntitiesHashMap[urls[j][k]] == undefined)
+						{
+							_URLToEntitiesHashMap[urls[j][k]] = [entities[j]]; 
+						}else
+						{
+							(_URLToEntitiesHashMap[urls[j][k]] as Array).push(entities[j]);
+						}
+					}
+				}
+				
+				
+			}
+			
+			private function handleEntityQueryFault(event:FaultEvent,token:Object=null):void
+			{
+				return;
+			}
+			
+			private var _entityChartName:String = "";
+			private function showDistributionChart(event:Event):void
+			{
+				//clear any selection so that bars don't appear faded out
+				_selection.replaceKeys([]);
+				var className:String = getQualifiedClassName(CompoundBarChartTool).split("::")[1];
+				
+				_entityChartName = Weave.root.generateUniqueName(className);
+
+				var object:CompoundBarChartTool = Weave.root.requestObject(_entityChartName, CompoundBarChartTool, false);
+				object.showAllLabels.value = true;
+				object.plotter.colorColumn.defaultValue.value = "0x0FDF801";
+				
+				if (object is DraggablePanel)
+					(object as DraggablePanel).restorePanel();
+				// put panel in front
+				
+				//				dispatchEvent(new CloseEvent(CloseEvent.CLOSE));
+				
+				object.heightColumns.removeAllObjects();
+				
+				entityDistributionDataSource.putColumnInHashMap(ENTITY_DISTRIBUTION_NUMBER_COLUMN,object.heightColumns);
+				
+				entityDistributionDataSource.setDynamicColumn(ENTITY_DISTRIBUTION_ENTITY_COLUMN,object.plotter.labelColumn);
+				entityDistributionDataSource.setDynamicColumn(ENTITY_DISTRIBUTION_ENTITY_COLUMN,object.plotter.sortColumn);
+			}
+			
+			private function handleDocumentSelection(urls:Array):void
+			{
+				var keys:Array = [];
+				//get all keys for selected documents
+				for each (var url:String in urls)
+				{
+					var entities:Array = _URLToEntitiesHashMap[url];
+					
+					for each(var entity:String in entities)
+					{
+						if(_entitiesToKeysHashMap[entity])
+							keys = keys.concat(_entitiesToKeysHashMap[entity]);
+					}
+				}
+				
+				_selection.replaceKeys(keys);
+			}
+			
+			private function handleDocumentSelectedFromList(event:ListEvent):void
+			{
+				var items:Array = (event.currentTarget as List).selectedItems;
+				
+				var urls:Array = []
+				for each (var doc:DocThumbnailComponent in items)
+				{
+					urls.push(doc.docURL.value);
+				}
+				handleDocumentSelection(urls);
+			}
+			
 			
 			private function getKeywordsFromEntityColumns(keys:Array=null):Array
 			{
@@ -1156,6 +1368,8 @@
 			private function toggleTagCloud(event:Event=null,forceShow:Boolean=false,forceHide:Boolean=false):void
 			{
 				clearFiltersButton.visible = false;
+				fadeOut.play(topicComponents);
+				flag_click = true;
 				//				statusBox.y = nodeBase.height + statusBox.height;
 				if(tagCanvas == null)
 				{
@@ -1189,7 +1403,6 @@
 					fadeIn.play([tagCanvas]);
 				else
 					fadeOut.play([tagCanvas]);
-				
 			}
 			
 			private function redrawWordCloud():void
@@ -1216,11 +1429,14 @@
 			private var d:DocumentList = new DocumentList();
 			private function toggleList(event:Event=null,forceShow:Boolean=false,forceHide:Boolean=false):void
 			{
+				fadeOut.play(topicComponents);
+				flag_click = true;
 				//if the list is not added yet
 				if(!listCanvas.contains(d))
 				{
 					listCanvas.visible = false;
 					listCanvas.addChild(d);
+					d.docList.addEventListener(ListEvent.ITEM_CLICK,handleDocumentSelectedFromList);
 					
 					d.y = nodeBase.height + statusBox.height;
 					statusBox.y = d.y-statusBox.height;
@@ -1291,7 +1507,7 @@
 //				fadeIn.play([pointsCanvas]);
 //			}
 			
-			private var clickedWordKeySet:KeySet = new KeySet();
+//			private var clickedWordKeySet:KeySet = new KeySet();
 			private var filteredWords:LinkableString = new LinkableString("",null,false);
 			private function handleTagCloudClick(event:MouseEvent):void
 			{
@@ -1308,38 +1524,196 @@
 				if(!filteredWords.value)
 					return;
 				
-				if(!query.sources.value == '')
-				{
-					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
-				}
+//				if(!query.sources.value == '')
+//				{
+//					var sourceNames:Array = parser.parseCSV(query.sources.value)[0]; //we send only the first row since this is a one-line CSV String
+//				}
+//				
+//				_parentPanel.infoMapsDataSource.getDocumentsForQuery(clickedWordKeySet,[],null,query.keywords.value + " " + filteredWords.value,"AND",sourceNames,query.dateFilter);
 				
-				_parentPanel.infoMapsDataSource.getDocumentsForQuery(clickedWordKeySet,[],null,query.keywords.value + " " + filteredWords.value,"AND",sourceNames,query.dateFilter);
+				
+				
 				status.htmlText= "Filtering list...";
 				clearFiltersButton.visible = false;
-				//				statusBox.width = 200;
-				showList();
+				
+				var filterQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.getLinksForFilteredQuery(query.keywords.value.split(','),
+					relatedKeywords,query.dateFilter,filteredWords.value.split(','),5000);
+				
+				filterQuery.addAsyncResponder(handleFilterQueryResult,handleFilterQueryFault);
 			}
 			
-			private function handleClickedWordKeySetChange():void
+			private function handleFilterQueryResult(event:ResultEvent,token:Object=null):void
 			{
-				var keys:Array = clickedWordKeySet.keys;
-				var includeKeys:Array = [];
+				var urls:Array = event.result as Array;
+				filterDocumentsByURLS(urls,filteredWords.value);
+			}
 				
-				for each(var k:IQualifiedKey in keys)
-				{
-					if(thumbnails.getObject(k.localName))
-					{
-						includeKeys.push(k);	
-					}
-				}
-				
-				//				_subset.replaceKeys(false,true,includeKeys);
-				_tagWordSubset.replaceKeys(false,true,includeKeys);
-				status.text = "";
-				filterStatus.htmlText= "<b>Filtered by: </b>" + filteredWords.value;
-				clearFiltersButton.visible = true;
+			private function handleFilterQueryFault(event:FaultEvent,token:Object=null):void
+			{
 				
 			}
+			
+			public function filterDocumentsByURLS(urls:Array,filterMessage:String=""):void
+			{
+				var keys:Array = [];
+				for (var i:int = 0; i < urls.length; i++)
+				{
+					var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey("infoMapsDoc",urls[i]);
+					keys.push(key);
+				}
+				
+				_tagWordSubset.replaceKeys(false,true,keys);
+				
+				showList();
+				status.text = "";
+				filterStatus.htmlText= "<b>Filtered by: </b>" + filterMessage;
+				clearFiltersButton.visible = true;
+			}
+			
+			private function getTopicsClassification():void
+			{
+				if(numOfMatchedDocuments.value <= 20)
+				{
+					_numOfTopics = 3;
+				}
+					
+				var topicsQuery:DelayedAsyncInvocation = _parentPanel.infoMapsDataSource.classifyDocumentsForQuery(query.keywords.value.split(','),relatedKeywords,query.dateFilter,
+					5000,_numOfTopics);
+				
+				topicsQuery.addAsyncResponder(handleTopicsQueryResult,handleTopicsQueryFault);
+			}
+			
+			private var topicComponents:Array = new Array();
+			private var flag_click:Boolean = true;
+			private var flag_init:Boolean =true;
+			private var _topicsResult:Object = null;
+			private var _numOfTopics:int = 5;
+			//private function toggleTagCloud(event:Event=null,forceShow:Boolean=false,forceHide:Boolean=false):void
+			private function showClassificationResults(event:Event=null, forceShow:Boolean=false,forceHide:Boolean=false):void
+			{   
+				if(_topicsResult == null)
+					return;
+				fadeOut.play([pointsCanvas,listCanvas]);
+				if(tagCanvas)
+					fadeOut.play([tagCanvas]);
+				//mx.controls.Alert.show("You see me!");
+				
+				
+				if(flag_init){
+					
+					// ToDo This will not update automatically when new documents come in.
+					//	var colorColumn:DynamicColumn = Weave.defaultColorColumn.getInternalColumn(); // ToDo
+					//var colorRamp:Array = [0x808080, 0xFF0000, 0xFFFF00, 0x808000, 0x008000, 0x800080, 0xFF00FF, 0x0000FF]; // ToDo
+					
+					// ToDo It is the center of the whole area after clicking show list
+					//	var centerX:int = this.measuredWidth/2;
+					//	var centerY:int = this.measuredHeight/2;
+					
+					var colorRamp:Array = [0xC0C0C0, 0xC0C0C0, 0xC0C0C0, 0xC0C0C0, 0xC0C0C0, 0xC0C0C0, 0xC0C0C0, 0xC0C0C0];
+					var centerX:int = 0;
+					var centerY:int = 0;
+					var radius:int = 0;
+					//var numberOfTopic:int = 5;
+					
+					if (this.measuredHeight > this.measuredWidth)
+						radius = this.measuredHeight / 2;
+					else
+						radius = this.measuredWidth / 2;
+					
+					var minimalNumber:int = Number.MAX_VALUE;
+					var maximalNumber:int = Number.MIN_VALUE;
+					
+					var urls:Array = _topicsResult.urls;
+					var keywords:Array = _topicsResult.keywords;
+					
+					for (var i:int = 0; i < _numOfTopics; i++)
+					{
+						if(((urls[i] as Array).length)  < minimalNumber)
+						{
+							minimalNumber = (urls[i] as Array).length;
+						}
+						if(((urls[i] as Array).length) > maximalNumber)
+						{
+							maximalNumber = (urls[i] as Array).length;
+						}
+					}
+					
+					var diameterArray:Array = new Array(_numOfTopics);
+					var baseline:int = 100;
+					var threshHold:int = 100;
+					for (var ii:int = 0; ii < _numOfTopics; ii++)
+					{
+						diameterArray[ii] = baseline + ((urls[ii] as Array).length/maximalNumber)*threshHold;
+					}
+					for (var iii:int = 0; iii < _numOfTopics; iii++)
+					{
+						var topicComponent:TopicNodeComponent = new TopicNodeComponent();
+						topicComponent.x = centerX + Math.cos((Math.PI * 2) / _numOfTopics * iii) * radius;
+						topicComponent.y = centerY - Math.sin((Math.PI * 2) / _numOfTopics * iii) * radius;
+						topicComponent.draw(colorRamp[iii], diameterArray[iii],keywords[iii], urls[iii]);
+						addChild(topicComponent);
+						topicComponents.push(topicComponent);
+						//	fadeIn.play([topicComponent]);
+					}
+					flag_init = false;
+				}
+				
+				if (flag_click)
+				{
+					fadeIn.play(topicComponents);
+					flag_click = false;
+				}
+				else
+				{
+					fadeOut.play(topicComponents);
+					flag_click = true;
+				}
+				
+			}
+			
+			
+			private function handleTopicsQueryResult(event:ResultEvent, token:Object = null):void
+			{
+				_topicsResult = event.result;
+
+				if (_topicsResult.keywords == null || _topicsResult.urls == null)
+				{
+					reportError(lang("Topic Models did not return an Array of results as expected."));
+					nodeBase.topicsImg.visible = false;
+					return;
+					
+				}
+				
+				nodeBase.topicsImg.visible = true;
+			}
+			
+			private function handleTopicsQueryFault(event:FaultEvent, token:Object = null):void
+			{
+				trace(["fault", token, event.message].join('\n'));
+				reportError(event);
+			}
+			
+			
+//			private function handleClickedWordKeySetChange():void
+//			{
+//				var keys:Array = clickedWordKeySet.keys;
+//				var includeKeys:Array = [];
+//				
+//				for each(var k:IQualifiedKey in keys)
+//				{
+//					if(thumbnails.getObject(k.localName))
+//					{
+//						includeKeys.push(k);	
+//					}
+//				}
+//				
+//				//				_subset.replaceKeys(false,true,includeKeys);
+//				_tagWordSubset.replaceKeys(false,true,includeKeys);
+//				status.text = "";
+//				filterStatus.htmlText= "<b>Filtered by: </b>" + filteredWords.value;
+//				clearFiltersButton.visible = true;
+//				
+//			}
 			
 			private function handleClearFiltersButton():void
 			{

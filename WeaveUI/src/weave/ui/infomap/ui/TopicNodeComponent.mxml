@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="300"
+		   xmlns:infomap="weave.ui.infomap.*" 
+		   verticalScrollPolicy="off" 
+		   horizontalScrollPolicy="off"
+		   >
+	<mx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			
+			import weave.data.KeySets.KeyFilter;
+			import weave.ui.infomap.layout.NodeHandler;
+			import weave.utils.CustomCursorManager;
+			import weave.visualization.layers.InteractiveVisualization;
+			
+			// ToDo Session State & 2-way Linking
+			// ToDo Avoid the effect of redrawing multiple times
+			private var textField:TextField;
+			private var diameter:int;
+			private var component:UIComponent = new UIComponent();
+			private var sprite:Sprite = new Sprite();
+			private var textFormat:TextFormat = new TextFormat();
+			//private var _topicSubset:KeyFilter;
+			private var _topicURLS:Array;
+			
+			
+			public function draw(color:uint, numOfDoc:int, keywords:Array, topicURLs:Array):void
+				//, topicURLs:Array, topicSubset:KeyFilter
+			{
+				this._topicURLS = topicURLs;
+				//this._topicSubset = topicSubset;
+				diameter = numOfDoc;
+				sprite.graphics.clear();
+				//				sprite.graphics.beginFill(color);
+				//sprite.graphics.lineStyle(
+				sprite.graphics.lineStyle(1, color);
+				sprite.graphics.drawEllipse(0, 0, diameter, diameter);
+				//				sprite.graphics.endFill();
+				component.addChild(sprite);
+				addElement(component);
+				
+
+				textFormat.size = 15;
+				textFormat.align = TextFormatAlign.CENTER;
+				textField = new TextField();
+				textField.defaultTextFormat = textFormat;
+				var temptext:String = "";
+				for(var numOfkeywords:int = 0; numOfkeywords < keywords.length; numOfkeywords++){
+					temptext += (keywords[numOfkeywords] + " ");
+				}
+				
+				textField.text = temptext;
+				textField.width = diameter;
+				textField.wordWrap = true;
+				//				textField.height = diameter/2; // ToDo
+				textField.x = 0;
+				textField.y = diameter/4;
+				sprite.addChild(textField);
+				
+				
+				sprite.addEventListener(MouseEvent.ROLL_OVER,handleMouseOver);
+				sprite.addEventListener(MouseEvent.ROLL_OUT,handleMouseOut);
+				sprite.addEventListener(MouseEvent.CLICK, handleClick);
+			}
+			
+			
+			private function handleClick(event:Event):void
+			{
+				//_topicSubset.replaceKeys(false,true,this._topicURLS);
+				(this.parent as NodeHandler).filterDocumentsByURLS(_topicURLS,"Selected topic");   
+				 
+//				textField.text = this._topicURLS.toString();
+			}
+			
+			private var _cursorID:int;
+			private function handleMouseOver(event:Event):void
+			{
+				_cursorID = CustomCursorManager.showCursor(InteractiveVisualization.CURSOR_HAND);
+			}
+			
+			private function handleMouseOut(event:Event):void
+			{
+				CustomCursorManager.removeCursor(_cursorID);
+			}
+		]]>
+	</mx:Script>
+	
+</mx:Canvas>

@@ -37,7 +37,7 @@ public class SummarizationJob implements Job{
 		//Reading and initializing Stop words from file
 		stopWords = new Hashtable<String, Integer>();
 		
-		solrServerURL = "http://129.63.8.219:8080/solr/research_core/";
+		solrServerURL = "http://129.63.8.219:8080/solr/demo_core/";
 		
 		try{
 			

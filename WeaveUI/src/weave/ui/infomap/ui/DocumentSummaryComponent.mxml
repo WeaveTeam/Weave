@@ -4,7 +4,7 @@ Use the static functions to show this as a popup.
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 			 xmlns:infomap="weave.ui.infomap.*" 
-			 width="350" height="250" 
+			 width="350" height="100%" 
 			 verticalScrollPolicy="off" 
 			 horizontalScrollPolicy="off" 
 			 paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5"
@@ -87,7 +87,6 @@ Use the static functions to show this as a popup.
 					
 					if(imgURL && !(imgURL=="ERROR"))
 					{
-						trace("requesting image from " + imgURL);						
 						requestToken = WeaveAPI.URLRequestUtils.getContent(instance,new URLRequest(imgURL),handleImage,null,_docURL.value);
 					}
 					instance.move(xPos,yPos);
@@ -104,7 +103,6 @@ Use the static functions to show this as a popup.
 					{
 						if(requestToken)
 						{
-							trace("cancelling request from " + _docURL.value);														
 							requestToken.cancelRequest(); 
 						}
 						instance.fadeOut.play();

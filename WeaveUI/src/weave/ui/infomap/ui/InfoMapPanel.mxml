@@ -628,6 +628,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				var nodeHandler:NodeHandler = nodes.requestObject(nodeName,NodeHandler,false);
 				
 				nodeHandler.nodeBase.width = 200;//starting off with wide text area
+				
+				//TODO: test to see if this goes beyond panel
+				nodeHandler.x = 50 * (nodes.getNames().length);
+				nodeHandler.y = 50 * (nodes.getNames().length);
+				
+				
 				nodeHandler.thumbnailsDefaultColor.value = internalColorRamp.getColorFromNorm(StandardLib.normalize(nodes.getNames().length-1, internalMin, internalMax));
 				
 				nodeHandler.applyKeywordsFromSelection();
@@ -872,14 +878,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function handleSolrServerURLChange():void
 			{
-				var l:String = solrServerComboBox.text;
-				
-				if(l=="Research_Core")
-					infoMapsDataSource.solrURL.value = "http://129.63.8.219:8080/solr/research_core/";
-				else if (l == "Summarize_Core")
-					infoMapsDataSource.solrURL.value = "http://129.63.8.219:8080/solr/summarize_core/";
-				else
-					infoMapsDataSource.solrURL.value = l;
+//				var l:String = solrServerComboBox.text;
+//				
+//				if(l=="Research_Core")
+//					infoMapsDataSource.solrURL.value = "http://129.63.8.219:8080/solr/research_core/";
+//				else if (l == "Summarize_Core")
+//					infoMapsDataSource.solrURL.value = "http://129.63.8.219:8080/solr/summarize_core/";
+//				else if (l == "Demo_Core")
+//					infoMapsDataSource.solrURL.value = "http://129.63.8.219:8080/solr/demo_core/";
+//				else
+//					infoMapsDataSource.solrURL.value = l;
 			}
 			[Bindable]
 			private var relatedKeywordsArrayCollection:ArrayCollection = new ArrayCollection();
@@ -893,7 +901,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					var words:Array = (cols[i] as IAttributeColumn).getMetadata("title").split(' ');
 					for each(var word:String in words)
 					{
-						word = word.replace(/([()<=%~!\/\\])/g,"");
+						word = word.replace(/([(),<=%~!\/\\])/g,"");
 						if(relatedKeywords[word] == undefined)
 						{
 							if(!WordProcessingUtils.isStopWord(word) && isNaN(Number(word)))
@@ -953,7 +961,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Select" click="handleDateFilter()"/>
 						<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Clear" click="clearDateFilter()"/>
 					</mx:HBox>-->
-					<mx:HBox>
+					<mx:HBox visible="false">
 							<mx:Label fontWeight="bold" text="Search in Nodes:"/>
 							<mx:TextInput id="globalSearchTextInput" keyDown="handleGlobalKeyInput(event)" borderStyle="solid" cornerRadius="5" width="200" />
 							<mx:LinkButton textDecoration="underline" color="blue" fontWeight="normal" label="Add Date Filter" click="handleDateFilter()"/>
@@ -967,7 +975,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<mx:VBox label="Basic Settings">
 			<mx:HBox>
 				<mx:Label text="Solr Server URL"/>
-				<mx:ComboBox id="solrServerComboBox" editable="true" dataProvider="{['Research_Core','Summarize_Core']}" change="handleSolrServerURLChange()"/>
+				<!--<mx:ComboBox id="solrServerComboBox" editable="true" dataProvider="{['Research_Core','Summarize_Core','Demo_Core']}" change="handleSolrServerURLChange()"/>-->
 			</mx:HBox>
 			<mx:HBox>
 				<mx:Label text="Set Background Image: "/>

@@ -211,7 +211,7 @@
 				for each(var cl:CustomLabel in getChildren())
 				{
 					cl.move(cl.x-minX,cl.y-minY);
-					tempBounds.setRectangle(cl.x,cl.y,cl.labelText.textWidth,cl.labelText.textHeight);
+					tempBounds.setRectangle(cl.x,cl.y,cl.labelText.width,cl.labelText.height);//now that  they are rendered we use actual width and height
 					boundsIndex.insert(tempBounds,cl);
 				}
 				

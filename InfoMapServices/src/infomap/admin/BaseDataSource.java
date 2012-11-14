@@ -50,13 +50,13 @@ public class BaseDataSource extends AbstractDataSource{
 	@Override
 	SolrInputDocument[] searchForQuery(String operator) {
 		// TODO Auto-generated method stub
-//		System.out.println("IN BASE-SEARCHFORQUERY");
+		System.out.println("IN BASE-SEARCHFORQUERY");
     	
 		
 		SolrInputDocument[] results = null;
 		
 		String reqURI = REQUEST_URL+"&query="+getQueryString() + "&hits=" + numberOfDocuments + "&offset=" + offset;
-//		System.out.println("BASE QUERY IS " + reqURI);
+		System.out.println("BASE QUERY IS " + reqURI);
 		DefaultHttpClient httpclient = new DefaultHttpClient();
 		
 		try {
@@ -90,6 +90,23 @@ public class BaseDataSource extends AbstractDataSource{
 				
 				//Adding Description
 				d.addField("description", t.response.docs[i].dcdescription);
+				
+				//Adding subject areas as keywords
+				if(t.response.docs[i].dcsubject !=null)
+				{
+					String[] keywordsArray = t.response.docs[i].dcsubject;
+					String keywords="";
+					if(keywordsArray.length > 0)
+					{
+						for (int k=0; k<keywordsArray.length; k++)
+						{
+							keywords += keywordsArray[k] + ",";
+						}
+						
+						d.addField("attr_text_keywords",keywords);
+					}
+				}
+
 				
 				//setting date_added to current date
 				Date date_added = new Date();
@@ -130,6 +147,8 @@ public class BaseDataSource extends AbstractDataSource{
 		}catch(Exception e){
 			e.printStackTrace();
 		}
+		
+		System.out.println("BASE FOUND DOCUMENTS  " + results.length);
 		return results;
 	}
 	

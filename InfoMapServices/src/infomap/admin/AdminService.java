@@ -7,11 +7,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Reader;
+
 import org.xml.sax.ContentHandler;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -32,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
@@ -54,6 +58,16 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.slf4j.spi.LocationAwareLogger;
 import org.w3c.dom.Document;
 
+import cc.mallet.util.*;
+import cc.mallet.types.*;
+import cc.mallet.pipe.*;
+import cc.mallet.pipe.iterator.*;
+import cc.mallet.topics.*;
+
+import java.util.*;
+import java.util.regex.*;
+import java.io.*;
+
 import com.dropbox.client2.DropboxAPI;
 import com.dropbox.client2.DropboxAPI.Entry;
 import com.dropbox.client2.session.AccessTokenPair;
@@ -65,7 +79,9 @@ import com.dropbox.client2.session.WebAuthSession.WebAuthInfo;
 import com.google.gson.Gson;
 
 
+import infomap.beans.EntityDistributionObject;
 import infomap.beans.QueryResultWithWordCount;
+import infomap.beans.TopicClassificationResults;
 import infomap.servlets.GenericServlet;
 import infomap.utils.DebugTimer;
 import infomap.utils.SQLResult;
@@ -75,6 +91,7 @@ import infomap.utils.XMLUtils;
 import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 
 /**
@@ -95,7 +112,7 @@ public class AdminService extends GenericServlet{
 	private static int backgroundThreads = 4;
 	
 	
-    public static String solrServerUrl = "http://129.63.8.219:8080/solr/research_core/";
+    public static String solrServerUrl = "http://129.63.8.219:8080/solr/demo_core/";
 
     public static ConcurrentUpdateSolrServer streamingSolrserver = null;
 	
@@ -112,14 +129,22 @@ public class AdminService extends GenericServlet{
     
     
     public static void main(String[] args) {
-		
-//    	deleteAllDocuments();
+    	
+//    	AdminService inst = new AdminService();
+//    	
+//    	String [] requiredKeywords = new String[1];
+//    	
+//    	requiredKeywords[0] = "California";
+//    	
+//    	inst.classifyDocumentsForQuery(requiredKeywords, null, null, 5, 5, 5);
 	}
     
     private static void deleteAllDocuments()
     {
     	try{
-    		setSolrServer("http://129.63.8.219:8080/solr/research_core/");
+    		setSolrServer("http://129.63.8.219:8080/solr/demo_core/");
+    		
+    		
     		
     		String queryString = "title:((california OR washington) AND (obesity OR BMI OR overweight)) OR description:((california OR washington) AND (obesity OR BMI OR overweight))";
     		
@@ -662,18 +687,338 @@ public class AdminService extends GenericServlet{
     private ExecutorService executor = Executors.newFixedThreadPool(3);
     private DebugTimer timer = new DebugTimer();
     
+    private static String formulateQuery(String[] requiredKeywords,String[] relatedKeywords)
+    {
+    	String result = null;
+    	
+    	//We OR the required keywords and OR the related keywords. Then we AND between the two.
+    	//So this way, we have at least one of the required keywords and one of the related keywords
+    	
+    	
+    	if(requiredKeywords== null || requiredKeywords.length == 0)
+    	{
+    		return result;
+    	}
+    	
+    	String requiredQueryString = mergeKeywords(requiredKeywords, "OR");
+    	String queryString = "(" + requiredQueryString + ")";
+		
+    	if(relatedKeywords !=null && relatedKeywords.length > 0)
+    	{
+    		String relatedQueryString = mergeKeywords(relatedKeywords, "OR");
+    		queryString = queryString + " AND " + "(" + relatedQueryString + ")";
+    	}
+    	
+    	result = "title:(" + queryString + ") OR description:(" + queryString + ") OR attr_text_keywords:(" + queryString + ")";
+    	
+    	return result;
+    }
+    
+    public String[][] getWordCount(String[] requiredKeywords,String[] relatedKeywords,String dateFilter)
+    {
+		setSolrServer(solrServerUrl);
+    	
+		String[][] result = null;
+    	
+		String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+		
+		if(queryString == null)
+			return null;
+		
+		try{
+			
+			//Query Results are always sorted by descending order of relevance
+    		SolrQuery q = new SolrQuery().setQuery(queryString).setSortField("score", SolrQuery.ORDER.desc);
+    		if(dateFilter != null)
+    			if(!dateFilter.isEmpty())
+    				q.setFilterQueries(dateFilter);
+    		
+    		//set number of rows
+    		q.setRows(1);
+    		
+    		q.addFacetField("description");
+    		q.setFacet(true);
+    		q.setFacetLimit(100);
+    		
+    		//set fields to title,date and summary only
+    		q.setFields("link");
+    		
+    		
+    		QueryResponse response = solrInstance.query(q);
+    		Iterator<SolrDocument> iter = response.getResults().iterator();
+    		
+			FacetField ff = response.getFacetField("description");
+			Iterator<Count> iter2= ff.getValues().iterator();
+			
+			String[][] wordCount = new String[ff.getValueCount()][2];
+			result = new String[ff.getValueCount()][2];
+			int countIndex = 0;
+			
+			while(iter2.hasNext())
+			{
+				Count currentCount = iter2.next();
+				
+				String[] temp = new String[2];
+				
+				temp[0] = currentCount.getName();
+				temp[1] = String.valueOf(currentCount.getCount());
+				
+				wordCount[countIndex] = temp;
+				countIndex ++;
+			}
+			
+			result = wordCount.clone();
+		}catch(Exception e)
+		{
+			System.out.println("Error getting Facet Count ");
+			e.printStackTrace();
+		}
+		
+		return result;
+    }
+    
+    public  TopicClassificationResults classifyDocumentsForQuery(String[] requiredKeywords,String[] relatedKeywords,String dateFilter,int rows,
+    		int numOfTopics,int numOfKeywordsInEachTopic) throws NullPointerException
+    {
+    	setSolrServer(solrServerUrl);
+    	
+    	ArrayList<String[]> r = new ArrayList<String[]>();
+    	
+    	String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+		
+		if(queryString == null)
+			return null;
+
+		TopicClassificationResults topicModelingResutls = new TopicClassificationResults();
+		try{
+			
+			//Query Results are always sorted by descending order of relevance
+    		SolrQuery q = new SolrQuery().setQuery(queryString).setSortField("score", SolrQuery.ORDER.desc);
+    		if(dateFilter != null)
+    			if(!dateFilter.isEmpty())
+    				q.setFilterQueries(dateFilter);
+    		
+    		//set number of rows
+    		q.setRows(rows);
+    		
+    		q.setFields("link,description");
+    		
+    		QueryResponse response = solrInstance.query(q);
+    		SolrDocumentList documents = response.getResults();
+			int documentSize = documents.size();
+			SolrDocument doc = null;
+			Iterator<SolrDocument> itr = documents.iterator();
+			String originalTexts = "";
+			String singleInstance = "";
+			if (documentSize > 0) {
+			//int i = 1;
+			while (itr.hasNext()) {
+			doc = itr.next();
+			if(doc.getFieldValue("description") != null){
+			singleInstance = doc.getFieldValue("link").toString() + "\t" + "X" + "\t" + doc.getFieldValue("description").toString().replace('\n', ' ').replace('\r', ' ') + "\r\n";
+			originalTexts += singleInstance;
+			}
+			//i++;
+			}
+
+			//System.out.println("**");
+			} else {
+			System.out.println("NO Documents returned...");
+			}
+			         
+			// Begin by importing documents from text to feature sequences
+			ArrayList<Pipe> pipeList = new ArrayList<Pipe>();
+
+
+			// Pipes: lowercase, tokenize, remove stopwords, map to features
+			pipeList.add(new CharSequenceLowercase());
+			pipeList.add(new CharSequence2TokenSequence(Pattern
+			.compile("\\p{L}[\\p{L}\\p{P}]+\\p{L}")));
+			//pipeList.add(new TokenSequenceRemoveStopwords(new File(
+			//"stoplists/en.txt"), "UTF-8", false, false, false));
+			//File a = getClass().getClassLoader().getResourceAsStream(name)("infomap/resources/stopwords.txt");
+			
+			URL stoplistPath = getClass().getClassLoader().getResource("infomap/resources/stopwords.txt");
+			//System.out.println(getClass().getClassLoader().getResource("infomap/resources/stopwords.txt"));
+			System.out.println(stoplistPath.getFile());
+			String stopListFilePath = URLDecoder.decode(stoplistPath.getFile(), "UTF-8");
+			pipeList.add(new TokenSequenceRemoveStopwords(new File(stopListFilePath), "UTF-8", false, false, false));
+			//getClass().getClassLoader().getResourceAsStream("infomap/resources/stopwords.txt")
+			pipeList.add(new TokenSequence2FeatureSequence());
+
+			//getClass().getClassLoader().
+			InstanceList instances = new InstanceList(new SerialPipes(pipeList));
+
+
+			// Reader fileReader = new InputStreamReader(new FileInputStream(new
+			// File(args[0])), "UTF-8");
+			Reader fileReader = new InputStreamReader(IOUtils.toInputStream(originalTexts));
+			instances.addThruPipe(new CsvIterator(fileReader, Pattern
+			.compile("^(\\S*)[\\s]*(\\S*)[\\s]*([\\w\\W\\s\\S\\d\\D]*)$"), 3, 2, 1)); // data,
+			// label,
+			// name
+			// fields
+
+
+			// Create a model with 100 topics, alpha_t = 0.01, beta_w = 0.01
+			// Note that the first parameter is passed as the sum over topics, while
+			// the second is the parameter for a single dimension of the Dirichlet
+			// prior.
+			ParallelTopicModel model = new ParallelTopicModel(numOfTopics, 1.0, 0.01);
+
+
+			model.addInstances(instances);
+
+
+			// Use two parallel samplers, which each look at one half the corpus and
+			// combine
+			// statistics after every iteration.
+			model.setNumThreads(2);
+
+
+			// Run the model for 50 iterations and stop (this is for testing only,
+			// for real applications, use 1000 to 2000 iterations)
+			model.setNumIterations(100);
+			model.estimate();
+
+
+			// Show the words and topics in the first instance
+
+
+			// The data alphabet maps word IDs to strings
+			Alphabet dataAlphabet = instances.getDataAlphabet();
+
+
+			//System.out.println(out);
+			        //System.out.println("Query: " + url);
+			//System.out.println("Number of the documents:" + documentSize);
+			//System.out.println("Number of the groups:" + numTopics);
+
+
+			int dataSize = instances.size();
+			int [] groupInfo = new int[dataSize];
+			for(int i = 0; i < dataSize; i++){
+			groupInfo[i] = 0;
+			}
+
+
+			        double [] distributions;
+			double temp;
+			for(int i = 0; i < dataSize; i++){
+			distributions = model.getTopicProbabilities(i);
+			temp = 0.0;
+			for(int j = 0; j < distributions.length; j++){
+			if(temp < distributions[j]){
+			groupInfo[i] = j;
+			temp = distributions[j];
+			}
+			}
+			}
+			int [] groupSize = new int[numOfTopics];
+			for(int i = 0; i < numOfTopics; i++)
+			{
+				groupSize[i] = 0;
+			}
+
+			for(int i = 0; i < dataSize; i++)
+			{
+				//group[groupInfo[i]] += (" "+ documents.get(i).getFieldValue("description").toString());
+				groupSize[groupInfo[i]]++;
+			}
+			/*for(int i = 0; i < numTopics; i++){
+			System.out.println("Group " + i + " size is :"+ groupSize[i]);
+			}*/
+
+			//document Group infomation
+			String documentGroupInfo[][] = new String[dataSize][2];
+			for(int i = 0; i < dataSize; i++)
+			{
+				for(int j = 0; j < 2; j++){
+					documentGroupInfo[i][j] = "";
+				}
+			}
+			
+			for(int i = 0; i < dataSize; i++)
+			{
+				documentGroupInfo[i][0] = documents.get(i).getFieldValue("link").toString();
+				documentGroupInfo[i][1] = Integer.toString(groupInfo[i]);
+				//System.out.println("Document with link " + documentGroupInfo[i][0] + " belongs to group " + documentGroupInfo[i][1]);
+			}
+
+
+			// Get an array of sorted sets of word ID/count pairs
+			ArrayList<TreeSet<IDSorter>> topicSortedWords = model.getSortedWords();
+			       
+			String topicKeywords [][] = new String[numOfTopics][numOfKeywordsInEachTopic];
+			for(int i = 0; i < numOfTopics; i++)
+			{
+				for(int j = 0; j < numOfKeywordsInEachTopic; j++)
+				{
+				topicKeywords[i][j] = "";
+				}
+			}
+			
+			
+			
+			// Show top 5 words in topics with proportions for the first document
+			for (int topic = 0; topic < numOfTopics; topic++) {
+			Iterator<IDSorter> iterator = topicSortedWords.get(topic)
+			.iterator();
+
+
+			//out = new Formatter(new StringBuilder(), Locale.US);
+			//out.format("%d\t%.3f\t", topic, topicDistribution[topic]);
+			int rank = 0;
+			while (iterator.hasNext() && rank < numOfKeywordsInEachTopic) {
+			IDSorter idCountPair = iterator.next();
+			//out.format("%s (%.0f) ",
+			//dataAlphabet.lookupObject(idCountPair.getID()),
+			//idCountPair.getWeight());
+			topicKeywords[topic][rank]= dataAlphabet.lookupObject(idCountPair.getID()) + " ";
+			rank++;
+			}
+			//System.out.println(out);
+			}
+			String [][] resultUrls = new String [numOfTopics][];
+
+
+           for (int i = 0; i < numOfTopics; i++)
+           {
+        	   resultUrls[i] = new String[groupSize[i]];
+ 		      int tempCounter = 0;
+        	   //for(int j = 0; j < groupSize[i]; j++){
+        		   
+        		   for(int k = 0; k < dataSize; k++)
+        		   {
+        			   if(groupInfo[k] == i)
+        			   {
+        				   resultUrls[i][tempCounter] = documents.get(k).getFieldValue("link").toString();
+        				   tempCounter ++;
+        			   }
+        		   }
+           }
+		      topicModelingResutls.keywords = topicKeywords;
+		      
+		      topicModelingResutls.urls = resultUrls; 
+			      
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return topicModelingResutls;
+    }
+    
     public  Object[] getResultsForQueryWithRelatedKeywords(String[] requiredKeywords,String[] relatedKeywords,String dateFilter,int rows) throws NullPointerException
     {
     	setSolrServer(solrServerUrl);
     	
     	ArrayList<String[]> r = new ArrayList<String[]>();
     	
-    	//We OR the required keywords and OR the related keywords. Then we AND between the two.
-    	//So this way, we have at least one of the required keywords and one of the related keywords
-    	String requiredQueryString = mergeKeywords(requiredKeywords, "OR");
-		String relatedQueryString = mergeKeywords(relatedKeywords, "OR");
-		String queryString = "(" + requiredQueryString + ")" + " AND " + "(" + relatedQueryString + ")";
-		queryString = "title:(" + queryString + ") OR description:(" + queryString + ")";
+    	String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+		
+		if(queryString == null)
+			return null;
 
 		
 		try{
@@ -758,16 +1103,82 @@ public class AdminService extends GenericServlet{
     	
     }
     
+    public  Object[] getLinksForFilteredQuery(String[] requiredKeywords,String[] relatedKeywords,String dateFilter,String[] filterby,int rows) throws NullPointerException
+    {
+    	setSolrServer(solrServerUrl);
+    	
+    	ArrayList<String> r = new ArrayList<String>();
+    	
+    	String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+		
+		if(queryString == null)
+			return null;
+
+		
+		try{
+			
+			//Query Results are always sorted by descending order of relevance
+    		SolrQuery q = new SolrQuery().setQuery(queryString).setSortField("score", SolrQuery.ORDER.desc);
+    		
+    		String filterString = "";
+    		
+    		for (int i = 0; i < filterby.length; i++)
+    		{
+    			filterString += "(title:"+filterby[i]+" OR description:"+filterby[i]+" OR attr_text_keywords:"+filterby[i]+")";
+    			
+    			if(i !=filterby.length-1)
+    			{
+    				filterString += " AND ";
+    			}
+    		}
+    		
+    		if(dateFilter != null)
+    			if(!dateFilter.isEmpty())
+    				filterString += filterString +" AND "+dateFilter;
+    		
+    		
+    		if(!filterString.isEmpty())
+    			q.setFilterQueries(filterString);
+    		
+    		//set number of rows
+    		q.setRows(rows);
+    		
+    		//set fields to title,date and summary only
+    		q.setFields("link");
+    		
+    		QueryResponse response = solrInstance.query(q);
+    		Iterator<SolrDocument> iter = response.getResults().iterator();
+    		
+    		System.out.println("QUERY IS " + q.toString());
+    		
+    		while (iter.hasNext()){
+    			SolrDocument doc = iter.next();
+    			
+    			r.add((String)doc.getFieldValue("link"));
+    		}
+    		
+    	}catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+    	
+    	
+    	
+    	Object[] queryResult = r.toArray();
+    	return queryResult;
+    	
+    }
+
+    
+    
     public long getNumOfDocumentsForQuery(String[] requiredKeywords,String[] relatedKeywords, String dateFilter)
     {
     	setSolrServer(solrServerUrl);
 
-    	String requiredQueryString = mergeKeywords(requiredKeywords, "OR");
- 		String relatedQueryString = mergeKeywords(relatedKeywords, "OR");
- 		String queryString = "(" + requiredQueryString + ")";
- 		if(!relatedQueryString.isEmpty())
- 			queryString  = queryString + " AND " + "(" + relatedQueryString + ")";
- 		queryString = "title:(" + queryString + ") OR description:(" + queryString + ")";
+    	String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+		
+		if(queryString == null)
+			return 0;
     	 
      	QueryResponse response = null;
      	try{
@@ -790,19 +1201,17 @@ public class AdminService extends GenericServlet{
      	return response.getResults().getNumFound();
     }
     
-    public Object[][] getEntityDistributionForQuery(String[] requiredKeywords,String[] relatedKeywords, String dateFilter,String[] entities,int rows)
+    public EntityDistributionObject getEntityDistributionForQuery(String[] requiredKeywords,String[] relatedKeywords, String dateFilter,String[] entities,int rows)
     {
-    	Object [][] result = new Object[entities.length][];
+    	Object [][] urls = new Object[entities.length][];
     	
     	setSolrServer(solrServerUrl);
     	
     	//Setting up the query
-    	String requiredQueryString = mergeKeywords(requiredKeywords, "OR");
- 		String relatedQueryString = mergeKeywords(relatedKeywords, "OR");
- 		String queryString = "(" + requiredQueryString + ")";
- 		if(!relatedQueryString.isEmpty())
- 			queryString  = queryString + " AND " + "(" + relatedQueryString + ")";
- 		queryString = "title:(" + queryString + ") OR description:(" + queryString + ")";
+    	String queryString = formulateQuery(requiredKeywords, relatedKeywords);
+		
+		if(queryString == null)
+			return null;
     	 
      	QueryResponse response = null;
      	try{
@@ -865,8 +1274,7 @@ public class AdminService extends GenericServlet{
      					
      					docs.add((String)doc.getFieldValue("link"));
      				}
-     				System.out.println("DOCS ARE + " + docs.toString());
-     				result[count] = docs.toArray(); 
+     				urls[count] = docs.toArray(); 
       			}
      			count++;
      		}
@@ -876,14 +1284,18 @@ public class AdminService extends GenericServlet{
      		e.printStackTrace();
      	}
      	
+     	EntityDistributionObject result = new EntityDistributionObject();
+     	
+     	result.entities = entities;
+     	result.urls = urls;
      	return result;
     }
     
-    private String mergeKeywords(String[] keywords, String operator)
+    private static String mergeKeywords(String[] keywords, String operator)
     {
     	String result = "";
     	
-    	if(keywords.length == 0)
+    	if(keywords==null || keywords.length == 0)
     		return result;
     	//if it is not a single word we add the operator between each keyword
 		//splitting the keywords at the spaces. 
@@ -891,7 +1303,7 @@ public class AdminService extends GenericServlet{
 		{
 			for(int i = 0; i < keywords.length; i++)
 			{
-				result += keywords[i];
+				result += "\"" + keywords[i] + "\"";
 				if(i != keywords.length-1)
 					result += " "+operator+" ";
 			}
@@ -906,6 +1318,26 @@ public class AdminService extends GenericServlet{
     	return result;
     }
     
+    public void queryDataSources(String[] queryTerms)
+    {
+    MendeleyDataSource mds = new MendeleyDataSource();
+   	 mds.query = queryTerms.clone();
+   	 mds.solrServerURL = solrServerUrl;
+   	 
+   	 ArxivDataSource ads = new ArxivDataSource();
+   	 ads.query = queryTerms.clone();
+   	 ads.solrServerURL = solrServerUrl;
+   	 
+   	 BaseDataSource bds = new BaseDataSource();
+   	 bds.query = queryTerms.clone();
+   	 bds.solrServerURL = solrServerUrl;
+   	 
+   	 executor.execute(ads);
+   	 executor.execute(mds);
+   	 executor.execute(bds);
+   	System.out.println("Finished Calling Sources " + timer.get());
+    }
+    
     public QueryResultWithWordCount getQueryResults(String[] queryTerms,String fq,String sortField,int rows, String solrURL) throws NullPointerException
     {
     	 setSolrServer(solrURL);
@@ -913,22 +1345,7 @@ public class AdminService extends GenericServlet{
     	 timer.start();
     	System.out.println("CALLING GET QUERY");
 
-    	MendeleyDataSource mds = new MendeleyDataSource();
-    	 mds.query = queryTerms.clone();
-    	 mds.solrServerURL = solrURL;
-    	 
-    	 ArxivDataSource ads = new ArxivDataSource();
-    	 ads.query = queryTerms.clone();
-    	 ads.solrServerURL = solrURL;
-    	 
-    	 BaseDataSource bds = new BaseDataSource();
-    	 bds.query = queryTerms.clone();
-    	 bds.solrServerURL = solrURL;
-    	 
-    	 executor.execute(ads);
-    	 executor.execute(mds);
-    	 executor.execute(bds);
-    	System.out.println("Finished Calling Sources " + timer.get());
+    	
     	String query = parseBasicQuery(queryTerms, "AND");
     	long totalNumberOfDocuments = getNumberOfMatchedDocuments(query, fq, solrURL);
 
@@ -1089,7 +1506,6 @@ public class AdminService extends GenericServlet{
     {
     	if(docs==null || docs.length == 0){
     		
-//    		System.out.println("addDocuments was called but no Documents added");
     		return;
     	}
     	
@@ -1098,6 +1514,7 @@ public class AdminService extends GenericServlet{
     	setStreamingSolrServer(solrURL);
     	try{
     	streamingSolrserver.add(d);
+    	System.out.println("ADDING DOCUMENTS TO " + solrURL + " WITH Num Of DOcs: " + docs.length);
     	}catch(Exception e)
     	{
     		System.out.println("Error when adding "+docs.length+"documents");
