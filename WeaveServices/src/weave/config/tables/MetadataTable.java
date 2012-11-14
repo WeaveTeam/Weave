@@ -90,12 +90,19 @@ public class MetadataTable extends AbstractTable
 		
 		try
 		{
+//			/* Index of (id) */
+//			SQLUtils.createIndex(
+//					conn, schemaName, tableName,
+//					tableName+FIELD_ID,
+//					new String[]{FIELD_ID},
+//					null
+//			);
 			/* Index of (Property, Value), important for finding ids with metadata criteria */
 			SQLUtils.createIndex(
 					conn, schemaName, tableName,
 					tableName+FIELD_PROPERTY+FIELD_VALUE,
 					new String[]{FIELD_PROPERTY, FIELD_VALUE},
-					new Integer[]{255,255}
+					new Integer[]{32,32}
 			);
 		}
 		catch (SQLException e)
@@ -111,19 +118,15 @@ public class MetadataTable extends AbstractTable
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			
-			List<Map<String,Object>> records = new Vector<Map<String,Object>>(2);
-			Map<String,Object> property_constraints = new HashMap<String,Object>();
-            Map<String,Object> id_constraint = new HashMap<String,Object>();
+			List<Map<String,Object>> records = new Vector<Map<String,Object>>(diff.size());
 			for (String property : diff.keySet())
 			{
-				property_constraints.put(FIELD_PROPERTY, property);
+				Map<String,Object> record = new HashMap<String,Object>();
+				record.put(FIELD_ID, id);
+				record.put(FIELD_PROPERTY, property);
+				records.add(record);
 			}
-            id_constraint.put(FIELD_ID, id);
-            records.add(property_constraints);
-            records.add(id_constraint);
-            
-            if (property_constraints.size() > 0)
-    			SQLUtils.deleteRows(conn, schemaName, tableName, records, caseSensitiveFields, true);
+			SQLUtils.deleteRows(conn, schemaName, tableName, records, caseSensitiveFields, false);
 			
 			records.clear();
 			for (Entry<String,String> entry : diff.entrySet())
@@ -151,7 +154,7 @@ public class MetadataTable extends AbstractTable
 		try 
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			SQLUtils.deleteRows(conn, schemaName, tableName, MyEntry.<String,Object>mapFromPairs(FIELD_ID, id), caseSensitiveFields);
+			SQLUtils.deleteRows(conn, schemaName, tableName, MyEntry.<String,Object>mapFromPairs(FIELD_ID, id), caseSensitiveFields, true);
 		}
 		catch (SQLException e)
 		{

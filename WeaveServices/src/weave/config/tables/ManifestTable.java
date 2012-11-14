@@ -31,6 +31,7 @@ import java.util.Vector;
 
 import weave.config.ConnectionConfig;
 import weave.config.DataConfig.DataEntity;
+import weave.utils.MyEntry;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 
@@ -85,9 +86,7 @@ public class ManifestTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> whereParams = new HashMap<String,Object>();
-			whereParams.put(FIELD_ID, id);
-			SQLUtils.deleteRows(conn, schemaName, tableName, whereParams, null);
+			SQLUtils.deleteRows(conn, schemaName, tableName, MyEntry.<String,Object>mapFromPairs(FIELD_ID, id), null, true);
 		}
 		catch (Exception e)
 		{

@@ -36,7 +36,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1056,12 +1055,14 @@ public class SQLUtils
 	}
 	protected static String stringMult(String separator, String item, Integer repeat)
 	{
-	    ArrayList<String> items = new ArrayList<String>(repeat);
+		StringBuilder out = new StringBuilder();
 	    for (int i = 0; i < repeat; i++)
 	    {
-	        items.add(item);
+	    	if (i > 0)
+	    		out.append(separator);
+	    	out.append(item);
 	    }
-	    return stringJoin(separator, items);
+	    return out.toString();
 	}
 	protected static <KEY,VALUE> List<Entry<KEY,VALUE>> imposeMapOrdering(Map<KEY,VALUE> inputMap)
 	{
@@ -1518,11 +1519,11 @@ public class SQLUtils
 	public static <V> int insertRows( Connection conn, String schemaName, String tableName, List<Map<String,V>> records)
 		throws SQLException
 	{
-		DebugTimer t = new DebugTimer();
 		PreparedStatement pstmt = null;
-		String query = "";
+		String query = "insertRows()";
 		try
 		{
+			DebugTimer.go();
 			
 			// get a list of all the field names in all the records
 			Set<String> fieldSet = new HashSet<String>();
@@ -1530,12 +1531,9 @@ public class SQLUtils
 				fieldSet.addAll(record.keySet());
 			List<String> fieldNames = new Vector<String>(fieldSet);
 			
-			t.lap("a");
-			
 			// stop if there aren't any records or field names
 			if (records.size() == 0 || fieldNames.size() == 0)
 				return 0;
-			DebugTimer.go();
 			
 			// get full list of ordered query params
 			Object[] queryParams = new Object[fieldNames.size() * records.size()];
@@ -1544,25 +1542,25 @@ public class SQLUtils
 				for (String fieldName : fieldNames)
 					queryParams[i++] = record.get(fieldName);
 
-			t.lap("b");
 			// quote field names
 			for (i = 0; i < fieldNames.size(); i++)
 				fieldNames.set(i, quoteSymbol(conn, fieldNames.get(i)));
-			t.lap("c");
+			
+			String quotedSchemaTable = quoteSchemaTable(conn, schemaName, tableName);
+			String fieldNamesStr = stringJoin(",", fieldNames);
 			
 			// construct query
 			String recordClause = String.format("(%s)", stringMult(",", "?", fieldNames.size()));
 			String valuesClause = stringMult(",", recordClause, records.size());
 			query = String.format(
-					"INSERT INTO %s (%s) VALUES %s",
-					quoteSchemaTable(conn, schemaName, tableName),
-					stringJoin(",", fieldNames),
-					valuesClause
+				"INSERT INTO %s (%s) VALUES %s",
+				quotedSchemaTable,
+				fieldNamesStr,
+				valuesClause
 			);
-			t.lap("d");
 			
 			// prepare call and set string parameters
-			pstmt = prepareStatement(conn, query, queryParams);
+			pstmt = prepareStatement(conn, query.toString(), queryParams);
 			int result = pstmt.executeUpdate();
 			
 			return result;
@@ -1575,9 +1573,8 @@ public class SQLUtils
 		}
 		finally
 		{
-			t.report("d");
 			SQLUtils.cleanup(pstmt);
-			DebugTimer.stop(query);
+			DebugTimer.stop(query.length() > 0 ? query.toString() : "insertRows(), no query");
 		}
 	}
 
@@ -1630,14 +1627,17 @@ public class SQLUtils
 	 * @param schemaName A schema name accessible through the given connection
 	 * @param tableName A table name existing in the given schema
 	 * @param whereParams The set of key-value pairs that will be used in the WHERE clause of the query
+	 * @param caseSensitiveFields
+	 * @param whereConjunctive Set to true to use AND logic, false for OR logic.
 	 * @return The number of rows that were deleted.
 	 * @throws SQLException If the query fails.
 	 */
-	public static <V> int deleteRows(Connection conn, String schemaName, String tableName, Map<String,V> whereParams, Set<String> caseSensitiveFields) throws SQLException
+	public static <V> int deleteRows(Connection conn, String schemaName, String tableName, Map<String,V> whereParams, Set<String> caseSensitiveFields, boolean whereConjunctive) throws SQLException
 	{
-		List<Map<String,V>> list = new Vector<Map<String,V>>(1);
-		list.add(whereParams);
-		return deleteRows(conn, schemaName, tableName, list, caseSensitiveFields, false);
+		List<Map<String,V>> whereParamsList = new Vector<Map<String,V>>(1);
+		whereParamsList.add(whereParams);
+		// since we are nesting the where conditions, we have to swap the conjunctive mode
+		return deleteRows(conn, schemaName, tableName, whereParamsList, caseSensitiveFields, !whereConjunctive);
 	}
 
 	/**
@@ -1982,6 +1982,8 @@ public class SQLUtils
 				Set<String> caseSensitiveFields, boolean conjunctive
 			) throws SQLException
 		{
+			String outerJunction = conjunctive ? " AND " : " OR ";
+			String innerJunction = conjunctive ? " OR " : " AND ";
 		    List<String> junctions = new LinkedList<String>();
 		    for (List<Entry<String,String>> juncMap : symbolicArguments)
 		    {
@@ -1993,23 +1995,9 @@ public class SQLUtils
 		            String pred = buildPredicate(conn, field, value, caseSensitiveFields != null && caseSensitiveFields.contains(field));
 		            juncList.add(pred);
 		        }
-                if (conjunctive)
-                {
-		            junctions.add("(" + stringJoin(" OR ", juncList) + ")");
-                }
-                else
-                {
-		            junctions.add("(" + stringJoin(" AND ", juncList) + ")");
-                }
+		        junctions.add(String.format("(%s)", stringJoin(innerJunction, juncList)));
 		    }
-            if (conjunctive)
-            {
-		        return stringJoin(" AND ", junctions);
-            }
-            else
-            {
-		        return stringJoin(" OR ", junctions);
-            }
+	        return stringJoin(outerJunction, junctions);
 		}
 		
 		protected static String buildPredicate(Connection conn, String symbol1, String symbol2, boolean caseSensitive) throws SQLException

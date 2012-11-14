@@ -86,6 +86,7 @@ public class DebugTimer
 	public void reset()
 	{
 		debugText.setLength(0);
+		start();
 	}
 	
 	////////////////////////////////////////

@@ -182,14 +182,14 @@ public class HierarchyTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> sql_args = new HashMap<String,Object>();
+			Map<String,Object> whereParams = new HashMap<String,Object>();
 			if (child_id == NULL && parent_id == NULL)
 				throw new RemoteException("removeChild called with -1,-1");
 			if (child_id != NULL)
-				sql_args.put(FIELD_CHILD, child_id);
+				whereParams.put(FIELD_CHILD, child_id);
 			if (parent_id != NULL)
-				sql_args.put(FIELD_PARENT, parent_id);
-			SQLUtils.deleteRows(conn, schemaName, tableName, sql_args, null);
+				whereParams.put(FIELD_PARENT, parent_id);
+			SQLUtils.deleteRows(conn, schemaName, tableName, whereParams, null, true);
 		}
 		catch (SQLException e)
 		{
