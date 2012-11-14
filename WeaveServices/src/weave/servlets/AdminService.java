@@ -530,23 +530,23 @@ public class AdminService
 	//////////////////////////
 	// DataEntity management
 	
-	public void addChildToParent(String user, String password, int childId, int parentId, int order) throws RemoteException
+	public void addParentChildRelationship(String user, String password, int parentId, int childId, int order) throws RemoteException
 	{
 		tryModify(user, password, parentId);
-		getDataConfig().addChild(childId, parentId, order);
+		getDataConfig().addChild(parentId, childId, order);
 	}
 
-	public void removeChildFromParent(String user, String password, int childId, int parentId) throws RemoteException
+	public void removeParentChildRelationship(String user, String password, int parentId, int childId) throws RemoteException
 	{
 		tryModify(user, password, parentId);
-		getDataConfig().removeChild(childId, parentId);
+		getDataConfig().removeChild(parentId, childId);
 	}
 
 	public int addEntity(String user, String password, int entityType, DataEntityMetadata meta, int parentId, int order) throws RemoteException
 	{
 		tryModify(user, password, parentId);
 		int new_id = getDataConfig().addEntity(entityType, meta);
-        getDataConfig().addChild(new_id, parentId, order);
+        getDataConfig().addChild(parentId, new_id, order);
         return new_id;
         
 	}
@@ -554,9 +554,9 @@ public class AdminService
 	public int copyEntity(String user, String password, int entityId, int newParentId, int order) throws RemoteException
 	{
 		tryModify(user, password, newParentId);
-        int new_id = getDataConfig().copyEntity(entityId);
-        getDataConfig().addChild(new_id, newParentId, order);
-		return new_id;
+        int copy_id = getDataConfig().copyEntity(entityId);
+        getDataConfig().addChild(copy_id, newParentId, order);
+		return copy_id;
 	}
 
 	public void removeEntity(String user, String password, int entityId) throws RemoteException
@@ -893,12 +893,12 @@ public class AdminService
 				String totalRowsQuery = String.format(
 						"select count(%s) from %s", keyColumnName, SQLUtils.quoteSchemaTable(
 								conn, schemaName, tableName));
-				SQLResult totalRowsResult = SQLUtils.getRowSetFromQuery(conn, totalRowsQuery);
+				SQLResult totalRowsResult = SQLUtils.getResultFromQuery(conn, totalRowsQuery, null, false);
 
 				String distinctRowsQuery = String.format(
 						"select count(distinct %s) from %s", keyColumnName, SQLUtils.quoteSchemaTable(
 								conn, schemaName, tableName));
-				SQLResult distinctRowsResult = SQLUtils.getRowSetFromQuery(conn, distinctRowsQuery);
+				SQLResult distinctRowsResult = SQLUtils.getResultFromQuery(conn, distinctRowsQuery, null, false);
 
 				isUnique = distinctRowsResult.rows[0][0].toString().equalsIgnoreCase(
 						totalRowsResult.rows[0][0].toString());
@@ -910,7 +910,7 @@ public class AdminService
 						"select %s,%s from %s", keyColumnName, secondaryKeyColumnName, SQLUtils.quoteSchemaTable(
 								conn, schemaName, tableName));
 
-				SQLResult result = SQLUtils.getRowSetFromQuery(conn, query);
+				SQLResult result = SQLUtils.getResultFromQuery(conn, query, null, false);
 
 				HashMap<String, Boolean> map = new HashMap<String, Boolean>();
 
@@ -1089,7 +1089,7 @@ public class AdminService
 	public String importCSV(
 			String connectionName, String password, String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn,
 			String sqlSchema, String sqlTable, boolean sqlOverwrite, String configDataTableName,
-			boolean configOverwrite, String configGeometryCollectionName, String configKeyType, String[] nullValues,
+			boolean configOverwrite, String configKeyType, String[] nullValues,
 			String[] filterColumnNames)
 		throws RemoteException
 	{
@@ -1358,13 +1358,13 @@ public class AdminService
 					columnTypesList.add(SQLUtils.getDoubleTypeString(conn));
 			}
 			// create the table
-			SQLUtils.createTable(conn, sqlSchema, sqlTable, Arrays.asList(columnNames), columnTypesList);
+			SQLUtils.createTable(conn, sqlSchema, sqlTable, Arrays.asList(columnNames), columnTypesList, null);
 
 			// import the data
 			SQLUtils.copyCsvToDatabase(conn, formatted_CSV_path, sqlSchema, sqlTable);
 
 			return addConfigDataTable(
-					configDataTableName, connectionName, configGeometryCollectionName,
+					configDataTableName, connectionName,
 					configKeyType, csvKeyColumn, csvSecondaryKeyColumn, originalColumnNames, columnNames, sqlSchema,
 					sqlTable, ignoreKeyColumnQueries, filterColumnNames);
 		}
@@ -1398,20 +1398,20 @@ public class AdminService
 	public String importSQL(
 			String connectionName, String password, String schemaName, String tableName, String keyColumnName,
 			String secondaryKeyColumnName, String configDataTableName,
-			String geometryCollectionName, String keyType, String[] filterColumnNames)
+			String keyType, String[] filterColumnNames)
 		throws RemoteException
 	{
 		authenticate(connectionName, password);
 		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
 		return addConfigDataTable(
-				configDataTableName, connectionName, geometryCollectionName, keyType,
+				configDataTableName, connectionName, keyType,
 				keyColumnName, secondaryKeyColumnName, columnNames, columnNames, schemaName, tableName, false,
 				filterColumnNames);
 	}
 
 	private String addConfigDataTable(
 			String configDataTableName, String connectionName,
-			String geometryCollectionName, String keyType, String keyColumnName, String secondarySqlKeyColumn,
+			String keyType, String keyColumnName, String secondarySqlKeyColumn,
 			String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable,
 			boolean ignoreKeyColumnQueries, String[] filterColumnNames)
 		throws RemoteException
@@ -1484,7 +1484,7 @@ public class AdminService
 				}
 				query = String.format("select distinct %s from %s order by %s", columnList, SQLUtils.quoteSchemaTable(
 						conn, sqlSchema, sqlTable), columnList);
-				filteredValues = SQLUtils.getRowSetFromQuery(conn, query, true);
+				filteredValues = SQLUtils.getResultFromQuery(conn, query, null, true);
 				// System.out.println(query);
 				// System.out.println(filteredValues);
 			}
@@ -1527,28 +1527,11 @@ public class AdminService
 			}
 			// done generating queries
 
-			// config.removeDataTableInfo(configDataTableName);
-
-			// TODO
-			// if (keyType == null || keyType.length() == 0)
-			// {
-			// // get the key type of the geometry collection now instead of
-			// storing the relationship from the data table to the geom
-			// collection
-			// GeometryCollectionInfo geomInfo =
-			// config.getGeometryCollectionInfo(geometryCollectionName);
-			// if (geomInfo != null)
-			// keyType = geomInfo.keyType;
-			// }
-
-			int numberSqlColumns = titles.size();
-			int table_id;
-
 			DataEntityMetadata tableProperties = new DataEntityMetadata();
 			tableProperties.publicMetadata.put(PublicMetadata.TITLE, configDataTableName);
-			table_id = dataConfig.addEntity(DataEntity.TYPE_DATATABLE, tableProperties);
+			int table_id = dataConfig.addEntity(DataEntity.TYPE_DATATABLE, tableProperties);
 
-			for (int i = 0; i < numberSqlColumns; i++)
+			for (int i = 0; i < titles.size(); i++)
 			{
 				DataEntityMetadata newMeta = new DataEntityMetadata();
 				newMeta.privateMetadata.put(PrivateMetadata.CONNECTION, connectionName);
@@ -1564,7 +1547,7 @@ public class AdminService
 				newMeta.publicMetadata.put(PublicMetadata.DATATYPE, dataTypes.get(i));
 
 				int col_id = dataConfig.addEntity(DataEntity.TYPE_COLUMN, newMeta);
-                dataConfig.addChild(col_id, table_id, 0);
+                dataConfig.addChild(table_id, col_id, 0);
 			}
 		}
 		catch (SQLException e)
@@ -1670,7 +1653,7 @@ public class AdminService
 
 	public String importSHP(
 			String configConnectionName, String password, String[] fileNameWithoutExtension, String[] keyColumns,
-			String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configGeometryCollectionName,
+			String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configTitle,
 			String configKeyType, String projectionSRS, String[] nullValues, boolean importDBFData)
 		throws RemoteException
 	{
@@ -1683,22 +1666,6 @@ public class AdminService
 		if (sqlOverwrite && !connInfo.is_superuser)
 			throw new RemoteException(String.format(
 					"User \"%s\" does not have permission to overwrite SQL tables.", configConnectionName));
-
-		// TODO
-		// if (!SQLConfigUtils.userCanModifyGeometryCollection(config,
-		// configConnectionName, configGeometryCollectionName))
-		// throw new
-		// RemoteException(String.format("User \"%s\" does not have permission to overwrite GeometryCollection \"%s\".",
-		// configConnectionName, configGeometryCollectionName));
-		//
-		// if (!configOverwrite)
-		// {
-		// if (ListUtils.findIgnoreCase(configGeometryCollectionName,
-		// config.getGeometryCollectionNames(null)) >= 0)
-		// throw new RemoteException(String.format(
-		// "Shapes not imported. SQLConfig geometryCollection \"%s\" already exists.",
-		// configGeometryCollectionName));
-		// }
 
 		String dbfTableName = sqlTablePrefix + "_dbfdata";
 		Connection conn = null;
@@ -1758,8 +1725,8 @@ public class AdminService
 			// add SQL statements to sqlconfig
 			String[] columnNames = getSQLColumnNames(configConnectionName, password, sqlSchema, dbfTableName);
 			resultAddSQL = addConfigDataTable(
-					configGeometryCollectionName, configConnectionName,
-					configGeometryCollectionName, configKeyType, keyColumnsString, null, columnNames, columnNames,
+					configTitle, configConnectionName,
+					configKeyType, keyColumnsString, null, columnNames, columnNames,
 					sqlSchema, dbfTableName, false, null);
 		}
 		else
@@ -1778,7 +1745,7 @@ public class AdminService
 			geomInfo.privateMetadata.put(PrivateMetadata.FILENAME, CSVParser.defaultParser.createCSV(new String[][]{fileNameWithoutExtension}, true));
 			geomInfo.privateMetadata.put(PrivateMetadata.KEYCOLUMN, CSVParser.defaultParser.createCSV(new String[][]{keyColumns}, true));
 	
-			geomInfo.publicMetadata.put(PublicMetadata.TITLE, configGeometryCollectionName);
+			geomInfo.publicMetadata.put(PublicMetadata.TITLE, configTitle);
 			geomInfo.publicMetadata.put(PublicMetadata.KEYTYPE, configKeyType);
 			geomInfo.publicMetadata.put(PublicMetadata.PROJECTION, projectionSRS);
 	
@@ -1856,15 +1823,11 @@ public class AdminService
 				SQLResult result;
 				Connection conn = getConnectionConfig().getConnectionInfo(connName).getStaticReadOnlyConnection();
 
+				String[] sqlParamsArray = null;
 				if (sqlParams != null && sqlParams.length() > 0)
-				{
-					String[] sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
-					result = SQLUtils.getRowSetFromQuery(conn, query, sqlParamsArray);
-				}
-				else
-				{
-					result = SQLUtils.getRowSetFromQuery(conn, query);
-				}
+					sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
+				
+				result = SQLUtils.getResultFromQuery(conn, query, sqlParamsArray, false);
 
 				entity.privateMetadata.put(PrivateMetadata.SQLRESULT, String.format(
 						"Returned %s rows", result.rows.length));

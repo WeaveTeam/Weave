@@ -41,39 +41,62 @@ import weave.utils.SQLUtils;
  */
 public class HierarchyTable extends AbstractTable
 {
-	public static final String FIELD_CHILD = "child_id";
 	public static final String FIELD_PARENT = "parent_id";
+	public static final String FIELD_CHILD = "child_id";
 	public static final String FIELD_ORDER = "sort_order";
 	
 	private static final int NULL = -1;
 	
-	public HierarchyTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
+	private ManifestTable manifest = null;
+	
+	public HierarchyTable(ConnectionConfig connectionConfig, String schemaName, String tableName, ManifestTable manifest) throws RemoteException
 	{
 		super(connectionConfig, schemaName, tableName);
+		this.manifest = manifest;
+		if (!tableExists())
+			initTable();
 	}
 	protected void initTable() throws RemoteException
 	{
-		try 
+		if (manifest == null)
+			return;
+		
+		Connection conn;
+		try
 		{
-			Connection conn = connectionConfig.getAdminConnection();
+			conn = connectionConfig.getAdminConnection();
+			
+			// primary key is (parent,child) both for indexing and for avoiding duplicate relationships
 			SQLUtils.createTable(
 					conn, schemaName, tableName,
-					Arrays.asList(FIELD_CHILD, FIELD_PARENT, FIELD_ORDER),
-					Arrays.asList("BIGINT UNSIGNED", "BIGINT UNSIGNED", "BIGINT UNSIGNED")
+					Arrays.asList(FIELD_PARENT, FIELD_CHILD, FIELD_ORDER),
+					Arrays.asList("BIGINT UNSIGNED", "BIGINT UNSIGNED", "BIGINT UNSIGNED"),
+					Arrays.asList(FIELD_PARENT, FIELD_CHILD)
 			);
-			/* No indices needed. */
+
+//			addForeignKey(FIELD_PARENT, manifest, ManifestTable.FIELD_ID);
+//			addForeignKey(FIELD_CHILD, manifest, ManifestTable.FIELD_ID);
 		}
 		catch (SQLException e)
 		{
 			throw new RemoteException("Unable to initialize parent/child table.", e);
 		}
+		
+//		try
+//		{
+//			SQLUtils.createIndex(
+//					conn, schemaName, tableName,
+//					tableName+FIELD_PARENT+FIELD_CHILD+FIELD_ORDER,
+//					new String[]{FIELD_PARENT, FIELD_CHILD, FIELD_ORDER},
+//					null
+//			);
+//		}
+//		catch (SQLException e)
+//		{
+//			System.out.println("WARNING: Failed to create index. This may happen if the table already exists.");
+//		}
 	}
-	@Deprecated 
-	public void addChild(int child_id, int parent_id) throws RemoteException
-	{
-		addChildAt(child_id, parent_id, 0);
-	}
-	public void addChildAt(int child_id, int parent_id, int insertAt) throws RemoteException
+	public void addChild(int parent_id, int child_id, int sortOrder) throws RemoteException
 	{
 		try 
 		{
@@ -88,15 +111,15 @@ public class HierarchyTable extends AbstractTable
 					orderField,
 					orderField,
 					orderField,
-					insertAt
+					sortOrder
 				);
 			stmt.executeUpdate(updateQuery);
 			
 			Map<String, Object> sql_args = new HashMap<String,Object>();
-			removeChild(child_id, parent_id);
-			sql_args.put(FIELD_CHILD, child_id);
+			removeChild(parent_id, child_id);
 			sql_args.put(FIELD_PARENT, parent_id);
-			sql_args.put(FIELD_PARENT, insertAt);
+			sql_args.put(FIELD_CHILD, child_id);
+			sql_args.put(FIELD_ORDER, sortOrder);
 			SQLUtils.insertRow(conn, schemaName, tableName, sql_args);
 		}
 		catch (SQLException e)
@@ -154,7 +177,7 @@ public class HierarchyTable extends AbstractTable
 		}
 	}
 	/* passing in a NULL releases the constraint. */
-	public void removeChild(int child_id, int parent_id) throws RemoteException
+	public void removeChild(int parent_id, int child_id) throws RemoteException
 	{
 		try
 		{
@@ -174,16 +197,16 @@ public class HierarchyTable extends AbstractTable
 		}
 	}
 	/* Remove all relationships containing a given parent */
-	public void purgeByParent(Integer parent_id) throws RemoteException
+	public void purgeByParent(int parent_id) throws RemoteException
 	{
-		removeChild(NULL, parent_id);
+		removeChild(parent_id, NULL);
 	}
 	/* Remove all relationships containing a given child */
-	public void purgeByChild(Integer child_id) throws RemoteException
+	public void purgeByChild(int child_id) throws RemoteException
 	{
-		removeChild(child_id, NULL);
+		removeChild(NULL, child_id);
 	}
-	public void purge(Integer id) throws RemoteException
+	public void purge(int id) throws RemoteException
 	{
 		purgeByChild(id);
 		purgeByParent(id);

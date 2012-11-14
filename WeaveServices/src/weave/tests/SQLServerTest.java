@@ -24,7 +24,7 @@ public class SQLServerTest
 			String[] columnNames = {"First Name", "Last Name", "Age", "Grade"};
 			String[] columnTypes = {"VARCHAR(20)", "VARCHAR(20)", "int", "VARCHAR(5)"};
 			
-			SQLUtils.createTable(conn, "dbo", "testTable2", Arrays.asList(columnNames), Arrays.asList(columnTypes));
+			SQLUtils.createTable(conn, "dbo", "testTable2", Arrays.asList(columnNames), Arrays.asList(columnTypes), null);
 			SQLUtils.insertRow(conn, "dbo", "testTable2", valueMap);
 		}
 		catch (Exception e)

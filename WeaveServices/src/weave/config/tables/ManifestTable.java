@@ -31,6 +31,7 @@ import java.util.Vector;
 
 import weave.config.ConnectionConfig;
 import weave.config.DataConfig.DataEntity;
+import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 
 
@@ -51,12 +52,14 @@ public class ManifestTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
+			
+			// primary key is entity_id for indexing and because we don't want duplicate ids
 			SQLUtils.createTable(
 				conn, schemaName, tableName,
 				Arrays.asList(FIELD_ID, FIELD_TYPE),
-				Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TINYINT UNSIGNED")
+				Arrays.asList(SQLUtils.getSerialPrimaryKeyTypeString(conn), "TINYINT UNSIGNED"),
+				null
 			);
-			/* TODO: Add necessary foreign keys. */
 		}
 		catch (SQLException e)
 		{
@@ -70,15 +73,7 @@ public class ManifestTable extends AbstractTable
 			Connection conn = connectionConfig.getAdminConnection();
 			Map<String,Object> record = new HashMap<String,Object>();
 			record.put(FIELD_TYPE, type_id);
-			int id = SQLUtils.insertRowReturnID(conn, schemaName, tableName, record);
-			
-	    	System.out.println(String.format("WRITE %s type is %s", id, type_id));
-	    	
-	    	type_id = getEntryType(id);
-	    	
-	    	System.out.println(String.format("READ %s type is %s", id, type_id));
-	    	
-	    	return id;
+			return SQLUtils.insertRowReturnID(conn, schemaName, tableName, record);
 		}
 		catch (SQLException e)
 		{
@@ -107,27 +102,30 @@ public class ManifestTable extends AbstractTable
 	public Map<Integer,Integer> getEntryTypes(Collection<Integer> ids) throws RemoteException
 	{
 		/* TODO: Optimize. */
-		Map<Integer,Integer> result = new HashMap<Integer,Integer>();
+		Map<Integer,Integer> idToTypeMap = new HashMap<Integer,Integer>();
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
 			Map<String,Object> whereParams = new HashMap<String,Object>();
-			for (Integer id : ids)
+			for (int id : ids)
 			{
 				whereParams.put(FIELD_ID, id);
-				List<Map<String,Object>> records = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class, null, null);
+				SQLResult result = SQLUtils.getResultFromQuery(conn, Arrays.asList(FIELD_TYPE), schemaName, tableName, whereParams, null);
 				// either zero or one records
-				if (records.size() == 0)
+				
+				if (result.rows.length == 1)
 				{
-					result.put(id, DataEntity.TYPE_ANY);
+					Number type = (Number) result.rows[0][0];
+					idToTypeMap.put(id, type.intValue());
+				}
+				else if (result.rows.length == 0)
+				{
+					idToTypeMap.put(id, DataEntity.TYPE_ANY);
 				}
 				else
-				{
-					Number type = (Number) records.get(0).get(FIELD_TYPE);
-					result.put(id, type.intValue());
-				}
+					throw new RemoteException(String.format("Multiple rows in manifest table with %s=%s", FIELD_ID, id));
 			}
-			return result;
+			return idToTypeMap;
 		}
 		catch (Exception e)
 		{

@@ -101,14 +101,10 @@ public class DataConfig
 				String table_manifest = tablePrefix + SUFFIX_MANIFEST;
 				String table_tags = tablePrefix + SUFFIX_HIERARCHY;
 				
-				private_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_private);
-				public_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_public);
-				hierarchy = new HierarchyTable(connectionConfig, dbInfo.schema, table_tags);
 				manifest = new ManifestTable(connectionConfig, dbInfo.schema, table_manifest);
-				
-				/* TODO: Figure out nice way to do this from within the classes. */
-				SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_private, MetadataTable.FIELD_ID, table_manifest, ManifestTable.FIELD_ID);
-				SQLUtils.addForeignKey(conn, dbInfo.schema, table_meta_public, MetadataTable.FIELD_ID, table_manifest, ManifestTable.FIELD_ID);
+				hierarchy = new HierarchyTable(connectionConfig, dbInfo.schema, table_tags, manifest);
+				private_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_private, manifest);
+				public_metadata = new MetadataTable(connectionConfig, dbInfo.schema, table_meta_public, manifest);
 			}
 			catch (SQLException e)
 			{
@@ -217,44 +213,30 @@ public class DataConfig
     {
     	detectChange();
         DataEntity original = getEntity(id);
-        Integer copy_id;
-        
-        if (original.type == DataEntity.TYPE_COLUMN)
-        {
-        	copy_id = id;
-        }
-        else
-        {
-        	Integer copy_type = original.type;
-        	// copy table as category
-	    	if (copy_type == DataEntity.TYPE_DATATABLE)
-	    		copy_type = DataEntity.TYPE_CATEGORY;
-	    	copy_id = addEntity(copy_type, original);
+        Integer copy_id = addEntity(original.type, original);
 
-            List<Integer> children = getChildIds(id);
-            for (int i = 0; i < children.size(); i++)
-            {
-                int child_id = copyEntity(children.get(i));
-                hierarchy.addChildAt(child_id, copy_id, i);
-            }
+        List<Integer> children = getChildIds(id);
+        for (int i = 0; i < children.size(); i++)
+        {
+            int copy_child_id = copyEntity(children.get(i));
+            hierarchy.addChild(copy_id, copy_child_id, i);
         }
     	
         return copy_id;
     }
-    public void addChild(int child_id, int parent_id, int order) throws RemoteException
+    public void addChild(int parent_id, int child_id, int order) throws RemoteException
     {
     	detectChange();
-   		hierarchy.addChildAt(child_id, parent_id, order);
+   		hierarchy.addChild(parent_id, child_id, order);
     }
-    public void removeChild(int child_id, int parent_id) throws RemoteException
+    public void removeChild(int parent_id, int child_id) throws RemoteException
     {
     	detectChange();
-        /* If we're trying to remove a child from a datatable, throw a wobbly. */
         if (manifest.getEntryType(parent_id) == DataEntity.TYPE_DATATABLE)
         {
             throw new RemoteException("Can't remove children from a datatable.", null);
         }
-        hierarchy.removeChild(child_id, parent_id);
+        hierarchy.removeChild(parent_id, child_id);
     }
     
     public Collection<Integer> getParentIds(int id) throws RemoteException

@@ -277,13 +277,13 @@ package weave.services
 		//////////////////////////
 		// DataEntity management
 		
-		public function addChildToParent(childId:int, parentId:int):AsyncToken
+		public function addParentChildRelationship(parentId:int, childId:int, index:int, blah:int):AsyncToken
 		{
-			return invokeAdminWithLogin(addChildToParent, arguments);
+			return invokeAdminWithLogin(addParentChildRelationship, arguments);
 		}
-		public function removeChildFromParent(childId:int, parentId:int):AsyncToken
+		public function removeParentChildRelationship(parentId:int, childId:int):AsyncToken
 		{
-			return invokeAdminWithLogin(removeChildFromParent, arguments);
+			return invokeAdminWithLogin(removeParentChildRelationship, arguments);
 		}
 		public function addEntity(entityType:int, metadata:EntityMetadata, parentId:int):AsyncToken
 		{
@@ -399,7 +399,7 @@ package weave.services
 		public function importCSV(
 				csvFile:String, csvKeyColumn:String, csvSecondaryKeyColumn:String,
 				sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String,
-				configOverwrite:Boolean, configGeometryCollectionName:String, configKeyType:String, nullValues:String,
+				configOverwrite:Boolean, configKeyType:String, nullValues:String,
 				filterColumnNames:Array
 			):AsyncToken
 		{
@@ -410,7 +410,7 @@ package weave.services
 		public function importSQL(
 				schemaName:String, tableName:String, keyColumnName:String,
 				secondaryKeyColumnName:String, configDataTableName:String,
-				geometryCollectionName:String, keyType:String, filterColumns:Array
+				keyType:String, filterColumns:Array
 			):AsyncToken
 		{
 		    var query:AsyncToken = invokeAdminWithLogin(importSQL, arguments);
@@ -419,8 +419,8 @@ package weave.services
 		}
 		public function importSHP(
 				configfileNameWithoutExtension:String, keyColumns:Array,
-				sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configGeometryCollectionName:String,
-				configKeyType:String, srsCode:String, nullValues:String, importDBFAsDataTable:Boolean
+				sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configTitle:String,
+				configKeyType:String, configProjection:String, nullValues:String, importDBFAsDataTable:Boolean
 			):AsyncToken
 		{
 		    var query:AsyncToken = invokeAdminWithLogin(importSHP, arguments);

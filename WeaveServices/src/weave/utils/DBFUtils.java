@@ -146,7 +146,8 @@ public class DBFUtils
 				SQLUtils.dropTableIfExists(conn, sqlSchema, sqlTable);
 			fieldNames.add(0, "the_geom_id");
 			fieldTypes.add(0, SQLUtils.getSerialPrimaryKeyTypeString(conn));
-			SQLUtils.createTable(conn, sqlSchema, sqlTable, fieldNames, fieldTypes);
+
+			SQLUtils.createTable(conn, sqlSchema, sqlTable, fieldNames, fieldTypes, null);
 			
 			// import data from each file
 			for (int f = 0; f < dbfFiles.length; f++)

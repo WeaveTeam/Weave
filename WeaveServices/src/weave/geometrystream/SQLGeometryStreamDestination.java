@@ -123,7 +123,7 @@ public class SQLGeometryStreamDestination implements GeometryStreamDestination
 			colNames.add(def[i]);
 			colTypes.add(def[i + 1]);
 		}
-		SQLUtils.createTable(conn, sqlSchema, sqlTable, colNames, colTypes);
+		SQLUtils.createTable(conn, sqlSchema, sqlTable, colNames, colTypes, null);
 		SQLUtils.createIndex(conn, sqlSchema, sqlTable, new String[]{X_MIN_BOUNDS,Y_MIN_BOUNDS,X_MAX_BOUNDS,Y_MAX_BOUNDS});
 	}
 

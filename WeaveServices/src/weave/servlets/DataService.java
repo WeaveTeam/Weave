@@ -176,11 +176,7 @@ public class DataService extends GenericServlet
 				sqlParams = CSVParser.defaultParser.parseCSV(sqlParamsString, true)[0];
 			}
 			
-			SQLResult result;
-			if (sqlParams == null || sqlParams.length == 0)
-				result = SQLUtils.getRowSetFromQuery(conn, query);
-			else
-				result = SQLUtils.getRowSetFromQuery(conn, query, sqlParams);
+			SQLResult result = SQLUtils.getResultFromQuery(conn, query, sqlParams, false);
 			
 			// if dataType is defined in the config file, use that value.
 			// otherwise, derive it from the sql result.
@@ -349,16 +345,13 @@ public class DataService extends GenericServlet
 			{
 				//timer.start();
 				
-				SQLResult result;
+				Connection conn = connConfig.getConnectionInfo(connectionName).getStaticReadOnlyConnection();
+				String[] sqlParamsArray = null;
 				if (sqlParams != null && sqlParams.length() > 0)
-				{
-					String[] sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
-					result = SQLUtils.getRowSetFromQuery(connConfig.getConnectionInfo(connectionName).getStaticReadOnlyConnection(), sqlQuery, sqlParamsArray);
-				}
-				else
-				{
-					result = SQLUtils.getRowSetFromQuery(connConfig.getConnectionInfo(connectionName).getStaticReadOnlyConnection(), sqlQuery);
-				}
+					sqlParamsArray = CSVParser.defaultParser.parseCSV(sqlParams, true)[0];
+				
+				SQLResult result = SQLUtils.getResultFromQuery(conn, sqlQuery, sqlParamsArray, false);
+				
 				//timer.lap("get row set");
 				// if dataType is defined in the config file, use that value.
 				// otherwise, derive it from the sql result.

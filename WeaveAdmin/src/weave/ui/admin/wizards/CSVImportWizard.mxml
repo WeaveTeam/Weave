@@ -274,6 +274,7 @@
 			 */
 			override public function finish():void
 			{
+				throw new Error("TODO: geometry selector does nothing, so remove it");
 				var keyColumn:String = generateKeyColumnCheckBox.selected ? '' : csvKeyColumnCombo.text;
 				var secondKeyColumn:String = secondaryKeyColumnCheckBox.selected ? csvSecondaryKeyColumnCombo.text : null;
 				var configTableName:String = dataTableNameInput.text
@@ -288,7 +289,6 @@
 						tableSelector.tableOverwriteCheck.selected,
 						configTableName,
 						dataTableOverwriteCheck.selected,
-						geometryCollection,
 						keyType,
 						nullFlagInput.text,
 						(generateFilterColumnsCheckBox.selected && filterColumnsInput.text) ? filterColumnsInput.text.split(",") : null

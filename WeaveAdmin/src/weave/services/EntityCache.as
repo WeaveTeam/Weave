@@ -129,13 +129,13 @@ package weave.services
 			AdminInterface.service.removeEntity(id);
 			invalidate(id, true);
         }
-        public function add_child(child_id:int, parent_id:int):void
+        public function add_child(parent_id:int, child_id:int, index:int):void
         {
 			// add to root not supported
-			AdminInterface.service.addChildToParent(child_id, parent_id);
+			AdminInterface.service.addParentChildRelationship(parent_id, child_id, index);
 			invalidate(parent_id);
         }
-        public function remove_child(child_id:int, parent_id:int):void
+        public function remove_child(parent_id:int, child_id:int):void
         {
 			// remove from root not supported, but invalidate root anyway in case the child is added via add_child later
 			if (parent_id == ROOT_ID)
@@ -150,7 +150,7 @@ package weave.services
 					count++;
 				if (count == 1)
 					invalidate(ROOT_ID);
-				AdminInterface.service.removeChildFromParent(child_id, parent_id);
+				AdminInterface.service.removeParentChildRelationship(parent_id, child_id);
 			}
 			invalidate(child_id, true);
         }

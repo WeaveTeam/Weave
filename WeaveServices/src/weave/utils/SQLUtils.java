@@ -469,34 +469,32 @@ public class SQLUtils
 		else
 			return quoteSymbol(conn, schema) + "." + quoteSymbol(conn, table);
 	}
-
-	/**
-	 * @param connection An SQL Connection
-	 * @param query An SQL query
-	 * @return A SQLResult object containing the result of the query
-	 * @throws SQLException
-	 */
-	public static SQLResult getRowSetFromQuery(Connection connection, String query) throws SQLException
-	{
-		return getRowSetFromQuery(connection, query, false);
-	}
 	
 	/**
 	 * @param connection An SQL Connection
-	 * @param query An SQL query
-	 * @param convertToStrings Set this to true to convert all result values to Strings.
+	 * @param query An SQL Query with '?' place holders for parameters
+	 * @param params Parameters for the SQL query for all '?' place holders, or null if there are no parameters.
 	 * @return A SQLResult object containing the result of the query
 	 * @throws SQLException
 	 */
-	public static SQLResult getRowSetFromQuery(Connection connection, String query, boolean convertToStrings) throws SQLException
+	public static <TYPE> SQLResult getResultFromQuery(Connection connection, String query, TYPE[] params, boolean convertToStrings)
+		throws SQLException
 	{
 		Statement stmt = null;
 		ResultSet rs = null;
 		SQLResult result = null;
 		try
 		{
-			stmt = connection.createStatement();
-			rs = stmt.executeQuery(query);
+			if (params == null || params.length == 0)
+			{
+				stmt = connection.createStatement();
+				rs = stmt.executeQuery(query);
+			}
+			else
+			{
+				stmt = prepareStatement(connection, query, params);
+				rs = ((PreparedStatement)stmt).executeQuery();
+			}
 			
 			// make a copy of the query result
 			result = new SQLResult(rs, convertToStrings);
@@ -511,43 +509,6 @@ public class SQLUtils
 			// close everything in reverse order
 			SQLUtils.cleanup(rs);
 			SQLUtils.cleanup(stmt);
-		}
-		
-		// return the copy of the query result
-		return result;
-	}
-	
-	/**
-	 * @param connection An SQL Connection
-	 * @param query An SQL Query with '?' place holders for parameters
-	 * @param params Parameters for the SQL query for all '?' place holders.
-	 * @return A SQLResult object containing the result of the query
-	 * @throws SQLException
-	 */
-	public static SQLResult getRowSetFromQuery(Connection connection, String query, String[] params)
-	throws SQLException
-	{
-		PreparedStatement cstmt = null;
-		ResultSet rs = null;
-		SQLResult result = null;
-		try
-		{
-			cstmt = prepareStatement(connection, query, params);
-			rs = cstmt.executeQuery();
-			
-			// make a copy of the query result
-			result = new SQLResult(rs);
-		}
-		catch (SQLException e)
-		{
-			//e.printStackTrace();
-			throw e;
-		}
-		finally
-		{
-			// close everything in reverse order
-			SQLUtils.cleanup(rs);
-			SQLUtils.cleanup(cstmt);
 		}
 		
 		// return the copy of the query result
@@ -678,7 +639,7 @@ public class SQLUtils
 	 * @return The resulting rows returned by the query.
 	 * @throws SQLException If the query fails.
 	 */
-	public static <V> SQLResult getRowSetFromQuery(
+	public static <V> SQLResult getResultFromQuery(
 			Connection conn,
 			List<String> selectColumns,
 			String fromSchema,
@@ -917,53 +878,16 @@ public class SQLUtils
 	 * @param tableName The value to be used as the table name
 	 * @param columnNames The values to be used as the column names
 	 * @param columnTypes The SQL types to use when creating the ctable
-	 * @throws IllegalArgumentException 
 	 * @throws SQLException If the query fails.
 	 */
-	public static void createTable( Connection conn, String schemaName, String tableName, List<String> columnNames, List<String> columnTypes, String key) throws IllegalArgumentException, SQLException
-	{
-		if (columnNames.size() != columnTypes.size())
-			throw new IllegalArgumentException(String.format("columnNames length (%s) does not match columnTypes length (%s)", columnNames.size(), columnTypes.size()));
-		
-		//if table exists return
-		if( tableExists(conn, schemaName, tableName) )
-			return;
-		Statement stmt = null;
-		
-		String query = "CREATE TABLE " + 
-			quoteSchemaTable(conn, schemaName, tableName) + " ( ";
-		
-		for(int i = 0; i < columnNames.size(); i++)
-		{
-			if( i > 0 )
-				query += ", ";
-			query += quoteSymbol(conn, columnNames.get(i)) + " " + columnTypes.get(i);
-		}
-		query += ");";
-		try
-		{
-			stmt = conn.createStatement();
-			stmt.executeUpdate(query);
-		}
-		catch (SQLException e)
-		{
-			System.out.println(query);
-			throw e;
-		}
-		finally
-		{
-			SQLUtils.cleanup(stmt);
-		}
-	}
-	/**
-	 * @param conn An existing SQL Connection
-	 * @param SchemaName A schema name accessible through the given connection
-	 * @param tableName The value to be used as the table name
-	 * @param columnNames The values to be used as the column names
-	 * @param columnTypes The SQL types to use when creating the ctable
-	 * @throws SQLException If the query fails.
-	 */
-	public static void createTable( Connection conn, String schemaName, String tableName, List<String> columnNames, List<String> columnTypes)
+	public static void createTable(
+			Connection conn,
+			String schemaName,
+			String tableName,
+			List<String> columnNames,
+			List<String> columnTypes,
+			List<String> primaryKeyColumns
+		)
 		throws SQLException
 	{
 		if (columnNames.size() != columnTypes.size())
@@ -973,25 +897,38 @@ public class SQLUtils
 		if( tableExists(conn, schemaName, tableName) )
 			return;
 		
-		Statement stmt = null;
-		
-		String query = "CREATE TABLE " + quoteSchemaTable(conn, schemaName, tableName) + " ( ";
-		
+		StringBuilder columnClause = new StringBuilder();
 		int oraclePrimaryKeyColumn = -1;
 		for (int i = 0; i < columnNames.size(); i++)
 		{
 			if( i > 0 )
-				query += ", ";
+				columnClause.append(',');
 			String type = columnTypes.get(i);
 			if (ORACLE_SERIAL_TYPE.equals(type))
 			{
 				type = "integer not null";
 				oraclePrimaryKeyColumn = i;
 			}
-			query += quoteSymbol(conn, columnNames.get(i)) + " " + type;
+			columnClause.append(String.format("%s %s", quoteSymbol(conn, columnNames.get(i)), type));
 		}
-		query += ")";
 		
+		// http://www.w3schools.com/sql/sql_primarykey.asp
+		if (primaryKeyColumns != null && primaryKeyColumns.size() > 0)
+		{
+			columnClause.append(", CONSTRAINT primary_key PRIMARY KEY (");
+			int i = 0;
+			for (String keyColumn : primaryKeyColumns)
+			{
+				if (i++ > 0)
+					columnClause.append(',');
+				columnClause.append(quoteSymbol(conn, keyColumn));
+			}
+			columnClause.append(")");
+		}
+		
+		String query = String.format("CREATE TABLE %s (%s)", quoteSchemaTable(conn, schemaName, tableName), columnClause);
+		
+		Statement stmt = null;
 		try
 		{
 			stmt = conn.createStatement();
@@ -1012,6 +949,7 @@ public class SQLUtils
 				else
 					stmt.executeUpdate("create sequence " + tableName + "_AUTOID start with 1 increment by 1");
 				
+				//TODO: the_geom_id should not appear hard-coded in this query.
 				stmt.executeUpdate("create or replace trigger " + tableName + "_IDTRIGGER before insert on \"" + tableName + "\" for each row begin select " + tableName + "_AUTOID.nextval into :new.\"the_geom_id\" from dual; end;");
 			}
 		}
@@ -1025,7 +963,14 @@ public class SQLUtils
 			SQLUtils.cleanup(stmt);
 		}
 	}
-	public static void addForeignKey( Connection conn, String schemaName, String tableName, String keyName, String targetTable, String targetKey) throws IllegalArgumentException, SQLException
+	public static void addForeignKey(
+			Connection conn,
+			String schemaName,
+			String tableName,
+			String keyName,
+			String targetTable,
+			String targetKey
+		) throws SQLException
 	{
 		// TODO: Check for cross-DB portability
 		Statement stmt = null;
@@ -1399,9 +1344,9 @@ public class SQLUtils
 	 * @param conn An existing SQL Connection
 	 * @param SchemaName A schema name accessible through the given connection
 	 * @param tableName The name of an existing table
-         * @param indexName The name to use for the new index.
-	 * @param columnNames The names of the columns to use
-         * @param columnLengths The lengths to use as indices
+	 * @param indexName The name to use for the new index.
+	 * @param columnNames The names of the columns to use.
+	 * @param columnLengths The lengths to use as indices, may be null.
 	 * @throws SQLException If the query fails.
 	 */
 	public static void createIndex(Connection conn, String schemaName, String tableName, String indexName, String[] columnNames, Integer[] columnLengths) throws SQLException
@@ -1877,11 +1822,15 @@ public class SQLUtils
 				}
 				catch (SQLException e)
 				{
+					conn.rollback();
 					throw new RemoteException(e.getMessage(), e);
 				}
 				finally
 				{
 					SQLUtils.cleanup(pstmt);
+					try {
+						conn.setAutoCommit(prevAutoCommit);
+					} catch (SQLException e) { }
 				}
 			}
 			else if (dbms.equalsIgnoreCase(SQLUtils.POSTGRESQL))
@@ -1976,11 +1925,12 @@ public class SQLUtils
 	protected static class WhereClause<V>
 	{
 		String clause = "";
-		public List<V> params = new LinkedList<V>();
+		public List<V> params = new Vector<V>();
 		
 		public WhereClause(Connection conn, Map<String,V> arguments, Set<String> caseSensitiveFields) throws SQLException
 		{
-			List<Map<String,V>> list = new LinkedList<Map<String,V>>();
+			List<Map<String,V>> list = new Vector<Map<String,V>>(1);
+			list.add(arguments);
 			init(conn, list, caseSensitiveFields);
 		}
 		public WhereClause(Connection conn, List<Map<String,V>> arguments, Set<String> caseSensitiveFields) throws SQLException

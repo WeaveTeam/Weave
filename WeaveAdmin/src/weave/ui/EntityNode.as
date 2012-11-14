@@ -126,12 +126,11 @@ package weave.ui
 		
 		public static function addChildAt(parent:EntityNode, child:EntityNode, index:int):void
 		{
-			//TODO: handle index
-			AdminInterface.instance.entityCache.add_child(child.id, parent ? parent.id : EntityCache.ROOT_ID);
+			AdminInterface.instance.entityCache.add_child(parent ? parent.id : EntityCache.ROOT_ID, child.id, index);
 		}
 		public static function removeChild(parent:EntityNode, child:EntityNode):void
 		{
-			AdminInterface.instance.entityCache.remove_child(child.id, parent ? parent.id : EntityCache.ROOT_ID);
+			AdminInterface.instance.entityCache.remove_child(parent ? parent.id : EntityCache.ROOT_ID, child.id);
 		}
     }
 }

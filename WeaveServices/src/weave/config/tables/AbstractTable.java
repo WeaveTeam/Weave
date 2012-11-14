@@ -44,7 +44,7 @@ public abstract class AbstractTable
 			initTable();
 	}
 	protected abstract void initTable() throws RemoteException;
-	private boolean tableExists() throws RemoteException
+	protected boolean tableExists() throws RemoteException
 	{
 		try
 		{
@@ -54,6 +54,19 @@ public abstract class AbstractTable
 		catch (SQLException e)
 		{
 			throw new RemoteException("Unable to determine whether table exists.", e);
+		}
+	}
+	
+	protected void addForeignKey(String localColumn, AbstractTable foreignTable, String foreignColumn) throws RemoteException
+	{
+		try
+		{
+			Connection conn = connectionConfig.getAdminConnection();
+			SQLUtils.addForeignKey(conn, schemaName, tableName, localColumn, foreignTable.tableName, foreignColumn);
+		}
+		catch (SQLException e)
+		{
+			throw new RemoteException("Unable to add foreign key constraint", e);
 		}
 	}
 }

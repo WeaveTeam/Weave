@@ -48,23 +48,40 @@ public class MetadataTable extends AbstractTable
 	
 	private static final Set<String> caseSensitiveFields = new HashSet<String>(Arrays.asList(FIELD_PROPERTY, FIELD_VALUE));
 	
-	public MetadataTable(ConnectionConfig connectionConfig, String schemaName, String tableName) throws RemoteException
+	private ManifestTable manifest = null;
+	
+	public MetadataTable(ConnectionConfig connectionConfig, String schemaName, String tableName, ManifestTable manifest) throws RemoteException
 	{
 		super(connectionConfig, schemaName, tableName);
+		this.manifest = manifest;
+		if (!tableExists())
+			initTable();
 	}
 	protected void initTable() throws RemoteException
 	{
+		if (manifest == null)
+			return;
+		
 		Connection conn;
 		
 		try
 		{
 			conn = connectionConfig.getAdminConnection();
+			
+			// primary key is (id,property) for indexing and because
+			// we don't want duplicate properties for the same id
 			SQLUtils.createTable(
 				conn, schemaName, tableName,
 				Arrays.asList(FIELD_ID, FIELD_PROPERTY, FIELD_VALUE),
-				Arrays.asList("BIGINT UNSIGNED", "TEXT", "TEXT")
+				Arrays.asList(
+					"BIGINT UNSIGNED",
+					SQLUtils.getVarcharTypeString(conn, 256),
+					SQLUtils.getVarcharTypeString(conn, 2048)
+				),
+				Arrays.asList(FIELD_ID, FIELD_PROPERTY)
 			);
-
+			
+//			addForeignKey(FIELD_ID, manifest, ManifestTable.FIELD_ID);
 		} 
 		catch (SQLException e)
 		{
@@ -73,15 +90,7 @@ public class MetadataTable extends AbstractTable
 		
 		try
 		{
-			/* Index of (ID, Property) */
-			SQLUtils.createIndex(
-					conn, schemaName, tableName,
-					tableName+FIELD_ID+FIELD_PROPERTY,
-					new String[]{FIELD_ID, FIELD_PROPERTY},
-					new Integer[]{0, 255}
-			);
-
-			/* Index of (Property, Value) */
+			/* Index of (Property, Value), important for finding ids with metadata criteria */
 			SQLUtils.createIndex(
 					conn, schemaName, tableName,
 					tableName+FIELD_PROPERTY+FIELD_VALUE,

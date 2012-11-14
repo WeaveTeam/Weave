@@ -47,12 +47,12 @@ public class ProgressManager extends Observable
     public int getTickTotal() { return total_items; }
     public long getStepTimeRemaining()
     {
-    	long tick_duration = ticks.peekLast() - ticks.peekFirst();
+    	double tick_duration = ticks.peekLast() - ticks.peekFirst();
     	if (ticks.size() <= 1) // || tick_duration < duration_for_estimate)
     		return Long.MAX_VALUE;
-    	long rate_est = (tick_duration) / (ticks.size() - 1);
-    	long time_rem = (total_items - current_items) * rate_est;
-    	return time_rem / ONE_SECOND;
+    	double rate_est = (tick_duration) / (ticks.size() - 1);
+    	double time_rem = (total_items - current_items) * rate_est;
+    	return (long)Math.ceil(time_rem / ONE_SECOND);
     }
     
     public void beginStep(String description, int stepNumber, int stepTotal, int tickTotal)
@@ -129,7 +129,7 @@ public class ProgressManager extends Observable
 			}
 			
 			String remain = "";
-			long time = p.getStepTimeRemaining();
+			double time = p.getStepTimeRemaining();
 			if (time != Long.MAX_VALUE)
 			{
 				String unit = "seconds";
@@ -144,7 +144,7 @@ public class ProgressManager extends Observable
 					}
 				}
 					
-				remain = String.format("; %s %s remaining", time, unit);
+				remain = String.format("; %s %s remaining", (long)Math.ceil(time), unit);
 			}
 			
 			String desc = p.getStepDescription();

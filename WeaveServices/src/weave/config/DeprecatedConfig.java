@@ -51,13 +51,16 @@ import weave.utils.ProgressManager;
 		final int TOTAL_STEPS = 4;
 		int step = 0;
 		int total;
+		int order = 0;
 		String[] columnNames;
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet resultSet = null;
+		boolean prevAutoCommit = true;
 		try
 		{
 			conn = connConfig.getAdminConnection(); // this will fail if DatabaseConfigInfo is missing
+			prevAutoCommit = conn.getAutoCommit();
 			DatabaseConfigInfo dbInfo = connConfig.getDatabaseConfigInfo();
 			stmt = conn.createStatement();
 			conn.setAutoCommit(false);
@@ -138,17 +141,6 @@ import weave.utils.ProgressManager;
 			progress.beginStep("Migrating geometry collections", ++step, TOTAL_STEPS, total);
 			while (resultSet.next())
 			{
-				
-				
-				
-				if(true)
-					break; // TEMPORARY
-				
-				
-				
-				
-				
-				
 				Map<String,String> geomRecord = getRecord(resultSet, columnNames);
 				
 				// save name-to-keyType mapping for later
@@ -165,15 +157,14 @@ import weave.utils.ProgressManager;
 				// rename "tablePrefix" to "sqlTablePrefix"
 				geomRecord.put(PrivateMetadata.SQLTABLEPREFIX, geomRecord.remove(PrivateMetadata_TABLEPREFIX));
 				
-				// if there is a dataTable with the same title, add the geometry as a column under that table.
-				Integer parentId = tableIdLookup.get(name);
-				if (parentId == null)
-					parentId = -1;
-				
 				// create an entity for the geometry column
 				DataEntityMetadata geomMetadata = toDataEntityMetadata(geomRecord);
-				int col_id = dataConfig.addEntity(DataEntity.TYPE_COLUMN, geomMetadata);
-                dataConfig.addChild(col_id, parentId, 0);
+				int columnId = dataConfig.addEntity(DataEntity.TYPE_COLUMN, geomMetadata);
+				
+				// if there is a dataTable with the same title, add the geometry as a column under that table.
+				if (tableIdLookup.containsKey(name))
+					dataConfig.addChild(tableIdLookup.get(name), columnId, order++);
+				
 				progress.tick();
 			}
 			SQLUtils.cleanup(resultSet);
@@ -211,28 +202,39 @@ import weave.utils.ProgressManager;
 				
 				// create the column entity as a child of the table
 				DataEntityMetadata columnMetadata = toDataEntityMetadata(columnRecord);
-				int col_id = dataConfig.addEntity(DataEntity.TYPE_COLUMN, columnMetadata);
-				dataConfig.addChild(col_id, tableId, 0);
+				int columnId = dataConfig.addEntity(DataEntity.TYPE_COLUMN, columnMetadata);
+				dataConfig.addChild(tableId, columnId, order++);
 				progress.tick();
 			}
 			SQLUtils.cleanup(resultSet);
 			
 			/////////////////////////////
 			
-			conn.setAutoCommit(true);
+			conn.commit();
 		}
 		catch (RemoteException e)
 		{
+			try {
+				conn.rollback();
+			} catch (SQLException ex) { }
+			
 			throw e;
 		}
 		catch (Exception e)
 		{
+			try {
+				conn.rollback();
+			} catch (SQLException ex) { }
+			
 			throw new RemoteException("Unable to migrate old SQL config to new format.", e);
 		}
 		finally
 		{
 			SQLUtils.cleanup(resultSet);
 			SQLUtils.cleanup(stmt);
+			try {
+				conn.setAutoCommit(prevAutoCommit);
+			} catch (SQLException e) { }
 		}
 	}
 	
