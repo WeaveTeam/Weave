@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import weave.config.ConnectionConfig;
-import weave.utils.MyEntry;
+import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 
 
@@ -137,7 +137,7 @@ public class MetadataTable extends AbstractTable
 			{
 				for (String property : diff.keySet())
 				{
-					Map<String,Object> record = MyEntry.mapFromPairs(FIELD_ID, id, FIELD_PROPERTY, property);
+					Map<String,Object> record = MapUtils.fromPairs(FIELD_ID, id, FIELD_PROPERTY, property);
 					records.add(record);
 				}
 				SQLUtils.deleteRows(conn, schemaName, tableName, records, caseSensitiveFields, false);
@@ -149,7 +149,7 @@ public class MetadataTable extends AbstractTable
 				String value = entry.getValue();
 				if (value != null && value.length() > 0)
 				{
-					Map<String,Object> record = MyEntry.mapFromPairs(
+					Map<String,Object> record = MapUtils.fromPairs(
 						FIELD_ID, id,
 						FIELD_PROPERTY, entry.getKey(),
 						FIELD_VALUE, value
@@ -170,7 +170,7 @@ public class MetadataTable extends AbstractTable
 		try 
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			SQLUtils.deleteRows(conn, schemaName, tableName, MyEntry.<String,Object>mapFromPairs(FIELD_ID, id), caseSensitiveFields, true);
+			SQLUtils.deleteRows(conn, schemaName, tableName, MapUtils.<String,Object>fromPairs(FIELD_ID, id), caseSensitiveFields, true);
 		}
 		catch (SQLException e)
 		{
@@ -182,9 +182,8 @@ public class MetadataTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> params = new HashMap<String,Object>();
 			Map<Integer,String> result = new HashMap<Integer,String>();
-			params.put(FIELD_PROPERTY, property);
+			Map<String,Object> params = MapUtils.fromPairs(FIELD_PROPERTY, property);
 			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_VALUE), schemaName, tableName, params, Object.class, null, caseSensitiveFields);
 			for (Map<String,Object> row : rows)
 			{
@@ -222,9 +221,10 @@ public class MetadataTable extends AbstractTable
 			{
 				if (keyValPair.getKey() == null || keyValPair.getValue() == null)
 					continue;
-				Map<String,String> colValPair = new HashMap<String,String>();
-				colValPair.put(FIELD_PROPERTY, keyValPair.getKey());
-				colValPair.put(FIELD_VALUE, keyValPair.getValue());
+				Map<String,String> colValPair = MapUtils.fromPairs(
+					FIELD_PROPERTY, keyValPair.getKey(),
+					FIELD_VALUE, keyValPair.getValue()
+				);
 				crossRowArgs.add(colValPair);
 			}
 			return new HashSet<Integer>(SQLUtils.crossRowSelect(conn, schemaName, tableName, FIELD_ID, crossRowArgs, caseSensitiveFields));

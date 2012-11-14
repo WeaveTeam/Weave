@@ -25,7 +25,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.LinkedList;
@@ -34,6 +33,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import weave.config.ConnectionConfig;
+import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 
 
@@ -135,10 +135,11 @@ public class HierarchyTable extends AbstractTable
 				SQLUtils.cleanup(stmt);
 			}
 			
-			Map<String, Object> sql_args = new HashMap<String,Object>();
-			sql_args.put(FIELD_PARENT, parent_id);
-			sql_args.put(FIELD_CHILD, child_id);
-			sql_args.put(FIELD_ORDER, sortOrder);
+			Map<String, Object> sql_args = MapUtils.fromPairs(
+				FIELD_PARENT, parent_id,
+				FIELD_CHILD, child_id,
+				FIELD_ORDER, sortOrder
+			);
             insertQueue.add(sql_args);
             flushInserts(conn, false);
 		}
@@ -156,8 +157,7 @@ public class HierarchyTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> query = new HashMap<String,Object>();
-			query.put(FIELD_CHILD, child_id);
+			Map<String,Object> query = MapUtils.fromPairs(FIELD_CHILD, child_id);
 			Set<Integer> parents = new HashSet<Integer>();
 			for (Map<String,Object> row : SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class, null, null))
 			{
@@ -177,8 +177,7 @@ public class HierarchyTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> query = new HashMap<String,Object>();
-			query.put(FIELD_PARENT, parent_id);
+			Map<String,Object> query = MapUtils.fromPairs(FIELD_PARENT, parent_id);
 			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, null, schemaName, tableName, query, Object.class, FIELD_ORDER, null);
 			List<Integer> children = new Vector<Integer>(rows.size());
 			for (Map<String,Object> row : rows)
@@ -199,7 +198,7 @@ public class HierarchyTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> whereParams = new HashMap<String,Object>();
+			Map<String,Object> whereParams = MapUtils.fromPairs();
 			if (child_id == NULL && parent_id == NULL)
 				throw new RemoteException("removeChild called with -1,-1");
 			if (child_id != NULL)

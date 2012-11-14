@@ -21,38 +21,16 @@ package weave.utils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
-public class MyEntry<K, V> implements Entry<K, V>
+/**
+ * @author adufilie
+ */
+public class MapUtils
 {
-    private final K key;
-    private V value;
-    public MyEntry(final K key)
-    {
-        this.key = key;
-    }
-    public MyEntry(final K key, final V value)
-    {
-        this.key = key;
-        this.value = value;
-    }
-    public K getKey()
-    {
-        return key;
-    }
-    public V getValue()
-    {
-        return value;
-    }
-    public V setValue(final V value)
-    {
-        final V oldValue = this.value;
-        this.value = value;
-        return oldValue;
-    }
-    
-    @SuppressWarnings("unchecked")
-	public static <K,V> Map<K,V> mapFromPairs(Object ... pairs)
+	private static final long serialVersionUID = 1L;
+
+	@SuppressWarnings("unchecked")
+	public static <K,V> Map<K,V> fromPairs(Object ... pairs)
     {
     	Map<K,V> map = new HashMap<K,V>();
     	for (int i = 1; i < pairs.length; i += 2)

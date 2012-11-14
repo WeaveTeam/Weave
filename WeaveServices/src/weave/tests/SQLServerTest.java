@@ -2,9 +2,9 @@ package weave.tests;
 
 import java.sql.Connection;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
+import weave.utils.MapUtils;
 import weave.utils.SQLUtils;
 
 public class SQLServerTest 
@@ -16,11 +16,12 @@ public class SQLServerTest
 			String sqlDriver = SQLUtils.getDriver(SQLUtils.SQLSERVER);
 			String connectString = SQLUtils.getConnectString(SQLUtils.SQLSERVER, "localhost", "1433", "<INSTNANCE_NAME>", "<USERNAME>", "<PASSWORD>");
 			Connection conn = SQLUtils.getConnection(sqlDriver, connectString);
-			Map<String, Object> valueMap = new HashMap<String, Object>();
-			valueMap.put("First Name", "fName");
-			valueMap.put("Last Name", "lName");
-			valueMap.put("Age", 22);
-			valueMap.put("Grade", "A");
+			Map<String, Object> valueMap = MapUtils.fromPairs(
+				"First Name", "fName",
+				"Last Name", "lName",
+				"Age", 22,
+				"Grade", "A"
+			);
 			String[] columnNames = {"First Name", "Last Name", "Age", "Grade"};
 			String[] columnTypes = {"VARCHAR(20)", "VARCHAR(20)", "int", "VARCHAR(5)"};
 			

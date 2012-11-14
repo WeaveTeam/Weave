@@ -31,7 +31,7 @@ import java.util.Vector;
 
 import weave.config.ConnectionConfig;
 import weave.config.DataConfig.DataEntity;
-import weave.utils.MyEntry;
+import weave.utils.MapUtils;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 
@@ -72,7 +72,7 @@ public class ManifestTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			return SQLUtils.insertRowReturnID(conn, schemaName, tableName, MyEntry.<String,Object>mapFromPairs(FIELD_TYPE, type_id));
+			return SQLUtils.insertRowReturnID(conn, schemaName, tableName, MapUtils.<String,Object>fromPairs(FIELD_TYPE, type_id));
 		}
 		catch (SQLException e)
 		{
@@ -84,7 +84,7 @@ public class ManifestTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			SQLUtils.deleteRows(conn, schemaName, tableName, MyEntry.<String,Object>mapFromPairs(FIELD_ID, id), null, true);
+			SQLUtils.deleteRows(conn, schemaName, tableName, MapUtils.<String,Object>fromPairs(FIELD_ID, id), null, true);
 		}
 		catch (Exception e)
 		{
@@ -134,7 +134,7 @@ public class ManifestTable extends AbstractTable
 		try
 		{
 			Connection conn = connectionConfig.getAdminConnection();
-			Map<String,Object> whereParams = MyEntry.mapFromPairs(FIELD_TYPE, type_id);
+			Map<String,Object> whereParams = MapUtils.fromPairs(FIELD_TYPE, type_id);
 			List<Map<String,Object>> rows = SQLUtils.getRecordsFromQuery(conn, Arrays.asList(FIELD_ID, FIELD_TYPE), schemaName, tableName, whereParams, Object.class, null, null);
 			List<Integer> ids = new Vector<Integer>(rows.size());
 			for (Map<String,Object> row : rows)
