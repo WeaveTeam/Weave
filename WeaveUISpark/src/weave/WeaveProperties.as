@@ -239,6 +239,7 @@ package weave
 		public const disabilityAltText:LinkableString = new LinkableString();
 		public const disabilityHashMap:LinkableHashMap = new LinkableHashMap();
 		public const disabilityLongAltText:LinkableString = new LinkableString();
+		public const disabilitySystemText:LinkableString = new LinkableString();
 		
 		public const toolToggles:ILinkableHashMap = new LinkableHashMap(LinkableBoolean); // className -> LinkableBoolean
 		public function getToolToggle(classDef:Class):LinkableBoolean
