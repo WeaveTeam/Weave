@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---
+	Workspace that has data manipulation, data mining, data statistics, R and Visualization Modules
+	Weave Analyst Mode can be enabled or disabled
+	@author spurushe
+-->
+<mx:Canvas 		xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
+				width="100%"  height="100%"
+				backgroundColor="0xff0000"
+				autoLayout="true"
+				implements="weave.api.ui.IVisTool" xmlns:tools="weave.visualization.tools.*" 
+				>
+	<mx:HDividedBox id="parentCanvasDiv" width="100%" height="100%">
+		<!--Data Manipulation-->
+		<mx:VBox width="20%" height="100%">
+			<mx:Label text="{lang('(1) Select data to use in Weave Analyst')}"/>	
+			<ColumnListComponent id="inputColumnList" label="{lang('Input columns')}" hashMap="{variables}" width="100%" height="100%"   />	
+			<mx:Label paddingTop="10" text="{lang('(2) Columns returned from R')}"/>	
+			<ColumnListComponent id="outputColumnList" label="{lang('Returned columns')}" hashMap="{results}" width="100%" height="100%"   />	
+		</mx:VBox>
+		
+		<!-- Data Mining Algorithms-->
+		<!--mx:Accordion id="dataMiningMenu" height="100%" width="15%">
+			<mx:Form id="confusionM" label="1. Confusion Matrix"/>
+			<mx:Form id="kmeans" label="2. K-Means Clustering"/>
+			<mx:Form id="PCAnalysis" label="3. Principal Component Analysis"/>
+		</mx:Accordion-->
+		
+		<!--Visualization Space-->
+		<mx:VBox id="vizSpace" width="40%">
+			<mx:Label text = "{lang('(3) Vizualization Space')}"/>	
+		</mx:VBox>
+		
+		
+		<!--Additional supplementary tools-->
+		<mx:VDividedBox id="datastats" width="25%" height = "100%">
+			<tools:DataStatisticsTool  width="100%" height="45%"></tools:DataStatisticsTool>
+			<mx:ComboBox width="100%" height="10%">
+				<mx:ArrayCollection>
+					<mx:String>Data Mining Algorithms</mx:String>
+					<mx:String>1.Principal Component Analysis</mx:String>
+					<mx:String>2.KMeans Clustering</mx:String>
+					<mx:String>3.Confusion Matrix</mx:String>
+				</mx:ArrayCollection>
+			</mx:ComboBox>
+			<RTextEditor width="100%" height="45%"></RTextEditor>
+		</mx:VDividedBox>
+	</mx:HDividedBox>
+	
+	<mx:Script>
+		<![CDATA[
+			import weave.api.WeaveAPI;
+			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
+			import weave.core.LinkableHashMap;
+			import weave.api.data.IAttributeColumn;
+
+
+			private var _initialing:* = constructor();
+			
+			//this is a higher level map of the Weave analyst that will contain the different modules that ave been opened
+			public var analystMap:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IVisTool));
+			//columns
+			public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			[Bindable]
+			public var results:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+			 protected function constructor():void
+			{
+			
+			//testing
+			this.graphics.lineStyle(1,0x000000,0.75);
+			
+			this.graphics.drawCircle(100,100,10);
+			}
+			
+			
+		]]>
+	</mx:Script>
+</mx:Canvas>

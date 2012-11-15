@@ -25,29 +25,22 @@
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
 	implements="weave.api.ui.ILinkableObjectEditor"
-	creationPolicy="all"
+	creationPolicy="all" xmlns:ui="weave.ui.*"
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{_dbfDataSource ? 'Edit' : 'Add'} DBF Data Source"/>
-	<mx:HBox>
-		<mx:Label text="{lang('Source Name *')}" width="120"/>
-		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="{lang('DBF Source URL *')}" width="120"/>
-		<mx:TextInput id="dbfURL" width="300" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the url of your DBF Source file e.g. : http://www.example.com/st99_d00.dbf')}"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="{lang('Shape Source URL')}" width="120"/>
-		<mx:TextInput id="shpURL" width="300" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the url of your CSV Source file e.g. : http://www.example.com/st99_d00.shp')}"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="{lang('Key Column')}" width="120"/>
-		<mx:TextInput id="keyColumnName" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="{lang('Key Type *')}" width="120"/>
-		<mx:TextInput id="keyType" width="200" cornerRadius="5" borderStyle="solid" toolTip="{lang('enter key type like US State Fips Code,etc. ')}"/>
-	</mx:HBox>
+	<ui:Indent label="{lang('Source Name *')}">
+		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('DBF URL *')}">
+		<mx:TextInput id="dbfURL" width="100%" toolTip="{lang('enter the url of your DBF Source file e.g. : http://www.example.com/st99_d00.dbf')}"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('SHP URL')}">
+		<mx:TextInput id="shpURL" width="100%" toolTip="{lang('enter the url of your CSV Source file e.g. : http://www.example.com/st99_d00.shp')}"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Key Column')}">
+		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
+	</ui:Indent>
+	<ui:KeyTypesMenu id="keyTypeSelector"/>
 	<mx:Spacer height="20"/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
@@ -62,8 +55,9 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				
-				keyType.text = sourceName.text = Weave.root.generateUniqueName("DBFDataSource");
+				keyTypeSelector.labelText +=" *";
+				sourceName.text = Weave.root.generateUniqueName("DBFDataSource");
+				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
 			
 			[Bindable] private var _dbfDataSource:DBFDataSource = null;
@@ -82,7 +76,7 @@
 					dbfURL.text = _dbfDataSource.dbfUrl.value;
 					shpURL.text = _dbfDataSource.shpUrl.value;
 					keyColumnName.text = _dbfDataSource.keyColName.value;
-					keyType.text = _dbfDataSource.keyType.value;
+					keyTypeSelector.addKeyTypeToMenu(_dbfDataSource.keyType.value);
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
 				}
@@ -95,7 +89,7 @@
 					_dbfDataSource.dbfUrl.value = dbfURL.text;
 					_dbfDataSource.shpUrl.value = shpURL.text;
 					_dbfDataSource.keyColName.value = keyColumnName.text;
-					_dbfDataSource.keyType.value = keyType.text;
+					_dbfDataSource.keyType.value = keyTypeSelector.selectedItem as String;
 					Alert.show(lang("Changes saved."));
 				}
 				catch (e:Error)

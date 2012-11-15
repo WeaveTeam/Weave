@@ -21,6 +21,7 @@ package weave.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -1508,8 +1509,7 @@ public class SQLUtils
 				if (prevAutoCommit)
 					conn.setAutoCommit(false);
 				
-				String csvData = org.apache.commons.io.FileUtils.readFileToString(new File(formatted_CSV_path));
-				String[][] rows = CSVParser.defaultParser.parseCSV(csvData);
+				String[][] rows = CSVParser.defaultParser.parseCSV(new File(formatted_CSV_path), true);
 				String query = "", tempQuery = "INSERT INTO %s values (";
 				for (int column = 0; column < rows[0].length; column++) // Use header row to determine the number of columns
 				{
@@ -1602,8 +1602,10 @@ public class SQLUtils
 	
 	private static final char SQL_SERVER_DELIMETER = (char)8;
 	
-	public static String generateCSV(Connection conn, String[][] csvData) throws SQLException
+	public static void generateCSV(Connection conn, String[][] csvData, File output) throws SQLException, IOException
 	{
+		FileWriter writer = new FileWriter(output);
+		
 		String outputNullValue = SQLUtils.getCSVNullValue(conn);
 		for (int i = 0; i < csvData.length; i++)
 		{
@@ -1619,14 +1621,15 @@ public class SQLUtils
 		{
 			// special case for Microsoft SQL Server because it does not support quotes.
 			CSVParser parser = new CSVParser(SQL_SERVER_DELIMETER);
-			return parser.createCSV(csvData, false);
+			parser.createCSV(csvData, false, writer);
 		}
 		else
 		{
 			boolean quoteEmptyStrings = outputNullValue.length() > 0;
-			return CSVParser.defaultParser.createCSV(csvData, quoteEmptyStrings);
+			CSVParser.defaultParser.createCSV(csvData, quoteEmptyStrings, writer);
 		}
 		
-		
+		writer.flush();
+		writer.close();
 	}
 }

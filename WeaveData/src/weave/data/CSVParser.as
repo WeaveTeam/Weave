@@ -19,9 +19,14 @@
 
 package weave.data
 {
+	import flash.utils.getTimer;
+	
 	import mx.utils.StringUtil;
 	
+	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.ICSVParser;
+	import weave.api.getCallbackCollection;
 
 	/**
 	 * This is an all-static class containing functions to parse and generate valid CSV files.
@@ -30,21 +35,48 @@ package weave.data
 	 * @author skolman
 	 * @author adufilie
 	 */	
-	public class CSVParser implements ICSVParser
+	public class CSVParser implements ICSVParser, ILinkableObject
 	{
-		public function CSVParser(delimiter:String = ',', quote:String = '"')
+		private static const CR:String = '\r';
+		private static const LF:String = '\n';
+		private static const CRLF:String = '\r\n';
+		
+		/**
+		 * @param delimiter
+		 * @param quote
+		 * @param asyncMode If this is set to true, parseCSV() will work asynchronously and trigger callbacks when it finishes.
+		 *                  Note that if asyncMode is enabled, you can only parse one CSV string at a time. 
+		 */		
+		public function CSVParser(asyncMode:Boolean = false, delimiter:String = ',', quote:String = '"')
 		{
+			this.asyncMode = asyncMode;
 			if (delimiter && delimiter.length == 1)
 				this.delimiter = delimiter;
 			if (quote && quote.length == 1)
 				this.quote = quote;
 		}
 		
+		// modes set in constructor
+		private var asyncMode:Boolean;
 		private var delimiter:String = ',';
 		private var quote:String = '"';
-		private static const CR:String = '\r';
-		private static const LF:String = '\n';
-		private static const CRLF:String = '\r\n';
+		
+		// async state
+		private var csvData:String;
+		private var csvDataArray:Array;
+		private var parseTokens:Boolean;
+		private var i:int;
+		private var row:int;
+		private var col:int;
+		private var escaped:Boolean;
+		
+		/**
+		 * @return  The resulting two-dimensional Array from the last call to parseCSV().
+		 */
+		public function get parseResult():Array
+		{
+			return csvDataArray;
+		}
 		
 		/**
 		 * This will parse a CSV String into a two-dimensional Array of String values.
@@ -52,25 +84,47 @@ package weave.data
 		 * @param parseTokens If this is true, tokens surrounded in quotes will be unquoted and escaped characters will be unescaped.
 		 * @return The destination Array, or a new Array if none was specified.  The result of parsing the CSV string will be stored here.
 		 */
-		public function parseCSV(csvData:String, parseTokens:Boolean = true, destination:Array = null):Array
+		public function parseCSV(csvData:String, parseTokens:Boolean = true):Array
 		{
-			var csvDataArray:Array = destination ? destination : [];
-			csvDataArray.length = 0; // clear any existing data in the output Array
+			// initialization
+			this.csvData = csvData;
+			this.csvDataArray = [];
+			this.parseTokens = parseTokens;
+			this.i = 0;
+			this.row = 0;
+			this.col = 0;
+			this.escaped = false;
 			
-			// special case -- if csvData is null or empty string, return an empty array (a set of zero rows)
-			if (csvData == null || csvData == '')
-				return csvDataArray;
-			
-			var row:int= 0;
-			var col:int= 0;
-			
-			csvDataArray[row] = [''];
-			var escaped:Boolean = false;
-			
-			var fileSize:int = csvData ? csvData.length : 0; // handle null parameter
-			
-			for (var i:int = 0; i < fileSize; i++)
+			if (asyncMode)
 			{
+				WeaveAPI.StageUtils.startTask(this, parseIterate, WeaveAPI.TASK_PRIORITY_PARSING, parseDone);
+			}
+			else
+			{
+				parseIterate(int.MAX_VALUE);
+				parseDone();
+			}
+			
+			return csvDataArray;
+		}
+		
+		private function parseIterate(stopTime:int):Number
+		{
+			// run initialization code on first iteration
+			if (i == 0)
+			{
+				if (!csvData) // null or empty string?
+					return 1; // done
+				
+				// start off first row with an empty string token
+				csvDataArray[row] = [''];
+			}
+			
+			while (getTimer() < stopTime)
+			{
+				if (i >= csvData.length)
+					return 1; // done
+				
 				var currentChar:String = csvData.charAt(i);
 				var twoChar:String = currentChar + csvData.charAt(i+1);
 				if (escaped)
@@ -78,7 +132,7 @@ package weave.data
 					if (twoChar == quote+quote) //escaped quote
 					{
 						csvDataArray[row][col] += (parseTokens?currentChar:twoChar);//append quote(s) to current token
-						i +=1; //skip second quote mark
+						i += 1; //skip second quote mark
 					}
 					else if (currentChar == quote)	//end of escaped text
 					{
@@ -116,7 +170,7 @@ package weave.data
 					}
 					else if (twoChar == CRLF)	//then start new row
 					{
-						i +=1; //skip line feed
+						i += 1; //skip line feed
 						row += 1;
 						col = 0;
 						csvDataArray[row] = [''];
@@ -135,9 +189,15 @@ package weave.data
 					}
 					else //append single character to current token
 						csvDataArray[row][col] += currentChar;	
-				}			
+				}
+				i++;
 			}
 			
+			return i / csvData.length;
+		}
+		
+		private function parseDone():void
+		{
 			// if there is more than one row and last row is empty,
 			// remove last row assuming it is there because of a newline at the end of the file.
 			for (var iRow:int = csvDataArray.length - 1; iRow >= 0; --iRow)
@@ -148,7 +208,7 @@ package weave.data
 					csvDataArray.splice(iRow, 1);
 			}
 			
-			return csvDataArray;
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**

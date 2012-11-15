@@ -25,17 +25,15 @@
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
 	creationPolicy="all"
-	implements="weave.api.ui.ILinkableObjectEditor"
+	implements="weave.api.ui.ILinkableObjectEditor" xmlns:ui="weave.ui.*"
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{lang( (_weaveDataSource ? 'Edit' : 'Add') + ' Weave Data Source' )}"/>
-	<mx:HBox>
-		<mx:Label text="{lang('Source Name *')}" width="120"/>
-		<mx:TextInput id="sourceName" width="200" cornerRadius="5" borderStyle="solid"/><!--rounded corners don't work if borderstyle is not mentioned-->
-	</mx:HBox>
-	<mx:HBox>
-		<mx:Label text="{lang('Source URL')}" width="120"/>
-		<mx:TextInput id="url" width="300" cornerRadius="5" borderStyle="solid"/>
-	</mx:HBox>
+	<ui:Indent label="{lang('Source Name *')}">
+		<mx:TextInput id="sourceName" width="100%"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Source URL')}">
+		<mx:TextInput id="url" width="100%"/>
+	</ui:Indent>
 	<mx:Spacer height="20"/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>

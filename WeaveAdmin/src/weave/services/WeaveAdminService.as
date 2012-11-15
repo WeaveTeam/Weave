@@ -365,12 +365,6 @@ package weave.services
 			//query.addAsyncResponder(alertResult);
 			return query;
 		}
-		public function getCSVStringData(csvFile:String):DelayedAsyncInvocation
-		{
-			var query:DelayedAsyncInvocation = invokeAdminService("getCSVStringData", arguments);
-			//query.addAsyncResponder(alertResult);
-			return query;
-		}
 		public function listDBFFileColumns(dbfFileName:String):DelayedAsyncInvocation
 		{
 		    var query:DelayedAsyncInvocation = invokeAdminService("listDBFFileColumns", arguments);

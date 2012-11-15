@@ -226,7 +226,6 @@
 				finishEnabled = false;
 				
 				AdminInterface.instance.service.getCSVColumnNames(tableName).addAsyncResponder(handleGetCSVColumnNames,handleCSVFault,tableName);
-//				AdminInterface.instance.service.getCSVStringData(tableName).addAsyncResponder(handleGetCSVStringData,handleCSVFault);
 				
 				csvFileNameInput.text = tableName;
 				tableName = tableName.substring(0,tableName.lastIndexOf("."));

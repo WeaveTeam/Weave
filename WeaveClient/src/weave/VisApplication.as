@@ -109,6 +109,7 @@ package weave
 	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.tools.MapTool;
+	import weave.visualization.tools.WeaveAnalyst;
 
 	public class VisApplication extends VBox implements ILinkableObject
 	{
@@ -372,7 +373,7 @@ package weave
 			{
 				var urlParams:URLVariables = new URLVariables(ExternalInterface.call("window.location.search.substring", 1)); // text after '?'
 				for (var key:String in urlParams)
-					if (!_flashVars.hasOwnProperty(key))
+					if (!_flashVars.hasOwnProperty(key)) // flashvars take precedence over url params
 						_flashVars[key] = urlParams[key];
 				
 				// backwards compatibility with old param name
@@ -513,11 +514,6 @@ package weave
 		{
 			var cookie:SharedObject = SharedObject.getLocal(RECOVER_SHARED_OBJECT);
 			return cookie.data[RECOVER_SHARED_OBJECT] as ByteArray;
-		}
-		
-		private function copySessionStateToClipboard():void
-		{
-			System.setClipboard(Weave.getSessionStateXML().toXMLString());
 		}
 		
 		private var _useWeaveExtensionWhenSavingToServer:Boolean;
@@ -717,7 +713,7 @@ package weave
 			if (Weave.properties.enableDataMenu.value)
 			{
 				_dataMenu = _weaveMenu.addMenuToMenuBar(lang("Data"), false);
-				if (Weave.properties.enableNewUserWizard)
+				if (Weave.properties.enableNewUserWizard.value)
 				{
 					_weaveMenu.addMenuItemToMenu(
 						_dataMenu,
@@ -745,10 +741,10 @@ package weave
 				}
 
 				if(Weave.properties.enableAddDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Add New Datasource"), AddDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableAddNewDatasource.value }));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Add New Datasource"), AddDataSourcePanel.showAsPopup));
 				
 				if(Weave.properties.enableEditDataSource.value)
-					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Edit Datasources"), EditDataSourcePanel.showAsPopup, null, function():Boolean { return Weave.properties.enableEditDatasources.value }));
+					_weaveMenu.addMenuItemToMenu(_dataMenu, new WeaveMenuItem(lang("Edit Datasources"), EditDataSourcePanel.showAsPopup));
 			}
 			
 			
@@ -783,11 +779,23 @@ package weave
 					}
 				}
 				
+				if (!Weave.properties.weaveAnalystMode.value)
+				{
+					var _analyst:WeaveAnalyst = new WeaveAnalyst();
+					this.visDesktop.addChild(_analyst);
+				}
+				
 				_weaveMenu.addSeparatorToMenu(_toolsMenu);
 				_weaveMenu.addMenuItemToMenu(_toolsMenu, new WeaveMenuItem(
 					function():String { return lang((Weave.properties.dashboardMode.value ? "Disable" : "Enable") + " dashboard mode"); },
 					function():void { Weave.properties.dashboardMode.value = !Weave.properties.dashboardMode.value; }
 
+				));
+				
+				_weaveMenu.addMenuItemToMenu(_toolsMenu,new WeaveMenuItem(
+					function():String { return lang((Weave.properties.weaveAnalystMode.value ? "Enable" : "Disable") + " Weave Analsyt"); },
+					function(): void { Weave.properties.weaveAnalystMode.value = !Weave.properties.weaveAnalystMode.value;}
+					
 				));
 			}
 			
@@ -808,7 +816,6 @@ package weave
 			{
 				_sessionMenu = _weaveMenu.addMenuToMenuBar(lang("Session"), false);
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Edit session state"), SessionStateEditor.openDefaultEditor));
-				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Copy session state XML to clipboard"), copySessionStateToClipboard));
 				_weaveMenu.addSeparatorToMenu(_sessionMenu);
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Import session history..."), handleImportSessionState));
 				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Export session history..."), handleExportSessionState));
@@ -822,6 +829,8 @@ package weave
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
 					_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang("Manage plugins..."), managePlugins));
 				}
+				_weaveMenu.addSeparatorToMenu(_sessionMenu);
+				_weaveMenu.addMenuItemToMenu(_sessionMenu, new WeaveMenuItem(lang('Restart Weave'), Weave.externalReload));
 				if (Weave.properties.showCollaborationMenuItem.value)
 				{
 					_weaveMenu.addSeparatorToMenu(_sessionMenu);
@@ -1340,9 +1349,6 @@ package weave
 			
 			if (Weave.properties.enableRightClick.value)
 			{
-				// Add item for the DatasetLoader
-				//DatasetLoader.createContextMenuItems(this);
-				
 				// Add context menu item for selection related items (subset creation, etc)	
 				if (Weave.properties.enableSubsetControls.value)
 					KeySetContextMenuItems.createContextMenuItems(this);

@@ -67,7 +67,6 @@
 .weave-menu-bar-style {
 	rollOverColor: #88A4DB;
 	selectionColor: #F8A4FB;
-	cornerRadius: 7;
 	fillAlphas: 1, 1;
 	fillColors: #FFFFFF, #888888;
 	highlightAlphas: 0.8, 0.8;

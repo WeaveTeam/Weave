@@ -58,7 +58,8 @@ package
 			"weave.data.DataSources",
 			"weave.data.KeySets",
 			"weave.primitives",
-			"weave.Reports"
+			"weave.Reports",
+			"weave.services.wms"
 		);
 	}
 }

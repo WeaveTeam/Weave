@@ -38,6 +38,7 @@ package weave.services.wms
 	import flash.display.Bitmap;
 	import flash.net.URLRequest;
 	import flash.system.Security;
+	import flash.utils.Dictionary;
 	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
@@ -52,6 +53,7 @@ package weave.services.wms
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
 	import weave.core.ErrorManager;
+	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
 	import weave.utils.AsyncSort;
 
@@ -61,7 +63,7 @@ package weave.services.wms
 	 * 
 	 * @author kmonico
 	 */
-	public class ModestMapsWMS extends AbstractWMS implements IWMSService
+	public class ModestMapsWMS extends AbstractWMS
 	{
 		public function ModestMapsWMS()
 		{
@@ -69,6 +71,13 @@ package weave.services.wms
 
 			_tempBounds.copyFrom(_worldBoundsMercator);
 			setReprojectedBounds(_tempBounds, _worldBoundsMercator, _tileProjectionSRS, _srs); // get world bounds in our Mercator
+		}
+		
+		public const providerName:LinkableString = registerLinkableChild(this,new LinkableString(),handleProviderName);
+		
+		private function handleProviderName():void
+		{
+			setProvider(providerName.value);
 		}
 		
 		override public function setProvider(provider:String):void
@@ -88,24 +97,31 @@ package weave.services.wms
 					break;*/
 				case WMSProviders.BLUE_MARBLE_MAP:
 					_mapProvider = new BlueMarbleMapProvider();
+					providerName.value = WMSProviders.BLUE_MARBLE_MAP; 
 					break;
 				case WMSProviders.OPEN_STREET_MAP:
 					_mapProvider = new OpenStreetMapProvider();
+					providerName.value = WMSProviders.OPEN_STREET_MAP; 
 					break;
 				case WMSProviders.MAPQUEST:
 					_mapProvider = new OpenMapQuestProvider();
+					providerName.value = WMSProviders.MAPQUEST; 
 					break;
 				case WMSProviders.MAPQUEST_AERIAL:
 					_mapProvider = new OpenMapQuestAerialProvider();
+					providerName.value = WMSProviders.MAPQUEST_AERIAL; 
 					break;
 				case WMSProviders.STAMEN_TONER:
 					_mapProvider = new StamenProvider(StamenProvider.STYLE_TONER);
+					providerName.value = WMSProviders.STAMEN_TONER; 
 					break;
 				case WMSProviders.STAMEN_TERRAIN:
 					_mapProvider = new StamenProvider(StamenProvider.STYLE_TERRAIN);
+					providerName.value = WMSProviders.STAMEN_TERRAIN; 
 					break;
 				case WMSProviders.STAMEN_WATERCOLOR:
 					_mapProvider = new StamenProvider(StamenProvider.STYLE_WATERCOLOR);
+					providerName.value = WMSProviders.STAMEN_WATERCOLOR; 
 					break;
 				default:
 					reportError("Attempt to set invalid map provider.");
@@ -116,6 +132,7 @@ package weave.services.wms
 			_imageWidth = _mapProvider.tileWidth;
 			_imageHeight = _mapProvider.tileHeight;
 			_currentTileIndex = new WMSTileIndex();
+			_urlToTile = new Dictionary();	
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		

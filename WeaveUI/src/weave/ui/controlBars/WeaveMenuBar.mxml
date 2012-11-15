@@ -24,7 +24,6 @@
 		 xmlns:ui="weave.ui.*"
 	     width="100%"
     	 backgroundColor="0x8a8a8a" backgroundAlpha="1.0"
-    	 cornerRadius="7"
     	 verticalAlign="middle"
 	     styleName="weave-menu-bar-style"
 	     horizontalScrollPolicy="off"
@@ -60,7 +59,6 @@
 		.weave-menu-bar-style {
 			rollOverColor: #88A4DB;
 			selectionColor: #F8A4FB;
-			cornerRadius: 7;
 			fontFamily: Arial;
 			fontWeight: bold;
 			padding-left: 0;
