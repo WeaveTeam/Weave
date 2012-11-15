@@ -29,7 +29,7 @@
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{lang( (_xlsDataSource ? 'Edit' : 'Add') + ' XLS Data Source' )}"/>
 	<ui:Indent label="{lang('Source Name *')}">
-		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="200"/>
+		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="200"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL *')}">
 		<mx:TextInput change="handleURLTextChange()" id="url" width="300" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
@@ -43,9 +43,7 @@
 		<mx:Label id="uploadMessg" color="0xFF0000" text="{lang('loaded')}" visible="false"/>
 	</ui:Indent>
 	
-	<ui:Indent label="{lang('Key Type *')}">
-		<mx:TextInput id="keyType" width="200" toolTip="{lang('enter key type like US State Fips Code,etc. ')}"/>
-	</ui:Indent>
+	<ui:KeyTypesMenu indent="{uploadSection.labelComponent.width}"  id="keyTypeSelector"/>
 	<ui:Indent label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="200" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
@@ -70,8 +68,9 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				
-				keyType.text = sourceName.text = Weave.root.generateUniqueName("XLSDataSource");
+				keyTypeSelector.labelText +=" *";
+				sourceName.text = Weave.root.generateUniqueName("XLSDataSource");
+				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
 			
 			[Bindable] private var _xlsDataSource:XLSDataSource = null;
@@ -89,7 +88,7 @@
 					sourceName.text = Weave.root.getName(_xlsDataSource);
 					url.text = _xlsDataSource.url.value;
 					keyColumnName.text = _xlsDataSource.keyColName.value;
-					keyType.text = _xlsDataSource.keyType.value;
+					keyTypeSelector.addKeyTypeToMenu(_xlsDataSource.keyType.value);
 					uploadSection.visible = false;
 					showGridButton.visible = false;
 					sourceName.editable = false;
@@ -103,7 +102,7 @@
 				{
 					_xlsDataSource.url.value = url.text;
 					_xlsDataSource.keyColName.value = keyColumnName.text;
-					_xlsDataSource.keyType.value = keyType.text;
+					_xlsDataSource.keyType.value = keyTypeSelector.selectedItem as String;
 					Alert.show(lang("Changes saved."));
 				}
 				catch(e:Error)

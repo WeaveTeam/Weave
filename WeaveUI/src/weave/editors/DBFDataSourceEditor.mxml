@@ -29,7 +29,7 @@
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{_dbfDataSource ? 'Edit' : 'Add'} DBF Data Source"/>
 	<ui:Indent label="{lang('Source Name *')}">
-		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="100%"/>
+		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('DBF URL *')}">
 		<mx:TextInput id="dbfURL" width="100%" toolTip="{lang('enter the url of your DBF Source file e.g. : http://www.example.com/st99_d00.dbf')}"/>
@@ -40,9 +40,7 @@
 	<ui:Indent label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('Key Type *')}">
-		<mx:TextInput id="keyType" width="100%" toolTip="{lang('enter key type like US State Fips Code,etc. ')}"/>
-	</ui:Indent>
+	<ui:KeyTypesMenu id="keyTypeSelector"/>
 	<mx:Spacer height="20"/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
@@ -57,8 +55,9 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				
-				keyType.text = sourceName.text = Weave.root.generateUniqueName("DBFDataSource");
+				keyTypeSelector.labelText +=" *";
+				sourceName.text = Weave.root.generateUniqueName("DBFDataSource");
+				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 			}
 			
 			[Bindable] private var _dbfDataSource:DBFDataSource = null;
@@ -77,7 +76,7 @@
 					dbfURL.text = _dbfDataSource.dbfUrl.value;
 					shpURL.text = _dbfDataSource.shpUrl.value;
 					keyColumnName.text = _dbfDataSource.keyColName.value;
-					keyType.text = _dbfDataSource.keyType.value;
+					keyTypeSelector.addKeyTypeToMenu(_dbfDataSource.keyType.value);
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.")
 				}
@@ -90,7 +89,7 @@
 					_dbfDataSource.dbfUrl.value = dbfURL.text;
 					_dbfDataSource.shpUrl.value = shpURL.text;
 					_dbfDataSource.keyColName.value = keyColumnName.text;
-					_dbfDataSource.keyType.value = keyType.text;
+					_dbfDataSource.keyType.value = keyTypeSelector.selectedItem as String;
 					Alert.show(lang("Changes saved."));
 				}
 				catch (e:Error)
