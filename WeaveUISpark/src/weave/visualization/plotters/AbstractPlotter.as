@@ -91,6 +91,9 @@ package weave.visualization.plotters
 		 */
 		protected function getReusableBounds(xMin:Number = NaN, yMin:Number = NaN, xMax:Number = NaN, yMax:Number = NaN):Bounds2D
 		{
+			// TEMPORARY SOLUTION because SpatialIndex seems to be misbehaving now that everything's asynchronous
+			return new Bounds2D(xMin,yMin,xMax,yMax);
+			
 			var bounds:Bounds2D = ObjectPool.borrowObject(Bounds2D);
 			bounds.setBounds(xMin, yMin, xMax, yMax);
 			pooledObjects.push(bounds);
