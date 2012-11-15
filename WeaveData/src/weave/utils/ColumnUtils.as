@@ -53,7 +53,7 @@ package weave.utils
 	public class ColumnUtils
 	{
 		/**
-		 * This is a shortcut for column.getMetadata(AttributeColumnMetadata.TITLE).
+		 * This is a shortcut for column.getMetadata(ColumnMetadata.TITLE).
 		 * @param column A column to get the title of.
 		 * @return The title of the column.
 		 */		

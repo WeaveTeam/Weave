@@ -122,7 +122,7 @@
 				var csvDataSourceEditor:CSVDataSourceEditor = _editor as CSVDataSourceEditor;
 				if (csvDataSourceEditor)
 				{
-					if (csvDataSourceEditor.sourceName.text == "" || (csvDataSourceEditor.url.text == "" && csvDataSourceEditor.getCSVRows() == null) || csvDataSourceEditor.keyType.text == "")
+					if (csvDataSourceEditor.sourceName.text == "" || (csvDataSourceEditor.url.text == "" && csvDataSourceEditor.getCSVRows() == null) || (csvDataSourceEditor.keyTypeSelector.selectedItem as String)== "")
 					{
 						Alert.show(lang("Please fill all required fields"),lang("Error"));
 						return;
@@ -139,7 +139,7 @@
 					csvDataSource.url.value = csvDataSourceEditor.url.text;
 					csvDataSource.csvData.setSessionState(csvDataSourceEditor.getCSVRows());
 					csvDataSource.keyColName.value = csvDataSourceEditor.keyColumnName.text;
-					csvDataSource.keyType.value = csvDataSourceEditor.keyType.text;
+					csvDataSource.keyType.value = csvDataSourceEditor.keyTypeSelector.selectedItem as String;
 				}
 				
 				var dbfDataSourceEditor:DBFDataSourceEditor = _editor as DBFDataSourceEditor;
@@ -162,7 +162,7 @@
 					dbfDataSource.dbfUrl.value = dbfDataSourceEditor.dbfURL.text;
 					dbfDataSource.shpUrl.value = dbfDataSourceEditor.shpURL.text;
 					dbfDataSource.keyColName.value = dbfDataSourceEditor.keyColumnName.text;
-					dbfDataSource.keyType.value = dbfDataSourceEditor.keyType.text;
+					dbfDataSource.keyType.value = dbfDataSourceEditor.keyTypeSelector.selectedItem as String;
 				}
 				
 				var xlsDataSourceEditor:XLSDataSourceEditor = _editor as XLSDataSourceEditor;
@@ -188,7 +188,7 @@
 						csvSource.url.value = xlsDataSourceEditor.url.text;
 						csvSource.setCSVDataString(WeaveAPI.CSVParser.createCSV(xlsDataSourceEditor.xlsDataArray));
 						csvSource.keyColName.value = xlsDataSourceEditor.keyColumnName.text;
-						csvSource.keyType.value = xlsDataSourceEditor.keyType.text;
+						csvSource.keyType.value = xlsDataSourceEditor.keyTypeSelector.selectedItem as String;
 						return;
 					}
 					var xlsDataSource:XLSDataSource = Weave.root.requestObject(xlsDataSourceEditor.sourceName.text, XLSDataSource, false);
@@ -196,7 +196,7 @@
 						Alert.show(lang("Data Source added successfully"));
 					xlsDataSource.url.value = xlsDataSourceEditor.url.text;
 					xlsDataSource.keyColName.value = xlsDataSourceEditor.keyColumnName.text;
-					xlsDataSource.keyType.value = xlsDataSourceEditor.keyType.text;
+					xlsDataSource.keyType.value = xlsDataSourceEditor.keyTypeSelector.selectedItem as String;
 				}
 				
 				var weaveDataSourceEditor:WeaveDataSourceEditor = _editor as WeaveDataSourceEditor;

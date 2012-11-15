@@ -75,6 +75,7 @@
 			<mx:Label text="{lang('Unique Identifier Column')}" />
 			<ui:CustomComboBox toolTip="{lang('This is the column which uniquely identifies each row in your dataset. If you prefer you can change it to a different column.')}" selectedIndex="0" id="keyColumnSelector"/>
 		</mx:HBox>
+		<ui:KeyTypesMenu id="keyTypeSelector"/>
 		<mx:HBox id="delimiterBox">
 			<mx:Label text="{lang('Delimiter: ')}"/>
 			<ui:CustomComboBox id="delimiterSelector" toolTip="{lang('If there is a problem, try changing the delimiter (you can also type a different delimiter).')}" editable="true" dataProvider="['Comma','Space','Tab','Semi Colon']" keyUp="handleDelimiterChange(event)" change="handleDelimiterChange(event)"/>
@@ -148,17 +149,25 @@
 			import weave.Weave;
 			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IKeySet;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.ui.IPlotter;
 			import weave.data.AttributeColumns.FilteredColumn;
 			import weave.data.CSVParser;
 			import weave.data.DataSources.CSVDataSource;
+			import weave.data.QKeyManager;
+			import weave.utils.ColumnUtils;
 			import weave.utils.CustomCursorManager;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.InteractiveVisualization;
+			import weave.visualization.plotters.GeometryPlotter;
 			import weave.visualization.tools.CompoundBarChartTool;
 			import weave.visualization.tools.GaugeTool;
 			import weave.visualization.tools.HistogramTool;
 			import weave.visualization.tools.LineChartTool;
+			import weave.visualization.tools.MapTool;
 			import weave.visualization.tools.PieChartTool;
 			import weave.visualization.tools.ScatterPlotTool;
 			private static const indent:int = 360;
@@ -197,6 +206,7 @@
 			
 			private var delimiters:Object = new Object();
 			
+			private var _uniqueNameForDataSource:String="";
 			override public function next():void
 			{
 				super.next();
@@ -212,7 +222,10 @@
 						delimiterSelector.selectedItem = delimiter.name;
 						var tempArray:Array = new CSVParser(false, delimiter.string).parseCSV(dataTextArea.text);
 						updateCSVDataStringFromArray(tempArray);
+						_uniqueNameForDataSource = Weave.root.generateUniqueName("CSVDataSource");
+						keyTypeSelector.addKeyTypeToMenu(_uniqueNameForDataSource);
 					}
+					
 				}
 				//We are into the third step, create a data source from data entered.
 				if(selectedIndex == 2)
@@ -220,24 +233,49 @@
 					try{				
 						if(csvDataString == "")
 							return;
-						var uniqueName:String = Weave.root.generateUniqueName("CSVDataSource");
-						var csvDataSource:CSVDataSource = Weave.root.requestObject(uniqueName,CSVDataSource, false);
+						var csvDataSource:CSVDataSource = Weave.root.requestObject(_uniqueNameForDataSource,CSVDataSource, false);
 						csvDataSource.setCSVDataString(csvDataString);
-						csvDataSource.keyType.value = uniqueName;
+						if(keyTypeSelector.selectedItem)
+							csvDataSource.keyType.value = keyTypeSelector.selectedItem as String;
+						else
+							csvDataSource.keyType.value = _uniqueNameForDataSource;
 						if(uniqueColumns.length !=0)
 						{
 							csvDataSource.keyColName.value = keyColumnSelector.selectedItem as String;
 						}
 						
-						assignProbeColumnsFromSource(csvDataSource,uniqueName);						
+						assignProbeColumnsFromSource(csvDataSource,_uniqueNameForDataSource);						
 						
 				}catch(e:Error)
 				{
 					
 				}
 				}
+				
+				
 			}
 			
+			private function getUniqueElementsFromArray(source:Array):Array
+			{
+				var result:Array = [];
+				
+				var dict:Dictionary = new Dictionary();
+				
+				for each(var obj:Object in source)
+				{
+					if(dict[obj] == undefined)
+					{
+						dict[obj] = true;
+					}
+				}
+				
+				for (var key:Object in dict)
+				{
+					result.push(key);
+				}
+				
+				return result;
+			}
 			
 			private function assignProbeColumnsFromSource(source:CSVDataSource,sourceName:String):void
 			{

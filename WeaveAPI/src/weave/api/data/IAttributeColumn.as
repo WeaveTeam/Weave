@@ -27,7 +27,7 @@ package weave.api.data
 	{
 		/**
 		 * This function gets metadata associated with the column.
-		 * For standard metadata property names, refer to the AttributeColumnMetadata class.
+		 * For standard metadata property names, refer to the ColumnMetadata class.
 		 * @param propertyName The name of the metadata property to retrieve.
 		 * @result The value of the specified metadata property.
 		 */

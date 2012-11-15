@@ -29,7 +29,7 @@
 	>
 	<mx:Label id="editorTitle" fontWeight="bold" text="{lang((_csvDataSource ? 'Edit' : 'Add') + ' CSV Data Source')}"/>
 	<ui:Indent group="{indentGroup}" label="{lang('Source Name *')}">
-		<mx:TextInput id="sourceName" change="keyType.text=sourceName.text" width="100%"/>
+		<mx:TextInput id="sourceName" focusOut="keyTypeSelector.addKeyTypeToMenu(sourceName.text)" width="100%"/>
 	</ui:Indent>
 	<ui:Indent group="{indentGroup}" label="{lang('Source URL')}">
 		<mx:TextInput change="handleURLTextChange()" id="url" width="100%" toolTip="{lang('enter the url of your CSV source file e.g. : http://vis.weave.com/MA_municipal_indicators.csv')}"/>
@@ -46,12 +46,10 @@
 		</ui:Indent>
 		<mx:Button enabled="false" label="{lang('View data in Grid')}" id="showGridButton" click="showGrid()"/>
 	</mx:VBox>
-	<ui:Indent group="{indentGroup}" label="{lang('Key Type *')}">
-		<mx:TextInput id="keyType" width="100%" toolTip="{lang('enter key type like US State Fips Code,etc. ')}"/>
-	</ui:Indent>
 	<ui:Indent group="{indentGroup}" label="{lang('Key Column')}">
 		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('enter the column name that uniquely identifies each row in the data set')}"/>
 	</ui:Indent>
+	<ui:KeyTypesMenu indent="{indentGroup.measuredIndent}" id="keyTypeSelector"/>
 	<mx:Spacer/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
@@ -73,8 +71,9 @@
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				
-				keyType.text = sourceName.text = Weave.root.generateUniqueName("CSVDataSource");
+				keyTypeSelector.labelText+=" *";
+				sourceName.text = Weave.root.generateUniqueName("CSVDataSource");
+				keyTypeSelector.addKeyTypeToMenu(sourceName.text);
 				getCallbackCollection(csvParser).addImmediateCallback(this, handleCSVParser);
 			}
 			
@@ -93,7 +92,7 @@
 					sourceName.text = Weave.root.getName(_csvDataSource);
 					url.text = _csvDataSource.url.value;
 					keyColumnName.text = _csvDataSource.keyColName.value;
-					keyType.text = _csvDataSource.keyType.value;
+					keyTypeSelector.addKeyTypeToMenu(_csvDataSource.keyType.value);
 					var rows:Array = _csvDataSource.csvData.getSessionState() as Array;
 					csvTextArea.text = WeaveAPI.CSVParser.createCSV(rows);
 					csvParser.parseCSV(csvTextArea.text);
@@ -109,7 +108,7 @@
 				{
 					_csvDataSource.url.value = url.text;
 					_csvDataSource.keyColName.value = keyColumnName.text;
-					_csvDataSource.keyType.value = keyType.text;
+					_csvDataSource.keyType.value = keyTypeSelector.selectedItem as String;
 					_csvDataSource.csvData.setSessionState(csvRows);
 					Alert.show(lang("Changes saved."))
 				}
