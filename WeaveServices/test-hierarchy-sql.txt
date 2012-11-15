@@ -1,3 +1,5 @@
+#   drop table weave_meta_private,weave_meta_public,weave_hierarchy,weave_manifest;
+
 delete from weave_hierarchy;
 insert into weave_hierarchy(parent_id,child_id,sort_order) values
 (100,2,1),
